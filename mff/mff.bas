@@ -1,4 +1,8 @@
-﻿'#Compile -dll -x "mff64.dll" "mff.rc"
+#IfDef __FB_64bit__
+    '#Compile -dll -x "mff64.dll" "mff.rc"
+#Else
+    '#Compile -dll -x "mff32.dll" "mff.rc"
+#EndIf
 #Include Once "Animate.bi"
 #Include Once "Application.bi"
 #Include Once "Bitmap.bi"
@@ -28,6 +32,7 @@
 #Include Once "HotKey.bi"
 #Include Once "Icon.bi"
 #Include Once "ImageList.bi"
+#Include Once "IPAddress.bi"
 #Include Once "IniFile.bi"
 #Include Once "Label.bi"
 #Include Once "LinkLabel.bi"
@@ -79,6 +84,7 @@ End Function
 Dim Shared Objects As List
 Common Shared Ctrl As Control Ptr
 Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Control Ptr) As Control Ptr Export
+    Ctrl = 0
     Select Case LCase(ClassName)
     Case "animate": Ctrl = New Animate
     Case "checkbox": Ctrl = New CheckBox
@@ -92,6 +98,7 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
     Case "groupbox": Ctrl = New GroupBox
     Case "header": Ctrl = New Header
     Case "hotkey": Ctrl = New HotKey
+    'Case "ipaddress": Ctrl = New IPAddress
     Case "label": Ctrl = New Label
     Case "linklabel": Ctrl = New LinkLabel
     Case "listcontrol": Ctrl = New ListControl
@@ -130,12 +137,14 @@ End Function
 
 Common Shared Cpnt As Component Ptr
 Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRef sName As WString) As Component Ptr Export
+    Cpnt = 0
     Select Case LCase(ClassName)
     Case "imagelist": Cpnt = New ImageList
     Case "timercomponent": Cpnt = New TimerComponent
     Case "tooltips": Cpnt = New ToolTips
     Case "mainmenu": Cpnt = New MainMenu
     Case "popupmenu": Cpnt = New PopUpMenu
+    Case "colordialog": Cpnt = New ColorDialog
     Case "folderbrowserdialog": Cpnt = New FolderBrowserDialog
     Case "fontdialog": Cpnt = New FontDialog
     Case "openfiledialog": Cpnt = New OpenFileDialog
@@ -155,59 +164,67 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
         Return False
     End If
     Select Case LCase(Cpnt->ClassName)
-    Case "animate": Delete Cast(Animate Ptr, Cpnt)
-    Case "checkbox" :Delete Cast(CheckBox Ptr, Cpnt)
-    Case "checkedlistbox": Delete Cast(CheckedListBox Ptr, Cpnt)
-    Case "comboboxedit": Delete Cast(ComboBoxEdit Ptr, Cpnt)
-    Case "comboboxex": Delete Cast(ComboBoxEx Ptr, Cpnt)
-    Case "commandbutton": Delete Cast(CommandButton Ptr, Cpnt)
-    Case "datetimepicker": Delete Cast(DateTimePicker Ptr, Cpnt)
-    Case "form": Delete Cast(Form Ptr, Cpnt)
-    Case "grid": Delete Cast(Grid Ptr, Cpnt)
-    Case "groupbox": Delete Cast(GroupBox Ptr, Cpnt)
-    Case "header": Delete Cast(Header Ptr, Cpnt)
-    Case "hotkey": Delete Cast(HotKey Ptr, Cpnt)
-    Case "label": Delete Cast(Label Ptr, Cpnt)
-    Case "linklabel": Delete Cast(LinkLabel Ptr, Cpnt)
-    Case "listcontrol": Delete Cast(ListControl Ptr, Cpnt)
+    Case "animate": Delete Cast(Animate Ptr, Ctrl)
+    Case "checkbox" :Delete Cast(CheckBox Ptr, Ctrl)
+    Case "checkedlistbox": Delete Cast(CheckedListBox Ptr, Ctrl)
+    Case "comboboxedit": Delete Cast(ComboBoxEdit Ptr, Ctrl)
+    Case "comboboxex": Delete Cast(ComboBoxEx Ptr, Ctrl)
+    Case "commandbutton": Delete Cast(CommandButton Ptr, Ctrl)
+    Case "datetimepicker": Delete Cast(DateTimePicker Ptr, Ctrl)
+    Case "form": Delete Cast(Form Ptr, Ctrl)
+    Case "grid": Delete Cast(Grid Ptr, Ctrl)
+    Case "groupbox": Delete Cast(GroupBox Ptr, Ctrl)
+    Case "header": Delete Cast(Header Ptr, Ctrl)
+    Case "hotkey": Delete Cast(HotKey Ptr, Ctrl)
+    'Case "ipaddress": Delete Cast(IPAddress Ptr, Ctrl)
+    Case "label": Delete Cast(Label Ptr, Ctrl)
+    Case "linklabel": Delete Cast(LinkLabel Ptr, Ctrl)
+    Case "listcontrol": Delete Cast(ListControl Ptr, Ctrl)
     Case "listview": Delete Cast(ListView Ptr, Ctrl)
-    Case "monthcalendar": Delete Cast(MonthCalendar Ptr, Cpnt)
-    Case "nativefontcontrol": Delete Cast(NativeFontControl Ptr, Cpnt)
-    Case "pagescroller": Delete Cast(PageScroller Ptr, Cpnt)
-    Case "panel": Delete Cast(Panel Ptr, Cpnt)
-    Case "progressbar": Delete Cast(ProgressBar Ptr, Cpnt)
-    Case "radiobutton": Delete Cast(RadioButton Ptr, Cpnt)
-    Case "rebar": Delete Cast(ReBar Ptr, Cpnt)
-    Case "richtextbox": Delete Cast(RichTextBox Ptr, Cpnt)
-    Case "tabcontrol": Delete Cast(TabControl Ptr, Cpnt)
-    Case "scrollbarcontrol": Delete Cast(ScrollBarControl Ptr, Cpnt)
-    Case "hscrollbar": Delete Cast(HScrollBar Ptr, Cpnt)
-    Case "vscrollbar": Delete Cast(VScrollBar Ptr, Cpnt)
-    Case "splitter": Delete Cast(Splitter Ptr, Cpnt)
-    Case "statusbar": Delete Cast(StatusBar Ptr, Cpnt)
-    Case "tabcontrol": Delete Cast(TabControl Ptr, Cpnt)
-    Case "textbox": Delete Cast(TextBox Ptr, Cpnt)
-    Case "toolbar": Delete Cast(ToolBar Ptr, Cpnt)
-    Case "tooltips": Delete Cast(ToolTips Ptr, Cpnt)
-    Case "trackbar": Delete Cast(TrackBar Ptr, Cpnt)
-    Case "treeview": Delete Cast(TreeView Ptr, Cpnt)
-    Case "updown": Delete Cast(UpDown Ptr, Cpnt)
-    Case "imagelist": Delete Cast(ImageList Ptr, Cpnt)
-    Case "timercomponent": Delete Cast(TimerComponent Ptr, Cpnt)
-    Case "tooltips": Delete Cast(ToolTips Ptr, Cpnt)
-    Case "mainmenu": Delete Cast(MainMenu Ptr, Cpnt)
-    Case "popupmenu": Delete Cast(PopUpMenu Ptr, Cpnt)
-    Case "folderbrowserdialog": Delete Cast(FolderBrowserDialog Ptr, Cpnt)
-    Case "fontdialog": Delete Cast(FontDialog Ptr, Cpnt)
-    Case "openfiledialog": Delete Cast(OpenFileDialog Ptr, Cpnt)
-    Case "savefiledialog": Delete Cast(SaveFileDialog Ptr, Cpnt)
+    Case "monthcalendar": Delete Cast(MonthCalendar Ptr, Ctrl)
+    Case "nativefontcontrol": Delete Cast(NativeFontControl Ptr, Ctrl)
+    Case "pagescroller": Delete Cast(PageScroller Ptr, Ctrl)
+    Case "panel": Delete Cast(Panel Ptr, Ctrl)
+    Case "progressbar": Delete Cast(ProgressBar Ptr, Ctrl)
+    Case "radiobutton": Delete Cast(RadioButton Ptr, Ctrl)
+    Case "rebar": Delete Cast(ReBar Ptr, Ctrl)
+    Case "richtextbox": Delete Cast(RichTextBox Ptr, Ctrl)
+    Case "tabcontrol": Delete Cast(TabControl Ptr, Ctrl)
+    Case "scrollbarcontrol": Delete Cast(ScrollBarControl Ptr, Ctrl)
+    Case "hscrollbar": Delete Cast(HScrollBar Ptr, Ctrl)
+    Case "vscrollbar": Delete Cast(VScrollBar Ptr, Ctrl)
+    Case "splitter": Delete Cast(Splitter Ptr, Ctrl)
+    Case "statusbar": Delete Cast(StatusBar Ptr, Ctrl)
+    Case "tabcontrol": Delete Cast(TabControl Ptr, Ctrl)
+    Case "textbox": Delete Cast(TextBox Ptr, Ctrl)
+    Case "toolbar": Delete Cast(ToolBar Ptr, Ctrl)
+    Case "tooltips": Delete Cast(ToolTips Ptr, Ctrl)
+    Case "trackbar": Delete Cast(TrackBar Ptr, Ctrl)
+    Case "treeview": Delete Cast(TreeView Ptr, Ctrl)
+    Case "updown": Delete Cast(UpDown Ptr, Ctrl)
+    Case "imagelist": Delete Cast(ImageList Ptr, Ctrl)
+    Case "timercomponent": Delete Cast(TimerComponent Ptr, Ctrl)
+    Case "tooltips": Delete Cast(ToolTips Ptr, Ctrl)
+    Case "mainmenu": Delete Cast(MainMenu Ptr, Ctrl)
+    Case "popupmenu": Delete Cast(PopUpMenu Ptr, Ctrl)
+    Case "folderbrowserdialog": Delete Cast(FolderBrowserDialog Ptr, Ctrl)
+    Case "colordialog": Delete Cast(ColorDialog Ptr, Ctrl)
+    Case "fontdialog": Delete Cast(FontDialog Ptr, Ctrl)
+    Case "openfiledialog": Delete Cast(OpenFileDialog Ptr, Ctrl)
+    Case "savefiledialog": Delete Cast(SaveFileDialog Ptr, Ctrl)
     End Select
     Return True
 End Function
 
-Sub ShowPropertyPage Alias "ShowPropertyPage"(ByRef cpnt As Component Ptr) Export
-    If cpnt = 0 Then Exit Sub
+Function ShowPropertyPage Alias "ShowPropertyPage"(Ctrl As Any Ptr) As Boolean Export
+    If Objects.Contains(Ctrl) Then
+        Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
+    Else
+        Return False
+    End If
+    If Cpnt = 0 Then Return False
     Select Case LCase(cpnt->ClassName)
     Case "imagelist": 
     End Select
-End Sub
+    Return True
+End Function
