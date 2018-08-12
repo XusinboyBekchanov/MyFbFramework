@@ -434,10 +434,12 @@ Namespace My.Sys.Forms
             Dim As MenuItem Ptr mi
             For i As Integer = 0 To FMenuItems.Count -1
                 mi = FMenuItems.Items[i]
-                If mi->Command = msg.wParamLo Then
-                    If mi->OnClick Then mi->OnClick(*mi)
-                    Exit For
-                End If
+                With *mi
+                    If .Command = msg.wParamLo Then
+                        If .OnClick Then .OnClick(*mi)
+                        Exit For
+                    End If
+                End With
             Next i
             IsMenuItem = False
         Case WM_MENUSELECT
