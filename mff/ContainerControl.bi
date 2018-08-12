@@ -52,7 +52,7 @@ Namespace My.Sys.Forms
 	End Operator
 
 	Constructor ContainerControl
-		ClassName = "ContainerControl"
+		WLet FClassName, "ContainerControl"
 	End Constructor
 
 	Destructor ContainerControl

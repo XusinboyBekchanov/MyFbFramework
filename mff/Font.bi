@@ -11,13 +11,12 @@ Namespace My.Sys.Drawing
 
     Type Font Extends My.Sys.Object
         Private:
-            FTemp      As WString Ptr
-            FName      As String
             FBold      As Boolean
             FItalic    As Boolean
             FUnderline As Boolean
             FStrikeOut As Boolean
             FSize      As Integer
+            FName      As WString Ptr
             FColor     As Integer
             FCharSet   As Integer 
             FParent    As HWND
@@ -26,11 +25,13 @@ Namespace My.Sys.Drawing
             Declare Sub Create
         Public:
             Handle As HFONT
+            Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+            Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
             Declare Function ToString ByRef As WString
             Declare Property Parent As HWND
             Declare Property Parent(Value As HWND)
-            Declare Property Name As String
-            Declare Property Name(Value As String)
+            Declare Property Name ByRef As WString
+            Declare Property Name(ByRef Value As WString)
             Declare Property Color As Integer
             Declare Property Color(Value As Integer)
             Declare Property Size As Integer
@@ -52,9 +53,41 @@ Namespace My.Sys.Drawing
             Declare Destructor
     End Type
 
+    Function Font.ReadProperty(ByRef PropertyName As String) As Any Ptr
+        Select Case LCase(PropertyName)
+        Case "name": Return FName
+        Case "color": Return @FColor
+        Case "size": Return @FSize
+        Case "charset": Return @FCharset
+        Case "bold": Return @FBold
+        Case "italic": Return @FItalic
+        Case "underline": Return @FUnderline
+        Case "strikeout": Return @FStrikeOut
+        Case Else: Return Base.ReadProperty(PropertyName)
+        End Select
+        Return 0
+    End Function
+    
+    Function Font.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+        If Value <> 0 Then
+            Select Case LCase(PropertyName)
+            Case "name": This.Name = QWString(Value)
+            Case "color": This.Color = QInteger(Value)
+            Case "size": This.Size = QInteger(Value)
+            Case "charset": This.Charset = QInteger(Value)
+            Case "bold": This.Bold = QBoolean(Value)
+            Case "italic": This.Italic = QBoolean(Value)
+            Case "underline": This.Underline = QBoolean(Value)
+            Case "strikeout": This.StrikeOut = QBoolean(Value)
+            Case Else: Return Base.WriteProperty(PropertyName, Value)
+            End Select
+        End If
+        Return True
+    End Function
+    
     Sub Font.Create
         If Handle Then DeleteObject(Handle) 
-        Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,0,0,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,FName)
+        Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,0,0,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
         If Handle Then
             If FParent Then
                 SendMessage(FParent ,WM_SETFONT,CUInt(Handle),True)
@@ -72,12 +105,12 @@ Namespace My.Sys.Drawing
         Create
     End Property
 
-    Property Font.Name As String
-        Return FName 
+    Property Font.Name ByRef As WString
+        Return WGet(FName) 
     End Property
 
-    Property Font.Name(Value As String)
-        FName = value
+    Property Font.Name(ByRef Value As WString)
+        WLet FName, value
         Create
     End Property
 
@@ -159,7 +192,7 @@ Namespace My.Sys.Drawing
     
     Operator Font.Let(Value As Font)
         With Value
-            FName      = .Name
+            WLet FName, .Name
             FBold      = .Bold
             FItalic    = .Italic
             FUnderline = .Underline
@@ -173,12 +206,13 @@ Namespace My.Sys.Drawing
 
     Constructor Font
         Dim As HDC Dc
+        WLet FClassName, "Font"
         Dc = GetDC(HWND_DESKTOP)
         FCyPixels = GetDeviceCaps(DC, LOGPIXELSY)
         ReleaseDC(HWND_DESKTOP,DC)
         FBolds(0) = 400
         FBolds(1) = 700
-        FName     = "TAHOMA"
+        WLet FName, "TAHOMA"
         FSize     = 8
         FCharSet  = DEFAULT_CHARSET
         Create

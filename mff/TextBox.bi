@@ -553,7 +553,7 @@ namespace My.Sys.Forms
             Dc = Cast(HDC,Message.wParam)
             SetBKMode Dc, TRANSPARENT
             SetTextColor Dc,Font.Color
-            SetBKColor Dc,This.Color
+            SetBKColor Dc,This.BackColor
             SetBKMode Dc,OPAQUE
         Case CM_COMMAND
             Select Case Message.wParamHi
@@ -651,15 +651,15 @@ namespace My.Sys.Forms
         FTabStop = True
         With This
             .OnHandleIsAllocated = @HandleIsAllocated
-            .ClassName = "TextBox"
-            .ClassAncestor = "Edit"
+            WLet FClassName, "TextBox"
+            WLet FClassAncestor, "Edit"
             .Child       = @This
             .ChildProc   = @WndProc
             .ExStyle     = WS_EX_CLIENTEDGE ' OR ES_AUTOHSCROLL OR ES_AUTOVSCROLL
             .Style       = WS_CHILD Or ES_AUTOHSCROLL Or WS_TABSTOP Or ES_WANTRETURN Or ACharCase(Abs_(FCharCase)) OR AMaskStyle(Abs_(FMasked)) OR AOEMConvert(Abs_(FOEMConvert)) OR AHideSelection(Abs_(FHideSelection))
             .Width       = 121
             .Height      = 21
-            .Color       = GetSysColor(COLOR_WINDOW)
+            .BackColor       = GetSysColor(COLOR_WINDOW)
             '.Cursor      = LoadCursor(NULL, IDC_IBEAM)
             .RegisterClass "TextBox", "Edit"
         End With

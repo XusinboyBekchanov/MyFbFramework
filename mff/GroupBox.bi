@@ -40,7 +40,7 @@ Namespace My.Sys.Forms
     Property GroupBox.ParentColor(Value As Boolean)
        FParentColor = Value
        If FParentColor Then
-          This.Color = Parent->Color
+          This.BackColor = Parent->BackColor
           Invalidate
        End If
     End Property
@@ -57,7 +57,7 @@ Namespace My.Sys.Forms
              Dc = Cast(HDC, Message.wParam)
              SetBKMode Dc, TRANSPARENT
              SetTextColor Dc, Font.Color
-             SetBKColor Dc, This.Color
+             SetBKColor Dc, This.BackColor
              SetBKMode Dc, OPAQUE
         Case CM_COMMAND
             If Message.wParamHi = BN_CLICKED Then
@@ -75,13 +75,13 @@ Namespace My.Sys.Forms
             .RegisterClass "GroupBox", "Button"
             .Child       = @This
             .ChildProc   = @WndProc
-            .ClassName   = "GroupBox"
-            .ClassAncestor   = "Button"
+            WLet FClassName, "GroupBox"
+            WLet FClassAncestor, "Button"
             .ExStyle     = WS_EX_TRANSPARENT
             .Style       = WS_CHILD OR BS_GROUPBOX
             .Width       = 121
             .Height      = 51
-            .Color       = GetSysColor(COLOR_BTNFACE)
+            .BackColor       = GetSysColor(COLOR_BTNFACE)
         End With    
     End Constructor
 

@@ -64,8 +64,8 @@ SendMessage(SMD,DTM_SETSYSTEMTIME,0,Cast(LPARAM,@ST))
         Text = ""
         With This
             Base.RegisterClass WStr("DateTimePicker"), WStr("SysDateTimePick32")
-            .ClassName = "DateTimePicker"
-            .ClassAncestor = "SysDateTimePick32"
+            WLet FClassName, "DateTimePicker"
+            WLet FClassAncestor, "SysDateTimePick32"
             .ExStyle      = 0 'WS_EX_LEFT OR WS_EX_LTRREADING OR WS_EX_RIGHTSCROLLBAR OR WS_EX_CLIENTEDGE
             .Style        = WS_CHILD Or DTS_SHORTDATEFORMAT 'Or DTS_RIGHTALIGN Or WS_VISIBLE Or WS_TABSTOP OR DTS_SHORTDATEFORMAT
             .Width        = 175

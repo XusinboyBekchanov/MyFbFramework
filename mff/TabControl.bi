@@ -181,10 +181,10 @@ Namespace My.Sys.Forms
         FObject    = 0
         FImageIndex        = 0
         Align = 5
-        AnchorLeft = asAnchor
-        AnchorTop = asAnchor
-        AnchorRight = asAnchor
-        AnchorBottom = asAnchor
+        Anchor.Left = asAnchor
+        Anchor.Top = asAnchor
+        Anchor.Right = asAnchor
+        Anchor.Bottom = asAnchor
     End Constructor
 
     Destructor TabPage
@@ -563,8 +563,8 @@ Namespace My.Sys.Forms
     Constructor TabControl
         SetMargins
         With This
-            .ClassName = "TabControl"
-            .ClassAncestor = "SysTabControl32"
+            WLet FClassName, "TabControl"
+            WLet FClassAncestor, "SysTabControl32"
             .RegisterClass "TabControl", "SysTabControl32"
             .Child       = @This
             .ChildProc   = @WndProc

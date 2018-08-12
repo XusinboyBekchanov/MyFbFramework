@@ -225,7 +225,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property CheckedListBox.Text ByRef As WString
-        Return *FText
+        Return WGet(FText)
     End Property
 
     Property CheckedListBox.Text(ByRef Value As WString)
@@ -339,7 +339,7 @@ Namespace My.Sys.Forms
             Dc = Cast(HDC,Message.wParam)
             SetBKMode Dc, TRANSPARENT
             SetTextColor Dc, Font.Color
-            SetBKColor Dc, This.Color
+            SetBKColor Dc, This.BackColor
             SetBKMode Dc, OPAQUE
         Case CM_COMMAND
             Select Case Message.wParamHi
@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
                     FillRect Dc, @R, Brush.Handle
                     R.Left += 2
                     SetTextColor Dc, Font.Color
-                    SetBKColor Dc, This.Color
+                    SetBKColor Dc, This.BackColor
                     DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX)
                 End If
             End If
@@ -466,15 +466,15 @@ Namespace My.Sys.Forms
         Items.Parent       = @This
         With This
             .RegisterClass "CheckedListBox", "ListBox"
-            .ClassName       = "CheckedListBox"
-            .ClassAncestor  = "ListBox"
+            WLet FClassName, "CheckedListBox"
+            WLet FClassAncestor, "ListBox"
             .Child       = @This
             .ChildProc   = @WndProc
             .ExStyle     = ABorderExStyle(Abs_(FCtl3D))
             Base.Style       = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
             .Width       = 121
             .Height      = 17
-            .Color       = GetSysColor(COLOR_WINDOW)
+            .BackColor       = GetSysColor(COLOR_WINDOW)
             .OnHandleIsAllocated = @HandleIsAllocated
         End With
     End Constructor
