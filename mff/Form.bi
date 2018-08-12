@@ -1,4 +1,4 @@
-﻿'###############################################################################
+'###############################################################################
 '#  Form.bi                                                                 #
 '#  This file is part of MyFBFramework                                         #
 '#  Version 1.0.0                                                              #
@@ -10,6 +10,36 @@
 Namespace My.Sys.Forms
     #DEFINE QForm(__Ptr__) *Cast(Form Ptr,__Ptr__)
 
+    Enum ModalResults
+        OK
+        Cancel
+        Yes
+        No
+    End Enum
+    
+    Enum FormBorderStyles
+        bsNone
+        bsChildDialog
+        bsDialog
+        bsSingle
+        bsToolWindow
+        bsSingleToolWindow
+    End Enum
+    
+    Enum FormStyles
+        fsNormal
+        fsMDIForm
+        fsMDIChild
+        fsStayOnTop
+    End Enum
+            
+    Enum WindowStates
+        wsHide
+        wsNormal
+        wsMaximized
+        wsMinimized
+    End Enum
+    
     Type Form Extends ContainerControl
         Private:
             FMainForm      As Boolean
@@ -35,26 +65,24 @@ Namespace My.Sys.Forms
             Declare Sub ProcessMessage(BYREF Message As Message)
         Public:
             Icon          As My.Sys.Drawing.Icon
-            Menu          As My.Sys.Forms.MainMenu Ptr
-            ModalResult   As Integer
+            Menu          As MainMenu Ptr
+            ModalResult   As Integer 'ModalResults
             Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
             Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
             Declare Property ActiveControl As Control Ptr
             Declare Property ActiveControl(Value As Control Ptr)
-            Declare Property DefaultButton As Control ptr
+            Declare Property DefaultButton As Control ptr 'CommandButton
             Declare Property DefaultButton(Value As Control ptr)
-            Declare Property CancelButton As Control ptr
+            Declare Property CancelButton As Control ptr 'CommandButton
             Declare Property CancelButton(Value As Control ptr)
-            Declare Property BorderStyle As Integer
+            Declare Property BorderStyle As Integer 'FormBorderStyles
             Declare Property BorderStyle(Value As Integer)
-            Declare Property FormStyle As Integer
+            Declare Property FormStyle As Integer 'FormStyles
             Declare Property FormStyle(Value As Integer)
-            Declare Property WindowState As Integer
+            Declare Property WindowState As Integer 'WindowStates
             Declare Property WindowState(Value As Integer)
             Declare Property Owner As Form Ptr
             Declare Property Owner(Value As Form Ptr)
-            Declare Property Align As Integer
-            Declare Property Align(Value As Integer)
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
             Declare Property MainForm As Boolean
@@ -91,17 +119,17 @@ Namespace My.Sys.Forms
     Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
         FTempString = LCase(PropertyName)
         Select Case FTempString
-        Case "constraintleft": Return @Constraints.Left
-        Case "constrainttop": Return @Constraints.Top
-        Case "constraintwidth": Return @Constraints.Width
-        Case "constraintheight": Return @Constraints.Height
         Case "borderstyle": Return @FBorderStyle
+        Case "cancelbutton": Return FCancelButton
         Case "caption": Return This.FText
-        Case "windowstate": Return @FWindowState
+        Case "defaultbutton": Return FDefaultButton
+        Case "icon": Return @Icon
+        Case "formstyle": Return @FFormStyle
         Case "menu": Return Menu
         Case "mainform": Return @FMainForm
-        Case "owner": Return @FOwner
-        Case "formstyle": Return @FFormStyle
+        Case "modalresult": Return @ModalResult
+        Case "owner": Return FOwner
+        Case "windowstate": Return @FWindowState
         Case Else: Return Base.ReadProperty(PropertyName)
         End Select
         Return 0
@@ -115,12 +143,16 @@ Namespace My.Sys.Forms
         Else
             Select Case LCase(PropertyName)
             Case "borderstyle": This.BorderStyle = QInteger(Value)
+            Case "cancelbutton": This.CancelButton = Cast(Control Ptr, Value)
             Case "caption": This.Caption = QWString(Value)
-            Case "windowstate": This.WindowState = QInteger(Value)
-            Case "mainform": This.MainForm = QBoolean(Value)
-            Case "menu": This.Menu = Value
-            Case "owner": This.Owner = Value
+            Case "defaultbutton": This.DefaultButton = Cast(Control Ptr, Value)
             Case "formstyle": This.FormStyle = QInteger(Value)
+            Case "icon": This.Icon = QWString(Value)
+            Case "mainform": This.MainForm = QBoolean(Value)
+            Case "menu": This.Menu = Cast(MainMenu Ptr, Value)
+            Case "modalresult": This.ModalResult = QInteger(Value)
+            Case "owner": This.Owner = Cast(Form Ptr, Value)
+            Case "windowstate": This.WindowState = QInteger(Value)
             Case Else: Return Base.WriteProperty(PropertyName, Value)
             End Select
         End If
@@ -133,6 +165,7 @@ Namespace My.Sys.Forms
 
     Property Form.ActiveControl(Value As Control Ptr)
         FActiveControl = Value
+        'If FActiveControl Then FActiveControl->SetFocus
         If OnActiveControlChange Then OnActiveControlChange(This)
     End Property
 
@@ -324,12 +357,14 @@ Namespace My.Sys.Forms
                     EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND OR MF_GRAYED)
                  End If
                  If .Menu Then .Menu->ParentWindow = .Handle
-                .GetMenuItems
+                 .GetMenuItems
                 Dim As String mnuCaption, HotKey
                 Dim As Integer Pos1, CountOfHotKeys = 0
+                Dim As MenuItem Ptr mi
                 ReDim accl(1) As ACCEL
                 For i As Integer = 0 To .FMenuItems.Count - 1
-                    mnuCaption = QMenuItem(.FMenuItems.Items[i]).Caption
+                    mi = .FMenuItems.Items[i]
+                    mnuCaption = mi->Caption
                     Pos1 = InStr(mnuCaption, !"\t")
                     If Pos1 > 0 Then
                         CountOfHotKeys = CountOfHotKeys + 1
@@ -342,7 +377,7 @@ Namespace My.Sys.Forms
                         Pos1 = InstrRev(HotKey, "+")
                         If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
                         accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
-                        accl(CountOfHotKeys - 1).cmd = QMenuItem(.FMenuItems.Items[i]).Command
+                        accl(CountOfHotKeys - 1).cmd = mi->Command
                     End If
                 Next i
                 .Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
@@ -396,9 +431,11 @@ Namespace My.Sys.Forms
             End Select
         Case WM_COMMAND
             GetMenuItems
+            Dim As MenuItem Ptr mi
             For i As Integer = 0 To FMenuItems.Count -1
-                If QMenuItem(FMenuItems.Items[i]).Command = msg.wParamLo Then
-                    If QMenuItem(FMenuItems.Items[i]).OnClick Then QMenuItem(FMenuItems.Items[i]).OnClick(QMenuItem(FMenuItems.Items[i]))
+                mi = FMenuItems.Items[i]
+                If mi->Command = msg.wParamLo Then
+                    If mi->OnClick Then mi->OnClick(*mi)
                     Exit For
                 End If
             Next i
@@ -530,6 +567,8 @@ Namespace My.Sys.Forms
            Exit Function
         End If
         If GetCapture <> 0 Then SendMessage(GetCapture,WM_CANCELMODE,0,0)
+        '?"..." & GetCapture
+        'ReleaseCapture
         For i = 0 To App.FormCount -1
             If App.Forms[i]->Handle <> Handle Then Cast(Form Ptr,App.Forms[i]->Child)->Enabled = False
         Next i
@@ -543,6 +582,7 @@ Namespace My.Sys.Forms
         For i = 0 To App.FormCount -1
              Cast(Form Ptr,App.Forms[i]->Child)->Enabled = True
         Next i
+        'ReleaseCapture
         SetActiveWindow MainHandle
         Function = ModalResult
     End Function
@@ -626,13 +666,13 @@ Namespace My.Sys.Forms
         With This
             .Child             = @This
             .ChildProc         = @WndProc
-            .ClassName         = "Form"
-            .ClassAncestor     = ""
+            WLet FClassName, "Form"
+            WLet FClassAncestor, ""
             .ExStyle           = FExStyle(FBorderStyle) OR FMainStyle(FMainForm)
             .Style             = FStyle(FBorderStyle) Or FChild(Abs_(FIsChild))
             .Width             = 350
             .Height            = 300
-            .Color             = GetSysColor(COLOR_BTNFACE) 
+            .BackColor             = GetSysColor(COLOR_BTNFACE) 
             .RegisterClass "Form"
             .OnHandleIsAllocated = @HandleIsAllocated
         End With
