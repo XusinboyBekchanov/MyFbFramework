@@ -238,11 +238,11 @@ End if
              .Child     = @This
              .ChildProc = @WndProc
              .Style     = WS_CHILD
-             .ClassName = "Splitter"
-             .ClassAncestor = ""
+             WLet FClassName, "Splitter"
+             WLet FClassAncestor, ""
              .Width     = 3
              .Align     = 1
-             .Color     = GetSysColor(COLOR_BTNFACE)
+             .BackColor     = GetSysColor(COLOR_BTNFACE)
              .RegisterClass "Splitter"
         End With
     End Constructor

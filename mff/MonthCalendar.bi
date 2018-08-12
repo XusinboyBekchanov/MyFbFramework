@@ -41,8 +41,8 @@ Namespace My.Sys.Forms
     Constructor MonthCalendar
         With This
             .RegisterClass "MonthCalendar","SysMonthCal32"
-            .ClassName = "MonthCalendar"
-            .ClassAncestor = "SysMonthCal32"
+            WLet FClassName, "MonthCalendar"
+            WLet FClassAncestor, "SysMonthCal32"
             .Style        = WS_CHILD
             .ExStyle      = 0
             .Width        = 175

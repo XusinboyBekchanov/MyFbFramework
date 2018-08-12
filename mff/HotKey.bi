@@ -41,8 +41,8 @@ Namespace My.Sys.Forms
     Constructor HotKey
         With This
             .RegisterClass "HotKey","msctls_hotkey32"
-            .ClassName = "HotKey"
-            .ClassAncestor = "msctls_hotkey32"
+            WLet FClassName, "HotKey"
+            WLet FClassAncestor, "msctls_hotkey32"
             .Style        = WS_CHILD
             .ExStyle      = 0
             .Width        = 175

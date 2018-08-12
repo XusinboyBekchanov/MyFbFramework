@@ -162,8 +162,8 @@ Namespace My.Sys.Forms
             .RegisterClass "VScrollBar", "ScrollBar"
             .Child       = @This
             .ChildProc   = @WndProc
-            .ClassName   = "VScrollBar"
-            .ClassAncestor   = "ScrollBar"
+            WLet FClassName, "VScrollBar"
+            WLet FClassAncestor, "ScrollBar"
             .ExStyle     = 0
             Base.Style       = WS_CHILD OR SB_VERT
             .Width       = 17

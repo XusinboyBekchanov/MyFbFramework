@@ -185,11 +185,11 @@ Namespace My.Sys.Forms
         FMaxValue  = 100
         FStep      = 10
         With This
-            .RegisterClass "Progress", PROGRESS_CLASS
+            .RegisterClass "ProgressBar", PROGRESS_CLASS
             .Child             = @This
             .ChildProc         = @WndProc
-            .ClassName         = "Progress"
-            .ClassAncestor         = PROGRESS_CLASS
+            WLet FClassName, "ProgressBar"
+            WLet FClassAncestor, PROGRESS_CLASS
             .ExStyle           = 0
             Base.Style             = WS_CHILD OR AStyle(Abs_(FStyle)) OR ASmooth(Abs_(FSmooth))
             .Width             = 150

@@ -67,6 +67,36 @@ Function MainHandle As HWND
     Return Wnd.Handle 
 End Function
 
+Function ZGet(ByRef subject As ZString Ptr) As String
+    If subject = 0 Then Return ""
+    Return *subject
+End Function
+
+Sub WReAllocate(ByRef subject AS Wstring Ptr, lLen AS Integer)
+    subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(Wstring)))
+End Sub
+
+Sub WDeAllocate(ByRef subject AS Wstring Ptr)
+    If subject Then Deallocate subject
+    subject = 0
+End Sub
+
+Function WGet(ByRef subject AS WString Ptr) ByRef As WString
+    If subject = 0 Then Return "" Else Return *subject
+End Function
+
+Sub WLet(ByRef subject AS WString Ptr, ByRef txt AS WString)
+    WReAllocate subject, Len(txt)
+    *subject = txt
+End Sub
+
+Sub WAdd(ByRef subject AS Wstring Ptr, ByRef txt AS WString)
+    Dim nLen As Integer = 0
+    If subject <> 0 Then nLen = Len(*subject)
+    WReAllocate subject, nLen + Len(txt)
+    *subject = *subject & txt
+End Sub
+
 Namespace ClassContainer
     Type ClassType
         Protected:
@@ -83,7 +113,7 @@ Namespace ClassContainer
     End Type
     
     Property ClassType.ClassName ByRef As WString
-        If FClassName Then Return *FClassName Else Return WStr("")
+        Return WGet(FClassName)
     End Property
     
     Property ClassType.ClassName(ByRef Value As WString)
@@ -92,7 +122,7 @@ Namespace ClassContainer
     End Property
     
     Property ClassType.ClassAncestor ByRef As WString
-        If FClassAncestor Then Return *FClassAncestor Else Return WStr("")
+        Return WGet(FClassAncestor)
     End Property
     
     Property ClassType.ClassAncestor(ByRef Value As WString)
@@ -162,7 +192,7 @@ End Namespace
 
 Using ClassContainer
 
-
+#IfDef GetMN
 Function GetMessageName(Message As Integer) As String
     Select Case Message    
       Case 0: Return "WM_NULL"
@@ -1183,6 +1213,31 @@ Function GetMessageName(Message As Integer) As String
       Case 52429: Return "WM_RASDIALEVENT"
     End Select
 End Function
+#EndIf
+
+Function ErrDescription(Code As Integer) ByRef As WString
+    Select Case Code
+    Case 0: Return "No error"
+    Case 1: Return "Illegal function call"
+    Case 2: Return "File not found signal"
+    Case 3: Return "File I/O error"
+    Case 4: Return "Out of memory" 
+    Case 5: Return "Illegal resume" 
+    Case 6: Return "Out of bounds array access"
+    Case 7: Return "Null Pointer Access"
+    Case 8: Return "No privileges"
+    Case 9: Return "Interrupted signal" 
+    Case 10: Return "Illegal instruction signal" 
+    Case 11: Return "Floating point error signal"
+    Case 12: Return "Segmentation violation signal"
+    Case 13: Return "Termination request signal"
+    Case 14: Return "Abnormal termination signal"
+    Case 15: Return "Quit request signal"
+    Case 16: Return "Return without gosub"
+    Case 17: Return "End of file"
+    Case Else: Return ""
+    End Select
+End Function
 
 Public Function _Abs(Value As Boolean) As Integer
     Return Abs(CInt(Value))
@@ -1218,39 +1273,23 @@ End Function
     'Return 0
 'End Function
 
-'Sub Split(ByRef subject As WString, ByRef result() As Wstring, byref Delimiter As Wstring)
-'    Dim As Integer i = 1, n, l, ls = Len(subject), p = 1
-'    While i <= ls
-'        l = Len(delimiter)
-'        If Mid(subject, i, l) = delimiter Then
-'            n = n + 1
-'            Redim Preserve result(n - 1)
-'            result(n - 1) = Mid(subject, p, i - p)
-'            p = i + l
-'            i = p
-'            Continue While
-'        EndIf
-'        i = i + 1
-'    Wend
-'    n = n + 1
-'    Redim Preserve result(n - 1)
-'    result(n - 1) = Mid(subject, p, i - p)
-'End Sub
-
-Sub WReAllocate(ByRef subject AS Wstring Ptr, lLen AS Integer)
-    subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(Wstring)))
-End Sub
-
-Sub WLet(ByRef subject AS Wstring Ptr, ByRef txt AS WString)
-    WReAllocate subject, Len(txt)
-    *subject = txt
-End Sub
-
-Sub WAdd(ByRef subject AS Wstring Ptr, ByRef txt AS WString)
-    Dim nLen As Integer = 0
-    If subject <> 0 Then nLen = Len(*subject)
-    WReAllocate subject, nLen + Len(txt)
-    *subject = *subject & txt
+Sub Split(ByRef subject As WString, ByRef Delimiter As Wstring, result() As Wstring Ptr)
+    Dim As Integer i = 1, n, l, ls = Len(subject), p = 1
+    While i <= ls
+        l = Len(delimiter)
+        If Mid(subject, i, l) = delimiter Then
+            n = n + 1
+            Redim Preserve result(n - 1)
+            WLet result(n - 1), Mid(subject, p, i - p)
+            p = i + l
+            i = p
+            Continue While
+        EndIf
+        i = i + 1
+    Wend
+    n = n + 1
+    Redim Preserve result(n - 1)
+    WLet result(n - 1), Mid(subject, p, i - p)
 End Sub
 
 Dim Shared sReplaceText As WString Ptr
@@ -1274,80 +1313,80 @@ Function Replace(ByRef subject As WString, ByRef oldtext As const WString, ByRef
 End Function
 
 Function StartsWith(ByRef a As WString, ByRef b As WString) As Boolean
-  Return Left(a, Len(b)) = b
+    Return Left(a, Len(b)) = b
 End Function
 
 Function EndsWith(ByRef a As WString, ByRef b As WString) As Boolean
-  Return Right(a, Len(b)) = b
+    Return Right(a, Len(b)) = b
 End Function
 
 Dim Shared symbols(0 To 15) As UByte
 For i As Integer = 48 to 57
-  symbols(i - 48) = i
+    symbols(i - 48) = i
 Next
 For i As Integer = 97 to 102
-  symbols(i - 87) = i
+    symbols(i - 87) = i
 Next
- 
+
 Const plus  As UByte = 43
 Const minus As Ubyte = 45
 Const dot   As UByte = 46
  
 Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
-  If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
-  Err = 0 
+    If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
+    Err = 0 
  
-  If base_ < 2 OrElse base_ > 16 Then
-    Err = 1000
-    Return False
-  End If
+    If base_ < 2 OrElse base_ > 16 Then
+        Err = 1000
+        Return False
+    End If
  
-  Dim t As String = LCase(subject)
+    Dim t As String = LCase(subject)
  
-  If (t[0] = plus) OrElse (t[0] = minus) Then
-     t = Mid(t, 2)
-  End If
+    If (t[0] = plus) OrElse (t[0] = minus) Then
+        t = Mid(t, 2)
+    End If
  
-  If Left(t, 2) = "&h" Then
-    If base_ <> 16 Then Return False
-    t = Mid(t, 3)
-  End if
+    If Left(t, 2) = "&h" Then
+        If base_ <> 16 Then Return False
+        t = Mid(t, 3)
+    End if
  
-  If Left(t, 2) = "&o" Then
-    If base_ <> 8 Then Return False
-    t = Mid(t, 3)
-  End if
+    If Left(t, 2) = "&o" Then
+        If base_ <> 8 Then Return False
+        t = Mid(t, 3)
+    End if
  
-  If Left(t, 2) = "&b" Then
-    If base_ <> 2 Then Return False
-    t = Mid(t, 3)
-  End if
+    If Left(t, 2) = "&b" Then
+        If base_ <> 2 Then Return False
+        t = Mid(t, 3)
+    End if
  
-  If Len(t) = 0 Then Return False
-  Dim As Boolean isValid, hasDot = false
+    If Len(t) = 0 Then Return False
+    Dim As Boolean isValid, hasDot = false
  
-  For i As Integer = 0 To Len(t) - 1
-    isValid = False
+    For i As Integer = 0 To Len(t) - 1
+        isValid = False
  
-    For j As Integer = 0 To base_ - 1
-      If t[i] = symbols(j) Then
-        isValid = True
-        Exit For
-      End If
-      If t[i] = dot Then
-        If CInt(Not hasDot) AndAlso (base_ = 10) Then
-          hasDot = True 
-          IsValid = True
-          Exit For
-        End If
-        Return False ' either more than one dot or not base 10
-      End If
-    Next j
+        For j As Integer = 0 To base_ - 1
+            If t[i] = symbols(j) Then
+                isValid = True
+                Exit For
+            End If
+            If t[i] = dot Then
+                If CInt(Not hasDot) AndAlso (base_ = 10) Then
+                    hasDot = True 
+                    IsValid = True
+                    Exit For
+                End If
+                Return False ' either more than one dot or not base 10
+            End If
+        Next j
  
-    If Not isValid Then Return False
-  Next i
+        If Not isValid Then Return False
+    Next i
  
-  Return True
+    Return True
 End Function
 
 function utf16BeByte2wchars( ta() as ubyte ) ByRef As Wstring

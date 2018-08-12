@@ -6,6 +6,7 @@
 
 #Include Once "WStringList.bi"
 #Include Once "Control.bi"
+#include once "win/winver.bi"
 
 '#DEFINE crArrow       LoadCursor(0,IDC_ARROW)
 '#DEFINE crAppStarting LoadCursor(0,IDC_APPSTARTING)
@@ -29,6 +30,8 @@
 '#DEFINE crVSplit      LoadCursor(GetModuleHandle(NULL),"VSPLIT")
 '#DEFINE crNoDrop      LoadCursor(GetModuleHandle(NULL),"NODROP")
 '
+Declare Function MsgBox(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0) As Integer
+    
 Enum ShutdownMode
     smAfterMainFormCloses
     smAfterAllFormsCloses
@@ -42,6 +45,7 @@ namespace My
             FTitle          As WString Ptr
             FIcon           As My.Sys.Drawing.Icon
             FExeName        As WString Ptr
+            FFileName       As WString Ptr
             FHintColor      As Integer
             FHintPause      As Integer
             FHintShortPause As Integer
@@ -57,16 +61,23 @@ namespace My
             Declare Static Function EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
             Declare Sub GetFonts
             Declare Sub GetForms
+            As Byte initialized
+        
+   As Any Ptr _vinfo
+        
+   As String TranslationString
         Public:
             Fonts           As WStringList
             MouseX          As Integer
             MouseY          As Integer
-            Version         As Integer
-            Minor           As Integer
-            Major           As Integer
             HelpFile        As String
             Instance        As HINSTANCE
-            Declare Property Icon As My.Sys.Drawing.Icon
+            Declare Property FileName ByRef As WString
+            Declare Property FileName(ByRef Value As WString)
+            Declare Function Version() As Const String
+            Declare Function GetVerInfo(ByRef InfoName As Const String) As Const String
+        
+   Declare Property Icon As My.Sys.Drawing.Icon
             Declare Property Icon(value As My.Sys.Drawing.Icon)
             Declare Property Title ByRef As WString
             Declare Property Title(ByRef Value As WString)
@@ -104,6 +115,10 @@ namespace My
             Declare Destructor
             OnMouseMove As Sub(BYREF X As Integer,BYREF Y As Integer)
     End Type
+
+    Function Application.Version As Const String
+        Return GetVerInfo("FileVersion")
+    End Function
 
     Property Application.Icon As My.Sys.Drawing.Icon
         Return FIcon
@@ -146,6 +161,7 @@ namespace My
             If s[i] = Asc("\") Then k = i
         Next i
         En = Mid(s, k + 2, Len(s))
+        WLet FFileName, s
         WLet FExeName, Mid(En, 1, InStr(En, ".") - 1)
         Return *FExeName
     End Property
@@ -275,7 +291,7 @@ namespace My
             If GetForegroundWindow() = frm->Handle Then
                 If Frm Then
                     If Frm->Accelerator Then TranslateAndDispatch = TranslateAccelerator(Frm->Handle, Frm->Accelerator, @msg) = 0
-                    If TranslateAndDispatch Then TranslateAndDispatch = Not Cast(Boolean, IsDialogMessage(frm->Handle, @msg))
+                    'If TranslateAndDispatch Then TranslateAndDispatch = Not Cast(Boolean, IsDialogMessage(frm->Handle, @msg))
                 End If
             End If
             If TranslateAndDispatch Then
@@ -406,15 +422,77 @@ namespace My
         Return @This
     End Operator
 
-    Constructor Application
+    Private Function Application.GetVerInfo(ByRef InfoName As Const String) As Const String
+    
+   Dim As ULong iret
+    
+    If TranslationString = "" Then Return ""
+   Dim As WString Ptr value = 0
+        Dim As Const String FullInfoName = $"\StringFileInfo\" & TranslationString & "\" & InfoName
+    
+
+    
+   If VerQueryValue(_vinfo, FullInfoName, @value, @iret) Then
+    
+      ''~ value = cast( zstring ptr, vqinfo )
+    
+   End If
+    
+
+    
+   Return WGet(value)
+    
+End Function
+
+     Constructor Application
         InitCommonControls
         Instance = GetModuleHandle(NULL)
         GetFonts
+        Dim As DWORD ret, discard
+    
+    
+   This.initialized = FALSE
+    
+   This._vinfo = 0
+    
+
+        ExeName
+        ret = GetFileVersionInfoSize(FFileName, @discard)
+    
+   If ret <> 0 Then
+    
+      This._vinfo = Allocate(ret)
+    
+      If This._vinfo Then
+    
+         If GetFileVersionInfo(FFileName, 0, ret, This._vinfo) Then
+    
+            Dim As Unsigned Short Ptr ulTranslation
+    
+            Dim As ULong iret
+    
+            If VerQueryValue(_vinfo, $"\VarFileInfo\Translation", @ulTranslation, @iret) Then
+    
+               TranslationString = Hex(ulTranslation[0], 4) & Hex(ulTranslation[1], 4)
+    
+            End If
+    
+            This.initialized = TRUE
+    
+         End If
+    
+      End If
+    
+   End If
     End Constructor
 
     Destructor Application
         If FForms Then DeAllocate FForms
+        If FFileName Then DeAllocate FFileName
+        If FExeName Then DeAllocate FExeName
+        If FTitle Then DeAllocate FTitle
         If FControls Then DeAllocate FControls
+        If This._vinfo <> 0 Then Deallocate(This._vinfo) : This._vinfo = 0
     End Destructor
 End namespace
 

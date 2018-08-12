@@ -102,7 +102,7 @@ Namespace My.Sys.Drawing
 		ParentControl = Value
 		If ParentControl Then 
 			'ParentControl->Canvas = @This
-			Brush.Color = Ctrl->Color
+			Brush.Color = Ctrl->BackColor
 		End If
 	End Property
 

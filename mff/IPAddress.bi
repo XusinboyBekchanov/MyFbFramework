@@ -32,7 +32,7 @@ Namespace My.Sys.Forms
     End Sub
 
     Sub IPAddress.ProcessMessage(ByRef Message As Message)
-        'Base.ProcessMessage Message
+        Base.ProcessMessage Message
     End Sub
 
     Operator IPAddress.Cast As My.Sys.Forms.Control Ptr
@@ -49,8 +49,8 @@ Namespace My.Sys.Forms
 
         With This
             .RegisterClass "IPAddress", WC_IPADDRESS
-            .ClassName = "IPAddress"
-            .ClassAncestor = WC_IPADDRESS
+            WLet FClassName, "IPAddress"
+            WLet FClassAncestor, WC_IPADDRESS
             .ExStyle      = 0
             .Style        = WS_CHILD
             .Width        = 100

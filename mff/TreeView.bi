@@ -47,8 +47,9 @@ Namespace My.Sys.Forms
     
     Type TreeNode Extends My.Sys.Object
         Private:
-            FText            As WString Ptr
-            FHint            As WString Ptr
+            FName           As WString Ptr
+            FText           As WString Ptr
+            FHint           As WString Ptr
             FImageIndex   As Integer
             FImageKey   As WString Ptr
             FSelectedImageIndex   As Integer
@@ -63,6 +64,9 @@ Namespace My.Sys.Forms
             Declare Sub SelectItem
             Declare Sub Expand
             Declare Function IsExpanded As Boolean
+            Declare Virtual Function ToString ByRef As WString
+            Declare Property Name ByRef As WString
+            Declare Property Name(ByRef Value As WString)
             Declare Property Text ByRef As WString
             Declare Property Text(ByRef Value As WString)
             Declare Property Hint ByRef As WString
@@ -127,8 +131,12 @@ Namespace My.Sys.Forms
         If Parent AndAlso Parent->Handle Then Return TreeView_GetItemState(Parent->Handle, Handle, TVIS_EXPANDED)
     End Function
 
+    Function TreeNode.ToString ByRef As WString
+        Return This.Name
+    End Function
+
     Property TreeNode.Text ByRef As WString
-        Return *FText
+        Return WGet(FText)
     End Property
 
     Property TreeNode.Text(ByRef Value As WString)
@@ -146,12 +154,19 @@ Namespace My.Sys.Forms
     End Property
 
     Property TreeNode.Hint ByRef As WString
-        Return *FHint
+        Return WGet(FHint)
     End Property
 
     Property TreeNode.Hint(ByRef Value As WString)
-        FHint = ReAllocate(FHint, (Len(Value) + 1) * SizeOf(WString))
-        *FHint = Value
+        WLet FHint, Value
+    End Property
+
+    Property TreeNode.Name ByRef As WString
+        Return WGet(FName)
+    End Property
+
+    Property TreeNode.Name(ByRef Value As WString)
+        WLet FName, Value
     End Property
 
     Property TreeNode.ImageIndex As Integer
@@ -170,7 +185,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property TreeNode.ImageKey ByRef As WString
-        Return *FImageKey
+        Return WGet(FImageKey)
     End Property
 
     Property TreeNode.ImageKey(ByRef Value As WString)
@@ -206,7 +221,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property TreeNode.SelectedImageKey ByRef As WString
-        Return *FImageKey
+        Return WGet(FSelectedImageKey)
     End Property
 
     Property TreeNode.SelectedImageKey(ByRef Value As WString)
@@ -252,8 +267,10 @@ Namespace My.Sys.Forms
 
     Destructor TreeNode
         Nodes.Clear
-        Deallocate FHint
-        Deallocate FText
+        WDeAllocate FHint
+        WDeAllocate FText
+        WDeAllocate FImageKey
+        WDeAllocate FSelectedImageKey
     End Destructor
     
     Constructor TreeNodeCollection
@@ -477,7 +494,7 @@ Namespace My.Sys.Forms
                 Case NM_KILLFOCUS
                 Case NM_RCLICK 
                 Case NM_RDBLCLK 
-                Case NM_RETURN
+                Case NM_RETURN: If OnNodeDblClick Then OnNodeDblClick(This, *Nodes.FindByHandle(tvp->itemNew.hItem))
                 Case NM_SETCURSOR
                 Case NM_SETFOCUS
                 'Case NM_KEYDOWN: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))
@@ -612,8 +629,8 @@ Namespace My.Sys.Forms
             .RegisterClass "TreeView", WC_TREEVIEW
             .Child             = @This
             .ChildProc         = @WndProc
-            .ClassName         = "TreeView"
-            .ClassAncestor         = WC_TREEVIEW
+            WLet FClassName, "TreeView"
+            WLet FClassAncestor, WC_TREEVIEW
             .ExStyle           = WS_EX_CLIENTEDGE
             .Style             = WS_CHILD Or WS_VISIBLE or TVS_HASLINES or TVS_LINESATROOT or TVS_HASBUTTONS
             .Width             = 121

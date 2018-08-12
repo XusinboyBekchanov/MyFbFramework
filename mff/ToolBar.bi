@@ -57,12 +57,17 @@ Namespace My.Sys.Forms
             FButtonTop    As Integer
             FButtonWidth  As Integer
             FButtonHeight As Integer
+        Protected:
+            FName           As WString Ptr
         Public:
             DropDownMenu  As PopupMenu
             Tag           As Any Ptr
             Ctrl       As Control Ptr
+            Declare Virtual Function ToString ByRef As WString
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
+            Declare Property Name ByRef As WString
+            Declare Property Name(ByRef Value As WString)
             Declare Property Hint ByRef As WString
             Declare Property Hint(ByRef Value As WString)
             Declare Property ShowHint As Boolean
@@ -183,6 +188,10 @@ Namespace My.Sys.Forms
         Next j
     End Sub
     
+    Function ToolButton.ToString ByRef As WString
+        Return This.Name
+    End Function
+
     Property ToolButton.Caption ByRef As WString
         Return *FCaption
     End Property
@@ -206,6 +215,14 @@ Namespace My.Sys.Forms
                 End With
             End If
         End If 
+    End Property
+
+    Property ToolButton.Name ByRef As WString
+        Return WGet(FName)
+    End Property
+
+    Property ToolButton.Name(ByRef Value As WString)
+        WLet FName, Value
     End Property
 
     Property ToolButton.Hint ByRef As WString
@@ -435,8 +452,9 @@ Namespace My.Sys.Forms
 
     Destructor ToolButton
         If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
-        Deallocate FHint
-        Deallocate FCaption
+        WDeallocate FHint
+        WDeallocate FCaption
+        WDeallocate FName
     End Destructor
 
     Property ToolButtons.Count As Integer
@@ -773,8 +791,8 @@ Namespace My.Sys.Forms
             .RegisterClass "ToolBar", "ToolBarWindow32"
             .Child             = @This
             .ChildProc         = @WndProc
-            .ClassName         = "ToolBar"
-            .ClassAncestor     = "ToolBarWindow32"
+            WLet FClassName, "ToolBar"
+            WLet FClassAncestor, "ToolBarWindow32"
             .ExStyle           = 0
             .Style             = WS_CHILD OR TBSTYLE_TOOLTIPS OR CCS_NOPARENTALIGN OR CCS_NOMOVEY OR AList(FList) Or AAutosize(_Abs(FAutosize)) OR AFlat(_Abs(FFlat)) OR ADivider(_Abs(FDivider)) OR AWrap(_Abs(FWrapable)) OR ATransparent(_Abs(FTransparent))
             .Width             = 121

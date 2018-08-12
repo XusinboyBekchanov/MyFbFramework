@@ -36,7 +36,7 @@ Type IniFile
 End Type
 
 Property IniFile.File ByRef As WString
-    Return *FFile
+    Return WGet(FFile)
 End Property
 
 Property IniFile.File(ByRef Value As WString)

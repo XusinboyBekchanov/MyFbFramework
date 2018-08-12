@@ -60,7 +60,7 @@ namespace My.Sys.Forms
 '                cbei.cchTextMax = 255
 '              Parent->Perform CBEM_GETITEM, 0, CInt(@cbei)
 '          End If
-        Return *FText
+        Return WGet(FText)
     End Property
 
     Property ComboBoxItem.Text(ByRef Value As WString)
@@ -84,7 +84,7 @@ Property ComboBoxItem.Object As Any Ptr
     End Property
 
     Property ComboBoxItem.Hint ByRef As WString
-        Return *FHint
+        Return WGet(FHint)
     End Property
 
     Property ComboBoxItem.Hint(ByRef Value As WString)
@@ -445,11 +445,11 @@ Property ComboBoxItem.Object As Any Ptr
             .Child       = @This
             .ChildProc   = @WndProc
             Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or WS_VSCROLL
-            .ClassName   = "ComboBoxEx"
-            .ClassAncestor   = "ComboBoxEx32"
+            WLet FClassName, "ComboBoxEx"
+            WLet FClassAncestor, "ComboBoxEx32"
             Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
             .OnHandleIsAllocated = @HandleIsAllocated
-            .Color       = GetSysColor(COLOR_WINDOW)
+            .BackColor       = GetSysColor(COLOR_WINDOW)
             .Width       = 121
             .Height      = 121
         End With  

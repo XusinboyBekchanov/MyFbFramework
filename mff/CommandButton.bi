@@ -140,8 +140,8 @@ Namespace My.Sys.Forms
 
     Sub CommandButton.ProcessMessage(BYREF msg As Message)
         Select Case msg.Msg
-        Case BM_CLICK
-            If OnClick Then OnClick(This)
+'        Case BM_CLICK
+'            If OnClick Then OnClick(This)
         Case CM_COMMAND
             'If Message.wParamHi = BN_CLICKED Then
             '    If OnClick Then OnClick(This)
@@ -186,7 +186,8 @@ Namespace My.Sys.Forms
             .RegisterClass "CommandButton","Button"
             .Child       = @This
             .ChildProc   = @WndProc
-            .ClassName   = "CommandButton"
+            WLet FClassName, "CommandButton"
+            WLet FClassAncestor, "Button"
             .ExStyle     = 0
             Base.Style       = WS_CHILD OR WS_TABSTOP OR AStyle(Abs_(FStyle)) OR ADefault(Abs_(FDefault))
             .Width       = 75

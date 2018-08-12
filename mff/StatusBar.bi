@@ -222,12 +222,12 @@ Namespace My.Sys.Forms
     End Property
 
     Property StatusBar.Color As Integer
-        Return Base.Color
+        Return Base.BackColor
     End Property
 
     Property StatusBar.Color(Value As Integer)
-        Base.Color = Value
-        If Handle Then SendMessage(Handle, SB_SETBKCOLOR, 0, Base.Color)
+        Base.BackColor = Value
+        If Handle Then SendMessage(Handle, SB_SETBKCOLOR, 0, Base.BackColor)
     End Property
 
     Property StatusBar.SizeGrip As Boolean
@@ -298,8 +298,8 @@ Namespace My.Sys.Forms
         FSizeGrip = True
         With This
             .RegisterClass "StatusBar","msctls_StatusBar32"
-            .ClassName = "StatusBar"
-            .ClassAncestor = "msctls_StatusBar32"
+            WLet FClassName, "StatusBar"
+            WLet FClassAncestor, "msctls_StatusBar32"
             .Style        = WS_CHILD OR CCS_NOPARENTALIGN OR AStyle(Abs_(FSizeGrip))
             .ExStyle      = 0
             .Width        = 175
