@@ -51,7 +51,6 @@ type PMenuItem  as MenuItem ptr
             FImageKey     As WString Ptr
             FOwnerDraw  As integer
         Protected:
-            FName           As WString Ptr
             FHandle         As HMENU
             FMenu           As HMENU
             FOwner          As PMenu
@@ -61,8 +60,6 @@ type PMenuItem  as MenuItem ptr
             declare property Owner(value as PMenu)
             declare property Menu as HMENU
             declare property Menu(value as HMENU)
-            declare property Name ByRef As WString
-            declare property Name(ByRef value As WString)
             declare property Parent as PMenuItem
             declare property Parent(value as PMenuItem)
             declare property Command as integer
@@ -92,7 +89,6 @@ type PMenuItem  as MenuItem ptr
             declare property Item(index as integer) as PMenuItem
             declare property Item(index as integer, value as PMenuItem)
             declare sub Click
-            Declare Virtual Function ToString ByRef As WString
             declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
             declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
             declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
@@ -199,10 +195,6 @@ type PMenuItem  as MenuItem ptr
             End If   
         End If   
     End Sub
-    
-    Function MenuItem.ToString ByRef As WString
-        Return This.Name
-    End Function
 
     Sub TraverseItems(Item As MenuItem)
         Dim As MenuItemInfo mii
@@ -248,14 +240,6 @@ type PMenuItem  as MenuItem ptr
 
     property MenuItem.MenuIndex(value as integer)
         FMenuIndex = value
-    end property
-
-    property MenuItem.Name ByRef as WString
-        return WGet(FName)
-    end property
-
-    property MenuItem.Name(ByRef value as WString)
-        WLet FName, value
     end property
 
 '    declare function BeginPanningFeedback(byval hwnd as HWND) as WINBOOL
@@ -562,7 +546,7 @@ type PMenuItem  as MenuItem ptr
     end property
 
     property MenuItem.ImageKey ByRef As WString
-        return WGet(FImageKey)
+        return *FImageKey
     end property
 
     property MenuItem.ImageKey(ByRef value As WString)
@@ -616,7 +600,7 @@ type PMenuItem  as MenuItem ptr
     end property
 
     property MenuItem.Caption ByRef As WString
-        return WGet(FCaption)
+        return *FCaption
     end property
 
     property MenuItem.Caption(ByRef value As WString)
@@ -906,7 +890,6 @@ type PMenuItem  as MenuItem ptr
             FItems = callocate(0)
         end if
         If FCaption Then Deallocate FCaption
-        WDeallocate FName
         if FHandle then
             DestroyMenu(FHandle)
             FHandle = 0
@@ -1226,7 +1209,7 @@ type PMenuItem  as MenuItem ptr
 
     constructor MainMenu
         FHandle      = CreateMenu
-        WLet FClassName, "MainMenu"
+        ClassName = "MainMenu"
         FIncSubItems = 1
         FColor       = GetSysColor(color_menu)
         FInfo.cbSize = sizeof(FInfo)
@@ -1267,7 +1250,7 @@ type PMenuItem  as MenuItem ptr
 
     constructor PopupMenu
         FHandle = CreatePopupMenu
-        WLet FClassName, "PopupMenu"
+        ClassName = "PopUpMenu"
         FInfo.cbsize     = sizeof(FInfo)
         FInfo.fmask      = MIM_MENUDATA
         FInfo.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))

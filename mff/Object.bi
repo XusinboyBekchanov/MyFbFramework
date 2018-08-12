@@ -1,45 +1,28 @@
 ﻿#Include Once "SysUtils.bi"
 
 Namespace My.Sys
-    #DEFINE QBoolean(__Ptr__) *Cast(Boolean Ptr,__Ptr__)
-    #DEFINE QInteger(__Ptr__) *Cast(Integer Ptr,__Ptr__)
-    #DEFINE QWString(__Ptr__) *Cast(WString Ptr,__Ptr__)
-    #DEFINE QZString(__Ptr__) *Cast(ZString Ptr,__Ptr__)
     #DEFINE QObject(__Ptr__) *Cast(My.Sys.Object Ptr,__Ptr__)
     
     Type Object Extends Object
         Protected:
-            FTemp As WString Ptr
             FClassName As WString Ptr
+            FClassAncestor As WString Ptr
+            FName As WString Ptr
         Public:
             Declare Virtual Function ToString ByRef As WString
-            Declare Function ClassName ByRef As WString
+            Declare Property ClassName ByRef As WString
+            Declare Property ClassName(ByRef Value As WString)
+            Declare Property ClassAncestor ByRef As WString
+            Declare Property ClassAncestor(ByRef Value As WString)
+            Declare Property Name ByRef As WString
+            Declare Property Name(ByRef Value As WString)
             Declare Operator Cast As Any Ptr
             Declare Operator Cast ByRef As WString
-            Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-            Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
             Declare Sub Free
             Declare Sub Dispose
             Declare Constructor
             Declare Destructor
     End Type
-    
-    Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr
-        Select Case LCase(PropertyName)
-        Case "classname": Return FClassName
-        Case Else: Return 0
-        End Select
-        Return 0
-    End Function
-    
-    Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-        If Value <> 0 Then
-            Select Case LCase(PropertyName)
-            Case Else: Return False
-            End Select
-        End If
-        Return True
-    End Function
 
     Sub Object.Free
         Delete @This
@@ -50,24 +33,43 @@ Namespace My.Sys
     End Sub
 
     Operator Object.Cast ByRef As WString
-        Return This.ClassName
+        Return This.Name
     end operator
 
     Operator Object.Cast As Any Ptr
         Return @This
     End Operator
 
-    Function Object.ClassName ByRef As WString
+    Property Object.ClassName ByRef As WString
         If FClassName = 0 Or FClassName = 24 Then
             Return WStr("")
         Else
             Return *FClassName
         End If
-    End Function
+    End Property
+    
+    Property Object.ClassName(ByRef Value As WString)
+        WLet FClassName, Value
+    End Property
+    
+    Property Object.ClassAncestor ByRef As WString
+        If FClassAncestor Then Return *FClassAncestor Else Return WStr("")
+    End Property
+    
+    Property Object.ClassAncestor(ByRef Value As WString)
+        WLet FClassAncestor, Value
+    End Property
+    
+    Property Object.Name ByRef As WString
+        If FName Then Return *FName Else Return WStr("")
+    End Property
+    
+    Property Object.Name(ByRef Value As WString)
+        WLet FName, Value
+    End Property
     
     Function Object.ToString ByRef As WString
-        WLet FTemp, "(" & This.ClassName & ")"
-        Return *FTemp
+        Return Name
     End Function
     
     Constructor Object
@@ -77,7 +79,9 @@ Namespace My.Sys
     End Constructor
 
     Destructor Object
-        WDeallocate FClassName
+        If FClassName Then Deallocate FClassName
+        If FClassAncestor Then Deallocate FClassAncestor
+        If FName Then Deallocate FName
     End Destructor
     
     Type NotifyEvent     As Sub(ByRef Sender As My.Sys.Object)

@@ -41,8 +41,8 @@ Namespace My.Sys.Forms
     Constructor ToolTips
         With This
             .RegisterClass "ToolTips","tooltips_class32"
-            WLet FClassName, "ToolTips"
-            WLet FClassAncestor, "tooltips_class32"
+            .ClassName = "ToolTips"
+            .ClassAncestor = "tooltips_class32"
             .Style        = WS_CHILD
             .ExStyle      = 0
             .Width        = 175

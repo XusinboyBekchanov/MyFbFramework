@@ -83,7 +83,7 @@ Namespace My.Sys.Forms
               ListView_GetItem(Parent->Handle, @lvi)
             Return *FText
           End If
-        Return WGet(FText)
+        Return *FText
     End Property
 
     Property GridItem.Text(iSubItem As Integer, ByRef Value As WString)
@@ -100,7 +100,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property GridItem.Hint ByRef As WString
-        Return WGet(FHint)
+        Return *FHint
     End Property
 
     Property GridItem.Hint(ByRef Value As WString)
@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
     End Sub
 
     Property GridColumn.Text ByRef As WString
-        Return WGet(FText)
+        Return *FText
     End Property
 
     Property GridColumn.Text(ByRef Value As WString)
@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property GridColumn.Hint ByRef As WString
-        Return WGet(FHint)
+        Return *FHint
     End Property
 
     Property GridColumn.Hint(ByRef Value As WString)
@@ -745,8 +745,8 @@ Namespace My.Sys.Forms
             .RegisterClass "Grid", WC_ListView
             .Child             = @This
             .ChildProc         = @WndProc
-            WLet FClassName, "Grid"
-            WLet FClassAncestor, WC_ListView
+            .ClassName         = "Grid"
+            .ClassAncestor         = WC_ListView
             .ExStyle           = WS_EX_CLIENTEDGE
             .Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
             .Width             = 121

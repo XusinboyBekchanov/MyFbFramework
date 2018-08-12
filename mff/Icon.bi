@@ -6,62 +6,25 @@ Namespace My.Sys.Drawing
         Private:
             FWidth  As Integer
             FHeight As Integer
-            FResName As WString Ptr
         Public:
             Graphic As Any Ptr
             Handle  As HICON
-            Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-            Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-            Declare Property ResName ByRef As WString
-            Declare Property ResName(ByRef Value As WString)
             Declare Property Width As Integer
             Declare Property Width(Value As Integer)
             Declare Property Height As Integer
             Declare Property Height(Value As Integer)
             Declare Sub LoadFromFile(ByRef File As WString)
             Declare Sub SaveToFile(ByRef File As WString)
-            Declare Sub LoadFromResourceName(ByRef ResName As WString, cx As Integer = 0, cy As Integer = 0)
-            Declare Sub LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0)
+            Declare Sub LoadFromResourceName(ByRef ResName As WString)
+            Declare Sub LoadFromResourceID(ResID As Integer)
             Declare Function ToBitmap() As hBitmap
             Declare Operator Cast As Any Ptr
-            Declare Operator Cast As WString Ptr
             Declare Operator Let(ByRef Value As WString)
-            Declare Operator Let(Value As Integer)
             Declare Operator Let(Value As HICON)
             Declare Constructor
             Declare Destructor
             Changed As Sub(BYREF Sender As Icon)
     End Type
-
-    Function Icon.ReadProperty(ByRef PropertyName As String) As Any Ptr
-        Select Case LCase(PropertyName)
-        Case "height": Return @FHeight
-        Case "width": Return @FWidth
-        Case "resname": Return FResName
-        Case Else: Return Base.ReadProperty(PropertyName)
-        End Select
-        Return 0
-    End Function
-    
-    Function Icon.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-        If Value <> 0 Then
-            Select Case LCase(PropertyName)
-            Case "height": This.Height = QInteger(Value)
-            Case "width": This.Width = QInteger(Value)
-            Case "resname": This.ResName = QWString(Value)    
-            Case Else: Return Base.WriteProperty(PropertyName, Value)
-            End Select
-        End If
-        Return True
-    End Function
-    
-    Property Icon.ResName ByRef As WString
-        Return WGet(FResName)
-    End Property
-
-    Property Icon.ResName(ByRef Value As WString)
-        WLet FResName, Value
-    End Property
 
     Property Icon.Width As Integer
         Return FWidth
@@ -133,17 +96,15 @@ Namespace My.Sys.Drawing
         FWidth  = BMP.bmWidth
         FHeight = BMP.bmHeight
         If Changed Then Changed(This)
-        This.ResName = File
     End Sub
 
     Sub Icon.SaveToFile(ByRef File As WString)
     End Sub
 
-    Sub Icon.LoadFromResourceName(ByRef ResourceName As WString, cx As Integer = 0, cy As Integer = 0)
+    Sub Icon.LoadFromResourceName(ByRef ResName As WString)
         Dim As ICONINFO ICIF
         Dim As BITMAP BMP
-        This.ResName = ResourceName
-        Handle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+        Handle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_ICON, 0, 0, LR_COPYFROMRESOURCE)
         GetIconInfo(Handle, @ICIF)
         GetObject(ICIF.hbmColor, SizeOF(BMP), @BMP)
         FWidth  = BMP.bmWidth
@@ -151,11 +112,10 @@ Namespace My.Sys.Drawing
         If Changed Then Changed(This)
     End Sub
 
-    Sub Icon.LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0)
+    Sub Icon.LoadFromResourceID(ResID As Integer)
         Dim As ICONINFO ICIF
         Dim As BITMAP BMP
-        This.ResName = WStr(ResID)
-        Handle = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(ResID), IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+        Handle = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(ResID), IMAGE_ICON, 0, 0, LR_COPYFROMRESOURCE)
         GetIconInfo(Handle, @ICIF)
         GetObject(ICIF.hbmColor, SizeOF(BMP), @BMP)
         FWidth  = BMP.bmWidth
@@ -167,22 +127,12 @@ Namespace My.Sys.Drawing
         Return @This
     End Operator
 
-    Operator Icon.Cast As WString Ptr
-        Return This.FResName
-    End Operator
-
     Operator Icon.Let(ByRef Value As WString)
         If FindResource(GetModuleHandle(NULL), Value, RT_ICON) Then
            LoadFromResourceName(Value) 
         Else
-           LoadFromFile(Value)
+           LoadFromFile(Value) 
         End If
-        This.ResName = Value
-    End Operator
-
-    Operator Icon.Let(Value As Integer)
-        LoadFromResourceID(Value) 
-        This.ResName = WStr(Value)
     End Operator
 
     Operator Icon.Let(Value As HICON)
@@ -190,7 +140,6 @@ Namespace My.Sys.Drawing
     End Operator
 
     Constructor Icon
-        WLet FClassName, "Icon"
     End Constructor
 
     Destructor Icon

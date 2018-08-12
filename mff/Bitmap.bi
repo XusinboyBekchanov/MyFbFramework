@@ -213,7 +213,6 @@ Namespace My.Sys.Drawing
     End Operator
 
     Constructor BitmapType
-        WLet FClassName, "BitmapType"
         FLoadFlag(0) = 0
         FLoadFlag(1) = LR_LOADTRANSPARENT
         FWidth       = 16

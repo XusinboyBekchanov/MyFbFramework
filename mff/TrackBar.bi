@@ -327,11 +327,11 @@ Namespace My.Sys.Forms
             .RegisterClass "TrackBar", TRACKBAR_CLASS
             .Child             = @This
             .ChildProc         = @WndProc
-            WLet FClassName, "TrackBar"
-            WLet FClassAncestor, TRACKBAR_CLASS
+            .ClassName         = "TrackBar"
+            .ClassAncestor         = TRACKBAR_CLASS
             .ExStyle           = 0
             Base.Style             = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
-            .BackColor             = GetSysColor(COLOR_BTNFACE) 
+            .Color             = GetSysColor(COLOR_BTNFACE) 
             .Width             = 150
             .Height            = 45
             .OnHandleIsAllocated = @HandleIsAllocated

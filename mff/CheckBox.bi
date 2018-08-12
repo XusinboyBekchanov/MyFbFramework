@@ -86,7 +86,7 @@ Namespace My.Sys.Forms
             Dc = Cast(HDC, Message.wParam)
             SetBKMode Dc, TRANSPARENT
             SetTextColor Dc, Font.Color
-            SetBKColor Dc, This.BackColor
+            SetBKColor Dc, This.Color
             SetBKMode Dc, OPAQUE    
         Case CM_COMMAND
             If Message.wParamHi = BN_CLICKED Then
@@ -110,11 +110,11 @@ Namespace My.Sys.Forms
             .RegisterClass "CheckBox", "Button"
             .Child                  = @This
             .ChildProc              = @WndProc
-            WLet FClassName, "CheckBox"
-            WLet FClassAncestor, "Button"
+            .ClassName              = "CheckBox"
+            .ClassAncestor          = "Button"
             .ExStyle                = 0
             .Style                  = WS_CHILD OR WS_TABSTOP OR BS_CHECKBOX
-            .BackColor                  = GetSysColor(COLOR_BTNFACE)
+            .Color                  = GetSysColor(COLOR_BTNFACE)
             .Width                  = 90
             .Height                 = 17
             .FTabStop               = True

@@ -41,8 +41,8 @@ Namespace My.Sys.Forms
     Constructor PageScroller
         With This
             .RegisterClass "PageScroller","SysPager"
-            WLet FClassName, "PageScroller"
-            WLet FClassAncestor, "SysPager"
+            .ClassName = "PageScroller"
+            .ClassAncestor = "SysPager"
             .Style        = WS_CHILD
             .ExStyle      = 0
             .Width        = 175

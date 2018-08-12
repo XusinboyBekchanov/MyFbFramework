@@ -41,8 +41,8 @@ Namespace My.Sys.Forms
     Constructor ReBar
         With This
             .RegisterClass "ReBar","ReBarWindow32"
-            WLet FClassName, "ReBar"
-            WLet FClassAncestor, "ReBarWindow32"
+            .ClassName = "ReBar"
+            .ClassAncestor = "ReBarWindow32"
             .Style        = WS_CHILD
             .ExStyle      = 0
             .Width        = 175

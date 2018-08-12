@@ -360,8 +360,8 @@ namespace My.Sys.Forms
 		FHideSelection    = False
 		With This
 			.RegisterClass "RichTextBox", "RichEdit20W"
-			WLet FClassName, "RichTextBox"
-			WLet FClassAncestor, "RichEdit20W"
+			.ClassName = "RichTextBox"
+			.ClassAncestor = "RichEdit20W"
 			.OnHandleIsAllocated = @HandleIsAllocated
 			.Child       = @This
 			.ChildProc   = @WndProc

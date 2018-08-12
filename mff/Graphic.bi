@@ -1,4 +1,4 @@
-﻿'###############################################################################
+'###############################################################################
 '#  GraphicType.bi                                                                 #
 '#  This file is part of MyFBFramework				                           #
 '#  Version 1.0.0                                                              #
@@ -21,35 +21,11 @@ Namespace My.Sys.Drawing
 			Cursor    As My.Sys.Drawing.Cursor
 			Image     As Any Ptr
 			ImageType As Integer
-    Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-    Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-    Declare Constructor
-			 Declare Destructor
-			 OnChange As Sub(BYREF Sender As GraphicType, Image As Any Ptr, ImageType As Integer)
+			Declare Constructor
+			Declare Destructor
+			OnChange As Sub(BYREF Sender As GraphicType, Image As Any Ptr, ImageType As Integer)
 	End Type
 
-Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
-        Select Case LCase(PropertyName)
-        Case "bitmap": Return @Bitmap
-        Case "icon": Return @Icon
-        Case "cursor": Return @Cursor
-        Case Else: Return Base.ReadProperty(PropertyName)
-        End Select
-        Return 0
-    End Function
-    
-    Function GraphicType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-        If Value <> 0 Then
-            Select Case LCase(PropertyName)
-            Case "bitmap": ?QWString(Value): This.Bitmap = QWString(Value)
-            Case "icon": This.Icon = QWString(Value)
-            Case "cursor": This.Cursor = QWString(Value)
-            Case Else: Return Base.WriteProperty(PropertyName, Value)
-            End Select
-        End If
-        Return True
-    End Function
-    
 	Sub GraphicType.BitmapChanged(BYREF Sender As My.Sys.Drawing.BitmapType)
 		If Sender.Graphic Then 
 			With QGraphic(Sender.Graphic)
@@ -88,7 +64,6 @@ Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 	End Sub
 
 	Constructor GraphicType
-    WLet FClassName, "GraphicType"
 		This.Bitmap.Graphic = @This
 		This.Bitmap.Changed = @BitmapChanged
 		This.Icon.Graphic   = @This

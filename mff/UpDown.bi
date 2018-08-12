@@ -236,8 +236,8 @@ Namespace My.Sys.Forms
             .RegisterClass "UpDown", UPDOWN_CLASS
             .Child             = @This
             .ChildProc         = @WndProc
-            WLet FClassName, "UpDown"
-            WLet FClassAncestor, UPDOWN_CLASS
+            .ClassName         = "UpDown"
+            .ClassAncestor         = UPDOWN_CLASS
             .ExStyle           = 0
             Base.Style             = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
             .Width             = GetSystemMetrics(SM_CXVSCROLL)

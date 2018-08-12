@@ -186,10 +186,10 @@ Namespace My.Sys.Forms
 			.RegisterClass "Panel"
 			.Child       = @This
 			.ChildProc   = @WndProc
-			WLet FClassName, "Panel"
+			.ClassName   = "Panel"
 			.ExStyle     = 0
 			.Style       = WS_CHILD
-			.BackColor       = GetSysColor(COLOR_BTNFACE)
+			.Color       = GetSysColor(COLOR_BTNFACE)
 			.Width       = 121
 			.Height      = 41
 			.OnHandleIsAllocated = @HandleIsAllocated

@@ -1,4 +1,4 @@
-﻿'###############################################################################
+'###############################################################################
 '#  RadioButton.bi                                                             #
 '#  This file is part of MyFBFramework		                                   #
 '#  Version 1.0.0                                                              #
@@ -70,7 +70,7 @@ Namespace My.Sys.Forms
 			Dc = Cast(HDC,Message.wParam)
 			SetBKMode Dc, TRANSPARENT
 			SetTextColor Dc,Font.Color
-			SetBKColor Dc,This.BackColor
+			SetBKColor Dc,This.Color
 			SetBKMode Dc,OPAQUE   
 		Case CM_COMMAND
 			If Message.wParamHi = BN_CLICKED Then
@@ -88,11 +88,11 @@ Namespace My.Sys.Forms
 			.RegisterClass "RadioButton","Button"
 			.Child       = @This
 			.ChildProc   = @WndProc
-			WLet FClassName, "RadioButton"
-			WLet FClassAncestor, "Button"
+			.ClassName   = "RadioButton"
+			.ClassAncestor   = "Button"
 			.ExStyle     = 0
 			.Style       = WS_CHILD OR BS_AUTORADIOBUTTON
-			.BackColor       = GetSysColor(COLOR_BTNFACE)
+			.Color       = GetSysColor(COLOR_BTNFACE)
 			.Width       = 90
 			.Height      = 17
 			.OnHandleIsAllocated = @HandleIsAllocated

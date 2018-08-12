@@ -161,7 +161,6 @@ Namespace My.Sys.Drawing
     End Operator
 
     Constructor Cursor
-        WLet FClassName, "Cursor"
         Handle = LoadCursor(NULL,IDC_ARROW)
         If Changed Then Changed(This)
     End Constructor

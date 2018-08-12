@@ -62,7 +62,7 @@ End Type
 
 'WStringListItem
 Property WStringListItem.Value ByRef As WString
-    Return WGet(FValue)
+    Return *FValue
 End Property
 
 Property WStringListItem.Value(ByRef V As WString)

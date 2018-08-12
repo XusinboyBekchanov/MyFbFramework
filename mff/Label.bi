@@ -64,7 +64,6 @@ Namespace My.Sys.Forms
     Function Label.ReadProperty(PropertyName As String) As Any Ptr
         Select Case LCase(PropertyName)
         Case "caption": Return Cast(Any Ptr, This.FText)
-        Case "graphic": Return Cast(Any Ptr, @This.Graphic)
         Case Else: Return Base.ReadProperty(PropertyName)
         End Select
         Return 0
@@ -205,7 +204,7 @@ Namespace My.Sys.Forms
             Dc = Cast(HDC,Message.wParam)
             SetBKMode Dc, TRANSPARENT
             SetTextColor Dc,Font.Color
-            SetBKColor Dc, This.BackColor
+            SetBKColor Dc, This.Color
             SetBKMode Dc, OPAQUE    
         Case CM_COMMAND
             If Message.wParamHi = STN_CLICKED Then
@@ -257,15 +256,15 @@ Namespace My.Sys.Forms
             .RegisterClass "Label", "Static"
             .Child       = @This
             .ChildProc   = @WndProc
-            WLet FClassName, "Label"
-            WLet FClassAncestor, "Static"
+            .ClassName   = "Label"
+            .ClassAncestor   = "Static"
             Base.ExStyle     = 0
             If FStyle <> ssText Then
                Base.Style = WS_CHILD OR SS_NOTIFY OR ABorder(Abs_(FBorder)) OR AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage)) 
             Else
                Base.Style = WS_CHILD OR SS_NOTIFY OR ABorder(Abs_(FBorder)) OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment))
             End If
-            .BackColor       = GetSysColor(COLOR_BTNFACE)
+            .Color       = GetSysColor(COLOR_BTNFACE)
             .Width       = 90
             .Height      = 17
             .OnHandleIsAllocated = @HandleIsAllocated

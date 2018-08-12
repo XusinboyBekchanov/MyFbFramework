@@ -41,8 +41,8 @@ Namespace My.Sys.Forms
     Constructor NativeFontControl
         With This
             .RegisterClass "NativeFontControl","NativeFontCtl"
-            WLet FClassName, "NativeFontControl"
-            WLet FClassAncestor, "NativeFontCtl"
+            .ClassName = "NativeFontControl"
+            .ClassAncestor = "NativeFontCtl"
             .Style        = WS_CHILD
             .ExStyle      = 0
             .Width        = 175

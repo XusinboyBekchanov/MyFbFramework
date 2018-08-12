@@ -2,7 +2,6 @@
 FolderBrowserDialog BITMAP DISCARDABLE "./resources/FolderBrowserDialog.bmp"
 CHECKBOX BITMAP DISCARDABLE "./resources/CheckBox.bmp"
 CHECKEDLISTBOX BITMAP DISCARDABLE "./resources/CheckedListBox.bmp"
-COLORDIALOG BITMAP DISCARDABLE "./resources/ColorDialog.bmp"
 COMBOBOXEDIT BITMAP DISCARDABLE "./resources/ComboBoxEdit.bmp"
 COMBOBOXEX BITMAP DISCARDABLE "./resources/ComboBoxEx.bmp"
 COMMANDBUTTON BITMAP DISCARDABLE "./resources/CommandButton.bmp"

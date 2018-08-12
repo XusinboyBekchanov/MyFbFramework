@@ -78,8 +78,8 @@ Type OpenFileDialog Extends Dialog
         FFileTitle    As WString Ptr
         FFilter       As WString Ptr
      Public:
-        cwsFile As WString  * (MAX_PATH +1) * 1000
         FilterIndex  As Integer
+        cwsFile As WString  * (MAX_PATH +1) * 1000
         Declare Property InitialDir ByRef As WString
         Declare Property InitialDir(ByRef Value As WString)
         Declare Property Caption ByRef As WString
@@ -104,7 +104,7 @@ Type OpenFileDialog Extends Dialog
 End Type
 
 Property OpenFileDialog.InitialDir ByRef As WString
-    Return WGet(FInitialDir)
+    Return *FInitialDir
 End Property
 
 Property OpenFileDialog.InitialDir(ByRef Value As WString)
@@ -113,7 +113,7 @@ Property OpenFileDialog.InitialDir(ByRef Value As WString)
 End Property
 
 Property OpenFileDialog.Caption ByRef As WString
-    Return WGet(FCaption)
+    Return *FCaption
 End Property
 
 Property OpenFileDialog.Caption(ByRef Value As WString)
@@ -122,7 +122,7 @@ Property OpenFileDialog.Caption(ByRef Value As WString)
 End Property
 
 Property OpenFileDialog.DefaultExt ByRef As WString
-    Return WGet(FDefaultExt)
+    Return *FDefaultExt
 End Property
 
 Property OpenFileDialog.DefaultExt(ByRef Value As WString)
@@ -131,7 +131,7 @@ Property OpenFileDialog.DefaultExt(ByRef Value As WString)
 End Property
 
 Property OpenFileDialog.FileName ByRef As WString
-    Return WGet(FFileName)
+    Return *FFileName
 End Property
 
 Property OpenFileDialog.FileName(ByRef Value As WString)
@@ -140,7 +140,7 @@ Property OpenFileDialog.FileName(ByRef Value As WString)
 End Property
 
 Property OpenFileDialog.FileTitle ByRef As WString
-    Return WGet(FFileTitle)
+    Return *FFileTitle
 End Property
 
 Property OpenFileDialog.FileTitle(ByRef Value As WString)
@@ -148,7 +148,7 @@ Property OpenFileDialog.FileTitle(ByRef Value As WString)
 End Property
 
 Property OpenFileDialog.Filter ByRef As WString
-    Return WGet(FFilter)
+    Return *FFilter
 End Property
 
 Property OpenFileDialog.Filter(ByRef Value As WString)
@@ -264,11 +264,10 @@ Constructor OpenFileDialog
     'FDefaultExt       = CAllocate(0)
     'FFileName         = CAllocate(0)
     'FFilter           = CAllocate(0)
-    Caption           = "Open ..."
+    Caption           = "Faylni ochish..."
     FilterIndex       = 1
     Center            = True
     'Control.Child     = @This
-    WLet FClassName, "OpenFileDialog"
     Options.Include OFN_PATHMUSTEXIST 
     Options.Include OFN_FILEMUSTEXIST 
     'Options.Include OFN_HIDEREADONLY
@@ -320,7 +319,7 @@ Type SaveFileDialog Extends Dialog
 End Type
 
 Property SaveFileDialog.InitialDir ByRef As WString
-    Return WGet(FInitialDir)
+    Return *FInitialDir
 End Property
 
 Property SaveFileDialog.InitialDir(ByRef Value As WString)
@@ -329,7 +328,7 @@ Property SaveFileDialog.InitialDir(ByRef Value As WString)
 End Property
 
 Property SaveFileDialog.Caption ByRef As WString
-    Return WGet(FCaption)
+    Return *FCaption
 End Property
 
 Property SaveFileDialog.Caption(ByRef Value As WString)
@@ -338,7 +337,7 @@ Property SaveFileDialog.Caption(ByRef Value As WString)
 End Property
 
 Property SaveFileDialog.DefaultExt ByRef As WString
-    Return WGet(FDefaultExt)
+    Return *FDefaultExt
 End Property
 
 Property SaveFileDialog.DefaultExt(ByRef Value As WString)
@@ -347,7 +346,7 @@ Property SaveFileDialog.DefaultExt(ByRef Value As WString)
 End Property
 
 Property SaveFileDialog.FileName ByRef As WString
-    Return WGet(FFileName)
+    Return *FFileName
 End Property
 
 Property SaveFileDialog.FileName(ByRef Value As WString)
@@ -356,7 +355,7 @@ Property SaveFileDialog.FileName(ByRef Value As WString)
 End Property
 
 Property SaveFileDialog.Filter ByRef As WString
-    Return WGet(FFilter)
+    Return *FFilter
 End Property
 
 Property SaveFileDialog.Filter(ByRef Value As WString)
@@ -461,11 +460,11 @@ Function SaveFileDialog.Execute As Boolean
 End Function
 
 Property SaveFileDialog.Color As Integer
-    Return Control.BackColor
+    Return Control.Color
 End Property
 
 Property SaveFileDialog.Color(Value As Integer)
-    Control.BackColor = Value
+    Control.Color = Value
 End Property
 
 Constructor SaveFileDialog
@@ -474,9 +473,8 @@ Constructor SaveFileDialog
     FDefaultExt   = CAllocate(0)
     FFileName     = CAllocate(0)
     FFilter       = CAllocate(0)
-    Caption       = "Save As"
+    Caption       = "Faylni ... kabi saqlash"
     FilterIndex   = 1
-    WLet FClassName, "SaveFileDialog"
     Center        = True
     'Control.Child = @This
     Options.Include OFN_FILEMUSTEXIST 
@@ -538,7 +536,6 @@ End Function
 Constructor FontDialog
      MaxFontSize = 0
      MinFontSize = 0
-     WLet FClassName, "FontDialog"
 End Constructor
 
 Destructor FontDialog
@@ -569,7 +566,7 @@ Type FolderBrowserDialog Extends Dialog
 End Type
 
 Property FolderBrowserDialog.Caption ByRef As WString
-    Return WGet(FCaption)
+    Return *FCaption
 End Property
 
 Property FolderBrowserDialog.Caption(ByRef Value As WString)
@@ -578,7 +575,7 @@ Property FolderBrowserDialog.Caption(ByRef Value As WString)
 End Property
 
 Property FolderBrowserDialog.Title ByRef As WString
-    Return WGet(FTitle)
+    Return *FTitle
 End Property
 
 Property FolderBrowserDialog.Title(ByRef Value As WString)
@@ -587,7 +584,7 @@ Property FolderBrowserDialog.Title(ByRef Value As WString)
 End Property
 
 Property FolderBrowserDialog.InitialDir ByRef As WString
-    Return WGet(FInitialDir)
+    Return *FInitialDir
 End Property
 
 Property FolderBrowserDialog.InitialDir(ByRef Value As WString)
@@ -596,7 +593,7 @@ Property FolderBrowserDialog.InitialDir(ByRef Value As WString)
 End Property
 
 Property FolderBrowserDialog.Directory ByRef As WString
-    Return WGet(FDirectory)
+    Return *FDirectory
 End Property
 
 Property FolderBrowserDialog.Directory(ByRef Value As WString)
@@ -668,7 +665,6 @@ End Function
 Constructor FolderBrowserDialog
     FCaption = CAllocate(0)
     FTitle = CAllocate(0)
-    WLet FClassName, "FolderBrowserDialog"
     FInitialDir = CAllocate(0)
     FDirectory = CAllocate(0)
     'Control.Child = @This
@@ -681,195 +677,3 @@ Destructor FolderBrowserDialog
     DeAllocate FInitialDir
     DeAllocate FDirectory
 End Destructor
-
-Type ColorDialog Extends Dialog
-     Private:
-        CC              As CHOOSECOLOR
-        _Caption        As WString Ptr
-        Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
-     Public:
-        Parent          As My.Sys.Forms.Control Ptr
-        Center          As Integer
-        Handle          As Hwnd
-        Declare Property Caption ByRef As WString
-        Declare Property Caption(ByRef Value As WString)
-        Color           As Integer
-        Style           As Integer
-        Colors(16)      As COLORREF => {&H0,&H808080,&H000080,&H008080,_
-                                        &H008000,&H808000,&H800000,&H800080,_
-                                        &HFFFFFF,&HC0C0C0,&H0000FF,&H00FFFF,_
-                                        &H00FF00,&HFFFF00,&HFF0000,&HFF00FF _
-                                    }
-        BackColor       As Integer
-        Declare Operator Cast As Any Ptr
-        Declare Function Execute As Boolean
-        Declare Constructor
-        Declare Destructor
-End Type
-
-Function ColorDialog.Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
-
-    Static As HBrush Brush
-
-    Select Case Msg
-
-    Case wm_initdialog 
-
-        Dim As ColorDialog Ptr CommonDialog = Cast(ColorDialog Ptr,*Cast(lpChooseColor,lParam).lCustData)
-
-        If CommonDialog Then
-
-            CommonDialog->Handle = FWindow
-
-            SetWindowLongPtr(FWindow,DWLP_MSGRESULT,Cint(CommonDialog))
-
-            SetWindowText(FWindow, CommonDialog->_Caption)
-
-            If CommonDialog->Center Then 
-
-               Dim As Rect R,Wr
-
-               GetWindowRect(FWindow,@Wr)
-
-               SystemParametersInfo(spi_getworkarea,0,@R,0)
-
-               MoveWindow(FWindow,(R.Right  - (Wr.Right - Wr.Left))/2,(R.Bottom - (Wr.Bottom - Wr.Top))/2,Wr.Right - Wr.Left,Wr.Bottom - Wr.Top,1)
-
-            End If
-
-            Brush = CreateSolidBrush(CommonDialog->BackColor)
-
-        End If
-
-        Return True
-
-    Case wm_ctlcolordlg To wm_ctlcolorstatic
-
-        Dim As ColorDialog Ptr CommonDialog = Cast(ColorDialog Ptr,GetWindowLongPtr(FWindow,DWLP_MSGRESULT))
-
-        If CommonDialog Then
-
-            With *CommonDialog
-
-                SetBkMode(Cast(HDc,wParam),Transparent)
-
-                SetBkColor(Cast(HDc,wParam),.BackColor)
-
-                SetBkMode(Cast(HDc,wParam),Opaque)
-
-                Return CInt(Brush)
-
-            End With
-
-        End If     
-
-    Case wm_erasebkgnd
-
-        Dim As ColorDialog Ptr CommonDialog = Cast(ColorDialog Ptr,GetWindowLongPtr(FWindow,DWLP_MSGRESULT))
-
-        If CommonDialog Then
-
-            With *CommonDialog
-
-                Dim As HDC Dc = Cast(HDC,wParam)
-
-                Dim As Rect R
-
-                GetClientRect(FWindow,@R)
-
-                FillRect(Dc,@R,Brush)
-
-                Return True
-
-            End With
-
-        End If
-
-    Case Else
-
-        Return False
-
-    End Select
-
-    Return True
-
-End Function
-
-Property ColorDialog.Caption ByRef As WString
-    Return WGet(_Caption)
-End Property
-
-Property ColorDialog.Caption(ByRef Value As WString)
-    WLet _Caption, Value
-End Property
-
-
-
-Function ColorDialog.Execute As Boolean
-
-    Dim As ChooseColor CC
-
-    CC.lStructSize  = SizeOf(CC)
-
-    CC.lpCustColors = @Colors(0)
-
-    CC.hWndOwner    = IIf(Parent,Parent->Handle,0)
-
-    CC.RGBResult    = This.Color
-
-    CC.Flags        = CC_RGBINIT
-
-    CC.Flags        = CC.Flags or CC_ENABLEHOOK
-
-    Select Case Style
-
-    Case 0
-
-        CC.Flags    = CC.Flags or CC_FULLOPEN 
-
-    Case 1
-
-        CC.Flags    = CC.Flags or CC_PREVENTFULLOPEN
-
-    End Select
-
-    CC.lpfnHook     = @Hook
-
-    CC.lCustData    = Cast(lParam,@This)
-
-    If ChooseColor(@CC) Then
-
-       This.Color = CC.RGBResult
-
-       Return True
-
-    End If
-
-    Return False
-
-End Function
-
-
-
-Operator ColorDialog.Cast as any ptr
-
-    return @This
-
-end Operator
-
-
-
-Constructor ColorDialog
-
-    Caption = "Choose Color..."
-    WLet FClassName, "ColorDialog"
-
-    BackColor = GetSysColor(color_btnface)
-
-End Constructor
-
-
-Destructor ColorDialog
-
-End Destructor
-

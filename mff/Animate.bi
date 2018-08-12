@@ -146,7 +146,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property Animate.File ByRef As WString
-        Return WGet(FFile)
+        Return *FFile
     End Property
 
     Property Animate.File(ByRef Value As WString)
@@ -343,15 +343,15 @@ Namespace My.Sys.Forms
             .RegisterClass "Animate", ANIMATE_CLASS
             .Child             = @This
             .ChildProc         = @WndProc
-            WLet FClassName, "Animate"
-            WLet FClassAncestor, ANIMATE_CLASS
+            .ClassName         = "Animate"
+            .ClassAncestor         = ANIMATE_CLASS
             .ExStyle           = WS_EX_TRANSPARENT
             .Style             = WS_CHILD OR ACenter(FCenter) OR ATransparent(FTransparent) OR ATimer(FTimers) OR AAutoPlay(FAutoPlay)
-            .BackColor             = GetSysColor(COLOR_BTNFACE) 
+            .Color             = GetSysColor(COLOR_BTNFACE) 
             .Width             = 100
             .Height            = 80
             .OnHandleIsAllocated = @HandleIsAllocated
-        End With
+        End With  
     End Constructor
 
     Destructor Animate

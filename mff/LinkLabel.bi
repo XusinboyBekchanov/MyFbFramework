@@ -42,8 +42,8 @@ Namespace My.Sys.Forms
     Constructor LinkLabel
         With This
             .RegisterClass "LinkLabel", WC_LINK
-            WLet FClassName, "LinkLabel"
-            WLet FClassAncestor, WC_LINK
+            .ClassName = "LinkLabel"
+            .ClassAncestor = WC_LINK
             .ExStyle      = 0
             .Style        = WS_CHILD
             .Width        = 100

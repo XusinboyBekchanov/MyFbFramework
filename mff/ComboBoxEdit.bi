@@ -69,10 +69,8 @@ namespace My.Sys.Forms
             Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
             Declare Sub InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
             Declare Function IndexOf(ByRef Item As WString) As Integer
-            Declare Function Contains(ByRef Item As WString) As Boolean
             Declare Function IndexOfObject(Obj As Any Ptr) As Integer
             Declare Sub Clear
-            Declare Sub ShowDropDown(Value As Boolean)
             Declare Sub SaveToFile(ByRef File As WString)
             Declare Sub LoadFromFile(ByRef File As WString)
             Declare Static Sub RegisterClass
@@ -89,10 +87,6 @@ namespace My.Sys.Forms
             OnDrawItem    As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, BYREF R As Rect, DC As HDC = 0)
     End Type
 
-    Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
-        Perform CB_SHOWDROPDOWN, Value, 0
-    End Sub
-    
     Function ComboBoxEdit.WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
         Select Case Msg
         Case WM_NCCREATE
@@ -186,7 +180,7 @@ namespace My.Sys.Forms
     End Property
 
     Property ComboBoxEdit.Text ByRef As WString
-        Return WGet(FText)
+        Return *FText
     End Property
 
     Property ComboBoxEdit.Text(ByRef Value As WString)
@@ -281,11 +275,7 @@ namespace My.Sys.Forms
     End Sub
 
     Function ComboBoxEdit.IndexOf(ByRef FItem As WString) As Integer
-        Return Items.IndexOf(FItem) ' Perform(CB_FINDSTRING, -1, CInt(@FItem))
-    End Function
-    
-    Function ComboBoxEdit.Contains(ByRef FItem As WString) As Boolean
-        Return IndexOf(FItem) <> -1
+        Return Perform(CB_FINDSTRING, -1, CInt(@FItem))
     End Function
 
     Function ComboBoxEdit.IndexOfObject(Obj As Any Ptr) As Integer
@@ -341,7 +331,7 @@ namespace My.Sys.Forms
             Dc = Cast(HDC, Message.wParam)
             SetBKMode Dc, TRANSPARENT
             SetTextColor Dc, Font.Color
-            SetBKColor Dc, This.BackColor
+            SetBKColor Dc, This.Color
             SetBKMode Dc, OPAQUE
         Case CM_CANCELMODE
             If Message.Sender <> This Then Perform(CB_SHOWDROPDOWN, 0, 0)
@@ -403,7 +393,7 @@ namespace My.Sys.Forms
                 Else
                     FillRect Dc, @R, Brush.Handle
                     SetTextColor Dc, Font.Color
-                    SetBKColor Dc, This.BackColor
+                    SetBKColor Dc, This.Color
                     TextOut(Dc, R.Left + 2, R.Top, Item(ItemID), Len(Item(ItemID)))
                 End If
             End If
@@ -476,14 +466,14 @@ namespace My.Sys.Forms
             .Child         = @This
             '.ChildProc     = @WindowProc
             'ComboBoxEdit.RegisterClass
-            WLet FClassName, "ComboBoxEdit"
-            WLet FClassAncestor, "ComboBox"
+            .ClassName     = "ComboBoxEdit"
+            .ClassAncestor = "ComboBox"
             Base.RegisterClass "ComboBoxEdit", "ComboBox"
             .ExStyle       = 0
             Base.Style     = WS_CHILD OR WS_VSCROLL OR CBS_HASSTRINGS OR CBS_AUTOHSCROLL OR AStyle(Abs_(FStyle)) OR ASortStyle(Abs_(FSort)) OR AIntegralHeight(Abs_(FIntegralHeight))
             .Width         = 121
             .Height        = 17
-            .BackColor         = GetSysColor(COLOR_WINDOW)
+            .Color         = GetSysColor(COLOR_WINDOW)
             .OnHandleIsAllocated = @HandleIsAllocated
         End With  
     End Constructor

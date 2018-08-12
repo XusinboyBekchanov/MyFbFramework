@@ -119,7 +119,7 @@ namespace My.Sys.Forms
     End Property
 
     Property HeaderSection.Caption ByRef As WString
-        Return WGet(FCaption)
+        If FCaption Then Return *FCaption Else Return ""
     End Property
 
     Property HeaderSection.Caption(ByRef Value As WString)
@@ -536,11 +536,11 @@ namespace My.Sys.Forms
             .RegisterClass "Header", WC_HEADER
             .Child             = @This
             .ChildProc         = @WndProc
-            WLet FClassName, "Header"
-            WLet FClassAncestor, WC_HEADER
+            .ClassName         = "Header"
+            .ClassAncestor        = WC_HEADER
             .ExStyle           = 0
             Base.Style             = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
-            .BackColor             = GetSysColor(COLOR_BTNFACE) 
+            .Color             = GetSysColor(COLOR_BTNFACE) 
             .Width             = 150
             .Height            = 24
             .Align             = 3

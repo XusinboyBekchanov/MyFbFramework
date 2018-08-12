@@ -46,7 +46,6 @@ Namespace My.Sys.Forms
             Declare Property Count As Integer
             Declare Sub AddBitmap(Bitmap As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
             Declare Sub AddIcon(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
-            Declare Sub AddIcon(Ico As String, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
             Declare Sub AddCursor(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
             Declare Sub AddMasked(ByRef Bitmap As My.Sys.Drawing.BitmapType, MaskColor As Integer, ByRef Key As WString = "")
             Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
@@ -138,15 +137,6 @@ Namespace My.Sys.Forms
     Sub ImageList.AddIcon(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
         FKeys.Add(Key)
         ImageList_AddIcon(Handle,Icon.Handle)
-    End Sub
-    
-    Sub ImageList.AddIcon(Ico As String, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-        Dim As My.Sys.Drawing.Icon Icn
-        Icn.LoadFromResourceName(Ico)
-        If Icn.Handle Then
-            FKeys.Add(Key)
-            ImageList_AddIcon(Handle, Icn.Handle)
-        End If
     End Sub
 
     Sub ImageList.AddCursor(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
@@ -246,7 +236,6 @@ Namespace My.Sys.Forms
     End Operator
 
     Constructor ImageList
-        WLet FClassName, "ImageList"
         AllocBy = 4
         FWidth  = 16
         FHeight = 16

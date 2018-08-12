@@ -39,7 +39,6 @@ Type Dictionary Extends Object
         		Declare Sub Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString)
         		Declare Sub Remove(Index As Integer)
         		Declare Sub Remove(ByRef Key As WString)
-          Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
         		Declare Sub Sort
         		Declare Sub SortKeys
         		Declare Sub Clear
@@ -56,7 +55,7 @@ End Type
 
 'DictionaryItem
 Property DictionaryItem.Key ByRef As WString
-    Return WGet(FKey)
+    Return *FKey
 End Property
 
 Property DictionaryItem.Key(ByRef V As WString)
@@ -64,7 +63,7 @@ Property DictionaryItem.Key(ByRef V As WString)
 End Property
 
 Property DictionaryItem.Text ByRef As WString
-    Return WGet(FText)
+    Return *FText
 End Property
 
 Property DictionaryItem.Text(ByRef V As WString)
@@ -85,96 +84,119 @@ Operator DictionaryItem.Cast As Any Ptr
     Return @This
 End Operator
 
-Property Dictionary.Count As Integer
+Property WStringList.Count As Integer
     Return FItems.Count
 End Property
 
-Property Dictionary.Count(Value As Integer)
+Property WStringList.Count(Value As Integer)
 End Property
 
-Property Dictionary.Item(Index As Integer) As DictionaryItem Ptr
+Property WStringList.Text ByRef As WString
+    WLet FText, ""
+    For i As Integer = 0 To Count -1
+        If i <> Count -1 Then 
+            WLet FText, *FText & Item(i) & Chr(13) & Chr(10)
+        Else
+            WLet FText, *FText & Item(i)
+        End If
+    Next i
+    Return *FText
+End Property
+
+Property WStringList.Text(ByRef Value As WString)
+    	WLet FText, ""
+	This.Clear
+    	For i As Integer = 0 To Len(Value)
+        WLet FText, *FText & WChr(Value[i])
+        If Value[i] = 10 Or Value[i] = 0 Then
+           Add Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13)) 
+           WLet FText, ""
+        End If   
+    Next i
+End Property
+
+Property WStringList.Item(Index As Integer) ByRef As WString 
     If Index >= 0 AND Index <= Count -1 Then
-       Return FItems.Items[Index]
+       Return QWStringListItem(FItems.Items[Index]).Value
+    End If 
+    Return ""
+End Property
+
+Property WStringList.Item(Index As Integer, ByRef FItem As WString)
+    If Index >= 0 AND Index <= Count -1 Then
+       QWStringListItem(FItems.Items[Index]).Value = FItem
+    End If 
+End Property
+
+Property WStringList.Object(Index As Integer) As Any Ptr
+    If Index >= 0 AND Index <= Count -1 Then
+       Return QWStringListItem(FItems.Items[Index]).Object
     End If 
     Return 0
 End Property
 
-Property Dictionary.Item(Index As Integer, FItem As DictionaryItem Ptr)
+Property WStringList.Object(Index As Integer, FObj As Any Ptr)
     If Index >= 0 AND Index <= Count -1 Then
-       FItems.Items[Index] = FItem
+       QWStringListItem(FItems.Items[Index]).Object = FObj
     End If 
 End Property
 
-Property Dictionary.Item(ByRef Key As WString) As DictionaryItem Ptr
-    Return Item(IndexOfKey(Key))
-End Property
-
-Property Dictionary.Item(ByRef Key As WString, FItem As DictionaryItem Ptr)
-    Item(IndexOfKey(Key)) = FItem
-End Property
-
-Sub Dictionary.Add(ByRef Key As WString = "", ByRef Text As WString)
-    Dim As DictionaryItem Ptr nItem = New DictionaryItem
+Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
+    Dim As WStringListItem Ptr nItem = New WStringListItem
     with *nItem
-        .Key  = Key
-        .Text = Text
+        .Value  = FItem
+        .Object = FObj
     End With
     FItems.Add nItem
+    If OnAdd Then OnAdd(This, FItem, FObj)
 End Sub
 
-Sub Dictionary.Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString)
-    Dim As DictionaryItem Ptr nItem = New DictionaryItem
+Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
+    Dim As WStringListItem Ptr nItem = New WStringListItem
     with *nItem
-        .Key  = Key
-        .Text = Text
+        .Value  = FItem
+        .Object = FObj
     End With
-    FItems.Insert Index, nItem
+    FItems.Insert Index, nItem 
+    If OnInsert Then OnInsert(This, Index, FItem, FObj)
 End Sub
 
-Sub Dictionary.Exchange(Index1 As Integer, Index2 As Integer)
+Sub WStringList.Exchange(Index1 As Integer, Index2 As Integer)
     FItems.Exchange(Index1, Index2)
+    If OnExchange Then OnExchange(This, Index1, Index2)
 End Sub
 
-Sub Dictionary.Remove(Index As Integer)
-    Delete Cast(DictionaryItem Ptr, FItems.Items[Index])
+Sub WStringList.Remove(Index As Integer)
+    Delete Cast(WStringListItem Ptr, FItems.Items[Index])
     FItems.Remove Index
+    If OnRemove Then OnRemove(This, Index)
 End Sub
 
-Sub Dictionary.Sort
-    Dim As Integer i, j
-    For i = 1 To Count - 1
-        For j = Count - 1 To i Step -1
-            If (Item(j)->Text < Item(j - 1)->Text) Then
+Sub WStringList.Sort
+    Dim As Integer i,j
+    For i = 1 To Count -1
+        For j = Count -1 To i Step -1
+            If (Item(j) < Item(j - 1)) Then
                Exchange j - 1, j
             End If 
         Next
     Next
 End Sub
 
-Sub Dictionary.SortKeys
-    Dim As Integer i, j
-    For i = 1 To Count - 1
-        For j = Count - 1 To i Step -1
-            If (Item(j)->Key < Item(j - 1)->Key) Then
-               Exchange j - 1, j
-            End If 
-        Next
-    Next
-End Sub
-
-Sub Dictionary.Clear
-    For i As Integer = Count - 1 To 0 Step -1
-        Delete Cast(DictionaryItem Ptr, FItems.Items[i])
+Sub WStringList.Clear
+    For i As Integer = Count -1 To 0 Step -1
+        Delete Cast(WStringListItem Ptr, FItems.Items[i])
     Next i
     FItems.Clear
+    If OnClear Then OnClear(This)
 End Sub
 
-Sub Dictionary.SaveToFile(ByRef File As WString)
+Sub WStringList.SaveToFile(ByRef File As WString)
     Dim As Integer F
     F = FreeFile
     If Open(File For Binary Access Write As #F) = 0 Then
         For i As Integer = 0 To Count -1 
-            Print #F, Item(i)->Text
+            Print #F, Item(i)
         Next i    
         Close #F
     Else
@@ -182,52 +204,47 @@ Sub Dictionary.SaveToFile(ByRef File As WString)
     End If
 End Sub
 
-Sub Dictionary.LoadFromFile(ByRef File As WString)
+Sub WStringList.LoadFromFile(ByRef File As WString)
     Dim As Integer F
     F = FreeFile
     If Open(File For Binary Access Read As #F) = 0 Then
-    	   Dim FText As WString Ptr    
-        WReallocate FText, Lof(F) + 1
+	  WReallocate FText, Lof(F) + 1
         This.Clear
         While NOT EOF(F)
             Line Input #F, *FText
-            Add "", *FText
+            Add *FText
         WEnd    
         Close #F
-        If FText Then Deallocate FText
     Else
         'Error
     End If
 End Sub
 
-Function Dictionary.IndexOf(ByRef Text As WString) As Integer
-    For i As Integer = 0 To Count - 1
-        If QDictionaryItem(FItems.Items[i]).Text = Text Then Return i
+Function WStringList.IndexOf(ByRef FItem As WString) As Integer
+    For i As Integer = 0 To Count -1
+        If QWStringListItem(FItems.Items[i]).Value = FItem Then Return i
     Next i
     Return -1
 End Function
 
-Function Dictionary.IndexOfKey(ByRef Key As WString) As Integer
-    For i As Integer = 0 To Count - 1
-        If QDictionaryItem(FItems.Items[i]).Key = Key Then Return i
+Function WStringList.IndexOfObject(FObj As Any Ptr) As Integer
+    For i As Integer = 0 To Count -1
+        If QWStringListItem(FItems.Items[i]).Object = FObj Then Return i
     Next i
     Return -1
 End Function
 
-Function Dictionary.Contains(ByRef Text As WString) As Boolean
-    Return IndexOf(Text) <> -1
+Function WStringList.Contains(ByRef FItem As WString) As Boolean
+    Return IndexOf(FItem) <> -1
 End Function
 
-Function Dictionary.ContainsKey(ByRef Key As WString) As Boolean
-    Return IndexOfKey(Key) <> -1
-End Function
-
-Constructor Dictionary
-	   FItems.Clear
+Constructor WStringList
+	FItems.Clear
 End Constructor
 
-Destructor Dictionary
-    For i As Integer = Count - 1 To 0 Step -1
-        Delete Cast(DictionaryItem Ptr, FItems.Items[i])
-    Next i
+Destructor WStringList
+    	For i As Integer = Count -1 To 0 Step -1
+      	Delete Cast(WStringListItem Ptr, FItems.Items[i])
+    	Next i
+	If FText Then Deallocate FText
 End Destructor

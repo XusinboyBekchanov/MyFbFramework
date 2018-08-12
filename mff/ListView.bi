@@ -49,18 +49,16 @@ Namespace My.Sys.Forms
     
     Type ListViewItem Extends My.Sys.Object
         Private:
-            FText               As WString Ptr
-            FHint               As WString Ptr
-            FImageIndex         As Integer
-            FSelectedImageIndex As Integer
-            FSmallImageIndex    As Integer
-            FImageKey           As WString Ptr
+            FText            As WString Ptr
+            FHint            As WString Ptr
+            FImageIndex   As Integer
+            FSelectedImageIndex   As Integer
+            FSmallImageIndex   As Integer
+            FImageKey   As WString Ptr
             FSelectedImageKey   As WString Ptr
-            FSmallImageKey      As WString Ptr
-            FVisible            As Boolean
-            FState              As Integer
-            FIndent             As Integer
-            Dim lvi             As LVITEM
+            FSmallImageKey   As WString Ptr
+            FVisible      As Boolean
+            Dim lvi As LVITEM
         Public:
             Index As Integer
             Parent   As Control Ptr
@@ -84,10 +82,6 @@ Namespace My.Sys.Forms
             Declare Property SmallImageKey(ByRef Value As WString)
             Declare Property Visible As Boolean
             Declare Property Visible(Value As Boolean)
-            Declare Property State As Integer
-            Declare Property State(Value As Integer)
-            Declare Property Indent As Integer
-            Declare Property Indent(Value As Integer)
             Declare Operator Cast As Any Ptr
             Declare Constructor
             Declare Destructor
@@ -134,52 +128,8 @@ Namespace My.Sys.Forms
         End If 
     End Property
 
-    Property ListViewItem.State As Integer
-        If Parent AndAlso Parent->Handle Then
-            lvi.Mask = LVIF_STATE
-            lvi.iItem = Index
-            lvi.iSubItem   = 0
-            ListView_GetItem(Parent->Handle, @lvi)
-            FState = lvi.state
-        End If
-        Return FState
-    End Property
-
-    Property ListViewItem.State(Value As Integer)
-        FState = Value
-        If Parent AndAlso Parent->Handle Then
-            lvi.Mask = LVIF_STATE
-            lvi.iItem = Index
-            lvi.iSubItem   = 0
-            lvi.State    = Value
-            ListView_SetItem(Parent->Handle, @lvi)
-        End If 
-    End Property
-
-    Property ListViewItem.Indent As Integer
-        If Parent AndAlso Parent->Handle Then
-            lvi.Mask = LVIF_INDENT
-            lvi.iItem = Index
-            lvi.iSubItem   = 0
-            ListView_GetItem(Parent->Handle, @lvi)
-            FIndent = lvi.iIndent
-        End If
-        Return FIndent
-    End Property
-
-    Property ListViewItem.Indent(Value As Integer)
-        FIndent = Value
-        If Parent AndAlso Parent->Handle Then
-            lvi.Mask = LVIF_INDENT
-            lvi.iItem = Index
-            lvi.iSubItem   = 0
-            lvi.iIndent    = Value
-            ListView_SetItem(Parent->Handle, @lvi)
-        End If 
-    End Property
-
     Property ListViewItem.Hint ByRef As WString
-        Return WGet(FHint)
+        Return *FHint
     End Property
 
     Property ListViewItem.Hint(ByRef Value As WString)
@@ -222,7 +172,7 @@ Namespace My.Sys.Forms
     End Property
     
     Property ListViewItem.ImageKey ByRef As WString
-        Return WGet(FImageKey)
+        Return *FImageKey
     End Property
 
     Property ListViewItem.ImageKey(ByRef Value As WString)
@@ -237,7 +187,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property ListViewItem.SelectedImageKey ByRef As WString
-        Return WGet(FImageKey)
+        Return *FImageKey
     End Property
 
     Property ListViewItem.SelectedImageKey(ByRef Value As WString)
@@ -346,9 +296,9 @@ Namespace My.Sys.Forms
             Declare Property Count(Value As Integer)
             Declare Property Item(Index As Integer) As ListViewItem Ptr
             Declare Property Item(Index As Integer, Value As ListViewItem Ptr)
-            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
-            Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
-            Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1) As ListViewItem Ptr
+            Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString) As ListViewItem Ptr
+            Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1)
             Declare Sub Remove(Index As Integer)
             Declare Function IndexOf(BYREF FItem As ListViewItem Ptr) As Integer
             Declare Function IndexOf(ByRef FCaption As WString) As Integer
@@ -373,7 +323,7 @@ Namespace My.Sys.Forms
             ListItems         As ListViewItems
             Columns         As ListViewColumns
             Images          As ImageList Ptr
-            StateImages       As ImageList Ptr
+            SelectedImages       As ImageList Ptr
             SmallImages       As ImageList Ptr
             GroupHeaderImages       As ImageList Ptr
             Declare Property ColumnHeaderHidden As Boolean
@@ -404,7 +354,7 @@ Namespace My.Sys.Forms
     End Sub
 
     Property ListViewColumn.Text ByRef As WString
-        Return WGet(FText)
+        Return *FText
     End Property
 
     Property ListViewColumn.Text(ByRef Value As WString)
@@ -450,7 +400,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property ListViewColumn.Hint ByRef As WString
-        Return WGet(FHint)
+        Return *FHint
     End Property
 
     Property ListViewColumn.Hint(ByRef Value As WString)
@@ -521,25 +471,20 @@ Namespace My.Sys.Forms
        'QToolButton(FItems.Items[Index]) = Value 
     End Property
 
-    Function ListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+    Function ListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1) As ListViewItem Ptr
         PItem = New ListViewItem
         FItems.Add PItem
         With *PItem
             .ImageIndex     = FImageIndex
             .Text(0)        = FCaption
-            .State        = State
-            .Indent        = Indent
             .Index    = FItems.Count - 1
         End With
-        lvi.Mask = LVIF_TEXT or LVIF_IMAGE or LVIF_STATE or LVIF_INDENT
+        lvi.Mask = LVIF_TEXT or LVIF_IMAGE
         lvi.pszText  = @FCaption
         lvi.cchTextMax = Len(FCaption)
         lvi.iItem = PItem->Index
         lvi.iSubItem = 0
         lvi.iImage   = FImageIndex
-        lvi.State   = INDEXTOSTATEIMAGEMASK(State)
-        lvi.stateMask = LVIS_STATEIMAGEMASK
-        lvi.iIndent   = Indent
         If Parent Then
            PItem->Parent = Parent
            If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
@@ -547,17 +492,17 @@ Namespace My.Sys.Forms
         Return PItem
     End Function
     
-    Function ListViewItems.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+    Function ListViewItems.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString) As ListViewItem Ptr
         If Parent AndAlso Cast(ListView Ptr, Parent)->Images Then
-            PItem = Add(FCaption, Cast(ListView Ptr, Parent)->Images->IndexOf(FImageKey), State, Indent)
+            PItem = Add(FCaption, Cast(ListView Ptr, Parent)->Images->IndexOf(FImageKey))
         Else
-            PItem = Add(FCaption, -1, State, Indent)
+            PItem = Add(FCaption, -1)
         End If
         If PItem Then PItem->ImageKey = FImageKey
         Return PItem
     End Function
 
-    Function ListViewItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+    Sub ListViewItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1)
         Dim As ListViewItem Ptr PItem
         Dim As LVITEM lvi
         PItem = New ListViewItem
@@ -565,24 +510,18 @@ Namespace My.Sys.Forms
         With *PItem
             .ImageIndex     = FImageIndex
             .Text(0)        = FCaption
-            .State          = State
-            .Indent         = Indent
             .Index    = Index
         End With
-        lvi.Mask = LVIF_TEXT or LVIF_IMAGE or LVIF_State or LVIF_Indent
+        lvi.Mask = LVIF_TEXT or LVIF_IMAGE
         lvi.pszText  = @FCaption
         lvi.cchTextMax = Len(FCaption)
         lvi.iItem = PItem->Index
         lvi.iImage   = FImageIndex
-        lvi.State   = INDEXTOSTATEIMAGEMASK(State)
-        lvi.stateMask = LVIS_STATEIMAGEMASK
-        lvi.iIndent   = Indent
         If Parent Then
            PItem->Parent = Parent
            If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
         End If
-        Return PItem
-    End Function
+    End Sub
 
     Sub ListViewItems.Remove(Index As Integer)
         FItems.Remove Index
@@ -920,11 +859,11 @@ Namespace My.Sys.Forms
                     .Images->ParentWindow = .Handle
                     If .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
                 End If
-                If .StateImages Then .StateImages->ParentWindow = .Handle
+                If .SelectedImages Then .SelectedImages->ParentWindow = .Handle
                 If .SmallImages Then .SmallImages->ParentWindow = .Handle
                 If .GroupHeaderImages Then .GroupHeaderImages->ParentWindow = .Handle
                 If .Images AndAlso .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
-                If .StateImages AndAlso .StateImages->Handle Then ListView_SetImageList(.FHandle, CInt(.StateImages->Handle), LVSIL_STATE)
+                If .SelectedImages AndAlso .SelectedImages->Handle Then ListView_SetImageList(.FHandle, CInt(.SelectedImages->Handle), LVSIL_STATE)
                 If .SmallImages AndAlso .SmallImages->Handle Then ListView_SetImageList(.FHandle, CInt(.SmallImages->Handle), LVSIL_SMALL)
                 If .GroupHeaderImages AndAlso .GroupHeaderImages->Handle Then ListView_SetImageList(.FHandle, CInt(.GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
                 Dim lvStyle As Integer
@@ -971,8 +910,8 @@ Namespace My.Sys.Forms
             .RegisterClass "ListView", WC_ListView
             .Child             = @This
             .ChildProc         = @WndProc
-            WLet FClassName, "ListView"
-            WLet FClassAncestor, WC_ListView
+            .ClassName         = "ListView"
+            .ClassAncestor         = WC_ListView
             .ExStyle           = WS_EX_CLIENTEDGE
             .Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or  LVS_REPORT Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
             .Width             = 121
