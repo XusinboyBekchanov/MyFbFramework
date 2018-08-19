@@ -1,4 +1,8 @@
-                    GNU GENERAL PUBLIC LICENSE
+MyFbFramework - forms and drawing classes library for the FreeBASIC Compiler
+
+The MyFbFramework is licensed under the GNU GPLv3 or later.
+
+                      GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
