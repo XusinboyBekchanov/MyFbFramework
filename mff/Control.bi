@@ -144,6 +144,8 @@ Namespace My.Sys.Forms
                 Declare Property ExStyle(Value As Integer)
                 Declare Function SelectNext(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
                 Declare Virtual Sub ProcessMessage(ByRef message As Message)        
+                OnHandleIsAllocated As Sub(ByRef Sender As Control)
+                OnHandleIsDestroyed As Sub(ByRef Sender As Control)
             Public:
                 Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
                 Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
@@ -151,8 +153,6 @@ Namespace My.Sys.Forms
                 Declare Static Function DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
                 Declare Static Function CallWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
                 Declare Static Function SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-                OnHandleIsAllocated As Sub(ByRef Sender As Control)
-                OnHandleIsDestroyed As Sub(ByRef Sender As Control)
                 SubClass            As Boolean
                 ToolTipHandle       As HWND
                 Accelerator        As HACCEL
@@ -1068,11 +1068,11 @@ Namespace My.Sys.Forms
                 Dim As LPNMHDR NM
                 Static As HWND FWindow
                 NM = Cast(LPNMHDR,Message.lParam)
-                If NM->Code = TTN_NEEDTEXT Then 
-                If FWindow Then SendMessage FWindow,CM_NEEDTEXT,Message.wParam,Message.lParam
-                Else
                 FWindow = NM->hwndFrom
-                SendMessage *Cast(LPNMHDR,Message.lParam).hwndFrom,CM_NOTIFY,Message.wParam,Message.lParam 
+                If NM->Code = TTN_NEEDTEXT Then 
+                    If FWindow Then SendMessage FWindow,CM_NEEDTEXT,Message.wParam, Message.lParam
+                Else
+                    SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam 
                 End If
             Case WM_HELP
                 If (GetWindowLong(message.hwnd,GWL_STYLE) AND WS_CHILD) <> WS_CHILD Then SendMessage(message.hwnd,CM_HELP,message.wParam,message.LParam)

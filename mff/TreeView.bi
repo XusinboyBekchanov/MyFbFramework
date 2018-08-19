@@ -64,6 +64,7 @@ Namespace My.Sys.Forms
             Declare Sub SelectItem
             Declare Sub Expand
             Declare Function IsExpanded As Boolean
+            Declare Function Index As Integer
             Declare Virtual Function ToString ByRef As WString
             Declare Property Name ByRef As WString
             Declare Property Name(ByRef Value As WString)
@@ -117,6 +118,7 @@ Namespace My.Sys.Forms
             Declare Destructor
             OnNodeClick As Sub(BYREF Sender As TreeView, BYREF Item As TreeNode)
             OnNodeDblClick As Sub(BYREF Sender As TreeView, BYREF Item As TreeNode)
+            OnSelChange As Sub(BYREF Sender As TreeView, BYREF Item As TreeNode)
     End Type
 
     Sub TreeNode.SelectItem
@@ -129,6 +131,16 @@ Namespace My.Sys.Forms
 
     Function TreeNode.IsExpanded As Boolean
         If Parent AndAlso Parent->Handle Then Return TreeView_GetItemState(Parent->Handle, Handle, TVIS_EXPANDED)
+    End Function
+
+    Function TreeNode.Index As Integer
+        If FParentNode <> 0 Then
+            Return FParentNode->Nodes.IndexOf(@This)
+        ElseIf Parent <> 0 Then
+            Return Cast(TreeView Ptr, Parent)->Nodes.IndexOf(@This)
+        Else
+            Return -1
+        End If
     End Function
 
     Function TreeNode.ToString ByRef As WString
@@ -283,10 +295,9 @@ Namespace My.Sys.Forms
     
     Function TreeNodeCollection.FindByHandle(hti As HTREEItem) As TreeNode Ptr
         If ParentNode AndAlso ParentNode->Handle = hti Then Return ParentNode
-        Dim As TreeNode Ptr tn
         For i as integer = 0 to Count - 1
-            tn = Item(i)->Nodes.FindByHandle(hti)
-            If tn <> 0 Then Return tn
+            PNode = Item(i)->Nodes.FindByHandle(hti)
+            If PNode <> 0 Then Return PNode
         Next i
         Return 0
     End Function
@@ -299,7 +310,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property TreeNodeCollection.Item(Index As Integer) As TreeNode Ptr
-        Return QTreeNode(FNodes.Items[Index])
+        Return Cast(TreeNode Ptr, FNodes.Items[Index])
     End Property
 
     Property TreeNodeCollection.Item(Index As Integer, Value As TreeNode Ptr)
@@ -335,7 +346,6 @@ Namespace My.Sys.Forms
     End Function
 
     Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString, bSorted As Boolean = False) As TreeNode Ptr
-        Dim As TreeNode Ptr PNode
         If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
             PNode = This.Add(FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey), bSorted)
         Else
@@ -377,7 +387,6 @@ Namespace My.Sys.Forms
     End Function
 
     Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString) As TreeNode Ptr
-        Dim As TreeNode Ptr PNode
         If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
             PNode = This.Insert(Index, FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey))
         Else
@@ -497,50 +506,59 @@ Namespace My.Sys.Forms
                 Case NM_RETURN: If OnNodeDblClick Then OnNodeDblClick(This, *Nodes.FindByHandle(tvp->itemNew.hItem))
                 Case NM_SETCURSOR
                 Case NM_SETFOCUS
+                Case TVN_KEYDOWN
+                Case TVN_GETINFOTIP
+                Case TVN_SINGLEEXPAND
+                Case TVN_SELCHANGING
+                Case TVN_SELCHANGED: If OnSelChange Then OnSelChange(This, *Nodes.FindByHandle(tvp->itemNew.hItem))
+                Case TVN_GETDISPINFO
+                Case TVN_GETINFOTIP
+                Case TVN_SETDISPINFO
+                Case TVN_ITEMCHANGED
+                Case TVN_ITEMCHANGING
+                Case TVN_ITEMEXPANDING
+                Case TVN_ITEMEXPANDED
+                Case TVN_BEGINDRAG
+                Case TVN_BEGINRDRAG
+                Case TVN_DELETEITEM
+                Case TVN_BEGINLABELEDIT
+                Case TVN_ENDLABELEDIT
+                Case TVN_ITEMCHANGINGW
+                Case TVN_ITEMCHANGED
+                Case TVN_ASYNCDRAW
                 'Case NM_KEYDOWN: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))
                 End Select
             End If
-        Case CM_COMMAND
-            Select Case message.Wparam
-            Case TVN_KEYDOWN
-                
-            Case TVN_GETINFOTIP
-            Case TVN_SINGLEEXPAND
-            Case TVN_SELCHANGING
-            Case TVN_SELCHANGED
-            Case TVN_GETDISPINFO
-            Case TVN_GETINFOTIP
-            Case TVN_SETDISPINFO
-            Case TVN_ITEMCHANGED
-            Case TVN_ITEMCHANGING
-            Case TVN_ITEMEXPANDING
-            Case TVN_ITEMEXPANDED
-            Case TVN_BEGINDRAG
-            Case TVN_BEGINRDRAG
-            Case TVN_DELETEITEM
-            Case TVN_BEGINLABELEDIT
-            Case TVN_ENDLABELEDIT
-            Case TVN_ITEMCHANGINGW
-            Case TVN_ITEMCHANGED
-            Case TVN_ASYNCDRAW
-            End Select
-        Case CM_NOTIFY
-'            Dim As TBNOTIFY PTR Tbn
-'            Dim As TBBUTTON TB
-'            Dim As RECT R
-'            Dim As Integer i
-'            Tbn = Cast(TBNOTIFY PTR,Message.lParam) 
-'            Select Case Tbn->hdr.Code
-'            Case TBN_DROPDOWN
-'                 If Tbn->iItem <> -1 Then 
-'                     SendMessage(Tbn->hdr.hwndFrom,TB_GETRECT,Tbn->iItem,CInt(@R))
-'                     MapWindowPoints(Tbn->hdr.hwndFrom,0,Cast(Point Ptr,@R),2)
-'                     i = SendMessage(Tbn->hdr.hwndFrom,TB_COMMANDTOINDEX,Tbn->iItem,0)
-'                     If SendMessage(Tbn->hdr.hwndFrom,TB_GETBUTTON,i,CInt(@TB)) Then
-'                         TrackPopupMenu(Buttons.Button(i)->DropDownMenu.Handle,0,R.Left,R.Bottom,0,Tbn->hdr.hwndFrom,NULL)
-'                     End If 
-'                 End If
+'            Dim As LPNMHDR NM
+'            Static As HWND FWindow
+'            NM = Cast(LPNMHDR, Message.lParam)
+'            ?NM->Code
+'            Select Case NM->Code
+'            Case TVN_KEYDOWN
+'                
+'            Case TVN_GETINFOTIP
+'            Case TVN_SINGLEEXPAND
+'            Case TVN_SELCHANGING
+'            Case TVN_SELCHANGED
+'                ?111
+'            Case TVN_GETDISPINFO
+'            Case TVN_GETINFOTIP
+'            Case TVN_SETDISPINFO
+'            Case TVN_ITEMCHANGED
+'            Case TVN_ITEMCHANGING
+'            Case TVN_ITEMEXPANDING
+'            Case TVN_ITEMEXPANDED
+'            Case TVN_BEGINDRAG
+'            Case TVN_BEGINRDRAG
+'            Case TVN_DELETEITEM
+'            Case TVN_BEGINLABELEDIT
+'            Case TVN_ENDLABELEDIT
+'            Case TVN_ITEMCHANGINGW
+'            Case TVN_ITEMCHANGED
+'            Case TVN_ASYNCDRAW
 '            End Select
+        Case CM_COMMAND
+            
         Case CM_NEEDTEXT       
 '            Dim As LPTOOLTIPTEXT TTX
 '            TTX = Cast(LPTOOLTIPTEXT,Message.lParam)

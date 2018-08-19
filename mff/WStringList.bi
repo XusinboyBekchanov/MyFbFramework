@@ -187,11 +187,11 @@ Sub WStringList.Remove(Index As Integer)
     If OnRemove Then OnRemove(This, Index)
 End Sub
 
-Sub WStringList.Sort
+Sub WStringList.Sort()
     Dim As Integer i,j
     For i = 1 To Count -1
         For j = Count -1 To i Step -1
-            If (Item(j) < Item(j - 1)) Then
+            If (LCase(Item(j)) < LCase(Item(j - 1))) Then
                Exchange j - 1, j
             End If 
         Next

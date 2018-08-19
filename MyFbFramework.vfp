@@ -66,6 +66,6 @@ File=mff\VScrollBar.bi
 File=mff\WStringList.bi
 File=mff\Dictionary.bi
 File=mff\mff.bas
-File=mff\mff.rc
 File=mff\xpmanifest.rc
+File=mff\mff.rc
 File=mff\xpmanifest.xml

@@ -572,7 +572,7 @@ Namespace My.Sys.Forms
         '?"..." & GetCapture
         'ReleaseCapture
         For i = 0 To App.FormCount -1
-            If App.Forms[i]->Handle <> Handle Then Cast(Form Ptr,App.Forms[i]->Child)->Enabled = False
+            If App.Forms[i]->Handle <> Handle Then Cast(Form Ptr, App.Forms[i]->Child)->Enabled = False
         Next i
         If OnShow Then OnShow(This)
         Visible = True
@@ -582,7 +582,7 @@ Namespace My.Sys.Forms
         Loop While IsWindowVisible(Handle) = True
         Visible = False
         For i = 0 To App.FormCount -1
-             Cast(Form Ptr,App.Forms[i]->Child)->Enabled = True
+             Cast(Form Ptr, App.Forms[i]->Child)->Enabled = True
         Next i
         'ReleaseCapture
         SetActiveWindow MainHandle

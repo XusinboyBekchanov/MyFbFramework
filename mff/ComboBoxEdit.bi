@@ -78,15 +78,17 @@ namespace My.Sys.Forms
             Declare Static Sub RegisterClass
             Declare Constructor
             Declare Destructor
-            OnChange      As Sub(BYREF Sender As ComboBoxEdit)
-            OnDblClick    As Sub(BYREF Sender As ComboBoxEdit)
-            OnDropDown    As Sub(BYREF Sender As ComboBoxEdit)
-            OnCloseUp     As Sub(BYREF Sender As ComboBoxEdit)
-            OnKeyPress    As Sub(BYREF Sender As ComboBoxEdit, Key As Byte, Shift As Integer)
-            OnKeyDown     As Sub(BYREF Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-            OnKeyUp       As Sub(BYREF Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-            OnMeasureItem As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer, BYREF Height As UInt)
-            OnDrawItem    As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, BYREF R As Rect, DC As HDC = 0)
+            OnChange            As Sub(BYREF Sender As ComboBoxEdit)
+            OnDblClick          As Sub(BYREF Sender As ComboBoxEdit)
+            OnDropDown          As Sub(BYREF Sender As ComboBoxEdit)
+            OnCloseUp           As Sub(BYREF Sender As ComboBoxEdit)
+            OnKeyPress          As Sub(BYREF Sender As ComboBoxEdit, Key As Byte, Shift As Integer)
+            OnKeyDown           As Sub(BYREF Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
+            OnKeyUp             As Sub(BYREF Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
+            OnMeasureItem       As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer, BYREF Height As UInt)
+            OnDrawItem          As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, BYREF R As Rect, DC As HDC = 0)
+            OnSelected          As Sub(BYREF Sender As ComboBoxEdit)
+            OnSelectCanceled    As Sub(BYREF Sender As ComboBoxEdit)
     End Type
 
     Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
@@ -186,6 +188,7 @@ namespace My.Sys.Forms
     End Property
 
     Property ComboBoxEdit.Text ByRef As WString
+        WLet FText, This.Item(This.ItemIndex)
         Return WGet(FText)
     End Property
 
@@ -349,8 +352,12 @@ namespace My.Sys.Forms
             Select Case Message.wParamHi
             Case CBN_SELCHANGE    
                 If OnChange Then OnChange(This)
-            Case CBN_EDITCHANGE    
-            Case CBN_EDITUPDATE    
+            Case CBN_SELENDOK
+                If OnSelected Then OnSelected(This)
+            Case CBN_SELENDCANCEL
+                If OnSelectCanceled Then OnSelectCanceled(This)
+            Case CBN_EDITCHANGE
+            Case CBN_EDITUPDATE
             Case CBN_CLOSEUP
                 If OnCloseUp Then OnCloseUp(This)
             Case CBN_DROPDOWN

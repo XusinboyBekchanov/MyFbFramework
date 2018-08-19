@@ -62,10 +62,10 @@ Namespace My.Sys.Forms
             FIndent             As Integer
             Dim lvi             As LVITEM
         Public:
-            Index As Integer
             Parent   As Control Ptr
             Tag As Any Ptr
             Declare Sub SelectItem
+            Declare Function Index As Integer
             Declare Property Text(iSubItem As Integer) ByRef As WString
             Declare Property Text(iSubItem As Integer, ByRef Value As WString)
             Declare Property Hint ByRef As WString
@@ -95,6 +95,128 @@ Namespace My.Sys.Forms
             OnDblClick As Sub(BYREF Sender As My.Sys.Object)
     End Type
 
+    Type ListViewColumn Extends My.Sys.Object
+        Private:
+            FText            As WString Ptr
+            FHint            As WString Ptr
+            FImageIndex   As Integer
+            FWidth      As Integer
+            FFormat      As ColumnFormat
+            FVisible      As Boolean
+        Public:
+            Index As Integer
+            Parent   As Control Ptr
+            Declare Sub SelectItem
+            Declare Property Text ByRef As WString
+            Declare Property Text(ByRef Value As WString)
+            Declare Property Hint ByRef As WString
+            Declare Property Hint(ByRef Value As WString)
+            Declare Property ImageIndex As Integer
+            Declare Property ImageIndex(Value As Integer)
+            Declare Property Visible As Boolean
+            Declare Property Visible(Value As Boolean)
+            Declare Property Width As Integer
+            Declare Property Width(Value As Integer)
+            Declare Property Format As ColumnFormat
+            Declare Property Format(Value As ColumnFormat)
+            Declare Operator Cast As Any Ptr
+            Declare Constructor
+            Declare Destructor
+            OnClick As Sub(BYREF Sender As My.Sys.Object)
+            OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+    End Type
+
+    Type ListViewColumns
+        Private:
+            FColumns As List
+        Public:
+            Parent   As Control Ptr
+            Declare Property Count As Integer
+            Declare Property Count(Value As Integer)
+            Declare Property Column(Index As Integer) As ListViewColumn Ptr
+            Declare Property Column(Index As Integer, Value As ListViewColumn Ptr)
+            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft) As ListViewColumn Ptr
+            Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft)
+            Declare Sub Remove(Index As Integer)
+            Declare Function IndexOf(BYREF FColumn As ListViewColumn Ptr) As Integer
+            Declare Sub Clear
+            Declare Operator Cast As Any Ptr
+            Declare Constructor
+            Declare Destructor
+    End Type
+
+    Type ListViewItems
+        Private:
+            FItems As List
+            PItem As ListViewItem Ptr
+            lvi As LVITEM
+        Public:
+            Parent   As Control Ptr
+            Declare Property Count As Integer
+            Declare Property Count(Value As Integer)
+            Declare Property Item(Index As Integer) As ListViewItem Ptr
+            Declare Property Item(Index As Integer, Value As ListViewItem Ptr)
+            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+            Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+            Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+            Declare Sub Remove(Index As Integer)
+            Declare Function IndexOf(BYREF FItem As ListViewItem Ptr) As Integer
+            Declare Function IndexOf(ByRef FCaption As WString) As Integer
+            Declare Function Contains(ByRef FCaption As WString) As Boolean
+            Declare Sub Clear
+            Declare Sub Sort
+            Declare Operator Cast As Any Ptr
+            Declare Constructor
+            Declare Destructor
+    End Type
+
+    Type ListView Extends Control
+        Private:
+            FView As ViewStyle
+            FColumnHeaderHidden As Boolean
+            FSortStyle As SortStyle
+            Declare Static Sub WndProc(BYREF Message As Message)
+            Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+            Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
+            Declare Sub ProcessMessage(BYREF Message As Message)
+        Public:
+            ListItems         As ListViewItems
+            Columns         As ListViewColumns
+            Images          As ImageList Ptr
+            StateImages       As ImageList Ptr
+            SmallImages       As ImageList Ptr
+            GroupHeaderImages       As ImageList Ptr
+            Declare Property ColumnHeaderHidden As Boolean
+            Declare Property ColumnHeaderHidden(Value As Boolean)
+            Declare Property ShowHint As Boolean
+            Declare Property ShowHint(Value As Boolean)
+            Declare Property View As ViewStyle
+            Declare Property View(Value As ViewStyle)
+            Declare Property Sort As SortStyle
+            Declare Property Sort(Value As SortStyle)
+            Declare Property SelectedItem As ListViewItem Ptr
+            Declare Property SelectedItem(Value As ListViewItem Ptr)
+            Declare Property SelectedColumn As ListViewColumn Ptr
+            Declare Property SelectedColumn(Value As ListViewColumn Ptr)
+            Declare Operator Cast As Control Ptr
+            Declare Constructor
+            Declare Destructor
+            OnItemClick As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
+            OnItemDblClick As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
+            OnItemKeyDown As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
+            OnSelectedItemChanged As Sub(ByRef Sender As ListView, BYREF Item As ListViewItem)
+            OnBeginScroll As Sub(ByRef Sender As ListView)
+            OnEndScroll As Sub(ByRef Sender As ListView)
+    End Type
+
+    Function ListViewItem.Index As Integer
+        If Parent Then
+            Return Cast(ListView Ptr, Parent)->ListItems.IndexOf(@This)
+        Else
+            Return -1
+        End If
+    End Function
+    
     Sub ListViewItem.SelectItem
         If Parent AndAlso Parent->Handle Then
             Dim lvi As LVITEM
@@ -285,120 +407,6 @@ Namespace My.Sys.Forms
         If FSmallImageKey Then Deallocate FSmallImageKey
     End Destructor
     
-    Type ListViewColumn Extends My.Sys.Object
-        Private:
-            FText            As WString Ptr
-            FHint            As WString Ptr
-            FImageIndex   As Integer
-            FWidth      As Integer
-            FFormat      As ColumnFormat
-            FVisible      As Boolean
-        Public:
-            Index As Integer
-            Parent   As Control Ptr
-            Declare Sub SelectItem
-            Declare Property Text ByRef As WString
-            Declare Property Text(ByRef Value As WString)
-            Declare Property Hint ByRef As WString
-            Declare Property Hint(ByRef Value As WString)
-            Declare Property ImageIndex As Integer
-            Declare Property ImageIndex(Value As Integer)
-            Declare Property Visible As Boolean
-            Declare Property Visible(Value As Boolean)
-            Declare Property Width As Integer
-            Declare Property Width(Value As Integer)
-            Declare Property Format As ColumnFormat
-            Declare Property Format(Value As ColumnFormat)
-            Declare Operator Cast As Any Ptr
-            Declare Constructor
-            Declare Destructor
-            OnClick As Sub(BYREF Sender As My.Sys.Object)
-            OnDblClick As Sub(BYREF Sender As My.Sys.Object)
-    End Type
-
-    Type ListViewColumns
-        Private:
-            FColumns As List
-        Public:
-            Parent   As Control Ptr
-            Declare Property Count As Integer
-            Declare Property Count(Value As Integer)
-            Declare Property Column(Index As Integer) As ListViewColumn Ptr
-            Declare Property Column(Index As Integer, Value As ListViewColumn Ptr)
-            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft) As ListViewColumn Ptr
-            Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft)
-            Declare Sub Remove(Index As Integer)
-            Declare Function IndexOf(BYREF FColumn As ListViewColumn Ptr) As Integer
-            Declare Sub Clear
-            Declare Operator Cast As Any Ptr
-            Declare Constructor
-            Declare Destructor
-    End Type
-
-    Type ListViewItems
-        Private:
-            FItems As List
-            PItem As ListViewItem Ptr
-            lvi As LVITEM
-        Public:
-            Parent   As Control Ptr
-            Declare Property Count As Integer
-            Declare Property Count(Value As Integer)
-            Declare Property Item(Index As Integer) As ListViewItem Ptr
-            Declare Property Item(Index As Integer, Value As ListViewItem Ptr)
-            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
-            Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
-            Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
-            Declare Sub Remove(Index As Integer)
-            Declare Function IndexOf(BYREF FItem As ListViewItem Ptr) As Integer
-            Declare Function IndexOf(ByRef FCaption As WString) As Integer
-            Declare Function Contains(ByRef FCaption As WString) As Boolean
-            Declare Sub Clear
-            Declare Sub Sort
-            Declare Operator Cast As Any Ptr
-            Declare Constructor
-            Declare Destructor
-    End Type
-
-    Type ListView Extends Control
-        Private:
-            FView As ViewStyle
-            FColumnHeaderHidden As Boolean
-            FSortStyle As SortStyle
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-            Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
-            Declare Sub ProcessMessage(BYREF Message As Message)
-        Public:
-            ListItems         As ListViewItems
-            Columns         As ListViewColumns
-            Images          As ImageList Ptr
-            StateImages       As ImageList Ptr
-            SmallImages       As ImageList Ptr
-            GroupHeaderImages       As ImageList Ptr
-            Declare Property ColumnHeaderHidden As Boolean
-            Declare Property ColumnHeaderHidden(Value As Boolean)
-            Declare Property ShowHint As Boolean
-            Declare Property ShowHint(Value As Boolean)
-            Declare Property View As ViewStyle
-            Declare Property View(Value As ViewStyle)
-            Declare Property Sort As SortStyle
-            Declare Property Sort(Value As SortStyle)
-            Declare Property SelectedItem As ListViewItem Ptr
-            Declare Property SelectedItem(Value As ListViewItem Ptr)
-            Declare Property SelectedColumn As ListViewColumn Ptr
-            Declare Property SelectedColumn(Value As ListViewColumn Ptr)
-            Declare Operator Cast As Control Ptr
-            Declare Constructor
-            Declare Destructor
-            OnItemClick As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
-            OnItemDblClick As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
-            OnItemKeyDown As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
-            OnSelectedItemChanged As Sub(ByRef Sender As ListView, BYREF Item As ListViewItem)
-            OnBeginScroll As Sub(ByRef Sender As ListView)
-            OnEndScroll As Sub(ByRef Sender As ListView)
-    End Type
-
     Sub ListViewColumn.SelectItem
         If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
     End Sub
@@ -529,12 +537,11 @@ Namespace My.Sys.Forms
             .Text(0)        = FCaption
             .State        = State
             .Indent        = Indent
-            .Index    = FItems.Count - 1
         End With
         lvi.Mask = LVIF_TEXT or LVIF_IMAGE or LVIF_STATE or LVIF_INDENT
         lvi.pszText  = @FCaption
         lvi.cchTextMax = Len(FCaption)
-        lvi.iItem = PItem->Index
+        lvi.iItem = FItems.Count - 1
         lvi.iSubItem = 0
         lvi.iImage   = FImageIndex
         lvi.State   = INDEXTOSTATEIMAGEMASK(State)
@@ -567,12 +574,11 @@ Namespace My.Sys.Forms
             .Text(0)        = FCaption
             .State          = State
             .Indent         = Indent
-            .Index    = Index
         End With
         lvi.Mask = LVIF_TEXT or LVIF_IMAGE or LVIF_State or LVIF_Indent
         lvi.pszText  = @FCaption
         lvi.cchTextMax = Len(FCaption)
-        lvi.iItem = PItem->Index
+        lvi.iItem = Index
         lvi.iImage   = FImageIndex
         lvi.State   = INDEXTOSTATEIMAGEMASK(State)
         lvi.stateMask = LVIS_STATEIMAGEMASK
