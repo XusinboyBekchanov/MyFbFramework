@@ -7,6 +7,33 @@
 #Include Once "Object.bi"
 
 'Namespace My.Sys.Drawing
+#IfDef __USE_GTK__
+	#Define clScrollBar           &H000000
+	#Define clBackground          &H000000
+	#Define clActiveCaption       &H000000
+	#Define clInactiveCaption     &H000000
+	#Define clMenu                &H000000
+	#Define clWindow              &H000000
+	#Define clWindowFrame         &H000000
+	#Define clMenuText            &H000000
+	#Define clWindowText          &H000000
+	#Define clCaptionText         &H000000
+	#Define clActiveBorder        &H000000
+	#Define clInactiveBorder      &H000000
+	#Define clAppWorkSpace        &H000000
+	#Define clHighlight           &H000000
+	#Define clHighlightText       &H000000
+	#Define clBtnFace             &H000000
+	#Define clBtnShadow           &H000000
+	#Define clGrayText            &H000000
+	#Define clBtnText             &H000000
+	#Define clInactiveCaptionText &H000000
+	#Define clBtnHighlight        &H000000
+	#Define cl3DDkShadow          &H000000
+	#Define cl3DLight             &H000000
+	#Define clInfoText            &H000000
+	#Define clInfoBk              &H000000
+#Else
 	#Define clScrollBar           GetSysColor(COLOR_SCROLLBAR)
 	#Define clBackground          GetSysColor(COLOR_BACKGROUND)
 	#Define clActiveCaption       GetSysColor(COLOR_ACTIVECAPTION)
@@ -32,11 +59,13 @@
 	#Define cl3DLight             GetSysColor(COLOR_3DLIGHT)
 	#Define clInfoText            GetSysColor(COLOR_INFOTEXT)
 	#Define clInfoBk              GetSysColor(COLOR_INFOBK)
+#EndIf
 
 	Const clBlack   = &H000000
 	Const clMaroon  = &H000080
 	Const clGreen   = &H008000
 	Const clOlive   = &H008080
+	Const clOrange  = &HF07746
 	Const clNavy    = &H800000
 	Const clPurple  = &H800080
 	Const clTeal    = &H808000
@@ -60,23 +89,40 @@
 	Declare Function GetBlue(FColor As Long) As Byte
 
 	Function ColorToRGB(FColor As Integer) As Integer
-	   If FColor < 0 then
-		  Return GetSysColor(FColor And &H000000FF) 
-	   Else
-		  Return FColor
-	   End If  
+		If FColor < 0 then
+	    #IFDef __USE_GTK__
+			Return FColor
+	    #Else
+			Return GetSysColor(FColor And &H000000FF)
+	    #EndIf 
+	    Else
+			Return FColor
+	    End If  
 	End Function
 
+	'Function GetRed(FColor As Long) As Byte
+	'	Return FColor And &HFF
+	'End Function
+
+	'Function GetGreen(FColor As Long) As Byte
+	'	Return (FColor And &HFF00) \ &H100
+	'End Function
+
+	'Function GetBlue(FColor As Long) As Byte
+	'	Return (FColor And &HFF0000) \ &H10000
+	'End Function
+	
 	Function GetRed(FColor As Long) As Byte
-		Return FColor And &HFF
+		Return CUInt(FColor) And 255
 	End Function
 
 	Function GetGreen(FColor As Long) As Byte
-		Return (FColor And &HFF00) \ &H100
+		Return CUInt(FColor) shr 8 And 255
 	End Function
 
 	Function GetBlue(FColor As Long) As Byte
-		Return (FColor And &HFF0000) \ &H10000
+		'Return CUInt(FColor) And 255
+		Return CUInt(FColor) Shr 16 And 255
 	End Function
 'End Namespace
 

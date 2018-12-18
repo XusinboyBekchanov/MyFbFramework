@@ -11,28 +11,32 @@ Namespace My.Sys.Forms
     
     Type HotKey Extends Control
         Private:
-            Declare Static Sub WndProc(ByRef Message As Message)
-            Declare Sub ProcessMessage(ByRef Message As Message)
-            Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#IfNdef __USE_GTK__
+				Declare Static Sub WndProc(ByRef Message As Message)
+				Declare Sub ProcessMessage(ByRef Message As Message)
+				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#EndIf
         Public:
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
             Declare Destructor
     End Type
     
-    Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-        If Sender.Child Then
-            With QHotKey(Sender.Child)
-                 
-            End With
-        End If
-    End Sub
+    #IfNdef __USE_GTK__
+		Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QHotKey(Sender.Child)
+					 
+				End With
+			End If
+		End Sub
 
-    Sub HotKey.WndProc(ByRef Message As Message)
-    End Sub
+		Sub HotKey.WndProc(ByRef Message As Message)
+		End Sub
 
-    Sub HotKey.ProcessMessage(ByRef Message As Message)
-    End Sub
+		Sub HotKey.ProcessMessage(ByRef Message As Message)
+		End Sub
+	#EndIf
 
     Operator HotKey.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)
@@ -40,20 +44,24 @@ Namespace My.Sys.Forms
 
     Constructor HotKey
         With This
-            .RegisterClass "HotKey","msctls_hotkey32"
             WLet FClassName, "HotKey"
             WLet FClassAncestor, "msctls_hotkey32"
-            .Style        = WS_CHILD
-            .ExStyle      = 0
+            #IfNdef __USE_GTK__
+				.RegisterClass "HotKey","msctls_hotkey32"
+				.Style        = WS_CHILD
+				.ExStyle      = 0
+				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#EndIf
             .Width        = 175
             .Height       = 21
             .Child        = @This
-            .ChildProc    = @WndProc
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With
     End Constructor
 
     Destructor HotKey
-        UnregisterClass "HotKey",GetModuleHandle(NULL)
+		#IfNdef __USE_GTK__
+			UnregisterClass "HotKey",GetModuleHandle(NULL)
+		#EndIf
     End Destructor
 End Namespace

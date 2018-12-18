@@ -7,14 +7,22 @@
 
 #Include Once "Component.bi"
 #Include Once "ImageList.bi"
-#Include Once "win/uxtheme.bi"
+#IfNDef __USE_GTK__
+	#Include Once "win/uxtheme.bi"
+#EndIf
 
-type BP_PAINTPARAMS
+#IfDef __USE_GTK__
+	Dim Shared As GdkPixbuf Ptr EmptyPixbuf
+	EmptyPixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, True, 8, 16, 16)
+	gdk_pixbuf_fill(EmptyPixbuf, 0)
+#Else
+	type BP_PAINTPARAMS
         cbSize as DWORD
         dwFlags as DWORD
         prcExclude as const RECT ptr
         pBlendFunction as const BLENDFUNCTION ptr
     end type
+#EndIf
 
 Using My.Sys.ComponentModel
 
@@ -33,34 +41,55 @@ type PMenuItem  as MenuItem ptr
     const MIM_APPLYTOSUBMENUS = &H80000000
     const MIM_MENUDATA        = &H00000008
 
-    type MenuItem extends My.Sys.Object
+    Type MenuItem Extends My.Sys.Object
         Private:
-            FInfo       As MENUITEMINFO
-            FCount      As integer
-            FItems      As PMenuItem ptr
-            FCaption    As WString Ptr
-            FChecked    As boolean
-            FRadioItem  As boolean
-            FParent     As PMenuItem
-            FEnabled    As boolean
-            FVisible    As boolean
-            FCommand    As integer
-            FMenuIndex  As integer
-            FImage     As My.Sys.Drawing.BitmapType
-            FImageIndex As Integer
-            FImageKey     As WString Ptr
-            FOwnerDraw  As integer
+			#IfNDef __USE_GTK__
+				FInfo		As MENUITEMINFO
+			#EndIf
+            FCount			As Integer
+            FItems			As PMenuItem ptr
+            FCaption		As WString Ptr
+            FText			As WString Ptr
+            FAccelerator	As WString Ptr
+            FChecked		As boolean
+            FRadioItem		As boolean
+            FParent			As PMenuItem
+            FEnabled		As boolean
+            FVisible		As boolean
+            FCommand		As integer
+            FMenuIndex		As integer
+            FImage			As My.Sys.Drawing.BitmapType
+            FImageIndex		As Integer
+            FImageKey		As WString Ptr
+            FOwnerDraw		As integer
         Protected:
-            FName           As WString Ptr
-            FHandle         As HMENU
-            FMenu           As HMENU
-            FOwner          As PMenu
+            #IfNDef __USE_GTK__
+				FHandle		As HMENU
+				'FMenu		As HMENU
+			#ENdIf
+            FName			As WString Ptr
+            FOwner			As PMenu
         Public:
             Tag As Any Ptr
+            SubMenu As PMenu
+            #IfNDef __USE_GTK__
+				'declare property Menu as HMENU
+				'declare property Menu(value as HMENU)
+				declare property Handle as HMENU
+				declare property Handle(value as HMENU)
+				declare sub SetInfo(byref value as MENUITEMINFO)
+				declare sub SetItemInfo(byref value as MENUITEMINFO)
+			#Else
+				accelerator_key As guint
+				accelerator_mods As GdkModifierType
+				Box				As GtkWidget Ptr
+				Icon			As GtkWidget Ptr
+				Label			As GtkWidget Ptr
+				Widget 			As GtkWidget Ptr
+				Declare Static Sub MenuItemActivate(menuitem As GtkMenuItem Ptr, user_data As Any Ptr)
+            #EndIf
             declare property Owner as PMenu
             declare property Owner(value as PMenu)
-            declare property Menu as HMENU
-            declare property Menu(value as HMENU)
             declare property Name ByRef As WString
             declare property Name(ByRef value As WString)
             declare property Parent as PMenuItem
@@ -75,8 +104,6 @@ type PMenuItem  as MenuItem ptr
             declare property ImageIndex(value As Integer)
             declare property ImageKey ByRef As WString
             declare property ImageKey(ByRef value As WString)
-            declare property Handle as HMENU
-            declare property Handle(value as HMENU)
             declare property Caption ByRef As WString
             declare property Caption(ByRef value As WString)
             declare property Checked as boolean
@@ -103,12 +130,10 @@ type PMenuItem  as MenuItem ptr
             declare sub Remove(value as PMenuItem)
             declare sub Insert(index as integer, value as PMenuItem)
             declare sub Clear
-            declare sub SetInfo(byref value as MENUITEMINFO)
-            declare sub SetItemInfo(byref value as MENUITEMINFO)
             declare function IndexOf(value as PMenuItem) as integer
             declare function Find(value  as integer) as PMenuItem
             declare operator cast as any ptr
-            declare constructor
+            declare constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "")
             declare destructor
             OnClick as NotifyEvent
     End Type
@@ -118,19 +143,25 @@ type PMenuItem  as MenuItem ptr
             FCount   as integer
             FItems   as PMenuItem ptr
         Protected:
-            FInfo    as MENUINFO
-            FHandle  as HMENU
+			#IfNDef __USE_GTK__
+				FInfo    as MENUINFO
+				FHandle  as HMENU
+            #EndIf
             FStyle   as integer
             FColor   as integer
-            FParentWindow as HWND
+            FMenuItems     As List
+			FParentWindow as Component Ptr
             FIncSubItems  as integer
-            declare sub ProcessMessage(byref message as Message)
+            Declare Sub GetMenuItems
+            declare sub ProcessMessage(byref mess as Message)
         Public:
             ImagesList       As ImageList Ptr
-            declare property ParentWindow as hwnd
-            declare property ParentWindow(value as hwnd)
-            declare property Handle as HMENU
-            declare property Handle(value as HMENU)
+			declare property ParentWindow as Component Ptr
+			declare property ParentWindow(value as Component Ptr)
+            #IfNDef __USE_GTK__
+				declare property Handle as HMENU
+				declare property Handle(value as HMENU)
+            #EndIf
             declare property Style as integer
             declare property Style(value as integer)
             declare property ColorizeEntire as integer
@@ -161,12 +192,11 @@ type PMenuItem  as MenuItem ptr
 
     Type MainMenu Extends Menu
         Private:
-            FParent As hwnd
         Protected:
+			Declare Function EnumMenuItems(ByRef Item As MenuItem) As Boolean
         Public:
-            declare sub ProcessMessages(byref message as Message)
-            declare property Parent as hwnd
-            declare property Parent(value as hwnd)
+			declare sub ProcessMessages(byref message as Message)
+			declare property ParentWindow(value as Component Ptr)
             declare operator cast as any ptr
             declare constructor
             declare destructor
@@ -174,12 +204,10 @@ type PMenuItem  as MenuItem ptr
 
     Type PopupMenu Extends Menu
         Private:
-            FWindow as hwnd
         Protected:
         Public:
-            declare property Window as hwnd
-            declare property Window(value as hwnd)
-            declare sub Popup(x as integer, y as integer)
+			declare property ParentWindow(value as Component Ptr)
+            declare sub Popup(x as integer, y as integer, msg As Message Ptr = 0)
             declare sub ProcessMessages(byref message as Message)
             declare operator cast as any ptr
             declare constructor
@@ -205,42 +233,46 @@ type PMenuItem  as MenuItem ptr
     End Function
 
     Sub TraverseItems(Item As MenuItem)
-        Dim As MenuItemInfo mii
-        mii.cbsize = SizeOf(mii)
-        mii.fMask  = MIIM_TYPE
-        For i As Integer = 0 To Item.Count-1
-            GetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,true,@mii)
-            mii.fType = iif((mii.fType and MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
-            SetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,true,@mii)
-            TraverseItems(*Item.Item(i))
-        Next i
+		#IfNDef __USE_GTK__ 
+			Dim As MenuItemInfo mii
+			mii.cbsize = SizeOf(mii)
+			mii.fMask  = MIIM_TYPE
+			For i As Integer = 0 To Item.Count-1
+				GetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,true,@mii)
+				mii.fType = iif((mii.fType and MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
+				SetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,true,@mii)
+				TraverseItems(*Item.Item(i))
+			Next i
+		#EndIf
     End Sub
 
     /' MenuItem '/
-    Sub MenuItem.SetInfo(ByRef value As MENUITEMINFO)
-        If *FCaption = "" Then
-            *FCaption = Chr(0)
-        End If
-        value.cbSize      = SizeOf(value)
-        value.fMask       = iif(Handle,MIIM_SUBMENU,MIIM_ID) or MIIM_FTYPE Or MIIM_BITMAP Or MIIM_STRING Or MIIM_DATA or MIIM_STATE
-        value.hSubMenu    = Handle
-        value.fType       = iif(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
-        value.fState      = iif(FEnabled, MFS_ENABLED, MFS_DISABLED) or iif(FChecked, MFS_CHECKED, MFS_UNCHECKED)
-        value.wID         = iif(Handle, -1, This.Command)
-        If FImageIndex <> - 1 AndAlso owner AndAlso owner->imageslist Then FImage = owner->imageslist->GetIcon(FImageIndex).ToBitmap
-        Value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
-        value.dwItemData  = Cast(dword_Ptr, Cast(Any Ptr, @this))
-        value.dwTypeData  = FCaption
-        value.cch         = Len(*FCaption)
-    end sub
+    #IfNDef __USE_GTK__
+		Sub MenuItem.SetInfo(ByRef value As MENUITEMINFO)
+			If *FCaption = "" Then
+				*FCaption = Chr(0)
+			End If
+			value.cbSize      = SizeOf(value)
+			value.fMask       = iif(Handle,MIIM_SUBMENU,MIIM_ID) or MIIM_FTYPE Or MIIM_BITMAP Or MIIM_STRING Or MIIM_DATA or MIIM_STATE
+			value.hSubMenu    = Handle
+			value.fType       = iif(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
+			value.fState      = iif(FEnabled, MFS_ENABLED, MFS_DISABLED) or iif(FChecked, MFS_CHECKED, MFS_UNCHECKED)
+			value.wID         = iif(Handle, -1, This.Command)
+			If FImageIndex <> - 1 AndAlso owner AndAlso owner->imageslist Then FImage = owner->imageslist->GetIcon(FImageIndex).ToBitmap
+			Value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
+			value.dwItemData  = Cast(dword_Ptr, Cast(Any Ptr, @this))
+			value.dwTypeData  = FCaption
+			value.cch         = Len(*FCaption)
+		end sub
 
-    Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
-        If Parent AndAlso Parent->Handle Then
-            SetMenuItemInfo(Parent->Handle, FMenuIndex, True, @value)
-        Else
-            SetMenuItemInfo(This.Menu, FMenuIndex, True, @value)
-        End If
-    End Sub
+		Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
+			If Parent AndAlso Parent->Handle Then
+				SetMenuItemInfo(Parent->Handle, FMenuIndex, True, @value)
+			ElseIf This.Owner AndAlso This.Owner->Handle Then
+				SetMenuItemInfo(This.Owner->Handle, FMenuIndex, True, @value)
+			End If
+		End Sub
+	#EndIf
 
     property MenuItem.MenuIndex as integer
         return FMenuIndex
@@ -535,12 +567,14 @@ type PMenuItem  as MenuItem ptr
         
     property MenuItem.Image(value As My.Sys.Drawing.BitmapType)
         FImage = value
-        DIM mii AS MENUITEMINFOW
-        mii.cbSize = SIZEOF(mii)
-        mii.fMask = MIIM_BITMAP
-        mii.hbmpItem = value.Handle
-               
-        SetItemInfo mii
+        #IfNDef __USE_GTK__
+			DIM mii AS MENUITEMINFOW
+			mii.cbSize = SIZEOF(mii)
+			mii.fMask = MIIM_BITMAP
+			mii.hbmpItem = value.Handle
+				   
+			SetItemInfo mii
+		#EndIf
     end property
 
     property MenuItem.ImageIndex As Integer
@@ -550,16 +584,27 @@ type PMenuItem  as MenuItem ptr
     property MenuItem.ImageIndex(value As Integer)
         FImageIndex = value
         If value <> -1 AndAlso owner AndAlso owner->imageslist Then
-            FImage = owner->imageslist->GetIcon(value).ToBitmap
-    
-            DIM mii AS MENUITEMINFOW
-            mii.cbSize = SIZEOF(mii)
-            mii.fMask = MIIM_BITMAP
-            mii.hbmpItem = FImage 'HBMMENU_CALLBACK
-               
-            SetItemInfo mii
+			#IfNDef __USE_GTK__
+				FImage = owner->imageslist->GetIcon(value).ToBitmap
+		
+				DIM mii AS MENUITEMINFOW
+				mii.cbSize = SIZEOF(mii)
+				mii.fMask = MIIM_BITMAP
+				mii.hbmpItem = FImage 'HBMMENU_CALLBACK
+				   
+				SetItemInfo mii
+           #EndIf
         End if
     end property
+    
+	#IfDef __USE_GTK__
+		Sub MenuItem.MenuItemActivate(m_item As GtkMenuItem Ptr, user_data As Any Ptr) '...'
+			Dim As MenuItem Ptr Ctrl = user_data
+			If Ctrl Then
+				If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl)
+			End If
+		End Sub
+	#EndIf
 
     property MenuItem.ImageKey ByRef As WString
         return WGet(FImageKey)
@@ -567,6 +612,16 @@ type PMenuItem  as MenuItem ptr
 
     property MenuItem.ImageKey(ByRef value As WString)
         WLet FImageKey, value
+        #IfDef __USE_GTK__
+	        If Icon Then
+				gtk_image_set_from_icon_name(GTK_IMAGE(icon), Value, GTK_ICON_SIZE_MENU)
+			Else
+				
+			End If
+		#EndIf
+        'gtk_container_add (GTK_CONTAINER (box), icon)
+        'gtk_container_add (GTK_CONTAINER (widget), box)
+		'gtk_widget_show_all (widget)
         If value <> "" AndAlso owner AndAlso owner->imageslist Then
             ImageIndex = owner->imageslist->IndexOf(value)
         End if
@@ -580,13 +635,15 @@ type PMenuItem  as MenuItem ptr
         FCommand = value
     end property
 
-    property MenuItem.Handle as HMENU
-        return FHandle
-    end property
+	#IfNDef __USE_GTK__
+		property MenuItem.Handle as HMENU
+			return FHandle
+		end property
 
-    property MenuItem.Handle(value as HMENU)
-        FHandle = value
-    end property
+		property MenuItem.Handle(value as HMENU)
+			FHandle = value
+		end property
+	#EndIf
 
     property MenuItem.Owner as PMenu
         return FOwner
@@ -596,13 +653,15 @@ type PMenuItem  as MenuItem ptr
         FOwner = value
     end property
 
-    property MenuItem.Menu as HMENU
-        return FMenu
-    end property
-
-    property MenuItem.Menu(value as HMENU)
-        FMenu = value
-    end property
+'	#IfNDef __USE_GTK__
+'		property MenuItem.Menu as HMENU
+'			return FMenu
+'		end property
+'
+'		property MenuItem.Menu(value as HMENU)
+'			FMenu = value
+'		end property
+'	#EndIf
 
     property MenuItem.Parent as PMenuItem
         return FParent
@@ -622,16 +681,43 @@ type PMenuItem  as MenuItem ptr
     property MenuItem.Caption(ByRef value As WString)
         FCaption = ReAllocate(FCaption, (Len(value) + 1) * SizeOf(WString))
         *FCaption = value
-        FInfo.dwTypeData = FCaption
-        FInfo.cch        = Len(*FCaption)
-        if Parent then
-            SetMenuItemInfo(Parent->Handle, MenuIndex, true, @FInfo)
-        else
-            SetMenuItemInfo(This.Menu, MenuIndex, true, @FInfo)
-        end if
-        If Owner Then
-            DrawMenuBar(Owner->Parentwindow)
-        End if
+        #IfDef __USE_GTK__
+			If Value <> "-" Then
+				Dim p As Integer = InStr(value, !"\t")
+				If p > 0 Then
+					Dim As String HotKey = Mid(value, p + 1)
+					WLet FText, Replace(Left(value, p), "&", "_")
+					WLet FAccelerator, HotKey
+					gtk_label_set_text_with_mnemonic(gtk_label(label), ToUTF8(*FText))
+					If HotKey <> "" Then
+						HotKey = Replace(HotKey, "Ctrl+", "<Ctrl>")
+						HotKey = Replace(HotKey, "Alt+", "<Alt>")
+						HotKey = Replace(HotKey, "Shift+", "<Shift>")
+						gtk_accelerator_parse(ToUTF8(HotKey), @accelerator_key, @accelerator_mods)
+						gtk_accel_label_set_accel(GTK_ACCEL_LABEL (label), accelerator_key, accelerator_mods) 'accelerator_mods)
+						'If Owner Then
+						'	Dim As Component Ptr Cpnt = Owner->GetTopLevel
+						'	If Cpnt->AccelGroup <> 0 Then Cpnt->AccelGroup = gtk_accel_group_new()
+						'	gtk_widget_add_accelerator (widget, "activate", Cpnt->AccelGroup, accelerator_key, accelerator_mods, GTK_ACCEL_VISIBLE)
+						'End If
+					End If
+				Else
+					WLet FText, value
+					gtk_label_set_text(gtk_label(label), ToUTF8(value))
+				End If
+			End If
+        #Else
+			FInfo.dwTypeData = FCaption
+			FInfo.cch        = Len(*FCaption)
+			if Parent then
+				SetMenuItemInfo(Parent->Handle, MenuIndex, true, @FInfo)
+			elseIf Owner AndAlso Owner->Handle Then
+				SetMenuItemInfo(Owner->Handle, MenuIndex, true, @FInfo)
+			end if
+			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
+				DrawMenuBar(Owner->ParentWindow->Handle)
+			End if
+		#EndIf
     end property
 
     property MenuItem.Checked as boolean
@@ -639,15 +725,17 @@ type PMenuItem  as MenuItem ptr
     end property
 
     property MenuItem.Checked(value as boolean)
-        Dim As Integer FCheck(-1 to 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
         FChecked = value
-        If Parent Then
-            If Handle Then
-                CheckMenuItem(Parent->Handle,cint(Handle),MF_POPUP or FCheck(FChecked))
-            Else
-                CheckMenuItem(Parent->Handle,MenuIndex,MF_BYPOSITION or FCheck(FChecked))
-            End If
-        End If
+        #IfNDef __USE_GTK__
+			Dim As Integer FCheck(-1 to 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
+			If Parent Then
+				If Handle Then
+					CheckMenuItem(Parent->Handle,cint(Handle),MF_POPUP or FCheck(FChecked))
+				Else
+					CheckMenuItem(Parent->Handle,MenuIndex,MF_BYPOSITION or FCheck(FChecked))
+				End If
+			End If
+		#EndIf
     End Property
 
     Property MenuItem.RadioItem As Boolean
@@ -660,7 +748,9 @@ type PMenuItem  as MenuItem ptr
         if Parent then
            First = Parent->Item(0)->MenuIndex
            Last  = Parent->Item(Parent->Count-1)->MenuIndex
-           CheckMenuRadioItem(Parent->Handle, First, Last, MenuIndex, MF_BYPOSITION)
+			#IFNDef __USE_GTK__
+				CheckMenuRadioItem(Parent->Handle, First, Last, MenuIndex, MF_BYPOSITION)
+			#EndIf
         end if
     end property
 
@@ -669,16 +759,18 @@ type PMenuItem  as MenuItem ptr
     end property
 
     property MenuItem.Enabled(value as boolean)
-        dim as integer FEnable(0 to 1) => {MF_DISABLED Or MF_GRAYED, MF_ENABLED}
         FEnabled = value
-        if Parent then
-            EnableMenuItem(Parent->Handle, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
-        else
-            EnableMenuItem(This.Menu, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
-        end if
-        If Owner Then
-            DrawMenuBar(Owner->Parentwindow)
-        End if
+        #IfNDef __USE_GTK__
+			dim as integer FEnable(0 to 1) => {MF_DISABLED Or MF_GRAYED, MF_ENABLED}
+			if Parent then
+				EnableMenuItem(Parent->Handle, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
+			elseIf Owner AndAlso Owner->Handle Then
+				EnableMenuItem(Owner->Handle, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
+			end if
+			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
+				DrawMenuBar(Owner->ParentWindow->Handle)
+			End if
+		#EndIf
     end property
 
     property MenuItem.Visible as boolean
@@ -688,16 +780,18 @@ type PMenuItem  as MenuItem ptr
     property MenuItem.Visible(value as boolean)
         if fvisible = value then exit property
         FVisible = value
-        if FVisible = false then
-           if Parent then
-              RemoveMenu(Parent->Handle,MenuIndex,MF_BYPOSITION)
-           else
-              RemoveMenu(This.Menu,MenuIndex,MF_BYPOSITION)
-           end if
-        else
-           SetInfo(FInfo)
-           SetItemInfo(FInfo)
-        end if
+        #IfNDef __USE_GTK__
+			if FVisible = false then
+			   if Parent then
+				  RemoveMenu(Parent->Handle, MenuIndex, MF_BYPOSITION)
+			   elseIf Owner AndAlso Owner->Handle Then
+				  RemoveMenu(Owner->Handle, MenuIndex, MF_BYPOSITION)
+			   end if
+			else
+			   SetInfo(FInfo)
+			   SetItemInfo(FInfo)
+			end if
+		#EndIf
     end property
 
     property MenuItem.Count as integer
@@ -724,40 +818,52 @@ type PMenuItem  as MenuItem ptr
     sub MenuItem.Add(value as PMenuItem)
         if IndexOf(value) = -1 then
             FCount += 1
-               FItems = reallocate(FItems, sizeof(PMenuItem)*FCount)
-               FItems[FCount-1] = value
-               value->Parent    = @this
-               value->MenuIndex = FCount -1
-               value->Owner     = Owner
-               value->Menu      = This.Menu
-               AllocateCommand(value)
-               if FCount > 0 then
-                if Handle = 0 then
-                    Handle = CreatePopupMenu
-                       dim as menuinfo mif
-                       mif.cbSize     = sizeof(mif)
-                       mif.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
-                       mif.fMask      = MIM_MENUDATA
-                       .SetMenuInfo(Handle, @mif)
-                       SetInfo(FInfo)
-                       SetItemInfo(FInfo)
-               end if
-           end if
-           value->SetInfo(FInfo)
-           InsertMenuItem(Handle, FCount - 1, true, @FInfo)
+		   FItems = reallocate(FItems, sizeof(PMenuItem)*FCount)
+		   FItems[FCount-1] = value
+		   value->FParent    = @this
+		   value->MenuIndex = FCount -1
+		   value->Owner     = Owner
+'			#IfNDef __USE_GTK__
+'				value->Menu      = This.Menu
+'			#EndIf
+		   AllocateCommand(value)
+		   #Ifdef __USE_GTK__
+				If SubMenu = 0 Then
+					SubMenu = New PopUpMenu
+					gtk_menu_item_set_submenu(gtk_menu_item(widget), SubMenu->widget)
+				End If
+				gtk_menu_shell_append(gtk_menu_shell(SubMenu->widget), value->widget)
+				If Value->box Then
+					gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
+				EndIf
+				If Value->label Then
+					gtk_label_set_text_with_mnemonic(gtk_label(Value->label), ToUTF8(*Value->FText & "	"))
+				End If
+		   #Else
+				if Handle = 0 then
+					Handle = CreatePopupMenu
+					   dim as menuinfo mif
+					   mif.cbSize     = sizeof(mif)
+					   mif.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
+					   mif.fMask      = MIM_MENUDATA
+					   .SetMenuInfo(Handle, @mif)
+					   SetInfo(FInfo)
+					   SetItemInfo(FInfo)
+				end if
+				value->SetInfo(FInfo)
+				InsertMenuItem(Handle, FCount - 1, true, @FInfo)
+			#EndIf
         end if
     end sub
 
     Function MenuItem.Add(ByRef sCaption As WString) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
-        WLet Value->FCaption, sCaption
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Add(Value)
         Return Value
     End Function
     
     Function MenuItem.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
-        WLet Value->FCaption, sCaption
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Value->FImage     = iImage
         Value->Name     = sKey
         Value->OnClick     = eClick
@@ -766,8 +872,7 @@ type PMenuItem  as MenuItem ptr
     End Function
     
     Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
-        WLet Value->FCaption, sCaption
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Value->FImageIndex = iImageIndex
         Value->Name     = sKey
         Value->OnClick     = eClick
@@ -776,8 +881,7 @@ type PMenuItem  as MenuItem ptr
     End Function
 
     Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
-        WLet Value->FCaption, sCaption
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption, sImageKey)
         WLet Value->FImageKey, sImageKey
         If Owner AndAlso Owner->ImagesList Then Value->FImageIndex = Owner->ImagesList->IndexOf(sImageKey)
         Value->Name     = sKey
@@ -815,24 +919,30 @@ type PMenuItem  as MenuItem ptr
               FItems[Index]->MenuIndex = Index
               FItems[Index]->Parent    = @this
               FItems[Index]->Owner     = Owner
-              FItems[Index]->Menu      = This.Menu
+'				#IfNDef __USE_GTK__
+'					FItems[Index]->Menu      = This.Menu
+'				#EndIf
               AllocateCommand(value)
               if FCount > 0 then
-                 if Handle = 0 then
-                    Handle = CreatePopupMenu
-                    dim as menuinfo mif
-                    mif.cbSize     = sizeof(mif)
-                    mif.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
-                    mif.fMask      = MIM_MENUDATA
-                    .SetMenuInfo(Handle,@mif)
-                    SetInfo(FInfo)
-                    if Parent then
-                       SetMenuItemInfo(Parent->Handle,MenuIndex,true,@FInfo)
-                    end if
-                 end if
+                 #IfNDef __USE_GTK__
+					 if Handle = 0 then
+						Handle = CreatePopupMenu
+						dim as menuinfo mif
+						mif.cbSize     = sizeof(mif)
+						mif.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
+						mif.fMask      = MIM_MENUDATA
+						.SetMenuInfo(Handle,@mif)
+						SetInfo(FInfo)
+						if Parent then
+						   SetMenuItemInfo(Parent->Handle,MenuIndex,true,@FInfo)
+						end if
+					 end if
+				#EndIf
              end if
-             value->SetInfo(FInfo)
-             InsertMenuItem(Handle,Index,true,@FInfo)
+             #IfNDef __USE_GTK__
+				value->SetInfo(FInfo)
+				InsertMenuItem(Handle,Index,true,@FInfo)
+			#EndIf
              for i as integer = 0 to FCount-1
                 FItems[i]->MenuIndex = i
              next i
@@ -887,16 +997,45 @@ type PMenuItem  as MenuItem ptr
         return @this
     end operator
 
-    constructor MenuItem
+	constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "")
         FVisible    = True
         FEnabled    = True
         FChecked    = False
-        WLet FCaption, ""
-        FImage = 0
+        #IfDef __USE_GTK__
+			If wCaption = "-" Then
+				widget = gtk_separator_menu_item_new()
+			'ElseIf wImageKey = "" Then
+			'	
+			'	widget = gtk_menu_item_new_with_mnemonic(wCaption)
+				label = gtk_bin_get_child (GTK_BIN (widget))
+			'	g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+			Else
+				box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				If wImageKey = "" Then
+					icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
+				Else
+					icon = gtk_image_new_from_icon_name(ToUTF8(wImageKey), GTK_ICON_SIZE_MENU)
+				End If
+				gtk_image_set_pixel_size(gtk_image(icon), 16)
+				widget = gtk_menu_item_new()
+				label = gtk_accel_label_new (ToUTF8(wCaption & "   "))
+				gtk_label_set_xalign (GTK_LABEL (label), 0.0)
+				gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (label), widget)
+				gtk_box_pack_end (GTK_BOX (box), label, TRUE, TRUE, 0)
+				'gtk_container_add (GTK_CONTAINER (box), label)
+				gtk_container_add (GTK_CONTAINER (widget), box)
+				g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+				'g_signal_connect(widget, "event", G_CALLBACK(@EventProc), @This)
+				'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
+			End If
+        #Else
+			FImage = 0
+		#ENdIf
+		Caption = wCaption
         FImageIndex = -1
-        WLet FImageKey, ""
+        WLet FImageKey, wImageKey
     end constructor
-
+    
     destructor MenuItem
         if FParent then
             FParent->Remove(@this)
@@ -906,39 +1045,34 @@ type PMenuItem  as MenuItem ptr
             FItems = callocate(0)
         end if
         If FCaption Then Deallocate FCaption
-        WDeallocate FName
-        if FHandle then
-            DestroyMenu(FHandle)
-            FHandle = 0
-        end if
+        WDeallocate FText
+        WDeallocate FAccelerator
+        #IfNDef __USE_GTK__
+			if FHandle then
+				DestroyMenu(FHandle)
+				FHandle = 0
+			end if
+        #EndIf
     end destructor
 
     /' Menu '/
-    property Menu.Handle as HMENU
-        return FHandle
-    end property
+    #IfNDef __USE_GTK__
+		property Menu.Handle as HMENU
+			return FHandle
+		end property
 
-    property Menu.Handle(value as HMENU)
-        FHandle = value
-    end property
+		property Menu.Handle(value as HMENU)
+			FHandle = value
+		end property
+	#EndIf
+		property Menu.ParentWindow as Component Ptr
+			return FParentWindow
+		end property
 
-    property Menu.ParentWindow as hwnd
-        return FParentWindow
-    end property
-
-    property Menu.ParentWindow(value as hwnd)
-        dim as HWND SaveHandle = FParentWindow
-        FParentWindow = value
-        if value <> SaveHandle then
-            SetClassLongPtr(SaveHandle,GCLP_MENUNAME,0)
-            SetMenu(SaveHandle,0)
-        end if   
-        if FHandle then
-            SetMenu(ParentWindow,Handle)
-            DrawMenuBar(FParentWindow)
-            If ImagesList Then ImagesList->ParentWindow = FParentWindow
-        end if
-    end property
+		property Menu.ParentWindow(value as Component Ptr)
+			FParentWindow = value
+			If ImagesList Then ImagesList->ParentWindow = FParentWindow
+		end property
 
     property Menu.Style as integer
         return FStyle
@@ -946,56 +1080,62 @@ type PMenuItem  as MenuItem ptr
 
     property Menu.Style(value as integer)
         FStyle = value
-        if Handle then
-            if value then
-                for i as integer = 0 to FCount-1
-                   TraverseItems(*Item(i))
-                next i
-            /'else
-               for i as integer = 0 to FCount-1
-                   TraverseItems(*Item(i))
-                next i '/
-            end if
-            if IsWindow(FParentWindow) then
-               SetMenu(FParentWindow,Handle)
-               DrawMenuBar(FParentWindow)
-            end if
-        end if
+        #IfNDef __USE_GTK__
+			if Handle then
+				if value then
+					for i as integer = 0 to FCount-1
+					   TraverseItems(*Item(i))
+					next i
+				/'else
+				   for i as integer = 0 to FCount-1
+					   TraverseItems(*Item(i))
+					next i '/
+				end if
+				if FParentWindow AndAlso IsWindow(FParentWindow->Handle) then
+				   SetMenu(FParentWindow->Handle,Handle)
+				   DrawMenuBar(FParentWindow->Handle)
+				end if
+			end if
+		#EndIf
     end property
 
     property Menu.Color as integer
-        if handle then
-            dim as menuinfo mif
-            mif.cbSize = sizeof(mif)
-            mif.fMask  = MIM_BACKGROUND
-            if GetMenuInfo(Handle,@mif) then
-                dim as LOGBRUSH lb
-                GetObject(mif.hbrBack,sizeof(lb),@lb)
-                FColor = lb.lbColor
-                return FColor
-            end if   
-        end if
+		#IfNDef __USE_GTK__
+			if handle then
+				dim as menuinfo mif
+				mif.cbSize = sizeof(mif)
+				mif.fMask  = MIM_BACKGROUND
+				if GetMenuInfo(Handle,@mif) then
+					dim as LOGBRUSH lb
+					GetObject(mif.hbrBack,sizeof(lb),@lb)
+					FColor = lb.lbColor
+					return FColor
+				end if   
+			end if
+		#EndIf
         return FColor
     end property
 
     property Menu.Color(value as integer)
         FColor = value
-        if Handle then
-            dim as menuinfo mif
-            mif.cbSize = sizeof(mif)
-            GetMenuInfo(Handle,@mif)
-            if mif.hbrBack then
-                DeleteObject(mif.hbrBack)
-            end if   
-            mif.hbrBack = CreateSolidBrush(FColor)
-            mif.fMask   = MIM_BACKGROUND or iif(FIncSubItems,MIM_APPLYTOSUBMENUS,0)
-            SetMenuInfo(Handle,@mif)
-            if FParentWindow then
-                DrawMenuBar(FParentWindow)
-                RedrawWindow(FParentWindow,0,0,rdw_invalidate or rdw_erase)
-                UpdateWindow(FParentWindow)
-            end if   
-        end if   
+        #IfNDef __USE_GTK__
+			if Handle then
+				dim as menuinfo mif
+				mif.cbSize = sizeof(mif)
+				GetMenuInfo(Handle,@mif)
+				if mif.hbrBack then
+					DeleteObject(mif.hbrBack)
+				end if   
+				mif.hbrBack = CreateSolidBrush(FColor)
+				mif.fMask   = MIM_BACKGROUND or iif(FIncSubItems,MIM_APPLYTOSUBMENUS,0)
+				SetMenuInfo(Handle,@mif)
+				if FParentWindow AndAlso FParentWindow->Handle then
+					DrawMenuBar(FParentWindow->Handle)
+					RedrawWindow(FParentWindow->Handle,0,0,rdw_invalidate or rdw_erase)
+					UpdateWindow(FParentWindow->Handle)
+				end if   
+			end if
+		#EndIf   
     end property
 
     property Menu.ColorizeEntire as integer
@@ -1028,37 +1168,55 @@ type PMenuItem  as MenuItem ptr
     end property
 
     sub Menu.Add(value as PMenuItem)
-        Dim As MenuItemInfo FInfo
+		#IfNDef __USE_GTK__
+			Dim As MenuItemInfo FInfo
+		#EndIf
         if IndexOf(value) = -1 then
             FCount          +=1
-               FItems           = reallocate(FItems,sizeof(PMenuItem)*FCount)
-               FItems[FCount-1] = value
-               value->Parent    = Null
-               value->MenuIndex = FCount -1
-               value->Menu      = Handle
+		   FItems           = reallocate(FItems,sizeof(PMenuItem)*FCount)
+		   FItems[FCount-1] = value
+		   value->Parent    = Null
+		   value->MenuIndex = FCount -1
+'               #IfNDef __USE_GTK__
+'				value->Menu      = Handle
+'				#EndIf
                value->Owner     = @this
                AllocateCommand(value)
-               value->SetInfo(FInfo)
-            InsertMenuItem(Handle,-1,true,@FInfo)
+               #IfDef __USE_GTK__
+					gtk_menu_shell_append(gtk_menu_shell(widget), value->widget)
+					If ClassName = "MainMenu" Then
+					ENd If
+					If gtk_is_menu_bar(widget) <> 1 Then
+						If Value->box Then
+							gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
+						EndIf
+						gtk_widget_show_all(widget)
+					End If
+               #Else
+				value->SetInfo(FInfo)
+				InsertMenuItem(Handle,-1,true,@FInfo)
+				#EndIf
            for i as integer = 0 to value->Count-1
                value->item(i)->Owner = value->Owner
-               value->item(i)->Menu  = Handle
+'               #IfNDef __USE_GTK__
+'				value->item(i)->Menu  = Handle
+'				#EndIf
            next i  
-           if IsWindow(FParentWindow) then DrawMenuBar(FParentWindow)
+           #IfNDef __USE_GTK__
+			if FParentWindow AndAlso IsWindow(FParentWindow->Handle) then DrawMenuBar(FParentWindow->Handle)
+			#EndIf
         end if
     end sub
 
     Function Menu.Add(ByRef sCaption As WString) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
-        Value->Caption     = sCaption
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Add(Value)
         Return Value
     End Function
     
     Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Value->Image     = iImage
-        Value->Caption     = sCaption
         Value->Name     = sKey
         Value->OnClick     = eClick
         Add(Value)
@@ -1066,7 +1224,7 @@ type PMenuItem  as MenuItem ptr
     End Function
     
     Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Value->ImageIndex = iImageIndex
         Value->Caption     = sCaption
         Value->Name     = sKey
@@ -1076,10 +1234,9 @@ type PMenuItem  as MenuItem ptr
     End Function
 
     Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-        Dim As MenuItem Ptr Value = New MenuItem
+        Dim As MenuItem Ptr Value = New MenuItem(sCaption, sImageKey)
+        'WLet Value->FImageKey, sImageKey
         If ImagesList Then Value->ImageIndex = ImagesList->IndexOf(sImageKey)
-        Value->ImageKey = sImageKey
-        Value->Caption = sCaption
         Value->Name     = sKey
         Value->OnClick     = eClick
         Add(Value)
@@ -1091,7 +1248,7 @@ type PMenuItem  as MenuItem ptr
             Add(value(i))
         next        
     end sub
-
+    
     #IfnDef __FB_64BIT__
     sub Menu.AddRange Cdecl(CountArgs As Integer, ...)
         Dim value As Any Ptr
@@ -1104,7 +1261,9 @@ type PMenuItem  as MenuItem ptr
     #EndIf
 
     sub Menu.Insert(Index as integer,value as PMenuItem)
-        dim as MenuItemInfo FInfo
+		#IfNDef __USE_GTK__
+			dim as MenuItemInfo FInfo
+		#EndIf
         if IndexOf(value) = -1 then
            if (Index>-1) and (Index<FCount) then
               FCount +=1
@@ -1115,20 +1274,28 @@ type PMenuItem  as MenuItem ptr
               FItems[Index]    = value
               value->MenuIndex = Index
               value->Parent    = NULL
-              value->Handle    = iif(value->Handle,value->Handle,CreatePopupMenu)
-              value->Menu      = Handle
+              #IfNDef __USE_GTK__
+				value->Handle    = iif(value->Handle,value->Handle,CreatePopupMenu)
+'				value->Menu      = Handle
+              #EndIf
               value->Owner     = this
               AllocateCommand(value)
-                 value->SetInfo(FInfo)
-              InsertMenuItem(Handle,Index,true,@FInfo)
+              #IfNDef __USE_GTK__ 
+				   value->SetInfo(FInfo)
+				  InsertMenuItem(Handle,Index,true,@FInfo)
+				#Endif
               for i as integer = 0 to FCount-1
                   FItems[i]->MenuIndex = i
               next i
               for i as integer = 0 to value->Count-1
                   value->item(i)->Owner = value->Owner
-                  value->item(i)->Menu  = Handle
+'                  #IfNDef __USE_GTK__
+'					value->item(i)->Menu  = Handle
+'				#EndIf
               next i
-              if IsWindow(FParentWindow) then DrawMenuBar(FParentWindow)
+              #IfNDef __USE_GTK__
+				if FParentWindow AndAlso IsWindow(FParentWindow->Handle) then DrawMenuBar(FParentWindow->Handle)
+			#EndIf
           end if
        end if
     end sub
@@ -1147,7 +1314,9 @@ type PMenuItem  as MenuItem ptr
             for i as integer = 0 to FCount-1
                 FItems[i]->MenuIndex = i
             next i
-            if IsWindow(FParentWindow) then DrawMenuBar(FParentWindow)
+            #IfNDef __USE_GTK__
+				if FParentWindow AndAlso IsWindow(FParentWindow->Handle) then DrawMenuBar(FParentWindow->Handle)
+			#ENdif
         end if
     end sub
 
@@ -1175,9 +1344,11 @@ type PMenuItem  as MenuItem ptr
         end if
     end sub
 
-    sub Menu.ProcessMessage(byref message as Message)
-        
-    end sub
+	#IfNDef __USE_GTK__
+		sub Menu.ProcessMessage(byref message as Message)
+			
+		end sub
+	#EndIf
 
     operator Menu.cast as any ptr
         return @this
@@ -1188,53 +1359,169 @@ type PMenuItem  as MenuItem ptr
 
     destructor Menu
         Clear
-        if FInfo.hbrBack then DeleteObject(FInfo.hbrBack)
-        if FHandle then
-            DestroyMenu(FHandle)
-            FHandle = 0
-        end if   
+        #IfNDef __USE_GTK__
+			if FInfo.hbrBack then DeleteObject(FInfo.hbrBack)
+			if FHandle then
+				DestroyMenu(FHandle)
+				FHandle = 0
+			end if
+		#EndIf   
     end destructor
 
+	Function MainMenu.EnumMenuItems(ByRef Item As MenuItem) As Boolean
+        FMenuItems.Add Item
+        For i As Integer = 0 To Item.Count -1
+            EnumMenuItems *Item.Item(i)
+        Next i
+        Return True
+    End Function
+
+	Function GetAscKeyCode(HotKey As String) As Integer
+        Select Case HotKey
+        Case "Backspace", "Back": Return 08
+        Case "Tab": Return 09
+        Case "Enter", "Return": Return 13
+        Case "Escape", "Esc": Return 27
+        Case "Space": Return 32
+        Case "PageUp": Return 33
+        Case "PageDown": Return 34
+        Case "End": Return 35
+        Case "Home": Return 36
+        Case "Left": Return 37
+        Case "Up": Return 38
+        Case "Right": Return 39
+        Case "Down": Return 40
+        Case "Print": Return 42
+        Case "Insert", "Ins": Return 45
+        Case "Num0": Return 96
+        Case "Num1": Return 97
+        Case "Num2": Return 98
+        Case "Num3": Return 99
+        Case "Num4": Return 100
+        Case "Num5": Return 101
+        Case "Num6": Return 102
+        Case "Num7": Return 103
+        Case "Num8": Return 104
+        Case "Num9": Return 105
+        Case "F1": Return 112
+        Case "F2": Return 113
+        Case "F3": Return 114
+        Case "F4": Return 115
+        Case "F5": Return 116
+        Case "F6": Return 117
+        Case "F7": Return 118
+        Case "F8": Return 119
+        Case "F9": Return 120
+        Case "F10": Return 121
+        Case "F11": Return 122
+        Case "F12": Return 123
+        Case "Delete", "Del": : Return 127
+        Case Else: Return Asc(HotKey)
+        End Select
+    End Function
 
     /' MainMenu '/
-    property MainMenu.Parent As HWND
-        return FParent
-    end property
+	Property MainMenu.ParentWindow(value As Component Ptr)
+		FParentWindow = value
+		if value then
+			#IfDef __USE_GTK__
+				If value Then
+					If value->layoutwidget then
+						'gtk_container_add(GTK_CONTAINER(value->layoutwidget), widget)
+						If value->box Then gtk_box_pack_start(Gtk_Box(value->box), widget, false, false, 0)
+						Dim As GdkGeometry hints
+						hints.base_width = 0
+						hints.base_height = 0
+						hints.min_width = 0
+						hints.min_height = 0
+						hints.width_inc = 1
+						hints.height_inc = 1
+						gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+                        For i As Integer = 0 To Count - 1
+							If Item(i)->SubMenu Then
+								gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), Item(i)->SubMenu->Widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+							End If
+                        Next i
+					End If
+				End If
+		   #Else
+			   If FParentWindow AndAlso IsWindow(FParentWindow->Handle) then
+				   SetMenu(FParentWindow->Handle, This.FHandle)
+				   DrawMenuBar(FParentWindow->Handle)
+			   end if
+			#EndIf
+			FMenuItems.Clear
+			For i As Integer = 0 To Count -1
+                EnumMenuItems *Item(i)
+            Next i
+            Dim As MenuItem Ptr mi
+            #IfDef __USE_GTK__
+				For i As Integer = 0 To FMenuItems.Count - 1
+					mi = FMenuItems.Items[i]
+					If mi->accelerator_key = 0 AndAlso mi->accelerator_mods = 0 Then Continue For 
+					If FParentWindow->Accelerator = 0 Then
+						FParentWindow->Accelerator = gtk_accel_group_new()
+						gtk_window_add_accel_group (GTK_WINDOW (FParentWindow->widget), FParentWindow->Accelerator)
+					End If
+					gtk_widget_add_accelerator(mi->widget, "activate", FParentWindow->Accelerator, mi->accelerator_key, mi->accelerator_mods, GTK_ACCEL_VISIBLE)
+				Next i
+            #Else
+				Dim As String mnuCaption, HotKey
+				Dim As Integer Pos1, CountOfHotKeys = 0
+				ReDim accl(1) As ACCEL
+				For i As Integer = 0 To FMenuItems.Count - 1
+					mi = FMenuItems.Items[i]
+					mnuCaption = mi->Caption
+					Pos1 = InStr(mnuCaption, !"\t")
+					If Pos1 > 0 Then
+						CountOfHotKeys = CountOfHotKeys + 1
+						HotKey = Mid(mnuCaption, Pos1 + 1)
+						ReDim Preserve accl(CountOfHotKeys - 1) As ACCEL
+						If Instr(HotKey, "Ctrl") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FCONTROL
+						If Instr(HotKey, "Shift") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FSHIFT
+						If Instr(HotKey, "Alt") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FALT
+						accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FVIRTKEY
+						Pos1 = InstrRev(HotKey, "+")
+						If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
+						accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
+						accl(CountOfHotKeys - 1).cmd = mi->Command
+					End If
+				Next i
+				FParentWindow->Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
+			#EndIf
+		end if
+	end  property
 
-    property MainMenu.Parent(value As HWND)
-        FParent = value
-        if value then
-           FParentWindow = value
-           if not IsMenu(FHandle) then
-               FHandle = CreateMenu
-           end if
-           if IsWindow(FParentWindow) then
-               SetMenu(FParentWindow, FHandle)
-               DrawMenuBar(FParentWindow)
-           end if
-        end if
-    end  property
-
-    sub MainMenu.ProcessMessages(byref message as Message)
-        dim As PMenuItem I = Find(loword(message.wparam))
-        if I then I->Click
-    end sub
+	sub MainMenu.ProcessMessages(byref message as Message)
+		dim As PMenuItem I
+		#IfDef __USE_GTK__
+		#Else
+			I = Find(loword(message.wparam))
+		#EndIf
+		if I then I->Click
+	end sub
 
     operator MainMenu.cast as any ptr
         return @this
     end operator
 
     constructor MainMenu
-        FHandle      = CreateMenu
+		#IfDef __USE_GTK__
+			widget = gtk_menu_bar_new()
+		#Else
+			This.FHandle      = CreateMenu
+		#EndIf
         WLet FClassName, "MainMenu"
         FIncSubItems = 1
-        FColor       = GetSysColor(color_menu)
-        FInfo.cbSize = sizeof(FInfo)
-        if FInfo.hbrBack then DeleteObject(FInfo.hbrBack)
-        FInfo.hbrBack    = CreateSolidBrush(FColor)
-        FInfo.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
-        FInfo.fMask      = MIM_BACKGROUND or iif(FIncSubItems,MIM_APPLYTOSUBMENUS,0) or mim_menudata
-        SetMenuInfo(FHandle,@FInfo)
+        #IfNDef __USE_GTK__
+			FColor       = GetSysColor(color_menu)
+			FInfo.cbSize = sizeof(FInfo)
+			if FInfo.hbrBack then DeleteObject(FInfo.hbrBack)
+			FInfo.hbrBack    = CreateSolidBrush(FColor)
+			FInfo.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
+			FInfo.fMask      = MIM_BACKGROUND or iif(FIncSubItems,MIM_APPLYTOSUBMENUS,0) or mim_menudata
+			SetMenuInfo(This.FHandle,@FInfo)
+        #ENdIf
     end constructor
 
     destructor MainMenu
@@ -1242,36 +1529,53 @@ type PMenuItem  as MenuItem ptr
 
 
     /' PopupMenu '/
-    property PopupMenu.Window as hwnd
-        return FWindow
-    end  property
-
-    property PopupMenu.Window(value as hwnd)
-        FWindow = value
-    end  property
-
-    sub PopupMenu.Popup(x as integer,y as integer)
-        if FWindow then
-            TrackPopupMenuEx(FHandle,0,x,y,FWindow,0)
-        end if
+    property PopupMenu.ParentWindow(value as Component Ptr)
+		#IfDef __USE_GTK__
+			If FParentWindow = 0 Then
+				gtk_menu_attach_to_widget(gtk_menu(widget), value->widget, NULL)
+			End If
+		#EndIf
+		Base.ParentWindow = Value
+	End Property
+    
+    sub PopupMenu.Popup(x as integer,y as integer, msg As Message Ptr = 0)
+        #IfDef __USE_GTK__
+			If msg <> 0 Then
+				gtk_widget_show_all (widget)
+				gtk_menu_popup (gtk_menu(widget), NULL, NULL, NULL, NULL, msg->event->button.button, msg->event->button.time)
+			End If
+        #Else
+			If FParentWindow AndAlso FParentWindow->Handle Then
+				TrackPopupMenuEx(This.FHandle,0,x,y,FParentWindow->Handle,0)
+			End If
+		#EndIf
     end sub
-
-    sub PopupMenu.ProcessMessages(byref message as Message)
-        dim As PMenuItem I = Find(loword(message.wparam))
-        if I then I->Click
-    end sub
-
-    operator PopupMenu.cast as any ptr
+    
+	sub PopupMenu.ProcessMessages(byref message as Message)
+		dim As PMenuItem I
+		#IfNDef __USE_GTK__
+			I = Find(loword(message.wparam))
+		#EndIf
+		If I Then I->Click
+	End Sub
+	
+    Operator PopupMenu.cast as any ptr
         return @this
-    end operator
+    End Operator
 
-    constructor PopupMenu
-        FHandle = CreatePopupMenu
+    Constructor PopupMenu
+		#IfDef __USE_GTK__
+			widget = gtk_menu_new()
+			gtk_menu_set_reserve_toggle_size(gtk_menu(widget) , false)
+			'gtk_menu_set_screen(gtk_menu(widget), gdk_screen_get_default())
+		#Else
+			This.FHandle = CreatePopupMenu
+			FInfo.cbsize     = sizeof(FInfo)
+			FInfo.fmask      = MIM_MENUDATA
+			FInfo.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
+			SetMenuInfo(This.FHandle,@FInfo)
+		#EndIf
         WLet FClassName, "PopupMenu"
-        FInfo.cbsize     = sizeof(FInfo)
-        FInfo.fmask      = MIM_MENUDATA
-        FInfo.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
-        SetMenuInfo(Handle,@FInfo)
     end constructor
 
     destructor PopupMenu

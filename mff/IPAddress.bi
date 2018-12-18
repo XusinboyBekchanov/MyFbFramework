@@ -11,57 +11,67 @@ Namespace My.Sys.Forms
     
     Type IPAddress Extends Control
         Private:
-            Declare Static Sub WndProc(ByRef Message As Message)
-            Declare Sub ProcessMessage(ByRef Message As Message)
-            Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#IfNdef __USE_GTK__
+				Declare Static Sub WndProc(ByRef Message As Message)
+				Declare Sub ProcessMessage(ByRef Message As Message)
+				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#EndIf
         Public:
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
             Declare Destructor
     End Type
     
-    Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-        If Sender.Child Then
-            With QIPAddress(Sender.Child)
-                 
-            End With
-        End If
-    End Sub
+    #IfNdef __USE_GTK__
+		Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QIPAddress(Sender.Child)
+					 
+				End With
+			End If
+		End Sub
 
-    Sub IPAddress.WndProc(ByRef Message As Message)
-    End Sub
+		Sub IPAddress.WndProc(ByRef Message As Message)
+		End Sub
 
-    Sub IPAddress.ProcessMessage(ByRef Message As Message)
-        Base.ProcessMessage Message
-    End Sub
+		Sub IPAddress.ProcessMessage(ByRef Message As Message)
+			Base.ProcessMessage Message
+		End Sub
+	#EndIf
 
     Operator IPAddress.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)
     End Operator
 
     Constructor IPAddress
-        Dim As INITCOMMONCONTROLSEX icex
+		#IfNdef __USE_GTK__
+			Dim As INITCOMMONCONTROLSEX icex
 
-        icex.dwSize = sizeof(INITCOMMONCONTROLSEX)
-        icex.dwICC =  ICC_INTERNET_CLASSES
+			icex.dwSize = sizeof(INITCOMMONCONTROLSEX)
+			icex.dwICC =  ICC_INTERNET_CLASSES
 
-        InitCommonControlsEx(@icex)
+			InitCommonControlsEx(@icex)
+		#EndIf
 
         With This
-            .RegisterClass "IPAddress", WC_IPADDRESS
-            WLet FClassName, "IPAddress"
-            WLet FClassAncestor, WC_IPADDRESS
-            .ExStyle      = 0
-            .Style        = WS_CHILD
+			WLet FClassName, "IPAddress"
+			#IfNdef __USE_GTK__
+				.RegisterClass "IPAddress", WC_IPADDRESS
+				WLet FClassAncestor, WC_IPADDRESS
+				.ExStyle      = 0
+				.Style        = WS_CHILD
+				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#EndIf
             .Width        = 100
             .Height       = 32
             .Child        = @This
-            .ChildProc    = @WndProc
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With
     End Constructor
 
     Destructor IPAddress
-        UnregisterClass "IPAddress",GetModuleHandle(NULL)
+		#IfNdef __USE_GTK__
+			UnregisterClass "IPAddress",GetModuleHandle(NULL)
+		#EndIf
     End Destructor
 End Namespace

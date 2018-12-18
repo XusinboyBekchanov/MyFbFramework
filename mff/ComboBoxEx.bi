@@ -6,7 +6,7 @@
 
 #Include Once "ComboBoxEdit.bi"
 #Include Once "ImageList.bi"
-
+    
 namespace My.Sys.Forms
     #DEFINE QComboBoxEx(__Ptr__) *Cast(ComboBoxEx Ptr,__Ptr__)
     #DEFINE QComboBoxItem(__Ptr__) *Cast(ComboBoxItem Ptr,__Ptr__)
@@ -25,11 +25,15 @@ namespace My.Sys.Forms
             FObject          As Any Ptr
             FHint            As WString Ptr
             FImageIndex   As Integer
+            FImageKey   As WString Ptr
             FSelectedImageIndex   As Integer
             FOverlayIndex   As Integer
             FIndent   As Integer
         Public:
             Index As Integer
+            #IfDef __USE_GTK__
+				TreeIter As GtkTreeIter
+            #EndIf
             Parent   As Control Ptr
             Declare Property Text ByRef As WString
             Declare Property Text(ByRef Value As WString)
@@ -39,6 +43,8 @@ namespace My.Sys.Forms
             Declare Property Hint(ByRef Value As WString)
             Declare Property ImageIndex As Integer
             Declare Property ImageIndex(Value As Integer)
+            Declare Property ImageKey ByRef As WString
+            Declare Property ImageKey(ByRef Value As WString)
             Declare Property SelectedImageIndex As Integer
             Declare Property SelectedImageIndex(Value As Integer)
             Declare Property OverlayIndex As Integer
@@ -46,6 +52,62 @@ namespace My.Sys.Forms
             Declare Property Indent As Integer
             Declare Property Indent(Value As Integer)
             Declare Operator Cast As Any Ptr
+            Declare Constructor
+            Declare Destructor
+    End Type
+
+	Type ComboBoxExItems
+        Private:
+            FItems As List
+            PItem As ComboBoxItem Ptr
+            #IfNDef __USE_GTK__
+            				cbei As COMBOBOXEXITEM
+            #EndIf 
+        Public:
+            Parent   As Control Ptr
+            Declare Property Count As Integer
+            Declare Property Count(Value As Integer)
+            Declare Property Item(Index As Integer) As ComboBoxItem Ptr
+            Declare Property Item(Index As Integer, Value As ComboBoxItem Ptr)
+            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ImageIndex As Integer = -1, SelectedImageIndex As Integer = -1, OverlayIndex As Integer = -1, Indent As Integer = 0) As ComboBoxItem Ptr
+            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0) As ComboBoxItem Ptr
+            Declare Sub Remove(Index As Integer)
+            Declare Function IndexOf(ByRef Item As ComboBoxItem Ptr) As Integer
+            Declare Function IndexOf(ByRef Text As WString) As Integer
+            Declare Function Contains(ByRef Text As WString) As Boolean
+            Declare Sub Clear
+            Declare Operator Cast As Any Ptr
+            Declare Constructor
+            Declare Destructor
+    End Type
+
+    Type ComboBoxEx Extends ComboBoxEdit
+        Private:
+            'FItemIndex        As Integer
+            FItemHeight       As Integer
+            FIntegralHeight   As Boolean
+            FDropDownCount    As Integer
+            Declare Sub UpdateListHeight
+        				Declare Sub ProcessMessage(BYREF Message As Message)
+            #IfNDef __USE_GTK__
+            				Declare Static Sub WndProc(BYREF Message As Message)
+            				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+            #EndIf
+        Public:
+			#IfDef __USE_GTK__
+				ListStore As GtkListStore Ptr
+            #EndIf
+            Items             As ComboBoxExItems
+            ImagesList         As ImageList Ptr
+'            Declare Property ItemIndex As Integer
+'            Declare Property ItemIndex(Value As Integer)
+            Declare Property IntegralHeight As Boolean
+            Declare Property IntegralHeight(Value As Boolean)
+            Declare Property ItemHeight As Integer
+            Declare Property ItemHeight(Value As Integer)
+            Declare Property DropDownCount As Integer
+            Declare Property DropDownCount(Value As Integer)
+            Declare Operator Cast As Control Ptr 
             Declare Constructor
             Declare Destructor
     End Type
@@ -65,14 +127,20 @@ namespace My.Sys.Forms
 
     Property ComboBoxItem.Text(ByRef Value As WString)
         WLet FText, Value
-        If Parent AndAlso Parent->Handle Then
-            Dim cbei As COMBOBOXEXITEM
-            cbei.Mask = CBEIF_TEXT
-            cbei.iItem = Index
-                cbei.pszText    = FText
-                cbei.cchTextMax = Len(*FText)
-              Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
-          End If 
+        #IfDef __USE_GTK__
+			If Parent AndAlso Parent->widget Then
+				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 1, ToUTF8(Value), -1)
+			End If
+        #Else
+			If Parent AndAlso Parent->Handle Then
+				Dim cbei As COMBOBOXEXITEM
+				cbei.Mask = CBEIF_TEXT
+				cbei.iItem = Index
+					cbei.pszText    = FText
+					cbei.cchTextMax = Len(*FText)
+				  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+			  End If
+		#EndIf 
     End Property
 
 Property ComboBoxItem.Object As Any Ptr
@@ -99,14 +167,29 @@ Property ComboBoxItem.Object As Any Ptr
     Property ComboBoxItem.ImageIndex(Value As Integer)
         If Value <> FImageIndex Then
             FImageIndex = Value
-            If Parent AndAlso Parent->Handle Then
-                Dim cbei As COMBOBOXEXITEM
-                cbei.Mask = CBEIF_IMAGE
-                cbei.iItem = Index
-                    cbei.iImage = FImageIndex
-                  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
-              End If 
+            #IfNDef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					Dim cbei As COMBOBOXEXITEM
+					cbei.Mask = CBEIF_IMAGE
+					cbei.iItem = Index
+						cbei.iImage = FImageIndex
+					  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+				  End If
+			#EndIf 
         End If
+    End Property
+
+	Property ComboBoxItem.ImageKey ByRef As WString
+        Return WGet(FImageKey)
+    End Property
+
+    Property ComboBoxItem.ImageKey(ByRef Value As WString)
+        WLet FImageKey, Value
+		#IfDef __USE_GTK__
+			If Parent AndAlso Parent->widget Then
+				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
+			End If
+		#EndIf
     End Property
 
     Property ComboBoxItem.SelectedImageIndex As Integer
@@ -116,13 +199,15 @@ Property ComboBoxItem.Object As Any Ptr
     Property ComboBoxItem.SelectedImageIndex(Value As Integer)
         If Value <> FSelectedImageIndex Then
             FSelectedImageIndex = Value
-            If Parent AndAlso Parent->Handle Then
-                Dim cbei As COMBOBOXEXITEM
-                cbei.Mask = CBEIF_SELECTEDIMAGE
-                cbei.iItem = Index
-                    cbei.iSelectedImage = FSelectedImageIndex 
-                  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
-              End If 
+            #IfNDef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					Dim cbei As COMBOBOXEXITEM
+					cbei.Mask = CBEIF_SELECTEDIMAGE
+					cbei.iItem = Index
+						cbei.iSelectedImage = FSelectedImageIndex 
+					  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+				  End If
+			#EndIf 
         End If
     End Property
     
@@ -133,13 +218,15 @@ Property ComboBoxItem.Object As Any Ptr
     Property ComboBoxItem.OverlayIndex(Value As Integer)
         If Value <> FOverlayIndex Then
             FOverlayIndex = Value
-            If Parent AndAlso Parent->Handle Then
-                Dim cbei As COMBOBOXEXITEM
-                cbei.Mask = CBEIF_OVERLAY
-                cbei.iItem = Index
-                    cbei.iOverlay = FOverlayIndex
-                  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
-              End If 
+            #IfNDef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					Dim cbei As COMBOBOXEXITEM
+					cbei.Mask = CBEIF_OVERLAY
+					cbei.iItem = Index
+						cbei.iOverlay = FOverlayIndex
+					  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+				  End If
+			#EndIf
         End If
     End Property
 
@@ -150,13 +237,15 @@ Property ComboBoxItem.Object As Any Ptr
     Property ComboBoxItem.Indent(Value As Integer)
         If Value <> FIndent Then
             FIndent = Value
-            If Parent AndAlso Parent->Handle Then
-                Dim cbei As COMBOBOXEXITEM
-                cbei.Mask = CBEIF_INDENT
-                cbei.iItem = Index
-                    cbei.iIndent = FIndent
-                  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
-              End If 
+            #IfNDef __USE_GTK__
+        				    If Parent AndAlso Parent->Handle Then
+                    Dim cbei As COMBOBOXEXITEM
+                				cbei.Mask = CBEIF_INDENT
+                					cbei.iItem = Index
+                					cbei.iIndent = FIndent
+                					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+        				    End If
+        			#EndIf
         End If
     End Property
 
@@ -178,55 +267,6 @@ Property ComboBoxItem.Object As Any Ptr
         If FHint Then Deallocate FHint
         If FText Then Deallocate FText
     End Destructor
-
-    Type ComboBoxExItems
-        Private:
-            FItems As List
-            PItem As ComboBoxItem Ptr
-            cbei As COMBOBOXEXITEM 
-        Public:
-            Parent   As Control Ptr
-            Declare Property Count As Integer
-            Declare Property Count(Value As Integer)
-            Declare Property Item(Index As Integer) As ComboBoxItem Ptr
-            Declare Property Item(Index As Integer, Value As ComboBoxItem Ptr)
-            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ImageIndex As Integer = -1, SelectedImageIndex As Integer = -1, OverlayIndex As Integer = -1, Indent As Integer = 0) As ComboBoxItem Ptr
-            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0) As ComboBoxItem Ptr
-            Declare Sub Remove(Index As Integer)
-            Declare Function IndexOf(ByRef Item As ComboBoxItem Ptr) As Integer
-            Declare Function IndexOf(ByRef Text As WString) As Integer
-            Declare Function Contains(ByRef Text As WString) As Boolean
-            Declare Sub Clear
-            Declare Operator Cast As Any Ptr
-            Declare Constructor
-            Declare Destructor
-    End Type
-
-    Type ComboBoxEx Extends ComboBoxEdit
-        Private:
-            'FItemIndex        As Integer
-            FItemHeight       As Integer
-            FIntegralHeight   As Boolean
-            FDropDownCount    As Integer
-            Declare Sub UpdateListHeight
-            Declare Sub ProcessMessage(BYREF Message As Message)
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-        Public:
-            Items             As ComboBoxExItems
-            ImagesList         As ImageList Ptr
-'            Declare Property ItemIndex As Integer
-'            Declare Property ItemIndex(Value As Integer)
-            Declare Property IntegralHeight As Boolean
-            Declare Property IntegralHeight(Value As Boolean)
-            Declare Property ItemHeight As Integer
-            Declare Property ItemHeight(Value As Integer)
-            Declare Property DropDownCount As Integer
-            Declare Property DropDownCount(Value As Integer)
-            Declare Operator Cast As Control Ptr 
-            Declare Constructor
-            Declare Destructor
-    End Type
 
     Property ComboBoxExItems.Count As Integer
         Return FItems.Count
@@ -255,37 +295,52 @@ Property ComboBoxItem.Object As Any Ptr
             .Object        = Obj
             .Index    = FItems.Count - 1
         End With
-        cbei.Mask = CBEIF_IMAGE or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
-        cbei.pszText  = @FText
-        cbei.cchTextMax = Len(FText)
-        cbei.iItem = PItem->Index
-        cbei.iImage   = FImageIndex
-        cbei.iSelectedImage   = FSelectedImageIndex
-        cbei.iOverlay   = FOverlayIndex
-        cbei.iIndent   = FIndent
+        #IfDef __USE_GTK__
+			gtk_list_store_append (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter)
+			gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FText), -1)
+			'gtk_widget_show_all(Parent->widget)
+        #Else
+			cbei.Mask = CBEIF_IMAGE or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
+			cbei.pszText  = @FText
+			cbei.cchTextMax = Len(FText)
+			cbei.iItem = PItem->Index
+			cbei.iImage   = FImageIndex
+			cbei.iSelectedImage   = FSelectedImageIndex
+			cbei.iOverlay   = FOverlayIndex
+			cbei.iIndent   = FIndent
+		#EndIf
         If Parent Then
            PItem->Parent = Parent
-           Parent->Perform CBEM_INSERTITEM, 0, CInt(@cbei)
+			#IfNDef __USE_GTK__
+				Parent->Perform CBEM_INSERTITEM, 0, CInt(@cbei)
+			#EndIf
         End If
         Return PItem
     End Function
 
     Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0) As ComboBoxItem Ptr
+        Dim Value As ComboBoxItem Ptr
         If Parent AndAlso Cast(ComboBoxEx Ptr, Parent)->ImagesList Then
             With *Cast(ComboBoxEx Ptr, Parent)->ImagesList
-                Return Add(FText, Obj, .IndexOf(ImageKey), .IndexOf(SelectedImageKey), .IndexOf(OverlayKey), Indent)
+                Value = Add(FText, Obj, .IndexOf(ImageKey), .IndexOf(SelectedImageKey), .IndexOf(OverlayKey), Indent)
+				Value->ImageKey = ImageKey
             End With
         Else
-            Return Add(FText, Obj, -1, -1, -1, Indent)
+            Value = Add(FText, Obj, -1, -1, -1, Indent)
         End If
+        Return Value
     End Function
     
     Sub ComboBoxExItems.Remove(Index As Integer)
         If Index = -1 Then Exit Sub
-        FItems.Remove Index
         If Parent Then
-            Parent->Perform CBEM_DELETEITEM, Index, 0
-        End If
+			#IfDef __USE_GTK__
+				gtk_list_store_remove(Cast(ComboBoxEx Ptr, Parent)->ListStore, @This.Item(Index)->TreeIter)
+			#Else
+				Parent->Perform CBEM_DELETEITEM, Index, 0
+			#EndIf
+		End If
+		FItems.Remove Index
     End Sub
 
     Function ComboBoxExItems.IndexOf(ByRef FItem As ComboBoxItem Ptr) As Integer
@@ -304,7 +359,11 @@ Property ComboBoxItem.Object As Any Ptr
     End Function
 
     Sub ComboBoxExItems.Clear
-        If Parent Then Parent->Perform CB_RESETCONTENT, 0, 0
+		#IfDef __USE_GTK__
+			If Parent Then gtk_list_store_clear(Cast(ComboBoxEx Ptr, Parent)->ListStore)
+		#Else
+			If Parent Then Parent->Perform CB_RESETCONTENT, 0, 0
+        #EndIf
         For i As Integer = Count -1 To 0 Step -1
             Delete @QComboBoxItem(FItems.Items[i])
         Next i
@@ -325,7 +384,9 @@ Property ComboBoxItem.Object As Any Ptr
 
     Sub ComboBoxEx.UpdateListHeight
         'If Style <> cbSimple Then
+        #IfNDef __USE_GTK__
             MoveWindow Handle, FLeft, FTop, FWidth, FHeight + (ItemHeight * Items.Count), 1 
+        #EndIf
         'End If
     End Sub
 
@@ -351,8 +412,10 @@ Property ComboBoxItem.Object As Any Ptr
     End Property
 
     Property ComboBoxEx.IntegralHeight(Value As Boolean)
-           FIntegralHeight = Value
-        ChangeStyle CBS_NOINTEGRALHEIGHT, Not Value
+        FIntegralHeight = Value
+        #IfNDef __USE_GTK__
+			ChangeStyle CBS_NOINTEGRALHEIGHT, Not Value
+		#EndIf
     End Property
     
     Property ComboBoxEx.ItemHeight As Integer
@@ -361,68 +424,76 @@ Property ComboBoxItem.Object As Any Ptr
 
     Property ComboBoxEx.ItemHeight(Value As Integer)
         FItemHeight = Value
-        If Handle Then 
-            'If Style <> cbOwnerDrawVariable  Then
-            '    Perform(CB_SETITEMHEIGHT, 0, FItemHeight)
-            'End If
-        End If
+        #IfNDef __USE_GTK__
+			If Handle Then 
+				'If Style <> cbOwnerDrawVariable  Then
+				'    Perform(CB_SETITEMHEIGHT, 0, FItemHeight)
+				'End If
+			End If
+		#EndIf
     End Property
 
-    Sub ComboBoxEx.HandleIsAllocated(BYREF Sender As Control)
-        If Sender.Child Then
-            With QComboBoxEx(Sender.Child)
-                 'If .Style <> cbOwnerDrawVariable Then
-                    .Perform(CB_SETITEMHEIGHT, 0, .ItemHeight)
-                 'End If-
-                .UpdateListHeight
-                If .ImagesList Then
-                    .ImagesList->ParentWindow = .Handle
-                    .Perform CBEM_SETIMAGELIST, 0, CInt(.ImagesList->Handle)
-                End If
-                 Dim As Integer i
-                For i = 0 To .Items.Count - 1
-                    Dim As COMBOBOXEXITEM cbei
-                    cbei.Mask = CBEIF_TEXT Or CBEIF_IMAGE or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE
-                    cbei.pszText  = @.Items.Item(i)->Text
-                    cbei.cchTextMax = Len(.Items.Item(i)->Text)
-                    cbei.iItem = -1
-                    cbei.iImage   = .Items.Item(i)->ImageIndex
-                    cbei.iSelectedImage   = .Items.Item(i)->SelectedImageIndex
-                    cbei.iOverlay   = .Items.Item(i)->OverlayIndex
-                    cbei.iIndent   = .Items.Item(i)->Indent
-                    .Perform(CBEM_INSERTITEM, 0, CInt(@cbei))
-                Next i
-                .ItemIndex = .FItemIndex
-                .Text = *(.FText)
-            End With
-        End If
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub ComboBoxEx.HandleIsAllocated(BYREF Sender As Control)
+			If Sender.Child Then
+				With QComboBoxEx(Sender.Child)
+					 'If .Style <> cbOwnerDrawVariable Then
+					 .Perform(CB_SETITEMHEIGHT, 0, .ItemHeight)
+					 'End If-
+					.UpdateListHeight
+					If .ImagesList Then
+						.ImagesList->ParentWindow = @Sender
+						.Perform CBEM_SETIMAGELIST, 0, CInt(.ImagesList->Handle)
+					End If
+					 Dim As Integer i
+					For i = 0 To .Items.Count - 1
+						Dim As COMBOBOXEXITEM cbei
+						cbei.Mask = CBEIF_TEXT Or CBEIF_IMAGE or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE
+						cbei.pszText  = @.Items.Item(i)->Text
+						cbei.cchTextMax = Len(.Items.Item(i)->Text)
+						cbei.iItem = -1
+						cbei.iImage   = .Items.Item(i)->ImageIndex
+						cbei.iSelectedImage   = .Items.Item(i)->SelectedImageIndex
+						cbei.iOverlay   = .Items.Item(i)->OverlayIndex
+						cbei.iIndent   = .Items.Item(i)->Indent
+						.Perform(CBEM_INSERTITEM, 0, CInt(@cbei))
+					Next i
+					.ItemIndex = .FItemIndex
+					.Text = *(.FText)
+				End With
+			End If
+		End Sub
+	#EndIf
 
-    Sub ComboBoxEx.WndProc(BYREF Message As Message)
-'        If Message.Sender Then
-'            If Cast(TControl Ptr,Message.Sender)->Child Then
-'                Cast(ComboBoxEx Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message) 
-'            End If
-'        End If
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub ComboBoxEx.WndProc(BYREF Message As Message)
+	'        If Message.Sender Then
+	'            If Cast(TControl Ptr,Message.Sender)->Child Then
+	'                Cast(ComboBoxEx Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message) 
+	'            End If
+	'        End If
+		End Sub
+	#EndIf
 
-    Sub ComboBoxEx.ProcessMessage(BYREF Message As Message)
-        Select Case Message.Msg
-        Case CM_COMMAND
-'            Select Case Message.wParamHi
-'            Case CBN_DROPDOWN
-'                If IntegralHeight = False Then 
-'                    If Items.Count Then
-'                      SetWindowPos(Handle, 0, 0, 0, FWidth, ItemHeight * DropDownCount + Height + 2 , SWP_NOMOVE OR SWP_NOZORDER OR SWP_NOACTIVATE OR SWP_NOREDRAW OR SWP_HIDEWINDOW)
-'                    Else
-'                      SetWindowPos(Handle, 0, 0, 0, FWidth, ItemHeight + Height + 2 , SWP_NOMOVE OR SWP_NOZORDER OR SWP_NOACTIVATE OR SWP_NOREDRAW OR SWP_HIDEWINDOW)
-'                    End If
-'                    SetWindowPos(Handle, 0, 0, 0, 0, 0, SWP_NOMOVE OR SWP_NOSIZE OR SWP_NOZORDER OR SWP_NOACTIVATE OR SWP_NOREDRAW OR SWP_SHOWWINDOW)
-'               End If
-'            End Select
-        End Select
-        Base.ProcessMessage(message)
-    End Sub
+	Sub ComboBoxEx.ProcessMessage(BYREF Message As Message)
+		#IfNDef __USE_GTK__			
+    		Select Case Message.Msg
+    		Case CM_COMMAND
+    	'            Select Case Message.wParamHi
+    	'            Case CBN_DROPDOWN
+    	'                If IntegralHeight = False Then 
+    	'                    If Items.Count Then
+    	'                      SetWindowPos(Handle, 0, 0, 0, FWidth, ItemHeight * DropDownCount + Height + 2 , SWP_NOMOVE OR SWP_NOZORDER OR SWP_NOACTIVATE OR SWP_NOREDRAW OR SWP_HIDEWINDOW)
+    	'                    Else
+    	'                      SetWindowPos(Handle, 0, 0, 0, FWidth, ItemHeight + Height + 2 , SWP_NOMOVE OR SWP_NOZORDER OR SWP_NOACTIVATE OR SWP_NOREDRAW OR SWP_HIDEWINDOW)
+    	'                    End If
+    	'                    SetWindowPos(Handle, 0, 0, 0, 0, 0, SWP_NOMOVE OR SWP_NOSIZE OR SWP_NOZORDER OR SWP_NOACTIVATE OR SWP_NOREDRAW OR SWP_SHOWWINDOW)
+    	'               End If
+    	'            End Select
+    		End Select
+    	#EndIf
+    	Base.ProcessMessage(message)
+	End Sub
 
     Operator ComboBoxEx.Cast As Control Ptr 
         Return Cast(Control Ptr, @This)
@@ -430,32 +501,52 @@ Property ComboBoxItem.Object As Any Ptr
 
     Constructor ComboBoxEx
         
-        Dim As INITCOMMONCONTROLSEX icex
-
-        icex.dwSize = sizeof(INITCOMMONCONTROLSEX)
-        icex.dwICC = ICC_USEREX_CLASSES
-
-        InitCommonControlsEx(@icex)
-
+        #IfDef __USE_GTK__
+			ListStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING)
+			widget = gtk_combo_box_new_with_model(GTK_TREE_MODEL(ListStore))
+			g_signal_connect(widget, "changed", G_CALLBACK(@ComboBoxEdit_Changed), @This)
+			Dim As GtkCellRenderer Ptr renderer
+			/' icon cell '/
+			renderer = gtk_cell_renderer_pixbuf_new()
+			gtk_cell_layout_pack_start( GTK_CELL_LAYOUT(widget), renderer, FALSE)
+			gtk_cell_layout_set_attributes( GTK_CELL_LAYOUT(widget), renderer, ToUtf8("icon-name"), 0, NULL)
+			/' text cell '/
+			renderer = gtk_cell_renderer_text_new()
+			gtk_cell_layout_pack_start( GTK_CELL_LAYOUT(widget), renderer, TRUE)
+			gtk_cell_layout_set_attributes( GTK_CELL_LAYOUT(widget), renderer, ToUtf8("text"), 1, NULL)
+			Base.Base.RegisterClass "ComboBoxEx", @This
+        #Else
+        			Dim As INITCOMMONCONTROLSEX icex
+        
+        			icex.dwSize = sizeof(INITCOMMONCONTROLSEX)
+        			icex.dwICC = ICC_USEREX_CLASSES
+        
+        			InitCommonControlsEx(@icex)
+      		#EndIf
         Items.Parent       = @This
         FIntegralHeight    = False
         ItemHeight         = 13
         FDropDownCount     = 8
         With This
             .Child       = @This
-            .ChildProc   = @WndProc
-            Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or WS_VSCROLL
+            #IfNDef __USE_GTK__
+				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
+            	.ChildProc   = @WndProc
+            	Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or WS_VSCROLL
+                .OnHandleIsAllocated = @HandleIsAllocated
+            	.BackColor       = GetSysColor(COLOR_WINDOW)
+            #EndIf
             WLet FClassName, "ComboBoxEx"
             WLet FClassAncestor, "ComboBoxEx32"
-            Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
-            .OnHandleIsAllocated = @HandleIsAllocated
-            .BackColor       = GetSysColor(COLOR_WINDOW)
             .Width       = 121
             .Height      = 121
         End With  
     End Constructor
 
     Destructor ComboBoxEx
-        UnregisterClass "ComboBoxEx", GetModuleHandle(NULL)
+    	Items.Clear
+		#IfNDef __USE_GTK__
+			UnregisterClass "ComboBoxEx", GetModuleHandle(NULL)
+		#EndIf
     End Destructor
 End namespace

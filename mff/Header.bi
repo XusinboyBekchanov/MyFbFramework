@@ -61,9 +61,11 @@ namespace My.Sys.Forms
             AFmt(4)           As Integer
             FSectionCount     As Integer
             FSections         As List
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Sub ProcessMessage(BYREF Message As Message)
-            Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+            #IfNDef __USE_GTK__
+				Declare Static Sub WndProc(BYREF Message As Message)
+				Declare Sub ProcessMessage(BYREF Message As Message)
+				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+			#EndIf
             Declare Function EnumMenuItems(Item As MenuItem,BYREF List As List) As Boolean
         Public:
             Images            As ImageList
@@ -102,7 +104,9 @@ namespace My.Sys.Forms
             OnEndTrack        As Sub(BYREF Sender As Header, BYREF Section As HeaderSection)
             OnTrack           As Sub(BYREF Sender As Header, BYREF Section As HeaderSection)
             OnDividerDblClick As Sub(BYREF Sender As Header, Index As Integer, MouseButton As Integer)
-            OnDrawSection     As Sub(BYREF Sender As Header, BYREF Section As HeaderSection, R As Rect, State As Integer)
+            #IfNDef __USE_GTK__
+				OnDrawSection     As Sub(BYREF Sender As Header, BYREF Section As HeaderSection, R As Rect, State As Integer)
+			#EndIf
     End Type
 
     'HeaderSection
@@ -164,10 +168,12 @@ namespace My.Sys.Forms
     End Operator
 
     Constructor HeaderSection
-        AFmt(0)         = HDF_LEFT
-        AFmt(1)         = HDF_CENTER
-        AFmt(2)         = HDF_RIGHT
-        AFmt(3)         = HDF_RTLREADING
+		#IfNDef __USE_GTK__
+			AFmt(0)         = HDF_LEFT
+			AFmt(1)         = HDF_CENTER
+			AFmt(2)         = HDF_RIGHT
+			AFmt(3)         = HDF_RTLREADING
+		#EndIf
         WLet FCaption, ""
         FImageIndex     = -1
         FAlignment      = 0
@@ -185,7 +191,9 @@ namespace My.Sys.Forms
     Property Header.Style(Value As Integer)
         If FStyle <> Value Then
             FStyle = Value
-            Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+			#EndIf
         End If
     End Property
 
@@ -196,7 +204,9 @@ namespace My.Sys.Forms
     Property Header.HotTrack(Value As Boolean)
         If FHotTrack <> Value Then
             FHotTrack = Value
-            Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+			#EndIf
         End If
     End Property
 
@@ -207,7 +217,9 @@ namespace My.Sys.Forms
     Property Header.FullDrag(Value As Boolean)
         If FFullDrag <> Value Then
             FFullDrag = Value
-            Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+			#EndIf
        End If
     End Property
 
@@ -218,7 +230,9 @@ namespace My.Sys.Forms
     Property Header.DragReorder(Value As Boolean)
         If FDragReorder <> Value Then
             DragReorder = Value
-            Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+			#EndIf
        End If
     End Property
 
@@ -301,66 +315,70 @@ namespace My.Sys.Forms
     End Property
 
     Sub Header.UpdateItems
-        Dim As HDITEM HI
-        For i As Integer = SectionCount -1 To 0 Step -1
-            Perform(HDM_DELETEITEM, i, 0)
-        Next i
-        For i As Integer = 0 To SectionCount - 1
-             HI.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT    
-             HI.pszText    = @QHeaderSection(FSections.Items[I]).Caption
-             HI.cchTextMax = Len(QHeaderSection(FSections.Items[I]).Caption)
-             HI.cxy        = QHeaderSection(FSections.Items[I]).Width 
-             HI.fmt        = AFmt(QHeaderSection(FSections.Items[I]).Alignment)
-             HI.iImage     = QHeaderSection(FSections.Items[I]).ImageIndex
-             If HI.iImage <> -1 Then
-                HI.mask = HI.mask OR HDI_IMAGE 
-                HI.fmt = HI.fmt OR HDF_IMAGE
-             End If
-             If QHeaderSection(FSections.Items[I]).Style > 0 Then
-                 HI.fmt = HI.fmt OR HDF_OWNERDRAW
-             Else
-                 HI.fmt = HI.fmt OR HDF_STRING
-             End If
-             HI.hbm        = NULL
-             HI.lParam     = Cast(LParam,FSections.Items[I])
-             Perform(HDM_INSERTITEM, i, CInt(@HI))
-        Next i
+		#IfNDef __USE_GTK__
+			Dim As HDITEM HI
+			For i As Integer = SectionCount -1 To 0 Step -1
+				Perform(HDM_DELETEITEM, i, 0)
+			Next i
+			For i As Integer = 0 To SectionCount - 1
+				 HI.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT    
+				 HI.pszText    = @QHeaderSection(FSections.Items[I]).Caption
+				 HI.cchTextMax = Len(QHeaderSection(FSections.Items[I]).Caption)
+				 HI.cxy        = QHeaderSection(FSections.Items[I]).Width 
+				 HI.fmt        = AFmt(QHeaderSection(FSections.Items[I]).Alignment)
+				 HI.iImage     = QHeaderSection(FSections.Items[I]).ImageIndex
+				 If HI.iImage <> -1 Then
+					HI.mask = HI.mask OR HDI_IMAGE 
+					HI.fmt = HI.fmt OR HDF_IMAGE
+				 End If
+				 If QHeaderSection(FSections.Items[I]).Style > 0 Then
+					 HI.fmt = HI.fmt OR HDF_OWNERDRAW
+				 Else
+					 HI.fmt = HI.fmt OR HDF_STRING
+				 End If
+				 HI.hbm        = NULL
+				 HI.lParam     = Cast(LParam,FSections.Items[I])
+				 Perform(HDM_INSERTITEM, i, CInt(@HI))
+			Next i
+        #EndIF
     End Sub
 
-    Sub Header.HandleIsAllocated(BYREF Sender As Control)
-        Dim As HDITEM HI
-        If Sender.Child Then
-            With QHeader(Sender.Child)
-                .Images.ParentWindow = .Handle
-                SendMessage(.Handle, HDM_SETIMAGELIST, 0, Cast(LPARAM, .Images.Handle))
-                For i As Integer = 0 To .SectionCount -1
-                    HI.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT    
-                    HI.pszText    = @QHeaderSection(.FSections.Items[I]).Caption
-                    HI.cchTextMax = Len(QHeaderSection(.FSections.Items[I]).Caption)
-                    HI.cxy        = QHeaderSection(.FSections.Items[I]).Width 
-                    HI.fmt        = .AFmt(QHeaderSection(.FSections.Items[I]).Alignment)
-                    HI.iImage     = QHeaderSection(.FSections.Items[I]).ImageIndex
-                    If HI.iImage <> -1 Then
-                        HI.mask = HI.mask OR HDI_IMAGE 
-                        HI.fmt = HI.fmt OR HDF_IMAGE
-                    End If
-                    If QHeaderSection(.FSections.Items[I]).Style > 0 Then
-                        HI.fmt = HI.fmt OR HDF_OWNERDRAW
-                    Else
-                        HI.fmt = HI.fmt OR HDF_STRING
-                    End If
-                    HI.hbm        = NULL
-                    HI.lParam     = Cast(LParam, .FSections.Items[I])
-                    .Perform(HDM_INSERTITEM, i, CInt(@HI))
-                Next i
-            End With
-        End If
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub Header.HandleIsAllocated(BYREF Sender As Control)
+			Dim As HDITEM HI
+			If Sender.Child Then
+				With QHeader(Sender.Child)
+					.Images.ParentWindow = @Sender
+					SendMessage(.Handle, HDM_SETIMAGELIST, 0, Cast(LPARAM, .Images.Handle))
+					For i As Integer = 0 To .SectionCount -1
+						HI.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT    
+						HI.pszText    = @QHeaderSection(.FSections.Items[I]).Caption
+						HI.cchTextMax = Len(QHeaderSection(.FSections.Items[I]).Caption)
+						HI.cxy        = QHeaderSection(.FSections.Items[I]).Width 
+						HI.fmt        = .AFmt(QHeaderSection(.FSections.Items[I]).Alignment)
+						HI.iImage     = QHeaderSection(.FSections.Items[I]).ImageIndex
+						If HI.iImage <> -1 Then
+							HI.mask = HI.mask OR HDI_IMAGE 
+							HI.fmt = HI.fmt OR HDF_IMAGE
+						End If
+						If QHeaderSection(.FSections.Items[I]).Style > 0 Then
+							HI.fmt = HI.fmt OR HDF_OWNERDRAW
+						Else
+							HI.fmt = HI.fmt OR HDF_STRING
+						End If
+						HI.hbm        = NULL
+						HI.lParam     = Cast(LParam, .FSections.Items[I])
+						.Perform(HDM_INSERTITEM, i, CInt(@HI))
+					Next i
+				End With
+			End If
+		End Sub
 
-    Sub Header.WndProc(BYREF Message As Message)
-        If Message.Sender Then
-        End If
-    End Sub
+		Sub Header.WndProc(BYREF Message As Message)
+			If Message.Sender Then
+			End If
+		End Sub
+	#EndIf
 
     Function Header.EnumMenuItems(Item As MenuItem, BYREF List As List) As Boolean
         For i As Integer = 0 To Item.Count -1
@@ -370,68 +388,70 @@ namespace My.Sys.Forms
         Return True
     End Function
 
-    Sub Header.ProcessMessage(BYREF Message As Message)
-        Static As Boolean IsMenuItem
-        Select Case Message.Msg
-        Case WM_RBUTTONDOWN
-            'PopupMenu.Window = FHandle
-            'PopupMenu.Popup(Message.lParamLo, Message.lParamHi)
-        Case CM_NOTIFY
-            Dim As HD_NOTIFY Ptr HDN
-            Dim As Integer ItemIndex, MouseButton
-            HDN = Cast(HD_NOTIFY Ptr, Message.lParam)
-            ItemIndex   = HDN->iItem
-            MouseButton = HDN->iButton
-            Select Case HDN->hdr.code
-            Case HDN_BEGINTRACK
-                If OnBeginTrack Then OnBeginTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
-            Case HDN_ENDTRACK
-                If OnEndTrack Then OnEndTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
-            Case HDN_DIVIDERDBLCLICK
-                If OnDividerDblClick Then OnDividerDblClick(This, ItemIndex,MouseButton) 
-            Case HDN_ITEMCHANGED
-                Dim As HD_ITEM Ptr HI
-                HI = Cast(HD_ITEM Ptr,HDN->pItem)
-                QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
-                If OnChange Then OnChange(This,QHeaderSection(FSections.Items[ItemIndex]))
-            Case HDN_ITEMCHANGING
-                Dim As HD_ITEM Ptr HI
-                HI = Cast(HD_ITEM Ptr,HDN->pItem)
-                QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
-                If OnChanging Then OnChanging(This, QHeaderSection(FSections.Items[ItemIndex]))
-            Case HDN_ITEMCLICK
-                If OnSectionClick Then OnSectionClick(This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton)
-            Case HDN_ITEMDBLCLICK 
-                If OnSectionDblClick Then OnSectionDblClick(This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton) 
-            Case HDN_TRACK
-                If OnTrack Then OnTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
-            End Select
-        Case CM_DRAWITEM
-            Dim As DRAWITEMSTRUCT Ptr Dis
-            Dis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
-            Dim As Rect R = Dis->rcItem
-            Dim As Integer Index = Dis->ItemID, State = Dis->itemState
-            If OnDrawSection Then OnDrawSection(This, QHeaderSection(FSections.Items[Index]), R, State AND ODS_SELECTED <> 0)
-        Case WM_MENUSELECT
-            IsMenuItem = True
-        Case WM_COMMAND
-            Static As List List
-            Dim As MenuItem Ptr Item
-            If IsMenuItem Then
-               List.Clear
-               For i As Integer = 0 To ContextMenu->Count -1
-                    EnumMenuItems(*ContextMenu->Item(i), List)
-               Next i
-               For i As Integer = 0 To List.Count - 1
-                   If QMenuItem(List.Items[i]).Command = Message.wParamLo Then
-                      If QMenuItem(List.Items[i]).OnClick Then QMenuItem(List.Items[i]).OnClick(QMenuItem(List.Items[i]))
-                      Exit For
-                   End If
-               Next i
-               IsMenuItem = False
-            End If
-        End Select
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub Header.ProcessMessage(BYREF Message As Message)
+			Static As Boolean IsMenuItem
+			Select Case Message.Msg
+			Case WM_RBUTTONDOWN
+				'PopupMenu.Window = FHandle
+				'PopupMenu.Popup(Message.lParamLo, Message.lParamHi)
+			Case CM_NOTIFY
+				Dim As HD_NOTIFY Ptr HDN
+				Dim As Integer ItemIndex, MouseButton
+				HDN = Cast(HD_NOTIFY Ptr, Message.lParam)
+				ItemIndex   = HDN->iItem
+				MouseButton = HDN->iButton
+				Select Case HDN->hdr.code
+				Case HDN_BEGINTRACK
+					If OnBeginTrack Then OnBeginTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
+				Case HDN_ENDTRACK
+					If OnEndTrack Then OnEndTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
+				Case HDN_DIVIDERDBLCLICK
+					If OnDividerDblClick Then OnDividerDblClick(This, ItemIndex,MouseButton) 
+				Case HDN_ITEMCHANGED
+					Dim As HD_ITEM Ptr HI
+					HI = Cast(HD_ITEM Ptr,HDN->pItem)
+					QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
+					If OnChange Then OnChange(This,QHeaderSection(FSections.Items[ItemIndex]))
+				Case HDN_ITEMCHANGING
+					Dim As HD_ITEM Ptr HI
+					HI = Cast(HD_ITEM Ptr,HDN->pItem)
+					QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
+					If OnChanging Then OnChanging(This, QHeaderSection(FSections.Items[ItemIndex]))
+				Case HDN_ITEMCLICK
+					If OnSectionClick Then OnSectionClick(This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton)
+				Case HDN_ITEMDBLCLICK 
+					If OnSectionDblClick Then OnSectionDblClick(This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton) 
+				Case HDN_TRACK
+					If OnTrack Then OnTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
+				End Select
+			Case CM_DRAWITEM
+				Dim As DRAWITEMSTRUCT Ptr Dis
+				Dis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
+				Dim As Rect R = Dis->rcItem
+				Dim As Integer Index = Dis->ItemID, State = Dis->itemState
+				If OnDrawSection Then OnDrawSection(This, QHeaderSection(FSections.Items[Index]), R, State AND ODS_SELECTED <> 0)
+			Case WM_MENUSELECT
+				IsMenuItem = True
+			Case WM_COMMAND
+				Static As List List
+				Dim As MenuItem Ptr Item
+				If IsMenuItem Then
+				   List.Clear
+				   For i As Integer = 0 To ContextMenu->Count -1
+						EnumMenuItems(*ContextMenu->Item(i), List)
+				   Next i
+				   For i As Integer = 0 To List.Count - 1
+					   If QMenuItem(List.Items[i]).Command = Message.wParamLo Then
+						  If QMenuItem(List.Items[i]).OnClick Then QMenuItem(List.Items[i]).OnClick(QMenuItem(List.Items[i]))
+						  Exit For
+					   End If
+				   Next i
+				   IsMenuItem = False
+				End If
+			End Select
+		End Sub
+	#EndIf
 
     Sub Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0)
         Dim As HeaderSection Ptr PSection
@@ -445,27 +465,29 @@ namespace My.Sys.Forms
             .Width         = FWidth
         End With
         
-        Dim As HDITEM HI
-        With HI
-            .mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT
-            .pszText    = @FCaption
-            .cchTextMax = Len(FCaption)
-            .cxy        = PSection->Width 
-            .fmt        = AFmt(Abs_(PSection->Alignment))
-            .iImage     = FImageIndex
-            If .iImage <> -1 Then
-               .mask = .mask OR HDI_IMAGE 
-               .fmt  = .fmt OR HDF_IMAGE 
-            End If
-            If PSection->Style > 0 Then
-                .fmt = .fmt OR HDF_OWNERDRAW
-            Else
-                .fmt = .fmt OR HDF_STRING
-            End If
-            .hbm        = NULL
-            .lParam     = Cast(LParam,PSection)
-        End With
-        If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI)) 
+        #IfNDef __USE_GTK__
+			Dim As HDITEM HI
+			With HI
+				.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT
+				.pszText    = @FCaption
+				.cchTextMax = Len(FCaption)
+				.cxy        = PSection->Width 
+				.fmt        = AFmt(Abs_(PSection->Alignment))
+				.iImage     = FImageIndex
+				If .iImage <> -1 Then
+				   .mask = .mask OR HDI_IMAGE 
+				   .fmt  = .fmt OR HDF_IMAGE 
+				End If
+				If PSection->Style > 0 Then
+					.fmt = .fmt OR HDF_OWNERDRAW
+				Else
+					.fmt = .fmt OR HDF_STRING
+				End If
+				.hbm        = NULL
+				.lParam     = Cast(LParam,PSection)
+			End With
+			If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
+		#EndIf 
     End Sub
 
     #IfnDef __fb_64bit__
@@ -480,28 +502,30 @@ namespace My.Sys.Forms
                 .Caption       = *va_Arg(Arg, WString Ptr)
             End With
             FSections.Add PSection
-            Dim As HDITEM HI
-            With HI
-                .mask       = HDI_FORMAT OR HDI_LPARAM OR HDI_TEXT OR HDI_WIDTH    
-                .pszText    = @PSection->Caption
-                .cchTextMax = Len(PSection->Caption)
-                .cxy        = PSection->Width 
-                .fmt        = AFmt(Abs_(PSection->Alignment))
-                .iImage     = PSection->ImageIndex
-                If .iImage <> -1 Then
-                    .mask = .mask OR HDI_IMAGE 
-                    .fmt  = .fmt OR HDF_IMAGE 
-                End If
-                If PSection->Style Then
-                    .fmt = .fmt OR HDF_OWNERDRAW
-                Else
-                    .fmt = .fmt OR HDF_STRING
-                End If
-                .hbm        = NULL
-                .lParam     = Cast(LParam,PSection)
-            End With
-            If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
-            Arg = va_Next(Arg, WString Ptr)
+            #IfNDef __USE_GTK__
+				Dim As HDITEM HI
+				With HI
+					.mask       = HDI_FORMAT OR HDI_LPARAM OR HDI_TEXT OR HDI_WIDTH    
+					.pszText    = @PSection->Caption
+					.cchTextMax = Len(PSection->Caption)
+					.cxy        = PSection->Width 
+					.fmt        = AFmt(Abs_(PSection->Alignment))
+					.iImage     = PSection->ImageIndex
+					If .iImage <> -1 Then
+						.mask = .mask OR HDI_IMAGE 
+						.fmt  = .fmt OR HDF_IMAGE 
+					End If
+					If PSection->Style Then
+						.fmt = .fmt OR HDF_OWNERDRAW
+					Else
+						.fmt = .fmt OR HDF_STRING
+					End If
+					.hbm        = NULL
+					.lParam     = Cast(LParam,PSection)
+				End With
+				If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
+			#EndIf
+			Arg = va_Next(Arg, WString Ptr)
         Next i
     End Sub
     #EndIf
@@ -509,7 +533,9 @@ namespace My.Sys.Forms
     Sub Header.RemoveSection(Index As Integer)
         If Index >= 0 And Index <= SectionCount -1 Then
            FSections.Remove Index
-           If Handle Then Perform(HDM_DELETEITEM, Index, 0)
+           #IfNDef __USE_GTK__
+				If Handle Then Perform(HDM_DELETEITEM, Index, 0)
+			#EndIf
         End If
     End Sub
 
@@ -518,33 +544,37 @@ namespace My.Sys.Forms
     End Operator
 
     Constructor Header
-        AStyle(0)       = HDS_BUTTONS
-        AStyle(1)       = 0
-        AFullDrag(0)    = 0
-        AFullDrag(1)    = HDS_FULLDRAG
-        AHotTrack(0)    = 0
-        AHotTrack(1)    = HDS_HOTTRACK
-        ADragReorder(0) = 0
-        ADragReorder(1) = HDS_DRAGDROP
-        AFmt(0)         = HDF_LEFT
-        AFmt(1)         = HDF_CENTER
-        AFmt(2)         = HDF_RIGHT
-        AFmt(3)         = HDF_RTLREADING
+        #IfNDef __USE_GTK__
+			AStyle(0)       = HDS_BUTTONS
+			AStyle(1)       = 0
+			AFullDrag(0)    = 0
+			AFullDrag(1)    = HDS_FULLDRAG
+			AHotTrack(0)    = 0
+			AHotTrack(1)    = HDS_HOTTRACK
+			ADragReorder(0) = 0
+			ADragReorder(1) = HDS_DRAGDROP
+			AFmt(0)         = HDF_LEFT
+			AFmt(1)         = HDF_CENTER
+			AFmt(2)         = HDF_RIGHT
+			AFmt(3)         = HDF_RTLREADING
+		#EndIf
         FFullDrag       = True
         FDragReorder    = False
         With This
-            .RegisterClass "Header", WC_HEADER
-            .Child             = @This
-            .ChildProc         = @WndProc
+			.Child             = @This
+			#IfNDef __USE_GTK__
+				.RegisterClass "Header", WC_HEADER
+				.ChildProc         = @WndProc
+				.ExStyle           = 0
+				Base.Style             = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+				.BackColor             = GetSysColor(COLOR_BTNFACE) 
+				.OnHandleIsAllocated = @HandleIsAllocated
+				WLet FClassAncestor, WC_HEADER
+            #EndIf
             WLet FClassName, "Header"
-            WLet FClassAncestor, WC_HEADER
-            .ExStyle           = 0
-            Base.Style             = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
-            .BackColor             = GetSysColor(COLOR_BTNFACE) 
             .Width             = 150
             .Height            = 24
             .Align             = 3
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With  
     End Constructor
 

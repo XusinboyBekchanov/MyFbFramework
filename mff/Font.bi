@@ -4,7 +4,55 @@
 '#  Version 1.0.0                                                              #
 '###############################################################################
 
-#Include Once "Object.bi"
+#Include Once "Component.bi"
+
+Using My.Sys.ComponentModel
+
+#IfDef __USE_GTK__
+	Enum FontCharset
+		Default
+		Ansi
+		Arabic
+		Baltic
+		ChineseBig5
+		EastEurope
+		GB2312
+		Greek
+		Hangul
+		Hebrew
+		Johab
+		Mac
+		OEM
+		Russian
+		Shiftjis
+		Symbol
+		Thai
+		Turkish
+		Vietnamese
+	End Enum
+#Else
+	Enum FontCharset
+		Default     = DEFAULT_CHARSET
+		Ansi        = ANSI_CHARSET
+		Arabic      = ARABIC_CHARSET
+		Baltic      = BALTIC_CHARSET
+		ChineseBig5 = CHINESEBIG5_CHARSET
+		EastEurope  = EASTEUROPE_CHARSET
+		GB2312      = GB2312_CHARSET
+		Greek       = GREEK_CHARSET
+		Hangul      = HANGUL_CHARSET
+		Hebrew      = HEBREW_CHARSET
+		Johab       = JOHAB_CHARSET
+		Mac         = MAC_CHARSET
+		OEM         = OEM_CHARSET
+		Russian     = RUSSIAN_CHARSET
+		Shiftjis    = SHIFTJIS_CHARSET
+		Symbol      = SYMBOL_CHARSET
+		Thai        = THAI_CHARSET
+		Turkish     = TURKISH_CHARSET
+		Vietnamese  = VIETNAMESE_CHARSET
+	End Enum
+#EndIf
 
 Namespace My.Sys.Drawing
     #DEFINE QFont(__Ptr__) *Cast(Font Ptr,__Ptr__)
@@ -19,24 +67,28 @@ Namespace My.Sys.Drawing
             FName      As WString Ptr
             FColor     As Integer
             FCharSet   As Integer 
-            FParent    As HWND
+            FParent    As Component Ptr
             FBolds(2)  As Integer
             FCyPixels  As Integer
             Declare Sub Create
         Public:
-            Handle As HFONT
+			#IfDef __USE_GTK__
+				Handle As PangoFontDescription Ptr
+			#Else
+				Handle As HFONT
+			#EndIf
             Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
             Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
             Declare Function ToString ByRef As WString
-            Declare Property Parent As HWND
-            Declare Property Parent(Value As HWND)
+            Declare Property Parent As Component Ptr
+            Declare Property Parent(Value As Component Ptr)
             Declare Property Name ByRef As WString
             Declare Property Name(ByRef Value As WString)
             Declare Property Color As Integer
             Declare Property Color(Value As Integer)
             Declare Property Size As Integer
             Declare Property Size(Value As Integer)
-            Declare Property CharSet As Integer
+            Declare Property CharSet As Integer 'FontCharset
             Declare Property CharSet(Value As Integer)
             Declare Property Bold As Boolean
             Declare Property Bold(Value As Boolean)
@@ -86,21 +138,26 @@ Namespace My.Sys.Drawing
     End Function
     
     Sub Font.Create
-        If Handle Then DeleteObject(Handle) 
-        Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,0,0,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
-        If Handle Then
-            If FParent Then
-                SendMessage(FParent ,WM_SETFONT,CUInt(Handle),True)
-                InvalidateRect FParent,0,True
-            End If
-        End If
+		#IfDef __USE_GTK__
+			If Handle Then pango_font_description_free (Handle)
+			Handle = pango_font_description_from_string (*FName & " " & Str(FSize))
+		#Else
+			If Handle Then DeleteObject(Handle) 
+			Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,0,0,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
+			If Handle Then
+				If FParent Then
+					SendMessage(FParent->Handle, WM_SETFONT,CUInt(Handle),True)
+					InvalidateRect FParent->Handle,0,True
+				End If
+			End If
+		#EndIf
     End Sub
 
-    Property Font.Parent As HWND
+    Property Font.Parent As Component Ptr
         Return FParent
     End Property
 
-    Property Font.Parent(Value As HWND)
+    Property Font.Parent(Value As Component Ptr)
         FParent = value
         Create
     End Property
@@ -205,20 +262,26 @@ Namespace My.Sys.Drawing
     End Operator
 
     Constructor Font
-        Dim As HDC Dc
         WLet FClassName, "Font"
-        Dc = GetDC(HWND_DESKTOP)
-        FCyPixels = GetDeviceCaps(DC, LOGPIXELSY)
-        ReleaseDC(HWND_DESKTOP,DC)
+        #IfNDef __USE_GTK__
+			Dim As HDC Dc
+			Dc = GetDC(HWND_DESKTOP)
+			FCyPixels = GetDeviceCaps(DC, LOGPIXELSY)
+			ReleaseDC(HWND_DESKTOP,DC)
+        #EndIf
         FBolds(0) = 400
         FBolds(1) = 700
         WLet FName, "TAHOMA"
         FSize     = 8
-        FCharSet  = DEFAULT_CHARSET
+        FCharSet  = FontCharset.Default
         Create
     End Constructor
 
     Destructor Font
-        If Handle Then DeleteObject(Handle)
+		#IfDef __USE_GTK__
+			If Handle Then pango_font_description_free (Handle)
+		#Else
+			If Handle Then DeleteObject(Handle)
+		#EndIf
     End Destructor
 End namespace

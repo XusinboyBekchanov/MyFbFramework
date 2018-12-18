@@ -164,6 +164,7 @@ Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
     End With
     FItems.Add nItem
     If OnAdd Then OnAdd(This, FItem, FObj)
+    FCount = FItems.Count
 End Sub
 
 Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
@@ -174,6 +175,7 @@ Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr
     End With
     FItems.Insert Index, nItem 
     If OnInsert Then OnInsert(This, Index, FItem, FObj)
+    FCount = FItems.Count
 End Sub
 
 Sub WStringList.Exchange(Index1 As Integer, Index2 As Integer)
@@ -184,6 +186,7 @@ End Sub
 Sub WStringList.Remove(Index As Integer)
     Delete Cast(WStringListItem Ptr, FItems.Items[Index])
     FItems.Remove Index
+    FCount = FItems.Count
     If OnRemove Then OnRemove(This, Index)
 End Sub
 
@@ -203,6 +206,7 @@ Sub WStringList.Clear
         Delete Cast(WStringListItem Ptr, FItems.Items[i])
     Next i
     FItems.Clear
+    FCount = 0
     If OnClear Then OnClear(This)
 End Sub
 
@@ -237,7 +241,7 @@ End Sub
 
 Function WStringList.IndexOf(ByRef FItem As WString) As Integer
     For i As Integer = 0 To Count -1
-        If QWStringListItem(FItems.Items[i]).Value = FItem Then Return i
+        If LCase(QWStringListItem(FItems.Items[i]).Value) = LCase(FItem) Then Return i
     Next i
     Return -1
 End Function
@@ -258,8 +262,8 @@ Constructor WStringList
 End Constructor
 
 Destructor WStringList
-    	For i As Integer = Count -1 To 0 Step -1
-      	Delete Cast(WStringListItem Ptr, FItems.Items[i])
-    	Next i
+	For i As Integer = FCount - 1 To 0 Step -1
+		Delete Cast(WStringListItem Ptr, FItems.Items[i])
+	Next i
 	If FText Then Deallocate FText
 End Destructor

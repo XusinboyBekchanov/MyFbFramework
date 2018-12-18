@@ -26,6 +26,7 @@
 #Include Once "Header.bi"
 #Include Once "HotKey.bi"
 #Include Once "Icon.bi"
+#Include Once "ImageBox.bi"
 #Include Once "ImageList.bi"
 #Include Once "IPAddress.bi"
 #Include Once "IniFile.bi"
@@ -58,6 +59,7 @@
 #Include Once "TextBox.bi"
 #Include Once "TimerComponent.bi"
 #Include Once "ToolBar.bi"
+#Include Once "ToolPalette.bi"
 #Include Once "ToolTips.bi"
 #Include Once "TrackBar.bi"
 #Include Once "TreeView.bi"
@@ -66,15 +68,17 @@
 
 Using My.Sys.Forms
 
-Function DllMain(hinstDLL As HINSTANCE, fdwReason As DWORD, lpvReserved As LPVOID) As Boolean
-    Select Case fdwReason
-    Case DLL_PROCESS_ATTACH
-    Case DLL_PROCESS_DETACH
-    Case DLL_THREAD_ATTACH
-    Case DLL_THREAD_DETACH
-    End Select
-    Return True
-End Function
+#IfNDef __USE_GTK__
+	Function DllMain(hinstDLL As HINSTANCE, fdwReason As DWORD, lpvReserved As LPVOID) As Boolean
+		Select Case fdwReason
+		Case DLL_PROCESS_ATTACH
+		Case DLL_PROCESS_DETACH
+		Case DLL_THREAD_ATTACH
+		Case DLL_THREAD_DETACH
+		End Select
+		Return True
+	End Function
+#EndIf
 
 Dim Shared Objects As List
 Common Shared Ctrl As Control Ptr
@@ -94,6 +98,7 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
     Case "header": Ctrl = New Header
     Case "hotkey": Ctrl = New HotKey
     'Case "ipaddress": Ctrl = New IPAddress
+    Case "imagebox": Ctrl = New ImageBox
     Case "label": Ctrl = New Label
     Case "linklabel": Ctrl = New LinkLabel
     Case "listcontrol": Ctrl = New ListControl
@@ -115,6 +120,7 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
     Case "tabcontrol": Ctrl = New TabControl
     Case "textbox": Ctrl = New TextBox
     Case "toolbar": Ctrl = New ToolBar
+    Case "toolpalette": Ctrl = New ToolPalette
     Case "tooltips": Ctrl = New ToolTips
     Case "trackbar": Ctrl = New TrackBar
     Case "treeview": Ctrl = New TreeView
@@ -122,7 +128,7 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
     End Select
     If Ctrl Then
         Ctrl->Name = sName
-        Ctrl->Text = Text
+        Ctrl->WriteProperty("Text", @Text)
         Ctrl->SetBounds lLeft, lTop, lWidth, lHeight
         Ctrl->Parent = Parent
         Objects.Add Ctrl
@@ -172,6 +178,7 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
     Case "header": Delete Cast(Header Ptr, Ctrl)
     Case "hotkey": Delete Cast(HotKey Ptr, Ctrl)
     'Case "ipaddress": Delete Cast(IPAddress Ptr, Ctrl)
+    Case "imagebox": Delete Cast(ImageBox Ptr, Ctrl)
     Case "label": Delete Cast(Label Ptr, Ctrl)
     Case "linklabel": Delete Cast(LinkLabel Ptr, Ctrl)
     Case "listcontrol": Delete Cast(ListControl Ptr, Ctrl)
@@ -193,6 +200,7 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
     Case "tabcontrol": Delete Cast(TabControl Ptr, Ctrl)
     Case "textbox": Delete Cast(TextBox Ptr, Ctrl)
     Case "toolbar": Delete Cast(ToolBar Ptr, Ctrl)
+    Case "toolpalette": Delete Cast(ToolPalette Ptr, Ctrl)
     Case "tooltips": Delete Cast(ToolTips Ptr, Ctrl)
     Case "trackbar": Delete Cast(TrackBar Ptr, Ctrl)
     Case "treeview": Delete Cast(TreeView Ptr, Ctrl)
@@ -207,19 +215,46 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
     Case "fontdialog": Delete Cast(FontDialog Ptr, Ctrl)
     Case "openfiledialog": Delete Cast(OpenFileDialog Ptr, Ctrl)
     Case "savefiledialog": Delete Cast(SaveFileDialog Ptr, Ctrl)
+    Case Else: Return False
     End Select
     Return True
 End Function
 
-Function ShowPropertyPage Alias "ShowPropertyPage"(Ctrl As Any Ptr) As Boolean Export
-    If Objects.Contains(Ctrl) Then
-        Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
-    Else
-        Return False
-    End If
-    If Cpnt = 0 Then Return False
-    Select Case LCase(cpnt->ClassName)
-    Case "imagelist": 
-    End Select
-    Return True
-End Function
+#IfNDef ReadProperty_Off
+	Function ReadProperty Alias "ReadProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String) As Any Ptr Export
+	    'If Objects.Contains(Ctrl) Then
+	    '    Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
+	    '    Return Cpnt->ReadProperty(PropertyName)
+	    'Else
+	    '    Return 0
+	    'End If
+	    Return Ctrl->ReadProperty(PropertyName)
+	End Function
+#EndIf
+
+#IfNDef WriteProperty_Off
+	Function WriteProperty Alias "WriteProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean Export
+'	    If Objects.Contains(Ctrl) Then
+'	        Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
+'	        Return Cpnt->WriteProperty(PropertyName, Value)
+'	    Else
+'	        Return False
+'	    End If
+		Return Ctrl->WriteProperty(PropertyName, Value)
+	End Function
+#EndIf
+
+#IfNDef ShowPropertyPage_Off        
+	Function ShowPropertyPage Alias "ShowPropertyPage"(Ctrl As Any Ptr) As Boolean Export
+	    If Objects.Contains(Ctrl) Then
+	        Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
+	    Else
+	        Return False
+	    End If
+	    If Cpnt = 0 Then Return False
+	    Select Case LCase(cpnt->ClassName)
+	    Case "imagelist": 
+	    End Select
+	    Return True
+	End Function
+#EndIf

@@ -11,28 +11,32 @@ Namespace My.Sys.Forms
     
     Type PageScroller Extends Control
         Private:
-            Declare Static Sub WndProc(ByRef Message As Message)
-            Declare Sub ProcessMessage(ByRef Message As Message)
-            Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#IfNDef __USE_GTK__
+				Declare Static Sub WndProc(ByRef Message As Message)
+				Declare Sub ProcessMessage(ByRef Message As Message)
+				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#EndIf
         Public:
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
             Declare Destructor
     End Type
     
-    Sub PageScroller.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-        If Sender.Child Then
-            With QPageScroller(Sender.Child)
-                 
-            End With
-        End If
-    End Sub
+    #IfNDef __USE_GTK__
+		Sub PageScroller.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QPageScroller(Sender.Child)
+					 
+				End With
+			End If
+		End Sub
 
-    Sub PageScroller.WndProc(ByRef Message As Message)
-    End Sub
+		Sub PageScroller.WndProc(ByRef Message As Message)
+		End Sub
 
-    Sub PageScroller.ProcessMessage(ByRef Message As Message)
-    End Sub
+		Sub PageScroller.ProcessMessage(ByRef Message As Message)
+		End Sub
+	#EndIf
 
     Operator PageScroller.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)
@@ -40,20 +44,24 @@ Namespace My.Sys.Forms
 
     Constructor PageScroller
         With This
-            .RegisterClass "PageScroller","SysPager"
             WLet FClassName, "PageScroller"
             WLet FClassAncestor, "SysPager"
-            .Style        = WS_CHILD
-            .ExStyle      = 0
+            #IfNDef __USE_GTK__
+				.RegisterClass "PageScroller","SysPager"
+				.Style        = WS_CHILD
+				.ExStyle      = 0
+				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#EndIf
             .Width        = 175
             .Height       = 21
             .Child        = @This
-            .ChildProc    = @WndProc
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With
     End Constructor
 
     Destructor PageScroller
-        UnregisterClass "PageScroller",GetModuleHandle(NULL)
+		#IfNDef __USE_GTK__
+			UnregisterClass "PageScroller",GetModuleHandle(NULL)
+		#EndIf
     End Destructor
 End Namespace

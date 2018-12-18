@@ -1,70 +1,111 @@
-﻿#If __Fb_linux__
-    #DEFINE USEGTK
-    #Include Once "X11.bi"
+﻿#IfDef __FB_Linux__
+	#DEFINE __USE_GTK__
+#Else
+	#DEFINE __USE_WINAPI__
+#EndIf
+
+#IfDef __USE_GTK__
+	#DEFINE __USE_GTK3__
+    #Include once "gtk/gtk.bi"
+    #include once "glib-object.bi"
 #Else
     #DEFINE UNICODE
     #INCLUDE Once "Windows.bi"
     #INCLUDE Once "Win/CommCtrl.bi"
     #INCLUDE Once "Win/CommDlg.bi"
     #INCLUDE Once "Win/RichEdit.bi"
-#endif
+    #define Instance GetModuleHandle(NULL)
+#EndIf
+#Include Once "utf_conv.bi"
 '#Include Once "UString.bi"
-
-#define Instance GetModuleHandle(NULL)
 
 Const HELP_SETPOPUP_POS = &Hd
 
-#DEFINE __AUTOMATE_CREATE_CHILDS__
-
-#DEFINE CM_NOTIFYCHILD 39998
-#DEFINE CM_CHANGEIMAGE 39999
-#DEFINE CM_CTLCOLOR    40000
-#DEFINE CM_COMMAND     40001
-#DEFINE CM_NOTIFY      40002
-#DEFINE CM_HSCROLL     40003
-#DEFINE CM_VSCROLL     40004
-#DEFINE CM_MEASUREITEM 40005
-#DEFINE CM_DRAWITEM    40006
-#DEFINE CM_HELPCONTEXT 40007
-#DEFINE CM_CANCELMODE  40008
-#DEFINE CM_HELP        40010 
-#DEFINE CM_NEEDTEXT    40011 
-#DEFINE CM_CREATE      40012 
-
+'#DEFINE __AUTOMATE_CREATE_CHILDS__
+ 
 Type Message
-    hWnd     As HWND
-    Msg      As UINT
-    wParam   As WPARAM
-    lParam   As LPARAM
-    Result   As LRESULT
-    Sender   As Any Ptr
-    wParamLo As Integer
-    wParamHi As Integer
-    lParamLo As Integer
-    lParamHi As Integer
-    Captured As Any Ptr
+	Sender   As Any Ptr
+	#IfDef __USE_GTK__
+		widget As GtkWidget Ptr
+		event As GdkEvent Ptr
+		Result   As Boolean
+	#Else
+		hWnd     As HWND
+		Msg      As UINT
+		wParam   As WPARAM
+		lParam   As LPARAM
+		Result   As LRESULT
+		wParamLo As Integer
+		wParamHi As Integer
+		lParamLo As Integer
+		lParamHi As Integer
+		Captured As Any Ptr
+	#EndIf
 End Type
 
-'Dim Shared As Message Message
+Enum Keys
+	#IfDef __USE_GTK__
+		Esc = GDK_KEY_ESCAPE
+		Left = GDK_KEY_LEFT
+		Right = GDK_KEY_RIGHT
+		Up = GDK_KEY_UP
+		Down = GDK_KEY_DOWN
+		Home = GDK_KEY_HOME
+		EndKey = GDK_KEY_END
+		DeleteKey = GDK_KEY_DELETE
+	#Else
+		Esc = VK_ESCAPE
+		Left = VK_LEFT
+		Right = VK_RIGHT
+		Up = VK_UP
+		Down = VK_DOWN
+		Home = VK_HOME
+		EndKey = VK_END
+		DeleteKey = VK_DELETE
+	#EndIf
+End Enum
 
-Function EnumThreadWindowsProc(FWindow As HWND,LData As LParam) As Bool
-    Type WindowType
-        As HWND Handle
-    End Type
-    Dim As WindowType Ptr Wnd = Cast(WindowType Ptr, lData)
-    If (GetWindowLong(FWindow, GWL_EXSTYLE) AND WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
-       Wnd->Handle = FWindow
-    End If
-    Return True
-End Function
+#IfNDef __USE_GTK__
+	#DEFINE CM_NOTIFYCHILD 39998
+	#DEFINE CM_CHANGEIMAGE 39999
+	#DEFINE CM_CTLCOLOR    40000
+	#DEFINE CM_COMMAND     40001
+	#DEFINE CM_NOTIFY      40002
+	#DEFINE CM_HSCROLL     40003
+	#DEFINE CM_VSCROLL     40004
+	#DEFINE CM_MEASUREITEM 40005
+	#DEFINE CM_DRAWITEM    40006
+	#DEFINE CM_HELPCONTEXT 40007
+	#DEFINE CM_CANCELMODE  40008
+	#DEFINE CM_HELP        40010 
+	#DEFINE CM_NEEDTEXT    40011 
+	#DEFINE CM_CREATE      40012 
 
-Function MainHandle As HWND
-    Type WindowType
-        As HWND Handle
-    End Type
-    Dim As WindowType Wnd
-    EnumThreadWindows GetCurrentThreadID,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@Wnd)
-    Return Wnd.Handle 
+	'Dim Shared As Message Message
+
+	Function EnumThreadWindowsProc(FWindow As HWND,LData As LParam) As Bool
+		Type WindowType
+			As HWND Handle
+		End Type
+		Dim As WindowType Ptr Wnd = Cast(WindowType Ptr, lData)
+		If (GetWindowLong(FWindow, GWL_EXSTYLE) AND WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
+		   Wnd->Handle = FWindow
+		End If
+		Return True
+	End Function
+
+	Function MainHandle As HWND
+		Type WindowType
+			As HWND Handle
+		End Type
+		Dim As WindowType Wnd
+		EnumThreadWindows GetCurrentThreadID,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@Wnd)
+		Return Wnd.Handle 
+	End Function
+#EndIf
+
+Function iGet(Value As Any Ptr) As Integer
+	If Value = 0 Then Return 0 Else Return *Cast(Integer Ptr, Value)
 End Function
 
 Function ZGet(ByRef subject As ZString Ptr) As String
@@ -72,13 +113,13 @@ Function ZGet(ByRef subject As ZString Ptr) As String
     Return *subject
 End Function
 
-Sub WReAllocate(ByRef subject AS Wstring Ptr, lLen AS Integer)
-    subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(Wstring)))
-End Sub
-
 Sub WDeAllocate(ByRef subject AS Wstring Ptr)
     If subject Then Deallocate subject
     subject = 0
+End Sub
+
+Sub WReAllocate(ByRef subject AS Wstring Ptr, lLen AS Integer)
+    subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(Wstring)))
 End Sub
 
 Function WGet(ByRef subject AS WString Ptr) ByRef As WString
@@ -165,6 +206,7 @@ Namespace ClassContainer
         Return NULL
     End Function
     
+    #IFNDef __USE_GTK__
     Function GetClassProc(FWindow As HWND) As Any Ptr
         Dim As WString * 255 c
         Dim As WString Ptr ClassName
@@ -188,9 +230,31 @@ Namespace ClassContainer
             UnregisterClass Classes(i).ClassName, GetModuleHandle(NULL)
         Next i
     End Sub
+    #EndIf
 End Namespace
 
 Using ClassContainer
+
+Function ToUtf8(pWString As WString Ptr) As String
+	'#IfDef __USE_GTK__
+	'	Return g_locale_to_utf8(*pWString, -1, NULL, NULL, NULL)
+   '#Else
+	   Dim cbLen As Integer
+	   Dim m_BufferLen As Integer = Len(*pWString)
+	   If m_BufferLen = 0 Then Return ""
+	   Dim buffer As String = String(m_BufferLen * 5 + 1, 0)
+	   Return *Cast(ZString Ptr, WCharToUTF(1, pWString, m_BufferLen * 2, StrPtr(buffer), @cbLen))
+	'#EndIf
+End Function
+
+Function FromUtf8(pZString As ZString Ptr) ByRef As WString
+   Dim cbLen As Integer
+   Dim m_BufferLen As Integer = Len(*pZString)
+   If m_BufferLen = 0 Then Return ""
+   Dim buffer As WString Ptr
+   WLet buffer, WString(m_BufferLen * 5 + 1, 0)
+   Return WGet(UTFToWChar(1, pZString, buffer, @cbLen))
+End Function
 
 #IfDef GetMN
 Function GetMessageName(Message As Integer) As String
@@ -1297,7 +1361,7 @@ Dim Shared sReplaceText As WString Ptr
 Function Replace(ByRef subject As WString, ByRef oldtext As const WString, ByRef newtext As const WString, ByVal start As Integer = 1, byref count as integer = 0) ByRef As WString
     Dim As Integer n, c, ls = Len(subject), lo = Len(oldtext), ln = Len(newtext)
     If subject <> "" And oldtext <> "" And oldtext <> newtext Then
-        Wreallocate sReplaceText, ls / lo * Max(lo, ln)
+        WReallocate sReplaceText, ls / lo * Max(lo, ln) + 10
         *sReplaceText = subject
         n = Instr(start, *sReplaceText, oldtext)
         Do While n <> 0

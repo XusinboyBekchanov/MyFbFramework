@@ -12,8 +12,10 @@ Namespace My.Sys.Forms
     Type GroupBox Extends ContainerControl
         Private:
             FParentColor As Integer
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Sub ProcessMessage(BYREF Message As Message)
+            #IfNDef __USE_GTK__
+				Declare Static Sub WndProc(BYREF Message As Message)
+				Declare Sub ProcessMessage(BYREF Message As Message)
+			#EndIf
         Public:
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
@@ -26,11 +28,20 @@ Namespace My.Sys.Forms
     End Type
 
     Property GroupBox.Caption ByRef As WString
-        Return Text
+        #IfDef __USE_GTK__
+			WLet FText, WStr(gtk_frame_get_label(GTK_FRAME(widget)))
+			Return *FText
+        #Else
+			Return Text
+		#EndIf
     End Property
 
     Property GroupBox.Caption(ByRef Value As WString)
-        Text = Value 
+		#IfDef __USE_GTK__
+			If widget Then gtk_frame_set_label(GTK_FRAME(widget), ToUtf8(Value))
+		#Else
+			Text = Value
+		#EndIf 
     End Property
 
     Property GroupBox.ParentColor As Boolean
@@ -40,31 +51,33 @@ Namespace My.Sys.Forms
     Property GroupBox.ParentColor(Value As Boolean)
        FParentColor = Value
        If FParentColor Then
-          This.BackColor = Parent->BackColor
+          This.BackColor = This.Parent->BackColor
           Invalidate
        End If
     End Property
 
-    Sub GroupBox.WndProc(BYREF Message As Message)
-        If Message.Sender Then
-        End If
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub GroupBox.WndProc(BYREF Message As Message)
+			If Message.Sender Then
+			End If
+		End Sub
 
-    Sub GroupBox.ProcessMessage(BYREF Message As Message)
-        Select Case Message.Msg
-        Case CM_CTLCOLOR
-             Static As HDC Dc
-             Dc = Cast(HDC, Message.wParam)
-             SetBKMode Dc, TRANSPARENT
-             SetTextColor Dc, Font.Color
-             SetBKColor Dc, This.BackColor
-             SetBKMode Dc, OPAQUE
-        Case CM_COMMAND
-            If Message.wParamHi = BN_CLICKED Then
-                If OnClick Then OnClick(This)
-            End If
-        End Select
-    End Sub
+		Sub GroupBox.ProcessMessage(BYREF Message As Message)
+			Select Case Message.Msg
+			Case CM_CTLCOLOR
+				 Static As HDC Dc
+				 Dc = Cast(HDC, Message.wParam)
+				 SetBKMode Dc, TRANSPARENT
+				 SetTextColor Dc, Font.Color
+				 SetBKColor Dc, This.BackColor
+				 SetBKMode Dc, OPAQUE
+			Case CM_COMMAND
+				If Message.wParamHi = BN_CLICKED Then
+					If OnClick Then OnClick(This)
+				End If
+			End Select
+		End Sub
+	#EndIf
 
     Operator GroupBox.Cast As Control Ptr 
         Return Cast(Control Ptr, @This)
@@ -72,16 +85,23 @@ Namespace My.Sys.Forms
 
     Constructor GroupBox
         With This
-            .RegisterClass "GroupBox", "Button"
             .Child       = @This
-            .ChildProc   = @WndProc
+            #IfDef __USE_GTK__
+				widget = gtk_frame_new(Null)
+				.RegisterClass "GroupBox", @This
+            #Else
+				.RegisterClass "GroupBox", "Button"
+            	.ChildProc   = @WndProc
+            #EndIf
             WLet FClassName, "GroupBox"
             WLet FClassAncestor, "Button"
-            .ExStyle     = WS_EX_TRANSPARENT
-            .Style       = WS_CHILD OR BS_GROUPBOX
+            #IfNDef __USE_GTK__
+				.ExStyle     = WS_EX_TRANSPARENT
+				.Style       = WS_CHILD OR BS_GROUPBOX
+				.BackColor       = GetSysColor(COLOR_BTNFACE)
+			#EndIf
             .Width       = 121
             .Height      = 51
-            .BackColor       = GetSysColor(COLOR_BTNFACE)
         End With    
     End Constructor
 

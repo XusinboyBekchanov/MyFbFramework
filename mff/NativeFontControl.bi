@@ -11,28 +11,32 @@ Namespace My.Sys.Forms
     
     Type NativeFontControl Extends Control
         Private:
-            Declare Static Sub WndProc(ByRef Message As Message)
-            Declare Sub ProcessMessage(ByRef Message As Message)
-            Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#IfNDef __USE_GTK__
+				Declare Static Sub WndProc(ByRef Message As Message)
+				Declare Sub ProcessMessage(ByRef Message As Message)
+				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#EndIf
         Public:
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
             Declare Destructor
     End Type
     
-    Sub NativeFontControl.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-        If Sender.Child Then
-            With QNativeFontControl(Sender.Child)
-                 
-            End With
-        End If
-    End Sub
+    #IfNDef __USE_GTK__
+		Sub NativeFontControl.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QNativeFontControl(Sender.Child)
+					 
+				End With
+			End If
+		End Sub
 
-    Sub NativeFontControl.WndProc(ByRef Message As Message)
-    End Sub
+		Sub NativeFontControl.WndProc(ByRef Message As Message)
+		End Sub
 
-    Sub NativeFontControl.ProcessMessage(ByRef Message As Message)
-    End Sub
+		Sub NativeFontControl.ProcessMessage(ByRef Message As Message)
+		End Sub
+	#EndIf
 
     Operator NativeFontControl.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)
@@ -40,20 +44,24 @@ Namespace My.Sys.Forms
 
     Constructor NativeFontControl
         With This
-            .RegisterClass "NativeFontControl","NativeFontCtl"
             WLet FClassName, "NativeFontControl"
             WLet FClassAncestor, "NativeFontCtl"
-            .Style        = WS_CHILD
-            .ExStyle      = 0
+            #IfNDef __USE_GTK__
+				.RegisterClass "NativeFontControl","NativeFontCtl"
+				.Style        = WS_CHILD
+				.ExStyle      = 0
+				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#EndIf
             .Width        = 175
             .Height       = 21
-            .Child        = @This
-            .ChildProc    = @WndProc
-            .OnHandleIsAllocated = @HandleIsAllocated
+            .Child        = @This            
         End With
     End Constructor
 
     Destructor NativeFontControl
-        UnregisterClass "NativeFontControl",GetModuleHandle(NULL)
+		#IfNDef __USE_GTK__
+			UnregisterClass "NativeFontControl",GetModuleHandle(NULL)
+		#EndIf
     End Destructor
 End Namespace

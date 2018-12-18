@@ -41,9 +41,11 @@ Namespace My.Sys.Forms
             ATickStyles(3)    As Integer
             ATickMarks(3)     As Integer
             ASliderVisible(2) As Integer
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Sub ProcessMessage(BYREF Message As Message)
-            Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+            #IfNDef __USE_GTK__
+				Declare Static Sub WndProc(BYREF Message As Message)
+				Declare Sub ProcessMessage(BYREF Message As Message)
+				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+            #EndIf
             Declare Sub SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
         Public:
             Declare Property MinValue As Integer
@@ -77,7 +79,7 @@ Namespace My.Sys.Forms
             Declare Operator Cast As Control Ptr
             Declare Constructor
             Declare Destructor
-            OnChange As Sub(BYREF Sender As TrackBar,Position As Integer)
+            OnChange As Sub(BYREF Sender As TrackBar, Position As Integer)
     End Type
 
     Sub TrackBar.SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
@@ -86,15 +88,21 @@ Namespace My.Sys.Forms
         If APosition > AMax Then APosition = AMax
         If FMinValue <> AMin then
             FMinValue = AMin
-            If Handle Then Perform(TBM_SETRANGEMIN, 1, AMin)
+            #IfNDef __USE_GTK__
+				If Handle Then Perform(TBM_SETRANGEMIN, 1, AMin)
+			#EndIf
         End If
         If FMaxValue <> AMax Then
             FMaxValue = AMax
-            if Handle Then Perform(TBM_SETRANGEMAX, 1, AMax)
+            #IfNDef __USE_GTK__
+				if Handle Then Perform(TBM_SETRANGEMAX, 1, AMax)
+			#EndIf
         End If
         If FPosition <> APosition then
             FPosition = APosition
-            If Handle Then Perform(TBM_SETPOS, 1, APosition)
+            #IfNDef __USE_GTK__
+				If Handle Then Perform(TBM_SETPOS, 1, APosition)
+            #EndIf
             If OnChange Then OnChange(This,Position)
         End If
     End Sub
@@ -104,7 +112,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property TrackBar.MinValue(Value As Integer)
-        If Value <= FMaxValue Then SetRanges(FPosition, Value, FMaxValue)
+        SetRanges(FPosition, Value, FMaxValue)
     End Property
 
     Property TrackBar.MaxValue As Integer
@@ -112,7 +120,7 @@ Namespace My.Sys.Forms
     End Property
 
     Property TrackBar.MaxValue(Value As Integer)
-        If Value >= FMinValue Then SetRanges(FPosition, FMinValue, Value)
+        SetRanges(FPosition, FMinValue, Value)
     End Property
 
     Property TrackBar.Position As Integer
@@ -130,7 +138,9 @@ Namespace My.Sys.Forms
     Property TrackBar.LineSize(Value As Integer)
         If Value <> FLineSize Then
            FLineSize = Value
-           If Handle Then Perform(TBM_SETLINESIZE, 0, FLineSize)
+           #IfNDef __USE_GTK__
+				If Handle Then Perform(TBM_SETLINESIZE, 0, FLineSize)
+			#EndIf
         End If
     End Property
 
@@ -141,7 +151,9 @@ Namespace My.Sys.Forms
     Property TrackBar.PageSize(Value As Integer)
         If Value <> FPageSize Then
            FPageSize = Value
-           If Handle Then Perform(TBM_SETPAGESIZE, 0, FPageSize)
+			#IfNDef __USE_GTK__
+				If Handle Then Perform(TBM_SETPAGESIZE, 0, FPageSize)
+			#EndIf
         End If
     End Property
 
@@ -152,7 +164,9 @@ Namespace My.Sys.Forms
     Property TrackBar.ThumbLength(Value As Integer)
         If Value <> FThumbLength Then
            FThumbLength = Value
-           If Handle Then Perform(TBM_SETTHUMBLENGTH, Value, 0)
+           #IfNDef __USE_GTK__
+				If Handle Then Perform(TBM_SETTHUMBLENGTH, Value, 0)
+			#EndIf
         End If
     End Property
 
@@ -163,7 +177,9 @@ Namespace My.Sys.Forms
     Property TrackBar.Frequency(Value As Integer)
         If Value <> FFrequency Then
            FFrequency = Value
-           If Handle Then Perform(TBM_SETTICFREQ, FFrequency, 1)
+			#IfNDef __USE_GTK__
+				If Handle Then Perform(TBM_SETTICFREQ, FFrequency, 1)
+			#EndIf
         End If
     End Property
 
@@ -174,7 +190,9 @@ Namespace My.Sys.Forms
     Property TrackBar.SliderVisible(Value As Boolean)
         If Value <> FSliderVisible Then
             FSliderVisible = Value
-            Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+			#EndIf
         End If
     End Property
 
@@ -185,13 +203,15 @@ Namespace My.Sys.Forms
     Property TrackBar.SelStart(Value As Integer)
         If Value <> FSelStart then
             FSelStart = Value
-            If Handle Then
-               If (FSelStart = 0) and (FSelEnd = 0) Then
-                  Perform(TBM_CLEARSEL, 1, 0)
-               Else
-                  Perform(TBM_SETSEL, 1, MakeLong(FSelStart, FSelEnd))
-               End If
-            End If
+            #IfNDef __USE_GTK__
+				If Handle Then
+				   If (FSelStart = 0) and (FSelEnd = 0) Then
+					  Perform(TBM_CLEARSEL, 1, 0)
+				   Else
+					  Perform(TBM_SETSEL, 1, MakeLong(FSelStart, FSelEnd))
+				   End If
+				End If
+			#EndIf
         End If
     End Property
 
@@ -202,13 +222,15 @@ Namespace My.Sys.Forms
     Property TrackBar.SelEnd(Value As Integer)
         If Value <> SelEnd then
             SelEnd = Value
-            If Handle Then
-               If (FSelStart = 0) AND (FSelEnd = 0) Then
-                  Perform(TBM_CLEARSEL, 1, 0)
-               Else
-                  Perform(TBM_SETSEL, 1, MakeLong(FSelStart, FSelEnd))
-               End If
-            End If
+            #IfNDef __USE_GTK__
+				If Handle Then
+				   If (FSelStart = 0) AND (FSelEnd = 0) Then
+					  Perform(TBM_CLEARSEL, 1, 0)
+				   Else
+					  Perform(TBM_SETSEL, 1, MakeLong(FSelStart, FSelEnd))
+				   End If
+				End If
+			#EndIf
         End If
     End Property
 
@@ -218,7 +240,9 @@ Namespace My.Sys.Forms
 
     Property TrackBar.Tick(Value As Integer)
         FTick = Value
-        If Handle Then Perform(TBM_SETTIC, 0, FTick)
+        #IfNDef __USE_GTK__
+			If Handle Then Perform(TBM_SETTIC, 0, FTick)
+		#EndIf
     End Property
 
     Property TrackBar.TickMarks As Integer
@@ -228,7 +252,9 @@ Namespace My.Sys.Forms
     Property TrackBar.TickMarks(Value As Integer)
         If FTickMarks <> Value Then
             FTickMarks = Value
-            Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+			#EndIf
         End If
     End Property
 
@@ -239,7 +265,9 @@ Namespace My.Sys.Forms
     Property TrackBar.TickStyle(Value As Integer)
         If FTickStyle <> Value Then
             FTickStyle = Value
-            Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+			#EndIf
         End If
     End Property
 
@@ -257,40 +285,46 @@ Namespace My.Sys.Forms
                 This.Width = Height
                 Height = Temp
             End If
-            Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+            #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+			#EndIf
         End If
     End Property
 
-    Sub TrackBar.HandleIsAllocated(BYREF Sender As Control)
-        If Sender.Child Then
-            With QTrackBar(Sender.Child)
-                .Perform(TBM_SETTHUMBLENGTH, .FThumbLength, 0)
-                .Perform(TBM_SETLINESIZE, 0, .FLineSize)
-                .Perform(TBM_SETPAGESIZE, 0, .FPageSize)
-                .Perform(TBM_SETRANGEMIN, 0, .FMinValue)
-                .Perform(TBM_SETRANGEMAX, 0, .FMaxValue)
-                If (.FSelStart = 0) AND (.FSelEnd = 0) Then
-                    .Perform(TBM_CLEARSEL, 1, 0)
-                Else
-                    .Perform(TBM_SETSEL, 1, MakeLong(.FSelStart, .FSelEnd))
-                End If
-                .Perform(TBM_SETPOS, 1, .FPosition)
-                .Perform(TBM_SETTICFREQ, .FFrequency, 1)
-            End With
-        End If
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub TrackBar.HandleIsAllocated(BYREF Sender As Control)
+			If Sender.Child Then
+				With QTrackBar(Sender.Child)
+					.Perform(TBM_SETTHUMBLENGTH, .FThumbLength, 0)
+					.Perform(TBM_SETLINESIZE, 0, .FLineSize)
+					.Perform(TBM_SETPAGESIZE, 0, .FPageSize)
+					.Perform(TBM_SETRANGEMIN, 0, .FMinValue)
+					.Perform(TBM_SETRANGEMAX, 0, .FMaxValue)
+					If (.FSelStart = 0) AND (.FSelEnd = 0) Then
+						.Perform(TBM_CLEARSEL, 1, 0)
+					Else
+						.Perform(TBM_SETSEL, 1, MakeLong(.FSelStart, .FSelEnd))
+					End If
+					.Perform(TBM_SETPOS, 1, .FPosition)
+					.Perform(TBM_SETTICFREQ, .FFrequency, 1)
+				End With
+			End If
+		End Sub
 
-    Sub TrackBar.WndProc(BYREF Message As Message)
-    End Sub
+		Sub TrackBar.WndProc(BYREF Message As Message)
+		End Sub
 
-    Sub TrackBar.ProcessMessage(BYREF Message As Message)
-        Select Case Message.Msg
-        Case CM_HSCROLL
-            Position = Perform(TBM_GETPOS, 0, 0)
-        Case CM_VSCROLL
-            Position = Perform(TBM_GETPOS, 0, 0)
-        End Select
-    End Sub
+		Sub TrackBar.ProcessMessage(BYREF Message As Message)
+			Select Case Message.Msg
+			Case CM_HSCROLL
+				Position = Perform(TBM_GETPOS, 0, 0)
+				If OnChange Then OnChange(This, Position)
+			Case CM_VSCROLL
+				Position = Perform(TBM_GETPOS, 0, 0)
+				If OnChange Then OnChange(This, Position)
+			End Select
+		End Sub
+	#EndIf
 
     Operator TrackBar.Cast As Control Ptr 
         Return Cast(Control Ptr, @This)
@@ -298,21 +332,26 @@ Namespace My.Sys.Forms
 
     Constructor TrackBar
         Dim As Boolean Result
-        Dim As INITCOMMONCONTROLSEX ICC
-        ICC.dwSize = SizeOF(ICC)
-        ICC.dwICC  = ICC_BAR_CLASSES
-        Result = InitCommonControlsEx(@ICC)
-        If Not Result Then InitCommonControls
-        AStyle(0)         = TBS_HORZ
-        AStyle(1)         = TBS_VERT
-        ATickStyles(0)    = TBS_NOTICKS
-        ATickStyles(1)    = TBS_AUTOTICKS
-        ATickStyles(2)    = 0 
-        ATickMarks(0)     = TBS_BOTTOM
-        ATickMarks(1)     = TBS_TOP
-        ATickMarks(2)     = TBS_BOTH
-        ASliderVisible(0) = TBS_NOTHUMB
-        ASliderVisible(1) = 0
+        #IfDef __USE_GTK__
+			widget = gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, NULL)
+			RegisterClass "TrackBar", @This
+        #Else
+			Dim As INITCOMMONCONTROLSEX ICC
+			ICC.dwSize = SizeOF(ICC)
+			ICC.dwICC  = ICC_BAR_CLASSES
+			Result = InitCommonControlsEx(@ICC)
+			If Not Result Then InitCommonControls
+			AStyle(0)         = TBS_HORZ
+			AStyle(1)         = TBS_VERT
+			ATickStyles(0)    = TBS_NOTICKS
+			ATickStyles(1)    = TBS_AUTOTICKS
+			ATickStyles(2)    = 0 
+			ATickMarks(0)     = TBS_BOTTOM
+			ATickMarks(1)     = TBS_TOP
+			ATickMarks(2)     = TBS_BOTH
+			ASliderVisible(0) = TBS_NOTHUMB
+			ASliderVisible(1) = 0
+		#EndIf
         FMinValue         = 0
         FMaxValue         = 10
         FFrequency        = 1
@@ -324,17 +363,19 @@ Namespace My.Sys.Forms
         FTickMarks        = 0
         FTickStyle        = 1
         With This
-            .RegisterClass "TrackBar", TRACKBAR_CLASS
             .Child             = @This
-            .ChildProc         = @WndProc
+            #IfNDef __USE_GTK__
+				.RegisterClass "TrackBar", TRACKBAR_CLASS
+            	.ChildProc         = @WndProc
+				.ExStyle           = 0
+				Base.Style             = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
+				.BackColor             = GetSysColor(COLOR_BTNFACE) 
+				WLet FClassAncestor, TRACKBAR_CLASS
+				.OnHandleIsAllocated = @HandleIsAllocated
+            #EndIf
             WLet FClassName, "TrackBar"
-            WLet FClassAncestor, TRACKBAR_CLASS
-            .ExStyle           = 0
-            Base.Style             = WS_CHILD OR TBS_FIXEDLENGTH OR TBS_ENABLESELRANGE OR AStyle(Abs_(FStyle)) OR ATickStyles(Abs_(FTickStyle)) OR ATickMarks(Abs_(FTickMarks)) OR ASliderVisible(Abs_(FSliderVisible))
-            .BackColor             = GetSysColor(COLOR_BTNFACE) 
             .Width             = 150
             .Height            = 45
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With  
     End Constructor
 

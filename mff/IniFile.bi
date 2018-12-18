@@ -91,19 +91,20 @@ End Function
 
 Sub IniFile.Create(ByRef sFile As WString = "")
     FLines.Clear
-    If sFile <> "" Then WLet File, sFile
-    If Open(File For Binary Access Read As #1) = 0 Then
+    If sFile <> "" Then WLet FFile, sFile
+    Dim As Integer ff = FreeFile
+    If Open(File For Binary Access Read As #ff) = 0 Then
         Dim As WString Ptr s
-        WReallocate s, LOF(1)
-        While Not EOF(1)
-            Line Input #1, *s
+        WReallocate s, LOF(ff)
+        While Not EOF(ff)
+            Line Input #ff, *s
             If *s <> "" Then FLines.Add *s
         WEnd
-        Close #1
+        Close #ff
         Deallocate s
     Else
-        If Open(File For Binary Access Write As #1) = 0 Then
-           Close #1
+        If Open(File For Binary Access Write As #ff) = 0 Then
+           Close #ff
         End If
     End If 
 End Sub
@@ -342,7 +343,9 @@ End Operator
 Constructor IniFile
     Dim As WString * 255 Tx
     Dim As Integer L, i, k
-    L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
+    #IfNdef __USE_GTK__
+		L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
+    #EndIf
     Tx = Left(Tx, L)
     For i = 0 To Len(Tx)
         If Tx[i] = Asc(".") Then k = i +1

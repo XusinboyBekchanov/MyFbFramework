@@ -88,8 +88,8 @@ Namespace My.Sys
     Type MouseMoveEvent  As Sub(ByRef Sender As My.Sys.Object, X As Integer, Y As Integer, Shift As Integer)
     Type MouseWheelEvent As Sub(ByRef Sender As My.Sys.Object, Direction As Short, X As Integer, Y As Integer, Shift As Integer)
     Type KeyPressEvent   As Sub(ByRef Sender As My.Sys.Object, Key As Byte)
-    Type KeyDownEvent    As Sub(ByRef Sender As My.Sys.Object, Key As Word, Shift As Integer)
-    Type KeyUpEvent      As Sub(ByRef Sender As My.Sys.Object, Key As Word, Shift As Integer)
+    Type KeyDownEvent    As Sub(ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
+    Type KeyUpEvent      As Sub(ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
     Type TimerEvent      As Sub(ByRef Sender As My.Sys.Object, TimerId As Integer, TimerProc As Any Ptr = 0)
 
 End Namespace

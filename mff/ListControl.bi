@@ -39,9 +39,11 @@ Namespace My.Sys.Forms
             AExtendSelect(2)  As Integer
             AMultiColumns(2)  As Integer
             AIntegralHeight(2)As Integer
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Sub ProcessMessage(BYREF Message As Message)
-            Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+            #IfNDef __USE_GTK__
+				Declare Static Sub WndProc(BYREF Message As Message)
+				Declare Sub ProcessMessage(BYREF Message As Message)
+				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+			#EndIf
         Public:
             Items             As ListItems
             Declare Property Style As ListControlStyle
@@ -98,8 +100,10 @@ Namespace My.Sys.Forms
             OnKeyPress    As Sub(BYREF Sender As ListControl, Key As Byte, Shift As Integer)
             OnKeyDown     As Sub(BYREF Sender As ListControl, Key As Integer, Shift As Integer)
             OnKeyUp       As Sub(BYREF Sender As ListControl, Key As Integer, Shift As Integer)
-            OnMeasureItem As Sub(BYREF Sender As ListControl, ItemIndex As Integer, BYREF Height As UInt)
-            OnDrawItem    As Sub(BYREF Sender As ListControl, ItemIndex As Integer, State As Integer,BYREF R As Rect,DC As HDC = 0)
+            #IfNDef __USE_GTK__
+				OnMeasureItem As Sub(BYREF Sender As ListControl, ItemIndex As Integer, BYREF Height As UInt)
+				OnDrawItem    As Sub(BYREF Sender As ListControl, ItemIndex As Integer, State As Integer,BYREF R As Rect,DC As HDC = 0)
+			#EndIf
     End Type
 
     Property ListControl.MultiSelect As Boolean
@@ -109,8 +113,10 @@ Namespace My.Sys.Forms
     Property ListControl.MultiSelect(Value As Boolean)
         If Value <> FMultiselect Then
             FMultiselect = Value
-            ExStyle = ABorderExStyle(Abs_(FCtl3D))
-            Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+            #IfNDef __USE_GTK__
+				ExStyle = ABorderExStyle(Abs_(FCtl3D))
+				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
@@ -121,8 +127,10 @@ Namespace My.Sys.Forms
     Property ListControl.ExtendSelect(Value As Boolean)
         If Value <> FExtendSelect Then
             FExtendSelect = Value
-            ExStyle = ABorderExStyle(Abs_(FCtl3D))
-            Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+            #IfNDef __USE_GTK__
+				ExStyle = ABorderExStyle(Abs_(FCtl3D))
+				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
@@ -133,8 +141,10 @@ Namespace My.Sys.Forms
     Property ListControl.Columns(Value As Integer)
         If Value <> FColumns Then
             FColumns = Value
-            ExStyle = ABorderExStyle(Abs_(FCtl3D))
-            Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+            #IfNDef __USE_GTK__
+				ExStyle = ABorderExStyle(Abs_(FCtl3D))
+				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
@@ -145,8 +155,10 @@ Namespace My.Sys.Forms
     Property ListControl.IntegralHeight(Value As Boolean)
          If Value <> FIntegralHeight Then
             FIntegralHeight = Value
-            ExStyle = ABorderExStyle(Abs_(FCtl3D))
-            Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(ABs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+            #IfNDef __USE_GTK__
+				ExStyle = ABorderExStyle(Abs_(FCtl3D))
+				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(ABs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
@@ -157,8 +169,10 @@ Namespace My.Sys.Forms
     Property ListControl.Style(Value As ListControlStyle)
         If Value <> FStyle Then
             FStyle = Value
-            ExStyle = ABorderExStyle(Abs_(FCtl3D))
-            Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+            #IfNDef __USE_GTK__
+				ExStyle = ABorderExStyle(Abs_(FCtl3D))
+				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
@@ -169,8 +183,10 @@ Namespace My.Sys.Forms
     Property ListControl.Ctl3D(Value As Boolean)
         If Value <> FCtl3D Then
             FCtl3D = Value
-            ExStyle = ABorderExStyle(Abs_(FCtl3D))
-            Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+            #IfNDef __USE_GTK__
+				ExStyle = ABorderExStyle(Abs_(FCtl3D))
+				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
@@ -181,15 +197,19 @@ Namespace My.Sys.Forms
     Property ListControl.BorderStyle(Value As Integer)
         If Value <> FBorderStyle Then
            FBorderStyle = Value
-           ExStyle = ABorderExStyle(Abs_(FCtl3D))
-           Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+           #IfNDef __USE_GTK__
+			   ExStyle = ABorderExStyle(Abs_(FCtl3D))
+			   Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
     Property ListControl.ItemCount As Integer
-        If Handle Then 
-            Return Perform(LB_GETCOUNT,0,0)
-        End If
+        #IfNDef __USE_GTK__
+			If Handle Then 
+				Return Perform(LB_GETCOUNT,0,0)
+			End If
+		#EndIf
         Return Items.Count
     End Property
 
@@ -202,7 +222,9 @@ Namespace My.Sys.Forms
 
     Property ListControl.ItemHeight(Value As Integer)
         FItemHeight = Value
-        If Handle Then Perform(LB_SETITEMHEIGHT,0,MakeLParam(FItemHeight,0))
+        #IfNDef __USE_GTK__
+			If Handle Then Perform(LB_SETITEMHEIGHT,0,MakeLParam(FItemHeight,0))
+		#EndIf
     End Property
 
     Property ListControl.TopIndex As Integer
@@ -210,8 +232,10 @@ Namespace My.Sys.Forms
     End Property
 
     Property ListControl.TopIndex(Value As Integer)
-       FTopIndex = Value
-       If Handle Then Perform(LB_SETTOPINDEX,FTopIndex,0)
+		FTopIndex = Value
+		#IfNDef __USE_GTK__
+			If Handle Then Perform(LB_SETTOPINDEX,FTopIndex,0)
+		#EndIf
     End Property  
 
     Property ListControl.ItemIndex As Integer
@@ -220,13 +244,15 @@ Namespace My.Sys.Forms
 
     Property ListControl.ItemIndex(Value As Integer)
         FItemIndex = Value
-        If Handle Then 
-            If MultiSelect Then
-                Perform(LB_SETCARETINDEX, FItemIndex, 0)
-            Else
-                Perform(LB_SETCURSEL,FItemIndex,0)
-            End If
-        End If
+        #IfNDef __USE_GTK__
+			If Handle Then 
+				If MultiSelect Then
+					Perform(LB_SETCARETINDEX, FItemIndex, 0)
+				Else
+					Perform(LB_SETCURSEL,FItemIndex,0)
+				End If
+			End If
+		#EndIf
     End Property
 
     Property ListControl.SelCount As Integer
@@ -252,7 +278,9 @@ Namespace My.Sys.Forms
     Property ListControl.Text(ByRef Value As WString)
         FText = ReAllocate(FText, (Len(Value) + 1) * SizeOf(WString))
         *FText = Value
-        If FHandle Then Perform(LB_SELECTSTRING,-1,CInt(FText))
+        #IfNDef __USE_GTK__
+			If FHandle Then Perform(LB_SELECTSTRING,-1,CInt(FText))
+		#EndIf
     End Property
 
     Property ListControl.Sort As Boolean
@@ -262,7 +290,9 @@ Namespace My.Sys.Forms
     Property ListControl.Sort(Value As Boolean)
         If Value <> FSort Then
            FSort = Value
-           Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+           #IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#EndIf
         End If
     End Property
 
@@ -277,17 +307,23 @@ Namespace My.Sys.Forms
     Property ListControl.Item(FIndex As Integer) ByRef As WString
         Dim As Integer L
         Dim As WString Ptr s
-        If FHandle Then
-           L = Perform(LB_GETTEXTLEN, FIndex, 0)
-           s = CAllocate((L + 1) * SizeOf(WString))
-           *s = Space(L)
-           Perform(LB_GETTEXT, FIndex, CInt(s))
-           Return *s
-        Else
-            s = CAllocate((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
-            *s = Items.Item(FIndex)
-            Return *s
-        End If
+        #IfNDef __USE_GTK__
+			If FHandle Then
+			   L = Perform(LB_GETTEXTLEN, FIndex, 0)
+			   s = CAllocate((L + 1) * SizeOf(WString))
+			   *s = Space(L)
+			   Perform(LB_GETTEXT, FIndex, CInt(s))
+			   Return *s
+			Else
+				s = CAllocate((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
+				*s = Items.Item(FIndex)
+				Return *s
+			End If
+		#Else
+			s = CAllocate((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
+			*s = Items.Item(FIndex)
+			Return *s
+		#EndIf
     End Property
 
     Property ListControl.Item(FIndex As Integer, ByRef FItem As WString)
@@ -296,139 +332,157 @@ Namespace My.Sys.Forms
 
     Sub ListControl.AddItem(ByRef FItem As WString)
         Items.Add(FItem)
-        If Handle Then Perform(LB_ADDSTRING, 0, CInt(FItem))
+        #IfNDef __USE_GTK__
+			If Handle Then Perform(LB_ADDSTRING, 0, CInt(FItem))
+		#EndIf
     End Sub
 
     Sub ListControl.AddObject(ByRef ObjName As WString, Obj As Any Ptr)
         Items.Add(ObjName, Obj)
-        If FHandle Then Perform(LB_ADDSTRING, 0, CInt(@ObjName))
+        #IfNDef __USE_GTK__
+			If FHandle Then Perform(LB_ADDSTRING, 0, CInt(@ObjName))
+		#EndIf
     End Sub
 
     Sub ListControl.RemoveItem(FIndex As Integer)
         Items.Remove(FIndex)
-        If Handle Then Perform(LB_DELETESTRING, FIndex, 0)
+        #IfNDef __USE_GTK__
+			If Handle Then Perform(LB_DELETESTRING, FIndex, 0)
+		#EndIf
     End Sub
 
     Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString)
         Items.Insert(FIndex, FItem)
-        If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
+        #IfNDef __USE_GTK__
+			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
+		#EndIf
     End Sub
 
     Sub ListControl.InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
         Items.Insert(FIndex, ObjName, Obj)
-        If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@ObjName))
+        #IfNDef __USE_GTK__
+			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@ObjName))
+		#EndIf
     End Sub
 
     Function ListControl.IndexOf(ByRef FItem As WString) As Integer
-        Return Perform(LB_FINDSTRING, -1, CInt(FItem))
+        #IfNDef __USE_GTK__
+			Return Perform(LB_FINDSTRING, -1, CInt(FItem))
+		#Else
+			Return -1
+		#EndIf
     End Function
 
     Function ListControl.IndexOfObject(Obj As Any Ptr) As Integer
         Return Items.IndexOfObject(Obj)
     End Function
 
-    Sub ListControl.HandleIsAllocated(BYREF Sender As Control)
-        If Sender.Child Then
-            With QListControl(Sender.Child)
-                 For i As Integer = 0 To .Items.Count -1
-                    Dim As WString Ptr s = CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
-                    *s = .Items.Item(i)
-                    .Perform(LB_ADDSTRING, 0, CInt(s))
-                 Next i
-                 .Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
-                 .Columns = .Columns
-                 .ItemIndex = .ItemIndex
-                 If .MultiSelect Then
-                     For i As Integer = 0 To .SelCount -1
-                         .Perform(LB_SETSEL, 1, .SelItems[i])
-                     Next i
-                 End If
-                 .TopIndex = .FTopIndex
-            End With
-        End If
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub ListControl.HandleIsAllocated(BYREF Sender As Control)
+			If Sender.Child Then
+				With QListControl(Sender.Child)
+					 For i As Integer = 0 To .Items.Count -1
+						Dim As WString Ptr s = CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+						*s = .Items.Item(i)
+						.Perform(LB_ADDSTRING, 0, CInt(s))
+					 Next i
+					 .Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
+					 .Columns = .Columns
+					 .ItemIndex = .ItemIndex
+					 If .MultiSelect Then
+						 For i As Integer = 0 To .SelCount -1
+							 .Perform(LB_SETSEL, 1, .SelItems[i])
+						 Next i
+					 End If
+					 .TopIndex = .FTopIndex
+				End With
+			End If
+		End Sub
 
-    Sub ListControl.WndProc(BYREF Message As Message)
-    End Sub
+		Sub ListControl.WndProc(BYREF Message As Message)
+		End Sub
 
-    Sub ListControl.ProcessMessage(BYREF Message As Message)
-        Select Case Message.Msg
-        Case WM_PAINT
-            Message.Result = 0
-        Case CM_CTLCOLOR
-            Static As HDC Dc
-            Dc = Cast(HDC,Message.wParam)
-            SetBKMode Dc, TRANSPARENT
-            SetTextColor Dc, Font.Color
-            SetBKColor Dc, This.BackColor
-            SetBKMode Dc, OPAQUE
-        Case CM_COMMAND
-            Select Case Message.wParamHi
-            Case LBN_SELCHANGE
-                If MultiSelect Then
-                    FSelCount = Perform(LB_GETSELCOUNT,0,0)
-                    If FSelCount Then 
-                       Dim As Integer AItems(FSelCount) 
-                       Perform(LB_GETSELITEMS,FSelCount,CInt(@AItems(0)))
-                       SelItems = @AItems(0)
-                   End If
-                End If
-                If OnChange Then OnChange(This)
-            Case LBN_DBLCLK    
-                If OnDblClick Then OnDblClick(This)
-            End Select
-        Case CM_MEASUREITEM
-            Dim As MEASUREITEMSTRUCT Ptr miStruct
-            Dim As Integer ItemID
-            miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
-            ItemID = Cast(Integer,miStruct->itemID)
-            If OnMeasureItem Then
-               OnMeasureItem(This,itemID,miStruct->itemHeight)
-            Else
-               miStruct->itemHeight = ItemHeight 
-            End If
-        Case CM_DRAWITEM
-            Dim As DRAWITEMSTRUCT Ptr diStruct
-            Dim As Integer ItemID,State
-            Dim As Rect R
-            Dim As HDC Dc
-            diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
-            ItemID = Cast(Integer,diStruct->itemID)
-            State = Cast(Integer,diStruct->itemState)
-            R = Cast(Rect,diStruct->rcItem)
-            Dc = diStruct->hDC
-            If OnDrawItem Then
-                OnDrawItem(This,ItemID,State,R,Dc)
-            Else
-                If (State AND ODS_SELECTED) = ODS_SELECTED Then
-                    Static As HBRUSH B 
-                    If B Then DeleteObject B
-                    B = CreateSolidBrush(&H800000)
-                    FillRect Dc,@R,B
-                    R.Left += 2
-                    SetTextColor Dc,clHighlightText
-                    SetBKColor Dc,&H800000
-                    DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX)
-                Else
-                    FillRect Dc, @R, Brush.Handle
-                    R.Left += 2
-                    SetTextColor Dc, Font.Color
-                    SetBKColor Dc, This.BackColor
-                    DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX)
-                End If
-            End If
-        Case WM_CHAR
-            If OnKeyPress Then OnKeyPress(This,LoByte(Message.wParam),Message.wParam AND &HFFFF)
-        Case WM_KEYDOWN
-            If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam AND &HFFFF)
-        Case WM_KEYUP
-            If OnKeyUp Then OnKeyUp(This,Message.wParam,Message.wParam AND &HFFFF)
-        End Select
-    End Sub
+		Sub ListControl.ProcessMessage(BYREF Message As Message)
+			Select Case Message.Msg
+			Case WM_PAINT
+				Message.Result = 0
+			Case CM_CTLCOLOR
+				Static As HDC Dc
+				Dc = Cast(HDC,Message.wParam)
+				SetBKMode Dc, TRANSPARENT
+				SetTextColor Dc, Font.Color
+				SetBKColor Dc, This.BackColor
+				SetBKMode Dc, OPAQUE
+			Case CM_COMMAND
+				Select Case Message.wParamHi
+				Case LBN_SELCHANGE
+					If MultiSelect Then
+						FSelCount = Perform(LB_GETSELCOUNT,0,0)
+						If FSelCount Then 
+						   Dim As Integer AItems(FSelCount) 
+						   Perform(LB_GETSELITEMS,FSelCount,CInt(@AItems(0)))
+						   SelItems = @AItems(0)
+					   End If
+					End If
+					If OnChange Then OnChange(This)
+				Case LBN_DBLCLK    
+					If OnDblClick Then OnDblClick(This)
+				End Select
+			Case CM_MEASUREITEM
+				Dim As MEASUREITEMSTRUCT Ptr miStruct
+				Dim As Integer ItemID
+				miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
+				ItemID = Cast(Integer,miStruct->itemID)
+				If OnMeasureItem Then
+				   OnMeasureItem(This,itemID,miStruct->itemHeight)
+				Else
+				   miStruct->itemHeight = ItemHeight 
+				End If
+			Case CM_DRAWITEM
+				Dim As DRAWITEMSTRUCT Ptr diStruct
+				Dim As Integer ItemID,State
+				Dim As Rect R
+				Dim As HDC Dc
+				diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
+				ItemID = Cast(Integer,diStruct->itemID)
+				State = Cast(Integer,diStruct->itemState)
+				R = Cast(Rect,diStruct->rcItem)
+				Dc = diStruct->hDC
+				If OnDrawItem Then
+					OnDrawItem(This,ItemID,State,R,Dc)
+				Else
+					If (State AND ODS_SELECTED) = ODS_SELECTED Then
+						Static As HBRUSH B 
+						If B Then DeleteObject B
+						B = CreateSolidBrush(&H800000)
+						FillRect Dc,@R,B
+						R.Left += 2
+						SetTextColor Dc,clHighlightText
+						SetBKColor Dc,&H800000
+						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX)
+					Else
+						FillRect Dc, @R, Brush.Handle
+						R.Left += 2
+						SetTextColor Dc, Font.Color
+						SetBKColor Dc, This.BackColor
+						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX)
+					End If
+				End If
+			Case WM_CHAR
+				If OnKeyPress Then OnKeyPress(This,LoByte(Message.wParam),Message.wParam AND &HFFFF)
+			Case WM_KEYDOWN
+				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam AND &HFFFF)
+			Case WM_KEYUP
+				If OnKeyUp Then OnKeyUp(This,Message.wParam,Message.wParam AND &HFFFF)
+			End Select
+		End Sub
+	#EndIf
 
     Sub ListControl.Clear
         Items.Clear
-        Perform(LB_RESETCONTENT,0,0)
+        #IfNDef __USE_GTK__
+			Perform(LB_RESETCONTENT,0,0)
+		#EndIf
     End Sub
 
     Sub ListControl.SaveToFile(ByRef File As WString)
@@ -437,11 +491,13 @@ Namespace My.Sys.Forms
         F = FreeFile
         Open File For Binary Access Write As #F
              For i = 0 To ItemCount - 1
-                Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
-                s = CAllocate((Len(TextLen) + 1) * SizeOf(WString))
-                *s = Space(TextLen) 
-                Perform(LB_GETTEXT, i, CInt(s))
-                Print #F, *s
+				#IfNDef __USE_GTK__
+					Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
+					s = CAllocate((Len(TextLen) + 1) * SizeOf(WString))
+					*s = Space(TextLen) 
+					Perform(LB_GETTEXT, i, CInt(s))
+					Print #F, *s
+				#EndIF
              Next i
         Close #F
     End Sub
@@ -455,7 +511,9 @@ Namespace My.Sys.Forms
             s = CAllocate((LOF(F) + 1) * SIzeOf(WString))
              While Not EOF(F)
                  Line Input #F, *s
-                 Perform(LB_ADDSTRING, 0, CInt(s))
+                 #IfNDef __USE_GTK__
+					Perform(LB_ADDSTRING, 0, CInt(s))
+				#EndIf
              WEnd
         Close #F
     End Sub
@@ -465,38 +523,46 @@ Namespace My.Sys.Forms
     End Operator
 
     Constructor ListControl
-        ASortStyle(0)   = 0
-        ASortStyle(1)   = LBS_SORT
-        AStyle(0)          = 0
-        AStyle(1)          = LBS_OWNERDRAWFIXED
-        AStyle(2)          = LBS_OWNERDRAWVARIABLE
-        ABorderExStyle(0)  = 0 
-        ABorderExStyle(1)  = WS_EX_CLIENTEDGE
-        ABorderStyle(0)    = WS_BORDER 
-        ABorderStyle(1)    = 0
-        AMultiselect(0)    = 0 
-        AMultiselect(1)    = LBS_MULTIPLESEL    
-        AExtendSelect(0)   = 0
-        AExtendSelect(1)   = LBS_EXTENDEDSEL    
-        AMultiColumns(0)   = 0
-        AMultiColumns(1)   = LBS_MULTICOLUMN    
-        AIntegralHeight(0) = LBS_NOINTEGRALHEIGHT    
-        AIntegralHeight(1) = 0
+		With This
+		#IfDef __USE_GTK__
+			widget = gtk_list_box_new()
+			.RegisterClass "ListControl", @This
+		#Else
+			ASortStyle(0)   = 0
+			ASortStyle(1)   = LBS_SORT
+			AStyle(0)          = 0
+			AStyle(1)          = LBS_OWNERDRAWFIXED
+			AStyle(2)          = LBS_OWNERDRAWVARIABLE
+			ABorderExStyle(0)  = 0 
+			ABorderExStyle(1)  = WS_EX_CLIENTEDGE
+			ABorderStyle(0)    = WS_BORDER 
+			ABorderStyle(1)    = 0
+			AMultiselect(0)    = 0 
+			AMultiselect(1)    = LBS_MULTIPLESEL    
+			AExtendSelect(0)   = 0
+			AExtendSelect(1)   = LBS_EXTENDEDSEL    
+			AMultiColumns(0)   = 0
+			AMultiColumns(1)   = LBS_MULTICOLUMN    
+			AIntegralHeight(0) = LBS_NOINTEGRALHEIGHT    
+			AIntegralHeight(1) = 0
+		#EndIf
         FCtl3D             = True
         FBorderStyle       = 1
         Items.Parent       = @This
-        With This
-            .RegisterClass "ListControl", "ListBox"
+        
             WLet FClassName, "ListControl"
-            WLet FClassAncestor, "ListBox"
             .Child       = @This
-            .ChildProc   = @WndProc
-            .ExStyle     = ABorderExStyle(Abs_(FCtl3D))
-            Base.Style       = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#IfNDef __USE_GTK__
+				.RegisterClass "ListControl", "ListBox"
+				WLet FClassAncestor, "ListBox"
+				.ChildProc   = @WndProc
+				.ExStyle     = ABorderExStyle(Abs_(FCtl3D))
+				Base.Style       = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+				.BackColor       = GetSysColor(COLOR_WINDOW)
+				.OnHandleIsAllocated = @HandleIsAllocated
+            #EndIf
             .Width       = 121
             .Height      = 17
-            .BackColor       = GetSysColor(COLOR_WINDOW)
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With
     End Constructor
 

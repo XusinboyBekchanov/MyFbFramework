@@ -10,7 +10,9 @@ Namespace My.Sys.Forms
     Type TimerComponent Extends Component
         Private:
             FEnabled As Boolean
-            Declare Static Sub TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
+            #IfNDef __USE_GTK__ 
+				Declare Static Sub TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
+			#EndIf
         Public:
             Handle        As Integer
             Interval      As Integer
@@ -22,15 +24,16 @@ Namespace My.Sys.Forms
             OnTimer As Sub(ByRef Sender As TimerComponent)
     End Type
 
-    Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
-        With TimersList
-            If .Contains(idEvent) Then
-                Var tmr = *Cast(TimerComponent Ptr, .Object(.IndexOf(idEvent)))
-                If tmr.OnTimer Then tmr.OnTimer(tmr)
-            End If
-        End With
-    End Sub
-         
+	#IfNDef __USE_GTK__ 
+		Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
+			With TimersList
+				If .Contains(idEvent) Then
+					Var tmr = *Cast(TimerComponent Ptr, .Object(.IndexOf(idEvent)))
+					If tmr.OnTimer Then tmr.OnTimer(tmr)
+				End If
+			End With
+		End Sub
+	#EndIf
 
     Property TimerComponent.Enabled As Boolean
         Return FEnabled
@@ -38,13 +41,15 @@ Namespace My.Sys.Forms
     
     Property TimerComponent.Enabled(Value As Boolean)
         FEnabled = Value
-        If FEnabled Then
-            Handle = SetTimer(Null, 0, Interval, @TimerProc)
-            TimersList.Add Handle, @This
-        Else
-            If Handle Then KillTimer Null, Handle
-            TimersList.Remove TimersList.IndexOf(Handle)
-        End If
+        #IfNDef __USE_GTK__ 
+			If FEnabled Then
+				Handle = SetTimer(Null, 0, Interval, @TimerProc)
+				TimersList.Add Handle, @This
+			Else
+				If Handle Then KillTimer Null, Handle
+				TimersList.Remove TimersList.IndexOf(Handle)
+			End If
+		#EndIf
     End Property
     
     Operator TimerComponent.Cast As Any Ptr

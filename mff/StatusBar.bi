@@ -11,14 +11,25 @@ Namespace My.Sys.Forms
     #DEFINE QStatusBar(__Ptr__) *Cast(StatusBar Ptr, __Ptr__)
     #DEFINE QStatusPanel(__Ptr__) *Cast(StatusPanel Ptr, __Ptr__)
 
-    Enum BevelStyle
-          pbLowered    = 0
-          pbNone       = SBT_NOBORDERS
-          pbRaised     = SBT_POPOUT
-          pbOwnerDraw  = SBT_OWNERDRAW
-          pbRtlReading = SBT_RTLREADING
-        pbNoTabParsing = SBT_NOTABPARSING    
-    End Enum
+	#IfDef __USE_GTK__
+		Enum BevelStyle
+			  pbLowered
+			  pbNone
+			  pbRaised
+			  pbOwnerDraw
+			  pbRtlReading
+			pbNoTabParsing    
+		End Enum
+	#Else
+		Enum BevelStyle
+			  pbLowered    = 0
+			  pbNone       = SBT_NOBORDERS
+			  pbRaised     = SBT_POPOUT
+			  pbOwnerDraw  = SBT_OWNERDRAW
+			  pbRtlReading = SBT_RTLREADING
+			pbNoTabParsing = SBT_NOTABPARSING    
+		End Enum
+	#EndIf
 
     Type StatusPanel Extends My.Sys.Object
         Private:
@@ -28,6 +39,10 @@ Namespace My.Sys.Forms
             FWidth     As Integer
         Public:  
             Index      As Integer
+            #IfDef __USE_GTK__
+				message_id As guint
+				label As GtkWidget Ptr
+            #EndIf
             StatusBarControl As My.Sys.Forms.Control Ptr
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
@@ -48,10 +63,14 @@ Namespace My.Sys.Forms
             FSimpleText   As WString Ptr
             FSimplePanel  As Boolean
             FSizeGrip     As Boolean
-            AStyle(2)     As Integer 
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Sub ProcessMessage(BYREF Message As Message)
-            Declare Static Sub HandleIsAllocated(BYREF Sender As My.Sys.Forms.Control)
+            AStyle(2)     As Integer
+            #IfDef __USE_GTK__
+				Dim As guint context_id
+            #Else 
+				Declare Static Sub WndProc(BYREF Message As Message)
+				Declare Sub ProcessMessage(BYREF Message As Message)
+				Declare Static Sub HandleIsAllocated(BYREF Sender As My.Sys.Forms.Control)
+			#EndIf
         Public:
             Count         As Integer
             Font          As My.Sys.Drawing.Font
@@ -66,7 +85,7 @@ Namespace My.Sys.Forms
             Declare Property SimplePanel(Value As Boolean)
             Declare Property SizeGrip As Boolean
             Declare Property SizeGrip(Value As Boolean)
-            Declare Sub Add
+            Declare Sub Add(ByRef wText As WString)
             Declare Sub Remove(Index As Integer)
             Declare Sub Clear
             Declare Sub UpdatePanels
@@ -81,8 +100,12 @@ Namespace My.Sys.Forms
 
     Property StatusPanel.Caption(ByRef Value As WString)
         FCaption = Reallocate(FCaption, (Len(Value) + 1) * SizeOf(WString))
-        *FCaption = Value 
-        If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels 
+        *FCaption = Value
+        #IfDef __USE_GTK__
+			'gtk_label_set_text(gtk_label(label), Value)
+        #Else
+			If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels 
+		#EndIf
     End Property
 
     Property StatusPanel.Width As Integer
@@ -132,23 +155,30 @@ Namespace My.Sys.Forms
         If FCaption Then Deallocate FCaption
     End Destructor
 
-    Sub StatusBar.Add
+    Sub StatusBar.Add(ByRef wText As WString)
         Count += 1
         Panels = ReAllocate(Panels, SizeOF(StatusPanel) * Count)
         Panels[Count -1] = New StatusPanel
         Panels[Count -1]->Index     = Count - 1
         Panels[Count -1]->Width     = 50
-        Panels[Count -1]->Caption   = ""
+        Panels[Count -1]->Caption   = wText
         Panels[Count -1]->Alignment = 0
         Panels[Count -1]->Bevel     = pbLowered
         Panels[Count -1]->StatusBarControl = @This
-        UpdatePanels
+        #IfDef __USE_GTK__
+			Panels[Count -1]->message_id = gtk_statusbar_push(gtk_statusbar(widget), context_id, wText)
+		#Else
+			UpdatePanels
+        #EndIf
     End Sub
 
     Sub StatusBar.Remove(Index As Integer)
         Dim As StatusPanel Ptr Ptr Temp
         Dim As Integer i, x = 0
         If Index >= 0 And Index <= Count -1 Then
+			#IfDef __USE_GTK__
+				gtk_statusbar_remove(gtk_statusbar(widget), context_id, Panels[i]->message_id)
+			#EndIf
            Temp = cAllocate((Count - 1) * SizeOf(StatusPanel)) 
            x = 0
            For i = 0 To Count -1
@@ -164,7 +194,9 @@ Namespace My.Sys.Forms
            Next i
            DeAllocate Temp
         End If
-        UpdatePanels
+        #IfNDef __USE_GTK__
+			UpdatePanels
+		#EndIf
     End Sub
 
     Sub StatusBar.Clear
@@ -172,7 +204,11 @@ Namespace My.Sys.Forms
             Remove i
         Next i
         Count = 0
-        SetWindowText Handle, ""
+        #IfDef __USE_GTK__
+			gtk_statusbar_remove_all(gtk_statusbar(widget), context_id)
+        #Else 
+			SetWindowText Handle, ""
+		#EndIf
     End Sub
 
     Sub StatusBar.UpdatePanels
@@ -188,7 +224,9 @@ Namespace My.Sys.Forms
                End If
             Next i
             FWidth(Count - 1) = -1
-            Perform(SB_SETPARTS, Count, CInt(@FWidth(0)))
+            #IfNDef __USE_GTK__ 
+				Perform(SB_SETPARTS, Count, CInt(@FWidth(0)))
+            #EndIf
             For i = 0 To Count -1
                 If Panels[i]->Alignment = 0 Then
                     s = ReAllocate(s, (Len(Panels[i]->Caption) + 1) * SizeOf(WString))
@@ -202,8 +240,10 @@ Namespace My.Sys.Forms
                 Else 
                     s = ReAllocate(s, (Len(Panels[i]->Caption) + 1) * SizeOf(WString))
                     *s = Panels[i]->Caption
-                End If 
-                Perform(SB_SETTEXT, i OR Panels[i]->Bevel, CInt(s))
+                End If
+                #IfNDef __USE_GTK__ 
+					Perform(SB_SETTEXT, i OR Panels[i]->Bevel, CInt(s))
+				#EndIf
             Next i
         End If 
         Invalidate
@@ -227,7 +267,9 @@ Namespace My.Sys.Forms
 
     Property StatusBar.Color(Value As Integer)
         Base.BackColor = Value
-        If Handle Then SendMessage(Handle, SB_SETBKCOLOR, 0, Base.BackColor)
+        #IfNDef __USE_GTK__ 
+			If Handle Then SendMessage(Handle, SB_SETBKCOLOR, 0, Base.BackColor)
+		#EndIf
     End Property
 
     Property StatusBar.SizeGrip As Boolean
@@ -237,7 +279,9 @@ Namespace My.Sys.Forms
     Property StatusBar.SizeGrip(Value As Boolean)
         If Value <> FSizeGrip Then
            FSizeGrip = Value 
-           Style  = WS_CHILD OR CCS_NOPARENTALIGN OR AStyle(Abs_(FSizeGrip))
+           #IfNDef __USE_GTK__ 
+				Style  = WS_CHILD OR CCS_NOPARENTALIGN OR AStyle(Abs_(FSizeGrip))
+           #EndIf
            RecreateWnd
         End If
     End Property
@@ -248,11 +292,13 @@ Namespace My.Sys.Forms
 
     Property StatusBar.SimplePanel(Value As Boolean)
         If Value <> FSimplePanel Then
-           FSimplePanel = Value 
-           If Handle Then 
-               SendMessage(Handle, SB_SIMPLE, FSimplePanel, 0)
-               SimpleText = *FSimpleText
-           End If
+			FSimplePanel = Value 
+			#IfNDef __USE_GTK__ 
+				If Handle Then 
+					SendMessage(Handle, SB_SIMPLE, FSimplePanel, 0)
+					SimpleText = *FSimpleText
+				End If
+			#EndIf
         End If
     End Property
 
@@ -265,56 +311,74 @@ Namespace My.Sys.Forms
             FSimpleText = Reallocate(FSimpleText, (Len(Value) + 1) * SizeOf(WString))
             *FSimpleText = Value
             Text = *FSimpleText
-            If FHandle Then SendMessage(Handle, SB_SETTEXT, 255, CInt(@Value))
+            #IfNDef __USE_GTK__ 
+				If FHandle Then SendMessage(Handle, SB_SETTEXT, 255, CInt(@Value))
+			#EndIf
         End If    
     End Property
 
-    Sub StatusBar.HandleIsAllocated(BYREF Sender As My.Sys.Forms.Control)
-        If Sender.Child Then
-            With QStatusBar(Sender.Child)
-                 SetClassLong .Handle, GCL_STYLE, GetClassLong(.Handle,GCL_STYLE) AND NOT CS_HREDRAW
-                 .Perform(SB_SETBKCOLOR, 0, .Color)
-                 .SimpleText = .SimpleText
-                 .SimplePanel = .SimplePanel
-                 .UpdatePanels
-            End With
-        End If
-    End Sub
+	#IfNDef __USE_GTK__ 
+		Sub StatusBar.HandleIsAllocated(BYREF Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QStatusBar(Sender.Child)
+					 SetClassLong .Handle, GCL_STYLE, GetClassLong(.Handle,GCL_STYLE) AND NOT CS_HREDRAW
+					 .Perform(SB_SETBKCOLOR, 0, .Color)
+					 .SimpleText = .SimpleText
+					 .SimplePanel = .SimplePanel
+					 .UpdatePanels
+				End With
+			End If
+		End Sub
 
-    Sub StatusBar.WndProc(BYREF Message As Message)
-    End Sub
+		Sub StatusBar.WndProc(BYREF Message As Message)
+		End Sub
 
-    Sub StatusBar.ProcessMessage(BYREF Message As Message)
-    End Sub
+		Sub StatusBar.ProcessMessage(BYREF Message As Message)
+		End Sub
+	#EndIf
 
     Operator StatusBar.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)
     End Operator
 
     Constructor StatusBar
+		With This
         FSimpleText = CAllocate(0)
-        AStyle(0) = 0
-        AStyle(1) = SBARS_SIZEGRIP 
+        #IfDef __USE_GTK__
+			widget = gtk_statusbar_new
+			'gtk_statusbar_set_has_resize_grip(gtk_statusbar(widget), true)
+			.RegisterClass "StatusBar", @This
+			WLet FSimpleText, "StatusBar"
+			context_id = gtk_statusbar_get_context_id(gtk_statusbar(widget), *FSimpleText)
+			'Var cont2 = gtk_statusbar_get_context_id(gtk_statusbar(widget), "statusbar 2")
+			'gtk_statusbar_push(gtk_statusbar(widget), cont2, *FSimpleText)
+			
+        #Else 
+			AStyle(0) = 0
+			AStyle(1) = SBARS_SIZEGRIP 
+        #EndIf
         FSizeGrip = True
-        With This
-            .RegisterClass "StatusBar","msctls_StatusBar32"
             WLet FClassName, "StatusBar"
             WLet FClassAncestor, "msctls_StatusBar32"
-            .Style        = WS_CHILD OR CCS_NOPARENTALIGN OR AStyle(Abs_(FSizeGrip))
-            .ExStyle      = 0
+            #IfNDef __USE_GTK__
+				.RegisterClass "StatusBar","msctls_StatusBar32"
+				.Style        = WS_CHILD OR CCS_NOPARENTALIGN OR AStyle(Abs_(FSizeGrip))
+				.ExStyle      = 0
+				.Color        = GetSysColor(COLOR_BTNFACE) 
+				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+            #EndIf
             .Width        = 175
             .Height       = 21
-            .Color        = GetSysColor(COLOR_BTNFACE) 
             .Child        = @This
-            .ChildProc    = @WndProc
-            .Color        = GetSysColor(COLOR_BTNFACE)
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With
     End Constructor
 
     Destructor StatusBar
-        Panels = cAllocate(0) 
-        UnregisterClass "StatusBar",GetModuleHandle(NULL)
+        Panels = cAllocate(0)
+        #IfNDef __USE_GTK__ 
+			UnregisterClass "StatusBar",GetModuleHandle(NULL)
+        #EndIf
         Deallocate FSimpleText
     End Destructor
 End Namespace

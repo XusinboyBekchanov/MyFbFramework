@@ -11,29 +11,33 @@ Namespace My.Sys.Forms
     
     Type LinkLabel Extends Control
         Private:
-            Declare Static Sub WndProc(ByRef Message As Message)
-            Declare Sub ProcessMessage(ByRef Message As Message)
-            Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#IfNDef __USE_GTK__
+				Declare Static Sub WndProc(ByRef Message As Message)
+				Declare Sub ProcessMessage(ByRef Message As Message)
+				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#EndIf
         Public:
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
             Declare Destructor
     End Type
     
-    Sub LinkLabel.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-        If Sender.Child Then
-            With QLinkLabel(Sender.Child)
-                 
-            End With
-        End If
-    End Sub
+    #IfNDef __USE_GTK__
+		Sub LinkLabel.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QLinkLabel(Sender.Child)
+					 
+				End With
+			End If
+		End Sub
 
-    Sub LinkLabel.WndProc(ByRef Message As Message)
-    End Sub
+		Sub LinkLabel.WndProc(ByRef Message As Message)
+		End Sub
 
-    Sub LinkLabel.ProcessMessage(ByRef Message As Message)
-        'Base.ProcessMessage Message
-    End Sub
+		Sub LinkLabel.ProcessMessage(ByRef Message As Message)
+			'Base.ProcessMessage Message
+		End Sub
+	#EndIf
 
     Operator LinkLabel.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)
@@ -41,20 +45,27 @@ Namespace My.Sys.Forms
 
     Constructor LinkLabel
         With This
-            .RegisterClass "LinkLabel", WC_LINK
-            WLet FClassName, "LinkLabel"
-            WLet FClassAncestor, WC_LINK
-            .ExStyle      = 0
-            .Style        = WS_CHILD
+			WLet FClassName, "LinkLabel"
+			#IfDef __USE_GTK__
+				widget = gtk_link_button_new_With_label("", "")
+				.RegisterClass "HotKey", @This
+			#Else
+				.RegisterClass "LinkLabel", WC_LINK
+				WLet FClassAncestor, WC_LINK
+				.ExStyle      = 0
+				.Style        = WS_CHILD
+				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#EndIf
             .Width        = 100
             .Height       = 32
-            .Child        = @This
-            .ChildProc    = @WndProc
-            .OnHandleIsAllocated = @HandleIsAllocated
+            .Child        = @This            
         End With
     End Constructor
 
     Destructor LinkLabel
-        UnregisterClass "LinkLabel",GetModuleHandle(NULL)
+		#IfNDef __USE_GTK__
+			UnregisterClass "LinkLabel",GetModuleHandle(NULL)
+		#EndIf
     End Destructor
 End Namespace

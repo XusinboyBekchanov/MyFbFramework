@@ -11,49 +11,57 @@ Namespace My.Sys.Forms
     
     Type ToolTips Extends Control
         Private:
-            Declare Static Sub WndProc(ByRef Message As Message)
-            Declare Sub ProcessMessage(ByRef Message As Message)
-            Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-        Public:
+			#IfNDef __USE_GTK__
+				Declare Static Sub WndProc(ByRef Message As Message)
+				Declare Sub ProcessMessage(ByRef Message As Message)
+				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			#EndIf
+		Public:
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
             Declare Destructor
     End Type
     
-    Sub ToolTips.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-        If Sender.Child Then
-            With QToolTips(Sender.Child)
-                 
-            End With
-        End If
-    End Sub
+    #IfNDef __USE_GTK__
+		Sub ToolTips.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QToolTips(Sender.Child)
+					 
+				End With
+			End If
+		End Sub
 
-    Sub ToolTips.WndProc(ByRef Message As Message)
-    End Sub
+		Sub ToolTips.WndProc(ByRef Message As Message)
+		End Sub
 
-    Sub ToolTips.ProcessMessage(ByRef Message As Message)
-    End Sub
-
+		Sub ToolTips.ProcessMessage(ByRef Message As Message)
+		End Sub
+	#EndIf
+	
     Operator ToolTips.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)
     End Operator
 
     Constructor ToolTips
         With This
-            .RegisterClass "ToolTips","tooltips_class32"
             WLet FClassName, "ToolTips"
             WLet FClassAncestor, "tooltips_class32"
-            .Style        = WS_CHILD
-            .ExStyle      = 0
+            #IfNDef __USE_GTK__
+				.RegisterClass "ToolTips","tooltips_class32"
+				.Style        = TTS_ALWAYSTIP Or WS_POPUP
+				.ExStyle      = WS_EX_TOPMOST
+				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#EndIf
             .Width        = 175
             .Height       = 21
             .Child        = @This
-            .ChildProc    = @WndProc
-            .OnHandleIsAllocated = @HandleIsAllocated
-        End With
+		End With
     End Constructor
 
     Destructor ToolTips
-        UnregisterClass "ToolTips",GetModuleHandle(NULL)
+		#IfNDef __USE_GTK__
+			UnregisterClass "ToolTips",GetModuleHandle(NULL)
+		#EndIf
     End Destructor
 End Namespace

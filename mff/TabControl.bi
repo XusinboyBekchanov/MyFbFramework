@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
     End Enum
 
     Enum TabPosition
-        tpTop,tpBottom,tpLeft,tpRight
+        tpLeft,tpRight,tpTop,tpBottom
     End Enum
 
     Type PTabControl As TabControl Ptr
@@ -23,7 +23,11 @@ Namespace My.Sys.Forms
             FImageIndex     As Integer
             FImageKey     As WString Ptr
         Public:  
-            TabPageControl As PTabControl
+            #IfDef __USE_GTK__
+            	_Box			As GtkWidget Ptr
+				_Icon			As GtkWidget Ptr
+				_Label			As GtkWidget Ptr
+			#EndIf
             Declare Property Index As Integer
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
@@ -53,11 +57,13 @@ Namespace My.Sys.Forms
             FTabPosition  As My.Sys.Forms.TabPosition
             FTabStyle     As My.Sys.Forms.TabStyle
             Declare Sub SetMargins()
-            Declare Static Sub WndProc(BYREF Message As Message)
-            Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-            Declare Sub ProcessMessage(BYREF Message As Message)
+            #IfNDef __USE_GTK__
+				Declare Static Sub WndProc(BYREF Message As Message)
+				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+				Declare Sub ProcessMessage(BYREF Message As Message)
+			#EndIf
         Public:
-            Images        As ImageList Ptr
+			Images        As ImageList Ptr
             Tabs             As TabPage Ptr Ptr
             Declare Property TabIndex As Integer
             Declare Property TabIndex(Value As Integer)
@@ -89,41 +95,43 @@ Namespace My.Sys.Forms
             Declare Sub Clear
             Declare Constructor
             Declare Destructor
-            OnSelChange   As Sub(BYREF Sender As TabControl)
-            OnSelChanging As Sub(BYREF Sender As TabControl)
+            OnSelChange   As Sub(BYREF Sender As TabControl, NewIndex As Integer)
+            OnSelChanging As Sub(BYREF Sender As TabControl, NewIndex As Integer)
             OnGotFocus   As Sub(BYREF Sender As TabControl)
             OnLostFocus   As Sub(BYREF Sender As TabControl)
     End Type
 
     Property TabPage.Index As Integer
-        If TabPageControl Then
-            Return TabPageControl->IndexOfTab(@This)
+        If This.Parent AndAlso *This.Parent Is TabControl Then
+            Return Cast(TabControl Ptr, This.Parent)->IndexOfTab(@This)
         End If
         Return -1
     End Property
         
     Sub TabPage.Update()
-        If TabPageControl Then
-            If TabPageControl->Handle Then
-                Dim As TCITEM Ti
-                Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
-                TabPageControl->Perform(TCM_GETITEM, Index, CInt(@Ti))
-                Ti.cchTextMax = Len(*FText) + 1
-                Ti.pszText = FCaption
-                If FObject Then Ti.lparam = Cast(LParam, FObject)
-                If TabPageControl->Images AndAlso FImageKey <> 0 Then
-                    Ti.iImage = TabPageControl->Images->IndexOf(*FImageKey)
-                Else
-                    Ti.iImage = FImageIndex
-                End If
-                TabPageControl->Perform(TCM_SETITEM,Index,CInt(@Ti)) 
-            End If
+        If This.Parent AndAlso *This.Parent Is TabControl Then
+            #IfNDef __USE_GTK__
+				If This.Parent->Handle Then
+					Dim As TCITEM Ti
+					Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
+					This.Parent->Perform(TCM_GETITEM, Index, CInt(@Ti))
+					Ti.cchTextMax = Len(*FText) + 1
+					Ti.pszText = FCaption
+					If FObject Then Ti.lparam = Cast(LParam, FObject)
+					If Cast(TabControl Ptr, This.Parent)->Images AndAlso FImageKey <> 0 Then
+						Ti.iImage = Cast(TabControl Ptr, This.Parent)->Images->IndexOf(*FImageKey)
+					Else
+						Ti.iImage = FImageIndex
+					End If
+					This.Parent->Perform(TCM_SETITEM,Index,CInt(@Ti)) 
+				End If
+			#EndIf
         End If
     End Sub
     
     Sub TabPage.SelectTab()
-        If TabPageControl Then
-            TabPageControl->TabIndex = Index
+        If This.Parent AndAlso *This.Parent Is TabControl Then
+            Cast(TabControl Ptr, This.Parent)->TabIndex = Index
         End If
     End Sub
     
@@ -134,7 +142,13 @@ Namespace My.Sys.Forms
     Property TabPage.Caption(ByRef Value As WString)
         FCaption = Cast(WString Ptr, ReAllocate(FCaption, (Len(Value) + 1) * SizeOf(WString)))
         *FCaption = Value
-        Update
+        #IfDef __USE_GTK__
+			If This.Parent AndAlso *This.Parent Is TabControl AndAlso This.Parent->Widget Then
+				gtk_label_set_text(gtk_Label(_Label), ToUTF8(Value))
+			End If
+        #Else 
+			Update
+        #EndIf
     End Property
 
     Property TabPage.Object As Any Ptr
@@ -180,11 +194,18 @@ Namespace My.Sys.Forms
         Caption = ""
         FObject    = 0
         FImageIndex        = 0
-        Align = 5
-        Anchor.Left = asAnchor
-        Anchor.Top = asAnchor
-        Anchor.Right = asAnchor
-        Anchor.Bottom = asAnchor
+        'Anchor.Left = asAnchor
+        'Anchor.Top = asAnchor
+        'Anchor.Right = asAnchor
+        'Anchor.Bottom = asAnchor
+        WLet FClassName, "TabPage"
+        WLet FClassAncestor, "Panel"
+        #IfDef __USE_GTK__
+			This.RegisterClass "TabPage", @This
+        #Else
+			Align = 5
+        	This.RegisterClass "TabPage", "Panel"
+        #EndIf
     End Constructor
 
     Destructor TabPage
@@ -192,28 +213,37 @@ Namespace My.Sys.Forms
     End Destructor
     
     Property TabControl.TabIndex As Integer
-       Return Perform(TCM_GETCURSEL,0,0)
+		#IfDef __USE_GTK__
+			Return gtk_notebook_get_current_page(gtk_notebook(widget))
+		#Else
+			Return Perform(TCM_GETCURSEL,0,0) 
+		#EndIf
     End Property
         
     Property TabControl.TabIndex(Value As Integer)
         FTabIndex = Value
-        If Handle Then
-            Perform(TCM_SETCURSEL,FTabIndex,0)
-            Dim Id As Integer = TabIndex
-            For i As Integer = 0 To TabCount - 1
-                ShowWindow(Tabs[i]->Handle, Abs_(i = Id))
-            Next i
-            RequestAlign
-            If OnSelChange Then OnSelChange(This)
-        End If
+        #IfDef __USE_GTK__
+			gtk_notebook_set_current_page(gtk_notebook(widget), Value)
+        #Else
+			If Handle Then
+				Perform(TCM_SETCURSEL,FTabIndex,0)
+				Dim Id As Integer = TabIndex
+				For i As Integer = 0 To TabCount - 1
+					Tabs[i]->Visible = i = Id
+					'ShowWindow(Tabs[i]->Handle, Abs_(i = Id))
+				Next i
+				RequestAlign
+				If OnSelChange Then OnSelChange(This, Id)
+			End If
+		#EndIf
     End Property
 
     Sub TabControl.SetMargins()
         Select Case FTabPosition
-        Case 0: Base.SetMargins 2, 4 + ItemHeight(0), 4, 3
-        Case 1: Base.SetMargins 2, 2, 2, 4 + ItemHeight(0)
-        Case 2: Base.SetMargins 4 + ItemWidth(0), 2, 4, 3
-        Case 3: Base.SetMargins 2, 2, 4 + ItemWidth(0), 3
+        Case 0: Base.SetMargins 4 + ItemWidth(0), 2, 4, 3
+        Case 1: Base.SetMargins 2, 2, 4 + ItemWidth(0), 3
+        Case 2: Base.SetMargins 2, 4 + ItemHeight(0), 4, 3
+        Case 3: Base.SetMargins 2, 2, 2, 4 + ItemHeight(0)
         End Select
     End Sub
     
@@ -223,32 +253,46 @@ Namespace My.Sys.Forms
         
     Property TabControl.TabPosition(Value As My.Sys.Forms.TabPosition)
         FTabPosition = Value
-        Select Case FTabPosition
-           Case 0
-            ChangeStyle(TCS_BOTTOM, False)
-            ChangeStyle(TCS_RIGHT, False)
-            ChangeStyle(TCS_VERTICAL, False)
-            If Not FMultiline Then ChangeStyle(TCS_MULTILINE, False)
-            If Not FTabStyle = tsOwnerDrawFixed Then ChangeStyle(TCS_OWNERDRAWFIXED, False)
-           Case 1
-            ChangeStyle(TCS_RIGHT, False)
-            ChangeStyle(TCS_VERTICAL, False)
-            ChangeStyle(TCS_BOTTOM, True)
-            If Not FMultiline Then ChangeStyle(TCS_MULTILINE, False)
-            If Not FTabStyle = tsOwnerDrawFixed Then ChangeStyle(TCS_OWNERDRAWFIXED, False)
-           Case 2
-            ChangeStyle(TCS_BOTTOM, False)
-            ChangeStyle(TCS_RIGHT, False)
-            ChangeStyle(TCS_MULTILINE, True)
-            ChangeStyle(TCS_VERTICAL, True)
-            ChangeStyle(TCS_OWNERDRAWFIXED, True)
-        Case 3
-            ChangeStyle(TCS_BOTTOM, False)
-            ChangeStyle(TCS_MULTILINE, True)
-            ChangeStyle(TCS_VERTICAL, True)
-            ChangeStyle(TCS_RIGHT, True)
-            ChangeStyle(TCS_OWNERDRAWFIXED, True)
-        End Select
+        #IfDef __USE_GTK__
+        	gtk_notebook_set_tab_pos(gtk_notebook(widget), FTabPosition)
+        	For i As Integer = 0 To TabCount - 1
+				Select Case FTabPosition
+				Case 0, 1
+					gtk_label_set_text(GTK_LABEL(Tabs[i]->_label), ToUTF8(" " & Tabs[i]->Caption & " "))
+					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_label), 90)
+				Case 2, 3
+					gtk_label_set_text(GTK_LABEL(Tabs[i]->_label), ToUTF8(Tabs[i]->Caption))
+					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_label), 0)
+				End Select
+			Next
+        #Else
+			Select Case FTabPosition
+			Case 0
+				ChangeStyle(TCS_BOTTOM, False)
+				ChangeStyle(TCS_RIGHT, False)
+				ChangeStyle(TCS_MULTILINE, True)
+				ChangeStyle(TCS_VERTICAL, True)
+				ChangeStyle(TCS_OWNERDRAWFIXED, True)
+			Case 1
+				ChangeStyle(TCS_BOTTOM, False)
+				ChangeStyle(TCS_MULTILINE, True)
+				ChangeStyle(TCS_VERTICAL, True)
+				ChangeStyle(TCS_RIGHT, True)
+				ChangeStyle(TCS_OWNERDRAWFIXED, True)
+			Case 2
+				ChangeStyle(TCS_BOTTOM, False)
+				ChangeStyle(TCS_RIGHT, False)
+				ChangeStyle(TCS_VERTICAL, False)
+				If Not FMultiline Then ChangeStyle(TCS_MULTILINE, False)
+				If Not FTabStyle = tsOwnerDrawFixed Then ChangeStyle(TCS_OWNERDRAWFIXED, False)
+			Case 3
+				ChangeStyle(TCS_RIGHT, False)
+				ChangeStyle(TCS_VERTICAL, False)
+				ChangeStyle(TCS_BOTTOM, True)
+				If Not FMultiline Then ChangeStyle(TCS_MULTILINE, False)
+				If Not FTabStyle = tsOwnerDrawFixed Then ChangeStyle(TCS_OWNERDRAWFIXED, False)
+			End Select
+		#EndIf
         SetMargins
     End Property
         
@@ -258,21 +302,23 @@ Namespace My.Sys.Forms
         
     Property TabControl.TabStyle(Value As My.Sys.Forms.TabStyle)
         FTabStyle = Value
-           Select Case FTabStyle
-           Case 0
-            ChangeStyle TCS_BUTTONS, False
-            ChangeStyle TCS_OWNERDRAWFIXED, False
-            ChangeStyle TCS_TABS, True
-       Case 1
-            ChangeStyle TCS_TABS, False
-            ChangeStyle TCS_OWNERDRAWFIXED, False
-            ChangeStyle TCS_BUTTONS, True   
-       Case 2
-               ChangeStyle TCS_TABS, False
-            ChangeStyle TCS_BUTTONS, False
-            ChangeStyle TCS_OWNERDRAWFIXED, True
-       End Select
-    End Property
+        #IfNDef __USE_GTK__
+			Select Case FTabStyle
+			   Case 0
+				ChangeStyle TCS_BUTTONS, False
+				ChangeStyle TCS_OWNERDRAWFIXED, False
+				ChangeStyle TCS_TABS, True
+		   Case 1
+				ChangeStyle TCS_TABS, False
+				ChangeStyle TCS_OWNERDRAWFIXED, False
+				ChangeStyle TCS_BUTTONS, True   
+		   Case 2
+				ChangeStyle TCS_TABS, False
+				ChangeStyle TCS_BUTTONS, False
+				ChangeStyle TCS_OWNERDRAWFIXED, True
+		   End Select
+		#EndIf
+	End Property
         
     Property TabControl.FlatButtons As Boolean
        Return FFlatButtons
@@ -280,16 +326,18 @@ Namespace My.Sys.Forms
         
     Property TabControl.FlatButtons(Value As Boolean)
        FFlatButtons = Value
-       Select Case FFlatButtons
-       Case True
-           If (Style AND TCS_FLATBUTTONS) <> TCS_FLATBUTTONS Then
-              Style = Style OR TCS_FLATBUTTONS
-           End If
-       Case False
-           If (Style AND TCS_FLATBUTTONS) = TCS_FLATBUTTONS Then
-              Style = Style AND NOT TCS_FLATBUTTONS
-           End If
-       End Select 
+       #IfNDef __USE_GTK__
+			Select Case FFlatButtons
+		   Case True
+			   If (Style AND TCS_FLATBUTTONS) <> TCS_FLATBUTTONS Then
+				  Style = Style OR TCS_FLATBUTTONS
+			   End If
+		   Case False
+			   If (Style AND TCS_FLATBUTTONS) = TCS_FLATBUTTONS Then
+				  Style = Style AND NOT TCS_FLATBUTTONS
+			   End If
+		   End Select
+		#EndIf 
        'RecreateWnd
     End Property
         
@@ -299,32 +347,34 @@ Namespace My.Sys.Forms
         
     Property TabControl.Multiline(Value As Boolean)
        FMultiline = Value
-       Select Case FMultiline
-       Case False
-           If (Style AND TCS_MULTILINE) = TCS_MULTILINE Then
-              Style = Style AND NOT TCS_MULTILINE
-           End If
-           If (Style AND TCS_SINGLELINE) <> TCS_SINGLELINE Then
-              Style = Style OR TCS_SINGLELINE
-           End If
-       Case True
-           If (Style AND TCS_MULTILINE) <> TCS_MULTILINE Then
-              Style = Style OR TCS_MULTILINE
-           End If
-           If (Style AND TCS_SINGLELINE) = TCS_SINGLELINE Then
-              Style = Style AND NOT TCS_SINGLELINE
-           End If
-       End Select
+       #IfNDef __USE_GTK__
+			Select Case FMultiline
+		   Case False
+			   If (Style AND TCS_MULTILINE) = TCS_MULTILINE Then
+				  Style = Style AND NOT TCS_MULTILINE
+			   End If
+			   If (Style AND TCS_SINGLELINE) <> TCS_SINGLELINE Then
+				  Style = Style OR TCS_SINGLELINE
+			   End If
+		   Case True
+			   If (Style AND TCS_MULTILINE) <> TCS_MULTILINE Then
+				  Style = Style OR TCS_MULTILINE
+			   End If
+			   If (Style AND TCS_SINGLELINE) = TCS_SINGLELINE Then
+				  Style = Style AND NOT TCS_SINGLELINE
+			   End If
+		   End Select
+		#EndIf
        RecreateWnd
     End Property
         
     Property TabControl.TabCount As Integer
-       If Handle Then
-           FTabCount = Perform(TCM_GETITEMCOUNT,0,0)
-           Return FTabCount
-       Else
-           Return FTabCount
-       End If
+       #IfNDef __USE_GTK__
+		   If Handle Then
+			   FTabCount = Perform(TCM_GETITEMCOUNT,0,0)
+		   End If
+		#EndIf
+       Return FTabCount
     End Property
         
     Property TabControl.TabCount(Value As Integer)
@@ -351,97 +401,115 @@ Namespace My.Sys.Forms
     
     Function TabControl.ItemHeight(Index As Integer) As Integer
         If Index >= 0 AND Index < TabCount Then
-            Dim As Rect R
-            Perform(TCM_GETITEMRECT,Index,CInt(@R))
-            Return (R.Bottom - R.Top)
+            #IfDef __USE_GTK__
+				Return gtk_widget_get_allocated_height(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+            #Else
+				Dim As Rect R
+				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Return (R.Bottom - R.Top)
+			#EndIf
         End If
+        Return 0
     End Function
 
     Function TabControl.ItemWidth(Index As Integer) As Integer
         If Index >= 0 AND Index < TabCount Then
-            Dim As Rect R
-            Perform(TCM_GETITEMRECT,Index,CInt(@R))
-            Return (R.Right - R.Left)
+            #IfDef __USE_GTK__
+				Return gtk_widget_get_allocated_width(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+            #Else
+				Dim As Rect R
+				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Return (R.Right - R.Left)
+			#EndIf
         End If
+        Return 0
     End Function
 
     Function TabControl.ItemLeft(Index As Integer) As Integer
         If Index >= 0 AND Index < TabCount Then
-            Dim As Rect R
-            Perform(TCM_GETITEMRECT,Index,CInt(@R))
-            Return R.Left
+            #IfNDef __USE_GTK__
+				Dim As Rect R
+				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Return R.Left
+			#EndIf
         End If
+        Return 0
     End Function
 
     Function TabControl.ItemTop(Index As Integer) As Integer
         If Index >= 0 AND Index < TabCount Then
-            Dim As Rect R
-            Perform(TCM_GETITEMRECT,Index,CInt(@R))
-            Return R.Top
+            #IfNDef __USE_GTK__
+				Dim As Rect R
+				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Return R.Top
+			#EndIf
         End If
+        Return 0
     End Function
 
-    Sub TabControl.WndProc(BYREF Message As Message)
-    End Sub
+	#IfNDef __USE_GTK__
+		Sub TabControl.WndProc(BYREF Message As Message)
+		End Sub
 
-    Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
-        If Sender.Child Then
-            With QTabControl(Sender.Child)
-                If .Images Then .Images->ParentWindow = .Handle
-                If .Images AndAlso .Images->Handle Then .Perform(TCM_SETIMAGELIST,0,CInt(.Images->Handle))
-                For i As Integer = 0 To .FTabCount - 1
-                    Dim As TCITEMW Ti
-                    Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
-                    Ti.pszText    = @(.Tabs[i]->Caption)
-                    Ti.cchTextMax = Len(.Tabs[i]->Caption) + 1
-                    If .Images AndAlso .Tabs[i]->ImageKey <> "" Then
-                        Ti.iImage = .Images->IndexOf(.Tabs[i]->ImageKey)
-                    Else
-                        Ti.iImage = .Tabs[i]->ImageIndex
-                    End If
-                    'If .Tabs[i]->Object Then Ti.lParam = Cast(LPARAM, .Tabs[i]->Object)
-                    Ti.lParam = Cast(LPARAM, .Handle)
-                    .Perform(TCM_INSERTITEM, i, CInt(@Ti))
-                 Next
-                .SetMargins
-                If .TabCount > 0 Then .Tabs[0]->BringToFront()
-            End With
-        End If
-    End Sub
+		Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QTabControl(Sender.Child)
+					If .Images Then .Images->ParentWindow = Sender
+					If .Images AndAlso .Images->Handle Then .Perform(TCM_SETIMAGELIST,0,CInt(.Images->Handle))
+					For i As Integer = 0 To .FTabCount - 1
+						Dim As TCITEMW Ti
+						Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
+						Ti.pszText    = @(.Tabs[i]->Caption)
+						Ti.cchTextMax = Len(.Tabs[i]->Caption) + 1
+						If .Images AndAlso .Tabs[i]->ImageKey <> "" Then
+							Ti.iImage = .Images->IndexOf(.Tabs[i]->ImageKey)
+						Else
+							Ti.iImage = .Tabs[i]->ImageIndex
+						End If
+						'If .Tabs[i]->Object Then Ti.lParam = Cast(LPARAM, .Tabs[i]->Object)
+						Ti.lParam = Cast(LPARAM, .Handle)
+						.Perform(TCM_INSERTITEM, i, CInt(@Ti))
+					 Next
+					.SetMargins
+					If .TabCount > 0 Then .Tabs[0]->BringToFront()
+				End With
+			End If
+		End Sub
 
-    Sub TabControl.ProcessMessage(BYREF Message As Message)
-        Select Case Message.Msg
-        Case CM_DRAWITEM
-            If FTabPosition = tpLeft Or FTabPosition = tpRight Then
-                Dim As LogFont LogRec
-                  Dim As hFont OldFontHandle, NewFontHandle
-                Dim hdc as hdc
-                GetObject Font.Handle, SizeOf(LogRec), @LogRec
-                  LogRec.lfEscapement = 90 * 10
-                  NewFontHandle = CreateFontIndirect(@LogRec)
-                hdc = GetDc(FHandle)
-                OldFontHandle = SelectObject(hdc, NewFontHandle)
-                SetBKMode(hdc,TRANSPARENT)
-                For i As Integer = 0 To TabCount - 1
-                    .TextOut(hdc,IIF(FTabPosition = tpLeft, 2, This.Width - ItemWidth(i)),ItemTop(i) + ItemHeight(i) - 5,Tabs[i]->Caption,Len(Tabs[i]->Caption))
-                Next i
-                SetBKMode(hdc,OPAQUE)
-                NewFontHandle = SelectObject(hdc, OldFontHandle)
-                  ReleaseDc FHandle, hdc
-                DeleteObject(NewFontHandle)
-            End If
-            Message.Result = 0
-        Case WM_SIZE
-        Case CM_COMMAND
-        Case CM_NOTIFY
-            Dim As LPNMHDR NM 
-            NM = Cast(LPNMHDR,Message.lParam)
-            If NM->Code = TCN_SELCHANGE Then
-                TabIndex = TabIndex
-            End If
-        End Select
-        Base.ProcessMessage(Message)
-    End Sub
+		Sub TabControl.ProcessMessage(BYREF Message As Message)
+			Select Case Message.Msg
+			Case CM_DRAWITEM
+				If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+					Dim As LogFont LogRec
+					  Dim As hFont OldFontHandle, NewFontHandle
+					Dim hdc as hdc
+					GetObject Font.Handle, SizeOf(LogRec), @LogRec
+					  LogRec.lfEscapement = 90 * 10
+					  NewFontHandle = CreateFontIndirect(@LogRec)
+					hdc = GetDc(FHandle)
+					OldFontHandle = SelectObject(hdc, NewFontHandle)
+					SetBKMode(hdc,TRANSPARENT)
+					For i As Integer = 0 To TabCount - 1
+						.TextOut(hdc,IIF(FTabPosition = tpLeft, 2, This.Width - ItemWidth(i)),ItemTop(i) + ItemHeight(i) - 5,Tabs[i]->Caption,Len(Tabs[i]->Caption))
+					Next i
+					SetBKMode(hdc,OPAQUE)
+					NewFontHandle = SelectObject(hdc, OldFontHandle)
+					  ReleaseDc FHandle, hdc
+					DeleteObject(NewFontHandle)
+				End If
+				Message.Result = 0
+			Case WM_SIZE
+			Case CM_COMMAND
+			Case CM_NOTIFY
+				Dim As LPNMHDR NM 
+				NM = Cast(LPNMHDR,Message.lParam)
+				If NM->Code = TCN_SELCHANGE Then
+					TabIndex = TabIndex
+				End If
+			End Select
+			Base.ProcessMessage(Message)
+		End Sub
+	#EndIf
 
     Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
         FTabCount += 1
@@ -449,23 +517,36 @@ Namespace My.Sys.Forms
         tb->Caption = Caption
         tb->Object = AObject
         tb->ImageIndex = ImageIndex
-        tb->TabPageControl = @This
         Tabs = Reallocate(Tabs, SizeOF(TabPage) * FTabCount)
         Tabs[FTabCount - 1] = tb
         This.Add(tb)
-        If Handle Then  
-            Dim As TCITEMW Ti
-            Dim As Integer LenSt = Len(Caption) + 1
-            Dim As WString Ptr St = CAllocate(LenSt * Len(WString))
-            St = @Caption
-            Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
-            Ti.pszText    = St
-            Ti.cchTextMax = LenSt
-            If Tabs[FTabCount - 1]->Object Then Ti.lParam = Cast(LPARAM, Tabs[FTabCount - 1]->Object)
-            Ti.iImage = Tabs[FTabCount - 1]->ImageIndex
-            SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
-            If FTabCount = 1 Then SetMargins
-        End If
+        #IfDef __USE_GTK__
+        	If widget Then
+				tb->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				tb->_icon = gtk_image_new_from_icon_name(ToUTF8(tb->ImageKey), GTK_ICON_SIZE_MENU)
+				gtk_container_add (GTK_CONTAINER (tb->_box), tb->_icon)
+        		tb->_label = gtk_label_new(ToUTF8(tb->Caption))
+        		gtk_container_add (GTK_CONTAINER (tb->_box), tb->_label)
+        		'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
+        		gtk_widget_show_all(tb->_box)
+        		gtk_notebook_append_page(gtk_notebook(widget), tb->widget, tb->_box)
+				'gtk_notebook_append_page(gtk_notebook(widget), tb->widget, gtk_label_new(ToUTF8(Caption)))
+        	End If
+        #Else
+			If Handle Then
+				Dim As TCITEMW Ti
+				Dim As Integer LenSt = Len(Caption) + 1
+				Dim As WString Ptr St = CAllocate(LenSt * Len(WString))
+				St = @Caption
+				Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
+				Ti.pszText    = St
+				Ti.cchTextMax = LenSt
+				If Tabs[FTabCount - 1]->Object Then Ti.lParam = Cast(LPARAM, Tabs[FTabCount - 1]->Object)
+				Ti.iImage = Tabs[FTabCount - 1]->ImageIndex
+				SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+				If FTabCount = 1 Then SetMargins
+			End If
+		#EndIf
         tb->Visible = FTabCount = 1
         Return Tabs[FTabCount - 1]
     End Function
@@ -483,23 +564,41 @@ Namespace My.Sys.Forms
     
     Sub TabControl.AddTab(ByRef tp As TabPage Ptr)
         FTabCount += 1
-        tp->TabPageControl = @This
+        'tp->TabPageControl = @This
         Tabs = Reallocate(Tabs, SizeOF(TabPage) * FTabCount)
         Tabs[FTabCount - 1] = tp
-        If Handle Then
-            Dim As TCITEMW Ti
-            Dim As WString Ptr St
-            WLet St, tp->Caption
-            Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
-            Ti.pszText    = St
-            Ti.cchTextMax = Len(tp->Caption)
-            If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
-                Ti.iImage = tp->ImageIndex
-                SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
-                If FTabCount = 1 Then SetMargins
-        End If
         This.Add(Tabs[FTabCount - 1])
-        tp->Visible = FTabCount = 1
+        #IfDef __USE_GTK__
+        	If widget Then 
+				tp->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				tp->_icon = gtk_image_new_from_icon_name(ToUTF8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				gtk_container_add (GTK_CONTAINER (tp->_box), tp->_icon)
+        		tp->_label = gtk_label_new(ToUTF8(tp->Caption))
+        		gtk_container_add (GTK_CONTAINER (tp->_box), tp->_label)
+        		'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
+        		gtk_widget_show_all(tp->_box)
+        		gtk_notebook_append_page(gtk_notebook(widget), tp->widget, tp->_box)
+				'RequestAlign
+        	End If
+        	tp->Visible = FTabCount = 1
+        	If widget Then 
+        		gtk_widget_show_all(widget)
+        	End If
+        #Else
+        	If Handle Then
+				Dim As TCITEMW Ti
+				Dim As WString Ptr St
+				WLet St, tp->Caption
+				Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
+				Ti.pszText    = St
+				Ti.cchTextMax = Len(tp->Caption)
+				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
+				Ti.iImage = tp->ImageIndex
+				SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+				If FTabCount = 1 Then SetMargins
+			End If
+			tp->Visible = FTabCount = 1
+		#EndIf
     End Sub
     
     Sub TabControl.DeleteTab(Index As Integer)
@@ -513,7 +612,11 @@ Namespace My.Sys.Forms
             Next i
             FTabCount -= 1 
             Tabs = ReAllocate(Tabs,FTabCount*SizeOF(TabPage))
-            Perform(TCM_DELETEITEM,Index,0)
+            #IfDef __USE_GTK__
+				gtk_notebook_remove_page(gtk_notebook(widget), Index)
+            #Else
+				Perform(TCM_DELETEITEM,Index,0)
+            #EndIf
             If Index > 0 then
                 TabIndex = Index - 1
             ElseIf Index < TabCount - 1 then
@@ -526,8 +629,10 @@ Namespace My.Sys.Forms
     Sub TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)
        Dim As Integer i
        Dim As TabPage Ptr It
-       Dim As TCITEM Ti
-       Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
+       #IfNDef __USE_GTK__
+			Dim As TCITEM Ti
+			Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
+       #EndIf
        If Index >= 0 AND Index <= FTabCount -1 Then
           FTabCount += 1 
           Tabs = ReAllocate(Tabs,FTabCount*SizeOF(TabPage))
@@ -538,12 +643,14 @@ Namespace My.Sys.Forms
           Tabs[Index] = New TabPage
           Tabs[Index]->Caption = Caption
           Tabs[Index]->Object = aObject
-          Tabs[Index]->TabPageControl = @This
+          'Tabs[Index]->TabPageControl = @This
           This.Add(Tabs[Index])
-          Ti.pszText    = @(Tabs[Index]->Caption)
-          Ti.cchTextMax = Len(Tabs[Index]->Caption) + 1
-          If Tabs[Index]->Object Then Ti.lParam = Cast(LPARAM, Tabs[Index]->Object)
-          Perform(TCM_INSERTITEM, Index, CInt(@Ti))
+          #IfNDef __USE_GTK__
+			  Ti.pszText    = @(Tabs[Index]->Caption)
+			  Ti.cchTextMax = Len(Tabs[Index]->Caption) + 1
+			  If Tabs[Index]->Object Then Ti.lParam = Cast(LPARAM, Tabs[Index]->Object)
+			  Perform(TCM_INSERTITEM, Index, CInt(@Ti))
+          #EndIf
           If FTabCount = 1 Then SetMargins
        End If
     End Sub
@@ -560,19 +667,37 @@ Namespace My.Sys.Forms
         Return -1
     End Function
 
+	#IfDef __USE_GTK__
+		Sub TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+			Dim As TabControl Ptr tc = user_data
+			tc->Tabs[page_num]->RequestAlign
+			If tc->OnSelChange Then tc->OnSelChange(*tc, page_num)
+		End Sub
+	#EndIf
+	
     Constructor TabControl
         SetMargins
         With This
+			#IfDef __USE_GTK__
+				widget = gtk_notebook_new()
+				gtk_notebook_set_scrollable(gtk_notebook(widget), True)
+				g_signal_connect(gtk_notebook(widget), "switch-page", G_CALLBACK(@TabControl_SwitchPage), @This)
+				.RegisterClass "TabControl", @This
+            #Else
+				WLet FClassAncestor, "SysTabControl32"
+				.RegisterClass "TabControl", "SysTabControl32"
+            #EndIf
             WLet FClassName, "TabControl"
-            WLet FClassAncestor, "SysTabControl32"
-            .RegisterClass "TabControl", "SysTabControl32"
             .Child       = @This
-            .ChildProc   = @WndProc
-            Base.ExStyle     = 0
-            Base.Style       = WS_CHILD 
+            #IfNDef __USE_GTK__
+				.ChildProc   = @WndProc
+				Base.ExStyle     = 0
+				Base.Style       = WS_CHILD 
+				.OnHandleIsAllocated = @HandleIsAllocated
+            #EndIf
+            FTabPosition = 2
             .Width       = 121
             .Height      = 121
-            .OnHandleIsAllocated = @HandleIsAllocated
         End With
     End Constructor
 

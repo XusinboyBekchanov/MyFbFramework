@@ -1,6 +1,6 @@
 ﻿'###############################################################################
-'#  GraphicType.bi                                                                 #
-'#  This file is part of MyFBFramework				                           #
+'#  GraphicType.bi                                                             #
+'#  This file is part of MyFBFramework                                         #
 '#  Version 1.0.0                                                              #
 '###############################################################################
 
@@ -21,14 +21,14 @@ Namespace My.Sys.Drawing
 			Cursor    As My.Sys.Drawing.Cursor
 			Image     As Any Ptr
 			ImageType As Integer
-    Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-    Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-    Declare Constructor
-			 Declare Destructor
-			 OnChange As Sub(BYREF Sender As GraphicType, Image As Any Ptr, ImageType As Integer)
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			Declare Constructor
+			Declare Destructor
+			OnChange As Sub(BYREF Sender As GraphicType, Image As Any Ptr, ImageType As Integer)
 	End Type
 
-Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
         Select Case LCase(PropertyName)
         Case "bitmap": Return @Bitmap
         Case "icon": Return @Icon
@@ -41,7 +41,7 @@ Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
     Function GraphicType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
         If Value <> 0 Then
             Select Case LCase(PropertyName)
-            Case "bitmap": ?QWString(Value): This.Bitmap = QWString(Value)
+            Case "bitmap": This.Bitmap = QWString(Value)
             Case "icon": This.Icon = QWString(Value)
             Case "cursor": This.Cursor = QWString(Value)
             Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -53,12 +53,14 @@ Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 	Sub GraphicType.BitmapChanged(BYREF Sender As My.Sys.Drawing.BitmapType)
 		If Sender.Graphic Then 
 			With QGraphic(Sender.Graphic)
-				.Image = Sender.Handle
-				.ImageType = IMAGE_BITMAP
-				If .Ctrl Then
-				   'QGraphic(Sender.Graphic).Ctrl->Perform(CM_CHANGEIMAGE,IMAGE_BITMAP,0)
-				   If .OnChange Then .OnChange(QGraphic(Sender.Graphic), Sender.Handle, .ImageType)
-				End If
+				'#IfNDef __USE_GTK__
+					.Image = Sender.Handle
+					.ImageType = 0
+					If .Ctrl Then
+					   'QGraphic(Sender.Graphic).Ctrl->Perform(CM_CHANGEIMAGE,IMAGE_BITMAP,0)
+					   If .OnChange Then .OnChange(QGraphic(Sender.Graphic), Sender.Handle, .ImageType)
+					End If
+				'#EndIf
 			End With
 		End If
 	End Sub
@@ -66,11 +68,13 @@ Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 	Sub GraphicType.IconChanged(BYREF Sender As My.Sys.Drawing.Icon)
 		If Sender.Graphic Then 
 			With QGraphic(Sender.Graphic)
-				.Image = Sender.Handle
-				.ImageType = IMAGE_ICON
-				If .Ctrl Then
-				   If .OnChange Then .OnChange(QGraphic(Sender.Graphic), Sender.Handle, .ImageType)
-				End If
+				'#IfNDef __USE_GTK__
+					.Image = Sender.Handle
+					.ImageType = 1
+					If .Ctrl Then
+					   If .OnChange Then .OnChange(QGraphic(Sender.Graphic), Sender.Handle, .ImageType)
+					End If
+				'#EndIf
 			End With
 		End If
 	End Sub
@@ -78,17 +82,19 @@ Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 	Sub GraphicType.CursorChanged(BYREF Sender As My.Sys.Drawing.Cursor)
 		If Sender.Graphic Then 
 		   With QGraphic(Sender.Graphic)
-				.Image = Sender.Handle
-				.ImageType = IMAGE_CURSOR
-				If .Ctrl Then
-				   If .OnChange Then .OnChange(QGraphic(Sender.Graphic), Sender.Handle, .ImageType)
-				End If
+				'#IfNDef __USE_GTK__
+					.Image = Sender.Handle
+					.ImageType = 2
+					If .Ctrl Then
+					   If .OnChange Then .OnChange(QGraphic(Sender.Graphic), Sender.Handle, .ImageType)
+					End If
+				'#EndIf
 			End With
 		End If
 	End Sub
 
 	Constructor GraphicType
-    WLet FClassName, "GraphicType"
+    	WLet FClassName, "GraphicType"
 		This.Bitmap.Graphic = @This
 		This.Bitmap.Changed = @BitmapChanged
 		This.Icon.Graphic   = @This
