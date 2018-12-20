@@ -333,7 +333,6 @@ Function OpenFileDialog.Execute As Boolean
 		bResult = GetOpenFilename(@ofn)
 		IF bResult THEN
 			FileName = cwsFile
-			FileName = Replace(FileName, "\", "/")
 			Dim buff As WString Ptr = @cwsFile
 			For i As Integer = 0 To max_path * 100
 				If i <> 0 AndAlso buff[i] = 0 Then
@@ -341,9 +340,9 @@ Function OpenFileDialog.Execute As Boolean
 						Exit For
 					End If
 				ElseIf i = 0 Then
-					FileNames.Add Replace(buff[i], "\", "/") & ""
+					FileNames.Add buff[i] & ""
 				ElseIf buff[i - 1] = 0 Then
-					FileNames.Add Replace(buff[0] & "/" & buff[i], "\", "/")
+					FileNames.Add buff[0] & "\" & buff[i]
 				End If
 			Next
 			If FileNames.Count > 1 Then FileNames.Remove 0 

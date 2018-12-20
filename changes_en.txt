@@ -1,0 +1,11 @@
+Version 1.0.2 (December 20, 2018)
+- Added: Cross-platform functionality
+- Added: ToolPalette control
+- Added: ImageBox control
+Version 1.0.1 (August 19, 2018)
+- Added: ColorDialog
+- Fixed: CommandButton OnClick event.
+Version 1.0.0 (July 14, 2018)
+- Added: GUI elements
+- Added: Drawing classes
+and others.

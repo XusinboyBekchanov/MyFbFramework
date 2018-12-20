@@ -1361,7 +1361,7 @@ Dim Shared sReplaceText As WString Ptr
 Function Replace(ByRef subject As WString, ByRef oldtext As const WString, ByRef newtext As const WString, ByVal start As Integer = 1, byref count as integer = 0) ByRef As WString
     Dim As Integer n, c, ls = Len(subject), lo = Len(oldtext), ln = Len(newtext)
     If subject <> "" And oldtext <> "" And oldtext <> newtext Then
-        WReallocate sReplaceText, ls / lo * Max(lo, ln) + 10
+        WReallocate sReplaceText, ls / lo * Max(lo, ln)
         *sReplaceText = subject
         n = Instr(start, *sReplaceText, oldtext)
         Do While n <> 0
