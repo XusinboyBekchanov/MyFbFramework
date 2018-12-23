@@ -1209,6 +1209,7 @@ Namespace My.Sys.Forms
 					lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
 					lvStyle = lvStyle Or  LVS_EX_GRIDLINES Or LVS_EX_FULLROWSELECT
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
+					If .FView <> 0 Then .View = .View
 					For i As Integer = 0 To .Columns.Count -1
 						dim lvc as LVCOLUMN
 						lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
@@ -1299,7 +1300,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "ListView", WC_ListView
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
-				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or  LVS_REPORT Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
+				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
 				WLet FClassAncestor, WC_ListView
 			#EndIf
             WLet FClassName, "ListView"

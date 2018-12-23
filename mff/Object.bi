@@ -77,6 +77,7 @@ Namespace My.Sys
     End Constructor
 
     Destructor Object
+    	WDeallocate FTemp
         WDeallocate FClassName
     End Destructor
     

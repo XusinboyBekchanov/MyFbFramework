@@ -1356,21 +1356,21 @@ Sub Split(ByRef subject As WString, ByRef Delimiter As Wstring, result() As Wstr
     WLet result(n - 1), Mid(subject, p, i - p)
 End Sub
 
-Dim Shared sReplaceText As WString Ptr
+Dim Shared sReplaceText(10) As WString Ptr
 
-Function Replace(ByRef subject As WString, ByRef oldtext As const WString, ByRef newtext As const WString, ByVal start As Integer = 1, byref count as integer = 0) ByRef As WString
+Function Replace(ByRef subject As WString, ByRef oldtext As const WString, ByRef newtext As const WString, ByVal start As Integer = 1, byref count as integer = 0, memnumber As Integer = 0) ByRef As WString
     Dim As Integer n, c, ls = Len(subject), lo = Len(oldtext), ln = Len(newtext)
     If subject <> "" And oldtext <> "" And oldtext <> newtext Then
-        WReallocate sReplaceText, ls / lo * Max(lo, ln)
-        *sReplaceText = subject
-        n = Instr(start, *sReplaceText, oldtext)
+        WReallocate sReplaceText(memnumber), ls / lo * Max(lo, ln)
+        *sReplaceText(memnumber) = subject
+        n = Instr(start, *sReplaceText(memnumber), oldtext)
         Do While n <> 0
             c = c + 1
-            *sReplaceText = Left(*sReplaceText, n - 1) & newtext & Mid(*sReplaceText, n + lo)
-            n = Instr(n + ln, *sReplaceText, oldtext)
+            *sReplaceText(memnumber) = Left(*sReplaceText(memnumber), n - 1) & newtext & Mid(*sReplaceText(memnumber), n + lo)
+            n = Instr(n + ln, *sReplaceText(memnumber), oldtext)
         Loop
         count = c
-        Return *sReplaceText
+        Return *sReplaceText(memnumber)
     Else
         Return subject
     Endif

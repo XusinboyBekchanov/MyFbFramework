@@ -601,13 +601,12 @@ Namespace My.Sys.Forms
         #EndIf
         
         #IfNDef Hint_Off
-            Property Control.Hint ByRef As WString '...'
-                Return *FHint
+            Property Control.Hint ByRef As WString
+                Return WGet(FHint)
             End Property
         
             Property Control.Hint(ByRef Value As WString)
-                FHint = Cast(WString Ptr, ReAllocate(FHint, (Len(WString) + 1) * SizeOf(WString)))
-                *FHint = Value
+                WLet FHint, Value
                 #IFNDef __USE_GTK__
 					If FHandle Then
 						If ToolTipHandle Then
@@ -621,7 +620,7 @@ Namespace My.Sys.Forms
         #EndIf
         
         #IfNDef Align_Off
-            Property Control.Align As Integer '...'
+            Property Control.Align As Integer
                 Return FAlign
             End Property
         
@@ -824,7 +823,7 @@ Namespace My.Sys.Forms
                 Return FHeight
             End Property
         
-            Property Control.Height(Value As Integer) '...'
+            Property Control.Height(Value As Integer)
                 FHeight = Value
                 Move
             End Property
@@ -916,7 +915,7 @@ Namespace My.Sys.Forms
         #EndIf
         
         #IfNDef ShowHint_Off
-            Property Control.ShowHint As Boolean '...'
+            Property Control.ShowHint As Boolean
                 Return FShowHint
             End Property
         
@@ -924,7 +923,7 @@ Namespace My.Sys.Forms
                 FShowHint = Value
                 #IfNDef __USE_GTK__
 					If Handle Then 
-						SendMessage(ToolTipHandle,TTM_ACTIVATE,FShowHint,0)
+						If ToolTipHandle Then SendMessage(ToolTipHandle,TTM_ACTIVATE,FShowHint,0)
 					End If
 				#EndIf
             End Property
@@ -1170,6 +1169,7 @@ Namespace My.Sys.Forms
 					BringToFront
 					SendMessage Handle, CM_CREATE, 0, 0
 					If This.Font Then This.Font.Parent = @This
+					If ShowHint Then AllocateHint
 					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
@@ -1473,7 +1473,25 @@ Namespace My.Sys.Forms
 						This.Tracked = true
 					End If
 				Case WM_MOUSEWHEEL
-					If OnMouseWheel Then OnMouseWheel(This,Sgn(Message.wParam),Message.lParamLo,Message.lParamHi,Message.wParam AND &HFFFF)
+					Static scrDirection As Integer
+					#IfDef __FB_64bit__
+
+						If Message.wParam < 4000000000 Then
+
+							scrDirection = 1
+
+						Else
+
+							scrDirection = -1
+
+						End If
+
+					#Else
+
+						scrDirection = Sgn(Message.wParam)
+
+					#EndIf
+					If OnMouseWheel Then OnMouseWheel(This, scrDirection, Message.lParamLo,Message.lParamHi,Message.wParam AND &HFFFF)
 				Case WM_MOUSELEAVE
 					If OnMouseLeave Then OnMouseLeave(This)
 					This.Tracked = false
@@ -1535,10 +1553,10 @@ Namespace My.Sys.Forms
 					Dim As LPNMHDR NM
 					Static As HWND FWindow
 					NM = Cast(LPNMHDR,Message.lParam)
-					FWindow = NM->hwndFrom
-					If NM->Code = TTN_NEEDTEXT Then 
+					If NM->Code = TTN_NEEDTEXT Then
 						If FWindow Then SendMessage FWindow,CM_NEEDTEXT,Message.wParam, Message.lParam
 					Else
+						FWindow = NM->hwndFrom
 						SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam 
 					End If
 				Case WM_HELP
@@ -1674,7 +1692,7 @@ Namespace My.Sys.Forms
 			End Function
 		
 			Function Control.SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-    			On Error Goto ErrorHandler
+'    			On Error Goto ErrorHandler
 				Dim As Control Ptr Ctrl
 				Dim Message As Message
 				Dim As String A1111
@@ -1697,8 +1715,8 @@ Namespace My.Sys.Forms
 				End If
 				Message.Result = CallWindowProc(GetClassProc(FWindow), FWindow, Msg, wParam, lParam)
 				Return Message.Result
-    Exit Function
-ErrorHandler:
+'    Exit Function
+'ErrorHandler:
 '    ?GetMessageName(msg) & " " & ErrDescription(Err) & " (" & Err & ") " & _
 '        "in line " & Erl() & " " & _
 '        "in function " & ZGet(Erfn()) & " " & _
@@ -2115,9 +2133,11 @@ ErrorHandler:
         Sub Control.AllocateHint
             #IfnDef __USE_GTK__
 				If Handle Then
-					ToolTipHandle = CreateWindowEx(0, TOOLTIPS_CLASS, "", TTS_ALWAYSTIP, 0, 0, 0, 0, FHandle, NULL, GetModuleHandle(NULL), NULL)
+					ToolTipHandle = CreateWindowEx(0, TOOLTIPS_CLASS, "", TTS_ALWAYSTIP Or WS_POPUP, 0, 0, 0, 0, FHandle, NULL, GetModuleHandle(NULL), NULL)
+					FToolInfo.cbSize=SizeOf(TOOLINFO)
 					FToolInfo.uFlags   = TTF_IDISHWND OR TTF_SUBCLASS
-					If FParent Then FToolInfo.hwnd = FParent->Handle
+					SendMessage(ToolTipHandle, TTM_SETDELAYTIME, TTDT_INITIAL, 100)
+            		If FParent Then FToolInfo.hwnd = FParent->Handle
 					FToolInfo.hinst    = GetModuleHandle(NULL)
 					FToolInfo.uId      = Cast(Integer, Handle)
 					FToolInfo.lpszText = FHint
@@ -2225,6 +2245,7 @@ ErrorHandler:
             FWidth = 0
             FHeight = 0
             FBackColor = -1
+            FShowHint = True
             FVisible = True
             FEnabled = True
             'FHint = CAllocate(0)
@@ -2265,5 +2286,9 @@ End Function
 
 Sub ControlSetFocus Alias "ControlSetFocus"(Ctrl As My.Sys.Forms.Control Ptr) Export
     Ctrl->SetFocus()
+End Sub
+
+Sub ControlFreeWnd Alias "ControlFreeWnd"(Ctrl As My.Sys.Forms.Control Ptr) Export
+    Ctrl->FreeWnd()
 End Sub
 

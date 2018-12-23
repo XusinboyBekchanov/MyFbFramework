@@ -50,8 +50,8 @@ WebBrowser BITMAP DISCARDABLE "../resources/WebBrowser.bmp"
 
 #define VER_FILEDESCRIPTION_STR     "MyFbFramework\0"
 
-#define VER_FILEVERSION             1,0,1,124
-#define VER_FILEVERSION_STR         "1.0.1.124\0"
+#define VER_FILEVERSION             1,0,1,131
+#define VER_FILEVERSION_STR         "1.0.1.131\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
