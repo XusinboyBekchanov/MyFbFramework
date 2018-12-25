@@ -728,8 +728,8 @@ Namespace My.Sys.Forms
 						Else
 							Dim As Rect R
 							GetWindowRect Handle,@R
-							MapWindowPoints 0,GetParent(Handle),Cast(Point Ptr,@R),2
-							Return R.Left
+							MapWindowPoints 0,GetParent(Handle),Cast(Point Ptr,@R), 2
+							FLeft = R.Left
 						End If
 					End If
 				#EndIf
@@ -757,7 +757,7 @@ Namespace My.Sys.Forms
 							Dim As Rect R
 							GetWindowRect Handle,@R
 							MapWindowPoints 0,GetParent(Handle),Cast(Point Ptr,@R),2
-							Return R.Top
+							FTop = R.Top
 						End If
 					End If
 				#EndIf
@@ -1328,7 +1328,7 @@ Namespace My.Sys.Forms
 						Dim frm As Control Ptr = GetForm
 						If frm Then
 							frm->FActiveControl = @This
-							If frm->OnActiveControlChange Then frm->OnActiveControlChange(*frm)
+							If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
 						End If
 					Else
 						If OnLostFocus Then OnLostFocus(This)
@@ -1961,8 +1961,9 @@ Namespace My.Sys.Forms
 							#Else
                             If CInt(.FVisible) AndAlso CInt(.FHandle) Then
                             #EndIf
-                                aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
-                                If .Anchor.Left <> asNone Then
+                            	aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
+                            	This.FWidth = This.Width: This.FHeight = This.Height
+                            	If .Anchor.Left <> asNone Then
                                     If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
                                     If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIF(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
                                 ElseIf .Anchor.Right <> asNone Then
