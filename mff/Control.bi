@@ -156,8 +156,9 @@ Namespace My.Sys.Forms
                 Declare Function SelectNext(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
                 Declare Virtual Sub ProcessMessage(ByRef message As Message)
                 Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
+                OnActiveControlChanged As Sub(ByRef Sender As Control)
                 #IfNDef __USE_GTK__
-					OnHandleIsAllocated As Sub(ByRef Sender As Control)
+                	OnHandleIsAllocated As Sub(ByRef Sender As Control)
 					OnHandleIsDestroyed As Sub(ByRef Sender As Control)
 				#EndIf
             Public:
@@ -271,7 +272,6 @@ Namespace My.Sys.Forms
                 Declare Operator Let(ByRef Value As Control Ptr)
                 Declare Constructor
                 Declare Destructor
-                OnActiveControlChange As Sub(ByRef Sender As Control)
                 OnCreate     As Sub(ByRef Sender As Control)
                 OnDestroy    As Sub(ByRef Sender As Control)
                 OnDropFile   As Sub(ByRef Sender As Control, ByRef Filename As WString)
@@ -1475,21 +1475,13 @@ Namespace My.Sys.Forms
 				Case WM_MOUSEWHEEL
 					Static scrDirection As Integer
 					#IfDef __FB_64bit__
-
 						If Message.wParam < 4000000000 Then
-
 							scrDirection = 1
-
 						Else
-
 							scrDirection = -1
-
 						End If
-
 					#Else
-
 						scrDirection = Sgn(Message.wParam)
-
 					#EndIf
 					If OnMouseWheel Then OnMouseWheel(This, scrDirection, Message.lParamLo,Message.lParamHi,Message.wParam AND &HFFFF)
 				Case WM_MOUSELEAVE
@@ -1541,11 +1533,11 @@ Namespace My.Sys.Forms
 				Case WM_KEYUP
 					If OnKeyUp Then OnKeyUp(This,LoWord(Message.WParam),Message.lParam And &HFFFF)
 				Case WM_SETFOCUS
-					If OnGotFocus Then OnGotFocus(This) 
-					Dim frm As Control Ptr = GetForm
+					If OnGotFocus Then OnGotFocus(This)
+					Dim frm As Control Ptr = TopLevelControl
 					If frm Then
 						frm->FActiveControl = @This
-						If frm->OnActiveControlChange Then frm->OnActiveControlChange(*frm)
+						If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
 					End If
 				Case WM_KILLFOCUS
 					If OnLostFocus Then OnLostFocus(This)

@@ -57,6 +57,7 @@ Namespace My.Sys.Forms
             FWindowState   As Integer
             FCreated	   As Boolean
             FOnCreate      As Sub(BYREF Sender As Form)
+            Declare Static Sub ActiveControlChanged(ByRef Sender As Control)
             #IfNDef __USE_GTK__
 				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
 				Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
@@ -130,17 +131,18 @@ Namespace My.Sys.Forms
             Declare Sub Center
             Declare Constructor
             Declare Destructor
+            OnActivate   As Sub(ByRef Sender As Form)
+            OnActiveControlChange As Sub(ByRef Sender As Form)
+            OnClose      As Sub(ByRef Sender As Form, BYREF Action As Integer)
+            OnDeActivate As Sub(ByRef Sender As Form)
+            OnHide       As Sub(ByRef Sender As Form)
+            OnFree       As Sub(ByRef Sender As Form)
             #IfNDef __USE_GTK__
 				OnPaint      As Sub(ByRef Sender As Form, DC As HDC, R As Rect)
             #EndIf
-            OnShow       As Sub(ByRef Sender As Form)
-            OnHide       As Sub(ByRef Sender As Form)
-            OnFree       As Sub(ByRef Sender As Form)
-            OnClose      As Sub(ByRef Sender As Form, BYREF Action As Integer)
             OnSize       As Sub(ByRef Sender As Form)
+            OnShow       As Sub(ByRef Sender As Form)
             OnTimer      As Sub(ByRef Sender As Form)
-            OnActivate   As Sub(ByRef Sender As Form)
-            OnDeActivate As Sub(ByRef Sender As Form)
     End Type
 
     Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -546,6 +548,14 @@ Namespace My.Sys.Forms
         Base.Enabled = Value
         FWindowState = Value
     End Property
+    
+    Sub Form.ActiveControlChanged(ByRef Sender As Control)
+    	If Sender.Child Then
+    		With QForm(Sender.Child)
+    			If .OnActiveControlChange Then .OnActiveControlChange(QForm(Sender.Child))
+    		End With
+    	End If
+    End Sub
 
 	#IfNDef __USE_GTK__
 		Sub Form.WndProc(BYREF message As Message)
@@ -1057,6 +1067,7 @@ Namespace My.Sys.Forms
 			#EndIf
             WLet FClassName, "Form"
             WLet FClassAncestor, ""
+            .OnActiveControlChanged = @ActiveControlChanged
             #IfNDef __USE_GTK__
 				.ExStyle           = WS_EX_CONTROLPARENT Or WS_EX_WINDOWEDGE 'FExStyle(FBorderStyle) OR FMainStyle(FMainForm)
 				.Style             = WS_CAPTION Or WS_SYSMENU Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX Or WS_THICKFRAME Or WS_DLGFRAME Or WS_BORDER 'FStyle(FBorderStyle) Or FChild(Abs_(FIsChild))
