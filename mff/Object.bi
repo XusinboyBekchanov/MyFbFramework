@@ -94,3 +94,21 @@ Namespace My.Sys
     Type TimerEvent      As Sub(ByRef Sender As My.Sys.Object, TimerId As Integer, TimerProc As Any Ptr = 0)
 
 End Namespace
+
+#IfNDef ToString_Off
+	Function ToString Alias "ToString"(Obj As My.Sys.Object Ptr) ByRef As WString Export
+	    Return Obj->ToString
+	End Function
+#EndIf
+
+#IfNDef ReadProperty_Off
+	Function ReadProperty Alias "ReadProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String) As Any Ptr Export
+		Return Ctrl->ReadProperty(PropertyName)
+	End Function
+#EndIf
+
+#IfNDef WriteProperty_Off
+	Function WriteProperty Alias "WriteProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean Export
+		Return Ctrl->WriteProperty(PropertyName, Value)
+	End Function
+#EndIf

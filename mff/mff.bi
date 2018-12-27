@@ -220,30 +220,6 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
     Return True
 End Function
 
-#IfNDef ReadProperty_Off
-	Function ReadProperty Alias "ReadProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String) As Any Ptr Export
-	    'If Objects.Contains(Ctrl) Then
-	    '    Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
-	    '    Return Cpnt->ReadProperty(PropertyName)
-	    'Else
-	    '    Return 0
-	    'End If
-	    Return Ctrl->ReadProperty(PropertyName)
-	End Function
-#EndIf
-
-#IfNDef WriteProperty_Off
-	Function WriteProperty Alias "WriteProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean Export
-'	    If Objects.Contains(Ctrl) Then
-'	        Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
-'	        Return Cpnt->WriteProperty(PropertyName, Value)
-'	    Else
-'	        Return False
-'	    End If
-		Return Ctrl->WriteProperty(PropertyName, Value)
-	End Function
-#EndIf
-
 #IfNDef ShowPropertyPage_Off        
 	Function ShowPropertyPage Alias "ShowPropertyPage"(Ctrl As Any Ptr) As Boolean Export
 	    If Objects.Contains(Ctrl) Then
