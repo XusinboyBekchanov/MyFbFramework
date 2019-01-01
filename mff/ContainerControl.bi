@@ -48,7 +48,11 @@ Namespace My.Sys.Forms
 			If CInt(widget) AndAlso CInt(GTK_IS_NOTEBOOK(widget) <> 1) Then
 				Dim Proc As Function(widget As GtkWidget Ptr, event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
 				If gtk_widget_is_toplevel(widget) Then 
-					box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
+					#IfDef __USE_GTK3__
+						box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
+					#Else
+						box = gtk_vbox_new(False, 0)
+					#EndIf
 					gtk_container_add(GTK_CONTAINER(widget), box)
 					layoutwidget = gtk_layout_new(null, null)
 					'gtk_container_add(GTK_CONTAINER(widget), layoutwidget)

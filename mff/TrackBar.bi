@@ -333,7 +333,11 @@ Namespace My.Sys.Forms
     Constructor TrackBar
         Dim As Boolean Result
         #IfDef __USE_GTK__
-			widget = gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, NULL)
+        	#IfDef __USE_GTK3__
+				widget = gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, NULL)
+			#Else
+				widget = gtk_hscale_new(NULL)
+			#EndIf
 			RegisterClass "TrackBar", @This
         #Else
 			Dim As INITCOMMONCONTROLSEX ICC

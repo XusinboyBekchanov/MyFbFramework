@@ -591,7 +591,11 @@ namespace My.Sys.Forms
             				.OnHandleIsAllocated = @HandleIsAllocated
             #EndIf
             .Width         = 121
-            .Height        = 17            
+            #IfDef __USE_GTK__
+            	.Height        = 20
+            #Else
+            	.Height        = 17
+            #EndIf
         End With  
     End Constructor
 

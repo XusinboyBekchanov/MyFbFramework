@@ -237,13 +237,15 @@ Namespace My.Sys.Forms
 				gtk_container_remove(gtk_container(WindowWidget), box)
 				Widget = box
 				gtk_widget_set_size_request(Widget, FWidth, FHeight)
-				HeaderBarWidget = gtk_header_bar_new()
-				gtk_widget_set_sensitive(HeaderBarWidget, False)
-				gtk_header_bar_set_has_subtitle(gtk_header_bar(HeaderBarWidget), False)
-				'gtk_widget_set_size_request(widget, FW, 1)
-				gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(*FText))
-				'gtk_header_bar_set_show_close_button(gtk_header_bar(HeaderBarWidget), True)
-				gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget, false, false, 0)
+				#IfDef __USE_GTK3__
+					HeaderBarWidget = gtk_header_bar_new()
+					gtk_widget_set_sensitive(HeaderBarWidget, False)
+					gtk_header_bar_set_has_subtitle(gtk_header_bar(HeaderBarWidget), False)
+					'gtk_widget_set_size_request(widget, FW, 1)
+					gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(*FText))
+					'gtk_header_bar_set_show_close_button(gtk_header_bar(HeaderBarWidget), True)
+					gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget, false, false, 0)
+				#EndIf
 				Base.ParentWidget = Value
 				BorderStyle = BorderStyle
 			End If
@@ -312,7 +314,11 @@ Namespace My.Sys.Forms
     Property Form.Opacity(Value As Integer)
         FOpacity = Value
         #IfDef __USE_GTK__
-        	gtk_widget_set_opacity(widget, Value / 255.0)
+        	#IfDef __USE_GTK3__
+        		gtk_widget_set_opacity(widget, Value / 255.0)
+        	#Else
+        		gtk_window_set_opacity(gtk_window(widget), Value / 255.0)
+        	#EndIf
         #Else
 			ChangeExStyle WS_EX_LAYERED, Cast(Boolean, 255 - FOpacity)
 			If FHandle Then
@@ -535,7 +541,11 @@ Namespace My.Sys.Forms
 			If GTK_IS_WINDOW(widget) Then
 				gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
         	ElseIf HeaderBarWidget Then
-        		gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(Value))
+        		#IfDef __USE_GTK3__
+        			gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(Value))
+        		#Else
+        			
+        		#EndIf
         	End If
         #EndIf
     End Property
@@ -979,7 +989,22 @@ Namespace My.Sys.Forms
 
     Sub Form.CloseForm
 		#IfDef __USE_GTK__
-			gtk_window_close(Gtk_Window(widget))
+			#IfDef __USE_GTK3__
+				gtk_window_close(Gtk_Window(widget))
+			#Else
+				Dim As Integer Action = 1
+				If OnClose Then OnClose(This, Action)
+				Select Case Action
+				Case 0
+				Case 1
+					If MainForm Then
+						gtk_widget_destroy(widget)
+					Else
+						gtk_widget_hide(widget)
+					End If
+				Case 2
+				End Select
+			#EndIf
 		#Else
 			If Handle Then Perform(WM_CLOSE, 0, 0)
 		#EndIf

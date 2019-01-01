@@ -5,9 +5,13 @@
 #EndIf
 
 #IfDef __USE_GTK__
-	#DEFINE __USE_GTK3__
+	#IfnDef __USE_GTK2__
+		#DEFINE __USE_GTK3__
+	#EndIf
     #Include once "gtk/gtk.bi"
-    #include once "glib-object.bi"
+    #IfDef __USE_GTK3__
+    	#include once "glib-object.bi"
+    #EndIf
 #Else
     #DEFINE UNICODE
     #INCLUDE Once "Windows.bi"
@@ -42,6 +46,33 @@ Type Message
 		Captured As Any Ptr
 	#EndIf
 End Type
+
+#IfDef __USE_GTK__
+	#IfnDef __USE_GTK3__
+		const GDK_KEY_Escape = &hff1b
+		const GDK_KEY_Left = &hff51
+		const GDK_KEY_Right = &hff53
+		const GDK_KEY_Up = &hff52
+		const GDK_KEY_Down = &hff54
+		const GDK_KEY_Home = &hff50
+		const GDK_KEY_End = &hff57
+		const GDK_KEY_Delete = &hffff
+		const GDK_KEY_Cut = &h1008ff58
+		const GDK_KEY_Copy = &h1008ff57
+		const GDK_KEY_Paste = &h1008ff6d
+		const GDK_KEY_Redo = &hff66
+		const GDK_KEY_Undo = &hff65
+		const GDK_KEY_Page_Up = &hff55
+		const GDK_KEY_Page_Down = &hff56
+		const GDK_KEY_Insert = &hff63
+		const GDK_KEY_F9 = &hffc6
+		const GDK_KEY_F6 = &hffc3
+		const GDK_KEY_Tab = &hff09
+		const GDK_KEY_ISO_Left_Tab = &hfe20
+		const GDK_KEY_SPACE = &h020
+		const GDK_KEY_BACKSPACE = &hff08
+	#EndIf
+#EndIf
 
 Enum Keys
 	#IfDef __USE_GTK__

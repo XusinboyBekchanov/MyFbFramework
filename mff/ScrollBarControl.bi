@@ -201,7 +201,11 @@ Namespace My.Sys.Forms
 
 	Constructor ScrollBarControl
 		#IfDef __USE_GTK__
-			widget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL)
+			#IfDef __USE_GTK3__
+				widget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL)
+			#Else
+				widget = gtk_hscrollbar_new(NULL)
+			#EndIf
 			This.RegisterClass "ScrollBarControl", @This
 		#Else
 			SIF.cbSize = SizeOF(SCROLLINFO)

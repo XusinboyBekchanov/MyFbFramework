@@ -631,9 +631,15 @@ Function MsgBox OverLoad(ByRef MsgStr As WString, ByRef Caption As WString = "",
 										  ToUTF8(MsgStr), _
 										  NULL)
 		If ButtonsType = btYesNoCancel Then
-			gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_CANCEL)), GTK_RESPONSE_CANCEL)
-			gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_NO)), GTK_RESPONSE_NO)
-			gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_YES)), GTK_RESPONSE_YES)
+			#IfDef __USE_GTK3__
+				gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_CANCEL)), GTK_RESPONSE_CANCEL)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_NO)), GTK_RESPONSE_NO)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_YES)), GTK_RESPONSE_YES)
+			#Else
+				gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_NO, GTK_RESPONSE_NO)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_YES, GTK_RESPONSE_YES)
+			#EndIf
 			gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_YES)
 		End If
 		Result = gtk_dialog_run (GTK_DIALOG (dialog))

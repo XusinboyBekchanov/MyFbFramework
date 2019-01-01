@@ -525,7 +525,11 @@ Namespace My.Sys.Forms
     Constructor ListControl
 		With This
 		#IfDef __USE_GTK__
-			widget = gtk_list_box_new()
+			#IfDef __USE_GTK3__
+				widget = gtk_list_box_new()
+			#Else
+				widget = gtk_list_new()
+			#EndIf
 			.RegisterClass "ListControl", @This
 		#Else
 			ASortStyle(0)   = 0

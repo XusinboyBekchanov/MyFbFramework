@@ -694,7 +694,13 @@ type PMenuItem  as MenuItem ptr
 						HotKey = Replace(HotKey, "Alt+", "<Alt>")
 						HotKey = Replace(HotKey, "Shift+", "<Shift>")
 						gtk_accelerator_parse(ToUTF8(HotKey), @accelerator_key, @accelerator_mods)
-						gtk_accel_label_set_accel(GTK_ACCEL_LABEL (label), accelerator_key, accelerator_mods) 'accelerator_mods)
+						#IfDef __USE_GTK3__
+							gtk_accel_label_set_accel(GTK_ACCEL_LABEL (label), accelerator_key, accelerator_mods) 'accelerator_mods)
+						#Else
+							If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Accelerator Then
+								gtk_widget_add_accelerator (label, "activate", Owner->ParentWindow->Accelerator, accelerator_key, accelerator_mods, GTK_ACCEL_VISIBLE)
+							End If
+						#EndIf
 						'If Owner Then
 						'	Dim As Component Ptr Cpnt = Owner->GetTopLevel
 						'	If Cpnt->AccelGroup <> 0 Then Cpnt->AccelGroup = gtk_accel_group_new()
@@ -1010,18 +1016,29 @@ type PMenuItem  as MenuItem ptr
 				label = gtk_bin_get_child (GTK_BIN (widget))
 			'	g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
 			Else
-				box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				#IfDef __USE_GTK3__
+					box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				#Else
+					box = gtk_hbox_new(False, 1)
+				#EndIf
 				If wImageKey = "" Then
 					icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
 				Else
 					icon = gtk_image_new_from_icon_name(ToUTF8(wImageKey), GTK_ICON_SIZE_MENU)
+					#IfnDef __USE_GTK3__
+						gtk_misc_set_alignment (GTK_MISC (icon), 0.0, 0.0)
+					#EndIf
 				End If
 				gtk_image_set_pixel_size(gtk_image(icon), 16)
 				widget = gtk_menu_item_new()
 				label = gtk_accel_label_new (ToUTF8(wCaption & "   "))
-				gtk_label_set_xalign (GTK_LABEL (label), 0.0)
 				gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (label), widget)
 				gtk_box_pack_end (GTK_BOX (box), label, TRUE, TRUE, 0)
+				#IfDef __USE_GTK3__
+					gtk_label_set_xalign (GTK_LABEL (label), 0.0)
+				#Else
+					gtk_misc_set_alignment (GTK_MISC (label), 0.0, 0.0)
+				#EndIf
 				'gtk_container_add (GTK_CONTAINER (box), label)
 				gtk_container_add (GTK_CONTAINER (widget), box)
 				g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)

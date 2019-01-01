@@ -111,8 +111,10 @@ Namespace My.Sys.Forms
 			Static As Long xOrig, yOrig, xCur, yCur, i, down1
 			#IfDef __USE_GTK__
 				Dim As GdkDisplay Ptr display = gdk_display_get_default()
-				Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager(display)
-				Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer(device_manager)
+				#IfDef __USE_GTK3__
+					Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager(display)
+					Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer(device_manager)
+				#EndIf
 				Dim As GdkEvent Ptr e = Message.event
 				Select Case Message.event->Type
 			#Else
@@ -136,7 +138,11 @@ Namespace My.Sys.Forms
 			#EndIf
 					down1 = 1
 				#IfDef __USE_GTK__
-					gdk_device_get_position (device, NULL, @xOrig, @yOrig)
+					#IfDef __USE_GTK3__
+						gdk_device_get_position (device, NULL, @xOrig, @yOrig)
+					#Else
+						gdk_display_get_pointer (display, NULL, @xOrig, @yOrig, NULL)
+					#EndIf
 				#Else
 					If (GetCursorPos(@g_OrigCursorPos)) Then
 						SetCapture(Handle)
@@ -163,7 +169,11 @@ Namespace My.Sys.Forms
 					If down1 = 1 Then
 						i = This.Parent->IndexOf(This)
 					#IfDef __USE_GTK__
-						gdk_device_get_position (device, NULL, @xCur, @yCur)
+						#IfDef __USE_GTK3__
+							gdk_device_get_position (device, NULL, @xCur, @yCur)
+						#Else
+							gdk_display_get_pointer (display, NULL, @xCur, @yCur, NULL)
+						#EndIf
 					#Else
 						if (GetCursorPos(@g_CurCursorPos)) Then
 							xCur = g_CurCursorPos.x
@@ -292,6 +302,13 @@ Namespace My.Sys.Forms
 			End If
 			return FALSE
 	    End Function
+	    
+	    Function OnExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
+			OnDraw(widget, cr, data1)
+			cairo_destroy(cr)
+			return FALSE
+	    End Function
 	#EndIf
         
     Constructor Splitter
@@ -315,7 +332,11 @@ Namespace My.Sys.Forms
 	                       GDK_POINTER_MOTION_HINT_MASK)
 				'gtk_scrolled_window_set_policy(gtk_scrolled_window(widget), GTK_POLICY_EXTERNAL, GTK_POLICY_EXTERNAL)
 				.RegisterClass "Splitter", @This
-				g_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+				#IfDef __USE_GTK3__
+					g_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+             	#Else
+             		g_signal_connect(widget, "expose-event", G_CALLBACK(@OnExposeEvent), @This)
+             	#EndIf
              #Else
 				.RegisterClass "Splitter"
 				 .ChildProc = @WndProc

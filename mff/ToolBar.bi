@@ -961,7 +961,11 @@ Namespace My.Sys.Forms
             WLet FClassName, "ToolBar"
             WLet FClassAncestor, "ToolBarWindow32"
             .Width             = 121
-            .Height            = 26
+            #IfDef __USE_GTK__
+            	.Height            = 30
+            #Else
+            	.Height            = 26
+            #EndIf
             '.Font              = @Font
             '.Cursor            = @Cursor
         End With 

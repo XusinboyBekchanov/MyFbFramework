@@ -774,10 +774,18 @@ Namespace My.Sys.Forms
             Property Control.Width As Integer
                 #IfDef __USE_GTK__
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
-						FWidth = gtk_widget_get_allocated_width(widget)
+						#IfDef __USE_GTK3__
+							FWidth = gtk_widget_get_allocated_width(widget)
+						#Else
+							FWidth = widget->allocation.width
+						#EndIf
 					ElseIf widget Then
 						If gtk_widget_get_realized(widget) Then
-							If gtk_widget_get_allocated_width(widget) > 1 Then FWidth = gtk_widget_get_allocated_width(widget)
+							#IfDef __USE_GTK3__
+								If gtk_widget_get_allocated_width(widget) > 1 Then FWidth = gtk_widget_get_allocated_width(widget)
+							#Else
+								If widget->allocation.width > 1 Then FWidth = widget->allocation.width
+							#EndIf
 							'Dim As GtkAllocation alloc
 							'gtk_widget_get_allocation (widget, @alloc)
 							'FWidth = alloc.width
@@ -806,10 +814,18 @@ Namespace My.Sys.Forms
             Property Control.Height As Integer
                 #IfDef __USE_GTK__
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
-						FHeight = gtk_widget_get_allocated_height(widget)
+						#IfDef __USE_GTK3__
+							FHeight = gtk_widget_get_allocated_height(widget)
+						#Else
+							FHeight = widget->allocation.height
+						#EndIf
 					ElseIf widget Then
 						If gtk_widget_get_realized(widget) Then
-							If gtk_widget_get_allocated_height(widget) > 1 Then FHeight = gtk_widget_get_allocated_height(widget)
+							#IfDef __USE_GTK3__
+								If gtk_widget_get_allocated_height(widget) > 1 Then FHeight = gtk_widget_get_allocated_height(widget)
+							#Else
+								If widget->allocation.height > 1 Then FHeight = widget->allocation.height
+							#EndIf
 						End If
 					End If
                 #Else
@@ -834,7 +850,11 @@ Namespace My.Sys.Forms
                 #IfDef __USE_GTK__
 					Dim As GtkRequisition minimum, requisition
 					If layoutwidget Then
-						FClientWidth = gtk_widget_get_allocated_width(layoutwidget)
+						#IfDef __USE_GTK3__
+							FClientWidth = gtk_widget_get_allocated_width(layoutwidget)
+						#Else
+							FClientWidth = layoutwidget->allocation.width
+						#EndIf
 					'ElseIf fixedwidget Then
 					'	FClientWidth = gtk_widget_get_allocated_width(fixedwidget)
 						
@@ -878,7 +898,11 @@ Namespace My.Sys.Forms
                 #IfDef __USE_GTK__
 					Dim As GtkRequisition minimum, requisition
 					If layoutwidget Then
-						FClientHeight = gtk_widget_get_allocated_height(layoutwidget)
+						#IfDef __USE_GTK3__
+							FClientHeight = gtk_widget_get_allocated_height(layoutwidget)
+						#Else
+							FClientHeight = layoutwidget->allocation.height
+						#EndIf
 					'ElseIf fixedwidget Then
 					'	FClientHeight = gtk_widget_get_allocated_height(fixedwidget)
 					'	Dim As guint width_, height_
@@ -1265,10 +1289,18 @@ Namespace My.Sys.Forms
 							ContextMenu->Popup(e->button.x, e->button.y, @Message)
 						End If
 					End If
+				#IfDef __USE_GTK3__
 				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
+				#Else
+				Case GDK_2BUTTON_PRESS
+				#EndIf
 					If OnDblClick Then OnDblClick(This)
 					Message.Result = True
+				#IfDef __USE_GTK3__
 				Case GDK_3BUTTON_PRESS, GDK_TRIPLE_BUTTON_PRESS
+				#Else
+				Case GDK_3BUTTON_PRESS
+				#EndIf
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
 					If OnMouseMove Then OnMouseMove(This, DownButton, e->Motion.x, e->Motion.y, e->Motion.state)
@@ -1294,10 +1326,12 @@ Namespace My.Sys.Forms
 				'Case GDK_DRAG_STATUS
 				Case GDK_DROP_START
 				Case GDK_DROP_FINISHED
-				Case GDK_TOUCH_BEGIN
-				Case GDK_TOUCH_UPDATE
-				Case GDK_TOUCH_END
-				Case GDK_TOUCH_CANCEL
+				#IfDef __USE_GTK3__
+					Case GDK_TOUCH_BEGIN
+					Case GDK_TOUCH_UPDATE
+					Case GDK_TOUCH_END
+					Case GDK_TOUCH_CANCEL
+				#EndIf
 				'Case GDK_PAD_BUTTON_PRESS
 				'Case GDK_PAD_BUTTON_RELEASE
 				'Case GDK_PAD_RING
@@ -1321,7 +1355,15 @@ Namespace My.Sys.Forms
 					'Requests @This
 					RequestAlign
 				Case GDK_SCROLL
-					If OnMouseWheel Then OnMouseWheel(This, e->Scroll.delta_x, e->Scroll.x, e->Scroll.y, e->Scroll.state)
+					#IfDef __USE_GTK3__
+						If OnMouseWheel Then OnMouseWheel(This, e->Scroll.delta_x, e->Scroll.x, e->Scroll.y, e->Scroll.state)
+					#Else
+						If e->Scroll.direction = GDK_SCROLL_UP Then
+							If OnMouseWheel Then OnMouseWheel(This, -1, e->Scroll.x, e->Scroll.y, e->Scroll.state)
+						Else
+							If OnMouseWheel Then OnMouseWheel(This, 1, e->Scroll.x, e->Scroll.y, e->Scroll.state)
+						End If
+					#EndIf
 				Case GDK_FOCUS_CHANGE
 					If Cast(GdkEventFocus Ptr, e)->in Then
 						If OnGotFocus Then OnGotFocus(This)
@@ -1754,13 +1796,35 @@ Namespace My.Sys.Forms
         #IfDef __USE_GTK__
 			Sub Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
-				
+				If gtk_is_layout(widget) Then
+					#IfDef __USE_GTK3__
+						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+					#Else
+						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+					#EndIf
+''					If Ctrl->BackColor <> -1 Then
+''						Dim As Integer iColor = Ctrl->BackColor
+''						cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
+''						cairo_set_source_rgb(cr, Abs(GetRed(iColor) / 255.0), Abs(GetGreen(iColor) / 255.0), Abs(GetBlue(iColor) / 255.0))
+''						cairo_fill(cr)
+''					End If
+					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
+						Ctrl->AllocatedWidth = AllocatedWidth
+						Ctrl->AllocatedHeight = AllocatedHeight
+						Ctrl->RequestAlign AllocatedWidth, AllocatedHeight, True
+						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl)
+					End If
+				End If
 			End Sub
-
+			
 			Function Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
 				If gtk_is_layout(widget) Then
-					Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+					#IfDef __USE_GTK3__
+						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+					#Else
+						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+					#EndIf
 					If Ctrl->BackColor <> -1 Then
 						Dim As Integer iColor = Ctrl->BackColor
 						cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
@@ -1774,6 +1838,13 @@ Namespace My.Sys.Forms
 						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl)
 					End If
 				End If
+				Return False
+			End Function
+			
+			Function Control_ExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+				Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
+				Control_Draw(widget, cr, data1)
+				cairo_destroy(cr)
 				Return False
 			End Function
 			
@@ -1795,7 +1866,12 @@ Namespace My.Sys.Forms
 	                       GDK_POINTER_MOTION_HINT_MASK)
 					'Result = g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					'Result = g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
-					g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
+					#IfDef __USE_GTK3__
+						g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
+					#Else
+						g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
+						g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
+					#EndIf
 				End If
 				If widget Then
 					gtk_widget_set_events(widget, _

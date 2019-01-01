@@ -402,7 +402,11 @@ Namespace My.Sys.Forms
     Function TabControl.ItemHeight(Index As Integer) As Integer
         If Index >= 0 AND Index < TabCount Then
             #IfDef __USE_GTK__
-				Return gtk_widget_get_allocated_height(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+            	#IfDef __USE_GTK3__
+					Return gtk_widget_get_allocated_height(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+            	#Else
+            		Return gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget)->allocation.height
+            	#EndIf
             #Else
 				Dim As Rect R
 				Perform(TCM_GETITEMRECT,Index,CInt(@R))
@@ -415,7 +419,11 @@ Namespace My.Sys.Forms
     Function TabControl.ItemWidth(Index As Integer) As Integer
         If Index >= 0 AND Index < TabCount Then
             #IfDef __USE_GTK__
-				Return gtk_widget_get_allocated_width(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+            	#IfDef __USE_GTK3__
+					Return gtk_widget_get_allocated_width(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+            	#Else
+            		Return gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget)->allocation.width
+            	#EndIf
             #Else
 				Dim As Rect R
 				Perform(TCM_GETITEMRECT,Index,CInt(@R))
@@ -522,7 +530,11 @@ Namespace My.Sys.Forms
         This.Add(tb)
         #IfDef __USE_GTK__
         	If widget Then
-				tb->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+        		#IfDef __USE_GTK3__
+					tb->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				#Else
+					tb->_box = gtk_hbox_new(false, 1)
+				#EndIf
 				tb->_icon = gtk_image_new_from_icon_name(ToUTF8(tb->ImageKey), GTK_ICON_SIZE_MENU)
 				gtk_container_add (GTK_CONTAINER (tb->_box), tb->_icon)
         		tb->_label = gtk_label_new(ToUTF8(tb->Caption))
@@ -569,8 +581,12 @@ Namespace My.Sys.Forms
         Tabs[FTabCount - 1] = tp
         This.Add(Tabs[FTabCount - 1])
         #IfDef __USE_GTK__
-        	If widget Then 
-				tp->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+        	If widget Then
+        		#IfDef __USE_GTK3__
+					tp->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				#Else
+					tp->_box = gtk_hbox_new(false, 1)
+				#EndIf
 				tp->_icon = gtk_image_new_from_icon_name(ToUTF8(tp->ImageKey), GTK_ICON_SIZE_MENU)
 				gtk_container_add (GTK_CONTAINER (tp->_box), tp->_icon)
         		tp->_label = gtk_label_new(ToUTF8(tp->Caption))

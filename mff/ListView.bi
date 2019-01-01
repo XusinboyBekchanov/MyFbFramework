@@ -957,7 +957,11 @@ Namespace My.Sys.Forms
     Property ListView.SingleClickActivate(Value As Boolean)
         FSingleClickActivate = Value
         #IfDef __USE_GTK__
-			gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(widget), Value)
+        	#IfDef __USE_GTK3__
+				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(widget), Value)
+        	#Else
+        		
+        	#EndIf
         #Else
 			
 		#EndIf
