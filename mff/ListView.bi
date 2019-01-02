@@ -174,7 +174,7 @@ Namespace My.Sys.Forms
             Declare Property Count(Value As Integer)
             Declare Property Column(Index As Integer) As ListViewColumn Ptr
             Declare Property Column(Index As Integer, Value As ListViewColumn Ptr)
-            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft) As ListViewColumn Ptr
+            Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As ListViewColumn Ptr
             Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft)
             Declare Sub Remove(Index As Integer)
             Declare Function IndexOf(BYREF FColumn As ListViewColumn Ptr) As Integer
@@ -536,7 +536,11 @@ Namespace My.Sys.Forms
     Property ListViewColumn.Width(Value As Integer)
         FWidth = Value
 		#IfDef __USE_GTK__
-			If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
+			#IfDef __USE_GTK3__
+				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
+			#Else
+				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
+			#EndIf
 		#Else
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
@@ -801,7 +805,7 @@ Namespace My.Sys.Forms
        'QListViewColumn(FColumns.Items[Index]) = Value 
     End Property
 
-    Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As integer, Format As ColumnFormat = cfLeft) As ListViewColumn Ptr
+    Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As integer, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As ListViewColumn Ptr
         Dim As ListViewColumn Ptr PColumn
         Dim As Integer Index
         #IfNDef __USE_GTK__
@@ -828,6 +832,11 @@ Namespace My.Sys.Forms
 				End With
 				PColumn->Column = gtk_tree_view_column_new()
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
+				If Editable Then
+					'g_object_set(rendertext, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL)
+					'g_object_set(gtk_cell_renderer_text(rendertext), "editable-set", true, NULL)
+					'g_object_set(gtk_cell_renderer_text(rendertext), "editable", true, NULL)
+				End If
 				If Index = 0 Then
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
@@ -838,7 +847,11 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(ListView Ptr, Parent)->widget), PColumn->Column)
-				gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
+				#IfDef __USE_GTK3__
+					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
+				#Else
+					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
+				#EndIf
 			End If
         #Else
 			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM

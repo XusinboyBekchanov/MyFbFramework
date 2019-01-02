@@ -861,7 +861,9 @@ Namespace My.Sys.Forms
 				
 				gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), false)
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), true)
-				gtk_widget_set_has_tooltip(widget, true)
+				#IfDef __USE_GTK3__
+					gtk_widget_set_has_tooltip(widget, true)
+				#EndIf
 				
 				g_signal_connect(gtk_tree_view(widget), "button-release-event", G_CALLBACK(@TreeView_ButtonRelease), @This)
 				g_signal_connect(widget, "row-activated", G_CALLBACK(@TreeView_RowActivated), @This)

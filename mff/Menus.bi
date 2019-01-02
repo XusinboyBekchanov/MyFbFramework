@@ -1480,7 +1480,9 @@ type PMenuItem  as MenuItem ptr
 						FParentWindow->Accelerator = gtk_accel_group_new()
 						gtk_window_add_accel_group (GTK_WINDOW (FParentWindow->widget), FParentWindow->Accelerator)
 					End If
-					gtk_widget_add_accelerator(mi->widget, "activate", FParentWindow->Accelerator, mi->accelerator_key, mi->accelerator_mods, GTK_ACCEL_VISIBLE)
+					If mi->accelerator_key <> 0 Then
+						gtk_widget_add_accelerator(mi->widget, "activate", FParentWindow->Accelerator, mi->accelerator_key, mi->accelerator_mods, GTK_ACCEL_VISIBLE)
+					End If
 				Next i
             #Else
 				Dim As String mnuCaption, HotKey

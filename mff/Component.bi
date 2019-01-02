@@ -1,4 +1,13 @@
 ﻿#Include Once "Object.bi"
+#IfDef __USE_GTK__
+	#IfnDef __USE_GTK2__
+		#DEFINE __USE_GTK3__
+	#EndIf
+    #Include once "gtk/gtk.bi"
+    #IfDef __USE_GTK3__
+    	#include once "glib-object.bi"
+    #EndIf
+#EndIf
 
 Namespace My.Sys.ComponentModel
     #DEFINE QComponent(__Ptr__) *Cast(Component Ptr,__Ptr__)
@@ -126,3 +135,72 @@ Namespace My.Sys.ComponentModel
         WDeallocate FClassAncestor
     End Destructor
 End Namespace
+
+Type Message
+	Sender   As Any Ptr
+	#IfDef __USE_GTK__
+		widget As GtkWidget Ptr
+		event As GdkEvent Ptr
+		Result   As Boolean
+	#Else
+		hWnd     As HWND
+		Msg      As UINT
+		wParam   As WPARAM
+		lParam   As LPARAM
+		Result   As LRESULT
+		wParamLo As Integer
+		wParamHi As Integer
+		lParamLo As Integer
+		lParamHi As Integer
+		Captured As Any Ptr
+	#EndIf
+End Type
+
+#IfDef __USE_GTK__
+	#IfnDef __USE_GTK3__
+		const GDK_KEY_Escape = &hff1b
+		const GDK_KEY_Left = &hff51
+		const GDK_KEY_Right = &hff53
+		const GDK_KEY_Up = &hff52
+		const GDK_KEY_Down = &hff54
+		const GDK_KEY_Home = &hff50
+		const GDK_KEY_End = &hff57
+		const GDK_KEY_Delete = &hffff
+		const GDK_KEY_Cut = &h1008ff58
+		const GDK_KEY_Copy = &h1008ff57
+		const GDK_KEY_Paste = &h1008ff6d
+		const GDK_KEY_Redo = &hff66
+		const GDK_KEY_Undo = &hff65
+		const GDK_KEY_Page_Up = &hff55
+		const GDK_KEY_Page_Down = &hff56
+		const GDK_KEY_Insert = &hff63
+		const GDK_KEY_F9 = &hffc6
+		const GDK_KEY_F6 = &hffc3
+		const GDK_KEY_Tab = &hff09
+		const GDK_KEY_ISO_Left_Tab = &hfe20
+		const GDK_KEY_SPACE = &h020
+		const GDK_KEY_BACKSPACE = &hff08
+	#EndIf
+#EndIf
+
+Enum Keys
+	#IfDef __USE_GTK__
+		Esc = GDK_KEY_ESCAPE
+		Left = GDK_KEY_LEFT
+		Right = GDK_KEY_RIGHT
+		Up = GDK_KEY_UP
+		Down = GDK_KEY_DOWN
+		Home = GDK_KEY_HOME
+		EndKey = GDK_KEY_END
+		DeleteKey = GDK_KEY_DELETE
+	#Else
+		Esc = VK_ESCAPE
+		Left = VK_LEFT
+		Right = VK_RIGHT
+		Up = VK_UP
+		Down = VK_DOWN
+		Home = VK_HOME
+		EndKey = VK_END
+		DeleteKey = VK_DELETE
+	#EndIf
+End Enum

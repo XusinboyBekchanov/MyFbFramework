@@ -166,7 +166,7 @@ Namespace My.Sys.Forms
 
     Constructor VScrollBar
         #IfDef __USE_GTK__
-			widget = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL)
+			widget = gtk_vscrollbar_new(NULL)
 			This.RegisterClass "VScrollBar", @This
 		#Else
 			SIF.cbSize = SizeOF(SCROLLINFO)

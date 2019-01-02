@@ -244,8 +244,15 @@ Namespace My.Sys.Forms
 					'gtk_widget_set_size_request(widget, FW, 1)
 					gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(*FText))
 					'gtk_header_bar_set_show_close_button(gtk_header_bar(HeaderBarWidget), True)
-					gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget, false, false, 0)
+				#Else
+					HeaderBarWidget = gtk_label_new(ToUTF8(*FText))
+					'Dim As GdkColor color1, color2
+					'gdk_color_parse ("black", @color1)
+					'gtk_widget_modify_bg(HeaderBarWidget, GTK_STATE_NORMAL, @color1)
+					'gdk_color_parse ("white", @color2)
+					'gtk_widget_modify_fg(HeaderBarWidget, GTK_STATE_NORMAL, @color2)
 				#EndIf
+				gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget, false, false, 0)
 				Base.ParentWidget = Value
 				BorderStyle = BorderStyle
 			End If
@@ -544,7 +551,7 @@ Namespace My.Sys.Forms
         		#IfDef __USE_GTK3__
         			gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(Value))
         		#Else
-        			
+        			gtk_label_set_text(gtk_label(HeaderBarWidget), ToUTF8(Value))
         		#EndIf
         	End If
         #EndIf

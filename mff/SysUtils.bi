@@ -4,15 +4,7 @@
 	#DEFINE __USE_WINAPI__
 #EndIf
 
-#IfDef __USE_GTK__
-	#IfnDef __USE_GTK2__
-		#DEFINE __USE_GTK3__
-	#EndIf
-    #Include once "gtk/gtk.bi"
-    #IfDef __USE_GTK3__
-    	#include once "glib-object.bi"
-    #EndIf
-#Else
+#IfNDef __USE_GTK__
     #DEFINE UNICODE
     #INCLUDE Once "Windows.bi"
     #INCLUDE Once "Win/CommCtrl.bi"
@@ -27,75 +19,6 @@ Const HELP_SETPOPUP_POS = &Hd
 
 '#DEFINE __AUTOMATE_CREATE_CHILDS__
  
-Type Message
-	Sender   As Any Ptr
-	#IfDef __USE_GTK__
-		widget As GtkWidget Ptr
-		event As GdkEvent Ptr
-		Result   As Boolean
-	#Else
-		hWnd     As HWND
-		Msg      As UINT
-		wParam   As WPARAM
-		lParam   As LPARAM
-		Result   As LRESULT
-		wParamLo As Integer
-		wParamHi As Integer
-		lParamLo As Integer
-		lParamHi As Integer
-		Captured As Any Ptr
-	#EndIf
-End Type
-
-#IfDef __USE_GTK__
-	#IfnDef __USE_GTK3__
-		const GDK_KEY_Escape = &hff1b
-		const GDK_KEY_Left = &hff51
-		const GDK_KEY_Right = &hff53
-		const GDK_KEY_Up = &hff52
-		const GDK_KEY_Down = &hff54
-		const GDK_KEY_Home = &hff50
-		const GDK_KEY_End = &hff57
-		const GDK_KEY_Delete = &hffff
-		const GDK_KEY_Cut = &h1008ff58
-		const GDK_KEY_Copy = &h1008ff57
-		const GDK_KEY_Paste = &h1008ff6d
-		const GDK_KEY_Redo = &hff66
-		const GDK_KEY_Undo = &hff65
-		const GDK_KEY_Page_Up = &hff55
-		const GDK_KEY_Page_Down = &hff56
-		const GDK_KEY_Insert = &hff63
-		const GDK_KEY_F9 = &hffc6
-		const GDK_KEY_F6 = &hffc3
-		const GDK_KEY_Tab = &hff09
-		const GDK_KEY_ISO_Left_Tab = &hfe20
-		const GDK_KEY_SPACE = &h020
-		const GDK_KEY_BACKSPACE = &hff08
-	#EndIf
-#EndIf
-
-Enum Keys
-	#IfDef __USE_GTK__
-		Esc = GDK_KEY_ESCAPE
-		Left = GDK_KEY_LEFT
-		Right = GDK_KEY_RIGHT
-		Up = GDK_KEY_UP
-		Down = GDK_KEY_DOWN
-		Home = GDK_KEY_HOME
-		EndKey = GDK_KEY_END
-		DeleteKey = GDK_KEY_DELETE
-	#Else
-		Esc = VK_ESCAPE
-		Left = VK_LEFT
-		Right = VK_RIGHT
-		Up = VK_UP
-		Down = VK_DOWN
-		Home = VK_HOME
-		EndKey = VK_END
-		DeleteKey = VK_DELETE
-	#EndIf
-End Enum
-
 #IfNDef __USE_GTK__
 	#DEFINE CM_NOTIFYCHILD 39998
 	#DEFINE CM_CHANGEIMAGE 39999
@@ -234,7 +157,7 @@ Namespace ClassContainer
         For i As Integer = 0 To UBound(Classes)
             If UCase(Classes(i).ClassName) = UCase(ClassName) Then Return Classes(i).ClassProc
         Next i
-        Return NULL
+        Return 0
     End Function
     
     #IFNDef __USE_GTK__
@@ -1392,7 +1315,7 @@ Dim Shared sReplaceText(10) As WString Ptr
 Function Replace(ByRef subject As WString, ByRef oldtext As const WString, ByRef newtext As const WString, ByVal start As Integer = 1, byref count as integer = 0, memnumber As Integer = 0) ByRef As WString
     Dim As Integer n, c, ls = Len(subject), lo = Len(oldtext), ln = Len(newtext)
     If subject <> "" And oldtext <> "" And oldtext <> newtext Then
-        WReallocate sReplaceText(memnumber), ls / lo * Max(lo, ln)
+        WReallocate sReplaceText(memnumber), ls / lo * IIF(lo > ln, lo, ln)
         *sReplaceText(memnumber) = subject
         n = Instr(start, *sReplaceText(memnumber), oldtext)
         Do While n <> 0

@@ -166,7 +166,7 @@ Namespace My.Sys.Forms
 
     Constructor HScrollBar
         #IfDef __USE_GTK__
-			widget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL)
+			widget = gtk_hscrollbar_new(NULL)
 			This.RegisterClass "HScrollBar", @This
         #Else
 			SIF.cbSize = SizeOF(SCROLLINFO)

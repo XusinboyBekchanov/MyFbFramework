@@ -1,4 +1,19 @@
-﻿#Include Once "Animate.bi"
+﻿#IfDef __FB_Win32__
+	#IfDef __FB_64bit__
+	    '#Compile -dll -x "mff64.dll" "mff.rc"
+	#Else
+	    '#Compile -dll -x "mff32.dll" "mff.rc"
+	#EndIf
+#Else
+	#IfDef __FB_64bit__
+	    '#Compile -dll -x "libmff64_gtk2.so"
+	#Else
+	    '#Compile -dll -x "libmff32_gtk2.so"
+	#EndIf
+#EndIf
+#Define __USE_GTK2__
+
+#Include Once "Animate.bi"
 #Include Once "Application.bi"
 #Include Once "Bitmap.bi"
 #Include Once "Brush.bi"
