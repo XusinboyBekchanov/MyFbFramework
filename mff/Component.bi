@@ -1,6 +1,6 @@
 ﻿#Include Once "Object.bi"
 #IfDef __USE_GTK__
-	#Include once "gtk/gtk.bi"
+    #Include once "gtk/gtk.bi"
     #IfDef __USE_GTK3__
     	#include once "glib-object.bi"
     #EndIf
