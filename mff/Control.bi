@@ -1243,7 +1243,7 @@ Namespace My.Sys.Forms
             		gtk_widget_destroy(ScrolledWidget)
             	End If
             #Else
-				If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
+            	If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
 				If FHandle Then
 '					For i As Integer = 0 To ControlCount - 1
 '						Controls[i]->FreeWnd

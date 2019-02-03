@@ -51,10 +51,10 @@ Sub List.Add(FItem As Any Ptr)
 End Sub
 
 Sub List.Insert(Index As Integer,FItem As Any Ptr)
-    Dim As Any Ptr Ptr Temp
+    Static As Any Ptr Ptr Temp
     Dim As Integer i
     If Index >= 0 And Index <= Count -1 Then
-       Temp = cAllocate((Count+1)*SizeOf(Any Ptr))
+       Temp = ReAllocate(Temp, (Count+1)*SizeOf(Any Ptr))
        For i = 0 to Index
            Temp[i] = Items[i]
        Next i
@@ -63,11 +63,11 @@ Sub List.Insert(Index As Integer,FItem As Any Ptr)
            Temp[i +1] = Items[i]
        Next i
        Count += 1
-       Items = cAllocate(Count*SizeOf(Any Ptr))
+       Items = ReAllocate(Items, Count*SizeOf(Any Ptr))
        For i = 0 to Count -1
            Items[i] = Temp[i]
        Next i
-       DeAllocate Temp
+       'DeAllocate Temp
     ElseIf Index > Count -1 Then
         This.Add FItem
     End If   
@@ -84,9 +84,9 @@ End Sub
 
 Sub List.Remove(Index As Integer)
     Dim As Integer i,x
-    Dim As Any Ptr Ptr Temp
+    Static As Any Ptr Ptr Temp
     If Index >= 0 And Index <= Count -1 Then
-       Temp = cAllocate((Count)*SizeOf(Any Ptr)) 
+       Temp = ReAllocate(Temp, (Count)*SizeOf(Any Ptr)) 
        x = 0
        For i = 0 To Count -1
            If i <> Index Then
@@ -94,12 +94,13 @@ Sub List.Remove(Index As Integer)
               Temp[x -1] = Items[i]
            End If
        Next i
-       Count -= 1 
+       Count -= 1
+       Deallocate Items
        Items = cAllocate(Count*SizeOf(Any Ptr))
        For i = 0 to Count -1
            Items[i] = Temp[i]
        Next i
-       DeAllocate Temp
+       'DeAllocate Temp
     End If
 End Sub
 

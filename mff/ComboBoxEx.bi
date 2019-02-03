@@ -69,8 +69,8 @@ namespace My.Sys.Forms
             Declare Property Count(Value As Integer)
             Declare Property Item(Index As Integer) As ComboBoxItem Ptr
             Declare Property Item(Index As Integer, Value As ComboBoxItem Ptr)
-            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ImageIndex As Integer = -1, SelectedImageIndex As Integer = -1, OverlayIndex As Integer = -1, Indent As Integer = 0) As ComboBoxItem Ptr
-            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0) As ComboBoxItem Ptr
+            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ImageIndex As Integer = -1, SelectedImageIndex As Integer = -1, OverlayIndex As Integer = -1, Indent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
+            Declare Function Add(ByRef Caption As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
             Declare Sub Remove(Index As Integer)
             Declare Function IndexOf(ByRef Item As ComboBoxItem Ptr) As Integer
             Declare Function IndexOf(ByRef Text As WString) As Integer
@@ -283,7 +283,7 @@ Property ComboBoxItem.Object As Any Ptr
        'QToolButton(FItems.Items[Index]) = Value 
     End Property
 
-    Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0) As ComboBoxItem Ptr
+    Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
         PItem = New ComboBoxItem
         FItems.Add PItem
         With *PItem
@@ -293,7 +293,7 @@ Property ComboBoxItem.Object As Any Ptr
             .Indent     = FIndent
             .Text        = FText
             .Object        = Obj
-            .Index    = FItems.Count - 1
+            .Index    = IIF(Index = -1, FItems.Count - 1, Index)
         End With
         #IfDef __USE_GTK__
 			gtk_list_store_append (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter)
@@ -318,15 +318,15 @@ Property ComboBoxItem.Object As Any Ptr
         Return PItem
     End Function
 
-    Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0) As ComboBoxItem Ptr
+    Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
         Dim Value As ComboBoxItem Ptr
         If Parent AndAlso Cast(ComboBoxEx Ptr, Parent)->ImagesList Then
             With *Cast(ComboBoxEx Ptr, Parent)->ImagesList
-                Value = Add(FText, Obj, .IndexOf(ImageKey), .IndexOf(SelectedImageKey), .IndexOf(OverlayKey), Indent)
+                Value = Add(FText, Obj, .IndexOf(ImageKey), .IndexOf(SelectedImageKey), .IndexOf(OverlayKey), Indent, Index)
 				Value->ImageKey = ImageKey
             End With
         Else
-            Value = Add(FText, Obj, -1, -1, -1, Indent)
+            Value = Add(FText, Obj, -1, -1, -1, Indent, Index)
         End If
         Return Value
     End Function
@@ -339,7 +339,8 @@ Property ComboBoxItem.Object As Any Ptr
 			#Else
 				Parent->Perform CBEM_DELETEITEM, Index, 0
 			#EndIf
-		End If
+        End If
+        Delete Cast(ComboBoxItem Ptr, FItems.Items[Index])
 		FItems.Remove Index
     End Sub
 
