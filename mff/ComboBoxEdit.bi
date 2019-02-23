@@ -325,7 +325,9 @@ namespace My.Sys.Forms
 
     Sub ComboBoxEdit.InsertItem(FIndex As Integer, ByRef FItem As WString)
         Items.Insert(FIndex, FItem)
-        #IfNDef __USE_GTK__
+        #IfDef __USE_GTK__
+        	gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), FIndex, ToUtf8(FItem))
+        #Else
 			If FHandle Then 
 				Perform(CB_INSERTSTRING, FIndex, CInt(@FItem))
 				UpdateListHeight

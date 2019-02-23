@@ -244,6 +244,8 @@ Namespace My.Sys.Forms
                 Declare Function TopLevelControl() As Control Ptr
                 Declare Function Focused As Boolean
                 Declare Function IndexOf(Ctrl As Control Ptr) As Integer
+                Declare Function IndexOf(CtrlName As String) As Integer
+                Declare Function ControlByName(CtrlName As String) As Control Ptr
                 Declare Sub CreateWnd
                 Declare Sub RecreateWnd
                 Declare Sub FreeWnd
@@ -445,7 +447,7 @@ Namespace My.Sys.Forms
             Function Control.Focused As Boolean
 				#IfDef __USE_GTK__
 					Return widget AndAlso gtk_widget_is_focus(widget)
-				#Else	
+				#Else
 					Return GetFocus = FHandle
 				#EndIf
             End Function
@@ -568,14 +570,14 @@ Namespace My.Sys.Forms
         #IfNDef Text_Off
             Property Control.Text ByRef As WString
                 #IFNDef __USE_GTK__
-            					If FHandle Then
-            						Dim As Integer L
-            						L = Perform(WM_GETTEXTLENGTH, 0, 0)
+				If FHandle Then
+					Dim As Integer L
+					L = Perform(WM_GETTEXTLENGTH, 0, 0)
                     FText = Cast(WString Ptr, ReAllocate(FText, (L + 1 + 1) * SizeOf(WString)))
                     *FText = WString(L + 1, 0)
                     GetWindowText(FHandle, FText, L + 1)
-            					End If
-            				#EndIf
+				End If
+				#EndIf
                 Return WGet(FText)
             End Property
 
@@ -677,7 +679,7 @@ Namespace My.Sys.Forms
 					Exit Sub
 				End If 
 				If widget Then
-					If gtk_widget_is_toplevel(widget) Then
+					If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
 						gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
 						'gtk_window_resize(GTK_WINDOW(widget), Max(1, iWidth), Max(1, iHeight))
@@ -773,7 +775,7 @@ Namespace My.Sys.Forms
         #IfNDef Width_Off
             Property Control.Width As Integer
                 #IfDef __USE_GTK__
-					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
+					If layoutwidget AndAlso gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						#IfDef __USE_GTK3__
 							FWidth = gtk_widget_get_allocated_width(widget)
 						#Else
@@ -813,7 +815,7 @@ Namespace My.Sys.Forms
         #IfNDef Height_Off
             Property Control.Height As Integer
                 #IfDef __USE_GTK__
-					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
+					If layoutwidget AndAlso gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						#IfDef __USE_GTK3__
 							FHeight = gtk_widget_get_allocated_height(widget)
 						#Else
@@ -1285,6 +1287,7 @@ Namespace My.Sys.Forms
 					End If
 					If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 					If e->button.button = 3 AndAlso ContextMenu Then
+						Message.Result = True
 						If ContextMenu->widget Then
 							ContextMenu->Popup(e->button.x, e->button.y, @Message)
 						End If
@@ -1767,7 +1770,7 @@ Namespace My.Sys.Forms
 			End Function
 		#EndIf
     
-        Function Control.SelectNext(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr '...'
+        Function Control.SelectNext(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
             Static As Integer Index, LastIndex
             Var iStep = IIF(Prev, -1, 1)
             If CurControl AndAlso CurControl->Parent Then
@@ -2287,14 +2290,31 @@ Namespace My.Sys.Forms
             End If
         End Sub
     
-        Function Control.IndexOf(Ctrl As Control Ptr) As Integer '...'
+        Function Control.IndexOf(Ctrl As Control Ptr) As Integer
             Dim As Integer i
             For i = 0 To ControlCount -1
                 If Controls[i] = Ctrl Then Return i
             Next i
             Return -1
         End Function
-    
+        
+        Function Control.IndexOf(CtrlName As String) As Integer
+            Dim As Integer i
+            For i = 0 To ControlCount -1
+                If Controls[i]->Name = CtrlName Then Return i
+            Next i
+            Return -1
+        End Function
+        
+        Function Control.ControlByName(CtrlName As String) As Control Ptr
+        	Dim i As Integer = IndexOf(CtrlName)
+        	If i <> -1 Then
+        		Return Controls[i]
+        	Else
+        		Return 0
+        	End If
+        End Function
+     
         Operator Control.Cast As Any Ptr '...'
             Return @This
         End Operator
@@ -2339,6 +2359,10 @@ End Sub
 
 Function ControlByIndex Alias "ControlByIndex"(Parent As My.Sys.Forms.Control Ptr, Index As Integer) As My.Sys.Forms.Control Ptr Export
 	Return Parent->Controls[Index]
+End Function
+
+Function ControlByName Alias "ControlByName"(Parent As My.Sys.Forms.Control Ptr, CtrlName As String) As My.Sys.Forms.Control Ptr Export
+	Return Parent->ControlByName(CtrlName)
 End Function
 
 Sub ControlGetBounds Alias "ControlGetBounds"(Ctrl As My.Sys.Forms.Control Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr) Export

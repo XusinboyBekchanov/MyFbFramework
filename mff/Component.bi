@@ -1,6 +1,6 @@
 ﻿#Include Once "Object.bi"
 #IfDef __USE_GTK__
-    #Include once "gtk/gtk.bi"
+	#Include once "gtk/gtk.bi"
     #IfDef __USE_GTK3__
     	#include once "glib-object.bi"
     #EndIf
@@ -107,7 +107,7 @@ Namespace My.Sys.ComponentModel
     Property Component.Name(ByRef Value As WString)
         WLet FName, Value
 		#IfDef __USE_GTK__
-			gtk_widget_set_name(widget, Value)
+			If gtk_is_widget(widget) Then gtk_widget_set_name(widget, Value)
 		#EndIf
     End Property
     

@@ -6,12 +6,12 @@
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
-	    '#Compile -dll -x "../libmff64_gtk3.so"
+	    '#Compile -dll -x "../libmff64_gtk2.so"
 	#Else
-	    '#Compile -dll -x "../libmff32_gtk3.so"
+	    '#Compile -dll -x "../libmff32_gtk2.so"
 	#EndIf
 #EndIf
-#Define __USE_GTK3__
+'#Define __USE_GTK3__
 
 #Include Once "Animate.bi"
 #Include Once "Application.bi"
@@ -165,6 +165,7 @@ Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRe
     Case "fontdialog": Cpnt = New FontDialog
     Case "openfiledialog": Cpnt = New OpenFileDialog
     Case "savefiledialog": Cpnt = New SaveFileDialog
+    Case Else: Cpnt = CreateControl(ClassName, sName, sName, 0, 0, 10, 10, 0)
     End Select
     If Cpnt Then
         Cpnt->Name = sName
@@ -173,13 +174,19 @@ Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRe
     Return Cpnt
 End Function
 
+Common Shared Obj As My.Sys.Object Ptr
+Function CreateObject Alias "CreateObject"(ByRef ClassName As String) As Object Ptr Export
+    Obj = 0
+    Select Case LCase(ClassName)
+    Case "menuitem": Obj = New MenuItem
+    Case "toolbutton": Obj = New ToolButton
+    Case Else: Obj = CreateComponent(ClassName, "")
+    End Select
+    Return Obj
+End Function
+
 Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Export
-    If Objects.Contains(Ctrl) Then
-        Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
-    Else
-        Return False
-    End If
-    Select Case LCase(Cpnt->ClassName)
+    Select Case LCase(Cast(Component Ptr, Ctrl)->ClassName)
     Case "animate": Delete Cast(Animate Ptr, Ctrl)
     Case "checkbox" :Delete Cast(CheckBox Ptr, Ctrl)
     Case "checkedlistbox": Delete Cast(CheckedListBox Ptr, Ctrl)
@@ -231,6 +238,15 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
     Case "openfiledialog": Delete Cast(OpenFileDialog Ptr, Ctrl)
     Case "savefiledialog": Delete Cast(SaveFileDialog Ptr, Ctrl)
     Case Else: Return False
+    End Select
+    Return True
+End Function
+
+Function ObjectDelete Alias "ObjectDelete"(Obj As Any Ptr) As Boolean Export
+    Select Case LCase(Cast(My.Sys.Object Ptr, Obj)->ClassName)
+    Case "toolbutton": Delete Cast(ToolButton Ptr, Obj)
+    Case "menuitem": Delete Cast(MenuItem Ptr, Obj)
+    Case Else: Return DeleteComponent(Obj)
     End Select
     Return True
 End Function

@@ -47,7 +47,7 @@ Namespace My.Sys.Forms
 		Function ContainerControl.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 			If CInt(widget) AndAlso CInt(GTK_IS_NOTEBOOK(widget) <> 1) Then
 				Dim Proc As Function(widget As GtkWidget Ptr, event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
-				If gtk_widget_is_toplevel(widget) Then 
+				If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then 
 					#IfDef __USE_GTK3__
 						box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
 					#Else

@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 				 Static As HDC Dc
 				 Dc = Cast(HDC, Message.wParam)
 				 SetBKMode Dc, TRANSPARENT
-				 SetTextColor Dc, Font.Color
+				 SetTextColor Dc, This.Font.Color
 				 SetBKColor Dc, This.BackColor
 				 SetBKMode Dc, OPAQUE
 			Case CM_COMMAND

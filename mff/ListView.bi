@@ -256,11 +256,11 @@ Namespace My.Sys.Forms
             Declare Operator Cast As Control Ptr
             Declare Constructor
             Declare Destructor
-            OnItemActivate As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
-            OnItemClick As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
-            OnItemDblClick As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
-            OnItemKeyDown As Sub(BYREF Sender As ListView, BYREF Item As ListViewItem)
-            OnSelectedItemChanged As Sub(ByRef Sender As ListView, BYREF Item As ListViewItem)
+            OnItemActivate As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+            OnItemClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+            OnItemDblClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+            OnItemKeyDown As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+            OnSelectedItemChanged As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
             OnBeginScroll As Sub(ByRef Sender As ListView)
             OnEndScroll As Sub(ByRef Sender As ListView)
     End Type
@@ -805,7 +805,7 @@ Namespace My.Sys.Forms
        'QListViewColumn(FColumns.Items[Index]) = Value 
     End Property
 
-    Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As integer, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As ListViewColumn Ptr
+    Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As ListViewColumn Ptr
         Dim As ListViewColumn Ptr PColumn
         Dim As Integer Index
         #IfNDef __USE_GTK__
@@ -856,7 +856,7 @@ Namespace My.Sys.Forms
         #Else
 			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
 			lvC.fmt       =  Format
-			lvc.cx=0
+			lvc.cx		  = IIF(iWidth = -1, 50, iWidth)
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
 			lvc.pszText  = @FCaption
@@ -1116,18 +1116,14 @@ Namespace My.Sys.Forms
 			Case WM_SIZE
 			Case CM_NOTIFY
 				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, message.lparam)
-				If lvp->iItem <> -1 Then
-					Select Case lvp->hdr.code
-					Case NM_CLICK: If OnItemClick Then OnItemClick(This, *ListItems.Item(lvp->iItem))
-					Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))
-					Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, *ListItems.Item(lvp->iItem))
-					Case NM_KEYDOWN: If OnItemKeyDown Then OnItemKeyDown(This, *ListItems.Item(lvp->iItem))
-					Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, *ListItems.Item(lvp->iItem))
-					End Select
-				End If
 				Select Case lvp->hdr.code
+				Case NM_CLICK: If OnItemClick Then OnItemClick(This, lvp->iItem)
+				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(This, lvp->iItem)
+				Case NM_KEYDOWN: If OnItemKeyDown Then OnItemKeyDown(This, lvp->iItem)
+				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, lvp->iItem)
 				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
+				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
 				End Select
 			Case WM_NOTIFY
@@ -1265,7 +1261,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				model = gtk_tree_view_get_model(tree_view)
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnItemActivate Then lv->OnItemActivate(*lv, *lv->ListItems.Item(Val(*gtk_tree_model_get_string_from_iter(model, @iter))))
+					If lv->OnItemActivate Then lv->OnItemActivate(*lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
 				End If
 			End If
 	    End Sub
@@ -1276,7 +1272,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, *lv->ListItems.Item(Val(*gtk_tree_model_get_string_from_iter(model, @iter))))
+					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
 				End If
 			End If
 	    End Sub

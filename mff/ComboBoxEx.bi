@@ -30,11 +30,11 @@ namespace My.Sys.Forms
             FOverlayIndex   As Integer
             FIndent   As Integer
         Public:
-            Index As Integer
             #IfDef __USE_GTK__
 				TreeIter As GtkTreeIter
             #EndIf
             Parent   As Control Ptr
+            Declare Function Index As Integer
             Declare Property Text ByRef As WString
             Declare Property Text(ByRef Value As WString)
             Declare Property Object As Any Ptr
@@ -112,6 +112,14 @@ namespace My.Sys.Forms
             Declare Destructor
     End Type
 
+	Function ComboBoxItem.Index As Integer
+		If Parent Then
+			Return Cast(ComboBoxEx Ptr, Parent)->Items.IndexOf(@This)
+		Else
+			Return -1
+		End If
+	End Function
+	
     Property ComboBoxItem.Text ByRef As WString
 '        If Parent AndAlso Parent->Handle Then
 '            WReallocate FText, 255
@@ -136,9 +144,9 @@ namespace My.Sys.Forms
 				Dim cbei As COMBOBOXEXITEM
 				cbei.Mask = CBEIF_TEXT
 				cbei.iItem = Index
-					cbei.pszText    = FText
-					cbei.cchTextMax = Len(*FText)
-				  Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+				cbei.pszText    = FText
+				cbei.cchTextMax = Len(*FText)
+				Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
 			  End If
 		#EndIf 
     End Property
@@ -285,25 +293,32 @@ Property ComboBoxItem.Object As Any Ptr
 
     Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
         PItem = New ComboBoxItem
-        FItems.Add PItem
+        If Index = -1 Then
+        	FItems.Add PItem
+        Else
+        	FItems.Insert Index, PItem
+        End If
         With *PItem
-            .ImageIndex     = FImageIndex
-            .SelectedImageIndex     = FSelectedImageIndex
-            .OverlayIndex     = FOverlayIndex
-            .Indent     = FIndent
-            .Text        = FText
-            .Object        = Obj
-            .Index    = IIF(Index = -1, FItems.Count - 1, Index)
+            .ImageIndex         = FImageIndex
+            .SelectedImageIndex = FSelectedImageIndex
+            .OverlayIndex       = FOverlayIndex
+            .Indent     		= FIndent
+            .Text        		= FText
+            .Object        		= Obj
         End With
         #IfDef __USE_GTK__
-			gtk_list_store_append (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter)
+        	#IfDef __USE_GTK3__
+				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, Index)
+			#Else
+				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, IIf(Index = -1, FItems.Count, Index))
+			#EndIf
 			gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FText), -1)
 			'gtk_widget_show_all(Parent->widget)
         #Else
 			cbei.Mask = CBEIF_IMAGE or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
 			cbei.pszText  = @FText
 			cbei.cchTextMax = Len(FText)
-			cbei.iItem = PItem->Index
+			cbei.iItem = IIF(Index = -1, FItems.Count - 1, Index)
 			cbei.iImage   = FImageIndex
 			cbei.iSelectedImage   = FSelectedImageIndex
 			cbei.iOverlay   = FOverlayIndex

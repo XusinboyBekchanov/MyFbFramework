@@ -68,7 +68,7 @@ Function ZGet(ByRef subject As ZString Ptr) As String
 End Function
 
 Sub WDeAllocate(ByRef subject AS Wstring Ptr)
-    If subject Then Deallocate subject
+    If subject <> 0 Then Deallocate subject
     subject = 0
 End Sub
 

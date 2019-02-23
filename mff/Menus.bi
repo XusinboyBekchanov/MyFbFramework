@@ -121,10 +121,10 @@ type PMenuItem  as MenuItem ptr
             declare sub Click
             Declare Virtual Function ToString ByRef As WString
             declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
-            declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-            declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-            declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-            declare sub Add(value as PMenuItem)
+            declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Index As Integer = -1) As MenuItem Ptr
+            declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Index As Integer = -1) As MenuItem Ptr
+            declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Index As Integer = -1) As MenuItem Ptr
+            declare sub Add(ByRef value as PMenuItem, Index As Integer = -1)
             declare sub Add(value() As PMenuItem)
             declare sub AddRange Cdecl(CountArgs As Integer, ...)
             declare sub Remove(value as PMenuItem)
@@ -132,8 +132,9 @@ type PMenuItem  as MenuItem ptr
             declare sub Clear
             declare function IndexOf(value as PMenuItem) as integer
             declare function Find(value  as integer) as PMenuItem
-            declare operator cast as any ptr
-            declare constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "")
+            declare function Find(ByRef value As WString) As PMenuItem
+			declare operator cast as any ptr
+            declare constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null)
             declare destructor
             OnClick as NotifyEvent
     End Type
@@ -184,6 +185,7 @@ type PMenuItem  as MenuItem ptr
             declare sub Clear
             declare function IndexOf(value as PMenuItem) as integer
             declare function Find(value  as integer) as PMenuItem
+            declare function Find(ByRef value As WString) As PMenuItem
             declare operator cast as any ptr
             declare constructor
             declare destructor
@@ -821,30 +823,42 @@ type PMenuItem  as MenuItem ptr
         if onClick then onClick(this)
     end sub
     
-    sub MenuItem.Add(value as PMenuItem)
+    sub MenuItem.Add(ByRef value as PMenuItem, ByVal Index As Integer = -1)
         if IndexOf(value) = -1 then
             FCount += 1
-		   FItems = reallocate(FItems, sizeof(PMenuItem)*FCount)
-		   FItems[FCount-1] = value
-		   value->FParent    = @this
-		   value->MenuIndex = FCount -1
-		   value->Owner     = Owner
+			FItems = reallocate(FItems, sizeof(PMenuItem)*FCount)
+			If Index <> -1 Then
+				For i As Integer = FCount - 1 To Index + 1 Step -1
+					FItems[i] = FItems[i-1]
+				Next i
+			Else
+				Index = FCount - 1
+			End If
+			value->MenuIndex = Index
+			value->FParent    = @this
+			value->Owner     = Owner
 '			#IfNDef __USE_GTK__
 '				value->Menu      = This.Menu
 '			#EndIf
 		   AllocateCommand(value)
-		   #Ifdef __USE_GTK__
+		   FItems[Index]            = value
+			#Ifdef __USE_GTK__
 				If SubMenu = 0 Then
 					SubMenu = New PopUpMenu
 					gtk_menu_item_set_submenu(gtk_menu_item(widget), SubMenu->widget)
 				End If
-				gtk_menu_shell_append(gtk_menu_shell(SubMenu->widget), value->widget)
+				If Index = -1 Then
+					gtk_menu_shell_append(gtk_menu_shell(SubMenu->widget), value->widget)
+        		Else
+        			gtk_menu_shell_insert(gtk_menu_shell(SubMenu->widget), value->widget, Index)
+				End If
 				If Value->box Then
 					gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
 				EndIf
 				If Value->label Then
 					gtk_label_set_text_with_mnemonic(gtk_label(Value->label), ToUTF8(*Value->FText & "	"))
 				End If
+				gtk_widget_show_all(value->widget)
 		   #Else
 				if Handle = 0 then
 					Handle = CreatePopupMenu
@@ -857,7 +871,7 @@ type PMenuItem  as MenuItem ptr
 					   SetItemInfo(FInfo)
 				end if
 				value->SetInfo(FInfo)
-				InsertMenuItem(Handle, FCount - 1, true, @FInfo)
+				InsertMenuItem(Handle, Index, true, @FInfo)
 			#EndIf
         end if
     end sub
@@ -868,31 +882,31 @@ type PMenuItem  as MenuItem ptr
         Return Value
     End Function
     
-    Function MenuItem.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
+    Function MenuItem.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Index As Integer = -1) As MenuItem Ptr
         Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Value->FImage     = iImage
         Value->Name     = sKey
         Value->OnClick     = eClick
-        Add(Value)
+        Add(Value, Index)
         Return Value
     End Function
     
-    Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
+    Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Index As Integer = -1) As MenuItem Ptr
         Dim As MenuItem Ptr Value = New MenuItem(sCaption)
         Value->FImageIndex = iImageIndex
         Value->Name     = sKey
         Value->OnClick     = eClick
-        Add(Value)
+        Add(Value, Index)
         Return Value
     End Function
 
-    Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
+    Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Index As Integer = -1) As MenuItem Ptr
         Dim As MenuItem Ptr Value = New MenuItem(sCaption, sImageKey)
         WLet Value->FImageKey, sImageKey
         If Owner AndAlso Owner->ImagesList Then Value->FImageIndex = Owner->ImagesList->IndexOf(sImageKey)
         Value->Name     = sKey
         Value->OnClick     = eClick
-        Add(Value)
+        Add(Value, Index)
         Return Value
     End Function
 
@@ -970,6 +984,15 @@ type PMenuItem  as MenuItem ptr
             for i as integer = 0 to FCount-1
                 FItems[i]->MenuIndex = i
             next i
+            #IfDef __USE_GTK__
+            	If widget Then
+            		'gtk_container_remove(gtk_container(widget), value->widget)
+            	End If
+            #Else
+	            If Handle Then
+	            	RemoveMenu(Handle, Index, MF_BYPOSITION)
+	        	End If
+        	#EndIf
         end if
     end sub
 
@@ -999,11 +1022,21 @@ type PMenuItem  as MenuItem ptr
         return NULL
     end function
 
+	function MenuItem.Find(ByRef value as WString) as PMenuItem
+        dim as PMenuItem FItem
+        for i as integer = 0 to FCount -1
+            if Item(i)->Name = value then return Item(i)
+            FItem = Item(i)->Find(value)
+            if FItem then if FItem->Name = value then return FItem
+        next i
+        return NULL
+    end function
+
     operator MenuItem.cast as any ptr
         return @this
     end operator
 
-	constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "")
+	constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null)
         FVisible    = True
         FEnabled    = True
         FChecked    = False
@@ -1050,6 +1083,8 @@ type PMenuItem  as MenuItem ptr
 		#ENdIf
 		Caption = wCaption
         FImageIndex = -1
+        OnClick = eClick
+        WLet FClassName, "MenuItem"
         WLet FImageKey, wImageKey
     end constructor
     
@@ -1064,7 +1099,9 @@ type PMenuItem  as MenuItem ptr
         If FCaption Then Deallocate FCaption
         WDeallocate FText
         WDeallocate FAccelerator
-        #IfNDef __USE_GTK__
+        #IfDef __USE_GTK__
+        	If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+        #Else
 			if FHandle then
 				DestroyMenu(FHandle)
 				FHandle = 0
@@ -1353,6 +1390,16 @@ type PMenuItem  as MenuItem ptr
         next i
         return NULL
     end function
+    
+    function Menu.Find(ByRef Value as WString) as MenuItem ptr
+        dim as MenuItem ptr FItem
+        for i as integer = 0 to FCount-1
+            if Item(i)->Name = value then return Item(i)
+            FItem = Item(i)->Find(value)
+            if FItem then if FItem->Name = value then return FItem
+        next i
+        return NULL
+    end function
 
     sub Menu.Clear
         if FItems then
@@ -1600,3 +1647,31 @@ type PMenuItem  as MenuItem ptr
     destructor PopupMenu
     end destructor
 End namespace
+
+Function MenuItemItemsCount Alias "MenuItemItemsCount"(PMenuItem As My.Sys.Forms.MenuItem Ptr) As Integer Export
+	Return PMenuItem->Count
+End Function
+
+Function MenuItemsCount Alias "MenuItemsCount"(PMenu As My.Sys.Forms.Menu Ptr) As Integer Export
+	Return PMenu->Count
+End Function
+
+Function MenuItemFindByName Alias "MenuItemFindByName"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef FName As WString) As My.Sys.Forms.MenuItem Ptr Export
+	Return PMenuItem->Find(FName)
+End Function
+
+Function MenuFindByName Alias "MenuFindByName"(PMenu As My.Sys.Forms.Menu Ptr, ByRef FName As WString) As My.Sys.Forms.MenuItem Ptr Export
+	Return PMenu->Find(FName)
+End Function
+
+Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
+	Return PMenuItem->Add(sCaption, sImageKey, sKey, eClick, Index)
+End Function
+
+Sub MenuItemRemove Alias "MenuItemRemove"(ParentMenuItem As My.Sys.Forms.MenuItem Ptr, PMenuItem As My.Sys.Forms.MenuItem Ptr) Export
+	ParentMenuItem->Remove PMenuItem
+End Sub
+
+Sub MenuRemove Alias "MenuRemove"(ParentMenu As My.Sys.Forms.Menu Ptr, PMenuItem As My.Sys.Forms.MenuItem Ptr) Export
+	ParentMenu->Remove PMenuItem
+End Sub

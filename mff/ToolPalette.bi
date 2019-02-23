@@ -545,7 +545,7 @@ Namespace My.Sys.Forms
 			'		End With
 			'	Next j
 			'Next i
-			gtk_widget_queue_resize(widget)
+			If gtk_is_container(widget) Then gtk_widget_queue_resize(widget)
 			gtk_widget_queue_draw(widget) 
 		#Else
 			For j As Integer = 0 To Groups.Count - 1

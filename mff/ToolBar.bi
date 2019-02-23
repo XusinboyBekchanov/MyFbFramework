@@ -13,55 +13,29 @@ Namespace My.Sys.Forms
     '#DEFINE TBSTYLE_TRANSPARENT &H8000
     '#DEFINE TBN_DROPDOWN (TBN_FIRST - 10)
 	
-	#IfDef __USE_GTK__ 
-		Enum ToolButtonStyle
-			tbsAutosize
-			tbsButton
-			tbsCheck
-			tbsCheckGroup
-			tbsGroup
-			tbsDropDown
-			tbsNoPrefix
-			tbsSeparator
-			tbsShowText
-			tbsWholeDropdown
-		End Enum
-		
-		Enum ToolButtonState    
-			tstIndeterminate
-			tstEnabled
-			tstHidden
-			tstEllipses
-			tstChecked
-			tstPressed
-			tstMarked
-			tstWrap
-		End Enum
-	#Else
-		Enum ToolButtonStyle
-			tbsAutosize           = TBSTYLE_AUTOSIZE
-			tbsButton             = TBSTYLE_BUTTON
-			tbsCheck              = TBSTYLE_CHECK
-			tbsCheckGroup         = TBSTYLE_CHECKGROUP
-			tbsGroup             = TBSTYLE_GROUP
-			tbsDropDown           = TBSTYLE_DROPDOWN
-			tbsNoPrefix              = TBSTYLE_NOPREFIX
-			tbsSeparator          = TBSTYLE_SEP
-			tbsShowText           = BTNS_SHOWTEXT
-			tbsWholeDropdown     = BTNS_WHOLEDROPDOWN
-		End Enum
-		
-		Enum ToolButtonState    
-			tstIndeterminate    = TBSTATE_INDETERMINATE
-			tstEnabled           = TBSTATE_ENABLED
-			tstHidden           = TBSTATE_HIDDEN
-			tstEllipses           = TBSTATE_ELLIPSES
-			tstChecked               = TBSTATE_CHECKED
-			tstPressed           = TBSTATE_PRESSED
-			tstMarked           = TBSTATE_MARKED
-			tstWrap                  = TBSTATE_WRAP
-		End Enum
-	#EndIf
+	Enum ToolButtonStyle
+		tbsAutosize      = 16
+		tbsButton        = 0
+		tbsCheck         = 2
+		tbsCheckGroup    = 6
+		tbsGroup         = 4
+		tbsDropDown      = 8
+		tbsNoPrefix      = 32
+		tbsSeparator     = 1
+		tbsShowText      = 64
+		tbsWholeDropdown = 128
+	End Enum
+	
+	Enum ToolButtonState
+		tstIndeterminate	= 16
+		tstEnabled			= 4
+		tstHidden			= 8
+		tstEllipses			= 64
+		tstChecked			= 1
+		tstPressed			= 2
+		tstMarked			= 128
+		tstWrap				= 32
+	End Enum
 
     Type ToolButton Extends My.Sys.Object
         Private:
@@ -92,6 +66,8 @@ Namespace My.Sys.Forms
             DropDownMenu  As PopupMenu
             Tag           As Any Ptr
             Ctrl       As Control Ptr
+            Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+            Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
             Declare Virtual Function ToString ByRef As WString
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
@@ -217,6 +193,28 @@ Namespace My.Sys.Forms
         Next j
     End Sub
     
+    Function ToolButton.ReadProperty(ByRef PropertyName As String) As Any Ptr
+        Select Case LCase(PropertyName)
+        Case "visible": Return @FVisible
+        Case Else: Return Base.ReadProperty(PropertyName)
+        End Select
+        Return 0
+    End Function
+    
+    Function ToolButton.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+        If Value = 0 Then
+            Select Case LCase(PropertyName)
+            Case Else: Return Base.WriteProperty(PropertyName, Value)
+            End Select
+        Else
+            Select Case LCase(PropertyName)
+            Case "visible": This.Visible = QBoolean(Value)
+            Case Else: Return Base.WriteProperty(PropertyName, Value)
+            End Select
+        End If
+        Return True
+    End Function
+    
     Function ToolButton.ToString ByRef As WString
         Return This.Name
     End Function
@@ -297,7 +295,7 @@ Namespace My.Sys.Forms
     Property ToolButton.ImageKey(ByRef Value As WString)
         WLet FImageKey, Value
         #IfDef __USE_GTK__
-			gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(Widget), Value)
+        	If GTK_IS_TOOL_BUTTON(Widget) Then gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(Widget), Value)
         #Else
 			If Ctrl AndAlso QToolBar(Ctrl).ImagesList Then
 				ImageIndex = QToolBar(Ctrl).ImagesList->IndexOf(Value)
@@ -436,7 +434,13 @@ Namespace My.Sys.Forms
             FVisible = Value
             If Ctrl Then 
                 With QControl(Ctrl)
-					#IfNDef __USE_GTK__
+					#IfDef __USE_GTK__
+						If FVisible Then
+							gtk_widget_show(Widget)
+						Else
+							gtk_widget_hide(Widget)
+						End If
+					#Else
 						.Perform(TB_HIDEBUTTON, FCommandID, MakeLong(NOT FVisible, 0))
 					#EndIf
                 End With
@@ -494,6 +498,9 @@ Namespace My.Sys.Forms
                     If OnClick Then OnClick(This)
                 End With
             End If
+            If CInt(Value) AndAlso CInt((FState And tstChecked) <> tstChecked) Then
+				FState = FState Or tstChecked
+			End If
         'End If
     End Property
     
@@ -504,6 +511,7 @@ Namespace My.Sys.Forms
     Constructor ToolButton
         FHint = CAllocate(0)
         FCaption = CAllocate(0)
+        WLet FClassName, "ToolButton"
         FStyle      = tbsButton
         FEnabled    = 1
         FVisible    = 1
@@ -514,7 +522,9 @@ Namespace My.Sys.Forms
     End Constructor
 
     Destructor ToolButton
-		#IfNDef __USE_GTK__
+		#IfDef __USE_GTK__
+			If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+		#Else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
         #EndIf
         WDeallocate FHint
@@ -584,7 +594,6 @@ Namespace My.Sys.Forms
 					Case tbsDropDown
 						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
 						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.widget)
-						gtk_widget_show_all(.widget)
 					Case tbsNoPrefix
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
 					Case tbsShowText
@@ -598,6 +607,7 @@ Namespace My.Sys.Forms
 					gtk_tool_item_set_tooltip_text(gtk_tool_item(.widget), ToUTF8(FHint))
 					g_signal_connect(.widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
 				End Select
+				gtk_widget_show_all(.widget)
             #EndIf
             .State        = FState
             .ImageIndex     = FImageIndex
@@ -615,8 +625,8 @@ Namespace My.Sys.Forms
 			End If
         #Else
 			Dim As TBBUTTON TB
-        	TB.fsState   = FState
-			TB.fsStyle   = FStyle
+			TB.fsState   = FState
+        	TB.fsStyle   = FStyle
 			TB.iBitmap   = PButton->ImageIndex
 			TB.idCommand = PButton->CommandID
 			If FCaption <> "" Then 
@@ -978,3 +988,20 @@ Namespace My.Sys.Forms
 		#EndIf
     End Destructor
 End Namespace
+
+Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
+	Return tb->Buttons.Add(FStyle, FImageIndex, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
+End Function
+
+Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
+	Return tb->Buttons.Add(FStyle, ImageKey, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
+End Function
+
+Sub ToolBarRemoveButton Alias "ToolBarRemoveButton"(tb As My.Sys.Forms.ToolBar Ptr, Index As Integer) Export
+	tb->Buttons.Remove Index
+End Sub
+
+Function ToolBarIndexOfButton Alias "ToolBarIndexOfButton"(tb As My.Sys.Forms.ToolBar Ptr, Btn As My.Sys.Forms.ToolButton Ptr) As Integer Export
+	Return tb->Buttons.IndexOf(Btn)
+End Function
+

@@ -8,6 +8,7 @@
 #Include Once "Control.bi"
 #IfDef __USE_GTK__
 	#include once "gmodule.bi"
+	#include "crt/linux/unistd.bi"
 #Else
 	#include once "win/winver.bi"
 #EndIf
@@ -35,58 +36,32 @@
 '#DEFINE crNoDrop      LoadCursor(GetModuleHandle(NULL),"NODROP")
 '
 Enum MessageType
-	#IfDef __USE_GTK__ 
-		mtInfo = GTK_MESSAGE_INFO
-		mtWarning = GTK_MESSAGE_WARNING
-		mtQuestion = GTK_MESSAGE_QUESTION
-		mtError = GTK_MESSAGE_ERROR
-		mtOther = GTK_MESSAGE_OTHER
-	#Else
-		mtInfo = MB_ICONINFORMATION
-		mtWarning = MB_ICONEXCLAMATION
-		mtQuestion = MB_ICONQUESTION
-		mtError = MB_ICONERROR
-		mtOther = 0
-	#EndIf
+	mtInfo
+	mtWarning
+	mtQuestion
+	mtError
+	mtOther
 End Enum
 
 Enum ButtonsTypes
-	#IfDef __USE_GTK__ 
-		btNone = GTK_BUTTONS_NONE
-		btOK = GTK_BUTTONS_OK
-		btYesNo = GTK_BUTTONS_YES_NO
-		btYesNoCancel = GTK_BUTTONS_YES_NO
-		btOkCancel = GTK_BUTTONS_OK_CANCEL
-	#Else
-		btNone = 0
-		btOK = MB_OK
-		btYesNo = MB_YESNO
-		btYesNoCancel = MB_YESNOCANCEL
-		btOkCancel = MB_OKCANCEL
-	#EndIf
+	btNone
+	btOK
+	btYesNo
+	btYesNoCancel
+	btOkCancel
 End Enum
 
 Enum MessageResult
-	#IfDef __USE_GTK__ 
-		mrAbort = 0
-		mrCancel = GTK_RESPONSE_CANCEL
-		mrIgnore = 0
-		mrNo = GTK_RESPONSE_NO
-		mrOK = GTK_RESPONSE_OK
-		mrRetry = 0
-		mrYes = GTK_RESPONSE_YES
-	#Else
-		mrAbort = IDABORT
-		mrCancel = IDCANCEL
-		mrIgnore = IDIGNORE
-		mrNo = IDNO
-		mrOK = IDOK
-		mrRetry = IDRETRY
-		mrYes = IDYES
-	#EndIf
+	mrAbort
+	mrCancel
+	mrIgnore
+	mrNo
+	mrOK
+	mrRetry
+	mrYes
 End Enum
 
-Declare Function MsgBox(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As Integer
+'Declare Function MsgBox(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer
     
 Enum ShutdownMode
     smAfterMainFormCloses
@@ -135,7 +110,7 @@ namespace My
             Declare Function Version() As Const String
             Declare Function GetVerInfo(ByRef InfoName As Const String) As Const String
         
-   Declare Property Icon As My.Sys.Drawing.Icon
+   			Declare Property Icon As My.Sys.Drawing.Icon
             Declare Property Icon(value As My.Sys.Drawing.Icon)
             Declare Property Title ByRef As WString
             Declare Property Title(ByRef Value As WString)
@@ -174,6 +149,7 @@ namespace My
             Declare Constructor
             Declare Destructor
             OnMouseMove As Sub(BYREF X As Integer,BYREF Y As Integer)
+            OnMessage As Sub(ByRef msg As Message)
     End Type
 
     Function Application.Version As Const String
@@ -233,6 +209,19 @@ namespace My
     End Property
 
     Property Application.ExeName(ByRef Value As WString)
+    End Property
+
+	Property Application.FileName ByRef As WString
+        Dim As Integer L
+        #IfDef __USE_GTK__
+        	Dim As ZString * 255 Tx
+        	L = readlink("/proc/self/exe", @Tx, 255 - 1)
+		#Else
+			Dim As WString * 255 Tx
+        	L = GetModuleFileName(GetModuleHandle(NULL), @Tx, 255 - 1)
+        #EndIf
+        WLet FFileName, Left(Tx, L)
+        Return *FFileName
     End Property
 
     Property Application.MainForm As My.Sys.Forms.Control Ptr
@@ -368,6 +357,7 @@ namespace My
 			If FormCount = 0 Then
 			   End 10
 			End If
+			Dim mess As Message
 			Dim As My.Sys.Forms.Control Ptr Ctrl, Frm
 			If MainForm Then Frm = MainForm
 			'Dim As Any Ptr hWindow
@@ -379,6 +369,11 @@ namespace My
 						If Frm->Accelerator Then TranslateAndDispatch = TranslateAccelerator(Frm->Handle, Frm->Accelerator, @msg) = 0
 						'If TranslateAndDispatch Then TranslateAndDispatch = Not Cast(Boolean, IsDialogMessage(frm->Handle, @msg))
 					End If
+				End If
+				If OnMessage Then 
+					mess = Type(@This, Msg.Hwnd, Msg.Message, Msg.wParam, Msg.lParam, 0, LoWord(Msg.wParam), HiWord(Msg.wParam), LoWord(Msg.lParam), HiWord(Msg.lParam), 0)
+					OnMessage(mess)
+					If mess.Result Then TranslateAndDispatch = False
 				End If
 				If TranslateAndDispatch Then
 					TranslateMessage @msg
@@ -598,9 +593,10 @@ End namespace
 
 Dim Shared App As My.Application 'Global for entire Application
 
-Function MsgBox OverLoad(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As Integer
+Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer Export
     Dim As Integer Result = -1
     Dim As WString Ptr FCaption
+    Dim As Integer MsgTypeIn, ButtonsTypeIn
     WLet FCaption, Caption
     Dim As My.Sys.Forms.Control Ptr ActiveForm
     If *FCaption = "" Then WLet FCaption, App.Title
@@ -624,10 +620,24 @@ Function MsgBox OverLoad(ByRef MsgStr As WString, ByRef Caption As WString = "",
 		If App.MainForm Then
 			win = Gtk_Window(App.MainForm->widget)
 		End If
+		Select Case MsgType
+		Case mtInfo: MsgTypeIn = GTK_MESSAGE_INFO
+		Case mtWarning: MsgTypeIn = GTK_MESSAGE_WARNING
+		Case mtQuestion: MsgTypeIn = GTK_MESSAGE_QUESTION
+		Case mtError: MsgTypeIn = GTK_MESSAGE_ERROR
+		Case mtOther: MsgTypeIn = GTK_MESSAGE_OTHER
+		End Select
+		Select Case ButtonsType
+		Case btNone: ButtonsTypeIn = GTK_BUTTONS_NONE
+		Case btOK: ButtonsTypeIn = GTK_BUTTONS_OK
+		Case btYesNo: ButtonsTypeIn = GTK_BUTTONS_YES_NO
+		Case btYesNoCancel: ButtonsTypeIn = GTK_BUTTONS_YES_NO
+		Case btOkCancel: ButtonsTypeIn = GTK_BUTTONS_OK_CANCEL
+		End Select
 		dialog = gtk_message_dialog_new (win, _
 										  GTK_DIALOG_DESTROY_WITH_PARENT, _
-										  MsgType, _
-										  IIf(ButtonsType = btYesNoCancel, btNone, ButtonsType), _
+										  MsgTypeIn, _
+										  IIf(ButtonsType = btYesNoCancel, btNone, ButtonsTypeIn), _
 										  ToUTF8(MsgStr), _
 										  NULL)
 		If ButtonsType = btYesNoCancel Then
@@ -643,12 +653,41 @@ Function MsgBox OverLoad(ByRef MsgStr As WString, ByRef Caption As WString = "",
 			gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_YES)
 		End If
 		Result = gtk_dialog_run (GTK_DIALOG (dialog))
+		Select Case Result
+		Case GTK_RESPONSE_CANCEL: Result = mrCancel
+		Case GTK_RESPONSE_NO: Result = mrNo
+		Case GTK_RESPONSE_OK: Result = mrOK
+		Case GTK_RESPONSE_YES: Result = mrYes
+		End Select
 		gtk_widget_destroy (dialog)
 	#Else
 		If App.MainForm Then
 			Wnd = App.MainForm->Handle
 		End If
-		Result = MessageBox(wnd, @MsgStr, FCaption, MsgType Or ButtonsType OR MB_TOPMOST OR MB_TASKMODAL)
+		Select Case MsgType
+		Case mtInfo: MsgTypeIn = MB_ICONINFORMATION
+		Case mtWarning: MsgTypeIn = MB_ICONEXCLAMATION
+		Case mtQuestion: MsgTypeIn = MB_ICONQUESTION
+		Case mtError: MsgTypeIn = MB_ICONERROR
+		Case mtOther: MsgTypeIn = 0
+		End Select
+		Select Case ButtonsType
+		Case btNone: ButtonsTypeIn = 0
+		Case btOK: ButtonsTypeIn = MB_OK
+		Case btYesNo: ButtonsTypeIn = MB_YESNO
+		Case btYesNoCancel: ButtonsTypeIn = MB_YESNOCANCEL
+		Case btOkCancel: ButtonsTypeIn = MB_OKCANCEL
+		End Select
+		Result = MessageBox(wnd, @MsgStr, FCaption, MsgTypeIn Or ButtonsTypeIn OR MB_TOPMOST OR MB_TASKMODAL)
+		Select Case Result
+		Case IDABORT: Result = mrAbort
+		Case IDCANCEL: Result = mrCancel
+		Case IDIGNORE: Result = mrIgnore
+		Case IDNO: Result = mrNo
+		Case IDOK: Result = mrOK
+		Case IDRETRY: Result = mrRetry
+		Case IDYES: Result = mrYes
+		End Select
 	#EndIf
     'Do
     '    App.DoEvents
@@ -657,4 +696,12 @@ Function MsgBox OverLoad(ByRef MsgStr As WString, ByRef Caption As WString = "",
 '        If App.Forms[i]->Handle Then App.Forms[i]->Enabled = True
 '    Next i
     Return Result
+End Function
+
+Function ApplicationMainForm Alias "ApplicationMainForm"(App As My.Application Ptr) As My.Sys.Forms.Control Ptr Export
+    Return App->MainForm
+End Function
+
+Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString Export
+    Return App->FileName
 End Function

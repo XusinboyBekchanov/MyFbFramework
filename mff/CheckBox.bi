@@ -137,13 +137,21 @@ Namespace My.Sys.Forms
     Operator CheckBox.Cast As Control Ptr 
         Return Cast(Control Ptr, @This)
     End Operator
-
+	
+	#IfDef __USE_GTK__
+	Sub CheckBox_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
+    	Dim As CheckBox Ptr but = user_data
+    	If but->OnClick Then but->OnClick(*but)
+    End Sub
+    #EndIf
+    
     Constructor CheckBox
         With This
 			.Child                  = @This
             #IfDef __USE_GTK__
 				widget = gtk_check_button_new_with_label("")
 				.RegisterClass "CheckBox", @This
+				g_signal_connect(widget, "toggled", G_CALLBACK(@CheckBox_Toggled), @This)
             #Else
 				.RegisterClass "CheckBox", "Button"
 				.ChildProc              = @WndProc
