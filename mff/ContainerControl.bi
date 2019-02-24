@@ -107,6 +107,8 @@ Namespace My.Sys.Forms
 	End Destructor
 End namespace
 
+#IfDef __EXPORT_PROCS__
 Function ControlIsContainer Alias "ControlIsContainer"(Ctrl As My.Sys.Forms.Control Ptr) As Boolean Export
     Return (*Ctrl Is My.Sys.Forms.ContainerControl)
 End Function
+#EndIf

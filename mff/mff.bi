@@ -12,6 +12,7 @@
 	#EndIf
 #EndIf
 '#Define __USE_GTK3__
+#Define __EXPORT_PROCS__
 
 #Include Once "Animate.bi"
 #Include Once "Application.bi"
@@ -95,6 +96,7 @@ Using My.Sys.Forms
 	End Function
 #EndIf
 
+#IfDef __EXPORT_PROCS__
 Dim Shared Objects As List
 Common Shared Ctrl As Control Ptr
 Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Control Ptr) As Control Ptr Export
@@ -264,4 +266,5 @@ End Function
 	    End Select
 	    Return True
 	End Function
+#EndIf
 #EndIf

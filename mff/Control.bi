@@ -1135,9 +1135,9 @@ Namespace My.Sys.Forms
 						HParent = FParent->Handle
 					Else
 						HParent = NULL
-						If MainHandle Then
-							HParent = MainHandle
-						End If 
+'						If MainHandle Then
+'							HParent = MainHandle
+'						End If 
 						If FOwner Then
 							HParent = FOwner->Handle
 						End If
@@ -2353,6 +2353,7 @@ Namespace My.Sys.Forms
     #EndIf
 End namespace
 
+#IfDef __EXPORT_PROCS__
 Sub RemoveControl Alias "RemoveControl"(Parent As My.Sys.Forms.Control Ptr, Ctrl As My.Sys.Forms.Control Ptr) Export
 	Parent->Remove Ctrl
 End Sub
@@ -2384,4 +2385,4 @@ End Sub
 Sub ControlFreeWnd Alias "ControlFreeWnd"(Ctrl As My.Sys.Forms.Control Ptr) Export
     Ctrl->FreeWnd()
 End Sub
-
+#EndIf

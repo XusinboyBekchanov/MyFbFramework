@@ -189,6 +189,7 @@ End Namespace
 
 Using ClassContainer
 
+#IfDef __USE_GTK__
 Function ToUtf8(pWString As WString Ptr) As String
 	'#IfDef __USE_GTK__
 	'	Return g_locale_to_utf8(*pWString, -1, NULL, NULL, NULL)
@@ -209,6 +210,7 @@ Function FromUtf8(pZString As ZString Ptr) ByRef As WString
    WLet buffer, WString(m_BufferLen * 5 + 1, 0)
    Return WGet(UTFToWChar(1, pZString, buffer, @cbLen))
 End Function
+#EndIf
 
 #IfDef GetMN
 Function GetMessageName(Message As Integer) As String
@@ -1338,94 +1340,3 @@ Function EndsWith(ByRef a As WString, ByRef b As WString) As Boolean
     Return Right(a, Len(b)) = b
 End Function
 
-Dim Shared symbols(0 To 15) As UByte
-For i As Integer = 48 to 57
-    symbols(i - 48) = i
-Next
-For i As Integer = 97 to 102
-    symbols(i - 87) = i
-Next
-
-Const plus  As UByte = 43
-Const minus As Ubyte = 45
-Const dot   As UByte = 46
- 
-Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
-    If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
-    Err = 0 
- 
-    If base_ < 2 OrElse base_ > 16 Then
-        Err = 1000
-        Return False
-    End If
- 
-    Dim t As String = LCase(subject)
- 
-    If (t[0] = plus) OrElse (t[0] = minus) Then
-        t = Mid(t, 2)
-    End If
- 
-    If Left(t, 2) = "&h" Then
-        If base_ <> 16 Then Return False
-        t = Mid(t, 3)
-    End if
- 
-    If Left(t, 2) = "&o" Then
-        If base_ <> 8 Then Return False
-        t = Mid(t, 3)
-    End if
- 
-    If Left(t, 2) = "&b" Then
-        If base_ <> 2 Then Return False
-        t = Mid(t, 3)
-    End if
- 
-    If Len(t) = 0 Then Return False
-    Dim As Boolean isValid, hasDot = false
- 
-    For i As Integer = 0 To Len(t) - 1
-        isValid = False
- 
-        For j As Integer = 0 To base_ - 1
-            If t[i] = symbols(j) Then
-                isValid = True
-                Exit For
-            End If
-            If t[i] = dot Then
-                If CInt(Not hasDot) AndAlso (base_ = 10) Then
-                    hasDot = True 
-                    IsValid = True
-                    Exit For
-                End If
-                Return False ' either more than one dot or not base 10
-            End If
-        Next j
- 
-        If Not isValid Then Return False
-    Next i
- 
-    Return True
-End Function
-
-function utf16BeByte2wchars( ta() as ubyte ) ByRef As Wstring
-    type mstring
-            p as wstring ptr ' pointer to wstring buffer
-            l as uinteger ' length of string
-    end type
-    dim a as uinteger = 0
-    dim tal as uinteger = ubound(ta)
-    dim ms as mstring
-
-'this is never deallocated..
-    ms.p = allocate( 0.25 * (tal + 1) * len(wstring))
-    
-    ' iterate array
-    do while a <= tal
-    (*ms.p)[ms.l] = 256 * ta(a) + ta(a + 1) 
-    a += 2
-    ms.l += 1
-    loop
-    
-    (*ms.p)[ms.l] = 0
-    function = *ms.p
-end function

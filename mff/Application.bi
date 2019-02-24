@@ -593,7 +593,11 @@ End namespace
 
 Dim Shared App As My.Application 'Global for entire Application
 
+#IfDef __EXPORT_PROCS__
 Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer Export
+#Else
+Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer
+#EndIf
     Dim As Integer Result = -1
     Dim As WString Ptr FCaption
     Dim As Integer MsgTypeIn, ButtonsTypeIn
@@ -698,6 +702,7 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
     Return Result
 End Function
 
+#IfDef __EXPORT_PROCS__
 Function ApplicationMainForm Alias "ApplicationMainForm"(App As My.Application Ptr) As My.Sys.Forms.Control Ptr Export
     Return App->MainForm
 End Function
@@ -705,3 +710,4 @@ End Function
 Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString Export
     Return App->FileName
 End Function
+#EndIf

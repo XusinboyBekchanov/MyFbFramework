@@ -1648,6 +1648,7 @@ type PMenuItem  as MenuItem ptr
     end destructor
 End namespace
 
+#IfDef __EXPORT_PROCS__
 Function MenuItemItemsCount Alias "MenuItemItemsCount"(PMenuItem As My.Sys.Forms.MenuItem Ptr) As Integer Export
 	Return PMenuItem->Count
 End Function
@@ -1675,3 +1676,4 @@ End Sub
 Sub MenuRemove Alias "MenuRemove"(ParentMenu As My.Sys.Forms.Menu Ptr, PMenuItem As My.Sys.Forms.MenuItem Ptr) Export
 	ParentMenu->Remove PMenuItem
 End Sub
+#EndIf
