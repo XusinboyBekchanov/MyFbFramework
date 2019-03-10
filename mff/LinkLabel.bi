@@ -20,6 +20,7 @@ Namespace My.Sys.Forms
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
             Declare Destructor
+            OnLinkClicked As Sub(ByRef Sender As LinkLabel, ByVal ItemIndex As Integer, ByRef Action As Integer)
     End Type
     
     #IfNDef __USE_GTK__
@@ -35,7 +36,20 @@ Namespace My.Sys.Forms
 		End Sub
 
 		Sub LinkLabel.ProcessMessage(ByRef Message As Message)
-			'Base.ProcessMessage Message
+			Select Case Message.Msg
+			Case CM_NOTIFY
+				Select Case Cast(LPNMHDR, Message.lParam)->code
+				Case NM_CLICK, NM_RETURN
+					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, Message.lParam)
+					Dim As LITEM item = pNMLink1->item
+					Dim As Integer Action = 1
+					If OnLinkClicked Then OnLinkClicked(This, item.iLink, Action)
+					If Action = 1 AndAlso item.szUrl <> "" Then
+						ShellExecute(NULL, "open", item.szUrl, NULL, NULL, SW_SHOW)
+					End If
+				End Select
+			End Select
+			Base.ProcessMessage Message
 		End Sub
 	#EndIf
 

@@ -103,7 +103,6 @@ Namespace My.Sys.Forms
 		End Sub
 
 		Sub RadioButton.ProcessMessage(BYREF Message As Message)
-			Base.ProcessMessage(Message)
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -117,6 +116,7 @@ Namespace My.Sys.Forms
 					If OnClick Then OnClick(This)
 				End If
 			End Select
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

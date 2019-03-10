@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 				Static As POINT g_OrigCursorPos, g_CurCursorPos
 				Select Case Message.Msg
 				Case WM_SETCURSOR
-					If Cursor <> 0 Then Message.Result = Cast(LResult, SetCursor(Cursor->Handle)): Return
+					If CInt(Cursor <> 0) AndAlso CInt(Not DesignMode) Then Message.Result = Cast(LResult, SetCursor(Cursor->Handle)): Return
 				Case WM_PAINT
 					Dim As Rect R
 					Dim As HDC Dc

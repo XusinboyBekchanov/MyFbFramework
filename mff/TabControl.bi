@@ -18,11 +18,14 @@ Namespace My.Sys.Forms
     
     Type TabPage Extends Panel
         Protected:
-            FCaption   As WString Ptr
-            FObject    As Any Ptr
-            FImageIndex     As Integer
-            FImageKey     As WString Ptr
-        Public:  
+            FCaption    As WString Ptr
+            FObject     As Any Ptr
+            FImageIndex As Integer
+            FImageKey   As WString Ptr
+        Public:
+        	Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+            Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+            Declare Sub ProcessMessage(ByRef msg As Message)
             #IfDef __USE_GTK__
             	_Box			As GtkWidget Ptr
 				_Icon			As GtkWidget Ptr
@@ -31,12 +34,16 @@ Namespace My.Sys.Forms
             Declare Property Index As Integer
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
+            Declare Property Text ByRef As WString
+            Declare Property Text(ByRef Value As WString)
             Declare Property Object As Any Ptr
             Declare Property Object(Value As Any Ptr)
             Declare Property ImageIndex As Integer
             Declare Property ImageIndex(Value As Integer)
             Declare Property ImageKey ByRef As WString
             Declare Property ImageKey(ByRef Value As WString)
+            Declare Property Parent As PTabControl
+            Declare Property Parent(Value As PTabControl)
             Declare Operator Let(ByRef Value As WString)
             Declare Operator Cast As Control Ptr
             Declare Operator Cast As Any Ptr
@@ -65,6 +72,8 @@ Namespace My.Sys.Forms
         Public:
 			Images        As ImageList Ptr
             Tabs             As TabPage Ptr Ptr
+            Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+            Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
             Declare Property TabIndex As Integer
             Declare Property TabIndex(Value As Integer)
             Declare Property TabCount As Integer
@@ -101,21 +110,100 @@ Namespace My.Sys.Forms
             OnLostFocus   As Sub(BYREF Sender As TabControl)
     End Type
 
+	#IfNDef ReadProperty_Off
+	    Function TabPage.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	        Select Case LCase(PropertyName)
+	        Case "parent": Return FParent
+	        Case "text": Return FText
+	        Case "caption": Return FText
+	        Case Else: Return Base.ReadProperty(PropertyName)
+	        End Select
+	        Return 0
+	    End Function
+    #EndIf
+    
+    #IfNDef WriteProperty_Off
+        Function TabPage.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	        If Value = 0 Then
+	            Select Case LCase(PropertyName)
+	            Case "parent": This.Parent = Value
+	            Case Else: Return Base.WriteProperty(PropertyName, Value)
+	            End Select
+	        Else
+	            Select Case LCase(PropertyName)
+	            Case "parent": If *Cast(My.Sys.Object Ptr, Value) Is TabControl Then This.Parent = Cast(TabControl Ptr, Value)
+	            Case "text": This.Text = QWString(Value)
+	            Case "caption": This.Caption = QWString(Value)
+	            Case Else: Return Base.WriteProperty(PropertyName, Value)
+	            End Select
+	        End If
+	        Return True
+	    End Function
+    #EndIf
+
+	#IfNDef ReadProperty_Off
+	    Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	        Select Case LCase(PropertyName)
+	        Case "tabindex": Return @FTabIndex
+	        Case Else: Return Base.ReadProperty(PropertyName)
+	        End Select
+	        Return 0
+	    End Function
+    #EndIf
+    
+    #IfNDef WriteProperty_Off
+        Function TabControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	        If Value = 0 Then
+	            Select Case LCase(PropertyName)
+	            Case Else: Return Base.WriteProperty(PropertyName, Value)
+	            End Select
+	        Else
+	            Select Case LCase(PropertyName)
+	            Case "tabindex": This.TabIndex = QInteger(Value)
+	            Case Else: Return Base.WriteProperty(PropertyName, Value)
+	            End Select
+	        End If
+	        Return True
+	    End Function
+    #EndIf
+    
+    Sub TabPage.ProcessMessage(ByRef msg As Message)
+    	#IfDef __USE_GTK__
+	    	Select Case msg.msg
+	    	Case WM_PAINT, WM_ERASEBKGND
+'	    		Dim As PAINTSTRUCT ps
+'				Dim As HDC hdc = BeginPaint(msg.hwnd, @ps)
+'	    		Dim As RECT rcWin
+'				Dim As RECT rcWnd
+'				Dim As HWND parWnd = GetParent(msg.hwnd)
+'				Dim As HDC parDc = GetDC(parWnd)
+'				GetWindowRect(msg.hwnd, @rcWnd)
+'				ScreenToClient(parWnd, @rcWnd)
+'				GetClipBox(hdc, @rcWin )
+'	    		BitBlt(hdc, rcWin.left, rcWin.top, rcWin.right - rcWin.left, rcWin.bottom - rcWin.top, parDC, rcWnd.left, rcWnd.top, SRC_COPY)
+'				ReleaseDC(parWnd, parDC)
+'				EndPaint(msg.hwnd, @ps)
+				EnableThemeDialogTexture(msg.hwnd, ETDT_ENABLETAB)
+	    	End Select
+    	#EndIf
+    	Base.ProcessMessage(msg)
+    End Sub
+        
     Property TabPage.Index As Integer
-        If This.Parent AndAlso *This.Parent Is TabControl Then
+        If This.Parent AndAlso *Base.Parent Is TabControl Then
             Return Cast(TabControl Ptr, This.Parent)->IndexOfTab(@This)
         End If
         Return -1
     End Property
         
     Sub TabPage.Update()
-        If This.Parent AndAlso *This.Parent Is TabControl Then
+        If This.Parent AndAlso *Base.Parent Is TabControl Then
             #IfNDef __USE_GTK__
 				If This.Parent->Handle Then
 					Dim As TCITEM Ti
 					Ti.mask = TCIF_TEXT OR TCIF_IMAGE OR TCIF_PARAM
 					This.Parent->Perform(TCM_GETITEM, Index, CInt(@Ti))
-					Ti.cchTextMax = Len(*FText) + 1
+					Ti.cchTextMax = Len(WGet(FCaption)) + 1
 					Ti.pszText = FCaption
 					If FObject Then Ti.lparam = Cast(LParam, FObject)
 					If Cast(TabControl Ptr, This.Parent)->Images AndAlso FImageKey <> 0 Then
@@ -130,26 +218,44 @@ Namespace My.Sys.Forms
     End Sub
     
     Sub TabPage.SelectTab()
-        If This.Parent AndAlso *This.Parent Is TabControl Then
+        If This.Parent AndAlso *Base.Parent Is TabControl Then
             Cast(TabControl Ptr, This.Parent)->TabIndex = Index
         End If
     End Sub
     
     Property TabPage.Caption ByRef As WString
-        Return *FCaption
+        Return Text
     End Property
 
     Property TabPage.Caption(ByRef Value As WString)
-        FCaption = Cast(WString Ptr, ReAllocate(FCaption, (Len(Value) + 1) * SizeOf(WString)))
-        *FCaption = Value
+        Text = Value
+    End Property
+    
+    Property TabPage.Text ByRef As WString
+        Return WGet(FCaption)
+    End Property
+
+    Property TabPage.Text(ByRef Value As WString)
+        WLet FCaption, Value
         #IfDef __USE_GTK__
 			If This.Parent AndAlso *This.Parent Is TabControl AndAlso This.Parent->Widget Then
 				gtk_label_set_text(gtk_Label(_Label), ToUTF8(Value))
 			End If
-        #Else 
+        #Else
 			Update
         #EndIf
     End Property
+    
+    #IfNDef Parent_Off
+        Property TabPage.Parent As TabControl Ptr
+			Return Cast(TabControl Ptr, FParent)
+		End Property
+		
+        Property TabPage.Parent(Value As TabControl Ptr)
+			FParent = Value
+			If Value Then Value->AddTab(@This)
+		End Property
+    #EndIf
 
     Property TabPage.Object As Any Ptr
         Return FObject
@@ -200,6 +306,7 @@ Namespace My.Sys.Forms
         'Anchor.Bottom = asAnchor
         WLet FClassName, "TabPage"
         WLet FClassAncestor, "Panel"
+        Base.Style = WS_CHILD Or WS_EX_TRANSPARENT
         #IfDef __USE_GTK__
 			This.RegisterClass "TabPage", @This
         #Else
@@ -209,7 +316,8 @@ Namespace My.Sys.Forms
     End Constructor
 
     Destructor TabPage
-        If FCaption Then Deallocate FCaption
+        If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
+    	WDeallocate FCaption
     End Destructor
     
     Property TabControl.TabIndex As Integer
@@ -230,7 +338,10 @@ Namespace My.Sys.Forms
 				Dim Id As Integer = TabIndex
 				For i As Integer = 0 To TabCount - 1
 					Tabs[i]->Visible = i = Id
-					'ShowWindow(Tabs[i]->Handle, Abs_(i = Id))
+					If DesignMode Then
+						ShowWindow(Tabs[i]->Handle, Abs_(i = Id))
+						If i <> Id Then SetWindowPos Tabs[i]->Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+					End If
 				Next i
 				RequestAlign
 				If OnSelChange Then OnSelChange(This, Id)
@@ -477,8 +588,9 @@ Namespace My.Sys.Forms
 						'If .Tabs[i]->Object Then Ti.lParam = Cast(LPARAM, .Tabs[i]->Object)
 						Ti.lParam = Cast(LPARAM, .Handle)
 						.Perform(TCM_INSERTITEM, i, CInt(@Ti))
-					 Next
-					.SetMargins
+						.SetMargins
+					Next
+					.RequestAlign
 					If .TabCount > 0 Then .Tabs[0]->BringToFront()
 				End With
 			End If
@@ -514,6 +626,8 @@ Namespace My.Sys.Forms
 				If NM->Code = TCN_SELCHANGE Then
 					TabIndex = TabIndex
 				End If
+			Case WM_NCHITTEST
+				If DesignMode Then Exit Sub
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
@@ -527,7 +641,6 @@ Namespace My.Sys.Forms
         tb->ImageIndex = ImageIndex
         Tabs = Reallocate(Tabs, SizeOF(TabPage) * FTabCount)
         Tabs[FTabCount - 1] = tb
-        This.Add(tb)
         #IfDef __USE_GTK__
         	If widget Then
         		#IfDef __USE_GTK3__
@@ -556,9 +669,10 @@ Namespace My.Sys.Forms
 				If Tabs[FTabCount - 1]->Object Then Ti.lParam = Cast(LPARAM, Tabs[FTabCount - 1]->Object)
 				Ti.iImage = Tabs[FTabCount - 1]->ImageIndex
 				SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
-				If FTabCount = 1 Then SetMargins
 			End If
+			SetMargins
 		#EndIf
+		This.Add(tb)
         tb->Visible = FTabCount = 1
         Return Tabs[FTabCount - 1]
     End Function
@@ -579,7 +693,6 @@ Namespace My.Sys.Forms
         'tp->TabPageControl = @This
         Tabs = Reallocate(Tabs, SizeOF(TabPage) * FTabCount)
         Tabs[FTabCount - 1] = tp
-        This.Add(Tabs[FTabCount - 1])
         #IfDef __USE_GTK__
         	If widget Then
         		#IfDef __USE_GTK3__
@@ -611,10 +724,11 @@ Namespace My.Sys.Forms
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Ti.iImage = tp->ImageIndex
 				SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
-				If FTabCount = 1 Then SetMargins
-			End If
+        	End If
+        	SetMargins
 			tp->Visible = FTabCount = 1
 		#EndIf
+		This.Add(Tabs[FTabCount - 1])
     End Sub
     
     Sub TabControl.DeleteTab(Index As Integer)
@@ -660,14 +774,14 @@ Namespace My.Sys.Forms
           Tabs[Index]->Caption = Caption
           Tabs[Index]->Object = aObject
           'Tabs[Index]->TabPageControl = @This
-          This.Add(Tabs[Index])
           #IfNDef __USE_GTK__
 			  Ti.pszText    = @(Tabs[Index]->Caption)
 			  Ti.cchTextMax = Len(Tabs[Index]->Caption) + 1
 			  If Tabs[Index]->Object Then Ti.lParam = Cast(LPARAM, Tabs[Index]->Object)
 			  Perform(TCM_INSERTITEM, Index, CInt(@Ti))
           #EndIf
-          If FTabCount = 1 Then SetMargins
+          SetMargins
+          This.Add(Tabs[Index])
        End If
     End Sub
 
@@ -718,6 +832,9 @@ Namespace My.Sys.Forms
     End Constructor
 
     Destructor TabControl
+    	For i As Integer = 0 To TabCount - 1
+    		Tabs[i]->Parent = 0
+    	Next
         'UnregisterClass "TabControl", GetModuleHandle(NULL) 
     End Destructor
     

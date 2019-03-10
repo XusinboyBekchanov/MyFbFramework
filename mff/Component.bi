@@ -50,6 +50,7 @@ Namespace My.Sys.ComponentModel
     Function Component.ReadProperty(ByRef PropertyName As String) As Any Ptr
         Select Case LCase(PropertyName)
         Case "designmode": Return @FDesignMode
+        Case "classancestor": Return FClassAncestor
         Case "tag": Return Tag
         Case "name": Return FName
         Case Else: Return Base.ReadProperty(PropertyName)
@@ -62,6 +63,7 @@ Namespace My.Sys.ComponentModel
             Select Case LCase(PropertyName)
             Case "tag": This.Tag = Value
             Case "name": This.Name = QWString(Value)
+            Case "designmode": This.DesignMode = QBoolean(Value)
             Case Else: Return Base.WriteProperty(PropertyName, Value)
             End Select
         End If

@@ -323,6 +323,7 @@ Namespace My.Sys.Forms
 				Position = Perform(TBM_GETPOS, 0, 0)
 				If OnChange Then OnChange(This, Position)
 			End Select
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

@@ -450,6 +450,7 @@ namespace My.Sys.Forms
 				   IsMenuItem = False
 				End If
 			End Select
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

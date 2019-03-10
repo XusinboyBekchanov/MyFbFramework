@@ -65,17 +65,18 @@ Namespace My.Sys.Forms
 		Sub GroupBox.ProcessMessage(BYREF Message As Message)
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
-				 Static As HDC Dc
-				 Dc = Cast(HDC, Message.wParam)
-				 SetBKMode Dc, TRANSPARENT
-				 SetTextColor Dc, This.Font.Color
-				 SetBKColor Dc, This.BackColor
-				 SetBKMode Dc, OPAQUE
+'				 Static As HDC Dc
+'				 Dc = Cast(HDC, Message.wParam)
+'				 SetBKMode Dc, TRANSPARENT
+'				 SetTextColor Dc, This.Font.Color
+'				 SetBKColor Dc, This.BackColor
+'				 SetBKMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
 					If OnClick Then OnClick(This)
 				End If
 			End Select
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

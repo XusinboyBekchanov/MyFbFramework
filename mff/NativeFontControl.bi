@@ -35,6 +35,7 @@ Namespace My.Sys.Forms
 		End Sub
 
 		Sub NativeFontControl.ProcessMessage(ByRef Message As Message)
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

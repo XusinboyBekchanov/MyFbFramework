@@ -468,7 +468,7 @@ Namespace My.Sys.Forms
         #EndIf
         
         #IfNDef GetForm_Off
-            Function Control.GetForm As Control Ptr '...'
+            Function Control.GetForm As Control Ptr
                 If This.ClassName = "Form" Then
                     Return @This
                 ElseIf FParent = 0 Then
@@ -711,7 +711,7 @@ Namespace My.Sys.Forms
 					End If
 				EndIf
             #Else
-				If FHandle Then MoveWindow FHandle, iLeft, iTop, iWidth, iHeight, True
+            	If FHandle Then MoveWindow FHandle, iLeft, iTop, iWidth, iHeight, True
 			#EndIf
         End Sub
         #EndIf
@@ -1211,6 +1211,7 @@ Namespace My.Sys.Forms
 						This.Controls[i]->RequestAlign
 						This.Controls[i]->CreateWnd
 					Next i
+					This.RequestAlign
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
 					If OnCreate Then OnCreate(This)            
 					If FVisible Then ShowWindow(FHandle, SW_SHOWNORMAL)
@@ -1389,10 +1390,16 @@ Namespace My.Sys.Forms
 				bShift = GetKeyState(VK_SHIFT) And 8000
 				bCtrl = GetKeyState(VK_CONTROL) And 8000
 				Select Case Message.Msg
+				Case WM_NCHITTEST
+					If DesignMode Then
+						If ClassName <> "Form" Then
+							Message.Result = HTTRANSPARENT
+						End If
+					End If
 				Case WM_PAINT
 					If OnPaint Then OnPaint(This)
 				Case WM_SETCURSOR
-					If CInt(This.Cursor <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) Then
+					If CInt(This.Cursor <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not DesignMode) Then
 						Message.Result = Cast(LResult, SetCursor(This.Cursor->Handle))
 					End If
 				Case WM_HSCROLL
@@ -1625,6 +1632,12 @@ Namespace My.Sys.Forms
 				Message.Result = True
 			#Else
 				Select Case Message.Msg
+				Case WM_NCHITTEST
+					If DesignMode Then
+						If ClassName <> "Form" Then
+							'Message.Result = HTTRANSPARENT
+						End If
+					End If
 				Case WM_DESTROY
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
 					If OnDestroy Then OnDestroy(This)
@@ -1682,7 +1695,7 @@ Namespace My.Sys.Forms
 				If Ctrl Then
 					Ctrl->ProcessMessage(Message)
 					If Message.Result = -1 Then
-						Exit Function
+						Return Message.Result
 					ElseIf Message.Result = -2 Then
 						Msg = Message.Msg
 						wParam = Message.wParam
@@ -1694,9 +1707,6 @@ Namespace My.Sys.Forms
 				Message.Result = DefWindowProc(FWindow,Msg,wParam,lParam)
 '				If Ctrl Then
 '					Ctrl->ProcessMessageAfter(Message)
-''				    If Ctrl->FDisposed Then
-''				        Delete Ctrl
-''				    End If
 '				End If
 				Return Message.Result
 			End Function
@@ -1711,7 +1721,7 @@ Namespace My.Sys.Forms
 					Proc = Ctrl->PrevProc
 					Ctrl->ProcessMessage(Message)
 					If Message.Result = -1 Then
-						Exit Function
+						Return Message.Result
 					ElseIf Message.Result = -2 Then
 						Msg = Message.Msg
 						wParam = Message.wParam
@@ -1720,10 +1730,9 @@ Namespace My.Sys.Forms
 						Return Message.Result
 					End If
 					Message.Result = CallWindowProc(Proc,FWindow,Msg,wParam,lParam)
-					'Ctrl->ProcessMessageAfter(Message)
-'					If Ctrl->FDisposed Then
-'				        Delete Ctrl
-'				    End If
+'					If Ctrl Then
+'						Ctrl->ProcessMessageAfter(Message)
+'					End If
 				End If
 				Return Message.Result
 			End Function
@@ -1732,11 +1741,9 @@ Namespace My.Sys.Forms
 '    			On Error Goto ErrorHandler
 				Dim As Control Ptr Ctrl
 				Dim Message As Message
-				Dim As String A1111
 				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				If Ctrl Then
-					A1111 = Ctrl->ClassName
 					With *Ctrl
 						.ProcessMessage(Message)
 						If Message.Result = -1 Then
@@ -1751,6 +1758,9 @@ Namespace My.Sys.Forms
 					End With
 				End If
 				Message.Result = CallWindowProc(GetClassProc(FWindow), FWindow, Msg, wParam, lParam)
+'				If Ctrl Then
+'					Ctrl->ProcessMessageAfter(Message)
+'				End If
 				Return Message.Result
 '    Exit Function
 'ErrorHandler:
@@ -2124,7 +2134,7 @@ Namespace My.Sys.Forms
 				For i = 0 To ClientCount -1
 					With *ListClient[i]
 						If .FVisible Then 
-						.SetBounds(lLeft,tTop,rLeft - lLeft,bTop - tTop)
+							.SetBounds(lLeft,tTop,rLeft - lLeft,bTop - tTop)
 						End If
 					End With
 				Next i

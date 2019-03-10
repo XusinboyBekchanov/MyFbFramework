@@ -224,6 +224,7 @@ Namespace My.Sys.Forms
 					If OnChanging Then OnChanging(This,NMUD->iPos,NMUD->iDelta)
 				End If
 			End Select
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

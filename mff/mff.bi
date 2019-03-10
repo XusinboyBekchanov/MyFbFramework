@@ -129,6 +129,7 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
     Case "rebar": Ctrl = New ReBar
     Case "richtextbox": Ctrl = New RichTextBox
     Case "tabcontrol": Ctrl = New TabControl
+    Case "tabpage": Ctrl = New TabPage
     Case "scrollbarcontrol": Ctrl = New ScrollBarControl
     Case "hscrollbar": Ctrl = New HScrollBar
     Case "vscrollbar": Ctrl = New VScrollBar
@@ -147,7 +148,7 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
         Ctrl->Name = sName
         Ctrl->WriteProperty("Text", @Text)
         Ctrl->SetBounds lLeft, lTop, lWidth, lHeight
-        Ctrl->Parent = Parent
+        Ctrl->WriteProperty("Parent", Parent)
         Objects.Add Ctrl
     EndIf
     Return Ctrl
@@ -216,6 +217,7 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
     Case "rebar": Delete Cast(ReBar Ptr, Ctrl)
     Case "richtextbox": Delete Cast(RichTextBox Ptr, Ctrl)
     Case "tabcontrol": Delete Cast(TabControl Ptr, Ctrl)
+    Case "tabpage": Delete Cast(TabPage Ptr, Ctrl)
     Case "scrollbarcontrol": Delete Cast(ScrollBarControl Ptr, Ctrl)
     Case "hscrollbar": Delete Cast(HScrollBar Ptr, Ctrl)
     Case "vscrollbar": Delete Cast(VScrollBar Ptr, Ctrl)

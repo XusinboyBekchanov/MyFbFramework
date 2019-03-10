@@ -22,7 +22,6 @@ Namespace My.Sys.Forms
 			FBevelOuter  As Integer
 			FBorderWidth As Integer
 			FBevelWidth  As Integer
-			Declare Sub ProcessMessage(BYREF Message As Message)
 			#IfNDef __USE_GTK__
 				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
 				Declare Static Sub WndProc(BYREF Message As Message)
@@ -31,6 +30,7 @@ Namespace My.Sys.Forms
 				Declare Sub Frame3D(R As RECT, AWidth As Integer)
 			#EndIf
 		Public:
+			Declare Sub ProcessMessage(ByRef Message As Message)
 			'Canvas        As My.Sys.Drawing.Canvas
 			Declare Property BevelInner As Integer
 			Declare Property BevelInner(Value As Integer)

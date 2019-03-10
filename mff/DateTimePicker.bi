@@ -13,9 +13,9 @@ Namespace My.Sys.Forms
         Private:
 			#IfNDef __USE_GTK__
 				Declare Static Sub WndProc(ByRef Message As Message)
-				Declare Sub ProcessMessage(ByRef Message As Message)
 				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			#EndIf
+			Declare Sub ProcessMessage(ByRef Message As Message)
         Public:
             Declare Operator Cast As My.Sys.Forms.Control Ptr
             Declare Constructor
@@ -45,10 +45,10 @@ Namespace My.Sys.Forms
 		Sub DateTimePicker.WndProc(ByRef Message As Message)
 		End Sub
 
+	#EndIf
 		Sub DateTimePicker.ProcessMessage(ByRef Message As Message)
 			Base.ProcessMessage(Message)
 		End Sub
-	#EndIf
 
     Operator DateTimePicker.Cast As My.Sys.Forms.Control Ptr
          Return Cast(My.Sys.Forms.Control Ptr, @This)

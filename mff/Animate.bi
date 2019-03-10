@@ -283,6 +283,7 @@ Namespace My.Sys.Forms
 				'Future utilisation
 				ReleaseDC Handle,Dc
 			End Select
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

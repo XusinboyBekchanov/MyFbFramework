@@ -108,7 +108,7 @@ namespace My
             Declare Property FileName ByRef As WString
             Declare Property FileName(ByRef Value As WString)
             Declare Function Version() As Const String
-            Declare Function GetVerInfo(ByRef InfoName As Const String) As Const String
+            Declare Function GetVerInfo(ByRef InfoName As String) As String
         
    			Declare Property Icon As My.Sys.Drawing.Icon
             Declare Property Icon(value As My.Sys.Drawing.Icon)
@@ -524,11 +524,11 @@ namespace My
         Return @This
     End Operator
 
-    Private Function Application.GetVerInfo(ByRef InfoName As Const String) As Const String
+    Private Function Application.GetVerInfo(ByRef InfoName As String) As String
 		Dim As ULong iret
 		If TranslationString = "" Then Return ""
 		Dim As WString Ptr value = 0
-        Dim As Const String FullInfoName = $"\StringFileInfo\" & TranslationString & "\" & InfoName
+        Dim As String FullInfoName = $"\StringFileInfo\" & TranslationString & "\" & InfoName
 		#IfNDef __USE_GTK__
 			If VerQueryValue(_vinfo, FullInfoName, @value, @iret) Then
 				''~ value = cast( zstring ptr, vqinfo )

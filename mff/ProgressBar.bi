@@ -173,6 +173,7 @@ Namespace My.Sys.Forms
 		End Sub
 
 		Sub ProgressBar.ProcessMessage(BYREF Message As Message)
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 

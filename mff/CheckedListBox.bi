@@ -454,6 +454,7 @@ Namespace My.Sys.Forms
 			Case WM_KEYUP
 				If OnKeyUp Then OnKeyUp(This,Message.wParam,Message.wParam AND &HFFFF)
 			End Select
+			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
 
