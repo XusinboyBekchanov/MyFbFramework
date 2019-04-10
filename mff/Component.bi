@@ -20,6 +20,7 @@ Namespace My.Sys.ComponentModel
                 FHandle As HWND
             #EndIf
         Public:
+        	'Stores any extra data needed for your program.
             Tag As Any Ptr
             #IfDef __USE_GTK__
 				Accelerator     As GtkAccelGroup Ptr
@@ -40,6 +41,7 @@ Namespace My.Sys.ComponentModel
             Declare Function GetTopLevel As Component Ptr
             Declare Property DesignMode As Boolean
             Declare Property DesignMode(Value As Boolean)
+            'Returns the name used in code to identify an object.
             Declare Property Name ByRef As WString
             Declare Property Name(ByRef Value As WString)
             Declare Property Parent As Component Ptr 'ContainerControl
@@ -192,6 +194,7 @@ Enum Keys
 		Home = GDK_KEY_HOME
 		EndKey = GDK_KEY_END
 		DeleteKey = GDK_KEY_DELETE
+		Enter = GDK_KEY_RETURN
 	#Else
 		Esc = VK_ESCAPE
 		Left = VK_LEFT
@@ -201,5 +204,6 @@ Enum Keys
 		Home = VK_HOME
 		EndKey = VK_END
 		DeleteKey = VK_DELETE
+		Enter = VK_RETURN
 	#EndIf
 End Enum

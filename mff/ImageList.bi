@@ -16,7 +16,7 @@ Namespace My.Sys.Forms
 			 dsBlend50
 		End Enum
 
-		Enum ImageType
+		Enum ImagesType
 			 itImage = 0
 			 itMask
 		End Enum
@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 			 dsBlend50     = ILD_BLEND50
 		End Enum
 
-		Enum ImageType
+		Enum ImagesType
 			 itImage = 0
 			 itMask  = ILD_MASK
 		End Enum
@@ -77,6 +77,11 @@ Namespace My.Sys.Forms
             #Else
 				Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
             #EndIf
+            #IfDef __USE_GTK__
+				Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "")
+            #Else
+				Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
+            #EndIf
             Declare Sub Remove(Index As Integer)
             Declare Sub Remove(ByRef Key As WString)
             Declare Function GetBitmap(Index As Integer) ByRef As My.Sys.Drawing.BitmapType
@@ -89,8 +94,8 @@ Namespace My.Sys.Forms
             Declare Function GetCursor(ByRef Key As WString) As My.Sys.Drawing.Cursor
             Declare Function IndexOf(ByRef Key As WString) As Integer
             #IfNDef __USE_GTK__
-            	Declare Sub DrawEx(Index As Integer,DestDC As HDC,X As Integer,Y As Integer,iWidth As Integer,iHeight As Integer,FG As Integer,BK As Integer)
-            	Declare Sub Draw(Index As Integer,DestDC As HDC,X As Integer,Y As Integer)
+            	Declare Sub DrawEx(Index As Integer, DestDC As HDC, X As Integer, Y As Integer, iWidth As Integer, iHeight As Integer, FG As Integer, BK As Integer)
+            	Declare Sub Draw(Index As Integer, DestDC As HDC, X As Integer, Y As Integer)
             #Endif
             Declare Sub Clear
             Declare Operator Cast As Any Ptr
@@ -226,6 +231,58 @@ Namespace My.Sys.Forms
 				ImageList_AddMasked(Handle, Bitm.Handle, MaskColor)
 				NotifyWindow
 			End If
+		#EndIf
+	End Sub
+	
+	#IfDef __USE_GTK__
+		Sub ImageList.AddPng(ByRef Png As WString, ByRef Key As WString = "")
+	#Else
+		Sub ImageList.AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
+	#EndIf
+		#IfNDef __USE_GTK__
+			Dim As HRSRC hPicture = FindResourceW(ModuleHandle, Png, "PNG")
+			Dim As HRSRC hPictureData
+			Dim As Unsigned Long dwSize = SizeOfResource(ModuleHandle, hPicture)
+			Dim As HGLOBAL hGlobal = NULL
+			If hPicture = 0 Then Return
+			hPictureData = LockResource(LoadResource(ModuleHandle, hPicture))
+			If hPictureData = 0 Then Return
+			hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwSize)
+			If hGlobal = 0 Then Return
+			' Lock the memory
+			Dim As LPVOID pData = GlobalLock(hGlobal)
+			If pData = 0 Then
+				GlobalFree(hGlobal)
+				Return
+			End If
+				' Initialize Gdiplus
+				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
+				StartupInput.GdiplusVersion = 1
+				GdiplusStartup(@token, @StartupInput, NULL)
+				' Copy the image from the binary string file to global memory
+			CopyMemory(pData, hPictureData, dwSize)
+			Dim As IStream Ptr pngstream = NULL
+			If SUCCEEDED(CreateStreamOnHGlobal(hGlobal, False, @pngstream)) Then
+				If pngstream Then
+					Dim pImage As GpImage Ptr, hImage As HICON
+					' Create a bitmap from the data contained in the stream
+					GdipCreateBitmapFromStream(pngstream, CAST(GpBitmap PTR PTR, @pImage))
+					' Create icon from image
+					GdipCreateHICONFromBitmap(CAST(GpBitmap PTR, pImage), @hImage)
+					' Free the image
+                    If pImage Then GdipDisposeImage pImage
+                    pngstream->lpVtbl->Release(pngstream)
+					FKeys.Add(Key)
+					ImageList_AddIcon(Handle, hImage)
+					NotifyWindow
+				End If
+			End If
+			' Unlock the memory
+			GlobalUnlock pData
+			' Free the memory
+			GlobalFree hGlobal
+			' Shutdown Gdiplus
+			GdiplusShutdown token
 		#EndIf
 	End Sub
 	

@@ -728,6 +728,7 @@ namespace My.Sys.Forms
 		End Sub
 		
 		Sub TextBox.ProcessMessage(BYREF message As Message)
+			'?GetMessageName(message.msg)
 			Select Case message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc

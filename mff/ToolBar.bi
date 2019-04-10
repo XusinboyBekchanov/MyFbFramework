@@ -918,6 +918,9 @@ Namespace My.Sys.Forms
 					Next i
 					If .AutoSize Then .Perform(TB_AUTOSIZE,0,0)
 					#EndIf
+					If .DesignMode Then
+						.Buttons.Add 
+					End If
 				End With
 			End If
 		End Sub

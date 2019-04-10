@@ -1,6 +1,7 @@
 ﻿'###############################################################################
 '#  Control.bi                                                                 #
 '#  This file is part of MyFBFramework                                         #
+'#  Authors:                                                               #
 '#  Version 1.0.0                                                              #
 '###############################################################################
 
@@ -179,8 +180,11 @@ Namespace My.Sys.Forms
 					ToolTipHandle       As HWND
                 #EndIf
                 SubClass            As Boolean
+                'Returns a Font object.
                 Font               As My.Sys.Drawing.Font
+                'Returns/sets the type of mouse pointer displayed when over part of an object.
                 Cursor             As My.Sys.Drawing.Cursor Ptr
+                'Specifies the default Help file context ID for an object.
                 HelpContext        As Integer
                 Constraints        As SizeConstraints
                 DoubleBuffered     As Boolean
@@ -189,41 +193,50 @@ Namespace My.Sys.Forms
                 Margins            As MarginsType
                 Declare Property ID As Integer
                 Declare Property ID(Value As Integer)
+                'Returns/sets the border style for an object.
                 Declare Property BorderStyle As Integer 'BorderStyles
                 Declare Property BorderStyle(Value As Integer)
                 Declare Property ContextMenu As PopupMenu Ptr
                 Declare Property ContextMenu(Value As PopupMenu Ptr)
-                'en:Text displayed to users
-                'ru:Текст показываемая пользователям
-                'uz:Foydalanuvchilarga koʻrsatiladigan matn
+                'Returns/sets the text contained in the control
                 Declare Property Text ByRef As WString
                 Declare Property Text(ByRef Value As WString)
+                'Returns/sets the text displayed when the mouse is paused over the control.
                 Declare Property Hint ByRef As WString
                 Declare Property Hint(ByRef Value As WString)
                 Declare Property ShowHint As Boolean
                 Declare Property ShowHint(Value As Boolean)
+                'Returns/sets the background color used to display text and graphics in an object.
                 Declare Property BackColor As Integer
                 Declare Property BackColor(Value As Integer)
+                '
                 Declare Property Parent As Control Ptr
                 Declare Property Parent(Value As Control Ptr)
+                '
                 Declare Property Align As Integer 'DockStyle
                 Declare Property Align(Value As Integer) 'DockStyle
+                'Returns/sets the distance between the internal left edge of an object and the left edge of its container.
                 Declare Property Left As Integer
                 Declare Property Left(Value As Integer)
+                'Returns/sets the distance between the internal top edge of an object and the top edge of its container.
                 Declare Property Top As Integer
                 Declare Property Top(Value As Integer)
+                'Returns/sets the width of an object.
                 Declare Property Width As Integer
                 Declare Property Width(Value As Integer)
+                'Returns/sets the height of an object.
                 Declare Property Height As Integer
                 Declare Property Height(Value As Integer)
                 Declare Function ClientWidth As Integer
                 Declare Function ClientHeight As Integer
+                'Returns/sets a value indicating whether a user can use the TAB key to give the focus to an object.
                 Declare Property TabStop As Boolean
                 Declare Property TabStop(Value As Boolean)
                 Declare Property Grouped As Boolean
                 Declare Property Grouped(Value As Boolean)
                 Declare Property IsChild As Boolean
                 Declare Property IsChild(Value As Boolean)
+                'Returns/sets a value that determines whether an object can respond to user-generated events.
                 Declare Property Enabled As Boolean
                 Declare Property Enabled(Value As Boolean)
                 #IfDef __USE_GTK__
@@ -233,6 +246,7 @@ Namespace My.Sys.Forms
 					Declare Property ParentHandle As HWND
 					Declare Property ParentHandle(Value As HWND)
                 #EndIf
+                'Returns/sets a value that determines whether an object is visible or hidden.
                 Declare Property Visible As Boolean
                 Declare Property Visible(Value As Boolean)
                 Declare Function ControlCount() As Integer
@@ -1392,7 +1406,7 @@ Namespace My.Sys.Forms
 				Select Case Message.Msg
 				Case WM_NCHITTEST
 					If DesignMode Then
-						If ClassName <> "Form" Then
+						If ClassName <> "Form" AndAlso ClassName <> "GroupBox" Then
 							Message.Result = HTTRANSPARENT
 						End If
 					End If
@@ -1556,7 +1570,7 @@ Namespace My.Sys.Forms
 				Case WM_CHAR
 					If OnKeyPress Then OnKeyPress(This, Message.WParam)
 				Case WM_KEYDOWN
-					If OnKeyDown Then OnKeyDown(This,LoWord(Message.WParam),Message.lParam And &HFFFF)
+					If OnKeyDown Then OnKeyDown(This, Message.WParam, Message.lParam And &HFFFF)
 					If GetKeyState(VK_MENU) >= 0 Then
 						Select Case LoWord(message.wParam)
 						Case VK_TAB
@@ -1646,7 +1660,7 @@ Namespace My.Sys.Forms
 			#EndIf
 		End Sub
 		
-        Function Control.EnumPopupMenuItems(Item As MenuItem) As Boolean
+        Function Control.EnumPopupMenuItems(Item As MenuItem) As Boolean '...'
             FPopupMenuItems.Add Item
             For i As Integer = 0 To Item.Count -1
                 EnumPopupMenuItems *Item.Item(i)

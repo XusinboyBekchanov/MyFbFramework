@@ -22,6 +22,7 @@ Namespace My.Sys.Forms
             FObject     As Any Ptr
             FImageIndex As Integer
             FImageKey   As WString Ptr
+        	FTheme		As HTHEME
         Public:
         	Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
             Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
@@ -30,7 +31,10 @@ Namespace My.Sys.Forms
             	_Box			As GtkWidget Ptr
 				_Icon			As GtkWidget Ptr
 				_Label			As GtkWidget Ptr
+			#Else
+				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
 			#EndIf
+			UseVisualStyleBackColor As Boolean
             Declare Property Index As Integer
             Declare Property Caption ByRef As WString
             Declare Property Caption(ByRef Value As WString)
@@ -116,6 +120,7 @@ Namespace My.Sys.Forms
 	        Case "parent": Return FParent
 	        Case "text": Return FText
 	        Case "caption": Return FText
+	        Case "usevisualstylebackcolor": Return @UseVisualStyleBackColor
 	        Case Else: Return Base.ReadProperty(PropertyName)
 	        End Select
 	        Return 0
@@ -134,43 +139,63 @@ Namespace My.Sys.Forms
 	            Case "parent": If *Cast(My.Sys.Object Ptr, Value) Is TabControl Then This.Parent = Cast(TabControl Ptr, Value)
 	            Case "text": This.Text = QWString(Value)
 	            Case "caption": This.Caption = QWString(Value)
+	            Case "usevisualstylebackcolor": This.UseVisualStyleBackColor = QBoolean(Value)
 	            Case Else: Return Base.WriteProperty(PropertyName, Value)
 	            End Select
 	        End If
 	        Return True
 	    End Function
     #EndIf
+    
+    Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QTabPage(Sender.Child)
+					If .UseVisualStyleBackColor Then
+						SetWindowTheme(.Handle, NULL, "TAB")
+					End If
+					.FTheme = OpenThemeData(.Handle, "Window")
+				End With
+			End If
+		End Sub
 
-	#IfNDef ReadProperty_Off
-	    Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
-	        Select Case LCase(PropertyName)
-	        Case "tabindex": Return @FTabIndex
-	        Case Else: Return Base.ReadProperty(PropertyName)
-	        End Select
-	        Return 0
-	    End Function
-    #EndIf
-    
-    #IfNDef WriteProperty_Off
-        Function TabControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-	        If Value = 0 Then
-	            Select Case LCase(PropertyName)
-	            Case Else: Return Base.WriteProperty(PropertyName, Value)
-	            End Select
-	        Else
-	            Select Case LCase(PropertyName)
-	            Case "tabindex": This.TabIndex = QInteger(Value)
-	            Case Else: Return Base.WriteProperty(PropertyName, Value)
-	            End Select
-	        End If
-	        Return True
-	    End Function
-    #EndIf
-    
     Sub TabPage.ProcessMessage(ByRef msg As Message)
-    	#IfDef __USE_GTK__
-	    	Select Case msg.msg
-	    	Case WM_PAINT, WM_ERASEBKGND
+    	#IfNDef __USE_GTK__
+	    	FTheme = GetWindowTheme(Msg.hWnd)
+			Dim As RECT rct
+			Select Case msg.msg
+			Case WM_DESTROY
+				CloseThemeData(FTheme)
+			Case WM_CTLCOLORSTATIC
+				If UseVisualStyleBackColor Then
+					GetClientRect(Cast(HWND, Msg.lParam), @rct)
+					DrawThemeParentBackground(Cast(HWND, Msg.lParam), Cast(HDC, Msg.wParam), @rct)
+					SetBkMode(Cast(HDC, Msg.wParam), TRANSPARENT)
+					Msg.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
+					Return
+				End If
+			Case WM_PAINT
+				If UseVisualStyleBackColor Then
+					GetClientRect(Msg.hWnd, @rct)
+					DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
+					'Msg.Result = True
+					Return
+				End If
+			Case WM_ERASEBKGND
+				If UseVisualStyleBackColor Then
+					GetClientRect(Msg.hWnd, @rct)
+					DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
+					Msg.Result = 1
+					Return
+				End If
+			Case WM_PRINTCLIENT
+				If UseVisualStyleBackColor Then
+					Dim As RECT rct
+					GetClientRect(Msg.hWnd, @rct)
+					FillRect(Cast(HDC, Msg.wParam), @rct, GetStockObject(NULL_BRUSH))
+					Msg.Result = TRUE
+					Return
+				End If
+			'Case WM_PAINT, WM_ERASEBKGND
 '	    		Dim As PAINTSTRUCT ps
 '				Dim As HDC hdc = BeginPaint(msg.hwnd, @ps)
 '	    		Dim As RECT rcWin
@@ -183,7 +208,7 @@ Namespace My.Sys.Forms
 '	    		BitBlt(hdc, rcWin.left, rcWin.top, rcWin.right - rcWin.left, rcWin.bottom - rcWin.top, parDC, rcWnd.left, rcWnd.top, SRC_COPY)
 '				ReleaseDC(parWnd, parDC)
 '				EndPaint(msg.hwnd, @ps)
-				EnableThemeDialogTexture(msg.hwnd, ETDT_ENABLETAB)
+				'EnableThemeDialogTexture(msg.hwnd, ETDT_ENABLETAB)
 	    	End Select
     	#EndIf
     	Base.ProcessMessage(msg)
@@ -306,11 +331,13 @@ Namespace My.Sys.Forms
         'Anchor.Bottom = asAnchor
         WLet FClassName, "TabPage"
         WLet FClassAncestor, "Panel"
-        Base.Style = WS_CHILD Or WS_EX_TRANSPARENT
+        Base.Style = WS_CHILD Or DS_SETFOREGROUND
+        Child = @This
         #IfDef __USE_GTK__
 			This.RegisterClass "TabPage", @This
         #Else
 			Align = 5
+			This.OnHandleIsAllocated = @HandleIsAllocated
         	This.RegisterClass "TabPage", "Panel"
         #EndIf
     End Constructor
@@ -319,6 +346,32 @@ Namespace My.Sys.Forms
         If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
     	WDeallocate FCaption
     End Destructor
+    
+    #IfNDef ReadProperty_Off
+	    Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	        Select Case LCase(PropertyName)
+	        Case "tabindex": Return @FTabIndex
+	        Case Else: Return Base.ReadProperty(PropertyName)
+	        End Select
+	        Return 0
+	    End Function
+    #EndIf
+    
+    #IfNDef WriteProperty_Off
+        Function TabControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	        If Value = 0 Then
+	            Select Case LCase(PropertyName)
+	            Case Else: Return Base.WriteProperty(PropertyName, Value)
+	            End Select
+	        Else
+	            Select Case LCase(PropertyName)
+	            Case "tabindex": This.TabIndex = QInteger(Value)
+	            Case Else: Return Base.WriteProperty(PropertyName, Value)
+	            End Select
+	        End If
+	        Return True
+	    End Function
+    #EndIf
     
     Property TabControl.TabIndex As Integer
 		#IfDef __USE_GTK__
@@ -588,6 +641,7 @@ Namespace My.Sys.Forms
 						'If .Tabs[i]->Object Then Ti.lParam = Cast(LPARAM, .Tabs[i]->Object)
 						Ti.lParam = Cast(LPARAM, .Handle)
 						.Perform(TCM_INSERTITEM, i, CInt(@Ti))
+						'EnableThemeDialogTexture(.Tabs[i]->Handle, ETDT_ENABLETAB)
 						.SetMargins
 					Next
 					.RequestAlign

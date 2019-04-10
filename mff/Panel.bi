@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 				Declare Sub Frame3D(R As RECT, AWidth As Integer)
 			#EndIf
 		Public:
-			Declare Sub ProcessMessage(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			'Canvas        As My.Sys.Drawing.Canvas
 			Declare Property BevelInner As Integer
 			Declare Property BevelInner(Value As Integer)

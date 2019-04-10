@@ -6,6 +6,14 @@
 
 #Include Once "Object.bi"
 #Include Once "Graphics.bi"
+#IfDef __FB_64BIT__
+    #Inclib "gdiplus"
+    #Include Once "win/gdiplus-c.bi"
+#else
+    #Include Once "win/ddraw.bi"
+    #Include Once "win/gdiplus.bi"
+    Using gdiplus
+#EndIf
 
 Namespace My.Sys.Drawing
     #DEFINE QBitmapType(__Ptr__) *Cast(BitmapType Ptr,__Ptr__)
@@ -42,6 +50,11 @@ Namespace My.Sys.Drawing
 				Declare Sub LoadFromResourceName(ResName As String)
 			#Else
 				Declare Sub LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL))
+			#EndIf
+			#IfDef __USE_GTK__
+				Declare Sub LoadFromPNGResourceName(ResName As String)
+			#Else
+				Declare Sub LoadFromPNGResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL))
 			#EndIf
 			Declare Sub LoadFromResourceID(ResID As Integer)
 			Declare Static Function FromResourceName(ResName As String) As BitmapType Ptr
@@ -176,6 +189,64 @@ Namespace My.Sys.Drawing
 		If Changed Then Changed(This)
 	End Sub
 
+	#IfDef __USE_GTK__
+		Sub BitmapType.LoadFromPNGResourceName(ResName As String)
+	#Else
+		Sub BitmapType.LoadFromPNGResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL))
+	#EndIf
+		#IfDef __USE_GTK__
+			Dim As GError Ptr gerr
+			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
+		#Else
+			Dim As BITMAP BMP
+			Dim As HRSRC hPicture = FindResourceW(ModuleHandle, ResName, "PNG")
+			Dim As HRSRC hPictureData
+			Dim As Unsigned Long dwSize = SizeOfResource(ModuleHandle, hPicture)
+			Dim As HGLOBAL hGlobal = NULL
+			If hPicture = 0 Then Return
+			hPictureData = LockResource(LoadResource(ModuleHandle, hPicture))
+			If hPictureData = 0 Then Return
+			hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwSize)
+			If hGlobal = 0 Then Return
+			' Lock the memory
+			Dim As LPVOID pData = GlobalLock(hGlobal)
+			If pData = 0 Then
+				GlobalFree(hGlobal)
+				Return
+			End If
+			' Initialize Gdiplus
+			Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
+			StartupInput.GdiplusVersion = 1
+			GdiplusStartup(@token, @StartupInput, NULL)
+			' Copy the image from the binary string file to global memory
+			CopyMemory(pData, hPictureData, dwSize)
+			Dim As IStream Ptr pngstream = NULL
+			If SUCCEEDED(CreateStreamOnHGlobal(hGlobal, False, @pngstream)) Then
+				If pngstream Then
+					'Dim As gdiplus.Color clr
+					Dim pImage As GpImage Ptr ', hImage As HICON
+					' Create a bitmap from the data contained in the stream
+					GdipCreateBitmapFromStream(pngstream, CAST(GpBitmap PTR PTR, @pImage))
+					' Create icon from image
+					GdipCreateHBitmapFromBitmap(CAST(GpBitmap PTR, pImage), @Handle, 0)
+					' Free the image
+                    If pImage Then GdipDisposeImage pImage
+                    pngstream->lpVtbl->Release(pngstream)
+				End If
+			End If
+			' Unlock the memory
+			GlobalUnlock pData
+			' Free the memory
+			GlobalFree hGlobal
+			' Shutdown Gdiplus
+			GdiplusShutdown token
+			GetObject(Handle,SizeOF(BMP),@BMP)
+			FWidth  = BMP.bmWidth
+			FHeight = BMP.bmHeight
+		#EndIf
+		If Changed Then Changed(This)
+	End Sub
+
 	Function BitmapType.FromResourceName(ResName As String) As BitmapType Ptr
 		Dim As BitmapType bm
 		bm.LoadFromResourceName(ResName)
@@ -244,8 +315,10 @@ Namespace My.Sys.Drawing
 				LoadFromFile(Value)
 			End If
 		#Else
-			If FindResource(GetModuleHandle(NULL),Value,RT_BITMAP) Then
-			   LoadFromResourceName(Value) 
+			If FindResource(GetModuleHandle(NULL), Value, RT_BITMAP) Then
+				LoadFromResourceName(Value)
+			ElseIf FindResource(GetModuleHandle(NULL), Value, "PNG") Then
+				LoadFromPNGResourceName(Value)
 			Else
 			   LoadFromFile(Value)
 			End If

@@ -64,6 +64,9 @@ Namespace My.Sys.Forms
 
 		Sub GroupBox.ProcessMessage(BYREF Message As Message)
 			Select Case Message.Msg
+			Case WM_PAINT
+				'Message.Result = True
+				'Return
 			Case CM_CTLCOLOR
 '				 Static As HDC Dc
 '				 Dc = Cast(HDC, Message.wParam)
@@ -71,6 +74,7 @@ Namespace My.Sys.Forms
 '				 SetTextColor Dc, This.Font.Color
 '				 SetBKColor Dc, This.BackColor
 '				 SetBKMode Dc, OPAQUE
+				
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
 					If OnClick Then OnClick(This)
@@ -98,7 +102,7 @@ Namespace My.Sys.Forms
             WLet FClassAncestor, "Button"
             #IfNDef __USE_GTK__
 				.ExStyle     = WS_EX_TRANSPARENT
-				.Style       = WS_CHILD OR BS_GROUPBOX
+				.Style       = WS_CHILD OR BS_GROUPBOX 'Or SS_NOPREFIX
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 			#EndIf
             .Width       = 121

@@ -139,7 +139,6 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
     Case "textbox": Ctrl = New TextBox
     Case "toolbar": Ctrl = New ToolBar
     Case "toolpalette": Ctrl = New ToolPalette
-    Case "tooltips": Ctrl = New ToolTips
     Case "trackbar": Ctrl = New TrackBar
     Case "treeview": Ctrl = New TreeView
     Case "updown": Ctrl = New UpDown
@@ -168,6 +167,7 @@ Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRe
     Case "fontdialog": Cpnt = New FontDialog
     Case "openfiledialog": Cpnt = New OpenFileDialog
     Case "savefiledialog": Cpnt = New SaveFileDialog
+    Case "tooltips": Cpnt = New ToolTips
     Case Else: Cpnt = CreateControl(ClassName, sName, sName, 0, 0, 10, 10, 0)
     End Select
     If Cpnt Then
