@@ -8,7 +8,8 @@
 #Include Once "Control.bi"
 #IfDef __USE_GTK__
 	#include once "gmodule.bi"
-	#include "crt/linux/unistd.bi"
+	#include Once "crt/linux/unistd.bi"
+	'#include Once "X11/Xlib.bi"
 #Else
 	#include once "win/winver.bi"
 #EndIf
@@ -539,8 +540,10 @@ namespace My
 
 	Constructor Application
 		#IfDef __USE_GTK__
+			'XInitThreads()
 			gtk_init(NULL, NULL)
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), exepath & "/resources")
+			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), exepath & "/Resources")
 			'gtk_icon_theme_add_resource_path(gtk_icon_theme_get_default(), exepath & "/resources")
 			'Dim As GList Ptr l = gtk_icon_theme_list_icons(gtk_icon_theme_get_default(), null)
 			'while (l)

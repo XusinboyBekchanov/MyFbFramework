@@ -1,3 +1,6 @@
+Version 1.1.0 (April 23, 2019)
+- Added: TreeListView Control
+- Fixed: Setting Font Property of Controls (in Linux)
 Version 1.0.3.40 (February 24, 2019)
 - Added: __EXPORT_PROCS__ definition
 Version 1.0.2.1 (January 02, 2019)

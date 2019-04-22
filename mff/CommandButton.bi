@@ -25,9 +25,11 @@ Namespace My.Sys.Forms
             ADefault(2) As Integer
             #IfNDef __USE_GTK__
 				Declare Static Sub WndProc(BYREF message As Message)
-				Declare Sub ProcessMessage(BYREF message As Message)
 				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+			#Else
+				Declare Static Sub Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
             #EndIf
+            Declare Sub ProcessMessage(BYREF message As Message)
             Declare Static Sub GraphicChange(BYREF Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
             Declare Function EnumMenuItems(Item As MenuItem, BYREF List As List) As Boolean
         Public:
@@ -171,53 +173,53 @@ Namespace My.Sys.Forms
         Return True
     End Function
 
+	Sub CommandButton.ProcessMessage(BYREF msg As Message)
 	#IfNDef __USE_GTK__
-		Sub CommandButton.ProcessMessage(BYREF msg As Message)
-			Select Case msg.Msg
-	'        Case BM_CLICK
-	'            If OnClick Then OnClick(This)
-			Case CM_COMMAND
-				'If Message.wParamHi = BN_CLICKED Then
-				'    If OnClick Then OnClick(This)
-				'End If
-			Case WM_GETDLGCODE: msg.Result = DLGC_BUTTON Or IIF(FDefault, DLGC_DEFPUSHBUTTON, DLGC_UNDEFPUSHBUTTON)
-			Case CM_DRAWITEM
-				Dim As DRAWITEMSTRUCT Ptr diStruct
-				Dim As Rect R
-				Dim As HDC Dc
-				diStruct = Cast(DRAWITEMSTRUCT Ptr,msg.lParam)
-				R = Cast(Rect,diStruct->rcItem)
-				Dc = diStruct->hDC
-				If OnDraw Then 
-					OnDraw(This,R,Dc)
-				Else
-				End If
-			Case WM_KEYUP
-				If LoWord(msg.wParam) = VK_SPACE Or LoWord(msg.wParam) = VK_RETURN Then
-					If OnClick Then OnClick(This)
-					msg.Result = -1
-					Return
-				End If
-			End Select
-			Base.ProcessMessage(msg)
-		End Sub
-	#EndIf
+		Select Case msg.Msg
+'        Case BM_CLICK
+'            If OnClick Then OnClick(This)
+		Case CM_COMMAND
+			'If Message.wParamHi = BN_CLICKED Then
+			'    If OnClick Then OnClick(This)
+			'End If
+		Case WM_GETDLGCODE: msg.Result = DLGC_BUTTON Or IIF(FDefault, DLGC_DEFPUSHBUTTON, DLGC_UNDEFPUSHBUTTON)
+		Case CM_DRAWITEM
+			Dim As DRAWITEMSTRUCT Ptr diStruct
+			Dim As Rect R
+			Dim As HDC Dc
+			diStruct = Cast(DRAWITEMSTRUCT Ptr,msg.lParam)
+			R = Cast(Rect,diStruct->rcItem)
+			Dc = diStruct->hDC
+			If OnDraw Then 
+				OnDraw(This,R,Dc)
+			Else
+			End If
+		Case WM_KEYUP
+			If LoWord(msg.wParam) = VK_SPACE Or LoWord(msg.wParam) = VK_RETURN Then
+				If OnClick Then OnClick(This)
+				msg.Result = -1
+				Return
+			End If
+		End Select
+		#EndIf
+		Base.ProcessMessage(msg)
+	End Sub
 
     Operator CommandButton.Cast As Control Ptr 
         Return Cast(Control Ptr, @This)
     End Operator
 	
 	#IfDef __USE_GTK__
-	Sub CommandButton_Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
-    	Dim As CommandButton Ptr but = user_data
-    	If but->OnClick Then but->OnClick(*but)
-    End Sub
+		Sub CommandButton.Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
+	    	Dim As CommandButton Ptr but = user_data
+	    	If but->OnClick Then but->OnClick(*but)
+	    End Sub
     #EndIf
 
     Constructor CommandButton
         #IfDef __USE_GTK__
 			widget = gtk_button_new_with_label("")
-			g_signal_connect(widget, "clicked", G_CALLBACK(@CommandButton_Clicked), @This)
+			g_signal_connect(widget, "clicked", G_CALLBACK(@Clicked), @This)
         #Else
 			AStyle(0)        = BS_TEXT
 			AStyle(1)        = BS_BITMAP

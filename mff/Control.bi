@@ -105,7 +105,13 @@ Namespace My.Sys.Forms
 				#Else
 					FParentHandle As HWND
                 #EndIf
-                #IfNDef __USE_GTK__
+                #IfDef __USE_GTK__
+                	AllocatedHeight As Integer
+					AllocatedWidth As Integer
+					Declare Static Sub Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+					Declare Static Function Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+					Declare Static Function Control_ExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+                #Else
 					FToolInfo          As TOOLINFO
 	            #EndIf
                 FBorderStyle       As Integer
@@ -166,8 +172,6 @@ Namespace My.Sys.Forms
                 Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
                 Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
                 #IfDef __USE_GTK__
-					AllocatedHeight As Integer
-					AllocatedWidth As Integer
 					Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 					Declare Static Function EventProc(widget As GtkWidget Ptr, event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 					Declare Static Function EventAfterProc(widget As GtkWidget Ptr, event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
@@ -338,7 +342,7 @@ Namespace My.Sys.Forms
             #IfDef __USE_GTK__
 				Case "widget": Return widget
 				Case "layoutwidget": Return layoutwidget
-				Case "parentwidget": Return @FParentWidget
+				Case "parentwidget": Return FParentWidget
 			#Else
 				Case "handle": Return @FHandle
 				Case "parenthandle": Return @FParentHandle
@@ -1683,7 +1687,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr Ctrl = user_data
 				Message = Type(Ctrl, widget, event, False)
 				If Ctrl Then
-					If Ctrl->DesignMode Then Return True
+					'If Ctrl->DesignMode Then Return True
 					Message.Sender = Ctrl
 					Ctrl->ProcessMessage(Message)
 				End If
@@ -1695,7 +1699,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr Ctrl = user_data
 				Message = Type(Ctrl, widget, event, False)
 				If Ctrl Then
-					If Ctrl->DesignMode Then Return True
+					'If Ctrl->DesignMode Then Return True
 					Message.Sender = Ctrl
 					Ctrl->ProcessMessageAfter(Message)
 				End If
@@ -1821,7 +1825,7 @@ Namespace My.Sys.Forms
         End Function
     
         #IfDef __USE_GTK__
-			Sub Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+			Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
 				If gtk_is_layout(widget) Then
 					#IfDef __USE_GTK3__
@@ -1844,7 +1848,7 @@ Namespace My.Sys.Forms
 				End If
 			End Sub
 			
-			Function Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Function Control.Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
 				If gtk_is_layout(widget) Then
 					#IfDef __USE_GTK3__
@@ -1868,7 +1872,7 @@ Namespace My.Sys.Forms
 				Return False
 			End Function
 			
-			Function Control_ExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Function Control.Control_ExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 				Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
 				Control_Draw(widget, cr, data1)
 				cairo_destroy(cr)
@@ -1901,6 +1905,7 @@ Namespace My.Sys.Forms
 					#EndIf
 				End If
 				If widget Then
+					Font.Parent = @This
 					gtk_widget_set_events(widget, _
 	                      GDK_EXPOSURE_MASK Or _
 	                       GDK_SCROLL_MASK Or _

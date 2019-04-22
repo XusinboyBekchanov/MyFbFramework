@@ -140,17 +140,29 @@ Namespace My.Sys.Drawing
     Sub Font.Create
 		#IfDef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
-			Handle = pango_font_description_from_string (*FName & " " & Str(FSize))
+			Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
 		#Else
 			If Handle Then DeleteObject(Handle) 
 			Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,0,0,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
-			If Handle Then
-				If FParent Then
-					SendMessage(FParent->Handle, WM_SETFONT,CUInt(Handle),True)
-					InvalidateRect FParent->Handle,0,True
-				End If
-			End If
 		#EndIf
+		If Handle Then
+			If FParent Then
+				#IfDef __USE_GTK__
+					If FParent->Widget Then
+						#IfDef __USE_GTK3__
+							gtk_widget_override_font(FParent->Widget, Handle)
+						#Else
+							gtk_widget_modify_font(FParent->Widget, Handle)
+						#EndIf
+					End If
+				#Else
+					If FParent->Handle Then
+						SendMessage(FParent->Handle, WM_SETFONT,CUInt(Handle),True)
+						InvalidateRect FParent->Handle, 0, True
+					End If
+				#EndIf
+			End If
+		End If
     End Sub
 
     Property Font.Parent As Component Ptr
@@ -159,7 +171,19 @@ Namespace My.Sys.Drawing
 
     Property Font.Parent(Value As Component Ptr)
         FParent = value
-        Create
+        #IfDef __USE_GTK__
+        	#IfDef __USE_GTK3__
+        		Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Widget)
+        		Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
+        	#Else
+        		Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Widget)
+        		Var pfd = WidgetStyle->font_desc
+        	#EndIf
+        	WLet FName, WStr(*pango_font_description_get_family(pfd))
+	        FSize = pango_font_description_get_size(pfd) / PANGO_SCALE
+        #Else
+        	Create
+        #EndIf
     End Property
 
     Property Font.Name ByRef As WString
@@ -263,18 +287,20 @@ Namespace My.Sys.Drawing
 
     Constructor Font
         WLet FClassName, "Font"
+        FCharSet  = FontCharset.Default
         #IfNDef __USE_GTK__
 			Dim As HDC Dc
 			Dc = GetDC(HWND_DESKTOP)
 			FCyPixels = GetDeviceCaps(DC, LOGPIXELSY)
 			ReleaseDC(HWND_DESKTOP,DC)
+	        FBolds(0) = 400
+	        FBolds(1) = 700
+	        WLet FName, "TAHOMA"
+	        FSize     = 8
+	        Create
+	    #Else
+	       	FSize 	  = 11
         #EndIf
-        FBolds(0) = 400
-        FBolds(1) = 700
-        WLet FName, "TAHOMA"
-        FSize     = 8
-        FCharSet  = FontCharset.Default
-        Create
     End Constructor
 
     Destructor Font

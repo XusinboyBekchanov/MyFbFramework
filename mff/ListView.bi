@@ -5,6 +5,9 @@
 '###############################################################################
 
 #Include Once "Control.bi"
+#IfDef __USE_GTK__
+	#Include Once "glib-object.bi"
+#EndIf
 
 Const LVCFMT_FILL = &h200000
 
@@ -139,6 +142,7 @@ Namespace My.Sys.Forms
             FWidth      As Integer
             FFormat      As ColumnFormat
             FVisible      As Boolean
+            FEditable	 As Boolean
         Public:
         	#IfDef __USE_GTK__
         		Dim As GtkTreeViewColumn Ptr Column
@@ -154,6 +158,8 @@ Namespace My.Sys.Forms
             Declare Property ImageIndex(Value As Integer)
             Declare Property Visible As Boolean
             Declare Property Visible(Value As Boolean)
+            Declare Property Editable As Boolean
+            Declare Property Editable(Value As Boolean)
             Declare Property Width As Integer
             Declare Property Width(Value As Integer)
             Declare Property Format As ColumnFormat
@@ -168,6 +174,9 @@ Namespace My.Sys.Forms
     Type ListViewColumns
         Private:
             FColumns As List
+        	#IfDef __USE_GTK__
+            	Declare Static Sub Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+        	#EndIf
         Public:
             Parent   As Control Ptr
             Declare Property Count As Integer
@@ -221,9 +230,9 @@ Namespace My.Sys.Forms
             FSingleClickActivate As Boolean
             FSortStyle As SortStyle
             Declare Static Sub WndProc(BYREF Message As Message)
-				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-				Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
-				Declare Sub ProcessMessage(BYREF Message As Message)
+			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
+			Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
+			Declare Sub ProcessMessage(BYREF Message As Message)
         Public:
 			#IfDef __USE_GTK__
 				ListStore As GtkListStore Ptr
@@ -263,6 +272,7 @@ Namespace My.Sys.Forms
             OnSelectedItemChanged As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
             OnBeginScroll As Sub(ByRef Sender As ListView)
             OnEndScroll As Sub(ByRef Sender As ListView)
+            OnCellEdited As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer, ByVal SubItemIndex As Integer, ByRef NewText As WString)
     End Type
 
     Function ListViewItem.Index As Integer
@@ -608,6 +618,16 @@ Namespace My.Sys.Forms
         End If
     End Property
 
+	Property ListViewColumn.Editable As Boolean
+        Return FEditable
+    End Property
+
+    Property ListViewColumn.Editable(Value As Boolean)
+        If Value <> FEditable Then
+            FEditable = Value
+        End If
+    End Property
+
     Operator ListViewColumn.Cast As Any Ptr
         Return @This
     End Operator
@@ -727,12 +747,16 @@ Namespace My.Sys.Forms
 
     Sub ListViewItems.Remove(Index As Integer)
         FItems.Remove Index
-        #IfNDef __USE_GTK__
+        #IfDef __USE_GTK__
+        	If Parent AndAlso Parent->widget Then
+				gtk_list_store_remove(Cast(ListView Ptr, Parent)->ListStore, @This.Item(Index)->TreeIter)
+			End If
+        #Else
 			If Parent AndAlso Parent->Handle Then
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
 		#EndIf
-    End Sub	
+    End Sub
 	
 	#IfNDef __USE_GTK__
 		Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
@@ -805,7 +829,17 @@ Namespace My.Sys.Forms
        'QListViewColumn(FColumns.Items[Index]) = Value 
     End Property
 
-    Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As ListViewColumn Ptr
+	#IfDef __USE_GTK__
+		Sub ListViewColumns.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+			Dim As ListViewColumn Ptr PColumn = user_data
+			If PColumn = 0 Then Exit Sub
+			Dim As ListView Ptr lv = Cast(ListView Ptr, PColumn->Parent)
+			If lv = 0 Then Exit Sub
+			If lv->OnCellEdited Then lv->OnCellEdited(*lv, Val(*path), PColumn->Index, *new_text)
+		End Sub
+	#EndIf
+
+    Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As ListViewColumn Ptr
         Dim As ListViewColumn Ptr PColumn
         Dim As Integer Index
         #IfNDef __USE_GTK__
@@ -832,16 +866,23 @@ Namespace My.Sys.Forms
 				End With
 				PColumn->Column = gtk_tree_view_column_new()
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
-				If Editable Then
+				If ColEditable Then
+					Dim As GValue bValue '= G_VALUE_INIT
+					g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					g_value_set_boolean(@bValue, TRUE)
+					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
+					g_value_unset(@bValue)
+					'Dim bTrue As gboolean = True
 					'g_object_set(rendertext, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL)
 					'g_object_set(gtk_cell_renderer_text(rendertext), "editable-set", true, NULL)
-					'g_object_set(gtk_cell_renderer_text(rendertext), "editable", true, NULL)
+					'g_object_set(rendertext, "editable", bTrue, NULL)
 				End If
 				If Index = 0 Then
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
 					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 0)
 				End If
+				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				gtk_tree_view_column_pack_start(PColumn->Column, rendertext, True)
 				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
@@ -1323,6 +1364,7 @@ Namespace My.Sys.Forms
     End Constructor
 
     Destructor ListView
+    	ListItems.Clear
 		#IfNDef __USE_GTK__    
 			UnregisterClass "ListView",GetmoduleHandle(NULL)
 		#Else

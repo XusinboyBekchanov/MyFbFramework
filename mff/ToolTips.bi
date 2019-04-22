@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
             WLet FClassName, "ToolTips"
             WLet FClassAncestor, "tooltips_class32"
             #IfDef __USE_GTK__
-				Widget = gtk_tooltips_new()
+				'Widget = gtk_tooltips_new()
 			#Else
 '				.RegisterClass "ToolTips","tooltips_class32"
 '				.Style        = TTS_ALWAYSTIP Or WS_POPUP

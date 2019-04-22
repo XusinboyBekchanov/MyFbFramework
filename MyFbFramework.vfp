@@ -69,6 +69,7 @@ File=mff/Sys.bi
 File=mff/ToolPalette.bi
 File=mff/ImageBox.bi
 File=mff/WebBrowser.bi
+File=mff/TreeListView.bi
 File=mff/mff.bas
 File=mff/xpmanifest.rc
 File=mff/mff.rc

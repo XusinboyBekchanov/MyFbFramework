@@ -6,13 +6,15 @@
 
 #Include Once "Object.bi"
 #Include Once "Graphics.bi"
-#IfDef __FB_64BIT__
-    #Inclib "gdiplus"
-    #Include Once "win/gdiplus-c.bi"
-#else
-    #Include Once "win/ddraw.bi"
-    #Include Once "win/gdiplus.bi"
-    Using gdiplus
+#IfNDef __USE_GTK__
+	#IfDef __FB_64BIT__
+	    #Inclib "gdiplus"
+	    #Include Once "win/gdiplus-c.bi"
+	#else
+	    #Include Once "win/ddraw.bi"
+	    #Include Once "win/gdiplus.bi"
+	    Using gdiplus
+	#EndIf
 #EndIf
 
 Namespace My.Sys.Drawing

@@ -535,6 +535,9 @@ Namespace My.Sys.Forms
     End Property
     
     Sub TreeNodeCollection.Clear
+    	#IfDef __USE_GTK__
+    		If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeView Ptr, Parent)->TreeStore)
+        #EndIf
         For i As Integer = Count -1 To 0 Step -1
             Delete @QTreeNode(FNodes.Items[i])
             Remove i

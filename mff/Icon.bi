@@ -223,5 +223,6 @@ Namespace My.Sys.Drawing
     End Constructor
 
     Destructor Icon
+    	WDeallocate FResName
     End Destructor
 End namespace

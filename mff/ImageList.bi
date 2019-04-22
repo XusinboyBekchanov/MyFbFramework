@@ -54,7 +54,7 @@ Namespace My.Sys.Forms
 			    Handle        As HIMAGELIST
 			#ENdIf
             AllocBy       As Integer
-            ImageType     As ImageType
+            ImageType     As ImagesType
             DrawingStyle  As DrawingStyle
             Declare Property ParentWindow As Component Ptr
             Declare Property ParentWindow(Value As Component Ptr)

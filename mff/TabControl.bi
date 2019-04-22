@@ -22,7 +22,9 @@ Namespace My.Sys.Forms
             FObject     As Any Ptr
             FImageIndex As Integer
             FImageKey   As WString Ptr
-        	FTheme		As HTHEME
+        	#IfNDef __USE_GTK__
+        		FTheme		As HTHEME
+        	#EndIf
         Public:
         	Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
             Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
@@ -147,7 +149,8 @@ Namespace My.Sys.Forms
 	    End Function
     #EndIf
     
-    Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
+    #IfNDef __USE_GTK__
+    	Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabPage(Sender.Child)
 					If .UseVisualStyleBackColor Then
@@ -156,7 +159,8 @@ Namespace My.Sys.Forms
 					.FTheme = OpenThemeData(.Handle, "Window")
 				End With
 			End If
-		End Sub
+    	End Sub
+    #EndIf
 
     Sub TabPage.ProcessMessage(ByRef msg As Message)
     	#IfNDef __USE_GTK__
@@ -263,7 +267,7 @@ Namespace My.Sys.Forms
     Property TabPage.Text(ByRef Value As WString)
         WLet FCaption, Value
         #IfDef __USE_GTK__
-			If This.Parent AndAlso *This.Parent Is TabControl AndAlso This.Parent->Widget Then
+			If gtk_is_label(_Label) Then
 				gtk_label_set_text(gtk_Label(_Label), ToUTF8(Value))
 			End If
         #Else
@@ -331,12 +335,12 @@ Namespace My.Sys.Forms
         'Anchor.Bottom = asAnchor
         WLet FClassName, "TabPage"
         WLet FClassAncestor, "Panel"
-        Base.Style = WS_CHILD Or DS_SETFOREGROUND
         Child = @This
         #IfDef __USE_GTK__
 			This.RegisterClass "TabPage", @This
         #Else
 			Align = 5
+			Base.Style = WS_CHILD Or DS_SETFOREGROUND
 			This.OnHandleIsAllocated = @HandleIsAllocated
         	This.RegisterClass "TabPage", "Panel"
         #EndIf

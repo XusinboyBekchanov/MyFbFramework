@@ -6,12 +6,12 @@
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
-	    '#Compile -dll -x "../libmff64_gtk2.so"
+	    '#Compile -dll -x "../libmff64_gtk3.so"
 	#Else
-	    '#Compile -dll -x "../libmff32_gtk2.so"
+	    '#Compile -dll -x "../libmff32_gtk3.so"
 	#EndIf
 #EndIf
-'#Define __USE_GTK3__
+#Define __USE_GTK3__
 #Define __EXPORT_PROCS__
 
 #Include Once "Animate.bi"
