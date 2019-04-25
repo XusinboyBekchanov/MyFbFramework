@@ -1,4 +1,5 @@
 Version 1.1.0 (April 23, 2019)
+- Added: PNG Support
 - Added: TreeListView Control
 - Fixed: Setting Font Property of Controls (in Linux)
 Version 1.0.3.40 (February 24, 2019)
