@@ -1,7 +1,14 @@
 ﻿'###############################################################################
 '#  Application.bi                                                             #
-'#  This file is part of MyFBFramework                                           #
-'#  Version 1.0.1                                                              #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TApplication.bi                                                           #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.1                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
 #Include Once "WStringList.bi"
@@ -9,7 +16,6 @@
 #IfDef __USE_GTK__
 	#include once "gmodule.bi"
 	#include Once "crt/linux/unistd.bi"
-	'#include Once "X11/Xlib.bi"
 #Else
 	#include once "win/winver.bi"
 #EndIf
@@ -349,10 +355,12 @@ namespace My
 			#EndIf
         End If
     End Sub
-
+	
     Sub Application.Run
         #IfDef __USE_GTK__
-			gtk_main()
+        	'gdk_threads_enter()
+  			gtk_main()
+  			'gdk_threads_leave()
 		#Else
 			Dim As MSG msg
 			If FormCount = 0 Then
@@ -540,7 +548,9 @@ namespace My
 
 	Constructor Application
 		#IfDef __USE_GTK__
-			'XInitThreads()
+			'g_thread_init(NULL)
+			gdk_threads_init()
+			
 			gtk_init(NULL, NULL)
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), exepath & "/resources")
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), exepath & "/Resources")
@@ -556,7 +566,30 @@ namespace My
 			'	l = l->Next
 			'Wend
 		#Else
-			InitCommonControls
+			const ICC_ALL =  _
+			ICC_ANIMATE_CLASS      or _
+			ICC_BAR_CLASSES        or _
+			ICC_COOL_CLASSES       or _
+			ICC_DATE_CLASSES       or _
+			ICC_HOTKEY_CLASS       or _
+			ICC_INTERNET_CLASSES   or _
+			ICC_LINK_CLASS         or _
+			ICC_LISTVIEW_CLASSES   or _
+			ICC_NATIVEFNTCTL_CLASS or _
+			ICC_PAGESCROLLER_CLASS or _
+			ICC_PROGRESS_CLASS     or _
+			ICC_STANDARD_CLASSES   or _
+			ICC_TAB_CLASSES        or _
+			ICC_TREEVIEW_CLASSES   or _
+			ICC_UPDOWN_CLASS       or _
+			ICC_USEREX_CLASSES
+			dim as INITCOMMONCONTROLSEX ccx
+			with ccx
+				.dwSize = sizeof(INITCOMMONCONTROLSEX)
+				.dwICC  = ICC_ALL ' ICC_STANDARD_CLASSES
+			end with
+			InitCommonControlsEx(@ccx)
+			'InitCommonControls
 			Instance = GetModuleHandle(NULL)
         #EndIf
         GetFonts

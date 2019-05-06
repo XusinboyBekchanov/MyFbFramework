@@ -1,4 +1,17 @@
-﻿#Include Once "Graphics.bi"
+﻿'###############################################################################
+'#  ImageList.bi                                                               #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TImageList.bi                                                             #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Updated and added png support                                              #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'###############################################################################
+
+#Include Once "Graphics.bi"
 #Include Once "Component.bi"
 #Include Once "WStringList.bi"
 
@@ -264,16 +277,17 @@ Namespace My.Sys.Forms
 			Dim As IStream Ptr pngstream = NULL
 			If SUCCEEDED(CreateStreamOnHGlobal(hGlobal, False, @pngstream)) Then
 				If pngstream Then
-					Dim pImage As GpImage Ptr, hImage As HICON
+					Dim pImage As GpImage Ptr, hImage As HBitmap
 					' Create a bitmap from the data contained in the stream
 					GdipCreateBitmapFromStream(pngstream, CAST(GpBitmap PTR PTR, @pImage))
 					' Create icon from image
-					GdipCreateHICONFromBitmap(CAST(GpBitmap PTR, pImage), @hImage)
+					GdipCreateHBitmapFromBitmap(CAST(GpBitmap PTR, pImage), @hImage, clWhite)
 					' Free the image
                     If pImage Then GdipDisposeImage pImage
                     pngstream->lpVtbl->Release(pngstream)
 					FKeys.Add(Key)
-					ImageList_AddIcon(Handle, hImage)
+					'ImageList_AddIcon(Handle, hImage)
+					ImageList_AddMasked(Handle, hImage, clWhite)
 					NotifyWindow
 				End If
 			End If

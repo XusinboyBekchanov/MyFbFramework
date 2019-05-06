@@ -1,4 +1,10 @@
-﻿#Include Once "Component.bi"
+﻿'################################################################################
+'#  TimerComponent.bi                                                           #
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
+'################################################################################
+
+#Include Once "Component.bi"
 #Include Once "IntegerList.bi"
 
 Using My.Sys.ComponentModel

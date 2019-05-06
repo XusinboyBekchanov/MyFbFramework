@@ -1,7 +1,14 @@
 ﻿'###############################################################################
 '#  UpDown.bi                                                                  #
-'#  This file is part of MyFBFramework                                           #
-'#  Version 1.0.0                                                              #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TUpDown.bi                                                                #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
 #Include Once "Control.bi"
@@ -234,7 +241,9 @@ Namespace My.Sys.Forms
 
     Constructor UpDown
         Dim As Boolean Result
-        #IfNDef __USE_GTK__
+        #IfDef __USE_GTK__
+        	widget = gtk_spin_button_new(NULL, 1, 0)
+        #Else
 			Dim As INITCOMMONCONTROLSEX ICC
 			ICC.dwSize = SizeOF(ICC)
 			ICC.dwICC  = ICC_UPDOWN_CLASS

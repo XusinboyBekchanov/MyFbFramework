@@ -1,8 +1,14 @@
 ﻿'###############################################################################
 '#  Control.bi                                                                 #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors:                                                               #
-'#  Version 1.0.0                                                              #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TControl.bi                                                               #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.1                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
 #Include Once "Menus.bi"
@@ -1187,7 +1193,11 @@ Namespace My.Sys.Forms
 					XMapWindow(dpy, win)
 				#Else
 					If (Style AND (WS_CLIPCHILDREN OR WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN OR WS_CLIPSIBLINGS) Then
-						Style = Style OR (WS_CLIPCHILDREN OR WS_CLIPSIBLINGS)
+						'If DesignMode AndAlso ClassName = "GroupBox" Then
+						'	Style = Style OR (WS_CLIPSIBLINGS)
+						'Else
+							Style = Style OR (WS_CLIPCHILDREN OR WS_CLIPSIBLINGS)
+						'End If
 					End If
 					CreationCOntrol = @This
 					'RegisterClass ClassName, ClassAncestor

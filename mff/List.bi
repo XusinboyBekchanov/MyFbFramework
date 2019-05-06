@@ -1,8 +1,15 @@
-﻿'#############################################################################
-'# List.bi                                                                   #
-'# This file is part of MyFBFramework                                         #
-'# Version 1.0.0                                                             #
-'#############################################################################
+﻿'******************************************************************************
+'* List                                                                       *
+'* This file is part of MyFBFramework                                         *
+'* Authors: Nastase Eodor, Xusinboy Bekchanov                                 *
+'* Based on:                                                                  *
+'*  TList                                                                     *
+'*  FreeBasic Windows GUI ToolKit                                             *
+'*  Copyright (c) 2007-2008 Nastase Eodor                                     *
+'*  Version 1.0.0                                                             *
+'*  nastase_eodor@yahoo.com                                                   *
+'*  Modified by Xusinboy Bekchanov (2018-2019)                                *
+'******************************************************************************
 
 #DEFINE QList(__Ptr__) *Cast(List Ptr,__Ptr__)
 

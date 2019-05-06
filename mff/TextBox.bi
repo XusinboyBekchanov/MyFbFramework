@@ -1,7 +1,14 @@
 ﻿'###############################################################################
-'#  Edit.bi                                                                    #
-'#  This file is part of MyFBFramework                                       #
-'#  Version 1.0.0                                                              #
+'#  TextBox.bi                                                                 #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TEdit.bi                                                                  #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
 #Include Once "Control.bi"

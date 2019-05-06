@@ -1,7 +1,13 @@
 ﻿'###############################################################################
-'#  WStringList.bi                                                             #
-'#  This file is part of MyFBFramework			                         #
-'#  Version 1.0.0                                                              #
+'#  Dictionary.bi                                                              #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TStringList.bi                                                            #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Adapted to Dictionary by Xusinboy Bekchanov (2018-2019)                    #
 '###############################################################################
 
 #Include Once "List.bi"

@@ -1,7 +1,13 @@
 ﻿'******************************************************************************
 '* ClipboardType
 '* This file is part of MyFBFramework
-'* 2017
+'* Based on:
+'*  TClipboard
+'*  FreeBasic Windows GUI ToolKit
+'*  Copyright (c) 2007-2008 Nastase Eodor
+'*  nastase_eodor@yahoo.com
+'* Updated and added cross-platform
+'* by Xusinboy Bekchanov (2018-2019)
 '******************************************************************************
 #Include Once "SysUtils.bi"
 

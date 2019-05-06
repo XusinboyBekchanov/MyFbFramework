@@ -1,4 +1,16 @@
-﻿#Include Once "Object.bi"
+﻿'###############################################################################
+'#  Pen.bi                                                                     #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TPen.bi                                                                   #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Modified by Xusinboy Bekchanov (2018-2019)                                 #
+'###############################################################################
+
+#Include Once "Object.bi"
 
 Namespace My.Sys.Drawing
 #IFDef __USE_GTK__

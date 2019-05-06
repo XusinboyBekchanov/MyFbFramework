@@ -1,8 +1,8 @@
-﻿'###############################################################################
+﻿'################################################################################
 '#  TreeView.bi                                                                 #
-'#  This file is part of MyFBFramework                                            #
-'#  Version 1.0.0                                                              #
-'###############################################################################
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
+'################################################################################
 
 #Include Once "Control.bi"
 
@@ -110,12 +110,13 @@ Namespace My.Sys.Forms
 				Declare Static Sub WndProc(BYREF Message As Message)
 				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
 				Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
+				Declare Sub SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			#EndIf
 			Declare Sub ProcessMessage(BYREF Message As Message)
         Public:
             #IfDef __USE_GTK__
 				TreeStore As GtkTreeStore Ptr
-				TreeSelection As GtkTreeSelection Ptr 
+				TreeSelection As GtkTreeSelection Ptr
             #EndIf
             Images          As ImageList Ptr
             SelectedImages       As ImageList Ptr
@@ -545,15 +546,31 @@ Namespace My.Sys.Forms
         FNodes.Clear
     End Sub
     
+    #IfNDef __USE_GTK__
+	    Sub TreeView.SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
+		   Dim hChildNode As HTREEITEM
+		   Do While hNode
+		      TreeView_Expand(FHandle, hNode, tvMessage)
+		      hChildNode = TreeView_GetChild(FHandle, hNode)
+		      If hChildNode Then SendToAllChildItems(hChildNode, tvMessage)
+		      hNode = TreeView_GetNextSibling(FHandle, hNode)
+		   Loop
+	    End Sub
+	#EndIf
+    
     Sub TreeView.CollapseAll
     	#IfDef __USE_GTK__
     		gtk_tree_view_collapse_all(gtk_tree_view(widget))
+    	#Else
+    		SendToAllChildItems(TreeView_GetRoot(Handle), TVE_COLLAPSE)
     	#EndIf
     End Sub
     
     Sub TreeView.ExpandAll
     	#IfDef __USE_GTK__
     		gtk_tree_view_expand_all(gtk_tree_view(widget))
+    	#Else
+    		SendToAllChildItems(TreeView_GetRoot(Handle), TVM_EXPAND)
     	#EndIf
     End Sub
     

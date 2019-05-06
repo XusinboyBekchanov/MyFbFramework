@@ -1,7 +1,7 @@
 ﻿'###############################################################################
-'#  Control.bi                                                                 #
+'#  ContainerControl.bi                                                        #
 '#  This file is part of MyFBFramework                                         #
-'#  Version 1.0.0                                                              #
+'#  Authors: Xusinboy Bekchanov (2018-2019)                                    #
 '###############################################################################
 
 #Include Once "Control.bi"

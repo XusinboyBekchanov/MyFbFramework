@@ -1,7 +1,14 @@
 ﻿'###############################################################################
-'#  ProgressBar.bi                                                            #
-'#  This file is part of MyFBFramework                                           #
-'#  Version 1.0.0                                                              #
+'#  ProgressBar.bi                                                             #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TProgressBar.bi                                                           #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
 #Include Once "Control.bi"
@@ -10,7 +17,7 @@ Namespace My.Sys.Forms
     #DEFINE QProgressBar(__Ptr__) *Cast(ProgressBar Ptr,__Ptr__)
 
     Enum ProgressBarOrientation
-        pbHorizontal,pbVertical
+        pbHorizontal, pbVertical
     End Enum
 
     Type ProgressBar Extends Control
@@ -21,9 +28,13 @@ Namespace My.Sys.Forms
             FMaxValue    As Integer
             FStep        As Integer
             FSmooth      As Boolean
-            FStyle       As Integer
+            FMarquee     As Boolean
+            FMarqueeOn   As Boolean
+            FOrientation As Integer
             ASmooth(2)   As Integer
-            AStyle(2)    As Integer
+            AMarquee(2)  As Integer
+            FMarqueeInterval As Integer
+            AOrientation(2) As Integer
             #IfNDef __USE_GTK__
 				Declare Static Sub WndProc(BYREF Message As Message)
 				Declare Sub ProcessMessage(BYREF Message As Message)
@@ -41,9 +52,12 @@ Namespace My.Sys.Forms
             Declare Property StepValue(Value As Integer)
             Declare Property Smooth As Boolean
             Declare Property Smooth(Value As Boolean)
-            Declare Property Style As Integer
-            Declare Property Style(Value As Integer)
+            Declare Property Marquee As Boolean
+            Declare Property Marquee(Value As Boolean)
+            Declare Property Orientation As Integer
+            Declare Property Orientation(Value As Integer)
             Declare Operator Cast As Control Ptr
+            Declare Sub SetMarquee(MarqueeOn As Boolean, Interval As Integer)
             Declare Sub StepIt
             Declare Sub StepBy(Delta As Integer)
             Declare Constructor
@@ -69,6 +83,14 @@ Namespace My.Sys.Forms
         FMaxValue = AMax
     End Sub
 
+	Sub ProgressBar.SetMarquee(MarqueeOn As Boolean, Interval As Integer)
+		FMarqueeOn = MarqueeOn
+		FMarqueeInterval = Interval
+		#IfNDef __USE_GTK__
+			SendMessage(Handle, PBM_SETMARQUEE, Cast(WPARAM, FMarqueeOn), Cast(LPARAM, FMarqueeInterval))
+		#EndIf
+	End Sub
+            
     Property ProgressBar.MinValue As Integer
         Return FMinValue
     End Property
@@ -129,27 +151,40 @@ Namespace My.Sys.Forms
         If FSmooth <> Value Then
             FSmooth = Value
 			#IfNDef __USE_GTK__
-				Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR ASmooth(Abs_(FSmooth))
+				Style = WS_CHILD OR AOrientation(Abs_(FOrientation)) OR ASmooth(Abs_(FSmooth)) OR AMarquee(Abs_(FMarquee))
 			#EndIf
         End If
     End Property
 
-    Property ProgressBar.Style As Integer
-        Return FStyle
+	Property ProgressBar.Marquee As Boolean
+        Return FMarquee
     End Property
 
-    Property ProgressBar.Style(Value As Integer)
-        Dim As Integer OldStyle, Temp
-        OldStyle = FStyle
-        If FStyle <> Value Then
-            FStyle = Value
-            If OldStyle = 0 Then
+    Property ProgressBar.Marquee(Value As Boolean)
+        If FMarquee <> Value Then
+            FMarquee = Value
+			#IfNDef __USE_GTK__
+				Style = WS_CHILD OR AOrientation(Abs_(FOrientation)) OR ASmooth(Abs_(FSmooth)) OR AMarquee(Abs_(FMarquee))
+			#EndIf
+        End If
+    End Property
+
+    Property ProgressBar.Orientation As Integer
+        Return FOrientation
+    End Property
+
+    Property ProgressBar.Orientation(Value As Integer)
+        Dim As Integer OldOrientation, Temp
+        OldOrientation = FOrientation
+        If FOrientation <> Value Then
+            FOrientation = Value
+            If OldOrientation = 0 Then
                 Temp = This.Width
                 This.Width = This.Height
                 This.Height = Temp
             End If
             #IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR ASmooth(Abs_(FSmooth))
+				Base.Style = WS_CHILD OR AOrientation(Abs_(FOrientation)) OR ASmooth(Abs_(FSmooth)) OR AMarquee(Abs_(FMarquee))
 			#EndIf
         End If
     End Property
@@ -158,13 +193,14 @@ Namespace My.Sys.Forms
 		Sub ProgressBar.HandleIsAllocated(BYREF Sender As Control)
 			If Sender.Child Then
 				With  QProgressBar(Sender.Child)
-					If .FMode32 Then 
+					If .FMode32 Then
 						.Perform(PBM_SETRANGE32, .FMinValue, .FMaxValue)
 					Else 
 						.Perform(PBM_SETRANGE, 0, MakeLong(.FMinValue, .FMaxValue))
 					End If
 					.Perform(PBM_SETSTEP, .FStep, 0)
 					.Position = .FPosition
+					If .FMarqueeInterval <> 0 Then .Perform(PBM_SETMARQUEE, Cast(WPARAM, .FMarqueeOn), Cast(LPARAM, .FMarqueeInterval))
 				End With
 			End If
 		End Sub
@@ -203,19 +239,22 @@ Namespace My.Sys.Forms
 			FMode32 = InitCommonControlsEx(@ICC)
 			ASmooth(0) = 0
 			ASmooth(1) = PBS_SMOOTH
-			AStyle(0)  = 0
-			AStyle(1)  = PBS_VERTICAL
+			AMarquee(0) = 0
+			AMarquee(1) = PBS_MARQUEE
+			AOrientation(0)  = 0
+			AOrientation(1)  = PBS_VERTICAL
 		#EndIf
         FMinValue  = 0
         FMaxValue  = 100
         FStep      = 10
+        FMarquee = False
         With This
 			.Child             = @This
             #IfNDef __USE_GTK__
 				.RegisterClass "ProgressBar", PROGRESS_CLASS
 				.ChildProc         = @WndProc
 				.ExStyle           = 0
-				Base.Style             = WS_CHILD OR AStyle(Abs_(FStyle)) OR ASmooth(Abs_(FSmooth))
+				Base.Style             = WS_CHILD OR AOrientation(Abs_(FOrientation)) OR ASmooth(Abs_(FSmooth)) OR AMarquee(Abs_(FMarquee))
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet FClassAncestor, PROGRESS_CLASS
 				.Height            = GetSystemMetrics(SM_CYVSCROLL)

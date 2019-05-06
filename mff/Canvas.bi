@@ -1,7 +1,12 @@
 ﻿'###############################################################################
 '#  Canvas.bi                                                                  #
-'#  This file is part of MyFBFramework				                           #
-'#  Version 1.0.0                                                              #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TCanvas.bi                                                                #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
 '###############################################################################
 
 #Include Once "Graphics.bi"

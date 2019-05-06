@@ -1,7 +1,7 @@
 ﻿'################################################################################
-'#  PageScroller.bi                                                                  #
-'#  This file is part of MyFBFramework                                            #
-'#  Version 1.0.0                                                                  #
+'#  PageScroller.bi                                                             #
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
 '################################################################################
 
 #Include Once "Control.bi"

@@ -1,8 +1,15 @@
-﻿'###############################################################################
-'#  Cursor.bi                                                                  #
-'#  This file is part of MyFBFramework                                           #
-'#  Version 1.0.0                                                              #
-'###############################################################################
+﻿'******************************************************************************
+'* Cursor.bi                                                                  *
+'* Authors: Nastase Eodor, Xusinboy Bekchanov                                 *
+'* Based on:                                                                  *
+'*  TCursor                                                                   *
+'*  This file is part of FreeBasic Windows GUI ToolKit                        *
+'*  Copyright (c) 2007-2008 Nastase Eodor                                     *
+'*  Version 1.0.0                                                             *
+'*  nastase_eodor@yahoo.com                                                   *
+'* Updated and added cross-platform                                          *
+'* by Xusinboy Bekchanov (2018-2019)                                         *
+'******************************************************************************
 
 #Include Once "Component.bi"
 

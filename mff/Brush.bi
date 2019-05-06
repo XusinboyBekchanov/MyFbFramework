@@ -1,4 +1,16 @@
-﻿#Include Once "Object.bi"
+﻿'###############################################################################
+'#  Brush.bi                                                                   #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TBrush.bi                                                                 #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Modified by Xusinboy Bekchanov (2018-2019)                                 #
+'###############################################################################
+
+#Include Once "Object.bi"
 
 Namespace My.Sys.Drawing
 	#IfDef __USE_GTK__

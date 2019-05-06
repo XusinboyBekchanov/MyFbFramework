@@ -1,4 +1,16 @@
-﻿#INCLUDE Once "Application.bi"
+﻿'###############################################################################
+'#  Dialogs.bi                                                                 #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   Dialogs.bi                                                                #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'###############################################################################
+
+#INCLUDE Once "Application.bi"
 #IfNDef __USE_GTK__
 	#INCLUDE Once "Win/ShlObj.bi"
 #EndIf

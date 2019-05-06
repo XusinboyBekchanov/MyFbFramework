@@ -1,8 +1,15 @@
-﻿'################################################################################
-'#  StatusBar.bi                                                                  #
-'#  This file is part of MyFBFramework                                            #
-'#  Version 1.0.0                                                                  #
-'################################################################################
+﻿'###############################################################################
+'#  StatusBar.bi                                                               #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TStatusBar.bi                                                             #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'###############################################################################
 
 #Include Once "Control.bi"
 #Include Once "Menus.bi"
@@ -85,7 +92,7 @@ Namespace My.Sys.Forms
             Declare Property SimplePanel(Value As Boolean)
             Declare Property SizeGrip As Boolean
             Declare Property SizeGrip(Value As Boolean)
-            Declare Sub Add(ByRef wText As WString)
+            Declare Function Add(ByRef wText As WString) As StatusPanel Ptr
             Declare Sub Remove(Index As Integer)
             Declare Sub Clear
             Declare Sub UpdatePanels
@@ -155,7 +162,7 @@ Namespace My.Sys.Forms
         If FCaption Then Deallocate FCaption
     End Destructor
 
-    Sub StatusBar.Add(ByRef wText As WString)
+    Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
         Count += 1
         Panels = ReAllocate(Panels, SizeOF(StatusPanel) * Count)
         Panels[Count -1] = New StatusPanel
@@ -170,7 +177,8 @@ Namespace My.Sys.Forms
 		#Else
 			UpdatePanels
         #EndIf
-    End Sub
+        Return Panels[Count - 1]
+    End Function
 
     Sub StatusBar.Remove(Index As Integer)
         Dim As StatusPanel Ptr Ptr Temp
@@ -247,6 +255,7 @@ Namespace My.Sys.Forms
             Next i
         End If 
         Invalidate
+        WDeallocate s
     End Sub
 
     Property StatusBar.Panel(Index As Integer) As StatusPanel

@@ -1,4 +1,10 @@
-﻿Animate PNG "../resources/Animate.png"
+﻿/*'#########################################################*/
+/*'#  mff.rc                                               #*/
+/*'#  This file is part of MyFbFramework                   #*/
+/*'#  Authors: Xusinboy Bekchanov (2018-2019)              #*/
+/*'#########################################################*/
+
+Animate PNG "../resources/Animate.png"
 FolderBrowserDialog PNG "../resources/FolderBrowserDialog.png"
 CHECKBOX PNG "../resources/CheckBox.png"
 CHECKEDLISTBOX PNG "../resources/CheckedListBox.png"
@@ -43,6 +49,7 @@ ToolBar PNG "../resources/ToolBar.png"
 Rebar PNG "../resources/ReBar.png"
 ToolTips PNG "../resources/ToolTips.png"
 TrackBar PNG "../resources/TrackBar.png"
+TreeListView PNG "../resources/TreeView.png"
 TreeView PNG "../resources/TreeView.png"
 TimerComponent PNG "../resources/TimerComponent.png"
 UpDown PNG "../resources/UpDown.png"
@@ -50,8 +57,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "MyFbFramework\0"
 
-#define VER_FILEVERSION             1,1,0,137
-#define VER_FILEVERSION_STR         "1.1.0.137\0"
+#define VER_FILEVERSION             1,1,0,163
+#define VER_FILEVERSION_STR         "1.1.0.163\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

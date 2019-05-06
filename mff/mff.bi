@@ -78,6 +78,7 @@
 #Include Once "ToolPalette.bi"
 #Include Once "ToolTips.bi"
 #Include Once "TrackBar.bi"
+#Include Once "TreeListView.bi"
 #Include Once "TreeView.bi"
 #Include Once "UpDown.bi"
 #Include Once "WStringList.bi"
@@ -140,6 +141,7 @@ Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sN
     Case "toolbar": Ctrl = New ToolBar
     Case "toolpalette": Ctrl = New ToolPalette
     Case "trackbar": Ctrl = New TrackBar
+    Case "treelistview": Ctrl = New TreeListView
     Case "treeview": Ctrl = New TreeView
     Case "updown": Ctrl = New UpDown
     End Select
@@ -229,6 +231,7 @@ Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Exp
     Case "toolpalette": Delete Cast(ToolPalette Ptr, Ctrl)
     Case "tooltips": Delete Cast(ToolTips Ptr, Ctrl)
     Case "trackbar": Delete Cast(TrackBar Ptr, Ctrl)
+    Case "treelistview": Delete Cast(TreeListView Ptr, Ctrl)
     Case "treeview": Delete Cast(TreeView Ptr, Ctrl)
     Case "updown": Delete Cast(UpDown Ptr, Ctrl)
     Case "imagelist": Delete Cast(ImageList Ptr, Ctrl)

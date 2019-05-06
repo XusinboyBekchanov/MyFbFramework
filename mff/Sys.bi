@@ -1,4 +1,11 @@
-﻿Namespace My
+﻿'###############################################################################
+'#  Sys.bi                                                                     #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: José Roca (2016), Xusinboy Bekchanov                              #
+'#  Windows version functions based on WinFBX/Afx/AfxWin.inc                   #
+'###############################################################################
+
+Namespace My
 	Namespace Sys
 		Function Name As String
 			#If __USE_GTK__ 

@@ -1,8 +1,16 @@
 ﻿'###############################################################################
-'#  ScrollBarControl.bi                                                               #
-'#  This file is part of MyFBFramework				                           #
-'#  Version 1.0.0                                                              #
+'#  ScrollBarControl.bi                                                        #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TScrollBar.bi                                                             #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
+
 
 Namespace My.Sys.Forms
 	#DEFINE QScrollBarControl(__Ptr__) *Cast(ScrollBarControl Ptr,__Ptr__)

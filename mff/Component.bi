@@ -1,4 +1,10 @@
-﻿#Include Once "Object.bi"
+﻿'###############################################################################
+'#  Component.bi                                                               #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Xusinboy Bekchanov (2018-2019)                                    #
+'###############################################################################
+
+#Include Once "Object.bi"
 #IfDef __USE_GTK__
 	#Include once "gtk/gtk.bi"
     #IfDef __USE_GTK3__
@@ -135,23 +141,6 @@ Namespace My.Sys.ComponentModel
         WDeallocate FName
         WDeallocate FClassAncestor
     End Destructor
-
-	Sub Thread_Create(Proc As Sub(Param As Any Ptr))
-		#IfDef __USE_GTK__
-			'gdk_threads_enter()
-
-			'Dim As GError Ptr err1
-  			'Dim As gpointer gp
-			'g_thread_create(Cast(GThreadFunc, Proc), gp, false, @err1)
-			'ThreadCreate(Proc, 0)
-			Proc(0)
-			'g_idle_add(Proc, NULL) 
-			
-			'gdk_threads_leave() 
-		#Else
-			ThreadCreate(Proc)
-		#EndIf
-	End Sub
 End Namespace
 
 Type Message
@@ -225,3 +214,15 @@ Enum Keys
 		Enter = VK_RETURN
 	#EndIf
 End Enum
+
+Sub ThreadsEnter
+	#IfDef __USE_GTK__
+		gdk_threads_enter()
+	#EndIf
+End Sub
+
+Sub ThreadsLeave
+	#IfDef __USE_GTK__
+		gdk_threads_leave()
+	#EndIf
+End Sub

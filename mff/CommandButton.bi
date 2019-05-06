@@ -1,9 +1,15 @@
-﻿'################################################################################
-'#  CommandButton.bi                                                              #
-'#  This file is part of MyFBFramework                                             #
-'#  2017                                                                             #
-'#  Version 1.0.0                                                                  #
-'################################################################################
+﻿'###############################################################################
+'#  CommandButton.bi                                                           #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   TButton.bi                                                                #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#   Version 1.0.0                                                             #
+'#  Updated and added cross-platform                                           #
+'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'###############################################################################
 
 #DEFINE QCommandButton(__Ptr__) *Cast(CommandButton Ptr,__Ptr__)
 

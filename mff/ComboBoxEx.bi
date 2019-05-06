@@ -1,6 +1,7 @@
 ﻿'###############################################################################
-'#  ComboBoxEx.bi                                                                #
-'#  This file is part of MyFBFramework                                        #
+'#  ComboBoxEx.bi                                                              #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Xusinboy Bekchanov (2018-2019)                                    #
 '#  Version 1.0.0                                                              #
 '###############################################################################
 

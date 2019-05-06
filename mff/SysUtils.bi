@@ -1,4 +1,15 @@
-﻿#IfDef __FB_Linux__
+﻿'###############################################################################
+'#  SysUtils.bi                                                                #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Based on:                                                                  #
+'#   SysUtils.bi                                                               #
+'#   FreeBasic Windows GUI ToolKit                                             #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
+'#  Modified by Xusinboy Bekchanov (2018-2019)                                 #
+'###############################################################################
+
+#IfDef __FB_Linux__
 	#DEFINE __USE_GTK__
 #Else
 	#DEFINE __USE_WINAPI__
@@ -1351,4 +1362,3 @@ End Function
 Function EndsWith(ByRef a As WString, ByRef b As WString) As Boolean
     Return Right(a, Len(b)) = b
 End Function
-
