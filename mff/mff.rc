@@ -6,6 +6,7 @@
 
 Animate PNG "../resources/Animate.png"
 FolderBrowserDialog PNG "../resources/FolderBrowserDialog.png"
+Chart PNG "../resources/Chart.png"
 CHECKBOX PNG "../resources/CheckBox.png"
 CHECKEDLISTBOX PNG "../resources/CheckedListBox.png"
 COLORDIALOG PNG "../resources/ColorDialog.png"
@@ -21,6 +22,7 @@ Header PNG "../resources/Header.png"
 HotKey PNG "../resources/HotKey.png"
 ImageBox PNG "../resources/ImageBox.png"
 ImageList PNG "../resources/ImageList.png"
+IPAddress PNG "../resources/IPAddress.png"
 LABEL PNG "../resources/Label.png"
 LINKLABEL PNG "../resources/LinkLabel.png"
 ListControl PNG "../resources/ListControl.png"
@@ -33,11 +35,17 @@ RadioButton PNG "../resources/RadioButton.png"
 OpenFileDialog PNG "../resources/OpenFileDialog.png"
 PageScroller PNG "../resources/PageScroller.png"
 Panel PNG "../resources/Panel.png"
-TabPage PNG "../resources/TabPage.png"
+PageSetupDialog PNG "../resources/PageSetupDialog.png"
+Picture PNG "../resources/Picture.png"
 PopUpMenu PNG "../resources/ContextMenu.png"
+PrintDialog PNG "../resources/PrintDialog.png"
+PrintPreviewDialog PNG "../resources/PrintPreviewDialog.png"
+Printer PNG "../resources/Printer.png"
 ProgressBar PNG "../resources/ProgressBar.png"
 RichTextBox PNG "../resources/RichTextBox.png"
 ScrollBarControl PNG "../resources/HScrollBar.png"
+TabPage PNG "../resources/TabPage.png"
+ToolPalette PNG "../resources/ToolPalette.png"
 HScrollBar PNG "../resources/HScrollBar.png"
 VScrollBar PNG "../resources/VScrollBar.png"
 SaveFileDialog PNG "../resources/SaveFileDialog.png"
@@ -55,20 +63,20 @@ TimerComponent PNG "../resources/TimerComponent.png"
 UpDown PNG "../resources/UpDown.png"
 WebBrowser PNG "../resources/WebBrowser.png"
 
-#define VER_FILEDESCRIPTION_STR     "MyFbFramework\0"
+#define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,1,0,163
-#define VER_FILEVERSION_STR         "1.1.0.163\0"
+#define VER_FILEVERSION             1,2,0,9
+#define VER_FILEVERSION_STR         "1.2.0.9\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
-#define VER_INTERNALNAME_STR        "mff\0"
-#define VER_ORIGINALFILENAME_STR    "mff.dll\0"
-#define VER_PRODUCTNAME_STR         "MyFbFramework\0"
+#define VER_INTERNALNAME_STR        "\0"
+#define VER_ORIGINALFILENAME_STR    "\0"
+#define VER_PRODUCTNAME_STR         "My Fb Framework\0"
 
-#define VER_PRODUCTVERSION          1,1,0,0
-#define VER_PRODUCTVERSION_STR      "1.1\0"
-#define VER_COMPANYNAME_STR         "FreeBasic Community\0"
+#define VER_PRODUCTVERSION          1,2,0,0
+#define VER_PRODUCTVERSION_STR      "1.2.0\0"
+#define VER_COMPANYNAME_STR         "\0"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION     VER_FILEVERSION

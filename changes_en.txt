@@ -1,3 +1,8 @@
+Version 1.2.0 (December 15, 2019)
+- Added: Picture
+- Added: Printer
+- Added: PageSetupDialog
+- Added: PrintDialog
 Version 1.1.0 (April 23, 2019)
 - Added: PNG Support
 - Added: TreeListView Control

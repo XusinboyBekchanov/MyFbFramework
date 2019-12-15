@@ -95,42 +95,6 @@
 	Declare Function GetGreen(FColor As Long) As Byte
 	Declare Function GetBlue(FColor As Long) As Byte
 
-	Function ColorToRGB(FColor As Integer) As Integer
-		If FColor < 0 then
-	    #IFDef __USE_GTK__
-			Return FColor
-	    #Else
-			Return GetSysColor(FColor And &H000000FF)
-	    #EndIf 
-	    Else
-			Return FColor
-	    End If  
-	End Function
-
-	'Function GetRed(FColor As Long) As Byte
-	'	Return FColor And &HFF
-	'End Function
-
-	'Function GetGreen(FColor As Long) As Byte
-	'	Return (FColor And &HFF00) \ &H100
-	'End Function
-
-	'Function GetBlue(FColor As Long) As Byte
-	'	Return (FColor And &HFF0000) \ &H10000
-	'End Function
-	
-	Function GetRed(FColor As Long) As Byte
-		Return CUInt(FColor) And 255
-	End Function
-
-	Function GetGreen(FColor As Long) As Byte
-		Return CUInt(FColor) shr 8 And 255
-	End Function
-
-	Function GetBlue(FColor As Long) As Byte
-		'Return CUInt(FColor) And 255
-		Return CUInt(FColor) Shr 16 And 255
-	End Function
 'End Namespace
 
 #INCLUDE Once "Pen.bi"
@@ -139,3 +103,7 @@
 #INCLUDE Once "Cursor.bi"
 #INCLUDE Once "Bitmap.bi"
 #INCLUDE Once "Font.bi"
+
+#IfNDef __USE_MAKE__
+	#Include Once "Graphics.bas"
+#EndIf
