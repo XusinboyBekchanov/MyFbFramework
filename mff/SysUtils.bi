@@ -69,11 +69,11 @@ Declare Sub WDeAllocate Overload(subject() As WString Ptr)
 
 Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 
-Declare Function WGet(ByRef subject AS WString Ptr) ByRef As WString
+Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 
-Declare Sub WLet(ByRef subject AS WString Ptr, ByRef txt AS WString)
+Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubject As Boolean = False)
 
-Declare Sub WAdd(ByRef subject AS Wstring Ptr, ByRef txt AS WString)
+Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString)
 
 Namespace ClassContainer
     Type ClassType

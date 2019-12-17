@@ -54,24 +54,31 @@ Sub WDeAllocate Overload(subject() As WString Ptr)
 	Next
 End Sub
 
-Sub WReAllocate(ByRef subject AS Wstring Ptr, lLen AS Integer)
-	subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(Wstring)))
+Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+	subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(WString)))
 End Sub
 
-Function WGet(ByRef subject AS WString Ptr) ByRef As WString
+Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	If subject = 0 Then Return "" Else Return *subject
 End Function
 
-Sub WLet(ByRef subject AS WString Ptr, ByRef txt AS WString)
-	WReAllocate subject, Len(txt)
-	*subject = txt
+Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubject As Boolean = False)
+	If ExistsSubject Then
+		Dim TempWStr As WString Ptr
+		WLet TempWStr, txt
+		WLet subject, *TempWStr
+		WDeallocate TempWStr
+	Else
+		WReAllocate subject, Len(txt)
+		*subject = txt
+	End If
 End Sub
 
-Sub WAdd(ByRef subject AS Wstring Ptr, ByRef txt AS WString)
-	Dim nLen As Integer = 0
-	If subject <> 0 Then nLen = Len(*subject)
-	WReAllocate subject, nLen + Len(txt)
-	*subject = *subject & txt
+Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString)
+	Dim TempWStr As WString Ptr
+	WLet TempWStr, WGet(subject) & txt
+	WLet subject, *TempWStr
+	WDeallocate TempWStr
 End Sub
 
 Namespace ClassContainer
@@ -99,8 +106,8 @@ Namespace ClassContainer
 	End Constructor
 	
 	Destructor ClassType
-		If FClassName Then DeAllocate FClassName
-		If FClassAncestor Then DeAllocate FClassAncestor
+		If FClassName Then Deallocate FClassName
+		If FClassAncestor Then Deallocate FClassAncestor
 	End Destructor
 	
 	Function FindClass(ByRef ClassName As WString) As Integer
@@ -126,7 +133,7 @@ Namespace ClassContainer
 		Return 0
 	End Function
 	
-	#IFNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Function GetClassProc(FWindow As HWND) As Any Ptr
 			Dim As WString * 255 c
 			Dim As WString Ptr ClassName
@@ -150,7 +157,7 @@ Namespace ClassContainer
 				UnregisterClass Classes(i).ClassName, GetModuleHandle(NULL)
 			Next i
 		End Sub
-	#EndIf
+	#endif
 End Namespace
 
 Function ToUtf8(pWString As WString Ptr) As String
@@ -178,15 +185,15 @@ Public Function _Abs(Value As Boolean) As Integer
 	Return Abs(CInt(Value))
 End Function
 
-Function InStrCount(ByRef subject As WString, ByRef searchtext AS Wstring, start As Integer = 1) As Integer
+Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1) As Integer
 	Dim As Integer n, c, ls = Len(searchtext)
 	If subject <> "" And searchtext <> "" Then
-		n = Instr(start, subject, searchtext)
+		n = InStr(start, subject, searchtext)
 		Do While n <> 0
 			c = c + 1
-			n = Instr(n + ls, subject, searchtext)
+			n = InStr(n + ls, subject, searchtext)
 		Loop
-	Endif
+	EndIf
 	Return c
 End Function
 

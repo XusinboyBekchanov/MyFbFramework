@@ -32,7 +32,6 @@ Namespace My.Sys.Forms
 		#endif
     End Sub
 
-    Dim Shared As WString Ptr ListViewText
     Property ListViewItem.Text(iSubItem As Integer) ByRef As WString
         #ifdef __USE_GTK__
 			If FSubItems.Count > iSubItem Then
@@ -40,25 +39,25 @@ Namespace My.Sys.Forms
 			Else
 				Return WStr("")
 			End If
-        #Else
+        #else
 			If Parent AndAlso Parent->Handle Then
-				WReallocate ListViewText, 255
+				WReallocate FText, 255
 				lvi.Mask = LVIF_TEXT
 				lvi.iItem = Index
 				lvi.iSubItem   = iSubItem
-				lvi.pszText    = ListViewText
+				lvi.pszText    = FText
 				lvi.cchTextMax = 255
 				ListView_GetItem(Parent->Handle, @lvi)
-				Return *ListViewText
+				Return *FText
 			Else
 				Return WStr("")
 			End If
-		#EndIf
+		#endif
     End Property
 
     Property ListViewItem.Text(iSubItem As Integer, ByRef Value As WString)
         WLet FText, Value
-        #IfDef __USE_GTK__
+        #ifdef __USE_GTK__
 			If Parent AndAlso Cast(ListView Ptr, Parent)->ListStore Then
 				Dim ic As Integer = FSubItems.Count
 				Dim cc As Integer = Cast(ListView Ptr, Parent)->Columns.Count
@@ -70,7 +69,7 @@ Namespace My.Sys.Forms
 				FSubItems.Item(iSubItem) = Value
 				gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @TreeIter, iSubItem + 1, ToUtf8(Value), -1)
 			End If
-        #Else
+        #else
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_TEXT
 				lvi.iItem = Index
@@ -79,11 +78,11 @@ Namespace My.Sys.Forms
 				lvi.cchTextMax = Len(*FText)
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
-		#EndIf 
+		#endif 
     End Property
 
     Property ListViewItem.State As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -91,13 +90,13 @@ Namespace My.Sys.Forms
 				ListView_GetItem(Parent->Handle, @lvi)
 				FState = lvi.state
 			End If
-		#EndIf
+		#endif
         Return FState
     End Property
 
     Property ListViewItem.State(Value As Integer)
         FState = Value
-        #IfNDef __USE_GTK__
+        #ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -194,7 +193,7 @@ Namespace My.Sys.Forms
               	      '.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
                		End With
             	End If
-            #EndIf
+            #endif
         'End If
     End Property
 
@@ -229,8 +228,8 @@ Namespace My.Sys.Forms
     End Operator
 
     Constructor ListViewItem
-        FHint = CAllocate(0)
-        FText = CAllocate(0)
+        'FHint = CAllocate(0)
+        'FText = CAllocate(0)
         FVisible    = 1
         Text(0)    = ""
         Hint       = ""
@@ -240,17 +239,17 @@ Namespace My.Sys.Forms
     End Constructor
 
     Destructor ListViewItem
-        If FHint Then Deallocate FHint
-        If FText Then Deallocate FText
-        If FImageKey Then Deallocate FImageKey
-        If FSelectedImageKey Then Deallocate FSelectedImageKey
-        If FSmallImageKey Then Deallocate FSmallImageKey
+        WDeallocate FHint
+        WDeallocate FText
+        WDeallocate FImageKey
+        WDeallocate FSelectedImageKey
+        WDeallocate FSmallImageKey
     End Destructor
     
     Sub ListViewColumn.SelectItem
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
-		#EndIf
+		#endif
     End Sub
 
     Property ListViewColumn.Text ByRef As WString
@@ -259,7 +258,7 @@ Namespace My.Sys.Forms
 
     Property ListViewColumn.Text(ByRef Value As WString)
         WLet FText, Value
-        #IfNDef __USE_GTK__
+        #ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = TVIF_TEXT
@@ -268,7 +267,7 @@ Namespace My.Sys.Forms
 				lvc.cchTextMax = Len(*FText)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			  End If
-		#EndIf 
+		#endif 
     End Property
 
     Property ListViewColumn.Width As Integer
@@ -277,12 +276,12 @@ Namespace My.Sys.Forms
 
     Property ListViewColumn.Width(Value As Integer)
         FWidth = Value
-		#IfDef __USE_GTK__
-			#IfDef __USE_GTK3__
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
-			#Else
+			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
-			#EndIf
+			#endif
 		#Else
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN

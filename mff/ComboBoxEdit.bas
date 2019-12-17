@@ -115,7 +115,7 @@ Namespace My.Sys.Forms
 			If Handle Then 
 				Return Perform(CB_GETCOUNT,0,0)
 			End If
-		#EndIf
+		#endif
 		Return Items.Count
 	End Property
 	
@@ -128,53 +128,53 @@ Namespace My.Sys.Forms
 	
 	Property ComboBoxEdit.ItemHeight(Value As Integer)
 		FItemHeight = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then 
 				If Style <> cbOwnerDrawVariable  Then
 					Perform(CB_SETITEMHEIGHT, 0, FItemHeight)
 				End If
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property ComboBoxEdit.ItemIndex As Integer
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If widget Then FItemIndex = gtk_combo_box_get_active (Gtk_Combo_Box(widget))
-		#Else
+		#else
 			If Handle Then FItemIndex = Perform(CB_GETCURSEL, 0, 0)
-		#EndIf
+		#endif
 		Return FItemIndex
 	End Property
 	
 	Property ComboBoxEdit.ItemIndex(Value As Integer)
 		FItemIndex = Value
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), Value)
-		#Else
+		#else
 			If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
-		#EndIf
+		#endif
 	End Property
 	
 	Property ComboBoxEdit.Text ByRef As WString
 		If FStyle = cbDropDownList Then
 			WLet FText, This.Item(This.ItemIndex)
 		Else
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				WLet FText, WStr(*gtk_combo_box_text_get_active_text(gtk_combo_box_text(widget)))
-			#Else
+			#else
 				Base.Text
-			#EndIf
+			#endif
 		End If
 		Return WGet(FText)
 	End Property
 	
 	Property ComboBoxEdit.Text(ByRef Value As WString)
 		Base.Text = Value
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), IndexOf(Value))
-		#Else
+		#else
 			If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText))
-		#EndIf
+		#endif
 	End Property
 	
 	Property ComboBoxEdit.Sort As Boolean
@@ -184,10 +184,10 @@ Namespace My.Sys.Forms
 	Property ComboBoxEdit.Sort(Value As Boolean)
 		If Value <> FSort Then
 			FSort = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				ChangeStyle CBS_SORT, Value
 				'Base.Style = WS_CHILD OR WS_VSCROLL OR CBS_HASSTRINGS OR CBS_AUTOHSCROLL OR AStyle(Abs_(FStyle)) OR ASortStyle(Abs_(FSort)) OR AIntegralHeight(Abs_(FIntegralHeight))
-			#EndIf
+			#endif
 		End If
 	End Property
 	
@@ -201,20 +201,20 @@ Namespace My.Sys.Forms
 	
 	Property ComboBoxEdit.Item(FIndex As Integer) ByRef As WString
 		Dim As Integer L
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
 				L = Perform(CB_GETLBTEXTLEN, FIndex, 0)
-				WLet FText, WSpace(L)
-				Perform(CB_GETLBTEXT, FIndex, CInt(FText))
-				Return *FText
+				WReallocate FItemText, L
+				Perform(CB_GETLBTEXT, FIndex, CInt(FItemText))
+				Return *FItemText
 			Else
-				WLet FText, Items.Item(FIndex)
-				Return *FText
+				WLet FItemText, Items.Item(FIndex)
+				Return *FItemText
 			End If
-		#Else
-			WLet FText, Items.Item(FIndex)
-			Return *FText
-		#EndIf
+		#else
+			WLet FItemText, Items.Item(FIndex)
+			Return *FItemText
+		#endif
 	End Property
 	
 	Property ComboBoxEdit.Item(FIndex As Integer, ByRef FItem As WString)
@@ -570,6 +570,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor ComboBoxEdit
+		WDeallocate FItemText
 		#ifdef __USE_GTK__
 '			If This.Parent AndAlso This.Parent->Widget Then
 '				gtk_container_remove(gtk_container(This.Parent->Widget), gtk_widget(Widget))

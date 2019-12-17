@@ -4,10 +4,10 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)                                    #
 '###############################################################################
 
-#Include Once "Control.bi"
-#IfDef __USE_GTK__
-	#Include Once "glib-object.bi"
-#EndIf
+#include once "Control.bi"
+#ifdef __USE_GTK__
+	#include once "glib-object.bi"
+#endif
 
 Const LVCFMT_FILL = &h200000
 
@@ -17,7 +17,7 @@ Enum SortStyle
     ssSortDescending
 End Enum
 
-#IfDef __USE_GTK__
+#ifdef __USE_GTK__
 	Enum ViewStyle
 		vsIcon
 		vsDetails
@@ -45,7 +45,7 @@ End Enum
 		'cfSplitButton
 		'cfTilePlacementMask
 	End Enum
-#Else
+#else
 	Enum ViewStyle
 		vsIcon = LV_VIEW_ICON
 		vsDetails = LV_VIEW_DETAILS
@@ -73,12 +73,12 @@ End Enum
 		'cfSplitButton = LVCFMT_SPLITBUTTON
 		'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
 	End Enum
-#EndIf
+#endif
 
 Namespace My.Sys.Forms
-    #DEFINE QListView(__Ptr__) *Cast(ListView Ptr,__Ptr__)
-    #DEFINE QListViewItem(__Ptr__) *Cast(ListViewItem Ptr,__Ptr__)
-    #DEFINE QListViewColumn(__Ptr__) *Cast(ListViewColumn Ptr,__Ptr__)
+    #define QListView(__Ptr__) *Cast(ListView Ptr,__Ptr__)
+    #define QListViewItem(__Ptr__) *Cast(ListViewItem Ptr,__Ptr__)
+    #define QListViewColumn(__Ptr__) *Cast(ListViewColumn Ptr,__Ptr__)
     
     Type ListViewItem Extends My.Sys.Object
         Private:
@@ -94,13 +94,13 @@ Namespace My.Sys.Forms
             FVisible            As Boolean
             FState              As Integer
             FIndent             As Integer
-            #IfNDef __USE_GTK__
+            #ifndef __USE_GTK__
 				Dim lvi             As LVITEM
-			#EndIf
+			#endif
         Public:
-        	#IfDef __USE_GTK__
+        	#ifdef __USE_GTK__
 				TreeIter As GtkTreeIter
-            #EndIf
+            #endif
             Parent   As Control Ptr
             Tag As Any Ptr
             Declare Sub SelectItem
@@ -130,8 +130,8 @@ Namespace My.Sys.Forms
             Declare Operator Cast As Any Ptr
             Declare Constructor
             Declare Destructor
-            OnClick As Sub(BYREF Sender As My.Sys.Object)
-            OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+            OnClick As Sub(ByRef Sender As My.Sys.Object)
+            OnDblClick As Sub(ByRef Sender As My.Sys.Object)
     End Type
 
     Type ListViewColumn Extends My.Sys.Object
@@ -144,9 +144,9 @@ Namespace My.Sys.Forms
             FVisible      As Boolean
             FEditable	 As Boolean
         Public:
-        	#IfDef __USE_GTK__
+        	#ifdef __USE_GTK__
         		Dim As GtkTreeViewColumn Ptr Column
-        	#EndIf
+        	#endif
             Index As Integer
             Parent   As Control Ptr
             Declare Sub SelectItem
@@ -167,16 +167,16 @@ Namespace My.Sys.Forms
             Declare Operator Cast As Any Ptr
             Declare Constructor
             Declare Destructor
-            OnClick As Sub(BYREF Sender As My.Sys.Object)
-            OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+            OnClick As Sub(ByRef Sender As My.Sys.Object)
+            OnDblClick As Sub(ByRef Sender As My.Sys.Object)
     End Type
 
     Type ListViewColumns
         Private:
             FColumns As List
-        	#IfDef __USE_GTK__
+        	#ifdef __USE_GTK__
             	Declare Static Sub Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
-        	#EndIf
+        	#endif
         Public:
             Parent   As Control Ptr
             Declare Property Count As Integer
@@ -186,7 +186,7 @@ Namespace My.Sys.Forms
             Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As ListViewColumn Ptr
             Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft)
             Declare Sub Remove(Index As Integer)
-            Declare Function IndexOf(BYREF FColumn As ListViewColumn Ptr) As Integer
+            Declare Function IndexOf(ByRef FColumn As ListViewColumn Ptr) As Integer
             Declare Sub Clear
             Declare Operator Cast As Any Ptr
             Declare Constructor
@@ -197,13 +197,13 @@ Namespace My.Sys.Forms
         Private:
             FItems As List
             PItem As ListViewItem Ptr
-            #IfNDef __USE_GTK__
+            #ifndef __USE_GTK__
 				lvi As LVITEM
-			#EndIf
+			#endif
         Public:
-        	#IfDef __USE_GTK__
+        	#ifdef __USE_GTK__
         		Declare Function FindByIterUser_Data(User_Data As Any Ptr) As ListViewItem Ptr
-        	#EndIf
+        	#endif
             Parent   As Control Ptr
             Declare Property Count As Integer
             Declare Property Count(Value As Integer)
@@ -213,7 +213,7 @@ Namespace My.Sys.Forms
             Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
             Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
             Declare Sub Remove(Index As Integer)
-            Declare Function IndexOf(BYREF FItem As ListViewItem Ptr) As Integer
+            Declare Function IndexOf(ByRef FItem As ListViewItem Ptr) As Integer
             Declare Function IndexOf(ByRef FCaption As WString) As Integer
             Declare Function Contains(ByRef FCaption As WString) As Boolean
             Declare Sub Clear
@@ -229,16 +229,16 @@ Namespace My.Sys.Forms
             FColumnHeaderHidden As Boolean
             FSingleClickActivate As Boolean
             FSortStyle As SortStyle
-            Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-			Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
-			Declare Sub ProcessMessage(BYREF Message As Message)
+            Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+			Declare Sub ProcessMessage(ByRef Message As Message)
         Public:
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				ListStore As GtkListStore Ptr
 				TreeSelection As GtkTreeSelection Ptr
 				ColumnTypes As GType Ptr
-            #EndIf
+            #endif
             Declare Sub Init()
    			ListItems         As ListViewItems
             Columns         As ListViewColumns
@@ -277,7 +277,7 @@ Namespace My.Sys.Forms
 End Namespace
 
 'TODO:
-#IfNDef __USE_GTK__    
+#ifndef __USE_GTK__    
 	'const LVS_ICON = &h0
 	'const LVS_REPORT = &h1
 	'const LVS_SMALLICON = &h2

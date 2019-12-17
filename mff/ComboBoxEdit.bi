@@ -28,6 +28,7 @@ Namespace My.Sys.Forms
         Private:
             FStyle            As Integer
             FSort             As Boolean
+            FItemText         As WString Ptr
             FItemHeight       As Integer
             FDropDownCount    As Integer
             FIntegralHeight   As Boolean
