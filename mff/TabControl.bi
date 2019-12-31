@@ -11,13 +11,13 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#include Once "Panel.bi"
-#include Once "Menus.bi"
-#include Once "ImageList.bi"
+#include once "Panel.bi"
+#include once "Menus.bi"
+#include once "ImageList.bi"
 
 Namespace My.Sys.Forms
-    #DEFINE QTabControl(__Ptr__) *Cast(TabControl Ptr,__Ptr__)
-    #DEFINE QTabPage(__Ptr__) *Cast(TabPage Ptr, __Ptr__)
+    #define QTabControl(__Ptr__) *Cast(TabControl Ptr,__Ptr__)
+    #define QTabPage(__Ptr__) *Cast(TabPage Ptr, __Ptr__)
 
     Enum TabStyle
         tsTabs,tsButtons,tsOwnerDrawFixed
@@ -35,20 +35,20 @@ Namespace My.Sys.Forms
             FObject     As Any Ptr
             FImageIndex As Integer
             FImageKey   As WString Ptr
-        	#IfNDef __USE_GTK__
+        	#ifndef __USE_GTK__
         		FTheme		As HTHEME
-        	#EndIf
+        	#endif
         Public:
         	Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
             Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
             Declare Sub ProcessMessage(ByRef msg As Message)
-            #IfDef __USE_GTK__
+            #ifdef __USE_GTK__
             	_Box			As GtkWidget Ptr
 				_Icon			As GtkWidget Ptr
 				_Label			As GtkWidget Ptr
-			#Else
-				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-			#EndIf
+			#else
+				Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			#endif
 			UseVisualStyleBackColor As Boolean
             Declare Property Index As Integer
             Declare Property Caption ByRef As WString
@@ -70,8 +70,8 @@ Namespace My.Sys.Forms
             Declare Sub Update()
             Declare Constructor
             Declare Destructor
-            OnSelected   As Sub(BYREF Sender As TabPage)
-            OnDeSelected As Sub(BYREF Sender As TabPage) 
+            OnSelected   As Sub(ByRef Sender As TabPage)
+            OnDeSelected As Sub(ByRef Sender As TabPage) 
     End Type
 
     Type TabControl Extends ContainerControl
@@ -79,15 +79,17 @@ Namespace My.Sys.Forms
             FTabIndex     As Integer
             FTabCount     As Integer 
             FMultiline    As Boolean
+            FReorderable  As Boolean
             FFlatButtons  As Boolean
             FTabPosition  As My.Sys.Forms.TabPosition
             FTabStyle     As My.Sys.Forms.TabStyle
+            FMousePos     As Integer
             Declare Sub SetMargins()
-            #IfNDef __USE_GTK__
-				Declare Static Sub WndProc(BYREF Message As Message)
-				Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-				Declare Sub ProcessMessage(BYREF Message As Message)
-			#EndIf
+            #ifndef __USE_GTK__
+				Declare Static Sub WndProc(ByRef Message As Message)
+				Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+				Declare Sub ProcessMessage(ByRef Message As Message)
+			#endif
         Public:
 			Images        As ImageList Ptr
             Tabs             As TabPage Ptr Ptr
@@ -105,6 +107,8 @@ Namespace My.Sys.Forms
             Declare Property FlatButtons(Value As Boolean)
             Declare Property Multiline As Boolean
             Declare Property Multiline(Value As Boolean)
+            Declare Property Reorderable As Boolean
+            Declare Property Reorderable(Value As Boolean)
             Declare Property SelectedTab As TabPage Ptr
             Declare Property SelectedTab(Value As TabPage Ptr)
             Declare Property Tab(Index As Integer) As TabPage Ptr
@@ -120,16 +124,18 @@ Namespace My.Sys.Forms
             Declare Sub AddTab(ByRef tTab As TabPage Ptr)
             Declare Sub DeleteTab(Index As Integer)
             Declare Sub InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)
+            Declare Sub InsertTab(Index As Integer, ByRef tTab As TabPage Ptr)
+            Declare Sub ReorderTab(ByVal tp As TabPage Ptr, Index As Integer)
             Declare Sub Clear
             Declare Constructor
             Declare Destructor
-            OnSelChange   As Sub(BYREF Sender As TabControl, NewIndex As Integer)
-            OnSelChanging As Sub(BYREF Sender As TabControl, NewIndex As Integer)
-            OnGotFocus   As Sub(BYREF Sender As TabControl)
-            OnLostFocus   As Sub(BYREF Sender As TabControl)
+            OnSelChange   As Sub(ByRef Sender As TabControl, NewIndex As Integer)
+            OnSelChanging As Sub(ByRef Sender As TabControl, NewIndex As Integer)
+            OnGotFocus   As Sub(ByRef Sender As TabControl)
+            OnLostFocus   As Sub(ByRef Sender As TabControl)
     End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "TabControl.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "TabControl.bas"
+#endif

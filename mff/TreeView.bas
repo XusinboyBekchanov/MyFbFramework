@@ -614,7 +614,7 @@ Namespace My.Sys.Forms
 				'            End Select
 			Case CM_COMMAND
 				
-			Case CM_NEEDTEXT       
+			Case CM_NEEDTEXT
 				'            Dim As LPTOOLTIPTEXT TTX
 				'            TTX = Cast(LPTOOLTIPTEXT,Message.lParam)
 				'            TTX->hInst = GetModuleHandle(NULL)
