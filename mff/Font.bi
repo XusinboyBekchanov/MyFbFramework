@@ -11,11 +11,11 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Component.bi"
+#include once "Component.bi"
 
 Using My.Sys.ComponentModel
 
-#IfDef __USE_GTK__
+#ifdef __USE_GTK__
 	Enum FontCharset
 		Default
 		Ansi
@@ -37,7 +37,7 @@ Using My.Sys.ComponentModel
 		Turkish
 		Vietnamese
 	End Enum
-#Else
+#else
 	Enum FontCharset
 		Default     = DEFAULT_CHARSET
 		Ansi        = ANSI_CHARSET
@@ -59,64 +59,66 @@ Using My.Sys.ComponentModel
 		Turkish     = TURKISH_CHARSET
 		Vietnamese  = VIETNAMESE_CHARSET
 	End Enum
-#EndIf
+#endif
 
 Namespace My.Sys.Drawing
-    #DEFINE QFont(__Ptr__) *Cast(Font Ptr,__Ptr__)
+	#define QFont(__Ptr__) *Cast(Font Ptr,__Ptr__)
+	
+	Type Font Extends My.Sys.Object
+	Private:
+		FBold      As Boolean
+		FItalic    As Boolean
+		FUnderline As Boolean
+		FStrikeOut As Boolean
+		FSize      As Integer
+		FName      As WString Ptr
+		FColor     As Integer
+		FCharSet   As Integer
+		FParent    As Component Ptr
+		FBolds(2)  As Integer
+		FCyPixels  As Integer
+		FEscapement As Integer = 0 '是字体的倾斜角。 David Change
+		FOrientation As Integer = 0 '是字体的倾斜角。 David Change
+		Declare Sub Create
+	Public:
+		#ifdef __USE_GTK__
+			Handle As PangoFontDescription Ptr
+		#else
+			Handle As HFONT
+		#endif
+		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Function ToString ByRef As WString
+		Declare Property Parent As Component Ptr
+		Declare Property Parent(Value As Component Ptr)
+		Declare Property Name ByRef As WString
+		Declare Property Name(ByRef Value As WString)
+		Declare Property Color As Integer
+		Declare Property Color(Value As Integer)
+		Declare Property Size As Integer
+		Declare Property Size(Value As Integer)
+		Declare Property Orientation As Integer
+		Declare Property Orientation(Value As Integer)
+		Declare Property CharSet As Integer 'FontCharset
+		Declare Property CharSet(Value As Integer)
+		Declare Property Bold As Boolean
+		Declare Property Bold(Value As Boolean)
+		Declare Property Italic As Boolean
+		Declare Property Italic(Value As Boolean)
+		Declare Property Underline As Boolean
+		Declare Property Underline(Value As Boolean)
+		Declare Property StrikeOut As Boolean
+		Declare Property StrikeOut(Value As Boolean)
+		Declare Operator Cast As Any Ptr
+		Declare Operator Cast ByRef As WString
+		Declare Operator Let(Value As Font)
+		Declare Constructor
+		Declare Destructor
+	End Type
+End Namespace
 
-    Type Font Extends My.Sys.Object
-        Private:
-            FBold      As Boolean
-            FItalic    As Boolean
-            FUnderline As Boolean
-            FStrikeOut As Boolean
-            FSize      As Integer
-            FName      As WString Ptr
-            FColor     As Integer
-            FCharSet   As Integer 
-            FParent    As Component Ptr
-            FBolds(2)  As Integer
-            FCyPixels  As Integer
-            FEscapement As Integer = 0 '是字体的倾斜角。 David Change
-            FOrientation As Integer = 0 '是字体的倾斜角。 David Change
-            Declare Sub Create
-        Public:
-			#IfDef __USE_GTK__
-				Handle As PangoFontDescription Ptr
-			#Else
-				Handle As HFONT
-			#EndIf
-            Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-            Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-            Declare Function ToString ByRef As WString
-            Declare Property Parent As Component Ptr
-            Declare Property Parent(Value As Component Ptr)
-            Declare Property Name ByRef As WString
-            Declare Property Name(ByRef Value As WString)
-            Declare Property Color As Integer
-            Declare Property Color(Value As Integer)
-            Declare Property Size As Integer
-            Declare Property Size(Value As Integer)
-            Declare Property Orientation As Integer
-            Declare Property Orientation(Value As Integer)
-            Declare Property CharSet As Integer 'FontCharset
-            Declare Property CharSet(Value As Integer)
-            Declare Property Bold As Boolean
-            Declare Property Bold(Value As Boolean)
-            Declare Property Italic As Boolean
-            Declare Property Italic(Value As Boolean)
-            Declare Property Underline As Boolean
-            Declare Property Underline(Value As Boolean)
-            Declare Property StrikeOut As Boolean
-            Declare Property StrikeOut(Value As Boolean)
-            Declare Operator Cast As Any Ptr
-            Declare Operator Cast ByRef As WString
-            Declare Operator Let(Value As Font) 
-            Declare Constructor
-            Declare Destructor
-    End Type
-End namespace
+Common Shared pDefaultFont As My.Sys.Drawing.Font Ptr
 
-#IfNDef __USE_MAKE__
-	#Include Once "Font.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Font.bas"
+#endif

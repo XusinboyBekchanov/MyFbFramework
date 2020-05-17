@@ -11,99 +11,99 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Object.bi"
+#include once "Object.bi"
 
 'Namespace My.Sys.Drawing
-#IfDef __USE_GTK__
-	#Define clScrollBar           &H000000
-	#Define clBackground          &H000000
-	#Define clActiveCaption       &H000000
-	#Define clInactiveCaption     &H000000
-	#Define clMenu                &H000000
-	#Define clWindow              &H000000
-	#Define clWindowFrame         &H000000
-	#Define clMenuText            &H000000
-	#Define clWindowText          &H000000
-	#Define clCaptionText         &H000000
-	#Define clActiveBorder        &H000000
-	#Define clInactiveBorder      &H000000
-	#Define clAppWorkSpace        &H000000
-	#Define clHighlight           &H000000
-	#Define clHighlightText       &H000000
-	#Define clBtnFace             &H000000
-	#Define clBtnShadow           &H000000
-	#Define clGrayText            &H000000
-	#Define clBtnText             &H000000
-	#Define clInactiveCaptionText &H000000
-	#Define clBtnHighlight        &H000000
-	#Define cl3DDkShadow          &H000000
-	#Define cl3DLight             &H000000
-	#Define clInfoText            &H000000
-	#Define clInfoBk              &H000000
-#Else
-	#Define clScrollBar           GetSysColor(COLOR_SCROLLBAR)
-	#Define clBackground          GetSysColor(COLOR_BACKGROUND)
-	#Define clActiveCaption       GetSysColor(COLOR_ACTIVECAPTION)
-	#Define clInactiveCaption     GetSysColor(COLOR_INACTIVECAPTION)
-	#Define clMenu                GetSysColor(COLOR_MENU)
-	#Define clWindow              GetSysColor(COLOR_WINDOW)
-	#Define clWindowFrame         GetSysColor(COLOR_WINDOWFRAME)
-	#Define clMenuText            GetSysColor(COLOR_MENUTEXT)
-	#Define clWindowText          GetSysColor(COLOR_WINDOWTEXT)
-	#Define clCaptionText         GetSysColor(COLOR_CAPTIONTEXT)
-	#Define clActiveBorder        GetSysColor(COLOR_ACTIVEBORDER)
-	#Define clInactiveBorder      GetSysColor(COLOR_INACTIVEBORDER)
-	#Define clAppWorkSpace        GetSysColor(COLOR_APPWORKSPACE)
-	#Define clHighlight           GetSysColor(COLOR_HIGHLIGHT)
-	#Define clHighlightText       GetSysColor(COLOR_HIGHLIGHTTEXT)
-	#Define clBtnFace             GetSysColor(COLOR_BTNFACE)
-	#Define clBtnShadow           GetSysColor(COLOR_BTNSHADOW)
-	#Define clGrayText            GetSysColor(COLOR_GRAYTEXT)
-	#Define clBtnText             GetSysColor(COLOR_BTNTEXT)
-	#Define clInactiveCaptionText GetSysColor(COLOR_INACTIVECAPTIONTEXT)
-	#Define clBtnHighlight        GetSysColor(COLOR_BTNHIGHLIGHT)
-	#Define cl3DDkShadow          GetSysColor(COLOR_3DDKSHADOW)
-	#Define cl3DLight             GetSysColor(COLOR_3DLIGHT)
-	#Define clInfoText            GetSysColor(COLOR_INFOTEXT)
-	#Define clInfoBk              GetSysColor(COLOR_INFOBK)
-#EndIf
+#ifdef __USE_GTK__
+	#define clScrollBar           &H000000
+	#define clBackground          &H000000
+	#define clActiveCaption       &H000000
+	#define clInactiveCaption     &H000000
+	#define clMenu                &H000000
+	#define clWindow              &H000000
+	#define clWindowFrame         &H000000
+	#define clMenuText            &H000000
+	#define clWindowText          &H000000
+	#define clCaptionText         &H000000
+	#define clActiveBorder        &H000000
+	#define clInactiveBorder      &H000000
+	#define clAppWorkSpace        &H000000
+	#define clHighlight           clOrange
+	#define clHighlightText       clWhite
+	#define clBtnFace             clGray
+	#define clBtnShadow           clLtGray
+	#define clGrayText            &H000000
+	#define clBtnText             &H000000
+	#define clInactiveCaptionText &H000000
+	#define clBtnHighlight        &H000000
+	#define cl3DDkShadow          &H000000
+	#define cl3DLight             &H000000
+	#define clInfoText            &H000000
+	#define clInfoBk              &H000000
+#else
+	#define clScrollBar           GetSysColor(COLOR_SCROLLBAR)
+	#define clBackground          GetSysColor(COLOR_BACKGROUND)
+	#define clActiveCaption       GetSysColor(COLOR_ACTIVECAPTION)
+	#define clInactiveCaption     GetSysColor(COLOR_INACTIVECAPTION)
+	#define clMenu                GetSysColor(COLOR_MENU)
+	#define clWindow              GetSysColor(COLOR_WINDOW)
+	#define clWindowFrame         GetSysColor(COLOR_WINDOWFRAME)
+	#define clMenuText            GetSysColor(COLOR_MENUTEXT)
+	#define clWindowText          GetSysColor(COLOR_WINDOWTEXT)
+	#define clCaptionText         GetSysColor(COLOR_CAPTIONTEXT)
+	#define clActiveBorder        GetSysColor(COLOR_ACTIVEBORDER)
+	#define clInactiveBorder      GetSysColor(COLOR_INACTIVEBORDER)
+	#define clAppWorkSpace        GetSysColor(COLOR_APPWORKSPACE)
+	#define clHighlight           GetSysColor(COLOR_HIGHLIGHT)
+	#define clHighlightText       GetSysColor(COLOR_HIGHLIGHTTEXT)
+	#define clBtnFace             GetSysColor(COLOR_BTNFACE)
+	#define clBtnShadow           GetSysColor(COLOR_BTNSHADOW)
+	#define clGrayText            GetSysColor(COLOR_GRAYTEXT)
+	#define clBtnText             GetSysColor(COLOR_BTNTEXT)
+	#define clInactiveCaptionText GetSysColor(COLOR_INACTIVECAPTIONTEXT)
+	#define clBtnHighlight        GetSysColor(COLOR_BTNHIGHLIGHT)
+	#define cl3DDkShadow          GetSysColor(COLOR_3DDKSHADOW)
+	#define cl3DLight             GetSysColor(COLOR_3DLIGHT)
+	#define clInfoText            GetSysColor(COLOR_INFOTEXT)
+	#define clInfoBk              GetSysColor(COLOR_INFOBK)
+#endif
 
-	Const clBlack   = &H000000
-	Const clMaroon  = &H000080
-	Const clGreen   = &H008000
-	Const clOlive   = &H008080
-	Const clOrange  = &HF07746
-	Const clNavy    = &H800000
-	Const clPurple  = &H800080
-	Const clTeal    = &H808000
-	Const clGray    = &H808080
-	Const clSilver  = &HC0C0C0
-	Const clRed     = &H0000FF
-	Const clLime    = &H00FF00
-	Const clYellow  = &H00FFFF
-	Const clBlue    = &HFF0000
-	Const clFuchsia = &HFF00FF
-	Const clAqua    = &HFFFF00
-	Const clLtGray  = &HC0C0C0
-	Const clDkGray  = &H808080
-	Const clWhite   = &HFFFFFF
-	Const clNone    = &H1FFFFFFF
-	Const clDefault = &H20000000
+Const clBlack   = &H000000
+Const clMaroon  = &H000080
+Const clGreen   = &H008000
+Const clOlive   = &H008080
+Const clOrange  = &HF07746
+Const clNavy    = &H800000
+Const clPurple  = &H800080
+Const clTeal    = &H808000
+Const clGray    = &H808080
+Const clSilver  = &HC0C0C0
+Const clRed     = &H0000FF
+Const clLime    = &H00FF00
+Const clYellow  = &H00FFFF
+Const clBlue    = &HFF0000
+Const clFuchsia = &HFF00FF
+Const clAqua    = &HFFFF00
+Const clLtGray  = &HC0C0C0
+Const clDkGray  = &H808080
+Const clWhite   = &HFFFFFF
+Const clNone    = &H1FFFFFFF
+Const clDefault = &H20000000
 
-	Declare Function ColorToRGB(FColor As Integer) As Integer
-	Declare Function GetRed(FColor As Long) As Byte
-	Declare Function GetGreen(FColor As Long) As Byte
-	Declare Function GetBlue(FColor As Long) As Byte
+Declare Function ColorToRGB(FColor As Integer) As Integer
+Declare Function GetRed(FColor As Long) As Integer
+Declare Function GetGreen(FColor As Long) As Integer
+Declare Function GetBlue(FColor As Long) As Integer
 
 'End Namespace
 
-#INCLUDE Once "Pen.bi"
-#INCLUDE Once "Brush.bi"
-#INCLUDE Once "Icon.bi"
-#INCLUDE Once "Cursor.bi"
-#INCLUDE Once "Bitmap.bi"
-#INCLUDE Once "Font.bi"
+#include once "Pen.bi"
+#include once "Brush.bi"
+#include once "Icon.bi"
+#include once "Cursor.bi"
+#include once "Bitmap.bi"
+#include once "Font.bi"
 
-#IfNDef __USE_MAKE__
-	#Include Once "Graphics.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Graphics.bas"
+#endif

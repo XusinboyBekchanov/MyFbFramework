@@ -65,7 +65,7 @@ Namespace My
 		Dim As WString*255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
-		#ifndef __USE_GTK__
+		#ifdef __FB_WIN32__
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
 		#endif
 		s = Left(Tx, L)
@@ -83,7 +83,7 @@ Namespace My
 	
 	Property Application.FileName ByRef As WString
 		Dim As Integer L
-		#ifdef __USE_GTK__
+		#ifdef __FB_LINUX__
 			Dim As ZString * 255 Tx
 			L = readlink("/proc/self/exe", @Tx, 255 - 1)
 		#else
@@ -92,6 +92,17 @@ Namespace My
 		#endif
 		WLet FFileName, Left(Tx, L)
 		Return *FFileName
+	End Property
+	
+	Property Application.ActiveForm As My.Sys.Forms.Control Ptr
+		Return FActiveForm
+	End Property
+	
+	Property Application.ActiveForm(Value As My.Sys.Forms.Control Ptr)
+		FActiveForm = Value
+		#ifndef __USE_GTK__
+			If Value Then SetForegroundWindow(Value->Handle)
+		#endif
 	End Property
 	
 	Property Application.MainForm As My.Sys.Forms.Control Ptr
@@ -106,7 +117,7 @@ Namespace My
 	Property Application.MainForm(Value As My.Sys.Forms.Control Ptr)
 		FMainForm = Value
 		#ifdef __USE_GTK__
-			If FMainForm AndAlso FMainForm->widget Then g_signal_connect(FMainForm->widget, "destroy", G_CALLBACK(@gtk_main_quit), NULL)
+			If FMainForm AndAlso FMainForm->widget Then g_signal_connect(FMainForm->widget, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
 		#endif
 	End Property
 	
@@ -118,12 +129,12 @@ Namespace My
 	Property Application.ControlCount(Value  As Integer)
 	End Property
 	
-	Property Application.Controls As My.Sys.Forms.Control Ptr Ptr 
-		GetControls 
+	Property Application.Controls As My.Sys.Forms.Control Ptr Ptr
+		GetControls
 		Return FControls
 	End Property
 	
-	Property Application.Controls(Value  As My.Sys.Forms.Control Ptr Ptr) 
+	Property Application.Controls(Value  As My.Sys.Forms.Control Ptr Ptr)
 	End Property
 	
 	Function Application.FormCount As Integer
@@ -131,12 +142,12 @@ Namespace My
 		Return FFormCount
 	End Function
 	
-	Property Application.Forms As My.Sys.Forms.Control Ptr Ptr 
+	Property Application.Forms As My.Sys.Forms.Control Ptr Ptr
 		GetForms
 		Return FForms
 	End Property
 	
-	Property Application.Forms(Value  As My.Sys.Forms.Control Ptr Ptr) 
+	Property Application.Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
 	End Property
 	
 	Property Application.HintColor As Integer
@@ -162,7 +173,7 @@ Namespace My
 		FHintPause = value
 		For i = 0 To ControlCount -1
 			#ifndef __USE_GTK__
-				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_INITIAL,value)     
+				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_INITIAL,value)
 			#endif
 		Next i
 	End Property
@@ -176,9 +187,9 @@ Namespace My
 		FHintShortPause = value
 		For i = 0 To ControlCount -1
 			#ifndef __USE_GTK__
-				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_RESHOW,value)     
+				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_RESHOW,value)
 			#endif
-		Next i 
+		Next i
 	End Property
 	
 	Property Application.HintHidePause As Integer
@@ -190,9 +201,9 @@ Namespace My
 		FHintHidePause = value
 		For i = 0 To ControlCount -1
 			#ifndef __USE_GTK__
-				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_AUTOPOP,value)     
+				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_AUTOPOP,value)
 			#endif
-		Next i 
+		Next i
 	End Property
 	
 	Sub Application.HelpCommand(CommandID As Integer,FData As Long)
@@ -211,11 +222,11 @@ Namespace My
 		Dim StrFmt As String
 		StrFmt = "JumpID(" + Chr(34) + Chr(34) + ","+ Chr(34) + TopicID + Chr(34) + ")"+ Chr(0)
 		If MainForm Then
-			#IfNDef __USE_GTK__ 
-				If WinHelp(MainForm->Handle,HelpFile,HELP_COMMAND,CInt(StrPtr(StrFmt))) = 0 then 
+			#ifndef __USE_GTK__
+				If WinHelp(MainForm->Handle,HelpFile,HELP_COMMAND,CInt(StrPtr(StrFmt))) = 0 Then
 					WinHelp(MainForm->Handle,HelpFile,HELP_CONTENTS,NULL)
 				End If
-			#EndIf
+			#endif
 		End If
 	End Sub
 	
@@ -230,19 +241,24 @@ Namespace My
 				End 10
 			End If
 			Dim mess As Message
-			Dim As My.Sys.Forms.Control Ptr Ctrl, Frm
-			If MainForm Then Frm = MainForm
-			'Dim As Any Ptr hWindow
 			Dim TranslateAndDispatch As Boolean
-			While GetMessage(@msg, NULL,0,0)
+			While GetMessage(@msg, NULL, 0, 0)
 				TranslateAndDispatch = True
-				If GetForegroundWindow() = frm->Handle Then
-					If Frm Then
-						If Frm->Accelerator Then TranslateAndDispatch = TranslateAccelerator(Frm->Handle, Frm->Accelerator, @msg) = 0
-						'If TranslateAndDispatch Then TranslateAndDispatch = Not Cast(Boolean, IsDialogMessage(frm->Handle, @msg))
+				If FActiveForm <> 0 Then
+					If FActiveForm->Accelerator Then TranslateAndDispatch = TranslateAccelerator(FActiveForm->Handle, FActiveForm->Accelerator, @msg) = 0
+					If TranslateAndDispatch Then
+						Select Case Msg.message
+						Case WM_KEYDOWN, WM_KEYUP, WM_CHAR
+							Select Case Msg.wParam
+							Case VK_TAB, VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
+								If IsDialogMessage(FActiveForm->Handle, @Msg) Then
+									TranslateAndDispatch = False
+								End If
+							End Select
+						End Select
 					End If
 				End If
-				If OnMessage Then 
+				If OnMessage Then
 					mess = Type(@This, Msg.Hwnd, Msg.Message, Msg.wParam, Msg.lParam, 0, LoWord(Msg.wParam), HiWord(Msg.wParam), LoWord(Msg.lParam), HiWord(Msg.lParam), 0)
 					OnMessage(mess)
 					If mess.Result Then TranslateAndDispatch = False
@@ -253,7 +269,7 @@ Namespace My
 				End If
 				MouseX = msg.Pt.x
 				MouseY = msg.Pt.y
-				If OnMouseMove Then OnMouseMove(MouseX,MouseY) 
+				If OnMouseMove Then OnMouseMove(MouseX,MouseY)
 			Wend
 		#endif
 	End Sub
@@ -272,14 +288,14 @@ Namespace My
 			Wend
 		#else
 			Dim As MSG M
-			If PeekMessage(@M, 0, 0, 0, PM_REMOVE) Then
-				If M.Message <> WM_QUIT Then
+			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
+				If GetMessage(@M, NULL, 0, 0) <> WM_QUIT Then
 					TranslateMessage @M
 					DispatchMessage @M
 				Else
 					If (GetWindowLong(M.hWnd,GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then End -1
 				End If
-			End If
+			Wend
 		#endif
 	End Sub
 	
@@ -301,7 +317,7 @@ Namespace My
 			End If
 			Return NULL
 		End Function
-	#EndIf
+	#endif
 	
 	Function Application.FindControl(ControlName As String) As My.Sys.Forms.Control Ptr
 		Dim As Integer i
@@ -346,7 +362,7 @@ Namespace My
 		FForms = CAllocate(0)
 		FFormCount = 0
 		#ifndef __USE_GTK__
-			EnumThreadWindows GetCurrentThreadID,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@This)
+			EnumThreadWindows GetCurrentThreadID, Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@This)
 		#endif
 	End Sub
 	
@@ -362,7 +378,7 @@ Namespace My
 	
 	Sub Application.GetControls
 		Dim As Integer i
-		FControls = cAllocate(0)
+		FControls = CAllocate(0)
 		FControlCount = 0
 		For i = 0 To FormCount -1
 			EnumControls(*Forms[i])
@@ -600,7 +616,7 @@ End Function
 Function ApplicationMainForm Alias "ApplicationMainForm"(App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
 	Return App->MainForm
 End Function
-	
+
 Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString __EXPORT__
 	Return App->FileName
 End Function

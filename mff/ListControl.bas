@@ -1,14 +1,14 @@
 ﻿'###############################################################################
 '#  ListControl.bi                                                             #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
 '#   TListBox.bi                                                               #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
-'#   Version 1.0.0                                                             #
+'#   Version 1.2.0                                                             #
 '#  Updated and added cross-platform                                           #
-'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
 #include once "ListControl.bi"
@@ -54,7 +54,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.Columns As Integer
-		Return FColumns 
+		Return FColumns
 	End Property
 	
 	Property ListControl.Columns(Value As Integer)
@@ -82,7 +82,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.Style As ListControlStyle
-		Return FStyle 
+		Return FStyle
 	End Property
 	
 	Property ListControl.Style(Value As ListControlStyle)
@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.ItemCount As Integer
 		#ifndef __USE_GTK__
-			If Handle Then 
+			If Handle Then
 				Return Perform(LB_GETCOUNT,0,0)
 			End If
 		#endif
@@ -155,7 +155,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Handle Then Perform(LB_SETTOPINDEX,FTopIndex,0)
 		#endif
-	End Property  
+	End Property
 	
 	Property ListControl.ItemIndex As Integer
 		#ifdef __USE_GTK__
@@ -177,9 +177,8 @@ Namespace My.Sys.Forms
 	Property ListControl.ItemIndex(Value As Integer)
 		FItemIndex = Value
 		#ifdef __USE_GTK__
-			
 		#else
-			If Handle Then 
+			If Handle Then
 				If MultiSelect Then
 					Perform(LB_SETCARETINDEX, FItemIndex, 0)
 				Else
@@ -211,14 +210,13 @@ Namespace My.Sys.Forms
 		#else
 			If Handle Then
 		#endif
-			WLet FText, Items.Item(ItemIndex)
+			FText = Items.Item(ItemIndex)
 		End If
-		Return WGet(FText)
+		Return *FText.vptr
 	End Property
 	
 	Property ListControl.Text(ByRef Value As WString)
-		FText = Reallocate(FText, (Len(Value) + 1) * SizeOf(WString))
-		*FText = Value
+		FText = Value
 		#ifndef __USE_GTK__
 			If FHandle Then Perform(LB_SELECTSTRING,-1,CInt(FText))
 		#endif
@@ -261,7 +259,8 @@ Namespace My.Sys.Forms
 				Return *s
 			End If
 		#else
-			WLet s, Items.Item(FIndex)
+			s = CAllocate((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
+			*s = Items.Item(FIndex)
 			Return *s
 		#endif
 	End Property
@@ -393,11 +392,10 @@ Namespace My.Sys.Forms
 			#else
 				gtk_list_clear_items(gtk_list(widget), 0, -1)
 			#endif
-		#else	
+		#else
 			Perform(LB_RESETCONTENT,0,0)
 		#endif
 	End Sub
-	
 	Function ListControl.IndexOf(ByRef FItem As WString) As Integer
 		#ifndef __USE_GTK__
 			Return Perform(LB_FINDSTRING, -1, CInt(FItem))
@@ -414,11 +412,13 @@ Namespace My.Sys.Forms
 		Sub ListControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QListControl(Sender.Child)
-					'.Columns = .Columns
 					For i As Integer = 0 To .Items.Count -1
-						.Perform(LB_ADDSTRING, 0, CInt(@.Items.Item(i)))
+						Dim As WString Ptr s = CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+						*s = .Items.Item(i)
+						.Perform(LB_ADDSTRING, 0, CInt(s))
 					Next i
 					.Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
+					.Columns = .Columns
 					.ItemIndex = .ItemIndex
 					If .MultiSelect Then
 						For i As Integer = 0 To .SelCount -1
@@ -446,13 +446,13 @@ Namespace My.Sys.Forms
 				If lst Then
 					If lst->MultiSelect Then
 						'						FSelCount = Perform(LB_GETSELCOUNT,0,0)
-						'						If FSelCount Then 
-							'							Dim As Integer AItems(FSelCount) 
-							'							Perform(LB_GETSELITEMS,FSelCount,CInt(@AItems(0)))
-							'							SelItems = @AItems(0)
+						'						If FSelCount Then
+						'							Dim As Integer AItems(FSelCount)
+						'							Perform(LB_GETSELITEMS,FSelCount,CInt(@AItems(0)))
+						'							SelItems = @AItems(0)
 						'						End If
 					End If
-					'lst->FItemIndex = 
+					'lst->FItemIndex =
 					If lst->OnChange Then lst->OnChange(*lst)
 				End If
 			End Sub
@@ -476,14 +476,14 @@ Namespace My.Sys.Forms
 				Case LBN_SELCHANGE
 					If MultiSelect Then
 						FSelCount = Perform(LB_GETSELCOUNT,0,0)
-						If FSelCount Then 
-							Dim As Integer AItems(FSelCount) 
+						If FSelCount Then
+							Dim As Integer AItems(FSelCount)
 							Perform(LB_GETSELITEMS,FSelCount,CInt(@AItems(0)))
 							SelItems = @AItems(0)
 						End If
 					End If
 					If OnChange Then OnChange(This)
-				Case LBN_DBLCLK    
+				Case LBN_DBLCLK
 					If OnDblClick Then OnDblClick(This)
 				End Select
 			Case CM_MEASUREITEM
@@ -494,7 +494,7 @@ Namespace My.Sys.Forms
 				If OnMeasureItem Then
 					OnMeasureItem(This,itemID,miStruct->itemHeight)
 				Else
-					miStruct->itemHeight = ItemHeight 
+					miStruct->itemHeight = ItemHeight
 				End If
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
@@ -510,7 +510,7 @@ Namespace My.Sys.Forms
 					OnDrawItem(This,ItemID,State,R,Dc)
 				Else
 					If (State And ODS_SELECTED) = ODS_SELECTED Then
-						Static As HBRUSH B 
+						Static As HBRUSH B
 						If B Then DeleteObject B
 						B = CreateSolidBrush(&H800000)
 						FillRect Dc,@R,B
@@ -546,7 +546,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
 				s = CAllocate((Len(TextLen) + 1) * SizeOf(WString))
-				*s = Space(TextLen) 
+				*s = Space(TextLen)
 				Perform(LB_GETTEXT, i, CInt(s))
 				Print #F, *s
 			#endif
@@ -570,7 +570,7 @@ Namespace My.Sys.Forms
 		Close #F
 	End Sub
 	
-	Operator ListControl.Cast As Control Ptr 
+	Operator ListControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
@@ -594,20 +594,21 @@ Namespace My.Sys.Forms
 				AStyle(0)          = 0
 				AStyle(1)          = LBS_OWNERDRAWFIXED
 				AStyle(2)          = LBS_OWNERDRAWVARIABLE
-				ABorderExStyle(0)  = 0 
+				ABorderExStyle(0)  = 0
 				ABorderExStyle(1)  = WS_EX_CLIENTEDGE
-				ABorderStyle(0)    = WS_BORDER 
+				ABorderStyle(0)    = WS_BORDER
 				ABorderStyle(1)    = 0
-				AMultiselect(0)    = 0 
-				AMultiselect(1)    = LBS_MULTIPLESEL    
+				AMultiselect(0)    = 0
+				AMultiselect(1)    = LBS_MULTIPLESEL
 				AExtendSelect(0)   = 0
-				AExtendSelect(1)   = LBS_EXTENDEDSEL    
+				AExtendSelect(1)   = LBS_EXTENDEDSEL
 				AMultiColumns(0)   = 0
-				AMultiColumns(1)   = LBS_MULTICOLUMN    
-				AIntegralHeight(0) = LBS_NOINTEGRALHEIGHT    
+				AMultiColumns(1)   = LBS_MULTICOLUMN
+				AIntegralHeight(0) = LBS_NOINTEGRALHEIGHT
 				AIntegralHeight(1) = 0
 			#endif
 			FCtl3D             = True
+			FTabStop           = True
 			FBorderStyle       = 1
 			Items.Parent       = @This
 			
@@ -623,7 +624,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width       = 121
-			.Height      = 17
+			.Height      = ScaleY(Font.Size /72*96+6)
 		End With
 	End Constructor
 	

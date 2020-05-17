@@ -11,14 +11,16 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "WStringList.bi"
-#Include Once "Control.bi"
-#IfDef __USE_GTK__
+#include once "WStringList.bi"
+#include once "Control.bi"
+#ifdef __FB_LINUX__
+	#include once "crt/linux/unistd.bi"
+#endif
+#ifdef __USE_GTK__
 	#include once "gmodule.bi"
-	#include Once "crt/linux/unistd.bi"
-#Else
+#else
 	#include once "win/winver.bi"
-#EndIf
+#endif
 
 '#DEFINE crArrow       LoadCursor(0,IDC_ARROW)
 '#DEFINE crAppStarting LoadCursor(0,IDC_APPSTARTING)
@@ -75,11 +77,11 @@ Enum ShutdownMode
 	smAfterAllFormsCloses
 End Enum
 
-namespace My
-	#DEFINE QApplication(__Ptr__) *Cast(Application Ptr,__Ptr__)
+Namespace My
+	#define QApplication(__Ptr__) *Cast(Application Ptr,__Ptr__)
 	
 	Type Application
-		Private:
+	Private:
 		FTitle          As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon
 		FExeName        As WString Ptr
@@ -92,26 +94,29 @@ namespace My
 		FForms          As My.Sys.Forms.Control Ptr Ptr
 		FControlCount   As Integer
 		FControls       As My.Sys.Forms.Control Ptr Ptr
+		FActiveForm     As My.Sys.Forms.Control Ptr
 		FMainForm       As My.Sys.Forms.Control Ptr
 		Declare Sub GetControls
 		Declare Sub EnumControls(Control As My.Sys.Forms.Control)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Static Function EnumThreadWindowsProc(FWindow As HWND,LData As LParam) As Bool
 			Declare Static Function EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
-		#EndIf
+		#endif
 		Declare Sub GetFonts
 		Declare Sub GetForms
 		As Byte initialized
 		As Any Ptr _vinfo
 		As String TranslationString
-		Public:
+	Public:
 		Fonts           As WStringList
 		MouseX          As Integer
 		MouseY          As Integer
 		HelpFile        As String
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Instance        As HINSTANCE
-		#EndIf
+		#endif
+		Declare Property ActiveForm As My.Sys.Forms.Control Ptr
+		Declare Property ActiveForm(Value  As My.Sys.Forms.Control Ptr)
 		Declare Property FileName ByRef As WString
 		Declare Property FileName(ByRef Value As WString)
 		Declare Function Version() As Const String
@@ -124,7 +129,7 @@ namespace My
 		Declare Property ExeName ByRef As WString
 		Declare Property ExeName(ByRef Value As WString)
 		Declare Property MainForm As My.Sys.Forms.Control Ptr
-		Declare Property MainForm(Value  As My.Sys.Forms.Control Ptr) 
+		Declare Property MainForm(Value  As My.Sys.Forms.Control Ptr)
 		Declare Property HintColor As Integer
 		Declare Property HintColor(value As Integer)
 		Declare Property HintPause As Integer
@@ -136,9 +141,9 @@ namespace My
 		Declare Property ControlCount As Integer
 		Declare Property ControlCount(Value  As Integer)
 		Declare Property Controls As My.Sys.Forms.Control Ptr Ptr
-		Declare Property Controls(Value  As My.Sys.Forms.Control Ptr Ptr) 
+		Declare Property Controls(Value  As My.Sys.Forms.Control Ptr Ptr)
 		Declare Function FormCount As Integer
-		Declare Property Forms As My.Sys.Forms.Control Ptr Ptr 
+		Declare Property Forms As My.Sys.Forms.Control Ptr Ptr
 		Declare Property Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
 		Declare Operator Cast As Any Ptr
 		Declare Sub Run
@@ -148,32 +153,27 @@ namespace My
 		Declare Sub HelpContext(ContextID As Long)
 		Declare Sub HelpJump(TopicID As String)
 		Declare Function IndexOfForm(Form As My.Sys.Forms.Control Ptr) As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Function FindControl Overload(ControlHandle As HWND) As My.Sys.Forms.Control Ptr
-		#EndIf
+		#endif
 		Declare Function FindControl(ControlName As String) As My.Sys.Forms.Control Ptr
 		Declare Function IndexOfControl(Control As My.Sys.Forms.Control Ptr) As Integer
 		Declare Constructor
 		Declare Destructor
-		OnMouseMove As Sub(BYREF X As Integer,BYREF Y As Integer)
+		OnMouseMove As Sub(ByRef X As Integer,ByRef Y As Integer)
 		OnMessage As Sub(ByRef msg As Message)
 	End Type
-End namespace
+End Namespace
 
 Common Shared pApp As My.Application Ptr 'Global for entire Application
 
-#IfDef __EXPORT_PROCS__
-	Declare Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer
-#Else
-	Declare Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer
-#EndIf
+'Displays a message in a dialog box, waits for the user to click a button, and returns an Integer indicating which button the user clicked.
+Declare Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer
 
-#IfDef __EXPORT_PROCS__
-	Declare Function ApplicationMainForm Alias "ApplicationMainForm"(App As My.Application Ptr) As My.Sys.Forms.Control Ptr
-	
-	Declare Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString
-#EndIf
+Declare Function ApplicationMainForm Alias "ApplicationMainForm"(App As My.Application Ptr) As My.Sys.Forms.Control Ptr
 
-#IfNDef __USE_MAKE__
-	#Include Once "Application.bas"
-#EndIf
+Declare Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString
+
+#ifndef __USE_MAKE__
+	#include once "Application.bas"
+#endif

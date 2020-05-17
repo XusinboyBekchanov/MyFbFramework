@@ -7,55 +7,55 @@
 #include once "Object.bi"
 #ifdef __USE_GTK__
 	#include once "gtk/gtk.bi"
-    #ifdef __USE_GTK3__
-    	#include once "glib-object.bi"
-    #endif
+	#ifdef __USE_GTK3__
+		#include once "glib-object.bi"
+	#endif
 #endif
 
 Namespace My.Sys.ComponentModel
-    #define QComponent(__Ptr__) *Cast(Component Ptr,__Ptr__)
-
-    Type Component Extends My.Sys.Object
-        Protected:
-            FClassAncestor As WString Ptr
-            FDesignMode As Boolean
-            FName As WString Ptr
-            FParent            As Component Ptr
-            FTempString As String
-            #ifndef __USE_GTK__
-                FHandle As HWND
-            #endif
-        Public:
-        	'Stores any extra data needed for your program.
-            Tag As Any Ptr
-            #ifdef __USE_GTK__
-				Accelerator     As GtkAccelGroup Ptr
-				Declare Property Handle As GtkWidget Ptr
-                Declare Property Handle(Value As GtkWidget Ptr)
-				widget 			As GtkWidget Ptr
-				box 			As GtkWidget Ptr
-				fixedwidget		As GtkWidget Ptr
-				scrolledwidget	As GtkWidget Ptr
-				layoutwidget	As GtkWidget Ptr
-			#else
-				Accelerator        As HACCEL
-				Declare Property Handle As HWND
-                Declare Property Handle(Value As HWND)
-			#endif
-            Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-            Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-            Declare Virtual Function ToString ByRef As WString
-            Declare Function ClassAncestor ByRef As WString
-            Declare Function GetTopLevel As Component Ptr
-            Declare Property DesignMode As Boolean
-            Declare Property DesignMode(Value As Boolean)
-            'Returns the name used in code to identify an object.
-            Declare Property Name ByRef As WString
-            Declare Property Name(ByRef Value As WString)
-            Declare Property Parent As Component Ptr 'ContainerControl
-			Declare Property Parent(Value As Component Ptr)
-            Declare Destructor
-    End Type
+	#define QComponent(__Ptr__) *Cast(Component Ptr,__Ptr__)
+	
+	Type Component Extends My.Sys.Object
+	Protected:
+		FClassAncestor As WString Ptr
+		FDesignMode As Boolean
+		FName As WString Ptr
+		FParent            As Component Ptr
+		FTempString As String
+		#ifndef __USE_GTK__
+			FHandle As HWND
+		#endif
+	Public:
+		'Stores any extra data needed for your program.
+		Tag As Any Ptr
+		#ifdef __USE_GTK__
+			Accelerator     As GtkAccelGroup Ptr
+			Declare Property Handle As GtkWidget Ptr
+			Declare Property Handle(Value As GtkWidget Ptr)
+			widget 			As GtkWidget Ptr
+			box 			As GtkWidget Ptr
+			fixedwidget		As GtkWidget Ptr
+			scrolledwidget	As GtkWidget Ptr
+			layoutwidget	As GtkWidget Ptr
+		#else
+			Accelerator        As HACCEL
+			Declare Property Handle As HWND
+			Declare Property Handle(Value As HWND)
+		#endif
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Function ToString ByRef As WString
+		Declare Function ClassAncestor ByRef As WString
+		Declare Function GetTopLevel As Component Ptr
+		Declare Property DesignMode As Boolean
+		Declare Property DesignMode(Value As Boolean)
+		'Returns the name used in code to identify an object.
+		Declare Property Name ByRef As WString
+		Declare Property Name(ByRef Value As WString)
+		Declare Property Parent As Component Ptr 'ContainerControl
+		Declare Property Parent(Value As Component Ptr)
+		Declare Destructor
+	End Type
 End Namespace
 
 Type Message

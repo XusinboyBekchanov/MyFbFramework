@@ -17,6 +17,6 @@ Namespace My
 	End Namespace
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "Sys.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Sys.bas"
+#endif

@@ -4,59 +4,60 @@
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
 
-#Include Once "IPAddress.bi"
+#include once "IPAddress.bi"
 
 Namespace My.Sys.Forms
-    #IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QIPAddress(Sender.Child)
-					 
+					
 				End With
 			End If
 		End Sub
-
+		
 		Sub IPAddress.WndProc(ByRef Message As Message)
 		End Sub
-
+		
 		Sub IPAddress.ProcessMessage(ByRef Message As Message)
 			Base.ProcessMessage Message
 		End Sub
-	#EndIf
-
-    Operator IPAddress.Cast As My.Sys.Forms.Control Ptr
-         Return Cast(My.Sys.Forms.Control Ptr, @This)
-    End Operator
-
-    Constructor IPAddress
-		#IfNdef __USE_GTK__
+	#endif
+	
+	Operator IPAddress.Cast As My.Sys.Forms.Control Ptr
+		Return Cast(My.Sys.Forms.Control Ptr, @This)
+	End Operator
+	
+	Constructor IPAddress
+		#ifndef __USE_GTK__
 			Dim As INITCOMMONCONTROLSEX icex
-
-			icex.dwSize = sizeof(INITCOMMONCONTROLSEX)
+			
+			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
 			icex.dwICC =  ICC_INTERNET_CLASSES
-
+			
 			InitCommonControlsEx(@icex)
-		#EndIf
-
-        With This
+		#endif
+		
+		With This
 			WLet FClassName, "IPAddress"
-			#IfNdef __USE_GTK__
+			FTabStop           = True
+			#ifndef __USE_GTK__
 				.RegisterClass "IPAddress", WC_IPADDRESS
 				WLet FClassAncestor, WC_IPADDRESS
 				.ExStyle      = 0
 				.Style        = WS_CHILD
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
-			#EndIf
-            .Width        = 100
-            .Height       = 32
-            .Child        = @This
-        End With
-    End Constructor
-
-    Destructor IPAddress
-		#IfNdef __USE_GTK__
+			#endif
+			.Width        = 100
+			.Height       = 32
+			.Child        = @This
+		End With
+	End Constructor
+	
+	Destructor IPAddress
+		#ifndef __USE_GTK__
 			UnregisterClass "IPAddress",GetModuleHandle(NULL)
-		#EndIf
-    End Destructor
+		#endif
+	End Destructor
 End Namespace

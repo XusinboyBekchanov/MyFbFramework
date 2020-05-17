@@ -9,188 +9,188 @@
 '#   Version 1.0.0                                                             #
 '###############################################################################
 
-#Include Once "Animate.bi"
+#include once "Animate.bi"
 
 Namespace My.Sys.Forms
-    Sub Animate.GetAnimateInfo
-		#IfNDef __USE_GTK__
+	Sub Animate.GetAnimateInfo
+		#ifndef __USE_GTK__
 			Dim As HRSRC Resource
-			Dim As HGLOBAL Global 
+			Dim As HGLOBAL Global
 			Dim As Any Ptr PResource
-			Dim As uByte Ptr P 
+			Dim As UByte Ptr P
 			Dim As Integer F, Size
-			Dim As Integer Ptr Buff = Allocate(18*SizeOF(Integer))
+			Dim As Integer Ptr Buff = Allocate(18*SizeOf(Integer))
 			F = FreeFile
 			If *FFile <> "" Then
 				.Open *FFile For Binary Access Read As #F
-					Get #F, , *Buff,18
+				Get #F, , *Buff,18
 				.Close #F
 				FFrameCount  = Buff[12]
 				FFrameWidth  = Buff[16]
 				FFrameHeight = Buff[17]
 			Else
 				Resource  = FindResource(GetModuleHandle("Shell32"),MakeIntResource(FCommonAvi),"AVI")
-				Global    = LoadResource(GetModuleHandle("Shell32"),Resource) 
+				Global    = LoadResource(GetModuleHandle("Shell32"),Resource)
 				PResource = LockResource(Global)
 				Size = SizeOfResource(GetModuleHandle("Shell32"),Resource)
 				P = Allocate(Size)
 				P = PResource
 				FreeResource(Resource)
-				memcpy Buff, P, 18 * SizeOF(Integer)
+				memcpy Buff, P, 18 * SizeOf(Integer)
 				FFrameCount  = Buff[12]
 				FFrameWidth  = Buff[16]
 				FFrameHeight = Buff[17]
 			End If
-		#EndIf
-    End Sub
-
-    Property Animate.Center As Boolean
-        Return FCenter
-    End Property
-
-    Property Animate.Center(Value As Boolean)
-        If FCenter <> Value Then
-            FCenter = Value
-            #IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR ACenter(Abs_(FCenter)) OR ATransparent(Abs_(FTransparent)) OR ATimer(Abs_(FTimers)) OR AAutoPlay(Abs_(FAutoPlay))
-			#EndIf
-        End If
-    End Property
-
-    Property Animate.Transparency As Boolean
-        Return FTransparent
-    End Property
-
-    Property Animate.Transparency(Value As Boolean)
-        If FTransparent <> Value Then
-            FTransparent = Value
-            #IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR ACenter(Abs_(FCenter)) OR ATransparent(Abs_(FTransparent)) OR ATimer(Abs_(FTimers)) OR AAutoPlay(Abs_(FAutoPlay))
-			#EndIf
-        End If
-    End Property
-
-    Property Animate.Timers As Boolean
-        Return FTimers
-    End Property
-
-    Property Animate.Timers(Value As Boolean)
-        If FTimers <> Value Then
-            FTimers = Value
-            #IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR ACenter(Abs_(FCenter)) OR ATransparent(Abs_(FTransparent)) OR ATimer(Abs_(FTimers)) OR AAutoPlay(Abs_(FAutoPlay))
-			#EndIf
-        End If
-    End Property
-
-    Property Animate.File ByRef As WString
-        Return WGet(FFile)
-    End Property
-
-    Property Animate.File(ByRef Value As WString)
-        FFile = ReAllocate(FFile, (Len(Value) + 1) * SizeOf(WString))
-        *FFile = Value
-        #IfNDef __USE_GTK__
+		#endif
+	End Sub
+	
+	Property Animate.Center As Boolean
+		Return FCenter
+	End Property
+	
+	Property Animate.Center(Value As Boolean)
+		If FCenter <> Value Then
+			FCenter = Value
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+			#endif
+		End If
+	End Property
+	
+	Property Animate.Transparency As Boolean
+		Return FTransparent
+	End Property
+	
+	Property Animate.Transparency(Value As Boolean)
+		If FTransparent <> Value Then
+			FTransparent = Value
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+			#endif
+		End If
+	End Property
+	
+	Property Animate.Timers As Boolean
+		Return FTimers
+	End Property
+	
+	Property Animate.Timers(Value As Boolean)
+		If FTimers <> Value Then
+			FTimers = Value
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+			#endif
+		End If
+	End Property
+	
+	Property Animate.File ByRef As WString
+		Return WGet(FFile)
+	End Property
+	
+	Property Animate.File(ByRef Value As WString)
+		FFile = Reallocate(FFile, (Len(Value) + 1) * SizeOf(WString))
+		*FFile = Value
+		#ifndef __USE_GTK__
 			If FHandle Then
 				SetWindowLongPtr Handle, GWLP_HINSTANCE, CInt(GetModuleHandle(NULL))
 				Open
 			End If
-		#EndIf
-    End Property
-
-    Property Animate.Repeat As Integer
-        Return FRepeat
-    End Property
-
-    Property Animate.Repeat(Value As Integer)
-        FRepeat = Value
-    End Property
-
-    Property Animate.AutoPlay As Boolean
-        Return FAutoPlay
-    End Property
-
-    Property Animate.AutoPlay(Value As Boolean)
-        If FAutoPlay <> Value Then
-            FAutoPlay = Value
-            #IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR ACenter(Abs_(FCenter)) OR ATransparent(Abs_(FTransparent)) OR ATimer(Abs_(FTimers)) OR AAutoPlay(Abs_(FAutoPlay))
-			#EndIf
-        End If
-    End Property
-
-    Property Animate.AutoSize As Boolean
-        Return FAutoSize
-    End Property
-
-    Property Animate.AutoSize(Value As Boolean)
-        FAutoSize = Value
-        If FAutoSize Then 
-            This.Width = FFrameWidth
-            This.Height = FFrameHeight
-        End If
-    End Property
-
-    Property Animate.CommonAvi As Integer
-        Return FCommonAvi
-    End Property
-
-    Property Animate.CommonAvi(Value As Integer)
-        FCommonAvi = Value
-        #IfNDef __USE_GTK__
+		#endif
+	End Property
+	
+	Property Animate.Repeat As Integer
+		Return FRepeat
+	End Property
+	
+	Property Animate.Repeat(Value As Integer)
+		FRepeat = Value
+	End Property
+	
+	Property Animate.AutoPlay As Boolean
+		Return FAutoPlay
+	End Property
+	
+	Property Animate.AutoPlay(Value As Boolean)
+		If FAutoPlay <> Value Then
+			FAutoPlay = Value
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+			#endif
+		End If
+	End Property
+	
+	Property Animate.AutoSize As Boolean
+		Return FAutoSize
+	End Property
+	
+	Property Animate.AutoSize(Value As Boolean)
+		FAutoSize = Value
+		If FAutoSize Then
+			This.Width = FFrameWidth
+			This.Height = FFrameHeight
+		End If
+	End Property
+	
+	Property Animate.CommonAvi As Integer
+		Return FCommonAvi
+	End Property
+	
+	Property Animate.CommonAvi(Value As Integer)
+		FCommonAvi = Value
+		#ifndef __USE_GTK__
 			If Handle Then
 				SetWindowLongPtr Handle, GWLP_HINSTANCE, CInt(GetModuleHandle("Shell32"))
 				Open
 			End If
-		#EndIf
-    End Property
-
-    Property Animate.StartFrame As Integer
-        Return FStartFrame
-    End Property
-
-    Property Animate.StartFrame(Value As Integer)
-        FstartFrame = Value
-        If FStartFrame < 0 Then FStartFrame = 0
-        If FPlay Then This.Stop
-        Play
-    End Property
-
-    Property Animate.StopFrame As Integer
-        Return FStopFrame
-    End Property
-
-    Property Animate.StopFrame(Value As Integer)
-        FStopFrame = Value
-        If FStopFrame > FFrameCount Then FStopFrame = FFrameCount
-        If FPlay Then This.Stop
-        Play
-    End Property
-
-    Function Animate.FrameCount As Integer
-         GetAnimateInfo
-         Return FFrameCount
-    End Function
-
-    Sub Animate.HandleIsAllocated(BYREF Sender As Control)
-        If Sender.Child Then
-            With QAnimate(Sender.Child)
-				#IfNDef __USE_GTK__
+		#endif
+	End Property
+	
+	Property Animate.StartFrame As Integer
+		Return FStartFrame
+	End Property
+	
+	Property Animate.StartFrame(Value As Integer)
+		FstartFrame = Value
+		If FStartFrame < 0 Then FStartFrame = 0
+		If FPlay Then This.Stop
+		Play
+	End Property
+	
+	Property Animate.StopFrame As Integer
+		Return FStopFrame
+	End Property
+	
+	Property Animate.StopFrame(Value As Integer)
+		FStopFrame = Value
+		If FStopFrame > FFrameCount Then FStopFrame = FFrameCount
+		If FPlay Then This.Stop
+		Play
+	End Property
+	
+	Function Animate.FrameCount As Integer
+		GetAnimateInfo
+		Return FFrameCount
+	End Function
+	
+	Sub Animate.HandleIsAllocated(ByRef Sender As Control)
+		If Sender.Child Then
+			With QAnimate(Sender.Child)
+				#ifndef __USE_GTK__
 					SetClassLongPtr(.Handle,GCLP_HBRBACKGROUND,0)
-				#EndIf
-                If .FOpen Then .Open
-                If .FPlay Then .Play
-            End With
-        End If
-    End Sub
-
-	#IfNDef __USE_GTK__
-		Sub Animate.WndProc(BYREF Message As Message)
+				#endif
+				If .FOpen Then .Open
+				If .FPlay Then .Play
+			End With
+		End If
+	End Sub
+	
+	#ifndef __USE_GTK__
+		Sub Animate.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 			End If
 		End Sub
-
-		Sub Animate.ProcessMessage(BYREF Message As Message)
+		
+		Sub Animate.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
 			Case CM_COMMAND
 				Select Case Message.wParamHi
@@ -208,28 +208,28 @@ Namespace My.Sys.Forms
 				Message.Result = -1
 			Case WM_NCPAINT
 				Dim As HDC Dc
-				Dc = GetDCEx(Handle, 0, DCX_WINDOW OR DCX_CACHE OR DCX_CLIPSIBLINGS)
+				Dc = GetDCEx(Handle, 0, DCX_WINDOW Or DCX_CACHE Or DCX_CLIPSIBLINGS)
 				'Future utilisation
 				ReleaseDC Handle,Dc
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
-	#EndIf
-
-    Sub Animate.Open
-		#IfNDef __USE_GTK__
-			If Handle Then 
+	#endif
+	
+	Sub Animate.Open
+		#ifndef __USE_GTK__
+			If Handle Then
 				If CommonAVI = 0 Then
 					If *FFile <> "" Then
-					   If FindResource(GetModuleHandle(NULL), *FFile,"AVI") Then
-						   GetAnimateInfo
-						   Animate_Open(FHandle, CInt(MakeIntResource(*FFile)))
-						   FOpen = 1
-					   Else
-						   GetAnimateInfo
-						   Animate_Open(FHandle, CInt(FFile))
-						   FOpen = 1
-					   End If
+						If FindResource(GetModuleHandle(NULL), *FFile,"AVI") Then
+							GetAnimateInfo
+							Animate_Open(FHandle, CInt(MakeIntResource(*FFile)))
+							FOpen = 1
+						Else
+							GetAnimateInfo
+							Animate_Open(FHandle, CInt(FFile))
+							FOpen = 1
+						End If
 					End If
 				ElseIf CommonAVI <> 0 Then
 					If FindResource(GetModuleHandle("Shell32"), MakeIntResource(FCommonAvi), "AVI") Then
@@ -239,47 +239,47 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-		#EndIf
-    End Sub
-
-    Sub Animate.Play
-		#IfNDef __USE_GTK__
-			If Handle Then 
+		#endif
+	End Sub
+	
+	Sub Animate.Play
+		#ifndef __USE_GTK__
+			If Handle Then
 				Perform(ACM_PLAY,FRepeat,MakeLong(FStartFrame,FStopFrame))
 				FPlay = 1
 			End If
-		#EndIf
-    End Sub
-
-    Sub Animate.Stop
+		#endif
+	End Sub
+	
+	Sub Animate.Stop
 		#IfNDef __USE_GTK__
-			If Handle Then 
+			If Handle Then
 				Perform(ACM_STOP,0,0)
 				FPlay = 0
 			End If
 		#EndIf
-    End Sub
-
-    Sub Animate.Close
+	End Sub
+	
+	Sub Animate.Close
 		#IfNDef __USE_GTK__
-			If Handle Then 
+			If Handle Then
 				If OnClose Then OnClose(This)
 				Perform(ACM_OPEN,0,0)
 				FOpen = 0
 			End If
 		#EndIf
-    End Sub
-
-    Operator Animate.Cast As Control Ptr 
-        Return Cast(Control Ptr, @This)
-    End Operator
-
-    Constructor Animate
-        Dim As Boolean Result
-        #IfNDef __USE_GTK__
+	End Sub
+	
+	Operator Animate.Cast As Control Ptr
+		Return Cast(Control Ptr, @This)
+	End Operator
+	
+	Constructor Animate
+		Dim As Boolean Result
+		#ifndef __USE_GTK__
 			Dim As INITCOMMONCONTROLSEX ICC
 			FFile = CAllocate(0)
-			ICC.dwSize = SizeOF(ICC)
+			ICC.dwSize = SizeOf(ICC)
 			ICC.dwICC  = ICC_ANIMATE_CLASS
 			Result = InitCommonControlsEx(@ICC)
 			If Not Result Then InitCommonControls
@@ -291,28 +291,29 @@ Namespace My.Sys.Forms
 			ATimer(1)       = ACS_TIMER
 			AAutoplay(0)    = 0
 			AAutoplay(1)    = ACS_AUTOPLAY
-		#EndIf    
-        FRepeat         = -1 
-        FStopFrame      = -1
-        FStartFrame     = 0
-        With This
-            WLet FClassName, "Animate"
-            .Child             = @This
-			#IfNDef __USE_GTK__
+		#endif
+		FRepeat         = -1
+		FStopFrame      = -1
+		FStartFrame     = 0
+		With This
+			WLet FClassName, "Animate"
+			.Child             = @This
+			#ifndef __USE_GTK__
 				.RegisterClass "Animate", ANIMATE_CLASS
 				.ChildProc         = @WndProc
 				WLet FClassAncestor, ANIMATE_CLASS
 				.ExStyle           = WS_EX_TRANSPARENT
-				.Style             = WS_CHILD OR ACenter(FCenter) OR ATransparent(FTransparent) OR ATimer(FTimers) OR AAutoPlay(FAutoPlay)
+				.Style             = WS_CHILD Or ACenter(FCenter) Or ATransparent(FTransparent) Or ATimer(FTimers) Or AAutoPlay(FAutoPlay)
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
-				.OnHandleIsAllocated = @HandleIsAllocated 
-            #EndIf
-            .Width             = 100
-            .Height            = 80
-        End With
-    End Constructor
-
-    Destructor Animate
-        If FFile Then DeAllocate FFile
-    End Destructor
-End namespace
+				.OnHandleIsAllocated = @HandleIsAllocated
+				.DoubleBuffered = True
+			#endif
+			.Width             = 100
+			.Height            = 80
+		End With
+	End Constructor
+	
+	Destructor Animate
+		If FFile Then Deallocate FFile
+	End Destructor
+End Namespace

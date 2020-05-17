@@ -60,47 +60,47 @@
 #EndIf
 
 Namespace My.Sys.Drawing
-    #DEFINE QCursor(__Ptr__) *Cast(Cursor Ptr,__Ptr__)
-
-    Type Cursor Extends My.Sys.Object
-        Private:
-            FWidth     As Integer
-            FHeight    As Integer
-            FHotSpotX  As Integer
-            FHotSpotY  As Integer
-            Declare Sub Create
-        Public:
-			Ctrl 			As My.Sys.ComponentModel.Component Ptr
-            Graphic    		As Any Ptr
-            #IfDef __USE_GTK__
-				Handle 		As GdkCursor Ptr
-			#Else
-				Handle		As HCURSOR
-			#EndIf
-            Declare Property Width As Integer
-            Declare Property Width(Value As Integer)
-            Declare Property Height As Integer
-            Declare Property Height(Value As Integer)
-            Declare Property HotSpotX As Integer
-            Declare Property HotSpotX(Value As Integer)
-            Declare Property HotSpotY As Integer
-            Declare Property HotSpotY(Value As Integer)
-            Declare Sub LoadFromFile(ByRef File As WString)
-            Declare Sub SaveToFile(ByRef File As WString)
-            Declare Sub LoadFromResourceName(ByRef ResName As WString)
-            Declare Sub LoadFromResourceID(ResID As Integer)
-            Declare Operator Cast As Any Ptr
-            #IfDef __USE_GTK__
-				Declare Operator Let(Value As GdkCursorType)
-            #Else
-				Declare Operator Let(Value As HCURSOR)
-			#EndIf
-            Declare Operator Let(ByRef Value As WString)
-            Declare Operator Let(Value As Cursor)
-            Declare Constructor
-            Declare Destructor
-            Changed As Sub(BYREF Sender As Cursor)
-    End Type
+	#DEFINE QCursor(__Ptr__) *Cast(Cursor Ptr,__Ptr__)
+	
+	Type Cursor Extends My.Sys.Object
+	Private:
+		FWidth     As Integer
+		FHeight    As Integer
+		FHotSpotX  As Integer
+		FHotSpotY  As Integer
+		Declare Sub Create
+	Public:
+		Ctrl 			As My.Sys.ComponentModel.Component Ptr
+		Graphic    		As Any Ptr
+		#IfDef __USE_GTK__
+			Handle 		As GdkCursor Ptr
+		#Else
+			Handle		As HCURSOR
+		#EndIf
+		Declare Property Width As Integer
+		Declare Property Width(Value As Integer)
+		Declare Property Height As Integer
+		Declare Property Height(Value As Integer)
+		Declare Property HotSpotX As Integer
+		Declare Property HotSpotX(Value As Integer)
+		Declare Property HotSpotY As Integer
+		Declare Property HotSpotY(Value As Integer)
+		Declare Sub LoadFromFile(ByRef File As WString)
+		Declare Sub SaveToFile(ByRef File As WString)
+		Declare Sub LoadFromResourceName(ByRef ResName As WString)
+		Declare Sub LoadFromResourceID(ResID As Integer)
+		Declare Operator Cast As Any Ptr
+		#IfDef __USE_GTK__
+			Declare Operator Let(Value As GdkCursorType)
+		#Else
+			Declare Operator Let(Value As HCURSOR)
+		#EndIf
+		Declare Operator Let(ByRef Value As WString)
+		Declare Operator Let(Value As Cursor)
+		Declare Constructor
+		Declare Destructor
+		Changed As Sub(BYREF Sender As Cursor)
+	End Type
 End namespace
 
 #IfNDef __USE_MAKE__

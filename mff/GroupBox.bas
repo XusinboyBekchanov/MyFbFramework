@@ -24,8 +24,8 @@ Namespace My.Sys.Forms
 	
 	Property GroupBox.Text ByRef As WString
 		#ifdef __USE_GTK__
-			WLet FText, WStr(gtk_frame_get_label(GTK_FRAME(widget)))
-			Return *FText
+			FText = WStr(gtk_frame_get_label(GTK_FRAME(widget)))
+			Return *FText.vptr
 		#else
 			Return Base.Text
 		#endif
@@ -36,7 +36,7 @@ Namespace My.Sys.Forms
 			If widget Then gtk_frame_set_label(GTK_FRAME(widget), ToUtf8(Value))
 		#else
 			Base.Text = Value
-		#endif 
+		#endif
 	End Property
 	
 	Property GroupBox.ParentColor As Boolean
@@ -61,25 +61,39 @@ Namespace My.Sys.Forms
 	Sub GroupBox.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_PAINT
+			Case WM_ERASEBKGND
 				Dim As Integer W,H
 				Dim As HDC Dc,memDC
 				Dim As HBITMAP Bmp
 				Dim As Rect R
 				GetClientRect Handle,@R
-				Dc = GetDC(Handle)                              
-				FillRect Dc,@R,This.Brush.Handle   
+				Dc = GetDC(Handle)
+				FillRect Dc,@R,This.Brush.Handle
 				ReleaseDC Handle, Dc
-				Message.Result = 0
+				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
+				'Message.Result = 0
+			Case WM_PAINT
+'				Dim As Integer W,H
+'				Dim As HDC Dc,memDC
+'				Dim As HBITMAP Bmp
+'				Dim As Rect R
+'				GetClientRect Handle,@R
+'				Dc = GetDC(Handle)
+'				FillRect Dc,@R,This.Brush.Handle
+'				ReleaseDC Handle, Dc
+'				Message.Result = 0
+				'InvalidateRect FHandle, NULL, True
+   				'UpdateWindow FHandle
+   				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			Case WM_COMMAND
 				CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
 			Case CM_CTLCOLOR
-				Static As HDC Dc
-				Dc = Cast(HDC, Message.wParam)
-				SetBKMode Dc, TRANSPARENT
-				SetTextColor Dc, This.Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+'				Static As HDC Dc
+'				Dc = Cast(HDC, Message.wParam)
+'				SetBKMode Dc, TRANSPARENT
+'				SetTextColor Dc, This.Font.Color
+'				SetBKColor Dc, This.BackColor
+'				SetBKMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
 					If OnClick Then OnClick(This)
@@ -89,7 +103,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator GroupBox.Cast As Control Ptr 
+	Operator GroupBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
@@ -105,14 +119,19 @@ Namespace My.Sys.Forms
 			#endif
 			WLet FClassName, "GroupBox"
 			WLet FClassAncestor, "Button"
+			FTabStop           = True
 			#ifndef __USE_GTK__
 				.ExStyle     = 0 'WS_EX_TRANSPARENT
 				.Style       = WS_CHILD Or WS_VISIBLE Or BS_GROUPBOX 'Or SS_NOPREFIX
+			#endif
+			#ifdef __USE_GTK__
+				.BackColor       = -1
+			#else
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 			#endif
 			.Width       = 121
 			.Height      = 51
-		End With    
+		End With
 	End Constructor
 	
 	Destructor GroupBox

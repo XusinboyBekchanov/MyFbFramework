@@ -22,7 +22,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	Type Picture Extends ContainerControl
-		Private:
+	Private:
 		AStyle(24)         As Integer
 		FRealSizeImage    As Boolean
 		FCenterImage      As Boolean
@@ -36,9 +36,9 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Sub ProcessMessage(ByRef Message As Message)
 		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
-		Public:
+	Public:
 		Graphic As My.Sys.Drawing.GraphicType
-		Canvas  As My.Sys.Drawing.Canvas            
+		Canvas  As My.Sys.Drawing.Canvas
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As Integer

@@ -1,17 +1,9 @@
-﻿'#IfDef __FB_Win32__
-'	#IfDef __FB_64bit__
-'		'#Compile -dll -x "../mff64.dll" "mff.rc"
-'	#Else
-'		'#Compile -dll -x "../mff32.dll" "mff.rc"
-'	#EndIf
-'#Else
-'	#IfDef __FB_64bit__
-'		'#Compile -dll -x "../libmff64_gtk3.so"
-'	#Else
-'		'#Compile -dll -x "../libmff32_gtk3.so"
-'	#EndIf
-'#EndIf
-#define __USE_GTK3__
+﻿'###############################################################################
+'#  mff.bi                                                                   #
+'#  This file is part of MyFBFramework                                         #
+'#  Authors: Xusinboy Bekchanov                                                #
+'###############################################################################
+'#define __USE_GTK3__
 #define __EXPORT_PROCS__
 
 #include once "Animate.bi"
@@ -36,55 +28,55 @@
 #include once "Form.bi"
 #include once "Graphic.bi"
 #include once "Graphics.bi"
-#Include Once "Grid.bi"
-#Include Once "GroupBox.bi"
-#Include Once "GUI.bi"
-#Include Once "Header.bi"
-#Include Once "HotKey.bi"
-#Include Once "Icon.bi"
-#Include Once "ImageBox.bi"
-#Include Once "ImageList.bi"
-#Include Once "IPAddress.bi"
-#Include Once "IniFile.bi"
-#Include Once "Label.bi"
-#Include Once "LinkLabel.bi"
-#Include Once "List.bi"
-#Include Once "ListControl.bi"
-#Include Once "ListItems.bi"
-#Include Once "ListView.bi"
-#Include Once "Menus.bi"
-#Include Once "MonthCalendar.bi"
-#Include Once "NativeFontControl.bi"
-#Include Once "Object.bi"
-#Include Once "PageScroller.bi"
-#Include Once "PageSetupDialog.bi"
-#Include Once "Panel.bi"
-#Include Once "Pen.bi"
-#Include Once "Picture.bi"
-#Include Once "PrintDialog.bi"
-#Include Once "PrintPreviewDialog.bi"
-#Include Once "Printer.bi"
-#Include Once "ProgressBar.bi"
-#Include Once "RadioButton.bi"
-#Include Once "ReBar.bi"
-#Include Once "RichTextBox.bi"
-#Include Once "TabControl.bi"
-#Include Once "ScrollBarControl.bi"
-#Include Once "HScrollBar.bi"
-#Include Once "VScrollBar.bi"
-#Include Once "Splitter.bi"
-#Include Once "StatusBar.bi"
-#Include Once "StringList.bi"
-#Include Once "SysUtils.bi"
-#Include Once "TabControl.bi"
-#Include Once "TextBox.bi"
-#Include Once "TimerComponent.bi"
-#Include Once "ToolBar.bi"
-#Include Once "ToolPalette.bi"
-#Include Once "ToolTips.bi"
-#Include Once "TrackBar.bi"
-#Include Once "TreeListView.bi"
-#Include Once "TreeView.bi"
+#include once "Grid.bi"
+#include once "GroupBox.bi"
+#include once "GUI.bi"
+#include once "Header.bi"
+#include once "HotKey.bi"
+#include once "Icon.bi"
+#include once "ImageBox.bi"
+#include once "ImageList.bi"
+#include once "IPAddress.bi"
+#include once "IniFile.bi"
+#include once "Label.bi"
+#include once "LinkLabel.bi"
+#include once "List.bi"
+#include once "ListControl.bi"
+#include once "ListItems.bi"
+#include once "ListView.bi"
+#include once "Menus.bi"
+#include once "MonthCalendar.bi"
+#include once "NativeFontControl.bi"
+#include once "Object.bi"
+#include once "PageScroller.bi"
+#include once "PageSetupDialog.bi"
+#include once "Panel.bi"
+#include once "Pen.bi"
+#include once "Picture.bi"
+#include once "PrintDialog.bi"
+#include once "PrintPreviewDialog.bi"
+#include once "Printer.bi"
+#include once "ProgressBar.bi"
+#include once "RadioButton.bi"
+#include once "ReBar.bi"
+#include once "RichTextBox.bi"
+#include once "TabControl.bi"
+#include once "ScrollBarControl.bi"
+#include once "HScrollBar.bi"
+#include once "VScrollBar.bi"
+#include once "Splitter.bi"
+#include once "StatusBar.bi"
+#include once "StringList.bi"
+#include once "SysUtils.bi"
+#include once "TabControl.bi"
+#include once "TextBox.bi"
+#include once "TimerComponent.bi"
+#include once "ToolBar.bi"
+#include once "ToolPalette.bi"
+#include once "ToolTips.bi"
+#include once "TrackBar.bi"
+#include once "TreeListView.bi"
+#include once "TreeView.bi"
 #include once "UpDown.bi"
 #include once "WStringList.bi"
 
@@ -120,7 +112,7 @@ Using My.Sys.Forms
 		Case "groupbox": Ctrl = New GroupBox
 		Case "header": Ctrl = New Header
 		Case "hotkey": Ctrl = New HotKey
-			'Case "ipaddress": Ctrl = New IPAddress
+		Case "ipaddress": Ctrl = New IPAddress
 		Case "imagebox": Ctrl = New ImageBox
 		Case "label": Ctrl = New Label
 		Case "linklabel": Ctrl = New LinkLabel
@@ -214,7 +206,7 @@ Using My.Sys.Forms
 		Case "groupbox": Delete Cast(GroupBox Ptr, Ctrl)
 		Case "header": Delete Cast(Header Ptr, Ctrl)
 		Case "hotkey": Delete Cast(HotKey Ptr, Ctrl)
-			'Case "ipaddress": Delete Cast(IPAddress Ptr, Ctrl)
+		Case "ipaddress": Delete Cast(IPAddress Ptr, Ctrl)
 		Case "imagebox": Delete Cast(ImageBox Ptr, Ctrl)
 		Case "label": Delete Cast(Label Ptr, Ctrl)
 		Case "linklabel": Delete Cast(LinkLabel Ptr, Ctrl)
@@ -273,7 +265,7 @@ Using My.Sys.Forms
 		Return True
 	End Function
 	
-	#ifndef ShowPropertyPage_Off        
+	#ifndef ShowPropertyPage_Off
 		Function ShowPropertyPage Alias "ShowPropertyPage"(Ctrl As Any Ptr) As Boolean Export
 			If Objects.Contains(Ctrl) Then
 				Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
@@ -282,7 +274,7 @@ Using My.Sys.Forms
 			End If
 			If Cpnt = 0 Then Return False
 			Select Case LCase(cpnt->ClassName)
-			Case "imagelist": 
+			Case "imagelist":
 			End Select
 			Return True
 		End Function

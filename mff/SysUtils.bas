@@ -1,13 +1,13 @@
-﻿'###############################################################################
-'#  SysUtils.bi                                                                #
-'#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
-'#  Based on:                                                                  #
-'#   SysUtils.bi                                                               #
-'#   FreeBasic Windows GUI ToolKit                                             #
-'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
-'#  Modified by Xusinboy Bekchanov (2018-2019)                                 #
-'###############################################################################
+﻿'################################################################################
+'#  SysUtils.bi                                                                 #
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                      #
+'#  Based on:                                                                   #
+'#   SysUtils.bi                                                                #
+'#   FreeBasic Windows GUI ToolKit                                              #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                      #
+'#  Modified by Xusinboy Bekchanov (2018-2019)  Liu XiaLin                      #
+'################################################################################
 
 #include once "SysUtils.bi"
 
@@ -29,9 +29,34 @@
 		End Type
 		Dim As WindowType Wnd
 		EnumThreadWindows GetCurrentThreadID,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@Wnd)
-		Return Wnd.Handle 
+		Return Wnd.Handle
 	End Function
 #endif
+
+Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024) As UString
+	
+	Dim ErrorString         As WString Ptr
+	Dim sError              As String
+	
+	#ifdef __USE_GTK__
+	#else
+		FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM Or _
+		FORMAT_MESSAGE_ALLOCATE_BUFFER, _
+		NULL, _
+		Code, _
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), _
+		Cast(WString Ptr, @ErrorString), _
+		MaxLen, _
+		NULL)
+		
+		If (ErrorString <> 0) Then
+			Return *ErrorString
+			LocalFree(ErrorString)
+		End If
+	#endif
+	Return sError
+	
+End Function
 
 Function iGet(Value As Any Ptr) As Integer
 	If Value = 0 Then Return 0 Else Return *Cast(Integer Ptr, Value)
@@ -43,27 +68,37 @@ Function ZGet(ByRef subject As ZString Ptr) As String
 End Function
 
 Sub WDeAllocate Overload(ByRef subject As WString Ptr)
-	If subject <> 0 Then Deallocate subject
+	If subject <> 0 Then Deallocate(subject)
 	subject = 0
 End Sub
 
 Sub WDeAllocate Overload(subject() As WString Ptr)
 	For i As Integer = 0 To UBound(subject)
-		If subject(i) <> 0 Then Deallocate subject(i)
+		'If subject(i) <> 0 Then Deallocate(subject(i))
 		subject(i) = 0
 	Next
 End Sub
 
 Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
-	subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(WString)))
+	If subject Then
+		'Dim TempWStr As WString Ptr
+		'WLet TempWStr, *subject
+		'WDeallocate subject
+		'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
+		'*subject = Left(*TempWStr, lLen)
+		'WDeallocate TempWStr
+		subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(WString)))
+	Else
+		subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
+	End If
 End Sub
 
 Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	If subject = 0 Then Return "" Else Return *subject
 End Function
 
-Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubject As Boolean = False)
-	If ExistsSubject Then
+Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = False)
+	If ExistsSubjectInTxt Then
 		Dim TempWStr As WString Ptr
 		WLet TempWStr, txt
 		WLet subject, *TempWStr
@@ -74,9 +109,13 @@ Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubject As Bo
 	End If
 End Sub
 
-Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString)
+Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 	Dim TempWStr As WString Ptr
-	WLet TempWStr, WGet(subject) & txt
+	If AddBefore Then
+		WLet TempWStr, txt & WGet(subject)
+	Else
+		WLet TempWStr, WGet(subject) & txt
+	End If
 	WLet subject, *TempWStr
 	WDeallocate TempWStr
 End Sub
@@ -87,8 +126,7 @@ Namespace ClassContainer
 	End Property
 	
 	Property ClassType.ClassName(ByRef Value As WString)
-		FClassName = Reallocate(FClassName, (Len(Value) + 1) * SizeOf(WString))
-		*FClassName = Value
+		WLet FClassName, Value
 	End Property
 	
 	Property ClassType.ClassAncestor ByRef As WString
@@ -96,8 +134,7 @@ Namespace ClassContainer
 	End Property
 	
 	Property ClassType.ClassAncestor(ByRef Value As WString)
-		FClassAncestor = Reallocate(FClassAncestor, (Len(Value) + 1) * SizeOf(WString))
-		*FClassAncestor = Value
+		WLet FClassAncestor, Value
 	End Property
 	
 	Constructor ClassType
@@ -106,8 +143,8 @@ Namespace ClassContainer
 	End Constructor
 	
 	Destructor ClassType
-		If FClassName Then Deallocate FClassName
-		If FClassAncestor Then Deallocate FClassAncestor
+		If FClassName Then Deallocate(FClassName)
+		If FClassAncestor Then Deallocate(FClassAncestor)
 	End Destructor
 	
 	Function FindClass(ByRef ClassName As WString) As Integer
@@ -123,7 +160,7 @@ Namespace ClassContainer
 			Classes(UBound(Classes)).ClassName = ClassName
 			Classes(UBound(Classes)).ClassAncestor = ClassAncestor
 			Classes(UBound(Classes)).ClassProc = ClassProc
-		End If 
+		End If
 	End Sub
 	
 	Function GetClassProc Overload(ByRef ClassName As WString) As Any Ptr
@@ -136,17 +173,13 @@ Namespace ClassContainer
 	#ifndef __USE_GTK__
 		Function GetClassProc(FWindow As HWND) As Any Ptr
 			Dim As WString * 255 c
-			Dim As WString Ptr ClassName
 			Dim As Integer L
 			L = GetClassName(FWindow, c, 255)
-			ClassName = CAllocate((L + 1) * SizeOf(WString))
-			*ClassName = Left(c, L)
-			Return GetClassProc(*ClassName)
+			Return GetClassProc(Left(c, L))
 		End Function
 		
 		Function GetClassNameOf(FWindow As HWND) As String
 			Dim As WString * 255 c
-			Dim As WString Ptr ClassName
 			Dim As Integer L
 			L = GetClassName(FWindow, c, 255)
 			Return Left(c, L)
@@ -160,19 +193,60 @@ Namespace ClassContainer
 	#endif
 End Namespace
 
-Function ToUtf8(pWString As WString Ptr) As String
+' =====================================================================================
+' Scale the location point X per DPI
+' =====================================================================================
+Function ScaleX (ByVal cx As Single) As Single
+	#ifndef __USE_GTK__
+		Static bb As Single
+		If bb=0 Then
+			Dim hDC As HDC
+			hDC = GetDC(Null)
+			bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+			ReleaseDC Null, hDC
+		End If
+		Function = cx * bb
+	#else
+		Function = cx
+	#endif
+End Function
+
+' =====================================================================================
+' Scale the location point Y per DPI
+' =====================================================================================
+Function ScaleY (ByVal cy As Single) As Single
+	#ifndef __USE_GTK__
+		Static bb As Single
+		If bb=0 Then
+			Dim hDC As HDC
+			hDC = GetDC(Null)
+			bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+			ReleaseDC Null, hDC
+		End If
+		Function = cy * bb
+	#else
+		Function = cy
+	#endif
+End Function
+
+Function ToUtf8(ByRef nWString As WString) As String
 	'#IfDef __USE_GTK__
 	'	Return g_locale_to_utf8(*pWString, -1, NULL, NULL, NULL)
 	'#Else
 	Dim cbLen As Integer
-	Dim m_BufferLen As Integer = Len(*pWString)
+	Dim m_BufferLen As Integer = Len(nWString)
 	If m_BufferLen = 0 Then Return ""
 	Dim buffer As String = String(m_BufferLen * 5 + 1, 0)
-	Return *Cast(ZString Ptr, WCharToUTF(1, pWString, m_BufferLen * 2, StrPtr(buffer), @cbLen))
+	Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen * 2, StrPtr(buffer), @cbLen))
 	'#EndIf
 End Function
 
 Function FromUtf8(pZString As ZString Ptr) ByRef As WString
+	'UTF-8: EF BB BF
+	'UTF-16: FF FE
+	'UTF-16 big-endian: FE FF
+	'UTF-32 little-endian: FF FE 00 00
+	'UTF-32 big-endian: 00 00 FE FF
 	Dim cbLen As Integer
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
@@ -185,16 +259,33 @@ Public Function _Abs(Value As Boolean) As Integer
 	Return Abs(CInt(Value))
 End Function
 
-Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1) As Integer
-	Dim As Integer n, c, ls = Len(searchtext)
-	If subject <> "" And searchtext <> "" Then
-		n = InStr(start, subject, searchtext)
-		Do While n <> 0
-			c = c + 1
-			n = InStr(n + ls, subject, searchtext)
-		Loop
-	EndIf
-	Return c
+' ========================================================================================
+' * Returns the count of delimited fields from a string expression.
+' If wszMainStr is empty (a null string) or contains no delimiter character(s), the string
+' is considered to contain exactly one sub-field. In this case, AfxStrParseCount returns the value 0.
+' Delimiter contains a string (one or more characters) that must be fully matched.
+' Delimiters are case-sensitive.
+' Example: StringParseCount("one,two,three", ",")   -> 3
+' ========================================================================================
+Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WString = ",", MatchCase As Boolean = True) As Long
+	If MainStr = "" OrElse Delimiter = "" Then Return 0
+	Dim nCount As Long = 1
+	Dim nPos As Long = 1
+	Do
+		If MatchCase Then
+			nPos = InStr(nPos, MainStr, Delimiter)
+		Else
+			nPos = InStr(nPos, UCase(MainStr), UCase(Delimiter))
+		End If
+		If nPos = 0 Then Exit Do
+		nCount += 1
+		nPos += Len(Delimiter)
+	Loop
+	Return nCount
+End Function
+
+Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
+	Return StringParseCount(Subject, searchtext, MatchCase) - 1
 End Function
 
 'Function InStrPos(ByRef subject As WString, ByRef searchtext() AS Wstring, start As Integer = 1) As Integer
@@ -215,48 +306,34 @@ End Function
 'Return 0
 'End Function
 
-Sub Split(ByRef subject As WString, ByRef Delimiter As Wstring, result() As Wstring Ptr)
-	Dim As Integer i = 1, n, l, ls = Len(subject), p = 1
-	While i <= ls
-		l = Len(delimiter)
-		If Mid(subject, i, l) = delimiter Then
+Sub Split(ByRef subject As WString, ByRef Delimiter As WString, result() As UString, MatchCase As Boolean = True)
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1
+	If ls < 1 OrElse tLen < 1 Then
+		ReDim result(0)
+		Exit Sub
+	End If
+	Do While i <= ls
+		If Mid(subject, i, tLen) = delimiter Then
 			n = n + 1
-			Redim Preserve result(n - 1)
-			WLet result(n - 1), Mid(subject, p, i - p)
-			p = i + l
+			ReDim Preserve result(n - 1)
+			result(n - 1) = Mid(subject, p, i - p)
+			p = i + tLen
 			i = p
-			Continue While
+			Continue Do
 		EndIf
 		i = i + 1
-	Wend
+	Loop
 	n = n + 1
-	Redim Preserve result(n - 1)
-	WLet result(n - 1), Mid(subject, p, i - p)
+	ReDim Preserve result(n - 1)
+	result(n - 1) = Mid(subject, p, i - p)
 End Sub
 
-Function Join(subject() As WString Ptr, iStart As Integer = 0, iStep As Integer = 1) ByRef As WString
+Function Join(subject() As UString, ByRef Delimiter As WString, iStart As Integer = 0, iStep As Integer = 1) As UString
+	Dim As UString Result
 	For i As Integer = iStart To UBound(subject) Step iStep
-		WAdd wTemp(0), *subject(i)
+		Result &= IIf(i = iStart, "", Delimiter) & subject(i)
 	Next
-	Return WGet(wTemp(0))
-End Function
-
-Function Replace(ByRef subject As WString, ByRef oldtext As const WString, ByRef newtext As const WString, ByVal start As Integer = 1, byref count as integer = 0, memnumber As Integer = 0) ByRef As WString
-	Dim As Integer n, c, ls = Len(subject), lo = Len(oldtext), ln = Len(newtext)
-	If subject <> "" And oldtext <> "" And oldtext <> newtext Then
-		WReallocate wTemp(memnumber), ls / lo * IIF(lo > ln, lo, ln)
-		*wTemp(memnumber) = subject
-		n = Instr(start, *wTemp(memnumber), oldtext)
-		Do While n <> 0
-			c = c + 1
-			*wTemp(memnumber) = Left(*wTemp(memnumber), n - 1) & newtext & Mid(*wTemp(memnumber), n + lo)
-			n = Instr(n + ln, *wTemp(memnumber), oldtext)
-		Loop
-		count = c
-		Return *wTemp(memnumber)
-	Else
-		Return subject
-	Endif
+	Return Result
 End Function
 
 Function StartsWith(ByRef a As WString, ByRef b As WString) As Boolean
@@ -267,7 +344,135 @@ Function EndsWith(ByRef a As WString, ByRef b As WString) As Boolean
 	Return Right(a, Len(b)) = b
 End Function
 
-#IfDef GetMN
+' ========================================================================================
+'  Parses a path/file name to extract component parts.
+'  This function evaluates a text path/file text name, and returns a requested part of the
+'  name. The functionality is strictly one of string parsing alone.
+'  wszOption is one of the following words which is used to specify the requested part:
+'  PATH
+'        Returns the path portion of the path/file Name. That is the text up to and
+'        including the last backslash (\) or colon (:).
+'  NAME
+'        Returns the name portion of the path/file Name. That is the text to the right
+'        of the last backslash (\) or colon (:), ending just before the last period (.).
+'  EXTN
+'        Returns the extension portion of the path/file name. That is the last
+'        period (.) in the string plus the text to the right of it.
+'  NAMEX
+'        Returns the name and the EXTN parts combined.
+'   Example: StringPathName("C:\VisualFBEditor\Poject.Bas")           ->C:\Visual Free Basic\
+'            StringPathName("C:\VisualFBEditor\Poject.Bas","NAME")    ->Poject
+'            StringPathName("C:\VisualFBEditor\Poject.Bas","NAMEEX")  ->Poject.Bas
+'            StringPathName("C:\VisualFBEditor\Poject.Bas","EXTN")     -> .Bas
+' ========================================================================================
+Function StringPathName(ByRef wszFileSpec As WString,ByRef wszOption As Const WString = "PATH") As UString
+	If Len(wszFileSpec) = 0 Then Return ""
+	Dim As UString Result
+	Select Case UCase(wszOption)
+	Case "PATH"
+		' // Returns the path portion of file spec
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, 1, nPos)
+		
+	Case "NAME"
+		' // Retrieve the full filename
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, nPos + 1)
+		' // Retrieve the filename
+		nPos = InStrRev(Result, ".")
+		If nPos Then Result = Mid(Result, 1, nPos - 1)
+	Case "NAMEEX"
+		' // Retrieve the name and extension combined
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, nPos + 1)
+		
+	Case "EXTN"
+		' // Retrieve the name and extension combined
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, nPos + 1)
+		' // Retrieve the extension
+		nPos = InStrRev(Result, ".")
+		If nPos Then
+			Result = Mid(Result, nPos+1)
+		Else
+			Return ""
+		End If
+	End Select
+	Return Result
+End Function
+
+Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+	Dim As Long nLen = Len(wszMainStr), nPos =0
+	If (nStart = 0) OrElse (nStart > nLen) OrElse nLen =0 Then Return wszMainStr
+	If nStart < 0 Then nStart = nLen + nStart + 1
+	If MatchCase Then
+		nPos = InStr(nStart, wszMainStr, wszMatchStr)
+	Else
+		nPos = InStr(nStart, UCase(wszMainStr), UCase(wszMatchStr))
+	End If
+	If nPos Then
+		Return Mid(wszMainStr, nStart, nPos - nStart)
+	End If
+	'SubString after the wszMatchStr
+	If MatchCase Then
+		nPos = InStr(1, wszMainStr, wszMatchStr)
+	Else
+		nPos = InStr(1, UCase(wszMainStr), UCase(wszMatchStr))
+	End If
+	If nPos Then
+		Return Mid(wszMainStr,nPos + Len(wszMatchStr))
+	End If
+	Return Mid(wszMainStr, nStart)
+End Function
+
+Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+	Dim As Long nLen = Len(wszMainStr), nPos1, nPos2
+	If (nStart = 0) OrElse (nStart > nLen) Then Return wszMainStr
+	If nStart < 0 Then nStart = nLen + nStart + 1
+	If MatchCase Then
+		nPos1= InStr(nStart, wszMainStr, wszDelim1)
+	Else
+		nPos1= InStr(nStart, UCase(wszMainStr), UCase(wszDelim1))
+	End If
+	If nPos1 = 0 Then Return ""
+	nPos1 += Len(wszDelim1)
+	If MatchCase Then
+		nPos2 = InStr(nPos1, wszMainStr, wszDelim2)
+	Else
+		nPos2 = InStr(nPos1, UCase(wszMainStr), UCase(wszDelim2))
+	End If
+	If nPos2 = 0 Then Return ""
+	nLen = nPos2 - nPos1
+	Return Mid(wszMainStr, nPos1, nLen)
+End Function
+
+Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString,Result() As WString Ptr, MatchCase As Boolean = True) As Long
+	Dim As Long PositionStart = 1, PositionEnd = 1, n = 0
+	If Len(wszMainStr) < Len(ParseStart + ParseEnd) OrElse ParseStart="" OrElse ParseEnd = "" Then Return -1
+	Do
+		If MatchCase Then
+			PositionStart = InStr(PositionEnd, wszMainStr, ParseStart)
+		Else
+			PositionStart = InStr(PositionEnd, UCase(wszMainStr), UCase(ParseStart))
+		End If
+		If PositionStart > 0 Then
+			PositionStart = PositionStart + Len(ParseStart)
+			If MatchCase Then
+				PositionEnd = InStr(PositionStart, wszMainStr, ParseEnd)
+			Else
+				PositionEnd = InStr(PositionStart, UCase(wszMainStr), UCase(ParseEnd))
+			End If
+			If PositionEnd > PositionStart Then
+				n = n + 1
+				ReDim Preserve Result(n - 1)
+				WLet Result(n - 1), Mid(wszMainStr, PositionStart, PositionEnd - PositionStart)
+			End If
+		End If
+	Loop Until (PositionStart < 1 Or PositionEnd < 1)
+	Return n
+End Function
+
+#ifdef GetMN
 	Function GetMessageName(Message As Integer) As String
 		Select Case Message
 		Case 0: Return "WM_NULL"
@@ -1302,7 +1507,7 @@ End Function
 		Case Else: Return "Unknown message (Code: " & Message & ")"
 		End Select
 	End Function
-#EndIf
+#endif
 
 Function ErrDescription(Code As Integer) ByRef As WString
 	Select Case Code
@@ -1310,13 +1515,13 @@ Function ErrDescription(Code As Integer) ByRef As WString
 	Case 1: Return "Illegal function call"
 	Case 2: Return "File not found signal"
 	Case 3: Return "File I/O error"
-	Case 4: Return "Out of memory" 
-	Case 5: Return "Illegal resume" 
+	Case 4: Return "Out of memory"
+	Case 5: Return "Illegal resume"
 	Case 6: Return "Out of bounds array access"
 	Case 7: Return "Null Pointer Access"
 	Case 8: Return "No privileges"
-	Case 9: Return "Interrupted signal" 
-	Case 10: Return "Illegal instruction signal" 
+	Case 9: Return "Interrupted signal"
+	Case 10: Return "Illegal instruction signal"
 	Case 11: Return "Floating point error signal"
 	Case 12: Return "Segmentation violation signal"
 	Case 13: Return "Termination request signal"

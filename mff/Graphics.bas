@@ -11,30 +11,29 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Graphics.bi"
+#include once "Graphics.bi"
 
-	Function ColorToRGB(FColor As Integer) As Integer
-		If FColor < 0 then
-	    #IFDef __USE_GTK__
+Function ColorToRGB(FColor As Integer) As Integer
+	If FColor < 0 Then
+		#ifdef __USE_GTK__
 			Return FColor
-	    #Else
+		#else
 			Return GetSysColor(FColor And &H000000FF)
-	    #EndIf 
-	    Else
-			Return FColor
-	    End If  
-	End Function
+		#endif
+	Else
+		Return FColor
+	End If
+End Function
 
-	Function GetRed(FColor As Long) As Byte
-		Return CUInt(FColor) And 255
-	End Function
+Function GetRed(FColor As Long) As Integer
+	Return CUInt(FColor) And 255
+End Function
 
-	Function GetGreen(FColor As Long) As Byte
-		Return CUInt(FColor) shr 8 And 255
-	End Function
+Function GetGreen(FColor As Long) As Integer
+	Return CUInt(FColor) Shr 8 And 255
+End Function
 
-	Function GetBlue(FColor As Long) As Byte
-		'Return CUInt(FColor) And 255
-		Return CUInt(FColor) Shr 16 And 255
-	End Function
+Function GetBlue(FColor As Long) As Integer
+	Return CUInt(FColor) Shr 16 And 255
+End Function
 'End Namespace

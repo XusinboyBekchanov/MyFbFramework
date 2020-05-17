@@ -24,7 +24,7 @@ Namespace My.Sys.ComponentModel
 			If i>0 then
 				c+=1
 				s=i+l
-			end if 
+			end if
 		loop until i=0
 	End Function
 	
@@ -42,18 +42,18 @@ Namespace My.Sys.ComponentModel
 			If i>0 then
 				c+=1
 				s=i+l
-			end if 
+			end if
 		loop until i=0
 	End Function
 	
 	Function Printer.STRREVERSE (S As String)As String
 		Dim As Integer j=len(s)
-		dim rstr As String=Space(j)  
+		dim rstr As String=Space(j)
 		while (j<>0)
 			j=j-1
 			rstr[j] = s[Len(s)-j-1]
 		Wend
-		return rstr 
+		return rstr
 	End Function
 	
 	Sub Printer.reportError(  BYVAL n AS LONG)
@@ -62,7 +62,7 @@ Namespace My.Sys.ComponentModel
 			s = "Document printing error"
 		ELSEIF n = 2 THEN
 			s = "Page printing error"
-		ELSE                        
+		ELSE
 			s = "Unspecified printer error"
 		END IF
 		#IfNDef __USE_GTK__
@@ -126,7 +126,7 @@ Namespace My.Sys.ComponentModel
 					EXIT FUNCTION
 				END IF
 				' // Cast it to a DEVMODE structure
-				' pDevMode =  StrPtr(bufferDoc) 
+				' pDevMode =  StrPtr(bufferDoc)
 				pi2->pDevMode = pDevMode
 			END IF
 			
@@ -227,7 +227,7 @@ Namespace My.Sys.ComponentModel
 					Exit Function
 				End If
 				' // Cast it to a DEVMODE structure
-				' pDevMode =  StrPtr(bufferDoc) 
+				' pDevMode =  StrPtr(bufferDoc)
 				pi2->pDevMode = pDevMode
 			End If
 			
@@ -261,7 +261,7 @@ Namespace My.Sys.ComponentModel
 		
 		Function  = True
 		
-	End Function    
+	End Function
 	' ========================================================================================
 	' Returns the printer orientation.
 	' The return value can be one of the following:
@@ -314,7 +314,7 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	Property Printer.PortName As String  __EXPORT__
-		m_PortName=GetprinterPort (PrinterName) 
+		m_PortName=GetprinterPort (PrinterName)
 		Return m_PortName
 	End Property
 	
@@ -338,7 +338,7 @@ Namespace My.Sys.ComponentModel
 	
 	Property Printer.Copies(vData As Integer)  __EXPORT__
 		m_Copies=vData
-		SetprinterCopies ( PrinterName ,vData)  
+		SetprinterCopies ( PrinterName ,vData)
 	End Property
 	
 	Property Printer.Copies As Integer  __EXPORT__
@@ -347,7 +347,7 @@ Namespace My.Sys.ComponentModel
 	
 	Property Printer.Quality(vData As PrinterQuality)  __EXPORT__
 		m_Quality=vData
-		SetprinterQuality (PrinterName, vData)  
+		SetprinterQuality (PrinterName, vData)
 	End Property
 	
 	Property Printer.Quality As PrinterQuality  __EXPORT__
@@ -397,7 +397,7 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	Property printer.DriveVersion () AS Long  __EXPORT__
-		Return GetprinterDriverVersion ( PrinterName ) 
+		Return GetprinterDriverVersion ( PrinterName )
 	End Property
 	
 	Property  printer.printableWidth () AS Long  __EXPORT__
@@ -491,24 +491,24 @@ Namespace My.Sys.ComponentModel
 			dwNeeded = DocumentProperties(0, hPrinter, sz, NULL, NULL, 0)
 			hDevMode = Cast(DEVMODE Ptr,GlobalAlloc( GHND_, dwNeeded))
 			pDevMode = GlobalLock(Cast(HGLOBAL,hDevMode))
-			DocumentProperties 0, hPrinter, @sz,  pDevMode, NULL,  DM_OUT_BUFFER 
+			DocumentProperties 0, hPrinter, @sz,  pDevMode, NULL,  DM_OUT_BUFFER
 			m_hdc = CreateDC("WINSPOOL", sz, NULL, pDevMode)
 			
 			Canvas.Handle=m_hdc
 			
 			GlobalUnlock pDevMode
-			'canvas.Font.parent=hPrinter 
+			'canvas.Font.parent=hPrinter
 			
 			
-			GetTextMetrics m_hdc, @tm 
-			n = tm.tmHeight + tm.tmExternalLeading 
-			charHt = n  
+			GetTextMetrics m_hdc, @tm
+			n = tm.tmHeight + tm.tmExternalLeading
+			charHt = n
 		#EndIf
 		Return printerName
 	END Function
 	
-	Function printer.choosePrinter() AS String  __EXPORT__  'choose printer and determine device context handle 
-		Dim n AS LONG 
+	Function printer.choosePrinter() AS String  __EXPORT__  'choose printer and determine device context handle
+		Dim n AS LONG
 		#IfNDef __USE_GTK__
 			Dim hPrinter As HWND
 			Dim pd AS PRINTDLG , pDevNames AS DEVNAMES PTR
@@ -516,7 +516,7 @@ Namespace My.Sys.ComponentModel
 			pd.lStructSize = SIZEOF(pd)
 			pd.Flags =  PD_RETURNDC OR  PD_HIDEPRINTTOFILE Or PD_PRINTSETUP
 			pd.Flags = pd.Flags OR  PD_ALLPAGES OR  PD_NOSELECTION OR  PD_NOPAGENUMS
-			IF PrintDlg(@pd) THEN 'call print dialog to select printer 
+			IF PrintDlg(@pd) THEN 'call print dialog to select printer
 				pDevNames = GlobalLock(pd.hDevNames)
 				psz =Cast(ZString Ptr,Cast(Byte Ptr, pDevNames) +  pDevNames->wDeviceOffset)
 				printerName = *psz
@@ -524,11 +524,11 @@ Namespace My.Sys.ComponentModel
 				m_hdc = pd.hDC
 				GlobalUnlock pd.hDevnames
 				
-			END IF 
+			END IF
 			
-			GetTextMetrics m_hdc , @tm 
+			GetTextMetrics m_hdc , @tm
 			n = tm.tmHeight + tm.tmExternalLeading
-			charHt = n  
+			charHt = n
 			hDevMode = pd.hDevMode
 			Canvas.Handle=m_hdc
 			'canvas.Font.parent=hPrinter
@@ -540,7 +540,7 @@ Namespace My.Sys.ComponentModel
 	#IfNDef __USE_GTK__
 		Function printer.newFont(fName AS STRING, fSize AS LONG,ibold As Long=FALSE, iunderline As Long=FALSE, iitalic As Long=FALSE ) AS HFONT __EXPORT__
 			'define a new font using a font name, font size in points, and font attributes
-			'combine attributes: "b" for bold, "u" for underline, "i" for italic 
+			'combine attributes: "b" for bold, "u" for underline, "i" for italic
 			Dim AS Long yppi, charSize, hn
 			Dim n  As HFONT
 			Dim wt AS DWORD, nBold AS DWORD, underline AS DWORD, italic AS DWORD, s AS STRING
@@ -560,36 +560,36 @@ Namespace My.Sys.ComponentModel
 			DEFAULT_QUALITY,  FF_DONTCARE, Cast( LPCTSTR,@fName))
 			n = SelectObject(m_hdc , m_hFont)
 			IF hOrigFont = 0 THEN hOrigFont = n
-			GetTextMetrics m_hdc , @tm 
+			GetTextMetrics m_hdc , @tm
 			hn = tm.tmHeight + tm.tmExternalLeading
-			charHt = hn  
+			charHt = hn
 			Return m_hFont
-		End Function 
+		End Function
 	#EndIf
 	/'
 	FUNCTION printer.getTextWidth(txt AS STRING) AS Integer
-		'get the text width in inches 
-		Dim cSize AS SIZEL
-		IF m_hdc  = 0 THEN printerName=This.defaultprinter
-		GetTextExtentPoint32 m_hdc , BYVAL STRPTR(txt), LEN(txt), @cSize
-		Function = cSize.cx 
+	'get the text width in inches
+	Dim cSize AS SIZEL
+	IF m_hdc  = 0 THEN printerName=This.defaultprinter
+	GetTextExtentPoint32 m_hdc , BYVAL STRPTR(txt), LEN(txt), @cSize
+	Function = cSize.cx
 	END FUNCTION
 	
 	Function printer.truncate(s AS STRING, BYVAL wi AS Integer) AS STRING
-		'truncate the text to a specified width, in inches
-		'if wi > 0, truncate the back end, else truncate the front end
-		Dim nFit AS LONG, cSize AS SIZEL, ss AS STRING
-		IF m_hdc  = 0 THEN printerName=This.defaultprinter
-		'wi = GetDeviceCaps(m_hdc ,  LOGPIXELSX) * wi 'width in pixels (logical units)
-		IF wi > 0 THEN
-			ss = s
-			GetTextExtentExPoint m_hdc , StrPtr(ss), LEN(ss), wi, Cast(LPINT,nFit), NULL, @cSize
-			Return LEFT(ss, nFit)
-		ELSEIF wi < 0 THEN
-			wi = ABS(wi): ss = STRREVERSE$(s)
-			GetTextExtentExPoint m_hdc , StrPtr(ss), LEN(ss), wi, Cast(LPINT,nFit),NULL, @cSize
-			Function =STRREVERSE$(LEFT(ss, nFit))
-		END IF
+	'truncate the text to a specified width, in inches
+	'if wi > 0, truncate the back end, else truncate the front end
+	Dim nFit AS LONG, cSize AS SIZEL, ss AS STRING
+	IF m_hdc  = 0 THEN printerName=This.defaultprinter
+	'wi = GetDeviceCaps(m_hdc ,  LOGPIXELSX) * wi 'width in pixels (logical units)
+	IF wi > 0 THEN
+	ss = s
+	GetTextExtentExPoint m_hdc , StrPtr(ss), LEN(ss), wi, Cast(LPINT,nFit), NULL, @cSize
+	Return LEFT(ss, nFit)
+	ELSEIF wi < 0 THEN
+	wi = ABS(wi): ss = STRREVERSE$(s)
+	GetTextExtentExPoint m_hdc , StrPtr(ss), LEN(ss), wi, Cast(LPINT,nFit),NULL, @cSize
+	Function =STRREVERSE$(LEFT(ss, nFit))
+	END IF
 	END Function
 	'/
 	
@@ -602,7 +602,7 @@ Namespace My.Sys.ComponentModel
 			Dim tm AS TEXTMETRIC
 			IF m_hdc  = 0 THEN printerName=This.defaultprinter
 			GetTextMetrics m_hdc , @tm
-			wi = tm.tmMaxCharWidth  'tm.tmAveCharWidth 
+			wi = tm.tmMaxCharWidth  'tm.tmAveCharWidth
 			ht = charHt
 		#EndIf
 	END Sub
@@ -616,9 +616,9 @@ Namespace My.Sys.ComponentModel
 			paperHt = GetDeviceCaps(m_hdc ,PHYSICALHEIGHT)
 			topNoPrn = GetDeviceCaps(m_hdc ,PHYSICALOFFSETY)
 			bottomNoPrn = paperHt - topNoPrn - GetDeviceCaps(m_hdc ,  VERTRES)
-			If topMargin>(topNoPrn  ) Then y = topMargin Else y=topNoPrn  
+			If topMargin>(topNoPrn  ) Then y = topMargin Else y=topNoPrn
 			
-			yn = paperHt  - MAX(bottomMargin, bottomNoPrn ) - y 
+			yn = paperHt  - MAX(bottomMargin, bottomNoPrn ) - y
 			Function = INT(yn / charHt)
 		#Else
 			Return 0
@@ -634,13 +634,13 @@ Namespace My.Sys.ComponentModel
 	
 	Property printer.duplexMode(n AS PrinterDuplexMode)   __EXPORT__   'n = 1 Simplex  'n = 2 Horizontal  'n = 3 Vertical
 		#IfNDef __USE_GTK__
-			Dim pDevMode AS DEVMODE PTR 
+			Dim pDevMode AS DEVMODE PTR
 			IF hDevMode = 0 OR n = 0 THEN Exit Property
 			pDevMode = GlobalLock(Cast(HGLOBAL,hDevMode))
 			IF origDuplex = 0 THEN origDuplex = pDevMode->dmDuplex
-			IF pDevMode->dmFields AND  DM_DUPLEX THEN 
+			IF pDevMode->dmFields AND  DM_DUPLEX THEN
 				pDevMode->dmDuplex = n
-				pDevMode->dmFields = pDevMode->dmFields OR  DM_DUPLEX  
+				pDevMode->dmFields = pDevMode->dmFields OR  DM_DUPLEX
 				ResetDC m_hdc , pDevMode
 				GlobalUnlock Cast(HGLOBAL,hDevMode)
 			END IF
@@ -651,16 +651,16 @@ Namespace My.Sys.ComponentModel
 		' If SetPrinterOrientation(printername,n)=FALSE Then Print "Error on Orientation"
 		' Return
 		#IfNDef __USE_GTK__
-			DIM lpDevMode AS DEVMODE PTR 
-			IF hDevMode = 0 THEN EXIT Sub 
+			DIM lpDevMode AS DEVMODE PTR
+			IF hDevMode = 0 THEN EXIT Sub
 			lpDevMode = GlobalLock(Cast(HGLOBAL,hDevMode))
 			IF origOrient = 0 THEN origOrient = lpDevMode->dmOrientation
 			IF n AND  lpDevMode->dmFields AND DM_ORIENTATION  THEN
-				IF n THEN lpDevMode->dmOrientation = n 
-				lpDevMode->dmFields = lpDevMode->dmFields OR  DM_ORIENTATION  
+				IF n THEN lpDevMode->dmOrientation = n
+				lpDevMode->dmFields = lpDevMode->dmFields OR  DM_ORIENTATION
 				ResetDC m_hdc , lpDevMode
 				GlobalUnlock Cast(HGLOBAL,hDevMode)
-			END IF 
+			END IF
 		#EndIf
 	END Sub
 	
@@ -680,8 +680,8 @@ Namespace My.Sys.ComponentModel
 	Sub printer.UpdateMargeins()  __EXPORT__
 		'x, y are measured from the left and top edges of the paper
 		'if x or y are omitted then last valuew, xLast, yLast are used
-		Dim AS Long xc, yc, xm, leftNoPrn, rightNoPrn, topNoPrn, bottomNoPrn  
-		Dim AS Long paperWi, paperHt, xMax, yMax, xppi, yppi  
+		Dim AS Long xc, yc, xm, leftNoPrn, rightNoPrn, topNoPrn, bottomNoPrn
+		Dim AS Long paperWi, paperHt, xMax, yMax, xppi, yppi
 		#IfNDef __USE_GTK__
 			IF m_hdc  = 0 THEN printerName=This.defaultprinter
 			paperWi = GetDeviceCaps(m_hdc ,  PHYSICALWIDTH)
@@ -694,9 +694,9 @@ Namespace My.Sys.ComponentModel
 			xMax = paperWi - leftNoPrn -  rightMargin
 			yMax = paperHt - topNoPrn -   bottomMargin
 			
-			leftMargin= max(leftMargin,leftNoPrn) 
+			leftMargin= max(leftMargin,leftNoPrn)
 			topMargin =  max(topNoPrn,topMargin)
-		#EndIf  
+		#EndIf
 	End Sub
 	
 	Property printer.Title( value As String)  __EXPORT__
@@ -704,7 +704,7 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	Property printer.Title() As String   __EXPORT__
-		Return Ftitle 
+		Return Ftitle
 	End Property
 	
 	Sub printer.StartDoc()  __EXPORT__
@@ -712,7 +712,7 @@ Namespace My.Sys.ComponentModel
 			Dim nErr AS LONG, sz AS WSTRING*64
 			Dim di AS DOCINFO
 			IF m_hdc  = 0 THEN printerName=This.defaultprinter
-			sz = Ftitle 
+			sz = Ftitle
 			di.cbSize = SIZEOF(DOCINFO)
 			di.lpszDocName = VARPTR(sz)
 			nErr = .StartDoc(m_hdc , @di)
@@ -740,14 +740,14 @@ Namespace My.Sys.ComponentModel
 			.StartPage(m_hdc)
 			FPageNumber+=1
 		#EndIf
-	End Sub 
+	End Sub
 	
 	Sub printer.EndDoc   __EXPORT__
 		#IfNDef __USE_GTK__
 			.EndDoc(m_hdc )
 			SelectObject m_hdc , hOrigFont
 			DeleteObject m_hFont
-			deleteDC m_hdc 
+			deleteDC m_hdc
 			origDuplex = 0
 			origOrient = 0
 			hOrigFont = 0
@@ -1501,7 +1501,7 @@ Namespace My.Sys.ComponentModel
 	FUNCTION printer.EnumPrinterPorts () AS String  __EXPORT__
 		Dim i AS Long, Level AS Long, cbNeeded AS Long, cbReturned AS LONG, Names AS String
 		#IfNDef __USE_GTK__
-			DIM   Pi5( ) As  PRINTER_INFO_5 
+			DIM   Pi5( ) As  PRINTER_INFO_5
 			Level = 5
 			EnumPrinters  PRINTER_ENUM_LOCAL, NULL, Level,  NULL, 0, @cbNeeded, @cbReturned
 			REDIM Pi5(0 TO cbNeeded \ SIZEOF(Pi5(0)))
@@ -1521,7 +1521,7 @@ Namespace My.Sys.ComponentModel
 	FUNCTION printer.EnumPrinters_ () AS String
 		DIM i AS Long, Level AS Long, cbNeeded AS Long, cbReturned AS LONG, Names AS String
 		#IfNDef __USE_GTK__
-			DIM   Pi5( )  As PRINTER_INFO_5 
+			DIM   Pi5( )  As PRINTER_INFO_5
 			Level = 5
 			EnumPrinters PRINTER_ENUM_LOCAL, BYVAL NULL, Level, BYVAL NULL, 0, @cbNeeded, @cbReturned
 			REDIM Pi5(0 TO cbNeeded \ SIZEOF(Pi5(0)))
@@ -1539,10 +1539,10 @@ Namespace My.Sys.ComponentModel
 	' ========================================================================================
 	/'
 	FUNCTION  printer.defaultprinter () AS String
-		Dim buffer AS ZSTRING * MAX_PATH
-		GetProfileString "WINDOWS", "DEVICE", "", buffer, SIZEOF(buffer)
-		FUNCTION = PARSE (buffer, 1)
-	END FUNCTION 
+	Dim buffer AS ZSTRING * MAX_PATH
+	GetProfileString "WINDOWS", "DEVICE", "", buffer, SIZEOF(buffer)
+	FUNCTION = PARSE (buffer, 1)
+	END FUNCTION
 	'/
 	
 	FUNCTION printer.GetdefaultprinterDevice () AS String  __EXPORT__  ' Retrieves the name of the default printer device.

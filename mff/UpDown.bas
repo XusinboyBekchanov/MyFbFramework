@@ -1,143 +1,143 @@
 ﻿'###############################################################################
 '#  UpDown.bi                                                                  #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
 '#   TUpDown.bi                                                                #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.0                                                             #
 '#  Updated and added cross-platform                                           #
-'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "UpDown.bi"
+#include once "UpDown.bi"
 'Const UDN_DELTAPOS = (UDN_FIRST - 1)
 
 Namespace My.Sys.Forms
-    Property UpDown.MinValue As Integer
-        Return FMinValue
-    End Property
-
-    Property UpDown.MinValue(Value As Integer)
-        FMinValue = Value
-        #IfNDef __USE_GTK__
+	Property UpDown.MinValue As Integer
+		Return FMinValue
+	End Property
+	
+	Property UpDown.MinValue(Value As Integer)
+		FMinValue = Value
+		#ifndef __USE_GTK__
 			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MakeLong(FMaxValue, FMinValue))
-		#EndIf
-    End Property
-
-    Property UpDown.MaxValue As Integer
-       Return FMaxValue 
-    End Property
-
-    Property UpDown.MaxValue(Value As Integer)
-        FMaxValue = Value
-        #IfNDef __USE_GTK__
+		#endif
+	End Property
+	
+	Property UpDown.MaxValue As Integer
+		Return FMaxValue
+	End Property
+	
+	Property UpDown.MaxValue(Value As Integer)
+		FMaxValue = Value
+		#ifndef __USE_GTK__
 			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MakeLong(FMaxValue, FMinValue))
-		#EndIf
-    End Property
-
-    Property UpDown.Position As Integer
-        #IfNDef __USE_GTK__
+		#endif
+	End Property
+	
+	Property UpDown.Position As Integer
+		#IfNDef __USE_GTK__
 			If Handle Then
 				FPosition = LoWord(SendMessage(Handle, UDM_GETPOS, 0, 0))
 			End If
 		#EndIf
-        Return FPosition
-    End Property
-
-    Property UpDown.Position(Value As Integer)
-        FPosition = Value
-        #IfNDef __USE_GTK__
-			If Handle Then 
+		Return FPosition
+	End Property
+	
+	Property UpDown.Position(Value As Integer)
+		FPosition = Value
+		#IfNDef __USE_GTK__
+			If Handle Then
 				SendMessage(Handle, UDM_SETPOS, 0, MakeLong(FPosition, 0))
 				If FAssociate Then
-				   FAssociate->Text = Str(Position)
+					FAssociate->Text = Str(Position)
 				End If
 			End If
 		#EndIf
-    End Property
-
-    Property UpDown.Increment As Integer
-        Return FIncrement
-    End Property
-
-    Property UpDown.Increment(Value As Integer)
-        If Value <> FIncrement then
-            FIncrement = Value
-            #IfNDef __USE_GTK__
+	End Property
+	
+	Property UpDown.Increment As Integer
+		Return FIncrement
+	End Property
+	
+	Property UpDown.Increment(Value As Integer)
+		If Value <> FIncrement then
+			FIncrement = Value
+			#IfNDef __USE_GTK__
 				If Handle then
-				   SendMessage(Handle, UDM_GETACCEL, 1, CInt(@FUDAccel(0)))
-				   FUDAccel(0).nInc = Value
-				   SendMessage(Handle, UDM_SETACCEL, 1, CInt(@FUDAccel(0)))
+					SendMessage(Handle, UDM_GETACCEL, 1, CInt(@FUDAccel(0)))
+					FUDAccel(0).nInc = Value
+					SendMessage(Handle, UDM_SETACCEL, 1, CInt(@FUDAccel(0)))
 				End If
 			#EndIf
-        End If
-    End Property
-
-    Property UpDown.Thousands As Boolean
-        Return FThousands
-    End Property
-
-    Property UpDown.Thousands(Value As Boolean)
-        If FThousands <> Value Then
-            FThousands = Value
-            #IfNDef __USE_GTK__
+		End If
+	End Property
+	
+	Property UpDown.Thousands As Boolean
+		Return FThousands
+	End Property
+	
+	Property UpDown.Thousands(Value As Boolean)
+		If FThousands <> Value Then
+			FThousands = Value
+			#IfNDef __USE_GTK__
 				Base.Style = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
 			#EndIf
-        End If
-    End Property
-
-    Property UpDown.Wrap As Boolean
-        Return FWrap
-    End Property
-
-    Property UpDown.Wrap(Value As Boolean)
-        If FWrap <> Value Then
-            FWrap = Value
-            #IfNDef __USE_GTK__
+		End If
+	End Property
+	
+	Property UpDown.Wrap As Boolean
+		Return FWrap
+	End Property
+	
+	Property UpDown.Wrap(Value As Boolean)
+		If FWrap <> Value Then
+			FWrap = Value
+			#IfNDef __USE_GTK__
 				Base.Style = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
 			#EndIf
-        End If
-    End Property
-
-    Property UpDown.Style As Integer
-        Return FStyle
-    End Property
-
-    Property UpDown.Style(Value As Integer)
-        Dim As Integer OldStyle,Temp
-        OldStyle = FStyle
-        If FStyle <> Value Then
-            FStyle = Value
-            If OldStyle = 0 Then
-                Temp = This.Width
-                This.Width = Height
-                Height = Temp
-            End If
-            #IfNDef __USE_GTK__
+		End If
+	End Property
+	
+	Property UpDown.Style As Integer
+		Return FStyle
+	End Property
+	
+	Property UpDown.Style(Value As Integer)
+		Dim As Integer OldStyle,Temp
+		OldStyle = FStyle
+		If FStyle <> Value Then
+			FStyle = Value
+			If OldStyle = 0 Then
+				Temp = This.Width
+				This.Width = Height
+				Height = Temp
+			End If
+			#IfNDef __USE_GTK__
 				Base.Style = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
 			#EndIf
-        End If
-    End Property
-
-    Property UpDown.Associate As Control Ptr
-        Return FAssociate
-    End Property
-
-    Property UpDown.Associate(Value As Control Ptr)
-        FAssociate = Value
-        If FAssociate Then
-           If UCase(FAssociate->ClassName) = "TEXTBOX" Then
-              #IfNDef __USE_GTK__
-				SendMessage(Handle, UDM_SETBUDDY, CInt(FAssociate->Handle), 0)
-              #EndIf
-              FAssociate->Text = WStr(Position)
-           Else
-           End If
-        End If
-    End Property
-
+		End If
+	End Property
+	
+	Property UpDown.Associate As Control Ptr
+		Return FAssociate
+	End Property
+	
+	Property UpDown.Associate(Value As Control Ptr)
+		FAssociate = Value
+		If FAssociate Then
+			If UCase(FAssociate->ClassName) = "TEXTBOX" Then
+				#IfNDef __USE_GTK__
+					SendMessage(Handle, UDM_SETBUDDY, CInt(FAssociate->Handle), 0)
+				#EndIf
+				FAssociate->Text = WStr(Position)
+			Else
+			End If
+		End If
+	End Property
+	
 	#IfNDef __USE_GTK__
 		Sub UpDown.HandleIsAllocated(BYREF Sender As Control)
 			If Sender.Child Then
@@ -151,10 +151,10 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-
+		
 		Sub UpDown.WndProc(BYREF Message As Message)
 		End Sub
-
+		
 		Sub UpDown.ProcessMessage(BYREF Message As Message)
 			Select Case Message.Msg
 			Case WM_SIZE
@@ -173,16 +173,16 @@ Namespace My.Sys.Forms
 			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
-
-    Operator UpDown.Cast As Control Ptr 
-        Return Cast(Control Ptr, @This)
-    End Operator
-
-    Constructor UpDown
-        Dim As Boolean Result
-        #IfDef __USE_GTK__
-        	widget = gtk_spin_button_new(NULL, 1, 0)
-        #Else
+	
+	Operator UpDown.Cast As Control Ptr
+		Return Cast(Control Ptr, @This)
+	End Operator
+	
+	Constructor UpDown
+		Dim As Boolean Result
+		#IfDef __USE_GTK__
+			widget = gtk_spin_button_new(NULL, 1, 0)
+		#Else
 			Dim As INITCOMMONCONTROLSEX ICC
 			ICC.dwSize = SizeOF(ICC)
 			ICC.dwICC  = ICC_UPDOWN_CLASS
@@ -198,34 +198,36 @@ Namespace My.Sys.Forms
 			AArrowKeys(1)    = UDS_ARROWKEYS
 			AAThousand(0)    = UDS_NOTHOUSANDS
 			AAThousand(1)    = 0
-		#EndIf
+		#endif
 		FMinValue        = 0
-        FMaxValue        = 100
-        FArrowKeys       = True
-        FIncrement       = 1
-        FAlignment       = 0
-        FStyle           = 0
-        FThousands       = True
-        #IfNDef __USE_GTK__
+		FMaxValue        = 100
+		FArrowKeys       = True
+		FIncrement       = 1
+		FAlignment       = 0
+		FStyle           = 0
+		FThousands       = True
+		FTabStop         = True
+		#ifndef __USE_GTK__
 			FUDAccel(0).nInc = FIncrement
-        #EndIf
-        With This
-            .Child             = @This
-            #IfNDef __USE_GTK__
+		#endif
+		With This
+			.Child             = @This
+			#ifndef __USE_GTK__
 				.RegisterClass "UpDown", UPDOWN_CLASS
 				.ChildProc         = @WndProc
 				WLet FClassAncestor, UPDOWN_CLASS
 				.ExStyle           = 0
-				Base.Style             = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
+				Base.Style             = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.Width             = GetSystemMetrics(SM_CXVSCROLL)
 				.Height            = GetSystemMetrics(SM_CYVSCROLL)
 				.Height            = .Height + (.Height \ 2)
-			#EndIf
-            WLet FClassName, "UpDown"
-        End With  
-    End Constructor
-
-    Destructor UpDown
-    End Destructor
-End namespace
+			#endif
+			WLet FClassName, "UpDown"
+		End With
+	End Constructor
+	
+	Destructor UpDown
+	End Destructor
+End Namespace

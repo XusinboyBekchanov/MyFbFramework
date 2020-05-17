@@ -1,96 +1,100 @@
-﻿'###############################################################################
-'#  BitmapType.bi                                                              #
-'#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
-'#  Based on:                                                                  #
-'#   TBitmap.bi                                                                #
-'#   FreeBasic Windows GUI ToolKit                                             #
-'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
-'#   Version 1.0.0                                                             #
-'#  Updated and added cross-platform                                           #
-'#  by Xusinboy Bekchanov (2018-2019)                                          #
-'###############################################################################
+﻿'################################################################################
+'#  BitmapType.bi                                                               #
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                      #
+'#  Based on:                                                                   #
+'#   TBitmap.bi                                                                 #
+'#   FreeBasic Windows GUI ToolKit                                              #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                      #
+'#   Version 1.0.0                                                              #
+'#  Updated and added cross-platform                                            #
+'#  by Xusinboy Bekchanov (2018-2019), Liu XiaLin (2020)                        #
+'################################################################################
 
 #include once "Bitmap.bi"
 
 Namespace My.Sys.Drawing
-    Property BitmapType.Width As Integer
-        Return FWidth
-    End Property
-
-    Property BitmapType.Width(Value As Integer)
-        FWidth = Value
-        If Changed Then Changed(This)
-    End Property
-
-    Property BitmapType.Height As Integer
-        Return FHeight
-    End Property
-
-    Property BitmapType.Height(Value As Integer)
-        FHeight = Value
-        If Changed Then Changed(This)
-    End Property
-
-    Property BitmapType.Transparency As Boolean
-        Return FTransparent
-    End Property
-
-    Property BitmapType.Transparency(Value As Boolean)
-        FTransparent = Value
-    End Property
-
-    Sub BitmapType.LoadFromFile(ByRef File As WString)
-		#IfDef __USE_GTK__
+	Property BitmapType.Width As Integer
+		Return FWidth
+	End Property
+	
+	Property BitmapType.Width(Value As Integer)
+		FWidth = Value
+		If Changed Then Changed(This)
+	End Property
+	
+	Property BitmapType.Height As Integer
+		Return FHeight
+	End Property
+	
+	Property BitmapType.Height(Value As Integer)
+		FHeight = Value
+		If Changed Then Changed(This)
+	End Property
+	
+	Property BitmapType.Transparency As Boolean
+		Return FTransparent
+	End Property
+	
+	Property BitmapType.Transparency(Value As Boolean)
+		FTransparent = Value
+	End Property
+	
+	Sub BitmapType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
+		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
-			Handle = gdk_pixbuf_new_from_file(ToUTF8(File), @gerr)
-		#Else
+			If cxDesired = 0 AndAlso cyDesired = 0 Then
+				Handle = gdk_pixbuf_new_from_file(ToUTF8(File), @gerr)
+			Else
+				Handle = gdk_pixbuf_new_from_file_at_size(ToUTF8(File), cxDesired, cyDesired, @gerr)
+			End If
+		#else
 			Dim As BITMAP BMP
 			Dim As HDC MemDC
 			If Handle Then DeleteObject Handle
-			Handle = LoadImage(0,File,IMAGE_BITMAP,0,0,LR_LOADFROMFILE OR LR_LOADMAP3DCOLORS OR FLoadFlag(Abs_(FTransparent)))
-			GetObject(Handle,SizeOF(BMP),@BMP)
+			Handle = LoadImage(0,File,IMAGE_BITMAP,cxDesired,cyDesired,LR_LOADFROMFILE Or LR_LOADMAP3DCOLORS Or FLoadFlag(Abs_(FTransparent)))
+			GetObject(Handle,SizeOf(BMP),@BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
-		#EndIf
-        If Changed Then Changed(This)
-    End Sub
-
-    Sub BitmapType.SaveToFile(ByRef File As WString)
-        #IfNDef __USE_GTK__
+		#endif
+		If Changed Then Changed(This)
+	End Sub
+	
+	Sub BitmapType.SaveToFile(ByRef File As WString)
+		#ifndef __USE_GTK__
 			Type RGB3 Field = 1
 				G As Byte
 				B As Byte
 				R As Byte
 			End Type
 			Type BitmapStruct Field = 1
-				 Identifier      As Word
-				 FileSize        As Dword
-				 Reserved0       As Dword
-				 bmpDataOffset   As Dword
-				 bmpHeaderSize   As Dword
-				 bmpWidth        As Dword
-				 bmpHeight       As Dword
-				 Planes          As Word
-				 BitsPerPixel    As Word
-				 Compression     As Dword
-				 bmpDataSize     As Dword 
-				 HResolution     As Dword
-				 VResolution     As Dword
-				 Colors          As Dword
-				 ImportantColors As Dword
+				Identifier      As Word
+				FileSize        As Dword
+				Reserved0       As Dword
+				bmpDataOffset   As Dword
+				bmpHeaderSize   As Dword
+				bmpWidth        As Dword
+				bmpHeight       As Dword
+				Planes          As Word
+				BitsPerPixel    As Word
+				Compression     As Dword
+				bmpDataSize     As Dword
+				HResolution     As Dword
+				VResolution     As Dword
+				Colors          As Dword
+				ImportantColors As Dword
 			End Type
 			Static As BitmapStruct BM
 			Dim As Integer F,x,y,Clr,Count = 0
 			F = FreeFile
-			Redim PixelData(FWidth * FHeight - 1) As RGB3
+			ReDim PixelData(FWidth * FHeight - 1) As RGB3
 			For y = FHeight-1 To 0 Step -1
 				For x = 0 To FWidth - 1
-					 Clr = GetPixel(FDevice,x,y)
-					 PixelData(Count).G = GetGreen(Clr)
-					 PixelData(Count).R = GetRed(Clr)
-					 PixelData(Count).B = GetBlue(Clr)
-					 Count += 1
+					Clr = GetPixel(FDevice,x,y)
+					PixelData(Count).G = GetGreen(Clr)
+					PixelData(Count).R = GetRed(Clr)
+					PixelData(Count).B = GetBlue(Clr)
+					Count += 1
 				Next x
 			Next y
 			BM.Identifier      = 66 + 77 * 256
@@ -112,36 +116,36 @@ Namespace My.Sys.Drawing
 			Put #F,,BM
 			Put #F,,PixelData()
 			Close #F
-		#EndIf
-    End Sub
-
-	#IfDef __USE_GTK__
-		Sub BitmapType.LoadFromResourceName(ResName As String)
-	#Else
-		Sub BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL))
-	#EndIf
-		#IfDef __USE_GTK__
+		#endif
+	End Sub
+	
+	#ifdef __USE_GTK__
+		Sub BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0)
+	#else
+		Sub BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0)
+	#endif
+		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
-		#Else
+		#else
 			Dim As BITMAP BMP
-			Handle = LoadImage(ModuleHandle,ResName,IMAGE_BITMAP,0,0,LR_COPYFROMRESOURCE OR FLoadFlag(Abs_(FTransparent)))
-			GetObject(Handle,SizeOF(BMP),@BMP)
+			Handle = LoadImage(ModuleHandle,ResName,IMAGE_BITMAP,cxDesired,cyDesired,LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
+			GetObject(Handle,SizeOf(BMP),@BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
-		#EndIf
+		#endif
 		If Changed Then Changed(This)
 	End Sub
-
-	#IfDef __USE_GTK__
+	
+	#ifdef __USE_GTK__
 		Sub BitmapType.LoadFromPNGResourceName(ResName As String)
-	#Else
+	#else
 		Sub BitmapType.LoadFromPNGResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL))
-	#EndIf
-		#IfDef __USE_GTK__
+	#endif
+		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
-		#Else
+		#else
 			Dim As BITMAP BMP
 			Dim As HRSRC hPicture = FindResourceW(ModuleHandle, ResName, "PNG")
 			Dim As HRSRC hPictureData
@@ -170,12 +174,12 @@ Namespace My.Sys.Drawing
 					'Dim As gdiplus.Color clr
 					Dim pImage As GpImage Ptr ', hImage As HICON
 					' Create a bitmap from the data contained in the stream
-					GdipCreateBitmapFromStream(pngstream, CAST(GpBitmap PTR PTR, @pImage))
+					GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
 					' Create icon from image
-					GdipCreateHBitmapFromBitmap(CAST(GpBitmap PTR, pImage), @Handle, 0)
+					GdipCreateHBitmapFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, 0)
 					' Free the image
-                    If pImage Then GdipDisposeImage pImage
-                    pngstream->lpVtbl->Release(pngstream)
+					If pImage Then GdipDisposeImage pImage
+					pngstream->lpVtbl->Release(pngstream)
 				End If
 			End If
 			' Unlock the memory
@@ -190,26 +194,26 @@ Namespace My.Sys.Drawing
 		#endif
 		If Changed Then Changed(This)
 	End Sub
-
-'	Function BitmapType.FromResourceName(ResName As String) As BitmapType Ptr
-'		Dim As BitmapType bm
-'		bm.LoadFromResourceName(ResName)
-'		Return @bm
-'	End Function
-
-	Sub BitmapType.LoadFromResourceID(ResID As Integer)
+	
+	'	Function BitmapType.FromResourceName(ResName As String, cxDesired As Integer = 0, cyDesired As Integer = 0) As BitmapType Ptr
+	'		Dim As BitmapType bm
+	'		bm.LoadFromResourceName(ResName,,cxDesired,cyDesired)
+	'		Return @bm
+	'	End Function
+	
+	Sub BitmapType.LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0)
 		#ifndef __USE_GTK__
 			Dim As BITMAP BMP
-			Handle = LoadImage(GetModuleHandle(NULL),MAKEINTRESOURCE(ResID),IMAGE_BITMAP,0,0,LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
+			Handle = LoadImage(GetModuleHandle(NULL),MAKEINTRESOURCE(ResID),IMAGE_BITMAP,cxDesired,cyDesired,LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
 			GetObject(Handle,SizeOf(BMP),@BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
-		#EndIf
+		#endif
 		If Changed Then Changed(This)
 	End Sub
-
-    Sub BitmapType.Create
-        #IfNDef __USE_GTK__
+	
+	Sub BitmapType.Create
+		#ifndef __USE_GTK__
 			Dim rc As Rect
 			Dim As HDC Dc
 			If Handle Then DeleteObject Handle
@@ -223,74 +227,74 @@ Namespace My.Sys.Drawing
 			Handle = CreateCompatibleBitmap(FDevice,FWidth,FHeight)
 			SelectObject FDevice,Handle
 			FillRect(FDevice, @rc, Brush.Handle)
-		#EndIf
-        If Changed Then Changed(This)
-    End Sub
-
-    Sub BitmapType.Clear
-		#IfNDef __USE_GTK__
+		#endif
+		If Changed Then Changed(This)
+	End Sub
+	
+	Sub BitmapType.Clear
+		#ifndef __USE_GTK__
 			Dim rc As RECT
 			rc.Left = 0
 			rc.Top = 0
 			rc.Right = FWidth
 			rc.Bottom = FHeight
 			FillRect FDevice, @rc, Brush.Handle
-        #EndIf
-        If Changed Then Changed(This)
-    End Sub
-
-    Sub BitmapType.Free
-		#IfNDef __USE_GTK__
+		#endif
+		If Changed Then Changed(This)
+	End Sub
+	
+	Sub BitmapType.Free
+		#ifndef __USE_GTK__
 			If Handle Then DeleteObject Handle
 			Handle = 0
-		#EndIf
-        If Changed Then Changed(This)
-    End Sub
-
-    Operator BitmapType.Cast As Any Ptr
-        Return @This
-    End Operator
-
-    Operator BitmapType.Let(ByRef Value As WString)
-		#IfDef __USE_GTK__
+		#endif
+		If Changed Then Changed(This)
+	End Sub
+	
+	Operator BitmapType.Cast As Any Ptr
+		Return @This
+	End Operator
+	
+	Operator BitmapType.Let(ByRef Value As WString)
+		#ifdef __USE_GTK__
 			If Not StartsWith(Value, "/") Then
 				LoadFromResourceName(Value)
 			Else
 				LoadFromFile(Value)
 			End If
-		#Else
+		#else
 			If FindResource(GetModuleHandle(NULL), Value, RT_BITMAP) Then
 				LoadFromResourceName(Value)
 			ElseIf FindResource(GetModuleHandle(NULL), Value, "PNG") Then
 				LoadFromPNGResourceName(Value)
 			Else
-			   LoadFromFile(Value)
+				LoadFromFile(Value)
 			End If
-		#EndIf
-    End Operator
-
-	#IfNDef __USE_GTK__
+		#endif
+	End Operator
+	
+	#ifndef __USE_GTK__
 		Operator BitmapType.Let(Value As HBITMAP)
 			Handle = Value
 		End Operator
-	#EndIf
+	#endif
 	
-    Constructor BitmapType
-        WLet FClassName, "BitmapType"
-        #IfNDef __USE_GTK__
+	Constructor BitmapType
+		WLet FClassName, "BitmapType"
+		#ifndef __USE_GTK__
 			FLoadFlag(0) = 0
 			FLoadFlag(1) = LR_LOADTRANSPARENT
-        #EndIf
-        FWidth       = 16
-        FHeight      = 16
-        FTransparent = False
-        Create
-    End Constructor
-
-    Destructor BitmapType
-        Free
-        #IfNDef __USE_GTK__
+		#endif
+		FWidth       = 16
+		FHeight      = 16
+		FTransparent = False
+		Create
+	End Constructor
+	
+	Destructor BitmapType
+		Free
+		#ifndef __USE_GTK__
 			DeleteObject FDevice
-		#EndIf
-    End Destructor
-End namespace
+		#endif
+	End Destructor
+End Namespace

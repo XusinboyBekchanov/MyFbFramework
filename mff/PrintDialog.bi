@@ -11,10 +11,10 @@
 #Include Once "Dialogs.bi"
 
 TYPE PrintDialog Extends Dialog
-	Private:
+Private:
 	xLeft AS integer        = -1                        ' Default to center
-	xTop AS integer         = -1        
-	Public:                
+	xTop AS integer         = -1
+Public:
 	Width AS integer                                    ' Not used
 	Height AS integer                                   ' Not used
 	Caption AS string       = ""

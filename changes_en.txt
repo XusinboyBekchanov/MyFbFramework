@@ -1,3 +1,7 @@
+Version 1.2.3 (May 17, 2020)
+- Added: UString
+- Added: FontDialog (in Linux)
+- Added: ColorDialog (in Linux)
 Version 1.2.2 (December 31, 2019)
 - Added: Reorderable property in TabControl
 Version 1.2.1 (December 18, 2019)

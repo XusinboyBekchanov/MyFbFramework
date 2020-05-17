@@ -8,7 +8,7 @@
 Namespace My
 	Namespace Sys
 		Function Name As String
-			#If __USE_GTK__ 
+			#If __USE_GTK__
 				Return "Linux"
 			#Else
 				Return "Windows"
@@ -16,7 +16,7 @@ Namespace My
 		End Function
 		
 		Function Version As Long
-			#If __USE_GTK__ 
+			#If __USE_GTK__
 				
 			#Else
 				' ========================================================================================
@@ -47,7 +47,7 @@ Namespace My
 		End Function
 		
 		Function Build As Long
-			#If __USE_GTK__ 
+			#If __USE_GTK__
 				
 			#Else
 				' ========================================================================================
@@ -60,7 +60,7 @@ Namespace My
 		End Function
 		
 		Function Platform As Long
-			#If __USE_GTK__ 
+			#If __USE_GTK__
 				
 			#Else
 				' ========================================================================================

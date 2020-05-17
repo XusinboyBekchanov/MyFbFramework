@@ -1,7 +1,7 @@
 ﻿'################################################################################
 '#  TreeView.bi                                                                 #
 '#  This file is part of MyFBFramework                                          #
-'#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
+'#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 
 #include once "TreeView.bi"
@@ -67,11 +67,11 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Property TreeNode.Text ByRef As WString
-		Return WGet(FText)
+		Return *FText.vptr
 	End Property
 	
 	Property TreeNode.Text(ByRef Value As WString)
-		WLet FText, Value
+		FText = Value
 		#ifdef __USE_GTK__
 			If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
 				gtk_tree_store_set(Cast(TreeView Ptr, Parent)->TreeStore, @TreeIter, 1, ToUTF8(Value), -1)
@@ -83,11 +83,27 @@ Namespace My.Sys.Forms
 				'TreeView_GetItem(Parent->Handle, @tvi)
 				tvi.mask = TVIF_TEXT
 				tvi.hItem = Handle
-				tvi.pszText = FText
-				tvi.cchTextMax = Len(*FText)
+				tvi.pszText = FText.vptr
+				tvi.cchTextMax = Len(FText)
 				TreeView_SetItem(Parent->Handle, @tvi)
 			End If
-		#endif 
+		#endif
+	End Property
+	
+	Property TreeNode.IsUpdated As Boolean
+		Return FIsUpdated
+	End Property
+	
+	Property TreeNode.IsUpdated(Value As Boolean)
+		FIsUpdated = Value
+	End Property
+	
+	Property TreeNode.Checked As Boolean
+		Return FChecked
+	End Property
+	
+	Property TreeNode.Checked(Value As Boolean)
+		FChecked = Value
 	End Property
 	
 	Property TreeNode.Hint ByRef As WString
@@ -113,7 +129,7 @@ Namespace My.Sys.Forms
 	Property TreeNode.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
-			If Parent Then 
+			If Parent Then
 				With QControl(Parent)
 					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
 				End With
@@ -148,7 +164,7 @@ Namespace My.Sys.Forms
 	
 	Property TreeNode.SelectedImageIndex(Value As Integer)
 		FImageIndex = Value
-		If Parent Then 
+		If Parent Then
 			With QControl(Parent)
 				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
 			End With
@@ -183,7 +199,7 @@ Namespace My.Sys.Forms
 	Property TreeNode.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
-			If Parent Then 
+			If Parent Then
 				With QControl(Parent)
 					'.Perform(TB_HIDEBUTTON, FCommandID, MakeLong(NOT FVisible, 0))
 				End With
@@ -200,7 +216,7 @@ Namespace My.Sys.Forms
 		Nodes.Parent = Parent
 		Nodes.ParentNode = @This
 		FHint = CAllocate(0)
-		FText = CAllocate(0)
+		FText = "" 'CAllocate(0)
 		FVisible    = 1
 		Text    = ""
 		Hint       = ""
@@ -211,7 +227,7 @@ Namespace My.Sys.Forms
 	Destructor TreeNode
 		Nodes.Clear
 		WDeAllocate FHint
-		WDeAllocate FText
+		'WDeAllocate FText
 		WDeAllocate FImageKey
 		WDeAllocate FSelectedImageKey
 	End Destructor
@@ -256,7 +272,8 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNodeCollection.Item(Index As Integer, Value As TreeNode Ptr)
-		'QTreeNode(FNodes.Items[Index]) = Value 
+		'QTreeNode(FNodes.Items[Index]) = Value
+		FNodes.Items[Index] = Value 'David Change
 	End Property
 	
 	Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
@@ -293,10 +310,10 @@ Namespace My.Sys.Forms
 				Dim As TVINSERTSTRUCT tvis
 				If Parent AndAlso Parent->Handle Then
 					tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @Ftext 
-					tvis.item.cchTextMax           = Len(Ftext) 
+					tvis.item.pszText              = @Ftext
+					tvis.item.cchTextMax           = Len(Ftext)
 					tvis.item.iImage             = FImageIndex
-					tvis.item.iSelectedImage     = FSelectedImageIndex 
+					tvis.item.iSelectedImage     = FSelectedImageIndex
 					tvis.hInsertAfter            = IIf(Cast(TreeView Ptr, Parent)->Sorted Or bSorted, TVI_SORT, 0)
 					'tvis.hInsertAfter            = 0
 					If .ParentNode Then tvis.hParent               = .ParentNode->Handle
@@ -315,7 +332,7 @@ Namespace My.Sys.Forms
 		End If
 		If PNode Then PNode->ImageKey         = FImageKey: PNode->SelectedImageKey         = FSelectedImageKey
 		Return PNode
-	End Function    
+	End Function
 	
 	Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
 		PNode = New TreeNode
@@ -342,10 +359,10 @@ Namespace My.Sys.Forms
 				Dim As TVINSERTSTRUCT tvis
 				If Parent->Handle Then
 					tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @Ftext 
-					tvis.item.cchTextMax           = Len(Ftext) 
+					tvis.item.pszText              = @Ftext
+					tvis.item.cchTextMax           = Len(Ftext)
 					tvis.item.iImage             = FImageIndex
-					tvis.item.iSelectedImage     = FSelectedImageIndex 
+					tvis.item.iSelectedImage     = FSelectedImageIndex
 					tvis.hInsertAfter            = Item(Index)->Handle
 					If ParentNode Then
 						tvis.hParent               = ParentNode->Handle
@@ -367,7 +384,7 @@ Namespace My.Sys.Forms
 		End If
 		If PNode Then PNode->ImageKey         = FImageKey: PNode->SelectedImageKey         = FSelectedImageKey
 		Return PNode
-	End Function    
+	End Function
 	
 	Sub TreeNodeCollection.Remove(Index As Integer)
 		#ifdef __USE_GTK__
@@ -379,7 +396,16 @@ Namespace My.Sys.Forms
 				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
 			End If
 		#endif
+		Delete Item(Index)
 		FNodes.Remove Index
+	End Sub
+	Sub TreeNodeCollection.EditLabel
+		#ifdef __USE_GTK__
+		#else
+			If Parent AndAlso Parent->Handle AndAlso FParentNode->Handle Then
+				'TreeView_EditLabel(Parent->Handle, FParentNode->Handle)
+			End If
+		#endif
 	End Sub
 	
 	Function TreeNodeCollection.IndexOf(ByRef FNode As TreeNode Ptr) As Integer
@@ -425,7 +451,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeView Ptr, Parent)->TreeStore)
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
-			Delete @QTreeNode(FNodes.Items[i])
+			'Delete @QTreeNode(FNodes.Items[i])
 			Remove i
 		Next i
 		FNodes.Clear
@@ -467,6 +493,17 @@ Namespace My.Sys.Forms
 		FHideSelection = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TVS_SHOWSELALWAYS, Not Value
+		#endif
+	End Property
+	
+	Property TreeView.EditLabels As Boolean
+		Return FEditLabels
+	End Property
+	
+	Property TreeView.EditLabels(Value As Boolean)
+		FEditLabels = Value
+		#ifndef __USE_GTK__
+			ChangeStyle TVS_EDITLABELS, Not Value
 		#endif
 	End Property
 	
@@ -540,13 +577,13 @@ Namespace My.Sys.Forms
 					Case NM_CLICK
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						If OnNodeClick AndAlso sn Then OnNodeClick(This, *sn)
-					Case NM_DBLCLK: 
+					Case NM_DBLCLK:
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						If OnNodeDblClick AndAlso sn Then OnNodeDblClick(This, *sn)
 						If OnNodeActivate Then OnNodeActivate(This, *sn)
 					Case NM_KILLFOCUS
 					Case NM_RCLICK
-						'If OnMouseUp Then OnMouseUp(This,1,Message.lParamLo,Message.lParamHi,Message.wParam AND &HFFFF)
+						If OnMouseUp Then OnMouseUp(This,1,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 						If ContextMenu Then
 							If ContextMenu->Handle Then
 								Dim As Point P
@@ -554,7 +591,7 @@ Namespace My.Sys.Forms
 								ContextMenu->Popup(P.x, P.y)
 							End If
 						End If
-					Case NM_RDBLCLK 
+					Case NM_RDBLCLK
 					Case NM_RETURN
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						If OnNodeActivate AndAlso sn Then OnNodeActivate(This, *sn)
@@ -566,7 +603,7 @@ Namespace My.Sys.Forms
 					Case TVN_SELCHANGING
 					Case TVN_SELCHANGED
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnSelChange AndAlso sn Then OnSelChange(This, *sn)
+						If OnSelChange AndAlso sn <> 0 Then OnSelChange(This, *sn)
 					Case TVN_GETDISPINFO
 					Case TVN_GETINFOTIP
 					Case TVN_SETDISPINFO
@@ -579,39 +616,17 @@ Namespace My.Sys.Forms
 					Case TVN_DELETEITEM
 					Case TVN_BEGINLABELEDIT
 					Case TVN_ENDLABELEDIT
+						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, message.lparam)
+						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
+						If OnAfterLabelEdit Then OnAfterLabelEdit(This, *tmpStr)
+						Deallocate tmpStr
 					Case TVN_ITEMCHANGINGW
 					Case TVN_ITEMCHANGED
 					Case TVN_ASYNCDRAW
 						'Case NM_KEYDOWN: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))
 					End Select
 				End If
-				'            Dim As LPNMHDR NM
-				'            Static As HWND FWindow
-				'            NM = Cast(LPNMHDR, Message.lParam)
-				'            ?NM->Code
-				'            Select Case NM->Code
-				'            Case TVN_KEYDOWN
-				'                
-				'            Case TVN_GETINFOTIP
-				'            Case TVN_SINGLEEXPAND
-				'            Case TVN_SELCHANGING
-				'            Case TVN_SELCHANGED
-				'            Case TVN_GETDISPINFO
-				'            Case TVN_GETINFOTIP
-				'            Case TVN_SETDISPINFO
-				'            Case TVN_ITEMCHANGED
-				'            Case TVN_ITEMCHANGING
-				'            Case TVN_ITEMEXPANDING
-				'            Case TVN_ITEMEXPANDED
-				'            Case TVN_BEGINDRAG
-				'            Case TVN_BEGINRDRAG
-				'            Case TVN_DELETEITEM
-				'            Case TVN_BEGINLABELEDIT
-				'            Case TVN_ENDLABELEDIT
-				'            Case TVN_ITEMCHANGINGW
-				'            Case TVN_ITEMCHANGED
-				'            Case TVN_ASYNCDRAW
-				'            End Select
+				
 			Case CM_COMMAND
 				
 			Case CM_NEEDTEXT
@@ -625,7 +640,7 @@ Namespace My.Sys.Forms
 				'                If Perform(TB_GETBUTTON,Index,CInt(@TB)) Then
 				'                   If Buttons.Button(Index)->ShowHint Then
 				'                      If Buttons.Button(Index)->Hint <> "" Then
-				'                          'Dim As UString s 
+				'                          'Dim As UString s
 				'                          's = Buttons.Button(Index).Hint
 				'                          TTX->lpszText = @(Buttons.Button(Index)->Hint)
 				'                      End If
@@ -646,10 +661,10 @@ Namespace My.Sys.Forms
 				For i As Integer = 0 To .Count - 1
 					Dim tvis As TVINSERTSTRUCT
 					tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @.Item(i)->text 
-					tvis.item.cchTextMax           = Len(.Item(i)->text) 
+					tvis.item.pszText              = @.Item(i)->text
+					tvis.item.cchTextMax           = Len(.Item(i)->text)
 					tvis.item.iImage             = .Item(i)->ImageIndex
-					tvis.item.iSelectedImage     = .Item(i)->SelectedImageIndex 
+					tvis.item.iSelectedImage     = .Item(i)->SelectedImageIndex
 					tvis.hInsertAfter            = 0
 					If .Item(i)->ParentNode Then
 						tvis.hParent               = .Item(i)->ParentNode->Handle
@@ -671,15 +686,19 @@ Namespace My.Sys.Forms
 					'.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) OR TBSTYLE_EX_DRAWDDARROWS)
 					'.Perform(TB_SETBUTTONSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
 					'.Perform(TB_SETBITMAPSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
+					Dim lvStyle As Integer = TreeView_GetExtendedStyle(.FHandle) 'David Change
+					lvStyle = lvStyle Or TVS_EX_DOUBLEBUFFER' Or TVS_EX_FADEINOUTEXPANDOS 'the ICO not showing at the beginning
+					TreeView_SetExtendedStyle(.FHandle, lvStyle, 0)
+					
 					If .Images AndAlso .Images->Handle Then TreeView_SetImageList(.FHandle, CInt(.Images->Handle), TVSIL_NORMAL)
 					If .SelectedImages AndAlso .SelectedImages->Handle Then TreeView_SetImageList(.FHandle, CInt(.SelectedImages->Handle), TVSIL_STATE)
 					For i As Integer = 0 To .Nodes.Count -1
 						Dim tvis As TVINSERTSTRUCT
 						tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-						tvis.item.pszText              = @.Nodes.Item(i)->text 
+						tvis.item.pszText              = @.Nodes.Item(i)->text
 						tvis.item.cchTextMax           = Len(.Nodes.Item(i)->text)
 						tvis.item.iImage             = .Nodes.Item(i)->ImageIndex
-						tvis.item.iSelectedImage     = .Nodes.Item(i)->SelectedImageIndex 
+						tvis.item.iSelectedImage     = .Nodes.Item(i)->SelectedImageIndex
 						tvis.hInsertAfter            = 0
 						tvis.hParent            = TVI_ROOT
 						.Nodes.Item(i)->Handle        = TreeView_InsertItem(.FHandle, @tvis)
@@ -690,7 +709,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Operator TreeView.Cast As Control Ptr 
+	Operator TreeView.Cast As Control Ptr
 		Return @This
 	End Operator
 	
@@ -789,11 +808,14 @@ Namespace My.Sys.Forms
 				WLet FClassAncestor, WC_TREEVIEW
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_VISIBLE Or TVS_HASLINES Or TVS_LINESATROOT Or TVS_HASBUTTONS
+				.BackColor       = GetSysColor(COLOR_WINDOW) 'David Change
+				.DoubleBuffered = True
 			#endif
 			WLet FClassName, "TreeView"
+			FTabStop = True
 			.Width             = 121
 			.Height            = 121
-		End With 
+		End With
 	End Constructor
 	
 	Destructor TreeView
@@ -803,35 +825,3 @@ Namespace My.Sys.Forms
 		#endif
 	End Destructor
 End Namespace
-
-'TODO:
-'const TVS_HASBUTTONS = &h1
-'const TVS_HASLINES = &h2
-'const TVS_LINESATROOT = &h4
-'const TVS_EDITLABELS = &h8
-'const TVS_DISABLEDRAGDROP = &h10
-'const TVS_SHOWSELALWAYS = &h20
-'const TVS_RTLREADING = &h40
-'const TVS_NOTOOLTIPS = &h80
-'const TVS_CHECKBOXES = &h100
-'const TVS_TRACKSELECT = &h200
-'const TVS_SINGLEEXPAND = &h400
-'const TVS_INFOTIP = &h800
-'const TVS_FULLROWSELECT = &h1000
-'const TVS_NOSCROLL = &h2000
-'const TVS_NONEVENHEIGHT = &h4000
-'const TVS_NOHSCROLL = &h8000
-'const TVS_EX_NOSINGLECOLLAPSE = &h1
-'
-'#if _WIN32_WINNT = &h0602
-'    const TVS_EX_MULTISELECT = &h2
-'    const TVS_EX_DOUBLEBUFFER = &h4
-'    const TVS_EX_NOINDENTSTATE = &h8
-'    const TVS_EX_RICHTOOLTIP = &h10
-'    const TVS_EX_AUTOHSCROLL = &h20
-'    const TVS_EX_FADEINOUTEXPANDOS = &h40
-'    const TVS_EX_PARTIALCHECKBOXES = &h80
-'    const TVS_EX_EXCLUSIONCHECKBOXES = &h100
-'    const TVS_EX_DIMMEDCHECKBOXES = &h200
-'    const TVS_EX_DRAWIMAGEASYNC = &h400
-'#endif

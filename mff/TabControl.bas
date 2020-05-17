@@ -1,14 +1,14 @@
 ﻿'###############################################################################
 '#  TabControl.bi                                                              #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
 '#   TTabControl.bi                                                            #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.0                                                             #
 '#  Updated and added cross-platform                                           #
-'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
 #include once "TabControl.bi"
@@ -18,8 +18,8 @@ Namespace My.Sys.Forms
 		Function TabPage.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "parent": Return FParent
-			Case "text": Return FText
-			Case "caption": Return FText
+			Case "text": Return FText.vptr
+			Case "caption": Return FText.vptr
 			Case "usevisualstylebackcolor": Return @UseVisualStyleBackColor
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -45,9 +45,9 @@ Namespace My.Sys.Forms
 			End If
 			Return True
 		End Function
-	#EndIf
+	#endif
 	
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabPage(Sender.Child)
@@ -58,10 +58,10 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
 	Sub TabPage.ProcessMessage(ByRef msg As Message)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FTheme = GetWindowTheme(Msg.hWnd)
 			Dim As RECT rct
 			Select Case msg.msg
@@ -94,7 +94,7 @@ Namespace My.Sys.Forms
 					Dim As RECT rct
 					GetClientRect(Msg.hWnd, @rct)
 					FillRect(Cast(HDC, Msg.wParam), @rct, GetStockObject(NULL_BRUSH))
-					Msg.Result = TRUE
+					Msg.Result = True
 					Return
 				End If
 				'Case WM_PAINT, WM_ERASEBKGND
@@ -112,7 +112,7 @@ Namespace My.Sys.Forms
 				'				EndPaint(msg.hwnd, @ps)
 				'EnableThemeDialogTexture(msg.hwnd, ETDT_ENABLETAB)
 			End Select
-		#EndIf
+		#endif
 		Base.ProcessMessage(msg)
 	End Sub
 	
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 					Else
 						Ti.iImage = FImageIndex
 					End If
-					This.Parent->Perform(TCM_SETITEM,Index,CInt(@Ti)) 
+					This.Parent->Perform(TCM_SETITEM,Index,CInt(@Ti))
 				End If
 			#endif
 		End If
@@ -219,7 +219,7 @@ Namespace My.Sys.Forms
 		Caption = Value
 	End Operator
 	
-	Operator TabPage.Cast As Control Ptr 
+	Operator TabPage.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
@@ -279,7 +279,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Return gtk_notebook_get_current_page(gtk_notebook(widget))
 		#else
-			Return Perform(TCM_GETCURSEL,0,0) 
+			Return Perform(TCM_GETCURSEL,0,0)
 		#endif
 	End Property
 	
@@ -314,7 +314,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Property TabControl.TabPosition As My.Sys.Forms.TabPosition
-		Return FTabPosition 
+		Return FTabPosition
 	End Property
 	
 	Property TabControl.TabPosition(Value As My.Sys.Forms.TabPosition)
@@ -377,7 +377,7 @@ Namespace My.Sys.Forms
 			Case 1
 				ChangeStyle TCS_TABS, False
 				ChangeStyle TCS_OWNERDRAWFIXED, False
-				ChangeStyle TCS_BUTTONS, True   
+				ChangeStyle TCS_BUTTONS, True
 			Case 2
 				ChangeStyle TCS_TABS, False
 				ChangeStyle TCS_BUTTONS, False
@@ -403,7 +403,7 @@ Namespace My.Sys.Forms
 					Style = Style And Not TCS_FLATBUTTONS
 				End If
 			End Select
-		#endif 
+		#endif
 		'RecreateWnd
 	End Property
 	
@@ -595,18 +595,29 @@ Namespace My.Sys.Forms
 			Case WM_LBUTTONUP
 				DownButton = -1
 			Case WM_MOUSEMOVE
-				If FReorderable AndAlso DownButton = 0 Then
+				If CInt(FReorderable) AndAlso CInt(DownButton = 0) Then
+					Dim As Rect R1, R2, R3
 					Var TbIndex = TabIndex
-					If Message.lParamLo < FMousePos - 10 AndAlso TbIndex > 0 Then
-						ReorderTab Tabs[TbIndex], TbIndex - 1
-					ElseIf Message.lParamLo > FMousePos + 10 AndAlso TbIndex < TabCount - 1 Then
-						ReorderTab Tabs[TbIndex], TbIndex + 1
+					Perform(TCM_GETITEMRECT, TbIndex, CInt(@R1))
+					If Message.lParamLo < R1.Left AndAlso TbIndex > 0 Then
+						Perform(TCM_GETITEMRECT, TbIndex - 1, CInt(@R2))
+						If Message.lParamLo < R2.Left + FMousePos - R1.Left Then
+							ReorderTab Tabs[TbIndex], TbIndex - 1
+							Perform(TCM_GETITEMRECT, TbIndex - 1, CInt(@R3))
+							FMousePos = R3.Left + FMousePos - R1.Left
+						End If
+					ElseIf Message.lParamLo > R1.Right AndAlso TbIndex < TabCount - 1 Then
+						Perform(TCM_GETITEMRECT, TbIndex + 1, CInt(@R2))
+						If Message.lParamLo > R2.Right - R2.Left + FMousePos - R1.Left Then
+							ReorderTab Tabs[TbIndex], TbIndex + 1
+							Perform(TCM_GETITEMRECT, TbIndex + 1, CInt(@R3))
+							FMousePos = R3.Left + FMousePos - R1.Left
+						End If
 					End If
-					FMousePos = Message.lParamLo
 				End If
 			Case CM_COMMAND
 			Case CM_NOTIFY
-				Dim As LPNMHDR NM 
+				Dim As LPNMHDR NM
 				NM = Cast(LPNMHDR,Message.lParam)
 				If NM->Code = TCN_SELCHANGE Then
 					TabIndex = TabIndex
@@ -697,7 +708,7 @@ Namespace My.Sys.Forms
 				'RequestAlign
 			End If
 			tp->Visible = FTabCount = 1
-			If widget Then 
+			If widget Then
 				gtk_widget_show_all(widget)
 			End If
 		#else
@@ -754,7 +765,7 @@ Namespace My.Sys.Forms
 				It = Tabs[i]
 				Tabs[i - 1] = It
 			Next i
-			FTabCount -= 1 
+			FTabCount -= 1
 			Tabs = Reallocate(Tabs,FTabCount*SizeOf(TabPage))
 			#ifdef __USE_GTK__
 				gtk_notebook_remove_page(gtk_notebook(widget), Index)
@@ -778,7 +789,7 @@ Namespace My.Sys.Forms
 			Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 		#endif
 		If Index >= 0 And Index <= FTabCount -1 Then
-			FTabCount += 1 
+			FTabCount += 1
 			Tabs = Reallocate(Tabs,FTabCount*SizeOf(TabPage))
 			For i = Index To FTabCount -2
 				It = Tabs[i]
@@ -822,7 +833,7 @@ Namespace My.Sys.Forms
 				'RequestAlign
 			End If
 			tp->Visible = FTabCount = 1
-			If widget Then 
+			If widget Then
 				gtk_widget_show_all(widget)
 			End If
 		#else
@@ -843,7 +854,7 @@ Namespace My.Sys.Forms
 		This.Add(Tabs[Index])
 	End Sub
 	
-	Operator TabControl.Cast As Control Ptr 
+	Operator TabControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
@@ -880,9 +891,11 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
-				Base.Style       = WS_CHILD 
+				Base.Style       = WS_CHILD
 				.OnHandleIsAllocated = @HandleIsAllocated
+				.DoubleBuffered = True
 			#endif
+			FTabStop           = True
 			FTabPosition = 2
 			.Width       = 121
 			.Height      = 121
@@ -893,7 +906,7 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To TabCount - 1
 			Tabs[i]->Parent = 0
 		Next
-		'UnregisterClass "TabControl", GetModuleHandle(NULL) 
+		'UnregisterClass "TabControl", GetModuleHandle(NULL)
 	End Destructor
 	
 End Namespace

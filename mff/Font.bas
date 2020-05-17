@@ -11,7 +11,10 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Font.bi"
+#include once "Font.bi"
+
+Dim Shared DefaultFont As My.Sys.Drawing.Font
+pDefaultFont = @DefaultFont
 
 Namespace My.Sys.Drawing
 	Function Font.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -41,7 +44,7 @@ Namespace My.Sys.Drawing
 			Case "italic": This.Italic = QBoolean(Value)
 			Case "underline": This.Underline = QBoolean(Value)
 			Case "strikeout": This.StrikeOut = QBoolean(Value)
-			Case "orientation": This.Orientation = QInteger(Value)   
+			Case "orientation": This.Orientation = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -49,29 +52,33 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Sub Font.Create
-		#IfDef __USE_GTK__
+		If WGet(FName) = "" Then
+			WLet FName, DefaultFont.Name
+			FSize = DefaultFont.Size
+		End If
+		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
 			Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
-		#Else
-			If Handle Then DeleteObject(Handle) 
+		#else
+			If Handle Then DeleteObject(Handle)
 			Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,FOrientation*FSize,FOrientation*FSize,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
-		#EndIf
+		#endif
 		If Handle Then
 			If FParent Then
-				#IfDef __USE_GTK__
+				#ifdef __USE_GTK__
 					If FParent->Widget Then
-						#IfDef __USE_GTK3__
+						#ifdef __USE_GTK3__
 							gtk_widget_override_font(FParent->Widget, Handle)
-						#Else
+						#else
 							gtk_widget_modify_font(FParent->Widget, Handle)
-						#EndIf
+						#endif
 					End If
-				#Else
+				#else
 					If FParent->Handle Then
 						SendMessage(FParent->Handle, WM_SETFONT,CUInt(Handle),True)
 						InvalidateRect FParent->Handle, 0, True
 					End If
-				#EndIf
+				#endif
 			End If
 		End If
 	End Sub
@@ -82,23 +89,23 @@ Namespace My.Sys.Drawing
 	
 	Property Font.Parent(Value As Component Ptr)
 		FParent = value
-		#IfDef __USE_GTK__
-			#IfDef __USE_GTK3__
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
 				Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Widget)
 				Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
-			#Else
+			#else
 				Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Widget)
 				Var pfd = WidgetStyle->font_desc
-			#EndIf
+			#endif
 			WLet FName, WStr(*pango_font_description_get_family(pfd))
 			FSize = pango_font_description_get_size(pfd) / PANGO_SCALE
-		#Else
+		#else
 			Create
-		#EndIf
+		#endif
 	End Property
 	
 	Property Font.Name ByRef As WString
-		Return WGet(FName) 
+		Return WGet(FName)
 	End Property
 	
 	Property Font.Name(ByRef Value As WString)
@@ -210,26 +217,32 @@ Namespace My.Sys.Drawing
 	Constructor Font
 		WLet FClassName, "Font"
 		FCharSet  = FontCharset.Default
-		#IfNDef __USE_GTK__
+		WLet FName, DefaultFont.Name
+		FSize     = DefaultFont.Size
+		#ifndef __USE_GTK__
 			Dim As HDC Dc
 			Dc = GetDC(HWND_DESKTOP)
 			FCyPixels = GetDeviceCaps(DC, LOGPIXELSY)
 			ReleaseDC(HWND_DESKTOP,DC)
 			FBolds(0) = 400
 			FBolds(1) = 700
-			WLet FName, "TAHOMA"
-			FSize     = 8
 			Create
-		#Else
-			FSize 	  = 11
-		#EndIf
+		#endif
 	End Constructor
 	
 	Destructor Font
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
-		#Else
+		#else
 			If Handle Then DeleteObject(Handle)
-		#EndIf
+		#endif
 	End Destructor
-End namespace
+	
+	#ifdef __FB_LINUX__
+		DefaultFont.Name = "Ubuntu"
+		DefaultFont.Size = 11
+	#else
+		DefaultFont.Name = "Tahoma"
+		DefaultFont.Size = 8
+	#endif
+End Namespace

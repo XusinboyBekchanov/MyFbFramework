@@ -29,7 +29,7 @@ Namespace My.Sys.ComponentModel
 	
 	Enum PrinterQuality
 		#IfNDef __USE_GTK__
-			pqDraft=DMRES_DRAFT 
+			pqDraft=DMRES_DRAFT
 			pqLow =DMRES_LOW
 			pqMedium =DMRES_MEDIUM
 			pqHigh=DMRES_HIGH
@@ -42,9 +42,9 @@ Namespace My.Sys.ComponentModel
 	End Enum
 	
 	Enum PrinterDuplexMode
-		pdmSimplex = 1  
-		pdmHorizontal = 2 
-		pdmVertical = 3  
+		pdmSimplex = 1
+		pdmHorizontal = 2
+		pdmVertical = 3
 	End Enum
 	
 	Enum PrinterPaperSize
@@ -108,9 +108,9 @@ Namespace My.Sys.ComponentModel
 	End Enum
 	
 	Type Printer extends Component
-		Private:
+	Private:
 		#IfNDef __USE_GTK__
-			m_hdc AS HDC               'handle of a display device context 
+			m_hdc AS HDC               'handle of a display device context
 			m_hFont AS HFONT             'handle of current font
 			hOrigFont AS HFONT       'handle of original font
 			hDevMode AS DEVMODE Ptr          'handle to DEVMODE structure
@@ -119,7 +119,7 @@ Namespace My.Sys.ComponentModel
 		m_PortName As String
 		m_Page As Integer
 		m_PageSize As Integer
-		m_Quality  As Integer 
+		m_Quality  As Integer
 		m_Copies As Integer
 		m_FromPage As Integer
 		m_ToPage As Integer
@@ -135,11 +135,11 @@ Namespace My.Sys.ComponentModel
 		As Integer FPageNumber=1
 		m_duplex As PrinterDuplexMode
 		m_colorMode As Long
-		FTitle  As String 
+		FTitle  As String
 		Declare FUNCTION PARSE OverLoad (source as string, delimiter as String="|", index as integer)as String
 		Declare FUNCTION PARSE (source as String, index as integer, delimiter as String=",")as String
 		Declare Function STRREVERSE (S As String)As String
-		DECLARE Sub       orientPrint(n AS LONG) 
+		DECLARE Sub       orientPrint(n AS LONG)
 		
 		DECLARE Function  SetPrinterOrientation2 (BYVAL PrinterName AS String, BYVAL nOrientation AS LONG) AS LONG
 		
@@ -175,9 +175,9 @@ Namespace My.Sys.ComponentModel
 		Declare Function GetDefaultPrinterPort () AS String
 		Declare Sub ShowPrinterProperties()
 		Declare   Sub UpdateMargeins()
-		Public:
+	Public:
 		Canvas As My.Sys.Drawing.Canvas
-		DECLARE Sub       reportError( BYVAL n AS LONG) 
+		DECLARE Sub       reportError( BYVAL n AS LONG)
 		Declare Property  Name(vData As String)
 		Declare Property  Name() As String
 		Declare Property  PortName(vData As String)
@@ -185,28 +185,28 @@ Namespace My.Sys.ComponentModel
 		#IfNDef __USE_GTK__
 			DECLARE Property  Handle() AS HDC
 		#EndIf
-		DECLARE Property  PageHeight as  Integer 
-		DECLARE Property  PageWidth as  Integer 
-		DECLARE Property  MarginLeft as  Integer 
+		DECLARE Property  PageHeight as  Integer
+		DECLARE Property  PageWidth as  Integer
+		DECLARE Property  MarginLeft as  Integer
 		Declare Property  MarginLeft(value as  Integer)
-		Declare  Property MarginTop as  Integer 
+		Declare  Property MarginTop as  Integer
 		Declare  Property MarginTop(value as  Integer)
-		Declare  Property MarginRight as  Integer 
+		Declare  Property MarginRight as  Integer
 		Declare  Property MarginRight(value as  Integer)
-		Declare  Property Marginbottom as  Integer 
+		Declare  Property Marginbottom as  Integer
 		Declare  Property Marginbottom(value As  Integer)
 		Declare Property  Page(vData As Integer)
 		Declare Property  Page() As Integer
 		Declare Property  PageSize(vData As Integer)
 		Declare Property  PageSize() As Integer
-		Declare Property  printableWidth() AS Long 
-		Declare Property  printableHeight() AS Long 
+		Declare Property  printableWidth() AS Long
+		Declare Property  printableHeight() AS Long
 		Declare Property  Orientation(vData As Long)
 		Declare Property  Orientation() As Long
 		Declare Property  Copies(vData As Integer)
 		Declare Property  Copies() As Integer
 		Declare Property  Quality(vData As PrinterQuality)
-		Declare Property  Quality() As PrinterQuality 
+		Declare Property  Quality() As PrinterQuality
 		Declare Property  FromPage(vData As Integer)
 		Declare Property  FromPage() As Integer
 		Declare Property  ToPage(vData As Integer)
@@ -215,7 +215,7 @@ Namespace My.Sys.ComponentModel
 		Declare Property ScaleFactorX() AS LONG
 		Declare Property ScaleFactorY() AS Long
 		Declare Property ColorMode (BYVAL nMode AS LONG)
-		Declare Property ColorMode() AS LONG 
+		Declare Property ColorMode() AS LONG
 		Declare Property DriveVersion() AS Long
 		
 		Declare Property  MaxCopies() AS Long
@@ -223,19 +223,19 @@ Namespace My.Sys.ComponentModel
 		Declare Property  MaxPaperWidth() AS Long
 		Declare Function  defaultPrinter() AS STRING
 		Declare Function  choosePrinter() AS STRING
-		Declare Sub       getPageSize(ByRef wi AS Integer,ByRef ht AS Integer) 
-		Declare Sub       getCharSize(ByRef wi AS Integer,ByRef ht AS Integer) 
+		Declare Sub       getPageSize(ByRef wi AS Integer,ByRef ht AS Integer)
+		Declare Sub       getCharSize(ByRef wi AS Integer,ByRef ht AS Integer)
 		DECLARE Function  getLines( BYVAL y AS Integer=0) AS LONG
-		DECLARE Property  duplexMode(n As PrinterDuplexMode)    
-		Declare Property  duplexMode() AS PrinterDuplexMode 
-		Declare  Property   Title() As String 
-		Declare  Property   Title(value As String) 
-		Declare Sub       StartDoc() 
+		DECLARE Property  duplexMode(n As PrinterDuplexMode)
+		Declare Property  duplexMode() AS PrinterDuplexMode
+		Declare  Property   Title() As String
+		Declare  Property   Title(value As String)
+		Declare Sub       StartDoc()
 		DECLARE Sub       StartPage
 		DECLARE Sub       EndDPage
 		DECLARE Sub       NewPage
 		DECLARE Sub       EndDoc
-		Declare Sub       CalcPageSize(byref Rows AS LONG,byref Columns AS LONG) 
+		Declare Sub       CalcPageSize(byref Rows AS LONG,byref Columns AS LONG)
 		Declare Property FontSize() As Integer
 		Declare Property fontsize(As Integer)
 		#IfNDef __USE_GTK__

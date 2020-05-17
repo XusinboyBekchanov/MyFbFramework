@@ -14,40 +14,40 @@
 #Include Once "Cursor.bi"
 
 Namespace My.Sys.Drawing
-    Property Cursor.Width As Integer
-        Return FWidth 
-    End Property
-
-    Property Cursor.Width(Value As Integer)
-        FWidth = Value
-    End Property
-
-    Property Cursor.Height As Integer
-        Return FHeight
-    End Property
-
-    Property Cursor.Height(Value As Integer)
-        FHeight = Value
-    End Property
-
-    Property Cursor.HotSpotX As Integer
-        Return FHotSpotX
-    End Property
-
-    Property Cursor.HotSpotX(Value As Integer)
-       FHotSpotX = Value
-    End Property
-
-    Property Cursor.HotSpotY As Integer
-        Return FHotSpotY
-    End Property
-
-    Property Cursor.HotSpotY(Value As Integer)
-        FHotSpotY = Value
-    End Property
-
-    Sub Cursor.LoadFromFile(ByRef File As WString)
-        #IfNDef __USE_GTK__
+	Property Cursor.Width As Integer
+		Return FWidth
+	End Property
+	
+	Property Cursor.Width(Value As Integer)
+		FWidth = Value
+	End Property
+	
+	Property Cursor.Height As Integer
+		Return FHeight
+	End Property
+	
+	Property Cursor.Height(Value As Integer)
+		FHeight = Value
+	End Property
+	
+	Property Cursor.HotSpotX As Integer
+		Return FHotSpotX
+	End Property
+	
+	Property Cursor.HotSpotX(Value As Integer)
+		FHotSpotX = Value
+	End Property
+	
+	Property Cursor.HotSpotY As Integer
+		Return FHotSpotY
+	End Property
+	
+	Property Cursor.HotSpotY(Value As Integer)
+		FHotSpotY = Value
+	End Property
+	
+	Sub Cursor.LoadFromFile(ByRef File As WString)
+		#IfNDef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(0,File,IMAGE_CURSOR,0,0,LR_LOADFROMFILE)
@@ -58,14 +58,14 @@ Namespace My.Sys.Drawing
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
 		#ENdIf
-        If Changed Then Changed(This)
-    End Sub
-
-    Sub Cursor.SaveToFile(ByRef File As WString)
-    End Sub
-
-    Sub Cursor.LoadFromResourceName(ByRef ResName As WString)
-        #IfNDef __USE_GTK__
+		If Changed Then Changed(This)
+	End Sub
+	
+	Sub Cursor.SaveToFile(ByRef File As WString)
+	End Sub
+	
+	Sub Cursor.LoadFromResourceName(ByRef ResName As WString)
+		#IfNDef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
@@ -76,11 +76,11 @@ Namespace My.Sys.Drawing
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
 		#EndIf
-        If Changed Then Changed(This)
-    End Sub
-
-    Sub Cursor.LoadFromResourceID(ResID As Integer)
-        #IfNDef __USE_GTK__
+		If Changed Then Changed(This)
+	End Sub
+	
+	Sub Cursor.LoadFromResourceID(ResID As Integer)
+		#IfNDef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(ResID), IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
@@ -91,22 +91,22 @@ Namespace My.Sys.Drawing
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
 		#EndIf
-        If Changed Then Changed(This)
-    End Sub
-
-    Sub Cursor.Create
-    End Sub
-
-    Operator Cursor.Cast As Any Ptr
-        Return @This
-    End Operator
-
-    Operator Cursor.Let(ByRef Value As WString)
+		If Changed Then Changed(This)
+	End Sub
+	
+	Sub Cursor.Create
+	End Sub
+	
+	Operator Cursor.Cast As Any Ptr
+		Return @This
+	End Operator
+	
+	Operator Cursor.Let(ByRef Value As WString)
 		#IfNDef __USE_GTK__
 			If FindResource(GetModuleHandle(NULL), Value, RT_CURSOR) Then
-			   LoadFromResourceName(Value)
+				LoadFromResourceName(Value)
 			Else
-			   LoadFromFile(Value)
+				LoadFromFile(Value)
 			End If
 		#Else
 			If Ctrl AndAlso Ctrl->widget Then
@@ -121,7 +121,7 @@ Namespace My.Sys.Drawing
 				If win Then gdk_window_set_cursor(win, Handle)
 			End If
 		#EndIf
-    End Operator
+	End Operator
 	
 	#IfDef __USE_GTK__
 		Operator Cursor.Let(Value As GdkCursorType)
@@ -137,21 +137,21 @@ Namespace My.Sys.Drawing
 		End Operator
 	#EndIf
 	
-    Operator Cursor.Let(Value As Cursor)
-        Handle = Value.Handle
-    End Operator
-
-    Constructor Cursor
-        WLet FClassName, "Cursor"
-        #IfNDef __USE_GTK__
+	Operator Cursor.Let(Value As Cursor)
+		Handle = Value.Handle
+	End Operator
+	
+	Constructor Cursor
+		WLet FClassName, "Cursor"
+		#IfNDef __USE_GTK__
 			Handle = LoadCursor(NULL,IDC_ARROW)
 		#EndIf
-        If Changed Then Changed(This)
-    End Constructor
-
-    Destructor Cursor
+		If Changed Then Changed(This)
+	End Constructor
+	
+	Destructor Cursor
 		#IfNDef __USE_GTK__
 			If Handle Then DeleteObject Handle
 		#EndIf
-    End Destructor
+	End Destructor
 End namespace

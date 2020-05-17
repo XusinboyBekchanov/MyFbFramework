@@ -1,71 +1,71 @@
-﻿'###############################################################################
-'#  Canvas.bi                                                                  #
-'#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
-'#  Based on:                                                                  #
-'#   TCanvas.bi                                                                #
-'#   FreeBasic Windows GUI ToolKit                                             #
-'#   Copyright (c) 2007-2008 Nastase Eodor                                     #
-'#   Version 1.0.0                                                             #
-'###############################################################################
+﻿'################################################################################
+'#  Canvas.bi                                                                   #
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                      #
+'#  Based on:                                                                   #
+'#   TCanvas.bi                                                                 #
+'#   FreeBasic Windows GUI ToolKit                                              #
+'#   Copyright (c) 2007-2008 Nastase Eodor                                      #
+'#   Version 1.0.0                                                              #
+'################################################################################
 
 #include once "Canvas.bi"
 
 Namespace My.Sys.Drawing
-    Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
-        Select Case LCase(PropertyName)
-        Case "pen": Return @Pen
-        Case "brush": Return @Brush
-        Case "font": Return @Font
-        Case "clip": Return @Clip
-        Case "copymode": Return @CopyMode
-        #ifdef __USE_GTK__
-        Case "handle": Return Handle
-        #else
-        Case "handle": Return @Handle
-        #endif
-        Case "height": iTemp = This.Height: Return @iTemp
-        Case "width": iTemp = This.Width: Return @iTemp
-        Case Else: Return Base.ReadProperty(PropertyName)
-        End Select
-        Return 0
-    End Function
-    
-    Function Canvas.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-        Select Case LCase(PropertyName)
-        Case "clip": This.Clip = QBoolean(Value)
-        Case "copymode": This.CopyMode = QInteger(Value)
-        Case Else: Return Base.WriteProperty(PropertyName, Value)
-        End Select
-        Return True
-    End Function
-
+	Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "pen": Return @Pen
+		Case "brush": Return @Brush
+		Case "font": Return @Font
+		Case "clip": Return @Clip
+		Case "copymode": Return @CopyMode
+			#ifdef __USE_GTK__
+			Case "handle": Return Handle
+			#else
+			Case "handle": Return @Handle
+			#endif
+		Case "height": iTemp = This.Height: Return @iTemp
+		Case "width": iTemp = This.Width: Return @iTemp
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Canvas.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "clip": This.Clip = QBoolean(Value)
+		Case "copymode": This.CopyMode = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
 	Property Canvas.Width As Integer
-		If ParentControl Then 
+		If ParentControl Then
 			If *ParentControl Is My.Sys.Forms.Control Then Return Cast(My.Sys.Forms.Control Ptr, ParentControl)->Width
 		End If
 	End Property
-
+	
 	Property Canvas.Height As Integer
 		If ParentControl Then
 			If *ParentControl Is My.Sys.Forms.Control Then Return Cast(My.Sys.Forms.Control Ptr, ParentControl)->Height
 		End If
 	End Property
-
+	
 	Property Canvas.Ctrl As My.Sys.ComponentModel.Component Ptr
 		Return ParentControl
 	End Property
-
+	
 	Property Canvas.Ctrl(Value As My.Sys.ComponentModel.Component Ptr)
 		ParentControl = Value
-		If ParentControl Then 
+		If ParentControl Then
 			'ParentControl->Canvas = @This
 			If *Ctrl Is My.Sys.Forms.Control Then
 				Brush.Color = Cast(My.Sys.Forms.Control Ptr, Ctrl)->BackColor
 			End If
 		End If
 	End Property
-
+	
 	Property Canvas.Pixel(xy As Point) As Integer
 		GetDevice
 		#ifndef __USE_GTK__
@@ -75,7 +75,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Property
-
+	
 	Property Canvas.Pixel(xy As Point, Value As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -87,38 +87,40 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Property
-
+	
 	Sub Canvas.GetDevice
 		If ParentControl Then
 			#ifdef __USE_GTK__
-				If ParentControl->Widget Then 
+				If ParentControl->Widget Then
 					pcontext = gtk_widget_create_pango_context(ParentControl->Widget)
 					layout = pango_layout_new(pcontext)
 					pango_layout_set_font_description (layout, Font.Handle)
-					
+					'					Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+					'					Control_Draw(widget, cr, data1)
+					'					cairo_destroy(cr)
 				End If
 			#else
-			   If ParentControl->Handle Then 
-				   If Clip Then
-					  Handle = GetDcEx(ParentControl->Handle,0,DCX_PARENTCLIP Or DCX_CACHE)
-				   Else
-					  Handle = GetDc(ParentControl->Handle)
-				   End If
-				   SelectObject(Handle,Font.Handle)
-				   SelectObject(Handle,Pen.Handle)
-				   SelectObject(Handle,Brush.Handle)
-				   SetROP2 Handle,Pen.Mode
-			   End If
-			 #endif
+				If ParentControl->Handle Then
+					If Clip Then
+						Handle = GetDcEx(ParentControl->Handle,0,DCX_PARENTCLIP Or DCX_CACHE)
+					Else
+						Handle = GetDc(ParentControl->Handle)
+					End If
+					SelectObject(Handle,Font.Handle)
+					SelectObject(Handle,Pen.Handle)
+					SelectObject(Handle,Brush.Handle)
+					SetROP2 Handle,Pen.Mode
+				End If
+			#endif
 		End If
 	End Sub
-
+	
 	Sub Canvas.ReleaseDevice
 		#ifndef __USE_GTK__
 			If ParentControl Then If Handle Then ReleaseDc ParentControl->Handle,Handle
 		#endif
 	End Sub
-
+	
 	Sub Canvas.MoveTo(x As Integer,y As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -128,7 +130,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.LineTo(x As Integer,y As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -138,7 +140,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Line(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -150,7 +152,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Rectangle Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -164,7 +166,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Rectangle(R As Rect)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -174,20 +176,20 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Ellipse Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
 			cairo_arc(Handle, x + (x1 - x) / 2 - 0.5, y + (y1 - y) / 2 - 0.5, (x1 - x) / 2, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
-'			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
-'			cairo_stroke(cr)
+			'			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+			'			cairo_stroke(cr)
 		#else
 			.Ellipse Handle,x,y,x1,y1
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Ellipse(R As Rect)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -198,7 +200,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.RoundRect Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nWidth As Integer,nHeight As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -218,7 +220,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Polygon(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -226,7 +228,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.RoundRect(R As Rect,nWidth As Integer,nHeight As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -234,7 +236,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Chord(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -242,15 +244,15 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Pie(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
-	   GetDevice
-	   #ifndef __USE_GTK__
-		.Pie(Handle,x,y,x1,y1,nXRadial1,nYRadial1,nXRadial2,nYRadial2)
-	   #endif
-	   ReleaseDevice
+		GetDevice
+		#ifndef __USE_GTK__
+			.Pie(Handle,x,y,x1,y1,nXRadial1,nYRadial1,nXRadial2,nYRadial2)
+		#endif
+		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Arc(x As Integer,y As Integer,x1 As Integer,y1 As Integer,xStart As Integer, yStart As Integer,xEnd As Integer,yEnd As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -258,7 +260,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.ArcTo(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -266,7 +268,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.AngleArc(x As Integer,y As Integer,Radius As Integer,StartAngle As Single,SweepAngle As Single)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -274,15 +276,15 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Polyline(Points As Point Ptr,Count As Integer)
-	   GetDevice
-	   #ifndef __USE_GTK__
+		GetDevice
+		#ifndef __USE_GTK__
 			.Polyline Handle,Points,Count
-	   #endif
-	   ReleaseDevice
+		#endif
+		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.PolylineTo(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -290,7 +292,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.PolyBeizer(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -298,7 +300,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.PolyBeizerTo(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -306,7 +308,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.SetPixel(x As Integer,y As Integer,PixelColor As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -318,7 +320,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Function Canvas.GetPixel(x As Integer,y As Integer) As Integer
 		GetDevice
 		#ifndef __USE_GTK__
@@ -328,7 +330,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Function
-
+	
 	Sub Canvas.TextOut(x As Integer,y As Integer,ByRef s As WString,FG As Integer,BK As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
@@ -354,34 +356,34 @@ Namespace My.Sys.Drawing
 			pango_cairo_show_layout_line(Handle, pl)
 		#else
 			If BK = -1 Then
-			   SetBKMode(Handle,TRANSPARENT)
-			   SetTextColor(Handle,FG)
-			   .TextOut(Handle,X,Y,@s,Len(s))
-			   SetBKMode(Handle,OPAQUE) 
+				SetBKMode(Handle,TRANSPARENT)
+				SetTextColor(Handle,FG)
+				.TextOut(Handle,X,Y,@s,Len(s))
+				SetBKMode(Handle,OPAQUE)
 			Else
-			   SetBKColor(Handle,BK) 
-			   SetTextColor(Handle,FG)
-			   .TextOut(Handle,X,Y,@s,Len(s))
+				SetBKColor(Handle,BK)
+				SetTextColor(Handle,FG)
+				.TextOut(Handle,X,Y,@s,Len(s))
 			End If
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.Draw(x As Integer,y As Integer,Image As Any Ptr)
-		 GetDevice
-		 ReleaseDevice
+		GetDevice
+		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.StretchDraw(x As Integer,y As Integer,nWidth As Integer,nHeight As Integer,Image As Any Ptr)
 		GetDevice
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.CopyRect(Dest As Rect,Canvas As Canvas,Source As Rect)
 		GetDevice
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.FloodFill(x As Integer,y As Integer,FillColor As Integer,FillStyle As FillStyle)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -389,7 +391,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.FillRect(R As Rect,FillColor As Integer = -1)
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(FillColor), GetBlue(FillColor), GetGreen(FillColor))
@@ -398,16 +400,16 @@ Namespace My.Sys.Drawing
 			Static As HBRUSH B
 			GetDevice
 			If B Then DeleteObject B
-			If FillColor <> -1 Then 
-			   B = CreateSolidBrush(FillColor)
-			   .FillRect Handle,@R,B
+			If FillColor <> -1 Then
+				B = CreateSolidBrush(FillColor)
+				.FillRect Handle,@R,B
 			Else
-			   .FillRect Handle,@R,Brush.Handle 
+				.FillRect Handle,@R,Brush.Handle
 			End If
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Sub Canvas.DrawFocusRect(R As Rect)
 		GetDevice
 		#ifndef __USE_GTK__
@@ -415,7 +417,7 @@ Namespace My.Sys.Drawing
 		#endif
 		ReleaseDevice
 	End Sub
-
+	
 	Function Canvas.TextWidth(ByRef FText As WString) As Integer
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend2
@@ -436,7 +438,7 @@ Namespace My.Sys.Drawing
 			Return Sz.cX
 		#endif
 	End Function
-
+	
 	Function Canvas.TextHeight(ByRef FText As WString) As Integer
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend2
@@ -457,16 +459,16 @@ Namespace My.Sys.Drawing
 			Return Sz.cY
 		#endif
 	End Function
-
+	
 	Operator Canvas.Cast As Any Ptr
 		Return @This
 	End Operator
-
+	
 	Constructor Canvas
 		Clip = False
 		WLet FClassName, "Canvas"
 	End Constructor
-
+	
 	Destructor Canvas
 		If Handle Then ReleaseDevice
 	End Destructor

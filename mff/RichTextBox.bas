@@ -1,15 +1,15 @@
 ﻿'################################################################################
 '#  RichTextBox.bi                                                              #
 '#  This file is part of MyFBFramework                                          #
-'#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
+'#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 
-#Include Once "RichTextBox.bi"
+#include once "RichTextBox.bi"
 
-namespace My.Sys.Forms
-	Function RichTextBox.GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As Wstring
+Namespace My.Sys.Forms
+	Function RichTextBox.GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
 		Dim cpMax2 As Integer = cpMax
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim txtrange As TEXTRANGE
 			If cpMax2 = -1 Then cpMax2 = This.GetTextLength
 			FTextRange = Cast(WString Ptr, Reallocate(FTextRange, (cpMax - cpMin + 2) * SizeOf(WString)))
@@ -17,32 +17,32 @@ namespace My.Sys.Forms
 			txtrange.chrg.cpMax = cpMax
 			txtrange.lpstrText = FTextRange
 			SendMessage(FHandle, EM_GETTEXTRANGE, 0, CInt(@txtrange))
-		#EndIf
+		#endif
 		Return *FTextRange
-	End FUnction
+	End Function
 	
 	Property RichTextBox.SelColor As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim Cf As CHARFORMAT
-			cf.cbSize = Sizeof(cf)
+			cf.cbSize = SizeOf(cf)
 			cf.dwMask = CFM_COLOR
 			Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
 			Return cf.crTextColor
-		#Else
+		#else
 			Return 0
-		#EndIf
+		#endif
 	End Property
 	
 	Property RichTextBox.SelColor(Value As Integer)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim Cf As CHARFORMAT
-			cf.cbSize = Sizeof(cf)
+			cf.cbSize = SizeOf(cf)
 			cf.dwMask = CFM_COLOR
 			cf.crTextColor = Value
 			Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
 		#EndIf
 	End Property
-
+	
 	Function RichTextBox.GetCharIndexFromPos(p As Point) As Integer
 		#IfNDef __USE_GTK__
 			Return Perform(EM_CHARFROMPOS, 0, Cint(@p))
@@ -50,7 +50,7 @@ namespace My.Sys.Forms
 			Return 0
 		#EndIf
 	End Function
-
+	
 	Property RichTextBox.Zoom As Integer
 		Dim As Integer wp, lp
 		Var Result = 100
@@ -60,7 +60,7 @@ namespace My.Sys.Forms
 		#EndIf
 		Return Result
 	End Property
- 	
+	
 	Property RichTextBox.Zoom(Value As Integer)
 		#IfNDef __USE_GTK__
 			If Value = 0 Then
@@ -70,7 +70,7 @@ namespace My.Sys.Forms
 			End If
 		#EndIf
 	End Property
- 
+	
 	Function RichTextBox.BottomLine As Integer
 		Dim r As Rect, i As Integer
 		#IfNDef __USE_GTK__
@@ -80,28 +80,28 @@ namespace My.Sys.Forms
 			i = Perform(EM_CHARFROMPOS, 0, Cint(@r))
 			Return Perform(EM_EXLINEFROMCHAR, 0, i)
 		#Else
-			Return 0 
+			Return 0
 		#EndIf
 	End Function
- 
+	
 	Function RichTextBox.CanRedo As Boolean
 		#IfNDef __USE_GTK__
-			If FHandle Then 
-			   Return (Perform(EM_CANREDO, 0, 0) <> 0)
+			If FHandle Then
+				Return (Perform(EM_CANREDO, 0, 0) <> 0)
 			Else
-			   Return 0
+				Return 0
 			End If
 		#Else
 			Return 0
 		#EndIf
 	End Function
-
+	
 	Sub RichTextBox.Undo
 		#IfNDef __USE_GTK__
 			If FHandle Then Perform(EM_UNDO, 0, 0)
 		#EndIf
 	End Sub
-
+	
 	Sub RichTextBox.Redo
 		#IfNDef __USE_GTK__
 			If FHandle Then Perform(EM_REDO, 0, 0)
@@ -118,7 +118,7 @@ namespace My.Sys.Forms
 			ft.chrg.cpMin = 0
 			ft.chrg.cpMax = -1
 			Result = Perform(EM_FINDTEXTEX, FR_DOWN, Cast(Lparam, @ft))
-			If Result = -1 Then 
+			If Result = -1 Then
 				Return False
 			Else
 				Perform(EM_EXSETSEL, 0, Cast(LParam, @ft.chrgText))
@@ -145,7 +145,7 @@ namespace My.Sys.Forms
 			Endif
 			ft.chrg.cpMax = -1
 			Result = Perform(EM_FINDTEXTEX, FR_DOWN, Cast(Lparam, @ft))
-			If Result = -1 Then 
+			If Result = -1 Then
 				Return False
 			Else
 				Perform(EM_EXSETSEL, 0, Cast(LParam, @ft.chrgText))
@@ -169,7 +169,7 @@ namespace My.Sys.Forms
 			ft.lpstrText = FFindText
 			ft.chrg.cpMax = 0
 			Result = Perform(EM_FINDTEXTEX, 0, Cast(Lparam, @ft))
-			If Result = -1 Then 
+			If Result = -1 Then
 				Return False
 			Else
 				Perform(EM_EXSETSEL, 0, Cast(LParam, @ft.chrgText))
@@ -183,7 +183,7 @@ namespace My.Sys.Forms
 	#IfNDef __USE_GTK__
 		Sub RichTextBox.WndProc(BYREF message As Message)
 		End Sub
-
+		
 		Sub RichTextBox.ProcessMessage(BYREF message As Message)
 			'?message.msg & ": " & GetMessageName(message.msg)
 			Select Case message.Msg
@@ -211,7 +211,7 @@ namespace My.Sys.Forms
 			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
-
+	
 	Property RichTextBox.EditStyle As Boolean
 		Return FEditStyle
 	End Property
@@ -229,7 +229,7 @@ namespace My.Sys.Forms
 		Dim As Integer LStart, LEnd
 		#IfNDef __USE_GTK__
 			If FHandle Then
-				Dim charArr As CHARRANGE 
+				Dim charArr As CHARRANGE
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 				If LEnd - LStart <= 0 Then
 					FSelText = Reallocate(FSelText, SizeOf(WString))
@@ -254,49 +254,49 @@ namespace My.Sys.Forms
 			SendMessage(FHandle, EM_REPLACESEL, Cast(wParam, @stSetText), Cast(LParam, FSelText))
 		#EndIf
 	End Property
-
+	
 	#IfNDef __USE_GTK__
 		Function StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
-				Dim As Integer length
+			Dim As Integer length
 			If hFile = 10000 Then
 				WReallocate textbuffer, bufferpos + NumBytes
 				*textbuffer = *textbuffer + *Cast(WString Ptr, pBuffer)
 				bufferpos = Len(*textbuffer)
 				length = Len(Cast(WString Ptr, pBuffer)) * SizeOf(WString)
 			Else
-					ReadFile(hFile,pBuffer,NumBytes,Cast(LPDWORD,@length),0)
+				ReadFile(hFile,pBuffer,NumBytes,Cast(LPDWORD,@length),0)
 			End If
-				*pBytesRead = length
-				If length = 0 Then
-					Return 1
-				Endif
+			*pBytesRead = length
+			If length = 0 Then
+				Return 1
+			Endif
 		End Function
-
+		
 		Function StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As bool
-				Dim As Integer length
+			Dim As Integer length
 			If hFile = 10000 Then
 				'm utf16BeByte2wchars(*Cast(Byte Ptr, pBuffer))
 				*Cast(WString Ptr, pBuffer) = Mid(*textbuffer, bufferpos + 1, NumBytes / SizeOf(WString))
 				bufferpos = bufferpos + Len(*Cast(WString Ptr, pBuffer))
 				length = Len(*Cast(WString Ptr, pBuffer)) * SizeOf(WString)
 			Else
-					WriteFile(hFile,pBuffer,NumBytes,Cast(LPDWORD,@length),0)
+				WriteFile(hFile,pBuffer,NumBytes,Cast(LPDWORD,@length),0)
 			End If
-				*pBytesWritten = length
-				If length = 0 Then
-					Return 1
-				End if
+			*pBytesWritten = length
+			If length = 0 Then
+				Return 1
+			End if
 		End Function
 	#EndIf
-
+	
 	Property RichTextBox.TextRTF ByRef As WString
 		#IfNDef __USE_GTK__
 			If FHandle Then
 				Dim editstream As EDITSTREAM
 				bufferPos = 0
-					  editstream.dwCookie = Cast(DWORD, 10000)
+				editstream.dwCookie = Cast(DWORD, 10000)
 				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamOutProc)
-					  SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
+				SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
 				Return *textbuffer
 			End If
 		#Else
@@ -311,25 +311,25 @@ namespace My.Sys.Forms
 				WReallocate textbuffer, Len(Value)
 				*textbuffer = Value
 				bufferPos = 0
-					  editstream.dwCookie = Cast(DWORD, 10000)
-				  editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamInProc)
-					SendMessage(FHandle, EM_STREAMIN, SF_RTF, Cast(LPARAM, @editstream))
+				editstream.dwCookie = Cast(DWORD, 10000)
+				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamInProc)
+				SendMessage(FHandle, EM_STREAMIN, SF_RTF, Cast(LPARAM, @editstream))
 			End If
 		#EndIf
 	End Property
-
+	
 	Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
 		#IfNDef __USE_GTK__
 			If FHandle Then
 				Dim hFile As Handle
 				hFile = CreateFile(@Value, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
-					  If hFile <> INVALID_HANDLE_VALUE Then
+				If hFile <> INVALID_HANDLE_VALUE Then
 					Dim editstream As EDITSTREAM
-						editstream.dwCookie = Cast(DWORD_Ptr, hFile)
-						editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamInProc)
-						SendMessage(FHandle, EM_STREAMIN, IIF(bRTF, SF_RTF, SF_TEXT), Cast(LPARAM, @editstream))
-						SendMessage(FHandle, EM_SETMODIFY, FALSE, 0)
-						CloseHandle(hFile)
+					editstream.dwCookie = Cast(DWORD_Ptr, hFile)
+					editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamInProc)
+					SendMessage(FHandle, EM_STREAMIN, IIF(bRTF, SF_RTF, SF_TEXT), Cast(LPARAM, @editstream))
+					SendMessage(FHandle, EM_SETMODIFY, FALSE, 0)
+					CloseHandle(hFile)
 				End If
 			Endif
 		#EndIf
@@ -340,22 +340,22 @@ namespace My.Sys.Forms
 			If Not bRTF Then
 				Base.SaveToFile(Value)
 			ElseIf FHandle Then
-				Dim hFile As Handle			
+				Dim hFile As Handle
 				hFile = CreateFile(@Value, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
 				If hFile <> INVALID_HANDLE_VALUE Then
 					Dim editstream As EDITSTREAM
 					editstream.dwCookie = Cast(DWORD_Ptr,hFile)
 					editstream.pfnCallback= Cast(EDITSTREAMCALLBACK,@StreamOutProc)
-					SendMessage(FHandle, EM_STREAMOUT, IIF(bRTF, SF_RTF, SF_TEXT), Cast(LPARAM, @editstream))
-					SendMessage(FHandle, EM_SETMODIFY, FALSE, 0)
+					SendMessage(FHandle, EM_STREAMOUT, IIf(bRTF, SF_RTF, SF_TEXT), Cast(LPARAM, @editstream))
+					SendMessage(FHandle, EM_SETMODIFY, False, 0)
 					CloseHandle(hFile)
 				End If
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
-	#IfNDef __USE_GTK__
-		Sub RichTextBox.HandleIsAllocated(BYREF Sender As Control)
+	#ifndef __USE_GTK__
+		Sub RichTextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QRichTextBox(Sender.Child)
 					If .MaxLength <> 0 Then
@@ -365,40 +365,42 @@ namespace My.Sys.Forms
 						.EditStyle = .EditStyle
 					End If
 					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
-					.Perform(EM_SETEVENTMASK, 0, .Perform(EM_GETEVENTMASK, 0, 0) Or ENM_CHANGE Or ENM_SCROLL OR ENM_SELCHANGE Or ENM_CLIPFORMAT Or ENM_MOUSEEVENTS) 
+					.Perform(EM_SETEVENTMASK, 0, .Perform(EM_GETEVENTMASK, 0, 0) Or ENM_CHANGE Or ENM_SCROLL Or ENM_SELCHANGE Or ENM_CLIPFORMAT Or ENM_MOUSEEVENTS)
 				End With
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
-	Operator RichTextBox.Cast As Control Ptr 
+	Operator RichTextBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
-
+	
 	Constructor RichTextBox
 		With This
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				widget = gtk_text_view_new()
-			#Else
+			#else
 				hRichTextBox = LoadLibrary("RICHED20.DLL")
 				.RegisterClass "RichTextBox", "RichEdit20W"
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ChildProc		= @WndProc
 				WLet .FClassAncestor, "RichEdit20W"
-			#EndIf
+			#endif
 			.FHideSelection    = False
+			FTabStop           = True
 			WLet .FClassName, "RichTextBox"
 			.Child       = @This
+			.DoubleBuffered = True
 			.Width       = 121
 			.Height      = 121
 		End With
 	End Constructor
-
+	
 	Destructor RichTextBox
 		If FFindText Then Deallocate FFindText
 		If FTextRange Then Deallocate FTextRange
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FreeLibrary(hRichTextBox)
-		#EndIf
+		#endif
 	End Destructor
 End Namespace

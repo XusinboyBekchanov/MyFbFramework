@@ -1,79 +1,79 @@
 ﻿'###############################################################################
 '#  ImageBox.bi                                                                #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
 '#   TStatic.bi                                                                #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.0                                                             #
 '#  Updated and added cross-platform                                           #
-'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
 #Include Once "ImageBox.bi"
 
 Namespace My.Sys.Forms
-    Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
-        Select Case LCase(PropertyName)
-        Case "graphic": Return Cast(Any Ptr, @This.Graphic)
-        Case Else: Return Base.ReadProperty(PropertyName)
-        End Select
-        Return 0
-    End Function
-    
-    Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-        Select Case LCase(PropertyName)
-        Case Else: Return Base.WriteProperty(PropertyName, Value)
-        End Select
-        Return True
-    End Function
-    
-    Property ImageBox.Style As Integer
-        Return FStyle 
-    End Property
-
-    Property ImageBox.Style(Value As Integer)
-        If Value <> FStyle Then
-            FStyle = Value
+	Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	Property ImageBox.Style As Integer
+		Return FStyle
+	End Property
+	
+	Property ImageBox.Style(Value As Integer)
+		If Value <> FStyle Then
+			FStyle = Value
 			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR SS_NOTIFY OR AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage)) 
-			#EndIf
-            RecreateWnd
-        End If
-    End Property
-
-    Property ImageBox.RealSizeImage As Boolean
-        Return FRealSizeImage
-    End Property
-
-    Property ImageBox.RealSizeImage(Value As Boolean)
-        If Value <> FRealSizeImage Then
-            FRealSizeImage = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR SS_NOTIFY Or AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage)) 
-			#EndIf
-            RecreateWnd
-        End If
-    End Property
-
-    Property ImageBox.CenterImage As Boolean
-        Return FCenterImage
-    End Property
-
-    Property ImageBox.CenterImage(Value As Boolean)
-        If Value <> FCenterImage Then
-            FCenterImage = Value
-            #IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR SS_NOTIFY OR AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage)) 
+				Base.Style = WS_CHILD OR SS_NOTIFY OR AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage))
 			#EndIf
 			RecreateWnd
-        End If
-    End Property
-
-    Sub ImageBox.GraphicChange(BYREF Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
-        With Sender
-            If .Ctrl->Child Then
+		End If
+	End Property
+	
+	Property ImageBox.RealSizeImage As Boolean
+		Return FRealSizeImage
+	End Property
+	
+	Property ImageBox.RealSizeImage(Value As Boolean)
+		If Value <> FRealSizeImage Then
+			FRealSizeImage = Value
+			#IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR SS_NOTIFY Or AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage))
+			#EndIf
+			RecreateWnd
+		End If
+	End Property
+	
+	Property ImageBox.CenterImage As Boolean
+		Return FCenterImage
+	End Property
+	
+	Property ImageBox.CenterImage(Value As Boolean)
+		If Value <> FCenterImage Then
+			FCenterImage = Value
+			#IfNDef __USE_GTK__
+				Base.Style = WS_CHILD OR SS_NOTIFY OR AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage))
+			#EndIf
+			RecreateWnd
+		End If
+	End Property
+	
+	Sub ImageBox.GraphicChange(BYREF Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		With Sender
+			If .Ctrl->Child Then
 				#IfDef __USE_GTK__
 					Select Case ImageType
 					Case 0
@@ -97,22 +97,22 @@ Namespace My.Sys.Forms
 						QImageBox(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(0))
 					End Select
 				#EndIf
-            End If
-        End With
-    End Sub
-
+			End If
+		End With
+	End Sub
+	
 	#IfNDef __USE_GTK__
 		Sub ImageBox.HandleIsAllocated(BYREF Sender As Control)
 			If Sender.Child Then
 				With QImageBox(Sender.Child)
-					 .Perform(STM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
+					.Perform(STM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
 				End With
 			End If
 		End Sub
-
+		
 		Sub ImageBox.WndProc(BYREF Message As Message)
 		End Sub
-
+		
 		Sub ImageBox.ProcessMessage(BYREF Message As Message)
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 				SetBKMode Dc, TRANSPARENT
 				SetTextColor Dc, This.Font.Color
 				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE    
+				SetBKMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(This)
@@ -136,54 +136,54 @@ Namespace My.Sys.Forms
 				diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
 				R = Cast(Rect,diStruct->rcItem)
 				Dc = diStruct->hDC
-				If OnDraw Then 
+				If OnDraw Then
 					OnDraw(This,R,Dc)
 				Else
-				End If    
+				End If
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
 	#EndIf
-
-    Operator ImageBox.Cast As Control Ptr 
-        Return Cast(Control Ptr, @This)
-    End Operator
-
-    Constructor ImageBox
+	
+	Operator ImageBox.Cast As Control Ptr
+		Return Cast(Control Ptr, @This)
+	End Operator
+	
+	Constructor ImageBox
 		#IfDef __USE_GTK__
 			widget = gtk_image_new()
 			This.RegisterClass "ImageBox", @This
 		#Else
 			AStyle(0)        = SS_BITMAP
-			AStyle(1)        = SS_ICON 
+			AStyle(1)        = SS_ICON
 			AStyle(2)        = SS_ICON
-			AStyle(3)        = SS_ENHMETAFILE    
+			AStyle(3)        = SS_ENHMETAFILE
 			AStyle(4)        = SS_OWNERDRAW
 			ACenterImage(0)  = SS_RIGHTJUST
 			ACenterImage(1)  = SS_CENTERIMAGE
 			ARealSizeImage(0)= 0
 			ARealSizeImage(1)= SS_REALSIZEIMAGE
 		#EndIf
-        Graphic.Ctrl = @This
-        Graphic.OnChange = @GraphicChange
-        FRealSizeImage   = 1
-        With This
-            .Child       = @This
-            #IfNDef __USE_GTK__
+		Graphic.Ctrl = @This
+		Graphic.OnChange = @GraphicChange
+		FRealSizeImage   = 0
+		With This
+			.Child       = @This
+			#IfNDef __USE_GTK__
 				.RegisterClass "ImageBox", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
-				Base.Style = WS_CHILD OR SS_NOTIFY OR AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage)) 
+				Base.Style = WS_CHILD OR SS_NOTIFY OR AStyle(Abs_(FStyle)) OR ARealSizeImage(Abs_(FRealSizeImage)) OR ACenterImage(Abs_(FCenterImage))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#EndIf
-            WLet FClassName, "ImageBox"
-            WLet FClassAncestor, "Static"
-            .Width       = 90
-            .Height      = 17
-        End With  
-    End Constructor
-
-    Destructor ImageBox
-    End Destructor
+			WLet FClassName, "ImageBox"
+			WLet FClassAncestor, "Static"
+			.Width       = 90
+			.Height      = 17
+		End With
+	End Constructor
+	
+	Destructor ImageBox
+	End Destructor
 End Namespace

@@ -7,7 +7,7 @@
 #Include Once "TimerComponent.bi"
 
 Namespace My.Sys.Forms
-	#IfNDef __USE_GTK__ 
+	#IfNDef __USE_GTK__
 		Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
 			With TimersList
 				If .Contains(idEvent) Then
@@ -17,14 +17,14 @@ Namespace My.Sys.Forms
 			End With
 		End Sub
 	#EndIf
-
-    Property TimerComponent.Enabled As Boolean
-        Return FEnabled
-    End Property
-    
-    Property TimerComponent.Enabled(Value As Boolean)
-        FEnabled = Value
-        #IfNDef __USE_GTK__ 
+	
+	Property TimerComponent.Enabled As Boolean
+		Return FEnabled
+	End Property
+	
+	Property TimerComponent.Enabled(Value As Boolean)
+		FEnabled = Value
+		#IfNDef __USE_GTK__
 			If FEnabled Then
 				Handle = SetTimer(Null, 0, Interval, @TimerProc)
 				TimersList.Add Handle, @This
@@ -33,19 +33,19 @@ Namespace My.Sys.Forms
 				TimersList.Remove TimersList.IndexOf(Handle)
 			End If
 		#EndIf
-    End Property
-    
-    Operator TimerComponent.Cast As Any Ptr
-        Return @This
-    End Operator
-
-    Constructor TimerComponent
-        Interval = 10
-        WLet FClassName, "TimerComponent"
-        Enabled = True
-    End Constructor
-
-    Destructor TimerComponent
-        Enabled = False
-    End Destructor
+	End Property
+	
+	Operator TimerComponent.Cast As Any Ptr
+		Return @This
+	End Operator
+	
+	Constructor TimerComponent
+		Interval = 10
+		WLet FClassName, "TimerComponent"
+		Enabled = True
+	End Constructor
+	
+	Destructor TimerComponent
+		Enabled = False
+	End Destructor
 End namespace

@@ -28,14 +28,14 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Property Picture.Style As Integer
-		Return FStyle 
+		Return FStyle
 	End Property
 	
 	Property Picture.Style(Value As Integer)
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage)) 
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -49,7 +49,7 @@ Namespace My.Sys.Forms
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage)) 
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -63,7 +63,7 @@ Namespace My.Sys.Forms
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage)) 
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -119,6 +119,9 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_Size
 				InvalidateRect(Handle,null,True)
+			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
+				If This.Parent Then This.Parent->ProcessMessage Message
+				If Message.Result <> 0 Then Return
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
@@ -140,17 +143,17 @@ Namespace My.Sys.Forms
 				diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
 				R = Cast(Rect,diStruct->rcItem)
 				Dc = diStruct->hDC
-				If OnDraw Then 
+				If OnDraw Then
 					OnDraw(This,R,Dc)
 				Else
-				End If    
+				End If
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
 	End Sub
 	
 	
-	Operator Picture.Cast As Control Ptr 
+	Operator Picture.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
@@ -165,7 +168,7 @@ Namespace My.Sys.Forms
 			'常数     说明
 			Astyle(0)=0
 			Astyle(1)=SS_BITMAP'在静态控件中显示一幅位图(.BMP)，由控件的文本(TEXT)指定一幅包含在资源中的位图文件(非文件名)，该风格忽略控件的宽度和高度，控件将自动调整大小以适应位图。
-			Astyle(2)=SS_ICON'在静态控件中显示一幅图标(.ICO)，由控件的文本(TEXT)指定一幅包含在资源中的图标文件(非文件名)，该风格忽略控件的宽度和高度，控件将自动调整大小以适应图标。 
+			Astyle(2)=SS_ICON'在静态控件中显示一幅图标(.ICO)，由控件的文本(TEXT)指定一幅包含在资源中的图标文件(非文件名)，该风格忽略控件的宽度和高度，控件将自动调整大小以适应图标。
 			Astyle(3)=SS_ENHMETAFILE'在静态控件中显示一增强幅图元文件(.EMF)。由控件的文本(TEXT)指定图元文件名。控件大小固定不变，图元文件按比例缩放显示在控件客户区中。
 			Astyle(4)=SS_BLACKFRAME'用系统颜色组的窗口边界色(缺省为黑色)绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
 			Astyle(5)=SS_BLACKRECT'用系统颜色组的窗口边界色(缺省为黑色)绘制一个矩形实心控件。
@@ -199,13 +202,13 @@ Namespace My.Sys.Forms
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
 		'FCenterImage=1
-		FStyle=0        
+		FStyle=0
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "Picture", "Static"
 				.ChildProc   = @WndProc
-				Base.ExStyle     = 0            
+				Base.ExStyle     = 0
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage)) Or AStyle(Abs_(FStyle))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
@@ -214,7 +217,7 @@ Namespace My.Sys.Forms
 			WLet FClassAncestor, "Static"
 			.Width       =80
 			.Height      = 60
-		End With  
+		End With
 	End Constructor
 	Destructor Picture
 		#ifdef __USE_GTK__

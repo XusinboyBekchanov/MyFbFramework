@@ -6,7 +6,7 @@
 
 #include once "Component.bi"
 
-Namespace My.Sys.ComponentModel    
+Namespace My.Sys.ComponentModel
 	Function Component.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "designmode": Return @FDesignMode
@@ -49,7 +49,7 @@ Namespace My.Sys.ComponentModel
 	
 	#ifndef Parent_Off
 		Property Component.Parent As Component Ptr '...'
-			Return FParent 
+			Return FParent
 		End Property
 		
 		Property Component.Parent(Value As Component Ptr)

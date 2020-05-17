@@ -1,30 +1,31 @@
 ﻿/*'#########################################################*/
 /*'#  mff.rc                                               #*/
 /*'#  This file is part of MyFbFramework                   #*/
-/*'#  Authors: Xusinboy Bekchanov (2018-2019)              #*/
+/*'#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin   #*/
 /*'#########################################################*/
 
 Animate PNG "../resources/Animate.png"
 FolderBrowserDialog PNG "../resources/FolderBrowserDialog.png"
 Chart PNG "../resources/Chart.png"
-CHECKBOX PNG "../resources/CheckBox.png"
-CHECKEDLISTBOX PNG "../resources/CheckedListBox.png"
-COLORDIALOG PNG "../resources/ColorDialog.png"
-COMBOBOXEDIT PNG "../resources/ComboBoxEdit.png"
-COMBOBOXEX PNG "../resources/ComboBoxEx.png"
-COMMANDBUTTON PNG "../resources/CommandButton.png"
-DATETIMEPICKER PNG "../resources/DateTimePicker.png"
+CheckBox PNG "../resources/CheckBox.png"
+CheckedListBox PNG "../resources/CheckedListBox.png"
+ColorDialog PNG "../resources/ColorDialog.png"
+ComboBoxEdit PNG "../resources/ComboBoxEdit.png"
+ComboBoxEx PNG "../resources/ComboBoxEx.png"
+CommandButton PNG "../resources/CommandButton.png"
+DateTimePicker PNG "../resources/DateTimePicker.png"
 FontDialog PNG "../resources/FontDialog.png"
-FORM PNG "../resources/Form.png"
-GRID PNG "../resources/Grid.png"
-GROUPBOX PNG "../resources/GroupBox.png"
+Form PNG "../resources/Form.png"
+Grid PNG "../resources/Grid.png"
+GridData PNG "../resources/GridData.png"
+GroupBox PNG "../resources/GroupBox.png"
 Header PNG "../resources/Header.png"
 HotKey PNG "../resources/HotKey.png"
 ImageBox PNG "../resources/ImageBox.png"
 ImageList PNG "../resources/ImageList.png"
 IPAddress PNG "../resources/IPAddress.png"
-LABEL PNG "../resources/Label.png"
-LINKLABEL PNG "../resources/LinkLabel.png"
+Label PNG "../resources/Label.png"
+LinkLabel PNG "../resources/LinkLabel.png"
 ListControl PNG "../resources/ListControl.png"
 ListView PNG "../resources/ListView.png"
 MaskedEdit PNG "../resources/MaskedEdit.png"
@@ -65,17 +66,17 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,2,2,6
-#define VER_FILEVERSION_STR         "1.2.2.6\0"
+#define VER_FILEVERSION             1,2,3,33
+#define VER_FILEVERSION_STR         "1.2.3.33\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
 #define VER_INTERNALNAME_STR        "\0"
 #define VER_ORIGINALFILENAME_STR    "\0"
-#define VER_PRODUCTNAME_STR         "My Fb Framework\0"
+#define VER_PRODUCTNAME_STR         "MyFbFramework\0"
 
-#define VER_PRODUCTVERSION          1,2,2,0
-#define VER_PRODUCTVERSION_STR      "1.2.2\0"
+#define VER_PRODUCTVERSION          1,2,3,0
+#define VER_PRODUCTVERSION_STR      "1.2.3\0"
 #define VER_COMPANYNAME_STR         "\0"
 
 VS_VERSION_INFO VERSIONINFO

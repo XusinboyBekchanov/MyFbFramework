@@ -1,14 +1,14 @@
 ﻿'###############################################################################
 '#  Control.bi                                                                 #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
 '#   TControl.bi                                                               #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.1                                                             #
 '#  Updated and added cross-platform                                           #
-'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
 #include once "Menus.bi"
@@ -21,7 +21,7 @@
 
 Using My.Sys.ComponentModel
 
-#ifdef __USE_GTK__
+#ifndef __FB_WIN32__
 	Type Point
 		X As Integer
 		Y As Integer
@@ -82,7 +82,7 @@ Namespace My.Sys.Forms
 			Left         As Integer
 			Top          As Integer
 			Right        As Integer
-			Bottom       As Integer        
+			Bottom       As Integer
 		End Type
 		
 		Type ControlCollection Extends My.Sys.Object '...'
@@ -90,7 +90,7 @@ Namespace My.Sys.Forms
 		End Type
 		
 		Type Control Extends Component
-			Private:
+		Private:
 			Tracked As Boolean
 			FAnchoredLeft     As Integer
 			FAnchoredTop     As Integer
@@ -101,7 +101,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Dim As Rect R, RR
 			#endif
-			Protected:
+		Protected:
 			FID                As Integer
 			FOwner             As Control Ptr
 			FDisposed As Boolean
@@ -121,23 +121,29 @@ Namespace My.Sys.Forms
 			#endif
 			FBorderStyle       As Integer
 			FExStyle           As Integer
+			FControlParent     As Integer
 			FStartPosition     As Integer
 			FStyle             As Integer
-			FText              As WString Ptr
-			FHint              As WString Ptr
+			FText              As UString
+			FHint              As UString
 			FShowHint          As Boolean
 			FAlign             As Integer
 			FLeft              As Integer
 			FTop               As Integer
 			FWidth             As Integer
 			FHeight            As Integer
+			FMinWidth          As Integer
+			FMinHeight         As Integer
 			FClientWidth       As Integer
 			FClientHeight      As Integer
 			FBackColor         As Integer
+			FBackColorRed      As Integer
+			FBackColorGreen    As Integer
+			FBackColorBlue     As Integer
 			FStoredFont        As My.Sys.Drawing.Font
 			FMenu              As MainMenu Ptr
 			FContextMenu       As PopupMenu Ptr
-			FGrouped           As Boolean  
+			FGrouped           As Boolean
 			FTabStop           As Boolean
 			FIsChild           As Boolean
 			FEnabled           As Boolean
@@ -166,7 +172,7 @@ Namespace My.Sys.Forms
 			Declare Property Style(Value As Integer)
 			Declare Property ExStyle As Integer
 			Declare Property ExStyle(Value As Integer)
-			Declare Function SelectNext(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
+			Declare Function SelectNextControl(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
 			Declare Virtual Sub ProcessMessage(ByRef message As Message)
 			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 			OnActiveControlChanged As Sub(ByRef Sender As Control)
@@ -174,7 +180,7 @@ Namespace My.Sys.Forms
 				OnHandleIsAllocated As Sub(ByRef Sender As Control)
 				OnHandleIsDestroyed As Sub(ByRef Sender As Control)
 			#endif
-			Public:
+		Public:
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			#ifdef __USE_GTK__
@@ -199,13 +205,16 @@ Namespace My.Sys.Forms
 			Constraints        As SizeConstraints
 			DoubleBuffered     As Boolean
 			Controls           As Control Ptr Ptr
+			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent.
 			Anchor             As AnchorType
+			'Returns/sets the space between controls.
 			Margins            As MarginsType
 			Declare Property ID As Integer
 			Declare Property ID(Value As Integer)
 			'Returns/sets the border style for an object.
 			Declare Property BorderStyle As Integer 'BorderStyles
 			Declare Property BorderStyle(Value As Integer)
+			'Returns/sets the PopupMenu associated with this control.
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)
 			'Returns/sets the text contained in the control
@@ -219,10 +228,10 @@ Namespace My.Sys.Forms
 			'Returns/sets the background color used to display text and graphics in an object.
 			Declare Property BackColor As Integer
 			Declare Property BackColor(Value As Integer)
-			'
+			'Returns/sets the parent container of the control.
 			Declare Property Parent As Control Ptr
 			Declare Property Parent(Value As Control Ptr)
-			'
+			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent.
 			Declare Property Align As Integer 'DockStyle
 			Declare Property Align(Value As Integer) 'DockStyle
 			'Returns/sets the distance between the internal left edge of an object and the left edge of its container.
@@ -237,7 +246,9 @@ Namespace My.Sys.Forms
 			'Returns/sets the height of an object.
 			Declare Property Height As Integer
 			Declare Property Height(Value As Integer)
+			'Returns/sets the width of the client area of the control.
 			Declare Function ClientWidth As Integer
+			'Returns/sets the height of the client area of the control.
 			Declare Function ClientHeight As Integer
 			'Returns/sets a value indicating whether a user can use the TAB key to give the focus to an object.
 			Declare Property TabStop As Boolean
@@ -261,11 +272,14 @@ Namespace My.Sys.Forms
 			Declare Property Visible(Value As Boolean)
 			Declare Function ControlCount() As Integer
 			Declare Function GetTextLength() As Integer
-			#ifndef __USE_GTK__ 
+			#ifndef __USE_GTK__
 				Declare Function Perform(Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			#endif
+			'Retrieves the form that the control is on.
 			Declare Function GetForm() As Control Ptr
+			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in.
 			Declare Function TopLevelControl() As Control Ptr
+			'Returns a value indicating whether the control has input focus.
 			Declare Function Focused As Boolean
 			Declare Function IndexOf(Ctrl As Control Ptr) As Integer
 			Declare Function IndexOf(CtrlName As String) As Integer
@@ -277,20 +291,28 @@ Namespace My.Sys.Forms
 				Declare Sub ClientToScreen(ByRef P As Point)
 				Declare Sub ScreenToClient(ByRef P As Point)
 			#endif
+			'Invalidates the entire surface of the control and causes the control to be redrawn.
 			Declare Sub Invalidate
 			Declare Sub Repaint
+			'Causes the control to redraw the invalidated regions within its client area.
 			Declare Sub Update
 			Declare Sub UpdateLock
 			Declare Sub UpdateUnLock
 			Declare Sub SetFocus
+			'Brings the control to the front of the z-order.
 			Declare Sub BringToFront
+			'Sends the control to the back of the z-order.
 			Declare Sub SendToBack
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False)
+			'Displays the control to the user.
 			Declare Sub Show
+			'Conceals the control from the user.
 			Declare Sub Hide
+			'Gets the bounds of the control to the specified location and size.
 			Declare Sub GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
-			Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
-			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
+			'Sets the bounds of the control to the specified location and size.
+			Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = False)
+			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer, NoScale As Boolean = False)
 			Declare Sub Add(Ctrl As Control Ptr)
 			Declare Sub AddRange cdecl(CountArgs As Integer, ...)
 			Declare Sub Remove(Ctrl As Control Ptr)
@@ -298,25 +320,45 @@ Namespace My.Sys.Forms
 			Declare Operator Let(ByRef Value As Control Ptr)
 			Declare Constructor
 			Declare Destructor
+			'Raises the Create event.
 			OnCreate     As Sub(ByRef Sender As Control)
+			'Raises the Destroy event.
 			OnDestroy    As Sub(ByRef Sender As Control)
+			'Raises the DropFile event.
 			OnDropFile   As Sub(ByRef Sender As Control, ByRef Filename As WString)
+			'Raises the Paint event.
 			OnPaint      As Sub(ByRef Sender As Control)
+			'Raises the MouseDown event.
 			OnMouseDown  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			'Raises the MouseMove event.
 			OnMouseMove  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			'Raises the MouseUp event.
 			OnMouseUp    As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			'Raises the MouseWheel event.
 			OnMouseWheel As Sub(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+			'Raises the MouseOver event.
 			OnMouseOver  As Sub(ByRef Sender As Control)
+			'Raises the MouseLeave event.
 			OnMouseLeave As Sub(ByRef Sender As Control)
+			'Raises the Click event.
 			OnClick      As Sub(ByRef Sender As Control)
+			'Raises the DclClick event.
 			OnDblClick   As Sub(ByRef Sender As Control)
+			'Raises the KeyPress event.
 			OnKeyPress   As Sub(ByRef Sender As Control, Key As Byte)
+			'Raises the KeyDown event.
 			OnKeyDown    As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
+			'Raises the KeyUp event.
 			OnKeyUp      As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
+			'Raises the Resize event.
 			OnResize     As Sub(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+			'Raises the Scroll event.
 			OnScroll     As Sub(ByRef Sender As Control)
+			'Raises the GotFocus event.
 			OnGotFocus   As Sub(ByRef Sender As Control)
+			'Raises the LostFocus event.
 			OnLostFocus  As Sub(ByRef Sender As Control)
+			'Raises the Update event.
 			OnUpdate     As Sub(ByRef Sender As Control)
 		End Type
 		
@@ -342,6 +384,6 @@ End Namespace
 	Declare Sub ControlFreeWnd Alias "ControlFreeWnd"(Ctrl As My.Sys.Forms.Control Ptr)
 #endif
 
-#IfNDef __USE_MAKE__
-	#Include Once "Control.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Control.bas"
+#endif

@@ -1,14 +1,14 @@
 ﻿'###############################################################################
 '#  Control.bas                                                                 #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov                                 #
+'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
 '#   TControl.bi                                                               #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.1                                                             #
 '#  Updated and added cross-platform                                           #
-'#  by Xusinboy Bekchanov (2018-2019)                                          #
+'#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
 #include once "Control.bi"
@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 			Return *FTemp
 		End Function
 		
-		Function AnchorType.ToString ByRef As WString '...'
+		Function AnchorType.ToString ByRef As WString
 			WLet FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom
 			Return *FTemp
 		End Function
@@ -62,7 +62,7 @@ Namespace My.Sys.Forms
 				Case "font": Return @This.Font
 				Case "id": Return @FID
 				Case "ischild": Return @FIsChild
-				Case "margins": Return @Margins    
+				Case "margins": Return @Margins
 				Case "margins.left": Return @Margins.Left
 				Case "margins.right": Return @Margins.Right
 				Case "margins.top": Return @Margins.Top
@@ -73,10 +73,10 @@ Namespace My.Sys.Forms
 				Case "height": FHeight = This.Height: Return @FHeight
 				Case "parent": Return FParent
 				Case "showhint": Return @FShowHint
-				Case "hint": Return FHint
+				Case "hint": Return FHint.vptr
 				Case "subclass": Return @SubClass
 				Case "tabstop": Return @FTabStop
-				Case "text": Return FText
+				Case "text": Return FText.vptr
 				Case "visible": Return @FVisible
 				Case Else: Return Base.ReadProperty(PropertyName)
 				End Select
@@ -89,7 +89,7 @@ Namespace My.Sys.Forms
 				If Value = 0 Then
 					Select Case LCase(PropertyName)
 					Case "parent": This.Parent = Value
-					Case "cursor": This.Cursor = Value    
+					Case "cursor": This.Cursor = Value
 					Case Else: Return Base.WriteProperty(PropertyName, Value)
 					End Select
 				Else
@@ -117,7 +117,7 @@ Namespace My.Sys.Forms
 					Case "helpcontext": This.HelpContext = QInteger(Value)
 					Case "font": This.Font = *Cast(My.Sys.Drawing.Font Ptr, Value)
 					Case "id": This.ID = QInteger(Value)
-					Case "ischild": This.IsChild = QInteger(Value)    
+					Case "ischild": This.IsChild = QInteger(Value)
 					Case "left": This.Left = QInteger(Value)
 					Case "top": This.Top = QInteger(Value)
 					Case "width": This.Width = QInteger(Value)
@@ -158,7 +158,7 @@ Namespace My.Sys.Forms
 		'    Property Control.Location As LocationType
 		'        Return FLocation
 		'    End Property
-		'    
+		'
 		'    Property Control.Location(Value As LocationType)
 		'        FLocation = Value
 		'        FLeft = Value.X
@@ -188,7 +188,7 @@ Namespace My.Sys.Forms
 					If FHandle Then
 						Return Perform(WM_GETTEXTLENGTH, 0, 0)
 					Else
-						Return Len(*FText)
+						Return Len(FText)
 					EndIf
 				#else
 					Return 0
@@ -249,11 +249,11 @@ Namespace My.Sys.Forms
 		
 		#ifndef ExStyle_Off
 			Property Control.ExStyle As Integer
-				#IfNDef __USE_GTK__
+				#ifndef __USE_GTK__
 					If Handle Then
 						FExStyle = GetWindowLong(Handle, GWL_EXSTYLE)
 					End If
-				#EndIf
+				#endif
 				Return FExStyle
 			End Property
 			
@@ -261,92 +261,91 @@ Namespace My.Sys.Forms
 				FExStyle = Value
 				'If Handle Then RecreateWnd
 			End Property
-		#EndIf
+		#endif
 		
-		#IfNDef IsChild_Off
+		#ifndef IsChild_Off
 			Property Control.IsChild As Boolean
 				Return FIsChild
 			End Property
 			
 			Property Control.IsChild(Value As Boolean)
 				FIsChild = Value
-				#IfNDef __USE_GTK__
+				#ifndef __USE_GTK__
 					ChangeStyle WS_CHILD, Value
 					If Handle Then RecreateWnd
-				#EndIf
+				#endif
 			End Property
-		#EndIf
+		#endif
 		
-		#IfNDef ID_Off
+		#ifndef ID_Off
 			Property Control.ID As Integer
-				#IfNDef __USE_GTK__
+				#ifndef __USE_GTK__
 					If Handle Then
 						FID = GetDlgCtrlID(Handle)
 					End If
-				#EndIf
+				#endif
 				Return FID
 			End Property
 			
 			Property Control.ID(Value As Integer)
 				FID = Value
 			End Property
-		#EndIf
+		#endif
 		
-		#IfNDef Text_Off
+		#ifndef Text_Off
 			Property Control.Text ByRef As WString
-				#IFNDef __USE_GTK__
+				#ifndef __USE_GTK__
 					If FHandle Then
 						Dim As Integer L
 						L = Perform(WM_GETTEXTLENGTH, 0, 0)
-						FText = Cast(WString Ptr, ReAllocate(FText, (L + 1 + 1) * SizeOf(WString)))
-						*FText = WString(L + 1, 0)
-						GetWindowText(FHandle, FText, L + 1)
+						FText = WString(L + 1, 0)
+						GetWindowText(FHandle, FText.vptr, L + 1)
 					End If
-				#EndIf
-				Return WGet(FText)
+				#endif
+				Return *FText.vptr
 			End Property
 			
 			Dim Shared TempString As String
 			Property Control.Text(ByRef Value As WString)
-				WLet FText, Value
-				#IfDef __USE_GTK__
-					If widget Then 
+				FText = Value
+				#ifdef __USE_GTK__
+					If widget Then
 						If GTK_IS_WINDOW(widget) Then
 							gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
 						End If
 					End If
-				#Else
+				#else
 					If FHandle Then
 						'If Value = "" Then
 						'    SetWindowTextA FHandle, TempString
 						'Else
-						SetWindowTextW FHandle, FText
+						SetWindowTextW FHandle, FText.vptr
 						'End If
-					End If    
-				#EndIf
+					End If
+				#endif
 			End Property
-		#EndIf
+		#endif
 		
-		#IfNDef Hint_Off
+		#ifndef Hint_Off
 			Property Control.Hint ByRef As WString
-				Return WGet(FHint)
+				Return *FHint.vptr
 			End Property
 			
 			Property Control.Hint(ByRef Value As WString)
-				WLet FHint, Value
-				#IFNDef __USE_GTK__
+				FHint = Value
+				#ifndef __USE_GTK__
 					If FHandle Then
 						If ToolTipHandle Then
 							SendMessage(ToolTipHandle, TTM_GETTOOLINFO, 0, CInt(@FToolInfo))
-							FToolInfo.lpszText = FHint
+							FToolInfo.lpszText = FHint.vptr
 							SendMessage(ToolTipHandle, TTM_UPDATETIPTEXT, 0, CInt(@FToolInfo))
 						End If
 					End If
-				#EndIf
+				#endif
 			End Property
-		#EndIf
+		#endif
 		
-		#IfNDef Align_Off
+		#ifndef Align_Off
 			Property Control.Align As Integer
 				Return FAlign
 			End Property
@@ -365,7 +364,7 @@ Namespace My.Sys.Forms
 				'						Case 2 'Right
 				'							gtk_widget_set_halign(widget, GTK_ALIGN_END)
 				'							gtk_widget_set_valign(widget, GTK_ALIGN_FILL)
-				'						Case 3 'Top 
+				'						Case 3 'Top
 				'							gtk_widget_set_halign(widget, GTK_ALIGN_FILL)
 				'							gtk_widget_set_valign(widget, GTK_ALIGN_START)
 				'						Case 4 'Bottom
@@ -377,7 +376,7 @@ Namespace My.Sys.Forms
 				'						End Select
 				'					End If
 				'                #EndIf
-				If FParent <> 0 Then QControl(FParent).RequestAlign 
+				If FParent <> 0 Then QControl(FParent).RequestAlign
 			End Property
 		#endif
 		
@@ -391,6 +390,11 @@ Namespace My.Sys.Forms
 				If FParent Then
 					Dim As Control Ptr cParent = QControl(FParent)
 					If cParent Then
+						#ifdef __USE_GTK__
+							If cParent->widget AndAlso gtk_is_frame(cParent->widget) Then
+								iTop -= 20
+							End If
+						#endif
 						iLeft = iLeft + cParent->Margins.Left
 						iTop = iTop + cParent->Margins.Top
 						iWidth = iWidth - cParent->Margins.Left - cParent->Margins.Right
@@ -406,7 +410,7 @@ Namespace My.Sys.Forms
 					'gtk_widget_set_allocation(widget, @allocation)
 					If iWidth <= 1 Or iHeight <= 1 Then
 						Exit Sub
-					End If 
+					End If
 					If widget Then
 						If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 							gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
@@ -536,7 +540,7 @@ Namespace My.Sys.Forms
 			End Property
 			
 			Property Control.Width(Value As Integer)
-				FWidth = Value
+				FWidth = Max(FMinWidth, Value)
 				Move This.Left, This.Top, FWidth, Height
 			End Property
 		#endif
@@ -571,7 +575,7 @@ Namespace My.Sys.Forms
 			End Property
 			
 			Property Control.Height(Value As Integer)
-				FHeight = Value
+				FHeight = Max(FMinHeight, Value)
 				Move This.Left, This.Top, This.Width, FHeight
 			End Property
 		#endif
@@ -677,7 +681,7 @@ Namespace My.Sys.Forms
 			Property Control.ShowHint(Value As Boolean)
 				FShowHint = Value
 				#ifndef __USE_GTK__
-					If Handle Then 
+					If Handle Then
 						If ToolTipHandle Then SendMessage(ToolTipHandle,TTM_ACTIVATE,FShowHint,0)
 					End If
 				#endif
@@ -691,6 +695,9 @@ Namespace My.Sys.Forms
 			
 			Property Control.BackColor(Value As Integer)
 				FBackColor = Value
+				FBackColorRed = GetRed(Value) / 255.0
+				FBackColorGreen = GetGreen(Value) / 255.0
+				FBackColorBlue = GetBlue(Value) / 255.0
 				Brush.Color = FBackColor
 				Invalidate
 			End Property
@@ -727,13 +734,13 @@ Namespace My.Sys.Forms
 		
 		Sub Control.ChangeExStyle(iStyle As Integer, Value As Boolean)
 			If Value Then
-				If ((ExStyle AND iStyle) <> iStyle) Then ExStyle = ExStyle Or iStyle
-			ElseIf ((ExStyle AND iStyle) = iStyle) Then
+				If ((ExStyle And iStyle) <> iStyle) Then ExStyle = ExStyle Or iStyle
+			ElseIf ((ExStyle And iStyle) = iStyle) Then
 				ExStyle = ExStyle And Not iStyle
 			End If
 		End Sub
 		
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Property Control.ParentWidget As GtkWidget Ptr
 				Return FParentWidget
 			End Property
@@ -748,7 +755,7 @@ Namespace My.Sys.Forms
 					gtk_container_add(GTK_CONTAINER(Value), widget)
 				End If
 			End Property
-		#Else
+		#else
 			Property Control.ParentHandle As HWND
 				Return FParentHandle
 			End Property
@@ -756,68 +763,68 @@ Namespace My.Sys.Forms
 			Property Control.ParentHandle(Value As HWND)
 				FParentHandle = Value
 			End Property
-		#EndIf
+		#endif
 		
 		Property Control.TabStop As Boolean
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				FTabStop = StyleExists(WS_TABSTOP)
-			#EndIf
+			#endif
 			Return FTabStop
 		End Property
 		
 		Property Control.TabStop(Value As Boolean)
 			FTabStop = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				ChangeStyle WS_TABSTOP, Value
-			#EndIf
+			#endif
 		End Property
 		
 		Property Control.Grouped As Boolean
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				FGrouped = StyleExists(WS_GROUP)
-			#EndIf
+			#endif
 			Return FGrouped
 		End Property
 		
 		Property Control.Grouped(Value As Boolean)
 			FGrouped = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				ChangeStyle WS_GROUP, Value
-			#EndIf
+			#endif
 		End Property
 		
 		Property Control.Enabled As Boolean
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Handle Then FEnabled = IsWindowEnabled(Handle)
-			#EndIf
+			#endif
 			Return FEnabled
 		End Property
 		
 		Property Control.Enabled(Value As Boolean)
 			FEnabled = Value
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				If Widget Then gtk_widget_set_sensitive(Widget, FEnabled)
-			#Else
+			#else
 				If FHandle Then EnableWindow FHandle, FEnabled
-			#EndIf
+			#endif
 		End Property
 		
 		Property Control.Visible() As Boolean
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If FHandle Then FVisible = IsWindowVisible(FHandle)
-			#EndIf
+			#endif
 			Return FVisible
 		End Property
 		
 		Property Control.Visible(Value As Boolean)
 			FVisible = Value
 			If (Not DesignMode) OrElse Value Then
-				#IfDef __USE_GTK__
+				#ifdef __USE_GTK__
 					If widget Then
 						'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
 						gtk_widget_set_visible(widget, Value)
 					End If
-				#Else
+				#else
 					If FHandle = 0 And CInt(Value) Then
 						CreateWnd
 					End If
@@ -830,15 +837,15 @@ Namespace My.Sys.Forms
 							ShowWindow(FHandle, SW_HIDE)
 						End If
 					End If
-				#EndIf
+				#endif
 			End If
 		End Property
 		
-		Sub Control.Show()
+		Sub Control.Show
 			Visible = True
 		End Sub
 		
-		Sub Control.Hide() '...'
+		Sub Control.Hide '...'
 			Visible = False
 		End Sub
 		
@@ -847,11 +854,11 @@ Namespace My.Sys.Forms
 			Dim As Long nTop    = FTop
 			Dim As Long nWidth  = FWidth
 			Dim As Long nHeight = FHeight
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Handle Then Exit Sub
 				Dim As HWND HParent
 				Dim As Integer ControlID = 0
-				If (Style AND WS_CHILD) = WS_CHILD Then
+				If (Style And WS_CHILD) = WS_CHILD Then
 					If FParent Then
 						HParent = FParent->Handle
 						FID =  1000 + Cast(Control Ptr, FParent)->ControlCount
@@ -870,18 +877,18 @@ Namespace My.Sys.Forms
 						HParent = NULL
 						'						If MainHandle Then
 						'							HParent = MainHandle
-						'						End If 
+						'						End If
 						If FOwner Then
 							HParent = FOwner->Handle
 						End If
-					End If 
+					End If
 					ControlID = NULL
 				End If
-				#If __USE_X11__
+				#if __USE_X11__
 					Dim As Display Ptr dpy
-					Dim As Integer screen
+					Dim As Integer Screen
 					Dim As Window win
-					Dim As XEvent event
+					Dim As XEvent Event
 					
 					
 					dpy = XOpenDisplay()
@@ -892,42 +899,43 @@ Namespace My.Sys.Forms
 					End If
 					
 					
-					screen = DefaultScreen(dpy)
+					Screen = DefaultScreen(dpy)
 					
 					
-					win = XCreateSimpleWindow(dpy, RootWindow(dpy, screen), FLeft, FTop, FWidth, FHeight, 1, BlackPixel(dpy, screen), WhitePixel(dpy, screen))
+					win = XCreateSimpleWindow(dpy, RootWindow(dpy, Screen), FLeft, FTop, FWidth, FHeight, 1, BlackPixel(dpy, Screen), WhitePixel(dpy, Screen))
 					
 					
 					XSelectInput(dpy, win, ExposureMask Or KeyPressMask)
 					XMapWindow(dpy, win)
-				#Else
+				#else
 					Select Case FStartPosition
 					Case 0 ' Manual
 					Case 1, 4 ' CenterScreen, CenterParent
 						If FStartPosition = 4 AndAlso FParent Then ' CenterParent
 							With *Cast(Control Ptr, FParent)
 								nLeft = .Left + (.Width - nWidth) \ 2: nTop  = .Top + (.Height - nHeight) \ 2
-							ENd With
+							End With
 						Else ' CenterScreen
 							nLeft = (GetSystemMetrics(SM_CXSCREEN) - nWidth) \ 2: nTop  = (GetSystemMetrics(SM_CYSCREEN) - nHeight) \ 2
 						End If
 					Case 2: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT ' WindowsDefaultLocation
 					Case 3: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT: nWidth = CW_USEDEFAULT: nHeight = CW_USEDEFAULT ' WindowsDefaultBounds
 					End Select
-					If (Style AND (WS_CLIPCHILDREN OR WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN OR WS_CLIPSIBLINGS) Then
+					If (Style And (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS) Then
 						'If DesignMode AndAlso ClassName = "GroupBox" Then
 						'	Style = Style OR (WS_CLIPSIBLINGS)
 						'Else
-						Style = Style OR (WS_CLIPCHILDREN OR WS_CLIPSIBLINGS)
+						Style = Style Or (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)
 						'End If
 					End If
 					CreationCOntrol = @This
 					'RegisterClass ClassName, ClassAncestor
+					Dim As Integer AControlParent(2) =>{0, WS_EX_CONTROLPARENT}
 					Dim As Integer ATabStop(2) =>{0,WS_TABSTOP},AGrouped(2) = >{0,WS_GROUP}
-					FHandle = CreateWindowExW(FExStyle,_
+					FHandle = CreateWindowExW(FExStyle Or AControlParent(Abs_(FControlParent)),_
 					FClassName,_
-					FText,_
-					FStyle OR ATabStop(Abs_(FTabStop)) OR AGrouped(Abs_(FGrouped)),_
+					FText.vptr,_
+					FStyle Or ATabStop(Abs_(FTabStop)) Or AGrouped(Abs_(FGrouped)),_
 					nLeft,_
 					nTop,_
 					nWidth,_
@@ -938,9 +946,9 @@ Namespace My.Sys.Forms
 					@This) ' '
 				#endif
 				If Handle Then
-					SetWindowLongPtr(Handle, GWLP_USERDATA, CInt(Child)) 
+					SetWindowLongPtr(Handle, GWLP_USERDATA, CInt(Child))
 					If SubClass Then
-						PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc))) 
+						PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
 					End If
 					BringToFront
 					If This.Font Then This.Font.Parent = @This
@@ -963,7 +971,7 @@ Namespace My.Sys.Forms
 					Next i
 					This.RequestAlign
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
-					If OnCreate Then OnCreate(This)            
+					If OnCreate Then OnCreate(This)
 					If FVisible Then ShowWindow(FHandle, SW_SHOWNORMAL)
 					Update
 				End If
@@ -972,30 +980,30 @@ Namespace My.Sys.Forms
 		
 		Sub Control.RecreateWnd
 			Dim As Integer i
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Handle = 0 Then Exit Sub
 				'For i = 0 To ControlCount -1
 				'    Controls[i]->FreeWnd
 				'Next i
-				FreeWnd 
+				FreeWnd
 				CreateWnd
 				For i = 0 To ControlCount -1
 					Controls[i]->RecreateWnd
 					Controls[i]->RequestAlign
 				Next i
 				RequestAlign
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.FreeWnd
-			#IfDef __USE_GTK__
-				If gtk_is_widget(Widget) Then
-					gtk_widget_destroy(Widget)
-				End If
-				If gtk_is_widget(ScrolledWidget) Then
-					gtk_widget_destroy(ScrolledWidget)
-				End If
-			#Else
+			#ifdef __USE_GTK__
+'				If gtk_is_widget(Widget) Then
+'					gtk_widget_destroy(Widget)
+'				End If
+'				If gtk_is_widget(ScrolledWidget) Then
+'					gtk_widget_destroy(ScrolledWidget)
+'				End If
+			#else
 				If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
 				If FHandle Then
 					'					For i As Integer = 0 To ControlCount - 1
@@ -1004,11 +1012,11 @@ Namespace My.Sys.Forms
 					DestroyWindow FHandle
 					FHandle = 0
 				End If
-				If ToolTipHandle Then 
+				If ToolTipHandle Then
 					DestroyWindow ToolTipHandle
 					ToolTipHandle = 0
 				End If
-			#EndIf
+			#endif
 		End Sub
 		
 		Property Control.ContextMenu As PopupMenu Ptr
@@ -1167,14 +1175,14 @@ Namespace My.Sys.Forms
 				Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC
 					Dim As Control Ptr Child
 					If Message.Msg = WM_CTLCOLORSTATIC Then
-						If (GetWindowLong(CPtr(HWND,Message.LParam),GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
+						If (GetWindowLong(CPtr(HWND,Message.LParam), GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
 							Exit Select
 						End If
 					End If
 					Child = Cast(Control Ptr,GetWindowLongPtr(CPtr(HWND,Message.LParam),GWLP_USERDATA))
 					If Child Then
 						With *Child
-							SendMessage(CPtr(HWND,Message.LParam),CM_CTLCOLOR,Message.wParam,Message.lParam)
+							SendMessage(CPtr(HWND,Message.LParam),CM_CTLCOLOR,Message.wParam, Message.lParam)
 							message.result = Cast(LRESULT,.Brush.Handle)
 						End With
 					Else
@@ -1190,14 +1198,14 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				Case WM_SIZE
-					If Controls Then 
+					If Controls Then
 						RequestAlign
 					End If
 					If OnReSize Then OnReSize(This, This.Width, This.Height)
 				Case WM_WINDOWPOSCHANGING
-					If Constraints.Left <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).x  = Constraints.Left 
-					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top 
-					If Constraints.Width <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cx = Constraints.Width 
+					If Constraints.Left <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).x  = Constraints.Left
+					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top
+					If Constraints.Width <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cx = Constraints.Width
 					If Constraints.Height <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cy = Constraints.Height
 				Case WM_CANCELMODE
 					SendMessage(Handle,CM_CANCELMODE,0,0)
@@ -1234,23 +1242,23 @@ Namespace My.Sys.Forms
 				Case WM_MEASUREITEM
 					Dim As MEASUREITEMSTRUCT Ptr miStruct
 					miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
-					Select Case miStruct->CtlType 
-					Case ODT_MENU    
+					Select Case miStruct->CtlType
+					Case ODT_MENU
 						'miStruct->itemWidth = miStruct->itemWidth + 8
 						'If miStruct->itemHeight < 18 Then miStruct->itemHeight = 18
-					Case ODT_LISTBOX,ODT_COMBOBOX 
+					Case ODT_LISTBOX,ODT_COMBOBOX
 						SendMessage(GetDlgItem(Handle,Message.wParam),CM_MEASUREITEM,Message.wParam,Message.lParam)
 					End Select
 				Case WM_DRAWITEM
 					Dim As DRAWITEMSTRUCT Ptr diStruct
 					diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
-					Select Case diStruct->CtlType 
+					Select Case diStruct->CtlType
 					Case ODT_MENU
 						'If This.ContextMenu AndAlso This.ContextMenu->ImagesList AndAlso This.ContextMenu->ImagesList->Handle AndAlso diStruct->itemData <> 0 Then
 						'    ImageList_Draw(This.ContextMenu->ImagesList->Handle, Cast(MenuItem Ptr, diStruct->itemData)->ImageIndex, diStruct->hDC, 2, 2, ILD_NORMAL)
 						'End If
 					Case ODT_BUTTON,ODT_COMBOBOX,ODT_HEADER,ODT_LISTBOX,ODT_LISTVIEW,ODT_STATIC,ODT_TAB
-						SendMessage(Cast(HWND,diStruct->hwndItem),CM_DRAWITEM,Message.wParam,Message.lParam) 
+						SendMessage(Cast(HWND,diStruct->hwndItem),CM_DRAWITEM,Message.wParam,Message.lParam)
 					End Select
 				Case WM_COMMAND
 					GetPopupMenuItems
@@ -1264,7 +1272,7 @@ Namespace My.Sys.Forms
 					Next i
 					SendMessage(Cast(HWND,Message.lParam),CM_COMMAND,Message.wParam,Message.lParam)
 				Case WM_MOUSEMOVE
-					If OnMouseMove Then OnMouseMove(This, DownButton, Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF) 
+					If OnMouseMove Then OnMouseMove(This, DownButton, Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 					If This.Tracked = False Then
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
@@ -1309,7 +1317,7 @@ Namespace My.Sys.Forms
 					Dim Frm As Control Ptr = GetForm
 					If Frm AndAlso frm->FDefaultButton AndAlso frm->FDefaultButton->OnClick Then
 						frm->FDefaultButton->OnClick(*frm->FDefaultButton)
-						Message.Result = -1: 
+						Message.Result = -1:
 						Exit Sub
 					End If
 				Case WM_KEYDOWN
@@ -1319,7 +1327,7 @@ Namespace My.Sys.Forms
 						Case VK_TAB
 							Dim Frm As Control Ptr = GetForm
 							If Frm Then
-								SelectNext frm->FActiveControl, bShift
+								SelectNextControl frm->FActiveControl, bShift
 								Message.Result = -1:
 								Exit Sub
 							End If
@@ -1327,7 +1335,7 @@ Namespace My.Sys.Forms
 							Dim Frm As Control Ptr = GetForm
 							If Frm AndAlso frm->FDefaultButton AndAlso frm->FDefaultButton->OnClick Then
 								frm->FDefaultButton->OnClick(*frm->FDefaultButton)
-								Message.Result = -1: 
+								Message.Result = -1:
 								Exit Sub
 							End If
 						Case VK_ESCAPE
@@ -1343,7 +1351,7 @@ Namespace My.Sys.Forms
 					If OnKeyUp Then OnKeyUp(This,LoWord(Message.WParam),Message.lParam And &HFFFF)
 				Case WM_SETFOCUS
 					If OnGotFocus Then OnGotFocus(This)
-					Dim frm As Control Ptr = TopLevelControl
+					Dim frm As Control Ptr = GetForm
 					If frm Then
 						frm->FActiveControl = @This
 						If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
@@ -1358,15 +1366,15 @@ Namespace My.Sys.Forms
 						If FWindow Then SendMessage FWindow,CM_NEEDTEXT,Message.wParam, Message.lParam
 					Else
 						FWindow = NM->hwndFrom
-						SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam 
+						SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam
 					End If
 				Case WM_HELP
-					If (GetWindowLong(message.hwnd,GWL_STYLE) And WS_CHILD) <> WS_CHILD Then SendMessage(message.hwnd,CM_HELP,message.wParam,message.LParam)
+					'If (GetWindowLong(message.hwnd,GWL_STYLE) And WS_CHILD) <> WS_CHILD Then SendMessage(message.hwnd,CM_HELP,message.wParam,message.LParam)
 				Case WM_NEXTDLGCTL
 					Dim As Control Ptr NextCtrl
 					Dim As Control Ptr frm = GetForm
 					If frm Then
-						NextCtrl = SelectNext(frm->FActiveControl)
+						NextCtrl = SelectNextControl(frm->FActiveControl)
 						If NextCtrl Then NextCtrl->SetFocus
 					End If
 				Case WM_DESTROY
@@ -1424,7 +1432,7 @@ Namespace My.Sys.Forms
 			Function Control.EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Dim Message As Message
 				Dim As Control Ptr Ctrl = user_data
-				Message = Type(Ctrl, widget, event, False)
+				Message = Type(Ctrl, widget, Event, False)
 				If Ctrl Then
 					'If Ctrl->DesignMode Then Return True
 					Message.Sender = Ctrl
@@ -1433,10 +1441,10 @@ Namespace My.Sys.Forms
 				Return Message.Result
 			End Function
 			
-			Function Control.EventAfterProc(widget As GtkWidget Ptr, event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Function Control.EventAfterProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Dim Message As Message
 				Dim As Control Ptr Ctrl = user_data
-				Message = Type(Ctrl, widget, event, False)
+				Message = Type(Ctrl, widget, Event, False)
 				If Ctrl Then
 					'If Ctrl->DesignMode Then Return True
 					Message.Sender = Ctrl
@@ -1444,21 +1452,24 @@ Namespace My.Sys.Forms
 				End If
 				Return Message.Result
 			End Function
-		#Else
+		#else
 			Function Control.DefWndProc(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As LRESULT
 				Dim Message As Message
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				Message = Type(Ctrl, FWindow,Msg,wParam,lParam,0,LoWord(wParam),HiWord(wParam),LoWord(lParam),HiWord(lParam), 0)
 				If Ctrl Then
-					Ctrl->ProcessMessage(Message)
-					If Message.Result = -1 Then
-						Return Message.Result
-					ElseIf Message.Result = -2 Then
-						Msg = Message.Msg
-						wParam = Message.wParam
-						lParam = Message.lParam
-					ElseIf Message.Result <> 0 Then 
-						Return Message.Result
+					'?Ctrl
+					If Ctrl->ClassName <> "" Then
+						Ctrl->ProcessMessage(Message)
+						If Message.Result = -1 Then
+							Return Message.Result
+						ElseIf Message.Result = -2 Then
+							Msg = Message.Msg
+							wParam = Message.wParam
+							lParam = Message.lParam
+						ElseIf Message.Result <> 0 Then
+							Return Message.Result
+						End If
 					End If
 				End If
 				Message.Result = DefWindowProc(FWindow,Msg,wParam,lParam)
@@ -1502,19 +1513,26 @@ Namespace My.Sys.Forms
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				If Ctrl Then
 					With *Ctrl
-						.ProcessMessage(Message)
-						If Message.Result = -1 Then
-							Return Message.Result
-						ElseIf Message.Result = -2 Then
-							Msg = Message.Msg
-							wParam = Message.wParam
-							lParam = Message.lParam
-						ElseIf Message.Result <> 0 Then
-							Return Message.Result
+						'?Ctrl
+						If Ctrl->ClassName <> "" Then
+							.ProcessMessage(Message)
+							If Message.Result = -1 Then
+								Return Message.Result
+							ElseIf Message.Result = -2 Then
+								Msg = Message.Msg
+								wParam = Message.wParam
+								lParam = Message.lParam
+							ElseIf Message.Result <> 0 Then
+								Return Message.Result
+							End If
 						End If
 					End With
 				End If
-				Message.Result = CallWindowProc(GetClassProc(FWindow), FWindow, Msg, wParam, lParam)
+				Dim As Any Ptr cp = GetClassProc(FWindow)
+				If cp <> 0 Then
+					'If msg = TVM_DELETEITEM Then ?11111
+					Message.Result = CallWindowProc(cp, FWindow, Msg, wParam, lParam)
+				End If
 				'				If Ctrl Then
 				'					Ctrl->ProcessMessageAfter(Message)
 				'				End If
@@ -1530,36 +1548,50 @@ Namespace My.Sys.Forms
 			
 			Function Control.Perform(Msg As UINT,wParam As WPARAM,lParam As LPARAM) As LRESULT
 				If Handle Then
-					Return SendMessageW(Handle,Msg,wParam,lParam)
+					Return SendMessageW(Handle, Msg, wParam, lParam)
 				Else
 					Return 0
 				End If
 			End Function
-		#EndIf
+		#endif
 		
-		Function Control.SelectNext(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
-			Static As Integer Index, LastIndex
-			Var iStep = IIF(Prev, -1, 1)
-			If CurControl AndAlso CurControl->Parent Then
-				Index = CurControl->Parent->IndexOF(CurControl)
-				If Index <> -1 Then
-					Index = Index + iStep
-					Dim ForTo As Integer
-					If Prev Then
-						If Index = -1 Then Index = QControl(CurControl->Parent).ControlCount - 1
-						ForTo = 0
-					Else
-						If Index = QControl(CurControl->Parent).ControlCount Then Index = 0
-						ForTo = QControl(CurControl->Parent).ControlCount - 1
-					End If
-					For i As Integer = Index To ForTo Step iStep                    
-						If QControl(CurControl->Parent).Controls[i]->TabStop Then
-							QControl(CurControl->Parent).Controls[i]->SetFocus
-							Return QControl(CurControl->Parent).Controls[i]
-						End If
-					Next
+		Function Control.SelectNextControl(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
+			Static As Integer Index
+			'Dim bTabStopNot As Boolean
+			If CurControl Then
+				If CurControl->Parent Then
+					#ifndef __USE_GTK__
+						Dim As HWND CtrlHandle = GetNextDlgTabItem(CurControl->Parent->Handle, CurControl->Handle, Prev)
+						.SetFocus(CtrlHandle)
+					#else
+						'						With *CurControl->Parent
+						'							Index = .IndexOf(CurControl)
+						'							If Index <> -1 Then
+						'								Dim As Integer ForTo, From
+						'								If Prev Then
+						'									From = .ControlCount - 1
+						'									ForTo = 0
+						'								Else
+						'									From = 0
+						'									ForTo = .ControlCount - 1
+						'								End If
+						'								If Index = ForTo Then
+						'									If CurControl->FParent->ClassName = "Form" Then Return SelectNextControl(.Controls[From], Prev) Else Return SelectNextControl(*CurControl->Parent, Prev)
+						'								End If
+						'								Index = Index + iStep
+						'								If .Controls[Index]->TabStop Then
+						'									.Controls[Index]->SetFocus
+						'									Return .Controls[Index]
+						'								ElseIf .Controls[Index]->ControlCount > 0 Then
+						'									Return SelectNextControl(.Controls[Index]->Controls[0], Prev)
+						'								Else
+						'									Return SelectNextControl(.Controls[Index], Prev)
+						'								End If
+						'							End If
+						'						End With
+					#endif
 				End If
-			End If        
+			End If
 			Return NULL
 		End Function
 		
@@ -1598,7 +1630,7 @@ Namespace My.Sys.Forms
 					If Ctrl->BackColor <> -1 Then
 						Dim As Integer iColor = Ctrl->BackColor
 						cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
-						cairo_set_source_rgb(cr, Abs(GetRed(iColor) / 255.0), Abs(GetGreen(iColor) / 255.0), Abs(GetBlue(iColor) / 255.0))
+						cairo_set_source_rgb(cr, Ctrl->FBackColorRed, Ctrl->FBackColorGreen, Ctrl->FBackColorBlue)
 						cairo_fill(cr)
 					End If
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
@@ -1673,13 +1705,13 @@ Namespace My.Sys.Forms
 					If GetClassInfoEx(0, wClassAncestor, @Wc) <> 0 Then
 						ClassProc = Wc.lpfnWndProc
 						Wc.lpszClassName = @wClassName
-						Wc.lpfnWndProc   = IIF(WndProcAddr = 0, @SuperWndProc, Proc)
+						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @SuperWndProc, Proc)
 						Wc.hInstance     = Instance
 						'If Cursor AndAlso Cursor->Handle Then Wc.hCursor = Cursor->Handle
 						Wc.cbWndExtra += 4
 						Result = .RegisterClassEx(@Wc)
 						If Result Then
-							StoreClass wClassName, wClassAncestor, ClassProc 
+							StoreClass wClassName, wClassAncestor, ClassProc
 						End If
 					ElseIf GetClassInfoEx(Instance, wClassAncestor, @Wc) <> 0 Then
 						ClassProc = GetClassProc(wClassAncestor)
@@ -1688,7 +1720,7 @@ Namespace My.Sys.Forms
 						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @DefWndProc, Proc)
 						Result = .RegisterClassEx(@Wc)
 						If Result Then
-							StoreClass wClassName, wClassAncestor, ClassProc 
+							StoreClass wClassName, wClassAncestor, ClassProc
 						End If
 					Else
 						MessageBox NULL, wClassName & "' sinfini qayd qilish imkoni yo`q.", "Control", MB_ICONERROR
@@ -1715,19 +1747,35 @@ Namespace My.Sys.Forms
 			*AHeight = This.Height
 		End Sub
 		
-		Sub Control.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
-			FLeft   = ALeft
-			FTop    = ATop
-			FWidth  = AWidth
-			FHeight = AHeight
+		Sub Control.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = False)
+			If NoScale Then 'David Change
+				FLeft   = ALeft
+				FTop    = ATop
+				FWidth  = AWidth
+				FHeight = AHeight
+			Else
+				FLeft   = ScaleX(ALeft)
+				FTop    = ScaleY(ATop)
+				FWidth  = ScaleY(AWidth)
+				FHeight = ScaleY(AHeight)
+			End If
+			FWidth = Max(FMinWidth, FWidth)
+			FHeight = Max(FMinHeight, FHeight)
 			Move FLeft, FTop, FWidth, FHeight
 		End Sub
 		
-		Sub Control.SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
-			Margins.Left   = mLeft
-			Margins.Top    = mTop
-			Margins.Right  = mRight
-			Margins.Bottom = mBottom
+		Sub Control.SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer,NOSCALE As Boolean = False)
+			If NOSCALE Then
+				Margins.Left   = mLeft
+				Margins.Top    = mTop
+				Margins.Right  = mRight
+				Margins.Bottom = mBottom
+			Else
+				Margins.Left   = ScaleX(mLeft)
+				Margins.Top    = ScaleY(mTop)
+				Margins.Right  = ScaleX(mRight)
+				Margins.Bottom = ScaleY(mBottom)
+			End If
 			RequestAlign
 		End Sub
 		
@@ -1749,7 +1797,7 @@ Namespace My.Sys.Forms
 			#endif
 			Dim As Control Ptr Ptr ListLeft, ListRight, ListTop, ListBottom, ListClient
 			Dim As Integer i,LeftCount = 0, RightCount = 0, TopCount = 0, BottomCount = 0, ClientCount = 0
-			Dim As Integer tTop, bTop, lLeft, rLeft 
+			Dim As Integer tTop, bTop, lLeft, rLeft
 			Dim As Integer aLeft, aTop, aWidth, aHeight
 			If ControlCount = 0 Then Exit Sub
 			If iClientWidth = -1 Then iClientWidth = ClientWidth
@@ -1837,7 +1885,7 @@ Namespace My.Sys.Forms
 				'						Case 2 'Right
 				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_END)
 				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
-				'						Case 3 'Top 
+				'						Case 3 'Top
 				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
 				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_START)
 				'						Case 4 'Bottom
@@ -1856,15 +1904,14 @@ Namespace My.Sys.Forms
 				With *ListTop[i]
 					If .FVisible Then
 						tTop += .Height
-						'?.ClassName, 0,tTop - .Height,rLeft,.Height
 						.SetBounds(0,tTop - .Height,rLeft,.Height)
-					End If  
+					End If
 				End With
 			Next i
 			'bTop = ClientHeight
 			For i = 0 To BottomCount -1
 				With *ListBottom[i]
-					If .FVisible Then    
+					If .FVisible Then
 						bTop -= .Height
 						.SetBounds(0,bTop,rLeft,.Height)
 					End If
@@ -1882,7 +1929,7 @@ Namespace My.Sys.Forms
 			'rLeft = ClientWidth
 			For i = 0 To RightCount -1
 				With *ListRight[i]
-					If .FVisible Then 
+					If .FVisible Then
 						rLeft -= .Width
 						.SetBounds(rLeft, tTop, .Width, bTop - tTop)
 					End If
@@ -1921,68 +1968,68 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub Control.Repaint
-			#IfnDef __USE_GTK__
-				If Handle Then 
-					RedrawWindow Handle,0,0,RDW_ERASE OR RDW_INVALIDATE
+			#ifndef __USE_GTK__
+				If Handle Then
+					RedrawWindow Handle,0,0,RDW_ERASE Or RDW_INVALIDATE
 					Update
 				End If
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.Update
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				If widget Then gtk_widget_queue_draw(widget)
-			#Else
+			#else
 				If Handle Then UpdateWindow Handle
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.UpdateLock
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If FHandle Then LockWindowUpdate FHandle
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.UpdateUnLock
-			#IFNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If FHandle Then LockWindowUpdate 0
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.SetFocus
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				If widget Then gtk_widget_grab_focus(widget)
-			#Else
+			#else
 				If Handle Then .SetFocus Handle
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.BringToFront
-			#IfnDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Handle Then BringWindowToTop Handle
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.SendToBack
-			#IfnDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Handle Then SetWindowPos Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.AllocateHint
-			#IfnDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Handle Then
 					ToolTipHandle = CreateWindowEx(0, TOOLTIPS_CLASS, "", TTS_ALWAYSTIP Or WS_POPUP, 0, 0, 0, 0, FHandle, NULL, GetModuleHandle(NULL), NULL)
 					FToolInfo.cbSize=SizeOf(TOOLINFO)
-					FToolInfo.uFlags   = TTF_IDISHWND OR TTF_SUBCLASS
+					FToolInfo.uFlags   = TTF_IDISHWND Or TTF_SUBCLASS
 					SendMessage(ToolTipHandle, TTM_SETDELAYTIME, TTDT_INITIAL, 100)
 					If FParent Then FToolInfo.hwnd = FParent->Handle
 					FToolInfo.hinst    = GetModuleHandle(NULL)
 					FToolInfo.uId      = Cast(Integer, Handle)
-					FToolInfo.lpszText = FHint
-					SendMessage(ToolTipHandle, TTM_ADDTOOL, 0, Cint(@FToolInfo))
+					FToolInfo.lpszText = FHint.vptr
+					SendMessage(ToolTipHandle, TTM_ADDTOOL, 0, CInt(@FToolInfo))
 				End If
-			#EndIf
+			#endif
 		End Sub
 		
 		Sub Control.Add(Ctrl As Control Ptr)
@@ -1990,13 +2037,15 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
 				FControlCount += 1
-				Controls = ReAllocate(Controls,SizeOF(Control)*FControlCount)
+				Controls = Reallocate(Controls,SizeOf(Control)*FControlCount)
 				Controls[FControlCount -1] = Ctrl
-				#IfDef __USE_GTK__
+				#ifdef __USE_GTK__
+					Dim As Integer FrameTop
+					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
 					If layoutwidget Then
-						gtk_layout_put(GTK_LAYOUT(layoutwidget), IIF(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget), Ctrl->FLeft, Ctrl->FTop)
+						gtk_layout_put(GTK_LAYOUT(layoutwidget), IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget), Ctrl->FLeft, Ctrl->FTop - FrameTop)
 					ElseIf fixedwidget Then
-						gtk_fixed_put(GTK_FIXED(fixedwidget), IIF(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget), Ctrl->FLeft, Ctrl->FTop)
+						gtk_fixed_put(GTK_FIXED(fixedwidget), IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget), Ctrl->FLeft, Ctrl->FTop - FrameTop)
 					End If
 					Ctrl->FAnchoredParentWidth = This.FWidth
 					Ctrl->FAnchoredParentHeight = This.FHeight
@@ -2004,9 +2053,9 @@ Namespace My.Sys.Forms
 					Ctrl->FAnchoredTop = Ctrl->FTop
 					Ctrl->FAnchoredRight = Ctrl->FAnchoredParentWidth - Ctrl->FWidth - Ctrl->FLeft
 					Ctrl->FAnchoredBottom = Ctrl->FAnchoredParentHeight - Ctrl->FHeight - Ctrl->FTop
-				#Else
+				#else
 					If Ctrl->Handle Then
-						If Handle Then 
+						If Handle Then
 							SetParent Ctrl->Handle, Handle
 							Ctrl->FAnchoredParentWidth = This.Width
 							Ctrl->FAnchoredParentHeight = This.Height
@@ -2016,31 +2065,31 @@ Namespace My.Sys.Forms
 							Ctrl->FAnchoredBottom = Ctrl->FAnchoredParentHeight - Ctrl->FHeight - Ctrl->FTop
 						End If
 					ElseIf Handle Then
-						'#IFDEF __AUTOMATE_CREATE_CHILDS__ 
+						'#IFDEF __AUTOMATE_CREATE_CHILDS__
 						Ctrl->CreateWnd
 						'#ENDIF
 					End If
-				#EndIf
+				#endif
 				RequestAlign
-				If FSaveParent then
+				If FSaveParent Then
 					If FSaveParent <> @This Then
 						FSaveParent->Remove Ctrl
 						FSaveParent->RequestAlign
 					End If
-				End if
+				End If
 			End If
 		End Sub
 		
-		#If not defined(__FB_64BIT__) And Not defined(__FB_GCC__)
-			Sub Control.AddRange Cdecl(CountArgs As Integer, ...)
+		#if Not defined(__FB_64BIT__) And Not defined(__FB_GCC__)
+			Sub Control.AddRange cdecl(CountArgs As Integer, ...)
 				Dim value As Any Ptr
-				value = Va_first()
-				For i as integer = 1 to CountArgs
-					Add(Va_arg(value, Control Ptr))
-					value = Va_next(value, Long)
+				value = va_first()
+				For i As Integer = 1 To CountArgs
+					Add(va_arg(value, Control Ptr))
+					value = va_next(value, Long)
 				Next
 			End Sub
-		#EndIf
+		#endif
 		
 		Sub Control.Remove(Ctrl As Control Ptr)
 			Dim As Any Ptr P
@@ -2051,8 +2100,8 @@ Namespace My.Sys.Forms
 					P = Controls[i]
 					Controls[i -1] = P
 				Next i
-				FControlCount -= 1 
-				Controls = ReAllocate(Controls,FControlCount*SizeOf(Control))
+				FControlCount -= 1
+				Controls = Reallocate(Controls,FControlCount*SizeOf(Control))
 				'DeAllocate P
 			End If
 		End Sub
@@ -2109,8 +2158,8 @@ Namespace My.Sys.Forms
 		
 		Destructor Control
 			FreeWnd
-			If FText Then Deallocate FText
-			If FHint Then Deallocate FHint
+			'If FText Then Deallocate FText
+			'If FHint Then Deallocate FHint
 			'			Dim As Integer i
 			'			For i = 0 To ControlCount -1
 			'			    If Controls[i] Then Controls[i]->Free
@@ -2152,4 +2201,4 @@ End Namespace
 	Sub ControlFreeWnd Alias "ControlFreeWnd"(Ctrl As My.Sys.Forms.Control Ptr) Export
 		Ctrl->FreeWnd()
 	End Sub
-#EndIf
+#endif
