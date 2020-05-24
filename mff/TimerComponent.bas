@@ -31,8 +31,8 @@ Namespace My.Sys.Forms
 		Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
 			With TimersList
 				If .Contains(idEvent) Then
-					Var tmr = *Cast(TimerComponent Ptr, .Object(.IndexOf(idEvent)))
-					If tmr.OnTimer Then tmr.OnTimer(tmr)
+					Var tmr = Cast(TimerComponent Ptr, .Object(.IndexOf(idEvent)))
+					If tmr->OnTimer Then tmr->OnTimer(*tmr)
 				End If
 			End With
 		End Sub
