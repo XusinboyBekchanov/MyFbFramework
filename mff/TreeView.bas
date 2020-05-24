@@ -5,6 +5,9 @@
 '################################################################################
 
 #include once "TreeView.bi"
+#ifndef __USE_GTK__
+	#include once "win\commctrl.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Sub TreeNode.SelectItem
@@ -226,6 +229,15 @@ Namespace My.Sys.Forms
 	
 	Destructor TreeNode
 		Nodes.Clear
+		#ifdef __USE_GTK__
+			If Parent AndAlso Parent->widget Then
+				gtk_tree_store_remove(Cast(TreeView Ptr, Parent)->TreeStore, @This.TreeIter)
+			End If
+		#else
+			If Parent AndAlso Parent->Handle Then
+				TreeView_DeleteItem(Parent->Handle, This.Handle)
+			End If
+		#endif
 		WDeAllocate FHint
 		'WDeAllocate FText
 		WDeAllocate FImageKey
@@ -387,15 +399,15 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub TreeNodeCollection.Remove(Index As Integer)
-		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
-				gtk_tree_store_remove(Cast(TreeView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
-			End If
-		#else
-			If Parent AndAlso Parent->Handle Then
-				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
-			End If
-		#endif
+'		#ifdef __USE_GTK__
+'			If Parent AndAlso Parent->widget Then
+'				gtk_tree_store_remove(Cast(TreeView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
+'			End If
+'		#else
+'			If Parent AndAlso Parent->Handle Then
+'				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
+'			End If
+'		#endif
 		Delete Item(Index)
 		FNodes.Remove Index
 	End Sub
@@ -447,13 +459,20 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub TreeNodeCollection.Clear
-		#ifdef __USE_GTK__
-			If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeView Ptr, Parent)->TreeStore)
-		#endif
-		For i As Integer = Count -1 To 0 Step -1
-			'Delete @QTreeNode(FNodes.Items[i])
-			Remove i
-		Next i
+'		If ParentNode = 0 Then
+'			#ifdef __USE_GTK__
+'				If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeView Ptr, Parent)->TreeStore)
+'			#else
+'				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
+'			#endif
+			For i As Integer = Count -1 To 0 Step -1
+				Delete Cast(TreeNode Ptr, FNodes.Items[i])
+			Next i
+'		Else
+'			For i As Integer = Count - 1 To 0 Step -1
+'				Remove i
+'			Next i
+'		End If
 		FNodes.Clear
 	End Sub
 	

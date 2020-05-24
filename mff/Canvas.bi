@@ -10,7 +10,7 @@
 '################################################################################
 
 #include once "Graphics.bi"
-#include once "Control.bi"
+#include once "Component.bi"
 
 Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr,__Ptr__)
@@ -71,6 +71,7 @@ Namespace My.Sys.Drawing
 		Declare Sub ReleaseDevice
 		iTemp As Integer
 	Public:
+		HandleSetted As Boolean
 		#ifdef __USE_GTK__
 			Handle  As cairo_t Ptr
 			Dim As PangoContext Ptr pcontext

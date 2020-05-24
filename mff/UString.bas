@@ -157,13 +157,19 @@ Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
 	Return Left(*(subject.vptr), n)
 End Function
 
-#ifndef __USE_GTK__
-	Function FileExists(ByRef filename As UString) As Long
+Function FileExists(ByRef filename As UString) As Long
+	#ifndef __USE_GTK__
 		If PathFileExistsW(filename.vptr) Then
 			Return -1
 		Else
 			Return 0
 		End If
-	End Function
-#endif
+	#else
+		If g_find_program_in_path(*filename.vptr) = NULL Then
+			Return 0
+		Else
+			Return -1
+		End If
+	#endif
+End Function
 

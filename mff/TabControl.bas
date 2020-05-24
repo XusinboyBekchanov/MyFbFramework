@@ -234,22 +234,22 @@ Namespace My.Sys.Forms
 		WLet FClassName, "TabPage"
 		WLet FClassAncestor, "Panel"
 		Child = @This
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			This.RegisterClass "TabPage", @This
-		#Else
+		#else
 			Align = 5
 			Base.Style = WS_CHILD Or DS_SETFOREGROUND
 			This.OnHandleIsAllocated = @HandleIsAllocated
 			This.RegisterClass "TabPage", "Panel"
-		#EndIf
+		#endif
 	End Constructor
 	
 	Destructor TabPage
-		If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
+		'If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
 		WDeallocate FCaption
 	End Destructor
 	
-	#IfNDef ReadProperty_Off
+	#ifndef ReadProperty_Off
 		Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
@@ -257,9 +257,9 @@ Namespace My.Sys.Forms
 			End Select
 			Return 0
 		End Function
-	#EndIf
+	#endif
 	
-	#IfNDef WriteProperty_Off
+	#ifndef WriteProperty_Off
 		Function TabControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)

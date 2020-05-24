@@ -26,7 +26,6 @@ Namespace My.Sys.Forms
 	
 	Type ComboBoxEdit Extends Control
 	Private:
-		FStyle            As Integer
 		FSort             As Boolean
 		FItemText         As WString Ptr
 		FItemHeight       As Integer
@@ -48,6 +47,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 	Protected:
+		FStyle            As Integer
 		FItemIndex        As Integer
 		#ifndef __USE_GTK__
 			Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT

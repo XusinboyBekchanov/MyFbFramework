@@ -1,7 +1,9 @@
 ﻿#define UNICODE
 #include once "file.bi"
-#ifndef __USE_GTK__
-	#undef FileExists
+#undef FileExists
+#ifdef __USE_GTK__
+	#include once "glib.bi"
+#else
 	#include once "win\shlwapi.bi"
 #endif
 Type UStr As UString

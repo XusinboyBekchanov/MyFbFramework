@@ -8,37 +8,37 @@
 '#   Copyright (c) Aloberoger                                                   #
 '################################################################################
 
-#Ifndef CRLF
-	#Define CRLF Chr(10,13)
+#ifndef CRLF
+	#define CRLF Chr(10,13)
 #endif
-#Include Once "Canvas.bi"
-#IfDef __FB_Win32__
-	#Include Once "win/winspool.bi"
-#EndIf
+#include once "Canvas.bi"
+#ifdef __FB_WIN32__
+	#include once "win/winspool.bi"
+#endif
 
 Namespace My.Sys.ComponentModel
 	Enum PrinterOrientation
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			poPortait =DMORIENT_PORTRAIT
 			poLandscape=DMORIENT_LANDSCAPE
-		#Else
+		#else
 			poPortait
 			poLandscape
-		#EndIf
+		#endif
 	End Enum
 	
 	Enum PrinterQuality
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			pqDraft=DMRES_DRAFT
 			pqLow =DMRES_LOW
 			pqMedium =DMRES_MEDIUM
 			pqHigh=DMRES_HIGH
-		#Else
+		#else
 			pqDraft
 			pqLow
 			pqMedium
 			pqHigh
-		#EndIf
+		#endif
 	End Enum
 	
 	Enum PrinterDuplexMode
@@ -48,7 +48,7 @@ Namespace My.Sys.ComponentModel
 	End Enum
 	
 	Enum PrinterPaperSize
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ppsLetter=DMPAPER_LETTER	'Letter, 8 1/2- by 11-inches
 			ppsLEGALr=DMPAPER_LEGAL	'Legal, 8 1/2- by 14-inches
 			ppsA4=DMPAPER_A4	'A4 Sheet, 210- by 297-millimeters
@@ -90,7 +90,7 @@ Namespace My.Sys.ComponentModel
 			'ppsLetter=DMPAPER_FANFOLD_US	'US Std Fanfold, 14 7/8- by 11-inches
 			'ppsLetter=DMPAPER_FANFOLD_STD_GERMAN	'German Std Fanfold, 8 1/2- by 12-inches
 			'ppsLetter=DMPAPER_FANFOLD_LGL_GERMAN	'German Legal Fanfold, 8 1/2- by 13-inches
-		#Else
+		#else
 			ppsLetter	'Letter, 8 1/2- by 11-inches
 			ppsLEGALr	'Legal, 8 1/2- by 14-inches
 			ppsA4	'A4 Sheet, 210- by 297-millimeters
@@ -104,17 +104,17 @@ Namespace My.Sys.ComponentModel
 			ppsEXECUTIVE	'Executive, 7 1/4- by 10 1/2-inches
 			ppsA3	'A3 sheet, 297- by 420-millimeters
 			ppsA4SMALL	'A4 small sheet, 210- by 297-millimeters
-		#EndIf
+		#endif
 	End Enum
 	
-	Type Printer extends Component
+	Type Printer Extends Component
 	Private:
-		#IfNDef __USE_GTK__
-			m_hdc AS HDC               'handle of a display device context
-			m_hFont AS HFONT             'handle of current font
-			hOrigFont AS HFONT       'handle of original font
-			hDevMode AS DEVMODE Ptr          'handle to DEVMODE structure
-		#EndIf
+		#ifndef __USE_GTK__
+			m_hdc As HDC               'handle of a display device context
+			m_hFont As HFONT             'handle of current font
+			hOrigFont As HFONT       'handle of original font
+			hDevMode As DEVMODE Ptr          'handle to DEVMODE structure
+		#endif
 		m_Name As String
 		m_PortName As String
 		m_Page As Integer
@@ -123,84 +123,84 @@ Namespace My.Sys.ComponentModel
 		m_Copies As Integer
 		m_FromPage As Integer
 		m_ToPage As Integer
-		charHt AS Integer          'character height
-		leftMargin AS Integer      'left margin
-		rightMargin AS Integer     'right margin
-		topMargin AS Integer       'top margin
-		bottomMargin AS Integer    'bottom margin
-		printerName AS STRING     'name of printer
-		origDuplex AS LONG        'original duplex mode
-		origOrient AS LONG        'original orientation mode
+		charHt As Integer          'character height
+		leftMargin As Integer      'left margin
+		rightMargin As Integer     'right margin
+		topMargin As Integer       'top margin
+		bottomMargin As Integer    'bottom margin
+		printerName As String     'name of printer
+		origDuplex As Long        'original duplex mode
+		origOrient As Long        'original orientation mode
 		As Integer xPos, yPos       'default position for text print
 		As Integer FPageNumber=1
 		m_duplex As PrinterDuplexMode
 		m_colorMode As Long
 		FTitle  As String
-		Declare FUNCTION PARSE OverLoad (source as string, delimiter as String="|", index as integer)as String
-		Declare FUNCTION PARSE (source as String, index as integer, delimiter as String=",")as String
+		Declare Function PARSE Overload (source As String, delimiter As String="|", index As Integer)As String
+		Declare Function PARSE (source As String, index As Integer, delimiter As String=",")As String
 		Declare Function STRREVERSE (S As String)As String
-		DECLARE Sub       orientPrint(n AS LONG)
+		Declare Sub       orientPrint(n As Long)
 		
-		DECLARE Function  SetPrinterOrientation2 (BYVAL PrinterName AS String, BYVAL nOrientation AS LONG) AS LONG
+		Declare Function  SetPrinterOrientation2 (ByVal PrinterName As String, ByVal nOrientation As Long) As Long
 		
-		Declare FUNCTION SetPrinterOrientation (BYVAL PrinterName AS String, BYVAL nOrientation AS LONG) AS LONG
-		Declare FUNCTION GetPrinterOrientation (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION PrinterPaperNames (BYVAL PrinterName AS STRING) AS String
-		Declare FUNCTION GetPrinterPaperSizes (BYVAL PrinterName AS STRING) AS String
-		Declare FUNCTION SetPrinterPaperSize (BYVAL PrinterName AS String, BYVAL nSize AS LONG) AS Long
-		Declare FUNCTION GetPrinterPort (BYVAL PrinterName AS STRING) AS String
-		Declare FUNCTION GetPrinterFromPort (BYVAL PortName AS STRING) AS String
-		Declare FUNCTION GetPrinterQualityMode (BYVAL PrinterName AS String) AS PrinterQuality
-		Declare FUNCTION SetPrinterQuality (BYVAL PrinterName AS String, BYVAL nMode AS PrinterQuality) AS Long
-		Declare FUNCTION GetPrinterScale (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION GetPrinterScalingFactorX (BYVAL PrinterName AS String) AS LONG
-		Declare FUNCTION GetPrinterScalingFactorY (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION SetPrinterColorMode (BYVAL PrinterName AS String, BYVAL nMode AS LONG) AS Long
-		Declare FUNCTION SetPrinterCopies (BYVAL PrinterName AS String, BYVAL nCopies AS LONG) AS LONG
-		Declare FUNCTION SetPrinterDuplexMode (BYVAL PrinterName AS String, BYVAL nDuplexMode AS LONG) AS LONG
-		Declare Function GetPrinterDuplex (BYVAL PrinterName AS String) AS Long
+		Declare Function SetPrinterOrientation (ByVal PrinterName As String, ByVal nOrientation As Long) As Long
+		Declare Function GetPrinterOrientation (ByVal PrinterName As String) As Long
+		Declare Function PrinterPaperNames (ByVal PrinterName As String) As String
+		Declare Function GetPrinterPaperSizes (ByVal PrinterName As String) As String
+		Declare Function SetPrinterPaperSize (ByVal PrinterName As String, ByVal nSize As Long) As Long
+		Declare Function GetPrinterPort (ByVal PrinterName As String) As String
+		Declare Function GetPrinterFromPort (ByVal PortName As String) As String
+		Declare Function GetPrinterQualityMode (ByVal PrinterName As String) As PrinterQuality
+		Declare Function SetPrinterQuality (ByVal PrinterName As String, ByVal nMode As PrinterQuality) As Long
+		Declare Function GetPrinterScale (ByVal PrinterName As String) As Long
+		Declare Function GetPrinterScalingFactorX (ByVal PrinterName As String) As Long
+		Declare Function GetPrinterScalingFactorY (ByVal PrinterName As String) As Long
+		Declare Function SetPrinterColorMode (ByVal PrinterName As String, ByVal nMode As Long) As Long
+		Declare Function SetPrinterCopies (ByVal PrinterName As String, ByVal nCopies As Long) As Long
+		Declare Function SetPrinterDuplexMode (ByVal PrinterName As String, ByVal nDuplexMode As Long) As Long
+		Declare Function GetPrinterDuplex (ByVal PrinterName As String) As Long
 		
 		
-		Declare FUNCTION GetPrinterDriverVersion (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION  GetPrinterHorizontalResolution (BYVAL PrinterName AS String) AS Long ' printableWidth
-		DECLARE FUNCTION  GetPrinterVerticalResolution (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION  GetPrinterMaxCopies (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION  GetPrinterMaxPaperHeight (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION  GetPrinterMaxPaperWidth (BYVAL PrinterName AS String) AS Long
-		Declare FUNCTION  EnumPrinterPorts () AS String
-		Declare FUNCTION  EnumPrinters_ () AS String
+		Declare Function GetPrinterDriverVersion (ByVal PrinterName As String) As Long
+		Declare Function  GetPrinterHorizontalResolution (ByVal PrinterName As String) As Long ' printableWidth
+		Declare Function  GetPrinterVerticalResolution (ByVal PrinterName As String) As Long
+		Declare Function  GetPrinterMaxCopies (ByVal PrinterName As String) As Long
+		Declare Function  GetPrinterMaxPaperHeight (ByVal PrinterName As String) As Long
+		Declare Function  GetPrinterMaxPaperWidth (ByVal PrinterName As String) As Long
+		Declare Function  EnumPrinterPorts () As String
+		Declare Function  EnumPrinters_ () As String
 		' Declare FUNCTION  DefaultPrinter () AS String
-		Declare FUNCTION GetDefaultPrinterDevice () AS String
-		Declare FUNCTION GetDefaultPrinterDriver () AS String
-		Declare Function GetDefaultPrinterPort () AS String
+		Declare Function GetDefaultPrinterDevice () As String
+		Declare Function GetDefaultPrinterDriver () As String
+		Declare Function GetDefaultPrinterPort () As String
 		Declare Sub ShowPrinterProperties()
 		Declare   Sub UpdateMargeins()
 	Public:
 		Canvas As My.Sys.Drawing.Canvas
-		DECLARE Sub       reportError( BYVAL n AS LONG)
+		Declare Sub       reportError( ByVal n As Long)
 		Declare Property  Name(vData As String)
 		Declare Property  Name() As String
 		Declare Property  PortName(vData As String)
 		Declare Property  PortName() As String
-		#IfNDef __USE_GTK__
-			DECLARE Property  Handle() AS HDC
-		#EndIf
-		DECLARE Property  PageHeight as  Integer
-		DECLARE Property  PageWidth as  Integer
-		DECLARE Property  MarginLeft as  Integer
-		Declare Property  MarginLeft(value as  Integer)
-		Declare  Property MarginTop as  Integer
-		Declare  Property MarginTop(value as  Integer)
-		Declare  Property MarginRight as  Integer
-		Declare  Property MarginRight(value as  Integer)
-		Declare  Property Marginbottom as  Integer
+		#ifndef __USE_GTK__
+			Declare Property  Handle() As HDC
+		#endif
+		Declare Property  PageHeight As  Integer
+		Declare Property  PageWidth As  Integer
+		Declare Property  MarginLeft As  Integer
+		Declare Property  MarginLeft(value As  Integer)
+		Declare  Property MarginTop As  Integer
+		Declare  Property MarginTop(value As  Integer)
+		Declare  Property MarginRight As  Integer
+		Declare  Property MarginRight(value As  Integer)
+		Declare  Property Marginbottom As  Integer
 		Declare  Property Marginbottom(value As  Integer)
 		Declare Property  Page(vData As Integer)
 		Declare Property  Page() As Integer
 		Declare Property  PageSize(vData As Integer)
 		Declare Property  PageSize() As Integer
-		Declare Property  printableWidth() AS Long
-		Declare Property  printableHeight() AS Long
+		Declare Property  printableWidth() As Long
+		Declare Property  printableHeight() As Long
 		Declare Property  Orientation(vData As Long)
 		Declare Property  Orientation() As Long
 		Declare Property  Copies(vData As Integer)
@@ -211,36 +211,36 @@ Namespace My.Sys.ComponentModel
 		Declare Property  FromPage() As Integer
 		Declare Property  ToPage(vData As Integer)
 		Declare Property  ToPage() As Integer
-		Declare Property Scale () AS Long
-		Declare Property ScaleFactorX() AS LONG
-		Declare Property ScaleFactorY() AS Long
-		Declare Property ColorMode (BYVAL nMode AS LONG)
-		Declare Property ColorMode() AS LONG
-		Declare Property DriveVersion() AS Long
+		Declare Property Scale () As Long
+		Declare Property ScaleFactorX() As Long
+		Declare Property ScaleFactorY() As Long
+		Declare Property ColorMode (ByVal nMode As Long)
+		Declare Property ColorMode() As Long
+		Declare Property DriveVersion() As Long
 		
-		Declare Property  MaxCopies() AS Long
-		Declare Property  MaxPaperHeight() AS Long
-		Declare Property  MaxPaperWidth() AS Long
-		Declare Function  defaultPrinter() AS STRING
-		Declare Function  choosePrinter() AS STRING
-		Declare Sub       getPageSize(ByRef wi AS Integer,ByRef ht AS Integer)
-		Declare Sub       getCharSize(ByRef wi AS Integer,ByRef ht AS Integer)
-		DECLARE Function  getLines( BYVAL y AS Integer=0) AS LONG
-		DECLARE Property  duplexMode(n As PrinterDuplexMode)
-		Declare Property  duplexMode() AS PrinterDuplexMode
+		Declare Property  MaxCopies() As Long
+		Declare Property  MaxPaperHeight() As Long
+		Declare Property  MaxPaperWidth() As Long
+		Declare Function  defaultPrinter() As String
+		Declare Function  choosePrinter() As String
+		Declare Sub       getPageSize(ByRef wi As Integer,ByRef ht As Integer)
+		Declare Sub       getCharSize(ByRef wi As Integer,ByRef ht As Integer)
+		Declare Function  getLines( ByVal y As Integer=0) As Long
+		Declare Property  duplexMode(n As PrinterDuplexMode)
+		Declare Property  duplexMode() As PrinterDuplexMode
 		Declare  Property   Title() As String
 		Declare  Property   Title(value As String)
 		Declare Sub       StartDoc()
-		DECLARE Sub       StartPage
-		DECLARE Sub       EndDPage
-		DECLARE Sub       NewPage
-		DECLARE Sub       EndDoc
-		Declare Sub       CalcPageSize(byref Rows AS LONG,byref Columns AS LONG)
+		Declare Sub       StartPage
+		Declare Sub       EndDPage
+		Declare Sub       NewPage
+		Declare Sub       EndDoc
+		Declare Sub       CalcPageSize(ByRef Rows As Long,ByRef Columns As Long)
 		Declare Property FontSize() As Integer
 		Declare Property fontsize(As Integer)
-		#IfNDef __USE_GTK__
-			declare Function newFont(fName AS String="times new Roman", fSize AS Long=12,ibold As Long=FALSE, iunderline As Long=FALSE, iitalic As Long=FALSE ) AS HFONT
-		#EndIf
+		#ifndef __USE_GTK__
+			Declare Function newFont(fName As String="times new Roman", fSize As Long=12,ibold As Long=False, iunderline As Long=False, iitalic As Long=False ) As HFONT
+		#endif
 		Declare Constructor()
 		'Declare Operator Cast() As TCONTROL Ptr
 		'Declare Constructor
@@ -248,7 +248,7 @@ Namespace My.Sys.ComponentModel
 	
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "Printer.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Printer.bas"
+#endif
 

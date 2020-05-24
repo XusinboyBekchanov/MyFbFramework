@@ -10,10 +10,10 @@
 
 #include once "PrintDialog.bi"
 
-Property PrintDialog.Left() As Integer: Return xLeft: End Property
-Property PrintDialog.Left(value As Integer): xLeft=value: End Property
-Property PrintDialog.Top() As Integer: Return xTop: End Property
-Property PrintDialog.Top(value As Integer): xTop=value: End Property
+'Property PrintDialog.Left() As Integer: Return xLeft: End Property
+'Property PrintDialog.Left(value As Integer): xLeft=value: End Property
+'Property PrintDialog.Top() As Integer: Return xTop: End Property
+'Property PrintDialog.Top(value As Integer): xTop=value: End Property
 Property PrintDialog.SetupDialog() As Integer: Return xSetupDialog: End Property
 Property PrintDialog.SetupDialog(value As Integer)
 	If value Then xSetupDialog=True Else xSetupDialog=False
@@ -35,25 +35,25 @@ End Property
 			End If
 			SetWindowPos(hWnd, 0, X, Y, 0, 0, SWP_NOSIZE Or SWP_NOZORDER)
 			If lpPRNDlg->Caption <> "" Then SetWindowText(hWnd, lpPRNDlg->Caption)
-			RETURN 1
-		END IF
-		RETURN 0
-	END FUNCTION
-	FUNCTION SetUpHookProc(hWnd AS HWND, uMsg AS UINT, wParam AS WPARAM, lParam AS LPARAM) AS LRESULT
-		IF uMsg=WM_INITDIALOG THEN                              ' ALL initializing is done here
-			DIM AS PRINTDLG PTR lpPRN=CAST(PRINTDLG PTR,lParam)
-			DIM AS PrintDialog PTR lpPRNDlg=CAST(PrintDialog PTR, lpPRN->lCustData)
-			DIM AS integer X, Y, W, H
+			Return 1
+		End If
+		Return 0
+	End Function
+	Function SetUpHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
+			Dim As PRINTDLG Ptr lpPRN=Cast(PRINTDLG Ptr,lParam)
+			Dim As PrintDialog Ptr lpPRNDlg=Cast(PrintDialog Ptr, lpPRN->lCustData)
+			Dim As Integer X, Y, W, H
 			X=lpPRNDlg->Left: Y=lpPRNDlg->Top
-			IF (X<0) OR (Y<0) THEN
-				DIM AS RECT rct
+			If (X<0) Or (Y<0) Then
+				Dim As RECT rct
 				GetWindowRect(hWnd, @rct)
-				IF X<0 THEN W=rct.Right-rct.Left: X=(GetSystemMetrics(SM_CXSCREEN) - W)\2
-				IF Y<0 THEN H=rct.Bottom-rct.Top: Y=(GetSystemMetrics(SM_CYSCREEN) - H)\2
-			END IF
-			SetWindowPos(hWnd, 0, X, Y, 0, 0, SWP_NOSIZE OR SWP_NOZORDER)
-			IF lpPRNDlg->Caption <> "" THEN SetWindowText(hWnd, lpPRNDlg->Caption)
-			RETURN 1
+				If X<0 Then W=rct.Right-rct.Left: X=(GetSystemMetrics(SM_CXSCREEN) - W)\2
+				If Y<0 Then H=rct.Bottom-rct.Top: Y=(GetSystemMetrics(SM_CYSCREEN) - H)\2
+			End If
+			SetWindowPos(hWnd, 0, X, Y, 0, 0, SWP_NOSIZE Or SWP_NOZORDER)
+			If lpPRNDlg->Caption <> "" Then SetWindowText(hWnd, lpPRNDlg->Caption)
+			Return 1
 		End If
 		Return 0
 	End Function
@@ -88,3 +88,7 @@ Function PrintDialog.Execute() As Boolean
 	#endif
 	Return False
 End Function
+
+Constructor PrintDialog
+	WLet FClassName, "PrintDialog"
+End Constructor

@@ -192,9 +192,6 @@ Namespace My.Sys.Forms
 		OnDeActivate As Sub(ByRef Sender As Form)
 		OnHide       As Sub(ByRef Sender As Form)
 		OnFree       As Sub(ByRef Sender As Form)
-		#ifndef __USE_GTK__
-			OnPaint      As Sub(ByRef Sender As Form, DC As HDC, R As Rect)
-		#endif
 		OnSize       As Sub(ByRef Sender As Form)
 		OnShow       As Sub(ByRef Sender As Form)
 		OnTimer      As Sub(ByRef Sender As Form)

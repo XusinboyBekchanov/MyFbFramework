@@ -14,26 +14,13 @@
 #include once "Menus.bi"
 #include once "List.bi"
 #include once "Graphics.bi"
+#include once "Canvas.bi"
 #ifndef __USE_GTK__
 	#include once "win/commctrl.bi"
 	#include once "win/shellapi.bi"
 #endif
 
 Using My.Sys.ComponentModel
-
-#ifndef __FB_WIN32__
-	Type Point
-		X As Integer
-		Y As Integer
-	End Type
-	
-	Type Rect
-		Left As Integer
-		Top As Integer
-		Right As Integer
-		Bottom As Integer
-	End Type
-#endif
 
 Namespace My.Sys.Forms
 	#ifndef Control_Off
@@ -75,14 +62,6 @@ Namespace My.Sys.Forms
 			Top          As Integer 'AnchorStyle
 			Right        As Integer 'AnchorStyle
 			Bottom       As Integer 'AnchorStyle
-		End Type
-		
-		Type MarginsType Extends My.Sys.Object '...'
-			Declare Function ToString ByRef As WString
-			Left         As Integer
-			Top          As Integer
-			Right        As Integer
-			Bottom       As Integer
 		End Type
 		
 		Type ControlCollection Extends My.Sys.Object '...'
@@ -128,12 +107,6 @@ Namespace My.Sys.Forms
 			FHint              As UString
 			FShowHint          As Boolean
 			FAlign             As Integer
-			FLeft              As Integer
-			FTop               As Integer
-			FWidth             As Integer
-			FHeight            As Integer
-			FMinWidth          As Integer
-			FMinHeight         As Integer
 			FClientWidth       As Integer
 			FClientHeight      As Integer
 			FBackColor         As Integer
@@ -162,7 +135,6 @@ Namespace My.Sys.Forms
 			Declare Function EnumPopupMenuItems(Item As MenuItem) As Boolean
 			Declare Sub GetPopupMenuItems
 			Declare Sub AllocateHint
-			Declare Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			Declare Sub ChangeExStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub ChangeStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub AddProperty(Name As String, Type As String, ByRef Comment As WString)
@@ -181,6 +153,7 @@ Namespace My.Sys.Forms
 				OnHandleIsDestroyed As Sub(ByRef Sender As Control)
 			#endif
 		Public:
+			Canvas        As My.Sys.Drawing.Canvas
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			#ifdef __USE_GTK__
@@ -207,8 +180,6 @@ Namespace My.Sys.Forms
 			Controls           As Control Ptr Ptr
 			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent.
 			Anchor             As AnchorType
-			'Returns/sets the space between controls.
-			Margins            As MarginsType
 			Declare Property ID As Integer
 			Declare Property ID(Value As Integer)
 			'Returns/sets the border style for an object.
@@ -234,18 +205,6 @@ Namespace My.Sys.Forms
 			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent.
 			Declare Property Align As Integer 'DockStyle
 			Declare Property Align(Value As Integer) 'DockStyle
-			'Returns/sets the distance between the internal left edge of an object and the left edge of its container.
-			Declare Property Left As Integer
-			Declare Property Left(Value As Integer)
-			'Returns/sets the distance between the internal top edge of an object and the top edge of its container.
-			Declare Property Top As Integer
-			Declare Property Top(Value As Integer)
-			'Returns/sets the width of an object.
-			Declare Property Width As Integer
-			Declare Property Width(Value As Integer)
-			'Returns/sets the height of an object.
-			Declare Property Height As Integer
-			Declare Property Height(Value As Integer)
 			'Returns/sets the width of the client area of the control.
 			Declare Function ClientWidth As Integer
 			'Returns/sets the height of the client area of the control.
@@ -308,10 +267,6 @@ Namespace My.Sys.Forms
 			Declare Sub Show
 			'Conceals the control from the user.
 			Declare Sub Hide
-			'Gets the bounds of the control to the specified location and size.
-			Declare Sub GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
-			'Sets the bounds of the control to the specified location and size.
-			Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = False)
 			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer, NoScale As Boolean = False)
 			Declare Sub Add(Ctrl As Control Ptr)
 			Declare Sub AddRange cdecl(CountArgs As Integer, ...)
@@ -327,7 +282,7 @@ Namespace My.Sys.Forms
 			'Raises the DropFile event.
 			OnDropFile   As Sub(ByRef Sender As Control, ByRef Filename As WString)
 			'Raises the Paint event.
-			OnPaint      As Sub(ByRef Sender As Control)
+			OnPaint      As Sub(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
 			'Raises the MouseDown event.
 			OnMouseDown  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Raises the MouseMove event.
@@ -372,10 +327,6 @@ End Namespace
 	Declare Function ControlByIndex Alias "ControlByIndex"(Parent As My.Sys.Forms.Control Ptr, Index As Integer) As My.Sys.Forms.Control Ptr
 	
 	Declare Function ControlByName Alias "ControlByName"(Parent As My.Sys.Forms.Control Ptr, CtrlName As String) As My.Sys.Forms.Control Ptr
-	
-	Declare Sub ControlGetBounds Alias "ControlGetBounds"(Ctrl As My.Sys.Forms.Control Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
-	
-	Declare Sub ControlSetBounds Alias "ControlSetBounds"(Ctrl As My.Sys.Forms.Control Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 	
 	Declare Function IsControl Alias "IsControl"(Cpnt As My.Sys.ComponentModel.Component Ptr) As Boolean
 	

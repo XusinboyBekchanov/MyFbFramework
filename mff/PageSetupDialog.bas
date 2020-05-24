@@ -8,68 +8,72 @@
 '#   Copyright (c) Aloberoger                                                   #
 '################################################################################
 
-#Include Once "PageSetupDialog.bi"
+#include once "PageSetupDialog.bi"
 
-PROPERTY PageSetupDialog.Left() AS integer: RETURN xLeft: END PROPERTY
-PROPERTY PageSetupDialog.Left(value AS integer): xLeft=value: END PROPERTY
-PROPERTY PageSetupDialog.PrinterName() AS string: RETURN xPrinterName: END PROPERTY
-PROPERTY PageSetupDialog.PrinterName(value AS string): END PROPERTY            ' Read only
-PROPERTY PageSetupDialog.Top() AS integer: RETURN xTop: END PROPERTY
-PROPERTY PageSetupDialog.Top(value AS integer): xTop=value: END PROPERTY
+'Property PageSetupDialog.Left() As Integer: Return xLeft: End Property
+'Property PageSetupDialog.Left(value As Integer): xLeft=value: End Property
+Property PageSetupDialog.PrinterName() As String: Return xPrinterName: End Property
+Property PageSetupDialog.PrinterName(value As String): End Property            ' Read only
+'Property PageSetupDialog.Top() As Integer: Return xTop: End Property
+'Property PageSetupDialog.Top(value As Integer): xTop=value: End Property
 
-#IfNDef __USE_GTK__
-	FUNCTION PageHookProc(hWnd AS HWND, uMsg AS UINT, wParam AS WPARAM, lParam AS LPARAM) AS LRESULT
-		IF uMsg=WM_INITDIALOG THEN                              ' ALL initializing is done here
-			DIM AS PAGESETUPDLG PTR lpPSD=CAST(PAGESETUPDLG PTR,lParam)
-			DIM AS PageSetupDialog PTR lpPSDDlg=CAST(PageSetupDialog PTR, lpPSD->lCustData)
-			DIM AS integer X, Y, W, H
-			X=lpPSDDlg->Left: Y=lpPSDDlg->Top
-			IF (X<0) OR (Y<0) THEN
-				DIM AS RECT rct
+#ifndef __USE_GTK__
+	Function PageHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
+			Dim As PAGESETUPDLG Ptr lpPSD=Cast(PAGESETUPDLG Ptr,lParam)
+			Dim As PageSetupDialog Ptr lpPSDDlg=Cast(PageSetupDialog Ptr, lpPSD->lCustData)
+			Dim As Integer X, Y, W, H
+			'X=lpPSDDlg->xLeft: Y=lpPSDDlg->xTop
+			'If (X<0) Or (Y<0) Then
+				Dim As RECT rct
 				GetWindowRect(hWnd, @rct)
-				IF X<0 THEN W=rct.Right-rct.Left: X=(GetSystemMetrics(SM_CXSCREEN) - W)\2
-				IF Y<0 THEN H=rct.Bottom-rct.Top: Y=(GetSystemMetrics(SM_CYSCREEN) - H)\2
-			END IF
-			SetWindowPos(hWnd, 0, X, Y, 0, 0, SWP_NOSIZE OR SWP_NOZORDER)
-			IF lpPSDDlg->Caption <> "" THEN SetWindowText(hWnd, lpPSDDlg->Caption)
-			RETURN 1
-		END IF
-		RETURN 0
-	END FUNCTION
-#EndIf
+				If X=0 Then W=rct.Right-rct.Left: X=(GetSystemMetrics(SM_CXSCREEN) - W)\2
+				If Y=0 Then H=rct.Bottom-rct.Top: Y=(GetSystemMetrics(SM_CYSCREEN) - H)\2
+			'End If
+			SetWindowPos(hWnd, 0, X, Y, 0, 0, SWP_NOSIZE Or SWP_NOZORDER)
+			If lpPSDDlg->Caption <> "" Then SetWindowText(hWnd, lpPSDDlg->Caption)
+			Return 1
+		End If
+		Return 0
+	End Function
+#endif
 
-FUNCTION PageSetupDialog.Execute() AS Boolean
-	#IfNDef __USE_GTK__
-		DIM AS PAGESETUPDLG psd
-		DIM AS double value, divsor=100.0                                  ' Default metric
+Function PageSetupDialog.Execute() As Boolean
+	#ifndef __USE_GTK__
+		Dim As PAGESETUPDLG psd
+		Dim As Double value, divsor=100.0                                  ' Default metric
 		
-		CLEAR(@psd, 0, SIZEOF(PAGESETUPDLG))
-		psd.lStructSize=SIZEOF(PAGESETUPDLG)
+		Clear(@psd, 0, SizeOf(PAGESETUPDLG))
+		psd.lStructSize=SizeOf(PAGESETUPDLG)
 		psd.hwndOwner=pApp->MainForm->Handle
-		psd.lCustData=CAST(LPARAM, @THIS)                        ' Pass ptr to printdlg struc
+		psd.lCustData=Cast(LPARAM, @This)                        ' Pass ptr to printdlg struc
 		psd.Flags=PSD_ENABLEPAGESETUPHOOK
-		IF Metric THEN
-			psd.Flags OR= PSD_INHUNDREDTHSOFMILLIMETERS
-		ELSE
-			psd.Flags OR= PSD_INTHOUSANDTHSOFINCHES
-		END IF
-		psd.lpfnPageSetupHook=CAST(LPPAGESETUPHOOK, @PageHookProc)
-		IF PageSetupDlg(@psd) THEN
-			DIM AS DEVNAMES PTR dn
+		If Metric Then
+			psd.Flags Or= PSD_INHUNDREDTHSOFMILLIMETERS
+		Else
+			psd.Flags Or= PSD_INTHOUSANDTHSOFINCHES
+		End If
+		psd.lpfnPageSetupHook=Cast(LPPAGESETUPHOOK, @PageHookProc)
+		If PageSetupDlg(@psd) Then
+			Dim As DEVNAMES Ptr dn
 			dn=GlobalLock(psd.hDevNames)
-			xPrinterName=*CAST(zString PTR, CAST(BYTE PTR, dn) + dn->wDeviceOffset)
+			xPrinterName=*Cast(ZString Ptr, Cast(Byte Ptr, dn) + dn->wDeviceOffset)
 			GlobalUnlock(dn)
-			IF Metric THEN
+			If Metric Then
 				PaperWidth=psd.ptPaperSize.x/100.0: PaperHeight=psd.ptPaperSize.y/100.0
 				LeftMargin=psd.rtMargin.Left/100.0: TopMargin=psd.rtMargin.Top/100.0
 				RightMargin=psd.rtMargin.Right/100.0: BottomMargin=psd.rtMargin.Bottom/100.0
-			ELSE
+			Else
 				PaperWidth=psd.ptPaperSize.x/1000.0: PaperHeight=psd.ptPaperSize.y/1000.0
 				LeftMargin=psd.rtMargin.Left/1000.0: TopMargin=psd.rtMargin.Top/1000.0
 				RightMargin=psd.rtMargin.Right/1000.0: BottomMargin=psd.rtMargin.Bottom/1000.0
-			END IF
-			RETURN True
-		END IF
-	#EndIf
-	RETURN False
-END FUNCTION
+			End If
+			Return True
+		End If
+	#endif
+	Return False
+End Function
+
+Constructor PageSetupDialog
+	WLet FClassName, "PageSetupDialog"
+End Constructor

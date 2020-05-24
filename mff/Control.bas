@@ -25,11 +25,6 @@ Namespace My.Sys.Forms
 			Return *FTemp
 		End Function
 		
-		Function MarginsType.ToString ByRef As WString '...'
-			WLet FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom
-			Return *FTemp
-		End Function
-		
 		#ifndef ReadProperty_Off
 			Function Control.ReadProperty(ByRef PropertyName As String) As Any Ptr
 				FTempString = LCase(PropertyName)
@@ -62,15 +57,6 @@ Namespace My.Sys.Forms
 				Case "font": Return @This.Font
 				Case "id": Return @FID
 				Case "ischild": Return @FIsChild
-				Case "margins": Return @Margins
-				Case "margins.left": Return @Margins.Left
-				Case "margins.right": Return @Margins.Right
-				Case "margins.top": Return @Margins.Top
-				Case "margins.bottom": Return @Margins.Bottom
-				Case "left": FLeft = This.Left: Return @FLeft
-				Case "top": FTop = This.Top: Return @FTop
-				Case "width": FWidth = This.Width: Return @FWidth
-				Case "height": FHeight = This.Height: Return @FHeight
 				Case "parent": Return FParent
 				Case "showhint": Return @FShowHint
 				Case "hint": Return FHint.vptr
@@ -101,10 +87,6 @@ Namespace My.Sys.Forms
 					Case "anchor.bottom": This.Anchor.Bottom = QInteger(Value)
 					Case "cursor": This.Cursor = Cast(My.Sys.Drawing.Cursor Ptr, Value)
 					Case "doublebuffered": This.DoubleBuffered = QBoolean(Value)
-					Case "margins.left": This.Margins.Left = QInteger(Value)
-					Case "margins.right": This.Margins.Right = QInteger(Value)
-					Case "margins.top": This.Margins.Top = QInteger(Value)
-					Case "margins.bottom": This.Margins.Bottom = QInteger(Value)
 					Case "borderstyle": This.BorderStyle = QInteger(Value)
 					Case "backcolor": This.BackColor = QInteger(Value)
 					Case "constraints.left": This.Constraints.Left = QInteger(Value)
@@ -118,10 +100,6 @@ Namespace My.Sys.Forms
 					Case "font": This.Font = *Cast(My.Sys.Drawing.Font Ptr, Value)
 					Case "id": This.ID = QInteger(Value)
 					Case "ischild": This.IsChild = QInteger(Value)
-					Case "left": This.Left = QInteger(Value)
-					Case "top": This.Top = QInteger(Value)
-					Case "width": This.Width = QInteger(Value)
-					Case "height": This.Height = QInteger(Value)
 					Case "parent": This.Parent = QControl(Value)
 						#ifdef __USE_GTK__
 						Case "parentwidget": This.ParentWidget = Value
@@ -377,206 +355,6 @@ Namespace My.Sys.Forms
 				'					End If
 				'                #EndIf
 				If FParent <> 0 Then QControl(FParent).RequestAlign
-			End Property
-		#endif
-		
-		#ifndef Move_Off
-			Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
-				#ifdef __USE_GTK__
-					Dim As Integer iLeft = FLeft, iTop = FTop, iWidth = FWidth, iHeight = FHeight
-				#else
-					Dim As Integer iLeft = cLeft, iTop = cTop, iWidth = cWidth, iHeight = cHeight
-				#endif
-				If FParent Then
-					Dim As Control Ptr cParent = QControl(FParent)
-					If cParent Then
-						#ifdef __USE_GTK__
-							If cParent->widget AndAlso gtk_is_frame(cParent->widget) Then
-								iTop -= 20
-							End If
-						#endif
-						iLeft = iLeft + cParent->Margins.Left
-						iTop = iTop + cParent->Margins.Top
-						iWidth = iWidth - cParent->Margins.Left - cParent->Margins.Right
-						iHeight = iHeight - cParent->Margins.Top - cParent->Margins.Bottom
-					End If
-				End If
-				#ifdef __USE_GTK__
-					Dim allocation As GtkAllocation
-					allocation.x = iLeft
-					allocation.y = iTop
-					allocation.width = iWidth
-					allocation.height = iHeight
-					'gtk_widget_set_allocation(widget, @allocation)
-					If iWidth <= 1 Or iHeight <= 1 Then
-						Exit Sub
-					End If
-					If widget Then
-						If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
-							gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
-							gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
-							'gtk_window_resize(GTK_WINDOW(widget), Max(1, iWidth), Max(1, iHeight))
-							'RequestAlign iWidth, iHeight
-						Else
-							'gdk_window_move(gtk_widget_get_window (widget), iLeft, iTop)
-							'gdk_window_resize(gtk_widget_get_window (widget), Max(1, iWidth), Max(1, iHeight))
-							'If Parent AndAlso Parent->fixedwidget Then gtk_fixed_move(gtk_fixed(Parent->fixedwidget), widget, iLeft, iTop)
-							If Parent Then
-								If Parent->layoutwidget Then
-									'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
-									gtk_layout_move(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, widget), iLeft, iTop)
-								ElseIf Parent->fixedwidget Then
-									gtk_fixed_move(gtk_fixed(Parent->fixedwidget), IIf(scrolledwidget, scrolledwidget, widget), iLeft, iTop)
-								End If
-							End If
-							'gtk_widget_set_size_allocation(widget, @allocation)
-							gtk_widget_set_size_request(IIf(scrolledwidget, scrolledwidget, widget), Max(0, iWidth), Max(0, iHeight))
-							'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
-							'gtk_widget_queue_draw(widget)
-							'?ClassName, FWidth, gtk_widget_get_allocated_width(widget)
-							'FHeight = gtk_widget_get_allocated_height(widget)
-							If gtk_is_layout(IIf(scrolledwidget, scrolledwidget, widget)) Then
-								'?"width: " & gtk_widget_get_allocated_width(widget), "height: " & gtk_widget_get_allocated_height(widget), classname,;
-								'If Parent Then ?parent->classname Else ?
-							End If
-							'RequestAlign iWidth, iHeight
-							'Requests @This
-						End If
-					EndIf
-				#else
-					If FHandle Then MoveWindow FHandle, iLeft, iTop, iWidth, iHeight, True
-				#endif
-			End Sub
-		#endif
-		
-		#ifndef Left_Off
-			Property Control.Left As Integer
-				#ifdef __USE_GTK__
-					If widget AndAlso gtk_widget_get_mapped(widget) Then
-						Dim allocation As GtkAllocation
-						gtk_widget_get_allocation(widget, @allocation)
-						FLeft = allocation.x
-					End If
-				#else
-					If FHandle Then
-						If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
-						Else
-							Dim As Rect R
-							GetWindowRect Handle,@R
-							MapWindowPoints 0,GetParent(Handle),Cast(Point Ptr,@R), 2
-							FLeft = R.Left
-						End If
-					End If
-				#endif
-				Return FLeft
-			End Property
-			
-			Property Control.Left(Value As Integer)
-				FLeft = Value
-				Move FLeft, Top, This.Width, Height
-			End Property
-		#endif
-		
-		#ifndef Top_Off
-			Property Control.Top As Integer
-				#ifdef __USE_GTK__
-					If widget AndAlso gtk_widget_get_mapped(widget) Then
-						Dim allocation As GtkAllocation
-						gtk_widget_get_allocation(widget, @allocation)
-						FTop = allocation.y
-					End If
-				#else
-					If FHandle Then
-						If FParent AndAlso UCase(FParent->ClassName) = "SYSTABCONTROL32" Or UCase(FParent->ClassName) = "TABCONTROL" Then
-						Else
-							Dim As Rect R
-							GetWindowRect Handle,@R
-							MapWindowPoints 0,GetParent(Handle),Cast(Point Ptr,@R),2
-							FTop = R.Top
-						End If
-					End If
-				#endif
-				Return FTop
-			End Property
-			
-			Property Control.Top(Value As Integer)
-				FTop = Value
-				Move This.Left, FTop, This.Width, Height
-			End Property
-		#endif
-		
-		#ifndef Width_Off
-			Property Control.Width As Integer
-				#ifdef __USE_GTK__
-					If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
-						If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
-							#ifdef __USE_GTK3__
-								FWidth = gtk_widget_get_allocated_width(widget)
-							#else
-								FWidth = widget->allocation.width
-							#endif
-						ElseIf widget Then
-							#ifdef __USE_GTK3__
-								If gtk_widget_get_allocated_width(widget) > 1 Then FWidth = gtk_widget_get_allocated_width(widget)
-							#else
-								If widget->allocation.width > 1 Then FWidth = widget->allocation.width
-							#endif
-							'Dim As GtkAllocation alloc
-							'gtk_widget_get_allocation (widget, @alloc)
-							'FWidth = alloc.width
-							'If gtk_widget_get_allocated_width(widget) > 1 Then FWidth = gtk_widget_get_allocated_width(widget)
-							'FWidth = Max(gtk_widget_get_allocated_width(widget), FWidth)
-						End If
-					End If
-				#else
-					If FHandle Then
-						Dim As Rect R
-						GetWindowRect Handle, @R
-						MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
-						FWidth = R.Right - R.Left
-					End If
-				#endif
-				Return FWidth
-			End Property
-			
-			Property Control.Width(Value As Integer)
-				FWidth = Max(FMinWidth, Value)
-				Move This.Left, This.Top, FWidth, Height
-			End Property
-		#endif
-		
-		#ifndef Height_Off
-			Property Control.Height As Integer
-				#ifdef __USE_GTK__
-					If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
-						If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
-							#ifdef __USE_GTK3__
-								FHeight = gtk_widget_get_allocated_height(widget)
-							#else
-								FHeight = widget->allocation.height
-							#endif
-						ElseIf widget Then
-							#ifdef __USE_GTK3__
-								If gtk_widget_get_allocated_height(widget) > 1 Then FHeight = gtk_widget_get_allocated_height(widget)
-							#else
-								If widget->allocation.height > 1 Then FHeight = widget->allocation.height
-							#endif
-						End If
-					End If
-				#else
-					If FHandle Then
-						Dim As Rect R
-						GetWindowRect Handle, @R
-						MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
-						FHeight = R.Bottom - R.Top
-					End If
-				#endif
-				Return FHeight
-			End Property
-			
-			Property Control.Height(Value As Integer)
-				FHeight = Max(FMinHeight, Value)
-				Move This.Left, This.Top, This.Width, FHeight
 			End Property
 		#endif
 		
@@ -1031,7 +809,7 @@ Namespace My.Sys.Forms
 		Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
 			#ifdef __USE_GTK__
-				Dim As GdkEvent Ptr e = Message.event
+				Dim As GdkEvent Ptr e = Message.event 
 				Select Case Message.event->Type
 				Case GDK_NOTHING
 				Case GDK_BUTTON_PRESS
@@ -1141,7 +919,7 @@ Namespace My.Sys.Forms
 				Case GDK_DESTROY
 					If OnDestroy Then OnDestroy(This)
 				Case GDK_EXPOSE
-					If OnPaint Then OnPaint(This)
+					If OnPaint Then OnPaint(This, Canvas)
 				Case GDK_EVENT_LAST
 				End Select
 			#else
@@ -1155,7 +933,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				Case WM_PAINT
-					If OnPaint Then OnPaint(This)
+					If OnPaint Then OnPaint(This, Canvas)
 				Case WM_SETCURSOR
 					If CInt(This.Cursor <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not DesignMode) Then
 						Message.Result = Cast(LResult, SetCursor(This.Cursor->Handle))
@@ -1621,7 +1399,10 @@ Namespace My.Sys.Forms
 			
 			Function Control.Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
-				If gtk_is_layout(widget) Then
+				If gtk_is_layout(widget) AndAlso Ctrl <> 0 Then
+					Ctrl->Canvas.HandleSetted = True 
+					Ctrl->Canvas.Handle = cr
+					If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
 					#ifdef __USE_GTK3__
 						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 					#else
@@ -1639,6 +1420,7 @@ Namespace My.Sys.Forms
 						Ctrl->RequestAlign AllocatedWidth, AllocatedHeight, True
 						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl, AllocatedWidth, AllocatedHeight)
 					End If
+					Ctrl->Canvas.HandleSetted = False
 				End If
 				Return False
 			End Function
@@ -1739,30 +1521,6 @@ Namespace My.Sys.Forms
 				Return Result
 			End Function
 		#endif
-		
-		Sub Control.GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
-			*ALeft = This.Left
-			*ATop = This.Top
-			*AWidth = This.Width
-			*AHeight = This.Height
-		End Sub
-		
-		Sub Control.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = False)
-			If NoScale Then 'David Change
-				FLeft   = ALeft
-				FTop    = ATop
-				FWidth  = AWidth
-				FHeight = AHeight
-			Else
-				FLeft   = ScaleX(ALeft)
-				FTop    = ScaleY(ATop)
-				FWidth  = ScaleY(AWidth)
-				FHeight = ScaleY(AHeight)
-			End If
-			FWidth = Max(FMinWidth, FWidth)
-			FHeight = Max(FMinHeight, FHeight)
-			Move FLeft, FTop, FWidth, FHeight
-		End Sub
 		
 		Sub Control.SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer,NOSCALE As Boolean = False)
 			If NOSCALE Then
@@ -2042,10 +1800,13 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
+					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget)
 					If layoutwidget Then
-						gtk_layout_put(GTK_LAYOUT(layoutwidget), IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget), Ctrl->FLeft, Ctrl->FTop - FrameTop)
+						If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+						gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
 					ElseIf fixedwidget Then
-						gtk_fixed_put(GTK_FIXED(fixedwidget), IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget), Ctrl->FLeft, Ctrl->FTop - FrameTop)
+						If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+						gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
 					End If
 					Ctrl->FAnchoredParentWidth = This.FWidth
 					Ctrl->FAnchoredParentHeight = This.FHeight
@@ -2170,6 +1931,10 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifdef __EXPORT_PROCS__
+	Function Q_Control Alias "QControl"(Ctrl As Any Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
+		Return Cast(My.Sys.Forms.Control Ptr, Ctrl)
+	End Function
+	
 	Sub RemoveControl Alias "RemoveControl"(Parent As My.Sys.Forms.Control Ptr, Ctrl As My.Sys.Forms.Control Ptr) Export
 		Parent->Remove Ctrl
 	End Sub
@@ -2181,14 +1946,6 @@ End Namespace
 	Function ControlByName Alias "ControlByName"(Parent As My.Sys.Forms.Control Ptr, CtrlName As String) As My.Sys.Forms.Control Ptr Export
 		Return Parent->ControlByName(CtrlName)
 	End Function
-	
-	Sub ControlGetBounds Alias "ControlGetBounds"(Ctrl As My.Sys.Forms.Control Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr) Export
-		Ctrl->GetBounds(ALeft, ATop, AWidth, AHeight)
-	End Sub
-	
-	Sub ControlSetBounds Alias "ControlSetBounds"(Ctrl As My.Sys.Forms.Control Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer) Export
-		Ctrl->SetBounds(ALeft, ATop, AWidth, AHeight)
-	End Sub
 	
 	Function IsControl Alias "IsControl"(Cpnt As My.Sys.ComponentModel.Component Ptr) As Boolean Export
 		Return *Cpnt Is My.Sys.Forms.Control

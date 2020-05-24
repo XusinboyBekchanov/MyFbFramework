@@ -8,37 +8,38 @@
 '#   Copyright (c) Aloberoger                                                   #
 '################################################################################
 
-#Include Once "Dialogs.bi"
+#include once "Dialogs.bi"
 
-TYPE PrintDialog Extends Dialog
+Type PrintDialog Extends Dialog
 Private:
-	xLeft AS integer        = -1                        ' Default to center
-	xTop AS integer         = -1
+	xLeft As Integer        = -1                        ' Default to center
+	xTop As Integer         = -1
 Public:
-	Width AS integer                                    ' Not used
-	Height AS integer                                   ' Not used
-	Caption AS string       = ""
+	Width As Integer                                    ' Not used
+	Height As Integer                                   ' Not used
+	Caption As String       = ""
 	
-	xSetupDialog AS integer = False                     ' SetupDialog or PrintDialog
-	PrinterName AS string
-	AllowToFile AS integer      = True
-	AllowToNetwork AS integer   = True
-	ShowHelpButton AS integer   = False
-	HelpFile AS string      = ""
-	FromPage AS integer     = 1
-	ToPage AS integer       = 3
+	xSetupDialog As Integer = False                     ' SetupDialog or PrintDialog
+	PrinterName As String
+	AllowToFile As Integer      = True
+	AllowToNetwork As Integer   = True
+	ShowHelpButton As Integer   = False
+	HelpFile As String      = ""
+	FromPage As Integer     = 1
+	ToPage As Integer       = 3
 	
-	DECLARE PROPERTY Left() AS integer
-	DECLARE PROPERTY Left(value AS integer)
-	DECLARE PROPERTY Top() AS integer
-	DECLARE PROPERTY Top(value AS integer)
-	DECLARE PROPERTY SetupDialog() AS integer
-	DECLARE PROPERTY SetupDialog(value AS integer)
+	'Declare Property Left() As Integer
+	'Declare Property Left(value As Integer)
+	'Declare Property Top() As Integer
+	'Declare Property Top(value As Integer)
+	Declare Property SetupDialog() As Integer
+	Declare Property SetupDialog(value As Integer)
 	
-	DECLARE FUNCTION Execute() AS Boolean
+	Declare Function Execute() As Boolean
+	Declare Constructor
 	
-END TYPE
+End Type
 
-#IfNDef __USE_MAKE__
-	#Include Once "PrintDialog.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "PrintDialog.bas"
+#endif

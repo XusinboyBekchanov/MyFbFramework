@@ -45,7 +45,6 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property RadioButton.Parent(Value As Control Ptr)
-		Base.Parent = Value
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To Value->ControlCount - 1
 				If Value->Controls[i]->ClassName = "RadioButton" Then
@@ -58,6 +57,7 @@ Namespace My.Sys.Forms
 				End If
 			Next
 		#endif
+		Base.Parent = Value
 	End Property
 	Property RadioButton.Text ByRef As WString
 		Return Base.Text

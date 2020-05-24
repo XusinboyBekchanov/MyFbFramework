@@ -97,12 +97,12 @@ Namespace My.Sys.Forms
 	
 	Sub ImageList.AddIcon(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
 		FKeys.Add(Key)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ImageList_AddIcon(Handle,Icon.Handle)
-		#EndIf
+		#endif
 	End Sub
 	
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Sub ImageList.AddIcon(Ico As String, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
 			Dim As My.Sys.Drawing.Icon Icn
 			Icn.LoadFromResourceName(Ico)
@@ -111,29 +111,29 @@ Namespace My.Sys.Forms
 				ImageList_AddIcon(Handle, Icn.Handle)
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
 	Sub ImageList.AddCursor(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
 		FKeys.Add(Key)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ImageList_AddIcon(Handle,Cursor.Handle)
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub ImageList.AddMasked(ByRef Bmp As My.Sys.Drawing.BitmapType, MaskColor As Integer, ByRef Key As WString = "")
 		FKeys.Add(Key)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ImageList_AddMasked(Handle, Bmp.Handle,MaskColor)
-		#EndIf
+		#endif
 		NotifyWindow
 	End Sub
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Sub ImageList.AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "")
-	#Else
+	#else
 		Sub ImageList.AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-	#EndIf
-		#IfNDef __USE_GTK__
+	#endif
+		#ifndef __USE_GTK__
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Bitm.LoadFromResourceName(Bmp, ModuleHandle)
 			If Bitm.Handle Then
@@ -141,15 +141,15 @@ Namespace My.Sys.Forms
 				ImageList_AddMasked(Handle, Bitm.Handle, MaskColor)
 				NotifyWindow
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Sub ImageList.AddPng(ByRef Png As WString, ByRef Key As WString = "")
-	#Else
+	#else
 		Sub ImageList.AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-	#EndIf
-		#IfNDef __USE_GTK__
+	#endif
+		#ifndef __USE_GTK__
 			Dim As HRSRC hPicture = FindResourceW(ModuleHandle, Png, "PNG")
 			Dim As HRSRC hPictureData
 			Dim As Unsigned Long dwSize = SizeOfResource(ModuleHandle, hPicture)
@@ -209,41 +209,41 @@ Namespace My.Sys.Forms
 	
 	Function ImageList.GetBitmap(Index As Integer) ByRef As My.Sys.Drawing.BitmapType
 		Dim As My.Sys.Drawing.BitmapType Ptr BMP
-		#IfNDef __USE_GTK__
-			Dim IMIF As IMAGEINFO
-			BMP = cAllocate(SizeOF(My.Sys.Drawing.BitmapType))
+		#ifndef __USE_GTK__
+			Dim IMIF As ImageInfo
+			BMP = CAllocate(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
 			BMP->Handle = IMIF.hbmImage
-		#EndIf
+		#endif
 		Return *BMP
 	End Function
 	
 	Function ImageList.GetMask(Index As Integer) As My.Sys.Drawing.BitmapType
 		Dim As My.Sys.Drawing.BitmapType Ptr BMP
-		#IfNDef __USE_GTK__
-			Dim IMIF As IMAGEINFO
-			BMP = cAllocate(SizeOF(My.Sys.Drawing.BitmapType))
+		#ifndef __USE_GTK__
+			Dim IMIF As ImageInfo
+			BMP = CAllocate(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
 			BMP->Handle = IMIF.hbmMask
-		#EndIf
+		#endif
 		Return *BMP
 	End Function
 	
 	Function ImageList.GetIcon(Index As Integer) As My.Sys.Drawing.Icon
 		Dim As My.Sys.Drawing.Icon Ptr ICO
-		ICO = cAllocate(SizeOF(My.Sys.Drawing.Icon))
-		#IfNDef __USE_GTK__
-			ICO->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle OR ImageType)
-		#EndIf
+		ICO = CAllocate(SizeOf(My.Sys.Drawing.Icon))
+		#ifndef __USE_GTK__
+			ICO->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType)
+		#endif
 		Return *ICO
 	End Function
 	
 	Function ImageList.GetCursor(Index As Integer) As My.Sys.Drawing.Cursor
 		Dim As My.Sys.Drawing.Cursor Ptr CUR
-		CUR = cAllocate(SizeOF(My.Sys.Drawing.Cursor))
-		#IfNDef __USE_GTK__
-			CUR->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle OR ImageType)
-		#EndIf
+		CUR = CAllocate(SizeOf(My.Sys.Drawing.Cursor))
+		#ifndef __USE_GTK__
+			CUR->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType)
+		#endif
 		Return *CUR
 	End Function
 	
@@ -263,22 +263,22 @@ Namespace My.Sys.Forms
 		Return GetCursor(IndexOf(Key))
 	End Function
 	
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Sub ImageList.DrawEx(Index As Integer,DestDC As HDC,X As Integer,Y As Integer,iWidth As Integer,iHeight As Integer,FG As Integer,BK As Integer)
-			ImageList_DrawEx(Handle,Index,DestDC,X,Y,iWidth,iHeight,FG,BK,DrawingStyle OR ImageType)
+			ImageList_DrawEx(Handle,Index,DestDC,X,Y,iWidth,iHeight,FG,BK,DrawingStyle Or ImageType)
 		End Sub
 		
 		Sub ImageList.Draw(Index As Integer,DestDC As HDC,X As Integer,Y As Integer)
-			ImageList_Draw(Handle,Index,DestDC,X,Y,DrawingStyle OR ImageType)
+			ImageList_Draw(Handle,Index,DestDC,X,Y,DrawingStyle Or ImageType)
 		End Sub
-	#EndIf
+	#endif
 	
 	Sub ImageList.Clear
 		Dim As Integer i
 		For i = 0 To Count -1
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				ImageList_Remove(Handle,i)
-			#EndIf
+			#endif
 		Next i
 	End Sub
 	
@@ -291,16 +291,16 @@ Namespace My.Sys.Forms
 		AllocBy = 4
 		FWidth  = 16
 		FHeight = 16
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			widget = gtk_icon_theme_new()
-		#Else
-			Handle = ImageList_Create(FWidth,FHeight,ILC_MASK OR ILC_COLORDDB,AllocBy,AllocBy)
-		#EndIf
+		#else
+			Handle = ImageList_Create(FWidth,FHeight,ILC_MASK Or ILC_COLORDDB,AllocBy,AllocBy)
+		#endif
 	End Constructor
 	
 	Destructor ImageList
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then ImageList_Destroy Handle
-		#EndIf
+		#endif
 	End Destructor
-End namespace
+End Namespace

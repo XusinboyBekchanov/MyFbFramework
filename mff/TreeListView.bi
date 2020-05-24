@@ -4,12 +4,12 @@
 '#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 
-#Include Once "ListView.bi"
+#include once "ListView.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QTreeListView(__Ptr__) *Cast(TreeListView Ptr,__Ptr__)
-	#DEFINE QTreeListViewItem(__Ptr__) *Cast(TreeListViewItem Ptr,__Ptr__)
-	#DEFINE QTreeListViewColumn(__Ptr__) *Cast(TreeListViewColumn Ptr,__Ptr__)
+	#define QTreeListView(__Ptr__) *Cast(TreeListView Ptr,__Ptr__)
+	#define QTreeListViewItem(__Ptr__) *Cast(TreeListViewItem Ptr,__Ptr__)
+	#define QTreeListViewColumn(__Ptr__) *Cast(TreeListViewColumn Ptr,__Ptr__)
 	
 	Type PTreeListViewItem As TreeListViewItem Ptr
 	
@@ -18,15 +18,15 @@ Namespace My.Sys.Forms
 		FItems As List
 		PItem As PTreeListViewItem
 		FParentItem As PTreeListViewItem
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			lvi As LVITEM
-		#EndIf
+		#endif
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As PTreeListViewItem
-		#Else
+		#else
 			Declare Function FindByHandle(Value As LParam) As PTreeListViewItem
-		#EndIf
+		#endif
 		Parent   As Control Ptr
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
@@ -68,16 +68,16 @@ Namespace My.Sys.Forms
 			Dim lvi             As LVITEM
 		#EndIf
 	Protected:
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			
-		#EndIf
+		#endif
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			TreeIter As GtkTreeIter
-		#Else
+		#else
 			Handle As LParam
 			Declare Function GetItemIndex() As Integer
-		#EndIf
+		#endif
 		Parent   As Control Ptr
 		Items As TreeListViewItems
 		Tag As Any Ptr
@@ -190,15 +190,15 @@ Namespace My.Sys.Forms
 	Protected:
 		#IfDef __USE_GTK__
 			Declare Static Function TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
-		#Else
+		#else
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
-		#EndIf
+		#endif
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			TreeStore As GtkTreeStore Ptr
 			TreeSelection As GtkTreeSelection Ptr
 			ColumnTypes As GType Ptr
-		#EndIf
+		#endif
 		Declare Sub Init()
 		ListItems         As TreeListViewItems
 		Columns         As TreeListViewColumns

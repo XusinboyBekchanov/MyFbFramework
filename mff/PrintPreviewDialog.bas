@@ -1,16 +1,19 @@
-﻿#Include Once "PrintPreviewDialog.bi"
+﻿#include once "PrintPreviewDialog.bi"
 
-PROPERTY PrintPreviewDialog.Left() AS integer: RETURN xLeft: END PROPERTY
+'Property PrintPreviewDialog.Left() As Integer: Return xLeft: End Property
 
-PROPERTY PrintPreviewDialog.Left(value AS integer): xLeft=value: END PROPERTY
-PROPERTY PrintPreviewDialog.Top() AS integer: RETURN xTop: END PROPERTY
-PROPERTY PrintPreviewDialog.Top(value AS integer): xTop=value: END PROPERTY
-PROPERTY PrintPreviewDialog.SetupDialog() AS integer: RETURN xSetupDialog: END PROPERTY
-PROPERTY PrintPreviewDialog.SetupDialog(value AS integer)
-	IF value THEN xSetupDialog=True ELSE xSetupDialog=False
-END PROPERTY
+'Property PrintPreviewDialog.Left(value As Integer): xLeft=value: End Property
+'Property PrintPreviewDialog.Top() As Integer: Return xTop: End Property
+'Property PrintPreviewDialog.Top(value As Integer): xTop=value: End Property
+Property PrintPreviewDialog.SetupDialog() As Integer: Return xSetupDialog: End Property
+Property PrintPreviewDialog.SetupDialog(value As Integer)
+	If value Then xSetupDialog=True Else xSetupDialog=False
+End Property
 
 Function PrintPreviewDialog.Execute As Boolean
 	Return False
 End Function
 
+Constructor PrintPreviewDialog
+	WLet FClassName, "PrintPreviewDialog"
+End Constructor

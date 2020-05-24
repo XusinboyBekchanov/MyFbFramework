@@ -4,8 +4,8 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
 '################################################################################
 
-#Include Once "Component.bi"
-#Include Once "IntegerList.bi"
+#include once "Component.bi"
+#include once "IntegerList.bi"
 
 Using My.Sys.ComponentModel
 
@@ -16,12 +16,14 @@ Namespace My.Sys.Forms
 	Type TimerComponent Extends Component
 	Private:
 		FEnabled As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Static Sub TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
-		#EndIf
+		#endif
 	Public:
-		Handle        As Integer
+		ID            As Integer
 		Interval      As Integer
+		Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Enabled As Boolean
 		Declare Property Enabled(Value As Boolean)
 		Declare Operator Cast As Any Ptr
@@ -29,8 +31,8 @@ Namespace My.Sys.Forms
 		Declare Destructor
 		OnTimer As Sub(ByRef Sender As TimerComponent)
 	End Type
-End namespace
+End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "TimerComponent.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "TimerComponent.bas"
+#endif

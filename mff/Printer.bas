@@ -8,42 +8,42 @@
 '#   Copyright (c) Aloberoger                                                   #
 '################################################################################
 
-#Include Once "Printer.bi"
+#include once "Printer.bi"
 
 Namespace My.Sys.ComponentModel
-	FUNCTION  Printer.PARSE(source as String, index as integer, delimiter as String=",") as String
+	Function  Printer.PARSE(source As String, index As Integer, delimiter As String=",") As String
 		Dim As Long i,s,c,l
 		s=1
 		l=Len(delimiter)
-		do
-			If c=index-1 then
-				function=mid(source,s,instr(s,source,delimiter)-s)
-				exit function
-			end if
-			i=instr(s,source,delimiter)
-			If i>0 then
+		Do
+			If c=index-1 Then
+				Function=Mid(source,s,InStr(s,source,delimiter)-s)
+				Exit Function
+			End If
+			i=InStr(s,source,delimiter)
+			If i>0 Then
 				c+=1
 				s=i+l
-			end if
-		loop until i=0
+			End If
+		Loop Until i=0
 	End Function
 	
 	
-	FUNCTION Printer.PARSE (source as string, delimiter as String="|", index as integer)as String
+	Function Printer.PARSE (source As String, delimiter As String="|", index As Integer)As String
 		Dim As Long i,s,c,l
 		s=1
 		l=Len(delimiter)
-		do
-			If c=index-1 then
-				function=mid(source,s,instr(s,source,delimiter)-s)
-				exit function
-			end if
-			i=instr(s,source,delimiter)
-			If i>0 then
+		Do
+			If c=index-1 Then
+				Function=Mid(source,s,InStr(s,source,delimiter)-s)
+				Exit Function
+			End If
+			i=InStr(s,source,delimiter)
+			If i>0 Then
 				c+=1
 				s=i+l
-			end if
-		loop until i=0
+			End If
+		Loop Until i=0
 	End Function
 	
 	Function Printer.STRREVERSE (S As String)As String
@@ -1547,46 +1547,47 @@ Namespace My.Sys.ComponentModel
 	
 	FUNCTION printer.GetdefaultprinterDevice () AS String  __EXPORT__  ' Retrieves the name of the default printer device.
 		#IfNDef __USE_GTK__
-			Dim buffer AS ZString * MAX_PATH
-			GetProfileString "WINDOWS", "DEVICE", "", buffer, SIZEOF(buffer)
-			FUNCTION = PARSE (buffer, 2)
+			Dim buffer As ZString * MAX_PATH
+			GetProfileString "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
+			Function = PARSE (buffer, 2)
 		#else
 			Function = ""
-		#EndIf
-	END FUNCTION
+		#endif
+	End Function
 	
 	
-	FUNCTION printer.GetdefaultprinterDriver () AS String  __EXPORT__ ' Retrieves the name of the default printer driver.
-		#IfNDef __USE_GTK__
-			Dim buffer AS ZString * MAX_PATH
-			GetProfileString "WINDOWS", "DEVICE", "", buffer, SIZEOF(buffer)
-			FUNCTION = PARSE (buffer, 1)
-		#Else
+	Function printer.GetdefaultprinterDriver () As String  __EXPORT__ ' Retrieves the name of the default printer driver.
+		#ifndef __USE_GTK__
+			Dim buffer As ZString * MAX_PATH
+			GetProfileString "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
+			Function = PARSE (buffer, 1)
+		#else
 			Function = ""
-		#EndIf
-	END FUNCTION
+		#endif
+	End Function
 	
 	
-	FUNCTION printer.GetdefaultprinterPort () AS String  __EXPORT__ ' Retrieves the name of the default printer port.
-		#IfNDef __USE_GTK__
-			Dim buffer AS ZString * MAX_PATH
-			GetProfileString  "WINDOWS", "DEVICE", "", buffer, SIZEOF(buffer)
-			FUNCTION = PARSE (buffer, 3)
-		#Else
-			FUNCTION = ""
-		#EndIf
-	END Function
+	Function printer.GetdefaultprinterPort () As String  __EXPORT__ ' Retrieves the name of the default printer port.
+		#ifndef __USE_GTK__
+			Dim buffer As ZString * MAX_PATH
+			GetProfileString  "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
+			Function = PARSE (buffer, 3)
+		#else
+			Function = ""
+		#endif
+	End Function
 	
 	Sub printer.ShowPrinterProperties()  __EXPORT__
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim hPrinter As HWND
 			OpenPrinter printername, @hPrinter, ByVal 0&
 			PrinterProperties  getactiveWindow(), hPrinter
 			ClosePrinter hPrinter
-		#EndIf
+		#endif
 	End Sub
 	
 	Constructor printer  __EXPORT__
 		Canvas.Ctrl = @This
+		WLet FClassName, "Printer"
 	End Constructor
 End Namespace

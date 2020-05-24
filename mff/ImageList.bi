@@ -11,14 +11,14 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Graphics.bi"
-#Include Once "Component.bi"
-#Include Once "WStringList.bi"
+#include once "Graphics.bi"
+#include once "Component.bi"
+#include once "WStringList.bi"
 
 Using My.Sys.ComponentModel
 
 Namespace My.Sys.Forms
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Enum DrawingStyle
 			dsFocus
 			dsNormal
@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 			itImage = 0
 			itMask
 		End Enum
-	#Else
+	#else
 		Enum DrawingStyle
 			dsFocus       = ILD_FOCUS
 			dsNormal      = ILD_NORMAL
@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 			itImage = 0
 			itMask  = ILD_MASK
 		End Enum
-	#EndIf
+	#endif
 	
 	Type ImageList Extends Component
 	Private:
@@ -61,11 +61,11 @@ Namespace My.Sys.Forms
 		Declare Sub Create
 		Declare Sub NotifyWindow
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Widget 			As GtkIconTheme Ptr
-		#Else
+		#else
 			Handle        As HIMAGELIST
-		#ENdIf
+		#endif
 		AllocBy       As Integer
 		ImageType     As ImagesType
 		DrawingStyle  As DrawingStyle
@@ -80,21 +80,21 @@ Namespace My.Sys.Forms
 		Declare Property Count As Integer
 		Declare Sub AddBitmap(Bitmap As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
 		Declare Sub AddIcon(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Sub AddIcon(Ico As String, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-		#EndIf
+		#endif
 		Declare Sub AddCursor(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
 		Declare Sub AddMasked(ByRef Bitmap As My.Sys.Drawing.BitmapType, MaskColor As Integer, ByRef Key As WString = "")
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "")
-		#Else
+		#else
 			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-		#EndIf
-		#IfDef __USE_GTK__
+		#endif
+		#ifdef __USE_GTK__
 			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "")
-		#Else
+		#else
 			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-		#EndIf
+		#endif
 		Declare Sub Remove(Index As Integer)
 		Declare Sub Remove(ByRef Key As WString)
 		Declare Function GetBitmap(Index As Integer) ByRef As My.Sys.Drawing.BitmapType
@@ -106,10 +106,10 @@ Namespace My.Sys.Forms
 		Declare Function GetIcon(ByRef Key As WString) As My.Sys.Drawing.Icon
 		Declare Function GetCursor(ByRef Key As WString) As My.Sys.Drawing.Cursor
 		Declare Function IndexOf(ByRef Key As WString) As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Sub DrawEx(Index As Integer, DestDC As HDC, X As Integer, Y As Integer, iWidth As Integer, iHeight As Integer, FG As Integer, BK As Integer)
 			Declare Sub Draw(Index As Integer, DestDC As HDC, X As Integer, Y As Integer)
-		#Endif
+		#endif
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
 		Declare Constructor

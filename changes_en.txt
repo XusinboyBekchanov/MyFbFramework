@@ -1,3 +1,11 @@
+Version 1.2.4 (May 24, 2020)
+- Added: Canvas Example (in Windows and Linux)
+- Added: Canvas Support (in Linux)
+- Added: FullTypeName function in Object type (Thanks to fxm)
+- Fixed: ComboBoxEx Text property (in Linux)
+- Fixed: ShowModal (in gtk2)
+- Fixed: Scroll in widgets without native scrolling capabilities (in gtk2)
+- Fixed: TimerComponent properties (in ReadProperty and WriteProperty function)
 Version 1.2.3 (May 17, 2020)
 - Added: UString
 - Added: FontDialog (in Linux)

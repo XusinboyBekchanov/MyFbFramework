@@ -8,40 +8,42 @@
 '#   Copyright (c) Aloberoger                                                   #
 '################################################################################
 
-#Include Once "Dialogs.bi"
+#include once "Dialogs.bi"
 
-TYPE PageSetupDialog Extends Dialog
-	xLeft AS integer        = -1                        ' Default to center
-	xTop AS integer         = -1                        ' ditto
-	Width AS integer                                    ' Not used
-	Height AS integer                                   ' Not used
-	Caption AS string       = ""
+Type PageSetupDialog Extends Dialog
+Private:
+	xLeft As Integer        = -1                        ' Default to center
+	xTop As Integer         = -1                        ' ditto
+	xWidth As Integer                                    ' Not used
+	xHeight As Integer                                   ' Not used
+	xPrinterName As String
 	
-	Metric AS integer       = True                      ' mm (True) or inches?
-	PaperWidth AS single                                ' Converted to mm: ptPaperSize AS POINT (in 100ths of mm)
-	PaperHeight AS single
-	MinLeftMargin AS single                             '|
-	MinTopMargin AS single                              '| rtMinMargin AS RECT
-	MinRightMargin AS single                            '| Converted to mm
-	MinBottomMargin AS single                           '|
-	LeftMargin AS single                                '|
-	TopMargin AS single                                 '| rtMargin AS RECT
-	RightMargin AS single                               '| Converted to mm
-	BottomMargin AS single                              '|
+Public:
+	Caption As String       = ""
 	
-	xPrinterName AS string
+	Metric As Integer       = True                      ' mm (True) or inches?
+	PaperWidth As Single                                ' Converted to mm: ptPaperSize AS POINT (in 100ths of mm)
+	PaperHeight As Single
+	MinLeftMargin As Single                             '|
+	MinTopMargin As Single                              '| rtMinMargin AS RECT
+	MinRightMargin As Single                            '| Converted to mm
+	MinBottomMargin As Single                           '|
+	LeftMargin As Single                                '|
+	TopMargin As Single                                 '| rtMargin AS RECT
+	RightMargin As Single                               '| Converted to mm
+	BottomMargin As Single                              '|
 	
-	DECLARE PROPERTY Left() AS integer
-	DECLARE PROPERTY Left(value AS integer)
-	DECLARE PROPERTY PrinterName() AS string
-	DECLARE PROPERTY PrinterName(value AS string)
-	DECLARE PROPERTY Top() AS integer
-	DECLARE PROPERTY Top(value AS integer)
+	'Declare Property Left() As Integer
+	'Declare Property Left(value As Integer)
+	Declare Property PrinterName() As String
+	Declare Property PrinterName(value As String)
+	'Declare Property Top() As Integer
+	'Declare Property Top(value As Integer)
 	
-	DECLARE FUNCTION Execute() AS Boolean
-	
-END Type
+	Declare Function Execute() As Boolean
+	Declare Constructor
+End Type
 
-#IfNDef __USE_MAKE__
-	#Include Once "PageSetupDialog.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "PageSetupDialog.bas"
+#endif

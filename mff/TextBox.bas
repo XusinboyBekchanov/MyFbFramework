@@ -551,6 +551,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_insert_at_cursor(buffer, ToUTF8(Value), -1)
+				buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
 				gtk_text_buffer_get_selection_bounds(buffer, @_start, @_end)
 				gtk_text_view_scroll_to_iter(gtk_text_view(Widget), @_end, 0, False, 0, 0)
 			Else

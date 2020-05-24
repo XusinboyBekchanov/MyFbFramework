@@ -89,19 +89,21 @@ Namespace My.Sys.Forms
 		FIntegralHeight   As Boolean
 		FDropDownCount    As Integer
 		Declare Sub UpdateListHeight
-		Declare Sub ProcessMessage(BYREF Message As Message)
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
+		Declare Sub ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			ListStore As GtkListStore Ptr
-		#EndIf
+		#endif
 		Items             As ComboBoxExItems
 		ImagesList         As ImageList Ptr
 		'            Declare Property ItemIndex As Integer
 		'            Declare Property ItemIndex(Value As Integer)
+		Declare Property Text ByRef As WString
+		Declare Property Text(ByRef Value As WString)
 		Declare Property IntegralHeight As Boolean
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property ItemHeight As Integer
@@ -112,8 +114,8 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 	End Type
-End namespace
+End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ComboBoxEx.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ComboBoxEx.bas"
+#endif

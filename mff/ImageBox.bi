@@ -11,10 +11,10 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Graphic.bi"
+#include once "Graphic.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QImageBox(__Ptr__) *Cast(ImageBox Ptr,__Ptr__)
+	#define QImageBox(__Ptr__) *Cast(ImageBox Ptr,__Ptr__)
 	
 	Enum ImageBoxStyle
 		ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
@@ -27,12 +27,12 @@ Namespace My.Sys.Forms
 		FCenterImage      As Boolean
 		ARealSizeImage(2) As Integer
 		ACenterImage(2)   As Integer
-		#IfNdef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
-		Declare Static Sub GraphicChange(BYREF Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Sub ProcessMessage(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
+		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 	Public:
 		Graphic            As My.Sys.Drawing.GraphicType
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
@@ -46,14 +46,14 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick    As Sub(BYREF Sender As ImageBox)
-		OnDblClick As Sub(BYREF Sender As ImageBox)
-		#IfNdef __USE_GTK__
-			OnDraw     As Sub(BYREF Sender As ImageBox, BYREF R As Rect,DC As HDC = 0)
-		#EndIf
+		OnClick    As Sub(ByRef Sender As ImageBox)
+		OnDblClick As Sub(ByRef Sender As ImageBox)
+		#ifndef __USE_GTK__
+			OnDraw     As Sub(ByRef Sender As ImageBox, ByRef R As Rect,DC As HDC = 0)
+		#endif
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ImageBox.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ImageBox.bas"
+#endif

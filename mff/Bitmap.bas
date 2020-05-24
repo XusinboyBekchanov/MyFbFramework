@@ -257,10 +257,10 @@ Namespace My.Sys.Drawing
 	
 	Operator BitmapType.Let(ByRef Value As WString)
 		#ifdef __USE_GTK__
-			If Not StartsWith(Value, "/") Then
-				LoadFromResourceName(Value)
-			Else
+			If StartsWith(Value, "/") Then
 				LoadFromFile(Value)
+			Else
+				LoadFromResourceName(Value)
 			End If
 		#else
 			If FindResource(GetModuleHandle(NULL), Value, RT_BITMAP) Then

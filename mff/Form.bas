@@ -618,7 +618,8 @@ Namespace My.Sys.Forms
 				Case 1
 					If MainForm Then
 						#ifdef __USE_GTK__
-							End 0
+							gtk_main_quit()
+							'End 0
 						#else
 							PostQuitMessage 0
 						#endif
@@ -626,9 +627,11 @@ Namespace My.Sys.Forms
 						'#ifdef __USE_GTK3__
 							
 						'#else
+							If gtk_window_get_modal (gtk_window(widget)) Then 
+								gtk_main_quit()
+							End If
 							gtk_widget_hide(widget)
 							msg.Result = -1
-							If gtk_window_get_modal (gtk_window(widget)) Then gtk_main_quit()
 						'#endif
 					End If
 				Case 2
@@ -652,6 +655,7 @@ Namespace My.Sys.Forms
 				Dim As HDC Dc,memDC
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps
+				Canvas.HandleSetted = True
 				Dc = BeginPaint(Handle,@Ps)
 				If DoubleBuffered Then
 					MemDC = CreateCompatibleDC(DC)
@@ -659,16 +663,20 @@ Namespace My.Sys.Forms
 					SelectObject(MemDc,Bmp)
 					SendMessage(Handle,WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
 					FillRect memDc,@Ps.rcpaint, Brush.Handle
-					If OnPaint Then OnPaint(This,memDC,Ps.rcpaint)
+					Canvas.Handle = memDC
+					If OnPaint Then OnPaint(This, Canvas)
 					BitBlt(DC, 0, 0, Ps.rcpaint.Right, Ps.rcpaint.Bottom, MemDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(MemDC)
 				Else
-					FillRect Dc,@Ps.rcpaint, Brush.Handle
-					If OnPaint Then OnPaint(This,DC,Ps.rcpaint)
+					FillRect Dc, @Ps.rcpaint, Brush.Handle
+					Canvas.Handle = Dc
+					If OnPaint Then OnPaint(This, Canvas)
 				End If
 				EndPaint Handle,@Ps
 				msg.Result = 0
+				Canvas.HandleSetted = False
+				Return
 			Case WM_CLOSE
 				If OnClose Then
 					OnClose(This, Action)
@@ -906,6 +914,7 @@ Namespace My.Sys.Forms
 
 	Function Form.ShowModal() As Integer
 		#ifdef __USE_GTK__
+			If pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(gtk_window(widget), gtk_window(pApp->ActiveForm->Widget))
 			gtk_window_set_modal(gtk_window(widget), True)
 			This.Show
 			If OnShow Then OnShow(This)
@@ -990,7 +999,11 @@ Namespace My.Sys.Forms
 				Case 1
 					If MainForm Then
 						gtk_widget_destroy(widget)
+						gtk_main_quit()
 					Else
+						If gtk_window_get_modal (gtk_window(widget)) Then 
+							gtk_main_quit()
+						End If
 						gtk_widget_hide(widget)
 					End If
 				Case 2

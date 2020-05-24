@@ -48,6 +48,30 @@ Namespace My.Sys
 		End If
 	End Function
 	
+	Function Object.FullTypeName(ByVal baseIndex As Integer = 0) As UString
+		Dim As String s
+		Dim As ZString Ptr pz
+		Dim As Any Ptr p = CPtr(Any Ptr Ptr Ptr, @This)[0][-1]     ' Ptr to RTTI info
+		For I As Integer = baseIndex To -1
+			p = CPtr(Any Ptr Ptr, p)[2]                            ' Ptr to Base RTTI info of previous RTTI info
+			If p = 0 Then Return s
+		Next I
+		pz = CPtr(Any Ptr Ptr, p)[1]                               ' Ptr to mangled-typename
+		Do
+			Do While (*pz)[0] > Asc("9") OrElse (*pz)[0] < Asc("0")
+				If (*pz)[0] = 0 Then Return s
+				pz += 1
+			Loop
+			Dim As Integer N = Val(*pz)
+			Do
+				pz += 1
+			Loop Until (*pz)[0] > Asc("9") OrElse (*pz)[0] < Asc("0")
+			If s <> "" Then s &= "."
+			s &= Left(*pz, N)
+			pz += N
+		Loop
+	End Function
+	
 	Function Object.ToString ByRef As WString
 		WLet FTemp, "(" & This.ClassName & ")"
 		Return *FTemp
@@ -65,22 +89,22 @@ Namespace My.Sys
 	End Destructor
 End Namespace
 
-#IfDef __EXPORT_PROCS__
-	#IfNDef ToString_Off
+#ifdef __EXPORT_PROCS__
+	#ifndef ToString_Off
 		Function ToString Alias "ToString"(Obj As My.Sys.Object Ptr) ByRef As WString Export
 			Return Obj->ToString
 		End Function
-	#EndIf
+	#endif
 	
-	#IfNDef ReadProperty_Off
+	#ifndef ReadProperty_Off
 		Function ReadProperty Alias "ReadProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String) As Any Ptr Export
 			Return Ctrl->ReadProperty(PropertyName)
 		End Function
-	#EndIf
+	#endif
 	
-	#IfNDef WriteProperty_Off
+	#ifndef WriteProperty_Off
 		Function WriteProperty Alias "WriteProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean Export
 			Return Ctrl->WriteProperty(PropertyName, Value)
 		End Function
-	#EndIf
-#EndIf
+	#endif
+#endif

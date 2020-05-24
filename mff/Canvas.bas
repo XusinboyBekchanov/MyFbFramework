@@ -42,13 +42,13 @@ Namespace My.Sys.Drawing
 	
 	Property Canvas.Width As Integer
 		If ParentControl Then
-			If *ParentControl Is My.Sys.Forms.Control Then Return Cast(My.Sys.Forms.Control Ptr, ParentControl)->Width
+			Return ParentControl->Width
 		End If
 	End Property
 	
 	Property Canvas.Height As Integer
 		If ParentControl Then
-			If *ParentControl Is My.Sys.Forms.Control Then Return Cast(My.Sys.Forms.Control Ptr, ParentControl)->Height
+			Return ParentControl->Height
 		End If
 	End Property
 	
@@ -60,9 +60,9 @@ Namespace My.Sys.Drawing
 		ParentControl = Value
 		If ParentControl Then
 			'ParentControl->Canvas = @This
-			If *Ctrl Is My.Sys.Forms.Control Then
-				Brush.Color = Cast(My.Sys.Forms.Control Ptr, Ctrl)->BackColor
-			End If
+'			If *Ctrl Is My.Sys.Forms.Control Then
+'				Brush.Color = Cast(My.Sys.Forms.Control Ptr, Ctrl)->BackColor
+'			End If
 		End If
 	End Property
 	
@@ -95,16 +95,20 @@ Namespace My.Sys.Drawing
 					pcontext = gtk_widget_create_pango_context(ParentControl->Widget)
 					layout = pango_layout_new(pcontext)
 					pango_layout_set_font_description (layout, Font.Handle)
-					'					Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-					'					Control_Draw(widget, cr, data1)
-					'					cairo_destroy(cr)
+					If Not HandleSetted Then
+						If ParentControl->layoutwidget Then
+							Handle = gdk_cairo_create(gtk_layout_get_bin_window(gtk_layout(ParentControl->layoutwidget)))
+						End If
+					End If
 				End If
 			#else
 				If ParentControl->Handle Then
-					If Clip Then
-						Handle = GetDcEx(ParentControl->Handle,0,DCX_PARENTCLIP Or DCX_CACHE)
-					Else
-						Handle = GetDc(ParentControl->Handle)
+					If Not HandleSetted Then
+						If Clip Then
+							Handle = GetDcEx(ParentControl->Handle,0,DCX_PARENTCLIP Or DCX_CACHE)
+						Else
+							Handle = GetDc(ParentControl->Handle)
+						End If
 					End If
 					SelectObject(Handle,Font.Handle)
 					SelectObject(Handle,Pen.Handle)
@@ -116,7 +120,10 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Sub Canvas.ReleaseDevice
-		#ifndef __USE_GTK__
+		If HandleSetted Then Exit Sub
+		#ifdef __USE_GTK__
+			If Handle Then cairo_destroy(Handle)
+		#else
 			If ParentControl Then If Handle Then ReleaseDc ParentControl->Handle,Handle
 		#endif
 	End Sub
@@ -135,6 +142,7 @@ Namespace My.Sys.Drawing
 		GetDevice
 		#ifdef __USE_GTK__
 			cairo_line_to(Handle, x - 0.5, y - 0.5)
+			cairo_stroke(Handle)
 		#else
 			.LineTo Handle,x,y
 		#endif
@@ -145,7 +153,8 @@ Namespace My.Sys.Drawing
 		GetDevice
 		#ifdef __USE_GTK__
 			cairo_move_to(Handle, x - 0.5, y - 0.5)
-			cairo_line_to(Handle, x - 0.5, y - 0.5)
+			cairo_line_to(Handle, x1 - 0.5, y1 - 0.5)
+			cairo_stroke(Handle)
 		#else
 			.MoveToEx Handle,x,y,0
 			.LineTo Handle,x1,y1
@@ -156,11 +165,12 @@ Namespace My.Sys.Drawing
 	Sub Canvas.Rectangle Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
-			cairo_move_to (Handle, x, y)
-			cairo_line_to (Handle, x1, y)
-			cairo_line_to (Handle, x1, y1)
-			cairo_line_to (Handle, x, y1)
-			cairo_line_to (Handle, x, y)
+			cairo_move_to (Handle, x - 0.5, y - 0.5)
+			cairo_line_to (Handle, x1 - 0.5, y - 0.5)
+			cairo_line_to (Handle, x1 - 0.5, y1 - 0.5)
+			cairo_line_to (Handle, x - 0.5, y1 - 0.5)
+			cairo_line_to (Handle, x - 0.5, y - 0.5)
+			cairo_stroke(Handle)
 		#else
 			.Rectangle Handle,x,y,x1,y1
 		#endif
@@ -170,7 +180,8 @@ Namespace My.Sys.Drawing
 	Sub Canvas.Rectangle(R As Rect)
 		GetDevice
 		#ifdef __USE_GTK__
-			.cairo_rectangle(Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top)
+			.cairo_rectangle(Handle, R.Left - 0.5, R.Top - 0.5, R.Right - R.Left - 0.5, R.Bottom - R.Top - 0.5)
+			cairo_stroke(Handle)
 		#else
 			.Rectangle Handle,R.Left,R.Top,R.Right,R.Bottom
 		#endif
@@ -470,6 +481,8 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Destructor Canvas
-		If Handle Then ReleaseDevice
+		#ifndef __USE_GTK__
+			If Handle Then ReleaseDevice
+		#endif
 	End Destructor
 End Namespace

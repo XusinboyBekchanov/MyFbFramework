@@ -312,6 +312,28 @@ Namespace My.Sys.Forms
 	'        If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
 	'    End Property
 	
+	Property ComboBoxEx.Text ByRef As WString
+		If This.FStyle = cbDropDownList Then
+			FText = This.Items.Item(This.ItemIndex)->Text
+		Else
+			#ifdef __USE_GTK__
+				FText = WStr(*gtk_combo_box_text_get_active_text(gtk_combo_box_text(widget)))
+			#else
+				Base.Text
+			#endif
+		End If
+		Return *FText.vptr
+	End Property
+	
+	Property ComboBoxEx.Text(ByRef Value As WString)
+		Base.Text = Value
+		#ifdef __USE_GTK__
+			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), This.IndexOf(Value))
+		#else
+			If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+		#endif
+	End Property
+	
 	Property ComboBoxEx.DropDownCount As Integer
 		Return FDropDownCount
 	End Property
@@ -326,9 +348,9 @@ Namespace My.Sys.Forms
 	
 	Property ComboBoxEx.IntegralHeight(Value As Boolean)
 		FIntegralHeight = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ChangeStyle CBS_NOINTEGRALHEIGHT, Not Value
-		#EndIf
+		#endif
 	End Property
 	
 	Property ComboBoxEx.ItemHeight As Integer
@@ -463,4 +485,4 @@ Namespace My.Sys.Forms
 			UnregisterClass "ComboBoxEx", GetModuleHandle(NULL)
 		#endif
 	End Destructor
-End namespace
+End Namespace

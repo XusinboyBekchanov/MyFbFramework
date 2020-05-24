@@ -12,22 +12,53 @@
 	#endif
 #endif
 
+#ifndef __FB_WIN32__
+	Type Point
+		X As Integer
+		Y As Integer
+	End Type
+	
+	Type Rect
+		Left As Integer
+		Top As Integer
+		Right As Integer
+		Bottom As Integer
+	End Type
+#endif
+
 Namespace My.Sys.ComponentModel
 	#define QComponent(__Ptr__) *Cast(Component Ptr,__Ptr__)
+	
+	Type MarginsType Extends My.Sys.Object
+		Declare Function ToString ByRef As WString
+		Left         As Integer
+		Top          As Integer
+		Right        As Integer
+		Bottom       As Integer
+	End Type
 	
 	Type Component Extends My.Sys.Object
 	Protected:
 		FClassAncestor As WString Ptr
 		FDesignMode As Boolean
 		FName As WString Ptr
+		FLeft              As Integer
+		FTop               As Integer
+		FWidth             As Integer
+		FHeight            As Integer
+		FMinWidth          As Integer
+		FMinHeight         As Integer
 		FParent            As Component Ptr
 		FTempString As String
 		#ifndef __USE_GTK__
 			FHandle As HWND
 		#endif
+		Declare Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
 		'Stores any extra data needed for your program.
 		Tag As Any Ptr
+		'Returns/sets the space between controls.
+		Margins            As MarginsType
 		#ifdef __USE_GTK__
 			Accelerator     As GtkAccelGroup Ptr
 			Declare Property Handle As GtkWidget Ptr
@@ -47,6 +78,22 @@ Namespace My.Sys.ComponentModel
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function ClassAncestor ByRef As WString
 		Declare Function GetTopLevel As Component Ptr
+		'Returns/sets the distance between the internal left edge of an object and the left edge of its container.
+		Declare Property Left As Integer
+		Declare Property Left(Value As Integer)
+		'Returns/sets the distance between the internal top edge of an object and the top edge of its container.
+		Declare Property Top As Integer
+		Declare Property Top(Value As Integer)
+		'Returns/sets the width of an object.
+		Declare Property Width As Integer
+		Declare Property Width(Value As Integer)
+		'Returns/sets the height of an object.
+		Declare Property Height As Integer
+		Declare Property Height(Value As Integer)
+		'Gets the bounds of the control to the specified location and size.
+		Declare Sub GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
+		'Sets the bounds of the control to the specified location and size.
+		Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = False)
 		Declare Property DesignMode As Boolean
 		Declare Property DesignMode(Value As Boolean)
 		'Returns the name used in code to identify an object.
@@ -134,6 +181,10 @@ Declare Sub ThreadsEnter
 
 Declare Sub ThreadsLeave
 
+Declare Sub ComponentGetBounds Alias "ComponentGetBounds"(Ctrl As My.Sys.ComponentModel.Component Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
+	
+Declare Sub ComponentSetBounds Alias "ComponentSetBounds"(Ctrl As My.Sys.ComponentModel.Component Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+	
 #ifndef __USE_MAKE__
 	#include once "Component.bas"
 #endif

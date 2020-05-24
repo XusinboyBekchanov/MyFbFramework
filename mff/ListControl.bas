@@ -581,12 +581,13 @@ Namespace My.Sys.Forms
 				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 				#ifdef __USE_GTK3__
 					widget = gtk_list_box_new()
+					gtk_container_add(gtk_container(scrolledwidget), widget)
 					g_signal_connect(gtk_list_box(widget), "selected-rows-changed", G_CALLBACK(@SelectionChanged), @This)
 				#else
 					widget = gtk_list_new()
+					gtk_scrolled_window_add_with_viewport(gtk_scrolled_window(scrolledwidget), widget)
 					g_signal_connect(gtk_list(widget), "selection-changed", G_CALLBACK(@SelectionChanged), @This)
 				#endif
-				gtk_container_add(gtk_container(scrolledwidget), widget)
 				.RegisterClass "ListControl", @This
 			#else
 				ASortStyle(0)   = 0

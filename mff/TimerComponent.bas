@@ -4,10 +4,30 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
 '################################################################################
 
-#Include Once "TimerComponent.bi"
+#include once "TimerComponent.bi"
 
 Namespace My.Sys.Forms
-	#IfNDef __USE_GTK__
+	Function TimerComponent.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "enabled": Return Cast(Any Ptr, @This.FEnabled)
+		Case "interval": Return Cast(Any Ptr, @This.Interval)
+		Case "ontimer": Return Cast(Any Ptr, This.OnTimer)
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function TimerComponent.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "enabled": This.Enabled = QBoolean(Value)
+		Case "interval": This.Interval = QInteger(Value)
+		Case "ontimer": This.OnTimer = Value
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	#ifndef __USE_GTK__
 		Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
 			With TimersList
 				If .Contains(idEvent) Then
@@ -16,7 +36,7 @@ Namespace My.Sys.Forms
 				End If
 			End With
 		End Sub
-	#EndIf
+	#endif
 	
 	Property TimerComponent.Enabled As Boolean
 		Return FEnabled
@@ -24,15 +44,17 @@ Namespace My.Sys.Forms
 	
 	Property TimerComponent.Enabled(Value As Boolean)
 		FEnabled = Value
-		#IfNDef __USE_GTK__
-			If FEnabled Then
-				Handle = SetTimer(Null, 0, Interval, @TimerProc)
-				TimersList.Add Handle, @This
-			Else
-				If Handle Then KillTimer Null, Handle
-				TimersList.Remove TimersList.IndexOf(Handle)
-			End If
-		#EndIf
+		If Not FDesignMode Then
+			#ifndef __USE_GTK__
+				If FEnabled Then
+					ID = SetTimer(Null, 0, Interval, @TimerProc)
+					TimersList.Add ID, @This
+				Else
+					If ID Then KillTimer Null, ID
+					TimersList.Remove TimersList.IndexOf(ID)
+				End If
+			#endif
+		End If
 	End Property
 	
 	Operator TimerComponent.Cast As Any Ptr
@@ -42,10 +64,10 @@ Namespace My.Sys.Forms
 	Constructor TimerComponent
 		Interval = 10
 		WLet FClassName, "TimerComponent"
-		Enabled = True
+		FEnabled = False
 	End Constructor
 	
 	Destructor TimerComponent
 		Enabled = False
 	End Destructor
-End namespace
+End Namespace

@@ -4,14 +4,14 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
 '################################################################################
 
-#Include Once "SysUtils.bi"
+#include once "SysUtils.bi"
 
 Namespace My.Sys
-	#DEFINE QBoolean(__Ptr__) *Cast(Boolean Ptr,__Ptr__)
-	#DEFINE QInteger(__Ptr__) *Cast(Integer Ptr,__Ptr__)
-	#DEFINE QWString(__Ptr__) *Cast(WString Ptr,__Ptr__)
-	#DEFINE QZString(__Ptr__) *Cast(ZString Ptr,__Ptr__)
-	#DEFINE QObject(__Ptr__) *Cast(My.Sys.Object Ptr,__Ptr__)
+	#define QBoolean(__Ptr__) *Cast(Boolean Ptr,__Ptr__)
+	#define QInteger(__Ptr__) *Cast(Integer Ptr,__Ptr__)
+	#define QWString(__Ptr__) *Cast(WString Ptr,__Ptr__)
+	#define QZString(__Ptr__) *Cast(ZString Ptr,__Ptr__)
+	#define QObject(__Ptr__) *Cast(My.Sys.Object Ptr,__Ptr__)
 	
 	Type Object Extends Object
 	Protected:
@@ -20,6 +20,13 @@ Namespace My.Sys
 	Public:
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function ClassName ByRef As WString
+		' Function to get any typename in the inheritance up hierarchy
+		' of the type of an instance (address: 'po') compatible with the built-in 'Object'
+		'
+		' ('baseIndex =  0' to get the typename of the instance)
+		' ('baseIndex = -1' to get the base.typename of the instance, or "" if not existing)
+		' ('baseIndex = -2' to get the base.base.typename of the instance, or "" if not existing)
+		Declare Function FullTypeName(ByVal baseIndex As Integer = 0) As UString
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast ByRef As WString
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -44,20 +51,20 @@ Namespace My.Sys
 	
 End Namespace
 
-#IfDef __EXPORT_PROCS__
-	#IfNDef ToString_Off
+#ifdef __EXPORT_PROCS__
+	#ifndef ToString_Off
 		Declare Function ToString Alias "ToString"(Obj As My.Sys.Object Ptr) ByRef As WString
-	#EndIf
+	#endif
 	
-	#IfNDef ReadProperty_Off
+	#ifndef ReadProperty_Off
 		Declare Function ReadProperty Alias "ReadProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String) As Any Ptr
-	#EndIf
+	#endif
 	
-	#IfNDef WriteProperty_Off
+	#ifndef WriteProperty_Off
 		Declare Function WriteProperty Alias "WriteProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean
-	#EndIf
-#EndIf
+	#endif
+#endif
 
-#IfNDef __USE_MAKE__
-	#Include Once "Object.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Object.bas"
+#endif

@@ -3,7 +3,7 @@
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
-'#define __USE_GTK3__
+#define __USE_GTK3__
 #define __EXPORT_PROCS__
 
 #include once "Animate.bi"
@@ -154,7 +154,7 @@ Using My.Sys.Forms
 	End Function
 	
 	Common Shared Cpnt As Component Ptr
-	Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRef sName As WString) As Component Ptr Export
+	Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Component Ptr Export
 		Cpnt = 0
 		Select Case LCase(ClassName)
 		Case "imagelist": Cpnt = New ImageList
@@ -172,10 +172,13 @@ Using My.Sys.Forms
 		Case "printpreviewdialog": Cpnt = New PrintPreviewDialog
 		Case "printer": Cpnt = New Printer
 		Case "tooltips": Cpnt = New ToolTips
-		Case Else: Cpnt = CreateControl(ClassName, sName, sName, 0, 0, 10, 10, 0)
+		Case Else: Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
 		End Select
 		If Cpnt Then
 			Cpnt->Name = sName
+			Cpnt->Left = lLeft
+			Cpnt->Top = lTop
+			Cpnt->WriteProperty("Parent", Parent)
 			Objects.Add Cpnt
 		EndIf
 		Return Cpnt
@@ -187,7 +190,7 @@ Using My.Sys.Forms
 		Select Case LCase(ClassName)
 		Case "menuitem": Obj = New MenuItem
 		Case "toolbutton": Obj = New ToolButton
-		Case Else: Obj = CreateComponent(ClassName, "")
+		Case Else: Obj = CreateComponent(ClassName, "", 0, 0, 0)
 		End Select
 		Return Obj
 	End Function

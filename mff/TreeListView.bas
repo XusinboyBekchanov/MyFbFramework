@@ -303,7 +303,7 @@ Namespace My.Sys.Forms
 	Property TreeListViewItem.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Var ItemIndex = GetItemIndex
 					If ItemIndex = -1 Then Exit Property
@@ -311,7 +311,7 @@ Namespace My.Sys.Forms
 						ListView_DeleteItem(Parent->Handle, ItemIndex)
 					End If
 				End If
-			#EndIf
+			#endif
 		End If
 	End Property
 	
@@ -320,7 +320,6 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor TreeListViewItem
-		Items.Clear
 		Items.Parent = Parent
 		Items.ParentItem = @This
 		FHint = CAllocate(0)
@@ -335,6 +334,16 @@ Namespace My.Sys.Forms
 	
 	Destructor TreeListViewItem
 		Items.Clear
+		#ifdef __USE_GTK__
+			If Parent AndAlso Parent->widget Then
+				gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.TreeIter)
+			End If
+		#else
+			If Parent AndAlso Parent->Handle Then
+				Var ItemIndex = GetItemIndex
+				If ItemIndex <> -1 Then ListView_DeleteItem(Parent->Handle, ItemIndex)
+			End If
+		#endif
 		WDeallocate FHint
 		WDeallocate FText
 		WDeallocate FImageKey
@@ -343,9 +352,9 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Sub TreeListViewColumn.SelectItem
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
-		#EndIf
+		#endif
 	End Sub
 	
 	Property TreeListViewColumn.Text ByRef As WString
@@ -354,7 +363,7 @@ Namespace My.Sys.Forms
 	
 	Property TreeListViewColumn.Text(ByRef Value As WString)
 		WLet FText, Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = TVIF_TEXT
@@ -363,7 +372,7 @@ Namespace My.Sys.Forms
 				lvc.cchTextMax = Len(*FText)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property TreeListViewColumn.Width As Integer
@@ -372,12 +381,12 @@ Namespace My.Sys.Forms
 	
 	Property TreeListViewColumn.Width(Value As Integer)
 		FWidth = Value
-		#IfDef __USE_GTK__
-			#IfDef __USE_GTK3__
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
-			#Else
+			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
-			#EndIf
+			#endif
 		#Else
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
@@ -617,40 +626,42 @@ Namespace My.Sys.Forms
 					lvi.LParam = Cast(LParam, PItem)
 					ListView_InsertItem(Parent->Handle, @lvi)
 				End If
-			#EndIf
+			#endif
 		End With
 		Return PItem
 	End Function
 	
 	Sub TreeListViewItems.Remove(Index As Integer)
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
-				gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
+				'gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
+				Delete Cast(TreeListViewItem Ptr, FItems.Items[Index])
 			End If
-		#Else
+		#else
 			If Parent AndAlso Parent->Handle Then
-				Item(Index)->Visible = False
+				'Item(Index)->Visible = False
+				Delete Cast(TreeListViewItem Ptr, FItems.Items[Index])
 			End If
-		#EndIf
+		#endif
 		FItems.Remove Index
 	End Sub
 	
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		'		Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 		'			Return 0
 		'		End Function
-	#EndIf
+	#endif
 	
 	Sub TreeListViewItems.Sort
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				'Parent->Perform LVM_SORTITEMS, 0, @CompareFunc
 				'ListView_SortItems
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
-	Function TreeListViewItems.IndexOf(BYREF FItem As TreeListViewItem Ptr) As Integer
+	Function TreeListViewItems.IndexOf(ByRef FItem As TreeListViewItem Ptr) As Integer
 		Return FItems.IndexOF(FItem)
 	End Function
 	
@@ -668,14 +679,20 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub TreeListViewItems.Clear
-		#IfDef __USE_GTK__
-			If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
-		#Else
-			If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
-		#EndIf
-		For i As Integer = Count -1 To 0 Step -1
-			Delete Cast(TreeListViewItem Ptr, FItems.Items[i])
-		Next i
+'		If FParentItem = 0 Then
+'			#ifdef __USE_GTK__
+'				If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
+'			#else
+'				If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
+'			#endif
+			For i As Integer = Count - 1 To 0 Step -1
+				Delete Cast(TreeListViewItem Ptr, FItems.Items[i])
+			Next i
+'		Else
+'			For i As Integer = Count - 1 To 0 Step -1
+'				Remove i
+'			Next i
+'		End If
 		FItems.Clear
 	End Sub
 	
@@ -684,11 +701,11 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor TreeListViewItems
-		This.Clear
+		'This.Clear
 	End Constructor
 	
 	Destructor TreeListViewItems
-		This.Clear
+		'This.Clear
 	End Destructor
 	
 	Property TreeListViewColumns.Count As Integer
@@ -855,7 +872,7 @@ Namespace My.Sys.Forms
 		#EndIf
 	End Sub
 	
-	Function TreeListViewColumns.IndexOf(BYREF FColumn As TreeListViewColumn Ptr) As Integer
+	Function TreeListViewColumns.IndexOf(ByRef FColumn As TreeListViewColumn Ptr) As Integer
 		Return FColumns.IndexOF(FColumn)
 	End Function
 	
@@ -880,7 +897,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Sub TreeListView.Init()
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(gtk_tree_view(widget)) = NULL Then
 				gtk_tree_store_set_column_types(TreeStore, Columns.Count + 1, ColumnTypes)
 				gtk_tree_view_set_model(gtk_tree_view(widget), GTK_TREE_MODEL(TreeStore))
@@ -1299,17 +1316,17 @@ Namespace My.Sys.Forms
 	Sub TreeListView.CollapseAll
 		#IfDef __USE_GTK__
 			gtk_tree_view_collapse_all(gtk_tree_view(widget))
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub TreeListView.ExpandAll
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			gtk_tree_view_expand_all(gtk_tree_view(widget))
-		#EndIf
+		#endif
 	End Sub
 	
 	Constructor TreeListView
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			TreeStore = gtk_tree_store_new(1, G_TYPE_STRING)
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
@@ -1321,13 +1338,13 @@ Namespace My.Sys.Forms
 			g_signal_connect(gtk_tree_view(widget), "row-activated", G_CALLBACK(@TreeListView_RowActivated), @This)
 			g_signal_connect(gtk_tree_view(widget), "test-expand-row", G_CALLBACK(@TreeListView_TestExpandRow), @This)
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@TreeListView_SelectionChanged), @This)
-			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), true)
+			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), GTK_TREE_VIEW_GRID_LINES_BOTH)
 			ColumnTypes = New GType[1]
 			ColumnTypes[0] = G_TYPE_STRING
 			This.RegisterClass "TreeListView", @This
 		#endif
-		ListItems.Clear
+		'ListItems.Clear
 		ListItems.Parent = @This
 		Columns.Parent = @This
 		FEnabled = True
@@ -1351,8 +1368,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TreeListView
-		ListItems.Clear
-		Columns.Clear
+		'ListItems.Clear
+		'Columns.Clear
 		#ifndef __USE_GTK__
 			UnregisterClass "TreeListView",GetmoduleHandle(NULL)
 		#else

@@ -72,10 +72,14 @@ Namespace My.Sys.Forms
 		With This
 			WLet FClassName, "LinkLabel"
 			#ifdef __USE_GTK__
+				widget = gtk_label_new("")
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
 				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-				widget = gtk_label_new("")
-				gtk_container_add(gtk_container(scrolledwidget), widget)
+				#ifdef __USE_GTK3__
+					gtk_container_add(gtk_container(scrolledwidget), widget)
+				#else
+					gtk_scrolled_window_add_with_viewport(gtk_scrolled_window(scrolledwidget), widget)
+				#endif
 				g_signal_connect(widget, "activate-link", G_CALLBACK(@ActivateLink), @This)
 				.RegisterClass "LinkLabel", @This
 			#else

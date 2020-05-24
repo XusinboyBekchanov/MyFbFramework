@@ -116,7 +116,7 @@ Namespace My
 			Instance        As HINSTANCE
 		#endif
 		Declare Property ActiveForm As My.Sys.Forms.Control Ptr
-		Declare Property ActiveForm(Value  As My.Sys.Forms.Control Ptr)
+		Declare Property ActiveForm(Value As My.Sys.Forms.Control Ptr)
 		Declare Property FileName ByRef As WString
 		Declare Property FileName(ByRef Value As WString)
 		Declare Function Version() As Const String

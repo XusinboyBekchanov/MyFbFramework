@@ -250,7 +250,7 @@ Namespace My
 						Select Case Msg.message
 						Case WM_KEYDOWN, WM_KEYUP, WM_CHAR
 							Select Case Msg.wParam
-							Case VK_TAB, VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
+							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
 								If IsDialogMessage(FActiveForm->Handle, @Msg) Then
 									TranslateAndDispatch = False
 								End If
@@ -269,7 +269,7 @@ Namespace My
 				End If
 				MouseX = msg.Pt.x
 				MouseY = msg.Pt.y
-				If OnMouseMove Then OnMouseMove(MouseX,MouseY)
+				If OnMouseMove Then OnMouseMove(MouseX, MouseY)
 			Wend
 		#endif
 	End Sub
