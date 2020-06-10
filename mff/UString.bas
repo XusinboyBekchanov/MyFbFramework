@@ -28,7 +28,7 @@ Constructor UString(ByRef Value As UString)
 End Constructor
 
 Destructor UString
-	If m_Data <> 0 AndAlso m_BytesCount <> 0 Then
+	If m_Data <> 0 Then
 		Deallocate(m_Data)
 	End If
 End Destructor

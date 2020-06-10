@@ -1134,6 +1134,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If FHandle Then FreeWnd
 		#endif
+		FMenuItems.Clear
 		'UnregisterClass ClassName, GetModuleHandle(NULL)
 	End Destructor
 End Namespace

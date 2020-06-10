@@ -65,26 +65,26 @@ Namespace My.Sys.Forms
 	Sub Panel.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_PAINT,WM_Create
+			Case WM_PAINT, WM_Create
 				Dim As Integer W,H
-				Dim As HDC Dc,memDC
+				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As Rect R, RFrame
-				GetClientRect Handle,@R
+				GetClientRect Handle, @R
 				Dc = GetDC(Handle)
 				If DoubleBuffered Then
 					MemDC = CreateCompatibleDC(DC)
-					Bmp   = CreateCompatibleBitmap(DC,R.Right,R.Bottom)
-					SelectObject(MemDc,Bmp)
-					SendMessage(Handle,WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
-					FillRect memDc,@R,This.Brush.Handle
-					SetBkMode(memDC,TRANSPARENT)
+					Bmp   = CreateCompatibleBitmap(DC, R.Right, R.Bottom)
+					SelectObject(MemDc, Bmp)
+					SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
+					FillRect memDc, @R, This.Brush.Handle
+					SetBkMode(memDC, TRANSPARENT)
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
-					SetBkColor(memDC,OPAQUE)
+					SetBkColor(memDC, OPAQUE)
 					
 					'Canvas.TextOut((R.Right - W)/2,(R.Bottom - H)/2,Text,Font.Color,-1)
-					If Text<>"" Then 'David Change
+					If Text <> "" Then 'David Change
 '						RFrame=R
 '						'InflateRect(@RFrame, -1, -1)
 '						RFrame.Top=R.Top+H/2
@@ -105,7 +105,7 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(R, FBevelWidth)
 					End If
-					If OnPaint Then OnPaint(This,memDC,R)
+					If OnPaint Then OnPaint(This, memDC, R)
 					BitBlt(DC, 0, 0, R.Right, R.Bottom, MemDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(MemDC)
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(R, FBevelWidth)
 					End If
-					If OnPaint Then OnPaint(This,DC,R)
+					If OnPaint Then OnPaint(This, DC, R)
 				End If
 				ReleaseDC Handle, Dc
 				Message.Result = 0
@@ -157,11 +157,11 @@ Namespace My.Sys.Forms
 		
 		Sub Panel.DoRect(R As RECT,tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW),tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Canvas.Pen.Color = FTopColor
-			Canvas.Line(R.Left,R.Top,R.Right,R.Top)
-			Canvas.Line(R.Left,R.Top,R.Left,R.Bottom)
+			Canvas.Line(R.Left, R.Top, R.Right, R.Top)
+			Canvas.Line(R.Left, R.Top, R.Left, R.Bottom)
 			Canvas.Pen.Color = FBottomColor
-			Canvas.Line(R.Right,R.Top,R.Right,R.Bottom)
-			Canvas.Line(R.Left,R.Bottom,R.Right,R.Bottom)
+			Canvas.Line(R.Right, R.Top, R.Right, R.Bottom)
+			Canvas.Line(R.Left, R.Bottom, R.Right, R.Bottom)
 		End Sub
 		
 		Sub Panel.Frame3D(R As RECT,AWidth As Integer)
@@ -233,7 +233,7 @@ Namespace My.Sys.Forms
 	
 	Destructor Panel
 		#ifndef __USE_GTK__
-			UnregisterClass "Panel",GetModuleHandle(NULL)
+			UnregisterClass "Panel", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

@@ -11,14 +11,14 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "ContainerControl.bi"
+#include once "ContainerControl.bi"
 '#Include Once "Canvas.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QPanel(__Ptr__) *Cast(Panel Ptr,__Ptr__)
+	#define QPanel(__Ptr__) *Cast(Panel Ptr,__Ptr__)
 	
 	Enum Bevel
-		bvNone, bvLowered,bvRaised
+		bvNone, bvLowered, bvRaised
 	End Enum
 	
 	Type Panel Extends ContainerControl
@@ -29,13 +29,13 @@ Namespace My.Sys.Forms
 		FBevelOuter  As Integer
 		FBorderWidth As Integer
 		FBevelWidth  As Integer
-		#IfNDef __USE_GTK__
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-			Declare Static Sub WndProc(BYREF Message As Message)
+		#ifndef __USE_GTK__
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Sub AdjustColors(FBevel As Integer)
-			Declare Sub DoRect(R As RECT,tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW),tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
+			Declare Sub DoRect(R As RECT, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Declare Sub Frame3D(R As RECT, AWidth As Integer)
-		#EndIf
+		#endif
 	Public:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		'Canvas        As My.Sys.Drawing.Canvas
@@ -50,12 +50,12 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		#IfNDef __USE_GTK__
-			OnPaint     As Sub(BYREF Sender As Panel,DC As HDC,R As Rect)
-		#EndIf
+		#ifndef __USE_GTK__
+			OnPaint     As Sub(ByRef Sender As Panel, DC As HDC, R As Rect)
+		#endif
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "Panel.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Panel.bas"
+#endif

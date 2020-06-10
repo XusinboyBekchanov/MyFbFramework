@@ -192,9 +192,11 @@ Using My.Sys.Forms
 		Case "toolbutton": Obj = New ToolButton
 		Case Else: Obj = CreateComponent(ClassName, "", 0, 0, 0)
 		End Select
+		Objects.Add Obj
 		Return Obj
 	End Function
 	
+	Common Shared bNotRemoveObject As Boolean
 	Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Export
 		Select Case LCase(Cast(Component Ptr, Ctrl)->ClassName)
 		Case "animate": Delete Cast(Animate Ptr, Ctrl)
@@ -256,6 +258,11 @@ Using My.Sys.Forms
 		Case "savefiledialog": Delete Cast(SaveFileDialog Ptr, Ctrl)
 		Case Else: Return False
 		End Select
+		If bNotRemoveObject = False Then 
+			If Objects.Contains(Ctrl) Then
+				Objects.Remove Objects.IndexOf(Ctrl)
+			End If
+		End If
 		Return True
 	End Function
 	
@@ -265,6 +272,21 @@ Using My.Sys.Forms
 		Case "menuitem": Delete Cast(MenuItem Ptr, Obj)
 		Case Else: Return DeleteComponent(Obj)
 		End Select
+		If bNotRemoveObject = False Then
+			If Objects.Contains(Obj) Then
+				Objects.Remove Objects.IndexOf(Obj)
+			End If
+		End If
+		Return True
+	End Function
+	
+	Function DeleteAllObjects Alias "DeleteAllObjects"() As Boolean Export
+		bNotRemoveObject = True
+		For i As Integer = 0 To Objects.Count - 1
+			ObjectDelete(Objects.Item(i))
+		Next
+		Objects.Clear
+		bNotRemoveObject = False
 		Return True
 	End Function
 	

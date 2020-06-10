@@ -620,16 +620,22 @@ Namespace My.Sys.Forms
 					Case TVN_GETINFOTIP
 					Case TVN_SINGLEEXPAND
 					Case TVN_SELCHANGING
+						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
+						If OnSelChanging AndAlso sn <> 0 Then OnSelChanging(This, *sn)
 					Case TVN_SELCHANGED
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnSelChange AndAlso sn <> 0 Then OnSelChange(This, *sn)
+						If OnSelChanged AndAlso sn <> 0 Then OnSelChanged(This, *sn)
 					Case TVN_GETDISPINFO
 					Case TVN_GETINFOTIP
 					Case TVN_SETDISPINFO
 					Case TVN_ITEMCHANGED
 					Case TVN_ITEMCHANGING
 					Case TVN_ITEMEXPANDING
+						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
+						If OnNodeExpanding AndAlso sn <> 0 Then OnNodeExpanding(This, *sn)
 					Case TVN_ITEMEXPANDED
+						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
+						If OnNodeExpanded AndAlso sn <> 0 Then OnNodeExpanded(This, *sn)
 					Case TVN_BEGINDRAG
 					Case TVN_BEGINRDRAG
 					Case TVN_DELETEITEM

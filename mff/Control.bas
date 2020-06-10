@@ -1189,7 +1189,7 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
-		Function Control.EnumPopupMenuItems(Item As MenuItem) As Boolean '...'
+		Function Control.EnumPopupMenuItems(Item As MenuItem) As Boolean
 			FPopupMenuItems.Add Item
 			For i As Integer = 0 To Item.Count -1
 				EnumPopupMenuItems *Item.Item(i)
@@ -1926,6 +1926,7 @@ Namespace My.Sys.Forms
 			'			    If Controls[i] Then Controls[i]->Free
 			'			Next i
 			If Controls Then Deallocate Controls
+			FPopupMenuItems.Clear
 		End Destructor
 	#endif
 End Namespace

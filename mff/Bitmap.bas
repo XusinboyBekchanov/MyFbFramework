@@ -295,6 +295,7 @@ Namespace My.Sys.Drawing
 		Free
 		#ifndef __USE_GTK__
 			DeleteObject FDevice
+			DeleteObject Handle
 		#endif
 	End Destructor
 End Namespace

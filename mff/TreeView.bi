@@ -147,7 +147,10 @@ Namespace My.Sys.Forms
 		OnNodeActivate As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnNodeClick As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnNodeDblClick As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnSelChange As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeExpanding As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeExpanded As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnSelChanging As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnSelChanged As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnAfterLabelEdit As Sub(ByRef Sender As TreeView, ByRef NewString As WString)
 		OnMouseUp   As Sub(ByRef Sender As TreeView, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	End Type

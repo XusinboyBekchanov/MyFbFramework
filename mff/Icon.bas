@@ -197,5 +197,8 @@ Namespace My.Sys.Drawing
 	
 	Destructor Icon
 		WDeallocate FResName
+		#ifndef __USE_GTK__
+			DeleteObject Handle
+		#endif
 	End Destructor
 End Namespace
