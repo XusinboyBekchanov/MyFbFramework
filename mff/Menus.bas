@@ -1250,14 +1250,14 @@ end constructor
 
 destructor Menu
 	Clear
-	#IfNDef __USE_GTK__
-		if FInfo.hbrBack then DeleteObject(FInfo.hbrBack)
-		if FHandle then
+	#ifndef __USE_GTK__
+		If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
+		If FHandle Then
 			DestroyMenu(FHandle)
 			FHandle = 0
-		end if
-	#EndIf
-end destructor
+		End If
+	#endif
+End Destructor
 
 Function MainMenu.EnumMenuItems(ByRef Item As MenuItem) As Boolean
 	FMenuItems.Add Item
@@ -1269,9 +1269,11 @@ End Function
 
 Function GetAscKeyCode(HotKey As String) As Integer
 	Select Case HotKey
+	Case "Break": Return 03
 	Case "Backspace", "Back": Return 08
 	Case "Tab": Return 09
 	Case "Enter", "Return": Return 13
+	Case "Pause": Return VK_PAUSE
 	Case "Escape", "Esc": Return 27
 	Case "Space": Return 32
 	Case "PageUp": Return 33
@@ -1308,6 +1310,52 @@ Function GetAscKeyCode(HotKey As String) As Integer
 	Case "F12": Return 123
 	Case "Delete", "Del": : Return 127
 	Case Else: Return Asc(HotKey)
+	End Select
+End Function
+
+Function GetChrKeyCode(KeyCode As Integer) As String
+	Select Case KeyCode
+	Case 03: Return "Break"
+	Case 08: Return "Backspace"
+	Case 09: Return "Tab"
+	Case 13: Return "Enter"
+	Case 19: Return "Pause"
+	Case 27: Return "Escape"
+	Case 32: Return "Space"
+	Case 33: Return "PageUp"
+	Case 34: Return "PageDown"
+	Case 35: Return "End"
+	Case 36: Return "Home"
+	Case 37: Return "Left"
+	Case 38: Return "Up"
+	Case 39: Return "Right"
+	Case 40: Return "Down"
+	Case 42: Return "Print"
+	Case 45: Return "Insert"
+	Case 96: Return "Num0"
+	Case 97: Return "Num1"
+	Case 98: Return "Num2"
+	Case 99: Return "Num3"
+	Case 100: Return "Num4"
+	Case 101: Return "Num5"
+	Case 102: Return "Num6"
+	Case 103: Return "Num7"
+	Case 104: Return "Num8"
+	Case 105: Return "Num9"
+	Case 112: Return "F1"
+	Case 113: Return "F2"
+	Case 114: Return "F3"
+	Case 115: Return "F4"
+	Case 116: Return "F5"
+	Case 117: Return "F6"
+	Case 118: Return "F7"
+	Case 119: Return "F8"
+	Case 120: Return "F9"
+	Case 121: Return "F10"
+	Case 122: Return "F11"
+	Case 123: Return "F12"
+	Case 127: Return "Delete"
+	Case Else: Return Chr(KeyCode)
 	End Select
 End Function
 

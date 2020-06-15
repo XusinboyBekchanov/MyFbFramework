@@ -24,6 +24,30 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	Property HotKey.Text ByRef As WString
+		#ifndef __USE_GTK__
+			Dim wHotKey As Word
+			wHotKey = SendMessage(Handle, HKM_GETHOTKEY, 0, 0)
+			FText = GetChrKeyCode(LoByte(LoWord(wHotKey)))
+			If (HiByte(LoWord(wHotKey)) And HOTKEYF_SHIFT) = HOTKEYF_SHIFT Then FText = "Shift+" & FText
+			If (HiByte(LoWord(wHotKey)) And HOTKEYF_ALT) = HOTKEYF_ALT Then FText = "Alt+" & FText
+			If (HiByte(LoWord(wHotKey)) And HOTKEYF_CONTROL) = HOTKEYF_CONTROL Then FText = "Ctrl+" & FText
+		#endif
+		Return *FText.vptr
+	End Property
+	
+	Property HotKey.Text(ByRef Value As WString)
+		FText = Value
+		#ifndef __USE_GTK__
+			Dim sKey As String = Value
+			Dim wHotKey As Word
+			Var Pos1 = InStrRev(sKey, "+")
+			If Pos1 > 0 Then sKey = Mid(sKey, Pos1 + 1)
+			wHotKey = MAKEWORD(GetAscKeyCode(sKey), IIf(InStr(Value, "Ctrl") > 0, HOTKEYF_CONTROL, 0) Or IIf(InStr(Value, "Shift") > 0, HOTKEYF_SHIFT, 0) Or IIf(InStr(Value, "Alt") > 0, HOTKEYF_ALT, 0))
+			SendMessage(Handle, HKM_SETHOTKEY, wHotKey, 0)
+		#endif
+	End Property
+	
 	Operator HotKey.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
