@@ -673,6 +673,7 @@ End Function
 		Case 310: Return "WM_CTLCOLORDLG"
 		Case 311: Return "WM_CTLCOLORSCROLLBAR"
 		Case 312: Return "WM_CTLCOLORSTATIC"
+		Case 343: Return "CB_GETDROPPEDSTATE"
 		Case 512: Return "WM_MOUSEFIRST"
 		Case 512: Return "WM_MOUSEMOVE"
 		Case 513: Return "WM_LBUTTONDOWN"
