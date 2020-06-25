@@ -548,7 +548,7 @@ Namespace My.Sys.Forms
 		FIntegralHeight     = 0
 		FItemIndex          = -1
 		FTabStop            = True
-		Items.Parent        = @This
+		'Items.Parent        = @This
 		With This
 			.Child          = @This
 			'.ChildProc     = @WindowProc

@@ -9,15 +9,15 @@
 '#   Version 1.0.0                                                             #
 '###############################################################################
 
-#Include Once "ListItems.bi"
+#include once "ListItems.bi"
 
-#DEFINE QStringList(__Ptr__) *Cast(StringList Ptr,__Ptr__)
+#define QStringList(__Ptr__) *Cast(StringList Ptr,__Ptr__)
 
 Type StringList
 Private:
 	FText   As String
 Public:
-	Control As My.Sys.Forms.Control Ptr
+	'Control As My.Sys.Forms.Control Ptr
 	Items   As ListItems
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)

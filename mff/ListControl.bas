@@ -611,7 +611,7 @@ Namespace My.Sys.Forms
 			FCtl3D             = True
 			FTabStop           = True
 			FBorderStyle       = 1
-			Items.Parent       = @This
+			'Items.Parent       = @This
 			
 			WLet FClassName, "ListControl"
 			.Child       = @This

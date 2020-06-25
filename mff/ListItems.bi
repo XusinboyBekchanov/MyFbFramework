@@ -10,7 +10,7 @@
 '###############################################################################
 
 #include once "WStringList.bi"
-#include once "Control.bi"
+'#include once "Control.bi"
 
 #define QListItems(__Ptr__) *Cast(ListItems Ptr,__Ptr__)
 
@@ -18,7 +18,7 @@ Type ListItems Extends Object
 Private:
 	FItems As WStringList
 Public:
-	Parent   As My.Sys.Forms.Control Ptr
+	'Parent   As My.Sys.Forms.Control Ptr
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Text ByRef As WString
