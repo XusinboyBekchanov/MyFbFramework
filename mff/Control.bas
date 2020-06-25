@@ -1091,13 +1091,6 @@ Namespace My.Sys.Forms
 					End If
 				Case WM_CHAR
 					If OnKeyPress Then OnKeyPress(This, Message.WParam)
-				Case 343
-					Dim Frm As Control Ptr = GetForm
-					If Frm AndAlso frm->FDefaultButton AndAlso frm->FDefaultButton->OnClick Then
-						frm->FDefaultButton->OnClick(*frm->FDefaultButton)
-						Message.Result = -1:
-						Exit Sub
-					End If
 				Case WM_KEYDOWN
 					If OnKeyDown Then OnKeyDown(This, Message.WParam, Message.lParam And &HFFFF)
 					If GetKeyState(VK_MENU) >= 0 Then
@@ -1291,7 +1284,6 @@ Namespace My.Sys.Forms
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				If Ctrl Then
 					With *Ctrl
-						'?Ctrl
 						If Ctrl->ClassName <> "" Then
 							.ProcessMessage(Message)
 							If Message.Result = -1 Then
@@ -1308,7 +1300,6 @@ Namespace My.Sys.Forms
 				End If
 				Dim As Any Ptr cp = GetClassProc(FWindow)
 				If cp <> 0 Then
-					'If msg = TVM_DELETEITEM Then ?11111
 					Message.Result = CallWindowProc(cp, FWindow, Msg, wParam, lParam)
 				End If
 				'				If Ctrl Then

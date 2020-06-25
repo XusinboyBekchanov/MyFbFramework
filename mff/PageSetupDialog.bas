@@ -43,7 +43,7 @@ Function PageSetupDialog.Execute() As Boolean
 		Dim As PAGESETUPDLG psd
 		Dim As Double value, divsor=100.0                                  ' Default metric
 		
-		Clear(@psd, 0, SizeOf(PAGESETUPDLG))
+		'Clear(@psd, 0, SizeOf(PAGESETUPDLG))
 		psd.lStructSize=SizeOf(PAGESETUPDLG)
 		psd.hwndOwner=pApp->MainForm->Handle
 		psd.lCustData=Cast(LPARAM, @This)                        ' Pass ptr to printdlg struc

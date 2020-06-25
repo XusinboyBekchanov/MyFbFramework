@@ -63,7 +63,7 @@ Function PrintDialog.Execute() As Boolean
 	#ifndef __USE_GTK__
 		Dim As PRINTDLG pd
 		
-		Clear(@pd, 0, SizeOf(PRINTDLG))
+		'Clear(@pd, 0, SizeOf(PRINTDLG))
 		pd.lStructSize=SizeOf(PRINTDLG)
 		pd.hwndOwner=pApp->MainForm->Handle
 		pd.lCustData=Cast(LPARAM, @This)                        ' Pass ptr to printdlg struc

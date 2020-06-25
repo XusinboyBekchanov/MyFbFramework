@@ -308,6 +308,31 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
+		Function ComboBoxEdit.SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Dim As ComboBoxEdit Ptr Ctrl
+			Dim As Message Message
+			Ctrl = Cast(ComboBoxEdit Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+			Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
+			If Ctrl Then
+				With *Ctrl
+					If Ctrl->ClassName <> "" Then
+						.ProcessMessage(Message)
+						If Message.Result = -1 Then
+							Return Message.Result
+						ElseIf Message.Result = -2 Then
+							Msg = Message.Msg
+							wParam = Message.wParam
+							lParam = Message.lParam
+						ElseIf Message.Result <> 0 Then
+							Return Message.Result
+						End If
+					End If
+				End With
+				Message.Result = CallWindowProc(Ctrl->lpfnEditWndProc, FWindow, Msg, wParam, lParam)
+			End If
+			Return Message.Result
+		End Function
+		
 		Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
@@ -317,13 +342,17 @@ Namespace My.Sys.Forms
 					End If
 					.UpdateListHeight
 					Dim As Integer i
-					For i = 0 To .Items.Count -1
+					For i = 0 To .Items.Count - 1
 						Dim As WString Ptr s = CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
 						*s = .Items.Item(i)
 						.Perform(CB_ADDSTRING, 0, CInt(s))
 					Next i
 					.ItemIndex = .FItemIndex
 					.Text = .FText
+					If .FEditHandle <> 0 Then
+						SetWindowLongPtr(.FEditHandle, GWLP_USERDATA, CInt(.Child))
+						.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SubClassProc)))
+					End If
 				End With
 			End If
 		End Sub

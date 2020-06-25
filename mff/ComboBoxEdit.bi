@@ -32,8 +32,9 @@ Namespace My.Sys.Forms
 		FDropDownCount    As Integer
 		FIntegralHeight   As Boolean
 		#ifndef __USE_GTK__
-			FListHandle       As HWND
-			FEditHandle       As HWND
+			FListHandle     As HWND
+			FEditHandle     As HWND
+			lpfnEditWndProc As Any Ptr
 		#endif
 		FSelColor         As Integer
 		AStyle(5)         As Integer
@@ -45,6 +46,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Static Function SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		#endif
 	Protected:
 		FStyle            As Integer
