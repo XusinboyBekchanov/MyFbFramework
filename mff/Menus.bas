@@ -586,9 +586,9 @@ Property MenuItem.Enabled(value As Boolean)
 		ElseIf Owner AndAlso Owner->Handle Then
 			EnableMenuItem(Owner->Handle, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
 		End If
-		If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
-			DrawMenuBar(Owner->ParentWindow->Handle)
-		End If
+'		If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
+'			DrawMenuBar(Owner->ParentWindow->Handle)
+'		End If
 	#endif
 End Property
 
@@ -1235,20 +1235,20 @@ sub Menu.Clear
 	end if
 end sub
 
-#IfNDef __USE_GTK__
-	sub Menu.ProcessMessage(byref message as Message)
+#ifndef __USE_GTK__
+	Sub Menu.ProcessMessage(ByRef message As Message)
 		
-	end sub
-#EndIf
+	End Sub
+#endif
 
-operator Menu.cast as any ptr
-	return @this
-end operator
+Operator Menu.cast As Any Ptr
+	Return @This
+End Operator
 
-constructor Menu
-end constructor
+Constructor Menu
+End Constructor
 
-destructor Menu
+Destructor Menu
 	Clear
 	#ifndef __USE_GTK__
 		If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
@@ -1428,7 +1428,10 @@ Property MainMenu.ParentWindow(value As Component Ptr)
 					accl(CountOfHotKeys - 1).cmd = mi->Command
 				End If
 			Next i
-			If FParentWindow Then FParentWindow->Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
+			If FParentWindow Then
+				If FParentWindow->Accelerator <> 0 Then DestroyAcceleratorTable(FParentWindow->Accelerator)
+				FParentWindow->Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
+			End If
 		#endif
 	End If
 	End  Property

@@ -35,20 +35,16 @@
 
 Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024) As UString
 	
-	Dim ErrorString         As WString Ptr
+	#ifdef UNICODE
+		Dim ErrorString         As WString Ptr
+	#else
+		Dim ErrorString         As ZString Ptr
+	#endif
 	Dim sError              As String
 	
 	#ifdef __USE_GTK__
 	#else
-		FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM Or _
-		FORMAT_MESSAGE_ALLOCATE_BUFFER, _
-		NULL, _
-		Code, _
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), _
-		Cast(WString Ptr, @ErrorString), _
-		MaxLen, _
-		NULL)
-		
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM Or FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, Code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), ErrorString, MaxLen, NULL)
 		If (ErrorString <> 0) Then
 			Return *ErrorString
 			LocalFree(ErrorString)

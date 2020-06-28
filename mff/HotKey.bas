@@ -20,6 +20,13 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub HotKey.ProcessMessage(ByRef Message As Message)
+			Select Case Message.Msg
+			Case CM_COMMAND
+				Select Case Message.wParamHi
+				Case EN_CHANGE
+					If OnChange Then OnChange(This)
+				End Select
+			End Select
 			Base.ProcessMessage(Message)
 		End Sub
 	#endif

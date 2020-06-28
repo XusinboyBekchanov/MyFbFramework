@@ -80,7 +80,7 @@ End Enum
 Namespace My
 	#define QApplication(__Ptr__) *Cast(Application Ptr,__Ptr__)
 	
-	Type Application
+	Type Application Extends My.Sys.Object
 	Private:
 		FTitle          As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon
@@ -129,7 +129,7 @@ Namespace My
 		Declare Property ExeName ByRef As WString
 		Declare Property ExeName(ByRef Value As WString)
 		Declare Property MainForm As My.Sys.Forms.Control Ptr
-		Declare Property MainForm(Value  As My.Sys.Forms.Control Ptr)
+		Declare Property MainForm(Value As My.Sys.Forms.Control Ptr)
 		Declare Property HintColor As Integer
 		Declare Property HintColor(value As Integer)
 		Declare Property HintPause As Integer

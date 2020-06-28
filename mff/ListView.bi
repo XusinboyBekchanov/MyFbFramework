@@ -269,6 +269,7 @@ Namespace My.Sys.Forms
 		OnItemClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		OnItemDblClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		OnItemKeyDown As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		OnSelectedItemChanging As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		OnSelectedItemChanged As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		OnBeginScroll As Sub(ByRef Sender As ListView)
 		OnEndScroll As Sub(ByRef Sender As ListView)

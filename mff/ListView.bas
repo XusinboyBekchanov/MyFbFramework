@@ -882,7 +882,7 @@ Namespace My.Sys.Forms
 			Case GDK_MAP
 				Init
 			End Select
-		#Else
+		#else
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
@@ -896,6 +896,7 @@ Namespace My.Sys.Forms
 				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, lvp->iItem)
 				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
+				Case LVN_ITEMCHANGING: If OnSelectedItemChanging Then OnSelectedItemChanging(This, lvp->iItem)
 				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
 				End Select
