@@ -405,10 +405,10 @@ Namespace My.Sys.Forms
 		s = CAllocate((LOF(F) + 1) * SIzeOf(WString))
 		While Not EOF(F)
 			Line Input #F, *s
-			#IfnDef __USE_GTK__
+			#ifndef __USE_GTK__
 				Perform(LB_ADDSTRING, 0, CInt(s))
-			#EndIf
-		WEnd
+			#endif
+		Wend
 		Close #F
 	End Sub
 	
@@ -439,7 +439,7 @@ Namespace My.Sys.Forms
 		FCtl3D             = True
 		FBorderStyle       = 1
 		FTabStop           = True
-		Items.Parent       = @This
+		'Items.Parent       = @This
 		With This
 			WLet FClassName, "CheckedListBox"
 			WLet FClassAncestor, "ListBox"
