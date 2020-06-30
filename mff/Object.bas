@@ -25,11 +25,11 @@ Namespace My.Sys
 	End Function
 	
 	Sub Object.Free
-		Delete @This
+		'Delete @This
 	End Sub
 	
 	Sub Object.Dispose
-		Delete @This
+		'Delete @This
 	End Sub
 	
 	Operator Object.Cast ByRef As WString
