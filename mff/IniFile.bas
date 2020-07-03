@@ -11,7 +11,6 @@
 '###############################################################################
 
 #include once "IniFile.bi"
-
 Property IniFile.File ByRef As WString
 	Return WGet(FFile)
 End Property
@@ -65,9 +64,29 @@ Function IniFile.KeyExists(ByRef Section As WString, ByRef Key As WString) As In
 	End If
 	Return -1
 End Function
-
+'David Change
+Function IniFile.KeyRemove(ByRef Section As WString, ByRef Key As WString) As Boolean
+	Dim As Integer x
+	Dim As WString Ptr s
+	x = SectionExists(Section)
+	If x <> -1 Then
+		For i As Integer = x + 1 To FLines.Count -1
+			s = @FLines.Item(i)
+			If *s <> "" Then
+				If s[0] <> Asc(";") Then
+					If s[0] = Asc("[") Then Return False
+					If s[0] <> Asc("[") AndAlso UCase(Key) = UCase(Trim(Mid(*s, 1, InStr(*s, "=") - 1))) Then
+						FLines.Remove i
+						Return True
+					End If
+				End If
+			End If
+		Next i
+	End If
+	Return False
+End Function
 Sub IniFile.Load(ByRef FileName As WString = "")
-	
+
 	Dim Result As Integer=-1 'David Change
 	If FileName <> "" Then WLet FFile, FileName
 	FLines.Clear
@@ -79,7 +98,7 @@ Sub IniFile.Load(ByRef FileName As WString = "")
 	If Result <> 0 Then Result = Open(*FFile For Input Encoding "utf-32" As #Fn)
 	If Result <> 0 Then Result = Open(*FFile For Input As #Fn)
 	If Result = 0 Then
-		Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
+		Dim Buff As WString * 1024 'David Change for V1.07 Line Input not working fine
 		While Not EOF(Fn)
 			Line Input #Fn, Buff
 			If Buff <> "" Then FLines.Add Buff
@@ -324,16 +343,19 @@ End Operator
 Constructor IniFile
 	Dim As WString * 255 Tx
 	Dim As Integer L, i, k
-	#IfNdef __USE_GTK__
+	#ifndef __USE_GTK__
 		L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
-	#EndIf
-	Tx = Left(Tx, L)
-	For i = 0 To Len(Tx)
-		If Tx[i] = Asc(".") Then k = i +1
-	Next i
-	Wlet FFile, Mid(Tx, 1, k - 1) + ".ini"
+		Tx = Left(Tx, L)
+		For i = 0 To Len(Tx)
+			If Tx[i] = Asc(".") Then k = i +1
+		Next i
+		Wlet FFile, Mid(Tx, 1, k - 1) + ".ini"
+	#else
+		Wlet FFile, "Config.ini" 'David Change for hanging in linux
+	#endif
 End Constructor
 
 Destructor IniFile
-	'If FLines Then DeAllocate FLines
+	If FFile Then Deallocate FFile
+	FLines.Clear
 End Destructor
