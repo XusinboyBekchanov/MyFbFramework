@@ -192,11 +192,11 @@ Function OpenFileDialog.Execute As Boolean
 		Dim dwBufLen As DWORD
 		Dim wMarkers As WString * 4 = "||"
 		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
-		Dim wFilter As WString * 260 = ""
-		wFilter = *FFilter & wMarkers
+		Dim wFilter As WString Ptr '* 260 = ""
+		WLet wFilter, *FFilter & wMarkers
 		Dim dwFilterStrSize As DWORD = Len(wFilter)
-		Dim pchar As WChar Ptr = @wFilter
-		For i As Long = 0 To Len(wFilter) - 1
+		Dim pchar As WChar Ptr = wFilter
+		For i As Long = 0 To Len(*wFilter) - 1
 			If pchar[i] = Asc("|") Then pchar[i] = 0
 		Next
 		If WGet(FInitialDir) = "" Then WLet FInitialDir, CurDir
@@ -219,7 +219,7 @@ Function OpenFileDialog.Execute As Boolean
 		ZeroMemory(@ofn, SizeOf(ofn))
 		ofn.lStructSize     = SizeOf(ofn)
 		If pApp->MainForm Then ofn.hwndOwner       = pApp->MainForm->Handle
-		ofn.lpstrFilter     = @wFilter
+		ofn.lpstrFilter     = wFilter
 		ofn.nFilterIndex    = 1
 		ofn.lpstrFile       = @cwsFile
 		ofn.lpstrFileTitle       = FFileTitle
@@ -412,8 +412,8 @@ Function SaveFileDialog.Execute As Boolean
 		Dim dwBufLen As DWORD
 		Dim wMarkers As WString * 4 = "||"
 		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
-		Dim wFilter As WString Ptr = CAllocate(260 * SizeOf(WString))
-		*wFilter = *FFilter & wMarkers
+		Dim wFilter As WString Ptr
+		WLet wFilter, *FFilter & wMarkers
 		Dim dwFilterStrSize As DWORD = Len(*wFilter)
 		Dim pchar As WChar Ptr = wFilter
 		For i As Long = 0 To Len(*wFilter) - 1
