@@ -1273,7 +1273,7 @@ Function GetAscKeyCode(HotKey As String) As Integer
 	Case "Backspace", "Back": Return 08
 	Case "Tab": Return 09
 	Case "Enter", "Return": Return 13
-	Case "Pause": Return VK_PAUSE
+	Case "Pause": Return 19
 	Case "Escape", "Esc": Return 27
 	Case "Space": Return 32
 	Case "PageUp": Return 33

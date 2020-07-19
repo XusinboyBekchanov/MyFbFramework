@@ -702,10 +702,10 @@ Namespace My.Sys.Forms
 					Dim As Integer AControlParent(2) => {0, WS_EX_CONTROLPARENT}
 					Dim As Integer ATabStop(2) => {0,WS_TABSTOP},AGrouped(2) = >{0,WS_GROUP}
 					If ClassName = "IPAddress" Then
-						Text = ""
-						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
-						ExStyle = 0
-					Else
+							Text = ""
+							Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
+							ExStyle = 0
+						Else
 						If (Style And (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS) Then
 							Style = Style Or (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)
 						End If

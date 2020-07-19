@@ -248,7 +248,7 @@ Namespace My.Sys.Forms
 					End If
 				End With
 			End If
-		#EndIf
+		#endif
 		Return FButtonHeight
 	End Property
 	
@@ -729,11 +729,11 @@ Namespace My.Sys.Forms
 					If .ImagesList Then .ImagesList->ParentWindow = @Sender: If .ImagesList->Handle Then .Perform(TB_SETIMAGELIST,0,CInt(.ImagesList->Handle))
 					If .HotImagesList Then .HotImagesList->ParentWindow = @Sender: If .HotImagesList->Handle Then .Perform(TB_SETHOTIMAGELIST,0,CInt(.HotImagesList->Handle))
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
-					.Perform(TB_BUTTONSTRUCTSIZE,SizeOF(TBBUTTON),0)
-					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) OR TBSTYLE_EX_DRAWDDARROWS)
+					.Perform(TB_BUTTONSTRUCTSIZE,SizeOf(TBBUTTON),0)
+					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
 					.Perform(TB_SETBUTTONSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
 					.Perform(TB_SETBITMAPSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
-					For i As Integer = 0 To .Buttons.Count -1
+					For i As Integer = 0 To .Buttons.Count - 1
 						Dim As TBBUTTON TB
 						'Dim As WString Ptr s = .Buttons.Button(i)->Caption
 						TB.fsState   = .Buttons.Item(i)->State
@@ -747,9 +747,10 @@ Namespace My.Sys.Forms
 						End If
 						TB.dwData    = Cast(DWord_Ptr,@.Buttons.Item(i)->DropDownMenu)
 						.Perform(TB_ADDBUTTONS,1,CInt(@TB))
+						If Not .Buttons.Item(i)->Visible Then .Perform(TB_HIDEBUTTON, .Buttons.Item(i)->CommandID, MakeLong(True, 0))
 					Next i
 					If .AutoSize Then .Perform(TB_AUTOSIZE,0,0)
-				#EndIf
+				#endif
 				If .DesignMode Then
 					.Buttons.Add
 				End If

@@ -55,6 +55,26 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
+	Property TreeNode.Bold As Boolean
+		#ifdef __USE_GTK__
+		#else
+			If Parent AndAlso Parent->Handle Then 
+				FBold = TreeView_GetItemState(Parent->Handle, Handle, TVIS_BOLD)
+				Return FBold
+			End If
+		#endif
+	End Property
+	
+	Property TreeNode.Bold(Value As Boolean)
+		FBold = Value
+		#ifdef __USE_GTK__
+		#else
+			If Parent AndAlso Parent->Handle Then
+				TreeView_SetItemState(Parent->Handle, Handle, IIf(Value, TVIS_BOLD, 0), TVIS_BOLD)
+			End If
+		#endif
+	End Property
+	
 	Function TreeNode.Index As Integer
 		If FParentNode <> 0 Then
 			Return FParentNode->Nodes.IndexOf(@This)
@@ -132,11 +152,16 @@ Namespace My.Sys.Forms
 	Property TreeNode.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
-			If Parent Then
-				With QControl(Parent)
-					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-				End With
-			End If
+			#ifdef __USE_GTK__
+			#else
+				If Parent AndAlso Parent->Handle Then
+					Dim tvi As TVITEM
+					tvi.mask = TVIF_IMAGE
+					tvi.hItem = Handle
+					tvi.iImage             = FImageIndex
+					TreeView_SetItem(Parent->Handle, @tvi)
+				End If
+			#endif
 		End If
 	End Property
 	
@@ -145,17 +170,20 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNode.ImageKey(ByRef Value As WString)
-		If Value <> FImageIndex Then
+		If Value <> *FImageKey Then
 			WLet FImageKey, Value
 			#ifdef __USE_GTK__
 				If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
 					gtk_tree_store_set(Cast(TreeView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUTF8(Value), -1)
 				EndIf
 			#else
-				If Parent Then
-					With QControl(Parent)
-						'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-					End With
+				If Parent AndAlso Parent->Handle Then
+					FImageIndex = Cast(TreeView Ptr, Parent)->Images->IndexOf(*FImageKey)
+					Dim tvi As TVITEM
+					tvi.mask = TVIF_IMAGE
+					tvi.hItem = Handle
+					tvi.iImage             = FImageIndex
+					TreeView_SetItem(Parent->Handle, @tvi)
 				End If
 			#endif
 		End If
@@ -166,12 +194,17 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNode.SelectedImageIndex(Value As Integer)
-		FImageIndex = Value
-		If Parent Then
-			With QControl(Parent)
-				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-			End With
-		End If
+		FSelectedImageIndex = Value
+		#ifdef __USE_GTK__
+		#else
+			If Parent AndAlso Parent->Handle Then
+				Dim tvi As TVITEM
+				tvi.mask = TVIF_SELECTEDIMAGE
+				tvi.hItem = Handle
+				tvi.iSelectedImage   = FSelectedImageIndex
+				TreeView_SetItem(Parent->Handle, @tvi)
+			End If
+		#endif
 	End Property
 	
 	Property TreeNode.ParentNode As TreeNode Ptr
@@ -188,11 +221,17 @@ Namespace My.Sys.Forms
 	
 	Property TreeNode.SelectedImageKey(ByRef Value As WString)
 		WLet FSelectedImageKey, Value
-		If Parent Then
-			With QControl(Parent)
-				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-			End With
-		End If
+		#ifdef __USE_GTK__
+		#else
+			If Parent AndAlso Parent->Handle Then
+				FSelectedImageIndex = Cast(TreeView Ptr, Parent)->Images->IndexOf(*FSelectedImageKey)
+				Dim tvi As TVITEM
+				tvi.mask = TVIF_SELECTEDIMAGE
+				tvi.hItem = Handle
+				tvi.iSelectedImage = FSelectedImageIndex
+				TreeView_SetItem(Parent->Handle, @tvi)
+			End If
+		#endif
 	End Property
 	
 	Property TreeNode.Visible As Boolean
@@ -757,7 +796,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If tv->OnSelChange Then tv->OnSelChange(*tv, *tv->Nodes.FindByIterUser_Data(iter.User_Data))
+					If tv->OnSelChanged Then tv->OnSelChanged(*tv, *tv->Nodes.FindByIterUser_Data(iter.User_Data))
 				End If
 			End If
 		End Sub

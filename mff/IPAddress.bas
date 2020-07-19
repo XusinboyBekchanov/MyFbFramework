@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub IPAddress.ProcessMessage(ByRef Message As Message)
-			Base.ProcessMessage Message
+			'Base.ProcessMessage Message
 		End Sub
 	#endif
 	
@@ -30,12 +30,12 @@ Namespace My.Sys.Forms
 	
 	Constructor IPAddress
 		#ifndef __USE_GTK__
-			Dim As INITCOMMONCONTROLSEX icex
-			
-			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
-			icex.dwICC =  ICC_INTERNET_CLASSES
-			
-			InitCommonControlsEx(@icex)
+'			Dim As INITCOMMONCONTROLSEX icex
+'			
+'			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
+'			icex.dwICC =  ICC_INTERNET_CLASSES
+'			
+'			InitCommonControlsEx(@icex)
 		#endif
 		
 		With This
@@ -43,14 +43,15 @@ Namespace My.Sys.Forms
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.RegisterClass "IPAddress", WC_IPADDRESS
+				?WC_IPADDRESS
 				WLet FClassAncestor, WC_IPADDRESS
 				.ExStyle      = 0
 				.Style        = WS_CHILD
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
-			.Width        = 100
-			.Height       = 32
+			.Width        = 150
+			.Height       = 20
 			.Child        = @This
 		End With
 	End Constructor

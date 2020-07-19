@@ -52,17 +52,18 @@ Namespace My.Sys.Forms
 	
 	Type TreeNode Extends My.Sys.Object
 	Private:
-		FName           As WString Ptr
-		FText           As UString
-		FHint           As WString Ptr
-		FImageIndex   As Integer
-		FImageKey   As WString Ptr
-		FSelectedImageIndex   As Integer
-		FSelectedImageKey    As WString Ptr
-		FParentNode As PTreeNode
-		FVisible      As Boolean
-		FIsUpdated    As Boolean
-		FChecked      As Boolean
+		FName               As WString Ptr
+		FText               As UString
+		FHint               As WString Ptr
+		FImageIndex         As Integer
+		FImageKey           As WString Ptr
+		FSelectedImageIndex As Integer
+		FSelectedImageKey   As WString Ptr
+		FParentNode         As PTreeNode
+		FVisible            As Boolean
+		FIsUpdated          As Boolean
+		FChecked            As Boolean
+		FBold               As Boolean
 	Public:
 		Tag As Any Ptr
 		Parent   As Control Ptr
@@ -76,6 +77,8 @@ Namespace My.Sys.Forms
 		Declare Sub Collapse
 		Declare Sub Expand
 		Declare Function IsExpanded As Boolean
+		Declare Property Bold As Boolean
+		Declare Property Bold(Value As Boolean)
 		Declare Function Index As Integer
 		Declare Virtual Function ToString ByRef As WString
 		Declare Property Name ByRef As WString
