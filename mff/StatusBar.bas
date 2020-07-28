@@ -123,12 +123,12 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub StatusBar.UpdatePanels
-		Dim As Integer i,FWidth()
-		Dim As WString Ptr s = CAllocate(0)
-		Dim As WString Ptr ss = CAllocate(0)
-		ReDim FWidth(Count)
+		Dim As Long i, FWidth()
+		Dim As WString Ptr s
+		Dim As WString Ptr ss
+		ReDim FWidth(Count - 1)
 		If Count > 0 Then
-			For i = 0 To Count -1
+			For i = 0 To Count - 1
 				If i = 0 Then
 					FWidth(i) = Panels[i]->Width
 				Else
@@ -137,24 +137,20 @@ Namespace My.Sys.Forms
 			Next i
 			FWidth(Count - 1) = -1
 			#ifndef __USE_GTK__
-				Perform(SB_SETPARTS, Count, CInt(@FWidth(0)))
+				Perform(SB_SETPARTS, Count, Cast(LParam, CInt(@FWidth(0))))
 			#endif
-			For i = 0 To Count -1
+			For i = 0 To Count - 1
 				If Panels[i]->Alignment = 0 Then
-					s = Reallocate(s, (Len(Panels[i]->Caption) + 1) * SizeOf(WString))
-					*s = Panels[i]->Caption
+					WLet s, Panels[i]->Caption
 				ElseIf Panels[i]->Alignment = 1 Then
-					s = Reallocate(s, (Len(Chr(9) + Panels[i]->Caption) + 1) * SizeOf(WString))
-					*s = Chr(9)+Panels[i]->Caption
+					WLet s, Chr(9)+Panels[i]->Caption
 				ElseIf Panels[i]->Alignment = 2 Then
-					s = Reallocate(s, (Len(Chr(9) + Chr(9) + Panels[i]->Caption) + 1) * SizeOf(WString))
-					*s = Chr(9)+Chr(9)+Panels[i]->Caption
+					WLet s, Chr(9) & Chr(9) & Panels[i]->Caption
 				Else
-					s = Reallocate(s, (Len(Panels[i]->Caption) + 1) * SizeOf(WString))
-					*s = Panels[i]->Caption
+					WLet s, Panels[i]->Caption
 				End If
 				#ifndef __USE_GTK__
-					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, CInt(s))
+					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LParam, CInt(s)))
 				#endif
 				WLet ss, *ss & IIf(i = 0, "", !"\t") & Panels[i]->Caption
 			Next i
