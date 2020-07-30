@@ -186,15 +186,17 @@ Namespace My.Sys.Forms
 		Declare Sub CenterToScreen
 		Declare Constructor
 		Declare Destructor
-		OnActivate   As Sub(ByRef Sender As Form)
-		OnActiveControlChange As Sub(ByRef Sender As Form)
-		OnClose      As Sub(ByRef Sender As Form, ByRef Action As Integer)
-		OnDeActivate As Sub(ByRef Sender As Form)
-		OnHide       As Sub(ByRef Sender As Form)
-		OnFree       As Sub(ByRef Sender As Form)
-		OnSize       As Sub(ByRef Sender As Form)
-		OnShow       As Sub(ByRef Sender As Form)
-		OnTimer      As Sub(ByRef Sender As Form)
+		OnActivate              As Sub(ByRef Sender As Form)
+		OnActivateApp           As Sub(ByRef Sender As Form)
+		OnActiveControlChange   As Sub(ByRef Sender As Form)
+		OnClose                 As Sub(ByRef Sender As Form, ByRef Action As Integer)
+		OnDeActivate            As Sub(ByRef Sender As Form)
+		OnDeActivateApp         As Sub(ByRef Sender As Form)
+		OnHide                  As Sub(ByRef Sender As Form)
+		OnFree                  As Sub(ByRef Sender As Form)
+		OnSize                  As Sub(ByRef Sender As Form)
+		OnShow                  As Sub(ByRef Sender As Form)
+		OnTimer                 As Sub(ByRef Sender As Form)
 	End Type
 End Namespace
 

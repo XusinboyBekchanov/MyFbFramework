@@ -727,6 +727,13 @@ Namespace My.Sys.Forms
 				Case WA_INACTIVE
 					If OnDeActivate Then OnDeActivate(This)
 				End Select
+			Case WM_ACTIVATEAPP
+				Select Case msg.wParam
+				Case 1
+					If OnActivateApp Then OnActivateApp(This)
+				Case 0
+					If OnDeActivateApp Then OnDeActivateApp(This)
+				End Select
 			Case WM_DESTROY
 				If Accelerator Then DestroyAcceleratorTable(Accelerator)
 			Case WM_DRAWITEM
