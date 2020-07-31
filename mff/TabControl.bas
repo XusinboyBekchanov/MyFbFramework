@@ -69,33 +69,41 @@ Namespace My.Sys.Forms
 				CloseThemeData(FTheme)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If UseVisualStyleBackColor Then
-					GetClientRect(Cast(HWND, Msg.lParam), @rct)
-					DrawThemeParentBackground(Cast(HWND, Msg.lParam), Cast(HDC, Msg.wParam), @rct)
-					SetBkMode(Cast(HDC, Msg.wParam), TRANSPARENT)
-					Msg.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
-					Return
+					If IsAppThemed() Then
+						GetClientRect(Cast(HWND, Msg.lParam), @rct)
+						DrawThemeParentBackground(Cast(HWND, Msg.lParam), Cast(HDC, Msg.wParam), @rct)
+						SetBkMode(Cast(HDC, Msg.wParam), TRANSPARENT)
+						Msg.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
+						Return
+					End If
 				End If
 			Case WM_PAINT
 				If UseVisualStyleBackColor Then
-					GetClientRect(Msg.hWnd, @rct)
-					DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
-					'Msg.Result = True
-					Return
+					If IsAppThemed() Then
+						GetClientRect(Msg.hWnd, @rct)
+						DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
+						'Msg.Result = True
+						Return
+					End If
 				End If
 			Case WM_ERASEBKGND
 				If UseVisualStyleBackColor Then
-					GetClientRect(Msg.hWnd, @rct)
-					DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
-					Msg.Result = 1
-					Return
+					If IsAppThemed() Then
+						GetClientRect(Msg.hWnd, @rct)
+						DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
+						Msg.Result = 1
+						Return
+					End If
 				End If
 			Case WM_PRINTCLIENT
 				If UseVisualStyleBackColor Then
-					Dim As RECT rct
-					GetClientRect(Msg.hWnd, @rct)
-					FillRect(Cast(HDC, Msg.wParam), @rct, GetStockObject(NULL_BRUSH))
-					Msg.Result = True
-					Return
+					If IsAppThemed() Then
+						Dim As RECT rct
+						GetClientRect(Msg.hWnd, @rct)
+						FillRect(Cast(HDC, Msg.wParam), @rct, GetStockObject(NULL_BRUSH))
+						Msg.Result = True
+						Return
+					End If
 				End If
 				'Case WM_PAINT, WM_ERASEBKGND
 				'	    		Dim As PAINTSTRUCT ps
