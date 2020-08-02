@@ -1,3 +1,18 @@
+Version 1.2.5 (August 2, 2020)
+- Added: ActivateApp And DeActivateApp events to Form
+- Added: KeyRemove Function in IniFile
+- Added: TreeView events: OnSelChanging, OnNodeExpanding, OnNodeExpanded
+- Added: TreeNode.Bold property
+- Fixed: TreeNode.ImageKey and TreeNode.SelectedImageKey properties
+- Fixed: TabControl in Windows Classic Theme
+- Fixed: StatusBar functionality on 64-bit Windows
+- Fixed: OpenFileDialog and SaveFileDialog Filter property
+- Fixed: Deleted Menu update on Enable menu item
+- Fixed: ComboBoxEdit Esc and Return key events
+- Fixed: PageSetupDialog and PrintDialog execute crash
+- Fixed: HotKey.Text property
+- Fixed: Delete objects, clear lists and etc.
+- Fixed: TimerComponent OnTimer event
 Version 1.2.4 (May 24, 2020)
 - Added: Canvas Example (in Windows and Linux)
 - Added: Canvas Support (in Linux)

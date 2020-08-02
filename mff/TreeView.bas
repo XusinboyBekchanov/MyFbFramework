@@ -57,6 +57,7 @@ Namespace My.Sys.Forms
 	
 	Property TreeNode.Bold As Boolean
 		#ifdef __USE_GTK__
+			Return  FBold
 		#else
 			If Parent AndAlso Parent->Handle Then 
 				FBold = TreeView_GetItemState(Parent->Handle, Handle, TVIS_BOLD)
@@ -504,7 +505,7 @@ Namespace My.Sys.Forms
 '			#else
 '				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
 '			#endif
-			For i As Integer = Count -1 To 0 Step -1
+			For i As Integer = Count - 1 To 0 Step -1
 				Delete Cast(TreeNode Ptr, FNodes.Items[i])
 			Next i
 '		Else
