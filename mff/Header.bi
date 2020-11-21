@@ -10,9 +10,9 @@
 '#  Modified by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                      #
 '###############################################################################
 
-#Include Once "Control.bi"
-#Include Once "ImageList.bi"
-#Include Once "List.bi"
+#include once "Control.bi"
+#include once "ImageList.bi"
+#include once "List.bi"
 
 namespace My.Sys.Forms
 	#DEFINE QHeader(__Ptr__) *Cast(Header Ptr,__Ptr__)
@@ -67,12 +67,12 @@ namespace My.Sys.Forms
 		AFmt(4)           As Integer
 		FSectionCount     As Integer
 		FSections         As List
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
-		Declare Function EnumMenuItems(Item As MenuItem,BYREF List As List) As Boolean
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(BYREF Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
+		Declare Function EnumMenuItems(Item As MenuItem,ByRef List As List) As Boolean
 	Public:
 		Images            As ImageList
 		Declare Property Style As Integer

@@ -54,7 +54,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		#endif
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifdef __USE_GTK__
 			DropDownWidget As GtkWidget Ptr
@@ -109,14 +109,14 @@ Namespace My.Sys.Forms
 		OnKeyDown           As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		OnKeyUp             As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		#ifndef __USE_GTK__
-			OnMeasureItem       As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer, BYREF Height As UInt)
-			OnDrawItem          As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, BYREF R As Rect, DC As HDC = 0)
-		#EndIf
-		OnSelected          As Sub(BYREF Sender As ComboBoxEdit, ItemIndex As Integer)
-		OnSelectCanceled    As Sub(BYREF Sender As ComboBoxEdit)
+			OnMeasureItem       As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer, ByRef Height As UInt)
+			OnDrawItem          As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, ByRef R As Rect, DC As HDC = 0)
+		#endif
+		OnSelected          As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		OnSelectCanceled    As Sub(ByRef Sender As ComboBoxEdit)
 	End Type
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Declare Sub ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
 		
 		Declare Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean

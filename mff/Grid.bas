@@ -1,6 +1,6 @@
 ﻿'###############################################################################
-'#  Grid.bi                                                                #
-'#  This file is part of MyFBFramework                                    #
+'#  Grid.bi                                                                    #
+'#  This file is part of MyFBFramework                                         #
 '#  Version 1.0.0                                                              #
 '###############################################################################
 
@@ -39,7 +39,7 @@ Namespace My.Sys.Forms
 	
 	Property GridItem.Text(iSubItem As Integer, ByRef Value As WString)
 		WLet FText, Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvi As LVITEM
 				lvi.Mask = LVIF_TEXT
@@ -49,7 +49,7 @@ Namespace My.Sys.Forms
 				lvi.cchTextMax = Len(*FText)
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property GridItem.Hint ByRef As WString
@@ -127,9 +127,9 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Sub GridColumn.SelectItem
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
-		#EndIf
+		#endif
 	End Sub
 	
 	Property GridColumn.Text ByRef As WString
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 	
 	Property GridColumn.Text(ByRef Value As WString)
 		WLet FText, Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = TVIF_TEXT
@@ -147,7 +147,7 @@ Namespace My.Sys.Forms
 				lvc.cchTextMax = Len(*FText)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property GridColumn.Width As Integer
@@ -156,14 +156,14 @@ Namespace My.Sys.Forms
 	
 	Property GridColumn.Width(Value As Integer)
 		FWidth = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_WIDTH OR LVCF_SUBITEM
+				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 				lvc.iSubItem = Index
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property GridColumn.Format As GridColumnFormat
@@ -172,15 +172,15 @@ Namespace My.Sys.Forms
 	
 	Property GridColumn.Format(Value As GridColumnFormat)
 		FFormat = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_FMT OR LVCF_SUBITEM
+				lvc.mask = LVCF_FMT Or LVCF_SUBITEM
 				lvc.iSubItem = Index
 				lvc.fmt = Value
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property GridColumn.Hint ByRef As WString
@@ -256,7 +256,7 @@ Namespace My.Sys.Forms
 	
 	Function GridItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1) As GridItem Ptr
 		Dim As GridItem Ptr PItem
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
 			PItem = New GridItem
 			FItems.Add PItem
@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 				.Text(0)        = FCaption
 				.Index    = FItems.Count - 1
 			End With
-			lvi.Mask = LVIF_TEXT or LVIF_IMAGE
+			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = PItem->Index
@@ -275,13 +275,13 @@ Namespace My.Sys.Forms
 				PItem->Parent = Parent
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
 			End If
-		#EndIf
+		#endif
 		Return PItem
 	End Function
 	
 	Sub GridItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1)
 		Dim As GridItem Ptr PItem
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
 			PItem = New GridItem
 			FItems.Insert Index, PItem
@@ -290,7 +290,7 @@ Namespace My.Sys.Forms
 				.Text(0)        = FCaption
 				.Index    = Index
 			End With
-			lvi.Mask = LVIF_TEXT or LVIF_IMAGE
+			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = PItem->Index
@@ -299,26 +299,26 @@ Namespace My.Sys.Forms
 				PItem->Parent = Parent
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub GridItems.Remove(Index As Integer)
 		FItems.Remove Index
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
-	Function GridItems.IndexOf(BYREF FItem As GridItem Ptr) As Integer
+	Function GridItems.IndexOf(ByRef FItem As GridItem Ptr) As Integer
 		Return FItems.IndexOF(FItem)
 	End Function
 	
 	Sub GridItems.Clear
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
-		#EndIf
+		#endif
 		For i As Integer = Count -1 To 0 Step -1
 			Delete @QGridItem(FItems.Items[i])
 		Next i
@@ -352,9 +352,9 @@ Namespace My.Sys.Forms
 		'QGridColumn(FColumns.Items[Index]) = Value
 	End Property
 	
-	Function GridColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As integer, Format As GridColumnFormat = gcfLeft) As GridColumn Ptr
+	Function GridColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As GridColumnFormat = gcfLeft) As GridColumn Ptr
 		Dim As GridColumn Ptr PColumn
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
 			PColumn = New GridColumn
 			FColumns.Add PColumn
@@ -365,7 +365,7 @@ Namespace My.Sys.Forms
 				.Width     = iWidth
 				.Format = Format
 			End With
-			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
 			lvc.cx=0
 			lvc.iImage   = PColumn->ImageIndex
@@ -379,13 +379,13 @@ Namespace My.Sys.Forms
 					ListView_SetColumnWidth(Parent->Handle, PColumn->Index, iWidth)
 				End If
 			End If
-		#EndIf
+		#endif
 		Return PColumn
 	End Function
 	
-	Sub GridColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As integer, Format As GridColumnFormat = gcfLeft)
+	Sub GridColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As GridColumnFormat = gcfLeft)
 		Dim As GridColumn Ptr PColumn
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
 			PColumn = New GridColumn
 			FColumns.Insert Index, PColumn
@@ -396,7 +396,7 @@ Namespace My.Sys.Forms
 				.Width     = iWidth
 				.Format = Format
 			End With
-			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
 			lvc.cx=0
 			lvc.iImage   = PColumn->ImageIndex
@@ -410,19 +410,19 @@ Namespace My.Sys.Forms
 					ListView_SetColumnWidth(Parent->Handle, Index, iWidth)
 				End If
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub GridColumns.Remove(Index As Integer)
 		FColumns.Remove Index
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				Parent->Perform LVM_DELETECOLUMN, cast(WPARAM, Index), 0
+				Parent->Perform LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
-	Function GridColumns.IndexOf(BYREF FColumn As GridColumn Ptr) As Integer
+	Function GridColumns.IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
 		Return FColumns.IndexOF(FColumn)
 	End Function
 	
@@ -447,12 +447,12 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Property Grid.SelectedItem As GridItem Ptr
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
 				Dim As Integer item = ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 				If item <> -1 Then Return ListItems.Item(item)
 			End If
-		#EndIf
+		#endif
 		Return 0
 	End Property
 	
@@ -461,18 +461,18 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Grid.SelectedColumn As GridColumn Ptr
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
 				Return Columns.Column(ListView_GetSelectedColumn(Handle))
 			End If
-		#EndIf
+		#endif
 		Return 0
 	End Property
 	
 	Property Grid.SelectedColumn(Value As GridColumn Ptr)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
-		#EndIf
+		#endif
 	End Property
 	
 	Property Grid.ShowHint As Boolean
@@ -483,11 +483,11 @@ Namespace My.Sys.Forms
 		FShowHint = Value
 	End Property
 	
-	#IfNDef __USE_GTK__
-		Sub Grid.WndProc(BYREF Message As Message)
+	#ifndef __USE_GTK__
+		Sub Grid.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub Grid.ProcessMessage(BYREF Message As Message)
+		Sub Grid.ProcessMessage(ByRef Message As Message)
 			'?message.msg, GetMessageName(message.msg)
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -570,10 +570,10 @@ Namespace My.Sys.Forms
 			Base.ProcessMessage(Message)
 		End Sub
 		
-		Sub Grid.HandleIsDestroyed(BYREF Sender As Control)
+		Sub Grid.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
-		Sub Grid.HandleIsAllocated(BYREF Sender As Control)
+		Sub Grid.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QGrid(Sender.Child)
 					If .Images Then
@@ -592,22 +592,22 @@ Namespace My.Sys.Forms
 					lvStyle = lvStyle Or  LVS_EX_GRIDLINES Or LVS_EX_FULLROWSELECT
 					SendMessage(.FHandle, LVM_SETEXTENDEDListViewSTYLE, 0, ByVal lvStyle)
 					For i As Integer = 0 To .Columns.Count -1
-						dim lvc as LVCOLUMN
-						lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+						Dim lvc As LVCOLUMN
+						lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 						lvC.fmt       =  .Columns.Column(i)->Format
 						lvc.cx=0
 						lvc.pszText              = @.Columns.Column(i)->Text
-						lvc.cchTextMax           = len(.Columns.Column(i)->text)
+						lvc.cchTextMax           = Len(.Columns.Column(i)->text)
 						lvc.iImage             = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem         = i
 						ListView_InsertColumn(.FHandle, i, @lvc)
 						ListView_SetColumnWidth(.FHandle, i, .Columns.Column(i)->Width)
 					Next i
 					For i As Integer = 0 To .ListItems.Count -1
-						dim lvi as LVITEM
-						lvi.Mask = LVIF_TEXT or LVIF_IMAGE
+						Dim lvi As LVITEM
+						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE
 						lvi.pszText              = @.ListItems.Item(i)->Text(0)
-						lvi.cchTextMax           = len(.ListItems.Item(i)->text(0))
+						lvi.cchTextMax           = Len(.ListItems.Item(i)->text(0))
 						lvi.iItem             = i
 						lvi.iImage             = .ListItems.Item(i)->ImageIndex
 						ListView_InsertItem(.FHandle, @lvi)
@@ -615,7 +615,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
 	Operator Grid.Cast As Control Ptr
 		Return @This

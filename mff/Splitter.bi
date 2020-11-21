@@ -11,35 +11,35 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QSplitter(__Ptr__) *Cast(Splitter Ptr, __Ptr__)
+	#define QSplitter(__Ptr__) *Cast(Splitter Ptr, __Ptr__)
 	
 	Type Splitter Extends Control
 	Private:
 		FOldParentProc  As Any Ptr
-		#IfNDef __USE_GTK__
-			Declare Static Sub ParentWndProc(BYREF Message As Message)
-			Declare Static Sub WndProc(BYREF Message As Message)
-		#EndIf
+		#ifndef __USE_GTK__
+			Declare Static Sub ParentWndProc(ByRef Message As Message)
+			Declare Static Sub WndProc(ByRef Message As Message)
+		#endif
 	Protected:
 		Declare Sub DrawTrackSplit(x As Integer, y As Integer)
-		Declare Sub ProcessMessage(BYREF Message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Dim As Boolean bCursor
-		#EndIf
+		#endif
 		Declare Operator Cast As Control Ptr
 		Declare Property Align As Integer
 		Declare Property Align(Value As Integer)
-		OnPaint As Sub(byref Sender As Splitter)
-		OnMoved As Sub(byref Sender As Splitter)
+		OnPaint As Sub(ByRef Sender As Splitter)
+		OnMoved As Sub(ByRef Sender As Splitter)
 		Declare Constructor
 		Declare Destructor
 	End Type
-End namespace
+End Namespace
 
-#IfNDef __USE_MAKE__
+#ifndef __USE_MAKE__
 	#Include Once "Splitter.bas"
 #EndIf

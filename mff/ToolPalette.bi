@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetDropDownMenuItems
 	Public:
 		Groups          As ToolGroups

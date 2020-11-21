@@ -49,7 +49,7 @@ Namespace My.Sys.Forms
 		AAutoPlay(2)    As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Sub ProcessMessage(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#endif
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Sub GetAnimateInfo

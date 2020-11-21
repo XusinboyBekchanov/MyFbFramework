@@ -4,16 +4,16 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
 '################################################################################
 
-#Include Once "Component.bi"
+#include once "Component.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QToolTips(__Ptr__) *Cast(ToolTips Ptr, __Ptr__)
+	#define QToolTips(__Ptr__) *Cast(ToolTips Ptr, __Ptr__)
 	
 	Type ToolTips Extends My.Sys.ComponentModel.Component
 	Private:
 		'			#IfNDef __USE_GTK__
 		'				Declare Static Sub WndProc(ByRef Message As Message)
-		'				Declare Sub ProcessMessage(ByRef Message As Message)
+		'				Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		'				Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		'			#EndIf
 	Public:
@@ -23,6 +23,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ToolTips.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ToolTips.bas"
+#endif

@@ -57,13 +57,12 @@ Namespace My.Sys.Forms
 				Declare Static Sub SelectionChanged(list As GtkList Ptr, user_data As Any Ptr)
 			#endif
 		#endif
-		Declare Sub ProcessMessage(ByRef Message As Message)
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Items             As ListItems
 		Declare Property Style As ListControlStyle
 		Declare Property Style(Value As ListControlStyle)
-		Declare Property TabStop As Boolean
-		Declare Property TabStop(Value As Boolean)
 		Declare Property BorderStyle As Integer
 		Declare Property BorderStyle(Value As Integer)
 		Declare Property Ctl3D As Boolean

@@ -11,11 +11,11 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#DEFINE QCommandButton(__Ptr__) *Cast(CommandButton Ptr,__Ptr__)
+#define QCommandButton(__Ptr__) *Cast(CommandButton Ptr,__Ptr__)
 
-#Include Once "Control.bi"
-#Include Once "Graphic.bi"
-#Include Once "List.bi"
+#include once "Control.bi"
+#include once "Graphic.bi"
+#include once "List.bi"
 
 Enum ButtonStyle
 	bsText, bsBitmap, bsIcon, bsCursor, bsOwnerDraw
@@ -29,15 +29,16 @@ Namespace My.Sys.Forms
 		FImageType  As Integer
 		AStyle(4)   As Integer
 		ADefault(2) As Integer
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#Else
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#else
 			Declare Static Sub Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
-		#EndIf
-		Declare Sub ProcessMessage(BYREF message As Message)
-		Declare Static Sub GraphicChange(BYREF Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
-		Declare Function EnumMenuItems(Item As MenuItem, BYREF List As List) As Boolean
+		#endif
+		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		Declare Function EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
 		Graphic     As My.Sys.Drawing.GraphicType
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr

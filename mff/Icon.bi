@@ -11,14 +11,14 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Object.bi"
-#Include Once "Bitmap.bi"
-#IfDef __USE_GTK__
-	#Include once "gtk/gtk.bi"
-	#IfDef __USE_GTK3__
+#include once "Object.bi"
+#include once "Bitmap.bi"
+#ifdef __USE_GTK__
+	#include once "gtk/gtk.bi"
+	#ifdef __USE_GTK3__
 		#include once "glib-object.bi"
-	#EndIf
-#EndIf
+	#endif
+#endif
 
 Namespace My.Sys.Drawing
 	Type Icon Extends My.Sys.Object
@@ -28,11 +28,11 @@ Namespace My.Sys.Drawing
 		FResName As WString Ptr
 	Public:
 		Graphic As Any Ptr
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Handle As GdkPixBuf Ptr
-		#Else
+		#else
 			Handle  As HICON
-		#EndIf
+		#endif
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property ResName ByRef As WString
@@ -41,20 +41,20 @@ Namespace My.Sys.Drawing
 		Declare Property Width(Value As Integer)
 		Declare Property Height As Integer
 		Declare Property Height(Value As Integer)
-		Declare Sub LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0)
-		Declare Sub SaveToFile(ByRef File As WString)
-		Declare Sub LoadFromResourceName(ByRef ResName As WString, cx As Integer = 0, cy As Integer = 0)
-		Declare Sub LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0)
-		#IfNDef __USE_GTK__
+		Declare Function LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+		Declare Function SaveToFile(ByRef File As WString) As Boolean
+		Declare Function LoadFromResourceName(ByRef ResName As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+		Declare Function LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0) As Boolean
+		#ifndef __USE_GTK__
 			Declare Function ToBitmap() As hBitmap
-		#EndIf
+		#endif
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast As WString Ptr
 		Declare Operator Let(ByRef Value As WString)
 		Declare Operator Let(Value As Integer)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Operator Let(Value As HICON)
-		#EndIf
+		#endif
 		Declare Constructor
 		Declare Destructor
 		Changed As Sub(BYREF Sender As Icon)

@@ -21,9 +21,10 @@ Namespace My.Sys.Forms
 		FChecked    As Boolean
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Sub ProcessMessage(ByRef Message As Message)
 		#endif
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
@@ -41,5 +42,5 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifndef __USE_MAKE__
-	#Include Once "CheckBox.bas"
+	#include once "CheckBox.bas"
 #EndIf

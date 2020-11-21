@@ -4,18 +4,18 @@
 '#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QReBar(__Ptr__) *Cast(ReBar Ptr, __Ptr__)
+	#define QReBar(__Ptr__) *Cast(ReBar Ptr, __Ptr__)
 	
 	Type ReBar Extends Control
 	Private:
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Sub ProcessMessage(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#EndIf
+		#endif
 	Public:
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
@@ -23,6 +23,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ReBar.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ReBar.bas"
+#endif

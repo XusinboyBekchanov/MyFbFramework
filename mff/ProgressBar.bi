@@ -11,10 +11,10 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QProgressBar(__Ptr__) *Cast(ProgressBar Ptr,__Ptr__)
+	#define QProgressBar(__Ptr__) *Cast(ProgressBar Ptr,__Ptr__)
 	
 	Enum ProgressBarOrientation
 		pbHorizontal, pbVertical
@@ -35,11 +35,11 @@ Namespace My.Sys.Forms
 		AMarquee(2)  As Integer
 		FMarqueeInterval As Integer
 		AOrientation(2) As Integer
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
 		Declare Sub SetRange(AMin As Integer,AMax As Integer)
 	Public:
 		Declare Property MinValue As Integer

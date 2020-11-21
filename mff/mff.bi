@@ -78,6 +78,7 @@
 #include once "TreeListView.bi"
 #include once "TreeView.bi"
 #include once "UpDown.bi"
+#include once "UserControl.bi"
 #include once "WStringList.bi"
 
 Using My.Sys.Forms
@@ -142,6 +143,7 @@ Using My.Sys.Forms
 		Case "treelistview": Ctrl = New TreeListView
 		Case "treeview": Ctrl = New TreeView
 		Case "updown": Ctrl = New UpDown
+		Case "usercontrol": Ctrl = New UserControl
 		End Select
 		If Ctrl Then
 			Ctrl->Name = sName
@@ -246,6 +248,7 @@ Using My.Sys.Forms
 		Case "treelistview": Delete Cast(TreeListView Ptr, Ctrl)
 		Case "treeview": Delete Cast(TreeView Ptr, Ctrl)
 		Case "updown": Delete Cast(UpDown Ptr, Ctrl)
+		Case "usercontrol": Delete Cast(UserControl Ptr, Ctrl)
 		Case "imagelist": Delete Cast(ImageList Ptr, Ctrl)
 		Case "timercomponent": Delete Cast(TimerComponent Ptr, Ctrl)
 		Case "tooltips": Delete Cast(ToolTips Ptr, Ctrl)

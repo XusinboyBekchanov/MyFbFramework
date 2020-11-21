@@ -11,11 +11,11 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QToolBar(__Ptr__) *Cast(ToolBar Ptr,__Ptr__)
-	#DEFINE QToolButton(__Ptr__) *Cast(ToolButton Ptr,__Ptr__)
+	#define QToolBar(__Ptr__) *Cast(ToolBar Ptr,__Ptr__)
+	#define QToolButton(__Ptr__) *Cast(ToolButton Ptr,__Ptr__)
 	
 	'#DEFINE TBSTYLE_TRANSPARENT &H8000
 	'#DEFINE TBN_DROPDOWN (TBN_FIRST - 10)
@@ -156,10 +156,10 @@ Namespace My.Sys.Forms
 		AState(6)       As Integer
 		AWrap(2)        As Integer
 		FButtons        As List
-		Declare Static Sub WndProc(BYREF Message As Message)
-		Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
-		Declare Sub ProcessMessage(BYREF Message As Message)
+		Declare Static Sub WndProc(ByRef Message As Message)
+		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetDropDownMenuItems
 	Public:
 		Buttons         As ToolButtons

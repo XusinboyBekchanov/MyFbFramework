@@ -11,11 +11,11 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 'Const UDN_DELTAPOS = (UDN_FIRST - 1)
 
 Namespace My.Sys.Forms
-	#DEFINE QUpDown(__Ptr__) *Cast(UpDown Ptr,__Ptr__)
+	#define QUpDown(__Ptr__) *Cast(UpDown Ptr,__Ptr__)
 	
 	Enum UpDownOrientation
 		udVertical,udHorizontal
@@ -36,20 +36,20 @@ Namespace My.Sys.Forms
 		FAlignment    As Integer
 		FThousands    As Boolean
 		FWrap         As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FUDAccel(1)   As UDACCEL
-		#EndIf
+		#endif
 		AStyle(2)     As Integer
 		AAlignment(2) As Integer
 		AWrap(2)      As Integer
 		AArrowKeys(2) As Integer
 		AAThousand(2) As Integer
 		FAssociate    As Control Ptr
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
 		Declare Sub SetRange(AMin As Integer, AMax As Integer)
 	Public:
 		Declare Property MinValue As Integer

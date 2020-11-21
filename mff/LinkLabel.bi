@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 		#else
 			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 		#endif
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)

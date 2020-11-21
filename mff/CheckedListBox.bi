@@ -39,13 +39,11 @@ Namespace My.Sys.Forms
 		AIntegralHeight(2)As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Sub ProcessMessage(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 	Public:
 		Items             As ListItems
-		Declare Property TabStop As Boolean
-		Declare Property TabStop(Value As Boolean)
 		Declare Property BorderStyle As Integer
 		Declare Property BorderStyle(Value As Integer)
 		Declare Property Ctl3D As Boolean

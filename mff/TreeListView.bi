@@ -183,12 +183,12 @@ Namespace My.Sys.Forms
 		FColumnHeaderHidden As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
-		Declare Static Sub WndProc(BYREF Message As Message)
-		Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
-		Declare Sub ProcessMessage(BYREF Message As Message)
+		Declare Static Sub WndProc(ByRef Message As Message)
+		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Protected:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Declare Static Function TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 		#else
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr

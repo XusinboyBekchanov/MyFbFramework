@@ -89,7 +89,7 @@ Namespace My.Sys.Forms
 		FIntegralHeight   As Boolean
 		FDropDownCount    As Integer
 		Declare Sub UpdateListHeight
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)

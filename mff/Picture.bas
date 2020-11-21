@@ -202,7 +202,7 @@ Namespace My.Sys.Forms
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
 		'FCenterImage=1
-		FStyle=0
+		FStyle = 0
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__

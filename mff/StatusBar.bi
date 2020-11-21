@@ -11,14 +11,14 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Control.bi"
-#Include Once "Menus.bi"
+#include once "Control.bi"
+#include once "Menus.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QStatusBar(__Ptr__) *Cast(StatusBar Ptr, __Ptr__)
-	#DEFINE QStatusPanel(__Ptr__) *Cast(StatusPanel Ptr, __Ptr__)
+	#define QStatusBar(__Ptr__) *Cast(StatusBar Ptr, __Ptr__)
+	#define QStatusPanel(__Ptr__) *Cast(StatusPanel Ptr, __Ptr__)
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Enum BevelStyle
 			pbLowered
 			pbNone
@@ -71,13 +71,13 @@ Namespace My.Sys.Forms
 		FSimplePanel  As Boolean
 		FSizeGrip     As Boolean
 		AStyle(2)     As Integer
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Dim As guint context_id
-		#Else
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As My.Sys.Forms.Control)
-		#EndIf
+		#else
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		#endif
 	Public:
 		Count         As Integer
 		Font          As My.Sys.Drawing.Font

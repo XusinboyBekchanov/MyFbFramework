@@ -479,6 +479,19 @@ Namespace My.Sys.Forms
 				Brush.Color = FBackColor
 				Invalidate
 			End Property
+			
+			Property Control.ForeColor As Integer
+				Return FForeColor
+			End Property
+			
+			Property Control.ForeColor(Value As Integer)
+				FForeColor = Value
+				FForeColorRed = GetRed(Value) / 255.0
+				FForeColorGreen = GetGreen(Value) / 255.0
+				FForeColorBlue = GetBlue(Value) / 255.0
+				Font.Color = FForeColor
+				Invalidate
+			End Property
 		#endif
 		
 		#ifndef Parent_Off
@@ -738,7 +751,7 @@ Namespace My.Sys.Forms
 					End If
 					BringToFront
 					If This.Font Then This.Font.Parent = @This
-					SendMessage Handle, CM_CREATE, 0, 0
+					SendMessage FHandle, CM_CREATE, 0, 0
 					If ShowHint Then AllocateHint
 					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If FParent Then

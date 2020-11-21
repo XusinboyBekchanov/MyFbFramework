@@ -43,7 +43,6 @@ Namespace My.Sys.Forms
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.RegisterClass "IPAddress", WC_IPADDRESS
-				?WC_IPADDRESS
 				WLet FClassAncestor, WC_IPADDRESS
 				.ExStyle      = 0
 				.Style        = WS_CHILD

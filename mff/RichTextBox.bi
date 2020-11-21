@@ -4,34 +4,34 @@
 '#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 
-#Include Once "TextBox.bi"
+#include once "TextBox.bi"
 
-namespace My.Sys.Forms
-	#DEFINE QRichTextBox(__Ptr__) *Cast(RichTextBox Ptr,__Ptr__)
+Namespace My.Sys.Forms
+	#define QRichTextBox(__Ptr__) *Cast(RichTextBox Ptr,__Ptr__)
 	
 	Dim Shared textbuffer As WString Ptr, bufferpos As Integer
 	
 	Type RichTextBox Extends TextBox
 	Private:
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF message As Message)
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-		#EndIf
+		#endif
 		FFindText As WString Ptr
 		FTextRange As WString Ptr
 	Protected:
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			hRichTextBox As HINSTANCE
-		#EndIf
+		#endif
 		FEditStyle As Boolean
 		FZoom As Integer
-		#IfNDef __USE_GTK__
-			Declare Sub ProcessMessage(BYREF message As Message)
-		#EndIf
+		#ifndef __USE_GTK__
+			Declare Virtual Sub ProcessMessage(ByRef message As Message)
+		#endif
 	Public:
 		Declare Function CanRedo As Boolean
 		Declare Function GetCharIndexFromPos(p As Point) As Integer
-		Declare Function GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As Wstring
+		Declare Function GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
 		Declare Function Find(ByRef Value As WString) As Boolean
 		Declare Function FindNext(ByRef Value As WString = "") As Boolean
 		Declare Function FindPrev(ByRef Value As WString = "") As Boolean

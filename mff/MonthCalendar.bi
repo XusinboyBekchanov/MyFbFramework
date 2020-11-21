@@ -4,18 +4,18 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
 '################################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QMonthCalendar(__Ptr__) *Cast(MonthCalendar Ptr, __Ptr__)
+	#define QMonthCalendar(__Ptr__) *Cast(MonthCalendar Ptr, __Ptr__)
 	
 	Type MonthCalendar Extends Control
 	Private:
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Sub ProcessMessage(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#EndIf
+		#endif
 	Public:
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor

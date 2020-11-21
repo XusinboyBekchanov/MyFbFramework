@@ -162,7 +162,7 @@ Namespace My.Sys.Forms
 		FParentWindow As Component Ptr
 		FIncSubItems  As Integer
 		Declare Sub GetMenuItems
-		Declare Sub ProcessMessage(ByRef mess As Message)
+		Declare Virtual Sub ProcessMessage(ByRef mess As Message)
 	Public:
 		ImagesList       As ImageList Ptr
 		Declare Property ParentWindow As Component Ptr
@@ -205,7 +205,7 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Function EnumMenuItems(ByRef Item As MenuItem) As Boolean
 	Public:
-		Declare Sub ProcessMessages(ByRef message As Message)
+		Declare Virtual Sub ProcessMessages(ByRef message As Message)
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -218,7 +218,7 @@ Namespace My.Sys.Forms
 	Public:
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Sub Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
-		Declare Sub ProcessMessages(ByRef message As Message)
+		Declare Virtual Sub ProcessMessages(ByRef message As Message)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor

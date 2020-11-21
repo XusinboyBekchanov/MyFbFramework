@@ -93,7 +93,7 @@ Namespace My.Sys.Forms
 		Declare Function EnumMenuItems(Item As MenuItem) As Boolean
 		Declare Sub GetMenuItems
 	Protected:
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		FControlBox     As Boolean
 		FMinimizeBox    As Boolean
 		FMaximizeBox    As Boolean
@@ -103,8 +103,8 @@ Namespace My.Sys.Forms
 		Icon          As My.Sys.Drawing.Icon
 		'Returns/sets the dialog result for the form.
 		ModalResult   As Integer 'ModalResults
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		'Returns/sets the active control on the container control.
 		Declare Property ActiveControl As Control Ptr
 		Declare Property ActiveControl(Value As Control Ptr)

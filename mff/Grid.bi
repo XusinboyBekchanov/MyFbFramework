@@ -6,7 +6,7 @@
 
 #include once "Control.bi"
 
-#IfDef __USE_GTK__
+#ifdef __USE_GTK__
 	Enum GridColumnFormat
 		gcfLeft
 		gcfRight
@@ -151,12 +151,12 @@ Namespace My.Sys.Forms
 	
 	Type Grid Extends Control
 	Private:
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-			Declare Static Sub HandleIsDestroyed(BYREF Sender As Control)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-		#EndIf
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		#endif
 	Public:
 		ListItems         As GridItems
 		Columns         As GridColumns

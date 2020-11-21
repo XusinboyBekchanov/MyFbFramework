@@ -34,13 +34,14 @@ Namespace My.Sys.Forms
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
-		Declare Sub ProcessMessage(ByRef Message As Message)
 		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Graphic As My.Sys.Drawing.GraphicType
 		Canvas  As My.Sys.Drawing.Canvas
-		Declare Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As Integer
 		Declare Property Style(Value As Integer)
 		Declare Property RealSizeImage As Boolean

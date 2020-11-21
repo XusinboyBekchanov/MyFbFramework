@@ -11,10 +11,10 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Graphic.bi"
+#include once "Graphic.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QLabel(__Ptr__) *Cast(Label Ptr,__Ptr__)
+	#define QLabel(__Ptr__) *Cast(Label Ptr,__Ptr__)
 	
 	Enum LabelStyle
 		lsText, lsBitmap, lsIcon, lsCursor, lsEmf, lsOwnerDraw
@@ -40,12 +40,13 @@ Namespace My.Sys.Forms
 		AAlignment(3)     As Integer
 		ARealSizeImage(2) As Integer
 		ACenterImage(2)   As Integer
-		#IfNdef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
-		Declare Static Sub GraphicChange(BYREF Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
+		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Graphic            As My.Sys.Drawing.GraphicType
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr

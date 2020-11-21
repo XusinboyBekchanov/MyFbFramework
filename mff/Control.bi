@@ -113,6 +113,10 @@ Namespace My.Sys.Forms
 			FBackColorRed      As Integer
 			FBackColorGreen    As Integer
 			FBackColorBlue     As Integer
+			FForeColor         As Integer
+			FForeColorRed      As Integer
+			FForeColorGreen    As Integer
+			FForeColorBlue     As Integer
 			FStoredFont        As My.Sys.Drawing.Font
 			FMenu              As MainMenu Ptr
 			FContextMenu       As PopupMenu Ptr
@@ -199,6 +203,9 @@ Namespace My.Sys.Forms
 			'Returns/sets the background color used to display text and graphics in an object.
 			Declare Property BackColor As Integer
 			Declare Property BackColor(Value As Integer)
+			'Returns/sets the foreground color used to display text and graphics in an object.
+			Declare Property ForeColor As Integer
+			Declare Property ForeColor(Value As Integer)
 			'Returns/sets the parent container of the control.
 			Declare Property Parent As Control Ptr
 			Declare Property Parent(Value As Control Ptr)

@@ -4,19 +4,19 @@
 '#  Authors: Xusinboy Bekchanov, Liu XiaLin                                    #
 '###############################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QDateTimePicker(__Ptr__) *Cast(DateTimePicker Ptr, __Ptr__)
+	#define QDateTimePicker(__Ptr__) *Cast(DateTimePicker Ptr, __Ptr__)
 	
 	Type DateTimePicker Extends Control
 	Private:
 		FTimePicker         As Boolean = False
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#EndIf
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Property TimePicker As Boolean
 		Declare Property TimePicker(Value As Boolean)

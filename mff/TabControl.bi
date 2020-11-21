@@ -41,7 +41,7 @@ Namespace My.Sys.Forms
 	Public:
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Sub ProcessMessage(ByRef msg As Message)
+		Declare Virtual Sub ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_GTK__
 			_Box			As GtkWidget Ptr
 			_Icon			As GtkWidget Ptr
@@ -88,7 +88,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Sub ProcessMessage(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#endif
 	Public:
 		Images        As ImageList Ptr

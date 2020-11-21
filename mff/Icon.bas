@@ -10,7 +10,6 @@
 '#  Updated and added cross-platform                                           #
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
-
 #include once "Icon.bi"
 
 Namespace My.Sys.Drawing
@@ -58,23 +57,23 @@ Namespace My.Sys.Drawing
 	Property Icon.Height(Value As Integer)
 	End Property
 	
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Function Icon.ToBitmap() As hBitmap
 			Dim As HWND desktop = GetDesktopWindow()
-			if (desktop = NULL) Then
-				return NULL
+			If (desktop = NULL) Then
+				Return NULL
 			End If
 			
 			Dim As HDC screen_dev = GetDC(desktop)
-			if (screen_dev = NULL) Then
-				return NULL
+			If (screen_dev = NULL) Then
+				Return NULL
 			End If
 			
 			' Create a compatible DC
 			Dim As HDC dst_hdc = CreateCompatibleDC(screen_dev)
-			if (dst_hdc = NULL) Then
+			If (dst_hdc = NULL) Then
 				ReleaseDC(desktop, screen_dev)
-				return NULL
+				Return NULL
 			End If
 			
 			' Create a new bitmap of icon size
@@ -87,8 +86,8 @@ Namespace My.Sys.Drawing
 			
 			'Select it into the compatible DC
 			Dim As HBITMAP old_dst_bmp = Cast(HBITMAP, SelectObject(dst_hdc, bmp))
-			if (old_dst_bmp = NULL) Then
-				return NULL
+			If (old_dst_bmp = NULL) Then
+				Return NULL
 			End If
 			
 			' Fill the background of the compatible DC with the given colour
@@ -103,61 +102,69 @@ Namespace My.Sys.Drawing
 			DeleteDC(dst_hdc)
 			ReleaseDC(desktop, screen_dev)
 			'DestroyIcon(hIcon)
-			return bmp
+			Return bmp
 		End Function
-	#EndIf
+	#endif
 	
-	Sub Icon.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0)
-		#IfDef __USE_GTK__
+	Function Icon.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			If cx = 0 AndAlso cy = 0 Then
 				Handle = gdk_pixbuf_new_from_file(ToUTF8(File), @gerr)
 			Else
 				Handle = gdk_pixbuf_new_from_file_at_size(ToUTF8(File), cx, cy, @gerr)
 			End If
-		#Else
+			If Handle = 0 Then Return False
+		#else
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(0, File, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE)
+			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
-			GetObject(ICIF.hbmColor, SizeOF(BMP), @BMP)
+			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
-		#EndIf
+		#endif
 		If Changed Then Changed(This)
 		This.ResName = File
-	End Sub
+		Return True
+	End Function
 	
-	Sub Icon.SaveToFile(ByRef File As WString)
-	End Sub
+	Function Icon.SaveToFile(ByRef File As WString) As Boolean
+		Return False
+	End Function
 	
-	Sub Icon.LoadFromResourceName(ByRef ResourceName As WString, cx As Integer = 0, cy As Integer = 0)
-		#IfNDef __USE_GTK__
+	Function Icon.LoadFromResourceName(ByRef ResourceName As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			This.ResName = ResourceName
 			Handle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
-			GetObject(ICIF.hbmColor, SizeOF(BMP), @BMP)
+			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
-		#EndIf
+		#endif
 		If Changed Then Changed(This)
-	End Sub
+		Return True
+	End Function
 	
-	Sub Icon.LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0)
-		#IfNDef __USE_GTK__
+	Function Icon.LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0) As Boolean
+		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			This.ResName = WStr(ResID)
 			Handle = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(ResID), IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
-			GetObject(ICIF.hbmColor, SizeOF(BMP), @BMP)
+			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
-		#EndIf
+		#endif
 		If Changed Then Changed(This)
-	End Sub
+		Return True
+	End Function
 	
 	Operator Icon.Cast As Any Ptr
 		Return @This
@@ -169,9 +176,7 @@ Namespace My.Sys.Drawing
 	
 	Operator Icon.Let(ByRef Value As WString)
 		#ifndef __USE_GTK__
-			If FindResource(GetModuleHandle(NULL), Value, RT_ICON) Then
-				LoadFromResourceName(Value)
-			Else
+			If Not LoadFromResourceName(Value) Then
 				LoadFromFile(Value)
 			End If
 		#else

@@ -11,10 +11,10 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QTrackBar(__Ptr__) *Cast(TrackBar Ptr,__Ptr__)
+	#define QTrackBar(__Ptr__) *Cast(TrackBar Ptr,__Ptr__)
 	
 	Enum TrackBarOrientation
 		tbVertical,tbHorizontal
@@ -48,11 +48,11 @@ Namespace My.Sys.Forms
 		ATickStyles(3)    As Integer
 		ATickMarks(3)     As Integer
 		ASliderVisible(2) As Integer
-		#IfNDef __USE_GTK__
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
 		Declare Sub SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr

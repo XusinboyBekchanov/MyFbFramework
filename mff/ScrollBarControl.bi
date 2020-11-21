@@ -11,10 +11,10 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Control.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#DEFINE QScrollBarControl(__Ptr__) *Cast(ScrollBarControl Ptr,__Ptr__)
+	#define QScrollBarControl(__Ptr__) *Cast(ScrollBarControl Ptr,__Ptr__)
 	
 	Enum ScrollBarControlStyle
 		sbHorizontal,sbVertical
@@ -29,12 +29,12 @@ Namespace My.Sys.Forms
 		FArrowChangeSize 	As Integer
 		FPageSize   	As Integer
 		AStyle(2)   	As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			SIF         	As SCROLLINFO
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
 	Public:
 		Declare Property Style As ScrollBarControlStyle
 		Declare Property Style(Value As ScrollBarControlStyle)

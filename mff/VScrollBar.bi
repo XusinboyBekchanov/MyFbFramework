@@ -13,7 +13,7 @@
 
 
 Namespace My.Sys.Forms
-	#DEFINE QVScrollBar(__Ptr__) *Cast(VScrollBar Ptr,__Ptr__)
+	#define QVScrollBar(__Ptr__) *Cast(VScrollBar Ptr,__Ptr__)
 	
 	Type VScrollBar Extends Control
 	Private:
@@ -22,12 +22,13 @@ Namespace My.Sys.Forms
 		FPosition       As Integer
 		FArrowChangeSize     As Integer
 		FPageSize       As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			SIF             As SCROLLINFO
-			Declare Static Sub WndProc(BYREF Message As Message)
-			Declare Sub ProcessMessage(BYREF Message As Message)
-			Declare Static Sub HandleIsAllocated(BYREF Sender As Control)
-		#EndIf
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Property MinValue As Integer
 		Declare Property MinValue(Value As Integer)
@@ -42,11 +43,11 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChange As Sub(BYREF Sender As VScrollBar)
-		OnScroll As Sub(BYREF Sender As VScrollBar, ByRef NewPos As UInteger)
+		OnChange As Sub(ByRef Sender As VScrollBar)
+		OnScroll As Sub(ByRef Sender As VScrollBar, ByRef NewPos As UInteger)
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "VScrollBar.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "VScrollBar.bas"
+#endif

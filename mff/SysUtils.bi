@@ -36,6 +36,12 @@
 	#define __EXPORT__
 #endif
 
+#define In ,
+#macro Each(iter, arr)
+	index As Integer = LBound(arr) To UBound(arr)
+	#define iter arr(index)
+#endmacro
+
 Const HELP_SETPOPUP_POS = &Hd
 
 '#DEFINE __AUTOMATE_CREATE_CHILDS__

@@ -123,7 +123,8 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Sub SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 		#endif
-		Declare Sub ProcessMessage(ByRef Message As Message)
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifdef __USE_GTK__
 			TreeStore As GtkTreeStore Ptr

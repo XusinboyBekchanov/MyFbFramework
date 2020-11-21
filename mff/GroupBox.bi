@@ -22,6 +22,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 		#endif
+	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Property Caption ByRef As WString

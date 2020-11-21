@@ -232,7 +232,7 @@ Namespace My.Sys.Forms
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifdef __USE_GTK__
 			ListStore As GtkListStore Ptr
