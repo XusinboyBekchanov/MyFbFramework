@@ -42,6 +42,8 @@
 	#define iter arr(index)
 #endmacro
 
+#define Me This
+
 Const HELP_SETPOPUP_POS = &Hd
 
 '#DEFINE __AUTOMATE_CREATE_CHILDS__

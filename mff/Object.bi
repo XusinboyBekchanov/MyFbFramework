@@ -18,6 +18,7 @@ Namespace My.Sys
 		FTemp As WString Ptr
 		FClassName As WString Ptr
 	Public:
+		Designer As Object Ptr
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function ClassName ByRef As WString
 		' Function to get any typename in the inheritance up hierarchy
