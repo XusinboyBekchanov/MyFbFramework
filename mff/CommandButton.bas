@@ -198,6 +198,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.RegisterClass "CommandButton", "Button"
 				.ChildProc   = @WndProc
+				'.BackColor       = GetSysColor(COLOR_BTNFACE)
 			#else
 				.RegisterClass "CommandButton", @This
 			#endif
