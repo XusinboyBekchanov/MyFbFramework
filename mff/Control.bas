@@ -276,11 +276,11 @@ Namespace My.Sys.Forms
 					If FHandle Then
 						Dim As Integer L
 						L = Perform(WM_GETTEXTLENGTH, 0, 0)
-						FText = WString(L + 1, 0)
+						FText.Resize(L + 1) '  = WString(L + 1 + 1, 0)
 						GetWindowText(FHandle, FText.vptr, L + 1)
 					End If
 				#endif
-				Return *FText.vptr
+				Return WGet(FText.vptr)
 			End Property
 			
 			Dim Shared TempString As String

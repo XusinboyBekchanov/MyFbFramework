@@ -800,7 +800,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TextBox
-		If FSelText Then Deallocate FSelText
-		If FLine Then Deallocate FLine
+		If FSelText <> 0 Then Deallocate FSelText
+		If FLine <> 0 Then Deallocate FLine
 	End Destructor
 End Namespace
