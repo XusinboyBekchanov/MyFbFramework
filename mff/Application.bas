@@ -507,7 +507,7 @@ Namespace My
 	End Destructor
 End Namespace
 
-Function MsgBox Overload Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer __EXPORT__
+Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer __EXPORT__
 	Dim As Integer Result = -1
 	Dim As WString Ptr FCaption
 	Dim As Integer MsgTypeIn, ButtonsTypeIn
