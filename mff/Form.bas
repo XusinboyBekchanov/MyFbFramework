@@ -1122,11 +1122,11 @@ Namespace My.Sys.Forms
 				.Style             = WS_CAPTION Or WS_SYSMENU Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX Or WS_THICKFRAME Or WS_DLGFRAME Or WS_BORDER 'FStyle(FBorderStyle) Or FChild(Abs_(FIsChild))
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
-				.Width             = CW_USEDEFAULT
-				.Height            = CW_USEDEFAULT
+				.Width             = 350 'CW_USEDEFAULT
+				.Height            = 300 'CW_USEDEFAULT
 			#else
-				.Width             = 1000
-				.Height            = 600
+				.Width             = 350
+				.Height            = 300
 			#endif
 			.StartPosition = DefaultLocation
 		End With

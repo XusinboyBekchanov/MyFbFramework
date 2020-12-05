@@ -435,12 +435,12 @@ Function SaveFileDialog.Execute As Boolean
 		ofn.lStructSize     = SizeOf(ofn)
 		If pApp->MainForm Then ofn.hwndOwner       = pApp->MainForm->Handle
 		ofn.lpstrFilter     = wFilter
-		ofn.nFilterIndex    = 1
+		ofn.nFilterIndex    = FilterIndex
 		ofn.lpstrFile       = cwsFile
 		'ofn.lpstrFile[0] = 0
 		ofn.nMaxFile        = dwFileStrSize
 		ofn.lpstrInitialDir = FInitialDir
-		IF LEN(*FCaption) THEN ofn.lpstrTitle = FCaption
+		If Len(*FCaption) Then ofn.lpstrTitle = FCaption
 		ofn.Flags = dwFlags
 		IF FDefaultExt THEN ofn.lpstrDefExt = FDefaultExt
 		IF GetSaveFilename(@ofn) THEN
