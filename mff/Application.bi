@@ -160,7 +160,7 @@ Namespace My
 		Declare Function IndexOfControl(Control As My.Sys.Forms.Control Ptr) As Integer
 		Declare Constructor
 		Declare Destructor
-		OnMouseMove As Sub(ByRef X As Integer,ByRef Y As Integer)
+		OnMouseMove As Sub(ByRef X As Integer, ByRef Y As Integer)
 		OnMessage As Sub(ByRef msg As Message)
 	End Type
 End Namespace

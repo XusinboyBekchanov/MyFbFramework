@@ -7,6 +7,28 @@
 #include once "ListView.bi"
 
 Namespace My.Sys.Forms
+	Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "view": Return @FView
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function ListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "view": This.View = *Cast(ViewStyle Ptr, Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	Function ListViewItem.Index As Integer
 		If Parent Then
 			Return Cast(ListView Ptr, Parent)->ListItems.IndexOf(@This)
@@ -723,9 +745,9 @@ Namespace My.Sys.Forms
 			If gtk_tree_view_get_model(gtk_tree_view(widget)) = NULL Then
 				gtk_list_store_set_column_types(ListStore, Columns.Count + 1, ColumnTypes)
 				gtk_tree_view_set_model(gtk_tree_view(widget), GTK_TREE_MODEL(ListStore))
-				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), true)
+				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Property ListView.ColumnHeaderHidden As Boolean
@@ -734,11 +756,11 @@ Namespace My.Sys.Forms
 	
 	Property ListView.ColumnHeaderHidden(Value As Boolean)
 		FColumnHeaderHidden = Value
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), Not Value)
-		#Else
+		#else
 			ChangeStyle LVS_NOCOLUMNHEADER, Value
-		#EndIf
+		#endif
 	End Property
 	
 	Property ListView.SingleClickActivate As Boolean
@@ -747,10 +769,10 @@ Namespace My.Sys.Forms
 	
 	Property ListView.SingleClickActivate(Value As Boolean)
 		FSingleClickActivate = Value
-		#IfDef __USE_GTK__
-			#IfDef __USE_GTK3__
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
 				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(widget), Value)
-			#Else
+			#else
 				
 			#endif
 		#else
@@ -996,7 +1018,7 @@ Namespace My.Sys.Forms
 					lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
 					lvStyle = lvStyle Or  LVS_EX_GRIDLINES Or LVS_EX_FULLROWSELECT Or LVS_EX_DOUBLEBUFFER 'David Change
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
-					If .FView <> 0 Then .View = .View
+					.View = .FView
 					For i As Integer = 0 To .Columns.Count -1
 						Dim lvc As LVCOLUMN
 						lvc.mask            = LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
@@ -1093,6 +1115,7 @@ Namespace My.Sys.Forms
 		#endif
 		ListItems.Parent = @This
 		Columns.Parent = @This
+		FView = vsDetails 
 		FEnabled = True
 		FVisible = True
 		FTabStop = True
