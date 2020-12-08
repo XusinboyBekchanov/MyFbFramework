@@ -108,6 +108,8 @@ Namespace My
 		As Any Ptr _vinfo
 		As String TranslationString
 	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Fonts           As WStringList
 		MouseX          As Integer
 		MouseY          As Integer

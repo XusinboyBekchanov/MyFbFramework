@@ -299,3 +299,11 @@ Namespace My.Sys.Drawing
 		#endif
 	End Destructor
 End Namespace
+
+Sub BitmapTypeLoadFromPNGResourceName Alias "BitmapTypeLoadFromPNGResourceName"(Bitm As My.Sys.Drawing.BitmapType Ptr, ResName As String, ModuleHandle As ULong = 0) __EXPORT__
+	#ifdef __USE_GTK__
+		Bitm->LoadFromPNGResourceName(ResName)
+	#else
+		Bitm->LoadFromPNGResourceName(ResName, Cast(HInstance, ModuleHandle))
+	#endif
+End Sub

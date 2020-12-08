@@ -17,6 +17,32 @@ Dim Shared App As My.Application
 pApp = @App
 
 Namespace My
+	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "mainform": Return @FMainForm
+		Case "version": WLet FTemp, WStr(Version): Return FTemp
+		Case "title": Title: Return FTitle
+		Case "filename": Return @This.FileName
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Application.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "mainform": This.MainForm = *Cast(My.Sys.Forms.Control Ptr, Value)
+			Case "title": This.Title = QWString(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	Function Application.Version As Const String
 		Return GetVerInfo("FileVersion")
 	End Function

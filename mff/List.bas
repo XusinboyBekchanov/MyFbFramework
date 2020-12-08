@@ -76,7 +76,7 @@ End Sub
 
 Sub List.Clear
 	Count = 0
-	If Items <> 0 Then Deallocate Items
+	If Items <> 0 Then Deallocate(Items)
 	Items = 0
 	Items = CAllocate(Count)
 End Sub
@@ -99,6 +99,6 @@ Constructor List
 End Constructor
 
 Destructor List
-	Deallocate Items
+	Deallocate(Items)
 	Items = 0
 End Destructor

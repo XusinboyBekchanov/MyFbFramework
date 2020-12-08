@@ -111,7 +111,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(BYREF Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Type ToolButtons
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 		Declare Function Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Declare Function Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Declare Sub Remove(Index As Integer)
-		Declare Function IndexOf(BYREF FButton As ToolButton Ptr) As Integer
+		Declare Function IndexOf(ByRef FButton As ToolButton Ptr) As Integer
 		Declare Function IndexOf(ByRef Key As WString) As Integer
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr

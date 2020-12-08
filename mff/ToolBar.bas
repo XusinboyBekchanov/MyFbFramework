@@ -841,4 +841,4 @@ End Namespace
 	Function ToolBarIndexOfButton Alias "ToolBarIndexOfButton"(tb As My.Sys.Forms.ToolBar Ptr, Btn As My.Sys.Forms.ToolButton Ptr) As Integer Export
 		Return tb->Buttons.IndexOf(Btn)
 	End Function
-#EndIf
+#endif

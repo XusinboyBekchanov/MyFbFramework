@@ -43,7 +43,7 @@ Constructor WStringListItem
 End Constructor
 
 Destructor WStringListItem
-	If FValue Then Deallocate FValue
+	If FValue Then Deallocate(FValue)
 	Object  = 0
 End Destructor
 

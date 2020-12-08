@@ -192,6 +192,7 @@ Using My.Sys.Forms
 		Select Case LCase(ClassName)
 		Case "menuitem": Obj = New MenuItem
 		Case "toolbutton": Obj = New ToolButton
+		Case "bitmaptype": Obj = New My.Sys.Drawing.BitmapType
 		Case Else: Obj = CreateComponent(ClassName, "", 0, 0, 0)
 		End Select
 		Objects.Add Obj
@@ -273,6 +274,7 @@ Using My.Sys.Forms
 		Select Case LCase(Cast(My.Sys.Object Ptr, Obj)->ClassName)
 		Case "toolbutton": Delete Cast(ToolButton Ptr, Obj)
 		Case "menuitem": Delete Cast(MenuItem Ptr, Obj)
+		Case "bitmaptype": Delete Cast(My.Sys.Drawing.BitmapType Ptr, Obj)
 		Case Else: Return DeleteComponent(Obj)
 		End Select
 		If bNotRemoveObject = False Then
