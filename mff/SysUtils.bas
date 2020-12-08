@@ -248,6 +248,7 @@ Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	If m_BufferLen = 0 Then Return ""
 	Dim buffer As WString Ptr
 	WLet buffer, WString(m_BufferLen * 5 + 1, 0)
+	'WReallocate buffer, m_BufferLen * 5 + 1
 	Return WGet(UTFToWChar(1, pZString, buffer, @cbLen))
 End Function
 

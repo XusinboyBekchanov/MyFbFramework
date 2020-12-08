@@ -589,6 +589,21 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Function TreeView.DraggedNode As TreeNode Ptr
+		#ifdef __USE_GTK__
+'			Dim As GtkTreeIter iter
+'			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
+'				Return Nodes.FindByIterUser_Data(iter.User_Data)
+'			End If
+		#else
+			If Handle Then
+				Dim As HTREEItem hti = TreeView_GetNextItem(Handle, NULL, TVGN_DROPHILITE)
+				Return Nodes.FindByHandle(hti)
+			End If
+		#endif
+		Return 0
+	End Function
+	
 	Property TreeView.ShowHint As Boolean
 		Return FShowHint
 	End Property
@@ -642,7 +657,7 @@ Namespace My.Sys.Forms
 						If OnNodeActivate Then OnNodeActivate(This, *sn)
 					Case NM_KILLFOCUS
 					Case NM_RCLICK
-						If OnMouseUp Then OnMouseUp(This,1,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
+						If OnMouseUp Then OnMouseUp(This, 1, Message.lParamLo, Message.lParamHi, Message.wParam And &HFFFF)
 						If ContextMenu Then
 							If ContextMenu->Handle Then
 								Dim As Point P

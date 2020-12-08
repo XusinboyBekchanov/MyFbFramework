@@ -1019,16 +1019,16 @@ Namespace My.Sys.Forms
 					If OnMouseUp Then OnMouseUp(This,0,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 				Case WM_MBUTTONDOWN
 					DownButton = 2
-					If OnMouseDown Then OnMouseDown(This,1,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
+					If OnMouseDown Then OnMouseDown(This,2,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 				Case WM_MBUTTONUP
 					DownButton = -1
-					If OnMouseUp Then OnMouseUp(This,1,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
+					If OnMouseUp Then OnMouseUp(This,2,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 				Case WM_RBUTTONDOWN
 					DownButton = 1
-					If OnMouseDown Then OnMouseDown(This,2,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
+					If OnMouseDown Then OnMouseDown(This,1,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 				Case WM_RBUTTONUP
 					DownButton = -1
-					If OnMouseUp Then OnMouseUp(This,2,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
+					If OnMouseUp Then OnMouseUp(This,1,Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 					If ContextMenu Then
 						If ContextMenu->Handle Then
 							Dim As Point P

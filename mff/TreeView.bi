@@ -145,6 +145,7 @@ Namespace My.Sys.Forms
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property SelectedNode As TreeNode Ptr
 		Declare Property SelectedNode(Value As TreeNode Ptr)
+		Declare Function DraggedNode As TreeNode Ptr
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
@@ -156,7 +157,7 @@ Namespace My.Sys.Forms
 		OnSelChanging As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnSelChanged As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnAfterLabelEdit As Sub(ByRef Sender As TreeView, ByRef NewString As WString)
-		OnMouseUp   As Sub(ByRef Sender As TreeView, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		OnMouseUp As Sub(ByRef Sender As TreeView, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	End Type
 End Namespace
 
@@ -179,7 +180,7 @@ End Namespace
 'const TVS_NOHSCROLL = &h8000
 'const TVS_EX_NOSINGLECOLLAPSE = &h1
 '
-#IfnDef __USE_GTK__ '_WIN32_WINNT = &h0602
+#ifndef __USE_GTK__ '_WIN32_WINNT = &h0602
 	Const TVS_EX_MULTISELECT = &h2
 	Const TVS_EX_DOUBLEBUFFER = &h4
 	Const TVS_EX_NOINDENTSTATE = &h8
