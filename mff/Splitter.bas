@@ -46,7 +46,7 @@ Namespace My.Sys.Forms
 	
 	Property Splitter.Align(value as Integer)
 		Base.Align = value
-		Var cr = New My.Sys.Drawing.Cursor
+		Var cr = New_( My.Sys.Drawing.Cursor)
 		cr->Ctrl = @This
 		Select Case value
 		Case 1, 2
@@ -58,7 +58,7 @@ Namespace My.Sys.Forms
 		Case Else
 			*cr = crArrow
 		End Select
-		If This.Cursor Then Delete This.Cursor
+		If This.Cursor Then Delete_( This.Cursor)
 		This.Cursor = cr
 	end Property
 	

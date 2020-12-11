@@ -1601,23 +1601,23 @@ Namespace My.Sys.Forms
 				Select Case Controls[i]->Align
 				Case 1'alLeft
 					LeftCount += 1
-					ListLeft = Reallocate(ListLeft,SizeOf(Control)*LeftCount)
+					ListLeft = Reallocate_(ListLeft,SizeOf(Control)*LeftCount)
 					ListLeft[LeftCount -1] = Controls[i]
 				Case 2'alRight
 					RightCount += 1
-					ListRight = Reallocate(ListRight,SizeOf(Control)*RightCount)
+					ListRight = Reallocate_(ListRight,SizeOf(Control)*RightCount)
 					ListRight[RightCount -1] = Controls[i]
 				Case 3'alTop
 					TopCount += 1
-					ListTop = Reallocate(ListTop,SizeOf(Control)*TopCount)
+					ListTop = Reallocate_(ListTop,SizeOf(Control)*TopCount)
 					ListTop[TopCount -1] = Controls[i]
 				Case 4'alBottom
 					BottomCount += 1
-					ListBottom = Reallocate(ListBottom,SizeOf(Control)*BottomCount)
+					ListBottom = Reallocate_(ListBottom,SizeOf(Control)*BottomCount)
 					ListBottom[BottomCount -1] = Controls[i]
 				Case 5'alClient
 					ClientCount += 1
-					ListClient = Reallocate(ListClient,SizeOf(Control)*ClientCount)
+					ListClient = Reallocate_(ListClient,SizeOf(Control)*ClientCount)
 					ListClient[ClientCount -1] = Controls[i]
 				Case Else
 					With *Controls[i]
@@ -1714,11 +1714,11 @@ Namespace My.Sys.Forms
 				End With
 			Next i
 			'#EndIf
-			If ListLeft   Then Deallocate ListLeft
-			If ListRight  Then Deallocate ListRight
-			If ListTop    Then Deallocate ListTop
-			If ListBottom Then Deallocate ListBottom
-			If ListClient Then Deallocate ListClient
+			If ListLeft   Then Deallocate_( ListLeft)
+			If ListRight  Then Deallocate_( ListRight)
+			If ListTop    Then Deallocate_( ListTop)
+			If ListBottom Then Deallocate_( ListBottom)
+			If ListClient Then Deallocate_( ListClient)
 			'This.UpdateUnLock
 		End Sub
 		
@@ -1808,7 +1808,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
 				FControlCount += 1
-				Controls = Reallocate(Controls,SizeOf(Control)*FControlCount)
+				Controls = Reallocate_(Controls,SizeOf(Control)*FControlCount)
 				Controls[FControlCount -1] = Ctrl
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
@@ -1875,7 +1875,7 @@ Namespace My.Sys.Forms
 					Controls[i -1] = P
 				Next i
 				FControlCount -= 1
-				Controls = Reallocate(Controls,FControlCount*SizeOf(Control))
+				Controls = Reallocate_(Controls,FControlCount*SizeOf(Control))
 				'DeAllocate P
 			End If
 		End Sub
@@ -1938,7 +1938,7 @@ Namespace My.Sys.Forms
 			'			For i = 0 To ControlCount -1
 			'			    If Controls[i] Then Controls[i]->Free
 			'			Next i
-			If Controls Then Deallocate Controls
+			If Controls Then Deallocate_( Controls)
 			FPopupMenuItems.Clear
 		End Destructor
 	#endif

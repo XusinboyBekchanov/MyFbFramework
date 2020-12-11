@@ -64,7 +64,7 @@ Function ZGet(ByRef subject As ZString Ptr) As String
 End Function
 
 Sub WDeAllocate Overload(ByRef subject As WString Ptr)
-	If subject <> 0 Then Deallocate(subject)
+	If subject <> 0 Then Deallocate_(subject)
 	subject = 0
 End Sub
 
@@ -83,9 +83,9 @@ Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
 		'*subject = Left(*TempWStr, lLen)
 		'WDeallocate TempWStr
-		subject = Cast(WString Ptr, Reallocate(subject, (lLen + 1) * SizeOf(WString)))
+		subject = Cast(WString Ptr, Reallocate_(subject, (lLen + 1) * SizeOf(WString)))
 	Else
-		subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
+		subject = Cast(WString Ptr, Allocate_((lLen + 1) * SizeOf(WString)))
 	End If
 End Sub
 
@@ -139,8 +139,8 @@ Namespace ClassContainer
 	End Constructor
 	
 	Destructor ClassType
-		If FClassName Then Deallocate(FClassName)
-		If FClassAncestor Then Deallocate(FClassAncestor)
+		If FClassName Then Deallocate_((FClassName))
+		If FClassAncestor Then Deallocate_((FClassAncestor))
 	End Destructor
 	
 	Function FindClass(ByRef ClassName As WString) As Integer

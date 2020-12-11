@@ -249,17 +249,17 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If FHandle Then
 				L = Perform(LB_GETTEXTLEN, FIndex, 0)
-				s = CAllocate((L + 1) * SizeOf(WString))
+				s = CAllocate_((L + 1) * SizeOf(WString))
 				*s = Space(L)
 				Perform(LB_GETTEXT, FIndex, CInt(s))
 				Return *s
 			Else
-				s = CAllocate((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
+				s = CAllocate_((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
 				*s = Items.Item(FIndex)
 				Return *s
 			End If
 		#else
-			s = CAllocate((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
+			s = CAllocate_((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
 			*s = Items.Item(FIndex)
 			Return *s
 		#endif
@@ -413,7 +413,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QListControl(Sender.Child)
 					For i As Integer = 0 To .Items.Count -1
-						Dim As WString Ptr s = CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
 						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(s))
 					Next i
@@ -545,7 +545,7 @@ Namespace My.Sys.Forms
 		For i = 0 To ItemCount - 1
 			#ifndef __USE_GTK__
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
-				s = CAllocate((Len(TextLen) + 1) * SizeOf(WString))
+				s = CAllocate_((Len(TextLen) + 1) * SizeOf(WString))
 				*s = Space(TextLen)
 				Perform(LB_GETTEXT, i, CInt(s))
 				Print #F, *s
@@ -560,7 +560,7 @@ Namespace My.Sys.Forms
 		F = FreeFile
 		Clear
 		Open File For Binary Access Read As #F
-		s = CAllocate((LOF(F) + 1) * SizeOf(WString))
+		s = CAllocate_((LOF(F) + 1) * SizeOf(WString))
 		While Not EOF(F)
 			Line Input #F, *s
 			#ifndef __USE_GTK__

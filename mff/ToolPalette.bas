@@ -119,7 +119,7 @@ Namespace My.Sys.Forms
 	
 	Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
-		PButton = New ToolButton
+		PButton = New_( ToolButton)
 		FButtons.Add PButton
 		With *PButton
 			.Style          = FStyle
@@ -243,7 +243,7 @@ Namespace My.Sys.Forms
 	
 	Sub ToolGroupButtons.Clear
 		For i As Integer = Count -1 To 0 Step -1
-			Delete @QToolButton(FButtons.Items[i])
+			Delete_( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
 	End Sub
@@ -282,7 +282,7 @@ Namespace My.Sys.Forms
 	
 	Function ToolGroups.Add(ByRef Caption As WString, ByRef Key As WString = "") As ToolGroup Ptr
 		Dim As ToolGroup Ptr PGroup
-		PGroup = New ToolGroup
+		PGroup = New_( ToolGroup)
 		FGroups.Add PGroup
 		With *PGroup
 			.Name         = Key
@@ -355,7 +355,7 @@ Namespace My.Sys.Forms
 	
 	Sub ToolGroups.Clear
 		For i As Integer = Count - 1 To 0 Step -1
-			Delete @QToolGroup(FGroups.Items[i])
+			Delete_( @QToolGroup(FGroups.Items[i]))
 		Next i
 		FGroups.Clear
 	End Sub

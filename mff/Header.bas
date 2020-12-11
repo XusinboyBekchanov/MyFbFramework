@@ -360,7 +360,7 @@ Namespace My.Sys.Forms
 	
 	Sub Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0)
 		Dim As HeaderSection Ptr PSection
-		PSection = New HeaderSection
+		PSection = New_( HeaderSection)
 		FSections.Add PSection
 		With *PSection
 			.HeaderControl = @This
@@ -401,7 +401,7 @@ Namespace My.Sys.Forms
 			Dim As HeaderSection Ptr PSection
 			Arg = va_First()
 			For i As Integer = 0 To FCount -1
-				PSection = New HeaderSection
+				PSection = New_( HeaderSection)
 				With *PSection
 					.HeaderControl = @This
 					.Caption       = *va_Arg(Arg, WString Ptr)

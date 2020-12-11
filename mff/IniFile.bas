@@ -356,6 +356,6 @@ Constructor IniFile
 End Constructor
 
 Destructor IniFile
-	If FFile Then Deallocate FFile
+	If FFile Then Deallocate_( FFile)
 	FLines.Clear
 End Destructor

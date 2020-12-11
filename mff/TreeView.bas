@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 		Nodes.Clear
 		Nodes.Parent = Parent
 		Nodes.ParentNode = @This
-		FHint = CAllocate(0)
+		FHint = 0' CAllocate_(0)
 		FText = "" 'CAllocate(0)
 		FVisible    = 1
 		Text    = ""
@@ -329,7 +329,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
-		PNode = New TreeNode
+		PNode = New_( TreeNode)
 		Dim iIndex As Integer = -1
 		If Cast(TreeView Ptr, Parent)->Sorted Or bSorted Then
 			For i As Integer = 0 To FNodes.Count - 1
@@ -387,7 +387,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
-		PNode = New TreeNode
+		PNode = New_( TreeNode)
 		FNodes.Add PNode
 		With *PNode
 			.Text         = FText
@@ -448,7 +448,7 @@ Namespace My.Sys.Forms
 '				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
 '			End If
 '		#endif
-		Delete Item(Index)
+		Delete_( Item(Index))
 		FNodes.Remove Index
 	End Sub
 	Sub TreeNodeCollection.EditLabel
@@ -506,7 +506,7 @@ Namespace My.Sys.Forms
 '				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
 '			#endif
 			For i As Integer = Count - 1 To 0 Step -1
-				Delete Cast(TreeNode Ptr, FNodes.Items[i])
+				Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
 			Next i
 '		Else
 '			For i As Integer = Count - 1 To 0 Step -1
@@ -699,7 +699,7 @@ Namespace My.Sys.Forms
 						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, message.lparam)
 						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
 						If OnAfterLabelEdit Then OnAfterLabelEdit(This, *tmpStr)
-						Deallocate tmpStr
+						Deallocate_( tmpStr)
 					Case TVN_ITEMCHANGINGW
 					Case TVN_ITEMCHANGED
 					Case TVN_ASYNCDRAW

@@ -19,7 +19,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property StatusPanel.Caption(ByRef Value As WString)
-		FCaption = Reallocate(FCaption, (Len(Value) + 1) * SizeOf(WString))
+		FCaption = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
 		*FCaption = Value
 		If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels
 	End Property
@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor StatusPanel
-		FCaption = CAllocate(0)
+		FCaption = 0 'CAllocate_(0)
 		Caption   = ""
 		FWidth     = 50
 		FAlignment = 0
@@ -68,13 +68,13 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor StatusPanel
-		If FCaption Then Deallocate FCaption
+		If FCaption Then Deallocate_( FCaption)
 	End Destructor
 	
 	Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
 		Count += 1
-		Panels = Reallocate(Panels, SizeOf(StatusPanel) * Count)
-		Panels[Count -1] = New StatusPanel
+		Panels = Reallocate_(Panels, SizeOf(StatusPanel) * Count)
+		Panels[Count -1] = New_( StatusPanel)
 		Panels[Count -1]->Index     = Count - 1
 		Panels[Count -1]->Width     = 50
 		Panels[Count -1]->Caption   = wText
@@ -92,7 +92,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_statusbar_remove(gtk_statusbar(widget), context_id, Panels[i]->message_id)
 			#endif
-			Temp = CAllocate((Count - 1) * SizeOf(StatusPanel))
+			Temp = CAllocate_((Count - 1) * SizeOf(StatusPanel))
 			x = 0
 			For i = 0 To Count -1
 				If i <> Index Then
@@ -101,11 +101,11 @@ Namespace My.Sys.Forms
 				End If
 			Next i
 			Count -= 1
-			Panels = CAllocate(Count*SizeOf(StatusPanel))
+			Panels = CAllocate_(Count*SizeOf(StatusPanel))
 			For i = 0 To Count -1
 				Panels[i] = Temp[i]
 			Next i
-			Deallocate Temp
+			Deallocate_( Temp)
 		End If
 		UpdatePanels
 	End Sub
@@ -222,7 +222,7 @@ Namespace My.Sys.Forms
 	
 	Property StatusBar.SimpleText(ByRef Value As WString)
 		If SimplePanel Then
-			FSimpleText = Reallocate(FSimpleText, (Len(Value) + 1) * SizeOf(WString))
+			FSimpleText = Reallocate_(FSimpleText, (Len(Value) + 1) * SizeOf(WString))
 			*FSimpleText = Value
 			Text = *FSimpleText
 			#ifndef __USE_GTK__
@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 	
 	Constructor StatusBar
 		With This
-			FSimpleText = CAllocate(0)
+			FSimpleText = 0' CAllocate_(0)
 			#ifdef __USE_GTK__
 				widget = gtk_statusbar_new
 				'gtk_statusbar_set_has_resize_grip(gtk_statusbar(widget), true)
@@ -296,10 +296,10 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor StatusBar
-		Panels = CAllocate(0)
+		Panels = 0 'CAllocate_(0)
 		#ifndef __USE_GTK__
 			UnregisterClass "StatusBar",GetModuleHandle(NULL)
 		#endif
-		Deallocate FSimpleText
+		If FSimpleText <> 0 Then Deallocate_( FSimpleText)
 	End Destructor
 End Namespace

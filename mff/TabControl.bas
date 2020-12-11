@@ -639,11 +639,11 @@ Namespace My.Sys.Forms
 	
 	Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
 		FTabCount += 1
-		Dim tb As TabPage Ptr = New TabPage
+		Dim tb As TabPage Ptr = New_( TabPage)
 		tb->Caption = Caption
 		tb->Object = AObject
 		tb->ImageIndex = ImageIndex
-		Tabs = Reallocate(Tabs, SizeOf(TabPage) * FTabCount)
+		Tabs = Reallocate_(Tabs, SizeOf(TabPage) * FTabCount)
 		Tabs[FTabCount - 1] = tb
 		#ifdef __USE_GTK__
 			If widget Then
@@ -666,7 +666,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Dim As TCITEMW Ti
 				Dim As Integer LenSt = Len(Caption) + 1
-				Dim As WString Ptr St = CAllocate(LenSt * Len(WString))
+				Dim As WString Ptr St = CAllocate_(LenSt * Len(WString))
 				St = @Caption
 				Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 				Ti.pszText    = St
@@ -696,7 +696,7 @@ Namespace My.Sys.Forms
 	Sub TabControl.AddTab(ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
-		Tabs = Reallocate(Tabs, SizeOf(TabPage) * FTabCount)
+		Tabs = Reallocate_(Tabs, SizeOf(TabPage) * FTabCount)
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then
@@ -774,7 +774,7 @@ Namespace My.Sys.Forms
 				Tabs[i - 1] = It
 			Next i
 			FTabCount -= 1
-			Tabs = Reallocate(Tabs,FTabCount*SizeOf(TabPage))
+			Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage))
 			#ifdef __USE_GTK__
 				gtk_notebook_remove_page(gtk_notebook(widget), Index)
 			#else
@@ -798,12 +798,12 @@ Namespace My.Sys.Forms
 		#endif
 		If Index >= 0 And Index <= FTabCount -1 Then
 			FTabCount += 1
-			Tabs = Reallocate(Tabs,FTabCount*SizeOf(TabPage))
+			Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage))
 			For i = Index To FTabCount -2
 				It = Tabs[i]
 				Tabs[i + 1] = It
 			Next i
-			Tabs[Index] = New TabPage
+			Tabs[Index] = New_( TabPage)
 			Tabs[Index]->Caption = Caption
 			Tabs[Index]->Object = aObject
 			'Tabs[Index]->TabPageControl = @This
@@ -821,7 +821,7 @@ Namespace My.Sys.Forms
 	Sub TabControl.InsertTab(Index As Integer, ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
-		Tabs = Reallocate(Tabs, SizeOf(TabPage) * FTabCount)
+		Tabs = Reallocate_(Tabs, SizeOf(TabPage) * FTabCount)
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then

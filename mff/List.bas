@@ -34,7 +34,7 @@ End Property
 
 Sub List.Add(FItem As Any Ptr)
 	Count += 1
-	Items = Reallocate(Items,Count*SizeOf(Any Ptr))
+	Items = Reallocate_(Items,Count*SizeOf(Any Ptr))
 	Items[Count -1] = FItem
 End Sub
 
@@ -43,7 +43,7 @@ Sub List.Insert(Index As Integer,FItem As Any Ptr)
 	Dim As Integer i
 	If Index >= 0 And Index <= Count -1 Then
 		Count += 1
-		Items = Reallocate(Items, Count*SizeOf(Any Ptr))
+		Items = Reallocate_(Items, Count*SizeOf(Any Ptr))
 		For i = Count -1 To Index+1 Step -1
 			Items[i] = Items[i-1]
 		Next i
@@ -67,18 +67,23 @@ Sub List.Remove(Index As Integer)
 	Dim As Integer i
 	If Count>0 AndAlso Index >= 0 AndAlso Index <= Count -1 Then
 		Count -= 1
-		For i = Index To Count -1
-			Items[i] = Items[i+1]
-		Next i
-		Items = Reallocate(Items,Count*SizeOf(Any Ptr))
+		If Count = 0 Then
+			Deallocate_(Items)
+			Items = 0
+		Else
+			For i = Index To Count -1
+				Items[i] = Items[i+1]
+			Next i
+			Items = Reallocate_(Items,Count*SizeOf(Any Ptr))
+		End If
 	End If
 End Sub
 
 Sub List.Clear
 	Count = 0
-	If Items <> 0 Then Deallocate(Items)
+	If Items <> 0 Then Deallocate_((Items))
 	Items = 0
-	Items = CAllocate(Count)
+	Items = 0' CAllocate_(Count)
 End Sub
 
 Function List.IndexOf(FItem As Any Ptr) As Integer
@@ -94,11 +99,11 @@ Function List.Contains(FItem As Any Ptr) As Boolean
 End Function
 
 Constructor List
-	Items = CAllocate(0)
+	Items = 0 'CAllocate_(0)
 	Count = 0
 End Constructor
 
 Destructor List
-	Deallocate(Items)
+	If Items <> 0 Then Deallocate_((Items))
 	Items = 0
 End Destructor

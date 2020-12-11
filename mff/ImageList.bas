@@ -211,7 +211,7 @@ Namespace My.Sys.Forms
 		Dim As My.Sys.Drawing.BitmapType Ptr BMP
 		#ifndef __USE_GTK__
 			Dim IMIF As ImageInfo
-			BMP = CAllocate(SizeOf(My.Sys.Drawing.BitmapType))
+			BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
 			BMP->Handle = IMIF.hbmImage
 		#endif
@@ -222,7 +222,7 @@ Namespace My.Sys.Forms
 		Dim As My.Sys.Drawing.BitmapType Ptr BMP
 		#ifndef __USE_GTK__
 			Dim IMIF As ImageInfo
-			BMP = CAllocate(SizeOf(My.Sys.Drawing.BitmapType))
+			BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
 			BMP->Handle = IMIF.hbmMask
 		#endif
@@ -231,7 +231,7 @@ Namespace My.Sys.Forms
 	
 	Function ImageList.GetIcon(Index As Integer) As My.Sys.Drawing.Icon
 		Dim As My.Sys.Drawing.Icon Ptr ICO
-		ICO = CAllocate(SizeOf(My.Sys.Drawing.Icon))
+		ICO = CAllocate_(SizeOf(My.Sys.Drawing.Icon))
 		#ifndef __USE_GTK__
 			ICO->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType)
 		#endif
@@ -240,7 +240,7 @@ Namespace My.Sys.Forms
 	
 	Function ImageList.GetCursor(Index As Integer) As My.Sys.Drawing.Cursor
 		Dim As My.Sys.Drawing.Cursor Ptr CUR
-		CUR = CAllocate(SizeOf(My.Sys.Drawing.Cursor))
+		CUR = CAllocate_(SizeOf(My.Sys.Drawing.Cursor))
 		#ifndef __USE_GTK__
 			CUR->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType)
 		#endif

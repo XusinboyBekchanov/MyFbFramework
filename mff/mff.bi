@@ -6,6 +6,8 @@
 #define __USE_GTK3__
 #define __EXPORT_PROCS__
 
+#include once "../../../FBMemCheck/fbmemcheck.bi"
+
 #include once "Animate.bi"
 #include once "Application.bi"
 #include once "Bitmap.bi"
@@ -101,49 +103,49 @@ Using My.Sys.Forms
 	Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Control Ptr) As Control Ptr Export
 		Ctrl = 0
 		Select Case LCase(ClassName)
-		Case "animate": Ctrl = New Animate
-		Case "checkbox": Ctrl = New CheckBox
-		Case "checkedlistbox": Ctrl = New CheckedListBox
-		Case "comboboxedit": Ctrl = New ComboBoxEdit
-		Case "comboboxex": Ctrl = New ComboBoxEx
-		Case "commandbutton": Ctrl = New CommandButton
-		Case "datetimepicker": Ctrl = New DateTimePicker
-		Case "form": Ctrl = New Form
-		Case "grid": Ctrl = New Grid
-		Case "groupbox": Ctrl = New GroupBox
-		Case "header": Ctrl = New Header
-		Case "hotkey": Ctrl = New HotKey
-		Case "ipaddress": Ctrl = New IPAddress
-		Case "imagebox": Ctrl = New ImageBox
-		Case "label": Ctrl = New Label
-		Case "linklabel": Ctrl = New LinkLabel
-		Case "listcontrol": Ctrl = New ListControl
-		Case "listview": Ctrl = New ListView
-		Case "monthcalendar": Ctrl = New MonthCalendar
-		Case "nativefontcontrol": Ctrl = New NativeFontControl
-		Case "pagescroller": Ctrl = New PageScroller
-		Case "panel": Ctrl = New Panel
-		Case "picture": Ctrl = New Picture
-		Case "progressbar": Ctrl = New ProgressBar
-		Case "radiobutton": Ctrl = New RadioButton
-		Case "rebar": Ctrl = New ReBar
-		Case "richtextbox": Ctrl = New RichTextBox
-		Case "tabcontrol": Ctrl = New TabControl
-		Case "tabpage": Ctrl = New TabPage
-		Case "scrollbarcontrol": Ctrl = New ScrollBarControl
-		Case "hscrollbar": Ctrl = New HScrollBar
-		Case "vscrollbar": Ctrl = New VScrollBar
-		Case "splitter": Ctrl = New Splitter
-		Case "statusbar": Ctrl = New StatusBar
-		Case "tabcontrol": Ctrl = New TabControl
-		Case "textbox": Ctrl = New TextBox
-		Case "toolbar": Ctrl = New ToolBar
-		Case "toolpalette": Ctrl = New ToolPalette
-		Case "trackbar": Ctrl = New TrackBar
-		Case "treelistview": Ctrl = New TreeListView
-		Case "treeview": Ctrl = New TreeView
-		Case "updown": Ctrl = New UpDown
-		Case "usercontrol": Ctrl = New UserControl
+		Case "animate": Ctrl = New_( Animate)
+		Case "checkbox": Ctrl = New_( CheckBox)
+		Case "checkedlistbox": Ctrl = New_( CheckedListBox)
+		Case "comboboxedit": Ctrl = New_( ComboBoxEdit)
+		Case "comboboxex": Ctrl = New_( ComboBoxEx)
+		Case "commandbutton": Ctrl = New_( CommandButton)
+		Case "datetimepicker": Ctrl = New_( DateTimePicker)
+		Case "form": Ctrl = New_( Form)
+		Case "grid": Ctrl = New_( Grid)
+		Case "groupbox": Ctrl = New_( GroupBox)
+		Case "header": Ctrl = New_( Header)
+		Case "hotkey": Ctrl = New_( HotKey)
+		Case "ipaddress": Ctrl = New_( IPAddress)
+		Case "imagebox": Ctrl = New_( ImageBox)
+		Case "label": Ctrl = New_( Label)
+		Case "linklabel": Ctrl = New_( LinkLabel)
+		Case "listcontrol": Ctrl = New_( ListControl)
+		Case "listview": Ctrl = New_( ListView)
+		Case "monthcalendar": Ctrl = New_( MonthCalendar)
+		Case "nativefontcontrol": Ctrl = New_( NativeFontControl)
+		Case "pagescroller": Ctrl = New_( PageScroller)
+		Case "panel": Ctrl = New_( Panel)
+		Case "picture": Ctrl = New_( Picture)
+		Case "progressbar": Ctrl = New_( ProgressBar)
+		Case "radiobutton": Ctrl = New_( RadioButton)
+		Case "rebar": Ctrl = New_( ReBar)
+		Case "richtextbox": Ctrl = New_( RichTextBox)
+		Case "tabcontrol": Ctrl = New_( TabControl)
+		Case "tabpage": Ctrl = New_( TabPage)
+		Case "scrollbarcontrol": Ctrl = New_( ScrollBarControl)
+		Case "hscrollbar": Ctrl = New_( HScrollBar)
+		Case "vscrollbar": Ctrl = New_( VScrollBar)
+		Case "splitter": Ctrl = New_( Splitter)
+		Case "statusbar": Ctrl = New_( StatusBar)
+		Case "tabcontrol": Ctrl = New_( TabControl)
+		Case "textbox": Ctrl = New_( TextBox)
+		Case "toolbar": Ctrl = New_( ToolBar)
+		Case "toolpalette": Ctrl = New_( ToolPalette)
+		Case "trackbar": Ctrl = New_( TrackBar)
+		Case "treelistview": Ctrl = New_( TreeListView)
+		Case "treeview": Ctrl = New_( TreeView)
+		Case "updown": Ctrl = New_( UpDown)
+		Case "usercontrol": Ctrl = New_( UserControl)
 		End Select
 		If Ctrl Then
 			Ctrl->Name = sName
@@ -159,21 +161,21 @@ Using My.Sys.Forms
 	Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Component Ptr Export
 		Cpnt = 0
 		Select Case LCase(ClassName)
-		Case "imagelist": Cpnt = New ImageList
-		Case "timercomponent": Cpnt = New TimerComponent
-		Case "tooltips": Cpnt = New ToolTips
-		Case "mainmenu": Cpnt = New MainMenu
-		Case "popupmenu": Cpnt = New PopUpMenu
-		Case "colordialog": Cpnt = New ColorDialog
-		Case "folderbrowserdialog": Cpnt = New FolderBrowserDialog
-		Case "fontdialog": Cpnt = New FontDialog
-		Case "openfiledialog": Cpnt = New OpenFileDialog
-		Case "savefiledialog": Cpnt = New SaveFileDialog
-		Case "pagesetupdialog": Cpnt = New PageSetupDialog
-		Case "printdialog": Cpnt = New PrintDialog
-		Case "printpreviewdialog": Cpnt = New PrintPreviewDialog
-		Case "printer": Cpnt = New Printer
-		Case "tooltips": Cpnt = New ToolTips
+		Case "imagelist": Cpnt = New_( ImageList)
+		Case "timercomponent": Cpnt = New_( TimerComponent)
+		Case "tooltips": Cpnt = New_( ToolTips)
+		Case "mainmenu": Cpnt = New_( MainMenu)
+		Case "popupmenu": Cpnt = New_( PopUpMenu)
+		Case "colordialog": Cpnt = New_( ColorDialog)
+		Case "folderbrowserdialog": Cpnt = New_( FolderBrowserDialog)
+		Case "fontdialog": Cpnt = New_( FontDialog)
+		Case "openfiledialog": Cpnt = New_( OpenFileDialog)
+		Case "savefiledialog": Cpnt = New_( SaveFileDialog)
+		Case "pagesetupdialog": Cpnt = New_( PageSetupDialog)
+		Case "printdialog": Cpnt = New_( PrintDialog)
+		Case "printpreviewdialog": Cpnt = New_( PrintPreviewDialog)
+		Case "printer": Cpnt = New_( Printer)
+		Case "tooltips": Cpnt = New_( ToolTips)
 		Case Else: Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
 		End Select
 		If Cpnt Then
@@ -190,9 +192,9 @@ Using My.Sys.Forms
 	Function CreateObject Alias "CreateObject"(ByRef ClassName As String) As Object Ptr Export
 		Obj = 0
 		Select Case LCase(ClassName)
-		Case "menuitem": Obj = New MenuItem
-		Case "toolbutton": Obj = New ToolButton
-		Case "bitmaptype": Obj = New My.Sys.Drawing.BitmapType
+		Case "menuitem": Obj = New_( MenuItem)
+		Case "toolbutton": Obj = New_( ToolButton)
+		Case "bitmaptype": Obj = New_( My.Sys.Drawing.BitmapType)
 		Case Else: Obj = CreateComponent(ClassName, "", 0, 0, 0)
 		End Select
 		Objects.Add Obj
@@ -202,64 +204,64 @@ Using My.Sys.Forms
 	Common Shared bNotRemoveObject As Boolean
 	Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Export
 		Select Case LCase(Cast(Component Ptr, Ctrl)->ClassName)
-		Case "animate": Delete Cast(Animate Ptr, Ctrl)
-		Case "checkbox" :Delete Cast(CheckBox Ptr, Ctrl)
-		Case "checkedlistbox": Delete Cast(CheckedListBox Ptr, Ctrl)
-		Case "comboboxedit": Delete Cast(ComboBoxEdit Ptr, Ctrl)
-		Case "comboboxex": Delete Cast(ComboBoxEx Ptr, Ctrl)
-		Case "commandbutton": Delete Cast(CommandButton Ptr, Ctrl)
-		Case "datetimepicker": Delete Cast(DateTimePicker Ptr, Ctrl)
-		Case "form": Delete Cast(Form Ptr, Ctrl)
-		Case "grid": Delete Cast(Grid Ptr, Ctrl)
-		Case "groupbox": Delete Cast(GroupBox Ptr, Ctrl)
-		Case "header": Delete Cast(Header Ptr, Ctrl)
-		Case "hotkey": Delete Cast(HotKey Ptr, Ctrl)
-		Case "ipaddress": Delete Cast(IPAddress Ptr, Ctrl)
-		Case "imagebox": Delete Cast(ImageBox Ptr, Ctrl)
-		Case "label": Delete Cast(Label Ptr, Ctrl)
-		Case "linklabel": Delete Cast(LinkLabel Ptr, Ctrl)
-		Case "listcontrol": Delete Cast(ListControl Ptr, Ctrl)
-		Case "listview": Delete Cast(ListView Ptr, Ctrl)
-		Case "monthcalendar": Delete Cast(MonthCalendar Ptr, Ctrl)
-		Case "nativefontcontrol": Delete Cast(NativeFontControl Ptr, Ctrl)
-		Case "pagescroller": Delete Cast(PageScroller Ptr, Ctrl)
-		Case "pagesetupdialog": Delete Cast(PageSetupDialog Ptr, Ctrl)
-		Case "printdialog": Delete Cast(PrintDialog Ptr, Ctrl)
-		Case "printpreviewdialog": Delete Cast(PrintPreviewDialog Ptr, Ctrl)
-		Case "printer": Delete Cast(Printer Ptr, Ctrl)
-		Case "panel": Delete Cast(Panel Ptr, Ctrl)
-		Case "picture": Delete Cast(Picture Ptr, Ctrl)
-		Case "progressbar": Delete Cast(ProgressBar Ptr, Ctrl)
-		Case "radiobutton": Delete Cast(RadioButton Ptr, Ctrl)
-		Case "rebar": Delete Cast(ReBar Ptr, Ctrl)
-		Case "richtextbox": Delete Cast(RichTextBox Ptr, Ctrl)
-		Case "tabcontrol": Delete Cast(TabControl Ptr, Ctrl)
-		Case "tabpage": Delete Cast(TabPage Ptr, Ctrl)
-		Case "scrollbarcontrol": Delete Cast(ScrollBarControl Ptr, Ctrl)
-		Case "hscrollbar": Delete Cast(HScrollBar Ptr, Ctrl)
-		Case "vscrollbar": Delete Cast(VScrollBar Ptr, Ctrl)
-		Case "splitter": Delete Cast(Splitter Ptr, Ctrl)
-		Case "statusbar": Delete Cast(StatusBar Ptr, Ctrl)
-		Case "tabcontrol": Delete Cast(TabControl Ptr, Ctrl)
-		Case "textbox": Delete Cast(TextBox Ptr, Ctrl)
-		Case "toolbar": Delete Cast(ToolBar Ptr, Ctrl)
-		Case "toolpalette": Delete Cast(ToolPalette Ptr, Ctrl)
-		Case "tooltips": Delete Cast(ToolTips Ptr, Ctrl)
-		Case "trackbar": Delete Cast(TrackBar Ptr, Ctrl)
-		Case "treelistview": Delete Cast(TreeListView Ptr, Ctrl)
-		Case "treeview": Delete Cast(TreeView Ptr, Ctrl)
-		Case "updown": Delete Cast(UpDown Ptr, Ctrl)
-		Case "usercontrol": Delete Cast(UserControl Ptr, Ctrl)
-		Case "imagelist": Delete Cast(ImageList Ptr, Ctrl)
-		Case "timercomponent": Delete Cast(TimerComponent Ptr, Ctrl)
-		Case "tooltips": Delete Cast(ToolTips Ptr, Ctrl)
-		Case "mainmenu": Delete Cast(MainMenu Ptr, Ctrl)
-		Case "popupmenu": Delete Cast(PopUpMenu Ptr, Ctrl)
-		Case "folderbrowserdialog": Delete Cast(FolderBrowserDialog Ptr, Ctrl)
-		Case "colordialog": Delete Cast(ColorDialog Ptr, Ctrl)
-		Case "fontdialog": Delete Cast(FontDialog Ptr, Ctrl)
-		Case "openfiledialog": Delete Cast(OpenFileDialog Ptr, Ctrl)
-		Case "savefiledialog": Delete Cast(SaveFileDialog Ptr, Ctrl)
+		Case "animate": Delete_( Cast(Animate Ptr, Ctrl))
+		Case "checkbox" :Delete_( Cast(CheckBox Ptr, Ctrl))
+		Case "checkedlistbox": Delete_( Cast(CheckedListBox Ptr, Ctrl))
+		Case "comboboxedit": Delete_( Cast(ComboBoxEdit Ptr, Ctrl))
+		Case "comboboxex": Delete_( Cast(ComboBoxEx Ptr, Ctrl))
+		Case "commandbutton": Delete_( Cast(CommandButton Ptr, Ctrl))
+		Case "datetimepicker": Delete_( Cast(DateTimePicker Ptr, Ctrl))
+		Case "form": Delete_( Cast(Form Ptr, Ctrl))
+		Case "grid": Delete_( Cast(Grid Ptr, Ctrl))
+		Case "groupbox": Delete_( Cast(GroupBox Ptr, Ctrl))
+		Case "header": Delete_( Cast(Header Ptr, Ctrl))
+		Case "hotkey": Delete_( Cast(HotKey Ptr, Ctrl))
+		Case "ipaddress": Delete_( Cast(IPAddress Ptr, Ctrl))
+		Case "imagebox": Delete_( Cast(ImageBox Ptr, Ctrl))
+		Case "label": Delete_( Cast(Label Ptr, Ctrl))
+		Case "linklabel": Delete_( Cast(LinkLabel Ptr, Ctrl))
+		Case "listcontrol": Delete_( Cast(ListControl Ptr, Ctrl))
+		Case "listview": Delete_( Cast(ListView Ptr, Ctrl))
+		Case "monthcalendar": Delete_( Cast(MonthCalendar Ptr, Ctrl))
+		Case "nativefontcontrol": Delete_( Cast(NativeFontControl Ptr, Ctrl))
+		Case "pagescroller": Delete_( Cast(PageScroller Ptr, Ctrl))
+		Case "pagesetupdialog": Delete_( Cast(PageSetupDialog Ptr, Ctrl))
+		Case "printdialog": Delete_( Cast(PrintDialog Ptr, Ctrl))
+		Case "printpreviewdialog": Delete_( Cast(PrintPreviewDialog Ptr, Ctrl))
+		Case "printer": Delete_( Cast(Printer Ptr, Ctrl))
+		Case "panel": Delete_( Cast(Panel Ptr, Ctrl))
+		Case "picture": Delete_( Cast(Picture Ptr, Ctrl))
+		Case "progressbar": Delete_( Cast(ProgressBar Ptr, Ctrl))
+		Case "radiobutton": Delete_( Cast(RadioButton Ptr, Ctrl))
+		Case "rebar": Delete_( Cast(ReBar Ptr, Ctrl))
+		Case "richtextbox": Delete_( Cast(RichTextBox Ptr, Ctrl))
+		Case "tabcontrol": Delete_( Cast(TabControl Ptr, Ctrl))
+		Case "tabpage": Delete_( Cast(TabPage Ptr, Ctrl))
+		Case "scrollbarcontrol": Delete_( Cast(ScrollBarControl Ptr, Ctrl))
+		Case "hscrollbar": Delete_( Cast(HScrollBar Ptr, Ctrl))
+		Case "vscrollbar": Delete_( Cast(VScrollBar Ptr, Ctrl))
+		Case "splitter": Delete_( Cast(Splitter Ptr, Ctrl))
+		Case "statusbar": Delete_( Cast(StatusBar Ptr, Ctrl))
+		Case "tabcontrol": Delete_( Cast(TabControl Ptr, Ctrl))
+		Case "textbox": Delete_( Cast(TextBox Ptr, Ctrl))
+		Case "toolbar": Delete_( Cast(ToolBar Ptr, Ctrl))
+		Case "toolpalette": Delete_( Cast(ToolPalette Ptr, Ctrl))
+		Case "tooltips": Delete_( Cast(ToolTips Ptr, Ctrl))
+		Case "trackbar": Delete_( Cast(TrackBar Ptr, Ctrl))
+		Case "treelistview": Delete_( Cast(TreeListView Ptr, Ctrl))
+		Case "treeview": Delete_( Cast(TreeView Ptr, Ctrl))
+		Case "updown": Delete_( Cast(UpDown Ptr, Ctrl))
+		Case "usercontrol": Delete_( Cast(UserControl Ptr, Ctrl))
+		Case "imagelist": Delete_( Cast(ImageList Ptr, Ctrl))
+		Case "timercomponent": Delete_( Cast(TimerComponent Ptr, Ctrl))
+		Case "tooltips": Delete_( Cast(ToolTips Ptr, Ctrl))
+		Case "mainmenu": Delete_( Cast(MainMenu Ptr, Ctrl))
+		Case "popupmenu": Delete_( Cast(PopUpMenu Ptr, Ctrl))
+		Case "folderbrowserdialog": Delete_( Cast(FolderBrowserDialog Ptr, Ctrl))
+		Case "colordialog": Delete_( Cast(ColorDialog Ptr, Ctrl))
+		Case "fontdialog": Delete_( Cast(FontDialog Ptr, Ctrl))
+		Case "openfiledialog": Delete_( Cast(OpenFileDialog Ptr, Ctrl))
+		Case "savefiledialog": Delete_( Cast(SaveFileDialog Ptr, Ctrl))
 		Case Else: Return False
 		End Select
 		If bNotRemoveObject = False Then 
@@ -272,9 +274,9 @@ Using My.Sys.Forms
 	
 	Function ObjectDelete Alias "ObjectDelete"(Obj As Any Ptr) As Boolean Export
 		Select Case LCase(Cast(My.Sys.Object Ptr, Obj)->ClassName)
-		Case "toolbutton": Delete Cast(ToolButton Ptr, Obj)
-		Case "menuitem": Delete Cast(MenuItem Ptr, Obj)
-		Case "bitmaptype": Delete Cast(My.Sys.Drawing.BitmapType Ptr, Obj)
+		Case "toolbutton": Delete_( Cast(ToolButton Ptr, Obj))
+		Case "menuitem": Delete_( Cast(MenuItem Ptr, Obj))
+		Case "bitmaptype": Delete_( Cast(My.Sys.Drawing.BitmapType Ptr, Obj))
 		Case Else: Return DeleteComponent(Obj)
 		End Select
 		If bNotRemoveObject = False Then

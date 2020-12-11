@@ -111,8 +111,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor GridItem
-		FHint = CAllocate(0)
-		FText = CAllocate(0)
+		FHint = 0 'CAllocate_(0)
+		FText = 0 'CAllocate_(0)
 		FVisible    = 1
 		Text(0)    = ""
 		Hint       = ""
@@ -122,8 +122,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor GridItem
-		If FHint Then Deallocate FHint
-		If FText Then Deallocate FText
+		If FHint Then Deallocate_( FHint)
+		If FText Then Deallocate_( FText)
 	End Destructor
 	
 	Sub GridColumn.SelectItem
@@ -226,8 +226,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor GridColumn
-		FHint = CAllocate(0)
-		FText = CAllocate(0)
+		FHint = 0 'CAllocate_(0)
+		FText = 0 'CAllocate_(0)
 		FVisible    = 1
 		Text    = ""
 		Hint       = ""
@@ -235,8 +235,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor GridColumn
-		If FHint Then Deallocate FHint
-		If FText Then Deallocate FText
+		If FHint Then Deallocate_( FHint)
+		If FText Then Deallocate_( FText)
 	End Destructor
 	
 	Property GridItems.Count As Integer
@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 		Dim As GridItem Ptr PItem
 		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
-			PItem = New GridItem
+			PItem = New_( GridItem)
 			FItems.Add PItem
 			With *PItem
 				.ImageIndex     = FImageIndex
@@ -283,7 +283,7 @@ Namespace My.Sys.Forms
 		Dim As GridItem Ptr PItem
 		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
-			PItem = New GridItem
+			PItem = New_( GridItem)
 			FItems.Insert Index, PItem
 			With *PItem
 				.ImageIndex     = FImageIndex
@@ -320,7 +320,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
-			Delete @QGridItem(FItems.Items[i])
+			Delete_( @QGridItem(FItems.Items[i]))
 		Next i
 		FItems.Clear
 	End Sub
@@ -356,7 +356,7 @@ Namespace My.Sys.Forms
 		Dim As GridColumn Ptr PColumn
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
-			PColumn = New GridColumn
+			PColumn = New_( GridColumn)
 			FColumns.Add PColumn
 			With *PColumn
 				.ImageIndex     = FImageIndex
@@ -387,7 +387,7 @@ Namespace My.Sys.Forms
 		Dim As GridColumn Ptr PColumn
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
-			PColumn = New GridColumn
+			PColumn = New_( GridColumn)
 			FColumns.Insert Index, PColumn
 			With *PColumn
 				.ImageIndex     = FImageIndex
@@ -428,7 +428,7 @@ Namespace My.Sys.Forms
 	
 	Sub GridColumns.Clear
 		For i As Integer = Count -1 To 0 Step -1
-			Delete @QGridColumn(FColumns.Items[i])
+			Delete_( @QGridColumn(FColumns.Items[i]))
 			Remove i
 		Next i
 		FColumns.Clear

@@ -43,7 +43,7 @@ Constructor WStringListItem
 End Constructor
 
 Destructor WStringListItem
-	If FValue Then Deallocate(FValue)
+	If FValue Then Deallocate_((FValue))
 	Object  = 0
 End Destructor
 
@@ -109,7 +109,7 @@ Property WStringList.Object(Index As Integer, FObj As Any Ptr)
 End Property
 
 Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
-	Dim As WStringListItem Ptr nItem = New WStringListItem
+	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
 	With *nItem
 		.Value  = FItem
 		.Object = FObj
@@ -120,7 +120,7 @@ Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
 End Sub
 
 Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
-	Dim As WStringListItem Ptr nItem = New WStringListItem
+	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
 	With *nItem
 		.Value  = FItem
 		.Object = FObj
@@ -136,7 +136,7 @@ Sub WStringList.Exchange(Index1 As Integer, Index2 As Integer)
 End Sub
 
 Sub WStringList.Remove(Index As Integer)
-	Delete Cast(WStringListItem Ptr, FItems.Items[Index])
+	Delete_( Cast(WStringListItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
 	FCount -=1' FItems.Count
 	If OnRemove Then OnRemove(This, Index)
@@ -158,7 +158,7 @@ End Sub
 Sub WStringList.Clear
 	If FCount < 1 Then Exit Sub
 	For i As Integer = FCount - 1 To 0 Step -1
-		If FItems.Items[i] <> 0 Then Delete Cast(WStringListItem Ptr, FItems.Items[i])
+		If FItems.Items[i] <> 0 Then Delete_( Cast(WStringListItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
 	FCount = 0
@@ -225,8 +225,8 @@ End Constructor
 Destructor WStringList
 	If FCount>0 Then
 		For i As Integer = FCount - 1 To 0 Step -1
-			Delete Cast(WStringListItem Ptr, FItems.Items[i])
+			Delete_( Cast(WStringListItem Ptr, FItems.Items[i]))
 		Next i
 	End If
-	If FText Then Deallocate FText
+	If FText Then Deallocate_( FText)
 End Destructor

@@ -375,7 +375,7 @@ Namespace My
 				If AControl Then
 					With QApplication(App)
 						.FFormCount += 1
-						.FForms = Reallocate(.FForms,SizeOf(My.Sys.Forms.Control)*.FFormCount)
+						.FForms = Reallocate_(.FForms,SizeOf(My.Sys.Forms.Control)*.FFormCount)
 						.FForms[.FFormCount -1] = AControl
 					End With
 				End If
@@ -385,7 +385,7 @@ Namespace My
 	#endif
 	
 	Sub Application.GetForms
-		FForms = CAllocate(0)
+		FForms = 0 'CAllocate_(0)
 		FFormCount = 0
 		#ifndef __USE_GTK__
 			EnumThreadWindows GetCurrentThreadID, Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@This)
@@ -396,7 +396,7 @@ Namespace My
 		Dim As Integer i
 		For i = 0 To Control.ControlCount -1
 			FControlCount += 1
-			FControls = Reallocate(FControls,SizeOf(My.Sys.Forms.Control)*FControlCount)
+			FControls = Reallocate_(FControls,SizeOf(My.Sys.Forms.Control)*FControlCount)
 			FControls[FControlCount -1] = Control.Controls[i]
 			EnumControls(*Control.Controls[i])
 		Next i
@@ -404,7 +404,7 @@ Namespace My
 	
 	Sub Application.GetControls
 		Dim As Integer i
-		FControls = CAllocate(0)
+		FControls = 0 ' CAllocate_(0)
 		FControlCount = 0
 		For i = 0 To FormCount -1
 			EnumControls(*Forms[i])
@@ -508,7 +508,7 @@ Namespace My
 		#ifndef __USE_GTK__
 			ret = GetFileVersionInfoSize(FFileName, @discard)
 			If ret <> 0 Then
-				This._vinfo = Allocate(ret)
+				This._vinfo = Allocate_(ret)
 				If This._vinfo Then
 					If GetFileVersionInfo(FFileName, 0, ret, This._vinfo) Then
 						Dim As Unsigned Short Ptr ulTranslation
@@ -524,12 +524,12 @@ Namespace My
 	End Constructor
 	
 	Destructor Application
-		If FForms Then Deallocate FForms
-		If FFileName Then Deallocate FFileName
-		If FExeName Then Deallocate FExeName
-		If FTitle Then Deallocate FTitle
-		If FControls Then Deallocate FControls
-		If This._vinfo <> 0 Then Deallocate(This._vinfo) : This._vinfo = 0
+		If FForms Then Deallocate_( FForms)
+		If FFileName Then Deallocate_( FFileName)
+		If FExeName Then Deallocate_( FExeName)
+		If FTitle Then Deallocate_( FTitle)
+		If FControls Then Deallocate_( FControls)
+		If This._vinfo <> 0 Then Deallocate_((This._vinfo)) : This._vinfo = 0
 	End Destructor
 End Namespace
 

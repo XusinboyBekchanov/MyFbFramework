@@ -65,7 +65,7 @@ Namespace My.Sys.Forms
 	Sub TextBox.InsertLine(Index As Integer, ByRef wsLine As WString)
 		Dim As Integer iStart, LineLen
 		#ifndef __USE_GTK__
-			Dim As WString Ptr sLine = CAllocate(MAXLENGTH * SizeOf(WString))
+			Dim As WString Ptr sLine = CAllocate_(MAXLENGTH * SizeOf(WString))
 			If Index >= 0 Then
 				iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 				If iStart >= 0 Then
@@ -262,7 +262,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub TextBox.InputFilter(ByRef Value As WString)
-		FInputFilter = Reallocate(FInputFilter, (Len(Value) + 1) * SizeOf(WString))
+		FInputFilter = Reallocate_(FInputFilter, (Len(Value) + 1) * SizeOf(WString))
 		*FInputFilter = Value
 	End Sub
 	
@@ -532,10 +532,10 @@ Namespace My.Sys.Forms
 				Dim As Integer LStart, LEnd
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 				If LEnd - LStart <= 0 Then
-					FSelText = Reallocate(FSelText, SizeOf(WString))
+					FSelText = Reallocate_(FSelText, SizeOf(WString))
 					*FSelText = ""
 				Else
-					FSelText = Reallocate(FSelText, (LEnd - LStart + 1 + 1) * SizeOf(WString))
+					FSelText = Reallocate_(FSelText, (LEnd - LStart + 1 + 1) * SizeOf(WString))
 					*FSelText = Mid(Text, LStart + 1, LEnd - LStart)
 				End If
 			End If
@@ -544,7 +544,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TextBox.SelText(ByRef Value As WString)
-		FSelText = Reallocate(FSelText, (Len(Value) + 1) * SizeOf(WString))
+		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
 		#ifdef __USE_GTK__
 			If FMultiLine Then
@@ -800,7 +800,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TextBox
-		If FSelText <> 0 Then Deallocate FSelText
-		If FLine <> 0 Then Deallocate FLine
+		If FSelText <> 0 Then Deallocate_( FSelText)
+		If FLine <> 0 Then Deallocate_( FLine)
 	End Destructor
 End Namespace

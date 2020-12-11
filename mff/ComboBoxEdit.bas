@@ -343,7 +343,7 @@ Namespace My.Sys.Forms
 					.UpdateListHeight
 					Dim As Integer i
 					For i = 0 To .Items.Count - 1
-						Dim As WString Ptr s = CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
 						*s = .Items.Item(i)
 						.Perform(CB_ADDSTRING, 0, CInt(s))
 					Next i
@@ -495,7 +495,7 @@ Namespace My.Sys.Forms
 		For i = 0 To ItemCount -1
 			#ifndef __USE_GTK__
 				Dim TextLen As Integer = Perform(CB_GETLBTEXTLEN, i, 0)
-				s = CAllocate((TextLen + 1) * SizeOf(WString))
+				s = CAllocate_((TextLen + 1) * SizeOf(WString))
 				*s = WSpace(TextLen)
 				Perform(CB_GETLBTEXT, i, CInt(s))
 				Print #F, *s
@@ -510,7 +510,7 @@ Namespace My.Sys.Forms
 		F = FreeFile
 		Clear
 		Open File For Binary Access Read As #F
-		s = CAllocate((LOF(F) + 1) * SizeOf(WString))
+		s = CAllocate_((LOF(F) + 1) * SizeOf(WString))
 		While Not EOF(F)
 			Line Input #F, *s
 			#ifndef __USE_GTK__

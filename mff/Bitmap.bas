@@ -248,7 +248,7 @@ Namespace My.Sys.Drawing
 			If Handle Then DeleteObject Handle
 			Handle = 0
 		#endif
-		If Changed Then Changed(This)
+		'If Changed Then Changed(This)
 	End Sub
 	
 	Operator BitmapType.Cast As Any Ptr

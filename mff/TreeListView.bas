@@ -322,8 +322,8 @@ Namespace My.Sys.Forms
 	Constructor TreeListViewItem
 		Items.Parent = Parent
 		Items.ParentItem = @This
-		FHint = CAllocate(0)
-		FText = CAllocate(0)
+		FHint = 0 'CAllocate_(0)
+		FText = 0 'CAllocate_(0)
 		FVisible    = 1
 		Text(0)    = ""
 		Hint       = ""
@@ -469,8 +469,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor TreeListViewColumn
-		FHint = CAllocate(0)
-		FText = CAllocate(0)
+		FHint = 0 'CAllocate_(0)
+		FText = 0 'CAllocate_(0)
 		FVisible    = 1
 		Text    = ""
 		Hint       = ""
@@ -478,8 +478,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TreeListViewColumn
-		If FHint Then Deallocate FHint
-		If FText Then Deallocate FText
+		If FHint Then Deallocate_( FHint)
+		If FText Then Deallocate_( FText)
 	End Destructor
 	
 	Property TreeListViewItems.Count As Integer
@@ -527,7 +527,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Function TreeListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As TreeListViewItem Ptr
-		PItem = New TreeListViewItem
+		PItem = New_( TreeListViewItem)
 		FItems.Add PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
@@ -592,7 +592,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
 		#endif
-		PItem = New TreeListViewItem
+		PItem = New_( TreeListViewItem)
 		FItems.Insert Index, PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
@@ -635,12 +635,12 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				'gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
-				Delete Cast(TreeListViewItem Ptr, FItems.Items[Index])
+				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
 				'Item(Index)->Visible = False
-				Delete Cast(TreeListViewItem Ptr, FItems.Items[Index])
+				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 			End If
 		#endif
 		FItems.Remove Index
@@ -686,7 +686,7 @@ Namespace My.Sys.Forms
 '				If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
 '			#endif
 			For i As Integer = Count - 1 To 0 Step -1
-				Delete Cast(TreeListViewItem Ptr, FItems.Items[i])
+				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[i]))
 			Next i
 '		Else
 '			For i As Integer = Count - 1 To 0 Step -1
@@ -758,7 +758,7 @@ Namespace My.Sys.Forms
 		#IfNDef __USE_GTK__
 			Dim As LVCOLUMN lvc
 		#EndIf
-		PColumn = New TreeListViewColumn
+		PColumn = New_( TreeListViewColumn)
 		FColumns.Add PColumn
 		Index = FColumns.Count - 1
 		With *PColumn
@@ -771,8 +771,8 @@ Namespace My.Sys.Forms
 		#IfDef __USE_GTK__
 			If Parent Then
 				With *Cast(ListView Ptr, Parent)
-					If .ColumnTypes Then Delete [] .ColumnTypes
-					.ColumnTypes = New GType[Index + 2]
+					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
+					.ColumnTypes = New_( GType[Index + 2])
 					For i As Integer = 0 To Index + 1
 						.ColumnTypes[i] = G_TYPE_STRING
 					Next i
@@ -836,7 +836,7 @@ Namespace My.Sys.Forms
 		#IfNDef __USE_GTK__
 			Dim As LVCOLUMN lvc
 		#EndIf
-		PColumn = New TreeListViewColumn
+		PColumn = New_( TreeListViewColumn)
 		FColumns.Insert Index, PColumn
 		With *PColumn
 			.ImageIndex     = FImageIndex
@@ -878,7 +878,7 @@ Namespace My.Sys.Forms
 	
 	Sub TreeListViewColumns.Clear
 		For i As Integer = Count -1 To 0 Step -1
-			Delete @QTreeListViewColumn(FColumns.Items[i])
+			Delete_( @QTreeListViewColumn(FColumns.Items[i]))
 			Remove i
 		Next i
 		FColumns.Clear
@@ -1340,7 +1340,7 @@ Namespace My.Sys.Forms
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@TreeListView_SelectionChanged), @This)
 			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), GTK_TREE_VIEW_GRID_LINES_BOTH)
-			ColumnTypes = New GType[1]
+			ColumnTypes = New_( GType[1])
 			ColumnTypes[0] = G_TYPE_STRING
 			This.RegisterClass "TreeListView", @This
 		#endif
@@ -1373,7 +1373,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			UnregisterClass "TreeListView",GetmoduleHandle(NULL)
 		#else
-			If ColumnTypes Then Delete [] ColumnTypes
+			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
 		#endif
 	End Destructor
 End Namespace

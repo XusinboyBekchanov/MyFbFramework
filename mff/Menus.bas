@@ -479,7 +479,7 @@ Property MenuItem.Caption ByRef As WString
 End Property
 
 Property MenuItem.Caption(ByRef value As WString)
-	FCaption = Reallocate(FCaption, (Len(value) + 1) * SizeOf(WString))
+	FCaption = Reallocate_(FCaption, (Len(value) + 1) * SizeOf(WString))
 	*FCaption = value
 	#ifdef __USE_GTK__
 		If Value <> "-" Then
@@ -639,7 +639,7 @@ End Sub
 Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
 	If IndexOf(value) = -1 Then
 		FCount += 1
-		FItems = Reallocate(FItems, SizeOf(PMenuItem)*FCount)
+		FItems = Reallocate_(FItems, SizeOf(PMenuItem)*FCount)
 		If Index <> -1 Then
 			For i As Integer = FCount - 1 To Index + 1 Step -1
 				FItems[i] = FItems[i-1]
@@ -657,7 +657,7 @@ Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
 		FItems[Index]            = value
 		#ifdef __USE_GTK__
 			If SubMenu = 0 Then
-				SubMenu = New PopUpMenu
+				SubMenu = New_( PopUpMenu)
 				gtk_menu_item_set_submenu(gtk_menu_item(widget), SubMenu->widget)
 			End If
 			If Index = -1 Then
@@ -690,13 +690,13 @@ Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
 End Sub
 
 Function MenuItem.Add(ByRef sCaption As WString) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
 	Add(Value)
 	Return Value
 End Function
 
 Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption, , eClick, Checkable)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
 	Value->FImage     = iImage
 	Value->Name     = sKey
 	Value->OnClick     = eClick
@@ -705,7 +705,7 @@ Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.
 End Function
 
 Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption, , eClick, Checkable)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
 	Value->FImageIndex = iImageIndex
 	Value->Name     = sKey
 	Value->OnClick     = eClick
@@ -714,7 +714,7 @@ Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As
 End Function
 
 Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption, sImageKey, eClick, Checkable)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, eClick, Checkable))
 	WLet Value->FImageKey, sImageKey
 	If Owner AndAlso Owner->ImagesList Then Value->FImageIndex = Owner->ImagesList->IndexOf(sImageKey)
 	Value->Name     = sKey
@@ -744,7 +744,7 @@ Sub MenuItem.Insert(Index As Integer, value As PMenuItem)
 	If IndexOf(value) = -1 Then
 		If (Index>-1) And (Index<FCount) Then
 			FCount += 1
-			FItems = Reallocate(FItems,SizeOf(PMenuItem)*FCount)
+			FItems = Reallocate_(FItems,SizeOf(PMenuItem)*FCount)
 			For i As Integer = Index+1 To FCount-1
 				FItems[i] = FItems[i-1]
 			Next i
@@ -793,10 +793,14 @@ Sub MenuItem.Remove(value As PMenuItem)
 			FItems[i-1] = FItem
 		Next i
 		FCount -= 1
-		FItems  = Reallocate(FItems,FCount*SizeOf(PMenuItem))
-		For i As Integer = 0 To FCount-1
+		If FCount = 0 Then
+			Deallocate_(FItems)
+		Else
+			FItems = Reallocate_(FItems,FCount*SizeOf(PMenuItem))
+			For i As Integer = 0 To FCount - 1
 			FItems[i]->MenuIndex = i
 		Next i
+		End If
 		#ifdef __USE_GTK__
 			If widget Then
 				'gtk_container_remove(gtk_container(widget), value->widget)
@@ -811,10 +815,12 @@ End Sub
 
 Sub MenuItem.Clear
 	For i As Integer = Count - 1 To 0 Step -1
-		Remove FItems[i]
+		Delete FItems[i]
+		'Remove FItems[i]
 		'FItems[i] = NULL
 	Next i
-	FItems = CAllocate(0)
+	'delete_SquareBrackets( FItems)
+	FItems = 0 'CAllocate_(0)
 	FCount = 0
 End Sub
 
@@ -919,11 +925,8 @@ Destructor MenuItem
 	If FParent Then
 		FParent->Remove(@This)
 	End If
-	If FItems Then
-		Delete [] FItems
-		FItems = CAllocate(0)
-	End If
-	If FCaption Then Deallocate FCaption
+	This.Clear
+	If FCaption Then Deallocate_( FCaption)
 	WDeallocate FText
 	WDeallocate FAccelerator
 	#ifdef __USE_GTK__
@@ -1016,45 +1019,45 @@ property Menu.Color(value as integer)
 				UpdateWindow(FParentWindow->Handle)
 			end if
 		end if
-	#EndIf
-end property
+	#endif
+End Property
 
-property Menu.ColorizeEntire as integer
-	return FIncSubitems
-end property
+Property Menu.ColorizeEntire As Integer
+	Return FIncSubitems
+End Property
 
-property Menu.ColorizeEntire(value as integer)
+Property Menu.ColorizeEntire(value As Integer)
 	FIncSubitems = value
 	Color = FColor
-end property
+End Property
 
-property Menu.Count as integer
-	return FCount
-end property
+Property Menu.Count As Integer
+	Return FCount
+End Property
 
-property Menu.Count(value as integer)
-end property
+Property Menu.Count(value As Integer)
+End Property
 
-property Menu.Item(index as integer) as MenuItem ptr
-	if (index>-1) and (index<FCount) then
-		return FItems[Index]
-	end if
-	return NULL
-end property
+Property Menu.Item(index As Integer) As MenuItem Ptr
+	If (index>-1) And (index<FCount) Then
+		Return FItems[Index]
+	End If
+	Return NULL
+End Property
 
-property Menu.Item(index as integer,value as MenuItem ptr)
-	if (index > -1) and (index < FCount) then
+Property Menu.Item(index As Integer,value As MenuItem Ptr)
+	If (index > -1) And (index < FCount) Then
 		FItems[Index] = value
-	end if
-end property
+	End If
+End Property
 
-sub Menu.Add(value as PMenuItem)
-	#IfNDef __USE_GTK__
+Sub Menu.Add(value As PMenuItem)
+	#ifndef __USE_GTK__
 		Dim As MenuItemInfo FInfo
-	#EndIf
-	if IndexOf(value) = -1 then
+	#endif
+	If IndexOf(value) = -1 Then
 		FCount          +=1
-		FItems           = reallocate(FItems,sizeof(PMenuItem)*FCount)
+		FItems           = reallocate_(FItems,SizeOf(PMenuItem)*FCount)
 		FItems[FCount-1] = value
 		value->Parent    = Null
 		value->MenuIndex = FCount -1
@@ -1090,13 +1093,13 @@ sub Menu.Add(value as PMenuItem)
 End Sub
 
 Function Menu.Add(ByRef sCaption As WString) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
 	Add(Value)
 	Return Value
 End Function
 
 Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
 	Value->Image     = iImage
 	Value->Name     = sKey
 	Value->OnClick     = eClick
@@ -1105,7 +1108,7 @@ Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType
 End Function
 
 Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
 	Value->ImageIndex = iImageIndex
 	Value->Caption     = sCaption
 	Value->Name     = sKey
@@ -1115,7 +1118,7 @@ Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As Str
 End Function
 
 Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-	Dim As MenuItem Ptr Value = New MenuItem(sCaption, sImageKey)
+	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey))
 	'WLet Value->FImageKey, sImageKey
 	If ImagesList Then Value->ImageIndex = ImagesList->IndexOf(sImageKey)
 	Value->Name     = sKey
@@ -1148,7 +1151,7 @@ Sub Menu.Insert(Index As Integer,value As PMenuItem)
 	If IndexOf(value) = -1 Then
 		If (Index>-1) And (Index<FCount) Then
 			FCount +=1
-			FItems = Reallocate(FItems,SizeOf(PMenuItem)*FCount)
+			FItems = Reallocate_(FItems,SizeOf(PMenuItem)*FCount)
 			For i As Integer = Index +1 To FCount-1
 				FItems[i] = FItems[i-1]
 			Next i
@@ -1174,7 +1177,7 @@ Sub Menu.Insert(Index As Integer,value As PMenuItem)
 				'					value->item(i)->Menu  = Handle
 				'				#EndIf
 			Next i
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If FParentWindow AndAlso IsWindow(FParentWindow->Handle) Then DrawMenuBar(FParentWindow->Handle)
 			#endif
 		End If
@@ -1191,7 +1194,7 @@ Sub Menu.Remove(value As PMenuItem)
 			FItems[i-1] = FItem
 		Next i
 		FCount -= 1
-		FItems  = Reallocate(FItems,FCount*SizeOf(PMenuItem))
+		FItems  = Reallocate_(FItems,FCount*SizeOf(PMenuItem))
 		For i As Integer = 0 To FCount-1
 			FItems[i]->MenuIndex = i
 		Next i
@@ -1213,27 +1216,31 @@ Function Menu.Find(value As Integer) As MenuItem Ptr
 	For i As Integer = 0 To FCount-1
 		If Item(i)->Command = value Then Return Item(i)
 		FItem = Item(i)->Find(value)
-		if FItem then if FItem->Command = value then return FItem
+		If FItem Then If FItem->Command = value Then Return FItem
 	Next i
 	Return NULL
 End Function
 
-function Menu.Find(ByRef Value as WString) as MenuItem ptr
-	dim as MenuItem ptr FItem
-	for i as integer = 0 to FCount-1
-		if Item(i)->Name = value then return Item(i)
+Function Menu.Find(ByRef Value As WString) As MenuItem Ptr
+	Dim As MenuItem Ptr FItem
+	For i As Integer = 0 To FCount-1
+		If Item(i)->Name = value Then Return Item(i)
 		FItem = Item(i)->Find(value)
-		if FItem then if FItem->Name = value then return FItem
-	next i
-	return NULL
-end function
+		If FItem Then If FItem->Name = value Then Return FItem
+	Next i
+	Return NULL
+End Function
 
-sub Menu.Clear
-	if FItems then
-		delete [] FItems
-		FItems = callocate(0)
-	end if
-end sub
+Sub Menu.Clear
+	If FItems Then
+		For i As Integer = FCount - 1 To 0 Step -1
+			Item(i)->Caption
+			Delete Item(i)
+		Next i
+		'delete_SquareBrackets( FItems)
+		FItems = 0 'callocate_(0)
+	End If
+End Sub
 
 #ifndef __USE_GTK__
 	Sub Menu.ProcessMessage(ByRef message As Message)
@@ -1249,7 +1256,7 @@ Constructor Menu
 End Constructor
 
 Destructor Menu
-	Clear
+	This.Clear
 	#ifndef __USE_GTK__
 		If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
 		If FHandle Then
@@ -1446,65 +1453,65 @@ Property MainMenu.ParentWindow(value As Component Ptr)
 	End Sub
 	
 	Operator MainMenu.cast As Any Ptr
-		return @this
-	end operator
+		Return @This
+	End Operator
 	
-	constructor MainMenu
-		#IfDef __USE_GTK__
+	Constructor MainMenu
+		#ifdef __USE_GTK__
 			widget = gtk_menu_bar_new()
-		#Else
+		#else
 			This.FHandle      = CreateMenu
-		#EndIf
+		#endif
 		WLet FClassName, "MainMenu"
 		FIncSubItems = 1
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FColor       = GetSysColor(color_menu)
-			FInfo.cbSize = sizeof(FInfo)
-			if FInfo.hbrBack then DeleteObject(FInfo.hbrBack)
+			FInfo.cbSize = SizeOf(FInfo)
+			If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
 			FInfo.hbrBack    = CreateSolidBrush(FColor)
-			FInfo.dwmenudata = cast(dword_Ptr,cast(any ptr,@this))
-			FInfo.fMask      = MIM_BACKGROUND or iif(FIncSubItems,MIM_APPLYTOSUBMENUS,0) or mim_menudata
+			FInfo.dwmenudata = Cast(dword_Ptr,Cast(Any Ptr,@This))
+			FInfo.fMask      = MIM_BACKGROUND Or IIf(FIncSubItems,MIM_APPLYTOSUBMENUS,0) Or mim_menudata
 			SetMenuInfo(This.FHandle,@FInfo)
-		#ENdIf
-	end constructor
+		#endif
+	End Constructor
 	
-	destructor MainMenu
-	end destructor
+	Destructor MainMenu
+	End Destructor
 	
 	
 	/' PopupMenu '/
-	property PopupMenu.ParentWindow(value as Component Ptr)
-		#IfDef __USE_GTK__
+	Property PopupMenu.ParentWindow(value As Component Ptr)
+		#ifdef __USE_GTK__
 			If FParentWindow = 0 Then
 				gtk_menu_attach_to_widget(gtk_menu(widget), value->widget, NULL)
 			End If
-		#EndIf
+		#endif
 		Base.ParentWindow = Value
 	End Property
 	
-	sub PopupMenu.Popup(x as integer,y as integer, msg As Message Ptr = 0)
-		#IfDef __USE_GTK__
+	Sub PopupMenu.Popup(x As Integer,y As Integer, msg As Message Ptr = 0)
+		#ifdef __USE_GTK__
 			If msg <> 0 Then
 				gtk_widget_show_all (widget)
 				gtk_menu_popup (gtk_menu(widget), NULL, NULL, NULL, NULL, msg->event->button.button, msg->event->button.time)
 			End If
-		#Else
+		#else
 			If FParentWindow AndAlso FParentWindow->Handle Then
 				TrackPopupMenuEx(This.FHandle,0,x,y,FParentWindow->Handle,0)
 			End If
-		#EndIf
-	end sub
+		#endif
+	End Sub
 	
-	sub PopupMenu.ProcessMessages(byref message as Message)
-		dim As PMenuItem I
-		#IfNDef __USE_GTK__
-			I = Find(loword(message.wparam))
-		#EndIf
+	Sub PopupMenu.ProcessMessages(ByRef message As Message)
+		Dim As PMenuItem I
+		#ifndef __USE_GTK__
+			I = Find(LoWord(message.wparam))
+		#endif
 		If I Then I->Click
 	End Sub
 	
-	Operator PopupMenu.cast as any ptr
-		return @this
+	Operator PopupMenu.cast As Any Ptr
+		Return @This
 	End Operator
 	
 	Constructor PopupMenu

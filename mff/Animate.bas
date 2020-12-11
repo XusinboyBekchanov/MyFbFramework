@@ -19,7 +19,7 @@ Namespace My.Sys.Forms
 			Dim As Any Ptr PResource
 			Dim As UByte Ptr P
 			Dim As Integer F, Size
-			Dim As Integer Ptr Buff = Allocate(18*SizeOf(Integer))
+			Dim As Integer Ptr Buff = Allocate_(18*SizeOf(Integer))
 			F = FreeFile
 			If *FFile <> "" Then
 				.Open *FFile For Binary Access Read As #F
@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 				Global    = LoadResource(GetModuleHandle("Shell32"),Resource)
 				PResource = LockResource(Global)
 				Size = SizeOfResource(GetModuleHandle("Shell32"),Resource)
-				P = Allocate(Size)
+				P = Allocate_(Size)
 				P = PResource
 				FreeResource(Resource)
 				memcpy Buff, P, 18 * SizeOf(Integer)
@@ -88,7 +88,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Animate.File(ByRef Value As WString)
-		FFile = Reallocate(FFile, (Len(Value) + 1) * SizeOf(WString))
+		FFile = Reallocate_(FFile, (Len(Value) + 1) * SizeOf(WString))
 		*FFile = Value
 		#ifndef __USE_GTK__
 			If FHandle Then
@@ -261,13 +261,13 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub Animate.Close
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
 				If OnClose Then OnClose(This)
 				Perform(ACM_OPEN,0,0)
 				FOpen = 0
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Operator Animate.Cast As Control Ptr
@@ -278,7 +278,7 @@ Namespace My.Sys.Forms
 		Dim As Boolean Result
 		#ifndef __USE_GTK__
 			Dim As INITCOMMONCONTROLSEX ICC
-			FFile = CAllocate(0)
+			FFile = 0 'CAllocate_(0)
 			ICC.dwSize = SizeOf(ICC)
 			ICC.dwICC  = ICC_ANIMATE_CLASS
 			Result = InitCommonControlsEx(@ICC)
@@ -314,6 +314,6 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor Animate
-		If FFile Then Deallocate FFile
+		If FFile Then Deallocate_( FFile)
 	End Destructor
 End Namespace

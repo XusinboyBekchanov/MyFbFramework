@@ -3,16 +3,16 @@
 Constructor UString()
 	m_Length = 0
 	m_BytesCount = SizeOf(WString)
-	m_Data = CAllocate(SizeOf(WString))
-	If m_Data <> 0 Then
-		m_Data[0] = 0
-	End If
+	m_Data = CAllocate_(SizeOf(WString))
+'	If m_Data <> 0 Then
+'		m_Data[0] = 0
+'	End If
 End Constructor
 
 Constructor UString(ByRef Value As WString)
 	m_Length = Len(Value)
 	m_BytesCount = (m_Length + 1) * SizeOf(WString)
-	m_Data = CAllocate(m_BytesCount)
+	m_Data = CAllocate_(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = Value
 	End If
@@ -21,7 +21,7 @@ End Constructor
 Constructor UString(ByRef Value As UString)
 	m_Length = Value.m_Length
 	m_BytesCount = Value.m_BytesCount
-	m_Data = CAllocate(m_BytesCount)
+	m_Data = CAllocate_(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = *Value.m_Data
 	End If
@@ -29,7 +29,7 @@ End Constructor
 
 Destructor UString
 	If m_Data <> 0 Then
-		Deallocate(m_Data)
+		Deallocate_(m_Data)
 	End If
 End Destructor
 
@@ -66,9 +66,9 @@ Sub UString.Resize(NewLength As Integer)
 		m_BytesCount = (NewLength + 1) * SizeOf(WString)
 		m_Length = NewLength
 		If m_Data <> 0 Then
-			Deallocate(m_Data)
+			Deallocate_(m_Data)
 		End If
-		m_Data = CAllocate(m_BytesCount)
+		m_Data = CAllocate_(m_BytesCount)
 	End If
 End Sub
 
@@ -76,9 +76,9 @@ Operator UString.Let(ByRef lhs As UString)
 	If @This <> @lhs Then
 		If lhs.m_Length > m_Length Then
 			If m_Data <> 0 Then
-				Deallocate(m_Data)
+				Deallocate_(m_Data)
 			End If
-			m_Data = CAllocate(lhs.m_BytesCount)
+			m_Data = CAllocate_(lhs.m_BytesCount)
 		End If
 		m_Length = lhs.m_Length
 		m_BytesCount = lhs.m_BytesCount

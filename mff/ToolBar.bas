@@ -89,7 +89,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolButton.Hint(ByRef Value As WString)
-		FHint = Reallocate(FHint, (Len(Value) + 1) * SizeOf(WString))
+		FHint = Reallocate_(FHint, (Len(Value) + 1) * SizeOf(WString))
 		*FHint = Value
 	End Property
 	
@@ -341,8 +341,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor ToolButton
-		FHint = CAllocate(0)
-		FCaption = CAllocate(0)
+		FHint = 0 'CAllocate_(0)
+		FCaption = 0 'CAllocate_(0)
 		WLet FClassName, "ToolButton"
 		FStyle      = tbsButton
 		FEnabled    = 1
@@ -354,7 +354,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor ToolButton
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
 		#Else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
@@ -395,7 +395,7 @@ Namespace My.Sys.Forms
 	
 	Function ToolButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
-		PButton = New ToolButton
+		PButton = New_( ToolButton)
 		FButtons.Add PButton
 		With *PButton
 			.Style          = FStyle
@@ -513,7 +513,7 @@ Namespace My.Sys.Forms
 	
 	Sub ToolButtons.Clear
 		For i As Integer = Count -1 To 0 Step -1
-			Delete @QToolButton(FButtons.Items[i])
+			Delete_( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
 	End Sub

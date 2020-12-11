@@ -81,7 +81,7 @@ Property IntegerList.Object(Index As Integer, FObj As Any Ptr)
 End Property
 
 Sub IntegerList.Add(FItem As Integer, FObj As Any Ptr = 0)
-	Dim As IntegerListItem Ptr nItem = New IntegerListItem
+	Dim As IntegerListItem Ptr nItem = New_( IntegerListItem)
 	with *nItem
 		.Value  = FItem
 		.Object = FObj
@@ -90,7 +90,7 @@ Sub IntegerList.Add(FItem As Integer, FObj As Any Ptr = 0)
 End Sub
 
 Sub IntegerList.Insert(Index As Integer, FItem As Integer, FObj As Any Ptr = 0)
-	Dim As IntegerListItem Ptr nItem = New IntegerListItem
+	Dim As IntegerListItem Ptr nItem = New_( IntegerListItem)
 	with *nItem
 		.Value  = FItem
 		.Object = FObj
@@ -104,7 +104,7 @@ End Sub
 
 Sub IntegerList.Remove(Index As Integer)
 	If Index = -1 Then Exit Sub
-	Delete Cast(IntegerListItem Ptr, FItems.Items[Index])
+	Delete_( Cast(IntegerListItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
 End Sub
 
@@ -121,7 +121,7 @@ End Sub
 
 Sub IntegerList.Clear
 	For i As Integer = Count -1 To 0 Step -1
-		Delete Cast(IntegerListItem Ptr, FItems.Items[i])
+		Delete_( Cast(IntegerListItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
 End Sub
@@ -150,6 +150,6 @@ End Constructor
 
 Destructor IntegerList
 	For i As Integer = Count -1 To 0 Step -1
-		Delete Cast(IntegerListItem Ptr, FItems.Items[i])
+		Delete_( Cast(IntegerListItem Ptr, FItems.Items[i]))
 	Next i
 End Destructor

@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 	Property ComboBoxItem.Indent(Value As Integer)
 		If Value <> FIndent Then
 			FIndent = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.Mask = CBEIF_INDENT
@@ -149,7 +149,7 @@ Namespace My.Sys.Forms
 					cbei.iIndent = FIndent
 					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
 				End If
-			#EndIf
+			#endif
 		End If
 	End Property
 	
@@ -158,8 +158,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor ComboBoxItem
-		FHint = CAllocate(0)
-		FText = CAllocate(0)
+		FHint = 0 'CAllocate_(0)
+		FText = 0 'CAllocate_(0)
 		Text    = ""
 		Hint       = ""
 		FImageIndex = -1
@@ -168,9 +168,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor ComboBoxItem
-		If FHint Then Deallocate FHint
-		If FText Then Deallocate FText
-		If FImageKey Then Deallocate FImageKey
+		If FHint Then Deallocate_( FHint)
+		If FText Then Deallocate_( FText)
+		If FImageKey Then Deallocate_( FImageKey)
 	End Destructor
 	
 	Property ComboBoxExItems.Count As Integer
@@ -189,7 +189,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
-		PItem = New ComboBoxItem
+		PItem = New_( ComboBoxItem)
 		If Index = -1 Then
 			FItems.Add PItem
 		Else
@@ -252,7 +252,7 @@ Namespace My.Sys.Forms
 				Parent->Perform CBEM_DELETEITEM, Index, 0
 			#endif
 		End If
-		Delete Cast(ComboBoxItem Ptr, FItems.Items[Index])
+		Delete_( Cast(ComboBoxItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 	End Sub
 	
@@ -278,7 +278,7 @@ Namespace My.Sys.Forms
 			If Parent Then Parent->Perform CB_RESETCONTENT, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
-			Delete Cast(ComboBoxItem Ptr, FItems.Items[i])
+			Delete_( Cast(ComboBoxItem Ptr, FItems.Items[i]))
 		Next i
 		FItems.Clear
 	End Sub

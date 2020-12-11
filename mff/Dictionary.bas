@@ -35,8 +35,8 @@ Constructor DictionaryItem
 End Constructor
 
 Destructor DictionaryItem
-	If FKey Then Deallocate FKey
-	If FText Then Deallocate FText
+	If FKey Then Deallocate_( FKey)
+	If FText Then Deallocate_( FText)
 End Destructor
 
 Operator DictionaryItem.Cast As Any Ptr
@@ -72,7 +72,7 @@ Property Dictionary.Item(ByRef Key As WString, FItem As DictionaryItem Ptr)
 End Property
 
 Sub Dictionary.Add(ByRef Key As WString = "", ByRef Text As WString)
-	Dim As DictionaryItem Ptr nItem = New DictionaryItem
+	Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 	With *nItem
 		.Key  = Key
 		.Text = Text
@@ -97,7 +97,7 @@ Function Dictionary.Get(ByRef Key As WString, ByRef DefaultText As WString = "")
 End Function
 
 Sub Dictionary.Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString)
-	Dim As DictionaryItem Ptr nItem = New DictionaryItem
+	Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 	With *nItem
 		.Key  = Key
 		.Text = Text
@@ -110,7 +110,7 @@ Sub Dictionary.Exchange(Index1 As Integer, Index2 As Integer)
 End Sub
 
 Sub Dictionary.Remove(Index As Integer)
-	Delete Cast(DictionaryItem Ptr, FItems.Items[Index])
+	Delete_( Cast(DictionaryItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
 End Sub
 
@@ -138,7 +138,7 @@ End Sub
 
 Sub Dictionary.Clear
 	For i As Integer = Count - 1 To 0 Step -1
-		Delete Cast(DictionaryItem Ptr, FItems.Items[i])
+		Delete_( Cast(DictionaryItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
 End Sub
@@ -219,7 +219,7 @@ End Constructor
 
 Destructor Dictionary
 	For i As Integer = Count - 1 To 0 Step -1
-		Delete Cast(DictionaryItem Ptr, FItems.Items[i])
+		Delete_( Cast(DictionaryItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
 End Destructor
