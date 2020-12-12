@@ -1103,7 +1103,7 @@ Namespace My.Sys.Forms
 						filecount = DragQueryFile(iDrop, -1, NULL, 0)
 						Dim As WString Ptr filename
 						For i = 0 To filecount - 1
-							WReallocate filename, MAX_PATH
+							WReallocate(filename, MAX_PATH)
 							length = DragQueryFile(iDrop, i, filename, MAX_PATH)
 							'*filename = Left(*filename, length)
 							If OnDropFile Then OnDropFile(This, *filename)

@@ -252,7 +252,7 @@ Function OpenFileDialog.Execute As Boolean
 			If FileNames.Count > 1 Then FileNames.Remove 0
 		End If
 		'Deallocate cwsFile
-		'Deallocate wFilter
+		WDeallocate wFilter
 	#endif
 	Return bResult
 	Exit Function

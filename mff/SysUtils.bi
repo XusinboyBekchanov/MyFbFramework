@@ -81,9 +81,11 @@ Declare Sub WDeAllocate Overload(ByRef subject As WString Ptr)
 
 Declare Sub WDeAllocate Overload(subject() As WString Ptr)
 
-Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
-
 Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
+
+#if MEMCHECK = 0
+	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+#endif
 
 Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = False)
 

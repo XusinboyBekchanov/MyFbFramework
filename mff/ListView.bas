@@ -63,7 +63,7 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
-				WReallocate FText, 255
+				WReallocate(FText, 255)
 				lvi.Mask = LVIF_TEXT
 				lvi.iItem = Index
 				lvi.iSubItem   = iSubItem

@@ -120,6 +120,7 @@ Namespace My.Sys.Forms
 	Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		PButton = New_( ToolButton)
+		PButton->FDynamic = True 
 		FButtons.Add PButton
 		With *PButton
 			.Style          = FStyle

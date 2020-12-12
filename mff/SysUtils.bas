@@ -75,23 +75,28 @@ Sub WDeAllocate Overload(subject() As WString Ptr)
 	Next
 End Sub
 
-Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
-	If subject Then
-		'Dim TempWStr As WString Ptr
-		'WLet TempWStr, *subject
-		'WDeallocate subject
-		'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
-		'*subject = Left(*TempWStr, lLen)
-		'WDeallocate TempWStr
-		subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
-	Else
-		subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
-	End If
-End Sub
-
 Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	If subject = 0 Then Return "" Else Return *subject
 End Function
+
+#if MEMCHECK
+	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
+	'#define WLet(subject, txt, ExistsSubjectInTxt) If ExistsSubjectInTxt Then: Dim TempWStr As WString Ptr: WLet TempWStr, txt: WLet subject, *TempWStr: WDeallocate TempWStr: Else: WReAllocate subject, Len(txt): *subject = txt: End If
+#else
+	Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+		If subject <> 0 Then
+			'Dim TempWStr As WString Ptr
+			'WLet TempWStr, *subject
+			'WDeallocate subject
+			'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
+			'*subject = Left(*TempWStr, lLen)
+			'WDeallocate TempWStr
+			subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+		Else
+			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+		End If
+	End Sub
+#endif
 
 Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = False)
 	If ExistsSubjectInTxt Then
@@ -100,7 +105,7 @@ Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt 
 		WLet subject, *TempWStr
 		WDeallocate TempWStr
 	Else
-		WReAllocate subject, Len(txt)
+		WReAllocate(subject, Len(txt))
 		*subject = txt
 	End If
 End Sub

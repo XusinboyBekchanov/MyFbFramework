@@ -159,11 +159,11 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Property TabPage.Caption ByRef As WString
-		Return Text
+		Return This.Text
 	End Property
 	
 	Property TabPage.Caption(ByRef Value As WString)
-		Text = Value
+		This.Text = Value
 	End Property
 	
 	Property TabPage.Text ByRef As WString
@@ -232,7 +232,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor TabPage
-		Caption = ""
+		'Caption = ""
 		FObject    = 0
 		FImageIndex        = 0
 		'Anchor.Left = asAnchor
@@ -732,6 +732,7 @@ Namespace My.Sys.Forms
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Ti.iImage = tp->ImageIndex
 				SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+				WDeallocate St
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1

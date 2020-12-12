@@ -240,26 +240,26 @@ Namespace My.Sys.Forms
 					SendMessage(FHandle, EM_GETSELTEXT, 0, Cast(LParam, FSelText))
 				End If
 			End If
-		#EndIf
+		#endif
 		Return *FSelText
 	End Property
 	
 	Property RichTextBox.SelText(ByRef Value As WString)
 		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim stSetText As SETTEXTEX
 			stSetText.Flags = ST_KEEPUNDO
 			stSetText.codepage = 1200
 			SendMessage(FHandle, EM_REPLACESEL, Cast(wParam, @stSetText), Cast(LParam, FSelText))
-		#EndIf
+		#endif
 	End Property
 	
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Function StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
 			Dim As Integer length
 			If hFile = 10000 Then
-				WReallocate textbuffer, bufferpos + NumBytes
+				WReallocate(textbuffer, bufferpos + NumBytes)
 				*textbuffer = *textbuffer + *Cast(WString Ptr, pBuffer)
 				bufferpos = Len(*textbuffer)
 				length = Len(Cast(WString Ptr, pBuffer)) * SizeOf(WString)
@@ -287,10 +287,10 @@ Namespace My.Sys.Forms
 				Return 1
 			End if
 		End Function
-	#EndIf
+	#endif
 	
 	Property RichTextBox.TextRTF ByRef As WString
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then
 				Dim editstream As EDITSTREAM
 				bufferPos = 0
@@ -299,16 +299,16 @@ Namespace My.Sys.Forms
 				SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
 				Return *textbuffer
 			End If
-		#Else
+		#else
 			Return *textbuffer
-		#EndIf
+		#endif
 	End Property
 	
 	Property RichTextBox.TextRTF(ByRef Value As WString)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then
 				Dim editstream As EDITSTREAM
-				WReallocate textbuffer, Len(Value)
+				WReallocate(textbuffer, Len(Value))
 				*textbuffer = Value
 				bufferPos = 0
 				editstream.dwCookie = Cast(DWORD, 10000)

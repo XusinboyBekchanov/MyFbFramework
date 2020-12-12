@@ -204,7 +204,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Handle Then
 				L = Perform(CB_GETLBTEXTLEN, FIndex, 0)
-				WReallocate FItemText, L
+				WReallocate(FItemText, L)
 				Perform(CB_GETLBTEXT, FIndex, CInt(FItemText))
 				Return *FItemText
 			Else
