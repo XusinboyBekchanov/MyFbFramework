@@ -277,6 +277,8 @@ Namespace My.Sys.Drawing
 		Operator BitmapType.Let(Value As HBITMAP)
 			Handle = Value
 		End Operator
+	#else
+		
 	#endif
 	
 	Constructor BitmapType

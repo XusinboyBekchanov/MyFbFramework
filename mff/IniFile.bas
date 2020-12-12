@@ -319,15 +319,12 @@ Function IniFile.ReadBool(ByRef Section As WString, ByRef Key As WString, Inplac
 	End If
 End Function
 
-Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") ByRef As WString
+Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") As UString
 	Dim As Integer Index
-	Dim As WString Ptr s
 	If SectionExists(Section) <> -1 Then
 		Index = KeyExists(Section, Key)
 		If Index <> -1 Then
-			WLet s, FLines.Item(Index)
-			*s = Mid(*s, InStr(*s, "=") + 1, Len(*s))
-			Return *s
+			Return Mid(FLines.Item(Index), InStr(FLines.Item(Index), "=") + 1, Len(FLines.Item(Index)))
 		Else
 			Return Inplace
 		End If

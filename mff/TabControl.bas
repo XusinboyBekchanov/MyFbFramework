@@ -255,6 +255,7 @@ Namespace My.Sys.Forms
 	Destructor TabPage
 		'If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
 		WDeallocate FCaption
+		WDeallocate FImageKey
 	End Destructor
 	
 	#ifndef ReadProperty_Off
@@ -281,7 +282,7 @@ Namespace My.Sys.Forms
 			End If
 			Return True
 		End Function
-	#EndIf
+	#endif
 	
 	Property TabControl.TabIndex As Integer
 		#ifdef __USE_GTK__
@@ -327,7 +328,7 @@ Namespace My.Sys.Forms
 	
 	Property TabControl.TabPosition(Value As My.Sys.Forms.TabPosition)
 		FTabPosition = Value
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			gtk_notebook_set_tab_pos(gtk_notebook(widget), FTabPosition)
 			For i As Integer = 0 To TabCount - 1
 				Select Case FTabPosition
@@ -339,7 +340,7 @@ Namespace My.Sys.Forms
 					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_label), 0)
 				End Select
 			Next
-		#Else
+		#else
 			Select Case FTabPosition
 			Case 0
 				ChangeStyle(TCS_BOTTOM, False)
@@ -366,7 +367,7 @@ Namespace My.Sys.Forms
 				If Not FMultiline Then ChangeStyle(TCS_MULTILINE, False)
 				If Not FTabStyle = tsOwnerDrawFixed Then ChangeStyle(TCS_OWNERDRAWFIXED, False)
 			End Select
-		#EndIf
+		#endif
 		SetMargins
 	End Property
 	
@@ -376,7 +377,7 @@ Namespace My.Sys.Forms
 	
 	Property TabControl.TabStyle(Value As My.Sys.Forms.TabStyle)
 		FTabStyle = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Select Case FTabStyle
 			Case 0
 				ChangeStyle TCS_BUTTONS, False
@@ -640,6 +641,7 @@ Namespace My.Sys.Forms
 	Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
 		FTabCount += 1
 		Dim tb As TabPage Ptr = New_( TabPage)
+		tb->FDynamic = True
 		tb->Caption = Caption
 		tb->Object = AObject
 		tb->ImageIndex = ImageIndex
@@ -768,13 +770,19 @@ Namespace My.Sys.Forms
 		Dim As Integer i
 		Dim As TabPage Ptr It
 		If Index >= 0 And Index <= FTabCount -1 Then
+			If Tabs[Index]->FDynamic Then Delete_(Tabs[Index])
 			This.Remove(Tabs[Index])
 			For i = Index + 1 To FTabCount -1
 				It = Tabs[i]
 				Tabs[i - 1] = It
 			Next i
 			FTabCount -= 1
-			Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage))
+			If FTabCount = 0 Then
+				Deallocate_(Tabs)
+				Tabs = 0
+			Else
+				Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage))
+			End If
 			#ifdef __USE_GTK__
 				gtk_notebook_remove_page(gtk_notebook(widget), Index)
 			#else
@@ -804,6 +812,7 @@ Namespace My.Sys.Forms
 				Tabs[i + 1] = It
 			Next i
 			Tabs[Index] = New_( TabPage)
+			Tabs[Index]->FDynamic = True
 			Tabs[Index]->Caption = Caption
 			Tabs[Index]->Object = aObject
 			'Tabs[Index]->TabPageControl = @This
@@ -911,9 +920,11 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TabControl
-		For i As Integer = 0 To TabCount - 1
+		For i As Integer = 0 To FTabCount - 1
 			Tabs[i]->Parent = 0
+			If Tabs[i]->FDynamic Then Delete_(Tabs[i])
 		Next
+		If Tabs <> 0 Then Deallocate_(Tabs)
 		'UnregisterClass "TabControl", GetModuleHandle(NULL)
 	End Destructor
 	

@@ -75,6 +75,7 @@ Namespace My.Sys.Forms
 		Count += 1
 		Panels = Reallocate_(Panels, SizeOf(StatusPanel) * Count)
 		Panels[Count -1] = New_( StatusPanel)
+		Panels[Count -1]->FDynamic = True
 		Panels[Count -1]->Index     = Count - 1
 		Panels[Count -1]->Width     = 50
 		Panels[Count -1]->Caption   = wText
@@ -296,7 +297,10 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor StatusBar
-		Panels = 0 'CAllocate_(0)
+		For i As Integer = Count - 1 To 0 Step -1
+			If Panels[i]->FDynamic Then Delete_(Panels[i])
+		Next
+		Deallocate_(Panels) 'CAllocate_(0)
 		#ifndef __USE_GTK__
 			UnregisterClass "StatusBar",GetModuleHandle(NULL)
 		#endif

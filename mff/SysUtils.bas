@@ -83,9 +83,9 @@ Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
 		'*subject = Left(*TempWStr, lLen)
 		'WDeallocate TempWStr
-		subject = Cast(WString Ptr, Reallocate_(subject, (lLen + 1) * SizeOf(WString)))
+		subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 	Else
-		subject = Cast(WString Ptr, Allocate_((lLen + 1) * SizeOf(WString)))
+		subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 	End If
 End Sub
 

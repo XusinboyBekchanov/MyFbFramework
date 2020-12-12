@@ -231,6 +231,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Destructor Font
+		WDeallocate FName
 		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
 		#else

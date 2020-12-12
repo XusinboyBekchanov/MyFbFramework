@@ -97,11 +97,11 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Sub Remove(Index As Integer)
 		Declare Sub Remove(ByRef Key As WString)
-		Declare Function GetBitmap(Index As Integer) ByRef As My.Sys.Drawing.BitmapType
+		Declare Function GetBitmap(Index As Integer) As My.Sys.Drawing.BitmapType
 		Declare Function GetMask(Index As Integer) As My.Sys.Drawing.BitmapType
 		Declare Function GetIcon(Index As Integer) As My.Sys.Drawing.Icon
 		Declare Function GetCursor(Index As Integer) As My.Sys.Drawing.Cursor
-		Declare Function GetBitmap(ByRef Key As WString) ByRef As My.Sys.Drawing.BitmapType
+		Declare Function GetBitmap(ByRef Key As WString) As My.Sys.Drawing.BitmapType
 		Declare Function GetMask(ByRef Key As WString) As My.Sys.Drawing.BitmapType
 		Declare Function GetIcon(ByRef Key As WString) As My.Sys.Drawing.Icon
 		Declare Function GetCursor(ByRef Key As WString) As My.Sys.Drawing.Cursor
@@ -114,10 +114,10 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChange As Sub(BYREF Sender As ImageList)
+		OnChange As Sub(ByRef Sender As ImageList)
 	End Type
-End namespace
+End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ImageList.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ImageList.bas"
+#endif

@@ -223,10 +223,11 @@ Constructor WStringList
 End Constructor
 
 Destructor WStringList
-	If FCount>0 Then
-		For i As Integer = FCount - 1 To 0 Step -1
-			Delete_( Cast(WStringListItem Ptr, FItems.Items[i]))
-		Next i
-	End If
+'	If FCount>0 Then
+'		For i As Integer = FCount - 1 To 0 Step -1
+'			Delete_( Cast(WStringListItem Ptr, FItems.Items[i]))
+'		Next i
+'	End If
 	If FText Then Deallocate_( FText)
+	This.Clear
 End Destructor

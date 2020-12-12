@@ -11,40 +11,40 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "Splitter.bi"
+#include once "Splitter.bi"
 
 Namespace My.Sys.Forms
-	#IfNDef __USE_GTK__
-		Sub Splitter.WndProc(BYREF Message As Message)
+	#ifndef __USE_GTK__
+		Sub Splitter.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'               Cast(Splitter Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
 			'            End If
 			'        End If
 		End Sub
-	#EndIf
+	#endif
 	
 	Property Splitter.Align As Integer
-		return Base.Align
+		Return Base.Align
 	End Property
 	
 	Sub Splitter.DrawTrackSplit(x As Integer, y As Integer)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Static As Word DotBits(7) =>{&H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA}
 			Dim As HDC Dc
 			Dim As HBRUSH hbr
 			Dim As HBITMAP Bmp
-			Dc  = GetDCEx(This.Parent->Handle,0,dcx_cache or dcx_clipsiblings) ' or dcx_lockwindowupdate
+			Dc  = GetDCEx(This.Parent->Handle,0,dcx_cache Or dcx_clipsiblings) ' or dcx_lockwindowupdate
 			Bmp = CreateBitmap(8,8,1,1,@DotBits(0))
 			hbr = SelectObject(Dc,CreatePatternBrush(Bmp))
 			DeleteObject(Bmp)
 			PatBlt(Dc,x,y,ClientWidth,ClientHeight,patinvert)
 			DeleteObject(SelectObject(Dc,hbr))
 			ReleaseDC(This.Parent->Handle,Dc)
-		#EndIf
+		#endif
 	End Sub
 	
-	Property Splitter.Align(value as Integer)
+	Property Splitter.Align(value As Integer)
 		Base.Align = value
 		Var cr = New_( My.Sys.Drawing.Cursor)
 		cr->Ctrl = @This
@@ -58,12 +58,12 @@ Namespace My.Sys.Forms
 		Case Else
 			*cr = crArrow
 		End Select
-		If This.Cursor Then Delete_( This.Cursor)
+		If This.Cursor <> 0 Then Delete_(This.Cursor)
 		This.Cursor = cr
-	end Property
+	End Property
 	
-	#IfNDef __USE_GTK__
-		Sub Splitter.ParentWndProc(BYREF Message As Message)
+	#ifndef __USE_GTK__
+		Sub Splitter.ParentWndProc(ByRef Message As Message)
 			Dim As Control Ptr Ctrl
 			Select Case Message.Msg
 			Case WM_MOUSEMOVE
@@ -87,16 +87,16 @@ Namespace My.Sys.Forms
 				ReleaseCapture
 			End Select
 		End Sub
-	#EndIf
+	#endif
 	
-	Sub Splitter.ProcessMessage(BYREF Message As Message)
+	Sub Splitter.ProcessMessage(ByRef Message As Message)
 		Static As Long xOrig, yOrig, xCur, yCur, i, down1
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Dim As GdkDisplay Ptr display = gdk_display_get_default()
-			#IfDef __USE_GTK3__
+			#ifdef __USE_GTK3__
 				Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager(display)
 				Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer(device_manager)
-			#EndIf
+			#endif
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
 		#Else
@@ -314,18 +314,18 @@ Namespace My.Sys.Forms
 				GDK_POINTER_MOTION_HINT_MASK)
 				'gtk_scrolled_window_set_policy(gtk_scrolled_window(widget), GTK_POLICY_EXTERNAL, GTK_POLICY_EXTERNAL)
 				.RegisterClass "Splitter", @This
-				#IfDef __USE_GTK3__
+				#ifdef __USE_GTK3__
 					g_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
-				#Else
+				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@OnExposeEvent), @This)
-				#EndIf
-			#Else
+				#endif
+			#else
 				.RegisterClass "Splitter"
 				.ChildProc = @WndProc
 				.Style     = WS_CHILD
 				.BackColor     = GetSysColor(COLOR_BTNFACE)
 				'.DoubleBuffered = True
-			#EndIf
+			#endif
 			WLet FClassName, "Splitter"
 			WLet FClassAncestor, ""
 			.Width     = 3
@@ -334,8 +334,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor Splitter
-		#IfNDef __USE_GTK__
+		If This.Cursor <> 0 Then Delete_(This.Cursor)
+		#ifndef __USE_GTK__
 			UnregisterClass "Splitter", GetModuleHandle(NULL)
-		#EndIf
+		#endif
 	End Destructor
-End namespace
+End Namespace

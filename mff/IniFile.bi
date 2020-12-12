@@ -35,7 +35,7 @@ Public:
 	Declare Function ReadInteger(ByRef Section As WString, ByRef Key As WString, Inplace As Integer = 0) As Integer
 	Declare Function ReadFloat(ByRef Section As WString, ByRef Key As WString, Inplace As Double = 0.0) As Double
 	Declare Function ReadBool(ByRef Section As WString, ByRef Key As WString, Inplace As Boolean = False) As Boolean
-	Declare Function ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") ByRef As WString
+	Declare Function ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") As UString
 	Declare Function KeyRemove(ByRef Section As WString, ByRef Key As WString) As Boolean
 	Declare Operator Cast As Any Ptr
 	Declare Constructor

@@ -207,47 +207,55 @@ Namespace My.Sys.Forms
 		Remove(IndexOf(Key))
 	End Sub
 	
-	Function ImageList.GetBitmap(Index As Integer) ByRef As My.Sys.Drawing.BitmapType
-		Dim As My.Sys.Drawing.BitmapType Ptr BMP
+	Function ImageList.GetBitmap(Index As Integer) As My.Sys.Drawing.BitmapType
+		'Dim As My.Sys.Drawing.BitmapType Ptr BMP
 		#ifndef __USE_GTK__
 			Dim IMIF As ImageInfo
-			BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
+			'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
-			BMP->Handle = IMIF.hbmImage
+			Return IMIF.hbmImage 'BMP->Handle =
+		#else
+			Return 0
 		#endif
-		Return *BMP
+		'Return *BMP
 	End Function
 	
 	Function ImageList.GetMask(Index As Integer) As My.Sys.Drawing.BitmapType
-		Dim As My.Sys.Drawing.BitmapType Ptr BMP
+		'Dim As My.Sys.Drawing.BitmapType Ptr BMP
 		#ifndef __USE_GTK__
 			Dim IMIF As ImageInfo
-			BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
+			'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
-			BMP->Handle = IMIF.hbmMask
+			Return IMIF.hbmMask 'BMP->Handle =
+		#else
+			Return 0
 		#endif
-		Return *BMP
+		'Return *BMP
 	End Function
 	
 	Function ImageList.GetIcon(Index As Integer) As My.Sys.Drawing.Icon
-		Dim As My.Sys.Drawing.Icon Ptr ICO
-		ICO = CAllocate_(SizeOf(My.Sys.Drawing.Icon))
+		'Dim As My.Sys.Drawing.Icon Ptr ICO
+		'ICO = CAllocate_(SizeOf(My.Sys.Drawing.Icon))
 		#ifndef __USE_GTK__
-			ICO->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType)
+			Return ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType) 'ICO->Handle =
+		#else
+			Return 0
 		#endif
-		Return *ICO
+		'Return *ICO
 	End Function
 	
 	Function ImageList.GetCursor(Index As Integer) As My.Sys.Drawing.Cursor
-		Dim As My.Sys.Drawing.Cursor Ptr CUR
-		CUR = CAllocate_(SizeOf(My.Sys.Drawing.Cursor))
+		'Dim As My.Sys.Drawing.Cursor Ptr CUR
+		'CUR = CAllocate_(SizeOf(My.Sys.Drawing.Cursor))
 		#ifndef __USE_GTK__
-			CUR->Handle = ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType)
+			Return ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType) 'CUR->Handle =
+		#else
+			Return 0
 		#endif
-		Return *CUR
+		'Return *CUR
 	End Function
 	
-	Function ImageList.GetBitmap(ByRef Key As WString) ByRef As My.Sys.Drawing.BitmapType
+	Function ImageList.GetBitmap(ByRef Key As WString) As My.Sys.Drawing.BitmapType
 		Return GetBitmap(IndexOf(Key))
 	End Function
 	

@@ -40,6 +40,10 @@ Operator OpenFileDialogOptions.Cast As Integer
 	Return O
 End Operator
 
+Destructor OpenFileDialogOptions
+	Deallocate_(Options)
+End Destructor
+
 Property OpenFileDialog.MultiSelect As Boolean
 	Return FMultiSelect
 End Property

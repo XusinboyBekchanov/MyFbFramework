@@ -385,12 +385,12 @@ Property MenuItem.ImageIndex(value As Integer)
 	FImageIndex = value
 	If value <> -1 AndAlso owner AndAlso owner->imageslist Then
 		#ifndef __USE_GTK__
-			FImage = owner->imageslist->GetIcon(value).ToBitmap
+			FImage.Handle = owner->imageslist->GetIcon(value).ToBitmap
 			
 			Dim mii As MENUITEMINFOW
 			mii.cbSize = SizeOf(mii)
 			mii.fMask = MIIM_BITMAP
-			mii.hbmpItem = FImage 'HBMMENU_CALLBACK
+			mii.hbmpItem = FImage.Handle 'HBMMENU_CALLBACK
 			
 			SetItemInfo mii
 		#endif
@@ -691,13 +691,15 @@ End Sub
 
 Function MenuItem.Add(ByRef sCaption As WString) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+	Value->FDynamic = True
 	Add(Value)
 	Return Value
 End Function
 
 Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
-	Value->FImage     = iImage
+	Value->FDynamic = True
+	Value->FImage.Handle     = iImage.Handle
 	Value->Name     = sKey
 	Value->OnClick     = eClick
 	Add(Value, Index)
@@ -706,6 +708,7 @@ End Function
 
 Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
+	Value->FDynamic = True
 	Value->FImageIndex = iImageIndex
 	Value->Name     = sKey
 	Value->OnClick     = eClick
@@ -715,6 +718,7 @@ End Function
 
 Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, eClick, Checkable))
+	Value->FDynamic = True
 	WLet Value->FImageKey, sImageKey
 	If Owner AndAlso Owner->ImagesList Then Value->FImageIndex = Owner->ImagesList->IndexOf(sImageKey)
 	Value->Name     = sKey
@@ -815,11 +819,11 @@ End Sub
 
 Sub MenuItem.Clear
 	For i As Integer = Count - 1 To 0 Step -1
-		Delete FItems[i]
+		If FItems[i]->FDynamic Then Delete_(FItems[i])
 		'Remove FItems[i]
 		'FItems[i] = NULL
 	Next i
-	'delete_SquareBrackets( FItems)
+	If FItems <> 0 Then delete_SquareBrackets( FItems)
 	FItems = 0 'CAllocate_(0)
 	FCount = 0
 End Sub
@@ -912,7 +916,7 @@ Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString 
 			'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
 		End If
 	#else
-		FImage = 0
+		FImage.Handle = 0
 	#endif
 	Caption = wCaption
 	FImageIndex = -1
@@ -922,13 +926,15 @@ Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString 
 End Constructor
 
 Destructor MenuItem
-	If FParent Then
-		FParent->Remove(@This)
-	End If
+'	If FParent Then
+'		FParent->Remove(@This)
+'	End If
 	This.Clear
 	If FCaption Then Deallocate_( FCaption)
 	WDeallocate FText
 	WDeallocate FAccelerator
+	WDeallocate FName
+	WDeallocate FImageKey
 	#ifdef __USE_GTK__
 		If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
 	#else
@@ -990,35 +996,35 @@ Property Menu.Color As Integer
 			mif.cbSize = SizeOf(mif)
 			mif.fMask  = MIM_BACKGROUND
 			If GetMenuInfo(Handle,@mif) Then
-				dim as LOGBRUSH lb
-				GetObject(mif.hbrBack,sizeof(lb),@lb)
+				Dim As LOGBRUSH lb
+				GetObject(mif.hbrBack,SizeOf(lb),@lb)
 				FColor = lb.lbColor
-				return FColor
-			end if
-		end if
-	#EndIf
-	return FColor
-end property
+				Return FColor
+			End If
+		End If
+	#endif
+	Return FColor
+End Property
 
-property Menu.Color(value as integer)
+Property Menu.Color(value As Integer)
 	FColor = value
-	#IfNDef __USE_GTK__
-		if Handle then
-			dim as menuinfo mif
-			mif.cbSize = sizeof(mif)
+	#ifndef __USE_GTK__
+		If Handle Then
+			Dim As menuinfo mif
+			mif.cbSize = SizeOf(mif)
 			GetMenuInfo(Handle,@mif)
-			if mif.hbrBack then
+			If mif.hbrBack Then
 				DeleteObject(mif.hbrBack)
-			end if
+			End If
 			mif.hbrBack = CreateSolidBrush(FColor)
-			mif.fMask   = MIM_BACKGROUND or iif(FIncSubItems,MIM_APPLYTOSUBMENUS,0)
+			mif.fMask   = MIM_BACKGROUND Or IIf(FIncSubItems,MIM_APPLYTOSUBMENUS,0)
 			SetMenuInfo(Handle,@mif)
-			if FParentWindow AndAlso FParentWindow->Handle then
+			If FParentWindow AndAlso FParentWindow->Handle Then
 				DrawMenuBar(FParentWindow->Handle)
-				RedrawWindow(FParentWindow->Handle,0,0,rdw_invalidate or rdw_erase)
+				RedrawWindow(FParentWindow->Handle,0,0,rdw_invalidate Or rdw_erase)
 				UpdateWindow(FParentWindow->Handle)
-			end if
-		end if
+			End If
+		End If
 	#endif
 End Property
 
@@ -1094,12 +1100,14 @@ End Sub
 
 Function Menu.Add(ByRef sCaption As WString) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+	Value->FDynamic = True
 	Add(Value)
 	Return Value
 End Function
 
 Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+	Value->FDynamic = True
 	Value->Image     = iImage
 	Value->Name     = sKey
 	Value->OnClick     = eClick
@@ -1109,6 +1117,7 @@ End Function
 
 Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+	Value->FDynamic = True
 	Value->ImageIndex = iImageIndex
 	Value->Caption     = sCaption
 	Value->Name     = sKey
@@ -1119,6 +1128,7 @@ End Function
 
 Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
 	Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey))
+	Value->FDynamic = True
 	'WLet Value->FImageKey, sImageKey
 	If ImagesList Then Value->ImageIndex = ImagesList->IndexOf(sImageKey)
 	Value->Name     = sKey
@@ -1234,10 +1244,9 @@ End Function
 Sub Menu.Clear
 	If FItems Then
 		For i As Integer = FCount - 1 To 0 Step -1
-			Item(i)->Caption
-			Delete Item(i)
+			If Item(i)->FDynamic Then Delete_(Item(i))
 		Next i
-		'delete_SquareBrackets( FItems)
+		If FItems <> 0 Then delete_SquareBrackets( FItems)
 		FItems = 0 'callocate_(0)
 	End If
 End Sub

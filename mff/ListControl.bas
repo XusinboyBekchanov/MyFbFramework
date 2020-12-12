@@ -413,9 +413,9 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QListControl(Sender.Child)
 					For i As Integer = 0 To .Items.Count -1
-						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
-						*s = .Items.Item(i)
-						.Perform(LB_ADDSTRING, 0, CInt(s))
+'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+'						*s = .Items.Item(i)
+						.Perform(LB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 					Next i
 					.Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
 					.Columns = .Columns

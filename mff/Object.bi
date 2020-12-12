@@ -17,6 +17,7 @@ Namespace My.Sys
 	Protected:
 		FTemp As WString Ptr
 		FClassName As WString Ptr
+		FDynamic As Boolean
 	Public:
 		Designer As Object Ptr
 		Declare Virtual Function ToString ByRef As WString

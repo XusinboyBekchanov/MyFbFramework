@@ -78,7 +78,8 @@ Namespace My.Sys
 	End Function
 	
 	Constructor Object
-		'FClassName = CAllocate(0)
+		FTemp = 0
+		FClassName = 0 'CAllocate(0)
 		'FClassAncestor = CAllocate(0)
 		'FName = CAllocate(0)
 	End Constructor

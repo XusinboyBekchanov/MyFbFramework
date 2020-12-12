@@ -356,11 +356,12 @@ Namespace My.Sys.Forms
 	Destructor ToolButton
 		#ifdef __USE_GTK__
 			If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
-		#Else
+		#else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
-		#EndIf
+		#endif
 		WDeallocate FHint
 		WDeallocate FCaption
+		WDeallocate FImageKey
 		WDeallocate FName
 	End Destructor
 	
@@ -512,7 +513,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub ToolButtons.Clear
-		For i As Integer = Count -1 To 0 Step -1
+		For i As Integer = Count - 1 To 0 Step -1
 			Delete_( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
@@ -531,77 +532,77 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Property ToolBar.AutoSize As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FAutoSize = StyleExists(TBSTYLE_AUTOSIZE)
-		#EndIf
+		#endif
 		Return FAutoSize
 	End Property
 	
 	Property ToolBar.AutoSize(Value As Boolean)
 		FAutoSize = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_AUTOSIZE, Value
-			If FHandle Then if FAutosize Then Perform(TB_AUTOSIZE, 0, 0)
-		#EndIf
+			If FHandle Then If FAutosize Then Perform(TB_AUTOSIZE, 0, 0)
+		#endif
 	End Property
 	
 	Property ToolBar.Flat As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FFlat = StyleExists(TBSTYLE_FLAT)
-		#EndIf
+		#endif
 		Return FFlat
 	End Property
 	
 	Property ToolBar.Flat(Value As Boolean)
 		FFlat = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_FLAT, Value
 		#EndIf
 	End Property
 	
 	Property ToolBar.List As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FList = StyleExists(TBSTYLE_LIST)
-		#EndIf
+		#endif
 		Return FList
 	End Property
 	
 	Property ToolBar.List(Value As Boolean)
 		FList = Value
-		#IfDef __USE_GTK__
-			gtk_toolbar_set_style(gtk_toolbar(widget), IIF(Value, GTK_TOOLBAR_BOTH_HORIZ, GTK_TOOLBAR_BOTH))
-		#Else
+		#ifdef __USE_GTK__
+			gtk_toolbar_set_style(gtk_toolbar(widget), IIf(Value, GTK_TOOLBAR_BOTH_HORIZ, GTK_TOOLBAR_BOTH))
+		#else
 			ChangeStyle TBSTYLE_LIST, Value
-		#EndIf
+		#endif
 	End Property
 	
 	
 	Property ToolBar.Divider As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FDivider = Not StyleExists(CCS_NODIVIDER)
-		#EndIf
+		#endif
 		Return FDivider
 	End Property
 	
 	Property ToolBar.Divider(Value As Boolean)
 		FDivider = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ChangeStyle CCS_NODIVIDER, Not Value
-		#EndIf
+		#endif
 	End Property
 	
 	Property ToolBar.Transparency As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FTransparent = StyleExists(TBSTYLE_TRANSPARENT)
-		#EndIf
+		#endif
 		Return FTransparent
 	End Property
 	
 	Property ToolBar.Transparency(Value As Boolean)
 		FTransparent = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_TRANSPARENT, Value
-		#EndIf
+		#endif
 	End Property
 	
 	Property ToolBar.ButtonWidth As Integer
@@ -610,9 +611,9 @@ Namespace My.Sys.Forms
 	
 	Property ToolBar.ButtonWidth(Value As Integer)
 		FButtonWidth = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
-		#EndIf
+		#endif
 	End Property
 	
 	Property ToolBar.ButtonHeight As Integer
@@ -621,23 +622,23 @@ Namespace My.Sys.Forms
 	
 	Property ToolBar.ButtonHeight(Value As Integer)
 		FButtonHeight = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
-		#EndIf
+		#endif
 	End Property
 	
 	Property ToolBar.Wrapable As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			FWrapable = StyleExists(TBSTYLE_WRAPABLE)
-		#EndIf
+		#endif
 		Return FWrapable
 	End Property
 	
 	Property ToolBar.Wrapable(Value As Boolean)
 		FWrapable = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_WRAPABLE, Value
-		#EndIf
+		#endif
 	End Property
 	
 	Property ToolBar.Caption ByRef As WString

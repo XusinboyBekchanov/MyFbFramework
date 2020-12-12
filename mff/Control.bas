@@ -1875,7 +1875,12 @@ Namespace My.Sys.Forms
 					Controls[i -1] = P
 				Next i
 				FControlCount -= 1
-				Controls = Reallocate_(Controls,FControlCount*SizeOf(Control))
+				If FControlCount = 0 Then
+					Deallocate_(Controls)
+					Controls = 0
+				Else
+					Controls = Reallocate_(Controls,FControlCount*SizeOf(Control))
+				End If
 				'DeAllocate P
 			End If
 		End Sub

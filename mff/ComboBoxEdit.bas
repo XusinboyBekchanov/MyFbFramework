@@ -343,9 +343,9 @@ Namespace My.Sys.Forms
 					.UpdateListHeight
 					Dim As Integer i
 					For i = 0 To .Items.Count - 1
-						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
-						*s = .Items.Item(i)
-						.Perform(CB_ADDSTRING, 0, CInt(s))
+'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+'						*s = .Items.Item(i)
+						.Perform(CB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 					Next i
 					.ItemIndex = .FItemIndex
 					.Text = .FText

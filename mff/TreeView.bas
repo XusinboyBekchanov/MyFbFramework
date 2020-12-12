@@ -279,6 +279,7 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		WDeAllocate FHint
+		WDeAllocate FName
 		'WDeAllocate FText
 		WDeAllocate FImageKey
 		WDeAllocate FSelectedImageKey
@@ -330,6 +331,7 @@ Namespace My.Sys.Forms
 	
 	Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
 		PNode = New_( TreeNode)
+		PNode->FDynamic = True
 		Dim iIndex As Integer = -1
 		If Cast(TreeView Ptr, Parent)->Sorted Or bSorted Then
 			For i As Integer = 0 To FNodes.Count - 1
@@ -506,7 +508,7 @@ Namespace My.Sys.Forms
 '				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
 '			#endif
 			For i As Integer = Count - 1 To 0 Step -1
-				Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
+				If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
 			Next i
 '		Else
 '			For i As Integer = Count - 1 To 0 Step -1

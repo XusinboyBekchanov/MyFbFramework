@@ -71,6 +71,7 @@ Type OpenFileDialogOptions
 	Declare Sub Include(Value As Integer)
 	Declare Sub Exclude(Value As Integer)
 	Declare Operator Cast As Integer
+	Declare Destructor
 End Type
 
 Type Dialog Extends Component

@@ -368,12 +368,12 @@ Namespace My
 	#ifndef __USE_GTK__
 		Function Application.EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
 			Dim As My.Sys.Forms.Control Ptr AControl
-			Dim As Application Ptr App
-			App = Cast(Application Ptr, lData)
+			Dim As Application Ptr Appl
+			Appl = Cast(Application Ptr, lData)
 			AControl = Cast(My.Sys.Forms.Control Ptr, GetWindowLongPtr(FWindow,GWLP_USERDATA))
-			If App Then
+			If Appl Then
 				If AControl Then
-					With QApplication(App)
+					With QApplication(Appl)
 						.FFormCount += 1
 						.FForms = Reallocate_(.FForms,SizeOf(My.Sys.Forms.Control)*.FFormCount)
 						.FForms[.FFormCount -1] = AControl
@@ -385,7 +385,7 @@ Namespace My
 	#endif
 	
 	Sub Application.GetForms
-		FForms = 0 'CAllocate_(0)
+		'FForms = 0 'CAllocate_(0)
 		FFormCount = 0
 		#ifndef __USE_GTK__
 			EnumThreadWindows GetCurrentThreadID, Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@This)
@@ -404,7 +404,7 @@ Namespace My
 	
 	Sub Application.GetControls
 		Dim As Integer i
-		FControls = 0 ' CAllocate_(0)
+		'FControls = 0 ' CAllocate_(0)
 		FControlCount = 0
 		For i = 0 To FormCount -1
 			EnumControls(*Forms[i])
@@ -636,6 +636,7 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 	'    For i As Integer = 0 To App.FormCount -1
 	'        If App.Forms[i]->Handle Then App.Forms[i]->Enabled = True
 	'    Next i
+	WDeallocate FCaption
 	Return Result
 End Function
 

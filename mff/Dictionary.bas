@@ -172,7 +172,7 @@ Sub Dictionary.LoadFromFile(ByRef FileName As WString)
 				Posi=InStr(Buff,WChr(9))
 				If Posi>0 Then Add Left(Buff,Posi), Trim(Mid(Buff,Posi+2))
 			End If
-		WEnd
+		Wend
 	End If
 	Close #Fn
 End Sub
@@ -218,8 +218,9 @@ Constructor Dictionary
 End Constructor
 
 Destructor Dictionary
-	For i As Integer = Count - 1 To 0 Step -1
-		Delete_( Cast(DictionaryItem Ptr, FItems.Items[i]))
-	Next i
-	FItems.Clear
+'	For i As Integer = Count - 1 To 0 Step -1
+'		Delete_( Cast(DictionaryItem Ptr, FItems.Items[i]))
+'	Next i
+'	FItems.Clear
+	This.Clear
 End Destructor
