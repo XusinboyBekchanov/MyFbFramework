@@ -29,7 +29,7 @@ Namespace My.Sys.Forms
 	
 	Constructor WebBrowser
 		With This
-			WLet FClassName, "WebBrowser"
+			WLet(FClassName, "WebBrowser")
 			FTabStop           = True
 			'WLet FClassAncestor, "ReBarWindow32"
 			#ifndef __USE_GTK__

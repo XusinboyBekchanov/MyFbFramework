@@ -171,7 +171,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TabPage.Text(ByRef Value As WString)
-		WLet FCaption, Value
+		WLet(FCaption, Value)
 		#ifdef __USE_GTK__
 			If gtk_is_label(_Label) Then
 				gtk_label_set_text(gtk_Label(_Label), ToUTF8(Value))
@@ -215,7 +215,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TabPage.ImageKey(ByRef Value As WString)
-		WLet FImageKey, Value
+		WLet(FImageKey, Value)
 		Update
 	End Property
 	
@@ -239,8 +239,8 @@ Namespace My.Sys.Forms
 		'Anchor.Top = asAnchor
 		'Anchor.Right = asAnchor
 		'Anchor.Bottom = asAnchor
-		WLet FClassName, "TabPage"
-		WLet FClassAncestor, "Panel"
+		WLet(FClassName, "TabPage")
+		WLet(FClassAncestor, "Panel")
 		Child = @This
 		#ifdef __USE_GTK__
 			This.RegisterClass "TabPage", @This
@@ -725,7 +725,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Dim As TCITEMW Ti
 				Dim As WString Ptr St
-				WLet St, tp->Caption
+				WLet(St, tp->Caption)
 				Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 				Ti.pszText    = St
 				Ti.cchTextMax = Len(tp->Caption)
@@ -858,7 +858,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Dim As TCITEMW Ti
 				Dim As WString Ptr St
-				WLet St, tp->Caption
+				WLet(St, tp->Caption)
 				Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 				Ti.pszText    = St
 				Ti.cchTextMax = Len(tp->Caption)
@@ -901,10 +901,10 @@ Namespace My.Sys.Forms
 				g_signal_connect(gtk_notebook(widget), "switch-page", G_CALLBACK(@TabControl_SwitchPage), @This)
 				.RegisterClass "TabControl", @This
 			#else
-				WLet FClassAncestor, "SysTabControl32"
+				WLet(FClassAncestor, "SysTabControl32")
 				.RegisterClass "TabControl", "SysTabControl32"
 			#endif
-			WLet FClassName, "TabControl"
+			WLet(FClassName, "TabControl")
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.ChildProc   = @WndProc

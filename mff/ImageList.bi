@@ -58,6 +58,7 @@ Namespace My.Sys.Forms
 		FBKColor      As Integer
 		FCount        As Integer
 		FKeys            As WStringList
+		FBMP			As My.Sys.Drawing.BitmapType
 		Declare Sub Create
 		Declare Sub NotifyWindow
 	Public:

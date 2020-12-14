@@ -24,6 +24,7 @@ Namespace My.Sys.Forms
 	
 	Destructor ToolGroup
 		WDeallocate FCaption
+		WDeallocate FName
 	End Destructor
 	
 	Property ToolGroup.CommandID As Integer
@@ -57,7 +58,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolGroup.Caption(ByRef Value As WString)
-		WLet FCaption, Value
+		WLet(FCaption, Value)
 		#ifdef __USE_GTK__
 			gtk_tool_item_group_set_label(gtk_tool_item_group(widget), ToUTF8(Value))
 		#endif
@@ -68,7 +69,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolGroup.Name(ByRef Value As WString)
-		WLet FName, Value
+		WLet(FName, Value)
 	End Property
 	
 	Property ToolGroup.Expanded As Boolean
@@ -772,8 +773,8 @@ Namespace My.Sys.Forms
 				.RegisterClass "ToolPalette", "ToolBarWindow32"
 			#endif
 			.Child             = @This
-			WLet FClassName, "ToolPalette"
-			WLet FClassAncestor, "ToolBarWindow32"
+			WLet(FClassName, "ToolPalette")
+			WLet(FClassAncestor, "ToolBarWindow32")
 			.Width             = 121
 			.Height            = 26
 			'.Font              = @Font

@@ -18,7 +18,7 @@ Property WStringListItem.Value ByRef As WString
 End Property
 
 Property WStringListItem.Value(ByRef V As WString)
-	WLet FValue, V
+	WLet(FValue, V)
 End Property
 
 Operator WStringListItem.Cast As Any Ptr
@@ -34,7 +34,7 @@ Operator WStringListItem.Let(V As Any Ptr)
 End Operator
 
 Operator WStringListItem.Let(ByRef V As WString)
-	WLet FValue, V
+	WLet(FValue, V)
 End Operator
 
 Constructor WStringListItem
@@ -59,25 +59,25 @@ Property WStringList.Count(Value As Integer)
 End Property
 
 Property WStringList.Text ByRef As WString
-	WLet FText, ""
+	WLet(FText, "")
 	For i As Integer = 0 To FCount -1
 		If i <> FCount -1 Then
-			WLet FText, *FText & Item(i) & Chr(13) & Chr(10)
+			WLet(FText, *FText & Item(i) & Chr(13) & Chr(10))
 		Else
-			WLet FText, *FText & Item(i)
+			WLet(FText, *FText & Item(i))
 		End If
 	Next i
 	Return *FText
 End Property
 
 Property WStringList.Text(ByRef Value As WString)
-	WLet FText, ""
+	WLet(FText, "")
 	This.Clear
 	For i As Integer = 0 To Len(Value)
-		WLet FText, *FText & WChr(Value[i])
+		WLet(FText, *FText & WChr(Value[i]))
 		If Value[i] = 10 Or Value[i] = 0 Then
-			Add Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13))
-			WLet FText, ""
+			This.Add Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13))
+			WLet(FText, "")
 		End If
 	Next i
 End Property

@@ -30,8 +30,8 @@ Namespace My.Sys.Forms
 	
 	Constructor NativeFontControl
 		With This
-			WLet FClassName, "NativeFontControl"
-			WLet FClassAncestor, "NativeFontCtl"
+			WLet(FClassName, "NativeFontControl")
+			WLet(FClassAncestor, "NativeFontCtl")
 			#IfNDef __USE_GTK__
 				.RegisterClass "NativeFontControl","NativeFontCtl"
 				.Style        = WS_CHILD

@@ -208,11 +208,11 @@ Namespace My.Sys.Forms
 				Perform(CB_GETLBTEXT, FIndex, CInt(FItemText))
 				Return *FItemText
 			Else
-				WLet FItemText, Items.Item(FIndex)
+				WLet(FItemText, Items.Item(FIndex))
 				Return *FItemText
 			End If
 		#else
-			WLet FItemText, Items.Item(FIndex)
+			WLet(FItemText, Items.Item(FIndex))
 			Return *FItemText
 		#endif
 	End Property
@@ -582,8 +582,8 @@ Namespace My.Sys.Forms
 			.Child          = @This
 			'.ChildProc     = @WindowProc
 			'ComboBoxEdit.RegisterClass
-			WLet FClassName, "ComboBoxEdit"
-			WLet FClassAncestor, "ComboBox"
+			WLet(FClassName, "ComboBoxEdit")
+			WLet(FClassAncestor, "ComboBox")
 			#ifndef __USE_GTK__
 				Base.RegisterClass "ComboBoxEdit", "ComboBox"
 				.ExStyle       = 0

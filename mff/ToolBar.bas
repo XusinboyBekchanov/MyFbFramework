@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 	Property ToolButton.Caption(ByRef Value As WString)
 		Dim As Integer i
 		If Value <> *FCaption Then
-			WLet FCaption, Value
+			WLet(FCaption, Value)
 			#ifndef __USE_GTK__
 				Dim As TBBUTTON TB
 				If Ctrl Then
@@ -81,7 +81,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolButton.Name(ByRef Value As WString)
-		WLet FName, Value
+		WLet(FName, Value)
 	End Property
 	
 	Property ToolButton.Hint ByRef As WString
@@ -123,7 +123,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolButton.ImageKey(ByRef Value As WString)
-		WLet FImageKey, Value
+		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If GTK_IS_TOOL_BUTTON(Widget) Then gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(Widget), Value)
 		#else
@@ -343,7 +343,7 @@ Namespace My.Sys.Forms
 	Constructor ToolButton
 		FHint = 0 'CAllocate_(0)
 		FCaption = 0 'CAllocate_(0)
-		WLet FClassName, "ToolButton"
+		WLet(FClassName, "ToolButton")
 		FStyle      = tbsButton
 		FEnabled    = 1
 		FVisible    = 1
@@ -805,8 +805,8 @@ Namespace My.Sys.Forms
 				.RegisterClass "ToolBar", "ToolBarWindow32"
 			#endif
 			.Child             = @This
-			WLet FClassName, "ToolBar"
-			WLet FClassAncestor, "ToolBarWindow32"
+			WLet(FClassName, "ToolBar")
+			WLet(FClassAncestor, "ToolBarWindow32")
 			.Width             = 121
 			#ifdef __USE_GTK__
 				.Height            = 30

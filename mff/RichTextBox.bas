@@ -384,11 +384,11 @@ Namespace My.Sys.Forms
 				.RegisterClass "RichTextBox", "RichEdit20W"
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ChildProc		= @WndProc
-				WLet .FClassAncestor, "RichEdit20W"
+				WLet(.FClassAncestor, "RichEdit20W")
 			#endif
 			.FHideSelection    = False
 			FTabStop           = True
-			WLet .FClassName, "RichTextBox"
+			WLet(.FClassName, "RichTextBox")
 			.Child       = @This
 			.DoubleBuffered = True
 			.Width       = 121

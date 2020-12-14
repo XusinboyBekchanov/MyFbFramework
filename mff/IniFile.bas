@@ -16,7 +16,7 @@ Property IniFile.File ByRef As WString
 End Property
 
 Property IniFile.File(ByRef Value As WString)
-	WLet FFile, Value
+	WLet(FFile, Value)
 End Property
 
 Property IniFile.SectionCount As Integer
@@ -88,7 +88,7 @@ End Function
 Sub IniFile.Load(ByRef FileName As WString = "")
 
 	Dim Result As Integer=-1 'David Change
-	If FileName <> "" Then WLet FFile, FileName
+	If FileName <> "" Then WLet(FFile, FileName)
 	FLines.Clear
 	Dim As Integer Fn =FreeFile
 	'If Open(FileName For Input Encoding "utf-8" As #Fn) = 0 Then 'Line Input Not working fine in Ver 1.07 David Change
@@ -346,9 +346,9 @@ Constructor IniFile
 		For i = 0 To Len(Tx)
 			If Tx[i] = Asc(".") Then k = i +1
 		Next i
-		Wlet FFile, Mid(Tx, 1, k - 1) + ".ini"
+		Wlet(FFile, Mid(Tx, 1, k - 1) + ".ini")
 	#else
-		Wlet FFile, "Config.ini" 'David Change for hanging in linux
+		Wlet(FFile, "Config.ini") 'David Change for hanging in linux
 	#endif
 End Constructor
 

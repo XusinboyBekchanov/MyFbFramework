@@ -326,8 +326,8 @@ Namespace My.Sys.Forms
 				.BackColor     = GetSysColor(COLOR_BTNFACE)
 				'.DoubleBuffered = True
 			#endif
-			WLet FClassName, "Splitter"
-			WLet FClassAncestor, ""
+			WLet(FClassName, "Splitter")
+			WLet(FClassAncestor, "")
 			.Width     = 3
 			.Align     = 1
 		End With

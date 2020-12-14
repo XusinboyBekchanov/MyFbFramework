@@ -15,5 +15,5 @@ Function PrintPreviewDialog.Execute As Boolean
 End Function
 
 Constructor PrintPreviewDialog
-	WLet FClassName, "PrintPreviewDialog"
+	WLet(FClassName, "PrintPreviewDialog")
 End Constructor

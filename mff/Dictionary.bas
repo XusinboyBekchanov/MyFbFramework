@@ -18,7 +18,7 @@ Property DictionaryItem.Key ByRef As WString
 End Property
 
 Property DictionaryItem.Key(ByRef V As WString)
-	WLet FKey, V
+	WLet(FKey, V)
 End Property
 
 Property DictionaryItem.Text ByRef As WString
@@ -26,7 +26,7 @@ Property DictionaryItem.Text ByRef As WString
 End Property
 
 Property DictionaryItem.Text(ByRef V As WString)
-	WLet FText, V
+	WLet(FText, V)
 End Property
 
 Constructor DictionaryItem

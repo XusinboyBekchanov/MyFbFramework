@@ -613,11 +613,11 @@ Namespace My.Sys.Forms
 			FBorderStyle       = 1
 			'Items.Parent       = @This
 			
-			WLet FClassName, "ListControl"
+			WLet(FClassName, "ListControl")
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "ListControl", "ListBox"
-				WLet FClassAncestor, "ListBox"
+				WLet(FClassAncestor, "ListBox")
 				.ChildProc   = @WndProc
 				.ExStyle     = ABorderExStyle(Abs_(FCtl3D))
 				Base.Style       = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FColumns)) Or AIntegralHeight(Abs_(FIntegralHeight))

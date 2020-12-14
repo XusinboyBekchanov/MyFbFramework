@@ -1,3 +1,13 @@
+Version 1.2.6 (December 14, 2020)
+- Added: UserControl type
+- Changed: KeyExists function to Public
+- Added: Designer property to My.Sys.Object
+- Added: DraggedNode function to TreeView
+- Added: FBMemCheck.bi to check memory leaks
+- Fixed: MemLeaks
+- Fixed: ListView View property
+- Fixed: SaveFileDialog FilterIndex function
+- Fixed: Text Property of Control
 Version 1.2.5 (August 2, 2020)
 - Added: ActivateApp And DeActivateApp events to Form
 - Added: KeyRemove Function in IniFile

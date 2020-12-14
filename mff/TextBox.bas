@@ -321,7 +321,7 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				Dim As Integer lThisChar = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 				Dim As Integer lChar = SendMessage(FHandle, em_linelength, lThisChar, 0)
-				WLet FLine, WSpace(lChar)
+				WLet(FLine, WSpace(lChar))
 				Mid(*FLine, 1, 1) = WChr(lChar And &HFF)
 				Mid(*FLine, 2, 1) = WChr(lChar \ &H100)
 				SendMessage(FHandle, em_getline, Index, CInt(FLine))
@@ -551,9 +551,9 @@ Namespace My.Sys.Forms
 				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_insert_at_cursor(buffer, ToUTF8(Value), -1)
-				buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
-				gtk_text_buffer_get_selection_bounds(buffer, @_start, @_end)
-				gtk_text_view_scroll_to_iter(gtk_text_view(Widget), @_end, 0, False, 0, 0)
+'				buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+'				gtk_text_buffer_get_selection_bounds(buffer, @_start, @_end)
+'				gtk_text_view_scroll_to_iter(gtk_text_view(Widget), @_end, 0, False, 0, 0)
 			Else
 				'gtk_editable_get_position(gtk_editable(widget))
 				
@@ -790,8 +790,8 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 				.RegisterClass "TextBox", "Edit"
 			#endif
-			WLet FClassName, "TextBox"
-			WLet FClassAncestor, "Edit"
+			WLet(FClassName, "TextBox")
+			WLet(FClassAncestor, "Edit")
 			.Child       = @This
 			.Width       = 121
 			.Height      = ScaleY(Font.Size /72*96+6) '21

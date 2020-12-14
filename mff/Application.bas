@@ -20,7 +20,7 @@ Namespace My
 	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "mainform": Return @FMainForm
-		Case "version": WLet FTemp, WStr(Version): Return FTemp
+		Case "version": WLet(FTemp, WStr(Version)): Return FTemp
 		Case "title": Title: Return FTitle
 		Case "filename": Return @This.FileName
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -67,13 +67,13 @@ Namespace My
 		If FTitle = 0 Then
 			#ifdef __USE_GTK__
 				If MainForm Then
-					WLet FTitle, MainForm->Text
+					WLet(FTitle, MainForm->Text)
 					Return *FTitle
 				End If
 			#else
 				For i As Integer = 0 To FormCount -1
 					If (GetWindowLong(Forms[i]->Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
-						WLet FTitle, Forms[i]->Text
+						WLet(FTitle, Forms[i]->Text)
 						Return *FTitle
 					End If
 				Next i
@@ -84,7 +84,7 @@ Namespace My
 	End Property
 	
 	Property Application.Title(ByRef Value As WString)
-		WLet FTitle, Value
+		WLet(FTitle, Value)
 	End Property
 	
 	Property Application.ExeName ByRef As WString
@@ -99,8 +99,8 @@ Namespace My
 			If s[i] = Asc("\") Then k = i
 		Next i
 		En = Mid(s, k + 2, Len(s))
-		WLet FFileName, s
-		WLet FExeName, Mid(En, 1, InStr(En, ".") - 1)
+		WLet(FFileName, s)
+		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
 		Return *FExeName
 	End Property
 	
@@ -116,7 +116,7 @@ Namespace My
 			Dim As WString * 255 Tx
 			L = GetModuleFileName(GetModuleHandle(NULL), @Tx, 255 - 1)
 		#endif
-		WLet FFileName, Left(Tx, L)
+		WLet(FFileName, Left(Tx, L))
 		Return *FFileName
 	End Property
 	
@@ -537,9 +537,9 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 	Dim As Integer Result = -1
 	Dim As WString Ptr FCaption
 	Dim As Integer MsgTypeIn, ButtonsTypeIn
-	WLet FCaption, Caption
+	WLet(FCaption, Caption)
 	Dim As My.Sys.Forms.Control Ptr ActiveForm
-	If *FCaption = "" Then WLet FCaption, App.Title
+	If *FCaption = "" Then WLet(FCaption, App.Title)
 	'    For i As Integer = 0 To App.FormCount -1
 	'        If GetActiveWindow = App.Forms[i]->Handle Then ActiveForm = App.Forms[i]
 	'        If App.Forms[i]->Handle Then App.Forms[i]->Enabled = False
@@ -602,9 +602,10 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 		End Select
 		gtk_widget_destroy (dialog)
 	#else
-		If App.MainForm Then
-			Wnd = App.MainForm->Handle
-		End If
+'		Wnd = GetActiveWindow()
+'		If App.MainForm <> 0 Then
+'			Wnd = App.MainForm->Handle
+'		End If
 		Select Case MsgType
 		Case mtInfo: MsgTypeIn = MB_ICONINFORMATION
 		Case mtWarning: MsgTypeIn = MB_ICONEXCLAMATION
@@ -619,7 +620,7 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 		Case btYesNoCancel: ButtonsTypeIn = MB_YESNOCANCEL
 		Case btOkCancel: ButtonsTypeIn = MB_OKCANCEL
 		End Select
-		Result = MessageBox(wnd, @MsgStr, FCaption, MsgTypeIn Or ButtonsTypeIn Or MB_TOPMOST Or MB_TASKMODAL)
+		Result = MessageBox(0, @MsgStr, FCaption, MsgTypeIn Or ButtonsTypeIn Or MB_TOPMOST Or MB_TASKMODAL)
 		Select Case Result
 		Case IDABORT: Result = mrAbort
 		Case IDCANCEL: Result = mrCancel

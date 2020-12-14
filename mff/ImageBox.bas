@@ -112,8 +112,10 @@ Namespace My.Sys.Forms
 		
 		Sub ImageBox.WndProc(ByRef Message As Message)
 		End Sub
+	#endif
 		
-		Sub ImageBox.ProcessMessage(ByRef Message As Message)
+	Sub ImageBox.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -141,9 +143,9 @@ Namespace My.Sys.Forms
 				Else
 				End If
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Operator ImageBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
@@ -177,8 +179,8 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
-			WLet FClassName, "ImageBox"
-			WLet FClassAncestor, "Static"
+			WLet(FClassName, "ImageBox")
+			WLet(FClassAncestor, "Static")
 			.Width       = 90
 			.Height      = 17
 		End With

@@ -40,7 +40,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Property Icon.ResName(ByRef Value As WString)
-		WLet FResName, Value
+		WLet(FResName, Value)
 	End Property
 	
 	Property Icon.Width As Integer
@@ -197,7 +197,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Constructor Icon
-		WLet FClassName, "Icon"
+		WLet(FClassName, "Icon")
 	End Constructor
 	
 	Destructor Icon

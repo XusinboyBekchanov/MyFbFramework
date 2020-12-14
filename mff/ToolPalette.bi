@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 		tpsBothHorizontal
 	End Enum
 	
-	Type ToolGroupButtons
+	Type ToolGroupButtons Extends Object
 	Private:
 		FButtons As List
 	Public:

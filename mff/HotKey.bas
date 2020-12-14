@@ -61,8 +61,8 @@ Namespace My.Sys.Forms
 	
 	Constructor HotKey
 		With This
-			WLet FClassName, "HotKey"
-			WLet FClassAncestor, "msctls_hotkey32"
+			WLet(FClassName, "HotKey")
+			WLet(FClassAncestor, "msctls_hotkey32")
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.RegisterClass "HotKey","msctls_hotkey32"

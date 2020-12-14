@@ -4,9 +4,9 @@ Constructor UString()
 	m_Length = 0
 	m_BytesCount = SizeOf(WString)
 	m_Data = CAllocate_(SizeOf(WString))
-'	If m_Data <> 0 Then
-'		m_Data[0] = 0
-'	End If
+	If m_Data <> 0 Then
+		m_Data[0] = 0
+	End If
 End Constructor
 
 Constructor UString(ByRef Value As WString)

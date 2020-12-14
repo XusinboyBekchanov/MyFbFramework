@@ -441,8 +441,8 @@ Namespace My.Sys.Forms
 		FTabStop           = True
 		'Items.Parent       = @This
 		With This
-			WLet FClassName, "CheckedListBox"
-			WLet FClassAncestor, "ListBox"
+			WLet(FClassName, "CheckedListBox")
+			WLet(FClassAncestor, "ListBox")
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "CheckedListBox", "ListBox"

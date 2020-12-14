@@ -32,9 +32,9 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			SIF         	As SCROLLINFO
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Property Style As ScrollBarControlStyle
 		Declare Property Style(Value As ScrollBarControlStyle)
@@ -51,11 +51,11 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnCnange As Sub(BYREF Sender As ScrollBarControl)
-		OnScroll As Sub(BYREF Sender As ScrollBarControl, ByRef NewPos As Integer)
+		OnCnange As Sub(ByRef Sender As ScrollBarControl)
+		OnScroll As Sub(ByRef Sender As ScrollBarControl, ByRef NewPos As Integer)
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ScrollBarControl.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ScrollBarControl.bas"
+#endif

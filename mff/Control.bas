@@ -16,12 +16,12 @@
 Namespace My.Sys.Forms
 	#ifndef Control_Off
 		Function SizeConstraints.ToString ByRef As WString '...'
-			WLet FTemp, This.Left & "; " & This.Top & "; " & This.Width & "; " & This.Height
+			WLet(FTemp, This.Left & "; " & This.Top & "; " & This.Width & "; " & This.Height)
 			Return *FTemp
 		End Function
 		
 		Function AnchorType.ToString ByRef As WString
-			WLet FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom
+			WLet(FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom)
 			Return *FTemp
 		End Function
 		
@@ -1921,8 +1921,8 @@ Namespace My.Sys.Forms
 		End Operator
 		
 		Constructor Control
-			WLet FClassName, "Control"
-			WLet FClassAncestor, ""
+			WLet(FClassName, "Control")
+			WLet(FClassAncestor, "")
 			Text = ""
 			FLeft = 0
 			FTop = 0

@@ -40,9 +40,9 @@ Namespace My.Sys.Forms
 	
 	Property HScrollBar.Position(Value As Integer)
 		FPosition = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
-		#EndIf
+		#endif
 	End Property
 	
 	Property HScrollBar.ArrowChangeSize As Integer
@@ -60,15 +60,15 @@ Namespace My.Sys.Forms
 	Property HScrollBar.PageSize(Value As Integer)
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
 			If Handle Then Perform(SBM_SETSCROLLINFO, True, CInt(@SIF))
-		#EndIf
+		#endif
 	End Property
 	
-	#IfNDef __USE_GTK__
-		Sub HScrollBar.HandleIsAllocated(BYREF Sender As Control)
+	#ifndef __USE_GTK__
+		Sub HScrollBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QHScrollBar(Sender.Child)
 					.MinValue = .MinValue
@@ -79,10 +79,12 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub HScrollBar.WndProc(BYREF Message As Message)
+		Sub HScrollBar.WndProc(ByRef Message As Message)
 		End Sub
+	#endif
 		
-		Sub HScrollBar.ProcessMessage(BYREF Message As Message)
+	Sub HScrollBar.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Static As Integer OldPos
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -93,15 +95,15 @@ Namespace My.Sys.Forms
 				'            #ENDIF
 				Message.Result = 0
 			Case CM_CREATE
-				sif.cbSize = sizeof(sif)
+				sif.cbSize = SizeOf(sif)
 				sif.fMask  = SIF_RANGE Or SIF_PAGE
 				sif.nMin   = FMin
 				sif.nMax   = FMax
 				sif.nPage  = FPageSize
-				SetScrollInfo(FHandle, SB_CTL, @sif, TRUE)
+				SetScrollInfo(FHandle, SB_CTL, @sif, True)
 			Case CM_HSCROLL, CM_VSCROLL
-				Var lo = Loword(Message.wParam)
-				sif.cbSize = sizeof(sif)
+				Var lo = LoWord(Message.wParam)
+				sif.cbSize = SizeOf(sif)
 				sif.fMask  = SIF_ALL
 				GetScrollInfo (FHandle, SB_CTL, @sif)
 				OldPos = sif.nPos
@@ -122,7 +124,7 @@ Namespace My.Sys.Forms
 					sif.nPos = sif.nTrackPos
 				End Select
 				sif.fMask = SIF_POS
-				SetScrollInfo(FHandle, SB_CTL, @sif, TRUE)
+				SetScrollInfo(FHandle, SB_CTL, @sif, True)
 				GetScrollInfo(FHandle, SB_CTL, @sif)
 				If (Not sif.nPos = OldPos) Then
 					If OnScroll Then
@@ -130,9 +132,9 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End Select
-			Base.ProcessMessage(message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(message)
+	End Sub
 	
 	Operator HScrollBar.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
@@ -158,8 +160,8 @@ Namespace My.Sys.Forms
 				Base.Style       = WS_CHILD Or SB_HORZ
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
-			WLet FClassName, "HScrollBar"
-			WLet FClassAncestor, "ScrollBar"
+			WLet(FClassName, "HScrollBar")
+			WLet(FClassAncestor, "ScrollBar")
 			.Width       = 121
 			.Height      = 17
 		End With

@@ -23,7 +23,7 @@ Namespace My.Sys.Forms
 	Property GridItem.Text(iSubItem As Integer) ByRef As WString
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				WReallocate FText, 255
+				WReallocate(FText, 255)
 				Dim lvi As LVITEM
 				lvi.Mask = LVIF_TEXT
 				lvi.iItem = Index
@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property GridItem.Text(iSubItem As Integer, ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvi As LVITEM
@@ -57,7 +57,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property GridItem.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	
@@ -137,7 +137,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property GridColumn.Text(ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
@@ -188,7 +188,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property GridColumn.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	Property GridColumn.ImageIndex As Integer
@@ -640,9 +640,9 @@ Namespace My.Sys.Forms
 				.RegisterClass "Grid", WC_ListView
 			#endif
 			.Child             = @This
-			WLet FClassName, "Grid"
+			WLet(FClassName, "Grid")
 			#ifndef __USE_GTK__
-				WLet FClassAncestor, WC_ListView
+				WLet(FClassAncestor, WC_ListView)
 			#endif
 			.Width             = 121
 			.Height            = 121

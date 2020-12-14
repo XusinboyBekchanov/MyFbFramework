@@ -215,7 +215,7 @@ Namespace My.Sys.Forms
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
 			Return IMIF.hbmImage 'BMP->Handle =
 		#else
-			Return 0
+			Return FBMP
 		#endif
 		'Return *BMP
 	End Function
@@ -228,7 +228,7 @@ Namespace My.Sys.Forms
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
 			Return IMIF.hbmMask 'BMP->Handle =
 		#else
-			Return 0
+			Return FBMP
 		#endif
 		'Return *BMP
 	End Function
@@ -295,7 +295,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor ImageList
-		WLet FClassName, "ImageList"
+		WLet(FClassName, "ImageList")
 		AllocBy = 4
 		FWidth  = 16
 		FHeight = 16

@@ -29,7 +29,7 @@ Namespace My.Sys.Forms
 	
 	Constructor Chart
 		With This
-			WLet FClassName, "Chart"
+			WLet(FClassName, "Chart")
 			'WLet FClassAncestor, "ReBarWindow32"
 			#ifndef __USE_GTK__
 				.RegisterClass "Chart" ',"ReBarWindow32"

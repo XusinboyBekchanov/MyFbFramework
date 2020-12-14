@@ -330,10 +330,10 @@ Namespace My.Sys.Forms
 				.ExStyle           = 0
 				Base.Style             = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMarks)) Or ASliderVisible(Abs_(FSliderVisible))
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
-				WLet FClassAncestor, TRACKBAR_CLASS
+				WLet(FClassAncestor, TRACKBAR_CLASS)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
-			WLet FClassName, "TrackBar"
+			WLet(FClassName, "TrackBar")
 			.Width             = 150
 			.Height            = 45
 		End With

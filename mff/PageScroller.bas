@@ -30,8 +30,8 @@ Namespace My.Sys.Forms
 	
 	Constructor PageScroller
 		With This
-			WLet FClassName, "PageScroller"
-			WLet FClassAncestor, "SysPager"
+			WLet(FClassName, "PageScroller")
+			WLet(FClassAncestor, "SysPager")
 			#IfNDef __USE_GTK__
 				.RegisterClass "PageScroller","SysPager"
 				.Style        = WS_CHILD

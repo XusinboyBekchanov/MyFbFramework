@@ -1,12 +1,11 @@
 ﻿'###############################################################################
-'#  mff.bi                                                                   #
+'#  mff.bi                                                                     #
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
 #define __USE_GTK3__
 #define __EXPORT_PROCS__
-
-#include once "../../../FBMemCheck/fbmemcheck.bi"
+#define MEMCHECK 0
 
 #include once "Animate.bi"
 #include once "Application.bi"
@@ -62,7 +61,6 @@
 #include once "RadioButton.bi"
 #include once "ReBar.bi"
 #include once "RichTextBox.bi"
-#include once "TabControl.bi"
 #include once "ScrollBarControl.bi"
 #include once "HScrollBar.bi"
 #include once "VScrollBar.bi"
@@ -137,7 +135,6 @@ Using My.Sys.Forms
 		Case "vscrollbar": Ctrl = New_( VScrollBar)
 		Case "splitter": Ctrl = New_( Splitter)
 		Case "statusbar": Ctrl = New_( StatusBar)
-		Case "tabcontrol": Ctrl = New_( TabControl)
 		Case "textbox": Ctrl = New_( TextBox)
 		Case "toolbar": Ctrl = New_( ToolBar)
 		Case "toolpalette": Ctrl = New_( ToolPalette)
@@ -175,7 +172,6 @@ Using My.Sys.Forms
 		Case "printdialog": Cpnt = New_( PrintDialog)
 		Case "printpreviewdialog": Cpnt = New_( PrintPreviewDialog)
 		Case "printer": Cpnt = New_( Printer)
-		Case "tooltips": Cpnt = New_( ToolTips)
 		Case Else: Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
 		End Select
 		If Cpnt Then
@@ -242,7 +238,6 @@ Using My.Sys.Forms
 		Case "vscrollbar": Delete_( Cast(VScrollBar Ptr, Ctrl))
 		Case "splitter": Delete_( Cast(Splitter Ptr, Ctrl))
 		Case "statusbar": Delete_( Cast(StatusBar Ptr, Ctrl))
-		Case "tabcontrol": Delete_( Cast(TabControl Ptr, Ctrl))
 		Case "textbox": Delete_( Cast(TextBox Ptr, Ctrl))
 		Case "toolbar": Delete_( Cast(ToolBar Ptr, Ctrl))
 		Case "toolpalette": Delete_( Cast(ToolPalette Ptr, Ctrl))
@@ -254,7 +249,6 @@ Using My.Sys.Forms
 		Case "usercontrol": Delete_( Cast(UserControl Ptr, Ctrl))
 		Case "imagelist": Delete_( Cast(ImageList Ptr, Ctrl))
 		Case "timercomponent": Delete_( Cast(TimerComponent Ptr, Ctrl))
-		Case "tooltips": Delete_( Cast(ToolTips Ptr, Ctrl))
 		Case "mainmenu": Delete_( Cast(MainMenu Ptr, Ctrl))
 		Case "popupmenu": Delete_( Cast(PopUpMenu Ptr, Ctrl))
 		Case "folderbrowserdialog": Delete_( Cast(FolderBrowserDialog Ptr, Ctrl))

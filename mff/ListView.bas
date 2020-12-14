@@ -82,7 +82,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListViewItem.Text(iSubItem As Integer, ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		If Parent Then
 			Dim ic As Integer = FSubItems.Count
 			Dim cc As Integer = Cast(ListView Ptr, Parent)->Columns.Count
@@ -166,7 +166,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListViewItem.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	
@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 	
 	Property ListViewItem.ImageKey(ByRef Value As WString)
 		'If Value <> *FImageKey Then
-		WLet FImageKey, Value
+		WLet(FImageKey, Value)
 		#IfDef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
@@ -231,7 +231,7 @@ Namespace My.Sys.Forms
 	
 	Property ListViewItem.SelectedImageKey(ByRef Value As WString)
 		'If Value <> *FSelectedImageKey Then
-		WLet FSelectedImageKey, Value
+		WLet(FSelectedImageKey, Value)
 		If Parent Then
 			With QControl(Parent)
 				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
@@ -285,7 +285,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListViewColumn.Text(ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
@@ -343,7 +343,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListViewColumn.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	
@@ -1128,9 +1128,9 @@ Namespace My.Sys.Forms
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
-				WLet FClassAncestor, WC_ListView
+				WLet(FClassAncestor, WC_ListView)
 			#endif
-			WLet FClassName, "ListView"
+			WLet(FClassName, "ListView")
 			.Width             = 121
 			.Height            = 121
 		End With

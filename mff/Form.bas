@@ -1114,8 +1114,8 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.ChildProc         = @WndProc
 			#endif
-			WLet FClassName, "Form"
-			WLet FClassAncestor, ""
+			WLet(FClassName, "Form")
+			WLet(FClassAncestor, "")
 			.OnActiveControlChanged = @ActiveControlChanged
 			#ifndef __USE_GTK__
 				.ExStyle           = WS_EX_CONTROLPARENT Or WS_EX_WINDOWEDGE 'FExStyle(FBorderStyle) OR FMainStyle(FMainForm)

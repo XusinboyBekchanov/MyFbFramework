@@ -78,22 +78,22 @@ Namespace My.Sys.Forms
 				With QCheckBox(Sender.Child)
 					.Perform(BM_SETCHECK, .Checked, 0)
 				End With
-			#EndIf
+			#endif
 		End If
 	End Sub
 	
-	#IfNDef __USE_GTK__
-		Sub CheckBox.WndProc(BYREF Message As Message)
+	#ifndef __USE_GTK__
+		Sub CheckBox.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'               Cast(CheckBox Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
 			'            End If
 			'        End If
 		End Sub
-	#EndIf
+	#endif
 	
-	#ifndef __USE_GTK__
-		Sub CheckBox.ProcessMessage(ByRef Message As Message)
+	Sub CheckBox.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -112,9 +112,9 @@ Namespace My.Sys.Forms
 					If OnClick Then OnClick(This)
 				End If
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Operator CheckBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
@@ -138,8 +138,8 @@ Namespace My.Sys.Forms
 				.RegisterClass "CheckBox", "Button"
 				.ChildProc              = @WndProc
 			#endif
-			WLet FClassName, "CheckBox"
-			WLet FClassAncestor, "Button"
+			WLet(FClassName, "CheckBox")
+			WLet(FClassAncestor, "Button")
 			FTabStop = True
 			#ifndef __USE_GTK__
 				.ExStyle                = 0

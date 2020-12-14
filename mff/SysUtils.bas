@@ -33,7 +33,7 @@
 	End Function
 #endif
 
-Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024) As UString
+Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
 	
 	#ifdef UNICODE
 		Dim ErrorString         As WString Ptr
@@ -42,12 +42,20 @@ Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024) 
 	#endif
 	Dim sError              As String
 	
+	If Code = 0 AndAlso WithCode Then Return "e: " & Str(Code)
+	
 	#ifdef __USE_GTK__
 	#else
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM Or FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, Code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), ErrorString, MaxLen, NULL)
 		If (ErrorString <> 0) Then
-			Return *ErrorString
+			If WithCode Then
+				Return Str(Code) & " - " & *ErrorString
+			Else
+				Return *ErrorString
+			End If
 			LocalFree(ErrorString)
+		ElseIf WithCode Then
+			Return "e: " & Str(Code)
 		End If
 	#endif
 	Return sError
@@ -81,7 +89,7 @@ End Function
 
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
-	'#define WLet(subject, txt, ExistsSubjectInTxt) If ExistsSubjectInTxt Then: Dim TempWStr As WString Ptr: WLet TempWStr, txt: WLet subject, *TempWStr: WDeallocate TempWStr: Else: WReAllocate subject, Len(txt): *subject = txt: End If
+	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
 #else
 	Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -96,13 +104,18 @@ End Function
 			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		End If
 	End Sub
+
+	Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
+		WReAllocate(subject, Len(txt))
+		*subject = txt
+	End Sub
 #endif
 
-Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = False)
+Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
 	If ExistsSubjectInTxt Then
 		Dim TempWStr As WString Ptr
-		WLet TempWStr, txt
-		WLet subject, *TempWStr
+		WLet(TempWStr, txt)
+		WLet(subject, *TempWStr)
 		WDeallocate TempWStr
 	Else
 		WReAllocate(subject, Len(txt))
@@ -113,11 +126,11 @@ End Sub
 Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 	Dim TempWStr As WString Ptr
 	If AddBefore Then
-		WLet TempWStr, txt & WGet(subject)
+		WLet(TempWStr, txt & WGet(subject))
 	Else
-		WLet TempWStr, WGet(subject) & txt
+		WLet(TempWStr, WGet(subject) & txt)
 	End If
-	WLet subject, *TempWStr
+	WLet(subject, *TempWStr)
 	WDeallocate TempWStr
 End Sub
 
@@ -127,7 +140,7 @@ Namespace ClassContainer
 	End Property
 	
 	Property ClassType.ClassName(ByRef Value As WString)
-		WLet FClassName, Value
+		WLet(FClassName, Value)
 	End Property
 	
 	Property ClassType.ClassAncestor ByRef As WString
@@ -135,7 +148,7 @@ Namespace ClassContainer
 	End Property
 	
 	Property ClassType.ClassAncestor(ByRef Value As WString)
-		WLet FClassAncestor, Value
+		WLet(FClassAncestor, Value)
 	End Property
 	
 	Constructor ClassType
@@ -252,7 +265,7 @@ Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
 	Dim buffer As WString Ptr
-	WLet buffer, WString(m_BufferLen * 5 + 1, 0)
+	WLet(buffer, WString(m_BufferLen * 5 + 1, 0))
 	'WReallocate buffer, m_BufferLen * 5 + 1
 	Return WGet(UTFToWChar(1, pZString, buffer, @cbLen))
 End Function
@@ -467,7 +480,7 @@ Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Con
 			If PositionEnd > PositionStart Then
 				n = n + 1
 				ReDim Preserve Result(n - 1)
-				WLet Result(n - 1), Mid(wszMainStr, PositionStart, PositionEnd - PositionStart)
+				WLet(Result(n - 1), Mid(wszMainStr, PositionStart, PositionEnd - PositionStart))
 			End If
 		End If
 	Loop Until (PositionStart < 1 Or PositionEnd < 1)

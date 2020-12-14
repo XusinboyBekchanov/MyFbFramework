@@ -19,9 +19,9 @@ Namespace My.Sys.Forms
 	
 	Property VScrollBar.MinValue(Value As Integer)
 		FMin = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
-		#EndIf
+		#endif
 	End Property
 	
 	Property VScrollBar.MaxValue As Integer
@@ -30,9 +30,9 @@ Namespace My.Sys.Forms
 	
 	Property VScrollBar.MaxValue(Value As Integer)
 		FMax = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
-		#EndIf
+		#endif
 	End Property
 	
 	Property VScrollBar.Position As Integer
@@ -41,9 +41,9 @@ Namespace My.Sys.Forms
 	
 	Property VScrollBar.Position(Value As Integer)
 		FPosition = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
-		#EndIf
+		#endif
 	End Property
 	
 	Property VScrollBar.ArrowChangeSize As Integer
@@ -65,11 +65,11 @@ Namespace My.Sys.Forms
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
 			If Handle Then Perform(SBM_SETSCROLLINFO, True, CInt(@SIF))
-		#EndIf
+		#endif
 	End Property
 	
-	#IfNDef __USE_GTK__
-		Sub VScrollBar.HandleIsAllocated(BYREF Sender As Control)
+	#ifndef __USE_GTK__
+		Sub VScrollBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QVScrollBar(Sender.Child)
 					.MinValue = .MinValue
@@ -80,10 +80,12 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub VScrollBar.WndProc(BYREF Message As Message)
+		Sub VScrollBar.WndProc(ByRef Message As Message)
 		End Sub
+	#endif
 		
-		Sub VScrollBar.ProcessMessage(BYREF Message As Message)
+	Sub VScrollBar.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Static As Integer OldPos
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -94,15 +96,15 @@ Namespace My.Sys.Forms
 				'            #ENDIF
 				Message.Result = 0
 			Case CM_CREATE
-				sif.cbSize = sizeof(sif)
+				sif.cbSize = SizeOf(sif)
 				sif.fMask  = SIF_RANGE Or SIF_PAGE
 				sif.nMin   = FMin
 				sif.nMax   = FMax
 				sif.nPage  = FPageSize
-				SetScrollInfo(FHandle, SB_CTL, @sif, TRUE)
+				SetScrollInfo(FHandle, SB_CTL, @sif, True)
 			Case CM_HSCROLL, CM_VSCROLL
-				Var lo = Loword(Message.wParam)
-				sif.cbSize = sizeof(sif)
+				Var lo = LoWord(Message.wParam)
+				sif.cbSize = SizeOf(sif)
 				sif.fMask  = SIF_ALL
 				GetScrollInfo (FHandle, SB_CTL, @sif)
 				OldPos = sif.nPos
@@ -123,7 +125,7 @@ Namespace My.Sys.Forms
 					sif.nPos = sif.nTrackPos
 				End Select
 				sif.fMask = SIF_POS
-				SetScrollInfo(FHandle, SB_CTL, @sif, TRUE)
+				SetScrollInfo(FHandle, SB_CTL, @sif, True)
 				GetScrollInfo(FHandle, SB_CTL, @sif)
 				If (Not sif.nPos = OldPos) Then
 					If OnScroll Then
@@ -131,37 +133,37 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End Select
-			Base.ProcessMessage(message)
-		End Sub
-	#EndIf
+		#endif
+		Base.ProcessMessage(message)
+	End Sub
 	
 	Operator VScrollBar.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	Constructor VScrollBar
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			widget = gtk_vscrollbar_new(NULL)
 			This.RegisterClass "VScrollBar", @This
-		#Else
-			SIF.cbSize = SizeOF(SCROLLINFO)
-		#EndIf
+		#else
+			SIF.cbSize = SizeOf(SCROLLINFO)
+		#endif
 		FMin       = 0
 		FMax       = 100
 		FPosition  = 0
 		PageSize   = 1
 		With This
 			.Child       = @This
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				.RegisterClass "VScrollBar", "ScrollBar"
 				.ChildProc   = @WndProc
 				.ExStyle     = 0
-				Base.Style       = WS_CHILD OR SB_VERT
+				Base.Style       = WS_CHILD Or SB_VERT
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
-			#EndIf
-			WLet FClassName, "VScrollBar"
-			WLet FClassAncestor, "ScrollBar"
+			#endif
+			WLet(FClassName, "VScrollBar")
+			WLet(FClassAncestor, "ScrollBar")
 			.Width       = 17
 			.Height      = 121
 		End With

@@ -63,7 +63,7 @@ Namespace My.Sys.Forms
 	
 	Constructor TimerComponent
 		Interval = 10
-		WLet FClassName, "TimerComponent"
+		WLet(FClassName, "TimerComponent")
 		FEnabled = False
 	End Constructor
 	

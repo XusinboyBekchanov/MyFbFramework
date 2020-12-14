@@ -53,7 +53,7 @@ Namespace My.Sys.Drawing
 	
 	Sub Font.Create
 		If WGet(FName) = "" Then
-			WLet FName, DefaultFont.Name
+			WLet(FName, DefaultFont.Name)
 			FSize = DefaultFont.Size
 		End If
 		#ifdef __USE_GTK__
@@ -97,7 +97,7 @@ Namespace My.Sys.Drawing
 				Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Widget)
 				Var pfd = WidgetStyle->font_desc
 			#endif
-			WLet FName, WStr(*pango_font_description_get_family(pfd))
+			WLet(FName, WStr(*pango_font_description_get_family(pfd)))
 			FSize = pango_font_description_get_size(pfd) / PANGO_SCALE
 		#else
 			Create
@@ -109,7 +109,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Property Font.Name(ByRef Value As WString)
-		WLet FName, value
+		WLet(FName, value)
 		Create
 	End Property
 	
@@ -195,13 +195,13 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Function Font.ToString ByRef As WString
-		WLet FTemp, This.Name & ", " & This.Size
+		WLet(FTemp, This.Name & ", " & This.Size)
 		Return *FTemp
 	End Function
 	
 	Operator Font.Let(Value As Font)
 		With Value
-			WLet FName, .Name
+			WLet(FName, .Name)
 			FBold      = .Bold
 			FItalic    = .Italic
 			FUnderline = .Underline
@@ -215,9 +215,9 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Constructor Font
-		WLet FClassName, "Font"
+		WLet(FClassName, "Font")
 		FCharSet  = FontCharset.Default
-		WLet FName, DefaultFont.Name
+		WLet(FName, DefaultFont.Name)
 		FSize     = DefaultFont.Size
 		#ifndef __USE_GTK__
 			Dim As HDC Dc

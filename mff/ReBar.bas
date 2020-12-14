@@ -30,8 +30,8 @@ Namespace My.Sys.Forms
 	
 	Constructor ReBar
 		With This
-			WLet FClassName, "ReBar"
-			WLet FClassAncestor, "ReBarWindow32"
+			WLet(FClassName, "ReBar")
+			WLet(FClassAncestor, "ReBarWindow32")
 			#IfNDef __USE_GTK__
 				.RegisterClass "ReBar","ReBarWindow32"
 				.Style        = WS_CHILD

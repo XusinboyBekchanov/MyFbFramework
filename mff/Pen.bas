@@ -88,7 +88,7 @@ Namespace My.Sys.Drawing
 		FMode  = pmCopy
 		FStyle = psSolid
 		Create
-		WLet FClassName, "Pen"
+		WLet(FClassName, "Pen")
 	End Constructor
 	
 	Destructor Pen

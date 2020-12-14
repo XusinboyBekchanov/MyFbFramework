@@ -36,13 +36,19 @@
 	#define __EXPORT__
 #endif
 
-#define In ,
+'#define In ,
 #macro Each(iter, arr)
 	index As Integer = LBound(arr) To UBound(arr)
 	#define iter arr(index)
 #endmacro
 
 #define Me This
+
+#ifdef __USE_GTK__
+	#define _L_ Print __LINE__, __FILE__, __FUNCTION__:
+#else
+	#define _L_ Print __LINE__, __FILE__, __FUNCTION__, GetErrorString(GetLastError, , True):
+#endif
 
 Const HELP_SETPOPUP_POS = &Hd
 
@@ -85,9 +91,11 @@ Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 
 #if MEMCHECK = 0
 	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+	
+	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
 #endif
 
-Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = False)
+Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
 
 Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 
@@ -153,7 +161,7 @@ Declare Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As C
 
 Declare Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString,Result() As WString Ptr, MatchCase As Boolean = True) As Long
 
-Declare Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024) As UString
+Declare Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
 
 #ifndef __USE_MAKE__
 	#include once "SysUtils.bas"

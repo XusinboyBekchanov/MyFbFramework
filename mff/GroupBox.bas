@@ -117,8 +117,8 @@ Namespace My.Sys.Forms
 				.RegisterClass "GroupBox", "Button"
 				.ChildProc   = @WndProc
 			#endif
-			WLet FClassName, "GroupBox"
-			WLet FClassAncestor, "Button"
+			WLet(FClassName, "GroupBox")
+			WLet(FClassAncestor, "Button")
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.ExStyle     = 0 'WS_EX_TRANSPARENT

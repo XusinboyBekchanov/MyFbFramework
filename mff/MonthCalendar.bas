@@ -30,8 +30,8 @@ Namespace My.Sys.Forms
 	
 	Constructor MonthCalendar
 		With This
-			WLet FClassName, "MonthCalendar"
-			WLet FClassAncestor, "SysMonthCal32"
+			WLet(FClassName, "MonthCalendar")
+			WLet(FClassAncestor, "SysMonthCal32")
 			FTabStop           = True
 			#ifdef __USE_GTK__
 				widget = gtk_calendar_new ()

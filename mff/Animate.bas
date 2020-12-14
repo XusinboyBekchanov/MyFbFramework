@@ -296,12 +296,12 @@ Namespace My.Sys.Forms
 		FStopFrame      = -1
 		FStartFrame     = 0
 		With This
-			WLet FClassName, "Animate"
+			WLet(FClassName, "Animate")
 			.Child             = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "Animate", ANIMATE_CLASS
 				.ChildProc         = @WndProc
-				WLet FClassAncestor, ANIMATE_CLASS
+				WLet(FClassAncestor, ANIMATE_CLASS)
 				.ExStyle           = WS_EX_TRANSPARENT
 				.Style             = WS_CHILD Or ACenter(FCenter) Or ATransparent(FTransparent) Or ATimer(FTimers) Or AAutoPlay(FAutoPlay)
 				.BackColor             = GetSysColor(COLOR_BTNFACE)

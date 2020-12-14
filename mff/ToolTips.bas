@@ -30,8 +30,8 @@ Namespace My.Sys.Forms
 	
 	Constructor ToolTips
 		With This
-			WLet FClassName, "ToolTips"
-			WLet FClassAncestor, "tooltips_class32"
+			WLet(FClassName, "ToolTips")
+			WLet(FClassAncestor, "tooltips_class32")
 			#IfDef __USE_GTK__
 				'Widget = gtk_tooltips_new()
 			#Else

@@ -41,7 +41,7 @@ Operator OpenFileDialogOptions.Cast As Integer
 End Operator
 
 Destructor OpenFileDialogOptions
-	Deallocate_(Options)
+	If Options Then Deallocate_(Options)
 End Destructor
 
 Property OpenFileDialog.MultiSelect As Boolean
@@ -89,7 +89,7 @@ Property OpenFileDialog.FileName ByRef As WString
 End Property
 
 Property OpenFileDialog.FileName(ByRef Value As WString)
-	WLet FFileName, Value
+	WLet(FFileName, Value)
 End Property
 
 Property OpenFileDialog.FileTitle ByRef As WString
@@ -97,7 +97,7 @@ Property OpenFileDialog.FileTitle ByRef As WString
 End Property
 
 Property OpenFileDialog.FileTitle(ByRef Value As WString)
-	WLet FFileTitle, Value
+	WLet(FFileTitle, Value)
 End Property
 
 Property OpenFileDialog.Filter ByRef As WString
@@ -197,19 +197,19 @@ Function OpenFileDialog.Execute As Boolean
 		Dim wMarkers As WString * 4 = "||"
 		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
 		Dim wFilter As WString Ptr '* 260 = ""
-		WLet wFilter, *FFilter & wMarkers
+		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(wFilter)
 		Dim pchar As WChar Ptr = wFilter
 		For i As Long = 0 To Len(*wFilter) - 1
 			If pchar[i] = Asc("|") Then pchar[i] = 0
 		Next
-		If WGet(FInitialDir) = "" Then WLet FInitialDir, CurDir
+		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
 		If dwBufLen = 0 Then
 			If (dwFlags And OFN_ALLOWMULTISELECT = OFN_ALLOWMULTISELECT) Then dwBufLen = 32768  ' // 64 Kb buffer
 		End If
 		If dwBufLen < 260 Then dwBufLen = 260
 		'WReAllocate cwsFile, Len(*FFileName & "|")
-		WLet FFileTitle, Space(dwBufLen)
+		WLet(FFileTitle, Space(dwBufLen))
 		cwsFile = *FFileName & "|"
 		Dim cbPos As Long = Len(cwsFile) - 1
 		'IF LEN(*cwsFile) < dwBufLen THEN cwsFile = ReAllocate(cwsFile, (dwBufLen + 1) * SizeOf(WString)): *cwsFile += SPACE(dwBufLen - LEN(*cwsFile))
@@ -282,7 +282,7 @@ Constructor OpenFileDialog
 	FilterIndex       = 1
 	Center            = True
 	'Control.Child     = @This
-	WLet FClassName, "OpenFileDialog"
+	WLet(FClassName, "OpenFileDialog")
 End Constructor
 
 Destructor OpenFileDialog
@@ -417,13 +417,13 @@ Function SaveFileDialog.Execute As Boolean
 		Dim wMarkers As WString * 4 = "||"
 		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
 		Dim wFilter As WString Ptr
-		WLet wFilter, *FFilter & wMarkers
+		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(*wFilter)
 		Dim pchar As WChar Ptr = wFilter
 		For i As Long = 0 To Len(*wFilter) - 1
 			If pchar[i] = Asc("|") Then pchar[i] = 0
 		Next
-		If WGet(FInitialDir) = "" Then WLet FInitialDir, CurDir
+		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
 		If dwBufLen = 0 Then
 			If (dwFlags And OFN_ALLOWMULTISELECT = OFN_ALLOWMULTISELECT) Then dwBufLen = 32768  ' // 64 Kb buffer
 		End If
@@ -475,7 +475,7 @@ Constructor SaveFileDialog
 	FFilter       = 0 'CAllocate_(0)
 	Caption       = "Save As"
 	FilterIndex   = 1
-	WLet FClassName, "SaveFileDialog"
+	WLet(FClassName, "SaveFileDialog")
 	Center        = True
 	'Control.Child = @This
 	#ifndef __USE_GTK__
@@ -571,7 +571,7 @@ End Function
 Constructor FontDialog
 	MaxFontSize = 0
 	MinFontSize = 0
-	WLet FClassName, "FontDialog"
+	WLet(FClassName, "FontDialog")
 End Constructor
 
 Destructor FontDialog
@@ -703,7 +703,7 @@ End Function
 Constructor FolderBrowserDialog
 	FCaption = 0 'CAllocate_(0)
 	FTitle = 0 'CAllocate_(0)
-	WLet FClassName, "FolderBrowserDialog"
+	WLet(FClassName, "FolderBrowserDialog")
 	FInitialDir = 0 'CAllocate_(0)
 	FDirectory = 0 'CAllocate_(0)
 	'Control.Child = @This
@@ -769,7 +769,7 @@ Property ColorDialog.Caption ByRef As WString
 End Property
 
 Property ColorDialog.Caption(ByRef Value As WString)
-	WLet _Caption, Value
+	WLet(_Caption, Value)
 End Property
 
 Function ColorDialog.Execute As Boolean
@@ -837,7 +837,7 @@ End Operator
 
 Constructor ColorDialog
 	Caption = "Choose Color..."
-	WLet FClassName, "ColorDialog"
+	WLet(FClassName, "ColorDialog")
 	#ifndef __USE_GTK__
 		BackColor = GetSysColor(color_btnface)
 	#endif

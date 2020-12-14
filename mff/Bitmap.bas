@@ -282,7 +282,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Constructor BitmapType
-		WLet FClassName, "BitmapType"
+		WLet(FClassName, "BitmapType")
 		#ifndef __USE_GTK__
 			FLoadFlag(0) = 0
 			FLoadFlag(1) = LR_LOADTRANSPARENT

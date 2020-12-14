@@ -213,8 +213,8 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
-			WLet FClassName, "Picture"
-			WLet FClassAncestor, "Static"
+			WLet(FClassName, "Picture")
+			WLet(FClassAncestor, "Static")
 			.Width       =80
 			.Height      = 60
 		End With

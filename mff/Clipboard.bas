@@ -62,16 +62,16 @@ Namespace My.Sys
 	
 	Function ClipboardType.GetAsText ByRef As WString
 		#ifdef __USE_GTK__
-			WLet FText, *gtk_clipboard_wait_for_text(FClipBoard)
+			WLet(FText, *gtk_clipboard_wait_for_text(FClipBoard))
 		#else
 			Dim hClipboardData As HANDLE
 			This.Open
 			hClipboardData = GetClipboardData(CF_UNICODETEXT)
 			If hClipboardData <> 0 Then
-				WLet FText, *CPtr(WString Ptr, GlobalLock(hClipboardData))
+				WLet(FText, *CPtr(WString Ptr, GlobalLock(hClipboardData)))
 				GlobalUnlock(hClipboardData)
 			Else
-				WLet FText, ""
+				WLet(FText, "")
 			End If
 			This.Close
 		#endif
@@ -118,7 +118,7 @@ Namespace My.Sys
 	End Property
 	
 	Property ClipboardType.Format(ByRef Value As WString)
-		WLet FFormat, Value + Chr(0)
+		WLet(FFormat, Value + Chr(0))
 		#ifndef __USE_GTK__
 			RegisterClipboardFormat(FFormat)
 		#endif

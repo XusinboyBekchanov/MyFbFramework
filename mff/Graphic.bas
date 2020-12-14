@@ -80,7 +80,7 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Constructor GraphicType
-		WLet FClassName, "GraphicType"
+		WLet(FClassName, "GraphicType")
 		This.Bitmap.Graphic = @This
 		This.Bitmap.Changed = @BitmapChanged
 		This.Icon.Graphic   = @This

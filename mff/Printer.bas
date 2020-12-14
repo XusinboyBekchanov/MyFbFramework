@@ -1588,6 +1588,6 @@ Namespace My.Sys.ComponentModel
 	
 	Constructor printer  __EXPORT__
 		Canvas.Ctrl = @This
-		WLet FClassName, "Printer"
+		WLet(FClassName, "Printer")
 	End Constructor
 End Namespace

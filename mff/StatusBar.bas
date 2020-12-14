@@ -142,18 +142,18 @@ Namespace My.Sys.Forms
 			#endif
 			For i = 0 To Count - 1
 				If Panels[i]->Alignment = 0 Then
-					WLet s, Panels[i]->Caption
+					WLet(s, Panels[i]->Caption)
 				ElseIf Panels[i]->Alignment = 1 Then
-					WLet s, Chr(9)+Panels[i]->Caption
+					WLet(s, Chr(9)+Panels[i]->Caption)
 				ElseIf Panels[i]->Alignment = 2 Then
-					WLet s, Chr(9) & Chr(9) & Panels[i]->Caption
+					WLet(s, Chr(9) & Chr(9) & Panels[i]->Caption)
 				Else
-					WLet s, Panels[i]->Caption
+					WLet(s, Panels[i]->Caption)
 				End If
 				#ifndef __USE_GTK__
 					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LParam, CInt(s)))
 				#endif
-				WLet ss, *ss & IIf(i = 0, "", !"\t") & Panels[i]->Caption
+				WLet(ss, *ss & IIf(i = 0, "", !"\t") & Panels[i]->Caption)
 			Next i
 		End If
 		#ifdef __USE_GTK__
@@ -264,7 +264,7 @@ Namespace My.Sys.Forms
 				widget = gtk_statusbar_new
 				'gtk_statusbar_set_has_resize_grip(gtk_statusbar(widget), true)
 				.RegisterClass "StatusBar", @This
-				WLet FSimpleText, "StatusBar"
+				WLet(FSimpleText, "StatusBar")
 				context_id = gtk_statusbar_get_context_id(gtk_statusbar(widget), *FSimpleText)
 				'Var cont2 = gtk_statusbar_get_context_id(gtk_statusbar(widget), "statusbar 2")
 				'gtk_statusbar_push(gtk_statusbar(widget), cont2, *FSimpleText)
@@ -274,8 +274,8 @@ Namespace My.Sys.Forms
 				AStyle(1) = SBARS_SIZEGRIP
 			#endif
 			FSizeGrip = True
-			WLet FClassName, "StatusBar"
-			WLet FClassAncestor, "msctls_StatusBar32"
+			WLet(FClassName, "StatusBar")
+			WLet(FClassAncestor, "msctls_StatusBar32")
 			#ifndef __USE_GTK__
 				.RegisterClass "StatusBar","msctls_StatusBar32"
 				'David Change

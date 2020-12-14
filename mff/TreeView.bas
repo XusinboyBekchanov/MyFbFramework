@@ -135,7 +135,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNode.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	Property TreeNode.Name ByRef As WString
@@ -143,7 +143,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNode.Name(ByRef Value As WString)
-		WLet FName, Value
+		WLet(FName, Value)
 	End Property
 	
 	Property TreeNode.ImageIndex As Integer
@@ -172,7 +172,7 @@ Namespace My.Sys.Forms
 	
 	Property TreeNode.ImageKey(ByRef Value As WString)
 		If Value <> *FImageKey Then
-			WLet FImageKey, Value
+			WLet(FImageKey, Value)
 			#ifdef __USE_GTK__
 				If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
 					gtk_tree_store_set(Cast(TreeView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUTF8(Value), -1)
@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNode.SelectedImageKey(ByRef Value As WString)
-		WLet FSelectedImageKey, Value
+		WLet(FSelectedImageKey, Value)
 		#ifdef __USE_GTK__
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -887,13 +887,13 @@ Namespace My.Sys.Forms
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.RegisterClass "TreeView", WC_TREEVIEW
 				.ChildProc         = @WndProc
-				WLet FClassAncestor, WC_TREEVIEW
+				WLet(FClassAncestor, WC_TREEVIEW)
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_VISIBLE Or TVS_HASLINES Or TVS_LINESATROOT Or TVS_HASBUTTONS
 				.BackColor       = GetSysColor(COLOR_WINDOW) 'David Change
 				.DoubleBuffered = True
 			#endif
-			WLet FClassName, "TreeView"
+			WLet(FClassName, "TreeView")
 			FTabStop = True
 			.Width             = 121
 			.Height            = 121

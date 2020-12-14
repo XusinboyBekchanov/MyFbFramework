@@ -39,11 +39,11 @@ Namespace My.Sys.Forms
 		#endif
 		
 		With This
-			WLet FClassName, "IPAddress"
+			WLet(FClassName, "IPAddress")
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.RegisterClass "IPAddress", WC_IPADDRESS
-				WLet FClassAncestor, WC_IPADDRESS
+				WLet(FClassAncestor, WC_IPADDRESS)
 				.ExStyle      = 0
 				.Style        = WS_CHILD
 				.ChildProc    = @WndProc

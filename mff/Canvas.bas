@@ -477,7 +477,7 @@ Namespace My.Sys.Drawing
 	
 	Constructor Canvas
 		Clip = False
-		WLet FClassName, "Canvas"
+		WLet(FClassName, "Canvas")
 	End Constructor
 	
 	Destructor Canvas

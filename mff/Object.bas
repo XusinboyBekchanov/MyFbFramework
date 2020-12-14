@@ -73,7 +73,7 @@ Namespace My.Sys
 	End Function
 	
 	Function Object.ToString ByRef As WString
-		WLet FTemp, "(" & This.ClassName & ")"
+		WLet(FTemp, "(" & This.ClassName & ")")
 		Return *FTemp
 	End Function
 	

@@ -11,7 +11,7 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#Include Once "ScrollBarControl.bi"
+#include once "ScrollBarControl.bi"
 
 Namespace My.Sys.Forms
 	Property ScrollBarControl.Style As ScrollBarControlStyle
@@ -33,9 +33,9 @@ Namespace My.Sys.Forms
 				Height  = x
 			End If
 			FStyle = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle))
-			#EndIf
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle))
+			#endif
 			If This.Parent Then This.Parent->RequestAlign
 		End If
 	End Property
@@ -46,9 +46,9 @@ Namespace My.Sys.Forms
 	
 	Property ScrollBarControl.MinValue(Value As Integer)
 		FMin = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
-		#EndIf
+		#endif
 	End Property
 	
 	Property ScrollBarControl.MaxValue As Integer
@@ -57,9 +57,9 @@ Namespace My.Sys.Forms
 	
 	Property ScrollBarControl.MaxValue(Value As Integer)
 		FMax = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
-		#EndIf
+		#endif
 	End Property
 	
 	Property ScrollBarControl.Position As Integer
@@ -68,9 +68,9 @@ Namespace My.Sys.Forms
 	
 	Property ScrollBarControl.Position(Value As Integer)
 		FPosition = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
-		#EndIf
+		#endif
 		If OnScroll Then OnScroll(This, FPosition)
 	End Property
 	
@@ -89,15 +89,15 @@ Namespace My.Sys.Forms
 	Property ScrollBarControl.PageSize(Value As Integer)
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
 			If Handle Then Perform(SBM_SETSCROLLINFO, True, CInt(@SIF))
-		#EndIf
+		#endif
 	End Property
 	
-	#IfNDef __USE_GTK__
-		Sub ScrollBarControl.HandleIsAllocated(BYREF Sender As Control)
+	#ifndef __USE_GTK__
+		Sub ScrollBarControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollBarControl(Sender.Child)
 					.MinValue = .MinValue
@@ -108,10 +108,12 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ScrollBarControl.WndProc(BYREF Message As Message)
+		Sub ScrollBarControl.WndProc(ByRef Message As Message)
 		End Sub
-		
-		Sub ScrollBarControl.ProcessMessage(BYREF Message As Message)
+	#endif
+	
+	Sub ScrollBarControl.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Static As Integer OldPos
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -122,15 +124,15 @@ Namespace My.Sys.Forms
 				'			#ENDIF
 				Message.Result = 0
 			Case CM_CREATE
-				sif.cbSize = sizeof(sif)
+				sif.cbSize = SizeOf(sif)
 				sif.fMask  = SIF_RANGE Or SIF_PAGE
 				sif.nMin   = FMin
 				sif.nMax   = FMax
 				sif.nPage  = FPageSize
-				SetScrollInfo(FHandle, SB_CTL, @sif, TRUE)
+				SetScrollInfo(FHandle, SB_CTL, @sif, True)
 			Case CM_HSCROLL, CM_VSCROLL
-				Var lo = Loword(Message.wParam)
-				sif.cbSize = sizeof(sif)
+				Var lo = LoWord(Message.wParam)
+				sif.cbSize = SizeOf(sif)
 				sif.fMask  = SIF_ALL
 				GetScrollInfo (FHandle, SB_CTL, @sif)
 				OldPos = sif.nPos
@@ -151,7 +153,7 @@ Namespace My.Sys.Forms
 					sif.nPos = sif.nTrackPos
 				End Select
 				sif.fMask = SIF_POS
-				SetScrollInfo(FHandle, SB_CTL, @sif, TRUE)
+				SetScrollInfo(FHandle, SB_CTL, @sif, True)
 				GetScrollInfo(FHandle, SB_CTL, @sif)
 				If (Not sif.nPos = OldPos) Then
 					If OnScroll Then
@@ -159,45 +161,45 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End Select
-			Base.ProcessMessage(message)
-		End Sub
-	#EndIf
+		#endif
+		Base.ProcessMessage(message)
+	End Sub
 	
 	Operator ScrollBarControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	Constructor ScrollBarControl
-		#IfDef __USE_GTK__
-			#IfDef __USE_GTK3__
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
 				widget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL)
-			#Else
+			#else
 				widget = gtk_hscrollbar_new(NULL)
-			#EndIf
+			#endif
 			This.RegisterClass "ScrollBarControl", @This
-		#Else
-			SIF.cbSize = SizeOF(SCROLLINFO)
-		#EndIf
+		#else
+			SIF.cbSize = SizeOf(SCROLLINFO)
+		#endif
 		FMin       = 0
 		FMax       = 100
 		FPosition  = 0
 		PageSize   = 1
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			AStyle(0)  = SB_HORZ
 			AStyle(1)  = SB_VERT
-		#EndIf
+		#endif
 		With This
 			.Child       = @This
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				.RegisterClass "ScrollBarControl", "ScrollBar"
 				.ChildProc   = @WndProc
 				.ExStyle     = 0
-				Base.Style       = WS_CHILD OR AStyle(Abs_(FStyle))
+				Base.Style       = WS_CHILD Or AStyle(Abs_(FStyle))
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
-			#EndIf
-			WLet FClassName, "ScrollBarControl"
-			WLet FClassAncestor, "ScrollBar"
+			#endif
+			WLet(FClassName, "ScrollBarControl")
+			WLet(FClassAncestor, "ScrollBar")
 			.Width       = 121
 			.Height      = 17
 		End With

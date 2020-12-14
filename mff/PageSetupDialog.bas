@@ -75,5 +75,5 @@ Function PageSetupDialog.Execute() As Boolean
 End Function
 
 Constructor PageSetupDialog
-	WLet FClassName, "PageSetupDialog"
+	WLet(FClassName, "PageSetupDialog")
 End Constructor

@@ -149,7 +149,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeListViewItem.Text(iSubItem As Integer, ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		For i As Integer = FSubItems.Count To iSubItem
 			FSubItems.Add ""
 		Next i
@@ -218,7 +218,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeListViewItem.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	
@@ -270,7 +270,7 @@ Namespace My.Sys.Forms
 	
 	Property TreeListViewItem.ImageKey(ByRef Value As WString)
 		'If Value <> *FImageKey Then
-		WLet FImageKey, Value
+		WLet(FImageKey, Value)
 		#IfDef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUTF8(Value), -1)
@@ -291,7 +291,7 @@ Namespace My.Sys.Forms
 	
 	Property TreeListViewItem.SelectedImageKey(ByRef Value As WString)
 		'If Value <> *FSelectedImageKey Then
-		WLet FSelectedImageKey, Value
+		WLet(FSelectedImageKey, Value)
 		If Parent Then
 			With QControl(Parent)
 				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
@@ -362,7 +362,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeListViewColumn.Text(ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
@@ -420,7 +420,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeListViewColumn.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	
@@ -1359,9 +1359,9 @@ Namespace My.Sys.Forms
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
-				WLet FClassAncestor, WC_ListView
+				WLet(FClassAncestor, WC_ListView)
 			#endif
-			WLet FClassName, "TreeListView"
+			WLet(FClassName, "TreeListView")
 			.Width             = 121
 			.Height            = 121
 		End With

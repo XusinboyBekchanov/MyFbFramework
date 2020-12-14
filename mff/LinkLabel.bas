@@ -70,7 +70,7 @@ Namespace My.Sys.Forms
 	
 	Constructor LinkLabel
 		With This
-			WLet FClassName, "LinkLabel"
+			WLet(FClassName, "LinkLabel")
 			#ifdef __USE_GTK__
 				widget = gtk_label_new("")
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
@@ -84,7 +84,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "LinkLabel", @This
 			#else
 				.RegisterClass "LinkLabel", WC_LINK
-				WLet FClassAncestor, WC_LINK
+				WLet(FClassAncestor, WC_LINK)
 				.ExStyle      = 0
 				.Style        = WS_CHILD
 				.ChildProc    = @WndProc

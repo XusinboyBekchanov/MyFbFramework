@@ -202,8 +202,8 @@ Namespace My.Sys.Forms
 			#else
 				.RegisterClass "CommandButton", @This
 			#endif
-			WLet FClassName, "CommandButton"
-			WLet FClassAncestor, "Button"
+			WLet(FClassName, "CommandButton")
+			WLet(FClassAncestor, "Button")
 			#ifndef __USE_GTK__
 				.ExStyle     = 0
 				Base.Style       = WS_CHILD Or WS_TABSTOP Or AStyle(Abs_(FStyle)) Or ADefault(Abs_(FDefault))

@@ -6,6 +6,8 @@
 #else
 	#include once "win\shlwapi.bi"
 #endif
+#include once "FBMemCheck.bi"
+
 Type UStr As UString
 
 Type UString Extends WString

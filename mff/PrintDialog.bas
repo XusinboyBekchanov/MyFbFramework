@@ -90,5 +90,5 @@ Function PrintDialog.Execute() As Boolean
 End Function
 
 Constructor PrintDialog
-	WLet FClassName, "PrintDialog"
+	WLet(FClassName, "PrintDialog")
 End Constructor

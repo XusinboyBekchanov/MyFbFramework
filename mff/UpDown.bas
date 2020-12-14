@@ -215,7 +215,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.RegisterClass "UpDown", UPDOWN_CLASS
 				.ChildProc         = @WndProc
-				WLet FClassAncestor, UPDOWN_CLASS
+				WLet(FClassAncestor, UPDOWN_CLASS)
 				.ExStyle           = 0
 				Base.Style             = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
 				.DoubleBuffered = True
@@ -224,7 +224,7 @@ Namespace My.Sys.Forms
 				.Height            = GetSystemMetrics(SM_CYVSCROLL)
 				.Height            = .Height + (.Height \ 2)
 			#endif
-			WLet FClassName, "UpDown"
+			WLet(FClassName, "UpDown")
 		End With
 	End Constructor
 	

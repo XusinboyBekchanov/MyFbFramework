@@ -11,6 +11,8 @@
 '*  Modified by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                     *
 '******************************************************************************
 
+#include once "SysUtils.bi"
+
 #define QList(__Ptr__) *Cast(List Ptr,__Ptr__)
 
 Type List

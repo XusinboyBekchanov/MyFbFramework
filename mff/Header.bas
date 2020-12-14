@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property HeaderSection.Caption(ByRef Value As WString)
-		WLet FCaption, Value
+		WLet(FCaption, Value)
 	End Property
 	
 	Property HeaderSection.Alignment As Integer
@@ -78,7 +78,7 @@ Namespace My.Sys.Forms
 			AFmt(2)         = HDF_RIGHT
 			AFmt(3)         = HDF_RTLREADING
 		#EndIf
-		WLet FCaption, ""
+		WLet(FCaption, "")
 		FImageIndex     = -1
 		FAlignment      = 0
 		FWidth          = 50
@@ -475,9 +475,9 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
-				WLet FClassAncestor, WC_HEADER
+				WLet(FClassAncestor, WC_HEADER)
 			#EndIf
-			WLet FClassName, "Header"
+			WLet(FClassName, "Header")
 			.Width             = 150
 			.Height            = 24
 			.Align             = 3

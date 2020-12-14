@@ -206,11 +206,11 @@ Namespace My.Sys.Forms
 				.ExStyle           = 0
 				Base.Style             = WS_CHILD Or AOrientation(Abs_(FOrientation)) Or ASmooth(Abs_(FSmooth)) Or AMarquee(Abs_(FMarquee))
 				.OnHandleIsAllocated = @HandleIsAllocated
-				WLet FClassAncestor, PROGRESS_CLASS
+				WLet(FClassAncestor, PROGRESS_CLASS)
 				.Height            = GetSystemMetrics(SM_CYVSCROLL)
 				.DoubleBuffered = True
 			#endif
-			WLet FClassName, "ProgressBar"
+			WLet(FClassName, "ProgressBar")
 			.Width             = 150
 		End With
 	End Constructor

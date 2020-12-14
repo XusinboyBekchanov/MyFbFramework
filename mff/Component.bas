@@ -9,7 +9,7 @@
 Namespace My.Sys.ComponentModel
 	
 	Function MarginsType.ToString ByRef As WString
-		WLet FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom
+		WLet(FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom)
 		Return *FTemp
 	End Function
 	
@@ -124,7 +124,7 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	Property Component.Name(ByRef Value As WString)
-		WLet FName, Value
+		WLet(FName, Value)
 		#ifdef __USE_GTK__
 			If gtk_is_widget(widget) Then gtk_widget_set_name(widget, Value)
 		#endif

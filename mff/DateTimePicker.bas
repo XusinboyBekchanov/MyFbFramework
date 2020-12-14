@@ -96,8 +96,8 @@ Namespace My.Sys.Forms
 		Text = ""
 		FTabStop           = True
 		With This
-			WLet FClassName, "DateTimePicker"
-			WLet FClassAncestor, "SysDateTimePick32"
+			WLet(FClassName, "DateTimePicker")
+			WLet(FClassAncestor, "SysDateTimePick32")
 			#ifndef __USE_GTK__
 				Base.RegisterClass WStr("DateTimePicker"), WStr("SysDateTimePick32")
 				.ExStyle      = 0 'WS_EX_LEFT OR WS_EX_LTRREADING OR WS_EX_RIGHTSCROLLBAR OR WS_EX_CLIENTEDGE

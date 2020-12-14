@@ -184,8 +184,10 @@ Namespace My.Sys.Forms
 		
 		Sub Label.WndProc(ByRef Message As Message)
 		End Sub
+	#endif
 		
-		Sub Label.ProcessMessage(ByRef Message As Message)
+	Sub Label.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -213,9 +215,9 @@ Namespace My.Sys.Forms
 				Else
 				End If
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Operator Label.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
@@ -267,8 +269,8 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
-			WLet FClassName, "Label"
-			WLet FClassAncestor, "Static"
+			WLet(FClassName, "Label")
+			WLet(FClassAncestor, "Static")
 			.Width       = 90
 			.Height      = ScaleY(Max(8, Font.Size) /72*96+6)  '中文字号VS英文字号(磅)VS像素值的对应关系：八号＝5磅(5pt) ==(5/72)*96=6.67 =6px
 		End With

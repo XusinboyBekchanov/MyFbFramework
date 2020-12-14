@@ -142,7 +142,7 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Constructor Cursor
-		WLet FClassName, "Cursor"
+		WLet(FClassName, "Cursor")
 		#IfNDef __USE_GTK__
 			Handle = LoadCursor(NULL,IDC_ARROW)
 		#EndIf

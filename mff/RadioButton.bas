@@ -100,8 +100,10 @@ Namespace My.Sys.Forms
 				
 			End If
 		End Sub
-		
-		Sub RadioButton.ProcessMessage(ByRef Message As Message)
+	#endif
+	
+	Sub RadioButton.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -115,9 +117,9 @@ Namespace My.Sys.Forms
 					If OnClick Then OnClick(This)
 				End If
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Operator RadioButton.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
@@ -139,8 +141,8 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			FTabStop = True
-			WLet FClassName, "RadioButton"
-			WLet FClassAncestor, "Button"
+			WLet(FClassName, "RadioButton")
+			WLet(FClassAncestor, "Button")
 			.Width       = 90
 			.Height      = 17
 		End With

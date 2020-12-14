@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ComboBoxItem.Text(ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 1, ToUTF8(Value), -1)
@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ComboBoxItem.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 	
 	
@@ -88,7 +88,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ComboBoxItem.ImageKey(ByRef Value As WString)
-		WLet FImageKey, Value
+		WLet(FImageKey, Value)
 		#IfDef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
@@ -472,8 +472,8 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 			#endif
-			WLet FClassName, "ComboBoxEx"
-			WLet FClassAncestor, "ComboBoxEx32"
+			WLet(FClassName, "ComboBoxEx")
+			WLet(FClassAncestor, "ComboBoxEx32")
 			.Width       = 121
 			.Height      = 121
 		End With
