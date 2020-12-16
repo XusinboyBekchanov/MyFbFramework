@@ -902,6 +902,11 @@ Namespace My.Sys.Forms
 					CreateWnd
 				End If
 			End If
+			'This.SetFocus
+'			For i As Integer = 0 To ControlCount
+'				If Controls[0]->TabStop AndAlso Controls[0]->Visible Then Controls[0]->SetFocus: Exit For
+'			Next
+			Initialized = True
 		#endif
 		If OnShow Then OnShow(This)
 	End Sub

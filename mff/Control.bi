@@ -157,6 +157,7 @@ Namespace My.Sys.Forms
 				OnHandleIsDestroyed As Sub(ByRef Sender As Control)
 			#endif
 		Public:
+			Initialized As Boolean
 			Canvas        As My.Sys.Drawing.Canvas
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean

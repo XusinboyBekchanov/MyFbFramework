@@ -277,9 +277,22 @@ Namespace My
 						Case WM_KEYDOWN, WM_KEYUP, WM_CHAR
 							Select Case Msg.wParam
 							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
+								Dim KeyStateArray(256) As Byte
+								Dim As Integer OldState
+								If Not FActiveForm->Initialized Then
+									GetKeyboardState(ByVal VarPtr(keyStateArray(0)))
+									OldState = KeyStateArray(VK_SHIFT)
+									KeyStateArray(VK_SHIFT) = IIf(GetKeyState(VK_SHIFT) And 8000, 0, -127)
+									SetKeyboardState(ByVal VarPtr(keyStateArray(0)))
+								End If
 								If IsDialogMessage(FActiveForm->Handle, @Msg) Then
 									TranslateAndDispatch = False
 								End If
+								If Not FActiveForm->Initialized Then
+									KeyStateArray(VK_SHIFT) = OldState
+									SetKeyboardState(ByVal VarPtr(keyStateArray(0)))
+								End If
+								FActiveForm->Initialized = False
 							End Select
 						End Select
 					End If

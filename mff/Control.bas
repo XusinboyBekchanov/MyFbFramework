@@ -1777,7 +1777,7 @@ Namespace My.Sys.Forms
 		
 		Sub Control.BringToFront
 			#ifndef __USE_GTK__
-				If Handle Then BringWindowToTop Handle
+				If Handle Then SetWindowPos Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE 'BringWindowToTop Handle
 			#endif
 		End Sub
 		
