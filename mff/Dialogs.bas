@@ -446,9 +446,22 @@ Function SaveFileDialog.Execute As Boolean
 		ofn.lpstrInitialDir = FInitialDir
 		If Len(*FCaption) Then ofn.lpstrTitle = FCaption
 		ofn.Flags = dwFlags
-		IF FDefaultExt THEN ofn.lpstrDefExt = FDefaultExt
-		IF GetSaveFilename(@ofn) THEN
-			FileName = *cwsFile
+		'If FDefaultExt Then ofn.lpstrDefExt = FDefaultExt
+		ofn.lpstrDefExt = Null
+		If GetSaveFilename(@ofn) Then
+			If ofn.nFileExtension = 0 Then
+				FilterIndex = ofn.nFilterIndex
+				Dim As UString res()
+				Split(*FFilter, "|", res())
+				Var Index = FilterIndex * 2 - 1
+				If res(Index) = "*.*" Then
+					FileName = *cwsFile
+				Else
+					FileName = *cwsFile & Replace(res(Index), "*", "")
+				End If
+			Else
+				FileName = *cwsFile
+			End If
 			bResult = True
 		Else
 			bResult = False
