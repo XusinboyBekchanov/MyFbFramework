@@ -154,7 +154,7 @@ Namespace My.Sys.Forms
 	
 	Sub TabPage.SelectTab()
 		If This.Parent AndAlso *Base.Parent Is TabControl Then
-			Cast(TabControl Ptr, This.Parent)->TabIndex = Index
+			Cast(TabControl Ptr, This.Parent)->SelectedTabIndex = Index
 		End If
 	End Sub
 	
@@ -261,7 +261,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "tabindex": Return @FTabIndex
+			Case "selectedtabindex": Return @FSelectedTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -276,7 +276,7 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
-				Case "tabindex": This.TabIndex = QInteger(Value)
+				Case "selectedtabindex": This.SelectedTabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
@@ -284,7 +284,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property TabControl.TabIndex As Integer
+	Property TabControl.SelectedTabIndex As Integer
 		#ifdef __USE_GTK__
 			Return gtk_notebook_get_current_page(gtk_notebook(widget))
 		#else
@@ -292,14 +292,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TabControl.TabIndex(Value As Integer)
-		FTabIndex = Value
+	Property TabControl.SelectedTabIndex(Value As Integer)
+		FSelectedTabIndex = Value
 		#ifdef __USE_GTK__
 			gtk_notebook_set_current_page(gtk_notebook(widget), Value)
 		#else
 			If Handle Then
-				Perform(TCM_SETCURSEL,FTabIndex,0)
-				Dim Id As Integer = TabIndex
+				Perform(TCM_SETCURSEL,FSelectedTabIndex,0)
+				Dim Id As Integer = SelectedTabIndex
 				For i As Integer = 0 To TabCount - 1
 					Tabs[i]->Visible = i = Id
 					If DesignMode Then
@@ -477,15 +477,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TabControl.SelectedTab As TabPage Ptr
-		If TabIndex >= 0 And TabIndex <= TabCount - 1 Then
-			Return Tabs[TabIndex]
+		If SelectedTabIndex >= 0 And SelectedTabIndex <= TabCount - 1 Then
+			Return Tabs[SelectedTabIndex]
 		Else
 			Return 0
 		End If
 	End Property
 	
 	Property TabControl.SelectedTab(Value As TabPage Ptr)
-		TabIndex = IndexOfTab(Value)
+		SelectedTabIndex = IndexOfTab(Value)
 	End Property
 	
 	Function TabControl.ItemHeight(Index As Integer) As Integer
@@ -606,20 +606,20 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEMOVE
 				If CInt(FReorderable) AndAlso CInt(DownButton = 0) Then
 					Dim As Rect R1, R2, R3
-					Var TbIndex = TabIndex
-					Perform(TCM_GETITEMRECT, TbIndex, CInt(@R1))
-					If Message.lParamLo < R1.Left AndAlso TbIndex > 0 Then
-						Perform(TCM_GETITEMRECT, TbIndex - 1, CInt(@R2))
+					Var SelTbIndex = SelectedTabIndex
+					Perform(TCM_GETITEMRECT, SelTbIndex, CInt(@R1))
+					If Message.lParamLo < R1.Left AndAlso SelTbIndex > 0 Then
+						Perform(TCM_GETITEMRECT, SelTbIndex - 1, CInt(@R2))
 						If Message.lParamLo < R2.Left + FMousePos - R1.Left Then
-							ReorderTab Tabs[TbIndex], TbIndex - 1
-							Perform(TCM_GETITEMRECT, TbIndex - 1, CInt(@R3))
+							ReorderTab Tabs[SelTbIndex], SelTbIndex - 1
+							Perform(TCM_GETITEMRECT, SelTbIndex - 1, CInt(@R3))
 							FMousePos = R3.Left + FMousePos - R1.Left
 						End If
-					ElseIf Message.lParamLo > R1.Right AndAlso TbIndex < TabCount - 1 Then
-						Perform(TCM_GETITEMRECT, TbIndex + 1, CInt(@R2))
+					ElseIf Message.lParamLo > R1.Right AndAlso SelTbIndex < TabCount - 1 Then
+						Perform(TCM_GETITEMRECT, SelTbIndex + 1, CInt(@R2))
 						If Message.lParamLo > R2.Right - R2.Left + FMousePos - R1.Left Then
-							ReorderTab Tabs[TbIndex], TbIndex + 1
-							Perform(TCM_GETITEMRECT, TbIndex + 1, CInt(@R3))
+							ReorderTab Tabs[SelTbIndex], SelTbIndex + 1
+							Perform(TCM_GETITEMRECT, SelTbIndex + 1, CInt(@R3))
 							FMousePos = R3.Left + FMousePos - R1.Left
 						End If
 					End If
@@ -629,7 +629,7 @@ Namespace My.Sys.Forms
 				Dim As LPNMHDR NM
 				NM = Cast(LPNMHDR,Message.lParam)
 				If NM->Code = TCN_SELCHANGE Then
-					TabIndex = TabIndex
+					SelectedTabIndex = SelectedTabIndex
 				End If
 			Case WM_NCHITTEST
 				If DesignMode Then Exit Sub
@@ -763,7 +763,7 @@ Namespace My.Sys.Forms
 				Tabs[Index] = tp
 				Tabs[Index]->Update
 			End If
-			TabIndex = Index
+			SelectedTabIndex = Index
 		End If
 	End Sub
 	
@@ -790,9 +790,9 @@ Namespace My.Sys.Forms
 				Perform(TCM_DELETEITEM,Index,0)
 			#endif
 			If Index > 0 Then
-				TabIndex = Index - 1
+				SelectedTabIndex = Index - 1
 			ElseIf Index < TabCount - 1 Then
-				TabIndex = Index + 1
+				SelectedTabIndex = Index + 1
 			End If
 			If FTabCount = 0 Then SetMargins
 		End If

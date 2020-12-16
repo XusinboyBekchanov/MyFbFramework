@@ -76,14 +76,14 @@ Namespace My.Sys.Forms
 	
 	Type TabControl Extends ContainerControl
 	Private:
-		FTabIndex     As Integer
-		FTabCount     As Integer
-		FMultiline    As Boolean
-		FReorderable  As Boolean
-		FFlatButtons  As Boolean
-		FTabPosition  As My.Sys.Forms.TabPosition
-		FTabStyle     As My.Sys.Forms.TabStyle
-		FMousePos     As Integer
+		FSelectedTabIndex   As Integer
+		FTabCount           As Integer
+		FMultiline          As Boolean
+		FReorderable        As Boolean
+		FFlatButtons        As Boolean
+		FTabPosition        As My.Sys.Forms.TabPosition
+		FTabStyle           As My.Sys.Forms.TabStyle
+		FMousePos           As Integer
 		Declare Sub SetMargins()
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
@@ -95,8 +95,8 @@ Namespace My.Sys.Forms
 		Tabs             As TabPage Ptr Ptr
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Property TabIndex As Integer
-		Declare Property TabIndex(Value As Integer)
+		Declare Property SelectedTabIndex As Integer
+		Declare Property SelectedTabIndex(Value As Integer)
 		Declare Property TabCount As Integer
 		Declare Property TabCount(Value As Integer)
 		Declare Property TabPosition As My.Sys.Forms.TabPosition
