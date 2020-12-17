@@ -30,6 +30,8 @@ Namespace My.Sys.Forms
 		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Checked As Boolean
@@ -43,4 +45,4 @@ End Namespace
 
 #ifndef __USE_MAKE__
 	#include once "CheckBox.bas"
-#EndIf
+#endif

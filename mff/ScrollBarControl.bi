@@ -48,6 +48,8 @@ Namespace My.Sys.Forms
 		Declare Property PageSize(Value As Integer)
 		Declare Property Position As Integer
 		Declare Property Position(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

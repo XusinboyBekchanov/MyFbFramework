@@ -252,6 +252,8 @@ Namespace My.Sys.Forms
 		Declare Property ColumnHeaderHidden(Value As Boolean)
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property View As ViewStyle
 		Declare Property View(Value As ViewStyle)
 		Declare Property Sort As SortStyle

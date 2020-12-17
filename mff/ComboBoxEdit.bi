@@ -65,6 +65,8 @@ Namespace My.Sys.Forms
 		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As ComboBoxEditStyle
 		Declare Property Style(Value As ComboBoxEditStyle)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property SelColor As Integer

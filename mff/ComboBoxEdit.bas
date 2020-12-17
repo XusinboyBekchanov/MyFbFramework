@@ -16,6 +16,7 @@ Namespace My.Sys.Forms
 	Function ComboBoxEdit.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "sort": Return @FSort
+		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -24,10 +25,19 @@ Namespace My.Sys.Forms
 	Function ComboBoxEdit.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "sort": This.Sort = QBoolean(Value)
+		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
 	End Function
+	
+	Property ComboBoxEdit.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property ComboBoxEdit.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
 	
 	Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
 		#ifdef __USE_GTK__

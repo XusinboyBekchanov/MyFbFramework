@@ -47,6 +47,8 @@ Namespace My.Sys.Forms
 		Declare Property BevelWidth(Value As Integer)
 		Declare Property BorderWidth As Integer
 		Declare Property BorderWidth(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

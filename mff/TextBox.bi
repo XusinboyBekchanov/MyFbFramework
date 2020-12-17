@@ -54,16 +54,16 @@ Namespace My.Sys.Forms
 		FMultiline As Boolean
 		FScrollBars As Integer
 		FWordWraps As Integer
-		FInputFilter as WString Ptr 'David Change
+		FInputFilter As WString Ptr 'David Change
 		#ifdef __USE_GTK__
 			TextBuffer As GtkTextBuffer Ptr
 			WidgetScrolledWindow As GtkWidget Ptr
 			WidgetEntry As GtkWidget Ptr
 			WidgetTextView As GtkWidget Ptr
-		#Else
-			Declare Static Sub WndProc(BYREF message As Message)
-			Declare Virtual Sub ProcessMessage(BYREF message As Message)
-		#EndIf
+		#else
+			Declare Static Sub WndProc(ByRef message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef message As Message)
+		#endif
 	Public:
 		Declare Sub AddLine(ByRef wsLine As WString)
 		Declare Sub InsertLine(Index As Integer, ByRef wsLine As WString)
@@ -111,12 +111,14 @@ Namespace My.Sys.Forms
 		Declare Property SelText(ByRef Value As WString)
 		Declare Property ScrollBars As Integer
 		Declare Property ScrollBars(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property TopLine As Integer
-		Declare Property TopLine(Value as Integer)
+		Declare Property TopLine(Value As Integer)
 		Declare Property WordWraps As Integer
-		Declare Property WordWraps(Value as Integer)
+		Declare Property WordWraps(Value As Integer)
 		Declare Property WantReturn() As Boolean
 		Declare Property WantReturn(Value As Boolean)
 		Declare Property Multiline() As Boolean

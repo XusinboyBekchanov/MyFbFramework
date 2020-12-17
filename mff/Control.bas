@@ -531,6 +531,28 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
+		Sub Control.ChangeTabIndex(Value As Integer)
+			Dim As Control Ptr ParentCtrl = Cast(Control Ptr, GetTopLevel)
+			Dim As Control Ptr Ctrl
+			FTabIndex = Value
+			With *ParentCtrl
+				.GetControls
+				.FTabIndexList.Clear
+				Dim As Integer Idx
+				For i As Integer = 0 To .FControls.Count - 1
+					Ctrl = .FControls.Item(i)
+					If Ctrl <> @This AndAlso Ctrl->FTabIndex <> -2 Then .FTabIndexList.Add Ctrl->FTabIndex, Ctrl
+				Next
+				If FTabIndex = -1 OrElse FTabIndex > .FTabIndexList.Count Then FTabIndex = .FTabIndexList.Count
+				.FTabIndexList.Sort
+				.FTabIndexList.Insert FTabIndex, FTabIndex, @This
+				For i As Integer = 0 To .FTabIndexList.Count - 1
+					Ctrl = .FTabIndexList.Object(i)
+					Ctrl->FTabIndex = i
+				Next
+			End With
+		End Sub
+		
 		#ifdef __USE_GTK__
 			Property Control.ParentWidget As GtkWidget Ptr
 				Return FParentWidget
@@ -1117,9 +1139,9 @@ Namespace My.Sys.Forms
 					If GetKeyState(VK_MENU) >= 0 Then
 						Select Case LoWord(message.wParam)
 						Case VK_TAB
-							Dim Frm As Control Ptr = GetForm
+							Dim Frm As Control Ptr = Cast(Control Ptr, GetTopLevel)
 							If Frm Then
-								SelectNextControl frm->FActiveControl, bShift
+								Frm->SelectNextControl bShift
 								Message.Result = -1:
 								Exit Sub
 							End If
@@ -1164,9 +1186,9 @@ Namespace My.Sys.Forms
 					'If (GetWindowLong(message.hwnd,GWL_STYLE) And WS_CHILD) <> WS_CHILD Then SendMessage(message.hwnd,CM_HELP,message.wParam,message.LParam)
 				Case WM_NEXTDLGCTL
 					Dim As Control Ptr NextCtrl
-					Dim As Control Ptr frm = GetForm
+					Dim As Control Ptr frm = Cast(Control Ptr, GetTopLevel)
 					If frm Then
-						NextCtrl = SelectNextControl(frm->FActiveControl)
+						NextCtrl = frm->SelectNextControl()
 						If NextCtrl Then NextCtrl->SetFocus
 					End If
 				Case WM_DESTROY
@@ -1203,7 +1225,7 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
-		Function Control.EnumPopupMenuItems(Item As MenuItem) As Boolean
+		Function Control.EnumPopupMenuItems(ByRef Item As MenuItem) As Boolean
 			FPopupMenuItems.Add Item
 			For i As Integer = 0 To Item.Count -1
 				EnumPopupMenuItems *Item.Item(i)
@@ -1218,6 +1240,21 @@ Namespace My.Sys.Forms
 					EnumPopupMenuItems *ContextMenu->Item(i)
 				Next i
 			End If
+		End Sub
+		
+		Function Control.EnumControls(Item As Control Ptr) As Boolean
+			FControls.Add Item
+			For i As Integer = 0 To Item->ControlCount - 1
+				EnumControls Item->Controls[i]
+			Next i
+			Return True
+		End Function
+		
+		Sub Control.GetControls
+			FControls.Clear
+			For i As Integer = 0 To ControlCount - 1
+				EnumControls Controls[i]
+			Next i
 		End Sub
 		
 		#ifdef __USE_GTK__
@@ -1345,42 +1382,17 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		Function Control.SelectNextControl(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
+		Function Control.SelectNextControl(Prev As Boolean = False) As Control Ptr
 			Static As Integer Index
-			'Dim bTabStopNot As Boolean
-			If CurControl Then
-				If CurControl->Parent Then
+			If FActiveControl Then
+				'If CurControl->Parent Then
 					#ifndef __USE_GTK__
-						Dim As HWND CtrlHandle = GetNextDlgTabItem(CurControl->Parent->Handle, CurControl->Handle, Prev)
-						.SetFocus(CtrlHandle)
+'						Dim As HWND CtrlHandle = GetNextDlgTabItem(CurControl->Parent->Handle, CurControl->Handle, Prev)
+'						.SetFocus(CtrlHandle)
 					#else
-						'						With *CurControl->Parent
-						'							Index = .IndexOf(CurControl)
-						'							If Index <> -1 Then
-						'								Dim As Integer ForTo, From
-						'								If Prev Then
-						'									From = .ControlCount - 1
-						'									ForTo = 0
-						'								Else
-						'									From = 0
-						'									ForTo = .ControlCount - 1
-						'								End If
-						'								If Index = ForTo Then
-						'									If CurControl->FParent->ClassName = "Form" Then Return SelectNextControl(.Controls[From], Prev) Else Return SelectNextControl(*CurControl->Parent, Prev)
-						'								End If
-						'								Index = Index + iStep
-						'								If .Controls[Index]->TabStop Then
-						'									.Controls[Index]->SetFocus
-						'									Return .Controls[Index]
-						'								ElseIf .Controls[Index]->ControlCount > 0 Then
-						'									Return SelectNextControl(.Controls[Index]->Controls[0], Prev)
-						'								Else
-						'									Return SelectNextControl(.Controls[Index], Prev)
-						'								End If
-						'							End If
-						'						End With
+						
 					#endif
-				End If
+				'End If
 			End If
 			Return NULL
 		End Function
@@ -1808,8 +1820,9 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
 				FControlCount += 1
-				Controls = Reallocate_(Controls,SizeOf(Control)*FControlCount)
+				Controls = Reallocate_(Controls, SizeOf(Control)*FControlCount)
 				Controls[FControlCount -1] = Ctrl
+				If FTabIndex = -1 Then Ctrl->ChangeTabIndex -1
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
@@ -1868,6 +1881,7 @@ Namespace My.Sys.Forms
 		Sub Control.Remove(Ctrl As Control Ptr)
 			Dim As Any Ptr P
 			Dim As Integer i,x,Index
+			If Ctrl->FTabIndex <> -2 Then Ctrl->ChangeTabIndex -1
 			Index = IndexOf(Ctrl)
 			If Index >= 0 And Index <= FControlCount -1 Then
 				For i = Index + 1 To FControlCount -1
@@ -1929,6 +1943,7 @@ Namespace My.Sys.Forms
 			FWidth = 0
 			FHeight = 0
 			FBackColor = -1
+			FTabIndex = -2
 			FShowHint = True
 			FVisible = True
 			FEnabled = True

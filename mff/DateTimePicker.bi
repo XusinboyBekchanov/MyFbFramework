@@ -18,6 +18,8 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property TimePicker As Boolean
 		Declare Property TimePicker(Value As Boolean)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
@@ -26,6 +28,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "DateTimePicker.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "DateTimePicker.bas"
+#endif

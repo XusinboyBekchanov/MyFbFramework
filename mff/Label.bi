@@ -53,6 +53,8 @@ Namespace My.Sys.Forms
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Border As Integer
@@ -68,11 +70,11 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick    As Sub(BYREF Sender As Label)
-		OnDblClick As Sub(BYREF Sender As Label)
-		#IfNdef __USE_GTK__
-			OnDraw     As Sub(BYREF Sender As Label,BYREF R As Rect,DC As HDC = 0)
-		#EndIf
+		OnClick    As Sub(ByRef Sender As Label)
+		OnDblClick As Sub(ByRef Sender As Label)
+		#ifndef __USE_GTK__
+			OnDraw     As Sub(ByRef Sender As Label,ByRef R As Rect,DC As HDC = 0)
+		#endif
 	End Type
 End Namespace
 

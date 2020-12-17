@@ -32,6 +32,8 @@ Namespace My.Sys.Forms
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property Parent As Control Ptr
 		Declare Property Parent(Value As Control Ptr)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Checked As Boolean

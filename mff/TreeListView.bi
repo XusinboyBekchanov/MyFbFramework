@@ -38,9 +38,11 @@ Namespace My.Sys.Forms
 		Declare Sub Remove(Index As Integer)
 		Declare Property ParentItem As PTreeListViewItem
 		Declare Property ParentItem(Value As PTreeListViewItem)
-		Declare Function IndexOf(BYREF FItem As PTreeListViewItem) As Integer
+		Declare Function IndexOf(ByRef FItem As PTreeListViewItem) As Integer
 		Declare Function IndexOf(ByRef FCaption As WString) As Integer
 		Declare Function Contains(ByRef FCaption As WString) As Boolean
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Sub Clear
 		Declare Sub Sort
 		Declare Operator Cast As Any Ptr

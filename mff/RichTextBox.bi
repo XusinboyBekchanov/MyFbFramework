@@ -38,6 +38,8 @@ Namespace My.Sys.Forms
 		Declare Function BottomLine As Integer
 		Declare Property SelText ByRef As WString
 		Declare Property SelText(ByRef Value As WString)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property TextRTF ByRef As WString
 		Declare Property TextRTF(ByRef Value As WString)
 		Declare Property SelColor As Integer

@@ -35,6 +35,8 @@ Namespace My.Sys.Forms
 		Declare Property MaxValue(Value As Integer)
 		Declare Property ArrowChangeSize As Integer
 		Declare Property ArrowChangeSize(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property PageSize As Integer
 		Declare Property PageSize(Value As Integer)
 		Declare Property Position As Integer

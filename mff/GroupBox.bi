@@ -27,6 +27,8 @@ Namespace My.Sys.Forms
 	Public:
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property ParentColor As Boolean

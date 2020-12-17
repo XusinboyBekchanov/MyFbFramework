@@ -48,6 +48,8 @@ Namespace My.Sys.Forms
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean
 		Declare Property CenterImage(Value As Boolean)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

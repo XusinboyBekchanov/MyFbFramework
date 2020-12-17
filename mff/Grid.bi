@@ -24,7 +24,7 @@
 		'cfSplitButton
 		'cfTilePlacementMask
 	End Enum
-#Else
+#else
 	Enum GridColumnFormat
 		gcfLeft = LVCFMT_LEFT
 		gcfRight = LVCFMT_RIGHT
@@ -42,12 +42,12 @@
 		'cfSplitButton = LVCFMT_SPLITBUTTON
 		'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
 	End Enum
-#EndIf
+#endif
 
 Namespace My.Sys.Forms
-	#DEFINE QGrid(__Ptr__) *Cast(Grid Ptr,__Ptr__)
-	#DEFINE QGridItem(__Ptr__) *Cast(GridItem Ptr,__Ptr__)
-	#DEFINE QGridColumn(__Ptr__) *Cast(GridColumn Ptr,__Ptr__)
+	#define QGrid(__Ptr__) *Cast(Grid Ptr,__Ptr__)
+	#define QGridItem(__Ptr__) *Cast(GridItem Ptr,__Ptr__)
+	#define QGridColumn(__Ptr__) *Cast(GridColumn Ptr,__Ptr__)
 	
 	Type GridItem Extends My.Sys.Object
 	Private:
@@ -61,6 +61,8 @@ Namespace My.Sys.Forms
 		Index As Integer
 		Parent   As Control Ptr
 		Declare Sub SelectItem
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text(iSubItem As Integer) ByRef As WString
 		Declare Property Text(iSubItem As Integer, ByRef Value As WString)
 		Declare Property Hint ByRef As WString
@@ -76,8 +78,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(BYREF Sender As My.Sys.Object)
-		OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Type GridColumn Extends My.Sys.Object

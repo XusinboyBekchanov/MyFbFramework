@@ -69,6 +69,8 @@ Namespace My.Sys.Forms
 		Declare Property Ctl3D(Value As Boolean)
 		Declare Property ItemIndex As Integer
 		Declare Property ItemIndex(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property TopIndex As Integer
 		Declare Property TopIndex(Value As Integer)
 		Declare Property ItemHeight As Integer

@@ -44,12 +44,16 @@ Namespace My.Sys.Forms
 		#endif
 	Public:
 		Items             As ListItems
+		Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property BorderStyle As Integer
 		Declare Property BorderStyle(Value As Integer)
 		Declare Property Ctl3D As Boolean
 		Declare Property Ctl3D(Value As Boolean)
 		Declare Property ItemIndex As Integer
 		Declare Property ItemIndex(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property TopIndex As Integer
 		Declare Property TopIndex(Value As Integer)
 		Declare Property ItemHeight As Integer
@@ -101,6 +105,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "CheckedListBox.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "CheckedListBox.bas"
+#endif

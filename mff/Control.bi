@@ -15,6 +15,7 @@
 #include once "List.bi"
 #include once "Graphics.bi"
 #include once "Canvas.bi"
+#include once "IntegerList.bi"
 #ifndef __USE_GTK__
 	#include once "win/commctrl.bi"
 	#include once "win/shellapi.bi"
@@ -122,6 +123,8 @@ Namespace My.Sys.Forms
 			FContextMenu       As PopupMenu Ptr
 			FGrouped           As Boolean
 			FTabStop           As Boolean
+			FTabIndex          As Integer
+			FTabIndexList      As IntegerList
 			FIsChild           As Boolean
 			FEnabled           As Boolean
 			FVisible           As Boolean
@@ -130,17 +133,21 @@ Namespace My.Sys.Forms
 			FCancelButton      As Control Ptr
 			FActiveControl     As Control Ptr
 			FPopupMenuItems    As List
+			FControls          As List
 			FControlCount      As Integer
 			PrevProc           As Any Ptr
 			Child              As Any Ptr
 			ChildProc          As Any Ptr 'Function(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Brush              As My.Sys.Drawing.Brush
 			CreateParam        As Any Ptr
-			Declare Function EnumPopupMenuItems(Item As MenuItem) As Boolean
+			Declare Function EnumPopupMenuItems(ByRef Item As MenuItem) As Boolean
+			Declare Function EnumControls(Item As Control Ptr) As Boolean
 			Declare Sub GetPopupMenuItems
+			Declare Sub GetControls
 			Declare Sub AllocateHint
 			Declare Sub ChangeExStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub ChangeStyle(iStyle As Integer, Value As Boolean)
+			Declare Sub ChangeTabIndex(Value As Integer)
 			Declare Sub AddProperty(Name As String, Type As String, ByRef Comment As WString)
 			Declare Function ExStyleExists(iStyle As Integer) As Boolean
 			Declare Function StyleExists(iStyle As Integer) As Boolean
@@ -148,7 +155,6 @@ Namespace My.Sys.Forms
 			Declare Property Style(Value As Integer)
 			Declare Property ExStyle As Integer
 			Declare Property ExStyle(Value As Integer)
-			Declare Function SelectNextControl(CurControl As Control Ptr, Prev As Boolean = False) As Control Ptr
 			Declare Virtual Sub ProcessMessage(ByRef message As Message)
 			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 			OnActiveControlChanged As Sub(ByRef Sender As Control)
@@ -158,6 +164,7 @@ Namespace My.Sys.Forms
 			#endif
 		Public:
 			Canvas        As My.Sys.Drawing.Canvas
+			Declare Function SelectNextControl(Prev As Boolean = False) As Control Ptr
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			#ifdef __USE_GTK__

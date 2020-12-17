@@ -62,6 +62,8 @@ Namespace My.Sys.Forms
 		Declare Property Position(Value As Integer)
 		Declare Property ArrowKeys As Boolean
 		Declare Property ArrowKeys(Value As Boolean)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Thousands As Boolean
 		Declare Property Thousands(Value As Boolean)
 		Declare Property Wrap As Boolean

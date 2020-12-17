@@ -19,6 +19,7 @@ Namespace My.Sys.Forms
 		Case "caption": Return FText.vptr
 		Case "text": Return FText.vptr
 		Case "checked": Return @FChecked
+		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -29,6 +30,7 @@ Namespace My.Sys.Forms
 		Case "caption": This.Caption = QWString(Value)
 		Case "text": This.text = QWString(Value)
 		Case "checked": Checked = QBoolean(Value)
+		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -42,30 +44,38 @@ Namespace My.Sys.Forms
 		Text = Value
 	End Property
 	
+	Property CheckBox.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property CheckBox.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Property CheckBox.Text ByRef As WString
 		Return Base.Text
 	End Property
 	
 	Property CheckBox.Text(ByRef Value As WString)
 		Base.Text = Value
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			gtk_button_set_label(GTK_BUTTON(widget), ToUtf8(Value))
-		#EndIf
+		#endif
 	End Property
 	
 	Property CheckBox.Checked As Boolean
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If widget Then FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
-		#Else
+		#else
 			If FHandle Then
 			End If
-		#EndIf
+		#endif
 		Return FChecked
 	End Property
 	
 	Property CheckBox.Checked(Value As Boolean)
 		FChecked = Value
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If widget Then gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
 		#Else
 			If Handle Then Perform(BM_SETCHECK,FChecked,0)
@@ -140,6 +150,7 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "CheckBox")
 			WLet(FClassAncestor, "Button")
+			FTabIndex = -1
 			FTabStop = True
 			#ifndef __USE_GTK__
 				.ExStyle                = 0

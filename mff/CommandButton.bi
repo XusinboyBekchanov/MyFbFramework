@@ -45,6 +45,8 @@ Namespace My.Sys.Forms
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Default As Boolean
@@ -54,12 +56,12 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		#IfNDef __USE_GTK__
-			OnDraw  As Sub(BYREF Sender As CommandButton, BYREF R As Rect, DC As HDC = 0)
-		#EndIf
+		#ifndef __USE_GTK__
+			OnDraw  As Sub(ByRef Sender As CommandButton, ByRef R As Rect, DC As HDC = 0)
+		#endif
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "CommandButton.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "CommandButton.bas"
+#endif

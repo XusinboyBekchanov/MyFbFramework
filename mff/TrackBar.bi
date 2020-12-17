@@ -69,6 +69,8 @@ Namespace My.Sys.Forms
 		Declare Property PageSize(Value As Integer)
 		Declare Property Frequency As Integer
 		Declare Property Frequency(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property ThumbLength  As Integer
 		Declare Property ThumbLength(Value As Integer)
 		Declare Property SelStart  As Integer

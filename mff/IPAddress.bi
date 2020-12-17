@@ -17,12 +17,14 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
 	Public:
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "IPAddress.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "IPAddress.bas"
+#endif
