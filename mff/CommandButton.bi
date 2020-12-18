@@ -41,8 +41,8 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
 		Graphic     As My.Sys.Drawing.GraphicType
-		Declare Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property TabIndex As Integer

@@ -215,6 +215,7 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "Picture")
 			WLet(FClassAncestor, "Static")
+			FTabIndex          = -1
 			.Width       =80
 			.Height      = 60
 		End With

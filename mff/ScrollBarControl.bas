@@ -188,6 +188,7 @@ Namespace My.Sys.Forms
 			AStyle(0)  = SB_HORZ
 			AStyle(1)  = SB_VERT
 		#endif
+		FTabIndex          = -1
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__

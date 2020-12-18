@@ -4,10 +4,10 @@
 '#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 
-#Include Once "PageScroller.bi"
+#include once "PageScroller.bi"
 
 Namespace My.Sys.Forms
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		Sub PageScroller.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QPageScroller(Sender.Child)
@@ -22,7 +22,7 @@ Namespace My.Sys.Forms
 		Sub PageScroller.ProcessMessage(ByRef Message As Message)
 			Base.ProcessMessage(Message)
 		End Sub
-	#EndIf
+	#endif
 	
 	Operator PageScroller.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
@@ -32,14 +32,15 @@ Namespace My.Sys.Forms
 		With This
 			WLet(FClassName, "PageScroller")
 			WLet(FClassAncestor, "SysPager")
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				.RegisterClass "PageScroller","SysPager"
 				.Style        = WS_CHILD
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
-			#EndIf
+			#endif
+			FTabIndex          = -1
 			.Width        = 175
 			.Height       = 21
 			.Child        = @This
@@ -47,8 +48,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor PageScroller
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			UnregisterClass "PageScroller",GetModuleHandle(NULL)
-		#EndIf
+		#endif
 	End Destructor
 End Namespace

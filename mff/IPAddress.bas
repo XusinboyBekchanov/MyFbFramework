@@ -40,6 +40,7 @@ Namespace My.Sys.Forms
 		
 		With This
 			WLet(FClassName, "IPAddress")
+			FTabIndex          = -1
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.RegisterClass "IPAddress", WC_IPADDRESS

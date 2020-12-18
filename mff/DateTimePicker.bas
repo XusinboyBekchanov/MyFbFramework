@@ -94,6 +94,7 @@ Namespace My.Sys.Forms
 		'Result = InitCommonControlsEx(@ICC)
 		'If Not Result Then InitCommonControls
 		Text = ""
+		FTabIndex          = -1
 		FTabStop           = True
 		With This
 			WLet(FClassName, "DateTimePicker")

@@ -63,6 +63,7 @@ Namespace My.Sys.Forms
 		With This
 			WLet(FClassName, "HotKey")
 			WLet(FClassAncestor, "msctls_hotkey32")
+			FTabIndex          = -1
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.RegisterClass "HotKey","msctls_hotkey32"

@@ -17,6 +17,8 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
 	Public:
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor

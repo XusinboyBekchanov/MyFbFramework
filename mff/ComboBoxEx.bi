@@ -100,6 +100,8 @@ Namespace My.Sys.Forms
 		#endif
 		Items             As ComboBoxExItems
 		ImagesList         As ImageList Ptr
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		'            Declare Property ItemIndex As Integer
 		'            Declare Property ItemIndex(Value As Integer)
 		Declare Property Text ByRef As WString

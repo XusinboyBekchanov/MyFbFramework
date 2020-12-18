@@ -90,6 +90,7 @@ Namespace My.Sys.Forms
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
+			FTabIndex          = -1
 			.Width        = 100
 			.Height       = 32
 			.Child        = @This

@@ -18,6 +18,8 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TimePicker As Boolean

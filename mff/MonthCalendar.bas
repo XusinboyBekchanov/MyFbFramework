@@ -32,6 +32,7 @@ Namespace My.Sys.Forms
 		With This
 			WLet(FClassName, "MonthCalendar")
 			WLet(FClassAncestor, "SysMonthCal32")
+			FTabIndex          = -1
 			FTabStop           = True
 			#ifdef __USE_GTK__
 				widget = gtk_calendar_new ()

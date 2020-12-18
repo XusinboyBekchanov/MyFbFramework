@@ -274,10 +274,15 @@ Namespace My
 					If FActiveForm->Accelerator Then TranslateAndDispatch = TranslateAccelerator(FActiveForm->Handle, FActiveForm->Accelerator, @msg) = 0
 					If TranslateAndDispatch Then
 						Select Case Msg.message
-						Case WM_KEYDOWN, WM_KEYUP, WM_CHAR
+						Case WM_KEYDOWN
 							Select Case Msg.wParam
 							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
-								FActiveForm->SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
+								If Not GetFocus() = FActiveForm->Handle Then
+									FActiveForm->SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
+									TranslateAndDispatch = False
+								ElseIf IsDialogMessage(FActiveForm->Handle, @Msg) Then
+									TranslateAndDispatch = False
+								End If
 '								Dim KeyStateArray(256) As Byte
 '								Dim As Integer OldState
 '								Dim As Boolean bSet

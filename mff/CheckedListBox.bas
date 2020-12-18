@@ -462,6 +462,7 @@ Namespace My.Sys.Forms
 		#endif
 		FCtl3D             = True
 		FBorderStyle       = 1
+		FTabIndex          = -1
 		FTabStop           = True
 		'Items.Parent       = @This
 		With This

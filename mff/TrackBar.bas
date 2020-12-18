@@ -321,6 +321,7 @@ Namespace My.Sys.Forms
 		FThumbLength      = 20
 		FTickMarks        = 0
 		FTickStyle        = 1
+		FTabIndex          = -1
 		FTabStop          = True
 		With This
 			.Child             = @This

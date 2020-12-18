@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 		Case "default": Return Cast(Any Ptr, @FDefault)
+		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -28,6 +29,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "caption": If Value <> 0 Then This.Text = QWString(Value)
 		Case "default": If Value <> 0 Then This.Default = QBoolean(Value)
+		Case "tabindex": If Value <> 0 Then This.TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = QWString(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -40,6 +42,14 @@ Namespace My.Sys.Forms
 	
 	Property CommandButton.Caption(ByRef Value As WString)
 		This.Text = Value
+	End Property
+	
+	Property CommandButton.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property CommandButton.TabIndex(Value As Integer)
+		ChangeTabIndex Value
 	End Property
 	
 	Property CommandButton.Text ByRef As WString
@@ -192,6 +202,7 @@ Namespace My.Sys.Forms
 		#endif
 		Graphic.Ctrl  = @This
 		Graphic.OnChange = @GraphicChange
+		FTabIndex            = -1
 		FTabStop = True
 		With This
 			.Child       = @This

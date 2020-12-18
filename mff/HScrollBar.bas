@@ -151,6 +151,7 @@ Namespace My.Sys.Forms
 		FMax       = 100
 		FPosition  = 0
 		PageSize   = 1
+		FTabIndex          = -1
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__

@@ -176,7 +176,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef GetForm_Off
 			Function Control.GetForm As Control Ptr
-				If FParent = 0 OrElse This.ClassName = "Form" Then
+				If FParent = 0 OrElse This.ClassName = "Form" OrElse This.ClassName = "UserControl" Then
 					Return @This
 				Else
 					Return QControl(FParent)->GetForm()
@@ -532,25 +532,28 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub Control.ChangeTabIndex(Value As Integer)
-			Dim As Control Ptr ParentCtrl = Cast(Control Ptr, GetTopLevel)
-			Dim As Control Ptr Ctrl
 			FTabIndex = Value
-			With *ParentCtrl
-				.GetControls
-				.FTabIndexList.Clear
-				Dim As Integer Idx
-				For i As Integer = 0 To .FControls.Count - 1
-					Ctrl = .FControls.Item(i)
-					If Ctrl <> @This AndAlso Ctrl->FTabIndex <> -2 Then .FTabIndexList.Add Ctrl->FTabIndex, Ctrl
-				Next
-				If FTabIndex = -1 OrElse FTabIndex > .FTabIndexList.Count Then FTabIndex = .FTabIndexList.Count
-				.FTabIndexList.Sort
-				.FTabIndexList.Insert FTabIndex, FTabIndex, @This
-				For i As Integer = 0 To .FTabIndexList.Count - 1
-					Ctrl = .FTabIndexList.Object(i)
-					Ctrl->FTabIndex = i
-				Next
-			End With
+			If FHandle = 0 Then Exit Sub
+			Dim As Control Ptr ParentCtrl = GetForm
+			Dim As Control Ptr Ctrl
+			If ParentCtrl Then
+				With *ParentCtrl
+					.GetControls
+					.FTabIndexList.Clear
+					Dim As Integer Idx
+					For i As Integer = 0 To .FControls.Count - 1
+						Ctrl = .FControls.Item(i)
+						If Ctrl <> @This AndAlso Ctrl->FTabIndex <> -2 Then .FTabIndexList.Add Ctrl->FTabIndex, Ctrl
+					Next
+					If FTabIndex = -1 OrElse FTabIndex > .FTabIndexList.Count Then FTabIndex = .FTabIndexList.Count
+					.FTabIndexList.Sort
+					If FTabIndex <> -2 Then .FTabIndexList.Insert FTabIndex, FTabIndex, @This
+					For i As Integer = 0 To .FTabIndexList.Count - 1
+						Ctrl = .FTabIndexList.Object(i)
+						Ctrl->FTabIndex = i
+					Next
+				End With
+			End If
 		End Sub
 		
 		#ifdef __USE_GTK__
@@ -1139,12 +1142,12 @@ Namespace My.Sys.Forms
 					If GetKeyState(VK_MENU) >= 0 Then
 						Select Case LoWord(message.wParam)
 						Case VK_TAB
-							Dim Frm As Control Ptr = Cast(Control Ptr, GetTopLevel)
-							If Frm Then
-								Frm->SelectNextControl bShift
-								Message.Result = -1:
-								Exit Sub
-							End If
+'							Dim Frm As Control Ptr = GetForm
+'							If Frm Then
+'								Frm->SelectNextControl bShift
+'								Message.Result = -1:
+'								Exit Sub
+'							End If
 						Case VK_RETURN
 							Dim Frm As Control Ptr = GetForm
 							If Frm AndAlso frm->FDefaultButton AndAlso frm->FDefaultButton->OnClick Then
@@ -1186,7 +1189,7 @@ Namespace My.Sys.Forms
 					'If (GetWindowLong(message.hwnd,GWL_STYLE) And WS_CHILD) <> WS_CHILD Then SendMessage(message.hwnd,CM_HELP,message.wParam,message.LParam)
 				Case WM_NEXTDLGCTL
 					Dim As Control Ptr NextCtrl
-					Dim As Control Ptr frm = Cast(Control Ptr, GetTopLevel)
+					Dim As Control Ptr frm = GetForm
 					If frm Then
 						NextCtrl = frm->SelectNextControl()
 						If NextCtrl Then NextCtrl->SetFocus
@@ -1383,17 +1386,36 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Function Control.SelectNextControl(Prev As Boolean = False) As Control Ptr
-			Static As Integer Index
-			If FActiveControl Then
-				'If CurControl->Parent Then
-					#ifndef __USE_GTK__
-'						Dim As HWND CtrlHandle = GetNextDlgTabItem(CurControl->Parent->Handle, CurControl->Handle, Prev)
-'						.SetFocus(CtrlHandle)
-					#else
-						
-					#endif
-				'End If
-			End If
+			#ifdef __USE_GTK__
+ 
+			#else
+				Dim As Control Ptr ParentCtrl = GetForm
+				Dim As Control Ptr Ctrl
+				If ParentCtrl Then
+					With ParentCtrl->FTabIndexList
+						Dim As Integer Idx = .IndexOfObject(FActiveControl)
+						If Prev Then
+							For i As Integer = Idx - 1 To 0 Step -1
+								Ctrl = .Object(i)
+								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+							Next
+							For i As Integer = .Count - 1 To Idx + 1 Step -1
+								Ctrl = .Object(i)
+								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+							Next
+						Else
+							For i As Integer = Idx + 1 To .Count - 1
+								Ctrl = .Object(i)
+								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+							Next
+							For i As Integer = 0 To Idx - 1
+								Ctrl = .Object(i)
+								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+							Next
+						End If
+					End With
+				End If
+			#endif
 			Return NULL
 		End Function
 		
@@ -1822,7 +1844,7 @@ Namespace My.Sys.Forms
 				FControlCount += 1
 				Controls = Reallocate_(Controls, SizeOf(Control)*FControlCount)
 				Controls[FControlCount -1] = Ctrl
-				If FTabIndex = -1 Then Ctrl->ChangeTabIndex -1
+				If Ctrl->FTabIndex = -1 Then Ctrl->ChangeTabIndex -1
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20

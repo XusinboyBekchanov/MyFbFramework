@@ -225,6 +225,7 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
+			FTabIndex          = -1
 			WLet(FClassName, "Panel")
 			.Width       = 121
 			.Height      = 41

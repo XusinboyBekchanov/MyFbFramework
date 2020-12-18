@@ -1118,6 +1118,7 @@ Namespace My.Sys.Forms
 		FView = vsDetails 
 		FEnabled = True
 		FVisible = True
+		FTabIndex          = -1
 		FTabStop = True
 		With This
 			.Child             = @This

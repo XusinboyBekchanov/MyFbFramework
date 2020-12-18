@@ -586,6 +586,7 @@ Namespace My.Sys.Forms
 		FSelColor           = &H800000
 		FIntegralHeight     = 0
 		FItemIndex          = -1
+		FTabIndex           = -1
 		FTabStop            = True
 		'Items.Parent        = @This
 		With This

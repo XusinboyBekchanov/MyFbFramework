@@ -387,6 +387,7 @@ Namespace My.Sys.Forms
 				WLet(.FClassAncestor, "RichEdit20W")
 			#endif
 			.FHideSelection    = False
+			FTabIndex          = -1
 			FTabStop           = True
 			WLet(.FClassName, "RichTextBox")
 			.Child       = @This

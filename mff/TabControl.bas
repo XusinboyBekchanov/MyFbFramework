@@ -913,6 +913,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
 			#endif
+			FTabIndex          = -1
 			FTabStop           = True
 			FTabPosition = 2
 			.Width       = 121

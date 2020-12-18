@@ -140,6 +140,7 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
+			FTabIndex          = -1
 			FTabStop = True
 			WLet(FClassName, "RadioButton")
 			WLet(FClassAncestor, "Button")

@@ -894,6 +894,7 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 			#endif
 			WLet(FClassName, "TreeView")
+			FTabIndex          = -1
 			FTabStop = True
 			.Width             = 121
 			.Height            = 121

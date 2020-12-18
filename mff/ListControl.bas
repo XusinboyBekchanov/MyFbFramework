@@ -609,6 +609,7 @@ Namespace My.Sys.Forms
 				AIntegralHeight(1) = 0
 			#endif
 			FCtl3D             = True
+			FTabIndex          = -1
 			FTabStop           = True
 			FBorderStyle       = 1
 			'Items.Parent       = @This

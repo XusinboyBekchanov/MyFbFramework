@@ -779,6 +779,7 @@ Namespace My.Sys.Forms
 		FMaskChar         = Asc("*")
 		FMaxLength          = 64000
 		FEnabled = True
+		FTabIndex          = -1
 		FTabStop = True
 		With This
 			#ifndef __USE_GTK__

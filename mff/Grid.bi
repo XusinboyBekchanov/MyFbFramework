@@ -109,8 +109,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(BYREF Sender As My.Sys.Object)
-		OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Type GridItems
@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1) As GridItem Ptr
 		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1)
 		Declare Sub Remove(Index As Integer)
-		Declare Function IndexOf(BYREF FItem As GridItem Ptr) As Integer
+		Declare Function IndexOf(ByRef FItem As GridItem Ptr) As Integer
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -144,7 +144,7 @@ Namespace My.Sys.Forms
 		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft) As GridColumn Ptr
 		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft)
 		Declare Sub Remove(Index As Integer)
-		Declare Function IndexOf(BYREF FColumn As GridColumn Ptr) As Integer
+		Declare Function IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -166,6 +166,8 @@ Namespace My.Sys.Forms
 		SelectedImages       As ImageList Ptr
 		SmallImages       As ImageList Ptr
 		GroupHeaderImages       As ImageList Ptr
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property SelectedItem As GridItem Ptr
@@ -175,7 +177,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnItemClick As Sub(BYREF Sender As Grid, BYREF Item As GridItem)
+		OnItemClick As Sub(ByRef Sender As Grid, ByRef Item As GridItem)
 		OnItemDblClick As Sub(BYREF Sender As Grid, BYREF Item As GridItem)
 	End Type
 End Namespace

@@ -160,6 +160,7 @@ Namespace My.Sys.Forms
 			#endif
 			.Width                  = 90
 			.Height                 = 17
+			.FTabIndex              = -1
 			.FTabStop               = True
 		End With
 	End Constructor

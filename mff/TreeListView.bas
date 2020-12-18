@@ -1349,6 +1349,7 @@ Namespace My.Sys.Forms
 		Columns.Parent = @This
 		FEnabled = True
 		FVisible = True
+		FTabIndex          = -1
 		FTabStop = True
 		With This
 			.Child             = @This

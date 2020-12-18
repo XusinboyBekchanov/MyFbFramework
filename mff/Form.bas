@@ -576,6 +576,7 @@ Namespace My.Sys.Forms
 						EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 					End If
 					If .Opacity <> 255 Then SetLayeredWindowAttributes(.Handle, 0, .Opacity, LWA_ALPHA)
+					.ChangeTabIndex -2
 					If .Menu Then .Menu->ParentWindow = @Sender
 					.GetMenuItems
 					Dim As String mnuCaption, HotKey

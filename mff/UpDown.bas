@@ -206,6 +206,7 @@ Namespace My.Sys.Forms
 		FAlignment       = 0
 		FStyle           = 0
 		FThousands       = True
+		FTabIndex          = -1
 		FTabStop         = True
 		#ifndef __USE_GTK__
 			FUDAccel(0).nInc = FIncrement

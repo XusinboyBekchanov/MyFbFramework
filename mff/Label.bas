@@ -254,6 +254,7 @@ Namespace My.Sys.Forms
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
 		'FAlignment = 2
+		FTabIndex          = -1
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__

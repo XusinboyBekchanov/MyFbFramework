@@ -119,6 +119,7 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "GroupBox")
 			WLet(FClassAncestor, "Button")
+			FTabIndex          = -1
 			FTabStop           = True
 			#ifndef __USE_GTK__
 				.ExStyle     = 0 'WS_EX_TRANSPARENT

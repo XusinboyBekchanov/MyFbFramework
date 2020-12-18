@@ -96,7 +96,7 @@ Property WStringList.Item(Index As Integer, ByRef FItem As WString)
 End Property
 
 Property WStringList.Object(Index As Integer) As Any Ptr
-	If Index >= 0 And Index <= FCount -1 Then
+	If Index >= 0 And Index <= FItems.Count -1 Then
 		Return QWStringListItem(FItems.Items[Index]).Object
 	End If
 	Return 0

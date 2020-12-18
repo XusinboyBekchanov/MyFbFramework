@@ -61,8 +61,8 @@ Namespace My.Sys.Forms
 			DropDownListWidget As GtkWidget Ptr
 		#endif
 		Items             As ListItems
-		Declare Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As ComboBoxEditStyle
 		Declare Property Style(Value As ComboBoxEditStyle)
 		Declare Property TabIndex As Integer

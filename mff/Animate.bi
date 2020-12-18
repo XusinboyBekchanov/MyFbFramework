@@ -54,6 +54,8 @@ Namespace My.Sys.Forms
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Sub GetAnimateInfo
 	Public:
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Center As Boolean
 		Declare Property Center(Value As Boolean)
 		Declare Property Transparency As Boolean
