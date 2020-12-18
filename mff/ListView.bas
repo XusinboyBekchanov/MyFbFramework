@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
 		Case "view": Return @FView
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -22,12 +23,21 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "tabindex": TabIndex = QInteger(Value)
 			Case "view": This.View = *Cast(ViewStyle Ptr, Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
 		Return True
 	End Function
+	
+	Property ListView.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property ListView.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
 	
 	Function ListViewItem.Index As Integer
 		If Parent Then

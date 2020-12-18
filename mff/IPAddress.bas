@@ -7,6 +7,30 @@
 #include once "IPAddress.bi"
 
 Namespace My.Sys.Forms
+	Function IPAddress.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function IPAddress.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "tabindex": TabIndex = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	Property IPAddress.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property IPAddress.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then

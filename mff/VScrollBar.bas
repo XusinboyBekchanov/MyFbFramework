@@ -13,6 +13,30 @@
 
 
 Namespace My.Sys.Forms
+	Function VScrollBar.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function VScrollBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "tabindex": TabIndex = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	Property VScrollBar.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property VScrollBar.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Property VScrollBar.MinValue As Integer
 		Return FMin
 	End Property
@@ -61,7 +85,7 @@ Namespace My.Sys.Forms
 	Property VScrollBar.PageSize(Value As Integer)
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
 			If Handle Then Perform(SBM_SETSCROLLINFO, True, CInt(@SIF))

@@ -17,6 +17,7 @@ Namespace My.Sys.Forms
 	Function Label.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
+		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
 		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -27,6 +28,7 @@ Namespace My.Sys.Forms
 	Function Label.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
+		Case "tabindex": TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -39,6 +41,14 @@ Namespace My.Sys.Forms
 	
 	Property Label.Caption(ByRef Value As WString)
 		Text = Value
+	End Property
+	
+	Property Label.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property Label.TabIndex(Value As Integer)
+		ChangeTabIndex Value
 	End Property
 	
 	Property Label.Text ByRef As WString

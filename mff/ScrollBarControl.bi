@@ -36,6 +36,8 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As ScrollBarControlStyle
 		Declare Property Style(Value As ScrollBarControlStyle)
 		Declare Property MinValue As Integer

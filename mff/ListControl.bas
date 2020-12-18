@@ -14,6 +14,30 @@
 #include once "ListControl.bi"
 
 Namespace My.Sys.Forms
+	Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "tabindex": TabIndex = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	Property ListControl.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property ListControl.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Property ListControl.MultiSelect As Boolean
 		Return FMultiselect
 	End Property

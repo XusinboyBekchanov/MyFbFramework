@@ -61,6 +61,8 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Items             As ListItems
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As ListControlStyle
 		Declare Property Style(Value As ListControlStyle)
 		Declare Property BorderStyle As Integer

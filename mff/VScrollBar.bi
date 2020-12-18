@@ -30,6 +30,8 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property MinValue As Integer
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer

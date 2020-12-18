@@ -7,6 +7,30 @@
 #include once "LinkLabel.bi"
 
 Namespace My.Sys.Forms
+	Function LinkLabel.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function LinkLabel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "tabindex": TabIndex = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	Property LinkLabel.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property LinkLabel.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Property LinkLabel.Text ByRef As WString
 		Return Base.Text
 	End Property
