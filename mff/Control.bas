@@ -1844,7 +1844,6 @@ Namespace My.Sys.Forms
 				FControlCount += 1
 				Controls = Reallocate_(Controls, SizeOf(Control)*FControlCount)
 				Controls[FControlCount -1] = Ctrl
-				If Ctrl->FTabIndex = -1 Then Ctrl->ChangeTabIndex -1
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
@@ -1879,6 +1878,7 @@ Namespace My.Sys.Forms
 						'#ENDIF
 					End If
 				#endif
+				If Ctrl->FTabIndex = -1 Then Ctrl->ChangeTabIndex -1
 				RequestAlign
 				If FSaveParent Then
 					If FSaveParent <> @This Then

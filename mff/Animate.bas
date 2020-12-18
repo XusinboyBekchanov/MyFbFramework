@@ -12,6 +12,20 @@
 #include once "Animate.bi"
 
 Namespace My.Sys.Forms
+	Function Animate.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Animate.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
 	Sub Animate.GetAnimateInfo
 		#ifndef __USE_GTK__
 			Dim As HRSRC Resource

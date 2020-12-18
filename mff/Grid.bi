@@ -174,11 +174,13 @@ Namespace My.Sys.Forms
 		Declare Property SelectedItem(Value As GridItem Ptr)
 		Declare Property SelectedColumn As GridColumn Ptr
 		Declare Property SelectedColumn(Value As GridColumn Ptr)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
 		OnItemClick As Sub(ByRef Sender As Grid, ByRef Item As GridItem)
-		OnItemDblClick As Sub(BYREF Sender As Grid, BYREF Item As GridItem)
+		OnItemDblClick As Sub(ByRef Sender As Grid, ByRef Item As GridItem)
 	End Type
 End Namespace
 

@@ -446,6 +446,30 @@ Namespace My.Sys.Forms
 		This.Clear
 	End Destructor
 	
+	Function Grid.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Grid.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "tabindex": TabIndex = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	Property Grid.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property Grid.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Property Grid.SelectedItem As GridItem Ptr
 		#ifndef __USE_GTK__
 			If Handle Then

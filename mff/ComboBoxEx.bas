@@ -71,7 +71,7 @@ Namespace My.Sys.Forms
 	Property ComboBoxItem.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.Mask = CBEIF_IMAGE
@@ -79,7 +79,7 @@ Namespace My.Sys.Forms
 					cbei.iImage = FImageIndex
 					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
 				End If
-			#EndIf
+			#endif
 		End If
 	End Property
 	
@@ -89,11 +89,11 @@ Namespace My.Sys.Forms
 	
 	Property ComboBoxItem.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property ComboBoxItem.SelectedImageIndex As Integer
@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 	Property ComboBoxItem.SelectedImageIndex(Value As Integer)
 		If Value <> FSelectedImageIndex Then
 			FSelectedImageIndex = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.Mask = CBEIF_SELECTEDIMAGE
@@ -111,7 +111,7 @@ Namespace My.Sys.Forms
 					cbei.iSelectedImage = FSelectedImageIndex
 					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
 				End If
-			#EndIf
+			#endif
 		End If
 	End Property
 	
@@ -122,7 +122,7 @@ Namespace My.Sys.Forms
 	Property ComboBoxItem.OverlayIndex(Value As Integer)
 		If Value <> FOverlayIndex Then
 			FOverlayIndex = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.Mask = CBEIF_OVERLAY
@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 					cbei.iOverlay = FOverlayIndex
 					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
 				End If
-			#EndIf
+			#endif
 		End If
 	End Property
 	
@@ -206,26 +206,26 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, Index)
-			#Else
+			#else
 				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, IIf(Index = -1, FItems.Count, Index))
-			#EndIf
+			#endif
 			gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FText), -1)
 			'gtk_widget_show_all(Parent->widget)
-		#Else
-			cbei.Mask = CBEIF_IMAGE or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
+		#else
+			cbei.Mask = CBEIF_IMAGE Or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
 			cbei.pszText  = @FText
 			cbei.cchTextMax = Len(FText)
-			cbei.iItem = IIF(Index = -1, FItems.Count - 1, Index)
+			cbei.iItem = IIf(Index = -1, FItems.Count - 1, Index)
 			cbei.iImage   = FImageIndex
 			cbei.iSelectedImage   = FSelectedImageIndex
 			cbei.iOverlay   = FOverlayIndex
 			cbei.iIndent   = FIndent
-		#EndIf
+		#endif
 		If Parent Then
 			PItem->Parent = Parent
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				Parent->Perform CBEM_INSERTITEM, 0, CInt(@cbei)
-			#EndIf
+			#endif
 		End If
 		Return PItem
 	End Function
@@ -294,6 +294,20 @@ Namespace My.Sys.Forms
 	Destructor ComboBoxExItems
 		This.Clear
 	End Destructor
+	
+	Function ComboBoxEx.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function ComboBoxEx.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
 	
 	Sub ComboBoxEx.UpdateListHeight
 		'If Style <> cbSimple Then
