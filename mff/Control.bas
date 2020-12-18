@@ -1397,20 +1397,20 @@ Namespace My.Sys.Forms
 						If Prev Then
 							For i As Integer = Idx - 1 To 0 Step -1
 								Ctrl = .Object(i)
-								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+								If Ctrl->FTabStop AndAlso Ctrl->Visible AndAlso Ctrl->Enabled Then Ctrl->SetFocus: Return Ctrl
 							Next
 							For i As Integer = .Count - 1 To Idx + 1 Step -1
 								Ctrl = .Object(i)
-								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+								If Ctrl->FTabStop AndAlso Ctrl->Visible AndAlso Ctrl->Enabled Then Ctrl->SetFocus: Return Ctrl
 							Next
 						Else
 							For i As Integer = Idx + 1 To .Count - 1
 								Ctrl = .Object(i)
-								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+								If Ctrl->FTabStop AndAlso Ctrl->Visible AndAlso Ctrl->Enabled Then Ctrl->SetFocus: Return Ctrl
 							Next
 							For i As Integer = 0 To Idx - 1
 								Ctrl = .Object(i)
-								If Ctrl->FTabStop Then Ctrl->SetFocus: Return Ctrl
+								If Ctrl->FTabStop AndAlso Ctrl->Visible AndAlso Ctrl->Enabled Then Ctrl->SetFocus: Return Ctrl
 							Next
 						End If
 					End With

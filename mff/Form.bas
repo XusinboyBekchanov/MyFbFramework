@@ -953,6 +953,20 @@ Namespace My.Sys.Forms
 				TranslateAndDispatch = True
 				If Accelerator Then TranslateAndDispatch = TranslateAccelerator(FHandle, Accelerator, @msg) = 0
 				If TranslateAndDispatch Then
+					Select Case Msg.message
+					Case WM_KEYDOWN
+						Select Case Msg.wParam
+						Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
+							If Not GetFocus() = Handle Then
+								SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
+								TranslateAndDispatch = False
+							ElseIf IsDialogMessage(Handle, @Msg) Then
+								TranslateAndDispatch = False
+							End If
+						End Select
+					End Select
+				End If
+				If TranslateAndDispatch Then
 					TranslateMessage @msg
 					DispatchMessage @msg
 				End If
