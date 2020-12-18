@@ -15,6 +15,36 @@
 '#Include Once "Canvas.bi"
 
 Namespace My.Sys.Forms
+	Function Panel.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Panel.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
+	Property Panel.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property Panel.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Property Panel.BevelInner As Integer
 		Return FBevelInner
 	End Property

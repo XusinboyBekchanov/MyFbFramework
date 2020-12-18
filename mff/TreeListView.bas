@@ -49,24 +49,24 @@ Namespace My.Sys.Forms
 					End If
 				Loop
 			End If
-		#EndIf
+		#endif
 		FExpanded = False
 	End Sub
 	
 	Sub TreeListViewItem.Expand
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->widget AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
 				gtk_tree_view_expand_row(gtk_tree_view(Parent->widget), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
-		#Else
+		#else
 			If Parent AndAlso Parent->Handle Then
 				State = 2
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex <> -1 Then
 					For i As Integer = 0 To Items.Count - 1
-						lvi.Mask = LVIF_TEXT or LVIF_IMAGE or LVIF_State or LVIF_Indent or LVIF_PARAM
+						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_PARAM
 						lvi.pszText  = @Items.Item(i)->Text(0)
 						lvi.cchTextMax = Len(Items.Item(i)->Text(0))
 						lvi.iItem = ItemIndex + i + 1
@@ -271,17 +271,17 @@ Namespace My.Sys.Forms
 	Property TreeListViewItem.ImageKey(ByRef Value As WString)
 		'If Value <> *FImageKey Then
 		WLet(FImageKey, Value)
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUTF8(Value), -1)
 			End If
-		#Else
+		#else
 			If Parent Then
 				With QControl(Parent)
 					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
 				End With
 			End If
-		#EndIf
+		#endif
 		'End If
 	End Property
 	
@@ -387,15 +387,15 @@ Namespace My.Sys.Forms
 			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
 			#endif
-		#Else
+		#else
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_WIDTH OR LVCF_SUBITEM
+				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 				lvc.iSubItem = Index
 				lvc.cx = Value
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property TreeListViewColumn.Format As ColumnFormat
@@ -404,15 +404,15 @@ Namespace My.Sys.Forms
 	
 	Property TreeListViewColumn.Format(Value As ColumnFormat)
 		FFormat = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_FMT OR LVCF_SUBITEM
+				lvc.mask = LVCF_FMT Or LVCF_SUBITEM
 				lvc.iSubItem = Index
 				lvc.fmt = Value
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property TreeListViewColumn.Hint ByRef As WString
@@ -498,25 +498,25 @@ Namespace My.Sys.Forms
 		FItems.Items[Index] = Value 'David Change
 	End Property
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Function TreeListViewItems.FindByIterUser_Data(User_Data As Any Ptr) As TreeListViewItem Ptr
 			If ParentItem AndAlso ParentItem->TreeIter.User_Data = User_Data Then Return ParentItem
-			For i as integer = 0 to Count - 1
+			For i As Integer = 0 To Count - 1
 				PItem = Item(i)->Items.FindByIterUser_Data(User_Data)
 				If PItem <> 0 Then Return PItem
 			Next i
 			Return 0
 		End Function
-	#Else
+	#else
 		Function TreeListViewItems.FindByHandle(Value As LParam) As TreeListViewItem Ptr
 			If ParentItem AndAlso ParentItem->Handle = Value Then Return ParentItem
-			For i as integer = 0 to Count - 1
+			For i As Integer = 0 To Count - 1
 				PItem = Item(i)->Items.FindByHandle(Value)
 				If PItem <> 0 Then Return PItem
 			Next i
 			Return 0
 		End Function
-	#EndIf
+	#endif
 	
 	Property TreeListViewItems.ParentItem As TreeListViewItem Ptr
 		Return FParentItem
@@ -539,9 +539,9 @@ Namespace My.Sys.Forms
 				.Indent        = 0
 			End If
 			.Parent         = Parent
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				.Handle = Cast(LParam, PItem)
-			#EndIf
+			#endif
 			.Items.Parent         = Parent
 			.ParentItem        = ParentItem
 			If FItems.Count = 1 AndAlso ParentItem Then
@@ -723,7 +723,7 @@ Namespace My.Sys.Forms
 		'QListViewColumn(FColumns.Items[Index]) = Value
 	End Property
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Sub TreeListViewColumns.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
 			Dim As TreeListViewColumn Ptr PColumn = user_data
 			If PColumn = 0 Then Exit Sub
@@ -737,7 +737,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub TreeListViewColumns.Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As const gchar Ptr, user_data As Any Ptr)
+		Sub TreeListViewColumns.Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As Const gchar Ptr, user_data As Any Ptr)
 			Dim As TreeListViewColumn Ptr PColumn = user_data
 			If PColumn = 0 Then Exit Sub
 			Dim As TreeListView Ptr lv = Cast(TreeListView Ptr, PColumn->Parent)
@@ -750,14 +750,14 @@ Namespace My.Sys.Forms
 				If CellEditor <> 0 Then editable = gtk_cell_editable(CellEditor->Widget)
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
 	Function TreeListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As TreeListViewColumn Ptr
 		Dim As TreeListViewColumn Ptr PColumn
 		Dim As Integer Index
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
-		#EndIf
+		#endif
 		PColumn = New_( TreeListViewColumn)
 		FColumns.Add PColumn
 		Index = FColumns.Count - 1
@@ -768,7 +768,7 @@ Namespace My.Sys.Forms
 			.Width     = iWidth
 			.Format = Format
 		End With
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent Then
 				With *Cast(ListView Ptr, Parent)
 					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
@@ -782,7 +782,7 @@ Namespace My.Sys.Forms
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
 					g_value_init_(@bValue, G_TYPE_BOOLEAN)
-					g_value_set_boolean(@bValue, TRUE)
+					g_value_set_boolean(@bValue, True)
 					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 					g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
 					g_value_unset(@bValue)
@@ -803,39 +803,39 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(ListView Ptr, Parent)->widget), PColumn->Column)
-				#IfDef __USE_GTK3__
+				#ifdef __USE_GTK3__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
-				#Else
+				#else
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
-				#EndIf
+				#endif
 			End If
-		#Else
-			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+		#else
+			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
-			lvc.cx		  = IIF(iWidth = -1, 50, iWidth)
+			lvc.cx		  = IIf(iWidth = -1, 50, iWidth)
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
 			lvc.pszText  = @FCaption
 			lvc.cchTextMax = Len(FCaption)
-		#EndIf
+		#endif
 		If Parent Then
 			PColumn->Parent = Parent
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				
-			#Else
+			#else
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
 				End If
-			#EndIf
+			#endif
 		End If
 		Return PColumn
 	End Function
 	
-	Sub TreeListViewColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As integer, Format As ColumnFormat = cfLeft)
+	Sub TreeListViewColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As ColumnFormat = cfLeft)
 		Dim As TreeListViewColumn Ptr PColumn
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
-		#EndIf
+		#endif
 		PColumn = New_( TreeListViewColumn)
 		FColumns.Insert Index, PColumn
 		With *PColumn
@@ -846,7 +846,7 @@ Namespace My.Sys.Forms
 			.Format = Format
 		End With
 		#IfNDef __USE_GTK__
-			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
 			lvc.cx=0
 			lvc.iImage   = PColumn->ImageIndex
@@ -860,16 +860,16 @@ Namespace My.Sys.Forms
 					ListView_SetColumnWidth(Parent->Handle, Index, iWidth)
 				End If
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub TreeListViewColumns.Remove(Index As Integer)
 		FColumns.Remove Index
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				Parent->Perform LVM_DELETECOLUMN, cast(WPARAM, Index), 0
+				Parent->Perform LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Function TreeListViewColumns.IndexOf(ByRef FColumn As TreeListViewColumn Ptr) As Integer
@@ -895,6 +895,36 @@ Namespace My.Sys.Forms
 	Destructor TreeListViewColumns
 		This.Clear
 	End Destructor
+	
+	Function TreeListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function TreeListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "tabindex": This.TabIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
+	Property TreeListView.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property TreeListView.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
 	
 	Sub TreeListView.Init()
 		#ifdef __USE_GTK__
@@ -937,11 +967,11 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeListView.View As ViewStyle
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
 				FView = ListView_GetView(Handle)
 			End If
-		#EndIf
+		#endif
 		Return FView
 	End Property
 	

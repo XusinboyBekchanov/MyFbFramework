@@ -62,9 +62,11 @@ Namespace My.Sys.Forms
 			WidgetTextView As GtkWidget Ptr
 		#else
 			Declare Static Sub WndProc(ByRef message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef message As Message)
 		#endif
+		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Sub AddLine(ByRef wsLine As WString)
 		Declare Sub InsertLine(Index As Integer, ByRef wsLine As WString)
 		Declare Sub RemoveLine(Index As Integer)
@@ -136,17 +138,17 @@ Namespace My.Sys.Forms
 		Declare Sub ScrollToCaret
 		Declare Sub LoadFromFile(ByRef File As WString)
 		Declare Sub SaveToFile(ByRef File As WString)
-		Declare Sub InputFilter( ByRef Value as wString) 'David Change
+		Declare Sub InputFilter( ByRef Value As WString) 'David Change
 		Declare Constructor
 		Declare Destructor
-		OnChange   As Sub(BYREF Sender As TextBox)
-		OnGotFocus   As Sub(BYREF Sender As TextBox)
-		OnLostFocus   As Sub(BYREF Sender As TextBox)
-		OnHScroll   As Sub(BYREF Sender As TextBox)
-		OnVScroll   As Sub(BYREF Sender As TextBox)
-		OnCut As Sub(BYREF Sender As TextBox)
-		OnCopy As Sub(BYREF Sender As TextBox)
-		OnPaste As Sub(BYREF Sender As TextBox, ByRef Action As Integer)
+		OnChange   As Sub(ByRef Sender As TextBox)
+		OnGotFocus   As Sub(ByRef Sender As TextBox)
+		OnLostFocus   As Sub(ByRef Sender As TextBox)
+		OnHScroll   As Sub(ByRef Sender As TextBox)
+		OnVScroll   As Sub(ByRef Sender As TextBox)
+		OnCut As Sub(ByRef Sender As TextBox)
+		OnCopy As Sub(ByRef Sender As TextBox)
+		OnPaste As Sub(ByRef Sender As TextBox, ByRef Action As Integer)
 	End Type
 End Namespace
 

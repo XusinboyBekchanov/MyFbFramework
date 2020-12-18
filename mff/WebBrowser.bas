@@ -7,6 +7,40 @@
 #include once "WebBrowser.bi"
 
 Namespace My.Sys.Forms
+	#ifndef ReadProperty_Off
+		Function WebBrowser.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Function WebBrowser.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
+	
+	Property WebBrowser.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property WebBrowser.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
@@ -18,10 +52,10 @@ Namespace My.Sys.Forms
 		
 		Sub WebBrowser.WndProc(ByRef Message As Message)
 		End Sub
-		
-		Sub WebBrowser.ProcessMessage(ByRef Message As Message)
-		End Sub
 	#endif
+	
+	Sub WebBrowser.ProcessMessage(ByRef Message As Message)
+	End Sub
 	
 	Operator WebBrowser.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)

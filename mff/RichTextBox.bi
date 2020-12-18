@@ -25,10 +25,10 @@ Namespace My.Sys.Forms
 		#endif
 		FEditStyle As Boolean
 		FZoom As Integer
-		#ifndef __USE_GTK__
-			Declare Virtual Sub ProcessMessage(ByRef message As Message)
-		#endif
+		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Function CanRedo As Boolean
 		Declare Function GetCharIndexFromPos(p As Point) As Integer
 		Declare Function GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString

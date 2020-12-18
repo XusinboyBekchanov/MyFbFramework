@@ -13,10 +13,13 @@ Namespace My.Sys.Forms
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr

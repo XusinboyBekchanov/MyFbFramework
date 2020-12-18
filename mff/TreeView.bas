@@ -518,6 +518,40 @@ Namespace My.Sys.Forms
 		FNodes.Clear
 	End Sub
 	
+	#ifndef ReadProperty_Off
+		Function TreeView.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Function TreeView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
+	
+	Property TreeView.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property TreeView.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub TreeView.SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			Dim hChildNode As HTREEITEM

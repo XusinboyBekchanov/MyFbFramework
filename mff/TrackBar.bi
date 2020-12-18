@@ -50,9 +50,9 @@ Namespace My.Sys.Forms
 		ASliderVisible(2) As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr

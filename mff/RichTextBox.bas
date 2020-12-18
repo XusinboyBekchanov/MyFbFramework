@@ -7,6 +7,36 @@
 #include once "RichTextBox.bi"
 
 Namespace My.Sys.Forms
+	Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "tabindex": Return @FTabIndex
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function RichTextBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
+	Property RichTextBox.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property RichTextBox.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Function RichTextBox.GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
 		Dim cpMax2 As Integer = cpMax
 		#ifndef __USE_GTK__
@@ -40,76 +70,76 @@ Namespace My.Sys.Forms
 			cf.dwMask = CFM_COLOR
 			cf.crTextColor = Value
 			Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
-		#EndIf
+		#endif
 	End Property
 	
 	Function RichTextBox.GetCharIndexFromPos(p As Point) As Integer
-		#IfNDef __USE_GTK__
-			Return Perform(EM_CHARFROMPOS, 0, Cint(@p))
-		#Else
+		#ifndef __USE_GTK__
+			Return Perform(EM_CHARFROMPOS, 0, CInt(@p))
+		#else
 			Return 0
-		#EndIf
+		#endif
 	End Function
 	
 	Property RichTextBox.Zoom As Integer
 		Dim As Integer wp, lp
 		Var Result = 100
-		#IfNDef __USE_GTK__
-			Perform(EM_GETZOOM, CInt(@wp), Cint(@lp))
+		#ifndef __USE_GTK__
+			Perform(EM_GETZOOM, CInt(@wp), CInt(@lp))
 			If (lp > 0) Then Result = MulDiv(100, wp, lp)
-		#EndIf
+		#endif
 		Return Result
 	End Property
 	
 	Property RichTextBox.Zoom(Value As Integer)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Value = 0 Then
 				Perform(EM_SETZOOM, 0, 0)
 			Else
 				Perform(EM_SETZOOM, Value, 100)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Function RichTextBox.BottomLine As Integer
 		Dim r As Rect, i As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Perform(EM_GETRECT, 0, CInt(@r))
 			r.Left = r.Left + 1
 			r.Top  = r.Bottom - 2
-			i = Perform(EM_CHARFROMPOS, 0, Cint(@r))
+			i = Perform(EM_CHARFROMPOS, 0, CInt(@r))
 			Return Perform(EM_EXLINEFROMCHAR, 0, i)
-		#Else
+		#else
 			Return 0
-		#EndIf
+		#endif
 	End Function
 	
 	Function RichTextBox.CanRedo As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then
 				Return (Perform(EM_CANREDO, 0, 0) <> 0)
 			Else
 				Return 0
 			End If
-		#Else
+		#else
 			Return 0
-		#EndIf
+		#endif
 	End Function
 	
 	Sub RichTextBox.Undo
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then Perform(EM_UNDO, 0, 0)
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub RichTextBox.Redo
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then Perform(EM_REDO, 0, 0)
-		#EndIf
+		#endif
 	End Sub
 	
-	Function RichTextBox.Find(ByRef Value As Wstring) As Boolean
-		#IfNDef __USE_GTK__
+	Function RichTextBox.Find(ByRef Value As WString) As Boolean
+		#ifndef __USE_GTK__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			FFindText = ReAllocate_(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
@@ -124,25 +154,25 @@ Namespace My.Sys.Forms
 				Perform(EM_EXSETSEL, 0, Cast(LParam, @ft.chrgText))
 				Return True
 			End If
-		#Else
+		#else
 			Return False
-		#EndIf
+		#endif
 	End Function
 	
-	Function RichTextBox.FindNext(ByRef Value As Wstring = "") As Boolean
-		#IfNDef __USE_GTK__
+	Function RichTextBox.FindNext(ByRef Value As WString = "") As Boolean
+		#ifndef __USE_GTK__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			If Value <> "" Then
 				FFindText = ReAllocate_(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
 				*FFindText = Value
-			End if
+			End If
 			If FFindText = 0 Then Exit Function
 			Perform(EM_EXGETSEL, 0, Cast(LPARAM, @ft.chrg))
 			ft.lpstrText = FFindText
 			If ft.chrg.cpMin <> ft.chrg.cpMax Then
 				ft.chrg.cpMin = ft.chrg.cpMax
-			Endif
+			EndIf
 			ft.chrg.cpMax = -1
 			Result = Perform(EM_FINDTEXTEX, FR_DOWN, Cast(Lparam, @ft))
 			If Result = -1 Then
@@ -151,19 +181,19 @@ Namespace My.Sys.Forms
 				Perform(EM_EXSETSEL, 0, Cast(LParam, @ft.chrgText))
 				Return True
 			End If
-		#Else
+		#else
 			Return False
-		#EndIf
+		#endif
 	End Function
 	
-	Function RichTextBox.FindPrev(ByRef Value As Wstring = "") As Boolean
-		#IfNDef __USE_GTK__
+	Function RichTextBox.FindPrev(ByRef Value As WString = "") As Boolean
+		#ifndef __USE_GTK__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			If Value <> "" Then
 				FFindText = ReAllocate_(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
 				*FFindText = Value
-			End if
+			End If
 			If FFindText = 0 Then Exit Function
 			Perform(EM_EXGETSEL, 0, Cast(LPARAM, @ft.chrg))
 			ft.lpstrText = FFindText
@@ -175,16 +205,18 @@ Namespace My.Sys.Forms
 				Perform(EM_EXSETSEL, 0, Cast(LParam, @ft.chrgText))
 				Return True
 			End If
-		#Else
+		#else
 			Return False
-		#EndIf
+		#endif
 	End Function
 	
-	#IfNDef __USE_GTK__
-		Sub RichTextBox.WndProc(BYREF message As Message)
+	#ifndef __USE_GTK__
+		Sub RichTextBox.WndProc(ByRef message As Message)
 		End Sub
-		
-		Sub RichTextBox.ProcessMessage(BYREF message As Message)
+	#endif
+	
+	Sub RichTextBox.ProcessMessage(ByRef message As Message)
+		#ifndef __USE_GTK__
 			'?message.msg & ": " & GetMessageName(message.msg)
 			Select Case message.Msg
 			Case CM_COMMAND
@@ -194,7 +226,7 @@ Namespace My.Sys.Forms
 				End Select
 				message.result = 0
 			Case WM_PASTE
-				Dim Action AS Integer = 1
+				Dim Action As Integer = 1
 				If OnPaste Then OnPaste(This, Action)
 				Select Case Action
 				Case 0: message.result = -1
@@ -208,26 +240,26 @@ Namespace My.Sys.Forms
 					message.lParam = Cast(LPARAM, @reps)
 				End Select
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#EndIf
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Property RichTextBox.EditStyle As Boolean
 		Return FEditStyle
 	End Property
 	
-	Property RichTextBox.EditStyle(Value As boolean)
+	Property RichTextBox.EditStyle(Value As Boolean)
 		FEditStyle = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then
 				If FEditStyle Then Perform(EM_SETEDITSTYLE, 1, 1)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property RichTextBox.SelText ByRef As WString
 		Dim As Integer LStart, LEnd
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then
 				Dim charArr As CHARRANGE
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))

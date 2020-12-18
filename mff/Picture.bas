@@ -15,17 +15,33 @@ Namespace My.Sys.Forms
 	Function Picture.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
+		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
 	End Function
 	
 	Function Picture.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
 		Return True
 	End Function
+	
+	Property Picture.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property Picture.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
 	
 	Property Picture.Style As Integer
 		Return FStyle

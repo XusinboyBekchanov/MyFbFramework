@@ -15,6 +15,40 @@
 'Const UDN_DELTAPOS = (UDN_FIRST - 1)
 
 Namespace My.Sys.Forms
+	#ifndef ReadProperty_Off
+		Function UpDown.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Function UpDown.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
+	
+	Property UpDown.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property UpDown.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
 	Property UpDown.MinValue As Integer
 		Return FMinValue
 	End Property

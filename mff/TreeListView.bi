@@ -66,9 +66,9 @@ Namespace My.Sys.Forms
 		FState              As Integer
 		FIndent             As Integer
 		FExpanded			As Boolean
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim lvi             As LVITEM
-		#EndIf
+		#endif
 	Protected:
 		#ifndef __USE_GTK__
 			
@@ -115,8 +115,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(BYREF Sender As My.Sys.Object)
-		OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Type TreeListViewColumn Extends My.Sys.Object
@@ -129,9 +129,9 @@ Namespace My.Sys.Forms
 		FVisible      As Boolean
 		FEditable	 As Boolean
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Column
-		#EndIf
+		#endif
 		Index As Integer
 		Parent   As Control Ptr
 		Declare Sub SelectItem
@@ -152,17 +152,17 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(BYREF Sender As My.Sys.Object)
-		OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Type TreeListViewColumns
 	Private:
 		FColumns As List
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Declare Static Sub Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
-			Declare Static Sub Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As const gchar Ptr, user_data As Any Ptr)
-		#EndIf
+			Declare Static Sub Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As Const gchar Ptr, user_data As Any Ptr)
+		#endif
 	Public:
 		Parent   As Control Ptr
 		Declare Property Count As Integer
@@ -172,7 +172,7 @@ Namespace My.Sys.Forms
 		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As TreeListViewColumn Ptr
 		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft)
 		Declare Sub Remove(Index As Integer)
-		Declare Function IndexOf(BYREF FColumn As TreeListViewColumn Ptr) As Integer
+		Declare Function IndexOf(ByRef FColumn As TreeListViewColumn Ptr) As Integer
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -196,6 +196,8 @@ Namespace My.Sys.Forms
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
 		#endif
 	Public:
+		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#ifdef __USE_GTK__
 			TreeStore As GtkTreeStore Ptr
 			TreeSelection As GtkTreeSelection Ptr
@@ -226,6 +228,8 @@ Namespace My.Sys.Forms
 		Declare Property SelectedColumn(Value As TreeListViewColumn Ptr)
 		Declare Property SingleClickActivate As Boolean
 		Declare Property SingleClickActivate(Value As Boolean)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

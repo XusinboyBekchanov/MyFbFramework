@@ -36,8 +36,11 @@ Namespace My.Sys.Forms
 			Declare Sub DoRect(R As RECT, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Declare Sub Frame3D(R As RECT, AWidth As Integer)
 		#endif
-	Public:
+	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		'Canvas        As My.Sys.Drawing.Canvas
 		Declare Property BevelInner As Integer
 		Declare Property BevelInner(Value As Integer)

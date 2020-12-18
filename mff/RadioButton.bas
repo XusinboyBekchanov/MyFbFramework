@@ -17,6 +17,7 @@ Namespace My.Sys.Forms
 	Function RadioButton.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
+		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -26,11 +27,20 @@ Namespace My.Sys.Forms
 	Function RadioButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
+		Case "tabindex": If Value <> 0 Then TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
 	End Function
+	
+	Property RadioButton.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property RadioButton.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
 	
 	Property RadioButton.Caption ByRef As WString
 		Return Text

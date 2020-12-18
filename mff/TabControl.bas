@@ -261,6 +261,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "tabindex": Return @FTabIndex
 			Case "selectedtabindex": Return @FSelectedTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -276,6 +277,7 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "tabindex": TabIndex = QInteger(Value)
 				Case "selectedtabindex": This.SelectedTabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
@@ -283,6 +285,14 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 	#endif
+	
+	Property TabControl.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property TabControl.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
 	
 	Property TabControl.SelectedTabIndex As Integer
 		#ifdef __USE_GTK__
@@ -574,8 +584,10 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-		
-		Sub TabControl.ProcessMessage(ByRef Message As Message)
+	#endif
+	
+	Sub TabControl.ProcessMessage(ByRef Message As Message)
+			#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_DRAWITEM
 				If FTabPosition = tpLeft Or FTabPosition = tpRight Then
@@ -634,9 +646,9 @@ Namespace My.Sys.Forms
 			Case WM_NCHITTEST
 				If DesignMode Then Exit Sub
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
 		FTabCount += 1

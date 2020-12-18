@@ -126,6 +126,8 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#ifdef __USE_GTK__
 			TreeStore As GtkTreeStore Ptr
 			TreeSelection As GtkTreeSelection Ptr

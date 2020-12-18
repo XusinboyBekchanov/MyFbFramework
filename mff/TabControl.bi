@@ -90,15 +90,18 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#endif
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Images        As ImageList Ptr
-		Tabs             As TabPage Ptr Ptr
+		Tabs          As TabPage Ptr Ptr
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property SelectedTabIndex As Integer
 		Declare Property SelectedTabIndex(Value As Integer)
+		Declare Property TabIndex As Integer
+		Declare Property TabIndex(Value As Integer)
 		Declare Property TabCount As Integer
 		Declare Property TabCount(Value As Integer)
 		Declare Property TabPosition As My.Sys.Forms.TabPosition
