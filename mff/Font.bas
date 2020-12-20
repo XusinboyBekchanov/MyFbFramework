@@ -54,6 +54,8 @@ Namespace My.Sys.Drawing
 	Sub Font.Create
 		If WGet(FName) = "" Then
 			WLet(FName, DefaultFont.Name)
+		End If
+		If FSize = 0 Then
 			FSize = DefaultFont.Size
 		End If
 		#ifdef __USE_GTK__
@@ -75,7 +77,7 @@ Namespace My.Sys.Drawing
 					End If
 				#else
 					If FParent->Handle Then
-						SendMessage(FParent->Handle, WM_SETFONT,CUInt(Handle),True)
+						SendMessage(FParent->Handle, WM_SETFONT, CUInt(Handle),True)
 						InvalidateRect FParent->Handle, 0, True
 					End If
 				#endif
