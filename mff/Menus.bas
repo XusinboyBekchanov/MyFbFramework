@@ -58,8 +58,16 @@ Namespace My.Sys.Forms
 			value.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
 			value.fState      = IIf(FEnabled, MFS_ENABLED, MFS_DISABLED) Or IIf(FChecked, MFS_CHECKED, MFS_UNCHECKED)
 			value.wID         = IIf(Handle, -1, This.Command)
-			If FImageIndex <> - 1 AndAlso owner AndAlso owner->imageslist Then FImage = owner->imageslist->GetIcon(FImageIndex).ToBitmap
-			Value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
+			If FImageIndex <> - 1 AndAlso owner AndAlso owner->imageslist Then 
+				FImage = owner->imageslist->GetIcon(FImageIndex).ToBitmap
+			ElseIf WGet(FImageKey) <> "" Then
+				FImage.LoadFromResourceName(*FImageKey)
+			End If
+			If owner <> 0 AndAlso Not owner->DisplayIcons Then
+				Value.hbmpItem     = 0
+			Else
+				Value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
+			End If
 			value.dwItemData  = Cast(dword_Ptr, Cast(Any Ptr, @This))
 			value.dwTypeData  = FCaption
 			value.cch         = Len(*FCaption)
@@ -989,6 +997,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Property Menu.DisplayIcons As Boolean
+		Return FDisplayIcons
+	End Property
+	
+	Property Menu.DisplayIcons(Value As Boolean)
+		FDisplayIcons = Value
+	End Property
+	
 	Property Menu.Color As Integer
 		#ifndef __USE_GTK__
 			If handle Then
@@ -1260,6 +1276,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor Menu
+		FDisplayIcons = True
 	End Constructor
 	
 	Destructor Menu

@@ -158,13 +158,16 @@ Namespace My.Sys.Forms
 		#endif
 		FStyle   As Integer
 		FColor   As Integer
-		FMenuItems     As List
+		FDisplayIcons As Boolean
+		FMenuItems    As List
 		FParentWindow As Component Ptr
 		FIncSubItems  As Integer
 		Declare Sub GetMenuItems
 		Declare Virtual Sub ProcessMessage(ByRef mess As Message)
 	Public:
 		ImagesList       As ImageList Ptr
+		Declare Property DisplayIcons As Boolean
+		Declare Property DisplayIcons(value As Boolean)
 		Declare Property ParentWindow As Component Ptr
 		Declare Property ParentWindow(value As Component Ptr)
 		#ifndef __USE_GTK__

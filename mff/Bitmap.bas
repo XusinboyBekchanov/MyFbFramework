@@ -128,11 +128,15 @@ Namespace My.Sys.Drawing
 			Dim As GError Ptr gerr
 			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
 		#else
-			Dim As BITMAP BMP
-			Handle = LoadImage(ModuleHandle,ResName,IMAGE_BITMAP,cxDesired,cyDesired,LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
-			GetObject(Handle,SizeOf(BMP),@BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
+			If FindResource(GetModuleHandle(NULL), ResName, "PNG") Then
+				LoadFromPNGResourceName(ResName)
+			Else
+				Dim As BITMAP BMP
+				Handle = LoadImage(ModuleHandle,ResName,IMAGE_BITMAP,cxDesired,cyDesired,LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
+				GetObject(Handle,SizeOf(BMP),@BMP)
+				FWidth  = BMP.bmWidth
+				FHeight = BMP.bmHeight
+			End If
 		#endif
 		If Changed Then Changed(This)
 	End Sub
