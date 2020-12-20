@@ -44,18 +44,18 @@
 	#else
 		#include "crt.bi"
 		
-		#define Allocate_(bytes) fbmld_allocate((bytes), __FILE__, __FUNCTION__, __LINE__)
-		#define CAllocate_(bytes) fbmld_callocate((bytes), __FILE__, __FUNCTION__, __LINE__)
-		#define Reallocate_(pt, bytes) fbmld_reallocate((pt), (bytes), __FILE__, __FUNCTION__, __LINE__, #pt)
-		#define Deallocate_(pt) fbmld_deallocate((pt), __FILE__, __FUNCTION__, __LINE__, #pt)
+		#define Allocate_(bytes) fbmld_allocate(bytes, __FILE__, __FUNCTION__, __LINE__)
+		#define CAllocate_(bytes) fbmld_callocate(bytes, __FILE__, __FUNCTION__, __LINE__)
+		#define Reallocate_(pt, bytes) fbmld_reallocate(pt, bytes, __FILE__, __FUNCTION__, __LINE__, #pt)
+		#define Deallocate_(pt) fbmld_deallocate(pt, __FILE__, __FUNCTION__, __LINE__, #pt)
 		#macro New_(type_)
-			Cast(Typeof(New type_), fbmemcheck_new((New type_), __FILE__, __FUNCTION__, __LINE__))
+			Cast(Typeof(New type_), fbmemcheck_new(New type_, __FILE__, __FUNCTION__, __LINE__))
 		#endmacro
 		#macro Delete_(pt)
-			fbmemcheck_delete((pt), __FILE__, __FUNCTION__, __LINE__, #pt): Delete pt
+			fbmemcheck_delete(pt, __FILE__, __FUNCTION__, __LINE__, #pt): Delete pt
 		#endmacro
 		#macro Delete_SquareBrackets(pt)
-			fbmemcheck_delete((pt), __FILE__, __FUNCTION__, __LINE__, #pt): Delete[] pt
+			fbmemcheck_delete(pt, __FILE__, __FUNCTION__, __LINE__, #pt): Delete[] pt
 		#endmacro
 		
 		Dim Shared FuncName_ As String
@@ -313,7 +313,7 @@
 				fbmld_print("warning: allocate(0) called at " & file & " in " & funcname & ":" & linenum & "; returning NULL")
 				ret = 0
 			Else
-				ret = malloc(bytes)
+				ret = Allocate(bytes) 'malloc(bytes)
 				fbmld_insert(@fbmld_tree, ret, bytes, file, funcname, linenum)
 			End If
 			
@@ -347,7 +347,7 @@
 				fbmld_print("warning: callocate(0) called at " & file & " in " & funcname & ":" & linenum & "; returning NULL")
 				ret = 0
 			Else
-				ret = calloc(1, bytes)
+				ret =  CAllocate(bytes) 'calloc(1, bytes)
 				fbmld_insert(@fbmld_tree, ret, bytes, file, funcname, linenum)
 			End If
 			
@@ -373,7 +373,7 @@
 					fbmld_print("error: reallocate(" & varname & " [NULL] , 0) called at " & file & " in " & funcname & ":" & linenum)
 					ret = NULL
 				Else
-					ret = malloc(bytes)
+					ret = Allocate(bytes) 'malloc(bytes)
 					fbmld_insert(@fbmld_tree, ret, bytes, file, funcname, linenum)
 				End If
 			ElseIf *node = NULL Then
@@ -385,14 +385,14 @@
 					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
 					fbmld_delete(node)
 				End If
-				free(pt)
+				Deallocate pt 'free(pt)
 				ret = NULL
 			Else
 				If funcname = "WREALLOCATE" OrElse funcname = "WLET" Then
 					value = *Cast(WString Ptr, pt)
 				End If
 				
-				ret = realloc(pt, bytes)
+				ret = Reallocate(pt, bytes) 'realloc(pt, bytes)
 				
 				'		If linenum = 378 Then
 				'			?"<-", ret
@@ -445,7 +445,7 @@
 					'			End If
 					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
 					fbmld_delete(node)
-					free(pt)
+					Deallocate pt 'free(pt)
 				End If
 			End If
 			

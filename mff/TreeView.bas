@@ -390,6 +390,7 @@ Namespace My.Sys.Forms
 	
 	Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
 		PNode = New_( TreeNode)
+		PNode->FDynamic = True
 		FNodes.Add PNode
 		With *PNode
 			.Text         = FText

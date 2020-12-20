@@ -22,7 +22,7 @@ Private:
 Public:
 	Declare Property Value ByRef As WString
 	Declare Property Value(ByRef V As WString)
-	Object  As Any Ptr
+	Obj  As Any Ptr
 	Declare Operator Cast As Any Ptr
 	Declare Operator Cast As String
 	Declare Operator Let(V As Any Ptr)

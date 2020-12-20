@@ -13,7 +13,7 @@ Namespace My.Sys.Forms
 	
 	Type PTreeListViewItem As TreeListViewItem Ptr
 	
-	Type TreeListViewItems
+	Type TreeListViewItems Extends My.Sys.Object
 	Private:
 		FItems As List
 		PItem As PTreeListViewItem

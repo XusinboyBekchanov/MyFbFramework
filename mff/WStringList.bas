@@ -22,7 +22,7 @@ Property WStringListItem.Value(ByRef V As WString)
 End Property
 
 Operator WStringListItem.Cast As Any Ptr
-	Return Object
+	Return Obj
 End Operator
 
 Operator WStringListItem.Cast As String
@@ -30,7 +30,7 @@ Operator WStringListItem.Cast As String
 End Operator
 
 Operator WStringListItem.Let(V As Any Ptr)
-	Object = V
+	Obj = V
 End Operator
 
 Operator WStringListItem.Let(ByRef V As WString)
@@ -39,12 +39,12 @@ End Operator
 
 Constructor WStringListItem
 	Value = ""
-	Object  = 0
+	Obj  = 0
 End Constructor
 
 Destructor WStringListItem
 	If FValue Then Deallocate_((FValue))
-	Object  = 0
+	Obj  = 0
 End Destructor
 
 Operator WStringList.Cast As Any Ptr
@@ -97,14 +97,14 @@ End Property
 
 Property WStringList.Object(Index As Integer) As Any Ptr
 	If Index >= 0 And Index <= FItems.Count -1 Then
-		Return QWStringListItem(FItems.Items[Index]).Object
+		Return QWStringListItem(FItems.Items[Index]).Obj
 	End If
 	Return 0
 End Property
 
 Property WStringList.Object(Index As Integer, FObj As Any Ptr)
 	If Index >= 0 And Index <= FCount -1 Then
-		QWStringListItem(FItems.Items[Index]).Object = FObj
+		QWStringListItem(FItems.Items[Index]).Obj = FObj
 	End If
 End Property
 
@@ -112,7 +112,7 @@ Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
 	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
 	With *nItem
 		.Value  = FItem
-		.Object = FObj
+		.Obj = FObj
 	End With
 	FItems.Add nItem
 	If OnAdd Then OnAdd(This, FItem, FObj)
@@ -123,7 +123,7 @@ Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr
 	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
 	With *nItem
 		.Value  = FItem
-		.Object = FObj
+		.Obj = FObj
 	End With
 	FItems.Insert Index, nItem
 	If OnInsert Then OnInsert(This, Index, FItem, FObj)
@@ -208,7 +208,7 @@ End Function
 
 Function WStringList.IndexOfObject(FObj As Any Ptr) As Integer
 	For i As Integer = 0 To FCount -1
-		If QWStringListItem(FItems.Items[i]).Object = FObj Then Return i
+		If QWStringListItem(FItems.Items[i]).Obj = FObj Then Return i
 	Next i
 	Return -1
 End Function

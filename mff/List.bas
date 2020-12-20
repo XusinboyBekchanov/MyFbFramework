@@ -33,9 +33,9 @@ Property List.Item(Index As Integer,FItem As Any Ptr)
 End Property
 
 Sub List.Add(FItem As Any Ptr)
+	Items = Reallocate_(Items, (Count + 1) * SizeOf(Any Ptr))
+	Items[Count] = FItem
 	Count += 1
-	Items = Reallocate_(Items,Count*SizeOf(Any Ptr))
-	Items[Count -1] = FItem
 End Sub
 
 Sub List.Insert(Index As Integer,FItem As Any Ptr)
@@ -81,7 +81,7 @@ End Sub
 
 Sub List.Clear
 	Count = 0
-	If Items <> 0 Then Deallocate_((Items))
+	If Items <> 0 Then Deallocate_(Items)
 	Items = 0
 	Items = 0' CAllocate_(Count)
 End Sub
@@ -104,6 +104,6 @@ Constructor List
 End Constructor
 
 Destructor List
-	If Items <> 0 Then Deallocate_((Items))
+	If Items <> 0 Then Deallocate_(Items)
 	Items = 0
 End Destructor

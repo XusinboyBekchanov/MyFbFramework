@@ -528,6 +528,7 @@ Namespace My.Sys.Forms
 	
 	Function TreeListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As TreeListViewItem Ptr
 		PItem = New_( TreeListViewItem)
+		PItem->FDynamic = True
 		FItems.Add PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
@@ -593,6 +594,7 @@ Namespace My.Sys.Forms
 			Dim As LVITEM lvi
 		#endif
 		PItem = New_( TreeListViewItem)
+		PItem->FDynamic = True
 		FItems.Insert Index, PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
@@ -632,17 +634,18 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub TreeListViewItems.Remove(Index As Integer)
-		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
-				'gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
-				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
-			End If
-		#else
-			If Parent AndAlso Parent->Handle Then
-				'Item(Index)->Visible = False
-				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
-			End If
-		#endif
+'		#ifdef __USE_GTK__
+'			If Parent AndAlso Parent->widget Then
+'				'gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
+'				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
+'			End If
+'		#else
+'			If Parent AndAlso Parent->Handle Then
+'				'Item(Index)->Visible = False
+'				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
+'			End If
+'		#endif
+		If Cast(TreeListViewItem Ptr, FItems.Items[Index])->FDynamic Then Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 	End Sub
 	
@@ -686,7 +689,7 @@ Namespace My.Sys.Forms
 '				If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
 '			#endif
 			For i As Integer = Count - 1 To 0 Step -1
-				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[i]))
+				If Cast(TreeListViewItem Ptr, FItems.Items[i])->FDynamic Then Delete_(Cast(TreeListViewItem Ptr, FItems.Items[i]))
 			Next i
 '		Else
 '			For i As Integer = Count - 1 To 0 Step -1
@@ -705,7 +708,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TreeListViewItems
-		'This.Clear
+		This.Clear
 	End Destructor
 	
 	Property TreeListViewColumns.Count As Integer
@@ -1341,10 +1344,10 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-	#EndIf
+	#endif
 	
 	Sub TreeListView.CollapseAll
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			gtk_tree_view_collapse_all(gtk_tree_view(widget))
 		#endif
 	End Sub
