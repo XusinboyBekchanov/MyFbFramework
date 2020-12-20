@@ -50,13 +50,13 @@ Namespace My.Sys.Forms
 		If Value <> FAlignment Then
 			FAlignment = Value
 			#ifndef __USE_GTK_
-				ChangeStyle SS_LEFT, False
-				ChangeStyle SS_CENTER, False
-				ChangeStyle SS_RIGHT, False
+				ChangeStyle ES_LEFT, False
+				ChangeStyle ES_CENTER, False
+				ChangeStyle ES_RIGHT, False
 				Select Case Value
-				Case taLeft: ChangeStyle SS_LEFT, True
-				Case taCenter: ChangeStyle SS_CENTER, True
-				Case taRight: ChangeStyle SS_RIGHT, True
+				Case taLeft: ChangeStyle ES_LEFT, True
+				Case taCenter: ChangeStyle ES_CENTER, True
+				Case taRight: ChangeStyle ES_RIGHT, True
 				End Select
 				RecreateWnd
 			#endif
