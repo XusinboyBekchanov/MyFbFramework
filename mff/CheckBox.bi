@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 	
 	Type CheckBox Extends Control
 	Private:
+		FAlignment  As Integer
 		FChecked    As Boolean
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
@@ -28,6 +29,8 @@ Namespace My.Sys.Forms
 	Public:
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Property Alignment As CheckAlignmentConstants
+		Declare Property Alignment(Value As CheckAlignmentConstants)
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property TabIndex As Integer

@@ -24,10 +24,6 @@ Namespace My.Sys.Forms
 		sbNone, sbSimple, sbSunken
 	End Enum
 	
-	Enum Alignment
-		taLeft, taCenter, taRight
-	End Enum
-	
 	Type Label Extends Control
 	Private:
 		FBorder           As Integer
@@ -51,6 +47,8 @@ Namespace My.Sys.Forms
 		Graphic            As My.Sys.Drawing.GraphicType
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Property Alignment As AlignmentConstants
+		Declare Property Alignment(Value As AlignmentConstants)
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property TabIndex As Integer
@@ -65,8 +63,6 @@ Namespace My.Sys.Forms
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean
 		Declare Property CenterImage(Value As Boolean)
-		Declare Property Alignment As Integer
-		Declare Property Alignment(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
@@ -78,6 +74,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "Label.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Label.bas"
+#endif

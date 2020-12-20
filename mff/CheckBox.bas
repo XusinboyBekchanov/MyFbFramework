@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	Function CheckBox.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "alignment": Return @FAlignment
 		Case "caption": Return FText.vptr
 		Case "text": Return FText.vptr
 		Case "checked": Return @FChecked
@@ -27,6 +28,7 @@ Namespace My.Sys.Forms
 	
 	Function CheckBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "alignment": Alignment = *Cast(CheckAlignmentConstants Ptr, Value)
 		Case "caption": This.Caption = QWString(Value)
 		Case "text": This.text = QWString(Value)
 		Case "checked": Checked = QBoolean(Value)
@@ -35,6 +37,25 @@ Namespace My.Sys.Forms
 		End Select
 		Return True
 	End Function
+	
+	Property CheckBox.Alignment As CheckAlignmentConstants
+		Return FAlignment
+	End Property
+	
+	Property CheckBox.Alignment(Value As CheckAlignmentConstants)
+		If Value <> FAlignment Then
+			FAlignment = Value
+			#ifndef __USE_GTK_
+				ChangeStyle BS_LEFT, False
+				ChangeStyle BS_RIGHTBUTTON, False
+				Select Case Value
+				Case chLeft: ChangeStyle BS_LEFT, True
+				Case chRight: ChangeStyle BS_RIGHTBUTTON, True
+				End Select
+				RecreateWnd
+			#endif
+		End If
+	End Property
 	
 	Property CheckBox.Caption ByRef As WString
 		Return Text

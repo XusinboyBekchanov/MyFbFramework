@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	Function Label.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "alignment": Return @FAlignment
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
@@ -27,6 +28,7 @@ Namespace My.Sys.Forms
 	
 	Function Label.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "alignment": If Value <> 0 Then This.Alignment = *Cast(AlignmentConstants Ptr, Value)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
@@ -142,11 +144,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Label.Alignment As Integer
+	Property Label.Alignment As AlignmentConstants
 		Return FAlignment
 	End Property
 	
-	Property Label.Alignment(Value As Integer)
+	Property Label.Alignment(Value As AlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
 			#ifndef __USE_GTK__

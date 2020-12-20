@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	Function RadioButton.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "alignment": Return @FAlignment
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
@@ -26,6 +27,7 @@ Namespace My.Sys.Forms
 	
 	Function RadioButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "alignment": Alignment = *Cast(CheckAlignmentConstants Ptr, Value)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
 		Case "tabindex": If Value <> 0 Then TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
@@ -33,6 +35,25 @@ Namespace My.Sys.Forms
 		End Select
 		Return True
 	End Function
+	
+	Property RadioButton.Alignment As CheckAlignmentConstants
+		Return FAlignment
+	End Property
+	
+	Property RadioButton.Alignment(Value As CheckAlignmentConstants)
+		If Value <> FAlignment Then
+			FAlignment = Value
+			#ifndef __USE_GTK_
+				ChangeStyle BS_LEFT, False
+				ChangeStyle BS_RIGHTBUTTON, False
+				Select Case Value
+				Case chLeft: ChangeStyle BS_LEFT, True
+				Case chRight: ChangeStyle BS_RIGHTBUTTON, True
+				End Select
+				RecreateWnd
+			#endif
+		End If
+	End Property
 	
 	Property RadioButton.TabIndex As Integer
 		Return FTabIndex

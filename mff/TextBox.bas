@@ -17,6 +17,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Function TextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "alignment": Return @FAlignment
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -32,6 +33,7 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "alignment": Alignment = *Cast(AlignmentConstants Ptr, Value)
 				Case "tabindex": TabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
@@ -39,6 +41,27 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 	#endif
+	
+	Property TextBox.Alignment As AlignmentConstants
+		Return FAlignment
+	End Property
+	
+	Property TextBox.Alignment(Value As AlignmentConstants)
+		If Value <> FAlignment Then
+			FAlignment = Value
+			#ifndef __USE_GTK_
+				ChangeStyle SS_LEFT, False
+				ChangeStyle SS_CENTER, False
+				ChangeStyle SS_RIGHT, False
+				Select Case Value
+				Case taLeft: ChangeStyle SS_LEFT, True
+				Case taCenter: ChangeStyle SS_CENTER, True
+				Case taRight: ChangeStyle SS_RIGHT, True
+				End Select
+				RecreateWnd
+			#endif
+		End If
+	End Property
 	
 	Property TextBox.TabIndex As Integer
 		Return FTabIndex
@@ -682,7 +705,7 @@ Namespace My.Sys.Forms
 				'David Change
 				'bShift = GetKeyState(VK_SHIFT) And 8000
 				'bCtrl = GetKeyState(VK_CONTROL) And 8000
-				If ParentHandle>0 THEN
+				If ParentHandle>0 Then
 					Select Case message.wParam
 					Case VK_RETURN, VK_ESCAPE,VK_DOWN, VK_UP,VK_LEFT,VK_RIGHT,VK_TAB
 						PostMessage(ParentHandle, CM_COMMAND, Message.wParam, 9999)
@@ -691,7 +714,7 @@ Namespace My.Sys.Forms
 						'print "TextBox VK_MENU: ",VK_MENU
 						'case else
 					End Select
-				End if
+				End If
 			Case WM_SETFOCUS
 				'David Change
 				If Handle Then

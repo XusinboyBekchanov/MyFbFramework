@@ -41,6 +41,14 @@ Namespace My.Sys.Forms
 			asAnchorProportional
 		End Enum
 		
+		Enum AlignmentConstants
+			taLeft, taCenter, taRight
+		End Enum
+	
+		Enum CheckAlignmentConstants
+			chLeft, chRight
+		End Enum
+	
 		Type SizeConstraints Extends My.Sys.Object
 			Declare Function ToString ByRef As WString
 			Left  As Integer

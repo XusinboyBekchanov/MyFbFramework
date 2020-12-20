@@ -37,6 +37,7 @@ Namespace My.Sys.Forms
 		FCharCase         As Integer
 		FMasked           As Boolean
 		FMaskChar         As Byte
+		FAlignment        As Integer
 		FBorderStyle      As Integer
 		FReadOnly         As Boolean
 		FCtl3D            As Boolean
@@ -77,6 +78,8 @@ Namespace My.Sys.Forms
 		Declare Function GetLineFromCharIndex(Index As Integer = -1) As Integer
 		Declare Function GetCharIndexFromLine(Index As Integer) As Integer
 		Declare Function GetLineLength(Index As Integer) As Integer
+		Declare Property Alignment As AlignmentConstants
+		Declare Property Alignment(Value As AlignmentConstants)
 		Declare Property BorderStyle As Integer
 		Declare Property BorderStyle(Value As Integer)
 		Declare Property ReadOnly As Boolean
@@ -152,6 +155,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "TextBox.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "TextBox.bas"
+#endif
