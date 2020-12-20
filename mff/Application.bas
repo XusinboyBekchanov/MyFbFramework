@@ -277,12 +277,12 @@ Namespace My
 						Case WM_KEYDOWN
 							Select Case Msg.wParam
 							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
-								If Not GetFocus() = FActiveForm->Handle Then
+								'If Not GetFocus() = FActiveForm->Handle Then
 									FActiveForm->SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
 									TranslateAndDispatch = False
-								ElseIf IsDialogMessage(FActiveForm->Handle, @Msg) Then
-									TranslateAndDispatch = False
-								End If
+								'ElseIf IsDialogMessage(FActiveForm->Handle, @Msg) Then
+								'	TranslateAndDispatch = False
+								'End If
 '								Dim KeyStateArray(256) As Byte
 '								Dim As Integer OldState
 '								Dim As Boolean bSet

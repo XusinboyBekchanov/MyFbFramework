@@ -577,6 +577,7 @@ Namespace My.Sys.Forms
 					End If
 					If .Opacity <> 255 Then SetLayeredWindowAttributes(.Handle, 0, .Opacity, LWA_ALPHA)
 					.ChangeTabIndex -2
+					SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
 					If .Menu Then .Menu->ParentWindow = @Sender
 					.GetMenuItems
 					Dim As String mnuCaption, HotKey
@@ -903,10 +904,7 @@ Namespace My.Sys.Forms
 					CreateWnd
 				End If
 			End If
-			'This.SetFocus
-'			For i As Integer = 0 To ControlCount
-'				If Controls[0]->TabStop AndAlso Controls[0]->Visible Then Controls[0]->SetFocus: Exit For
-'			Next
+			SelectNextControl
 		#endif
 		If OnShow Then OnShow(This)
 	End Sub

@@ -778,7 +778,6 @@ Namespace My.Sys.Forms
 					If This.Font Then This.Font.Parent = @This
 					SendMessage FHandle, CM_CREATE, 0, 0
 					If ShowHint Then AllocateHint
-					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
 						FAnchoredParentHeight = Cast(Control Ptr, FParent)->Height
@@ -795,6 +794,7 @@ Namespace My.Sys.Forms
 					Next i
 					This.RequestAlign
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
+					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If OnCreate Then OnCreate(This)
 					If FVisible Then ShowWindow(FHandle, SW_SHOWNORMAL)
 					Update
