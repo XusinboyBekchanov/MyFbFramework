@@ -30,7 +30,7 @@
 	#define __FBMEMCHECK__
 	
 	#ifndef MEMCHECK
-		#define MEMCHECK 0
+		#define MEMCHECK 1
 	#endif
 	
 	#if MEMCHECK = 0
