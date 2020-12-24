@@ -90,6 +90,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
+			Case WM_PAINT
 				Dim As Integer W,H
 				Dim As HDC Dc,memDC
 				Dim As HBITMAP Bmp
@@ -98,20 +99,6 @@ Namespace My.Sys.Forms
 				Dc = GetDC(Handle)
 				FillRect Dc,@R,This.Brush.Handle
 				ReleaseDC Handle, Dc
-				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
-				'Message.Result = 0
-			Case WM_PAINT
-'				Dim As Integer W,H
-'				Dim As HDC Dc,memDC
-'				Dim As HBITMAP Bmp
-'				Dim As Rect R
-'				GetClientRect Handle,@R
-'				Dc = GetDC(Handle)
-'				FillRect Dc,@R,This.Brush.Handle
-'				ReleaseDC Handle, Dc
-'				Message.Result = 0
-				'InvalidateRect FHandle, NULL, True
-   				'UpdateWindow FHandle
    				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			Case WM_COMMAND
 				CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
