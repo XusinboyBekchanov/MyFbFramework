@@ -6,6 +6,9 @@
 #else
 	#include once "win\shlwapi.bi"
 #endif
+#ifndef MEMCHECK
+	#define MEMCHECK 0
+#endif
 #include once "FBMemCheck.bi"
 
 Type UStr As UString
