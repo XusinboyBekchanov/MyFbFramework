@@ -489,7 +489,7 @@ End Function
 
 Function FreeFile_ As Long
 	For i As Integer = 1 To filenumberCounter
-		If filenumbers[i] = False Then Return i
+		If filenumbers[i] = False Then filenumbers[i] = True: Return i
 	Next
 	filenumberCounter += 1
 	filenumbers = Reallocate_(filenumbers, (filenumberCounter + 1) * SizeOf(Boolean))
