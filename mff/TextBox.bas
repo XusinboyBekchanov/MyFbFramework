@@ -325,24 +325,26 @@ Namespace My.Sys.Forms
 	
 	Sub TextBox.LoadFromFile(ByRef File As WString)
 		Dim Result As Integer
-		Result = Open(File For Input Encoding "utf-32" As #1)
-		If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #1)
-		If Result <> 0 Then Result = Open(File For Input Encoding "utf-8" As #1)
-		If Result <> 0 Then Result = Open(File For Input As #1)
+		Dim Fn As Integer = FreeFile
+		Result = Open(File For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(File For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(File For Input As #Fn)
 		If Result = 0 Then
-			FText = WInput(LOF(1), #1)
+			FText = WInput(LOF(1), #Fn)
 			#ifndef __USE_GTK__
 				If FHandle Then SetWindowText(FHandle, FText.vptr)
 			#endif
+			Close #Fn
 		End If
-		Close #1
 	End Sub
 	
 	Sub TextBox.SaveToFile(ByRef File As WString)
-		If Open(File For Output Encoding "utf-8" As #1) = 0 Then
-			Print #1, Text;
+		Dim As Integer Fn = FreeFile
+		If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
+			Print #Fn, Text;
 		End If
-		Close #1
+		Close #Fn
 	End Sub
 	
 	Function TextBox.GetLineLength(Index As Integer = -1) As Integer

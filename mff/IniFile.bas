@@ -90,7 +90,7 @@ Sub IniFile.Load(ByRef FileName As WString = "")
 	Dim Result As Integer=-1 'David Change
 	If FileName <> "" Then WLet(FFile, FileName)
 	FLines.Clear
-	Dim As Integer Fn =FreeFile
+	Dim As Integer Fn = FreeFile
 	'If Open(FileName For Input Encoding "utf-8" As #Fn) = 0 Then 'Line Input Not working fine in Ver 1.07 David Change
 	'If Open(File For Binary Access Read As #ff) = 0 Then 'Line Input working fine in this mode
 	Result = Open(*FFile For Input Encoding "utf-8" As #Fn)
@@ -108,8 +108,8 @@ Sub IniFile.Load(ByRef FileName As WString = "")
 End Sub
 
 Sub IniFile.Update
-	'If Open(File For Binary Access Write As #1) = 0 Then
-	Dim As Integer Fn =FreeFile
+	'If Open(File For Binary Access Write As #Fn) = 0 Then
+	Dim As Integer Fn = FreeFile
 	If Open(*FFile For Output Encoding "utf-8" As #Fn) =0 Then
 		For i As Integer = 0 To FLines.Count -1
 			Print #Fn, FLines.Item(i)
