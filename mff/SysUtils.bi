@@ -77,6 +77,11 @@ Const HELP_SETPOPUP_POS = &Hd
 	Declare Function MainHandle As HWND
 #endif
 
+Dim Shared As Long filenumberCounter
+Dim Shared As Boolean Ptr filenumbers
+Declare Function FreeFile_ As Long
+Declare Function Close_(filenum As Long) As Long
+
 Declare Function ScaleX (ByVal cx As Single) As Single
 Declare Function ScaleY (ByVal cy As Single) As Single
 
