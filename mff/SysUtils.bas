@@ -497,7 +497,7 @@ Function FreeFile_ As Long
 	Return filenumberCounter
 End Function
 
-Function Close_(filenum As Long) As Long
+Function CloseFile_(filenum As Long) As Long
 	If filenumberCounter >= filenum Then
 		If filenumbers[filenum] = True Then
 			filenumbers[filenum] = False

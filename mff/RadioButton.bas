@@ -43,7 +43,7 @@ Namespace My.Sys.Forms
 	Property RadioButton.Alignment(Value As CheckAlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
-			#ifndef __USE_GTK_
+			#ifndef __USE_GTK__
 				ChangeStyle BS_LEFT, False
 				ChangeStyle BS_RIGHTBUTTON, False
 				Select Case Value

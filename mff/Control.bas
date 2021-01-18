@@ -533,7 +533,9 @@ Namespace My.Sys.Forms
 		
 		Sub Control.ChangeTabIndex(Value As Integer)
 			FTabIndex = Value
-			If FHandle = 0 Then Exit Sub
+			#ifndef __USE_GTK__
+				If FHandle = 0 Then Exit Sub
+			#endif
 			Dim As Control Ptr ParentCtrl = GetForm
 			Dim As Control Ptr Ctrl
 			If ParentCtrl Then

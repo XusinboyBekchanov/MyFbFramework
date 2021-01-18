@@ -49,7 +49,7 @@ Namespace My.Sys.Forms
 	Property TextBox.Alignment(Value As AlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
-			#ifndef __USE_GTK_
+			#ifndef __USE_GTK__
 				ChangeStyle ES_LEFT, False
 				ChangeStyle ES_CENTER, False
 				ChangeStyle ES_RIGHT, False
@@ -670,8 +670,8 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	#ifndef __USE_GTK__
-		Sub TextBox.ProcessMessage(ByRef message As Message)
+	Sub TextBox.ProcessMessage(ByRef message As Message)
+		#ifndef __USE_GTK__
 			'?GetMessageName(message.msg)
 			Select Case message.Msg
 			Case CM_CTLCOLOR
@@ -738,9 +738,9 @@ Namespace My.Sys.Forms
 				Case 1: message.result = 0
 				End Select
 			End Select
-			Base.ProcessMessage(message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(message)
+	End Sub
 	
 	Sub TextBox.Clear
 		Text = ""
