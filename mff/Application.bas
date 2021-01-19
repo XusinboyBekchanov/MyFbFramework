@@ -478,8 +478,8 @@ Namespace My
 			gdk_threads_init()
 			
 			gtk_init(NULL, NULL)
-			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ExePath & "/resources")
-			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ExePath & "/Resources")
+			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(ExePath & "/resources"))
+			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(ExePath & "/Resources"))
 			'gtk_icon_theme_add_resource_path(gtk_icon_theme_get_default(), exepath & "/resources")
 			'Dim As GList Ptr l = gtk_icon_theme_list_icons(gtk_icon_theme_get_default(), null)
 			'while (l)

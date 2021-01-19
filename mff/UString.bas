@@ -157,6 +157,96 @@ Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
 	Return Left(*(subject.vptr), n)
 End Function
 
+Sub WDeAllocate Overload(ByRef subject As WString Ptr)
+	If subject <> 0 Then Deallocate_(subject)
+	subject = 0
+End Sub
+
+Sub WDeAllocate Overload(subject() As WString Ptr)
+	For i As Integer = 0 To UBound(subject)
+		'If subject(i) <> 0 Then Deallocate(subject(i))
+		subject(i) = 0
+	Next
+End Sub
+
+Function WGet(ByRef subject As WString Ptr) ByRef As WString
+	If subject = 0 Then Return "" Else Return *subject
+End Function
+
+#if MEMCHECK
+	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
+	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+#else
+	Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+		If subject <> 0 Then
+			'Dim TempWStr As WString Ptr
+			'WLet TempWStr, *subject
+			'WDeallocate subject
+			'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
+			'*subject = Left(*TempWStr, lLen)
+			'WDeallocate TempWStr
+			subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+		Else
+			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+		End If
+	End Sub
+
+	Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
+		WReAllocate(subject, Len(txt))
+		*subject = txt
+	End Sub
+#endif
+
+Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
+	If ExistsSubjectInTxt Then
+		Dim TempWStr As WString Ptr
+		WLet(TempWStr, txt)
+		WLet(subject, *TempWStr)
+		WDeallocate TempWStr
+	Else
+		WReAllocate(subject, Len(txt))
+		*subject = txt
+	End If
+End Sub
+
+Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
+	Dim TempWStr As WString Ptr
+	If AddBefore Then
+		WLet(TempWStr, txt & WGet(subject))
+	Else
+		WLet(TempWStr, WGet(subject) & txt)
+	End If
+	WLet(subject, *TempWStr)
+	WDeallocate TempWStr
+End Sub
+
+Function ToUtf8(ByRef nWString As WString) As String
+	'#IfDef __USE_GTK__
+	'	Return g_locale_to_utf8(*pWString, -1, NULL, NULL, NULL)
+	'#Else
+	Dim cbLen As Integer
+	Dim m_BufferLen As Integer = Len(nWString)
+	If m_BufferLen = 0 Then Return ""
+	Dim buffer As String = String(m_BufferLen * 5 + 1, 0)
+	Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen * 2, StrPtr(buffer), @cbLen))
+	'#EndIf
+End Function
+
+Function FromUtf8(pZString As ZString Ptr) ByRef As WString
+	'UTF-8: EF BB BF
+	'UTF-16: FF FE
+	'UTF-16 big-endian: FE FF
+	'UTF-32 little-endian: FF FE 00 00
+	'UTF-32 big-endian: 00 00 FE FF
+	Dim cbLen As Integer
+	Dim m_BufferLen As Integer = Len(*pZString)
+	If m_BufferLen = 0 Then Return ""
+	Dim buffer As WString Ptr
+	WLet(buffer, WString(m_BufferLen * 5 + 1, 0))
+	'WReallocate buffer, m_BufferLen * 5 + 1
+	Return WGet(UTFToWChar(1, pZString, buffer, @cbLen))
+End Function
+
 Function FileExists(ByRef filename As UString) As Long
 	#ifndef __USE_GTK__
 		If PathFileExistsW(filename.vptr) Then
@@ -165,10 +255,10 @@ Function FileExists(ByRef filename As UString) As Long
 			Return 0
 		End If
 	#else
-		If g_find_program_in_path(*filename.vptr) = NULL Then
-			Return 0
-		Else
+		If g_file_test(ToUTF8(*filename.vptr), G_FILE_TEST_EXISTS) Then
 			Return -1
+		Else
+			Return 0
 		End If
 	#endif
 End Function

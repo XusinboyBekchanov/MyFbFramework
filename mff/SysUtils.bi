@@ -88,22 +88,6 @@ Declare Function ScaleY (ByVal cy As Single) As Single
 Declare Function iGet(Value As Any Ptr) As Integer
 Declare Function ZGet(ByRef subject As ZString Ptr) As String
 
-Declare Sub WDeAllocate Overload(ByRef subject As WString Ptr)
-
-Declare Sub WDeAllocate Overload(subject() As WString Ptr)
-
-Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
-
-#if MEMCHECK = 0
-	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
-	
-	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
-#endif
-
-Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
-
-Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
-
 Namespace ClassContainer
 	Type ClassType
 	Protected:
@@ -137,10 +121,6 @@ Namespace ClassContainer
 End Namespace
 
 Using ClassContainer
-
-Declare Function ToUtf8(ByRef nWString As WString) As String
-
-Declare Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 
 #ifdef GetMN
 	Declare Function GetMessageName(Message As Integer) As String
