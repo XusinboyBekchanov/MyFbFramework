@@ -304,6 +304,7 @@ Namespace My.Sys.Forms
 	
 	Function ComboBoxEx.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.Items.Add *FName: This.ItemIndex = 0
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True

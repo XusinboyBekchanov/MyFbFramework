@@ -176,7 +176,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef GetForm_Off
 			Function Control.GetForm As Control Ptr
-				If FParent = 0 OrElse This.ClassName = "Form" OrElse This.ClassName = "UserControl" Then
+				If FParent = 0 OrElse WGet(FClassName) = "Form" OrElse WGet(FClassName) = "UserControl" Then
 					Return @This
 				Else
 					Return QControl(FParent)->GetForm()
@@ -1841,6 +1841,9 @@ Namespace My.Sys.Forms
 		
 		Sub Control.Add(Ctrl As Control Ptr)
 			If Ctrl Then
+				If WGet(FClassName) = "Form1" Then
+					Ctrl = Ctrl
+				End If
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
 				FControlCount += 1

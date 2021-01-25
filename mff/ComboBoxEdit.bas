@@ -26,6 +26,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "sort": This.Sort = QBoolean(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
+		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.AddItem *FName: This.ItemIndex = 0
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
