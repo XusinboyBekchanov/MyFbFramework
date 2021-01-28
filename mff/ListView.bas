@@ -187,11 +187,15 @@ Namespace My.Sys.Forms
 	Property ListViewItem.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
-			If Parent Then
-				With QControl(Parent)
-					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-				End With
-			End If
+			#ifndef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					lvi.Mask = LVIF_IMAGE
+					lvi.iItem = Index
+					lvi.iSubItem   = 0
+					lvi.iImage     = Value
+					ListView_SetItem(Parent->Handle, @lvi)
+				End If
+			#endif
 		End If
 	End Property
 	
@@ -221,15 +225,18 @@ Namespace My.Sys.Forms
 	Property ListViewItem.ImageKey(ByRef Value As WString)
 		'If Value <> *FImageKey Then
 		WLet(FImageKey, Value)
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->widget Then
 				gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
 			End If
-		#Else
-			If Parent Then
-				With QControl(Parent)
-					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-				End With
+		#else
+			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
+				FImageIndex = Cast(ListView Ptr, Parent)->Images->IndexOf(Value)
+				lvi.Mask = LVIF_IMAGE
+				lvi.iItem = Index
+				lvi.iSubItem   = 0
+				lvi.iImage     = FImageIndex
+				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
 		'End If
