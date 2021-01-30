@@ -327,6 +327,8 @@ Namespace My.Sys.Forms
 			OnKeyDown    As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
 			'Raises the KeyUp event.
 			OnKeyUp      As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
+			'Raises the All message events.
+			OnMessage    As Sub(ByRef Sender As Control, ByRef msg As Message)
 			'Raises the Resize event.
 			OnResize     As Sub(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 			'Raises the Scroll event.

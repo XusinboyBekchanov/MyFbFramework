@@ -856,6 +856,7 @@ Namespace My.Sys.Forms
 		
 		Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
+			If OnMessage Then OnMessage(This, Message)
 			#ifdef __USE_GTK__
 				Dim As GdkEvent Ptr e = Message.event 
 				Select Case Message.event->Type
