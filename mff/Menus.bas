@@ -828,6 +828,11 @@ Namespace My.Sys.Forms
 	Sub MenuItem.Clear
 		For i As Integer = Count - 1 To 0 Step -1
 			If FItems[i]->FDynamic Then Delete_(FItems[i])
+			#ifndef __USE_GTK__
+				If Handle Then
+					RemoveMenu(Handle, i, MF_BYPOSITION)
+				End If
+			#endif
 			'Remove FItems[i]
 			'FItems[i] = NULL
 		Next i
