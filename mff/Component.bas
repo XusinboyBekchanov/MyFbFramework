@@ -88,7 +88,7 @@ Namespace My.Sys.ComponentModel
 			If FParent <> Value Then
 				FParent = Value
 				#ifdef __USE_GTK__
-					If FDesignMode AndAlso widget <> 0 AndAlso Value <> 0 AndAlso Value->layoutwidget <> 0 Then
+					If FDesignMode AndAlso widget <> 0 AndAlso gtk_is_widget(widget) AndAlso Value <> 0 AndAlso Value->layoutwidget <> 0 Then
 						If gtk_widget_get_parent(widget) <> Value->layoutwidget Then
 							If gtk_widget_get_parent(widget) <> 0 Then gtk_widget_unparent(widget)
 							gtk_layout_put(GTK_LAYOUT(Value->layoutwidget), widget, FLeft, FTop)
@@ -391,7 +391,13 @@ Namespace My.Sys.ComponentModel
 		WDeallocate FClassAncestor
 		#ifdef __USE_GTK__
 			If gtk_is_widget(Widget) Then
-				gtk_widget_destroy(Widget)
+				#ifdef __USE_GTK3__
+					gtk_widget_destroy(Widget)
+				#else
+					If gtk_is_menu_shell(Widget) = 0 Then
+						gtk_widget_destroy(Widget)
+					End If
+				#endif
 				Widget = 0
 			End If
 			If gtk_is_widget(ScrolledWidget) Then

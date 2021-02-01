@@ -177,7 +177,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
 			widget = gtk_layout_new(null, null)
-			gtk_layout_put(GTK_LAYOUT(widget), ImageWidget, 0, 0)
+			If gtk_is_widget(ImageWidget) Then gtk_layout_put(GTK_LAYOUT(widget), ImageWidget, 0, 0)
 			This.RegisterClass "Picture", @This
 		#else
 			'https://blog.csdn.net/mmmvp/article/details/365155

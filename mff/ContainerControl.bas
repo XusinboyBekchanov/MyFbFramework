@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 					#else
 						box = gtk_vbox_new(False, 0)
 					#endif
-					gtk_container_add(GTK_CONTAINER(widget), box)
+					if gtk_is_widget(box) then gtk_container_add(GTK_CONTAINER(widget), box)
 					layoutwidget = gtk_layout_new(null, null)
 					'gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
 					gtk_box_pack_end(Gtk_Box(box), layoutwidget, True, True, 0)
@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 					'box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
 					'gtk_container_add(GTK_CONTAINER(widget), box)
 					layoutwidget = gtk_layout_new(null, null)
-					gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
+					If gtk_is_widget(layoutwidget) Then gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
 					'gtk_box_pack_end(Gtk_Box(box), layoutwidget, true, true, 0)
 					'g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)

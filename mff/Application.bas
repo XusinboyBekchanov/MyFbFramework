@@ -577,8 +577,8 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 	#ifdef __USE_GTK__
 		Dim As GtkWidget Ptr dialog
 		Dim As GtkWindow Ptr win
-		If App.MainForm Then
-			win = Gtk_Window(App.MainForm->widget)
+		If pApp->MainForm Then
+			win = Gtk_Window(pApp->MainForm->widget)
 		End If
 		Select Case MsgType
 		Case mtInfo: MsgTypeIn = GTK_MESSAGE_INFO
@@ -600,6 +600,7 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 		IIf(ButtonsType = btYesNoCancel, btNone, ButtonsTypeIn), _
 		ToUTF8(MsgStr), _
 		NULL)
+		gtk_window_set_transient_for(gtk_window(dialog), win)
 		gtk_window_set_title(gtk_window(dialog), ToUTF8(*FCaption))
 		If ButtonsType = btYesNoCancel Then
 			#ifdef __USE_GTK3__

@@ -1022,7 +1022,7 @@ Namespace My.Sys.Forms
 				Case 0
 				Case 1
 					If MainForm Then
-						gtk_widget_destroy(widget)
+						If gtk_is_widget(widget) Then gtk_widget_destroy(widget)
 						gtk_main_quit()
 					Else
 						If gtk_window_get_modal (gtk_window(widget)) Then 

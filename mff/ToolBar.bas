@@ -355,7 +355,9 @@ Namespace My.Sys.Forms
 	
 	Destructor ToolButton
 		#ifdef __USE_GTK__
-			If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+			#ifdef __USE_GTK3__
+				If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+			#endif
 		#else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
 		#endif
@@ -385,14 +387,14 @@ Namespace My.Sys.Forms
 		'QToolButton(FButtons.Items[Index]) = Value
 	End Property
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Sub ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
 			Dim As ToolButton Ptr tb = user_data
 			If tb Then
 				If tb->OnClick Then tb->OnClick(*tb)
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
 	Function ToolButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton

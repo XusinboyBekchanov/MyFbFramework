@@ -565,12 +565,14 @@ Namespace My.Sys.Forms
 			
 			Property Control.ParentWidget(Value As GtkWidget Ptr)
 				FParentWidget = Value
-				If GTK_IS_LAYOUT(Value) Then
-					gtk_layout_put(GTK_LAYOUT(Value), widget, FLeft, FTop)
-				ElseIf GTK_IS_FIXED(Value) Then
-					gtk_fixed_put(GTK_FIXED(Value), widget, FLeft, FTop)
-				ElseIf GTK_IS_CONTAINER(Value) Then
-					gtk_container_add(GTK_CONTAINER(Value), widget)
+				If gtk_is_widget(widget) Then
+					If GTK_IS_LAYOUT(Value) Then
+						gtk_layout_put(GTK_LAYOUT(Value), widget, FLeft, FTop)
+					ElseIf GTK_IS_FIXED(Value) Then
+						gtk_fixed_put(GTK_FIXED(Value), widget, FLeft, FTop)
+					ElseIf GTK_IS_CONTAINER(Value) Then
+						gtk_container_add(GTK_CONTAINER(Value), widget)
+					End If
 				End If
 			End Property
 		#else
@@ -1854,12 +1856,14 @@ Namespace My.Sys.Forms
 					Dim As Integer FrameTop
 					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
 					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget)
-					If layoutwidget Then
-						If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-						gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
-					ElseIf fixedwidget Then
-						If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-						gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+					If gtk_is_widget(Ctrlwidget) Then
+						If layoutwidget Then
+							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+						 	gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+						ElseIf fixedwidget Then
+							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+						End If
 					End If
 					Ctrl->FAnchoredParentWidth = This.FWidth
 					Ctrl->FAnchoredParentHeight = This.FHeight
