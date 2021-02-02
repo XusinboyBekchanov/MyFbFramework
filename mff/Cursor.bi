@@ -11,42 +11,58 @@
 '* by Xusinboy Bekchanov (2018-2019)                                         *
 '******************************************************************************
 
-#Include Once "Component.bi"
+#include once "Component.bi"
 
-#IfDef __USE_GTK__
-	#DEFINE crArrow       "default"
-	#DEFINE crAppStarting "progress"
-	#DEFINE crCross       "crosshair"
-	#DEFINE crIBeam       "text"
-	#DEFINE crIcon        GDK_ICON
-	#DEFINE crNo          "not-allowed"
-	#DEFINE crSize        "move"
-	#DEFINE crSizeAll     "all-scroll"
-	#DEFINE crSizeNESW    "nesw-resize"
-	#DEFINE crSizeNS      "ns-resize"
-	#DEFINE crSizeNWSE    "nwse-resize"
-	#DEFINE crSizeWE      "ew-resize"
-	#DEFINE crUpArrow     GDK_CENTER_PTR
-	#DEFINE crWait        "wait"
-	#DEFINE crDrag        GDK_FLEUR
-	#DEFINE crMultiDrag   GDK_FLEUR
-	#DEFINE crHandPoint   "pointer"
-	#DEFINE crSQLWait     GDK_WATCH
-	#DEFINE crHSplit      "col-resize"
-	#DEFINE crVSplit      "row-resize"
-	#DEFINE crNoDrop      "no-drop"
-#Else
-	#DEFINE crArrow       LoadCursor(0,IDC_ARROW)
-	#DEFINE crAppStarting LoadCursor(0,IDC_APPSTARTING)
-	#DEFINE crCross       LoadCursor(0,IDC_CROSS)
-	#DEFINE crIBeam       LoadCursor(0,IDC_IBEAM)
-	#DEFINE crIcon        LoadCursor(0,IDC_ICON)
-	#DEFINE crNo          LoadCursor(0,IDC_NO)
-	#DEFINE crSize        LoadCursor(0,IDC_SIZE)
-	#DEFINE crSizeAll     LoadCursor(0,IDC_SIZEALL)
-	#DEFINE crSizeNESW    LoadCursor(0,IDC_SIZENESW)
-	#DEFINE crSizeNS      LoadCursor(0,IDC_SIZENS)
-	#DEFINE crSizeNWSE    LoadCursor(0,IDC_SIZENWSE)
+#ifdef __USE_GTK__
+	#define crArrow       "default"
+	#define crAppStarting "progress"
+	#define crCross       "crosshair"
+	#define crIBeam       "text"
+	#define crIcon        GDK_ICON
+	#define crNo          "not-allowed"
+	#define crSize        "move"
+	#define crSizeAll     "all-scroll"
+	#ifdef __USE_GTK3__
+		#define crSizeNESW    "nesw-resize"
+	#else
+		#define crSizeNESW    "crosshair"
+	#endif
+	#ifdef __USE_GTK3__
+		#define crSizeNS      "ns-resize"
+	#else
+		#define crSizeNS      "sb_v_double_arrow"
+	#endif
+	#ifdef __USE_GTK3__
+		#define crSizeNWSE    "nwse-resize"
+	#else
+		#define crSizeNWSE    "crosshair"
+	#endif
+	#ifdef __USE_GTK3__
+		#define crSizeWE      "ew-resize"
+	#else
+		#define crSizeWE      "sb_h_double_arrow"
+	#endif
+	#define crUpArrow     GDK_CENTER_PTR
+	#define crWait        "wait"
+	#define crDrag        GDK_FLEUR
+	#define crMultiDrag   GDK_FLEUR
+	#define crHandPoint   "pointer"
+	#define crSQLWait     GDK_WATCH
+	#define crHSplit      "col-resize"
+	#define crVSplit      "row-resize"
+	#define crNoDrop      "no-drop"
+#else
+	#define crArrow       LoadCursor(0,IDC_ARROW)
+	#define crAppStarting LoadCursor(0,IDC_APPSTARTING)
+	#define crCross       LoadCursor(0,IDC_CROSS)
+	#define crIBeam       LoadCursor(0,IDC_IBEAM)
+	#define crIcon        LoadCursor(0,IDC_ICON)
+	#define crNo          LoadCursor(0,IDC_NO)
+	#define crSize        LoadCursor(0,IDC_SIZE)
+	#define crSizeAll     LoadCursor(0,IDC_SIZEALL)
+	#define crSizeNESW    LoadCursor(0,IDC_SIZENESW)
+	#define crSizeNS      LoadCursor(0,IDC_SIZENS)
+	#define crSizeNWSE    LoadCursor(0,IDC_SIZENWSE)
 	#DEFINE crSizeWE      LoadCursor(0,IDC_SIZEWE)
 	#DEFINE crUpArrow     LoadCursor(0,IDC_UPARROW)
 	#DEFINE crWait        LoadCursor(0,IDC_WAIT)
