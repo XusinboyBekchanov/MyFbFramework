@@ -27,7 +27,6 @@
 	#include once "win/iphlpapi.bi"
 	#define Instance GetModuleHandle(NULL)
 #endif
-#include once "utf_conv.bi"
 #include once "UString.bi"
 
 #ifdef __EXPORT_PROCS__

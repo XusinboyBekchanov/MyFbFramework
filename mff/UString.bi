@@ -41,9 +41,9 @@ Public:
 	Declare Function ToUpper As UString
 	
 	m_Data As WString Ptr
+	m_Length As Integer
+	m_BytesCount As Integer
 Protected:
-	Dim m_Length As Integer
-	Dim m_BytesCount As Integer
 	
 End Type
 
@@ -51,7 +51,7 @@ Declare Function WStrPtr(ByRef Value As UString) As WString Ptr
 
 Declare Operator & (ByRef LeftText As UString, ByRef RightText As UString) As UString
 
-Declare Function Replace(ByRef subject As WString, ByRef oldtext As Const WString, ByRef newtext As Const WString, ByVal start As Integer = 1, ByRef count As Integer = 0, MatchCase As Boolean = True) As UString
+Declare Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
 
 Declare Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
 

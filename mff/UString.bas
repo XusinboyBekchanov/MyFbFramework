@@ -1,4 +1,5 @@
 ﻿#include once "UString.bi"
+#include once "utf_conv.bi"
 
 Constructor UString()
 	m_Length = 0
@@ -68,7 +69,7 @@ Sub UString.Resize(NewLength As Integer)
 		If m_Data <> 0 Then
 			Deallocate_(m_Data)
 		End If
-		m_Data = CAllocate_(m_BytesCount)
+		m_Data = Allocate_(m_BytesCount)
 	End If
 End Sub
 
@@ -78,7 +79,7 @@ Operator UString.Let(ByRef lhs As UString)
 			If m_Data <> 0 Then
 				Deallocate_(m_Data)
 			End If
-			m_Data = CAllocate_(lhs.m_BytesCount)
+			m_Data = Allocate_(lhs.m_BytesCount)
 		End If
 		m_Length = lhs.m_Length
 		m_BytesCount = lhs.m_BytesCount
@@ -124,29 +125,76 @@ Function WStrPtr(ByRef Value As UString) As WString Ptr
 	Return Value.vptr
 End Function
 
-Function Replace(ByRef subject As WString, ByRef oldtext As Const WString, ByRef newtext As Const WString, ByVal start As Integer = 1, ByRef count As Integer = 0, MatchCase As Boolean = True) As UString
-	Dim As Integer n, c, ls = Len(subject), lo = Len(oldtext), ln = Len(newtext)
-	If subject <> "" And oldtext <> "" And oldtext <> newtext Then
-		Dim As UString Result = subject
-		If MatchCase Then
-			n = InStr(start, Result, oldtext)
-		Else
-			n = InStr(start, LCase(Result), LCase(oldtext))
+Function tallynumW Overload(ByRef somestring As WString, ByRef partstring As WString) As Integer
+	Dim As Integer i,j,ln,lnp,count,num
+	ln=Len(somestring):If ln=0 Then Return 0
+	lnp=Len(partstring):If lnp=0 Then Return 0
+	count=0
+	i=-1
+	Do
+		i+=1
+		If somestring[i] <> partstring[0] Then Continue Do
+		If somestring[i] = partstring[0] Then
+			For j=0 To lnp-1
+				If somestring[j+i]<>partstring[j] Then Continue Do
+			Next j
 		End If
-		Do While n <> 0
-			c = c + 1
-			Result = Left(*WStrPtr(Result), n - 1) & newtext & Mid(Result, n + lo)
-			If MatchCase Then
-				n = InStr(n + ln, Result, oldtext)
-			Else
-				n = InStr(n + ln, LCase(Result), LCase(oldtext))
-			End If
-		Loop
-		count = c
-		Return Result
+		count+=1
+		i=i+lnp-1
+	Loop Until i>=ln-1
+	Return count
+End Function
+
+Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
+	If Len(FindingText) = 0 Then Return Expression
+	Dim As WString Ptr original, find
+	If MatchCase Then
+		original = @Expression
+		find = @FindingText
 	Else
-		Return subject
-	EndIf
+		WLet original, LCase(Expression)
+		WLet find, LCase(FindingText)
+	End If
+	Var t = tallynumW(*original, *find)                 'find occurencies of find
+	If t = 0 Then Return Expression
+	Dim As Long found, n, staid, m, c
+	Var Lf = Len(FindingText), Lr = Len(ReplacingText), Lo = Len(Expression)
+	t = Len(Expression) - t * Lf + t * Lr               'length of output string
+	Dim As UString res
+	res.Resize t                                        'output string
+	n = Start - 1
+	For i As Integer = 0 To n - 1
+		(*res.vptr)[i] = Expression[i]
+	Next
+	Do
+		If (*original)[n] = (*find)[0] Then             'got a possible
+			For m = 0 To Lf - 1
+				If (*original)[n + m] <> (*find)[m] Then Goto lbl 'no
+			Next m
+			found = 1                                   'Bingo
+		End If
+		If found Then
+			For m = 0 To Lr - 1
+				(*res.vptr)[staid] = replacingtext[m]   'insert the replacerment
+				staid += 1
+			Next m
+			n += Lf
+			found = 0
+			c += 1
+			Continue Do
+		End If
+		lbl:
+		(*res.vptr)[staid] = Expression[n]
+		staid += 1
+		n += 1
+	Loop Until n >= Lo
+	(*res.vptr)[staid] = 0
+	Count = c
+	If Not MatchCase Then
+		WDeallocate original
+		WDeallocate find
+	End If
+	Return res
 End Function
 
 Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
@@ -190,7 +238,7 @@ End Function
 			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		End If
 	End Sub
-
+	
 	Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
 		WReAllocate(subject, Len(txt))
 		*subject = txt
