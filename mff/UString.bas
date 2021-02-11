@@ -162,9 +162,10 @@ Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRe
 	t = Len(Expression) - t * Lf + t * Lr               'length of output string
 	Dim As UString res
 	res.Resize t                                        'output string
+	Dim As WString Ptr wres = res.vptr
 	n = Start - 1
 	For i As Integer = 0 To n - 1
-		(*res.vptr)[i] = Expression[i]
+		(*wres)[i] = Expression[i]
 	Next
 	Do
 		If (*original)[n] = (*find)[0] Then             'got a possible
@@ -175,7 +176,7 @@ Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRe
 		End If
 		If found Then
 			For m = 0 To Lr - 1
-				(*res.vptr)[staid] = replacingtext[m]   'insert the replacerment
+				(*wres)[staid] = replacingtext[m]   'insert the replacerment
 				staid += 1
 			Next m
 			n += Lf
@@ -184,11 +185,11 @@ Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRe
 			Continue Do
 		End If
 		lbl:
-		(*res.vptr)[staid] = Expression[n]
+		(*wres)[staid] = Expression[n]
 		staid += 1
 		n += 1
 	Loop Until n >= Lo
-	(*res.vptr)[staid] = 0
+	(*wres)[staid] = 0
 	Count = c
 	If Not MatchCase Then
 		WDeallocate original
