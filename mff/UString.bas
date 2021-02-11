@@ -195,7 +195,7 @@ Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRe
 		WDeallocate original
 		WDeallocate find
 	End If
-	Return res
+	Return *wres
 End Function
 
 Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
