@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 		Function TextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
+			Case "readonly": Return @FReadOnly
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -34,6 +35,7 @@ Namespace My.Sys.Forms
 			Else
 				Select Case LCase(PropertyName)
 				Case "alignment": Alignment = *Cast(AlignmentConstants Ptr, Value)
+				Case "readonly": ReadOnly = QBoolean(Value)
 				Case "tabindex": TabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
