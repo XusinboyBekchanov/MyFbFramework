@@ -433,6 +433,7 @@ Namespace My.Sys.Forms
 		If FFindText Then Deallocate_( FFindText)
 		If FTextRange Then Deallocate_( FTextRange)
 		#ifndef __USE_GTK__
+			DestroyWindow FHandle
 			FreeLibrary(hRichTextBox)
 		#endif
 	End Destructor
