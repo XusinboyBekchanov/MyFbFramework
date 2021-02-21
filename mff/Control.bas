@@ -747,6 +747,9 @@ Namespace My.Sys.Forms
 						Text = ""
 						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
 						ExStyle = 0
+					ElseIf ClassName = "WebBrowser" Then
+						'Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
+						'ExStyle = 0
 					Else
 						If (Style And (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS) Then
 							Style = Style Or (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)
@@ -802,6 +805,8 @@ Namespace My.Sys.Forms
 					If OnCreate Then OnCreate(This)
 					If FVisible Then ShowWindow(FHandle, SW_SHOWNORMAL)
 					Update
+				Else
+					'Print ClassName, GetErrorString(GetLastError, , True)
 				End If
 			#endif
 		End Sub
@@ -1529,7 +1534,6 @@ Namespace My.Sys.Forms
 			End Function
 		#else
 			Function Control.RegisterClass(ByRef wClassName As WString, ByRef wClassAncestor As WString = "", WndProcAddr As Any Ptr = 0) As Integer
-				If wClassName = "IPAddress" Then Exit Function
 				Dim As Integer Result
 				Dim As WNDCLASSEX Wc
 				Dim As Any Ptr ClassProc
@@ -1539,10 +1543,12 @@ Namespace My.Sys.Forms
 					If GetClassInfoEx(0, wClassAncestor, @Wc) <> 0 Then
 						ClassProc = Wc.lpfnWndProc
 						Wc.lpszClassName = @wClassName
-						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @SuperWndProc, Proc)
+						If wClassName <> "WebBrowser" AndAlso wClassName <> "IPAddress" Then
+							Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @SuperWndProc, Proc)
+							Wc.cbWndExtra += 4
+						End If
 						Wc.hInstance     = Instance
 						'If Cursor AndAlso Cursor->Handle Then Wc.hCursor = Cursor->Handle
-						Wc.cbWndExtra += 4
 						Result = .RegisterClassEx(@Wc)
 						If Result Then
 							StoreClass wClassName, wClassAncestor, ClassProc

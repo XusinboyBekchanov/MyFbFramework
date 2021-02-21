@@ -1154,10 +1154,10 @@ Namespace My.Sys.Forms
 	End Constructor
 
 	Destructor Form
-		If OnFree Then OnFree(This)
-		#ifndef __USE_GTK__
-			If FHandle Then FreeWnd
-		#endif
+'		If OnFree Then OnFree(This)
+'		#ifndef __USE_GTK__
+'			If FHandle Then FreeWnd
+'		#endif
 		FMenuItems.Clear
 		'UnregisterClass ClassName, GetModuleHandle(NULL)
 	End Destructor

@@ -79,6 +79,7 @@
 #include once "TreeView.bi"
 #include once "UpDown.bi"
 #include once "UserControl.bi"
+#include once "WebBrowser.bi"
 #include once "WStringList.bi"
 
 Using My.Sys.Forms
@@ -143,6 +144,7 @@ Using My.Sys.Forms
 		Case "treeview": Ctrl = New_( TreeView)
 		Case "updown": Ctrl = New_( UpDown)
 		Case "usercontrol": Ctrl = New_( UserControl)
+		Case "webbrowser": Ctrl = New_(WebBrowser)
 		End Select
 		If Ctrl Then
 			Ctrl->Name = sName
@@ -256,6 +258,7 @@ Using My.Sys.Forms
 		Case "fontdialog": Delete_( Cast(FontDialog Ptr, Ctrl))
 		Case "openfiledialog": Delete_( Cast(OpenFileDialog Ptr, Ctrl))
 		Case "savefiledialog": Delete_( Cast(SaveFileDialog Ptr, Ctrl))
+		Case "webbrowser": Delete_( Cast(WebBrowser Ptr, Ctrl))
 		Case Else: Return False
 		End Select
 		If bNotRemoveObject = False Then 
