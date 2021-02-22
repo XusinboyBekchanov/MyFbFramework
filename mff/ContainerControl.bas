@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 					#else
 						box = gtk_vbox_new(False, 0)
 					#endif
-					if gtk_is_widget(box) then gtk_container_add(GTK_CONTAINER(widget), box)
+					If gtk_is_widget(box) Then gtk_container_add(GTK_CONTAINER(widget), box)
 					layoutwidget = gtk_layout_new(null, null)
 					'gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
 					gtk_box_pack_end(Gtk_Box(box), layoutwidget, True, True, 0)

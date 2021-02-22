@@ -27,7 +27,17 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_GTK__
+		Function TimerProc(ByVal user_data As gpointer) As gboolean
+			With TimersList
+				Dim As TimerComponent Ptr tmr = user_data
+				If tmr <> 0 Then
+					If tmr->OnTimer Then tmr->OnTimer(*tmr)
+				End If
+				Return tmr->Enabled
+			End With
+		End Function
+	#else
 		Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
 			With TimersList
 				If .Contains(idEvent) Then
@@ -45,7 +55,14 @@ Namespace My.Sys.Forms
 	Property TimerComponent.Enabled(Value As Boolean)
 		FEnabled = Value
 		If Not FDesignMode Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				If FEnabled Then
+					ID = g_timeout_add(Interval, Cast(GSOURCEFUNC, @TimerProc), Cast(gpointer, @This))
+					TimersList.Add ID, @This
+				Else
+					TimersList.Remove TimersList.IndexOf(ID)
+				End If
+			#else
 				If FEnabled Then
 					ID = SetTimer(Null, 0, Interval, @TimerProc)
 					TimersList.Add ID, @This

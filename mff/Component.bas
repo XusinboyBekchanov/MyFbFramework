@@ -390,32 +390,34 @@ Namespace My.Sys.ComponentModel
 		WDeallocate FName
 		WDeallocate FClassAncestor
 		#ifdef __USE_GTK__
-			If gtk_is_widget(Widget) Then
-				#ifdef __USE_GTK3__
-					gtk_widget_destroy(Widget)
-				#else
-					If gtk_is_menu_shell(Widget) = 0 Then
+			#ifndef __FB_WIN32__
+				If gtk_is_widget(Widget) Then
+					#ifdef __USE_GTK3__
 						gtk_widget_destroy(Widget)
-					End If
-				#endif
-				Widget = 0
-			End If
-			If gtk_is_widget(ScrolledWidget) Then
-				gtk_widget_destroy(ScrolledWidget)
-				ScrolledWidget = 0
-			End If
-			If gtk_is_widget(fixedwidget) Then
-				gtk_widget_destroy(fixedwidget)
-				fixedwidget = 0
-			End If
-			If gtk_is_widget(layoutwidget) Then
-				gtk_widget_destroy(layoutwidget)
-				layoutwidget = 0
-			End If
-			If gtk_is_widget(box) Then
-				gtk_widget_destroy(box)
-				box = 0
-			End If
+					#else
+						If gtk_is_menu_shell(Widget) = 0 Then
+							gtk_widget_destroy(Widget)
+						End If
+					#endif
+					Widget = 0
+				End If
+				If gtk_is_widget(ScrolledWidget) Then
+					gtk_widget_destroy(ScrolledWidget)
+					ScrolledWidget = 0
+				End If
+				If gtk_is_widget(fixedwidget) Then
+					gtk_widget_destroy(fixedwidget)
+					fixedwidget = 0
+				End If
+				If gtk_is_widget(layoutwidget) Then
+					gtk_widget_destroy(layoutwidget)
+					layoutwidget = 0
+				End If
+				If gtk_is_widget(box) Then
+					gtk_widget_destroy(box)
+					box = 0
+				End If
+			#endif
 		#else
 			If FHandle Then
 				DestroyWindow FHandle

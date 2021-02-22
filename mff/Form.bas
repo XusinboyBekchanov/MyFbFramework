@@ -199,12 +199,12 @@ Namespace My.Sys.Forms
 			Case 0: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_NONE) ' Manual
 			Case 1, 4 ' CenterScreen, CenterParent
 				If FStartPosition = 4 AndAlso FParent Then ' CenterParent
-					gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
+					gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER_ON_PARENT)
 					With *Cast(Control Ptr, FParent)
 						gtk_window_move(gtk_window(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
 					End With
 				Else ' CenterScreen
-					gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER_ON_PARENT)
+					gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
 					gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 				End If
 			Case 2: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
