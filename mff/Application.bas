@@ -475,7 +475,9 @@ Namespace My
 		If pApp = 0 Then pApp = @This
 		#ifdef __USE_GTK__
 			'g_thread_init(NULL)
-			gdk_threads_init()
+			#ifndef __FB_WIN32__
+				gdk_threads_init()
+			#endif
 			
 			gtk_init(NULL, NULL)
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(ExePath & "/resources"))
