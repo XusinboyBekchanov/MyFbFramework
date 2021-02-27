@@ -12,7 +12,7 @@
 #include once "Bitmap.bi"
 #include once "Brush.bi"
 #include once "Canvas.bi"
-#include once "Chart.bi"
+'#include once "Chart.bi"
 #include once "CheckBox.bi"
 #include once "CheckedListBox.bi"
 #include once "Classes.bi"
@@ -104,7 +104,7 @@ Using My.Sys.Forms
 		Ctrl = 0
 		Select Case LCase(ClassName)
 		Case "animate": Ctrl = New_( Animate)
-		Case "chart": Ctrl = New_( Chart)
+'		Case "chart": Ctrl = New_( Chart)
 		Case "checkbox": Ctrl = New_( CheckBox)
 		Case "checkedlistbox": Ctrl = New_( CheckedListBox)
 		Case "comboboxedit": Ctrl = New_( ComboBoxEdit)
@@ -205,7 +205,7 @@ Using My.Sys.Forms
 	Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Export
 		Select Case LCase(Cast(Component Ptr, Ctrl)->ClassName)
 		Case "animate": Delete_( Cast(Animate Ptr, Ctrl))
-		Case "chart": Delete_( Cast(Chart Ptr, Ctrl))
+'		Case "chart": Delete_( Cast(Chart Ptr, Ctrl))
 		Case "checkbox" :Delete_( Cast(CheckBox Ptr, Ctrl))
 		Case "checkedlistbox": Delete_( Cast(CheckedListBox Ptr, Ctrl))
 		Case "comboboxedit": Delete_( Cast(ComboBoxEdit Ptr, Ctrl))

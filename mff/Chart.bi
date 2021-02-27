@@ -5,6 +5,7 @@
 '################################################################################
 
 #include once "Control.bi"
+#include once "TimerComponent.bi"
 
 Namespace My.Sys.Forms
 	#define QChart(__Ptr__) *Cast(Chart Ptr, __Ptr__)
@@ -66,7 +67,7 @@ Namespace My.Sys.Forms
 		FontStyleStrikeout = 8
 	End Enum
 	
-	Public Enum ChartStyle
+	Public Enum ChartStyles
 		CS_PIE
 		CS_DONUT
 	End Enum
@@ -97,7 +98,7 @@ Namespace My.Sys.Forms
 		TextHeight As Long
 		ItemColor As Long
 		Special As Boolean
-		hPath As Long
+		hPath As Any Ptr
 		LegendRect As RectL
 	End Type
 	
@@ -105,12 +106,10 @@ Namespace My.Sys.Forms
 	Private:
 		Dim nScale As Single
 		
-		Dim m_Title As String
-		Dim m_TitleFont As StdFont
+		Dim m_Title As UString
+		Dim m_TitleFont As My.Sys.Drawing.Font
 		Dim m_TitleForeColor As OLE_COLOR
-		Dim m_BackColor As OLE_COLOR
 		Dim m_BackColorOpacity As Long
-		Dim m_ForeColor As OLE_COLOR
 		Dim m_FillOpacity As Long
 		Dim m_Border As Boolean
 		Dim m_LinesCurve As Boolean
@@ -119,7 +118,7 @@ Namespace My.Sys.Forms
 		Dim m_FillGradient As Boolean
 		
 		Dim m_HorizontalLines As Boolean
-		Dim m_ChartStyle As ChartStyle
+		Dim m_ChartStyle As ChartStyles
 		Dim m_ChartOrientation As ChartOrientation
 		Dim m_LegendAlign As ucPC_LegendAlign
 		Dim m_LegendVisible As Boolean
@@ -136,22 +135,97 @@ Namespace My.Sys.Forms
 		Dim m_Rotation  As Long
 		Dim m_CenterCircle As POINTF
 		
-		Dim m_Item() As tItem
+		Dim m_Item(Any) As tItem
 		Dim ItemsCount As Long
 		Dim HotItem As Long
 		Dim m_PT As POINTL
 		Dim m_Left As Long
 		Dim m_Top As Long
 		
+		Dim c_lhWnd As hWND
+		Dim tmrMOUSEOVER As TimerComponent
+		
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		
+		Declare Sub Example()
+		Declare Sub InitProperties()
+		Declare Static Sub tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
+		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
+		Declare Function GetTextSize(ByVal hGraphics As Long, ByVal text As String, ByVal Width As Long, ByVal Height As Long, ByVal oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF) As Long
+		Declare Function DrawText(ByVal hGraphics As Long, ByVal text As String, ByVal X As Long, ByVal Y As Long, ByVal Width As Long, ByVal Height As Long, ByVal oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False) As Long
+		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
+		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+		Declare Sub MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+		Declare Function PtInRectL(Rect As RectL, ByVal X As Single, ByVal Y As Single) As Boolean
+		Declare Sub Paint()
+		Declare Sub Show()
+		Declare Function ManageGDIToken(ByVal projectHwnd As Long) As Long ' by LaVolpe
+		Declare Function zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
+		Declare Function SafeRange(Value As Long, Min As Long, Max As Long) As Long
+		Declare Sub Draw()
+		Declare Sub ShowToolTips(hGraphics As Long)
+		Declare Sub RoundRect(ByVal hGraphics As Long, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
+		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
+		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 	Public:
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Sub GetCenterPie(X As Single, Y As Single)
+		Declare Property Count() As Long
+		Declare Property Special(Index As Long, Value As Boolean)
+		Declare Property Special(Index As Long) As Boolean
+		Declare Property ItemColor(Index As Long, Value As OLE_COLOR)
+		Declare Property ItemColor(Index As Long) As OLE_COLOR
+		Declare Sub Clear()
+		Declare Sub AddItem(ByRef ItemName As WString, Value As Single, ItemColor As Long, Special As Boolean = False)
+		Declare Property Title() ByRef As WString
+		Declare Property Title(ByRef New_Value As WString)
+		Declare Property TitleFont() As My.Sys.Drawing.Font
+		Declare Property TitleFont(ByRef New_Value As My.Sys.Drawing.Font)
+		Declare Property TitleForeColor() As OLE_COLOR
+		Declare Property TitleForeColor(ByVal New_Value As OLE_COLOR)
+		Declare Property BackColorOpacity() As Long
+		Declare Property BackColorOpacity(ByVal New_Value As Long)
+		Declare Property FillOpacity() As Long
+		Declare Property FillOpacity(ByVal New_Value As Long)
+		Declare Property Border() As Boolean
+		Declare Property Border(ByVal New_Value As Boolean)
+		Declare Property BorderRound() As Long
+		Declare Property BorderRound(ByVal New_Value As Long)
+		Declare Property BorderColor() As OLE_COLOR
+		Declare Property BorderColor(ByVal New_Value As OLE_COLOR)
+		Declare Property LabelsFormats() As String
+		Declare Property LabelsFormats(ByVal New_Value As String)
+		Declare Property FillGradient() As Boolean
+		Declare Property FillGradient(ByVal New_Value As Boolean)
+		Declare Property ChartStyle() As ChartStyles
+		Declare Property ChartStyle(ByVal New_Value As ChartStyles)
+		Declare Property LegendAlign() As ucPC_LegendAlign
+		Declare Property LegendAlign(ByVal New_Value As ucPC_LegendAlign)
+		Declare Property LegendVisible() As Boolean
+		Declare Property LegendVisible(ByVal New_Value As Boolean)
+		Declare Property DonutWidth() As Single
+		Declare Property DonutWidth(ByVal New_Value As Single)
+		Declare Property SeparatorLine() As Boolean
+		Declare Property SeparatorLine(ByVal New_Value As Boolean)
+		Declare Property SeparatorLineWidth() As Single
+		Declare Property SeparatorLineWidth(ByVal New_Value As Single)
+		Declare Property SeparatorLineColor() As OLE_COLOR
+		Declare Property SeparatorLineColor(ByVal New_Value As OLE_COLOR)
+		Declare Property LabelsPosition() As LabelsPositions
+		Declare Property LabelsPosition(ByVal New_Value As LabelsPositions)
+		Declare Property LabelsVisible() As Boolean
+		Declare Property LabelsVisible(ByVal New_Value As Boolean)
+		Declare Property Rotation() As Long
+		Declare Property Rotation(ByVal New_Value As Long)
+		Declare Function GetWindowsDPI() As Double
+		Declare Sub Refresh()
+		Declare Function RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
