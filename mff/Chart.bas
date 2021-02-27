@@ -272,8 +272,8 @@ Namespace My.Sys.Forms
 		With Rect
 			.Left = m_PT.X - (m_Left - ScaleX(This.Left))
 			.Top = m_PT.Y - (m_Top - ScaleY(This.Top))
-			.Width = This.ClientWidth
-			.Height = This.ClientHeight
+			.Right = This.ClientWidth
+			.Bottom = This.ClientHeight
 		End With
 		
 		If PtInRectL(Rect, PT.X, PT.Y) = 0 Then
@@ -314,41 +314,41 @@ Namespace My.Sys.Forms
 		
 		'c_lhWnd = UserControl.ContainerHwnd
 		
-		If DesignMode Then Call Example
+		If DesignMode Then Example
 	End Sub
 	
 	
-	Private Function Chart.GetTextSize(ByVal hGraphics As Long, ByVal text As String, ByVal Width As Long, ByVal Height As Long, ByVal oFont As StdFont, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF) As Long
+	Private Sub Chart.GetTextSize(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
 		Dim hBrush As Long
-		Dim hFontFamily As Long
-		Dim hFormat As Long
+		Dim hFontFamily As GpFontFamily Ptr
+		Dim hFormat As GpStringFormat Ptr
 		Dim layoutRect As RectF
 		Dim lFontSize As Long
 		Dim lFontStyle As GDIPLUS_FONTSTYLE
-		Dim hFont
+		Dim hFont As GpFont Ptr
 		Dim BB As RectF, CF As Long, LF As Long
 		
-		If GdipCreateFontFamilyFromName(StrPtr(oFont.Name), 0, hFontFamily) Then
-			If GdipGetGenericFontFamilySansSerif(hFontFamily) Then Exit Function
+		If GdipCreateFontFamilyFromName(WStrPtr(oFont.Name), 0, @hFontFamily) Then
+			If GdipGetGenericFontFamilySansSerif(@hFontFamily) Then Exit Sub
 		End If
 		
-		If GdipCreateStringFormat(0, 0, hFormat) = 0 Then
+		If GdipCreateStringFormat(0, 0, @hFormat) = 0 Then
 			If Not bWordWrap Then GdipSetStringFormatFlags hFormat, StringFormatFlagsNoWrap
 		End If
 		
-		If oFont.Bold Then lFontStyle = lFontStyle Or FontStyleBold
-		If oFont.Italic Then lFontStyle = lFontStyle Or FontStyleItalic
-		If oFont.Underline Then lFontStyle = lFontStyle Or FontStyleUnderline
-		If oFont.Strikethrough Then lFontStyle = lFontStyle Or FontStyleStrikeout
+		If oFont.Bold Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleBold
+		If oFont.Italic Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleItalic
+		If oFont.Underline Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleUnderline
+		If oFont.StrikeOut Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleStrikeout
 		
 		
-		lFontSize = MulDiv(oFont.Size, GetDeviceCaps(UserControl.hDC, LOGPIXELSY), 72)
+		lFontSize = MulDiv(oFont.Size, GetDeviceCaps(GetDC(This.Handle), LOGPIXELSY), 72)
 		
-		layoutRect.Width = Width * nScale: layoutRect.Height = Height * nScale
+		layoutRect.Width = lWidth * nScale: layoutRect.Height = Height * nScale
 		
-		Call GdipCreateFont(hFontFamily, lFontSize, lFontStyle, UnitPixel, hFont)
+		GdipCreateFont(hFontFamily, lFontSize, lFontStyle, UnitPixel, @hFont)
 		
-		GdipMeasureString hGraphics, StrPtr(text), -1, hFont, layoutRect, hFormat, BB, CF, LF
+		GdipMeasureString hGraphics, @text, -1, hFont, @layoutRect, hFormat, @BB, @CF, @LF
 		
 		SZ.Width = BB.Width
 		SZ.Height = BB.Height
@@ -357,62 +357,60 @@ Namespace My.Sys.Forms
 		GdipDeleteStringFormat hFormat
 		GdipDeleteFontFamily hFontFamily
 		
-		
-	End Function
+	End Sub
 	
 	
-	Private Function Chart.DrawText(ByVal hGraphics As Long, ByVal text As String, ByVal X As Long, ByVal Y As Long, ByVal Width As Long, ByVal Height As Long, ByVal oFont As StdFont, ByVal ForeColor As Long, Optional HAlign As CaptionAlignmentH, Optional VAlign As CaptionAlignmentV, Optional bWordWrap As Boolean) As Long
-		Dim hBrush As Long
-		Dim hFontFamily As Long
-		Dim hFormat As Long
+	Private Sub Chart.DrawText(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False)
+		Dim hBrush As GpBrush Ptr
+		Dim hFontFamily As GpFontFamily Ptr
+		Dim hFormat As GpStringFormat Ptr
 		Dim layoutRect As RectF
 		Dim lFontSize As Long
 		Dim lFontStyle As GDIPLUS_FONTSTYLE
-		Dim hFont As Long
-		Dim hDC As Long
+		Dim hFont As GpFont Ptr
+		Dim hDC As HDC
 		
-		
-		If GdipCreateFontFamilyFromName(StrPtr(oFont.Name), 0, hFontFamily) <> GDIP_OK Then
-			If GdipGetGenericFontFamilySansSerif(hFontFamily) <> GDIP_OK Then Exit Function
+		If GdipCreateFontFamilyFromName(@oFont.Name, 0, @hFontFamily) <> GDIP_OK Then
+			If GdipGetGenericFontFamilySansSerif(@hFontFamily) <> GDIP_OK Then Exit Sub
 			'If GdipGetGenericFontFamilySerif(hFontFamily) Then Exit Function
 		End If
 		
-		If GdipCreateStringFormat(0, 0, hFormat) = GDIP_OK Then
+		If GdipCreateStringFormat(0, 0, @hFormat) = GDIP_OK Then
 			If Not bWordWrap Then GdipSetStringFormatFlags hFormat, StringFormatFlagsNoWrap
 			'GdipSetStringFormatFlags hFormat, HotkeyPrefixShow
 			GdipSetStringFormatAlign hFormat, HAlign
 			GdipSetStringFormatLineAlign hFormat, VAlign
 		End If
 		
-		If oFont.Bold Then lFontStyle = lFontStyle Or FontStyleBold
-		If oFont.Italic Then lFontStyle = lFontStyle Or FontStyleItalic
-		If oFont.Underline Then lFontStyle = lFontStyle Or FontStyleUnderline
-		If oFont.Strikethrough Then lFontStyle = lFontStyle Or FontStyleStrikeout
+		If oFont.Bold Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleBold
+		If oFont.Italic Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleItalic
+		If oFont.Underline Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleUnderline
+		If oFont.Strikeout Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleStrikeout
 		
 		
-		hDC = GetDC(0&)
-		lFontSize = MulDiv(oFont.Size, GetDeviceCaps(UserControl.hDC, LOGPIXELSY), 72)
-		ReleaseDC 0&, hDC
+		hDC = GetDC(Handle)
+		lFontSize = MulDiv(oFont.Size, GetDeviceCaps(hDC, LOGPIXELSY), 72)
+		ReleaseDC Handle, hDC
 		
-		layoutRect.Left = X: layoutRect.Top = Y
+		layoutRect.X = X: layoutRect.Y = Y
 		layoutRect.Width = Width: layoutRect.Height = Height
 		
-		If GdipCreateSolidFill(ForeColor, hBrush) = GDIP_OK Then
-			If GdipCreateFont(hFontFamily, lFontSize, lFontStyle, UnitPixel, hFont) = GDIP_OK Then
-				GdipDrawString hGraphics, StrPtr(text), -1, hFont, layoutRect, hFormat, hBrush
+		If GdipCreateSolidFill(ForeColor, Cast(GpSolidFill Ptr Ptr, @hBrush)) = GDIP_OK Then
+			If GdipCreateFont(hFontFamily, lFontSize, lFontStyle, UnitPixel, @hFont) = GDIP_OK Then
+				GdipDrawString hGraphics, @text, -1, hFont, @layoutRect, hFormat, Cast(GpBrush Ptr, hBrush)
 				GdipDeleteFont hFont
 			End If
-			GdipDeleteBrush hBrush
+			GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 		End If
 		
 		If hFormat Then GdipDeleteStringFormat hFormat
 		GdipDeleteFontFamily hFontFamily
 		
 		
-	End Function
+	End Sub
 	
 	Public Function Chart.GetWindowsDPI() As Double
-		Dim hDC As Long, LPX  As Double
+		Dim hDC As HDC, LPX  As Double
 		hDC = GetDC(0)
 		LPX = CDbl(GetDeviceCaps(hDC, LOGPIXELSX))
 		ReleaseDC 0, hDC
@@ -424,20 +422,20 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Private Sub UserControl_HitTest(X As Single, Y As Single, HitResult As Integer)
-		If UserControl.Enabled Then
-			HitResult = vbHitResultHit
-			If Ambient.UserMode Then
-				Dim PT As POINTL
+	Private Sub Chart.HitTest(X As Single, Y As Single, HitResult As Integer)
+		If This.Enabled Then
+			HitResult = 3
+			If Not DesignMode Then
+				Dim PT As Point
 				
 				If tmrMOUSEOVER.Interval = 0 Then
-					GetCursorPos PT
-					ScreenToClient c_lhWnd, PT
+					GetCursorPos @PT
+					ScreenToClient c_lhWnd, @PT
 					m_PT.X = PT.X - X
 					m_PT.Y = PT.Y - Y
 					
-					m_Left = ScaleX(Extender.Left, vbContainerSize, UserControl.ScaleMode)
-					m_Top = ScaleY(Extender.Top, vbContainerSize, UserControl.ScaleMode)
+					m_Left = ScaleX(This.Left)
+					m_Top = ScaleY(This.Top)
 					
 					
 					tmrMOUSEOVER.Interval = 1
@@ -448,35 +446,31 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-		RaiseEvent MouseUp(Button, Shift, X, Y)
+	Private Sub Chart.MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		
 		Dim i As Long
-		Dim lResult As Long
+		Dim lResult As BOOL
 		
-		If Button <> vbLeftButton Then Exit Sub
+		If Button <> 0 Then Exit Sub
 		
 		For i = 0 To ItemsCount - 1
 			
 			lResult = 0
-			Call GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0&, lResult)
+			GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0&, @lResult)
 			
 			If lResult Then
 				If i = HotItem Then
-					RaiseEvent ItemClick(i)
+					If OnItemClick Then OnItemClick(i)
 				End If
 				Exit Sub
 			End If
 			
 		Next
 	End Sub
-	Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-		RaiseEvent MouseDown(Button, Shift, X, Y)
-	End Sub
-	Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+	Private Sub Chart.MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Dim i As Long
-		Dim lResult As Long
-		RaiseEvent MouseMove(Button, Shift, X, Y)
+		Dim lResult As BOOL
+		'RaiseEvent MouseMove(Button, Shift, X, Y)
 		If Button <> 0 Then Exit Sub
 		For i = 0 To ItemsCount - 1
 			
@@ -489,7 +483,7 @@ Namespace My.Sys.Forms
 			End If
 			
 			lResult = 0
-			Call GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0&, lResult)
+			GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0&, @lResult)
 			
 			If lResult Then
 				If i <> HotItem Then
@@ -510,7 +504,7 @@ Namespace My.Sys.Forms
 	
 	Private Function Chart.PtInRectL(Rect As RectL, ByVal X As Single, ByVal Y As Single) As Boolean
 		With Rect
-			If X >= .Left And X <= .Left + .Width And Y >= .Top And Y <= .Top + .Height Then
+			If X >= .Left And X <= .Left + .Right And Y >= .Top And Y <= .Top + .Bottom Then
 				PtInRectL = True
 			End If
 		End With
@@ -535,115 +529,115 @@ Namespace My.Sys.Forms
 	'    RaiseEvent OLEDragOver(Data, Effect, Button, Shift, x, y, State)
 	'End Sub
 	
-	Private Sub UserControl_Paint()
-		Draw
+	Private Sub Chart.Paint()
+		This.Draw
 	End Sub
 	
 	Public Sub Chart.Refresh()
 		This.Update
 	End Sub
 	
-	Private Sub UserControl_Show()
+	Private Sub Chart.Show()
 		Me.Refresh
 	End Sub
 	
-	Private Function Chart.ManageGDIToken(ByVal projectHwnd As Long) As Long ' by LaVolpe
-		If projectHwnd = 0& Then Exit Function
-		
-		Dim hwndGDIsafe     As Long                 'API window to monitor IDE shutdown
-		
-		Do
-			hwndGDIsafe = GetParent(projectHwnd)
-			If Not hwndGDIsafe = 0& Then projectHwnd = hwndGDIsafe
-		Loop Until hwndGDIsafe = 0&
+	Private Function Chart.ManageGDIToken(ByVal projectHwnd As HWND) As HWND ' by LaVolpe
+?546:		If projectHwnd = 0& Then Exit Function
+?547:		
+?548:		Dim hwndGDIsafe     As HWND                 'API window to monitor IDE shutdown
+?549:		
+?550:		Do
+?551:			hwndGDIsafe = GetParent(projectHwnd)
+?552:			If Not hwndGDIsafe = 0& Then projectHwnd = hwndGDIsafe
+?553:		Loop Until hwndGDIsafe = 0&
 		' ok, got the highest level parent, now find highest level owner
-		Do
-			hwndGDIsafe = GetWindow(projectHwnd, GW_OWNER)
-			If Not hwndGDIsafe = 0& Then projectHwnd = hwndGDIsafe
-		Loop Until hwndGDIsafe = 0&
-		
-		hwndGDIsafe = FindWindowEx(projectHwnd, 0&, "Static", "GDI+Safe Patch")
-		
-		If hwndGDIsafe Then
-			ManageGDIToken = hwndGDIsafe    ' we already have a manager running for this VB instance
-			Exit Function                   ' can abort
-		End If
-		
-		Dim gdiSI           As GDIPlusStartupInput  'GDI+ startup info
-		Dim gToken          As Long                 'GDI+ instance token
-		
-		On Error Resume Next
-		gdiSI.GdiPlusVersion = 1                    ' attempt to start GDI+
-		GdiplusStartup gToken, gdiSI
-		If gToken = 0& Then                         ' failed to start
-			If Err Then Err.Clear
-			Exit Function
-		End If
-		On Error Goto 0
-		
-		Dim z_ScMem         As Long                 'Thunk base address
-		Dim z_Code()        As Long                 'Thunk machine-code initialised here
-		Dim nAddr           As Long                 'hwndGDIsafe prev window procedure
-		
-		Const WNDPROC_OFF   As Long = &H30          'Offset where window proc starts from z_ScMem
-		Const PAGE_RWX      As Long = &H40&         'Allocate executable memory
-		Const MEM_COMMIT    As Long = &H1000&       'Commit allocated memory
-		Const MEM_RELEASE   As Long = &H8000&       'Release allocated memory flag
-		Const MEM_LEN       As Long = &HD4          'Byte length of thunk
-		
-		z_ScMem = VirtualAlloc(0, MEM_LEN, MEM_COMMIT, PAGE_RWX) 'Allocate executable memory
-		If z_ScMem <> 0 Then                                     'Ensure the allocation succeeded
+?555:		Do
+?556:			hwndGDIsafe = GetWindow(projectHwnd, GW_OWNER)
+?557:			If Not hwndGDIsafe = 0& Then projectHwnd = hwndGDIsafe
+?558:		Loop Until hwndGDIsafe = 0&
+?559:		
+?560:		hwndGDIsafe = FindWindowEx(projectHwnd, 0&, "Static", "GDI+Safe Patch")
+?561:		
+?562:		If hwndGDIsafe Then
+?563:			ManageGDIToken = hwndGDIsafe    ' we already have a manager running for this VB instance
+?564:			Exit Function                   ' can abort
+?565:		End If
+?566:		
+?567:		Dim StartupInput           As Gdiplus.GdiplusStartupInput  'GDI+ startup info
+?568:		Dim gToken          As ULONG_PTR                 'GDI+ instance token
+'		
+'		'On Error Resume Next
+?571:		StartupInput.GdiPlusVersion = 1                    ' attempt to start GDI+
+?572:		GdiplusStartup(@gToken, @StartupInput, NULL)
+?573:		If gToken = 0& Then                         ' failed to start
+			'If Err Then Err.Clear
+?575:			Exit Function
+?576:		End If
+?577:		On Error Goto 0
+?578:		
+?579:		Dim z_ScMem         As LPVOID                 'Thunk base address
+?580:		Dim z_Code()        As Long                 'Thunk machine-code initialised here
+?581:		Dim nAddr           As Long                 'hwndGDIsafe prev window procedure
+?582:		
+?583:		Const WNDPROC_OFF   As Long = &H30          'Offset where window proc starts from z_ScMem
+?584:		Const PAGE_RWX      As Long = &H40&         'Allocate executable memory
+?585:		Const MEM_COMMIT    As Long = &H1000&       'Commit allocated memory
+?586:		Const MEM_RELEASE   As Long = &H8000&       'Release allocated memory flag
+?587:		Const MEM_LEN       As Long = &HD4          'Byte length of thunk
+?588:		
+?589:		z_ScMem = VirtualAlloc(0, MEM_LEN, MEM_COMMIT, PAGE_RWX) 'Allocate executable memory
+?590:		If z_ScMem <> 0 Then                                     'Ensure the allocation succeeded
 			' we make the api window a child so we can use FindWindowEx to locate it easily
-			hwndGDIsafe = CreateWindowExA(0&, "Static", "GDI+Safe Patch", WS_CHILD, 0&, 0&, 0&, 0&, projectHwnd, 0&, App.hInstance, ByVal 0&)
-			If hwndGDIsafe <> 0 Then
-				
-				ReDim z_Code(0 To MEM_LEN \ 4 - 1)
-				
-				z_Code(12) = &HD231C031: z_Code(13) = &HBBE58960: z_Code(14) = &H12345678: z_Code(15) = &H3FFF631: z_Code(16) = &H74247539: z_Code(17) = &H3075FF5B: z_Code(18) = &HFF2C75FF: z_Code(19) = &H75FF2875
-				z_Code(20) = &H2C73FF24: z_Code(21) = &H890853FF: z_Code(22) = &HBFF1C45: z_Code(23) = &H2287D81: z_Code(24) = &H75000000: z_Code(25) = &H443C707: z_Code(26) = &H2&: z_Code(27) = &H2C753339: z_Code(28) = &H2047B81: z_Code(29) = &H75000000
-				z_Code(30) = &H2C73FF23: z_Code(31) = &HFFFFFC68: z_Code(32) = &H2475FFFF: z_Code(33) = &H681C53FF: z_Code(34) = &H12345678: z_Code(35) = &H3268&: z_Code(36) = &HFF565600: z_Code(37) = &H43892053: z_Code(38) = &H90909020: z_Code(39) = &H10C261
-				z_Code(40) = &H562073FF: z_Code(41) = &HFF2453FF: z_Code(42) = &H53FF1473: z_Code(43) = &H2873FF18: z_Code(44) = &H581053FF: z_Code(45) = &H89285D89: z_Code(46) = &H45C72C75: z_Code(47) = &H800030: z_Code(48) = &H20458B00: z_Code(49) = &H89145D89
-				z_Code(50) = &H81612445: z_Code(51) = &H4C4&: z_Code(52) = &HC63FF00
-				
-				z_Code(1) = 0                                                   ' shutDown mode; used internally by ASM
-				z_Code(2) = zFnAddr("user32", "CallWindowProcA")                ' function pointer CallWindowProc
-				z_Code(3) = zFnAddr("kernel32", "VirtualFree")                  ' function pointer VirtualFree
-				z_Code(4) = zFnAddr("kernel32", "FreeLibrary")                  ' function pointer FreeLibrary
-				z_Code(5) = gToken                                              ' Gdi+ token
-				z_Code(10) = LoadLibrary("gdiplus")                             ' library pointer (add reference)
-				z_Code(6) = GetProcAddress(z_Code(10), "GdiplusShutdown")       ' function pointer GdiplusShutdown
-				z_Code(7) = zFnAddr("user32", "SetWindowLongA")                 ' function pointer SetWindowLong
-				z_Code(8) = zFnAddr("user32", "SetTimer")                       ' function pointer SetTimer
-				z_Code(9) = zFnAddr("user32", "KillTimer")                      ' function pointer KillTimer
-				
-				z_Code(14) = z_ScMem                                            ' ASM ebx start point
-				z_Code(34) = z_ScMem + WNDPROC_OFF                              ' subclass window procedure location
-				
-				RtlMoveMemory z_ScMem, VarPtr(z_Code(0)), MEM_LEN               'Copy the thunk code/data to the allocated memory
-				
-				nAddr = SetWindowLong(hwndGDIsafe, GWL_WNDPROC, z_ScMem + WNDPROC_OFF) 'Subclass our API window
-				RtlMoveMemory z_ScMem + 44, VarPtr(nAddr), 4& ' Add prev window procedure to the thunk
-				gToken = 0& ' zeroize so final check below does not release it
-				
-				ManageGDIToken = hwndGDIsafe    ' return handle of our GDI+ manager
-			Else
-				VirtualFree z_ScMem, 0, MEM_RELEASE     ' failure - release memory
-				z_ScMem = 0&
-			End If
-		Else
-			VirtualFree z_ScMem, 0, MEM_RELEASE           ' failure - release memory
-			z_ScMem = 0&
-		End If
-		
-		If gToken Then GdiplusShutdown gToken       ' release token if error occurred
-		
+?592:			hwndGDIsafe = CreateWindowExA(0&, "Static", "GDI+Safe Patch", WS_CHILD, 0&, 0&, 0&, 0&, projectHwnd, 0&, GetModuleHandle(0), ByVal 0&)
+?593:			If hwndGDIsafe <> 0 Then
+?594:				
+?595:				ReDim z_Code(0 To MEM_LEN \ 4 - 1)
+?596:				
+?597:				z_Code(12) = &HD231C031: z_Code(13) = &HBBE58960: z_Code(14) = &H12345678: z_Code(15) = &H3FFF631: z_Code(16) = &H74247539: z_Code(17) = &H3075FF5B: z_Code(18) = &HFF2C75FF: z_Code(19) = &H75FF2875
+?598:				z_Code(20) = &H2C73FF24: z_Code(21) = &H890853FF: z_Code(22) = &HBFF1C45: z_Code(23) = &H2287D81: z_Code(24) = &H75000000: z_Code(25) = &H443C707: z_Code(26) = &H2&: z_Code(27) = &H2C753339: z_Code(28) = &H2047B81: z_Code(29) = &H75000000
+?599:				z_Code(30) = &H2C73FF23: z_Code(31) = &HFFFFFC68: z_Code(32) = &H2475FFFF: z_Code(33) = &H681C53FF: z_Code(34) = &H12345678: z_Code(35) = &H3268&: z_Code(36) = &HFF565600: z_Code(37) = &H43892053: z_Code(38) = &H90909020: z_Code(39) = &H10C261
+?600:				z_Code(40) = &H562073FF: z_Code(41) = &HFF2453FF: z_Code(42) = &H53FF1473: z_Code(43) = &H2873FF18: z_Code(44) = &H581053FF: z_Code(45) = &H89285D89: z_Code(46) = &H45C72C75: z_Code(47) = &H800030: z_Code(48) = &H20458B00: z_Code(49) = &H89145D89
+?601:				z_Code(50) = &H81612445: z_Code(51) = &H4C4&: z_Code(52) = &HC63FF00
+?602:				
+?603:				z_Code(1) = 0                                                   ' shutDown mode; used internally by ASM
+?604:				z_Code(2) = zFnAddr("user32", "CallWindowProcA")                ' function pointer CallWindowProc
+?605:				z_Code(3) = zFnAddr("kernel32", "VirtualFree")                  ' function pointer VirtualFree
+?606:				z_Code(4) = zFnAddr("kernel32", "FreeLibrary")                  ' function pointer FreeLibrary
+?607:				z_Code(5) = gToken                                              ' Gdi+ token
+?608:				z_Code(10) = Cast(Long, LoadLibrary("gdiplus"))                             ' library pointer (add reference)
+?609:				z_Code(6) = Cast(Long, GetProcAddress(Cast(HMODULE, z_Code(10)), "GdiplusShutdown"))       ' function pointer GdiplusShutdown
+?610:				z_Code(7) = zFnAddr("user32", "SetWindowLongA")                 ' function pointer SetWindowLong
+?611:				z_Code(8) = zFnAddr("user32", "SetTimer")                       ' function pointer SetTimer
+?612:				z_Code(9) = zFnAddr("user32", "KillTimer")                      ' function pointer KillTimer
+?613:				
+?614:				z_Code(14) = Cast(Long, z_ScMem)                                            ' ASM ebx start point
+?615:				z_Code(34) = Cast(Long, z_ScMem + WNDPROC_OFF)                              ' subclass window procedure location
+?616:				
+?617:				RtlMoveMemory(z_ScMem, VarPtr(z_Code(0)), MEM_LEN)               'Copy the thunk code/data to the allocated memory
+?618:				
+?619:				nAddr = SetWindowLongPtr(hwndGDIsafe, GWL_WNDPROC, Cast(LONG_PTR, z_ScMem + WNDPROC_OFF)) 'Subclass our API window
+?620:				RtlMoveMemory(z_ScMem + 44, VarPtr(nAddr), 4&) ' Add prev window procedure to the thunk
+?621:				gToken = 0& ' zeroize so final check below does not release it
+?622:				
+?623:				ManageGDIToken = hwndGDIsafe    ' return handle of our GDI+ manager
+?624:			Else
+?625:				VirtualFree z_ScMem, 0, MEM_RELEASE     ' failure - release memory
+?626:				z_ScMem = 0&
+?627:			End If
+?628:		Else
+?629:			VirtualFree z_ScMem, 0, MEM_RELEASE           ' failure - release memory
+?630:			z_ScMem = 0&
+?631:		End If
+?632:		
+?633:		If gToken Then GdiplusShutdown gToken       ' release token if error occurred
+?634:		
 	End Function
 	
 	Private Function Chart.zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
-		zFnAddr = GetProcAddress(GetModuleHandleA(sDLL), sProc)  'Get the specified procedure address
+		zFnAddr = Cast(Long, GetProcAddress(GetModuleHandleA(sDLL), sProc))  'Get the specified procedure address
 	End Function
 	
-	Private Function Chart.SafeRange(Value, Min, Max)
+	Private Function Chart.SafeRange(Value As Long, Min As Long, Max As Long) As Long
 		
 		If Value < Min Then
 			SafeRange = Min
@@ -661,26 +655,32 @@ Namespace My.Sys.Forms
 		' This routine will return the passed RGBcolor to RGBA format
 		' Passing VB system color constants is allowed, i.e., vbButtonFace
 		' Pass Opacity as a value from 0 to 255
-		
+		Dim RGBtoARGB_ As Long
 		If (RGBColor And &H80000000) Then RGBColor = GetSysColor(RGBColor And &HFF&)
-		RGBtoARGB = (RGBColor And &HFF00&) Or (RGBColor And &HFF0000) \ &H10000 Or (RGBColor And &HFF) * &H10000
+		RGBtoARGB_ = (RGBColor And &HFF00&) Or (RGBColor And &HFF0000) \ &H10000 Or (RGBColor And &HFF) * &H10000
 		Opacity = CByte((Abs(Opacity) / 100) * 255)
 		If Opacity < 128 Then
 			If Opacity < 0& Then Opacity = 0&
-			RGBtoARGB = RGBtoARGB Or Opacity * &H1000000
+			RGBtoARGB_ = RGBtoARGB_ Or Opacity * &H1000000
 		Else
 			If Opacity > 255& Then Opacity = 255&
-			RGBtoARGB = RGBtoARGB Or (Opacity - 128&) * &H1000000 Or &H80000000
+			RGBtoARGB_ = RGBtoARGB_ Or (Opacity - 128&) * &H1000000 Or &H80000000
 		End If
-		
+		Return RGBtoARGB_
 	End Function
 	
-	
+	Function Round(X As Double, Drob As Integer) As Integer
+		If Drob = 0 Then
+			Return CInt(X)
+		Else
+			Return CInt(X * 10 ^ Drob) / 10 ^ Drob
+		End If
+	End Function
 	
 	'*1
 	Private Sub Chart.Draw()
-		Dim hGraphics As Long
-		Dim hBrush As Long, hPen As Long
+		Dim hGraphics As GpGraphics Ptr
+		Dim hBrush As Long, hPen As GpPen Ptr
 		Dim i As Single, j As Long
 		Dim mHeight As Single
 		Dim mWidth As Single
@@ -693,7 +693,7 @@ Namespace My.Sys.Forms
 		Dim TextHeight As Single
 		Dim XX As Single, YY As Single
 		Dim lForeColor As Long
-		Dim RectL As RectL
+		Dim RectL_ As RectL
 		Dim LabelsRect As RectL
 		Dim PT16 As Single
 		Dim ColRow As Integer
@@ -716,10 +716,12 @@ Namespace My.Sys.Forms
 		Dim A As Single
 		Dim Displacement As Single
 		Dim lColor As Long
+		Dim hD As HDC
+		hD = GetDC(This.Handle)
 		
-		If GdipCreateFromHDC(hDC, hGraphics) Then Exit Sub
+		If GdipCreateFromHDC(hD, @hGraphics) Then Exit Sub
 		
-		Call GdipSetSmoothingMode(hGraphics, SmoothingModeAntiAlias)
+		GdipSetSmoothingMode(hGraphics, SmoothingModeAntiAlias)
 		
 		PT16 = 16 * nScale
 		mPenWidth = 1 * nScale
@@ -730,20 +732,21 @@ Namespace My.Sys.Forms
 		MarginRight = PT16
 		Footer = PT16
 		
+		Canvas.Font = This.Font
 		If m_LegendVisible Then
 			For i = 0 To ItemsCount - 1
-				m_Item(i).TextHeight = UserControl.TextHeight(m_Item(i).ItemName) * 1.5
-				m_Item(i).TextWidth = UserControl.TextWidth(m_Item(i).ItemName) * 1.5 + m_Item(i).TextHeight
+				m_Item(i).TextHeight = Canvas.TextHeight(m_Item(i).ItemName) * 1.5
+				m_Item(i).TextWidth = Canvas.TextWidth(m_Item(i).ItemName) * 1.5 + m_Item(i).TextHeight
 			Next
 		End If
 		
 		If Len(m_Title) Then
-			Call GetTextSize(hGraphics, m_Title, UserControl.ScaleWidth, 0, m_TitleFont, True, TitleSize)
+			GetTextSize(hGraphics, *m_Title.vptr, This.ClientWidth, 0, m_TitleFont, True, TitleSize)
 			TopHeader = TopHeader + TitleSize.Height
 		End If
 		
-		mWidth = UserControl.ScaleWidth - MarginLeft - MarginRight
-		mHeight = UserControl.ScaleHeight - TopHeader - Footer
+		mWidth = This.ClientWidth - MarginLeft - MarginRight
+		mHeight = This.ClientHeight - TopHeader - Footer
 		
 		'Calculate the Legend Area
 		If m_LegendVisible Then
@@ -755,46 +758,46 @@ Namespace My.Sys.Forms
 					TextHeight = 0
 					For i = 0 To ItemsCount - 1
 						If TextHeight + m_Item(i).TextHeight > mHeight Then
-							.Width = .Width + TextWidth
+							.Right = .Right + TextWidth
 							ColRow = ColRow + 1
 							TextWidth = 0
 							TextHeight = 0
 						End If
 						
 						TextHeight = TextHeight + m_Item(i).TextHeight
-						.Height = .Height + m_Item(i).TextHeight
+						.Bottom = .Bottom + m_Item(i).TextHeight
 						
 						If TextWidth < m_Item(i).TextWidth Then
 							TextWidth = m_Item(i).TextWidth '+ PT16
 						End If
 					Next
-					.Width = .Width + TextWidth
+					.Right = .Right + TextWidth
 					If m_LegendAlign = LA_LEFT Then
-						MarginLeft = MarginLeft + .Width
+						MarginLeft = MarginLeft + .Right
 					Else
-						MarginRight = MarginRight + .Width
+						MarginRight = MarginRight + .Right
 					End If
-					mWidth = mWidth - .Width
+					mWidth = mWidth - .Right
 				End With
 				
 			Case LA_BOTTOM, LA_TOP
 				With LabelsRect
 					
-					.Height = m_Item(0).TextHeight + PT16 / 2
+					.Bottom = m_Item(0).TextHeight + PT16 / 2
 					TextWidth = 0
 					For i = 0 To ItemsCount - 1
 						If TextWidth + m_Item(i).TextWidth > mWidth Then
-							.Height = .Height + m_Item(i).TextHeight
+							.Bottom = .Bottom + m_Item(i).TextHeight
 							ColRow = ColRow + 1
 							TextWidth = 0
 						End If
 						TextWidth = TextWidth + m_Item(i).TextWidth
-						.Width = .Width + m_Item(i).TextWidth
+						.Right = .Right + m_Item(i).TextWidth
 					Next
 					If m_LegendAlign = LA_TOP Then
-						TopHeader = TopHeader + .Height
+						TopHeader = TopHeader + .Bottom
 					End If
-					mHeight = mHeight - .Height
+					mHeight = mHeight - .Bottom
 				End With
 			End Select
 		End If
@@ -802,11 +805,11 @@ Namespace My.Sys.Forms
 		
 		Dim RectF As RectF
 		With RectF
-			.Width = UserControl.ScaleWidth - 1 * nScale
-			.Height = UserControl.ScaleHeight - 1 * nScale
+			.Width = This.ClientWidth - 1 * nScale
+			.Height = This.ClientHeight - 1 * nScale
 		End With
 		
-		RoundRect hGraphics, RectF, RGBtoARGB(m_BackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border
+		RoundRect hGraphics, RectF, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border
 		
 		
 		'    'Background
@@ -840,12 +843,12 @@ Namespace My.Sys.Forms
 					Percent = Round(100 - SafePercent, 1)
 				End If
 				.text = Replace(m_LabelsFormats, "{A}", .ItemName)
-				.text = Replace(.text, "{P}", Percent)
-				.text = Replace(.text, "{V}", Round(.Value, 1))
-				.text = Replace(.text, "{LF}", vbLf)
+				.text = Replace(.text, "{P}", WStr(Percent))
+				.text = Replace(.text, "{V}", WStr(Round(.Value, 1)))
+				.text = Replace(.text, "{LF}", Chr(10))
 				
-				TextWidth = UserControl.TextWidth(.text) * 1.3
-				TextHeight = UserControl.TextHeight(.text) * 1.3
+				TextWidth = Canvas.TextWidth(.text) * 1.3
+				TextHeight = Canvas.TextHeight(.text) * 1.3
 				If TextWidth > LblWidth Then LblWidth = TextWidth
 				If TextHeight > LblHeight Then LblHeight = TextHeight
 			End With
@@ -898,23 +901,23 @@ Namespace My.Sys.Forms
 			End If
 			
 			If HotItem = i Then
-				lColor = RGBtoARGB(ShiftColor(m_Item(i).ItemColor, vbWhite, 150), m_FillOpacity)
+				lColor = RGBtoARGB(ShiftColor(m_Item(i).ItemColor, clWhite, 150), m_FillOpacity)
 			Else
 				lColor = RGBtoARGB(m_Item(i).ItemColor, m_FillOpacity)
 			End If
 			If m_FillGradient Then
-				With RectL
+				With RectL_
 					.Left = MarginLeft - R2
 					.Top = TopHeader - R2
-					.Width = mWidth + R2 * 2
-					.Height = mHeight + R2 * 2
+					.Right = mWidth + R2 * 2
+					.Bottom = mHeight + R2 * 2
 				End With
-				GdipCreateLineBrushFromRectWithAngleI RectL, lColor, RGBtoARGB(vbWhite, 100), 180 + LastAngle + Angle / 2, 0, WrapModeTile, hBrush
+				GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), lColor, RGBtoARGB(clWhite, 100), 180 + LastAngle + Angle / 2, 0, WrapModeTile, Cast(GpLineGradient Ptr Ptr, @hBrush)
 			Else
-				GdipCreateSolidFill lColor, hBrush
+				GdipCreateSolidFill lColor, Cast(GpSolidFill Ptr Ptr, hBrush)
 			End If
-			GdipFillPath hGraphics, hBrush, m_Item(i).hPath
-			GdipDeleteBrush hBrush
+			GdipFillPath hGraphics, Cast(GpBrush Ptr, hBrush), m_Item(i).hPath
+			GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 			
 			R1 = Min / 2
 			R2 = m_Item(i).TextWidth / 2
@@ -940,7 +943,7 @@ Namespace My.Sys.Forms
 			Angle = 360 * m_Item(i).Value / Total
 			
 			If m_SeparatorLine Then
-				GdipCreatePen1 RGBtoARGB(m_SeparatorLineColor, 100), m_SeparatorLineWidth * nScale, &H2, hPen
+				GdipCreatePen1 RGBtoARGB(m_SeparatorLineColor, 100), m_SeparatorLineWidth * nScale, &H2, @hPen
 				GdipSetPenEndCap hPen, &H2
 				
 				R1 = (Min + mPenWidth / 2) / 2
@@ -991,9 +994,9 @@ Namespace My.Sys.Forms
 			If m_LabelsVisible Then
 				If m_LabelsPositions = LP_TwoColumns Then
 					Dim LineOut As Integer
-					LineOut = UserControl.TextHeight("Aj") / 2
-					GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 50), hBrush
-					GdipCreatePen1 RGBtoARGB(m_Item(i).ItemColor, 100), 1 * nScale, &H2, hPen
+					LineOut = Canvas.TextHeight("Aj") / 2
+					GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 50), Cast(GpSolidFill Ptr Ptr, @hBrush)
+					GdipCreatePen1 RGBtoARGB(m_Item(i).ItemColor, 100), 1 * nScale, &H2, @hPen
 					
 					If (LastAngle + Angle / 2 + 90) Mod 359 < 180 Then
 						If bAngMaj180 Then
@@ -1011,8 +1014,8 @@ Namespace My.Sys.Forms
 						
 						Left = XX + Min + PT16
 						
-						GdipFillRectangleI hGraphics, hBrush, Left, lTop, TextWidth, TextHeight
-						DrawText hGraphics, m_Item(i).text, Left, lTop, TextWidth, TextHeight, UserControl.Font, RGBtoARGB(m_ForeColor, 100), cCenter, cMiddle
+						GdipFillRectangleI hGraphics, Cast(GpBrush Ptr, @hBrush), Left, lTop, TextWidth, TextHeight
+						DrawText hGraphics, m_Item(i).text, Left, lTop, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
 						lTop = lTop + TextHeight
 						
 						Left = CX + (R1 * Cos(A * PItoRAD))
@@ -1039,8 +1042,8 @@ Namespace My.Sys.Forms
 						End If
 						
 						Left = XX - TextWidth - PT16
-						GdipFillRectangleI hGraphics, hBrush, Left, lTop, TextWidth, TextHeight
-						DrawText hGraphics, m_Item(i).text, Left, lTop, TextWidth, TextHeight, UserControl.Font, RGBtoARGB(m_ForeColor, 100), cCenter, cMiddle
+						GdipFillRectangleI hGraphics, Cast(GpBrush Ptr, hBrush), Left, lTop, TextWidth, TextHeight
+						DrawText hGraphics, m_Item(i).text, Left, lTop, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
 						Left = CX + (R1 * Cos(A * PItoRAD))
 						Top = CY + (R1 * Sin(A * PItoRAD))
 						CX = CX + ((R1 + LineOut) * Cos(A * PItoRAD))
@@ -1051,21 +1054,21 @@ Namespace My.Sys.Forms
 						GdipDrawLineI hGraphics, hPen, CX, CY, Left, Top
 						lTop = lTop - TextHeight
 					End If
-					GdipDeleteBrush hBrush
+					GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 					GdipDeletePen hPen
 					
 				ElseIf m_LabelsPositions = LP_Inside Then
 					'lForeColor = IIf(IsDarkColor(m_Item(i).ItemColor), &H808080, vbWhite)
 					'DrawText hGraphics, m_Item(i).Text, Left + 1, Top + 1, TextWidth, TextHeight, UserControl.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
 					If HotItem = i Then
-						lColor = ShiftColor(m_Item(i).ItemColor, vbWhite, 150)
+						lColor = ShiftColor(m_Item(i).ItemColor, clWhite, 150)
 					Else
 						lColor = m_Item(i).ItemColor
 					End If
-					lForeColor = IIf(IsDarkColor(lColor), vbWhite, vbBlack)
-					DrawText hGraphics, m_Item(i).text, Left, Top, TextWidth, TextHeight, UserControl.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
+					lForeColor = IIf(IsDarkColor(lColor), clWhite, clBlack)
+					DrawText hGraphics, m_Item(i).text, Left, Top, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
 				Else
-					DrawText hGraphics, m_Item(i).text, Left, Top, TextWidth, TextHeight, UserControl.Font, RGBtoARGB(m_ForeColor, 100), cCenter, cMiddle
+					DrawText hGraphics, m_Item(i).text, Left, Top, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
 				End If
 			End If
 			LastAngle = LastAngle + Angle '+ 2
@@ -1075,7 +1078,7 @@ Namespace My.Sys.Forms
 		
 		If m_LegendVisible Then
 			For i = 0 To ItemsCount - 1
-				lForeColor = RGBtoARGB(m_ForeColor, 100)
+				lForeColor = RGBtoARGB(FForeColor, 100)
 				Select Case m_LegendAlign
 				Case LA_RIGHT, LA_LEFT
 					With LabelsRect
@@ -1089,7 +1092,7 @@ Namespace My.Sys.Forms
 								.Left = MarginLeft + mWidth + PT16
 							End If
 							If ColRow = 1 Then
-								.Top = TopHeader + mHeight / 2 - .Height / 2
+								.Top = TopHeader + mHeight / 2 - .Bottom / 2
 							Else
 								.Top = TopHeader
 							End If
@@ -1106,15 +1109,15 @@ Namespace My.Sys.Forms
 						End If
 						m_Item(i).LegendRect.Left = .Left
 						m_Item(i).LegendRect.Top = .Top
-						m_Item(i).LegendRect.Width = m_Item(i).TextWidth
-						m_Item(i).LegendRect.Height = m_Item(i).TextHeight
+						m_Item(i).LegendRect.Right = m_Item(i).TextWidth
+						m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
 						
 						With m_Item(i).LegendRect
-							GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), hBrush
-							GdipFillEllipseI hGraphics, hBrush, .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
-							GdipDeleteBrush hBrush
+							GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+							GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
+							GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 						End With
-						DrawText hGraphics, m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, UserControl.Font, lForeColor, cLeft, cMiddle
+						DrawText hGraphics, m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
 						TextHeight = TextHeight + m_Item(i).TextHeight
 						.Top = .Top + m_Item(i).TextHeight
 						
@@ -1124,7 +1127,7 @@ Namespace My.Sys.Forms
 					With LabelsRect
 						If .Left = 0 Then
 							If ColRow = 1 Then
-								.Left = MarginLeft + mWidth / 2 - .Width / 2
+								.Left = MarginLeft + mWidth / 2 - .Right / 2
 							Else
 								.Left = MarginLeft
 							End If
@@ -1140,15 +1143,15 @@ Namespace My.Sys.Forms
 							.Top = .Top + m_Item(i).TextHeight
 						End If
 						
-						GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), hBrush
-						GdipFillEllipseI hGraphics, hBrush, .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
-						GdipDeleteBrush hBrush
+						GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+						GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
+						GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 						m_Item(i).LegendRect.Left = .Left
 						m_Item(i).LegendRect.Top = .Top
-						m_Item(i).LegendRect.Width = m_Item(i).TextWidth
-						m_Item(i).LegendRect.Height = m_Item(i).TextHeight
+						m_Item(i).LegendRect.Right = m_Item(i).TextWidth
+						m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
 						
-						DrawText hGraphics, m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, UserControl.Font, lForeColor, cLeft, cMiddle
+						DrawText hGraphics, m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
 						.Left = .Left + m_Item(i).TextWidth '+ M_ITEM(i).TextHeight / 1.5
 					End With
 				End Select
@@ -1160,18 +1163,19 @@ Namespace My.Sys.Forms
 		
 		'Title
 		If Len(m_Title) Then
-			DrawText hGraphics, m_Title, 0, PT16 / 2, UserControl.ScaleWidth, TopHeader, m_TitleFont, RGBtoARGB(m_TitleForeColor, 100), cCenter, cTop, True
+			DrawText hGraphics, m_Title, 0, PT16 / 2, This.ClientWidth, TopHeader, m_TitleFont, RGBtoARGB(m_TitleForeColor, 100), cCenter, cTop, True
 		End If
 		
 		ShowToolTips hGraphics
 		
-		Call GdipDeleteGraphics(hGraphics)
+		ReleaseDC This.Handle, hD
 		
+		GdipDeleteGraphics(hGraphics)
 		
 	End Sub
 	
 	
-	Private Sub Chart.ShowToolTips(hGraphics As Long)
+	Private Sub Chart.ShowToolTips(hGraphics As GpGraphics Ptr)
 		Dim i As Long, j As Long
 		Dim sDisplay As String
 		Dim bBold As Boolean
@@ -1180,87 +1184,87 @@ Namespace My.Sys.Forms
 		Dim lForeColor As Long
 		Dim sText As String
 		Dim TM As Single
-		Dim PT As POINTF
+		Dim PT As GpPOINTF
 		Dim SZ As SIZEF
 		
 		If HotItem > -1 Then
 			
-			lForeColor = RGBtoARGB(m_ForeColor, 100)
+			lForeColor = RGBtoARGB(FForeColor, 100)
 			LW = m_LinesWidth * nScale
-			TM = UserControl.TextHeight("Aj") / 4
+			TM = Canvas.TextHeight("Aj") / 4
 			
 			sText = m_Item(HotItem).ItemName & ": " & m_Item(HotItem).text
-			GetTextSize hGraphics, sText, 0, 0, UserControl.Font, False, SZ
+			GetTextSize hGraphics, sText, 0, 0, This.Font, False, SZ
 			
 			
 			With RectF
-				GdipGetPathLastPoint m_Item(HotItem).hPath, PT
-				.Left = PT.X
-				.Top = PT.Y
+				GdipGetPathLastPoint m_Item(HotItem).hPath, @PT
+				.X = PT.X
+				.Y = PT.Y
 				.Width = SZ.Width + TM * 2
 				.Height = SZ.Height + TM * 2
 				
-				If .Left < 0 Then .Left = LW
-				If .Top < 0 Then .Top = LW
-				If .Left + .Width >= UserControl.ScaleWidth - LW Then .Left = UserControl.ScaleWidth - .Width - LW
-				If .Top + .Height >= UserControl.ScaleHeight - LW Then .Top = UserControl.ScaleHeight - .Height - LW
+				If .X < 0 Then .X = LW
+				If .Y < 0 Then .Y = LW
+				If .X + .Width >= This.ClientWidth - LW Then .X = This.ClientWidth - .Width - LW
+				If .Y + .Height >= This.ClientHeight - LW Then .Y = This.ClientHeight - .Height - LW
 			End With
 			
-			RoundRect hGraphics, RectF, RGBtoARGB(m_BackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM
+			RoundRect hGraphics, RectF, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM
 			
 			
 			With RectF
-				.Left = .Left + TM
-				.Top = .Top
-				DrawText hGraphics, m_Item(HotItem).ItemName & ": ", .Left, .Top, .Width, .Height, UserControl.Font, lForeColor, cLeft, cMiddle
-				GetTextSize hGraphics, m_Item(HotItem).ItemName & ": ", 0, 0, UserControl.Font, False, SZ
-				bBold = UserControl.Font.Bold
-				UserControl.Font.Bold = True
-				DrawText hGraphics, m_Item(HotItem).text, .Left + SZ.Width, .Top, .Width, .Height, UserControl.Font, lForeColor, cLeft, cMiddle
-				UserControl.Font.Bold = bBold
+				.X = .X + TM
+				.Y = .Y
+				DrawText hGraphics, m_Item(HotItem).ItemName & ": ", .X, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
+				GetTextSize hGraphics, m_Item(HotItem).ItemName & ": ", 0, 0, This.Font, False, SZ
+				bBold = This.Font.Bold
+				This.Font.Bold = True
+				DrawText hGraphics, m_Item(HotItem).text, .X + SZ.Width, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
+				This.Font.Bold = bBold
 			End With
 			
 		End If
 	End Sub
 	
-	Private Sub Chart.RoundRect(ByVal hGraphics As Long, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, Optional bBorder As Boolean = True)
-		Dim hPen As Long, hBrush As Long
-		Dim mPath As Long
+	Private Sub Chart.RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal lBorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
+		Dim hPen As GpPen Ptr, hBrush As GpBrush Ptr
+		Dim mPath As GpPath Ptr
 		
-		GdipCreateSolidFill BackColor, hBrush
-		If bBorder Then GdipCreatePen1 BorderColor, 1 * nScale, &H2, hPen
+		GdipCreateSolidFill BackColor, Cast(GpSolidFill Ptr Ptr, @hBrush)
+		If bBorder Then GdipCreatePen1 BorderColor, 1 * nScale, &H2, @hPen
 		
 		If Round = 0 Then
 			With Rect
-				GdipFillRectangleI hGraphics, hBrush, .Left, .Top, .Width, .Height
-				If hPen Then GdipDrawRectangleI hGraphics, hPen, .Left, .Top, .Width, .Height
+				GdipFillRectangleI hGraphics, hBrush, .X, .Y, .Width, .Height
+				If hPen Then GdipDrawRectangleI hGraphics, hPen, .X, .Y, .Width, .Height
 			End With
 		Else
-			If GdipCreatePath(&H0, mPath) = 0 Then
+			If GdipCreatePath(&H0, @mPath) = 0 Then
 				Round = Round * 2
 				With Rect
-					GdipAddPathArcI mPath, .Left, .Top, Round, Round, 180, 90
-					GdipAddPathArcI mPath, .Left + .Width - Round, .Top, Round, Round, 270, 90
-					GdipAddPathArcI mPath, .Left + .Width - Round, .Top + .Height - Round, Round, Round, 0, 90
-					GdipAddPathArcI mPath, .Left, .Top + .Height - Round, Round, Round, 90, 90
+					GdipAddPathArcI mPath, .X, .Y, Round, Round, 180, 90
+					GdipAddPathArcI mPath, .X + .Width - Round, .Y, Round, Round, 270, 90
+					GdipAddPathArcI mPath, .X + .Width - Round, .Y + .Height - Round, Round, Round, 0, 90
+					GdipAddPathArcI mPath, .X, .Y + .Height - Round, Round, Round, 90, 90
 					GdipClosePathFigure mPath
 				End With
 				GdipFillPath hGraphics, hBrush, mPath
 				If hPen Then GdipDrawPath hGraphics, hPen, mPath
-				Call GdipDeletePath(mPath)
+				GdipDeletePath(mPath)
 			End If
 		End If
 		
-		Call GdipDeleteBrush(hBrush)
-		If hPen Then Call GdipDeletePen(hPen)
+		GdipDeleteBrush(hBrush)
+		If hPen Then GdipDeletePen(hPen)
 		
 	End Sub
 	
 	
 	Private Function Chart.ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
 		
-		Dim clrFore(3)         As Byte
-		Dim clrBack(3)         As Byte
+		Dim clrFore(3)         As ColorREF
+		Dim clrBack(3)         As ColorREF
 		
 		OleTranslateColor clrFirst, 0, VarPtr(clrFore(0))
 		OleTranslateColor clrSecond, 0, VarPtr(clrBack(0))
@@ -1269,23 +1273,27 @@ Namespace My.Sys.Forms
 		clrFore(1) = (clrFore(1) * lAlpha + clrBack(1) * (255 - lAlpha)) / 255
 		clrFore(2) = (clrFore(2) * lAlpha + clrBack(2) * (255 - lAlpha)) / 255
 		
-		CopyMemory ShiftColor, clrFore(0), 4
+		Dim lShiftColor As Long
+		
+		memcpy @lShiftColor, VarPtr(clrFore(0)), 4
+		
+		Return lShiftColor
 		
 	End Function
 	
-	Private Function Chart.IsDarkColor(ByVal Color As Long) As Boolean
-		Dim BGRA(0 To 3) As Byte
-		OleTranslateColor Color, 0, VarPtr(Color)
-		CopyMemory BGRA(0), Color, 4&
+	Private Function Chart.IsDarkColor(ByVal lColor As Long) As Boolean
+		Dim bBGRA(0 To 3) As Byte
+		OleTranslateColor lColor, 0, VarPtr(lColor)
+		CopyMemory(@bBGRA(0), @lColor, 4&)
 		
-		IsDarkColor = ((CLng(BGRA(0)) + (CLng(BGRA(1) * 3)) + CLng(BGRA(2))) / 2) < 382
+		IsDarkColor = ((CLng(bBGRA(0)) + (CLng(bBGRA(1) * 3)) + CLng(bBGRA(2))) / 2) < 382
 		
 	End Function
 	
 	Private Sub Chart.Example()
-		Me.AddItem "Juan", 70, vbRed
-		Me.AddItem "Adan", 20, vbGreen
-		Me.AddItem "Pedro", 10, vbBlue
+		Me.AddItem "Juan", 70, clRed
+		Me.AddItem "Adan", 20, clGreen
+		Me.AddItem "Pedro", 10, clBlue
 	End Sub
 	
 	#ifndef __USE_GTK__
@@ -1293,10 +1301,10 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QChart(Sender.Child)
 					.HotItem = -1
-					.nScale = GetWindowsDPI
+					.nScale = .GetWindowsDPI
 					'.m_TitleFont = New My.SYs.FornFont
-					If Parent <> 0 Then .c_lhWnd = Parent.Handle
-					Call ManageGDIToken(c_lhWnd)
+					If .Parent <> 0 Then .c_lhWnd = .Parent->Handle
+					.ManageGDIToken(.c_lhWnd)
 				End With
 			End If
 		End Sub
@@ -1306,6 +1314,16 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Sub Chart.ProcessMessage(ByRef Message As Message)
+		Static DownButton As Integer
+		Select Case Message.Msg
+		#ifndef __USE_GTK__
+			Case WM_PAINT: This.Paint
+			Case WM_LBUTTONDOWN: DownButton = 0
+			Case WM_RBUTTONDOWN: DownButton = 1
+			Case WM_LBUTTONUP: MouseUp DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi
+			Case WM_MOUSEMOVE: MouseMove DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi
+		#endif
+		End Select
 		Base.ProcessMessage(Message)
 	End Sub
 	
@@ -1329,8 +1347,9 @@ Namespace My.Sys.Forms
 			.Width        = 175
 			.Height       = 21
 			.Child        = @This
+			.Canvas.Ctrl = @This
 			.InitProperties()
-			.tmrMOUSEOVER.OnTimer = @tmrMOUSEOVER_Timer
+			.tmrMOUSEOVER.OnTimer = @tmrMOUSEOVER_Timer_
 		End With
 	End Constructor
 	

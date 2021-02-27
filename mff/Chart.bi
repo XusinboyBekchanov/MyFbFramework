@@ -10,42 +10,6 @@
 Namespace My.Sys.Forms
 	#define QChart(__Ptr__) *Cast(Chart Ptr, __Ptr__)
 	
-	Private Type POINTL
-		X As Long
-		Y As Long
-	End Type
-	
-	Private Type POINTF
-		X As Single
-		Y As Single
-	End Type
-	
-	Private Type SIZEF
-		Width As Single
-		Height As Single
-	End Type
-	
-	Private Type RectF
-		Left As Single
-		Top As Single
-		Width As Single
-		Height As Single
-	End Type
-	
-	Private Type RectL
-		Left As Long
-		Top As Long
-		Width As Long
-		Height As Long
-	End Type
-	
-	Private Type GDIPlusStartupInput
-		GdiPlusVersion              As Long
-		DebugEventCallback          As Long
-		SuppressBackgroundThread    As Long
-		SuppressExternalCodecs      As Long
-	End Type
-	
 	Private Enum CaptionAlignmentH
 		cLeft
 		cCenter
@@ -102,6 +66,8 @@ Namespace My.Sys.Forms
 		LegendRect As RectL
 	End Type
 	
+	Private Const GDIP_OK As Long = &H0
+	
 	Type Chart Extends Control
 	Private:
 		Dim nScale As Single
@@ -155,21 +121,20 @@ Namespace My.Sys.Forms
 		Declare Sub InitProperties()
 		Declare Static Sub tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
 		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
-		Declare Function GetTextSize(ByVal hGraphics As Long, ByVal text As String, ByVal Width As Long, ByVal Height As Long, ByVal oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF) As Long
-		Declare Function DrawText(ByVal hGraphics As Long, ByVal text As String, ByVal X As Long, ByVal Y As Long, ByVal Width As Long, ByVal Height As Long, ByVal oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False) As Long
+		Declare Sub GetTextSize(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
+		Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False)
 		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-		Declare Sub MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Function PtInRectL(Rect As RectL, ByVal X As Single, ByVal Y As Single) As Boolean
 		Declare Sub Paint()
 		Declare Sub Show()
-		Declare Function ManageGDIToken(ByVal projectHwnd As Long) As Long ' by LaVolpe
+		Declare Function ManageGDIToken(ByVal projectHwnd As HWND) As HWND ' by LaVolpe
 		Declare Function zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
 		Declare Function SafeRange(Value As Long, Min As Long, Max As Long) As Long
 		Declare Sub Draw()
-		Declare Sub ShowToolTips(hGraphics As Long)
-		Declare Sub RoundRect(ByVal hGraphics As Long, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
+		Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr)
+		Declare Sub RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
 		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 	Public:
