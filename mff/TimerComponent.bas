@@ -54,7 +54,7 @@ Namespace My.Sys.Forms
 	
 	Property TimerComponent.Enabled(Value As Boolean)
 		FEnabled = Value
-		If Not FDesignMode Then
+		If FInterval <> 0 AndAlso Not FDesignMode Then
 			#ifdef __USE_GTK__
 				If FEnabled Then
 					ID = g_timeout_add(Interval, Cast(GSOURCEFUNC, @TimerProc), Cast(gpointer, @This))

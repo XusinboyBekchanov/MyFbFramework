@@ -134,6 +134,7 @@ Namespace My.Sys.Forms
 		Dim tmrMOUSEOVER As TimerComponent
 		
 		#ifndef __USE_GTK__
+			Dim gToken As ULONG_PTR                 'GDI+ instance token
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
@@ -145,22 +146,22 @@ Namespace My.Sys.Forms
 		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
 		#ifndef __USE_GTK__
 			Declare Sub GetTextSize(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
-			Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False)
+			Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, hd As HDC, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False)
 		#endif
 		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Function PtInRectL(Rect As RectL, ByVal X As Single, ByVal Y As Single) As Boolean
-		Declare Sub Paint()
 		Declare Sub Show()
 		#ifndef __USE_GTK__
-			Declare Function ManageGDIToken(ByVal projectHwnd As HWND) As HWND
+			Declare Sub Paint(hd As HDC)
+			Declare Sub ManageGDIToken(ByVal projectHwnd As HWND)
 		#endif
 		Declare Function zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
 		Declare Function SafeRange(Value As Long, Min As Long, Max As Long) As Long
-		Declare Sub Draw()
 		#ifndef __USE_GTK__
-			Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr)
+			Declare Sub Draw(hd As HDC)
+			Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr, hd As HDC)
 			Declare Sub RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
 		#endif
 		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
