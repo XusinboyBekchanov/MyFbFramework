@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	Function TimerComponent.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "enabled": Return Cast(Any Ptr, @This.FEnabled)
-		Case "interval": Return Cast(Any Ptr, @This.Interval)
+		Case "interval": Return Cast(Any Ptr, @This.FInterval)
 		Case "ontimer": Return Cast(Any Ptr, This.OnTimer)
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -71,6 +71,29 @@ Namespace My.Sys.Forms
 					TimersList.Remove TimersList.IndexOf(ID)
 				End If
 			#endif
+		End If
+	End Property
+	
+	Property TimerComponent.Interval As Integer
+		Return FInterval
+	End Property
+	
+	Property TimerComponent.Interval(Value As Integer)
+		FInterval = Value
+		If FEnabled AndAlso Not FDesignMode Then
+			TimersList.Remove TimersList.IndexOf(ID)
+			#ifndef __USE_GTK__
+				If ID Then KillTimer Null, ID
+			#endif
+			ID = 0
+			If FInterval > 0 Then
+				#ifdef __USE_GTK__
+					ID = g_timeout_add(Interval, Cast(GSOURCEFUNC, @TimerProc), Cast(gpointer, @This))
+				#else
+					ID = SetTimer(Null, 0, Interval, @TimerProc)
+				#endif
+				TimersList.Add ID, @This
+			End If
 		End If
 	End Property
 	

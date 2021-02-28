@@ -1110,9 +1110,9 @@ Namespace My.Sys.Forms
 					If This.Tracked = False Then
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
-						event_.dwFlags = TME_LEAVE
+						event_.dwFlags = TME_LEAVE Or TME_HOVER
 						event_.hwndTrack = Handle
-						event_.dwHoverTime = 10
+						'event_.dwHoverTime = 10
 						TrackMouseEvent(@event_)
 						This.Tracked = True
 					End If
@@ -1130,6 +1130,9 @@ Namespace My.Sys.Forms
 					If OnMouseWheel Then OnMouseWheel(This, scrDirection, Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 				Case WM_MOUSELEAVE
 					If OnMouseLeave Then OnMouseLeave(This)
+					This.Tracked = False
+				Case WM_MOUSEHOVER
+					If OnMouseHover Then OnMouseHover(This, DownButton, Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 					This.Tracked = False
 				Case WM_DROPFILES
 					If OnDropFile Then

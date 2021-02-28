@@ -152,7 +152,6 @@ Namespace My.Sys.Forms
 			Declare Function EnumControls(Item As Control Ptr) As Boolean
 			Declare Sub GetPopupMenuItems
 			Declare Sub GetControls
-			Declare Sub AllocateHint
 			Declare Sub ChangeExStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub ChangeStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub ChangeTabIndex(Value As Integer)
@@ -272,6 +271,7 @@ Namespace My.Sys.Forms
 				Declare Sub ClientToScreen(ByRef P As Point)
 				Declare Sub ScreenToClient(ByRef P As Point)
 			#endif
+			Declare Sub AllocateHint
 			'Invalidates the entire surface of the control and causes the control to be redrawn.
 			Declare Sub Invalidate
 			Declare Sub Repaint
@@ -305,14 +305,16 @@ Namespace My.Sys.Forms
 			OnDropFile   As Sub(ByRef Sender As Control, ByRef Filename As WString)
 			'Raises the Paint event.
 			OnPaint      As Sub(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
-			'Raises the MouseDown event.
-			OnMouseDown  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Raises the MouseMove event.
 			OnMouseMove  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			'Raises the MouseDown event.
+			OnMouseDown  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Raises the MouseUp event.
 			OnMouseUp    As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Raises the MouseWheel event.
 			OnMouseWheel As Sub(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+			'Raises the MouseHover event.
+			OnMouseHover As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Raises the MouseOver event.
 			OnMouseOver  As Sub(ByRef Sender As Control)
 			'Raises the MouseLeave event.

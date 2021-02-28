@@ -54,6 +54,24 @@ Namespace My.Sys.Forms
 		LP_TwoColumns
 	End Enum
 	
+	#ifdef __USE_GTK__
+		Type RectL
+			Left As Long
+			Top As Long
+			Right As Long
+			Bottom As Long
+		End Type
+		Type POINTL
+			x As Long
+			y As Long
+		End Type
+		Type POINTF
+			x As Single
+			y As Single
+		End Type
+		#define OLE_COLOR Integer
+	#endif
+	
 	Private Type tItem
 		ItemName As String
 		Value As Single
@@ -108,7 +126,11 @@ Namespace My.Sys.Forms
 		Dim m_Left As Long
 		Dim m_Top As Long
 		
-		Dim c_lhWnd As hWND
+		#ifndef __USE_GTK__
+			Dim c_lhWnd As hWND
+		#else
+			Dim c_lhWnd As GtkWidget Ptr
+		#endif
 		Dim tmrMOUSEOVER As TimerComponent
 		
 		#ifndef __USE_GTK__
@@ -121,20 +143,26 @@ Namespace My.Sys.Forms
 		Declare Sub InitProperties()
 		Declare Static Sub tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
 		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
-		Declare Sub GetTextSize(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
-		Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False)
+		#ifndef __USE_GTK__
+			Declare Sub GetTextSize(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
+			Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False)
+		#endif
 		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Function PtInRectL(Rect As RectL, ByVal X As Single, ByVal Y As Single) As Boolean
 		Declare Sub Paint()
 		Declare Sub Show()
-		Declare Function ManageGDIToken(ByVal projectHwnd As HWND) As HWND ' by LaVolpe
+		#ifndef __USE_GTK__
+			Declare Function ManageGDIToken(ByVal projectHwnd As HWND) As HWND
+		#endif
 		Declare Function zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
 		Declare Function SafeRange(Value As Long, Min As Long, Max As Long) As Long
 		Declare Sub Draw()
-		Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr)
-		Declare Sub RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
+		#ifndef __USE_GTK__
+			Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr)
+			Declare Sub RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
+		#endif
 		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 	Public:

@@ -16,16 +16,18 @@ Namespace My.Sys.Forms
 	Type TimerComponent Extends Component
 	Private:
 		FEnabled As Boolean
+		FInterval As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
 		#endif
 	Public:
 		ID            As Integer
-		Interval      As Integer
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Enabled As Boolean
 		Declare Property Enabled(Value As Boolean)
+		Declare Property Interval As Integer
+		Declare Property Interval(Value As Integer)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
