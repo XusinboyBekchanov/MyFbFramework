@@ -129,6 +129,8 @@ Namespace My.Sys.Forms
 		Dim m_Height As Long
 		Dim m_FontSize As Long
 		Dim m_TitleFontSize As Long
+		Dim m_SeparatorLineWidth2 As Long
+		Dim m_DonutWidth2 As Long
 		
 		#ifndef __USE_GTK__
 			Dim c_lhWnd As hWND

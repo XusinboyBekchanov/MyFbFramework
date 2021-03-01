@@ -309,7 +309,7 @@ Namespace My.Sys.Forms
 		m_TitleFont.Size = This.Font.Size + 8
 		m_DonutWidth = 50!
 		m_SeparatorLine = True
-		m_SeparatorLineWidth = 2!
+		m_SeparatorLineWidth = 4
 		m_SeparatorLineColor = clWhite
 		m_LabelsVisible = True
 		m_LabelsPositions = LP_Inside
@@ -1279,6 +1279,8 @@ Namespace My.Sys.Forms
 				.m_TitleFontSize = .m_TitleFont.Size
 				.m_Width = .Width
 				.m_Height = .Height
+				.m_SeparatorLineWidth2 = .m_SeparatorLineWidth
+				.m_DonutWidth2 = .m_DonutWidth
 				If .DesignMode Then .Example
 				.ManageGDIToken(.c_lhWnd)
 			End With
@@ -1316,6 +1318,8 @@ Namespace My.Sys.Forms
 			Case WM_SIZE: 
 				Font.Size = Max(m_FontSize, m_FontSize * This.Height / m_Height)
 				m_TitleFont.Size = Max(m_TitleFontSize, (m_TitleFontSize) * This.Height / m_Height)
+				m_SeparatorLineWidth = m_SeparatorLineWidth2 * This.Height / m_Height
+				m_DonutWidth = m_DonutWidth2 * This.Height / m_Height
 			Case WM_LBUTTONDOWN: DownButton = 0
 			Case WM_RBUTTONDOWN: DownButton = 1
 			Case WM_MBUTTONDOWN: DownButton = 2
