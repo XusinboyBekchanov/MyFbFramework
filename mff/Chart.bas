@@ -388,11 +388,10 @@ Namespace My.Sys.Forms
 			If oFont.Underline Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleUnderline
 			If oFont.Strikeout Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleStrikeout
 			
-			
 			lFontSize = MulDiv(oFont.Size, GetDeviceCaps(hD, LOGPIXELSY), 72)
-					
+			
 			layoutRect.X = X: layoutRect.Y = Y
-			layoutRect.Width = This.Width: layoutRect.Height = Height
+			layoutRect.Width = lWidth: layoutRect.Height = Height
 
 			If GdipCreateSolidFill(ForeColor, Cast(GpSolidFill Ptr Ptr, @hBrush)) = GDIP_OK Then
 				If GdipCreateFont(hFontFamily, lFontSize, lFontStyle, UnitPixel, @hFont) = GDIP_OK Then
@@ -1019,6 +1018,7 @@ Namespace My.Sys.Forms
 							Left_ = XX - TextWidth - PT16
 							GdipFillRectangleI hGraphics, Cast(GpBrush Ptr, hBrush), Left_, lTop, TextWidth, TextHeight
 							DrawText hGraphics, hd, m_Item(i).text, Left_, lTop, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
+							
 							Left_ = CX + (R1 * Cos(A * PItoRAD))
 							Top_ = CY + (R1 * Sin(A * PItoRAD))
 							CX = CX + ((R1 + LineOut) * Cos(A * PItoRAD))
@@ -1314,8 +1314,8 @@ Namespace My.Sys.Forms
 				Message.Result = 0
 				Exit Sub
 			Case WM_SIZE: 
-				Font.Size = m_FontSize * This.Height / m_Height
-				m_TitleFont.Size = (m_TitleFontSize) * This.Height / m_Height
+				Font.Size = Max(m_FontSize, m_FontSize * This.Height / m_Height)
+				m_TitleFont.Size = Max(m_TitleFontSize, (m_TitleFontSize) * This.Height / m_Height)
 			Case WM_LBUTTONDOWN: DownButton = 0
 			Case WM_RBUTTONDOWN: DownButton = 1
 			Case WM_MBUTTONDOWN: DownButton = 2
