@@ -318,7 +318,6 @@ Namespace My.Sys.Forms
 		
 		'c_lhWnd = UserControl.ContainerHwnd
 		
-		If DesignMode Then Example
 	End Sub
 	
 	#ifndef __USE_GTK__
@@ -1267,6 +1266,7 @@ Namespace My.Sys.Forms
 				.nScale = .GetWindowsDPI
 				'.m_TitleFont = New My.SYs.FornFont
 				If .Parent <> 0 Then .c_lhWnd = .Parent->Handle
+				If .DesignMode Then .Example
 				.ManageGDIToken(.c_lhWnd)
 			End With
 		End Sub
