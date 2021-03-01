@@ -264,29 +264,29 @@ Namespace My.Sys.Forms
 		*Cast(Chart Ptr, Sender.Designer).tmrMOUSEOVER_Timer(Sender)
 	End Sub
 	Private Sub Chart.tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
-		#ifndef __USE_GTK__
-			Dim PT As Point
-			Dim Rect As RectL
-			If c_lhWnd = 0 Then Exit Sub
-			
-			GetCursorPos @PT
-			ScreenToClient c_lhWnd, @PT
-			
-			With Rect
-				.Left = m_PT.X - (m_Left - ScaleX(This.Left))
-				.Top = m_PT.Y - (m_Top - ScaleY(This.Top))
-				.Right = This.ClientWidth
-				.Bottom = This.ClientHeight
-			End With
-			
-			If PtInRectL(Rect, PT.X, PT.Y) = 0 Then
-				'mHotBar = -1
-				HotItem = -1
-				tmrMOUSEOVER.Interval = 0
-				Me.Refresh
-				'RaiseEvent MouseLeave
-			End If
-		#endif
+'		#ifndef __USE_GTK__
+'			Dim PT As Point
+'			Dim Rect As RectL
+'			If c_lhWnd = 0 Then Exit Sub
+'			
+'			GetCursorPos @PT
+'			ScreenToClient c_lhWnd, @PT
+'			
+'			With Rect
+'				.Left = m_PT.X - (m_Left - ScaleX(This.Left))
+'				.Top = m_PT.Y - (m_Top - ScaleY(This.Top))
+'				.Right = This.ClientWidth
+'				.Bottom = This.ClientHeight
+'			End With
+'			
+'			If PtInRectL(Rect, PT.X, PT.Y) = 0 Then
+'				'mHotBar = -1
+'				HotItem = -1
+'				tmrMOUSEOVER.Interval = 0
+'				Me.Refresh
+'				'RaiseEvent MouseLeave
+'			End If
+'		#endif
 	End Sub
 	
 	Private Sub Chart.InitProperties()
@@ -422,27 +422,27 @@ Namespace My.Sys.Forms
 		End Function
 	
 		Private Sub Chart.HitTest(X As Single, Y As Single, HitResult As Integer)
-			If This.Enabled Then
-				HitResult = 3
-				If Not DesignMode Then
-					Dim PT As Point
-					
-					If tmrMOUSEOVER.Interval = 0 Then
-						GetCursorPos @PT
-						ScreenToClient c_lhWnd, @PT
-						m_PT.X = PT.X - X
-						m_PT.Y = PT.Y - Y
-						
-						m_Left = ScaleX(This.Left)
-						m_Top = ScaleY(This.Top)
-						
-						
-						tmrMOUSEOVER.Interval = 1
-						'RaiseEvent MouseEnter
-					End If
-					
-				End If
-			End If
+'			If This.Enabled Then
+'				HitResult = 3
+'				If Not DesignMode Then
+'					Dim PT As Point
+'					
+'					If tmrMOUSEOVER.Interval = 0 Then
+'						GetCursorPos @PT
+'						ScreenToClient c_lhWnd, @PT
+'						m_PT.X = PT.X - X
+'						m_PT.Y = PT.Y - Y
+'						
+'						m_Left = ScaleX(This.Left)
+'						m_Top = ScaleY(This.Top)
+'						
+'						
+'						tmrMOUSEOVER.Interval = 1
+'						'RaiseEvent MouseEnter
+'					End If
+'					
+'				End If
+'			End If
 		End Sub
 		
 		Private Sub Chart.MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -455,7 +455,7 @@ Namespace My.Sys.Forms
 			For i = 0 To ItemsCount - 1
 				
 				lResult = 0
-				GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0&, Cast(BOOL Ptr, lResult))
+				GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0, Cast(BOOL Ptr, @lResult))
 				
 				If lResult Then
 					If i = HotItem Then
@@ -470,7 +470,7 @@ Namespace My.Sys.Forms
 			Dim i As Long
 			Dim lResult As Long 'BOOL
 			'RaiseEvent MouseMove(Button, Shift, X, Y)
-			If Button <> 0 Then Exit Sub
+			If Button <> -1 Then Exit Sub
 			For i = 0 To ItemsCount - 1
 				
 				If PtInRectL(m_Item(i).LegendRect, X, Y) Then
@@ -481,7 +481,7 @@ Namespace My.Sys.Forms
 					Exit Sub
 				End If
 				
-				?"MouseMove", X, Y
+				'?"MouseMove", X, Y
 				lResult = 0
 				GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0, Cast(BOOL Ptr, @lResult))
 				
@@ -505,7 +505,7 @@ Namespace My.Sys.Forms
 	
 	Private Function Chart.PtInRectL(Rect_ As RectL, ByVal X As Long, ByVal Y As Long) As Boolean
 		With Rect_
-			?"PtInRectL - X, Y: " & X & ", " & Y, "Left: " & .Left, "Width: " & .Right, "Right: " & .Left + .Right, "Top: " &  .Top, "Height: " &  .Bottom, "Bottom: " & .Top + .Bottom
+			'?"PtInRectL - X, Y: " & X & ", " & Y, "Left: " & .Left, "Width: " & .Right, "Right: " & .Left + .Right, "Top: " &  .Top, "Height: " &  .Bottom, "Bottom: " & .Top + .Bottom
 			If X >= .Left And X <= .Left + .Right And Y >= .Top And Y <= .Top + .Bottom Then
 				PtInRectL = True
 			End If
@@ -519,7 +519,13 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Public Sub Chart.Refresh()
-		This.Update
+'		Dim As HDC hd
+'		hd = GetDC(FHandle)
+'		This.Paint hd
+'		ReleaseDc FHandle, hd
+		'Repaint
+		RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
+		UpdateWindow FHandle
 	End Sub
 	
 	Private Sub Chart.Show()
@@ -870,7 +876,9 @@ Namespace My.Sys.Forms
 				End If
 				
 				If HotItem = i Then
+					'?lColor
 					lColor = RGBtoARGB(ShiftColor(m_Item(i).ItemColor, clWhite, 150), m_FillOpacity)
+					'?lColor
 				Else
 					lColor = RGBtoARGB(m_Item(i).ItemColor, m_FillOpacity)
 				End If
@@ -1078,7 +1086,7 @@ Namespace My.Sys.Forms
 							m_Item(i).LegendRect.Top = .Top
 							m_Item(i).LegendRect.Right = m_Item(i).TextWidth
 							m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
-							?"LegendRect", m_Item(i).LegendRect.Left, m_Item(i).LegendRect.Top
+							'?"LegendRect", m_Item(i).LegendRect.Left, m_Item(i).LegendRect.Top
 							
 							With m_Item(i).LegendRect
 								GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), @hBrush '&hB0000000
@@ -1150,11 +1158,10 @@ Namespace My.Sys.Forms
 			Dim lForeColor As Long
 			Dim sText As String
 			Dim TM As Single
-			Dim PT As GpPOINTF
+			Dim PT As POINTF
 			Dim SZ As SIZEF
 			
 			If HotItem > -1 Then
-				
 				lForeColor = RGBtoARGB(FForeColor, 100)
 				LW = m_LinesWidth * nScale
 				TM = Canvas.TextHeight("Aj") / 4
@@ -1162,9 +1169,8 @@ Namespace My.Sys.Forms
 				sText = m_Item(HotItem).ItemName & ": " & m_Item(HotItem).text
 				GetTextSize hGraphics, sText, 0, 0, This.Font, False, SZ
 				
-				
 				With RectF_
-					GdipGetPathLastPoint m_Item(HotItem).hPath, @PT
+					GdipGetPathLastPoint m_Item(HotItem).hPath, Cast(GpPointF Ptr, @PT)
 					.X = PT.X
 					.Y = PT.Y
 					.Width = SZ.Width + TM * 2
@@ -1176,18 +1182,18 @@ Namespace My.Sys.Forms
 					If .Y + .Height >= This.ClientHeight - LW Then .Y = This.ClientHeight - .Height - LW
 				End With
 				
-				RoundRect hGraphics, RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM
-				
+				RoundRect hGraphics, RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 100), TM, True
 				
 				With RectF_
 					.X = .X + TM
 					.Y = .Y
 					DrawText hGraphics, hd, m_Item(HotItem).ItemName & ": ", .X, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
 					GetTextSize hGraphics, m_Item(HotItem).ItemName & ": ", 0, 0, This.Font, False, SZ
-					bBold = This.Font.Bold
-					This.Font.Bold = True
-					DrawText hGraphics, hd, m_Item(HotItem).text, .X + SZ.Width, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
-					This.Font.Bold = bBold
+					
+					bBold = Canvas.Font.Bold
+					Canvas.Font.Bold = True
+					DrawText hGraphics, hd, m_Item(HotItem).text, .X + SZ.Width, .Y, .Width, .Height, Canvas.Font, lForeColor, cLeft, cMiddle
+					Canvas.Font.Bold = bBold
 				End With
 				
 			End If
@@ -1227,7 +1233,7 @@ Namespace My.Sys.Forms
 		End Sub
 	
 		Private Function Chart.ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
-			
+			'Return 0
 			Dim clrFore(3)         As ColorREF
 			Dim clrBack(3)         As ColorREF
 			
@@ -1269,6 +1275,10 @@ Namespace My.Sys.Forms
 				.nScale = .GetWindowsDPI
 				'.m_TitleFont = New My.SYs.FornFont
 				If .Parent <> 0 Then .c_lhWnd = .Parent->Handle
+				.m_FontSize = .Font.Size
+				.m_TitleFontSize = .m_TitleFont.Size
+				.m_Width = .Width
+				.m_Height = .Height
 				If .DesignMode Then .Example
 				.ManageGDIToken(.c_lhWnd)
 			End With
@@ -1279,21 +1289,39 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Sub Chart.ProcessMessage(ByRef Message As Message)
-		Static DownButton As Integer
+		Static DownButton As Integer = -1
 		Dim As Integer HitResult
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
+			Case WM_ERASEBKGND
+				Message.Result = 0
+				Exit Sub 
 			Case WM_PAINT
 				Dim ps As PAINTSTRUCT
 				Dim Dc As HDC
+				Dim As HDC bufDC
+				Dim As HBITMAP bufBMP
+				Dim As Integer mClientWidth = This.ClientWidth, mClientHeight = This.ClientHeight
 				Dc = BeginPaint(This.Handle, @ps)
-				This.Paint Dc
+				bufDC = CreateCompatibleDC(Dc)
+				bufBMP = CreateCompatibleBitmap(Dc, mClientWidth, mClientHeight)
+				SelectObject(bufDC, bufBMP)
+				This.Paint bufDC
+				BitBlt(Dc, 0, 0, mClientWidth, mClientHeight, bufDC, 0, 0, SRCCOPY)
+				DeleteDc bufDC
+				DeleteObject bufBMP
 				EndPaint(This.Handle, @ps)
 				Message.Result = 0
-				Exit Sub 
+				Exit Sub
+			Case WM_SIZE: 
+				Font.Size = m_FontSize * This.Height / m_Height
+				m_TitleFont.Size = (m_TitleFontSize) * This.Height / m_Height
 			Case WM_LBUTTONDOWN: DownButton = 0
 			Case WM_RBUTTONDOWN: DownButton = 1
-			Case WM_LBUTTONUP: MouseUp DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi
+			Case WM_MBUTTONDOWN: DownButton = 2
+			Case WM_LBUTTONUP: MouseUp DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi: DownButton = -1
+			Case WM_RBUTTONUP: MouseUp DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi: DownButton = -1
+			Case WM_MBUTTONUP: MouseUp DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi: DownButton = -1
 			Case WM_MOUSEMOVE: MouseMove DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi
 			Case WM_NCHITTEST: HitTest Message.lParamLo, Message.lParamHi, HitResult
 			End Select
