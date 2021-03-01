@@ -80,7 +80,9 @@
 #include once "TreeView.bi"
 #include once "UpDown.bi"
 #include once "UserControl.bi"
-#include once "WebBrowser.bi"
+#if defined(__USE_WEBKITGTK__) Or Not defined(__USE_GTK__)
+	#include once "WebBrowser.bi"
+#endif
 #include once "WStringList.bi"
 
 Using My.Sys.Forms
@@ -146,7 +148,9 @@ Using My.Sys.Forms
 		Case "treeview": Ctrl = New_( TreeView)
 		Case "updown": Ctrl = New_( UpDown)
 		Case "usercontrol": Ctrl = New_( UserControl)
-		Case "webbrowser": Ctrl = New_(WebBrowser)
+		#if defined(__USE_WEBKITGTK__) Or Not defined(__USE_GTK__)
+			Case "webbrowser": Ctrl = New_(WebBrowser)
+		#endif
 		End Select
 		If Ctrl Then
 			Ctrl->Name = sName
@@ -261,7 +265,9 @@ Using My.Sys.Forms
 		Case "fontdialog": Delete_( Cast(FontDialog Ptr, Ctrl))
 		Case "openfiledialog": Delete_( Cast(OpenFileDialog Ptr, Ctrl))
 		Case "savefiledialog": Delete_( Cast(SaveFileDialog Ptr, Ctrl))
-		Case "webbrowser": Delete_( Cast(WebBrowser Ptr, Ctrl))
+		#if defined(__USE_WEBKITGTK__) Or Not defined(__USE_GTK__)
+			Case "webbrowser": Delete_( Cast(WebBrowser Ptr, Ctrl))
+		#endif
 		Case Else: Return False
 		End Select
 		If bNotRemoveObject = False Then 
