@@ -151,7 +151,7 @@ Namespace My.Sys.Forms
 		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-		Declare Function PtInRectL(Rect As RectL, ByVal X As Single, ByVal Y As Single) As Boolean
+		Declare Function PtInRectL(Rect As RectL, ByVal X As Long, ByVal Y As Long) As Boolean
 		Declare Sub Show()
 		#ifndef __USE_GTK__
 			Declare Sub Paint(hd As HDC)
@@ -167,6 +167,9 @@ Namespace My.Sys.Forms
 		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 	Public:
+		#ifndef __USE_GTK__
+			Declare Function RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
+		#endif
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Sub GetCenterPie(X As Single, Y As Single)
@@ -219,7 +222,6 @@ Namespace My.Sys.Forms
 		Declare Property Rotation(ByVal New_Value As Long)
 		Declare Function GetWindowsDPI() As Double
 		Declare Sub Refresh()
-		Declare Function RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor

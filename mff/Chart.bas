@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Public Sub Chart.GetCenterPie(X As Single, Y As Single)
-		X = m_CenterCircle.X
+		X = m_CenterCircle.x
 		Y = m_CenterCircle.Y
 	End Sub
 	
@@ -481,8 +481,9 @@ Namespace My.Sys.Forms
 					Exit Sub
 				End If
 				
+				?"MouseMove", X, Y
 				lResult = 0
-				GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0, Cast(BOOL Ptr, lResult))
+				GdipIsVisiblePathPoint(m_Item(i).hPath, X, Y, 0, Cast(BOOL Ptr, @lResult))
 				
 				If lResult Then
 					If i <> HotItem Then
@@ -502,8 +503,9 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Function Chart.PtInRectL(Rect As RectL, ByVal X As Single, ByVal Y As Single) As Boolean
-		With Rect
+	Private Function Chart.PtInRectL(Rect_ As RectL, ByVal X As Long, ByVal Y As Long) As Boolean
+		With Rect_
+			?"PtInRectL - X, Y: " & X & ", " & Y, "Left: " & .Left, "Width: " & .Right, "Right: " & .Left + .Right, "Top: " &  .Top, "Height: " &  .Bottom, "Bottom: " & .Top + .Bottom
 			If X >= .Left And X <= .Left + .Right And Y >= .Top And Y <= .Top + .Bottom Then
 				PtInRectL = True
 			End If
@@ -632,11 +634,11 @@ Namespace My.Sys.Forms
 				SafeRange = Value
 			End If
 		End Function
+		
+		Public Function Chart.RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
+			Return Color_MakeARGB(Opacity / 100 * 255, GetRed(RGBColor), GetGreen(RGBColor), GetBlue(RGBColor))
+		End Function
 	#endif
-	
-	Public Function Chart.RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
-		Return Color_MakeARGB(Opacity / 100 * 255, GetRed(RGBColor), GetGreen(RGBColor), GetBlue(RGBColor))
-	End Function
 	
 	Function Round(X As Double, Drob As Integer) As Integer
 		If Drob = 0 Then
@@ -1031,7 +1033,7 @@ Namespace My.Sys.Forms
 							lColor = m_Item(i).ItemColor
 						End If
 						lForeColor = IIf(IsDarkColor(lColor), clWhite, clBlack)
-						DrawText hGraphics, hd, m_Item(i).text, Left_-70, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
+						DrawText hGraphics, hd, m_Item(i).text, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
 					Else
 						DrawText hGraphics, hd, m_Item(i).text, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
 					End If
@@ -1076,6 +1078,7 @@ Namespace My.Sys.Forms
 							m_Item(i).LegendRect.Top = .Top
 							m_Item(i).LegendRect.Right = m_Item(i).TextWidth
 							m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
+							?"LegendRect", m_Item(i).LegendRect.Left, m_Item(i).LegendRect.Top
 							
 							With m_Item(i).LegendRect
 								GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), @hBrush '&hB0000000
@@ -1142,7 +1145,7 @@ Namespace My.Sys.Forms
 			Dim i As Long, j As Long
 			Dim sDisplay As String
 			Dim bBold As Boolean
-			Dim RectF As RectF
+			Dim RectF_ As RectF
 			Dim LW As Single
 			Dim lForeColor As Long
 			Dim sText As String
@@ -1160,7 +1163,7 @@ Namespace My.Sys.Forms
 				GetTextSize hGraphics, sText, 0, 0, This.Font, False, SZ
 				
 				
-				With RectF
+				With RectF_
 					GdipGetPathLastPoint m_Item(HotItem).hPath, @PT
 					.X = PT.X
 					.Y = PT.Y
@@ -1173,10 +1176,10 @@ Namespace My.Sys.Forms
 					If .Y + .Height >= This.ClientHeight - LW Then .Y = This.ClientHeight - .Height - LW
 				End With
 				
-				RoundRect hGraphics, RectF, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM
+				RoundRect hGraphics, RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM
 				
 				
-				With RectF
+				With RectF_
 					.X = .X + TM
 					.Y = .Y
 					DrawText hGraphics, hd, m_Item(HotItem).ItemName & ": ", .X, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
