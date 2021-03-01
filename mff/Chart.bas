@@ -1182,7 +1182,7 @@ Namespace My.Sys.Forms
 					If .Y + .Height >= This.ClientHeight - LW Then .Y = This.ClientHeight - .Height - LW
 				End With
 				
-				RoundRect hGraphics, RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 100), TM, True
+				RoundRect hGraphics, RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM, True
 				
 				With RectF_
 					.X = .X + TM
@@ -1199,22 +1199,22 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Private Sub Chart.RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal lBorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
+		Private Sub Chart.RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect_ As RectF, ByVal BackColor As Long, ByVal lBorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
 			Dim hPen As GpPen Ptr, hBrush As GpBrush Ptr
 			Dim mPath As GpPath Ptr
 			
 			GdipCreateSolidFill BackColor, Cast(GpSolidFill Ptr Ptr, @hBrush)
-			If bBorder Then GdipCreatePen1 BorderColor, 1 * nScale, &H2, @hPen
+			If bBorder Then GdipCreatePen1 lBorderColor, 1 * nScale, &H2, @hPen
 			
 			If Round = 0 Then
-				With Rect
+				With Rect_
 					GdipFillRectangleI hGraphics, hBrush, .X, .Y, .Width, .Height
 					If hPen Then GdipDrawRectangleI hGraphics, hPen, .X, .Y, .Width, .Height
 				End With
 			Else
 				If GdipCreatePath(&H0, @mPath) = 0 Then
 					Round = Round * 2
-					With Rect
+					With Rect_
 						GdipAddPathArcI mPath, .X, .Y, Round, Round, 180, 90
 						GdipAddPathArcI mPath, .X + .Width - Round, .Y, Round, Round, 270, 90
 						GdipAddPathArcI mPath, .X + .Width - Round, .Y + .Height - Round, Round, Round, 0, 90
