@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 		Case "fillopacity": Return @m_FillOpacity
 		'Case "itemcolor": Return @m_ItemColor
 		Case "labelsalignment": Return @m_LabelsAlignments
-		Case "labelsformats": Return @m_LabelsFormats[0]
+		Case "labelsformats": Return m_LabelsFormats.vptr
 		Case "labelsposition": Return @m_LabelsPositions
 		Case "labelsvisible": Return @m_LabelsVisible
 		Case "legendalign": Return @m_LegendAlign
@@ -73,7 +73,7 @@ Namespace My.Sys.Forms
 			Case "fillopacity": FillOpacity = QLong(Value)
 			'Case "itemcolor": ItemColor = QInteger(Value)
 			Case "labelsalignment": LabelsAlignment = *Cast(LabelsAlignments Ptr, Value)
-			Case "labelsformats": LabelsFormats = QZString(Value)
+			Case "labelsformats": LabelsFormats = QWString(Value)
 			Case "labelsposition": LabelsPosition = *Cast(LabelsPositions Ptr, Value)
 			Case "labelsvisible": LabelsVisible = QBoolean(Value)
 			Case "legendalign": LegendAlign = *Cast(LegendAligns Ptr, Value)
@@ -251,11 +251,11 @@ Namespace My.Sys.Forms
 		Refresh
 	End Property
 	
-	Public Property Chart.LabelsFormats() As String
-		LabelsFormats = m_LabelsFormats
+	Public Property Chart.LabelsFormats() ByRef As WString
+		Return *m_LabelsFormats.vptr
 	End Property
 	
-	Public Property Chart.LabelsFormats(ByVal New_Value As String)
+	Public Property Chart.LabelsFormats(ByRef New_Value As WString)
 		m_LabelsFormats = New_Value
 		Refresh
 	End Property
@@ -3265,7 +3265,7 @@ Namespace My.Sys.Forms
 				End If
 			Case CS_Area
 				Dim i As Long, j As Long
-				Dim sDisplay As String
+				Dim sDisplay As UString
 				Dim bBold As Boolean
 				Dim RectF_ As RectF
 				Dim LW As Single

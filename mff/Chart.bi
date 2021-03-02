@@ -96,9 +96,9 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Type tItem
-		ItemName As String
+		ItemName As UString
 		Value As Single
-		text As String
+		text As UString
 		TextWidth As Long
 		TextHeight As Long
 		ItemColor As Long
@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Private Type tSerie
-		SerieName As String
+		SerieName As UString
 		TextWidth As Long
 		TextHeight As Long
 		SerieColor As Long
@@ -150,7 +150,7 @@ Namespace My.Sys.Forms
 		Dim m_LabelsVisible As Boolean
 		Dim m_LabelsPositions As LabelsPositions
 		Dim m_LabelsAlignments As LabelsAlignments
-		Dim m_LabelsFormats As String
+		Dim m_LabelsFormats As UString
 		Dim m_BorderColor As ULong
 		Dim m_BorderRound As Long
 		Dim m_Rotation  As Long
@@ -277,8 +277,8 @@ Namespace My.Sys.Forms
 		Declare Property BorderRound(ByVal New_Value As Long)
 		Declare Property BorderColor() As ULong
 		Declare Property BorderColor(ByVal New_Value As ULong)
-		Declare Property LabelsFormats() As String
-		Declare Property LabelsFormats(ByVal New_Value As String)
+		Declare Property LabelsFormats() ByRef As WString
+		Declare Property LabelsFormats(ByRef New_Value As WString)
 		Declare Property LabelsAlignment() As LabelsAlignments
 		Declare Property LabelsAlignment(ByVal New_Value As LabelsAlignments)
 		Declare Property FillGradient() As Boolean
