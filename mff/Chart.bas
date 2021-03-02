@@ -1769,6 +1769,7 @@ Namespace My.Sys.Forms
 					
 					RangeHeight = (mHeight / ((toLines + Abs(forLines)) / (iStep * NumDecim)))
 					
+					Exit Do
 					If RangeHeight < AxisY.Height Then
 						
 						
