@@ -9,6 +9,10 @@
 Namespace My.Sys
 	#define QBoolean(__Ptr__) *Cast(Boolean Ptr,__Ptr__)
 	#define QInteger(__Ptr__) *Cast(Integer Ptr,__Ptr__)
+	#define QULong(__Ptr__) *Cast(ULong Ptr,__Ptr__)
+	#define QLong(__Ptr__) *Cast(Long Ptr,__Ptr__)
+	#define QSingle(__Ptr__) *Cast(Long Ptr,__Ptr__)
+	#define QDouble(__Ptr__) *Cast(Long Ptr,__Ptr__)
 	#define QWString(__Ptr__) *Cast(WString Ptr,__Ptr__)
 	#define QZString(__Ptr__) *Cast(ZString Ptr,__Ptr__)
 	#define QObject(__Ptr__) *Cast(My.Sys.Object Ptr,__Ptr__)

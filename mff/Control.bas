@@ -54,6 +54,7 @@ Namespace My.Sys.Forms
 					Case "parenthandle": Return @FParentHandle
 					#endif
 				Case "enabled": Return @FEnabled
+				Case "forecolor": Return @FForeColor
 				Case "font": Return @This.Font
 				Case "id": Return @FID
 				Case "ischild": Return @FIsChild
@@ -100,6 +101,7 @@ Namespace My.Sys.Forms
 					Case "font": This.Font = *Cast(My.Sys.Drawing.Font Ptr, Value)
 					Case "id": This.ID = QInteger(Value)
 					Case "ischild": This.IsChild = QInteger(Value)
+					Case "forecolor": This.ForeColor = QInteger(Value)
 					Case "parent": This.Parent = QControl(Value)
 						#ifdef __USE_GTK__
 						Case "parentwidget": This.ParentWidget = Value

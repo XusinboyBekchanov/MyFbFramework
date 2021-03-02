@@ -1,22 +1,34 @@
 ﻿'################################################################################
 '#  Chart.bi                                                                    #
 '#  This file is part of MyFBFramework                                          #
-'#  Authors: Xusinboy Bekchanov (2019)                                     #
+'#  Authors: Xusinboy Bekchanov (2021)                                          #
+'#  Based on:                                                                   #
+'#   Module Name: ucPieChart                                                    #
+'#   Date: 23/06/2020                                                           #
+'#   Module Name: ucChartArea                                                   #
+'#   Date: 23/06/2020                                                           #
+'#   Module Name: ucChartBar                                                    #
+'#   Date: 08/08/2020                                                           #
+'#   Autor:  Leandro Ascierto                                                   #
+'#   Web: www.leandroascierto.com                                               #
+'#   Version: 1.0.0                                                             #
 '################################################################################
 
 #include once "Control.bi"
 #include once "TimerComponent.bi"
+#include once "DoubleList.bi"
+#include once "IntegerList.bi"
 
 Namespace My.Sys.Forms
 	#define QChart(__Ptr__) *Cast(Chart Ptr, __Ptr__)
 	
-	Private Enum CaptionAlignmentH
+	Public Enum TextAlignmentH
 		cLeft
 		cCenter
 		cRight
 	End Enum
 	
-	Private Enum CaptionAlignmentV
+	Private Enum TextAlignmentV
 		cTop
 		cMiddle
 		cBottom
@@ -34,14 +46,18 @@ Namespace My.Sys.Forms
 	Public Enum ChartStyles
 		CS_PIE
 		CS_DONUT
+		CS_AREA
+		CS_GroupedColumn
+		CS_StackedBars
+		CS_StackedBarsPercent
 	End Enum
 	
-	Public Enum ChartOrientation
+	Public Enum ChartOrientations
 		CO_Vertical
 		CO_Horizontal
 	End Enum
 	
-	Public Enum ucPC_LegendAlign
+	Public Enum LegendAligns
 		LA_LEFT
 		LA_TOP
 		LA_RIGHT
@@ -52,6 +68,13 @@ Namespace My.Sys.Forms
 		LP_Inside
 		LP_Outside
 		LP_TwoColumns
+	End Enum
+	
+	Public Enum LabelsAlignments
+		LP_TOP
+		LP_CENTER
+		LP_BOTTOM
+		LP_ABOVE
 	End Enum
 	
 	#ifdef __USE_GTK__
@@ -69,7 +92,7 @@ Namespace My.Sys.Forms
 			x As Single
 			y As Single
 		End Type
-		#define OLE_COLOR Integer
+		#define ULong Integer
 	#endif
 	
 	Private Type tItem
@@ -84,6 +107,18 @@ Namespace My.Sys.Forms
 		LegendRect As RectL
 	End Type
 	
+	Private Type tSerie
+		SerieName As String
+		TextWidth As Long
+		TextHeight As Long
+		SerieColor As Long
+		Values As DoubleList Ptr
+		PT(Any) As POINTL
+		Rects(Any) As RectL
+		LegendRect As RectL
+		CustomColors As IntegerList Ptr
+	End Type
+	
 	Private Const GDIP_OK As Long = &H0
 	
 	Type Chart Extends Control
@@ -92,10 +127,11 @@ Namespace My.Sys.Forms
 		
 		Dim m_Title As UString
 		Dim m_TitleFont As My.Sys.Drawing.Font
-		Dim m_TitleForeColor As OLE_COLOR
+		Dim m_TitleForeColor As ULong
 		Dim m_BackColorOpacity As Long
 		Dim m_FillOpacity As Long
 		Dim m_Border As Boolean
+		Dim m_LinesColor As ULong
 		Dim m_LinesCurve As Boolean
 		Dim m_LinesWidth As Long
 		Dim m_VerticalLines As Boolean
@@ -103,25 +139,47 @@ Namespace My.Sys.Forms
 		
 		Dim m_HorizontalLines As Boolean
 		Dim m_ChartStyle As ChartStyles
-		Dim m_ChartOrientation As ChartOrientation
-		Dim m_LegendAlign As ucPC_LegendAlign
+		Dim m_ChartOrientation As ChartOrientations
+		Dim m_LegendAlign As LegendAligns
 		Dim m_LegendVisible As Boolean
 		Dim m_WordWrap As Boolean
 		Dim m_DonutWidth As Single
 		Dim m_SeparatorLine As Boolean
-		Dim m_SeparatorLineColor As OLE_COLOR
+		Dim m_SeparatorLineColor As ULong
 		Dim m_SeparatorLineWidth As Single
 		Dim m_LabelsVisible As Boolean
 		Dim m_LabelsPositions As LabelsPositions
+		Dim m_LabelsAlignments As LabelsAlignments
 		Dim m_LabelsFormats As String
-		Dim m_BorderColor As OLE_COLOR
+		Dim m_BorderColor As ULong
 		Dim m_BorderRound As Long
 		Dim m_Rotation  As Long
 		Dim m_CenterCircle As POINTF
 		
+		Dim m_AxisXVisible As Boolean
+		Dim m_AxisYVisible As Boolean
+		Dim m_AxisMax As Single
+		Dim m_AxisMin As Single
+		Dim m_AxisAngle As Single
+		Dim m_AxisAlign As TextAlignmentH
+		
 		Dim m_Item(Any) As tItem
 		Dim ItemsCount As Long
 		Dim HotItem As Long
+		Dim cAxisItem As WStringList Ptr
+		Dim m_Serie(Any) As tSerie
+		Dim SerieCount As Long
+		Dim mHotSerie As Long
+		Dim mHotBar As Long
+		Dim MarginLeft As Single
+		Dim MarginRight As Single
+		Dim TopHeader As Single
+		Dim Footer As Single
+		Dim mHeight As Single
+		Dim mWidth As Single
+		Dim PtDistance As Single
+		Dim AxisDistance As Single
+		
 		Dim m_PT As POINTL
 		Dim m_Left As Long
 		Dim m_Top As Long
@@ -152,7 +210,7 @@ Namespace My.Sys.Forms
 		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
 		#ifndef __USE_GTK__
 			Declare Sub GetTextSize(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
-			Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, hd As HDC, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As CaptionAlignmentH = 0, VAlign As CaptionAlignmentV = 0, bWordWrap As Boolean = False)
+			Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, hd As HDC, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As TextAlignmentH = 0, VAlign As TextAlignmentV = 0, bWordWrap As Boolean = False, Angle As Single = 0)
 		#endif
 		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -167,11 +225,15 @@ Namespace My.Sys.Forms
 		Declare Function SafeRange(Value As Long, Min As Long, Max As Long) As Long
 		#ifndef __USE_GTK__
 			Declare Sub Draw(hd As HDC)
-			Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr, hd As HDC)
+			Declare Sub DrawVertical(hd As HDC)
+			Declare Sub DrawHorizontal(hd As HDC)
+			Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr, hd As HDC, BarWidth As Single = 0)
 			Declare Sub RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
 		#endif
 		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
+		Declare Function GetMax() As Single
+		Declare Function GetMin() As Single
 	Public:
 		#ifndef __USE_GTK__
 			Declare Function RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
@@ -182,16 +244,29 @@ Namespace My.Sys.Forms
 		Declare Property Count() As Long
 		Declare Property Special(Index As Long, Value As Boolean)
 		Declare Property Special(Index As Long) As Boolean
-		Declare Property ItemColor(Index As Long, Value As OLE_COLOR)
-		Declare Property ItemColor(Index As Long) As OLE_COLOR
+		Declare Property ItemColor(Index As Long, Value As ULong)
+		Declare Property ItemColor(Index As Long) As ULong
+		Declare Property LinesColor() As ULong
+		Declare Property LinesColor(ByVal New_Value As ULong)
+		Declare Property LinesCurve() As Boolean
+		Declare Property LinesCurve(ByVal New_Value As Boolean)
+		Declare Property LinesWidth() As Long
+		Declare Property LinesWidth(ByVal New_Value As Long)
+		Declare Property VerticalLines() As Boolean
+		Declare Property VerticalLines(ByVal New_Value As Boolean)
 		Declare Sub Clear()
 		Declare Sub AddItem(ByRef ItemName As WString, Value As Single, ItemColor As Long, Special As Boolean = False)
+		Declare Sub AddSerie(ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr, cCustomColors As IntegerList Ptr = 0)
+		Declare Sub AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
+		Declare Sub UpdateSerie(ByVal Index As Integer, ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr)
+		Declare Function SumSerieValues(Index As Long, bPositives As Boolean = False) As Single
+		Declare Sub Wait(Interval As Integer)
 		Declare Property Title() ByRef As WString
 		Declare Property Title(ByRef New_Value As WString)
 		Declare Property TitleFont() As My.Sys.Drawing.Font
 		Declare Property TitleFont(ByRef New_Value As My.Sys.Drawing.Font)
-		Declare Property TitleForeColor() As OLE_COLOR
-		Declare Property TitleForeColor(ByVal New_Value As OLE_COLOR)
+		Declare Property TitleForeColor() As ULong
+		Declare Property TitleForeColor(ByVal New_Value As ULong)
 		Declare Property BackColorOpacity() As Long
 		Declare Property BackColorOpacity(ByVal New_Value As Long)
 		Declare Property FillOpacity() As Long
@@ -200,16 +275,20 @@ Namespace My.Sys.Forms
 		Declare Property Border(ByVal New_Value As Boolean)
 		Declare Property BorderRound() As Long
 		Declare Property BorderRound(ByVal New_Value As Long)
-		Declare Property BorderColor() As OLE_COLOR
-		Declare Property BorderColor(ByVal New_Value As OLE_COLOR)
+		Declare Property BorderColor() As ULong
+		Declare Property BorderColor(ByVal New_Value As ULong)
 		Declare Property LabelsFormats() As String
 		Declare Property LabelsFormats(ByVal New_Value As String)
+		Declare Property LabelsAlignment() As LabelsAlignments
+		Declare Property LabelsAlignment(ByVal New_Value As LabelsAlignments)
 		Declare Property FillGradient() As Boolean
 		Declare Property FillGradient(ByVal New_Value As Boolean)
 		Declare Property ChartStyle() As ChartStyles
 		Declare Property ChartStyle(ByVal New_Value As ChartStyles)
-		Declare Property LegendAlign() As ucPC_LegendAlign
-		Declare Property LegendAlign(ByVal New_Value As ucPC_LegendAlign)
+		Declare Property ChartOrientation() As ChartOrientations
+		Declare Property ChartOrientation(ByVal New_Value As ChartOrientations)
+		Declare Property LegendAlign() As LegendAligns
+		Declare Property LegendAlign(ByVal New_Value As LegendAligns)
 		Declare Property LegendVisible() As Boolean
 		Declare Property LegendVisible(ByVal New_Value As Boolean)
 		Declare Property DonutWidth() As Single
@@ -218,8 +297,8 @@ Namespace My.Sys.Forms
 		Declare Property SeparatorLine(ByVal New_Value As Boolean)
 		Declare Property SeparatorLineWidth() As Single
 		Declare Property SeparatorLineWidth(ByVal New_Value As Single)
-		Declare Property SeparatorLineColor() As OLE_COLOR
-		Declare Property SeparatorLineColor(ByVal New_Value As OLE_COLOR)
+		Declare Property SeparatorLineColor() As ULong
+		Declare Property SeparatorLineColor(ByVal New_Value As ULong)
 		Declare Property LabelsPosition() As LabelsPositions
 		Declare Property LabelsPosition(ByVal New_Value As LabelsPositions)
 		Declare Property LabelsVisible() As Boolean
@@ -233,6 +312,8 @@ Namespace My.Sys.Forms
 		Declare Destructor
 		OnItemClick As Sub(Index As Long)
 	End Type
+	
+	Declare Function Round(X As Double, Drob As Integer = 0) As Integer
 End Namespace
 
 #ifndef __USE_MAKE__
