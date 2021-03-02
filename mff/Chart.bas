@@ -68,6 +68,7 @@ Namespace My.Sys.Forms
 			Case "borderround": BorderRound = QLong(Value)
 			Case "chartstyle": ChartStyle = *Cast(ChartStyles Ptr, Value)
 			Case "chartorientation": ChartOrientation = *Cast(ChartOrientations Ptr, Value)
+			Case "designmode": DesignMode = QBoolean(Value): If DesignMode Then Example: Refresh
 			Case "donutwidth": DonutWidth = QSingle(Value)
 			Case "fillgradient": FillGradient = QBoolean(Value)
 			Case "fillopacity": FillOpacity = QLong(Value)
@@ -178,7 +179,7 @@ Namespace My.Sys.Forms
 		Refresh
 	End Property
 	
-	Public Property Chart.TitleFont() As My.Sys.Drawing.Font
+	Public Property Chart.TitleFont() ByRef As My.Sys.Drawing.Font
 		Return m_TitleFont
 	End Property
 	
@@ -483,9 +484,9 @@ Namespace My.Sys.Forms
 		m_ChartOrientation = CO_Vertical
 		m_LegendAlign = LA_RIGHT
 		m_LegendVisible = True
-		m_TitleFont.Name = This.Font.Name
-		m_TitleFont.Size = This.Font.Size + 8
-		m_DonutWidth = 50!
+		'm_TitleFont.Name = DefaultFont.Name
+		m_TitleFont.Size = 16
+		m_DonutWidth = 50
 		m_SeparatorLine = True
 		m_SeparatorLineWidth = 4
 		m_SeparatorLineColor = clWhite
@@ -790,11 +791,11 @@ Namespace My.Sys.Forms
 							End If
 							Exit Sub
 						End If
-						For j = 1 To .Values->Count
-							If PtInRectL(.Rects(j - 1), X, Y) Then
+						For j = 0 To .Values->Count - 1
+							If PtInRectL(.Rects(j), X, Y) Then
 								If i <> mHotSerie Then
 									mHotSerie = i
-									mHotBar = j - 1
+									mHotBar = j
 									Me.Refresh
 								End If
 								Exit Sub
@@ -3548,7 +3549,7 @@ Namespace My.Sys.Forms
 				.m_Height = .Height
 				.m_SeparatorLineWidth2 = .m_SeparatorLineWidth
 				.m_DonutWidth2 = .m_DonutWidth
-				If .DesignMode Then .Example
+				'If .DesignMode Then .Example
 				.ManageGDIToken(.c_lhWnd)
 				.cAxisItem = New WStringList
 				.mHotBar = -1

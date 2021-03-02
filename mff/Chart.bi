@@ -44,9 +44,9 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	Public Enum ChartStyles
-		CS_PIE
-		CS_DONUT
-		CS_AREA
+		CS_Pie
+		CS_Donut
+		CS_Area
 		CS_GroupedColumn
 		CS_StackedBars
 		CS_StackedBarsPercent
@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 		Declare Sub Wait(Interval As Integer)
 		Declare Property Title() ByRef As WString
 		Declare Property Title(ByRef New_Value As WString)
-		Declare Property TitleFont() As My.Sys.Drawing.Font
+		Declare Property TitleFont() ByRef As My.Sys.Drawing.Font
 		Declare Property TitleFont(ByRef New_Value As My.Sys.Drawing.Font)
 		Declare Property TitleForeColor() As ULong
 		Declare Property TitleForeColor(ByVal New_Value As ULong)
