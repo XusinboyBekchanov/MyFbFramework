@@ -871,8 +871,10 @@ Namespace My.Sys.Forms
 		'		This.Paint hd
 		'		ReleaseDc FHandle, hd
 		'Repaint
-		RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
-		UpdateWindow FHandle
+		#ifndef __USE_GTK__
+			RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
+			UpdateWindow FHandle
+		#endif
 	End Sub
 	
 	Private Sub Chart.Show()
@@ -902,7 +904,11 @@ Namespace My.Sys.Forms
 			'				Exit Function                   ' can abort
 			'			End If
 			'
+			#ifdef __FB_64BIT__
+			Dim StartupInput As GdiplusStartupInput  'GDI+ startup info
+			#else
 			Dim StartupInput As Gdiplus.GdiplusStartupInput  'GDI+ startup info
+			#endif
 			
 			'	'
 			'	'		'On Error Resume Next
@@ -973,9 +979,9 @@ Namespace My.Sys.Forms
 			
 		End Sub
 		
-		Private Function Chart.zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
-			zFnAddr = Cast(Long, GetProcAddress(GetModuleHandleA(sDLL), sProc))  'Get the specified procedure address
-		End Function
+'		Private Function Chart.zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
+'			zFnAddr = Cast(Long, GetProcAddress(GetModuleHandleA(sDLL), sProc))  'Get the specified procedure address
+'		End Function
 		
 		Private Function Chart.SafeRange(Value As Long, Min As Long, Max As Long) As Long
 			
@@ -989,7 +995,8 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Public Function Chart.RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
-			Return Color_MakeARGB(Opacity / 100 * 255, GetRed(RGBColor), GetGreen(RGBColor), GetBlue(RGBColor))
+			Return ((Cast(dword, Opacity / 100 * 255) Shl 24) + (Cast(dword, GetRed(RGBColor)) Shl 16) + (Cast(dword, GetGreen(RGBColor)) Shl 8) + Cast(dword, GetBlue(RGBColor)))
+			'Return Color_MakeARGB(Opacity / 100 * 255, GetRed(RGBColor), GetGreen(RGBColor), GetBlue(RGBColor))
 		End Function
 	#endif
 	

@@ -92,7 +92,6 @@ Namespace My.Sys.Forms
 			x As Single
 			y As Single
 		End Type
-		#define ULong Integer
 	#endif
 	
 	Private Type tItem
