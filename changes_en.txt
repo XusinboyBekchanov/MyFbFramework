@@ -1,3 +1,26 @@
+Version 1.2.7 (March 6, 2021)
+- Added: __USE_WEBKITGTK__ definition
+- Added: Chart control
+- Added: MouseHover event to Control
+- Fixed: GTK window move on Windows
+- Added: TimerComponent on Linux
+- Fixed: RichTextBox crash
+- Fixed: ReadOnly property of RichTextBox in Design Mode
+- Improved: Replace function
+- Fixed: GTK critical warning messages
+- Fixed: MenuItem.Clear
+- Added: OnMessage event to Control
+- Added: Set ListView.ImageIndex And ImageKey
+- Fixed: ComboBoxEdit in Designer on Linux not Disabled
+- Fixed: Icons are now visible in Linux if the path to the editor is in Unicode
+- Fixed: Open and Close files
+- Fixed: GroupBox paint
+- Fixed: Font size
+- Fixed: Menu item icons draws without background
+- Added: Alignment property to controls Label, TextBox, CheckBox, RadioButton
+- Fixed: SetFocus with UI state
+- Added: TabIndex to Controls
+- Fixed: Type changing in SaveFileDialog
 Version 1.2.6 (December 14, 2020)
 - Added: UserControl type
 - Changed: KeyExists function to Public
