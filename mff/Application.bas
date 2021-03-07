@@ -109,7 +109,7 @@ Namespace My
 	
 	Property Application.FileName ByRef As WString
 		Dim As Integer L
-		#ifdef __FB_LINUX__
+		#ifndef __FB_WIN32__
 			Dim As ZString * 255 Tx
 			L = readlink("/proc/self/exe", @Tx, 255 - 1)
 		#else

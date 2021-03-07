@@ -9,7 +9,7 @@
 '#  Modified by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                       #
 '################################################################################
 
-#ifdef __FB_LINUX__
+#ifndef __FB_WIN32__
 	#define __USE_GTK__
 #else
 	#define __USE_WINAPI__

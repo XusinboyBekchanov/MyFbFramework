@@ -241,7 +241,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Destructor
 	
-	#ifdef __FB_LINUX__
+	#ifndef __FB_WIN32__
 		DefaultFont.Name = "Ubuntu"
 		DefaultFont.Size = 11
 	#else
