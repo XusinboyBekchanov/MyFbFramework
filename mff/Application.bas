@@ -93,6 +93,9 @@ Namespace My
 		Dim As Integer L, i, k
 		#ifdef __FB_WIN32__
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
+		#else
+			Tx = Command(0)
+			L = Len(Tx)
 		#endif
 		s = Left(Tx, L)
 		For i = 0 To Len(s)
@@ -111,7 +114,9 @@ Namespace My
 		Dim As Integer L
 		#ifndef __FB_WIN32__
 			Dim As ZString * 255 Tx
-			L = readlink("/proc/self/exe", @Tx, 255 - 1)
+			'L = readlink("/proc/self/exe", @Tx, 255 - 1)
+			Tx = Command(0)
+			L = Len(Tx)
 		#else
 			Dim As WString * 255 Tx
 			L = GetModuleFileName(GetModuleHandle(NULL), @Tx, 255 - 1)

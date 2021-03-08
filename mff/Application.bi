@@ -13,9 +13,6 @@
 
 #include once "WStringList.bi"
 #include once "Control.bi"
-#ifndef __FB_WIN32__
-	#include once "crt/linux/unistd.bi"
-#endif
 #ifdef __USE_GTK__
 	#include once "gmodule.bi"
 #else
