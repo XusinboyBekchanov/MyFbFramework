@@ -84,6 +84,12 @@ Namespace My.Sys.Forms
 			Right As Long
 			Bottom As Long
 		End Type
+		Type RectF
+			X As Single
+			Y As Single
+			Width As Single
+			Height As Single
+		End Type
 		Type POINTL
 			x As Long
 			y As Long
@@ -91,6 +97,10 @@ Namespace My.Sys.Forms
 		Type POINTF
 			x As Single
 			y As Single
+		End Type
+		Type SizeF
+			Width As Single
+			Height As Single
 		End Type
 	#endif
 	
@@ -191,8 +201,14 @@ Namespace My.Sys.Forms
 		
 		#ifndef __USE_GTK__
 			Dim c_lhWnd As hWND
+			Dim hGraphics As GpGraphics Ptr
+			Dim hd As HDC
 		#else
 			Dim c_lhWnd As GtkWidget Ptr
+			Dim As GdkWindow Ptr win
+			Dim As cairo_t Ptr cr
+			Dim As PangoContext Ptr pcontext
+			Dim As PangoLayout Ptr layout
 		#endif
 		Dim tmrMOUSEOVER As TimerComponent
 		
@@ -200,6 +216,10 @@ Namespace My.Sys.Forms
 			Dim gToken As ULONG_PTR                 'GDI+ instance token
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		#else
+			Declare Static Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+			Declare Static Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+			Declare Static Sub OnSizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		
@@ -207,36 +227,28 @@ Namespace My.Sys.Forms
 		Declare Sub InitProperties()
 		Declare Static Sub tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
 		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
-		#ifndef __USE_GTK__
-			Declare Sub GetTextSize(ByVal hGraphics As GpGraphics Ptr, ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
-			Declare Sub DrawText(ByVal hGraphics As GpGraphics Ptr, hd As HDC, ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As TextAlignmentH = 0, VAlign As TextAlignmentV = 0, bWordWrap As Boolean = False, Angle As Single = 0)
-		#endif
+		Declare Sub GetTextSize(ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
+		Declare Sub DrawText(ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As TextAlignmentH = 0, VAlign As TextAlignmentV = 0, bWordWrap As Boolean = False, Angle As Single = 0)
 		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Function PtInRectL(Rect As RectL, ByVal X As Long, ByVal Y As Long) As Boolean
 		Declare Sub Show()
+		Declare Sub Paint()
 		#ifndef __USE_GTK__
-			Declare Sub Paint(hd As HDC)
 			Declare Sub ManageGDIToken(ByVal projectHwnd As HWND)
 		#endif
 		Declare Function zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long
 		Declare Function SafeRange(Value As Long, Min As Long, Max As Long) As Long
-		#ifndef __USE_GTK__
-			Declare Sub Draw(hd As HDC)
-			Declare Sub DrawVertical(hd As HDC)
-			Declare Sub DrawHorizontal(hd As HDC)
-			Declare Sub ShowToolTips(hGraphics As GpGraphics Ptr, hd As HDC, BarWidth As Single = 0)
-			Declare Sub RoundRect(ByVal hGraphics As GpGraphics Ptr, Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
-		#endif
+		Declare Sub Draw()
+		Declare Sub ShowToolTips(BarWidth As Single = 0)
+		Declare Sub RoundRect(Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
 		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 		Declare Function GetMax() As Single
 		Declare Function GetMin() As Single
 	Public:
-		#ifndef __USE_GTK__
-			Declare Function RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
-		#endif
+		Declare Function RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Sub GetCenterPie(X As Single, Y As Single)

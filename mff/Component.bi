@@ -39,19 +39,20 @@ Namespace My.Sys.ComponentModel
 	
 	Type Component Extends My.Sys.Object
 	Protected:
-		FClassAncestor As WString Ptr
-		FDesignMode As Boolean
-		FName As WString Ptr
-		FLeft              As Integer
-		FTop               As Integer
-		FWidth             As Integer
-		FHeight            As Integer
-		FMinWidth          As Integer
-		FMinHeight         As Integer
-		FParent            As Component Ptr
-		FTempString As String
+		FClassAncestor  As WString Ptr
+		FDesignMode     As Boolean
+		FCreated        As Boolean
+		FName           As WString Ptr
+		FLeft           As Integer
+		FTop            As Integer
+		FWidth          As Integer
+		FHeight         As Integer
+		FMinWidth       As Integer
+		FMinHeight      As Integer
+		FParent         As Component Ptr
+		FTempString     As String
 		#ifndef __USE_GTK__
-			FHandle As HWND
+			FHandle     As HWND
 		#endif
 		Declare Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:

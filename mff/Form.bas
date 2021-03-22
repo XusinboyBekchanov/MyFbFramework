@@ -842,7 +842,11 @@ Namespace My.Sys.Forms
 			RequestAlign
 			If widget Then
 				If Not FCreated Then
+					If OnCreate Then OnCreate(This)
 					FCreated = True
+				End If
+				If Not FFormCreated Then
+					FFormCreated = True
 					If Icon.ResName <> "" Then
 						If gtk_is_window(widget) Then
 							Dim As GList Ptr list1 = NULL
@@ -855,7 +859,6 @@ Namespace My.Sys.Forms
 							gtk_window_set_icon_list(GTK_WINDOW(Widget), list1)
 						End If
 					End If
-					If OnCreate Then OnCreate(This)
 				End If
 				gtk_widget_show_all(widget)
 				Select Case FBorderStyle
@@ -1087,7 +1090,6 @@ Namespace My.Sys.Forms
 			WindowWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
 			Widget = WindowWidget
 			'gtk_window_set_policy(GTK_WINDOW(widget), true, false, false)
-			If OnCreate Then OnCreate(This)
 			This.RegisterClass "Form", @This
 		#else
 			FMainStyle(0)  = 0

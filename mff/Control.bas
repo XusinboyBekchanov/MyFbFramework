@@ -867,7 +867,7 @@ Namespace My.Sys.Forms
 			Static bShift As Boolean, bCtrl As Boolean
 			If OnMessage Then OnMessage(This, Message)
 			#ifdef __USE_GTK__
-				Dim As GdkEvent Ptr e = Message.event 
+				Dim As GdkEvent Ptr e = Message.event
 				Select Case Message.event->Type
 				Case GDK_NOTHING
 				Case GDK_BUTTON_PRESS
@@ -936,6 +936,10 @@ Namespace My.Sys.Forms
 					'Case GDK_PAD_STRIP
 					'Case GDK_PAD_GROUP_MODE
 				Case GDK_MAP
+					If Not FCreated Then
+						If OnCreate Then OnCreate(This)
+						FCreated = True
+					End If
 				Case GDK_UNMAP
 				Case GDK_VISIBILITY_NOTIFY
 				Case GDK_PROPERTY_NOTIFY

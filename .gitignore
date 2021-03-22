@@ -1,4 +1,5 @@
 *.7z
+*.bak
 *.exe
 *.dll*
 *_gtk*

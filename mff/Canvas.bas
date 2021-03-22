@@ -242,7 +242,9 @@ Namespace My.Sys.Drawing
 	
 	Sub Canvas.RoundRect(R As Rect,nWidth As Integer,nHeight As Integer)
 		GetDevice
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
+		#else
 			.RoundRect Handle,R.Left,R.Top,R.Right,R.Bottom,nWidth,nHeight
 		#endif
 		ReleaseDevice

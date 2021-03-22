@@ -266,7 +266,7 @@ Sub WDeAllocate Overload(subject() As WString Ptr)
 End Sub
 
 Function WGet(ByRef subject As WString Ptr) ByRef As WString
-	If subject = 0 Then Return "" Else Return *subject
+	If subject = 0 Then Return WStr("") Else Return *subject
 End Function
 
 Function ToUtf8(ByRef nWString As WString) As String
