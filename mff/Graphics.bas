@@ -36,4 +36,16 @@ End Function
 Function GetBlue(FColor As Long) As Integer
 	Return CUInt(FColor) Shr 16 And 255
 End Function
+
+Function GetRedD(FColor As Long) As Double
+	Return Abs(CUInt(FColor) And 255) / 255.0
+End Function
+
+Function GetGreenD(FColor As Long) As Double
+	Return Abs(CUInt(FColor) Shr 8 And 255) / 255.0
+End Function
+
+Function GetBlueD(FColor As Long) As Double
+	Return Abs(CUInt(FColor) Shr 16 And 255) / 255.0
+End Function
 'End Namespace

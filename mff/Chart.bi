@@ -233,6 +233,7 @@ Namespace My.Sys.Forms
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Function PtInRectL(Rect As RectL, ByVal X As Long, ByVal Y As Long) As Boolean
+		Declare Function PtInPath(hPath As Any Ptr, X As Single, Y As Single) As Boolean
 		Declare Sub Show()
 		Declare Sub Paint()
 		#ifndef __USE_GTK__
@@ -248,7 +249,7 @@ Namespace My.Sys.Forms
 		Declare Function GetMax() As Single
 		Declare Function GetMin() As Single
 	Public:
-		Declare Function RGBtoARGB(ByVal RGBColor As Long, ByVal Opacity As Long) As Long
+		Declare Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Sub GetCenterPie(X As Single, Y As Single)

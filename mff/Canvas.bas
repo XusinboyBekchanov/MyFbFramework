@@ -433,7 +433,10 @@ Namespace My.Sys.Drawing
 	
 	Function Canvas.TextWidth(ByRef FText As WString) As Integer
 		#ifdef __USE_GTK__
-			Dim As PangoRectangle extend2
+			Dim As PangoRectangle extend
+			Dim As PangoFontDescription Ptr desc
+			desc = pango_font_description_from_string(Font.Name & " " & Font.Size)
+			pango_layout_set_font_description (layout, desc)
 			pango_layout_set_text(layout, ToUTF8(FText), Len(ToUTF8(FText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef PANGO_VERSION
@@ -441,8 +444,9 @@ Namespace My.Sys.Drawing
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
-			pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
-			Return extend2.Width
+			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
+			pango_font_description_free (desc)
+			Return extend.Width
 		#else
 			Dim Sz As SIZE
 			GetDevice
@@ -454,7 +458,10 @@ Namespace My.Sys.Drawing
 	
 	Function Canvas.TextHeight(ByRef FText As WString) As Integer
 		#ifdef __USE_GTK__
-			Dim As PangoRectangle extend2
+			Dim As PangoRectangle extend
+			Dim As PangoFontDescription Ptr desc
+			desc = pango_font_description_from_string(Font.Name & " " & Font.Size)
+			pango_layout_set_font_description (layout, desc)
 			pango_layout_set_text(layout, ToUTF8(FText), Len(ToUTF8(FText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef PANGO_VERSION
@@ -462,8 +469,9 @@ Namespace My.Sys.Drawing
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
-			pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
-			Return extend2.Height
+			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
+			pango_font_description_free (desc)
+			Return extend.Height
 		#else
 			Dim Sz As SIZE
 			GetDevice
