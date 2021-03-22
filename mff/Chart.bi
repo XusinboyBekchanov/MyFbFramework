@@ -243,7 +243,7 @@ Namespace My.Sys.Forms
 		Declare Function SafeRange(Value As Long, Min As Long, Max As Long) As Long
 		Declare Sub Draw()
 		Declare Sub ShowToolTips(BarWidth As Single = 0)
-		Declare Sub RoundRect(Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True)
+		Declare Sub RoundRect(Rect As RectF, ByVal BackColor As Long, ByVal BorderColor As Long, ByVal Round As Single, bBorder As Boolean = True, BackColorAlpha As Integer = 100, BorderColorAlpha As Integer = 100)
 		Declare Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 		Declare Function GetMax() As Single
