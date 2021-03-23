@@ -1667,7 +1667,7 @@ Namespace My.Sys.Forms
 									cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2 - 0.5, 0, 2 * G_PI)
 									cairo_fill(cr)
 								#else
-									GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidBrush Ptr Ptr, @hBrush) '&hB0000000
+									GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush) '&hB0000000
 									GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
 									GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 								#endif
@@ -1703,7 +1703,7 @@ Namespace My.Sys.Forms
 								cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2, 0, 2 * G_PI)
 								cairo_fill(cr)
 							#else
-								GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidBrush Ptr Ptr, @hBrush)
+								GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
 								GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
 								GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 							#endif
