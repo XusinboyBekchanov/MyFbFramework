@@ -54,6 +54,7 @@ Public:
 	Declare Function IndexOf(ByRef FItem As WString) As Integer
 	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
 	Declare Function Contains(ByRef FItem As WString) As Boolean
+	Declare Function ContainsObject(FObj As Any Ptr) As Boolean
 	Declare Sub SaveToFile(ByRef FileName As WString)
 	Declare Sub LoadFromFile(ByRef FileName As WString)
 	Declare Operator Cast As Any Ptr

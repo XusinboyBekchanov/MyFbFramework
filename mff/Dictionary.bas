@@ -32,6 +32,7 @@ End Property
 Constructor DictionaryItem
 	Key = ""
 	Text = ""
+	Object = 0
 End Constructor
 
 Destructor DictionaryItem
@@ -71,20 +72,22 @@ Property Dictionary.Item(ByRef Key As WString, FItem As DictionaryItem Ptr)
 	Item(IndexOfKey(Key)) = FItem
 End Property
 
-Sub Dictionary.Add(ByRef Key As WString = "", ByRef Text As WString)
+Sub Dictionary.Add(ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
 	Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 	With *nItem
 		.Key  = Key
 		.Text = Text
+		.Object = Object
 	End With
 	FItems.Add nItem
 End Sub
 
-Sub Dictionary.Set(ByRef Key As WString, ByRef Text As WString)
+Sub Dictionary.Set(ByRef Key As WString, ByRef Text As WString = "", Object As Any Ptr = 0)
 	If Not ContainsKey(Key) Then
-		This.Add Key, Text
+		This.Add Key, Text, Object
 	Else
 		Item(Key)->Text = Text
+		Item(Key)->Object = Object
 	End If
 End Sub
 
@@ -96,11 +99,12 @@ Function Dictionary.Get(ByRef Key As WString, ByRef DefaultText As WString = "")
 	End If
 End Function
 
-Sub Dictionary.Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString)
+Sub Dictionary.Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
 	Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 	With *nItem
 		.Key  = Key
 		.Text = Text
+		.Object = Object
 	End With
 	FItems.Insert Index, nItem
 End Sub
@@ -191,6 +195,13 @@ Function Dictionary.IndexOfKey(ByRef Key As WString) As Integer
 	Return -1
 End Function
 
+Function Dictionary.IndexOfObject(Object As Any Ptr) As Integer
+	For i As Integer = 0 To Count - 1
+		If QDictionaryItem(FItems.Items[i]).Object = Object Then Return i
+	Next i
+	Return -1
+End Function
+
 Function Dictionary.GetText(ByRef Key As WString) ByRef As WString
 	For i As Integer = 0 To Count - 1
 		If QDictionaryItem(FItems.Items[i]).Key = Key Then Return QDictionaryItem(FItems.Items[i]).Text
@@ -198,9 +209,23 @@ Function Dictionary.GetText(ByRef Key As WString) ByRef As WString
 	Return ""
 End Function
 
+Function Dictionary.GetObject(ByRef Key As WString) As Any Ptr
+	For i As Integer = 0 To Count - 1
+		If QDictionaryItem(FItems.Items[i]).Key = Key Then Return QDictionaryItem(FItems.Items[i]).Object
+	Next i
+	Return 0
+End Function
+
 Function Dictionary.GetKey(ByRef Text As WString) ByRef As WString
 	For i As Integer = 0 To Count - 1
 		If QDictionaryItem(FItems.Items[i]).Text = Text Then Return QDictionaryItem(FItems.Items[i]).Key
+	Next i
+	Return ""
+End Function
+
+Function Dictionary.GetKey(Object As Any Ptr) ByRef As WString
+	For i As Integer = 0 To Count - 1
+		If QDictionaryItem(FItems.Items[i]).Object = Object Then Return QDictionaryItem(FItems.Items[i]).Key
 	Next i
 	Return ""
 End Function
@@ -211,6 +236,10 @@ End Function
 
 Function Dictionary.ContainsKey(ByRef Key As WString) As Boolean
 	Return IndexOfKey(Key) <> -1
+End Function
+
+Function Dictionary.ContainsObject(Object As Any Ptr) As Boolean
+	Return IndexOfObject(Object) <> -1
 End Function
 
 Constructor Dictionary

@@ -217,6 +217,10 @@ Function WStringList.Contains(ByRef FItem As WString) As Boolean
 	Return IndexOf(FItem) <> -1
 End Function
 
+Function WStringList.ContainsObject(FObj As Any Ptr) As Boolean
+	Return IndexOfObject(FObj) <> -1
+End Function
+
 Constructor WStringList
 	FItems.Clear
 	FCount = 0
