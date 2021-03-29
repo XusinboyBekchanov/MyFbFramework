@@ -400,7 +400,7 @@ Namespace My
 				If AControl Then
 					With QApplication(Appl)
 						.FFormCount += 1
-						.FForms = Reallocate_(.FForms,SizeOf(My.Sys.Forms.Control)*.FFormCount)
+						.FForms = Reallocate_(.FForms,SizeOf(My.Sys.Forms.Control Ptr)*.FFormCount)
 						.FForms[.FFormCount -1] = AControl
 					End With
 				End If
@@ -421,7 +421,7 @@ Namespace My
 		Dim As Integer i
 		For i = 0 To Control.ControlCount -1
 			FControlCount += 1
-			FControls = Reallocate_(FControls,SizeOf(My.Sys.Forms.Control)*FControlCount)
+			FControls = Reallocate_(FControls,SizeOf(My.Sys.Forms.Control Ptr)*FControlCount)
 			FControls[FControlCount -1] = Control.Controls[i]
 			EnumControls(*Control.Controls[i])
 		Next i

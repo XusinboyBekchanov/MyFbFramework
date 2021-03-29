@@ -657,7 +657,7 @@ Namespace My.Sys.Forms
 		tb->Caption = Caption
 		tb->Object = AObject
 		tb->ImageIndex = ImageIndex
-		Tabs = Reallocate_(Tabs, SizeOf(TabPage) * FTabCount)
+		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tb
 		#ifdef __USE_GTK__
 			If widget Then
@@ -710,7 +710,7 @@ Namespace My.Sys.Forms
 	Sub TabControl.AddTab(ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
-		Tabs = Reallocate_(Tabs, SizeOf(TabPage) * FTabCount)
+		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then
@@ -794,7 +794,7 @@ Namespace My.Sys.Forms
 				Deallocate_(Tabs)
 				Tabs = 0
 			Else
-				Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage))
+				Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage Ptr))
 			End If
 			#ifdef __USE_GTK__
 				gtk_notebook_remove_page(gtk_notebook(widget), Index)
@@ -819,7 +819,7 @@ Namespace My.Sys.Forms
 		#endif
 		If Index >= 0 And Index <= FTabCount -1 Then
 			FTabCount += 1
-			Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage))
+			Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage Ptr))
 			For i = Index To FTabCount -2
 				It = Tabs[i]
 				Tabs[i + 1] = It
@@ -843,7 +843,7 @@ Namespace My.Sys.Forms
 	Sub TabControl.InsertTab(Index As Integer, ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
-		Tabs = Reallocate_(Tabs, SizeOf(TabPage) * FTabCount)
+		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then

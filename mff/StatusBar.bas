@@ -73,7 +73,7 @@ Namespace My.Sys.Forms
 	
 	Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
 		Count += 1
-		Panels = Reallocate_(Panels, SizeOf(StatusPanel) * Count)
+		Panels = Reallocate_(Panels, SizeOf(StatusPanel Ptr) * Count)
 		Panels[Count -1] = New_( StatusPanel)
 		Panels[Count -1]->FDynamic = True
 		Panels[Count -1]->Index     = Count - 1
@@ -93,7 +93,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_statusbar_remove(gtk_statusbar(widget), context_id, Panels[i]->message_id)
 			#endif
-			Temp = CAllocate_((Count - 1) * SizeOf(StatusPanel))
+			Temp = CAllocate_((Count - 1) * SizeOf(StatusPanel Ptr))
 			x = 0
 			For i = 0 To Count -1
 				If i <> Index Then
@@ -102,7 +102,7 @@ Namespace My.Sys.Forms
 				End If
 			Next i
 			Count -= 1
-			Panels = CAllocate_(Count*SizeOf(StatusPanel))
+			Panels = CAllocate_(Count*SizeOf(StatusPanel Ptr))
 			For i = 0 To Count -1
 				Panels[i] = Temp[i]
 			Next i

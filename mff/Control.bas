@@ -1655,23 +1655,23 @@ Namespace My.Sys.Forms
 				Select Case Controls[i]->Align
 				Case 1'alLeft
 					LeftCount += 1
-					ListLeft = Reallocate_(ListLeft,SizeOf(Control)*LeftCount)
+					ListLeft = Reallocate_(ListLeft,SizeOf(Control Ptr)*LeftCount)
 					ListLeft[LeftCount -1] = Controls[i]
 				Case 2'alRight
 					RightCount += 1
-					ListRight = Reallocate_(ListRight,SizeOf(Control)*RightCount)
+					ListRight = Reallocate_(ListRight,SizeOf(Control Ptr)*RightCount)
 					ListRight[RightCount -1] = Controls[i]
 				Case 3'alTop
 					TopCount += 1
-					ListTop = Reallocate_(ListTop,SizeOf(Control)*TopCount)
+					ListTop = Reallocate_(ListTop,SizeOf(Control Ptr)*TopCount)
 					ListTop[TopCount -1] = Controls[i]
 				Case 4'alBottom
 					BottomCount += 1
-					ListBottom = Reallocate_(ListBottom,SizeOf(Control)*BottomCount)
+					ListBottom = Reallocate_(ListBottom,SizeOf(Control Ptr)*BottomCount)
 					ListBottom[BottomCount -1] = Controls[i]
 				Case 5'alClient
 					ClientCount += 1
-					ListClient = Reallocate_(ListClient,SizeOf(Control)*ClientCount)
+					ListClient = Reallocate_(ListClient,SizeOf(Control Ptr)*ClientCount)
 					ListClient[ClientCount -1] = Controls[i]
 				Case Else
 					With *Controls[i]
@@ -1867,7 +1867,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
 				FControlCount += 1
-				Controls = Reallocate_(Controls, SizeOf(Control)*FControlCount)
+				Controls = Reallocate_(Controls, SizeOf(Control Ptr)*FControlCount)
 				Controls[FControlCount -1] = Ctrl
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
@@ -1942,7 +1942,7 @@ Namespace My.Sys.Forms
 					Deallocate_(Controls)
 					Controls = 0
 				Else
-					Controls = Reallocate_(Controls,FControlCount*SizeOf(Control))
+					Controls = Reallocate_(Controls,FControlCount*SizeOf(Control Ptr))
 				End If
 				'DeAllocate P
 			End If
