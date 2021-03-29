@@ -10,10 +10,10 @@
 '#  Modified by Xusinboy Bekchanov (2018-2019)                                 #
 '###############################################################################
 
-#Include Once "Object.bi"
+#include once "Object.bi"
 
 Namespace My.Sys.Drawing
-	#IFDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Enum PenStyle
 			psSolid
 			psDash
@@ -71,23 +71,23 @@ Namespace My.Sys.Drawing
 			pmXor         = R2_XORPEN
 			pmNotXor      = R2_NOTXORPEN
 		End Enum
-	#EndIf
+	#endif
 	
 	Type Pen Extends My.Sys.Object
-	private:
+	Private:
 		FColor  As Integer
 		FStyle  As PenStyle
 		FMode   As PenMode
 		FSize   As Integer
 		Declare Sub Create
-	public:
-		#IFNDef __USE_GTK__
+	Public:
+		#ifndef __USE_GTK__
 			Handle  As HPEN
-		#EndIf
+		#endif
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Property Color As Integer
-		Declare Property Color(Value As Integer)
+		Declare Property Color As ULong
+		Declare Property Color(Value As ULong)
 		Declare Property Style As Integer 'PenStyle
 		Declare Property Style(Value As Integer)
 		Declare Property Mode As Integer 'PenMode
@@ -100,6 +100,6 @@ Namespace My.Sys.Drawing
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "Pen.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Pen.bas"
+#endif

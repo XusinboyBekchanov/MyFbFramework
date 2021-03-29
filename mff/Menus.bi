@@ -78,6 +78,8 @@ Namespace My.Sys.Forms
 		FName			As WString Ptr
 		FOwner			As PMenu
 	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Tag As Any Ptr
 		SubMenu As PMenu
 		#ifndef __USE_GTK__
@@ -102,6 +104,8 @@ Namespace My.Sys.Forms
 		Declare Property Name(ByRef value As WString)
 		Declare Property Parent As PMenuItem
 		Declare Property Parent(value As PMenuItem)
+		Declare Property ParentMenu As PMenu
+		Declare Property ParentMenu(value As PMenu)
 		Declare Property Command As Integer
 		Declare Property Command(value As Integer)
 		Declare Property MenuIndex As Integer
@@ -165,6 +169,8 @@ Namespace My.Sys.Forms
 		Declare Sub GetMenuItems
 		Declare Virtual Sub ProcessMessage(ByRef mess As Message)
 	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		ImagesList       As ImageList Ptr
 		Declare Property DisplayIcons As Boolean
 		Declare Property DisplayIcons(value As Boolean)
@@ -208,6 +214,8 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Function EnumMenuItems(ByRef Item As MenuItem) As Boolean
 	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Virtual Sub ProcessMessages(ByRef message As Message)
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Operator Cast As Any Ptr
@@ -219,6 +227,8 @@ Namespace My.Sys.Forms
 	Private:
 	Protected:
 	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Sub Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
 		Declare Virtual Sub ProcessMessages(ByRef message As Message)

@@ -28,6 +28,41 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
+	Function MenuItem.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "caption": Return FCaption
+		Case "count": Return @FCount
+		Case "name": Return FName
+		Case "owner": Return FOwner
+		Case "parent": Return FParent
+		Case "parentmenu": Return FOwner
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+
+	Function MenuItem.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case "owner": This.Owner = Value
+			Case "parent": This.Parent = Value
+			Case "parentmenu": This.ParentMenu = Value
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "caption": This.Caption = QWString(Value)
+			Case "imagekey": This.ImageKey = QWString(Value)
+			Case "name": This.Name = QWString(Value)
+			Case "owner": This.Owner = Value
+			Case "parent": This.Parent = Value
+			Case "parentmenu": This.ParentMenu = Value
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	Function MenuItem.ToString ByRef As WString
 		Return This.Name
 	End Function
@@ -480,6 +515,17 @@ Namespace My.Sys.Forms
 		FParent = value
 		If SaveParent Then SaveParent->Remove(This)
 		If FParent Then FParent->Add(This)
+	End Property
+	
+	Property MenuItem.ParentMenu As PMenu
+		Return FOwner
+	End Property
+	
+	Property MenuItem.ParentMenu(value As PMenu)
+		Dim As PMenu SaveParent = FOwner
+		FOwner = value
+		If SaveParent Then SaveParent->Remove(This)
+		If FOwner Then FOwner->Add(This)
 	End Property
 	
 	Property MenuItem.Caption ByRef As WString
@@ -959,6 +1005,28 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	/' Menu '/
+	Function Menu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		FTempString = LCase(PropertyName)
+		Select Case FTempString
+		Case "count": Return @FCount
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+
+	Function Menu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	#ifndef __USE_GTK__
 		Property Menu.Handle As HMENU
 			Return FHandle
@@ -1396,6 +1464,27 @@ Namespace My.Sys.Forms
 	End Function
 	
 	/' MainMenu '/
+	Function MainMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		FTempString = LCase(PropertyName)
+		Select Case FTempString
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+
+	Function MainMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	Property MainMenu.ParentWindow(value As Component Ptr)
 		FParentWindow = value
 		If value Then
@@ -1509,6 +1598,27 @@ Namespace My.Sys.Forms
 	
 	
 	/' PopupMenu '/
+	Function PopupMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		FTempString = LCase(PropertyName)
+		Select Case FTempString
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+
+	Function PopupMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	Property PopupMenu.ParentWindow(value As Component Ptr)
 		#ifdef __USE_GTK__
 			If FParentWindow = 0 Then
@@ -1575,11 +1685,23 @@ End Namespace
 		Return PMenuItem->Find(FName)
 	End Function
 	
+	Function MenuByIndex Alias "MenuByIndex"(PMenu As My.Sys.Forms.Menu Ptr, Index As Integer) As My.Sys.Forms.MenuItem Ptr Export
+		Return PMenu->Item(Index)
+	End Function
+	
+	Function MenuItemByIndex Alias "MenuItemByIndex"(PMenuItem As My.Sys.Forms.MenuItem Ptr, Index As Integer) As My.Sys.Forms.MenuItem Ptr Export
+		Return PMenuItem->Item(Index)
+	End Function
+	
 	Function MenuFindByName Alias "MenuFindByName"(PMenu As My.Sys.Forms.Menu Ptr, ByRef FName As WString) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenu->Find(FName)
 	End Function
 	
 	Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
+		Return PMenuItem->Add(sCaption, sImageKey, sKey, eClick, False, Index)
+	End Function
+	
+	Function MenuAdd Alias "MenuAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenuItem->Add(sCaption, sImageKey, sKey, eClick, False, Index)
 	End Function
 	

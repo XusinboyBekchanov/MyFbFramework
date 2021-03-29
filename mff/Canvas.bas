@@ -170,6 +170,9 @@ Namespace My.Sys.Drawing
 			cairo_line_to (Handle, x1 - 0.5, y1 - 0.5)
 			cairo_line_to (Handle, x - 0.5, y1 - 0.5)
 			cairo_line_to (Handle, x - 0.5, y - 0.5)
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#else
 			.Rectangle Handle,x,y,x1,y1
@@ -181,9 +184,12 @@ Namespace My.Sys.Drawing
 		GetDevice
 		#ifdef __USE_GTK__
 			.cairo_rectangle(Handle, R.Left - 0.5, R.Top - 0.5, R.Right - R.Left - 0.5, R.Bottom - R.Top - 0.5)
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#else
-			.Rectangle Handle,R.Left,R.Top,R.Right,R.Bottom
+			.Rectangle Handle, R.Left, R.Top, R.Right, R.Bottom
 		#endif
 		ReleaseDevice
 	End Sub
@@ -363,7 +369,7 @@ Namespace My.Sys.Drawing
 				.cairo_rectangle (Handle, x, y, extend2.width, extend2.height)
 				cairo_fill (Handle)
 			End If
-			cairo_move_to(Handle, x - 0.5, y - 0.5)
+			cairo_move_to(Handle, x - 0.5, y + extend2.height - 0.5)
 			iRed = Abs(GetRed(FG) / 255.0): iGreen = Abs(GetGreen(FG) / 255.0): iBlue = Abs(GetBlue(FG) / 255.0)
 			cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 			pango_cairo_show_layout_line(Handle, pl)

@@ -165,7 +165,6 @@ Namespace My.Sys.Forms
 		Declare Sub SendToBack
 		'Invalidates the entire surface of the control and causes the control to be redrawn.
 		Declare Sub Invalidate
-		Declare Sub Repaint
 		'Displays the control to the user.
 		Declare Sub Show
 		'Shows the form with the specified owner to the user.

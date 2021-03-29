@@ -451,3 +451,7 @@ Sub ComponentSetBounds Alias "ComponentSetBounds"(Cpnt As My.Sys.ComponentModel.
 	Cpnt->SetBounds(ALeft, ATop, AWidth, AHeight)
 End Sub
 
+Function IsComponent Alias "IsComponent"(Obj As My.Sys.Object Ptr) As Boolean Export
+	Return *Obj Is My.Sys.ComponentModel.Component
+End Function
+	

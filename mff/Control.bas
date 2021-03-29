@@ -1793,7 +1793,9 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub Control.Repaint
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				gtk_widget_queue_draw(widget)
+			#else
 				If Handle Then
 					RedrawWindow Handle,0,0,RDW_ERASE Or RDW_INVALIDATE
 					Update

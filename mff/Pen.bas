@@ -35,11 +35,11 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Property Pen.Color As Integer
+	Property Pen.Color As ULong
 		Return FColor
 	End Property
 	
-	Property Pen.Color(Value As Integer)
+	Property Pen.Color(Value As ULong)
 		FColor = Value
 		Create
 	End Property
