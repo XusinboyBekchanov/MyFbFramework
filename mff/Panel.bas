@@ -135,8 +135,8 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(R, FBevelWidth)
 					End If
-					If OnPaint Then OnPaint(This, memDC, R)
 					BitBlt(DC, 0, 0, R.Right, R.Bottom, MemDC, 0, 0, SRCCOPY)
+					If OnPaint Then OnPaint(This, Canvas)
 					DeleteObject(Bmp)
 					DeleteDC(MemDC)
 				Else
@@ -168,7 +168,7 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(R, FBevelWidth)
 					End If
-					If OnPaint Then OnPaint(This, DC, R)
+					If OnPaint Then OnPaint(This, Canvas)
 				End If
 				ReleaseDC Handle, Dc
 				Message.Result = 0

@@ -55,9 +55,6 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		#ifndef __USE_GTK__
-			OnPaint     As Sub(ByRef Sender As Panel, DC As HDC, R As Rect)
-		#endif
 	End Type
 End Namespace
 
