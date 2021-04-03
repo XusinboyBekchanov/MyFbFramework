@@ -304,7 +304,7 @@ Namespace My.Sys.Forms
 			'Raises the DropFile event.
 			OnDropFile   As Sub(ByRef Sender As Control, ByRef Filename As WString)
 			'Raises the Paint event.
-			OnPaint      As Sub(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
+			OnPaint      As Sub(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 			'Raises the MouseMove event.
 			OnMouseMove  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Raises the MouseDown event.

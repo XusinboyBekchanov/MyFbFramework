@@ -524,8 +524,8 @@ Namespace My.Sys.Forms
 	Property MenuItem.ParentMenu(value As PMenu)
 		Dim As PMenu SaveParent = FOwner
 		FOwner = value
-		If SaveParent Then SaveParent->Remove(This)
-		If FOwner Then FOwner->Add(This)
+		If SaveParent Then SaveParent->Remove(@This)
+		If FOwner Then FOwner->Add(@This)
 	End Property
 	
 	Property MenuItem.Caption ByRef As WString

@@ -1797,7 +1797,7 @@ Namespace My.Sys.Forms
 				gtk_widget_queue_draw(widget)
 			#else
 				If Handle Then
-					RedrawWindow Handle,0,0,RDW_ERASE Or RDW_INVALIDATE
+					RedrawWindow Handle, 0, 0, RDW_INVALIDATE
 					Update
 				End If
 			#endif

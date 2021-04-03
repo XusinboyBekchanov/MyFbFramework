@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 					MemDC = CreateCompatibleDC(DC)
 					Bmp   = CreateCompatibleBitmap(DC, R.Right, R.Bottom)
 					SelectObject(MemDc, Bmp)
-					SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
+					'SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
 					FillRect memDc, @R, This.Brush.Handle
 					SetBkMode(memDC, TRANSPARENT)
 					H = Canvas.TextHeight("Wg")
@@ -135,8 +135,9 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(R, FBevelWidth)
 					End If
-					BitBlt(DC, 0, 0, R.Right, R.Bottom, MemDC, 0, 0, SRCCOPY)
+					Canvas.Handle = MemDC
 					If OnPaint Then OnPaint(This, Canvas)
+					BitBlt(DC, 0, 0, R.Right, R.Bottom, MemDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(MemDC)
 				Else
@@ -168,10 +169,12 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(R, FBevelWidth)
 					End If
+					Canvas.Handle = Dc
 					If OnPaint Then OnPaint(This, Canvas)
 				End If
 				ReleaseDC Handle, Dc
 				Message.Result = 0
+				Exit Sub
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
