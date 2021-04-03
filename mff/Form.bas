@@ -41,6 +41,10 @@ Namespace My.Sys.Forms
 	Function Form.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
+			Case "menu": This.Menu = 0
+			Case "cancelbutton": This.CancelButton = 0
+			Case "defaultbutton": This.DefaultButton = 0
+			Case "owner": This.Owner = 0
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		Else

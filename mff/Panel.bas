@@ -95,6 +95,8 @@ Namespace My.Sys.Forms
 	Sub Panel.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
+			Case WM_ERASEBKGND
+				'If OnPaint Then OnPaint(This, Canvas)
 			Case WM_PAINT, WM_Create
 				Dim As Integer W,H
 				Dim As HDC Dc, memDC
