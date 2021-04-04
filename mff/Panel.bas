@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
-				'If OnPaint Then OnPaint(This, Canvas)
+				If OnPaint Then OnPaint(This, Canvas)
 			Case WM_PAINT, WM_Create
 				Dim As Integer W,H
 				Dim As HDC Dc, memDC
@@ -137,8 +137,10 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(R, FBevelWidth)
 					End If
+					Canvas.HandleSetted = True
 					Canvas.Handle = MemDC
 					If OnPaint Then OnPaint(This, Canvas)
+					Canvas.HandleSetted = False
 					BitBlt(DC, 0, 0, R.Right, R.Bottom, MemDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(MemDC)

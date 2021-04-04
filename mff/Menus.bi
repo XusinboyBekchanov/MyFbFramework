@@ -148,7 +148,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null, Checkable As Boolean = False)
 		Declare Destructor
-		OnClick As NotifyEvent
+		OnClick As Sub(ByRef Sender As MenuItem)
 	End Type
 	
 	Type Menu Extends Component

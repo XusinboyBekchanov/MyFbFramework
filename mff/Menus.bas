@@ -31,11 +31,25 @@ Namespace My.Sys.Forms
 	Function MenuItem.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "caption": Return FCaption
+		Case "checked": Return @FChecked
+		Case "command": Return @FCommand
 		Case "count": Return @FCount
+		Case "enabled": Return @FEnabled
+		Case "imageindex": Return @FImageIndex
+		Case "imagekey": Return FImageKey
+		Case "menuindex": Return @FMenuIndex
 		Case "name": Return FName
 		Case "owner": Return FOwner
 		Case "parent": Return FParent
 		Case "parentmenu": Return FOwner
+		Case "radioitem": Return @FRadioItem
+		Case "tag": Return Tag
+		#ifdef __USE_GTK__
+			Case "widget": Return @widget
+		#else
+			Case "handle": Return @FHandle
+		#endif
+		Case "visible": Return @FVisible
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -52,11 +66,19 @@ Namespace My.Sys.Forms
 		Else
 			Select Case LCase(PropertyName)
 			Case "caption": This.Caption = QWString(Value)
+			Case "checked": This.Checked = QBoolean(Value)
+			Case "command": This.Command = QInteger(Value)
+			Case "enabled": This.Enabled = QBoolean(Value)
+			Case "imageindex": This.ImageIndex = QInteger(Value)
 			Case "imagekey": This.ImageKey = QWString(Value)
+			Case "menuindex": This.MenuIndex = QInteger(Value)
 			Case "name": This.Name = QWString(Value)
 			Case "owner": This.Owner = Value
 			Case "parent": This.Parent = Value
 			Case "parentmenu": This.ParentMenu = Value
+			Case "radioitem": This.RadioItem = QBoolean(Value)
+			Case "tag": This.Tag = Value
+			Case "visible": This.Visible = QBoolean(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -511,10 +533,12 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property MenuItem.Parent(value As PMenuItem)
-		Dim As PMenuItem SaveParent = FParent
-		FParent = value
-		If SaveParent Then SaveParent->Remove(This)
-		If FParent Then FParent->Add(This)
+		If FParent <> value Then
+			Dim As PMenuItem SaveParent = FParent
+			FParent = value
+			If SaveParent Then SaveParent->Remove(This)
+			If FParent Then FParent->Add(This)
+		End If
 	End Property
 	
 	Property MenuItem.ParentMenu As PMenu
@@ -1009,6 +1033,10 @@ Namespace My.Sys.Forms
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
 		Case "count": Return @FCount
+		Case "color": Return @FColor
+		Case "colorizeentire": Return @FIncSubitems
+		Case "displayicons": Return @FDisplayIcons
+		Case "imageslist": Return ImagesList
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -1021,6 +1049,10 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "color": This.Color = QInteger(Value)
+			Case "colorizeentire": This.ColorizeEntire = QInteger(Value)
+			Case "displayicons": DisplayIcons = QBoolean(Value)
+			Case "imageslist": ImagesList = Value
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -1695,6 +1727,10 @@ End Namespace
 	
 	Function MenuFindByName Alias "MenuFindByName"(PMenu As My.Sys.Forms.Menu Ptr, ByRef FName As WString) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenu->Find(FName)
+	End Function
+	
+	Function MenuFindByCommand Alias "MenuFindByCommand"(PMenu As My.Sys.Forms.Menu Ptr, FCommand As Integer) As My.Sys.Forms.MenuItem Ptr Export
+		Return PMenu->Find(FCommand)
 	End Function
 	
 	Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
