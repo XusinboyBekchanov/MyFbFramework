@@ -592,7 +592,8 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			FInfo.cbSize      = SizeOf(FInfo)
-			FInfo.fMask       = MIIM_STRING
+			FInfo.fMask       = MIIM_STRING Or MIIM_FTYPE
+			FInfo.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
 			FInfo.dwTypeData = FCaption
 			FInfo.cch        = Len(*FCaption)
 			If Parent Then
