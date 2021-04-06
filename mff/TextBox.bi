@@ -52,6 +52,7 @@ Namespace My.Sys.Forms
 		AOEMConvert(2)    As Long
 		AHideSelection(2) As Long
 		FWantReturn As Boolean
+		FWantTab As Boolean
 		FMultiline As Boolean
 		FScrollBars As Integer
 		FWordWraps As Integer
@@ -126,6 +127,8 @@ Namespace My.Sys.Forms
 		Declare Property WordWraps(Value As Integer)
 		Declare Property WantReturn() As Boolean
 		Declare Property WantReturn(Value As Boolean)
+		Declare Property WantTab() As Boolean
+		Declare Property WantTab(Value As Boolean)
 		Declare Property Multiline() As Boolean
 		Declare Property Multiline(Value As Boolean)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr

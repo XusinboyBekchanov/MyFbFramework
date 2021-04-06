@@ -93,6 +93,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Property TextBox.WantTab() As Boolean
+		Return FWantTab
+	End Property
+	
+	Property TextBox.WantTab(Value As Boolean)
+		FWantTab = Value
+	End Property
+	
 	Property TextBox.Multiline() As Boolean
 		Return FMultiline
 	End Property
@@ -709,6 +717,11 @@ Namespace My.Sys.Forms
 				'David Change
 				'bShift = GetKeyState(VK_SHIFT) And 8000
 				'bCtrl = GetKeyState(VK_CONTROL) And 8000
+				If WantTab Then
+					If message.wParam = VK_TAB Then
+						SelText = !"\t"
+					End If
+				End If
 				If ParentHandle>0 Then
 					Select Case message.wParam
 					Case VK_RETURN, VK_ESCAPE,VK_DOWN, VK_UP,VK_LEFT,VK_RIGHT,VK_TAB

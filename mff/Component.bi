@@ -165,6 +165,18 @@ Enum Keys
 		EndKey = GDK_KEY_END
 		DeleteKey = GDK_KEY_DELETE
 		Enter = GDK_KEY_RETURN
+		F1
+		F2
+		F3
+		F4
+		F5
+		F6
+		F7
+		F8
+		F9
+		F10
+		F11
+		F12
 	#else
 		Esc = VK_ESCAPE
 		Left = VK_LEFT
@@ -175,6 +187,18 @@ Enum Keys
 		EndKey = VK_END
 		DeleteKey = VK_DELETE
 		Enter = VK_RETURN
+		F1 = VK_F1
+		F2 = VK_F2
+		F3 = VK_F3
+		F4 = VK_F4
+		F5 = VK_F5
+		F6 = VK_F6
+		F7 = VK_F7
+		F8 = VK_F8
+		F9 = VK_F9
+		F10 = VK_F10
+		F11 = VK_F11
+		F12 = VK_F12
 	#endif
 End Enum
 
