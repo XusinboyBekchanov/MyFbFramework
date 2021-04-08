@@ -35,6 +35,11 @@ Namespace My.Sys.ComponentModel
 		Case "margins.right": Return @Margins.Right
 		Case "margins.top": Return @Margins.Top
 		Case "margins.bottom": Return @Margins.Bottom
+		Case "extramargins": Return @ExtraMargins
+		Case "extramargins.left": Return @ExtraMargins.Left
+		Case "extramargins.right": Return @ExtraMargins.Right
+		Case "extramargins.top": Return @ExtraMargins.Top
+		Case "extramargins.bottom": Return @ExtraMargins.Bottom
 		Case "name": Return FName
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -63,6 +68,10 @@ Namespace My.Sys.ComponentModel
 			Case "margins.right": This.Margins.Right = QInteger(Value)
 			Case "margins.top": This.Margins.Top = QInteger(Value)
 			Case "margins.bottom": This.Margins.Bottom = QInteger(Value)
+			Case "extramargins.left": This.ExtraMargins.Left = QInteger(Value)
+			Case "extramargins.right": This.ExtraMargins.Right = QInteger(Value)
+			Case "extramargins.top": This.ExtraMargins.Top = QInteger(Value)
+			Case "extramargins.bottom": This.ExtraMargins.Bottom = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If

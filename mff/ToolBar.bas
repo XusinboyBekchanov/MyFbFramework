@@ -741,6 +741,9 @@ Namespace My.Sys.Forms
 						'Dim As WString Ptr s = .Buttons.Button(i)->Caption
 						TB.fsState   = .Buttons.Item(i)->State
 						TB.fsStyle   = .Buttons.Item(i)->Style
+						If .Buttons.Item(i)->ImageIndex = -1 AndAlso .ImagesList <> 0 AndAlso .Buttons.Item(i)->ImageKey <> "" Then
+							.Buttons.Item(i)->ImageIndex = .ImagesList->IndexOf(.Buttons.Item(i)->ImageKey)
+						End If
 						TB.iBitmap   = .Buttons.Item(i)->ImageIndex
 						TB.idCommand = .Buttons.Item(i)->CommandID
 						If .Buttons.Item(i)->Caption <> "" Then

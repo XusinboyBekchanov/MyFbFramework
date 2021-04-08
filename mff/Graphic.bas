@@ -11,7 +11,7 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#Include Once "Graphic.bi"
+#include once "Graphic.bi"
 
 Namespace My.Sys.Drawing
 	Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -19,6 +19,8 @@ Namespace My.Sys.Drawing
 		Case "bitmap": Return @Bitmap
 		Case "icon": Return @Icon
 		Case "cursor": Return @Cursor
+		Case "image": Return Image
+		Case "imagetype": Return @ImageType
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -36,7 +38,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Sub GraphicType.BitmapChanged(BYREF Sender As My.Sys.Drawing.BitmapType)
+	Sub GraphicType.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		If Sender.Graphic Then
 			With QGraphic(Sender.Graphic)
 				'#IfNDef __USE_GTK__
@@ -51,7 +53,7 @@ Namespace My.Sys.Drawing
 		End If
 	End Sub
 	
-	Sub GraphicType.IconChanged(BYREF Sender As My.Sys.Drawing.Icon)
+	Sub GraphicType.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 		If Sender.Graphic Then
 			With QGraphic(Sender.Graphic)
 				'#IfNDef __USE_GTK__
@@ -65,7 +67,7 @@ Namespace My.Sys.Drawing
 		End If
 	End Sub
 	
-	Sub GraphicType.CursorChanged(BYREF Sender As My.Sys.Drawing.Cursor)
+	Sub GraphicType.CursorChanged(ByRef Sender As My.Sys.Drawing.Cursor)
 		If Sender.Graphic Then
 			With QGraphic(Sender.Graphic)
 				'#IfNDef __USE_GTK__
@@ -78,6 +80,18 @@ Namespace My.Sys.Drawing
 			End With
 		End If
 	End Sub
+	
+	Function GraphicType.ToString() ByRef As WString
+		If Image = 0 Then
+			Return "(None)"
+		Else
+			Select Case ImageType
+			Case 0: Return "(Bitmap)"
+			Case 1: Return "(Icon)"
+			Case 2: Return "(Cursor)"
+			End Select
+		End If
+	End Function
 	
 	Constructor GraphicType
 		WLet(FClassName, "GraphicType")

@@ -1656,50 +1656,49 @@ Namespace My.Sys.Forms
 				Case 1'alLeft
 					LeftCount += 1
 					ListLeft = Reallocate_(ListLeft,SizeOf(Control Ptr)*LeftCount)
-					ListLeft[LeftCount -1] = Controls[i]
+					ListLeft[LeftCount - 1] = Controls[i]
 				Case 2'alRight
 					RightCount += 1
 					ListRight = Reallocate_(ListRight,SizeOf(Control Ptr)*RightCount)
-					ListRight[RightCount -1] = Controls[i]
+					ListRight[RightCount - 1] = Controls[i]
 				Case 3'alTop
 					TopCount += 1
 					ListTop = Reallocate_(ListTop,SizeOf(Control Ptr)*TopCount)
-					ListTop[TopCount -1] = Controls[i]
+					ListTop[TopCount - 1] = Controls[i]
 				Case 4'alBottom
 					BottomCount += 1
 					ListBottom = Reallocate_(ListBottom,SizeOf(Control Ptr)*BottomCount)
-					ListBottom[BottomCount -1] = Controls[i]
+					ListBottom[BottomCount - 1] = Controls[i]
 				Case 5'alClient
 					ClientCount += 1
 					ListClient = Reallocate_(ListClient,SizeOf(Control Ptr)*ClientCount)
-					ListClient[ClientCount -1] = Controls[i]
-				Case Else
-					With *Controls[i]
-						If Cast(Integer, .Anchor.Left) + Cast(Integer, .Anchor.Right) + Cast(Integer, .Anchor.Top) + Cast(Integer, .Anchor.Bottom) <> 0 Then
-							#ifdef __USE_GTK__
-								If CInt(.FVisible) Then
-							#else
-								If CInt(.FVisible) AndAlso CInt(.FHandle) Then
-							#endif
-								aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
-								This.FWidth = This.Width: This.FHeight = This.Height
-								If .Anchor.Left <> asNone Then
-									If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
-									If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
-								ElseIf .Anchor.Right <> asNone Then
-									aLeft = This.FWidth - .FWidth - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
-								End If
-								If .Anchor.Top <> asNone Then
-									If .Anchor.Top = asAnchorProportional Then aTop = This.FHeight / .FAnchoredParentHeight * .FAnchoredTop
-									If .Anchor.Bottom <> asNone Then aHeight = This.FHeight - aTop - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
-								ElseIf .Anchor.Bottom <> asNone Then
-									aTop = This.FHeight - .FHeight - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
-								End If
-								.SetBounds(aLeft, aTop, aWidth, aHeight)
-							End If
-						End If
-					End With
+					ListClient[ClientCount - 1] = Controls[i]
 				End Select
+				With *Controls[i]
+					If Cast(Integer, .Anchor.Left) + Cast(Integer, .Anchor.Right) + Cast(Integer, .Anchor.Top) + Cast(Integer, .Anchor.Bottom) <> 0 Then
+						#ifdef __USE_GTK__
+							If CInt(.FVisible) Then
+						#else
+							If CInt(.FVisible) AndAlso CInt(.FHandle) Then
+						#endif
+							aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
+							This.FWidth = This.Width: This.FHeight = This.Height
+							If .Anchor.Left <> asNone Then
+								If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
+								If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
+							ElseIf .Anchor.Right <> asNone Then
+								aLeft = This.FWidth - .FWidth - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
+							End If
+							If .Anchor.Top <> asNone Then
+								If .Anchor.Top = asAnchorProportional Then aTop = This.FHeight / .FAnchoredParentHeight * .FAnchoredTop
+								If .Anchor.Bottom <> asNone Then aHeight = This.FHeight - aTop - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
+							ElseIf .Anchor.Bottom <> asNone Then
+								aTop = This.FHeight - .FHeight - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
+							End If
+							.SetBounds(aLeft, aTop, aWidth, aHeight)
+						End If
+					End If
+				End With
 				'                Select Case Controls[i]->Align
 				'						Case 0 'None
 				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_BASELINE)
@@ -1728,8 +1727,8 @@ Namespace My.Sys.Forms
 			For i = 0 To TopCount -1
 				With *ListTop[i]
 					If .FVisible Then
-						tTop += .Height
-						.SetBounds(0,tTop - .Height,rLeft,.Height)
+						tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
+						.SetBounds(0 + .ExtraMargins.Left, tTop - .Height - .ExtraMargins.Bottom, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
 					End If
 				End With
 			Next i
@@ -1737,8 +1736,8 @@ Namespace My.Sys.Forms
 			For i = 0 To BottomCount -1
 				With *ListBottom[i]
 					If .FVisible Then
-						bTop -= .Height
-						.SetBounds(0,bTop,rLeft,.Height)
+						bTop -= .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
+						.SetBounds(0 + .ExtraMargins.Left, bTop + .ExtraMargins.Top, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
 					End If
 				End With
 			Next i
@@ -1746,8 +1745,8 @@ Namespace My.Sys.Forms
 			For i = 0 To LeftCount -1
 				With *ListLeft[i]
 					If .FVisible Then
-						lLeft += .Width
-						.SetBounds(lLeft - .Width, tTop, .Width, bTop - tTop)
+						lLeft += .ExtraMargins.Left + .Width + .ExtraMargins.Right
+						.SetBounds(lLeft - .Width - .ExtraMargins.Right, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
 					End If
 				End With
 			Next i
@@ -1755,15 +1754,15 @@ Namespace My.Sys.Forms
 			For i = 0 To RightCount -1
 				With *ListRight[i]
 					If .FVisible Then
-						rLeft -= .Width
-						.SetBounds(rLeft, tTop, .Width, bTop - tTop)
+						rLeft -= .ExtraMargins.Left + .Width + .ExtraMargins.Right
+						.SetBounds(rLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
 					End If
 				End With
 			Next i
 			For i = 0 To ClientCount -1
 				With *ListClient[i]
 					If .FVisible Then
-						.SetBounds(lLeft,tTop,rLeft - lLeft,bTop - tTop)
+						.SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
 					End If
 				End With
 			Next i

@@ -60,6 +60,8 @@ Namespace My.Sys.ComponentModel
 		Tag As Any Ptr
 		'Returns/sets the space between controls.
 		Margins            As MarginsType
+		'Returns/sets the extra space between controls.
+		ExtraMargins       As MarginsType
 		#ifdef __USE_GTK__
 			Accelerator     As GtkAccelGroup Ptr
 			Declare Property Handle As GtkWidget Ptr
