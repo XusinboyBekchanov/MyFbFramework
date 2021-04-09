@@ -22,6 +22,7 @@ Namespace My.Sys.Forms
 	
 	Type ImageBox Extends Control
 	Private:
+		FImageStyle       As Integer
 		AStyle(5)         As Integer
 		FRealSizeImage    As Boolean
 		FCenterImage      As Boolean

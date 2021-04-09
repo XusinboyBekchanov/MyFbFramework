@@ -369,7 +369,7 @@ Namespace My.Sys.Drawing
 				.cairo_rectangle (Handle, x, y, extend2.width, extend2.height)
 				cairo_fill (Handle)
 			End If
-			cairo_move_to(Handle, x - 0.5, y + extend2.height - 0.5)
+			cairo_move_to(Handle, x + 0.5, y + extend2.height + 0.5)
 			iRed = Abs(GetRed(FG) / 255.0): iGreen = Abs(GetGreen(FG) / 255.0): iBlue = Abs(GetBlue(FG) / 255.0)
 			cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 			pango_cairo_show_layout_line(Handle, pl)

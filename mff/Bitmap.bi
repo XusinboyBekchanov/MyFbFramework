@@ -59,6 +59,7 @@ Namespace My.Sys.Drawing
 		Declare Property Transparency As Boolean
 		Declare Property Transparency(Value As Boolean)
 		Declare Sub LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) 'David Change
+		Declare Sub LoadFromPNGFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
 		Declare Sub SaveToFile(ByRef File As WString)
 		#ifdef __USE_GTK__
 			Declare Sub LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0)  'David Change

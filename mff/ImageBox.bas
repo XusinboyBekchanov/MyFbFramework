@@ -30,17 +30,17 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Property ImageBox.Style As Integer
-		Return FStyle
+		Return FImageStyle
 	End Property
 	
 	Property ImageBox.Style(Value As Integer)
-		If Value <> FStyle Then
-			FStyle = Value
+		'If Value <> FImageStyle Then
+			FImageStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 			#endif
 			RecreateWnd
-		End If
+		'End If
 	End Property
 	
 	Property ImageBox.RealSizeImage As Boolean
@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -65,7 +65,7 @@ Namespace My.Sys.Forms
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -166,6 +166,7 @@ Namespace My.Sys.Forms
 			ARealSizeImage(0)= 0
 			ARealSizeImage(1)= SS_REALSIZEIMAGE
 		#endif
+		FImageStyle = 0
 		Graphic.Ctrl = @This
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 0
@@ -175,7 +176,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "ImageBox", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif

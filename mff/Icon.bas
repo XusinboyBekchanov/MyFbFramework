@@ -118,7 +118,7 @@ Namespace My.Sys.Drawing
 		#else
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
-			Handle = LoadImage(0, File, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE)
+			Handle = LoadImage(0, File, IMAGE_ICON, 0, 0, LR_LOADFROMFILE)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)

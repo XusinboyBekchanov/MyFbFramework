@@ -60,6 +60,35 @@ Namespace My.Sys.Drawing
 		If Changed Then Changed(This)
 	End Sub
 	
+	Sub BitmapType.LoadFromPNGFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
+		#ifdef __USE_GTK__
+			Handle = LoadFromFile(File, cxDesired, cyDesired)
+		#else
+			Dim pImage As GpImage Ptr
+			
+			' // Initialize Gdiplus
+			Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
+			StartupInput.GdiplusVersion = 1
+			GdiplusStartup(@token, @StartupInput, NULL)
+			If token = NULL Then Exit Sub
+			' // Load the image from file
+			GdipLoadImageFromFile(File, @pImage)
+			If pImage = NULL Then Exit Sub
+			' // Get the image width and height
+			GdipGetImageWidth(pImage, @FWidth)
+			GdipGetImageHeight(pImage, @FHeight)
+			
+			' // Create bitmap from image
+			GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, 0)
+			' // Free the image
+			If pImage Then GdipDisposeImage pImage
+			' // Shutdown Gdiplus
+			GdiplusShutdown token
+			
+			If Changed Then Changed(This)
+		#endif
+	End Sub
+	
 	Sub BitmapType.SaveToFile(ByRef File As WString)
 		#ifndef __USE_GTK__
 			Type RGB3 Field = 1
