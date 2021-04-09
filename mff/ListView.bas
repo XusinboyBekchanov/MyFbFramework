@@ -57,8 +57,8 @@ Namespace My.Sys.Forms
 				Dim lvi As LVITEM
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
-				lvi.state    = LVIS_SELECTED
-				lvi.statemask = LVNI_SELECTED
+				lvi.state    = LVIS_SELECTED Or LVIS_FOCUSED
+				lvi.statemask = LVIF_STATE
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
@@ -72,22 +72,24 @@ Namespace My.Sys.Forms
 				Return WStr("")
 			End If
 		#else
-			If Parent AndAlso Parent->Handle Then
-				WReallocate(FText, 255)
-				lvi.Mask = LVIF_TEXT
-				lvi.iItem = Index
-				lvi.iSubItem   = iSubItem
-				lvi.pszText    = FText
-				lvi.cchTextMax = 255
-				ListView_GetItem(Parent->Handle, @lvi)
-				Return *FText
-			Else
+'			If Parent AndAlso Parent->Handle Then
+'				'Dim As UString uText
+'				'uText.Resize 255
+'				WReallocate(@FSubItems.Item(iSubItem), 255)
+'				lvi.Mask = LVIF_TEXT
+'				lvi.iItem = Index
+'				lvi.iSubItem   = iSubItem
+'				lvi.pszText    = @FSubItems.Item(iSubItem)
+'				lvi.cchTextMax = 255
+'				ListView_GetItem(Parent->Handle, @lvi)
+'				Return FSubItems.Item(iSubItem)
+'			Else
 				If FSubItems.Count > iSubItem Then
 					Return FSubItems.Item(iSubItem)
 				Else
 					Return WStr("")
 				End If
-			End If
+'			End If
 		#endif
 	End Property
 	
@@ -461,7 +463,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_append (Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter)
 			gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
 		#else
-			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT
+			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = IIf(Index = -1, FItems.Count - 1, Index)
@@ -470,6 +472,7 @@ Namespace My.Sys.Forms
 			lvi.State   = INDEXTOSTATEIMAGEMASK(State)
 			lvi.stateMask = LVIS_STATEIMAGEMASK
 			lvi.iIndent   = Indent
+			lvi.lParam    = Cast(LPARAM, PItem)
 		#endif
 		If Parent Then
 			PItem->Parent = Parent
@@ -505,7 +508,7 @@ Namespace My.Sys.Forms
 			.Indent         = Indent
 		End With
 		#ifndef __USE_GTK__
-			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent
+			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_Param
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = Index
@@ -513,6 +516,7 @@ Namespace My.Sys.Forms
 			lvi.State   = INDEXTOSTATEIMAGEMASK(State)
 			lvi.stateMask = LVIS_STATEIMAGEMASK
 			lvi.iIndent   = Indent
+			lvi.lParam    = Cast(LPARAM, PItem)
 			If Parent Then
 				PItem->Parent = Parent
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
@@ -536,6 +540,14 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
+			Dim As ListViewItem Ptr FirstItem = Cast(ListViewItem Ptr, lParam1), SecondItem = Cast(ListViewItem Ptr, lParam2)
+			If FirstItem <> 0 AndAlso SecondItem <> 0 Then
+				Select Case FirstItem->Text(0)
+				Case Is < SecondItem->Text(0): Return -1
+				Case Is > SecondItem->Text(0): Return 1
+				Case Else: Return 0
+				End Select
+			End If
 			Return 0
 		End Function
 	#endif
@@ -543,8 +555,8 @@ Namespace My.Sys.Forms
 	Sub ListViewItems.Sort
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				'Parent->Perform LVM_SORTITEMS, 0, @CompareFunc
-				'ListView_SortItems
+				Parent->Perform LVM_SORTITEMS, 0, Cast(WParam, @CompareFunc)
+				'ListView_SortItems Parent->Handle, @CompareFunc, 0
 			End If
 		#endif
 	End Sub
@@ -555,7 +567,7 @@ Namespace My.Sys.Forms
 	
 	Function ListViewItems.IndexOf(ByRef Caption As WString) As Integer
 		For i As Integer = 0 To Count - 1
-			If QListViewItem(FItems.Items[i]).Text(0) = Caption Then
+			If LCase(QListViewItem(FItems.Items[i]).Text(0)) = LCase(Caption) Then
 				Return i
 			End If
 		Next i
@@ -567,11 +579,11 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub ListViewItems.Clear
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent AndAlso Cast(ListView Ptr, Parent)->ListStore Then gtk_list_store_clear(Cast(ListView Ptr, Parent)->ListStore)
-		#Else
+		#else
 			If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
-		#EndIf
+		#endif
 		For i As Integer = Count -1 To 0 Step -1
 			Delete_( Cast(ListViewItem Ptr, FItems.Items[i]))
 		Next i
@@ -855,7 +867,7 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then
-				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVIS_FOCUSED Or LVIS_SELECTED)
+				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			End If
 		#endif
 	End Property
@@ -891,13 +903,13 @@ Namespace My.Sys.Forms
 				ChangeStyle LVS_SORTASCENDING, False
 				ChangeStyle LVS_SORTDESCENDING, True
 			End Select
-		#EndIf
+		#endif
 	End Property
 	
 	Property ListView.SelectedColumn(Value As ListViewColumn Ptr)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
-		#EndIf
+		#endif
 	End Property
 	
 	Property ListView.ShowHint As Boolean
@@ -908,14 +920,14 @@ Namespace My.Sys.Forms
 		FShowHint = Value
 	End Property
 	
-	Sub ListView.WndProc(BYREF Message As Message)
+	Sub ListView.WndProc(ByRef Message As Message)
 	End Sub
 	
 	
 	
-	Sub ListView.ProcessMessage(BYREF Message As Message)
+	Sub ListView.ProcessMessage(ByRef Message As Message)
 		'?message.msg, GetMessageName(message.msg)
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
 			Case GDK_MAP
@@ -1058,11 +1070,12 @@ Namespace My.Sys.Forms
 							lvi.iItem           = i
 							lvi.iSubItem        = j
 							If j = 0 Then
-								lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent
+								lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_Param
 								lvi.iImage          = .ListItems.Item(i)->ImageIndex
 								lvi.State   = INDEXTOSTATEIMAGEMASK(.ListItems.Item(i)->State)
 								lvi.stateMask = LVIS_STATEIMAGEMASK
 								lvi.iIndent   = .ListItems.Item(i)->Indent
+								lvi.lParam   =  Cast(LPARAM, .ListItems.Item(i))
 								.FHandle = TempHandle
 								ListView_InsertItem(.FHandle, @lvi)
 							Else

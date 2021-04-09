@@ -680,6 +680,7 @@ Namespace My.Sys.Forms
 					Index = Perform(TB_COMMANDTOINDEX, Message.wParam, 0)
 					If Perform(TB_GETBUTTON, Index, CInt(@TB)) Then
 						If Buttons.Item(Index)->OnClick Then (Buttons.Item(Index))->OnClick(*Buttons.Item(Index))
+						If OnButtonClick Then OnButtonClick(This, *Buttons.Item(Index))
 					End If
 				End If
 			Case CM_NOTIFY
