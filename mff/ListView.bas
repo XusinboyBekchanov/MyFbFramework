@@ -72,24 +72,23 @@ Namespace My.Sys.Forms
 				Return WStr("")
 			End If
 		#else
-'			If Parent AndAlso Parent->Handle Then
-'				'Dim As UString uText
-'				'uText.Resize 255
-'				WReallocate(@FSubItems.Item(iSubItem), 255)
-'				lvi.Mask = LVIF_TEXT
-'				lvi.iItem = Index
-'				lvi.iSubItem   = iSubItem
-'				lvi.pszText    = @FSubItems.Item(iSubItem)
-'				lvi.cchTextMax = 255
-'				ListView_GetItem(Parent->Handle, @lvi)
-'				Return FSubItems.Item(iSubItem)
-'			Else
+			If Parent AndAlso Parent->Handle Then
+				WReallocate(FText, 255)
+				lvi.Mask = LVIF_TEXT
+				lvi.iItem = Index
+				lvi.iSubItem   = iSubItem
+				lvi.pszText    = FText
+				lvi.cchTextMax = 255
+				ListView_GetItem(Parent->Handle, @lvi)
+				FSubItems.Item(iSubItem) = *FText
+				Return FSubItems.Item(iSubItem)
+			Else
 				If FSubItems.Count > iSubItem Then
 					Return FSubItems.Item(iSubItem)
 				Else
 					Return WStr("")
 				End If
-'			End If
+			End If
 		#endif
 	End Property
 	
