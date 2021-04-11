@@ -13,6 +13,7 @@
 
 #include once "ContainerControl.bi"
 #include once "Application.bi"
+#include once "Graphic.bi"
 
 Namespace My.Sys.Forms
 	#define QForm(__Ptr__) *Cast(Form Ptr,__Ptr__)
@@ -85,13 +86,17 @@ Namespace My.Sys.Forms
 		FFormCreated   As Boolean
 		FOnCreate      As Sub(ByRef Sender As Form)
 		Declare Static Sub ActiveControlChanged(ByRef Sender As Control)
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			ImageWidget As GtkWidget Ptr
+		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Static Sub WndProc(ByRef Message As Message)
 		#endif
 		Declare Function EnumMenuItems(Item As MenuItem) As Boolean
 		Declare Sub GetMenuItems
+		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		FControlBox     As Boolean
@@ -101,6 +106,8 @@ Namespace My.Sys.Forms
 	Public:
 		'Returns the icon displayed when a form is minimized at run time.
 		Icon          As My.Sys.Drawing.Icon
+		'Returns/sets a graphic to be displayed in a control.
+		Graphic As My.Sys.Drawing.GraphicType
 		'Returns/sets the dialog result for the form.
 		ModalResult   As Integer 'ModalResults
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr

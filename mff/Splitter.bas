@@ -46,20 +46,16 @@ Namespace My.Sys.Forms
 	
 	Property Splitter.Align(value As Integer)
 		Base.Align = value
-		Var cr = New_( My.Sys.Drawing.Cursor)
-		cr->Ctrl = @This
 		Select Case value
 		Case 1, 2
-			*cr = crSizeWE
+			This.Cursor = crSizeWE
 			This.Width = 3
 		Case 3, 4
-			*cr = crSizeNS
+			This.Cursor = crSizeNS
 			This.Height = 3
 		Case Else
-			*cr = crArrow
+			This.Cursor = crArrow
 		End Select
-		If This.Cursor <> 0 Then Delete_(This.Cursor)
-		This.Cursor = cr
 	End Property
 	
 	#ifndef __USE_GTK__
@@ -99,11 +95,11 @@ Namespace My.Sys.Forms
 			#endif
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
-		#Else
-			Static As POINT g_OrigCursorPos, g_CurCursorPos
+		#else
+			Static As Point g_OrigCursorPos, g_CurCursorPos
 			Select Case Message.Msg
 			Case WM_SETCURSOR
-				If CInt(Cursor <> 0) AndAlso CInt(Not DesignMode) Then Message.Result = Cast(LResult, SetCursor(Cursor->Handle)): Return
+				If CInt(Cursor.Handle <> 0) AndAlso CInt(Not DesignMode) Then Message.Result = Cast(LResult, SetCursor(Cursor.Handle)): Return
 			Case WM_PAINT
 				Dim As Rect R
 				Dim As HDC Dc
@@ -112,10 +108,10 @@ Namespace My.Sys.Forms
 				FillRect Dc, @R, Brush.Handle
 				ReleaseDC Handle, DC
 				'	Message.Result = 0
-		#EndIf
-			#IfDef __USE_GTK__
+		#endif
+			#ifdef __USE_GTK__
 			Case GDK_BUTTON_PRESS
-			#Else
+			#else
 			Case WM_LBUTTONDOWN
 			#EndIf
 			down1 = 1
@@ -282,21 +278,21 @@ Namespace My.Sys.Forms
 				spl->bCursor = True
 				spl->Align = spl->Align
 			End If
-			return FALSE
+			Return False
 		End Function
 		
-		Function OnExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
+		Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			OnDraw(widget, cr, data1)
 			cairo_destroy(cr)
-			return FALSE
+			Return False
 		End Function
-	#EndIf
+	#endif
 	
 	Constructor Splitter
 		With This
 			.Child     = @This
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				'widget = gtk_separator_new(GTK_ORIENTATION_VERTICAL)
 				'widget = gtk_drawing_area_new()
 				widget = gtk_layout_new(NULL, NULL)
@@ -326,6 +322,7 @@ Namespace My.Sys.Forms
 				.BackColor     = GetSysColor(COLOR_BTNFACE)
 				'.DoubleBuffered = True
 			#endif
+			This.Cursor.Ctrl = @This
 			WLet(FClassName, "Splitter")
 			WLet(FClassAncestor, "")
 			.Width     = 3
@@ -334,7 +331,6 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor Splitter
-		If This.Cursor <> 0 Then Delete_(This.Cursor)
 		#ifndef __USE_GTK__
 			UnregisterClass "Splitter", GetModuleHandle(NULL)
 		#endif

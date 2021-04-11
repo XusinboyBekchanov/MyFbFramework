@@ -33,6 +33,7 @@ Namespace My.Sys.Forms
 		Case "owner": Return FOwner
 		Case "windowstate": Return @FWindowState
 		Case "startposition": Return @FStartPosition
+		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -70,6 +71,7 @@ Namespace My.Sys.Forms
 			Case "windowstate": This.WindowState = QInteger(Value)
 			Case "startposition": This.StartPosition = QInteger(Value)
 			Case "visible": This.Visible = QBoolean(Value)
+			Case "graphic": This.Graphic = QWString(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -670,6 +672,7 @@ Namespace My.Sys.Forms
 					SendMessage(Handle,WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
 					FillRect memDc,@Ps.rcpaint, Brush.Handle
 					Canvas.Handle = memDC
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
 					If OnPaint Then OnPaint(This, Canvas)
 					BitBlt(DC, 0, 0, Ps.rcpaint.Right, Ps.rcpaint.Bottom, MemDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
@@ -677,6 +680,7 @@ Namespace My.Sys.Forms
 				Else
 					FillRect Dc, @Ps.rcpaint, Brush.Handle
 					Canvas.Handle = Dc
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
 					If OnPaint Then OnPaint(This, Canvas)
 				End If
 				EndPaint Handle,@Ps
@@ -1085,16 +1089,60 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 
+	Sub Form.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		With Sender
+			If .Ctrl->Child Then
+				#ifdef __USE_GTK__
+					If gtk_is_image(QForm(.Ctrl->Child).ImageWidget) Then
+						Select Case ImageType
+						Case 0
+							gtk_image_set_from_pixbuf(gtk_image(QForm(.Ctrl->Child).ImageWidget), .Bitmap.Handle)
+						Case 1
+							gtk_image_set_from_pixbuf(gtk_image(QForm(.Ctrl->Child).ImageWidget), .Icon.Handle)
+						End Select
+					End If
+				#else
+'					Select Case ImageType
+'					Case 0
+'						QForm(.Ctrl->Child).ChangeStyle SS_BITMAP, True
+'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Bitmap.Handle))
+'					Case 1
+'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
+'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
+'					Case 2
+'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
+'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
+'					Case 3
+'						QForm(.Ctrl->Child).ChangeStyle SS_ENHMETAFILE, True
+'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(0))
+'					End Select
+					.Ctrl->Repaint
+				#endif
+			End If
+		End With
+	End Sub
+	
 	Operator Form.Cast As Control Ptr
 		Return @This
 	End Operator
 
+	Sub Form.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+		With *Cast(Form Ptr, Sender.Graphic)
+			#ifdef __USE_GTK__
+			#else
+				SendMessage(.Handle, WM_SETICON, 1, CInt(.Icon.Handle))
+			#endif
+		End With
+	End Sub
+
 	Constructor Form
 		#ifdef __USE_GTK__
+			ImageWidget = gtk_image_new()
 			WindowWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
 			Widget = WindowWidget
 			'gtk_window_set_policy(GTK_WINDOW(widget), true, false, false)
 			This.RegisterClass "Form", @This
+			If gtk_is_widget(layoutwidget) Then gtk_layout_put(GTK_LAYOUT(layoutwidget), ImageWidget, 0, 0)
 		#else
 			FMainStyle(0)  = 0
 			FMainStyle(1)  = WS_EX_APPWINDOW
@@ -1132,6 +1180,10 @@ Namespace My.Sys.Forms
 		FMaximizeBox = True
 		FOpacity = 255
 		Canvas.Ctrl    = @This
+		Graphic.Ctrl = @This
+		Graphic.OnChange = @GraphicChange
+		Icon.Graphic = @This
+		Icon.Changed = @IconChanged
 		With This
 			.Child             = @This
 			#ifndef __USE_GTK__

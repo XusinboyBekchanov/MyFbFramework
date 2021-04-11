@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "alignment": Return @FAlignment
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
+		Case "centerimage": Return @FCenterImage
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
 		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
@@ -30,8 +31,10 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "alignment": If Value <> 0 Then This.Alignment = *Cast(AlignmentConstants Ptr, Value)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
+		Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
+		Case "graphic": This.Graphic = QWString(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -189,7 +192,7 @@ Namespace My.Sys.Forms
 		Sub Label.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QLabel(Sender.Child)
-					.Perform(STM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
+					.Perform(STM_SETIMAGE, .Graphic.ImageType,CInt(.Graphic.Image))
 				End With
 			End If
 		End Sub

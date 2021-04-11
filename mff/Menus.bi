@@ -51,6 +51,7 @@ Namespace My.Sys.Forms
 	
 	Type MenuItem Extends My.Sys.Object
 	Private:
+		Declare Static Sub BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		#ifndef __USE_GTK__
 			FInfo		As MENUITEMINFO
 		#endif
@@ -112,6 +113,7 @@ Namespace My.Sys.Forms
 		Declare Property MenuIndex(value As Integer)
 		Declare Property Image As My.Sys.Drawing.BitmapType
 		Declare Property Image(value As My.Sys.Drawing.BitmapType)
+		Declare Property Image(ByRef value As WString)
 		Declare Property ImageIndex As Integer
 		Declare Property ImageIndex(value As Integer)
 		Declare Property ImageKey ByRef As WString

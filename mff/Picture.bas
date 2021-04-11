@@ -28,6 +28,7 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "graphic": This.Graphic = QWString(Value)
 			Case "tabindex": TabIndex = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
@@ -217,7 +218,7 @@ Namespace My.Sys.Forms
 		Graphic.Ctrl = @This
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
-		'FCenterImage=1
+		FCenterImage = 1
 		FStyle = 0
 		With This
 			.Child       = @This

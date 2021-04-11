@@ -14,6 +14,31 @@
 #include once "Bitmap.bi"
 
 Namespace My.Sys.Drawing
+	Function BitmapType.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		#ifdef __USE_GTK__
+		Case "handle": Return Handle
+		#else
+		Case "handle": Return @Handle
+		#endif
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function BitmapType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	Property BitmapType.Width As Integer
 		Return FWidth
 	End Property
@@ -49,20 +74,27 @@ Namespace My.Sys.Drawing
 				Handle = gdk_pixbuf_new_from_file_at_size(ToUTF8(File), cxDesired, cyDesired, @gerr)
 			End If
 		#else
-			Dim As BITMAP BMP
-			Dim As HDC MemDC
-			If Handle Then DeleteObject Handle
-			Handle = LoadImage(0,File,IMAGE_BITMAP,cxDesired,cyDesired,LR_LOADFROMFILE Or LR_LOADMAP3DCOLORS Or FLoadFlag(Abs_(FTransparent)))
-			GetObject(Handle,SizeOf(BMP),@BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
+			Dim As Integer Pos1 = InStrRev(File, ".")
+			Select Case LCase(Mid(File, Pos1 + 1))
+			Case "png": LoadFromPNGFile(File, cxDesired, cyDesired)
+			Case "ico": 
+			Case "cur": 
+			Case Else
+				Dim As BITMAP BMP
+				Dim As HDC MemDC
+				If Handle Then DeleteObject Handle
+				Handle = LoadImage(0,File,IMAGE_BITMAP,cxDesired,cyDesired,LR_LOADFROMFILE Or LR_LOADMAP3DCOLORS Or FLoadFlag(Abs_(FTransparent)))
+				GetObject(Handle,SizeOf(BMP),@BMP)
+				FWidth  = BMP.bmWidth
+				FHeight = BMP.bmHeight
+			End Select
 		#endif
 		If Changed Then Changed(This)
 	End Sub
 	
 	Sub BitmapType.LoadFromPNGFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
 		#ifdef __USE_GTK__
-			Handle = LoadFromFile(File, cxDesired, cyDesired)
+			LoadFromFile(File, cxDesired, cyDesired)
 		#else
 			Dim pImage As GpImage Ptr
 			
@@ -157,7 +189,7 @@ Namespace My.Sys.Drawing
 			Dim As GError Ptr gerr
 			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
 		#else
-			If FindResource(GetModuleHandle(NULL), ResName, "PNG") Then
+			If FindResource(GetModuleHandle(NULL), ResName, "PNG") OrElse FindResource(GetModuleHandle(NULL), ResName, RT_RCDATA) Then
 				LoadFromPNGResourceName(ResName)
 			Else
 				Dim As BITMAP BMP
@@ -289,6 +321,7 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Operator BitmapType.Let(ByRef Value As WString)
+		WLet FResName, Value
 		#ifdef __USE_GTK__
 			If StartsWith(Value, "/") Then
 				LoadFromFile(Value)
@@ -314,6 +347,10 @@ Namespace My.Sys.Drawing
 		
 	#endif
 	
+	Function BitmapType.ToString() ByRef As WString
+		Return *FResName
+	End Function
+	
 	Constructor BitmapType
 		WLet(FClassName, "BitmapType")
 		#ifndef __USE_GTK__
@@ -327,6 +364,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Destructor BitmapType
+		WDeallocate FResName
 		Free
 		#ifndef __USE_GTK__
 			DeleteObject FDevice
@@ -335,10 +373,22 @@ Namespace My.Sys.Drawing
 	End Destructor
 End Namespace
 
+Sub BitmapTypeLoadFromResourceName Alias "BitmapTypeLoadFromResourceName"(Bitm As My.Sys.Drawing.BitmapType Ptr, ResName As String, ModuleHandle As Any Ptr = 0) __EXPORT__
+	#ifdef __USE_GTK__
+		Bitm->LoadFromResourceName(ResName)
+	#else
+		Bitm->LoadFromResourceName(ResName, Cast(HInstance, ModuleHandle))
+	#endif
+End Sub
+
 Sub BitmapTypeLoadFromPNGResourceName Alias "BitmapTypeLoadFromPNGResourceName"(Bitm As My.Sys.Drawing.BitmapType Ptr, ResName As String, ModuleHandle As Any Ptr = 0) __EXPORT__
 	#ifdef __USE_GTK__
 		Bitm->LoadFromPNGResourceName(ResName)
 	#else
 		Bitm->LoadFromPNGResourceName(ResName, Cast(HInstance, ModuleHandle))
 	#endif
+End Sub
+
+Sub BitmapTypeLoadFromFile Alias "BitmapTypeLoadFromFile"(Bitm As My.Sys.Drawing.BitmapType Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) __EXPORT__
+	Bitm->LoadFromFile(File, cxDesired, cyDesired)
 End Sub

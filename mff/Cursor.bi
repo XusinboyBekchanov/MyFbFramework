@@ -63,20 +63,20 @@
 	#define crSizeNESW    LoadCursor(0,IDC_SIZENESW)
 	#define crSizeNS      LoadCursor(0,IDC_SIZENS)
 	#define crSizeNWSE    LoadCursor(0,IDC_SIZENWSE)
-	#DEFINE crSizeWE      LoadCursor(0,IDC_SIZEWE)
-	#DEFINE crUpArrow     LoadCursor(0,IDC_UPARROW)
-	#DEFINE crWait        LoadCursor(0,IDC_WAIT)
-	#DEFINE crDrag        LoadCursor(GetModuleHandle(NULL),"DRAG")
-	#DEFINE crMultiDrag   LoadCursor(GetModuleHandle(NULL),"MULTIDRAG")
-	#DEFINE crHandPoint   LoadCursor(GetModuleHandle(NULL),"HANDPOINT")
-	#DEFINE crSQLWait     LoadCursor(GetModuleHandle(NULL),"SQLWAIT")
-	#DEFINE crHSplit      LoadCursor(GetModuleHandle(NULL),"HSPLIT")
-	#DEFINE crVSplit      LoadCursor(GetModuleHandle(NULL),"VSPLIT")
-	#DEFINE crNoDrop      LoadCursor(GetModuleHandle(NULL),"NODROP")
-#EndIf
+	#define crSizeWE      LoadCursor(0,IDC_SIZEWE)
+	#define crUpArrow     LoadCursor(0,IDC_UPARROW)
+	#define crWait        LoadCursor(0,IDC_WAIT)
+	#define crDrag        LoadCursor(GetModuleHandle(NULL),"DRAG")
+	#define crMultiDrag   LoadCursor(GetModuleHandle(NULL),"MULTIDRAG")
+	#define crHandPoint   LoadCursor(GetModuleHandle(NULL),"HANDPOINT")
+	#define crSQLWait     LoadCursor(GetModuleHandle(NULL),"SQLWAIT")
+	#define crHSplit      LoadCursor(GetModuleHandle(NULL),"HSPLIT")
+	#define crVSplit      LoadCursor(GetModuleHandle(NULL),"VSPLIT")
+	#define crNoDrop      LoadCursor(GetModuleHandle(NULL),"NODROP")
+#endif
 
 Namespace My.Sys.Drawing
-	#DEFINE QCursor(__Ptr__) *Cast(Cursor Ptr,__Ptr__)
+	#define QCursor(__Ptr__) *Cast(Cursor Ptr,__Ptr__)
 	
 	Type Cursor Extends My.Sys.Object
 	Private:
@@ -84,15 +84,16 @@ Namespace My.Sys.Drawing
 		FHeight    As Integer
 		FHotSpotX  As Integer
 		FHotSpotY  As Integer
+		FResName As WString Ptr
 		Declare Sub Create
 	Public:
 		Ctrl 			As My.Sys.ComponentModel.Component Ptr
 		Graphic    		As Any Ptr
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Handle 		As GdkCursor Ptr
-		#Else
+		#else
 			Handle		As HCURSOR
-		#EndIf
+		#endif
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
 		Declare Property Height As Integer
@@ -105,20 +106,21 @@ Namespace My.Sys.Drawing
 		Declare Sub SaveToFile(ByRef File As WString)
 		Declare Sub LoadFromResourceName(ByRef ResName As WString)
 		Declare Sub LoadFromResourceID(ResID As Integer)
+		Declare Function ToString() ByRef As WString
 		Declare Operator Cast As Any Ptr
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Declare Operator Let(Value As GdkCursorType)
-		#Else
+		#else
 			Declare Operator Let(Value As HCURSOR)
-		#EndIf
+		#endif
 		Declare Operator Let(ByRef Value As WString)
 		Declare Operator Let(Value As Cursor)
 		Declare Constructor
 		Declare Destructor
-		Changed As Sub(BYREF Sender As Cursor)
+		Changed As Sub(ByRef Sender As Cursor)
 	End Type
-End namespace
+End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "Cursor.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Cursor.bas"
+#endif

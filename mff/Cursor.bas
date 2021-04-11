@@ -11,7 +11,7 @@
 '* by Xusinboy Bekchanov (2018-2019)                                         *
 '******************************************************************************
 
-#Include Once "Cursor.bi"
+#include once "Cursor.bi"
 
 Namespace My.Sys.Drawing
 	Property Cursor.Width As Integer
@@ -47,17 +47,17 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Sub Cursor.LoadFromFile(ByRef File As WString)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(0,File,IMAGE_CURSOR,0,0,LR_LOADFROMFILE)
 			GetIconInfo(Handle, @ICIF)
-			GetObject(ICIF.hbmColor, SizeOF(BMP), @BMP)
+			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
-		#ENdIf
+		#endif
 		If Changed Then Changed(This)
 	End Sub
 	
@@ -65,32 +65,32 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Sub Cursor.LoadFromResourceName(ByRef ResName As WString)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
 			GetIconInfo(Handle,@ICIF)
-			GetObject(ICIF.hbmColor,SizeOF(BMP), @BMP)
+			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
-		#EndIf
+		#endif
 		If Changed Then Changed(This)
 	End Sub
 	
 	Sub Cursor.LoadFromResourceID(ResID As Integer)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(ResID), IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
 			GetIconInfo(Handle,@ICIF)
-			GetObject(ICIF.hbmColor,SizeOF(BMP), @BMP)
+			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
-		#EndIf
+		#endif
 		If Changed Then Changed(This)
 	End Sub
 	
@@ -102,13 +102,14 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Operator Cursor.Let(ByRef Value As WString)
-		#IfNDef __USE_GTK__
-			If FindResource(GetModuleHandle(NULL), Value, RT_CURSOR) Then
+		WLet FResName, Value
+		#ifndef __USE_GTK__
+			If FindResourceW(GetModuleHandle(NULL), Value, RT_GROUP_CURSOR) Then
 				LoadFromResourceName(Value)
 			Else
 				LoadFromFile(Value)
 			End If
-		#Else
+		#else
 			If Ctrl AndAlso Ctrl->widget Then
 				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->widget)
 				Handle = gdk_cursor_new_from_name(pdisplay, Value)
@@ -120,10 +121,14 @@ Namespace My.Sys.Drawing
 				End If
 				If win Then gdk_window_set_cursor(win, Handle)
 			End If
-		#EndIf
+		#endif
 	End Operator
 	
-	#IfDef __USE_GTK__
+	Function Cursor.ToString() ByRef As WString
+		Return *FResName
+	End Function
+	
+	#ifdef __USE_GTK__
 		Operator Cursor.Let(Value As GdkCursorType)
 			If Ctrl AndAlso Ctrl->widget Then
 				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->widget)
@@ -131,11 +136,11 @@ Namespace My.Sys.Drawing
 			End If
 		End Operator
 		
-	#Else
+	#else
 		Operator Cursor.Let(Value As HCURSOR)
 			Handle = Value
 		End Operator
-	#EndIf
+	#endif
 	
 	Operator Cursor.Let(Value As Cursor)
 		Handle = Value.Handle
@@ -143,15 +148,20 @@ Namespace My.Sys.Drawing
 	
 	Constructor Cursor
 		WLet(FClassName, "Cursor")
-		#IfNDef __USE_GTK__
-			Handle = LoadCursor(NULL,IDC_ARROW)
-		#EndIf
+'		#ifndef __USE_GTK__
+'			Handle = LoadCursor(NULL,IDC_ARROW)
+'		#endif
 		If Changed Then Changed(This)
 	End Constructor
 	
 	Destructor Cursor
-		#IfNDef __USE_GTK__
+		WDeallocate FResName
+		#ifndef __USE_GTK__
 			If Handle Then DeleteObject Handle
-		#EndIf
+		#endif
 	End Destructor
-End namespace
+End Namespace
+
+Sub CursorLoadFromFile Alias "CursorLoadFromFile"(Cur As My.Sys.Drawing.Cursor Ptr, ByRef File As WString) __EXPORT__
+	Cur->LoadFromFile(File)
+End Sub

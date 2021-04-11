@@ -36,7 +36,6 @@ Namespace My.Sys.Forms
 				Case "anchor.top": Return @Anchor.Top
 				Case "anchor.bottom": Return @Anchor.Bottom
 				Case "borderstyle": Return @FBorderStyle
-				Case "cursor": Return Cursor
 				Case "backcolor": Return @FBackColor
 				Case "constraints": Return @Constraints
 				Case "constraints.left": Return @Constraints.Left
@@ -45,6 +44,7 @@ Namespace My.Sys.Forms
 				Case "constraints.height": Return @Constraints.Height
 				Case "contextmenu": Return ContextMenu
 				Case "controlcount": Return @FControlCount
+				Case "cursor": Return @This.Cursor
 				Case "doublebuffered": Return @DoubleBuffered
 				Case "grouped": Return @FGrouped
 				Case "helpcontext": Return @HelpContext
@@ -76,7 +76,6 @@ Namespace My.Sys.Forms
 				If Value = 0 Then
 					Select Case LCase(PropertyName)
 					Case "parent": This.Parent = Value
-					Case "cursor": This.Cursor = Value
 					Case Else: Return Base.WriteProperty(PropertyName, Value)
 					End Select
 				Else
@@ -86,7 +85,7 @@ Namespace My.Sys.Forms
 					Case "anchor.right": This.Anchor.Right = QInteger(Value)
 					Case "anchor.top": This.Anchor.Top = QInteger(Value)
 					Case "anchor.bottom": This.Anchor.Bottom = QInteger(Value)
-					Case "cursor": This.Cursor = Cast(My.Sys.Drawing.Cursor Ptr, Value)
+					Case "cursor": This.Cursor = QWString(Value)
 					Case "doublebuffered": This.DoubleBuffered = QBoolean(Value)
 					Case "borderstyle": This.BorderStyle = QInteger(Value)
 					Case "backcolor": This.BackColor = QInteger(Value)
@@ -997,8 +996,8 @@ Namespace My.Sys.Forms
 				Case WM_PAINT
 					If OnPaint Then OnPaint(This, Canvas)
 				Case WM_SETCURSOR
-					If CInt(This.Cursor <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not DesignMode) Then
-						Message.Result = Cast(LResult, SetCursor(This.Cursor->Handle))
+					If CInt(This.Cursor.Handle <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not DesignMode) Then
+						Message.Result = Cast(LResult, SetCursor(This.Cursor.Handle))
 					End If
 				Case WM_HSCROLL
 					If Not Message.LParam = Null Then

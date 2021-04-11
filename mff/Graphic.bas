@@ -81,16 +81,74 @@ Namespace My.Sys.Drawing
 		End If
 	End Sub
 	
-	Function GraphicType.ToString() ByRef As WString
-		If Image = 0 Then
-			Return "(None)"
-		Else
-			Select Case ImageType
-			Case 0: Return "(Bitmap)"
-			Case 1: Return "(Icon)"
-			Case 2: Return "(Cursor)"
-			End Select
+	Sub GraphicType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
+		Dim As Integer Pos1 = InStrRev(File, ".")
+		Select Case LCase(Mid(File, Pos1 + 1))
+		Case "bmp": Bitmap.LoadFromFile(File, cxDesired, cyDesired)
+		Case "png": Bitmap.LoadFromPNGFile(File, cxDesired, cyDesired)
+		Case "ico": Icon.LoadFromFile(File, cxDesired, cyDesired)
+		Case "cur": Cursor.LoadFromFile(File)
+		Case Else: Bitmap.LoadFromFile(File, cxDesired, cyDesired)
+		End Select
+	End Sub
+	
+	#ifdef __USE_GTK__
+		Sub GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0)
+	#else
+		Sub GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0)
+	#endif
+		FResName = ResName
+		#ifdef __USE_GTK__
+			Bitmap.LoadFromResourceName(ResName)
+		#else
+			If FindResource(ModuleHandle, ResName, RT_BITMAP) Then
+				Bitmap.LoadFromResourceName(ResName)
+			ElseIf FindResource(ModuleHandle, ResName, "PNG") Then
+				Bitmap.LoadFromPNGResourceName(ResName)
+			ElseIf FindResource(ModuleHandle, ResName, RT_ICON) Then
+				Icon.LoadFromResourceName(ResName)
+			ElseIf FindResource(ModuleHandle, ResName, RT_CURSOR) Then
+				Cursor.LoadFromResourceName(ResName)
+			ElseIf FindResource(ModuleHandle, ResName, RT_RCDATA) Then
+				Bitmap.LoadFromPNGResourceName(ResName)
+			Else
+				Bitmap.LoadFromResourceName(ResName)
+			End If
+		#endif
+	End Sub
+	
+	Sub GraphicType.SaveToFile(ByRef File As WString)
+		If Bitmap.Handle <> 0 Then
+			Bitmap.SaveToFile(File)
+		ElseIf Icon.Handle <> 0 Then
+			Icon.SaveToFile(File)
+		ElseIf Cursor.Handle <> 0 Then
+			Cursor.SaveToFile(File)
 		End If
+	End Sub
+	
+	Operator GraphicType.Let(ByRef Value As WString)
+		If InStr(Value, ".") > 0 Then
+			LoadFromFile(Value)
+		Else
+			LoadFromResourceName(Value)
+		End If
+	End Operator
+	
+	Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.BitmapType)
+		Bitmap.Handle = Value.Handle
+	End Operator
+	
+	Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Icon)
+		Icon.Handle = Value.Handle
+	End Operator
+	
+	Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Cursor)
+		Cursor.Handle = Value.Handle
+	End Operator
+	
+	Function GraphicType.ToString() ByRef As WString
+		Return *FResName.vptr
 	End Function
 	
 	Constructor GraphicType
@@ -106,3 +164,7 @@ Namespace My.Sys.Drawing
 	Destructor GraphicType
 	End Destructor
 End Namespace
+
+Sub GraphicTypeLoadFromFile Alias "GraphicTypeLoadFromFile"(Graphic As My.Sys.Drawing.GraphicType Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) __EXPORT__
+	Graphic->LoadFromFile(File, cxDesired, cyDesired)
+End Sub

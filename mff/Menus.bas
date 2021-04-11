@@ -35,6 +35,7 @@ Namespace My.Sys.Forms
 		Case "command": Return @FCommand
 		Case "count": Return @FCount
 		Case "enabled": Return @FEnabled
+		Case "image": Return @FImage
 		Case "imageindex": Return @FImageIndex
 		Case "imagekey": Return FImageKey
 		Case "menuindex": Return @FMenuIndex
@@ -69,6 +70,7 @@ Namespace My.Sys.Forms
 			Case "checked": This.Checked = QBoolean(Value)
 			Case "command": This.Command = QInteger(Value)
 			Case "enabled": This.Enabled = QBoolean(Value)
+			Case "image": This.Image = QWString(Value)
 			Case "imageindex": This.ImageIndex = QInteger(Value)
 			Case "imagekey": This.ImageKey = QWString(Value)
 			Case "menuindex": This.MenuIndex = QInteger(Value)
@@ -437,6 +439,18 @@ Namespace My.Sys.Forms
 			mii.cbSize = SizeOf(mii)
 			mii.fMask = MIIM_BITMAP
 			mii.hbmpItem = value.Handle
+			
+			SetItemInfo mii
+		#endif
+	End Property
+	
+	Property MenuItem.Image(ByRef value As WString)
+		FImage = value
+		#ifndef __USE_GTK__
+			Dim mii As MENUITEMINFOW
+			mii.cbSize = SizeOf(mii)
+			mii.fMask = MIIM_BITMAP
+			mii.hbmpItem = FImage.Handle
 			
 			SetItemInfo mii
 		#endif
@@ -932,7 +946,7 @@ Namespace My.Sys.Forms
 	
 	Function MenuItem.Find(ByRef value As WString) As PMenuItem
 		Dim As PMenuItem FItem
-		For i As Integer = 0 To FCount -1
+		For i As Integer = 0 To FCount - 1
 			If Item(i)->Name = value Then Return Item(i)
 			FItem = Item(i)->Find(value)
 			If FItem Then If FItem->Name = value Then Return FItem
@@ -943,6 +957,12 @@ Namespace My.Sys.Forms
 	Operator MenuItem.cast As Any Ptr
 		Return @This
 	End Operator
+	
+	Sub MenuItem.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
+		With *Cast(MenuItem Ptr, Sender.Graphic)
+			.Caption = .Caption
+		End With
+	End Sub
 	
 	Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null, Checkable As Boolean = False)
 		FVisible    = True
@@ -1000,6 +1020,8 @@ Namespace My.Sys.Forms
 				'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
 			End If
 		#else
+			FImage.Graphic = @This
+			FImage.Changed = @BitmapChanged
 			FImage.Handle = 0
 		#endif
 		Caption = wCaption

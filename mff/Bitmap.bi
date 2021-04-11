@@ -41,8 +41,11 @@ Namespace My.Sys.Drawing
 		#endif
 		FTransparent As Boolean
 		FLoadFlag(2) As Integer
+		FResName As WString Ptr
 		Declare Sub Create
 	Public:
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Graphic      As Any Ptr
 		#ifdef __USE_GTK__
 			Handle 		As GdkPixBuf Ptr
@@ -73,6 +76,7 @@ Namespace My.Sys.Drawing
 		#endif
 		Declare Sub LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0)  'David Change
 		'Declare Static Function FromResourceName(ResName As String, cxDesired As Integer = 0, cyDesired As Integer = 0) As BitmapType Ptr  'David Change
+		Declare Function ToString() ByRef As WString
 		Declare Sub Clear
 		Declare Sub Free
 		Declare Operator Cast As Any Ptr

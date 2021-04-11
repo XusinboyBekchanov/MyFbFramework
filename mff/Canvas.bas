@@ -388,13 +388,35 @@ Namespace My.Sys.Drawing
 		ReleaseDevice
 	End Sub
 	
-	Sub Canvas.Draw(x As Integer,y As Integer,Image As Any Ptr)
+	Sub Canvas.Draw(x As Integer, y As Integer, Image As Any Ptr)
 		GetDevice
+		#ifndef __USE_GTK__
+			Dim As HDC MemDC
+			Dim As HBITMAP OldBitmap
+			Dim As BITMAP Bitmap01
+			MemDC = CreateCompatibleDC(Handle)
+			OldBitmap = SelectObject(MemDC, Cast(HBitmap, Image))
+			GetObject(Cast(HBitmap, Image), SizeOf(Bitmap01), @Bitmap01)
+			BitBlt(Handle, x, y, Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, SRCCOPY)
+			SelectObject(MemDC, OldBitmap)
+			DeleteDC(MemDC)
+		#endif
 		ReleaseDevice
 	End Sub
 	
 	Sub Canvas.StretchDraw(x As Integer,y As Integer,nWidth As Integer,nHeight As Integer,Image As Any Ptr)
 		GetDevice
+		#ifndef __USE_GTK__
+			Dim As HDC MemDC
+			Dim As HBITMAP OldBitmap
+			Dim As BITMAP Bitmap01
+			MemDC = CreateCompatibleDC(Handle)
+			OldBitmap = SelectObject(MemDC, Cast(HBitmap, Image))
+			GetObject(Cast(HBitmap, Image), SizeOf(Bitmap01), @Bitmap01)
+			StretchBlt(Handle, x, y, Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, nWidth, nHeight, SRCCOPY)
+			SelectObject(MemDC, OldBitmap)
+			DeleteDC(MemDC)
+		#endif
 		ReleaseDevice
 	End Sub
 	

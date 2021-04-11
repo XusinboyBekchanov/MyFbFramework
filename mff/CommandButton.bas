@@ -20,6 +20,7 @@ Namespace My.Sys.Forms
 		Case "default": Return Cast(Any Ptr, @FDefault)
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
+		Case "graphic": Return @Graphic
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -31,6 +32,7 @@ Namespace My.Sys.Forms
 		Case "default": If Value <> 0 Then This.Default = QBoolean(Value)
 		Case "tabindex": If Value <> 0 Then This.TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = QWString(Value)
+		Case "graphic": If Value <> 0 Then This.Graphic = QWString(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -97,19 +99,19 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub CommandButton.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr,ImageType As Integer)
+	Sub CommandButton.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifndef __USE_GTK__
 					Select Case ImageType
 					Case IMAGE_BITMAP
-						QCommandButton(.Ctrl->Child).Style = bsBitmap
+						'QCommandButton(.Ctrl->Child).Style = bsBitmap
 						QCommandButton(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Bitmap.Handle))
 					Case IMAGE_ICON
-						QCommandButton(.Ctrl->Child).Style = bsIcon
+						'QCommandButton(.Ctrl->Child).Style = bsIcon
 						QCommandButton(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Icon.Handle))
 					Case IMAGE_CURSOR
-						QCommandButton(.Ctrl->Child).Style = bsCursor
+						'QCommandButton(.Ctrl->Child).Style = bsCursor
 						QCommandButton(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Icon.Handle))
 					End Select
 				#endif
@@ -120,10 +122,8 @@ Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Sub CommandButton.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
-				With  QCommandButton(Sender.Child)
-					If .Style <> bsText Then
-						.Perform(BM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
-					End If
+				With QCommandButton(Sender.Child)
+					.Perform(BM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
 				End With
 			End If
 		End Sub
@@ -210,6 +210,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "CommandButton", "Button"
 				.ChildProc   = @WndProc
 				'.BackColor       = GetSysColor(COLOR_BTNFACE)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#else
 				.RegisterClass "CommandButton", @This
 			#endif

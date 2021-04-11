@@ -190,7 +190,7 @@ Namespace My.Sys.Forms
 			'Returns a Font object.
 			Font               As My.Sys.Drawing.Font
 			'Returns/sets the type of mouse pointer displayed when over part of an object.
-			Cursor             As My.Sys.Drawing.Cursor Ptr
+			Cursor             As My.Sys.Drawing.Cursor
 			'Specifies the default Help file context ID for an object.
 			HelpContext        As Integer
 			Constraints        As SizeConstraints

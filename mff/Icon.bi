@@ -45,6 +45,7 @@ Namespace My.Sys.Drawing
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		Declare Function LoadFromResourceName(ByRef ResName As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		Declare Function LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0) As Boolean
+		Declare Function ToString() ByRef As WString
 		#ifndef __USE_GTK__
 			Declare Function ToBitmap() As hBitmap
 		#endif
@@ -57,10 +58,10 @@ Namespace My.Sys.Drawing
 		#endif
 		Declare Constructor
 		Declare Destructor
-		Changed As Sub(BYREF Sender As Icon)
+		Changed As Sub(ByRef Sender As Icon)
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
+#ifndef __USE_MAKE__
 	#Include Once "Icon.bas"
 #EndIf

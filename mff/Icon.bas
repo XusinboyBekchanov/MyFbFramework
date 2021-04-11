@@ -43,6 +43,10 @@ Namespace My.Sys.Drawing
 		WLet(FResName, Value)
 	End Property
 	
+	Function Icon.ToString() ByRef As WString
+		Return *FResName
+	End Function
+	
 	Property Icon.Width As Integer
 		Return FWidth
 	End Property
@@ -126,7 +130,6 @@ Namespace My.Sys.Drawing
 			FHeight = BMP.bmHeight
 		#endif
 		If Changed Then Changed(This)
-		This.ResName = File
 		Return True
 	End Function
 	
@@ -207,3 +210,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Destructor
 End Namespace
+
+Sub IconLoadFromFile Alias "IconLoadFromFile"(Ico As My.Sys.Drawing.Icon Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) __EXPORT__
+	Ico->LoadFromFile(File, cx, cy)
+End Sub
