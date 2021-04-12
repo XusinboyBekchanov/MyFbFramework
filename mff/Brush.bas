@@ -86,7 +86,7 @@ Namespace My.Sys.Drawing
 	Constructor Brush
 		FColor = &HFFFFFF
 		FStyle = bsSolid
-		Create
+		'Create
 		WLet(FClassName, "Brush")
 	End Constructor
 	

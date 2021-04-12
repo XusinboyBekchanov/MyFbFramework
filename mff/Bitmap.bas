@@ -360,7 +360,7 @@ Namespace My.Sys.Drawing
 		FWidth       = 16
 		FHeight      = 16
 		FTransparent = False
-		Create
+		'Create
 	End Constructor
 	
 	Destructor BitmapType

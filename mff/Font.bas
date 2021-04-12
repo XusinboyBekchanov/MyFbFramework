@@ -228,7 +228,7 @@ Namespace My.Sys.Drawing
 			ReleaseDC(HWND_DESKTOP,DC)
 			FBolds(0) = 400
 			FBolds(1) = 700
-			Create
+			'Create
 		#endif
 	End Constructor
 	
