@@ -34,8 +34,8 @@ Namespace My.Sys.Drawing
 	
 	Type BitmapType Extends My.Sys.Object
 	Private:
-		FWidth       As Integer
-		FHeight      As Integer
+		FWidth       As ULong
+		FHeight      As ULong
 		#ifndef __USE_GTK__
 			FDevice      As HDC
 		#endif
