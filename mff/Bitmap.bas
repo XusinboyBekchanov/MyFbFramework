@@ -187,7 +187,7 @@ Namespace My.Sys.Drawing
 				Handle = LoadImage(ModuleHandle,ResName,IMAGE_BITMAP,cxDesired,cyDesired,LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
 			ElseIf FindResource(GetModuleHandle(NULL), ResName, RT_GROUP_ICON) Then
 				Dim As HICON IcoHandle
-				IcoHandle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_ICON, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+				IcoHandle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_ICON, cxDesired, cyDesired, LR_CREATEDIBSECTION)
 				If IcoHandle = 0 Then Return False
 				' Initialize Gdiplus
 				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
@@ -196,9 +196,119 @@ Namespace My.Sys.Drawing
 				'Dim As gdiplus.Color clr
 				Dim pImage As GpImage Ptr ', hImage As HICON
 				' Create a bitmap from the data contained in the stream
-				GdipCreateBitmapFromHICON(IcoHandle, Cast(GpBitmap Ptr Ptr, @pImage))
+				'GdipCreateBitmapFromHICON(IcoHandle, Cast(GpBitmap Ptr Ptr, @pImage))
+				Dim BMPI As BITMAPINFOHEADER, uBMP As BITMAP, ICI As ICONINFO
+				Dim r As GpRect, gBMP As BitmapData, hDC As HDC
+				Dim aBits() As Long, lPtr As Long, lMaskPtr As Long
+				
+				Const ImageLockModeWrite As Long = &H2
+				Const ImageLockModeUserInputBuf As Long = &H4
+				Const PixelFormatARGB As Long = &H26200A ' ARGB pixel format (alpha channel used)
+				Const PixelFormatpARGB As Long = &HE200B ' premultiplied/simple transparency
+				
+				GetIconInfo IcoHandle, @ICI
+				If ICI.hbmColor Then                    ' sanity checks first
+					If ICI.hbmMask = 0& Then Exit Function
+					GetObject ICI.hbmColor, Len(uBMP), @uBMP ' get icon dimensions & bitcount
+					Height = uBMP.bmHeight
+				ElseIf ICI.hbmMask = 0& Then
+					Exit Function
+				Else                                    ' get icon dimensions & bitcount
+					GetObject ICI.hbmMask, Len(uBMP), @uBMP
+					Height = uBMP.bmHeight \ 2
+				End If
+				This.Width = uBMP.bmWidth
+				Dim As Boolean isCursor = Abs(ICI.fIcon = 0&)         ' return optional parameters
+				Dim As Integer HotSpotX = ICI.xHotspot
+				Dim As Integer HotSpotY = ICI.yHotspot
+				
+				hDC = CreateCompatibleDC(0&)            ' another sanity check
+				Dim As GpBitmap Ptr pvConvertHICONtoHImageEx
+				If hDC = 0& Then
+					If Not ICI.hbmColor = 0& Then DeleteObject ICI.hbmColor
+					DeleteObject ICI.hbmMask
+					GdipCreateBitmapFromHICON IcoHandle, @pvConvertHICONtoHImageEx
+					Exit Function
+				End If                                  ' setup how we want bits returned
+				With BMPI
+					.biBitCount = 32: .biPlanes = 1: .biSize = 40
+					.biWidth = uBMP.bmWidth
+					.biHeight = -uBMP.bmHeight
+				End With
+				lMaskPtr = Height * Width               ' size processing array
+				ReDim aBits(0 To lMaskPtr + lMaskPtr - 1&)
+				If ICI.hbmColor Then                    ' get XOR color bits
+					GetDIBits hDC, ICI.hbmColor, 0&, Height, @aBits(0), Cast(LPBITMAPINFO, @BMPI), 0
+					DeleteObject ICI.hbmColor
+				Else                                    ' get XOR & AND B/W bits
+					GetDIBits hDC, ICI.hbmMask, 0&, Height, @aBits(0), Cast(LPBITMAPINFO, @BMPI), 0
+					GetDIBits hDC, ICI.hbmMask, Height, Height, @aBits(lMaskPtr), Cast(LPBITMAPINFO, @BMPI), 0
+					DeleteObject ICI.hbmMask: ICI.hbmMask = 0&
+					DeleteDC hDC                        ' done with the source bitmaps
+				End If
+				
+				If uBMP.bmBitsPixel = 32 Then               ' 32 bit color source can contain XP-like alpha channel
+					For lPtr = 0& To lMaskPtr - 1&          ' if it does, the icon mask is ignored
+						If Not (aBits(lPtr) And &HFF000000) = 0& Then
+							gBMP.PixelFormat = PixelFormatARGB
+							Exit For
+						End If
+					Next
+				End If
+				If gBMP.PixelFormat = 0& Then               ' process icon mask
+					If Not ICI.hbmMask = 0& Then            ' get mask info, if not already done
+						GetDIBits hDC, ICI.hbmMask, 0&, Height, @aBits(lMaskPtr), Cast(LPBITMAPINFO, @BMPI), 0&
+					End If                                  ' convert inverted bits to fully opaque
+					For lPtr = 0& To lMaskPtr - 1&          ' set alpha channel for fully opaque bits
+						If aBits(lPtr + lMaskPtr) = 0& Then
+							aBits(lPtr) = &HFF000000 Or aBits(lPtr)
+						ElseIf Not aBits(lPtr) = 0& Then
+							aBits(lPtr) = &HFF000000 Or aBits(lPtr)
+						End If
+					Next
+					gBMP.PixelFormat = PixelFormatpARGB
+				End If
+				If Not ICI.hbmMask = 0& Then                ' clean up
+					DeleteObject ICI.hbmMask
+					DeleteDC hDC
+				End If
+				
+				r.Height = Height: r.Width = Width        ' setup the GDI+ stuff
+				With gBMP
+					.Height = Height: .Width = Width
+					.Scan0 = VarPtr(aBits(0))
+					.stride = .Width * 4&
+				End With                                    ' create GDI+ image & prepare to transfer bits
+				If GdipCreateBitmapFromScan0(This.Width, Height, 0&, gBMP.PixelFormat, ByVal 0&, @pvConvertHICONtoHImageEx) = 0& Then
+					If GdipBitmapLockBits(pvConvertHICONtoHImageEx, @r, ImageLockModeWrite Or ImageLockModeUserInputBuf, gBMP.PixelFormat, @gBMP) Then
+						If GdipBitmapLockBits(pvConvertHICONtoHImageEx, @r, ImageLockModeWrite Or ImageLockModeUserInputBuf, gBMP.PixelFormat, @gBMP) Then gBMP.Scan0 = 0&
+					End If
+					If gBMP.Scan0 Then
+						GdipBitmapUnlockBits pvConvertHICONtoHImageEx, @gBMP
+					Else
+						GdipDisposeImage Cast(GpImage Ptr, pvConvertHICONtoHImageEx): pvConvertHICONtoHImageEx = 0&
+					End If
+				End If
+				Erase aBits                               ' clean up & return result
+				If pvConvertHICONtoHImageEx = 0& Then GdipCreateBitmapFromHICON IcoHandle, @pvConvertHICONtoHImageEx
+				'pImage = pvConvertHICONtoHImageEx
 				' Create icon from image
-				GdipCreateHBitmapFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, 0)
+				GdipCreateHBitmapFromBitmap(pvConvertHICONtoHImageEx, @Handle, 0)
+				'				Dim As HDC hdc = GetDC(HWND_DESKTOP)
+				'					    Dim As BITMAP bm
+				'					    GetObject(Handle, SizeOf(bm), @bm)
+				'					    Dim As BITMAPINFO bi
+				'					    bi.bmiHeader.biSize = SizeOf(BITMAPINFOHEADER)
+				'					    bi.bmiHeader.biWidth = bm.bmWidth
+				'					    bi.bmiHeader.biHeight = bm.bmHeight
+				'					    bi.bmiHeader.biPlanes = 1
+				'					    bi.bmiHeader.biBitCount = 32
+				'
+				'						ReDim pixels(bm.bmWidth * bm.bmHeight) As UByte
+				'					    GetDIBits(hdc, Handle, 0, bm.bmHeight, @pixels(0), @bi, DIB_RGB_COLORS)
+				'
+				'					    ?pixels(0)
+				'
 				' Free the image
 				If pImage Then GdipDisposeImage pImage
 				' Shutdown Gdiplus
@@ -223,6 +333,7 @@ Namespace My.Sys.Drawing
 				GdiplusShutdown token
 			Else
 				Dim As HRSRC hPicture = FindResourceW(ModuleHandle, ResName, "PNG")
+				If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle, ResName, RT_GROUP_ICON)
 				Dim As HRSRC hPictureData
 				Dim As Unsigned Long dwSize = SizeOfResource(ModuleHandle, hPicture)
 				Dim As HGLOBAL hGlobal = NULL
@@ -252,6 +363,7 @@ Namespace My.Sys.Drawing
 						GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
 						' Create icon from image
 						GdipCreateHBitmapFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, 0)
+						
 						' Free the image
 						If pImage Then GdipDisposeImage pImage
 						pngstream->lpVtbl->Release(pngstream)
