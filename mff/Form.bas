@@ -905,11 +905,13 @@ Namespace My.Sys.Forms
 				'Requests @This
 			End If
 		#else
-			If IsWindowVisible(Handle) Then
+			If IsIconic(Handle) Then
+				ShowWindow Handle, SW_SHOWNORMAL
+			ElseIf IsWindowVisible(Handle) Then
 				This.SetFocus
 			Else
 				If Handle Then
-					ShowWindow Handle, SW_SHOWNORMAL 'FCmdShow(FWindowState)
+					ShowWindow Handle, FCmdShow(FWindowState)
 					If FParent Then Cast(Control Ptr, FParent)->RequestAlign
 				Else
 					CreateWnd
