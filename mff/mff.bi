@@ -207,6 +207,7 @@ Using My.Sys.Forms
 	
 	Common Shared bNotRemoveObject As Boolean
 	Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Export
+		If Obj = 0 Then Return False
 		Select Case LCase(Cast(Component Ptr, Ctrl)->ClassName)
 		Case "animate": Delete_( Cast(Animate Ptr, Ctrl))
 		Case "chart": Delete_( Cast(Chart Ptr, Ctrl))
@@ -279,7 +280,8 @@ Using My.Sys.Forms
 	End Function
 	
 	Function ObjectDelete Alias "ObjectDelete"(Obj As Any Ptr) As Boolean Export
-		Select Case LCase(Cast(My.Sys.Object Ptr, Obj)->ClassName)
+		If Obj = 0 Then Return False
+ 		Select Case LCase(Cast(My.Sys.Object Ptr, Obj)->ClassName)
 		Case "toolbutton": Delete_( Cast(ToolButton Ptr, Obj))
 		Case "menuitem": Delete_( Cast(MenuItem Ptr, Obj))
 		Case "bitmaptype": Delete_( Cast(My.Sys.Drawing.BitmapType Ptr, Obj))
