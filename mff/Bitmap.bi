@@ -61,27 +61,22 @@ Namespace My.Sys.Drawing
 		Declare Property Height(Value As Integer)
 		Declare Property Transparency As Boolean
 		Declare Property Transparency(Value As Boolean)
-		Declare Sub LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) 'David Change
-		Declare Sub LoadFromPNGFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
-		Declare Sub SaveToFile(ByRef File As WString)
+		Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
+		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		#ifdef __USE_GTK__
-			Declare Sub LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0)  'David Change
+			Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
 		#else
-			Declare Sub LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0)
+			Declare Function LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#endif
-		#ifdef __USE_GTK__
-			Declare Sub LoadFromPNGResourceName(ResName As String)
-		#else
-			Declare Sub LoadFromPNGResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL))
-		#endif
-		Declare Sub LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0)  'David Change
-		'Declare Static Function FromResourceName(ResName As String, cxDesired As Integer = 0, cyDesired As Integer = 0) As BitmapType Ptr  'David Change
+		Declare Function LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
 		Declare Function ToString() ByRef As WString
 		Declare Sub Clear
 		Declare Sub Free
 		Declare Operator Cast As Any Ptr
 		Declare Operator Let(ByRef Value As WString)
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Declare Operator Let(Value As GdkPixBuf Ptr)
+		#else
 			Declare Operator Let(Value As HBITMAP)
 		#endif
 		Declare Constructor

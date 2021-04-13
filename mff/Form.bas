@@ -909,7 +909,7 @@ Namespace My.Sys.Forms
 				This.SetFocus
 			Else
 				If Handle Then
-					ShowWindow Handle, FCmdShow(FWindowState)
+					ShowWindow Handle, SW_SHOWNORMAL 'FCmdShow(FWindowState)
 					If FParent Then Cast(Control Ptr, FParent)->RequestAlign
 				Else
 					CreateWnd

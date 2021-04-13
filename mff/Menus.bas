@@ -960,7 +960,7 @@ Namespace My.Sys.Forms
 	
 	Sub MenuItem.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		With *Cast(MenuItem Ptr, Sender.Graphic)
-			.Caption = .Caption
+			'.Caption = .Caption
 		End With
 	End Sub
 	

@@ -102,10 +102,10 @@ Namespace My.Sys.Drawing
 		Declare Property HotSpotX(Value As Integer)
 		Declare Property HotSpotY As Integer
 		Declare Property HotSpotY(Value As Integer)
-		Declare Sub LoadFromFile(ByRef File As WString)
-		Declare Sub SaveToFile(ByRef File As WString)
-		Declare Sub LoadFromResourceName(ByRef ResName As WString)
-		Declare Sub LoadFromResourceID(ResID As Integer)
+		Declare Function LoadFromFile(ByRef File As WString) As Boolean
+		Declare Function SaveToFile(ByRef File As WString) As Boolean
+		Declare Function LoadFromResourceName(ByRef ResName As WString) As Boolean
+		Declare Function LoadFromResourceID(ResID As Integer) as Boolean
 		Declare Function ToString() ByRef As WString
 		Declare Operator Cast As Any Ptr
 		#ifdef __USE_GTK__

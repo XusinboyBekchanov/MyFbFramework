@@ -46,11 +46,12 @@ Namespace My.Sys.Drawing
 		FHotSpotY = Value
 	End Property
 	
-	Sub Cursor.LoadFromFile(ByRef File As WString)
+	Function Cursor.LoadFromFile(ByRef File As WString) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(0,File,IMAGE_CURSOR,0,0,LR_LOADFROMFILE)
+			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
@@ -59,16 +60,19 @@ Namespace My.Sys.Drawing
 			FHotSpotY = ICIF.yHotSpot
 		#endif
 		If Changed Then Changed(This)
-	End Sub
+		Return True
+	End Function
 	
-	Sub Cursor.SaveToFile(ByRef File As WString)
-	End Sub
+	Function Cursor.SaveToFile(ByRef File As WString) As Boolean
+		Return False
+	End Function
 	
-	Sub Cursor.LoadFromResourceName(ByRef ResName As WString)
+	Function Cursor.LoadFromResourceName(ByRef ResName As WString) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
+			If handle = 0 Then Return False
 			GetIconInfo(Handle,@ICIF)
 			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
@@ -77,13 +81,15 @@ Namespace My.Sys.Drawing
 			FHotSpotY = ICIF.yHotSpot
 		#endif
 		If Changed Then Changed(This)
-	End Sub
+		Return True
+	End Function
 	
-	Sub Cursor.LoadFromResourceID(ResID As Integer)
+	Function Cursor.LoadFromResourceID(ResID As Integer) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Handle = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(ResID), IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
+			If handle = 0 Then Return False
 			GetIconInfo(Handle,@ICIF)
 			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
@@ -92,7 +98,8 @@ Namespace My.Sys.Drawing
 			FHotSpotY = ICIF.yHotSpot
 		#endif
 		If Changed Then Changed(This)
-	End Sub
+		Return True
+	End Function
 	
 	Sub Cursor.Create
 	End Sub

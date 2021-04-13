@@ -38,14 +38,14 @@ Namespace My.Sys.Drawing
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Function ToString() ByRef As WString
-		Declare Sub LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
-		Declare Sub SaveToFile(ByRef File As WString)
+		Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		#ifdef __USE_GTK__
-			Declare Sub LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0)  'David Change
+			Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
 		#else
-			Declare Sub LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0)
+			Declare Function LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#endif
-		Declare Sub LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0)
+		Declare Function LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		Declare Constructor
 		Declare Destructor
 		Declare Operator Let(ByRef Value As WString)
