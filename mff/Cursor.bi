@@ -105,7 +105,10 @@ Namespace My.Sys.Drawing
 		Declare Function LoadFromFile(ByRef File As WString) As Boolean
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		Declare Function LoadFromResourceName(ByRef ResName As WString) As Boolean
-		Declare Function LoadFromResourceID(ResID As Integer) as Boolean
+		Declare Function LoadFromResourceID(ResID As Integer) As Boolean
+		#ifndef __USE_GTK__
+			Declare Function ToBitmap() As HBitmap
+		#endif
 		Declare Function ToString() ByRef As WString
 		Declare Operator Cast As Any Ptr
 		#ifdef __USE_GTK__

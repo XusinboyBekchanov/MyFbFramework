@@ -135,6 +135,14 @@ Namespace My.Sys.Drawing
 		Return *FResName
 	End Function
 	
+	#ifndef __USE_GTK__
+		Function Cursor.ToBitmap() As hBitmap
+			Dim As BitmapType bmpType
+			bmpType = Handle
+			Return bmpType.Handle
+		End Function
+	#endif
+	
 	#ifdef __USE_GTK__
 		Operator Cursor.Let(Value As GdkCursorType)
 			If Ctrl AndAlso Ctrl->widget Then

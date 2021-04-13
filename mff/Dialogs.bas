@@ -557,7 +557,7 @@ Function FontDialog.Execute As Boolean
 		LGF.lfUnderLine   = Font.UnderLine
 		LGF.lfStrikeOut   = Font.StrikeOut
 		LGF.lfHeight      = -MulDiv(Font.Size, GetDeviceCaps(Dc, LOGPIXELSY), 72)
-		LGF.lfWeight      = FWidth(Font.Bold)
+		LGF.lfWeight      = FWidth(Abs_(Font.Bold))
 		LGF.lfFaceName    = Font.Name
 		CF.lStructSize    = SizeOf(CHOOSEFONT)
 		CF.hwndOwner      = MainHandle

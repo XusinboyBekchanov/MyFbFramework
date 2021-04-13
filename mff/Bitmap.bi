@@ -38,6 +38,7 @@ Namespace My.Sys.Drawing
 		FHeight      As ULong
 		#ifndef __USE_GTK__
 			FDevice      As HDC
+			Declare Function LoadFromHICON(IcoHandle As HICON) As Boolean
 		#endif
 		FTransparent As Boolean
 		FLoadFlag(2) As Integer
@@ -78,6 +79,7 @@ Namespace My.Sys.Drawing
 			Declare Operator Let(Value As GdkPixBuf Ptr)
 		#else
 			Declare Operator Let(Value As HBITMAP)
+			Declare Operator Let(Value As HICON)
 		#endif
 		Declare Constructor
 		Declare Destructor
