@@ -957,6 +957,7 @@ Namespace My.Sys.Forms
 			For i = 0 To pApp->FormCount -1
 				If pApp->Forms[i]->Handle <> Handle Then Cast(Form Ptr, pApp->Forms[i]->Child)->Enabled = False
 			Next i
+			Enabled = True
 			Visible = True
 			Dim As MSG msg
 			Dim TranslateAndDispatch As Boolean
