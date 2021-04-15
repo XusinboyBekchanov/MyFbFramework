@@ -83,6 +83,8 @@ Namespace My.Sys.Forms
 		Declare Property SelCount(Value As Integer)
 		Declare Property SelItems As Integer Ptr
 		Declare Property SelItems(Value As Integer Ptr)
+		Declare Property Selected(Index As Integer) As Boolean
+		Declare Property Selected(Index As Integer, Value As Boolean)
 		Declare Property Sort As Boolean
 		Declare Property Sort(Value As Boolean)
 		Declare Property MultiSelect As Boolean

@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "multiselect": Return @FMultiSelect
 		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -24,11 +25,20 @@ Namespace My.Sys.Forms
 	
 	Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "multiselect": MultiSelect = QBoolean(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
 	End Function
+	
+	Property ListControl.Selected(Index As Integer) As Boolean
+		If Handle Then Return Perform(LB_GETSEL, Index, 0)
+	End Property
+	
+	Property ListControl.Selected(Index As Integer, Value As Boolean)
+		If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
+	End Property
 	
 	Property ListControl.TabIndex As Integer
 		Return FTabIndex
@@ -148,11 +158,11 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.ItemCount As Integer
-		#ifndef __USE_GTK__
-			If Handle Then
-				Return Perform(LB_GETCOUNT,0,0)
-			End If
-		#endif
+'		#ifndef __USE_GTK__
+'			If Handle Then
+'				Return Perform(LB_GETCOUNT,0,0)
+'			End If
+'		#endif
 		Return Items.Count
 	End Property
 	
