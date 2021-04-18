@@ -198,14 +198,14 @@ Namespace My.Sys.Forms
 		Dim As Integer i
 		If Ctrl Then
 			With QControl(Ctrl)
-				#IfNDef __USE_GTK__
+				#ifndef __USE_GTK__
 					Dim As Rect R
 					If .Handle Then
 						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
 						.Perform(TB_GETITEMRECT,I,CInt(@R))
 						FButtonTop = R.Top
 					End If
-				#EndIf
+				#endif
 			End With
 		End If
 		Return FButtonTop
@@ -218,14 +218,14 @@ Namespace My.Sys.Forms
 		Dim As Integer i
 		If Ctrl Then
 			With QControl(Ctrl)
-				#IfNDef __USE_GTK__
+				#ifndef __USE_GTK__
 					Dim As Rect R
 					If .Handle Then
 						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
 						.Perform(TB_GETITEMRECT,I,CInt(@R))
 						FButtonWidth = R.Right - R.Left
 					End If
-				#EndIf
+				#endif
 			End With
 		End If
 		Return FButtonWidth
@@ -236,7 +236,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolButton.Height As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As Rect R
 			Dim As Integer i
 			If Ctrl Then
@@ -389,9 +389,13 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Sub ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
-			Dim As ToolButton Ptr tb = user_data
-			If tb Then
-				If tb->OnClick Then tb->OnClick(*tb)
+			Dim As ToolButton Ptr tbut = user_data
+			If tbut Then
+				If tbut->OnClick Then tbut->OnClick(*tbut)
+				If tbut->Ctrl Then
+					Dim As ToolBar Ptr tb = Cast(ToolBar Ptr, tbut->Ctrl)
+					If tb->OnButtonClick Then tb->OnButtonClick(*tb, *tbut)
+				End If
 			End If
 		End Sub
 	#endif
@@ -559,7 +563,7 @@ Namespace My.Sys.Forms
 		FFlat = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_FLAT, Value
-		#EndIf
+		#endif
 	End Property
 	
 	Property ToolBar.List As Boolean
