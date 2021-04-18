@@ -283,7 +283,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	#ifdef __USE_GTK__
-		Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 	#else
 		Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 	#endif

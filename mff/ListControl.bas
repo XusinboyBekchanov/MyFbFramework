@@ -33,11 +33,25 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Property ListControl.Selected(Index As Integer) As Boolean
-		If Handle Then Return Perform(LB_GETSEL, Index, 0)
+		#ifdef __USE_GTK__
+			If widget Then Return gtk_list_box_row_is_selected(gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+		#else
+			If Handle Then Return Perform(LB_GETSEL, Index, 0)
+		#endif
 	End Property
 	
 	Property ListControl.Selected(Index As Integer, Value As Boolean)
-		If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
+		#ifdef __USE_GTK__
+			If widget Then 
+				If Value Then
+					gtk_list_box_select_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+				Else
+					gtk_list_box_unselect_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+				End If
+			End If
+		#else
+			If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
+		#endif
 	End Property
 	
 	Property ListControl.TabIndex As Integer
