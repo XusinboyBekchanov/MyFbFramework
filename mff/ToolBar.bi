@@ -67,9 +67,9 @@ Namespace My.Sys.Forms
 	Protected:
 		FName           As WString Ptr
 	Public:
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			Widget As GtkWidget Ptr
-		#EndIf
+		#endif
 		DropDownMenu  As PopupMenu
 		Tag           As Any Ptr
 		Ctrl       As Control Ptr
@@ -156,12 +156,15 @@ Namespace My.Sys.Forms
 		AState(6)       As Integer
 		AWrap(2)        As Integer
 		FButtons        As List
+		FButtonsCount As Integer
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetDropDownMenuItems
 	Public:
+		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Buttons         As ToolButtons
 		ImagesList      As ImageList Ptr
 		HotImagesList   As ImageList Ptr
@@ -188,15 +191,15 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnButtonClick As Sub(BYREF Sender As ToolBar,BYREF Button As ToolButton)
+		OnButtonClick As Sub(ByRef Sender As ToolBar,ByRef Button As ToolButton)
 	End Type
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Declare Sub ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
-	#EndIf
+	#endif
 End Namespace
 
-#IfDef __EXPORT_PROCS__
+#ifdef __EXPORT_PROCS__
 	Declare Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
 	
 	Declare Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
@@ -204,8 +207,8 @@ End Namespace
 	Declare Sub ToolBarRemoveButton Alias "ToolBarRemoveButton"(tb As My.Sys.Forms.ToolBar Ptr, Index As Integer)
 	
 	Declare Function ToolBarIndexOfButton Alias "ToolBarIndexOfButton"(tb As My.Sys.Forms.ToolBar Ptr, Btn As My.Sys.Forms.ToolButton Ptr) As Integer
-#EndIf
+#endif
 
-#IfNDef __USE_MAKE__
-	#Include Once "ToolBar.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ToolBar.bas"
+#endif

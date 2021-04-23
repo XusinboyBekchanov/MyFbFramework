@@ -45,6 +45,45 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
+	Function ToolBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "autosize": Return @FAutosize
+		Case "caption": Return @FText
+		Case "flat": Return @FFlat
+		Case "list": Return @FList
+		Case "wrapable": Return @FWrapable
+		Case "transparency": Return @FTransparent
+		Case "divider": Return @FDivider
+		Case "buttonwidth": Return @FButtonWidth
+		Case "buttonheight": Return @FButtonHeight
+		Case "buttonscount": FButtonsCount = Buttons.Count: Return @FButtonsCount
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function ToolBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "autosize": This.Autosize = QBoolean(Value)
+			Case "caption": This.Caption = QWString(Value)
+			Case "flat": This.Flat = QBoolean(Value)
+			Case "list": This.List = QBoolean(Value)
+			Case "wrapable": This.Wrapable = QBoolean(Value)
+			Case "transparency": This.Transparency = QBoolean(Value)
+			Case "divider": This.Divider = QBoolean(Value)
+			Case "buttonwidth": This.ButtonWidth = QInteger(Value)
+			Case "buttonheight": This.ButtonHeight = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
 	Function ToolButton.ToString ByRef As WString
 		Return This.Name
 	End Function
