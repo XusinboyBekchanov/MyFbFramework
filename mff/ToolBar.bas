@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 	Function ToolBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "autosize": Return @FAutosize
-		Case "caption": Return @FText
+		Case "caption": Return FText.vptr
 		Case "flat": Return @FFlat
 		Case "list": Return @FList
 		Case "wrapable": Return @FWrapable
