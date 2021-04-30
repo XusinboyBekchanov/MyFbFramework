@@ -117,7 +117,7 @@ Namespace My.Sys.Forms
 			value.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
 			value.fState      = IIf(FEnabled, MFS_ENABLED, MFS_DISABLED) Or IIf(FChecked, MFS_CHECKED, MFS_UNCHECKED)
 			value.wID         = IIf(Handle, -1, This.Command)
-			If FImageIndex <> - 1 AndAlso owner AndAlso owner->imageslist Then 
+			If FImageIndex <> - 1 AndAlso owner AndAlso owner->imageslist Then
 				FImage = owner->imageslist->GetIcon(FImageIndex).ToBitmap
 			ElseIf WGet(FImageKey) <> "" Then
 				FImage.LoadFromResourceName(*FImageKey)
@@ -128,8 +128,15 @@ Namespace My.Sys.Forms
 				Value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
 			End If
 			value.dwItemData  = Cast(dword_Ptr, Cast(Any Ptr, @This))
-			value.dwTypeData  = FCaption
-			value.cch         = Len(*FCaption)
+			Dim As WString Ptr pCaption
+			If *FCaption = "-" Then
+				WLet pCaption, "|"
+			Else
+				WLet pCaption, *FCaption
+			End If
+			value.dwTypeData  = pCaption
+			value.cch         = Len(*pCaption)
+			WDeallocate pCaption
 		End Sub
 		
 		Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
@@ -608,8 +615,14 @@ Namespace My.Sys.Forms
 			FInfo.cbSize      = SizeOf(FInfo)
 			FInfo.fMask       = MIIM_STRING Or MIIM_FTYPE
 			FInfo.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
-			FInfo.dwTypeData = FCaption
-			FInfo.cch        = Len(*FCaption)
+			Dim As WString Ptr pCaption
+			If *FCaption = "-" Then
+				WLet pCaption, "|"
+			Else
+				WLet pCaption, *FCaption
+			End If
+			FInfo.dwTypeData = pCaption
+			FInfo.cch        = Len(*pCaption)
 			If Parent Then
 				SetMenuItemInfo(Parent->Handle, MenuIndex, True, @FInfo)
 			ElseIf Owner AndAlso Owner->Handle Then
@@ -618,6 +631,7 @@ Namespace My.Sys.Forms
 			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
 				DrawMenuBar(Owner->ParentWindow->Handle)
 			End If
+			WDeallocate pCaption
 		#endif
 	End Property
 	
