@@ -60,9 +60,9 @@ Namespace My.Sys.Drawing
 		ParentControl = Value
 		If ParentControl Then
 			'ParentControl->Canvas = @This
-'			If *Ctrl Is My.Sys.Forms.Control Then
-'				Brush.Color = Cast(My.Sys.Forms.Control Ptr, Ctrl)->BackColor
-'			End If
+			'			If *Ctrl Is My.Sys.Forms.Control Then
+			'				Brush.Color = Cast(My.Sys.Forms.Control Ptr, Ctrl)->BackColor
+			'			End If
 		End If
 	End Property
 	
@@ -400,6 +400,107 @@ Namespace My.Sys.Drawing
 			BitBlt(Handle, x, y, Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
+		#endif
+		ReleaseDevice
+	End Sub
+	
+	Sub Canvas.DrawTransparent(x As Integer, y As Integer, Image As Any Ptr, cTransparentColor As UInteger = 0)
+		GetDevice
+		#ifndef __USE_GTK__
+			Dim As BITMAP     bm
+			Dim As COLORREF   cColor
+			Dim As HBITMAP    bmAndBack, bmAndObject, bmAndMem, bmSave
+			Dim As HBITMAP    bmBackOld, bmObjectOld, bmMemOld, bmSaveOld
+			Dim As HDC        hdcMem, hdcBack, hdcObject, hdcTemp, hdcSave
+			Dim As Point      ptSize
+			
+			hdcTemp = CreateCompatibleDC(Handle)
+			SelectObject(hdcTemp, Cast(HBitmap, Image))   ' Выбираем битмап
+			
+			GetObject(Cast(HBitmap, Image), SizeOf(BITMAP), Cast(LPSTR, @bm))
+			ptSize.x = bm.bmWidth            ' Получаем ширину битмапа
+			ptSize.y = bm.bmHeight           ' Получаем высоту битмапа
+			DPtoLP(hdcTemp, @ptSize, 1)      ' Конвертируем из координат
+			' устройства в логические
+			' точки
+			
+			' Создаём несколько DC для хранения временных данных.
+			hdcBack   = CreateCompatibleDC(Handle)
+			hdcObject = CreateCompatibleDC(Handle)
+			hdcMem    = CreateCompatibleDC(Handle)
+			hdcSave   = CreateCompatibleDC(Handle)
+			
+			' Создаём битмап для каждого DC.
+			
+			' Монохромный DC
+			bmAndBack   = CreateBitmap(ptSize.x, ptSize.y, 1, 1, NULL)
+			
+			' Монохромный DC
+			bmAndObject = CreateBitmap(ptSize.x, ptSize.y, 1, 1, NULL)
+			
+			bmAndMem    = CreateCompatibleBitmap(Handle, ptSize.x, ptSize.y)
+			bmSave      = CreateCompatibleBitmap(Handle, ptSize.x, ptSize.y)
+			
+			' В каждом DC должен быть выбран объект битмапа для хранения
+			' пикселей.
+			bmBackOld   = SelectObject(hdcBack, bmAndBack)
+			bmObjectOld = SelectObject(hdcObject, bmAndObject)
+			bmMemOld    = SelectObject(hdcMem, bmAndMem)
+			bmSaveOld   = SelectObject(hdcSave, bmSave)
+			
+			' Устанавливаем режим маппинга.
+			SetMapMode(hdcTemp, GetMapMode(Handle))
+			
+			' Сохраняем битмап, переданный в параметре функции, так как
+			' он будет изменён.
+			BitBlt(hdcSave, 0, 0, ptSize.x, ptSize.y, hdcTemp, 0, 0, SRCCOPY)
+			
+			' Устанавливаем фоновый цвет (в исходном DC) тех частей,
+			' которые будут прозрачными.
+			cColor = SetBkColor(hdcTemp, cTransparentColor)
+			
+			' Создаём маску для битмапа путём вызова BitBlt из исходного
+			' битмапа на монохромный битмап.
+			BitBlt(hdcObject, 0, 0, ptSize.x, ptSize.y, hdcTemp, 0, 0, SRCCOPY)
+			
+			' Устанавливаем фоновый цвет исходного DC обратно в
+			' оригинальный цвет.
+			SetBkColor(hdcTemp, cColor)
+			
+			' Создаём инверсию маски.
+			BitBlt(hdcBack, 0, 0, ptSize.x, ptSize.y, hdcObject, 0, 0, NOTSRCCOPY)
+			
+			' Копируем фон главного DC в конечный.
+			BitBlt(hdcMem, 0, 0, ptSize.x, ptSize.y, Handle, x, y, SRCCOPY)
+			
+			' Накладываем маску на те места, где будет помещён битмап.
+			BitBlt(hdcMem, 0, 0, ptSize.x, ptSize.y, hdcObject, 0, 0, SRCAND)
+			
+			' Накладываем маску на прозрачные пиксели битмапа.
+			BitBlt(hdcTemp, 0, 0, ptSize.x, ptSize.y, hdcBack, 0, 0, SRCAND)
+			
+			' Xor-им битмап с фоном на конечном DC.
+			BitBlt(hdcMem, 0, 0, ptSize.x, ptSize.y, hdcTemp, 0, 0, SRCPAINT)
+			
+			' Копируем на экран.
+			BitBlt(Handle, x, y, ptSize.x, ptSize.y, hdcMem, 0, 0, SRCCOPY)
+			
+			' Помещаем оригинальный битмап обратно в битмап, переданный в
+			' параметре функции.
+			BitBlt(hdcTemp, 0, 0, ptSize.x, ptSize.y, hdcSave, 0, 0, SRCCOPY)
+			
+			' Удаляем битмапы из памяти.
+			DeleteObject(SelectObject(hdcBack, bmBackOld))
+			DeleteObject(SelectObject(hdcObject, bmObjectOld))
+			DeleteObject(SelectObject(hdcMem, bmMemOld))
+			DeleteObject(SelectObject(hdcSave, bmSaveOld))
+			
+			' Удаляем DC из памяти.
+			DeleteDC(hdcMem)
+			DeleteDC(hdcBack)
+			DeleteDC(hdcObject)
+			DeleteDC(hdcSave)
+			DeleteDC(hdcTemp)
 		#endif
 		ReleaseDevice
 	End Sub

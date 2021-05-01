@@ -65,14 +65,14 @@ Namespace My.Sys.Forms
 		FButtonWidth  As Integer
 		FButtonHeight As Integer
 	Protected:
-		FName           As WString Ptr
+		FName         As WString Ptr
 	Public:
 		#ifdef __USE_GTK__
-			Widget As GtkWidget Ptr
+			Widget    As GtkWidget Ptr
 		#endif
+		Ctrl          As Control Ptr
 		DropDownMenu  As PopupMenu
 		Tag           As Any Ptr
-		Ctrl       As Control Ptr
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Virtual Function ToString ByRef As WString
@@ -88,9 +88,11 @@ Namespace My.Sys.Forms
 		Declare Property ImageIndex(Value As Integer)
 		Declare Property ImageKey ByRef As WString
 		Declare Property ImageKey(ByRef Value As WString)
-		Declare Property Style As Integer
+		Declare Property Parent As Control Ptr
+		Declare Property Parent(Value As Control Ptr)
+		Declare Property Style As Integer 'ToolButtonStyle
 		Declare Property Style(Value As Integer)
-		Declare Property State As Integer
+		Declare Property State As Integer 'ToolButtonState
 		Declare Property State(Value As Integer)
 		Declare Property CommandID As Integer
 		Declare Property CommandID(Value As Integer)
@@ -124,6 +126,7 @@ Namespace My.Sys.Forms
 		Declare Property Item(Index As Integer) As ToolButton Ptr
 		Declare Property Item(ByRef Key As WString) As ToolButton Ptr
 		Declare Property Item(Index As Integer, Value As ToolButton Ptr)
+		Declare Sub Add(Value As ToolButton Ptr)
 		Declare Function Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Declare Function Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Declare Sub Remove(Index As Integer)

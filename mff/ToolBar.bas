@@ -14,30 +14,55 @@
 #include once "ToolBar.bi"
 
 Namespace My.Sys.Forms
-	Sub ToolBar.GetDropDownMenuItems
-		FPopupMenuItems.Clear
-		For j As Integer = 0 To Buttons.Count - 1
-			For i As Integer = 0 To Buttons.Item(j)->DropDownMenu.Count -1
-				EnumPopupMenuItems *Buttons.Item(j)->DropDownMenu.Item(i)
-			Next i
-		Next j
-	End Sub
-	
 	Function ToolButton.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "caption": Return FCaption
+		Case "checked": Return @FChecked
+		Case "commandid": Return @FCommandID
+		Case "dropdownmenu": Return @DropdownMenu
+		Case "enabled": Return @FEnabled
+		Case "hint": Return FHint
+		Case "imageindex": Return @FImageIndex
+		Case "imagekey": Return FImageKey
+		Case "left": FButtonLeft = This.Left: Return @FButtonLeft
+		Case "top": FButtonTop = This.Top: Return @FButtonTop
+		Case "name": Return FName
+		Case "showhint": Return @FShowHint
+		Case "state": Return @FState
+		Case "style": Return @FStyle
+		Case "tag": Return This.Tag
 		Case "visible": Return @FVisible
+		Case "width": FButtonWidth = This.Width: Return @FButtonWidth
+		Case "height": FButtonHeight = This.Height: Return @FButtonHeight
+		Case "parent": Return Ctrl
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
 	End Function
-	
+
 	Function ToolButton.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
+			Case "parent": This.Parent = Value
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "caption": This.Caption = QWString(Value)
+			Case "checked": This.Checked = QBoolean(Value)
+			Case "commandid": This.CommandID = QInteger(Value)
+			Case "enabled": This.Enabled = QBoolean(Value)
+			Case "hint": This.Hint = QWString(Value)
+			Case "imageindex": This.ImageIndex = QInteger(Value)
+			Case "imagekey": This.ImageKey = QWString(Value)
+			Case "left": This.Left = QInteger(Value)
+			Case "top": This.Top = QInteger(Value)
+			Case "name": This.Name = QWString(Value)
+			Case "showhint": This.ShowHint = QBoolean(Value)
+			Case "state": This.State = QInteger(Value)
+			Case "style": This.Style = QInteger(Value)
+			Case "tag": This.Tag = Value
+			Case "parent": This.Parent = Value
 			Case "visible": This.Visible = QBoolean(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
@@ -54,8 +79,8 @@ Namespace My.Sys.Forms
 		Case "wrapable": Return @FWrapable
 		Case "transparency": Return @FTransparent
 		Case "divider": Return @FDivider
-		Case "buttonwidth": Return @FButtonWidth
-		Case "buttonheight": Return @FButtonHeight
+		Case "buttonwidth": FButtonWidth = This.ButtonWidth: Return @FButtonWidth
+		Case "buttonheight": FButtonHeight = This.ButtonHeight: Return @FButtonHeight
 		Case "buttonscount": FButtonsCount = Buttons.Count: Return @FButtonsCount
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -83,6 +108,15 @@ Namespace My.Sys.Forms
 		End If
 		Return True
 	End Function
+	
+	Sub ToolBar.GetDropDownMenuItems
+		FPopupMenuItems.Clear
+		For j As Integer = 0 To Buttons.Count - 1
+			For i As Integer = 0 To Buttons.Item(j)->DropDownMenu.Count -1
+				EnumPopupMenuItems *Buttons.Item(j)->DropDownMenu.Item(i)
+			Next i
+		Next j
+	End Sub
 	
 	Function ToolButton.ToString ByRef As WString
 		Return This.Name
@@ -122,7 +156,20 @@ Namespace My.Sys.Forms
 	Property ToolButton.Name(ByRef Value As WString)
 		WLet(FName, Value)
 	End Property
+
+	Property ToolButton.Parent As Control Ptr
+		Return Ctrl
+	End Property
 	
+	Property ToolButton.Parent(Value As Control Ptr)
+		If Ctrl <> 0 AndAlso Ctrl <> Value Then
+			Dim As Integer Index = Cast(ToolBar Ptr, Ctrl)->Buttons.IndexOf(@This)
+			If Index > -1 Then Cast(ToolBar Ptr, Ctrl)->Buttons.Remove Index
+		End If
+		Ctrl = Value
+		Cast(ToolBar Ptr, Ctrl)->Buttons.Add @This
+	End Property
+
 	Property ToolButton.Hint ByRef As WString
 		Return *FHint
 	End Property
@@ -179,7 +226,17 @@ Namespace My.Sys.Forms
 	Property ToolButton.Style(Value As Integer)
 		If Value <> FStyle Then
 			FStyle = Value
-			'If Ctrl Then QControl(Ctrl).RecreateWnd
+			#ifndef __USE_GTK__
+				If Ctrl AndAlso Ctrl->Handle Then
+					Dim As TBBUTTONINFO info
+					info.cbSize = SizeOf(info)
+					info.dwMask = TBIF_STYLE
+					info.idCommand = FCommandID
+					info.fsStyle = Value
+					Ctrl->Perform(TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
+				End If
+			#endif
+			'If Ctrl AndAlso Ctrl->Handle Then QControl(Ctrl).RecreateWnd
 		End If
 	End Property
 	
@@ -386,6 +443,7 @@ Namespace My.Sys.Forms
 		FStyle      = tbsButton
 		FEnabled    = 1
 		FVisible    = 1
+		FState      = tstEnabled
 		Caption    = ""
 		Hint       = ""
 		FShowHint   = 0
@@ -536,6 +594,34 @@ Namespace My.Sys.Forms
 		If PButton Then PButton->ImageKey         = ImageKey
 		Return PButton
 	End Function
+
+	Sub ToolButtons.Add(PButton As ToolButton Ptr)
+		FButtons.Add PButton
+		With *PButton
+			.CommandID      = 10 + FButtons.Count
+		End With
+		PButton->Ctrl = Parent
+		#ifdef __USE_GTK__
+			If Parent Then
+				gtk_toolbar_insert(gtk_toolbar(Parent->widget), gtk_tool_item(PButton->widget), Index)
+			End If
+		#else
+			Dim As TBBUTTON TB
+			TB.fsState   = PButton->State
+			TB.fsStyle   = PButton->Style
+			TB.iBitmap   = PButton->ImageIndex
+			TB.idCommand = PButton->CommandID
+			If PButton->Caption <> "" Then
+				TB.iString = CInt(@PButton->Caption)
+			Else
+				TB.iString = 0
+			End If
+			TB.dwData = Cast(DWord_Ptr, @PButton->DropDownMenu)
+			If Parent Then
+				Parent->Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+			End If
+		#endif
+	End Sub
 	
 	Sub ToolButtons.Remove(Index As Integer)
 		FButtons.Remove Index
@@ -651,6 +737,12 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolBar.ButtonWidth As Integer
+		#ifndef __USE_GTK__
+			If Handle Then
+				Var Size = Perform(TB_GETBUTTONSIZE, 0, 0)
+				FButtonWidth = LoWord(Size)
+			End If
+		#endif
 		Return FButtonWidth
 	End Property
 	
@@ -662,6 +754,12 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolBar.ButtonHeight As Integer
+		#ifndef __USE_GTK__
+			If Handle Then
+				Var Size = Perform(TB_GETBUTTONSIZE, 0, 0)
+				FButtonHeight = HiWord(Size)
+			End If
+		#endif
 		Return FButtonHeight
 	End Property
 	
@@ -778,8 +876,8 @@ Namespace My.Sys.Forms
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
 					.Perform(TB_BUTTONSTRUCTSIZE,SizeOf(TBBUTTON),0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
-					.Perform(TB_SETBUTTONSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
-					.Perform(TB_SETBITMAPSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
+					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(.FButtonWidth, .FButtonHeight))
+					'.Perform(TB_SETBITMAPSIZE, 0, MakeLong(.FButtonWidth, .FButtonHeight))
 					For i As Integer = 0 To .Buttons.Count - 1
 						Dim As TBBUTTON TB
 						'Dim As WString Ptr s = .Buttons.Button(i)->Caption
@@ -801,9 +899,9 @@ Namespace My.Sys.Forms
 					Next i
 					If .AutoSize Then .Perform(TB_AUTOSIZE,0,0)
 				#endif
-				If .DesignMode Then
-					.Buttons.Add
-				End If
+'				If .DesignMode Then
+'					.Buttons.Add
+'				End If
 			End With
 		End If
 	End Sub
@@ -884,10 +982,14 @@ End Namespace
 		Return tb->Buttons.Add(FStyle, ImageKey, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
 	End Function
 	
-	Sub ToolBarRemoveButton Alias "ToolBarRemoveButton"(tb As My.Sys.Forms.ToolBar Ptr, Index As Integer) Export
+	Sub ToolBarRemoveButton Alias "ToolBarRemoveButton" (tb As My.Sys.Forms.ToolBar Ptr, Index As Integer) Export
 		tb->Buttons.Remove Index
 	End Sub
-	
+
+	Function ToolBarButtonByIndex Alias "ToolBarButtonByIndex" (tb As My.Sys.Forms.ToolBar Ptr, Index As Integer) As My.Sys.Forms.ToolButton Ptr Export
+		Return tb->Buttons.Item(Index)
+	End Function
+
 	Function ToolBarIndexOfButton Alias "ToolBarIndexOfButton"(tb As My.Sys.Forms.ToolBar Ptr, Btn As My.Sys.Forms.ToolButton Ptr) As Integer Export
 		Return tb->Buttons.IndexOf(Btn)
 	End Function
