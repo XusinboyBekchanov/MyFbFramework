@@ -37,6 +37,7 @@ Private:
 	FText    As WString Ptr
 	FItems   As List
 Public:
+	Tag As Any Ptr
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Text ByRef As WString
@@ -57,10 +58,12 @@ Public:
 	Declare Function ContainsObject(FObj As Any Ptr) As Boolean
 	Declare Sub SaveToFile(ByRef FileName As WString)
 	Declare Sub LoadFromFile(ByRef FileName As WString)
+	Declare Operator Let(ByRef Value As WString)
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor
 	OnAdd      As Sub(ByRef Sender As WStringList, ByRef FItem As WString, FObj As Any Ptr = 0)
+	OnChange   As Sub(ByRef Sender As WStringList)
 	OnInsert   As Sub(ByRef Sender As WStringList, FIndex As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
 	OnRemove   As Sub(ByRef Sender As WStringList, FIndex As Integer)
 	OnExchange As Sub(ByRef Sender As WStringList, FIndex1 As Integer, FIndex2 As Integer)

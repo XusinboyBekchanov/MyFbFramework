@@ -9,7 +9,7 @@
 '#   Version 1.0.0                                                             #
 '###############################################################################
 
-#include once "ListItems.bi"
+#include once "WStringList.bi"
 
 #define QStringList(__Ptr__) *Cast(StringList Ptr,__Ptr__)
 
@@ -18,7 +18,7 @@ Private:
 	FText   As String
 Public:
 	'Control As My.Sys.Forms.Control Ptr
-	Items   As ListItems
+	Items   As WStringList
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Text As String
@@ -41,13 +41,13 @@ Public:
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor
-	OnAdd      As Sub(BYREF Sender As StringList, FItem As String, FObj As Any Ptr = 0)
-	OnInsert   As Sub(BYREF Sender As StringList, FIndex As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
-	OnRemove   As Sub(BYREF Sender As StringList, FIndex As Integer)
-	OnExchange As Sub(BYREF Sender As StringList, FIndex1 As Integer, FIndex2 As Integer)
-	OnClear    As Sub(BYREF Sender As StringList)
+	OnAdd      As Sub(ByRef Sender As StringList, FItem As String, FObj As Any Ptr = 0)
+	OnInsert   As Sub(ByRef Sender As StringList, FIndex As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
+	OnRemove   As Sub(ByRef Sender As StringList, FIndex As Integer)
+	OnExchange As Sub(ByRef Sender As StringList, FIndex1 As Integer, FIndex2 As Integer)
+	OnClear    As Sub(ByRef Sender As StringList)
 End Type
 
-#IfNDef __USE_MAKE__
-	#Include Once "StringList.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "StringList.bas"
+#endif

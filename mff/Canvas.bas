@@ -526,10 +526,10 @@ Namespace My.Sys.Drawing
 		ReleaseDevice
 	End Sub
 	
-	Sub Canvas.FloodFill(x As Integer,y As Integer,FillColor As Integer,FillStyle As FillStyle)
+	Sub Canvas.FloodFill(x As Integer, y As Integer, FillColor As Integer, FillStyle As FillStyle)
 		GetDevice
 		#ifndef __USE_GTK__
-			.ExtFloodFill Handle,x,y,FillColor,FillStyle
+			.ExtFloodFill Handle, x, y, FillColor, FillStyle
 		#endif
 		ReleaseDevice
 	End Sub

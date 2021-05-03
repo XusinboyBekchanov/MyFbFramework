@@ -10,7 +10,7 @@
 '###############################################################################
 
 #include once "Control.bi"
-#include once "ListItems.bi"
+#include once "WStringList.bi"
 
 Namespace My.Sys.Forms
 	#define QCheckedListBox(__Ptr__) *Cast(CheckedListBox Ptr,__Ptr__)
@@ -43,7 +43,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 	Public:
-		Items             As ListItems
+		Items             As WStringList
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property BorderStyle As Integer

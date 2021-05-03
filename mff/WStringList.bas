@@ -116,6 +116,7 @@ Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
 	End With
 	FItems.Add nItem
 	If OnAdd Then OnAdd(This, FItem, FObj)
+	If OnChange Then OnChange(This)
 	FCount = FItems.Count
 End Sub
 
@@ -127,12 +128,14 @@ Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr
 	End With
 	FItems.Insert Index, nItem
 	If OnInsert Then OnInsert(This, Index, FItem, FObj)
+	If OnChange Then OnChange(This)
 	FCount = FItems.Count
 End Sub
 
 Sub WStringList.Exchange(Index1 As Integer, Index2 As Integer)
 	FItems.Exchange(Index1, Index2)
 	If OnExchange Then OnExchange(This, Index1, Index2)
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub WStringList.Remove(Index As Integer)
@@ -140,6 +143,7 @@ Sub WStringList.Remove(Index As Integer)
 	FItems.Remove Index
 	FCount -=1' FItems.Count
 	If OnRemove Then OnRemove(This, Index)
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub WStringList.Sort(MatchCase As Boolean = False)
@@ -163,6 +167,7 @@ Sub WStringList.Clear
 	FItems.Clear
 	FCount = 0
 	If OnClear Then OnClear(This)
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub WStringList.SaveToFile(ByRef FileName As WString)
@@ -220,6 +225,10 @@ End Function
 Function WStringList.ContainsObject(FObj As Any Ptr) As Boolean
 	Return IndexOfObject(FObj) <> -1
 End Function
+
+Operator WStringList.Let(ByRef Value As WString)
+	This.Text = Value
+End Operator
 
 Constructor WStringList
 	FItems.Clear

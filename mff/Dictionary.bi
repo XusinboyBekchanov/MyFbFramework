@@ -33,15 +33,19 @@ End Type
 
 Type Dictionary Extends Object
 Private:
-	FCount   As Integer
-	FItems   As List
+	FCount      As Integer
+	FText       As WString Ptr
+	FItems      As List
 Public:
+	Tag         As Any Ptr
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Item(Index As Integer) As DictionaryItem Ptr
 	Declare Property Item(Index As Integer, FItem As DictionaryItem Ptr)
 	Declare Property Item(ByRef Key As WString) As DictionaryItem Ptr
 	Declare Property Item(ByRef Key As WString, FItem As DictionaryItem Ptr)
+	Declare Property Text ByRef As WString
+	Declare Property Text(ByRef Value As WString)
 	Declare Sub Add(ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
 	Declare Sub Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
 	Declare Sub Remove(Index As Integer)
@@ -64,9 +68,11 @@ Public:
 	Declare Function ContainsObject(Object As Any Ptr) As Boolean
 	Declare Sub SaveToFile(ByRef FileName As WString)
 	Declare Sub LoadFromFile(ByRef FileName As WString)
+	Declare Operator Let(ByRef Value As WString)
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor
+	OnChange   As Sub(ByRef Sender As Dictionary)
 End Type
 
 #ifndef __USE_MAKE__

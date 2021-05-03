@@ -8,9 +8,8 @@
 '#   Version 1.0.0                                                             #
 '###############################################################################
 
-#INCLUDE Once "List.bi"
-#INCLUDE Once "ListItems.bi"
-#INCLUDE Once "StringList.bi"
-#INCLUDE Once "ImageList.bi"
-#INCLUDE Once "Menus.bi"
+#include once "List.bi"
+#include once "StringList.bi"
+#include once "ImageList.bi"
+#include once "Menus.bi"
 

@@ -14,6 +14,26 @@
 #include once "ImageList.bi"
 
 Namespace My.Sys.Forms
+	Function ImageList.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "iconwidth": Return @FIconWidth
+		Case "iconheight": Return @FIconHeight
+		Case "items": Return @Items.Text
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function ImageList.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "iconwidth": This.IconWidth = QInteger(Value)
+		Case "iconheight": This.IconHeight = QInteger(Value)
+		Case "items": This.Items = QWString(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
 	Property ImageList.ParentWindow As Component Ptr
 		Return FParentWindow
 	End Property
@@ -23,41 +43,41 @@ Namespace My.Sys.Forms
 		NotifyWindow
 	End Property
 	
-	Property ImageList.Width As Integer
-		Return FWidth
+	Property ImageList.IconWidth As Integer
+		Return FIconWidth
 	End Property
 	
-	Property ImageList.Width(Value As Integer)
-		FWidth = Value
+	Property ImageList.IconWidth(Value As Integer)
+		FIconWidth = Value
 		#ifndef __USE_GTK__
-			ImageList_SetIconSize(Handle,FWidth,FHeight)
+			ImageList_SetIconSize(Handle, FIconWidth, FIconHeight)
 		#endif
 		NotifyWindow
 	End Property
 	
-	Property ImageList.Height As Integer
-		Return FHeight
+	Property ImageList.IconHeight As Integer
+		Return FIconHeight
 	End Property
 	
-	Property ImageList.Height(Value As Integer)
-		FHeight = Value
+	Property ImageList.IconHeight(Value As Integer)
+		FIconHeight = Value
 		#ifndef __USE_GTK__
-			ImageList_SetIconSize(Handle,FWidth,FHeight)
+			ImageList_SetIconSize(Handle, FIconWidth, FIconHeight)
 		#endif
 		NotifyWindow
 	End Property
 	
-	Property ImageList.BKColor As Integer
+	Property ImageList.BackColor As Integer
 		#ifndef __USE_GTK__
-			FBKColor = ImageList_GetBKColor(Handle)
+			FBackColor = ImageList_GetBKColor(Handle)
 		#endif
-		Return FBKColor
+		Return FBackColor
 	End Property
 	
-	Property ImageList.BKColor(Value As Integer)
-		FBKColor = Value
+	Property ImageList.BackColor(Value As Integer)
+		FBackColor = Value
 		#ifndef __USE_GTK__
-			ImageList_SetBKColor(Handle,FBKColor)
+			ImageList_SetBKColor(Handle,FBackColor)
 		#endif
 		NotifyWindow
 	End Property
@@ -70,7 +90,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Function ImageList.IndexOf(ByRef Key As WString) As Integer
-		Return FKeys.IndexOf(Key)
+		Return Items.IndexOfKey(Key)
 	End Function
 	
 	Sub ImageList.NotifyWindow
@@ -84,21 +104,23 @@ Namespace My.Sys.Forms
 	Sub ImageList.Create
 		#ifndef __USE_GTK__
 			If Handle Then ImageList_Destroy Handle
-			Handle = ImageList_Create(FWidth,FHeight,ILC_MASK Or ILC_COLOR32,AllocBy,AllocBy)
+			Handle = ImageList_Create(FWidth, FHeight, ILC_MASK Or ILC_COLOR32, InitialCount, GrowCount)
 		#endif
 	End Sub
 	
 	Sub ImageList.AddBitmap(Bmp As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
-		FKeys.Add(Key)
+		FNotChange = True
+		Items.Add(Key)
 		#ifndef __USE_GTK__
 			ImageList_Add(Handle, Bmp.Handle, Mask.Handle)
 		#endif
 	End Sub
 	
 	Sub ImageList.AddIcon(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
-		FKeys.Add(Key)
+		FNotChange = True
+		Items.Add(Key)
 		#ifndef __USE_GTK__
-			ImageList_AddIcon(Handle,Icon.Handle)
+			ImageList_AddIcon(Handle, Icon.Handle)
 		#endif
 	End Sub
 	
@@ -107,21 +129,24 @@ Namespace My.Sys.Forms
 			Dim As My.Sys.Drawing.Icon Icn
 			Icn.LoadFromResourceName(Ico)
 			If Icn.Handle Then
-				FKeys.Add(Key)
+				FNotChange = True
+				Items.Add(Key, Ico)
 				ImageList_AddIcon(Handle, Icn.Handle)
 			End If
 		End Sub
 	#endif
 	
 	Sub ImageList.AddCursor(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
-		FKeys.Add(Key)
+		FNotChange = True
+		Items.Add(Key)
 		#ifndef __USE_GTK__
-			ImageList_AddIcon(Handle,Cursor.Handle)
+			ImageList_AddIcon(Handle, Cursor.Handle)
 		#endif
 	End Sub
 	
 	Sub ImageList.AddMasked(ByRef Bmp As My.Sys.Drawing.BitmapType, MaskColor As Integer, ByRef Key As WString = "")
-		FKeys.Add(Key)
+		FNotChange = True
+		Items.Add(Key)
 		#ifndef __USE_GTK__
 			ImageList_AddMasked(Handle, Bmp.Handle,MaskColor)
 		#endif
@@ -137,7 +162,8 @@ Namespace My.Sys.Forms
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Bitm.LoadFromResourceName(Bmp, ModuleHandle)
 			If Bitm.Handle Then
-				FKeys.Add(Key)
+				FNotChange = True
+				Items.Add(Key, Bmp)
 				ImageList_AddMasked(Handle, Bitm.Handle, MaskColor)
 				NotifyWindow
 			End If
@@ -182,7 +208,8 @@ Namespace My.Sys.Forms
 					' Free the image
 					If pImage Then GdipDisposeImage pImage
 					pngstream->lpVtbl->Release(pngstream)
-					FKeys.Add(Key)
+					FNotChange = True
+					Items.Add(Key, Png)
 					'ImageList_AddIcon(Handle, hImage)
 					ImageList_AddMasked(Handle, hImage, clWhite)
 					NotifyWindow
@@ -199,6 +226,8 @@ Namespace My.Sys.Forms
 	
 	Sub ImageList.Remove(Index As Integer)
 		#ifndef __USE_GTK__
+			FNotChange = True
+			Items.Remove Index
 			ImageList_Remove(Handle,Index)
 		#endif
 	End Sub
@@ -285,6 +314,8 @@ Namespace My.Sys.Forms
 		Dim As Integer i
 		For i = 0 To Count -1
 			#ifndef __USE_GTK__
+				FNotChange = True
+				Items.Clear
 				ImageList_Remove(Handle,i)
 			#endif
 		Next i
@@ -294,15 +325,93 @@ Namespace My.Sys.Forms
 		Return @This
 	End Operator
 	
+	Sub ImageList.AddFromFile(ByRef File As WString, ByRef Key As WString = "")
+		Dim As Integer Pos1 = InStrRev(File, ".")
+		Select Case LCase(Mid(File, Pos1 + 1))
+		Case "bmp"
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromFile(File)
+			AddBitmap Bitm, Bitm, Key
+		Case "png"
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromFile(File)
+			AddBitmap Bitm, Bitm, Key
+		Case "ico"
+			Dim As My.Sys.Drawing.Icon Ico
+			Ico.LoadFromFile(File)
+			AddIcon Ico, Key
+		Case "cur"
+			Dim As My.Sys.Drawing.Cursor Cur
+			Cur.LoadFromFile(File)
+			AddCursor Cur, Key
+		Case Else
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromFile(File)
+			AddBitmap Bitm, Bitm, Key
+		End Select
+	End Sub
+	
+	Sub ImageList.AddFromResourceName(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr)
+		FNotChange = True
+		#ifdef __USE_GTK__
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromResourceName(ResName)
+			AddBitmap Bitm, Bitm, Key
+		#else
+			If FindResource(ModuleHandle, ResName, RT_BITMAP) Then
+				Dim As My.Sys.Drawing.BitmapType Bitm
+				Bitm.LoadFromResourceName(ResName)
+				AddBitmap Bitm, Bitm, Key
+			ElseIf FindResource(ModuleHandle, ResName, "PNG") Then
+				AddPNG ResName, Key
+			ElseIf FindResource(ModuleHandle, ResName, RT_ICON) Then
+				Dim As My.Sys.Drawing.Icon Ico
+				Ico.LoadFromResourceName(ResName)
+				AddIcon Ico, Key
+			ElseIf FindResource(ModuleHandle, ResName, RT_CURSOR) Then
+				Dim As My.Sys.Drawing.Cursor Cur
+				Cur.LoadFromResourceName(ResName)
+				AddCursor Cur, Key
+			ElseIf FindResource(ModuleHandle, ResName, RT_RCDATA) Then
+				AddPNG ResName, Key
+			Else
+				Dim As My.Sys.Drawing.BitmapType Bitm
+				Bitm.LoadFromResourceName(ResName)
+				AddBitmap Bitm, Bitm, Key
+			End If
+		#endif
+	End Sub
+	
+	Sub ImageList.ImageList_Change(ByRef Sender As Dictionary)
+		Dim As ImageList Ptr pimgList = Sender.Tag
+		If pimgList->FNotChange Then
+			pimgList->FNotChange = False
+		Else
+			pimgList->Clear
+			With pimgList->Items
+				For i As Integer = 0 To .Count - 1
+					If InStr(.Item(i)->Text, ".") > 0 Then
+						pimgList->AddFromFile(.Item(i)->Text, .Item(i)->Key)
+					Else
+						pimgList->AddFromResourceName(.Item(i)->Text, .Item(i)->Key)
+					End If
+				Next i
+			End With
+		End If
+	End Sub
+	
 	Constructor ImageList
 		WLet(FClassName, "ImageList")
-		AllocBy = 4
+		InitialCount = 4
+		GrowCount = 4
 		FWidth  = 16
 		FHeight = 16
+		Items.Tag = @This
+		Items.OnChange = @ImageList_Change
 		#ifdef __USE_GTK__
 			widget = gtk_icon_theme_new()
 		#else
-			Handle = ImageList_Create(FWidth,FHeight,ILC_MASK Or ILC_COLORDDB,AllocBy,AllocBy)
+			Handle = ImageList_Create(FWidth, FHeight, ILC_MASK Or ILC_COLORDDB, InitialCount, GrowCount)
 		#endif
 	End Constructor
 	
@@ -312,3 +421,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Destructor
 End Namespace
+
+Sub ImageListAddFromFile Alias "ImageListAddFromFile"(imgList As My.Sys.Forms.ImageList Ptr, ByRef File As WString, ByRef Key As WString = "") __EXPORT__
+	imgList->AddFromFile(File, Key)
+End Sub
+
+Sub ImageListAddFromResourceName Alias "ImageListAddFromResourceName" (imgList As My.Sys.Forms.ImageList Ptr, ByRef ResName As WString, ByRef Key As WString = "") __EXPORT__
+	imgList->AddFromResourceName(ResName, Key)
+End Sub

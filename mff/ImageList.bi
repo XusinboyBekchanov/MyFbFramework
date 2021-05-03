@@ -13,7 +13,7 @@
 
 #include once "Graphics.bi"
 #include once "Component.bi"
-#include once "WStringList.bi"
+#include once "Dictionary.bi"
 
 Using My.Sys.ComponentModel
 
@@ -52,33 +52,39 @@ Namespace My.Sys.Forms
 	
 	Type ImageList Extends Component
 	Private:
-		FParentWindow As Component Ptr
-		FWidth        As Integer
-		FHeight       As Integer
-		FBKColor      As Integer
-		FCount        As Integer
-		FKeys            As WStringList
-		FBMP			As My.Sys.Drawing.BitmapType
+		FParentWindow   As Component Ptr
+		FIconWidth      As Integer
+		FIconHeight     As Integer
+		FBackColor      As Integer
+		FCount          As Integer
+		FNotChange      As Boolean
+		FBMP            As My.Sys.Drawing.BitmapType
+		Declare Static Sub ImageList_Change(ByRef Sender As Dictionary)
 		Declare Sub Create
 		Declare Sub NotifyWindow
 	Public:
+		Items           As Dictionary
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#ifdef __USE_GTK__
-			Widget 			As GtkIconTheme Ptr
+			Widget      As GtkIconTheme Ptr
 		#else
-			Handle        As HIMAGELIST
+			Handle      As HIMAGELIST
 		#endif
-		AllocBy       As Integer
-		ImageType     As ImagesType
-		DrawingStyle  As DrawingStyle
+		InitialCount    As Integer
+		GrowCount       As Integer
+		ImageType       As ImagesType
+		DrawingStyle    As DrawingStyle
 		Declare Property ParentWindow As Component Ptr
 		Declare Property ParentWindow(Value As Component Ptr)
-		Declare Property Width As Integer
-		Declare Property Width(Value As Integer)
-		Declare Property Height As Integer
-		Declare Property Height(Value As Integer)
-		Declare Property BKColor As Integer
-		Declare Property BKColor(Value As Integer)
+		Declare Property IconWidth As Integer
+		Declare Property IconWidth(Value As Integer)
+		Declare Property IconHeight As Integer
+		Declare Property IconHeight(Value As Integer)
+		Declare Property BackColor As Integer
+		Declare Property BackColor(Value As Integer)
 		Declare Property Count As Integer
+		Declare Sub AddImage(ByRef Image As WString, ByRef Key As WString = "")
 		Declare Sub AddBitmap(Bitmap As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
 		Declare Sub AddIcon(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
 		#ifndef __USE_GTK__
@@ -91,6 +97,8 @@ Namespace My.Sys.Forms
 		#else
 			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
 		#endif
+		Declare Sub AddFromFile(ByRef File As WString, ByRef Key As WString = "")
+		Declare Sub AddFromResourceName(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 		#ifdef __USE_GTK__
 			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "")
 		#else

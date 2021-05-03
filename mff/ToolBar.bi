@@ -142,6 +142,8 @@ Namespace My.Sys.Forms
 	Private:
 		FButtonWidth    As Integer
 		FButtonHeight   As Integer
+		FBitmapWidth    As Integer
+		FBitmapHeight   As Integer
 		FColor          As Integer
 		FAutosize       As Boolean
 		FFlat           As Boolean
@@ -191,6 +193,10 @@ Namespace My.Sys.Forms
 		Declare Property ButtonWidth(Value As Integer)
 		Declare Property ButtonHeight As Integer
 		Declare Property ButtonHeight(Value As Integer)
+		Declare Property BitmapWidth As Integer
+		Declare Property BitmapWidth(Value As Integer)
+		Declare Property BitmapHeight As Integer
+		Declare Property BitmapHeight(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

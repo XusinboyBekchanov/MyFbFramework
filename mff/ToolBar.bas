@@ -78,7 +78,12 @@ Namespace My.Sys.Forms
 		Case "list": Return @FList
 		Case "wrapable": Return @FWrapable
 		Case "transparency": Return @FTransparent
+		Case "disabledimageslist": Return DisabledImagesList
+		Case "hotimageslist": Return HotImagesList
+		Case "imageslist": Return ImagesList
 		Case "divider": Return @FDivider
+		Case "bitmapwidth": FBitmapWidth = This.BitmapWidth: Return @FBitmapWidth
+		Case "bitmapheight": FBitmapHeight = This.BitmapHeight: Return @FBitmapHeight
 		Case "buttonwidth": FButtonWidth = This.ButtonWidth: Return @FButtonWidth
 		Case "buttonheight": FButtonHeight = This.ButtonHeight: Return @FButtonHeight
 		Case "buttonscount": FButtonsCount = Buttons.Count: Return @FButtonsCount
@@ -95,14 +100,19 @@ Namespace My.Sys.Forms
 		Else
 			Select Case LCase(PropertyName)
 			Case "autosize": This.Autosize = QBoolean(Value)
+			Case "bitmapwidth": This.BitmapWidth = QInteger(Value)
+			Case "bitmapheight": This.BitmapHeight = QInteger(Value)
+			Case "buttonwidth": This.ButtonWidth = QInteger(Value)
+			Case "buttonheight": This.ButtonHeight = QInteger(Value)
 			Case "caption": This.Caption = QWString(Value)
 			Case "flat": This.Flat = QBoolean(Value)
 			Case "list": This.List = QBoolean(Value)
-			Case "wrapable": This.Wrapable = QBoolean(Value)
-			Case "transparency": This.Transparency = QBoolean(Value)
+			Case "disabledimageslist": This.DisabledImagesList = Value
+			Case "hotimageslist": This.HotImagesList = Value
+			Case "imageslist": This.ImagesList = Value
 			Case "divider": This.Divider = QBoolean(Value)
-			Case "buttonwidth": This.ButtonWidth = QInteger(Value)
-			Case "buttonheight": This.ButtonHeight = QInteger(Value)
+			Case "transparency": This.Transparency = QBoolean(Value)
+			Case "wrapable": This.Wrapable = QBoolean(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -155,6 +165,7 @@ Namespace My.Sys.Forms
 	
 	Property ToolButton.Name(ByRef Value As WString)
 		WLet(FName, Value)
+		DropDownMenu.Name = *FName & ".DropDownMenu"
 	End Property
 
 	Property ToolButton.Parent As Control Ptr
@@ -736,6 +747,28 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Property ToolBar.BitmapWidth As Integer
+		Return FBitmapWidth
+	End Property
+	
+	Property ToolBar.BitmapWidth(Value As Integer)
+		FBitmapWidth = Value
+		#ifndef __USE_GTK__
+			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MakeLong(FBitmapWidth, FBitmapHeight))
+		#endif
+	End Property
+	
+	Property ToolBar.BitmapHeight As Integer
+		Return FBitmapHeight
+	End Property
+	
+	Property ToolBar.BitmapHeight(Value As Integer)
+		FBitmapHeight = Value
+		#ifndef __USE_GTK__
+			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MakeLong(FBitmapWidth, FBitmapHeight))
+		#endif
+	End Property
+	
 	Property ToolBar.ButtonWidth As Integer
 		#ifndef __USE_GTK__
 			If Handle Then
@@ -877,7 +910,7 @@ Namespace My.Sys.Forms
 					.Perform(TB_BUTTONSTRUCTSIZE,SizeOf(TBBUTTON),0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
 					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(.FButtonWidth, .FButtonHeight))
-					'.Perform(TB_SETBITMAPSIZE, 0, MakeLong(.FButtonWidth, .FButtonHeight))
+					If .FBitmapWidth <> 16 AndAlso .FBitmapHeight <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MakeLong(.FBitmapWidth, .FBitmapHeight))
 					For i As Integer = 0 To .Buttons.Count - 1
 						Dim As TBBUTTON TB
 						'Dim As WString Ptr s = .Buttons.Button(i)->Caption
@@ -941,6 +974,8 @@ Namespace My.Sys.Forms
 			FAutosize       = 1
 			FButtonWidth    = 16
 			FButtonHeight   = 16
+			FBitmapWidth    = 16
+			FBitmapHeight   = 16
 			Buttons.Parent  = This
 			FEnabled = True
 			#ifndef __USE_GTK__

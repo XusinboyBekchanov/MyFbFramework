@@ -11,7 +11,7 @@
 '###############################################################################
 
 #include once "Control.bi"
-#include once "ListItems.bi"
+#include once "WStringList.bi"
 
 Namespace My.Sys.Forms
 	#define QComboBoxEdit(__Ptr__) *Cast(ComboBoxEdit Ptr,__Ptr__)
@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 			DropDownWidget As GtkWidget Ptr
 			DropDownListWidget As GtkWidget Ptr
 		#endif
-		Items             As ListItems
+		Items             As WStringList
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As ComboBoxEditStyle

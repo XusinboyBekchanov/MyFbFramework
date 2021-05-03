@@ -44,7 +44,6 @@
 #include once "LinkLabel.bi"
 #include once "List.bi"
 #include once "ListControl.bi"
-#include once "ListItems.bi"
 #include once "ListView.bi"
 #include once "Menus.bi"
 #include once "MonthCalendar.bi"

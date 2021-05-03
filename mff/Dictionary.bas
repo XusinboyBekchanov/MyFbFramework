@@ -39,7 +39,6 @@ Destructor DictionaryItem
 	If FKey Then Deallocate_( FKey)
 	If FText Then Deallocate_( FText)
 End Destructor
-
 Operator DictionaryItem.Cast As Any Ptr
 	Return @This
 End Operator
@@ -61,6 +60,7 @@ End Property
 Property Dictionary.Item(Index As Integer, FItem As DictionaryItem Ptr)
 	If Index >= 0 And Index <= Count -1 Then
 		FItems.Items[Index] = FItem
+		If OnChange Then OnChange(This)
 	End If
 End Property
 
@@ -70,25 +70,28 @@ End Property
 
 Property Dictionary.Item(ByRef Key As WString, FItem As DictionaryItem Ptr)
 	Item(IndexOfKey(Key)) = FItem
+	If OnChange Then OnChange(This)
 End Property
 
-Sub Dictionary.Add(ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
+Sub Dictionary.Add(ByRef Key As WString = "", ByRef wText As WString = "", Object As Any Ptr = 0)
 	Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 	With *nItem
 		.Key  = Key
-		.Text = Text
+		.Text = wText
 		.Object = Object
 	End With
 	FItems.Add nItem
+	If OnChange Then OnChange(This)
 End Sub
 
-Sub Dictionary.Set(ByRef Key As WString, ByRef Text As WString = "", Object As Any Ptr = 0)
+Sub Dictionary.Set(ByRef Key As WString, ByRef wText As WString = "", Object As Any Ptr = 0)
 	If Not ContainsKey(Key) Then
-		This.Add Key, Text, Object
+		This.Add Key, wText, Object
 	Else
-		Item(Key)->Text = Text
+		Item(Key)->Text = wText
 		Item(Key)->Object = Object
 	End If
+	If OnChange Then OnChange(This)
 End Sub
 
 Function Dictionary.Get(ByRef Key As WString, ByRef DefaultText As WString = "") ByRef As WString
@@ -99,23 +102,26 @@ Function Dictionary.Get(ByRef Key As WString, ByRef DefaultText As WString = "")
 	End If
 End Function
 
-Sub Dictionary.Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
+Sub Dictionary.Insert(Index As Integer, ByRef Key As WString = "", ByRef wText As WString = "", Object As Any Ptr = 0)
 	Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 	With *nItem
 		.Key  = Key
-		.Text = Text
+		.Text = wText
 		.Object = Object
 	End With
 	FItems.Insert Index, nItem
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub Dictionary.Exchange(Index1 As Integer, Index2 As Integer)
 	FItems.Exchange(Index1, Index2)
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub Dictionary.Remove(Index As Integer)
 	Delete_( Cast(DictionaryItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub Dictionary.Sort
@@ -127,6 +133,7 @@ Sub Dictionary.Sort
 			End If
 		Next
 	Next
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub Dictionary.SortKeys
@@ -138,6 +145,7 @@ Sub Dictionary.SortKeys
 			End If
 		Next
 	Next
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub Dictionary.Clear
@@ -145,21 +153,22 @@ Sub Dictionary.Clear
 		Delete_( Cast(DictionaryItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
+	If OnChange Then OnChange(This)
 End Sub
 
 Sub Dictionary.SaveToFile(ByRef FileName As WString)
 	Dim As Integer Fn = FreeFile
 	'If Open(FileName For Binary Access Write As #F) = 0 Then
 	If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then 'David Change
-		For i As Integer = 0 To Count -1
-			Print #Fn, Item(i)->Key & WChr(9) & " " & Item(i)->Text 'David Change
+		For i As Integer = 0 To Count - 1
+			Print #Fn, Item(i)->Key & ": " & Item(i)->Text 'David Change
 		Next
 	End If
 	Close #Fn
 End Sub
 
 Sub Dictionary.LoadFromFile(ByRef FileName As WString)
-	Dim As Integer Fn = FreeFile, Result = -1, Posi = -1
+	Dim As Integer Fn = FreeFile, Result = -1, Pos1 = -1
 	Dim Buff As WString * 2000 'David Change for V1.07 Line Input not working fine
 	'If Open(FileName For Binary Access Read As #Fn) = 0 Then
 	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
@@ -172,18 +181,30 @@ Sub Dictionary.LoadFromFile(ByRef FileName As WString)
 		This.Clear
 		While Not EOF(Fn)
 			Line Input #Fn, Buff
-			If Trim(Buff, Any !"\t ")<>"" Then  'David Change
-				Posi=InStr(Buff,WChr(9))
-				If Posi>0 Then Add Left(Buff,Posi), Trim(Mid(Buff,Posi+2))
+			If Trim(Buff, Any !"\t ") <> "" Then 'David Change
+				Pos1 = InStr(Buff, ": ")
+				If Pos1 > 0 Then
+					Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
+					With *nItem
+						If Pos1 > 0 Then
+							.Key  = Left(*FText, Pos1 - 1)
+							.Text = Mid(*FText, Pos1 + 2)
+						Else
+							.Key  = *FText
+						End If
+					End With
+					FItems.Add nItem
+				End If
 			End If
 		Wend
 	End If
 	Close #Fn
+	If OnChange Then OnChange(This)
 End Sub
 
-Function Dictionary.IndexOf(ByRef Text As WString) As Integer
+Function Dictionary.IndexOf(ByRef wText As WString) As Integer
 	For i As Integer = 0 To Count - 1
-		If QDictionaryItem(FItems.Items[i]).Text = Text Then Return i
+		If QDictionaryItem(FItems.Items[i]).Text = wText Then Return i
 	Next i
 	Return -1
 End Function
@@ -216,9 +237,9 @@ Function Dictionary.GetObject(ByRef Key As WString) As Any Ptr
 	Return 0
 End Function
 
-Function Dictionary.GetKey(ByRef Text As WString) ByRef As WString
+Function Dictionary.GetKey(ByRef wText As WString) ByRef As WString
 	For i As Integer = 0 To Count - 1
-		If QDictionaryItem(FItems.Items[i]).Text = Text Then Return QDictionaryItem(FItems.Items[i]).Key
+		If QDictionaryItem(FItems.Items[i]).Text = wText Then Return QDictionaryItem(FItems.Items[i]).Key
 	Next i
 	Return ""
 End Function
@@ -230,8 +251,46 @@ Function Dictionary.GetKey(Object As Any Ptr) ByRef As WString
 	Return ""
 End Function
 
-Function Dictionary.Contains(ByRef Text As WString) As Boolean
-	Return IndexOf(Text) <> -1
+Property Dictionary.Text ByRef As WString
+	WLet(FText, "")
+	For i As Integer = 0 To FItems.Count - 1
+		If i <> FItems.Count - 1 Then
+			WLet(FText, *FText & Item(i)->Key & ": " & Item(i)->Text & Chr(13) & Chr(10))
+		Else
+			WLet(FText, *FText & Item(i)->Key & ": " & Item(i)->Text)
+		End If
+	Next i
+	Return *FText
+End Property
+
+Property Dictionary.Text(ByRef Value As WString)
+	WLet(FText, "")
+	This.Clear
+	Dim As Integer Pos1
+	For i As Integer = 0 To Len(Value)
+		If Value[i] = 10 Or Value[i] = 0 Then
+			WLet(*FText, Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13)))
+			Pos1 = InStr(*FText, ": ")
+			Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
+			With *nItem
+				If Pos1 > 0 Then
+					.Key  = Left(*FText, Pos1 - 1)
+					.Text = Mid(*FText, Pos1 + 2)
+				Else
+					.Key  = *FText
+				End If
+			End With
+			FItems.Add nItem
+			WLet(FText, "")
+		Else
+			WLet(FText, *FText & WChr(Value[i]))
+		End If
+	Next i
+	If OnChange Then OnChange(This)
+End Property
+
+Function Dictionary.Contains(ByRef wText As WString) As Boolean
+	Return IndexOf(wText) <> -1
 End Function
 
 Function Dictionary.ContainsKey(ByRef Key As WString) As Boolean
@@ -241,6 +300,10 @@ End Function
 Function Dictionary.ContainsObject(Object As Any Ptr) As Boolean
 	Return IndexOfObject(Object) <> -1
 End Function
+
+Operator Dictionary.Let(ByRef Value As WString)
+	This.Text = Value
+End Operator
 
 Constructor Dictionary
 	FItems.Clear
@@ -252,4 +315,5 @@ Destructor Dictionary
 '	Next i
 '	FItems.Clear
 	This.Clear
+	If FText Then Deallocate_( FText)
 End Destructor
