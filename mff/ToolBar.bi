@@ -116,7 +116,7 @@ Namespace My.Sys.Forms
 		OnClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type ToolButtons
+	Type ToolButtons Extends My.Sys.Object
 	Private:
 		FButtons As List
 	Public:

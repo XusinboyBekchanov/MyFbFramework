@@ -58,6 +58,7 @@ Namespace My.Sys.Forms
 		FCount			As Integer
 		FItems			As PMenuItem Ptr
 		FCaption		As WString Ptr
+		pCaption        As WString Ptr
 		FText			As WString Ptr
 		FAccelerator	As WString Ptr
 		FChecked		As Boolean

@@ -128,7 +128,6 @@ Namespace My.Sys.Forms
 				Value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
 			End If
 			value.dwItemData  = Cast(dword_Ptr, Cast(Any Ptr, @This))
-			Dim As WString Ptr pCaption
 			If *FCaption = "-" Then
 				WLet pCaption, "|"
 			Else
@@ -136,7 +135,6 @@ Namespace My.Sys.Forms
 			End If
 			value.dwTypeData  = pCaption
 			value.cch         = Len(*pCaption)
-			WDeallocate pCaption
 		End Sub
 		
 		Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
@@ -557,8 +555,8 @@ Namespace My.Sys.Forms
 		If FParent <> value Then
 			Dim As PMenuItem SaveParent = FParent
 			FParent = value
-			If SaveParent Then SaveParent->Remove(This)
-			If FParent Then FParent->Add(This)
+			If SaveParent Then SaveParent->Remove(@This)
+			If FParent Then FParent->Add(@This)
 		End If
 	End Property
 	
@@ -861,7 +859,7 @@ Namespace My.Sys.Forms
 				Next i
 				FItems[Index]            = value
 				FItems[Index]->MenuIndex = Index
-				FItems[Index]->Parent    = @This
+				FItems[Index]->FParent    = @This
 				FItems[Index]->Owner     = Owner
 				'				#IfNDef __USE_GTK__
 				'					FItems[Index]->Menu      = This.Menu
@@ -1050,7 +1048,8 @@ Namespace My.Sys.Forms
 		'		FParent->Remove(@This)
 		'	End If
 		This.Clear
-		If FCaption Then Deallocate_( FCaption)
+		WDeallocate pCaption
+		WDeallocate FCaption
 		WDeallocate FText
 		WDeallocate FAccelerator
 		WDeallocate FName
@@ -1242,7 +1241,7 @@ Namespace My.Sys.Forms
 				End If
 			#else
 				value->SetInfo(FInfo)
-				InsertMenuItem(Handle,-1,True,@FInfo)
+				InsertMenuItem(Handle, -1, True, @FInfo)
 			#endif
 			For i As Integer = 0 To value->Count-1
 				value->item(i)->Owner = value->Owner
