@@ -18,6 +18,8 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "imagewidth": Return @FImageWidth
 		Case "imageheight": Return @FImageHeight
+		Case "backcolor": Return @FBackColor
+		Case "maskcolor": Return @FMaskColor
 		Case "items": Return @Items.Text
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -28,6 +30,8 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "imagewidth": This.ImageWidth = QInteger(Value)
 		Case "imageheight": This.ImageHeight = QInteger(Value)
+		Case "backcolor": This.BackColor = QInteger(Value)
+		Case "maskcolor": This.MaskColor = QInteger(Value)
 		Case "items": This.Items = QWString(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -79,6 +83,15 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			ImageList_SetBKColor(Handle,FBackColor)
 		#endif
+		NotifyWindow
+	End Property
+	
+	Property ImageList.MaskColor As Integer
+		Return FMaskColor
+	End Property
+	
+	Property ImageList.MaskColor(Value As Integer)
+		FMaskColor = Value
 		NotifyWindow
 	End Property
 	
@@ -144,23 +157,61 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ImageList.AddMasked(ByRef Bmp As My.Sys.Drawing.BitmapType, MaskColor As Integer, ByRef Key As WString = "")
+	Sub ImageList.AddMasked(ByRef Bmp As My.Sys.Drawing.BitmapType, iMaskColor As Integer, ByRef Key As WString = "")
 		FNotChange = True
 		Items.Add(Key)
 		#ifndef __USE_GTK__
 			If Bmp.Width <> FImageWidth OrElse Bmp.Height <> FImageHeight Then
-				ImageList_AddMasked(Handle, 0, MaskColor)
+				Dim As HBitmap HBitm
+				Dim As HWND desktop = GetDesktopWindow()
+				If (desktop <> NULL) Then
+					Dim As HDC screen_dev = GetDC(desktop)
+					If (screen_dev <> NULL) Then
+						' Create a compatible DC
+						Dim As HDC dst_hdc = CreateCompatibleDC(screen_dev)
+						If (dst_hdc = NULL) Then
+							ReleaseDC(desktop, screen_dev)
+						Else
+							' Create a new bitmap of icon size
+							HBitm = CreateCompatibleBitmap(screen_dev, 16, 16)
+							If (HBitm = NULL) Then
+								DeleteDC(dst_hdc)
+								ReleaseDC(desktop, screen_dev)
+							Else
+								'Select it into the compatible DC
+								Dim As HBITMAP old_dst_bmp = Cast(HBITMAP, SelectObject(dst_hdc, HBitm))
+								If (old_dst_bmp <> NULL) Then
+									' Draw the icon into the compatible DC
+									Dim As HDC MemDC
+									Dim As HBITMAP OldBitmap
+									Dim As BITMAP Bitmap01
+									MemDC = CreateCompatibleDC(screen_dev)
+									OldBitmap = SelectObject(MemDC, Bmp.Handle)
+									GetObject(Cast(HBitmap, Bmp.Handle), SizeOf(Bitmap01), @Bitmap01)
+									StretchBlt(dst_hdc, 0, 0, FImageWidth, FImageHeight, MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
+									' Restore settings
+									SelectObject(MemDC, OldBitmap)
+									SelectObject(dst_hdc, old_dst_bmp)
+									DeleteDC(MemDC)
+									DeleteDC(dst_hdc)
+									ReleaseDC(desktop, screen_dev)
+								End If
+							End If
+						End If
+					End If
+				End If
+				ImageList_AddMasked(Handle, HBitm, iMaskColor)
 			Else
-				ImageList_AddMasked(Handle, Bmp.Handle, MaskColor)
+				ImageList_AddMasked(Handle, Bmp.Handle, iMaskColor)
 			End If
 		#endif
 		NotifyWindow
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Sub ImageList.AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "")
+		Sub ImageList.AddMasked(Bmp As String, iMaskColor As Integer, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 	#else
-		Sub ImageList.AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
+		Sub ImageList.AddMasked(Bmp As String, iMaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
 	#endif
 		#ifndef __USE_GTK__
 			Dim As My.Sys.Drawing.BitmapType Bitm
@@ -168,14 +219,14 @@ Namespace My.Sys.Forms
 			If Bitm.Handle Then
 				FNotChange = True
 				Items.Add(Key, Bmp)
-				ImageList_AddMasked(Handle, Bitm.Handle, MaskColor)
+				ImageList_AddMasked(Handle, Bitm.Handle, iMaskColor)
 				NotifyWindow
 			End If
 		#endif
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Sub ImageList.AddPng(ByRef Png As WString, ByRef Key As WString = "")
+		Sub ImageList.AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 	#else
 		Sub ImageList.AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
 	#endif
@@ -226,6 +277,14 @@ Namespace My.Sys.Forms
 			' Shutdown Gdiplus
 			GdiplusShutdown token
 		#endif
+	End Sub
+	
+	Sub ImageList.Replace(Index As Integer, ByRef Image As WString)
+		
+	End Sub
+	
+	Sub ImageList.Replace(ByRef Key As WString, ByRef Image As WString)
+		This.Replace(IndexOf(Key), Image)
 	End Sub
 	
 	Sub ImageList.Remove(Index As Integer)

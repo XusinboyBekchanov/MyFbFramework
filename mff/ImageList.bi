@@ -56,6 +56,7 @@ Namespace My.Sys.Forms
 		FImageWidth      As Integer
 		FImageHeight     As Integer
 		FBackColor      As Integer
+		FMaskColor      As Integer
 		FCount          As Integer
 		FNotChange      As Boolean
 		FBMP            As My.Sys.Drawing.BitmapType
@@ -83,6 +84,8 @@ Namespace My.Sys.Forms
 		Declare Property ImageHeight(Value As Integer)
 		Declare Property BackColor As Integer
 		Declare Property BackColor(Value As Integer)
+		Declare Property MaskColor As Integer
+		Declare Property MaskColor(Value As Integer)
 		Declare Property Count As Integer
 		Declare Sub AddImage(ByRef Image As WString, ByRef Key As WString = "")
 		Declare Sub AddBitmap(Bitmap As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
@@ -93,17 +96,19 @@ Namespace My.Sys.Forms
 		Declare Sub AddCursor(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
 		Declare Sub AddMasked(ByRef Bitmap As My.Sys.Drawing.BitmapType, MaskColor As Integer, ByRef Key As WString = "")
 		#ifdef __USE_GTK__
-			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "")
+			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 		#else
 			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
 		#endif
 		Declare Sub AddFromFile(ByRef File As WString, ByRef Key As WString = "")
 		Declare Sub AddFromResourceName(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 		#ifdef __USE_GTK__
-			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "")
+			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 		#else
 			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
 		#endif
+		Declare Sub Replace(Index As Integer, ByRef Image As WString)
+		Declare Sub Replace(ByRef Key As WString, ByRef Image As WString)
 		Declare Sub Remove(Index As Integer)
 		Declare Sub Remove(ByRef Key As WString)
 		Declare Function GetBitmap(Index As Integer) As My.Sys.Drawing.BitmapType
