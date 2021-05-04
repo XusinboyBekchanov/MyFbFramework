@@ -16,8 +16,8 @@
 Namespace My.Sys.Forms
 	Function ImageList.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
-		Case "iconwidth": Return @FIconWidth
-		Case "iconheight": Return @FIconHeight
+		Case "imagewidth": Return @FImageWidth
+		Case "imageheight": Return @FImageHeight
 		Case "items": Return @Items.Text
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -26,8 +26,8 @@ Namespace My.Sys.Forms
 	
 	Function ImageList.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
-		Case "iconwidth": This.IconWidth = QInteger(Value)
-		Case "iconheight": This.IconHeight = QInteger(Value)
+		Case "imagewidth": This.ImageWidth = QInteger(Value)
+		Case "imageheight": This.ImageHeight = QInteger(Value)
 		Case "items": This.Items = QWString(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -43,26 +43,26 @@ Namespace My.Sys.Forms
 		NotifyWindow
 	End Property
 	
-	Property ImageList.IconWidth As Integer
-		Return FIconWidth
+	Property ImageList.ImageWidth As Integer
+		Return FImageWidth
 	End Property
 	
-	Property ImageList.IconWidth(Value As Integer)
-		FIconWidth = Value
+	Property ImageList.ImageWidth(Value As Integer)
+		FImageWidth = Value
 		#ifndef __USE_GTK__
-			ImageList_SetIconSize(Handle, FIconWidth, FIconHeight)
+			ImageList_SetIconSize(Handle, FImageWidth, FImageHeight)
 		#endif
 		NotifyWindow
 	End Property
 	
-	Property ImageList.IconHeight As Integer
-		Return FIconHeight
+	Property ImageList.ImageHeight As Integer
+		Return FImageHeight
 	End Property
 	
-	Property ImageList.IconHeight(Value As Integer)
-		FIconHeight = Value
+	Property ImageList.ImageHeight(Value As Integer)
+		FImageHeight = Value
 		#ifndef __USE_GTK__
-			ImageList_SetIconSize(Handle, FIconWidth, FIconHeight)
+			ImageList_SetIconSize(Handle, FImageWidth, FImageHeight)
 		#endif
 		NotifyWindow
 	End Property
@@ -148,7 +148,11 @@ Namespace My.Sys.Forms
 		FNotChange = True
 		Items.Add(Key)
 		#ifndef __USE_GTK__
-			ImageList_AddMasked(Handle, Bmp.Handle,MaskColor)
+			If Bmp.Width <> FImageWidth OrElse Bmp.Height <> FImageHeight Then
+				ImageList_AddMasked(Handle, 0, MaskColor)
+			Else
+				ImageList_AddMasked(Handle, Bmp.Handle, MaskColor)
+			End If
 		#endif
 		NotifyWindow
 	End Sub
@@ -335,7 +339,7 @@ Namespace My.Sys.Forms
 		Case "png"
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Bitm.LoadFromFile(File)
-			AddBitmap Bitm, Bitm, Key
+			AddMasked Bitm, clBlack, Key
 		Case "ico"
 			Dim As My.Sys.Drawing.Icon Ico
 			Ico.LoadFromFile(File)
@@ -382,6 +386,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Sub ImageList.AddImage(ByRef Image As WString, ByRef Key As WString = "")
+		If InStr(Image, ".") > 0 Then
+			AddFromFile(Image, Key)
+		Else
+			AddFromResourceName(Image, Key)
+		End If
+	End Sub
+	
 	Sub ImageList.ImageList_Change(ByRef Sender As Dictionary)
 		Dim As ImageList Ptr pimgList = Sender.Tag
 		If pimgList->FNotChange Then
@@ -404,6 +416,8 @@ Namespace My.Sys.Forms
 		WLet(FClassName, "ImageList")
 		InitialCount = 4
 		GrowCount = 4
+		FImageWidth  = 16
+		FImageHeight = 16
 		FWidth  = 16
 		FHeight = 16
 		Items.Tag = @This

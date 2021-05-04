@@ -53,8 +53,8 @@ Namespace My.Sys.Forms
 	Type ImageList Extends Component
 	Private:
 		FParentWindow   As Component Ptr
-		FIconWidth      As Integer
-		FIconHeight     As Integer
+		FImageWidth      As Integer
+		FImageHeight     As Integer
 		FBackColor      As Integer
 		FCount          As Integer
 		FNotChange      As Boolean
@@ -77,10 +77,10 @@ Namespace My.Sys.Forms
 		DrawingStyle    As DrawingStyle
 		Declare Property ParentWindow As Component Ptr
 		Declare Property ParentWindow(Value As Component Ptr)
-		Declare Property IconWidth As Integer
-		Declare Property IconWidth(Value As Integer)
-		Declare Property IconHeight As Integer
-		Declare Property IconHeight(Value As Integer)
+		Declare Property ImageWidth As Integer
+		Declare Property ImageWidth(Value As Integer)
+		Declare Property ImageHeight As Integer
+		Declare Property ImageHeight(Value As Integer)
 		Declare Property BackColor As Integer
 		Declare Property BackColor(Value As Integer)
 		Declare Property Count As Integer
