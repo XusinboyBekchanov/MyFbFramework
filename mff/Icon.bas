@@ -195,6 +195,10 @@ Namespace My.Sys.Drawing
 		This.ResName = WStr(Value)
 	End Operator
 	
+	Operator Icon.Let(Value As Icon)
+		Handle = Value.Handle
+	End Operator
+	
 	#ifndef __USE_GTK__
 		Operator Icon.Let(Value As HICON)
 			Handle = Value

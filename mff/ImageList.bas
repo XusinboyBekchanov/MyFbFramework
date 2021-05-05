@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 	Sub ImageList.NotifyWindow
 		If ParentWindow Then
 			#ifndef __USE_GTK__
-				If ParentWindow->Handle Then RedrawWindow ParentWindow->Handle,0,0,RDW_ERASE Or RDW_INVALIDATE
+				If ParentWindow->Handle Then RedrawWindow ParentWindow->Handle, 0, 0, RDW_ERASE Or RDW_INVALIDATE
 			#endif
 		End If
 	End Sub
@@ -170,35 +170,31 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub ImageList.AddFromFile(ByRef File As WString, ByRef Key As WString = "")
+		FNotChange = True
 		Dim As Integer Pos1 = InStrRev(File, ".")
 		Select Case LCase(Mid(File, Pos1 + 1))
 		Case "bmp"
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Bitm.LoadFromFile(File)
-			FNotAdd = True
 			This.Add Bitm, Bitm, Key
 		Case "png"
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Bitm.LoadFromFile(File)
-			FNotAdd = True
 			This.AddMasked Bitm, clBlack, Key
 		Case "ico"
 			Dim As My.Sys.Drawing.Icon Ico
 			Ico.LoadFromFile(File)
-			FNotAdd = True
 			This.Add Ico, Key
 		Case "cur"
 			Dim As My.Sys.Drawing.Cursor Cur
 			Cur.LoadFromFile(File)
-			FNotAdd = True
 			This.Add Cur, Key
 		Case Else
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Bitm.LoadFromFile(File)
-			FNotAdd = True
 			This.Add Bitm, Bitm, Key
 		End Select
-		FNotAdd = False
+		FNotChange = False
 	End Sub
 	
 	Sub ImageList.Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
@@ -405,7 +401,7 @@ Namespace My.Sys.Forms
 			FNotChange = True
 			Items.Remove Index
 			FNotChange = False
-			ImageList_Remove(Handle,Index)
+			ImageList_Remove(Handle, Index)
 		#endif
 	End Sub
 	
@@ -443,7 +439,7 @@ Namespace My.Sys.Forms
 		'Dim As My.Sys.Drawing.Icon Ptr ICO
 		'ICO = CAllocate_(SizeOf(My.Sys.Drawing.Icon))
 		#ifndef __USE_GTK__
-			Return ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType) 'ICO->Handle =
+			Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'ICO->Handle =
 		#else
 			Return 0
 		#endif
@@ -454,7 +450,7 @@ Namespace My.Sys.Forms
 		'Dim As My.Sys.Drawing.Cursor Ptr CUR
 		'CUR = CAllocate_(SizeOf(My.Sys.Drawing.Cursor))
 		#ifndef __USE_GTK__
-			Return ImageList_GetIcon(Handle,Index,DrawingStyle Or ImageType) 'CUR->Handle =
+			Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'CUR->Handle =
 		#else
 			Return 0
 		#endif
@@ -548,3 +544,7 @@ End Sub
 Sub ImageListAddFromResourceName Alias "ImageListAddFromResourceName" (imgList As My.Sys.Forms.ImageList Ptr, ByRef ResName As WString, ByRef Key As WString = "") __EXPORT__
 	imgList->Add(ResName, Key)
 End Sub
+
+Function ImageListIndexOf Alias "ImageListIndexOf" (imgList As My.Sys.Forms.ImageList Ptr, ByRef Key As WString) As Integer __EXPORT__
+	Return imgList->IndexOf(Key)
+End Function

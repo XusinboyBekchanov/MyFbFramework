@@ -307,7 +307,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
-				lvc.mask = TVIF_TEXT
+				lvc.mask = LVCF_TEXT Or LVCF_SUBITEM
 				lvc.iSubItem = Index
 				lvc.pszText = FText
 				lvc.cchTextMax = Len(*FText)
