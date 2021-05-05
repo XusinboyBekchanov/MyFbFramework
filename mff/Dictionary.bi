@@ -46,24 +46,24 @@ Public:
 	Declare Property Item(ByRef Key As WString, FItem As DictionaryItem Ptr)
 	Declare Property Text ByRef As WString
 	Declare Property Text(ByRef Value As WString)
-	Declare Sub Add(ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
-	Declare Sub Insert(Index As Integer, ByRef Key As WString = "", ByRef Text As WString = "", Object As Any Ptr = 0)
+	Declare Sub Add(ByRef Key As WString = "", ByRef wText As WString = "", Object As Any Ptr = 0)
+	Declare Sub Insert(Index As Integer, ByRef Key As WString = "", ByRef wText As WString = "", Object As Any Ptr = 0)
 	Declare Sub Remove(Index As Integer)
 	Declare Sub Remove(ByRef Key As WString)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Sort
 	Declare Sub SortKeys
 	Declare Sub Clear
-	Declare Function IndexOf(ByRef Text As WString) As Integer
+	Declare Function IndexOf(ByRef wText As WString) As Integer
 	Declare Function IndexOfKey(ByRef Key As WString) As Integer
 	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
-	Declare Sub Set(ByRef Key As WString, ByRef Text As WString = "", Object As Any Ptr = 0)
+	Declare Sub Set(ByRef Key As WString, ByRef wText As WString = "", Object As Any Ptr = 0)
 	Declare Function Get(ByRef Key As WString, ByRef DefaultText As WString = "") ByRef As WString
-	Declare Function GetKey(ByRef Text As WString) ByRef As WString
+	Declare Function GetKey(ByRef wText As WString) ByRef As WString
 	Declare Function GetKey(Object As Any Ptr) ByRef As WString
 	Declare Function GetText(ByRef Key As WString) ByRef As WString
 	Declare Function GetObject(ByRef Key As WString) As Any Ptr
-	Declare Function Contains(ByRef Text As WString) As Boolean
+	Declare Function Contains(ByRef wText As WString) As Boolean
 	Declare Function ContainsKey(ByRef Key As WString) As Boolean
 	Declare Function ContainsObject(Object As Any Ptr) As Boolean
 	Declare Sub SaveToFile(ByRef FileName As WString)

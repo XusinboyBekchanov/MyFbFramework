@@ -43,8 +43,8 @@ Namespace My.Sys.Drawing
 		Declare Property Height(Value As Integer)
 		Declare Function LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
-		Declare Function LoadFromResourceName(ByRef ResName As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
-		Declare Function LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0) As Boolean
+		Declare Function LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
+		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle as Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 		Declare Function ToString() ByRef As WString
 		#ifndef __USE_GTK__
 			Declare Function ToBitmap() As hBitmap
@@ -63,5 +63,5 @@ Namespace My.Sys.Drawing
 End Namespace
 
 #ifndef __USE_MAKE__
-	#Include Once "Icon.bas"
-#EndIf
+	#include once "Icon.bas"
+#endif

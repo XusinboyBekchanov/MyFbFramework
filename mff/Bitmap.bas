@@ -282,35 +282,33 @@ Namespace My.Sys.Drawing
 		End Function
 	#endif
 	
-	#ifdef __USE_GTK__
-		Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-	#else
-		Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-	#endif
+	Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
 		#else
+			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			Dim As BITMAP BMP
-			If FindResource(ModuleHandle, ResName, RT_BITMAP) Then
+			If FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
 				Handle = LoadImage(ModuleHandle, ResName, IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
-			ElseIf FindResource(ModuleHandle, ResName, RT_GROUP_ICON) Then
+			ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
 				Dim As HICON IcoHandle
-				IcoHandle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_ICON, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+				IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
 				If IcoHandle = 0 Then Return False
 				LoadFromHICON(IcoHandle)
-			ElseIf FindResource(ModuleHandle, ResName, RT_GROUP_CURSOR) Then
+			ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_CURSOR) Then
 				Dim As HICON IcoHandle
-				IcoHandle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+				IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
 				LoadFromHICON(IcoHandle)
 			Else
-				Dim As HRSRC hPicture = FindResourceW(ModuleHandle, ResName, "PNG")
-				If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle, ResName, RT_GROUP_ICON)
+				Dim As HRSRC hPicture = FindResourceW(ModuleHandle_, ResName, "PNG")
+				If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_GROUP_ICON)
+				If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_RCDATA)
 				Dim As HRSRC hPictureData
-				Dim As Unsigned Long dwSize = SizeOfResource(ModuleHandle, hPicture)
+				Dim As Unsigned Long dwSize = SizeOfResource(ModuleHandle_, hPicture)
 				Dim As HGLOBAL hGlobal = NULL
 				If hPicture = 0 Then Return False
-				hPictureData = LockResource(LoadResource(ModuleHandle, hPicture))
+				hPictureData = LockResource(LoadResource(ModuleHandle_, hPicture))
 				If hPictureData = 0 Then Return False
 				hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwSize)
 				If hGlobal = 0 Then Return False
@@ -334,7 +332,7 @@ Namespace My.Sys.Drawing
 						' Create a bitmap from the data contained in the stream
 						GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
 						' Create icon from image
-						GdipCreateHBitmapFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, 0)
+						GdipCreateHBitmapFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
 						
 						' Free the image
 						If pImage Then GdipDisposeImage pImage
@@ -356,10 +354,11 @@ Namespace My.Sys.Drawing
 		Return Handle <> 0
 	End Function
 	
-	Function BitmapType.LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Function BitmapType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As BITMAP BMP
-			Handle = LoadImage(GetModuleHandle(NULL),MAKEINTRESOURCE(ResID),IMAGE_BITMAP,cxDesired,cyDesired,LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
+			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
 			If Handle = 0 Then Return False
 			GetObject(Handle,SizeOf(BMP),@BMP)
 			FWidth  = BMP.bmWidth

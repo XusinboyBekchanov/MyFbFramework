@@ -7,7 +7,6 @@
 #include once "Component.bi"
 
 Namespace My.Sys.ComponentModel
-	
 	Function MarginsType.ToString ByRef As WString
 		WLet(FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom)
 		Return *FTemp

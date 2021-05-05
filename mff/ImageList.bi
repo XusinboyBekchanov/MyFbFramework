@@ -14,12 +14,13 @@
 #include once "Graphics.bi"
 #include once "Component.bi"
 #include once "Dictionary.bi"
+#include once "Canvas.bi"
 
 Using My.Sys.ComponentModel
 
 Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
-		Enum DrawingStyle
+		Enum DrawingStyles
 			dsFocus
 			dsNormal
 			dsSelected
@@ -29,12 +30,12 @@ Namespace My.Sys.Forms
 			dsBlend50
 		End Enum
 		
-		Enum ImagesType
+		Enum ImageTypes
 			itImage = 0
 			itMask
 		End Enum
 	#else
-		Enum DrawingStyle
+		Enum DrawingStyles
 			dsFocus       = ILD_FOCUS
 			dsNormal      = ILD_NORMAL
 			dsSelected    = ILD_SELECTED
@@ -44,7 +45,7 @@ Namespace My.Sys.Forms
 			dsBlend50     = ILD_BLEND50
 		End Enum
 		
-		Enum ImagesType
+		Enum ImageTypes
 			itImage = 0
 			itMask  = ILD_MASK
 		End Enum
@@ -53,12 +54,13 @@ Namespace My.Sys.Forms
 	Type ImageList Extends Component
 	Private:
 		FParentWindow   As Component Ptr
-		FImageWidth      As Integer
-		FImageHeight     As Integer
+		FImageWidth     As Integer
+		FImageHeight    As Integer
 		FBackColor      As Integer
 		FMaskColor      As Integer
 		FCount          As Integer
 		FNotChange      As Boolean
+		FNotAdd         As Boolean
 		FBMP            As My.Sys.Drawing.BitmapType
 		Declare Static Sub ImageList_Change(ByRef Sender As Dictionary)
 		Declare Sub Create
@@ -68,14 +70,14 @@ Namespace My.Sys.Forms
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#ifdef __USE_GTK__
-			Widget      As GtkIconTheme Ptr
+			Handle      As GtkIconTheme Ptr
 		#else
 			Handle      As HIMAGELIST
 		#endif
 		InitialCount    As Integer
 		GrowCount       As Integer
-		ImageType       As ImagesType
-		DrawingStyle    As DrawingStyle
+		ImageType       As ImageTypes
+		DrawingStyle    As DrawingStyles
 		Declare Property ParentWindow As Component Ptr
 		Declare Property ParentWindow(Value As Component Ptr)
 		Declare Property ImageWidth As Integer
@@ -87,28 +89,25 @@ Namespace My.Sys.Forms
 		Declare Property MaskColor As Integer
 		Declare Property MaskColor(Value As Integer)
 		Declare Property Count As Integer
-		Declare Sub AddImage(ByRef Image As WString, ByRef Key As WString = "")
-		Declare Sub AddBitmap(Bitmap As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
-		Declare Sub AddIcon(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
-		#ifndef __USE_GTK__
-			Declare Sub AddIcon(Ico As String, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-		#endif
-		Declare Sub AddCursor(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
+		Declare Property Count(Value As Integer)
+		Declare Sub Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
+		Declare Sub Add(Bmp As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
+		Declare Sub Add(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
+		Declare Sub Add(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
 		Declare Sub AddMasked(ByRef Bitmap As My.Sys.Drawing.BitmapType, MaskColor As Integer, ByRef Key As WString = "")
-		#ifdef __USE_GTK__
-			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
-		#else
-			Declare Sub AddMasked(Bmp As String, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-		#endif
+		Declare Sub AddMasked(ByRef ResName As WString, MaskColor As Integer, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 		Declare Sub AddFromFile(ByRef File As WString, ByRef Key As WString = "")
-		Declare Sub AddFromResourceName(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
-		#ifdef __USE_GTK__
-			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
-		#else
-			Declare Sub AddPng(ByRef Png As WString, ByRef Key As WString = "", ModuleHandle As HInstance = GetModuleHandle(NULL))
-		#endif
-		Declare Sub Replace(Index As Integer, ByRef Image As WString)
-		Declare Sub Replace(ByRef Key As WString, ByRef Image As WString)
+'		Declare Sub AddPng(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
+'		Declare Sub Set(Index As Integer, Bitmap As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
+'		Declare Sub Set(ByRef Key As WString, Bitmap As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
+'		Declare Sub Set(Index As Integer, Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
+'		Declare Sub Set(ByRef Key As WString, Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
+'		Declare Sub Set(Index As Integer, Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
+'		Declare Sub Set(ByRef Key As WString, Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
+'		Declare Sub Set(Index As Integer, ByRef ResName As WString, ModuleHandle As Any Ptr = 0)
+'		Declare Sub Set(ByRef Key As WString, ByRef ResName As WString, ModuleHandle As Any Ptr = 0)
+'		Declare Sub SetFromFile(Index As Integer, ByRef File As WString)
+'		Declare Sub SetFromFile(ByRef Key As WString, ByRef File As WString)
 		Declare Sub Remove(Index As Integer)
 		Declare Sub Remove(ByRef Key As WString)
 		Declare Function GetBitmap(Index As Integer) As My.Sys.Drawing.BitmapType
@@ -120,10 +119,7 @@ Namespace My.Sys.Forms
 		Declare Function GetIcon(ByRef Key As WString) As My.Sys.Drawing.Icon
 		Declare Function GetCursor(ByRef Key As WString) As My.Sys.Drawing.Cursor
 		Declare Function IndexOf(ByRef Key As WString) As Integer
-		#ifndef __USE_GTK__
-			Declare Sub DrawEx(Index As Integer, DestDC As HDC, X As Integer, Y As Integer, iWidth As Integer, iHeight As Integer, FG As Integer, BK As Integer)
-			Declare Sub Draw(Index As Integer, DestDC As HDC, X As Integer, Y As Integer)
-		#endif
+		Declare Sub Draw(Index As Integer, ByRef Canvas As My.Sys.Drawing.Canvas, X As Integer, Y As Integer, iWidth As Integer = -1, iHeight As Integer = -1, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
 		Declare Constructor

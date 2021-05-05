@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnActivate As NotifyEvent
+		OnActivate As Sub(ByRef Sender As Menu)
 	End Type
 	
 	Type MainMenu Extends Menu
@@ -238,8 +238,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnPopup As NotifyEvent
-		OnDropDown As NotifyEvent
+		OnPopup As Sub(ByRef Sender As PopupMenu)
+		OnDropDown As Sub(ByRef Sender As PopupMenu)
 	End Type
 	
 	Declare Function GetAscKeyCode(HotKey As String) As Integer

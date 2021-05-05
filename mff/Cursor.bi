@@ -104,8 +104,8 @@ Namespace My.Sys.Drawing
 		Declare Property HotSpotY(Value As Integer)
 		Declare Function LoadFromFile(ByRef File As WString) As Boolean
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
-		Declare Function LoadFromResourceName(ByRef ResName As WString) As Boolean
-		Declare Function LoadFromResourceID(ResID As Integer) As Boolean
+		Declare Function LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0) As Boolean
+		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0) As Boolean
 		#ifndef __USE_GTK__
 			Declare Function ToBitmap() As HBitmap
 		#endif

@@ -137,12 +137,13 @@ Namespace My.Sys.Drawing
 		Return False
 	End Function
 	
-	Function Icon.LoadFromResourceName(ByRef ResourceName As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+	Function Icon.LoadFromResourceName(ByRef ResourceName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			This.ResName = ResourceName
-			Handle = LoadImage(GetModuleHandle(NULL), ResName, IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+			Handle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
@@ -153,12 +154,13 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Function Icon.LoadFromResourceID(ResID As Integer, cx As Integer = 0, cy As Integer = 0) As Boolean
+	Function Icon.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			This.ResName = WStr(ResID)
-			Handle = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(ResID), IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
