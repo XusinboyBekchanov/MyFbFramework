@@ -127,8 +127,8 @@ Namespace My.Sys.Forms
 		Dim As Long i, FWidth()
 		Dim As WString Ptr s
 		Dim As WString Ptr ss
-		ReDim FWidth(Count - 1)
 		If Count > 0 Then
+			ReDim FWidth(Count - 1)
 			For i = 0 To Count - 1
 				If i = 0 Then
 					FWidth(i) = Panels[i]->Width

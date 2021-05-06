@@ -10,10 +10,10 @@
 '#  Adapted to Integer by Xusinboy Bekchanov (2018-2019)                       #
 '###############################################################################
 
-#Include Once "List.bi"
+#include once "List.bi"
 
-#DEFINE QIntegerListItem(__Ptr__) *Cast(IntegerListItem Ptr,__Ptr__)
-#DEFINE QIntegerList(__Ptr__) *Cast(IntegerList Ptr,__Ptr__)
+#define QIntegerListItem(__Ptr__) *Cast(IntegerListItem Ptr,__Ptr__)
+#define QIntegerList(__Ptr__) *Cast(IntegerList Ptr,__Ptr__)
 
 Type IntegerListItem Extends Object
 Private:
@@ -41,7 +41,7 @@ Public:
 	Declare Property Item(Index As Integer, FItem As Integer)
 	Declare Property Object(Index As Integer) As Any Ptr
 	Declare Property Object(Index As Integer, FObj As Any Ptr)
-	Declare Sub Add(Item As Integer, FObj As Any Ptr = 0)
+	Declare Sub Add(iItem As Integer, Obj As Any Ptr = 0)
 	Declare Sub Insert(Index As Integer, FItem As Integer, FObj As Any Ptr = 0)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
@@ -55,6 +55,6 @@ Public:
 	Declare Destructor
 End Type
 
-#IfNDef __USE_MAKE__
-	#Include Once "IntegerList.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "IntegerList.bas"
+#endif

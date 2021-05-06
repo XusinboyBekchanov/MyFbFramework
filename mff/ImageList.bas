@@ -548,3 +548,7 @@ End Sub
 Function ImageListIndexOf Alias "ImageListIndexOf" (imgList As My.Sys.Forms.ImageList Ptr, ByRef Key As WString) As Integer __EXPORT__
 	Return imgList->IndexOf(Key)
 End Function
+
+Sub ImageListClear Alias "ImageListClear" (imgList As My.Sys.Forms.ImageList Ptr) __EXPORT__
+	imgList->Clear
+End Sub

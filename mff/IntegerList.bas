@@ -10,7 +10,7 @@
 '#  Adapted to Integer by Xusinboy Bekchanov (2018-2019)                       #
 '###############################################################################
 
-#Include Once "IntegerList.bi"
+#include once "IntegerList.bi"
 
 'IntegerListItem
 Property IntegerListItem.Value As Integer
@@ -62,36 +62,36 @@ Property IntegerList.Item(Index As Integer) As Integer
 End Property
 
 Property IntegerList.Item(Index As Integer, FItem As Integer)
-	If Index >= 0 AND Index <= Count -1 Then
+	If Index >= 0 And Index <= Count -1 Then
 		QIntegerListItem(FItems.Items[Index]).Value = FItem
 	End If
 End Property
 
 Property IntegerList.Object(Index As Integer) As Any Ptr
-	If Index >= 0 AND Index <= Count -1 Then
+	If Index >= 0 And Index <= Count -1 Then
 		Return QIntegerListItem(FItems.Items[Index]).Object
 	End If
 	Return 0
 End Property
 
 Property IntegerList.Object(Index As Integer, FObj As Any Ptr)
-	If Index >= 0 AND Index <= Count -1 Then
+	If Index >= 0 And Index <= Count -1 Then
 		QIntegerListItem(FItems.Items[Index]).Object = FObj
 	End If
 End Property
 
-Sub IntegerList.Add(FItem As Integer, FObj As Any Ptr = 0)
+Sub IntegerList.Add(iItem As Integer, Obj As Any Ptr = 0)
 	Dim As IntegerListItem Ptr nItem = New_( IntegerListItem)
-	with *nItem
-		.Value  = FItem
-		.Object = FObj
+	With *nItem
+		.Value  = iItem
+		.Object = Obj
 	End With
 	FItems.Add nItem
 End Sub
 
 Sub IntegerList.Insert(Index As Integer, FItem As Integer, FObj As Any Ptr = 0)
 	Dim As IntegerListItem Ptr nItem = New_( IntegerListItem)
-	with *nItem
+	With *nItem
 		.Value  = FItem
 		.Object = FObj
 	End With

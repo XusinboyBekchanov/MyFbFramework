@@ -118,7 +118,7 @@ Function Val Overload(ByRef subject As UString) As Double
 End Function
 
 Operator Len(ByRef lhs As UString) As Integer
-	Return lhs.Length
+	Return Len(*lhs.vptr)
 End Operator
 
 Function WStrPtr(ByRef Value As UString) As WString Ptr
