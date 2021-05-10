@@ -46,11 +46,11 @@ Namespace My.Sys.Drawing
 		FHotSpotY = Value
 	End Property
 	
-	Function Cursor.LoadFromFile(ByRef File As WString) As Boolean
+	Function Cursor.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
-			Handle = LoadImage(0,File,IMAGE_CURSOR,0,0,LR_LOADFROMFILE)
+			Handle = LoadImage(0, File, IMAGE_CURSOR, cx, cy, LR_LOADFROMFILE)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
@@ -67,13 +67,13 @@ Namespace My.Sys.Drawing
 		Return False
 	End Function
 	
-	Function Cursor.LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0) As Boolean
+	Function Cursor.LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			Handle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
-			If handle = 0 Then Return False
+			Handle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+			If Handle = 0 Then Return False
 			GetIconInfo(Handle,@ICIF)
 			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
@@ -85,12 +85,12 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Function Cursor.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0) As Boolean
+	Function Cursor.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_CURSOR, 0, 0, LR_COPYFROMRESOURCE)
+			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
 			If handle = 0 Then Return False
 			GetIconInfo(Handle,@ICIF)
 			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
@@ -113,9 +113,7 @@ Namespace My.Sys.Drawing
 	Operator Cursor.Let(ByRef Value As WString)
 		WLet FResName, Value
 		#ifndef __USE_GTK__
-			If FindResourceW(GetModuleHandle(NULL), Value, RT_GROUP_CURSOR) Then
-				LoadFromResourceName(Value)
-			Else
+			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 				LoadFromFile(Value)
 			End If
 		#else

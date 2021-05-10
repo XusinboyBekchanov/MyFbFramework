@@ -81,7 +81,7 @@ Namespace My.Sys.Drawing
 				Dim As BITMAP BMP
 				Dim As HDC MemDC
 				If Handle Then DeleteObject Handle
-				Handle = LoadImage(0,File,IMAGE_BITMAP,cxDesired,cyDesired,LR_LOADFROMFILE Or LR_LOADMAP3DCOLORS Or FLoadFlag(Abs_(FTransparent)))
+				Handle = LoadImage(0, File, IMAGE_BITMAP, cxDesired, cyDesired, LR_LOADFROMFILE Or LR_LOADMAP3DCOLORS Or FLoadFlag(Abs_(FTransparent)))
 				If Handle = 0 Then Return False
 				GetObject(Handle,SizeOf(BMP),@BMP)
 				FWidth  = BMP.bmWidth
@@ -420,7 +420,7 @@ Namespace My.Sys.Drawing
 				LoadFromResourceName(Value)
 			End If
 		#else
-			If Not LoadFromResourceName(Value) Then
+			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 				LoadFromFile(Value)
 			End If
 		#endif

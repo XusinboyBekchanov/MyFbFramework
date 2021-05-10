@@ -195,9 +195,10 @@ Using My.Sys.Forms
 	Function CreateObject Alias "CreateObject"(ByRef ClassName As String) As Object Ptr Export
 		Obj = 0
 		Select Case LCase(ClassName)
-		Case "menuitem": Obj = New_( MenuItem)
-		Case "toolbutton": Obj = New_( ToolButton)
 		Case "bitmaptype": Obj = New_( My.Sys.Drawing.BitmapType)
+		Case "menuitem": Obj = New_( MenuItem)
+		Case "statuspanel": Obj = New_( StatusPanel)
+		Case "toolbutton": Obj = New_( ToolButton)
 		Case Else: Obj = CreateComponent(ClassName, "", 0, 0, 0)
 		End Select
 		Objects.Add Obj
@@ -281,9 +282,10 @@ Using My.Sys.Forms
 	Function ObjectDelete Alias "ObjectDelete"(Obj As Any Ptr) As Boolean Export
 		If Obj = 0 Then Return False
  		Select Case LCase(Cast(My.Sys.Object Ptr, Obj)->ClassName)
-		Case "toolbutton": Delete_( Cast(ToolButton Ptr, Obj))
-		Case "menuitem": Delete_( Cast(MenuItem Ptr, Obj))
 		Case "bitmaptype": Delete_( Cast(My.Sys.Drawing.BitmapType Ptr, Obj))
+		Case "menuitem": Delete_( Cast(MenuItem Ptr, Obj))
+		Case "statuspanel": Delete_( Cast(StatusPanel Ptr, Obj))
+		Case "toolbutton": Delete_( Cast(ToolButton Ptr, Obj))
 		Case Else: Return DeleteComponent(Obj)
 		End Select
 		If bNotRemoveObject = False Then

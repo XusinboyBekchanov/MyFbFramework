@@ -126,7 +126,7 @@ Namespace My.Sys.Forms
 		Declare Property Item(Index As Integer) As ToolButton Ptr
 		Declare Property Item(ByRef Key As WString) As ToolButton Ptr
 		Declare Property Item(Index As Integer, Value As ToolButton Ptr)
-		Declare Sub Add(Value As ToolButton Ptr)
+		Declare Sub Add(Value As ToolButton Ptr, Index As Integer = -1)
 		Declare Function Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Declare Function Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Declare Sub Remove(Index As Integer)

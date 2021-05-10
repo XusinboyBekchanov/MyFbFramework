@@ -65,22 +65,23 @@ Namespace My
 	
 	Property Application.Title ByRef As WString
 		If FTitle = 0 Then
-			#ifdef __USE_GTK__
-				If MainForm Then
-					WLet(FTitle, MainForm->Text)
-					Return *FTitle
-				End If
-			#else
-				For i As Integer = 0 To FormCount -1
-					If (GetWindowLong(Forms[i]->Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
-						WLet(FTitle, Forms[i]->Text)
-						Return *FTitle
+			WLet FTitle, GetVerInfo("ApplicationTitle")
+			If *FTitle = "" Then
+				#ifdef __USE_GTK__
+					If MainForm Then
+						WLet(FTitle, MainForm->Text)
 					End If
-				Next i
-			#endif
-		Else
-			Return *FTitle
+				#else
+					For i As Integer = 0 To FormCount -1
+						If (GetWindowLong(Forms[i]->Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
+							WLet(FTitle, Forms[i]->Text)
+							Exit For
+						End If
+					Next i
+				#endif
+			End If
 		End If
+		Return *FTitle
 	End Property
 	
 	Property Application.Title(ByRef Value As WString)

@@ -15,6 +15,11 @@
 Namespace My.Sys.Drawing
 	Function Icon.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		#ifdef __USE_GTK__
+		Case "handle": Return Handle
+		#else
+		Case "handle": Return @Handle
+		#endif
 		Case "height": Return @FHeight
 		Case "width": Return @FWidth
 		Case "resname": Return FResName
@@ -122,7 +127,7 @@ Namespace My.Sys.Drawing
 		#else
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
-			Handle = LoadImage(0, File, IMAGE_ICON, cx, cy, LR_LOADFROMFILE)
+			Handle = LoadImage(0, File, IMAGE_ICON, cx, cy, LR_LOADFROMFILE Or LR_LOADTRANSPARENT)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
@@ -181,7 +186,7 @@ Namespace My.Sys.Drawing
 	
 	Operator Icon.Let(ByRef Value As WString)
 		#ifndef __USE_GTK__
-			If Not LoadFromResourceName(Value) Then
+			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 				LoadFromFile(Value)
 			End If
 		#else

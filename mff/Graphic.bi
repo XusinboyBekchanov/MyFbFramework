@@ -40,12 +40,8 @@ Namespace My.Sys.Drawing
 		Declare Function ToString() ByRef As WString
 		Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
-		#ifdef __USE_GTK__
-			Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
-		#else
-			Declare Function LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#endif
-		Declare Function LoadFromResourceID(ResID As Integer, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
 		Declare Constructor
 		Declare Destructor
 		Declare Operator Let(ByRef Value As WString)

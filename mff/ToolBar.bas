@@ -607,7 +607,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 
-	Sub ToolButtons.Add(PButton As ToolButton Ptr)
+	Sub ToolButtons.Add(PButton As ToolButton Ptr, Index As Integer = -1)
 		FButtons.Add PButton
 		With *PButton
 			.CommandID      = 10 + FButtons.Count
@@ -630,7 +630,11 @@ Namespace My.Sys.Forms
 			End If
 			TB.dwData = Cast(DWord_Ptr, @PButton->DropDownMenu)
 			If Parent Then
-				Parent->Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+				If Index <> -1 Then
+					Parent->Perform(TB_INSERTBUTTON,Index,CInt(@TB))
+				Else
+					Parent->Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+				End If
 			End If
 		#endif
 	End Sub

@@ -27,7 +27,7 @@ Namespace My.Sys.Forms
 			pbRtlReading
 			pbNoTabParsing
 		End Enum
-	#Else
+	#else
 		Enum BevelStyle
 			pbLowered    = 0
 			pbNone       = SBT_NOBORDERS
@@ -36,29 +36,40 @@ Namespace My.Sys.Forms
 			pbRtlReading = SBT_RTLREADING
 			pbNoTabParsing = SBT_NOTABPARSING
 		End Enum
-	#EndIf
+	#endif
 	
 	Type StatusPanel Extends My.Sys.Object
 	Private:
-		FAlignment As Integer
-		FCaption   As WString Ptr
-		FBevel     As BevelStyle
-		FWidth     As Integer
+		FAlignment  As Integer
+		FCaption    As WString Ptr
+		FName       As WString Ptr
+		FBevel      As BevelStyle
+		FWidth      As Integer
+		FRealWidth  As Integer
+		StatusBarControl As My.Sys.Forms.Control Ptr
+		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 	Public:
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Index      As Integer
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			message_id As guint
 			label As GtkWidget Ptr
-		#EndIf
-		StatusBarControl As My.Sys.Forms.Control Ptr
-		Declare Property Caption ByRef As WString
-		Declare Property Caption(ByRef Value As WString)
-		Declare Property Width As Integer
-		Declare Property Width(Value As Integer)
-		Declare Property Bevel As BevelStyle
-		Declare Property Bevel(Value As BevelStyle)
+		#endif
+		Icon As My.Sys.Drawing.Icon
 		Declare Property Alignment As Integer
 		Declare Property Alignment(Value As Integer)
+		Declare Property Bevel As BevelStyle
+		Declare Property Bevel(Value As BevelStyle)
+		Declare Property Caption ByRef As WString
+		Declare Property Caption(ByRef Value As WString)
+		Declare Property Name ByRef As WString
+		Declare Property Name(ByRef Value As WString)
+		Declare Property Parent As Control Ptr
+		Declare Property Parent(Value As Control Ptr)
+		Declare Property Width As Integer
+		Declare Property Width(Value As Integer)
+		Declare Property RealWidth As Integer
 		Declare Operator Cast As Any Ptr
 		Declare Operator Let(ByRef Value As WString)
 		Declare Constructor
@@ -79,13 +90,16 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
 	Public:
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Count         As Integer
-		Font          As My.Sys.Drawing.Font
+		'Font          As My.Sys.Drawing.Font
 		Panels        As StatusPanel Ptr Ptr
-		Declare Property Panel(Index As Integer) As StatusPanel
-		Declare Property Panel(Index As Integer, Value As StatusPanel)
-		Declare Property Color As Integer
-		Declare Property Color(Value As Integer)
+		Declare Property Panel(Index As Integer) As StatusPanel Ptr
+		Declare Property Panel(Index As Integer, Value As StatusPanel Ptr)
+		Declare Property BackColor As Integer
+		Declare Property BackColor(Value As Integer)
+		Declare Function IndexOf(ByRef stPanel As StatusPanel Ptr) As Integer
 		Declare Property SimpleText ByRef As WString
 		Declare Property SimpleText(ByRef Value As WString)
 		Declare Property SimplePanel As Boolean
@@ -93,6 +107,7 @@ Namespace My.Sys.Forms
 		Declare Property SizeGrip As Boolean
 		Declare Property SizeGrip(Value As Boolean)
 		Declare Function Add(ByRef wText As WString) As StatusPanel Ptr
+		Declare Sub Add(stPanel As StatusPanel Ptr)
 		Declare Sub Remove(Index As Integer)
 		Declare Sub Clear
 		Declare Sub UpdatePanels
@@ -102,6 +117,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "StatusBar.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "StatusBar.bas"
+#endif

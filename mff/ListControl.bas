@@ -34,7 +34,11 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.Selected(Index As Integer) As Boolean
 		#ifdef __USE_GTK__
-			If widget Then Return gtk_list_box_row_is_selected(gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+			#ifdef __USE_GTK3__
+				If widget Then Return gtk_list_box_row_is_selected(gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+			#else
+				Return False
+			#endif
 		#else
 			If Handle Then Return Perform(LB_GETSEL, Index, 0)
 		#endif
@@ -44,9 +48,17 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If widget Then 
 				If Value Then
-					gtk_list_box_select_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+					#ifdef __USE_GTK3__
+						gtk_list_box_select_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+					#else
+						gtk_list_select_item(gtk_list(widget), Index)
+					#endif
 				Else
-					gtk_list_box_unselect_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+					#ifdef __USE_GTK3__
+						gtk_list_box_unselect_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
+					#else
+						gtk_list_unselect_item(gtk_list(widget), Index)
+					#endif
 				End If
 			End If
 		#else

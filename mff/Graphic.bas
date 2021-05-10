@@ -87,36 +87,53 @@ Namespace My.Sys.Drawing
 		Case "bmp": Return Bitmap.LoadFromFile(File, cxDesired, cyDesired)
 		Case "png": Return Bitmap.LoadFromFile(File, cxDesired, cyDesired)
 		Case "ico": Return Icon.LoadFromFile(File, cxDesired, cyDesired)
-		Case "cur": Return Cursor.LoadFromFile(File)
+		Case "cur": Return Cursor.LoadFromFile(File, cxDesired, cyDesired)
 		Case Else: Return Bitmap.LoadFromFile(File, cxDesired, cyDesired)
 		End Select
 	End Function
 	
-	#ifdef __USE_GTK__
-		Function GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As Integer = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-	#else
-		Function GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As HInstance = GetModuleHandle(NULL), cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-	#endif
-		FResName = ResName
+	Function GraphicType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		FResName = Str(ResID)
 		#ifdef __USE_GTK__
-			Return Bitmap.LoadFromResourceName(ResName)
+			Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 		#else
-			If FindResource(ModuleHandle, ResName, RT_BITMAP) Then
-				Return Bitmap.LoadFromResourceName(ResName)
-			ElseIf FindResource(ModuleHandle, ResName, "PNG") Then
-				Return Bitmap.LoadFromResourceName(ResName)
-			ElseIf FindResource(ModuleHandle, ResName, RT_ICON) Then
-				Return Icon.LoadFromResourceName(ResName)
-			ElseIf FindResource(ModuleHandle, ResName, RT_CURSOR) Then
-				Return Cursor.LoadFromResourceName(ResName)
-			ElseIf FindResource(ModuleHandle, ResName, RT_RCDATA) Then
-				Return Bitmap.LoadFromResourceName(ResName)
+			If FindResource(ModuleHandle, FResName, RT_BITMAP) Then
+				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, FResName, "PNG") Then
+				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, FResName, RT_ICON) Then
+				Return Icon.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, FResName, RT_CURSOR) Then
+				Return Cursor.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, FResName, RT_RCDATA) Then
+				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 			Else
-				Return Bitmap.LoadFromResourceName(ResName)
+				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 			End If
 		#endif
 	End Function
 	
+	Function GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		FResName = ResName
+		#ifdef __USE_GTK__
+			Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+		#else
+			If FindResource(ModuleHandle, ResName, RT_BITMAP) Then
+				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, ResName, "PNG") Then
+				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, ResName, RT_ICON) Then
+				Return Icon.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, ResName, RT_CURSOR) Then
+				Return Cursor.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+			ElseIf FindResource(ModuleHandle, ResName, RT_RCDATA) Then
+				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+			Else
+				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+			End If
+		#endif
+	End Function
+		
 	Function GraphicType.SaveToFile(ByRef File As WString) As Boolean
 		If Bitmap.Handle <> 0 Then
 			Return Bitmap.SaveToFile(File)
@@ -129,10 +146,8 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Operator GraphicType.Let(ByRef Value As WString)
-		If InStr(Value, ".") > 0 Then
+		If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 			LoadFromFile(Value)
-		Else
-			LoadFromResourceName(Value)
 		End If
 	End Operator
 	
