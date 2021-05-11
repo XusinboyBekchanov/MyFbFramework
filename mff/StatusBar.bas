@@ -179,7 +179,7 @@ Namespace My.Sys.Forms
 		Panels[Count -1]->Caption   = wText
 		Panels[Count -1]->Alignment = 0
 		Panels[Count -1]->Bevel     = pbLowered
-		Panels[Count - 1]->Parent = @This
+		Panels[Count - 1]->StatusBarControl = @This
 		UpdatePanels
 		Return Panels[Count - 1]
 	End Function

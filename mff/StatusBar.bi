@@ -46,11 +46,11 @@ Namespace My.Sys.Forms
 		FBevel      As BevelStyle
 		FWidth      As Integer
 		FRealWidth  As Integer
-		StatusBarControl As My.Sys.Forms.Control Ptr
 		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 	Public:
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		StatusBarControl As My.Sys.Forms.Control Ptr
 		Index      As Integer
 		#ifdef __USE_GTK__
 			message_id As guint
