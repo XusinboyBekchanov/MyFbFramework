@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "alignment": Return @FAlignment
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
+		Case "checked": Return @FChecked
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -29,6 +30,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "alignment": Alignment = *Cast(CheckAlignmentConstants Ptr, Value)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
+		Case "checked": Checked = QBoolean(Value)
 		Case "tabindex": If Value <> 0 Then TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -102,17 +104,19 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property RadioButton.Checked As Boolean
-		#ifndef __USE_GTK__
-			If Handle Then
-				FChecked = Perform(BM_GETCHECK, 0, 0)
-			End If
+		#ifdef __USE_GTK__
+			If widget Then FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
+		#else
+			If Handle Then FChecked = Perform(BM_GETCHECK, 0, 0)
 		#endif
 		Return FChecked
 	End Property
 	
 	Property RadioButton.Checked(Value As Boolean)
 		FChecked = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If widget Then gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
+		#else
 			If Handle Then Perform(BM_SETCHECK, FChecked, 0)
 		#endif
 	End Property
@@ -156,11 +160,19 @@ Namespace My.Sys.Forms
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub RadioButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
+			Dim As RadioButton Ptr but = user_data
+			If but->OnClick Then but->OnClick(*but)
+		End Sub
+	#endif
+	
 	Constructor RadioButton
 		With This
 			.Child       = @This
 			#ifdef __USE_GTK__
 				widget = gtk_radio_button_new_with_label (NULL, "")
+				g_signal_connect(widget, "toggled", G_CALLBACK(@RadioButton_Toggled), @This)
 				.RegisterClass "RadioButton", @This
 			#else
 				.RegisterClass "RadioButton","Button"

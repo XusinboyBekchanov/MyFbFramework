@@ -19,13 +19,13 @@
                 ],
             },
             "linux": {
-                "command": "/media/FreeBasic/FreeBASIC-1.07.1-linux-x86_64/bin/fbc",
+                "command": "/mnt/media/FreeBasic/FreeBASIC-1.07.3-linux-x86_64/bin/fbc",
                 "args": [
                     "-g",
                     "-b",
                     "mff.bi",
                     "-x",
-                    "../libmff64_gtk3.so",
+                    "../libmff64_gtk2.so",
                     "-dll"
                 ], 
             },

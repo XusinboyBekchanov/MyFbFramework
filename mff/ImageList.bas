@@ -497,21 +497,23 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Sub ImageList.ImageList_Change(ByRef Sender As Dictionary)
-		Dim As ImageList Ptr pimgList = Sender.Tag
-		If Not pimgList->FNotChange Then
-			Dim As Dictionary Items
-			Items.Text = Sender.Text
-			pimgList->Clear
-			With Items
-				For i As Integer = 0 To .Count - 1
-					If InStr(.Item(i)->Text, ".") > 0 Then
-						pimgList->AddFromFile(.Item(i)->Text, .Item(i)->Key)
-					Else
-						pimgList->Add(.Item(i)->Text, .Item(i)->Key)
-					End If
-				Next i
-			End With
-		End If
+		#ifndef __USE_GTK__
+			Dim As ImageList Ptr pimgList = Sender.Tag
+			If Not pimgList->FNotChange Then
+				Dim As Dictionary Items
+				Items.Text = Sender.Text
+				pimgList->Clear
+				With Items
+					For i As Integer = 0 To .Count - 1
+						If InStr(.Item(i)->Text, ".") > 0 Then
+							pimgList->AddFromFile(.Item(i)->Text, .Item(i)->Key)
+						Else
+							pimgList->Add(.Item(i)->Text, .Item(i)->Key)
+						End If
+					Next i
+				End With
+			End If
+		#endif
 	End Sub
 	
 	Constructor ImageList

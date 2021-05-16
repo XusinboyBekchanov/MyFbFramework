@@ -1,3 +1,45 @@
+Version 1.2.8 (May 16, 2021)
+- Fixed: Control Destructor in Linux
+- Added: RadioButton Checked Property in Linux
+- Fixed: ToolBar Button Captions in Linux
+- Added: StatusBar Read and Write Property Functions
+- Fixed: Icon LoadFromFile
+- Added: ImageListClear Export function
+- Fixed: UString Len function
+- Fixed: StatusBar create crash
+- Fixed: Change ListView Column Text
+- Added: ImageList Read and Write Property functions
+- Added: ImageList Stretch images
+- Fixed: ImageList AddFromFile
+- Added: Text property to Dictionary
+- Added: Canvas Draw transparent
+- Added: Top menu separator
+- Added: ReadProperty and WriteProperty function to ToolBar
+- Added: Selected(Index) property to ListControl
+- Fixed: ShowModal
+- Fixed: Delete Component
+- Added: ToBitmap function to Cursor
+- Fixed: LoadIcon
+- Added: Form Show normal if is minimized
+- Added: Load icon to MenuItem image
+- Fixed: Compile without warning in Win64
+- Fixed: Reduced number of GDI objects
+- Added: Work with image files in Designer
+- Fixed: ListView Get SubItem Text
+- Added: Sort to ListView
+- Added: ToolButtonClick event to ToolBar
+- Added: Load from PNG file
+- Added: ExtMargins property to Controls
+- Added: WantTab property to TextBox
+- Fixed: Separator MenuItem Caption
+- Fixed: MenuItem Read and Write property function
+- Fixed: Form WriteProperty function
+- Fixed: Control Repaint function
+- Fixed: Panel Paint event
+- Fixed: Reallocate functions
+- Fixed: Canvas functions
+- Added: Object property to Dictionary items
+- Added: Chart in Linux
 Version 1.2.7 (March 6, 2021)
 - Added: __USE_WEBKITGTK__ definition
 - Added: Chart control

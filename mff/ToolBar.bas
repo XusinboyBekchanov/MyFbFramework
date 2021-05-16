@@ -500,7 +500,7 @@ Namespace My.Sys.Forms
 			Dim As ToolButton Ptr tbut = user_data
 			If tbut Then
 				If tbut->OnClick Then tbut->OnClick(*tbut)
-				If tbut->Ctrl Then
+				If tbut->Ctrl AndAlso *tbut->Ctrl Is ToolBar Then
 					Dim As ToolBar Ptr tb = Cast(ToolBar Ptr, tbut->Ctrl)
 					If tb->OnButtonClick Then tb->OnButtonClick(*tb, *tbut)
 				End If
@@ -552,9 +552,11 @@ Namespace My.Sys.Forms
 					Case Else
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
 					End Select
+					If gtk_is_tool_button(.widget) Then gtk_tool_button_set_label(gtk_tool_button(.widget), TOUTF8(FHint))
 					gtk_tool_item_set_tooltip_text(gtk_tool_item(.widget), ToUTF8(FHint))
 					g_signal_connect(.widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
 				End Select
+				
 				gtk_widget_show_all(.widget)
 			#endif
 			.State        = FState
@@ -954,6 +956,7 @@ Namespace My.Sys.Forms
 			FButtonHeight   = 16
 			#ifdef __USE_GTK__
 				widget = gtk_toolbar_new()
+				gtk_toolbar_set_style(GTK_TOOLBAR(widget), GTK_TOOLBAR_BOTH_HORIZ)
 				.RegisterClass "ToolBar", @This
 			#else
 				AFlat(0)        = 0

@@ -88,8 +88,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If widget Then FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
 		#else
-			If FHandle Then
-			End If
+			If FHandle Then FChecked = Perform(BM_GETCHECK, 0, 0)
 		#endif
 		Return FChecked
 	End Property
@@ -98,14 +97,14 @@ Namespace My.Sys.Forms
 		FChecked = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
-		#Else
+		#else
 			If Handle Then Perform(BM_SETCHECK,FChecked,0)
-		#EndIf
+		#endif
 	End Property
 	
-	Sub CheckBox.HandleIsAllocated(BYREF Sender As Control)
+	Sub CheckBox.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				With QCheckBox(Sender.Child)
 					.Perform(BM_SETCHECK, .Checked, 0)
 				End With
