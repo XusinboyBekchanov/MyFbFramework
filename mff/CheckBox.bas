@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 		If Sender.Child Then
 			#ifndef __USE_GTK__
 				With QCheckBox(Sender.Child)
-					.Perform(BM_SETCHECK, .Checked, 0)
+					.Perform(BM_SETCHECK, .FChecked, 0)
 				End With
 			#endif
 		End If
