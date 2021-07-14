@@ -234,7 +234,7 @@ Namespace My.Sys.ComponentModel
 		*AHeight = This.Height
 	End Sub
 	
-	Sub Component.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = False)
+	Sub Component.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = True)
 		If NoScale Then 'David Change
 			FLeft   = ALeft
 			FTop    = ATop
