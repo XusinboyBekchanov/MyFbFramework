@@ -1109,7 +1109,7 @@ Namespace My.Sys.Forms
 							Exit For
 						End If
 					Next i
-					SendMessage(Cast(HWND,Message.lParam),CM_COMMAND,Message.wParam,Message.lParam)
+					SendMessage(Cast(HWND, Message.lParam), CM_COMMAND, Message.wParam, Message.lParam)
 				Case WM_MOUSEMOVE
 					If OnMouseMove Then OnMouseMove(This, DownButton, Message.lParamLo,Message.lParamHi,Message.wParam And &HFFFF)
 					If This.Tracked = False Then

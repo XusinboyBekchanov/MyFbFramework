@@ -1,3 +1,7 @@
+Version 1.2.9 (July 14, 2021)
+- Fixed: Show windows on DPI sets
+- Fixed: CheckBox problem in GroupBox
+- Fixed: Default check property of CheckBox
 Version 1.2.8 (May 16, 2021)
 - Fixed: Control Destructor in Linux
 - Added: RadioButton Checked Property in Linux
