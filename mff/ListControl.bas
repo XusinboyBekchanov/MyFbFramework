@@ -346,6 +346,7 @@ Namespace My.Sys.Forms
 					lbl = gtk_label_new(ToUtf8(FItem))
 					gtk_label_set_xalign (GTK_LABEL (lbl), 0.0)
 					gtk_container_add(GTK_CONTAINER(Widget), lbl)
+					gtk_widget_show(lbl)
 				#else
 					Dim As GtkWidget Ptr item1 = gtk_list_item_new_with_label(ToUtf8(FItem))
 					'g_signal_connect(GTK_OBJECT(item1), "select", GTK_SIGNAL_FUNC (@ListItem_Selected), Items.Count - 1)
