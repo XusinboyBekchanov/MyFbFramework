@@ -9,7 +9,11 @@
 Namespace My.Sys.Forms
 	Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "editstyle": Return @FEditStyle
+		'Case "selcolor": Return @FSelColor
 		Case "tabindex": Return @FTabIndex
+		'Case "textrtf": Return @FTextRTF
+		Case "zoom": Return @FZoom
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -22,7 +26,11 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "editstyle": EditStyle = QBoolean(Value)
+			Case "selcolor": SelColor = QInteger(Value)
 			Case "tabindex": TabIndex = QInteger(Value)
+			Case "textrtf": TextRTF = QWString(Value)
+			Case "zoom": Zoom = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -83,15 +91,19 @@ Namespace My.Sys.Forms
 	
 	Property RichTextBox.Zoom As Integer
 		Dim As Integer wp, lp
-		Var Result = 100
+		Var Result = FZoom
 		#ifndef __USE_GTK__
-			Perform(EM_GETZOOM, CInt(@wp), CInt(@lp))
-			If (lp > 0) Then Result = MulDiv(100, wp, lp)
+			If Handle Then
+				Result = 100
+				Perform(EM_GETZOOM, CInt(@wp), CInt(@lp))
+				If (lp > 0) Then Result = MulDiv(100, wp, lp)
+			End If
 		#endif
 		Return Result
 	End Property
 	
 	Property RichTextBox.Zoom(Value As Integer)
+		FZoom = Value
 		#ifndef __USE_GTK__
 			If Value = 0 Then
 				Perform(EM_SETZOOM, 0, 0)
@@ -301,7 +313,7 @@ Namespace My.Sys.Forms
 			*pBytesRead = length
 			If length = 0 Then
 				Return 1
-			Endif
+			EndIf
 		End Function
 		
 		Function StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As bool
@@ -317,7 +329,7 @@ Namespace My.Sys.Forms
 			*pBytesWritten = length
 			If length = 0 Then
 				Return 1
-			End if
+			End If
 		End Function
 	#endif
 	
@@ -347,11 +359,11 @@ Namespace My.Sys.Forms
 				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamInProc)
 				SendMessage(FHandle, EM_STREAMIN, SF_RTF, Cast(LPARAM, @editstream))
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then
 				Dim hFile As Handle
 				hFile = CreateFile(@Value, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
@@ -359,16 +371,16 @@ Namespace My.Sys.Forms
 					Dim editstream As EDITSTREAM
 					editstream.dwCookie = Cast(DWORD_Ptr, hFile)
 					editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamInProc)
-					SendMessage(FHandle, EM_STREAMIN, IIF(bRTF, SF_RTF, SF_TEXT), Cast(LPARAM, @editstream))
-					SendMessage(FHandle, EM_SETMODIFY, FALSE, 0)
+					SendMessage(FHandle, EM_STREAMIN, IIf(bRTF, SF_RTF, SF_TEXT), Cast(LPARAM, @editstream))
+					SendMessage(FHandle, EM_SETMODIFY, False, 0)
 					CloseHandle(hFile)
 				End If
-			Endif
-		#EndIf
+			EndIf
+		#endif
 	End Sub
 	
 	Sub RichTextBox.SaveToFile(ByRef Value As WString, bRTF As Boolean)
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Not bRTF Then
 				Base.SaveToFile(Value)
 			ElseIf FHandle Then
@@ -395,6 +407,9 @@ Namespace My.Sys.Forms
 					End If
 					If .EditStyle Then
 						.EditStyle = .EditStyle
+					End If
+					If .FZoom Then
+						.Zoom = .FZoom
 					End If
 					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
 					.Perform(EM_SETEVENTMASK, 0, .Perform(EM_GETEVENTMASK, 0, 0) Or ENM_CHANGE Or ENM_SCROLL Or ENM_SELCHANGE Or ENM_CLIPFORMAT Or ENM_MOUSEEVENTS)

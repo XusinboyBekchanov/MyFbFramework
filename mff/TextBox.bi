@@ -16,8 +16,12 @@
 Namespace My.Sys.Forms
 	#define QTextBox(__Ptr__) *Cast(TextBox Ptr,__Ptr__)
 	
-	Enum CharCase
-		ecNone,ecLower,ecUpper
+	Enum CharCases
+		ecNone, ecLower, ecUpper
+	End Enum
+	
+	Enum ScrollBarsType
+		None, Vertical, Horizontal, Both
 	End Enum
 	
 	Type TextBox Extends Control
@@ -34,11 +38,11 @@ Namespace My.Sys.Forms
 		FSelEnd           As Integer
 		FSelText          As WString Ptr
 		FLine             As WString Ptr
-		FCharCase         As Integer
+		FCharCase         As CharCases
 		FMasked           As Boolean
 		FMaskChar         As Byte
 		FAlignment        As Integer
-		FBorderStyle      As Integer
+		FBorderStyle      As BorderStyles
 		FReadOnly         As Boolean
 		FCtl3D            As Boolean
 		FHideSelection    As Boolean
@@ -54,8 +58,8 @@ Namespace My.Sys.Forms
 		FWantReturn As Boolean
 		FWantTab As Boolean
 		FMultiline As Boolean
-		FScrollBars As Integer
-		FWordWraps As Integer
+		FScrollBars As ScrollBarsType
+		FWordWraps As Boolean
 		FInputFilter As WString Ptr 'David Change
 		#ifdef __USE_GTK__
 			TextBuffer As GtkTextBuffer Ptr
@@ -81,8 +85,8 @@ Namespace My.Sys.Forms
 		Declare Function GetLineLength(Index As Integer) As Integer
 		Declare Property Alignment As AlignmentConstants
 		Declare Property Alignment(Value As AlignmentConstants)
-		Declare Property BorderStyle As Integer
-		Declare Property BorderStyle(Value As Integer)
+		Declare Property BorderStyle As BorderStyles
+		Declare Property BorderStyle(Value As BorderStyles)
 		Declare Property ReadOnly As Boolean
 		Declare Property ReadOnly(Value As Boolean)
 		Declare Property Ctl3D As Boolean
@@ -95,16 +99,15 @@ Namespace My.Sys.Forms
 		Declare Property MaxLength(Value As Integer)
 		Declare Property Modified As Boolean
 		Declare Property Modified(Value As Boolean)
-		Declare Property CharCase As Integer
-		Declare Property CharCase(Value As Integer)
+		Declare Property CharCase As CharCases
+		Declare Property CharCase(Value As CharCases)
 		Declare Property Masked As Boolean
 		Declare Property Masked(Value As Boolean)
 		Declare Property MaskChar As Byte
 		Declare Property MaskChar(Value As Byte)
 		Declare Property Lines(Index As Integer) ByRef As WString
 		Declare Property Lines(Index As Integer, ByRef Value As WString)
-		Declare Property LinesCount As Integer
-		Declare Property LinesCount(Value As Integer)
+		Declare Function LinesCount As Integer
 		Declare Property CaretPos As Point
 		Declare Property CaretPos(Value As Point)
 		Declare Property SelStart As Integer
@@ -115,16 +118,16 @@ Namespace My.Sys.Forms
 		Declare Property SelLength(Value As Integer)
 		Declare Property SelText ByRef As WString
 		Declare Property SelText(ByRef Value As WString)
-		Declare Property ScrollBars As Integer
-		Declare Property ScrollBars(Value As Integer)
+		Declare Property ScrollBars As ScrollBarsType
+		Declare Property ScrollBars(Value As ScrollBarsType)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property TopLine As Integer
 		Declare Property TopLine(Value As Integer)
-		Declare Property WordWraps As Integer
-		Declare Property WordWraps(Value As Integer)
+		Declare Property WordWraps As Boolean
+		Declare Property WordWraps(Value As Boolean)
 		Declare Property WantReturn() As Boolean
 		Declare Property WantReturn(Value As Boolean)
 		Declare Property WantTab() As Boolean

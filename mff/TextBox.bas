@@ -18,8 +18,28 @@ Namespace My.Sys.Forms
 		Function TextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
+			Case "borderstyle": Return @FBorderStyle
+			'Case "caretpos": Return @CaretPos
+			Case "charcase": Return @FCharCase
+			Case "ctl3d": Return @FCtl3D
+			Case "hideselection": Return @FHideSelection
+			Case "maskchar": Return @FMaskChar
+			Case "masked": Return @FMasked
+			Case "maxlength": Return @FMaxLength
+			Case "modified": Return @FModified
+			Case "multiline": Return @FMultiline
+			Case "oemconvert": Return @FOEMConvert
 			Case "readonly": Return @FReadOnly
+			Case "scrollbars": Return @FScrollBars
+			Case "selstart": Return @FSelStart
+			Case "sellength": Return @FSelLength
+			Case "selend": Return @FSelEnd
+			Case "seltext": Return FSelText
 			Case "tabindex": Return @FTabIndex
+			Case "topline": Return @FTopLine
+			Case "wantreturn": Return @FWantReturn
+			Case "wanttab": Return @FWantTab
+			Case "wordwraps": Return @FWordWraps
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -35,8 +55,28 @@ Namespace My.Sys.Forms
 			Else
 				Select Case LCase(PropertyName)
 				Case "alignment": Alignment = *Cast(AlignmentConstants Ptr, Value)
+				Case "borderstyle": BorderStyle = *Cast(BorderStyles Ptr, Value)
+				Case "caretpos": CaretPos = *Cast(Point Ptr, Value)
+				Case "charcase": CharCase = *Cast(CharCases Ptr, Value)
+				Case "ctl3d": Ctl3D = QBoolean(Value)
+				Case "hideselection": HideSelection = QBoolean(Value)
+				Case "maskchar": MaskChar = *Cast(Byte Ptr, Value)
+				Case "masked": Masked = QBoolean(Value)
+				Case "maxlength": MaxLength = QInteger(Value)
+				Case "modified": Modified = QBoolean(Value)
+				Case "multiline": Multiline = QBoolean(Value)
+				Case "oemconvert": OEMConvert = QBoolean(Value)
 				Case "readonly": ReadOnly = QBoolean(Value)
+				Case "scrollbars": ScrollBars = *Cast(ScrollBarsType Ptr, Value)
+				Case "selstart": SelStart = QInteger(Value)
+				Case "sellength": SelLength = QInteger(Value)
+				Case "selend": SelEnd = QInteger(Value)
+				Case "seltext": SelText = QWString(Value)
 				Case "tabindex": TabIndex = QInteger(Value)
+				Case "topline": TopLine = QInteger(Value)
+				Case "wantreturn": WantReturn = QBoolean(Value)
+				Case "wanttab": WantTab = QBoolean(Value)
+				Case "wordwraps": WordWraps = QBoolean(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
@@ -208,18 +248,18 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Property TextBox.BorderStyle As Integer
+	Property TextBox.BorderStyle As BorderStyles
 		Return FBorderStyle
 	End Property
 	
-	Property TextBox.BorderStyle(Value As Integer)
+	Property TextBox.BorderStyle(Value As BorderStyles)
 		FBorderStyle = Value
 		#ifndef __USE_GTK__
 			If FBorderStyle Then
-				Base.Style = Base.Style Or WS_BORDER
+				'Base.Style = Base.Style Or WS_BORDER
 				Base.ExStyle = WS_EX_CLIENTEDGE
 			Else
-				Base.Style = Base.Style And Not WS_BORDER
+				'Base.Style = Base.Style And Not WS_BORDER
 				Base.ExStyle = 0
 			End If
 		#endif
@@ -275,11 +315,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TextBox.CharCase As Integer
+	Property TextBox.CharCase As CharCases
 		Return FCharCase
 	End Property
 	
-	Property TextBox.CharCase(Value As Integer)
+	Property TextBox.CharCase(Value As CharCases)
 		If FCharCase <> Value Then
 			FCharCase = Value
 			RecreateWnd
@@ -477,17 +517,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property TextBox.LinesCount As Integer
+	Function TextBox.LinesCount As Integer
 		#ifndef __USE_GTK__
 			If FHandle Then
 				Return SendMessage(FHandle, EM_GetLineCount, 0, 0)
 			End If
 		#endif
 		Return 0
-	End Property
-	
-	Property TextBox.LinesCount(Value As Integer)
-	End Property
+	End Function
 	
 	Property TextBox.CaretPos As Point
 		#ifndef __USE_GTK__
@@ -505,11 +542,11 @@ Namespace My.Sys.Forms
 	Property TextBox.CaretPos(value As Point)
 	End Property
 	
-	Property TextBox.ScrollBars As Integer
+	Property TextBox.ScrollBars As ScrollBarsType
 		Return FScrollBars
 	End Property
 	
-	Property TextBox.ScrollBars(Value As Integer)
+	Property TextBox.ScrollBars(Value As ScrollBarsType)
 		FScrollBars = Value
 		#ifndef __USE_GTK__
 			Select Case FScrollBars
@@ -525,11 +562,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.WordWraps As Integer
+	Property TextBox.WordWraps As Boolean
 		Return FWordWraps
 	End Property
 	
-	Property TextBox.WordWraps(Value As Integer)
+	Property TextBox.WordWraps(Value As Boolean)
 		FWordWraps = value
 		#ifndef __USE_GTK__
 			If Value Then
@@ -848,6 +885,7 @@ Namespace My.Sys.Forms
 			AHideSelection(0) = ES_NOHIDESEL
 			AHideSelection(1) = 0
 		#endif
+		FBorderStyle      = 1
 		FHideSelection    = 1
 		FCtl3D            = True
 		FMaskChar         = Asc("*")
