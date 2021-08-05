@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Property Splitter.Align As Integer
+	Property Splitter.Align As SplitterAlignmentConstants
 		Return Base.Align
 	End Property
 	
@@ -44,7 +44,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property Splitter.Align(value As Integer)
+	Property Splitter.Align(value As SplitterAlignmentConstants)
 		Base.Align = value
 		Select Case value
 		Case 1, 2
@@ -113,21 +113,30 @@ Namespace My.Sys.Forms
 			Case GDK_BUTTON_PRESS
 			#else
 			Case WM_LBUTTONDOWN
-			#EndIf
+			#endif
 			down1 = 1
-			#IfDef __USE_GTK__
-				#IfDef __USE_GTK3__
+			#ifdef __USE_GTK__
+				#ifdef __USE_GTK3__
 					gdk_device_get_position (device, NULL, @xOrig, @yOrig)
-				#Else
+				#else
 					gdk_display_get_pointer (display, NULL, @xOrig, @yOrig, NULL)
-				#EndIf
-			#Else
+				#endif
+			#else
 				If (GetCursorPos(@g_OrigCursorPos)) Then
 					SetCapture(Handle)
 				End If
+				Dim As Rect R
+				Dim As Point P
+				GetClientRect GetParent(Handle), @R
+				ClientToScreen GetParent(Handle), @P
+				R.Left = P.X
+				R.Top = P.Y
+				R.Right = R.Right + P.X
+				R.Bottom = R.Bottom + P.Y
+				ClipCursor @R
 				xOrig = g_OrigCursorPos.x
 				yOrig = g_OrigCursorPos.y
-			#EndIf
+			#endif
 			'SetCapture Handle 'Parent->Handle
 			'            x1 = loword(message.lparam)
 			'            y1 = hiword(message.lparam)
@@ -138,26 +147,27 @@ Namespace My.Sys.Forms
 			'                  DrawTrackSplit(FLeft, y1)
 			'            End Select
 			'            Down = 1
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 			Case GDK_MOTION_NOTIFY
-			#Else
-			case wm_mousemove
-			#EndIf
+			#else
+			Case wm_mousemove
+			#endif
 			'        int wnd_x = g_OrigWndPos.x +
 			If down1 = 1 Then
 				i = This.Parent->IndexOf(This)
-				#IfDef __USE_GTK__
-					#IfDef __USE_GTK3__
+				#ifdef __USE_GTK__
+					#ifdef __USE_GTK3__
 						gdk_device_get_position (device, NULL, @xCur, @yCur)
-					#Else
+					#else
 						gdk_display_get_pointer (display, NULL, @xCur, @yCur, NULL)
-					#EndIf
-				#Else
-					if (GetCursorPos(@g_CurCursorPos)) Then
+					#endif
+				#else
+					If (GetCursorPos(@g_CurCursorPos)) Then
 						xCur = g_CurCursorPos.x
 						yCur = g_CurCursorPos.y
-				#EndIf
+				#endif
 					If This.Parent->ControlCount Then
+						This.Parent->UpdateLock
 						If Align = 1 Then
 							If i > 0 Then This.Parent->Controls[i-1]->Width = This.Parent->Controls[i-1]->Width - xOrig + xCur
 						ElseIf Align = 2 Then
@@ -169,21 +179,21 @@ Namespace My.Sys.Forms
 						End If
 						xOrig = xCur
 						yOrig = yCur
-						if onMoved then onMoved(This)
-						This.Parent->UpdateLock
+						If onMoved Then onMoved(This)
 						This.Parent->RequestAlign
-						#IfDef __USE_GTK__
+						#ifdef __USE_GTK__
 							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign
 							'#Else
 							'		This.Parent->RequestAlign
-						#EndIf
+						#endif
 						This.Parent->UpdateUnLock
+						This.Parent->Update
 						'Parent->Update
 					End If
-					#IfNDef __USE_GTK__
+					#ifndef __USE_GTK__
 					End If
-					#EndIf
-			End if
+					#endif
+			End If
 			'             x = loword(message.lparam)
 			'             y = hiword(message.lparam)
 			'             if down then
@@ -198,15 +208,16 @@ Namespace My.Sys.Forms
 			'             end if
 			'             x1 = loword(Message.lParam)
 			'             y1 = hiword(Message.lParam)
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 			Case GDK_BUTTON_RELEASE
-			#Else
+			#else
 			Case WM_LBUTTONUP
-			#EndIf
+			#endif
 			down1 = 0
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
+				ClipCursor 0
 				releaseCapture
-			#EndIf
+			#endif
 			'            dim as integer i
 			'            if Down then
 			'                select case Align
@@ -326,7 +337,7 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "Splitter")
 			WLet(FClassAncestor, "")
 			.Width     = 3
-			.Align     = 1
+			.Align     = SplitterAlignmentConstants.alLeft
 		End With
 	End Constructor
 	

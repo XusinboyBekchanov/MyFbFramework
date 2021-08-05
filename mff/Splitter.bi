@@ -16,6 +16,14 @@
 Namespace My.Sys.Forms
 	#define QSplitter(__Ptr__) *Cast(Splitter Ptr, __Ptr__)
 	
+	Enum SplitterAlignmentConstants
+		alNone
+		alLeft
+		alRight
+		alTop
+		alBottom
+	End Enum
+	
 	Type Splitter Extends Control
 	Private:
 		FOldParentProc  As Any Ptr
@@ -31,8 +39,8 @@ Namespace My.Sys.Forms
 			Dim As Boolean bCursor
 		#endif
 		Declare Operator Cast As Control Ptr
-		Declare Property Align As Integer
-		Declare Property Align(Value As Integer)
+		Declare Property Align As SplitterAlignmentConstants
+		Declare Property Align(Value As SplitterAlignmentConstants)
 		OnPaint As Sub(ByRef Sender As Splitter)
 		OnMoved As Sub(ByRef Sender As Splitter)
 		Declare Constructor
@@ -41,5 +49,5 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifndef __USE_MAKE__
-	#Include Once "Splitter.bas"
-#EndIf
+	#include once "Splitter.bas"
+#endif
