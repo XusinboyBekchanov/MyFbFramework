@@ -14,6 +14,24 @@
 #include once "Splitter.bi"
 
 Namespace My.Sys.Forms
+	Function Splitter.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "align": Return @FAlign
+		Case "minextra": Return @MinExtra
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Splitter.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "align": This.Align = *Cast(SplitterAlignmentConstants Ptr, Value)
+		Case "minextra": This.MinExtra = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
 	#ifndef __USE_GTK__
 		Sub Splitter.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
@@ -133,6 +151,14 @@ Namespace My.Sys.Forms
 				R.Top = P.Y
 				R.Right = R.Right + P.X
 				R.Bottom = R.Bottom + P.Y
+				Select Case This.Align
+				Case 1, 2
+					R.Left = R.Left + This.MinExtra
+					R.Right = R.Right - This.MinExtra
+				Case 3, 4
+					R.Top = R.Top + This.MinExtra
+					R.Bottom = R.Bottom - This.MinExtra
+				End Select
 				ClipCursor @R
 				xOrig = g_OrigCursorPos.x
 				yOrig = g_OrigCursorPos.y
@@ -282,7 +308,7 @@ Namespace My.Sys.Forms
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Dim As Splitter Ptr spl = data1
 			If Not spl->bCursor Then

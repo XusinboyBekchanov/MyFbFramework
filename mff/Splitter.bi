@@ -35,9 +35,12 @@ Namespace My.Sys.Forms
 		Declare Sub DrawTrackSplit(x As Integer, y As Integer)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#ifdef __USE_GTK__
 			Dim As Boolean bCursor
 		#endif
+		MinExtra As Integer
 		Declare Operator Cast As Control Ptr
 		Declare Property Align As SplitterAlignmentConstants
 		Declare Property Align(Value As SplitterAlignmentConstants)
