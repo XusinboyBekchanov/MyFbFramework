@@ -851,6 +851,16 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
+		Sub TextBox.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
+			Dim As TextBox Ptr txt = user_data
+			If txt AndAlso txt->OnChange Then txt->OnChange(*txt)
+		End Sub
+		
+		Sub TextBox.TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
+			Dim As TextBox Ptr txt = user_data
+			If txt AndAlso txt->OnChange Then txt->OnChange(*txt)
+		End Sub
+		
 		Sub TextBox.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			Dim As Control Ptr btn = txt->GetForm()->FDefaultButton
@@ -866,6 +876,8 @@ Namespace My.Sys.Forms
 			gtk_entry_set_activates_default(gtk_entry(WidgetEntry), True)
 			gtk_entry_set_width_chars(gtk_entry(WidgetEntry), 0)
 			g_signal_connect(gtk_entry(WidgetEntry), "activate", G_CALLBACK(@Entry_Activate), @This)
+			g_signal_connect(gtk_entry(WidgetEntry), "changed", G_CALLBACK(@Entry_Changed), @This)
+			g_signal_connect(gtk_text_view_get_buffer(gtk_text_view(WidgetTextView)), "changed", G_CALLBACK(@TextBuffer_Changed), @This)
 			WidgetScrolledWindow = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(gtk_scrolled_window(WidgetScrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			Widget = WidgetEntry

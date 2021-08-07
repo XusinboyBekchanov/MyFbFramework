@@ -28,6 +28,8 @@ Namespace My.Sys.Forms
 	Private:
 		#ifdef __USE_GTK__
 			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+			Declare Static Sub Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
+			Declare Static Sub TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
