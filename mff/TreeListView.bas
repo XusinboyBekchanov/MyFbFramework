@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 				lvc.iSubItem = Index
-				lvc.cx = Value
+				lvc.cx = ScaleX(Value)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
 		#endif
@@ -815,7 +815,7 @@ Namespace My.Sys.Forms
 		#else
 			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
-			lvc.cx		  = IIf(iWidth = -1, 50, iWidth)
+			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
 			lvc.pszText  = @FCaption
@@ -842,25 +842,25 @@ Namespace My.Sys.Forms
 		PColumn = New_( TreeListViewColumn)
 		FColumns.Insert Index, PColumn
 		With *PColumn
-			.ImageIndex     = FImageIndex
-			.Text        = FCaption
-			.Index        = FColumns.Count - 1
-			.Width     = iWidth
-			.Format = Format
+			.ImageIndex = FImageIndex
+			.Text       = FCaption
+			.Index      = FColumns.Count - 1
+			.Width      = iWidth
+			.Format     = Format
 		End With
-		#IfNDef __USE_GTK__
-			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvC.fmt       =  Format
-			lvc.cx=0
-			lvc.iImage   = PColumn->ImageIndex
-			lvc.iSubItem = PColumn->Index
-			lvc.pszText  = @FCaption
-			lvc.cchTextMax = Len(FCaption)
+		#ifndef __USE_GTK__
+			lvC.mask        =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvC.fmt         =  Format
+			lvc.cx          = 0
+			lvc.iImage      = PColumn->ImageIndex
+			lvc.iSubItem    = PColumn->Index
+			lvc.pszText     = @FCaption
+			lvc.cchTextMax  = Len(FCaption)
 			If Parent Then
 				PColumn->Parent = Parent
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, Index, @lvc)
-					ListView_SetColumnWidth(Parent->Handle, Index, iWidth)
+					ListView_SetColumnWidth(Parent->Handle, Index, ScaleX(iWidth))
 				End If
 			End If
 		#endif
@@ -1266,19 +1266,19 @@ Namespace My.Sys.Forms
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
 					If .FView <> 0 Then .View = .View
 					For i As Integer = 0 To .Columns.Count -1
-						dim lvc as LVCOLUMN
-						lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+						Dim lvc As LVCOLUMN
+						lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 						lvC.fmt       =  .Columns.Column(i)->Format
 						lvc.cx=0
 						lvc.pszText              = @.Columns.Column(i)->Text
-						lvc.cchTextMax           = len(.Columns.Column(i)->text)
+						lvc.cchTextMax           = Len(.Columns.Column(i)->text)
 						lvc.iImage             = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem         = i
 						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, .Columns.Column(i)->Width)
+						ListView_SetColumnWidth(.FHandle, i, ScaleX(.Columns.Column(i)->Width))
 					Next i
 					For i As Integer = 0 To .ListItems.Count -1
-						dim lvi as LVITEM
+						Dim lvi As LVITEM
 						lvi.Mask = LVIF_TEXT or LVIF_IMAGE
 						lvi.pszText              = @.ListItems.Item(i)->Text(0)
 						lvi.cchTextMax           = len(.ListItems.Item(i)->text(0))

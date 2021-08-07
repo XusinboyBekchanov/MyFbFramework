@@ -1070,8 +1070,8 @@ Namespace My.Sys.Forms
 			gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
 		#else
-			This.Left = (GetSystemMetrics(SM_CXSCREEN) - This.Width) \ 2
-			This.Top  = (GetSystemMetrics(SM_CYSCREEN) - This.Height) \ 2
+			This.Left = (UnScaleX(GetSystemMetrics(SM_CXSCREEN)) - This.Width) \ 2
+			This.Top  = (UnScaleY(GetSystemMetrics(SM_CYSCREEN)) - This.Height) \ 2
 		#endif
 	End Sub
 

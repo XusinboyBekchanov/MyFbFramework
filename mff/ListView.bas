@@ -333,7 +333,7 @@ Namespace My.Sys.Forms
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 				lvc.iSubItem = Index
-				lvc.cx = Value
+				lvc.cx = ScaleX(Value)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
 		#endif
@@ -684,7 +684,7 @@ Namespace My.Sys.Forms
 		#else
 			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
-			lvc.cx		  = IIf(iWidth = -1, 50, iWidth)
+			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
 			lvc.pszText  = @FCaption
@@ -717,8 +717,8 @@ Namespace My.Sys.Forms
 			.Width     = iWidth
 			.Format = Format
 		End With
-		#IfNDef __USE_GTK__
-			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+		#ifndef __USE_GTK__
+			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
 			lvc.cx=0
 			lvc.iImage   = PColumn->ImageIndex
@@ -729,10 +729,10 @@ Namespace My.Sys.Forms
 				PColumn->Parent = Parent
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, Index, @lvc)
-					ListView_SetColumnWidth(Parent->Handle, Index, iWidth)
+					ListView_SetColumnWidth(Parent->Handle, Index, ScaleX(iWidth))
 				End If
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub ListViewColumns.Remove(Index As Integer)
@@ -1057,7 +1057,7 @@ Namespace My.Sys.Forms
 						lvc.iImage          = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem        = i
 						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, .Columns.Column(i)->Width)
+						ListView_SetColumnWidth(.FHandle, i, ScaleX(.Columns.Column(i)->Width))
 					Next i
 					Var TempHandle = .FHandle
 					For i As Integer = 0 To .ListItems.Count -1

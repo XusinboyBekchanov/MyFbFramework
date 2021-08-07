@@ -391,11 +391,7 @@ Namespace My.Sys.Forms
 				#else
 					If FHandle Then
 						GetClientRect Handle , @R
-						#ifdef __USE_DPI__
-							FClientWidth = UnScaleX(R.Right)
-						#else
-							FClientWidth = R.Right
-						#endif
+						FClientWidth = UnScaleX(R.Right)
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
 						'                InflateRect @R, -4, -4
 						'                If (FParent->StyleExists(TCS_VERTICAL)) Then
@@ -440,11 +436,7 @@ Namespace My.Sys.Forms
 				#else
 					If Handle Then
 						GetClientRect Handle ,@R
-						#ifdef __USE_DPI__
-							FClientHeight = UnScaleY(R.Bottom)
-						#else
-							FClientHeight = R.Bottom
-						#endif
+						FClientHeight = UnScaleY(R.Bottom)
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
 						'                InflateRect @R,-4, -4
 						'                If (Not FParent->StyleExists(TCS_VERTICAL)) Then
@@ -745,7 +737,7 @@ Namespace My.Sys.Forms
 								nLeft = .Left + (.Width - nWidth) \ 2: nTop  = .Top + (.Height - nHeight) \ 2
 							End With
 						Else ' CenterScreen
-							nLeft = (GetSystemMetrics(SM_CXSCREEN) - nWidth) \ 2: nTop  = (GetSystemMetrics(SM_CYSCREEN) - nHeight) \ 2
+							nLeft = (UnScaleX(GetSystemMetrics(SM_CXSCREEN)) - nWidth) \ 2: nTop  = (UnScaleY(GetSystemMetrics(SM_CYSCREEN)) - nHeight) \ 2
 						End If
 					Case 2: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT ' WindowsDefaultLocation
 					Case 3: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT: nWidth = CW_USEDEFAULT: nHeight = CW_USEDEFAULT ' WindowsDefaultBounds
@@ -776,10 +768,10 @@ Namespace My.Sys.Forms
 					IIf(*FClassName = "IPAddress", @WC_IPADDRESS, FClassName),_
 					FText.vptr,_
 					FStyle,_
-					nLeft,_
-					nTop,_
-					nWidth,_
-					nHeight,_
+					ScaleX(nLeft), _
+					ScaleY(nTop), _
+					ScaleX(nWidth), _
+					ScaleY(nHeight), _
 					HParent,_
 					Cast(HMENU, ControlID),_
 					Instance,_

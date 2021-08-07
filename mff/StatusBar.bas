@@ -243,9 +243,9 @@ Namespace My.Sys.Forms
 			ReDim FWidth(Count - 1)
 			For i = 0 To Count - 1
 				If i = 0 Then
-					FWidth(i) = Panels[i]->Width
+					FWidth(i) = ScaleX(Panels[i]->Width)
 				Else
-					FWidth(i) = Panels[i]->Width  + FWidth(i -1)
+					FWidth(i) = ScaleX(Panels[i]->Width) + FWidth(i -1)
 				End If
 			Next i
 			FWidth(Count - 1) = -1

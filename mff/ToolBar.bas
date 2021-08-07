@@ -916,8 +916,8 @@ Namespace My.Sys.Forms
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
 					.Perform(TB_BUTTONSTRUCTSIZE,SizeOf(TBBUTTON),0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
-					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(.FButtonWidth, .FButtonHeight))
-					If .FBitmapWidth <> 16 AndAlso .FBitmapHeight <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MakeLong(.FBitmapWidth, .FBitmapHeight))
+					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
+					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
 					For i As Integer = 0 To .Buttons.Count - 1
 						Dim As TBBUTTON TB
 						'Dim As WString Ptr s = .Buttons.Button(i)->Caption
