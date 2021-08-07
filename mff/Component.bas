@@ -222,7 +222,13 @@ Namespace My.Sys.ComponentModel
 					End If
 				EndIf
 			#else
-				If FHandle Then MoveWindow FHandle, iLeft, iTop, iWidth, iHeight, True
+				If FHandle Then 
+					#ifdef __USE_DPI__
+						MoveWindow FHandle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight), True
+					#else
+						MoveWindow FHandle, iLeft, iTop, iWidth, iHeight, True
+					#endif
+				End If
 			#endif
 		End Sub
 	#endif
@@ -269,8 +275,12 @@ Namespace My.Sys.ComponentModel
 					Else
 						Dim As Rect R
 						GetWindowRect Handle,@R
-						MapWindowPoints 0,GetParent(Handle),Cast(Point Ptr,@R), 2
-						FLeft = R.Left
+						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
+						#ifdef __USE_DPI__
+							FLeft = UnScaleX(R.Left)
+						#else
+							FLeft = R.Left
+						#endif
 					End If
 				End If
 			#endif
@@ -301,8 +311,12 @@ Namespace My.Sys.ComponentModel
 					Else
 						Dim As Rect R
 						GetWindowRect Handle,@R
-						MapWindowPoints 0,GetParent(Handle),Cast(Point Ptr,@R),2
-						FTop = R.Top
+						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
+						#ifdef __USE_DPI__
+							FTop = UnScaleY(R.Top)
+						#else
+							FTop = R.Top
+						#endif
 					End If
 				End If
 			#endif
@@ -344,6 +358,9 @@ Namespace My.Sys.ComponentModel
 					GetWindowRect Handle, @R
 					MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
 					FWidth = R.Right - R.Left
+					#ifdef __USE_DPI__
+						FWidth = UnScaleX(FWidth)
+					#endif
 				End If
 			#endif
 			Return FWidth
@@ -379,6 +396,9 @@ Namespace My.Sys.ComponentModel
 					GetWindowRect Handle, @R
 					MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
 					FHeight = R.Bottom - R.Top
+					#ifdef __USE_DPI__
+						FHeight = UnScaleY(FHeight)
+					#endif
 				End If
 			#endif
 			Return FHeight

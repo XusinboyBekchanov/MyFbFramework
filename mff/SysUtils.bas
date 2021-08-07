@@ -163,9 +163,27 @@ Function ScaleX (ByVal cx As Single) As Single
 End Function
 
 ' =====================================================================================
+' Scale the location point X per DPI
+' =====================================================================================
+Function UnScaleX (ByVal cx As Single) As Single
+	#ifndef __USE_GTK__
+		Static bb As Single
+		If bb=0 Then
+			Dim hDC As HDC
+			hDC = GetDC(Null)
+			bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+			ReleaseDC Null, hDC
+		End If
+		Function = cx / bb
+	#else
+		Function = cx
+	#endif
+End Function
+
+' =====================================================================================
 ' Scale the location point Y per DPI
 ' =====================================================================================
-Function ScaleY (ByVal cy As Single) As Single
+Function ScaleY(ByVal cy As Single) As Single
 	#ifndef __USE_GTK__
 		Static bb As Single
 		If bb=0 Then
@@ -175,6 +193,24 @@ Function ScaleY (ByVal cy As Single) As Single
 			ReleaseDC Null, hDC
 		End If
 		Function = cy * bb
+	#else
+		Function = cy
+	#endif
+End Function
+
+' =====================================================================================
+' Scale the location point Y per DPI
+' =====================================================================================
+Function UnScaleY(ByVal cy As Single) As Single
+	#ifndef __USE_GTK__
+		Static bb As Single
+		If bb=0 Then
+			Dim hDC As HDC
+			hDC = GetDC(Null)
+			bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+			ReleaseDC Null, hDC
+		End If
+		Function = cy / bb
 	#else
 		Function = cy
 	#endif
