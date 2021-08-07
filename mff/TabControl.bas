@@ -509,7 +509,7 @@ Namespace My.Sys.Forms
 			#else
 				Dim As Rect R
 				Perform(TCM_GETITEMRECT,Index,CInt(@R))
-				Return (R.Bottom - R.Top)
+				Return UnScaleY(R.Bottom - R.Top)
 			#endif
 		End If
 		Return 0
@@ -526,7 +526,7 @@ Namespace My.Sys.Forms
 			#else
 				Dim As Rect R
 				Perform(TCM_GETITEMRECT,Index,CInt(@R))
-				Return (R.Right - R.Left)
+				Return UnScaleX(R.Right - R.Left)
 			#endif
 		End If
 		Return 0
@@ -537,7 +537,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Dim As Rect R
 				Perform(TCM_GETITEMRECT,Index,CInt(@R))
-				Return R.Left
+				Return UnScaleX(R.Left)
 			#endif
 		End If
 		Return 0
@@ -548,7 +548,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Dim As Rect R
 				Perform(TCM_GETITEMRECT,Index,CInt(@R))
-				Return R.Top
+				Return UnScaleY(R.Top)
 			#endif
 		End If
 		Return 0

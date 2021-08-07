@@ -150,7 +150,7 @@ End Namespace
 Function ScaleX (ByVal cx As Single) As Single
 	#ifndef __USE_GTK__
 		Static bb As Single
-		If bb=0 Then
+		If bb = 0 Then
 			Dim hDC As HDC
 			hDC = GetDC(Null)
 			bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
@@ -168,7 +168,7 @@ End Function
 Function UnScaleX (ByVal cx As Single) As Single
 	#ifndef __USE_GTK__
 		Static bb As Single
-		If bb=0 Then
+		If bb = 0 Then
 			Dim hDC As HDC
 			hDC = GetDC(Null)
 			bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96

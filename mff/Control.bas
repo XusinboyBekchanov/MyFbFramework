@@ -390,8 +390,12 @@ Namespace My.Sys.Forms
 					End If
 				#else
 					If FHandle Then
-						GetClientRect Handle ,@R
-						FClientWidth = R.Right
+						GetClientRect Handle , @R
+						#ifdef __USE_DPI__
+							FClientWidth = UnScaleX(R.Right)
+						#else
+							FClientWidth = R.Right
+						#endif
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
 						'                InflateRect @R, -4, -4
 						'                If (FParent->StyleExists(TCS_VERTICAL)) Then
@@ -436,7 +440,11 @@ Namespace My.Sys.Forms
 				#else
 					If Handle Then
 						GetClientRect Handle ,@R
-						FClientHeight = R.Bottom
+						#ifdef __USE_DPI__
+							FClientHeight = UnScaleY(R.Bottom)
+						#else
+							FClientHeight = R.Bottom
+						#endif
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
 						'                InflateRect @R,-4, -4
 						'                If (Not FParent->StyleExists(TCS_VERTICAL)) Then
@@ -1588,7 +1596,7 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		Sub Control.SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer,NOSCALE As Boolean = False)
+		Sub Control.SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer,NOSCALE As Boolean = True)
 			If NOSCALE Then
 				Margins.Left   = mLeft
 				Margins.Top    = mTop

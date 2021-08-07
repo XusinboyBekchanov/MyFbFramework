@@ -142,7 +142,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Handle Then
 				If Style <> cbOwnerDrawVariable  Then
-					Perform(CB_SETITEMHEIGHT, 0, FItemHeight)
+					Perform(CB_SETITEMHEIGHT, 0, ScaleY(FItemHeight))
 				End If
 			End If
 		#endif
@@ -235,7 +235,7 @@ Namespace My.Sys.Forms
 	Sub ComboBoxEdit.UpdateListHeight
 		If Style <> cbSimple Then
 			#ifndef __USE_GTK__
-				MoveWindow Handle, FLeft, FTop, FWidth, FHeight + (ItemHeight * ItemCount), 1
+				MoveWindow Handle, ScaleX(This.Left), ScaleY(This.Top), ScaleX(This.Width), ScaleY(This.Height + (ItemHeight * ItemCount)), 1
 			#endif
 		End If
 	End Sub
@@ -349,7 +349,7 @@ Namespace My.Sys.Forms
 				With QComboBoxEdit(Sender.Child)
 					.GetChilds
 					If .Style <> cbOwnerDrawVariable Then
-						.Perform(CB_SETITEMHEIGHT, 0, .ItemHeight)
+						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.ItemHeight))
 					End If
 					.UpdateListHeight
 					Dim As Integer i
@@ -420,9 +420,9 @@ Namespace My.Sys.Forms
 				Case CBN_DROPDOWN
 					If IntegralHeight = False Then
 						If Items.Count Then
-							SetWindowPos(Handle, 0, 0, 0, FWidth, ItemHeight * DropDownCount + Height + 2 , SWP_NOMOVE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW Or SWP_HIDEWINDOW)
+							SetWindowPos(Handle, 0, 0, 0, ScaleX(FWidth), ScaleY(ItemHeight * DropDownCount + Height + 2), SWP_NOMOVE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW Or SWP_HIDEWINDOW)
 						Else
-							SetWindowPos(Handle, 0, 0, 0, FWidth, ItemHeight + Height + 2 , SWP_NOMOVE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW Or SWP_HIDEWINDOW)
+							SetWindowPos(Handle, 0, 0, 0, ScaleX(FWidth), ScaleY(ItemHeight + Height + 2) , SWP_NOMOVE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW Or SWP_HIDEWINDOW)
 						End If
 						SetWindowPos(Handle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW Or SWP_SHOWWINDOW)
 					End If
