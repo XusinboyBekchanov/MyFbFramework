@@ -289,7 +289,7 @@ Namespace My.Sys.Forms
 			Declare Sub Show
 			'Conceals the control from the user.
 			Declare Sub Hide
-			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer, NoScale As Boolean = True)
+			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
 			Declare Sub Add(Ctrl As Control Ptr)
 			Declare Sub AddRange cdecl(CountArgs As Integer, ...)
 			Declare Sub Remove(Ctrl As Control Ptr)

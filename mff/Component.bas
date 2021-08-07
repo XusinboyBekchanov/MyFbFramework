@@ -236,18 +236,11 @@ Namespace My.Sys.ComponentModel
 		*AHeight = This.Height
 	End Sub
 	
-	Sub Component.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = True)
-		If NoScale Then 'David Change
-			FLeft   = ALeft
-			FTop    = ATop
-			FWidth  = AWidth
-			FHeight = AHeight
-		Else
-			FLeft   = ScaleX(ALeft)
-			FTop    = ScaleY(ATop)
-			FWidth  = ScaleX(AWidth)
-			FHeight = ScaleY(AHeight)
-		End If
+	Sub Component.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+		FLeft   = ALeft
+		FTop    = ATop
+		FWidth  = AWidth
+		FHeight = AHeight
 		FWidth = Max(FMinWidth, FWidth)
 		FHeight = Max(FMinHeight, FHeight)
 		Move FLeft, FTop, FWidth, FHeight

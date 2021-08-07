@@ -96,7 +96,7 @@ Namespace My.Sys.ComponentModel
 		'Gets the bounds of the control to the specified location and size.
 		Declare Sub GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
 		'Sets the bounds of the control to the specified location and size.
-		Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer, NoScale As Boolean = True)
+		Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		Declare Property DesignMode As Boolean
 		Declare Property DesignMode(Value As Boolean)
 		'Returns the name used in code to identify an object.

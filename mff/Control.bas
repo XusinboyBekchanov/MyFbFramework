@@ -1588,18 +1588,11 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		Sub Control.SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer,NOSCALE As Boolean = True)
-			If NOSCALE Then
-				Margins.Left   = mLeft
-				Margins.Top    = mTop
-				Margins.Right  = mRight
-				Margins.Bottom = mBottom
-			Else
-				Margins.Left   = ScaleX(mLeft)
-				Margins.Top    = ScaleY(mTop)
-				Margins.Right  = ScaleX(mRight)
-				Margins.Bottom = ScaleY(mBottom)
-			End If
+		Sub Control.SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
+			Margins.Left   = mLeft
+			Margins.Top    = mTop
+			Margins.Right  = mRight
+			Margins.Bottom = mBottom
 			RequestAlign
 		End Sub
 		
