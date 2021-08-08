@@ -69,7 +69,7 @@ Namespace My.Sys.Drawing
 	Property Canvas.Pixel(xy As Point) As Integer
 		GetDevice
 		#ifndef __USE_GTK__
-			Return .GetPixel(Handle,xy.x,xy.y)
+			Return .GetPixel(Handle, ScaleX(xy.x), ScaleY(xy.y))
 		#else
 			Return 0
 		#endif
@@ -83,7 +83,7 @@ Namespace My.Sys.Drawing
 			.cairo_rectangle(Handle, xy.x, xy.y, 1, 1)
 			cairo_fill(Handle)
 		#else
-			.SetPixel(Handle,xy.x,xy.y,Value)
+			.SetPixel(Handle, ScaleX(xy.x), ScaleY(xy.y), Value)
 		#endif
 		ReleaseDevice
 	End Property
@@ -133,7 +133,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			cairo_move_to(Handle, x - 0.5, y - 0.5)
 		#else
-			.MoveToEx Handle,x,y,0
+			.MoveToEx Handle, ScaleX(x), ScaleY(y), 0
 		#endif
 		ReleaseDevice
 	End Sub
@@ -144,7 +144,7 @@ Namespace My.Sys.Drawing
 			cairo_line_to(Handle, x - 0.5, y - 0.5)
 			cairo_stroke(Handle)
 		#else
-			.LineTo Handle,x,y
+			.LineTo Handle, ScaleX(x), ScaleY(y)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -156,8 +156,8 @@ Namespace My.Sys.Drawing
 			cairo_line_to(Handle, x1 - 0.5, y1 - 0.5)
 			cairo_stroke(Handle)
 		#else
-			.MoveToEx Handle,x,y,0
-			.LineTo Handle,x1,y1
+			.MoveToEx Handle, ScaleX(x), ScaleY(y), 0
+			.LineTo Handle, ScaleX(x1), ScaleY(y1)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -175,7 +175,7 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#else
-			.Rectangle Handle,x,y,x1,y1
+			.Rectangle Handle, ScaleX(x), ScaleY(y), ScaleX(x1), ScaleY(y1)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -189,7 +189,7 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#else
-			.Rectangle Handle, R.Left, R.Top, R.Right, R.Bottom
+			.Rectangle Handle, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -202,7 +202,7 @@ Namespace My.Sys.Drawing
 			'			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
 			'			cairo_stroke(cr)
 		#else
-			.Ellipse Handle,x,y,x1,y1
+			.Ellipse Handle, ScaleX(x), ScaleY(y), ScaleX(x1), ScaleY(y1)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -213,7 +213,7 @@ Namespace My.Sys.Drawing
 			cairo_arc(Handle, R.Left + (R.Right - R.Left) / 2 - 0.5, R.Top + (R.Bottom - R.Top) / 2 - 0.5, (R.Right - R.Left) / 2, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
 		#else
-			.Ellipse Handle,R.Left,R.Top,R.Right,R.Bottom
+			.Ellipse Handle, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -233,7 +233,7 @@ Namespace My.Sys.Drawing
 			cairo_close_path Handle
 			cairo_fill_preserve(Handle)
 		#else
-			.RoundRect Handle,x,y,x1,y1,nWidth,nHeight
+			.RoundRect Handle, ScaleX(x), ScaleY(y), ScaleX(x1), ScaleY(y1), ScaleX(nWidth), ScaleY(nHeight)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -251,7 +251,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
 		#else
-			.RoundRect Handle,R.Left,R.Top,R.Right,R.Bottom,nWidth,nHeight
+			.RoundRect Handle, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom), ScaleX(nWidth), ScaleY(nHeight)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -259,7 +259,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.Chord(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.Chord(Handle,x,y,x1,y1,nXRadial1,nYRadial1,nXRadial2,nYRadial2)
+			.Chord(Handle, ScaleX(x), ScaleY(y), ScaleX(x1), ScaleY(y1), nXRadial1, nYRadial1, ScaleX(nXRadial2), ScaleY(nYRadial2))
 		#endif
 		ReleaseDevice
 	End Sub
@@ -267,7 +267,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.Pie(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.Pie(Handle,x,y,x1,y1,nXRadial1,nYRadial1,nXRadial2,nYRadial2)
+			.Pie(Handle, ScaleX(x), ScaleY(y), ScaleX(x1), ScaleY(y1), ScaleX(nXRadial1), ScaleY(nYRadial1), ScaleX(nXRadial2), ScaleY(nYRadial2))
 		#endif
 		ReleaseDevice
 	End Sub
@@ -275,7 +275,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.Arc(x As Integer,y As Integer,x1 As Integer,y1 As Integer,xStart As Integer, yStart As Integer,xEnd As Integer,yEnd As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.Arc(Handle,x,y,x1,y1,xStart, yStart,xEnd,yEnd)
+			.Arc(Handle, ScaleX(x), ScaleY(y), ScaleX(x1), ScaleY(y1), ScaleX(xStart), ScaleY(yStart), ScaleX(xEnd), ScaleY(yEnd))
 		#endif
 		ReleaseDevice
 	End Sub
@@ -283,7 +283,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.ArcTo(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.ArcTo Handle,x,y,x1,y1,nXRadial1,nYRadial1,nXRadial2,nYRadial2
+			.ArcTo Handle, ScaleX(x), ScaleY(y), ScaleX(x1), ScaleY(y1), ScaleX(nXRadial1), ScaleY(nYRadial1), ScaleX(nXRadial2), ScaleY(nYRadial2)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -291,7 +291,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.AngleArc(x As Integer,y As Integer,Radius As Integer,StartAngle As Single,SweepAngle As Single)
 		GetDevice
 		#ifndef __USE_GTK__
-			.AngleArc Handle,x,y,Radius,StartAngle,SweepAngle
+			.AngleArc Handle, ScaleX(x), ScaleY(y), ScaleX(Radius), StartAngle, SweepAngle
 		#endif
 		ReleaseDevice
 	End Sub
@@ -335,7 +335,7 @@ Namespace My.Sys.Drawing
 			.cairo_rectangle(Handle, x, y, 1, 1)
 			cairo_fill(Handle)
 		#else
-			.SetPixel Handle,x,y,PixelColor
+			.SetPixel Handle, ScaleX(x), ScaleY(y), PixelColor
 		#endif
 		ReleaseDevice
 	End Sub
@@ -343,7 +343,7 @@ Namespace My.Sys.Drawing
 	Function Canvas.GetPixel(x As Integer,y As Integer) As Integer
 		GetDevice
 		#ifndef __USE_GTK__
-			Return .GetPixel(Handle,x,y)
+			Return .GetPixel(Handle, ScaleX(x), ScaleY(y))
 		#else
 			Return 0
 		#endif
@@ -377,12 +377,12 @@ Namespace My.Sys.Drawing
 			If BK = -1 Then
 				SetBKMode(Handle,TRANSPARENT)
 				SetTextColor(Handle,FG)
-				.TextOut(Handle,X,Y,@s,Len(s))
+				.TextOut(Handle, ScaleX(X), ScaleY(Y), @s, Len(s))
 				SetBKMode(Handle,OPAQUE)
 			Else
 				SetBKColor(Handle,BK)
 				SetTextColor(Handle,FG)
-				.TextOut(Handle,X,Y,@s,Len(s))
+				.TextOut(Handle, ScaleX(X), ScaleY(Y), @s, Len(s))
 			End If
 		#endif
 		ReleaseDevice
@@ -397,7 +397,7 @@ Namespace My.Sys.Drawing
 			MemDC = CreateCompatibleDC(Handle)
 			OldBitmap = SelectObject(MemDC, Cast(HBitmap, Image))
 			GetObject(Cast(HBitmap, Image), SizeOf(Bitmap01), @Bitmap01)
-			BitBlt(Handle, x, y, Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, SRCCOPY)
+			BitBlt(Handle, ScaleX(x), ScaleY(y), Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
 		#endif
@@ -514,7 +514,7 @@ Namespace My.Sys.Drawing
 			MemDC = CreateCompatibleDC(Handle)
 			OldBitmap = SelectObject(MemDC, Cast(HBitmap, Image))
 			GetObject(Cast(HBitmap, Image), SizeOf(Bitmap01), @Bitmap01)
-			StretchBlt(Handle, x, y, Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, nWidth, nHeight, SRCCOPY)
+			StretchBlt(Handle, ScaleX(x), ScaleY(y), Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, ScaleX(nWidth), ScaleY(nHeight), SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
 		#endif
@@ -529,7 +529,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.FloodFill(x As Integer, y As Integer, FillColor As Integer, FillStyle As FillStyle)
 		GetDevice
 		#ifndef __USE_GTK__
-			.ExtFloodFill Handle, x, y, FillColor, FillStyle
+			.ExtFloodFill Handle, ScaleX(x), ScaleY(y), FillColor, FillStyle
 		#endif
 		ReleaseDevice
 	End Sub
@@ -542,6 +542,10 @@ Namespace My.Sys.Drawing
 			Static As HBRUSH B
 			GetDevice
 			If B Then DeleteObject B
+			R.Left = ScaleX(R.Left)
+			R.Top = ScaleY(R.Top)
+			R.Right = ScaleX(R.Right)
+			R.Bottom = ScaleY(R.Bottom)
 			If FillColor <> -1 Then
 				B = CreateSolidBrush(FillColor)
 				.FillRect Handle,@R,B
@@ -555,6 +559,10 @@ Namespace My.Sys.Drawing
 	Sub Canvas.DrawFocusRect(R As Rect)
 		GetDevice
 		#ifndef __USE_GTK__
+			R.Left = ScaleX(R.Left)
+			R.Top = ScaleY(R.Top)
+			R.Right = ScaleX(R.Right)
+			R.Bottom = ScaleY(R.Bottom)
 			.DrawFocusRect Handle,@R
 		#endif
 		ReleaseDevice
@@ -581,7 +589,7 @@ Namespace My.Sys.Drawing
 			GetDevice
 			GetTextExtentPoint32(Handle,@FText,Len(FText),@Sz)
 			ReleaseDevice
-			Return Sz.cX
+			Return UnScaleX(Sz.cX)
 		#endif
 	End Function
 	
@@ -606,7 +614,7 @@ Namespace My.Sys.Drawing
 			GetDevice
 			GetTextExtentPoint32(Handle,@FText,Len(FText),@Sz)
 			ReleaseDevice
-			Return Sz.cY
+			Return UnScaleY(Sz.cY)
 		#endif
 	End Function
 	
