@@ -599,9 +599,9 @@ Namespace My.Sys.Forms
 					NewFontHandle = CreateFontIndirect(@LogRec)
 					hdc = GetDc(FHandle)
 					OldFontHandle = SelectObject(hdc, NewFontHandle)
-					SetBKMode(hdc,TRANSPARENT)
+					SetBKMode(hdc, TRANSPARENT)
 					For i As Integer = 0 To TabCount - 1
-						.TextOut(hdc,IIf(FTabPosition = tpLeft, 2, This.Width - ItemWidth(i)),ItemTop(i) + ItemHeight(i) - 5,Tabs[i]->Caption,Len(Tabs[i]->Caption))
+						.TextOut(hdc, IIf(FTabPosition = tpLeft, ScaleX(2), ScaleX(This.Width - ItemWidth(i))), ScaleY(ItemTop(i) + ItemHeight(i) - 5), Tabs[i]->Caption, Len(Tabs[i]->Caption))
 					Next i
 					SetBKMode(hdc,OPAQUE)
 					NewFontHandle = SelectObject(hdc, OldFontHandle)
