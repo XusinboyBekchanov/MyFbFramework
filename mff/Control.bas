@@ -1768,6 +1768,12 @@ Namespace My.Sys.Forms
 					End If
 				End With
 			Next i
+			#ifdef __USE_GTK__
+				If FClient Then
+					gtk_layout_move(gtk_layout(layoutwidget), FClient, lLeft, tTop)
+					gtk_widget_set_size_request(FClient, Max(0, rLeft - lLeft), Max(0, bTop - tTop))
+				End If
+			#endif
 			'#EndIf
 			If ListLeft   Then Deallocate_( ListLeft)
 			If ListRight  Then Deallocate_( ListRight)

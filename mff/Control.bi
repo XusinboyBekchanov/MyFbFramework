@@ -95,6 +95,7 @@ Namespace My.Sys.Forms
 			FDisposed As Boolean
 			#ifdef __USE_GTK__
 				FParentWidget As GtkWidget Ptr
+				FClient As GtkWidget Ptr
 			#else
 				FParentHandle As HWND
 				FClient As HWND

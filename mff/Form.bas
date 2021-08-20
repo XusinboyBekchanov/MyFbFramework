@@ -406,31 +406,64 @@ Namespace My.Sys.Forms
 	Property Form.FormStyle As Integer
 		Return FFormStyle
 	End Property
-
+	
+	#ifdef __USE_GTK__
+		Function Form.Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			If gtk_is_layout(widget) Then
+				#ifdef __USE_GTK3__
+					Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+				#else
+					Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+				#endif
+				cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
+				cairo_set_source_rgb(cr, 171 / 255.0, 171 / 255.0, 171 / 255.0)
+				cairo_fill(cr)
+			End If
+			Return False
+		End Function
+		
+		Function Form.Client_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			Client_Draw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+	#endif
+	
 	Property Form.FormStyle(Value As Integer)
 		If Value = FFormStyle Then Exit Property
 		FFormStyle = Value
-		#ifndef __USE_GTK__
-			Select Case FFormStyle
-			Case 0 'fsNormal
+		Select Case FFormStyle
+		Case 0 'fsNormal
+			#ifndef __USE_GTK__
 				If (ExStyle And WS_EX_TOPMOST) = WS_EX_TOPMOST Then
 					ExStyle = ExStyle And Not WS_EX_TOPMOST
 					SetWindowPos Handle,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
 				End If
-			Case 1 'fsMDIForm
-				
-			Case 2 'fsMDIChild
-				#ifndef __USE_GTK__
-					ChangeExStyle WS_EX_MDICHILD, True
-					If FHandle Then RecreateWnd
+			#endif
+		Case 1 'fsMDIForm
+			#ifdef __USE_GTK__
+				FClient = gtk_layout_new(null, null)
+				#ifdef __USE_GTK3__
+					g_signal_connect(FClient, "draw", G_CALLBACK(@Client_Draw), @This)
+				#else
+					g_signal_connect(FClient, "expose-event", G_CALLBACK(@Client_ExposeEvent), @This)
 				#endif
-			Case 3 'fsStayOnTop
+				If gtk_is_widget(layoutwidget) Then gtk_container_add(GTK_CONTAINER(layoutwidget), FClient)
+			#endif
+		Case 2 'fsMDIChild
+			#ifndef __USE_GTK__
+				ChangeExStyle WS_EX_MDICHILD, True
+				If FHandle Then RecreateWnd
+			#endif
+		Case 3 'fsStayOnTop
+			#ifndef __USE_GTK__
 				If (ExStyle And WS_EX_TOPMOST) <> WS_EX_TOPMOST Then
 					ExStyle = ExStyle Or WS_EX_TOPMOST
 					SetWindowPos Handle,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
 				End If
-			End Select
-		#endif
+			#endif
+		End Select
 	End Property
 	
 	Property Form.Parent As Control Ptr
@@ -438,10 +471,20 @@ Namespace My.Sys.Forms
 	End Property
 
 	Property Form.Parent(value As Control Ptr)
-		Base.Parent = value
+		#ifdef __USE_GTK__
+			If FormStyle = fsMDIChild Then
+				Base.FParent = value
+			Else
+				Base.Parent = value
+			End If
+		#else
+			Base.Parent = value
+		#endif
 		If *value Is Form Then
 			If Cast(Form Ptr, value)->FFormStyle = fsMDIForm Then
-				#ifndef __USE_GTK__
+				#ifdef __USE_GTK__
+					ParentWidget = Cast(Form Ptr, value)->FClient
+				#else
 					If IsWindow(FHandle) Then
 						SetParent(FHandle, IIf(value, Cast(Form Ptr, value)->FClient, 0))
 					End If

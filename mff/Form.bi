@@ -88,6 +88,8 @@ Namespace My.Sys.Forms
 		Declare Static Sub ActiveControlChanged(ByRef Sender As Control)
 		#ifdef __USE_GTK__
 			ImageWidget As GtkWidget Ptr
+			Declare Static Function Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Client_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
