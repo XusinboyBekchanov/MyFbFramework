@@ -418,7 +418,12 @@ Namespace My.Sys.Forms
 					SetWindowPos Handle,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
 				End If
 			Case 1 'fsMDIForm
+				
 			Case 2 'fsMDIChild
+				#ifndef __USE_GTK__
+					ChangeExStyle WS_EX_MDICHILD, True
+					If FHandle Then RecreateWnd
+				#endif
 			Case 3 'fsStayOnTop
 				If (ExStyle And WS_EX_TOPMOST) <> WS_EX_TOPMOST Then
 					ExStyle = ExStyle Or WS_EX_TOPMOST
@@ -426,6 +431,23 @@ Namespace My.Sys.Forms
 				End If
 			End Select
 		#endif
+	End Property
+	
+	Property Form.Parent As Control Ptr
+		Return Cast(Control Ptr, @FParent)
+	End Property
+
+	Property Form.Parent(value As Control Ptr)
+		Base.Parent = value
+		If *value Is Form Then
+			If Cast(Form Ptr, value)->FFormStyle = fsMDIForm Then
+				#ifndef __USE_GTK__
+					If IsWindow(FHandle) Then
+						SetParent(FHandle, IIf(value, Cast(Form Ptr, value)->FClient, 0))
+					End If
+				#endif
+			End If
+		End If
 	End Property
 
 	Property Form.WindowState As Integer
@@ -504,6 +526,7 @@ Namespace My.Sys.Forms
 
 	#ifndef __USE_GTK__
 		Sub Form.WndProc(ByRef message As Message)
+			
 		End Sub
 
 		Sub Form.HandleIsDestroyed(ByRef Sender As Control)
@@ -585,6 +608,22 @@ Namespace My.Sys.Forms
 					.ChangeTabIndex -2
 					SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
 					If .Menu Then .Menu->ParentWindow = @Sender
+					Select Case .FFormStyle
+					Case fsMDIForm
+						Dim FClientStruct As CLIENTCREATESTRUCT
+						FClientStruct.hWindowMenu = 0 'GetSubMenu(GetMenu(.FHandle), WINDOWMENU)
+						FClientStruct.idFirstChild = &H00FF
+						.FClient = CreateWindowEx(0, "MDICLIENT", "", WS_CHILD Or WS_VISIBLE Or WS_VSCROLL Or WS_HSCROLL Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, 0, 0, .FHandle, Cast(hmenu, &hcac), instance, @FClientStruct)
+						ShowWindow(.FClient, SW_SHOW)
+					Case fsMDIChild
+						If .FParent Then
+							If *.FParent Is Form Then
+								If Cast(Form Ptr, .FParent)->FFormStyle = fsMDIForm Then
+									SetParent(.FHandle, Cast(Form Ptr, .FParent)->FClient)
+								End If
+							End If
+						End If
+					End Select
 					.GetMenuItems
 					Dim As String mnuCaption, HotKey
 					Dim As Integer Pos1, CountOfHotKeys = 0
@@ -809,6 +848,15 @@ Namespace My.Sys.Forms
 			End Select
 		#endif
 		Base.ProcessMessage(msg)
+		#ifndef __USE_GTK__
+			Select Case FFormStyle
+			Case fsMDIChild
+				Msg.Result = -3 
+			Case fsMDIForm
+				Msg.hWnd = FClient
+				Msg.Result = -4
+			End Select
+		#endif
 	End Sub
 
 	'David Change

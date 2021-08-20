@@ -162,6 +162,9 @@ Namespace My.Sys.Forms
 		'Returns/sets a value that determines whether an object can respond to user-generated events.
 		Declare Property Enabled As Boolean
 		Declare Property Enabled(Value As Boolean)
+		'Returns/sets the parent container of the control.
+		Declare Property Parent As Control Ptr
+		Declare Property Parent(value As Control Ptr)
 		'Returns/sets a value that determines whether an object is visible or hidden.
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)

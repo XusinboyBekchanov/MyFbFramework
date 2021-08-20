@@ -693,7 +693,11 @@ Namespace My.Sys.Forms
 					End If
 				Else
 					If FParent Then
-						HParent = FParent->Handle
+						If Cast(Control Ptr, FParent)->FClient Then
+							HParent = Cast(Control Ptr, FParent)->FClient
+						Else
+							HParent = FParent->Handle
+						End If
 					Else
 						HParent = NULL
 						'						If MainHandle Then
@@ -1317,12 +1321,18 @@ Namespace My.Sys.Forms
 							Msg = Message.Msg
 							wParam = Message.wParam
 							lParam = Message.lParam
+						ElseIf Message.Result = -3 Then
+							Message.Result = DefMDIChildProc(FWindow, Msg, wParam, lParam)
+							Return Message.Result
+						ElseIf Message.Result = -4 Then
+							Message.Result = DefFrameProc(FWindow, Message.hWnd, Msg, wParam, lParam)
+							Return Message.Result
 						ElseIf Message.Result <> 0 Then
 							Return Message.Result
 						End If
 					End If
 				End If
-				Message.Result = DefWindowProc(FWindow,Msg,wParam,lParam)
+				Message.Result = DefWindowProc(FWindow, Msg, wParam, lParam)
 				'				If Ctrl Then
 				'					Ctrl->ProcessMessageAfter(Message)
 				'				End If

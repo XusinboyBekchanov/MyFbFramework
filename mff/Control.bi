@@ -97,6 +97,7 @@ Namespace My.Sys.Forms
 				FParentWidget As GtkWidget Ptr
 			#else
 				FParentHandle As HWND
+				FClient As HWND
 			#endif
 			#ifdef __USE_GTK__
 				AllocatedHeight As Integer
