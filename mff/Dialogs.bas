@@ -176,18 +176,20 @@ Function OpenFileDialog.Execute As Boolean
 		ToUTF8("Open"), GTK_RESPONSE_ACCEPT, _
 		NULL)
 		Dim As UString res()
-		Split *FFilter, "|", res()
-		ReDim filefilter(Int(UBound(res) / 2))
-		Dim j As Integer
-		For i As Integer = 1 To UBound(res) Step 2
-			If res(i) = "" Then Continue For
-			j += 1
-			filefilter(j) = gtk_file_filter_new()
-			gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
-			gtk_file_filter_add_pattern(filefilter(j), res(i))
-			gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
-		Next
-		If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
+		If *FFilter <> "" Then
+			Split *FFilter, "|", res()
+			ReDim filefilter(UBound(res) + 1)
+			Dim j As Integer
+			For i As Integer = 1 To UBound(res) Step 2
+				If res(i) = "" Then Continue For
+				j += 1
+				filefilter(j) = gtk_file_filter_new()
+				gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
+				gtk_file_filter_add_pattern(filefilter(j), res(i))
+				gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
+			Next
+			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
+		End If
 		gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
@@ -419,18 +421,20 @@ Function SaveFileDialog.Execute As Boolean
 		ToUTF8("Save"), GTK_RESPONSE_ACCEPT, _
 		NULL)
 		Dim As UString res()
-		Split *FFilter, "|", res()
-		ReDim filefilter(Int(UBound(res) / 2))
-		Dim j As Integer
-		For i As Integer = 1 To UBound(res) Step 2
-			If res(i) = "" Then Continue For
-			j += 1
-			filefilter(j) = gtk_file_filter_new()
-			gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
-			gtk_file_filter_add_pattern(filefilter(j), res(i))
-			gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
-		Next
-		If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
+		If *FFilter <> "" Then
+			Split *FFilter, "|", res()
+			ReDim filefilter(UBound(res) + 1)
+			Dim j As Integer
+			For i As Integer = 1 To UBound(res) Step 2
+				If res(i) = "" Then Continue For
+				j += 1
+				filefilter(j) = gtk_file_filter_new()
+				gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
+				gtk_file_filter_add_pattern(filefilter(j), res(i))
+				gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
+			Next
+			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
+		End If
 		gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
@@ -446,11 +450,15 @@ Function SaveFileDialog.Execute As Boolean
 				If curfilefilter = filefilter(j) Then FilterIndex = j: Exit For
 			Next
 			Var Index = FilterIndex * 2 - 1
-			WLet(cwsFileExt, Replace(res(Index), "*", ""))
-			If res(Index) = "*.*" Then
+			If Index <= UBound(res) Then
+				WLet(cwsFileExt, Replace(res(Index), "*", ""))
+				If res(Index) = "*.*" Then
+					FileName = *cwsFile
+				ElseIf Not EndsWith(*cwsFile, *cwsFileExt) Then
+					FileName = *cwsFile & *cwsFileExt
+				End If
+			Else
 				FileName = *cwsFile
-			ElseIf Not EndsWith(*cwsFile, *cwsFileExt) Then
-				FileName = *cwsFile & *cwsFileExt
 			End If
 		End If
 		gtk_widget_destroy( GTK_WIDGET(widget) )
