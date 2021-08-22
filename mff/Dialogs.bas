@@ -165,20 +165,35 @@ Function OpenFileDialog.Execute As Boolean
 	FileNames.Clear
 	#ifdef __USE_GTK__
 		Dim As GtkWindow Ptr win
+		Dim As GtkFileFilter Ptr filefilter()
 		If pApp->MainForm Then
 			win = Gtk_Window(pApp->MainForm->widget)
 		End If
-		widget =  gtk_file_chooser_dialog_new (ToUtf8("Open File"), _
+		widget =  gtk_file_chooser_dialog_new (ToUTF8(*FCaption), _
 		win, _
 		GTK_FILE_CHOOSER_ACTION_OPEN, _
 		ToUTF8("Cancel"), GTK_RESPONSE_CANCEL, _
 		ToUTF8("Open"), GTK_RESPONSE_ACCEPT, _
 		NULL)
-		'gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), *FFileName)
+		Dim As UString res()
+		Split *FFilter, "|", res()
+		ReDim filefilter(Int(UBound(res) / 2))
+		Dim j As Integer
+		For i As Integer = 1 To UBound(res) Step 2
+			If res(i) = "" Then Continue For
+			j += 1
+			filefilter(j) = gtk_file_filter_new()
+			gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
+			gtk_file_filter_add_pattern(filefilter(j), res(i))
+			gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
+		Next
+		If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
+		gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
 		If FMultiSelect Then gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), True)
-		Dim As Integer res = gtk_dialog_run (GTK_DIALOG (widget))
-		bResult = res = GTK_RESPONSE_ACCEPT
+		Dim As Integer result = gtk_dialog_run (GTK_DIALOG (widget))
+		bResult = result = GTK_RESPONSE_ACCEPT
 		If bResult Then
 			filename = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
 			Dim As GSList Ptr l = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER (widget))
@@ -339,7 +354,7 @@ Property SaveFileDialog.Filter(ByRef Value As WString)
 	*FFilter = Value
 End Property
 
-#IfNDef __USE_GTK__
+#ifndef __USE_GTK__
 	Function SaveFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 		Static As My.Sys.Forms.Control Ptr Ctrl
 		Static As SaveFileDialog Ptr SaveDial
@@ -393,22 +408,50 @@ Function SaveFileDialog.Execute As Boolean
 	Dim bResult As Boolean
 	#ifdef __USE_GTK__
 		Dim As GtkWindow Ptr win
+		Dim As GtkFileFilter Ptr filefilter(), curfilefilter
 		If pApp->MainForm Then
 			win = Gtk_Window(pApp->MainForm->widget)
 		End If
-		widget =  gtk_file_chooser_dialog_new (ToUTF8("Save File"), _
+		widget =  gtk_file_chooser_dialog_new (ToUTF8(*FCaption), _
 		win, _
 		GTK_FILE_CHOOSER_ACTION_SAVE, _
 		ToUTF8("Cancel"), GTK_RESPONSE_CANCEL, _
 		ToUTF8("Save"), GTK_RESPONSE_ACCEPT, _
 		NULL)
-		'gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), *FFileName)
+		Dim As UString res()
+		Split *FFilter, "|", res()
+		ReDim filefilter(Int(UBound(res) / 2))
+		Dim j As Integer
+		For i As Integer = 1 To UBound(res) Step 2
+			If res(i) = "" Then Continue For
+			j += 1
+			filefilter(j) = gtk_file_filter_new()
+			gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
+			gtk_file_filter_add_pattern(filefilter(j), res(i))
+			gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
+		Next
+		If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
+		gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
+		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
 		'gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), true)
-		Dim As Integer res = gtk_dialog_run (GTK_DIALOG (widget))
-		bResult = res = GTK_RESPONSE_ACCEPT
+		Dim As Integer result = gtk_dialog_run (GTK_DIALOG (widget))
+		bResult = result = GTK_RESPONSE_ACCEPT
 		If bResult Then
-			filename = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
+			Dim As WString Ptr cwsFile, cwsFileExt
+			WLet(cwsFile, WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget))))
+			curfilefilter = gtk_file_chooser_get_filter(GTK_FILE_CHOOSER (widget))
+			For j As Integer = 0 To UBound(filefilter)
+				If curfilefilter = filefilter(j) Then FilterIndex = j: Exit For
+			Next
+			Var Index = FilterIndex * 2 - 1
+			WLet(cwsFileExt, Replace(res(Index), "*", ""))
+			If res(Index) = "*.*" Then
+				FileName = *cwsFile
+			ElseIf Not EndsWith(*cwsFile, *cwsFileExt) Then
+				FileName = *cwsFile & *cwsFileExt
+			End If
 		End If
 		gtk_widget_destroy( GTK_WIDGET(widget) )
 	#else
