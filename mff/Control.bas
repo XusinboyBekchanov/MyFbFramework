@@ -30,6 +30,7 @@ Namespace My.Sys.Forms
 				FTempString = LCase(PropertyName)
 				Select Case FTempString
 				Case "align": Return @FAlign
+				Case "allowdrop": Return @FAllowDrop
 				Case "anchor": Return @Anchor
 				Case "anchor.left": Return @Anchor.Left
 				Case "anchor.right": Return @Anchor.Right
@@ -81,6 +82,7 @@ Namespace My.Sys.Forms
 				Else
 					Select Case LCase(PropertyName)
 					Case "align": This.Align = QInteger(Value)
+					Case "allowdrop": This.AllowDrop = QBoolean(Value)
 					Case "anchor.left": This.Anchor.Left = QInteger(Value)
 					Case "anchor.right": This.Anchor.Right = QInteger(Value)
 					Case "anchor.top": This.Anchor.Top = QInteger(Value)
@@ -145,6 +147,18 @@ Namespace My.Sys.Forms
 		'        If FHandle Then Move
 		'    End Property
 		
+		Property Control.AllowDrop As Boolean
+			Return FAllowDrop
+		End Property
+		
+		Property Control.AllowDrop(Value As Boolean)
+			FAllowDrop = Value
+			#ifndef __USE_GTK__
+				ChangeExStyle WS_EX_ACCEPTFILES, Value
+				If Handle Then RecreateWnd
+			#endif
+		End Property
+			
 		#ifndef ControlCount_Off
 			Function Control.ControlCount As Integer
 				Return FControlCount

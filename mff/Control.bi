@@ -111,6 +111,7 @@ Namespace My.Sys.Forms
 			#endif
 			FBorderStyle       As Integer
 			FExStyle           As Integer
+			FAllowDrop         As Boolean
 			FControlParent     As Integer
 			FStartPosition     As Integer
 			FStyle             As Integer
@@ -200,6 +201,8 @@ Namespace My.Sys.Forms
 			Controls           As Control Ptr Ptr
 			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent.
 			Anchor             As AnchorType
+			Declare Property AllowDrop As Boolean
+			Declare Property AllowDrop(Value As Boolean)
 			Declare Property ID As Integer
 			Declare Property ID(Value As Integer)
 			'Returns/sets the border style for an object.
