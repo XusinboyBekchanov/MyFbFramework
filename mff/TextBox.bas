@@ -866,6 +866,18 @@ Namespace My.Sys.Forms
 			Dim As Control Ptr btn = txt->GetForm()->FDefaultButton
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
 		End Sub
+		
+		Function TextBox.Entry_FocusInEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
+			Dim As TextBox Ptr txt = user_data
+			If txt AndAlso txt->OnGotFocus Then txt->OnGotFocus(*txt)
+			Return False
+		End Function
+		
+		Function TextBox.Entry_FocusOutEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
+			Dim As TextBox Ptr txt = user_data
+			If txt AndAlso txt->OnLostFocus Then txt->OnLostFocus(*txt)
+			Return False
+		End Function
 	#endif
 	
 	Constructor TextBox
@@ -877,6 +889,8 @@ Namespace My.Sys.Forms
 			gtk_entry_set_width_chars(gtk_entry(WidgetEntry), 0)
 			g_signal_connect(gtk_entry(WidgetEntry), "activate", G_CALLBACK(@Entry_Activate), @This)
 			g_signal_connect(gtk_entry(WidgetEntry), "changed", G_CALLBACK(@Entry_Changed), @This)
+			g_signal_connect(gtk_widget(WidgetEntry), "focus-in-event", G_CALLBACK(@Entry_FocusInEvent), @This)
+			g_signal_connect(gtk_widget(WidgetEntry), "focus-out-event", G_CALLBACK(@Entry_FocusOutEvent), @This)
 			g_signal_connect(gtk_text_view_get_buffer(gtk_text_view(WidgetTextView)), "changed", G_CALLBACK(@TextBuffer_Changed), @This)
 			WidgetScrolledWindow = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(gtk_scrolled_window(WidgetScrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
