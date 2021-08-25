@@ -456,6 +456,8 @@ Function SaveFileDialog.Execute As Boolean
 					FileName = *cwsFile
 				ElseIf Not EndsWith(*cwsFile, *cwsFileExt) Then
 					FileName = *cwsFile & *cwsFileExt
+				Else
+					FileName = *cwsFile
 				End If
 			Else
 				FileName = *cwsFile
