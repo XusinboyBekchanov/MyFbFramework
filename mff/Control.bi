@@ -212,8 +212,8 @@ Namespace My.Sys.Forms
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)
 			'Returns/sets the text contained in the control
-			Declare Property Text ByRef As WString
-			Declare Property Text(ByRef Value As WString)
+			Declare Virtual Property Text ByRef As WString
+			Declare Virtual Property Text(ByRef Value As WString)
 			'Returns/sets the text displayed when the mouse is paused over the control.
 			Declare Property Hint ByRef As WString
 			Declare Property Hint(ByRef Value As WString)

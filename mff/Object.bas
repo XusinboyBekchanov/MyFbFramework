@@ -7,7 +7,7 @@
 #include once "Object.bi"
 
 Namespace My.Sys
-	Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr __EXPORT__
 		Select Case LCase(PropertyName)
 		Case "classname": Return FClassName
 		Case Else: Return 0
@@ -15,7 +15,7 @@ Namespace My.Sys
 		Return 0
 	End Function
 	
-	Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean __EXPORT__
 		If Value <> 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return False
@@ -24,23 +24,23 @@ Namespace My.Sys
 		Return True
 	End Function
 	
-	Sub Object.Free
+	Sub Object.Free __EXPORT__
 		'Delete @This
 	End Sub
 	
-	Sub Object.Dispose
+	Sub Object.Dispose __EXPORT__
 		'Delete @This
 	End Sub
 	
-	Operator Object.Cast ByRef As WString
+	Operator Object.Cast ByRef As WString __EXPORT__
 		Return This.ClassName
 	End Operator
 	
-	Operator Object.Cast As Any Ptr
+	Operator Object.Cast As Any Ptr __EXPORT__
 		Return @This
 	End Operator
 	
-	Function Object.ClassName ByRef As WString
+	Function Object.ClassName ByRef As WString __EXPORT__
 		If FClassName = 0 Or FClassName = 24 Then
 			Return WStr("")
 		Else
@@ -48,11 +48,11 @@ Namespace My.Sys
 		End If
 	End Function
 	
-	Function Object.FullTypeName(ByVal baseIndex As Integer = 0) As UString
+	Function Object.FullTypeName(ByVal baseIndex As Integer = 0) As UString __EXPORT__
 		Dim As String s
 		Dim As ZString Ptr pz
 		Dim As Any Ptr p = CPtr(Any Ptr Ptr Ptr, @This)[0][-1]     ' Ptr to RTTI info
-		For I As Integer = baseIndex To -1
+		For I As Integer = baseIndex - 1 To 0
 			p = CPtr(Any Ptr Ptr, p)[2]                            ' Ptr to Base RTTI info of previous RTTI info
 			If p = 0 Then Return s
 		Next I
@@ -72,19 +72,19 @@ Namespace My.Sys
 		Loop
 	End Function
 	
-	Function Object.ToString ByRef As WString
+	Function Object.ToString ByRef As WString __EXPORT__
 		WLet(FTemp, "(" & This.ClassName & ")")
 		Return *FTemp
 	End Function
 	
-	Constructor Object
+	Constructor Object __EXPORT__
 		FTemp = 0
 		FClassName = 0 'CAllocate(0)
 		'FClassAncestor = CAllocate(0)
 		'FName = CAllocate(0)
 	End Constructor
 	
-	Destructor Object
+	Destructor Object __EXPORT__
 		WDeallocate FTemp
 		WDeallocate FClassName
 	End Destructor

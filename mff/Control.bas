@@ -287,7 +287,8 @@ Namespace My.Sys.Forms
 		
 		#ifndef Text_Off
 			Property Control.Text ByRef As WString
-				#ifndef __USE_GTK__
+				#ifdef __USE_GTK__
+				#else
 					If FHandle Then
 						Dim As Integer L
 						L = Perform(WM_GETTEXTLENGTH, 0, 0)
@@ -685,10 +686,10 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub Control.CreateWnd
-			Dim As Long nLeft   = FLeft
-			Dim As Long nTop    = FTop
-			Dim As Long nWidth  = FWidth
-			Dim As Long nHeight = FHeight
+			Dim As Long nLeft   = ScaleX(FLeft)
+			Dim As Long nTop    = ScaleY(FTop)
+			Dim As Long nWidth  = ScaleX(FWidth)
+			Dim As Long nHeight = ScaleY(FHeight)
 			#ifndef __USE_GTK__
 				If Handle Then Exit Sub
 				Dim As HWND HParent
@@ -752,10 +753,10 @@ Namespace My.Sys.Forms
 					Case 1, 4 ' CenterScreen, CenterParent
 						If FStartPosition = 4 AndAlso FParent Then ' CenterParent
 							With *Cast(Control Ptr, FParent)
-								nLeft = .Left + (.Width - nWidth) \ 2: nTop  = .Top + (.Height - nHeight) \ 2
+								nLeft = ScaleX(.Left) + (ScaleX(.Width) - nWidth) \ 2: nTop  = ScaleY(.Top) + (ScaleY(.Height) - nHeight) \ 2
 							End With
 						Else ' CenterScreen
-							nLeft = (UnScaleX(GetSystemMetrics(SM_CXSCREEN)) - nWidth) \ 2: nTop  = (UnScaleY(GetSystemMetrics(SM_CYSCREEN)) - nHeight) \ 2
+							nLeft = (GetSystemMetrics(SM_CXSCREEN) - nWidth) \ 2: nTop  = (GetSystemMetrics(SM_CYSCREEN) - nHeight) \ 2
 						End If
 					Case 2: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT ' WindowsDefaultLocation
 					Case 3: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT: nWidth = CW_USEDEFAULT: nHeight = CW_USEDEFAULT ' WindowsDefaultBounds
@@ -786,10 +787,10 @@ Namespace My.Sys.Forms
 					IIf(*FClassName = "IPAddress", @WC_IPADDRESS, FClassName),_
 					FText.vptr,_
 					FStyle,_
-					ScaleX(nLeft), _
-					ScaleY(nTop), _
-					ScaleX(nWidth), _
-					ScaleY(nHeight), _
+					nLeft, _
+					nTop, _
+					nWidth, _
+					nHeight, _
 					HParent,_
 					Cast(HMENU, ControlID),_
 					Instance,_
