@@ -946,6 +946,7 @@ Namespace My.Sys.Forms
 				End If
 				If Not FFormCreated Then
 					FFormCreated = True
+					If FStartPosition <> 0 Then StartPosition = FStartPosition
 					If Icon.ResName <> "" Then
 						If gtk_is_window(widget) Then
 							Dim As GList Ptr list1 = NULL
