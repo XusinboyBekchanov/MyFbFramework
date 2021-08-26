@@ -201,22 +201,24 @@ Namespace My.Sys.Forms
 	Property Form.StartPosition(Value As Integer)
 		FStartPosition = Value
 		#ifdef __USE_GTK__
-			Select Case FStartPosition
-			Case 0: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_NONE) ' Manual
-			Case 1, 4 ' CenterScreen, CenterParent
-				If FStartPosition = 4 AndAlso FParent Then ' CenterParent
-					gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER_ON_PARENT)
-					With *Cast(Control Ptr, FParent)
-						gtk_window_move(gtk_window(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
-					End With
-				Else ' CenterScreen
-					gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
-					gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
-				End If
-			Case 2: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
-			Case 3: 'gtk_window_set_default_size(gtk_window(widget), -1, -1) ' DefaultBounds
-				gtk_window_resize(gtk_window(widget), 1000, 600)
-			End Select
+			If gtk_is_window(widget) Then
+				Select Case FStartPosition
+				Case 0: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_NONE) ' Manual
+				Case 1, 4 ' CenterScreen, CenterParent
+					If FStartPosition = 4 AndAlso FParent Then ' CenterParent
+						gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER_ON_PARENT)
+						With *Cast(Control Ptr, FParent)
+							gtk_window_move(gtk_window(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+						End With
+					Else ' CenterScreen
+						gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
+						gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+					End If
+				Case 2: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
+				Case 3: 'gtk_window_set_default_size(gtk_window(widget), -1, -1) ' DefaultBounds
+					gtk_window_resize(gtk_window(widget), 1000, 600)
+				End Select
+			End If
 		#endif
 	End Property
 
