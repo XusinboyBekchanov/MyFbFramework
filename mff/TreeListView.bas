@@ -773,7 +773,7 @@ Namespace My.Sys.Forms
 		End With
 		#ifdef __USE_GTK__
 			If Parent Then
-				With *Cast(ListView Ptr, Parent)
+				With *Cast(TreeListView Ptr, Parent)
 					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
 					.ColumnTypes = New_( GType[Index + 2])
 					For i As Integer = 0 To Index + 1
@@ -805,7 +805,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
-				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(ListView Ptr, Parent)->widget), PColumn->Column)
+				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(TreeListView Ptr, Parent)->widget), PColumn->Column)
 				#ifdef __USE_GTK3__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else
