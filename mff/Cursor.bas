@@ -14,6 +14,35 @@
 #include once "Cursor.bi"
 
 Namespace My.Sys.Drawing
+	Function Cursor.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "graphic": Return @Graphic
+		Case "height": Return @FHeight
+		Case "hotspotx": Return @FHotSpotX
+		Case "hotspoty": Return @FHotSpotY
+		Case "width": Return @FWidth
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+
+	Function Cursor.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "height": This.Height = QInteger(Value)
+			Case "hotspotx": This.HotSpotX = QInteger(Value)
+			Case "hotspoty": This.HotSpotY = QInteger(Value)
+			Case "width": This.Width = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+			
 	Property Cursor.Width As Integer
 		Return FWidth
 	End Property

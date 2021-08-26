@@ -17,8 +17,12 @@ Namespace My.Sys.Forms
 	Function Label.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "alignment": Return @FAlignment
+		Case "border": Return @FBorder
+		Case "canvas": Return @Canvas
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 		Case "centerimage": Return @FCenterImage
+		Case "realsizeimage": Return @FRealSizeImage
+		Case "style": Return @FStyle
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
 		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
@@ -30,8 +34,11 @@ Namespace My.Sys.Forms
 	Function Label.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "alignment": If Value <> 0 Then This.Alignment = *Cast(AlignmentConstants Ptr, Value)
+		Case "border": If Value <> 0 Then This.Border = QInteger(Value)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
 		Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
+		Case "realsizeimage": If Value <> 0 Then This.RealSizeImage = QBoolean(Value)
+		Case "style": If Value <> 0 Then This.Style = QInteger(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
 		Case "graphic": This.Graphic = QWString(Value)

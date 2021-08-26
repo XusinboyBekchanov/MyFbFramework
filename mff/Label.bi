@@ -55,9 +55,9 @@ Namespace My.Sys.Forms
 		Declare Property TabIndex(Value As Integer)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
-		Declare Property Border As Integer
+		Declare Property Border As Integer 'LabelBorder
 		Declare Property Border(Value As Integer)
-		Declare Property Style As Integer
+		Declare Property Style As Integer 'LabelStyle
 		Declare Property Style(Value As Integer)
 		Declare Property RealSizeImage As Boolean
 		Declare Property RealSizeImage(Value As Boolean)
