@@ -229,6 +229,7 @@ Namespace My.Sys.Forms
 		FColumnHeaderHidden As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
+		FTrackSelect As Boolean
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
@@ -266,6 +267,8 @@ Namespace My.Sys.Forms
 		Declare Property SelectedColumn(Value As ListViewColumn Ptr)
 		Declare Property SingleClickActivate As Boolean
 		Declare Property SingleClickActivate(Value As Boolean)
+		Declare Property TrackSelect As Boolean
+		Declare Property TrackSelect(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

@@ -10,6 +10,7 @@ Namespace My.Sys.Forms
 	Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "tabindex": Return @FTabIndex
+		Case "trackselect": Return @FTrackSelect
 		Case "view": Return @FView
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -24,6 +25,7 @@ Namespace My.Sys.Forms
 		Else
 			Select Case LCase(PropertyName)
 			Case "tabindex": TabIndex = QInteger(Value)
+			Case "trackselect": TrackSelect = QBoolean(Value)
 			Case "view": This.View = *Cast(ViewStyle Ptr, Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
@@ -805,6 +807,17 @@ Namespace My.Sys.Forms
 			#endif
 		#else
 			
+		#endif
+	End Property
+	
+	Property ListView.TrackSelect As Boolean
+		Return FTrackSelect
+	End Property
+	
+	Property ListView.TrackSelect(Value As Boolean)
+		FTrackSelect = Value
+		#ifndef __USE_GTK__
+			ChangeExStyle LVS_EX_TRACKSELECT, Value
 		#endif
 	End Property
 	

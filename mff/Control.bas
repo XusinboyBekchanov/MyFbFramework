@@ -1131,7 +1131,7 @@ Namespace My.Sys.Forms
 					SendMessage(Cast(HWND, Message.lParam), CM_COMMAND, Message.wParam, Message.lParam)
 				Case WM_MOUSEMOVE
 					If OnMouseMove Then OnMouseMove(This, DownButton, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
-					If This.Tracked = False Then
+					If CInt(This.Tracked = False) AndAlso CInt((OnMouseLeave OrElse OnMouseHover)) Then
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
 						event_.dwFlags = TME_LEAVE Or TME_HOVER
