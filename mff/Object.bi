@@ -5,6 +5,12 @@
 '################################################################################
 
 #include once "SysUtils.bi"
+#ifdef __USE_GTK__
+	#include once "gtk/gtk.bi"
+	#ifdef __USE_GTK3__
+		#include once "glib-object.bi"
+	#endif
+#endif
 
 Namespace My.Sys
 	#define QBoolean(__Ptr__) *Cast(Boolean Ptr,__Ptr__)

@@ -5,12 +5,6 @@
 '###############################################################################
 
 #include once "Object.bi"
-#ifdef __USE_GTK__
-	#include once "gtk/gtk.bi"
-	#ifdef __USE_GTK3__
-		#include once "glib-object.bi"
-	#endif
-#endif
 
 #ifndef __FB_WIN32__
 	Type Point
