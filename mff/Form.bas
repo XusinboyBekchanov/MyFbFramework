@@ -17,6 +17,7 @@ Namespace My.Sys.Forms
 	Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
+		Case "activecontrol": Return FActiveControl
 		Case "borderstyle": Return @FBorderStyle
 		Case "cancelbutton": Return FCancelButton
 		Case "caption": Return This.FText.vptr
@@ -42,6 +43,7 @@ Namespace My.Sys.Forms
 	Function Form.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
+			Case "activecontrol": This.ActiveControl = 0
 			Case "menu": This.Menu = 0
 			Case "cancelbutton": This.CancelButton = 0
 			Case "defaultbutton": This.DefaultButton = 0
@@ -50,6 +52,7 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "activecontrol": This.ActiveControl = Cast(Control Ptr, Value)
 			Case "borderstyle": This.BorderStyle = QInteger(Value)
 			Case "cancelbutton": This.CancelButton = Cast(Control Ptr, Value)
 			Case "caption": This.Caption = QWString(Value)

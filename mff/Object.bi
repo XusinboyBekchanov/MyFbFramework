@@ -19,11 +19,16 @@ Namespace My.Sys
 	
 	Type Object Extends Object
 	Protected:
+		#ifdef __USE_GTK__
+			Accelerator     As GtkAccelGroup Ptr
+		#else
+			Accelerator        As HACCEL
+		#endif
+		Designer As Object Ptr
 		FTemp As WString Ptr
 		FClassName As WString Ptr
 		FDynamic As Boolean
 	Public:
-		Designer As Object Ptr
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function ClassName ByRef As WString
 		' Function to get any typename in the inheritance up hierarchy

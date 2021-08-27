@@ -63,7 +63,6 @@ Namespace My.Sys.ComponentModel
 		'Returns/sets the extra space between controls.
 		ExtraMargins       As MarginsType
 		#ifdef __USE_GTK__
-			Accelerator     As GtkAccelGroup Ptr
 			Declare Property Handle As GtkWidget Ptr
 			Declare Property Handle(Value As GtkWidget Ptr)
 			widget 			As GtkWidget Ptr
@@ -72,7 +71,6 @@ Namespace My.Sys.ComponentModel
 			scrolledwidget	As GtkWidget Ptr
 			layoutwidget	As GtkWidget Ptr
 		#else
-			Accelerator        As HACCEL
 			Declare Property Handle As HWND
 			Declare Property Handle(Value As HWND)
 		#endif
