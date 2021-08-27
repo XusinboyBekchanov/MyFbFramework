@@ -80,6 +80,7 @@ Namespace My.Sys.Forms
 		Type Control Extends Component
 		Private:
 			Tracked As Boolean
+			FMouseInClient As Boolean
 			FAnchoredLeft     As Integer
 			FAnchoredTop     As Integer
 			FAnchoredRight     As Integer
