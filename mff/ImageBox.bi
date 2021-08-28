@@ -39,7 +39,7 @@ Namespace My.Sys.Forms
 		Graphic            As My.Sys.Drawing.GraphicType
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Property Style As Integer
+		Declare Property Style As Integer 'ImageBoxStyle
 		Declare Property Style(Value As Integer)
 		Declare Property RealSizeImage As Boolean
 		Declare Property RealSizeImage(Value As Boolean)

@@ -16,6 +16,9 @@
 Namespace My.Sys.Forms
 	Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "centerimage": Return @FCenterImage
+		Case "realsizeimage": Return @FRealSizeImage
+		Case "style": Return @FImageStyle
 		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -24,6 +27,10 @@ Namespace My.Sys.Forms
 	
 	Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
+		Case "realsizeimage": If Value <> 0 Then This.RealSizeImage = QBoolean(Value)
+		Case "style": If Value <> 0 Then This.Style = QInteger(Value)
+		Case "graphic": This.Graphic = QWString(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -170,6 +177,7 @@ Namespace My.Sys.Forms
 		Graphic.Ctrl = @This
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 0
+		FCenterImage   = True
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__
