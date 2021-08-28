@@ -928,7 +928,7 @@ Namespace My.Sys.Forms
 					'Message.Result = True
 					If OnKeyUp Then OnKeyUp(This, e->Key.keyval, e->Key.state)
 				Case GDK_ENTER_NOTIFY
-					If OnMouseOver Then OnMouseOver(This)
+					If OnMouseEnter Then OnMouseEnter(This)
 				Case GDK_LEAVE_NOTIFY
 					If OnMouseLeave Then OnMouseLeave(This)
 				Case GDK_CONFIGURE
@@ -1132,10 +1132,10 @@ Namespace My.Sys.Forms
 				Case WM_MOUSEMOVE
 					If Not This.FMouseInClient Then
 						This.FMouseInClient = True
-						If OnMouseOver Then OnMouseOver(This)
+						If OnMouseEnter Then OnMouseEnter(This)
 					End If
 					If OnMouseMove Then OnMouseMove(This, DownButton, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
-					If CInt(This.Tracked = False) AndAlso CInt((OnMouseLeave OrElse OnMouseHover OrElse OnMouseOver)) Then
+					If CInt(This.Tracked = False) AndAlso CInt((OnMouseLeave OrElse OnMouseHover OrElse OnMouseEnter)) Then
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
 						event_.dwFlags = TME_LEAVE Or TME_HOVER

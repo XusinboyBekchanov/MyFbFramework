@@ -321,8 +321,8 @@ Namespace My.Sys.Forms
 			OnMouseWheel As Sub(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Raises the MouseHover event.
 			OnMouseHover As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Raises the MouseOver event.
-			OnMouseOver  As Sub(ByRef Sender As Control)
+			'Raises the MouseEnter event.
+			OnMouseEnter As Sub(ByRef Sender As Control)
 			'Raises the MouseLeave event.
 			OnMouseLeave As Sub(ByRef Sender As Control)
 			'Raises the Click event.
