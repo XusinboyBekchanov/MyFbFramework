@@ -151,6 +151,7 @@ Namespace My.Sys.Forms
 		'Returns/sets the text contained in the control
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
+		'Returns/sets a value indicating whether a Control-menu box is displayed on a form at run time
 		Declare Property ControlBox As Boolean
 		Declare Property ControlBox(Value As Boolean)
 		Declare Property MinimizeBox As Boolean

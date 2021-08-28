@@ -440,7 +440,11 @@ Namespace My.Sys.Forms
 		FFormStyle = Value
 		Select Case FFormStyle
 		Case 0 'fsNormal
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				If gtk_is_window(widget) Then
+					gtk_window_set_keep_above (GTK_WINDOW(widget), False)
+				End If
+			#else
 				If (ExStyle And WS_EX_TOPMOST) = WS_EX_TOPMOST Then
 					ExStyle = ExStyle And Not WS_EX_TOPMOST
 					SetWindowPos Handle,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
@@ -462,7 +466,11 @@ Namespace My.Sys.Forms
 				If FHandle Then RecreateWnd
 			#endif
 		Case 3 'fsStayOnTop
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				If gtk_is_window(widget) Then
+					gtk_window_set_keep_above (GTK_WINDOW(widget), True)
+				End If
+			#else
 				If (ExStyle And WS_EX_TOPMOST) <> WS_EX_TOPMOST Then
 					ExStyle = ExStyle Or WS_EX_TOPMOST
 					SetWindowPos Handle,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
@@ -499,7 +507,17 @@ Namespace My.Sys.Forms
 	End Property
 
 	Property Form.WindowState As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_window(widget) Then
+				If gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_ICONIFIED = GDK_WINDOW_STATE_ICONIFIED Then
+					FWindowState = WindowStates.wsMinimized
+				ElseIf gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_MAXIMIZED = GDK_WINDOW_STATE_MAXIMIZED Then
+					FWindowState = WindowStates.wsMaximized
+				Else
+					FWindowState = WindowStates.wsNormal
+				End If
+			End If
+		#else
 			If Handle Then
 				If IsIconic(Handle) Then
 					FWindowState = WindowStates.wsMinimized
@@ -515,7 +533,18 @@ Namespace My.Sys.Forms
 
 	Property Form.WindowState(Value As Integer)
 		FWindowState = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_window(widget) Then
+				gtk_window_deiconify(GTK_WINDOW(widget))
+				gtk_window_unmaximize(GTK_WINDOW(widget))
+				Select Case FWindowState
+				Case WindowStates.wsMinimized:  gtk_window_iconify(GTK_WINDOW(widget))
+				Case WindowStates.wsMaximized:  gtk_window_maximize(GTK_WINDOW(widget))
+				Case WindowStates.wsNormal:     
+				Case WindowStates.wsHide:       gtk_widget_hide(widget)
+				End Select
+			End If
+		#else
 			If Handle Then
 				If Not DesignMode Then
 					Dim nState As Long
@@ -744,6 +773,8 @@ Namespace My.Sys.Forms
 				Case 2
 					msg.Result = -1
 				End Select
+			Case GDK_WINDOW_STATE
+				
 			Case Else
 				
 			End Select
