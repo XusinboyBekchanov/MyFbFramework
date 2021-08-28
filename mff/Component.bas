@@ -249,7 +249,9 @@ Namespace My.Sys.ComponentModel
 	#ifndef Left_Off
 		Property Component.Left As Integer
 			#ifdef __USE_GTK__
-				If scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
+				If gtk_is_window(widget) Then
+					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
+				ElseIf scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(scrolledwidget, @allocation)
 					FLeft = allocation.x
@@ -281,7 +283,9 @@ Namespace My.Sys.ComponentModel
 	#ifndef Top_Off
 		Property Component.Top As Integer
 			#ifdef __USE_GTK__
-				If scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
+				If gtk_is_window(widget) Then
+					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
+				ElseIf scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(scrolledwidget, @allocation)
 					FTop = allocation.y

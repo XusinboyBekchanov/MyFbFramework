@@ -198,6 +198,7 @@ Namespace My.Sys.Forms
 			'Specifies the default Help file context ID for an object.
 			HelpContext        As Integer
 			Constraints        As SizeConstraints
+			'Gets or sets a value indicating whether this control should redraw its surface using a secondary buffer to reduce or prevent flicker (Windows only)
 			DoubleBuffered     As Boolean
 			Controls           As Control Ptr Ptr
 			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent.
@@ -325,6 +326,8 @@ Namespace My.Sys.Forms
 			OnMouseEnter As Sub(ByRef Sender As Control)
 			'Raises the MouseLeave event.
 			OnMouseLeave As Sub(ByRef Sender As Control)
+			'Raises the Move event.
+			OnMove As Sub(ByRef Sender As Control)
 			'Raises the Click event.
 			OnClick      As Sub(ByRef Sender As Control)
 			'Raises the DclClick event.

@@ -350,7 +350,7 @@ Namespace My.Sys.Drawing
 		ReleaseDevice
 	End Function
 	
-	Sub Canvas.TextOut(x As Integer,y As Integer,ByRef s As WString,FG As Integer,BK As Integer)
+	Sub Canvas.TextOut(x As Integer, y As Integer, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend2
@@ -362,28 +362,27 @@ Namespace My.Sys.Drawing
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
+			pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 			If BK <> -1 Then
-				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				iRed = Abs(GetRed(BK) / 255.0): iGreen = Abs(GetGreen(BK) / 255.0): iBlue = Abs(GetBlue(BK) / 255.0)
 				cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 				.cairo_rectangle (Handle, x, y, extend2.width, extend2.height)
 				cairo_fill (Handle)
 			End If
 			cairo_move_to(Handle, x + 0.5, y + extend2.height + 0.5)
+			If FG = -1 Then
+				iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
+			Else
+				iRed = Abs(GetRed(FG) / 255.0): iGreen = Abs(GetGreen(FG) / 255.0): iBlue = Abs(GetBlue(FG) / 255.0)
+			End If
 			iRed = Abs(GetRed(FG) / 255.0): iGreen = Abs(GetGreen(FG) / 255.0): iBlue = Abs(GetBlue(FG) / 255.0)
 			cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 			pango_cairo_show_layout_line(Handle, pl)
 		#else
-			If BK = -1 Then
-				SetBKMode(Handle,TRANSPARENT)
-				SetTextColor(Handle,FG)
-				.TextOut(Handle, ScaleX(X), ScaleY(Y), @s, Len(s))
-				SetBKMode(Handle,OPAQUE)
-			Else
-				SetBKColor(Handle,BK)
-				SetTextColor(Handle,FG)
-				.TextOut(Handle, ScaleX(X), ScaleY(Y), @s, Len(s))
-			End If
+			If BK = -1 Then SetBKMode(Handle, TRANSPARENT) Else SetBKColor(Handle, BK)
+			If FG = -1 Then SetTextColor(Handle, Font.Color) Else SetTextColor(Handle, FG)
+			.TextOut(Handle, ScaleX(X), ScaleY(Y), @s, Len(s))
+			If BK = -1 Then SetBKMode(Handle, OPAQUE)
 		#endif
 		ReleaseDevice
 	End Sub

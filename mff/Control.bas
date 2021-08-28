@@ -327,7 +327,9 @@ Namespace My.Sys.Forms
 			
 			Property Control.Hint(ByRef Value As WString)
 				FHint = Value
-				#ifndef __USE_GTK__
+				#ifdef __USE_GTK__
+					If widget Then gtk_widget_set_tooltip_text(widget, ToUTF8(Value))
+				#else
 					If FHandle Then
 						If ToolTipHandle Then
 							SendMessage(ToolTipHandle, TTM_GETTOOLINFO, 0, CInt(@FToolInfo))
@@ -506,6 +508,7 @@ Namespace My.Sys.Forms
 				FForeColorGreen = GetGreen(Value) / 255.0
 				FForeColorBlue = GetBlue(Value) / 255.0
 				Font.Color = FForeColor
+				Canvas.Font.Color = FForeColor
 				Invalidate
 			End Property
 		#endif
@@ -932,6 +935,7 @@ Namespace My.Sys.Forms
 				Case GDK_LEAVE_NOTIFY
 					If OnMouseLeave Then OnMouseLeave(This)
 				Case GDK_CONFIGURE
+					If OnMove Then OnMove(This)
 					'If OnResize Then OnResize(This)
 					RequestAlign
 					'Requests @This
@@ -1065,6 +1069,7 @@ Namespace My.Sys.Forms
 					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top
 					If Constraints.Width <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cx = Constraints.Width
 					If Constraints.Height <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cy = Constraints.Height
+					If OnMove Then OnMove(This)
 				Case WM_CANCELMODE
 					SendMessage(Handle,CM_CANCELMODE,0,0)
 				Case WM_LBUTTONDOWN
@@ -1496,7 +1501,6 @@ Namespace My.Sys.Forms
 				If gtk_is_layout(widget) AndAlso Ctrl <> 0 Then
 					Ctrl->Canvas.HandleSetted = True 
 					Ctrl->Canvas.Handle = cr
-					If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
 					#ifdef __USE_GTK3__
 						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 					#else
@@ -1508,6 +1512,7 @@ Namespace My.Sys.Forms
 						cairo_set_source_rgb(cr, Ctrl->FBackColorRed, Ctrl->FBackColorGreen, Ctrl->FBackColorBlue)
 						cairo_fill(cr)
 					End If
+					If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight

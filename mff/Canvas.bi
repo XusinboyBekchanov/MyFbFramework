@@ -113,7 +113,7 @@ Namespace My.Sys.Drawing
 		Declare Sub PolyBeizerTo(Points As Point Ptr,Count As Integer)
 		Declare Sub SetPixel(x As Integer,y As Integer,PixelColor As Integer)
 		Declare Function GetPixel(x As Integer,y As Integer) As Integer
-		Declare Sub TextOut(x As Integer, y As Integer, ByRef s As WString, FG As Integer, BK As Integer)
+		Declare Sub TextOut(x As Integer, y As Integer, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub DrawTransparent(x As Integer, y As Integer, Image As Any Ptr, cTransparentColor As UInteger = 0)
 		Declare Sub Draw(x As Integer,y As Integer,Image As Any Ptr)
 		Declare Sub StretchDraw(x As Integer,y As Integer,nWidth As Integer,nHeight As Integer,Image As Any Ptr)
