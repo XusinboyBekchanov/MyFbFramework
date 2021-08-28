@@ -823,7 +823,7 @@ Namespace My.Sys.Forms
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
 					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If OnCreate Then OnCreate(This)
-					If FVisible Then ShowWindow(FHandle, SW_SHOWNORMAL)
+					If FVisible Then This.Show 'ShowWindow(FHandle, SW_SHOWNORMAL)
 					Update
 				Else
 					'Print ClassName, GetErrorString(GetLastError, , True)

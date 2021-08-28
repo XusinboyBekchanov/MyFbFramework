@@ -517,14 +517,26 @@ Namespace My.Sys.Forms
 		FWindowState = Value
 		#ifndef __USE_GTK__
 			If Handle Then
-				Dim nState As Long
+				If Not DesignMode Then
+					Dim nState As Long
+					Select Case FWindowState
+					Case WindowStates.wsMinimized:  nState = SW_SHOWMINIMIZED
+					Case WindowStates.wsMaximized:  nState = SW_SHOWMAXIMIZED
+					Case WindowStates.wsNormal:     nState = SW_SHOWNORMAL
+					Case WindowStates.wsHide:       nState = SW_HIDE
+					End Select
+					ShowWindow(Handle, nState)
+				End If
+			Else
+				ChangeStyle WS_MINIMIZE, False
+				ChangeStyle WS_MAXIMIZE, False
+				ChangeStyle WS_VISIBLE, True
 				Select Case FWindowState
-				Case WindowStates.wsMinimized:  nState = SW_SHOWMINIMIZED
-				Case WindowStates.wsMaximized:  nState = SW_SHOWMAXIMIZED
-				Case WindowStates.wsNormal:     nState = SW_SHOWNORMAL
-				Case WindowStates.wsHide:       nState = SW_HIDE
+				Case WindowStates.wsMinimized:  ChangeStyle WS_MINIMIZE, True
+				Case WindowStates.wsMaximized:  ChangeStyle WS_MAXIMIZE, True
+				Case WindowStates.wsNormal:     
+				Case WindowStates.wsHide:       ChangeStyle WS_VISIBLE, False
 				End Select
-				ShowWindow(Handle, nState)
 			End If
 		#endif
 	End Property
@@ -1004,8 +1016,8 @@ Namespace My.Sys.Forms
 		#else
 			If IsIconic(Handle) Then
 				ShowWindow Handle, SW_SHOWNORMAL
-			ElseIf IsWindowVisible(Handle) Then
-				This.SetFocus
+'			ElseIf IsWindowVisible(Handle) Then
+'				This.SetFocus
 			Else
 				If Handle Then
 					ShowWindow Handle, FCmdShow(FWindowState)

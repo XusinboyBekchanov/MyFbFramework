@@ -292,9 +292,9 @@ Namespace My.Sys.Forms
 			Declare Sub SendToBack
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False)
 			'Displays the control to the user.
-			Declare Sub Show
+			Declare Virtual Sub Show
 			'Conceals the control from the user.
-			Declare Sub Hide
+			Declare Virtual Sub Hide
 			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
 			Declare Sub Add(Ctrl As Control Ptr)
 			Declare Sub AddRange cdecl(CountArgs As Integer, ...)
