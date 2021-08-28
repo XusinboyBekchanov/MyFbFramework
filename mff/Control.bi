@@ -345,8 +345,6 @@ Namespace My.Sys.Forms
 			OnGotFocus   As Sub(ByRef Sender As Control)
 			'Raises the LostFocus event.
 			OnLostFocus  As Sub(ByRef Sender As Control)
-			'Raises the Update event.
-			OnUpdate     As Sub(ByRef Sender As Control)
 		End Type
 		
 		Dim Shared CreationControl As Control Ptr

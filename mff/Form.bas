@@ -824,8 +824,6 @@ Namespace My.Sys.Forms
 				IsMenuItem = True
 			Case WM_INITMENU
 			Case WM_INITMENUPOPUP
-			Case WM_SIZE
-				If OnSize Then OnSize(This)
 			Case WM_TIMER
 				If OnTimer Then OnTimer(This)
 			Case WM_ACTIVATE

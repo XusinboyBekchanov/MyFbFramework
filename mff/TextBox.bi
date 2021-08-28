@@ -162,6 +162,8 @@ Namespace My.Sys.Forms
 		OnCut As Sub(ByRef Sender As TextBox)
 		OnCopy As Sub(ByRef Sender As TextBox)
 		OnPaste As Sub(ByRef Sender As TextBox, ByRef Action As Integer)
+		'Raises the Update event.
+		OnUpdate     As Sub(ByRef Sender As TextBox)
 	End Type
 End Namespace
 

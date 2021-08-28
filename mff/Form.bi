@@ -205,7 +205,6 @@ Namespace My.Sys.Forms
 		OnDeActivateApp         As Sub(ByRef Sender As Form)
 		OnHide                  As Sub(ByRef Sender As Form)
 		OnFree                  As Sub(ByRef Sender As Form)
-		OnSize                  As Sub(ByRef Sender As Form)
 		OnShow                  As Sub(ByRef Sender As Form)
 		OnTimer                 As Sub(ByRef Sender As Form)
 	End Type
