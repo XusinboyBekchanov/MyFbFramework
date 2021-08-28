@@ -9,6 +9,20 @@
 Namespace My.Sys.Forms
 	Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "allowcolumnreorder": Return @FAllowColumnReorder
+		Case "borderselect": Return @FBorderSelect
+		Case "checkboxes": Return @FCheckBoxes
+		Case "columnheaderhidden": Return @FColumnHeaderHidden
+		Case "fullrowselect": Return @FFullRowSelect
+		Case "hovertime": Return @FHoverTime
+		Case "gridlines": Return @FGridLines
+		Case "images": Return Images
+		Case "stateimages": Return StateImages
+		Case "smallimages": Return SmallImages
+		Case "groupheaderimages": Return GroupHeaderImages
+		Case "labeltip": Return @FLabelTip
+		Case "singleclickactivate": Return @FSingleClickActivate
+		Case "sort": Return @FSortStyle
 		Case "tabindex": Return @FTabIndex
 		Case "trackselect": Return @FTrackSelect
 		Case "view": Return @FView
@@ -24,6 +38,20 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "allowcolumnreorder": AllowColumnReorder = QBoolean(Value)
+			Case "borderselect": BorderSelect = QBoolean(Value)
+			Case "checkboxes": CheckBoxes = QBoolean(Value)
+			Case "columnheaderhidden": ColumnHeaderHidden = QBoolean(Value)
+			Case "fullrowselect": FullRowSelect = QBoolean(Value)
+			Case "hovertime": HoverTime = QInteger(Value)
+			Case "gridlines": GridLines = QBoolean(Value)
+			Case "images": Images = Cast(ImageList Ptr, Value)
+			Case "stateimages": StateImages = Cast(ImageList Ptr, Value)
+			Case "smallimages": SmallImages = Cast(ImageList Ptr, Value)
+			Case "groupheaderimages": GroupHeaderImages = Cast(ImageList Ptr, Value)
+			Case "labeltip": LabelTip = QBoolean(Value)
+			Case "singleclickactivate": SingleClickActivate = QBoolean(Value)
+			Case "sort": Sort = *Cast(SortStyle Ptr, Value)
 			Case "tabindex": TabIndex = QInteger(Value)
 			Case "trackselect": TrackSelect = QBoolean(Value)
 			Case "view": This.View = *Cast(ViewStyle Ptr, Value)
@@ -771,7 +799,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Sub ListView.Init()
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(gtk_tree_view(widget)) = NULL Then
 				gtk_list_store_set_column_types(ListStore, Columns.Count + 1, ColumnTypes)
 				gtk_tree_view_set_model(gtk_tree_view(widget), GTK_TREE_MODEL(ListStore))
@@ -806,7 +834,7 @@ Namespace My.Sys.Forms
 				
 			#endif
 		#else
-			
+			ChangeExStyle LVS_EX_ONECLICKACTIVATE, Value
 		#endif
 	End Property
 	
@@ -818,6 +846,83 @@ Namespace My.Sys.Forms
 		FTrackSelect = Value
 		#ifndef __USE_GTK__
 			ChangeExStyle LVS_EX_TRACKSELECT, Value
+		#endif
+	End Property
+	
+	Property ListView.AllowColumnReorder As Boolean
+		Return FAllowColumnReorder
+	End Property
+	
+	Property ListView.AllowColumnReorder(Value As Boolean)
+		FAllowColumnReorder = Value
+		#ifndef __USE_GTK__
+			ChangeExStyle LVS_EX_HEADERDRAGDROP, Value
+		#endif
+	End Property
+	
+	Property ListView.BorderSelect As Boolean
+		Return FBorderSelect
+	End Property
+	
+	Property ListView.BorderSelect(Value As Boolean)
+		FBorderSelect = Value
+		#ifndef __USE_GTK__
+			ChangeExStyle LVS_EX_BORDERSELECT, Value
+		#endif
+	End Property
+	
+	Property ListView.GridLines As Boolean
+		Return FGridLines
+	End Property
+	
+	Property ListView.GridLines(Value As Boolean)
+		FGridLines = Value
+		#ifndef __USE_GTK__
+			ChangeExStyle LVS_EX_GRIDLINES, Value
+		#endif
+	End Property
+	
+	Property ListView.CheckBoxes As Boolean
+		Return FCheckBoxes
+	End Property
+	
+	Property ListView.CheckBoxes(Value As Boolean)
+		FCheckBoxes = Value
+		#ifndef __USE_GTK__
+			ChangeExStyle LVS_EX_CHECKBOXES, Value
+		#endif
+	End Property
+	
+	Property ListView.FullRowSelect As Boolean
+		Return FFullRowSelect
+	End Property
+	
+	Property ListView.FullRowSelect(Value As Boolean)
+		FFullRowSelect = Value
+		#ifndef __USE_GTK__
+			ChangeExStyle LVS_EX_FULLROWSELECT, Value
+		#endif
+	End Property
+	
+	Property ListView.LabelTip As Boolean
+		Return FLabelTip
+	End Property
+	
+	Property ListView.LabelTip(Value As Boolean)
+		FLabelTip = Value
+		#ifndef __USE_GTK__
+			ChangeExStyle LVS_EX_LABELTIP, Value
+		#endif
+	End Property
+	
+	Property ListView.HoverTime As Integer
+		Return FHoverTime
+	End Property
+	
+	Property ListView.HoverTime(Value As Integer)
+		FHoverTime = Value
+		#ifndef __USE_GTK__
+			If Handle Then Perform(LVM_SETHOVERTIME, 0, Value)
 		#endif
 	End Property
 	
@@ -1057,8 +1162,11 @@ Namespace My.Sys.Forms
 					If .GroupHeaderImages AndAlso .GroupHeaderImages->Handle Then ListView_SetImageList(.FHandle, CInt(.GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
 					Dim lvStyle As Integer
 					lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-					lvStyle = lvStyle Or  LVS_EX_GRIDLINES Or LVS_EX_FULLROWSELECT Or LVS_EX_DOUBLEBUFFER 'David Change
+					If .DoubleBuffered Then lvStyle = lvStyle Or LVS_EX_DOUBLEBUFFER 'David Change
+					If .FullRowSelect Then lvStyle = lvStyle Or LVS_EX_FULLROWSELECT
+					If .GridLines Then lvStyle = lvStyle Or LVS_EX_GRIDLINES
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
+					If .HoverTime Then .HoverTime = .FHoverTime
 					.View = .FView
 					For i As Integer = 0 To .Columns.Count -1
 						Dim lvc As LVCOLUMN
@@ -1158,7 +1266,10 @@ Namespace My.Sys.Forms
 		ListItems.Parent = @This
 		Columns.Parent = @This
 		FView = vsDetails 
+		DoubleBuffered = True 
 		FEnabled = True
+		FGridLines = True
+		FFullRowSelect = True 
 		FVisible = True
 		FTabIndex          = -1
 		FTabStop = True

@@ -225,11 +225,18 @@ Namespace My.Sys.Forms
 	
 	Type ListView Extends Control
 	Private:
-		FView As ViewStyle
+		FAllowColumnReorder As Boolean
+		FBorderSelect As Boolean
+		FCheckBoxes As Boolean
 		FColumnHeaderHidden As Boolean
+		FGridLines As Boolean
+		FHoverTime As Integer
+		FFullRowSelect As Boolean
+		FLabelTip As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
 		FTrackSelect As Boolean
+		FView As ViewStyle
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
@@ -249,8 +256,22 @@ Namespace My.Sys.Forms
 		StateImages       As ImageList Ptr
 		SmallImages       As ImageList Ptr
 		GroupHeaderImages       As ImageList Ptr
+		Declare Property AllowColumnReorder As Boolean
+		Declare Property AllowColumnReorder(Value As Boolean)
+		Declare Property BorderSelect As Boolean
+		Declare Property BorderSelect(Value As Boolean)
+		Declare Property CheckBoxes As Boolean
+		Declare Property CheckBoxes(Value As Boolean)
 		Declare Property ColumnHeaderHidden As Boolean
 		Declare Property ColumnHeaderHidden(Value As Boolean)
+		Declare Property FullRowSelect As Boolean
+		Declare Property FullRowSelect(Value As Boolean)
+		Declare Property HoverTime As Integer
+		Declare Property HoverTime(Value As Integer)
+		Declare Property GridLines As Boolean
+		Declare Property GridLines(Value As Boolean)
+		Declare Property LabelTip As Boolean
+		Declare Property LabelTip(Value As Boolean)
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property TabIndex As Integer
