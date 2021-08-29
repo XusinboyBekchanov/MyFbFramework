@@ -823,16 +823,13 @@ Namespace My.Sys.Forms
 	
 	Sub ListView.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		#ifndef __USE_GTK__
-			If FHandle Then
-				Dim lvStyle As Integer
-				lvStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-				If Value Then
-					If ((lvStyle And iStyle) <> iStyle) Then lvStyle = lvStyle Or iStyle
-				ElseIf ((lvStyle And iStyle) = iStyle) Then
-					lvStyle = lvStyle And Not iStyle
-				End If
-				SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
+			If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
+			If Value Then
+				If ((FLVExStyle And iStyle) <> iStyle) Then FLVExStyle = FLVExStyle Or iStyle
+			ElseIf ((FLVExStyle And iStyle) = iStyle) Then
+				FLVExStyle = FLVExStyle And Not iStyle
 			End If
+			If FHandle Then SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal FLVExStyle)
 		#endif
 	End Sub
 	
@@ -1177,15 +1174,7 @@ Namespace My.Sys.Forms
 					If .GroupHeaderImages AndAlso .GroupHeaderImages->Handle Then ListView_SetImageList(.FHandle, CInt(.GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
 					Dim lvStyle As Integer
 					lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-					If .DoubleBuffered Then lvStyle = lvStyle Or LVS_EX_DOUBLEBUFFER 'David Change
-					If .FullRowSelect Then lvStyle = lvStyle Or LVS_EX_FULLROWSELECT
-					If .GridLines Then lvStyle = lvStyle Or LVS_EX_GRIDLINES
-					If .SingleClickActivate Then lvStyle = lvStyle Or LVS_EX_ONECLICKACTIVATE
-					If .TrackSelect Then lvStyle = lvStyle Or LVS_EX_TRACKSELECT
-					If .AllowColumnReorder Then lvStyle = lvStyle Or LVS_EX_HEADERDRAGDROP
-					If .BorderSelect Then lvStyle = lvStyle Or LVS_EX_BORDERSELECT
-					If .CheckBoxes Then lvStyle = lvStyle Or LVS_EX_CHECKBOXES
-					If .LabelTip Then lvStyle = lvStyle Or LVS_EX_LABELTIP
+					lvStyle = lvStyle Or .FLVExStyle
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
 					If .HoverTime Then .HoverTime = .FHoverTime
 					.View = .FView
@@ -1302,6 +1291,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "ListView", WC_ListView
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
 				WLet(FClassAncestor, WC_ListView)
 			#endif
