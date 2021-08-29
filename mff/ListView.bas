@@ -822,16 +822,18 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub ListView.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
-		If FHandle Then
-			Dim lvStyle As Integer
-			lvStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-			If Value Then
-				If ((lvStyle And iStyle) <> iStyle) Then lvStyle = lvStyle Or iStyle
-			ElseIf ((lvStyle And iStyle) = iStyle) Then
-				lvStyle = lvStyle And Not iStyle
+		#ifndef __USE_GTK__
+			If FHandle Then
+				Dim lvStyle As Integer
+				lvStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
+				If Value Then
+					If ((lvStyle And iStyle) <> iStyle) Then lvStyle = lvStyle Or iStyle
+				ElseIf ((lvStyle And iStyle) = iStyle) Then
+					lvStyle = lvStyle And Not iStyle
+				End If
+				SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
 			End If
-			SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
-		End If
+		#endif
 	End Sub
 	
 	Property ListView.SingleClickActivate As Boolean
