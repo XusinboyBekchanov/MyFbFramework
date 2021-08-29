@@ -237,6 +237,7 @@ Namespace My.Sys.Forms
 		FSortStyle As SortStyle
 		FTrackSelect As Boolean
 		FView As ViewStyle
+		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)

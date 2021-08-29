@@ -821,6 +821,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Sub ListView.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
+		If FHandle Then
+			Dim lvStyle As Integer
+			lvStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
+			If Value Then
+				If ((lvStyle And iStyle) <> iStyle) Then lvStyle = lvStyle Or iStyle
+			ElseIf ((lvStyle And iStyle) = iStyle) Then
+				lvStyle = lvStyle And Not iStyle
+			End If
+			SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
+		End If
+	End Sub
+	
 	Property ListView.SingleClickActivate As Boolean
 		Return FSingleClickActivate
 	End Property
@@ -834,7 +847,7 @@ Namespace My.Sys.Forms
 				
 			#endif
 		#else
-			ChangeExStyle LVS_EX_ONECLICKACTIVATE, Value
+			ChangeLVExStyle LVS_EX_ONECLICKACTIVATE, Value
 		#endif
 	End Property
 	
@@ -845,7 +858,7 @@ Namespace My.Sys.Forms
 	Property ListView.TrackSelect(Value As Boolean)
 		FTrackSelect = Value
 		#ifndef __USE_GTK__
-			ChangeExStyle LVS_EX_TRACKSELECT, Value
+			ChangeLVExStyle LVS_EX_TRACKSELECT, Value
 		#endif
 	End Property
 	
@@ -856,7 +869,7 @@ Namespace My.Sys.Forms
 	Property ListView.AllowColumnReorder(Value As Boolean)
 		FAllowColumnReorder = Value
 		#ifndef __USE_GTK__
-			ChangeExStyle LVS_EX_HEADERDRAGDROP, Value
+			ChangeLVExStyle LVS_EX_HEADERDRAGDROP, Value
 		#endif
 	End Property
 	
@@ -867,7 +880,7 @@ Namespace My.Sys.Forms
 	Property ListView.BorderSelect(Value As Boolean)
 		FBorderSelect = Value
 		#ifndef __USE_GTK__
-			ChangeExStyle LVS_EX_BORDERSELECT, Value
+			ChangeLVExStyle LVS_EX_BORDERSELECT, Value
 		#endif
 	End Property
 	
@@ -878,7 +891,7 @@ Namespace My.Sys.Forms
 	Property ListView.GridLines(Value As Boolean)
 		FGridLines = Value
 		#ifndef __USE_GTK__
-			ChangeExStyle LVS_EX_GRIDLINES, Value
+			ChangeLVExStyle LVS_EX_GRIDLINES, Value
 		#endif
 	End Property
 	
@@ -889,7 +902,7 @@ Namespace My.Sys.Forms
 	Property ListView.CheckBoxes(Value As Boolean)
 		FCheckBoxes = Value
 		#ifndef __USE_GTK__
-			ChangeExStyle LVS_EX_CHECKBOXES, Value
+			ChangeLVExStyle LVS_EX_CHECKBOXES, Value
 		#endif
 	End Property
 	
@@ -900,7 +913,7 @@ Namespace My.Sys.Forms
 	Property ListView.FullRowSelect(Value As Boolean)
 		FFullRowSelect = Value
 		#ifndef __USE_GTK__
-			ChangeExStyle LVS_EX_FULLROWSELECT, Value
+			ChangeLVExStyle LVS_EX_FULLROWSELECT, Value
 		#endif
 	End Property
 	
@@ -911,7 +924,7 @@ Namespace My.Sys.Forms
 	Property ListView.LabelTip(Value As Boolean)
 		FLabelTip = Value
 		#ifndef __USE_GTK__
-			ChangeExStyle LVS_EX_LABELTIP, Value
+			ChangeLVExStyle LVS_EX_LABELTIP, Value
 		#endif
 	End Property
 	
@@ -1165,6 +1178,12 @@ Namespace My.Sys.Forms
 					If .DoubleBuffered Then lvStyle = lvStyle Or LVS_EX_DOUBLEBUFFER 'David Change
 					If .FullRowSelect Then lvStyle = lvStyle Or LVS_EX_FULLROWSELECT
 					If .GridLines Then lvStyle = lvStyle Or LVS_EX_GRIDLINES
+					If .SingleClickActivate Then lvStyle = lvStyle Or LVS_EX_ONECLICKACTIVATE
+					If .TrackSelect Then lvStyle = lvStyle Or LVS_EX_TRACKSELECT
+					If .AllowColumnReorder Then lvStyle = lvStyle Or LVS_EX_HEADERDRAGDROP
+					If .BorderSelect Then lvStyle = lvStyle Or LVS_EX_BORDERSELECT
+					If .CheckBoxes Then lvStyle = lvStyle Or LVS_EX_CHECKBOXES
+					If .LabelTip Then lvStyle = lvStyle Or LVS_EX_LABELTIP
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
 					If .HoverTime Then .HoverTime = .FHoverTime
 					.View = .FView
