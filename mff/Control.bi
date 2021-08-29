@@ -304,49 +304,49 @@ Namespace My.Sys.Forms
 			Declare Operator Let(ByRef Value As Control Ptr)
 			Declare Constructor
 			Declare Destructor
-			'Raises the Create event.
+			'Occurs when the control is created (Windows, Linux).
 			OnCreate     As Sub(ByRef Sender As Control)
-			'Raises the Destroy event.
+			'Occurs when the control's handle is in the process of being destroyed (Windows, Linux).
 			OnDestroy    As Sub(ByRef Sender As Control)
-			'Raises the DropFile event.
+			'Occurs when the user drops a file on the window of an application that has registered itself as a recipient of dropped files (Windows, Linux).
 			OnDropFile   As Sub(ByRef Sender As Control, ByRef Filename As WString)
-			'Raises the Paint event.
+			'Occurs when the control is redrawn (Windows, Linux).
 			OnPaint      As Sub(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-			'Raises the MouseMove event.
+			'Occurs when the mouse pointer is moved over the control (Windows, Linux).
 			OnMouseMove  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Raises the MouseDown event.
+			'Occurs when the mouse pointer is over the control and a mouse button is pressed (Windows, Linux).
 			OnMouseDown  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Raises the MouseUp event.
+			'Occurs when the mouse pointer is over the control and a mouse button is released (Windows, Linux).
 			OnMouseUp    As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Raises the MouseWheel event.
+			'Occurs when the mouse wheel moves while the control has focus (Windows, Linux).
 			OnMouseWheel As Sub(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Raises the MouseHover event.
+			'Occurs when the mouse pointer rests on the control (Windows only).
 			OnMouseHover As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Raises the MouseEnter event.
+			'Occurs when the mouse pointer enters the control (Windows, Linux).
 			OnMouseEnter As Sub(ByRef Sender As Control)
-			'Raises the MouseLeave event.
+			'Occurs when the mouse pointer leaves the control (Windows, Linux).
 			OnMouseLeave As Sub(ByRef Sender As Control)
-			'Raises the Move event.
+			'Occurs when the control is moved.
 			OnMove As Sub(ByRef Sender As Control)
-			'Raises the Click event.
+			'Occurs when the control is clicked (Windows, Linux).
 			OnClick      As Sub(ByRef Sender As Control)
-			'Raises the DclClick event.
+			'Occurs when the control is double-clicked (Windows, Linux).
 			OnDblClick   As Sub(ByRef Sender As Control)
-			'Raises the KeyPress event.
+			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux).
 			OnKeyPress   As Sub(ByRef Sender As Control, Key As Byte)
-			'Raises the KeyDown event.
+			'Occurs when a key is pressed while the control has focus (Windows, Linux).
 			OnKeyDown    As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
-			'Raises the KeyUp event.
+			'Occurs when a key is released while the control has focus (Windows, Linux).
 			OnKeyUp      As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
-			'Raises the All message events.
+			'Occurs when the window receives a message (Windows, Linux).
 			OnMessage    As Sub(ByRef Sender As Control, ByRef msg As Message)
-			'Raises the Resize event.
+			'Occurs when the control is resized (Windows, Linux).
 			OnResize     As Sub(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-			'Raises the Scroll event.
+			'Occurs when the scroll box has been moved by either a mouse or keyboard action (Windows only).
 			OnScroll     As Sub(ByRef Sender As Control)
-			'Raises the GotFocus event.
+			'Occurs when the control receives focus (Windows, Linux).
 			OnGotFocus   As Sub(ByRef Sender As Control)
-			'Raises the LostFocus event.
+			'Occurs when the control loses focus (Windows, Linux).
 			OnLostFocus  As Sub(ByRef Sender As Control)
 		End Type
 		

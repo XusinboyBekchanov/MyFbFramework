@@ -198,15 +198,25 @@ Namespace My.Sys.Forms
 		Declare Sub CenterToScreen
 		Declare Constructor
 		Declare Destructor
+		'Occurs when the form is activated in code or by the user (Windows only).
 		OnActivate              As Sub(ByRef Sender As Form)
+		'Occurs after a Application instance becomes active (Windows only).
 		OnActivateApp           As Sub(ByRef Sender As Form)
+		'Occurs when changes focus one of the controls on the form (Windows, Linux).
 		OnActiveControlChange   As Sub(ByRef Sender As Form)
+		'Occurs when the form is closed (Windows, Linux).
 		OnClose                 As Sub(ByRef Sender As Form, ByRef Action As Integer)
+		'Occurs when the form loses focus and is no longer the active form (Windows only).
 		OnDeActivate            As Sub(ByRef Sender As Form)
+		'Occurs after a Application instance becomes deactive (Windows only).
 		OnDeActivateApp         As Sub(ByRef Sender As Form)
+		'Occurs when the Visible property value changes to false (Windows only).
 		OnHide                  As Sub(ByRef Sender As Form)
+		'Occurs when the object deleted (Windows, Linux).
 		OnFree                  As Sub(ByRef Sender As Form)
+		'Occurs when the Visible property value changes to true (Windows, Linux).
 		OnShow                  As Sub(ByRef Sender As Form)
+		'Occurs when the specified timer interval has elapsed and the timer is enabled (Windows only).
 		OnTimer                 As Sub(ByRef Sender As Form)
 	End Type
 End Namespace
