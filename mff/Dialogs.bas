@@ -838,6 +838,10 @@ Property ColorDialog.Caption(ByRef Value As WString)
 	WLet(_Caption, Value)
 End Property
 
+#ifdef __USE_GTK__
+	#define BGR(r, g, b) (Cast(UByte, (r)) Or (Cast(UShort, Cast(UByte, (g))) Shl 8)) Or (Cast(UShort, Cast(UByte, (b))) Shl 16)
+#endif
+
 Function ColorDialog.Execute As Boolean
 	#ifdef __USE_GTK__
 		Dim As Boolean bResult
@@ -846,30 +850,27 @@ Function ColorDialog.Execute As Boolean
 			win = Gtk_Window(pApp->MainForm->widget)
 		End If
 		#ifdef __USE_GTK3__
-			widget = gtk_color_chooser_dialog_new (ToUTF8("Choose Color"), win)
+			widget = gtk_color_chooser_dialog_new (ToUTF8(*_Caption), win)
 		#else
-			widget = gtk_color_selection_dialog_new(ToUTF8("Choose Color"))
+			widget = gtk_color_selection_dialog_new(ToUTF8(*_Caption))
 		#endif
 		Dim As Integer res = gtk_dialog_run (GTK_DIALOG (widget))
 		bResult = res = GTK_RESPONSE_OK
 		If bResult Then
+			Dim As UString RGBString
 			#ifdef __USE_GTK3__
 				Dim As GdkRGBA RGBAColor
-				gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (widget), @RGBAColor)
+				gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER (widget), @RGBAColor)
+				RGBString = WStr(*gdk_rgba_to_string(@RGBAColor))
 			#else
 				Dim As GdkColor gColor
 				Dim As GtkWidget Ptr cs = gtk_color_selection_dialog_get_color_selection(gtk_color_selection_dialog(widget))
 				gtk_color_selection_get_current_color(GTK_COLOR_selection (cs), @gColor)
-			#endif
-			Dim As UString RGBString
-			#ifdef __USE_GTK3__
-				RGBString = WStr(*gdk_rgba_to_string(@RGBAColor))
-			#else
 				RGBString = WStr(*gdk_color_to_string(@gColor))
 			#endif
 			Dim As UString res()
-			Split(Mid(RGBString, 5, Len(RGBString) - 6), ",", res())
-			If UBound(res) >= 2 Then This.Color = RGB(Val(res(0)), Val(res(1)), Val(res(2)))
+			Split(Mid(RGBString, 5, Len(RGBString) - 5), ",", res())
+			If UBound(res) >= 2 Then This.Color = BGR(Val(res(0)), Val(res(1)), Val(res(2)))
 		End If
 		gtk_widget_destroy( GTK_WIDGET(widget) )
 		Return bResult
