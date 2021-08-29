@@ -991,10 +991,12 @@ Namespace My.Sys.Forms
 				Case GDK_FOCUS_CHANGE
 					If Cast(GdkEventFocus Ptr, e)->in Then
 						If OnGotFocus Then OnGotFocus(This)
-						Dim frm As Control Ptr = GetForm
-						If frm Then
-							frm->FActiveControl = @This
-							If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
+						If Not DesignMode Then
+							Dim frm As Control Ptr = GetForm
+							If frm Then
+								frm->FActiveControl = @This
+								If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
+							End If
 						End If
 					Else
 						If OnLostFocus Then OnLostFocus(This)
@@ -1215,10 +1217,12 @@ Namespace My.Sys.Forms
 					If OnKeyUp Then OnKeyUp(This,LoWord(Message.WParam),Message.lParam And &HFFFF)
 				Case WM_SETFOCUS
 					If OnGotFocus Then OnGotFocus(This)
-					Dim frm As Control Ptr = GetForm
-					If frm Then
-						frm->FActiveControl = @This
-						If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
+					If Not DesignMode Then
+						Dim frm As Control Ptr = GetForm
+						If frm Then
+							frm->FActiveControl = @This
+							If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
+						End If
 					End If
 				Case WM_KILLFOCUS
 					If OnLostFocus Then OnLostFocus(This)
