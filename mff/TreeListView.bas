@@ -1358,6 +1358,13 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	#ifdef __USE_GTK__
+		Sub TreeListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr)
+			Dim As TreeListView Ptr lv = user_data
+			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
+		End Sub
+	#endif
+	
 	Constructor TreeListView
 		#ifdef __USE_GTK__
 			TreeStore = gtk_tree_store_new(1, G_TYPE_STRING)
@@ -1367,6 +1374,13 @@ Namespace My.Sys.Forms
 			widget = gtk_tree_view_new()
 			gtk_container_add(gtk_container(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
+			#ifdef __USE_GTK3__
+				g_signal_connect(gtk_scrollable_get_hadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+				g_signal_connect(gtk_scrollable_get_vadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+			#else
+				g_signal_connect(gtk_tree_view_get_hadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+				g_signal_connect(gtk_tree_view_get_vadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+			#endif
 			g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@TreeListView_Map), @This)
 			g_signal_connect(gtk_tree_view(widget), "row-activated", G_CALLBACK(@TreeListView_RowActivated), @This)
 			g_signal_connect(gtk_tree_view(widget), "test-expand-row", G_CALLBACK(@TreeListView_TestExpandRow), @This)

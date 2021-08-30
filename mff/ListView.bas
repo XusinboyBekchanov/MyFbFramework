@@ -409,15 +409,15 @@ Namespace My.Sys.Forms
 	
 	Property ListViewColumn.Format(Value As ColumnFormat)
 		FFormat = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_FMT OR LVCF_SUBITEM
+				lvc.mask = LVCF_FMT Or LVCF_SUBITEM
 				lvc.iSubItem = Index
 				lvc.fmt = Value
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property ListViewColumn.Hint ByRef As WString
@@ -801,14 +801,14 @@ Namespace My.Sys.Forms
 	
 	Sub ListViewColumns.Remove(Index As Integer)
 		FColumns.Remove Index
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				Parent->Perform LVM_DELETECOLUMN, cast(WPARAM, Index), 0
+				Parent->Perform LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
-	Function ListViewColumns.IndexOf(BYREF FColumn As ListViewColumn Ptr) As Integer
+	Function ListViewColumns.IndexOf(ByRef FColumn As ListViewColumn Ptr) As Integer
 		Return FColumns.IndexOF(FColumn)
 	End Function
 	
@@ -1298,6 +1298,12 @@ Namespace My.Sys.Forms
 			Dim As ListView Ptr lv = user_data
 			lv->Init
 		End Sub
+		
+		Function ListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
+			Dim As ListView Ptr lv = user_data
+			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
+			Return True
+		End Function
 	#endif
 	
 	Constructor ListView
@@ -1309,6 +1315,13 @@ Namespace My.Sys.Forms
 			widget = gtk_tree_view_new()
 			gtk_container_add(gtk_container(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
+			#ifdef __USE_GTK3__
+				g_signal_connect(gtk_scrollable_get_hadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+				g_signal_connect(gtk_scrollable_get_vadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+			#else
+				g_signal_connect(gtk_tree_view_get_hadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+				g_signal_connect(gtk_tree_view_get_vadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+			#endif
 			g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@ListView_Map), @This)
 			g_signal_connect(gtk_tree_view(widget), "row-activated", G_CALLBACK(@ListView_RowActivated), @This)
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@ListView_SelectionChanged), @This)
