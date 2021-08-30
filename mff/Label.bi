@@ -36,12 +36,15 @@ Namespace My.Sys.Forms
 		AAlignment(3)     As Integer
 		ARealSizeImage(2) As Integer
 		ACenterImage(2)   As Integer
+		AWordWraps(2)     As Integer
+		FWordWraps        As Boolean
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 	Protected:
+		Declare Virtual Sub ChangeLabelStyle
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Graphic            As My.Sys.Drawing.GraphicType
@@ -63,6 +66,8 @@ Namespace My.Sys.Forms
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean
 		Declare Property CenterImage(Value As Boolean)
+		Declare Property WordWraps As Boolean
+		Declare Property WordWraps(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

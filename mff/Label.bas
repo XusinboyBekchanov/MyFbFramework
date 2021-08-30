@@ -26,6 +26,7 @@ Namespace My.Sys.Forms
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return Cast(Any Ptr, This.FText.vptr)
 		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
+		Case "wordwraps": Return @FWordWraps
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -42,6 +43,7 @@ Namespace My.Sys.Forms
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
 		Case "graphic": This.Graphic = QWString(Value)
+		Case "wordwraps": This.WordWraps = QBoolean(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -78,19 +80,23 @@ Namespace My.Sys.Forms
 		Return FBorder
 	End Property
 	
+	Sub Label.ChangeLabelStyle
+		If Style <> lsText Then
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+			#endif
+		Else
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or AAlignment(Abs_(FAlignment))
+			#endif
+		End If
+		RecreateWnd
+	End Sub
+	
 	Property Label.Border(Value As Integer)
 		If Value <> FBorder Then
 			FBorder = Value
-			If Style <> lsText Then
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
-				#endif
-			Else
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment))
-				#endif
-			End If
-			RecreateWnd
+			ChangeLabelStyle
 		End If
 	End Property
 	
@@ -101,16 +107,7 @@ Namespace My.Sys.Forms
 	Property Label.Style(Value As Integer)
 		If Value <> FStyle Then
 			FStyle = Value
-			If FStyle <> lsText Then
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
-				#endif
-			Else
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment))
-				#endif
-			End If
-			RecreateWnd
+			ChangeLabelStyle
 		End If
 	End Property
 	
@@ -121,16 +118,7 @@ Namespace My.Sys.Forms
 	Property Label.RealSizeImage(Value As Boolean)
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
-			If Style <> lsText Then
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
-				#endif
-			Else
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment))
-				#endif
-			End If
-			RecreateWnd
+			ChangeLabelStyle
 		End If
 	End Property
 	
@@ -141,16 +129,7 @@ Namespace My.Sys.Forms
 	Property Label.CenterImage(Value As Boolean)
 		If Value <> FCenterImage Then
 			FCenterImage = Value
-			If Style <> lsText Then
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
-				#endif
-			Else
-				#ifndef __USE_GTK__
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment))
-				#endif
-			End If
-			RecreateWnd
+			ChangeLabelStyle
 		End If
 	End Property
 	
@@ -161,14 +140,22 @@ Namespace My.Sys.Forms
 	Property Label.Alignment(Value As AlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
-			#ifndef __USE_GTK__
-				If Style <> lsText Then
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
-				Else
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment))
-				End If
+			ChangeLabelStyle
+		End If
+	End Property
+	
+	Property Label.WordWraps As Boolean
+		Return FWordWraps
+	End Property
+	
+	Property Label.WordWraps(Value As Boolean)
+		If Value <> FWordWraps Then
+			FWordWraps = value
+			#ifdef __USE_GTK__
+				gtk_label_set_line_wrap(gtk_label(widget), Value)
+			#else
+				ChangeLabelStyle
 			#endif
-			RecreateWnd
 		End If
 	End Property
 	
@@ -253,28 +240,32 @@ Namespace My.Sys.Forms
 			#else
 				gtk_misc_set_alignment(gtk_misc(widget), 0, 0)
 			#endif
+			gtk_label_set_line_wrap(gtk_label(widget), Value)
 			This.RegisterClass "Label", @This
 		#else
-			AStyle(0)        = 0
-			AStyle(1)        = SS_BITMAP
-			AStyle(2)        = SS_ICON
-			AStyle(3)        = SS_ICON
-			AStyle(4)        = SS_ENHMETAFILE
-			AStyle(5)        = SS_OWNERDRAW
-			AAlignment(0)    = SS_LEFT
-			AAlignment(1)    = SS_CENTER
-			AAlignment(2)    = SS_RIGHT
-			ABorder(0)       = 0
-			ABorder(1)       = SS_SIMPLE
-			ABorder(2)       = SS_SUNKEN
-			ACenterImage(0)  = SS_RIGHTJUST
-			ACenterImage(1)  = SS_CENTERIMAGE
-			ARealSizeImage(0)= 0
-			ARealSizeImage(1)= SS_REALSIZEIMAGE
+			AStyle(0)           = 0
+			AStyle(1)           = SS_BITMAP
+			AStyle(2)           = SS_ICON
+			AStyle(3)           = SS_ICON
+			AStyle(4)           = SS_ENHMETAFILE
+			AStyle(5)           = SS_OWNERDRAW
+			AAlignment(0)       = SS_LEFT
+			AAlignment(1)       = SS_CENTER
+			AAlignment(2)       = SS_RIGHT
+			ABorder(0)          = 0
+			ABorder(1)          = SS_SIMPLE
+			ABorder(2)          = SS_SUNKEN
+			ACenterImage(0)     = SS_RIGHTJUST
+			ACenterImage(1)     = SS_CENTERIMAGE
+			ARealSizeImage(0)   = 0
+			ARealSizeImage(1)   = SS_REALSIZEIMAGE
+			AWordWraps(0)       = SS_ENDELLIPSIS
+			AWordWraps(1)       = 0
 		#endif
 		Graphic.Ctrl = This
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
+		FWordWraps       = True
 		'FAlignment = 2
 		FTabIndex          = -1
 		With This
@@ -283,11 +274,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "Label", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
-				If FStyle <> lsText Then
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
-				Else
-					Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment))
-				End If
+				ChangeLabelStyle
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
