@@ -835,25 +835,41 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub TextBox.PasteFromClipboard
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_editable(widget) Then
+				gtk_editable_paste_clipboard(gtk_editable(widget))
+			End If
+		#else
 			If FHandle Then Perform(WM_PASTE, 0, 0)
 		#endif
 	End Sub
 	
 	Sub TextBox.CopyToClipboard
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_editable(widget) Then
+				gtk_editable_copy_clipboard(gtk_editable(widget))
+			End If
+		#else
 			If FHandle Then Perform(WM_COPY, 0, 0)
 		#endif
 	End Sub
 	
 	Sub TextBox.CutToClipboard
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_editable(widget) Then
+				gtk_editable_cut_clipboard(gtk_editable(widget))
+			End If
+		#else
 			If FHandle Then Perform(WM_CUT, 0, 0)
 		#endif
 	End Sub
 	
 	Sub TextBox.SelectAll
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_editable(widget) Then
+				gtk_editable_select_region(gtk_editable(widget), 0, -1)
+			End If
+		#else
 			If FHandle Then Perform(EM_SETSEL, 0, -1)
 		#endif
 	End Sub
