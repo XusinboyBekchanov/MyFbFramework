@@ -61,7 +61,7 @@ Namespace My.Sys.Forms
 				Case "ischild": Return @FIsChild
 				Case "parent": Return FParent
 				Case "showhint": Return @FShowHint
-				Case "hint": Return FHint.vptr
+				Case "hint": Return FHint
 				Case "subclass": Return @SubClass
 				Case "tabstop": Return @FTabStop
 				Case "text": Return FText.vptr
@@ -326,18 +326,18 @@ Namespace My.Sys.Forms
 		
 		#ifndef Hint_Off
 			Property Control.Hint ByRef As WString
-				Return *FHint.vptr
+				Return WGet(FHint)
 			End Property
 			
 			Property Control.Hint(ByRef Value As WString)
-				FHint = Value
+				WLet FHint, Value
 				#ifdef __USE_GTK__
 					If widget Then gtk_widget_set_tooltip_text(widget, ToUTF8(Value))
 				#else
 					If FHandle Then
 						If ToolTipHandle Then
 							SendMessage(ToolTipHandle, TTM_GETTOOLINFO, 0, CInt(@FToolInfo))
-							FToolInfo.lpszText = FHint.vptr
+							FToolInfo.lpszText = FHint
 							SendMessage(ToolTipHandle, TTM_UPDATETIPTEXT, 0, CInt(@FToolInfo))
 						End If
 					End If
@@ -1893,7 +1893,7 @@ Namespace My.Sys.Forms
 					If FParent Then FToolInfo.hwnd = FParent->Handle
 					FToolInfo.hinst    = GetModuleHandle(NULL)
 					FToolInfo.uId      = Cast(Integer, Handle)
-					FToolInfo.lpszText = FHint.vptr
+					FToolInfo.lpszText = FHint
 					SendMessage(ToolTipHandle, TTM_ADDTOOL, 0, CInt(@FToolInfo))
 				End If
 			#endif
@@ -2056,7 +2056,7 @@ Namespace My.Sys.Forms
 			#endif
 			FreeWnd
 			'If FText Then Deallocate FText
-			'If FHint Then Deallocate FHint
+			If FHint Then Deallocate FHint
 			'			Dim As Integer i
 			'			For i = 0 To ControlCount -1
 			'			    If Controls[i] Then Controls[i]->Free

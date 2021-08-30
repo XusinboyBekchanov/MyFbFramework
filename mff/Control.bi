@@ -117,7 +117,7 @@ Namespace My.Sys.Forms
 			FStartPosition     As Integer
 			FStyle             As Integer
 			FText              As UString
-			FHint              As UString
+			FHint              As WString Ptr
 			FShowHint          As Boolean
 			FAlign             As Integer
 			FClientWidth       As Integer
