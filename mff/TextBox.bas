@@ -550,13 +550,13 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case FScrollBars
 			Case 0
-				FStyle = FStyle And Not (ws_hscroll Or ws_vscroll)
+				This.Style = This.Style And Not (ws_hscroll Or ws_vscroll)
 			Case 1
-				FStyle = (FStyle And Not ws_hscroll) Or ws_vscroll
+				This.Style = (This.Style And Not ws_hscroll) Or ws_vscroll
 			Case 2
-				FStyle = (FStyle And Not ws_vscroll) Or ws_hscroll
+				This.Style = (This.Style And Not ws_vscroll) Or ws_hscroll
 			Case 3
-				FStyle = FStyle Or (ws_hscroll Or ws_vscroll)
+				This.Style = This.Style Or (ws_hscroll Or ws_vscroll)
 			End Select
 		#endif
 	End Property
@@ -582,9 +582,9 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Value Then
-				FStyle = FStyle And Not es_autohscroll
+				This.Style = This.Style And Not es_autohscroll
 			Else
-				FStyle = FStyle Or es_autohscroll
+				This.Style = This.Style Or es_autohscroll
 			End If
 		#endif
 	End Property
