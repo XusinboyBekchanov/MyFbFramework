@@ -1225,8 +1225,8 @@ Namespace My.Sys.Forms
 						ListView_SetColumnWidth(.FHandle, i, ScaleX(.Columns.Column(i)->Width))
 					Next i
 					Var TempHandle = .FHandle
-					For i As Integer = 0 To .ListItems.Count -1
-						For j As Integer = 0 To .Columns.Count -1
+					For i As Integer = 0 To .ListItems.Count - 1
+						For j As Integer = 0 To .Columns.Count - 1
 							.FHandle = 0
 							Dim lvi As LVITEM
 							lvi.pszText         = @.ListItems.Item(i)->Text(j)
@@ -1242,6 +1242,17 @@ Namespace My.Sys.Forms
 								lvi.lParam   =  Cast(LPARAM, .ListItems.Item(i))
 								.FHandle = TempHandle
 								ListView_InsertItem(.FHandle, @lvi)
+								.FHandle = 0
+								If .ListItems.Item(i)->Checked Then
+									.FHandle = TempHandle
+									Dim lvi As LVITEM
+									lvi.Mask = LVIF_STATE
+									lvi.iItem = i
+									lvi.stateMask = LVIS_CHECKEDMASK
+									lvi.state = LVIS_CHECKED
+									ListView_SetItem(.FHandle, @lvi)
+								End If
+								.FHandle = TempHandle
 							Else
 								.FHandle = TempHandle
 								lvi.Mask = LVIF_TEXT
