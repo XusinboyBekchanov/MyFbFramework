@@ -93,10 +93,10 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Function GraphicType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		FResName = Str(ResID)
 		#ifdef __USE_GTK__
 			Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 		#else
+			FResName = Str(ResID)
 			If FindResource(ModuleHandle, FResName, RT_BITMAP) Then
 				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 			ElseIf FindResource(ModuleHandle, FResName, "PNG") Then
@@ -146,7 +146,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Operator GraphicType.Let(ByRef Value As WString)
-		If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
+		If (Not LoadFromResourceID(Val(Value))) AndAlso (Not LoadFromResourceName(Value)) Then
 			LoadFromFile(Value)
 		End If
 	End Operator
