@@ -326,7 +326,7 @@ Namespace My.Sys.Forms
 			OnMouseEnter As Sub(ByRef Sender As Control)
 			'Occurs when the mouse pointer leaves the control (Windows, Linux).
 			OnMouseLeave As Sub(ByRef Sender As Control)
-			'Occurs when the control is moved.
+			'Occurs when the control is moved (Windows, Linux).
 			OnMove As Sub(ByRef Sender As Control)
 			'Occurs when the control is clicked (Windows, Linux).
 			OnClick      As Sub(ByRef Sender As Control)

@@ -208,7 +208,8 @@ Namespace My.Sys.ComponentModel
 							End If
 						End If
 						'gtk_widget_set_size_allocation(widget, @allocation)
-						gtk_widget_set_size_request(IIf(scrolledwidget, scrolledwidget, widget), Max(0, iWidth), Max(0, iHeight))
+						gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
+						If scrolledwidget Then gtk_widget_set_size_request(scrolledwidget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 						'gtk_widget_queue_draw(widget)
 						'?ClassName, FWidth, gtk_widget_get_allocated_width(widget)
