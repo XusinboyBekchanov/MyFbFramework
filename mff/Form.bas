@@ -1135,7 +1135,7 @@ Namespace My.Sys.Forms
 	Sub Form.Hide
 		#ifdef __USE_GTK__
 			If Widget Then
-				If gtk_widget_visible(Widget) Then
+				If gtk_widget_is_visible(Widget) Then
 					If OnHide Then OnHide(This)
 					gtk_widget_hide(widget)
 				End If

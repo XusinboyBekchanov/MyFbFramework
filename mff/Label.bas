@@ -240,7 +240,7 @@ Namespace My.Sys.Forms
 			#else
 				gtk_misc_set_alignment(gtk_misc(widget), 0, 0)
 			#endif
-			gtk_label_set_line_wrap(gtk_label(widget), Value)
+			gtk_label_set_line_wrap(gtk_label(widget), True)
 			This.RegisterClass "Label", @This
 		#else
 			AStyle(0)           = 0
