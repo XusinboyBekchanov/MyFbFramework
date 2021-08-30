@@ -202,6 +202,40 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Const LVIS_UNCHECKED = 4096
+    Const LVIS_CHECKED = 8192
+    Const LVIS_CHECKEDMASK = 12288
+    
+	Property ListViewItem.Checked As Boolean
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle Then
+				lvi.Mask = LVIF_STATE
+				lvi.iItem = Index
+				lvi.stateMask = LVIS_CHECKEDMASK
+				ListView_GetItem(Parent->Handle, @lvi)
+				FChecked = lvi.state = LVIS_CHECKED
+			End If
+		#endif
+		Return FChecked
+	End Property
+	
+	Property ListViewItem.Checked(Value As Boolean)
+		FChecked = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle Then
+				lvi.Mask = LVIF_STATE
+				lvi.iItem = Index
+				lvi.stateMask = LVIS_CHECKEDMASK
+				If Value Then
+					lvi.state = LVIS_CHECKED
+				Else
+					lvi.state = LVIS_UNCHECKED
+				End If
+				ListView_SetItem(Parent->Handle, @lvi)
+			End If
+		#endif
+	End Property
+	
 	Property ListViewItem.Hint ByRef As WString
 		Return WGet(FHint)
 	End Property

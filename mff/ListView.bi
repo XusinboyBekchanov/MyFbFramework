@@ -93,6 +93,7 @@ Namespace My.Sys.Forms
 		FSmallImageKey      As WString Ptr
 		FVisible            As Boolean
 		FState              As Integer
+		FChecked            As Boolean
 		FIndent             As Integer
 		#ifndef __USE_GTK__
 			Dim lvi             As LVITEM
@@ -104,6 +105,8 @@ Namespace My.Sys.Forms
 		Parent   As Control Ptr
 		Tag As Any Ptr
 		Declare Sub SelectItem
+		Declare Property Checked As Boolean
+		Declare Property Checked(Value As Boolean)
 		Declare Function Index As Integer
 		Declare Property Text(iSubItem As Integer) ByRef As WString
 		Declare Property Text(iSubItem As Integer, ByRef Value As WString)
