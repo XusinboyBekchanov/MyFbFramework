@@ -1133,7 +1133,14 @@ Namespace My.Sys.Forms
 	End Function
 
 	Sub Form.Hide
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If Widget Then
+				If gtk_widget_visible(Widget) Then
+					If OnHide Then OnHide(This)
+					gtk_widget_hide(widget)
+				End If
+			End If
+		#else
 			If Handle Then
 				If IsWindowVisible(Handle) Then
 					If OnHide Then OnHide(This)
