@@ -756,9 +756,9 @@ Namespace My.Sys.Forms
 				Case EN_SETFOCUS
 					If OnGotFocus Then OnGotFocus(This)
 				Case EN_VSCROLL
-					If OnVScroll Then OnVScroll(This)
+					If OnScroll Then OnScroll(This)
 				Case EN_HSCROLL
-					If OnHScroll Then OnHScroll(This)
+					If OnScroll Then OnScroll(This)
 				End Select
 				message.result = 0
 			Case WM_CHAR

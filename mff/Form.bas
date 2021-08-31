@@ -981,7 +981,21 @@ Namespace My.Sys.Forms
 			Hide
 		End If
 	End Property
-
+	
+	Sub Form.ShowItems(Ctrl As Control Ptr)
+		#ifdef __USE_GTK__
+			If Ctrl->box Then gtk_widget_show(Ctrl->box)
+			If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
+			If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
+			If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
+			For i As Integer = 0 To Ctrl->ControlCount - 1
+				If Ctrl->Controls[i]->FVisible Then
+					ShowItems Ctrl->Controls[i]
+				End If
+			Next
+		#endif
+	End Sub
+	
 	Sub Form.Show
 		#ifdef __USE_GTK__
 			RequestAlign
@@ -1006,7 +1020,8 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End If
-				gtk_widget_show_all(widget)
+				ShowItems @This
+				'gtk_widget_show(widget)
 				Select Case FBorderStyle
 				Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
 					Dim As GdkGeometry hints
