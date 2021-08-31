@@ -236,9 +236,9 @@ Namespace My.Sys.Forms
 				FStyle = Value
 				#ifndef __USE_GTK__
 					If FHandle Then 
-						'SetWindowLong(FHandle, GWL_STYLE, FStyle)
+						SetWindowLong(FHandle, GWL_STYLE, FStyle)
 						'SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
-						RecreateWnd
+						'RecreateWnd
 					End If
 				#endif
 			End Property

@@ -147,6 +147,7 @@ Namespace My.Sys.Forms
 		Declare Sub PasteFromClipboard
 		Declare Sub CopyToClipboard
 		Declare Sub CutToClipboard
+		'Declare Sub Delete
 		Declare Sub SelectAll
 		Declare Sub ScrollToCaret
 		Declare Sub LoadFromFile(ByRef File As WString)

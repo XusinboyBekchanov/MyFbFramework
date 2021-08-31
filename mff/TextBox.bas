@@ -161,6 +161,7 @@ Namespace My.Sys.Forms
 			Else
 				Base.Style = Base.Style And Not ES_MULTILINE And Not ES_WANTRETURN
 			End If
+			RecreateWnd
 		#endif
 	End Property
 	
@@ -558,6 +559,7 @@ Namespace My.Sys.Forms
 			Case 3
 				This.Style = This.Style Or (ws_hscroll Or ws_vscroll)
 			End Select
+			RecreateWnd
 		#endif
 	End Property
 	
@@ -586,6 +588,7 @@ Namespace My.Sys.Forms
 			Else
 				This.Style = This.Style Or es_autohscroll
 			End If
+			RecreateWnd
 		#endif
 	End Property
 	
@@ -838,16 +841,37 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_paste_clipboard(gtk_editable(widget))
+			Else
+				gtk_text_buffer_paste_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), 0, True)
 			End If
 		#else
 			If FHandle Then Perform(WM_PASTE, 0, 0)
 		#endif
 	End Sub
 	
+'	Sub TextBox.Delete
+'		#ifdef __USE_GTK__
+'			If gtk_is_editable(widget) Then
+'				If gtk_editable_get_selection_bounds(gtk_editable(widget), 0, 0) Then
+'					gtk_editable_delete_selection(gtk_editable(widget))
+'				Else
+'					Dim As Integer pos1 = gtk_editable_get_position(gtk_editable(widget))
+'					gtk_editable_delete_text(gtk_editable(widget), pos1, pos1 + 1)
+'				End If
+'			Else
+'				
+'			End If
+'		#else
+'			If FHandle Then Perform(WM_KEYDOWN, WM_DELETE, 0)
+'		#endif
+'	End Sub
+	
 	Sub TextBox.CopyToClipboard
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_copy_clipboard(gtk_editable(widget))
+			Else
+				gtk_text_buffer_copy_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))
 			End If
 		#else
 			If FHandle Then Perform(WM_COPY, 0, 0)
@@ -858,6 +882,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_cut_clipboard(gtk_editable(widget))
+			Else
+				gtk_text_buffer_cut_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), True)
 			End If
 		#else
 			If FHandle Then Perform(WM_CUT, 0, 0)
