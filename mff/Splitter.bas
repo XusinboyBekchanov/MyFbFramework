@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 			Bmp = CreateBitmap(8,8,1,1,@DotBits(0))
 			hbr = SelectObject(Dc,CreatePatternBrush(Bmp))
 			DeleteObject(Bmp)
-			PatBlt(Dc,x,y,ClientWidth,ClientHeight,patinvert)
+			PatBlt(Dc, x, y, ScaleX(ClientWidth), ScaleY(ClientHeight), patinvert)
 			DeleteObject(SelectObject(Dc,hbr))
 			ReleaseDC(This.Parent->Handle,Dc)
 		#endif
@@ -153,11 +153,11 @@ Namespace My.Sys.Forms
 				R.Bottom = R.Bottom + P.Y
 				Select Case This.Align
 				Case 1, 2
-					R.Left = R.Left + This.MinExtra
-					R.Right = R.Right - This.MinExtra
+					R.Left = R.Left + ScaleX(This.MinExtra)
+					R.Right = R.Right - ScaleX(This.MinExtra)
 				Case 3, 4
-					R.Top = R.Top + This.MinExtra
-					R.Bottom = R.Bottom - This.MinExtra
+					R.Top = R.Top + ScaleX(This.MinExtra)
+					R.Bottom = R.Bottom - ScaleX(This.MinExtra)
 				End Select
 				ClipCursor @R
 				xOrig = g_OrigCursorPos.x
@@ -195,13 +195,13 @@ Namespace My.Sys.Forms
 					If This.Parent->ControlCount Then
 						This.Parent->UpdateLock
 						If Align = 1 Then
-							If i > 0 Then This.Parent->Controls[i-1]->Width = This.Parent->Controls[i-1]->Width - xOrig + xCur
+							If i > 0 Then This.Parent->Controls[i - 1]->Width = This.Parent->Controls[i - 1]->Width - UnScaleX(xOrig) + UnScaleX(xCur)
 						ElseIf Align = 2 Then
-							If i > 0 Then This.Parent->Controls[i-1]->Width = This.Parent->Controls[i-1]->Width + xOrig - xCur 'This.Left
+							If i > 0 Then This.Parent->Controls[i - 1]->Width = This.Parent->Controls[i - 1]->Width + UnScaleX(xOrig) - UnScaleX(xCur) 'This.Left
 						ElseIf Align = 3 Then
-							If i > 0 Then This.Parent->Controls[i-1]->Height = This.Parent->Controls[i-1]->Height - yOrig + yCur
+							If i > 0 Then This.Parent->Controls[i - 1]->Height = This.Parent->Controls[i - 1]->Height - UnScaleY(yOrig) + UnScaleY(yCur)
 						ElseIf Align = 4 Then
-							If i > 0 Then This.Parent->Controls[i-1]->Height = This.Parent->Controls[i-1]->Height + yOrig - yCur
+							If i > 0 Then This.Parent->Controls[i - 1]->Height = This.Parent->Controls[i - 1]->Height + UnScaleY(yOrig) - UnScaleY(yCur)
 						End If
 						xOrig = xCur
 						yOrig = yCur
