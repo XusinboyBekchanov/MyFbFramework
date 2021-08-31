@@ -1020,8 +1020,8 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End If
-				ShowItems @This
-				'gtk_widget_show(widget)
+				'ShowItems @This
+				gtk_widget_show_all(widget)
 				Select Case FBorderStyle
 				Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
 					Dim As GdkGeometry hints
