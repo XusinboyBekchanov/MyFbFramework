@@ -64,6 +64,7 @@ Namespace My.Sys.ComponentModel
 			fixedwidget		As GtkWidget Ptr
 			scrolledwidget	As GtkWidget Ptr
 			layoutwidget	As GtkWidget Ptr
+			eventboxwidget  As GtkWidget Ptr
 		#else
 			Declare Property Handle As HWND
 			Declare Property Handle(Value As HWND)

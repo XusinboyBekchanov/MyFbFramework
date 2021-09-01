@@ -984,14 +984,30 @@ Namespace My.Sys.Forms
 	
 	Sub Form.ShowItems(Ctrl As Control Ptr)
 		#ifdef __USE_GTK__
-			If Ctrl->box Then gtk_widget_show(Ctrl->box)
-			If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
-			If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
-			If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
+			If CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget))) Then
+				If Ctrl->box Then gtk_widget_show(Ctrl->box)
+				If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
+				If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
+				If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
+				If Ctrl->widget Then If Not *Ctrl Is ContainerControl Then gtk_widget_show_all(Ctrl->widget) Else gtk_widget_show(Ctrl->widget)
+			End If
 			For i As Integer = 0 To Ctrl->ControlCount - 1
-				If CInt(Ctrl->Controls[i]->FVisible) OrElse CInt(gtk_is_notebook(Ctrl->widget)) Then
-					ShowItems Ctrl->Controls[i]
-				End If
+				ShowItems Ctrl->Controls[i]
+			Next
+		#endif
+	End Sub
+	
+	Sub Form.HideItems(Ctrl As Control Ptr)
+		#ifdef __USE_GTK__
+			If Not (CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget)))) Then
+				If Ctrl->box Then gtk_widget_hide(Ctrl->box)
+				If Ctrl->scrolledwidget Then gtk_widget_hide(Ctrl->scrolledwidget)
+				If Ctrl->eventboxwidget Then gtk_widget_hide(Ctrl->eventboxwidget)
+				If Ctrl->layoutwidget Then gtk_widget_hide(Ctrl->layoutwidget)
+				If Ctrl->widget Then gtk_widget_hide(Ctrl->widget)
+			End If
+			For i As Integer = 0 To Ctrl->ControlCount - 1
+				HideItems Ctrl->Controls[i]
 			Next
 		#endif
 	End Sub
@@ -1020,10 +1036,11 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End If
-				ShowItems @This
-				If Menu Then gtk_widget_show_all(Menu->widget)
-				gtk_widget_show(ImageWidget)
-				'gtk_widget_show_all(widget)
+				'If Menu Then gtk_widget_show_all(Menu->widget)
+				'gtk_widget_show(ImageWidget)
+				gtk_widget_show_all(widget)
+				'ShowItems @This
+				HideItems @This
 				Select Case FBorderStyle
 				Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
 					Dim As GdkGeometry hints

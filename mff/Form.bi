@@ -98,6 +98,7 @@ Namespace My.Sys.Forms
 		Declare Function EnumMenuItems(Item As MenuItem) As Boolean
 		Declare Sub GetMenuItems
 		Declare Sub ShowItems(Ctrl As Control Ptr)
+		Declare Sub HideItems(Ctrl As Control Ptr)
 		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 	Protected:

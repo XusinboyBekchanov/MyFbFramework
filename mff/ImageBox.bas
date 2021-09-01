@@ -161,6 +161,8 @@ Namespace My.Sys.Forms
 	Constructor ImageBox
 		#ifdef __USE_GTK__
 			widget = gtk_image_new()
+			eventboxwidget = gtk_event_box_new()
+			gtk_container_add(gtk_container(eventboxwidget), widget)
 			This.RegisterClass "ImageBox", @This
 		#else
 			AStyle(0)        = SS_BITMAP

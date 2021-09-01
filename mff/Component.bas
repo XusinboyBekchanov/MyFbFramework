@@ -202,22 +202,18 @@ Namespace My.Sys.ComponentModel
 						If Parent Then
 							If Parent->layoutwidget Then
 								'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
-								gtk_layout_move(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, widget), iLeft, iTop)
+								gtk_layout_move(gtk_layout(Parent->layoutwidget), IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)), iLeft, iTop)
 							ElseIf Parent->fixedwidget Then
-								gtk_fixed_move(gtk_fixed(Parent->fixedwidget), IIf(scrolledwidget, scrolledwidget, widget), iLeft, iTop)
+								gtk_fixed_move(gtk_fixed(Parent->fixedwidget), IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)), iLeft, iTop)
 							End If
 						End If
 						'gtk_widget_set_size_allocation(widget, @allocation)
-						gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
-						If scrolledwidget Then gtk_widget_set_size_request(scrolledwidget, Max(0, iWidth), Max(0, iHeight))
+						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
+						gtk_widget_set_size_request(IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)), Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 						'gtk_widget_queue_draw(widget)
 						'?ClassName, FWidth, gtk_widget_get_allocated_width(widget)
 						'FHeight = gtk_widget_get_allocated_height(widget)
-						If gtk_is_layout(IIf(scrolledwidget, scrolledwidget, widget)) Then
-							'?"width: " & gtk_widget_get_allocated_width(widget), "height: " & gtk_widget_get_allocated_height(widget), classname,;
-							'If Parent Then ?parent->classname Else ?
-						End If
 						'RequestAlign iWidth, iHeight
 						'Requests @This
 					End If
@@ -256,6 +252,10 @@ Namespace My.Sys.ComponentModel
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(scrolledwidget, @allocation)
 					FLeft = allocation.x
+				ElseIf eventboxwidget AndAlso gtk_widget_get_mapped(eventboxwidget) Then
+					Dim allocation As GtkAllocation
+					gtk_widget_get_allocation(eventboxwidget, @allocation)
+					FLeft = allocation.x
 				ElseIf widget AndAlso gtk_widget_get_mapped(widget) Then
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(widget, @allocation)
@@ -289,6 +289,10 @@ Namespace My.Sys.ComponentModel
 				ElseIf scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(scrolledwidget, @allocation)
+					FTop = allocation.y
+				ElseIf eventboxwidget AndAlso gtk_widget_get_mapped(eventboxwidget) Then
+					Dim allocation As GtkAllocation
+					gtk_widget_get_allocation(eventboxwidget, @allocation)
 					FTop = allocation.y
 				ElseIf widget AndAlso gtk_widget_get_mapped(widget) Then
 					Dim allocation As GtkAllocation
@@ -413,6 +417,10 @@ Namespace My.Sys.ComponentModel
 				If gtk_is_widget(ScrolledWidget) Then
 					gtk_widget_destroy(ScrolledWidget)
 					ScrolledWidget = 0
+				End If
+				If gtk_is_widget(EventBoxWidget) Then
+					gtk_widget_destroy(EventBoxWidget)
+					EventBoxWidget = 0
 				End If
 				If gtk_is_widget(fixedwidget) Then
 					gtk_widget_destroy(fixedwidget)

@@ -927,6 +927,9 @@ Namespace My.Sys.Forms
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
 					If OnMouseMove Then OnMouseMove(This, DownButton, e->Motion.x, e->Motion.y, e->Motion.state)
+					If OnMouseHover Then
+						
+					End If
 				Case GDK_KEY_PRESS
 					'Message.Result = True
 					If OnKeyDown Then OnKeyDown(This, e->Key.keyval, e->Key.state)
@@ -1566,7 +1569,7 @@ Namespace My.Sys.Forms
 				End If
 				If widget Then
 					Font.Parent = @This
-					gtk_widget_set_events(widget, _
+					gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
 					GDK_EXPOSURE_MASK Or _
 					GDK_SCROLL_MASK Or _
 					GDK_STRUCTURE_MASK Or _
@@ -1578,8 +1581,8 @@ Namespace My.Sys.Forms
 					GDK_BUTTON_RELEASE_MASK Or _
 					GDK_POINTER_MOTION_MASK Or _
 					GDK_POINTER_MOTION_HINT_MASK)
-					Result = g_signal_connect(widget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
-					Result = g_signal_connect(widget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
+					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 				End If
 				Return Result
 			End Function
@@ -1912,7 +1915,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
-					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget)
+					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget))
 					If gtk_is_widget(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)

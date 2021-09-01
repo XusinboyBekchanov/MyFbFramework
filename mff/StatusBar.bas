@@ -379,6 +379,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "StatusBar", @This
 				WLet(FSimpleText, "StatusBar")
 				context_id = gtk_statusbar_get_context_id(gtk_statusbar(widget), *FSimpleText)
+				gtk_widget_show_all(widget)
 				'Var cont2 = gtk_statusbar_get_context_id(gtk_statusbar(widget), "statusbar 2")
 				'gtk_statusbar_push(gtk_statusbar(widget), cont2, *FSimpleText)
 				
