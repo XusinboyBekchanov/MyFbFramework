@@ -70,6 +70,7 @@ Namespace My.Sys.Forms
 			WidgetScrolledWindow As GtkWidget Ptr
 			WidgetEntry As GtkWidget Ptr
 			WidgetTextView As GtkWidget Ptr
+			Declare Sub ChangeWidget()
 		#else
 			Declare Static Sub WndProc(ByRef message As Message)
 		#endif

@@ -148,13 +148,7 @@ Namespace My.Sys.Forms
 	Property TextBox.Multiline(Value As Boolean)
 		FMultiline = Value
 		#ifdef __USE_GTK__
-			If FMultiline Or FWordWraps Then
-				Widget = WidgetTextView
-				scrolledwidget = WidgetScrolledWindow
-			Else
-				Widget = WidgetEntry
-				scrolledwidget = 0
-			End If
+			ChangeWidget
 		#else
 			If FMultiline Then
 				Base.Style = Base.Style Or ES_MULTILINE Or ES_WANTRETURN
@@ -548,7 +542,9 @@ Namespace My.Sys.Forms
 	
 	Property TextBox.ScrollBars(Value As ScrollBarsType)
 		FScrollBars = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			ChangeWidget
+		#else
 			Select Case FScrollBars
 			Case 0
 				This.Style = This.Style And Not (ws_hscroll Or ws_vscroll)
@@ -567,20 +563,42 @@ Namespace My.Sys.Forms
 		Return FWordWraps
 	End Property
 	
+	Sub TextBox.ChangeWidget()
+		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr Ctrlwidget = IIf(CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollbars), WidgetTextView, WidgetEntry)
+			If Widget = Ctrlwidget Then Exit Sub
+			Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(WidgetTextView))
+			If CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollbars) Then
+				Widget = WidgetTextView
+				scrolledwidget = WidgetScrolledWindow
+				gtk_widget_hide(WidgetEntry)
+				If CInt(gtk_widget_get_parent(scrolledwidget) = 0) AndAlso CInt(This.Parent) AndAlso CInt(This.Parent->layoutwidget) Then
+					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), scrolledwidget, FLeft, FTop)
+				End If
+				SetBounds(FLeft, FTop, FWidth, FHeight)
+				gtk_text_buffer_set_text(buffer, *gtk_entry_get_text(gtk_entry(WidgetEntry)), -1)
+				gtk_widget_show_all(scrolledwidget)
+			Else
+				Widget = WidgetEntry
+				gtk_widget_hide(scrolledwidget)
+				SetBounds(FLeft, FTop, FWidth, FHeight)
+				Dim As GtkTextIter _start, _end
+				gtk_text_buffer_get_bounds(buffer, @_start, @_end)
+				gtk_entry_set_text(gtk_entry(widget), *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
+				gtk_widget_show(WidgetEntry)
+				scrolledwidget = 0
+			End If
+		#endif
+	End Sub
+	
 	Property TextBox.WordWraps(Value As Boolean)
 		FWordWraps = value
 		#ifdef __USE_GTK__
-			If FMultiline Or FWordWraps Then
-				Widget = WidgetTextView
-				scrolledwidget = WidgetScrolledWindow
-				If Value Then
-					gtk_text_view_set_wrap_mode(gtk_text_view(widget), GTK_WRAP_WORD)
-				Else
-					gtk_text_view_set_wrap_mode(gtk_text_view(widget), GTK_WRAP_NONE)
-				End If
+			ChangeWidget
+			If Value Then
+				gtk_text_view_set_wrap_mode(gtk_text_view(widget), GTK_WRAP_WORD)
 			Else
-				Widget = WidgetEntry
-				scrolledwidget = 0
+				gtk_text_view_set_wrap_mode(gtk_text_view(widget), GTK_WRAP_NONE)
 			End If
 		#else
 			If Value Then
@@ -949,6 +967,10 @@ Namespace My.Sys.Forms
 			WidgetScrolledWindow = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(gtk_scrolled_window(WidgetScrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			gtk_container_add(gtk_container(WidgetScrolledWindow), WidgetTextView)
+			scrolledwidget = WidgetScrolledWindow
+			Widget = WidgetTextView
+			This.RegisterClass "TextBox", @This
+			scrolledwidget = 0
 			Widget = WidgetEntry
 			This.RegisterClass "TextBox", @This
 		#else
