@@ -989,7 +989,7 @@ Namespace My.Sys.Forms
 			If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
 			If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
 			For i As Integer = 0 To Ctrl->ControlCount - 1
-				If Ctrl->Controls[i]->FVisible Then
+				If CInt(Ctrl->Controls[i]->FVisible) OrElse CInt(gtk_is_notebook(Ctrl->widget)) Then
 					ShowItems Ctrl->Controls[i]
 				End If
 			Next
@@ -1020,8 +1020,10 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End If
-				'ShowItems @This
-				gtk_widget_show_all(widget)
+				ShowItems @This
+				If Menu Then gtk_widget_show_all(Menu->widget)
+				gtk_widget_show(ImageWidget)
+				'gtk_widget_show_all(widget)
 				Select Case FBorderStyle
 				Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
 					Dim As GdkGeometry hints

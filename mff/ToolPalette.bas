@@ -166,6 +166,7 @@ Namespace My.Sys.Forms
 					gtk_tool_item_set_tooltip_text(gtk_tool_item(.widget), ToUTF8(FHint))
 					g_signal_connect(.widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
 				End Select
+				gtk_widget_show_all(.widget)
 			#endif
 			.State        = FState
 			.ImageIndex     = FImageIndex
