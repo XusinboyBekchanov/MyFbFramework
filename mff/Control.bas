@@ -904,14 +904,18 @@ Namespace My.Sys.Forms
 				Case GDK_BUTTON_PRESS
 					'Message.Result = True
 					DownButton = e->button.button - 1
-					If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+					If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+						If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+					End If
 				Case GDK_BUTTON_RELEASE
 					'Message.Result = True
 					DownButton = -1
 					If gtk_is_button(widget) = 0 Then
 						If OnClick Then OnClick(This)
 					End If
-					If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+					If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+						If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+					End If
 					If e->button.button = 3 AndAlso ContextMenu Then
 						Message.Result = True
 						If ContextMenu->widget Then
@@ -932,13 +936,15 @@ Namespace My.Sys.Forms
 					#endif
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
-					If OnMouseMove Then OnMouseMove(This, DownButton, e->Motion.x, e->Motion.y, e->Motion.state)
-					hover_timer_id = 0
-					If OnMouseHover Then
-						Dim As Boolean Ptr pBoolean = New Boolean
-						MouseHoverMessage = Type(@This, e->Motion.x, e->Motion.y, e->Motion.state, pBoolean)
-						hover_timer_id = g_timeout_add(1000, @hover_cb, pBoolean)
-						Message.Result = True
+					If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+						If OnMouseMove Then OnMouseMove(This, DownButton, e->Motion.x, e->Motion.y, e->Motion.state)
+						hover_timer_id = 0
+						If OnMouseHover Then
+							Dim As Boolean Ptr pBoolean = New Boolean
+							MouseHoverMessage = Type(@This, e->Motion.x, e->Motion.y, e->Motion.state, pBoolean)
+							hover_timer_id = g_timeout_add(1000, @hover_cb, pBoolean)
+							Message.Result = True
+						End If
 					End If
 				Case GDK_KEY_PRESS
 					'Message.Result = True
