@@ -36,6 +36,49 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
+	Property ImageBox.DesignMode As Boolean
+		Return FDesignMode
+	End Property
+	
+	#ifdef __USE_GTK__
+		Function ImageBox.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			#ifdef __USE_GTK3__
+				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+			#else
+				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+			#endif
+			cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
+			Dim As Double Ptr dashed = Allocate(SizeOf(Double) * 2)
+			dashed[0] = 3.0
+			dashed[1] = 3.0
+			Dim As Integer len1 = SizeOf(dashed) / SizeOf(dashed[0])
+			cairo_set_dash(cr, dashed, len1, 1)
+			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+			cairo_stroke(cr)
+			Return False
+		End Function
+		
+		Function ImageBox.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			DesignDraw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+	#endif
+			
+	Property ImageBox.DesignMode(Value As Boolean)
+		FDesignMode = Value
+		If Value Then
+			#ifdef __USE_GTK__
+				#ifdef __USE_GTK3__
+					g_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+				#else
+					g_signal_connect(widget, "expose-event", G_CALLBACK(@DesignExposeEvent), @This)
+				#endif
+			#endif
+		End If
+	End Property
+		
 	Property ImageBox.Style As Integer
 		Return FImageStyle
 	End Property

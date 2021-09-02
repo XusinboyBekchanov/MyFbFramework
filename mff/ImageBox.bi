@@ -28,7 +28,10 @@ Namespace My.Sys.Forms
 		FCenterImage      As Boolean
 		ARealSizeImage(2) As Integer
 		ACenterImage(2)   As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Declare Static Function DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
@@ -39,6 +42,8 @@ Namespace My.Sys.Forms
 		Graphic            As My.Sys.Drawing.GraphicType
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Property DesignMode As Boolean
+		Declare Property DesignMode(Value As Boolean)
 		Declare Property Style As Integer 'ImageBoxStyle
 		Declare Property Style(Value As Integer)
 		Declare Property RealSizeImage As Boolean

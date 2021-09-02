@@ -57,6 +57,7 @@ Namespace My.Sys.ComponentModel
 		'Returns/sets the extra space between controls.
 		ExtraMargins       As MarginsType
 		#ifdef __USE_GTK__
+			'Gets the window handle that the control is bound to.
 			Declare Property Handle As GtkWidget Ptr
 			Declare Property Handle(Value As GtkWidget Ptr)
 			widget 			As GtkWidget Ptr
@@ -66,13 +67,17 @@ Namespace My.Sys.ComponentModel
 			layoutwidget	As GtkWidget Ptr
 			eventboxwidget  As GtkWidget Ptr
 		#else
+			'Gets the window handle that the control is bound to.
 			Declare Property Handle As HWND
 			Declare Property Handle(Value As HWND)
 		#endif
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		'Returns a string that represents the current object.
 		Declare Virtual Function ToString ByRef As WString
+		'Returns ancestor class of control.
 		Declare Function ClassAncestor ByRef As WString
+		'Determines if the control is a top-level control.
 		Declare Function GetTopLevel As Component Ptr
 		'Returns/sets the distance between the internal left edge of an object and the left edge of its container.
 		Declare Property Left As Integer
@@ -90,11 +95,13 @@ Namespace My.Sys.ComponentModel
 		Declare Sub GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
 		'Sets the bounds of the control to the specified location and size.
 		Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
-		Declare Property DesignMode As Boolean
-		Declare Property DesignMode(Value As Boolean)
+		'Gets a value that indicates whether the Component is currently in design mode.
+		Declare Virtual Property DesignMode As Boolean
+		Declare Virtual Property DesignMode(Value As Boolean)
 		'Returns the name used in code to identify an object.
 		Declare Property Name ByRef As WString
 		Declare Property Name(ByRef Value As WString)
+		'Gets or sets the parent container of the control.
 		Declare Property Parent As Component Ptr 'ContainerControl
 		Declare Property Parent(Value As Component Ptr)
 		Declare Destructor
