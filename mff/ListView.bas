@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 		Case "singleclickactivate": Return @FSingleClickActivate
 		Case "sort": Return @FSortStyle
 		Case "tabindex": Return @FTabIndex
-		Case "trackselect": Return @FTrackSelect
+		Case "hoverselection": Return @FHoverSelection
 		Case "view": Return @FView
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -53,7 +53,7 @@ Namespace My.Sys.Forms
 			Case "singleclickactivate": SingleClickActivate = QBoolean(Value)
 			Case "sort": Sort = *Cast(SortStyle Ptr, Value)
 			Case "tabindex": TabIndex = QInteger(Value)
-			Case "trackselect": TrackSelect = QBoolean(Value)
+			Case "hoverselection": HoverSelection = QBoolean(Value)
 			Case "view": This.View = *Cast(ViewStyle Ptr, Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
@@ -884,13 +884,15 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.TrackSelect As Boolean
-		Return FTrackSelect
+	Property ListView.HoverSelection As Boolean
+		Return FHoverSelection
 	End Property
 	
-	Property ListView.TrackSelect(Value As Boolean)
-		FTrackSelect = Value
-		#ifndef __USE_GTK__
+	Property ListView.HoverSelection(Value As Boolean)
+		FHoverSelection = Value
+		#ifdef __USE_GTK__
+			gtk_tree_view_set_hover_selection(gtk_tree_view(widget), Value)
+		#else
 			ChangeLVExStyle LVS_EX_TRACKSELECT, Value
 		#endif
 	End Property

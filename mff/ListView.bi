@@ -238,7 +238,7 @@ Namespace My.Sys.Forms
 		FLabelTip As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
-		FTrackSelect As Boolean
+		FHoverSelection As Boolean
 		FView As ViewStyle
 		FLVExStyle As Integer
 		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
@@ -293,8 +293,9 @@ Namespace My.Sys.Forms
 		Declare Property SelectedColumn(Value As ListViewColumn Ptr)
 		Declare Property SingleClickActivate As Boolean
 		Declare Property SingleClickActivate(Value As Boolean)
-		Declare Property TrackSelect As Boolean
-		Declare Property TrackSelect(Value As Boolean)
+		'Gets or sets a value indicating whether an item is automatically selected when the mouse pointer remains over the item for a few seconds.
+		Declare Property HoverSelection As Boolean
+		Declare Property HoverSelection(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
