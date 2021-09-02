@@ -131,13 +131,13 @@ Namespace My.Sys.Forms
 				SetTextColor Dc, This.Font.Color
 				SetBKColor Dc, This.BackColor
 				SetBKMode Dc, OPAQUE
-			Case CM_COMMAND
-				If Message.wParamHi = STN_CLICKED Then
-					If OnClick Then OnClick(This)
-				End If
-				If Message.wParamHi = STN_DBLCLK Then
-					If OnDblClick Then OnDblClick(This)
-				End If
+'			Case CM_COMMAND
+'				If Message.wParamHi = STN_CLICKED Then
+'					If OnClick Then OnClick(This)
+'				End If
+'				If Message.wParamHi = STN_DBLCLK Then
+'					If OnDblClick Then OnDblClick(This)
+'				End If
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As Rect R

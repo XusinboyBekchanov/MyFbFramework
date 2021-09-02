@@ -48,8 +48,6 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick    As Sub(ByRef Sender As ImageBox)
-		OnDblClick As Sub(ByRef Sender As ImageBox)
 		#ifndef __USE_GTK__
 			OnDraw     As Sub(ByRef Sender As ImageBox, ByRef R As Rect,DC As HDC = 0)
 		#endif
