@@ -66,6 +66,8 @@ Namespace My.Sys.Forms
 		Declare Property ArrowKeys(Value As Boolean)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property Thousands As Boolean
 		Declare Property Thousands(Value As Boolean)
 		Declare Property Wrap As Boolean
@@ -77,10 +79,10 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChanging   As Sub(BYREF Sender As UpDown,Value As Integer,Direction As Integer)
+		OnChanging   As Sub(ByRef Sender As UpDown,Value As Integer,Direction As Integer)
 	End Type
-End namespace
+End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "UpDown.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "UpDown.bas"
+#endif

@@ -42,6 +42,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property GroupBox.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property GroupBox.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property GroupBox.Caption ByRef As WString
 		Return Text
 	End Property

@@ -36,6 +36,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property CheckedListBox.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property CheckedListBox.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property CheckedListBox.MultiSelect As Boolean
 		Return FMultiselect
 	End Property

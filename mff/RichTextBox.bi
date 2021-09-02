@@ -40,6 +40,8 @@ Namespace My.Sys.Forms
 		Declare Property SelText(ByRef Value As WString)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property TextRTF ByRef As WString
 		Declare Property TextRTF(ByRef Value As WString)
 		Declare Property SelColor As Integer
@@ -55,10 +57,10 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnSelChange As Sub(BYREF Sender As RichTextBox)
+		OnSelChange As Sub(ByRef Sender As RichTextBox)
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "RichTextBox.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "RichTextBox.bas"
+#endif

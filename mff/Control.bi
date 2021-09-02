@@ -171,6 +171,7 @@ Namespace My.Sys.Forms
 			Declare Sub ChangeExStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub ChangeStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub ChangeTabIndex(Value As Integer)
+			Declare Sub ChangeTabStop(Value As Boolean)
 			Declare Sub AddProperty(Name As String, Type As String, ByRef Comment As WString)
 			Declare Function ExStyleExists(iStyle As Integer) As Boolean
 			Declare Function StyleExists(iStyle As Integer) As Boolean
@@ -251,9 +252,6 @@ Namespace My.Sys.Forms
 			Declare Function ClientWidth As Integer
 			'Returns/sets the height of the client area of the control.
 			Declare Function ClientHeight As Integer
-			'Returns/sets a value indicating whether a user can use the TAB key to give the focus to an object.
-			Declare Property TabStop As Boolean
-			Declare Property TabStop(Value As Boolean)
 			Declare Property Grouped As Boolean
 			Declare Property Grouped(Value As Boolean)
 			Declare Property IsChild As Boolean

@@ -39,6 +39,8 @@ Namespace My.Sys.Forms
 		Declare Property ArrowChangeSize(Value As Integer)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property PageSize As Integer
 		Declare Property PageSize(Value As Integer)
 		Declare Property Position As Integer

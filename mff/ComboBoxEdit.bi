@@ -67,6 +67,8 @@ Namespace My.Sys.Forms
 		Declare Property Style(Value As ComboBoxEditStyle)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property SelColor As Integer

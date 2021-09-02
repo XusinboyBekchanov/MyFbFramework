@@ -65,6 +65,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property RadioButton.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property RadioButton.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property RadioButton.Caption ByRef As WString
 		Return Text
 	End Property

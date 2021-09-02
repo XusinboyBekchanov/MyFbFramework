@@ -54,6 +54,8 @@ Namespace My.Sys.Forms
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Sub Navigate(ByVal URL As WString Ptr)
 		Declare Sub GoForward()
 		Declare Sub GoBack()

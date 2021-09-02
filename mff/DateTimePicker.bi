@@ -22,6 +22,8 @@ Namespace My.Sys.Forms
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property TimePicker As Boolean
 		Declare Property TimePicker(Value As Boolean)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr

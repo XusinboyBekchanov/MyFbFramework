@@ -553,6 +553,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property TreeView.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property TreeView.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub TreeView.SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			Dim hChildNode As HTREEITEM

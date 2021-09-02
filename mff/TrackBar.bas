@@ -46,6 +46,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property TrackBar.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property TrackBar.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Sub TrackBar.SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
 		If AMax < AMin Then Exit Sub
 		If APosition < AMin Then APosition = AMin

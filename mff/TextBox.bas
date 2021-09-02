@@ -113,6 +113,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property TextBox.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property TextBox.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Sub TextBox.ScrollToCaret()
 		#ifndef __USE_GTK__
 			Perform EM_SCROLLCARET, 0, 0

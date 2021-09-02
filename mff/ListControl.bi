@@ -73,6 +73,8 @@ Namespace My.Sys.Forms
 		Declare Property ItemIndex(Value As Integer)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property TopIndex As Integer
 		Declare Property TopIndex(Value As Integer)
 		Declare Property ItemHeight As Integer

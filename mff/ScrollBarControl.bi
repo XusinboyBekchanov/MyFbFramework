@@ -52,6 +52,8 @@ Namespace My.Sys.Forms
 		Declare Property Position(Value As Integer)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

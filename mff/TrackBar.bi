@@ -71,6 +71,8 @@ Namespace My.Sys.Forms
 		Declare Property Frequency(Value As Integer)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property ThumbLength  As Integer
 		Declare Property ThumbLength(Value As Integer)
 		Declare Property SelStart  As Integer
@@ -90,9 +92,9 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChange As Sub(BYREF Sender As TrackBar, Position As Integer)
+		OnChange As Sub(ByRef Sender As TrackBar, Position As Integer)
 	End Type
-End namespace
+End Namespace
 
 #IfNDef __USE_MAKE__
 	#Include Once "TrackBar.bas"

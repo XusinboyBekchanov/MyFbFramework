@@ -929,6 +929,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property TreeListView.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property TreeListView.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Sub TreeListView.Init()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(gtk_tree_view(widget)) = NULL Then

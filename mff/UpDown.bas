@@ -49,6 +49,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property UpDown.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property UpDown.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property UpDown.MinValue As Integer
 		Return FMinValue
 	End Property

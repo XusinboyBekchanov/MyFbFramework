@@ -137,6 +137,8 @@ Namespace My.Sys.Forms
 		Nodes           As TreeNodeCollection
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Sub CollapseAll
 		Declare Sub ExpandAll
 		Declare Property EditLabels As Boolean

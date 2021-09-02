@@ -109,7 +109,7 @@ Namespace My.Sys.Forms
 						#else
 						Case "parenthandle": This.ParentHandle = *Cast(HWND Ptr, Value)
 						#endif
-					Case "tabstop": This.TabStop = QBoolean(Value)
+					Case "tabstop": ChangeTabStop QBoolean(Value)
 					Case "text": This.Text = QWString(Value)
 					Case "visible": This.Visible = QBoolean(Value)
 					Case "showhint": This.ShowHint = QBoolean(Value)
@@ -608,19 +608,12 @@ Namespace My.Sys.Forms
 			End Property
 		#endif
 		
-		Property Control.TabStop As Boolean
-			#ifndef __USE_GTK__
-				FTabStop = StyleExists(WS_TABSTOP)
-			#endif
-			Return FTabStop
-		End Property
-		
-		Property Control.TabStop(Value As Boolean)
+		Sub Control.ChangeTabStop(Value As Boolean)
 			FTabStop = Value
 			#ifndef __USE_GTK__
 				ChangeStyle WS_TABSTOP, Value
 			#endif
-		End Property
+		End Sub
 		
 		Property Control.Grouped As Boolean
 			#ifndef __USE_GTK__

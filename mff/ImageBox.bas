@@ -146,7 +146,7 @@ Namespace My.Sys.Forms
 				R = Cast(Rect,diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDraw Then
-					OnDraw(This,R,Dc)
+					OnDraw(This, R, Dc)
 				Else
 				End If
 			End Select

@@ -55,6 +55,8 @@ Namespace My.Sys.Forms
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Object As Any Ptr
@@ -102,6 +104,8 @@ Namespace My.Sys.Forms
 		Declare Property SelectedTabIndex(Value As Integer)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property TabCount As Integer
 		Declare Property TabCount(Value As Integer)
 		Declare Property TabPosition As My.Sys.Forms.TabPosition

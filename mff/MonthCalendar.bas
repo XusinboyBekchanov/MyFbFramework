@@ -37,6 +37,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property MonthCalendar.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property MonthCalendar.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub MonthCalendar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then

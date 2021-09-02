@@ -45,6 +45,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property Panel.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property Panel.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property Panel.BevelInner As Integer
 		Return FBevelInner
 	End Property

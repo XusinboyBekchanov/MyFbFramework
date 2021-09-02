@@ -37,6 +37,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property VScrollBar.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property VScrollBar.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property VScrollBar.MinValue As Integer
 		Return FMin
 	End Property

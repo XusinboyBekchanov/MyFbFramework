@@ -45,6 +45,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property RichTextBox.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property RichTextBox.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Function RichTextBox.GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
 		Dim cpMax2 As Integer = cpMax
 		#ifndef __USE_GTK__

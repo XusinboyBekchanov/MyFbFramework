@@ -294,6 +294,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property TabControl.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property TabControl.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property TabControl.SelectedTabIndex As Integer
 		#ifdef __USE_GTK__
 			Return gtk_notebook_get_current_page(gtk_notebook(widget))

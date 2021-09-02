@@ -470,6 +470,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property Grid.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property Grid.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property Grid.SelectedItem As GridItem Ptr
 		#ifndef __USE_GTK__
 			If Handle Then

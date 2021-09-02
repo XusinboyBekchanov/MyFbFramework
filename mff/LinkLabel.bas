@@ -31,6 +31,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property LinkLabel.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property LinkLabel.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property LinkLabel.Text ByRef As WString
 		Return Base.Text
 	End Property

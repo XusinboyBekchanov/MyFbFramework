@@ -73,6 +73,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property CheckBox.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property CheckBox.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+		
 	Property CheckBox.Text ByRef As WString
 		Return Base.Text
 	End Property

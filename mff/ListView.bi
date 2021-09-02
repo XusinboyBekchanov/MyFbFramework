@@ -281,6 +281,8 @@ Namespace My.Sys.Forms
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property View As ViewStyle
 		Declare Property View(Value As ViewStyle)
 		Declare Property Sort As SortStyle

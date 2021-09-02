@@ -37,6 +37,8 @@ Namespace My.Sys.Forms
 		Declare Property Parent(Value As Control Ptr)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Checked As Boolean
@@ -50,6 +52,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "RadioButton.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "RadioButton.bas"
+#endif

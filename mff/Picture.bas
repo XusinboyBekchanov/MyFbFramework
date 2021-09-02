@@ -44,6 +44,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property Picture.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property Picture.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property Picture.Style As Integer
 		Return FStyle
 	End Property

@@ -40,6 +40,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property ComboBoxEdit.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property ComboBoxEdit.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
 		#ifdef __USE_GTK__
 			gtk_combo_box_popup(gtk_combo_box(widget))

@@ -69,6 +69,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property ListView.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property ListView.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Function ListViewItem.Index As Integer
 		If Parent Then
 			Return Cast(ListView Ptr, Parent)->ListItems.IndexOf(@This)

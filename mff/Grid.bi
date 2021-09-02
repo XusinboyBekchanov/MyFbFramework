@@ -63,6 +63,8 @@ Namespace My.Sys.Forms
 		Declare Sub SelectItem
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Property Text(iSubItem As Integer) ByRef As WString
 		Declare Property Text(iSubItem As Integer, ByRef Value As WString)
 		Declare Property Hint ByRef As WString
@@ -176,6 +178,8 @@ Namespace My.Sys.Forms
 		Declare Property SelectedColumn(Value As GridColumn Ptr)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
+		Declare Property TabStop As Boolean
+		Declare Property TabStop(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
@@ -185,7 +189,7 @@ Namespace My.Sys.Forms
 End Namespace
 
 'TODO:
-#IfNDef __USE_GTK__
+#ifndef __USE_GTK__
 	'const LVS_ICON = &h0
 	'const LVS_REPORT = &h1
 	'const LVS_SMALLICON = &h2

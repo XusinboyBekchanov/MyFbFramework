@@ -41,6 +41,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property WebBrowser.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property WebBrowser.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Sub WebBrowser.Navigate(ByVal URL As WString Ptr)
 		#ifdef __USE_GTK__
 			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUTF8(*URL))

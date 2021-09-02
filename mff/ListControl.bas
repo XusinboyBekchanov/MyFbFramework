@@ -74,6 +74,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property ListControl.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property ListControl.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property ListControl.MultiSelect As Boolean
 		Return FMultiselect
 	End Property

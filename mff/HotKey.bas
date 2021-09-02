@@ -33,6 +33,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property HotKey.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property HotKey.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then

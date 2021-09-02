@@ -38,6 +38,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property ScrollBarControl.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property ScrollBarControl.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property ScrollBarControl.Style As ScrollBarControlStyle
 		Return FStyle
 	End Property

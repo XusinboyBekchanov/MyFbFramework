@@ -31,6 +31,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property DateTimePicker.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property DateTimePicker.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub DateTimePicker.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then

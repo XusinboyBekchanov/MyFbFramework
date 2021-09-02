@@ -36,6 +36,14 @@ Namespace My.Sys.Forms
 		ChangeTabIndex Value
 	End Property
 	
+	Property HScrollBar.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property HScrollBar.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
 	Property HScrollBar.MinValue As Integer
 		Return FMin
 	End Property
