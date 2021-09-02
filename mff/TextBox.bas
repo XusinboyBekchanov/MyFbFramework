@@ -562,9 +562,9 @@ Namespace My.Sys.Forms
 	Property TextBox.WordWraps As Boolean
 		Return FWordWraps
 	End Property
-	
-	Sub TextBox.ChangeWidget()
-		#ifdef __USE_GTK__
+
+	#ifdef __USE_GTK__
+		Sub TextBox.ChangeWidget()
 			Dim As GtkWidget Ptr Ctrlwidget = IIf(CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollbars), WidgetTextView, WidgetEntry)
 			If Widget = Ctrlwidget Then Exit Sub
 			Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(WidgetTextView))
@@ -588,8 +588,8 @@ Namespace My.Sys.Forms
 				gtk_widget_show(WidgetEntry)
 				scrolledwidget = 0
 			End If
-		#endif
-	End Sub
+		End Sub
+	#endif
 	
 	Property TextBox.WordWraps(Value As Boolean)
 		FWordWraps = value
