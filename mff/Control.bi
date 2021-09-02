@@ -77,6 +77,18 @@ Namespace My.Sys.Forms
 			
 		End Type
 		
+		#ifdef __USE_GTK__
+			Type MouseHoverMessageType
+				Sender As PControl
+				X As Double
+				Y As Double
+				State As Integer
+				pBoolean As Boolean Ptr
+			End Type
+			Dim Shared MouseHoverMessage As MouseHoverMessageType
+			Dim Shared hover_timer_id As UInteger
+		#endif
+		
 		Type Control Extends Component
 		Private:
 			Tracked As Boolean
@@ -172,6 +184,8 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				OnHandleIsAllocated As Sub(ByRef Sender As Control)
 				OnHandleIsDestroyed As Sub(ByRef Sender As Control)
+			#else
+				Declare Static Function hover_cb(ByVal user_data As gpointer) As gboolean
 			#endif
 		Public:
 			Canvas        As My.Sys.Drawing.Canvas

@@ -888,6 +888,19 @@ Namespace My.Sys.Forms
 			If FContextMenu Then FContextMenu->ParentWindow = @This
 		End Property
 		
+		#ifdef __USE_GTK__
+			Function Control.hover_cb(ByVal user_data As gpointer) As gboolean
+				Delete Cast(Boolean Ptr, user_data)
+				If hover_timer_id Then
+					If user_data = MouseHoverMessage.pBoolean Then
+						Dim As Control Ptr Ctrl = MouseHoverMessage.Sender
+						If Ctrl->OnMouseHover Then Ctrl->OnMouseHover(*Ctrl, Ctrl->DownButton, MouseHoverMessage.X, MouseHoverMessage.Y, MouseHoverMessage.State)
+					End If
+				End If
+				Return False
+			End Function
+		#endif
+		
 		Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
 			If OnMessage Then OnMessage(This, Message)
@@ -927,8 +940,12 @@ Namespace My.Sys.Forms
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
 					If OnMouseMove Then OnMouseMove(This, DownButton, e->Motion.x, e->Motion.y, e->Motion.state)
+					hover_timer_id = 0
 					If OnMouseHover Then
-						
+						Dim As Boolean Ptr pBoolean = New Boolean
+						MouseHoverMessage = Type(@This, e->Motion.x, e->Motion.y, e->Motion.state, pBoolean)
+						hover_timer_id = g_timeout_add(1000, @hover_cb, pBoolean)
+						Message.Result = True
 					End If
 				Case GDK_KEY_PRESS
 					'Message.Result = True
