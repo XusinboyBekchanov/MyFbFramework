@@ -1037,7 +1037,10 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				'If Menu Then gtk_widget_show_all(Menu->widget)
-				'gtk_widget_show(ImageWidget)
+'				gtk_widget_show(ImageWidget)
+'				If box Then gtk_widget_show(box)
+'				If layoutwidget Then gtk_widget_show(layoutwidget)
+'				gtk_widget_show(widget)
 				gtk_widget_show_all(widget)
 				'ShowItems @This
 				HideItems @This

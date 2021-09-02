@@ -1914,16 +1914,25 @@ Namespace My.Sys.Forms
 				Controls[FControlCount -1] = Ctrl
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
+					Dim As Boolean bAdded
 					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
 					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget))
 					If gtk_is_widget(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 						 	gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+						 	bAdded = True 
 						ElseIf fixedwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+							bAdded = True
 						End If
+					End If
+					If CInt(bAdded) AndAlso CInt(CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget)))) Then
+						If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
+						If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
+						If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
+						If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
 					End If
 					Ctrl->FAnchoredParentWidth = This.FWidth
 					Ctrl->FAnchoredParentHeight = This.FHeight

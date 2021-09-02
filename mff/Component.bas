@@ -20,6 +20,7 @@ Namespace My.Sys.ComponentModel
 			#ifdef __USE_GTK__
 			Case "handle": Return widget
 			Case "widget": Return widget
+			Case "eventboxwidget": Return eventboxwidget
 			Case "layoutwidget": Return layoutwidget
 			#else
 			Case "handle": Return @FHandle
@@ -54,6 +55,7 @@ Namespace My.Sys.ComponentModel
 				#ifdef __USE_GTK__
 				Case "handle": This.Handle = Value
 				Case "widget": This.widget = Value
+				Case "eventboxwidget": This.eventboxwidget = Value
 				Case "layoutwidget": This.layoutwidget = Value
 				#else
 				Case "handle": This.Handle = *Cast(HWND Ptr, Value)
@@ -210,6 +212,7 @@ Namespace My.Sys.ComponentModel
 						'gtk_widget_set_size_allocation(widget, @allocation)
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						gtk_widget_set_size_request(IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)), Max(0, iWidth), Max(0, iHeight))
+						gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 						'gtk_widget_queue_draw(widget)
 						'?ClassName, FWidth, gtk_widget_get_allocated_width(widget)

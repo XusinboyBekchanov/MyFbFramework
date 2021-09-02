@@ -764,6 +764,7 @@ Namespace My.Sys.Forms
 				If SubMenu = 0 Then
 					SubMenu = New_( PopUpMenu)
 					gtk_menu_item_set_submenu(gtk_menu_item(widget), SubMenu->widget)
+					gtk_widget_show(SubMenu->widget)
 				End If
 				If Index = -1 Then
 					gtk_menu_shell_append(gtk_menu_shell(SubMenu->widget), value->widget)
@@ -776,7 +777,7 @@ Namespace My.Sys.Forms
 				If Value->label Then
 					gtk_label_set_text_with_mnemonic(gtk_label(Value->label), ToUTF8(*Value->FText & "	"))
 				End If
-				gtk_widget_show_all(value->widget)
+				gtk_widget_show(value->widget)
 			#else
 				If Handle = 0 Then
 					Handle = CreatePopupMenu
@@ -1231,13 +1232,16 @@ Namespace My.Sys.Forms
 			AllocateCommand(value)
 			#ifdef __USE_GTK__
 				gtk_menu_shell_append(gtk_menu_shell(widget), value->widget)
+				gtk_widget_show(value->widget)
 				If ClassName = "MainMenu" Then
 				End If
 				If gtk_is_menu_bar(widget) <> 1 Then
 					If Value->box Then
 						gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
+						gtk_widget_show(value->box)
+						gtk_widget_show(value->icon)
 					EndIf
-					gtk_widget_show_all(widget)
+					'gtk_widget_show_all(widget)
 				End If
 			#else
 				value->SetInfo(FInfo)
@@ -1574,6 +1578,7 @@ Namespace My.Sys.Forms
 								gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), Item(i)->SubMenu->Widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
 							End If
 						Next i
+						gtk_widget_show(widget)
 					End If
 				End If
 			#else
@@ -1691,6 +1696,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If FParentWindow = 0 Then
 				gtk_menu_attach_to_widget(gtk_menu(widget), value->widget, NULL)
+				gtk_widget_show(widget)
 			End If
 		#endif
 		Base.ParentWindow = Value
@@ -1699,7 +1705,7 @@ Namespace My.Sys.Forms
 	Sub PopupMenu.Popup(x As Integer,y As Integer, msg As Message Ptr = 0)
 		#ifdef __USE_GTK__
 			If msg <> 0 Then
-				gtk_widget_show_all (widget)
+				gtk_widget_show(widget)
 				gtk_menu_popup (gtk_menu(widget), NULL, NULL, NULL, NULL, msg->event->button.button, msg->event->button.time)
 			End If
 		#else
