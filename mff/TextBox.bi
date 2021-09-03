@@ -50,7 +50,7 @@ Namespace My.Sys.Forms
 		FLine             As WString Ptr
 		FCharCase         As CharCases
 		FMasked           As Boolean
-		FMaskChar         As Byte
+		FMaskChar         As WString Ptr
 		FAlignment        As Integer
 		FBorderStyle      As BorderStyles
 		FReadOnly         As Boolean
@@ -114,8 +114,8 @@ Namespace My.Sys.Forms
 		Declare Property CharCase(Value As CharCases)
 		Declare Property Masked As Boolean
 		Declare Property Masked(Value As Boolean)
-		Declare Property MaskChar As Byte
-		Declare Property MaskChar(Value As Byte)
+		Declare Property MaskChar ByRef As WString
+		Declare Property MaskChar(ByRef Value As WString)
 		Declare Property Lines(Index As Integer) ByRef As WString
 		Declare Property Lines(Index As Integer, ByRef Value As WString)
 		Declare Function LinesCount As Integer

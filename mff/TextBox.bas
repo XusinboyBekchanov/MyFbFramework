@@ -23,7 +23,7 @@ Namespace My.Sys.Forms
 			Case "charcase": Return @FCharCase
 			Case "ctl3d": Return @FCtl3D
 			Case "hideselection": Return @FHideSelection
-			Case "maskchar": Return @FMaskChar
+			Case "maskchar": Return FMaskChar
 			Case "masked": Return @FMasked
 			Case "maxlength": Return @FMaxLength
 			Case "modified": Return @FModified
@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 				Case "charcase": CharCase = *Cast(CharCases Ptr, Value)
 				Case "ctl3d": Ctl3D = QBoolean(Value)
 				Case "hideselection": HideSelection = QBoolean(Value)
-				Case "maskchar": MaskChar = *Cast(Byte Ptr, Value)
+				Case "maskchar": MaskChar = QWString(Value)
 				Case "masked": Masked = QBoolean(Value)
 				Case "maxlength": MaxLength = QInteger(Value)
 				Case "modified": Modified = QBoolean(Value)
@@ -394,31 +394,35 @@ Namespace My.Sys.Forms
 		FMasked = Value
 		#ifdef __USE_GTK__
 			If gtk_is_entry(widget) Then
-				gtk_entry_set_visibility(gtk_entry(widget), Value)
+				gtk_entry_set_visibility(gtk_entry(widget), Not Value)
 			End If
 		#else
 			If Handle Then
 				If FMasked Then
-					Perform(EM_SETPASSWORDCHAR,FMaskChar,0)
+					If WGet(FMaskChar) = "" Then
+						Perform(EM_SETPASSWORDCHAR, Asc("*"), 0)
+					Else
+						Perform(EM_SETPASSWORDCHAR, Asc(*FMaskChar), 0)
+					End If
 				Else
-					Perform(EM_SETPASSWORDCHAR,0,0)
+					Perform(EM_SETPASSWORDCHAR, 0, 0)
 				End If
 			End If
 		#endif
 	End Property
 	
-	Property TextBox.MaskChar As Byte
-		Return FMaskChar
+	Property TextBox.MaskChar ByRef As WString
+		Return WGet(FMaskChar)
 	End Property
 	
-	Property TextBox.MaskChar(Value As Byte)
-		FMaskChar = Value
+	Property TextBox.MaskChar(ByRef Value As WString)
+		WLet(FMaskChar, Value)
 		#ifdef __USE_GTK__
 			If gtk_is_entry(widget) Then
-				gtk_entry_set_invisible_char(gtk_entry(widget), Value)
+				gtk_entry_set_invisible_char(gtk_entry(widget), Asc(Value))
 			End If
 		#else
-			If Handle Then Perform(EM_SETPASSWORDCHAR,FMaskChar,0)
+			If Handle Then Perform(EM_SETPASSWORDCHAR, Asc(Value), 0)
 		#endif
 	End Property
 	
@@ -1004,6 +1008,7 @@ Namespace My.Sys.Forms
 					'If .MaxLength <> 0 Then
 					.Perform(EM_LIMITTEXT, -1, 0)
 					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
+					If .FMasked Then .Masked = True 
 					'.MaxLength = .MaxLength
 					'End If
 				End With
@@ -1308,7 +1313,7 @@ Namespace My.Sys.Forms
 		FBorderStyle      = 1
 		FHideSelection    = 1
 		FCtl3D            = True
-		FMaskChar         = Asc("*")
+		WLet FMaskChar, ""
 		FMaxLength          = 64000
 		FEnabled = True
 		FTabIndex          = -1
