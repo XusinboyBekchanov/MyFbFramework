@@ -958,6 +958,10 @@ Namespace My.Sys.Forms
 				Case GDK_LEAVE_NOTIFY
 					If OnMouseLeave Then OnMouseLeave(This)
 				Case GDK_CONFIGURE
+'					If Constraints.Left <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).x  = Constraints.Left
+'					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top
+'					If Constraints.Width <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cx = Constraints.Width
+'					If Constraints.Height <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cy = Constraints.Height
 					If OnMove Then OnMove(This)
 					'If OnResize Then OnResize(This)
 					RequestAlign
@@ -1558,6 +1562,12 @@ Namespace My.Sys.Forms
 				Return False
 			End Function
 			
+			Function Control.Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, horizontal As Boolean, user_data As Any Ptr) As Boolean
+				Dim As Control Ptr Ctrl = user_data
+				If Ctrl->OnScroll Then Ctrl->OnScroll(*Ctrl)
+				Return False
+			End Function
+			
 			Function Control.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Dim As Boolean Result
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
@@ -1599,6 +1609,9 @@ Namespace My.Sys.Forms
 					GDK_POINTER_MOTION_HINT_MASK)
 					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+				End If
+				If scrolledwidget Then
+					Result = g_signal_connect(scrolledwidget, "scroll-child", G_CALLBACK(@Control_Scroll), @This)
 				End If
 				Return Result
 			End Function
@@ -2068,20 +2081,20 @@ Namespace My.Sys.Forms
 		End Constructor
 		
 		Destructor Control
-			#ifdef __USE_GTK__
-				If layoutwidget Then
-					#ifdef __USE_GTK3__
-						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)
-					#else
-						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_ExposeEvent), @This)
-						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_SizeAllocate), @This)
-					#endif
-				End If
-				If widget Then
-					g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@EventProc), @This)
-					g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@EventAfterProc), @This)
-				End If
-			#endif
+'			#ifdef __USE_GTK__
+'				If layoutwidget Then
+'					#ifdef __USE_GTK3__
+'						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)
+'					#else
+'						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_ExposeEvent), @This)
+'						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_SizeAllocate), @This)
+'					#endif
+'				End If
+'				If widget Then
+'					g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@EventProc), @This)
+'					g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@EventAfterProc), @This)
+'				End If
+'			#endif
 			FreeWnd
 			'If FText Then Deallocate FText
 			If FHint Then Deallocate FHint

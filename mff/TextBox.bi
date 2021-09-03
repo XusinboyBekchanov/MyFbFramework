@@ -31,7 +31,13 @@ Namespace My.Sys.Forms
 			Declare Static Sub Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Declare Static Function Entry_FocusInEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function Entry_FocusOutEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Sub Entry_CopyClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Sub Entry_CutClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Sub Entry_PasteClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Sub TextView_SetScrollAdjustments(textview As GtkTextView Ptr, arg1 As GtkAdjustment Ptr, arg2 As GtkAdjustment Ptr, user_data As Any Ptr)
 			Declare Static Sub TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
+			Declare Static Sub Adjustment_ValueChanged(adjustment As GtkAdjustment Ptr, user_data As Any Ptr)
+			Declare Static Sub Preedit_Changed(self As GtkWidget Ptr, preedit As gchar Ptr, user_data As Any Ptr)
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
@@ -167,7 +173,7 @@ Namespace My.Sys.Forms
 		OnCopy As Sub(ByRef Sender As TextBox)
 		OnPaste As Sub(ByRef Sender As TextBox, ByRef Action As Integer)
 		'Raises the Update event.
-		OnUpdate     As Sub(ByRef Sender As TextBox)
+		OnUpdate     As Sub(ByRef Sender As TextBox, ByRef NewText As WString)
 	End Type
 End Namespace
 

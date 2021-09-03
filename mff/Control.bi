@@ -187,6 +187,7 @@ Namespace My.Sys.Forms
 				OnHandleIsDestroyed As Sub(ByRef Sender As Control)
 			#else
 				Declare Static Function hover_cb(ByVal user_data As gpointer) As gboolean
+				Declare Static Function Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, horizontal As Boolean, user_data As Any Ptr) As Boolean
 			#endif
 		Public:
 			Canvas        As My.Sys.Drawing.Canvas
