@@ -773,9 +773,12 @@ Namespace My.Sys.Forms
 				End If
 				If Value->box Then
 					gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
+					gtk_widget_show(value->box)
+					gtk_widget_show(value->icon)
 				EndIf
 				If Value->label Then
 					gtk_label_set_text_with_mnemonic(gtk_label(Value->label), ToUTF8(*Value->FText & "	"))
+					gtk_widget_show(value->label)
 				End If
 				gtk_widget_show(value->widget)
 			#else
@@ -1233,6 +1236,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_menu_shell_append(gtk_menu_shell(widget), value->widget)
 				gtk_widget_show(value->widget)
+				If value->label Then gtk_widget_show(value->label)
 				If ClassName = "MainMenu" Then
 				End If
 				If gtk_is_menu_bar(widget) <> 1 Then
