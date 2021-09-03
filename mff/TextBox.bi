@@ -38,6 +38,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
 			Declare Static Sub Adjustment_ValueChanged(adjustment As GtkAdjustment Ptr, user_data As Any Ptr)
 			Declare Static Sub Preedit_Changed(self As GtkWidget Ptr, preedit As gchar Ptr, user_data As Any Ptr)
+			Declare Static Sub Entry_InsertText(self As GtkEditable Ptr, new_text As gchar Ptr, new_text_length As gint, position As gint Ptr, user_data As Any Ptr)
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif

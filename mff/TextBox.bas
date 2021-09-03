@@ -316,11 +316,8 @@ Namespace My.Sys.Forms
 	Property TextBox.ReadOnly(Value As Boolean)
 		FReadOnly = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(Widget) Then
-				gtk_text_view_set_editable(gtk_text_view(Widget), Not Value)
-			ElseIf Widget Then
-				gtk_editable_set_editable(gtk_editable(Widget), Not Value)
-			End If
+			gtk_text_view_set_editable(gtk_text_view(WidgetTextView), Not Value)
+			gtk_editable_set_editable(gtk_editable(WidgetEntry), Not Value)
 		#else
 			If Handle Then Perform(EM_SETREADONLY,FReadOnly,0)
 		#endif
@@ -1262,6 +1259,18 @@ Namespace My.Sys.Forms
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnUpdate Then txt->OnUpdate(*txt, WStr(*preedit))
 		End Sub
+		
+		Sub TextBox.Entry_InsertText(self As GtkEditable Ptr, new_text As gchar Ptr, new_text_length As gint, position As gint Ptr, user_data As Any Ptr)
+			Dim As TextBox Ptr txt = user_data
+			If txt->CharCase <> ecNone Then
+				g_signal_handlers_block_by_func(G_OBJECT (self), G_CALLBACK(@Entry_InsertText), user_data)
+				Dim As gint pos1 = gtk_editable_get_position(self)
+				?pos1, *position
+				gtk_editable_insert_text(self, ToUTF8(IIf(txt->CharCase = ecLower, LCase(*new_text), UCase(*new_text))), new_text_length, position)
+				g_signal_handlers_unblock_by_func(G_OBJECT (self), G_CALLBACK(@Entry_InsertText), user_data)
+			End If
+			g_signal_stop_emission_by_name(G_OBJECT(self), "insert_text")
+		End Sub
 	#endif
 	
 	Constructor TextBox
@@ -1281,10 +1290,18 @@ Namespace My.Sys.Forms
 			g_signal_connect(gtk_widget(WidgetTextView), "copy-clipboard", G_CALLBACK(@Entry_CopyClipboard), @This)
 			g_signal_connect(gtk_widget(WidgetTextView), "cut-clipboard", G_CALLBACK(@Entry_CutClipboard), @This)
 			g_signal_connect(gtk_widget(WidgetTextView), "paste-clipboard", G_CALLBACK(@Entry_PasteClipboard), @This)
-			g_signal_connect(gtk_widget(WidgetTextView), "set-scroll-adjustments", G_CALLBACK(@TextView_SetScrollAdjustments), @This)
+			#ifdef __USE_GTK3__
+				g_signal_connect(gtk_scrollable_get_hadjustment(gtk_scrollable(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
+				g_signal_connect(gtk_scrollable_get_vadjustment(gtk_scrollable(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
+			#else
+				g_signal_connect(gtk_widget(WidgetTextView), "set-scroll-adjustments", G_CALLBACK(@TextView_SetScrollAdjustments), @This)
+			#endif
 			g_signal_connect(gtk_text_view(WidgetTextView), "preedit-changed", G_CALLBACK(@Preedit_Changed), @This)
 			g_signal_connect(gtk_entry(WidgetEntry), "preedit-changed", G_CALLBACK(@Preedit_Changed), @This)
 			g_signal_connect(gtk_text_view_get_buffer(gtk_text_view(WidgetTextView)), "changed", G_CALLBACK(@TextBuffer_Changed), @This)
+			#ifndef __USE_GTK3__
+				g_signal_connect(gtk_editable(WidgetEntry), "insert-text", G_CALLBACK(@Entry_InsertText), @This)
+			#endif
 			WidgetScrolledWindow = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(gtk_scrolled_window(WidgetScrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(WidgetScrolledWindow), GTK_SHADOW_OUT)
