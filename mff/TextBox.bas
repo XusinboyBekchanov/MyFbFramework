@@ -367,11 +367,13 @@ Namespace My.Sys.Forms
 		If FCharCase <> Value Then
 			FCharCase = Value
 			#ifdef __USE_GTK__
-				Select Case FCharCase
-				Case ecNone: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_NONE): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_NONE)
-				Case ecLower: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_LOWERCASE): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_LOWERCASE)
-				Case ecUpper: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_UPPERCASE_CHARS): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_UPPERCASE_CHARS)
-				End Select
+				#ifdef __USE_GTK3__
+					Select Case FCharCase
+					Case ecNone: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_NONE): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_NONE)
+					Case ecLower: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_LOWERCASE): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_LOWERCASE)
+					Case ecUpper: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_UPPERCASE_CHARS): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_UPPERCASE_CHARS)
+					End Select
+				#endif
 			#else
 				ChangeStyle(ES_LOWERCASE, False)
 				ChangeStyle(ES_UPPERCASE, False)
