@@ -111,6 +111,8 @@ Namespace My.Sys.Forms
 		Declare Sub InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
 		Declare Function IndexOf(ByRef Item As WString) As Integer
 		Declare Function IndexOfObject(Obj As Any Ptr) As Integer
+		Declare Sub SelectAll
+		Declare Sub UnSelectAll
 		Declare Sub Clear
 		Declare Sub SaveToFile(ByRef File As WString)
 		Declare Sub LoadFromFile(ByRef File As WString)

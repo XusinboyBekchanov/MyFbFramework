@@ -66,6 +66,34 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Sub ListControl.SelectAll
+		#ifdef __USE_GTK__
+			If widget Then 
+				#ifdef __USE_GTK3__
+					gtk_list_box_select_all(gtk_list_box(widget))
+				#else
+					gtk_list_select_all(gtk_list(widget))
+				#endif
+			End If
+		#else
+			If Handle Then Perform(LB_SETSEL, Abs_(True), -1)
+		#endif
+	End Sub
+	
+	Sub ListControl.UnSelectAll
+		#ifdef __USE_GTK__
+			If widget Then 
+				#ifdef __USE_GTK3__
+					gtk_list_box_unselect_all(gtk_list_box(widget))
+				#else
+					gtk_list_unselect_all(gtk_list(widget))
+				#endif
+			End If
+		#else
+			If Handle Then Perform(LB_SETSEL, Abs_(False), -1)
+		#endif
+	End Sub
+	
 	Property ListControl.TabIndex As Integer
 		Return FTabIndex
 	End Property
