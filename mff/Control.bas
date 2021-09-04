@@ -153,7 +153,22 @@ Namespace My.Sys.Forms
 		
 		Property Control.AllowDrop(Value As Boolean)
 			FAllowDrop = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				If Value Then
+					Dim As GtkTargetEntry Ptr target_table = Allocate(SizeOf(GtkTargetEntry) * 2)
+					target_table[0].target = Cast(gchar Ptr, @"text/uri-list")
+					target_table[0].flags = 0
+					target_table[0].info  = 0
+					target_table[1].target = Cast(gchar Ptr, @"application/x-monkey")
+					target_table[1].flags = 0
+					target_table[1].info  = 1
+					gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_ALL, target_table, 1, GDK_ACTION_COPY)
+					gtk_drag_dest_add_text_targets(widget)
+					g_signal_connect(widget, "drag-data-received", G_CALLBACK(@DragDataReceived), @This)
+				Else
+					gtk_drag_dest_unset(widget)
+				End If
+			#else
 				ChangeExStyle WS_EX_ACCEPTFILES, Value
 				If Handle Then RecreateWnd
 			#endif
@@ -1571,6 +1586,23 @@ Namespace My.Sys.Forms
 				If Ctrl->OnScroll Then Ctrl->OnScroll(*Ctrl)
 				Return False
 			End Function
+			
+			Sub Control.DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, _data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
+				Dim As Control Ptr Ctrl = user_data
+				If info = 0 Then
+					If Ctrl->OnDropFile Then
+						Dim As UString res(Any)
+						Split(WStr(*Cast(gchar Ptr, _data->data)), Chr(13) & Chr(10), res())
+						For i As Integer = 0 To UBound(res)
+							If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
+							Ctrl->OnDropFile(*Ctrl, res(i))
+						Next
+					End If
+					gtk_drag_finish(context, True, False, Time)
+				Else
+					gtk_drag_finish(context, False, False, Time)
+				End If
+			End Sub
 			
 			Function Control.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Dim As Boolean Result
