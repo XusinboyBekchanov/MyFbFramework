@@ -90,6 +90,7 @@ Namespace My.Sys.Forms
 			ImageWidget As GtkWidget Ptr
 			Declare Static Function Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function Client_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function deactivate_cb(ByVal user_data As gpointer) As gboolean
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
@@ -214,12 +215,8 @@ Namespace My.Sys.Forms
 		OnDeActivateApp         As Sub(ByRef Sender As Form)
 		'Occurs when the Visible property value changes to false (Windows only).
 		OnHide                  As Sub(ByRef Sender As Form)
-		'Occurs when the object deleted (Windows, Linux).
-		OnFree                  As Sub(ByRef Sender As Form)
 		'Occurs when the Visible property value changes to true (Windows, Linux).
 		OnShow                  As Sub(ByRef Sender As Form)
-		'Occurs when the specified timer interval has elapsed and the timer is enabled (Windows only).
-		OnTimer                 As Sub(ByRef Sender As Form)
 	End Type
 End Namespace
 

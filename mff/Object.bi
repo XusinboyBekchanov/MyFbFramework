@@ -34,6 +34,10 @@ Namespace My.Sys
 		FTemp As WString Ptr
 		FClassName As WString Ptr
 		FDynamic As Boolean
+		#ifdef __USE_GTK__
+			FActivated As Boolean
+			FDeactivated As Boolean
+		#endif
 	Public:
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function ClassName ByRef As WString

@@ -740,6 +740,17 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
+	#else
+		Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
+			pApp->FDeactivated = False
+			If pApp->FActivated Then
+				pApp->FActivated = False
+			Else
+				Dim As Form Ptr frm = user_data
+				If frm->OnDeactivateApp Then frm->OnDeactivateApp(*frm)
+			End If
+			Return False
+		End Function
 	#endif
 
 	Sub Form.ProcessMessage(ByRef msg As Message)
@@ -773,6 +784,20 @@ Namespace My.Sys.Forms
 				Case 2
 					msg.Result = -1
 				End Select
+			Case GDK_FOCUS_CHANGE
+					If Cast(GdkEventFocus Ptr, msg.event)->in Then
+						If OnActivateApp OrElse OnDeactivateApp Then
+							pApp->FActivated = True
+							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
+						End If
+						If OnActivate Then OnActivate(This)
+					Else
+						If OnDeactivate Then OnDeactivate(This)
+						If OnActivateApp OrElse OnDeactivateApp Then
+							pApp->FDeactivated = True
+							g_timeout_add(500, @deactivate_cb, @This)
+						End If
+					End If
 			Case GDK_WINDOW_STATE
 				
 			Case Else
@@ -855,8 +880,8 @@ Namespace My.Sys.Forms
 				IsMenuItem = True
 			Case WM_INITMENU
 			Case WM_INITMENUPOPUP
-			Case WM_TIMER
-				If OnTimer Then OnTimer(This)
+'			Case WM_TIMER
+'				If OnTimer Then OnTimer(This)
 			Case WM_ACTIVATE
 				Select Case msg.wParamLo
 				Case WA_ACTIVE, WA_CLICKACTIVE
@@ -1323,7 +1348,7 @@ Namespace My.Sys.Forms
 			#endif
 		End With
 	End Sub
-
+	
 	Constructor Form
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
