@@ -1961,6 +1961,10 @@ Namespace My.Sys.Forms
 							bAdded = True
 						End If
 					End If
+					If Ctrl->eventboxwidget Then g_object_set_data(G_OBJECT(Ctrl->eventboxwidget), "@@@Control2", Ctrl)
+					If Ctrl->scrolledwidget Then g_object_set_data(G_OBJECT(Ctrl->scrolledwidget), "@@@Control2", Ctrl)
+					If Ctrl->widget Then g_object_set_data(G_OBJECT(Ctrl->widget), "@@@Control2", Ctrl)
+					If Ctrl->layoutwidget Then g_object_set_data(G_OBJECT(Ctrl->layoutwidget), "@@@Control2", Ctrl)
 					If CInt(bAdded) AndAlso CInt(CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget)))) Then
 						If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
 						If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)

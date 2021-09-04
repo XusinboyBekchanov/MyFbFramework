@@ -761,6 +761,8 @@ Namespace My.Sys.Forms
 				If CInt(gtk_widget_get_parent(scrolledwidget) = 0) AndAlso CInt(This.Parent) AndAlso CInt(This.Parent->layoutwidget) Then
 					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), scrolledwidget, FLeft, FTop)
 				End If
+				If scrolledwidget Then g_object_set_data(G_OBJECT(scrolledwidget), "@@@Control2", @This)
+				If widget Then g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
 				SetBounds(FLeft, FTop, FWidth, FHeight)
 				gtk_text_buffer_set_text(buffer, *gtk_entry_get_text(gtk_entry(WidgetEntry)), -1)
 				gtk_widget_show_all(scrolledwidget)

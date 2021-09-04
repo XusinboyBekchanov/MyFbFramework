@@ -320,7 +320,7 @@ Namespace My.Sys.Forms
 				Dim Id As Integer = SelectedTabIndex
 				For i As Integer = 0 To TabCount - 1
 					Tabs[i]->Visible = i = Id
-					If DesignMode Then
+					If FDesignMode Then
 						ShowWindow(Tabs[i]->Handle, Abs_(i = Id))
 						If i <> Id Then SetWindowPos Tabs[i]->Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 					End If
@@ -652,7 +652,7 @@ Namespace My.Sys.Forms
 					SelectedTabIndex = SelectedTabIndex
 				End If
 			Case WM_NCHITTEST
-				If DesignMode Then Exit Sub
+				If FDesignMode Then Exit Sub
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

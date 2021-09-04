@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 			Case "borderround": BorderRound = QLong(Value)
 			Case "chartstyle": ChartStyle = *Cast(ChartStyles Ptr, Value)
 			Case "chartorientation": ChartOrientation = *Cast(ChartOrientations Ptr, Value)
-			Case "designmode": DesignMode = QBoolean(Value): If DesignMode Then Example: Refresh
+			Case "designmode": FDesignMode = QBoolean(Value): If FDesignMode Then Example: Refresh
 			Case "donutwidth": DonutWidth = QSingle(Value)
 			Case "fillgradient": FillGradient = QBoolean(Value)
 			Case "fillopacity": FillOpacity = QLong(Value)

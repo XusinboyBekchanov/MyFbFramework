@@ -375,7 +375,7 @@ Namespace My.Sys.Forms
 			Case FormBorderStyle.None
 				ChangeStyle WS_CAPTION, False
 				ChangeStyle DS_CONTROL, True
-				If Not DesignMode Then ChangeStyle WS_POPUP, True
+				If Not FDesignMode Then ChangeStyle WS_POPUP, True
 				ChangeExStyle WS_EX_CONTROLPARENT, True
 			Case FormBorderStyle.SizableToolWindow
 				ChangeStyle WS_BORDER, True
@@ -546,7 +546,7 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then
-				If Not DesignMode Then
+				If Not FDesignMode Then
 					Dim nState As Long
 					Select Case FWindowState
 					Case WindowStates.wsMinimized:  nState = SW_SHOWMINIMIZED
