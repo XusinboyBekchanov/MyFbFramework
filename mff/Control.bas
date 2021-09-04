@@ -654,7 +654,7 @@ Namespace My.Sys.Forms
 		
 		Property Control.Visible(Value As Boolean)
 			FVisible = Value
-			If (Not DesignMode) OrElse Value Then
+			If (Not FDesignMode) OrElse Value Then
 				#ifdef __USE_GTK__
 					If widget Then
 						'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
@@ -958,10 +958,14 @@ Namespace My.Sys.Forms
 				Case GDK_LEAVE_NOTIFY
 					If OnMouseLeave Then OnMouseLeave(This)
 				Case GDK_CONFIGURE
-'					If Constraints.Left <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).x  = Constraints.Left
-'					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top
-'					If Constraints.Width <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cx = Constraints.Width
-'					If Constraints.Height <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cy = Constraints.Height
+					'If Constraints.Left <> 0 OrElse Constraints.Top <> 0 OrElse Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
+						'SetBounds(IIf(Constraints.Left, Constraints.Left, e->configure.x), IIf(Constraints.Top, Constraints.Top, e->configure.y), IIf(Constraints.Width, Constraints.Width, e->configure.Width), IIf(Constraints.Height, Constraints.Height, e->configure.Height))
+						'Message.Result = True
+					'End If
+'					If Constraints.Left <> 0 Then SetBounds(Constraints.Left, This.Top, ): Message.Result = True
+'					If Constraints.Top <> 0 Then e->configure.y  = Constraints.Top: Message.Result = True
+'					If Constraints.Width <> 0 Then e->configure.width = Constraints.Width: Message.Result = True
+'					If Constraints.Height <> 0 Then e->configure.height = Constraints.Height: Message.Result = True
 					If OnMove Then OnMove(This)
 					'If OnResize Then OnResize(This)
 					RequestAlign
@@ -1018,7 +1022,7 @@ Namespace My.Sys.Forms
 				Case GDK_FOCUS_CHANGE
 					If Cast(GdkEventFocus Ptr, e)->in Then
 						If OnGotFocus Then OnGotFocus(This)
-						If Not DesignMode Then
+						If Not FDesignMode Then
 							Dim frm As Control Ptr = GetForm
 							If frm Then
 								frm->FActiveControl = @This
@@ -1040,7 +1044,7 @@ Namespace My.Sys.Forms
 				bCtrl = GetKeyState(VK_CONTROL) And 8000
 				Select Case Message.Msg
 				Case WM_NCHITTEST
-					If DesignMode Then
+					If FDesignMode Then
 						If ClassName <> "Form" AndAlso ClassName <> "GroupBox" Then
 							Message.Result = HTTRANSPARENT
 						End If
@@ -1048,7 +1052,7 @@ Namespace My.Sys.Forms
 				Case WM_PAINT
 					If OnPaint Then OnPaint(This, Canvas)
 				Case WM_SETCURSOR
-					If CInt(This.Cursor.Handle <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not DesignMode) Then
+					If CInt(This.Cursor.Handle <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not FDesignMode) Then
 						Message.Result = Cast(LResult, SetCursor(This.Cursor.Handle))
 					End If
 				Case WM_HSCROLL
@@ -1244,7 +1248,7 @@ Namespace My.Sys.Forms
 					If OnKeyUp Then OnKeyUp(This,LoWord(Message.WParam),Message.lParam And &HFFFF)
 				Case WM_SETFOCUS
 					If OnGotFocus Then OnGotFocus(This)
-					If Not DesignMode Then
+					If Not FDesignMode Then
 						Dim frm As Control Ptr = GetForm
 						If frm Then
 							frm->FActiveControl = @This
@@ -1293,7 +1297,7 @@ Namespace My.Sys.Forms
 			#else
 				Select Case Message.Msg
 				Case WM_NCHITTEST
-					If DesignMode Then
+					If FDesignMode Then
 						If ClassName <> "Form" Then
 							'Message.Result = HTTRANSPARENT
 						End If

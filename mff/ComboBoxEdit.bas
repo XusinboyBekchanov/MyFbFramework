@@ -17,6 +17,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "sort": Return @FSort
 		Case "tabindex": Return @FTabIndex
+		Case "dropdowncount": Return @FDropDownCount
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -26,6 +27,7 @@ Namespace My.Sys.Forms
 		Select Case LCase(PropertyName)
 		Case "sort": This.Sort = QBoolean(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
+		Case "dropdowncount": DropDownCount = QInteger(Value)
 		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.AddItem *FName: This.ItemIndex = 0
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -142,6 +144,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ComboBoxEdit.ItemHeight As Integer
+		#ifndef __USE_GTK__
+			If Handle Then
+				If Style <> cbOwnerDrawVariable  Then
+					FItemHeight = Perform(CB_GETITEMHEIGHT, 0, 0)
+				End If
+			End If
+		#endif
 		Return FItemHeight
 	End Property
 	
@@ -243,7 +252,7 @@ Namespace My.Sys.Forms
 	Sub ComboBoxEdit.UpdateListHeight
 		If Style <> cbSimple Then
 			#ifndef __USE_GTK__
-				MoveWindow Handle, ScaleX(This.Left), ScaleY(This.Top), ScaleX(This.Width), ScaleY(This.Height + (ItemHeight * ItemCount)), 1
+				MoveWindow Handle, ScaleX(This.Left), ScaleY(This.Top), ScaleX(This.Width), ScaleY(This.Height + (ItemHeight * FDropDownCount)), 1
 			#endif
 		End If
 	End Sub
@@ -356,8 +365,8 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
 					.GetChilds
-					If .Style <> cbOwnerDrawVariable Then
-						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.ItemHeight))
+					If .Style <> cbOwnerDrawVariable AndAlso .FItemHeight <> 0 Then
+						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.FItemHeight))
 					End If
 					.UpdateListHeight
 					Dim As Integer i
@@ -590,7 +599,7 @@ Namespace My.Sys.Forms
 			AIntegralHeight(1) = 0
 		#endif
 		FStyle              = cbDropDownList
-		ItemHeight          = 13
+		'ItemHeight          = 13
 		FDropDownCount      = 8
 		FSelColor           = &H800000
 		FIntegralHeight     = 0
