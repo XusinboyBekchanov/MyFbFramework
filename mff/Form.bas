@@ -1060,6 +1060,41 @@ Namespace My.Sys.Forms
 							gtk_window_set_icon_list(GTK_WINDOW(Widget), list1)
 						End If
 					End If
+					Select Case FBorderStyle
+					Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
+						Dim As GdkGeometry hints
+						hints.base_width = FWidth
+						hints.base_height = FHeight
+						hints.min_width = FWidth
+						hints.min_height = FHeight
+						hints.width_inc = 1
+						hints.height_inc = 1
+						If Gtk_Is_Window(Widget) Then
+							gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+						End If
+					Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
+						
+					End Select
+					If gtk_is_window(widget) Then
+						Select Case FBorderStyle
+						Case FormBorderStyle.None
+							gtk_window_set_resizable(gtk_window(widget), False)
+						Case FormBorderStyle.SizableToolWindow
+							gtk_window_set_resizable(gtk_window(widget), True)
+						Case FormBorderStyle.FixedToolWindow
+							gtk_window_set_resizable(gtk_window(widget), False)
+						Case FormBorderStyle.Sizable
+							gtk_window_set_resizable(gtk_window(widget), True)
+						Case FormBorderStyle.Fixed3D
+							gtk_window_set_resizable(gtk_window(widget), False)
+						Case FormBorderStyle.FixedSingle
+							gtk_window_set_resizable(gtk_window(widget), False)
+						Case FormBorderStyle.FixedDialog
+							gtk_window_set_resizable(gtk_window(widget), False)
+						End Select
+					End If
+				Else
+					StartPosition = Manual
 				End If
 				'If Menu Then gtk_widget_show_all(Menu->widget)
 '				gtk_widget_show(ImageWidget)
@@ -1069,39 +1104,6 @@ Namespace My.Sys.Forms
 				gtk_widget_show_all(widget)
 				'ShowItems @This
 				HideItems @This
-				Select Case FBorderStyle
-				Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
-					Dim As GdkGeometry hints
-					hints.base_width = FWidth
-					hints.base_height = FHeight
-					hints.min_width = FWidth
-					hints.min_height = FHeight
-					hints.width_inc = 1
-					hints.height_inc = 1
-					If Gtk_Is_Window(Widget) Then
-						gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
-					End If
-				Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
-					
-				End Select
-				If gtk_is_window(widget) Then
-					Select Case FBorderStyle
-					Case FormBorderStyle.None
-						gtk_window_set_resizable(gtk_window(widget), False)
-					Case FormBorderStyle.SizableToolWindow
-						gtk_window_set_resizable(gtk_window(widget), True)
-					Case FormBorderStyle.FixedToolWindow
-						gtk_window_set_resizable(gtk_window(widget), False)
-					Case FormBorderStyle.Sizable
-						gtk_window_set_resizable(gtk_window(widget), True)
-					Case FormBorderStyle.Fixed3D
-						gtk_window_set_resizable(gtk_window(widget), False)
-					Case FormBorderStyle.FixedSingle
-						gtk_window_set_resizable(gtk_window(widget), False)
-					Case FormBorderStyle.FixedDialog
-						gtk_window_set_resizable(gtk_window(widget), False)
-					End Select
-				End If
 				'Requests @This
 			End If
 		#else
