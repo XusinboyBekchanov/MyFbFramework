@@ -1265,11 +1265,10 @@ Namespace My.Sys.Forms
 			If txt->CharCase <> ecNone Then
 				g_signal_handlers_block_by_func(G_OBJECT (self), G_CALLBACK(@Entry_InsertText), user_data)
 				Dim As gint pos1 = gtk_editable_get_position(self)
-				?pos1, *position
 				gtk_editable_insert_text(self, ToUTF8(IIf(txt->CharCase = ecLower, LCase(*new_text), UCase(*new_text))), new_text_length, position)
 				g_signal_handlers_unblock_by_func(G_OBJECT (self), G_CALLBACK(@Entry_InsertText), user_data)
+				g_signal_stop_emission_by_name(G_OBJECT(self), "insert_text")
 			End If
-			g_signal_stop_emission_by_name(G_OBJECT(self), "insert_text")
 		End Sub
 	#endif
 	
