@@ -249,6 +249,8 @@ Namespace My.Sys.Forms
 				gtk_misc_set_alignment(gtk_misc(widget), 0, 0)
 			#endif
 			gtk_label_set_line_wrap(gtk_label(widget), True)
+			eventboxwidget = gtk_event_box_new()
+			gtk_container_add(gtk_container(eventboxwidget), widget)
 			This.RegisterClass "Label", @This
 		#else
 			AStyle(0)           = 0
