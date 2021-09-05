@@ -1587,12 +1587,12 @@ Namespace My.Sys.Forms
 				Return False
 			End Function
 			
-			Sub Control.DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, _data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
+			Sub Control.DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, selection_data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = user_data
 				If info = 0 Then
 					If Ctrl->OnDropFile Then
 						Dim As UString res(Any)
-						Split(WStr(*Cast(gchar Ptr, _data->data)), Chr(13) & Chr(10), res())
+						Split(*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0), Chr(13) & Chr(10), res())
 						For i As Integer = 0 To UBound(res)
 							If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
 							Ctrl->OnDropFile(*Ctrl, res(i))
