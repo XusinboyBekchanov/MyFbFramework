@@ -149,7 +149,7 @@ Namespace My
 	Property Application.MainForm(Value As My.Sys.Forms.Control Ptr)
 		FMainForm = Value
 		#ifdef __USE_GTK__
-			If FMainForm AndAlso FMainForm->widget Then g_signal_connect(FMainForm->widget, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
+			If FMainForm AndAlso FMainForm->Handle Then g_signal_connect(FMainForm->Handle, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
 		#endif
 	End Property
 	
@@ -182,61 +182,61 @@ Namespace My
 	Property Application.Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
 	End Property
 	
-	Property Application.HintColor As Integer
-		Return FHintColor
-	End Property
-	
-	Property Application.HintColor(value As Integer)
-		Dim As Integer i
-		FHintColor = value
-		For i = 0 To ControlCount -1
-			#ifndef __USE_GTK__
-				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETTIPBKCOLOR,value,0)
-			#endif
-		Next i
-	End Property
-	
-	Property Application.HintPause As Integer
-		Return FHintPause
-	End Property
-	
-	Property Application.HintPause (value As Integer)
-		Dim As Integer i
-		FHintPause = value
-		For i = 0 To ControlCount -1
-			#ifndef __USE_GTK__
-				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_INITIAL,value)
-			#endif
-		Next i
-	End Property
-	
-	Property Application.HintShortPause As Integer
-		Return FHintShortPause
-	End Property
-	
-	Property Application.HintShortPause(value As Integer)
-		Dim As Integer i
-		FHintShortPause = value
-		For i = 0 To ControlCount -1
-			#ifndef __USE_GTK__
-				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_RESHOW,value)
-			#endif
-		Next i
-	End Property
-	
-	Property Application.HintHidePause As Integer
-		Return FHintHidePause
-	End Property
-	
-	Property Application.HintHidePause(value As Integer)
-		Dim As Integer i
-		FHintHidePause = value
-		For i = 0 To ControlCount -1
-			#ifndef __USE_GTK__
-				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_AUTOPOP,value)
-			#endif
-		Next i
-	End Property
+'	Property Application.HintColor As Integer
+'		Return FHintColor
+'	End Property
+'	
+'	Property Application.HintColor(value As Integer)
+'		Dim As Integer i
+'		FHintColor = value
+'		For i = 0 To ControlCount -1
+'			#ifndef __USE_GTK__
+'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETTIPBKCOLOR,value,0)
+'			#endif
+'		Next i
+'	End Property
+'	
+'	Property Application.HintPause As Integer
+'		Return FHintPause
+'	End Property
+'	
+'	Property Application.HintPause (value As Integer)
+'		Dim As Integer i
+'		FHintPause = value
+'		For i = 0 To ControlCount -1
+'			#ifndef __USE_GTK__
+'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_INITIAL,value)
+'			#endif
+'		Next i
+'	End Property
+'	
+'	Property Application.HintShortPause As Integer
+'		Return FHintShortPause
+'	End Property
+'	
+'	Property Application.HintShortPause(value As Integer)
+'		Dim As Integer i
+'		FHintShortPause = value
+'		For i = 0 To ControlCount -1
+'			#ifndef __USE_GTK__
+'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_RESHOW,value)
+'			#endif
+'		Next i
+'	End Property
+'	
+'	Property Application.HintHidePause As Integer
+'		Return FHintHidePause
+'	End Property
+'	
+'	Property Application.HintHidePause(value As Integer)
+'		Dim As Integer i
+'		FHintHidePause = value
+'		For i = 0 To ControlCount -1
+'			#ifndef __USE_GTK__
+'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_AUTOPOP,value)
+'			#endif
+'		Next i
+'	End Property
 	
 	Sub Application.HelpCommand(CommandID As Integer,FData As Long)
 		#ifndef __USE_GTK__
@@ -586,7 +586,7 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 		Dim As GtkWidget Ptr dialog
 		Dim As GtkWindow Ptr win
 		If pApp->MainForm Then
-			win = Gtk_Window(pApp->MainForm->widget)
+			win = Gtk_Window(pApp->MainForm->Handle)
 		End If
 		Select Case MsgType
 		Case mtInfo: MsgTypeIn = GTK_MESSAGE_INFO

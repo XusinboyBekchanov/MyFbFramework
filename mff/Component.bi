@@ -49,6 +49,13 @@ Namespace My.Sys.ComponentModel
 			FHandle     As HWND
 		#endif
 		Declare Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		#ifdef __USE_GTK__
+			widget 			As GtkWidget Ptr
+			box 			As GtkWidget Ptr
+			fixedwidget		As GtkWidget Ptr
+			scrolledwidget	As GtkWidget Ptr
+			eventboxwidget  As GtkWidget Ptr
+		#endif
 	Public:
 		'Stores any extra data needed for your program.
 		Tag As Any Ptr
@@ -60,12 +67,6 @@ Namespace My.Sys.ComponentModel
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As GtkWidget Ptr
 			Declare Property Handle(Value As GtkWidget Ptr)
-			widget 			As GtkWidget Ptr
-			box 			As GtkWidget Ptr
-			fixedwidget		As GtkWidget Ptr
-			scrolledwidget	As GtkWidget Ptr
-			layoutwidget	As GtkWidget Ptr
-			eventboxwidget  As GtkWidget Ptr
 		#else
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As HWND

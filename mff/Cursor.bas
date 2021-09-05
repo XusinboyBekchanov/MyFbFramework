@@ -146,14 +146,14 @@ Namespace My.Sys.Drawing
 				LoadFromFile(Value)
 			End If
 		#else
-			If Ctrl AndAlso Ctrl->widget Then
-				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->widget)
+			If Ctrl AndAlso Ctrl->Handle Then
+				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->Handle)
 				Handle = gdk_cursor_new_from_name(pdisplay, Value)
 				Dim As GdkWindow Ptr win
-				If gtk_is_layout(Ctrl->widget) Then
-					win = gtk_layout_get_bin_window(gtk_layout(Ctrl->widget))
+				If gtk_is_layout(Ctrl->Handle) Then
+					win = gtk_layout_get_bin_window(gtk_layout(Ctrl->Handle))
 				Else
-					win = gtk_widget_get_parent_window(Ctrl->widget)
+					win = gtk_widget_get_parent_window(Ctrl->Handle)
 				End If
 				If win Then gdk_window_set_cursor(win, Handle)
 			End If
@@ -174,8 +174,8 @@ Namespace My.Sys.Drawing
 	
 	#ifdef __USE_GTK__
 		Operator Cursor.Let(Value As GdkCursorType)
-			If Ctrl AndAlso Ctrl->widget Then
-				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->widget)
+			If Ctrl AndAlso Ctrl->Handle Then
+				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->Handle)
 				Handle = gdk_cursor_new_for_display(pdisplay, Value)
 			End If
 		End Operator

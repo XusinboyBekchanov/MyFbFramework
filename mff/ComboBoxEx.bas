@@ -32,7 +32,7 @@ Namespace My.Sys.Forms
 	Property ComboBoxItem.Text(ByRef Value As WString)
 		WLet(FText, Value)
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 1, ToUTF8(Value), -1)
 			End If
 		#else
@@ -90,7 +90,7 @@ Namespace My.Sys.Forms
 	Property ComboBoxItem.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
 			End If
 		#endif

@@ -190,11 +190,6 @@ Namespace My.Sys.Forms
 				Declare Static Function hover_cb(ByVal user_data As gpointer) As gboolean
 				Declare Static Function Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, horizontal As Boolean, user_data As Any Ptr) As Boolean
 			#endif
-		Public:
-			Canvas        As My.Sys.Drawing.Canvas
-			Declare Function SelectNextControl(Prev As Boolean = False) As Control Ptr
-			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			#ifdef __USE_GTK__
 				Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Declare Static Function EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
@@ -205,8 +200,21 @@ Namespace My.Sys.Forms
 				Declare Static Function DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Static Function CallWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Static Function SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+				Declare Sub AllocateHint
+			#endif
+			#ifdef __USE_GTK__
+				Declare Property ParentWidget As GtkWidget Ptr
+				Declare Property ParentWidget(Value As GtkWidget Ptr)
+			#else
+				Declare Property ParentHandle As HWND
+				Declare Property ParentHandle(Value As HWND)
 				ToolTipHandle       As HWND
 			#endif
+		Public:
+			Canvas        As My.Sys.Drawing.Canvas
+			Declare Function SelectNextControl(Prev As Boolean = False) As Control Ptr
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			SubClass            As Boolean
 			'Returns a Font object.
 			Font               As My.Sys.Drawing.Font
@@ -261,13 +269,6 @@ Namespace My.Sys.Forms
 			'Returns/sets a value that determines whether an object can respond to user-generated events.
 			Declare Property Enabled As Boolean
 			Declare Property Enabled(Value As Boolean)
-			#ifdef __USE_GTK__
-				Declare Property ParentWidget As GtkWidget Ptr
-				Declare Property ParentWidget(Value As GtkWidget Ptr)
-			#else
-				Declare Property ParentHandle As HWND
-				Declare Property ParentHandle(Value As HWND)
-			#endif
 			'Returns/sets a value that determines whether an object is visible or hidden.
 			Declare Property Visible As Boolean
 			Declare Property Visible(Value As Boolean)
@@ -292,9 +293,9 @@ Namespace My.Sys.Forms
 				Declare Sub ClientToScreen(ByRef P As Point)
 				Declare Sub ScreenToClient(ByRef P As Point)
 			#endif
-			Declare Sub AllocateHint
 			'Invalidates the entire surface of the control and causes the control to be redrawn.
 			Declare Sub Invalidate
+			'Forces the control to invalidate its client area and immediately redraw itself and any child controls.
 			Declare Sub Repaint
 			'Causes the control to redraw the invalidated regions within its client area.
 			Declare Sub Update

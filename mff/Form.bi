@@ -108,6 +108,12 @@ Namespace My.Sys.Forms
 		FMinimizeBox    As Boolean
 		FMaximizeBox    As Boolean
 		FOpacity        As Integer
+		#ifdef __USE_GTK__
+			WindowWidget As GtkWidget Ptr
+			HeaderBarWidget As GtkWidget Ptr
+			Declare Property ParentWidget As GtkWidget Ptr
+			Declare Property ParentWidget(Value As GtkWidget Ptr)
+		#endif
 	Public:
 		'Returns the icon displayed when a form is minimized at run time.
 		Icon          As My.Sys.Drawing.Icon
@@ -142,12 +148,6 @@ Namespace My.Sys.Forms
 		'Returns/sets the form that owns this form.
 		Declare Property Owner As Form Ptr
 		Declare Property Owner(Value As Form Ptr)
-		#ifdef __USE_GTK__
-			WindowWidget As GtkWidget Ptr
-			HeaderBarWidget As GtkWidget Ptr
-			Declare Property ParentWidget As GtkWidget Ptr
-			Declare Property ParentWidget(Value As GtkWidget Ptr)
-		#endif
 		'Returns/sets the caption of the control
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)

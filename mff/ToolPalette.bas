@@ -151,7 +151,7 @@ Namespace My.Sys.Forms
 						End If
 					Case tbsDropDown
 						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.widget)
+						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
 						gtk_widget_show_all(.widget)
 					Case tbsNoPrefix
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
 					Case tbsWholeDropdown
 						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.widget)
+						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
 					Case Else
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
 					End Select
@@ -294,8 +294,8 @@ Namespace My.Sys.Forms
 		End With
 		PGroup->Ctrl = Parent
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Widget Then
-				gtk_container_add(GTK_CONTAINER (Parent->Widget), PGroup->Widget)
+			If Parent AndAlso Parent->Handle Then
+				gtk_container_add(GTK_CONTAINER (Parent->Handle), PGroup->widget)
 			End If
 		#else
 			If Parent Then

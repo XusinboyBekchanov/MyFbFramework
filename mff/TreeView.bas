@@ -12,7 +12,7 @@
 Namespace My.Sys.Forms
 	Sub TreeNode.SelectItem
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then gtk_tree_selection_select_iter(Cast(TreeView Ptr, Parent)->TreeSelection, @TreeIter)
+			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(Cast(TreeView Ptr, Parent)->TreeSelection, @TreeIter)
 		#else
 			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, Handle, TVGN_CARET)
 		#endif
@@ -20,9 +20,9 @@ Namespace My.Sys.Forms
 	
 	Sub TreeNode.Collapse
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_collapse_row(gtk_tree_view(Parent->widget), TreePath)
+				gtk_tree_view_collapse_row(gtk_tree_view(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -32,9 +32,9 @@ Namespace My.Sys.Forms
 	
 	Sub TreeNode.Expand
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_expand_row(gtk_tree_view(Parent->widget), TreePath, False)
+				gtk_tree_view_expand_row(gtk_tree_view(Parent->Handle), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -44,9 +44,9 @@ Namespace My.Sys.Forms
 	
 	Function TreeNode.IsExpanded As Boolean
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeView Ptr, Parent)->TreeStore), @TreeIter))
-				Var bResult = gtk_tree_view_row_expanded(gtk_tree_view(Parent->widget), TreePath)
+				Var bResult = gtk_tree_view_row_expanded(gtk_tree_view(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 				Return bResult
 			End If
@@ -270,7 +270,7 @@ Namespace My.Sys.Forms
 	Destructor TreeNode
 		Nodes.Clear
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_remove(Cast(TreeView Ptr, Parent)->TreeStore, @This.TreeIter)
 			End If
 		#else
@@ -866,7 +866,7 @@ Namespace My.Sys.Forms
 			Dim As TreeView Ptr tv = user_data
 			Dim Message As Message
 			If e->button.button = 3 AndAlso tv->ContextMenu Then
-				If tv->ContextMenu->widget Then
+				If tv->ContextMenu->Handle Then
 					Message = Type(tv, widget, e, False)
 					tv->ContextMenu->Popup(e->button.x, e->button.y, @Message)
 				End If

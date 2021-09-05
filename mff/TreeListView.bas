@@ -25,9 +25,9 @@ Namespace My.Sys.Forms
 	
 	Sub TreeListViewItem.Collapse
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_collapse_row(gtk_tree_view(Parent->widget), TreePath)
+				gtk_tree_view_collapse_row(gtk_tree_view(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -55,9 +55,9 @@ Namespace My.Sys.Forms
 	
 	Sub TreeListViewItem.Expand
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_expand_row(gtk_tree_view(Parent->widget), TreePath, False)
+				gtk_tree_view_expand_row(gtk_tree_view(Parent->Handle), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -99,9 +99,9 @@ Namespace My.Sys.Forms
 	
 	Function TreeListViewItem.IsExpanded As Boolean
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				Var bResult = gtk_tree_view_row_expanded(gtk_tree_view(Parent->widget), TreePath)
+				Var bResult = gtk_tree_view_row_expanded(gtk_tree_view(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 				Return bResult
 			End If
@@ -272,7 +272,7 @@ Namespace My.Sys.Forms
 		'If Value <> *FImageKey Then
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUTF8(Value), -1)
 			End If
 		#else
@@ -335,7 +335,7 @@ Namespace My.Sys.Forms
 	Destructor TreeListViewItem
 		Items.Clear
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.TreeIter)
 			End If
 		#else
@@ -733,7 +733,7 @@ Namespace My.Sys.Forms
 			Dim As TreeListView Ptr lv = Cast(TreeListView Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Widget))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data), PColumn->Index, *new_text)
 				'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
@@ -746,11 +746,11 @@ Namespace My.Sys.Forms
 			Dim As TreeListView Ptr lv = Cast(TreeListView Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Widget))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
 			Dim As Control Ptr CellEditor
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data), PColumn->Index, CellEditor)
-				If CellEditor <> 0 Then editable = gtk_cell_editable(CellEditor->Widget)
+				If CellEditor <> 0 Then editable = gtk_cell_editable(CellEditor->Handle)
 			End If
 		End Sub
 	#endif
@@ -805,7 +805,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
-				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(TreeListView Ptr, Parent)->widget), PColumn->Column)
+				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(TreeListView Ptr, Parent)->Handle), PColumn->Column)
 				#ifdef __USE_GTK3__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else

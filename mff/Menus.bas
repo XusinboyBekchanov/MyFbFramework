@@ -763,13 +763,13 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If SubMenu = 0 Then
 					SubMenu = New_( PopUpMenu)
-					gtk_menu_item_set_submenu(gtk_menu_item(widget), SubMenu->widget)
-					gtk_widget_show(SubMenu->widget)
+					gtk_menu_item_set_submenu(gtk_menu_item(widget), SubMenu->Handle)
+					gtk_widget_show(SubMenu->Handle)
 				End If
 				If Index = -1 Then
-					gtk_menu_shell_append(gtk_menu_shell(SubMenu->widget), value->widget)
+					gtk_menu_shell_append(gtk_menu_shell(SubMenu->Handle), value->widget)
 				Else
-					gtk_menu_shell_insert(gtk_menu_shell(SubMenu->widget), value->widget, Index)
+					gtk_menu_shell_insert(gtk_menu_shell(SubMenu->Handle), value->widget, Index)
 				End If
 				If Value->box Then
 					gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)

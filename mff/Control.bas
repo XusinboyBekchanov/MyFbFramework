@@ -1885,11 +1885,11 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		#ifndef __USE_GTK__
-			Sub Control.ClientToScreen(ByRef P As Point) '...'
+			Sub Control.ClientToScreen(ByRef P As Point)
 				If Handle Then .ClientToScreen Handle,@P
 			End Sub
 			
-			Sub Control.ScreenToClient(ByRef P As Point) '...'
+			Sub Control.ScreenToClient(ByRef P As Point)
 				If Handle Then .ScreenToClient Handle,@P
 			End Sub
 		#endif
@@ -1951,8 +1951,8 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
-		Sub Control.AllocateHint
-			#ifndef __USE_GTK__
+		#ifndef __USE_GTK__
+			Sub Control.AllocateHint
 				If Handle Then
 					ToolTipHandle = CreateWindowEx(0, TOOLTIPS_CLASS, "", TTS_ALWAYSTIP Or WS_POPUP, 0, 0, 0, 0, FHandle, NULL, GetModuleHandle(NULL), NULL)
 					FToolInfo.cbSize=SizeOf(TOOLINFO)
@@ -1964,8 +1964,8 @@ Namespace My.Sys.Forms
 					FToolInfo.lpszText = FHint
 					SendMessage(ToolTipHandle, TTM_ADDTOOL, 0, CInt(@FToolInfo))
 				End If
-			#endif
-		End Sub
+			End Sub
+		#endif
 		
 		Sub Control.Add(Ctrl As Control Ptr)
 			If Ctrl Then

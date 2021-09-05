@@ -91,8 +91,8 @@ Namespace My.Sys.Drawing
 	Sub Canvas.GetDevice
 		If ParentControl Then
 			#ifdef __USE_GTK__
-				If ParentControl->Widget Then
-					pcontext = gtk_widget_create_pango_context(ParentControl->Widget)
+				If ParentControl->Handle Then
+					pcontext = gtk_widget_create_pango_context(ParentControl->Handle)
 					layout = pango_layout_new(pcontext)
 					pango_layout_set_font_description (layout, Font.Handle)
 					If Not HandleSetted Then

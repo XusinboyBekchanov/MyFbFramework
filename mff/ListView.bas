@@ -299,7 +299,7 @@ Namespace My.Sys.Forms
 		'If Value <> *FImageKey Then
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
 			End If
 		#else
@@ -598,7 +598,7 @@ Namespace My.Sys.Forms
 	
 	Sub ListViewItems.Remove(Index As Integer)
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_remove(Cast(ListView Ptr, Parent)->ListStore, @This.Item(Index)->TreeIter)
 			End If
 		#else
@@ -746,7 +746,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
-				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(ListView Ptr, Parent)->widget), PColumn->Column)
+				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(ListView Ptr, Parent)->Handle), PColumn->Column)
 				#ifdef __USE_GTK3__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else

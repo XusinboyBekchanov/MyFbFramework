@@ -541,14 +541,14 @@ Namespace My.Sys.Forms
 						End If
 					Case tbsDropDown, tbsDropDown Or tbsAutosize
 						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.widget)
+						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
 					Case tbsNoPrefix
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
 					Case tbsShowText, tbsShowText Or tbsAutosize
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
 					Case tbsWholeDropdown, tbsWholeDropdown Or tbsAutoSize
 						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.widget)
+						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
 					Case Else
 						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
 					End Select
@@ -571,7 +571,7 @@ Namespace My.Sys.Forms
 		PButton->Ctrl = Parent
 		#ifdef __USE_GTK__
 			If Parent Then
-				gtk_toolbar_insert(gtk_toolbar(Parent->widget), gtk_tool_item(PButton->widget), Index)
+				gtk_toolbar_insert(gtk_toolbar(Parent->Handle), gtk_tool_item(PButton->widget), Index)
 			End If
 		#else
 			Dim As TBBUTTON TB
@@ -617,7 +617,7 @@ Namespace My.Sys.Forms
 		PButton->Ctrl = Parent
 		#ifdef __USE_GTK__
 			If Parent Then
-				gtk_toolbar_insert(gtk_toolbar(Parent->widget), gtk_tool_item(PButton->widget), Index)
+				gtk_toolbar_insert(gtk_toolbar(Parent->Handle), gtk_tool_item(PButton->widget), Index)
 			End If
 		#else
 			Dim As TBBUTTON TB

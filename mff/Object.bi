@@ -27,6 +27,7 @@ Namespace My.Sys
 	Protected:
 		#ifdef __USE_GTK__
 			Accelerator     As GtkAccelGroup Ptr
+			layoutwidget	As GtkWidget Ptr
 		#else
 			Accelerator        As HACCEL
 		#endif
@@ -52,8 +53,6 @@ Namespace My.Sys
 		Declare Operator Cast ByRef As WString
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Sub Free
-		Declare Sub Dispose
 		Declare Constructor
 		Declare Destructor
 	End Type

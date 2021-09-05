@@ -129,14 +129,14 @@ Namespace My
 		Declare Property ExeName(ByRef Value As WString)
 		Declare Property MainForm As My.Sys.Forms.Control Ptr
 		Declare Property MainForm(Value As My.Sys.Forms.Control Ptr)
-		Declare Property HintColor As Integer
-		Declare Property HintColor(value As Integer)
-		Declare Property HintPause As Integer
-		Declare Property HintPause (value As Integer)
-		Declare Property HintShortPause As Integer
-		Declare Property HintShortPause(value As Integer)
-		Declare Property HintHidePause As Integer
-		Declare Property HintHidePause(value As Integer)
+'		Declare Property HintColor As Integer
+'		Declare Property HintColor(value As Integer)
+'		Declare Property HintPause As Integer
+'		Declare Property HintPause (value As Integer)
+'		Declare Property HintShortPause As Integer
+'		Declare Property HintShortPause(value As Integer)
+'		Declare Property HintHidePause As Integer
+'		Declare Property HintHidePause(value As Integer)
 		Declare Property ControlCount As Integer
 		Declare Property ControlCount(Value  As Integer)
 		Declare Property Controls As My.Sys.Forms.Control Ptr Ptr

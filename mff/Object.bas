@@ -24,14 +24,6 @@ Namespace My.Sys
 		Return True
 	End Function
 	
-	Sub Object.Free __EXPORT__
-		'Delete @This
-	End Sub
-	
-	Sub Object.Dispose __EXPORT__
-		'Delete @This
-	End Sub
-	
 	Operator Object.Cast ByRef As WString __EXPORT__
 		Return This.ClassName
 	End Operator
