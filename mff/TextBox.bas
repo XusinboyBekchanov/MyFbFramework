@@ -468,7 +468,12 @@ Namespace My.Sys.Forms
 		If Result = 0 Then
 			FText = WInput(LOF(1), #Fn)
 			#ifdef __USE_GTK__
-				Text = FText
+				If gtk_is_text_view(widget) Then
+					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+					gtk_text_buffer_set_text(buffer, ToUtf8(IIf(FText = "", " ", FText)), -1)
+				Else
+					gtk_entry_set_text(gtk_entry(widget), ToUtf8(IIf(FText = "", " ", FText)))
+				EndIf
 			#else
 				If FHandle Then SetWindowText(FHandle, FText.vptr)
 			#endif
