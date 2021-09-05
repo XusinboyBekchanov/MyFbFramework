@@ -68,11 +68,11 @@ Namespace My.Sys.Drawing
 		If Handle Then
 			If FParent Then
 				#ifdef __USE_GTK__
-					If FParent->Widget Then
+					If FParent->Handle Then
 						#ifdef __USE_GTK3__
-							gtk_widget_override_font(FParent->Widget, Handle)
+							gtk_widget_override_font(FParent->Handle, Handle)
 						#else
-							gtk_widget_modify_font(FParent->Widget, Handle)
+							gtk_widget_modify_font(FParent->Handle, Handle)
 						#endif
 					End If
 				#else
@@ -93,10 +93,10 @@ Namespace My.Sys.Drawing
 		FParent = value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Widget)
+				Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Handle)
 				Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
 			#else
-				Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Widget)
+				Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Handle)
 				Var pfd = WidgetStyle->font_desc
 			#endif
 			WLet(FName, WStr(*pango_font_description_get_family(pfd)))
@@ -121,7 +121,7 @@ Namespace My.Sys.Drawing
 	
 	Property Font.Color(Value As Integer)
 		FColor = value
-		Create
+		'Create
 	End Property
 	
 	Property Font.CharSet As Integer
