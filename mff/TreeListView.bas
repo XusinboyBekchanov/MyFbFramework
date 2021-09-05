@@ -870,7 +870,7 @@ Namespace My.Sys.Forms
 		FColumns.Remove Index
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				Parent->Perform LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
+				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
 		#endif
 	End Sub

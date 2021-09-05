@@ -200,6 +200,7 @@ Namespace My.Sys.Forms
 				Declare Static Function DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Static Function CallWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Static Function SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+				Declare Function Perform(Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Sub AllocateHint
 			#endif
 			#ifdef __USE_GTK__
@@ -274,9 +275,6 @@ Namespace My.Sys.Forms
 			Declare Property Visible(Value As Boolean)
 			Declare Function ControlCount() As Integer
 			Declare Function GetTextLength() As Integer
-			#ifndef __USE_GTK__
-				Declare Function Perform(Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			#endif
 			'Retrieves the form that the control is on.
 			Declare Function GetForm() As Control Ptr
 			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in.

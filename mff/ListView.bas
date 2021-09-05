@@ -626,7 +626,7 @@ Namespace My.Sys.Forms
 	Sub ListViewItems.Sort
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				Parent->Perform LVM_SORTITEMS, 0, Cast(WParam, @CompareFunc)
+				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @CompareFunc)
 				'ListView_SortItems Parent->Handle, @CompareFunc, 0
 			End If
 		#endif
@@ -653,7 +653,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent AndAlso Cast(ListView Ptr, Parent)->ListStore Then gtk_list_store_clear(Cast(ListView Ptr, Parent)->ListStore)
 		#else
-			If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
+			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
 			Delete_( Cast(ListViewItem Ptr, FItems.Items[i]))
@@ -811,7 +811,7 @@ Namespace My.Sys.Forms
 		FColumns.Remove Index
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				Parent->Perform LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
+				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
 		#endif
 	End Sub

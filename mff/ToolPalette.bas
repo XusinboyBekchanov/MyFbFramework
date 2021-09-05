@@ -38,8 +38,8 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					#ifndef __USE_GTK__
-						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
-						.Perform(TB_SETCMDID,i,FCommandID)
+						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+						SendMessage(.Handle, TB_SETCMDID,i,FCommandID)
 					#endif
 				End With
 			End If
@@ -83,7 +83,7 @@ Namespace My.Sys.Forms
 		#else
 			If Ctrl Then
 				With QControl(Ctrl)
-					.Perform(TB_CHECKBUTTON, FCommandID, MakeLong(FExpanded, 0))
+					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MakeLong(FExpanded, 0))
 					.UpdateLock
 					For i As Integer = 0 To Buttons.Count - 1
 						Buttons.Item(i)->Visible = FExpanded
@@ -197,9 +197,9 @@ Namespace My.Sys.Forms
 			If This.Parent AndAlso Cast(ToolGroup Ptr, This.Parent)->Ctrl Then
 				With *Cast(ToolGroup Ptr, This.Parent)
 					If Index = -1 Then
-						.Ctrl->Perform(TB_INSERTBUTTON, .Ctrl->Perform(TB_COMMANDTOINDEX, .CommandID, 0) + FButtons.Count + 1, CInt(@TB))
+						SendMessage(.Ctrl->Handle, TB_INSERTBUTTON, SendMessage(.Ctrl->Handle, TB_COMMANDTOINDEX, .CommandID, 0) + FButtons.Count + 1, CInt(@TB))
 					Else
-						.Ctrl->Perform(TB_INSERTBUTTON, .Ctrl->Perform(TB_COMMANDTOINDEX, .CommandID, 0) + Index + 1, CInt(@TB))
+						SendMessage(.Ctrl->Handle, TB_INSERTBUTTON, SendMessage(.Ctrl->Handle, TB_COMMANDTOINDEX, .CommandID, 0) + Index + 1, CInt(@TB))
 					End If
 				End With
 			End If
@@ -228,7 +228,7 @@ Namespace My.Sys.Forms
 		FButtons.Remove Index
 		If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
 			#ifndef __USE_GTK__
-				Cast(ToolGroup Ptr, Parent)->Ctrl->Perform(TB_DELETEBUTTON,Index,0)
+				SendMessage(Cast(ToolGroup Ptr, Parent)->Ctrl->Handle, TB_DELETEBUTTON, Index, 0)
 			#endif
 		End If
 	End Sub
@@ -307,7 +307,7 @@ Namespace My.Sys.Forms
 					TB.idCommand = 0
 					TB.iString = 0
 					TB.dwData = 0
-					Parent->Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+					SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 				End If
 				TB.fsState   = TBSTATE_ENABLED Or TBSTATE_CHECKED Or TBSTATE_WRAP
 				TB.fsStyle   = TBSTYLE_CHECK
@@ -322,7 +322,7 @@ Namespace My.Sys.Forms
 				'If Index <> -1 Then
 				'	Parent->Parent->Perform(TB_INSERTBUTTON,Index,CInt(@TB))
 				'Else
-				Parent->Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+				SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 				'End If
 				TB.fsState   = 0
 				TB.fsStyle   = TBSTYLE_SEP
@@ -330,7 +330,7 @@ Namespace My.Sys.Forms
 				TB.idCommand = 0
 				TB.iString = 0
 				TB.dwData = 0
-				Parent->Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+				SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 			End If
 		#endif
 		Return PGroup
@@ -340,7 +340,7 @@ Namespace My.Sys.Forms
 		FGroups.Remove Index
 		If Parent Then
 			#ifndef __USE_GTK__
-				Parent->Parent->Perform(TB_DELETEBUTTON,Index,0)
+				SendMessage(Parent->Parent->Handle, TB_DELETEBUTTON, Index, 0)
 			#endif
 		End If
 	End Sub

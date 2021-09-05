@@ -144,15 +144,15 @@ Namespace My.Sys.Forms
 				Dim As TBBUTTON TB
 				If Ctrl Then
 					With QControl(Ctrl)
-						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
-						.Perform(TB_GETBUTTON,i,CInt(@TB))
+						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+						SendMessage(.Handle, TB_GETBUTTON, i, CInt(@TB))
 						If *FCaption <> "" Then
 							TB.iString = CInt(FCaption)
 						Else
 							TB.iString = 0
 						End If
-						.Perform(TB_INSERTBUTTON, i, CInt(@TB))
-						.Perform(TB_DELETEBUTTON, i + 1, 0)
+						SendMessage(.Handle, TB_INSERTBUTTON, i, CInt(@TB))
+						SendMessage(.Handle, TB_DELETEBUTTON, i + 1, 0)
 					End With
 				End If
 			#endif
@@ -208,7 +208,7 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					#ifndef __USE_GTK__
-						.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
+						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
 					#endif
 				End With
 			End If
@@ -244,7 +244,7 @@ Namespace My.Sys.Forms
 					info.dwMask = TBIF_STYLE
 					info.idCommand = FCommandID
 					info.fsStyle = Value
-					Ctrl->Perform(TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
+					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
 				End If
 			#endif
 			'If Ctrl AndAlso Ctrl->Handle Then QControl(Ctrl).RecreateWnd
@@ -273,8 +273,8 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					#ifndef __USE_GTK__
-						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
-						.Perform(TB_SETCMDID,i,FCommandID)
+						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+						SendMessage(.Handle, TB_SETCMDID, i, FCommandID)
 					#endif
 				End With
 			End If
@@ -288,8 +288,8 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					If .Handle Then
-						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
-						.Perform(TB_GETITEMRECT,I,CInt(@R))
+						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
 						FButtonLeft = R.Left
 					End If
 				End With
@@ -308,8 +308,8 @@ Namespace My.Sys.Forms
 				#ifndef __USE_GTK__
 					Dim As Rect R
 					If .Handle Then
-						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
-						.Perform(TB_GETITEMRECT,I,CInt(@R))
+						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
 						FButtonTop = R.Top
 					End If
 				#endif
@@ -328,8 +328,8 @@ Namespace My.Sys.Forms
 				#ifndef __USE_GTK__
 					Dim As Rect R
 					If .Handle Then
-						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
-						.Perform(TB_GETITEMRECT,I,CInt(@R))
+						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
 						FButtonWidth = R.Right - R.Left
 					End If
 				#endif
@@ -349,8 +349,8 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					If .Handle Then
-						i = .Perform(TB_COMMANDTOINDEX,FCommandID,0)
-						.Perform(TB_GETITEMRECT,I,CInt(@R))
+						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+						SendMessage(.Handle, TB_GETITEMRECT,I,CInt(@R))
 						FButtonHeight = R.Bottom - R.Top
 					End If
 				End With
@@ -378,7 +378,7 @@ Namespace My.Sys.Forms
 							gtk_widget_hide(Widget)
 						End If
 					#else
-						.Perform(TB_HIDEBUTTON, FCommandID, MakeLong(Not FVisible, 0))
+						SendMessage(.Handle, TB_HIDEBUTTON, FCommandID, MakeLong(Not FVisible, 0))
 					#endif
 				End With
 			End If
@@ -397,8 +397,8 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						gtk_widget_set_sensitive(widget, FEnabled)
 					#else
-						.Perform(TB_ENABLEBUTTON, FCommandID, MakeLong(FEnabled, 0))
-						.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex,0))
+						SendMessage(.Handle, TB_ENABLEBUTTON, FCommandID, MakeLong(FEnabled, 0))
+						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex,0))
 					#endif
 				End With
 			End If
@@ -415,7 +415,7 @@ Namespace My.Sys.Forms
 						FChecked = False
 					End If
 				#else
-					FChecked = .Perform(TB_ISBUTTONCHECKED, FCommandID, 0)
+					FChecked = SendMessage(.Handle, TB_ISBUTTONCHECKED, FCommandID, 0)
 				#endif
 			End With
 		End If
@@ -432,7 +432,7 @@ Namespace My.Sys.Forms
 						gtk_toggle_tool_button_set_active(gtk_toggle_tool_button(widget), Value)
 					End If
 				#else
-					.Perform(TB_CHECKBUTTON, FCommandID, MakeLong(FChecked, 0))
+					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MakeLong(FChecked, 0))
 				#endif
 				If OnClick Then OnClick(This)
 			End With
@@ -587,9 +587,9 @@ Namespace My.Sys.Forms
 			TB.dwData = Cast(DWord_Ptr,@PButton->DropDownMenu)
 			If Parent Then
 				If Index <> -1 Then
-					Parent->Perform(TB_INSERTBUTTON,Index,CInt(@TB))
+					SendMessage(Parent->Handle, TB_INSERTBUTTON, Index, CInt(@TB))
 				Else
-					Parent->Perform(TB_ADDBUTTONS,1,CInt(@TB))
+					SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 				End If
 			End If
 		#endif
@@ -633,9 +633,9 @@ Namespace My.Sys.Forms
 			TB.dwData = Cast(DWord_Ptr, @PButton->DropDownMenu)
 			If Parent Then
 				If Index <> -1 Then
-					Parent->Perform(TB_INSERTBUTTON,Index,CInt(@TB))
+					SendMessage(Parent->Handle, TB_INSERTBUTTON, Index, CInt(@TB))
 				Else
-					Parent->Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+					SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 				End If
 			End If
 		#endif
@@ -645,7 +645,7 @@ Namespace My.Sys.Forms
 		FButtons.Remove Index
 		If Parent Then
 			#ifndef __USE_GTK__
-				Parent->Perform(TB_DELETEBUTTON,Index,0)
+				SendMessage(Parent->Handle, TB_DELETEBUTTON,Index,0)
 			#endif
 		End If
 	End Sub

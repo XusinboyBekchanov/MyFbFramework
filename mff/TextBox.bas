@@ -941,9 +941,8 @@ Namespace My.Sys.Forms
 		*FSelText = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
-				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_insert_at_cursor(buffer, ToUTF8(Value), -1)
+				gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Widget)), ToUTF8(Value), -1)
 '				buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
 '				gtk_text_buffer_get_selection_bounds(buffer, @_start, @_end)
 '				gtk_text_view_scroll_to_iter(gtk_text_view(Widget), @_end, 0, False, 0, 0)
@@ -1185,6 +1184,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_select_region(gtk_editable(widget), 0, -1)
+			Else
+				Dim As GtkTextIter _start, _end
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, 0)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(gtk_text_view(Widget))))
+				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
 			End If
 		#else
 			If FHandle Then Perform(EM_SETSEL, 0, -1)

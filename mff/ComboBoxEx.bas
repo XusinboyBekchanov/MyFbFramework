@@ -42,7 +42,7 @@ Namespace My.Sys.Forms
 				cbei.iItem = Index
 				cbei.pszText    = FText
 				cbei.cchTextMax = Len(*FText)
-				Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+				SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
 			End If
 		#endif
 	End Property
@@ -77,7 +77,7 @@ Namespace My.Sys.Forms
 					cbei.Mask = CBEIF_IMAGE
 					cbei.iItem = Index
 					cbei.iImage = FImageIndex
-					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
 				End If
 			#endif
 		End If
@@ -109,7 +109,7 @@ Namespace My.Sys.Forms
 					cbei.Mask = CBEIF_SELECTEDIMAGE
 					cbei.iItem = Index
 					cbei.iSelectedImage = FSelectedImageIndex
-					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
 				End If
 			#endif
 		End If
@@ -128,7 +128,7 @@ Namespace My.Sys.Forms
 					cbei.Mask = CBEIF_OVERLAY
 					cbei.iItem = Index
 					cbei.iOverlay = FOverlayIndex
-					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
 				End If
 			#endif
 		End If
@@ -147,7 +147,7 @@ Namespace My.Sys.Forms
 					cbei.Mask = CBEIF_INDENT
 					cbei.iItem = Index
 					cbei.iIndent = FIndent
-					Parent->Perform CBEM_SETITEM, 0, CInt(@cbei)
+					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
 				End If
 			#endif
 		End If
@@ -224,7 +224,7 @@ Namespace My.Sys.Forms
 		If Parent Then
 			PItem->Parent = Parent
 			#ifndef __USE_GTK__
-				Parent->Perform CBEM_INSERTITEM, 0, CInt(@cbei)
+				SendMessage Parent->Handle, CBEM_INSERTITEM, 0, CInt(@cbei)
 			#endif
 		End If
 		Return PItem
@@ -249,7 +249,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_list_store_remove(Cast(ComboBoxEx Ptr, Parent)->ListStore, @This.Item(Index)->TreeIter)
 			#else
-				Parent->Perform CBEM_DELETEITEM, Index, 0
+				SendMessage Parent->Handle, CBEM_DELETEITEM, Index, 0
 			#endif
 		End If
 		Delete_( Cast(ComboBoxItem Ptr, FItems.Items[Index]))
@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent Then gtk_list_store_clear(Cast(ComboBoxEx Ptr, Parent)->ListStore)
 		#else
-			If Parent Then Parent->Perform CB_RESETCONTENT, 0, 0
+			If Parent Then SendMessage Parent->Handle, CB_RESETCONTENT, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
 			Delete_( Cast(ComboBoxItem Ptr, FItems.Items[i]))

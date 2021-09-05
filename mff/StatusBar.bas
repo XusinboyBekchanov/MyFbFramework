@@ -89,7 +89,7 @@ Namespace My.Sys.Forms
 			If StatusBarControl->Handle Then
 				Dim As Rect rct
 				Dim As Integer Index = Cast(StatusBar Ptr, StatusBarControl)->IndexOf(@This)
-				StatusBarControl->Perform(SB_GETRECT, Index, Cast(LParam, @rct))
+				SendMessage(StatusBarControl->Handle, SB_GETRECT, Index, Cast(LParam, @rct))
 				FRealWidth = rct.Right - rct.Left
 			End If
 		#endif
