@@ -155,15 +155,25 @@ Namespace My.Sys.Forms
 			FAllowDrop = Value
 			#ifdef __USE_GTK__
 				If Value Then
-					Dim As GtkTargetEntry Ptr target_table = Allocate(SizeOf(GtkTargetEntry) * 2)
-					target_table[0].target = Cast(gchar Ptr, @"text/uri-list")
-					target_table[0].flags = 0
-					target_table[0].info  = 0
-					target_table[1].target = Cast(gchar Ptr, @"application/x-monkey")
-					target_table[1].flags = 0
-					target_table[1].info  = 1
-					gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_ALL, target_table, 1, GDK_ACTION_COPY)
-					gtk_drag_dest_add_text_targets(widget)
+					If gtk_is_entry(widget) OrElse gtk_is_text_view(widget) Then
+						#ifndef __USE_GTK3__
+							Dim As GtkTargetEntry mytargets
+							mytargets.target = Allocate(SizeOf(gchar) * 14)
+							*mytargets.target = "text/uri-list"
+							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, @mytargets, 1, GDK_ACTION_COPY)
+							Deallocate mytargets.target
+						#else
+							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, Gtk_Target_Entry_new("text/uri-list", 4, 0), 1, GDK_ACTION_COPY)
+						#endif
+						'gtk_drag_dest_add_text_targets(widget)
+					Else
+						Dim As GtkTargetEntry target_table(0)
+						target_table(0).target = Cast(gchar Ptr, @"text/uri-list")
+						target_table(0).flags = 4
+						target_table(0).info  = 0
+						gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_ALL, @target_table(0), 1, GDK_ACTION_COPY)
+						gtk_drag_dest_add_text_targets(widget)
+					End If
 					g_signal_connect(widget, "drag-data-received", G_CALLBACK(@DragDataReceived), @This)
 				Else
 					gtk_drag_dest_unset(widget)
@@ -199,7 +209,7 @@ Namespace My.Sys.Forms
 						Return Len(FText)
 					EndIf
 				#else
-					Return 0
+					Return Len(This.Text)
 				#endif
 			End Function
 		#endif
@@ -1592,11 +1602,14 @@ Namespace My.Sys.Forms
 				If info = 0 Then
 					If Ctrl->OnDropFile Then
 						Dim As UString res(Any)
-						Split(*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0), Chr(13) & Chr(10), res())
-						For i As Integer = 0 To UBound(res)
-							If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
-							Ctrl->OnDropFile(*Ctrl, res(i))
-						Next
+						Dim As UString datatext = *Cast(gchar Ptr, gtk_selection_data_get_data(selection_data)) '*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0)
+						If StartsWith(datatext, "file://") Then
+							datatext = Mid(datatext, 8)
+							Split(datatext, Chr(13) & Chr(10), res())
+							For i As Integer = 0 To UBound(res)
+								If Trim(res(i)) <> "" Then Ctrl->OnDropFile(*Ctrl, res(i))
+							Next
+						End If
 					End If
 					gtk_drag_finish(context, True, False, Time)
 				Else
