@@ -1603,13 +1603,16 @@ Namespace My.Sys.Forms
 					If Ctrl->OnDropFile Then
 						Dim As UString res(Any)
 						Dim As UString datatext = *Cast(gchar Ptr, gtk_selection_data_get_data(selection_data)) '*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0)
-						If StartsWith(datatext, "file://") Then
+						'If StartsWith(datatext, "file://") Then
 							datatext = Mid(datatext, 8)
 							Split(datatext, Chr(13) & Chr(10), res())
 							For i As Integer = 0 To UBound(res)
-								If Trim(res(i)) <> "" Then Ctrl->OnDropFile(*Ctrl, res(i))
+								If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
+								If Trim(res(i)) <> "" Then
+									Ctrl->OnDropFile(*Ctrl, res(i))
+								End If
 							Next
-						End If
+						'End If
 					End If
 					gtk_drag_finish(context, True, False, Time)
 				Else
