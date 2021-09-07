@@ -42,24 +42,24 @@ Namespace My.Sys.Forms
 		AIntegralHeight(2)As Integer
 		Declare Sub GetChilds
 		Declare Sub UpdateListHeight
-		#ifdef __USE_GTK__
-			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
-		#else
-			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Function SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-		#endif
 	Protected:
 		FStyle            As Integer
 		FItemIndex        As Integer
+		FSelected         As Boolean
 		#ifndef __USE_GTK__
 			Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-		#endif
-		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
-	Public:
-		#ifdef __USE_GTK__
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Static Function SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		#else
+			Declare Static Sub ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
+			Declare Static Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Sub ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
+			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			DropDownWidget As GtkWidget Ptr
 			DropDownListWidget As GtkWidget Ptr
 		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+	Public:
 		Items             As WStringList
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean

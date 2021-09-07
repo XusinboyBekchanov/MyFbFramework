@@ -413,20 +413,20 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
-	#IfNDef __USE_GTK__
-		Sub ComboBoxEx.WndProc(BYREF Message As Message)
+	#ifndef __USE_GTK__
+		Sub ComboBoxEx.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'                Cast(ComboBoxEx Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
 			'            End If
 			'        End If
 		End Sub
-	#EndIf
+	#endif
 	
-	Sub ComboBoxEx.ProcessMessage(BYREF Message As Message)
-		#IfNDef __USE_GTK__
+	Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_COMMAND
 				'            Select Case Message.wParamHi
@@ -441,7 +441,7 @@ Namespace My.Sys.Forms
 				'               End If
 				'            End Select
 			End Select
-		#EndIf
+		#endif
 		Base.ProcessMessage(message)
 	End Sub
 	
@@ -450,11 +450,10 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor ComboBoxEx
-		
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING)
 			widget = gtk_combo_box_new_with_model(GTK_TREE_MODEL(ListStore))
-			g_signal_connect(widget, "changed", G_CALLBACK(@ComboBoxEdit_Changed), @This)
+			g_signal_connect(widget, "changed", G_CALLBACK(@ComboBoxEdit.ComboBoxEdit_Changed), @This)
 			Dim As GtkCellRenderer Ptr renderer
 			/' icon cell '/
 			renderer = gtk_cell_renderer_pixbuf_new()

@@ -553,19 +553,24 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
+		Sub ComboBoxEdit.ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
+			cbo->FSelected = False
 			If cbo->OnDropdown Then cbo->OnDropdown(*cbo)
 		End Sub
 		
-		Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
+		Function ComboBoxEdit.ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
 			Dim As ComboBoxEdit Ptr cbo = user_data
+			If cbo->FSelected = False Then
+				If cbo->OnSelectCanceled Then cbo->OnSelectCanceled(*cbo)
+			End If
 			If cbo->OnCloseUp Then cbo->OnCloseUp(*cbo)
 			Return False
 		End Function
 		
-		Sub ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
+		Sub ComboBoxEdit.ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
+			cbo->FSelected = True
 			If cbo->OnSelected Then cbo->OnSelected(*cbo, cbo->ItemIndex)
 			If cbo->OnChange Then cbo->OnChange(*cbo)
 		End Sub
@@ -586,7 +591,6 @@ Namespace My.Sys.Forms
 			g_signal_connect(widget, "changed", G_CALLBACK(@ComboBoxEdit_Changed), @This)
 			g_signal_connect(widget, "popup", G_CALLBACK(@ComboBoxEdit_Popup), @This)
 			g_signal_connect(widget, "popdown", G_CALLBACK(@ComboBoxEdit_Popdown), @This)
-			
 			Base.RegisterClass "ComboBoxEdit", @This
 		#else
 			ASortStyle(Abs_(True))   = CBS_SORT
