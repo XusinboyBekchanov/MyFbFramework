@@ -258,10 +258,22 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub ComboBoxEdit.AddItem(ByRef FItem As WString)
-		Items.Add(FItem)
+		Dim i As Integer
+		If FSort Then
+			For i = 0 To Items.Count - 1
+				If Items.Item(i) > FItem Then Exit For
+			Next
+			Items.Insert i, FItem
+		Else
+			Items.Add(FItem)
+		End If
 		#ifdef __USE_GTK__
 			If widget Then
-				gtk_combo_box_text_append_text(gtk_combo_box_text(widget), ToUtf8(FItem))
+				If FSort Then
+					gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), i, ToUtf8(FItem))
+				Else
+					gtk_combo_box_text_append_text(gtk_combo_box_text(widget), ToUtf8(FItem))
+				End If
 			End If
 		#else
 			If FHandle Then
@@ -272,10 +284,22 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub ComboBoxEdit.AddObject(ByRef ObjName As WString, Obj As Any Ptr)
-		Items.Add(ObjName, Obj)
+		Dim i As Integer
+		If FSort Then
+			For i = 0 To Items.Count - 1
+				If Items.Item(i) > ObjName Then Exit For
+			Next
+			Items.Insert i, ObjName, Obj
+		Else
+			Items.Add(ObjName, Obj)
+		End If
 		#ifdef __USE_GTK__
 			If widget Then
-				gtk_combo_box_text_append_text(gtk_combo_box_text(widget), ToUtf8(ObjName))
+				If FSort Then
+					gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), i, ToUtf8(ObjName))
+				Else
+					gtk_combo_box_text_append_text(gtk_combo_box_text(widget), ToUtf8(ObjName))
+				End If
 			End If
 		#else
 			If FHandle Then
@@ -300,6 +324,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub ComboBoxEdit.InsertItem(FIndex As Integer, ByRef FItem As WString)
+		If FSort Then
+			AddItem FItem
+			Exit Sub
+		End If
 		Items.Insert(FIndex, FItem)
 		#ifdef __USE_GTK__
 			gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), FIndex, ToUtf8(FItem))
@@ -312,6 +340,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub ComboBoxEdit.InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
+		If FSort Then
+			AddObject ObjName, Obj
+			Exit Sub
+		End If
 		Items.Insert(FIndex, ObjName, Obj)
 		#ifdef __USE_GTK__
 			gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), FIndex, ToUtf8(ObjName))

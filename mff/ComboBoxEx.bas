@@ -190,10 +190,18 @@ Namespace My.Sys.Forms
 	
 	Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
 		PItem = New_( ComboBoxItem)
-		If Index = -1 Then
-			FItems.Add PItem
+		Dim i As Integer
+		If Cast(ComboBoxEx Ptr, Parent)->Sort Then
+			For i = 0 To FItems.Count - 1
+				If Item(i)->Text > FText Then Exit For
+			Next
+			FItems.Insert i, PItem
 		Else
-			FItems.Insert Index, PItem
+			If Index = -1 Then
+				FItems.Add PItem
+			Else
+				FItems.Insert Index, PItem
+			End If
 		End If
 		With *PItem
 			.ImageIndex         = FImageIndex
@@ -204,11 +212,15 @@ Namespace My.Sys.Forms
 			.Object        		= Obj
 		End With
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, Index)
-			#else
-				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, IIf(Index = -1, FItems.Count, Index))
-			#endif
+			If Cast(ComboBoxEx Ptr, Parent)->Sort Then
+				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, i)
+			Else
+				#ifdef __USE_GTK3__
+					gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, Index)
+				#else
+					gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, IIf(Index = -1, FItems.Count, Index))
+				#endif
+			End If
 			gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FText), -1)
 			'gtk_widget_show_all(Parent->widget)
 		#else

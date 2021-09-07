@@ -9,7 +9,7 @@
 #include once "ImageList.bi"
 
 Namespace My.Sys.Forms
-	#define QComboBoxEx(__Ptr__) *Cast(ComboBoxEx Ptr,__Ptr__)
+	#define QComboBoxEx(__Ptr__) *Cast(ComboBoxEx Ptr, __Ptr__)
 	#define QComboBoxItem(__Ptr__) *Cast(ComboBoxItem Ptr,__Ptr__)
 	
 	'    Enum ComboBoxExStyle
