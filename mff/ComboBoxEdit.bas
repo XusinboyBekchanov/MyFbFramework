@@ -15,9 +15,13 @@
 Namespace My.Sys.Forms
 	Function ComboBoxEdit.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
-		Case "sort": Return @FSort
-		Case "tabindex": Return @FTabIndex
 		Case "dropdowncount": Return @FDropDownCount
+		Case "integralheight": Return @FIntegralHeight
+		Case "itemheight": Return @FItemHeight
+		Case "selcolor": Return @FSelCOlor
+		Case "sort": Return @FSort
+		Case "style": Return @FStyle
+		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -25,10 +29,14 @@ Namespace My.Sys.Forms
 	
 	Function ComboBoxEdit.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
-		Case "sort": This.Sort = QBoolean(Value)
-		Case "tabindex": TabIndex = QInteger(Value)
-		Case "dropdowncount": DropDownCount = QInteger(Value)
 		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.AddItem *FName: This.ItemIndex = 0
+		Case "dropdowncount": DropDownCount = QInteger(Value)
+		Case "integralheight": This.IntegralHeight = QBoolean(Value)
+		Case "itemheight": This.ItemHeight = QInteger(Value)
+		Case "selcolor": This.SelColor = QInteger(Value)
+		Case "sort": This.Sort = QBoolean(Value)
+		Case "style": This.Style = *Cast(ComboBoxEditStyle Ptr, Value)
+		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -101,10 +109,35 @@ Namespace My.Sys.Forms
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifdef __USE_GTK__
-				If FStyle <= 1 Then
-					widget = DropDownWidget
+				Dim As GtkWidget Ptr Ctrlwidget = IIf(FStyle <= 1, DropDownWidget, DropDownListWidget)
+				If Widget = Ctrlwidget Then Exit Property
+				If Ctrlwidget = DropDownWidget Then
+					Widget = DropDownWidget
+					gtk_widget_hide(DropDownListWidget)
+					If gtk_widget_get_parent(DropDownListWidget) = eventboxwidget Then
+						g_object_ref(DropDownListWidget)
+						gtk_container_remove(gtk_container(eventboxwidget), DropDownListWidget)
+					End If
+					gtk_container_add(gtk_container(eventboxwidget), widget)
+					If widget Then 
+						g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
+						g_object_set_data(G_OBJECT(gtk_bin_get_child(gtk_bin(DropDownWidget))), "@@@Control2", @This)
+					End If
+					Dim As GtkTreeIter Iter
+					If gtk_tree_model_get_iter_first(gtk_combo_box_get_model(gtk_combo_box(widget)), @Iter) = False Then
+						This.Clear
+						This.AddItem *FName: This.ItemIndex = 0
+					End If
+					gtk_widget_show(Widget)
 				Else
-					widget = DropDownListWidget
+					Widget = DropDownListWidget
+					gtk_widget_hide(DropDownWidget)
+					If gtk_widget_get_parent(DropDownWidget) = eventboxwidget Then
+						g_object_ref(DropDownWidget)
+						gtk_container_remove(gtk_container(eventboxwidget), DropDownWidget)
+					End If
+					gtk_container_add(gtk_container(eventboxwidget), widget)
+					gtk_widget_show(Widget)
 				End If
 			#else
 				Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(Abs_(FStyle)) Or ASortStyle(Abs_(FSort)) Or AIntegralHeight(Abs_(FIntegralHeight))
@@ -212,7 +245,9 @@ Namespace My.Sys.Forms
 	Property ComboBoxEdit.Sort(Value As Boolean)
 		If Value <> FSort Then
 			FSort = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				
+			#else
 				ChangeStyle CBS_SORT, Value
 				'Base.Style = WS_CHILD OR WS_VSCROLL OR CBS_HASSTRINGS OR CBS_AUTOHSCROLL OR AStyle(Abs_(FStyle)) OR ASortStyle(Abs_(FSort)) OR AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
@@ -619,6 +654,8 @@ Namespace My.Sys.Forms
 			DropDownWidget = gtk_combo_box_text_new_with_entry()
 			DropDownListWidget = gtk_combo_box_text_new()
 			widget = DropDownListWidget
+			eventboxwidget = gtk_event_box_new()
+			gtk_container_add(gtk_container(eventboxwidget), widget)
 			g_signal_connect(gtk_bin_get_child(gtk_bin(DropDownWidget)), "activate", G_CALLBACK(@Entry_Activate), @This)
 			g_signal_connect(widget, "changed", G_CALLBACK(@ComboBoxEdit_Changed), @This)
 			g_signal_connect(widget, "popup", G_CALLBACK(@ComboBoxEdit_Popup), @This)

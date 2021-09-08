@@ -475,6 +475,8 @@ Namespace My.Sys.Forms
 			renderer = gtk_cell_renderer_text_new()
 			gtk_cell_layout_pack_start( GTK_CELL_LAYOUT(widget), renderer, True)
 			gtk_cell_layout_set_attributes( GTK_CELL_LAYOUT(widget), renderer, ToUtf8("text"), 1, NULL)
+			eventboxwidget = gtk_event_box_new()
+			gtk_container_add(gtk_container(eventboxwidget), widget)
 			Base.Base.RegisterClass "ComboBoxEx", @This
 		#else
 			Dim As INITCOMMONCONTROLSEX icex
