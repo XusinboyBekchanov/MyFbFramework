@@ -357,7 +357,9 @@ Namespace My.Sys.Forms
 			Property Control.Hint(ByRef Value As WString)
 				WLet FHint, Value
 				#ifdef __USE_GTK__
-					If widget Then gtk_widget_set_tooltip_text(widget, ToUTF8(Value))
+					If FSHowHint Then
+						If widget Then gtk_widget_set_tooltip_text(widget, ToUTF8(Value))
+					End If
 				#else
 					If FHandle Then
 						If ToolTipHandle Then
@@ -505,7 +507,16 @@ Namespace My.Sys.Forms
 			
 			Property Control.ShowHint(Value As Boolean)
 				FShowHint = Value
-				#ifndef __USE_GTK__
+				#ifdef __USE_GTK__
+					If widget Then gtk_widget_set_has_tooltip(widget, Value)
+					If WGet(FHint) <> "" Then
+						If Value Then
+							gtk_widget_set_tooltip_text(widget, ToUTF8(*FHint))
+						Else
+							gtk_widget_set_tooltip_text(widget, "")
+						End If
+					End If
+				#else
 					If Handle Then
 						If ToolTipHandle Then SendMessage(ToolTipHandle,TTM_ACTIVATE,FShowHint,0)
 					End If
