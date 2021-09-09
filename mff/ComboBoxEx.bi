@@ -84,11 +84,6 @@ Namespace My.Sys.Forms
 	
 	Type ComboBoxEx Extends ComboBoxEdit
 	Private:
-		'FItemIndex        As Integer
-		FItemHeight       As Integer
-		FIntegralHeight   As Boolean
-		FDropDownCount    As Integer
-		Declare Sub UpdateListHeight
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
@@ -104,14 +99,10 @@ Namespace My.Sys.Forms
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		'            Declare Property ItemIndex As Integer
 		'            Declare Property ItemIndex(Value As Integer)
-		Declare Property Text ByRef As WString
-		Declare Property Text(ByRef Value As WString)
 		Declare Property IntegralHeight As Boolean
 		Declare Property IntegralHeight(Value As Boolean)
-		Declare Property ItemHeight As Integer
-		Declare Property ItemHeight(Value As Integer)
-		Declare Property DropDownCount As Integer
-		Declare Property DropDownCount(Value As Integer)
+		Declare Property Text ByRef As WString
+		Declare Property Text(ByRef Value As WString)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

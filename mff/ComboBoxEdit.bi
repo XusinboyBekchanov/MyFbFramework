@@ -29,8 +29,6 @@ Namespace My.Sys.Forms
 		FSort             As Boolean
 		FItemText         As WString Ptr
 		FItemHeight       As Integer
-		FDropDownCount    As Integer
-		FIntegralHeight   As Boolean
 		#ifndef __USE_GTK__
 			FListHandle     As HWND
 			FEditHandle     As HWND
@@ -41,11 +39,13 @@ Namespace My.Sys.Forms
 		ASortStyle(2)     As Integer
 		AIntegralHeight(2)As Integer
 		Declare Sub GetChilds
-		Declare Sub UpdateListHeight
 	Protected:
+		FDropDownCount    As Integer
 		FStyle            As Integer
+		FIntegralHeight   As Boolean
 		FItemIndex        As Integer
 		FSelected         As Boolean
+		Declare Sub UpdateListHeight
 		#ifndef __USE_GTK__
 			Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
@@ -124,9 +124,9 @@ Namespace My.Sys.Forms
 		Declare Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
 		
 		Declare Sub ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
-	#EndIf
-End namespace
+	#endif
+End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ComboBoxEdit.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ComboBoxEdit.bas"
+#endif

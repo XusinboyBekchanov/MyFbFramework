@@ -309,6 +309,8 @@ Namespace My.Sys.Forms
 	
 	Function ComboBoxEx.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "imageslist": Return ImagesList
+		Case "integralheight": Return @FIntegralHeight
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -317,18 +319,12 @@ Namespace My.Sys.Forms
 	Function ComboBoxEx.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.Items.Add *FName: This.ItemIndex = 0
+		Case "imageslist": ImagesList = Value
+		Case "integralheight": IntegralHeight = QBoolean(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
 	End Function
-	
-	Sub ComboBoxEx.UpdateListHeight
-		'If Style <> cbSimple Then
-		#ifndef __USE_GTK__
-			MoveWindow Handle, FLeft, FTop, FWidth, FHeight + (ItemHeight * Items.Count), 1
-		#endif
-		'End If
-	End Sub
 	
 	'    Property ComboBoxEx.ItemIndex As Integer
 	'        Return FItemIndex
@@ -361,14 +357,6 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxEx.DropDownCount As Integer
-		Return FDropDownCount
-	End Property
-	
-	Property ComboBoxEx.DropDownCount(Value As Integer)
-		FDropDownCount = Value
-	End Property
-	
 	Property ComboBoxEx.IntegralHeight As Boolean
 		Return FIntegralHeight
 	End Property
@@ -380,28 +368,13 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxEx.ItemHeight As Integer
-		Return FItemHeight
-	End Property
-	
-	Property ComboBoxEx.ItemHeight(Value As Integer)
-		FItemHeight = Value
-		#ifndef __USE_GTK__
-			If Handle Then
-				'If Style <> cbOwnerDrawVariable  Then
-				'    Perform(CB_SETITEMHEIGHT, 0, FItemHeight)
-				'End If
-			End If
-		#endif
-	End Property
-	
 	#ifndef __USE_GTK__
 		Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEx(Sender.Child)
-					'If .Style <> cbOwnerDrawVariable Then
-					.Perform(CB_SETITEMHEIGHT, 0, .ItemHeight)
-					'End If-
+					If .Style <> cbOwnerDrawVariable AndAlso .ItemHeight <> 0 Then
+						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.ItemHeight))
+					End If
 					.UpdateListHeight
 					If .ImagesList Then
 						.ImagesList->ParentWindow = @Sender
