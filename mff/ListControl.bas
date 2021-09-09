@@ -374,38 +374,41 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Sub ListControl.AddItem(ByRef FItem As WString)
-		Items.Add(FItem)
+		Dim i As Integer
+		If FSort Then
+			For i = 0 To Items.Count - 1
+				If Items.Item(i) > FItem Then Exit For
+			Next
+			Items.Insert i, FItem
+		Else
+			Items.Add(FItem)
+		End If
 		#ifdef __USE_GTK__
 			If Widget Then
-				#ifdef __USE_GTK3__
-					Dim As GtkWidget Ptr lbl
-					lbl = gtk_label_new(ToUtf8(FItem))
-					gtk_label_set_xalign (GTK_LABEL (lbl), 0.0)
-					gtk_container_add(GTK_CONTAINER(Widget), lbl)
-					gtk_widget_show(lbl)
-				#else
-					Dim As GtkWidget Ptr item1 = gtk_list_item_new_with_label(ToUtf8(FItem))
-					'g_signal_connect(GTK_OBJECT(item1), "select", GTK_SIGNAL_FUNC (@ListItem_Selected), Items.Count - 1)
-					gtk_container_add(GTK_CONTAINER(Widget), item1)
-				#endif
+				If FSort Then
+					#ifdef __USE_GTK3__
+						gtk_list_box_insert(gtk_list_box(widget), gtk_label_new(ToUtf8(FItem)), i)
+					#else
+						Dim As GList Ptr list = NULL
+						list = g_list_prepend(list, gtk_list_item_new_with_label(ToUtf8(FItem)))
+						gtk_list_insert_items(gtk_list(widget), list, i)
+					#endif
+				Else
+					#ifdef __USE_GTK3__
+						Dim As GtkWidget Ptr lbl
+						lbl = gtk_label_new(ToUtf8(FItem))
+						gtk_label_set_xalign (GTK_LABEL (lbl), 0.0)
+						gtk_container_add(GTK_CONTAINER(Widget), lbl)
+						gtk_widget_show(lbl)
+					#else
+						Dim As GtkWidget Ptr item1 = gtk_list_item_new_with_label(ToUtf8(FItem))
+						'g_signal_connect(GTK_OBJECT(item1), "select", GTK_SIGNAL_FUNC (@ListItem_Selected), Items.Count - 1)
+						gtk_container_add(GTK_CONTAINER(Widget), item1)
+					#endif
+				End If
 			End If
 		#else
 			If Handle Then Perform(LB_ADDSTRING, 0, CInt(@FItem))
-		#endif
-	End Sub
-	
-	Sub ListControl.AddObject(ByRef ObjName As WString, Obj As Any Ptr)
-		Items.Add(ObjName, Obj)
-		#ifdef __USE_GTK__
-			If Widget Then
-				#ifdef __USE_GTK3__
-					gtk_container_add(GTK_CONTAINER(Widget), gtk_label_new(ToUtf8(ObjName)))
-				#else
-					gtk_container_add(GTK_CONTAINER(Widget), gtk_list_item_new_with_label(ToUtf8(ObjName)))
-				#endif
-			End If
-		#else
-			If FHandle Then Perform(LB_ADDSTRING, 0, CInt(@ObjName))
 		#endif
 	End Sub
 	
@@ -441,6 +444,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString)
+		If FSort Then
+			AddItem FItem
+			Exit Sub
+		End If
 		Items.Insert(FIndex, FItem)
 		#ifdef __USE_GTK__
 			If Widget Then
@@ -454,23 +461,6 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
-		#endif
-	End Sub
-	
-	Sub ListControl.InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
-		Items.Insert(FIndex, ObjName, Obj)
-		#ifdef __USE_GTK__
-			If Widget Then
-				#ifdef __USE_GTK3__
-					gtk_list_box_insert(gtk_list_box(widget), gtk_label_new(ToUtf8(ObjName)), FIndex)
-				#else
-					Dim As GList Ptr list = NULL
-					list = g_list_prepend(list, gtk_list_item_new_with_label(ToUtf8(ObjName)))
-					gtk_list_insert_items(gtk_list(widget), list, FIndex)
-				#endif
-			End If
-		#else
-			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@ObjName))
 		#endif
 	End Sub
 	
@@ -501,7 +491,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Function ListControl.IndexOfObject(Obj As Any Ptr) As Integer
+	Function ListControl.IndexOfData(Obj As Any Ptr) As Integer
 		Return Items.IndexOfObject(Obj)
 	End Function
 	
