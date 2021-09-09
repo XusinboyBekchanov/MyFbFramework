@@ -676,6 +676,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
 				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+				gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
 				#ifdef __USE_GTK3__
 					widget = gtk_list_box_new()
 					gtk_container_add(gtk_container(scrolledwidget), widget)
