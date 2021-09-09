@@ -85,19 +85,17 @@ Namespace My.Sys.Forms
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property Sort As Boolean
 		Declare Property Sort(Value As Boolean)
-		Declare Property Object(FIndex As Integer) As Any Ptr
-		Declare Property Object(FIndex As Integer, Obj As Any Ptr)
+		Declare Property ItemData(FIndex As Integer) As Any Ptr
+		Declare Property ItemData(FIndex As Integer, Value As Any Ptr)
 		Declare Property Item(FIndex As Integer) ByRef As WString
 		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
 		Declare Operator Cast As Control Ptr
 		Declare Sub AddItem(ByRef FItem As WString)
-		Declare Sub AddObject(ByRef ObjName As WString, Obj As Any Ptr)
 		Declare Sub RemoveItem(FIndex As Integer)
 		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
-		Declare Sub InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
 		Declare Function IndexOf(ByRef Item As WString) As Integer
 		Declare Function Contains(ByRef Item As WString) As Boolean
-		Declare Function IndexOfObject(Obj As Any Ptr) As Integer
+		Declare Function IndexOfData(pData As Any Ptr) As Integer
 		Declare Sub Clear
 		Declare Sub ShowDropDown(Value As Boolean)
 		Declare Sub SaveToFile(ByRef File As WString)

@@ -254,12 +254,12 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ComboBoxEdit.Object(FIndex As Integer) As Any Ptr
+	Property ComboBoxEdit.ItemData(FIndex As Integer) As Any Ptr
 		Return Items.Object(FIndex)
 	End Property
 	
-	Property ComboBoxEdit.Object(FIndex As Integer, Obj As Any Ptr)
-		Items.Object(FIndex) = Obj
+	Property ComboBoxEdit.ItemData(FIndex As Integer, Value As Any Ptr)
+		Items.Object(FIndex) = Value
 	End Property
 	
 	Property ComboBoxEdit.Item(FIndex As Integer) ByRef As WString
@@ -318,32 +318,6 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ComboBoxEdit.AddObject(ByRef ObjName As WString, Obj As Any Ptr)
-		Dim i As Integer
-		If FSort Then
-			For i = 0 To Items.Count - 1
-				If Items.Item(i) > ObjName Then Exit For
-			Next
-			Items.Insert i, ObjName, Obj
-		Else
-			Items.Add(ObjName, Obj)
-		End If
-		#ifdef __USE_GTK__
-			If widget Then
-				If FSort Then
-					gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), i, ToUtf8(ObjName))
-				Else
-					gtk_combo_box_text_append_text(gtk_combo_box_text(widget), ToUtf8(ObjName))
-				End If
-			End If
-		#else
-			If FHandle Then
-				Perform(CB_ADDSTRING, 0, CInt(@ObjName))
-				UpdateListHeight
-			End If
-		#endif
-	End Sub
-	
 	Sub ComboBoxEdit.RemoveItem(FIndex As Integer)
 		Items.Remove(FIndex)
 		#ifdef __USE_GTK__
@@ -374,22 +348,6 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ComboBoxEdit.InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
-		If FSort Then
-			AddObject ObjName, Obj
-			Exit Sub
-		End If
-		Items.Insert(FIndex, ObjName, Obj)
-		#ifdef __USE_GTK__
-			gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), FIndex, ToUtf8(ObjName))
-		#else
-			If FHandle Then
-				Perform(CB_INSERTSTRING, FIndex, CInt(@ObjName))
-				UpdateListHeight
-			End If
-		#endif
-	End Sub
-	
 	Function ComboBoxEdit.IndexOf(ByRef FItem As WString) As Integer
 		Return Items.IndexOf(FItem) ' Perform(CB_FINDSTRING, -1, CInt(@FItem))
 	End Function
@@ -398,8 +356,8 @@ Namespace My.Sys.Forms
 		Return IndexOf(FItem) <> -1
 	End Function
 	
-	Function ComboBoxEdit.IndexOfObject(Obj As Any Ptr) As Integer
-		Return Items.IndexOfObject(Obj)
+	Function ComboBoxEdit.IndexOfData(pData As Any Ptr) As Integer
+		Return Items.IndexOfObject(pData)
 	End Function
 	
 	#ifndef __USE_GTK__
