@@ -16,8 +16,16 @@
 Namespace My.Sys.Forms
 	Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "borderstyle": Return @FBorderStyle
+		Case "columns": Return @FColumns
+		Case "ctl3d": Return @FCtl3D
+		Case "extendselect": Return @FExtendSelect
+		Case "integralheight": Return @FIntegralHeight
 		Case "multiselect": Return @FMultiSelect
+		Case "sort": Return @FSort
+		Case "style": Return @FStyle
 		Case "tabindex": Return @FTabIndex
+		Case "topindex": Return @FTopIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -25,8 +33,16 @@ Namespace My.Sys.Forms
 	
 	Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "borderstyle": BorderStyle = QInteger(Value)
+		Case "columns": Columns = QInteger(Value)
+		Case "ctl3d": Ctl3D = QBoolean(Value)
+		Case "extendselect": ExtendSelect = QBoolean(Value)
+		Case "integralheight": IntegralHeight = QBoolean(Value)
 		Case "multiselect": MultiSelect = QBoolean(Value)
+		Case "sort": Sort = QBoolean(Value)
+		Case "style": Style = *Cast(ListControlStyle Ptr, Value)
 		Case "tabindex": TabIndex = QInteger(Value)
+		Case "topindex": TopIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -331,11 +347,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListControl.Object(FIndex As Integer) As Any Ptr
+	Property ListControl.ItemData(FIndex As Integer) As Any Ptr
 		Return Items.Object(FIndex)
 	End Property
 	
-	Property ListControl.Object(FIndex As Integer, Obj As Any Ptr)
+	Property ListControl.ItemData(FIndex As Integer, Obj As Any Ptr)
 		Items.Object(FIndex) = Obj
 	End Property
 	

@@ -97,8 +97,8 @@ Namespace My.Sys.Forms
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property Columns As Integer
 		Declare Property Columns(Value As Integer)
-		Declare Property Object(FIndex As Integer) As Any Ptr
-		Declare Property Object(FIndex As Integer, Obj As Any Ptr)
+		Declare Property ItemData(FIndex As Integer) As Any Ptr
+		Declare Property ItemData(FIndex As Integer, Obj As Any Ptr)
 		Declare Property Item(FIndex As Integer) ByRef As WString
 		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
 		Declare Property Text ByRef As WString
