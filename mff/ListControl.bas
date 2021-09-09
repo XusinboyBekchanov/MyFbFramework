@@ -21,7 +21,11 @@ Namespace My.Sys.Forms
 		Case "ctl3d": Return @FCtl3D
 		Case "extendselect": Return @FExtendSelect
 		Case "integralheight": Return @FIntegralHeight
+		'Case "itemcount": Return @FItemCount
+		Case "itemheight": Return @FItemHeight
+		Case "itemindex": Return @FItemIndex
 		Case "multiselect": Return @FMultiSelect
+		Case "selcount": Return @FSelCount
 		Case "sort": Return @FSort
 		Case "style": Return @FStyle
 		Case "tabindex": Return @FTabIndex
@@ -38,6 +42,7 @@ Namespace My.Sys.Forms
 		Case "ctl3d": Ctl3D = QBoolean(Value)
 		Case "extendselect": ExtendSelect = QBoolean(Value)
 		Case "integralheight": IntegralHeight = QBoolean(Value)
+		Case "itemheight": ItemHeight = QInteger(Value)
 		Case "multiselect": MultiSelect = QBoolean(Value)
 		Case "sort": Sort = QBoolean(Value)
 		Case "style": Style = *Cast(ListControlStyle Ptr, Value)
@@ -301,6 +306,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.SelCount As Integer
+		
 		Return FSelCount
 	End Property
 	
@@ -389,15 +395,15 @@ Namespace My.Sys.Forms
 		#endif
 	#endif
 	
-	Sub ListControl.AddItem(ByRef FItem As WString)
+	Sub ListControl.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Dim i As Integer
 		If FSort Then
 			For i = 0 To Items.Count - 1
 				If Items.Item(i) > FItem Then Exit For
 			Next
-			Items.Insert i, FItem
+			Items.Insert i, FItem, Obj
 		Else
-			Items.Add(FItem)
+			Items.Add(FItem, Obj)
 		End If
 		#ifdef __USE_GTK__
 			If Widget Then
@@ -459,12 +465,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString)
+	Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
 		If FSort Then
-			AddItem FItem
+			AddItem FItem, Obj
 			Exit Sub
 		End If
-		Items.Insert(FIndex, FItem)
+		Items.Insert(FIndex, FItem, Obj)
 		#ifdef __USE_GTK__
 			If Widget Then
 				#ifdef __USE_GTK3__
