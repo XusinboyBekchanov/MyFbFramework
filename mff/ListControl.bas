@@ -16,8 +16,20 @@
 Namespace My.Sys.Forms
 	Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "borderstyle": Return @FBorderStyle
+		Case "columns": Return @FColumns
+		Case "ctl3d": Return @FCtl3D
+		Case "extendselect": Return @FExtendSelect
+		Case "integralheight": Return @FIntegralHeight
+		'Case "itemcount": Return @FItemCount
+		Case "itemheight": Return @FItemHeight
+		Case "itemindex": Return @FItemIndex
 		Case "multiselect": Return @FMultiSelect
+		Case "selcount": Return @FSelCount
+		Case "sort": Return @FSort
+		Case "style": Return @FStyle
 		Case "tabindex": Return @FTabIndex
+		Case "topindex": Return @FTopIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -25,8 +37,17 @@ Namespace My.Sys.Forms
 	
 	Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "borderstyle": BorderStyle = QInteger(Value)
+		Case "columns": Columns = QInteger(Value)
+		Case "ctl3d": Ctl3D = QBoolean(Value)
+		Case "extendselect": ExtendSelect = QBoolean(Value)
+		Case "integralheight": IntegralHeight = QBoolean(Value)
+		Case "itemheight": ItemHeight = QInteger(Value)
 		Case "multiselect": MultiSelect = QBoolean(Value)
+		Case "sort": Sort = QBoolean(Value)
+		Case "style": Style = *Cast(ListControlStyle Ptr, Value)
 		Case "tabindex": TabIndex = QInteger(Value)
+		Case "topindex": TopIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -361,11 +382,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListControl.Object(FIndex As Integer) As Any Ptr
+	Property ListControl.ItemData(FIndex As Integer) As Any Ptr
 		Return Items.Object(FIndex)
 	End Property
 	
-	Property ListControl.Object(FIndex As Integer, Obj As Any Ptr)
+	Property ListControl.ItemData(FIndex As Integer, Obj As Any Ptr)
 		Items.Object(FIndex) = Obj
 	End Property
 	
@@ -403,39 +424,42 @@ Namespace My.Sys.Forms
 		#endif
 	#endif
 	
-	Sub ListControl.AddItem(ByRef FItem As WString)
-		Items.Add(FItem)
+	Sub ListControl.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
+		Dim i As Integer
+		If FSort Then
+			For i = 0 To Items.Count - 1
+				If Items.Item(i) > FItem Then Exit For
+			Next
+			Items.Insert i, FItem, Obj
+		Else
+			Items.Add(FItem, Obj)
+		End If
 		#ifdef __USE_GTK__
 			If Widget Then
-				#ifdef __USE_GTK3__
-					Dim As GtkWidget Ptr lbl
-					lbl = gtk_label_new(ToUtf8(FItem))
-					gtk_label_set_xalign (GTK_LABEL (lbl), 0.0)
-					gtk_container_add(GTK_CONTAINER(Widget), lbl)
-					gtk_widget_show(lbl)
-				#else
-					Dim As GtkWidget Ptr item1 = gtk_list_item_new_with_label(ToUtf8(FItem))
-					'g_signal_connect(GTK_OBJECT(item1), "select", GTK_SIGNAL_FUNC (@ListItem_Selected), Items.Count - 1)
-					gtk_container_add(GTK_CONTAINER(Widget), item1)
-				#endif
+				If FSort Then
+					#ifdef __USE_GTK3__
+						gtk_list_box_insert(gtk_list_box(widget), gtk_label_new(ToUtf8(FItem)), i)
+					#else
+						Dim As GList Ptr list = NULL
+						list = g_list_prepend(list, gtk_list_item_new_with_label(ToUtf8(FItem)))
+						gtk_list_insert_items(gtk_list(widget), list, i)
+					#endif
+				Else
+					#ifdef __USE_GTK3__
+						Dim As GtkWidget Ptr lbl
+						lbl = gtk_label_new(ToUtf8(FItem))
+						gtk_label_set_xalign (GTK_LABEL (lbl), 0.0)
+						gtk_container_add(GTK_CONTAINER(Widget), lbl)
+						gtk_widget_show(lbl)
+					#else
+						Dim As GtkWidget Ptr item1 = gtk_list_item_new_with_label(ToUtf8(FItem))
+						'g_signal_connect(GTK_OBJECT(item1), "select", GTK_SIGNAL_FUNC (@ListItem_Selected), Items.Count - 1)
+						gtk_container_add(GTK_CONTAINER(Widget), item1)
+					#endif
+				End If
 			End If
 		#else
 			If Handle Then Perform(LB_ADDSTRING, 0, CInt(@FItem))
-		#endif
-	End Sub
-	
-	Sub ListControl.AddObject(ByRef ObjName As WString, Obj As Any Ptr)
-		Items.Add(ObjName, Obj)
-		#ifdef __USE_GTK__
-			If Widget Then
-				#ifdef __USE_GTK3__
-					gtk_container_add(GTK_CONTAINER(Widget), gtk_label_new(ToUtf8(ObjName)))
-				#else
-					gtk_container_add(GTK_CONTAINER(Widget), gtk_list_item_new_with_label(ToUtf8(ObjName)))
-				#endif
-			End If
-		#else
-			If FHandle Then Perform(LB_ADDSTRING, 0, CInt(@ObjName))
 		#endif
 	End Sub
 	
@@ -470,8 +494,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString)
-		Items.Insert(FIndex, FItem)
+	Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
+		If FSort Then
+			AddItem FItem, Obj
+			Exit Sub
+		End If
+		Items.Insert(FIndex, FItem, Obj)
 		#ifdef __USE_GTK__
 			If Widget Then
 				#ifdef __USE_GTK3__
@@ -484,23 +512,6 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
-		#endif
-	End Sub
-	
-	Sub ListControl.InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
-		Items.Insert(FIndex, ObjName, Obj)
-		#ifdef __USE_GTK__
-			If Widget Then
-				#ifdef __USE_GTK3__
-					gtk_list_box_insert(gtk_list_box(widget), gtk_label_new(ToUtf8(ObjName)), FIndex)
-				#else
-					Dim As GList Ptr list = NULL
-					list = g_list_prepend(list, gtk_list_item_new_with_label(ToUtf8(ObjName)))
-					gtk_list_insert_items(gtk_list(widget), list, FIndex)
-				#endif
-			End If
-		#else
-			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@ObjName))
 		#endif
 	End Sub
 	
@@ -531,7 +542,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Function ListControl.IndexOfObject(Obj As Any Ptr) As Integer
+	Function ListControl.IndexOfData(Obj As Any Ptr) As Integer
 		Return Items.IndexOfObject(Obj)
 	End Function
 	
@@ -706,6 +717,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
 				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+				gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
 				#ifdef __USE_GTK3__
 					widget = gtk_list_box_new()
 					gtk_container_add(gtk_container(scrolledwidget), widget)

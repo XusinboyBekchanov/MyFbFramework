@@ -97,20 +97,18 @@ Namespace My.Sys.Forms
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property Columns As Integer
 		Declare Property Columns(Value As Integer)
-		Declare Property Object(FIndex As Integer) As Any Ptr
-		Declare Property Object(FIndex As Integer, Obj As Any Ptr)
+		Declare Property ItemData(FIndex As Integer) As Any Ptr
+		Declare Property ItemData(FIndex As Integer, Obj As Any Ptr)
 		Declare Property Item(FIndex As Integer) ByRef As WString
 		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Operator Cast As Control Ptr
-		Declare Sub AddItem(ByRef FItem As WString)
-		Declare Sub AddObject(ByRef ObjName As WString, Obj As Any Ptr)
+		Declare Sub AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Sub RemoveItem(FIndex As Integer)
-		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
-		Declare Sub InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
+		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Function IndexOf(ByRef Item As WString) As Integer
-		Declare Function IndexOfObject(Obj As Any Ptr) As Integer
+		Declare Function IndexOfData(Obj As Any Ptr) As Integer
 		Declare Sub SelectAll
 		Declare Sub UnSelectAll
 		Declare Sub Clear
