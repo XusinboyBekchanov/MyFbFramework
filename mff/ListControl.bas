@@ -285,6 +285,17 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.SelCount As Integer
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
+'				Dim As GList Ptr lst = gtk_list_box_get_selected_rows(gtk_list_box(widget))
+'				FSelCount = g_list_length(lst)
+'				g_list_free(lst)
+			#else
+				
+			#endif
+		#else
+			FSelCount = Perform(LB_GETSELCOUNT, 0, 0)
+		#endif
 		Return FSelCount
 	End Property
 	
@@ -293,6 +304,25 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.SelItems As Integer Ptr
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
+'				Dim As GList Ptr lst = gtk_list_box_get_selected_rows(gtk_list_box(widget))
+'				FSelCount = g_list_length(lst)
+'				Dim As Integer AItems(FSelCount), i = 0
+'				While (lst)
+'					AItems(i) = *Cast(Integer Ptr, lst->Data)
+'					lst = lst->Next
+'					i += 1
+'				Wend
+'				SelItems = @AItems(0)
+'				g_list_free(lst)
+			#endif
+		#else
+			FSelCount = Perform(LB_GETSELCOUNT, 0, 0)
+			Dim As Integer AItems(FSelCount)
+			Perform(LB_GETSELITEMS, FSelCount, CInt(@AItems(0)))
+			SelItems = @AItems(0)
+		#endif
 		Return FSelItems
 	End Property
 	
@@ -575,7 +605,7 @@ Namespace My.Sys.Forms
 						FSelCount = Perform(LB_GETSELCOUNT,0,0)
 						If FSelCount Then
 							Dim As Integer AItems(FSelCount)
-							Perform(LB_GETSELITEMS,FSelCount,CInt(@AItems(0)))
+							Perform(LB_GETSELITEMS, FSelCount, CInt(@AItems(0)))
 							SelItems = @AItems(0)
 						End If
 					End If
