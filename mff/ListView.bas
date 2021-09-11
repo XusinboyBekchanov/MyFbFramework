@@ -531,7 +531,11 @@ Namespace My.Sys.Forms
 		End With
 		#ifdef __USE_GTK__
 			Cast(ListView Ptr, Parent)->Init
-			gtk_list_store_append (Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter)
+			If Index = -1 Then
+				gtk_list_store_append(Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter)
+			Else
+				gtk_list_store_insert(Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter, Index)
+			End If
 			gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
 		#else
 			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM

@@ -51,7 +51,9 @@ Namespace My.Sys.Forms
 	Property CheckedListBox.MultiSelect(Value As Boolean)
 		If Value <> FMultiselect Then
 			FMultiselect = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), IIf(value, GTK_SELECTION_MULTIPLE, GTK_SELECTION_SINGLE))
+			#else
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
 				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FColumns)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
@@ -65,7 +67,11 @@ Namespace My.Sys.Forms
 	Property CheckedListBox.ExtendSelect(Value As Boolean)
 		If Value <> FExtendSelect Then
 			FExtendSelect = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				#ifndef __USE_GTK3__
+					gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), IIf(value, GTK_SELECTION_EXTENDED, GTK_SELECTION_MULTIPLE))
+				#endif
+			#else
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
 				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FColumns)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
@@ -107,10 +113,10 @@ Namespace My.Sys.Forms
 	Property CheckedListBox.Ctl3D(Value As Boolean)
 		If Value <> FCtl3D Then
 			FCtl3D = Value
-			#IfNDef __USE_GTK__
+			#ifndef __USE_GTK__
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
-			#EndIf
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#endif
 		End If
 	End Property
 	
@@ -121,19 +127,21 @@ Namespace My.Sys.Forms
 	Property CheckedListBox.BorderStyle(Value As Integer)
 		If Value <> FBorderStyle Then
 			FBorderStyle = Value
-			#IfNDef __USE_GTK__
+			#ifdef __USE_GTK__
+				gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), IIf(Value, GTK_SHADOW_OUT, GTK_SHADOW_NONE))
+			#else
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD OR WS_HSCROLL OR WS_VSCROLL OR LBS_HASSTRINGS OR LBS_NOTIFY OR AStyle(Abs_(FStyle)) OR ABorderStyle(Abs_(FBorderStyle)) OR ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
-			#EndIf
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) OR AMultiselect(Abs_(FMultiselect)) OR AExtendSelect(Abs_(FExtendSelect)) OR AMultiColumns(Abs_(FColumns)) OR AIntegralHeight(Abs_(FIntegralHeight))
+			#endif
 		End If
 	End Property
 	
 	Property CheckedListBox.ItemCount As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
-				Return Perform(LB_GETCOUNT,0,0)
+				Return Perform(LB_GETCOUNT, 0, 0)
 			End If
-		#EndIf
+		#endif
 		Return Items.Count
 	End Property
 	
@@ -146,9 +154,9 @@ Namespace My.Sys.Forms
 	
 	Property CheckedListBox.ItemHeight(Value As Integer)
 		FItemHeight = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(LB_SETITEMHEIGHT,0,MakeLParam(FItemHeight,0))
-		#EndIf
+		#endif
 	End Property
 	
 	Property CheckedListBox.TopIndex As Integer
@@ -157,18 +165,43 @@ Namespace My.Sys.Forms
 	
 	Property CheckedListBox.TopIndex(Value As Integer)
 		FTopIndex = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then Perform(LB_SETTOPINDEX,FTopIndex,0)
-		#EndIf
+		#endif
 	End Property
 	
 	Property CheckedListBox.ItemIndex As Integer
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
+				Dim As Integer i
+        		Dim As GtkTreePath Ptr path
+        		path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
+        		FItemIndex = gtk_tree_path_get_indices(path)[0]
+        		gtk_tree_path_free(path)
+			End If
+		#else
+			If Handle Then
+				FItemIndex = Perform(LB_GETCURSEL, 0, 0)
+			End If
+		#endif
 		Return FItemIndex
 	End Property
 	
 	Property CheckedListBox.ItemIndex(Value As Integer)
 		FItemIndex = Value
-		#IfNDef __USE_GTK__
+		#ifdef __USE_GTK__
+			If ListStore Then
+				If Value = -1 Then
+					gtk_tree_selection_unselect_all(gtk_tree_view_get_selection(gtk_tree_view(widget)))
+				ElseIf Value > -1 AndAlso Value < Items.Count Then
+					Dim As GtkTreeIter iter
+					gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Value)))
+					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(widget)), @iter)
+					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
+				End If
+			End If
+		#else
 			If Handle Then
 				If MultiSelect Then
 					Perform(LB_SETCARETINDEX, FItemIndex, 0)
@@ -176,7 +209,7 @@ Namespace My.Sys.Forms
 					Perform(LB_SETCURSEL,FItemIndex,0)
 				End If
 			End If
-		#EndIf
+		#endif
 	End Property
 	
 	Property CheckedListBox.SelCount As Integer
@@ -196,12 +229,17 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property CheckedListBox.Text ByRef As WString
+		If Handle Then
+			FText = Items.Item(ItemIndex)
+		End If
 		Return *FText.vptr
 	End Property
 	
 	Property CheckedListBox.Text(ByRef Value As WString)
 		FText = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			ItemIndex = Items.IndexOf(Value)
+		#else
 			If FHandle Then Perform(LB_SELECTSTRING, -1, CInt(FText.vptr))
 		#endif
 	End Property
@@ -219,18 +257,18 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property CheckedListBox.Object(FIndex As Integer) As Any Ptr
+	Property CheckedListBox.ItemData(FIndex As Integer) As Any Ptr
 		Return Items.Object(FIndex)
 	End Property
 	
-	Property CheckedListBox.Object(FIndex As Integer, Obj As Any Ptr)
+	Property CheckedListBox.ItemData(FIndex As Integer, Obj As Any Ptr)
 		Items.Object(FIndex) = Obj
 	End Property
 	
 	Property CheckedListBox.Item(FIndex As Integer) ByRef As WString
 		Dim As Integer L
 		Dim As WString Ptr s
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If FHandle Then
 				L = Perform(LB_GETTEXTLEN, FIndex, 0)
 				s = CAllocate_((L + 1) * SizeOf(WString))
@@ -242,66 +280,116 @@ Namespace My.Sys.Forms
 				*s = Items.Item(FIndex)
 				Return *s
 			End If
-		#Else
+		#else
 			s = CAllocate_((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
 			*s = Items.Item(FIndex)
 			Return *s
-		#EndIf
+		#endif
 	End Property
 	
 	Property CheckedListBox.Item(FIndex As Integer, ByRef FItem As WString)
 		Items.Item(FIndex) = FItem
 	End Property
 	
-	Sub CheckedListBox.AddItem(ByRef FItem As WString)
-		Items.Add(FItem)
-		#IfNDef __USE_GTK__
+	Sub CheckedListBox.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
+		Dim i As Integer
+		If FSort Then
+			For i = 0 To Items.Count - 1
+				If Items.Item(i) > FItem Then Exit For
+			Next
+			Items.Insert i, FItem, Obj
+		Else
+			Items.Add(FItem, Obj)
+		End If
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			gtk_list_store_append (ListStore, @iter)
+			gtk_list_store_set(ListStore, @iter, 1, ToUtf8(FItem), -1)
+		#else
 			If Handle Then Perform(LB_ADDSTRING, 0, CInt(FItem))
-		#EndIf
-	End Sub
-	
-	Sub CheckedListBox.AddObject(ByRef ObjName As WString, Obj As Any Ptr)
-		Items.Add(ObjName, Obj)
-		#IfNDef __USE_GTK__
-			If FHandle Then Perform(LB_ADDSTRING, 0, CInt(@ObjName))
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub CheckedListBox.RemoveItem(FIndex As Integer)
 		Items.Remove(FIndex)
-		#IfNDef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(FIndex)))
+			gtk_list_store_remove(ListStore, @iter)
+		#else
 			If Handle Then Perform(LB_DELETESTRING, FIndex, 0)
-		#EndIf
+		#endif
 	End Sub
 	
-	Sub CheckedListBox.InsertItem(FIndex As Integer, ByRef FItem As WString)
-		Items.Insert(FIndex, FItem)
-		#IfNDef __USE_GTK__
+	Sub CheckedListBox.InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
+		Items.Insert(FIndex, FItem, Obj)
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			gtk_list_store_insert(ListStore, @Iter, FIndex)
+			gtk_list_store_set (ListStore, @Iter, 1, ToUtf8(FItem), -1)
+		#else
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
-		#EndIf
-	End Sub
-	
-	Sub CheckedListBox.InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
-		Items.Insert(FIndex, ObjName, Obj)
-		#IfNDef __USE_GTK__
-			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@ObjName))
-		#EndIf
+		#endif
 	End Sub
 	
 	Function CheckedListBox.IndexOf(ByRef FItem As WString) As Integer
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Return Perform(LB_FINDSTRING, -1, CInt(FItem))
-		#Else
-			Return -1
-		#EndIf
+		#else
+			Return Items.IndexOf(FItem)
+		#endif
 	End Function
 	
-	Function CheckedListBox.IndexOfObject(Obj As Any Ptr) As Integer
+	Function CheckedListBox.IndexOfData(Obj As Any Ptr) As Integer
 		Return Items.IndexOfObject(Obj)
 	End Function
 	
-	#IfNDef __USE_GTK__
-		Sub CheckedListBox.HandleIsAllocated(BYREF Sender As Control)
+	Property CheckedListBox.Selected(Index As Integer) As Boolean
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			Dim As Boolean bSelected
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+			gtk_tree_model_get(GTK_TREE_MODEL(ListStore), @iter, @bSelected)
+			Return bSelected
+		#else
+			If Handle Then Return Perform(LB_GETSEL, Index, 0)
+		#endif
+	End Property
+	
+	Property CheckedListBox.Selected(Index As Integer, Value As Boolean)
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+			gtk_list_store_set(ListStore, @Iter, 1, Value, -1)
+		#else
+			If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
+		#endif
+	End Property
+	
+	Property CheckedListBox.Checked(Index As Integer) As Boolean
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			Dim As Boolean bChecked
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+			gtk_tree_model_get(GTK_TREE_MODEL(ListStore), @iter, @bChecked)
+			Return bChecked
+		#else
+			If Handle Then Return Perform(LB_GETSEL, Index, 0)
+		#endif
+	End Property
+	
+	Property CheckedListBox.Checked(Index As Integer, Value As Boolean)
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+			gtk_list_store_set(ListStore, @Iter, 1, Value, -1)
+		#else
+			If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
+		#endif
+	End Property
+	
+	#ifndef __USE_GTK__
+		Sub CheckedListBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCheckedListBox(Sender.Child)
 					For i As Integer = 0 To .Items.Count -1
@@ -321,13 +409,13 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
-	#IfNDef __USE_GTK__
-		Sub CheckedListBox.WndProc(BYREF Message As Message)
+	#ifndef __USE_GTK__
+		Sub CheckedListBox.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub CheckedListBox.ProcessMessage(BYREF Message As Message)
+		Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
@@ -376,7 +464,7 @@ Namespace My.Sys.Forms
 				If OnDrawItem Then
 					OnDrawItem(This,ItemID,State,R,Dc)
 				Else
-					If (State AND ODS_SELECTED) = ODS_SELECTED Then
+					If (State And ODS_SELECTED) = ODS_SELECTED Then
 						Static As HBRUSH B
 						If B Then DeleteObject B
 						B = CreateSolidBrush(&H800000)
@@ -384,31 +472,33 @@ Namespace My.Sys.Forms
 						R.Left += 2
 						SetTextColor Dc,clHighlightText
 						SetBKColor Dc,&H800000
-						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX)
+						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX)
 					Else
 						FillRect Dc, @R, Brush.Handle
 						R.Left += 2
 						SetTextColor Dc, Font.Color
 						SetBKColor Dc, This.BackColor
-						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE or DT_VCENTER or DT_NOPREFIX)
+						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX)
 					End If
 				End If
 			Case WM_CHAR
-				If OnKeyPress Then OnKeyPress(This,LoByte(Message.wParam),Message.wParam AND &HFFFF)
+				If OnKeyPress Then OnKeyPress(This,LoByte(Message.wParam),Message.wParam And &HFFFF)
 			Case WM_KEYDOWN
-				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam AND &HFFFF)
+				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam And &HFFFF)
 			Case WM_KEYUP
-				If OnKeyUp Then OnKeyUp(This,Message.wParam,Message.wParam AND &HFFFF)
+				If OnKeyUp Then OnKeyUp(This,Message.wParam,Message.wParam And &HFFFF)
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
-	#EndIf
+	#endif
 	
 	Sub CheckedListBox.Clear
 		Items.Clear
-		#IfnDef __USE_GTK__
+		#ifdef __USE_GTK__
+			gtk_list_store_clear(ListStore)
+		#else
 			Perform(LB_RESETCONTENT,0,0)
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub CheckedListBox.SaveToFile(ByRef File As WString)
@@ -417,13 +507,15 @@ Namespace My.Sys.Forms
 		F = FreeFile
 		Open File For Binary Access Write As #F
 		For i = 0 To ItemCount - 1
-			#IfnDef __USE_GTK__
+			#ifdef __USE_GTK__
+				Print #F, Items.Item(i)
+			#else
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
 				s = CAllocate_((Len(TextLen) + 1) * SizeOf(WString))
 				*s = Space(TextLen)
 				Perform(LB_GETTEXT, i, CInt(s))
 				Print #F, *s
-			#EndIf
+			#endif
 		Next i
 		Close #F
 	End Sub
@@ -434,13 +526,16 @@ Namespace My.Sys.Forms
 		F = FreeFile
 		Clear
 		Open File For Binary Access Read As #F
-		s = CAllocate_((LOF(F) + 1) * SIzeOf(WString))
+		s = CAllocate_((LOF(F) + 1) * SizeOf(WString))
 		While Not EOF(F)
 			Line Input #F, *s
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				AddItem *s
+			#else
 				Perform(LB_ADDSTRING, 0, CInt(s))
 			#endif
 		Wend
+		Deallocate s
 		Close #F
 	End Sub
 	
@@ -449,7 +544,32 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor CheckedListBox
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
+			Dim As GtkCellRenderer Ptr rendertoggle = gtk_cell_renderer_toggle_new()
+			Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
+			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
+			ListStore = gtk_list_store_new(2, G_TYPE_BOOLEAN, G_TYPE_STRING)
+			widget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(ListStore))
+			gtk_container_add(gtk_container(scrolledwidget), widget)
+			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
+			
+			gtk_tree_view_column_pack_start(col, rendertoggle, False)
+			gtk_tree_view_column_add_attribute(col, rendertoggle, ToUTF8("active"), 0)
+			
+			gtk_tree_view_column_pack_start(col, rendertext, True)
+			gtk_tree_view_column_add_attribute(col, rendertext, ToUTF8("text"), 1)
+			gtk_tree_view_append_column(GTK_TREE_VIEW(widget), col)
+			
+			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), False)
+			
+'			g_signal_connect(gtk_tree_view(widget), "button-release-event", G_CALLBACK(@TreeView_ButtonRelease), @This)
+'			g_signal_connect(widget, "row-activated", G_CALLBACK(@TreeView_RowActivated), @This)
+'			g_signal_connect(widget, "query-tooltip", G_CALLBACK(@TreeView_QueryTooltip), @This)
+'			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@TreeView_SelectionChanged), @This)
+		#else
 			ASortStyle(0)   = 0
 			ASortStyle(1)   = LBS_SORT
 			AStyle(0)          = 0

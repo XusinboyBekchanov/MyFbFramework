@@ -352,11 +352,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.Text ByRef As WString
-		#ifdef __USE_GTK__
-			If widget Then
-		#else
-			If Handle Then
-		#endif
+		If Handle Then
 			FText = Items.Item(ItemIndex)
 		End If
 		Return *FText.vptr
@@ -364,8 +360,10 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.Text(ByRef Value As WString)
 		FText = Value
-		#ifndef __USE_GTK__
-			If FHandle Then Perform(LB_SELECTSTRING,-1,CInt(FText))
+		#ifdef __USE_GTK__
+			ItemIndex = Items.IndexOf(Value)
+		#else
+			If FHandle Then Perform(LB_SELECTSTRING, -1, CInt(FText))
 		#endif
 	End Property
 	

@@ -42,12 +42,17 @@ Namespace My.Sys.Forms
 			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
+	Protected:
+		ListStore As GtkListStore Ptr
+		TreeSelection As GtkTreeSelection Ptr
 	Public:
 		Items             As WStringList
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property BorderStyle As Integer
 		Declare Property BorderStyle(Value As Integer)
+		Declare Property Checked(Index As Integer) As Boolean
+		Declare Property Checked(Index As Integer, Value As Boolean)
 		Declare Property Ctl3D As Boolean
 		Declare Property Ctl3D(Value As Boolean)
 		Declare Property ItemIndex As Integer
@@ -76,20 +81,20 @@ Namespace My.Sys.Forms
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property Columns As Integer
 		Declare Property Columns(Value As Integer)
-		Declare Property Object(FIndex As Integer) As Any Ptr
-		Declare Property Object(FIndex As Integer, Obj As Any Ptr)
+		Declare Property ItemData(FIndex As Integer) As Any Ptr
+		Declare Property ItemData(FIndex As Integer, Obj As Any Ptr)
 		Declare Property Item(FIndex As Integer) ByRef As WString
 		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
+		Declare Property Selected(Index As Integer) As Boolean
+		Declare Property Selected(Index As Integer, Value As Boolean)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Operator Cast As Control Ptr
-		Declare Sub AddItem(ByRef FItem As WString)
-		Declare Sub AddObject(ByRef ObjName As WString, Obj As Any Ptr)
+		Declare Sub AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Sub RemoveItem(FIndex As Integer)
-		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
-		Declare Sub InsertObject(FIndex As Integer, ByRef ObjName As WString, Obj As Any Ptr)
+		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Function IndexOf(ByRef Item As WString) As Integer
-		Declare Function IndexOfObject(Obj As Any Ptr) As Integer
+		Declare Function IndexOfData(Obj As Any Ptr) As Integer
 		Declare Sub Clear
 		Declare Sub SaveToFile(ByRef File As WString)
 		Declare Sub LoadFromFile(ByRef File As WString)
