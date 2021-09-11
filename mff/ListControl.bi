@@ -15,7 +15,7 @@
 #include once "WStringList.bi"
 
 Namespace My.Sys.Forms
-	#define QListControl(__Ptr__) *Cast(ListControl Ptr,__Ptr__)
+	#define QListControl(__Ptr__) *Cast(ListControl Ptr, __Ptr__)
 	
 	Enum ListControlStyle
 		lbNormal = 0
@@ -23,10 +23,23 @@ Namespace My.Sys.Forms
 		lbOwnerDrawVariable
 	End Enum
 	
+	Enum SelectionModes
+		smNone = 0
+		smOne
+		smMultiSimple
+		smMultiExtended
+	End Enum
+	
 	Type ListControl Extends Control
 	Private:
+		#ifndef __USE_GTK__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#else
+			Declare Static Sub SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		#endif
+	Protected:
 		FStyle            As Integer
-		FBorderStyle      As Integer
 		FSort             As Boolean
 		FSelCount         As Integer
 		FSelItems         As Integer Ptr
@@ -38,26 +51,11 @@ Namespace My.Sys.Forms
 		FMultiColumn      As Boolean
 		FIntegralHeight   As Boolean
 		FCtl3D            As Boolean
-		ABorderStyle(3)   As Integer
-		ABorderExStyle(2) As Integer
-		AStyle(3)         As Integer
-		ASortStyle(2)     As Integer
-		AMultiselect(2)   As Integer
-		AExtendSelect(2)  As Integer
-		AMultiColumns(2)  As Integer
-		AIntegralHeight(2)As Integer
-		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-		#else
-			#ifdef __USE_GTK3__
-				Declare Static Sub SelectionChanged(box As GtkListBox Ptr, user_data As Any Ptr)
-			#else
-				Declare Static Sub ListItem_Selected(Item1 As GtkItem Ptr, user_data As Any Ptr)
-				Declare Static Sub SelectionChanged(list As GtkList Ptr, user_data As Any Ptr)
-			#endif
+		FSelectionMode    As SelectionModes
+		#ifdef __USE_GTK__
+			ListStore As GtkListStore Ptr
+			TreeSelection As GtkTreeSelection Ptr
 		#endif
-	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Items             As WStringList
@@ -65,8 +63,6 @@ Namespace My.Sys.Forms
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Style As ListControlStyle
 		Declare Property Style(Value As ListControlStyle)
-		Declare Property BorderStyle As Integer
-		Declare Property BorderStyle(Value As Integer)
 		Declare Property Ctl3D As Boolean
 		Declare Property Ctl3D(Value As Boolean)
 		Declare Property ItemIndex As Integer
@@ -87,12 +83,10 @@ Namespace My.Sys.Forms
 		Declare Property SelItems(Value As Integer Ptr)
 		Declare Property Selected(Index As Integer) As Boolean
 		Declare Property Selected(Index As Integer, Value As Boolean)
+		Declare Property SelectionMode As SelectionModes
+		Declare Property SelectionMode(Value As SelectionModes)
 		Declare Property Sort As Boolean
 		Declare Property Sort(Value As Boolean)
-		Declare Property MultiSelect As Boolean
-		Declare Property MultiSelect(Value As Boolean)
-		Declare Property ExtendSelect As Boolean
-		Declare Property ExtendSelect(Value As Boolean)
 		Declare Property IntegralHeight As Boolean
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property MultiColumn As Boolean
@@ -117,10 +111,6 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		OnChange      As Sub(ByRef Sender As ListControl)
-		OnDblClick    As Sub(ByRef Sender As ListControl)
-		OnKeyPress    As Sub(ByRef Sender As ListControl, Key As Byte, Shift As Integer)
-		OnKeyDown     As Sub(ByRef Sender As ListControl, Key As Integer, Shift As Integer)
-		OnKeyUp       As Sub(ByRef Sender As ListControl, Key As Integer, Shift As Integer)
 		#ifndef __USE_GTK__
 			OnMeasureItem As Sub(ByRef Sender As ListControl, ItemIndex As Integer, ByRef Height As UInt)
 			OnDrawItem    As Sub(ByRef Sender As ListControl, ItemIndex As Integer, State As Integer,ByRef R As Rect,DC As HDC = 0)

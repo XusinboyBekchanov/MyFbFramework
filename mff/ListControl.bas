@@ -19,12 +19,11 @@ Namespace My.Sys.Forms
 		Case "borderstyle": Return @FBorderStyle
 		Case "multicolumn": Return @FMultiColumn
 		Case "ctl3d": Return @FCtl3D
-		Case "extendselect": Return @FExtendSelect
 		Case "integralheight": Return @FIntegralHeight
 		'Case "itemcount": Return @FItemCount
 		Case "itemheight": Return @FItemHeight
 		Case "itemindex": Return @FItemIndex
-		Case "multiselect": Return @FMultiSelect
+		Case "selectionmode": Return @FSelectionMode
 		Case "selcount": Return @FSelCount
 		Case "sort": Return @FSort
 		Case "style": Return @FStyle
@@ -40,10 +39,9 @@ Namespace My.Sys.Forms
 		Case "borderstyle": BorderStyle = QInteger(Value)
 		Case "multicolumn": MultiColumn = QBoolean(Value)
 		Case "ctl3d": Ctl3D = QBoolean(Value)
-		Case "extendselect": ExtendSelect = QBoolean(Value)
 		Case "integralheight": IntegralHeight = QBoolean(Value)
 		Case "itemheight": ItemHeight = QInteger(Value)
-		Case "multiselect": MultiSelect = QBoolean(Value)
+		Case "selectionmode": SelectionMode = *Cast(SelectionModes Ptr, Value)
 		Case "sort": Sort = QBoolean(Value)
 		Case "style": Style = *Cast(ListControlStyle Ptr, Value)
 		Case "tabindex": TabIndex = QInteger(Value)
@@ -55,11 +53,9 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.Selected(Index As Integer) As Boolean
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-				If widget Then Return gtk_list_box_row_is_selected(gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
-			#else
-				Return False
-			#endif
+			Dim As GtkTreeIter iter
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+			Return gtk_tree_selection_iter_is_selected(TreeSelection, @iter)
 		#else
 			If Handle Then Return Perform(LB_GETSEL, Index, 0)
 		#endif
@@ -67,20 +63,12 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.Selected(Index As Integer, Value As Boolean)
 		#ifdef __USE_GTK__
-			If widget Then 
-				If Value Then
-					#ifdef __USE_GTK3__
-						gtk_list_box_select_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
-					#else
-						gtk_list_select_item(gtk_list(widget), Index)
-					#endif
-				Else
-					#ifdef __USE_GTK3__
-						gtk_list_box_unselect_row(gtk_list_box(widget), gtk_list_box_get_row_at_index (gtk_list_box(widget), Index))
-					#else
-						gtk_list_unselect_item(gtk_list(widget), Index)
-					#endif
-				End If
+			Dim As GtkTreeIter iter
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+			If Value Then
+				gtk_tree_selection_select_iter(TreeSelection, @iter)
+			Else
+				gtk_tree_selection_unselect_iter(TreeSelection, @iter)
 			End If
 		#else
 			If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
@@ -90,11 +78,7 @@ Namespace My.Sys.Forms
 	Sub ListControl.SelectAll
 		#ifdef __USE_GTK__
 			If widget Then 
-				#ifdef __USE_GTK3__
-					gtk_list_box_select_all(gtk_list_box(widget))
-				#else
-					gtk_list_select_all(gtk_list(widget))
-				#endif
+				gtk_tree_selection_select_all(TreeSelection)
 			End If
 		#else
 			If Handle Then Perform(LB_SETSEL, Abs_(True), -1)
@@ -103,17 +87,41 @@ Namespace My.Sys.Forms
 	
 	Sub ListControl.UnSelectAll
 		#ifdef __USE_GTK__
-			If widget Then 
-				#ifdef __USE_GTK3__
-					gtk_list_box_unselect_all(gtk_list_box(widget))
-				#else
-					gtk_list_unselect_all(gtk_list(widget))
-				#endif
-			End If
+			gtk_tree_selection_unselect_all(TreeSelection)
 		#else
 			If Handle Then Perform(LB_SETSEL, Abs_(False), -1)
 		#endif
 	End Sub
+	
+	Property ListControl.SelectionMode As SelectionModes
+		Return FSelectionMode
+	End Property
+	
+	Property ListControl.SelectionMode(Value As SelectionModes)
+		FSelectionMode = Value
+		#ifdef __USE_GTK__
+			Select Case FSelectionMode
+			Case 0: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_NONE)
+			Case 1: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_SINGLE)
+			Case 2: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_MULTIPLE)
+			#ifdef __USE_GTK3__
+			Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_MULTIPLE)
+			#else
+			Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_EXTENDED)
+			#endif
+			End Select
+		#else
+			ChangeStyle LBS_NOSEL, False
+			ChangeStyle LBS_MULTIPLESEL, False
+			ChangeStyle LBS_EXTENDEDSEL, False
+			Select Case FSelectionMode
+			Case 0: ChangeStyle LBS_NOSEL, True
+			Case 1: 
+			Case 2: ChangeStyle LBS_MULTIPLESEL, True
+			Case 3: ChangeStyle LBS_EXTENDEDSEL, True
+			End Select
+		#endif
+	End Property
 	
 	Property ListControl.TabIndex As Integer
 		Return FTabIndex
@@ -131,45 +139,6 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	Property ListControl.MultiSelect As Boolean
-		Return FMultiselect
-	End Property
-	
-	Property ListControl.MultiSelect(Value As Boolean)
-		'TODO: GTK_SELECTION_NONE, GTK_SELECTION_BROWSE
-		If Value <> FMultiselect Then
-			FMultiselect = Value
-			#ifdef __USE_GTK__
-				#ifdef __USE_GTK3__
-					gtk_list_box_set_selection_mode(gtk_list_box(widget), IIf(FMultiSelect, GTK_SELECTION_MULTIPLE, GTK_SELECTION_SINGLE))
-				#else
-					gtk_list_set_selection_mode(gtk_list(widget), IIf(FMultiSelect, GTK_SELECTION_MULTIPLE, GTK_SELECTION_SINGLE))
-				#endif
-			#else
-				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
-			#endif
-		End If
-	End Property
-	
-	Property ListControl.ExtendSelect As Boolean
-		Return FExtendSelect
-	End Property
-	
-	Property ListControl.ExtendSelect(Value As Boolean)
-		If Value <> FExtendSelect Then
-			FExtendSelect = Value
-			#ifdef __USE_GTK__
-				#ifndef __USE_GTK3__
-					gtk_list_set_selection_mode(gtk_list(widget), IIf(FExtendSelect, GTK_SELECTION_MULTIPLE, GTK_SELECTION_EXTENDED))
-				#endif
-			#else
-				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
-			#endif
-		End If
-	End Property
-	
 	Property ListControl.MultiColumn As Boolean
 		Return FMultiColumn
 	End Property
@@ -178,8 +147,7 @@ Namespace My.Sys.Forms
 		If Value <> FMultiColumn Then
 			FMultiColumn = Value
 			#ifndef __USE_GTK__
-				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				ChangeStyle LBS_MULTICOLUMN, Value
 			#endif
 		End If
 	End Property
@@ -192,8 +160,7 @@ Namespace My.Sys.Forms
 		If Value <> FIntegralHeight Then
 			FIntegralHeight = Value
 			#ifndef __USE_GTK__
-				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(ABs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				ChangeStyle LBS_NOINTEGRALHEIGHT, Not Value
 			#endif
 		End If
 	End Property
@@ -206,8 +173,13 @@ Namespace My.Sys.Forms
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifndef __USE_GTK__
-				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				ChangeStyle LBS_OWNERDRAWFIXED, False
+				ChangeStyle LBS_OWNERDRAWVARIABLE, False
+				Select Case Value
+				Case 0
+				Case 1: ChangeStyle LBS_OWNERDRAWFIXED, True
+				Case 2: ChangeStyle LBS_OWNERDRAWVARIABLE, True
+				End Select
 			#endif
 		End If
 	End Property
@@ -220,22 +192,7 @@ Namespace My.Sys.Forms
 		If Value <> FCtl3D Then
 			FCtl3D = Value
 			#ifndef __USE_GTK__
-				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
-			#endif
-		End If
-	End Property
-	
-	Property ListControl.BorderStyle As Integer
-		Return FBorderStyle
-	End Property
-	
-	Property ListControl.BorderStyle(Value As Integer)
-		If Value <> FBorderStyle Then
-			FBorderStyle = Value
-			#ifndef __USE_GTK__
-				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				ChangeExStyle WS_EX_CLIENTEDGE, Value
 			#endif
 		End If
 	End Property
@@ -276,16 +233,21 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.ItemIndex As Integer
 		#ifdef __USE_GTK__
-			FItemIndex = -1
-			#ifdef __USE_GTK3__
-				Var row = gtk_list_box_get_selected_row(gtk_list_box(widget))
-				If gtk_is_list_box_row(row) Then FItemIndex = gtk_list_box_row_get_index(gtk_list_box_get_selected_row(gtk_list_box(widget)))
-			#else
-				'FItemIndex = gtk_list_box_row_get_index(gtk_list_box(widget))
-			#endif
+			Dim As GtkTreeIter iter
+			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
+				Dim As Integer i
+        		Dim As GtkTreePath Ptr path
+        		path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
+        		FItemIndex = gtk_tree_path_get_indices(path)[0]
+        		gtk_tree_path_free(path)
+			End If
 		#else
 			If Handle Then
-				FItemIndex = Perform(LB_GETCURSEL, 0, 0)
+				If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
+					FItemIndex = Perform(LB_GETCARETINDEX, 0, 0)
+				Else
+					FItemIndex = Perform(LB_GETCURSEL, 0, 0)
+				End If
 			End If
 		#endif
 		Return FItemIndex
@@ -294,9 +256,19 @@ Namespace My.Sys.Forms
 	Property ListControl.ItemIndex(Value As Integer)
 		FItemIndex = Value
 		#ifdef __USE_GTK__
+			If ListStore Then
+				If Value = -1 Then
+					gtk_tree_selection_unselect_all(gtk_tree_view_get_selection(gtk_tree_view(widget)))
+				ElseIf Value > -1 AndAlso Value < Items.Count Then
+					Dim As GtkTreeIter iter
+					gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Value)))
+					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(widget)), @iter)
+					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
+				End If
+			End If
 		#else
 			If Handle Then
-				If MultiSelect Then
+				If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
 					Perform(LB_SETCARETINDEX, FItemIndex, 0)
 				Else
 					Perform(LB_SETCURSEL,FItemIndex,0)
@@ -375,7 +347,7 @@ Namespace My.Sys.Forms
 		If Value <> FSort Then
 			FSort = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				ChangeStyle LBS_SORT, Value
 			#endif
 		End If
 	End Property
@@ -389,24 +361,22 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.Item(FIndex As Integer) ByRef As WString
-		Dim As Integer L
-		Dim As WString Ptr s
 		#ifndef __USE_GTK__
 			If FHandle Then
+				Dim As Integer L
 				L = Perform(LB_GETTEXTLEN, FIndex, 0)
-				s = CAllocate_((L + 1) * SizeOf(WString))
-				*s = Space(L)
-				Perform(LB_GETTEXT, FIndex, CInt(s))
-				Return *s
+				FText.Resize L
+				FText = Space(L)
+				Perform(LB_GETTEXT, FIndex, CInt(FText.vptr))
+				Return *FText.vptr
 			Else
-				s = CAllocate_((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
-				*s = Items.Item(FIndex)
-				Return *s
+				FText.Resize Len(Items.Item(FIndex))
+				FText = Items.Item(FIndex)
+				Return *FText.vptr
 			End If
 		#else
-			s = CAllocate_((Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
-			*s = Items.Item(FIndex)
-			Return *s
+			FText = Items.Item(FIndex)
+			Return *FText.vptr
 		#endif
 	End Property
 	
@@ -433,29 +403,9 @@ Namespace My.Sys.Forms
 			Items.Add(FItem, Obj)
 		End If
 		#ifdef __USE_GTK__
-			If Widget Then
-				If FSort Then
-					#ifdef __USE_GTK3__
-						gtk_list_box_insert(gtk_list_box(widget), gtk_label_new(ToUtf8(FItem)), i)
-					#else
-						Dim As GList Ptr list = NULL
-						list = g_list_prepend(list, gtk_list_item_new_with_label(ToUtf8(FItem)))
-						gtk_list_insert_items(gtk_list(widget), list, i)
-					#endif
-				Else
-					#ifdef __USE_GTK3__
-						Dim As GtkWidget Ptr lbl
-						lbl = gtk_label_new(ToUtf8(FItem))
-						gtk_label_set_xalign (GTK_LABEL (lbl), 0.0)
-						gtk_container_add(GTK_CONTAINER(Widget), lbl)
-						gtk_widget_show(lbl)
-					#else
-						Dim As GtkWidget Ptr item1 = gtk_list_item_new_with_label(ToUtf8(FItem))
-						'g_signal_connect(GTK_OBJECT(item1), "select", GTK_SIGNAL_FUNC (@ListItem_Selected), Items.Count - 1)
-						gtk_container_add(GTK_CONTAINER(Widget), item1)
-					#endif
-				End If
-			End If
+			Dim As GtkTreeIter iter
+			gtk_list_store_append (ListStore, @iter)
+			gtk_list_store_set(ListStore, @iter, 0, ToUtf8(FItem), -1)
 		#else
 			If Handle Then Perform(LB_ADDSTRING, 0, CInt(@FItem))
 		#endif
@@ -464,29 +414,9 @@ Namespace My.Sys.Forms
 	Sub ListControl.RemoveItem(FIndex As Integer)
 		Items.Remove(FIndex)
 		#ifdef __USE_GTK__
-			If Widget Then
-				#ifdef __USE_GTK3__
-					gtk_container_remove(gtk_container(widget), gtk_widget(gtk_list_box_get_row_at_index(gtk_list_box(widget), FIndex)))
-				#else
-					Dim As GList Ptr children
-					Dim As GList Ptr childtoremove
-					Dim As GtkWidget Ptr childwidget
-					Dim As Integer n
-					children = gtk_container_children(GTK_CONTAINER (widget))
-					n = 0
-					While (children)
-						childwidget = GTK_WIDGET (children->data)
-						gtk_container_remove(gtk_container(widget), childwidget)
-						If n = FIndex Then
-							g_list_append(childtoremove, childwidget)
-							gtk_list_remove_items(gtk_list(widget), childtoremove)
-							Exit While
-						End If
-						children = children->next
-						n += 1
-					Wend
-				#endif
-			End If
+			Dim As GtkTreeIter iter
+			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(FIndex)))
+			gtk_list_store_remove(ListStore, @iter)
 		#else
 			If Handle Then Perform(LB_DELETESTRING, FIndex, 0)
 		#endif
@@ -499,15 +429,9 @@ Namespace My.Sys.Forms
 		End If
 		Items.Insert(FIndex, FItem, Obj)
 		#ifdef __USE_GTK__
-			If Widget Then
-				#ifdef __USE_GTK3__
-					gtk_list_box_insert(gtk_list_box(widget), gtk_label_new(ToUtf8(FItem)), FIndex)
-				#else
-					Dim As GList Ptr list = NULL
-					list = g_list_prepend(list, gtk_list_item_new_with_label(ToUtf8(FItem)))
-					gtk_list_insert_items(gtk_list(widget), list, FIndex)
-				#endif
-			End If
+			Dim As GtkTreeIter iter
+			gtk_list_store_insert(ListStore, @Iter, FIndex)
+			gtk_list_store_set (ListStore, @Iter, 0, ToUtf8(FItem), -1)
 		#else
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
 		#endif
@@ -516,18 +440,7 @@ Namespace My.Sys.Forms
 	Sub ListControl.Clear
 		Items.Clear
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-				Dim As GList Ptr children
-				Dim As GtkWidget Ptr childwidget
-				children = gtk_container_get_children(GTK_CONTAINER (widget))
-				While (children)
-					childwidget = GTK_WIDGET (children->data)
-					gtk_container_remove(gtk_container(widget), childwidget)
-					children = children->next
-				Wend
-			#else
-				gtk_list_clear_items(gtk_list(widget), 0, -1)
-			#endif
+			gtk_list_store_clear(ListStore)
 		#else
 			Perform(LB_RESETCONTENT,0,0)
 		#endif
@@ -536,7 +449,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Return Perform(LB_FINDSTRING, -1, CInt(FItem))
 		#else
-			Return -1
+			Return Items.IndexOf(FItem)
 		#endif
 	End Function
 	
@@ -556,7 +469,7 @@ Namespace My.Sys.Forms
 					.Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
 					.MultiColumn = .MultiColumn
 					.ItemIndex = .ItemIndex
-					If .MultiSelect Then
+					If .SelectionMode = SelectionModes.smMultiSimple Or .SelectionMode = SelectionModes.smMultiExtended Then
 						For i As Integer = 0 To .SelCount -1
 							.Perform(LB_SETSEL, 1, .SelItems[i])
 						Next i
@@ -569,30 +482,16 @@ Namespace My.Sys.Forms
 		Sub ListControl.WndProc(ByRef Message As Message)
 		End Sub
 	#else
-		#ifdef __USE_GTK3__
-			Sub ListControl.SelectionChanged(box As GtkListBox Ptr, user_data As Any Ptr)
-				Dim As ListControl Ptr lst = Cast(Any Ptr, user_data)
-				If lst Then
+		Sub ListControl.SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+			Dim As ListControl Ptr lst = Cast(Any Ptr, user_data)
+			If lst Then
+				Dim As GtkTreeIter iter
+				Dim As GtkTreeModel Ptr model
+				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
 					If lst->OnChange Then lst->OnChange(*lst)
 				End If
-			End Sub
-		#else
-			Sub ListControl.SelectionChanged(list As GtkList Ptr, user_data As Any Ptr)
-				Dim As ListControl Ptr lst = Cast(Any Ptr, user_data)
-				If lst Then
-					If lst->MultiSelect Then
-						'						FSelCount = Perform(LB_GETSELCOUNT,0,0)
-						'						If FSelCount Then
-						'							Dim As Integer AItems(FSelCount)
-						'							Perform(LB_GETSELITEMS,FSelCount,CInt(@AItems(0)))
-						'							SelItems = @AItems(0)
-						'						End If
-					End If
-					'lst->FItemIndex =
-					If lst->OnChange Then lst->OnChange(*lst)
-				End If
-			End Sub
-		#endif
+			End If
+		End Sub
 	#endif
 	
 	Sub ListControl.ProcessMessage(ByRef Message As Message)
@@ -610,7 +509,7 @@ Namespace My.Sys.Forms
 			Case CM_COMMAND
 				Select Case Message.wParamHi
 				Case LBN_SELCHANGE
-					If MultiSelect Then
+					If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
 						FSelCount = Perform(LB_GETSELCOUNT,0,0)
 						If FSelCount Then
 							Dim As Integer AItems(FSelCount)
@@ -663,7 +562,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_CHAR
-				If OnKeyPress Then OnKeyPress(This,LoByte(Message.wParam),Message.wParam And &HFFFF)
+				If OnKeyPress Then OnKeyPress(This, LoByte(Message.wParam))
 			Case WM_KEYDOWN
 				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam And &HFFFF)
 			Case WM_KEYUP
@@ -679,7 +578,9 @@ Namespace My.Sys.Forms
 		F = FreeFile
 		Open File For Binary Access Write As #F
 		For i = 0 To ItemCount - 1
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				Print #F, Items.Item(i)
+			#else
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
 				s = CAllocate_((Len(TextLen) + 1) * SizeOf(WString))
 				*s = Space(TextLen)
@@ -699,7 +600,9 @@ Namespace My.Sys.Forms
 		s = CAllocate_((LOF(F) + 1) * SizeOf(WString))
 		While Not EOF(F)
 			Line Input #F, *s
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				AddItem *s
+			#else
 				Perform(LB_ADDSTRING, 0, CInt(s))
 			#endif
 		Wend
@@ -713,39 +616,26 @@ Namespace My.Sys.Forms
 	Constructor ListControl
 		With This
 			#ifdef __USE_GTK__
+				Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
+				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
 				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 				gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
-				#ifdef __USE_GTK3__
-					widget = gtk_list_box_new()
-					gtk_container_add(gtk_container(scrolledwidget), widget)
-					g_signal_connect(gtk_list_box(widget), "selected-rows-changed", G_CALLBACK(@SelectionChanged), @This)
-				#else
-					widget = gtk_list_new()
-					gtk_scrolled_window_add_with_viewport(gtk_scrolled_window(scrolledwidget), widget)
-					g_signal_connect(gtk_list(widget), "selection-changed", G_CALLBACK(@SelectionChanged), @This)
-				#endif
+				ListStore = gtk_list_store_new(1, G_TYPE_STRING)
+				widget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(ListStore))
+				gtk_container_add(gtk_container(scrolledwidget), widget)
+				TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
+				g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@SelectionChanged), @This)
+				
+				gtk_tree_view_column_pack_start(col, rendertext, True)
+				gtk_tree_view_column_add_attribute(col, rendertext, ToUTF8("text"), 0)
+				gtk_tree_view_append_column(GTK_TREE_VIEW(widget), col)
+				
+				gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), False)
+			
 				.RegisterClass "ListControl", @This
-			#else
-				ASortStyle(0)   = 0
-				ASortStyle(1)   = LBS_SORT
-				AStyle(0)          = 0
-				AStyle(1)          = LBS_OWNERDRAWFIXED
-				AStyle(2)          = LBS_OWNERDRAWVARIABLE
-				ABorderExStyle(0)  = 0
-				ABorderExStyle(1)  = WS_EX_CLIENTEDGE
-				ABorderStyle(0)    = WS_BORDER
-				ABorderStyle(1)    = 0
-				AMultiselect(0)    = 0
-				AMultiselect(1)    = LBS_MULTIPLESEL
-				AExtendSelect(0)   = 0
-				AExtendSelect(1)   = LBS_EXTENDEDSEL
-				AMultiColumns(0)   = 0
-				AMultiColumns(1)   = LBS_MULTICOLUMN
-				AIntegralHeight(0) = LBS_NOINTEGRALHEIGHT
-				AIntegralHeight(1) = 0
 			#endif
-			FCtl3D             = True
+			FCtl3D             = False
 			FTabIndex          = -1
 			FTabStop           = True
 			FBorderStyle       = 1
@@ -757,8 +647,8 @@ Namespace My.Sys.Forms
 				.RegisterClass "ListControl", "ListBox"
 				WLet(FClassAncestor, "ListBox")
 				.ChildProc   = @WndProc
-				.ExStyle     = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style       = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				.ExStyle     = WS_EX_CLIENTEDGE
+				Base.Style       = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
