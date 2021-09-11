@@ -439,13 +439,19 @@ Namespace My.Sys.Forms
 		                	FillRect lpdis->hDC, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
 			                SetBkColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
 			                SetTextColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT)                'Set text color
-			                If ItemIndex = lpdis->itemID Then
+			                If ItemIndex = lpdis->itemID AndAlso Focused Then
 			                	DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
 			                End If
 		                Else
 		                	FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
 		                	SetBkColor lpdis->hDC, GetSysColor(COLOR_WINDOW)                    'Set text Background
 			                SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+			                If ItemIndex = -1 AndAlso lpdis->itemID = 0 AndAlso Focused Then
+			                	rc.Left   = 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+			                    rc.top    = lpdis->rcItem.top
+			                    rc.bottom = lpdis->rcItem.bottom
+			                	DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
+			                End If
 		                End If
 		                'DRAW TEXT
 		                SendMessage message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
