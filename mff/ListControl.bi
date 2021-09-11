@@ -52,6 +52,7 @@ Namespace My.Sys.Forms
 		FIntegralHeight   As Boolean
 		FCtl3D            As Boolean
 		FSelectionMode    As SelectionModes
+		AItems(Any)       As Integer 
 		#ifdef __USE_GTK__
 			ListStore As GtkListStore Ptr
 			TreeSelection As GtkTreeSelection Ptr

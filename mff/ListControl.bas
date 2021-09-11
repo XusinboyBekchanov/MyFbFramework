@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 		Case "multicolumn": Return @FMultiColumn
 		Case "ctl3d": Return @FCtl3D
 		Case "integralheight": Return @FIntegralHeight
-		'Case "itemcount": Return @FItemCount
+			'Case "itemcount": Return @FItemCount
 		Case "itemheight": Return @FItemHeight
 		Case "itemindex": Return @FItemIndex
 		Case "selectionmode": Return @FSelectionMode
@@ -77,7 +77,7 @@ Namespace My.Sys.Forms
 	
 	Sub ListControl.SelectAll
 		#ifdef __USE_GTK__
-			If widget Then 
+			If widget Then
 				gtk_tree_selection_select_all(TreeSelection)
 			End If
 		#else
@@ -104,11 +104,11 @@ Namespace My.Sys.Forms
 			Case 0: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_NONE)
 			Case 1: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_SINGLE)
 			Case 2: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_MULTIPLE)
-			#ifdef __USE_GTK3__
-			Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_MULTIPLE)
-			#else
-			Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_EXTENDED)
-			#endif
+				#ifdef __USE_GTK3__
+				Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_MULTIPLE)
+				#else
+				Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_EXTENDED)
+				#endif
 			End Select
 		#else
 			ChangeStyle LBS_NOSEL, False
@@ -116,7 +116,7 @@ Namespace My.Sys.Forms
 			ChangeStyle LBS_EXTENDEDSEL, False
 			Select Case FSelectionMode
 			Case 0: ChangeStyle LBS_NOSEL, True
-			Case 1: 
+			Case 1:
 			Case 2: ChangeStyle LBS_MULTIPLESEL, True
 			Case 3: ChangeStyle LBS_EXTENDEDSEL, True
 			End Select
@@ -198,11 +198,11 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ListControl.ItemCount As Integer
-'		#ifndef __USE_GTK__
-'			If Handle Then
-'				Return Perform(LB_GETCOUNT,0,0)
-'			End If
-'		#endif
+		'		#ifndef __USE_GTK__
+		'			If Handle Then
+		'				Return Perform(LB_GETCOUNT,0,0)
+		'			End If
+		'		#endif
 		Return Items.Count
 	End Property
 	
@@ -234,12 +234,29 @@ Namespace My.Sys.Forms
 	Property ListControl.ItemIndex As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Dim As Integer i
-        		Dim As GtkTreePath Ptr path
-        		path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
-        		FItemIndex = gtk_tree_path_get_indices(path)[0]
-        		gtk_tree_path_free(path)
+			If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
+				FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
+				If FSelCount > 0 Then
+					Dim As GtkTreeModel Ptr model = gtk_tree_model(ListStore)
+					Dim As GList Ptr list = gtk_tree_selection_get_selected_rows(TreeSelection, @model)
+					Dim As GtkTreePath Ptr path
+					If list Then
+						path = list->Data
+						FItemIndex = gtk_tree_path_get_indices(path)[0]
+					End If
+					g_list_foreach(list, Cast(GFunc, @gtk_tree_path_free), NULL)
+					g_list_free(list)
+				Else
+					FItemIndex = -1
+				End If
+			Else
+				If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
+					Dim As Integer i
+					Dim As GtkTreePath Ptr path
+					path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
+					FItemIndex = gtk_tree_path_get_indices(path)[0]
+					gtk_tree_path_free(path)
+				End If
 			End If
 		#else
 			If Handle Then
@@ -279,13 +296,7 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.SelCount As Integer
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-'				Dim As GList Ptr lst = gtk_list_box_get_selected_rows(gtk_list_box(widget))
-'				FSelCount = g_list_length(lst)
-'				g_list_free(lst)
-			#else
-				
-			#endif
+			FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
 		#else
 			FSelCount = Perform(LB_GETSELCOUNT, 0, 0)
 		#endif
@@ -298,21 +309,24 @@ Namespace My.Sys.Forms
 	
 	Property ListControl.SelItems As Integer Ptr
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-'				Dim As GList Ptr lst = gtk_list_box_get_selected_rows(gtk_list_box(widget))
-'				FSelCount = g_list_length(lst)
-'				Dim As Integer AItems(FSelCount), i = 0
-'				While (lst)
-'					AItems(i) = *Cast(Integer Ptr, lst->Data)
-'					lst = lst->Next
-'					i += 1
-'				Wend
-'				SelItems = @AItems(0)
-'				g_list_free(lst)
-			#endif
+			FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
+			ReDim AItems(FSelCount)
+			Dim As GtkTreeModel Ptr model = gtk_tree_model(ListStore)
+			Dim As GList Ptr list = gtk_tree_selection_get_selected_rows(TreeSelection, @model)
+			Dim As GtkTreePath Ptr path
+			Dim i As Integer
+			While (list)
+				path = list->Data
+				AItems(i) = gtk_tree_path_get_indices(path)[0]
+				list = list->Next
+				i += 1
+			Wend
+			g_list_foreach(list, Cast(GFunc, @gtk_tree_path_free), NULL)
+			g_list_free(list)
+			Return @AItems(0)
 		#else
 			FSelCount = Perform(LB_GETSELCOUNT, 0, 0)
-			Dim As Integer AItems(FSelCount)
+			ReDim AItems(FSelCount)
 			Perform(LB_GETSELITEMS, FSelCount, CInt(@AItems(0)))
 			SelItems = @AItems(0)
 		#endif
@@ -384,14 +398,6 @@ Namespace My.Sys.Forms
 		Items.Item(FIndex) = FItem
 	End Property
 	
-	#ifdef __USE_GTK__
-		#ifndef __USE_GTK3__
-			Sub ListControl.ListItem_Selected(Item1 As GtkItem Ptr, user_data As Any Ptr)
-				
-			End Sub
-		#endif
-	#endif
-	
 	Sub ListControl.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Dim i As Integer
 		If FSort Then
@@ -462,8 +468,8 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QListControl(Sender.Child)
 					For i As Integer = 0 To .Items.Count -1
-'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
-'						*s = .Items.Item(i)
+						'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+						'						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 					Next i
 					.Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
@@ -485,11 +491,7 @@ Namespace My.Sys.Forms
 		Sub ListControl.SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As ListControl Ptr lst = Cast(Any Ptr, user_data)
 			If lst Then
-				Dim As GtkTreeIter iter
-				Dim As GtkTreeModel Ptr model
-				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If lst->OnChange Then lst->OnChange(*lst)
-				End If
+				If lst->OnChange Then lst->OnChange(*lst)
 			End If
 		End Sub
 	#endif
@@ -512,7 +514,7 @@ Namespace My.Sys.Forms
 					If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
 						FSelCount = Perform(LB_GETSELCOUNT,0,0)
 						If FSelCount Then
-							Dim As Integer AItems(FSelCount)
+							ReDim AItems(FSelCount)
 							Perform(LB_GETSELITEMS, FSelCount, CInt(@AItems(0)))
 							SelItems = @AItems(0)
 						End If
@@ -632,7 +634,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_append_column(GTK_TREE_VIEW(widget), col)
 				
 				gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), False)
-			
+				
 				.RegisterClass "ListControl", @This
 			#endif
 			FCtl3D             = False
