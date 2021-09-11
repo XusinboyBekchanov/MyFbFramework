@@ -713,32 +713,32 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					End Select
-					.GetMenuItems
-					Dim As String mnuCaption, HotKey
-					Dim As Integer Pos1, CountOfHotKeys = 0
-					Dim As MenuItem Ptr mi
-					ReDim accl(1) As ACCEL
-					For i As Integer = 0 To .FMenuItems.Count - 1
-						mi = .FMenuItems.Items[i]
-						mnuCaption = mi->Caption
-						Pos1 = InStr(mnuCaption, !"\t")
-						If Pos1 > 0 Then
-							CountOfHotKeys = CountOfHotKeys + 1
-							HotKey = Mid(mnuCaption, Pos1 + 1)
-							ReDim Preserve accl(CountOfHotKeys - 1) As ACCEL
-							If InStr(HotKey, "Ctrl") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FCONTROL
-							If InStr(HotKey, "Shift") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FSHIFT
-							If InStr(HotKey, "Alt") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FALT
-							accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FVIRTKEY
-							Pos1 = InStrRev(HotKey, "+")
-							If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
-							accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
-							accl(CountOfHotKeys - 1).cmd = mi->Command
-						End If
-					Next i
-					If .Accelerator <> 0 Then DestroyAcceleratorTable(.Accelerator)
-					.Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
-					Erase accl
+'					.GetMenuItems
+'					Dim As String mnuCaption, HotKey
+'					Dim As Integer Pos1, CountOfHotKeys = 0
+'					Dim As MenuItem Ptr mi
+'					ReDim accl(1) As ACCEL
+'					For i As Integer = 0 To .FMenuItems.Count - 1
+'						mi = .FMenuItems.Items[i]
+'						mnuCaption = mi->Caption
+'						Pos1 = InStr(mnuCaption, !"\t")
+'						If Pos1 > 0 Then
+'							CountOfHotKeys = CountOfHotKeys + 1
+'							HotKey = Mid(mnuCaption, Pos1 + 1)
+'							ReDim Preserve accl(CountOfHotKeys - 1) As ACCEL
+'							If InStr(HotKey, "Ctrl") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FCONTROL
+'							If InStr(HotKey, "Shift") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FSHIFT
+'							If InStr(HotKey, "Alt") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FALT
+'							accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FVIRTKEY
+'							Pos1 = InStrRev(HotKey, "+")
+'							If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
+'							accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
+'							accl(CountOfHotKeys - 1).cmd = mi->Command
+'						End If
+'					Next i
+'					If .Accelerator <> 0 Then DestroyAcceleratorTable(.Accelerator)
+'					.Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
+'					Erase accl
 				End With
 			End If
 		End Sub
