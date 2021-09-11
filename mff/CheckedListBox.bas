@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			Dim As Boolean bChecked
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
-			gtk_tree_model_get(GTK_TREE_MODEL(ListStore), @iter, @bChecked)
+			gtk_tree_model_get(GTK_TREE_MODEL(ListStore), @iter, 0, @bChecked, -1)
 			Return bChecked
 		#else
 			If Handle Then Return Perform(LB_GETITEMDATA, Index, 0)
@@ -403,7 +403,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
-			gtk_list_store_set(ListStore, @Iter, 1, Value, -1)
+			gtk_list_store_set(ListStore, @Iter, 0, Value, -1)
 		#else
 			If Handle Then Perform(LB_SETITEMDATA, Index, Abs_(Value))
 		#endif
