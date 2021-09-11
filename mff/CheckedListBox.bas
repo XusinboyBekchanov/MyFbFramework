@@ -631,6 +631,25 @@ Namespace My.Sys.Forms
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub CheckedListBox.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, model As GtkListStore Ptr)
+		    Dim As GtkTreeIter iter
+		    Dim As gboolean active
+		
+		    active = gtk_cell_renderer_toggle_get_active (cell)
+		
+		    gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (model), @iter, path)
+		
+		    If (active) Then
+		        'gtk_cell_renderer_set_alignment(GTK_CELL_RENDERER(cell), 0, 0)
+		        gtk_list_store_set (GTK_LIST_STORE (model), @iter, 0, False, -1)
+		    Else
+		        'gtk_cell_renderer_set_alignment(GTK_CELL_RENDERER(cell), 0.5, 0.5)
+		        gtk_list_store_set (GTK_LIST_STORE (model), @iter, 0, True, -1)
+		    End If
+		End Sub
+	#endif
+	
 	Constructor CheckedListBox
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
@@ -646,6 +665,7 @@ Namespace My.Sys.Forms
 			
 			gtk_tree_view_column_pack_start(col, rendertoggle, False)
 			gtk_tree_view_column_add_attribute(col, rendertoggle, ToUTF8("active"), 0)
+			g_signal_connect(rendertoggle, "toggled", G_CALLBACK(@check), ListStore)
 			
 			gtk_tree_view_column_pack_start(col, rendertext, True)
 			gtk_tree_view_column_add_attribute(col, rendertext, ToUTF8("text"), 1)

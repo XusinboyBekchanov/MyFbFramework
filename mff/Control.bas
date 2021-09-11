@@ -1981,6 +1981,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Sub Control.AllocateHint
 				If Handle Then
+					If ToolTipHandle Then DestroyWindow ToolTipHandle
 					ToolTipHandle = CreateWindowEx(0, TOOLTIPS_CLASS, "", TTS_ALWAYSTIP Or WS_POPUP, 0, 0, 0, 0, FHandle, NULL, GetModuleHandle(NULL), NULL)
 					FToolInfo.cbSize=SizeOf(TOOLINFO)
 					FToolInfo.uFlags   = TTF_IDISHWND Or TTF_SUBCLASS

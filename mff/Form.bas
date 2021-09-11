@@ -1435,7 +1435,9 @@ Namespace My.Sys.Forms
 '			If FHandle Then FreeWnd
 '		#endif
 		FMenuItems.Clear
-		If Accelerator Then DestroyAcceleratorTable(Accelerator)
+		#ifndef __USE_GTK__
+			If Accelerator Then DestroyAcceleratorTable(Accelerator)
+		#endif
 		'UnregisterClass ClassName, GetModuleHandle(NULL)
 	End Destructor
 End Namespace

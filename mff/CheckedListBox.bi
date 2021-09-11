@@ -45,6 +45,7 @@ Namespace My.Sys.Forms
 		#endif
 	Protected:
 		#ifdef __USE_GTK__
+			Declare Static Sub Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, model As GtkListStore Ptr)
 			ListStore As GtkListStore Ptr
 			TreeSelection As GtkTreeSelection Ptr
 		#endif
