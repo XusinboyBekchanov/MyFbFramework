@@ -374,7 +374,7 @@ Namespace My.Sys.Forms
 			gtk_tree_model_get(GTK_TREE_MODEL(ListStore), @iter, @bChecked)
 			Return bChecked
 		#else
-			If Handle Then Return Perform(LB_GETSEL, Index, 0)
+			If Handle Then Return Perform(LB_GETITEMDATA, Index, 0)
 		#endif
 	End Property
 	
@@ -384,7 +384,7 @@ Namespace My.Sys.Forms
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
 			gtk_list_store_set(ListStore, @Iter, 1, Value, -1)
 		#else
-			If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
+			If Handle Then Perform(LB_SETITEMDATA, Index, Abs_(Value))
 		#endif
 	End Property
 	
@@ -416,9 +416,69 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
-			Select Case Message.Msg
+			Dim pt As Point, rc As RECT, t As Long, itd As Long
+    		Select Case Message.Msg
+    		Case CM_DRAWITEM
+    			Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
+    			Dim As Integer ItemID, State
+	            lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
+				If OnDrawItem Then
+					OnDrawItem(This, lpdis->itemID, lpdis->itemState, lpdis->rcItem, lpdis->hDC)
+				Else
+		            If lpdis->itemID = &HFFFFFFFF& Then
+		                Exit Sub
+		            EndIf
+		            Select Case lpdis->itemAction
+		            Case ODA_DRAWENTIRE, ODA_SELECT
+		                'DRAW BACKGROUND
+		                FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
+		                If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
+		                	rc.Left   = 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+		                    rc.top    = lpdis->rcItem.top
+		                    rc.bottom = lpdis->rcItem.bottom
+		                	FillRect lpdis->hDC, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
+			                SetBkColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
+			                SetTextColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT)                'Set text color
+			                If ItemIndex = lpdis->itemID Then
+			                	DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
+			                End If
+		                Else
+		                	FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
+		                	SetBkColor lpdis->hDC, GetSysColor(COLOR_WINDOW)                    'Set text Background
+			                SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+		                End If
+		                'DRAW TEXT
+		                SendMessage message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
+		                TextOut lpdis->hDC, 18, lpdis->rcItem.top + 2, @zTxt, Len(zTxt)     'Draw text
+		                'DRAW CHECKBOX
+		                rc.Left   = 2 : rc.Right = 15               'Set cordinates
+		                rc.top    = lpdis->rcItem.top + 2
+		                rc.bottom = lpdis->rcItem.bottom - 1
+		                If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows
+	                        DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK Or DFCS_CHECKED
+	                    Else
+	                        DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK
+		                End If
+	                    Message.Result = True : Exit Sub
+	                Case ODA_FOCUS
+	                    DrawFocusRect lpdis->hDC, @lpdis->rcItem  'draw focus rectangle
+	                    Message.Result = True : Exit Sub
+		            End Select 
+		        End If
+			Case WM_LBUTTONDOWN
+	            If Message.wParam = MK_LBUTTON  Then                                            'respond to mouse click
+	                pt.x = LoWord(Message.lParam) : pt.y = HiWord(Message.lParam)                       'get cursor pos
+	                t = SendMessage(Message.hWnd, LB_ITEMFROMPOINT, 0, MakeLong(pt.x, pt.y))    'get sel. item
+	                SendMessage Message.hWnd, LB_GETITEMRECT, t, Cast(LPARAM, @rc)                            'get sel. item's rect
+	                rc.Left   = 2 : rc.Right = 15                                       'checkbox cordinates
+	                If PtInRect(@rc, pt) Then
+	                    itd = Not CBool(SendMessage(Message.hWnd, LB_GETITEMDATA, t, 0))                 'get toggled item data
+	                    SendMessage Message.hWnd, LB_SETITEMDATA, t, itd                            'set toggled item data
+	                    InvalidateRect Message.hWnd, @rc, 0 : UpdateWindow Message.hWnd                     'update sel. item only
+	                End If
+	            End If
 			Case WM_PAINT
-				Message.Result = 0
+				'Message.Result = 0
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
@@ -481,7 +541,8 @@ Namespace My.Sys.Forms
 						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX)
 					End If
 				End If
-			Case WM_CHAR
+    		Case WM_CHAR
+    			If Message.wParam = 32 Then Checked(ItemIndex) = Not Checked(ItemIndex): This.Repaint
 				If OnKeyPress Then OnKeyPress(This,LoByte(Message.wParam),Message.wParam And &HFFFF)
 			Case WM_KEYDOWN
 				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam And &HFFFF)
@@ -601,7 +662,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "CheckedListBox", "ListBox"
 				.ChildProc   = @WndProc
 				.ExStyle     = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style       = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FColumns)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style       = WS_CHILD Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_DISABLENOSCROLL Or LBS_NOTIFY Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FColumns)) Or AIntegralHeight(Abs_(FIntegralHeight))
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True

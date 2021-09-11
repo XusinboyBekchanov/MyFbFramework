@@ -43,8 +43,10 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 	Protected:
-		ListStore As GtkListStore Ptr
-		TreeSelection As GtkTreeSelection Ptr
+		#ifdef __USE_GTK__
+			ListStore As GtkListStore Ptr
+			TreeSelection As GtkTreeSelection Ptr
+		#endif
 	Public:
 		Items             As WStringList
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
