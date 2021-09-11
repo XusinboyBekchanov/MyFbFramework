@@ -14,7 +14,19 @@
 Namespace My.Sys.Forms
 	Function CheckedListBox.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "borderstyle": Return @FBorderStyle
+		Case "columns": Return @FColumns
+		Case "ctl3d": Return @FCtl3D
+		Case "extendselect": Return @FExtendSelect
+		Case "integralheight": Return @FIntegralHeight
+		'Case "itemcount": Return @FItemCount
+		Case "itemheight": Return @FItemHeight
+		Case "itemindex": Return @FItemIndex
+		Case "multiselect": Return @FMultiSelect
+		Case "selcount": Return @FSelCount
+		Case "sort": Return @FSort
 		Case "tabindex": Return @FTabIndex
+		Case "topindex": Return @FTopIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -22,7 +34,16 @@ Namespace My.Sys.Forms
 	
 	Function CheckedListBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "borderstyle": BorderStyle = QInteger(Value)
+		Case "columns": Columns = QInteger(Value)
+		Case "ctl3d": Ctl3D = QBoolean(Value)
+		Case "extendselect": ExtendSelect = QBoolean(Value)
+		Case "integralheight": IntegralHeight = QBoolean(Value)
+		Case "itemheight": ItemHeight = QInteger(Value)
+		Case "multiselect": MultiSelect = QBoolean(Value)
+		Case "sort": Sort = QBoolean(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
+		Case "topindex": TopIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -446,7 +467,7 @@ Namespace My.Sys.Forms
 		                	FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
 		                	SetBkColor lpdis->hDC, GetSysColor(COLOR_WINDOW)                    'Set text Background
 			                SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
-			                If ItemIndex = -1 AndAlso lpdis->itemID = 0 AndAlso Focused Then
+			                If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
 			                	rc.Left   = 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
 			                    rc.top    = lpdis->rcItem.top
 			                    rc.bottom = lpdis->rcItem.bottom
