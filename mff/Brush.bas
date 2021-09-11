@@ -75,6 +75,7 @@ Namespace My.Sys.Drawing
 				LB.lbStyle = BS_HATCHED
 				LB.lbHatch = FHatchStyle
 			End Select
+			If Handle then DeleteObject(Handle)
 			Handle = CreateBrushIndirect(@LB)
 		#endif
 	End Sub

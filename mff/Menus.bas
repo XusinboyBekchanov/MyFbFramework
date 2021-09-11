@@ -1634,6 +1634,7 @@ Namespace My.Sys.Forms
 					If FParentWindow->Accelerator <> 0 Then DestroyAcceleratorTable(FParentWindow->Accelerator)
 					FParentWindow->Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
 				End If
+				Erase accl
 			#endif
 		End If
 	End Property

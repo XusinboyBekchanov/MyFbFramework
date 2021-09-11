@@ -79,6 +79,7 @@ Namespace My.Sys.Drawing
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
+			If Handle Then DestroyCursor(Handle)
 			Handle = LoadImage(0, File, IMAGE_CURSOR, cx, cy, LR_LOADFROMFILE)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
@@ -87,6 +88,8 @@ Namespace My.Sys.Drawing
 			FHeight = BMP.bmHeight
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
+			DeleteObject(ICIF.hbmColor)
+			DeleteObject(ICIF.hbmMask)
 		#endif
 		If Changed Then Changed(This)
 		Return True
@@ -101,14 +104,17 @@ Namespace My.Sys.Drawing
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+			If Handle Then DestroyCursor(Handle)
 			Handle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
 			If Handle = 0 Then Return False
-			GetIconInfo(Handle,@ICIF)
-			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
-			FHotSpotX = ICIF.xHotSpot
-			FHotSpotY = ICIF.yHotSpot
+'			GetIconInfo(Handle, @ICIF)
+'			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
+'			FWidth  = BMP.bmWidth
+'			FHeight = BMP.bmHeight
+'			FHotSpotX = ICIF.xHotSpot
+'			FHotSpotY = ICIF.yHotSpot
+'			?DeleteObject(ICIF.hbmColor)
+'			?DeleteObject(ICIF.hbmMask)
 		#endif
 		If Changed Then Changed(This)
 		Return True
@@ -119,6 +125,7 @@ Namespace My.Sys.Drawing
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+			If Handle Then DestroyCursor(Handle)
 			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
 			If handle = 0 Then Return False
 			GetIconInfo(Handle,@ICIF)
@@ -127,6 +134,8 @@ Namespace My.Sys.Drawing
 			FHeight = BMP.bmHeight
 			FHotSpotX = ICIF.xHotSpot
 			FHotSpotY = ICIF.yHotSpot
+			DeleteObject(ICIF.hbmColor)
+			DeleteObject(ICIF.hbmMask)
 		#endif
 		If Changed Then Changed(This)
 		Return True
@@ -182,11 +191,15 @@ Namespace My.Sys.Drawing
 		
 	#else
 		Operator Cursor.Let(Value As HCURSOR)
+			If Handle Then DestroyCursor(Handle)
 			Handle = Value
 		End Operator
 	#endif
 	
 	Operator Cursor.Let(Value As Cursor)
+		#ifndef __USE_GTK__
+			If Handle Then DestroyCursor(Handle)
+		#endif
 		Handle = Value.Handle
 	End Operator
 	
@@ -199,10 +212,12 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Destructor Cursor
-		WDeallocate FResName
 		#ifndef __USE_GTK__
-			If Handle Then DeleteObject Handle
+			If Handle <> 0 Then 
+				DestroyCursor Handle
+			End If
 		#endif
+		WDeallocate FResName
 	End Destructor
 End Namespace
 

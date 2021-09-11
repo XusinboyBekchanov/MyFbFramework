@@ -736,7 +736,9 @@ Namespace My.Sys.Forms
 							accl(CountOfHotKeys - 1).cmd = mi->Command
 						End If
 					Next i
+					If .Accelerator <> 0 Then DestroyAcceleratorTable(.Accelerator)
 					.Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
+					Erase accl
 				End With
 			End If
 		End Sub
@@ -1433,6 +1435,7 @@ Namespace My.Sys.Forms
 '			If FHandle Then FreeWnd
 '		#endif
 		FMenuItems.Clear
+		If Accelerator Then DestroyAcceleratorTable(Accelerator)
 		'UnregisterClass ClassName, GetModuleHandle(NULL)
 	End Destructor
 End Namespace

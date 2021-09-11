@@ -96,6 +96,7 @@ Namespace My.Sys.Drawing
 			'Select it into the compatible DC
 			Dim As HBITMAP old_dst_bmp = Cast(HBITMAP, SelectObject(dst_hdc, bmp))
 			If (old_dst_bmp = NULL) Then
+				DeleteObject(bmp)
 				Return NULL
 			End If
 			
@@ -127,12 +128,15 @@ Namespace My.Sys.Drawing
 		#else
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
+			If Handle Then DestroyIcon(Handle)
 			Handle = LoadImage(0, File, IMAGE_ICON, cx, cy, LR_LOADFROMFILE Or LR_LOADTRANSPARENT)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
+			DeleteObject(ICIF.hbmColor)
+			DeleteObject(ICIF.hbmMask)
 		#endif
 		If Changed Then Changed(This)
 		Return True
@@ -148,12 +152,15 @@ Namespace My.Sys.Drawing
 			Dim As BITMAP BMP
 			This.ResName = ResourceName
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+			If Handle Then DestroyIcon(Handle)
 			Handle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
+			DeleteObject(ICIF.hbmColor)
+			DeleteObject(ICIF.hbmMask)
 		#endif
 		If Changed Then Changed(This)
 		Return True
@@ -165,12 +172,15 @@ Namespace My.Sys.Drawing
 			Dim As BITMAP BMP
 			This.ResName = WStr(ResID)
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+			If Handle <> 0 Then DestroyIcon(Handle)
 			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
 			If Handle = 0 Then Return False
 			GetIconInfo(Handle, @ICIF)
 			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
+			DeleteObject(ICIF.hbmColor)
+			DeleteObject(ICIF.hbmMask)
 		#endif
 		If Changed Then Changed(This)
 		Return True
@@ -201,11 +211,15 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Operator Icon.Let(Value As Icon)
+		#ifndef __USE_GTK__
+			If Handle Then DestroyIcon(Handle)
+		#endif
 		Handle = Value.Handle
 	End Operator
 	
 	#ifndef __USE_GTK__
 		Operator Icon.Let(Value As HICON)
+			If Handle Then DestroyIcon(Handle)
 			Handle = Value
 		End Operator
 	#endif
@@ -217,7 +231,7 @@ Namespace My.Sys.Drawing
 	Destructor Icon
 		WDeallocate FResName
 		#ifndef __USE_GTK__
-			DeleteObject Handle
+			DestroyIcon Handle
 		#endif
 	End Destructor
 End Namespace

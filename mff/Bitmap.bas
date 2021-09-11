@@ -200,6 +200,8 @@ Namespace My.Sys.Drawing
 				GetObject ICI.hbmMask, Len(uBMP), @uBMP
 				Height = uBMP.bmHeight \ 2
 			End If
+			DeleteObject(ICI.hbmColor)
+			DeleteObject(ICI.hbmMask)
 			This.Width = uBMP.bmWidth
 			Dim As Boolean isCursor = Abs(ICI.fIcon = 0&)         ' return optional parameters
 			Dim As Integer HotSpotX = ICI.xHotspot
