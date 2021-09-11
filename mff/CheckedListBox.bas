@@ -76,7 +76,7 @@ Namespace My.Sys.Forms
 				gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), IIf(value, GTK_SELECTION_MULTIPLE, GTK_SELECTION_SINGLE))
 			#else
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -94,7 +94,7 @@ Namespace My.Sys.Forms
 				#endif
 			#else
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 			FMultiColumn = Value
 			#ifndef __USE_GTK__
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -122,7 +122,7 @@ Namespace My.Sys.Forms
 			FIntegralHeight = Value
 			#ifndef __USE_GTK__
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(ABs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(ABs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -136,7 +136,7 @@ Namespace My.Sys.Forms
 			FCtl3D = Value
 			#ifndef __USE_GTK__
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -152,7 +152,7 @@ Namespace My.Sys.Forms
 				gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), IIf(Value, GTK_SHADOW_OUT, GTK_SHADOW_NONE))
 			#else
 				ExStyle = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -273,7 +273,7 @@ Namespace My.Sys.Forms
 		If Value <> FSort Then
 			FSort = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -454,7 +454,7 @@ Namespace My.Sys.Forms
 		                'DRAW BACKGROUND
 		                FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
 		                If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
-		                	rc.Left   = 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+		                	rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
 		                    rc.top    = lpdis->rcItem.top
 		                    rc.bottom = lpdis->rcItem.bottom
 		                	FillRect lpdis->hDC, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
@@ -468,7 +468,7 @@ Namespace My.Sys.Forms
 		                	SetBkColor lpdis->hDC, GetSysColor(COLOR_WINDOW)                    'Set text Background
 			                SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
 			                If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
-			                	rc.Left   = 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+			                	rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
 			                    rc.top    = lpdis->rcItem.top
 			                    rc.bottom = lpdis->rcItem.bottom
 			                	DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
@@ -476,9 +476,9 @@ Namespace My.Sys.Forms
 		                End If
 		                'DRAW TEXT
 		                SendMessage message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
-		                TextOut lpdis->hDC, 18, lpdis->rcItem.top + 2, @zTxt, Len(zTxt)     'Draw text
+		                TextOut lpdis->hDC, lpdis->rcItem.Left + 18, lpdis->rcItem.top + 2, @zTxt, Len(zTxt)     'Draw text
 		                'DRAW CHECKBOX
-		                rc.Left   = 2 : rc.Right = 15               'Set cordinates
+		                rc.Left   = lpdis->rcItem.Left + 2 : rc.Right = lpdis->rcItem.Left + 15               'Set cordinates
 		                rc.top    = lpdis->rcItem.top + 2
 		                rc.bottom = lpdis->rcItem.bottom - 1
 		                If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows
@@ -497,7 +497,7 @@ Namespace My.Sys.Forms
 	                pt.x = LoWord(Message.lParam) : pt.y = HiWord(Message.lParam)                       'get cursor pos
 	                t = SendMessage(Message.hWnd, LB_ITEMFROMPOINT, 0, MakeLong(pt.x, pt.y))    'get sel. item
 	                SendMessage Message.hWnd, LB_GETITEMRECT, t, Cast(LPARAM, @rc)                            'get sel. item's rect
-	                rc.Left   = 2 : rc.Right = 15                                       'checkbox cordinates
+	                rc.Left   = rc.Left + 2 : rc.Right = rc.Left + 15                                       'checkbox cordinates
 	                If PtInRect(@rc, pt) Then
 	                    itd = Not CBool(SendMessage(Message.hWnd, LB_GETITEMDATA, t, 0))                 'get toggled item data
 	                    SendMessage Message.hWnd, LB_SETITEMDATA, t, itd                            'set toggled item data
@@ -689,7 +689,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "CheckedListBox", "ListBox"
 				.ChildProc   = @WndProc
 				.ExStyle     = ABorderExStyle(Abs_(FCtl3D))
-				Base.Style       = WS_CHILD Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_DISABLENOSCROLL Or LBS_NOTIFY Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style       = WS_CHILD Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED Or AStyle(Abs_(FStyle)) Or ABorderStyle(Abs_(FBorderStyle)) Or ASortStyle(Abs_(FSort)) Or AMultiselect(Abs_(FMultiselect)) Or AExtendSelect(Abs_(FExtendSelect)) Or AMultiColumns(Abs_(FMultiColumn)) Or AIntegralHeight(Abs_(FIntegralHeight))
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
