@@ -21,12 +21,13 @@ Namespace My.Sys.Forms
 		FSort             As Boolean
 		FSelCount         As Integer
 		FSelItems         As Integer Ptr
+		FStyle            As Integer
 		FTopIndex         As Integer
 		FItemIndex        As Integer
 		FItemHeight       As Integer
 		FMultiselect      As Boolean
 		FExtendSelect     As Boolean
-		FColumns          As Integer
+		FMultiColumn      As Boolean
 		FIntegralHeight   As Boolean
 		FCtl3D            As Boolean
 		ABorderStyle(3)   As Integer
@@ -81,8 +82,8 @@ Namespace My.Sys.Forms
 		Declare Property ExtendSelect(Value As Boolean)
 		Declare Property IntegralHeight As Boolean
 		Declare Property IntegralHeight(Value As Boolean)
-		Declare Property Columns As Integer
-		Declare Property Columns(Value As Integer)
+		Declare Property MultiColumn As Boolean
+		Declare Property MultiColumn(Value As Boolean)
 		Declare Property ItemData(FIndex As Integer) As Any Ptr
 		Declare Property ItemData(FIndex As Integer, Obj As Any Ptr)
 		Declare Property Item(FIndex As Integer) ByRef As WString
