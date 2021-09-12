@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ComboBoxExItems.Item(Index As Integer) As ComboBoxItem Ptr
-		Return QComboBoxItem(FItems.Items[Index])
+		If Index <= FItems.Count Then Return QComboBoxItem(FItems.Items[Index]) Else Return 0
 	End Property
 	
 	Property ComboBoxExItems.Item(Index As Integer, Value As ComboBoxItem Ptr)
@@ -412,7 +412,72 @@ Namespace My.Sys.Forms
 	
 	Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
+			Dim pt As Point, rc As RECT, t As Long, itd As Long
 			Select Case Message.Msg
+				Case WM_DRAWITEM
+				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
+				Dim As Integer ItemID, State
+				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
+				If OnDrawItem Then
+					OnDrawItem(This, lpdis->itemID, lpdis->itemState, lpdis->rcItem, lpdis->hDC)
+				Else
+					If lpdis->itemID = &HFFFFFFFF& Then
+						Exit Sub
+					EndIf
+					Select Case lpdis->itemAction
+					Case ODA_DRAWENTIRE, ODA_SELECT
+						'DRAW BACKGROUND
+						If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
+						Else
+							FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
+						End If
+						If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
+							If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
+								SetBKMode lpdis->hDC, TRANSPARENT
+								SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+								DrawFocusRect lpdis->hDC, @lpdis->rcItem  'draw focus rectangle
+							Else
+								FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_HIGHLIGHT)
+								SetBkColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
+								SetTextColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT)                'Set text color
+								If ItemIndex = lpdis->itemID AndAlso Focused Then
+									DrawFocusRect lpdis->hDC, @lpdis->rcItem  'draw focus rectangle
+								End If
+							End If
+						Else
+							If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
+								SetBKMode lpdis->hDC, TRANSPARENT
+							Else
+								FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
+								SetBkColor lpdis->hDC, GetSysColor(COLOR_WINDOW)                    'Set text Background
+							End If
+							SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+							If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
+								rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+								rc.top    = lpdis->rcItem.top
+								rc.bottom = lpdis->rcItem.bottom
+								DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
+							End If
+						End If
+						'DRAW TEXT
+						'SendMessage message.hWnd, CB_GETLBTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
+						If lpdis->itemID >= 0 AndAlso lpdis->itemID < Items.Count Then
+							zTxt = Items.Item(lpdis->itemID)->Text
+							TextOut lpdis->hDC, lpdis->rcItem.Left + 18 + 3 + Items.Item(lpdis->itemID)->Indent * 11, lpdis->rcItem.top + 1, @zTxt, Len(zTxt)     'Draw text
+							'DRAW IMAGE
+							rc.Left   = lpdis->rcItem.Left + 2 : rc.Right = lpdis->rcItem.Left + 15               'Set cordinates
+							rc.top    = lpdis->rcItem.top
+							rc.bottom = lpdis->rcItem.bottom - 1
+							If ImagesList AndAlso ImagesList->Handle Then
+								ImageList_Draw(ImagesList->Handle, Items.Item(lpdis->itemID)->ImageIndex, lpdis->hDC, rc.Left + Items.Item(lpdis->itemID)->Indent * 11, rc.Top, ILD_TRANSPARENT)
+							End If
+						End If
+						Message.Result = True : Exit Sub
+					Case ODA_FOCUS
+						DrawFocusRect lpdis->hDC, @lpdis->rcItem  'draw focus rectangle
+						Message.Result = True : Exit Sub
+					End Select
+				End If
 			Case CM_COMMAND
 				'            Select Case Message.wParamHi
 				'            Case CBN_DROPDOWN
@@ -462,6 +527,7 @@ Namespace My.Sys.Forms
 		Items.Parent       = @This
 		FIntegralHeight    = False
 		FTabStop           = True
+		Base.FStyle             = cbOwnerDrawFixed
 		ItemHeight         = 13
 		FDropDownCount     = 8
 		With This
@@ -469,7 +535,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
 				.ChildProc   = @WndProc
-				Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or WS_VSCROLL
+				Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 			#endif
