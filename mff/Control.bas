@@ -1641,12 +1641,21 @@ Namespace My.Sys.Forms
 						If gtk_is_window(widget) Then
 							'g_signal_handlers_block_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), user_data)
 							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
-								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> e->configure.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> e->configure.y - 37 Then
+								Dim As GdkRectangle rect
+								gdk_window_get_frame_extents(gtk_widget_get_window(widget), @rect)
+								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> rect.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> rect.y Then
 									gtk_window_move(gtk_window(widget), _
-										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, e->configure.x), _
-										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, e->configure.y - 37))
+										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, rect.x), _
+										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, rect.y))
 								End If
 							End If
+'							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
+'								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> e->configure.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> e->configure.y - 37 Then
+'									gtk_window_move(gtk_window(widget), _
+'										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, e->configure.x), _
+'										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, e->configure.y - 37))
+'								End If
+'							End If
 							'g_signal_handlers_unblock_by_func(G_OBJECT (widget), G_CALLBACK(@ConfigureEventProc), user_data)
 							'g_signal_stop_emission_by_name(G_OBJECT(widget), "configure-event")
 							Return True
