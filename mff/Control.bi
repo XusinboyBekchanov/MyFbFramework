@@ -120,6 +120,7 @@ Namespace My.Sys.Forms
 				Declare Static Function Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Declare Static Function Control_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 				Declare Static Sub DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, Data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
+				Declare Static Function ConfigureEventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			#else
 				FToolInfo          As TOOLINFO
 			#endif
@@ -182,6 +183,7 @@ Namespace My.Sys.Forms
 			Declare Property ExStyle(Value As Integer)
 			Declare Virtual Sub ProcessMessage(ByRef message As Message)
 			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
+			Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			OnActiveControlChanged As Sub(ByRef Sender As Control)
 			#ifndef __USE_GTK__
 				OnHandleIsAllocated As Sub(ByRef Sender As Control)
@@ -212,106 +214,135 @@ Namespace My.Sys.Forms
 				ToolTipHandle       As HWND
 			#endif
 		Public:
+			'Canvas is all about drawing in a container (Windows, Linux).
 			Canvas        As My.Sys.Drawing.Canvas
+			'Activates the next control (Windows only).
 			Declare Function SelectNextControl(Prev As Boolean = False) As Control Ptr
+			'Reads value from the name of property (Windows, Linux).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+			'Writes value to the name of property (Windows, Linux).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			'Returs/sets a value indicating type is subclass or not (Windows only).
 			SubClass            As Boolean
-			'Returns a Font object.
+			'Returns a Font object (Windows, Linux).
 			Font               As My.Sys.Drawing.Font
-			'Returns/sets the type of mouse pointer displayed when over part of an object.
+			'Returns/sets the type of mouse pointer displayed when over part of an object (Windows, Linux).
 			Cursor             As My.Sys.Drawing.Cursor
-			'Specifies the default Help file context ID for an object.
+			'Specifies the default Help file context ID for an object (Windows only).
 			HelpContext        As Integer
+			'Specifies the size constraints for the control (Windows, Linux).
 			Constraints        As SizeConstraints
 			'Gets or sets a value indicating whether this control should redraw its surface using a secondary buffer to reduce or prevent flicker (Windows only)
 			DoubleBuffered     As Boolean
+			'Gets the collection of controls contained within the control (Windows, Linux).
 			Controls           As Control Ptr Ptr
-			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent.
+			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent (Windows, Linux).
 			Anchor             As AnchorType
+			'Gets or sets a value indicating whether the control can accept data that the user drags onto it (Windows, Linux).
 			Declare Property AllowDrop As Boolean
 			Declare Property AllowDrop(Value As Boolean)
+			'Gets or sets the programmatic identifier assigned to the control (Windows only).
 			Declare Property ID As Integer
 			Declare Property ID(Value As Integer)
-			'Returns/sets the border style for an object.
+			'Returns/sets the border style for an object (Windows, Linux).
 			Declare Property BorderStyle As Integer 'BorderStyles
 			Declare Property BorderStyle(Value As Integer)
-			'Returns/sets the PopupMenu associated with this control.
+			'Returns/sets the PopupMenu associated with this control (Windows, Linux).
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)
-			'Returns/sets the text contained in the control
+			'Returns/sets the text contained in the control (Windows, Linux).
 			Declare Virtual Property Text ByRef As WString
 			Declare Virtual Property Text(ByRef Value As WString)
-			'Returns/sets the text displayed when the mouse is paused over the control.
+			'Returns/sets the text displayed when the mouse is paused over the control (Windows, Linux).
 			Declare Property Hint ByRef As WString
 			Declare Property Hint(ByRef Value As WString)
+			'Returns/sets the value indicating show hint (Windows, Linux).
 			Declare Property ShowHint As Boolean
 			Declare Property ShowHint(Value As Boolean)
-			'Returns/sets the background color used to display text and graphics in an object.
+			'Returns/sets the background color used to display text and graphics in an object (Windows, Linux).
 			Declare Property BackColor As Integer
 			Declare Property BackColor(Value As Integer)
-			'Returns/sets the foreground color used to display text and graphics in an object.
+			'Returns/sets the foreground color used to display text and graphics in an object (Windows, Linux).
 			Declare Property ForeColor As Integer
 			Declare Property ForeColor(Value As Integer)
-			'Returns/sets the parent container of the control.
+			'Returns/sets the parent container of the control (Windows, Linux).
 			Declare Property Parent As Control Ptr
 			Declare Property Parent(Value As Control Ptr)
-			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent.
+			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent (Windows, Linux).
 			Declare Property Align As Integer 'DockStyle
 			Declare Property Align(Value As Integer) 'DockStyle
-			'Returns/sets the width of the client area of the control.
+			'Returns/sets the width of the client area of the control (Windows, Linux).
 			Declare Function ClientWidth As Integer
-			'Returns/sets the height of the client area of the control.
+			'Returns/sets the height of the client area of the control (Windows, Linux).
 			Declare Function ClientHeight As Integer
+			'Returns/sets the value indicating the first control of a group of controls (Windows only).
 			Declare Property Grouped As Boolean
 			Declare Property Grouped(Value As Boolean)
+			'Determines whether a window is a child window or descendant window of a specified parent window (Windows only).
 			Declare Property IsChild As Boolean
 			Declare Property IsChild(Value As Boolean)
-			'Returns/sets a value that determines whether an object can respond to user-generated events.
+			'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux).
 			Declare Property Enabled As Boolean
 			Declare Property Enabled(Value As Boolean)
-			'Returns/sets a value that determines whether an object is visible or hidden.
+			'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux).
 			Declare Property Visible As Boolean
 			Declare Property Visible(Value As Boolean)
+			'Gets the number of controls in the Control collection (Windows, Linux).
 			Declare Function ControlCount() As Integer
+			'Determines the length, in characters, of the text associated with a window (Windows, Linux).
 			Declare Function GetTextLength() As Integer
-			'Retrieves the form that the control is on.
+			'Retrieves the form that the control is on (Windows, Linux).
 			Declare Function GetForm() As Control Ptr
-			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in.
+			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in (Windows, Linux).
 			Declare Function TopLevelControl() As Control Ptr
-			'Returns a value indicating whether the control has input focus.
+			'Returns a value indicating whether the control has input focus (Windows, Linux).
 			Declare Function Focused As Boolean
+			'Retrieves the index of a specified Control object in the collection (Windows, Linux).
 			Declare Function IndexOf(Ctrl As Control Ptr) As Integer
 			Declare Function IndexOf(CtrlName As String) As Integer
+			'Retrieves the Control object from Control name in the collection (Windows, Linux).
 			Declare Function ControlByName(CtrlName As String) As Control Ptr
+			'Creates the window (Windows only)
 			Declare Sub CreateWnd
+			'Recreates the window (Windows only)
 			Declare Sub RecreateWnd
+			'Destroys the specified window handle (Windows, Linux).
 			Declare Sub FreeWnd
 			#ifndef __USE_GTK__
+				'Converts the client-area coordinates of a specified point to screen coordinates (Windows only).
 				Declare Sub ClientToScreen(ByRef P As Point)
+				'Converts the screen coordinates of a specified point on the screen to client coordinates (Windows only).
 				Declare Sub ScreenToClient(ByRef P As Point)
 			#endif
-			'Invalidates the entire surface of the control and causes the control to be redrawn.
+			'Invalidates the entire surface of the control and causes the control to be redrawn (Windows only).
 			Declare Sub Invalidate
-			'Forces the control to invalidate its client area and immediately redraw itself and any child controls.
+			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).
 			Declare Sub Repaint
-			'Causes the control to redraw the invalidated regions within its client area.
+			'Causes the control to redraw the invalidated regions within its client area (Windows, Linux).
 			Declare Sub Update
+			'Disables drawing in the specified window (Windows only).
 			Declare Sub UpdateLock
+			'Enables drawing in the specified window (Windows only).
 			Declare Sub UpdateUnLock
+			'Moves the focus to the specified form or the specified control on the active form (Windows, Linux).
 			Declare Sub SetFocus
-			'Brings the control to the front of the z-order.
+			'Brings the control to the front of the z-order (Windows only).
 			Declare Sub BringToFront
-			'Sends the control to the back of the z-order.
+			'Sends the control to the back of the z-order (Windows only).
 			Declare Sub SendToBack
+			'Instructs the parent of a control to reposition the control, enforcing its Align property (Windows, Linux).
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False)
-			'Displays the control to the user.
+			'Displays the control to the user (Windows, Linux).
 			Declare Virtual Sub Show
-			'Conceals the control from the user.
+			'Conceals the control from the user (Windows, Linux).
 			Declare Virtual Sub Hide
+			'Sets the left, top, right, bottom margins for a container control (Windows, Linux).
 			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
+			'Adds the specified control to the control collection (Windows, Linux).
 			Declare Sub Add(Ctrl As Control Ptr)
+			'Adds the specified controls range to the control collection (Windows, Linux).
 			Declare Sub AddRange cdecl(CountArgs As Integer, ...)
+			'Removes the specified control from the control collection (Windows, Linux).
 			Declare Sub Remove(Ctrl As Control Ptr)
 			Declare Operator Cast As Any Ptr
 			Declare Operator Let(ByRef Value As Control Ptr)

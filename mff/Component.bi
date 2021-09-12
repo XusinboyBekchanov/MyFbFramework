@@ -48,7 +48,7 @@ Namespace My.Sys.ComponentModel
 		#ifndef __USE_GTK__
 			FHandle     As HWND
 		#endif
-		Declare Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 		#ifdef __USE_GTK__
 			widget 			As GtkWidget Ptr
 			box 			As GtkWidget Ptr

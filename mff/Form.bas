@@ -1062,22 +1062,48 @@ Namespace My.Sys.Forms
 							gtk_window_set_icon_list(GTK_WINDOW(Widget), list1)
 						End If
 					End If
-					Select Case FBorderStyle
-					Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
-						Dim As GdkGeometry hints
-						hints.base_width = FWidth
-						hints.base_height = FHeight
-						hints.min_width = FWidth
-						hints.min_height = FHeight
-						hints.width_inc = 1
-						hints.height_inc = 1
-						If Gtk_Is_Window(Widget) Then
-							gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+					If Gtk_Is_Window(Widget) Then
+						Select Case FBorderStyle
+						Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
+							Dim As GdkGeometry hints
+							hints.base_width = FWidth
+							hints.base_height = FHeight
+							hints.min_width = FWidth
+							hints.min_height = FHeight
+							hints.max_width = FWidth
+							hints.max_height = FHeight
+							hints.width_inc = 1
+							hints.height_inc = 1
+							gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+						Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
+							
+						End Select
+						If Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
+							Dim As GdkGeometry hints
+							If Constraints.Width <> 0 Then
+								hints.base_width = Constraints.Width
+								hints.min_width = Constraints.Width
+								hints.max_width = Constraints.Width
+								hints.width_inc = 1
+							Else
+								hints.base_width = FWidth
+								hints.min_width = 0
+								hints.max_width = gdk_screen_get_width(gtk_widget_get_screen(widget))
+								hints.width_inc = 1
+							End If
+							If Constraints.Height <> 0 Then
+								hints.base_height = Constraints.Height
+								hints.min_height = Constraints.Height
+								hints.max_height = Constraints.Height
+								hints.height_inc = 1
+							Else
+								hints.base_height = FHeight
+								hints.min_height = 0
+								hints.max_height = gdk_screen_get_height(gtk_widget_get_screen(widget))
+								hints.height_inc = 1
+							End If
+							gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
 						End If
-					Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
-						
-					End Select
-					If gtk_is_window(widget) Then
 						Select Case FBorderStyle
 						Case FormBorderStyle.None
 							gtk_window_set_resizable(gtk_window(widget), False)

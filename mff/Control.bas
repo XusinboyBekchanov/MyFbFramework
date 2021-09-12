@@ -994,17 +994,16 @@ Namespace My.Sys.Forms
 				Case GDK_LEAVE_NOTIFY
 					If OnMouseLeave Then OnMouseLeave(This)
 				Case GDK_CONFIGURE
-					'If Constraints.Left <> 0 OrElse Constraints.Top <> 0 OrElse Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
-						'SetBounds(IIf(Constraints.Left, Constraints.Left, e->configure.x), IIf(Constraints.Top, Constraints.Top, e->configure.y), IIf(Constraints.Width, Constraints.Width, e->configure.Width), IIf(Constraints.Height, Constraints.Height, e->configure.Height))
-						'Message.Result = True
-					'End If
-'					If Constraints.Left <> 0 Then SetBounds(Constraints.Left, This.Top, ): Message.Result = True
-'					If Constraints.Top <> 0 Then e->configure.y  = Constraints.Top: Message.Result = True
-'					If Constraints.Width <> 0 Then e->configure.width = Constraints.Width: Message.Result = True
-'					If Constraints.Height <> 0 Then e->configure.height = Constraints.Height: Message.Result = True
+'					If Constraints.Left <> 0 OrElse Constraints.Top <> 0 OrElse Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
+'						g_signal_handlers_block_by_func(G_OBJECT(Message.widget), G_CALLBACK(@EventProc), @This)
+'						SetBounds(IIf(Constraints.Left, Constraints.Left, e->configure.x), IIf(Constraints.Top, Constraints.Top, e->configure.y), IIf(Constraints.Width, Constraints.Width, e->configure.Width), IIf(Constraints.Height, Constraints.Height, e->configure.Height))
+'						g_signal_handlers_unblock_by_func(G_OBJECT (Message.widget), G_CALLBACK(@EventProc), @This)
+'						g_signal_stop_emission_by_name(G_OBJECT(Message.widget), "event")
+'						Message.Result = True
+'					End If
 					If OnMove Then OnMove(This)
 					'If OnResize Then OnResize(This)
-					RequestAlign
+					'RequestAlign
 					'Requests @This
 					'Message.Result = True
 				Case GDK_DRAG_ENTER
@@ -1543,6 +1542,10 @@ Namespace My.Sys.Forms
 			Return NULL
 		End Function
 		
+		Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+			Base.Move IIf(Constraints.Left, Constraints.Left, cLeft), IIf(Constraints.Top, Constraints.Top, cTop), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
+		End Sub
+			
 		#ifdef __USE_GTK__
 			Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
@@ -1631,6 +1634,28 @@ Namespace My.Sys.Forms
 				End If
 			End Sub
 			
+			Function Control.ConfigureEventProc(widget As GtkWidget Ptr, e As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+				Dim As Control Ptr Ctrl = user_data
+				If Ctrl Then
+					If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 OrElse Ctrl->Constraints.Width <> 0 OrElse Ctrl->Constraints.Height <> 0 Then
+						If gtk_is_window(widget) Then
+							'g_signal_handlers_block_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), user_data)
+							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
+								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> e->configure.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> e->configure.y - 37 Then
+									gtk_window_move(gtk_window(widget), _
+										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, e->configure.x), _
+										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, e->configure.y - 37))
+								End If
+							End If
+							'g_signal_handlers_unblock_by_func(G_OBJECT (widget), G_CALLBACK(@ConfigureEventProc), user_data)
+							'g_signal_stop_emission_by_name(G_OBJECT(widget), "configure-event")
+							Return True
+						End If
+					End If
+				End If
+				Return False
+			End Function
+			
 			Function Control.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Dim As Boolean Result
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
@@ -1672,6 +1697,7 @@ Namespace My.Sys.Forms
 					GDK_POINTER_MOTION_HINT_MASK)
 					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+					Result = g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(@ConfigureEventProc), @This)
 				End If
 				If scrolledwidget Then
 					Result = g_signal_connect(scrolledwidget, "scroll-child", G_CALLBACK(@Control_Scroll), @This)
@@ -2008,7 +2034,9 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					Dim As Boolean bAdded
-					If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
+					'If Not FDesignMode Then
+						If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
+					'End If
 					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget))
 					If gtk_is_widget(Ctrlwidget) Then
 						If layoutwidget Then
