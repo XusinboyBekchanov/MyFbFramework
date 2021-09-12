@@ -171,9 +171,11 @@ Namespace My.Sys.ComponentModel
 				Dim As Component Ptr cParent = FParent
 				If cParent Then
 					#ifdef __USE_GTK__
-						If cParent->widget AndAlso gtk_is_frame(cParent->widget) Then
-							iTop -= 20
-						End If
+						'If Not FDesignMode Then
+							If cParent->widget AndAlso gtk_is_frame(cParent->widget) Then
+								iTop -= 20
+							End If
+						'End If
 					#endif
 					iLeft = iLeft + cParent->Margins.Left
 					iTop = iTop + cParent->Margins.Top
@@ -287,20 +289,27 @@ Namespace My.Sys.ComponentModel
 	#ifndef Top_Off
 		Property Component.Top As Integer
 			#ifdef __USE_GTK__
+				Dim ControlChanged As Boolean
 				If gtk_is_window(widget) Then
 					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
 				ElseIf scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(scrolledwidget, @allocation)
 					FTop = allocation.y
+					ControlChanged = True
 				ElseIf eventboxwidget AndAlso gtk_widget_get_mapped(eventboxwidget) Then
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(eventboxwidget, @allocation)
 					FTop = allocation.y
+					ControlChanged = True
 				ElseIf widget AndAlso gtk_widget_get_mapped(widget) Then
 					Dim allocation As GtkAllocation
 					gtk_widget_get_allocation(widget, @allocation)
 					FTop = allocation.y
+					ControlChanged = True
+				End If
+				If CInt(ControlChanged) AndAlso CInt(Parent) AndAlso CInt(Parent->ClassName = "GroupBox") Then
+					FTop + = 20
 				End If
 			#else
 				If FHandle Then
