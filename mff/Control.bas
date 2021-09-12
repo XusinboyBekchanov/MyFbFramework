@@ -2177,20 +2177,24 @@ Namespace My.Sys.Forms
 		End Constructor
 		
 		Destructor Control
-'			#ifdef __USE_GTK__
-'				If layoutwidget Then
-'					#ifdef __USE_GTK3__
-'						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)
-'					#else
-'						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_ExposeEvent), @This)
-'						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_SizeAllocate), @This)
-'					#endif
-'				End If
-'				If widget Then
-'					g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@EventProc), @This)
-'					g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@EventAfterProc), @This)
-'				End If
-'			#endif
+			#ifdef __USE_GTK__
+				If gtk_is_widget(layoutwidget) Then
+					#ifdef __USE_GTK3__
+						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)
+					#else
+						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_ExposeEvent), @This)
+						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_SizeAllocate), @This)
+					#endif
+				End If
+				If gtk_is_widget(widget) Then
+					g_signal_handlers_disconnect_by_func(IIf(eventboxwidget, eventboxwidget, widget), G_CALLBACK(@EventProc), @This)
+					g_signal_handlers_disconnect_by_func(IIf(eventboxwidget, eventboxwidget, widget), G_CALLBACK(@EventAfterProc), @This)
+					g_signal_handlers_disconnect_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), @This)
+				End If
+				If gtk_is_widget(scrolledwidget) Then
+					g_signal_handlers_disconnect_by_func(scrolledwidget, G_CALLBACK(@Control_Scroll), @This)
+				End If
+			#endif
 			FreeWnd
 			'If FText Then Deallocate FText
 			If FHint Then Deallocate FHint
