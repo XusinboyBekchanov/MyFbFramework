@@ -336,7 +336,7 @@ Namespace My.Sys.Forms
 	'    End Property
 	
 	Property ComboBoxEx.Text ByRef As WString
-		If This.FStyle = cbDropDownList Then
+		If This.FStyle >= cbDropDownList Then
 			FText = This.Items.Item(This.ItemIndex)->Text
 		Else
 			#ifdef __USE_GTK__
