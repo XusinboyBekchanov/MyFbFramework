@@ -463,13 +463,13 @@ Namespace My.Sys.Forms
 						'SendMessage message.hWnd, CB_GETLBTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
 						If lpdis->itemID >= 0 AndAlso lpdis->itemID < Items.Count Then
 							zTxt = Items.Item(lpdis->itemID)->Text
-							TextOut lpdis->hDC, lpdis->rcItem.Left + 18 + 3 + Items.Item(lpdis->itemID)->Indent * 11, lpdis->rcItem.top + 1, @zTxt, Len(zTxt)     'Draw text
+							TextOut lpdis->hDC, lpdis->rcItem.Left + 18 + 3 + IIf(lpdis->itemState And ODS_COMBOBOXEDIT, 0, Items.Item(lpdis->itemID)->Indent * 11), lpdis->rcItem.top + 1, @zTxt, Len(zTxt)     'Draw text
 							'DRAW IMAGE
 							rc.Left   = lpdis->rcItem.Left + 2 : rc.Right = lpdis->rcItem.Left + 15               'Set cordinates
-							rc.top    = lpdis->rcItem.top
+							rc.top    = lpdis->rcItem.top + 1
 							rc.bottom = lpdis->rcItem.bottom - 1
 							If ImagesList AndAlso ImagesList->Handle Then
-								ImageList_Draw(ImagesList->Handle, Items.Item(lpdis->itemID)->ImageIndex, lpdis->hDC, rc.Left + Items.Item(lpdis->itemID)->Indent * 11, rc.Top, ILD_TRANSPARENT)
+								ImageList_Draw(ImagesList->Handle, Items.Item(lpdis->itemID)->ImageIndex, lpdis->hDC, rc.Left + IIf(lpdis->itemState And ODS_COMBOBOXEDIT, 0, Items.Item(lpdis->itemID)->Indent * 11), rc.Top, ILD_TRANSPARENT)
 							End If
 						End If
 						Message.Result = True : Exit Sub
