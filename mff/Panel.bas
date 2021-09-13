@@ -53,6 +53,14 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
+	Property Panel.Text ByRef As WString
+		Return WGet(FText)
+	End Property
+	
+	Property Panel.Text(ByRef Value As WString)
+		Base.Text = Value
+	End Property
+		
 	Property Panel.BevelInner As Integer
 		Return FBevelInner
 	End Property

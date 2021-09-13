@@ -54,6 +54,8 @@ Namespace My.Sys.Forms
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
+		Declare Virtual Property Text ByRef As WString
+		Declare Virtual Property Text(ByRef Value As WString)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

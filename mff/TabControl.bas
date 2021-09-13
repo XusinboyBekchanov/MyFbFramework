@@ -18,8 +18,8 @@ Namespace My.Sys.Forms
 		Function TabPage.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "parent": Return FParent
-			Case "text": Return FText.vptr
-			Case "caption": Return FText.vptr
+			Case "text": Return FCaption
+			Case "caption": Return FCaption
 			Case "usevisualstylebackcolor": Return @UseVisualStyleBackColor
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -299,6 +299,22 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TabControl.TabStop(Value As Boolean)
+		ChangeTabStop Value
+	End Property
+	
+	Property TabPage.TabIndex As Integer
+		Return FTabIndex
+	End Property
+	
+	Property TabPage.TabIndex(Value As Integer)
+		ChangeTabIndex Value
+	End Property
+	
+	Property TabPage.TabStop As Boolean
+		Return FTabStop
+	End Property
+	
+	Property TabPage.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
