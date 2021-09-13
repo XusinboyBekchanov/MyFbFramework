@@ -6,6 +6,9 @@
 '###############################################################################
 
 #include once "ComboBoxEx.bi"
+#ifndef __USE_GTK__
+	#include once "Registry.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Function ComboBoxItem.Index As Integer
@@ -527,7 +530,6 @@ Namespace My.Sys.Forms
 		Items.Parent       = @This
 		FIntegralHeight    = False
 		FTabStop           = True
-		Base.FStyle             = cbOwnerDrawFixed
 		ItemHeight         = 13
 		FDropDownCount     = 8
 		With This
@@ -535,7 +537,14 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
 				.ChildProc   = @WndProc
-				Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
+				Select Case ReadRegistry(HKEY_LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "DisplayVersion")
+				Case "1809", "19H1"
+					Base.FStyle             = cbOwnerDrawFixed
+					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
+				Case Else
+					Base.FStyle             = cbDropDownList
+					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or WS_VSCROLL
+				End Select
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 			#endif
