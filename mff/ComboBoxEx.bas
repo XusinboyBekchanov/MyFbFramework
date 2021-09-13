@@ -537,13 +537,14 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
 				.ChildProc   = @WndProc
-				If ReadRegistry(HKEY_LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "DisplayVersion") = "1809" Then
+				Select Case ReadRegistry(HKEY_LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "DisplayVersion")
+				Case "1809", "19H1"
 					Base.FStyle             = cbOwnerDrawFixed
 					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
-				Else
+				Case Else
 					Base.FStyle             = cbDropDownList
 					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or WS_VSCROLL
-				End If
+				End Select
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 			#endif
