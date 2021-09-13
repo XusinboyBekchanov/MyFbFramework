@@ -68,10 +68,9 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property GroupBox.Text(ByRef Value As WString)
+		Base.Text = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_frame_set_label(GTK_FRAME(widget), ToUtf8(Value))
-		#else
-			Base.Text = Value
 		#endif
 	End Property
 	
