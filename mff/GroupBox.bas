@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 				ReleaseDC Handle, Dc
    				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			Case WM_COMMAND
-				'CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
+				CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
 			Case CM_CTLCOLOR
 '				Static As HDC Dc
 '				Dc = Cast(HDC, Message.wParam)
