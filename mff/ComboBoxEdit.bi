@@ -103,6 +103,7 @@ Namespace My.Sys.Forms
 		Declare Static Sub RegisterClass
 		Declare Constructor
 		Declare Destructor
+		OnActivate          As Sub(ByRef Sender As ComboBoxEdit)
 		OnChange            As Sub(ByRef Sender As ComboBoxEdit)
 		OnDblClick          As Sub(ByRef Sender As ComboBoxEdit)
 		OnDropDown          As Sub(ByRef Sender As ComboBoxEdit)

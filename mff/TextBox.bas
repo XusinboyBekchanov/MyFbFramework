@@ -1069,9 +1069,12 @@ Namespace My.Sys.Forms
 						SelText = !"\t"
 					End If
 				End If
+				If message.wParam = VK_RETURN Then
+					If OnActivate Then OnActivate(This)
+				End If
 				If ParentHandle>0 Then
 					Select Case message.wParam
-					Case VK_RETURN, VK_ESCAPE,VK_DOWN, VK_UP,VK_LEFT,VK_RIGHT,VK_TAB
+					Case VK_RETURN, VK_ESCAPE, VK_DOWN, VK_UP, VK_LEFT, VK_RIGHT, VK_TAB
 						PostMessage(ParentHandle, CM_COMMAND, Message.wParam, 9999)
 						'case VK_HOME,VK_END,VK_PRIOR,VK_NEXT,VK_INSERT,VK_DELETE,VK_BACK
 						'case VK_MENU 'VK_CONTROL VK_SHIFT
@@ -1224,6 +1227,7 @@ Namespace My.Sys.Forms
 		Sub TextBox.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			Dim As Control Ptr btn = txt->GetForm()->FDefaultButton
+			If txt->OnActivate Then txt->OnActivate(*txt)
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
 		End Sub
 		

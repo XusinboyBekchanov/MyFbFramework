@@ -26,6 +26,8 @@ Namespace My.Sys.Forms
 			SIF             As SCROLLINFO
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#else
+			Declare Static Sub Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
@@ -49,7 +51,6 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChange As Sub(ByRef Sender As VScrollBar)
 		OnScroll As Sub(ByRef Sender As VScrollBar, ByRef NewPos As UInteger)
 	End Type
 End Namespace

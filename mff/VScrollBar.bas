@@ -11,10 +11,17 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
+#include once "VScrollBar.bi"
 
 Namespace My.Sys.Forms
 	Function VScrollBar.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "arrowchangesize": Return @This.FArrowChangeSize
+		Case "maxvalue": Return @This.FMax
+		Case "minvalue": Return @This.FMin
+		Case "pagesize": Return @This.FPageSize
+		Case "position": Return @This.FPosition
+		Case "style": Return @This.FStyle
 		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -23,6 +30,13 @@ Namespace My.Sys.Forms
 	
 	Function VScrollBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "arrowchangesize": This.ArrowChangeSize = QInteger(Value)
+		Case "maxvalue": This.MinValue = QInteger(Value)
+		Case "minvalue": This.MinValue = QInteger(Value)
+		Case "pagesize": This.PageSize = QInteger(Value)
+		Case "position": This.Position = QInteger(Value)
+		Case "style": This.Style = *Cast(ScrollBarControlStyle Ptr, Value)
+		Case "tabindex": TabIndex = QInteger(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -51,7 +65,9 @@ Namespace My.Sys.Forms
 	
 	Property VScrollBar.MinValue(Value As Integer)
 		FMin = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			gtk_range_set_range(gtk_range(widget), FMin, FMax)
+		#else
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
 	End Property
@@ -62,18 +78,27 @@ Namespace My.Sys.Forms
 	
 	Property VScrollBar.MaxValue(Value As Integer)
 		FMax = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			gtk_range_set_range(gtk_range(widget), FMin, FMax)
+		#else
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
 	End Property
 	
 	Property VScrollBar.Position As Integer
+		#ifdef __USE_GTK__
+			FPosition = gtk_range_get_value(gtk_range(widget))
+		#else
+			If Handle Then FPosition = Perform(SBM_GETPOS, 0, 0)
+		#endif
 		Return FPosition
 	End Property
 	
 	Property VScrollBar.Position(Value As Integer)
 		FPosition = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			gtk_range_set_value(gtk_range(widget), CDbl(Value))
+		#else
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
 		#endif
 	End Property
@@ -84,6 +109,9 @@ Namespace My.Sys.Forms
 	
 	Property VScrollBar.ArrowChangeSize(Value As Integer)
 		FArrowChangeSize = Value
+		#ifdef __USE_GTK__
+			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+		#endif
 	End Property
 	
 	Property VScrollBar.PageSize As Integer
@@ -93,7 +121,9 @@ Namespace My.Sys.Forms
 	Property VScrollBar.PageSize(Value As Integer)
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+		#else
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
 			If Handle Then Perform(SBM_SETSCROLLINFO, True, CInt(@SIF))
@@ -173,17 +203,30 @@ Namespace My.Sys.Forms
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub ScrollBarControl.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
+			Dim As ScrollBarControl Ptr scr = user_data
+			If scr->OnScroll Then scr->OnScroll(*scr, gtk_range_get_value(range))
+		End Sub
+	#endif
+	
 	Constructor VScrollBar
 		#ifdef __USE_GTK__
-			widget = gtk_vscrollbar_new(NULL)
+			#ifdef __USE_GTK3__
+				widget = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL)
+			#else
+				widget = gtk_vscrollbar_new(NULL)
+			#endif
+			g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
 			This.RegisterClass "VScrollBar", @This
 		#else
 			SIF.cbSize = SizeOf(SCROLLINFO)
 		#endif
-		FMin       = 0
-		FMax       = 100
-		FPosition  = 0
-		PageSize   = 1
+		MaxValue        = 100
+		MinValue        = 0
+		Position        = 0
+		ArrowChangeSize = 1
+		PageSize        = 3
 		FTabIndex          = -1
 		With This
 			.Child       = @This

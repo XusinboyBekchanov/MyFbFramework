@@ -518,6 +518,9 @@ Namespace My.Sys.Forms
 			Case WM_KEYDOWN
 				If OnKeyDown Then OnKeyDown(This, Message.wParam, Message.wParam And &HFFFF)
 			Case WM_KEYUP
+				If message.wParam = VK_RETURN Then
+					If OnActivate Then OnActivate(This)
+				End If
 				If OnKeyUp Then OnKeyUp(This, Message.wParam, Message.wParam And &HFFFF)
 			End Select
 		#endif
@@ -603,6 +606,7 @@ Namespace My.Sys.Forms
 		Sub ComboBoxEdit.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			Dim As Control Ptr btn = cbo->GetForm()->FDefaultButton
+			If cbo->OnActivate Then cbo->OnActivate(*cbo)
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
 		End Sub
 	#endif
