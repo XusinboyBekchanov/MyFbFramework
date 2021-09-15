@@ -838,10 +838,6 @@ Property ColorDialog.Caption(ByRef Value As WString)
 	WLet(_Caption, Value)
 End Property
 
-#ifdef __USE_GTK__
-	#define BGR(r, g, b) (Cast(UByte, (r)) Or (Cast(UShort, Cast(UByte, (g))) Shl 8)) Or (Cast(UShort, Cast(UByte, (b))) Shl 16)
-#endif
-
 Function ColorDialog.Execute As Boolean
 	#ifdef __USE_GTK__
 		Dim As Boolean bResult

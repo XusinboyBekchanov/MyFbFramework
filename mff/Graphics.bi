@@ -94,6 +94,9 @@ Declare Function ColorToRGB(FColor As Integer) As Integer
 Declare Function GetRed(FColor As Long) As Integer
 Declare Function GetGreen(FColor As Long) As Integer
 Declare Function GetBlue(FColor As Long) As Integer
+#ifdef __USE_GTK__
+	#define BGR(r, g, b) (Cast(UByte, (r)) Or (Cast(UShort, Cast(UByte, (g))) Shl 8)) Or (Cast(UShort, Cast(UByte, (b))) Shl 16)
+#endif
 
 'End Namespace
 

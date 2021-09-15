@@ -13,6 +13,8 @@
 #include once "Application.bi"
 #ifndef __USE_GTK__
 	#include once "Win/ShlObj.bi"
+#else
+	#include once "Graphics.bi"
 #endif
 
 Const OFN_ENABLEINCLUDENOTIFY = &H400000
