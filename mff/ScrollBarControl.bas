@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 	Function ScrollBarControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "arrowchangesize": This.ArrowChangeSize = QInteger(Value)
-		Case "maxvalue": This.MinValue = QInteger(Value)
+		Case "maxvalue": This.MaxValue = QInteger(Value)
 		Case "minvalue": This.MinValue = QInteger(Value)
 		Case "pagesize": This.PageSize = QInteger(Value)
 		Case "position": This.Position = QInteger(Value)

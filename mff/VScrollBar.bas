@@ -31,12 +31,11 @@ Namespace My.Sys.Forms
 	Function VScrollBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "arrowchangesize": This.ArrowChangeSize = QInteger(Value)
-		Case "maxvalue": This.MinValue = QInteger(Value)
+		Case "maxvalue": This.MaxValue = QInteger(Value)
 		Case "minvalue": This.MinValue = QInteger(Value)
 		Case "pagesize": This.PageSize = QInteger(Value)
 		Case "position": This.Position = QInteger(Value)
 		Case "style": This.Style = *Cast(ScrollBarControlStyle Ptr, Value)
-		Case "tabindex": TabIndex = QInteger(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
