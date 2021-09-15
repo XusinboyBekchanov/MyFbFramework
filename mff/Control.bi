@@ -137,13 +137,13 @@ Namespace My.Sys.Forms
 			FClientWidth       As Integer
 			FClientHeight      As Integer
 			FBackColor         As Integer
-			FBackColorRed      As Integer
-			FBackColorGreen    As Integer
-			FBackColorBlue     As Integer
+			FBackColorRed      As Double
+			FBackColorGreen    As Double
+			FBackColorBlue     As Double
 			FForeColor         As Integer
-			FForeColorRed      As Integer
-			FForeColorGreen    As Integer
-			FForeColorBlue     As Integer
+			FForeColorRed      As Double
+			FForeColorGreen    As Double
+			FForeColorBlue     As Double
 			FStoredFont        As My.Sys.Drawing.Font
 			FMenu              As MainMenu Ptr
 			FContextMenu       As PopupMenu Ptr
