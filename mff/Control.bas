@@ -2002,13 +2002,42 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub Control.BringToFront
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				If This.Parent AndAlso This.Parent->layoutwidget Then
+					Dim As Integer iLeft = This.Left, iTop = This.Top
+					Dim As GtkWidget Ptr CtrlWidget = widget
+					If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+						CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+					End If
+					g_object_ref(CtrlWidget)
+					gtk_container_remove(gtk_container(This.Parent->layoutwidget), CtrlWidget)
+					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
+				End If
+			#else
 				If Handle Then SetWindowPos Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE 'BringWindowToTop Handle
 			#endif
 		End Sub
 		
 		Sub Control.SendToBack
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				If This.Parent AndAlso This.Parent->layoutwidget Then
+					Dim As Integer iLeft, iTop
+					Dim As GtkWidget Ptr CtrlWidget
+					For i As Integer = 0 To This.Parent->ControlCount - 1
+						If widget <> This.Parent->Controls[i]->widget Then
+							CtrlWidget = This.Parent->Controls[i]->widget
+							If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+								CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+							End If
+							iLeft = This.Parent->Controls[i]->Left
+							iTop = This.Parent->Controls[i]->Top
+							g_object_ref(CtrlWidget)
+							gtk_container_remove(gtk_container(This.Parent->layoutwidget), CtrlWidget)
+							gtk_layout_put(gtk_layout(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
+						End If
+					Next
+				End If
+			#else
 				If Handle Then SetWindowPos Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			#endif
 		End Sub
