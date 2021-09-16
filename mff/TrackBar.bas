@@ -111,6 +111,7 @@ Namespace My.Sys.Forms
 		FMinValue = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_range(gtk_range(widget), Value, FMaxValue)
+			TickStyle = FTickStyle
 		#else
 			If Handle Then Perform(TBM_SETRANGEMIN, 1, Value)
 		#endif
@@ -125,6 +126,7 @@ Namespace My.Sys.Forms
 		FMaxValue = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_range(gtk_range(widget), FMinValue, Value)
+			TickStyle = FTickStyle
 		#else
 			If Handle Then Perform(TBM_SETRANGEMAX, 1, Value)
 		#endif
