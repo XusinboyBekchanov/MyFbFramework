@@ -310,7 +310,19 @@ Namespace My.Sys.Forms
 						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 					End If
 				Next
-			Case 2
+			Case 2: gtk_scale_clear_marks(gtk_scale(widget))
+				If FTickMark = tmTopLeft Then
+					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+				ElseIf FTickMark = tmBottomRight Then
+					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+				ElseIf FTickMark = tmBoth Then
+					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+				End If
 			End Select
 		#else
 			Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
