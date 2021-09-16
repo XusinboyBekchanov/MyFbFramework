@@ -89,6 +89,7 @@ Namespace My.Sys.Forms
 		Declare Property Style As TrackBarOrientation
 		Declare Property Style(Value As TrackBarOrientation) ' TrackBarOrientation
 		Declare Sub AddTickMark(Value As Integer)
+		Declare Sub ClearTickMarks
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

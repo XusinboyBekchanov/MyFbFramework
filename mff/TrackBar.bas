@@ -279,6 +279,27 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	
+	Sub TrackBar.ClearTickMarks
+		#ifdef __USE_GTK__
+			gtk_scale_clear_marks(gtk_scale(widget))
+			If FTickMark = tmTopLeft Then
+				gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+				gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+			ElseIf FTickMark = tmBottomRight Then
+				gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+				gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+			ElseIf FTickMark = tmBoth Then
+				gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+				gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+				gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+				gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+			End If
+		#else
+			If Handle Then Perform(TBM_CLEARTICS, True, 0)
+		#endif
+	End Sub
+	
 	Property TrackBar.TickMark As TickMarks
 		Return FTickMark
 	End Property
