@@ -266,10 +266,13 @@ Namespace My.Sys.Forms
 	
 	Sub TrackBar.AddTickMark(Value As Integer)
 		#ifdef __USE_GTK__
-			If FStyle = tbHorizontal Then
-				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FTickMark = tmTopLeft, GTK_POS_TOP, GTK_POS_BOTTOM), 0)
-			Else
-				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FTickMark = tmTopLeft, GTK_POS_LEFT, GTK_POS_RIGHT), 0)
+			If FTickMark = tmTopLeft Then
+				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+			ElseIf FTickMark = tmBottomRight Then
+				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+			ElseIf FTickMark = tmBoth Then
+				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 			End If
 		#else
 			If Handle Then Perform(TBM_SETTIC, 0, Value)
