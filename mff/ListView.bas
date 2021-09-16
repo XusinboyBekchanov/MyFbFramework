@@ -211,9 +211,9 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Const LVIS_UNCHECKED = 4096
-    Const LVIS_CHECKED = 8192
-    Const LVIS_CHECKEDMASK = 12288
-    
+	Const LVIS_CHECKED = 8192
+	Const LVIS_CHECKEDMASK = 12288
+	
 	Property ListViewItem.Checked As Boolean
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -522,7 +522,11 @@ Namespace My.Sys.Forms
 	
 	Function ListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As ListViewItem Ptr
 		PItem = New_( ListViewItem)
-		FItems.Add PItem
+		If Index = -1 Then
+			FItems.Add PItem
+		Else
+			FItems.Insert Index, PItem
+		End If
 		With *PItem
 			.ImageIndex     = FImageIndex
 			.Text(0)        = FCaption
@@ -1021,8 +1025,15 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Dim As ListViewItem Ptr lvi = ListItems.FindByIterUser_Data(iter.User_Data)
-				If lvi <> 0 Then Return lvi->Index
+				Dim As Integer i
+				Dim As GtkTreePath Ptr path
+				
+				path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
+				i = gtk_tree_path_get_indices(path)[0]
+				gtk_tree_path_free(path)
+				'				Dim As ListViewItem Ptr lvi = ListItems.FindByIterUser_Data(iter.User_Data)
+				'				If lvi <> 0 Then Return lvi->Index
+				Return i
 			End If
 		#else
 			If Handle Then
@@ -1038,8 +1049,10 @@ Namespace My.Sys.Forms
 				If Value = -1 Then
 					gtk_tree_selection_unselect_all(TreeSelection)
 				ElseIf Value > -1 AndAlso Value < ListItems.Count Then
-					gtk_tree_selection_select_iter(TreeSelection, @ListItems.Item(Value)->TreeIter)
-					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @ListItems.Item(Value)->TreeIter), NULL, False, 0, 0)
+					Dim As GtkTreeIter iter
+					gtk_tree_model_get_iter_from_string(gtk_tree_model(ListStore), @iter, Trim(Str(Value)))
+					gtk_tree_selection_select_iter(TreeSelection, @iter)
+					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
 				End If
 			End If
 		#else
@@ -1347,11 +1360,11 @@ Namespace My.Sys.Forms
 		#endif
 		ListItems.Parent = @This
 		Columns.Parent = @This
-		FView = vsDetails 
-		DoubleBuffered = True 
+		FView = vsDetails
+		DoubleBuffered = True
 		FEnabled = True
 		FGridLines = True
-		FFullRowSelect = True 
+		FFullRowSelect = True
 		FVisible = True
 		FTabIndex          = -1
 		FTabStop = True
