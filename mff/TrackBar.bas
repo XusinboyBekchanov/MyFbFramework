@@ -279,13 +279,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TrackBar.TickMark(Value As TickMarks)
-		If FTickMark <> Value Then
-			FTickMark = Value
-			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
-				RecreateWnd
-			#endif
-		End If
+		FTickMark = Value
+		#ifdef __USE_GTK__
+			TickStyle = FTickStyle 
+		#else
+			Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
+			RecreateWnd
+		#endif
 	End Property
 	
 	Property TrackBar.TickStyle As TickStyles
@@ -299,10 +299,13 @@ Namespace My.Sys.Forms
 			Case 0: gtk_scale_clear_marks(gtk_scale(widget))
 			Case 1: gtk_scale_clear_marks(gtk_scale(widget))
 				For i As Integer = FMinValue To FMaxValue Step FFrequency
-					If FStyle = tbHorizontal Then
-						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FTickMark = tmTopLeft, GTK_POS_TOP, GTK_POS_BOTTOM), 0)
-					Else
-						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FTickMark = tmTopLeft, GTK_POS_LEFT, GTK_POS_RIGHT), 0)
+					If FTickMark = tmTopLeft Then
+						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					ElseIf FTickMark = tmBottomRight Then
+						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+					ElseIf FTickMark = tmBoth Then
+						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 					End If
 				Next
 			Case 2
