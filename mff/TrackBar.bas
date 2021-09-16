@@ -27,7 +27,6 @@ Namespace My.Sys.Forms
 		Case "slidervisible": Return @FSliderVisible
 		Case "style": Return @FStyle
 		Case "tabindex": Return @FTabIndex
-		Case "tick": Return @FTick
 		Case "tickmark": Return @FTickMark
 		Case "tickstyle": Return @FTickStyle
 		Case "thumblength": Return @FThumbLength
@@ -54,7 +53,6 @@ Namespace My.Sys.Forms
 			Case "slidervisible": SliderVisible = QBoolean(Value)
 			Case "style": This.Style = *Cast(TrackBarOrientation Ptr, Value)
 			Case "tabindex": This.TabIndex = QInteger(Value)
-			Case "tick": Tick = QInteger(Value)
 			Case "tickmark": This.TickMark = *Cast(TickMarks Ptr, Value)
 			Case "tickstyle": This.TickStyle = *Cast(TickStyles Ptr, Value)
 			Case "thumblength": ThumbLength = QInteger(Value)
@@ -110,7 +108,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TrackBar.MinValue(Value As Integer)
-		SetRanges(FPosition, Value, FMaxValue)
+		FMinValue = Value
+		#ifdef __USE_GTK__
+			gtk_range_set_range(gtk_range(widget), Value, FMaxValue)
+		#else
+			If Handle Then Perform(TBM_SETRANGEMIN, 1, Value)
+		#endif
+		'SetRanges(FPosition, Value, FMaxValue)
 	End Property
 	
 	Property TrackBar.MaxValue As Integer
@@ -118,15 +122,33 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TrackBar.MaxValue(Value As Integer)
-		SetRanges(FPosition, FMinValue, Value)
+		FMaxValue = Value
+		#ifdef __USE_GTK__
+			gtk_range_set_range(gtk_range(widget), FMinValue, Value)
+		#else
+			If Handle Then Perform(TBM_SETRANGEMAX, 1, Value)
+		#endif
+		'SetRanges(FPosition, FMinValue, Value)
 	End Property
 	
 	Property TrackBar.Position As Integer
+		#ifdef __USE_GTK__
+			FPosition = gtk_range_get_value(gtk_range(widget))
+		#else
+			If Handle Then FPosition = Perform(TBM_GETPOS, 0, 0)
+		#endif
 		Return FPosition
 	End Property
 	
 	Property TrackBar.Position(Value As Integer)
-		SetRanges(Value, FMinValue, FMaxValue)
+		FPosition = Value
+		#ifdef __USE_GTK__
+			gtk_range_set_value(gtk_range(widget), CDbl(Value))
+		#else
+			If Handle Then Perform(TBM_SETPOS, FPosition, True)
+		#endif
+		If OnChange Then OnChange(This, FPosition)
+		'SetRanges(Value, FMinValue, FMaxValue)
 	End Property
 	
 	Property TrackBar.LineSize  As Integer
@@ -136,7 +158,9 @@ Namespace My.Sys.Forms
 	Property TrackBar.LineSize(Value As Integer)
 		If Value <> FLineSize Then
 			FLineSize = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				gtk_range_set_increments(gtk_range(widget), FLineSize, FPageSize)
+			#else
 				If Handle Then Perform(TBM_SETLINESIZE, 0, FLineSize)
 			#endif
 		End If
@@ -149,7 +173,9 @@ Namespace My.Sys.Forms
 	Property TrackBar.PageSize(Value As Integer)
 		If Value <> FPageSize Then
 			FPageSize = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				gtk_range_set_increments(gtk_range(widget), FLineSize, FPageSize)
+			#else
 				If Handle Then Perform(TBM_SETPAGESIZE, 0, FPageSize)
 			#endif
 		End If
@@ -162,7 +188,9 @@ Namespace My.Sys.Forms
 	Property TrackBar.ThumbLength(Value As Integer)
 		If Value <> FThumbLength Then
 			FThumbLength = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				gtk_range_set_min_slider_size(gtk_range(widget), Value)
+			#else
 				If Handle Then Perform(TBM_SETTHUMBLENGTH, Value, 0)
 			#endif
 		End If
@@ -175,7 +203,9 @@ Namespace My.Sys.Forms
 	Property TrackBar.Frequency(Value As Integer)
 		If Value <> FFrequency Then
 			FFrequency = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				TickStyle = FTickStyle
+			#else
 				If Handle Then Perform(TBM_SETTICFREQ, FFrequency, 1)
 			#endif
 		End If
@@ -219,7 +249,7 @@ Namespace My.Sys.Forms
 	
 	Property TrackBar.SelEnd(Value As Integer)
 		If Value <> SelEnd Then
-			SelEnd = Value
+			FSelEnd = Value
 			#ifndef __USE_GTK__
 				If Handle Then
 					If (FSelStart = 0) And (FSelEnd = 0) Then
@@ -232,16 +262,17 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TrackBar.Tick As Integer
-		Return FTick
-	End Property
-	
-	Property TrackBar.Tick(Value As Integer)
-		FTick = Value
-		#ifndef __USE_GTK__
-			If Handle Then Perform(TBM_SETTIC, 0, FTick)
+	Sub TrackBar.AddTickMark(Value As Integer)
+		#ifdef __USE_GTK__
+			If FStyle = tbHorizontal Then
+				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FTickMark = tmTopLeft, GTK_POS_TOP, GTK_POS_BOTTOM), 0)
+			Else
+				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FTickMark = tmTopLeft, GTK_POS_LEFT, GTK_POS_RIGHT), 0)
+			End If
+		#else
+			If Handle Then Perform(TBM_SETTIC, 0, Value)
 		#endif
-	End Property
+	End Sub
 	
 	Property TrackBar.TickMark As TickMarks
 		Return FTickMark
@@ -262,13 +293,24 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TrackBar.TickStyle(Value As TickStyles)
-		If FTickStyle <> Value Then
-			FTickStyle = Value
-			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
-				RecreateWnd
-			#endif
-		End If
+		FTickStyle = Value
+		#ifdef __USE_GTK__
+			Select Case FTickStyle
+			Case 0: gtk_scale_clear_marks(gtk_scale(widget))
+			Case 1: gtk_scale_clear_marks(gtk_scale(widget))
+				For i As Integer = FMinValue To FMaxValue Step FFrequency
+					If FStyle = tbHorizontal Then
+						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FTickMark = tmTopLeft, GTK_POS_TOP, GTK_POS_BOTTOM), 0)
+					Else
+						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FTickMark = tmTopLeft, GTK_POS_LEFT, GTK_POS_RIGHT), 0)
+					End If
+				Next
+			Case 2
+			End Select
+		#else
+			Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
+			RecreateWnd
+		#endif
 	End Property
 	
 	Property TrackBar.Style As TrackBarOrientation
@@ -276,18 +318,27 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TrackBar.Style(Value As TrackBarOrientation)
-		Dim As Integer OldStyle,Temp
+		Dim As Integer OldStyle
+		Dim As Integer iWidth, iHeight
 		OldStyle = FStyle
 		If FStyle <> Value Then
 			FStyle = Value
 			If OldStyle = 0 Then
-				Temp = This.Width
-				This.Width = This.Height
-				This.Height = Temp
+				iHeight = Height
+				iWidth = This.Width
+				#ifdef __USE_GTK__
+					gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_VERTICAL)
+				#endif
+				Height = iWidth
+				This.Width  = iHeight
 			Else
-				Temp = This.Height
-				This.Height = This.Width
-				This.Width = Temp
+				iWidth = This.Width
+				iHeight = Height
+				#ifdef __USE_GTK__
+					gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_HORIZONTAL)
+				#endif
+				This.Width = iHeight
+				Height  = iWidth
 			End If
 			#ifndef __USE_GTK__
 				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
@@ -323,10 +374,10 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_HSCROLL
-				Position = Perform(TBM_GETPOS, 0, 0)
+				FPosition = Perform(TBM_GETPOS, 0, 0)
 				If OnChange Then OnChange(This, Position)
 			Case CM_VSCROLL
-				Position = Perform(TBM_GETPOS, 0, 0)
+				FPosition = Perform(TBM_GETPOS, 0, 0)
 				If OnChange Then OnChange(This, Position)
 			End Select
 		#endif
@@ -345,6 +396,8 @@ Namespace My.Sys.Forms
 			#else
 				widget = gtk_hscale_new(NULL)
 			#endif
+			gtk_range_set_slider_size_fixed(gtk_range(widget), True)
+			gtk_scale_set_draw_value(gtk_scale(widget), False)
 			This.RegisterClass "TrackBar", @This
 		#else
 			Dim As INITCOMMONCONTROLSEX ICC
@@ -363,20 +416,20 @@ Namespace My.Sys.Forms
 			ASliderVisible(0) = TBS_NOTHUMB
 			ASliderVisible(1) = 0
 		#endif
-		FMinValue         = 0
-		FMaxValue         = 10
-		FFrequency        = 1
-		FSliderVisible    = 1
-		FLineSize         = 1
-		FPageSize         = 2
-		FFrequency        = 1
-		FThumbLength      = 20
-		FTickMark        = 0
-		FTickStyle        = 1
-		FTabIndex          = -1
-		FTabStop          = True
+		MaxValue         = 10
+		MinValue         = 0
+		Frequency        = 1
+		SliderVisible    = 1
+		LineSize         = 1
+		PageSize         = 2
+		Frequency        = 1
+		ThumbLength      = 20
+		TickMark         = tmBottomRight
+		TickStyle        = tsAuto
+		FTabIndex        = -1
+		FTabStop         = True
 		With This
-			.Child             = @This
+			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "TrackBar", TRACKBAR_CLASS
 				.ChildProc         = @WndProc

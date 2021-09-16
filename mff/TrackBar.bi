@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 	#define QTrackBar(__Ptr__) *Cast(TrackBar Ptr,__Ptr__)
 	
 	Enum TrackBarOrientation
-		tbVertical,tbHorizontal
+		tbHorizontal, tbVertical
 	End Enum
 	
 	Enum TickMarks
@@ -34,7 +34,6 @@ Namespace My.Sys.Forms
 		FMinValue         As Integer
 		FMaxValue         As Integer
 		FStyle            As TrackBarOrientation
-		FTick             As Integer
 		FTickMark         As TickMarks
 		FTickStyle        As TickStyles
 		FLineSize         As Integer
@@ -81,14 +80,13 @@ Namespace My.Sys.Forms
 		Declare Property SelEnd(Value As Integer)
 		Declare Property SliderVisible As Boolean
 		Declare Property SliderVisible(Value As Boolean)
-		Declare Property Tick As Integer
-		Declare Property Tick(Value As Integer)
 		Declare Property TickStyle As TickStyles
 		Declare Property TickStyle(Value As TickStyles)
 		Declare Property TickMark As TickMarks
 		Declare Property TickMark(Value As TickMarks)
 		Declare Property Style As TrackBarOrientation
 		Declare Property Style(Value As TrackBarOrientation) ' TrackBarOrientation
+		Declare Sub AddTickMark(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
