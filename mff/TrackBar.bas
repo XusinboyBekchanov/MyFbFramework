@@ -408,6 +408,14 @@ Namespace My.Sys.Forms
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub TrackBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
+			Dim As TrackBar Ptr trb = user_data
+			If trb->OnScroll Then trb->OnScroll(*trb)
+			If trb->OnChange Then trb->OnChange(*trb, gtk_range_get_value(range))
+		End Sub
+	#endif
+	
 	Constructor TrackBar
 		Dim As Boolean Result
 		#ifdef __USE_GTK__
@@ -418,6 +426,7 @@ Namespace My.Sys.Forms
 			#endif
 			gtk_range_set_slider_size_fixed(gtk_range(widget), True)
 			gtk_scale_set_draw_value(gtk_scale(widget), False)
+			g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
 			This.RegisterClass "TrackBar", @This
 		#else
 			Dim As INITCOMMONCONTROLSEX ICC

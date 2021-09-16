@@ -50,6 +50,8 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#else
+			Declare Static Sub Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
