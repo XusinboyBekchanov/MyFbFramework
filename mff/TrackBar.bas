@@ -16,8 +16,21 @@
 Namespace My.Sys.Forms
 	Function TrackBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "frequency": Return @FFrequency
+		Case "maxvalue": Return @FMaxValue
+		Case "minvalue": Return @FMinValue
+		Case "linesize": Return @FLineSize
+		Case "pagesize": Return @FPageSize
+		Case "position": Return @FPosition
+		Case "selstart": Return @FSelStart
+		Case "selend": Return @FSelEnd
+		Case "slidervisible": Return @FSliderVisible
 		Case "style": Return @FStyle
 		Case "tabindex": Return @FTabIndex
+		Case "tick": Return @FTick
+		Case "tickmark": Return @FTickMark
+		Case "tickstyle": Return @FTickStyle
+		Case "thumblength": Return @FThumbLength
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -30,8 +43,21 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
-			Case "style": This.Style = QInteger(Value)
+			Case "frequency": This.Frequency = QInteger(Value)
+			Case "maxvalue": MaxValue = QInteger(Value)
+			Case "minvalue": MinValue = QInteger(Value)
+			Case "linesize": LineSize = QInteger(Value)
+			Case "pagesize": PageSize = QInteger(Value)
+			Case "position": Position = QInteger(Value)
+			Case "selstart": SelStart = QInteger(Value)
+			Case "selend": SelEnd = QInteger(Value)
+			Case "slidervisible": SliderVisible = QBoolean(Value)
+			Case "style": This.Style = *Cast(TrackBarOrientation Ptr, Value)
 			Case "tabindex": This.TabIndex = QInteger(Value)
+			Case "tick": Tick = QInteger(Value)
+			Case "tickmark": This.TickMark = *Cast(TickMarks Ptr, Value)
+			Case "tickstyle": This.TickStyle = *Cast(TickStyles Ptr, Value)
+			Case "thumblength": ThumbLength = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -163,7 +189,7 @@ Namespace My.Sys.Forms
 		If Value <> FSliderVisible Then
 			FSliderVisible = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMarks)) Or ASliderVisible(Abs_(FSliderVisible))
+				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
 			#endif
 		End If
 	End Property
@@ -217,48 +243,54 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TrackBar.TickMarks As Integer
-		Return FTickMarks
+	Property TrackBar.TickMark As TickMarks
+		Return FTickMark
 	End Property
 	
-	Property TrackBar.TickMarks(Value As Integer)
-		If FTickMarks <> Value Then
-			FTickMarks = Value
+	Property TrackBar.TickMark(Value As TickMarks)
+		If FTickMark <> Value Then
+			FTickMark = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMarks)) Or ASliderVisible(Abs_(FSliderVisible))
+				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
+				RecreateWnd
 			#endif
 		End If
 	End Property
 	
-	Property TrackBar.TickStyle As Integer
+	Property TrackBar.TickStyle As TickStyles
 		Return FTickStyle
 	End Property
 	
-	Property TrackBar.TickStyle(Value As Integer)
+	Property TrackBar.TickStyle(Value As TickStyles)
 		If FTickStyle <> Value Then
 			FTickStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMarks)) Or ASliderVisible(Abs_(FSliderVisible))
+				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
+				RecreateWnd
 			#endif
 		End If
 	End Property
 	
-	Property TrackBar.Style As Integer
+	Property TrackBar.Style As TrackBarOrientation
 		Return FStyle
 	End Property
 	
-	Property TrackBar.Style(Value As Integer)
+	Property TrackBar.Style(Value As TrackBarOrientation)
 		Dim As Integer OldStyle,Temp
 		OldStyle = FStyle
 		If FStyle <> Value Then
 			FStyle = Value
 			If OldStyle = 0 Then
 				Temp = This.Width
-				This.Width = Height
-				Height = Temp
+				This.Width = This.Height
+				This.Height = Temp
+			Else
+				Temp = This.Height
+				This.Height = This.Width
+				This.Width = Temp
 			End If
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMarks)) Or ASliderVisible(Abs_(FSliderVisible))
+				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
 			#endif
 		End If
 	End Property
@@ -339,7 +371,7 @@ Namespace My.Sys.Forms
 		FPageSize         = 2
 		FFrequency        = 1
 		FThumbLength      = 20
-		FTickMarks        = 0
+		FTickMark        = 0
 		FTickStyle        = 1
 		FTabIndex          = -1
 		FTabStop          = True
@@ -349,7 +381,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "TrackBar", TRACKBAR_CLASS
 				.ChildProc         = @WndProc
 				.ExStyle           = 0
-				Base.Style             = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMarks)) Or ASliderVisible(Abs_(FSliderVisible))
+				Base.Style             = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				WLet(FClassAncestor, TRACKBAR_CLASS)
 				.OnHandleIsAllocated = @HandleIsAllocated

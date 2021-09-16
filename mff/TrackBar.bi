@@ -20,11 +20,11 @@ Namespace My.Sys.Forms
 		tbVertical,tbHorizontal
 	End Enum
 	
-	Enum TickMark
+	Enum TickMarks
 		tmBottomRight, tmTopLeft, tmBoth
 	End Enum
 	
-	Enum TickStyle
+	Enum TickStyles
 		tsNone, tsAuto, tsManual
 	End Enum
 	
@@ -33,10 +33,10 @@ Namespace My.Sys.Forms
 		FPosition         As Integer
 		FMinValue         As Integer
 		FMaxValue         As Integer
-		FStyle            As Integer
+		FStyle            As TrackBarOrientation
 		FTick             As Integer
-		FTickMarks        As Integer
-		FTickStyle        As Integer
+		FTickMark         As TickMarks
+		FTickStyle        As TickStyles
 		FLineSize         As Integer
 		FPageSize         As Integer
 		FThumbLength      As Integer
@@ -83,12 +83,12 @@ Namespace My.Sys.Forms
 		Declare Property SliderVisible(Value As Boolean)
 		Declare Property Tick As Integer
 		Declare Property Tick(Value As Integer)
-		Declare Property TickStyle As Integer
-		Declare Property TickStyle(Value As Integer)
-		Declare Property TickMarks As Integer
-		Declare Property TickMarks(Value As Integer)
-		Declare Property Style As Integer
-		Declare Property Style(Value As Integer) ' TrackBarOrientation
+		Declare Property TickStyle As TickStyles
+		Declare Property TickStyle(Value As TickStyles)
+		Declare Property TickMark As TickMarks
+		Declare Property TickMark(Value As TickMarks)
+		Declare Property Style As TrackBarOrientation
+		Declare Property Style(Value As TrackBarOrientation) ' TrackBarOrientation
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
@@ -96,6 +96,6 @@ Namespace My.Sys.Forms
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "TrackBar.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "TrackBar.bas"
+#endif
