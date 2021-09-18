@@ -215,7 +215,13 @@ Namespace My.Sys.Forms
 	Const LVIS_CHECKEDMASK = 12288
 	
 	Property ListViewItem.Checked As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			Dim As Boolean bChecked
+			gtk_tree_model_get_iter_from_string(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @iter, Trim(Str(This.Index)))
+			gtk_tree_model_get(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @iter, 0, @bChecked, -1)
+			Return bChecked
+		#else
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -229,7 +235,11 @@ Namespace My.Sys.Forms
 	
 	Property ListViewItem.Checked(Value As Boolean)
 		FChecked = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkTreeIter iter
+			gtk_tree_model_get_iter_from_string(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @iter, Trim(Str(This.Index)))
+			gtk_list_store_set(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @Iter, 0, Value, -1)
+		#else
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -704,6 +714,25 @@ Namespace My.Sys.Forms
 			If lv = 0 Then Exit Sub
 			If lv->OnCellEdited Then lv->OnCellEdited(*lv, Val(*path), PColumn->Index, *new_text)
 		End Sub
+	
+		Sub ListViewColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
+			Dim As ListView Ptr lv = user_data
+			Dim As GtkListStore Ptr model = gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(lv->Handle)))
+			Dim As GtkTreeIter iter
+			Dim As gboolean active
+			
+			active = gtk_cell_renderer_toggle_get_active (cell)
+			
+			gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (model), @iter, path)
+			
+			If (active) Then
+				'gtk_cell_renderer_set_alignment(GTK_CELL_RENDERER(cell), 0, 0)
+				gtk_list_store_set (GTK_LIST_STORE (model), @iter, 0, False, -1)
+			Else
+				'gtk_cell_renderer_set_alignment(GTK_CELL_RENDERER(cell), 0.5, 0.5)
+				gtk_list_store_set (GTK_LIST_STORE (model), @iter, 0, True, -1)
+			End If
+		End Sub
 	#endif
 	
 	Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As ListViewColumn Ptr
@@ -739,6 +768,13 @@ Namespace My.Sys.Forms
 					'g_object_set(rendertext, "editable", bTrue, NULL)
 				End If
 				If Index = 0 Then
+					If Cast(ListView Ptr, Parent)->CheckBoxes Then
+						Dim As GtkCellRenderer Ptr rendertoggle = gtk_cell_renderer_toggle_new()
+						gtk_tree_view_column_pack_start(PColumn->Column, rendertoggle, False)
+						gtk_tree_view_column_add_attribute(PColumn->Column, rendertoggle, ToUTF8("active"), 0)
+						'gtk_cell_renderer_toggle_set_activatable(gtk_cell_renderer_toggle(rendertoggle), True)
+						g_signal_connect(rendertoggle, "toggled", G_CALLBACK(@check), Parent)
+					End If
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
 					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 0)
@@ -845,14 +881,21 @@ Namespace My.Sys.Forms
 	Sub ListView.Init()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(gtk_tree_view(widget)) = NULL Then
+				Dim As Integer iCheckBoxes = 0
 				With This
 					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
-					.ColumnTypes = New_( GType[Columns.Count - 1 + 2])
-					For i As Integer = 0 To Columns.Count - 1 + 1
+					If CheckBoxes Then
+						iCheckBoxes = 1
+					End If
+					.ColumnTypes = New_( GType[Columns.Count - 1 + 2 + iCheckBoxes])
+					For i As Integer = iCheckBoxes To Columns.Count - 1 + 1 + iCheckBoxes
 						.ColumnTypes[i] = G_TYPE_STRING
 					Next i
+					If CheckBoxes Then
+						.ColumnTypes[0] = G_TYPE_BOOLEAN
+					End If
 				End With
-				gtk_list_store_set_column_types(ListStore, Columns.Count + 1, ColumnTypes)
+				gtk_list_store_set_column_types(ListStore, Columns.Count + 1 + iCheckBoxes, ColumnTypes)
 				gtk_tree_view_set_model(gtk_tree_view(widget), GTK_TREE_MODEL(ListStore))
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			End If

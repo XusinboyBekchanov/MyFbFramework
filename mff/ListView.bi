@@ -179,6 +179,7 @@ Namespace My.Sys.Forms
 		FColumns As List
 		#ifdef __USE_GTK__
 			Declare Static Sub Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+			Declare Static Sub Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 		#endif
 	Public:
 		Parent   As Control Ptr
