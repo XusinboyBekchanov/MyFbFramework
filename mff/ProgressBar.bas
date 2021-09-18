@@ -252,11 +252,11 @@ Namespace My.Sys.Forms
 		
 		Sub ProgressBar.WndProc(ByRef Message As Message)
 		End Sub
-		
-		Sub ProgressBar.ProcessMessage(ByRef Message As Message)
-			Base.ProcessMessage(Message)
-		End Sub
 	#endif
+	
+	Sub ProgressBar.ProcessMessage(ByRef Message As Message)
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Sub ProgressBar.StepIt
 		#ifdef __USE_GTK__

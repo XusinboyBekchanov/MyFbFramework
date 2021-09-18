@@ -37,12 +37,12 @@ Namespace My.Sys.Forms
 		AOrientation(2) As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#else
 			Declare Static Function progress_cb(ByVal user_data As gpointer) As gboolean
 			Dim progress_bar_timer_id As UInteger
 		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub SetRange(AMin As Integer,AMax As Integer)
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
