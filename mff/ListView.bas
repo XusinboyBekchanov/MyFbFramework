@@ -87,8 +87,8 @@ Namespace My.Sys.Forms
 	
 	Sub ListViewItem.SelectItem
 		#ifdef __USE_GTK__
-			If Parent AndAlso Cast(ListView Ptr, Parent)->TreeSelection Then
-				gtk_tree_selection_select_iter(Cast(ListView Ptr, Parent)->TreeSelection, @TreeIter)
+			If Parent AndAlso gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)) Then
+				gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)), @TreeIter)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -142,8 +142,8 @@ Namespace My.Sys.Forms
 			End If
 			If iSubItem < cc Then FSubItems.Item(iSubItem) = Value
 			#ifdef __USE_GTK__
-				If Cast(ListView Ptr, Parent)->ListStore Then
-					gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @TreeIter, iSubItem + 1, ToUtf8(Value), -1)
+				If gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
+					gtk_list_store_set(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, iSubItem + 1, ToUtf8(Value), -1)
 				End If
 			#else
 				If Parent->Handle Then
@@ -300,7 +300,7 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
+				gtk_list_store_set (gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Value), -1)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
@@ -536,11 +536,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Cast(ListView Ptr, Parent)->Init
 			If Index = -1 Then
-				gtk_list_store_append(Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter)
+				gtk_list_store_append(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @PItem->TreeIter)
 			Else
-				gtk_list_store_insert(Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter, Index)
+				gtk_list_store_insert(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @PItem->TreeIter, Index)
 			End If
-			gtk_list_store_set (Cast(ListView Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
+			gtk_list_store_set (gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
 		#else
 			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
@@ -607,7 +607,7 @@ Namespace My.Sys.Forms
 	Sub ListViewItems.Remove(Index As Integer)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_remove(Cast(ListView Ptr, Parent)->ListStore, @This.Item(Index)->TreeIter)
+				gtk_list_store_remove(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @This.Item(Index)->TreeIter)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -659,7 +659,7 @@ Namespace My.Sys.Forms
 	
 	Sub ListViewItems.Clear
 		#ifdef __USE_GTK__
-			If Parent AndAlso Cast(ListView Ptr, Parent)->ListStore Then gtk_list_store_clear(Cast(ListView Ptr, Parent)->ListStore)
+			If Parent AndAlso gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))) Then gtk_list_store_clear(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))))
 		#else
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
@@ -724,15 +724,8 @@ Namespace My.Sys.Forms
 		End With
 		#ifdef __USE_GTK__
 			If Parent Then
-				With *Cast(ListView Ptr, Parent)
-					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
-					.ColumnTypes = New_( GType[Index + 2])
-					For i As Integer = 0 To Index + 1
-						.ColumnTypes[i] = G_TYPE_STRING
-					Next i
-				End With
 				PColumn->Column = gtk_tree_view_column_new()
-				gtk_tree_view_column_set_reorderable(PColumn->Column, *Cast(ListView Ptr, Parent)->AllowColumnReorder)
+				gtk_tree_view_column_set_reorderable(PColumn->Column, Cast(ListView Ptr, Parent)->AllowColumnReorder)
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
@@ -852,6 +845,13 @@ Namespace My.Sys.Forms
 	Sub ListView.Init()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(gtk_tree_view(widget)) = NULL Then
+				With This
+					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
+					.ColumnTypes = New_( GType[Columns.Count - 1 + 2])
+					For i As Integer = 0 To Columns.Count - 1 + 1
+						.ColumnTypes[i] = G_TYPE_STRING
+					Next i
+				End With
 				gtk_list_store_set_column_types(ListStore, Columns.Count + 1, ColumnTypes)
 				gtk_tree_view_set_model(gtk_tree_view(widget), GTK_TREE_MODEL(ListStore))
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
@@ -922,7 +922,7 @@ Namespace My.Sys.Forms
 		FAllowColumnReorder = Value
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To Columns.Count - 1
-				gtk_tree_view_column_set_reorderable(ListView.Columns.Column(i)->Column, Value)
+				gtk_tree_view_column_set_reorderable(Columns.Column(i)->Column, Value)
 			Next
 		#else
 			ChangeLVExStyle LVS_EX_HEADERDRAGDROP, Value
