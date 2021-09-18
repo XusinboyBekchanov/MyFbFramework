@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 			If FMarquee Then
 				gtk_progress_bar_pulse(GTK_PROGRESS_BAR(widget))
 			Else
-				Position += FStep
+				Position = Position + FStep
 			End If
 		#else
 			If Handle Then Perform(PBM_STEPIT, 0, 0)
@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 			If FMarquee Then
 				gtk_progress_bar_pulse(GTK_PROGRESS_BAR(widget))
 			Else
-				Position += Delta
+				Position = Position + Delta
 			End If
 		#else
 			If Handle Then  Perform(PBM_DELTAPOS, Delta, 0)
