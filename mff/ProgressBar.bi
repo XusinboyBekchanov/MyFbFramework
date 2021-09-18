@@ -30,18 +30,23 @@ Namespace My.Sys.Forms
 		FSmooth      As Boolean
 		FMarquee     As Boolean
 		FMarqueeOn   As Boolean
-		FOrientation As Integer
+		FOrientation As ProgressBarOrientation
 		ASmooth(2)   As Integer
 		AMarquee(2)  As Integer
 		FMarqueeInterval As Integer
 		AOrientation(2) As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#else
+			Declare Static Function progress_cb(ByVal user_data As gpointer) As gboolean
+			Dim progress_bar_timer_id As UInteger
 		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub SetRange(AMin As Integer,AMax As Integer)
 	Public:
+		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property MinValue As Integer
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer
@@ -54,17 +59,18 @@ Namespace My.Sys.Forms
 		Declare Property Smooth(Value As Boolean)
 		Declare Property Marquee As Boolean
 		Declare Property Marquee(Value As Boolean)
-		Declare Property Orientation As Integer
-		Declare Property Orientation(Value As Integer)
+		Declare Property Orientation As ProgressBarOrientation
+		Declare Property Orientation(Value As ProgressBarOrientation)
 		Declare Operator Cast As Control Ptr
 		Declare Sub SetMarquee(MarqueeOn As Boolean, Interval As Integer)
+		Declare Sub StopMarquee
 		Declare Sub StepIt
 		Declare Sub StepBy(Delta As Integer)
 		Declare Constructor
 		Declare Destructor
 	End Type
-End namespace
+End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ProgressBar.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ProgressBar.bas"
+#endif
