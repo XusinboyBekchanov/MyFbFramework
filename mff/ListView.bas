@@ -143,7 +143,7 @@ Namespace My.Sys.Forms
 			If iSubItem < cc Then FSubItems.Item(iSubItem) = Value
 			#ifdef __USE_GTK__
 				If gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-					gtk_list_store_set(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, iSubItem + 1, ToUtf8(Value), -1)
+					gtk_list_store_set(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, iSubItem + 1 + IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUtf8(Value), -1)
 				End If
 			#else
 				If Parent->Handle Then
@@ -310,7 +310,7 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_set (gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Value), -1)
+				gtk_list_store_set (gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUTF8(Value), -1)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
@@ -550,7 +550,7 @@ Namespace My.Sys.Forms
 			Else
 				gtk_list_store_insert(gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @PItem->TreeIter, Index)
 			End If
-			gtk_list_store_set (gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
+			gtk_list_store_set (gtk_list_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @PItem->TreeIter, 1 + IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUtf8(FCaption), -1)
 		#else
 			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
@@ -767,6 +767,10 @@ Namespace My.Sys.Forms
 					'g_object_set(gtk_cell_renderer_text(rendertext), "editable-set", true, NULL)
 					'g_object_set(rendertext, "editable", bTrue, NULL)
 				End If
+				Dim As Integer iCheckBoxes = 0
+				If Cast(ListView Ptr, Parent)->CheckBoxes Then
+					iCheckBoxes = 1
+				End If
 				If Index = 0 Then
 					If Cast(ListView Ptr, Parent)->CheckBoxes Then
 						Dim As GtkCellRenderer Ptr rendertoggle = gtk_cell_renderer_toggle_new()
@@ -777,11 +781,11 @@ Namespace My.Sys.Forms
 					End If
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
-					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 0)
+					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), iCheckBoxes)
 				End If
 				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				gtk_tree_view_column_pack_start(PColumn->Column, rendertext, True)
-				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
+				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1 + iCheckBoxes)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(ListView Ptr, Parent)->Handle), PColumn->Column)
