@@ -732,6 +732,7 @@ Namespace My.Sys.Forms
 					Next i
 				End With
 				PColumn->Column = gtk_tree_view_column_new()
+				gtk_tree_view_column_set_reorderable(PColumn->Column, *Cast(ListView Ptr, Parent)->AllowColumnReorder)
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
@@ -919,7 +920,11 @@ Namespace My.Sys.Forms
 	
 	Property ListView.AllowColumnReorder(Value As Boolean)
 		FAllowColumnReorder = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			For i As Integer = 0 To Columns.Count - 1
+				gtk_tree_view_column_set_reorderable(ListView.Columns.Column(i)->Column, Value)
+			Next
+		#else
 			ChangeLVExStyle LVS_EX_HEADERDRAGDROP, Value
 		#endif
 	End Property
@@ -941,7 +946,9 @@ Namespace My.Sys.Forms
 	
 	Property ListView.GridLines(Value As Boolean)
 		FGridLines = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
+		#else
 			ChangeLVExStyle LVS_EX_GRIDLINES, Value
 		#endif
 	End Property
@@ -1112,8 +1119,6 @@ Namespace My.Sys.Forms
 	
 	Sub ListView.WndProc(ByRef Message As Message)
 	End Sub
-	
-	
 	
 	Sub ListView.ProcessMessage(ByRef Message As Message)
 		'?message.msg, GetMessageName(message.msg)

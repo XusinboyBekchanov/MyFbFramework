@@ -246,15 +246,15 @@ Namespace My.Sys.Forms
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
-	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#ifdef __USE_GTK__
 			ListStore As GtkListStore Ptr
 			TreeSelection As GtkTreeSelection Ptr
 			ColumnTypes As GType Ptr
 		#endif
 		Declare Sub Init()
+	Public:
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		ListItems         As ListViewItems
 		Columns         As ListViewColumns
 		Images          As ImageList Ptr

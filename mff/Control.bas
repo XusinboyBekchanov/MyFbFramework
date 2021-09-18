@@ -241,7 +241,15 @@ Namespace My.Sys.Forms
 			
 			Property Control.BorderStyle(Value As Integer)
 				FBorderStyle = Value
-				#ifndef __USE_GTK__
+				#ifdef __USE_GTK__
+					If scrolledwidget Then
+						If Value Then
+							gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
+						Else
+							gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_NONE)
+						End If
+					End If
+				#else
 					ChangeExStyle WS_EX_CLIENTEDGE, Value
 				#endif
 			End Property
