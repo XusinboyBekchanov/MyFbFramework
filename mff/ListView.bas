@@ -138,10 +138,12 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Function GetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
-			If gtk_is_tree_view(widget) Then
-				Return gtk_tree_view_get_model(gtk_tree_view(widget))
-			Else
-				Return gtk_icon_view_get_model(gtk_icon_view(widget))
+			If gtk_is_widget(widget) Then
+				If gtk_is_tree_view(widget) Then
+					Return gtk_tree_view_get_model(gtk_tree_view(widget))
+				Else
+					Return gtk_icon_view_get_model(gtk_icon_view(widget))
+				End If
 			End If
 		End Function
 	#endif
@@ -159,7 +161,7 @@ Namespace My.Sys.Forms
 			If iSubItem < cc Then FSubItems.Item(iSubItem) = Value
 			#ifdef __USE_GTK__
 				If GetModel(Parent->Handle) Then
-					gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, iSubItem + 1 + IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUtf8(Value), -1)
+					gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, iSubItem + 1 + 1 + IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUtf8(Value), -1)
 				End If
 			#else
 				If Parent->Handle Then
@@ -326,7 +328,9 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUTF8(Value), -1)
+				Dim As GError Ptr gerr
+				gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUTF8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+				gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0) + 1, ToUTF8(Value), -1)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
@@ -566,7 +570,7 @@ Namespace My.Sys.Forms
 			Else
 				gtk_list_store_insert(gtk_list_store(GetModel(Parent->Handle)), @PItem->TreeIter, Index)
 			End If
-			gtk_list_store_set (gtk_list_store(GetModel(Parent->Handle)), @PItem->TreeIter, 1 + IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUtf8(FCaption), -1)
+			gtk_list_store_set (gtk_list_store(GetModel(Parent->Handle)), @PItem->TreeIter, 1 + 1 + IIf(Cast(ListView Ptr, Parent)->CheckBoxes, 1, 0), ToUtf8(FCaption), -1)
 		#else
 			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
@@ -797,11 +801,11 @@ Namespace My.Sys.Forms
 					End If
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
-					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), iCheckBoxes)
+					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), iCheckBoxes + 1)
 				End If
 				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				gtk_tree_view_column_pack_start(PColumn->Column, rendertext, True)
-				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1 + iCheckBoxes)
+				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1 + iCheckBoxes + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
 				If gtk_is_tree_view(Parent->Handle) Then
@@ -912,19 +916,20 @@ Namespace My.Sys.Forms
 					If CheckBoxes Then
 						iCheckBoxes = 1
 					End If
-					.ColumnTypes = New_( GType[Columns.Count - 1 + 2 + iCheckBoxes])
-					For i As Integer = iCheckBoxes To Columns.Count - 1 + 1 + iCheckBoxes
+					.ColumnTypes = New_( GType[Columns.Count - 1 + 2 + iCheckBoxes + 1])
+					For i As Integer = iCheckBoxes + 1 To Columns.Count - 1 + 1 + iCheckBoxes + 1
 						.ColumnTypes[i] = G_TYPE_STRING
 					Next i
 					If CheckBoxes Then
 						.ColumnTypes[0] = G_TYPE_BOOLEAN
 					End If
+					.ColumnTypes[iCheckBoxes] = GDK_TYPE_PIXBUF
 				End With
-				gtk_list_store_set_column_types(ListStore, Columns.Count + 1 + iCheckBoxes, ColumnTypes)
+				gtk_list_store_set_column_types(ListStore, Columns.Count + 1 + iCheckBoxes + 1, ColumnTypes)
 				gtk_tree_view_set_model(GTK_TREE_VIEW(TreeViewWidget), GTK_TREE_MODEL(ListStore))
 				gtk_icon_view_set_model(GTK_ICON_VIEW(IconViewWidget), GTK_TREE_MODEL(ListStore))
 				gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(IconViewWidget), iCheckBoxes)
-				gtk_icon_view_set_text_column(GTK_ICON_VIEW(IconViewWidget), iCheckBoxes + 1)
+				gtk_icon_view_set_text_column(GTK_ICON_VIEW(IconViewWidget), iCheckBoxes + 1 + 1)
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(TreeViewWidget), True)
 			End If
 		#endif
@@ -963,8 +968,8 @@ Namespace My.Sys.Forms
 		FSingleClickActivate = Value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(widget), Value)
-				gtk_icon_view_set_activate_on_single_click(gtk_icon_view(widget), Value)
+				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(TreeViewWidget), Value)
+				gtk_icon_view_set_activate_on_single_click(gtk_icon_view(IconViewWidget), Value)
 			#else
 				
 			#endif
@@ -1119,8 +1124,20 @@ Namespace My.Sys.Forms
 	Property ListView.SelectedItem As ListViewItem Ptr
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Return ListItems.FindByIterUser_Data(iter.User_Data)
+			If gtk_is_icon_view(widget) Then
+				Dim As GList Ptr list = gtk_icon_view_get_selected_items(gtk_icon_view(widget))
+				Dim As GtkTreePath Ptr path
+				Dim i As Integer
+				If (list) Then
+					path = list->Data
+					i = gtk_tree_path_get_indices(path)[0]
+				End If
+				g_list_free_full(list, Cast(GDestroyNotify, @gtk_tree_path_free))
+				Return ListItems.Item(i)
+			Else
+				If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
+					Return ListItems.FindByIterUser_Data(iter.User_Data)
+				End If
 			End If
 		#else
 			If Handle Then
@@ -1134,16 +1151,28 @@ Namespace My.Sys.Forms
 	Property ListView.SelectedItemIndex As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Dim As Integer i
+			If gtk_is_icon_view(widget) Then
+				Dim As GList Ptr list = gtk_icon_view_get_selected_items(gtk_icon_view(widget))
 				Dim As GtkTreePath Ptr path
-				
-				path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
-				i = gtk_tree_path_get_indices(path)[0]
-				gtk_tree_path_free(path)
-				'				Dim As ListViewItem Ptr lvi = ListItems.FindByIterUser_Data(iter.User_Data)
-				'				If lvi <> 0 Then Return lvi->Index
+				Dim i As Integer
+				If (list) Then
+					path = list->Data
+					i = gtk_tree_path_get_indices(path)[0]
+				End If
+				g_list_free_full(list, Cast(GDestroyNotify, @gtk_tree_path_free))
 				Return i
+			Else
+				If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
+					Dim As Integer i
+					Dim As GtkTreePath Ptr path
+					
+					path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
+					i = gtk_tree_path_get_indices(path)[0]
+					gtk_tree_path_free(path)
+					'				Dim As ListViewItem Ptr lvi = ListItems.FindByIterUser_Data(iter.User_Data)
+					'				If lvi <> 0 Then Return lvi->Index
+					Return i
+				End If
 			End If
 		#else
 			If Handle Then
@@ -1155,14 +1184,18 @@ Namespace My.Sys.Forms
 	
 	Property ListView.SelectedItemIndex(Value As Integer)
 		#ifdef __USE_GTK__
-			If TreeSelection Then
-				If Value = -1 Then
-					gtk_tree_selection_unselect_all(TreeSelection)
-				ElseIf Value > -1 AndAlso Value < ListItems.Count Then
-					Dim As GtkTreeIter iter
-					gtk_tree_model_get_iter_from_string(gtk_tree_model(ListStore), @iter, Trim(Str(Value)))
-					gtk_tree_selection_select_iter(TreeSelection, @iter)
-					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
+			If gtk_is_icon_view(widget) Then
+				gtk_icon_view_select_path(gtk_icon_view(widget), gtk_tree_path_new_from_string(Trim(Str(Value))))
+			Else
+				If TreeSelection Then
+					If Value = -1 Then
+						gtk_tree_selection_unselect_all(TreeSelection)
+					ElseIf Value > -1 AndAlso Value < ListItems.Count Then
+						Dim As GtkTreeIter iter
+						gtk_tree_model_get_iter_from_string(gtk_tree_model(ListStore), @iter, Trim(Str(Value)))
+						gtk_tree_selection_select_iter(TreeSelection, @iter)
+						gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
+					End If
 				End If
 			End If
 		#else
@@ -1447,7 +1480,7 @@ Namespace My.Sys.Forms
 	
 	Constructor ListView
 		#ifdef __USE_GTK__
-			ListStore = gtk_list_store_new(1, G_TYPE_STRING)
+			ListStore = gtk_list_store_new(2, GDK_TYPE_PIXBUF, G_TYPE_STRING)
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
@@ -1506,6 +1539,8 @@ Namespace My.Sys.Forms
 			UnregisterClass "ListView",GetmoduleHandle(NULL)
 		#else
 			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
+			If gtk_is_widget(TreeViewWidget) Then gtk_widget_destroy(TreeViewWidget)
+			If gtk_is_widget(IconViewWidget) Then gtk_widget_destroy(IconViewWidget)
 		#endif
 	End Destructor
 End Namespace

@@ -216,7 +216,11 @@ Namespace My.Sys.Forms
 	
 	Property TabPage.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
-		Update
+		#ifdef __USE_GTK__
+			gtk_image_set_from_icon_name(gtk_image(_icon), ToUTF8(Value), GTK_ICON_SIZE_MENU)
+		#else
+			Update
+		#endif
 	End Property
 	
 	Operator TabPage.Cast As Any Ptr

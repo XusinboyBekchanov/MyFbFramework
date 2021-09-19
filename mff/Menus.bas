@@ -1700,7 +1700,7 @@ Namespace My.Sys.Forms
 	Property PopupMenu.ParentWindow(value As Component Ptr)
 		#ifdef __USE_GTK__
 			If FParentWindow = 0 Then
-				gtk_menu_attach_to_widget(gtk_menu(widget), value->widget, NULL)
+				'gtk_menu_attach_to_widget(gtk_menu(widget), value->widget, NULL)
 				gtk_widget_show(widget)
 			End If
 		#endif
