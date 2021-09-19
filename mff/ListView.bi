@@ -251,6 +251,8 @@ Namespace My.Sys.Forms
 			ListStore As GtkListStore Ptr
 			TreeSelection As GtkTreeSelection Ptr
 			ColumnTypes As GType Ptr
+			TreeViewWidget As GtkWidget Ptr
+			IconViewWidget As GtkWidget Ptr
 		#endif
 	Public:
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
