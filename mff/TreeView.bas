@@ -936,6 +936,7 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_WINDOW) 'David Change
 				.DoubleBuffered = True
 			#endif
+			BorderStyle = BorderStyles.bsClient
 			WLet(FClassName, "TreeView")
 			FTabIndex          = -1
 			FTabStop = True
