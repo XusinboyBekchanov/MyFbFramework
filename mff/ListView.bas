@@ -1115,6 +1115,7 @@ Namespace My.Sys.Forms
 					If widget Then 
 						g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
 						g_object_set_data(G_OBJECT(widget), "@@@TreeView", TreeViewWidget)
+						This.RegisterClass "ListView", @This
 					End If
 					gtk_widget_show(Widget)
 				End If
