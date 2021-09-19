@@ -922,6 +922,9 @@ Namespace My.Sys.Forms
 				End With
 				gtk_list_store_set_column_types(ListStore, Columns.Count + 1 + iCheckBoxes, ColumnTypes)
 				gtk_tree_view_set_model(GTK_TREE_VIEW(TreeViewWidget), GTK_TREE_MODEL(ListStore))
+				gtk_icon_view_set_model(GTK_ICON_VIEW(IconViewWidget), GTK_TREE_MODEL(ListStore))
+				gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(IconViewWidget), iCheckBoxes)
+				gtk_icon_view_set_text_column(GTK_ICON_VIEW(IconViewWidget), iCheckBoxes + 1)
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(TreeViewWidget), True)
 			End If
 		#endif
