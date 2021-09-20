@@ -1145,6 +1145,7 @@ Namespace My.Sys.Forms
 					If FParent Then Cast(Control Ptr, FParent)->RequestAlign
 				Else
 					CreateWnd
+					Exit Sub
 				End If
 			End If
 			SelectNextControl
@@ -1170,7 +1171,7 @@ Namespace My.Sys.Forms
 			If pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(gtk_window(widget), gtk_window(pApp->ActiveForm->Widget))
 			gtk_window_set_modal(gtk_window(widget), True)
 			This.Show
-			If OnShow Then OnShow(This)
+			'If OnShow Then OnShow(This)
 			gtk_main()
 			gtk_window_set_modal(gtk_window(widget), False)
 		#else
