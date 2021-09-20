@@ -1120,8 +1120,9 @@ Namespace My.Sys.Forms
 					gtk_widget_show(Widget)
 				End If
 				Select Case FView
-				Case vsIcon, vsSmallIcon, vsTile, vsMax: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_HORIZONTAL)
-				Case vsList: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_VERTICAL)
+				Case vsIcon: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_VERTICAL): gtk_icon_view_set_columns(gtk_icon_view(widget), -1)
+				Case vsSmallIcon: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_HORIZONTAL): gtk_icon_view_set_columns(gtk_icon_view(widget), -1)
+				Case vsList, vsTile, vsMax: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_HORIZONTAL): gtk_icon_view_set_columns(gtk_icon_view(widget), 1)
 				End Select
 			End If
 		#else
