@@ -295,12 +295,29 @@ Namespace My.Sys.Forms
 		
 		#ifndef IsChild_Off
 			Property Control.IsChild As Boolean
+				#ifdef __USE_GTK__
+					FIsChild = gtk_widget_get_parent(IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget))) <> 0
+				#else
+					FIsChild = StyleExists(WS_CHILD)
+				#endif
 				Return FIsChild
 			End Property
 			
 			Property Control.IsChild(Value As Boolean)
 				FIsChild = Value
-				#ifndef __USE_GTK__
+				#ifdef __USE_GTK__
+					If FIsChild <> Value Then
+						If Value Then
+							If Parent AndAlso Parent->layoutwidget Then
+								gtk_layout_put(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget)), FLeft, FTop)
+							End If
+						Else
+							Dim As GktWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget))
+							g_object_ref(G_OBJECT(CtrlWidget))
+							gtk_widget_unparent(CtrlWidget)
+						End If
+					End If
+				#else
 					ChangeStyle WS_CHILD, Value
 					If Handle Then RecreateWnd
 				#endif
@@ -1310,9 +1327,12 @@ Namespace My.Sys.Forms
 						FWindow = NM->hwndFrom
 						Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 						If Ctrl <> 0 Then
-							Message.Msg = CM_NOTIFY
-							Ctrl->ProcessMessage(Message)
-							'SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam
+							If IndexOf(Ctrl) <> -1 Then
+								Message.Msg = CM_NOTIFY
+								Ctrl->ProcessMessage(Message)
+							Else
+								SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam
+							End If
 						End If
 					End If
 				Case WM_HELP
