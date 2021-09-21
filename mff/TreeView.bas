@@ -194,7 +194,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNode.SelectedImageIndex As Integer
-		Return FImageIndex
+		Return FSelectedImageIndex
 	End Property
 	
 	Property TreeNode.SelectedImageIndex(Value As Integer)
