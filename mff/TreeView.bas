@@ -522,6 +522,11 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Function TreeView.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "editlabels": Return @FEditLabels
+			Case "hideselection": Return @FHideSelection
+			Case "sorted": Return @FSorted
+			Case "showhint": Return @FShowHint
+			Case "selectednode": Return SelectedNode
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -537,6 +542,11 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "editlabels": EditLabels = QBoolean(Value)
+				Case "hideselection": HideSelection = QBoolean(Value)
+				Case "sorted": Sorted = QBoolean(Value)
+				Case "showhint": ShowHint = QBoolean(Value)
+				Case "selectednode": SelectedNode = Value
 				Case "tabindex": TabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
@@ -607,7 +617,7 @@ Namespace My.Sys.Forms
 	Property TreeView.EditLabels(Value As Boolean)
 		FEditLabels = Value
 		#ifndef __USE_GTK__
-			ChangeStyle TVS_EDITLABELS, Not Value
+			ChangeStyle TVS_EDITLABELS, Value
 		#endif
 	End Property
 	
@@ -732,21 +742,35 @@ Namespace My.Sys.Forms
 					Case TVN_ITEMCHANGING
 					Case TVN_ITEMEXPANDING
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnNodeExpanding AndAlso sn <> 0 Then OnNodeExpanding(This, *sn)
+						Select Case tvp->action
+						Case TVE_COLLAPSE: If OnNodeCollapsing AndAlso sn <> 0 Then OnNodeCollapsing(This, *sn)
+						Case TVE_EXPAND: If OnNodeExpanding AndAlso sn <> 0 Then OnNodeExpanding(This, *sn)
+						End Select
 					Case TVN_ITEMEXPANDED
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnNodeExpanded AndAlso sn <> 0 Then OnNodeExpanded(This, *sn)
+						Select Case tvp->action
+						Case TVE_COLLAPSE: If OnNodeCollapsed AndAlso sn <> 0 Then OnNodeCollapsed(This, *sn)
+						Case TVE_EXPAND: If OnNodeExpanded AndAlso sn <> 0 Then OnNodeExpanded(This, *sn)
+						End Select
 					Case TVN_BEGINDRAG
 					Case TVN_BEGINRDRAG
 					Case TVN_DELETEITEM
 					Case TVN_BEGINLABELEDIT
+						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, message.lparam)
+						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
+						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
+						Dim bCancel As Boolean
+						If OnBeforeLabelEdit Then OnBeforeLabelEdit(This, *sn, *tmpStr, bCancel)
+						Deallocate_( tmpStr)
+						If bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ENDLABELEDIT
 						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, message.lparam)
 						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
-						If OnAfterLabelEdit Then OnAfterLabelEdit(This, *tmpStr)
+						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
+						Dim bCancel As Boolean
+						If OnAfterLabelEdit Then OnAfterLabelEdit(This, *sn, *tmpStr, bCancel)
 						Deallocate_( tmpStr)
-					Case TVN_ITEMCHANGINGW
-					Case TVN_ITEMCHANGED
+						If Not bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ASYNCDRAW
 						'Case NM_KEYDOWN: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))
 					End Select

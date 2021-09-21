@@ -1308,7 +1308,12 @@ Namespace My.Sys.Forms
 						If FWindow Then SendMessage FWindow,CM_NEEDTEXT,Message.wParam, Message.lParam
 					Else
 						FWindow = NM->hwndFrom
-						SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam
+						Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+						If Ctrl <> 0 Then
+							Message.Msg = CM_NOTIFY
+							Ctrl->ProcessMessage(Message)
+							'SendMessage FWindow, CM_NOTIFY, Message.wParam, Message.lParam
+						End If
 					End If
 				Case WM_HELP
 					'If (GetWindowLong(message.hwnd,GWL_STYLE) And WS_CHILD) <> WS_CHILD Then SendMessage(message.hwnd,CM_HELP,message.wParam,message.LParam)
