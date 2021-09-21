@@ -820,8 +820,8 @@ Namespace My.Sys.Forms
 					Else
 						tvis.hParent            = TVI_ROOT
 					End If
-					Nodes.Item(i)->Handle        = TreeView_InsertItem(FHandle, @tvis )
-					CreateNodes Nodes.Item(i)
+					.Item(i)->Handle        = TreeView_InsertItem(FHandle, @tvis )
+					CreateNodes .Item(i)
 				Next i
 			End With
 		End Sub
