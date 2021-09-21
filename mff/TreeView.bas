@@ -151,13 +151,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeNode.ImageIndex(Value As Integer)
-		If Value <> FImageIndex Then
-			FImageIndex = Value
-			#ifdef __USE_GTK__
-				If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
-				EndIf
-			#else
+		FImageIndex = Value
+		#ifdef __USE_GTK__
+			If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
+				gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
+			EndIf
+		#else
+			If Value <> FImageIndex Then
 				If Parent AndAlso Parent->Handle Then
 					Dim tvi As TVITEM
 					tvi.mask = TVIF_IMAGE
@@ -165,8 +165,8 @@ Namespace My.Sys.Forms
 					tvi.iImage             = FImageIndex
 					TreeView_SetItem(Parent->Handle, @tvi)
 				End If
-			#endif
-		End If
+			End If
+		#endif
 	End Property
 	
 	Property TreeNode.ImageKey ByRef As WString
@@ -370,6 +370,8 @@ Namespace My.Sys.Forms
 						gtk_tree_store_insert(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, NULL, iIndex)
 					End If
 					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, 1, ToUTF8(FText), -1)
+					.ImageIndex = .ImageIndex
+					.SelectedImageIndex = .SelectedImageIndex
 				EndIf
 			#else
 				Dim As TVINSERTSTRUCT tvis
