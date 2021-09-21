@@ -1276,6 +1276,18 @@ Namespace My.Sys.Forms
 				If SelectedItemIndex <> -1 Then
 					If OnItemClick Then OnItemClick(This, SelectedItemIndex)
 				End If
+			#ifdef __USE_GTK3__
+			Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
+			#else
+			Case GDK_2BUTTON_PRESS
+			#endif
+				If SelectedItemIndex <> -1 Then
+					If OnItemDblClick Then OnItemDblClick(This, SelectedItemIndex)
+				End If
+			Case GDK_KEY_PRESS
+				If SelectedItemIndex <> -1 Then
+					If OnItemKeyDown Then OnItemKeyDown(This, SelectedItemIndex, Message.event->Key.keyval, Message.event->Key.state)
+				End If
 			End Select
 		#else
 			Select Case Message.Msg
@@ -1287,11 +1299,16 @@ Namespace My.Sys.Forms
 				Select Case lvp->hdr.code
 				Case NM_CLICK: If OnItemClick Then OnItemClick(This, lvp->iItem)
 				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(This, lvp->iItem)
-				Case NM_KEYDOWN: If OnItemKeyDown Then OnItemKeyDown(This, lvp->iItem)
+				Case NM_KEYDOWN: 
+					Dim As LPNMKEY lpnmk = Cast(LPNMKEY, Message.lParam)
+					If OnItemKeyDown Then OnItemKeyDown(This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
 				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, lvp->iItem)
 				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
-				Case LVN_ITEMCHANGING: If OnSelectedItemChanging Then OnSelectedItemChanging(This, lvp->iItem)
+				Case LVN_ITEMCHANGING: 
+					Dim bCancel As Boolean
+					If OnSelectedItemChanging Then OnSelectedItemChanging(This, lvp->iItem, bCancel)
+					If bCancel Then Message.Result = -1: Exit Sub 
 				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
 				End Select
@@ -1452,7 +1469,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub ListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+		Sub ListView.ListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeModel Ptr model
@@ -1464,7 +1481,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ListView_ItemActivated(icon_view As GtkIconView Ptr, path As GtkTreePath Ptr, user_data As Any Ptr)
+		Sub ListView.ListView_ItemActivated(icon_view As GtkIconView Ptr, path As GtkTreePath Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeModel Ptr model
@@ -1476,39 +1493,58 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		Sub ListView.ListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
+					Dim As Integer SelectedIndex = Val(*gtk_tree_model_get_string_from_iter(model, @iter))
+					If lv->PrevIndex <> SelectedIndex AndAlso lv->PrevIndex <> -1 Then
+						Dim bCancel As Boolean
+						If lv->OnSelectedItemChanging Then lv->OnSelectedItemChanging(*lv, lv->PrevIndex, bCancel)
+						If bCancel Then
+							lv->SelectedItemIndex = lv->PrevIndex
+							Exit Sub
+						End If
+					End If
+					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, SelectedIndex)
+					lv->PrevIndex = SelectedIndex
 				End If
 			End If
 		End Sub
 		
-		Sub IconView_SelectionChanged(iconview As GtkIconView Ptr, user_data As Any Ptr)
+		Sub ListView.IconView_SelectionChanged(iconview As GtkIconView Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeIter iter
 				Dim As GList Ptr list = gtk_icon_view_get_selected_items(iconview)
 				Dim As GtkTreePath Ptr path
-				Dim i As Integer
+				Dim SelectedIndex As Integer
 				If (list) Then
 					path = list->Data
-					i = gtk_tree_path_get_indices(path)[0]
+					SelectedIndex = gtk_tree_path_get_indices(path)[0]
 				End If
 				g_list_free_full(list, Cast(GDestroyNotify, @gtk_tree_path_free))
-				If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, i)
+				If lv->PrevIndex <> SelectedIndex AndAlso lv->PrevIndex <> -1 Then
+					Dim bCancel As Boolean
+					If lv->OnSelectedItemChanging Then lv->OnSelectedItemChanging(*lv, lv->PrevIndex, bCancel)
+					If bCancel Then
+						lv->SelectedItemIndex = lv->PrevIndex
+						Exit Sub
+					End If
+				End If
+				If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, SelectedIndex)
+				lv->PrevIndex = SelectedIndex
 			End If
 		End Sub
 		
-		Sub ListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Sub ListView.ListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = user_data
 			lv->Init
 		End Sub
 		
-		Function ListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
+		Function ListView.ListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
 			Dim As ListView Ptr lv = user_data
 			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
 			Return True

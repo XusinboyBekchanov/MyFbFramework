@@ -200,9 +200,12 @@ Namespace My.Sys.Forms
 	Sub ImageList.Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 		FNotChange = True
 		#ifdef __USE_GTK__
+			FNotAdd = True
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Bitm.LoadFromResourceName(ResName)
+			Items.Add Key, ResName
 			This.Add Bitm, Bitm, Key
+			FNotAdd = False
 		#else
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			FNotAdd = True

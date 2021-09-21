@@ -248,11 +248,18 @@ Namespace My.Sys.Forms
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
+			Declare Static Sub ListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+			Declare Static Sub ListView_ItemActivated(icon_view As GtkIconView Ptr, path As GtkTreePath Ptr, user_data As Any Ptr)
+			Declare Static Sub ListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+			Declare Static Sub IconView_SelectionChanged(iconview As GtkIconView Ptr, user_data As Any Ptr)
+			Declare Static Sub ListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Function ListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
 			ListStore As GtkListStore Ptr
 			TreeSelection As GtkTreeSelection Ptr
 			ColumnTypes As GType Ptr
 			TreeViewWidget As GtkWidget Ptr
 			IconViewWidget As GtkWidget Ptr
+			PrevIndex As Integer
 		#endif
 	Public:
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -307,8 +314,8 @@ Namespace My.Sys.Forms
 		OnItemActivate As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		OnItemClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		OnItemDblClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		OnItemKeyDown As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		OnSelectedItemChanging As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		OnItemKeyDown As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer, Key As Integer, Shift As Integer)
+		OnSelectedItemChanging As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer, ByRef Cancel As Boolean)
 		OnSelectedItemChanged As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		OnBeginScroll As Sub(ByRef Sender As ListView)
 		OnEndScroll As Sub(ByRef Sender As ListView)

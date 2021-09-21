@@ -116,24 +116,35 @@ Namespace My.Sys.Forms
 		FSorted As Boolean
 		FHideSelection As Boolean
 		FEditLabels As Boolean
-		Declare Sub CreateNodes(PNode As TreeNode Ptr)
-		#ifndef __USE_GTK__
+	Protected:
+		#ifdef __USE_GTK__
+			Dim As GtkCellRenderer Ptr rendertext
+			Dim As TreeNode Ptr PrevNode
+			TreeStore As GtkTreeStore Ptr
+			TreeSelection As GtkTreeSelection Ptr
+			Declare Static Sub TreeView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+			Declare Static Sub TreeView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+			Declare Static Function TreeView_ButtonRelease(widget As GtkWidget Ptr, e As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Function TreeView_QueryTooltip(widget As GtkWidget Ptr, x As gint, y As gint, keyboard_mode As Boolean, tooltip As GtkTooltip Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Sub Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As Const gchar Ptr, user_data As Any Ptr)
+			Declare Static Sub Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+			Declare Static Function TestCollapseRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Function TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Function RowCollapsed(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Function RowExpanded(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Sub SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
+			Declare Sub CreateNodes(PNode As TreeNode Ptr)
 		#endif
-	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		#ifdef __USE_GTK__
-			TreeStore As GtkTreeStore Ptr
-			TreeSelection As GtkTreeSelection Ptr
-		#endif
 		Images          As ImageList Ptr
-		SelectedImages       As ImageList Ptr
+		SelectedImages  As ImageList Ptr
 		Nodes           As TreeNodeCollection
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
@@ -158,15 +169,14 @@ Namespace My.Sys.Forms
 		OnNodeActivate As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnNodeClick As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnNodeDblClick As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnNodeCollapsing As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeCollapsing As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
 		OnNodeCollapsed As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnNodeExpanding As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeExpanding As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
 		OnNodeExpanded As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnSelChanging As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnSelChanging As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
 		OnSelChanged As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		OnBeforeLabelEdit As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
 		OnAfterLabelEdit As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
-		OnMouseUp As Sub(ByRef Sender As TreeView, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	End Type
 End Namespace
 
@@ -203,5 +213,5 @@ End Namespace
 #endif
 
 #ifndef __USE_MAKE__
-	#Include Once "TreeView.bas"
-#EndIf
+	#include once "TreeView.bas"
+#endif

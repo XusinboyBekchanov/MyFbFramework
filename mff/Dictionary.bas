@@ -102,6 +102,14 @@ Function Dictionary.Get(ByRef Key As WString, ByRef DefaultText As WString = "")
 	End If
 End Function
 
+Function Dictionary.Get(Index As Integer, ByRef DefaultText As WString = "") ByRef As WString
+	If Index >= 0 And Index <= Count - 1 Then
+		Return Item(Index)->Text
+	Else
+		Return DefaultText
+	End If
+End Function
+
 Sub Dictionary.Insert(Index As Integer, ByRef Key As WString = "", ByRef wText As WString = "", Object As Any Ptr = 0)
 	Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 	With *nItem

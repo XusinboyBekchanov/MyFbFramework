@@ -58,6 +58,7 @@ Public:
 	Declare Function IndexOfKey(ByRef Key As WString) As Integer
 	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
 	Declare Sub Set(ByRef Key As WString, ByRef wText As WString = "", Object As Any Ptr = 0)
+	Declare Function Get(Index As Integer, ByRef DefaultText As WString = "") ByRef As WString
 	Declare Function Get(ByRef Key As WString, ByRef DefaultText As WString = "") ByRef As WString
 	Declare Function GetKey(ByRef wText As WString) ByRef As WString
 	Declare Function GetKey(Object As Any Ptr) ByRef As WString

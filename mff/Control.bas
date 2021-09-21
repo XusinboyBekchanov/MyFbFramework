@@ -312,7 +312,7 @@ Namespace My.Sys.Forms
 								gtk_layout_put(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget)), FLeft, FTop)
 							End If
 						Else
-							Dim As GktWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget))
+							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget))
 							g_object_ref(G_OBJECT(CtrlWidget))
 							gtk_widget_unparent(CtrlWidget)
 						End If
