@@ -83,8 +83,10 @@ Namespace My.Sys.Forms
 		#else
 			If Ctrl Then
 				With QControl(Ctrl)
-					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MakeLong(FExpanded, 0))
 					.UpdateLock
+					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MakeLong(FExpanded, 0))
+					SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MakeLong(IIf(Value, 0, 1), 0))
+					SendMessage(.Handle, TB_HIDEBUTTON, FCommandID + 1, MakeLong(Not FExpanded, 0))
 					For i As Integer = 0 To Buttons.Count - 1
 						Buttons.Item(i)->Visible = FExpanded
 					Next
@@ -174,7 +176,7 @@ Namespace My.Sys.Forms
 			.ShowHint       = FShowHint
 			.Name         = FKey
 			.Caption        = FCaption
-			.CommandID      = (Cast(ToolGroup Ptr, This.Parent)->Index + 1) * 100 + FButtons.Count
+			.CommandID      = (Cast(ToolGroup Ptr, This.Parent)->Index + 1) * 100 + FButtons.Count + 1
 			.OnClick        = FClick
 		End With
 		PButton->Ctrl = @Cast(ToolGroup Ptr, Parent)->Ctrl
@@ -327,7 +329,7 @@ Namespace My.Sys.Forms
 				TB.fsState   = 0
 				TB.fsStyle   = TBSTYLE_SEP
 				TB.iBitmap   = -1
-				TB.idCommand = 0
+				TB.idCommand = PGroup->CommandID + 1
 				TB.iString = 0
 				TB.dwData = 0
 				SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
@@ -693,7 +695,7 @@ Namespace My.Sys.Forms
 						TB.fsState   = 0
 						TB.fsStyle   = TBSTYLE_SEP
 						TB.iBitmap   = -1
-						TB.idCommand = 0
+						TB.idCommand = .Groups.Item(j)->CommandID + 1
 						TB.iString = 0
 						TB.dwData = 0
 						.Perform(TB_ADDBUTTONS, 1, CInt(@TB))
