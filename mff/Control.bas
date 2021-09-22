@@ -1997,7 +1997,7 @@ Namespace My.Sys.Forms
 		
 		Sub Control.Repaint
 			#ifdef __USE_GTK__
-				gtk_widget_queue_draw(widget)
+				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 			#else
 				If Handle Then
 					RedrawWindow Handle, 0, 0, RDW_INVALIDATE
@@ -2008,7 +2008,7 @@ Namespace My.Sys.Forms
 		
 		Sub Control.Update
 			#ifdef __USE_GTK__
-				If widget Then gtk_widget_queue_draw(widget)
+				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 			#else
 				If Handle Then UpdateWindow Handle
 			#endif

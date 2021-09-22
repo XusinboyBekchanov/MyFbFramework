@@ -457,7 +457,7 @@ Namespace My.Sys.Forms
 			'	Next j
 			'Next i
 			If gtk_is_container(widget) Then gtk_widget_queue_resize(widget)
-			gtk_widget_queue_draw(widget)
+			If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 		#else
 			For j As Integer = 0 To Groups.Count - 1
 				For i As Integer = 0 To Groups.Item(j)->Buttons.Count - 1

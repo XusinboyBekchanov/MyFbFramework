@@ -62,6 +62,7 @@ Namespace My.Sys.Forms
 		FParentNode         As PTreeNode
 		FVisible            As Boolean
 		FIsUpdated          As Boolean
+		FIsDisposed         As Boolean
 		FChecked            As Boolean
 		FBold               As Boolean
 	Public:
@@ -103,6 +104,7 @@ Namespace My.Sys.Forms
 		Declare Property ParentNode(Value As TreeNode Ptr)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
+		Declare Function IsDisposed As Boolean
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor

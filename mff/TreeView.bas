@@ -276,17 +276,24 @@ Namespace My.Sys.Forms
 		FSelectedImageIndex = -1
 	End Constructor
 	
+	Function TreeNode.IsDisposed As Boolean
+		Return FIsDisposed
+	End Function
+	
 	Destructor TreeNode
 		Nodes.Clear
+		FIsDisposed = True 
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				If gtk_is_tree_view(Parent->Handle) Then
 					gtk_tree_store_remove(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @This.TreeIter)
+					This.TreeIter.user_data = 0
 				End If
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
 				TreeView_DeleteItem(Parent->Handle, This.Handle)
+				This.Handle = 0
 			End If
 		#endif
 		WDeAllocate FHint
@@ -922,32 +929,34 @@ Namespace My.Sys.Forms
 			If tv Then
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
-				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					Dim As TreeNode Ptr SelNode = tv->Nodes.FindByIterUser_Data(iter.User_Data)
-					If tv->PrevNode <> SelNode AndAlso tv->PrevNode <> 0 Then
-						Dim bCancel As Boolean
-						If tv->OnSelChanging Then tv->OnSelChanging(*tv, *tv->PrevNode, bCancel)
-						If bCancel Then
-							tv->SelectedNode = tv->PrevNode
-							Exit Sub
-						End If
-						If tv->Images <> 0 AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
-							If tv->PrevNode->ImageKey <> "" Then
-								gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageKey)), -1)
-							ElseIf tv->PrevNode->ImageIndex > -1 Then
-								gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageIndex)), -1)
+				If gtk_is_tree_store(tv->TreeStore) Then
+					If gtk_tree_selection_get_selected(selection, @model, @iter) Then
+						Dim As TreeNode Ptr SelNode = tv->Nodes.FindByIterUser_Data(iter.User_Data)
+						If tv->PrevNode <> 0 AndAlso tv->PrevNode->IsDisposed = False AndAlso tv->PrevNode <> SelNode Then
+							Dim bCancel As Boolean
+							If tv->OnSelChanging Then tv->OnSelChanging(*tv, *tv->PrevNode, bCancel)
+							If bCancel Then
+								tv->SelectedNode = tv->PrevNode
+								Exit Sub
+							End If
+							If tv->Images <> 0 AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
+								If tv->PrevNode->ImageKey <> "" Then
+									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageKey)), -1)
+								ElseIf tv->PrevNode->ImageIndex > -1 Then
+									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageIndex)), -1)
+								End If
 							End If
 						End If
-					End If
-					If tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
-						If SelNode->SelectedImageKey <> "" Then
-							gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageKey)), -1)
-						ElseIf SelNode->SelectedImageIndex > -1 Then
-							gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageIndex)), -1)
+						If SelNode <> 0 AndAlso SelNode->IsDisposed = False AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
+							If SelNode->SelectedImageKey <> "" Then
+								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageKey)), -1)
+							ElseIf SelNode->SelectedImageIndex > -1 Then
+								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageIndex)), -1)
+							End If
 						End If
+						If tv->OnSelChanged Then tv->OnSelChanged(*tv, *SelNode)
+						tv->PrevNode = SelNode
 					End If
-					If tv->OnSelChanged Then tv->OnSelChanged(*tv, *SelNode)
-					tv->PrevNode = SelNode
 				End If
 			End If
 		End Sub

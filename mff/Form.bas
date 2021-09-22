@@ -1055,11 +1055,13 @@ Namespace My.Sys.Forms
 							Dim As GList Ptr list1 = NULL
 							Dim As GError Ptr gerr
 							Dim As GdkPixbuf Ptr gtkicon
-							gtkicon = gdk_pixbuf_new_from_file_at_size(ToUTF8(Icon.ResName), 16, 16, @gerr)
-							If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
-							gtkicon = gdk_pixbuf_new_from_file_at_size(ToUTF8(Icon.ResName), 48, 48, @gerr)
-							If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
-							gtk_window_set_icon_list(GTK_WINDOW(Widget), list1)
+							If Icon.ResName <> "" Then
+								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUTF8(Icon.ResName), 16, 16, @gerr)
+								If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
+								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUTF8(Icon.ResName), 48, 48, @gerr)
+								If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
+								gtk_window_set_icon_list(GTK_WINDOW(Widget), list1)
+							End If
 						End If
 					End If
 					If Gtk_Is_Window(Widget) Then
@@ -1168,7 +1170,7 @@ Namespace My.Sys.Forms
 
 	Function Form.ShowModal() As Integer
 		#ifdef __USE_GTK__
-			If pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(gtk_window(widget), gtk_window(pApp->ActiveForm->Widget))
+			If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(gtk_window(widget), gtk_window(pApp->ActiveForm->Widget))
 			gtk_window_set_modal(gtk_window(widget), True)
 			This.Show
 			'If OnShow Then OnShow(This)

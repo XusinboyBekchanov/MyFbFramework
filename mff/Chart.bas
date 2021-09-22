@@ -914,7 +914,7 @@ Namespace My.Sys.Forms
 		'		ReleaseDc FHandle, hd
 		'Repaint
 		#ifdef __USE_GTK__
-			gtk_widget_queue_draw(widget)
+			If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 		#else
 			RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			UpdateWindow FHandle

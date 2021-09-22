@@ -68,6 +68,7 @@ Namespace My.Sys.Drawing
 	Function BitmapType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
+			If File = "" Then Return False
 			If cxDesired = 0 AndAlso cyDesired = 0 Then
 				Handle = gdk_pixbuf_new_from_file(ToUTF8(File), @gerr)
 			Else

@@ -119,6 +119,7 @@ Namespace My.Sys.Drawing
 	Function Icon.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
+			If File = "" Then Return False
 			If cx = 0 AndAlso cy = 0 Then
 				Handle = gdk_pixbuf_new_from_file(ToUTF8(File), @gerr)
 			Else
