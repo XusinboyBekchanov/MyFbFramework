@@ -1287,11 +1287,16 @@ Namespace My.Sys.Forms
 					Next i
 					For i As Integer = 0 To .ListItems.Count -1
 						Dim lvi As LVITEM
-						lvi.Mask = LVIF_TEXT or LVIF_IMAGE
-						lvi.pszText              = @.ListItems.Item(i)->Text(0)
-						lvi.cchTextMax           = len(.ListItems.Item(i)->text(0))
-						lvi.iItem             = i
-						lvi.iImage             = .ListItems.Item(i)->ImageIndex
+						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+						lvi.pszText             = @.ListItems.Item(i)->Text(0)
+						lvi.cchTextMax          = Len(.ListItems.Item(i)->text(0))
+						lvi.iItem               = i
+						lvi.iSubItem            = 0
+						lvi.iImage              = .ListItems.Item(i)->ImageIndex
+						lvi.State              = INDEXTOSTATEIMAGEMASK(.ListItems.Item(i)->State)
+						lvi.stateMask           = LVIS_STATEIMAGEMASK
+						lvi.iIndent             = .ListItems.Item(i)->Indent
+						lvi.LParam              = Cast(LParam, .ListItems.Item(i))
 						ListView_InsertItem(.FHandle, @lvi)
 						For j As Integer = 0 To .Columns.Count - 1
 							Dim As LVITEM lvi1
@@ -1306,13 +1311,13 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
 	Operator TreeListView.Cast As Control Ptr
 		Return @This
 	End Operator
 	
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Sub TreeListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As TreeListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
