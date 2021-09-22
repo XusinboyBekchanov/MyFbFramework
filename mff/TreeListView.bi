@@ -181,7 +181,6 @@ Namespace My.Sys.Forms
 	
 	Type TreeListView Extends Control
 	Private:
-		FView As ViewStyle
 		FColumnHeaderHidden As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
@@ -208,16 +207,12 @@ Namespace My.Sys.Forms
 		Columns         As TreeListViewColumns
 		Images          As ImageList Ptr
 		StateImages       As ImageList Ptr
-		SmallImages       As ImageList Ptr
-		GroupHeaderImages       As ImageList Ptr
 		Declare Sub CollapseAll
 		Declare Sub ExpandAll
 		Declare Property ColumnHeaderHidden As Boolean
 		Declare Property ColumnHeaderHidden(Value As Boolean)
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
-		Declare Property View As ViewStyle
-		Declare Property View(Value As ViewStyle)
 		Declare Property Sort As SortStyle
 		Declare Property Sort(Value As SortStyle)
 		Declare Property SelectedItem As TreeListViewItem Ptr

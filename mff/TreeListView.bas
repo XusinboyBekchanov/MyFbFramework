@@ -901,6 +901,11 @@ Namespace My.Sys.Forms
 	
 	Function TreeListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "columnheaderhidden": Return @FColumnHeaderHidden
+		Case "images": Return Images
+		Case "singleclickactivate": Return @FSingleClickActivate
+		Case "sort": Return @FSortStyle
+		Case "stateimages": Return StateImages
 		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -914,6 +919,11 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "columnheaderhidden": This.ColumnHeaderHidden = QBoolean(Value)
+			Case "images": This.Images = Value
+			Case "singleclickactivate": This.SingleClickActivate = QBoolean(Value)
+			Case "sort": This.Sort = *Cast(SortStyle Ptr, Value)
+			Case "stateimages": This.StateImages = Value
 			Case "tabindex": This.TabIndex = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
@@ -974,22 +984,6 @@ Namespace My.Sys.Forms
 			#endif
 		#else
 			
-		#endif
-	End Property
-	
-	Property TreeListView.View As ViewStyle
-		#ifndef __USE_GTK__
-			If Handle Then
-				FView = ListView_GetView(Handle)
-			End If
-		#endif
-		Return FView
-	End Property
-	
-	Property TreeListView.View(Value As ViewStyle)
-		FView = Value
-		#ifndef __USE_GTK__
-			If Handle Then Perform LVM_SETVIEW, Cast(wparam, Cast(dword, Value)), 0
 		#endif
 	End Property
 	
@@ -1259,21 +1253,17 @@ Namespace My.Sys.Forms
 				With QTreeListView(Sender.Child)
 					If .Images Then
 						.Images->ParentWindow = @Sender
-						If .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
+						If .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_SMALL)
 					End If
-					If .StateImages Then .StateImages->ParentWindow = @Sender
-					If .SmallImages Then .SmallImages->ParentWindow = @Sender
-					If .GroupHeaderImages Then .GroupHeaderImages->ParentWindow = @Sender
-					If .Images AndAlso .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
-					If .StateImages AndAlso .StateImages->Handle Then ListView_SetImageList(.FHandle, CInt(.StateImages->Handle), LVSIL_STATE)
-					If .SmallImages AndAlso .SmallImages->Handle Then ListView_SetImageList(.FHandle, CInt(.SmallImages->Handle), LVSIL_SMALL)
-					If .GroupHeaderImages AndAlso .GroupHeaderImages->Handle Then ListView_SetImageList(.FHandle, CInt(.GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
+					If .StateImages Then 
+						.StateImages->ParentWindow = @Sender
+						If .StateImages->Handle Then ListView_SetImageList(.FHandle, CInt(.StateImages->Handle), LVSIL_STATE)
+					End If
 					Dim lvStyle As Integer
 					lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
 					lvStyle = lvStyle Or  LVS_EX_GRIDLINES Or LVS_EX_FULLROWSELECT Or LVS_EX_DOUBLEBUFFER
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
-					If .FView <> 0 Then .View = .View
-					For i As Integer = 0 To .Columns.Count -1
+					For i As Integer = 0 To .Columns.Count - 1
 						Dim lvc As LVCOLUMN
 						lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 						lvC.fmt       =  .Columns.Column(i)->Format
