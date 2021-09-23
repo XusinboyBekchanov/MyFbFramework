@@ -8,7 +8,7 @@
 
 Namespace My.Sys.Forms
 	#define QTreeListView(__Ptr__) *Cast(TreeListView Ptr,__Ptr__)
-	#define QTreeListViewItem(__Ptr__) *Cast(TreeListViewItem Ptr,__Ptr__)
+	#define QTreeListViewItem(__Ptr__) *Cast(TreeListViewItem Ptr, __Ptr__)
 	#define QTreeListViewColumn(__Ptr__) *Cast(TreeListViewColumn Ptr,__Ptr__)
 	
 	Type PTreeListViewItem As TreeListViewItem Ptr
@@ -81,7 +81,7 @@ Namespace My.Sys.Forms
 			Declare Function GetItemIndex() As Integer
 		#endif
 		Parent   As Control Ptr
-		Items As TreeListViewItems
+		Nodes As TreeListViewItems
 		Tag As Any Ptr
 		Declare Sub SelectItem
 		Declare Sub Collapse
@@ -203,10 +203,10 @@ Namespace My.Sys.Forms
 			ColumnTypes As GType Ptr
 		#endif
 		Declare Sub Init()
-		ListItems         As TreeListViewItems
+		Nodes           As TreeListViewItems
 		Columns         As TreeListViewColumns
 		Images          As ImageList Ptr
-		StateImages       As ImageList Ptr
+		StateImages     As ImageList Ptr
 		Declare Sub CollapseAll
 		Declare Sub ExpandAll
 		Declare Property ColumnHeaderHidden As Boolean

@@ -65,29 +65,29 @@ Namespace My.Sys.Forms
 				State = 2
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex <> -1 Then
-					For i As Integer = 0 To Items.Count - 1
+					For i As Integer = 0 To Nodes.Count - 1
 						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_PARAM
-						lvi.pszText  = @Items.Item(i)->Text(0)
-						lvi.cchTextMax = Len(Items.Item(i)->Text(0))
+						lvi.pszText  = @Nodes.Item(i)->Text(0)
+						lvi.cchTextMax = Len(Nodes.Item(i)->Text(0))
 						lvi.iItem = ItemIndex + i + 1
-						lvi.iImage   = Items.Item(i)->FImageIndex
-						If Items.Item(i)->Items.Count > 0 Then
+						lvi.iImage   = Nodes.Item(i)->FImageIndex
+						If Nodes.Item(i)->Nodes.Count > 0 Then
 							lvi.State   = INDEXTOSTATEIMAGEMASK(1)
-							Items.Item(i)->FExpanded = False
+							Nodes.Item(i)->FExpanded = False
 						Else
 							lvi.State   = 0
 						End If
 						lvi.stateMask = LVIS_STATEIMAGEMASK
-						lvi.iIndent   = Items.Item(i)->Indent
-						lvi.LParam = Cast(LParam, Items.Item(i))
+						lvi.iIndent   = Nodes.Item(i)->Indent
+						lvi.LParam = Cast(LParam, Nodes.Item(i))
 						ListView_InsertItem(Parent->Handle, @lvi)
 						For j As Integer = 1 To Cast(TreeListView Ptr, Parent)->Columns.Count - 1
 							Dim As LVITEM lvi1
 							lvi1.Mask = LVIF_TEXT
 							lvi1.iItem = ItemIndex + i + 1
 							lvi1.iSubItem   = j
-							lvi1.pszText    = @Items.Item(i)->Text(j)
-							lvi1.cchTextMax = Len(Items.Item(i)->Text(j))
+							lvi1.pszText    = @Nodes.Item(i)->Text(j)
+							lvi1.cchTextMax = Len(Nodes.Item(i)->Text(j))
 							ListView_SetItem(Parent->Handle, @lvi1)
 						Next j
 					Next i
@@ -113,9 +113,9 @@ Namespace My.Sys.Forms
 	
 	Function TreeListViewItem.Index As Integer
 		If FParentItem <> 0 Then
-			Return FParentItem->Items.IndexOf(@This)
+			Return FParentItem->Nodes.IndexOf(@This)
 		ElseIf Parent <> 0 Then
-			Return Cast(TreeListView Ptr, Parent)->ListItems.IndexOf(@This)
+			Return Cast(TreeListView Ptr, Parent)->Nodes.IndexOf(@This)
 		Else
 			Return -1
 		End If
@@ -320,8 +320,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor TreeListViewItem
-		Items.Parent = Parent
-		Items.ParentItem = @This
+		Nodes.Parent = Parent
+		Nodes.ParentItem = @This
 		FHint = 0 'CAllocate_(0)
 		FText = 0 'CAllocate_(0)
 		FVisible    = 1
@@ -333,7 +333,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TreeListViewItem
-		Items.Clear
+		Nodes.Clear
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.TreeIter)
@@ -511,7 +511,7 @@ Namespace My.Sys.Forms
 		Function TreeListViewItems.FindByHandle(Value As LParam) As TreeListViewItem Ptr
 			If ParentItem AndAlso ParentItem->Handle = Value Then Return ParentItem
 			For i As Integer = 0 To Count - 1
-				PItem = Item(i)->Items.FindByHandle(Value)
+				PItem = Item(i)->Nodes.FindByHandle(Value)
 				If PItem <> 0 Then Return PItem
 			Next i
 			Return 0
@@ -543,7 +543,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.Handle = Cast(LParam, PItem)
 			#endif
-			.Items.Parent         = Parent
+			.Nodes.Parent         = Parent
 			.ParentItem        = ParentItem
 			If FItems.Count = 1 AndAlso ParentItem Then
 				ParentItem->State = IIf(ParentItem->IsExpanded, 2, 1)
@@ -609,7 +609,7 @@ Namespace My.Sys.Forms
 				.Handle 		= Cast(LParam, PItem)
 			#endif
 			.Parent         = Parent
-			.Items.Parent         = Parent
+			.Nodes.Parent         = Parent
 			.ParentItem        = Cast(TreeListViewItem Ptr, ParentItem)
 			If FItems.Count = 1 AndAlso ParentItem Then
 				ParentItem->State = IIf(ParentItem->IsExpanded, 2, 1)
@@ -735,7 +735,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data), PColumn->Index, *new_text)
+				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, *new_text)
 				'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
 			End If
 		End Sub
@@ -749,7 +749,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
 			Dim As Control Ptr CellEditor
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data), PColumn->Index, CellEditor)
+				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, CellEditor)
 				If CellEditor <> 0 Then editable = gtk_cell_editable(CellEditor->Handle)
 			End If
 		End Sub
@@ -991,7 +991,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Return ListItems.FindByIterUser_Data(iter.User_Data)
+				Return Nodes.FindByIterUser_Data(iter.User_Data)
 			End If
 		#else
 			If Handle Then
@@ -1006,7 +1006,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Dim As TreeListViewItem Ptr lvi = ListItems.FindByIterUser_Data(iter.User_Data)
+				Dim As TreeListViewItem Ptr lvi = Nodes.FindByIterUser_Data(iter.User_Data)
 				If lvi <> 0 Then Return lvi->Index
 			End If
 		#else
@@ -1022,9 +1022,9 @@ Namespace My.Sys.Forms
 			If TreeSelection Then
 				If Value = -1 Then
 					gtk_tree_selection_unselect_all(TreeSelection)
-				ElseIf Value > -1 AndAlso Value < ListItems.Count Then
-					gtk_tree_selection_select_iter(TreeSelection, @ListItems.Item(Value)->TreeIter)
-					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(TreeStore), @ListItems.Item(Value)->TreeIter), NULL, False, 0, 0)
+				ElseIf Value > -1 AndAlso Value < Nodes.Count Then
+					gtk_tree_selection_select_iter(TreeSelection, @Nodes.Item(Value)->TreeIter)
+					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(TreeStore), @Nodes.Item(Value)->TreeIter), NULL, False, 0, 0)
 				End If
 			End If
 		#else
@@ -1124,7 +1124,7 @@ Namespace My.Sys.Forms
 				If (ListView_HitTest(Handle, @lvhti) <> -1) Then
 					If (lvhti.flags = LVHT_ONITEMSTATEICON) Then
 						Var tlvi = GetTreeListViewItem(lvhti.iItem)
-						If tlvi AndAlso tlvi->Items.Count > 0 Then
+						If tlvi AndAlso tlvi->Nodes.Count > 0 Then
 							If tlvi->IsExpanded Then
 								tlvi->Collapse
 							Else
@@ -1146,9 +1146,9 @@ Namespace My.Sys.Forms
 							tlvi->ParentItem->SelectItem
 						End If
 					Case VK_RIGHT
-						If tlvi->Items.Count > 0 Then
+						If tlvi->Nodes.Count > 0 Then
 							If tlvi->IsExpanded Then
-								tlvi->Items.Item(0)->SelectItem
+								tlvi->Nodes.Item(0)->SelectItem
 							Else
 								If OnItemExpanding Then OnItemExpanding(This, tlvi)
 								tlvi->Expand
@@ -1275,26 +1275,26 @@ Namespace My.Sys.Forms
 						ListView_InsertColumn(.FHandle, i, @lvc)
 						ListView_SetColumnWidth(.FHandle, i, ScaleX(.Columns.Column(i)->Width))
 					Next i
-					For i As Integer = 0 To .ListItems.Count -1
+					For i As Integer = 0 To .Nodes.Count -1
 						Dim lvi As LVITEM
 						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
-						lvi.pszText             = @.ListItems.Item(i)->Text(0)
-						lvi.cchTextMax          = Len(.ListItems.Item(i)->text(0))
+						lvi.pszText             = @.Nodes.Item(i)->Text(0)
+						lvi.cchTextMax          = Len(.Nodes.Item(i)->text(0))
 						lvi.iItem               = i
 						lvi.iSubItem            = 0
-						lvi.iImage              = .ListItems.Item(i)->ImageIndex
-						lvi.State              = INDEXTOSTATEIMAGEMASK(.ListItems.Item(i)->State)
+						lvi.iImage              = .Nodes.Item(i)->ImageIndex
+						lvi.State              = INDEXTOSTATEIMAGEMASK(.Nodes.Item(i)->State)
 						lvi.stateMask           = LVIS_STATEIMAGEMASK
-						lvi.iIndent             = .ListItems.Item(i)->Indent
-						lvi.LParam              = Cast(LParam, .ListItems.Item(i))
+						lvi.iIndent             = .Nodes.Item(i)->Indent
+						lvi.LParam              = Cast(LParam, .Nodes.Item(i))
 						ListView_InsertItem(.FHandle, @lvi)
 						For j As Integer = 0 To .Columns.Count - 1
 							Dim As LVITEM lvi1
 							lvi1.Mask = LVIF_TEXT
 							lvi1.iItem = i
 							lvi1.iSubItem   = j
-							lvi1.pszText    = @.ListItems.Item(i)->Text(j)
-							lvi1.cchTextMax = Len(.ListItems.Item(i)->Text(j))
+							lvi1.pszText    = @.Nodes.Item(i)->Text(j)
+							lvi1.cchTextMax = Len(.Nodes.Item(i)->Text(j))
 							ListView_SetItem(.Handle, @lvi1)
 						Next j
 					Next i
@@ -1316,7 +1316,7 @@ Namespace My.Sys.Forms
 				model = gtk_tree_view_get_model(tree_view)
 				
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnItemActivate Then lv->OnItemActivate(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data))
+					If lv->OnItemActivate Then lv->OnItemActivate(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data))
 				End If
 			End If
 		End Sub
@@ -1327,7 +1327,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data))
+					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data))
 				End If
 			End If
 		End Sub
@@ -1342,7 +1342,7 @@ Namespace My.Sys.Forms
 			If lv Then
 				Dim As GtkTreeModel Ptr model
 				model = gtk_tree_view_get_model(tree_view)
-				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv, lv->ListItems.FindByIterUser_Data(iter->User_Data))
+				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv, lv->Nodes.FindByIterUser_Data(iter->User_Data))
 			End If
 			Return False
 		End Function
@@ -1394,8 +1394,8 @@ Namespace My.Sys.Forms
 			ColumnTypes[0] = G_TYPE_STRING
 			This.RegisterClass "TreeListView", @This
 		#endif
-		'ListItems.Clear
-		ListItems.Parent = @This
+		'Nodes.Clear
+		Nodes.Parent = @This
 		Columns.Parent = @This
 		FEnabled = True
 		FVisible = True
@@ -1419,7 +1419,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor TreeListView
-		'ListItems.Clear
+		'Nodes.Clear
 		'Columns.Clear
 		#ifndef __USE_GTK__
 			UnregisterClass "TreeListView",GetmoduleHandle(NULL)
