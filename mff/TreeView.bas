@@ -379,7 +379,6 @@ Namespace My.Sys.Forms
 					End If
 					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, 1, ToUTF8(FText), -1)
 					.ImageIndex = .ImageIndex
-					.SelectedImageIndex = .SelectedImageIndex
 				EndIf
 			#else
 				Dim As TVINSERTSTRUCT tvis
