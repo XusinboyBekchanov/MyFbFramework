@@ -502,7 +502,7 @@ Namespace My.Sys.Forms
 		Function TreeListViewItems.FindByIterUser_Data(User_Data As Any Ptr) As TreeListViewItem Ptr
 			If ParentItem AndAlso ParentItem->TreeIter.User_Data = User_Data Then Return ParentItem
 			For i As Integer = 0 To Count - 1
-				PItem = Item(i)->Items.FindByIterUser_Data(User_Data)
+				PItem = Item(i)->Nodes.FindByIterUser_Data(User_Data)
 				If PItem <> 0 Then Return PItem
 			Next i
 			Return 0
