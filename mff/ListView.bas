@@ -329,8 +329,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim As GError Ptr gerr
-				gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUTF8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-				gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, 2, ToUTF8(Value), -1)
+				If Value <> "" Then
+					gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUTF8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+					gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, 2, ToUTF8(Value), -1)
+				End If
 			End If
 		#else
 			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then

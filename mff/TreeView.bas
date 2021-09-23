@@ -348,6 +348,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
+		Dim PNode As PTreeNode
 		PNode = New_( TreeNode)
 		PNode->FDynamic = True
 		Dim iIndex As Integer = -1
@@ -399,6 +400,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString, bSorted As Boolean = False) As TreeNode Ptr
+		Dim As TreeNode Ptr PNode
 		If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
 			PNode = This.Add(FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey), bSorted)
 		Else
@@ -409,6 +411,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
+		Dim PNode As PTreeNode
 		PNode = New_( TreeNode)
 		PNode->FDynamic = True
 		FNodes.Add PNode
@@ -452,6 +455,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString) As TreeNode Ptr
+		Dim PNode As PTreeNode
 		If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
 			PNode = This.Insert(Index, FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey))
 		Else
@@ -939,21 +943,21 @@ Namespace My.Sys.Forms
 								tv->SelectedNode = tv->PrevNode
 								Exit Sub
 							End If
-							If tv->Images <> 0 AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
-								If tv->PrevNode->ImageKey <> "" Then
-									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageKey)), -1)
-								ElseIf tv->PrevNode->ImageIndex > -1 Then
-									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageIndex)), -1)
-								End If
-							End If
+'							If tv->Images <> 0 AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
+'								If tv->PrevNode->ImageKey <> "" Then
+'									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageKey)), -1)
+'								ElseIf tv->PrevNode->ImageIndex > -1 Then
+'									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageIndex)), -1)
+'								End If
+'							End If
 						End If
-						If SelNode <> 0 AndAlso SelNode->IsDisposed = False AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
-							If SelNode->SelectedImageKey <> "" Then
-								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageKey)), -1)
-							ElseIf SelNode->SelectedImageIndex > -1 Then
-								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageIndex)), -1)
-							End If
-						End If
+'						If SelNode <> 0 AndAlso SelNode->IsDisposed = False AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
+'							If SelNode->SelectedImageKey <> "" Then
+'								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageKey)), -1)
+'							ElseIf SelNode->SelectedImageIndex > -1 Then
+'								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageIndex)), -1)
+'							End If
+'						End If
 						If tv->OnSelChanged Then tv->OnSelChanged(*tv, *SelNode)
 						tv->PrevNode = SelNode
 					End If
