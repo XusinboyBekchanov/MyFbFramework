@@ -1,4 +1,4 @@
-﻿#include once "mff/SysUtils.bi"
+﻿#include once "SysUtils.bi"
 #include once "vbcompat.bi"
 
 ' Possible registry data types
