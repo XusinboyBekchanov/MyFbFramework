@@ -552,6 +552,7 @@ Namespace My
 	End Constructor
 	
 	Destructor Application
+		pApp = 0
 		If FForms Then Deallocate_( FForms)
 		If FFileName Then Deallocate_( FFileName)
 		If FExeName Then Deallocate_( FExeName)

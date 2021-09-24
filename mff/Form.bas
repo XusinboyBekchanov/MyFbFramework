@@ -789,15 +789,19 @@ Namespace My.Sys.Forms
 			Case GDK_FOCUS_CHANGE
 					If Cast(GdkEventFocus Ptr, msg.event)->in Then
 						If OnActivateApp OrElse OnDeactivateApp Then
-							pApp->FActivated = True
-							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
+							If pApp Then
+								pApp->FActivated = True
+								If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
+							End If
 						End If
 						If OnActivate Then OnActivate(This)
 					Else
 						If OnDeactivate Then OnDeactivate(This)
 						If OnActivateApp OrElse OnDeactivateApp Then
-							pApp->FDeactivated = True
-							g_timeout_add(500, @deactivate_cb, @This)
+							If pApp Then
+								pApp->FDeactivated = True
+								g_timeout_add(500, @deactivate_cb, @This)
+							End If
 						End If
 					End If
 			Case GDK_WINDOW_STATE
