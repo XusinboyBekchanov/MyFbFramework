@@ -54,10 +54,10 @@ Namespace My.Sys.Forms
 			Dim As UByte Ptr P
 			Dim As Integer F, Size
 			Dim As Integer Ptr Buff = Allocate_(18*SizeOf(Integer))
-			F = FreeFile
 			If *FFile <> "" Then
+				F = FreeFile
 				.Open *FFile For Binary Access Read As #F
-				Get #F, , *Buff,18
+				Get #F, , *Buff, 18
 				.Close #F
 				FFrameCount  = Buff[12]
 				FFrameWidth  = Buff[16]
@@ -124,7 +124,9 @@ Namespace My.Sys.Forms
 	Property Animate.File(ByRef Value As WString)
 		FFile = Reallocate_(FFile, (Len(Value) + 1) * SizeOf(WString))
 		*FFile = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			pixbuf_animation = gdk_pixbuf_animation_new_from_file(ToUTF8(*FFile), NULL)
+		#else
 			If FHandle Then
 				SetWindowLongPtr Handle, GWLP_HINSTANCE, CInt(GetModuleHandle(NULL))
 				Open
@@ -159,10 +161,12 @@ Namespace My.Sys.Forms
 	
 	Property Animate.AutoSize(Value As Boolean)
 		FAutoSize = Value
-		If FAutoSize Then
-			This.Width = FFrameWidth
-			This.Height = FFrameHeight
-		End If
+		#ifndef __USE_GTK__
+			If CInt(FAutoSize) AndAlso CInt(FHandle) Then
+				This.Width = FFrameWidth
+				This.Height = FFrameHeight
+			End If
+		#endif
 	End Property
 	
 	Property Animate.CommonAvi As CommonAVIs
@@ -206,25 +210,25 @@ Namespace My.Sys.Forms
 		Return FFrameCount
 	End Function
 	
-	Sub Animate.HandleIsAllocated(ByRef Sender As Control)
-		If Sender.Child Then
-			With QAnimate(Sender.Child)
-				#ifndef __USE_GTK__
-					SetClassLongPtr(.Handle,GCLP_HBRBACKGROUND,0)
-				#endif
-				If .FOpen Then .Open
-				If .FPlay Then .Play
-			End With
-		End If
-	End Sub
-	
 	#ifndef __USE_GTK__
+		Sub Animate.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QAnimate(Sender.Child)
+					SetClassLongPtr(.Handle, GCLP_HBRBACKGROUND, 0)
+					If .FOpen Then .Open
+					If .FPlay Then .Play
+				End With
+			End If
+		End Sub
+		
 		Sub Animate.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 			End If
 		End Sub
+	#endif
 		
-		Sub Animate.ProcessMessage(ByRef Message As Message)
+	Sub Animate.ProcessMessage(ByRef Message As Message)
+		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_COMMAND
 				Select Case Message.wParamHi
@@ -246,22 +250,30 @@ Namespace My.Sys.Forms
 				'Future utilisation
 				ReleaseDC Handle,Dc
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Sub Animate.Open
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If FAutoPlay Then
+				Play
+			Else
+'				If pixbuf_animation <> 0 Then
+'					gtk_image_set_from_pixbuf(gtk_image(widget), gdk_pixbuf_animation_get_static_image(pixbuf_animation))
+'				End If
+			End If
+		#else
 			If Handle Then
 				If CommonAVI = 0 Then
 					If *FFile <> "" Then
-						If FindResource(GetModuleHandle(NULL), *FFile,"AVI") Then
+						If FindResource(GetModuleHandle(NULL), *FFile, "AVI") Then
 							GetAnimateInfo
 							Animate_Open(FHandle, CInt(MakeIntResource(*FFile)))
 							FOpen = 1
 						Else
 							GetAnimateInfo
-							Animate_Open(FHandle, CInt(FFile))
+							Perform(ACM_OPENW, 0, CInt(FFile))
 							FOpen = 1
 						End If
 					End If
@@ -277,29 +289,44 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub Animate.Play
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If pixbuf_animation <> 0 Then
+				Dim As GTimeVal gTime
+				g_get_current_time(@gTime)
+				
+				iter = gdk_pixbuf_animation_get_iter(pixbuf_animation, @gTime)
+				FPlay = True
+				Timer_cb(@This)
+			End If
+		#else
 			If Handle Then
 				Perform(ACM_PLAY, FRepeat, MakeLong(FStartFrame, FStopFrame))
-				FPlay = 1
+				FPlay = True
 			End If
 		#endif
 	End Sub
 	
 	Sub Animate.Stop
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			FPlay = False
+		#else
 			If Handle Then
 				Perform(ACM_STOP,0,0)
-				FPlay = 0
+				FPlay = False
 			End If
 		#endif
 	End Sub
 	
 	Sub Animate.Close
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			FOpen = 0
+			FPlay = False
+		#else
 			If Handle Then
 				If OnClose Then OnClose(This)
-				Perform(ACM_OPEN,0,0)
+				Perform(ACM_OPEN, 0, 0)
 				FOpen = 0
+				FPlay = False
 			End If
 		#endif
 	End Sub
@@ -308,9 +335,119 @@ Namespace My.Sys.Forms
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Function Animate.Timer_cb(ByVal user_data As gpointer) As gboolean
+			Dim As Animate Ptr anim = user_data
+			If anim->FPlay Then
+				Dim As GTimeVal gTime
+				g_get_current_time(@gTime)
+				gdk_pixbuf_animation_iter_advance(anim->iter, @gTime)
+				g_timeout_add(gdk_pixbuf_animation_iter_get_delay_time(anim->iter), @Timer_cb, user_data)
+				gtk_widget_queue_draw(anim->widget)
+			End If
+			Return False
+		End Function
+		
+		Function Animate.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Dim As Animate Ptr anim = data1
+			#ifdef __USE_GTK3__
+				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+			#else
+				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+			#endif
+			If anim->FDesignMode Then
+				cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
+				Dim As Double Ptr dashed = Allocate(SizeOf(Double) * 2)
+				dashed[0] = 3.0
+				dashed[1] = 3.0
+				Dim As Integer len1 = SizeOf(dashed) / SizeOf(dashed[0])
+				cairo_set_dash(cr, dashed, len1, 1)
+				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+				cairo_stroke(cr)
+			End If
+			If anim->pixbuf_animation <> 0 Then
+				cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE)
+				
+				Dim As GdkPixbuf Ptr pixbuf
+				
+				Dim As Integer imgw, imgh
+				imgw = gdk_pixbuf_animation_get_width(anim->pixbuf_animation)
+				imgh = gdk_pixbuf_animation_get_height(anim->pixbuf_animation)
+					
+				If anim->AutoSize Then
+					If AllocatedWidth <> imgw OrElse AllocatedHeight <> imgh Then
+						gtk_widget_set_size_request(anim->eventboxwidget, imgw, imgh)
+					End If
+				End If
+				
+				pixbuf = gdk_pixbuf_animation_iter_get_pixbuf(anim->iter)
+				If anim->Center Then
+					gdk_cairo_set_source_pixbuf(cr, pixbuf, (AllocatedWidth - imgw) / 2, (AllocatedHeight - imgh) / 2)
+				Else
+					gdk_cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+				End If
+				cairo_paint(cr)
+			End If
+			
+			Return False
+		End Function
+		
+		Function Animate.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			DesignDraw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+		
+		Sub Animate.Screen_Changed(widget As GtkWidget Ptr, old_screen As GdkScreen Ptr, userdata As gpointer)
+			Dim As Animate Ptr anim = userdata
+			/' To check If the display supports Alpha channels, Get the colormap '/
+			Dim As GdkScreen Ptr pScreen = gtk_widget_get_screen(widget)
+			#ifdef __USE_GTK3__
+				Dim As GdkVisual Ptr VisualOrColormap = gdk_screen_get_rgba_visual(pScreen)
+			#else
+				Dim As GdkColormap Ptr VisualOrColormap = gdk_screen_get_rgba_colormap(pScreen)
+			#endif
+			If (VisualOrColormap <> 0) Then
+				Print "Your screen does not support alpha channels!"
+				#ifdef __USE_GTK3__
+					'VisualOrColormap = gdk_screen_get_rgb_visual(pScreen)
+				#else
+					VisualOrColormap = gdk_screen_get_rgb_colormap(pScreen)
+				#endif
+				anim->SupportsAlpha = False
+			Else
+				'Print "Your screen supports alpha channels!"
+				anim->SupportsAlpha = True
+			End If
+			/' Now we have a colormap appropriate for the screen, use it '/
+			#ifdef __USE_GTK3__
+				'If VisualOrColormap <> 0 Then
+					gtk_widget_set_visual(widget, VisualOrColormap)
+				'End If
+			#else
+				gtk_widget_set_colormap(widget, VisualOrColormap)
+			#endif
+		End Sub
+	#endif
+	
 	Constructor Animate
 		Dim As Boolean Result
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			widget = gtk_image_new()
+			eventboxwidget = gtk_event_box_new()
+			gtk_container_add(gtk_container(eventboxwidget), widget)
+			gtk_widget_set_app_paintable(widget, True)
+			#ifdef __USE_GTK__
+				#ifdef __USE_GTK3__
+					g_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+				#else
+					g_signal_connect(widget, "expose-event", G_CALLBACK(@DesignExposeEvent), @This)
+				#endif
+			#endif
+			g_signal_connect(G_OBJECT(widget), "screen-changed", G_CALLBACK(@Screen_Changed), @This)
+			This.RegisterClass "Animate", @This
+		#else
 			Dim As INITCOMMONCONTROLSEX ICC
 			FFile = 0 'CAllocate_(0)
 			ICC.dwSize = SizeOf(ICC)

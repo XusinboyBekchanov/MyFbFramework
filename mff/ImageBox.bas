@@ -65,7 +65,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 	#endif
-			
+	
 	Property ImageBox.DesignMode(Value As Boolean)
 		FDesignMode = Value
 		If Value Then

@@ -37,8 +37,6 @@ Namespace My.Sys.Forms
 		FAutoSize       As Boolean
 		FRepeat         As Integer
 		FCommonAvi      As CommonAVIs
-		FOpen           As Boolean
-		FPlay           As Boolean
 		FAutoPlay       As Boolean
 		FTransparent    As Boolean
 		FCenter         As Boolean
@@ -48,11 +46,22 @@ Namespace My.Sys.Forms
 		ACenter(2)      As Integer
 		ATransparent(2) As Integer
 		AAutoPlay(2)    As Integer
-		#ifndef __USE_GTK__
+		SupportsAlpha   As Boolean
+		#ifdef __USE_GTK__
+			Declare Static Sub Screen_Changed(widget As GtkWidget Ptr, old_screen As GdkScreen Ptr, userdata As gpointer)
+			Declare Static Function DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Timer_cb(ByVal user_data As gpointer) As gboolean
+			Dim As GdkPixbufAnimation Ptr pixbuf_animation
+			Dim As GdkPixbufAnimationIter Ptr iter
+		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
-		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+	Protected:
+		FOpen           As Boolean
+		FPlay           As Boolean
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetAnimateInfo
 	Public:
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
