@@ -14,7 +14,7 @@
 Namespace My.Sys.Forms
 	#define QAnimate(__Ptr__) *Cast(Animate Ptr,__Ptr__)
 	
-	Enum CommonAVI
+	Enum CommonAVIs
 		aviNone         = 0
 		aviFindFolder   = 150
 		aviFindFile     = 151
@@ -24,6 +24,7 @@ Namespace My.Sys.Forms
 		aviRecycleFile  = 162
 		aviEmptyRecycle = 163
 		aviDeleteFile   = 164
+		aviCopyFileEx   = 165
 	End Enum
 	
 	Type Animate Extends Control
@@ -35,7 +36,7 @@ Namespace My.Sys.Forms
 		FStopFrame      As Integer
 		FAutoSize       As Boolean
 		FRepeat         As Integer
-		FCommonAvi      As Integer
+		FCommonAvi      As CommonAVIs
 		FOpen           As Boolean
 		FPlay           As Boolean
 		FAutoPlay       As Boolean
@@ -68,8 +69,8 @@ Namespace My.Sys.Forms
 		Declare Property AutoPlay(Value As Boolean)
 		Declare Property AutoSize As Boolean
 		Declare Property AutoSize(Value As Boolean)
-		Declare Property CommonAvi As Integer
-		Declare Property CommonAvi(Value As Integer)
+		Declare Property CommonAvi As CommonAVIs
+		Declare Property CommonAvi(Value As CommonAVIs)
 		Declare Property Repeat As Integer
 		Declare Property Repeat(Value As Integer)
 		Declare Property StartFrame As Integer

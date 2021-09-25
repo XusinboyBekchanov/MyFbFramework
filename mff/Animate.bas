@@ -14,6 +14,16 @@
 Namespace My.Sys.Forms
 	Function Animate.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "autoplay": Return @FAutoPlay
+		Case "autosize": Return @FAutoSize
+		Case "center": Return @FCenter
+		Case "commonavi": Return @FCommonAVI
+		Case "file": Return FFile
+		Case "repeat": Return @FRepeat
+		Case "startframe": Return @FStartFrame
+		Case "stopframe": Return @FStopFrame
+		Case "timers": Return @FTimers
+		Case "transparency": Return @FTransparent
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -21,6 +31,16 @@ Namespace My.Sys.Forms
 	
 	Function Animate.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "autoplay": AutoPlay = QBoolean(Value)
+		Case "autosize": AutoSize = QBoolean(Value)
+		Case "center": Center = QBoolean(Value)
+		Case "commonavi": CommonAVI = *Cast(CommonAVIs Ptr, Value)
+		Case "file": File = QWString(Value)
+		Case "repeat": Repeat = QInteger(Value)
+		Case "startframe": StartFrame = QInteger(Value)
+		Case "stopframe": StopFrame = QInteger(Value)
+		Case "timers": Timers = QBoolean(Value)
+		Case "transparency": Transparency = QBoolean(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -145,11 +165,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Animate.CommonAvi As Integer
+	Property Animate.CommonAvi As CommonAVIs
 		Return FCommonAvi
 	End Property
 	
-	Property Animate.CommonAvi(Value As Integer)
+	Property Animate.CommonAvi(Value As CommonAVIs)
 		FCommonAvi = Value
 		#ifndef __USE_GTK__
 			If Handle Then
@@ -259,19 +279,19 @@ Namespace My.Sys.Forms
 	Sub Animate.Play
 		#ifndef __USE_GTK__
 			If Handle Then
-				Perform(ACM_PLAY,FRepeat,MakeLong(FStartFrame,FStopFrame))
+				Perform(ACM_PLAY, FRepeat, MakeLong(FStartFrame, FStopFrame))
 				FPlay = 1
 			End If
 		#endif
 	End Sub
 	
 	Sub Animate.Stop
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
 				Perform(ACM_STOP,0,0)
 				FPlay = 0
 			End If
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub Animate.Close
@@ -309,6 +329,7 @@ Namespace My.Sys.Forms
 		FRepeat         = -1
 		FStopFrame      = -1
 		FStartFrame     = 0
+		FTransparent    = True
 		With This
 			WLet(FClassName, "Animate")
 			.Child             = @This
@@ -317,7 +338,7 @@ Namespace My.Sys.Forms
 				.ChildProc         = @WndProc
 				WLet(FClassAncestor, ANIMATE_CLASS)
 				.ExStyle           = WS_EX_TRANSPARENT
-				.Style             = WS_CHILD Or ACenter(FCenter) Or ATransparent(FTransparent) Or ATimer(FTimers) Or AAutoPlay(FAutoPlay)
+				.Style             = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
