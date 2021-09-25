@@ -162,7 +162,7 @@ Namespace My.Sys.Forms
 	Property Animate.AutoSize(Value As Boolean)
 		FAutoSize = Value
 		#ifndef __USE_GTK__
-			If CInt(FAutoSize) AndAlso CInt(FHandle) Then
+			If CInt(FAutoSize) AndAlso CInt(FHandle) AndAlso CInt(Not FDesignMode) Then
 				This.Width = FFrameWidth
 				This.Height = FFrameHeight
 			End If
