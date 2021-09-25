@@ -589,7 +589,7 @@ Namespace My.Sys.Forms
 		Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabControl(Sender.Child)
-					If .Images Then .Images->ParentWindow = Sender
+					If .Images Then .Images->ParentWindow = @Sender
 					If .Images AndAlso .Images->Handle Then .Perform(TCM_SETIMAGELIST,0,CInt(.Images->Handle))
 					For i As Integer = 0 To .FTabCount - 1
 						Dim As TCITEMW Ti

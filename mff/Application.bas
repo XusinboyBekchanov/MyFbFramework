@@ -35,7 +35,7 @@ Namespace My
 			End Select
 		Else
 			Select Case LCase(PropertyName)
-			Case "mainform": This.MainForm = *Cast(My.Sys.Forms.Control Ptr, Value)
+			Case "mainform": This.MainForm = Value
 			Case "title": This.Title = QWString(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select

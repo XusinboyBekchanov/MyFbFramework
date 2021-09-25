@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 					Case "id": This.ID = QInteger(Value)
 					Case "ischild": This.IsChild = QInteger(Value)
 					Case "forecolor": This.ForeColor = QInteger(Value)
-					Case "parent": This.Parent = QControl(Value)
+					Case "parent": This.Parent = Value
 						#ifdef __USE_GTK__
 						Case "parentwidget": This.ParentWidget = Value
 						#else

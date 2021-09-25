@@ -1337,7 +1337,7 @@ Namespace My.Sys.Forms
 					value->Handle    = IIf(value->Handle,value->Handle,CreatePopupMenu)
 					'				value->Menu      = Handle
 				#endif
-				value->Owner     = This
+				value->Owner     = @This
 				AllocateCommand(value)
 				#ifndef __USE_GTK__
 					value->SetInfo(FInfo)
