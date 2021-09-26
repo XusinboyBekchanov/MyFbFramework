@@ -20,8 +20,9 @@ Namespace My.Sys.ComponentModel
 			#ifdef __USE_GTK__
 			Case "handle": Return widget
 			Case "widget": Return widget
-			Case "eventboxwidget": Return eventboxwidget
 			Case "layoutwidget": Return layoutwidget
+			Case "overlaywidget": Return overlaywidget
+			Case "eventboxwidget": Return eventboxwidget
 			#else
 			Case "handle": Return @FHandle
 			#endif
@@ -55,8 +56,9 @@ Namespace My.Sys.ComponentModel
 				#ifdef __USE_GTK__
 				Case "handle": This.Handle = Value
 				Case "widget": This.widget = Value
-				Case "eventboxwidget": This.eventboxwidget = Value
 				Case "layoutwidget": This.layoutwidget = Value
+				Case "overlaywidget": This.overlaywidget = Value
+				Case "eventboxwidget": This.eventboxwidget = Value
 				#else
 				Case "handle": This.Handle = *Cast(HWND Ptr, Value)
 				#endif
@@ -203,17 +205,18 @@ Namespace My.Sys.ComponentModel
 						'gdk_window_move(gtk_widget_get_window (widget), iLeft, iTop)
 						'gdk_window_resize(gtk_widget_get_window (widget), Max(1, iWidth), Max(1, iHeight))
 						'If Parent AndAlso Parent->fixedwidget Then gtk_fixed_move(gtk_fixed(Parent->fixedwidget), widget, iLeft, iTop)
+						Dim As GtkWidget Ptr CtrlWidget = IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)))
 						If Parent Then
 							If Parent->layoutwidget Then
 								'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
-								gtk_layout_move(gtk_layout(Parent->layoutwidget), IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)), iLeft, iTop)
+								gtk_layout_move(gtk_layout(Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 							ElseIf Parent->fixedwidget Then
-								gtk_fixed_move(gtk_fixed(Parent->fixedwidget), IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)), iLeft, iTop)
+								gtk_fixed_move(gtk_fixed(Parent->fixedwidget), CtrlWidget, iLeft, iTop)
 							End If
 						End If
 						'gtk_widget_set_size_allocation(widget, @allocation)
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
-						gtk_widget_set_size_request(IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)), Max(0, iWidth), Max(0, iHeight))
+						gtk_widget_set_size_request(CtrlWidget, Max(0, iWidth), Max(0, iHeight))
 						gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 						'gtk_widget_queue_draw(widget)
@@ -425,6 +428,10 @@ Namespace My.Sys.ComponentModel
 						End If
 					#endif
 					Widget = 0
+				End If
+				If gtk_is_widget(overlaywidget) Then
+					gtk_widget_destroy(overlaywidget)
+					overlaywidget = 0
 				End If
 				If gtk_is_widget(ScrolledWidget) Then
 					gtk_widget_destroy(ScrolledWidget)

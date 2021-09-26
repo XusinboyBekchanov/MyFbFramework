@@ -33,36 +33,36 @@ Namespace My.Sys.ComponentModel
 	
 	Type Component Extends My.Sys.Object
 	Protected:
-		FClassAncestor  As WString Ptr
-		FDesignMode     As Boolean
-		FCreated        As Boolean
-		FName           As WString Ptr
-		FLeft           As Integer
-		FTop            As Integer
-		FWidth          As Integer
-		FHeight         As Integer
-		FMinWidth       As Integer
-		FMinHeight      As Integer
-		FParent         As Component Ptr
-		FTempString     As String
-		#ifndef __USE_GTK__
-			FHandle     As HWND
-		#endif
-		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		FClassAncestor      As WString Ptr
+		FDesignMode         As Boolean
+		FCreated            As Boolean
+		FName               As WString Ptr
+		FLeft               As Integer
+		FTop                As Integer
+		FWidth              As Integer
+		FHeight             As Integer
+		FMinWidth           As Integer
+		FMinHeight          As Integer
+		FParent             As Component Ptr
+		FTempString         As String
 		#ifdef __USE_GTK__
 			widget 			As GtkWidget Ptr
 			box 			As GtkWidget Ptr
 			fixedwidget		As GtkWidget Ptr
 			scrolledwidget	As GtkWidget Ptr
 			eventboxwidget  As GtkWidget Ptr
+			overlaywidget   As GtkWidget Ptr
+		#else
+			FHandle         As HWND
 		#endif
+		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
 		'Stores any extra data needed for your program.
 		Tag As Any Ptr
 		'Returns/sets the space between controls.
-		Margins            As MarginsType
+		Margins             As MarginsType
 		'Returns/sets the extra space between controls.
-		ExtraMargins       As MarginsType
+		ExtraMargins        As MarginsType
 		#ifdef __USE_GTK__
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As GtkWidget Ptr

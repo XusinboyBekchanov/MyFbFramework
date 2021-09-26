@@ -359,7 +359,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If widget Then
 						If GTK_IS_WINDOW(widget) Then
-							gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
+							gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(IIf(Value = "", " ", Value)))
 						End If
 					End If
 				#else
@@ -1605,7 +1605,7 @@ Namespace My.Sys.Forms
 			
 			Function Control.Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
-				If gtk_is_layout(widget) AndAlso Ctrl <> 0 Then
+				If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
 					Ctrl->Canvas.HandleSetted = True 
 					Ctrl->Canvas.Handle = cr
 					#ifdef __USE_GTK3__
@@ -1737,9 +1737,36 @@ Namespace My.Sys.Forms
 					GDK_BUTTON_RELEASE_MASK Or _
 					GDK_POINTER_MOTION_MASK Or _
 					GDK_POINTER_MOTION_HINT_MASK)
-					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
-					Result = g_signal_connect(IIf(eventboxwidget, eventboxwidget, widget), "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+					Result = g_signal_connect(widget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
+					Result = g_signal_connect(widget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 					Result = g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(@ConfigureEventProc), @This)
+					#ifdef __USE_GTK3__
+						g_signal_connect(widget, "draw", G_CALLBACK(@Control_Draw), Obj)
+					#else
+						g_signal_connect(widget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
+					#endif
+				End If
+				If eventboxwidget Then
+					Font.Parent = @This
+					gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
+					GDK_EXPOSURE_MASK Or _
+					GDK_SCROLL_MASK Or _
+					GDK_STRUCTURE_MASK Or _
+					GDK_KEY_PRESS_MASK Or _
+					GDK_KEY_RELEASE_MASK Or _
+					GDK_FOCUS_CHANGE_MASK Or _
+					GDK_LEAVE_NOTIFY_MASK Or _
+					GDK_BUTTON_PRESS_MASK Or _
+					GDK_BUTTON_RELEASE_MASK Or _
+					GDK_POINTER_MOTION_MASK Or _
+					GDK_POINTER_MOTION_HINT_MASK)
+					Result = g_signal_connect(eventboxwidget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
+					Result = g_signal_connect(eventboxwidget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+					#ifdef __USE_GTK3__
+						g_signal_connect(eventboxwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
+					#else
+						g_signal_connect(eventboxwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
+					#endif
 				End If
 				If scrolledwidget Then
 					Result = g_signal_connect(scrolledwidget, "scroll-child", G_CALLBACK(@Control_Scroll), @This)
@@ -2108,7 +2135,7 @@ Namespace My.Sys.Forms
 					'If Not FDesignMode Then
 						If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
 					'End If
-					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget))
+					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget)))
 					If gtk_is_widget(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
@@ -2122,11 +2149,13 @@ Namespace My.Sys.Forms
 					End If
 					If Ctrl->eventboxwidget Then g_object_set_data(G_OBJECT(Ctrl->eventboxwidget), "@@@Control2", Ctrl)
 					If Ctrl->scrolledwidget Then g_object_set_data(G_OBJECT(Ctrl->scrolledwidget), "@@@Control2", Ctrl)
+					If Ctrl->overlaywidget Then g_object_set_data(G_OBJECT(Ctrl->overlaywidget), "@@@Control2", Ctrl)
 					If Ctrl->widget Then g_object_set_data(G_OBJECT(Ctrl->widget), "@@@Control2", Ctrl)
 					If Ctrl->layoutwidget Then g_object_set_data(G_OBJECT(Ctrl->layoutwidget), "@@@Control2", Ctrl)
 					If CInt(bAdded) AndAlso CInt(CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget)))) Then
 						If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
 						If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
+						If Ctrl->overlaywidget Then gtk_widget_show(Ctrl->overlaywidget)
 						If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
 						If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
 					End If
