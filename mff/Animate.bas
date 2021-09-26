@@ -289,6 +289,14 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
+
+	Function Animate.IsPlaying As Boolean
+		#ifdef __USE_GTK__
+			Return FPlay
+		#else
+			Return Perform(ACM_ISPLAYING, 0, 0)
+		#endif
+	End Function
 	
 	Sub Animate.Play
 		#ifdef __USE_GTK__

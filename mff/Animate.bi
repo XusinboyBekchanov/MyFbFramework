@@ -87,6 +87,7 @@ Namespace My.Sys.Forms
 		Declare Property StopFrame As Integer
 		Declare Property StopFrame(Value As Integer)
 		Declare Function FrameCount As Integer
+		Declare Function IsPlaying As Boolean
 		Declare Operator Cast As Control Ptr
 		Declare Sub Open
 		Declare Sub Play
