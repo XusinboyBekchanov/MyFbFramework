@@ -582,15 +582,17 @@ Namespace My.Sys.Forms
 	
 	Destructor Animate
 		If FFile Then Deallocate_( FFile)
-		If pGraph Then
-			IMediaControl_Release(pControl)
-			IMediaEvent_Release  (pEvent)    
-			IVideoWindow_Release (vidwindow)
-			IMediaSeeking_Release(medseek)
-			IBasicVideo_Release  (basvideo)
-			IBasicAudio_Release  (basAudio)
-			IGraphBuilder_Release(pGraph)
-			CoUninitialize()
-		EndIf
+		#ifndef __USE_GTK__
+			If pGraph Then
+				IMediaControl_Release(pControl)
+				IMediaEvent_Release  (pEvent)    
+				IVideoWindow_Release (vidwindow)
+				IMediaSeeking_Release(medseek)
+				IBasicVideo_Release  (basvideo)
+				IBasicAudio_Release  (basAudio)
+				IGraphBuilder_Release(pGraph)
+				CoUninitialize()
+			EndIf
+		#endif
 	End Destructor
 End Namespace
