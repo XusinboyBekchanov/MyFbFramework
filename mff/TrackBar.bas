@@ -110,7 +110,9 @@ Namespace My.Sys.Forms
 	Property TrackBar.MinValue(Value As Integer)
 		FMinValue = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_range(gtk_range(widget), Value, FMaxValue)
+			If Value <= FMaxValue Then
+				gtk_range_set_range(gtk_range(widget), Value, FMaxValue)
+			End If
 			TickStyle = FTickStyle
 		#else
 			If Handle Then Perform(TBM_SETRANGEMIN, 1, Value)
