@@ -3,7 +3,7 @@
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
-#define __USE_GTK3__
+'#define __USE_GTK3__
 #define __EXPORT_PROCS__
 #define MEMCHECK 0
 
