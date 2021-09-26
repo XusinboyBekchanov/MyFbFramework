@@ -66,10 +66,11 @@ Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then
 		m_BytesCount = (NewLength + 1) * SizeOf(WString)
 		m_Length = NewLength
-		If m_Data <> 0 Then
-			Deallocate_(m_Data)
-		End If
-		m_Data = Allocate_(m_BytesCount)
+		WReallocate(m_Data, m_Length)
+'		If m_Data <> 0 Then
+'			Deallocate_(m_Data)
+'		End If
+'		m_Data = Allocate_(m_BytesCount)
 	'End If
 End Sub
 
