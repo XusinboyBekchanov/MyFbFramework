@@ -241,7 +241,7 @@ Namespace My.Sys.Forms
 				Message.Result = HTCLIENT
 			Case WM_ERASEBKGND
 				Dim As Rect R
-				GetClientRect Handle,@R
+				GetClientRect Handle, @R
 				FillRect Cast(HDC, Message.wParam),@R, Brush.Handle
 				Message.Result = -1
 			Case WM_NCPAINT
@@ -256,6 +256,7 @@ Namespace My.Sys.Forms
 	
 	Sub Animate.Open
 		#ifdef __USE_GTK__
+			If OnOpen Then OnOpen(This)
 			If FAutoPlay Then
 				Play
 			Else
@@ -265,6 +266,7 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then
+				If OnOpen Then OnOpen(This)
 				If CommonAVI = 0 Then
 					If *FFile <> "" Then
 						If FindResource(GetModuleHandle(NULL), *FFile, "AVI") Then
@@ -295,6 +297,7 @@ Namespace My.Sys.Forms
 				g_get_current_time(@gTime)
 				
 				iter = gdk_pixbuf_animation_get_iter(pixbuf_animation, @gTime)
+				If OnStart Then OnStart(This)
 				FPlay = True
 				Timer_cb(@This)
 			End If
@@ -308,6 +311,7 @@ Namespace My.Sys.Forms
 	
 	Sub Animate.Stop
 		#ifdef __USE_GTK__
+			If OnStop Then OnStop(This)
 			FPlay = False
 		#else
 			If Handle Then
@@ -319,6 +323,7 @@ Namespace My.Sys.Forms
 	
 	Sub Animate.Close
 		#ifdef __USE_GTK__
+			If OnClose Then OnClose(This)
 			FOpen = 0
 			FPlay = False
 		#else
