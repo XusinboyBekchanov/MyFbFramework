@@ -47,33 +47,43 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub Animate.GetAnimateInfo
-		#ifndef __USE_GTK__
-			Dim As HRSRC Resource
-			Dim As HGLOBAL Global
-			Dim As Any Ptr PResource
-			Dim As UByte Ptr P
-			Dim As Integer F, Size
-			Dim As Integer Ptr Buff = Allocate_(18*SizeOf(Integer))
-			If *FFile <> "" Then
-				F = FreeFile
-				.Open *FFile For Binary Access Read As #F
-				Get #F, , *Buff, 18
-				.Close #F
-				FFrameCount  = Buff[12]
-				FFrameWidth  = Buff[16]
-				FFrameHeight = Buff[17]
+		#ifdef __USE_GTK__
+			If pixbuf_animation <> 0 Then
+				FFrameWidth = gdk_pixbuf_animation_get_width(pixbuf_animation)
+				FFrameHeight = gdk_pixbuf_animation_get_height(pixbuf_animation)
+			End If
+		#else
+			If basvideo <> 0 Then
+				IBasicVideo_get_SourceWidth(basvideo, @FFrameWidth)
+				IBasicVideo_get_SourceHeight(basvideo, @FFrameHeight)
 			Else
-				Resource  = FindResource(GetModuleHandle("Shell32"),MakeIntResource(FCommonAvi),"AVI")
-				Global    = LoadResource(GetModuleHandle("Shell32"),Resource)
-				PResource = LockResource(Global)
-				Size = SizeOfResource(GetModuleHandle("Shell32"),Resource)
-				P = Allocate_(Size)
-				P = PResource
-				FreeResource(Resource)
-				memcpy Buff, P, 18 * SizeOf(Integer)
-				FFrameCount  = Buff[12]
-				FFrameWidth  = Buff[16]
-				FFrameHeight = Buff[17]
+				Dim As HRSRC Resource
+				Dim As HGLOBAL Global
+				Dim As Any Ptr PResource
+				Dim As UByte Ptr P
+				Dim As Integer F, Size
+				Dim As Integer Ptr Buff = Allocate_(18*SizeOf(Integer))
+				If *FFile <> "" Then
+					F = FreeFile
+					.Open *FFile For Binary Access Read As #F
+					Get #F, , *Buff, 18
+					.Close #F
+					FFrameCount  = Buff[12]
+					FFrameWidth  = Buff[16]
+					FFrameHeight = Buff[17]
+				Else
+					Resource  = FindResource(GetModuleHandle("Shell32"),MakeIntResource(FCommonAvi),"AVI")
+					Global    = LoadResource(GetModuleHandle("Shell32"),Resource)
+					PResource = LockResource(Global)
+					Size = SizeOfResource(GetModuleHandle("Shell32"),Resource)
+					P = Allocate_(Size)
+					P = PResource
+					FreeResource(Resource)
+					memcpy Buff, P, 18 * SizeOf(Integer)
+					FFrameCount  = Buff[12]
+					FFrameWidth  = Buff[16]
+					FFrameHeight = Buff[17]
+				End If
 			End If
 		#endif
 	End Sub
@@ -210,6 +220,16 @@ Namespace My.Sys.Forms
 		Return FFrameCount
 	End Function
 	
+	Function Animate.FrameHeight As Integer
+		GetAnimateInfo
+		Return FFrameHeight
+	End Function
+	
+	Function Animate.FrameWidth As Integer
+		GetAnimateInfo
+		Return FFrameWidth
+	End Function
+	
 	#ifndef __USE_GTK__
 		Sub Animate.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -275,7 +295,36 @@ Namespace My.Sys.Forms
 							FOpen = 1
 						Else
 							GetAnimateInfo
-							Perform(ACM_OPENW, 0, CInt(FFile))
+							If Perform(ACM_OPENW, 0, CInt(FFile)) = 0 Then
+								If pGraph = 0 Then
+									Dim As WString Ptr wFile
+									WLet wFile, Replace(*FFile, "/", "\")
+									Error_HR(CoInitialize(0), "CoInitialize")
+									Error_HR(CoCreateInstance(@CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, @IID_IGraphBuilder, @pGraph), "CoCreateInstance")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaControl, @pControl  ), "IMediaControl")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaEvent  , @pEvent    ), "IMediaEvent")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IVideoWindow , @vidwindow ), "IVideoWindow")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaSeeking, @medseek   ), "IMediaSeeking")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicVideo  , @basvideo  ), "IBasicVideo")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicAudio  , @basAudio  ), "IBasicAudio")
+									IGraphBuilder_RenderFile(pGraph, wFile, NULL)
+									IVideoWindow_put_Owner(vidwindow, Cast(OAHWND, This.Handle))
+									IVideoWindow_put_WindowStyle(vidwindow, WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN)
+									IBasicVideo_get_SourceWidth(basvideo, @FFrameWidth)
+									IBasicVideo_get_SourceHeight(basvideo, @FFrameHeight)
+									If FAutoSize Then
+										This.Width = FFrameWidth
+										This.Height = FFrameHeight
+									End If
+									If FCenter Then
+										IVideoWindow_SetWindowPosition(vidwindow, (This.Width - FFrameWidth) / 2, (This.Height - FFrameHeight) / 2, FFrameWidth, FFrameHeight)
+									Else
+										IVideoWindow_SetWindowPosition(vidwindow, 0, 0, FFrameWidth, FFrameHeight)
+									End If
+									WDeallocate wFile
+									If FAutoPlay Then Play
+								End If
+							End If
 							FOpen = 1
 						End If
 					End If
@@ -294,7 +343,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Return FPlay
 		#else
-			Return Perform(ACM_ISPLAYING, 0, 0)
+			If pControl Then
+				Return FPlay
+			Else
+				Return Perform(ACM_ISPLAYING, 0, 0)
+			End If
 		#endif
 	End Function
 	
@@ -311,7 +364,12 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then
-				Perform(ACM_PLAY, FRepeat, MakeLong(FStartFrame, FStopFrame))
+				If pControl <> 0 Then
+					If OnStart Then OnStart(This)
+					Error_HR(IMediaControl_Run(pControl), "Metod IMediaControl_Run")
+				Else
+					Perform(ACM_PLAY, FRepeat, MakeLong(FStartFrame, FStopFrame))
+				End If
 				FPlay = True
 			End If
 		#endif
@@ -323,7 +381,12 @@ Namespace My.Sys.Forms
 			FPlay = False
 		#else
 			If Handle Then
-				Perform(ACM_STOP,0,0)
+				If pControl Then
+					If OnStop Then OnStop(This)
+					Error_HR(IMediaControl_Pause(pControl), "Metod IMediaControl_Pause")
+				Else
+					Perform(ACM_STOP, 0, 0)
+				End If
 				FPlay = False
 			End If
 		#endif
@@ -337,7 +400,16 @@ Namespace My.Sys.Forms
 		#else
 			If Handle Then
 				If OnClose Then OnClose(This)
-				Perform(ACM_OPEN, 0, 0)
+				If pControl Then
+					Dim As LongInt rtNow
+					Dim As LongInt rtStop
+					Dim As LongInt rtbegin
+					Error_HR(IMediaSeeking_GetPositions(medseek, @rtNow, @rtStop), "Not put begin positions")
+					Error_HR(IMediaSeeking_SetPositions(medseek, @rtbegin, AM_SEEKING_AbsolutePositioning, @rtStop , AM_SEEKING_AbsolutePositioning), "Not set begin positions")
+					Error_HR(IMediaControl_Stop(pControl), "Metod IMediaControl_Stop")
+				Else
+					Perform(ACM_OPEN, 0, 0)
+				End If
 				FOpen = 0
 				FPlay = False
 			End If
@@ -442,6 +514,16 @@ Namespace My.Sys.Forms
 				gtk_widget_set_colormap(widget, VisualOrColormap)
 			#endif
 		End Sub
+	#else
+		Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As USTRING) As Integer
+			If (FAILED(hr)) Then
+				Var MB = MessageBox(0, "Error associated with " & *Inter_face.vptr & ". Want Continue?", "Error", MB_YESNO)
+				If MB = IDNO Then
+					End
+				EndIf
+			Else Return 1
+			End If
+		End Function
 	#endif
 	
 	Constructor Animate
@@ -500,5 +582,15 @@ Namespace My.Sys.Forms
 	
 	Destructor Animate
 		If FFile Then Deallocate_( FFile)
+		If pGraph Then
+			IMediaControl_Release(pControl)
+			IMediaEvent_Release  (pEvent)    
+			IVideoWindow_Release (vidwindow)
+			IMediaSeeking_Release(medseek)
+			IBasicVideo_Release  (basvideo)
+			IBasicAudio_Release  (basAudio)
+			IGraphBuilder_Release(pGraph)
+			CoUninitialize()
+		EndIf
 	End Destructor
 End Namespace

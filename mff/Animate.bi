@@ -10,6 +10,9 @@
 '###############################################################################
 
 #include once "Control.bi"
+#ifndef __USE_GTK__
+	#include once "win/dshow.bi"
+#endif
 
 Namespace My.Sys.Forms
 	#define QAnimate(__Ptr__) *Cast(Animate Ptr,__Ptr__)
@@ -57,6 +60,14 @@ Namespace My.Sys.Forms
 		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As USTRING) As Integer
+			As IGraphBuilder   Ptr pGraph
+			As IMediaControl   Ptr pControl
+			As IMediaEvent     Ptr pEvent
+			As IVideoWindow    Ptr vidwindow
+			As IMediaSeeking   Ptr medseek
+			As IBasicVideo     Ptr basvideo
+			As IBasicAudio     Ptr BasAudio
 		#endif
 	Protected:
 		FOpen           As Boolean
@@ -87,6 +98,8 @@ Namespace My.Sys.Forms
 		Declare Property StopFrame As Integer
 		Declare Property StopFrame(Value As Integer)
 		Declare Function FrameCount As Integer
+		Declare Function FrameHeight As Integer
+		Declare Function FrameWidth As Integer
 		Declare Function IsPlaying As Boolean
 		Declare Operator Cast As Control Ptr
 		Declare Sub Open
