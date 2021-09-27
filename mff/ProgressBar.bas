@@ -85,7 +85,7 @@ Namespace My.Sys.Forms
 		FMarqueeInterval = Interval
 		#ifdef __USE_GTK__
 			If FMarqueeOn Then
-				progress_bar_timer_id = g_timeout_add(FMarqueeInterval, @progress_cb, @This)
+				progress_bar_timer_id = g_timeout_add(FMarqueeInterval, Cast(GSourceFunc, @progress_cb), @This)
 			Else
 				progress_bar_timer_id = 0
 			End If
