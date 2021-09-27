@@ -427,7 +427,7 @@ Namespace My.Sys.Forms
 				Dim As GTimeVal gTime
 				g_get_current_time(@gTime)
 				gdk_pixbuf_animation_iter_advance(anim->iter, @gTime)
-				g_timeout_add(gdk_pixbuf_animation_iter_get_delay_time(anim->iter), @Timer_cb, user_data)
+				g_timeout_add(gdk_pixbuf_animation_iter_get_delay_time(anim->iter), Cast(GSourceFunc, @Timer_cb), user_data)
 				gtk_widget_queue_draw(anim->widget)
 			End If
 			Return False
