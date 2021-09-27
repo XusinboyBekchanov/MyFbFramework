@@ -1003,7 +1003,7 @@ Namespace My.Sys.Forms
 						If OnMouseHover Then
 							Dim As Boolean Ptr pBoolean = New Boolean
 							MouseHoverMessage = Type(@This, e->Motion.x, e->Motion.y, e->Motion.state, pBoolean)
-							hover_timer_id = g_timeout_add(1000, @hover_cb, pBoolean)
+							hover_timer_id = g_timeout_add(1000, Cast(GSourceFunc, @hover_cb), pBoolean)
 							Message.Result = True
 						End If
 					End If

@@ -645,11 +645,17 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			Dim As Integer FCheck(-1 To 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
-			If Parent Then
+			If Parent AndAlso Parent->Handle Then
 				If Handle Then
 					CheckMenuItem(Parent->Handle,CInt(Handle),MF_POPUP Or FCheck(FChecked))
 				Else
-					CheckMenuItem(Parent->Handle,MenuIndex,MF_BYPOSITION Or FCheck(FChecked))
+					CheckMenuItem(Parent->Handle, MenuIndex, MF_BYPOSITION Or FCheck(FChecked))
+				End If
+			ElseIf Owner AndAlso Owner->Handle Then
+				If Handle Then
+					CheckMenuItem(Owner->Handle, CInt(Handle), MF_POPUP Or FCheck(FChecked))
+				Else
+					CheckMenuItem(Owner->Handle, MenuIndex, MF_BYPOSITION Or FCheck(FChecked))
 				End If
 			End If
 		#endif
@@ -1206,7 +1212,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Menu.Item(index As Integer) As MenuItem Ptr
-		If (index>-1) And (index<FCount) Then
+		If (index > -1) And (index < FCount) Then
 			Return FItems[Index]
 		End If
 		Return NULL

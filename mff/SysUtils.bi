@@ -10,9 +10,13 @@
 '################################################################################
 
 #ifndef __FB_WIN32__
-	#define __USE_GTK__
+	#ifndef __USE_GTK__
+		#define __USE_GTK__
+	#endif
 #else
-	#define __USE_WINAPI__
+	#ifndef __USE_WINAPI__
+		#define __USE_WINAPI__
+	#endif
 #endif
 
 #ifdef __FB_WIN32__

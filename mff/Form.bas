@@ -800,7 +800,7 @@ Namespace My.Sys.Forms
 						If OnActivateApp OrElse OnDeactivateApp Then
 							If pApp Then
 								pApp->FDeactivated = True
-								g_timeout_add(500, @deactivate_cb, @This)
+								g_timeout_add(500, Cast(GSourceFunc, @deactivate_cb), @This)
 							End If
 						End If
 					End If
