@@ -205,7 +205,7 @@ Namespace My.Sys.ComponentModel
 						'gdk_window_move(gtk_widget_get_window (widget), iLeft, iTop)
 						'gdk_window_resize(gtk_widget_get_window (widget), Max(1, iWidth), Max(1, iHeight))
 						'If Parent AndAlso Parent->fixedwidget Then gtk_fixed_move(gtk_fixed(Parent->fixedwidget), widget, iLeft, iTop)
-						Dim As GtkWidget Ptr CtrlWidget = IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, IIf(scrolledwidget, scrolledwidget, widget)))
+						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, widget)))
 						If Parent Then
 							If Parent->layoutwidget Then
 								'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)

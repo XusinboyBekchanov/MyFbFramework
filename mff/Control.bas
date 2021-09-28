@@ -312,7 +312,7 @@ Namespace My.Sys.Forms
 								gtk_layout_put(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget)), FLeft, FTop)
 							End If
 						Else
-							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget))
+							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, widget)))
 							g_object_ref(G_OBJECT(CtrlWidget))
 							gtk_widget_unparent(CtrlWidget)
 						End If
@@ -2135,7 +2135,7 @@ Namespace My.Sys.Forms
 					'If Not FDesignMode Then
 						If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
 					'End If
-					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, Ctrl->widget)))
+					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget)))
 					If gtk_is_widget(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
