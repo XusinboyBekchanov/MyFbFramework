@@ -4068,7 +4068,7 @@ Namespace My.Sys.Forms
 			Dim As Chart Ptr chrt = Cast(Any Ptr, user_data)
 			With *chrt
 				If .cr <> 0 Then
-					.Font.Size = Max(.m_FontSize, .m_FontSize * .Height / .m_Height)
+					'.Font.Size = Max(.m_FontSize, .m_FontSize * .Height / .m_Height)
 					.m_TitleFont.Size = Max(.m_TitleFontSize, (.m_TitleFontSize) * .Height / .m_Height)
 					.m_SeparatorLineWidth = .m_SeparatorLineWidth2 * .Height / .m_Height
 					.m_DonutWidth = .m_DonutWidth2 * .Height / .m_Height
