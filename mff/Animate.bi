@@ -33,8 +33,8 @@ Namespace My.Sys.Forms
 	Type Animate Extends Control
 	Private:
 		FFrameCount     As Integer
-		FFrameWidth     As Integer
-		FFrameHeight    As Integer
+		FFrameWidth     As Long
+		FFrameHeight    As Long
 		FStartFrame     As Integer
 		FStopFrame      As Integer
 		FAutoSize       As Boolean
