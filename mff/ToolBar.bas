@@ -322,19 +322,25 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolButton.Width As Integer
-		Dim As Integer i
-		If Ctrl Then
-			With QControl(Ctrl)
-				#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
+				FButtonWidth = gtk_widget_get_allocated_width(Widget)
+			#else
+				FButtonWidth = Widget->allocation.width
+			#endif
+		#else
+			Dim As Integer i
+			If Ctrl Then
+				With QControl(Ctrl)
 					Dim As Rect R
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
 						FButtonWidth = R.Right - R.Left
 					End If
-				#endif
-			End With
-		End If
+				End With
+			End If
+		#endif
 		Return FButtonWidth
 	End Property
 	
@@ -343,7 +349,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property ToolButton.Height As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			#ifdef __USE_GTK3__
+				FButtonHeight = gtk_widget_get_allocated_height(Widget)
+			#else
+				FButtonHeight = Widget->allocation.height
+			#endif
+		#else
 			Dim As Rect R
 			Dim As Integer i
 			If Ctrl Then
