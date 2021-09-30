@@ -269,18 +269,13 @@ Namespace My.Sys.ComponentModel
 			#ifdef __USE_GTK__
 				If gtk_is_window(widget) Then
 					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-				ElseIf scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
-					Dim allocation As GtkAllocation
-					gtk_widget_get_allocation(scrolledwidget, @allocation)
-					FLeft = allocation.x
-				ElseIf eventboxwidget AndAlso gtk_widget_get_mapped(eventboxwidget) Then
-					Dim allocation As GtkAllocation
-					gtk_widget_get_allocation(eventboxwidget, @allocation)
-					FLeft = allocation.x
-				ElseIf widget AndAlso gtk_widget_get_mapped(widget) Then
-					Dim allocation As GtkAllocation
-					gtk_widget_get_allocation(widget, @allocation)
-					FLeft = allocation.x
+				Else
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, widget)))
+					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
+						Dim allocation As GtkAllocation
+						gtk_widget_get_allocation(CtrlWidget, @allocation)
+						FLeft = allocation.x
+					End If
 				End If
 			#else
 				If FHandle Then
@@ -308,21 +303,14 @@ Namespace My.Sys.ComponentModel
 				Dim ControlChanged As Boolean
 				If gtk_is_window(widget) Then
 					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-				ElseIf scrolledwidget AndAlso gtk_widget_get_mapped(scrolledwidget) Then
-					Dim allocation As GtkAllocation
-					gtk_widget_get_allocation(scrolledwidget, @allocation)
-					FTop = allocation.y
-					ControlChanged = True
-				ElseIf eventboxwidget AndAlso gtk_widget_get_mapped(eventboxwidget) Then
-					Dim allocation As GtkAllocation
-					gtk_widget_get_allocation(eventboxwidget, @allocation)
-					FTop = allocation.y
-					ControlChanged = True
-				ElseIf widget AndAlso gtk_widget_get_mapped(widget) Then
-					Dim allocation As GtkAllocation
-					gtk_widget_get_allocation(widget, @allocation)
-					FTop = allocation.y
-					ControlChanged = True
+				Else
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, widget)))
+					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
+						Dim allocation As GtkAllocation
+						gtk_widget_get_allocation(CtrlWidget, @allocation)
+						FTop = allocation.y
+						ControlChanged = True
+					End If
 				End If
 				If CInt(ControlChanged) AndAlso CInt(Parent) AndAlso CInt(Parent->ClassName = "GroupBox") Then
 					FTop + = 20
@@ -351,17 +339,18 @@ Namespace My.Sys.ComponentModel
 		Property Component.Width As Integer
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, widget)
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 						#ifdef __USE_GTK3__
 							FWidth = gtk_widget_get_allocated_width(widget)
 						#else
 							FWidth = widget->allocation.width
 						#endif
-					ElseIf widget Then
+					ElseIf CtrlWidget Then
 						#ifdef __USE_GTK3__
-							If gtk_widget_get_allocated_width(widget) > 1 Then FWidth = gtk_widget_get_allocated_width(widget)
+							If gtk_widget_get_allocated_width(CtrlWidget) > 1 Then FWidth = gtk_widget_get_allocated_width(CtrlWidget)
 						#else
-							If widget->allocation.width > 1 Then FWidth = widget->allocation.width
+							If CtrlWidget->allocation.width > 1 Then FWidth = CtrlWidget->allocation.width
 						#endif
 						'Dim As GtkAllocation alloc
 						'gtk_widget_get_allocation (widget, @alloc)
@@ -392,17 +381,18 @@ Namespace My.Sys.ComponentModel
 		Property Component.Height As Integer
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, widget)
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 						#ifdef __USE_GTK3__
 							FHeight = gtk_widget_get_allocated_height(widget)
 						#else
 							FHeight = widget->allocation.height
 						#endif
-					ElseIf widget Then
+					ElseIf CtrlWidget Then
 						#ifdef __USE_GTK3__
-							If gtk_widget_get_allocated_height(widget) > 1 Then FHeight = gtk_widget_get_allocated_height(widget)
+							If gtk_widget_get_allocated_height(CtrlWidget) > 1 Then FHeight = gtk_widget_get_allocated_height(CtrlWidget)
 						#else
-							If widget->allocation.height > 1 Then FHeight = widget->allocation.height
+							If CtrlWidget->allocation.height > 1 Then FHeight = CtrlWidget->allocation.height
 						#endif
 					End If
 				End If

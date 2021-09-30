@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 			#endif
 			'        int wnd_x = g_OrigWndPos.x +
 			If down1 = 1 Then
-				i = This.Parent->IndexOf(This)
+				i = This.Parent->IndexOf(@This)
 				#ifdef __USE_GTK__
 					#ifdef __USE_GTK3__
 						gdk_device_get_position (device, NULL, @xCur, @yCur)
@@ -194,15 +194,16 @@ Namespace My.Sys.Forms
 				#endif
 					If This.Parent->ControlCount Then
 						This.Parent->UpdateLock
-						If Align = 1 Then
+						Select Case Align
+						Case SplitterAlignmentConstants.alLeft
 							If i > 0 Then This.Parent->Controls[i - 1]->Width = This.Parent->Controls[i - 1]->Width - UnScaleX(xOrig) + UnScaleX(xCur)
-						ElseIf Align = 2 Then
-							If i > 0 Then This.Parent->Controls[i - 1]->Width = This.Parent->Controls[i - 1]->Width + UnScaleX(xOrig) - UnScaleX(xCur) 'This.Left
-						ElseIf Align = 3 Then
+						Case SplitterAlignmentConstants.alRight
+							If i > 0 Then This.Parent->Controls[i - 1]->Width = This.Parent->Controls[i - 1]->Width + UnScaleX(xOrig) - UnScaleX(xCur)
+						Case SplitterAlignmentConstants.alTop
 							If i > 0 Then This.Parent->Controls[i - 1]->Height = This.Parent->Controls[i - 1]->Height - UnScaleY(yOrig) + UnScaleY(yCur)
-						ElseIf Align = 4 Then
+						Case SplitterAlignmentConstants.alBottom
 							If i > 0 Then This.Parent->Controls[i - 1]->Height = This.Parent->Controls[i - 1]->Height + UnScaleY(yOrig) - UnScaleY(yCur)
-						End If
+						End Select
 						xOrig = xCur
 						yOrig = yCur
 						If onMoved Then onMoved(This)
