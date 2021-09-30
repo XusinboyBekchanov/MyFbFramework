@@ -207,18 +207,19 @@ Namespace My.Sys.ComponentModel
 						'If Parent AndAlso Parent->fixedwidget Then gtk_fixed_move(gtk_fixed(Parent->fixedwidget), widget, iLeft, iTop)
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, widget)))
 						If Parent Then
-							If Parent->overlaywidget Then
-								If gtk_is_overlay(gtk_widget_get_parent(CtrlWidget)) Then
-'									gtk_widget_queue_resize(gtk_widget_get_parent(CtrlWidget))
-'									If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
-'									Else
-'										gtk_widget_set_margin_start(CtrlWidget, iLeft)
-'										gtk_widget_set_margin_top(CtrlWidget, iTop)
-'										gtk_widget_set_margin_end(CtrlWidget, FParent->Width - iLeft - iWidth)
-'										gtk_widget_set_margin_bottom(CtrlWidget, FParent->Height - iTop - iHeight)
-'									End If
-								End If
-							ElseIf Parent->layoutwidget Then
+'							#ifdef __USE_GTK3__
+'							If Parent->overlaywidget Then
+'								If gtk_is_overlay(gtk_widget_get_parent(CtrlWidget)) Then
+''									gtk_widget_queue_resize(gtk_widget_get_parent(CtrlWidget))
+''									If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
+''									Else
+''										gtk_widget_set_margin_start(CtrlWidget, iLeft)
+''										gtk_widget_set_margin_top(CtrlWidget, iTop)
+''										gtk_widget_set_margin_end(CtrlWidget, FParent->Width - iLeft - iWidth)
+''										gtk_widget_set_margin_bottom(CtrlWidget, FParent->Height - iTop - iHeight)
+''									End If
+'								End If
+							If Parent->layoutwidget Then
 								'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 								gtk_layout_move(gtk_layout(Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 							ElseIf Parent->fixedwidget Then
