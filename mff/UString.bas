@@ -352,6 +352,19 @@ Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'#endif
 End Function
 
+Private Function StrLSet(ByRef MainStr As Const WString, ByVal StringLength As Long, ByRef PadCharacter As Const WString = " ") As UString
+   Dim strn As UString = WString(StringLength, PadCharacter)
+   Mid(strn, 1, Len(MainStr)) = MainStr
+   Return strn
+End Function
+
+Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As Long, ByRef PadCharacter As Const WString = " ") As UString
+   If Len(MainStr) > StringLength Then Return Left(MainStr, StringLength)
+   Dim strn As UString = WString(StringLength, PadCharacter)
+   Mid(strn, StringLength - Len(MainStr) + 1, Len(MainStr)) = MainStr
+   Return strn
+End Function
+
 Function FileExists(ByRef filename As UString) As Long
 	#ifndef __USE_GTK__
 		If PathFileExistsW(filename.vptr) Then

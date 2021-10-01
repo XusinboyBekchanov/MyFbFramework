@@ -22,6 +22,8 @@
 #ifdef __FB_WIN32__
 	#define UNICODE
 	#include once "Windows.bi"
+#else
+	#define FHandle Widget
 #endif
 
 #ifndef __USE_GTK__
