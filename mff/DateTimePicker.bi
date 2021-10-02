@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
 	#define QDateTimePicker(__Ptr__) *Cast(DateTimePicker Ptr, __Ptr__)
 	
 	Enum DateTimePickerFormat
-		LongDate = 1
+		LongDate = 0
 		ShortDate
 		ShortDateCentury
 		TimeFormat
@@ -26,9 +26,12 @@ Namespace My.Sys.Forms
 		FRightAlign         As Boolean = False
 		FDateFormat         As DateTimePickerFormat = DateTimePickerFormat.ShortDateCentury
 		FFormatCustom       As WString Ptr
+		FShowNone           As Boolean = False
 		FShowUpDown         As Boolean = False
 		FTimePicker         As Boolean = False
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr CheckWidget, TextWidget, ButtonWidget, UpDownWidget
+		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
@@ -48,6 +51,8 @@ Namespace My.Sys.Forms
 		Declare Property DateFormat(ByVal Value As DateTimePickerFormat)
 		Declare Property FormatCustom ByRef As WString
 		Declare Property FormatCustom(ByRef Value As WString)
+		Declare Property ShowNone As Boolean
+		Declare Property ShowNone(Value As Boolean)
 		Declare Property ShowUpDown As Boolean
 		Declare Property ShowUpDown(Value As Boolean)
 		Declare Property TabIndex As Integer
@@ -56,8 +61,8 @@ Namespace My.Sys.Forms
 		Declare Property TabStop(Value As Boolean)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
-'		Declare Property TimePicker As Boolean
-'		Declare Property TimePicker(Value As Boolean)
+		Declare Property TimePicker As Boolean
+		Declare Property TimePicker(Value As Boolean)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor

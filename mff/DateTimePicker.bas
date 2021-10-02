@@ -12,11 +12,13 @@ Namespace My.Sys.Forms
 		Case "calendarrightalign": Return @FRightAlign
 		Case "dateformat": Return @FDateFormat
 		Case "formatcustom": Return FFormatCustom
+		Case "shownone": Return @FShowNone
 		Case "showupdown": Return @FShowUpDown
 		Case "selecteddate": Return @FSelectedDate
 		Case "selecteddatetime": Return @FSelectedDateTime
 		Case "selectedtime": Return @FSelectedTime
 		Case "tabindex": Return @FTabIndex
+		Case "timepicker": Return @FTimePicker
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -27,11 +29,13 @@ Namespace My.Sys.Forms
 		Case "calendarrightalign": CalendarRightAlign = QBoolean(Value) 
 		Case "dateformat": DateFormat = *Cast(DateTimePickerFormat Ptr, Value)
 		Case "formatcustom": FormatCustom = QWString(Value)
+		Case "shownone": ShowNone = QBoolean(Value) 
 		Case "showupdown": ShowUpDown = QBoolean(Value) 
 		Case "selecteddate": SelectedDate = QLong(Value)
 		Case "selecteddatetime": SelectedDateTime = QDouble(Value)
 		Case "selectedtime": SelectedTime = QDouble(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
+		Case "timepicker": TimePicker = QBoolean(Value) 
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -109,31 +113,17 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property DateTimePicker.Text ByRef As WString
-		If FHandle Then
-			#ifndef __USE_GTK__
-				Dim As SYSTEMTIME pst
-				DateTime_GetSystemTime(FHandle, @pst)
-				FText = _
-				StrRSet(WStr(pst.wYear),    4, "0") & "." & _
-				StrRSet(WStr(pst.wMonth),   2, "0") & "." & _
-				StrRSet(WStr(pst.wDay),     2, "0") & " " & _
-				StrRSet(WStr(pst.wHour),    2, "0") & ":" & _
-				StrRSet(WStr(pst.wMinute),  2, "0") & ":" & _
-				StrRSet(WStr(pst.wSecond),  2, "0")
-			#endif
-		End If
-		Return *FText.vptr
+		Return Base.Text
 	End Property
 	
 	Property DateTimePicker.Text(ByRef Value As WString)
 		FText = Value
-		If FHandle Then
-			#ifndef __USE_GTK__
-				Dim As SYSTEMTIME pst
-				FSelectedDate = DateValue(Trim(Left(Value, 10)))
-				FSelectedTime = TimeValue(Trim(Mid(Value, 11)))
-				DateTime_SetSystemTime(FHandle, GDT_VALID, @pst)
-			#endif
+		Dim As Integer Pos1 = InStr(Value, ":")
+		If Pos1 > 0 Then
+			SelectedDate = DateValue(Trim(Left(Value, Pos1 - 3)))
+			SelectedTime = TimeValue(Trim(Mid(Value, Pos1 - 2)))
+		Else
+			SelectedDate = DateValue(Trim(Value))
 		End If
 	End Property
 	
@@ -166,42 +156,48 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property DateTimePicker.CalendarRightAlign As Boolean
-		If FHandle Then
-			#ifndef __USE_GTK__
-				FRightAlign = StyleExists(DTS_RIGHTALIGN)
-			#endif
-		End If
+		#ifndef __USE_GTK__
+			FRightAlign = StyleExists(DTS_RIGHTALIGN)
+		#endif
 		Return FRightAlign
 	End Property
 	
 	Property DateTimePicker.CalendarRightAlign(Value As Boolean)
 		FRightAlign = Value
-		If FHandle Then
-			#ifndef __USE_GTK__
-				ChangeStyle DTS_RIGHTALIGN, Value
-			#endif
-			This.Repaint
-		End If
+		#ifndef __USE_GTK__
+			ChangeStyle DTS_RIGHTALIGN, Value
+		#endif
+		If FHandle Then RecreateWnd
 	End Property
 	
 	Property DateTimePicker.ShowUpDown As Boolean
-		If FHandle Then
-			#ifndef __USE_GTK__
-				FShowUpDown = StyleExists(DTS_UPDOWN)
-			#endif
-		End If
-		Property = FShowUpDown
+		#ifndef __USE_GTK__
+			FShowUpDown = StyleExists(DTS_UPDOWN)
+		#endif
+		Return FShowUpDown
 	End Property
 	
 	Property DateTimePicker.ShowUpDown(Value As Boolean)
 		FShowUpDown = Value
-		If FHandle Then
-			' Apparently this style can not be changed after control creation.
-			#ifndef __USE_GTK__
-				ChangeStyle DTS_UPDOWN, Value
-			#endif
-			This.Repaint
-		End If
+		#ifndef __USE_GTK__
+			ChangeStyle DTS_UPDOWN, Value
+		#endif
+		If FHandle Then RecreateWnd
+	End Property
+	
+	Property DateTimePicker.ShowNone As Boolean
+		#ifndef __USE_GTK__
+			FShowNone = StyleExists(DTS_SHOWNONE)
+		#endif
+		Return FShowNone
+	End Property
+	
+	Property DateTimePicker.ShowNone(Value As Boolean)
+		FShowNone = Value
+		#ifndef __USE_GTK__
+			ChangeStyle DTS_SHOWNONE, Value
+		#endif
+		If FHandle Then RecreateWnd
 	End Property
 	
 	Property DateTimePicker.DateFormat As DateTimePickerFormat
@@ -226,19 +222,19 @@ Namespace My.Sys.Forms
 	
 	Property DateTimePicker.DateFormat(Value As DateTimePickerFormat)
 		FDateFormat = Value
-		If FHandle Then
-			#ifndef __USE_GTK__
+		#ifndef __USE_GTK__
+			ChangeStyle DTS_LONGDATEFORMAT, Value = DateTimePickerFormat.LongDate
+			ChangeStyle DTS_SHORTDATEFORMAT, Value = DateTimePickerFormat.ShortDate
+			ChangeStyle DTS_SHORTDATECENTURYFORMAT, Value =  DateTimePickerFormat.ShortDateCentury
+			ChangeStyle DTS_TIMEFORMAT, Value = DateTimePickerFormat.TimeFormat
+			If FHandle Then
 				' Need to rebuild the control
-				ChangeStyle DTS_LONGDATEFORMAT, Value = DateTimePickerFormat.LongDate
-				ChangeStyle DTS_SHORTDATEFORMAT, Value = DateTimePickerFormat.ShortDate
-				ChangeStyle DTS_SHORTDATECENTURYFORMAT, Value =  DateTimePickerFormat.ShortDateCentury
-				ChangeStyle DTS_TIMEFORMAT, Value = DateTimePickerFormat.TimeFormat
 				RecreateWnd
 				If DateTimePickerFormat.CustomFormat Then
 					DateTime_SetFormat(FHandle, FFormatCustom)
 				End If
-			#endif
-		End If
+			End If
+		#endif
 	End Property
 	
 	Property DateTimePicker.TabIndex As Integer
@@ -261,18 +257,8 @@ Namespace My.Sys.Forms
 		Sub DateTimePicker.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QDateTimePicker(Sender.Child)
-					Var SMD = Sender.Handle
-					Dim ST As SYSTEMTIME
-					ST.wYear=2020
-					ST.wmonth=1
-					ST.wday=1
-					ST.wHour=0
-					ST.wMinute=1
-					ST.wSecond=0
-					Dim s As String
-					s = "HH" & ":" & "mm" & ":" & "ss"
-					'SendMessage(SMD, DTM_SETFORMATW,0, Cast(LPARAM,@s))
-					SendMessage(SMD,DTM_SETSYSTEMTIME,0,Cast(LPARAM,@ST))
+					If .FDateFormat = DateTimePickerFormat.CustomFormat Then DateTime_SetFormat(.FHandle, .FFormatCustom)
+					.SelectedDateTime = .SelectedDateTime
 				End With
 			End If
 		End Sub
@@ -282,22 +268,23 @@ Namespace My.Sys.Forms
 		
 	#endif
 	
-'	Property DateTimePicker.TimePicker As Boolean 'David Change
-'		Return FTimePicker
-'	End Property
-'	
-'	Property DateTimePicker.TimePicker(Value As Boolean)'David Change
-'		If FTimePicker <> Value Then
-'			FTimePicker = Value
-'		End If
-'		#ifndef __USE_GTK__
-'			If FTimePicker Then
-'				This.Style  = WS_CHILD Or DTS_TIMEFOrMAT Or DTS_UPDOWN Or DTS_SHOWNONE ' NO repons
-'			Else
-'				This.Style  = WS_CHILD Or DTS_SHORTDATEFORMAT
-'			End If
-'		#endif
-'	End Property
+	Property DateTimePicker.TimePicker As Boolean 'David Change
+		Return FTimePicker
+	End Property
+	
+	Property DateTimePicker.TimePicker(Value As Boolean)'David Change
+		If FTimePicker <> Value Then
+			FTimePicker = Value
+		End If
+		#ifndef __USE_GTK__
+			If FTimePicker Then
+				This.Style  = WS_CHILD Or DTS_TIMEFOrMAT Or DTS_UPDOWN Or DTS_SHOWNONE ' NO repons
+			Else
+				This.Style  = WS_CHILD Or DTS_SHORTDATEFORMAT
+			End If
+			If FHandle Then RecreateWnd
+		#endif
+	End Property
 	
 	Sub DateTimePicker.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
@@ -353,7 +340,29 @@ Namespace My.Sys.Forms
 		With This
 			WLet(FClassName, "DateTimePicker")
 			WLet(FClassAncestor, "SysDateTimePick32")
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				Widget = gtk_spin_button_new(NULL, 1, 0)
+'				CheckWidget = gtk_check_button_new_with_label("")
+'				TextWidget = gtk_entry_new()
+'				ButtonWidget = gtk_button_new_with_label(ToUTF8("˅"))
+'				UpDownWidget = gtk_spin_button_new(NULL, 1, 0)
+'				OverlayWidget = gtk_overlay_new()
+'				gtk_container_add(gtk_overlay(OverlayWidget), UpDownWidget)
+'				gtk_overlay_add_overlay(gtk_overlay(OverlayWidget), CheckWidget)
+'				gtk_overlay_add_overlay(gtk_overlay(OverlayWidget), ButtonWidget)
+''				gtk_box_pack_start(gtk_box(widget), CheckWidget, False, False, 0)
+''				gtk_box_pack_start(gtk_box(widget), TextWidget, True, True, 0)
+''				gtk_box_pack_start(gtk_box(widget), ButtonWidget, False, False, 0)
+''				gtk_box_pack_start(gtk_box(widget), UpDownWidget, False, False, 0)
+'				gtk_spin_button_set_numeric(gtk_spin_button(UpDownWidget), False)
+'				gtk_entry_set_text(gtk_entry(UpDownWidget), ToUTF8("dsdsd"))
+'				
+'				gtk_spin_button_set_update_policy(gtk_spin_button(UpDownWidget), GTK_UPDATE_ALWAYS)
+'				gtk_spin_button_set_wrap(gtk_spin_button(UpDownWidget), True)
+'				gtk_widget_hide(CheckWidget)
+				'gtk_container_set_border_width(gtk_container(widget), 10)
+				Base.RegisterClass WStr("DateTimePicker"), @This
+			#else
 				Base.RegisterClass WStr("DateTimePicker"), WStr("SysDateTimePick32")
 				.ExStyle      = 0 'WS_EX_LEFT OR WS_EX_LTRREADING OR WS_EX_RIGHTSCROLLBAR OR WS_EX_CLIENTEDGE
 				.Style        = WS_CHILD Or DTS_SHORTDATEFORMAT
