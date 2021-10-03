@@ -581,7 +581,9 @@ Namespace My.Sys.Forms
 				Return
 			Case GDK_BUTTON_RELEASE
 				SelectRegion
-				Message.Result = True
+				If Not FDesignMode Then
+					Message.Result = True
+				End If
 				Return
 			Case GDK_FOCUS_CHANGE
 				If Cast(GdkEventFocus Ptr, e)->in Then
