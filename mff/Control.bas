@@ -309,10 +309,10 @@ Namespace My.Sys.Forms
 					If FIsChild <> Value Then
 						If Value Then
 							If Parent AndAlso Parent->layoutwidget Then
-								gtk_layout_put(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget)), FLeft, FTop)
+								gtk_layout_put(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))), FLeft, FTop)
 							End If
 						Else
-							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(eventboxwidget, eventboxwidget, widget)))
+							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 							g_object_ref(G_OBJECT(CtrlWidget))
 							gtk_widget_unparent(CtrlWidget)
 						End If
@@ -1305,7 +1305,7 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 				Case WM_KEYUP
-					If OnKeyUp Then OnKeyUp(This,LoWord(Message.WParam),Message.lParam And &HFFFF)
+					If OnKeyUp Then OnKeyUp(This, LoWord(Message.WParam), Message.lParam And &HFFFF)
 				Case WM_SETFOCUS
 					If OnGotFocus Then OnGotFocus(This)
 					If Not FDesignMode Then
@@ -1583,11 +1583,12 @@ Namespace My.Sys.Forms
 			Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
 				If gtk_is_layout(widget) Then
-					#ifdef __USE_GTK3__
-						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
-					#else
-						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
-					#endif
+					Dim As Integer AllocatedWidth = allocation->width, AllocatedHeight = allocation->height
+'					#ifdef __USE_GTK3__
+'						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+'					#else
+'						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+'					#endif
 					''					If Ctrl->BackColor <> -1 Then
 					''						Dim As Integer iColor = Ctrl->BackColor
 					''						cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
@@ -1608,11 +1609,14 @@ Namespace My.Sys.Forms
 				If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
 					Ctrl->Canvas.HandleSetted = True 
 					Ctrl->Canvas.Handle = cr
+'					Dim allocation As GtkAllocation
+'					gtk_widget_get_allocation(widget, @allocation)
 					#ifdef __USE_GTK3__
 						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 					#else
 						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
 					#endif
+					'Dim As Integer AllocatedWidth = allocation.width, AllocatedHeight = allocation.height
 					If Ctrl->BackColor <> -1 Then
 						Dim As Integer iColor = Ctrl->BackColor
 						cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
@@ -1620,6 +1624,9 @@ Namespace My.Sys.Forms
 						cairo_fill(cr)
 					End If
 					If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
+'					#ifdef __USE_GTK3__
+'						Control_SizeAllocate(widget, @allocation, data1)
+'					#endif
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
@@ -1718,6 +1725,7 @@ Namespace My.Sys.Forms
 					'Result = g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 					#ifdef __USE_GTK3__
 						g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
+						'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
 					#else
 						g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
 						g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
@@ -2066,9 +2074,10 @@ Namespace My.Sys.Forms
 				If This.Parent AndAlso This.Parent->layoutwidget Then
 					Dim As Integer iLeft = This.Left, iTop = This.Top
 					Dim As GtkWidget Ptr CtrlWidget = widget
-					If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+					Select Case gtk_widget_get_parent(CtrlWidget)
+					Case scrolledwidget, overlaywidget, layoutwidget, eventboxwidget
 						CtrlWidget = gtk_widget_get_parent(CtrlWidget)
-					End If
+					End Select
 					g_object_ref(CtrlWidget)
 					gtk_container_remove(gtk_container(This.Parent->layoutwidget), CtrlWidget)
 					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
@@ -2086,9 +2095,10 @@ Namespace My.Sys.Forms
 					For i As Integer = 0 To This.Parent->ControlCount - 1
 						If widget <> This.Parent->Controls[i]->widget Then
 							CtrlWidget = This.Parent->Controls[i]->widget
-							If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+							Select Case gtk_widget_get_parent(CtrlWidget)
+							Case This.Parent->Controls[i]->scrolledwidget, This.Parent->Controls[i]->overlaywidget, This.Parent->Controls[i]->layoutwidget, This.Parent->Controls[i]->eventboxwidget
 								CtrlWidget = gtk_widget_get_parent(CtrlWidget)
-							End If
+							End Select
 							iLeft = This.Parent->Controls[i]->Left
 							iTop = This.Parent->Controls[i]->Top
 							g_object_ref(CtrlWidget)
@@ -2135,7 +2145,7 @@ Namespace My.Sys.Forms
 					'If Not FDesignMode Then
 						If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
 					'End If
-					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget)))
+					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->layoutwidget, Ctrl->layoutwidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget))))
 					If gtk_is_widget(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)

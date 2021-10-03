@@ -141,14 +141,25 @@ End Type
 		Const GDK_KEY_Delete = &hffff
 		Const GDK_KEY_Cut = &h1008ff58
 		Const GDK_KEY_Copy = &h1008ff57
+		Const GDK_KEY_KP_Enter = &hff8d
 		Const GDK_KEY_Paste = &h1008ff6d
 		Const GDK_KEY_Redo = &hff66
 		Const GDK_KEY_Undo = &hff65
 		Const GDK_KEY_Page_Up = &hff55
 		Const GDK_KEY_Page_Down = &hff56
 		Const GDK_KEY_Insert = &hff63
-		Const GDK_KEY_F9 = &hffc6
+		Const GDK_KEY_F1 = &hffbe
+		Const GDK_KEY_F2 = &hffbf
+		Const GDK_KEY_F3 = &hffc0
+		Const GDK_KEY_F4 = &hffc1
+		Const GDK_KEY_F5 = &hffc2
 		Const GDK_KEY_F6 = &hffc3
+		Const GDK_KEY_F7 = &hffc4
+		Const GDK_KEY_F8 = &hffc5
+		Const GDK_KEY_F9 = &hffc6
+		Const GDK_KEY_F10 = &hffc7
+		Const GDK_KEY_F11 = &hffc8
+		Const GDK_KEY_F12 = &hffc9
 		Const GDK_KEY_Tab = &hff09
 		Const GDK_KEY_ISO_Left_Tab = &hfe20
 		Const GDK_KEY_SPACE = &h020
@@ -168,18 +179,18 @@ Enum Keys
 		EndKey = GDK_KEY_END
 		DeleteKey = GDK_KEY_DELETE
 		Enter = GDK_KEY_RETURN
-		F1
-		F2
-		F3
-		F4
-		F5
-		F6
-		F7
-		F8
-		F9
-		F10
-		F11
-		F12
+		F1 = GDK_KEY_F1
+		F2 = GDK_KEY_F2
+		F3 = GDK_KEY_F3
+		F4 = GDK_KEY_F4
+		F5 = GDK_KEY_F5
+		F6 = GDK_KEY_F6
+		F7 = GDK_KEY_F7
+		F8 = GDK_KEY_F8
+		F9 = GDK_KEY_F9
+		F10 = GDK_KEY_F10
+		F11 = GDK_KEY_F11
+		F12 = GDK_KEY_F12
 	#else
 		Esc = VK_ESCAPE
 		Left = VK_LEFT
