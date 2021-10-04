@@ -52,7 +52,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			If FDateFormat = DateTimePickerFormat.CustomFormat Then
 				#ifdef __USE_GTK__
-					WLet FFormat, Value
+					WLet FFormat, Replace(Value, "'", """")
 					SelectedDateTime = FSelectedDateTime
 				#else
 					DateTime_SetFormat(FHandle, FCustomFormat)
@@ -252,12 +252,20 @@ Namespace My.Sys.Forms
 				widget = UpDownWidget
 				gtk_widget_show(UpDownWidget)
 				gtk_widget_hide(TextWidget)
-				gtk_widget_hide(ButtonWidget)
+				#ifdef __USE_GTK3__
+					gtk_widget_hide(ButtonWidget)
+				#else
+					gtk_widget_hide(ButtonLayoutWidget)
+				#endif
 			Else
 				widget = TextWidget
 				gtk_widget_hide(UpDownWidget)
 				gtk_widget_show(TextWidget)
-				gtk_widget_show(ButtonWidget)
+				#ifdef __USE_GTK3__
+					gtk_widget_show(ButtonWidget)
+				#else
+					gtk_widget_show(ButtonLayoutWidget)
+				#endif
 			End If
 		#else
 			ChangeStyle DTS_UPDOWN, Value
@@ -276,9 +284,17 @@ Namespace My.Sys.Forms
 		FShowNone = Value
 		#ifdef __USE_GTK__
 			If Value Then
-				gtk_widget_show(CheckWidget)
+				#ifdef __USE_GTK3__
+					gtk_widget_show(CheckWidget)
+				#else
+					gtk_widget_show(CheckLayoutWidget)
+				#endif
 			Else
-				gtk_widget_hide(CheckWidget)
+				#ifdef __USE_GTK3__
+					gtk_widget_hide(CheckWidget)
+				#else
+					gtk_widget_hide(CheckLayoutWidget)
+				#endif
 			End If
 		#else
 			ChangeStyle DTS_SHOWNONE, Value
@@ -314,7 +330,7 @@ Namespace My.Sys.Forms
 			Case DateTimePickerFormat.ShortDate: WLet FFormat, "dd.MM.yyyy"
 			Case DateTimePickerFormat.ShortDateCentury: WLet FFormat, "dd.MM.yyyy"
 			Case DateTimePickerFormat.TimeFormat: WLet FFormat, "HH:mm:ss"
-			Case DateTimePickerFormat.CustomFormat: WLet FFormat, *FCustomFormat
+			Case DateTimePickerFormat.CustomFormat: WLet FFormat, Replace(*FCustomFormat, "'", """")
 			End Select
 			SelectedDateTime = FSelectedDateTime
 		#else
@@ -495,7 +511,7 @@ Namespace My.Sys.Forms
 									If iCount = 1 Then
 										ToEnd = True
 									Else
-										If PrevPart <> iCount - 1 Then SetDateTime(Val(PressedNumber), PrevDateTimePart)
+										If PrevPart <> iCount - 1 Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 										PrevPart = iCount - 1
 										gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
 										Exit Sub
@@ -511,14 +527,14 @@ Namespace My.Sys.Forms
 							FirstSelEnd = SelEnd
 						End If
 						If ToNext Then
-							If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart)
+							If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 							PrevPart = iCount
 							gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
 							Exit Sub
 						ElseIf Not ToEnd Then
 							If CharIndex <= iEnd Then
 								If Direction = 0 Then
-									If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart)
+									If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 									PrevPart = iCount
 									gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
 									Exit Sub
@@ -535,11 +551,11 @@ Namespace My.Sys.Forms
 				p = s
 			Next
 			If ToEnd Then
-				If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart)
+				If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 				PrevPart = iCount
 				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
 			Else
-				If PrevPart <> 1 Then SetDateTime(Val(PressedNumber), PrevDateTimePart)
+				If PrevPart <> 1 Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 				PrevPart = 1
 				SelStart = FirstSelStart
 				SelEnd = FirstSelEnd
@@ -551,23 +567,84 @@ Namespace My.Sys.Forms
 			Return Day(DateSerial(IIf(lMonth = 12, lYear + 1, lYear), IIf(lMonth = 12, 1, lMonth + 1), 1) - 1)
 		End Function
 		
-		Sub DateTimePicker.SetDateTime(PressedNumberValue As Long, DateTimePart As String)
-			If PressedNumberValue = 0 Then Exit Sub
-			Select Case Left(DateTimePart, 1)
+		Sub DateTimePicker.SetDateTime(PressedNumberValue As Long, DateTimePart As String, NewDateTimePart As String)
+			If PressedNumberValue <> 0 Then
+				Select Case Left(DateTimePart, 1)
+				Case "y"
+					SelectedDateTime = DateSerial(PressedNumberValue, Month(FSelectedDateTime), Day(FSelectedDateTime)) + SelectedTime
+				Case "M"
+					SelectedDateTime = DateSerial(Year(FSelectedDateTime), PressedNumberValue, Day(FSelectedDateTime)) + SelectedTime
+				Case "d"
+					SelectedDateTime = DateSerial(Year(FSelectedDateTime), Month(FSelectedDateTime), PressedNumberValue) + SelectedTime
+				Case "H", "h"
+					SelectedDateTime = SelectedDate + TimeSerial(PressedNumberValue, Minute(FSelectedDateTime), Second(FSelectedDateTime))
+				Case "m"
+					SelectedDateTime = SelectedDate + TimeSerial(Hour(FSelectedDateTime), PressedNumberValue, Second(FSelectedDateTime))
+				Case "s"
+					SelectedDateTime = SelectedDate + TimeSerial(Hour(FSelectedDateTime), Minute(FSelectedDateTime), PressedNumberValue)
+				End Select
+				PressedNumber = ""
+			End If
+'			If DateTimePart <> NewDateTimePart AndAlso gtk_is_spin_button(widget) Then
+'				Select Case Left(NewDateTimePart, 1)
+'				Case "y"
+'					gtk_spin_button_set_range(gtk_spin_button(widget), 0, 9999)
+'					gtk_spin_button_set_value(gtk_spin_button(widget), Year(FSelectedDateTime))
+'				Case "M"
+'					gtk_spin_button_set_range(gtk_spin_button(widget), 1, 12)
+'					gtk_spin_button_set_value(gtk_spin_button(widget), Month(FSelectedDateTime))
+'				Case "d"
+'					gtk_spin_button_set_range(gtk_spin_button(widget), 1, GetLastDay(Year(FSelectedDateTime), Month(FSelectedDateTime)))
+'					gtk_spin_button_set_value(gtk_spin_button(widget), Day(FSelectedDateTime))
+'				Case "H", "h"
+'					gtk_spin_button_set_range(gtk_spin_button(widget), 0, 23)
+'					gtk_spin_button_set_value(gtk_spin_button(widget), Hour(FSelectedDateTime))
+'				Case "m", "n"
+'					gtk_spin_button_set_range(gtk_spin_button(widget), 0, 59)
+'					gtk_spin_button_set_value(gtk_spin_button(widget), Minute(FSelectedDateTime))
+'				Case "s"
+'					gtk_spin_button_set_range(gtk_spin_button(widget), 0, 59)
+'					gtk_spin_button_set_value(gtk_spin_button(widget), Second(FSelectedDateTime))
+'				End Select
+'			ElseIf PressedNumberValue <> 0 Then
+'				SelectedDateTime = FSelectedDateTime
+'			End If
+		End Sub
+		
+		Sub DateTimePicker.DatePartUp
+			Select Case Left(FDateTimePart, 1)
 			Case "y"
-				SelectedDate = DateSerial(PressedNumberValue, Month(SelectedDate), Day(SelectedDate))
+				SelectedDate = DateSerial(IIf(Year(SelectedDate) = 9999, 1601, Year(SelectedDate) + 1), Month(SelectedDate), Day(SelectedDate))
 			Case "M"
-				SelectedDate = DateSerial(Year(SelectedDate), PressedNumberValue, Day(SelectedDate))
+				SelectedDate = DateSerial(Year(SelectedDate), IIf(Month(SelectedDate) = 12, 1, Month(SelectedDate) + 1), Day(SelectedDate))
 			Case "d"
-				SelectedDate = DateSerial(Year(SelectedDate), Month(SelectedDate), PressedNumberValue)
+				SelectedDate = DateSerial(Year(SelectedDate), Month(SelectedDate), IIf(Day(SelectedDate) = GetLastDay(Year(SelectedDate), Month(SelectedDate)), 1, Day(SelectedDate) + 1))
 			Case "H", "h"
-				SelectedTime = TimeSerial(PressedNumberValue, Minute(SelectedTime), Second(SelectedTime))
+				SelectedTime = TimeSerial(IIf(Hour(SelectedTime) = 23, 0, Hour(SelectedTime) + 1), Minute(SelectedTime), Second(SelectedTime))
 			Case "m"
-				SelectedTime = TimeSerial(Hour(SelectedTime), PressedNumberValue, Second(SelectedTime))
+				SelectedTime = TimeSerial(Hour(SelectedTime), IIf(Minute(SelectedTime) = 59, 0, Minute(SelectedTime) + 1), Second(SelectedTime))
 			Case "s"
-				SelectedTime = TimeSerial(Hour(SelectedTime), Minute(SelectedTime), PressedNumberValue)
+				SelectedTime = TimeSerial(Hour(SelectedTime), Minute(SelectedTime), IIf(Second(SelectedTime) = 59, 0, Second(SelectedTime) + 1))
 			End Select
-			PressedNumber = ""
+			SelectRegion SelStart + 1
+		End Sub
+		
+		Sub DateTimePicker.DatePartDown
+			Select Case Left(FDateTimePart, 1)
+			Case "y"
+				SelectedDate = DateSerial(IIf(Year(SelectedDate) = 1601, 9999, Year(SelectedDate) - 1), Month(SelectedDate), Day(SelectedDate))
+			Case "M"
+				SelectedDate = DateSerial(Year(SelectedDate), IIf(Month(SelectedDate) = 1, 12, Month(SelectedDate) - 1), Day(SelectedDate))
+			Case "d"
+				SelectedDate = DateSerial(Year(SelectedDate), Month(SelectedDate), IIf(Day(SelectedDate) = 1, GetLastDay(Year(SelectedDate), Month(SelectedDate)), Day(SelectedDate) - 1))
+			Case "H", "h"
+				SelectedTime = TimeSerial(IIf(Hour(SelectedTime) = 0, 23, Hour(SelectedTime) - 1), Minute(SelectedTime), Second(SelectedTime))
+			Case "m"
+				SelectedTime = TimeSerial(Hour(SelectedTime), IIf(Minute(SelectedTime) = 0, 59, Minute(SelectedTime) - 1), Second(SelectedTime))
+			Case "s"
+				SelectedTime = TimeSerial(Hour(SelectedTime), Minute(SelectedTime), IIf(Second(SelectedTime) = 0, 59, Second(SelectedTime) - 1))
+			End Select
+			SelectRegion SelStart + 1
 		End Sub
 	#endif
 	
@@ -581,15 +658,23 @@ Namespace My.Sys.Forms
 				Return
 			Case GDK_BUTTON_RELEASE
 				SelectRegion
-				If Not FDesignMode Then
-					Message.Result = True
-				End If
+				#ifdef __USE_GTK3__
+'					If Not FDesignMode Then
+'						Message.Result = True
+'					End If
+				#endif
 				Return
 			Case GDK_FOCUS_CHANGE
 				If Cast(GdkEventFocus Ptr, e)->in Then
 					SelectRegion
 					Message.Result = True
 					Return
+				End If
+			Case GDK_SCROLL
+				If e->Scroll.direction = GDK_SCROLL_UP Then
+					DatePartUp
+				Else
+					DatePartDown
 				End If
 			Case GDK_KEY_PRESS
 				Select Case e->Key.keyval
@@ -639,37 +724,9 @@ Namespace My.Sys.Forms
 						End Select
 						SelectRegion SelStart + 1
 					Case GDK_KEY_UP
-						Select Case Left(FDateTimePart, 1)
-						Case "y"
-							SelectedDate = DateSerial(IIf(Year(SelectedDate) = 9999, 1601, Year(SelectedDate) + 1), Month(SelectedDate), Day(SelectedDate))
-						Case "M"
-							SelectedDate = DateSerial(Year(SelectedDate), IIf(Month(SelectedDate) = 12, 1, Month(SelectedDate) + 1), Day(SelectedDate))
-						Case "d"
-							SelectedDate = DateSerial(Year(SelectedDate), Month(SelectedDate), IIf(Day(SelectedDate) = GetLastDay(Year(SelectedDate), Month(SelectedDate)), 1, Day(SelectedDate) + 1))
-						Case "H", "h"
-							SelectedTime = TimeSerial(IIf(Hour(SelectedTime) = 23, 0, Hour(SelectedTime) + 1), Minute(SelectedTime), Second(SelectedTime))
-						Case "m"
-							SelectedTime = TimeSerial(Hour(SelectedTime), IIf(Minute(SelectedTime) = 59, 0, Minute(SelectedTime) + 1), Second(SelectedTime))
-						Case "s"
-							SelectedTime = TimeSerial(Hour(SelectedTime), Minute(SelectedTime), IIf(Second(SelectedTime) = 59, 0, Second(SelectedTime) + 1))
-						End Select
-						SelectRegion SelStart + 1
+						DatePartUp
 					Case GDK_KEY_Down
-						Select Case Left(FDateTimePart, 1)
-						Case "y"
-							SelectedDate = DateSerial(IIf(Year(SelectedDate) = 1601, 9999, Year(SelectedDate) - 1), Month(SelectedDate), Day(SelectedDate))
-						Case "M"
-							SelectedDate = DateSerial(Year(SelectedDate), IIf(Month(SelectedDate) = 1, 12, Month(SelectedDate) - 1), Day(SelectedDate))
-						Case "d"
-							SelectedDate = DateSerial(Year(SelectedDate), Month(SelectedDate), IIf(Day(SelectedDate) = 1, GetLastDay(Year(SelectedDate), Month(SelectedDate)), Day(SelectedDate) - 1))
-						Case "H", "h"
-							SelectedTime = TimeSerial(IIf(Hour(SelectedTime) = 0, 23, Hour(SelectedTime) - 1), Minute(SelectedTime), Second(SelectedTime))
-						Case "m"
-							SelectedTime = TimeSerial(Hour(SelectedTime), IIf(Minute(SelectedTime) = 0, 59, Minute(SelectedTime) - 1), Second(SelectedTime))
-						Case "s"
-							SelectedTime = TimeSerial(Hour(SelectedTime), Minute(SelectedTime), IIf(Second(SelectedTime) = 0, 59, Second(SelectedTime) - 1))
-						End Select
-						SelectRegion SelStart + 1
+						DatePartDown
 					End Select
 					Select Case *e->key.string
 					Case "0" To "9"
@@ -697,7 +754,7 @@ Namespace My.Sys.Forms
 							If AutoNextPart Then
 								SelectRegion , 1
 							Else
-								SetDateTime Val(PressedNumber), FDateTimePart
+								SetDateTime Val(PressedNumber), FDateTimePart, FDateTimePart
 							End If
 						End If
 					Case "+", "-", "/", "\", ",", "."
@@ -754,28 +811,49 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Sub DateTimePicker.SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
-			Dim As GtkAllocation TextAllocation, CheckAllocation, ButtonAllocation
-			gtk_widget_set_size_request(dtp->Handle, allocation->width, allocation->height)
-			gtk_widget_set_size_request(dtp->UpDownWidget, allocation->width, allocation->height)
-			gtk_widget_set_size_request(dtp->ButtonWidget, allocation->height - 2, allocation->height - 2)
-			gtk_widget_get_allocation(dtp->Handle, @TextAllocation)
-			gtk_widget_get_allocation(dtp->CheckWidget, @CheckAllocation)
-			gtk_widget_get_allocation(dtp->ButtonWidget, @ButtonAllocation)
-			If dtp->ShowNone Then
-				gtk_layout_move(gtk_layout(widget), dtp->CheckWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
-				Dim As GdkPixbuf Ptr EmptyPixbuf
-				EmptyPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, allocation->height * 2, 16)
-				gdk_pixbuf_fill(EmptyPixbuf, 0)
-				gtk_entry_set_icon_from_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, EmptyPixbuf)
-				g_object_unref(EmptyPixbuf)
-			ElseIf gtk_entry_get_icon_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY) <> 0 Then
-				gtk_entry_set_icon_from_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, 0)
+			If allocation->width <> dtp->AllocatedWidth OrElse allocation->height <> dtp->AllocatedHeight Then
+				Dim As GtkAllocation TextAllocation, CheckAllocation, ButtonAllocation
+				dtp->AllocatedWidth = allocation->width
+				dtp->AllocatedHeight = allocation->height
+				gtk_widget_set_size_request(dtp->Handle, allocation->width, allocation->height)
+				gtk_widget_set_size_request(dtp->UpDownWidget, allocation->width, allocation->height)
+				#ifndef __USE_GTK3__
+					gtk_widget_set_size_request(dtp->ButtonLayoutWidget, allocation->height - 4, allocation->height - 4)
+				#endif
+				gtk_widget_set_size_request(dtp->ButtonWidget, allocation->height - 2, allocation->height - 2)
+				gtk_widget_get_allocation(dtp->Handle, @TextAllocation)
+				#ifdef __USE_GTK3__
+					gtk_widget_get_allocation(dtp->CheckWidget, @CheckAllocation)
+					gtk_widget_get_allocation(dtp->ButtonWidget, @ButtonAllocation)
+				#else
+					gtk_widget_get_allocation(dtp->CheckLayoutWidget, @CheckAllocation)
+					gtk_widget_get_allocation(dtp->ButtonLayoutWidget, @ButtonAllocation)
+				#endif
+				If dtp->ShowNone Then
+					Dim As GdkPixbuf Ptr EmptyPixbuf
+					#ifdef __USE_GTK3__
+						gtk_layout_move(gtk_layout(widget), dtp->CheckWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
+						EmptyPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, allocation->height * 2, 16)
+					#else
+						gtk_layout_move(gtk_layout(widget), dtp->CheckLayoutWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
+						EmptyPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, 1, 16)
+					#endif
+					gdk_pixbuf_fill(EmptyPixbuf, 0)
+					gtk_entry_set_icon_from_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, EmptyPixbuf)
+					g_object_unref(EmptyPixbuf)
+				ElseIf gtk_entry_get_icon_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY) <> 0 Then
+					gtk_entry_set_icon_from_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, 0)
+				End If
+				If TextAllocation.height > allocation->height Then
+					gtk_widget_set_size_request(Widget, allocation->width, TextAllocation.height)
+				End If
+				#ifdef __USE_GTK3__
+					gtk_layout_move(gtk_layout(widget), dtp->ButtonWidget, allocation->width - ButtonAllocation.width, 0)
+				#else
+					gtk_layout_move(gtk_layout(widget), dtp->ButtonLayoutWidget, allocation->width - allocation->height + 2, 2)
+				#endif
+				If dtp->OnResize Then dtp->OnResize(*dtp, allocation->width, allocation->height)
 			End If
-			If TextAllocation.height > allocation->height Then
-				gtk_widget_set_size_request(Widget, allocation->width, TextAllocation.height)
-			End If
-			gtk_layout_move(gtk_layout(widget), dtp->ButtonWidget, allocation->width - ButtonAllocation.width, 0)
-			If dtp->OnResize Then dtp->OnResize(*dtp, allocation->width, allocation->height)
 		End Sub
 		
 		Function DateTimePicker.DateTimePicker_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
@@ -784,12 +862,7 @@ Namespace My.Sys.Forms
 				Dim allocation As GtkAllocation
 				gtk_widget_get_allocation(widget, @allocation)
 				If allocation.width <> Ctrl->AllocatedWidth OrElse allocation.height <> Ctrl->AllocatedHeight Then
-					Ctrl->AllocatedWidth = allocation.width
-					Ctrl->AllocatedHeight = allocation.height
-					'#ifdef __USE_GTK3__
-						SizeAllocate(widget, @allocation, data1)
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl, allocation.width, allocation.height)
-					'#endif
+					SizeAllocate(widget, @allocation, data1)
 				End If
 				Ctrl->Canvas.HandleSetted = True
 				Ctrl->Canvas.Handle = cr
@@ -815,7 +888,11 @@ Namespace My.Sys.Forms
 		
 		Function DateTimePicker.SpinButton_Input(spin_button As GtkSpinButton Ptr, new_value As Any Ptr, user_data As Any Ptr) As Integer
 			Dim As DateTimePicker Ptr dtp = user_data
-			?*gtk_entry_get_text(GTK_ENTRY(spin_button))
+			If gtk_spin_button_get_value(GTK_spin_button(spin_button)) > 20 Then
+				dtp->DatePartDown
+			ElseIf gtk_spin_button_get_value(GTK_spin_button(spin_button)) < 20 Then
+				dtp->DatePartUp
+			End If
 			Return True
 		End Function
 		
@@ -916,7 +993,8 @@ Namespace My.Sys.Forms
 				CheckWidget = gtk_check_button_new_with_label("")
 				TextWidget = gtk_entry_new()
 				ButtonWidget = gtk_button_new_with_label(ToUTF8("˅"))
-				UpDownWidget = gtk_spin_button_new(NULL, 1, 0)
+				UpDownWidget = gtk_spin_button_new_with_range(1, 40, 1)
+				gtk_spin_button_set_increments(gtk_spin_button(UpDownWidget), 1, 1)
 				'PopupWindow = gtk_window_new(GTK_WINDOW_POPUP)
 				PopupWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL)
 				'gtk_widget_set_can_focus(PopupWindow, True)
@@ -936,25 +1014,38 @@ Namespace My.Sys.Forms
 				gtk_widget_set_size_request(ButtonWidget, 21, 21)
 				gtk_layout_put(gtk_layout(layoutwidget), TextWidget, 0, 0)
 				gtk_layout_put(gtk_layout(layoutwidget), UpDownWidget, 0, 0)
-				gtk_layout_put(gtk_layout(layoutwidget), CheckWidget, 0, 0)
-				gtk_widget_set_no_show_all(CheckWidget, True)
 				gtk_widget_set_no_show_all(TextWidget, True)
 				gtk_widget_set_no_show_all(UpDownWidget, True)
-				gtk_widget_set_no_show_all(ButtonWidget, True)
 				gtk_button_set_alignment(gtk_button(ButtonWidget), 0.5, 0.5)
 				#ifdef __USE_GTK3__
+					gtk_widget_set_no_show_all(CheckWidget, True)
+					gtk_widget_set_no_show_all(ButtonWidget, True)
+					gtk_widget_show(ButtonWidget)
+					gtk_layout_put(gtk_layout(layoutwidget), CheckWidget, 0, 0)
 					gtk_layout_put(gtk_layout(layoutwidget), ButtonWidget, 175 - gtk_widget_get_allocated_width(ButtonWidget), 0)
 				#else
-					gtk_layout_put(gtk_layout(layoutwidget), ButtonWidget, 175 - ButtonWidget->allocation.width, 0)
+					CheckLayoutWidget = gtk_layout_new(NULL, NULL)
+					ButtonLayoutWidget = gtk_layout_new(NULL, NULL)
+					gtk_widget_set_no_show_all(CheckLayoutWidget, True)
+					gtk_widget_set_no_show_all(ButtonLayoutWidget, True)
+					gtk_widget_set_size_request(CheckWidget, 17, 15)
+					gtk_widget_set_size_request(CheckLayoutWidget, 15, 15)
+					gtk_widget_set_size_request(ButtonLayoutWidget, 20, 20)
+					gtk_layout_put(gtk_layout(CheckLayoutWidget), CheckWidget, -2, 0)
+					gtk_layout_put(gtk_layout(ButtonLayoutWidget), ButtonWidget, -1, -1)
+					gtk_layout_put(gtk_layout(layoutwidget), CheckLayoutWidget, 0, 0)
+					gtk_layout_put(gtk_layout(layoutwidget), ButtonLayoutWidget, 0, (TextWidget->allocation.height - ButtonLayoutWidget->allocation.height) / 2) '175 - ButtonLayoutWidget->allocation.width - 50
+					gtk_widget_show(ButtonLayoutWidget)
+					gtk_widget_show(CheckWidget)
+					gtk_widget_show(ButtonWidget)
 				#endif
+				gtk_drag_dest_unset(TextWidget)
+				gtk_drag_dest_unset(UpDownWidget)
+				gtk_drag_source_unset(TextWidget)
+				gtk_drag_source_unset(UpDownWidget)
 				gtk_widget_set_can_focus(ButtonWidget, False)
 				gtk_entry_set_icon_activatable(gtk_entry(TextWidget), GTK_ENTRY_ICON_PRIMARY, False)
 				gtk_entry_set_icon_activatable(gtk_entry(UpDownWidget), GTK_ENTRY_ICON_PRIMARY, False)
-				gtk_widget_show(TextWidget)
-				gtk_widget_show(UpDownWidget)
-				gtk_widget_show(CheckWidget)
-				gtk_widget_show(ButtonWidget)
-				gtk_widget_hide(UpDownWidget)
 				g_signal_connect(CheckWidget, "toggled", G_CALLBACK(@CheckButton_Toggled), @This)
 				g_signal_connect(gtk_entry(TextWidget), "activate", G_CALLBACK(@Entry_Activate), @This)
 				g_signal_connect(gtk_entry(UpDownWidget), "activate", G_CALLBACK(@Entry_Activate), @This)
@@ -964,7 +1055,7 @@ Namespace My.Sys.Forms
 					g_signal_connect(layoutwidget, "draw", G_CALLBACK(@DateTimePicker_Draw), @This)
 				#else
 					g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@ExposeEvent), @This)
-					'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@SizeAllocate), @This)
+					g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@SizeAllocate), @This)
 				#endif
 				g_signal_connect(ButtonWidget, "clicked", G_CALLBACK(@Button_Clicked), @This)
 				g_signal_connect(CalendarWidget, "day-selected", G_CALLBACK(@Calendar_DaySelected), @This)
