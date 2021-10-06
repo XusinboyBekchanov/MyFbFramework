@@ -181,13 +181,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property DateTimePicker.Text(ByRef Value As WString)
-		FText = Value
-		Dim As Integer Pos1 = InStr(Value, ":")
-		If Pos1 > 0 Then
-			SelectedDate = DateValue(Trim(Left(Value, Pos1 - 3)))
-			SelectedTime = TimeValue(Trim(Mid(Value, Pos1 - 2)))
-		Else
-			SelectedDate = DateValue(Trim(Value))
+		If IsDate(Value) Then
+			FText = Value
+			Dim As Integer Pos1 = InStr(Value, ":")
+			If Pos1 > 0 Then
+				SelectedDate = DateValue(Trim(Left(Value, Pos1 - 3)))
+				SelectedTime = TimeValue(Trim(Mid(Value, Pos1 - 2)))
+			Else
+				SelectedDate = DateValue(Trim(Value))
+			End If
 		End If
 	End Property
 	
@@ -666,7 +668,7 @@ Namespace My.Sys.Forms
 				Return
 			Case GDK_FOCUS_CHANGE
 				If Cast(GdkEventFocus Ptr, e)->in Then
-					SelectRegion
+					SelectRegion 0
 					Message.Result = True
 					Return
 				End If
@@ -757,7 +759,7 @@ Namespace My.Sys.Forms
 								SetDateTime Val(PressedNumber), FDateTimePart, FDateTimePart
 							End If
 						End If
-					Case "+", "-", "/", "\", ",", "."
+					Case "+", "-", "/", "\", ",", ".", ":"
 						SelectRegion , 1
 					End Select
 					Message.Result = True
