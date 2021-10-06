@@ -936,9 +936,11 @@ Namespace My.Sys.Forms
 			Dim As DateTimePicker Ptr dtp = user_data
 			Dim As guint y, m, d
 			gtk_calendar_get_date (calendar, @y, @m, @d)
+			If Month(dtp->SelectedDate) = m + 1 AndAlso Year(dtp->SelectedDate) = y Then
+				gtk_widget_hide(dtp->PopupWindow)
+				gtk_widget_grab_focus(dtp->Widget)
+			End If
 			dtp->SelectedDate = DateSerial(y, m + 1, d)
-			gtk_widget_hide(dtp->PopupWindow)
-			gtk_widget_grab_focus(dtp->Widget)
 		End Sub
 		
 		Function DateTimePicker.deactivate_cb(ByVal user_data As gpointer) As gboolean

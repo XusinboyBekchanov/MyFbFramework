@@ -1217,7 +1217,7 @@ Namespace My.Sys.Forms
 			Dim As TextBox Ptr txt = user_data
 			If txt Then
 				If CInt(txt->FMaxLength > 0) AndAlso CInt(gtk_is_text_view(txt->widget)) AndAlso CInt(Len(txt->Text) > txt->FMaxLength) Then
-					txt->Text = Left(txt->Text, txt->FMaxLength)
+					txt->Text = .Left(txt->Text, txt->FMaxLength)
 				Else
 					If txt->OnChange Then txt->OnChange(*txt)
 				End If
@@ -1261,8 +1261,8 @@ Namespace My.Sys.Forms
 		
 		Sub TextBox.TextView_SetScrollAdjustments(textview As GtkTextView Ptr, arg1 As GtkAdjustment Ptr, arg2 As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
-			g_signal_connect(arg1, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
-			g_signal_connect(arg2, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
+			If gtk_is_widget(arg1) Then g_signal_connect(arg1, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
+			If gtk_is_widget(arg2) Then g_signal_connect(arg2, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
 		End Sub
 		
 		Sub TextBox.Adjustment_ValueChanged(adjustment As GtkAdjustment Ptr, user_data As Any Ptr)
