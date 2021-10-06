@@ -205,7 +205,7 @@ Namespace My.Sys.ComponentModel
 						'gdk_window_move(gtk_widget_get_window (widget), iLeft, iTop)
 						'gdk_window_resize(gtk_widget_get_window (widget), Max(1, iWidth), Max(1, iHeight))
 						'If Parent AndAlso Parent->fixedwidget Then gtk_fixed_move(gtk_fixed(Parent->fixedwidget), widget, iLeft, iTop)
-						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 						If Parent Then
 							If Parent->layoutwidget AndAlso gtk_is_layout(gtk_widget_get_parent(CtrlWidget)) Then
 								'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
@@ -257,7 +257,7 @@ Namespace My.Sys.ComponentModel
 				If gtk_is_window(widget) Then
 					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
 				Else
-					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 						Dim allocation As GtkAllocation
 						gtk_widget_get_allocation(CtrlWidget, @allocation)
@@ -291,7 +291,7 @@ Namespace My.Sys.ComponentModel
 				If gtk_is_window(widget) Then
 					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
 				Else
-					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 						Dim allocation As GtkAllocation
 						gtk_widget_get_allocation(CtrlWidget, @allocation)
@@ -326,7 +326,7 @@ Namespace My.Sys.ComponentModel
 		Property Component.Width As Integer
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
-					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, widget))
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 						#ifdef __USE_GTK3__
 							FWidth = gtk_widget_get_allocated_width(widget)
@@ -368,7 +368,7 @@ Namespace My.Sys.ComponentModel
 		Property Component.Height As Integer
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
-					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, widget))
+					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 						#ifdef __USE_GTK3__
 							FHeight = gtk_widget_get_allocated_height(widget)

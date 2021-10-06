@@ -312,7 +312,7 @@ Namespace My.Sys.Forms
 								gtk_layout_put(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))), FLeft, FTop)
 							End If
 						Else
-							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 							g_object_ref(G_OBJECT(CtrlWidget))
 							gtk_widget_unparent(CtrlWidget)
 						End If
@@ -2096,7 +2096,7 @@ Namespace My.Sys.Forms
 						If widget <> This.Parent->Controls[i]->widget Then
 							CtrlWidget = This.Parent->Controls[i]->widget
 							Select Case gtk_widget_get_parent(CtrlWidget)
-							Case This.Parent->Controls[i]->scrolledwidget, This.Parent->Controls[i]->overlaywidget, This.Parent->Controls[i]->layoutwidget, This.Parent->Controls[i]->eventboxwidget
+							Case This.Parent->Controls[i]->scrolledwidget, This.Parent->Controls[i]->overlaywidget, This.Parent->Controls[i]->layoutwidget AndAlso gtk_widget_get_parent(This.Parent->Controls[i]->layoutwidget) <> This.Parent->Controls[i]->widget, This.Parent->Controls[i]->eventboxwidget
 								CtrlWidget = gtk_widget_get_parent(CtrlWidget)
 							End Select
 							iLeft = This.Parent->Controls[i]->Left
@@ -2145,7 +2145,7 @@ Namespace My.Sys.Forms
 					'If Not FDesignMode Then
 						If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
 					'End If
-					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->layoutwidget, Ctrl->layoutwidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget))))
+					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->layoutwidget AndAlso gtk_widget_get_parent(Ctrl->layoutwidget) <> Ctrl->widget, Ctrl->layoutwidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget))))
 					If gtk_is_widget(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
