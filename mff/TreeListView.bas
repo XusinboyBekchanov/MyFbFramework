@@ -1072,13 +1072,13 @@ Namespace My.Sys.Forms
 		FSortStyle = Value
 		#ifndef __USE_GTK__
 			Select Case FSortStyle
-			Case ssNone
+			Case SortStyle.ssNone
 				ChangeStyle LVS_SORTASCENDING, False
 				ChangeStyle LVS_SORTDESCENDING, False
-			Case ssSortAscending
+			Case SortStyle.ssSortAscending
 				ChangeStyle LVS_SORTDESCENDING, False
 				ChangeStyle LVS_SORTASCENDING, True
-			Case ssSortDescending
+			Case SortStyle.ssSortDescending
 				ChangeStyle LVS_SORTASCENDING, False
 				ChangeStyle LVS_SORTDESCENDING, True
 			End Select

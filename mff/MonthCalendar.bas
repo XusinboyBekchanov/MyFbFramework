@@ -235,6 +235,7 @@ Namespace My.Sys.Forms
 				Select Case lpChange->nmhdr.code
 				Case MCN_SELECT
 					If OnClick Then OnClick(This)
+					If OnSelect Then OnSelect(This)
 				Case MCN_SELCHANGE
 					If OnSelectionChanged Then OnSelectionChanged(This)
 				End Select

@@ -137,7 +137,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function GetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
+		Function ListViewGetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
 			If gtk_is_widget(widget) Then
 				If gtk_is_tree_view(widget) Then
 					Return gtk_tree_view_get_model(gtk_tree_view(widget))
@@ -160,8 +160,8 @@ Namespace My.Sys.Forms
 			End If
 			If iSubItem < cc Then FSubItems.Item(iSubItem) = Value
 			#ifdef __USE_GTK__
-				If GetModel(Parent->Handle) Then
-					gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, iSubItem + 3, ToUtf8(Value), -1)
+				If ListViewGetModel(Parent->Handle) Then
+					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, iSubItem + 3, ToUtf8(Value), -1)
 				End If
 			#else
 				If Parent->Handle Then
@@ -236,8 +236,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			Dim As Boolean bChecked
-			gtk_tree_model_get_iter_from_string(GetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
-			gtk_tree_model_get(GetModel(Parent->Handle), @iter, 0, @bChecked, -1)
+			gtk_tree_model_get_iter_from_string(ListViewGetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
+			gtk_tree_model_get(ListViewGetModel(Parent->Handle), @iter, 0, @bChecked, -1)
 			Return bChecked
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -255,8 +255,8 @@ Namespace My.Sys.Forms
 		FChecked = Value
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			gtk_tree_model_get_iter_from_string(GetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
-			gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @Iter, 0, Value, -1)
+			gtk_tree_model_get_iter_from_string(ListViewGetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
+			gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @Iter, 0, Value, -1)
 		#else
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
@@ -330,8 +330,8 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Dim As GError Ptr gerr
 				If Value <> "" Then
-					gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUTF8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-					gtk_list_store_set(gtk_list_store(GetModel(Parent->Handle)), @TreeIter, 2, ToUTF8(Value), -1)
+					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUTF8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUTF8(Value), -1)
 				End If
 			End If
 		#else
@@ -556,9 +556,9 @@ Namespace My.Sys.Forms
 		PItem = New_( ListViewItem)
 		Dim i As Integer = Index
 		Dim As SortStyle iSortStyle = Cast(ListView Ptr, Parent)->Sort
-		If iSortStyle <> ssNone Then
+		If iSortStyle <> SortStyle.ssNone Then
 			For i = 0 To FItems.Count - 1
-				If iSortStyle = ssSortAscending Then
+				If iSortStyle = SortStyle.ssSortAscending Then
 					If Cast(ListViewItem Ptr, FItems.Item(i))->Text(0) > FCaption Then Exit For
 				Else
 					If Cast(ListViewItem Ptr, FItems.Item(i))->Text(0) < FCaption Then Exit For
@@ -578,12 +578,12 @@ Namespace My.Sys.Forms
 		End With
 		#ifdef __USE_GTK__
 			Cast(ListView Ptr, Parent)->Init
-			If iSortStyle <> ssNone OrElse Index <> -1 Then
-				gtk_list_store_insert(gtk_list_store(GetModel(Parent->Handle)), @PItem->TreeIter, i)
+			If iSortStyle <> SortStyle.ssNone OrElse Index <> -1 Then
+				gtk_list_store_insert(gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, i)
 			Else
-				gtk_list_store_append(gtk_list_store(GetModel(Parent->Handle)), @PItem->TreeIter)
+				gtk_list_store_append(gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter)
 			End If
-			gtk_list_store_set (gtk_list_store(GetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
+			gtk_list_store_set (gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
 		#else
 			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
@@ -650,7 +650,7 @@ Namespace My.Sys.Forms
 	Sub ListViewItems.Remove(Index As Integer)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_remove(gtk_list_store(GetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
+				gtk_list_store_remove(gtk_list_store(ListViewGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -661,7 +661,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
+		Function ListViewCompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 			Dim As ListViewItem Ptr FirstItem = Cast(ListViewItem Ptr, lParam1), SecondItem = Cast(ListViewItem Ptr, lParam2)
 			If FirstItem <> 0 AndAlso SecondItem <> 0 Then
 				Select Case FirstItem->Text(0)
@@ -677,7 +677,7 @@ Namespace My.Sys.Forms
 	Sub ListViewItems.Sort
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @CompareFunc)
+				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @ListViewCompareFunc)
 				'ListView_SortItems Parent->Handle, @CompareFunc, 0
 			End If
 		#endif
@@ -702,7 +702,7 @@ Namespace My.Sys.Forms
 	
 	Sub ListViewItems.Clear
 		#ifdef __USE_GTK__
-			If Parent AndAlso gtk_list_store(GetModel(Parent->Handle)) Then gtk_list_store_clear(gtk_list_store(GetModel(Parent->Handle)))
+			If Parent AndAlso gtk_list_store(ListViewGetModel(Parent->Handle)) Then gtk_list_store_clear(gtk_list_store(ListViewGetModel(Parent->Handle)))
 		#else
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
@@ -750,7 +750,7 @@ Namespace My.Sys.Forms
 	
 		Sub ListViewColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = user_data
-			Dim As GtkListStore Ptr model = gtk_list_store(GetModel(lv->Handle))
+			Dim As GtkListStore Ptr model = gtk_list_store(ListViewGetModel(lv->Handle))
 			Dim As GtkTreeIter iter
 			Dim As gboolean active
 			
@@ -1237,13 +1237,13 @@ Namespace My.Sys.Forms
 		FSortStyle = Value
 		#ifndef __USE_GTK__
 			Select Case FSortStyle
-			Case ssNone
+			Case SortStyle.ssNone
 				ChangeStyle LVS_SORTASCENDING, False
 				ChangeStyle LVS_SORTDESCENDING, False
-			Case ssSortAscending
+			Case SortStyle.ssSortAscending
 				ChangeStyle LVS_SORTDESCENDING, False
 				ChangeStyle LVS_SORTASCENDING, True
-			Case ssSortDescending
+			Case SortStyle.ssSortDescending
 				ChangeStyle LVS_SORTASCENDING, False
 				ChangeStyle LVS_SORTDESCENDING, True
 			End Select

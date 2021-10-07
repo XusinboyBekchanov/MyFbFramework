@@ -6,6 +6,12 @@
 
 #include once "Control.bi"
 
+Enum GridSortStyle
+	ssNone
+	ssSortAscending
+	ssSortDescending
+End Enum
+
 #ifdef __USE_GTK__
 	Enum GridColumnFormat
 		gcfLeft
@@ -46,27 +52,40 @@
 
 Namespace My.Sys.Forms
 	#define QGrid(__Ptr__) *Cast(Grid Ptr,__Ptr__)
-	#define QGridItem(__Ptr__) *Cast(GridItem Ptr,__Ptr__)
+	#define QGridRow(__Ptr__) *Cast(GridRow Ptr, __Ptr__)
 	#define QGridColumn(__Ptr__) *Cast(GridColumn Ptr,__Ptr__)
 	
-	Type GridItem Extends My.Sys.Object
+	Type GridRow Extends My.Sys.Object
 	Private:
-		FText            As WString Ptr
-		FHint            As WString Ptr
-		FImageIndex   As Integer
-		FSelectedImageIndex   As Integer
-		FSmallImageIndex   As Integer
-		FVisible      As Boolean
+		FText               As WString Ptr
+		FColumns            As WStringList
+		FHint               As WString Ptr
+		FImageIndex         As Integer
+		FSelectedImageIndex As Integer
+		FSmallImageIndex    As Integer
+		FImageKey           As WString Ptr
+		FSelectedImageKey   As WString Ptr
+		FSmallImageKey      As WString Ptr
+		FVisible            As Boolean
+		FState              As Integer
+		FIndent             As Integer
+		#ifndef __USE_GTK__
+			Dim lvi             As LVITEM
+		#endif
 	Public:
-		Index As Integer
+		#ifdef __USE_GTK__
+			TreeIter As GtkTreeIter
+		#endif
 		Parent   As Control Ptr
+		Tag As Any Ptr
 		Declare Sub SelectItem
+		Declare Function Index As Integer
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
-		Declare Property Text(iSubItem As Integer) ByRef As WString
-		Declare Property Text(iSubItem As Integer, ByRef Value As WString)
+		Declare Property Text(iColumn As Integer) ByRef As WString
+		Declare Property Text(iColumn As Integer, ByRef Value As WString)
 		Declare Property Hint ByRef As WString
 		Declare Property Hint(ByRef Value As WString)
 		Declare Property ImageIndex As Integer
@@ -75,6 +94,16 @@ Namespace My.Sys.Forms
 		Declare Property SelectedImageIndex(Value As Integer)
 		Declare Property SmallImageIndex As Integer
 		Declare Property SmallImageIndex(Value As Integer)
+		Declare Property ImageKey ByRef As WString
+		Declare Property ImageKey(ByRef Value As WString)
+		Declare Property SelectedImageKey ByRef As WString
+		Declare Property SelectedImageKey(ByRef Value As WString)
+		Declare Property SmallImageKey ByRef As WString
+		Declare Property SmallImageKey(ByRef Value As WString)
+		Declare Property State As Integer
+		Declare Property State(Value As Integer)
+		Declare Property Indent As Integer
+		Declare Property Indent(Value As Integer)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
 		Declare Operator Cast As Any Ptr
@@ -92,7 +121,11 @@ Namespace My.Sys.Forms
 		FWidth      As Integer
 		FFormat      As GridColumnFormat
 		FVisible      As Boolean
+		FEditable	 As Boolean
 	Public:
+		#ifdef __USE_GTK__
+			Dim As GtkTreeViewColumn Ptr Column
+		#endif
 		Index As Integer
 		Parent   As Control Ptr
 		Declare Sub SelectItem
@@ -104,6 +137,8 @@ Namespace My.Sys.Forms
 		Declare Property ImageIndex(Value As Integer)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
+		Declare Property Editable As Boolean
+		Declare Property Editable(Value As Boolean)
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
 		Declare Property Format As GridColumnFormat
@@ -115,20 +150,29 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type GridItems
+	Type GridRows
 	Private:
 		FItems As List
+		PItem As GridRow Ptr
+		#ifndef __USE_GTK__
+			lvi As LVITEM
+		#endif
 	Public:
+		#ifdef __USE_GTK__
+			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
+		#endif
 		Parent   As Control Ptr
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
-		Declare Property Item(Index As Integer) As GridItem Ptr
-		Declare Property Item(Index As Integer, Value As GridItem Ptr)
-		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1) As GridItem Ptr
-		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1)
+		Declare Property Item(Index As Integer) As GridRow Ptr
+		Declare Property Item(Index As Integer, Value As GridRow Ptr)
+		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
+		Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
+		Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As GridRow Ptr
 		Declare Sub Remove(Index As Integer)
-		Declare Function IndexOf(ByRef FItem As GridItem Ptr) As Integer
+		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
+		Declare Sub Sort
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
@@ -137,13 +181,17 @@ Namespace My.Sys.Forms
 	Type GridColumns
 	Private:
 		FColumns As List
+		#ifdef __USE_GTK__
+			Declare Static Sub Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+			Declare Static Sub Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
+		#endif
 	Public:
 		Parent   As Control Ptr
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
 		Declare Property Column(Index As Integer) As GridColumn Ptr
 		Declare Property Column(Index As Integer, Value As GridColumn Ptr)
-		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft) As GridColumn Ptr
+		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft, ColEditable As Boolean = False) As GridColumn Ptr
 		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft)
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
@@ -155,36 +203,82 @@ Namespace My.Sys.Forms
 	
 	Type Grid Extends Control
 	Private:
-		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		FAllowColumnReorder As Boolean
+		FColumnHeaderHidden As Boolean
+		FGridLines As Boolean
+		FHoverTime As Integer
+		FFullRowSelect As Boolean
+		FSingleClickActivate As Boolean
+		FSortStyle As GridSortStyle
+		FHoverSelection As Boolean
+		FLVExStyle As Integer
+		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
+		Declare Static Sub WndProc(ByRef Message As Message)
+		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_GTK__
+			Declare Static Sub Grid_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+			Declare Static Sub Grid_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+			Declare Static Sub Grid_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Function Grid_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
+			ListStore As GtkListStore Ptr
+			TreeSelection As GtkTreeSelection Ptr
+			ColumnTypes As GType Ptr
+			PrevIndex As Integer
 		#endif
 	Public:
-		ListItems         As GridItems
+		Declare Sub Init()
+		Rows         As GridRows
 		Columns         As GridColumns
 		Images          As ImageList Ptr
 		SelectedImages       As ImageList Ptr
 		SmallImages       As ImageList Ptr
+		StateImages       As ImageList Ptr
 		GroupHeaderImages       As ImageList Ptr
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Property AllowColumnReorder As Boolean
+		Declare Property AllowColumnReorder(Value As Boolean)
+		Declare Property ColumnHeaderHidden As Boolean
+		Declare Property ColumnHeaderHidden(Value As Boolean)
+		Declare Property FullRowSelect As Boolean
+		Declare Property FullRowSelect(Value As Boolean)
+		Declare Property HoverTime As Integer
+		Declare Property HoverTime(Value As Integer)
+		Declare Property GridLines As Boolean
+		Declare Property GridLines(Value As Boolean)
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
-		Declare Property SelectedItem As GridItem Ptr
-		Declare Property SelectedItem(Value As GridItem Ptr)
+		Declare Property Sort As GridSortStyle
+		Declare Property Sort(Value As GridSortStyle)
+		Declare Property SelectedRow As GridRow Ptr
+		Declare Property SelectedRow(Value As GridRow Ptr)
+		Declare Property SelectedRowIndex As Integer
+		Declare Property SelectedRowIndex(Value As Integer)
 		Declare Property SelectedColumn As GridColumn Ptr
 		Declare Property SelectedColumn(Value As GridColumn Ptr)
+		Declare Property SingleClickActivate As Boolean
+		Declare Property SingleClickActivate(Value As Boolean)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
+		'Gets or sets a value indicating whether an row is automatically selected when the mouse pointer remains over the item for a few seconds.
+		Declare Property HoverSelection As Boolean
+		Declare Property HoverSelection(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnItemClick As Sub(ByRef Sender As Grid, ByRef Item As GridItem)
-		OnItemDblClick As Sub(ByRef Sender As Grid, ByRef Item As GridItem)
+		OnRowActivate As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnRowClick As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnRowDblClick As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnRowKeyDown As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer, Key As Integer, Shift As Integer)
+		OnSelectedRowChanging As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer, ByRef Cancel As Boolean)
+		OnSelectedRowChanged As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnBeginScroll As Sub(ByRef Sender As Grid)
+		OnEndScroll As Sub(ByRef Sender As Grid)
+		OnCellEdited As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 	End Type
 End Namespace
 
