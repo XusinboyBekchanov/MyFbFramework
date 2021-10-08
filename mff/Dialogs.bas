@@ -12,13 +12,13 @@
 
 #include once "Dialogs.bi"
 
-Sub OpenFileDialogOptions.Include(Value As Integer)
+Sub OpenFileOptions.Include(Value As Integer)
 	Count += 1
 	Options = Reallocate_(Options, Count*SizeOf(Integer))
 	Options[Count-1] = Value
 End Sub
 
-Sub OpenFileDialogOptions.Exclude(Value As Integer)
+Sub OpenFileOptions.Exclude(Value As Integer)
 	Dim As Integer Idx
 	For i As Integer = 0 To Count -1
 		If Options[i] = Value Then Idx  = 1
@@ -32,7 +32,7 @@ Sub OpenFileDialogOptions.Exclude(Value As Integer)
 	Options = Reallocate_(Options,SizeOf(Integer) * Count)
 End Sub
 
-Operator OpenFileDialogOptions.Cast As Integer
+Operator OpenFileOptions.Cast As Integer
 	Dim As Integer O
 	For i As Integer = 0 To Count -1
 		O Or= Options[i]
@@ -40,7 +40,7 @@ Operator OpenFileDialogOptions.Cast As Integer
 	Return O
 End Operator
 
-Destructor OpenFileDialogOptions
+Destructor OpenFileOptions
 	If Options Then Deallocate_(Options)
 End Destructor
 
@@ -110,32 +110,35 @@ Property OpenFileDialog.Filter(ByRef Value As WString)
 End Property
 
 #ifndef __USE_GTK__
-	Function OpenFileDialog.Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
-		Static As My.Sys.Forms.Control Ptr Ctrl
+	Function OpenFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 		Static As OpenFileDialog Ptr OpenDial
 		Select Case Msg
 		Case WM_INITDIALOG
-			'Ctrl = Message.Captured
-			'OpenDial = Ctrl->Child
-			'OpenDial->Handle = FWindow
+			OpenDial = Cast(OpenFileDialog Ptr, Cast(lpOpenFileName, lParam)->lCustData)
+			OpenDial->Handle = FWindow
+			SetWindowLongPtr(FWindow, GWLP_USERDATA, CInt(OpenDial))
 		Case WM_NOTIFY
 			Dim As OFNOTIFY Ptr POF
-			POF = Cast(OFNOTIFY Ptr,lParam)
+			Dim As OpenFileDialog Ptr OpenDial = Cast(OpenFileDialog Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+			POF = Cast(OFNOTIFY Ptr, lParam)
 			Select Case POF->hdr.Code
+			Case FILEOKSTRING
+				Return 2
 			Case CDN_FILEOK
-				SetWindowLongPtr GetParent(FWindow),DWLP_MSGRESULT,1
-				Exit Function
+				Return 2
+				SetWindowLongPtr GetParent(FWindow), DWLP_MSGRESULT, 1
+				Return 2
 			Case CDN_SELCHANGE
-				If OpenDial Then If OpenDial->OnSelectionChange Then OpenDial->OnSelectionChange(*Ctrl)
+				If OpenDial Then If OpenDial->OnSelectionChange Then OpenDial->OnSelectionChange(*OpenDial)
 			Case CDN_FOLDERCHANGE
-				If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*Ctrl)
+				If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial)
 			Case CDN_TYPECHANGE
 				Dim As Integer Index
 				Index = *Cast(OPENFILENAME Ptr,POF->lpOFN).nFilterIndex
 				If OpenDial Then
 					OpenDial->FilterIndex = Index
 					If OpenDial->OnTypeChange Then
-						OpenDial->OnTypeChange(*Ctrl, Index)
+						OpenDial->OnTypeChange(*OpenDial, Index)
 					End If
 				End If
 			Case CDN_INITDONE
@@ -149,7 +152,7 @@ End Property
 						W = R.Right - R.Left
 						H = R.Bottom - R.Top
 						L = (GetSysTemMetrics(SM_CXSCREEN) - W)\2
-						T = (GetSysTemMetrics(SM_CYSCREEN) - H)\2:Print L,T
+						T = (GetSysTemMetrics(SM_CYSCREEN) - H)\2
 						SetWindowPos GetParent(FWindow),0,L,T,0,0,SWP_NOACTIVATE Or SWP_NOSIZE Or SWP_NOZORDER
 					End If
 				End If
@@ -252,6 +255,8 @@ Function OpenFileDialog.Execute As Boolean
 		ofn.lpstrInitialDir = FInitialDir
 		If Len(*FCaption) Then ofn.lpstrTitle = FCaption
 		ofn.Flags = dwFlags
+		ofn.lpfnHook           = Cast(LPOFNHOOKPROC, @Hook)
+		ofn.lCustData          = Cast(LPARAM, @This)
 		If FDefaultExt Then ofn.lpstrDefExt = FDefaultExt
 		bResult = GetOpenFilename(@ofn)
 		If bResult Then

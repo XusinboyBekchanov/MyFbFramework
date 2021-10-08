@@ -67,7 +67,7 @@ Const OFN_ENABLEINCLUDENOTIFY = &H400000
 	End Enum
 #endif
 
-Type OpenFileDialogOptions
+Type OpenFileOptions
 	Count   As Integer
 	Options As Integer Ptr
 	Declare Sub Include(Value As Integer)
@@ -117,14 +117,14 @@ Public:
 	#ifndef __USE_GTK__
 		Handle       As HWND
 	#endif
-	Options      As OpenFileDialogOptions
+	Options      As OpenFileOptions
 	Center       As Boolean
 	Declare Function Execute As Boolean
 	Declare Constructor
 	Declare Destructor
-	OnFolderChange    As Sub(ByRef Sender As My.Sys.Forms.Control)
-	OnSelectionChange As Sub(ByRef Sender As My.Sys.Forms.Control)
-	OnTypeChange      As Sub(ByRef Sender As My.Sys.Forms.Control, Index As Integer)
+	OnFolderChange    As Sub(ByRef Sender As OpenFileDialog)
+	OnSelectionChange As Sub(ByRef Sender As OpenFileDialog)
+	OnTypeChange      As Sub(ByRef Sender As OpenFileDialog, Index As Integer)
 End Type
 
 Type SaveFileDialog Extends Dialog
@@ -153,7 +153,7 @@ Public:
 	#ifndef __USE_GTK__
 		Handle       As HWND
 	#endif
-	Options      As OpenFileDialogOptions
+	Options      As OpenFileOptions
 	Center       As Boolean
 	Declare Property Color As Integer
 	Declare Property Color(Value As Integer)

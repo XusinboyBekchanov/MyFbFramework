@@ -303,7 +303,7 @@ Namespace My.Sys.Forms
 			'Retrieves the Control object from Control name in the collection (Windows, Linux).
 			Declare Function ControlByName(CtrlName As String) As Control Ptr
 			'Creates the window (Windows only)
-			Declare Sub CreateWnd
+			Declare Virtual Sub CreateWnd
 			'Recreates the window (Windows only)
 			Declare Sub RecreateWnd
 			'Destroys the specified window handle (Windows, Linux).
