@@ -12,7 +12,7 @@
 
 #include once "OpenFileControl.bi"
 
-NameSpace My.Sys.Forms
+Namespace My.Sys.Forms
 	Property OpenFileControl.MultiSelect As Boolean
 		Return FMultiSelect
 	End Property
@@ -83,7 +83,7 @@ NameSpace My.Sys.Forms
 					SetWindowLong(ModalWnd, GWL_STYLE, WS_CHILD Or DS_CONTROL)
 					SetWindowLong(ModalWnd, GWL_EXSTYLE, WS_EX_CONTROLPARENT)
 					SetParent ModalWnd, OpenDial->Parent->Handle
-					If OpenDial->FVisible Then ShowWindow(ModalWnd, SW_SHOW)
+					If OpenDial->FVisible Then ShowWindow(ModalWnd, SW_SHOWNORMAL)
 					'ShowWindow(OpenDial->Parent->Handle, SW_SHOWNORMAL)
 					'ChangeStyle WS_CAPTION, False
 					'EndDialog ModalWnd, 0
@@ -113,7 +113,7 @@ NameSpace My.Sys.Forms
 					End If
 				Case CDN_INITDONE
 					MoveWindow GetParent(FWindow), -500, -500, 800, 500, True
-					MoveWindow FWindow, 0, 0, 1000, 1000, True
+					'MoveWindow FWindow, 0, 0, 1000, 1000, True
 				End Select
 			End Select
 			Return False

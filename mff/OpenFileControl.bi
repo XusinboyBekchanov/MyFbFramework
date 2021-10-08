@@ -40,6 +40,7 @@ Namespace My.Sys.Forms
 		Declare Property FileTitle(ByRef Value As WString)
 		Declare Property Filter ByRef As WString
 		Declare Property Filter(ByRef Value As WString)
+		Declare Static Sub CreateWnd(Param As Any Ptr)
 		Declare Sub CreateWnd
 		Declare Constructor
 		Declare Destructor
