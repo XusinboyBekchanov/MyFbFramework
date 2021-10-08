@@ -122,8 +122,8 @@ End Property
 			Dim As OpenFileDialog Ptr OpenDial = Cast(OpenFileDialog Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 			POF = Cast(OFNOTIFY Ptr, lParam)
 			Select Case POF->hdr.Code
-			Case FILEOKSTRING
-				Return 2
+'			Case FILEOKSTRING
+'				Return 2
 			Case CDN_FILEOK
 				Return 2
 				SetWindowLongPtr GetParent(FWindow), DWLP_MSGRESULT, 1
