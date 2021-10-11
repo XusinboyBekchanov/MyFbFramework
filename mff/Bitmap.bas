@@ -373,7 +373,7 @@ Namespace My.Sys.Drawing
 	
 	Sub BitmapType.Create
 		#ifndef __USE_GTK__
-			Dim rc As Rect
+			Dim rc As ..Rect
 			Dim As HDC Dc
 			If Handle Then DeleteObject Handle
 			Dc = GetDC(0)
@@ -392,7 +392,7 @@ Namespace My.Sys.Drawing
 	
 	Sub BitmapType.Clear
 		#ifndef __USE_GTK__
-			Dim rc As RECT
+			Dim rc As ..RECT
 			rc.Left = 0
 			rc.Top = 0
 			rc.Right = FWidth

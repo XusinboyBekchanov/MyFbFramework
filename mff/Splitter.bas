@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 						If onMoved Then onMoved(This)
 						This.Parent->RequestAlign
 						#ifdef __USE_GTK__
-							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign
+							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign 
 							'#Else
 							'		This.Parent->RequestAlign
 						#endif

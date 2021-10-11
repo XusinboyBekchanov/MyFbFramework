@@ -583,7 +583,7 @@ Namespace My.Sys.Forms
 				Dim p As Integer = InStr(value, !"\t")
 				If p > 0 Then
 					Dim As String HotKey = Mid(value, p + 1)
-					WLet(FText, Replace(Left(value, p), "&", "_"))
+					WLet(FText, Replace(.Left(value, p), "&", "_"))
 					WLet(FAccelerator, HotKey)
 					gtk_label_set_text_with_mnemonic(gtk_label(label), ToUTF8(*FText))
 					If HotKey <> "" Then

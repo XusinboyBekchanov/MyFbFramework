@@ -937,7 +937,7 @@ Namespace My.Sys.Forms
 		Sub DateTimePicker.Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
 			Dim As guint y, m, d
-			gtk_calendar_get_date (calendar, @y, @m, @d)
+			gtk_calendar_get_date(calendar, @y, @m, @d)
 			If Month(dtp->SelectedDate) = m + 1 AndAlso Year(dtp->SelectedDate) = y Then
 				gtk_widget_hide(dtp->PopupWindow)
 				gtk_widget_grab_focus(dtp->Widget)

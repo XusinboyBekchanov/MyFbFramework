@@ -98,7 +98,7 @@ Namespace My
 			Tx = Command(0)
 			L = Len(Tx)
 		#endif
-		s = Left(Tx, L)
+		s = .Left(Tx, L)
 		For i = 0 To Len(s)
 			If s[i] = Asc("\") Then k = i
 		Next i
@@ -122,7 +122,7 @@ Namespace My
 			Dim As WString * 255 Tx
 			L = GetModuleFileName(GetModuleHandle(NULL), @Tx, 255 - 1)
 		#endif
-		WLet(FFileName, Left(Tx, L))
+		WLet(FFileName, .Left(Tx, L))
 		Return *FFileName
 	End Property
 	
