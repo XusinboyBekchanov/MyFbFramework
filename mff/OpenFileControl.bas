@@ -255,6 +255,7 @@ Namespace My.Sys.Forms
 				Do While FHandle = 0
 					pApp->DoEvents
 				Loop
+				SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(@This))
 			End If
 		#endif
 	End Sub
@@ -322,6 +323,7 @@ Namespace My.Sys.Forms
 			'OFN_CREATEPROMPT
 			'OFN_DONTADDTORECENT
 		#endif
+		Child = @This
 		FTabIndex          = -1
 		FTabStop           = True
 		WLet(FClassName, "OpenFileControl")
