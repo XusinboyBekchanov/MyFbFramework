@@ -115,13 +115,13 @@ Namespace My.Sys.Forms
 	
 	Type GridColumn Extends My.Sys.Object
 	Private:
-		FText            As WString Ptr
-		FHint            As WString Ptr
-		FImageIndex   As Integer
-		FWidth      As Integer
-		FFormat      As GridColumnFormat
-		FVisible      As Boolean
-		FEditable	 As Boolean
+		FText           As WString Ptr
+		FHint           As WString Ptr
+		FImageIndex     As Integer
+		FWidth          As Integer
+		FFormat         As GridColumnFormat
+		FVisible        As Boolean
+		FEditable       As Boolean
 	Public:
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Column

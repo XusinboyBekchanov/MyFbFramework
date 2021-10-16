@@ -10,16 +10,16 @@
 '#  Modified by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                      #
 '###############################################################################
 
-#Include Once "Header.bi"
+#include once "Header.bi"
 
 Namespace My.Sys.Forms
 	'HeaderSection
 	
-	Property HeaderSection.Style As Integer
+	Property HeaderSection.Style As HeaderSectionStyle
 		Return FStyle
 	End Property
 	
-	Property HeaderSection.Style(Value As Integer)
+	Property HeaderSection.Style(Value As HeaderSectionStyle)
 		If Value <> FStyle Then
 			FStyle = Value
 			QHeader(HeaderControl).UpdateItems
@@ -32,6 +32,11 @@ Namespace My.Sys.Forms
 	
 	Property HeaderSection.Caption(ByRef Value As WString)
 		WLet(FCaption, Value)
+		#ifdef __USE_GTK__
+			If Handle Then
+				gtk_tree_view_column_set_title(Handle, ToUTF8(Value))
+			End If
+		#endif
 	End Property
 	
 	Property HeaderSection.Alignment As Integer
@@ -42,6 +47,16 @@ Namespace My.Sys.Forms
 		If Value <> FAlignment Then
 			FAlignment = Value
 			QHeader(HeaderControl).UpdateItems
+			#ifdef __USE_GTK__
+				If Handle Then
+					Select Case Value
+					Case 0: gtk_tree_view_column_set_alignment(Handle, 0.0)
+					Case 1: gtk_tree_view_column_set_alignment(Handle, 0.5)
+					Case 2: gtk_tree_view_column_set_alignment(Handle, 1.0)
+					Case 3: gtk_tree_view_column_set_alignment(Handle, 1.0)
+					End Select
+				End If
+			#endif
 		End If
 	End Property
 	
@@ -53,6 +68,24 @@ Namespace My.Sys.Forms
 		If Value <> FImageIndex Then
 			FImageIndex = Value
 			QHeader(HeaderControl).UpdateItems
+			#ifdef __USE_GTK__
+				ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+			#endif
+		End If
+	End Property
+	
+	Property HeaderSection.ImageKey ByRef As WString
+		Return WGet(FImageKey)
+	End Property
+	
+	Property HeaderSection.ImageKey(ByRef Value As WString)
+		If Value <> *FImageKey Then
+			WLet FImageKey, Value
+			If HeaderControl->Images Then FImageIndex = HeaderControl->Images->IndexOf(*FImageKey)
+			QHeader(HeaderControl).UpdateItems
+			#ifdef __USE_GTK__
+				ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+			#endif
 		End If
 	End Property
 	
@@ -64,6 +97,15 @@ Namespace My.Sys.Forms
 		If Value <> FWidth Then
 			FWidth = Value
 			QHeader(HeaderControl).UpdateItems
+			#ifdef __USE_GTK__
+				If Handle Then
+					#ifdef __USE_GTK3__
+						gtk_tree_view_column_set_fixed_width(Handle, Max(-1, FWidth))
+					#else
+						gtk_tree_view_column_set_fixed_width(Handle, Max(1, FWidth))
+					#endif
+				End If
+			#endif
 		End If
 	End Property
 	
@@ -72,12 +114,12 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Constructor HeaderSection
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			AFmt(0)         = HDF_LEFT
 			AFmt(1)         = HDF_CENTER
 			AFmt(2)         = HDF_RIGHT
 			AFmt(3)         = HDF_RTLREADING
-		#EndIf
+		#endif
 		WLet(FCaption, "")
 		FImageIndex     = -1
 		FAlignment      = 0
@@ -88,16 +130,43 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	'Header
-	Property Header.Style As Integer
+	Function Header.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "dragreorder": Return @FDragReorder
+		Case "fulldrag": Return @FFullDrag
+		Case "hottrack": Return @FHotTrack
+		Case "sectioncount": FSectionCount = SectionCount: Return @FSectionCount
+		Case "style": Return @FStyle
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Header.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "dragreorder": If Value <> 0 Then This.DragReorder = QBoolean(Value)
+		Case "fulldrag": If Value <> 0 Then This.FullDrag = QBoolean(Value)
+		Case "hottrack": If Value <> 0 Then This.HotTrack = QBoolean(Value)
+		Case "style": If Value <> 0 Then This.Style = *Cast(HeaderStyle Ptr, Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+	
+	Property Header.Style As HeaderStyle
 		Return FStyle
 	End Property
 	
-	Property Header.Style(Value As Integer)
+	Property Header.Style(Value As HeaderStyle)
 		If FStyle <> Value Then
 			FStyle = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
-			#EndIf
+			#ifdef __USE_GTK__
+				For i As Integer = 0 To FSections.Count - 1
+					gtk_tree_view_column_set_clickable(Section(i)->Handle, Value = HeaderStyle.hsNormal)
+				Next
+			#else
+				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+			#endif
 		End If
 	End Property
 	
@@ -108,9 +177,9 @@ Namespace My.Sys.Forms
 	Property Header.HotTrack(Value As Boolean)
 		If FHotTrack <> Value Then
 			FHotTrack = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
-			#EndIf
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+			#endif
 		End If
 	End Property
 	
@@ -121,9 +190,9 @@ Namespace My.Sys.Forms
 	Property Header.FullDrag(Value As Boolean)
 		If FFullDrag <> Value Then
 			FFullDrag = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
-			#EndIf
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+			#endif
 		End If
 	End Property
 	
@@ -134,9 +203,13 @@ Namespace My.Sys.Forms
 	Property Header.DragReorder(Value As Boolean)
 		If FDragReorder <> Value Then
 			DragReorder = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
-			#EndIf
+			#ifdef __USE_GTK__
+				For i As Integer = 0 To FSections.Count - 1
+					gtk_tree_view_column_set_reorderable(gtk_tree_view_column(Section(i)->Handle), Value)
+				Next
+			#else
+				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+			#endif
 		End If
 	End Property
 	
@@ -163,7 +236,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Header.Captions(Index As Integer) ByRef As WString
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).Caption
 		Else
 			Return ""
@@ -171,13 +244,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Header.Captions(Index As Integer, ByRef Value As WString)
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).Caption = Value
 		End If
 	End Property
 	
 	Property Header.Widths(Index As Integer) As Integer
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).Width
 		Else
 			Return 0
@@ -185,13 +258,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Header.Widths(Index As Integer, Value As Integer)
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).Width = Value
 		End If
 	End Property
 	
 	Property Header.Alignments(Index As Integer) As Integer
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).Alignment
 		Else
 			Return 0
@@ -199,13 +272,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Header.Alignments(Index As Integer, Value As Integer)
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).Alignment = Value
 		End If
 	End Property
 	
 	Property Header.ImageIndexes(Index As Integer) As Integer
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).ImageIndex
 		Else
 			Return -1
@@ -213,62 +286,64 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Header.ImageIndexes(Index As Integer, Value As Integer)
-		If Index >= 0 AND Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).ImageIndex = Value
 		End If
 	End Property
 	
 	Sub Header.UpdateItems
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim As HDITEM HI
 			For i As Integer = SectionCount -1 To 0 Step -1
 				Perform(HDM_DELETEITEM, i, 0)
 			Next i
 			For i As Integer = 0 To SectionCount - 1
-				HI.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT
+				HI.mask       = HDI_FORMAT Or HDI_WIDTH Or HDI_LPARAM Or HDI_TEXT
 				HI.pszText    = @QHeaderSection(FSections.Items[I]).Caption
 				HI.cchTextMax = Len(QHeaderSection(FSections.Items[I]).Caption)
 				HI.cxy        = QHeaderSection(FSections.Items[I]).Width
 				HI.fmt        = AFmt(QHeaderSection(FSections.Items[I]).Alignment)
 				HI.iImage     = QHeaderSection(FSections.Items[I]).ImageIndex
 				If HI.iImage <> -1 Then
-					HI.mask = HI.mask OR HDI_IMAGE
-					HI.fmt = HI.fmt OR HDF_IMAGE
+					HI.mask = HI.mask Or HDI_IMAGE
+					HI.fmt = HI.fmt Or HDF_IMAGE
 				End If
 				If QHeaderSection(FSections.Items[I]).Style > 0 Then
-					HI.fmt = HI.fmt OR HDF_OWNERDRAW
+					HI.fmt = HI.fmt Or HDF_OWNERDRAW
 				Else
-					HI.fmt = HI.fmt OR HDF_STRING
+					HI.fmt = HI.fmt Or HDF_STRING
 				End If
 				HI.hbm        = NULL
 				HI.lParam     = Cast(LParam,FSections.Items[I])
 				Perform(HDM_INSERTITEM, i, CInt(@HI))
 			Next i
-		#EndIF
+		#endif
 	End Sub
 	
-	#IfNDef __USE_GTK__
-		Sub Header.HandleIsAllocated(BYREF Sender As Control)
+	#ifndef __USE_GTK__
+		Sub Header.HandleIsAllocated(ByRef Sender As Control)
 			Dim As HDITEM HI
 			If Sender.Child Then
 				With QHeader(Sender.Child)
-					.Images.ParentWindow = @Sender
-					SendMessage(.Handle, HDM_SETIMAGELIST, 0, Cast(LPARAM, .Images.Handle))
-					For i As Integer = 0 To .SectionCount -1
-						HI.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT
+					If .Images Then 
+						.Images->ParentWindow = @Sender
+						SendMessage(.Handle, HDM_SETIMAGELIST, 0, Cast(LPARAM, .Images->Handle))
+					End If
+					For i As Integer = 0 To .SectionCount - 1
+						HI.mask       = HDI_FORMAT Or HDI_WIDTH Or HDI_LPARAM Or HDI_TEXT
 						HI.pszText    = @QHeaderSection(.FSections.Items[I]).Caption
 						HI.cchTextMax = Len(QHeaderSection(.FSections.Items[I]).Caption)
 						HI.cxy        = QHeaderSection(.FSections.Items[I]).Width
 						HI.fmt        = .AFmt(QHeaderSection(.FSections.Items[I]).Alignment)
 						HI.iImage     = QHeaderSection(.FSections.Items[I]).ImageIndex
 						If HI.iImage <> -1 Then
-							HI.mask = HI.mask OR HDI_IMAGE
-							HI.fmt = HI.fmt OR HDF_IMAGE
+							HI.mask = HI.mask Or HDI_IMAGE
+							HI.fmt = HI.fmt Or HDF_IMAGE
 						End If
 						If QHeaderSection(.FSections.Items[I]).Style > 0 Then
-							HI.fmt = HI.fmt OR HDF_OWNERDRAW
+							HI.fmt = HI.fmt Or HDF_OWNERDRAW
 						Else
-							HI.fmt = HI.fmt OR HDF_STRING
+							HI.fmt = HI.fmt Or HDF_STRING
 						End If
 						HI.hbm        = NULL
 						HI.lParam     = Cast(LParam, .FSections.Items[I])
@@ -278,13 +353,13 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub Header.WndProc(BYREF Message As Message)
+		Sub Header.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 			End If
 		End Sub
-	#EndIf
+	#endif
 	
-	Function Header.EnumMenuItems(Item As MenuItem, BYREF List As List) As Boolean
+	Function Header.EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 		For i As Integer = 0 To Item.Count -1
 			List.Add Item.Item(i)
 			EnumMenuItems *Item.Item(i), List
@@ -292,8 +367,28 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	#IfNDef __USE_GTK__
-		Sub Header.ProcessMessage(BYREF Message As Message)
+	Sub Header.Init()
+		#ifdef __USE_GTK__
+			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
+				If ColumnTypes Then Delete_SquareBrackets(ColumnTypes)
+				ColumnTypes = New_(GType[FSections.Count + 1])
+				For i As Integer = 0 To FSections.Count
+					ColumnTypes[i] = G_TYPE_STRING
+				Next i
+				gtk_list_store_set_column_types(ListStore, FSections.Count, ColumnTypes)
+				gtk_tree_view_set_model(GTK_TREE_VIEW(widget), GTK_TREE_MODEL(ListStore))
+			End If
+		#endif
+	End Sub
+	
+	Sub Header.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_GTK__
+			Dim As GdkEvent Ptr e = Message.event
+			Select Case Message.event->Type
+			Case GDK_MAP
+				Init
+			End Select
+		#else
 			Static As Boolean IsMenuItem
 			Select Case Message.Msg
 			Case WM_RBUTTONDOWN
@@ -334,7 +429,7 @@ Namespace My.Sys.Forms
 				Dis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				Dim As Rect R = Dis->rcItem
 				Dim As Integer Index = Dis->ItemID, State = Dis->itemState
-				If OnDrawSection Then OnDrawSection(This, QHeaderSection(FSections.Items[Index]), R, State AND ODS_SELECTED <> 0)
+				If OnDrawSection Then OnDrawSection(This, QHeaderSection(FSections.Items[Index]), R, State And ODS_SELECTED <> 0)
 			Case WM_MENUSELECT
 				IsMenuItem = True
 			Case WM_COMMAND
@@ -354,11 +449,19 @@ Namespace My.Sys.Forms
 					IsMenuItem = False
 				End If
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#EndIf
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
-	Sub Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0)
+	#ifdef __USE_GTK__
+		Sub Header.Column_Clicked(treeviewcolumn As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+			Dim As HeaderSection Ptr hsec = user_data
+			Dim As Header Ptr hdr = hsec->HeaderControl
+			If hdr->OnSectionClick Then hdr->OnSectionClick(*hdr, *hsec, hdr->FSections.IndexOf(hsec), 0)
+		End Sub
+	#endif
+	
+	Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
 		PSection = New_( HeaderSection)
 		FSections.Add PSection
@@ -370,77 +473,133 @@ Namespace My.Sys.Forms
 			.Width         = FWidth
 		End With
 		
-		#IfNDef __USE_GTK__
+		#ifdef __USE_GTK__
+			PSection->Handle = gtk_tree_view_column_new()
+			gtk_tree_view_column_set_reorderable(PSection->Handle, FDragReorder)
+			Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
+			gtk_tree_view_column_pack_start(PSection->Handle, rendertext, True)
+			gtk_tree_view_column_add_attribute(PSection->Handle, rendertext, ToUTF8("text"), 0)
+			gtk_tree_view_column_set_resizable(PSection->Handle, True)
+			gtk_tree_view_column_set_clickable(PSection->Handle, FStyle = HeaderStyle.hsNormal)
+			If Images Then
+				#ifdef __USE_GTK3__
+					PSection->BoxHandle = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+				#else
+					PSection->BoxHandle = gtk_hbox_new(False, 1)
+				#endif
+				PSection->ImageHandle = gtk_image_new_from_icon_name(ToUTF8(Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				gtk_container_add (GTK_CONTAINER (PSection->BoxHandle), PSection->ImageHandle)
+				PSection->LabelHandle = gtk_label_new(ToUTF8(FCaption))
+				gtk_container_add(GTK_CONTAINER (PSection->BoxHandle), PSection->LabelHandle)
+				gtk_widget_show_all(PSection->BoxHandle)
+				gtk_tree_view_column_set_widget(PSection->Handle, PSection->BoxHandle)
+			Else
+				gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(FCaption))
+			End If
+			gtk_tree_view_append_column(GTK_TREE_VIEW(FHandle), PSection->Handle)
+			#ifdef __USE_GTK3__
+				gtk_tree_view_column_set_fixed_width(PSection->Handle, Max(-1, FWidth))
+			#else
+				gtk_tree_view_column_set_fixed_width(PSection->Handle, Max(1, FWidth))
+			#endif
+			PSection->Alignment = FAlignment
+			g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
+		#else
 			Dim As HDITEM HI
 			With HI
-				.mask       = HDI_FORMAT OR HDI_WIDTH OR HDI_LPARAM OR HDI_TEXT
+				.mask       = HDI_FORMAT Or HDI_WIDTH Or HDI_LPARAM Or HDI_TEXT
 				.pszText    = @FCaption
 				.cchTextMax = Len(FCaption)
 				.cxy        = PSection->Width
 				.fmt        = AFmt(Abs_(PSection->Alignment))
 				.iImage     = FImageIndex
 				If .iImage <> -1 Then
-					.mask = .mask OR HDI_IMAGE
-					.fmt  = .fmt OR HDF_IMAGE
+					.mask = .mask Or HDI_IMAGE
+					.fmt  = .fmt Or HDF_IMAGE
 				End If
 				If PSection->Style > 0 Then
-					.fmt = .fmt OR HDF_OWNERDRAW
+					.fmt = .fmt Or HDF_OWNERDRAW
 				Else
-					.fmt = .fmt OR HDF_STRING
+					.fmt = .fmt Or HDF_STRING
 				End If
 				.hbm        = NULL
-				.lParam     = Cast(LParam,PSection)
+				.lParam     = Cast(LParam, PSection)
 			End With
 			If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
-		#EndIf
-	End Sub
+		#endif
+		Return PSection
+	End Function
 	
-	#IfnDef __fb_64bit__
-		Sub Header.AddSections CDECL(FCount As Integer,...)
+	Function Header.AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
+		Dim As HeaderSection Ptr PSection
+		If Images Then
+			PSection = This.AddSection(FCaption, Images->IndexOf(FImageKey), FWidth, FAlignment)
+		Else
+			PSection = This.AddSection(FCaption, -1, FWidth, FAlignment)
+		End If
+		If PSection Then PSection->ImageKey         = FImageKey
+		Return PSection
+	End Function
+	
+	#ifndef __FB_64BIT__
+		Sub Header.AddSections cdecl(FCount As Integer, ...)
 			Dim As Any Ptr Arg
 			Dim As HeaderSection Ptr PSection
-			Arg = va_First()
-			For i As Integer = 0 To FCount -1
+			Arg = va_first()
+			For i As Integer = 0 To FCount - 1
 				PSection = New_( HeaderSection)
 				With *PSection
 					.HeaderControl = @This
-					.Caption       = *va_Arg(Arg, WString Ptr)
+					.Caption       = *va_arg(Arg, WString Ptr)
 				End With
 				FSections.Add PSection
-				#IfNDef __USE_GTK__
+				#ifdef __USE_GTK__
+					PSection->Handle = gtk_tree_view_column_new()
+					gtk_tree_view_column_set_reorderable(PSection->Handle, FDragReorder)
+					gtk_tree_view_column_set_resizable(PSection->Handle, True)
+					gtk_tree_view_column_set_clickable(PSection->Handle, FStyle = HeaderStyle.hsNormal)
+					gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(PSection->Caption))
+					gtk_tree_view_append_column(GTK_TREE_VIEW(FHandle), PSection->Handle)
+					Dim As gint wx, wy
+					gtk_tree_view_convert_bin_window_to_widget_coords(gtk_tree_view(FHandle), 0, 0, @wx, @wy)
+					gtk_widget_set_size_request(FHandle, FWidth, wy)
+					g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
+				#else
 					Dim As HDITEM HI
 					With HI
-						.mask       = HDI_FORMAT OR HDI_LPARAM OR HDI_TEXT OR HDI_WIDTH
+						.mask       = HDI_FORMAT Or HDI_LPARAM Or HDI_TEXT Or HDI_WIDTH
 						.pszText    = @PSection->Caption
 						.cchTextMax = Len(PSection->Caption)
 						.cxy        = PSection->Width
 						.fmt        = AFmt(Abs_(PSection->Alignment))
 						.iImage     = PSection->ImageIndex
 						If .iImage <> -1 Then
-							.mask = .mask OR HDI_IMAGE
-							.fmt  = .fmt OR HDF_IMAGE
+							.mask = .mask Or HDI_IMAGE
+							.fmt  = .fmt Or HDF_IMAGE
 						End If
 						If PSection->Style Then
-							.fmt = .fmt OR HDF_OWNERDRAW
+							.fmt = .fmt Or HDF_OWNERDRAW
 						Else
-							.fmt = .fmt OR HDF_STRING
+							.fmt = .fmt Or HDF_STRING
 						End If
 						.hbm        = NULL
 						.lParam     = Cast(LParam,PSection)
 					End With
 					If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
-				#EndIf
-				Arg = va_Next(Arg, WString Ptr)
+				#endif
+				Arg = va_next(Arg, WString Ptr)
 			Next i
 		End Sub
-	#EndIf
+	#endif
 	
 	Sub Header.RemoveSection(Index As Integer)
-		If Index >= 0 And Index <= SectionCount -1 Then
+		If Index >= 0 And Index <= SectionCount - 1 Then
+			#ifdef __USE_GTK__
+				If FHandle Then gtk_tree_view_remove_column(gtk_tree_view(FHandle), gtk_tree_view_column(Section(Index)->Handle))
+			#else
+				If FHandle Then Perform(HDM_DELETEITEM, Index, 0)
+			#endif
 			FSections.Remove Index
-			#IfNDef __USE_GTK__
-				If Handle Then Perform(HDM_DELETEITEM, Index, 0)
-			#EndIf
 		End If
 	End Sub
 	
@@ -448,8 +607,39 @@ Namespace My.Sys.Forms
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub Header.Header_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Dim As Header Ptr hdr = user_data
+			hdr->Init
+		End Sub
+		
+		Function Header.Header_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Dim As Header Ptr hdr = data1
+			#ifdef __USE_GTK3__
+				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+			#else
+				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+			#endif
+			If AllocatedWidth <> hdr->AllocatedWidth Or AllocatedHeight <> hdr->AllocatedHeight Then
+				hdr->AllocatedWidth = AllocatedWidth
+				hdr->AllocatedHeight = AllocatedHeight
+				Dim As gint wx, wy
+				gtk_tree_view_convert_bin_window_to_widget_coords(gtk_tree_view(widget), 0, 0, @wx, @wy)
+				gtk_widget_set_size_request(widget, hdr->Width, wy)
+			End If
+			Return False
+		End Function
+		
+		Function Header.Header_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			Header_Draw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+	#endif
+	
 	Constructor Header
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			AStyle(0)       = HDS_BUTTONS
 			AStyle(1)       = 0
 			AFullDrag(0)    = 0
@@ -462,21 +652,33 @@ Namespace My.Sys.Forms
 			AFmt(1)         = HDF_CENTER
 			AFmt(2)         = HDF_RIGHT
 			AFmt(3)         = HDF_RTLREADING
-		#EndIf
+		#endif
 		FFullDrag       = True
 		FDragReorder    = False
 		With This
 			.Child             = @This
-			#IfNDef __USE_GTK__
+			#ifdef __USE_GTK__
+				widget = gtk_tree_view_new()
+				gtk_widget_set_can_focus(widget, False)
+				ListStore = gtk_list_store_new(1, G_TYPE_STRING)
+				ColumnTypes = New_(GType[1])
+				ColumnTypes[0] = G_TYPE_STRING
+				g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@Header_Map), @This)
+				#ifdef __USE_GTK3__
+					g_signal_connect(widget, "draw", G_CALLBACK(@Header_Draw), @This)
+				#else
+					g_signal_connect(widget, "expose-event", G_CALLBACK(@Header_ExposeEvent), @This)
+				#endif
+			#else
 				.RegisterClass "Header", WC_HEADER
 				.ChildProc         = @WndProc
 				.ExStyle           = 0
-				Base.Style             = WS_CHILD OR AStyle(Abs_(FStyle)) OR AFullDrag(Abs_(FFullDrag)) OR AHotTrack(Abs_(FHotTrack)) OR ADragReorder(Abs_(FDragReorder))
+				Base.Style             = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 				.DoubleBuffered = True
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, WC_HEADER)
-			#EndIf
+			#endif
 			WLet(FClassName, "Header")
 			.Width             = 150
 			.Height            = 24
@@ -487,4 +689,4 @@ Namespace My.Sys.Forms
 	Destructor Header
 		FSections.Clear
 	End Destructor
-End namespace
+End Namespace

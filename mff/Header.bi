@@ -14,9 +14,9 @@
 #include once "ImageList.bi"
 #include once "List.bi"
 
-namespace My.Sys.Forms
-	#DEFINE QHeader(__Ptr__) *Cast(Header Ptr,__Ptr__)
-	#DEFINE QHeaderSection(__Ptr__) *Cast(HeaderSection Ptr,__Ptr__)
+Namespace My.Sys.Forms
+	#define QHeader(__Ptr__) *Cast(Header Ptr,__Ptr__)
+	#define QHeaderSection(__Ptr__) *Cast(HeaderSection Ptr, __Ptr__)
 	
 	Type PHeaderControl As Header
 	
@@ -29,10 +29,17 @@ namespace My.Sys.Forms
 		FCaption      As WString Ptr
 		FAlignment    As Integer
 		FImageIndex   As Integer
-		FStyle        As Integer
+		FImageKey     As WString Ptr
+		FStyle        As HeaderSectionStyle
 		FWidth        As Integer
 		AFmt(4)       As Integer
 	Public:
+		#ifdef __USE_GTK__
+			Dim As GtkTreeViewColumn Ptr Handle
+			Dim As GtkWidget Ptr BoxHandle
+			Dim As GtkWidget Ptr ImageHandle
+			Dim As GtkWidget Ptr LabelHandle
+		#endif
 		HeaderControl As PHeaderControl Ptr
 		Tag           As Any Ptr
 		Declare Property Caption ByRef As WString
@@ -41,10 +48,12 @@ namespace My.Sys.Forms
 		Declare Property Alignment(Value As Integer)
 		Declare Property ImageIndex As Integer
 		Declare Property ImageIndex(Value As Integer)
+		Declare Property ImageKey ByRef As WString
+		Declare Property ImageKey(ByRef Value As WString)
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
-		Declare Property Style As Integer
-		Declare Property Style(Value As Integer)
+		Declare Property Style As HeaderSectionStyle
+		Declare Property Style(Value As HeaderSectionStyle)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
@@ -56,7 +65,7 @@ namespace My.Sys.Forms
 	
 	Type Header Extends Control
 	Private:
-		FStyle            As Integer
+		FStyle            As HeaderStyle
 		FFullDrag         As Boolean
 		FDragReorder      As Boolean
 		FHotTrack         As Boolean
@@ -67,16 +76,31 @@ namespace My.Sys.Forms
 		AFmt(4)           As Integer
 		FSectionCount     As Integer
 		FSections         As List
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Declare Static Sub Column_Clicked(treeviewcolumn As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+			Declare Static Sub Header_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Function Header_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Header_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			ListStore As GtkListStore Ptr
+			ColumnTypes As GType Ptr
+		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(BYREF Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
-		Declare Function EnumMenuItems(Item As MenuItem,ByRef List As List) As Boolean
+	Protected:
+		#ifdef __USE_GTK__
+			AllocatedHeight As Integer
+			AllocatedWidth As Integer
+		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		Declare Function EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 	Public:
-		Images            As ImageList
-		Declare Property Style As Integer
-		Declare Property Style(Value As Integer)
+		Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Images            As ImageList Ptr
+		Declare Sub Init()
+		Declare Property Style As HeaderStyle
+		Declare Property Style(Value As HeaderStyle)
 		Declare Property HotTrack As Boolean
 		Declare Property HotTrack(Value As Boolean)
 		Declare Property FullDrag As Boolean
@@ -86,36 +110,37 @@ namespace My.Sys.Forms
 		Declare Property SectionCount As Integer
 		Declare Property SectionCount(Value As Integer)
 		Declare Property Section(Index As Integer) As HeaderSection Ptr
-		Declare Property Section(Index As Integer,Value As HeaderSection Ptr)
+		Declare Property Section(Index As Integer, Value As HeaderSection Ptr)
 		Declare Property Captions(Index As Integer) ByRef As WString
 		Declare Property Captions(Index As Integer, ByRef Value As WString)
 		Declare Property Widths(Index As Integer) As Integer
-		Declare Property Widths(Index As Integer,Value As Integer)
+		Declare Property Widths(Index As Integer, Value As Integer)
 		Declare Property Alignments(Index As Integer) As Integer
-		Declare Property Alignments(Index As Integer,Value As Integer)
+		Declare Property Alignments(Index As Integer, Value As Integer)
 		Declare Property ImageIndexes(Index As Integer) As Integer
-		Declare Property ImageIndexes(Index As Integer,Value As Integer)
+		Declare Property ImageIndexes(Index As Integer, Value As Integer)
 		Declare Operator Cast As Control Ptr
-		Declare Sub AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0)
-		Declare Sub AddSections CDECL(FCount As Integer,...)
+		Declare Function AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
+		Declare Function AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
+		Declare Sub AddSections cdecl(FCount As Integer, ...)
 		Declare Sub RemoveSection(Index As Integer)
 		Declare Sub UpdateItems
 		Declare Constructor
 		Declare Destructor
-		OnSectionClick    As Sub(BYREF Sender As Header, BYREF Section As HeaderSection, Index As Integer, MouseButton As Integer)
-		OnSectionDblClick As Sub(BYREF Sender As Header, BYREF Section As HeaderSection, Index As Integer, MouseButton As Integer)
-		OnChange          As Sub(BYREF Sender As Header, BYREF Section As HeaderSection)
-		OnChanging        As Sub(BYREF Sender As Header, BYREF Section As HeaderSection)
-		OnBeginTrack      As Sub(BYREF Sender As Header, BYREF Section As HeaderSection)
-		OnEndTrack        As Sub(BYREF Sender As Header, BYREF Section As HeaderSection)
-		OnTrack           As Sub(BYREF Sender As Header, BYREF Section As HeaderSection)
-		OnDividerDblClick As Sub(BYREF Sender As Header, Index As Integer, MouseButton As Integer)
-		#IfNDef __USE_GTK__
-			OnDrawSection     As Sub(BYREF Sender As Header, BYREF Section As HeaderSection, R As Rect, State As Integer)
-		#EndIf
+		OnSectionClick    As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
+		OnSectionDblClick As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
+		OnChange          As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnChanging        As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnBeginTrack      As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnEndTrack        As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnTrack           As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnDividerDblClick As Sub(ByRef Sender As Header, Index As Integer, MouseButton As Integer)
+		#ifndef __USE_GTK__
+			OnDrawSection     As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, R As Rect, State As Integer)
+		#endif
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "Header.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Header.bas"
+#endif
