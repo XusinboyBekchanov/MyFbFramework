@@ -338,12 +338,18 @@ Namespace My.Sys.Forms
 		If FFileTitle Then DeAllocate_( FFileTitle)
 		If FFilter Then DeAllocate_( FFilter)
 		#ifndef __USE_GTK__
-			SendMessage(GetParent(FHandle), WM_SYSCOMMAND, SC_CLOSE, 0)
-			'SendMessage(FHandle, WM_COMMAND, IDCANCEL, 0)
+			If FDesignMode Then
+				SendMessage(GetDlgItem(GetParent(FHandle), IDCANCEL), BM_CLICK, 0, 0)
+				'SendMessage(FHandle, WM_COMMAND, IDCANCEL, 0)
+			Else
+				SendMessage(GetParent(FHandle), WM_SYSCOMMAND, SC_CLOSE, 0)
+			End If
 			'SetActiveWindow(GetParent(FHandle))
 			'SendMessage(GetDlgItem(GetParent(FHandle), IDCANCEL), BM_CLICK, 0, 0)
 			'EndDialog(GetParent(FHandle), 1)
-			If ThreadID <> 0 AndAlso IsWindow(GetParent(FHandle)) Then ThreadWait(ThreadID) 'AndAlso IsWindow(GetParent(FHandle)) 
+			If Not FDesignMode Then
+				If ThreadID <> 0 AndAlso IsWindow(GetParent(FHandle)) Then ThreadWait(ThreadID) 'AndAlso IsWindow(GetParent(FHandle)) 
+			End If
 			FHandle = 0
 		#endif
 	End Destructor

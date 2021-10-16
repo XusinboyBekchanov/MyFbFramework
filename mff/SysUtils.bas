@@ -456,8 +456,8 @@ Function CloseFile_(filenum As Long) As Long
 	Return Close(filenum)
 End Function
 
-#ifdef GetMN
-	Function GetMessageName(Message As Integer) As String
+'#ifdef GetMN
+	Private Function GetMessageName(Message As Integer) As String
 		Select Case Message
 		Case 0: Return "WM_NULL"
 		Case 1: Return "WM_CREATE"
@@ -1492,9 +1492,9 @@ End Function
 		Case Else: Return "Unknown message (Code: " & Message & ")"
 		End Select
 	End Function
-#endif
+'#endif
 
-Function ErrDescription(Code As Integer) ByRef As WString
+Private Function ErrDescription(Code As Integer) ByRef As WString
 	Select Case Code
 	Case 0: Return "No error"
 	Case 1: Return "Illegal function call"
