@@ -30,6 +30,7 @@ Namespace My.Sys.Forms
 		FAlignment    As Integer
 		FImageIndex   As Integer
 		FImageKey     As WString Ptr
+		FResizable    As Boolean
 		FStyle        As HeaderSectionStyle
 		FWidth        As Integer
 		AFmt(4)       As Integer
@@ -52,6 +53,8 @@ Namespace My.Sys.Forms
 		Declare Property ImageIndex(Value As Integer)
 		Declare Property ImageKey ByRef As WString
 		Declare Property ImageKey(ByRef Value As WString)
+		Declare Property Resizable As Boolean
+		Declare Property Resizable(Value As Boolean)
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
 		Declare Property Style As HeaderSectionStyle
@@ -71,10 +74,11 @@ Namespace My.Sys.Forms
 		FFullDrag         As Boolean
 		FDragReorder      As Boolean
 		FHotTrack         As Boolean
-		AStyle(2)         As Integer
-		AHotTrack(2)      As Integer
-		AFullDrag(2)      As Integer
-		ADragReorder(2)   As Integer
+		FResizable        As Boolean
+'		AStyle(2)         As Integer
+'		AHotTrack(2)      As Integer
+'		AFullDrag(2)      As Integer
+'		ADragReorder(2)   As Integer
 		AFmt(4)           As Integer
 		FSectionCount     As Integer
 		#ifdef __USE_GTK__
@@ -112,6 +116,8 @@ Namespace My.Sys.Forms
 		Declare Property FullDrag(Value As Boolean)
 		Declare Property DragReorder As Boolean
 		Declare Property DragReorder(Value As Boolean)
+		Declare Property Resizable As Boolean
+		Declare Property Resizable(Value As Boolean)
 		Declare Property SectionCount As Integer
 		Declare Property SectionCount(Value As Integer)
 		Declare Property Section(Index As Integer) As HeaderSection Ptr
@@ -125,8 +131,8 @@ Namespace My.Sys.Forms
 		Declare Property ImageIndexes(Index As Integer) As Integer
 		Declare Property ImageIndexes(Index As Integer, Value As Integer)
 		Declare Operator Cast As Control Ptr
-		Declare Function AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
-		Declare Function AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
+		Declare Function AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
+		Declare Function AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
 		Declare Sub AddSections cdecl(FCount As Integer, ...)
 		Declare Sub RemoveSection(Index As Integer)
 		Declare Sub UpdateItems

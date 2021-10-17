@@ -94,6 +94,20 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
+	Property HeaderSection.Resizable As Boolean
+		Return FResizable
+	End Property
+	
+	Property HeaderSection.Resizable(Value As Boolean)
+		If Value <> FResizable Then
+			FResizable = Value
+			QHeader(HeaderControl).UpdateItems
+			#ifdef __USE_GTK__
+				gtk_tree_view_column_set_resizable(Handle, Value)
+			#endif
+		End If
+	End Property
+	
 	Property HeaderSection.Width As Integer
 		#ifdef __USE_GTK__
 			If Handle Then
@@ -176,7 +190,8 @@ Namespace My.Sys.Forms
 					gtk_tree_view_column_set_clickable(Section(i)->Handle, Value = HeaderStyle.hsNormal)
 				Next
 			#else
-				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+				ChangeStyle HDS_BUTTONS, Not Value
+				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 			#endif
 		End If
 	End Property
@@ -189,7 +204,8 @@ Namespace My.Sys.Forms
 		If FHotTrack <> Value Then
 			FHotTrack = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+				ChangeStyle HDS_HOTTRACK, Value
+				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 			#endif
 		End If
 	End Property
@@ -202,7 +218,8 @@ Namespace My.Sys.Forms
 		If FFullDrag <> Value Then
 			FFullDrag = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+				ChangeStyle HDS_FULLDRAG, Value
+				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 			#endif
 		End If
 	End Property
@@ -219,7 +236,28 @@ Namespace My.Sys.Forms
 					gtk_tree_view_column_set_reorderable(gtk_tree_view_column(Section(i)->Handle), Value)
 				Next
 			#else
-				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+				ChangeStyle HDS_DRAGDROP, Value
+				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+			#endif
+		End If
+	End Property
+	
+	Property Header.Resizable As Boolean
+		Return FResizable
+	End Property
+	
+	Property Header.Resizable(Value As Boolean)
+		If FResizable <> Value Then
+			FResizable = Value
+			#ifdef __USE_GTK__
+				For i As Integer = 0 To FSections.Count - 1
+					gtk_tree_view_column_set_resizable(gtk_tree_view_column(Section(i)->Handle), Value)
+				Next
+			#else
+				'Const HDS_NOSIZING = &h800
+				#if _WIN32_WINNT >= &h0600
+					ChangeStyle HDS_NOSIZING, Not Value
+				#endif
 			#endif
 		End If
 	End Property
@@ -323,6 +361,11 @@ Namespace My.Sys.Forms
 					HI.fmt = HI.fmt Or HDF_OWNERDRAW
 				Else
 					HI.fmt = HI.fmt Or HDF_STRING
+				End If
+				If FResizable AndAlso Not QHeaderSection(FSections.Items[I]).Resizable Then
+					#if _WIN32_WINNT >= &h0600
+						HI.fmt = HI.fmt Or HDF_FIXEDWIDTH
+					#endif
 				End If
 				HI.hbm        = NULL
 				HI.lParam     = Cast(LParam, FSections.Items[I])
@@ -507,7 +550,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
+	Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
 		PSection = New_( HeaderSection)
 		FSections.Add PSection
@@ -525,7 +568,7 @@ Namespace My.Sys.Forms
 			Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 			gtk_tree_view_column_pack_start(PSection->Handle, rendertext, True)
 			gtk_tree_view_column_add_attribute(PSection->Handle, rendertext, ToUTF8("text"), 0)
-			gtk_tree_view_column_set_resizable(PSection->Handle, True)
+			gtk_tree_view_column_set_resizable(PSection->Handle, FResizable AndAlso bResizable)
 			gtk_tree_view_column_set_clickable(PSection->Handle, FStyle = HeaderStyle.hsNormal)
 			If Images Then
 				#ifdef __USE_GTK3__
@@ -590,6 +633,11 @@ Namespace My.Sys.Forms
 				Else
 					.fmt = .fmt Or HDF_STRING
 				End If
+				If FResizable AndAlso Not bResizable Then
+					#if _WIN32_WINNT >= &h0600
+						.fmt = .fmt Or HDF_FIXEDWIDTH
+					#endif
+				End If
 				.hbm        = NULL
 				.lParam     = Cast(LParam, PSection)
 			End With
@@ -598,12 +646,12 @@ Namespace My.Sys.Forms
 		Return PSection
 	End Function
 	
-	Function Header.AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
+	Function Header.AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
 		If Images Then
-			PSection = This.AddSection(FCaption, Images->IndexOf(FImageKey), FWidth, FAlignment)
+			PSection = This.AddSection(FCaption, Images->IndexOf(FImageKey), FWidth, FAlignment, bResizable)
 		Else
-			PSection = This.AddSection(FCaption, -1, FWidth, FAlignment)
+			PSection = This.AddSection(FCaption, -1, FWidth, FAlignment, bResizable)
 		End If
 		If PSection Then PSection->ImageKey         = FImageKey
 		Return PSection
@@ -624,7 +672,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					PSection->Handle = gtk_tree_view_column_new()
 					gtk_tree_view_column_set_reorderable(PSection->Handle, FDragReorder)
-					gtk_tree_view_column_set_resizable(PSection->Handle, True)
+					gtk_tree_view_column_set_resizable(PSection->Handle, FResizable)
 					gtk_tree_view_column_set_clickable(PSection->Handle, FStyle = HeaderStyle.hsNormal)
 					gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(PSection->Caption))
 					gtk_tree_view_append_column(GTK_TREE_VIEW(FHandle), PSection->Handle)
@@ -711,21 +759,23 @@ Namespace My.Sys.Forms
 	
 	Constructor Header
 		#ifndef __USE_GTK__
-			AStyle(0)       = HDS_BUTTONS
-			AStyle(1)       = 0
-			AFullDrag(0)    = 0
-			AFullDrag(1)    = HDS_FULLDRAG
-			AHotTrack(0)    = 0
-			AHotTrack(1)    = HDS_HOTTRACK
-			ADragReorder(0) = 0
-			ADragReorder(1) = HDS_DRAGDROP
+'			AStyle(0)       = HDS_BUTTONS
+'			AStyle(1)       = 0
+'			AFullDrag(0)    = 0
+'			AFullDrag(1)    = HDS_FULLDRAG
+'			AHotTrack(0)    = 0
+'			AHotTrack(1)    = HDS_HOTTRACK
+'			ADragReorder(0) = 0
+'			ADragReorder(1) = HDS_DRAGDROP
 			AFmt(0)         = HDF_LEFT
 			AFmt(1)         = HDF_CENTER
 			AFmt(2)         = HDF_RIGHT
 			AFmt(3)         = HDF_RTLREADING
 		#endif
 		FFullDrag       = True
-		FDragReorder    = False
+		FDragReorder    = True
+		FHotTrack       = True
+		FResizable      = True
 		With This
 			.Child             = @This
 			#ifdef __USE_GTK__
@@ -744,7 +794,8 @@ Namespace My.Sys.Forms
 				.RegisterClass "Header", WC_HEADER
 				.ChildProc         = @WndProc
 				.ExStyle           = 0
-				Base.Style             = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+				'Base.Style             = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
+				Base.Style             = WS_CHILD Or HDS_BUTTONS Or HDS_FULLDRAG Or HDS_DRAGDROP ' Or HDS_HOTTRACK
 				.DoubleBuffered = True
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
