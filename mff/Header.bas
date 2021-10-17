@@ -315,7 +315,7 @@ Namespace My.Sys.Forms
 					HI.fmt = HI.fmt Or HDF_STRING
 				End If
 				HI.hbm        = NULL
-				HI.lParam     = Cast(LParam,FSections.Items[I])
+				HI.lParam     = Cast(LParam, FSections.Items[I])
 				Perform(HDM_INSERTITEM, i, CInt(@HI))
 			Next i
 		#endif

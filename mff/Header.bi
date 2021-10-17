@@ -94,11 +94,11 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Function EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
+		Declare Sub Init()
 	Public:
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Images            As ImageList Ptr
-		Declare Sub Init()
 		Declare Property Style As HeaderStyle
 		Declare Property Style(Value As HeaderStyle)
 		Declare Property HotTrack As Boolean
