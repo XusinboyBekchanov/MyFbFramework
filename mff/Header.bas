@@ -689,11 +689,14 @@ Namespace My.Sys.Forms
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
 			#endif
 			If AllocatedWidth <> hdr->AllocatedWidth Or AllocatedHeight <> hdr->AllocatedHeight Then
+				If AllocatedHeight <> hdr->AllocatedHeight Then
+					If hdr->SectionCount > 0 Then gtk_widget_set_size_request(hdr->Section(0)->ButtonHandle, hdr->Section(0)->Width, AllocatedHeight)
+				End If
 				hdr->AllocatedWidth = AllocatedWidth
 				hdr->AllocatedHeight = AllocatedHeight
-				Dim As gint wx, wy
-				gtk_tree_view_convert_bin_window_to_widget_coords(gtk_tree_view(widget), 0, 0, @wx, @wy)
-				gtk_widget_set_size_request(widget, hdr->Width, wy)
+				'Dim As gint wx, wy
+				'gtk_tree_view_convert_bin_window_to_widget_coords(gtk_tree_view(widget), 0, 0, @wx, @wy)
+				'gtk_widget_set_size_request(widget, hdr->Width, wy)
 			End If
 			Return False
 		End Function
