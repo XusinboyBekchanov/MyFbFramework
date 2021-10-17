@@ -32,6 +32,7 @@ Namespace My.Sys.Forms
 	
 	Property HeaderSection.Caption(ByRef Value As WString)
 		WLet(FCaption, Value)
+		QHeader(HeaderControl).UpdateItems
 		#ifdef __USE_GTK__
 			If Handle Then
 				gtk_tree_view_column_set_title(Handle, ToUTF8(Value))
