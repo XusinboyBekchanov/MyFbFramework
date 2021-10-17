@@ -35,7 +35,11 @@ Namespace My.Sys.Forms
 		QHeader(HeaderControl).UpdateItems
 		#ifdef __USE_GTK__
 			If Handle Then
-				gtk_tree_view_column_set_title(Handle, ToUTF8(Value))
+				If LabelHandle Then
+					gtk_label_set_label(gtk_label(LabelHandle), ToUTF8(Value))
+				Else
+					gtk_tree_view_column_set_title(Handle, ToUTF8(Value))
+				End If
 			End If
 		#endif
 	End Property
@@ -82,15 +86,20 @@ Namespace My.Sys.Forms
 	Property HeaderSection.ImageKey(ByRef Value As WString)
 		If Value <> *FImageKey Then
 			WLet FImageKey, Value
-			If HeaderControl->Images Then FImageIndex = HeaderControl->Images->IndexOf(*FImageKey)
+			If HeaderControl AndAlso HeaderControl->Images Then FImageIndex = HeaderControl->Images->IndexOf(*FImageKey)
 			QHeader(HeaderControl).UpdateItems
 			#ifdef __USE_GTK__
-				ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				If HeaderControl AndAlso HeaderControl->Images Then ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
 			#endif
 		End If
 	End Property
 	
 	Property HeaderSection.Width As Integer
+		#ifdef __USE_GTK__
+			If Handle Then
+				FWidth = gtk_tree_view_column_get_width(Handle)
+			End If
+		#endif
 		Return FWidth
 	End Property
 	
@@ -100,11 +109,12 @@ Namespace My.Sys.Forms
 			QHeader(HeaderControl).UpdateItems
 			#ifdef __USE_GTK__
 				If Handle Then
-					#ifdef __USE_GTK3__
-						gtk_tree_view_column_set_fixed_width(Handle, Max(-1, FWidth))
-					#else
+					If FWidth = -1 Then
+						gtk_tree_view_column_set_sizing(Handle, GTK_TREE_VIEW_COLUMN_AUTOSIZE)
+					Else
+						gtk_tree_view_column_set_sizing(Handle, GTK_TREE_VIEW_COLUMN_FIXED)
 						gtk_tree_view_column_set_fixed_width(Handle, Max(1, FWidth))
-					#endif
+					End If
 				End If
 			#endif
 		End If
@@ -416,8 +426,9 @@ Namespace My.Sys.Forms
 				Case HDN_ITEMCHANGING
 					Dim As HD_ITEM Ptr HI
 					HI = Cast(HD_ITEM Ptr,HDN->pItem)
-					QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
-					If OnChanging Then OnChanging(This, QHeaderSection(FSections.Items[ItemIndex]))
+					Dim bCancel As Boolean
+					If OnChanging Then OnChanging(This, QHeaderSection(FSections.Items[ItemIndex]), bCancel)
+					If bCancel Then Message.Result = -1: Exit Sub Else QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
 				Case HDN_ITEMCLICK
 					If OnSectionClick Then OnSectionClick(This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton)
 				Case HDN_ITEMDBLCLICK
@@ -460,9 +471,43 @@ Namespace My.Sys.Forms
 			Dim As Header Ptr hdr = hsec->HeaderControl
 			If hdr->OnSectionClick Then hdr->OnSectionClick(*hdr, *hsec, hdr->FSections.IndexOf(hsec), 0)
 		End Sub
+		
+		Function Header.Column_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Dim As HeaderSection Ptr hsec = data1
+			Dim As Header Ptr hdr = hsec->HeaderControl
+			Dim As Integer AllocatedWidth = gtk_tree_view_column_get_width(hsec->Handle)
+			If AllocatedWidth <> hsec->AllocatedWidth Then
+				Dim bCancel As Boolean
+				If hdr->OnChanging Then hdr->OnChanging(*hdr, *hsec, bCancel)
+				If bCancel Then
+					gtk_tree_view_column_set_fixed_width(hsec->Handle, hsec->AllocatedWidth)
+					Return False
+				End If
+				hsec->AllocatedWidth = AllocatedWidth
+				If hdr->OnChange Then hdr->OnChange(*hdr, *hsec)
+				If hdr->OnTrack Then hdr->OnTrack(*hdr, *hsec)
+			End If
+			Return False
+		End Function
+		
+		Function Header.Column_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			Column_Draw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+		
+		Function Header.Column_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			If Event->button.type = GDK_2BUTTON_PRESS Then
+				Dim As HeaderSection Ptr hsec = user_data
+				Dim As Header Ptr hdr = hsec->HeaderControl
+				If hdr->OnSectionDblClick Then hdr->OnSectionDblClick(*hdr, *hsec, hdr->FSections.IndexOf(hsec), Event->button.button - 1)
+			End If
+			Return False
+		End Function
 	#endif
 	
-	Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
+	Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
 		PSection = New_( HeaderSection)
 		FSections.Add PSection
@@ -495,15 +540,37 @@ Namespace My.Sys.Forms
 				gtk_widget_show_all(PSection->BoxHandle)
 				gtk_tree_view_column_set_widget(PSection->Handle, PSection->BoxHandle)
 			Else
-				gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(FCaption))
+				#ifdef __USE_GTK3__
+					gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(FCaption))
+				#else
+					PSection->LabelHandle = gtk_label_new(ToUTF8(FCaption))
+					gtk_tree_view_column_set_widget(PSection->Handle, PSection->LabelHandle)
+					gtk_widget_show_all(PSection->LabelHandle)
+				#endif
 			End If
 			gtk_tree_view_append_column(GTK_TREE_VIEW(FHandle), PSection->Handle)
 			#ifdef __USE_GTK3__
-				gtk_tree_view_column_set_fixed_width(PSection->Handle, Max(-1, FWidth))
+				PSection->ButtonHandle = gtk_tree_view_column_get_button(PSection->Handle)
 			#else
-				gtk_tree_view_column_set_fixed_width(PSection->Handle, Max(1, FWidth))
+				If Images Then
+					PSection->ButtonHandle = gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(PSection->BoxHandle)))
+				Else
+					PSection->ButtonHandle = gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(PSection->LabelHandle)))
+				End If
 			#endif
+			If FWidth = -1 Then
+				gtk_tree_view_column_set_sizing(PSection->Handle, GTK_TREE_VIEW_COLUMN_AUTOSIZE)
+			Else
+				gtk_tree_view_column_set_sizing(PSection->Handle, GTK_TREE_VIEW_COLUMN_FIXED)
+				gtk_tree_view_column_set_fixed_width(PSection->Handle, Max(1, FWidth))
+			End If
 			PSection->Alignment = FAlignment
+			#ifdef __USE_GTK3__
+				g_signal_connect(PSection->ButtonHandle, "draw", G_CALLBACK(@Column_Draw), PSection)
+			#else
+				g_signal_connect(PSection->ButtonHandle, "expose-event", G_CALLBACK(@Column_ExposeEvent), PSection)
+			#endif
+			g_signal_connect(PSection->ButtonHandle, "button-press-event", G_CALLBACK(@Column_ButtonPressEvent), PSection)
 			g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
 		#else
 			Dim As HDITEM HI
@@ -531,7 +598,7 @@ Namespace My.Sys.Forms
 		Return PSection
 	End Function
 	
-	Function Header.AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
+	Function Header.AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
 		If Images Then
 			PSection = This.AddSection(FCaption, Images->IndexOf(FImageKey), FWidth, FAlignment)

@@ -37,8 +37,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Handle
 			Dim As GtkWidget Ptr BoxHandle
+			Dim As GtkWidget Ptr ButtonHandle
 			Dim As GtkWidget Ptr ImageHandle
 			Dim As GtkWidget Ptr LabelHandle
+			Dim As Integer AllocatedWidth
 		#endif
 		HeaderControl As PHeaderControl Ptr
 		Tag           As Any Ptr
@@ -75,12 +77,14 @@ Namespace My.Sys.Forms
 		ADragReorder(2)   As Integer
 		AFmt(4)           As Integer
 		FSectionCount     As Integer
-		FSections         As List
 		#ifdef __USE_GTK__
 			Declare Static Sub Column_Clicked(treeviewcolumn As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Declare Static Sub Header_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Declare Static Function Header_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function Header_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Column_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Column_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Column_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			ListStore As GtkListStore Ptr
 			ColumnTypes As GType Ptr
 		#else
@@ -92,6 +96,7 @@ Namespace My.Sys.Forms
 			AllocatedHeight As Integer
 			AllocatedWidth As Integer
 		#endif
+		FSections         As List
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Function EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 		Declare Sub Init()
@@ -120,8 +125,8 @@ Namespace My.Sys.Forms
 		Declare Property ImageIndexes(Index As Integer) As Integer
 		Declare Property ImageIndexes(Index As Integer, Value As Integer)
 		Declare Operator Cast As Control Ptr
-		Declare Function AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
-		Declare Function AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = 50, FAlignment As Integer = 0) As HeaderSection Ptr
+		Declare Function AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
+		Declare Function AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0) As HeaderSection Ptr
 		Declare Sub AddSections cdecl(FCount As Integer, ...)
 		Declare Sub RemoveSection(Index As Integer)
 		Declare Sub UpdateItems
@@ -130,7 +135,7 @@ Namespace My.Sys.Forms
 		OnSectionClick    As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
 		OnSectionDblClick As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
 		OnChange          As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
-		OnChanging        As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnChanging        As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, ByRef Cancel As Boolean)
 		OnBeginTrack      As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
 		OnEndTrack        As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
 		OnTrack           As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
