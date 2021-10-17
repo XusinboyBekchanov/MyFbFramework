@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
 	Function HotKey.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
-		Case "text": Return FText.vptr
+		Case "text": Text: Return FText.vptr
 		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 	
 	Function HotKey.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
-		Case "text": This.text = QWString(Value)
+		Case "text": This.Text = QWString(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -52,8 +52,38 @@ Namespace My.Sys.Forms
 		
 		Sub HotKey.WndProc(ByRef Message As Message)
 		End Sub
-		
-		Sub HotKey.ProcessMessage(ByRef Message As Message)
+	#endif
+	
+	Sub HotKey.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_GTK__
+			Dim As GdkEvent Ptr e = Message.event
+			Select Case Message.event->Type
+			Case GDK_BUTTON_PRESS
+				Message.Result = True
+				Return
+			Case GDK_BUTTON_RELEASE
+				Message.Result = True
+				Return
+			Case GDK_KEY_PRESS
+				Dim As String KeyName = *gdk_keyval_name(e->Key.keyval)
+				Select Case KeyName
+				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
+				Case Else
+					KeyName = UCase(KeyName)
+					If e->Key.state And GDK_Mod1_MASK Then KeyName = "Alt + " & KeyName
+					If e->Key.state And GDK_Shift_MASK Then KeyName = "Shift + " & KeyName
+					If e->Key.state And GDK_Control_MASK Then KeyName = "Ctrl + " & KeyName
+					If e->Key.state And GDK_Meta_MASK Then KeyName = "Meta + " & KeyName
+					If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
+					If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
+					gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
+					gtk_entry_set_position(gtk_entry(widget), Len(KeyName))
+					If OnChange Then OnChange(This)
+					Message.Result = True
+					Return
+				End Select
+			End Select
+		#else
 			Select Case Message.Msg
 			Case CM_COMMAND
 				Select Case Message.wParamHi
@@ -61,12 +91,14 @@ Namespace My.Sys.Forms
 					If OnChange Then OnChange(This)
 				End Select
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Property HotKey.Text ByRef As WString
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			FText = Replace(WStr(*gtk_entry_get_text(gtk_entry(widget))), " ", "")
+		#else
 			Dim wHotKey As Word
 			wHotKey = SendMessage(Handle, HKM_GETHOTKEY, 0, 0)
 			FText = GetChrKeyCode(LoByte(LoWord(wHotKey)))
@@ -79,7 +111,15 @@ Namespace My.Sys.Forms
 	
 	Property HotKey.Text(ByRef Value As WString)
 		FText = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim sKey As String = Value
+			Dim wHotKey As String
+			Var Pos1 = InStrRev(sKey, "+")
+			If Pos1 > 0 Then sKey = Trim(Mid(sKey, Pos1 + 1))
+			wHotKey = IIf(InStr(Value, "Ctrl") > 0, "Ctrl + ", "") & IIf(InStr(Value, "Shift") > 0, "Shift + ", "") & IIf(InStr(Value, "Alt") > 0, "Alt + ", "") & _
+			IIf(InStr(Value, "Meta") > 0, "Meta + ", "") & IIf(InStr(Value, "Super") > 0, "Super + ", "") & IIf(InStr(Value, "Hyper") > 0, "Hyper + ", "") & UCase(sKey)
+			gtk_entry_set_text(gtk_entry(widget), ToUTF8(wHotKey))
+		#else
 			Dim sKey As String = Value
 			Dim wHotKey As Word
 			Var Pos1 = InStrRev(sKey, "+")
@@ -93,13 +133,25 @@ Namespace My.Sys.Forms
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub HotKey.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+			Dim As HotKey Ptr hk = user_data
+			Dim As Control Ptr btn = hk->GetForm()->FDefaultButton
+			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
+		End Sub
+	#endif
+	
 	Constructor HotKey
 		With This
 			WLet(FClassName, "HotKey")
 			WLet(FClassAncestor, "msctls_hotkey32")
 			FTabIndex          = -1
 			FTabStop           = True
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				Widget = gtk_entry_new()
+				g_signal_connect(gtk_entry(Widget), "activate", G_CALLBACK(@Entry_Activate), @This)
+				This.RegisterClass "HotKey", @This
+			#else
 				.RegisterClass "HotKey","msctls_hotkey32"
 				.Style        = WS_CHILD
 				.ExStyle      = 0
@@ -114,7 +166,7 @@ Namespace My.Sys.Forms
 	
 	Destructor HotKey
 		#ifndef __USE_GTK__
-			UnregisterClass "HotKey",GetModuleHandle(NULL)
+			UnregisterClass "HotKey", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

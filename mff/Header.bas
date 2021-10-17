@@ -790,6 +790,7 @@ Namespace My.Sys.Forms
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@Header_ExposeEvent), @This)
 				#endif
+				This.RegisterClass "Header", @This
 			#else
 				.RegisterClass "Header", WC_HEADER
 				.ChildProc         = @WndProc

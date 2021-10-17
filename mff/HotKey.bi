@@ -13,9 +13,12 @@ Namespace My.Sys.Forms
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		#else
+			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 		#endif
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
