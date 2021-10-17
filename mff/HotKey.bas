@@ -77,7 +77,7 @@ Namespace My.Sys.Forms
 					If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
 					If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
 					gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
-					gtk_entry_set_position(gtk_entry(widget), Len(KeyName))
+					gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
 					If OnChange Then OnChange(This)
 					Message.Result = True
 					Return
