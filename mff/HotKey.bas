@@ -68,19 +68,80 @@ Namespace My.Sys.Forms
 				Dim As String KeyName = *gdk_keyval_name(e->Key.keyval)
 				Select Case KeyName
 				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
-				Case Else
-					KeyName = UCase(KeyName)
-					If e->Key.state And GDK_Mod1_MASK Then KeyName = "Alt + " & KeyName
-					If e->Key.state And GDK_Shift_MASK Then KeyName = "Shift + " & KeyName
-					If e->Key.state And GDK_Control_MASK Then KeyName = "Ctrl + " & KeyName
-					If e->Key.state And GDK_Meta_MASK Then KeyName = "Meta + " & KeyName
-					If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
-					If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
+					bKeyPressed = False
+					KeyName = Left(KeyName, Len(KeyName) - 2)
+					If KeyName = "Control" Then KeyName = "Ctrl"
+					Select Case KeyName
+					Case "Ctrl": bCtrl = True
+					Case "Shift": bShift = True
+					Case "Alt": bAlt = True
+					Case "Meta": bMeta = True
+					Case "Super": bSuper = True
+					Case "Hyper": bHyper = True
+					End Select
+					KeyName = ""
+'					If e->Key.state And GDK_Mod1_MASK Then KeyName = "Alt + " & KeyName
+'					If e->Key.state And GDK_Shift_MASK Then KeyName = "Shift + " & KeyName
+'					If e->Key.state And GDK_Control_MASK Then KeyName = "Ctrl + " & KeyName
+'					If e->Key.state And GDK_Meta_MASK Then KeyName = "Meta + " & KeyName
+'					If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
+'					If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
+					If bAlt Then KeyName = "Alt + " & KeyName
+					If bShift Then KeyName = "Shift + " & KeyName
+					If bCtrl Then KeyName = "Ctrl + " & KeyName
+					If bMeta Then KeyName = "Meta + " & KeyName
+					If bSuper Then KeyName = "Super + " & KeyName
+					If bHyper Then KeyName = "Hyper + " & KeyName
 					gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
 					gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
 					If OnChange Then OnChange(This)
-					Message.Result = True
-					Return
+				Case Else
+					KeyName = UCase(KeyName)
+					If KeyName <> "ISO_NEXT_GROUP" Then
+						bKeyPressed = True
+	'					If e->Key.state And GDK_Mod1_MASK Then KeyName = "Alt + " & KeyName
+	'					If e->Key.state And GDK_Shift_MASK Then KeyName = "Shift + " & KeyName
+	'					If e->Key.state And GDK_Control_MASK Then KeyName = "Ctrl + " & KeyName
+	'					If e->Key.state And GDK_Meta_MASK Then KeyName = "Meta + " & KeyName
+	'					If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
+	'					If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
+						If bAlt Then KeyName = "Alt + " & KeyName
+						If bShift Then KeyName = "Shift + " & KeyName
+						If bCtrl Then KeyName = "Ctrl + " & KeyName
+						If bMeta Then KeyName = "Meta + " & KeyName
+						If bSuper Then KeyName = "Super + " & KeyName
+						If bHyper Then KeyName = "Hyper + " & KeyName
+						If WStr(*gtk_entry_get_text(gtk_entry(widget))) <> KeyName Then
+							gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
+							gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
+							If OnChange Then OnChange(This)
+						End If
+						Message.Result = True
+						Return
+					End If
+				End Select
+			Case GDK_KEY_RELEASE
+				Dim As String KeyName = *gdk_keyval_name(e->Key.keyval)
+				Select Case KeyName
+				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
+					KeyName = Left(KeyName, Len(KeyName) - 2)
+					If KeyName = "Control" Then KeyName = "Ctrl"
+					Select Case KeyName
+					Case "Ctrl": bCtrl = False
+					Case "Shift": bShift = False
+					Case "Alt": bAlt = False
+					Case "Meta": bMeta = False
+					Case "Super": bSuper = False
+					Case "Hyper": bHyper = False
+					End Select
+					If Not bKeyPressed Then
+						KeyName = " "
+						If WStr(*gtk_entry_get_text(gtk_entry(widget))) <> KeyName Then
+							gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
+							gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
+							If OnChange Then OnChange(This)
+						End If
+					End If
 				End Select
 			End Select
 		#else
