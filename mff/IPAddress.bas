@@ -41,20 +41,58 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-			If Sender.Child Then
-				With QIPAddress(Sender.Child)
-					
-				End With
-			End If
 		End Sub
 		
 		Sub IPAddress.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub IPAddress.ProcessMessage(ByRef Message As Message)
-			'Base.ProcessMessage Message
-		End Sub
+		Function IPAddress.IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Dim As IPAddress Ptr Ctrl
+			Dim Message As Message
+			Ctrl = GetProp(FWindow, "MFFControl")
+			Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
+			If Ctrl Then
+				With *Ctrl
+					If Ctrl->ClassName <> "" Then
+						.ProcessMessage(Message)
+						If Message.Result = -1 Then
+							Return Message.Result
+						ElseIf Message.Result = -2 Then
+							Msg = Message.Msg
+							wParam = Message.wParam
+							lParam = Message.lParam
+						ElseIf Message.Result <> 0 Then
+							Return Message.Result
+						End If
+					End If
+				End With
+			End If
+			Dim As Any Ptr cp = GetClassProc(FWindow)
+			If cp <> 0 Then
+				Message.Result = CallWindowProc(cp, FWindow, Msg, wParam, lParam)
+			End If
+			Return Message.Result
+		End Function
 	#endif
+	
+	Sub IPAddress.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_GTK__
+			Dim As GdkEvent Ptr e = Message.event
+			Select Case Message.event->Type
+			Case GDK_BUTTON_PRESS
+				Return
+			Case GDK_BUTTON_RELEASE
+				SelectRegion
+				Return
+			
+			End Select
+		#else
+			Select Case Message.Msg
+			Case CM_NOTIFY
+			End Select
+		#endif
+		Base.ProcessMessage Message
+	End Sub
 	
 	Operator IPAddress.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
@@ -62,12 +100,12 @@ Namespace My.Sys.Forms
 	
 	Constructor IPAddress
 		#ifndef __USE_GTK__
-'			Dim As INITCOMMONCONTROLSEX icex
-'			
-'			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
-'			icex.dwICC =  ICC_INTERNET_CLASSES
-'			
-'			InitCommonControlsEx(@icex)
+			Dim As INITCOMMONCONTROLSEX icex
+			
+			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
+			icex.dwICC =  ICC_INTERNET_CLASSES
+			
+			InitCommonControlsEx(@icex)
 		#endif
 		
 		With This
@@ -75,7 +113,7 @@ Namespace My.Sys.Forms
 			FTabIndex          = -1
 			FTabStop           = True
 			#ifndef __USE_GTK__
-				.RegisterClass "IPAddress", WC_IPADDRESS
+				.RegisterClass "IPAddress", WC_IPADDRESS, @IPAddressWndProc
 				WLet(FClassAncestor, WC_IPADDRESS)
 				.ExStyle      = 0
 				.Style        = WS_CHILD
@@ -90,7 +128,8 @@ Namespace My.Sys.Forms
 	
 	Destructor IPAddress
 		#ifndef __USE_GTK__
-			UnregisterClass "IPAddress",GetModuleHandle(NULL)
+			Handle = 0
+			UnregisterClass "IPAddress", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

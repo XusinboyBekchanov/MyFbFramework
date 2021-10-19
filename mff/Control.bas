@@ -824,13 +824,13 @@ Namespace My.Sys.Forms
 					End Select
 					Dim As Integer AControlParent(2) => {0, WS_EX_CONTROLPARENT}
 					Dim As Integer ATabStop(2) => {0,WS_TABSTOP},AGrouped(2) = >{0,WS_GROUP}
-					If ClassName = "IPAddress" Then
-						Text = ""
-						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
-						ExStyle = 0
-					ElseIf ClassName = "WebBrowser" Then
+					If ClassName = "WebBrowser" Then
 						'Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
 						'ExStyle = 0
+'					ElseIf ClassName = "IPAddress" Then
+'						Text = ""
+'						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE Or WS_OVERLAPPED
+'						ExStyle = 0
 					Else
 						If (Style And (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS) Then
 							Style = Style Or (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)
@@ -844,8 +844,8 @@ Namespace My.Sys.Forms
 					End If
 					CreationControl = @This
 					'RegisterClass ClassName, ClassAncestor
-					FHandle = CreateWindowExW(FExStyle,_
-					IIf(*FClassName = "IPAddress", @WC_IPADDRESS, FClassName),_
+					FHandle = CreateWindowExW(FExStyle, _
+					FClassName,_
 					FText.vptr,_
 					FStyle,_
 					nLeft, _
@@ -858,12 +858,15 @@ Namespace My.Sys.Forms
 					@This) ' '
 				#endif
 				If Handle Then
-					SetWindowLongPtr(Handle, GWLP_USERDATA, CInt(Child))
+					If ClassName <> "IPAddress" Then
+						SetWindowLongPtr(Handle, GWLP_USERDATA, CInt(Child))
+					End If
+					SetProp(Handle, "MFFControl", @This)
 					If SubClass Then
 						PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
 					End If
 					BringToFront
-					If This.Font Then This.Font.Parent = @This
+					This.Font.Parent = @This 'If This.Font Then
 					SendMessage FHandle, CM_CREATE, 0, 0
 					If ShowHint Then AllocateHint
 					If FParent Then
@@ -923,7 +926,7 @@ Namespace My.Sys.Forms
 					'					For i As Integer = 0 To ControlCount - 1
 					'						Controls[i]->FreeWnd
 					'					Next
-					DestroyWindow FHandle
+					If ClassName <> "IPAddress" Then DestroyWindow FHandle
 					FHandle = 0
 				End If
 				If ToolTipHandle Then
@@ -1130,27 +1133,28 @@ Namespace My.Sys.Forms
 				Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC
 					Dim As Control Ptr Child
 					If Message.Msg = WM_CTLCOLORSTATIC Then
-						If (GetWindowLong(CPtr(HWND,Message.LParam), GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
+						If (GetWindowLong(CPtr(HWND, Message.LParam), GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
 							Exit Select
 						End If
 					End If
-					Child = Cast(Control Ptr,GetWindowLongPtr(CPtr(HWND,Message.LParam),GWLP_USERDATA))
+					
+					Child = GetProp(CPtr(HWND, Message.LParam), "MFFControl")
 					If Child Then
 						With *Child
-							SendMessage(CPtr(HWND,Message.LParam),CM_CTLCOLOR,Message.wParam, Message.lParam)
-							message.result = Cast(LRESULT,.Brush.Handle)
+							SendMessage(CPtr(HWND, Message.LParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
+							Message.Result = Cast(LRESULT, .Brush.Handle)
 						End With
 					Else
 						Dim As HDC Dc
-						DC = Cast(HDC,Message.wParam)
-						Child = Cast(Control Ptr,GetWindowLongPtr(Message.hWnd,GWLP_USERDATA))
-						If Child Then
-							SetBKMode(DC,TRANSPARENT)
-							SetBKColor(DC,Child->BackColor)
-							If Child->Font Then SetTextColor(DC,Child->Font.Color)
-							SetBKMode(DC,OPAQUE)
-							message.result = Cast(LRESULT,Brush.Handle)
-						End If
+						DC = Cast(HDC, Message.wParam)
+						'Child = Cast(Control Ptr, GetWindowLongPtr(Message.hWnd, GWLP_USERDATA))
+						'If Child Then
+							SetBKMode(DC, TRANSPARENT)
+							SetBKColor(DC, BackColor)
+							SetTextColor(DC, Font.Color)
+							SetBKMode(DC, OPAQUE)
+							Message.Result = Cast(LRESULT, Brush.Handle)
+						'End If
 					End If
 				Case WM_SIZE
 					If Controls Then
@@ -1792,7 +1796,7 @@ Namespace My.Sys.Forms
 					If GetClassInfoEx(0, wClassAncestor, @Wc) <> 0 Then
 						ClassProc = Wc.lpfnWndProc
 						Wc.lpszClassName = @wClassName
-						If wClassName <> "WebBrowser" AndAlso wClassName <> "IPAddress" Then
+						If wClassName <> "WebBrowser" Then
 							Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @SuperWndProc, Proc)
 							Wc.cbWndExtra += 4
 						End If

@@ -13,9 +13,11 @@ Namespace My.Sys.Forms
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			Declare Static Function IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		#endif
+	Protected:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
