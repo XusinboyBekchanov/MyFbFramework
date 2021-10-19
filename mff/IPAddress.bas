@@ -39,6 +39,14 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
+	Property IPAddress.Text ByRef As WString
+		Return Base.Text
+	End Property
+	
+	Property IPAddress.Text(ByRef Value As WString)
+		Base.Text = Value
+	End Property
+	
 	#ifndef __USE_GTK__
 		Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		End Sub
@@ -88,7 +96,16 @@ Namespace My.Sys.Forms
 			End Select
 		#else
 			Select Case Message.Msg
-			Case CM_NOTIFY
+			Case CM_COMMAND
+				Select Case Message.wParamHi
+				Case EN_CHANGE
+					If OnChange Then OnChange(This)
+				Case EN_KILLFOCUS
+					If OnLostFocus Then OnLostFocus(This)
+				Case EN_SETFOCUS
+					If OnGotFocus Then OnGotFocus(This)
+				End Select
+				Message.Result = 0
 			End Select
 		#endif
 		Base.ProcessMessage Message
