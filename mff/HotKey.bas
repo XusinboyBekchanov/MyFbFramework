@@ -97,20 +97,20 @@ Namespace My.Sys.Forms
 					If OnChange Then OnChange(This)
 				Case Else
 					KeyName = UCase(KeyName)
-					If KeyName <> "ISO_NEXT_GROUP" Then
+					'If KeyName <> "ISO_NEXT_GROUP" Then
 						bKeyPressed = True
-	'					If e->Key.state And GDK_Mod1_MASK Then KeyName = "Alt + " & KeyName
-	'					If e->Key.state And GDK_Shift_MASK Then KeyName = "Shift + " & KeyName
-	'					If e->Key.state And GDK_Control_MASK Then KeyName = "Ctrl + " & KeyName
-	'					If e->Key.state And GDK_Meta_MASK Then KeyName = "Meta + " & KeyName
-	'					If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
-	'					If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
-						If bAlt Then KeyName = "Alt + " & KeyName
-						If bShift Then KeyName = "Shift + " & KeyName
-						If bCtrl Then KeyName = "Ctrl + " & KeyName
-						If bMeta Then KeyName = "Meta + " & KeyName
-						If bSuper Then KeyName = "Super + " & KeyName
-						If bHyper Then KeyName = "Hyper + " & KeyName
+						If e->Key.state And GDK_Mod1_MASK Then KeyName = "Alt + " & KeyName
+						If e->Key.state And GDK_Shift_MASK Then KeyName = "Shift + " & KeyName
+						If e->Key.state And GDK_Control_MASK Then KeyName = "Ctrl + " & KeyName
+						If e->Key.state And GDK_Meta_MASK Then KeyName = "Meta + " & KeyName
+						If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
+						If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
+'						If bAlt Then KeyName = "Alt + " & KeyName
+'						If bShift Then KeyName = "Shift + " & KeyName
+'						If bCtrl Then KeyName = "Ctrl + " & KeyName
+'						If bMeta Then KeyName = "Meta + " & KeyName
+'						If bSuper Then KeyName = "Super + " & KeyName
+'						If bHyper Then KeyName = "Hyper + " & KeyName
 						If WStr(*gtk_entry_get_text(gtk_entry(widget))) <> KeyName Then
 							gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
 							gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 						End If
 						Message.Result = True
 						Return
-					End If
+					'End If
 				End Select
 			Case GDK_KEY_RELEASE
 				Dim As String KeyName = *gdk_keyval_name(e->Key.keyval)
