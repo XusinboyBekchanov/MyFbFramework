@@ -59,7 +59,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			FText = Trim(WStr(*gtk_entry_get_text(gtk_entry(Entries(0)))))
 			For i As Integer = 1 To 3
-				FText &= "." & Trim(WStr(*gtk_entry_get_text(gtk_entry(Entries(i)))))
+				FText &= "." & Trim(Str(Val(*gtk_entry_get_text(gtk_entry(Entries(i))))))
 			Next
 			Return *FText.vptr
 		#else
@@ -295,7 +295,7 @@ Namespace My.Sys.Forms
 					If Index > 0 Then
 						Length = gtk_entry_get_text_length(gtk_entry(ipa->Entries(Index - 1)))
 						If Length > 0 Then
-							gtk_entry_set_text(gtk_entry(widget), Left(*gtk_entry_get_text(gtk_entry(widget)), Length - 1)
+							gtk_entry_set_text(gtk_entry(widget), Left(*gtk_entry_get_text(gtk_entry(widget)), Length - 1))
 							Length -= 1
 						End If
 						gtk_widget_grab_focus(ipa->Entries(Index - 1))
