@@ -11,7 +11,19 @@ Namespace My.Sys.Forms
 	
 	Type IPAddress Extends Control
 	Private:
-		#ifndef __USE_GTK__
+	Protected:
+		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr Layouts(3), Entries(3)
+			Dim As PangoContext Ptr pcontext
+			Dim As PangoLayout Ptr layout
+			Dim As GdkDisplay Ptr pdisplay
+			Dim As GdkWindow Ptr win
+			Dim As Boolean bCreated
+			Declare Static Sub Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+			Declare Static Function Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Entry_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			Declare Static Function IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
@@ -28,9 +40,11 @@ Namespace My.Sys.Forms
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
+		Declare Sub Clear
 		Declare Constructor
 		Declare Destructor
-		OnChange    As Sub(ByRef Sender As IPAddress)
+		OnChange        As Sub(ByRef Sender As IPAddress)
+		OnFieldChanged  As Sub(ByRef Sender As IPAddress, iField As Integer, iValue As Integer)
 	End Type
 End Namespace
 

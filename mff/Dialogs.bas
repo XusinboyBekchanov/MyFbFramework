@@ -196,6 +196,7 @@ Function OpenFileDialog.Execute As Boolean
 		If WGet(FFileName) <> "" Then
 			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
 		End If
+		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
 		If FMultiSelect Then gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), True)

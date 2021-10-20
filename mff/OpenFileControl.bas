@@ -304,6 +304,7 @@ Namespace My.Sys.Forms
 			If WGet(FFileName) <> "" Then
 				gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
 			End If
+			If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
 			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
 			If FMultiSelect Then gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), True)
 			g_signal_connect(widget, "current-folder-changed", G_CALLBACK(@FileChooser_CurrentFolderChanged), @This)

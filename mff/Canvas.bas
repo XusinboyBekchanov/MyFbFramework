@@ -94,7 +94,7 @@ Namespace My.Sys.Drawing
 				If ParentControl->Handle Then
 					pcontext = gtk_widget_create_pango_context(ParentControl->Handle)
 					layout = pango_layout_new(pcontext)
-					pango_layout_set_font_description (layout, Font.Handle)
+					pango_layout_set_font_description(layout, Font.Handle)
 					If Not HandleSetted Then
 						If ParentControl->layoutwidget Then
 							Handle = gdk_cairo_create(gtk_layout_get_bin_window(gtk_layout(ParentControl->layoutwidget)))
@@ -122,9 +122,11 @@ Namespace My.Sys.Drawing
 	Sub Canvas.ReleaseDevice
 		If HandleSetted Then Exit Sub
 		#ifdef __USE_GTK__
+			If layout Then g_object_unref(layout)
+			If pcontext Then g_object_unref(pcontext)
 			If Handle Then cairo_destroy(Handle)
 		#else
-			If ParentControl Then If Handle Then ReleaseDc ParentControl->Handle,Handle
+			If ParentControl Then If Handle Then ReleaseDc ParentControl->Handle, Handle
 		#endif
 	End Sub
 	
@@ -568,6 +570,7 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Function Canvas.TextWidth(ByRef FText As WString) As Integer
+		GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
 			Dim As PangoFontDescription Ptr desc
@@ -585,14 +588,14 @@ Namespace My.Sys.Drawing
 			Return extend.Width
 		#else
 			Dim Sz As SIZE
-			GetDevice
-			GetTextExtentPoint32(Handle,@FText,Len(FText),@Sz)
-			ReleaseDevice
+			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
 			Return UnScaleX(Sz.cX)
 		#endif
+		ReleaseDevice
 	End Function
 	
 	Function Canvas.TextHeight(ByRef FText As WString) As Integer
+		GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
 			Dim As PangoFontDescription Ptr desc
@@ -610,11 +613,10 @@ Namespace My.Sys.Drawing
 			Return extend.Height
 		#else
 			Dim Sz As SIZE
-			GetDevice
-			GetTextExtentPoint32(Handle,@FText,Len(FText),@Sz)
-			ReleaseDevice
+			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
 			Return UnScaleY(Sz.cY)
 		#endif
+		ReleaseDevice
 	End Function
 	
 	Operator Canvas.Cast As Any Ptr
