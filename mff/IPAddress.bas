@@ -408,7 +408,7 @@ Namespace My.Sys.Forms
 				If ipa->OnFieldChanged Then ipa->OnFieldChanged(*ipa, Index, Value)
 			End If
 			ipa->CurrentEntry = widget
-			gtk_entry_select_region(gtk_entry(widget), ipa->Position, ipa->Position)
+			gtk_editable_select_region(gtk_editable(widget), ipa->Position, ipa->Position)
 		End Sub
 	#endif
 	
