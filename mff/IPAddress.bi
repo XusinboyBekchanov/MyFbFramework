@@ -13,23 +13,25 @@ Namespace My.Sys.Forms
 	Private:
 	Protected:
 		#ifdef __USE_GTK__
-			Dim As GtkWidget Ptr Layouts(3), Entries(3)
+			Dim As GtkWidget Ptr Layouts(3), Entries(3), CurrentEntry
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout
 			Dim As GdkDisplay Ptr pdisplay
 			Dim As GdkWindow Ptr win
 			Dim As Boolean bCreated
+			Dim As Integer Position
 			Declare Static Sub Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Declare Static Function Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function Entry_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Declare Static Sub Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
+			Declare Static Sub Entry_GrabFocus(widget As GtkWidget Ptr, user_data As Any Ptr)
 		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			Declare Static Function IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		#endif
-	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr

@@ -135,7 +135,7 @@ Namespace My.Sys.Forms
 					Case "Hyper": bHyper = False
 					End Select
 					If Not bKeyPressed Then
-						KeyName = " "
+						KeyName = !"\0"
 						If WStr(*gtk_entry_get_text(gtk_entry(widget))) <> KeyName Then
 							gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
 							gtk_editable_set_position(gtk_editable(widget), Len(KeyName))

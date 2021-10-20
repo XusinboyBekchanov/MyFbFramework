@@ -359,7 +359,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If widget Then
 						If GTK_IS_WINDOW(widget) Then
-							gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(IIf(Value = "", " ", Value)))
+							gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(IIf(Value = "", !"\0", Value)))
 						End If
 					End If
 				#else

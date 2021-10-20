@@ -686,7 +686,7 @@ Namespace My.Sys.Forms
 					End If
 				Case GDK_KEY_F4
 					Button_Clicked(gtk_button(ButtonWidget), @This)
-				Case GDK_KEY_Return, GDK_KEY_KP_Enter
+				Case GDK_KEY_TAB, GDK_KEY_Return, GDK_KEY_KP_Enter
 				Case Else
 					Select Case e->Key.keyval
 					Case GDK_KEY_Left
