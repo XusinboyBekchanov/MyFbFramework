@@ -382,7 +382,7 @@ Namespace My.Sys.Forms
 						Index = 2
 					End If
 					If Index < 3 Then
-						ipa->Position = 0
+						ipa->Position = -1
 						gtk_widget_grab_focus(ipa->Entries(Index + 1))
 						'gtk_editable_select_region(gtk_editable(widget), 0, 0)
 						'If ipa->OnFieldChanged Then ipa->OnFieldChanged(*ipa, Index, Val(*gtk_entry_get_text(gtk_entry(widget))))
@@ -426,6 +426,7 @@ Namespace My.Sys.Forms
 			ipa->CurrentEntry = widget
 			If ipa->Position <> -1 Then
 				gtk_editable_select_region(gtk_editable(widget), ipa->Position, ipa->Position)
+				ipa->Position = -1
 			End If
 		End Sub
 	#endif
