@@ -365,7 +365,7 @@ Namespace My.Sys.Forms
 							End If
 							If Index < 3 Then
 								gtk_entry_set_text(gtk_entry(widget), *gtk_entry_get_text(gtk_entry(widget)) & *Event->key.string)
-								ipa->Position = 0
+								ipa->Position = -1
 								gtk_widget_grab_focus(ipa->Entries(Index + 1))
 								'gtk_editable_select_region(gtk_editable(widget), 0, 0)
 								Return True
