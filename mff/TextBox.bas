@@ -264,9 +264,17 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
-				gtk_text_buffer_set_text(buffer, ToUtf8(IIf(Value = "", !"\0", Value)), -1)
+				If Value = "" Then
+					gtk_text_buffer_set_text(buffer, !"\0", -1)
+				Else
+					gtk_text_buffer_set_text(buffer, ToUtf8(Value), -1)
+				End If
 			Else
-				gtk_entry_set_text(gtk_entry(widget), ToUtf8(IIf(Value = "", !"\0", Value)))
+				If Value = "" Then
+					gtk_entry_set_text(gtk_entry(widget), !"\0")
+				Else
+					gtk_entry_set_text(gtk_entry(widget), ToUtf8(Value))
+				End If
 			EndIf
 		#endif
 	End Property
@@ -470,9 +478,17 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If gtk_is_text_view(widget) Then
 					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
-					gtk_text_buffer_set_text(buffer, ToUtf8(IIf(FText = "", !"\0", FText)), -1)
+					If FText = "" Then
+						gtk_text_buffer_set_text(buffer, !"\0", -1)
+					Else
+						gtk_text_buffer_set_text(buffer, ToUtf8(FText), -1)
+					End If
 				Else
-					gtk_entry_set_text(gtk_entry(widget), ToUtf8(IIf(FText = "", !"\0", FText)))
+					If FText = "" Then
+						gtk_entry_set_text(gtk_entry(widget), !"\0")
+					Else
+						gtk_entry_set_text(gtk_entry(widget), ToUtf8(FText))
+					End If
 				EndIf
 			#else
 				If FHandle Then SetWindowText(FHandle, FText.vptr)

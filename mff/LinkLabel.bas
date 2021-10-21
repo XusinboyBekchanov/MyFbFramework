@@ -10,6 +10,7 @@ Namespace My.Sys.Forms
 	Function LinkLabel.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "tabindex": Return @FTabIndex
+		Case "text": Return FText.vptr
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -18,6 +19,7 @@ Namespace My.Sys.Forms
 	Function LinkLabel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "tabindex": TabIndex = QInteger(Value)
+		Case "text": Text = QWString(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True

@@ -137,7 +137,7 @@ Namespace My.Sys.Forms
 					If Not bKeyPressed Then
 						KeyName = !"\0"
 						If WStr(*gtk_entry_get_text(gtk_entry(widget))) <> KeyName Then
-							gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
+							gtk_entry_set_text(gtk_entry(widget), KeyName)
 							gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
 							If OnChange Then OnChange(This)
 						End If
