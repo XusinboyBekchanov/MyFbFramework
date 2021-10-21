@@ -586,12 +586,24 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
-				gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
+				If Value = "" Then
+					gtk_window_set_title(GTK_WINDOW(widget), !"\0")
+				Else
+					gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
+				End If
 			ElseIf HeaderBarWidget Then
 				#ifdef __USE_GTK3__
-					gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(Value))
+					If Value = "" Then
+						gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), !"\0")
+					Else
+						gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(Value))
+					End If
 				#else
-					gtk_label_set_text(gtk_label(HeaderBarWidget), ToUTF8(Value))
+					If Value = "" Then
+						gtk_label_set_text(gtk_label(HeaderBarWidget), !"\0")
+					Else
+						gtk_label_set_text(gtk_label(HeaderBarWidget), ToUTF8(Value))
+					End If
 				#endif
 			End If
 		#endif

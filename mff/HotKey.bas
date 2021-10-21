@@ -179,7 +179,11 @@ Namespace My.Sys.Forms
 			If Pos1 > 0 Then sKey = Trim(Mid(sKey, Pos1 + 1))
 			wHotKey = IIf(InStr(Value, "Ctrl") > 0, "Ctrl + ", "") & IIf(InStr(Value, "Shift") > 0, "Shift + ", "") & IIf(InStr(Value, "Alt") > 0, "Alt + ", "") & _
 			IIf(InStr(Value, "Meta") > 0, "Meta + ", "") & IIf(InStr(Value, "Super") > 0, "Super + ", "") & IIf(InStr(Value, "Hyper") > 0, "Hyper + ", "") & UCase(sKey)
-			gtk_entry_set_text(gtk_entry(widget), ToUTF8(wHotKey))
+			If wHotKey = "" Then
+				gtk_entry_set_text(gtk_entry(widget), !"\0")
+			Else
+				gtk_entry_set_text(gtk_entry(widget), ToUTF8(wHotKey))
+			End If
 		#else
 			Dim sKey As String = Value
 			Dim wHotKey As Word
