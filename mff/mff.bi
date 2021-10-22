@@ -47,7 +47,6 @@
 #include once "ListView.bi"
 #include once "Menus.bi"
 #include once "MonthCalendar.bi"
-#include once "NativeFontControl.bi"
 #include once "Object.bi"
 #include once "OpenFileControl.bi"
 #include once "PageScroller.bi"
@@ -125,7 +124,6 @@ Using My.Sys.Forms
 		Case "listcontrol": Ctrl = New_( ListControl)
 		Case "listview": Ctrl = New_( ListView)
 		Case "monthcalendar": Ctrl = New_( MonthCalendar)
-		Case "nativefontcontrol": Ctrl = New_( NativeFontControl)
 		Case "openfilecontrol": Ctrl = New_( OpenFileControl)
 		Case "pagescroller": Ctrl = New_( PageScroller)
 		Case "panel": Ctrl = New_( Panel)
@@ -231,7 +229,6 @@ Using My.Sys.Forms
 		Case "listcontrol": Delete_( Cast(ListControl Ptr, Ctrl))
 		Case "listview": Delete_( Cast(ListView Ptr, Ctrl))
 		Case "monthcalendar": Delete_( Cast(MonthCalendar Ptr, Ctrl))
-		Case "nativefontcontrol": Delete_( Cast(NativeFontControl Ptr, Ctrl))
 		Case "pagescroller": Delete_( Cast(PageScroller Ptr, Ctrl))
 		Case "pagesetupdialog": Delete_( Cast(PageSetupDialog Ptr, Ctrl))
 		Case "printdialog": Delete_( Cast(PrintDialog Ptr, Ctrl))
