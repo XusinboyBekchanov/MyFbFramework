@@ -22,6 +22,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub FileChooser_CurrentFolderChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Declare Static Sub FileChooser_FileActivated(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Declare Static Sub FileChooser_SelectionChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
+			Dim As GtkFileFilter Ptr filefilter(Any)
 		#else
 			Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 			ThreadID As Any Ptr
@@ -32,11 +33,12 @@ Namespace My.Sys.Forms
 		FFileName     As WString Ptr
 		FFileTitle    As WString Ptr
 		FFilter       As WString Ptr
+		FFilterIndex  As Integer
+		FFilterCount  As Integer
 	Public:
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		FileNames     As WStringList
-		FilterIndex   As Integer
 		Options       As OpenFileOptions
 		Declare Property MultiSelect As Boolean
 		Declare Property MultiSelect(Value As Boolean)
@@ -50,6 +52,8 @@ Namespace My.Sys.Forms
 		Declare Property FileTitle(ByRef Value As WString)
 		Declare Property Filter ByRef As WString
 		Declare Property Filter(ByRef Value As WString)
+		Declare Property FilterIndex As Integer
+		Declare Property FilterIndex(Value As Integer)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean

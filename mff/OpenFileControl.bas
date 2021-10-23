@@ -68,15 +68,33 @@ Namespace My.Sys.Forms
 		Else
 			Options.Exclude ofAllowMultiSelect
 		End If
+		#ifdef __USE_GTK__
+			gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), FMultiSelect)
+		#endif
 	End Property
 	
 	Property OpenFileControl.InitialDir ByRef As WString
+		If FHandle Then
+			#ifdef __USE_GTK__
+				WLet FInitialDir, WStr(*gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER (widget)))
+			#else
+				Dim As Integer iSize = 1024
+				Dim As WString * 1024 Path
+				If SendMessage(FHandle, CDM_GETFOLDERPATH, iSize, Cast(WPARAM, @Path)) > 0 Then
+					WLet FInitialDir, Path
+				End If
+			#endif
+		End If
 		Return WGet(FInitialDir)
 	End Property
 	
 	Property OpenFileControl.InitialDir(ByRef Value As WString)
 		FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 		*FInitialDir = Value
+		#ifdef __USE_GTK__
+			If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
+			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
+		#endif
 	End Property
 	
 	Property OpenFileControl.DefaultExt ByRef As WString
@@ -86,12 +104,18 @@ Namespace My.Sys.Forms
 	Property OpenFileControl.DefaultExt(ByRef Value As WString)
 		FDefaultExt    = Reallocate_(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
 		*FDefaultExt = Value
+		#ifndef __USE_GTK__
+			SendMessage(FHandle, CDM_SETDEFEXT, 0, Cast(LPARAM, FDefaultExt))
+		#endif
 	End Property
 	
 	Property OpenFileControl.FileName ByRef As WString
 		If FHandle Then
 			#ifdef __USE_GTK__
 				WLet FFileName, WStr(*gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget)))
+				If InStr(*FFileName, ".") = 0 Then
+					If *FDefaultExt <> "" Then WAdd FFileName, "." & *FDefaultExt
+				End If
 			#else
 				Dim As Integer iSize = 1024
 				Dim As WString * 1024 Path
@@ -105,14 +129,39 @@ Namespace My.Sys.Forms
 	
 	Property OpenFileControl.FileName(ByRef Value As WString)
 		WLet(FFileName, Value)
+		#ifdef __USE_GTK__
+			If WGet(FFileName) = "" Then
+				gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), !"\0")
+			Else
+				gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
+			End If
+		#endif
 	End Property
 	
 	Property OpenFileControl.FileTitle ByRef As WString
+		If FHandle Then
+			FileName
+			#ifdef __USE_GTK__
+				Dim As Integer Pos1 = InStrRev(*FFileName, "/")
+				If Pos1 > 0 Then
+					WLet FFileTitle, Mid(*FFileName, Pos1 + 1)
+				Else
+					WLet FFileTitle, *FFileName
+				End If
+			#else
+				Dim As Integer iSize = 1024
+				Dim As WString * 1024 Path
+				If SendMessage(FHandle, CDM_GETSPEC, iSize, Cast(WPARAM, @Path)) > 0 Then
+					WLet FFileTitle, Path
+				End If
+			#endif
+		End If
 		Return WGet(FFileTitle)
 	End Property
 	
 	Property OpenFileControl.FileTitle(ByRef Value As WString)
 		WLet(FFileTitle, Value)
+		FileName = InitialDir & "/" & *FFileTitle
 	End Property
 	
 	Property OpenFileControl.Filter ByRef As WString
@@ -122,6 +171,43 @@ Namespace My.Sys.Forms
 	Property OpenFileControl.Filter(ByRef Value As WString)
 		FFilter    = Reallocate_(FFilter, (Len(Value) + 1) * SizeOf(WString))
 		*FFilter = Value
+		#ifdef __USE_GTK__
+			Dim As UString res()
+			If *FFilter <> "" Then
+				Split *FFilter, "|", res()
+				ReDim filefilter(UBound(res) + 1)
+				FFilterCount = 0
+				For i As Integer = 1 To UBound(res) Step 2
+					If res(i) = "" Then Continue For
+					FFilterCount += 1
+					filefilter(FFilterCount) = gtk_file_filter_new()
+					gtk_file_filter_set_name(filefilter(FFilterCount), ToUTF8(res(i - 1)))
+					gtk_file_filter_add_pattern(filefilter(FFilterCount), res(i))
+					gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterCount))
+				Next
+				If FFilterIndex <= FFilterCount Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterIndex))
+			End If
+		#endif
+	End Property
+	
+	Property OpenFileControl.FilterIndex As Integer
+		#ifdef __USE_GTK__
+			Dim As GtkFileFilter Ptr choosedfilefilter = gtk_file_chooser_get_filter(GTK_FILE_CHOOSER(widget))
+			For i As Integer = 0 To UBound(filefilter)
+				If choosedfilefilter = filefilter(i) Then
+					FFilterIndex = i
+					Exit For
+				End If
+			Next i
+		#endif
+		Return FFilterIndex
+	End Property
+	
+	Property OpenFileControl.FilterIndex(Value As Integer)
+		FFilterIndex    = Value
+		#ifdef __USE_GTK__
+			If FFilterIndex <= FFilterCount Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterIndex))
+		#endif
 	End Property
 	
 	#ifndef __USE_GTK__
@@ -284,29 +370,7 @@ Namespace My.Sys.Forms
 		'FFileName         = CAllocate(0)
 		'FFilter           = CAllocate(0)
 		#ifdef __USE_GTK__
-			Dim As GtkFileFilter Ptr filefilter()
 			widget =  gtk_file_chooser_widget_new (GTK_FILE_CHOOSER_ACTION_OPEN)
-			Dim As UString res()
-			If *FFilter <> "" Then
-				Split *FFilter, "|", res()
-				ReDim filefilter(UBound(res) + 1)
-				Dim j As Integer
-				For i As Integer = 1 To UBound(res) Step 2
-					If res(i) = "" Then Continue For
-					j += 1
-					filefilter(j) = gtk_file_filter_new()
-					gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
-					gtk_file_filter_add_pattern(filefilter(j), res(i))
-					gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
-				Next
-				If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
-			End If
-			If WGet(FFileName) <> "" Then
-				gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
-			End If
-			If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
-			If FMultiSelect Then gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), True)
 			g_signal_connect(widget, "current-folder-changed", G_CALLBACK(@FileChooser_CurrentFolderChanged), @This)
 			g_signal_connect(widget, "file-activated", G_CALLBACK(@FileChooser_FileActivated), @This)
 			g_signal_connect(widget, "selection-changed", G_CALLBACK(@FileChooser_SelectionChanged), @This)
