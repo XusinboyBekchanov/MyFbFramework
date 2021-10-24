@@ -96,8 +96,10 @@ Namespace My.Sys.Forms
 		Dim As Integer iWidth, iHeight
 		OldStyle = FStyle
 		If Value <> FStyle Then
-			ChangeStyle PGS_HORZ, False
-			ChangeStyle PGS_VERT, False
+			#ifndef __USE_GTK__
+				ChangeStyle PGS_HORZ, False
+				ChangeStyle PGS_VERT, False
+			#endif
 			Select Case Value
 			Case psHorizontal
 				#ifndef __USE_GTK__
