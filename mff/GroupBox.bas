@@ -101,7 +101,7 @@ Namespace My.Sys.Forms
 				Dim As Integer W,H
 				Dim As HDC Dc,memDC
 				Dim As HBITMAP Bmp
-				Dim As Rect R
+				Dim As ..Rect R
 				GetClientRect Handle,@R
 				Dc = GetDC(Handle)
 				FillRect Dc,@R,This.Brush.Handle

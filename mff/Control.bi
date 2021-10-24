@@ -99,9 +99,6 @@ Namespace My.Sys.Forms
 			FAnchoredBottom As Integer
 			FAnchoredParentWidth As Integer
 			FAnchoredParentHeight As Integer
-			#ifndef __USE_GTK__
-				Dim As Rect R, RR
-			#endif
 		Protected:
 			FID                As Integer
 			FOwner             As Control Ptr

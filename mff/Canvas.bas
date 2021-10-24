@@ -164,7 +164,7 @@ Namespace My.Sys.Drawing
 		ReleaseDevice
 	End Sub
 	
-	Sub Canvas.Rectangle Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
+	Sub Canvas.Rectangle Overload(x As Integer, y As Integer, x1 As Integer, y1 As Integer)
 		GetDevice
 		#ifdef __USE_GTK__
 			cairo_move_to (Handle, x - 0.5, y - 0.5)
@@ -240,10 +240,10 @@ Namespace My.Sys.Drawing
 		ReleaseDevice
 	End Sub
 	
-	Sub Canvas.Polygon(Points As Point Ptr,Count As Integer)
+	Sub Canvas.Polygon(Points As Point Ptr, Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.Polygon Handle, Points, Count
+			.Polygon Handle, Cast(..Point Ptr, Points), Count
 		#endif
 		ReleaseDevice
 	End Sub
@@ -301,7 +301,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.Polyline(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.Polyline Handle,Points,Count
+			.Polyline Handle, Cast(..Point Ptr, Points), Count
 		#endif
 		ReleaseDevice
 	End Sub
@@ -309,7 +309,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.PolylineTo(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.PolylineTo Handle,Points,Count
+			.PolylineTo Handle, Cast(..Point Ptr, Points), Count
 		#endif
 		ReleaseDevice
 	End Sub
@@ -317,7 +317,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.PolyBeizer(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.PolyBezier Handle,Points,Count
+			.PolyBezier Handle, Cast(..Point Ptr, Points), Count
 		#endif
 		ReleaseDevice
 	End Sub
@@ -325,7 +325,7 @@ Namespace My.Sys.Drawing
 	Sub Canvas.PolyBeizerTo(Points As Point Ptr,Count As Integer)
 		GetDevice
 		#ifndef __USE_GTK__
-			.PolyBezierTo Handle,Points,Count
+			.PolyBezierTo Handle, Cast(..Point Ptr, Points), Count
 		#endif
 		ReleaseDevice
 	End Sub
@@ -413,7 +413,7 @@ Namespace My.Sys.Drawing
 			Dim As HBITMAP    bmAndBack, bmAndObject, bmAndMem, bmSave
 			Dim As HBITMAP    bmBackOld, bmObjectOld, bmMemOld, bmSaveOld
 			Dim As HDC        hdcMem, hdcBack, hdcObject, hdcTemp, hdcSave
-			Dim As Point      ptSize
+			Dim As ..Point      ptSize
 			
 			hdcTemp = CreateCompatibleDC(Handle)
 			SelectObject(hdcTemp, Cast(HBitmap, Image))   ' Выбираем битмап
@@ -549,9 +549,9 @@ Namespace My.Sys.Drawing
 			R.Bottom = ScaleY(R.Bottom)
 			If FillColor <> -1 Then
 				B = CreateSolidBrush(FillColor)
-				.FillRect Handle,@R,B
+				.FillRect Handle, Cast(..Rect Ptr, @R), B
 			Else
-				.FillRect Handle,@R,Brush.Handle
+				.FillRect Handle, Cast(..Rect Ptr, @R), Brush.Handle
 			End If
 		#endif
 		ReleaseDevice
@@ -564,7 +564,7 @@ Namespace My.Sys.Drawing
 			R.Top = ScaleY(R.Top)
 			R.Right = ScaleX(R.Right)
 			R.Bottom = ScaleY(R.Bottom)
-			.DrawFocusRect Handle,@R
+			.DrawFocusRect Handle, Cast(..Rect Ptr, @R)
 		#endif
 		ReleaseDevice
 	End Sub
@@ -587,7 +587,7 @@ Namespace My.Sys.Drawing
 			pango_font_description_free (desc)
 			Return extend.Width
 		#else
-			Dim Sz As SIZE
+			Dim Sz As ..SIZE
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
 			Return UnScaleX(Sz.cX)
 		#endif
@@ -612,7 +612,7 @@ Namespace My.Sys.Drawing
 			pango_font_description_free (desc)
 			Return extend.Height
 		#else
-			Dim Sz As SIZE
+			Dim Sz As ..SIZE
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
 			Return UnScaleY(Sz.cY)
 		#endif

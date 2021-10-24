@@ -586,8 +586,8 @@ Namespace My.Sys.Forms
 				Message.Result = 0
 			Case WM_SIZE
 				If AutoSize Then
-					Dim As Rect R
-					GetWindowRect Handle,@R
+					Dim As ..Rect R
+					GetWindowRect Handle, @R
 					FHeight = R.Bottom - R.Top
 				End If
 			Case WM_COMMAND
@@ -605,7 +605,7 @@ Namespace My.Sys.Forms
 					'Index = Perform(TB_COMMANDTOINDEX, Message.wParam, 0)
 					Dim As Integer gi, bi
 					Dim As String comm = Trim(Str(Message.wParam))
-					gi = Val(Left(comm, Len(comm) - 2)) - 1
+					gi = Val(..Left(comm, Len(comm) - 2)) - 1
 					bi = Val(Mid(comm, Len(comm) - 1)) - 1
 					If gi > -1 AndAlso gi < Groups.Count Then
 						If bi = -1 Then
@@ -625,10 +625,10 @@ Namespace My.Sys.Forms
 				Select Case Tbn->hdr.Code
 				Case TBN_DROPDOWN
 					If Tbn->iItem <> -1 Then
-						SendMessage(Tbn->hdr.hwndFrom,TB_GETRECT,Tbn->iItem,CInt(@R))
-						MapWindowPoints(Tbn->hdr.hwndFrom,0,Cast(Point Ptr,@R),2)
-						i = SendMessage(Tbn->hdr.hwndFrom,TB_COMMANDTOINDEX,Tbn->iItem,0)
-						If SendMessage(Tbn->hdr.hwndFrom,TB_GETBUTTON,i,CInt(@TB)) Then
+						SendMessage(Tbn->hdr.hwndFrom, TB_GETRECT, Tbn->iItem, CInt(@R))
+						MapWindowPoints(Tbn->hdr.hwndFrom, 0, Cast(..Point Ptr, @R), 2)
+						i = SendMessage(Tbn->hdr.hwndFrom, TB_COMMANDTOINDEX, Tbn->iItem, 0)
+						If SendMessage(Tbn->hdr.hwndFrom, TB_GETBUTTON, i, CInt(@TB)) Then
 							'TrackPopupMenu(Buttons.Item(i)->DropDownMenu.Handle,0,R.Left,R.Bottom,0,Tbn->hdr.hwndFrom,NULL)
 						End If
 					End If

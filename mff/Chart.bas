@@ -3637,7 +3637,7 @@ Namespace My.Sys.Forms
 						End If
 					Next
 				Next
-				sText = Left(sText, Len(sText) - 2)
+				sText = ..Left(sText, Len(sText) - 2)
 				
 				GetTextSize sText, 0, 0, This.Font, False, SZ
 				

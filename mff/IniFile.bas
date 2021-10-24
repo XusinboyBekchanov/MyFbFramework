@@ -342,7 +342,7 @@ Constructor IniFile
 	Dim As Integer L, i, k
 	#ifndef __USE_GTK__
 		L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
-		Tx = Left(Tx, L)
+		Tx = ..Left(Tx, L)
 		For i = 0 To Len(Tx)
 			If Tx[i] = Asc(".") Then k = i +1
 		Next i

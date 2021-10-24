@@ -283,7 +283,7 @@ Namespace My.Sys.Forms
 	
 	Property ToolButton.Left As Integer
 		#ifndef __USE_GTK__
-			Dim As Rect R
+			Dim As ..Rect R
 			Dim As Integer i
 			If Ctrl Then
 				With QControl(Ctrl)
@@ -306,7 +306,7 @@ Namespace My.Sys.Forms
 		If Ctrl Then
 			With QControl(Ctrl)
 				#ifndef __USE_GTK__
-					Dim As Rect R
+					Dim As ..Rect R
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
@@ -332,7 +332,7 @@ Namespace My.Sys.Forms
 			Dim As Integer i
 			If Ctrl Then
 				With QControl(Ctrl)
-					Dim As Rect R
+					Dim As ..Rect R
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
@@ -356,7 +356,7 @@ Namespace My.Sys.Forms
 				FButtonHeight = Widget->allocation.height
 			#endif
 		#else
-			Dim As Rect R
+			Dim As ..Rect R
 			Dim As Integer i
 			If Ctrl Then
 				With QControl(Ctrl)
@@ -854,8 +854,8 @@ Namespace My.Sys.Forms
 				Message.Result = 0
 			Case WM_SIZE
 				If AutoSize Then
-					Dim As Rect R
-					GetWindowRect Handle,@R
+					Dim As ..Rect R
+					GetWindowRect Handle, @R
 					FHeight = R.Bottom - R.Top
 				End If
 			Case WM_COMMAND
@@ -879,17 +879,17 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim As TBNOTIFY Ptr Tbn
 				Dim As TBBUTTON TB
-				Dim As RECT R
+				Dim As ..RECT R
 				Dim As Integer i
 				Tbn = Cast(TBNOTIFY Ptr,Message.lParam)
 				Select Case Tbn->hdr.Code
 				Case TBN_DROPDOWN
 					If Tbn->iItem <> -1 Then
-						SendMessage(Tbn->hdr.hwndFrom,TB_GETRECT,Tbn->iItem,CInt(@R))
-						MapWindowPoints(Tbn->hdr.hwndFrom,0,Cast(Point Ptr,@R),2)
-						i = SendMessage(Tbn->hdr.hwndFrom,TB_COMMANDTOINDEX,Tbn->iItem,0)
-						If SendMessage(Tbn->hdr.hwndFrom,TB_GETBUTTON,i,CInt(@TB)) Then
-							TrackPopupMenu(Buttons.Item(i)->DropDownMenu.Handle,0,R.Left,R.Bottom,0,Tbn->hdr.hwndFrom,NULL)
+						SendMessage(Tbn->hdr.hwndFrom, TB_GETRECT, Tbn->iItem, CInt(@R))
+						MapWindowPoints(Tbn->hdr.hwndFrom, 0, Cast(..Point Ptr, @R), 2)
+						i = SendMessage(Tbn->hdr.hwndFrom, TB_COMMANDTOINDEX, Tbn->iItem, 0)
+						If SendMessage(Tbn->hdr.hwndFrom, TB_GETBUTTON, i, CInt(@TB)) Then
+							TrackPopupMenu(Buttons.Item(i)->DropDownMenu.Handle, 0, R.Left, R.Bottom, 0, Tbn->hdr.hwndFrom, NULL)
 						End If
 					End If
 				End Select

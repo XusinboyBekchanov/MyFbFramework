@@ -292,7 +292,7 @@ Namespace My.Sys.Forms
 						If Length = 1 Then
 							gtk_entry_set_text(gtk_entry(ipa->Entries(Index - 1)), !"\0")
 						ElseIf Length > 1 Then
-							gtk_entry_set_text(gtk_entry(ipa->Entries(Index - 1)), Left(*gtk_entry_get_text(gtk_entry(ipa->Entries(Index - 1))), Length - 1))
+							gtk_entry_set_text(gtk_entry(ipa->Entries(Index - 1)), ..Left(*gtk_entry_get_text(gtk_entry(ipa->Entries(Index - 1))), Length - 1))
 						End If
 						ipa->Position = Length
 						gtk_widget_grab_focus(ipa->Entries(Index - 1))
@@ -352,7 +352,7 @@ Namespace My.Sys.Forms
 					Dim As Integer Pos1 = gtk_editable_get_position(gtk_editable(widget)), Length = gtk_entry_get_text_length(gtk_entry(widget))
 					If Length = 2 Then
 						Dim EntryText As String = *gtk_entry_get_text(gtk_entry(widget))
-						If Val(Left(EntryText, Pos1) & *Event->key.string & Mid(EntryText, Pos1 + 1)) > 255 Then
+						If Val(..Left(EntryText, Pos1) & *Event->key.string & Mid(EntryText, Pos1 + 1)) > 255 Then
 							gtk_entry_set_text(gtk_entry(widget), "255")
 						ElseIf Pos1 = 2 Then
 							Dim As Integer Index = 3

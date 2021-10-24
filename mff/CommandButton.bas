@@ -167,11 +167,11 @@ Namespace My.Sys.Forms
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As Rect R
 				Dim As HDC Dc
-				diStruct = Cast(DRAWITEMSTRUCT Ptr,msg.lParam)
-				R = Cast(Rect,diStruct->rcItem)
+				diStruct = Cast(DRAWITEMSTRUCT Ptr, msg.lParam)
+				R = *Cast(Rect Ptr, @diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDraw Then
-					OnDraw(This,R,Dc)
+					OnDraw(This, R, Dc)
 				Else
 				End If
 			Case WM_KEYUP

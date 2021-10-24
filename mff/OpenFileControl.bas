@@ -226,12 +226,12 @@ Namespace My.Sys.Forms
 				SetParent ModalWnd, OpenDial->Parent->Handle
 				ShowWindow(GetDlgItem(ModalWnd, IDOK), SW_HIDE)
 				ShowWindow(GetDlgItem(ModalWnd, IDCANCEL), SW_HIDE)
-				Dim As Rect R
+				Dim As ..Rect R
 				GetWindowRect GetDlgItem(ModalWnd, cmb13), @R
-				MapWindowPoints 0, GetParent(GetDlgItem(ModalWnd, cmb13)), Cast(Point Ptr, @R), 2
+				MapWindowPoints 0, GetParent(GetDlgItem(ModalWnd, cmb13)), Cast(..Point Ptr, @R), 2
 				MoveWindow(GetDlgItem(ModalWnd, cmb13), R.Left, R.Top, R.Right - R.Left + 100, R.Bottom - R.Top, True)
 				GetWindowRect GetDlgItem(ModalWnd, cmb1), @R
-				MapWindowPoints 0, GetParent(GetDlgItem(ModalWnd, cmb1)), Cast(Point Ptr, @R), 2
+				MapWindowPoints 0, GetParent(GetDlgItem(ModalWnd, cmb1)), Cast(..Point Ptr, @R), 2
 				MoveWindow(GetDlgItem(ModalWnd, cmb1), R.Left, R.Top, R.Right - R.Left + 100, R.Bottom - R.Top, True)
 				If OpenDial->FVisible Then ShowWindow(ModalWnd, SW_SHOWNORMAL)
 				'ShowWindow(OpenDial->Parent->Handle, SW_SHOWNORMAL)
@@ -280,7 +280,7 @@ Namespace My.Sys.Forms
 			Dim dwFlags As DWORD = Cast(Integer, OpenDial->Options)
 			Dim dwBufLen As DWORD
 			Dim wMarkers As WString * 4 = "||"
-			If Right(*OpenDial->FFilter, 1) <> "|" Then wMarkers += "|"
+			If ..Right(*OpenDial->FFilter, 1) <> "|" Then wMarkers += "|"
 			Dim wFilter As WString Ptr '* 260 = ""
 			WLet(wFilter, *OpenDial->FFilter & wMarkers)
 			Dim dwFilterStrSize As DWORD = Len(wFilter)

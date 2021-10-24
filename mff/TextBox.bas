@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 				Select Case LCase(PropertyName)
 				Case "alignment": Alignment = *Cast(AlignmentConstants Ptr, Value)
 				Case "borderstyle": BorderStyle = *Cast(BorderStyles Ptr, Value)
-				Case "caretpos": CaretPos = *Cast(Point Ptr, Value)
+				Case "caretpos": CaretPos = *Cast(My.Sys.Drawing.Point Ptr, Value)
 				Case "charcase": CharCase = *Cast(CharCases Ptr, Value)
 				Case "ctl3d": Ctl3D = QBoolean(Value)
 				Case "hideselection": HideSelection = QBoolean(Value)
@@ -716,7 +716,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Property TextBox.CaretPos As Point
+	Property TextBox.CaretPos As My.Sys.Drawing.Point
 		Dim As Integer x, y
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -740,7 +740,7 @@ Namespace My.Sys.Forms
 		Return Type(0, 0)
 	End Property
 	
-	Property TextBox.CaretPos(value As Point)
+	Property TextBox.CaretPos(value As My.Sys.Drawing.Point)
 	End Property
 	
 	Property TextBox.ScrollBars As ScrollBarsType

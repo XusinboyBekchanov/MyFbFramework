@@ -112,7 +112,7 @@ Namespace My.Sys
 			Dim i As Integer, IFormat As UINT
 			i = GetClipboardFormatName(IFormat,s,255)
 			FFormat = Cast(WString Ptr, Reallocate_(FFormat, (i + 1) * SizeOf(WString)))
-			*FFormat = Left(s, i)
+			*FFormat = ..Left(s, i)
 		#endif
 		Return *FFormat
 	End Property

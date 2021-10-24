@@ -415,14 +415,14 @@ Namespace My.Sys.Forms
 	
 	Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
-			Dim pt As Point, rc As RECT, t As Long, itd As Long
+			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
 			Select Case Message.Msg
 				Case WM_DRAWITEM
 				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
-					OnDrawItem(This, lpdis->itemID, lpdis->itemState, lpdis->rcItem, lpdis->hDC)
+					OnDrawItem(This, lpdis->itemID, lpdis->itemState, *Cast(Rect Ptr, @lpdis->rcItem), lpdis->hDC)
 				ElseIf Base.FStyle = cbOwnerDrawFixed Then
 					If lpdis->itemID = &HFFFFFFFF& Then
 						Exit Sub

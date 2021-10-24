@@ -467,6 +467,7 @@ Namespace My.Sys.Forms
 					End If
 				#else
 					If FHandle Then
+						Dim As ..Rect R
 						GetClientRect Handle , @R
 						FClientWidth = UnScaleX(R.Right)
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
@@ -512,7 +513,8 @@ Namespace My.Sys.Forms
 					End If
 				#else
 					If Handle Then
-						GetClientRect Handle ,@R
+						Dim As ..Rect R
+						GetClientRect Handle, @R
 						FClientHeight = UnScaleY(R.Bottom)
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
 						'                InflateRect @R,-4, -4
@@ -1196,7 +1198,7 @@ Namespace My.Sys.Forms
 					If OnMouseUp Then OnMouseUp(This, 1, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
 					If ContextMenu Then
 						If ContextMenu->Handle Then
-							Dim As Point P
+							Dim As ..Point P
 							P.x = Message.lParamLo
 							P.y = Message.lParamHi
 							.ClientToScreen(This.Handle, @P)
@@ -2024,11 +2026,11 @@ Namespace My.Sys.Forms
 		
 		#ifndef __USE_GTK__
 			Sub Control.ClientToScreen(ByRef P As Point)
-				If Handle Then .ClientToScreen Handle,@P
+				If Handle Then .ClientToScreen Handle, Cast(..Point Ptr, @P)
 			End Sub
 			
 			Sub Control.ScreenToClient(ByRef P As Point)
-				If Handle Then .ScreenToClient Handle,@P
+				If Handle Then .ScreenToClient Handle, Cast(..Point Ptr, @P)
 			End Sub
 		#endif
 		

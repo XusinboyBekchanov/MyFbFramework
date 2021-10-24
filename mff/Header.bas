@@ -482,7 +482,7 @@ Namespace My.Sys.Forms
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr Dis
 				Dis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
-				Dim As Rect R = Dis->rcItem
+				Dim As My.Sys.Drawing.Rect R = *Cast(My.Sys.Drawing.Rect Ptr, @Dis->rcItem)
 				Dim As Integer Index = Dis->ItemID, State = Dis->itemState
 				If OnDrawSection Then OnDrawSection(This, QHeaderSection(FSections.Items[Index]), R, State And ODS_SELECTED <> 0)
 			Case WM_MENUSELECT

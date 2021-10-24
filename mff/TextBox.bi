@@ -120,8 +120,8 @@ Namespace My.Sys.Forms
 		Declare Property Lines(Index As Integer) ByRef As WString
 		Declare Property Lines(Index As Integer, ByRef Value As WString)
 		Declare Function LinesCount As Integer
-		Declare Property CaretPos As Point
-		Declare Property CaretPos(Value As Point)
+		Declare Property CaretPos As My.Sys.Drawing.Point
+		Declare Property CaretPos(Value As My.Sys.Drawing.Point)
 		Declare Property SelStart As Integer
 		Declare Property SelStart(Value As Integer)
 		Declare Property SelEnd As Integer

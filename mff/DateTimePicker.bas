@@ -185,7 +185,7 @@ Namespace My.Sys.Forms
 			FText = Value
 			Dim As Integer Pos1 = InStr(Value, ":")
 			If Pos1 > 0 Then
-				SelectedDate = DateValue(Trim(Left(Value, Pos1 - 3)))
+				SelectedDate = DateValue(Trim(..Left(Value, Pos1 - 3)))
 				SelectedTime = TimeValue(Trim(Mid(Value, Pos1 - 2)))
 			Else
 				SelectedDate = DateValue(Trim(Value))
@@ -434,12 +434,12 @@ Namespace My.Sys.Forms
 				s = Mid(FormatNew, i, 1)
 				If p <> s Then
 					Length = Len(f)
-					Select Case Left(f, 1)
+					Select Case ..Left(f, 1)
 					Case "y", "M", "m", "d", "H", "h", "s"
 						iCount += 1
 						iEnd = i - 1 + Steps
 						iStep = 0
-						Select Case Left(f, 1)
+						Select Case ..Left(f, 1)
 						Case "y"
 							If Length = 1 Then
 								iStep = 1
@@ -450,7 +450,7 @@ Namespace My.Sys.Forms
 								iStart = iEnd - 4 - 1
 							End If
 						Case "M", "m"
-							If Left(f, 1) = "m" AndAlso InStr(LCase(Left(FormatNew, i - 1)), "h") > 0 AndAlso Length < 3 Then
+							If ..Left(f, 1) = "m" AndAlso InStr(LCase(..Left(FormatNew, i - 1)), "h") > 0 AndAlso Length < 3 Then
 								If Length = 1 Then
 									If Minute(FSelectedDateTime) > 9 Then
 										iStep = 1
@@ -571,7 +571,7 @@ Namespace My.Sys.Forms
 		
 		Sub DateTimePicker.SetDateTime(PressedNumberValue As Long, DateTimePart As String, NewDateTimePart As String)
 			If PressedNumberValue <> 0 Then
-				Select Case Left(DateTimePart, 1)
+				Select Case ..Left(DateTimePart, 1)
 				Case "y"
 					SelectedDateTime = DateSerial(PressedNumberValue, Month(FSelectedDateTime), Day(FSelectedDateTime)) + SelectedTime
 				Case "M"
@@ -614,7 +614,7 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub DateTimePicker.DatePartUp
-			Select Case Left(FDateTimePart, 1)
+			Select Case ..Left(FDateTimePart, 1)
 			Case "y"
 				SelectedDate = DateSerial(IIf(Year(SelectedDate) = 9999, 1601, Year(SelectedDate) + 1), Month(SelectedDate), Day(SelectedDate))
 			Case "M"
@@ -632,7 +632,7 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub DateTimePicker.DatePartDown
-			Select Case Left(FDateTimePart, 1)
+			Select Case ..Left(FDateTimePart, 1)
 			Case "y"
 				SelectedDate = DateSerial(IIf(Year(SelectedDate) = 1601, 9999, Year(SelectedDate) - 1), Month(SelectedDate), Day(SelectedDate))
 			Case "M"
@@ -694,7 +694,7 @@ Namespace My.Sys.Forms
 					Case GDK_KEY_Right
 						SelectRegion , 1
 					Case GDK_KEY_Home
-						Select Case Left(FDateTimePart, 1)
+						Select Case ..Left(FDateTimePart, 1)
 						Case "y"
 							SelectedDate = DateSerial(1601, Month(SelectedDate), Day(SelectedDate))
 						Case "M"
@@ -710,7 +710,7 @@ Namespace My.Sys.Forms
 						End Select
 						SelectRegion SelStart + 1
 					Case GDK_KEY_End
-						Select Case Left(FDateTimePart, 1)
+						Select Case ..Left(FDateTimePart, 1)
 						Case "y"
 							SelectedDate = DateSerial(9999, Month(SelectedDate), Day(SelectedDate))
 						Case "M"
@@ -733,7 +733,7 @@ Namespace My.Sys.Forms
 					Select Case *e->key.string
 					Case "0" To "9"
 						PressedNumber &= *e->key.string
-						Select Case Left(FDateTimePart, 1)
+						Select Case ..Left(FDateTimePart, 1)
 						Case "y"
 						Case "M"
 							If Len(PressedNumber) = 2 AndAlso (Val(PressedNumber) = 0 OrElse Val(PressedNumber) > 12) Then PressedNumber = *e->key.string
@@ -749,10 +749,10 @@ Namespace My.Sys.Forms
 						If Not (StartsWith(LCase(FDateTimePart), "mmm") OrElse StartsWith(LCase(FDateTimePart), "ddd")) Then
 							Dim As UString txt = Text
 							Dim As String sp = " "
-							gtk_entry_set_text(gtk_entry(widget), ToUTF8(Left(txt, SelStart) & String(SelEnd - SelStart - Len(PressedNumber), sp) & Right(PressedNumber, SelEnd - SelStart) & Mid(txt, SelEnd + 1)))
+							gtk_entry_set_text(gtk_entry(widget), ToUTF8(..Left(txt, SelStart) & String(SelEnd - SelStart - Len(PressedNumber), sp) & ..Right(PressedNumber, SelEnd - SelStart) & Mid(txt, SelEnd + 1)))
 						End If
 						SelectRegion SelStart + 1
-						If Len(PressedNumber) = IIf(Left(FDateTimePart, 1) = "y", 4, 2) Then
+						If Len(PressedNumber) = IIf(..Left(FDateTimePart, 1) = "y", 4, 2) Then
 							If AutoNextPart Then
 								SelectRegion , 1
 							Else

@@ -163,10 +163,10 @@ Namespace My.Sys.Forms
 				End If
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
-				Dim As Rect R
+				Dim As My.Sys.Drawing.Rect R
 				Dim As HDC Dc
 				diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
-				R = Cast(Rect,diStruct->rcItem)
+				R = *Cast(My.Sys.Drawing.Rect Ptr, @diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDraw Then
 					OnDraw(This,R,Dc)

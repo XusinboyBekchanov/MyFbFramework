@@ -195,7 +195,7 @@ Sub Dictionary.LoadFromFile(ByRef FileName As WString)
 					Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 					With *nItem
 						If Pos1 > 0 Then
-							.Key  = Left(*FText, Pos1 - 1)
+							.Key  = ..Left(*FText, Pos1 - 1)
 							.Text = Mid(*FText, Pos1 + 2)
 						Else
 							.Key  = *FText
@@ -282,7 +282,7 @@ Property Dictionary.Text(ByRef Value As WString)
 			Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 			With *nItem
 				If Pos1 > 0 Then
-					.Key  = Left(*FText, Pos1 - 1)
+					.Key  = ..Left(*FText, Pos1 - 1)
 					.Text = Mid(*FText, Pos1 + 2)
 				Else
 					.Key  = *FText

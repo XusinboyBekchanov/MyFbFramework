@@ -58,7 +58,7 @@ Namespace My.Sys.Forms
 		OnClick    As Sub(ByRef Sender As Picture)
 		OnDblClick As Sub(ByRef Sender As Picture)
 		#ifndef __USE_GTK__
-			OnDraw As Sub(ByRef Sender As Picture, ByRef R As Rect,DC As HDC)
+			OnDraw As Sub(ByRef Sender As Picture, ByRef R As My.Sys.Drawing.Rect, DC As HDC)
 		#endif
 	End Type
 End Namespace

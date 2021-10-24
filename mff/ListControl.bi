@@ -114,7 +114,7 @@ Namespace My.Sys.Forms
 		OnChange      As Sub(ByRef Sender As ListControl)
 		#ifndef __USE_GTK__
 			OnMeasureItem As Sub(ByRef Sender As ListControl, ItemIndex As Integer, ByRef Height As UInt)
-			OnDrawItem    As Sub(ByRef Sender As ListControl, ItemIndex As Integer, State As Integer,ByRef R As Rect,DC As HDC = 0)
+			OnDrawItem    As Sub(ByRef Sender As ListControl, ItemIndex As Integer, State As Integer, ByRef R As My.Sys.Drawing.Rect, DC As HDC = 0)
 		#endif
 	End Type
 End Namespace

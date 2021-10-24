@@ -171,17 +171,17 @@ Namespace My.Sys.Forms
 		FAssociate = Value
 		If FAssociate Then
 			If UCase(FAssociate->ClassName) = "TEXTBOX" Then
-				#IfNDef __USE_GTK__
+				#ifndef __USE_GTK__
 					SendMessage(Handle, UDM_SETBUDDY, CInt(FAssociate->Handle), 0)
-				#EndIf
+				#endif
 				FAssociate->Text = WStr(Position)
 			Else
 			End If
 		End If
 	End Property
 	
-	#IfNDef __USE_GTK__
-		Sub UpDown.HandleIsAllocated(BYREF Sender As Control)
+	#ifndef __USE_GTK__
+		Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUpDown(Sender.Child)
 					SendMessage(.Handle, UDM_SETRANGE, 0, MakeLong(.FMaxValue, .FMinValue))
@@ -194,15 +194,15 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub UpDown.WndProc(BYREF Message As Message)
+		Sub UpDown.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub UpDown.ProcessMessage(BYREF Message As Message)
+		Sub UpDown.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
 			Case WM_SIZE
-				Dim As Rect R
-				GetClientRect Handle,@R
-				InvalidateRect Handle,@R,True
+				Dim As ..Rect R
+				GetClientRect Handle, @R
+				InvalidateRect Handle, @R, True
 			Case CM_NOTIFY
 				Dim As NMHDR Ptr NM
 				NM = Cast(LPNMHDR,Message.lParam)

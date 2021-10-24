@@ -222,13 +222,13 @@ Namespace My.Sys.Forms
 				End If
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
-				Dim As Rect R
+				Dim As ..Rect R
 				Dim As HDC Dc
 				diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
-				R = Cast(Rect,diStruct->rcItem)
+				R = Cast(..Rect, diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDraw Then
-					OnDraw(This,R,Dc)
+					OnDraw(This, *Cast(Rect Ptr, @R), Dc)
 				Else
 				End If
 			End Select

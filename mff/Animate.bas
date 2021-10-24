@@ -260,7 +260,7 @@ Namespace My.Sys.Forms
 			Case WM_NCHITTEST
 				Message.Result = HTCLIENT
 			Case WM_ERASEBKGND
-				Dim As Rect R
+				Dim As ..Rect R
 				GetClientRect Handle, @R
 				FillRect Cast(HDC, Message.wParam),@R, Brush.Handle
 				Message.Result = -1

@@ -33,8 +33,8 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Sub AdjustColors(FBevel As Integer)
-			Declare Sub DoRect(R As RECT, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
-			Declare Sub Frame3D(R As RECT, AWidth As Integer)
+			Declare Sub DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
+			Declare Sub Frame3D(R As My.Sys.Drawing.Rect, AWidth As Integer)
 		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)

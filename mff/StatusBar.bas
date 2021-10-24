@@ -87,7 +87,7 @@ Namespace My.Sys.Forms
 	Property StatusPanel.RealWidth As Integer
 		#ifndef __USE_GTK__
 			If StatusBarControl->Handle Then
-				Dim As Rect rct
+				Dim As ..Rect rct
 				Dim As Integer Index = Cast(StatusBar Ptr, StatusBarControl)->IndexOf(@This)
 				SendMessage(StatusBarControl->Handle, SB_GETRECT, Index, Cast(LParam, @rct))
 				FRealWidth = rct.Right - rct.Left

@@ -485,17 +485,17 @@ Namespace My.Sys.Forms
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As Integer ItemID,State
-				Dim As Rect R
+				Dim As ..Rect R
 				Dim As HDC Dc
 				diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
-				ItemID = Cast(Integer,diStruct->itemID)
-				State = Cast(Integer,diStruct->itemState)
-				R = Cast(Rect,diStruct->rcItem)
+				ItemID = Cast(Integer, diStruct->itemID)
+				State = Cast(Integer, diStruct->itemState)
+				R = Cast(..Rect, diStruct->rcItem)
 				Dc = diStruct->hDC
 				If (diStruct->itemState And ODS_COMBOBOXEDIT) <> 0 Then State = State Or ODS_ComboBOXEDIT
 				If (diStruct->itemState And ODS_DEFAULT) <> 0 Then State = State Or ODS_DEFAULT
 				If OnDrawItem Then
-					OnDrawItem(This,ItemID,State,R,Dc)
+					OnDrawItem(This, ItemID, State, *Cast(Rect Ptr, @R), Dc)
 				Else
 					If (State And ODS_SELECTED) = ODS_SELECTED Then
 						Static As HBRUSH B

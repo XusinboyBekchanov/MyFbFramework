@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Function CanRedo As Boolean
-		Declare Function GetCharIndexFromPos(p As Point) As Integer
+		Declare Function GetCharIndexFromPos(p As My.Sys.Drawing.Point) As Integer
 		Declare Function GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
 		Declare Function Find(ByRef Value As WString) As Boolean
 		Declare Function FindNext(ByRef Value As WString = "") As Boolean

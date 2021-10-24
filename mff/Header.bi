@@ -147,7 +147,7 @@ Namespace My.Sys.Forms
 		OnTrack           As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
 		OnDividerDblClick As Sub(ByRef Sender As Header, Index As Integer, MouseButton As Integer)
 		#ifndef __USE_GTK__
-			OnDrawSection     As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, R As Rect, State As Integer)
+			OnDrawSection     As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, R As My.Sys.Drawing.Rect, State As Integer)
 		#endif
 	End Type
 End Namespace

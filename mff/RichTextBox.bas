@@ -89,7 +89,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function RichTextBox.GetCharIndexFromPos(p As Point) As Integer
+	Function RichTextBox.GetCharIndexFromPos(p As My.Sys.Drawing.Point) As Integer
 		#ifndef __USE_GTK__
 			Return Perform(EM_CHARFROMPOS, 0, CInt(@p))
 		#else
@@ -122,8 +122,8 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Function RichTextBox.BottomLine As Integer
-		Dim r As Rect, i As Integer
 		#ifndef __USE_GTK__
+			Dim r As ..Rect, i As Integer
 			Perform(EM_GETRECT, 0, CInt(@r))
 			r.Left = r.Left + 1
 			r.Top  = r.Bottom - 2
@@ -373,7 +373,7 @@ Namespace My.Sys.Forms
 	Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
 		#ifndef __USE_GTK__
 			If FHandle Then
-				Dim hFile As Handle
+				Dim hFile As ..Handle
 				hFile = CreateFile(@Value, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 				If hFile <> INVALID_HANDLE_VALUE Then
 					Dim editstream As EDITSTREAM
@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
 			If Not bRTF Then
 				Base.SaveToFile(Value)
 			ElseIf FHandle Then
-				Dim hFile As Handle
+				Dim hFile As ..Handle
 				hFile = CreateFile(@Value, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
 				If hFile <> INVALID_HANDLE_VALUE Then
 					Dim editstream As EDITSTREAM

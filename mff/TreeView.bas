@@ -763,7 +763,7 @@ Namespace My.Sys.Forms
 						If OnMouseUp Then OnMouseUp(This, 1, Message.lParamLo, Message.lParamHi, Message.wParam And &HFFFF)
 						If ContextMenu Then
 							If ContextMenu->Handle Then
-								Dim As Point P
+								Dim As ..Point P
 								GetCursorPos(@P)
 								ContextMenu->Popup(P.x, P.y)
 							End If

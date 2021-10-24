@@ -69,7 +69,7 @@ Namespace My.Sys.Forms
 				Select Case KeyName
 				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
 					bKeyPressed = False
-					KeyName = Left(KeyName, Len(KeyName) - 2)
+					KeyName = ..Left(KeyName, Len(KeyName) - 2)
 					If KeyName = "Control" Then KeyName = "Ctrl"
 					Select Case KeyName
 					Case "Ctrl": bCtrl = True
@@ -124,7 +124,7 @@ Namespace My.Sys.Forms
 				Dim As String KeyName = *gdk_keyval_name(e->Key.keyval)
 				Select Case KeyName
 				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
-					KeyName = Left(KeyName, Len(KeyName) - 2)
+					KeyName = ..Left(KeyName, Len(KeyName) - 2)
 					If KeyName = "Control" Then KeyName = "Ctrl"
 					Select Case KeyName
 					Case "Ctrl": bCtrl = False

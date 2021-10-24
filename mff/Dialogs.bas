@@ -144,7 +144,7 @@ End Property
 			Case CDN_INITDONE
 				If OpenDial Then
 					If OpenDial->Center Then
-						Dim As Rect R
+						Dim As ..Rect R
 						Dim As Integer L,T,W,H
 						GetWindowRect(GetParent(FWindow),@R)
 						L = R.Left
@@ -218,7 +218,7 @@ Function OpenFileDialog.Execute As Boolean
 		Dim dwFlags As DWORD = Cast(Integer, Options)
 		Dim dwBufLen As DWORD
 		Dim wMarkers As WString * 4 = "||"
-		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
+		If ..Right(*FFilter, 1) <> "|" Then wMarkers += "|"
 		Dim wFilter As WString Ptr '* 260 = ""
 		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(wFilter)
@@ -396,9 +396,9 @@ End Property
 			Case CDN_INITDONE
 				If SaveDial Then
 					If SaveDial->Center Then
-						Dim As Rect R
+						Dim As ..Rect R
 						Dim As Integer L,T,W,H
-						GetWindowRect(GetParent(FWindow),@R)
+						GetWindowRect(GetParent(FWindow), @R)
 						L = R.Left
 						T = R.Top
 						W = R.Right - R.Left
@@ -478,7 +478,7 @@ Function SaveFileDialog.Execute As Boolean
 		Dim dwFlags As DWORD = Cast(Integer, Options)
 		Dim dwBufLen As DWORD
 		Dim wMarkers As WString * 4 = "||"
-		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
+		If ..Right(*FFilter, 1) <> "|" Then wMarkers += "|"
 		Dim wFilter As WString Ptr
 		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(*wFilter)
@@ -804,8 +804,8 @@ End Destructor
 				SetWindowLongPtr(FWindow,DWLP_MSGRESULT,CInt(CommonDialog))
 				SetWindowText(FWindow, CommonDialog->_Caption)
 				If CommonDialog->Center Then
-					Dim As Rect R,Wr
-					GetWindowRect(FWindow,@Wr)
+					Dim As ..Rect R,Wr
+					GetWindowRect(FWindow, @Wr)
 					SystemParametersInfo(spi_getworkarea,0,@R,0)
 					MoveWindow(FWindow,(R.Right  - (Wr.Right - Wr.Left))/2,(R.Bottom - (Wr.Bottom - Wr.Top))/2,Wr.Right - Wr.Left,Wr.Bottom - Wr.Top,1)
 				End If
@@ -827,8 +827,8 @@ End Destructor
 			If CommonDialog Then
 				With *CommonDialog
 					Dim As HDC Dc = Cast(HDC,wParam)
-					Dim As Rect R
-					GetClientRect(FWindow,@R)
+					Dim As ..Rect R
+					GetClientRect(FWindow, @R)
 					FillRect(Dc,@R,Brush)
 					Return True
 				End With

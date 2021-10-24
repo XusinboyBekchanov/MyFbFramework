@@ -1388,47 +1388,47 @@ Namespace My.Sys.ComponentModel
 			
 			IF nRet <> IDOK THEN EXIT FUNCTION
 		#EndIf
-		FUNCTION  = TRUE
+		Function  = True
 		
-	END Function
+	End Function
 	
 	
-	FUNCTION printer.GetPrinterDriverVersion (BYVAL PrinterName AS String) AS Long  __EXPORT__  ' Returns the version number of the printer driver.
-		#IfNDef __USE_GTK__
-			FUNCTION = DeviceCapabilities (PrinterName, BYVAL NULL, DC_DRIVER, BYVAL NULL, BYVAL NULL)
-		#Else
+	Function printer.GetPrinterDriverVersion (ByVal PrinterName As String) As Long  __EXPORT__  ' Returns the version number of the printer driver.
+		#ifndef __USE_GTK__
+			Function = DeviceCapabilities (PrinterName, ByVal NULL, DC_DRIVER, ByVal NULL, ByVal NULL)
+		#else
 			Function = 0
-		#EndIf
-	END FUNCTION
+		#endif
+	End Function
 	
-	FUNCTION printer.GetPrinterDuplex (BYVAL PrinterName AS String) AS Long   __EXPORT__  ' If the printer supports duplex printing, the return value is 1; otherwise, the return value is zero.
-		#IfNDef __USE_GTK__
-			FUNCTION = DeviceCapabilities (PrinterName, BYVAL NULL, DC_DUPLEX, BYVAL NULL, BYVAL NULL)
-		#Else
+	Function printer.GetPrinterDuplex (ByVal PrinterName As String) As Long   __EXPORT__  ' If the printer supports duplex printing, the return value is 1; otherwise, the return value is zero.
+		#ifndef __USE_GTK__
+			Function = DeviceCapabilities (PrinterName, ByVal NULL, DC_DUPLEX, ByVal NULL, ByVal NULL)
+		#else
 			Function = 0
-		#EndIf
-	END FUNCTION
+		#endif
+	End Function
 	
 	
-	FUNCTION printer.GetPrinterFromPort (BYVAL sPortName AS STRING) AS String   __EXPORT__' Returns the printer name for a given port name.
-		Dim i AS Long, Level AS Long, cbNeeded AS Long, cbReturned AS LONG, Names AS String
-		#IfNDef __USE_GTK__
-			DIM   Pi5() As PRINTER_INFO_5
+	Function printer.GetPrinterFromPort (ByVal sPortName As String) As String   __EXPORT__' Returns the printer name for a given port name.
+		Dim i As Long, Level As Long, cbNeeded As Long, cbReturned As Long, Names As String
+		#ifndef __USE_GTK__
+			Dim   Pi5() As PRINTER_INFO_5
 			Level = 5
-			EnumPrinters  PRINTER_ENUM_LOCAL, BYVAL NULL, Level, BYVAL NULL, 0, @cbNeeded, @cbReturned
-			REDIM Pi5(0 TO cbNeeded \ SIZEOF(Pi5(0)))
+			EnumPrinters  PRINTER_ENUM_LOCAL, ByVal NULL, Level, ByVal NULL, 0, @cbNeeded, @cbReturned
+			ReDim Pi5(0 To cbNeeded \ SizeOf(Pi5(0)))
 			EnumPrinters  PRINTER_ENUM_LOCAL, "", Level, Cast( LPBYTE,@Pi5(0)), _
-			SIZEOF(Pi5(0)) * (UBOUND(Pi5) + 1), @cbNeeded, @cbReturned
-			FOR i = 0 TO cbReturned - 1
-				IF UCASE(*Pi5(i).pPortName) = UCASE(sPortName) THEN
+			SizeOf(Pi5(0)) * (UBound(Pi5) + 1), @cbNeeded, @cbReturned
+			For i = 0 To cbReturned - 1
+				If UCase(*Pi5(i).pPortName) = UCase(sPortName) Then
 					Names += *Pi5(i).pPrinterName & CRLF
-				END IF
-			NEXT
+				End If
+			Next
 			' // Remove the last $CRLF
-			IF LEN(Names) THEN Names = LEFT(Names, LEN(Names) - 2)
-		#EndIf
-		FUNCTION = Names
-	END FUNCTION
+			If Len(Names) Then Names = ..LEFT(Names, Len(Names) - 2)
+		#endif
+		Function = Names
+	End Function
 	
 	
 	FUNCTION printer.GetPrinterHorizontalResolution (BYVAL PrinterName AS String) AS Long  __EXPORT__' Width, in pixels, of the printable area of the page.

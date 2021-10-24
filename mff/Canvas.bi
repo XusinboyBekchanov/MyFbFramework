@@ -15,6 +15,18 @@
 Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr,__Ptr__)
 	
+	Type Rect
+		Left As Integer
+		Top As Integer
+		Right As Integer
+		Bottom As Integer
+	End Type
+
+	Type Point
+		X As Integer
+		Y As Integer
+	End Type
+	
 	#ifdef __USE_GTK__
 		Enum FillStyle
 			fsSurface
@@ -95,7 +107,7 @@ Namespace My.Sys.Drawing
 		Declare Sub MoveTo(x As Integer,y As Integer)
 		Declare Sub LineTo(x As Integer,y As Integer)
 		Declare Sub Line(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
-		Declare Sub Rectangle Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
+		Declare Sub Rectangle Overload(x As Integer, y As Integer, x1 As Integer, y1 As Integer)
 		Declare Sub Rectangle(R As Rect)
 		Declare Sub Ellipse Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
 		Declare Sub Ellipse(R As Rect)

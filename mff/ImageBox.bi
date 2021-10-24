@@ -54,7 +54,7 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		#ifndef __USE_GTK__
-			OnDraw     As Sub(ByRef Sender As ImageBox, ByRef R As Rect,DC As HDC = 0)
+			OnDraw     As Sub(ByRef Sender As ImageBox, ByRef R As My.Sys.Drawing.Rect, DC As HDC = 0)
 		#endif
 	End Type
 End Namespace

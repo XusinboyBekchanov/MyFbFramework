@@ -6,22 +6,8 @@
 
 #include once "Object.bi"
 
-#ifndef __FB_WIN32__
-	Type Point
-		X As Integer
-		Y As Integer
-	End Type
-	
-	Type Rect
-		Left As Integer
-		Top As Integer
-		Right As Integer
-		Bottom As Integer
-	End Type
-#endif
-
 Namespace My.Sys.ComponentModel
-	#define QComponent(__Ptr__) *Cast(Component Ptr,__Ptr__)
+	#define QComponent(__Ptr__) *Cast(Component Ptr, __Ptr__)
 	
 	Type MarginsType Extends My.Sys.Object
 		Declare Function ToString ByRef As WString

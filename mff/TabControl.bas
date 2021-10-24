@@ -63,7 +63,7 @@ Namespace My.Sys.Forms
 	Sub TabPage.ProcessMessage(ByRef msg As Message)
 		#ifndef __USE_GTK__
 			FTheme = GetWindowTheme(Msg.hWnd)
-			Dim As RECT rct
+			Dim As ..RECT rct
 			Select Case msg.msg
 			Case WM_DESTROY
 				CloseThemeData(FTheme)
@@ -98,7 +98,7 @@ Namespace My.Sys.Forms
 			Case WM_PRINTCLIENT
 				If UseVisualStyleBackColor Then
 					If IsAppThemed() Then
-						Dim As RECT rct
+						Dim As ..RECT rct
 						GetClientRect(Msg.hWnd, @rct)
 						FillRect(Cast(HDC, Msg.wParam), @rct, GetStockObject(NULL_BRUSH))
 						Msg.Result = True
@@ -535,8 +535,8 @@ Namespace My.Sys.Forms
 					Return gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget)->allocation.height
 				#endif
 			#else
-				Dim As Rect R
-				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Dim As ..Rect R
+				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleY(R.Bottom - R.Top)
 			#endif
 		End If
@@ -552,8 +552,8 @@ Namespace My.Sys.Forms
 					Return gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget)->allocation.width
 				#endif
 			#else
-				Dim As Rect R
-				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Dim As ..Rect R
+				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleX(R.Right - R.Left)
 			#endif
 		End If
@@ -563,8 +563,8 @@ Namespace My.Sys.Forms
 	Function TabControl.ItemLeft(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifndef __USE_GTK__
-				Dim As Rect R
-				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Dim As ..Rect R
+				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleX(R.Left)
 			#endif
 		End If
@@ -574,8 +574,8 @@ Namespace My.Sys.Forms
 	Function TabControl.ItemTop(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifndef __USE_GTK__
-				Dim As Rect R
-				Perform(TCM_GETITEMRECT,Index,CInt(@R))
+				Dim As ..Rect R
+				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleY(R.Top)
 			#endif
 		End If
@@ -645,7 +645,7 @@ Namespace My.Sys.Forms
 				DownButton = -1
 			Case WM_MOUSEMOVE
 				If CInt(FReorderable) AndAlso CInt(DownButton = 0) Then
-					Dim As Rect R1, R2, R3
+					Dim As ..Rect R1, R2, R3
 					Var SelTbIndex = SelectedTabIndex
 					Perform(TCM_GETITEMRECT, SelTbIndex, CInt(@R1))
 					If Message.lParamLo < R1.Left AndAlso SelTbIndex > 0 Then

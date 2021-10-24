@@ -110,14 +110,14 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
-			Dim pt As Point, rc As RECT, t As Long, itd As Long
+			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
 			Select Case Message.Msg
 			Case CM_DRAWITEM
 				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
-					OnDrawItem(This, lpdis->itemID, lpdis->itemState, lpdis->rcItem, lpdis->hDC)
+					OnDrawItem(This, lpdis->itemID, lpdis->itemState, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), lpdis->hDC)
 				Else
 					If lpdis->itemID = &HFFFFFFFF& Then
 						Exit Sub

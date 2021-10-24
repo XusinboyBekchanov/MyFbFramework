@@ -117,7 +117,7 @@ Namespace My.Sys.Forms
 				Dim As Integer W,H
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
-				Dim As Rect R, RFrame
+				Dim As ..Rect R, RFrame
 				GetClientRect Handle, @R
 				Dc = GetDC(Handle)
 				If DoubleBuffered Then
@@ -142,16 +142,16 @@ Namespace My.Sys.Forms
 '						Canvas.Line(8,RFrame.Top-1,w+10,RFrame.Top-1)
 '						Canvas.TextOut(10,0,Text,clWindowText,-1) 'David Change
 					Else
-						Frame3D(R, FBorderWidth)
+						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
 					End If
 					If FBevelInner <> bvNone Then
 						AdjustColors(FBevelInner)
-						Frame3D(R, FBevelWidth)
+						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
-					Frame3D(R, FBorderWidth)
+					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
 					If FBevelOuter <> bvNone Then
 						AdjustColors(FBevelOuter)
-						Frame3D(R, FBevelWidth)
+						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
 					Canvas.HandleSetted = True
 					Canvas.Handle = MemDC
@@ -162,7 +162,7 @@ Namespace My.Sys.Forms
 					DeleteDC(MemDC)
 				Else
 					SetBKMode Dc, TRANSPARENT
-					FillRect Dc,@R,This.Brush.Handle
+					FillRect Dc, @R, This.Brush.Handle
 					SetBKColor Dc, OPAQUE
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
@@ -178,16 +178,16 @@ Namespace My.Sys.Forms
 '						Canvas.Pen.Size = 1
 '						Canvas.TextOut(10,0,Text,clWindowText,-1) 'David Change
 					Else
-						Frame3D(R, FBorderWidth)
+						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
 					End If
 					If FBevelInner <> bvNone Then
 						AdjustColors(FBevelInner)
-						Frame3D(R, FBevelWidth)
+						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
-					Frame3D(R, FBorderWidth)
+					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
 					If FBevelOuter <> bvNone Then
 						AdjustColors(FBevelOuter)
-						Frame3D(R, FBevelWidth)
+						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
 					Canvas.Handle = Dc
 					If OnPaint Then OnPaint(This, Canvas)
@@ -208,7 +208,7 @@ Namespace My.Sys.Forms
 			If FBevel = bvLowered Then FBottomColor = GetSysColor(COLOR_BTNHIGHLIGHT)
 		End Sub
 		
-		Sub Panel.DoRect(R As RECT,tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW),tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
+		Sub Panel.DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Canvas.Pen.Color = FTopColor
 			Canvas.Line(R.Left, R.Top, R.Right, R.Top)
 			Canvas.Line(R.Left, R.Top, R.Left, R.Bottom)
@@ -217,14 +217,14 @@ Namespace My.Sys.Forms
 			Canvas.Line(R.Left, R.Bottom, R.Right, R.Bottom)
 		End Sub
 		
-		Sub Panel.Frame3D(R As RECT,AWidth As Integer)
+		Sub Panel.Frame3D(R As My.Sys.Drawing.RECT, AWidth As Integer)
 			Canvas.Pen.Size = 1
 			R.Bottom -= 1
 			R.Right  -= 1
 			While AWidth > 0
 				AWidth -= 1
 				DoRect(R)
-				InflateRect(@R, -1, -1)
+				InflateRect(Cast(..Rect Ptr, @R), -1, -1)
 			Wend
 			R.Bottom += 1
 			R.Right  += 1

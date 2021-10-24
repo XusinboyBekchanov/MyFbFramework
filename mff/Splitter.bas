@@ -114,15 +114,15 @@ Namespace My.Sys.Forms
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
 		#else
-			Static As Point g_OrigCursorPos, g_CurCursorPos
+			Static As ..Point g_OrigCursorPos, g_CurCursorPos
 			Select Case Message.Msg
 			Case WM_SETCURSOR
 				If CInt(Cursor.Handle <> 0) AndAlso CInt(Not FDesignMode) Then Message.Result = Cast(LResult, SetCursor(Cursor.Handle)): Return
 			Case WM_PAINT
-				Dim As Rect R
+				Dim As ..Rect R
 				Dim As HDC Dc
 				Dc = GetDC(Handle)
-				GetClientRect Handle,@R
+				GetClientRect Handle, @R
 				FillRect Dc, @R, Brush.Handle
 				ReleaseDC Handle, DC
 				'	Message.Result = 0
@@ -143,10 +143,10 @@ Namespace My.Sys.Forms
 				If (GetCursorPos(@g_OrigCursorPos)) Then
 					SetCapture(Handle)
 				End If
-				Dim As Rect R
-				Dim As Point P
+				Dim As ..Rect R
+				Dim As ..Point P
 				GetClientRect GetParent(Handle), @R
-				ClientToScreen GetParent(Handle), @P
+				..ClientToScreen GetParent(Handle), @P
 				R.Left = P.X
 				R.Top = P.Y
 				R.Right = R.Right + P.X
