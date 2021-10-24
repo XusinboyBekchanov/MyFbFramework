@@ -206,13 +206,140 @@ Namespace My.Sys.Forms
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub PageScroller.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+			Dim As PageScroller Ptr psc = user_data
+			If allocation->width <> psc->AllocatedWidth OrElse allocation->height <> psc->AllocatedHeight Then
+				psc->AllocatedWidth = allocation->width
+				psc->AllocatedHeight = allocation->height
+				If widget = psc->Handle Then
+					Select Case psc->Style
+					Case psHorizontal
+						gtk_widget_set_size_request(psc->Layout1, 12, allocation->height)
+						gtk_widget_set_size_request(psc->Layout2, 12, allocation->height)
+						gtk_layout_move(gtk_layout(psc->Handle), psc->Layout2, allocation->width - 12, 0)
+					Case psVertical
+						gtk_widget_set_size_request(psc->Layout1, allocation->width, 12)
+						gtk_widget_set_size_request(psc->Layout2, allocation->width, 12)
+						gtk_layout_move(gtk_layout(psc->Handle), psc->Layout2, 0, allocation->height - 12)
+					End Select
+					If psc->ChildControl AndAlso psc->ChildControl->Handle Then
+						Dim ChildAllocation As GtkAllocation
+						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+						Select Case psc->Style
+						Case psHorizontal
+							gtk_widget_set_size_request(psc->ChildControl->Handle, ChildAllocation.width, allocation->height)
+						Case psVertical
+							gtk_widget_set_size_request(psc->ChildControl->Handle, allocation->width, ChildAllocation.height)
+						End Select
+						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, 0)
+					End If
+				End If
+				If psc->OnResize Then psc->OnResize(*psc, allocation->width, allocation->height)
+			End If
+		End Sub
+		
+		Function PageScroller.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Dim As PageScroller Ptr psc = Cast(Any Ptr, data1)
+			Dim allocation As GtkAllocation
+			gtk_widget_get_allocation(widget, @allocation)
+			If widget = psc->Layout1 Then
+				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+				Select Case psc->Style
+				Case psHorizontal
+					cairo_move_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2 + 5)
+					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2 + 3)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2)
+					cairo_fill(cr)
+				Case psVertical
+					cairo_move_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2 + 3)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 5, (allocation.height - 3) / 2 + 3)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 3, (allocation.height - 3) / 2)
+					cairo_line_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2 + 3)
+					cairo_fill(cr)
+				End Select
+			ElseIf widget = psc->Layout2 Then
+				Select Case psc->Style
+				Case psHorizontal
+					cairo_move_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2)
+					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2 + 5)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2 + 3)
+					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2)
+					cairo_fill(cr)
+				Case psVertical
+					cairo_move_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 5, (allocation.height - 3) / 2)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 3, (allocation.height - 3) / 2 + 3)
+					cairo_line_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2)
+					cairo_fill(cr)
+				End Select
+			ElseIf widget = psc->Handle Then
+				If allocation.width <> psc->AllocatedWidth OrElse allocation.height <> psc->AllocatedHeight Then
+					Layout_SizeAllocate(widget, @allocation, data1)
+				End If
+				psc->Canvas.HandleSetted = True
+				psc->Canvas.Handle = cr
+				If psc->OnPaint Then psc->OnPaint(*psc, psc->Canvas)
+				psc->Canvas.HandleSetted = False
+			End If
+			Return False
+		End Function
+		
+		Function PageScroller.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As PageScroller Ptr psc = Cast(Any Ptr, data1)
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			Layout_Draw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+		
+		Function PageScroller.Layout_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			If Event->button.button - 1 = 0 Then
+				Dim As PageScroller Ptr psc = user_data
+				
+			End If
+			Return False
+		End Function
+		
+		Function PageScroller.Layout_ButtonReleaseEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			If Event->button.button - 1 = 0 Then
+				Dim As PageScroller Ptr psc = user_data
+				
+			End If
+			Return False
+		End Function
+	#endif
+	
 	Constructor PageScroller
 		With This
 			WLet(FClassName, "PageScroller")
 			WLet(FClassAncestor, "SysPager")
 			FArrowChangeSize = 40
-			#ifndef __USE_GTK__
-				.RegisterClass "PageScroller","SysPager"
+			#ifdef __USE_GTK__
+				widget = gtk_layout_new(NULL, NULL)
+				layoutwidget = widget
+				Layout1 = gtk_layout_new(NULL, NULL)
+				Layout2 = gtk_layout_new(NULL, NULL)
+				gtk_layout_put(gtk_layout(widget), Layout1, 0, 0)
+				gtk_layout_put(gtk_layout(widget), Layout2, 0, 0)
+				#ifdef __USE_GTK3__
+					g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+					g_signal_connect(Layout1, "draw", G_CALLBACK(@Layout_Draw), @This)
+					g_signal_connect(Layout2, "draw", G_CALLBACK(@Layout_Draw), @This)
+				#else
+					g_signal_connect(widget, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					g_signal_connect(Layout1, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					g_signal_connect(Layout2, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+				#endif
+				g_signal_connect(Layout1, "button-press-event", G_CALLBACK(@Layout_ButtonPressEvent), @This)
+				g_signal_connect(Layout2, "button-press-event", G_CALLBACK(@Layout_ButtonPressEvent), @This)
+				g_signal_connect(Layout1, "button-release-event", G_CALLBACK(@Layout_ButtonReleaseEvent), @This)
+				g_signal_connect(Layout2, "button-release-event", G_CALLBACK(@Layout_ButtonReleaseEvent), @This)
+				.RegisterClass "PageScroller", @This
+			#else
+				.RegisterClass "PageScroller", "SysPager"
 				Base.Style        = WS_CHILD Or PGS_HORZ
 				.ExStyle      = 0
 				.ChildProc    = @WndProc

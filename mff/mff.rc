@@ -67,8 +67,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,2,9,848
-#define VER_FILEVERSION_STR         "1.2.9.848\0"
+#define VER_FILEVERSION             1,2,9,870
+#define VER_FILEVERSION_STR         "1.2.9.870\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

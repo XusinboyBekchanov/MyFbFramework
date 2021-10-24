@@ -32,7 +32,12 @@ Namespace My.Sys.Forms
 		FChildDragDrop      As Boolean
 		FPosition           As Integer
 		FStyle              As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr Layout1, Layout2
+			Declare Static Sub Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+			Declare Static Function Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
