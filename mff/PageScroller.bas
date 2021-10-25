@@ -105,24 +105,10 @@ Namespace My.Sys.Forms
 				#ifndef __USE_GTK__
 					ChangeStyle PGS_HORZ, True
 				#endif
-				'				iWidth = This.Width
-				'				iHeight = Height
-				'				#ifdef __USE_GTK__
-				'					gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_HORIZONTAL)
-				'				#endif
-				'				This.Width = iHeight
-				'				Height  = iWidth
 			Case psVertical
 				#ifndef __USE_GTK__
 					ChangeStyle PGS_VERT, True
 				#endif
-				'				iHeight = Height
-				'				iWidth = This.Width
-				'				#ifdef __USE_GTK__
-				'					gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_VERTICAL)
-				'				#endif
-				'				Height = iWidth
-				'				This.Width  = iHeight
 			End Select
 			FStyle = Value
 		End If
@@ -297,7 +283,7 @@ Namespace My.Sys.Forms
 		Function PageScroller.Layout_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			If Event->button.button - 1 = 0 Then
 				Dim As PageScroller Ptr psc = user_data
-				
+				Return True
 			End If
 			Return False
 		End Function
@@ -305,7 +291,7 @@ Namespace My.Sys.Forms
 		Function PageScroller.Layout_ButtonReleaseEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			If Event->button.button - 1 = 0 Then
 				Dim As PageScroller Ptr psc = user_data
-				
+				Return True
 			End If
 			Return False
 		End Function
