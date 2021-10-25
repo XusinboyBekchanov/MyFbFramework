@@ -345,9 +345,9 @@ Namespace My.Sys.Drawing
 	Function Canvas.GetPixel(x As Integer,y As Integer) As Integer
 		GetDevice
 		#ifndef __USE_GTK__
-			Return .GetPixel(Handle, ScaleX(x), ScaleY(y))
+			Function = .GetPixel(Handle, ScaleX(x), ScaleY(y))
 		#else
-			Return 0
+			Function = 0
 		#endif
 		ReleaseDevice
 	End Function
@@ -585,11 +585,11 @@ Namespace My.Sys.Drawing
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			pango_font_description_free (desc)
-			Return extend.Width
+			Function = extend.Width
 		#else
 			Dim Sz As ..SIZE
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
-			Return UnScaleX(Sz.cX)
+			Function = UnScaleX(Sz.cX)
 		#endif
 		ReleaseDevice
 	End Function
@@ -610,11 +610,11 @@ Namespace My.Sys.Drawing
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			pango_font_description_free (desc)
-			Return extend.Height
+			Function = extend.Height
 		#else
 			Dim Sz As ..SIZE
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
-			Return UnScaleY(Sz.cY)
+			Function = UnScaleY(Sz.cY)
 		#endif
 		ReleaseDevice
 	End Function
