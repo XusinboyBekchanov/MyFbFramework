@@ -147,7 +147,14 @@ Namespace My.Sys.Forms
 		If ChildControl = 0 Then
 			ChildControl = Ctrl
 			Base.Add(Ctrl)
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				g_object_ref(Layout1)
+				g_object_ref(Layout2)
+				gtk_container_remove(gtk_container(widget), Layout1)
+				gtk_container_remove(gtk_container(widget), Layout2)
+				gtk_layout_put(gtk_layout(widget), Layout1, 0, 0)
+				gtk_layout_put(gtk_layout(widget), Layout2, 0, 0)
+			#else
 				If FHandle AndAlso Ctrl->Handle Then
 					SendMessage(FHandle, PGM_SETCHILD, 0, Cast(LPARAM, Ctrl->Handle))
 				End If
@@ -233,12 +240,26 @@ Namespace My.Sys.Forms
 				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
 				Select Case psc->Style
 				Case psHorizontal
+					If psc->MouseButtonPressed Then
+						Dim ChildAllocation As GtkAllocation
+						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+						If ChildAllocation.x < 0 Then
+							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Min(0, ChildAllocation.x + psc->FArrowChangeSize), 0)
+						End If
+					End If
 					cairo_move_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2)
 					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2 + 5)
 					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2 + 3)
 					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2)
 					cairo_fill(cr)
 				Case psVertical
+					If psc->MouseButtonPressed Then
+						Dim ChildAllocation As GtkAllocation
+						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+						If ChildAllocation.y < 0 Then
+							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, Min(0, ChildAllocation.y + psc->FArrowChangeSize))
+						End If
+					End If
 					cairo_move_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2 + 3)
 					cairo_line_to(cr, (allocation.width - 5) / 2 + 5, (allocation.height - 3) / 2 + 3)
 					cairo_line_to(cr, (allocation.width - 5) / 2 + 3, (allocation.height - 3) / 2)
@@ -248,12 +269,28 @@ Namespace My.Sys.Forms
 			ElseIf widget = psc->Layout2 Then
 				Select Case psc->Style
 				Case psHorizontal
+					If psc->MouseButtonPressed Then
+						Dim As GtkAllocation ChildAllocation, LayoutAllocation
+						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+						gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
+						If ChildAllocation.x + ChildAllocation.width > LayoutAllocation.width Then
+							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Max(LayoutAllocation.width - ChildAllocation.width, ChildAllocation.x - psc->FArrowChangeSize), 0)
+						End If
+					End If
 					cairo_move_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2)
 					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2 + 5)
 					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2 + 3)
 					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2)
 					cairo_fill(cr)
 				Case psVertical
+					If psc->MouseButtonPressed Then
+						Dim As GtkAllocation ChildAllocation, LayoutAllocation
+						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+						gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
+						If ChildAllocation.y + ChildAllocation.height > LayoutAllocation.height Then
+							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Max(LayoutAllocation.height - ChildAllocation.height, ChildAllocation.y - psc->FArrowChangeSize), 0)
+						End If
+					End If
 					cairo_move_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2)
 					cairo_line_to(cr, (allocation.width - 5) / 2 + 5, (allocation.height - 3) / 2)
 					cairo_line_to(cr, (allocation.width - 5) / 2 + 3, (allocation.height - 3) / 2 + 3)
@@ -280,19 +317,23 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function PageScroller.Layout_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			If Event->button.button - 1 = 0 Then
-				Dim As PageScroller Ptr psc = user_data
+		Function PageScroller.Layout_EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Dim As PageScroller Ptr psc = user_data
+			Dim As GdkEvent Ptr e = Event
+			Select Case Event->Type
+			Case GDK_BUTTON_PRESS
+				psc->MouseButtonPressed = True
 				Return True
-			End If
-			Return False
-		End Function
-		
-		Function PageScroller.Layout_ButtonReleaseEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			If Event->button.button - 1 = 0 Then
-				Dim As PageScroller Ptr psc = user_data
+			Case GDK_BUTTON_RELEASE
+				psc->MouseButtonPressed = False
 				Return True
-			End If
+			Case GDK_MOTION_NOTIFY
+				
+			Case GDK_ENTER_NOTIFY
+				psc->MouseButtonEntered = True 
+			Case GDK_LEAVE_NOTIFY
+				psc->MouseButtonEntered = False
+			End Select
 			Return False
 		End Function
 	#endif
@@ -315,14 +356,36 @@ Namespace My.Sys.Forms
 					g_signal_connect(Layout2, "draw", G_CALLBACK(@Layout_Draw), @This)
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
 					g_signal_connect(Layout1, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
 					g_signal_connect(Layout2, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
-					g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
 				#endif
-				g_signal_connect(Layout1, "button-press-event", G_CALLBACK(@Layout_ButtonPressEvent), @This)
-				g_signal_connect(Layout2, "button-press-event", G_CALLBACK(@Layout_ButtonPressEvent), @This)
-				g_signal_connect(Layout1, "button-release-event", G_CALLBACK(@Layout_ButtonReleaseEvent), @This)
-				g_signal_connect(Layout2, "button-release-event", G_CALLBACK(@Layout_ButtonReleaseEvent), @This)
+				gtk_widget_set_events(Layout1, _
+				GDK_EXPOSURE_MASK Or _
+				GDK_SCROLL_MASK Or _
+				GDK_STRUCTURE_MASK Or _
+				GDK_KEY_PRESS_MASK Or _
+				GDK_KEY_RELEASE_MASK Or _
+				GDK_FOCUS_CHANGE_MASK Or _
+				GDK_LEAVE_NOTIFY_MASK Or _
+				GDK_BUTTON_PRESS_MASK Or _
+				GDK_BUTTON_RELEASE_MASK Or _
+				GDK_POINTER_MOTION_MASK Or _
+				GDK_POINTER_MOTION_HINT_MASK)
+				gtk_widget_set_events(Layout2, _
+				GDK_EXPOSURE_MASK Or _
+				GDK_SCROLL_MASK Or _
+				GDK_STRUCTURE_MASK Or _
+				GDK_KEY_PRESS_MASK Or _
+				GDK_KEY_RELEASE_MASK Or _
+				GDK_FOCUS_CHANGE_MASK Or _
+				GDK_LEAVE_NOTIFY_MASK Or _
+				GDK_BUTTON_PRESS_MASK Or _
+				GDK_BUTTON_RELEASE_MASK Or _
+				GDK_POINTER_MOTION_MASK Or _
+				GDK_POINTER_MOTION_HINT_MASK)
+				g_signal_connect(Layout1, "event", G_CALLBACK(@Layout_EventProc), @This)
+				g_signal_connect(Layout2, "event", G_CALLBACK(@Layout_EventProc), @This)
 				.RegisterClass "PageScroller", @This
 			#else
 				.RegisterClass "PageScroller", "SysPager"
