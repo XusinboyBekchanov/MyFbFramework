@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
 	#define QReBar(__Ptr__) *Cast(ReBar Ptr, __Ptr__)
 	#define REBAR_HEIGHT 35
 	
-	Type ReBar Extends Control
+	Type ReBar Extends ContainerControl
 	Private:
 		FBackColor      As Integer
 		m_BandCount     As Integer   = 0
@@ -36,6 +36,7 @@ Namespace My.Sys.Forms
 		Declare Property BMP() ByRef As WString
 		Declare Property BMP(ByRef value As WString)
 		Declare Property BandRect(ByVal uBand As Integer) As My.Sys.Drawing.Rect
+		Declare Sub Add(Ctrl As Control Ptr)
 		Declare Sub AddBand(value As Control Ptr)
 		Declare Sub AddBand(value  As Control Ptr, ByRef Caption As WString)
 		Declare Sub AddBand(value  As Control Ptr, idx As Integer, ByRef Caption As WString)

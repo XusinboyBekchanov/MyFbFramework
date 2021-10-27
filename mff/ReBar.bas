@@ -68,27 +68,29 @@ Namespace My.Sys.Forms
 	
 	Sub ReBar.AddBand(value As Control Ptr, idx As Integer, ByRef Caption As WString)
 		#ifndef __USE_GTK__
-			Dim As REBARBANDINFO rbBand
-			Dim As RECT rct
-			
-			rbBand.cbSize = SizeOf(REBARBANDINFO)
-			rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE
-			If (idx > -1) AndAlso ImageList AndAlso (ImageList->Count > 0) Then
-				rbBand.fMask Or= RBBIM_IMAGE
-				rbBand.iImage = idx
+			If FHandle AndAlso Value->Handle Then
+				Dim As REBARBANDINFO rbBand
+				Dim As RECT rct
+				
+				rbBand.cbSize = SizeOf(REBARBANDINFO)
+				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE
+				If (idx > -1) AndAlso ImageList AndAlso (ImageList->Count > 0) Then
+					rbBand.fMask Or= RBBIM_IMAGE
+					rbBand.iImage = idx
+				End If
+				If Caption <> "" Then
+					rbBand.fMask Or= RBBIM_TEXT
+					rbBand.lpText = @Caption
+				End If
+				rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS          ' (RBBIM_STYLE flag)
+				
+				rbBand.hwndChild = value->Handle                                       ' (RBBIM_CHILD flag)
+				GetWindowRect(value->Handle, @rct)
+				rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
+				rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
+				SendMessage(Handle, RB_INSERTBAND, -1, Cast(lParam, @rbBand))
 			End If
-			If Caption <> "" Then
-				rbBand.fMask Or= RBBIM_TEXT
-				rbBand.lpText = @Caption
-			End If
-			rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS          ' (RBBIM_STYLE flag)
-			
-			rbBand.hwndChild = value->Handle                                       ' (RBBIM_CHILD flag)
-			GetWindowRect(value->Handle, @rct)
-			rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
-			rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
-			rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
-			SendMessage(Handle, RB_INSERTBAND, -1, Cast(lParam, @rbBand))
 		#endif
 	End Sub
 	
@@ -118,6 +120,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Sub ReBar.Add(Ctrl As Control Ptr)
+		Base.Add(Ctrl)
+		AddBand Ctrl
+	End Sub
+	
 	#ifndef __USE_GTK__
 		Sub ReBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
@@ -125,6 +132,9 @@ Namespace My.Sys.Forms
 					If .BackColor <> GetSysColor(COLOR_BTNFACE) Then SendMessage(.Handle, RB_SETBKCOLOR, 0, Cast(LPARAM, .BackColor))
 					If .Font.Color <> 0 Then SendMessage(.Handle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, .Font.Color))
 					.UpdateRebar()
+					For i As Integer = 0 To .ControlCount - 1
+						.AddBand .Controls[i]
+					Next
 				End With
 			End If
 		End Sub
@@ -174,7 +184,7 @@ Namespace My.Sys.Forms
 			WLet(FClassAncestor, "ReBarWindow32")
 			#ifndef __USE_GTK__
 				.RegisterClass "ReBar", "ReBarWindow32"
-				.Style        = WS_CHILD Or RBS_VARHEIGHT Or RBS_BANDBORDERS Or CCS_NODIVIDER 
+				.Style        = WS_CHILD Or RBS_VARHEIGHT Or RBS_BANDBORDERS Or CCS_NODIVIDER
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
 				.DoubleBuffered = True
