@@ -79,8 +79,24 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property PageScroller.Position(Value As Integer)
-		FPosition = Value
-		#ifndef __USE_GTK__
+		FPosition = Max(0, Value)
+		#ifdef __USE_GTK__
+			If ChildControl AndAlso ChildControl->Handle Then
+				Select Case This.Style
+				Case psHorizontal
+					FPosition = Min(ChildControl->Width - This.Width, FPosition)
+					gtk_layout_move(gtk_layout(FHandle), ChildControl->Handle, -FPosition, 0)
+					If FPosition = 0 Then gtk_widget_hide(Layout1) Else gtk_widget_show(Layout2)
+					If FPosition = ChildControl->Width - This.Width OrElse ChildControl->Width = This.Width Then gtk_widget_hide(Layout2) Else gtk_widget_show(Layout1)
+				Case psVertical
+					FPosition = Min(ChildControl->Height - This.Height, FPosition)
+					gtk_layout_move(gtk_layout(FHandle), ChildControl->Handle, 0, -FPosition)
+					If FPosition = 0 Then gtk_widget_hide(Layout1) Else gtk_widget_show(Layout2)
+					If FPosition = ChildControl->Height - This.Height OrElse ChildControl->Height = This.Height Then gtk_widget_hide(Layout2) Else gtk_widget_show(Layout1)
+				End Select
+				If OnScroll Then OnScroll(This, FPosition)
+			End If
+		#else
 			If FHandle Then
 				SendMessage(FHandle, PGM_SETPOS, 0, Cast(LPARAM, FPosition))
 			End If
@@ -232,74 +248,170 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function PageScroller.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
-			Dim As PageScroller Ptr psc = Cast(Any Ptr, data1)
+		Sub PageScroller.Layout_Press(widget As GtkWidget Ptr)
+			Dim As PageScroller Ptr psc = @This
 			Dim allocation As GtkAllocation
+			Dim As Integer NewPosition
 			gtk_widget_get_allocation(widget, @allocation)
 			If widget = psc->Layout1 Then
-				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
 				Select Case psc->Style
 				Case psHorizontal
-					If psc->MouseButtonPressed Then
-						Dim ChildAllocation As GtkAllocation
-						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
-						If ChildAllocation.x < 0 Then
-							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Min(0, ChildAllocation.x + psc->FArrowChangeSize), 0)
-						End If
+					Dim ChildAllocation As GtkAllocation
+					gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+					If ChildAllocation.x < 0 Then
+						NewPosition = Min(0, ChildAllocation.x + psc->FArrowChangeSize)
+						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, NewPosition, 0)
+						If NewPosition = 0 Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout2)
+						psc->FPosition = Abs(NewPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
 					End If
-					cairo_move_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2)
-					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2 + 5)
-					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2 + 3)
-					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2)
-					cairo_fill(cr)
 				Case psVertical
-					If psc->MouseButtonPressed Then
-						Dim ChildAllocation As GtkAllocation
-						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
-						If ChildAllocation.y < 0 Then
-							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, Min(0, ChildAllocation.y + psc->FArrowChangeSize))
-						End If
+					Dim ChildAllocation As GtkAllocation
+					gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+					If ChildAllocation.y < 0 Then
+						NewPosition = Min(0, ChildAllocation.y + psc->FArrowChangeSize)
+						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, Min(0, ChildAllocation.y + psc->FArrowChangeSize))
+						If NewPosition = 0 Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout2)
+						psc->FPosition = Abs(NewPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
 					End If
-					cairo_move_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2 + 3)
-					cairo_line_to(cr, (allocation.width - 5) / 2 + 5, (allocation.height - 3) / 2 + 3)
-					cairo_line_to(cr, (allocation.width - 5) / 2 + 3, (allocation.height - 3) / 2)
-					cairo_line_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2 + 3)
-					cairo_fill(cr)
 				End Select
 			ElseIf widget = psc->Layout2 Then
 				Select Case psc->Style
 				Case psHorizontal
-					If psc->MouseButtonPressed Then
-						Dim As GtkAllocation ChildAllocation, LayoutAllocation
-						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
-						gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
-						If ChildAllocation.x + ChildAllocation.width > LayoutAllocation.width Then
-							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Max(LayoutAllocation.width - ChildAllocation.width, ChildAllocation.x - psc->FArrowChangeSize), 0)
-						End If
+					Dim As GtkAllocation ChildAllocation, LayoutAllocation
+					gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+					gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
+					If ChildAllocation.x + ChildAllocation.width > LayoutAllocation.width Then
+						NewPosition = Max(LayoutAllocation.width - ChildAllocation.width, ChildAllocation.x - psc->FArrowChangeSize)
+						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Max(LayoutAllocation.width - ChildAllocation.width, ChildAllocation.x - psc->FArrowChangeSize), 0)
+						If NewPosition = LayoutAllocation.width - ChildAllocation.width Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout1)
+						psc->FPosition = Abs(NewPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
 					End If
-					cairo_move_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2)
-					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2 + 5)
-					cairo_line_to(cr, (allocation.width - 3) / 2 + 3, (allocation.height - 5) / 2 + 3)
-					cairo_line_to(cr, (allocation.width - 3) / 2, (allocation.height - 5) / 2)
-					cairo_fill(cr)
 				Case psVertical
-					If psc->MouseButtonPressed Then
-						Dim As GtkAllocation ChildAllocation, LayoutAllocation
-						gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
-						gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
-						If ChildAllocation.y + ChildAllocation.height > LayoutAllocation.height Then
-							gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Max(LayoutAllocation.height - ChildAllocation.height, ChildAllocation.y - psc->FArrowChangeSize), 0)
-						End If
+					Dim As GtkAllocation ChildAllocation, LayoutAllocation
+					gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+					gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
+					If ChildAllocation.y + ChildAllocation.height > LayoutAllocation.height Then
+						NewPosition = Max(LayoutAllocation.height - ChildAllocation.height, ChildAllocation.y - psc->FArrowChangeSize)
+						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, Max(LayoutAllocation.height - ChildAllocation.height, ChildAllocation.y - psc->FArrowChangeSize))
+						If NewPosition = LayoutAllocation.height - ChildAllocation.height Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout1)
+						psc->FPosition = Abs(NewPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
 					End If
-					cairo_move_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2)
-					cairo_line_to(cr, (allocation.width - 5) / 2 + 5, (allocation.height - 3) / 2)
-					cairo_line_to(cr, (allocation.width - 5) / 2 + 3, (allocation.height - 3) / 2 + 3)
-					cairo_line_to(cr, (allocation.width - 5) / 2, (allocation.height - 3) / 2)
+				End Select
+			End If
+		End Sub
+		
+		Function PageScroller.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Dim As PageScroller Ptr psc = Cast(Any Ptr, data1)
+			Dim allocation As GtkAllocation
+			Dim As Integer Pressed = 0
+			gtk_widget_get_allocation(widget, @allocation)
+			If widget <> psc->EndedLayout Then
+				If widget = psc->PressedLayout Then
+					Pressed = 1
+					cairo_set_source_rgb(cr, 160 / 255.0, 160 / 255.0, 160 / 255.0)
+					cairo_move_to(cr, allocation.width - 1, 0)
+					cairo_line_to(cr, 0, 0)
+					cairo_line_to(cr, 0, allocation.height - 1)
+					cairo_stroke(cr)
+					cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
+					cairo_move_to(cr, allocation.width, 0)
+					cairo_line_to(cr, allocation.width, allocation.height)
+					cairo_line_to(cr, 0, allocation.height)
+					cairo_stroke(cr)
+				ElseIf widget = psc->EnteredLayout Then
+					cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
+					cairo_move_to(cr, allocation.width - 1, 0)
+					cairo_line_to(cr, 0, 0)
+					cairo_line_to(cr, 0, allocation.height - 1)
+					cairo_stroke(cr)
+					cairo_set_source_rgb(cr, 160 / 255.0, 160 / 255.0, 160 / 255.0)
+					cairo_move_to(cr, allocation.width, 0)
+					cairo_line_to(cr, allocation.width, allocation.height)
+					cairo_line_to(cr, 0, allocation.height)
+					cairo_stroke(cr)
+				End If
+			End If
+			If widget = psc->Layout1 Then
+				If widget = psc->EndedLayout Then
+					cairo_set_source_rgb(cr, 160 / 255.0, 160 / 255.0, 160 / 255.0)
+				Else
+					cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+				End If
+				Select Case psc->Style
+				Case psHorizontal
+					cairo_move_to(cr, (allocation.width - 3) / 2 + 3 + Pressed, (allocation.height - 5) / 2 + Pressed)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + 3 + Pressed, (allocation.height - 5) / 2 + 5 + Pressed)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + Pressed, (allocation.height - 5) / 2 + 3 + Pressed)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + 3 + Pressed, (allocation.height - 5) / 2 + Pressed)
 					cairo_fill(cr)
+					If widget = psc->EndedLayout Then
+						cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
+						cairo_move_to(cr, (allocation.width - 3) / 2 + 3 + 1, (allocation.height - 5) / 2 + 1)
+						cairo_line_to(cr, (allocation.width - 3) / 2 + 3 + 1, (allocation.height - 5) / 2 + 5 + 1)
+						cairo_stroke(cr)
+					End If
+				Case psVertical
+					cairo_move_to(cr, (allocation.width - 5) / 2 + Pressed, (allocation.height - 3) / 2 + 3 + Pressed)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 5 + Pressed, (allocation.height - 3) / 2 + 3 + Pressed)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 3 + Pressed, (allocation.height - 3) / 2 + Pressed)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + Pressed, (allocation.height - 3) / 2 + 3 + Pressed)
+					cairo_fill(cr)
+					If widget = psc->EndedLayout Then
+						cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
+						cairo_move_to(cr, (allocation.width - 5) / 2 + 1, (allocation.height - 3) / 2 + 3 + 1)
+						cairo_line_to(cr, (allocation.width - 3) / 2 + 5 + 1, (allocation.height - 3) / 2 + 3 + 1)
+						cairo_stroke(cr)
+					End If
+				End Select
+			ElseIf widget = psc->Layout2 Then
+				If widget = psc->EndedLayout Then
+					cairo_set_source_rgb(cr, 160 / 255.0, 160 / 255.0, 160 / 255.0)
+				Else
+					cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+				End If
+				Select Case psc->Style
+				Case psHorizontal
+					cairo_move_to(cr, (allocation.width - 3) / 2 + Pressed, (allocation.height - 5) / 2 + Pressed)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + Pressed, (allocation.height - 5) / 2 + 5 + Pressed)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + 3 + Pressed, (allocation.height - 5) / 2 + 3 + Pressed)
+					cairo_line_to(cr, (allocation.width - 3) / 2 + Pressed, (allocation.height - 5) / 2 + Pressed)
+					cairo_fill(cr)
+					If widget = psc->EndedLayout Then
+						cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
+						cairo_move_to(cr, (allocation.width - 3) / 2 - 1, (allocation.height - 5) / 2 - 1)
+						cairo_line_to(cr, (allocation.width - 3) / 2 - 1, (allocation.height - 3) / 2 + 5 - 1)
+						cairo_stroke(cr)
+					End If
+				Case psVertical
+					cairo_move_to(cr, (allocation.width - 5) / 2 + Pressed, (allocation.height - 3) / 2 + Pressed)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 5 + Pressed, (allocation.height - 3) / 2 + Pressed)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + 3 + Pressed, (allocation.height - 3) / 2 + 3 + Pressed)
+					cairo_line_to(cr, (allocation.width - 5) / 2 + Pressed, (allocation.height - 3) / 2 + Pressed)
+					cairo_fill(cr)
+					If widget = psc->EndedLayout Then
+						cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
+						cairo_move_to(cr, (allocation.width - 5) / 2 - 1, (allocation.height - 3) / 2 - 1)
+						cairo_line_to(cr, (allocation.width - 5) / 2 + 5 - 1, (allocation.height - 3) / 2 - 1)
+						cairo_stroke(cr)
+					End If
 				End Select
 			ElseIf widget = psc->Handle Then
 				If allocation.width <> psc->AllocatedWidth OrElse allocation.height <> psc->AllocatedHeight Then
 					Layout_SizeAllocate(widget, @allocation, data1)
+				End If
+				If Not psc->bCreated Then
+					gtk_widget_hide(psc->Layout1)
+					Dim As GtkAllocation ChildAllocation, LayoutAllocation
+					gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
+					gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
+					If ChildAllocation.height = LayoutAllocation.height AndAlso ChildAllocation.width = LayoutAllocation.width Then
+						gtk_widget_hide(psc->Layout2)
+					End If
+					psc->bCreated = True
 				End If
 				psc->Canvas.HandleSetted = True
 				psc->Canvas.Handle = cr
@@ -317,22 +429,59 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
+		Function PageScroller.Layout_hover_cb(ByVal user_data As gpointer) As gboolean
+			If hover_timer_id Then
+				If user_data = MouseHoverMessage.widget Then
+					Dim As PageScroller Ptr psc = Cast(PageScroller Ptr, MouseHoverMessage.Sender)
+					psc->Layout_Press(MouseHoverMessage.widget)
+					Return True
+				End If
+			End If
+			Return False
+		End Function
+		
 		Function PageScroller.Layout_EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As PageScroller Ptr psc = user_data
 			Dim As GdkEvent Ptr e = Event
 			Select Case Event->Type
 			Case GDK_BUTTON_PRESS
-				psc->MouseButtonPressed = True
+				psc->PressedLayout = widget
+				psc->Layout_Press(widget)
+				gtk_widget_queue_draw(widget)
+				If gtk_layout_get_bin_window(gtk_layout(widget)) = e->Motion.window Then
+					hover_timer_id = 0
+					If widget <> psc->EndedLayout Then
+						MouseHoverMessage = Type(psc, e->Motion.x, e->Motion.y, e->Motion.state, 0, widget)
+						hover_timer_id = g_timeout_add(500, Cast(GSourceFunc, @Layout_hover_cb), widget)
+						Return True
+					End If
+				End If
 				Return True
 			Case GDK_BUTTON_RELEASE
-				psc->MouseButtonPressed = False
+				psc->PressedLayout = 0
+				hover_timer_id = 0
+				gtk_widget_queue_draw(widget)
 				Return True
 			Case GDK_MOTION_NOTIFY
-				
+				If psc->EnteredLayout = 0 Then
+					psc->EnteredLayout = widget
+					gtk_widget_queue_draw(widget)
+				End If
+				If gtk_layout_get_bin_window(gtk_layout(widget)) = e->Motion.window Then
+					hover_timer_id = 0
+					If widget <> psc->EndedLayout AndAlso psc->FAutoScroll = True Then
+						MouseHoverMessage = Type(psc, e->Motion.x, e->Motion.y, e->Motion.state, 0, widget)
+						hover_timer_id = g_timeout_add(500, Cast(GSourceFunc, @Layout_hover_cb), widget)
+						Return True
+					End If
+				End If
 			Case GDK_ENTER_NOTIFY
-				psc->MouseButtonEntered = True 
+				psc->EnteredLayout = widget
+				gtk_widget_queue_draw(widget)
 			Case GDK_LEAVE_NOTIFY
-				psc->MouseButtonEntered = False
+				psc->EnteredLayout = 0
+				gtk_widget_queue_draw(widget)
+				If widget = psc->EndedLayout Then gtk_widget_hide(widget): psc->EndedLayout = 0
 			End Select
 			Return False
 		End Function

@@ -84,6 +84,7 @@ Namespace My.Sys.Forms
 				Y As Double
 				State As Integer
 				pBoolean As Boolean Ptr
+				Widget As GtkWidget Ptr
 			End Type
 			Dim Shared MouseHoverMessage As MouseHoverMessageType
 			Dim Shared hover_timer_id As UInteger
