@@ -166,7 +166,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim ticc As INITCOMMONCONTROLSEX     ' specifies common control classes to register
 			ticc.dwSize = SizeOf(ticc)
-			ticc.dwICC  = ICC_COOL_CLASSES Or  ICC_USEREX_CLASSES
+			ticc.dwICC  = ICC_COOL_CLASSES Or ICC_BAR_CLASSES
 			InitCommonControlsEx @ticc
 		#endif
 		With This
@@ -174,7 +174,7 @@ Namespace My.Sys.Forms
 			WLet(FClassAncestor, "ReBarWindow32")
 			#ifndef __USE_GTK__
 				.RegisterClass "ReBar", "ReBarWindow32"
-				.Style        = WS_CHILD Or RBS_VARHEIGHT Or RBS_BANDBORDERS
+				.Style        = WS_CHILD Or RBS_VARHEIGHT Or RBS_BANDBORDERS Or CCS_NODIVIDER 
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
 				.DoubleBuffered = True
