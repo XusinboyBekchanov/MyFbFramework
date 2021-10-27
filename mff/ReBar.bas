@@ -58,8 +58,8 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ReBar.BandRect(ByVal uBand As Integer) As RECT
-		Dim rc As RECT
+	Property ReBar.BandRect(ByVal uBand As Integer) As My.Sys.Drawing.RECT
+		Dim rc As My.Sys.Drawing.RECT
 		#ifndef __USE_GTK__
 			Perform(RB_GETRECT, uBand, Cast(LPARAM, @rc))
 		#endif
@@ -179,8 +179,8 @@ Namespace My.Sys.Forms
 				.ChildProc    = @WndProc
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
+				.BackColor       = GetSysColor(COLOR_BTNFACE)
 			#endif
-			.BackColor       = GetSysColor(COLOR_BTNFACE)
 			.Width        = 100
 			.Height       = 25
 			.Child        = @This
