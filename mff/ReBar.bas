@@ -182,9 +182,13 @@ Namespace My.Sys.Forms
 		With This
 			WLet(FClassName, "ReBar")
 			WLet(FClassAncestor, "ReBarWindow32")
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				widget = gtk_layout_new(NULL, NULL)
+				layoutwidget = widget
+				.RegisterClass "ReBar", @This
+			#else
 				.RegisterClass "ReBar", "ReBarWindow32"
-				.Style        = WS_CHILD Or RBS_VARHEIGHT Or RBS_BANDBORDERS Or CCS_NODIVIDER
+				.Style        = WS_CHILD Or RBS_VARHEIGHT Or CCS_NODIVIDER Or RBS_BANDBORDERS
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
 				.DoubleBuffered = True
