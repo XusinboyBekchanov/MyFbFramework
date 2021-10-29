@@ -7,6 +7,22 @@
 #include once "ReBar.bi"
 
 Namespace My.Sys.Forms
+	Property ReBarBand.Caption ByRef As WString
+		Return WGet(FCaption)
+	End Property
+	
+	Property ReBarBand.Caption(ByRef Value As WString)
+		WLet FCaption, Value
+	End Property
+	
+	Constructor ReBarBand
+		
+	End Constructor
+	
+	Destructor ReBarBand
+		WDeallocate FCaption
+	End Destructor
+	
 	Function ReBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -73,7 +89,7 @@ Namespace My.Sys.Forms
 				Dim As RECT rct
 				
 				rbBand.cbSize = SizeOf(REBARBANDINFO)
-				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE
+				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
 				If (idx > -1) AndAlso ImageList AndAlso (ImageList->Count > 0) Then
 					rbBand.fMask Or= RBBIM_IMAGE
 					rbBand.iImage = idx
@@ -82,13 +98,14 @@ Namespace My.Sys.Forms
 					rbBand.fMask Or= RBBIM_TEXT
 					rbBand.lpText = @Caption
 				End If
-				rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS          ' (RBBIM_STYLE flag)
+				rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS Or RBBS_USECHEVRON          ' (RBBIM_STYLE flag)
 				
 				rbBand.hwndChild = value->Handle                                       ' (RBBIM_CHILD flag)
 				GetWindowRect(value->Handle, @rct)
 				rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
 				rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
 				rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
+				rbBand.cxIdeal = rct.Right - rct.Left
 				SendMessage(Handle, RB_INSERTBAND, -1, Cast(lParam, @rbBand))
 			End If
 		#endif

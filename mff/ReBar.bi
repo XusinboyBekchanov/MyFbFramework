@@ -11,6 +11,35 @@ Namespace My.Sys.Forms
 	#define QReBar(__Ptr__) *Cast(ReBar Ptr, __Ptr__)
 	#define REBAR_HEIGHT 35
 	
+	Type ReBarBand Extends My.Sys.Object
+	Private:
+		FCaption As WString Ptr
+	Public:
+		Declare Property Caption ByRef As WString
+		Declare Property Caption(ByRef Value As WString)
+		Declare Constructor
+		Declare Destructor
+	End Type
+	
+	Type ReBarBandCollection Extends List
+	Private:
+	Public:
+		Declare Property Item(Index As Integer) As ReBarBand Ptr
+		Declare Property Item(Index As Integer, FItem As ReBarBand Ptr)
+		Declare Sub Add(FItem As Any Ptr)
+		Declare Sub Add(ByRef Caption As WString)
+		Declare Sub Insert(Index As Integer, FItem As Any Ptr)
+		Declare Sub Add(ByRef Caption As WString)
+		Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
+		Declare Sub Remove(Index As Integer)
+		Declare Sub Clear
+		Declare Function IndexOf(FItem As Any Ptr) As Integer
+		Declare Function Contains(FItem As Any Ptr) As Boolean
+		Declare Operator Cast As Any Ptr
+		Declare Constructor
+		Declare Destructor
+	End Type
+	
 	Type ReBar Extends ContainerControl
 	Private:
 		FBackColor      As Integer

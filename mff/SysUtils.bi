@@ -42,10 +42,12 @@
 #endif
 
 '#define In ,
-#macro Each(iter, arr)
-	index As Integer = LBound(arr) To UBound(arr)
-	#define iter arr(index)
-#endmacro
+'#macro Each(iter, arr)
+'	index As Integer = LBound(arr) To UBound(arr)
+'	#define iter arr(index)
+'#endmacro
+
+#define Each(iter, col) __index__ As Integer = 0 To col.Count - 1: Dim As Typeof(col.Item(__index__)) iter = col.Item(__index__)
 
 #define Me This
 

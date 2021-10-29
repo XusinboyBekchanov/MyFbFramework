@@ -21,10 +21,10 @@ Public:
 	Count As Integer = 0
 	Items As Any Ptr Ptr
 	Declare Property Item(Index As Integer) As Any Ptr
-	Declare Property Item(Index As Integer,FItem As Any Ptr)
+	Declare Property Item(Index As Integer, FItem As Any Ptr)
 	Declare Sub Add(FItem As Any Ptr)
-	Declare Sub Insert(Index As Integer,FItem As Any Ptr)
-	Declare Sub Exchange(Index1 As Integer,Index2 As Integer)
+	Declare Sub Insert(Index As Integer, FItem As Any Ptr)
+	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
 	Declare Sub Clear
 	Declare Function IndexOf(FItem As Any Ptr) As Integer
