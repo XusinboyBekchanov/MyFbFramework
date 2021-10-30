@@ -463,6 +463,9 @@ Namespace My.Sys.Forms
 		FHint = 0 'CAllocate_(0)
 		FCaption = 0 'CAllocate_(0)
 		WLet(FClassName, "ToolButton")
+		#ifdef __USE_GTK__
+			Widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8("")))
+		#endif
 		FStyle      = tbsButton
 		FEnabled    = 1
 		FVisible    = 1
@@ -528,6 +531,7 @@ Namespace My.Sys.Forms
 		With *PButton
 			.Style          = FStyle
 			#ifdef __USE_GTK__
+				If gtk_is_widget(.widget) Then gtk_widget_destroy(.Widget)
 				Select Case FStyle
 				Case tbsSeparator
 					.widget = gtk_widget(gtk_separator_tool_item_new())

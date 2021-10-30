@@ -545,6 +545,48 @@ Namespace My.Sys.Forms
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
+	#ifdef __USE_GTK__
+		Sub ReBar.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+			Dim As ReBar Ptr rb = user_data
+			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
+				rb->AllocatedWidth = allocation->width
+				rb->AllocatedHeight = allocation->height
+				Dim As Integer FLeft, FTop, FClientWidth
+				Dim ChildAllocation As GtkAllocation
+				Dim ChildWidget As GtkWidget Ptr
+				For i As Integer = 0 To rb->Bands.Count - 1
+					ChildWidget = rb->Bands.Item(i)->Child->Handle
+					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
+'					gtk_layout_move(gtk_layout(widget), ChildWidget, FLeft, FTop)
+'					gtk_widget_set_size_request(ChildWidget, allocation.width, allocation.height)
+				Next
+				If rb->OnResize Then rb->OnResize(*rb, allocation->width, allocation->height)
+			End If
+		End Sub
+		
+		Function ReBar.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Dim As ReBar Ptr rb = Cast(Any Ptr, data1)
+			Dim allocation As GtkAllocation
+			gtk_widget_get_allocation(widget, @allocation)
+			If allocation.width <> rb->AllocatedWidth OrElse allocation.height <> rb->AllocatedHeight Then
+				Layout_SizeAllocate(widget, @allocation, data1)
+			End If
+			rb->Canvas.HandleSetted = True
+			rb->Canvas.Handle = cr
+			If rb->OnPaint Then rb->OnPaint(*rb, rb->Canvas)
+			rb->Canvas.HandleSetted = False
+			Return False
+		End Function
+		
+		Function ReBar.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As ReBar Ptr rb = Cast(Any Ptr, data1)
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			Layout_Draw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+	#endif
+	
 	Constructor ReBar
 		#ifndef __USE_GTK__
 			Dim ticc As INITCOMMONCONTROLSEX     ' specifies common control classes to register
@@ -559,6 +601,12 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				widget = gtk_layout_new(NULL, NULL)
 				layoutwidget = widget
+				#ifdef __USE_GTK3__
+					g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+				#else
+					g_signal_connect(widget, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+				#endif
 				.RegisterClass "ReBar", @This
 			#else
 				.RegisterClass "ReBar", "ReBarWindow32"
