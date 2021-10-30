@@ -521,6 +521,8 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
+			Case WM_COMMAND
+				Message.Result = -1
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
