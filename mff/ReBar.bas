@@ -7,13 +7,318 @@
 #include once "ReBar.bi"
 
 Namespace My.Sys.Forms
+	Sub ReBarBand.ChangeStyle(iStyle As Integer, Value As Boolean)
+		If Value Then
+			If ((FStyle And iStyle) <> iStyle) Then FStyle = FStyle Or iStyle
+		ElseIf ((FStyle And iStyle) = iStyle) Then
+			FStyle = FStyle And Not iStyle
+		End If
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.cbSize = SizeOf(REBARBANDINFO)
+				rbBand.fMask = RBBIM_STYLE
+				rbBand.fStyle = FStyle
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Sub
+	
+	Property ReBarBand.Break As Boolean
+		Return FBreak
+	End Property
+	
+	Property ReBarBand.Break(Value As Boolean)
+		FBreak = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_BREAK, Value
+		#endif
+	End Property
+	
+	Property ReBarBand.ChildEdge As Boolean
+		Return FChildEdge
+	End Property
+	
+	Property ReBarBand.ChildEdge(Value As Boolean)
+		FChildEdge = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_CHILDEDGE, Value
+		#endif
+	End Property
+	
 	Property ReBarBand.Caption ByRef As WString
 		Return WGet(FCaption)
 	End Property
 	
 	Property ReBarBand.Caption(ByRef Value As WString)
 		WLet FCaption, Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.cbSize = SizeOf(REBARBANDINFO)
+				rbBand.fMask = RBBIM_TEXT
+				rbBand.lpText = FCaption
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
 	End Property
+	
+	Property ReBarBand.Child As Control Ptr
+		Return FChild
+	End Property
+	
+	Property ReBarBand.Child(Value As Control Ptr)
+		FChild = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				Dim As RECT rct
+				rbBand.fMask = RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
+				rbBand.hwndChild = Value->Handle                                        ' (RBBIM_CHILD flag)
+				GetWindowRect(Value->Handle, @rct)
+				rbBand.cxMinChild = rct.Right - rct.Left                                ' Minimum width of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyMinChild = rct.Bottom - rct.Top                                ' Minimum height of band (RBBIM_CHILDSIZE flag)
+				rbBand.cx = rct.Right - rct.Left                                        ' Length of the band (RBBIM_SIZE flag)
+				rbBand.cxIdeal = rct.Right - rct.Left
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Property
+	
+	Property ReBarBand.FixedBitmap As Boolean
+		Return FFixedBitmap
+	End Property
+	
+	Property ReBarBand.FixedBitmap(Value As Boolean)
+		FFixedBitmap = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_FIXEDBMP, Value
+		#endif
+	End Property
+	
+	Property ReBarBand.FixedSize As Boolean
+		Return FFixedSize
+	End Property
+	
+	Property ReBarBand.FixedSize(Value As Boolean)
+		FFixedSize = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_FIXEDSIZE, Value
+		#endif
+	End Property
+	
+	Property ReBarBand.GripperStyle As GripperStyles
+		Return FGripperStyle
+	End Property
+	
+	Property ReBarBand.GripperStyle(Value As GripperStyles)
+		FGripperStyle = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_GRIPPERALWAYS, False
+			ChangeStyle RBBS_NOGRIPPER, False
+			Select Case Value
+			Case Auto
+			Case GripperAlways: ChangeStyle RBBS_GRIPPERALWAYS, True
+			Case NoGripper: ChangeStyle RBBS_NOGRIPPER, True
+			End Select
+		#endif
+	End Property
+	
+	Property ReBarBand.ImageIndex As Integer
+		Return FImageIndex
+	End Property
+	
+	Property ReBarBand.ImageIndex(Value As Integer)
+		FImageIndex = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				If FImageIndex > -1 AndAlso Parent->ImageList <> 0 AndAlso Parent->ImageList->Count > 0 Then
+					Dim As REBARBANDINFO rbBand
+					rbBand.cbSize = SizeOf(REBARBANDINFO)
+					rbBand.fMask Or = RBBIM_IMAGE
+					rbBand.iImage = FImageIndex
+					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(lParam, @rbBand))
+				End If
+			End If
+		#endif
+	End Property
+	
+	Property ReBarBand.ImageKey ByRef As WString
+		Return WGet(FImageKey)
+	End Property
+	
+	Property ReBarBand.ImageKey(ByRef Value As WString)
+		WLet FImageKey, Value
+		If Parent AndAlso Parent->ImageList Then
+			ImageIndex = Parent->ImageList->IndexOf(*FImageKey)
+		End If
+	End Property
+	
+	Property ReBarBand.MinWidth As Integer
+		Return FMinWidth
+	End Property
+	
+	Property ReBarBand.MinWidth(Value As Integer)
+		FMinWidth = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.fMask = RBBIM_CHILDSIZE
+				rbBand.cxMinChild = FMinWidth                                ' Minimum width of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyMinChild = FMinHeight                               ' Minimum height of band (RBBIM_CHILDSIZE flag)
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Property
+	
+	Property ReBarBand.MinHeight As Integer
+		Return FMinHeight
+	End Property
+	
+	Property ReBarBand.MinHeight(Value As Integer)
+		FMinHeight = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.fMask = RBBIM_CHILDSIZE
+				rbBand.cxMinChild = FMinWidth                                ' Minimum width of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyMinChild = FMinHeight                               ' Minimum height of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyChild = FHeight
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Property
+	
+	Property ReBarBand.Height As Integer
+		Return FHeight
+	End Property
+	
+	Property ReBarBand.Height(Value As Integer)
+		FHeight = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.fMask = RBBIM_CHILDSIZE
+				rbBand.cxMinChild = FMinWidth                                ' Minimum width of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyMinChild = FMinHeight                               ' Minimum height of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyChild = FHeight
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Property
+	
+	Property ReBarBand.Width As Integer
+		Return FWidth
+	End Property
+	
+	Property ReBarBand.Width(Value As Integer)
+		FWidth = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.fMask = RBBIM_SIZE
+				rbBand.cx = FWidth
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Property
+	
+	Property ReBarBand.TopAlign As Boolean
+		Return FTopAlign
+	End Property
+	
+	Property ReBarBand.TopAlign(Value As Boolean)
+		FTopAlign = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_TOPALIGN, Value
+		#endif
+	End Property
+	
+	Property ReBarBand.TitleVisible As Boolean
+		Return FTitleVisible
+	End Property
+	
+	Property ReBarBand.TitleVisible(Value As Boolean)
+		FTitleVisible = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_HIDETITLE, Not Value
+		#endif
+	End Property
+	
+	Property ReBarBand.UseChevron As Boolean
+		Return FTitleVisible
+	End Property
+	
+	Property ReBarBand.UseChevron(Value As Boolean)
+		FTitleVisible = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBBS_USECHEVRON, Value
+		#endif
+	End Property
+	
+	Property ReBarBand.Visible As Boolean
+		Return FVisible
+	End Property
+	
+	Property ReBarBand.Visible(Value As Boolean)
+		FVisible = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then SendMessage(Parent->Handle, RB_SHOWBAND, Index, Value)
+		#endif
+	End Property
+	
+	Function ReBarBand.Index As Integer
+		If Parent Then Return Parent->Bands.IndexOf(@This)
+		Return -1
+	End Function
+	
+	Sub ReBarBand.Update(Create As Boolean = False)
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				Dim As RECT rct
+				rbBand.cbSize = SizeOf(REBARBANDINFO)
+				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
+				If (FImageIndex > -1) AndAlso Parent->ImageList AndAlso (Parent->ImageList->Count > 0) Then
+					rbBand.fMask Or= RBBIM_IMAGE
+					rbBand.iImage = FImageIndex
+				End If
+				If WGet(FCaption) <> "" Then
+					rbBand.fMask Or= RBBIM_TEXT
+					rbBand.lpText = FCaption
+				End If
+				rbBand.fStyle = FStyle                                              ' (RBBIM_STYLE flag)
+				If FChild Then
+					rbBand.hwndChild = FChild->Handle                               ' (RBBIM_CHILD flag)
+				End If
+				If Create Then
+					GetWindowRect(FChild->Handle, @rct)
+					rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
+					rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
+					rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
+					FMinWidth = rbBand.cxMinChild
+					FMinHeight = rbBand.cyMinChild
+					FWidth = rbBand.cx
+					rbBand.cxIdeal = rct.Right - rct.Left
+					SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(lParam, @rbBand))
+				Else
+					rbBand.cxMinChild = FMinWidth                                   ' Minimum width of band (RBBIM_CHILDSIZE flag)
+					rbBand.cyMinChild = FMinHeight                                  ' Minimum height of band (RBBIM_CHILDSIZE flag)
+					rbBand.cx = FWidth                                              ' Length of the band (RBBIM_SIZE flag)
+					rbBand.cxIdeal = FWidth
+					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(lParam, @rbBand))
+				End If
+			End If
+		#endif
+	End Sub
+	
+	Function ReBarBand.GetRect() As My.Sys.Drawing.RECT
+		Dim rc As My.Sys.Drawing.RECT
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
+		#endif
+		Return rc
+	End Function
 	
 	Constructor ReBarBand
 		
@@ -21,78 +326,49 @@ Namespace My.Sys.Forms
 	
 	Destructor ReBarBand
 		WDeallocate FCaption
+		WDeallocate FImageKey
 	End Destructor
 	
-	Function ReBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
+	Function ReBarBandCollection.Count As Integer
+		Return FItems.Count
 	End Function
 	
-	Function ReBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
+	Property ReBarBandCollection.Item(Index As Integer) As ReBarBand Ptr
+		If Index >= 0 AndAlso Index < FItems.Count Then
+			Return FItems.Item(Index)
 		Else
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
-	
-	Property ReBar.BandCount() As Integer
-		Return m_BandCount
-	End Property
-	
-	Property ReBar.BandCount (value As Integer)
-		If value > 0 Then m_BandCount = value
-	End Property
-	
-	Property ReBar.BMP() ByRef As WString
-		Return *m_BMP
-	End Property
-	
-	Property ReBar.BMP(ByRef value As WString)
-		If FileExists(value) = False Then MsgBox("Error in " & value): Exit Property
-		WLet m_BMP, value
-	End Property
-	
-	Property ReBar.BackColor() As Integer
-		Return FBackColor
-	End Property
-	
-	Property ReBar.BackColor(value As Integer)
-		If value <> This.BackColor Then
-			#ifndef __USE_GTK__
-				FBackColor = value
-				If Handle Then SendMessage(Handle, RB_SETBKCOLOR, 0, Cast(LPARAM, FBackColor))
-				Invalidate
-			#endif
+			Print "Not found item by index" & Index
+			Return 0
 		End If
 	End Property
 	
-	Property ReBar.BandRect(ByVal uBand As Integer) As My.Sys.Drawing.RECT
-		Dim rc As My.Sys.Drawing.RECT
-		#ifndef __USE_GTK__
-			Perform(RB_GETRECT, uBand, Cast(LPARAM, @rc))
-		#endif
-		Return rc
+	Property ReBarBandCollection.Item(Index As Integer, Value As ReBarBand Ptr)
+		If Index >= 0 AndAlso Index < FItems.Count Then
+			FItems.Item(Index) = Value
+		Else
+			Print "Not found item by index" & Index
+		End If
 	End Property
 	
-	Sub ReBar.AddBand(value As Control Ptr, idx As Integer, ByRef Caption As WString)
+	Function ReBarBandCollection.Add(Value As Control Ptr, ByRef Caption As WString = "", ImageIndex As Integer = 0, Index As Integer = -1) As ReBarBand Ptr
+		Dim As ReBarBand Ptr pBand = New_(ReBarBand)
+		pBand->Caption = Caption
+		pBand->Child = Value
+		pBand->ImageIndex = ImageIndex
+		pBand->ChildEdge = True
+		pBand->GripperStyle = GripperStyles.GripperAlways
+		pBand->UseChevron = True
+		pBand->Parent = Parent
 		#ifndef __USE_GTK__
-			If FHandle AndAlso Value->Handle Then
+			If Parent AndAlso Parent->Handle Then
 				Dim As REBARBANDINFO rbBand
 				Dim As RECT rct
 				
 				rbBand.cbSize = SizeOf(REBARBANDINFO)
 				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
-				If (idx > -1) AndAlso ImageList AndAlso (ImageList->Count > 0) Then
+				If (ImageIndex > -1) AndAlso Parent->ImageList AndAlso (Parent->ImageList->Count > 0) Then
 					rbBand.fMask Or= RBBIM_IMAGE
-					rbBand.iImage = idx
+					rbBand.iImage = ImageIndex
 				End If
 				If Caption <> "" Then
 					rbBand.fMask Or= RBBIM_TEXT
@@ -105,19 +381,106 @@ Namespace My.Sys.Forms
 				rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
 				rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
 				rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
+				pBand->MinWidth = rbBand.cxMinChild
+				pBand->MinHeight = rbBand.cyMinChild
+				pBand->Width = rbBand.cx
 				rbBand.cxIdeal = rct.Right - rct.Left
-				SendMessage(Handle, RB_INSERTBAND, -1, Cast(lParam, @rbBand))
+				SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(lParam, @rbBand))
 			End If
 		#endif
+		FItems.Add pBand
+		Return pBand
+	End Function
+	
+	Function ReBarBandCollection.Add(Value As Control Ptr, ByRef Caption As WString = "", ByRef ImageKey As WString, Index As Integer = -1) As ReBarBand Ptr
+		Dim As ReBarBand Ptr pBand
+		If Parent AndAlso Parent->ImageList Then
+			pBand = Add(Value, Caption, Parent->ImageList->IndexOf(ImageKey), Index)
+		Else
+			pBand = Add(Value, Caption, -1, Index)
+		End If
+		If pBand Then pBand->ImageKey = ImageKey
+		Return pBand
+	End Function
+	
+	Sub ReBarBandCollection.Remove(Index As Integer)
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, RB_DELETEBAND, Index, 0
+		#endif
+		Delete_(Cast(ReBarBand Ptr, FItems.Item(Index)))
+		FItems.Remove Index
 	End Sub
 	
-	Sub ReBar.AddBand(value As Control Ptr, ByRef Caption As WString)
-		AddBand(value, -1, Caption)
+	Sub ReBarBandCollection.Clear
+		For Index As Integer = 0 To FItems.Count - 1
+			#ifndef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, RB_DELETEBAND, Index, 0
+			#endif
+			Delete_(Cast(ReBarBand Ptr, FItems.Item(Index)))
+		Next Index
+		FItems.Clear
 	End Sub
 	
-	Sub ReBar.AddBand(value As Control Ptr)
-		AddBand(value, -1, "")
-	End Sub
+	Function ReBarBandCollection.IndexOf(Value As ReBarBand Ptr) As Integer
+		Return FItems.IndexOf(Value)
+	End Function
+	
+	Function ReBarBandCollection.IndexOf(Value As Control Ptr) As Integer
+		For Index As Integer = 0 To FItems.Count - 1
+			If Cast(ReBarBand Ptr, FItems.Item(Index))->Child = Value Then Return Index
+			Return FItems.IndexOf(Value)
+		Next Index
+		Return -1
+	End Function
+	
+	Function ReBarBandCollection.Contains(Value As ReBarBand Ptr) As Boolean
+		Return IndexOf(Value) <> -1
+	End Function
+	
+	Function ReBarBandCollection.Contains(Value As Control Ptr) As Boolean
+		Return IndexOf(Value) <> -1
+	End Function
+	
+	Constructor ReBarBandCollection
+		
+	End Constructor
+	
+	Destructor ReBarBandCollection
+		This.Clear
+	End Destructor
+	
+	Function ReBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "autosize": Return @FAutoSize
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function ReBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case "autosize": This.AutoSize = QBoolean(Value) 
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+	
+	Property ReBar.AutoSize As Boolean
+		Return FAutoSize
+	End Property
+	
+	Property ReBar.AutoSize(Value As Boolean)
+		FAutoSize = Value
+		#ifndef __USE_GTK__
+			ChangeStyle RBS_AUTOSIZE, Value
+		#endif
+	End Property
 	
 	Sub ReBar.UpdateRebar()
 		#ifndef __USE_GTK__
@@ -131,26 +494,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property ReBar.ShowBand(ByVal uBand As Integer, ByVal fShow As Boolean)
-		#ifndef __USE_GTK__
-			SendMessage(Handle, RB_SHOWBAND, uBand, fShow)
-		#endif
-	End Property
-	
 	Sub ReBar.Add(Ctrl As Control Ptr)
 		Base.Add(Ctrl)
-		AddBand Ctrl
+		Bands.Add Ctrl
 	End Sub
 	
 	#ifndef __USE_GTK__
 		Sub ReBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QReBar(Sender.Child)
-					If .BackColor <> GetSysColor(COLOR_BTNFACE) Then SendMessage(.Handle, RB_SETBKCOLOR, 0, Cast(LPARAM, .BackColor))
-					If .Font.Color <> 0 Then SendMessage(.Handle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, .Font.Color))
 					.UpdateRebar()
-					For i As Integer = 0 To .ControlCount - 1
-						.AddBand .Controls[i]
+					For i As Integer = 0 To .Bands.Count - 1
+						.Bands.Item(i)->Child = .Bands.Item(i)->Child
+						.Bands.Item(i)->Update True
 					Next
 				End With
 			End If
@@ -196,6 +552,7 @@ Namespace My.Sys.Forms
 			ticc.dwICC  = ICC_COOL_CLASSES Or ICC_BAR_CLASSES
 			InitCommonControlsEx @ticc
 		#endif
+		Bands.Parent = @This
 		With This
 			WLet(FClassName, "ReBar")
 			WLet(FClassAncestor, "ReBarWindow32")
@@ -219,7 +576,6 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor ReBar
-		WDeallocate(m_BMP)
 		#ifndef __USE_GTK__
 			UnregisterClass "ReBar", GetModuleHandle(NULL)
 		#endif

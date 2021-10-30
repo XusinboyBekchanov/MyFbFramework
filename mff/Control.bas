@@ -1035,6 +1035,12 @@ Namespace My.Sys.Forms
 '						g_signal_stop_emission_by_name(G_OBJECT(Message.widget), "event")
 '						Message.Result = True
 '					End If
+'					If gtk_is_window(widget) Then
+'						If Constraints.Left <> 0 Then gtk_window_move(gtk_window(widget), Constraints.Left, e->configure.y): Message.Result = True: Return
+'						If Constraints.Top <> 0 Then gtk_window_move(gtk_window(widget), e->configure.x, Constraints.Top): Message.Result = True: Return
+'						If Constraints.Width <> 0 Then gtk_window_resize(gtk_window(widget), Constraints.Width, e->configure.height): Message.Result = True: Return
+'						If Constraints.Height <> 0 Then gtk_window_resize(gtk_window(widget), e->configure.width, Constraints.Height): Message.Result = True: Return
+'					End If
 					If OnMove Then OnMove(This)
 					'If OnResize Then OnResize(This)
 					'RequestAlign
@@ -1172,6 +1178,7 @@ Namespace My.Sys.Forms
 					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top
 					If Constraints.Width <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cx = Constraints.Width
 					If Constraints.Height <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cy = Constraints.Height
+				Case WM_WINDOWPOSCHANGED
 					If OnMove Then OnMove(This)
 				Case WM_CANCELMODE
 					SendMessage(Handle,CM_CANCELMODE,0,0)

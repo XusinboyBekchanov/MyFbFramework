@@ -22,16 +22,17 @@
 #ifdef __FB_WIN32__
 	#define UNICODE
 	#include once "Windows.bi"
-#else
-	#define FHandle Widget
 #endif
 
 #ifndef __USE_GTK__
+	#include once "win/wincrypt.bi"
 	#include once "Win/CommCtrl.bi"
 	#include once "Win/CommDlg.bi"
 	#include once "Win/RichEdit.bi"
 	#include once "win/iphlpapi.bi"
 	#define Instance GetModuleHandle(NULL)
+#else
+	#define FHandle Widget
 #endif
 #include once "UString.bi"
 
