@@ -22,6 +22,8 @@ Public:
 	Declare Destructor()
 	
 	Declare Sub Resize(NewLength As Integer)
+	Declare Function AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
+	Declare Operator [](ByVal Index As Integer) ByRef As UShort
 	
 	Declare Operator Let(ByRef Value As WString)
 	Declare Operator Let(ByRef Value As UString)
@@ -42,6 +44,7 @@ Public:
 	
 	m_Data As WString Ptr
 	m_Length As Integer
+	m_BufferLen As Integer
 	m_BytesCount As Integer
 Protected:
 	

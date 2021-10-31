@@ -64,15 +64,31 @@ End Function
 
 Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then
-		m_BytesCount = (NewLength + 1) * SizeOf(WString)
-		m_Length = NewLength
-		WReallocate(m_Data, m_Length)
-'		If m_Data <> 0 Then
-'			Deallocate_(m_Data)
-'		End If
-'		m_Data = Allocate_(m_BytesCount)
+	m_BytesCount = (NewLength + 1) * SizeOf(WString)
+	m_Length = NewLength
+	WReallocate(m_Data, m_Length)
+	'		If m_Data <> 0 Then
+	'			Deallocate_(m_Data)
+	'		End If
+	'		m_Data = Allocate_(m_BytesCount)
 	'End If
 End Sub
+
+Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
+	This.Resize(m_Length + NumBytes)
+	If m_Data = 0 Then Return False
+	#ifndef __USE_GTK__
+		memcpy(m_Data + m_BufferLen, addrMemory, NumBytes)
+	#endif
+	m_BufferLen += NumBytes
+	Return True
+End Function
+
+Operator UString.[](ByVal Index As Integer) ByRef As UShort
+	Static Zero As UShort = 0
+	If Index < 0 Or Index > m_Length Then Return Zero
+	Operator = *Cast(UShort Ptr, m_Data + (Index * 2))
+End Operator
 
 Operator UString.Let(ByRef lhs As UString)
 	If @This <> @lhs Then
@@ -84,6 +100,7 @@ Operator UString.Let(ByRef lhs As UString)
 		End If
 		m_Length = lhs.m_Length
 		m_BytesCount = lhs.m_BytesCount
+		m_BufferLen = lhs.m_BufferLen
 		
 		If m_Data <> 0 Then
 			*m_Data = *lhs.m_Data
@@ -95,6 +112,7 @@ Operator UString.Let(ByRef lhs As WString)
 	Resize Len(lhs)
 	If m_Data <> 0 Then
 		*m_Data = lhs
+		m_BufferLen = Len(lhs) * 2
 	End If
 End Operator
 
@@ -271,65 +289,65 @@ Function WGet(ByRef subject As WString Ptr) ByRef As WString
 End Function
 
 Function ToUtf8(ByRef nWString As WString) As String
-'	#ifdef __USE_GTK__
-'		Static As gchar Ptr s = NULL
-'		Dim As GError Ptr Error1 = NULL
-'		Dim As gsize r_bytes, w_bytes
-'		Dim As ZString Ptr fc
-'		Dim As gchar Ptr from_codeset = NULL
-'		
-'		If nWString = "" Then Return ""
-'		'If (t = 0) Then g_assert_not_reached()
-'		'If (g_utf8_validate(Cast(gchar Ptr, @nWString), -1, NULL)) Then Return nWString
-'		
-'		/' so we got a non-UTF-8 '/
-'		
-'		If Len(Environ("SMB_CODESET")) <> 0 Then
-'			from_codeset = g_strdup(Environ("SMB_CODESET"))
-'		Else
-'			g_get_charset(@fc)
-'			If (fc) Then
-'				from_codeset = g_strdup(fc)
-'			Else
-'				from_codeset = g_strdup("ISO-8859-1")
-'			End If
-'		End If
-'		
-'		If *from_codeset = "ISO-" Then
-'			g_free(from_codeset)
-'			from_codeset = g_strdup("ISO-8859-1")
-'		End If
-'		If (s) Then g_free(s)
-'		
-''		For c As Integer = 0 To Len(nWString)
-''			If (@nWString)[c] < 32 AndAlso (@nWString)[c] <> Asc(!"\n") Then (@nWString)[c] = Asc(" ")
-''		Next
-'		s = g_convert(nWString, Len(nWString), "UTF-8", from_codeset, @r_bytes, @w_bytes, @Error1)
-'		g_free(from_codeset)
-'		
-''		If (s = 0) Then
-''			s = g_strdup(Cast(gchar Ptr, @nWString))
-''			For c As Integer = 0 To Len(*s)
-''				If s[c] > 128 Then s[c] = Asc("?")
-''			Next
-''		End If
-'		If (Error1) Then
-'			'Print ("DBG: %s. Codeset for system is: %s\n", Error->message,from_codeset)
-'			'Print ("DBG: You should set the environment variable SMB_CODESET To ISO-8859-1\n")
-'			g_error_free(Error1)
-'		End If
-'		Return *s
-'		'Return *g_locale_to_utf8(nWString, Len(nWString), 0, 0, 0)
-'	#else
-'		Dim cbLen As Integer
-'		Dim m_BufferLen As Integer = Len(nWString)
-'		If m_BufferLen = 0 Then Return ""
-'		Dim buffer As String = String(m_BufferLen * 5 + 1, 0)
-'		Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen * 2, StrPtr(buffer), @cbLen))
-		Dim As Integer m_BufferLen = Len(nWString)
-		Dim i1 As ULong = m_BufferLen * 5 + 1                   'if all unicode chars use 5 bytes in utf8
-        Dim As String ansiStr = String(i1, 0)
-        Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1)))
+	'	#ifdef __USE_GTK__
+	'		Static As gchar Ptr s = NULL
+	'		Dim As GError Ptr Error1 = NULL
+	'		Dim As gsize r_bytes, w_bytes
+	'		Dim As ZString Ptr fc
+	'		Dim As gchar Ptr from_codeset = NULL
+	'
+	'		If nWString = "" Then Return ""
+	'		'If (t = 0) Then g_assert_not_reached()
+	'		'If (g_utf8_validate(Cast(gchar Ptr, @nWString), -1, NULL)) Then Return nWString
+	'
+	'		/' so we got a non-UTF-8 '/
+	'
+	'		If Len(Environ("SMB_CODESET")) <> 0 Then
+	'			from_codeset = g_strdup(Environ("SMB_CODESET"))
+	'		Else
+	'			g_get_charset(@fc)
+	'			If (fc) Then
+	'				from_codeset = g_strdup(fc)
+	'			Else
+	'				from_codeset = g_strdup("ISO-8859-1")
+	'			End If
+	'		End If
+	'
+	'		If *from_codeset = "ISO-" Then
+	'			g_free(from_codeset)
+	'			from_codeset = g_strdup("ISO-8859-1")
+	'		End If
+	'		If (s) Then g_free(s)
+	'
+	''		For c As Integer = 0 To Len(nWString)
+	''			If (@nWString)[c] < 32 AndAlso (@nWString)[c] <> Asc(!"\n") Then (@nWString)[c] = Asc(" ")
+	''		Next
+	'		s = g_convert(nWString, Len(nWString), "UTF-8", from_codeset, @r_bytes, @w_bytes, @Error1)
+	'		g_free(from_codeset)
+	'
+	''		If (s = 0) Then
+	''			s = g_strdup(Cast(gchar Ptr, @nWString))
+	''			For c As Integer = 0 To Len(*s)
+	''				If s[c] > 128 Then s[c] = Asc("?")
+	''			Next
+	''		End If
+	'		If (Error1) Then
+	'			'Print ("DBG: %s. Codeset for system is: %s\n", Error->message,from_codeset)
+	'			'Print ("DBG: You should set the environment variable SMB_CODESET To ISO-8859-1\n")
+	'			g_error_free(Error1)
+	'		End If
+	'		Return *s
+	'		'Return *g_locale_to_utf8(nWString, Len(nWString), 0, 0, 0)
+	'	#else
+	'		Dim cbLen As Integer
+	'		Dim m_BufferLen As Integer = Len(nWString)
+	'		If m_BufferLen = 0 Then Return ""
+	'		Dim buffer As String = String(m_BufferLen * 5 + 1, 0)
+	'		Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen * 2, StrPtr(buffer), @cbLen))
+	Dim As Integer m_BufferLen = Len(nWString)
+	Dim i1 As ULong = m_BufferLen * 5 + 1                   'if all unicode chars use 5 bytes in utf8
+	Dim As String ansiStr = String(i1, 0)
+	Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1)))
 	'#endif
 End Function
 
@@ -353,16 +371,16 @@ Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 End Function
 
 Private Function StrLSet(ByRef MainStr As Const WString, ByVal StringLength As Long, ByRef PadCharacter As Const WString = " ") As UString
-   Dim strn As UString = WString(StringLength, PadCharacter)
-   Mid(strn, 1, Len(MainStr)) = MainStr
-   Return strn
+	Dim strn As UString = WString(StringLength, PadCharacter)
+	Mid(strn, 1, Len(MainStr)) = MainStr
+	Return strn
 End Function
 
 Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As Long, ByRef PadCharacter As Const WString = " ") As UString
-   If Len(MainStr) > StringLength Then Return Left(MainStr, StringLength)
-   Dim strn As UString = WString(StringLength, PadCharacter)
-   Mid(strn, StringLength - Len(MainStr) + 1, Len(MainStr)) = MainStr
-   Return strn
+	If Len(MainStr) > StringLength Then Return Left(MainStr, StringLength)
+	Dim strn As UString = WString(StringLength, PadCharacter)
+	Mid(strn, StringLength - Len(MainStr) + 1, Len(MainStr)) = MainStr
+	Return strn
 End Function
 
 Function FileExists(ByRef filename As UString) As Long

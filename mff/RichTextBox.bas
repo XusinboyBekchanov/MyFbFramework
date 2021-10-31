@@ -10,9 +10,25 @@ Namespace My.Sys.Forms
 	Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "editstyle": Return @FEditStyle
-		'Case "selcolor": Return @FSelColor
+		Case "selalignment": FSelIntVal = SelAlignment: Return @FSelIntVal
+		Case "selbackcolor": FSelIntVal = SelBackColor: Return @FSelIntVal
+		Case "selbold": FSelBoolVal = SelBold: Return @FSelBoolVal
+		Case "selbullet": FSelBoolVal = SelBullet: Return @FSelBoolVal
+		Case "selcharoffset": FSelIntVal = SelCharOffset: Return @FSelIntVal
+		Case "selcharset": FSelIntVal = SelCharSet: Return @FSelIntVal
+		Case "selcolor": FSelIntVal = SelColor: Return @FSelIntVal
+		Case "selfontname": WLet FSelWStrVal, SelFontName: Return FSelWStrVal
+		Case "selfontsize": FSelIntVal = SelFontSize: Return @FSelIntVal
+		Case "selindent": FSelIntVal = SelIndent: Return @FSelIntVal
+		Case "selitalic": FSelBoolVal = SelItalic: Return @FSelBoolVal
+		Case "selprotected": FSelBoolVal = SelProtected: Return @FSelBoolVal
+		Case "selrightindent": FSelIntVal = SelRightIndent: Return @FSelIntVal
+		Case "selhangingindent": FSelIntVal = SelHangingIndent: Return @FSelIntVal
+		Case "seltabcount": FSelIntVal = SelTabCount: Return @FSelIntVal
+		Case "selunderline": FSelBoolVal = SelUnderline: Return @FSelBoolVal
+		Case "selstrikeout": FSelBoolVal = SelStrikeout: Return @FSelBoolVal
 		Case "tabindex": Return @FTabIndex
-		'Case "textrtf": Return @FTextRTF
+		Case "textrtf": TextRTF: Return FTextRTF.vptr
 		Case "zoom": Return @FZoom
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -27,7 +43,23 @@ Namespace My.Sys.Forms
 		Else
 			Select Case LCase(PropertyName)
 			Case "editstyle": EditStyle = QBoolean(Value)
+			Case "selalignment": SelAlignment = *Cast(AlignmentConstants Ptr, Value)
+			Case "selbackcolor": SelBackColor = QInteger(Value)
+			Case "selbold": SelBold = QBoolean(Value)
+			Case "selbullet": SelBullet = QBoolean(Value)
+			Case "selcharoffset": SelCharOffset = QInteger(Value)
+			Case "selcharset": SelCharSet = QInteger(Value)
 			Case "selcolor": SelColor = QInteger(Value)
+			Case "selfontname": SelFontName = QWString(Value)
+			Case "selfontsize": SelFontSize = QInteger(Value)
+			Case "selindent": SelIndent = QInteger(Value)
+			Case "selitalic": SelItalic = QBoolean(Value)
+			Case "selprotected": SelProtected = QBoolean(Value)
+			Case "selrightindent": SelRightIndent = QInteger(Value)
+			Case "selhangingindent": SelHangingIndent = QInteger(Value)
+			Case "seltabcount": SelTabCount = QInteger(Value)
+			Case "selunderline": SelUnderline = QBoolean(Value)
+			Case "selstrikeout": SelStrikeout = QBoolean(Value)
 			Case "tabindex": TabIndex = QInteger(Value)
 			Case "textrtf": TextRTF = QWString(Value)
 			Case "zoom": Zoom = QInteger(Value)
@@ -55,7 +87,12 @@ Namespace My.Sys.Forms
 	
 	Function RichTextBox.GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
 		Dim cpMax2 As Integer = cpMax
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkTextIter _start, _end
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, cpMin)
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_end, cpMax)
+			WLet FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, @_end, True))
+		#else
 			Dim txtrange As TEXTRANGE
 			If cpMax2 = -1 Then cpMax2 = This.GetTextLength
 			FTextRange = Cast(WString Ptr, Reallocate_(FTextRange, (cpMax - cpMin + 2) * SizeOf(WString)))
@@ -67,25 +104,690 @@ Namespace My.Sys.Forms
 		Return *FTextRange
 	End Function
 	
-	Property RichTextBox.SelColor As Integer
-		#ifndef __USE_GTK__
-			Dim Cf As CHARFORMAT
-			cf.cbSize = SizeOf(cf)
-			cf.dwMask = CFM_COLOR
-			Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
-			Return cf.crTextColor
+	Property RichTextBox.SelAlignment As AlignmentConstants
+		#ifdef __USE_GTK__
+			Dim As Integer iAlignment = GetIntProperty("justification")
+			Return IIf(iAlignment = GTK_JUSTIFY_CENTER, AlignmentConstants.taCenter, IIf(iAlignment = GTK_JUSTIFY_RIGHT, AlignmentConstants.taRight, AlignmentConstants.taLeft))
 		#else
-			Return 0
+			If FHandle Then
+				pf.dwMask = PFM_ALIGNMENT
+				Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+				Return pf.wAlignment - 1
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelAlignment(Value As AlignmentConstants)
+		#ifdef __USE_GTK__
+			SetIntProperty "justification", IIf(Value = AlignmentConstants.taLeft, GTK_JUSTIFY_LEFT, IIf(Value = AlignmentConstants.taCenter, GTK_JUSTIFY_CENTER, IIf(Value = AlignmentConstants.taRight, GTK_JUSTIFY_RIGHT, 0)))
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_ALIGNMENT
+				pf.wAlignment = Value + 1
+				Perform(EM_SETPARAFORMAT, 0, Cast(LParam, @pf))
+			End If
 		#endif
 	End Property
 	
+	Property RichTextBox.SelBullet As Boolean
+		#ifdef __USE_GTK__
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			Dim As Boolean bBullet
+			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+			While(list)
+				Dim As GtkTextTag Ptr TextTag = list->data
+				Dim intval1 As gint, intval2 As gint, ptab_array As PangoTabArray Ptr
+				g_object_get(TextTag, "indent", @intval1, "left-margin", @intval2, "tabs", @ptab_array, NULL)
+				If intval1 <> -14 AndAlso intval2 = -14 AndAlso ptab_array <> 0 Then bBullet = True
+				list = g_slist_next(list)
+			Wend
+			g_slist_free(list)
+			Return bBullet
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_NUMBERING
+				Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+				Return pf.wNumbering = PFN_BULLET
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelBullet(Value As Boolean)
+		#ifdef __USE_GTK__
+			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
+			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag, TrueTextTag, FalseTextTag
+			Dim As String NeedTagName, TrueTagName = "Bullet1", FalseTagName = "Bullet0"
+			TrueTextTag = gtk_text_tag_table_lookup(TextTagTable, TrueTagName)
+			FalseTextTag = gtk_text_tag_table_lookup(TextTagTable, FalseTagName)
+			If Value Then 
+				NeedTextTag = TrueTextTag
+				NotNeedTextTag = FalseTextTag
+				NeedTagName = TrueTagName
+			Else
+				NeedTextTag = FalseTextTag
+				NotNeedTextTag = TrueTextTag
+				NeedTagName = FalseTagName
+			End If
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			If NeedTextTag = 0 Then
+				NeedTextTag = gtk_text_tag_new(NeedTagName)
+				If Value Then
+					Dim As PangoTabArray Ptr ptab_array = pango_tab_array_new(2, True)
+					pango_tab_array_set_tab(ptab_array, 0, PANGO_TAB_LEFT, 0)
+					pango_tab_array_set_tab(ptab_array, 1, PANGO_TAB_LEFT, 14)
+					g_object_set(NeedTextTag, "indent", -14, "left-margin", 14, "wrap-mode", GTK_WRAP_WORD, "tabs", ptab_array, NULL)
+				Else
+					g_object_set(NeedTextTag, "indent", 0, "left-margin", 0, "wrap-mode", GTK_WRAP_WORD, "tabs", 0, NULL)
+				End If
+				gtk_text_tag_table_add(TextTagTable, NeedTextTag)
+			Else
+				gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+			End If
+			If NotNeedTextTag <> 0 Then gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NotNeedTextTag, @FStart, @FEnd)
+			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_NUMBERING
+				pf.wNumbering = IIf(Value, PFN_BULLET, 0)
+				Perform(EM_SETPARAFORMAT, 0, Cast(LParam, @pf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelIndent As Integer
+		#ifdef __USE_GTK__
+			Return gtk_text_view_get_indent(gtk_text_view(widget))
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_STARTINDENT
+				Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+				Return pf.dxStartIndent
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelIndent(Value As Integer)
+		#ifdef __USE_GTK__
+			gtk_text_view_set_indent(gtk_text_view(widget), Value)
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_STARTINDENT
+				pf.dxStartIndent = Value
+				Perform(EM_SETPARAFORMAT, 0, Cast(LParam, @pf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelRightIndent As Integer
+		#ifdef __USE_GTK__
+			Return GetIntProperty("right-margin")
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_RIGHTINDENT
+				Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+				Return pf.dxRightIndent
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelRightIndent(Value As Integer)
+		#ifdef __USE_GTK__
+			SetIntProperty("right-margin", Value)
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_RIGHTINDENT
+				pf.dxRightIndent = Value
+				Perform(EM_SETPARAFORMAT, 0, Cast(LParam, @pf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelHangingIndent As Integer
+		#ifdef __USE_GTK__
+			Return GetIntProperty("indent") - SelIndent
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_OFFSET
+				Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+				Return pf.dxOffset
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelHangingIndent(Value As Integer)
+		#ifdef __USE_GTK__
+			SetIntProperty("indent", SelIndent + Value)
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_OFFSET
+				pf.dxOffset = Value
+				Perform(EM_SETPARAFORMAT, 0, Cast(LParam, @pf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelTabCount As Integer
+		#ifdef __USE_GTK__
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			Dim As PangoTabArray Ptr ptab_array
+			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+			While(list)
+				Dim As GtkTextTag Ptr TextTag = list->data
+				list = g_slist_next(list)
+				g_object_get(TextTag, "tabs", @ptab_array, NULL)
+				If ptab_array <> 0 Then Exit While
+			Wend
+			g_slist_free(list)
+			If ptab_array = 0 Then Return 0
+			Dim As Integer sTabCount = pango_tab_array_get_size(ptab_array)
+			pango_tab_array_free(ptab_array)
+			Return sTabCount
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_TABSTOPS
+				Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+				Return pf.cTabCount
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelTabCount(Value As Integer)
+		#ifdef __USE_GTK__
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			Dim As PangoTabArray Ptr ptab_array
+			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+			While(list)
+				Dim As GtkTextTag Ptr TextTag = list->data
+				list = g_slist_next(list)
+				g_object_get(TextTag, "tabs", @ptab_array, NULL)
+				If ptab_array <> 0 Then Exit While
+			Wend
+			g_slist_free(list)
+			If ptab_array = 0 Then
+				ptab_array = pango_tab_array_new(Value, True)
+			Else
+				pango_tab_array_resize(ptab_array, Value)
+			End If
+			Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
+			g_object_set(TextTag, "tabs", ptab_array, NULL)
+			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), TextTag, @FStart, @FEnd)
+			g_object_unref(TextTag)
+		#else
+			If FHandle Then
+				pf.dwMask = PFM_TABSTOPS
+				Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+				pf.cTabCount = Value
+				Perform(EM_SETPARAFORMAT, 0, Cast(LParam, @pf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelTabs(sElement As Integer) As Integer
+		#ifdef __USE_GTK__
+			If sElement >= 0 AndAlso sElement < SelTabCount Then
+				Dim As GtkTextIter FStart, FEnd
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+				Dim As PangoTabArray Ptr ptab_array
+				Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+				While(list)
+					Dim As GtkTextTag Ptr TextTag = list->data
+					list = g_slist_next(list)
+					g_object_get(TextTag, "tabs", @ptab_array, NULL)
+					If ptab_array <> 0 Then Exit While
+				Wend
+				g_slist_free(list)
+				If ptab_array = 0 Then Return 0
+				Dim As gint Value
+				pango_tab_array_get_tab(ptab_array, sElement, PANGO_TAB_LEFT, @Value)
+				Return Value
+			End If
+		#else
+			If FHandle Then
+				If sElement >= 0 AndAlso sElement <= 31 Then
+					pf.dwMask = PFM_TABSTOPS
+					Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+					Return pf.rgxTabs(sElement)
+				End If
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelTabs(sElement As Integer, Value As Integer)
+		#ifdef __USE_GTK__
+			If sElement >= 0 AndAlso sElement < SelTabCount Then
+				Dim As GtkTextIter FStart, FEnd
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+				Dim As PangoTabArray Ptr ptab_array
+				Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+				While(list)
+					Dim As GtkTextTag Ptr TextTag = list->data
+					list = g_slist_next(list)
+					g_object_get(TextTag, "tabs", @ptab_array, NULL)
+					If ptab_array <> 0 Then Exit While
+				Wend
+				g_slist_free(list)
+				If ptab_array = 0 Then ptab_array = pango_tab_array_new(sElement + 1, True)
+				pango_tab_array_set_tab(ptab_array, sElement, PANGO_TAB_LEFT, Value)
+				gtk_text_view_set_tabs(gtk_text_view(widget), ptab_array)
+				Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
+				g_object_set(TextTag, "tabs", ptab_array, NULL)
+				gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), TextTag, @FStart, @FEnd)
+				g_object_unref(TextTag)
+			End If
+		#else
+			If FHandle Then
+				If sElement >= 0 AndAlso sElement <= 31 Then
+					pf.dwMask = PFM_TABSTOPS
+					Perform(EM_GETPARAFORMAT, 0, Cast(LParam, @pf))
+					pf.rgxTabs(sElement) = Value
+					Perform(EM_SETPARAFORMAT, 0, Cast(LParam, @pf))
+				End If
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelBackColor As Integer
+		#ifdef __USE_GTK__
+			Return ValInt(GetStrProperty("background"))
+		#else
+			If FHandle Then
+				cf2.dwMask = CFM_COLOR
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf2))
+				Return cf2.crBackColor
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelBackColor(Value As Integer)
+		#ifdef __USE_GTK__
+			SetStrProperty "background", "#" & Hex(BGR(GetRed(Value), GetGreen(Value), GetBlue(Value))), True
+		#else
+			If FHandle Then
+				cf2.dwMask = CFM_COLOR
+				cf2.crBackColor = Value
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf2))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelColor As Integer
+		#ifdef __USE_GTK__
+			Return ValInt(GetStrProperty("foreground"))
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_COLOR
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.crTextColor
+			End If
+		#endif
+		Return 0
+	End Property
+	
 	Property RichTextBox.SelColor(Value As Integer)
+		#ifdef __USE_GTK__
+			SetStrProperty "foreground", "#" & Hex(BGR(GetRed(Value), GetGreen(Value), GetBlue(Value))), True
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_COLOR
+				cf.crTextColor = Value
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelFontName ByRef As WString
+		#ifdef __USE_GTK__
+			Return GetStrProperty("family")
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_FACE
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.szFaceName
+			End If
+		#endif
+		Return Font.Name
+	End Property
+	
+	Property RichTextBox.SelFontName(ByRef Value As WString)
+		#ifdef __USE_GTK__
+			SetStrProperty("family", Value)
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_FACE
+				cf.szFaceName = Value
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelFontSize As Integer
+		#ifdef __USE_GTK__
+			Return GetIntProperty("size")
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_SIZE
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.YHeight
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelFontSize(Value As Integer)
+		#ifdef __USE_GTK__
+			SetIntProperty "size", Value
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_SIZE
+				cf.YHeight = Value
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	#ifdef __USE_GTK__
+		Function RichTextBox.GetStrProperty(sProperty As String) ByRef As WString
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+			While(list)
+				Dim As GtkTextTag Ptr TextTag = list->data
+				Dim As gchar Ptr strval
+				g_object_get(TextTag, sProperty, @strval, NULL)
+				If *strval <> "" Then WLet FSelWStrVal, WStr(*strval)
+				list = g_slist_next(list)
+			Wend
+			g_slist_free(list)
+			Return *FSelWStrVal
+		End Function
+		
+		Sub RichTextBox.SetStrProperty(sProperty As String, ByRef Value As WString, WithoutPrevValue As Boolean = False)
+			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
+			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag
+			Dim As String NeedTagName = sProperty & Value, NotNeedTagName = sProperty & IIf(WithoutPrevValue, "", GetStrProperty(sProperty))
+			NeedTextTag = gtk_text_tag_table_lookup(TextTagTable, NeedTagName)
+			NotNeedTextTag = gtk_text_tag_table_lookup(TextTagTable, NotNeedTagName)
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			If NeedTextTag = 0 Then
+				NeedTextTag = gtk_text_tag_new(NeedTagName)
+				g_object_set(NeedTextTag, sProperty, ToUTF8(Value), NULL)
+				gtk_text_tag_table_add(TextTagTable, NeedTextTag)
+			Else
+				gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+			End If
+			If NotNeedTextTag <> 0 Then gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NotNeedTextTag, @FStart, @FEnd)
+			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+		End Sub
+		
+		Function RichTextBox.GetIntProperty(sProperty As String) As Integer
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			Dim As Integer iResult
+			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+			While(list)
+				Dim As GtkTextTag Ptr TextTag = list->data
+				Dim As gint intval
+				g_object_get(TextTag, sProperty, @intval, NULL)
+				If intval <> 0 Then iResult = intval
+				list = g_slist_next(list)
+			Wend
+			g_slist_free(list)
+			Return iResult
+		End Function
+		
+		Sub RichTextBox.SetIntProperty(sProperty As String, Value As Integer)
+			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
+			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag
+			Dim As String NeedTagName = sProperty & Str(Value), NotNeedTagName = sProperty & Str(GetIntProperty(sProperty))
+			NeedTextTag = gtk_text_tag_table_lookup(TextTagTable, NeedTagName)
+			NotNeedTextTag = gtk_text_tag_table_lookup(TextTagTable, NotNeedTagName)
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			If NeedTextTag = 0 Then
+				NeedTextTag = gtk_text_tag_new(NeedTagName)
+				g_object_set(NeedTextTag, sProperty, Value, NULL)
+				gtk_text_tag_table_add(TextTagTable, NeedTextTag)
+			Else
+				gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+			End If
+			If NotNeedTextTag <> 0 Then gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NotNeedTextTag, @FStart, @FEnd)
+			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+		End Sub
+		
+		Function RichTextBox.GetBoolProperty(sProperty As String, NeedValue As Integer) As Boolean
+			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
+			Dim As GtkTextTag Ptr NeedTextTag
+			Dim As String NeedTagName = sProperty & Str(NeedValue)
+			NeedTextTag = gtk_text_tag_table_lookup(TextTagTable, NeedTagName)
+			If NeedTextTag = 0 Then Return False
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			Dim As Boolean bResult
+			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
+			While(list)
+				Dim As GtkTextTag Ptr TextTag = list->data
+				If NeedTextTag = TextTag Then bResult = True: Exit While
+				list = g_slist_next(list)
+			Wend
+			g_slist_free(list)
+			Return bResult
+		End Function
+		
+		Sub RichTextBox.SetBoolProperty(sProperty As String, Value As Boolean, TrueValue As Integer, FalseValue As Integer)
+			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
+			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag, TrueTextTag, FalseTextTag
+			Dim As String NeedTagName, TrueTagName = sProperty & Str(TrueValue), FalseTagName = sProperty & Str(FalseValue)
+			TrueTextTag = gtk_text_tag_table_lookup(TextTagTable, TrueTagName)
+			FalseTextTag = gtk_text_tag_table_lookup(TextTagTable, FalseTagName)
+			If Value Then 
+				NeedTextTag = TrueTextTag
+				NotNeedTextTag = FalseTextTag
+				NeedTagName = TrueTagName
+			Else
+				NeedTextTag = FalseTextTag
+				NotNeedTextTag = TrueTextTag
+				NeedTagName = FalseTagName
+			End If
+			Dim As GtkTextIter FStart, FEnd
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
+			If NeedTextTag = 0 Then
+				NeedTextTag = gtk_text_tag_new(NeedTagName)
+				g_object_set(NeedTextTag, sProperty, IIf(Value, TrueValue, FalseValue), NULL)
+				gtk_text_tag_table_add(TextTagTable, NeedTextTag)
+			Else
+				gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+			End If
+			If NotNeedTextTag <> 0 Then gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NotNeedTextTag, @FStart, @FEnd)
+			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
+		End Sub
+	#endif
+	
+	Property RichTextBox.SelBold As Boolean
+		#ifdef __USE_GTK__
+			Return GetBoolProperty("weight", PANGO_WEIGHT_BOLD)
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_BOLD
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.dwEffects And CFE_BOLD
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelBold(Value As Boolean)
+		#ifdef __USE_GTK__
+			SetBoolProperty "weight", Value, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_BOLD
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				cf.dwEffects = cf.dwEffects Or CFE_BOLD
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelItalic As Boolean
+		#ifdef __USE_GTK__
+			Return GetBoolProperty("style", PANGO_STYLE_ITALIC)
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_ITALIC
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.dwEffects And CFE_ITALIC
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelItalic(Value As Boolean)
+		#ifdef __USE_GTK__
+			SetBoolProperty "style", Value, PANGO_STYLE_ITALIC, PANGO_STYLE_NORMAL
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_ITALIC
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				cf.dwEffects = cf.dwEffects Or CFE_ITALIC
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelUnderline As Boolean
+		#ifdef __USE_GTK__
+			Return GetBoolProperty("underline", PANGO_UNDERLINE_SINGLE)
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_UNDERLINE
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.dwEffects And CFE_UNDERLINE
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelUnderline(Value As Boolean)
+		#ifdef __USE_GTK__
+			SetBoolProperty "style", Value, PANGO_UNDERLINE_SINGLE, PANGO_UNDERLINE_NONE
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_UNDERLINE
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				cf.dwEffects = cf.dwEffects Or CFE_UNDERLINE
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelStrikeout As Boolean
+		#ifdef __USE_GTK__
+			Return GetBoolProperty("strikethrough", True)
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_STRIKEOUT
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.dwEffects And CFE_STRIKEOUT
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelStrikeout(Value As Boolean)
+		#ifdef __USE_GTK__
+			SetBoolProperty "strikethrough", Value, True, False
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_STRIKEOUT
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				cf.dwEffects = cf.dwEffects Or CFE_STRIKEOUT
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelProtected As Boolean
+		#ifdef __USE_GTK__
+			Return GetBoolProperty("editable", True)
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_PROTECTED
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.dwEffects And CFE_PROTECTED
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelProtected(Value As Boolean)
+		#ifdef __USE_GTK__
+			SetBoolProperty "editable", Value, True, False
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_PROTECTED
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				cf.dwEffects = cf.dwEffects Or CFE_PROTECTED
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelCharOffset As Integer
+		#ifdef __USE_GTK__
+			Return GetIntProperty("rise")
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_OFFSET
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.yOffset
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelCharOffset(Value As Integer)
+		#ifdef __USE_GTK__
+			SetIntProperty("rise", Value)
+		#else
+			If FHandle Then
+				cf.dwMask = CFM_OFFSET
+				cf.yOffset = Value
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
+		#endif
+	End Property
+	
+	Property RichTextBox.SelCharSet As Integer
 		#ifndef __USE_GTK__
-			Dim Cf As CHARFORMAT
-			cf.cbSize = SizeOf(cf)
-			cf.dwMask = CFM_COLOR
-			cf.crTextColor = Value
-			Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			If FHandle Then
+				cf.dwMask = CFM_CHARSET
+				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+				Return cf.bCharSet
+			End If
+		#endif
+		Return 0
+	End Property
+	
+	Property RichTextBox.SelCharSet(Value As Integer)
+		#ifndef __USE_GTK__
+			If FHandle Then
+				cf.dwMask = CFM_CHARSET
+				cf.bCharSet = Value
+				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
+			End If
 		#endif
 	End Property
 	
@@ -93,7 +795,9 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Return Perform(EM_CHARFROMPOS, 0, CInt(@p))
 		#else
-			Return 0
+			Dim As GtkTextIter TextIter
+			gtk_text_view_get_iter_at_position(gtk_text_view(widget), @TextIter, 0, p.X, p.Y)
+			Return gtk_text_iter_get_offset(@TextIter)
 		#endif
 	End Function
 	
@@ -175,7 +879,12 @@ Namespace My.Sys.Forms
 				Return True
 			End If
 		#else
-			Return False
+			Dim As GtkTextIter _start, _end, match_start, match_end
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, 0)
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(gtk_text_view(Widget))))
+			Dim As Boolean bResult = gtk_text_iter_forward_search(@_start, ToUTF8(Value), GTK_TEXT_SEARCH_TEXT_ONLY, @match_start, @match_end, @_end)
+			If bResult Then gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @match_start, @match_end)
+			Return bResult
 		#endif
 	End Function
 	
@@ -202,7 +911,13 @@ Namespace My.Sys.Forms
 				Return True
 			End If
 		#else
-			Return False
+			Dim As GtkTextIter _start, _end, sel_start, sel_end, match_start, match_end
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, 0)
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(gtk_text_view(Widget))))
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @sel_start, @sel_end)
+			Dim As Boolean bResult = gtk_text_iter_forward_search(@sel_end, ToUTF8(Value), GTK_TEXT_SEARCH_TEXT_ONLY, @match_start, @match_end, @_end)
+			If bResult Then gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @match_start, @match_end)
+			Return bResult
 		#endif
 	End Function
 	
@@ -226,7 +941,13 @@ Namespace My.Sys.Forms
 				Return True
 			End If
 		#else
-			Return False
+			Dim As GtkTextIter _start, _end, sel_start, sel_end, match_start, match_end
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, 0)
+			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(gtk_text_view(Widget))))
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @sel_start, @sel_end)
+			Dim As Boolean bResult = gtk_text_iter_backward_search(@sel_start, ToUTF8(Value), GTK_TEXT_SEARCH_TEXT_ONLY, @match_start, @match_end, @_start)
+			If bResult Then gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @match_start, @match_end)
+			Return bResult
 		#endif
 	End Function
 	
@@ -243,8 +964,20 @@ Namespace My.Sys.Forms
 				Select Case Message.wParamHi
 				Case EN_SELCHANGE
 					If OnSelChange Then OnSelChange(This)
+					message.Result = 0
+				Case EN_REQUESTRESIZE
+					With *Cast(REQRESIZE Ptr, message.lParam).rc
+						If OnResize Then OnResize(This, .Right - .Left, .Bottom - .Top)
+					End With
+				Case EN_PROTECTED
+					Static As Boolean AllowChange  = 1
+					With *Cast(ENPROTECTED Ptr, Message.lParam).chrg
+						If OnProtectChange Then
+							OnProtectChange(This, .cpMin, .cpMax, AllowChange)
+							If Not AllowChange Then message.Result = 1
+						End If
+					End With
 				End Select
-				message.result = 0
 			Case WM_PASTE
 				Dim Action As Integer = 1
 				If OnPaste Then OnPaste(This, Action)
@@ -259,6 +992,7 @@ Namespace My.Sys.Forms
 					message.wParam = CF_TEXT
 					message.lParam = Cast(LPARAM, @reps)
 				End Select
+				
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
@@ -279,7 +1013,11 @@ Namespace My.Sys.Forms
 	
 	Property RichTextBox.SelText ByRef As WString
 		Dim As Integer LStart, LEnd
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkTextIter _start, _end
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+			WLet FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, @_end, True))
+		#else
 			If FHandle Then
 				Dim charArr As CHARRANGE
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
@@ -299,7 +1037,10 @@ Namespace My.Sys.Forms
 	Property RichTextBox.SelText(ByRef Value As WString)
 		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkTextIter _start, _end
+			gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Widget)), ToUTF8(Value), -1)
+		#else
 			Dim stSetText As SETTEXTEX
 			stSetText.Flags = ST_KEEPUNDO
 			stSetText.codepage = 1200
@@ -308,64 +1049,55 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Function StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
+		Function RichTextBox.StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
 			Dim As Integer length
-			If hFile = 10000 Then
-				WReallocate(textbuffer, bufferpos + NumBytes)
-				*textbuffer = *textbuffer + *Cast(WString Ptr, pBuffer)
-				bufferpos = Len(*textbuffer)
-				length = Len(Cast(WString Ptr, pBuffer)) * SizeOf(WString)
-			Else
-				ReadFile(hFile,pBuffer,NumBytes,Cast(LPDWORD,@length),0)
-			End If
+			ReadFile(hFile, pBuffer, NumBytes, Cast(LPDWORD, @length), 0)
 			*pBytesRead = length
 			If length = 0 Then
 				Return 1
 			EndIf
 		End Function
 		
-		Function StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As bool
+		Function RichTextBox.StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
 			Dim As Integer length
-			If hFile = 10000 Then
-				'm utf16BeByte2wchars(*Cast(Byte Ptr, pBuffer))
-				*Cast(WString Ptr, pBuffer) = Mid(*textbuffer, bufferpos + 1, NumBytes / SizeOf(WString))
-				bufferpos = bufferpos + Len(*Cast(WString Ptr, pBuffer))
-				length = Len(*Cast(WString Ptr, pBuffer)) * SizeOf(WString)
-			Else
-				WriteFile(hFile,pBuffer,NumBytes,Cast(LPDWORD,@length),0)
-			End If
+			WriteFile(hFile, pBuffer, NumBytes, Cast(LPDWORD, @length), 0)
 			*pBytesWritten = length
 			If length = 0 Then
 				Return 1
 			End If
 		End Function
+		
+		Function RichTextBox.GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
+			Dim ptxt As UString Ptr = Cast(UString Ptr, dwCookie)
+			ptxt->AppendBuffer(pbBuff, cb)
+			*pcb = cb
+			Return 0
+		End Function
 	#endif
 	
-	Property RichTextBox.TextRTF ByRef As WString
+	Property RichTextBox.TextRTF As String
+		Dim As String s
 		#ifndef __USE_GTK__
 			If FHandle Then
+				FTextRTF = ""
 				Dim editstream As EDITSTREAM
-				bufferPos = 0
-				editstream.dwCookie = Cast(DWORD, 10000)
-				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamOutProc)
+				editstream.dwCookie = Cast(DWORD_PTR, @FTextRTF)
+				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @GetTextCallback)
 				SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
-				Return *textbuffer
+				s = Space(FTextRTF.Length)
+				If Len(s) Then CopyMemory(StrPtr(s), FTextRTF.vptr, FTextRTF.Length)
 			End If
-		#else
-			Return *textbuffer
 		#endif
+		Return s
 	End Property
 	
-	Property RichTextBox.TextRTF(ByRef Value As WString)
+	Property RichTextBox.TextRTF(Value As String)
 		#ifndef __USE_GTK__
 			If FHandle Then
-				Dim editstream As EDITSTREAM
-				WReallocate(textbuffer, Len(Value))
-				*textbuffer = Value
-				bufferPos = 0
-				editstream.dwCookie = Cast(DWORD, 10000)
-				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @StreamInProc)
-				SendMessage(FHandle, EM_STREAMIN, SF_RTF, Cast(LPARAM, @editstream))
+				Dim bb As SETTEXTEX
+				bb.flags = ST_NEWCHARS
+				bb.codepage = CP_ACP
+				SendMessageA(FHandle, EM_SETTEXTEX, Cast(wParam, @bb), Cast(lParam, StrPtr(Value)))
 			End If
 		#endif
 	End Property
@@ -436,6 +1168,10 @@ Namespace My.Sys.Forms
 				widget = gtk_text_view_new()
 			#else
 				hRichTextBox = LoadLibrary("RICHED20.DLL")
+				pf.cbSize = SizeOf(pf)
+				pf2.cbSize = SizeOf(pf2)
+				cf.cbSize = SizeOf(cf)
+				cf2.cbSize = SizeOf(cf2)
 				.RegisterClass "RichTextBox", "RichEdit20W"
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ChildProc		= @WndProc
@@ -453,8 +1189,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor RichTextBox
-		If FFindText Then Deallocate_( FFindText)
-		If FTextRange Then Deallocate_( FTextRange)
+		WDeallocate FFindText
+		WDeallocate FTextRange
+		WDeallocate FSelWStrVal
 		#ifndef __USE_GTK__
 			DestroyWindow FHandle
 			FreeLibrary(hRichTextBox)
