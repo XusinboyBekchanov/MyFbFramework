@@ -105,6 +105,7 @@ Namespace My.Sys.Forms
 		Declare Function AddImage(ByRef Bitm As My.Sys.Drawing.Cursor) As Boolean
 		Declare Function AddImage(ByRef ResName As WString) As Boolean
 		Declare Function AddImageFromFile(ByRef File As WString) As Boolean
+		Declare Function SelPrint(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
 		Declare Sub LoadFromFile(ByRef File As WString, bRTF As Boolean)
 		Declare Sub SaveToFile(ByRef File As WString, bRTF As Boolean)
 		Declare Sub Undo

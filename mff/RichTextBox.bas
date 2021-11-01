@@ -1194,8 +1194,8 @@ Namespace My.Sys.Forms
 			Dim As LPUNKNOWN pUnk
 			Dim As CLSID clsid_ = CLSID_NULL
 			
-'			hr = OleCreateFromFile(@clsid_, Cast(LPCOLESTR, @File), @IID_IUnknown, OLERENDER_DRAW, _
-'			@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
+			'hr = OleCreateFromFile(@clsid_, Cast(LPCOLESTR, @File), @IID_IUnknown, OLERENDER_DRAW, _
+			'@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
 			hr = OleCreateStaticFromData(pDataObject, @IID_IUnknown, OLERENDER_DRAW, _
 			@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
 			
@@ -1290,6 +1290,74 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
+	
+	Function RichTextBox.SelPrint(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
+		#ifndef __USE_GTK__
+			Dim As DOCINFO di = Type(SizeOf(di))
+			Dim hdc As HDC = Canvas.Handle
+			If (Not StartDoc(hdc, @di)) Then
+				Return False
+			End If
+			
+			Dim As Integer cxPhysOffset = GetDeviceCaps(hdc, PHYSICALOFFSETX)
+			Dim As Integer cyPhysOffset = GetDeviceCaps(hdc, PHYSICALOFFSETY)
+			
+			Dim As Integer cxPhys = GetDeviceCaps(hdc, PHYSICALWIDTH)
+			Dim As Integer cyPhys = GetDeviceCaps(hdc, PHYSICALHEIGHT)
+			
+			' Create "print preview".
+			SendMessage(FHandle, EM_SETTARGETDEVICE, Cast(WPARAM, hdc), cxPhys / 2)
+			
+			Dim As FORMATRANGE fr
+			
+			fr.hdc       = hdc
+			fr.hdcTarget = hdc
+			
+			' Set page rect To physical page size in twips.
+			fr.rcPage.top    = 0
+			fr.rcPage.left   = 0
+			fr.rcPage.right  = MulDiv(cxPhys, 1440, GetDeviceCaps(hDC, LOGPIXELSX))
+			fr.rcPage.bottom = MulDiv(cyPhys, 1440, GetDeviceCaps(hDC, LOGPIXELSY))
+			
+			' Set the rendering rectangle To the pintable area of the page.
+			fr.rc.left   = cxPhysOffset
+			fr.rc.right  = cxPhysOffset + cxPhys
+			fr.rc.top    = cyPhysOffset
+			fr.rc.bottom = cyPhysOffset + cyPhys
+			
+			'SendMessage(FHandle, EM_SETSEL, 0, Cast(LPARAM, -1))          ' Select the entire contents.
+			SendMessage(FHandle, EM_EXGETSEL, 0, Cast(LPARAM, @fr.chrg))  ' Get the selection into a CHARRANGE.
+			
+			Dim As Boolean fSuccess = True
+			
+			' Use GDI To Print successive pages.
+			While (fr.chrg.cpMin < fr.chrg.cpMax AndAlso fSuccess)
+				fSuccess = StartPage(hdc) > 0
+				
+				If (Not fSuccess) Then Exit While
+				
+				Dim As Integer cpMin = SendMessage(FHandle, EM_FORMATRANGE, True, Cast(LPARAM, @fr))
+				
+				If (cpMin <= fr.chrg.cpMin) Then
+					fSuccess = False
+					Exit While
+				End If
+				
+				fr.chrg.cpMin = cpMin
+				fSuccess = EndPage(hdc) > 0
+			Wend
+			
+			SendMessage(FHandle, EM_FORMATRANGE, False, 0)
+			
+			If (fSuccess) Then
+				EndDoc(hdc)
+			Else
+				AbortDoc(hdc)
+			End If
+			
+			Return fSuccess
+		#endif
+	End Function
 	
 	#ifndef __USE_GTK__
 		Sub RichTextBox.HandleIsAllocated(ByRef Sender As Control)
