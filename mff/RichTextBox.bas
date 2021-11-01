@@ -1116,6 +1116,23 @@ Namespace My.Sys.Forms
 				Return False
 			End If
 			
+			Dim As IDataObject Ptr pDataObject
+			
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromFile(File)
+			CoInitialize(NULL)
+			If (OpenClipboard(NULL)) Then
+				EmptyClipboard()
+				SetClipboardData(CF_BITMAP, Bitm.Handle)
+				CloseClipboard()
+			Else
+				Return False
+			End If
+			OleGetClipboard(@pDataObject)
+			If (pDataObject = NULL) Then
+				Return 0
+			End If
+			
 			Dim As LPLOCKBYTES pLockBytes = NULL
 			hr = CreateILockBytesOnHGlobal(NULL, True, @pLockBytes)
 			
@@ -1149,8 +1166,13 @@ Namespace My.Sys.Forms
 			Dim As LPUNKNOWN pUnk
 			Dim As CLSID clsid_ = CLSID_NULL
 			
-			hr = OleCreateFromFile(@clsid_, Cast(LPCOLESTR, @File), @IID_IUnknown, OLERENDER_DRAW, _
-			@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
+			If 0 Then
+				hr = OleCreateFromFile(@clsid_, Cast(LPCOLESTR, @File), @IID_IUnknown, OLERENDER_DRAW, _
+				@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
+			Else
+				hr = OleCreateStaticFromData(pDataObject, @IID_IUnknown, OLERENDER_DRAW, _
+				@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
+			End If
 			
 			pClientSite->lpVtbl->Release(pClientSite)
 			
@@ -1178,8 +1200,9 @@ Namespace My.Sys.Forms
 			
 			reobject.clsid = clsid_
 			reobject.cp = REO_CP_SELECTION
-			reobject.dvaspect = DVASPECT_CONTENT
-			reobject.dwFlags = REO_RESIZABLE Or REO_BELOWBASELINE
+			reobject.dvaspect = DVASPECT_CONTENT 'DVASPECT_THUMBNAIL, DVASPECT_ICON, DVASPECT_DOCPRINT
+			'reobject.dvaspect = DVASPECT_DOCPRINT
+			reobject.dwFlags = REO_BELOWBASELINE 'Or REO_RESIZABLE 'Or REO_USEASBACKGROUND
 			reobject.dwUser = 0
 			reobject.poleobj = pObject
 			reobject.polesite = pClientSite
@@ -1197,6 +1220,7 @@ Namespace My.Sys.Forms
 			hr = pRichEditOle->lpVtbl->InsertObject(pRichEditOle, @reobject)
 			pObject->lpVtbl->Release(pObject)
 			pRichEditOle->lpVtbl->Release(pRichEditOle)
+			CoUninitialize()
 			
 			If (FAILED(hr)) Then
 				Return False
