@@ -47,80 +47,80 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Function Printer.STRREVERSE (S As String)As String
-		Dim As Integer j=len(s)
-		dim rstr As String=Space(j)
-		while (j<>0)
+		Dim As Integer j=Len(s)
+		Dim rstr As String=Space(j)
+		While (j<>0)
 			j=j-1
 			rstr[j] = s[Len(s)-j-1]
 		Wend
-		return rstr
+		Return rstr
 	End Function
 	
-	Sub Printer.reportError(  BYVAL n AS LONG)
-		Dim s AS STRING
-		IF n = 1 THEN
+	Sub Printer.reportError(  ByVal n As Long)
+		Dim s As String
+		If n = 1 Then
 			s = "Document printing error"
-		ELSEIF n = 2 THEN
+		ElseIf n = 2 Then
 			s = "Page printing error"
-		ELSE
+		Else
 			s = "Unspecified printer error"
-		END IF
-		#IfNDef __USE_GTK__
+		End If
+		#ifndef __USE_GTK__
 			MesSaGeBOX NULL,s, "Printer Error",  MB_ICONERROR
-		#EndIf
-	END Sub
+		#endif
+	End Sub
 	
 	' ========================================================================================
 	' Sets the printer orientation.
 	' DMORIENT_PORTRAIT = Portrait
 	' DMORIENT_LANDSCAPE = Landscape
 	' ========================================================================================
-	FUNCTION Printer.SetprinterOrientation (BYVAL PrinterName AS String, BYVAL nOrientation AS LONG) AS Long  __EXPORT__
-		#IfNDef __USE_GTK__
-			Dim hPrinter AS HWND
-			Dim pDevMode AS DEVMODE PTR
-			Dim pi2 AS PRINTER_INFO_2 PTR
-			Dim pd AS PRINTER_DEFAULTS
-			Dim bufferPrn AS STRING
-			Dim bufferDoc AS STRING
-			Dim dwNeeded AS DWORD
-			Dim nRet AS LONG
+	Function Printer.SetprinterOrientation (ByVal PrinterName As String, ByVal nOrientation As Long) As Long  __EXPORT__
+		#ifndef __USE_GTK__
+			Dim hPrinter As HWND
+			Dim pDevMode As DEVMODE Ptr
+			Dim pi2 As PRINTER_INFO_2 Ptr
+			Dim pd As PRINTER_DEFAULTS
+			Dim bufferPrn As String
+			Dim bufferDoc As String
+			Dim dwNeeded As DWORD
+			Dim nRet As Long
 			
-			IF nOrientation <> DMORIENT_PORTRAIT AND nOrientation <> DMORIENT_LANDSCAPE THEN EXIT FUNCTION
+			If nOrientation <> DMORIENT_PORTRAIT And nOrientation <> DMORIENT_LANDSCAPE Then Exit Function
 			
 			' // Start by opening the printer
 			pd.DesiredAccess = PRINTER_ALL_ACCESS
-			IF OpenPrinter ( PrinterName, @hPrinter, @pd) = 0 THEN EXIT FUNCTION
+			If OpenPrinter ( PrinterName, @hPrinter, @pd) = 0 Then Exit Function
 			
 			' // The first GetPrinter tells you how big the buffer should be in
 			' // order to hold all of PRINTER_INFO_2. Note that this should fail with
 			' // ERROR_INSUFFICIENT_BUFFER.  If GetPrinter fails for any other reason
 			' // or dwNeeded isn't set for some reason, then there is a problem...
-			nRet = Getprinter (hPrinter, 2, BYVAL NULL, 0, @dwNeeded)
-			IF nRet = 0 AND GetLastError <> ERROR_INSUFFICIENT_BUFFER THEN
+			nRet = Getprinter (hPrinter, 2, ByVal NULL, 0, @dwNeeded)
+			If nRet = 0 And GetLastError <> ERROR_INSUFFICIENT_BUFFER Then
 				ClosePrinter(hPrinter)
-				EXIT FUNCTION
-			END IF
+				Exit Function
+			End If
 			' // Allocate enough space for PRINTER_INFO_2...
 			bufferPrn = Space(dwNeeded)
 			' // The second GetPrinter fills in all the current settings, so all you
 			' // need to do is modify what you're interested in...
-			nRet = Getprinter (hPrinter, 2,   STRPTR(bufferPrn), dwNeeded, @dwNeeded)
-			IF nRet = 0 THEN
+			nRet = Getprinter (hPrinter, 2,   StrPtr(bufferPrn), dwNeeded, @dwNeeded)
+			If nRet = 0 Then
 				ClosePrinter(hPrinter)
-				EXIT FUNCTION
-			END IF
+				Exit Function
+			End If
 			
 			' // If GetPrinter didn't fill in the DEVMODE, try to get it by calling
 			' // DocumentProperties...
 			pi2 = Cast(PRINTER_INFO_2 Ptr,StrPtr(bufferPrn))
-			IF pi2->pDevMode = NULL THEN
+			If pi2->pDevMode = NULL Then
 				' // Allocate a buffer of the correct size
-				dwNeeded = DocumentProperties (NULL, hPrinter,   PrinterName, BYVAL NULL, BYVAL NULL, 0)
+				dwNeeded = DocumentProperties (NULL, hPrinter,   PrinterName, ByVal NULL, ByVal NULL, 0)
 				bufferDoc = Space(dwNeeded)
 				pDevMode= GlobalAlloc(GMEM_FIXED,dwNeeded)
 				' // Retrieve the printer configuration data
-				nRet = DocumentProperties (NULL, hPrinter,   PrinterName,   pDevMode  , BYVAL NULL, DM_OUT_BUFFER)
+				nRet = DocumentProperties (NULL, hPrinter,   PrinterName,   pDevMode  , ByVal NULL, DM_OUT_BUFFER)
 				IF nRet <> IDOK THEN
 					ClosePrinter(hPrinter)
 					EXIT FUNCTION
@@ -520,7 +520,7 @@ Namespace My.Sys.ComponentModel
 				pDevNames = GlobalLock(pd.hDevNames)
 				psz =Cast(ZString Ptr,Cast(Byte Ptr, pDevNames) +  pDevNames->wDeviceOffset)
 				printerName = *psz
-				'OpenPrinter(*psz, @hPrinter, NULL)
+				OpenPrinter(*psz, @hPrinter, NULL)
 				m_hdc = pd.hDC
 				GlobalUnlock pd.hDevnames
 				
@@ -680,10 +680,10 @@ Namespace My.Sys.ComponentModel
 	Sub printer.UpdateMargeins()  __EXPORT__
 		'x, y are measured from the left and top edges of the paper
 		'if x or y are omitted then last valuew, xLast, yLast are used
-		Dim AS Long xc, yc, xm, leftNoPrn, rightNoPrn, topNoPrn, bottomNoPrn
-		Dim AS Long paperWi, paperHt, xMax, yMax, xppi, yppi
-		#IfNDef __USE_GTK__
-			IF m_hdc  = 0 THEN printerName=This.defaultprinter
+		Dim As Long xc, yc, xm, leftNoPrn, rightNoPrn, topNoPrn, bottomNoPrn
+		Dim As Long paperWi, paperHt, xMax, yMax, xppi, yppi
+		#ifndef __USE_GTK__
+			If m_hdc  = 0 Then printerName=This.defaultprinter
 			paperWi = GetDeviceCaps(m_hdc ,  PHYSICALWIDTH)
 			paperHt = GetDeviceCaps(m_hdc ,  PHYSICALHEIGHT)
 			leftNoPrn = GetDeviceCaps(m_hdc ,  PHYSICALOFFSETX)
@@ -696,7 +696,7 @@ Namespace My.Sys.ComponentModel
 			
 			leftMargin= max(leftMargin,leftNoPrn)
 			topMargin =  max(topNoPrn,topMargin)
-		#EndIf
+		#endif
 	End Sub
 	
 	Property printer.Title( value As String)  __EXPORT__
@@ -708,42 +708,42 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	Sub printer.StartDoc()  __EXPORT__
-		#IfNDef __USE_GTK__
-			Dim nErr AS LONG, sz AS WSTRING*64
-			Dim di AS DOCINFO
-			IF m_hdc  = 0 THEN printerName=This.defaultprinter
+		#ifndef __USE_GTK__
+			Dim nErr As Long, sz As WString*64
+			Dim di As DOCINFO
+			If m_hdc  = 0 Then printerName=This.defaultprinter
 			sz = Ftitle
-			di.cbSize = SIZEOF(DOCINFO)
-			di.lpszDocName = VARPTR(sz)
+			di.cbSize = SizeOf(DOCINFO)
+			di.lpszDocName = VarPtr(sz)
 			nErr = .StartDoc(m_hdc , @di)
-			IF nErr <= 0 THEN This.reportError(1)
-		#EndIf
-	END Sub
+			If nErr <= 0 Then This.reportError(1)
+		#endif
+	End Sub
 	
 	Sub printer.StartPage  __EXPORT__
-		#IfNDef __USE_GTK__
-			DIM nErr AS LONG
+		#ifndef __USE_GTK__
+			Dim nErr As Long
 			nErr = .StartPage(m_hdc )
-			IF nErr <= 0 THEN This.reportError(2)
-		#EndIf
-	END Sub
+			If nErr <= 0 Then This.reportError(2)
+		#endif
+	End Sub
 	
 	Sub printer.EndDPage __EXPORT__
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			.EndPage(m_hdc )
-		#EndIf
-	END Sub
+		#endif
+	End Sub
 	
 	Sub printer.NewPage   __EXPORT__
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			.EndPage(m_hdc )
 			.StartPage(m_hdc)
 			FPageNumber+=1
-		#EndIf
+		#endif
 	End Sub
 	
 	Sub printer.EndDoc   __EXPORT__
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			.EndDoc(m_hdc )
 			SelectObject m_hdc , hOrigFont
 			DeleteObject m_hFont
