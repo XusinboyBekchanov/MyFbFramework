@@ -2172,6 +2172,10 @@ Namespace My.Sys.Forms
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
 							bAdded = True
+						ElseIf gtk_is_text_view(widget) Then
+							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+							gtk_text_view_add_child_in_window(gtk_text_view(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+							bAdded = True
 						End If
 					End If
 					If Ctrl->eventboxwidget Then g_object_set_data(G_OBJECT(Ctrl->eventboxwidget), "@@@Control2", Ctrl)

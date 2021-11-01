@@ -235,9 +235,9 @@ Namespace My.Sys.Drawing
 	Destructor Icon
 		WDeallocate FResName
 		#ifdef __USE_GTK__
-			g_object_unref(Handle)
+			If Handle Then g_object_unref(Handle)
 		#else
-			DestroyIcon Handle
+			If Handle Then DestroyIcon Handle
 		#endif
 	End Destructor
 End Namespace

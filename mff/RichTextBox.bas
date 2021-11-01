@@ -405,7 +405,7 @@ Namespace My.Sys.Forms
 			Return ValInt(GetStrProperty("background"))
 		#else
 			If FHandle Then
-				cf2.dwMask = CFM_COLOR
+				cf2.dwMask = CFM_BACKCOLOR
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf2))
 				Return cf2.crBackColor
 			End If
@@ -415,10 +415,11 @@ Namespace My.Sys.Forms
 	
 	Property RichTextBox.SelBackColor(Value As Integer)
 		#ifdef __USE_GTK__
-			SetStrProperty "background", "#" & Hex(BGR(GetRed(Value), GetGreen(Value), GetBlue(Value))), True
+			SetStrProperty "background", "#" & Hex(Value, 6), True
 		#else
 			If FHandle Then
-				cf2.dwMask = CFM_COLOR
+				cf2.dwMask = CFM_BACKCOLOR
+				cf2.dwEffects = 0
 				cf2.crBackColor = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf2))
 			End If
@@ -440,10 +441,11 @@ Namespace My.Sys.Forms
 	
 	Property RichTextBox.SelColor(Value As Integer)
 		#ifdef __USE_GTK__
-			SetStrProperty "foreground", "#" & Hex(BGR(GetRed(Value), GetGreen(Value), GetBlue(Value))), True
+			SetStrProperty "foreground", "#" & Hex(Value, 6), True
 		#else
 			If FHandle Then
 				cf.dwMask = CFM_COLOR
+				cf.dwEffects = 0
 				cf.crTextColor = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LParam, @cf))
 			End If
@@ -1136,7 +1138,18 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function RichTextBox.AddImage(ByRef Bitm As My.Sys.Drawing.BitmapType) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr img
+			Dim As GtkTextIter _start, _end
+			'Dim As GtkTextChildAnchor Ptr ChildAnchor
+			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+			gtk_text_buffer_delete(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+			'ChildAnchor = gtk_text_buffer_create_child_anchor(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start)
+			'img = gtk_image_new_from_pixbuf(Bitm.Handle)
+			'gtk_text_view_add_child_at_anchor(gtk_text_view(widget), img, ChildAnchor)
+			gtk_text_buffer_insert_pixbuf(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, Bitm.Handle)
+			'gtk_widget_show(img)
+		#else
 			Dim As HRESULT hr
 			
 			Dim As LPRICHEDITOLE pRichEditOle
@@ -1236,10 +1249,10 @@ Namespace My.Sys.Forms
 			sizel.cx = 0
 			reobject.sizel = sizel
 			
-			SendMessage(FHandle, EM_SETSEL, 0, -1)
-			Dim As DWORD dwStart, dwEnd
-			SendMessage(FHandle, EM_GETSEL, Cast(WPARAM, @dwStart), Cast(LPARAM, @dwEnd))
-			SendMessage(FHandle, EM_SETSEL, dwEnd + 1, dwEnd + 1)
+'			SendMessage(FHandle, EM_SETSEL, 0, -1)
+'			Dim As DWORD dwStart, dwEnd
+'			SendMessage(FHandle, EM_GETSEL, Cast(WPARAM, @dwStart), Cast(LPARAM, @dwEnd))
+'			SendMessage(FHandle, EM_SETSEL, dwEnd + 1, dwEnd + 1)
 			SendMessage(FHandle, EM_REPLACESEL, True, Cast(WPARAM, @!"\n"))
 			
 			hr = pRichEditOle->lpVtbl->InsertObject(pRichEditOle, @reobject)
@@ -1251,8 +1264,8 @@ Namespace My.Sys.Forms
 				Return False
 			End If
 			
-			Return True
 		#endif
+		Return True
 	End Function
 	
 	Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
@@ -1292,7 +1305,9 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function RichTextBox.SelPrint(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Return False
+		#else
 			Dim di As DOCINFO, sz As WString * 64 = This.Name
 			di.cbSize = SizeOf(DOCINFO)
 			di.lpszDocName = VarPtr(sz)

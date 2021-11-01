@@ -287,6 +287,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
+			If gerr Then Print gerr->code, *gerr->message
 		#else
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			Dim As BITMAP BMP

@@ -212,6 +212,8 @@ Namespace My.Sys.ComponentModel
 								gtk_layout_move(gtk_layout(Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 							ElseIf Parent->fixedwidget Then
 								gtk_fixed_move(gtk_fixed(Parent->fixedwidget), CtrlWidget, iLeft, iTop)
+							ElseIf gtk_is_text_view(Parent->widget) Then
+								gtk_text_view_move_child(gtk_text_view(Parent->widget), CtrlWidget, iLeft, iTop)
 							End If
 						End If
 						'gtk_widget_set_size_allocation(widget, @allocation)
