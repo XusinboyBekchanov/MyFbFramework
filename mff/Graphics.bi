@@ -91,6 +91,8 @@ Const clNone    = &H1FFFFFFF
 Const clDefault = &H20000000
 
 Declare Function ColorToRGB(FColor As Integer) As Integer
+Declare Function RGBAToBGR(FColor As UInteger) As Integer
+Declare Function BGRToRGBA(FColor As UInteger) As UInteger
 Declare Function GetRed(FColor As Long) As Integer
 Declare Function GetGreen(FColor As Long) As Integer
 Declare Function GetBlue(FColor As Long) As Integer
@@ -99,6 +101,11 @@ Declare Function GetBlue(FColor As Long) As Integer
 		#define BGR(r, g, b) (Cast(UByte, (r)) Or (Cast(UShort, Cast(UByte, (g))) Shl 8)) Or (Cast(UShort, Cast(UByte, (b))) Shl 16)
 	#endif
 #endif
+#define RGBA_R( c ) ( CUInt( c ) Shr 16 And 255 )
+#define RGBA_G( c ) ( CUInt( c ) Shr  8 And 255 )
+#define RGBA_B( c ) ( CUInt( c )        And 255 )
+#define RGBA_A( c ) ( CUInt( c ) Shr 24         )
+
 
 'End Namespace
 

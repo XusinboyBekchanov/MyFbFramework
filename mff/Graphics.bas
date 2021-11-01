@@ -12,6 +12,10 @@
 '###############################################################################
 
 #include once "Graphics.bi"
+'#ifdef __FB_WIN32__
+'	#include once "win/wingdi.bi"
+'#endif
+#include once "Graphics.bi"
 
 Function ColorToRGB(FColor As Integer) As Integer
 	If FColor < 0 Then
@@ -23,6 +27,22 @@ Function ColorToRGB(FColor As Integer) As Integer
 	Else
 		Return FColor
 	End If
+End Function
+
+Function RGBAToBGR(FColor As UInteger) As Integer
+	#ifdef __USE_GTK__
+		Return BGR(GetRed(FColor), GetGreen(FColor), GetBlue(FColor))
+	#else
+		Return BGR(GetBlue(FColor), GetGreen(FColor), GetRed(FColor))
+	#endif
+End Function
+
+Function BGRToRGBA(FColor As UInteger) As UInteger
+	#ifdef __USE_GTK__
+		Return RGBA(GetRed(FColor), GetGreen(FColor), GetBlue(FColor), 255)
+	#else
+		Return RGBA(GetBlue(FColor), GetGreen(FColor), GetRed(FColor), 255)
+	#endif
 End Function
 
 Function GetRed(FColor As Long) As Integer
