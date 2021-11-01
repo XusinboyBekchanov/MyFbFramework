@@ -1106,6 +1106,36 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Function RichTextBox.AddImageFromFile(ByRef File As WString) As Boolean
+		Dim As My.Sys.Drawing.BitmapType Bitm
+		Bitm.LoadFromFile(File)
+		Return AddImage(Bitm)
+	End Function
+	
+	Function RichTextBox.AddImage(ByRef ResName As WString) As Boolean
+		Dim As My.Sys.Drawing.BitmapType Bitm
+		Bitm.LoadFromResourceName(ResName)
+		Return AddImage(Bitm)
+	End Function
+	
+	Function RichTextBox.AddImage(ByRef Ico As My.Sys.Drawing.Icon) As Boolean
+		Dim As My.Sys.Drawing.BitmapType Bitm
+		#ifdef __USE_GTK__
+			Bitm.Handle = Ico.Handle
+		#else
+			Bitm.Handle = Ico.ToBitmap
+		#endif
+		Return AddImage(Bitm)
+	End Function
+	
+	Function RichTextBox.AddImage(ByRef Cur As My.Sys.Drawing.Cursor) As Boolean
+		Dim As My.Sys.Drawing.BitmapType Bitm
+		#ifndef __USE_GTK__
+			Bitm.Handle = Cur.ToBitmap
+		#endif
+		Return AddImage(Bitm)
+	End Function
+	
+	Function RichTextBox.AddImage(ByRef Bitm As My.Sys.Drawing.BitmapType) As Boolean
 		#ifndef __USE_GTK__
 			Dim As HRESULT hr
 			
@@ -1118,8 +1148,6 @@ Namespace My.Sys.Forms
 			
 			Dim As IDataObject Ptr pDataObject
 			
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromFile(File)
 			CoInitialize(NULL)
 			If (OpenClipboard(NULL)) Then
 				EmptyClipboard()
@@ -1166,13 +1194,10 @@ Namespace My.Sys.Forms
 			Dim As LPUNKNOWN pUnk
 			Dim As CLSID clsid_ = CLSID_NULL
 			
-			If 0 Then
-				hr = OleCreateFromFile(@clsid_, Cast(LPCOLESTR, @File), @IID_IUnknown, OLERENDER_DRAW, _
-				@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
-			Else
-				hr = OleCreateStaticFromData(pDataObject, @IID_IUnknown, OLERENDER_DRAW, _
-				@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
-			End If
+'			hr = OleCreateFromFile(@clsid_, Cast(LPCOLESTR, @File), @IID_IUnknown, OLERENDER_DRAW, _
+'			@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
+			hr = OleCreateStaticFromData(pDataObject, @IID_IUnknown, OLERENDER_DRAW, _
+			@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
 			
 			pClientSite->lpVtbl->Release(pClientSite)
 			

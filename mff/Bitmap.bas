@@ -460,9 +460,11 @@ Namespace My.Sys.Drawing
 	Destructor BitmapType
 		WDeallocate FResName
 		Free
-		#ifndef __USE_GTK__
-			DeleteObject FDevice
-			DeleteObject Handle
+		#ifdef __USE_GTK__
+			If Handle Then g_object_unref(Handle)
+		#else
+			If FDevice Then DeleteObject FDevice
+			If Handle Then DeleteObject Handle
 		#endif
 	End Destructor
 End Namespace

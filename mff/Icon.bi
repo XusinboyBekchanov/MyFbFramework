@@ -54,7 +54,9 @@ Namespace My.Sys.Drawing
 		Declare Operator Let(ByRef Value As WString)
 		Declare Operator Let(Value As Integer)
 		Declare Operator Let(Value As Icon)
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Declare Operator Let(Value As GdkPixBuf Ptr)
+		#else
 			Declare Operator Let(Value As HICON)
 		#endif
 		Declare Constructor

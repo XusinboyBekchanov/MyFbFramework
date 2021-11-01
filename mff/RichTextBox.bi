@@ -100,6 +100,10 @@ Namespace My.Sys.Forms
 		Declare Property EditStyle(Value As Boolean)
 		Declare Property Zoom As Integer
 		Declare Property Zoom(Value As Integer)
+		Declare Function AddImage(ByRef Bitm As My.Sys.Drawing.BitmapType) As Boolean
+		Declare Function AddImage(ByRef Bitm As My.Sys.Drawing.Icon) As Boolean
+		Declare Function AddImage(ByRef Bitm As My.Sys.Drawing.Cursor) As Boolean
+		Declare Function AddImage(ByRef ResName As WString) As Boolean
 		Declare Function AddImageFromFile(ByRef File As WString) As Boolean
 		Declare Sub LoadFromFile(ByRef File As WString, bRTF As Boolean)
 		Declare Sub SaveToFile(ByRef File As WString, bRTF As Boolean)

@@ -218,12 +218,15 @@ Namespace My.Sys.Drawing
 		Handle = Value.Handle
 	End Operator
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_GTK__
+		Operator Icon.Let(Value As GdkPixBuf Ptr)
+			If Handle Then g_object_unref(Handle)
+	#else
 		Operator Icon.Let(Value As HICON)
 			If Handle Then DestroyIcon(Handle)
-			Handle = Value
-		End Operator
 	#endif
+		Handle = Value
+	End Operator
 	
 	Constructor Icon
 		WLet(FClassName, "Icon")
@@ -231,7 +234,9 @@ Namespace My.Sys.Drawing
 	
 	Destructor Icon
 		WDeallocate FResName
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			g_object_unref(Handle)
+		#else
 			DestroyIcon Handle
 		#endif
 	End Destructor
