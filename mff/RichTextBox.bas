@@ -1293,9 +1293,11 @@ Namespace My.Sys.Forms
 	
 	Function RichTextBox.SelPrint(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
 		#ifndef __USE_GTK__
-			Dim As DOCINFO di = Type(SizeOf(di))
+			Dim di As DOCINFO, sz As WString * 64 = This.Name
+			di.cbSize = SizeOf(DOCINFO)
+			di.lpszDocName = VarPtr(sz)
 			Dim hdc As HDC = Canvas.Handle
-			If (Not StartDoc(hdc, @di)) Then
+			If StartDoc(hdc, @di) <= 0 Then
 				Return False
 			End If
 			

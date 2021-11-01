@@ -409,60 +409,60 @@ Namespace My.Sys.ComponentModel
 		Return GetPrinterVerticalResolution (PrinterName)
 	End Property
 	
-	Property  printer.MaxCopies () AS Long  __EXPORT__
+	Property  printer.MaxCopies () As Long  __EXPORT__
 		Return GetPrinterMaxCopies (PrinterName)
 	End Property
 	
-	Property  printer.MaxPaperHeight () AS Long   __EXPORT__
+	Property  printer.MaxPaperHeight () As Long   __EXPORT__
 		Return GetPrinterMaxPaperHeight (PrinterName )
 	End Property
 	
-	Property  printer.MaxPaperWidth () AS Long  __EXPORT__
+	Property  printer.MaxPaperWidth () As Long  __EXPORT__
 		Return GetPrinterMaxPaperWidth (PrinterName )
 	End Property
 	
-	#IfNDef __USE_GTK__
-		Property printer.Handle() AS HDC   __EXPORT__
-			IF m_hdc  = 0 THEN printerName=This.defaultprinter()
+	#ifndef __USE_GTK__
+		Property printer.Handle() As HDC   __EXPORT__
+			If m_hdc  = 0 Then printerName=This.defaultprinter()
 			Return m_hdc
 		End Property
-	#EndIf
+	#endif
 	
 	Property printer.PageWidth As  Integer  __EXPORT__
-		#IfNDef __USE_GTK__
-			IF m_hdc  = 0 THEN printerName=This.defaultprinter
+		#ifndef __USE_GTK__
+			If m_hdc  = 0 Then printerName=This.defaultprinter
 			Return GetDeviceCaps(m_hdc ,PHYSICALWIDTH)
-		#Else
+		#else
 			Return 0
-		#EndIf
+		#endif
 	End Property
 	
-	Property printer.PageHeight() AS Integer  __EXPORT__
-		#IfNDef __USE_GTK__
+	Property printer.PageHeight() As Integer  __EXPORT__
+		#ifndef __USE_GTK__
 			Return GetDeviceCaps(m_hdc ,PHYSICALHEIGHT)
-		#Else
+		#else
 			Return 0
-		#EndIf
+		#endif
 	End Property
 	
-	Property printer.MarginLeft as  Integer   __EXPORT__
+	Property printer.MarginLeft As  Integer   __EXPORT__
 		Return leftMargin
 	End Property
 	
-	Property printer.MarginLeft(value as  Integer)  __EXPORT__
+	Property printer.MarginLeft(value As  Integer)  __EXPORT__
 		leftMargin =value
 	End Property
 	
-	Property printer.MarginTop as  Integer   __EXPORT__
+	Property printer.MarginTop As  Integer   __EXPORT__
 		Return topMargin
 	End Property
 	
-	Property printer.MarginTop(value as  Integer)  __EXPORT__
+	Property printer.MarginTop(value As  Integer)  __EXPORT__
 		topMargin =value
 	End Property
 	
 	
-	Property printer.MarginRight as  Integer   __EXPORT__
+	Property printer.MarginRight As  Integer   __EXPORT__
 		Return rightMargin
 	End Property
 	
@@ -471,22 +471,22 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	
-	Property printer.Marginbottom as  Integer   __EXPORT__
+	Property printer.Marginbottom As  Integer   __EXPORT__
 		Return bottomMargin
 	End Property
 	
-	Property printer.Marginbottom(value as  Integer)  __EXPORT__
+	Property printer.Marginbottom(value As  Integer)  __EXPORT__
 		bottomMargin =value
 	End Property
 	
 	
-	Function printer.defaultprinter() AS String  __EXPORT__    'determine default printer and device context handle
-		#IfNDef __USE_GTK__
-			Dim hPrinter As HWND, dwNeeded AS Long, n As LONG
-			Dim tm AS TEXTMETRIC, sz AS WString*128
-			Dim pDevMode AS DEVMODE PTR
+	Function printer.defaultprinter() As String  __EXPORT__    'determine default printer and device context handle
+		#ifndef __USE_GTK__
+			Dim hPrinter As HWND, dwNeeded As Long, n As Long
+			Dim tm As TEXTMETRIC, sz As WString*128
+			Dim pDevMode As DEVMODE Ptr
 			GetProfileString "WINDOWS", "DEVICE", "", sz, 127
-			sz = TRIM(PARSE(sz, ",", 1)): printerName = sz
+			sz = Trim(PARSE(sz, ",", 1)): printerName = sz
 			OpenPrinter(sz, @hPrinter, NULL) 'to obtain hPrinter
 			dwNeeded = DocumentProperties(0, hPrinter, sz, NULL, NULL, 0)
 			hDevMode = Cast(DEVMODE Ptr,GlobalAlloc( GHND_, dwNeeded))
@@ -503,28 +503,28 @@ Namespace My.Sys.ComponentModel
 			GetTextMetrics m_hdc, @tm
 			n = tm.tmHeight + tm.tmExternalLeading
 			charHt = n
-		#EndIf
+		#endif
 		Return printerName
-	END Function
+	End Function
 	
-	Function printer.choosePrinter() AS String  __EXPORT__  'choose printer and determine device context handle
-		Dim n AS LONG
-		#IfNDef __USE_GTK__
+	Function printer.choosePrinter() As String  __EXPORT__  'choose printer and determine device context handle
+		Dim n As Long
+		#ifndef __USE_GTK__
 			Dim hPrinter As HWND
-			Dim pd AS PRINTDLG , pDevNames AS DEVNAMES PTR
-			Dim tm AS TEXTMETRIC, psz AS ZString PTR
-			pd.lStructSize = SIZEOF(pd)
-			pd.Flags =  PD_RETURNDC OR  PD_HIDEPRINTTOFILE Or PD_PRINTSETUP
-			pd.Flags = pd.Flags OR  PD_ALLPAGES OR  PD_NOSELECTION OR  PD_NOPAGENUMS
-			IF PrintDlg(@pd) THEN 'call print dialog to select printer
+			Dim pd As PRINTDLG , pDevNames As DEVNAMES Ptr
+			Dim tm As TEXTMETRIC, psz As ZString Ptr
+			pd.lStructSize = SizeOf(pd)
+			pd.Flags =  PD_RETURNDC Or  PD_HIDEPRINTTOFILE Or PD_PRINTSETUP
+			pd.Flags = pd.Flags Or  PD_ALLPAGES Or  PD_NOSELECTION Or  PD_NOPAGENUMS
+			If PrintDlg(@pd) Then 'call print dialog to select printer
 				pDevNames = GlobalLock(pd.hDevNames)
 				psz =Cast(ZString Ptr,Cast(Byte Ptr, pDevNames) +  pDevNames->wDeviceOffset)
 				printerName = *psz
-				OpenPrinter(*psz, @hPrinter, NULL)
+				'OpenPrinter(*psz, @hPrinter, NULL)
 				m_hdc = pd.hDC
 				GlobalUnlock pd.hDevnames
 				
-			END IF
+			End If
 			
 			GetTextMetrics m_hdc , @tm
 			n = tm.tmHeight + tm.tmExternalLeading
@@ -532,21 +532,21 @@ Namespace My.Sys.ComponentModel
 			hDevMode = pd.hDevMode
 			Canvas.Handle=m_hdc
 			'canvas.Font.parent=hPrinter
-		#EndIf
+		#endif
 		Return printerName
 		
 	End Function
 	
-	#IfNDef __USE_GTK__
-		Function printer.newFont(fName AS STRING, fSize AS LONG,ibold As Long=FALSE, iunderline As Long=FALSE, iitalic As Long=FALSE ) AS HFONT __EXPORT__
+	#ifndef __USE_GTK__
+		Function printer.newFont(fName As String, fSize As Long,ibold As Long=False, iunderline As Long=False, iitalic As Long=False ) As HFONT __EXPORT__
 			'define a new font using a font name, font size in points, and font attributes
 			'combine attributes: "b" for bold, "u" for underline, "i" for italic
-			Dim AS Long yppi, charSize, hn
+			Dim As Long yppi, charSize, hn
 			Dim n  As HFONT
-			Dim wt AS DWORD, nBold AS DWORD, underline AS DWORD, italic AS DWORD, s AS STRING
-			Dim tm AS TEXTMETRIC
-			IF m_hFont THEN DeleteObject m_hFont
-			IF m_hdc  = 0 THEN printerName=This.defaultprinter
+			Dim wt As DWORD, nBold As DWORD, underline As DWORD, italic As DWORD, s As String
+			Dim tm As TEXTMETRIC
+			If m_hFont Then DeleteObject m_hFont
+			If m_hdc  = 0 Then printerName=This.defaultprinter
 			
 			nBold = ibold*300
 			underline = iunderline
