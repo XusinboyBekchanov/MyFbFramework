@@ -5,6 +5,9 @@
 '################################################################################
 
 #include once "RichTextBox.bi"
+#ifndef __USE_GTK__
+	#include once "win/richole.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -137,14 +140,14 @@ Namespace My.Sys.Forms
 			Dim As Boolean bBullet
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 			While(list)
-				Dim As GtkTextTag Ptr TextTag = list->data
-				Dim intval1 As gint, intval2 As gint, ptab_array As PangoTabArray Ptr
-				g_object_get(TextTag, "indent", @intval1, "left-margin", @intval2, "tabs", @ptab_array, NULL)
-				If intval1 <> -14 AndAlso intval2 = -14 AndAlso ptab_array <> 0 Then bBullet = True
-				list = g_slist_next(list)
-			Wend
-			g_slist_free(list)
-			Return bBullet
+			Dim As GtkTextTag Ptr TextTag = list->data
+			Dim intval1 As gint, intval2 As gint, ptab_array As PangoTabArray Ptr
+			g_object_get(TextTag, "indent", @intval1, "left-margin", @intval2, "tabs", @ptab_array, NULL)
+			If intval1 <> -14 AndAlso intval2 = -14 AndAlso ptab_array <> 0 Then bBullet = True
+			list = g_slist_next(list)
+		Wend
+		g_slist_free(list)
+		Return bBullet
 		#else
 			If FHandle Then
 				pf.dwMask = PFM_NUMBERING
@@ -162,7 +165,7 @@ Namespace My.Sys.Forms
 			Dim As String NeedTagName, TrueTagName = "Bullet1", FalseTagName = "Bullet0"
 			TrueTextTag = gtk_text_tag_table_lookup(TextTagTable, TrueTagName)
 			FalseTextTag = gtk_text_tag_table_lookup(TextTagTable, FalseTagName)
-			If Value Then 
+			If Value Then
 				NeedTextTag = TrueTextTag
 				NotNeedTextTag = FalseTextTag
 				NeedTagName = TrueTagName
@@ -280,16 +283,16 @@ Namespace My.Sys.Forms
 			Dim As PangoTabArray Ptr ptab_array
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 			While(list)
-				Dim As GtkTextTag Ptr TextTag = list->data
-				list = g_slist_next(list)
-				g_object_get(TextTag, "tabs", @ptab_array, NULL)
-				If ptab_array <> 0 Then Exit While
-			Wend
-			g_slist_free(list)
-			If ptab_array = 0 Then Return 0
-			Dim As Integer sTabCount = pango_tab_array_get_size(ptab_array)
-			pango_tab_array_free(ptab_array)
-			Return sTabCount
+			Dim As GtkTextTag Ptr TextTag = list->data
+			list = g_slist_next(list)
+			g_object_get(TextTag, "tabs", @ptab_array, NULL)
+			If ptab_array <> 0 Then Exit While
+		Wend
+		g_slist_free(list)
+		If ptab_array = 0 Then Return 0
+		Dim As Integer sTabCount = pango_tab_array_get_size(ptab_array)
+		pango_tab_array_free(ptab_array)
+		Return sTabCount
 		#else
 			If FHandle Then
 				pf.dwMask = PFM_TABSTOPS
@@ -307,21 +310,21 @@ Namespace My.Sys.Forms
 			Dim As PangoTabArray Ptr ptab_array
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 			While(list)
-				Dim As GtkTextTag Ptr TextTag = list->data
-				list = g_slist_next(list)
-				g_object_get(TextTag, "tabs", @ptab_array, NULL)
-				If ptab_array <> 0 Then Exit While
-			Wend
-			g_slist_free(list)
-			If ptab_array = 0 Then
-				ptab_array = pango_tab_array_new(Value, True)
-			Else
-				pango_tab_array_resize(ptab_array, Value)
-			End If
-			Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
-			g_object_set(TextTag, "tabs", ptab_array, NULL)
-			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), TextTag, @FStart, @FEnd)
-			g_object_unref(TextTag)
+			Dim As GtkTextTag Ptr TextTag = list->data
+			list = g_slist_next(list)
+			g_object_get(TextTag, "tabs", @ptab_array, NULL)
+			If ptab_array <> 0 Then Exit While
+		Wend
+		g_slist_free(list)
+		If ptab_array = 0 Then
+			ptab_array = pango_tab_array_new(Value, True)
+		Else
+			pango_tab_array_resize(ptab_array, Value)
+		End If
+		Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
+		g_object_set(TextTag, "tabs", ptab_array, NULL)
+		gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), TextTag, @FStart, @FEnd)
+		g_object_unref(TextTag)
 		#else
 			If FHandle Then
 				pf.dwMask = PFM_TABSTOPS
@@ -340,17 +343,17 @@ Namespace My.Sys.Forms
 				Dim As PangoTabArray Ptr ptab_array
 				Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 				While(list)
-					Dim As GtkTextTag Ptr TextTag = list->data
-					list = g_slist_next(list)
-					g_object_get(TextTag, "tabs", @ptab_array, NULL)
-					If ptab_array <> 0 Then Exit While
-				Wend
-				g_slist_free(list)
-				If ptab_array = 0 Then Return 0
-				Dim As gint Value
-				pango_tab_array_get_tab(ptab_array, sElement, PANGO_TAB_LEFT, @Value)
-				Return Value
-			End If
+				Dim As GtkTextTag Ptr TextTag = list->data
+				list = g_slist_next(list)
+				g_object_get(TextTag, "tabs", @ptab_array, NULL)
+				If ptab_array <> 0 Then Exit While
+			Wend
+			g_slist_free(list)
+			If ptab_array = 0 Then Return 0
+			Dim As gint Value
+			pango_tab_array_get_tab(ptab_array, sElement, PANGO_TAB_LEFT, @Value)
+			Return Value
+		End If
 		#else
 			If FHandle Then
 				If sElement >= 0 AndAlso sElement <= 31 Then
@@ -371,20 +374,20 @@ Namespace My.Sys.Forms
 				Dim As PangoTabArray Ptr ptab_array
 				Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 				While(list)
-					Dim As GtkTextTag Ptr TextTag = list->data
-					list = g_slist_next(list)
-					g_object_get(TextTag, "tabs", @ptab_array, NULL)
-					If ptab_array <> 0 Then Exit While
-				Wend
-				g_slist_free(list)
-				If ptab_array = 0 Then ptab_array = pango_tab_array_new(sElement + 1, True)
-				pango_tab_array_set_tab(ptab_array, sElement, PANGO_TAB_LEFT, Value)
-				gtk_text_view_set_tabs(gtk_text_view(widget), ptab_array)
-				Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
-				g_object_set(TextTag, "tabs", ptab_array, NULL)
-				gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), TextTag, @FStart, @FEnd)
-				g_object_unref(TextTag)
-			End If
+				Dim As GtkTextTag Ptr TextTag = list->data
+				list = g_slist_next(list)
+				g_object_get(TextTag, "tabs", @ptab_array, NULL)
+				If ptab_array <> 0 Then Exit While
+			Wend
+			g_slist_free(list)
+			If ptab_array = 0 Then ptab_array = pango_tab_array_new(sElement + 1, True)
+			pango_tab_array_set_tab(ptab_array, sElement, PANGO_TAB_LEFT, Value)
+			gtk_text_view_set_tabs(gtk_text_view(widget), ptab_array)
+			Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
+			g_object_set(TextTag, "tabs", ptab_array, NULL)
+			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), TextTag, @FStart, @FEnd)
+			g_object_unref(TextTag)
+		End If
 		#else
 			If FHandle Then
 				If sElement >= 0 AndAlso sElement <= 31 Then
@@ -502,7 +505,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTextIter FStart, FEnd
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
-			While(list)
+			While (list)
 				Dim As GtkTextTag Ptr TextTag = list->data
 				Dim As gchar Ptr strval
 				g_object_get(TextTag, sProperty, @strval, NULL)
@@ -537,7 +540,7 @@ Namespace My.Sys.Forms
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
 			Dim As Integer iResult
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
-			While(list)
+			While (list)
 				Dim As GtkTextTag Ptr TextTag = list->data
 				Dim As gint intval
 				g_object_get(TextTag, sProperty, @intval, NULL)
@@ -577,7 +580,7 @@ Namespace My.Sys.Forms
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
 			Dim As Boolean bResult
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
-			While(list)
+			While (list)
 				Dim As GtkTextTag Ptr TextTag = list->data
 				If NeedTextTag = TextTag Then bResult = True: Exit While
 				list = g_slist_next(list)
@@ -592,7 +595,7 @@ Namespace My.Sys.Forms
 			Dim As String NeedTagName, TrueTagName = sProperty & Str(TrueValue), FalseTagName = sProperty & Str(FalseValue)
 			TrueTextTag = gtk_text_tag_table_lookup(TextTagTable, TrueTagName)
 			FalseTextTag = gtk_text_tag_table_lookup(TextTagTable, FalseTagName)
-			If Value Then 
+			If Value Then
 				NeedTextTag = TrueTextTag
 				NotNeedTextTag = FalseTextTag
 				NeedTagName = TrueTagName
@@ -1101,6 +1104,107 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Property
+	
+	Function RichTextBox.AddImageFromFile(ByRef File As WString) As Boolean
+		#ifndef __USE_GTK__
+			Dim As HRESULT hr
+			
+			Dim As LPRICHEDITOLE pRichEditOle
+			SendMessage(FHandle, EM_GETOLEINTERFACE, 0, Cast(LPARAM, @pRichEditOle))
+			
+			If (pRichEditOle = NULL) Then
+				Return False
+			End If
+			
+			Dim As LPLOCKBYTES pLockBytes = NULL
+			hr = CreateILockBytesOnHGlobal(NULL, True, @pLockBytes)
+			
+			If (FAILED(hr)) Then
+				Return False
+			End If
+			
+			Dim As LPSTORAGE pStorage
+			hr = StgCreateDocfileOnILockBytes(pLockBytes, _
+			STGM_SHARE_EXCLUSIVE Or STGM_CREATE Or STGM_READWRITE, _
+			0, @pStorage)
+			
+			If (FAILED(hr)) Then
+				Return False
+			End If
+			
+			Dim As FORMATETC formatEtc
+			formatEtc.cfFormat = 0
+			formatEtc.ptd = NULL
+			formatEtc.dwAspect = DVASPECT_CONTENT
+			formatEtc.lindex = -1
+			formatEtc.tymed = TYMED_NULL
+			
+			Dim As LPOLECLIENTSITE pClientSite
+			hr = pRichEditOle->lpVtbl->GetClientSite(pRichEditOle, @pClientSite)
+			
+			If (FAILED(hr)) Then
+				Return False
+			End If
+			
+			Dim As LPUNKNOWN pUnk
+			Dim As CLSID clsid_ = CLSID_NULL
+			
+			hr = OleCreateFromFile(@clsid_, Cast(LPCOLESTR, @File), @IID_IUnknown, OLERENDER_DRAW, _
+			@formatEtc, pClientSite, pStorage, Cast(LPVOID Ptr, @pUnk))
+			
+			pClientSite->lpVtbl->Release(pClientSite)
+			
+			If (FAILED(hr)) Then
+				Return False
+			End If
+			
+			Dim As LPOLEOBJECT pObject
+			hr = pUnk->lpVtbl->QueryInterface(pUnk, @IID_IOleObject, Cast(LPVOID Ptr, @pObject))
+			pUnk->lpVtbl->Release(pUnk)
+			
+			If (FAILED(hr)) Then
+				Return False
+			End If
+			
+			OleSetContainedObject(Cast(LPUNKNOWN, pObject), True)
+			Dim As REOBJECT reobject
+			reobject.cbStruct = SizeOf(REOBJECT)
+			hr = pObject->lpVtbl->GetUserClassID(pObject, @clsid_)
+			
+			If (FAILED(hr)) Then
+				pObject->lpVtbl->Release(pObject)
+				Return False
+			End If
+			
+			reobject.clsid = clsid_
+			reobject.cp = REO_CP_SELECTION
+			reobject.dvaspect = DVASPECT_CONTENT
+			reobject.dwFlags = REO_RESIZABLE Or REO_BELOWBASELINE
+			reobject.dwUser = 0
+			reobject.poleobj = pObject
+			reobject.polesite = pClientSite
+			reobject.pstg = pStorage
+			Dim As SIZEL sizel
+			sizel.cx = 0
+			reobject.sizel = sizel
+			
+			SendMessage(FHandle, EM_SETSEL, 0, -1)
+			Dim As DWORD dwStart, dwEnd
+			SendMessage(FHandle, EM_GETSEL, Cast(WPARAM, @dwStart), Cast(LPARAM, @dwEnd))
+			SendMessage(FHandle, EM_SETSEL, dwEnd + 1, dwEnd + 1)
+			SendMessage(FHandle, EM_REPLACESEL, True, Cast(WPARAM, @!"\n"))
+			
+			hr = pRichEditOle->lpVtbl->InsertObject(pRichEditOle, @reobject)
+			pObject->lpVtbl->Release(pObject)
+			pRichEditOle->lpVtbl->Release(pRichEditOle)
+			
+			If (FAILED(hr)) Then
+				Return False
+			End If
+			
+			Return True
+		#endif
+	End Function
 	
 	Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
 		#ifndef __USE_GTK__
