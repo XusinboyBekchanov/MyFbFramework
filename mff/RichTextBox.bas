@@ -1253,7 +1253,7 @@ Namespace My.Sys.Forms
 '			Dim As DWORD dwStart, dwEnd
 '			SendMessage(FHandle, EM_GETSEL, Cast(WPARAM, @dwStart), Cast(LPARAM, @dwEnd))
 '			SendMessage(FHandle, EM_SETSEL, dwEnd + 1, dwEnd + 1)
-			SendMessage(FHandle, EM_REPLACESEL, True, Cast(WPARAM, @!"\n"))
+			SendMessage(FHandle, EM_REPLACESEL, True, Cast(WPARAM, @""))
 			
 			hr = pRichEditOle->lpVtbl->InsertObject(pRichEditOle, @reobject)
 			pObject->lpVtbl->Release(pObject)
