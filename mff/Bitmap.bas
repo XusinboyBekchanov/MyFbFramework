@@ -286,7 +286,17 @@ Namespace My.Sys.Drawing
 	Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
-			Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
+			If FileExists("./Resources/" & ResName & ".png") Then
+				Handle = gdk_pixbuf_new_from_file(ToUTF8("./Resources/" & ResName & ".png"), @gerr)
+			ElseIf FileExists("./resources/" & ResName & ".png") Then
+				Handle = gdk_pixbuf_new_from_file(ToUTF8("./resources/" & ResName & ".png"), @gerr)
+			ElseIf FileExists("./Resources/" & ResName & ".ico") Then
+				Handle = gdk_pixbuf_new_from_file(ToUTF8("./Resources/" & ResName & ".ico"), @gerr)
+			ElseIf FileExists("./resources/" & ResName & ".ico") Then
+				Handle = gdk_pixbuf_new_from_file(ToUTF8("./resources/" & ResName & ".ico"), @gerr)
+			Else
+				Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
+			End If
 			If gerr Then Print gerr->code, *gerr->message
 		#else
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
