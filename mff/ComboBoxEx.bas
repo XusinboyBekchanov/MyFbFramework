@@ -417,7 +417,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
 			Select Case Message.Msg
-				Case WM_DRAWITEM
+			Case WM_DRAWITEM
 				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)

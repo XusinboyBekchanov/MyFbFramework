@@ -184,6 +184,7 @@ Namespace My.Sys.Forms
 		FColumnHeaderHidden As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
+		FOwnerDraw As Boolean
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
@@ -211,6 +212,8 @@ Namespace My.Sys.Forms
 		Declare Sub ExpandAll
 		Declare Property ColumnHeaderHidden As Boolean
 		Declare Property ColumnHeaderHidden(Value As Boolean)
+		Declare Property OwnerDraw As Boolean
+		Declare Property OwnerDraw(Value As Boolean)
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property Sort As SortStyle
@@ -240,6 +243,8 @@ Namespace My.Sys.Forms
 		OnSelectedItemChanged As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 		OnBeginScroll As Sub(ByRef Sender As TreeListView)
 		OnEndScroll As Sub(ByRef Sender As TreeListView)
+		OnMeasureItem As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByRef ItemWidth As UInteger, ByRef ItemHeight As UInteger)
+		OnDrawItem As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
 	End Type
 End Namespace
 

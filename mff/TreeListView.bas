@@ -130,12 +130,14 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex = -1 Then Exit Sub
-				Dim lvi As LVITEM
-				lvi.iItem = ItemIndex
-				lvi.iSubItem   = 0
-				lvi.state    = LVIS_SELECTED
-				lvi.statemask = LVNI_SELECTED
-				ListView_SetItem(Parent->Handle, @lvi)
+				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_SELECTED, LVIS_SELECTED)
+            	ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_FOCUSED, LVIS_FOCUSED)
+'				Dim lvi As LVITEM
+'				lvi.iItem = ItemIndex
+'				lvi.iSubItem   = 0
+'				lvi.state    = LVIS_SELECTED
+'				lvi.statemask = LVNI_SELECTED
+'				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
 	End Sub
@@ -957,6 +959,17 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Property TreeListView.OwnerDraw As Boolean
+		Return FOwnerDraw
+	End Property
+	
+	Property TreeListView.OwnerDraw(Value As Boolean)
+		FOwnerDraw = Value
+		#ifndef __USE_GTK__
+			ChangeStyle LVS_OWNERDRAWFIXED, Value
+		#endif
+	End Property
+	
 	Property TreeListView.ColumnHeaderHidden As Boolean
 		Return FColumnHeaderHidden
 	End Property
@@ -1029,12 +1042,14 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then
-				Dim lvi As LVITEM
-				lvi.iItem = Value
-				lvi.iSubItem   = 0
-				lvi.state    = LVIS_SELECTED
-				lvi.statemask = LVNI_SELECTED
-				ListView_SetItem(Handle, @lvi)
+				ListView_SetItemState(Handle, Value, LVIS_SELECTED, LVIS_SELECTED)
+            	ListView_SetItemState(Handle, Value, LVIS_FOCUSED, LVIS_FOCUSED)
+'				Dim lvi As LVITEM
+'				lvi.iItem = Value
+'				lvi.iSubItem   = 0
+'				lvi.state    = LVIS_SELECTED
+'				lvi.statemask = LVNI_SELECTED
+'				ListView_SetItem(Handle, @lvi)
 			End If
 		#endif
 	End Property
@@ -1116,15 +1131,36 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
+			Case CM_DRAWITEM
+				Dim lpdis As DRAWITEMSTRUCT Ptr
+				Dim As Integer ItemID, State
+				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
+				If OnDrawItem Then 
+					Canvas.HandleSetted = True
+					Canvas.Handle = lpdis->hDC
+					OnDrawItem(This, GetTreeListViewItem(lpdis->itemID), lpdis->itemState, lpdis->itemAction, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), Canvas)
+					Canvas.HandleSetted = False
+					Message.Result = True
+					Exit Sub
+				End If
+			Case CM_MEASUREITEM
+				Dim As MEASUREITEMSTRUCT Ptr miStruct
+				Dim As Integer ItemID
+				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
+				ItemID = Cast(Integer, miStruct->itemID)
+				If OnMeasureItem Then OnMeasureItem(This, GetTreeListViewItem(itemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
 				Dim lvhti As LVHITTESTINFO
 				lvhti.pt.x = Message.lParamLo
 				lvhti.pt.y = Message.lParamHi
 				If (ListView_HitTest(Handle, @lvhti) <> -1) Then
-					If (lvhti.flags = LVHT_ONITEMSTATEICON) Then
-						Var tlvi = GetTreeListViewItem(lvhti.iItem)
-						If tlvi AndAlso tlvi->Nodes.Count > 0 Then
+					Var tlvi = GetTreeListViewItem(lvhti.iItem)
+					If tlvi AndAlso tlvi->Nodes.Count > 0 Then
+						Dim As Rect lpRect
+						ListView_GetSubItemRect(FHandle, lvhti.iItem, 0, LVIR_BOUNDS, @lpRect)
+						If lvhti.flags = LVHT_ONITEMSTATEICON OrElse (FOwnerDraw AndAlso lvhti.pt.x >= lpRect.Left + 3 + tlvi->Indent * 16 AndAlso lvhti.pt.x <= lpRect.Left + 3 + 16 + tlvi->Indent * 16 AndAlso _
+							lvhti.pt.y >= lpRect.Top AndAlso lvhti.pt.y <= lpRect.Top + 16) Then
 							If tlvi->IsExpanded Then
 								tlvi->Collapse
 							Else
