@@ -144,7 +144,11 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Property TextBox.LeftMargin() As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_text_view(widget) Then
+				FLeftMargin = gtk_text_view_get_left_margin(gtk_text_view(widget))
+			End If
+		#else
 			If FHandle Then
 				Dim As DWORD Result = SendMessage(FHandle, EM_GETMARGINS, 0, 0)
 				FLeftMargin = LoWord(Result)
@@ -155,7 +159,11 @@ Namespace My.Sys.Forms
 	
 	Property TextBox.LeftMargin(Value As Integer)
 		FLeftMargin = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_text_view(widget) Then
+				gtk_text_view_set_left_margin(gtk_text_view(widget), Value)
+			End If
+		#else
 			If FHandle Then
 				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MakeWord(FLeftMargin, FRightMargin))
 			End If
@@ -163,7 +171,11 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TextBox.RightMargin() As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_text_view(widget) Then
+				FRightMargin = gtk_text_view_get_right_margin(gtk_text_view(widget))
+			End If
+		#else
 			If FHandle Then
 				Dim As DWORD Result = SendMessage(FHandle, EM_GETMARGINS, 0, 0)
 				FRightMargin = HiWord(Result)
@@ -174,7 +186,11 @@ Namespace My.Sys.Forms
 	
 	Property TextBox.RightMargin(Value As Integer)
 		FRightMargin = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If gtk_is_text_view(widget) Then
+				gtk_text_view_set_right_margin(gtk_text_view(widget), Value)
+			End If
+		#else
 			If FHandle Then
 				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MakeWord(FLeftMargin, FRightMargin))
 			End If
