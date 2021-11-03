@@ -1125,7 +1125,14 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				Case WM_PAINT
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then
+						Dim As HDC DC = GetDC(FHandle)
+						Canvas.HandleSetted = True
+						Canvas.Handle = DC
+						OnPaint(This, Canvas)
+						Canvas.HandleSetted = False
+						ReleaseDC FHandle, DC
+					End If
 				Case WM_SETCURSOR
 					If CInt(This.Cursor.Handle <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not FDesignMode) Then
 						Message.Result = Cast(LResult, SetCursor(This.Cursor.Handle))

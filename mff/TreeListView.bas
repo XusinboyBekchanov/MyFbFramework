@@ -378,6 +378,17 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TreeListViewColumn.Width As Integer
+		#ifdef __USE_GTK__
+			If This.Column Then FWidth = gtk_tree_view_column_get_width(This.Column)
+		#else
+			If Parent AndAlso Parent->Handle Then
+				Dim lvc As LVCOLUMN
+				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
+				lvc.iSubItem = Index
+				ListView_GetColumn(Parent->Handle, Index, @lvc)
+				FWidth = UnScaleX(lvc.cx)
+			End If
+		#endif
 		Return FWidth
 	End Property
 	

@@ -143,6 +143,44 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Property TextBox.LeftMargin() As Integer
+		#ifndef __USE_GTK__
+			If FHandle Then
+				Dim As DWORD Result = SendMessage(FHandle, EM_GETMARGINS, 0, 0)
+				FLeftMargin = LoWord(Result)
+			End If
+		#endif
+		Return FLeftMargin
+	End Property
+	
+	Property TextBox.LeftMargin(Value As Integer)
+		FLeftMargin = Value
+		#ifndef __USE_GTK__
+			If FHandle Then
+				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MakeWord(FLeftMargin, FRightMargin))
+			End If
+		#endif
+	End Property
+	
+	Property TextBox.RightMargin() As Integer
+		#ifndef __USE_GTK__
+			If FHandle Then
+				Dim As DWORD Result = SendMessage(FHandle, EM_GETMARGINS, 0, 0)
+				FRightMargin = HiWord(Result)
+			End If
+		#endif
+		Return FRightMargin
+	End Property
+	
+	Property TextBox.RightMargin(Value As Integer)
+		FRightMargin = Value
+		#ifndef __USE_GTK__
+			If FHandle Then
+				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MakeWord(FLeftMargin, FRightMargin))
+			End If
+		#endif
+	End Property
+	
 	Property TextBox.WantReturn() As Boolean
 		#ifndef __USE_GTK__
 			FWantReturn = StyleExists(ES_WANTRETURN)

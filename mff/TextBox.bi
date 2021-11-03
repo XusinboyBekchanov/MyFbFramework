@@ -60,6 +60,8 @@ Namespace My.Sys.Forms
 		FOEMConvert       As Boolean
 		FMaxLength        As Integer
 		FModified         As Boolean
+		FLeftMargin       As Integer
+		FRightMargin      As Integer
 		ACharCase(3)      As Long
 		AMaskStyle(2)     As Long
 		ABorderExStyle(2) As Long
@@ -117,6 +119,10 @@ Namespace My.Sys.Forms
 		Declare Property Masked(Value As Boolean)
 		Declare Property MaskChar ByRef As WString
 		Declare Property MaskChar(ByRef Value As WString)
+		Declare Property LeftMargin As Integer
+		Declare Property LeftMargin(Value As Integer)
+		Declare Property RightMargin As Integer
+		Declare Property RightMargin(Value As Integer)
 		Declare Property Lines(Index As Integer) ByRef As WString
 		Declare Property Lines(Index As Integer, ByRef Value As WString)
 		Declare Function LinesCount As Integer
