@@ -189,6 +189,36 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Property ReBarBand.Left As Integer
+		#ifndef __USE_GTK__
+			Dim rc As My.Sys.Drawing.RECT
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
+				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
+				FLeft = rc.Left
+			End If
+		#endif
+		Return FLeft
+	End Property
+	
+	Property ReBarBand.Left(Value As Integer)
+		FLeft = Value
+	End Property
+	
+	Property ReBarBand.Top As Integer
+		#ifndef __USE_GTK__
+			Dim rc As My.Sys.Drawing.RECT
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
+				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
+				FLeft = rc.Top
+			End If
+		#endif
+		Return FTop
+	End Property
+	
+	Property ReBarBand.Top(Value As Integer)
+		FTop = Value
+	End Property
+	
 	Property ReBarBand.Height As Integer
 		Return FHeight
 	End Property
@@ -267,10 +297,25 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function ReBarBand.Index As Integer
+	Property ReBarBand.Index As Integer
 		If Parent Then Return Parent->Bands.IndexOf(@This)
 		Return -1
-	End Function
+	End Property
+	
+	Property ReBarBand.Index(Value As Integer)
+		If Value >= 0 AndAlso Value <= Parent->Bands.Count - 1 Then
+			Dim As Integer OldIndex = Index
+			If OldIndex < 0 OrElse Value = OldIndex Then Exit Property
+			Dim As ReBarBand Ptr OldBand = Parent->Bands.Item(Value), MovedBand = Parent->Bands.Item(OldIndex)
+			Parent->Bands.Item(OldIndex) = OldBand
+			Parent->Bands.Item(Value) = MovedBand
+			#ifdef __USE_GTK__
+				gtk_widget_queue_draw(Parent->Handle)
+			#else
+				SendMessage Parent->Handle, RB_MOVEBAND, OldIndex, Value
+			#endif
+		End If
+	End Property
 	
 	Sub ReBarBand.Update(Create As Boolean = False)
 		#ifndef __USE_GTK__
@@ -314,7 +359,12 @@ Namespace My.Sys.Forms
 	
 	Function ReBarBand.GetRect() As My.Sys.Drawing.RECT
 		Dim rc As My.Sys.Drawing.RECT
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			rc.Left = FLeft
+			rc.Top = FTop
+			rc.Right = FWidth
+			rc.Bottom = FHeight
+		#else
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
 		#endif
 		Return rc
@@ -553,15 +603,51 @@ Namespace My.Sys.Forms
 			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
 				rb->AllocatedWidth = allocation->width
 				rb->AllocatedHeight = allocation->height
-				Dim As Integer FLeft, FTop, FClientWidth
+				Dim As Integer FLeft, FTop, FWidth = allocation->width, FHeight, OldBandIndex
 				Dim ChildAllocation As GtkAllocation
 				Dim ChildWidget As GtkWidget Ptr
 				For i As Integer = 0 To rb->Bands.Count - 1
 					ChildWidget = rb->Bands.Item(i)->Child->Handle
 					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
-'					gtk_layout_move(gtk_layout(widget), ChildWidget, FLeft, FTop)
-'					gtk_widget_set_size_request(ChildWidget, allocation.width, allocation.height)
+					If rb->Bands.Item(i)->MinWidth = 0 OrElse rb->Bands.Item(i)->MinHeight = 0 Then
+						rb->Bands.Item(i)->MinWidth = ChildAllocation.width + 11
+						rb->Bands.Item(i)->MinHeight = ChildAllocation.height
+					End If
 				Next
+				Dim As Boolean bNextNewLine
+				For i As Integer = 0 To rb->Bands.Count - 1
+					ChildWidget = rb->Bands.Item(i)->Child->Handle
+					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
+					If FLeft = 0 Then
+						FHeight += ChildAllocation.height + 2
+					End If
+					gtk_layout_move(gtk_layout(widget), ChildWidget, FLeft + 11, FTop)
+					rb->Bands.Item(i)->Left = FLeft
+					rb->Bands.Item(i)->Top = FTop
+					rb->Bands.Item(i)->Width = ChildAllocation.width + 11
+					rb->Bands.Item(i)->Height = FHeight
+					bNextNewLine = False
+					If i = rb->Bands.Count - 1 OrElse (i < rb->Bands.Count - 1 AndAlso rb->Bands.Item(i + 1)->MinWidth + 11 > FWidth - rb->Bands.Item(i)->MinWidth) Then
+						ChildAllocation.width = FWidth - 11
+						gtk_widget_set_size_request(ChildWidget, ChildAllocation.width, ChildAllocation.height)
+						rb->Bands.Item(i)->Width = FWidth
+						bNextNewLine = True
+					Else
+						
+						FLeft += rb->Bands.Item(i)->Width
+					End If
+					FWidth -= rb->Bands.Item(i)->Width
+					If bNextNewLine Then
+						If FWidth > 0 Then
+							'gtk_widget_set_size_request(rb->Bands.Item(OldBandIndex)->Child->Handle, ChildAllocation.width, ChildAllocation.height)
+						End If
+						FWidth = allocation->width
+						FLeft = 0
+						FTop += rb->Bands.Item(i)->Height
+						OldBandIndex = i + 1
+					End If
+				Next
+				If allocation->height <> FHeight Then gtk_widget_set_size_request(widget, allocation->width, FHeight)
 				If rb->OnResize Then rb->OnResize(*rb, allocation->width, allocation->height)
 			End If
 		End Sub
@@ -575,6 +661,26 @@ Namespace My.Sys.Forms
 			End If
 			rb->Canvas.HandleSetted = True
 			rb->Canvas.Handle = cr
+			For i As Integer = 0 To rb->Bands.Count - 1
+				With *rb->Bands.Item(i)
+					cairo_set_source_rgb(cr, 240 / 255.0, 240 / 255.0, 240 / 255.0)
+					cairo_rectangle cr, .Left + 0.5, .Top + 0.5, .Width, .Height
+					cairo_stroke(cr)
+					For j As Integer = 0 To .Height Step 4
+						cairo_set_source_rgb(cr, 228 / 255.0, 228 / 255.0, 228 / 255.0)
+						cairo_move_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
+						cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
+						'cairo_rectangle cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5, 1 + 0.5, 1 + 0.5
+						cairo_stroke(cr)
+						cairo_set_source_rgb(cr, 195 / 255.0, 195 / 255.0, 195 / 255.0)
+						cairo_move_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 0.5
+						cairo_line_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 1 + 0.5
+						cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 1 + 0.5
+						'cairo_rectangle cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5, 0 + 0.5, 0 + 0.5
+						cairo_stroke(cr)
+					Next
+				End With
+			Next
 			If rb->OnPaint Then rb->OnPaint(*rb, rb->Canvas)
 			rb->Canvas.HandleSetted = False
 			Return False

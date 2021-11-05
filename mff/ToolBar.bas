@@ -140,7 +140,9 @@ Namespace My.Sys.Forms
 		Dim As Integer i
 		If Value <> *FCaption Then
 			WLet(FCaption, Value)
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				gtk_tool_button_set_label(gtk_tool_button(widget), ToUTF8(Value))
+			#else
 				Dim As TBBUTTON TB
 				If Ctrl Then
 					With QControl(Ctrl)

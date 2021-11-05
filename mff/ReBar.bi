@@ -32,10 +32,12 @@ Namespace My.Sys.Forms
 		FImageKey As WString Ptr
 		FMinWidth As Integer
 		FMinHeight As Integer
+		FLeft As Integer
+		FTop As Integer
+		FWidth As Integer
 		FHeight As Integer
 		FTopAlign As Boolean
 		FTitleVisible As Boolean
-		FWidth As Integer
 		FVisible As Boolean
 		FStyle As Integer
 		Declare Sub ChangeStyle(iStyle As Integer, Value As Boolean)
@@ -64,20 +66,25 @@ Namespace My.Sys.Forms
 		Declare Property MinWidth(Value As Integer)
 		Declare Property MinHeight As Integer
 		Declare Property MinHeight(Value As Integer)
+		Declare Property Left As Integer
+		Declare Property Left(Value As Integer)
+		Declare Property Top As Integer
+		Declare Property Top(Value As Integer)
+		Declare Property Width As Integer
+		Declare Property Width(Value As Integer)
 		Declare Property Height As Integer
 		Declare Property Height(Value As Integer)
 		Declare Property TopAlign As Boolean
 		Declare Property TopAlign(Value As Boolean)
 		Declare Property TitleVisible As Boolean
 		Declare Property TitleVisible(Value As Boolean)
-		Declare Property Width As Integer
-		Declare Property Width(Value As Integer)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
 		Declare Property UseChevron As Boolean
 		Declare Property UseChevron(Value As Boolean)
 		Declare Function GetRect As My.Sys.Drawing.Rect
-		Declare Function Index As Integer
+		Declare Property Index As Integer
+		Declare Property Index(Value As Integer)
 		Declare Sub Update(Create As Boolean = False)
 		Declare Constructor
 		Declare Destructor
