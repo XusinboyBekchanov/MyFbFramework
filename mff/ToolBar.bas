@@ -444,11 +444,12 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If gtk_is_toggle_tool_button(widget) Then
 						gtk_toggle_tool_button_set_active(gtk_toggle_tool_button(widget), Value)
+						If OnClick Then OnClick(This)
 					End If
 				#else
 					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MakeLong(FChecked, 0))
+					If OnClick Then OnClick(This)
 				#endif
-				If OnClick Then OnClick(This)
 			End With
 		End If
 		If CInt(Value) AndAlso CInt((FState And tstChecked) <> tstChecked) Then

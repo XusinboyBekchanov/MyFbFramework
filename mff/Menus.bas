@@ -482,12 +482,22 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Sub MenuItem.MenuItemActivate(m_item As GtkMenuItem Ptr, user_data As Any Ptr) '...'
+		Sub MenuItem.MenuItemActivate(m_item As GtkMenuItem Ptr, user_data As Any Ptr)
 			Dim As MenuItem Ptr Ctrl = user_data
+			If Ctrl->FMenuItemChecked Then
+				Ctrl->FMenuItemChecked = False 
+				Exit Sub
+			End If
 			If Ctrl Then
 				If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl)
 			End If
 		End Sub
+		
+		Function MenuItem.MenuItemButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Dim As MenuItem Ptr mi = user_data
+			If mi->OnClick Then mi->OnClick(*mi)
+			Return False
+		End Function
 	#endif
 	
 	Property MenuItem.ImageKey ByRef As WString
@@ -641,13 +651,14 @@ Namespace My.Sys.Forms
 		FChecked = value
 		#ifdef __USE_GTK__
 			If gtk_is_check_menu_item(widget) Then
+				FMenuItemChecked = True
 				gtk_check_menu_item_set_active(gtk_check_menu_item(widget), value)
 			End If
 		#else
 			Dim As Integer FCheck(-1 To 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
 			If Parent AndAlso Parent->Handle Then
 				If Handle Then
-					CheckMenuItem(Parent->Handle,CInt(Handle),MF_POPUP Or FCheck(FChecked))
+					CheckMenuItem(Parent->Handle, CInt(Handle), MF_POPUP Or FCheck(FChecked))
 				Else
 					CheckMenuItem(Parent->Handle, MenuIndex, MF_BYPOSITION Or FCheck(FChecked))
 				End If
@@ -1004,6 +1015,8 @@ Namespace My.Sys.Forms
 				'
 				'	widget = gtk_menu_item_new_with_mnemonic(wCaption)
 				label = gtk_bin_get_child (GTK_BIN (widget))
+				'g_signal_connect(widget, "button-release-event", G_CALLBACK(@MenuItemButtonPressEvent), @This)
+				g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
 			Else
 				If wImageKey = "" Then
 					icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
@@ -1224,23 +1237,30 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub Menu.Add(value As PMenuItem)
+	Sub Menu.Add(value As PMenuItem, Index As Integer = -1)
 		#ifndef __USE_GTK__
 			Dim As MenuItemInfo FInfo
 		#endif
 		If IndexOf(value) = -1 Then
 			FCount          +=1
-			FItems           = reallocate_(FItems,SizeOf(PMenuItem)*FCount)
-			FItems[FCount-1] = value
+			FItems           = reallocate_(FItems, SizeOf(PMenuItem)*FCount)
+			If Index <> -1 Then
+				For i As Integer = FCount - 1 To Index + 1 Step -1
+					FItems[i] = FItems[i-1]
+				Next i
+			Else
+				Index = FCount - 1
+			End If
+			FItems[Index] = value
 			value->Parent    = Null
-			value->MenuIndex = FCount -1
+			value->MenuIndex = Index
 			'               #IfNDef __USE_GTK__
 			'				value->Menu      = Handle
 			'				#EndIf
 			value->Owner     = @This
 			AllocateCommand(value)
 			#ifdef __USE_GTK__
-				gtk_menu_shell_append(gtk_menu_shell(widget), value->widget)
+				gtk_menu_shell_insert(gtk_menu_shell(widget), value->widget, Index)
 				gtk_widget_show(value->widget)
 				If value->label Then gtk_widget_show(value->label)
 				If ClassName = "MainMenu" Then
@@ -1255,7 +1275,7 @@ Namespace My.Sys.Forms
 				End If
 			#else
 				value->SetInfo(FInfo)
-				InsertMenuItem(Handle, -1, True, @FInfo)
+				InsertMenuItem(Handle, Index, True, @FInfo)
 			#endif
 			For i As Integer = 0 To value->Count-1
 				value->item(i)->Owner = value->Owner
@@ -1276,35 +1296,36 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+	Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->Image     = iImage
 		Value->Name     = sKey
 		Value->OnClick     = eClick
-		Add(Value)
+		Value->OnClick     = eClick
+		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+	Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->ImageIndex = iImageIndex
 		Value->Caption     = sCaption
 		Value->Name     = sKey
 		Value->OnClick     = eClick
-		Add(Value)
+		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey))
+	Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, , Checkable))
 		Value->FDynamic = True
 		'WLet Value->FImageKey, sImageKey
 		If ImagesList Then Value->ImageIndex = ImagesList->IndexOf(sImageKey)
 		Value->Name     = sKey
 		Value->OnClick     = eClick
-		Add(Value)
+		Add(Value, Index)
 		Return Value
 	End Function
 	

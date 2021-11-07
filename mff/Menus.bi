@@ -53,32 +53,33 @@ Namespace My.Sys.Forms
 	Private:
 		Declare Static Sub BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		#ifndef __USE_GTK__
-			FInfo		As MENUITEMINFO
+			FInfo	    	As MENUITEMINFO
 		#endif
-		FCount			As Integer
-		FItems			As PMenuItem Ptr
-		FCaption		As WString Ptr
-		pCaption        As WString Ptr
-		FText			As WString Ptr
-		FAccelerator	As WString Ptr
-		FChecked		As Boolean
-		FRadioItem		As Boolean
-		FParent			As PMenuItem
-		FEnabled		As Boolean
-		FVisible		As Boolean
-		FCommand		As Integer
-		FMenuIndex		As Integer
-		FImage			As My.Sys.Drawing.BitmapType
-		FImageIndex		As Integer
-		FImageKey		As WString Ptr
-		FOwnerDraw		As Integer
+		FCount		    	As Integer
+		FItems          	As PMenuItem Ptr
+		FCaption		    As WString Ptr
+		pCaption            As WString Ptr
+		FText			    As WString Ptr
+		FAccelerator	    As WString Ptr
+		FChecked		    As Boolean
+		FRadioItem		    As Boolean
+		FParent			    As PMenuItem
+		FEnabled		    As Boolean
+		FVisible		    As Boolean
+		FCommand		    As Integer
+		FMenuIndex		    As Integer
+		FImage			    As My.Sys.Drawing.BitmapType
+		FImageIndex		    As Integer
+		FImageKey		    As WString Ptr
+		FOwnerDraw		    As Integer
 	Protected:
 		#ifndef __USE_GTK__
-			FHandle		As HMENU
-			'FMenu		As HMENU
+			FHandle		    As HMENU
+			'FMenu  		As HMENU
 		#endif
-		FName			As WString Ptr
-		FOwner			As PMenu
+		FName			    As WString Ptr
+		FOwner			    As PMenu
+		FMenuItemChecked    As Boolean
 	Public:
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
@@ -99,6 +100,7 @@ Namespace My.Sys.Forms
 			Label			As GtkWidget Ptr
 			Widget 			As GtkWidget Ptr
 			Declare Static Sub MenuItemActivate(menuitem As GtkMenuItem Ptr, user_data As Any Ptr)
+			Declare Static Function MenuItemButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 		#endif
 		Declare Property Owner As PMenu
 		Declare Property Owner(value As PMenu)
@@ -194,10 +196,10 @@ Namespace My.Sys.Forms
 		Declare Property Item(index As Integer) As PMenuItem
 		Declare Property Item(index As Integer, value As PMenuItem)
 		Declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null) As MenuItem Ptr
-		Declare Sub Add(value As PMenuItem)
+		Declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Declare Sub Add(value As PMenuItem, Index As Integer = -1)
 		Declare Sub Add(value() As PMenuItem)
 		Declare Sub AddRange cdecl(CountArgs As Integer, ...)
 		Declare Sub Remove(value As PMenuItem)

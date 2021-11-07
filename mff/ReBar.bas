@@ -30,7 +30,9 @@ Namespace My.Sys.Forms
 	
 	Property ReBarBand.Break(Value As Boolean)
 		FBreak = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If Parent Then Parent->UpdateReBar
+		#else
 			ChangeStyle RBBS_BREAK, Value
 		#endif
 	End Property
@@ -253,6 +255,40 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Property ReBarBand.IdealWidth As Integer
+		Return FIdealWidth
+	End Property
+	
+	Property ReBarBand.IdealWidth(Value As Integer)
+		FIdealWidth = Value
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.fMask = RBBIM_IDEALSIZE
+				rbBand.cxIdeal = FIdealWidth
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Property
+	
+	Property ReBarBand.RequestedWidth As Integer
+		Return FRequestedWidth
+	End Property
+	
+	Property ReBarBand.RequestedWidth(Value As Integer)
+		FRequestedWidth = Value
+		#ifdef __USE_GTK__
+			If Parent Then Parent->UpdateReBar
+		#else
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
+				Dim As REBARBANDINFO rbBand
+				rbBand.fMask = RBBIM_SIZE
+				rbBand.cx = FRequestedWidth
+				SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+			End If
+		#endif
+	End Property
+	
 	Property ReBarBand.TopAlign As Boolean
 		Return FTopAlign
 	End Property
@@ -292,7 +328,10 @@ Namespace My.Sys.Forms
 	
 	Property ReBarBand.Visible(Value As Boolean)
 		FVisible = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			gtk_widget_set_visible(Child->Handle, Value)
+			If Parent Then Parent->UpdateReBar
+		#else
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then SendMessage(Parent->Handle, RB_SHOWBAND, Index, Value)
 		#endif
 	End Property
@@ -306,16 +345,34 @@ Namespace My.Sys.Forms
 		If Value >= 0 AndAlso Value <= Parent->Bands.Count - 1 Then
 			Dim As Integer OldIndex = Index
 			If OldIndex < 0 OrElse Value = OldIndex Then Exit Property
-			Dim As ReBarBand Ptr OldBand = Parent->Bands.Item(Value), MovedBand = Parent->Bands.Item(OldIndex)
-			Parent->Bands.Item(OldIndex) = OldBand
-			Parent->Bands.Item(Value) = MovedBand
-			#ifdef __USE_GTK__
-				gtk_widget_queue_draw(Parent->Handle)
-			#else
-				SendMessage Parent->Handle, RB_MOVEBAND, OldIndex, Value
-			#endif
+			Parent->Bands.Move(OldIndex, Value)
 		End If
 	End Property
+	
+	Sub ReBarBandCollection.Move(OldIndex As Integer, Value As Integer)
+		Dim As Any Ptr Band = FItems.Item(OldIndex)
+		FItems.Remove OldIndex
+		FItems.Insert Value, Band
+		#ifdef __USE_GTK__
+			Parent->UpdateReBar
+		#else
+			SendMessage Parent->Handle, RB_MOVEBAND, OldIndex, Value
+		#endif
+	End Sub
+	
+	Sub ReBarBand.Maximize()
+		#ifndef __USE_GTK__
+			If Parent AndAlso Parent->Handle Then
+				SendMessage Parent->Handle, RB_MAXIMIZEBAND, Index, 1
+			End If
+		#endif
+	End Sub
+	
+	Sub ReBarBand.Minimize()
+		#ifndef __USE_GTK__
+			SendMessage Parent->Handle, RB_MINIMIZEBAND, Index, 0
+		#endif
+	End Sub
 	
 	Sub ReBarBand.Update(Create As Boolean = False)
 		#ifndef __USE_GTK__
@@ -332,25 +389,33 @@ Namespace My.Sys.Forms
 					rbBand.fMask Or= RBBIM_TEXT
 					rbBand.lpText = FCaption
 				End If
-				rbBand.fStyle = FStyle                                              ' (RBBIM_STYLE flag)
+				rbBand.fStyle = FStyle                                          ' (RBBIM_STYLE flag)
 				If FChild Then
-					rbBand.hwndChild = FChild->Handle                               ' (RBBIM_CHILD flag)
+					rbBand.hwndChild = FChild->Handle                           ' (RBBIM_CHILD flag)
 				End If
 				If Create Then
 					GetWindowRect(FChild->Handle, @rct)
-					rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
-					rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
-					rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
-					FMinWidth = rbBand.cxMinChild
-					FMinHeight = rbBand.cyMinChild
-					FWidth = rbBand.cx
-					rbBand.cxIdeal = rct.Right - rct.Left
+					FMinWidth = rct.Right - rct.Left
+					FMinHeight = rct.Bottom - rct.Top
+					FWidth = rct.Right - rct.Left
+					If *FChild Is ToolBar Then
+						Dim As SIZE sz
+						SendMessage FChild->Handle, TB_GETIDEALSIZE, False, Cast(LParam, @sz)
+						FIdealWidth = sz.cx
+						FMinWidth = sz.cx
+						FWidth = sz.cx
+					Else
+						FIdealWidth = rct.Right - rct.Left
+					End If
+				End If
+				rbBand.cxMinChild = FMinWidth                                   ' Minimum width of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyMinChild = FMinHeight                                  ' Minimum height of band (RBBIM_CHILDSIZE flag)
+				rbBand.cx = FWidth                                              ' Length of the band (RBBIM_SIZE flag)
+				rbBand.cxIdeal = FIdealWidth
+				If Create Then
 					SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(lParam, @rbBand))
+					Maximize
 				Else
-					rbBand.cxMinChild = FMinWidth                                   ' Minimum width of band (RBBIM_CHILDSIZE flag)
-					rbBand.cyMinChild = FMinHeight                                  ' Minimum height of band (RBBIM_CHILDSIZE flag)
-					rbBand.cx = FWidth                                              ' Length of the band (RBBIM_SIZE flag)
-					rbBand.cxIdeal = FWidth
 					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(lParam, @rbBand))
 				End If
 			End If
@@ -371,7 +436,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Constructor ReBarBand
-		
+		FVisible = True
 	End Constructor
 	
 	Destructor ReBarBand
@@ -409,7 +474,11 @@ Namespace My.Sys.Forms
 		pBand->GripperStyle = GripperStyles.GripperAlways
 		pBand->UseChevron = True
 		pBand->Parent = Parent
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If *pBand->Child Is ToolBar Then
+				gtk_toolbar_set_show_arrow(gtk_toolbar(pBand->Child->Handle), False)
+			End If
+		#else
 			If Parent AndAlso Parent->Handle Then
 				Dim As REBARBANDINFO rbBand
 				Dim As RECT rct
@@ -424,17 +493,17 @@ Namespace My.Sys.Forms
 					rbBand.fMask Or= RBBIM_TEXT
 					rbBand.lpText = @Caption
 				End If
-				rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS Or RBBS_USECHEVRON          ' (RBBIM_STYLE flag)
+				rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS 'Or RBBS_USECHEVRON          ' (RBBIM_STYLE flag)
 				
 				rbBand.hwndChild = value->Handle                                       ' (RBBIM_CHILD flag)
 				GetWindowRect(value->Handle, @rct)
 				rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
 				rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
 				rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
+				rbBand.cxIdeal = rct.Right - rct.Left
 				pBand->MinWidth = rbBand.cxMinChild
 				pBand->MinHeight = rbBand.cyMinChild
 				pBand->Width = rbBand.cx
-				rbBand.cxIdeal = rct.Right - rct.Left
 				SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(lParam, @rbBand))
 			End If
 		#endif
@@ -533,7 +602,12 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub ReBar.UpdateRebar()
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If Not bWithoutUpdate Then
+				AllocatedWidth = 0
+				gtk_widget_queue_draw(widget)
+			End If
+		#else
 			If ImageList AndAlso ImageList->Count Then
 				Dim As REBARINFO inf
 				inf.cbSize = SizeOf(REBARINFO)
@@ -543,6 +617,13 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
+	
+	Function ReBar.RowCount() As Integer
+		#ifndef __USE_GTK__
+			If FHandle Then FRowCount = SendMessage(FHandle, RB_GETROWCOUNT, 0, 0)
+		#endif
+		Return FRowCount
+	End Function
 	
 	Sub ReBar.Add(Ctrl As Control Ptr)
 		Base.Add(Ctrl)
@@ -567,12 +648,116 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Sub ReBar.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GdkEvent Ptr e = Message.event
+			Select Case Message.event->Type
+			Case GDK_BUTTON_PRESS
+				bPressed = True
+				If InRect Then
+					OldX = e->button.x
+					gdk_window_set_cursor(win, gdkCursorColResize)
+				End If
+			Case GDK_BUTTON_RELEASE
+				bPressed = False
+				If InRect Then
+					gdk_window_set_cursor(win, gdkCursorDefault)
+				End If
+			Case GDK_MOTION_NOTIFY
+				If bPressed Then
+					If InRect Then
+						Dim As Integer MovedToItem = -1, MovedToBand = -1
+						For i As Integer = 0 To Bands.Count - 1
+							If Not Bands.Item(i)->Visible Then Continue For
+							With *Bands.Item(i)
+								If e->button.x >= .Left AndAlso e->button.x <= .Left + 11 AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+									MovedToItem = i
+									Exit For
+								ElseIf e->button.x >= .Left AndAlso e->button.x <= .Left + .Width AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+									MovedToBand = i
+								End If 
+							End With
+						Next
+						If MovedToItem > -1 Then
+							bWithoutUpdate = True
+							If Bands.Item(MovedToItem)->Break Then
+								Bands.Item(DraggedItem)->Break = True
+								Bands.Item(MovedToItem)->Break = False
+							End If
+							bWithoutUpdate = False
+							Bands.Item(DraggedItem)->Index = MovedToItem
+							DraggedItem = MovedToItem
+						Else
+							If e->button.y > Bands.Item(DraggedItem)->Top + Bands.Item(DraggedItem)->Height Then
+								If MovedToBand > -1 Then
+									Bands.Item(DraggedItem)->Index = Min(Bands.Count - 1, MovedToBand + 1)
+									DraggedItem = Min(Bands.Count - 1, MovedToBand + 1)
+								Else
+									bWithoutUpdate = True
+									Bands.Item(DraggedItem)->Index = Bands.Count - 1
+									DraggedItem = Bands.Count - 1
+									bWithoutUpdate = False
+									Bands.Item(DraggedItem)->Break = True
+								End If
+							ElseIf e->button.y < Bands.Item(DraggedItem)->Top Then
+								If MovedToBand > -1 Then
+									If Bands.Item(DraggedItem)->Break Then
+										bWithoutUpdate = True
+										Bands.Item(DraggedItem)->Break = False
+										bWithoutUpdate = False
+									End If
+									Bands.Item(DraggedItem)->Index = Min(Bands.Count - 1, MovedToBand + 1)
+									DraggedItem = Min(Bands.Count - 1, MovedToBand + 1)
+								End If
+							ElseIf Bands.Item(DraggedItem)->Left > 0 Then
+								If e->button.x < OldX Then
+									If Bands.Item(DraggedItem - 1)->Width - (OldX - e->button.x) >= Bands.Item(DraggedItem - 1)->MinWidth Then
+										bWithoutUpdate = True
+										Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width - (OldX - e->button.x)
+										bWithoutUpdate = False 
+										Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width + (OldX - e->button.x)
+										OldX = e->button.x
+									End If
+								Else
+									If Bands.Item(DraggedItem)->Width - (OldX - e->button.x) >= Bands.Item(DraggedItem)->MinWidth Then
+										bWithoutUpdate = True
+										Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width - (OldX - e->button.x)
+										bWithoutUpdate = False
+									End If
+									Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width + (e->button.x - OldX)
+									OldX = e->button.x
+								End If
+							End If
+						End If
+					End If
+				Else
+					InRect = False
+					For i As Integer = 0 To Bands.Count - 1
+						If Not Bands.Item(i)->Visible Then Continue For
+						With *Bands.Item(i)
+							If e->button.x >= .Left AndAlso e->button.x <= .Left + 11 AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+								DraggedItem = i
+								InRect = True
+								Exit For
+							End If 
+						End With
+					Next
+					If InRect Then
+						gdk_window_set_cursor(win, gdkCursorWEResize)
+					Else
+						gdk_window_set_cursor(win, gdkCursorDefault)
+					End If
+				End If
+				Message.Result = True
+				Return
+			End Select
+		#else
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
 			Case WM_COMMAND
 				Message.Result = -1
+			Case WM_SIZE
+				If This.Parent Then This.Parent->RequestAlign
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
@@ -603,51 +788,93 @@ Namespace My.Sys.Forms
 			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
 				rb->AllocatedWidth = allocation->width
 				rb->AllocatedHeight = allocation->height
-				Dim As Integer FLeft, FTop, FWidth = allocation->width, FHeight, OldBandIndex
 				Dim ChildAllocation As GtkAllocation
 				Dim ChildWidget As GtkWidget Ptr
 				For i As Integer = 0 To rb->Bands.Count - 1
 					ChildWidget = rb->Bands.Item(i)->Child->Handle
 					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
 					If rb->Bands.Item(i)->MinWidth = 0 OrElse rb->Bands.Item(i)->MinHeight = 0 Then
+						rb->bWithoutUpdate = True
 						rb->Bands.Item(i)->MinWidth = ChildAllocation.width + 11
-						rb->Bands.Item(i)->MinHeight = ChildAllocation.height
+						rb->Bands.Item(i)->MinHeight = ChildAllocation.height + 2
+						rb->Bands.Item(i)->IdealWidth = ChildAllocation.width + 11
+						rb->Bands.Item(i)->RequestedWidth = ChildAllocation.width + 11
+						rb->Bands.Item(i)->Width = ChildAllocation.width + 11
+						rb->Bands.Item(i)->Height = ChildAllocation.height + 2
+						If *rb->Bands.Item(i)->Child Is ToolBar Then
+							gtk_toolbar_set_show_arrow(gtk_toolbar(rb->Bands.Item(i)->Child->Handle), True)
+						End If
+						rb->bWithoutUpdate = False
 					End If
 				Next
 				Dim As Boolean bNextNewLine
+				Dim As Integer FLeft, FTop, FWidth = allocation->width, FHeight, OldBandIndex, RowHeight, FMinWidths
+				rb->FRowCount = 0
 				For i As Integer = 0 To rb->Bands.Count - 1
-					ChildWidget = rb->Bands.Item(i)->Child->Handle
-					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
+					If Not rb->Bands.Item(i)->Visible Then Continue For
+'					ChildWidget = rb->Bands.Item(i)->Child->Handle
+'					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
+					If RowHeight < rb->Bands.Item(i)->MinHeight Then RowHeight = rb->Bands.Item(i)->MinHeight
 					If FLeft = 0 Then
-						FHeight += ChildAllocation.height + 2
+						rb->FRowCount += 1
+						FHeight += RowHeight
 					End If
-					gtk_layout_move(gtk_layout(widget), ChildWidget, FLeft + 11, FTop)
 					rb->Bands.Item(i)->Left = FLeft
 					rb->Bands.Item(i)->Top = FTop
-					rb->Bands.Item(i)->Width = ChildAllocation.width + 11
-					rb->Bands.Item(i)->Height = FHeight
+					'rb->Bands.Item(i)->Width = rb->Bands.Item(i)->MinWidth
+					rb->Bands.Item(i)->Height = RowHeight
 					bNextNewLine = False
-					If i = rb->Bands.Count - 1 OrElse (i < rb->Bands.Count - 1 AndAlso rb->Bands.Item(i + 1)->MinWidth + 11 > FWidth - rb->Bands.Item(i)->MinWidth) Then
-						ChildAllocation.width = FWidth - 11
-						gtk_widget_set_size_request(ChildWidget, ChildAllocation.width, ChildAllocation.height)
-						rb->Bands.Item(i)->Width = FWidth
+					If i = rb->Bands.Count - 1 OrElse (i < rb->Bands.Count - 1 AndAlso (rb->Bands.Item(i + 1)->MinWidth + 11 > FWidth - rb->Bands.Item(i)->MinWidth OrElse rb->Bands.Item(i + 1)->Break)) Then
+						'ChildAllocation.width = FWidth - 11
+						'gtk_widget_set_size_request(ChildWidget, ChildAllocation.width, ChildAllocation.height)
+						'rb->Bands.Item(i)->Width = FWidth
 						bNextNewLine = True
 					Else
-						
-						FLeft += rb->Bands.Item(i)->Width
+						FLeft += rb->Bands.Item(i)->MinWidth
 					End If
-					FWidth -= rb->Bands.Item(i)->Width
+					FWidth -= rb->Bands.Item(i)->MinWidth
 					If bNextNewLine Then
-						If FWidth > 0 Then
-							'gtk_widget_set_size_request(rb->Bands.Item(OldBandIndex)->Child->Handle, ChildAllocation.width, ChildAllocation.height)
-						End If
+						FWidth = allocation->width
+						FLeft = 0
+						For j As Integer = OldBandIndex To i
+							If Not rb->Bands.Item(j)->Visible Then Continue For
+							FMinWidths = 0
+							For k As Integer = j + 1 To i
+								If Not rb->Bands.Item(k)->Visible Then Continue For
+								FMinWidths += rb->Bands.Item(k)->MinWidth
+							Next
+							With *rb->Bands.Item(j)
+								ChildWidget = .Child->Handle
+								.Left = FLeft
+								gtk_layout_move(gtk_layout(widget), ChildWidget, .Left + 11, .Top)
+								rb->bWithoutUpdate = True
+								If j = i Then
+									.Width = FWidth
+								Else
+									.Width = Max(.MinWidth, Min(.RequestedWidth, FWidth - FMinWidths))
+								End If
+								.Height = RowHeight
+								rb->bWithoutUpdate = False
+								gtk_widget_set_size_request(ChildWidget, .Width - 11, .Height - 2)
+							End With
+							FLeft += rb->Bands.Item(j)->Width
+							FWidth -= rb->Bands.Item(j)->Width
+						Next
 						FWidth = allocation->width
 						FLeft = 0
 						FTop += rb->Bands.Item(i)->Height
 						OldBandIndex = i + 1
 					End If
 				Next
-				If allocation->height <> FHeight Then gtk_widget_set_size_request(widget, allocation->width, FHeight)
+				FHeight = Max(1, FHeight)
+				If allocation->height <> FHeight Then 
+					gtk_widget_set_size_request(widget, allocation->width, FHeight)
+					rb->AllocatedHeight = FHeight
+					rb->Height = FHeight
+					If FHeight <> 1 Then
+						If rb->Parent Then rb->Parent->RequestAlign
+					End If
+				End If
 				If rb->OnResize Then rb->OnResize(*rb, allocation->width, allocation->height)
 			End If
 		End Sub
@@ -661,23 +888,34 @@ Namespace My.Sys.Forms
 			End If
 			rb->Canvas.HandleSetted = True
 			rb->Canvas.Handle = cr
+			If rb->cr = 0 Then
+				rb->cr = cr
+				rb->pdisplay = gtk_widget_get_display(widget)
+				rb->gdkCursorDefault = gdk_cursor_new_from_name(rb->pdisplay, "default")
+				rb->gdkCursorWEResize = gdk_cursor_new_from_name(rb->pdisplay, crSizeWE)
+				rb->gdkCursorColResize = gdk_cursor_new_from_name(rb->pdisplay, "col-resize")
+				#ifdef __USE_GTK3__
+					rb->win = gtk_layout_get_bin_window(gtk_layout(widget))
+				#endif
+			End If
 			For i As Integer = 0 To rb->Bands.Count - 1
 				With *rb->Bands.Item(i)
-					cairo_set_source_rgb(cr, 240 / 255.0, 240 / 255.0, 240 / 255.0)
-					cairo_rectangle cr, .Left + 0.5, .Top + 0.5, .Width, .Height
+					cairo_set_line_width(cr, 1)
+					cairo_set_source_rgb(cr, 222 / 255.0, 222 / 255.0, 222 / 255.0)
+					cairo_rectangle cr, .Left + 0.5, .Top - 1 + 0.5, .Width, .Height
 					cairo_stroke(cr)
-					For j As Integer = 0 To .Height Step 4
-						cairo_set_source_rgb(cr, 228 / 255.0, 228 / 255.0, 228 / 255.0)
-						cairo_move_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
-						cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
-						'cairo_rectangle cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5, 1 + 0.5, 1 + 0.5
-						cairo_stroke(cr)
+					For j As Integer = 0 To .Height - 6 Step 4
 						cairo_set_source_rgb(cr, 195 / 255.0, 195 / 255.0, 195 / 255.0)
-						cairo_move_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 0.5
-						cairo_line_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 1 + 0.5
-						cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 1 + 0.5
-						'cairo_rectangle cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5, 0 + 0.5, 0 + 0.5
-						cairo_stroke(cr)
+						'cairo_move_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 0.5
+						'cairo_line_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 1 + 0.5
+						'cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 1 + 0.5
+						cairo_rectangle cr, .Left + 5, .Top + j + 3, 2, 2
+						cairo_fill(cr)
+						cairo_set_source_rgb(cr, 228 / 255.0, 228 / 255.0, 228 / 255.0)
+						'cairo_move_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
+						'cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
+						cairo_rectangle cr, .Left + 5, .Top + j + 3, 1, 1
+						cairo_fill(cr)
 					Next
 				End With
 			Next
@@ -689,6 +927,7 @@ Namespace My.Sys.Forms
 		Function ReBar.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As ReBar Ptr rb = Cast(Any Ptr, data1)
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			rb->win = Event->window
 			Layout_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False

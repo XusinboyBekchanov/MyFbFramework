@@ -4,7 +4,7 @@
 '#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 
-#include once "Control.bi"
+#include once "ToolBar.bi"
 #include once "Graphic.bi"
 
 Namespace My.Sys.Forms
@@ -36,6 +36,8 @@ Namespace My.Sys.Forms
 		FTop As Integer
 		FWidth As Integer
 		FHeight As Integer
+		FIdealWidth As Integer
+		FRequestedWidth As Integer
 		FTopAlign As Boolean
 		FTitleVisible As Boolean
 		FVisible As Boolean
@@ -74,6 +76,10 @@ Namespace My.Sys.Forms
 		Declare Property Width(Value As Integer)
 		Declare Property Height As Integer
 		Declare Property Height(Value As Integer)
+		Declare Property IdealWidth As Integer
+		Declare Property IdealWidth(Value As Integer)
+		Declare Property RequestedWidth As Integer
+		Declare Property RequestedWidth(Value As Integer)
 		Declare Property TopAlign As Boolean
 		Declare Property TopAlign(Value As Boolean)
 		Declare Property TitleVisible As Boolean
@@ -82,9 +88,12 @@ Namespace My.Sys.Forms
 		Declare Property Visible(Value As Boolean)
 		Declare Property UseChevron As Boolean
 		Declare Property UseChevron(Value As Boolean)
-		Declare Function GetRect As My.Sys.Drawing.Rect
 		Declare Property Index As Integer
 		Declare Property Index(Value As Integer)
+		Declare Function GetRect As My.Sys.Drawing.Rect
+		
+		Declare Sub Maximize
+		Declare Sub Minimize
 		Declare Sub Update(Create As Boolean = False)
 		Declare Constructor
 		Declare Destructor
@@ -101,6 +110,7 @@ Namespace My.Sys.Forms
 		Declare Function Add(Value As Control Ptr, ByRef Caption As WString = "", ImageIndex As Integer = 0, Index As Integer = -1) As ReBarBand Ptr
 		Declare Function Add(Value As Control Ptr, ByRef Caption As WString = "", ByRef ImageKey As WString, Index As Integer = -1) As ReBarBand Ptr
 		Declare Sub Remove(Index As Integer)
+		Declare Sub Move(OldIndex As Integer, NewIndex As Integer)
 		Declare Sub Clear
 		Declare Function IndexOf(Value As ReBarBand Ptr) As Integer
 		Declare Function IndexOf(Value As Control Ptr) As Integer
@@ -114,6 +124,7 @@ Namespace My.Sys.Forms
 	Type ReBar Extends ContainerControl
 	Private:
 		FAutoSize As Boolean
+		FRowCount As Integer
 		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)    ' Handle to the popup menu
 		#ifdef __USE_GTK__
 			Declare Static Sub Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
@@ -125,6 +136,17 @@ Namespace My.Sys.Forms
 		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_GTK__
+			Dim As Boolean InRect
+			Dim As Boolean bPressed, bWithoutUpdate
+			Dim As Integer DraggedItem, OldX
+			Dim As cairo_t Ptr cr
+			Dim As GdkWindow Ptr win
+			Dim As GdkDisplay Ptr pdisplay
+			Dim As GdkCursor Ptr gdkCursorDefault
+			Dim As GdkCursor Ptr gdkCursorWEResize
+			Dim As GdkCursor Ptr gdkCursorColResize
+		#endif
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
@@ -135,6 +157,7 @@ Namespace My.Sys.Forms
 		Declare Property AutoSize(Value As Boolean)
 		Declare Sub Add(Ctrl As Control Ptr)
 		Declare Sub UpdateReBar()
+		Declare Function RowCount As Integer
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
