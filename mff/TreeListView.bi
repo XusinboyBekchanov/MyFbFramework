@@ -243,7 +243,7 @@ Namespace My.Sys.Forms
 		OnSelectedItemChanged As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 		OnBeginScroll As Sub(ByRef Sender As TreeListView)
 		OnEndScroll As Sub(ByRef Sender As TreeListView)
-		OnMeasureItem As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByRef ItemWidth As UInteger, ByRef ItemHeight As UInteger)
+		OnMeasureItem As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByRef ItemWidth As ULong, ByRef ItemHeight As ULong)
 		OnDrawItem As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
 	End Type
 End Namespace
