@@ -860,6 +860,12 @@ Namespace My.Sys.Forms
 				msg.Result = 0
 				Canvas.HandleSetted = False
 				Return
+			Case WM_SIZE
+				If Not This.WindowState = wsMinimized Then
+					RequestAlign
+				End If
+				If OnReSize Then OnReSize(This, This.Width, This.Height)
+				Return
 			Case WM_CLOSE
 				If OnClose Then
 					OnClose(This, Action)
