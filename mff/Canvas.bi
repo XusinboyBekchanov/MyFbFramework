@@ -16,15 +16,15 @@ Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr,__Ptr__)
 	
 	Type Rect
-		Left As Integer
-		Top As Integer
-		Right As Integer
-		Bottom As Integer
+		Left As Long
+		Top As Long
+		Right As Long
+		Bottom As Long
 	End Type
 
 	Type Point
-		X As Integer
-		Y As Integer
+		X As Long
+		Y As Long
 	End Type
 	
 	#ifdef __USE_GTK__
