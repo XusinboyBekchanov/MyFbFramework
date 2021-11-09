@@ -2018,9 +2018,9 @@ Namespace My.Sys.Forms
 			Next i
 			For i = 0 To ClientCount -1
 				With *ListClient[i]
-					If .FVisible Then
+					'If .FVisible Then
 						.SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
-					End If
+					'End If
 				End With
 			Next i
 			#ifdef __USE_GTK__
