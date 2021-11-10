@@ -17,11 +17,11 @@
 Namespace My.Sys.Forms
 	#define QPanel(__Ptr__) *Cast(Panel Ptr,__Ptr__)
 	
-	Enum Bevel
+	Private Enum Bevel
 		bvNone, bvLowered, bvRaised
 	End Enum
 	
-	Type Panel Extends ContainerControl
+	Private Type Panel Extends ContainerControl
 	Private:
 		FTopColor    As Integer
 		FBottomColor As Integer

@@ -10,7 +10,7 @@
 Namespace My.Sys.Forms
 	#define QDateTimePicker(__Ptr__) *Cast(DateTimePicker Ptr, __Ptr__)
 	
-	Enum DateTimePickerFormat
+	Private Enum DateTimePickerFormat
 		LongDate = 0
 		ShortDate
 		ShortDateCentury
@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 		CustomFormat
 	End Enum
 	
-	Type DateTimePicker Extends Control
+	Private Type DateTimePicker Extends Control
 	Private:
 		PressedKey          As Integer
 		PressedNumber       As String

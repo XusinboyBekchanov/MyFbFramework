@@ -19,17 +19,17 @@ Namespace My.Sys.Forms
 	#define QTabControl(__Ptr__) *Cast(TabControl Ptr,__Ptr__)
 	#define QTabPage(__Ptr__) *Cast(TabPage Ptr, __Ptr__)
 	
-	Enum TabStyle
+	Private Enum TabStyle
 		tsTabs,tsButtons,tsOwnerDrawFixed
 	End Enum
 	
-	Enum TabPosition
+	Private Enum TabPosition
 		tpLeft,tpRight,tpTop,tpBottom
 	End Enum
 	
-	Type PTabControl As TabControl Ptr
+	Private Type PTabControl As TabControl Ptr
 	
-	Type TabPage Extends Panel
+	Private Type TabPage Extends Panel
 	Protected:
 		FCaption    As WString Ptr
 		FObject     As Any Ptr
@@ -78,7 +78,7 @@ Namespace My.Sys.Forms
 		OnDeSelected As Sub(ByRef Sender As TabPage)
 	End Type
 	
-	Type TabControl Extends ContainerControl
+	Private Type TabControl Extends ContainerControl
 	Private:
 		FSelectedTabIndex   As Integer
 		FTabCount           As Integer

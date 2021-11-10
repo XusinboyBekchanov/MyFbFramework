@@ -15,22 +15,22 @@
 Namespace My.Sys.Forms
 	'HeaderSection
 	
-	Property HeaderSection.Style As HeaderSectionStyle
+	Private Property HeaderSection.Style As HeaderSectionStyle
 		Return FStyle
 	End Property
 	
-	Property HeaderSection.Style(Value As HeaderSectionStyle)
+	Private Property HeaderSection.Style(Value As HeaderSectionStyle)
 		If Value <> FStyle Then
 			FStyle = Value
 			QHeader(HeaderControl).UpdateItems
 		End If
 	End Property
 	
-	Property HeaderSection.Caption ByRef As WString
+	Private Property HeaderSection.Caption ByRef As WString
 		Return WGet(FCaption)
 	End Property
 	
-	Property HeaderSection.Caption(ByRef Value As WString)
+	Private Property HeaderSection.Caption(ByRef Value As WString)
 		WLet(FCaption, Value)
 		QHeader(HeaderControl).UpdateItems
 		#ifdef __USE_GTK__
@@ -44,11 +44,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property HeaderSection.Alignment As Integer
+	Private Property HeaderSection.Alignment As Integer
 		Return FAlignment
 	End Property
 	
-	Property HeaderSection.Alignment(Value As Integer)
+	Private Property HeaderSection.Alignment(Value As Integer)
 		If Value <> FAlignment Then
 			FAlignment = Value
 			QHeader(HeaderControl).UpdateItems
@@ -65,11 +65,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property HeaderSection.ImageIndex As Integer
+	Private Property HeaderSection.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property HeaderSection.ImageIndex(Value As Integer)
+	Private Property HeaderSection.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
 			QHeader(HeaderControl).UpdateItems
@@ -79,11 +79,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property HeaderSection.ImageKey ByRef As WString
+	Private Property HeaderSection.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property HeaderSection.ImageKey(ByRef Value As WString)
+	Private Property HeaderSection.ImageKey(ByRef Value As WString)
 		If Value <> *FImageKey Then
 			WLet FImageKey, Value
 			If HeaderControl AndAlso HeaderControl->Images Then FImageIndex = HeaderControl->Images->IndexOf(*FImageKey)
@@ -94,11 +94,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property HeaderSection.Resizable As Boolean
+	Private Property HeaderSection.Resizable As Boolean
 		Return FResizable
 	End Property
 	
-	Property HeaderSection.Resizable(Value As Boolean)
+	Private Property HeaderSection.Resizable(Value As Boolean)
 		If Value <> FResizable Then
 			FResizable = Value
 			QHeader(HeaderControl).UpdateItems
@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property HeaderSection.Width As Integer
+	Private Property HeaderSection.Width As Integer
 		#ifdef __USE_GTK__
 			If Handle Then
 				FWidth = gtk_tree_view_column_get_width(Handle)
@@ -117,7 +117,7 @@ Namespace My.Sys.Forms
 		Return FWidth
 	End Property
 	
-	Property HeaderSection.Width(Value As Integer)
+	Private Property HeaderSection.Width(Value As Integer)
 		If Value <> FWidth Then
 			FWidth = Value
 			QHeader(HeaderControl).UpdateItems
@@ -134,11 +134,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Operator HeaderSection.Cast As Any Ptr
+	Private Operator HeaderSection.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor HeaderSection
+	Private Constructor HeaderSection
 		#ifndef __USE_GTK__
 			AFmt(0)         = HDF_LEFT
 			AFmt(1)         = HDF_CENTER
@@ -151,11 +151,11 @@ Namespace My.Sys.Forms
 		FWidth          = 50
 	End Constructor
 	
-	Destructor HeaderSection
+	Private Destructor HeaderSection
 	End Destructor
 	
 	'Header
-	Function Header.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function Header.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "dragreorder": Return @FDragReorder
 		Case "fulldrag": Return @FFullDrag
@@ -167,7 +167,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Header.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Header.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "dragreorder": If Value <> 0 Then This.DragReorder = QBoolean(Value)
 		Case "fulldrag": If Value <> 0 Then This.FullDrag = QBoolean(Value)
@@ -178,11 +178,11 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property Header.Style As HeaderStyle
+	Private Property Header.Style As HeaderStyle
 		Return FStyle
 	End Property
 	
-	Property Header.Style(Value As HeaderStyle)
+	Private Property Header.Style(Value As HeaderStyle)
 		If FStyle <> Value Then
 			FStyle = Value
 			#ifdef __USE_GTK__
@@ -196,11 +196,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.HotTrack As Boolean
+	Private Property Header.HotTrack As Boolean
 		Return FHotTrack
 	End Property
 	
-	Property Header.HotTrack(Value As Boolean)
+	Private Property Header.HotTrack(Value As Boolean)
 		If FHotTrack <> Value Then
 			FHotTrack = Value
 			#ifndef __USE_GTK__
@@ -210,11 +210,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.FullDrag As Boolean
+	Private Property Header.FullDrag As Boolean
 		Return FFullDrag
 	End Property
 	
-	Property Header.FullDrag(Value As Boolean)
+	Private Property Header.FullDrag(Value As Boolean)
 		If FFullDrag <> Value Then
 			FFullDrag = Value
 			#ifndef __USE_GTK__
@@ -224,11 +224,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.DragReorder As Boolean
+	Private Property Header.DragReorder As Boolean
 		Return FDragReorder
 	End Property
 	
-	Property Header.DragReorder(Value As Boolean)
+	Private Property Header.DragReorder(Value As Boolean)
 		If FDragReorder <> Value Then
 			DragReorder = Value
 			#ifdef __USE_GTK__
@@ -242,11 +242,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.Resizable As Boolean
+	Private Property Header.Resizable As Boolean
 		Return FResizable
 	End Property
 	
-	Property Header.Resizable(Value As Boolean)
+	Private Property Header.Resizable(Value As Boolean)
 		If FResizable <> Value Then
 			FResizable = Value
 			#ifdef __USE_GTK__
@@ -262,29 +262,29 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.SectionCount As Integer
+	Private Property Header.SectionCount As Integer
 		FSectionCount = FSections.Count
 		Return FSectionCount
 	End Property
 	
-	Property Header.SectionCount(Value As Integer)
+	Private Property Header.SectionCount(Value As Integer)
 		FSectionCount = FSections.Count
 	End Property
 	
-	Property Header.Section(Index As Integer) As HeaderSection Ptr
+	Private Property Header.Section(Index As Integer) As HeaderSection Ptr
 		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index])
 		End If
 		Return NULL
 	End Property
 	
-	Property Header.Section(Index As Integer, Value As HeaderSection Ptr)
+	Private Property Header.Section(Index As Integer, Value As HeaderSection Ptr)
 		If Index >= 0 And Index <= SectionCount -1 Then
 			FSections.Items[Index] = Value
 		End If
 	End Property
 	
-	Property Header.Captions(Index As Integer) ByRef As WString
+	Private Property Header.Captions(Index As Integer) ByRef As WString
 		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).Caption
 		Else
@@ -292,13 +292,13 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.Captions(Index As Integer, ByRef Value As WString)
+	Private Property Header.Captions(Index As Integer, ByRef Value As WString)
 		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).Caption = Value
 		End If
 	End Property
 	
-	Property Header.Widths(Index As Integer) As Integer
+	Private Property Header.Widths(Index As Integer) As Integer
 		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).Width
 		Else
@@ -306,13 +306,13 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.Widths(Index As Integer, Value As Integer)
+	Private Property Header.Widths(Index As Integer, Value As Integer)
 		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).Width = Value
 		End If
 	End Property
 	
-	Property Header.Alignments(Index As Integer) As Integer
+	Private Property Header.Alignments(Index As Integer) As Integer
 		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).Alignment
 		Else
@@ -320,13 +320,13 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.Alignments(Index As Integer, Value As Integer)
+	Private Property Header.Alignments(Index As Integer, Value As Integer)
 		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).Alignment = Value
 		End If
 	End Property
 	
-	Property Header.ImageIndexes(Index As Integer) As Integer
+	Private Property Header.ImageIndexes(Index As Integer) As Integer
 		If Index >= 0 And Index <= SectionCount -1 Then
 			Return QHeaderSection(FSections.Items[Index]).ImageIndex
 		Else
@@ -334,13 +334,13 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Header.ImageIndexes(Index As Integer, Value As Integer)
+	Private Property Header.ImageIndexes(Index As Integer, Value As Integer)
 		If Index >= 0 And Index <= SectionCount -1 Then
 			QHeaderSection(FSections.Items[Index]).ImageIndex = Value
 		End If
 	End Property
 	
-	Sub Header.UpdateItems
+	Private Sub Header.UpdateItems
 		#ifndef __USE_GTK__
 			Dim As HDITEM HI
 			For i As Integer = SectionCount -1 To 0 Step -1
@@ -375,7 +375,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub Header.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub Header.HandleIsAllocated(ByRef Sender As Control)
 			Dim As HDITEM HI
 			If Sender.Child Then
 				With QHeader(Sender.Child)
@@ -407,13 +407,13 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub Header.WndProc(ByRef Message As Message)
+		Private Sub Header.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 			End If
 		End Sub
 	#endif
 	
-	Function Header.EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
+	Private Function Header.EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 		For i As Integer = 0 To Item.Count -1
 			List.Add Item.Item(i)
 			EnumMenuItems *Item.Item(i), List
@@ -421,7 +421,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Sub Header.Init()
+	Private Sub Header.Init()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
 				If ColumnTypes Then Delete_SquareBrackets(ColumnTypes)
@@ -435,7 +435,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub Header.ProcessMessage(ByRef Message As Message)
+	Private Sub Header.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -509,13 +509,13 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Sub Header.Column_Clicked(treeviewcolumn As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+		Private Sub Header.Column_Clicked(treeviewcolumn As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As HeaderSection Ptr hsec = user_data
 			Dim As Header Ptr hdr = hsec->HeaderControl
 			If hdr->OnSectionClick Then hdr->OnSectionClick(*hdr, *hsec, hdr->FSections.IndexOf(hsec), 0)
 		End Sub
 		
-		Function Header.Column_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function Header.Column_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As HeaderSection Ptr hsec = data1
 			Dim As Header Ptr hdr = hsec->HeaderControl
 			Dim As Integer AllocatedWidth = gtk_tree_view_column_get_width(hsec->Handle)
@@ -533,14 +533,14 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function Header.Column_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function Header.Column_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			Column_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
 		End Function
 		
-		Function Header.Column_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function Header.Column_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			If Event->button.type = GDK_2BUTTON_PRESS Then
 				Dim As HeaderSection Ptr hsec = user_data
 				Dim As Header Ptr hdr = hsec->HeaderControl
@@ -550,7 +550,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
+	Private Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
 		PSection = New_( HeaderSection)
 		FSections.Add PSection
@@ -646,7 +646,7 @@ Namespace My.Sys.Forms
 		Return PSection
 	End Function
 	
-	Function Header.AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
+	Private Function Header.AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
 		If Images Then
 			PSection = This.AddSection(FCaption, Images->IndexOf(FImageKey), FWidth, FAlignment, bResizable)
@@ -658,7 +658,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __FB_64BIT__
-		Sub Header.AddSections cdecl(FCount As Integer, ...)
+		Private Sub Header.AddSections cdecl(FCount As Integer, ...)
 			Dim As Any Ptr Arg
 			Dim As HeaderSection Ptr PSection
 			Arg = va_first()
@@ -708,7 +708,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub Header.RemoveSection(Index As Integer)
+	Private Sub Header.RemoveSection(Index As Integer)
 		If Index >= 0 And Index <= SectionCount - 1 Then
 			#ifdef __USE_GTK__
 				If FHandle Then gtk_tree_view_remove_column(gtk_tree_view(FHandle), gtk_tree_view_column(Section(Index)->Handle))
@@ -719,17 +719,17 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Operator Header.Cast As Control Ptr
+	Private Operator Header.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub Header.Header_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub Header.Header_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As Header Ptr hdr = user_data
 			hdr->Init
 		End Sub
 		
-		Function Header.Header_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function Header.Header_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Header Ptr hdr = data1
 			#ifdef __USE_GTK3__
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
@@ -749,7 +749,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function Header.Header_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function Header.Header_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			Header_Draw(widget, cr, data1)
 			cairo_destroy(cr)
@@ -757,7 +757,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Constructor Header
+	Private Constructor Header
 		#ifndef __USE_GTK__
 '			AStyle(0)       = HDS_BUTTONS
 '			AStyle(1)       = 0
@@ -809,7 +809,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor Header
+	Private Destructor Header
 		FSections.Clear
 	End Destructor
 End Namespace

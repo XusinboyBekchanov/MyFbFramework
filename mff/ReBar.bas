@@ -7,7 +7,7 @@
 #include once "ReBar.bi"
 
 Namespace My.Sys.Forms
-	Sub ReBarBand.ChangeStyle(iStyle As Integer, Value As Boolean)
+	Private Sub ReBarBand.ChangeStyle(iStyle As Integer, Value As Boolean)
 		If Value Then
 			If ((FStyle And iStyle) <> iStyle) Then FStyle = FStyle Or iStyle
 		ElseIf ((FStyle And iStyle) = iStyle) Then
@@ -24,11 +24,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property ReBarBand.Break As Boolean
+	Private Property ReBarBand.Break As Boolean
 		Return FBreak
 	End Property
 	
-	Property ReBarBand.Break(Value As Boolean)
+	Private Property ReBarBand.Break(Value As Boolean)
 		FBreak = Value
 		#ifdef __USE_GTK__
 			If Parent Then Parent->UpdateReBar
@@ -37,22 +37,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.ChildEdge As Boolean
+	Private Property ReBarBand.ChildEdge As Boolean
 		Return FChildEdge
 	End Property
 	
-	Property ReBarBand.ChildEdge(Value As Boolean)
+	Private Property ReBarBand.ChildEdge(Value As Boolean)
 		FChildEdge = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBBS_CHILDEDGE, Value
 		#endif
 	End Property
 	
-	Property ReBarBand.Caption ByRef As WString
+	Private Property ReBarBand.Caption ByRef As WString
 		Return WGet(FCaption)
 	End Property
 	
-	Property ReBarBand.Caption(ByRef Value As WString)
+	Private Property ReBarBand.Caption(ByRef Value As WString)
 		WLet FCaption, Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -65,11 +65,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.Child As Control Ptr
+	Private Property ReBarBand.Child As Control Ptr
 		Return FChild
 	End Property
 	
-	Property ReBarBand.Child(Value As Control Ptr)
+	Private Property ReBarBand.Child(Value As Control Ptr)
 		FChild = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -87,33 +87,33 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.FixedBitmap As Boolean
+	Private Property ReBarBand.FixedBitmap As Boolean
 		Return FFixedBitmap
 	End Property
 	
-	Property ReBarBand.FixedBitmap(Value As Boolean)
+	Private Property ReBarBand.FixedBitmap(Value As Boolean)
 		FFixedBitmap = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBBS_FIXEDBMP, Value
 		#endif
 	End Property
 	
-	Property ReBarBand.FixedSize As Boolean
+	Private Property ReBarBand.FixedSize As Boolean
 		Return FFixedSize
 	End Property
 	
-	Property ReBarBand.FixedSize(Value As Boolean)
+	Private Property ReBarBand.FixedSize(Value As Boolean)
 		FFixedSize = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBBS_FIXEDSIZE, Value
 		#endif
 	End Property
 	
-	Property ReBarBand.GripperStyle As GripperStyles
+	Private Property ReBarBand.GripperStyle As GripperStyles
 		Return FGripperStyle
 	End Property
 	
-	Property ReBarBand.GripperStyle(Value As GripperStyles)
+	Private Property ReBarBand.GripperStyle(Value As GripperStyles)
 		FGripperStyle = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBBS_GRIPPERALWAYS, False
@@ -126,11 +126,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.ImageIndex As Integer
+	Private Property ReBarBand.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property ReBarBand.ImageIndex(Value As Integer)
+	Private Property ReBarBand.ImageIndex(Value As Integer)
 		FImageIndex = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -145,22 +145,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.ImageKey ByRef As WString
+	Private Property ReBarBand.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property ReBarBand.ImageKey(ByRef Value As WString)
+	Private Property ReBarBand.ImageKey(ByRef Value As WString)
 		WLet FImageKey, Value
 		If Parent AndAlso Parent->ImageList Then
 			ImageIndex = Parent->ImageList->IndexOf(*FImageKey)
 		End If
 	End Property
 	
-	Property ReBarBand.MinWidth As Integer
+	Private Property ReBarBand.MinWidth As Integer
 		Return FMinWidth
 	End Property
 	
-	Property ReBarBand.MinWidth(Value As Integer)
+	Private Property ReBarBand.MinWidth(Value As Integer)
 		FMinWidth = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -173,11 +173,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.MinHeight As Integer
+	Private Property ReBarBand.MinHeight As Integer
 		Return FMinHeight
 	End Property
 	
-	Property ReBarBand.MinHeight(Value As Integer)
+	Private Property ReBarBand.MinHeight(Value As Integer)
 		FMinHeight = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -191,7 +191,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.Left As Integer
+	Private Property ReBarBand.Left As Integer
 		#ifndef __USE_GTK__
 			Dim rc As My.Sys.Drawing.RECT
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
@@ -202,11 +202,11 @@ Namespace My.Sys.Forms
 		Return FLeft
 	End Property
 	
-	Property ReBarBand.Left(Value As Integer)
+	Private Property ReBarBand.Left(Value As Integer)
 		FLeft = Value
 	End Property
 	
-	Property ReBarBand.Top As Integer
+	Private Property ReBarBand.Top As Integer
 		#ifndef __USE_GTK__
 			Dim rc As My.Sys.Drawing.RECT
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
@@ -217,15 +217,15 @@ Namespace My.Sys.Forms
 		Return FTop
 	End Property
 	
-	Property ReBarBand.Top(Value As Integer)
+	Private Property ReBarBand.Top(Value As Integer)
 		FTop = Value
 	End Property
 	
-	Property ReBarBand.Height As Integer
+	Private Property ReBarBand.Height As Integer
 		Return FHeight
 	End Property
 	
-	Property ReBarBand.Height(Value As Integer)
+	Private Property ReBarBand.Height(Value As Integer)
 		FHeight = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -239,11 +239,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.Width As Integer
+	Private Property ReBarBand.Width As Integer
 		Return FWidth
 	End Property
 	
-	Property ReBarBand.Width(Value As Integer)
+	Private Property ReBarBand.Width(Value As Integer)
 		FWidth = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -255,11 +255,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.IdealWidth As Integer
+	Private Property ReBarBand.IdealWidth As Integer
 		Return FIdealWidth
 	End Property
 	
-	Property ReBarBand.IdealWidth(Value As Integer)
+	Private Property ReBarBand.IdealWidth(Value As Integer)
 		FIdealWidth = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
@@ -271,11 +271,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.RequestedWidth As Integer
+	Private Property ReBarBand.RequestedWidth As Integer
 		Return FRequestedWidth
 	End Property
 	
-	Property ReBarBand.RequestedWidth(Value As Integer)
+	Private Property ReBarBand.RequestedWidth(Value As Integer)
 		FRequestedWidth = Value
 		#ifdef __USE_GTK__
 			If Parent Then Parent->UpdateReBar
@@ -289,44 +289,44 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.TopAlign As Boolean
+	Private Property ReBarBand.TopAlign As Boolean
 		Return FTopAlign
 	End Property
 	
-	Property ReBarBand.TopAlign(Value As Boolean)
+	Private Property ReBarBand.TopAlign(Value As Boolean)
 		FTopAlign = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBBS_TOPALIGN, Value
 		#endif
 	End Property
 	
-	Property ReBarBand.TitleVisible As Boolean
+	Private Property ReBarBand.TitleVisible As Boolean
 		Return FTitleVisible
 	End Property
 	
-	Property ReBarBand.TitleVisible(Value As Boolean)
+	Private Property ReBarBand.TitleVisible(Value As Boolean)
 		FTitleVisible = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBBS_HIDETITLE, Not Value
 		#endif
 	End Property
 	
-	Property ReBarBand.UseChevron As Boolean
+	Private Property ReBarBand.UseChevron As Boolean
 		Return FTitleVisible
 	End Property
 	
-	Property ReBarBand.UseChevron(Value As Boolean)
+	Private Property ReBarBand.UseChevron(Value As Boolean)
 		FTitleVisible = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBBS_USECHEVRON, Value
 		#endif
 	End Property
 	
-	Property ReBarBand.Visible As Boolean
+	Private Property ReBarBand.Visible As Boolean
 		Return FVisible
 	End Property
 	
-	Property ReBarBand.Visible(Value As Boolean)
+	Private Property ReBarBand.Visible(Value As Boolean)
 		FVisible = Value
 		#ifdef __USE_GTK__
 			gtk_widget_set_visible(Child->Handle, Value)
@@ -336,12 +336,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ReBarBand.Index As Integer
+	Private Property ReBarBand.Index As Integer
 		If Parent Then Return Parent->Bands.IndexOf(@This)
 		Return -1
 	End Property
 	
-	Property ReBarBand.Index(Value As Integer)
+	Private Property ReBarBand.Index(Value As Integer)
 		If Value >= 0 AndAlso Value <= Parent->Bands.Count - 1 Then
 			Dim As Integer OldIndex = Index
 			If OldIndex < 0 OrElse Value = OldIndex Then Exit Property
@@ -349,7 +349,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub ReBarBandCollection.Move(OldIndex As Integer, Value As Integer)
+	Private Sub ReBarBandCollection.Move(OldIndex As Integer, Value As Integer)
 		Dim As Any Ptr Band = FItems.Item(OldIndex)
 		FItems.Remove OldIndex
 		FItems.Insert Value, Band
@@ -360,7 +360,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ReBarBand.Maximize()
+	Private Sub ReBarBand.Maximize()
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, RB_MAXIMIZEBAND, Index, 1
@@ -368,13 +368,13 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ReBarBand.Minimize()
+	Private Sub ReBarBand.Minimize()
 		#ifndef __USE_GTK__
 			SendMessage Parent->Handle, RB_MINIMIZEBAND, Index, 0
 		#endif
 	End Sub
 	
-	Sub ReBarBand.Update(Create As Boolean = False)
+	Private Sub ReBarBand.Update(Create As Boolean = False)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
 				Dim As REBARBANDINFO rbBand
@@ -422,7 +422,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function ReBarBand.GetRect() As My.Sys.Drawing.RECT
+	Private Function ReBarBand.GetRect() As My.Sys.Drawing.RECT
 		Dim rc As My.Sys.Drawing.RECT
 		#ifdef __USE_GTK__
 			rc.Left = FLeft
@@ -435,20 +435,20 @@ Namespace My.Sys.Forms
 		Return rc
 	End Function
 	
-	Constructor ReBarBand
+	Private Constructor ReBarBand
 		FVisible = True
 	End Constructor
 	
-	Destructor ReBarBand
+	Private Destructor ReBarBand
 		WDeallocate FCaption
 		WDeallocate FImageKey
 	End Destructor
 	
-	Function ReBarBandCollection.Count As Integer
+	Private Function ReBarBandCollection.Count As Integer
 		Return FItems.Count
 	End Function
 	
-	Property ReBarBandCollection.Item(Index As Integer) As ReBarBand Ptr
+	Private Property ReBarBandCollection.Item(Index As Integer) As ReBarBand Ptr
 		If Index >= 0 AndAlso Index < FItems.Count Then
 			Return FItems.Item(Index)
 		Else
@@ -457,7 +457,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ReBarBandCollection.Item(Index As Integer, Value As ReBarBand Ptr)
+	Private Property ReBarBandCollection.Item(Index As Integer, Value As ReBarBand Ptr)
 		If Index >= 0 AndAlso Index < FItems.Count Then
 			FItems.Item(Index) = Value
 		Else
@@ -465,7 +465,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Function ReBarBandCollection.Add(Value As Control Ptr, ByRef Caption As WString = "", ImageIndex As Integer = 0, Index As Integer = -1) As ReBarBand Ptr
+	Private Function ReBarBandCollection.Add(Value As Control Ptr, ByRef Caption As WString = "", ImageIndex As Integer = 0, Index As Integer = -1) As ReBarBand Ptr
 		Dim As ReBarBand Ptr pBand = New_(ReBarBand)
 		pBand->Caption = Caption
 		pBand->Child = Value
@@ -511,7 +511,7 @@ Namespace My.Sys.Forms
 		Return pBand
 	End Function
 	
-	Function ReBarBandCollection.Add(Value As Control Ptr, ByRef Caption As WString = "", ByRef ImageKey As WString, Index As Integer = -1) As ReBarBand Ptr
+	Private Function ReBarBandCollection.Add(Value As Control Ptr, ByRef Caption As WString = "", ByRef ImageKey As WString, Index As Integer = -1) As ReBarBand Ptr
 		Dim As ReBarBand Ptr pBand
 		If Parent AndAlso Parent->ImageList Then
 			pBand = Add(Value, Caption, Parent->ImageList->IndexOf(ImageKey), Index)
@@ -522,7 +522,7 @@ Namespace My.Sys.Forms
 		Return pBand
 	End Function
 	
-	Sub ReBarBandCollection.Remove(Index As Integer)
+	Private Sub ReBarBandCollection.Remove(Index As Integer)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, RB_DELETEBAND, Index, 0
 		#endif
@@ -530,7 +530,7 @@ Namespace My.Sys.Forms
 		FItems.Remove Index
 	End Sub
 	
-	Sub ReBarBandCollection.Clear
+	Private Sub ReBarBandCollection.Clear
 		For Index As Integer = 0 To FItems.Count - 1
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, RB_DELETEBAND, Index, 0
@@ -540,11 +540,11 @@ Namespace My.Sys.Forms
 		FItems.Clear
 	End Sub
 	
-	Function ReBarBandCollection.IndexOf(Value As ReBarBand Ptr) As Integer
+	Private Function ReBarBandCollection.IndexOf(Value As ReBarBand Ptr) As Integer
 		Return FItems.IndexOf(Value)
 	End Function
 	
-	Function ReBarBandCollection.IndexOf(Value As Control Ptr) As Integer
+	Private Function ReBarBandCollection.IndexOf(Value As Control Ptr) As Integer
 		For Index As Integer = 0 To FItems.Count - 1
 			If Cast(ReBarBand Ptr, FItems.Item(Index))->Child = Value Then Return Index
 			Return FItems.IndexOf(Value)
@@ -552,23 +552,23 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Function ReBarBandCollection.Contains(Value As ReBarBand Ptr) As Boolean
+	Private Function ReBarBandCollection.Contains(Value As ReBarBand Ptr) As Boolean
 		Return IndexOf(Value) <> -1
 	End Function
 	
-	Function ReBarBandCollection.Contains(Value As Control Ptr) As Boolean
+	Private Function ReBarBandCollection.Contains(Value As Control Ptr) As Boolean
 		Return IndexOf(Value) <> -1
 	End Function
 	
-	Constructor ReBarBandCollection
+	Private Constructor ReBarBandCollection
 		
 	End Constructor
 	
-	Destructor ReBarBandCollection
+	Private Destructor ReBarBandCollection
 		This.Clear
 	End Destructor
 	
-	Function ReBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function ReBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "autosize": Return @FAutoSize
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -576,7 +576,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ReBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ReBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -590,18 +590,18 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property ReBar.AutoSize As Boolean
+	Private Property ReBar.AutoSize As Boolean
 		Return FAutoSize
 	End Property
 	
-	Property ReBar.AutoSize(Value As Boolean)
+	Private Property ReBar.AutoSize(Value As Boolean)
 		FAutoSize = Value
 		#ifndef __USE_GTK__
 			ChangeStyle RBS_AUTOSIZE, Value
 		#endif
 	End Property
 	
-	Sub ReBar.UpdateRebar()
+	Private Sub ReBar.UpdateRebar()
 		#ifdef __USE_GTK__
 			If Not bWithoutUpdate Then
 				AllocatedWidth = 0
@@ -618,20 +618,20 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function ReBar.RowCount() As Integer
+	Private Function ReBar.RowCount() As Integer
 		#ifndef __USE_GTK__
 			If FHandle Then FRowCount = SendMessage(FHandle, RB_GETROWCOUNT, 0, 0)
 		#endif
 		Return FRowCount
 	End Function
 	
-	Sub ReBar.Add(Ctrl As Control Ptr)
+	Private Sub ReBar.Add(Ctrl As Control Ptr)
 		Base.Add(Ctrl)
 		Bands.Add Ctrl
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub ReBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub ReBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QReBar(Sender.Child)
 					.UpdateRebar()
@@ -643,11 +643,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ReBar.WndProc(ByRef Message As Message)
+		Private Sub ReBar.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub ReBar.ProcessMessage(ByRef Message As Message)
+	Private Sub ReBar.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -778,12 +778,12 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator ReBar.Cast As My.Sys.Forms.Control Ptr
+	Private Operator ReBar.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub ReBar.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+		Private Sub ReBar.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As ReBar Ptr rb = user_data
 			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
 				rb->AllocatedWidth = allocation->width
@@ -879,7 +879,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function ReBar.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function ReBar.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As ReBar Ptr rb = Cast(Any Ptr, data1)
 			Dim allocation As GtkAllocation
 			gtk_widget_get_allocation(widget, @allocation)
@@ -924,7 +924,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function ReBar.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function ReBar.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As ReBar Ptr rb = Cast(Any Ptr, data1)
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			rb->win = Event->window
@@ -934,7 +934,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Constructor ReBar
+	Private Constructor ReBar
 		#ifndef __USE_GTK__
 			Dim ticc As INITCOMMONCONTROLSEX     ' specifies common control classes to register
 			ticc.dwSize = SizeOf(ticc)
@@ -970,7 +970,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ReBar
+	Private Destructor ReBar
 		#ifndef __USE_GTK__
 			UnregisterClass "ReBar", GetModuleHandle(NULL)
 		#endif

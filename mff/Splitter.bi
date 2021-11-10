@@ -16,7 +16,7 @@
 Namespace My.Sys.Forms
 	#define QSplitter(__Ptr__) *Cast(Splitter Ptr, __Ptr__)
 	
-	Enum SplitterAlignmentConstants
+	Private Enum SplitterAlignmentConstants
 		alNone
 		alLeft
 		alRight
@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 		alBottom
 	End Enum
 	
-	Type Splitter Extends Control
+	Private Type Splitter Extends Control
 	Private:
 		FOldParentProc  As Any Ptr
 		#ifndef __USE_GTK__

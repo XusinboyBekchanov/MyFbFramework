@@ -14,7 +14,7 @@
 #include once "GroupBox.bi"
 
 Namespace My.Sys.Forms
-	Function GroupBox.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function GroupBox.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "caption": Return FText.vptr
 		Case "text": Return FText.vptr
@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function GroupBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function GroupBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "caption": This.Caption = QWString(Value)
 		Case "text": This.Text = QWString(Value)
@@ -34,31 +34,31 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property GroupBox.TabIndex As Integer
+	Private Property GroupBox.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property GroupBox.TabIndex(Value As Integer)
+	Private Property GroupBox.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property GroupBox.TabStop As Boolean
+	Private Property GroupBox.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property GroupBox.TabStop(Value As Boolean)
+	Private Property GroupBox.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property GroupBox.Caption ByRef As WString
+	Private Property GroupBox.Caption ByRef As WString
 		Return Text
 	End Property
 	
-	Property GroupBox.Caption(ByRef Value As WString)
+	Private Property GroupBox.Caption(ByRef Value As WString)
 		Text = Value
 	End Property
 	
-	Property GroupBox.Text ByRef As WString
+	Private Property GroupBox.Text ByRef As WString
 		#ifdef __USE_GTK__
 			FText = WStr(gtk_frame_get_label(GTK_FRAME(widget)))
 			Return *FText.vptr
@@ -67,18 +67,18 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property GroupBox.Text(ByRef Value As WString)
+	Private Property GroupBox.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_frame_set_label(GTK_FRAME(widget), ToUtf8(Value))
 		#endif
 	End Property
 	
-	Property GroupBox.ParentColor As Boolean
+	Private Property GroupBox.ParentColor As Boolean
 		Return FParentColor
 	End Property
 	
-	Property GroupBox.ParentColor(Value As Boolean)
+	Private Property GroupBox.ParentColor(Value As Boolean)
 		FParentColor = Value
 		If FParentColor Then
 			This.BackColor = This.Parent->BackColor
@@ -87,13 +87,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub GroupBox.WndProc(ByRef Message As Message)
+		Private Sub GroupBox.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 			End If
 		End Sub
 	#endif
 	
-	Sub GroupBox.ProcessMessage(ByRef Message As Message)
+	Private Sub GroupBox.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
@@ -125,11 +125,11 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator GroupBox.Cast As Control Ptr
+	Private Operator GroupBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor GroupBox
+	Private Constructor GroupBox
 		With This
 			.Child       = @This
 			#ifdef __USE_GTK__
@@ -157,6 +157,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor GroupBox
+	Private Destructor GroupBox
 	End Destructor
 End Namespace

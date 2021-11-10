@@ -14,7 +14,7 @@
 #include once "RadioButton.bi"
 
 Namespace My.Sys.Forms
-	Function RadioButton.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function RadioButton.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "alignment": Return @FAlignment
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function RadioButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function RadioButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "alignment": Alignment = *Cast(CheckAlignmentConstants Ptr, Value)
 		Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
@@ -38,11 +38,11 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property RadioButton.Alignment As CheckAlignmentConstants
+	Private Property RadioButton.Alignment As CheckAlignmentConstants
 		Return FAlignment
 	End Property
 	
-	Property RadioButton.Alignment(Value As CheckAlignmentConstants)
+	Private Property RadioButton.Alignment(Value As CheckAlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
 			#ifndef __USE_GTK__
@@ -57,35 +57,35 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property RadioButton.TabIndex As Integer
+	Private Property RadioButton.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property RadioButton.TabIndex(Value As Integer)
+	Private Property RadioButton.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property RadioButton.TabStop As Boolean
+	Private Property RadioButton.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property RadioButton.TabStop(Value As Boolean)
+	Private Property RadioButton.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property RadioButton.Caption ByRef As WString
+	Private Property RadioButton.Caption ByRef As WString
 		Return Text
 	End Property
 	
-	Property RadioButton.Caption(ByRef Value As WString)
+	Private Property RadioButton.Caption(ByRef Value As WString)
 		Text = Value
 	End Property
 	
-	Property RadioButton.Parent As Control Ptr
+	Private Property RadioButton.Parent As Control Ptr
 		Return Base.Parent
 	End Property
 	
-	Property RadioButton.Parent(Value As Control Ptr)
+	Private Property RadioButton.Parent(Value As Control Ptr)
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To Value->ControlCount - 1
 				If Value->Controls[i]->ClassName = "RadioButton" Then
@@ -100,18 +100,18 @@ Namespace My.Sys.Forms
 		#endif
 		Base.Parent = Value
 	End Property
-	Property RadioButton.Text ByRef As WString
+	Private Property RadioButton.Text ByRef As WString
 		Return Base.Text
 	End Property
 	
-	Property RadioButton.Text(ByRef Value As WString)
+	Private Property RadioButton.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_text_with_mnemonic(gtk_label(gtk_bin_get_child(gtk_bin(widget))), ToUtf8(Replace(Value, "&", "_")))
 		#endif
 	End Property
 	
-	Property RadioButton.Checked As Boolean
+	Private Property RadioButton.Checked As Boolean
 		#ifdef __USE_GTK__
 			If widget Then FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
 		#else
@@ -120,7 +120,7 @@ Namespace My.Sys.Forms
 		Return FChecked
 	End Property
 	
-	Property RadioButton.Checked(Value As Boolean)
+	Private Property RadioButton.Checked(Value As Boolean)
 		FChecked = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub RadioButton.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub RadioButton.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QRadioButton(Sender.Child)
 					.Perform(BM_SETCHECK, .FChecked, 0)
@@ -138,14 +138,14 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub RadioButton.WndProc(ByRef Message As Message)
+		Private Sub RadioButton.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 				
 			End If
 		End Sub
 	#endif
 	
-	Sub RadioButton.ProcessMessage(ByRef Message As Message)
+	Private Sub RadioButton.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
@@ -164,18 +164,18 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator RadioButton.Cast As Control Ptr
+	Private Operator RadioButton.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub RadioButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
+		Private Sub RadioButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As RadioButton Ptr but = user_data
 			If but->OnClick Then but->OnClick(*but)
 		End Sub
 	#endif
 	
-	Constructor RadioButton
+	Private Constructor RadioButton
 		With This
 			.Child       = @This
 			#ifdef __USE_GTK__
@@ -200,6 +200,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor RadioButton
+	Private Destructor RadioButton
 	End Destructor
 End Namespace

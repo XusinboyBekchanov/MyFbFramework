@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
 	#define QRichTextBox(__Ptr__) *Cast(RichTextBox Ptr,__Ptr__)
 	
-	Type RichTextBox Extends TextBox
+	Private Type RichTextBox Extends TextBox
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef message As Message)

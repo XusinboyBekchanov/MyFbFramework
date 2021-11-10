@@ -13,7 +13,7 @@
 #include once "OpenFileControl.bi"
 
 Namespace My.Sys.Forms
-	Function OpenFileControl.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function OpenFileControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "defaultext": Return FDefaultExt
 		Case "filename": WLet FFileName, FileName: Return FFileName
@@ -27,7 +27,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function OpenFileControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function OpenFileControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "defaultext": DefaultExt = QWString(Value)
 		Case "filename": FileName = QWString(Value)
@@ -41,27 +41,27 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property OpenFileControl.TabIndex As Integer
+	Private Property OpenFileControl.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property OpenFileControl.TabIndex(Value As Integer)
+	Private Property OpenFileControl.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property OpenFileControl.TabStop As Boolean
+	Private Property OpenFileControl.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property OpenFileControl.TabStop(Value As Boolean)
+	Private Property OpenFileControl.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property OpenFileControl.MultiSelect As Boolean
+	Private Property OpenFileControl.MultiSelect As Boolean
 		Return FMultiSelect
 	End Property
 	
-	Property OpenFileControl.MultiSelect(Value As Boolean)
+	Private Property OpenFileControl.MultiSelect(Value As Boolean)
 		FMultiSelect = Value
 		If Value Then
 			Options.Include ofAllowMultiSelect
@@ -73,7 +73,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property OpenFileControl.InitialDir ByRef As WString
+	Private Property OpenFileControl.InitialDir ByRef As WString
 		If FHandle Then
 			#ifdef __USE_GTK__
 				WLet FInitialDir, WStr(*gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER (widget)))
@@ -88,7 +88,7 @@ Namespace My.Sys.Forms
 		Return WGet(FInitialDir)
 	End Property
 	
-	Property OpenFileControl.InitialDir(ByRef Value As WString)
+	Private Property OpenFileControl.InitialDir(ByRef Value As WString)
 		FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 		*FInitialDir = Value
 		#ifdef __USE_GTK__
@@ -97,11 +97,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property OpenFileControl.DefaultExt ByRef As WString
+	Private Property OpenFileControl.DefaultExt ByRef As WString
 		Return WGet(FDefaultExt)
 	End Property
 	
-	Property OpenFileControl.DefaultExt(ByRef Value As WString)
+	Private Property OpenFileControl.DefaultExt(ByRef Value As WString)
 		FDefaultExt    = Reallocate_(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
 		*FDefaultExt = Value
 		#ifndef __USE_GTK__
@@ -109,7 +109,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property OpenFileControl.FileName ByRef As WString
+	Private Property OpenFileControl.FileName ByRef As WString
 		If FHandle Then
 			#ifdef __USE_GTK__
 				WLet FFileName, WStr(*gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget)))
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 		Return WGet(FFileName)
 	End Property
 	
-	Property OpenFileControl.FileName(ByRef Value As WString)
+	Private Property OpenFileControl.FileName(ByRef Value As WString)
 		WLet(FFileName, Value)
 		#ifdef __USE_GTK__
 			If WGet(FFileName) = "" Then
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property OpenFileControl.FileTitle ByRef As WString
+	Private Property OpenFileControl.FileTitle ByRef As WString
 		If FHandle Then
 			FileName
 			#ifdef __USE_GTK__
@@ -159,16 +159,16 @@ Namespace My.Sys.Forms
 		Return WGet(FFileTitle)
 	End Property
 	
-	Property OpenFileControl.FileTitle(ByRef Value As WString)
+	Private Property OpenFileControl.FileTitle(ByRef Value As WString)
 		WLet(FFileTitle, Value)
 		FileName = InitialDir & "/" & *FFileTitle
 	End Property
 	
-	Property OpenFileControl.Filter ByRef As WString
+	Private Property OpenFileControl.Filter ByRef As WString
 		Return WGet(FFilter)
 	End Property
 	
-	Property OpenFileControl.Filter(ByRef Value As WString)
+	Private Property OpenFileControl.Filter(ByRef Value As WString)
 		FFilter    = Reallocate_(FFilter, (Len(Value) + 1) * SizeOf(WString))
 		*FFilter = Value
 		#ifdef __USE_GTK__
@@ -190,7 +190,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property OpenFileControl.FilterIndex As Integer
+	Private Property OpenFileControl.FilterIndex As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkFileFilter Ptr choosedfilefilter = gtk_file_chooser_get_filter(GTK_FILE_CHOOSER(widget))
 			For i As Integer = 0 To UBound(filefilter)
@@ -203,7 +203,7 @@ Namespace My.Sys.Forms
 		Return FFilterIndex
 	End Property
 	
-	Property OpenFileControl.FilterIndex(Value As Integer)
+	Private Property OpenFileControl.FilterIndex(Value As Integer)
 		FFilterIndex    = Value
 		#ifdef __USE_GTK__
 			If FFilterIndex <= FFilterCount Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterIndex))
@@ -211,7 +211,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Function OpenFileControl.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
+		Private Function OpenFileControl.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 			Static As OpenFileControl Ptr OpenDial
 			Select Case Msg
 			Case WM_INITDIALOG
@@ -270,7 +270,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub OpenFileControl.CreateWnd(Param As Any Ptr)
+	Private Sub OpenFileControl.CreateWnd(Param As Any Ptr)
 		#ifndef __USE_GTK__
 			Dim As OpenFileControl Ptr OpenDial = Param
 			On Error Goto ErrorHandler
@@ -334,7 +334,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub OpenFileControl.CreateWnd
+	Private Sub OpenFileControl.CreateWnd
 		#ifndef __USE_GTK__
 			If This.Parent <> 0 AndAlso This.Parent->Handle <> 0 Then
 				ThreadID = ThreadCreate(@CreateWnd, @This)
@@ -347,23 +347,23 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Sub OpenFileControl.FileChooser_CurrentFolderChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
+		Private Sub OpenFileControl.FileChooser_CurrentFolderChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As OpenFileControl Ptr ofc = user_data
 			If ofc->OnFolderChange Then ofc->OnFolderChange(*ofc)
 		End Sub
 		
-		Sub OpenFileControl.FileChooser_FileActivated(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
+		Private Sub OpenFileControl.FileChooser_FileActivated(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As OpenFileControl Ptr ofc = user_data
 			If ofc->OnFileActivate Then ofc->OnFileActivate(*ofc)
 		End Sub
 		
-		Sub OpenFileControl.FileChooser_SelectionChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
+		Private Sub OpenFileControl.FileChooser_SelectionChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As OpenFileControl Ptr ofc = user_data
 			If ofc->OnSelectionChange Then ofc->OnSelectionChange(*ofc)
 		End Sub
 	#endif
 	
-	Constructor OpenFileControl
+	Private Constructor OpenFileControl
 		'FInitialDir       = CAllocate(0)
 		'FCaption          = CAllocate(0)
 		'FDefaultExt       = CAllocate(0)
@@ -396,7 +396,7 @@ Namespace My.Sys.Forms
 		'Control.Child     = @This
 	End Constructor
 	
-	Destructor OpenFileControl
+	Private Destructor OpenFileControl
 		If FInitialDir Then Deallocate_( FInitialDir)
 		If FDefaultExt Then Deallocate_( FDefaultExt)
 		If FFileName Then DeAllocate_( FFileName)

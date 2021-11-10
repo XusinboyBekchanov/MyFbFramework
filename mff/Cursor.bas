@@ -14,7 +14,7 @@
 #include once "Cursor.bi"
 
 Namespace My.Sys.Drawing
-	Function Cursor.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Cursor.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "graphic": Return @Graphic
 		Case "height": Return @FHeight
@@ -26,7 +26,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 
-	Function Cursor.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Cursor.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -43,39 +43,39 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 			
-	Property Cursor.Width As Integer
+	Private Property Cursor.Width As Integer
 		Return FWidth
 	End Property
 	
-	Property Cursor.Width(Value As Integer)
+	Private Property Cursor.Width(Value As Integer)
 		FWidth = Value
 	End Property
 	
-	Property Cursor.Height As Integer
+	Private Property Cursor.Height As Integer
 		Return FHeight
 	End Property
 	
-	Property Cursor.Height(Value As Integer)
+	Private Property Cursor.Height(Value As Integer)
 		FHeight = Value
 	End Property
 	
-	Property Cursor.HotSpotX As Integer
+	Private Property Cursor.HotSpotX As Integer
 		Return FHotSpotX
 	End Property
 	
-	Property Cursor.HotSpotX(Value As Integer)
+	Private Property Cursor.HotSpotX(Value As Integer)
 		FHotSpotX = Value
 	End Property
 	
-	Property Cursor.HotSpotY As Integer
+	Private Property Cursor.HotSpotY As Integer
 		Return FHotSpotY
 	End Property
 	
-	Property Cursor.HotSpotY(Value As Integer)
+	Private Property Cursor.HotSpotY(Value As Integer)
 		FHotSpotY = Value
 	End Property
 	
-	Function Cursor.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+	Private Function Cursor.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
@@ -95,11 +95,11 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Function Cursor.SaveToFile(ByRef File As WString) As Boolean
+	Private Function Cursor.SaveToFile(ByRef File As WString) As Boolean
 		Return False
 	End Function
 	
-	Function Cursor.LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function Cursor.LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
@@ -120,7 +120,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Function Cursor.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function Cursor.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
@@ -141,14 +141,14 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Sub Cursor.Create
+	Private Sub Cursor.Create
 	End Sub
 	
-	Operator Cursor.Cast As Any Ptr
+	Private Operator Cursor.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Operator Cursor.Let(ByRef Value As WString)
+	Private Operator Cursor.Let(ByRef Value As WString)
 		WLet FResName, Value
 		#ifndef __USE_GTK__
 			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
@@ -169,12 +169,12 @@ Namespace My.Sys.Drawing
 		#endif
 	End Operator
 	
-	Function Cursor.ToString() ByRef As WString
+	Private Function Cursor.ToString() ByRef As WString
 		Return *FResName
 	End Function
 	
 	#ifndef __USE_GTK__
-		Function Cursor.ToBitmap() As hBitmap
+		Private Function Cursor.ToBitmap() As hBitmap
 			Dim As BitmapType bmpType
 			bmpType = Handle
 			Return bmpType.Handle
@@ -182,7 +182,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	#ifdef __USE_GTK__
-		Operator Cursor.Let(Value As GdkCursorType)
+		Private Operator Cursor.Let(Value As GdkCursorType)
 			If Ctrl AndAlso Ctrl->Handle Then
 				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->Handle)
 				Handle = gdk_cursor_new_for_display(pdisplay, Value)
@@ -190,20 +190,20 @@ Namespace My.Sys.Drawing
 		End Operator
 		
 	#else
-		Operator Cursor.Let(Value As HCURSOR)
+		Private Operator Cursor.Let(Value As HCURSOR)
 			If Handle Then DestroyCursor(Handle)
 			Handle = Value
 		End Operator
 	#endif
 	
-	Operator Cursor.Let(Value As Cursor)
+	Private Operator Cursor.Let(Value As Cursor)
 		#ifndef __USE_GTK__
 			If Handle Then DestroyCursor(Handle)
 		#endif
 		Handle = Value.Handle
 	End Operator
 	
-	Constructor Cursor
+	Private Constructor Cursor
 		WLet(FClassName, "Cursor")
 '		#ifndef __USE_GTK__
 '			Handle = LoadCursor(NULL,IDC_ARROW)
@@ -211,7 +211,7 @@ Namespace My.Sys.Drawing
 		If Changed Then Changed(This)
 	End Constructor
 	
-	Destructor Cursor
+	Private Destructor Cursor
 		#ifndef __USE_GTK__
 			If Handle <> 0 Then 
 				DestroyCursor Handle
@@ -221,6 +221,8 @@ Namespace My.Sys.Drawing
 	End Destructor
 End Namespace
 
-Sub CursorLoadFromFile Alias "CursorLoadFromFile"(Cur As My.Sys.Drawing.Cursor Ptr, ByRef File As WString) __EXPORT__
-	Cur->LoadFromFile(File)
-End Sub
+#ifdef __EXPORT_PROCS__
+	Sub CursorLoadFromFile Alias "CursorLoadFromFile"(Cur As My.Sys.Drawing.Cursor Ptr, ByRef File As WString) __EXPORT__
+		Cur->LoadFromFile(File)
+	End Sub
+#endif

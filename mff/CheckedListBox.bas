@@ -12,21 +12,21 @@
 #include once "CheckedListBox.bi"
 
 Namespace My.Sys.Forms
-	Function CheckedListBox.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function CheckedListBox.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
 	End Function
 	
-	Function CheckedListBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function CheckedListBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
 	End Function
 	
-	Sub CheckedListBox.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
+	Private Sub CheckedListBox.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Dim i As Integer
 		If FSort Then
 			For i = 0 To Items.Count - 1
@@ -45,7 +45,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub CheckedListBox.InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
+	Private Sub CheckedListBox.InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
 		If FSort Then
 			AddItem FItem, Obj
 			Exit Sub
@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property CheckedListBox.Checked(Index As Integer) As Boolean
+	Private Property CheckedListBox.Checked(Index As Integer) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			Dim As Boolean bChecked
@@ -72,7 +72,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property CheckedListBox.Checked(Index As Integer, Value As Boolean)
+	Private Property CheckedListBox.Checked(Index As Integer, Value As Boolean)
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
@@ -83,7 +83,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub CheckedListBox.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub CheckedListBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCheckedListBox(Sender.Child)
 					For i As Integer = 0 To .Items.Count -1
@@ -106,10 +106,10 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef __USE_GTK__
-		Sub CheckedListBox.WndProc(ByRef Message As Message)
+		Private Sub CheckedListBox.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
+		Private Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
 			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
 			Select Case Message.Msg
 			Case CM_DRAWITEM
@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	
-	Sub CheckedListBox.SaveToFile(ByRef File As WString)
+	Private Sub CheckedListBox.SaveToFile(ByRef File As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
@@ -273,7 +273,7 @@ Namespace My.Sys.Forms
 		Close #F
 	End Sub
 	
-	Sub CheckedListBox.LoadFromFile(ByRef File As WString)
+	Private Sub CheckedListBox.LoadFromFile(ByRef File As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
@@ -293,7 +293,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Sub CheckedListBox.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, model As GtkListStore Ptr)
+		Private Sub CheckedListBox.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, model As GtkListStore Ptr)
 			Dim As GtkTreeIter iter
 			Dim As gboolean active
 			
@@ -311,7 +311,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Constructor CheckedListBox
+	Private Constructor CheckedListBox
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
 			Dim As GtkCellRenderer Ptr rendertoggle = gtk_cell_renderer_toggle_new()
@@ -362,7 +362,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor CheckedListBox
+	Private Destructor CheckedListBox
 		'If Items Then DeAllocate Items
 	End Destructor
 End Namespace

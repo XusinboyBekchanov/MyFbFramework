@@ -1,6 +1,6 @@
 ﻿#include once "Dialogs.bi"
 
-Type PrintPreviewDialog Extends Dialog
+Private Type PrintPreviewDialog Extends Dialog
 Private:
 	xLeft As Integer        = -1                        ' Default to center
 	xTop As Integer         = -1

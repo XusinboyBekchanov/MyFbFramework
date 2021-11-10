@@ -5,15 +5,15 @@
 'Property PrintPreviewDialog.Left(value As Integer): xLeft=value: End Property
 'Property PrintPreviewDialog.Top() As Integer: Return xTop: End Property
 'Property PrintPreviewDialog.Top(value As Integer): xTop=value: End Property
-Property PrintPreviewDialog.SetupDialog() As Integer: Return xSetupDialog: End Property
-Property PrintPreviewDialog.SetupDialog(value As Integer)
+Private Property PrintPreviewDialog.SetupDialog() As Integer: Return xSetupDialog: End Property
+Private Property PrintPreviewDialog.SetupDialog(value As Integer)
 	If value Then xSetupDialog=True Else xSetupDialog=False
 End Property
 
-Function PrintPreviewDialog.Execute As Boolean
+Private Function PrintPreviewDialog.Execute As Boolean
 	Return False
 End Function
 
-Constructor PrintPreviewDialog
+Private Constructor PrintPreviewDialog
 	WLet(FClassName, "PrintPreviewDialog")
 End Constructor

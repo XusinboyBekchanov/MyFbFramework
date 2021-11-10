@@ -7,7 +7,7 @@
 #include once "Object.bi"
 
 Namespace My.Sys
-	Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr __EXPORT__
+	Private Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "classname": Return FClassName
 		Case Else: Return 0
@@ -15,7 +15,7 @@ Namespace My.Sys
 		Return 0
 	End Function
 	
-	Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean __EXPORT__
+	Private Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value <> 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return False
@@ -24,15 +24,15 @@ Namespace My.Sys
 		Return True
 	End Function
 	
-	Operator Object.Cast ByRef As WString __EXPORT__
+	Private Operator Object.Cast ByRef As WString
 		Return This.ClassName
 	End Operator
 	
-	Operator Object.Cast As Any Ptr __EXPORT__
+	Private Operator Object.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Function Object.ClassName ByRef As WString __EXPORT__
+	Private Function Object.ClassName ByRef As WString
 		If FClassName = 0 Or FClassName = 24 Then
 			Return WStr("")
 		Else
@@ -40,7 +40,7 @@ Namespace My.Sys
 		End If
 	End Function
 	
-	Function Object.FullTypeName(ByVal baseIndex As Integer = 0) As UString __EXPORT__
+	Private Function Object.FullTypeName(ByVal baseIndex As Integer = 0) As UString
 		Dim As String s
 		Dim As ZString Ptr pz
 		Dim As Any Ptr p = CPtr(Any Ptr Ptr Ptr, @This)[0][-1]     ' Ptr to RTTI info
@@ -64,19 +64,19 @@ Namespace My.Sys
 		Loop
 	End Function
 	
-	Function Object.ToString ByRef As WString __EXPORT__
+	Private Function Object.ToString ByRef As WString
 		WLet(FTemp, "(" & This.ClassName & ")")
 		Return *FTemp
 	End Function
 	
-	Constructor Object __EXPORT__
+	Private Constructor Object
 		FTemp = 0
 		FClassName = 0 'CAllocate(0)
 		'FClassAncestor = CAllocate(0)
 		'FName = CAllocate(0)
 	End Constructor
 	
-	Destructor Object __EXPORT__
+	Private Destructor Object
 		WDeallocate FTemp
 		WDeallocate FClassName
 	End Destructor

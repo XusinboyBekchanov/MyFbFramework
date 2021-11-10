@@ -14,14 +14,14 @@
 
 Namespace My.Sys.Drawing
 	#ifdef __USE_GTK__
-		Enum BrushStyle
+		Private Enum BrushStyle
 			bsSolid
 			bsClear
 			bsHatch
 			bsPattern
 		End Enum
 		
-		Enum HatchStyle
+		Private Enum HatchStyle
 			hsHorizontal
 			hsVertical
 			hsFDiagonal
@@ -30,14 +30,14 @@ Namespace My.Sys.Drawing
 			hsDiagCross
 		End Enum
 	#else
-		Enum BrushStyle
+		Private Enum BrushStyle
 			bsSolid   = BS_SOLID
 			bsClear   = BS_NULL
 			bsHatch   = BS_HATCHED
 			bsPattern = BS_PATTERN
 		End Enum
 		
-		Enum HatchStyle
+		Private Enum HatchStyle
 			hsHorizontal = HS_HORIZONTAL
 			hsVertical   = HS_VERTICAL
 			hsFDiagonal  = HS_FDIAGONAL
@@ -47,7 +47,7 @@ Namespace My.Sys.Drawing
 		End Enum
 	#endif
 	
-	Type Brush Extends My.Sys.Object
+	Private Type Brush Extends My.Sys.Object
 	Private:
 		FColor       As Integer
 		FStyle       As BrushStyle

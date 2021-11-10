@@ -14,7 +14,7 @@
 #include once "Bitmap.bi"
 
 Namespace My.Sys.Drawing
-	Function BitmapType.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function BitmapType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 			#ifdef __USE_GTK__
 			Case "handle": Return Handle
@@ -26,7 +26,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 	
-	Function BitmapType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function BitmapType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -39,33 +39,33 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Property BitmapType.Width As Integer
+	Private Property BitmapType.Width As Integer
 		Return FWidth
 	End Property
 	
-	Property BitmapType.Width(Value As Integer)
+	Private Property BitmapType.Width(Value As Integer)
 		FWidth = Value
 		If Changed Then Changed(This)
 	End Property
 	
-	Property BitmapType.Height As Integer
+	Private Property BitmapType.Height As Integer
 		Return FHeight
 	End Property
 	
-	Property BitmapType.Height(Value As Integer)
+	Private Property BitmapType.Height(Value As Integer)
 		FHeight = Value
 		If Changed Then Changed(This)
 	End Property
 	
-	Property BitmapType.Transparency As Boolean
+	Private Property BitmapType.Transparency As Boolean
 		Return FTransparent
 	End Property
 	
-	Property BitmapType.Transparency(Value As Boolean)
+	Private Property BitmapType.Transparency(Value As Boolean)
 		FTransparent = Value
 	End Property
 	
-	Function BitmapType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function BitmapType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			If File = "" Then Return False
@@ -114,7 +114,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Function BitmapType.SaveToFile(ByRef File As WString) As Boolean
+	Private Function BitmapType.SaveToFile(ByRef File As WString) As Boolean
 		#ifndef __USE_GTK__
 			Type RGB3 Field = 1
 				G As Byte
@@ -175,7 +175,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	#ifndef __USE_GTK__
-		Function BitmapType.LoadFromHICON(IcoHandle As HICON) As Boolean
+		Private Function BitmapType.LoadFromHICON(IcoHandle As HICON) As Boolean
 			' Initialize Gdiplus
 			Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
 			StartupInput.GdiplusVersion = 1
@@ -283,7 +283,7 @@ Namespace My.Sys.Drawing
 		End Function
 	#endif
 	
-	Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
+	Private Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			If FileExists("./Resources/" & ResName & ".png") Then
@@ -366,7 +366,7 @@ Namespace My.Sys.Drawing
 		Return Handle <> 0
 	End Function
 	
-	Function BitmapType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function BitmapType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Return False
 		#else
@@ -382,7 +382,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Sub BitmapType.Create
+	Private Sub BitmapType.Create
 		#ifndef __USE_GTK__
 			Dim rc As ..Rect
 			Dim As HDC Dc
@@ -401,7 +401,7 @@ Namespace My.Sys.Drawing
 		If Changed Then Changed(This)
 	End Sub
 	
-	Sub BitmapType.Clear
+	Private Sub BitmapType.Clear
 		#ifndef __USE_GTK__
 			Dim rc As ..RECT
 			rc.Left = 0
@@ -413,7 +413,7 @@ Namespace My.Sys.Drawing
 		If Changed Then Changed(This)
 	End Sub
 	
-	Sub BitmapType.Free
+	Private Sub BitmapType.Free
 		#ifndef __USE_GTK__
 			If Handle Then DeleteObject Handle
 			Handle = 0
@@ -421,11 +421,11 @@ Namespace My.Sys.Drawing
 		'If Changed Then Changed(This)
 	End Sub
 	
-	Operator BitmapType.Cast As Any Ptr
+	Private Operator BitmapType.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Operator BitmapType.Let(ByRef Value As WString)
+	Private Operator BitmapType.Let(ByRef Value As WString)
 		WLet FResName, Value
 		#ifdef __USE_GTK__
 			If StartsWith(Value, "/") Then
@@ -441,22 +441,22 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	#ifndef __USE_GTK__
-		Operator BitmapType.Let(Value As HBITMAP)
+		Private Operator BitmapType.Let(Value As HBITMAP)
 			Handle = Value
 		End Operator
 		
-		Operator BitmapType.Let(Value As HICON)
+		Private Operator BitmapType.Let(Value As HICON)
 			LoadFromHICON(Value)
 		End Operator
 	#else
 		
 	#endif
 	
-	Function BitmapType.ToString() ByRef As WString
+	Private Function BitmapType.ToString() ByRef As WString
 		Return *FResName
 	End Function
 	
-	Constructor BitmapType
+	Private Constructor BitmapType
 		WLet(FClassName, "BitmapType")
 		#ifndef __USE_GTK__
 			FLoadFlag(0) = 0
@@ -468,7 +468,7 @@ Namespace My.Sys.Drawing
 		'Create
 	End Constructor
 	
-	Destructor BitmapType
+	Private Destructor BitmapType
 		WDeallocate FResName
 		Free
 		#ifdef __USE_GTK__
@@ -480,14 +480,16 @@ Namespace My.Sys.Drawing
 	End Destructor
 End Namespace
 
-Function BitmapTypeLoadFromResourceName Alias "BitmapTypeLoadFromResourceName"(Bitm As My.Sys.Drawing.BitmapType Ptr, ResName As String, ModuleHandle As Any Ptr = 0) As Boolean  __EXPORT__
-	#ifdef __USE_GTK__
-		Return Bitm->LoadFromResourceName(ResName)
-	#else
-		Return Bitm->LoadFromResourceName(ResName, Cast(HInstance, ModuleHandle))
-	#endif
-End Function
-
-Function BitmapTypeLoadFromFile Alias "BitmapTypeLoadFromFile"(Bitm As My.Sys.Drawing.BitmapType Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean __EXPORT__
-	Return Bitm->LoadFromFile(File, cxDesired, cyDesired)
-End Function
+#ifdef __EXPORT_PROCS__
+	Function BitmapTypeLoadFromResourceName Alias "BitmapTypeLoadFromResourceName"(Bitm As My.Sys.Drawing.BitmapType Ptr, ResName As String, ModuleHandle As Any Ptr = 0) As Boolean  __EXPORT__
+		#ifdef __USE_GTK__
+			Return Bitm->LoadFromResourceName(ResName)
+		#else
+			Return Bitm->LoadFromResourceName(ResName, Cast(HInstance, ModuleHandle))
+		#endif
+	End Function
+	
+	Function BitmapTypeLoadFromFile Alias "BitmapTypeLoadFromFile"(Bitm As My.Sys.Drawing.BitmapType Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean __EXPORT__
+		Return Bitm->LoadFromFile(File, cxDesired, cyDesired)
+	End Function
+#endif

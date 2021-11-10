@@ -12,7 +12,7 @@
 #include once "Component.bi"
 
 Namespace My.Sys
-	Type ClipboardType
+	Private Type ClipboardType
 	Private:
 		FFormatCount As Integer
 		FFormat      As WString Ptr

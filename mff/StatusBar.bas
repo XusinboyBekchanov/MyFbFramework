@@ -14,7 +14,7 @@
 #include once "StatusBar.bi"
 
 Namespace My.Sys.Forms
-	Function StatusPanel.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function StatusPanel.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "alignment": Return @FAlignment
 		Case "bevel": Return @FBevel
@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function StatusPanel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function StatusPanel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "alignment": This.Alignment = QInteger(Value)
 		Case "bevel": This.Bevel = *Cast(BevelStyle Ptr, Value)
@@ -44,29 +44,29 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property StatusPanel.Caption ByRef As WString
+	Private Property StatusPanel.Caption ByRef As WString
 		Return *FCaption
 	End Property
 	
-	Property StatusPanel.Caption(ByRef Value As WString)
+	Private Property StatusPanel.Caption(ByRef Value As WString)
 		FCaption = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
 		*FCaption = Value
 		If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels
 	End Property
 	
-	Property StatusPanel.Name ByRef As WString
+	Private Property StatusPanel.Name ByRef As WString
 		Return *FName
 	End Property
 	
-	Property StatusPanel.Name(ByRef Value As WString)
+	Private Property StatusPanel.Name(ByRef Value As WString)
 		WLet FName, Value
 	End Property
 	
-	Property StatusPanel.Parent As Control Ptr
+	Private Property StatusPanel.Parent As Control Ptr
 		Return StatusBarControl
 	End Property
 	
-	Property StatusPanel.Parent(Value As Control Ptr)
+	Private Property StatusPanel.Parent(Value As Control Ptr)
 		If StatusBarControl <> 0 AndAlso StatusBarControl <> Value Then
 			Dim As Integer Index = Cast(StatusBar Ptr, StatusBarControl)->IndexOf(@This)
 			If Index > -1 Then Cast(StatusBar Ptr, StatusBarControl)->Remove Index
@@ -75,16 +75,16 @@ Namespace My.Sys.Forms
 		Cast(StatusBar Ptr, StatusBarControl)->Add @This
 	End Property
 
-	Property StatusPanel.Width As Integer
+	Private Property StatusPanel.Width As Integer
 		Return FWidth
 	End Property
 	
-	Property StatusPanel.Width(Value As Integer)
+	Private Property StatusPanel.Width(Value As Integer)
 		FWidth = Value
 		If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels
 	End Property
 	
-	Property StatusPanel.RealWidth As Integer
+	Private Property StatusPanel.RealWidth As Integer
 		#ifndef __USE_GTK__
 			If StatusBarControl->Handle Then
 				Dim As ..Rect rct
@@ -96,33 +96,33 @@ Namespace My.Sys.Forms
 		Return FRealWidth
 	End Property
 		
-	Property StatusPanel.Bevel As BevelStyle
+	Private Property StatusPanel.Bevel As BevelStyle
 		Return FBevel
 	End Property
 	
-	Property StatusPanel.Bevel(Value As BevelStyle)
+	Private Property StatusPanel.Bevel(Value As BevelStyle)
 		FBevel = Value
 		If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels
 	End Property
 	
-	Property StatusPanel.Alignment As Integer
+	Private Property StatusPanel.Alignment As Integer
 		Return FAlignment
 	End Property
 	
-	Property StatusPanel.Alignment(Value As Integer)
+	Private Property StatusPanel.Alignment(Value As Integer)
 		FAlignment = Value
 		If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels
 	End Property
 	
-	Operator StatusPanel.Cast As Any Ptr
+	Private Operator StatusPanel.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Operator StatusPanel.Let(ByRef Value As WString)
+	Private Operator StatusPanel.Let(ByRef Value As WString)
 		Caption = Value
 	End Operator
 	
-	Sub StatusPanel.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+	Private Sub StatusPanel.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 		With *Cast(StatusPanel Ptr, Sender.Graphic)
 			#ifdef __USE_GTK__
 			#else
@@ -133,7 +133,7 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 
-	Constructor StatusPanel
+	Private Constructor StatusPanel
 		WLet FClassName, "StatusPanel"
 		Caption     = ""
 		FWidth      = 50
@@ -143,11 +143,11 @@ Namespace My.Sys.Forms
 		Icon.Changed = @IconChanged
 	End Constructor
 	
-	Destructor StatusPanel
+	Private Destructor StatusPanel
 		If FCaption Then Deallocate_( FCaption)
 	End Destructor
 	
-	Function StatusBar.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function StatusBar.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "count": Return @Count
 		Case "simplepanel": Return @FSimplePanel
@@ -158,7 +158,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function StatusBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function StatusBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "backcolor": This.BackColor = QInteger(Value)
 		Case "simplepanel": This.SimplePanel = QBoolean(Value)
@@ -169,7 +169,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
+	Private Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
 		Count += 1
 		Panels = Reallocate_(Panels, SizeOf(StatusPanel Ptr) * Count)
 		Panels[Count -1] = New_( StatusPanel)
@@ -184,14 +184,14 @@ Namespace My.Sys.Forms
 		Return Panels[Count - 1]
 	End Function
 	
-	Sub StatusBar.Add(stPanel As StatusPanel Ptr)
+	Private Sub StatusBar.Add(stPanel As StatusPanel Ptr)
 		Count += 1
 		Panels = Reallocate_(Panels, SizeOf(StatusPanel Ptr) * Count)
 		Panels[Count - 1] = stPanel
 		UpdatePanels
 	End Sub
 	
-	Sub StatusBar.Remove(Index As Integer)
+	Private Sub StatusBar.Remove(Index As Integer)
 		Dim As StatusPanel Ptr Ptr Temp
 		Dim As Integer i, x = 0
 		If Index >= 0 And Index <= Count - 1 Then
@@ -216,7 +216,7 @@ Namespace My.Sys.Forms
 		UpdatePanels
 	End Sub
 	
-	Sub StatusBar.Clear
+	Private Sub StatusBar.Clear
 		For i As Integer = Count -1 To 0 Step -1
 			Remove i
 		Next i
@@ -228,14 +228,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function StatusBar.IndexOf(ByRef stPanel As StatusPanel Ptr) As Integer
+	Private Function StatusBar.IndexOf(ByRef stPanel As StatusPanel Ptr) As Integer
 		For i As Integer = 0 To Count - 1
 			If Panels[i] = stPanel Then Return i
 		Next
 		Return -1
 	End Function
 	
-	Sub StatusBar.UpdatePanels
+	Private Sub StatusBar.UpdatePanels
 		Dim As Long i, FWidth()
 		Dim As WString Ptr s
 		Dim As WString Ptr ss
@@ -277,34 +277,34 @@ Namespace My.Sys.Forms
 		WDeallocate ss
 	End Sub
 	
-	Property StatusBar.Panel(Index As Integer) As StatusPanel Ptr
+	Private Property StatusBar.Panel(Index As Integer) As StatusPanel Ptr
 		If Index >= 0 And Index <= Count -1 Then
 			Return *Panels[Index]
 		End If
 	End Property
 	
-	Property StatusBar.Panel(Index As Integer, Value As StatusPanel Ptr)
+	Private Property StatusBar.Panel(Index As Integer, Value As StatusPanel Ptr)
 		If Index >= 0 And Index <= Count -1 Then
 			Panels[Index] = Value
 		End If
 	End Property
 	
-	Property StatusBar.BackColor As Integer
+	Private Property StatusBar.BackColor As Integer
 		Return Base.BackColor
 	End Property
 	
-	Property StatusBar.BackColor(Value As Integer)
+	Private Property StatusBar.BackColor(Value As Integer)
 		Base.BackColor = Value
 		#ifndef __USE_GTK__
 			If Handle Then SendMessage(Handle, SB_SETBKCOLOR, 0, Base.BackColor)
 		#endif
 	End Property
 	
-	Property StatusBar.SizeGrip As Boolean
+	Private Property StatusBar.SizeGrip As Boolean
 		Return FSizeGrip
 	End Property
 	
-	Property StatusBar.SizeGrip(Value As Boolean)
+	Private Property StatusBar.SizeGrip(Value As Boolean)
 		If Value <> FSizeGrip Then
 			FSizeGrip = Value
 			#ifndef __USE_GTK__
@@ -314,11 +314,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property StatusBar.SimplePanel As Boolean
+	Private Property StatusBar.SimplePanel As Boolean
 		Return FSimplePanel
 	End Property
 	
-	Property StatusBar.SimplePanel(Value As Boolean)
+	Private Property StatusBar.SimplePanel(Value As Boolean)
 		If Value <> FSimplePanel Then
 			FSimplePanel = Value
 			#ifndef __USE_GTK__
@@ -330,11 +330,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property StatusBar.SimpleText ByRef As WString
+	Private Property StatusBar.SimpleText ByRef As WString
 		Return *FSimpleText
 	End Property
 	
-	Property StatusBar.SimpleText(ByRef Value As WString)
+	Private Property StatusBar.SimpleText(ByRef Value As WString)
 		If SimplePanel Then
 			FSimpleText = Reallocate_(FSimpleText, (Len(Value) + 1) * SizeOf(WString))
 			*FSimpleText = Value
@@ -346,7 +346,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub StatusBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub StatusBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QStatusBar(Sender.Child)
 					SetClassLong .Handle, GCL_STYLE, GetClassLong(.Handle,GCL_STYLE) And Not CS_HREDRAW
@@ -358,19 +358,19 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub StatusBar.WndProc(ByRef Message As Message)
+		Private Sub StatusBar.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub StatusBar.ProcessMessage(ByRef Message As Message)
+		Private Sub StatusBar.ProcessMessage(ByRef Message As Message)
 			Base.ProcessMessage(Message)
 		End Sub
 	#endif
 	
-	Operator StatusBar.Cast As My.Sys.Forms.Control Ptr
+	Private Operator StatusBar.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
-	Constructor StatusBar
+	Private Constructor StatusBar
 		With This
 			FSimpleText = 0' CAllocate_(0)
 			#ifdef __USE_GTK__
@@ -410,7 +410,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor StatusBar
+	Private Destructor StatusBar
 		For i As Integer = Count - 1 To 0 Step -1
 			If Panels[i]->FDynamic Then Delete_(Panels[i])
 		Next

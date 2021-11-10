@@ -49,7 +49,7 @@ Namespace My.Sys.Forms
 	Const MIM_APPLYTOSUBMENUS = &H80000000
 	Const MIM_MENUDATA        = &H00000008
 	
-	Type MenuItem Extends My.Sys.Object
+	Private Type MenuItem Extends My.Sys.Object
 	Private:
 		Declare Static Sub BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		#ifndef __USE_GTK__
@@ -156,7 +156,7 @@ Namespace My.Sys.Forms
 		OnClick As Sub(ByRef Sender As MenuItem)
 	End Type
 	
-	Type Menu Extends Component
+	Private Type Menu Extends Component
 	Private:
 		FCount   As Integer
 		FItems   As PMenuItem Ptr
@@ -214,7 +214,7 @@ Namespace My.Sys.Forms
 		OnActivate As Sub(ByRef Sender As Menu)
 	End Type
 	
-	Type MainMenu Extends Menu
+	Private Type MainMenu Extends Menu
 	Private:
 	Protected:
 		Declare Function EnumMenuItems(ByRef Item As MenuItem) As Boolean
@@ -228,7 +228,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type PopupMenu Extends Menu
+	Private Type PopupMenu Extends Menu
 	Private:
 	Protected:
 	Public:

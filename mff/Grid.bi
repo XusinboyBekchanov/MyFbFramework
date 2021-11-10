@@ -6,14 +6,14 @@
 
 #include once "Control.bi"
 
-Enum GridSortStyle
+Private Enum GridSortStyle
 	ssNone
 	ssSortAscending
 	ssSortDescending
 End Enum
 
 #ifdef __USE_GTK__
-	Enum GridColumnFormat
+	Private Enum GridColumnFormat
 		gcfLeft
 		gcfRight
 		gcfCenter
@@ -31,7 +31,7 @@ End Enum
 		'cfTilePlacementMask
 	End Enum
 #else
-	Enum GridColumnFormat
+	Private Enum GridColumnFormat
 		gcfLeft = LVCFMT_LEFT
 		gcfRight = LVCFMT_RIGHT
 		gcfCenter = LVCFMT_CENTER
@@ -55,7 +55,7 @@ Namespace My.Sys.Forms
 	#define QGridRow(__Ptr__) *Cast(GridRow Ptr, __Ptr__)
 	#define QGridColumn(__Ptr__) *Cast(GridColumn Ptr,__Ptr__)
 	
-	Type GridRow Extends My.Sys.Object
+	Private Type GridRow Extends My.Sys.Object
 	Private:
 		FText               As WString Ptr
 		FColumns            As WStringList
@@ -113,7 +113,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type GridColumn Extends My.Sys.Object
+	Private Type GridColumn Extends My.Sys.Object
 	Private:
 		FText           As WString Ptr
 		FHint           As WString Ptr
@@ -150,7 +150,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type GridRows
+	Private Type GridRows
 	Private:
 		FItems As List
 		PItem As GridRow Ptr
@@ -178,7 +178,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type GridColumns
+	Private Type GridColumns
 	Private:
 		FColumns As List
 		#ifdef __USE_GTK__
@@ -201,7 +201,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type Grid Extends Control
+	Private Type Grid Extends Control
 	Private:
 		FAllowColumnReorder As Boolean
 		FColumnHeaderHidden As Boolean
@@ -307,41 +307,41 @@ End Namespace
 	'const LVS_NOCOLUMNHEADER = &h4000
 	'const LVS_NOSORTHEADER = &h8000
 	
-	const LVS_EX_GRIDLINES = &h1
-	const LVS_EX_SUBITEMIMAGES = &h2
-	const LVS_EX_CHECKBOXES = &h4
-	const LVS_EX_TRACKSELECT = &h8
-	const LVS_EX_HEADERDRAGDROP = &h10
-	const LVS_EX_FULLROWSELECT = &h20
-	const LVS_EX_ONECLICKACTIVATE = &h40
-	const LVS_EX_TWOCLICKACTIVATE = &h80
-	const LVS_EX_FLATSB = &h100
-	const LVS_EX_REGIONAL = &h200
-	const LVS_EX_INFOTIP = &h400
-	const LVS_EX_UNDERLINEHOT = &h800
-	const LVS_EX_UNDERLINECOLD = &h1000
-	const LVS_EX_MULTIWORKAREAS = &h2000
-	const LVS_EX_LABELTIP = &h4000
-	const LVS_EX_BORDERSELECT = &h8000
-	const LVS_EX_DOUBLEBUFFER = &h10000
-	const LVS_EX_HIDELABELS = &h20000
-	const LVS_EX_SINGLEROW = &h40000
-	const LVS_EX_SNAPTOGRID = &h80000
-	const LVS_EX_SIMPLESELECT = &h100000
+	Const LVS_EX_GRIDLINES = &h1
+	Const LVS_EX_SUBITEMIMAGES = &h2
+	Const LVS_EX_CHECKBOXES = &h4
+	Const LVS_EX_TRACKSELECT = &h8
+	Const LVS_EX_HEADERDRAGDROP = &h10
+	Const LVS_EX_FULLROWSELECT = &h20
+	Const LVS_EX_ONECLICKACTIVATE = &h40
+	Const LVS_EX_TWOCLICKACTIVATE = &h80
+	Const LVS_EX_FLATSB = &h100
+	Const LVS_EX_REGIONAL = &h200
+	Const LVS_EX_INFOTIP = &h400
+	Const LVS_EX_UNDERLINEHOT = &h800
+	Const LVS_EX_UNDERLINECOLD = &h1000
+	Const LVS_EX_MULTIWORKAREAS = &h2000
+	Const LVS_EX_LABELTIP = &h4000
+	Const LVS_EX_BORDERSELECT = &h8000
+	Const LVS_EX_DOUBLEBUFFER = &h10000
+	Const LVS_EX_HIDELABELS = &h20000
+	Const LVS_EX_SINGLEROW = &h40000
+	Const LVS_EX_SNAPTOGRID = &h80000
+	Const LVS_EX_SIMPLESELECT = &h100000
 	
 	#if _WIN32_WINNT = &h0602
-		const LVS_EX_JUSTIFYCOLUMNS = &h200000
-		const LVS_EX_TRANSPARENTBKGND = &h400000
-		const LVS_EX_TRANSPARENTSHADOWTEXT = &h800000
-		const LVS_EX_AUTOAUTOARRANGE = &h1000000
-		const LVS_EX_HEADERINALLVIEWS = &h2000000
-		const LVS_EX_AUTOCHECKSELECT = &h8000000
-		const LVS_EX_AUTOSIZECOLUMNS = &h10000000
-		const LVS_EX_COLUMNSNAPPOINTS = &h40000000
-		const LVS_EX_COLUMNOVERFLOW = &h80000000
+		Const LVS_EX_JUSTIFYCOLUMNS = &h200000
+		Const LVS_EX_TRANSPARENTBKGND = &h400000
+		Const LVS_EX_TRANSPARENTSHADOWTEXT = &h800000
+		Const LVS_EX_AUTOAUTOARRANGE = &h1000000
+		Const LVS_EX_HEADERINALLVIEWS = &h2000000
+		Const LVS_EX_AUTOCHECKSELECT = &h8000000
+		Const LVS_EX_AUTOSIZECOLUMNS = &h10000000
+		Const LVS_EX_COLUMNSNAPPOINTS = &h40000000
+		Const LVS_EX_COLUMNOVERFLOW = &h80000000
 	#endif
-#EndIf
+#endif
 
-#IfNDef __USE_MAKE__
-	#Include Once "Grid.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "Grid.bas"
+#endif

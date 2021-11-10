@@ -16,7 +16,7 @@
 #define QWStringListItem(__Ptr__) *Cast(WStringListItem Ptr,__Ptr__)
 #define QWStringList(__Ptr__) *Cast(WStringList Ptr,__Ptr__)
 
-Type WStringListItem Extends Object
+Private Type WStringListItem Extends Object
 Private:
 	FValue   As WString Ptr
 Public:
@@ -31,7 +31,7 @@ Public:
 	Declare Destructor
 End Type
 
-Type WStringList Extends Object
+Private Type WStringList Extends Object
 Private:
 	FCount   As Integer = 0
 	FText    As WString Ptr

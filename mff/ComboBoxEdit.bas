@@ -13,7 +13,7 @@
 #include once "ComboBoxEdit.bi"
 
 Namespace My.Sys.Forms
-	Function ComboBoxEdit.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function ComboBoxEdit.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "dropdowncount": Return @FDropDownCount
 		Case "integralheight": Return @FIntegralHeight
@@ -27,7 +27,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ComboBoxEdit.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ComboBoxEdit.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.AddItem *FName: This.ItemIndex = 0
 		Case "dropdowncount": DropDownCount = QInteger(Value)
@@ -42,23 +42,23 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property ComboBoxEdit.TabIndex As Integer
+	Private Property ComboBoxEdit.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property ComboBoxEdit.TabIndex(Value As Integer)
+	Private Property ComboBoxEdit.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property ComboBoxEdit.TabStop As Boolean
+	Private Property ComboBoxEdit.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property ComboBoxEdit.TabStop(Value As Boolean)
+	Private Property ComboBoxEdit.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
+	Private Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
 		#ifdef __USE_GTK__
 			gtk_combo_box_popup(gtk_combo_box(widget))
 		#else
@@ -67,7 +67,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Function ComboBoxEdit.WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Private Function ComboBoxEdit.WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Select Case Msg
 			Case WM_NCCREATE
 				'Dim As CreateStruct Ptr CS = Cast(CreateStruct Ptr, lparam)
@@ -86,26 +86,26 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub ComboBoxEdit.RegisterClass
+	Private Sub ComboBoxEdit.RegisterClass
 		#ifndef __USE_GTK__
 			Control.RegisterClass "ComboBoxEdit", "ComboBox", @WindowProc
 		#endif
 	End Sub
 	
-	Property ComboBoxEdit.SelColor As Integer
+	Private Property ComboBoxEdit.SelColor As Integer
 		Return FSelColor
 	End Property
 	
-	Property ComboBoxEdit.SelColor(Value As Integer)
+	Private Property ComboBoxEdit.SelColor(Value As Integer)
 		FSelColor = Value
 		Invalidate
 	End Property
 	
-	Property ComboBoxEdit.Style As ComboBoxEditStyle
+	Private Property ComboBoxEdit.Style As ComboBoxEditStyle
 		Return FStyle
 	End Property
 	
-	Property ComboBoxEdit.Style(Value As ComboBoxEditStyle)
+	Private Property ComboBoxEdit.Style(Value As ComboBoxEditStyle)
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifdef __USE_GTK__
@@ -145,26 +145,26 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ComboBoxEdit.DropDownCount As Integer
+	Private Property ComboBoxEdit.DropDownCount As Integer
 		Return FDropDownCount
 	End Property
 	
-	Property ComboBoxEdit.DropDownCount(Value As Integer)
+	Private Property ComboBoxEdit.DropDownCount(Value As Integer)
 		FDropDownCount = Value
 	End Property
 	
-	Property ComboBoxEdit.IntegralHeight As Boolean
+	Private Property ComboBoxEdit.IntegralHeight As Boolean
 		Return FIntegralHeight
 	End Property
 	
-	Property ComboBoxEdit.IntegralHeight(Value As Boolean)
+	Private Property ComboBoxEdit.IntegralHeight(Value As Boolean)
 		FIntegralHeight = Value
 		#ifndef __USE_GTK__
 			Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(Abs_(FStyle)) Or ASortStyle(Abs_(FSort)) Or AIntegralHeight(Abs_(FIntegralHeight))
 		#endif
 	End Property
 	
-	Property ComboBoxEdit.ItemCount As Integer
+	Private Property ComboBoxEdit.ItemCount As Integer
 		#ifndef __USE_GTK__
 			If Handle Then
 				Return Perform(CB_GETCOUNT,0,0)
@@ -173,10 +173,10 @@ Namespace My.Sys.Forms
 		Return Items.Count
 	End Property
 	
-	Property ComboBoxEdit.ItemCount(Value As Integer)
+	Private Property ComboBoxEdit.ItemCount(Value As Integer)
 	End Property
 	
-	Property ComboBoxEdit.ItemHeight As Integer
+	Private Property ComboBoxEdit.ItemHeight As Integer
 		#ifndef __USE_GTK__
 			If Handle Then
 				If Style <> cbOwnerDrawVariable  Then
@@ -187,7 +187,7 @@ Namespace My.Sys.Forms
 		Return FItemHeight
 	End Property
 	
-	Property ComboBoxEdit.ItemHeight(Value As Integer)
+	Private Property ComboBoxEdit.ItemHeight(Value As Integer)
 		FItemHeight = Value
 		#ifndef __USE_GTK__
 			If Handle Then
@@ -198,7 +198,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxEdit.ItemIndex As Integer
+	Private Property ComboBoxEdit.ItemIndex As Integer
 		#ifdef __USE_GTK__
 			If widget Then FItemIndex = gtk_combo_box_get_active (Gtk_Combo_Box(widget))
 		#else
@@ -207,7 +207,7 @@ Namespace My.Sys.Forms
 		Return FItemIndex
 	End Property
 	
-	Property ComboBoxEdit.ItemIndex(Value As Integer)
+	Private Property ComboBoxEdit.ItemIndex(Value As Integer)
 		FItemIndex = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), Value)
@@ -216,7 +216,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxEdit.Text ByRef As WString
+	Private Property ComboBoxEdit.Text ByRef As WString
 		If FStyle >= cbDropDownList Then
 			FText = This.Item(This.ItemIndex)
 		Else
@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 		Return *FText.vptr
 	End Property
 	
-	Property ComboBoxEdit.Text(ByRef Value As WString)
+	Private Property ComboBoxEdit.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), IndexOf(Value))
@@ -238,11 +238,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxEdit.Sort As Boolean
+	Private Property ComboBoxEdit.Sort As Boolean
 		Return FSort
 	End Property
 	
-	Property ComboBoxEdit.Sort(Value As Boolean)
+	Private Property ComboBoxEdit.Sort(Value As Boolean)
 		If Value <> FSort Then
 			FSort = Value
 			#ifdef __USE_GTK__
@@ -254,15 +254,15 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ComboBoxEdit.ItemData(FIndex As Integer) As Any Ptr
+	Private Property ComboBoxEdit.ItemData(FIndex As Integer) As Any Ptr
 		Return Items.Object(FIndex)
 	End Property
 	
-	Property ComboBoxEdit.ItemData(FIndex As Integer, Value As Any Ptr)
+	Private Property ComboBoxEdit.ItemData(FIndex As Integer, Value As Any Ptr)
 		Items.Object(FIndex) = Value
 	End Property
 	
-	Property ComboBoxEdit.Item(FIndex As Integer) ByRef As WString
+	Private Property ComboBoxEdit.Item(FIndex As Integer) ByRef As WString
 		Dim As Integer L
 		#ifndef __USE_GTK__
 			If Handle Then
@@ -280,11 +280,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxEdit.Item(FIndex As Integer, ByRef FItem As WString)
+	Private Property ComboBoxEdit.Item(FIndex As Integer, ByRef FItem As WString)
 		Items.Item(FIndex) = FItem
 	End Property
 	
-	Sub ComboBoxEdit.UpdateListHeight
+	Private Sub ComboBoxEdit.UpdateListHeight
 		If Style <> cbSimple Then
 			#ifndef __USE_GTK__
 				MoveWindow Handle, ScaleX(This.Left), ScaleY(This.Top), ScaleX(This.Width), ScaleY(This.Height + (ItemHeight * FDropDownCount)), 1
@@ -292,7 +292,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub ComboBoxEdit.AddItem(ByRef FItem As WString)
+	Private Sub ComboBoxEdit.AddItem(ByRef FItem As WString)
 		Dim i As Integer
 		If FSort Then
 			For i = 0 To Items.Count - 1
@@ -318,7 +318,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ComboBoxEdit.RemoveItem(FIndex As Integer)
+	Private Sub ComboBoxEdit.RemoveItem(FIndex As Integer)
 		Items.Remove(FIndex)
 		#ifdef __USE_GTK__
 			If Widget Then
@@ -332,7 +332,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ComboBoxEdit.InsertItem(FIndex As Integer, ByRef FItem As WString)
+	Private Sub ComboBoxEdit.InsertItem(FIndex As Integer, ByRef FItem As WString)
 		If FSort Then
 			AddItem FItem
 			Exit Sub
@@ -348,20 +348,20 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function ComboBoxEdit.IndexOf(ByRef FItem As WString) As Integer
+	Private Function ComboBoxEdit.IndexOf(ByRef FItem As WString) As Integer
 		Return Items.IndexOf(FItem) ' Perform(CB_FINDSTRING, -1, CInt(@FItem))
 	End Function
 	
-	Function ComboBoxEdit.Contains(ByRef FItem As WString) As Boolean
+	Private Function ComboBoxEdit.Contains(ByRef FItem As WString) As Boolean
 		Return IndexOf(FItem) <> -1
 	End Function
 	
-	Function ComboBoxEdit.IndexOfData(pData As Any Ptr) As Integer
+	Private Function ComboBoxEdit.IndexOfData(pData As Any Ptr) As Integer
 		Return Items.IndexOfObject(pData)
 	End Function
 	
 	#ifndef __USE_GTK__
-		Function ComboBoxEdit.SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Private Function ComboBoxEdit.SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As ComboBoxEdit Ptr Ctrl
 			Dim As Message Message
 			Ctrl = Cast(ComboBoxEdit Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
@@ -386,7 +386,7 @@ Namespace My.Sys.Forms
 			Return Message.Result
 		End Function
 		
-		Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
 					.GetChilds
@@ -411,7 +411,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub ComboBoxEdit.GetChilds
+	Private Sub ComboBoxEdit.GetChilds
 		#ifndef __USE_GTK__
 			Dim As HWND Child
 			FEditHandle = 0
@@ -429,7 +429,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
+	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_NCCREATE
@@ -527,7 +527,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(message)
 	End Sub
 	
-	Sub ComboBoxEdit.Clear
+	Private Sub ComboBoxEdit.Clear
 		ItemCount = 0
 		Items.Clear
 		#ifdef __USE_GTK__
@@ -543,7 +543,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ComboBoxEdit.SaveToFile(ByRef File As WString)
+	Private Sub ComboBoxEdit.SaveToFile(ByRef File As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
@@ -560,7 +560,7 @@ Namespace My.Sys.Forms
 		Close #F
 	End Sub
 	
-	Sub ComboBoxEdit.LoadFromFile(ByRef File As WString)
+	Private Sub ComboBoxEdit.LoadFromFile(ByRef File As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
@@ -576,18 +576,18 @@ Namespace My.Sys.Forms
 		Close #F
 	End Sub
 	
-	Operator ComboBoxEdit.Cast As Control Ptr
+	Private Operator ComboBoxEdit.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub ComboBoxEdit.ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
+		Private Sub ComboBoxEdit.ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			cbo->FSelected = False
 			If cbo->OnDropdown Then cbo->OnDropdown(*cbo)
 		End Sub
 		
-		Function ComboBoxEdit.ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
+		Private Function ComboBoxEdit.ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			If cbo->FSelected = False Then
 				If cbo->OnSelectCanceled Then cbo->OnSelectCanceled(*cbo)
@@ -596,14 +596,14 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Sub ComboBoxEdit.ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
+		Private Sub ComboBoxEdit.ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			cbo->FSelected = True
 			If cbo->OnSelected Then cbo->OnSelected(*cbo, cbo->ItemIndex)
 			If cbo->OnChange Then cbo->OnChange(*cbo)
 		End Sub
 		
-		Sub ComboBoxEdit.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+		Private Sub ComboBoxEdit.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			Dim As Control Ptr btn = cbo->GetForm()->FDefaultButton
 			If cbo->OnActivate Then cbo->OnActivate(*cbo)
@@ -611,7 +611,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Constructor ComboBoxEdit
+	Private Constructor ComboBoxEdit
 		#ifdef __USE_GTK__
 			DropDownWidget = gtk_combo_box_text_new_with_entry()
 			DropDownListWidget = gtk_combo_box_text_new()
@@ -667,7 +667,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ComboBoxEdit
+	Private Destructor ComboBoxEdit
 		WDeallocate FItemText
 		#ifdef __USE_GTK__
 			If gtk_is_widget(DropDownWidget) Then

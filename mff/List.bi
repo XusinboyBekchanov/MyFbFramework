@@ -15,7 +15,7 @@
 
 #define QList(__Ptr__) *Cast(List Ptr,__Ptr__)
 
-Type List
+Private Type List
 Private:
 Public:
 	Count As Integer = 0

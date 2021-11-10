@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
 	#define QToolTips(__Ptr__) *Cast(ToolTips Ptr, __Ptr__)
 	
-	Type ToolTips Extends My.Sys.ComponentModel.Component
+	Private Type ToolTips Extends My.Sys.ComponentModel.Component
 	Private:
 		'			#IfNDef __USE_GTK__
 		'				Declare Static Sub WndProc(ByRef Message As Message)

@@ -15,7 +15,7 @@
 #define QDoubleListItem(__Ptr__) *Cast(DoubleListItem Ptr,__Ptr__)
 #define QDoubleList(__Ptr__) *Cast(DoubleList Ptr,__Ptr__)
 
-Type DoubleListItem Extends Object
+Private Type DoubleListItem Extends Object
 Private:
 	FValue   As Integer
 Public:
@@ -30,7 +30,7 @@ Public:
 	Declare Destructor
 End Type
 
-Type DoubleList Extends Object
+Private Type DoubleList Extends Object
 Private:
 	FCount   As Integer
 	FItems   As List

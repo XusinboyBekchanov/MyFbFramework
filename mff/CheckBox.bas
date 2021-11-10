@@ -14,7 +14,7 @@
 #include once "CheckBox.bi"
 
 Namespace My.Sys.Forms
-	Function CheckBox.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function CheckBox.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "alignment": Return @FAlignment
 		Case "caption": Return FText.vptr
@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function CheckBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function CheckBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "alignment": Alignment = *Cast(CheckAlignmentConstants Ptr, Value)
 		Case "caption": This.Caption = QWString(Value)
@@ -38,11 +38,11 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property CheckBox.Alignment As CheckAlignmentConstants
+	Private Property CheckBox.Alignment As CheckAlignmentConstants
 		Return FAlignment
 	End Property
 	
-	Property CheckBox.Alignment(Value As CheckAlignmentConstants)
+	Private Property CheckBox.Alignment(Value As CheckAlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
 			#ifndef __USE_GTK__
@@ -57,42 +57,42 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property CheckBox.Caption ByRef As WString
+	Private Property CheckBox.Caption ByRef As WString
 		Return Text
 	End Property
 	
-	Property CheckBox.Caption(ByRef Value As WString)
+	Private Property CheckBox.Caption(ByRef Value As WString)
 		Text = Value
 	End Property
 	
-	Property CheckBox.TabIndex As Integer
+	Private Property CheckBox.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property CheckBox.TabIndex(Value As Integer)
+	Private Property CheckBox.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property CheckBox.TabStop As Boolean
+	Private Property CheckBox.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property CheckBox.TabStop(Value As Boolean)
+	Private Property CheckBox.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 		
-	Property CheckBox.Text ByRef As WString
+	Private Property CheckBox.Text ByRef As WString
 		Return Base.Text
 	End Property
 	
-	Property CheckBox.Text(ByRef Value As WString)
+	Private Property CheckBox.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_button_set_label(GTK_BUTTON(widget), ToUtf8(Value))
 		#endif
 	End Property
 	
-	Property CheckBox.Checked As Boolean
+	Private Property CheckBox.Checked As Boolean
 		#ifdef __USE_GTK__
 			If widget Then FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
 		#else
@@ -101,7 +101,7 @@ Namespace My.Sys.Forms
 		Return FChecked
 	End Property
 	
-	Property CheckBox.Checked(Value As Boolean)
+	Private Property CheckBox.Checked(Value As Boolean)
 		FChecked = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
@@ -110,7 +110,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub CheckBox.HandleIsAllocated(ByRef Sender As Control)
+	Private Sub CheckBox.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
 			#ifndef __USE_GTK__
 				With QCheckBox(Sender.Child)
@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub CheckBox.WndProc(ByRef Message As Message)
+		Private Sub CheckBox.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'               Cast(CheckBox Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub CheckBox.ProcessMessage(ByRef Message As Message)
+	Private Sub CheckBox.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
@@ -154,18 +154,18 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator CheckBox.Cast As Control Ptr
+	Private Operator CheckBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub CheckBox_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
+		Private Sub CheckBox_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As CheckBox Ptr but = user_data
 			If but->OnClick Then but->OnClick(*but)
 		End Sub
 	#endif
 	
-	Constructor CheckBox
+	Private Constructor CheckBox
 		With This
 			.Child                  = @This
 			#ifdef __USE_GTK__
@@ -193,6 +193,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor CheckBox
+	Private Destructor CheckBox
 	End Destructor
 End Namespace

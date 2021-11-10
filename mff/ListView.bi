@@ -11,14 +11,14 @@
 
 Const LVCFMT_FILL = &h200000
 
-Enum SortStyle
+Private Enum SortStyle
 	ssNone
 	ssSortAscending
 	ssSortDescending
 End Enum
 
 #ifdef __USE_GTK__
-	Enum ViewStyle
+	Private Enum ViewStyle
 		vsIcon
 		vsDetails
 		vsSmallIcon
@@ -27,7 +27,7 @@ End Enum
 		vsMax
 	End Enum
 	
-	Enum ColumnFormat
+	Private Enum ColumnFormat
 		cfLeft
 		cfRight
 		cfCenter
@@ -46,7 +46,7 @@ End Enum
 		'cfTilePlacementMask
 	End Enum
 #else
-	Enum ViewStyle
+	Private Enum ViewStyle
 		vsIcon = LV_VIEW_ICON
 		vsDetails = LV_VIEW_DETAILS
 		vsSmallIcon = LV_VIEW_SMALLICON
@@ -55,7 +55,7 @@ End Enum
 		vsMax = LV_VIEW_MAX
 	End Enum
 	
-	Enum ColumnFormat
+	Private Enum ColumnFormat
 		cfLeft = LVCFMT_LEFT
 		cfRight = LVCFMT_RIGHT
 		cfCenter = LVCFMT_CENTER
@@ -80,7 +80,7 @@ Namespace My.Sys.Forms
 	#define QListViewItem(__Ptr__) *Cast(ListViewItem Ptr,__Ptr__)
 	#define QListViewColumn(__Ptr__) *Cast(ListViewColumn Ptr,__Ptr__)
 	
-	Type ListViewItem Extends My.Sys.Object
+	Private Type ListViewItem Extends My.Sys.Object
 	Private:
 		FText               As WString Ptr
 		FSubItems           As WStringList
@@ -137,7 +137,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type ListViewColumn Extends My.Sys.Object
+	Private Type ListViewColumn Extends My.Sys.Object
 	Private:
 		FText            As WString Ptr
 		FHint            As WString Ptr
@@ -174,7 +174,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type ListViewColumns
+	Private Type ListViewColumns
 	Private:
 		FColumns As List
 		#ifdef __USE_GTK__
@@ -197,7 +197,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ListViewItems
+	Private Type ListViewItems
 	Private:
 		FItems As List
 		PItem As ListViewItem Ptr
@@ -227,7 +227,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ListView Extends Control
+	Private Type ListView Extends Control
 	Private:
 		FAllowColumnReorder As Boolean
 		FBorderSelect As Boolean

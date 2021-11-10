@@ -7,7 +7,7 @@
 #include once "DateTimePicker.bi"
 
 Namespace My.Sys.Forms
-	Function DateTimePicker.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function DateTimePicker.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "calendarrightalign": Return @FRightAlign
 		Case "checked": Return @FChecked
@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function DateTimePicker.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function DateTimePicker.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "calendarrightalign": CalendarRightAlign = QBoolean(Value)
 		Case "checked": Checked = QBoolean(Value)
@@ -43,11 +43,11 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property DateTimePicker.CustomFormat ByRef As WString
+	Private Property DateTimePicker.CustomFormat ByRef As WString
 		Return WGet(FCustomFormat)
 	End Property
 	
-	Property DateTimePicker.CustomFormat(ByRef Value As WString)
+	Private Property DateTimePicker.CustomFormat(ByRef Value As WString)
 		WLet FCustomFormat, Value
 		If FHandle Then
 			If FDateFormat = DateTimePickerFormat.CustomFormat Then
@@ -61,15 +61,15 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property DateTimePicker.AutoNextPart As Boolean
+	Private Property DateTimePicker.AutoNextPart As Boolean
 		Return FAutoNextPart
 	End Property
 		
-	Property DateTimePicker.AutoNextPart(Value As Boolean)
+	Private Property DateTimePicker.AutoNextPart(Value As Boolean)
 		FAutoNextPart = Value 
 	End Property
 	
-	Property DateTimePicker.Checked As Boolean
+	Private Property DateTimePicker.Checked As Boolean
 		If FHandle Then
 			#ifdef __USE_GTK__
 				FChecked = gtk_toggle_button_get_active(gtk_toggle_button(CheckWidget))
@@ -80,7 +80,7 @@ Namespace My.Sys.Forms
 		Return FChecked
 	End Property
 	
-	Property DateTimePicker.Checked(Value As Boolean)
+	Private Property DateTimePicker.Checked(Value As Boolean)
 		FChecked = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
@@ -104,7 +104,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property DateTimePicker.SelectedDate As Long
+	Private Property DateTimePicker.SelectedDate As Long
 		If FHandle Then
 			#ifdef __USE_GTK__
 				FSelectedDate = DateSerial(Year(FSelectedDateTime), Month(FSelectedDateTime), Day(FSelectedDateTime))
@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 		Return FSelectedDate
 	End Property
 	
-	Property DateTimePicker.SelectedDate(Value As Long)
+	Private Property DateTimePicker.SelectedDate(Value As Long)
 		FSelectedDate = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property DateTimePicker.SelectedDateTime As Double
+	Private Property DateTimePicker.SelectedDateTime As Double
 		If FHandle Then
 			#ifndef __USE_GTK__
 				Dim As SYSTEMTIME pst
@@ -152,7 +152,7 @@ Namespace My.Sys.Forms
 		Return FSelectedDateTime
 	End Property
 	
-	Property DateTimePicker.SelectedDateTime(Value As Double)
+	Private Property DateTimePicker.SelectedDateTime(Value As Double)
 		FSelectedDateTime = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
@@ -171,7 +171,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property DateTimePicker.Text ByRef As WString
+	Private Property DateTimePicker.Text ByRef As WString
 		#ifdef __USE_GTK__
 			FText = WStr(*gtk_entry_get_text(gtk_entry(widget)))
 			Return *FText.vptr
@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property DateTimePicker.Text(ByRef Value As WString)
+	Private Property DateTimePicker.Text(ByRef Value As WString)
 		If IsDate(Value) Then
 			FText = Value
 			Dim As Integer Pos1 = InStr(Value, ":")
@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property DateTimePicker.SelectedTime As Double
+	Private Property DateTimePicker.SelectedTime As Double
 		If FHandle Then
 			#ifdef __USE_GTK__
 				FSelectedTime = TimeSerial(Hour(FSelectedDateTime), Minute(FSelectedDateTime), Second(FSelectedDateTime))
@@ -206,7 +206,7 @@ Namespace My.Sys.Forms
 		Return FSelectedTime
 	End Property
 	
-	Property DateTimePicker.SelectedTime(Value As Double)
+	Private Property DateTimePicker.SelectedTime(Value As Double)
 		FSelectedTime = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
@@ -225,14 +225,14 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property DateTimePicker.CalendarRightAlign As Boolean
+	Private Property DateTimePicker.CalendarRightAlign As Boolean
 		#ifndef __USE_GTK__
 			FRightAlign = StyleExists(DTS_RIGHTALIGN)
 		#endif
 		Return FRightAlign
 	End Property
 	
-	Property DateTimePicker.CalendarRightAlign(Value As Boolean)
+	Private Property DateTimePicker.CalendarRightAlign(Value As Boolean)
 		FRightAlign = Value
 		#ifndef __USE_GTK__
 			ChangeStyle DTS_RIGHTALIGN, Value
@@ -240,14 +240,14 @@ Namespace My.Sys.Forms
 		If FHandle Then RecreateWnd
 	End Property
 	
-	Property DateTimePicker.ShowUpDown As Boolean
+	Private Property DateTimePicker.ShowUpDown As Boolean
 		#ifndef __USE_GTK__
 			FShowUpDown = StyleExists(DTS_UPDOWN)
 		#endif
 		Return FShowUpDown
 	End Property
 	
-	Property DateTimePicker.ShowUpDown(Value As Boolean)
+	Private Property DateTimePicker.ShowUpDown(Value As Boolean)
 		FShowUpDown = Value
 		#ifdef __USE_GTK__
 			If Value Then
@@ -275,14 +275,14 @@ Namespace My.Sys.Forms
 		If FHandle Then RecreateWnd
 	End Property
 	
-	Property DateTimePicker.ShowNone As Boolean
+	Private Property DateTimePicker.ShowNone As Boolean
 		#ifndef __USE_GTK__
 			FShowNone = StyleExists(DTS_SHOWNONE)
 		#endif
 		Return FShowNone
 	End Property
 	
-	Property DateTimePicker.ShowNone(Value As Boolean)
+	Private Property DateTimePicker.ShowNone(Value As Boolean)
 		FShowNone = Value
 		#ifdef __USE_GTK__
 			If Value Then
@@ -304,7 +304,7 @@ Namespace My.Sys.Forms
 		If FHandle Then RecreateWnd
 	End Property
 	
-	Property DateTimePicker.DateFormat As DateTimePickerFormat
+	Private Property DateTimePicker.DateFormat As DateTimePickerFormat
 		If FHandle Then
 			#ifndef __USE_GTK__
 				Dim As DWORD dwStyle = GetWindowLong(FHandle, GWL_STYLE)
@@ -324,7 +324,7 @@ Namespace My.Sys.Forms
 		Return FDateFormat
 	End Property
 	
-	Property DateTimePicker.DateFormat(Value As DateTimePickerFormat)
+	Private Property DateTimePicker.DateFormat(Value As DateTimePickerFormat)
 		FDateFormat = Value
 		#ifdef __USE_GTK__
 			Select Case Value
@@ -350,24 +350,24 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property DateTimePicker.TabIndex As Integer
+	Private Property DateTimePicker.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property DateTimePicker.TabIndex(Value As Integer)
+	Private Property DateTimePicker.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property DateTimePicker.TabStop As Boolean
+	Private Property DateTimePicker.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property DateTimePicker.TabStop(Value As Boolean)
+	Private Property DateTimePicker.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub DateTimePicker.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub DateTimePicker.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QDateTimePicker(Sender.Child)
 					If .FDateFormat = DateTimePickerFormat.CustomFormat Then DateTime_SetFormat(.FHandle, .FCustomFormat)
@@ -376,16 +376,16 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub DateTimePicker.WndProc(ByRef Message As Message)
+		Private Sub DateTimePicker.WndProc(ByRef Message As Message)
 		End Sub
 		
 	#endif
 	
-	Property DateTimePicker.TimePicker As Boolean 'David Change
+	Private Property DateTimePicker.TimePicker As Boolean 'David Change
 		Return FTimePicker
 	End Property
 	
-	Property DateTimePicker.TimePicker(Value As Boolean)'David Change
+	Private Property DateTimePicker.TimePicker(Value As Boolean)'David Change
 		If FTimePicker <> Value Then
 			FTimePicker = Value
 		End If
@@ -410,7 +410,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Sub DateTimePicker.SelectRegion(Start As Integer = -1, Direction As Integer = 0)
+		Private Sub DateTimePicker.SelectRegion(Start As Integer = -1, Direction As Integer = 0)
 			Dim As Integer FirstSelStart, FirstSelEnd, Length, iCount, iStart, iEnd, iStep, Steps, CharIndex
 			PrevDateTimePart = FDateTimePart
 			If Start = -1 Then
@@ -565,11 +565,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function DateTimePicker.GetLastDay(lYear As Long, lMonth As Long) As Long
+		Private Function DateTimePicker.GetLastDay(lYear As Long, lMonth As Long) As Long
 			Return Day(DateSerial(IIf(lMonth = 12, lYear + 1, lYear), IIf(lMonth = 12, 1, lMonth + 1), 1) - 1)
 		End Function
 		
-		Sub DateTimePicker.SetDateTime(PressedNumberValue As Long, DateTimePart As String, NewDateTimePart As String)
+		Private Sub DateTimePicker.SetDateTime(PressedNumberValue As Long, DateTimePart As String, NewDateTimePart As String)
 			If PressedNumberValue <> 0 Then
 				Select Case ..Left(DateTimePart, 1)
 				Case "y"
@@ -613,7 +613,7 @@ Namespace My.Sys.Forms
 '			End If
 		End Sub
 		
-		Sub DateTimePicker.DatePartUp
+		Private Sub DateTimePicker.DatePartUp
 			Select Case ..Left(FDateTimePart, 1)
 			Case "y"
 				SelectedDate = DateSerial(IIf(Year(SelectedDate) = 9999, 1601, Year(SelectedDate) + 1), Month(SelectedDate), Day(SelectedDate))
@@ -631,7 +631,7 @@ Namespace My.Sys.Forms
 			SelectRegion SelStart + 1
 		End Sub
 		
-		Sub DateTimePicker.DatePartDown
+		Private Sub DateTimePicker.DatePartDown
 			Select Case ..Left(FDateTimePart, 1)
 			Case "y"
 				SelectedDate = DateSerial(IIf(Year(SelectedDate) = 1601, 9999, Year(SelectedDate) - 1), Month(SelectedDate), Day(SelectedDate))
@@ -650,7 +650,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub DateTimePicker.ProcessMessage(ByRef Message As Message)
+	Private Sub DateTimePicker.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -806,12 +806,12 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator DateTimePicker.Cast As My.Sys.Forms.Control Ptr
+	Private Operator DateTimePicker.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub DateTimePicker.SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+		Private Sub DateTimePicker.SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
 			If allocation->width <> dtp->AllocatedWidth OrElse allocation->height <> dtp->AllocatedHeight Then
 				Dim As GtkAllocation TextAllocation, CheckAllocation, ButtonAllocation
@@ -858,7 +858,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function DateTimePicker.DateTimePicker_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function DateTimePicker.DateTimePicker_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
 			If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
 				Dim allocation As GtkAllocation
@@ -874,21 +874,21 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function DateTimePicker.ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function DateTimePicker.ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			DateTimePicker_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
 		End Function
 		
-		Sub DateTimePicker.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+		Private Sub DateTimePicker.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
 			Dim As Control Ptr btn = dtp->GetForm()->FDefaultButton
 			'dtp->SelectedDateTime = dtp->SelectedDateTime
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
 		End Sub
 		
-		Function DateTimePicker.SpinButton_Input(spin_button As GtkSpinButton Ptr, new_value As Any Ptr, user_data As Any Ptr) As Integer
+		Private Function DateTimePicker.SpinButton_Input(spin_button As GtkSpinButton Ptr, new_value As Any Ptr, user_data As Any Ptr) As Integer
 			Dim As DateTimePicker Ptr dtp = user_data
 			If gtk_spin_button_get_value(GTK_spin_button(spin_button)) > 20 Then
 				dtp->DatePartDown
@@ -898,18 +898,18 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 		
-		Function DateTimePicker.SpinButton_Output(spin_button As GtkSpinButton Ptr, user_data As Any Ptr) As Integer
+		Private Function DateTimePicker.SpinButton_Output(spin_button As GtkSpinButton Ptr, user_data As Any Ptr) As Integer
 			Dim As DateTimePicker Ptr dtp = user_data
 			gtk_entry_set_text(GTK_ENTRY(spin_button), ToUTF8(Format(dtp->SelectedDateTime, *dtp->FFormat)))
 			Return True
 		End Function
 		
-		Sub DateTimePicker.CheckButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
+		Private Sub DateTimePicker.CheckButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
 			gtk_widget_set_sensitive(dtp->Handle, gtk_toggle_button_get_active(gtk_toggle_button(widget)))
 		End Sub
 		
-		Sub DateTimePicker.Button_Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
+		Private Sub DateTimePicker.Button_Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
 			If dtp->FFocusChanged Then
 				dtp->FFocusChanged = False
@@ -934,7 +934,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub DateTimePicker.Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
+		Private Sub DateTimePicker.Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
 			Dim As guint y, m, d
 			gtk_calendar_get_date(calendar, @y, @m, @d)
@@ -945,13 +945,13 @@ Namespace My.Sys.Forms
 			dtp->SelectedDate = DateSerial(y, m + 1, d)
 		End Sub
 		
-		Function DateTimePicker.deactivate_cb(ByVal user_data As gpointer) As gboolean
+		Private Function DateTimePicker.deactivate_cb(ByVal user_data As gpointer) As gboolean
 			Dim As DateTimePicker Ptr dtp = user_data
 			dtp->FFocusChanged = False
 			Return False
 		End Function
 		
-		Function DateTimePicker.Calendar_FocusOut(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function DateTimePicker.Calendar_FocusOut(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As DateTimePicker Ptr dtp = user_data
 			dtp->FFocusChanged = True
 			g_timeout_add(500, Cast(GSourceFunc, @deactivate_cb), dtp)
@@ -959,7 +959,7 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 		
-		Function DateTimePicker.Calendar_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function DateTimePicker.Calendar_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As DateTimePicker Ptr dtp = user_data
 			Select Case Event->key.keyval
 			Case GDK_KEY_Escape
@@ -970,12 +970,12 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function DateTimePicker.Calendar_KeyRelease(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function DateTimePicker.Calendar_KeyRelease(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Return False
 		End Function
 	#endif
 	
-	Constructor DateTimePicker
+	Private Constructor DateTimePicker
 		Dim As Boolean Result
 		
 		'Dim As INITCOMMONCONTROLSEX ICC
@@ -1085,7 +1085,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor DateTimePicker
+	Private Destructor DateTimePicker
 		#ifndef __USE_GTK__
 			UnregisterClass "DateTimePicker",GetModuleHandle(NULL)
 		#endif

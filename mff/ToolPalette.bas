@@ -14,7 +14,7 @@
 #include once "ToolPalette.bi"
 
 Namespace My.Sys.Forms
-	Constructor ToolGroup
+	Private Constructor ToolGroup
 		#ifdef __USE_GTK__
 			widget = gtk_tool_item_group_new("")
 		#endif
@@ -22,16 +22,16 @@ Namespace My.Sys.Forms
 		Buttons.Parent = @This
 	End Constructor
 	
-	Destructor ToolGroup
+	Private Destructor ToolGroup
 		WDeallocate FCaption
 		WDeallocate FName
 	End Destructor
 	
-	Property ToolGroup.CommandID As Integer
+	Private Property ToolGroup.CommandID As Integer
 		Return FCommandID
 	End Property
 	
-	Property ToolGroup.CommandID(Value As Integer)
+	Private Property ToolGroup.CommandID(Value As Integer)
 		Dim As Integer i
 		If Value <> FCommandID Then
 			FCommandID = Value
@@ -46,37 +46,37 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Function ToolGroup.Index As Integer
+	Private Function ToolGroup.Index As Integer
 		If Ctrl Then
 			Return Cast(ToolPalette Ptr, Ctrl)->Groups.IndexOf(@This)
 		End If
 		Return -1
 	End Function
 	
-	Property ToolGroup.Caption ByRef As WString
+	Private Property ToolGroup.Caption ByRef As WString
 		Return WGet(FCaption)
 	End Property
 	
-	Property ToolGroup.Caption(ByRef Value As WString)
+	Private Property ToolGroup.Caption(ByRef Value As WString)
 		WLet(FCaption, Value)
 		#ifdef __USE_GTK__
 			gtk_tool_item_group_set_label(gtk_tool_item_group(widget), ToUTF8(Value))
 		#endif
 	End Property
 	
-	Property ToolGroup.Name ByRef As WString
+	Private Property ToolGroup.Name ByRef As WString
 		Return WGet(FName)
 	End Property
 	
-	Property ToolGroup.Name(ByRef Value As WString)
+	Private Property ToolGroup.Name(ByRef Value As WString)
 		WLet(FName, Value)
 	End Property
 	
-	Property ToolGroup.Expanded As Boolean
+	Private Property ToolGroup.Expanded As Boolean
 		Return FExpanded
 	End Property
 	
-	Property ToolGroup.Expanded(Value As Boolean)
+	Private Property ToolGroup.Expanded(Value As Boolean)
 		FExpanded = Value
 		#ifdef __USE_GTK__
 			gtk_tool_item_group_set_collapsed(gtk_tool_item_group(widget), Not Value)
@@ -96,31 +96,31 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Operator ToolGroup.Cast As Any Ptr
+	Private Operator ToolGroup.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Property ToolGroupButtons.Count As Integer
+	Private Property ToolGroupButtons.Count As Integer
 		Return FButtons.Count
 	End Property
 	
-	Property ToolGroupButtons.Count(Value As Integer)
+	Private Property ToolGroupButtons.Count(Value As Integer)
 	End Property
 	
-	Property ToolGroupButtons.Item(Index As Integer) As ToolButton Ptr
+	Private Property ToolGroupButtons.Item(Index As Integer) As ToolButton Ptr
 		Return Cast(ToolButton Ptr, FButtons.Items[Index])
 	End Property
 	
-	Property ToolGroupButtons.Item(ByRef Key As WString) As ToolButton Ptr
+	Private Property ToolGroupButtons.Item(ByRef Key As WString) As ToolButton Ptr
 		If IndexOf(Key) <> -1 Then Return Cast(ToolButton Ptr, FButtons.Items[IndexOf(Key)])
 		Return 0
 	End Property
 	
-	Property ToolGroupButtons.Item(Index As Integer, Value As ToolButton Ptr)
+	Private Property ToolGroupButtons.Item(Index As Integer, Value As ToolButton Ptr)
 		'QToolButton(FButtons.Items[Index]) = Value
 	End Property
 	
-	Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		PButton = New_( ToolButton)
 		PButton->FDynamic = True 
@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 	
-	Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		#ifdef __USE_GTK__
 			PButton = Add(FStyle, -1, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
@@ -226,7 +226,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 	
-	Sub ToolGroupButtons.Remove(Index As Integer)
+	Private Sub ToolGroupButtons.Remove(Index As Integer)
 		FButtons.Remove Index
 		If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
 			#ifndef __USE_GTK__
@@ -235,57 +235,57 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Function ToolGroupButtons.IndexOf(ByRef FButton As ToolButton Ptr) As Integer
+	Private Function ToolGroupButtons.IndexOf(ByRef FButton As ToolButton Ptr) As Integer
 		Return FButtons.IndexOF(FButton)
 	End Function
 	
-	Function ToolGroupButtons.IndexOf(ByRef Key As WString) As Integer
+	Private Function ToolGroupButtons.IndexOf(ByRef Key As WString) As Integer
 		For i As Integer = 0 To Count - 1
 			If QToolButton(FButtons.Items[i]).Name = Key Then Return i
 		Next i
 		Return -1
 	End Function
 	
-	Sub ToolGroupButtons.Clear
+	Private Sub ToolGroupButtons.Clear
 		For i As Integer = Count -1 To 0 Step -1
 			Delete_( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
 	End Sub
 	
-	Operator ToolGroupButtons.Cast As Any Ptr
+	Private Operator ToolGroupButtons.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ToolGroupButtons
+	Private Constructor ToolGroupButtons
 		This.Clear
 	End Constructor
 	
-	Destructor ToolGroupButtons
+	Private Destructor ToolGroupButtons
 		This.Clear
 	End Destructor
 	
-	Property ToolGroups.Count As Integer
+	Private Property ToolGroups.Count As Integer
 		Return FGroups.Count
 	End Property
 	
-	Property ToolGroups.Count(Value As Integer)
+	Private Property ToolGroups.Count(Value As Integer)
 	End Property
 	
-	Property ToolGroups.Item(Index As Integer) As ToolGroup Ptr
+	Private Property ToolGroups.Item(Index As Integer) As ToolGroup Ptr
 		Return Cast(ToolGroup Ptr, FGroups.Items[Index])
 	End Property
 	
-	Property ToolGroups.Item(ByRef Key As WString) As ToolGroup Ptr
+	Private Property ToolGroups.Item(ByRef Key As WString) As ToolGroup Ptr
 		If IndexOf(Key) <> -1 Then Return Cast(ToolGroup Ptr, FGroups.Items[IndexOf(Key)])
 		Return 0
 	End Property
 	
-	Property ToolGroups.Item(Index As Integer, Value As ToolGroup Ptr)
+	Private Property ToolGroups.Item(Index As Integer, Value As ToolGroup Ptr)
 		'QToolButton(FButtons.Items[Index]) = Value
 	End Property
 	
-	Function ToolGroups.Add(ByRef Caption As WString, ByRef Key As WString = "") As ToolGroup Ptr
+	Private Function ToolGroups.Add(ByRef Caption As WString, ByRef Key As WString = "") As ToolGroup Ptr
 		Dim As ToolGroup Ptr PGroup
 		PGroup = New_( ToolGroup)
 		FGroups.Add PGroup
@@ -338,7 +338,7 @@ Namespace My.Sys.Forms
 		Return PGroup
 	End Function
 	
-	Sub ToolGroups.Remove(Index As Integer)
+	Private Sub ToolGroups.Remove(Index As Integer)
 		FGroups.Remove Index
 		If Parent Then
 			#ifndef __USE_GTK__
@@ -347,70 +347,70 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Function ToolGroups.IndexOf(ByRef FGroup As ToolGroup Ptr) As Integer
+	Private Function ToolGroups.IndexOf(ByRef FGroup As ToolGroup Ptr) As Integer
 		Return FGroups.IndexOF(FGroup)
 	End Function
 	
-	Function ToolGroups.IndexOf(ByRef Key As WString) As Integer
+	Private Function ToolGroups.IndexOf(ByRef Key As WString) As Integer
 		For i As Integer = 0 To Count - 1
 			If QToolGroup(FGroups.Items[i]).Name = Key Then Return i
 		Next i
 		Return -1
 	End Function
 	
-	Sub ToolGroups.Clear
+	Private Sub ToolGroups.Clear
 		For i As Integer = Count - 1 To 0 Step -1
 			Delete_( @QToolGroup(FGroups.Items[i]))
 		Next i
 		FGroups.Clear
 	End Sub
 	
-	Operator ToolGroups.Cast As Any Ptr
+	Private Operator ToolGroups.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ToolGroups
+	Private Constructor ToolGroups
 		This.Clear
 	End Constructor
 	
-	Destructor ToolGroups
+	Private Destructor ToolGroups
 		This.Clear
 	End Destructor
 	
-	Property ToolPalette.ImagesList As ImageList Ptr
+	Private Property ToolPalette.ImagesList As ImageList Ptr
 		Return FImagesList
 	End Property
 	
-	Property ToolPalette.ImagesList(Value As ImageList Ptr)
+	Private Property ToolPalette.ImagesList(Value As ImageList Ptr)
 		FImagesList = Value
 		#ifndef __USE_GTK__
 			If FImagesList Then FImagesList->ParentWindow = @This: If FImagesList->Handle Then Perform(TB_SETIMAGELIST, 0, CInt(FImagesList->Handle))
 		#endif
 	End Property
 	
-	Property ToolPalette.HotImagesList As ImageList Ptr
+	Private Property ToolPalette.HotImagesList As ImageList Ptr
 		Return FHotImagesList
 	End Property
 	
-	Property ToolPalette.HotImagesList(Value As ImageList Ptr)
+	Private Property ToolPalette.HotImagesList(Value As ImageList Ptr)
 		FHotImagesList = Value
 		#ifndef __USE_GTK__
 			If FHotImagesList Then FHotImagesList->ParentWindow = @This: If FHotImagesList->Handle Then Perform(TB_SETHOTIMAGELIST, 0, CInt(FHotImagesList->Handle))
 		#endif
 	End Property
 	
-	Property ToolPalette.DisabledImagesList As ImageList Ptr
+	Private Property ToolPalette.DisabledImagesList As ImageList Ptr
 		Return FDisabledImagesList
 	End Property
 	
-	Property ToolPalette.DisabledImagesList(Value As ImageList Ptr)
+	Private Property ToolPalette.DisabledImagesList(Value As ImageList Ptr)
 		FDisabledImagesList = Value
 		#ifndef __USE_GTK__
 			If FDisabledImagesList Then FDisabledImagesList->ParentWindow = @This: If FDisabledImagesList->Handle Then Perform(TB_SETDISABLEDIMAGELIST, 0, CInt(FDisabledImagesList->Handle))
 		#endif
 	End Property
 	
-	Sub ToolPalette.GetDropDownMenuItems
+	Private Sub ToolPalette.GetDropDownMenuItems
 		FPopupMenuItems.Clear
 		'For j As Integer = 0 To Buttons.Count - 1
 		'    For i As Integer = 0 To Buttons.Item(j)->DropDownMenu.Count -1
@@ -419,14 +419,14 @@ Namespace My.Sys.Forms
 		'Next j
 	End Sub
 	
-	Property ToolPalette.AutoSize As Boolean
+	Private Property ToolPalette.AutoSize As Boolean
 		#ifndef __USE_GTK__
 			FAutoSize = StyleExists(TBSTYLE_AUTOSIZE)
 		#endif
 		Return FAutoSize
 	End Property
 	
-	Property ToolPalette.AutoSize(Value As Boolean)
+	Private Property ToolPalette.AutoSize(Value As Boolean)
 		FAutoSize = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_AUTOSIZE, Value
@@ -434,11 +434,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ToolPalette.Style As Integer
+	Private Property ToolPalette.Style As Integer
 		Return FStyle
 	End Property
 	
-	Property ToolPalette.Style(Value As Integer)
+	Private Property ToolPalette.Style(Value As Integer)
 		FStyle = Value
 		#ifdef __USE_GTK__
 			Dim As GtkToolBarStyle gStyle
@@ -483,28 +483,28 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ToolPalette.Flat As Boolean
+	Private Property ToolPalette.Flat As Boolean
 		#ifndef __USE_GTK__
 			FFlat = StyleExists(TBSTYLE_FLAT)
 		#endif
 		Return FFlat
 	End Property
 	
-	Property ToolPalette.Flat(Value As Boolean)
+	Private Property ToolPalette.Flat(Value As Boolean)
 		FFlat = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_FLAT, Value
 		#endif
 	End Property
 	
-	Property ToolPalette.List As Boolean
+	Private Property ToolPalette.List As Boolean
 		#ifndef __USE_GTK__
 			FList = StyleExists(TBSTYLE_LIST)
 		#endif
 		Return FList
 	End Property
 	
-	Property ToolPalette.List(Value As Boolean)
+	Private Property ToolPalette.List(Value As Boolean)
 		FList = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_LIST, Value
@@ -512,74 +512,74 @@ Namespace My.Sys.Forms
 	End Property
 	
 	
-	Property ToolPalette.Divider As Boolean
+	Private Property ToolPalette.Divider As Boolean
 		#ifndef __USE_GTK__
 			FDivider = Not StyleExists(CCS_NODIVIDER)
 		#endif
 		Return FDivider
 	End Property
 	
-	Property ToolPalette.Divider(Value As Boolean)
+	Private Property ToolPalette.Divider(Value As Boolean)
 		FDivider = Value
 		#ifndef __USE_GTK__
 			ChangeStyle CCS_NODIVIDER, Not Value
 		#endif
 	End Property
 	
-	Property ToolPalette.Transparency As Boolean
+	Private Property ToolPalette.Transparency As Boolean
 		#ifndef __USE_GTK__
 			FTransparent = StyleExists(TBSTYLE_TRANSPARENT)
 		#endif
 		Return FTransparent
 	End Property
 	
-	Property ToolPalette.Transparency(Value As Boolean)
+	Private Property ToolPalette.Transparency(Value As Boolean)
 		FTransparent = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_TRANSPARENT, Value
 		#endif
 	End Property
 	
-	Property ToolPalette.ButtonWidth As Integer
+	Private Property ToolPalette.ButtonWidth As Integer
 		Return FButtonWidth
 	End Property
 	
-	Property ToolPalette.ButtonWidth(Value As Integer)
+	Private Property ToolPalette.ButtonWidth(Value As Integer)
 		FButtonWidth = Value
 		#ifndef __USE_GTK__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
 		#endif
 	End Property
 	
-	Property ToolPalette.ButtonHeight As Integer
+	Private Property ToolPalette.ButtonHeight As Integer
 		Return FButtonHeight
 	End Property
 	
-	Property ToolPalette.ButtonHeight(Value As Integer)
+	Private Property ToolPalette.ButtonHeight(Value As Integer)
 		FButtonHeight = Value
 		#ifndef __USE_GTK__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
 		#endif
 	End Property
 	
-	Property ToolPalette.Wrapable As Boolean
+	Private Property ToolPalette.Wrapable As Boolean
 		#ifndef __USE_GTK__
 			FWrapable = StyleExists(TBSTYLE_WRAPABLE)
 		#endif
 		Return FWrapable
 	End Property
 	
-	Property ToolPalette.Wrapable(Value As Boolean)
+	Private Property ToolPalette.Wrapable(Value As Boolean)
 		FWrapable = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_WRAPABLE, Value
 		#endif
 	End Property
 	
-	Sub ToolPalette.WndProc(ByRef Message As Message)
+	Private Sub ToolPalette.WndProc(ByRef Message As Message)
 	End Sub
 	
-	Sub ToolPalette.ProcessMessage(ByRef Message As Message)
+	Private Sub ToolPalette.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -656,10 +656,10 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(message)
 	End Sub
 	
-	Sub ToolPalette.HandleIsDestroyed(ByRef Sender As Control)
+	Private Sub ToolPalette.HandleIsDestroyed(ByRef Sender As Control)
 	End Sub
 	
-	Sub ToolPalette.HandleIsAllocated(ByRef Sender As Control)
+	Private Sub ToolPalette.HandleIsAllocated(ByRef Sender As Control)
 		#ifndef __USE_GTK__
 			If Sender.Child Then
 				With QToolPalette(Sender.Child)
@@ -726,11 +726,11 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	
-	Operator ToolPalette.Cast As Control Ptr
+	Private Operator ToolPalette.Cast As Control Ptr
 		Return @This
 	End Operator
 	
-	Constructor ToolPalette
+	Private Constructor ToolPalette
 		With This
 			FButtonWidth    = 16
 			FButtonHeight   = 16
@@ -785,7 +785,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ToolPalette
+	Private Destructor ToolPalette
 		Groups.Clear
 		#ifndef __USE_GTK__
 			'UnregisterClass "ToolPalette", GetmoduleHandle(NULL)

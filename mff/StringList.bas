@@ -9,96 +9,96 @@
 '#   Version 1.0.0                                                             #
 '###############################################################################
 
-#Include Once "StringList.bi"
+#include once "StringList.bi"
 
-Operator StringList.Cast As Any Ptr
+Private Operator StringList.Cast As Any Ptr
 	Return @This
 End Operator
 
-Property StringList.Count As Integer
+Private Property StringList.Count As Integer
 	Return Items.Count
 End Property
 
-Property StringList.Count(Value As Integer)
+Private Property StringList.Count(Value As Integer)
 End Property
 
-Property StringList.Text As String
+Private Property StringList.Text As String
 	Return Items.Text
 End Property
 
-Property StringList.Text(Value As String)
+Private Property StringList.Text(Value As String)
 	Items.Text = Value
 End Property
 
-Property StringList.Item(Index As Integer) As String
+Private Property StringList.Item(Index As Integer) As String
 	Return Items.Item(Index)
 End Property
 
-Property StringList.Item(Index As Integer, FItem As String)
+Private Property StringList.Item(Index As Integer, FItem As String)
 	Items.Item(Index) = FItem
 End Property
 
-Property StringList.Object(Index As Integer) As Any Ptr
+Private Property StringList.Object(Index As Integer) As Any Ptr
 	Return Items.Object(Index)
 End Property
 
-Property StringList.Object(Index As Integer, FObj As Any Ptr)
+Private Property StringList.Object(Index As Integer, FObj As Any Ptr)
 	Items.Object(Index) = FObj
 End Property
 
-Sub StringList.Add(FItem As String, FObj As Any Ptr = 0)
+Private Sub StringList.Add(FItem As String, FObj As Any Ptr = 0)
 	Items.Add FItem, FObj
 	If OnAdd Then OnAdd(This, FItem, FObj)
 End Sub
 
-Sub StringList.Insert(Index As Integer, FItem As String, FObj As Any Ptr = 0)
+Private Sub StringList.Insert(Index As Integer, FItem As String, FObj As Any Ptr = 0)
 	Items.Insert Index, FItem, FObj
 	If OnInsert Then OnInsert(This, Index, FItem, FObj)
 End Sub
 
-Sub StringList.Exchange(Index1 As Integer, Index2 As Integer)
+Private Sub StringList.Exchange(Index1 As Integer, Index2 As Integer)
 	Items.Exchange Index1, Index2
 	If OnExchange Then OnExchange(This, Index1, Index2)
 End Sub
 
-Sub StringList.Remove(Index As Integer)
+Private Sub StringList.Remove(Index As Integer)
 	Items.Remove Index
 	If OnRemove Then OnRemove(This, Index)
 End Sub
 
-Sub StringList.Sort
+Private Sub StringList.Sort
 	Items.Sort
 End Sub
 
-Sub StringList.Clear
+Private Sub StringList.Clear
 	Items.Clear
 	If OnClear Then OnClear(This)
 End Sub
 
-Sub StringList.SaveToFile(ByRef File As WString)
+Private Sub StringList.SaveToFile(ByRef File As WString)
 	Items.SaveToFile File
 End Sub
 
-Sub StringList.LoadFromFile(ByRef File As WString)
+Private Sub StringList.LoadFromFile(ByRef File As WString)
 	Items.LoadFromFile File
 End Sub
 
-Function StringList.IndexOf(FItem As String) As Integer
+Private Function StringList.IndexOf(FItem As String) As Integer
 	Return Items.IndexOF(FItem)
 End Function
 
-Function StringList.IndexOfObject(FObj As Any Ptr) As Integer
+Private Function StringList.IndexOfObject(FObj As Any Ptr) As Integer
 	Return Items.IndexOFObject(FObj)
 End Function
 
-Function StringList.Contains(FItem As String) As Boolean
+Private Function StringList.Contains(FItem As String) As Boolean
 	Return Items.IndexOF(FItem) <> -1
 End Function
 
-Constructor StringList
+Private Constructor StringList
 	Items.Clear
 End Constructor
 
-Destructor StringList
+Private Destructor StringList
 	Items.Clear
 End Destructor

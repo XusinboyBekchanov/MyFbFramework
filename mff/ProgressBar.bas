@@ -14,7 +14,7 @@
 #include once "ProgressBar.bi"
 
 Namespace My.Sys.Forms
-	Function ProgressBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function ProgressBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "marquee": Return @FMarquee
 		Case "maxvalue": Return @FMaxValue
@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ProgressBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ProgressBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Sub ProgressBar.SetRange(AMin As Integer, AMax As Integer)
+	Private Sub ProgressBar.SetRange(AMin As Integer, AMax As Integer)
 		If AMax < AMin Then Exit Sub
 		If Not CInt(FMode32) And ((AMin < 0) Or (AMin > 85535) Or (AMax < 0) Or (AMax > 85535)) Then Exit Sub
 		If (FMinValue <> AMin) Or (FMaxValue <> AMax) Then
@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Function ProgressBar.progress_cb(ByVal user_data As gpointer) As gboolean
+		Private Function ProgressBar.progress_cb(ByVal user_data As gpointer) As gboolean
 			Dim As ProgressBar Ptr prb = Cast(ProgressBar Ptr, user_data)
 			gtk_progress_bar_pulse(GTK_PROGRESS_BAR(prb->widget))
 			If prb->progress_bar_timer_id = 0 Then
@@ -80,7 +80,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 
-	Sub ProgressBar.SetMarquee(MarqueeOn As Boolean, Interval As Integer)
+	Private Sub ProgressBar.SetMarquee(MarqueeOn As Boolean, Interval As Integer)
 		FMarqueeOn = MarqueeOn
 		FMarqueeInterval = Interval
 		#ifdef __USE_GTK__
@@ -94,7 +94,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ProgressBar.StopMarquee()
+	Private Sub ProgressBar.StopMarquee()
 		FMarqueeOn = False
 		#ifdef __USE_GTK__
 			If progress_bar_timer_id <> 0 Then
@@ -106,25 +106,25 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property ProgressBar.MinValue As Integer
+	Private Property ProgressBar.MinValue As Integer
 		Return FMinValue
 	End Property
 	
-	Property ProgressBar.MinValue(Value As Integer)
+	Private Property ProgressBar.MinValue(Value As Integer)
 		FMinValue = Value
 		SetRange(FMinValue,FMaxValue)
 	End Property
 	
-	Property ProgressBar.MaxValue As Integer
+	Private Property ProgressBar.MaxValue As Integer
 		Return FMaxValue
 	End Property
 	
-	Property ProgressBar.MaxValue(Value As Integer)
+	Private Property ProgressBar.MaxValue(Value As Integer)
 		FMaxValue = Value
 		SetRange(FMinValue,FMaxValue)
 	End Property
 	
-	Property ProgressBar.Position As Integer
+	Private Property ProgressBar.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = FMinValue + (FMaxValue - FMinValue) * gtk_progress_bar_get_fraction(gtk_progress_bar(widget))
 		#else
@@ -139,7 +139,7 @@ Namespace My.Sys.Forms
 		Return FPosition
 	End Property
 	
-	Property ProgressBar.Position(Value As Integer)
+	Private Property ProgressBar.Position(Value As Integer)
 		If Not CInt(FMode32) And ((Value < 0) Or (Value  > 65535)) Then Exit Property
 		FPosition = Value
 		#ifdef __USE_GTK__
@@ -151,11 +151,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ProgressBar.StepValue As Integer
+	Private Property ProgressBar.StepValue As Integer
 		Return FStep
 	End Property
 	
-	Property ProgressBar.StepValue(Value As Integer)
+	Private Property ProgressBar.StepValue(Value As Integer)
 		If Value <> FStep Then
 			FStep = Value
 			#ifdef __USE_GTK__
@@ -168,11 +168,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ProgressBar.Smooth As Boolean
+	Private Property ProgressBar.Smooth As Boolean
 		Return FSmooth
 	End Property
 	
-	Property ProgressBar.Smooth(Value As Boolean)
+	Private Property ProgressBar.Smooth(Value As Boolean)
 		If FSmooth <> Value Then
 			FSmooth = Value
 			#ifndef __USE_GTK__
@@ -181,11 +181,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ProgressBar.Marquee As Boolean
+	Private Property ProgressBar.Marquee As Boolean
 		Return FMarquee
 	End Property
 	
-	Property ProgressBar.Marquee(Value As Boolean)
+	Private Property ProgressBar.Marquee(Value As Boolean)
 		If FMarquee <> Value Then
 			FMarquee = Value
 			#ifndef __USE_GTK__
@@ -194,11 +194,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ProgressBar.Orientation As ProgressBarOrientation
+	Private Property ProgressBar.Orientation As ProgressBarOrientation
 		Return FOrientation
 	End Property
 	
-	Property ProgressBar.Orientation(Value As ProgressBarOrientation)
+	Private Property ProgressBar.Orientation(Value As ProgressBarOrientation)
 		Dim As Integer OldOrientation, iWidth, iHeight
 		OldOrientation = FOrientation
 		If FOrientation <> Value Then
@@ -235,7 +235,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub ProgressBar.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ProgressBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With  QProgressBar(Sender.Child)
 					If .FMode32 Then
@@ -250,15 +250,15 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ProgressBar.WndProc(ByRef Message As Message)
+		Private Sub ProgressBar.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub ProgressBar.ProcessMessage(ByRef Message As Message)
+	Private Sub ProgressBar.ProcessMessage(ByRef Message As Message)
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Sub ProgressBar.StepIt
+	Private Sub ProgressBar.StepIt
 		#ifdef __USE_GTK__
 			If FMarquee Then
 				gtk_progress_bar_pulse(GTK_PROGRESS_BAR(widget))
@@ -270,7 +270,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ProgressBar.StepBy(Delta As Integer)
+	Private Sub ProgressBar.StepBy(Delta As Integer)
 		#ifdef __USE_GTK__
 			If FMarquee Then
 				gtk_progress_bar_pulse(GTK_PROGRESS_BAR(widget))
@@ -282,11 +282,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Operator ProgressBar.Cast As Control Ptr
+	Private Operator ProgressBar.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor ProgressBar
+	Private Constructor ProgressBar
 		#ifdef __USE_GTK__
 			widget = gtk_progress_bar_new()
 		#else
@@ -322,6 +322,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ProgressBar
+	Private Destructor ProgressBar
 	End Destructor
 End Namespace

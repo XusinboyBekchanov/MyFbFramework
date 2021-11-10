@@ -14,7 +14,7 @@
 #include once "CommandButton.bi"
 
 Namespace My.Sys.Forms
-	Function CommandButton.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function CommandButton.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 		Case "default": Return Cast(Any Ptr, @FDefault)
@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function CommandButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function CommandButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "caption": If Value <> 0 Then This.Text = QWString(Value)
 		Case "default": If Value <> 0 Then This.Default = QBoolean(Value)
@@ -38,42 +38,42 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property CommandButton.Caption ByRef As WString
+	Private Property CommandButton.Caption ByRef As WString
 		Return This.Text
 	End Property
 	
-	Property CommandButton.Caption(ByRef Value As WString)
+	Private Property CommandButton.Caption(ByRef Value As WString)
 		This.Text = Value
 	End Property
 	
-	Property CommandButton.TabIndex As Integer
+	Private Property CommandButton.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property CommandButton.TabIndex(Value As Integer)
+	Private Property CommandButton.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property CommandButton.TabStop As Boolean
+	Private Property CommandButton.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property CommandButton.TabStop(Value As Boolean)
+	Private Property CommandButton.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property CommandButton.Text ByRef As WString
+	Private Property CommandButton.Text ByRef As WString
 		Return Base.Text
 	End Property
 	
-	Property CommandButton.Text(ByRef Value As WString)
+	Private Property CommandButton.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_text_with_mnemonic(gtk_label(gtk_bin_get_child(gtk_bin(widget))), ToUtf8(Replace(Value, "&", "_")))
 		#endif
 	End Property
 	
-	Property CommandButton.Default As Boolean
+	Private Property CommandButton.Default As Boolean
 		#ifndef __USE_GTK__
 			If Handle Then
 				FDefault = (Style And BS_DEFPUSHBUTTON)
@@ -82,7 +82,7 @@ Namespace My.Sys.Forms
 		Return FDefault
 	End Property
 	
-	Property CommandButton.Default(Value As Boolean)
+	Private Property CommandButton.Default(Value As Boolean)
 		If Value <> FDefault Then
 			FDefault = Value
 			#ifdef __USE_GTK__
@@ -94,11 +94,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property CommandButton.Style As ButtonStyle
+	Private Property CommandButton.Style As ButtonStyle
 		Return FStyle
 	End Property
 	
-	Property CommandButton.Style(Value As ButtonStyle)
+	Private Property CommandButton.Style(Value As ButtonStyle)
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifndef __USE_GTK__
@@ -107,7 +107,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub CommandButton.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub CommandButton.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifndef __USE_GTK__
@@ -128,7 +128,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub CommandButton.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub CommandButton.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCommandButton(Sender.Child)
 					.Perform(BM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
@@ -136,7 +136,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub CommandButton.WndProc(ByRef Message As Message)
+		Private Sub CommandButton.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'               Cast(CommandButton Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
@@ -145,7 +145,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Function CommandButton.EnumMenuItems(Item As MenuItem,ByRef List As List) As Boolean
+	Private Function CommandButton.EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 		For i As Integer = 0 To Item.Count -1
 			List.Add Item.Item(i)
 			EnumMenuItems *Item.Item(i),List
@@ -153,7 +153,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Sub CommandButton.ProcessMessage(ByRef msg As Message)
+	Private Sub CommandButton.ProcessMessage(ByRef msg As Message)
 		#ifndef __USE_GTK__
 			Select Case msg.Msg
 				'        Case BM_CLICK
@@ -185,18 +185,18 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(msg)
 	End Sub
 	
-	Operator CommandButton.Cast As Control Ptr
+	Private Operator CommandButton.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub CommandButton.Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
+		Private Sub CommandButton.Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
 			Dim As CommandButton Ptr but = user_data
 			If but->OnClick Then but->OnClick(*but)
 		End Sub
 	#endif
 	
-	Constructor CommandButton
+	Private Constructor CommandButton
 		#ifdef __USE_GTK__
 			widget = gtk_button_new_with_label("")
 			g_signal_connect(widget, "clicked", G_CALLBACK(@Clicked), @This)
@@ -233,6 +233,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor CommandButton
+	Private Destructor CommandButton
 	End Destructor
 End Namespace

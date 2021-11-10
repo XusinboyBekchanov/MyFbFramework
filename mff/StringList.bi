@@ -13,7 +13,7 @@
 
 #define QStringList(__Ptr__) *Cast(StringList Ptr,__Ptr__)
 
-Type StringList
+Private Type StringList
 Private:
 	FText   As String
 Public:

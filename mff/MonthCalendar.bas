@@ -7,7 +7,7 @@
 #include once "MonthCalendar.bi"
 
 Namespace My.Sys.Forms
-	Function MonthCalendar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function MonthCalendar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "selecteddate": FSelectedDate = SelectedDate: Return @FSelectedDate
 		Case "weeknumbers": Return @FWeekNumbers
@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function MonthCalendar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function MonthCalendar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -41,23 +41,23 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property MonthCalendar.TabIndex As Integer
+	Private Property MonthCalendar.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property MonthCalendar.TabIndex(Value As Integer)
+	Private Property MonthCalendar.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property MonthCalendar.TabStop As Boolean
+	Private Property MonthCalendar.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property MonthCalendar.TabStop(Value As Boolean)
+	Private Property MonthCalendar.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property MonthCalendar.SelectedDate() As Long
+	Private Property MonthCalendar.SelectedDate() As Long
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				Dim As guint y, m, d
@@ -72,7 +72,7 @@ Namespace My.Sys.Forms
 		Return FSelectedDate
 	End Property
 	
-	Property MonthCalendar.SelectedDate(ByVal Value As Long)
+	Private Property MonthCalendar.SelectedDate(ByVal Value As Long)
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				gtk_calendar_select_month(gtk_calendar(FHandle), Month(FSelectedDate) - 1, Year(FSelectedDate))
@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	
-	Property MonthCalendar.WeekNumbers() As Boolean
+	Private Property MonthCalendar.WeekNumbers() As Boolean
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 		Return FWeekNumbers
 	End Property
 	
-	Property MonthCalendar.WeekNumbers(ByVal Value As Boolean)
+	Private Property MonthCalendar.WeekNumbers(ByVal Value As Boolean)
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
@@ -122,7 +122,7 @@ Namespace My.Sys.Forms
 		FWeekNumbers = Value
 	End Property
 	
-	Property MonthCalendar.TodayCircle() As Boolean
+	Private Property MonthCalendar.TodayCircle() As Boolean
 		If This.FHandle Then
 			#ifndef __USE_GTK__
 				FTodayCircle = Not StyleExists(MCS_NOTODAYCIRCLE)
@@ -131,7 +131,7 @@ Namespace My.Sys.Forms
 		Return FTodayCircle
 	End Property
 	
-	Property MonthCalendar.TodayCircle(ByVal Value As Boolean)
+	Private Property MonthCalendar.TodayCircle(ByVal Value As Boolean)
 		If This.FHandle Then
 			#ifndef __USE_GTK__
 				ChangeStyle MCS_NOTODAYCIRCLE, Not Value
@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 		FTodayCircle = Value
 	End Property
 	
-	Property MonthCalendar.TodaySelector() As Boolean
+	Private Property MonthCalendar.TodaySelector() As Boolean
 		If This.FHandle Then
 			#ifndef __USE_GTK__
 				FTodaySelector = Not StyleExists(MCS_NOTODAY)
@@ -150,7 +150,7 @@ Namespace My.Sys.Forms
 		Return FTodaySelector
 	End Property
 	
-	Property MonthCalendar.TodaySelector(ByVal Value As Boolean)
+	Private Property MonthCalendar.TodaySelector(ByVal Value As Boolean)
 		If This.FHandle Then
 			#ifndef __USE_GTK__
 				ChangeStyle MCS_NOTODAY, Not Value
@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 		FTodaySelector = Value
 	End Property
 	
-	Property MonthCalendar.TrailingDates() As Boolean
+	Private Property MonthCalendar.TrailingDates() As Boolean
 		If This.FHandle Then
 			#ifndef __USE_GTK__
 				#if _WIN32_WINNT >= &h0600
@@ -172,7 +172,7 @@ Namespace My.Sys.Forms
 		Return FTrailingDates
 	End Property
 	
-	Property MonthCalendar.TrailingDates(ByVal Value As Boolean)
+	Private Property MonthCalendar.TrailingDates(ByVal Value As Boolean)
 		If This.FHandle Then
 			#ifndef __USE_GTK__
 				#if _WIN32_WINNT >= &h0600
@@ -184,7 +184,7 @@ Namespace My.Sys.Forms
 		FTrailingDates = Value
 	End Property
 	
-	Property MonthCalendar.ShortDayNames() As Boolean
+	Private Property MonthCalendar.ShortDayNames() As Boolean
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
@@ -198,7 +198,7 @@ Namespace My.Sys.Forms
 		Return FShortDayNames
 	End Property
 	
-	Property MonthCalendar.ShortDayNames(ByVal Value As Boolean)
+	Private Property MonthCalendar.ShortDayNames(ByVal Value As Boolean)
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
@@ -215,7 +215,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub MonthCalendar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub MonthCalendar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QMonthCalendar(Sender.Child)
 					
@@ -223,11 +223,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub MonthCalendar.WndProc(ByRef Message As Message)
+		Private Sub MonthCalendar.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub MonthCalendar.ProcessMessage(ByRef Message As Message)
+	Private Sub MonthCalendar.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_NOTIFY
@@ -244,18 +244,18 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator MonthCalendar.Cast As My.Sys.Forms.Control Ptr
+	Private Operator MonthCalendar.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub MonthCalendar.Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
+		Private Sub MonthCalendar.Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
 			Dim As MonthCalendar Ptr cal = user_data
 			If cal->OnSelect Then cal->OnSelect(*cal)
 		End Sub
 	#endif
 	
-	Constructor MonthCalendar
+	Private Constructor MonthCalendar
 		With This
 			WLet(FClassName, "MonthCalendar")
 			WLet(FClassAncestor, "SysMonthCal32")
@@ -278,7 +278,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor MonthCalendar
+	Private Destructor MonthCalendar
 		#ifndef __USE_GTK__
 			UnregisterClass "MonthCalendar",GetModuleHandle(NULL)
 		#endif

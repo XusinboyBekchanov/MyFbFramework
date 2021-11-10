@@ -14,11 +14,11 @@
 #include once "List.bi"
 
 'List
-Operator List.Cast As Any Ptr
+Private Operator List.Cast As Any Ptr
 	Return @This
 End Operator
 
-Property List.Item(Index As Integer) As Any Ptr
+Private Property List.Item(Index As Integer) As Any Ptr
 	If Index >= 0 And Index <= Count -1 Then
 		Return Items[Index]
 	Else
@@ -26,19 +26,19 @@ Property List.Item(Index As Integer) As Any Ptr
 	End If
 End Property
 
-Property List.Item(Index As Integer,FItem As Any Ptr)
+Private Property List.Item(Index As Integer, FItem As Any Ptr)
 	If Index >= 0 And Index <= Count -1 Then
 		Items[Index] = FItem
 	End If
 End Property
 
-Sub List.Add(FItem As Any Ptr)
+Private Sub List.Add(FItem As Any Ptr)
 	Items = Reallocate_(Items, (Count + 1) * SizeOf(Any Ptr))
 	Items[Count] = FItem
 	Count += 1
 End Sub
 
-Sub List.Insert(Index As Integer,FItem As Any Ptr)
+Private Sub List.Insert(Index As Integer, FItem As Any Ptr)
 	'David Change
 	Dim As Integer i
 	If Index >= 0 And Index <= Count -1 Then
@@ -53,7 +53,7 @@ Sub List.Insert(Index As Integer,FItem As Any Ptr)
 	End If
 End Sub
 
-Sub List.Exchange(Index1 As Integer,Index2 As Integer)
+Private Sub List.Exchange(Index1 As Integer, Index2 As Integer)
 	Dim As Any Ptr P
 	If ((Index1 >= 0 And Index1 <= Count -1) And (Index2 >= 0 And Index2 <= Count -1)) Then
 		P = Items[Index1]
@@ -62,7 +62,7 @@ Sub List.Exchange(Index1 As Integer,Index2 As Integer)
 	End If
 End Sub
 
-Sub List.Remove(Index As Integer)
+Private Sub List.Remove(Index As Integer)
 	'David Change
 	Dim As Integer i
 	If Count>0 AndAlso Index >= 0 AndAlso Index <= Count -1 Then
@@ -79,14 +79,14 @@ Sub List.Remove(Index As Integer)
 	End If
 End Sub
 
-Sub List.Clear
+Private Sub List.Clear
 	Count = 0
 	If Items <> 0 Then Deallocate_(Items)
 	Items = 0
 	Items = 0' CAllocate_(Count)
 End Sub
 
-Function List.IndexOf(FItem As Any Ptr) As Integer
+Private Function List.IndexOf(FItem As Any Ptr) As Integer
 	Dim i As Integer
 	For i = 0 To Count -1
 		If Items[i] = FItem Then Return i
@@ -94,16 +94,16 @@ Function List.IndexOf(FItem As Any Ptr) As Integer
 	Return -1
 End Function
 
-Function List.Contains(FItem As Any Ptr) As Boolean
+Private Function List.Contains(FItem As Any Ptr) As Boolean
 	Return IndexOf(FItem) <> -1
 End Function
 
-Constructor List
+Private Constructor List
 	Items = 0 'CAllocate_(0)
 	Count = 0
 End Constructor
 
-Destructor List
+Private Destructor List
 	If Items <> 0 Then Deallocate_(Items)
 	Items = 0
 End Destructor

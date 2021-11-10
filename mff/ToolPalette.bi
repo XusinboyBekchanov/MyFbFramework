@@ -17,14 +17,14 @@ Namespace My.Sys.Forms
 	#define QToolGroup(__Ptr__) *Cast(ToolGroup Ptr,__Ptr__)
 	#define QToolPalette(__Ptr__) *Cast(ToolPalette Ptr,__Ptr__)
 	
-	Enum ToolPaletteStyle
+	Private Enum ToolPaletteStyle
 		tpsIcons
 		tpsText
 		tpsBoth
 		tpsBothHorizontal
 	End Enum
 	
-	Type ToolGroupButtons Extends Object
+	Private Type ToolGroupButtons Extends Object
 	Private:
 		FButtons As List
 	Public:
@@ -45,7 +45,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ToolGroup Extends My.Sys.Object
+	Private Type ToolGroup Extends My.Sys.Object
 	Private:
 		FCaption      As WString Ptr
 		FExpanded     As Boolean
@@ -73,7 +73,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ToolGroups
+	Private Type ToolGroups
 	Private:
 		FGroups As List
 	Public:
@@ -93,7 +93,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ToolPalette Extends Control
+	Private Type ToolPalette Extends Control
 	Private:
 		FButtonWidth    As Integer
 		FButtonHeight   As Integer
@@ -152,10 +152,10 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnButtonClick As Sub(BYREF Sender As ToolPalette,BYREF Button As ToolButton)
+		OnButtonClick As Sub(ByRef Sender As ToolPalette,ByRef Button As ToolButton)
 	End Type
 End Namespace
 
-#IfNDef __USE_MAKE__
-	#Include Once "ToolPalette.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "ToolPalette.bas"
+#endif

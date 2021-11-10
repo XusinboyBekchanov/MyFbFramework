@@ -7,7 +7,7 @@
 #include once "Grid.bi"
 
 Namespace My.Sys.Forms
-	Function GridRow.Index As Integer
+	Private Function GridRow.Index As Integer
 		If Parent Then
 			Return Cast(Grid Ptr, Parent)->Rows.IndexOf(@This)
 		Else
@@ -15,7 +15,7 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Sub GridRow.SelectItem
+	Private Sub GridRow.SelectItem
 		#ifdef __USE_GTK__
 			If Parent Then
 				If gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)) Then
@@ -34,7 +34,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property GridRow.Text(iColumn As Integer) ByRef As WString
+	Private Property GridRow.Text(iColumn As Integer) ByRef As WString
 		#ifdef __USE_GTK__
 			If FColumns.Count > iColumn Then
 				Return FColumns.Item(iColumn)
@@ -63,14 +63,14 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function GridGetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
+		Private Function GridGetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
 			If gtk_is_widget(widget) Then
 				Return gtk_tree_view_get_model(gtk_tree_view(widget))
 			End If
 		End Function
 	#endif
 	
-	Property GridRow.Text(iColumn As Integer, ByRef Value As WString)
+	Private Property GridRow.Text(iColumn As Integer, ByRef Value As WString)
 		WLet(FText, Value)
 		If Parent Then
 			Dim ic As Integer = FColumns.Count
@@ -98,7 +98,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property GridRow.State As Integer
+	Private Property GridRow.State As Integer
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
@@ -111,7 +111,7 @@ Namespace My.Sys.Forms
 		Return FState
 	End Property
 	
-	Property GridRow.State(Value As Integer)
+	Private Property GridRow.State(Value As Integer)
 		FState = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -124,20 +124,20 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property GridRow.Hint ByRef As WString
+	Private Property GridRow.Hint ByRef As WString
 		Return WGet(FHint)
 	End Property
 	
-	Property GridRow.Hint(ByRef Value As WString)
+	Private Property GridRow.Hint(ByRef Value As WString)
 		WLet(FHint, Value)
 	End Property
 	
 	
-	Property GridRow.ImageIndex As Integer
+	Private Property GridRow.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property GridRow.ImageIndex(Value As Integer)
+	Private Property GridRow.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
 			#ifndef __USE_GTK__
@@ -152,7 +152,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property GridRow.Indent As Integer
+	Private Property GridRow.Indent As Integer
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_INDENT
@@ -165,7 +165,7 @@ Namespace My.Sys.Forms
 		Return FIndent
 	End Property
 	
-	Property GridRow.Indent(Value As Integer)
+	Private Property GridRow.Indent(Value As Integer)
 		FIndent = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -178,11 +178,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property GridRow.SelectedImageIndex As Integer
+	Private Property GridRow.SelectedImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property GridRow.SelectedImageIndex(Value As Integer)
+	Private Property GridRow.SelectedImageIndex(Value As Integer)
 		If Value <> FSelectedImageIndex Then
 			FSelectedImageIndex = Value
 			If Parent Then
@@ -193,11 +193,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property GridRow.ImageKey ByRef As WString
+	Private Property GridRow.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property GridRow.ImageKey(ByRef Value As WString)
+	Private Property GridRow.ImageKey(ByRef Value As WString)
 		'If Value <> *FImageKey Then
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
@@ -221,11 +221,11 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
-	Property GridRow.SelectedImageKey ByRef As WString
+	Private Property GridRow.SelectedImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property GridRow.SelectedImageKey(ByRef Value As WString)
+	Private Property GridRow.SelectedImageKey(ByRef Value As WString)
 		'If Value <> *FSelectedImageKey Then
 		WLet(FSelectedImageKey, Value)
 		If Parent Then
@@ -236,11 +236,11 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
-	Property GridRow.Visible As Boolean
+	Private Property GridRow.Visible As Boolean
 		Return FVisible
 	End Property
 	
-	Property GridRow.Visible(Value As Boolean)
+	Private Property GridRow.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
 			If Parent Then
@@ -251,11 +251,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Operator GridRow.Cast As Any Ptr
+	Private Operator GridRow.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor GridRow
+	Private Constructor GridRow
 		FHint = 0 'CAllocate_(0)
 		FText = 0 'CAllocate_(0)
 		FVisible    = 1
@@ -266,22 +266,22 @@ Namespace My.Sys.Forms
 		FSmallImageIndex = -1
 	End Constructor
 	
-	Destructor GridRow
+	Private Destructor GridRow
 		If FHint Then Deallocate_( FHint)
 		If FText Then Deallocate_( FText)
 	End Destructor
 	
-	Sub GridColumn.SelectItem
+	Private Sub GridColumn.SelectItem
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
 		#endif
 	End Sub
 	
-	Property GridColumn.Text ByRef As WString
+	Private Property GridColumn.Text ByRef As WString
 		Return WGet(FText)
 	End Property
 	
-	Property GridColumn.Text(ByRef Value As WString)
+	Private Property GridColumn.Text(ByRef Value As WString)
 		WLet(FText, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -295,11 +295,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property GridColumn.Width As Integer
+	Private Property GridColumn.Width As Integer
 		Return FWidth
 	End Property
 	
-	Property GridColumn.Width(Value As Integer)
+	Private Property GridColumn.Width(Value As Integer)
 		FWidth = Value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
@@ -317,11 +317,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property GridColumn.Format As GridColumnFormat
+	Private Property GridColumn.Format As GridColumnFormat
 		Return FFormat
 	End Property
 	
-	Property GridColumn.Format(Value As GridColumnFormat)
+	Private Property GridColumn.Format(Value As GridColumnFormat)
 		FFormat = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -334,19 +334,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property GridColumn.Hint ByRef As WString
+	Private Property GridColumn.Hint ByRef As WString
 		Return WGet(FHint)
 	End Property
 	
-	Property GridColumn.Hint(ByRef Value As WString)
+	Private Property GridColumn.Hint(ByRef Value As WString)
 		WLet(FHint, Value)
 	End Property
 	
-	Property GridColumn.ImageIndex As Integer
+	Private Property GridColumn.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property GridColumn.ImageIndex(Value As Integer)
+	Private Property GridColumn.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
 			If Parent Then
@@ -357,11 +357,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property GridColumn.Visible As Boolean
+	Private Property GridColumn.Visible As Boolean
 		Return FVisible
 	End Property
 	
-	Property GridColumn.Visible(Value As Boolean)
+	Private Property GridColumn.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
 			If Parent Then
@@ -372,21 +372,21 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property GridColumn.Editable As Boolean
+	Private Property GridColumn.Editable As Boolean
 		Return FEditable
 	End Property
 	
-	Property GridColumn.Editable(Value As Boolean)
+	Private Property GridColumn.Editable(Value As Boolean)
 		If Value <> FEditable Then
 			FEditable = Value
 		End If
 	End Property
 	
-	Operator GridColumn.Cast As Any Ptr
+	Private Operator GridColumn.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor GridColumn
+	Private Constructor GridColumn
 		FHint = 0 'CAllocate_(0)
 		FText = 0 'CAllocate_(0)
 		FVisible    = 1
@@ -395,28 +395,28 @@ Namespace My.Sys.Forms
 		FImageIndex = -1
 	End Constructor
 	
-	Destructor GridColumn
+	Private Destructor GridColumn
 		If FHint Then Deallocate_( FHint)
 		If FText Then Deallocate_( FText)
 	End Destructor
 	
-	Property GridRows.Count As Integer
+	Private Property GridRows.Count As Integer
 		Return FItems.Count
 	End Property
 	
-	Property GridRows.Count(Value As Integer)
+	Private Property GridRows.Count(Value As Integer)
 	End Property
 	
-	Property GridRows.Item(Index As Integer) As GridRow Ptr
+	Private Property GridRows.Item(Index As Integer) As GridRow Ptr
 		Return QGridRow(FItems.Items[Index])
 	End Property
 	
-	Property GridRows.Item(Index As Integer, Value As GridRow Ptr)
+	Private Property GridRows.Item(Index As Integer, Value As GridRow Ptr)
 		'QToolButton(FItems.Items[Index]) = Value
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function GridRows.FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
+		Private Function GridRows.FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
 			For i As Integer = 0 To Count - 1
 				If Item(i)->TreeIter.User_Data = User_Data Then Return Item(i)
 			Next i
@@ -424,7 +424,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
+	Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
 		PItem = New_(GridRow)
 		Dim i As Integer = Index
 		Dim As GridSortStyle iSortStyle = Cast(Grid Ptr, Parent)->Sort
@@ -478,7 +478,7 @@ Namespace My.Sys.Forms
 		Return PItem
 	End Function
 	
-	Function GridRows.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
+	Private Function GridRows.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
 		If Parent AndAlso Cast(Grid Ptr, Parent)->Images Then
 			PItem = Add(FCaption, Cast(Grid Ptr, Parent)->Images->IndexOf(FImageKey), State, Indent, Index)
 		Else
@@ -488,7 +488,7 @@ Namespace My.Sys.Forms
 		Return PItem
 	End Function
 	
-	Function GridRows.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As GridRow Ptr
+	Private Function GridRows.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As GridRow Ptr
 		Dim As GridRow Ptr PItem
 		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
@@ -519,7 +519,7 @@ Namespace My.Sys.Forms
 		Return PItem
 	End Function
 	
-	Sub GridRows.Remove(Index As Integer)
+	Private Sub GridRows.Remove(Index As Integer)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_remove(gtk_list_store(GridGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
@@ -533,7 +533,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
+		Private Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 			Dim As GridRow Ptr FirstItem = Cast(GridRow Ptr, lParam1), SecondItem = Cast(GridRow Ptr, lParam2)
 			If FirstItem <> 0 AndAlso SecondItem <> 0 Then
 				Select Case FirstItem->Text(0)
@@ -546,7 +546,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub GridRows.Sort
+	Private Sub GridRows.Sort
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @CompareFunc)
@@ -555,11 +555,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function GridRows.IndexOf(ByRef FItem As GridRow Ptr) As Integer
+	Private Function GridRows.IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Return FItems.IndexOF(FItem)
 	End Function
 	
-	Sub GridRows.Clear
+	Private Sub GridRows.Clear
 		#ifdef __USE_GTK__
 			If Parent AndAlso gtk_list_store(GridGetModel(Parent->Handle)) Then gtk_list_store_clear(gtk_list_store(GridGetModel(Parent->Handle)))
 		#else
@@ -571,35 +571,35 @@ Namespace My.Sys.Forms
 		FItems.Clear
 	End Sub
 	
-	Operator GridRows.Cast As Any Ptr
+	Private Operator GridRows.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor GridRows
+	Private Constructor GridRows
 		This.Clear
 	End Constructor
 	
-	Destructor GridRows
+	Private Destructor GridRows
 		This.Clear
 	End Destructor
 	
-	Property GridColumns.Count As Integer
+	Private Property GridColumns.Count As Integer
 		Return FColumns.Count
 	End Property
 	
-	Property GridColumns.Count(Value As Integer)
+	Private Property GridColumns.Count(Value As Integer)
 	End Property
 	
-	Property GridColumns.Column(Index As Integer) As GridColumn Ptr
+	Private Property GridColumns.Column(Index As Integer) As GridColumn Ptr
 		Return QGridColumn(FColumns.Items[Index])
 	End Property
 	
-	Property GridColumns.Column(Index As Integer, Value As GridColumn Ptr)
+	Private Property GridColumns.Column(Index As Integer, Value As GridColumn Ptr)
 		'QGridColumn(FColumns.Items[Index]) = Value
 	End Property
 	
 	#ifdef __USE_GTK__
-		Sub GridColumns.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+		Private Sub GridColumns.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
 			Dim As GridColumn Ptr PColumn = user_data
 			If PColumn = 0 Then Exit Sub
 			Dim As Grid Ptr lv = Cast(Grid Ptr, PColumn->Parent)
@@ -607,7 +607,7 @@ Namespace My.Sys.Forms
 			If lv->OnCellEdited Then lv->OnCellEdited(*lv, Val(*path), PColumn->Index, *new_text)
 		End Sub
 	
-		Sub GridColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
+		Private Sub GridColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = user_data
 			Dim As GtkListStore Ptr model = gtk_list_store(GridGetModel(lv->Handle))
 			Dim As GtkTreeIter iter
@@ -627,7 +627,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Function GridColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As GridColumnFormat = gcfLeft, ColEditable As Boolean = False) As GridColumn Ptr
+	Private Function GridColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As GridColumnFormat = gcfLeft, ColEditable As Boolean = False) As GridColumn Ptr
 		Dim As GridColumn Ptr PColumn
 		Dim As Integer Index
 		#ifndef __USE_GTK__
@@ -702,7 +702,7 @@ Namespace My.Sys.Forms
 		Return PColumn
 	End Function
 	
-	Sub GridColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As GridColumnFormat = gcfLeft)
+	Private Sub GridColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As GridColumnFormat = gcfLeft)
 		Dim As GridColumn Ptr PColumn
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
@@ -732,7 +732,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub GridColumns.Remove(Index As Integer)
+	Private Sub GridColumns.Remove(Index As Integer)
 		FColumns.Remove Index
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -741,11 +741,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function GridColumns.IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
+	Private Function GridColumns.IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
 		Return FColumns.IndexOF(FColumn)
 	End Function
 	
-	Sub GridColumns.Clear
+	Private Sub GridColumns.Clear
 		For i As Integer = Count -1 To 0 Step -1
 			Delete_( @QGridColumn(FColumns.Items[i]))
 			Remove i
@@ -753,19 +753,19 @@ Namespace My.Sys.Forms
 		FColumns.Clear
 	End Sub
 	
-	Operator GridColumns.Cast As Any Ptr
+	Private Operator GridColumns.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor GridColumns
+	Private Constructor GridColumns
 		This.Clear
 	End Constructor
 	
-	Destructor GridColumns
+	Private Destructor GridColumns
 		This.Clear
 	End Destructor
 	
-	Function Grid.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function Grid.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "allowcolumnreorder": Return @FAllowColumnReorder
 		Case "columnheaderhidden": Return @FColumnHeaderHidden
@@ -784,7 +784,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Grid.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Grid.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -809,23 +809,23 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property Grid.TabIndex As Integer
+	Private Property Grid.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property Grid.TabIndex(Value As Integer)
+	Private Property Grid.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property Grid.TabStop As Boolean
+	Private Property Grid.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property Grid.TabStop(Value As Boolean)
+	Private Property Grid.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Sub Grid.Init()
+	Private Sub Grid.Init()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
 				With This
@@ -845,11 +845,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property Grid.ColumnHeaderHidden As Boolean
+	Private Property Grid.ColumnHeaderHidden As Boolean
 		Return FColumnHeaderHidden
 	End Property
 	
-	Property Grid.ColumnHeaderHidden(Value As Boolean)
+	Private Property Grid.ColumnHeaderHidden(Value As Boolean)
 		FColumnHeaderHidden = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(Widget), Not Value)
@@ -858,7 +858,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub Grid.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
+	Private Sub Grid.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		#ifndef __USE_GTK__
 			If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
 			If Value Then
@@ -870,11 +870,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property Grid.SingleClickActivate As Boolean
+	Private Property Grid.SingleClickActivate As Boolean
 		Return FSingleClickActivate
 	End Property
 	
-	Property Grid.SingleClickActivate(Value As Boolean)
+	Private Property Grid.SingleClickActivate(Value As Boolean)
 		FSingleClickActivate = Value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
@@ -887,11 +887,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Grid.HoverSelection As Boolean
+	Private Property Grid.HoverSelection As Boolean
 		Return FHoverSelection
 	End Property
 	
-	Property Grid.HoverSelection(Value As Boolean)
+	Private Property Grid.HoverSelection(Value As Boolean)
 		FHoverSelection = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_hover_selection(gtk_tree_view(Widget), Value)
@@ -900,22 +900,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Grid.HoverTime As Integer
+	Private Property Grid.HoverTime As Integer
 		Return FHoverTime
 	End Property
 	
-	Property Grid.HoverTime(Value As Integer)
+	Private Property Grid.HoverTime(Value As Integer)
 		FHoverTime = Value
 		#ifndef __USE_GTK__
 			If Handle Then Perform(LVM_SETHOVERTIME, 0, Value)
 		#endif
 	End Property
 		
-	Property Grid.AllowColumnReorder As Boolean
+	Private Property Grid.AllowColumnReorder As Boolean
 		Return FAllowColumnReorder
 	End Property
 	
-	Property Grid.AllowColumnReorder(Value As Boolean)
+	Private Property Grid.AllowColumnReorder(Value As Boolean)
 		FAllowColumnReorder = Value
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To Columns.Count - 1
@@ -926,11 +926,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Grid.GridLines As Boolean
+	Private Property Grid.GridLines As Boolean
 		Return FGridLines
 	End Property
 	
-	Property Grid.GridLines(Value As Boolean)
+	Private Property Grid.GridLines(Value As Boolean)
 		FGridLines = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(Widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
@@ -939,18 +939,18 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Grid.FullRowSelect As Boolean
+	Private Property Grid.FullRowSelect As Boolean
 		Return FFullRowSelect
 	End Property
 	
-	Property Grid.FullRowSelect(Value As Boolean)
+	Private Property Grid.FullRowSelect(Value As Boolean)
 		FFullRowSelect = Value
 		#ifndef __USE_GTK__
 			ChangeLVExStyle LVS_EX_FULLROWSELECT, Value
 		#endif
 	End Property
 	
-	Property Grid.SelectedRowIndex As Integer
+	Private Property Grid.SelectedRowIndex As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
@@ -972,7 +972,7 @@ Namespace My.Sys.Forms
 		Return -1
 	End Property
 	
-	Property Grid.SelectedRowIndex(Value As Integer)
+	Private Property Grid.SelectedRowIndex(Value As Integer)
 		#ifdef __USE_GTK__
 			If TreeSelection Then
 				If Value = -1 Then
@@ -991,7 +991,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Grid.SelectedRow As GridRow Ptr
+	Private Property Grid.SelectedRow As GridRow Ptr
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
@@ -1006,11 +1006,11 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property Grid.SelectedRow(Value As GridRow Ptr)
+	Private Property Grid.SelectedRow(Value As GridRow Ptr)
 		Value->SelectItem
 	End Property
 	
-	Property Grid.SelectedColumn As GridColumn Ptr
+	Private Property Grid.SelectedColumn As GridColumn Ptr
 		#ifndef __USE_GTK__
 			If Handle Then
 				Return Columns.Column(ListView_GetSelectedColumn(Handle))
@@ -1019,17 +1019,17 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property Grid.SelectedColumn(Value As GridColumn Ptr)
+	Private Property Grid.SelectedColumn(Value As GridColumn Ptr)
 		#ifndef __USE_GTK__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
 		#endif
 	End Property
 	
-	Property Grid.Sort As GridSortStyle
+	Private Property Grid.Sort As GridSortStyle
 		Return FSortStyle
 	End Property
 	
-	Property Grid.Sort(Value As GridSortStyle)
+	Private Property Grid.Sort(Value As GridSortStyle)
 		FSortStyle = Value
 		#ifndef __USE_GTK__
 			Select Case FSortStyle
@@ -1046,18 +1046,18 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Grid.ShowHint As Boolean
+	Private Property Grid.ShowHint As Boolean
 		Return FShowHint
 	End Property
 	
-	Property Grid.ShowHint(Value As Boolean)
+	Private Property Grid.ShowHint(Value As Boolean)
 		FShowHint = Value
 	End Property
 	
-	Sub Grid.WndProc(ByRef Message As Message)
+	Private Sub Grid.WndProc(ByRef Message As Message)
 	End Sub
 	
-	Sub Grid.ProcessMessage(ByRef Message As Message)
+	Private Sub Grid.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -1177,10 +1177,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub Grid.HandleIsDestroyed(ByRef Sender As Control)
+		Private Sub Grid.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
-		Sub Grid.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub Grid.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QGrid(Sender.Child)
 					If .Images Then
@@ -1240,7 +1240,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 	#else
-		Sub Grid.Grid_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+		Private Sub Grid.Grid_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeModel Ptr model
@@ -1252,7 +1252,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub Grid.Grid_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		Private Sub Grid.Grid_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeIter iter
@@ -1273,23 +1273,23 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub Grid.Grid_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub Grid.Grid_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = user_data
 			lv->Init
 		End Sub
 		
-		Function Grid.Grid_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
+		Private Function Grid.Grid_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
 			Dim As Grid Ptr lv = user_data
 			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
 			Return True
 		End Function
 	#endif
 	
-	Operator Grid.Cast As Control Ptr
+	Private Operator Grid.Cast As Control Ptr
 		Return @This
 	End Operator
 	
-	Constructor Grid
+	Private Constructor Grid
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(3, G_TYPE_BOOLEAN, GDK_TYPE_PIXBUF, G_TYPE_STRING)
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
@@ -1345,7 +1345,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor Grid
+	Private Destructor Grid
 		#ifndef __USE_GTK__
 			UnregisterClass "Grid", GetmoduleHandle(NULL)
 		#else

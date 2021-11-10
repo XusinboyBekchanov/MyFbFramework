@@ -17,11 +17,11 @@
 Namespace My.Sys.Forms
 	#define QPicture(__Ptr__) *Cast(Picture Ptr,__Ptr__)
 	
-	Enum PictureStyle
+	Private Enum PictureStyle
 		ssText, ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
 	End Enum
 	
-	Type Picture Extends ContainerControl
+	Private Type Picture Extends ContainerControl
 	Private:
 		AStyle(24)        As Integer
 		FRealSizeImage    As Boolean

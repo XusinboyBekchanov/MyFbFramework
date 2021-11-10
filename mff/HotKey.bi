@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
 	#define QHotKey(__Ptr__) *Cast(HotKey Ptr, __Ptr__)
 	
-	Type HotKey Extends Control
+	Private Type HotKey Extends Control
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)

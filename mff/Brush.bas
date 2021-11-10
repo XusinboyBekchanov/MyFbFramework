@@ -13,7 +13,7 @@
 #include once "Brush.bi"
 
 Namespace My.Sys.Drawing
-	Function Brush.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Brush.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "color": Return @FColor
 		Case "style": Return @FStyle
@@ -23,7 +23,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 	
-	Function Brush.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Brush.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "color": This.Color = QInteger(Value)
 		Case "style": This.Style = QInteger(Value)
@@ -33,34 +33,34 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Property Brush.Color As Integer
+	Private Property Brush.Color As Integer
 		Return FColor
 	End Property
 	
-	Property Brush.Color(Value As Integer)
+	Private Property Brush.Color(Value As Integer)
 		FColor = Value
 		Create
 	End Property
 	
-	Property Brush.Style As Integer
+	Private Property Brush.Style As Integer
 		Return FStyle
 	End Property
 	
-	Property Brush.Style(Value As Integer)
+	Private Property Brush.Style(Value As Integer)
 		FStyle = Value
 		Create
 	End Property
 	
-	Property Brush.HatchStyle As Integer
+	Private Property Brush.HatchStyle As Integer
 		Return FHatchStyle
 	End Property
 	
-	Property Brush.HatchStyle(Value As Integer)
+	Private Property Brush.HatchStyle(Value As Integer)
 		FHatchStyle = Value
 		Create
 	End Property
 	
-	Sub Brush.Create
+	Private Sub Brush.Create
 		#ifndef __USE_GTK__
 			Dim As LOGBRUSH LB
 			LB.lbColor = FColor
@@ -75,23 +75,23 @@ Namespace My.Sys.Drawing
 				LB.lbStyle = BS_HATCHED
 				LB.lbHatch = FHatchStyle
 			End Select
-			If Handle then DeleteObject(Handle)
+			If Handle Then DeleteObject(Handle)
 			Handle = CreateBrushIndirect(@LB)
 		#endif
 	End Sub
 	
-	Operator Brush.Cast As Any Ptr
+	Private Operator Brush.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor Brush
+	Private Constructor Brush
 		FColor = &HFFFFFF
 		FStyle = bsSolid
 		'Create
 		WLet(FClassName, "Brush")
 	End Constructor
 	
-	Destructor Brush
+	Private Destructor Brush
 		#ifndef __USE_GTK__
 			If Handle Then DeleteObject Handle
 		#endif

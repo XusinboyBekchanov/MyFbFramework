@@ -17,7 +17,7 @@
 #endif
 
 Namespace My.Sys.ComponentModel
-	Enum PrinterOrientation
+	Private Enum PrinterOrientation
 		#ifndef __USE_GTK__
 			poPortait =DMORIENT_PORTRAIT
 			poLandscape=DMORIENT_LANDSCAPE
@@ -27,7 +27,7 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Enum
 	
-	Enum PrinterQuality
+	Private Enum PrinterQuality
 		#ifndef __USE_GTK__
 			pqDraft=DMRES_DRAFT
 			pqLow =DMRES_LOW
@@ -41,13 +41,13 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Enum
 	
-	Enum PrinterDuplexMode
+	Private Enum PrinterDuplexMode
 		pdmSimplex = 1
 		pdmHorizontal = 2
 		pdmVertical = 3
 	End Enum
 	
-	Enum PrinterPaperSize
+	Private Enum PrinterPaperSize
 		#ifndef __USE_GTK__
 			ppsLetter=DMPAPER_LETTER	'Letter, 8 1/2- by 11-inches
 			ppsLEGALr=DMPAPER_LEGAL	'Legal, 8 1/2- by 14-inches
@@ -107,7 +107,7 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Enum
 	
-	Type Printer Extends Component
+	Private Type Printer Extends Component
 	Private:
 		#ifndef __USE_GTK__
 			m_hdc As HDC               'handle of a display device context

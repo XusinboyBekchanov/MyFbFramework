@@ -16,11 +16,11 @@
 Namespace My.Sys.Forms
 	#define QProgressBar(__Ptr__) *Cast(ProgressBar Ptr,__Ptr__)
 	
-	Enum ProgressBarOrientation
+	Private Enum ProgressBarOrientation
 		pbHorizontal, pbVertical
 	End Enum
 	
-	Type ProgressBar Extends Control
+	Private Type ProgressBar Extends Control
 	Private:
 		FMode32      As Boolean
 		FPosition    As Integer

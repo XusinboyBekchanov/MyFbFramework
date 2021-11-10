@@ -16,11 +16,11 @@
 Namespace My.Sys.Forms
 	#define QImageBox(__Ptr__) *Cast(ImageBox Ptr,__Ptr__)
 	
-	Enum ImageBoxStyle
+	Private Enum ImageBoxStyle
 		ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
 	End Enum
 	
-	Type ImageBox Extends Control
+	Private Type ImageBox Extends Control
 	Private:
 		FImageStyle       As Integer
 		AStyle(5)         As Integer

@@ -13,7 +13,7 @@
 #include once "Icon.bi"
 
 Namespace My.Sys.Drawing
-	Function Icon.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Icon.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		#ifdef __USE_GTK__
 		Case "handle": Return Handle
@@ -28,7 +28,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 	
-	Function Icon.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Icon.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value <> 0 Then
 			Select Case LCase(PropertyName)
 			Case "height": This.Height = QInteger(Value)
@@ -40,34 +40,34 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Property Icon.ResName ByRef As WString
+	Private Property Icon.ResName ByRef As WString
 		Return WGet(FResName)
 	End Property
 	
-	Property Icon.ResName(ByRef Value As WString)
+	Private Property Icon.ResName(ByRef Value As WString)
 		WLet(FResName, Value)
 	End Property
 	
-	Function Icon.ToString() ByRef As WString
+	Private Function Icon.ToString() ByRef As WString
 		Return *FResName
 	End Function
 	
-	Property Icon.Width As Integer
+	Private Property Icon.Width As Integer
 		Return FWidth
 	End Property
 	
-	Property Icon.Width(Value As Integer)
+	Private Property Icon.Width(Value As Integer)
 	End Property
 	
-	Property Icon.Height As Integer
+	Private Property Icon.Height As Integer
 		Return FWidth
 	End Property
 	
-	Property Icon.Height(Value As Integer)
+	Private Property Icon.Height(Value As Integer)
 	End Property
 	
 	#ifndef __USE_GTK__
-		Function Icon.ToBitmap() As hBitmap
+		Private Function Icon.ToBitmap() As hBitmap
 			Dim As HWND desktop = GetDesktopWindow()
 			If (desktop = NULL) Then
 				Return NULL
@@ -116,7 +116,7 @@ Namespace My.Sys.Drawing
 		End Function
 	#endif
 	
-	Function Icon.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+	Private Function Icon.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			If File = "" Then Return False
@@ -143,11 +143,11 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Function Icon.SaveToFile(ByRef File As WString) As Boolean
+	Private Function Icon.SaveToFile(ByRef File As WString) As Boolean
 		Return False
 	End Function
 	
-	Function Icon.LoadFromResourceName(ByRef ResourceName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
+	Private Function Icon.LoadFromResourceName(ByRef ResourceName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			If FileExists("./Resources/" & ResName & ".ico") Then
@@ -177,7 +177,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Function Icon.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
+	Private Function Icon.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 		#ifndef __USE_GTK__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
@@ -197,15 +197,15 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Operator Icon.Cast As Any Ptr
+	Private Operator Icon.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Operator Icon.Cast As WString Ptr
+	Private Operator Icon.Cast As WString Ptr
 		Return This.FResName
 	End Operator
 	
-	Operator Icon.Let(ByRef Value As WString)
+	Private Operator Icon.Let(ByRef Value As WString)
 		#ifndef __USE_GTK__
 			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 				LoadFromFile(Value)
@@ -216,12 +216,12 @@ Namespace My.Sys.Drawing
 		This.ResName = Value
 	End Operator
 	
-	Operator Icon.Let(Value As Integer)
+	Private Operator Icon.Let(Value As Integer)
 		LoadFromResourceID(Value)
 		This.ResName = WStr(Value)
 	End Operator
 	
-	Operator Icon.Let(Value As Icon)
+	Private Operator Icon.Let(Value As Icon)
 		#ifndef __USE_GTK__
 			If Handle Then DestroyIcon(Handle)
 		#endif
@@ -229,20 +229,20 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Operator Icon.Let(Value As GdkPixBuf Ptr)
+		Private Operator Icon.Let(Value As GdkPixBuf Ptr)
 			If Handle Then g_object_unref(Handle)
 	#else
-		Operator Icon.Let(Value As HICON)
+		Private Operator Icon.Let(Value As HICON)
 			If Handle Then DestroyIcon(Handle)
 	#endif
 		Handle = Value
 	End Operator
 	
-	Constructor Icon
+	Private Constructor Icon
 		WLet(FClassName, "Icon")
 	End Constructor
 	
-	Destructor Icon
+	Private Destructor Icon
 		WDeallocate FResName
 		#ifdef __USE_GTK__
 			If Handle Then g_object_unref(Handle)

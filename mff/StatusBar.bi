@@ -19,7 +19,7 @@ Namespace My.Sys.Forms
 	#define QStatusPanel(__Ptr__) *Cast(StatusPanel Ptr, __Ptr__)
 	
 	#ifdef __USE_GTK__
-		Enum BevelStyle
+		Private Enum BevelStyle
 			pbLowered
 			pbNone
 			pbRaised
@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 			pbNoTabParsing
 		End Enum
 	#else
-		Enum BevelStyle
+		Private Enum BevelStyle
 			pbLowered    = 0
 			pbNone       = SBT_NOBORDERS
 			pbRaised     = SBT_POPOUT
@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 		End Enum
 	#endif
 	
-	Type StatusPanel Extends My.Sys.Object
+	Private Type StatusPanel Extends My.Sys.Object
 	Private:
 		FAlignment  As Integer
 		FCaption    As WString Ptr
@@ -76,7 +76,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type StatusBar Extends Control
+	Private Type StatusBar Extends Control
 	Private:
 		FSimpleText   As WString Ptr
 		FSimplePanel  As Boolean

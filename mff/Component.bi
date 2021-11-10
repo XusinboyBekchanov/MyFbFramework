@@ -9,7 +9,7 @@
 Namespace My.Sys.ComponentModel
 	#define QComponent(__Ptr__) *Cast(Component Ptr, __Ptr__)
 	
-	Type MarginsType Extends My.Sys.Object
+	Private Type MarginsType Extends My.Sys.Object
 		Declare Function ToString ByRef As WString
 		Left         As Integer
 		Top          As Integer
@@ -17,7 +17,7 @@ Namespace My.Sys.ComponentModel
 		Bottom       As Integer
 	End Type
 	
-	Type Component Extends My.Sys.Object
+	Private Type Component Extends My.Sys.Object
 	Protected:
 		FClassAncestor      As WString Ptr
 		FDesignMode         As Boolean
@@ -95,7 +95,7 @@ Namespace My.Sys.ComponentModel
 	End Type
 End Namespace
 
-Type Message
+Private Type Message
 	Sender   As Any Ptr
 	#ifdef __USE_GTK__
 		widget As GtkWidget Ptr
@@ -154,7 +154,7 @@ End Type
 	#endif
 #endif
 
-Enum Keys
+Private Enum Keys
 	#ifdef __USE_GTK__
 		Esc = GDK_KEY_ESCAPE
 		Left = GDK_KEY_LEFT

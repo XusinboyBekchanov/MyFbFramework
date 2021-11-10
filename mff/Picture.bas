@@ -12,7 +12,7 @@
 'https://blog.csdn.net/mmmvp/article/details/365155
 #include once "Picture.bi"
 Namespace My.Sys.Forms
-	Function Picture.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function Picture.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 		Case "tabindex": Return @FTabIndex
@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Picture.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Picture.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -36,27 +36,27 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property Picture.TabIndex As Integer
+	Private Property Picture.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property Picture.TabIndex(Value As Integer)
+	Private Property Picture.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property Picture.TabStop As Boolean
+	Private Property Picture.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property Picture.TabStop(Value As Boolean)
+	Private Property Picture.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property Picture.Style As Integer
+	Private Property Picture.Style As Integer
 		Return FStyle
 	End Property
 	
-	Property Picture.Style(Value As Integer)
+	Private Property Picture.Style(Value As Integer)
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifndef __USE_GTK__
@@ -66,11 +66,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Picture.RealSizeImage As Boolean
+	Private Property Picture.RealSizeImage As Boolean
 		Return FRealSizeImage
 	End Property
 	
-	Property Picture.RealSizeImage(Value As Boolean)
+	Private Property Picture.RealSizeImage(Value As Boolean)
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
@@ -80,11 +80,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Picture.CenterImage As Boolean
+	Private Property Picture.CenterImage As Boolean
 		Return FCenterImage
 	End Property
 	
-	Property Picture.CenterImage(Value As Boolean)
+	Private Property Picture.CenterImage(Value As Boolean)
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
@@ -94,7 +94,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub Picture.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub Picture.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub Picture.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub Picture.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QPicture(Sender.Child)
 					.Perform(STM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
@@ -135,11 +135,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub Picture.WndProc(ByRef Message As Message)
+		Private Sub Picture.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub Picture.ProcessMessage(ByRef Message As Message)
+	Private Sub Picture.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_Size
@@ -178,11 +178,11 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	
-	Operator Picture.Cast As Control Ptr
+	Private Operator Picture.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor Picture
+	Private Constructor Picture
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
 			widget = gtk_layout_new(null, null)
@@ -245,7 +245,7 @@ Namespace My.Sys.Forms
 			.Height      = 60
 		End With
 	End Constructor
-	Destructor Picture
+	Private Destructor Picture
 		#ifdef __USE_GTK__
 			If gtk_is_widget(ImageWidget) Then
 				gtk_widget_destroy(ImageWidget)

@@ -21,7 +21,7 @@
 #endif
 
 Namespace My.Sys.Drawing
-	Type Icon Extends My.Sys.Object
+	Private Type Icon Extends My.Sys.Object
 	Private:
 		FWidth  As Integer
 		FHeight As Integer

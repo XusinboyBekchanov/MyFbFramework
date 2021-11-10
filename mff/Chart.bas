@@ -17,7 +17,7 @@
 #include once "Chart.bi"
 
 Namespace My.Sys.Forms
-	Function Chart.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Chart.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
 		Case "backcoloropacity": Return @m_BackColorOpacity
@@ -55,7 +55,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Chart.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Chart.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -96,34 +96,34 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Public Sub Chart.GetCenterPie(X As Single, Y As Single)
+	Private Sub Chart.GetCenterPie(X As Single, Y As Single)
 		X = m_CenterCircle.x
 		Y = m_CenterCircle.Y
 	End Sub
 	
-	Public Property Chart.Count() As Long
+	Private Property Chart.Count() As Long
 		Count = ItemsCount
 	End Property
 	
-	Public Property Chart.Special(Index As Long, Value As Boolean)
+	Private Property Chart.Special(Index As Long, Value As Boolean)
 		m_Item(Index).Special = Value
 		Me.Refresh
 	End Property
 	
-	Public Property Chart.Special(Index As Long) As Boolean
+	Private Property Chart.Special(Index As Long) As Boolean
 		Return m_Item(Index).Special
 	End Property
 	
-	Public Property Chart.ItemColor(Index As Long, Value As ULong)
+	Private Property Chart.ItemColor(Index As Long, Value As ULong)
 		m_Item(Index).ItemColor = Value
 		Me.Refresh
 	End Property
 	
-	Public Property Chart.ItemColor(Index As Long) As ULong
+	Private Property Chart.ItemColor(Index As Long) As ULong
 		Return m_Item(Index).ItemColor
 	End Property
 	
-	Public Sub Chart.Clear()
+	Private Sub Chart.Clear()
 		Dim i As Long
 		For i = 0 To ItemsCount - 1
 			#ifndef __USE_GTK__
@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 		Me.Refresh
 	End Sub
 	
-	Public Sub Chart.AddItem(ByRef ItemName As WString, Value As Single, Item_Color As Long, bSpecial As Boolean = False)
+	Private Sub Chart.AddItem(ByRef ItemName As WString, Value As Single, Item_Color As Long, bSpecial As Boolean = False)
 		ReDim Preserve m_Item(ItemsCount)
 		With m_Item(ItemsCount)
 			.ItemName = ItemName
@@ -152,7 +152,7 @@ Namespace My.Sys.Forms
 		ItemsCount = ItemsCount + 1
 	End Sub
 	
-	Public Sub Chart.AddSerie(ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr, cCustomColors As IntegerList Ptr)
+	Private Sub Chart.AddSerie(ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr, cCustomColors As IntegerList Ptr)
 		ReDim Preserve m_Serie(SerieCount)
 		With m_Serie(SerieCount)
 			.SerieName = SerieName
@@ -163,145 +163,145 @@ Namespace My.Sys.Forms
 		SerieCount = SerieCount + 1
 	End Sub
 	
-	Public Sub Chart.AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
+	Private Sub Chart.AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
 		cAxisItem = AxisItems
 		m_WordWrap = WordWrap
 		m_AxisAngle = AxisAngle
 		m_AxisAlign = AxisAlign
 	End Sub
 	
-	Public Property Chart.Title() ByRef As WString
+	Private Property Chart.Title() ByRef As WString
 		Return *m_Title.vptr
 	End Property
 	
-	Public Property Chart.Title(ByRef New_Value As WString)
+	Private Property Chart.Title(ByRef New_Value As WString)
 		m_Title = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.TitleFont() ByRef As My.Sys.Drawing.Font
+	Private Property Chart.TitleFont() ByRef As My.Sys.Drawing.Font
 		Return m_TitleFont
 	End Property
 	
-	Public Property Chart.TitleFont(ByRef New_Value As My.Sys.Drawing.Font)
+	Private Property Chart.TitleFont(ByRef New_Value As My.Sys.Drawing.Font)
 		m_TitleFont = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.TitleForeColor() As ULong
+	Private Property Chart.TitleForeColor() As ULong
 		TitleForeColor = m_TitleForeColor
 	End Property
 	
-	Public Property Chart.TitleForeColor(ByVal New_Value As ULong)
+	Private Property Chart.TitleForeColor(ByVal New_Value As ULong)
 		m_TitleForeColor = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.BackColorOpacity() As Long
+	Private Property Chart.BackColorOpacity() As Long
 		BackColorOpacity = m_BackColorOpacity
 	End Property
 	
-	Public Property Chart.BackColorOpacity(ByVal New_Value As Long)
+	Private Property Chart.BackColorOpacity(ByVal New_Value As Long)
 		m_BackColorOpacity = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LinesColor() As ULong
+	Private Property Chart.LinesColor() As ULong
 		LinesColor = m_LinesColor
 	End Property
 	
-	Public Property Chart.LinesColor(ByVal New_Value As ULong)
+	Private Property Chart.LinesColor(ByVal New_Value As ULong)
 		m_LinesColor = New_Value
 		Refresh
 	End Property
 	
 	
-	Public Property Chart.FillOpacity() As Long
+	Private Property Chart.FillOpacity() As Long
 		FillOpacity = m_FillOpacity
 	End Property
 	
-	Public Property Chart.FillOpacity(ByVal New_Value As Long)
+	Private Property Chart.FillOpacity(ByVal New_Value As Long)
 		m_FillOpacity = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.Border() As Boolean
+	Private Property Chart.Border() As Boolean
 		Border = m_Border
 	End Property
 	
-	Public Property Chart.Border(ByVal New_Value As Boolean)
+	Private Property Chart.Border(ByVal New_Value As Boolean)
 		m_Border = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.BorderRound() As Long
+	Private Property Chart.BorderRound() As Long
 		BorderRound = m_BorderRound
 	End Property
 	
-	Public Property Chart.BorderRound(ByVal New_Value As Long)
+	Private Property Chart.BorderRound(ByVal New_Value As Long)
 		m_BorderRound = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.BorderColor() As ULong
+	Private Property Chart.BorderColor() As ULong
 		BorderColor = m_BorderColor
 	End Property
 	
-	Public Property Chart.BorderColor(ByVal New_Value As ULong)
+	Private Property Chart.BorderColor(ByVal New_Value As ULong)
 		m_BorderColor = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LabelsFormats() ByRef As WString
+	Private Property Chart.LabelsFormats() ByRef As WString
 		Return *m_LabelsFormats.vptr
 	End Property
 	
-	Public Property Chart.LabelsFormats(ByRef New_Value As WString)
+	Private Property Chart.LabelsFormats(ByRef New_Value As WString)
 		m_LabelsFormats = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LinesCurve() As Boolean
+	Private Property Chart.LinesCurve() As Boolean
 		LinesCurve = m_LinesCurve
 	End Property
 	
-	Public Property Chart.LinesCurve(ByVal New_Value As Boolean)
+	Private Property Chart.LinesCurve(ByVal New_Value As Boolean)
 		m_LinesCurve = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LinesWidth() As Long
+	Private Property Chart.LinesWidth() As Long
 		LinesWidth = m_LinesWidth
 	End Property
 	
-	Public Property Chart.LinesWidth(ByVal New_Value As Long)
+	Private Property Chart.LinesWidth(ByVal New_Value As Long)
 		m_LinesWidth = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.FillGradient() As Boolean
+	Private Property Chart.FillGradient() As Boolean
 		FillGradient = m_FillGradient
 	End Property
 	
-	Public Property Chart.FillGradient(ByVal New_Value As Boolean)
+	Private Property Chart.FillGradient(ByVal New_Value As Boolean)
 		m_FillGradient = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.VerticalLines() As Boolean
+	Private Property Chart.VerticalLines() As Boolean
 		VerticalLines = m_VerticalLines
 	End Property
 	
-	Public Property Chart.VerticalLines(ByVal New_Value As Boolean)
+	Private Property Chart.VerticalLines(ByVal New_Value As Boolean)
 		m_VerticalLines = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.ChartStyle() As ChartStyles
+	Private Property Chart.ChartStyle() As ChartStyles
 		ChartStyle = m_ChartStyle
 	End Property
 	
-	Public Property Chart.ChartStyle(ByVal New_Value As ChartStyles)
+	Private Property Chart.ChartStyle(ByVal New_Value As ChartStyles)
 		m_ChartStyle = New_Value
 		Select Case m_ChartStyle
 		Case CS_PIE To CS_DONUT
@@ -320,101 +320,101 @@ Namespace My.Sys.Forms
 		Refresh
 	End Property
 	
-	Public Property Chart.ChartOrientation() As ChartOrientations
+	Private Property Chart.ChartOrientation() As ChartOrientations
 		ChartOrientation = m_ChartOrientation
 	End Property
 	
-	Public Property Chart.ChartOrientation(ByVal New_Value As ChartOrientations)
+	Private Property Chart.ChartOrientation(ByVal New_Value As ChartOrientations)
 		m_ChartOrientation = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LegendAlign() As LegendAligns
+	Private Property Chart.LegendAlign() As LegendAligns
 		LegendAlign = m_LegendAlign
 	End Property
 	
-	Public Property Chart.LegendAlign(ByVal New_Value As LegendAligns)
+	Private Property Chart.LegendAlign(ByVal New_Value As LegendAligns)
 		m_LegendAlign = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LegendVisible() As Boolean
+	Private Property Chart.LegendVisible() As Boolean
 		LegendVisible = m_LegendVisible
 	End Property
 	
-	Public Property Chart.LegendVisible(ByVal New_Value As Boolean)
+	Private Property Chart.LegendVisible(ByVal New_Value As Boolean)
 		m_LegendVisible = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.DonutWidth() As Single
+	Private Property Chart.DonutWidth() As Single
 		DonutWidth = m_DonutWidth
 	End Property
 	
-	Public Property Chart.DonutWidth(ByVal New_Value As Single)
+	Private Property Chart.DonutWidth(ByVal New_Value As Single)
 		m_DonutWidth = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.SeparatorLine() As Boolean
+	Private Property Chart.SeparatorLine() As Boolean
 		SeparatorLine = m_SeparatorLine
 	End Property
 	
-	Public Property Chart.SeparatorLine(ByVal New_Value As Boolean)
+	Private Property Chart.SeparatorLine(ByVal New_Value As Boolean)
 		m_SeparatorLine = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.SeparatorLineWidth() As Single
+	Private Property Chart.SeparatorLineWidth() As Single
 		SeparatorLineWidth = m_SeparatorLineWidth
 	End Property
 	
-	Public Property Chart.SeparatorLineWidth(ByVal New_Value As Single)
+	Private Property Chart.SeparatorLineWidth(ByVal New_Value As Single)
 		m_SeparatorLineWidth = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.SeparatorLineColor() As ULong
+	Private Property Chart.SeparatorLineColor() As ULong
 		SeparatorLineColor = m_SeparatorLineColor
 	End Property
 	
-	Public Property Chart.SeparatorLineColor(ByVal New_Value As ULong)
+	Private Property Chart.SeparatorLineColor(ByVal New_Value As ULong)
 		m_SeparatorLineColor = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LabelsPosition() As LabelsPositions
+	Private Property Chart.LabelsPosition() As LabelsPositions
 		LabelsPosition = m_LabelsPositions
 	End Property
 	
-	Public Property Chart.LabelsPosition(ByVal New_Value As LabelsPositions)
+	Private Property Chart.LabelsPosition(ByVal New_Value As LabelsPositions)
 		m_LabelsPositions = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LabelsAlignment() As LabelsAlignments
+	Private Property Chart.LabelsAlignment() As LabelsAlignments
 		LabelsAlignment = m_LabelsAlignments
 	End Property
 	
-	Public Property Chart.LabelsAlignment(ByVal New_Value As LabelsAlignments)
+	Private Property Chart.LabelsAlignment(ByVal New_Value As LabelsAlignments)
 		m_LabelsAlignments = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.LabelsVisible() As Boolean
+	Private Property Chart.LabelsVisible() As Boolean
 		LabelsVisible = m_LabelsVisible
 	End Property
 	
-	Public Property Chart.LabelsVisible(ByVal New_Value As Boolean)
+	Private Property Chart.LabelsVisible(ByVal New_Value As Boolean)
 		m_LabelsVisible = New_Value
 		Refresh
 	End Property
 	
-	Public Property Chart.Rotation() As Long
+	Private Property Chart.Rotation() As Long
 		Rotation = m_Rotation
 	End Property
 	
-	Public Property Chart.Rotation(ByVal New_Value As Long)
+	Private Property Chart.Rotation(ByVal New_Value As Long)
 		m_Rotation = New_Value Mod 360
 		If m_Rotation < 0 Then m_Rotation = 360 + m_Rotation
 		Refresh
@@ -677,7 +677,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Public Function Chart.GetWindowsDPI() As Double
+	Private Function Chart.GetWindowsDPI() As Double
 		#ifdef __USE_GTK__
 			Return 1#
 		#else
@@ -718,7 +718,7 @@ Namespace My.Sys.Forms
 		'			End If
 	End Sub
 	
-	Function Chart.PtInPath(hPath As Any Ptr, X As Single, Y As Single) As Boolean
+	Private Function Chart.PtInPath(hPath As Any Ptr, X As Single, Y As Single) As Boolean
 		#ifdef __USE_GTK__
 			Dim As Boolean bResult
 			Dim As cairo_t Ptr cr1 = gdk_cairo_create(gtk_widget_get_window(widget))
@@ -856,7 +856,7 @@ Namespace My.Sys.Forms
 		End Select
 	End Sub
 	
-	Public Sub Chart.UpdateSerie(ByVal Index As Integer, ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr)
+	Private Sub Chart.UpdateSerie(ByVal Index As Integer, ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr)
 		Dim TempCol As DoubleList Ptr
 		Dim i As Long, j As Long
 		Dim Dif As Single
@@ -907,7 +907,7 @@ Namespace My.Sys.Forms
 		This.Draw
 	End Sub
 	
-	Public Sub Chart.Refresh()
+	Private Sub Chart.Refresh()
 		'		Dim As HDC hd
 		'		hd = GetDC(FHandle)
 		'		This.Paint hd
@@ -1039,7 +1039,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Public Function Chart.RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
+	Private Function Chart.RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 		#ifdef __USE_GTK__
 			Return ShiftColor(RGBColor, clWhite, Opacity / 100 * 255)
 			'Return ((Cast(ULong, Opacity / 100 * 255) Shl 24) + (Cast(ULong, Abs(GetRed(RGBColor))) Shl 16) + (Cast(ULong, Abs(GetGreen(RGBColor))) Shl 8) + (Cast(ULong, Abs(GetBlue(RGBColor)))))
@@ -1049,7 +1049,7 @@ Namespace My.Sys.Forms
 		'Return Color_MakeARGB(Opacity / 100 * 255, GetRed(RGBColor), GetGreen(RGBColor), GetBlue(RGBColor))
 	End Function
 	
-	Function Round(X As Double, Drob As Integer = 0) As Integer
+	Private Function Round(X As Double, Drob As Integer = 0) As Integer
 		If Drob = 0 Then
 			Return CInt(X)
 		Else
@@ -3941,7 +3941,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub Chart.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub Chart.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			With QChart(@Sender)
 				.HotItem = -1
 				.nScale = .GetWindowsDPI
@@ -3961,11 +3961,11 @@ Namespace My.Sys.Forms
 			End With
 		End Sub
 		
-		Sub Chart.WndProc(ByRef Message As Message)
+		Private Sub Chart.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub Chart.ProcessMessage(ByRef Message As Message)
+	Private Sub Chart.ProcessMessage(ByRef Message As Message)
 		Static DownButton As Integer = -1
 		Dim As Integer HitResult
 		#ifdef __USE_GTK__
@@ -4015,12 +4015,12 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator Chart.Cast As My.Sys.Forms.Control Ptr
+	Private Operator Chart.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Function Chart.OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+		Private Function Chart.OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Dim As Chart Ptr chrt = Cast(Any Ptr, data1)
 			If chrt->cr = 0 Then
 				chrt->cr = cr
@@ -4055,7 +4055,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function Chart.OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+		Private Function Chart.OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Dim As Chart Ptr chrt = Cast(Any Ptr, data1)
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			chrt->win = Event->window
@@ -4064,7 +4064,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Sub Chart.OnSizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+		Private Sub Chart.OnSizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As Chart Ptr chrt = Cast(Any Ptr, user_data)
 			With *chrt
 				If .cr <> 0 Then
@@ -4077,7 +4077,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Constructor Chart
+	Private Constructor Chart
 		With This
 			WLet(FClassName, "Chart")
 			#ifdef __USE_GTK__
@@ -4131,7 +4131,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor Chart
+	Private Destructor Chart
 		
 		Dim i As Long
 		For i = 0 To ItemsCount - 1

@@ -14,7 +14,7 @@
 #include once "Splitter.bi"
 
 Namespace My.Sys.Forms
-	Function Splitter.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function Splitter.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "align": Return @FAlign
 		Case "minextra": Return @MinExtra
@@ -23,7 +23,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Splitter.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Splitter.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "align": This.Align = *Cast(SplitterAlignmentConstants Ptr, Value)
 		Case "minextra": This.MinExtra = QInteger(Value)
@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Sub Splitter.WndProc(ByRef Message As Message)
+		Private Sub Splitter.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'               Cast(Splitter Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
@@ -42,11 +42,11 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Property Splitter.Align As SplitterAlignmentConstants
+	Private Property Splitter.Align As SplitterAlignmentConstants
 		Return Base.Align
 	End Property
 	
-	Sub Splitter.DrawTrackSplit(x As Integer, y As Integer)
+	Private Sub Splitter.DrawTrackSplit(x As Integer, y As Integer)
 		#ifndef __USE_GTK__
 			Static As Word DotBits(7) =>{&H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA}
 			Dim As HDC Dc
@@ -62,7 +62,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property Splitter.Align(value As SplitterAlignmentConstants)
+	Private Property Splitter.Align(value As SplitterAlignmentConstants)
 		Base.Align = value
 		Select Case value
 		Case 1, 2
@@ -77,7 +77,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub Splitter.ParentWndProc(ByRef Message As Message)
+		Private Sub Splitter.ParentWndProc(ByRef Message As Message)
 			Dim As Control Ptr Ctrl
 			Select Case Message.Msg
 			Case WM_MOUSEMOVE
@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub Splitter.ProcessMessage(ByRef Message As Message)
+	Private Sub Splitter.ProcessMessage(ByRef Message As Message)
 		Static As Long xOrig, yOrig, xCur, yCur, i, down1
 		#ifdef __USE_GTK__
 			Dim As GdkDisplay Ptr display = gdk_display_get_default()
@@ -305,12 +305,12 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator Splitter.Cast As Control Ptr
+	Private Operator Splitter.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+		Private Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Dim As Splitter Ptr spl = data1
 			If Not spl->bCursor Then
 				spl->bCursor = True
@@ -319,7 +319,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+		Private Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			OnDraw(widget, cr, data1)
 			cairo_destroy(cr)
@@ -327,7 +327,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Constructor Splitter
+	Private Constructor Splitter
 		With This
 			.Child     = @This
 			#ifdef __USE_GTK__
@@ -368,7 +368,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor Splitter
+	Private Destructor Splitter
 		#ifndef __USE_GTK__
 			UnregisterClass "Splitter", GetModuleHandle(NULL)
 		#endif

@@ -14,7 +14,7 @@
 
 Namespace My.Sys.Drawing
 	#ifdef __USE_GTK__
-		Enum PenStyle
+		Private Enum PenStyle
 			psSolid
 			psDash
 			psDot
@@ -24,7 +24,7 @@ Namespace My.Sys.Drawing
 			psInsideFrame
 		End Enum
 		
-		Enum PenMode
+		Private Enum PenMode
 			pmBlack
 			pmWhite
 			pmNop
@@ -42,8 +42,8 @@ Namespace My.Sys.Drawing
 			pmXor
 			pmNotXor
 		End Enum
-	#Else
-		Enum PenStyle
+	#else
+		Private Enum PenStyle
 			psSolid       = PS_SOLID
 			psDash        = PS_DASH
 			psDot         = PS_DOT
@@ -53,7 +53,7 @@ Namespace My.Sys.Drawing
 			psInsideFrame = PS_INSIDEFRAME
 		End Enum
 		
-		Enum PenMode
+		Private Enum PenMode
 			pmBlack       = R2_BLACK
 			pmWhite       = R2_WHITE
 			pmNop         = R2_NOP
@@ -73,7 +73,7 @@ Namespace My.Sys.Drawing
 		End Enum
 	#endif
 	
-	Type Pen Extends My.Sys.Object
+	Private Type Pen Extends My.Sys.Object
 	Private:
 		FColor  As Integer
 		FStyle  As PenStyle

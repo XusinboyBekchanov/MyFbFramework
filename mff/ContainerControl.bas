@@ -7,7 +7,7 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	Function ContainerControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function ContainerControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
 		Case "canvas": Return @Canvas
@@ -16,7 +16,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ContainerControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ContainerControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifdef __USE_GTK__
-		Function ContainerControl.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
+		Private Function ContainerControl.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 			If CInt(widget) AndAlso CInt(GTK_IS_NOTEBOOK(widget) <> 1) Then
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
 				If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
@@ -67,24 +67,24 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub ContainerControl.ProcessMessage(ByRef Message As Message)
+	Private Sub ContainerControl.ProcessMessage(ByRef Message As Message)
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator ContainerControl.Cast As Control Ptr
+	Private Operator ContainerControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Operator ContainerControl.Cast As Any Ptr
+	Private Operator ContainerControl.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ContainerControl
+	Private Constructor ContainerControl
 		WLet(FClassName, "ContainerControl")
 		FControlParent = True
 	End Constructor
 	
-	Destructor ContainerControl
+	Private Destructor ContainerControl
 	End Destructor
 End Namespace
 

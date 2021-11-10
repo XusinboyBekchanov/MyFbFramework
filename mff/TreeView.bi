@@ -14,7 +14,7 @@ Namespace My.Sys.Forms
 	
 	Type PTreeNode As TreeNode Ptr
 	
-	Type TreeNodeCollection Extends My.Sys.Object
+	Private Type TreeNodeCollection Extends My.Sys.Object
 	Private:
 		FNodes As List
 		FParentNode As PTreeNode
@@ -50,7 +50,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type TreeNode Extends My.Sys.Object
+	Private Type TreeNode Extends My.Sys.Object
 	Private:
 		FName               As WString Ptr
 		FText               As UString
@@ -112,7 +112,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type TreeView Extends Control
+	Private Type TreeView Extends Control
 	Private:
 		'FNodes        As List
 		FSorted As Boolean

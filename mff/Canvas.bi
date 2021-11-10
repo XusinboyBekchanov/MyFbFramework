@@ -15,25 +15,25 @@
 Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr,__Ptr__)
 	
-	Type Rect
+	Private Type Rect
 		Left As Long
 		Top As Long
 		Right As Long
 		Bottom As Long
 	End Type
 
-	Type Point
+	Private Type Point
 		X As Long
 		Y As Long
 	End Type
 	
 	#ifdef __USE_GTK__
-		Enum FillStyle
+		Private Enum FillStyle
 			fsSurface
 			fsBorder
 		End Enum
 		
-		Enum CopyMode
+		Private Enum CopyMode
 			cmBlackness
 			cmDestInvert
 			cmMergeCopy
@@ -52,12 +52,12 @@ Namespace My.Sys.Drawing
 		End Enum
 		
 	#else
-		Enum FillStyle
+		Private Enum FillStyle
 			fsSurface = FLOODFILLSURFACE
 			fsBorder  = FLOODFILLBORDER
 		End Enum
 		
-		Enum CopyMode
+		Private Enum CopyMode
 			cmBlackness   = BLACKNESS
 			cmDestInvert  = DSTINVERT
 			cmMergeCopy   = MERGECOPY

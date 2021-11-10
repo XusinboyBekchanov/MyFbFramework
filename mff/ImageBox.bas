@@ -14,7 +14,7 @@
 #include once "ImageBox.bi"
 
 Namespace My.Sys.Forms
-	Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "centerimage": Return @FCenterImage
 		Case "realsizeimage": Return @FRealSizeImage
@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
 		Case "realsizeimage": If Value <> 0 Then This.RealSizeImage = QBoolean(Value)
@@ -36,12 +36,12 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property ImageBox.DesignMode As Boolean
+	Private Property ImageBox.DesignMode As Boolean
 		Return FDesignMode
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function ImageBox.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function ImageBox.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			#ifdef __USE_GTK3__
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 			#else
@@ -58,7 +58,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function ImageBox.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function ImageBox.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			DesignDraw(widget, cr, data1)
 			cairo_destroy(cr)
@@ -66,7 +66,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property ImageBox.DesignMode(Value As Boolean)
+	Private Property ImageBox.DesignMode(Value As Boolean)
 		FDesignMode = Value
 		If Value Then
 			#ifdef __USE_GTK__
@@ -79,11 +79,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 		
-	Property ImageBox.Style As Integer
+	Private Property ImageBox.Style As Integer
 		Return FImageStyle
 	End Property
 	
-	Property ImageBox.Style(Value As Integer)
+	Private Property ImageBox.Style(Value As Integer)
 		'If Value <> FImageStyle Then
 			FImageStyle = Value
 			#ifndef __USE_GTK__
@@ -93,11 +93,11 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
-	Property ImageBox.RealSizeImage As Boolean
+	Private Property ImageBox.RealSizeImage As Boolean
 		Return FRealSizeImage
 	End Property
 	
-	Property ImageBox.RealSizeImage(Value As Boolean)
+	Private Property ImageBox.RealSizeImage(Value As Boolean)
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
@@ -107,11 +107,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ImageBox.CenterImage As Boolean
+	Private Property ImageBox.CenterImage As Boolean
 		Return FCenterImage
 	End Property
 	
-	Property ImageBox.CenterImage(Value As Boolean)
+	Private Property ImageBox.CenterImage(Value As Boolean)
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub ImageBox.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub ImageBox.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
@@ -152,7 +152,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub ImageBox.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ImageBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QImageBox(Sender.Child)
 					.Perform(STM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
@@ -160,11 +160,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ImageBox.WndProc(ByRef Message As Message)
+		Private Sub ImageBox.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 		
-	Sub ImageBox.ProcessMessage(ByRef Message As Message)
+	Private Sub ImageBox.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
@@ -197,11 +197,11 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator ImageBox.Cast As Control Ptr
+	Private Operator ImageBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor ImageBox
+	Private Constructor ImageBox
 		#ifdef __USE_GTK__
 			widget = gtk_image_new()
 			eventboxwidget = gtk_event_box_new()
@@ -240,6 +240,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ImageBox
+	Private Destructor ImageBox
 	End Destructor
 End Namespace

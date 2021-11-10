@@ -15,7 +15,7 @@
 
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
-		Function TextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Private Function TextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
 			Case "borderstyle": Return @FBorderStyle
@@ -47,7 +47,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Function TextBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Private Function TextBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -84,11 +84,11 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property TextBox.Alignment As AlignmentConstants
+	Private Property TextBox.Alignment As AlignmentConstants
 		Return FAlignment
 	End Property
 	
-	Property TextBox.Alignment(Value As AlignmentConstants)
+	Private Property TextBox.Alignment(Value As AlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
 			#ifdef __USE_GTK__
@@ -117,23 +117,23 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TextBox.TabIndex As Integer
+	Private Property TextBox.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property TextBox.TabIndex(Value As Integer)
+	Private Property TextBox.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property TextBox.TabStop As Boolean
+	Private Property TextBox.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property TextBox.TabStop(Value As Boolean)
+	Private Property TextBox.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Sub TextBox.ScrollToCaret()
+	Private Sub TextBox.ScrollToCaret()
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				gtk_text_view_scroll_to_mark(gtk_text_view(widget), gtk_text_buffer_get_insert(gtk_text_view_get_buffer(gtk_text_view(widget))), 0.0, True, 0.5, 0.5)
@@ -143,7 +143,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property TextBox.LeftMargin() As Integer
+	Private Property TextBox.LeftMargin() As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				FLeftMargin = gtk_text_view_get_left_margin(gtk_text_view(widget))
@@ -157,7 +157,7 @@ Namespace My.Sys.Forms
 		Return FLeftMargin
 	End Property
 	
-	Property TextBox.LeftMargin(Value As Integer)
+	Private Property TextBox.LeftMargin(Value As Integer)
 		FLeftMargin = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -170,7 +170,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.RightMargin() As Integer
+	Private Property TextBox.RightMargin() As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				FRightMargin = gtk_text_view_get_right_margin(gtk_text_view(widget))
@@ -184,7 +184,7 @@ Namespace My.Sys.Forms
 		Return FRightMargin
 	End Property
 	
-	Property TextBox.RightMargin(Value As Integer)
+	Private Property TextBox.RightMargin(Value As Integer)
 		FRightMargin = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -197,25 +197,25 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.WantReturn() As Boolean
+	Private Property TextBox.WantReturn() As Boolean
 		#ifndef __USE_GTK__
 			FWantReturn = StyleExists(ES_WANTRETURN)
 		#endif
 		Return FWantReturn
 	End Property
 	
-	Property TextBox.WantReturn(Value As Boolean)
+	Private Property TextBox.WantReturn(Value As Boolean)
 		FWantReturn = Value
 		#ifndef __USE_GTK__
 			ChangeStyle ES_WANTRETURN, Value
 		#endif
 	End Property
 	
-	Property TextBox.WantTab() As Boolean
+	Private Property TextBox.WantTab() As Boolean
 		Return FWantTab
 	End Property
 	
-	Property TextBox.WantTab(Value As Boolean)
+	Private Property TextBox.WantTab(Value As Boolean)
 		FWantTab = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -224,11 +224,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.Multiline() As Boolean
+	Private Property TextBox.Multiline() As Boolean
 		Return FMultiline
 	End Property
 	
-	Property TextBox.Multiline(Value As Boolean)
+	Private Property TextBox.Multiline(Value As Boolean)
 		FMultiline = Value
 		#ifdef __USE_GTK__
 			ChangeWidget
@@ -242,11 +242,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub TextBox.AddLine(ByRef wsLine As WString)
+	Private Sub TextBox.AddLine(ByRef wsLine As WString)
 		InsertLine(LinesCount - 1, wsLine)
 	End Sub
 	
-	Sub TextBox.InsertLine(Index As Integer, ByRef wsLine As WString)
+	Private Sub TextBox.InsertLine(Index As Integer, ByRef wsLine As WString)
 		Dim As Integer iStart, LineLen
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -274,7 +274,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TextBox.RemoveLine(Index As Integer)
+	Private Sub TextBox.RemoveLine(Index As Integer)
 		Const Empty = ""
 		Dim As Integer iStart, iEnd
 		#ifdef __USE_GTK__
@@ -295,7 +295,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property TextBox.Text ByRef As WString
+	Private Property TextBox.Text ByRef As WString
 		#ifdef __USE_GTK__
 			If gtk_is_widget(widget) Then
 				If gtk_is_text_view(widget) Then
@@ -313,7 +313,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.Text(ByRef Value As WString)
+	Private Property TextBox.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -333,7 +333,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function TextBox.GetTextLength() As Integer
+	Private Function TextBox.GetTextLength() As Integer
 		#ifdef __USE_GTK__
 			If FMultiline Then
 				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
@@ -346,11 +346,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Property TextBox.BorderStyle As BorderStyles
+	Private Property TextBox.BorderStyle As BorderStyles
 		Return FBorderStyle
 	End Property
 	
-	Property TextBox.BorderStyle(Value As BorderStyles)
+	Private Property TextBox.BorderStyle(Value As BorderStyles)
 		FBorderStyle = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -371,11 +371,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.ReadOnly As Boolean
+	Private Property TextBox.ReadOnly As Boolean
 		Return FReadOnly
 	End Property
 	
-	Property TextBox.ReadOnly(Value As Boolean)
+	Private Property TextBox.ReadOnly(Value As Boolean)
 		FReadOnly = Value
 		#ifdef __USE_GTK__
 			gtk_text_view_set_editable(gtk_text_view(WidgetTextView), Not Value)
@@ -385,44 +385,44 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.Ctl3D As Boolean
+	Private Property TextBox.Ctl3D As Boolean
 		Return FCtl3D
 	End Property
 	
-	Property TextBox.Ctl3D(Value As Boolean)
+	Private Property TextBox.Ctl3D(Value As Boolean)
 		If Value <> FCtl3D Then
 			FCtl3D = Value
 			RecreateWnd
 		End If
 	End Property
 	
-	Property TextBox.HideSelection As Boolean
+	Private Property TextBox.HideSelection As Boolean
 		Return FHideSelection
 	End Property
 	
-	Property TextBox.HideSelection(Value As Boolean)
+	Private Property TextBox.HideSelection(Value As Boolean)
 		FHideSelection = Value
 		#ifndef __USE_GTK__
 			If Not FHideSelection Then Base.Style = Base.Style Or ES_NOHIDESEL Else Base.Style = Base.Style And Not ES_NOHIDESEL
 		#endif
 	End Property
 	
-	Property TextBox.OEMConvert As Boolean
+	Private Property TextBox.OEMConvert As Boolean
 		Return FOEMConvert
 	End Property
 	
-	Property TextBox.OEMConvert(Value As Boolean)
+	Private Property TextBox.OEMConvert(Value As Boolean)
 		If Value <> FOEMConvert Then
 			FOEMConvert = Value
 			RecreateWnd
 		End If
 	End Property
 	
-	Property TextBox.CharCase As CharCases
+	Private Property TextBox.CharCase As CharCases
 		Return FCharCase
 	End Property
 	
-	Property TextBox.CharCase(Value As CharCases)
+	Private Property TextBox.CharCase(Value As CharCases)
 		If FCharCase <> Value Then
 			FCharCase = Value
 			#ifdef __USE_GTK__
@@ -445,11 +445,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TextBox.Masked As Boolean
+	Private Property TextBox.Masked As Boolean
 		Return FMasked
 	End Property
 	
-	Property TextBox.Masked(Value As Boolean)
+	Private Property TextBox.Masked(Value As Boolean)
 		FMasked = Value
 		#ifdef __USE_GTK__
 			If gtk_is_entry(widget) Then
@@ -470,11 +470,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.MaskChar ByRef As WString
+	Private Property TextBox.MaskChar ByRef As WString
 		Return WGet(FMaskChar)
 	End Property
 	
-	Property TextBox.MaskChar(ByRef Value As WString)
+	Private Property TextBox.MaskChar(ByRef Value As WString)
 		WLet(FMaskChar, Value)
 		#ifdef __USE_GTK__
 			If gtk_is_entry(widget) Then
@@ -485,7 +485,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.TopLine As Integer
+	Private Property TextBox.TopLine As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				For i As Integer = 0 To LinesCount - 1
@@ -502,7 +502,7 @@ Namespace My.Sys.Forms
 		Return FTopLine
 	End Property
 	
-	Property TextBox.TopLine(Value As Integer)
+	Private Property TextBox.TopLine(Value As Integer)
 		FTopLine = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -515,12 +515,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub TextBox.InputFilter(ByRef Value As WString)
+	Private Sub TextBox.InputFilter(ByRef Value As WString)
 		FInputFilter = Reallocate_(FInputFilter, (Len(Value) + 1) * SizeOf(WString))
 		*FInputFilter = Value
 	End Sub
 	
-	Sub TextBox.LoadFromFile(ByRef File As WString)
+	Private Sub TextBox.LoadFromFile(ByRef File As WString)
 		Dim Result As Integer
 		Dim Fn As Integer = FreeFile
 		Result = Open(File For Input Encoding "utf-32" As #Fn)
@@ -551,7 +551,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub TextBox.SaveToFile(ByRef File As WString)
+	Private Sub TextBox.SaveToFile(ByRef File As WString)
 		Dim As Integer Fn = FreeFile
 		If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
 			Print #Fn, Text;
@@ -559,7 +559,7 @@ Namespace My.Sys.Forms
 		Close #Fn
 	End Sub
 	
-	Function TextBox.GetLineLength(Index As Integer = -1) As Integer
+	Private Function TextBox.GetLineLength(Index As Integer = -1) As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _startline, _endline
@@ -576,7 +576,7 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Function TextBox.GetLineFromCharIndex(Index As Integer = -1) As Integer
+	Private Function TextBox.GetLineFromCharIndex(Index As Integer = -1) As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				For i As Integer = 0 To LinesCount - 1
@@ -596,7 +596,7 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Function TextBox.GetCharIndexFromLine(Index As Integer) As Integer
+	Private Function TextBox.GetCharIndexFromLine(Index As Integer) As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _startline
@@ -613,7 +613,7 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Property TextBox.Lines(Index As Integer) ByRef As WString
+	Private Property TextBox.Lines(Index As Integer) ByRef As WString
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _startline, _endline
@@ -638,7 +638,7 @@ Namespace My.Sys.Forms
 		Return ""
 	End Property
 	
-	Property TextBox.Lines(Index As Integer, ByRef Value As WString)
+	Private Property TextBox.Lines(Index As Integer, ByRef Value As WString)
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _startline, _endline
@@ -663,7 +663,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub TextBox.GetSel(ByRef iSelStart As Integer, ByRef iSelEnd As Integer)
+	Private Sub TextBox.GetSel(ByRef iSelStart As Integer, ByRef iSelEnd As Integer)
 		#ifdef __USE_GTK__
 			If widget Then
 				If gtk_is_text_view(widget) Then
@@ -683,7 +683,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TextBox.GetSel(ByRef iSelStartRow As Integer, ByRef iSelStartCol As Integer, ByRef iSelEndRow As Integer, ByRef iSelEndCol As Integer)
+	Private Sub TextBox.GetSel(ByRef iSelStartRow As Integer, ByRef iSelStartCol As Integer, ByRef iSelEndRow As Integer, ByRef iSelEndCol As Integer)
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _start, _end, _startline, _endline
@@ -713,7 +713,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TextBox.SetSel(iSelStart As Integer, iSelEnd As Integer)
+	Private Sub TextBox.SetSel(iSelStart As Integer, iSelEnd As Integer)
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _start, _end
@@ -731,7 +731,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TextBox.SetSel(iSelStartRow As Integer, iSelStartCol As Integer, iSelEndRow As Integer, iSelEndCol As Integer)
+	Private Sub TextBox.SetSel(iSelStartRow As Integer, iSelStartCol As Integer, iSelEndRow As Integer, iSelEndCol As Integer)
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _start, _end, _startline, _endline
@@ -753,7 +753,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function TextBox.LinesCount As Integer
+	Private Function TextBox.LinesCount As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				If Text <> "" Then
@@ -770,7 +770,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Property TextBox.CaretPos As My.Sys.Drawing.Point
+	Private Property TextBox.CaretPos As My.Sys.Drawing.Point
 		Dim As Integer x, y
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -794,14 +794,14 @@ Namespace My.Sys.Forms
 		Return Type(0, 0)
 	End Property
 	
-	Property TextBox.CaretPos(value As My.Sys.Drawing.Point)
+	Private Property TextBox.CaretPos(value As My.Sys.Drawing.Point)
 	End Property
 	
-	Property TextBox.ScrollBars As ScrollBarsType
+	Private Property TextBox.ScrollBars As ScrollBarsType
 		Return FScrollBars
 	End Property
 	
-	Property TextBox.ScrollBars(Value As ScrollBarsType)
+	Private Property TextBox.ScrollBars(Value As ScrollBarsType)
 		FScrollBars = Value
 		#ifdef __USE_GTK__
 			ChangeWidget
@@ -820,12 +820,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.WordWraps As Boolean
+	Private Property TextBox.WordWraps As Boolean
 		Return FWordWraps
 	End Property
 
 	#ifdef __USE_GTK__
-		Sub TextBox.ChangeWidget()
+		Private Sub TextBox.ChangeWidget()
 			Dim As GtkWidget Ptr Ctrlwidget = IIf(CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollbars), WidgetTextView, WidgetEntry)
 			If Widget = Ctrlwidget Then Exit Sub
 			Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(WidgetTextView))
@@ -854,7 +854,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Property TextBox.WordWraps(Value As Boolean)
+	Private Property TextBox.WordWraps(Value As Boolean)
 		FWordWraps = value
 		#ifdef __USE_GTK__
 			ChangeWidget
@@ -873,7 +873,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.SelStart As Integer
+	Private Property TextBox.SelStart As Integer
 		Dim As Integer LStart
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -889,7 +889,7 @@ Namespace My.Sys.Forms
 		Return FSelStart
 	End Property
 	
-	Property TextBox.SelStart(Value As Integer)
+	Private Property TextBox.SelStart(Value As Integer)
 		FSelStart = Value
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
@@ -904,7 +904,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.SelLength As Integer
+	Private Property TextBox.SelLength As Integer
 		Dim As Integer LStart,LEnd
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
@@ -922,7 +922,7 @@ Namespace My.Sys.Forms
 		Return FSelLength
 	End Property
 	
-	Property TextBox.SelLength(Value As Integer)
+	Private Property TextBox.SelLength(Value As Integer)
 		Dim As Integer LStart, LEnd, FEnd
 		FSelLength = Value
 		#ifdef __USE_GTK__
@@ -947,7 +947,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.SelEnd As Integer
+	Private Property TextBox.SelEnd As Integer
 		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
@@ -964,7 +964,7 @@ Namespace My.Sys.Forms
 		Return FSelEnd
 	End Property
 	
-	Property TextBox.SelEnd(Value As Integer)
+	Private Property TextBox.SelEnd(Value As Integer)
 		Dim As Integer LStart, LEnd, FEnd
 		FSelEnd = Value
 		#ifdef __USE_GTK__
@@ -984,7 +984,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.SelText ByRef As WString
+	Private Property TextBox.SelText ByRef As WString
 		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
@@ -1011,7 +1011,7 @@ Namespace My.Sys.Forms
 		Return *FSelText
 	End Property
 	
-	Property TextBox.SelText(ByRef Value As WString)
+	Private Property TextBox.SelText(ByRef Value As WString)
 		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
 		#ifdef __USE_GTK__
@@ -1030,11 +1030,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.MaxLength As Integer
+	Private Property TextBox.MaxLength As Integer
 		Return FMaxLength
 	End Property
 	
-	Property TextBox.MaxLength(Value As Integer)
+	Private Property TextBox.MaxLength(Value As Integer)
 		FMaxLength = Value
 		#ifdef __USE_GTK__
 			If gtk_is_entry(widget) Then
@@ -1045,7 +1045,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TextBox.Modified As Boolean
+	Private Property TextBox.Modified As Boolean
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				FModified = gtk_text_buffer_get_modified(gtk_text_view_get_buffer(gtk_text_view(widget)))
@@ -1058,7 +1058,7 @@ Namespace My.Sys.Forms
 		Return FModified
 	End Property
 	
-	Property TextBox.Modified(Value As Boolean)
+	Private Property TextBox.Modified(Value As Boolean)
 		FModified = Value
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
@@ -1072,10 +1072,10 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub TextBox.WndProc(ByRef message As Message)
+		Private Sub TextBox.WndProc(ByRef message As Message)
 		End Sub
 		
-		Sub TextBox.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub TextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTextBox(Sender.Child)
 					'If .MaxLength <> 0 Then
@@ -1089,7 +1089,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub TextBox.ProcessMessage(ByRef message As Message)
+	Private Sub TextBox.ProcessMessage(ByRef message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -1177,17 +1177,17 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(message)
 	End Sub
 	
-	Sub TextBox.Clear
+	Private Sub TextBox.Clear
 		Text = ""
 	End Sub
 	
-	Sub TextBox.ClearUndo
+	Private Sub TextBox.ClearUndo
 		#ifndef __USE_GTK__
 			If FHandle Then Perform(EM_EMPTYUNDOBUFFER, 0, 0)
 		#endif
 	End Sub
 	
-	Function TextBox.CanUndo As Boolean
+	Private Function TextBox.CanUndo As Boolean
 		#ifndef __USE_GTK__
 			If FHandle Then
 				Return (Perform(EM_CANUNDO, 0, 0) <> 0)
@@ -1199,13 +1199,13 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Sub TextBox.Undo
+	Private Sub TextBox.Undo
 		#ifndef __USE_GTK__
 			If FHandle Then Perform(WM_UNDO, 0, 0)
 		#endif
 	End Sub
 	
-	Sub TextBox.PasteFromClipboard
+	Private Sub TextBox.PasteFromClipboard
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_paste_clipboard(gtk_editable(widget))
@@ -1234,7 +1234,7 @@ Namespace My.Sys.Forms
 '		#endif
 '	End Sub
 	
-	Sub TextBox.CopyToClipboard
+	Private Sub TextBox.CopyToClipboard
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_copy_clipboard(gtk_editable(widget))
@@ -1246,7 +1246,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TextBox.CutToClipboard
+	Private Sub TextBox.CutToClipboard
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_cut_clipboard(gtk_editable(widget))
@@ -1258,7 +1258,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TextBox.SelectAll
+	Private Sub TextBox.SelectAll
 		#ifdef __USE_GTK__
 			If gtk_is_editable(widget) Then
 				gtk_editable_select_region(gtk_editable(widget), 0, -1)
@@ -1273,17 +1273,17 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Operator TextBox.Cast As My.Sys.Forms.Control Ptr
+	Private Operator TextBox.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub TextBox.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnChange Then txt->OnChange(*txt)
 		End Sub
 		
-		Sub TextBox.TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
+		Private Sub TextBox.TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt Then
 				If CInt(txt->FMaxLength > 0) AndAlso CInt(gtk_is_text_view(txt->widget)) AndAlso CInt(Len(txt->Text) > txt->FMaxLength) Then
@@ -1294,58 +1294,58 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub TextBox.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			Dim As Control Ptr btn = txt->GetForm()->FDefaultButton
 			If txt->OnActivate Then txt->OnActivate(*txt)
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
 		End Sub
 		
-		Function TextBox.Entry_FocusInEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
+		Private Function TextBox.Entry_FocusInEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnGotFocus Then txt->OnGotFocus(*txt)
 			Return False
 		End Function
 		
-		Function TextBox.Entry_FocusOutEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
+		Private Function TextBox.Entry_FocusOutEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnLostFocus Then txt->OnLostFocus(*txt)
 			Return False
 		End Function
 		
-		Sub TextBox.Entry_CopyClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Entry_CopyClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnCopy Then txt->OnCopy(*txt)
 		End Sub
 		
-		Sub TextBox.Entry_CutClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Entry_CutClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnCut Then txt->OnCut(*txt)
 		End Sub
 		
-		Sub TextBox.Entry_PasteClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Entry_PasteClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			Dim Action As Integer = 1
 			If txt AndAlso txt->OnPaste Then txt->OnPaste(*txt, Action)
 		End Sub
 		
-		Sub TextBox.TextView_SetScrollAdjustments(textview As GtkTextView Ptr, arg1 As GtkAdjustment Ptr, arg2 As GtkAdjustment Ptr, user_data As Any Ptr)
+		Private Sub TextBox.TextView_SetScrollAdjustments(textview As GtkTextView Ptr, arg1 As GtkAdjustment Ptr, arg2 As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If gtk_is_widget(arg1) Then g_signal_connect(arg1, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
 			If gtk_is_widget(arg2) Then g_signal_connect(arg2, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
 		End Sub
 		
-		Sub TextBox.Adjustment_ValueChanged(adjustment As GtkAdjustment Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Adjustment_ValueChanged(adjustment As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnScroll Then txt->OnScroll(*txt)
 		End Sub
 		
-		Sub TextBox.Preedit_Changed(self As GtkWidget Ptr, preedit As gchar Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Preedit_Changed(self As GtkWidget Ptr, preedit As gchar Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt AndAlso txt->OnUpdate Then txt->OnUpdate(*txt, WStr(*preedit))
 		End Sub
 		
-		Sub TextBox.Entry_InsertText(self As GtkEditable Ptr, new_text As gchar Ptr, new_text_length As gint, position As gint Ptr, user_data As Any Ptr)
+		Private Sub TextBox.Entry_InsertText(self As GtkEditable Ptr, new_text As gchar Ptr, new_text_length As gint, position As gint Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt->CharCase <> ecNone Then
 				g_signal_handlers_block_by_func(G_OBJECT (self), G_CALLBACK(@Entry_InsertText), user_data)
@@ -1357,7 +1357,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Constructor TextBox
+	Private Constructor TextBox
 		'FSelText = CAllocate(0)
 		#ifdef __USE_GTK__
 			WidgetEntry = gtk_entry_new()
@@ -1439,7 +1439,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor TextBox
+	Private Destructor TextBox
 		If FSelText <> 0 Then Deallocate_( FSelText)
 		If FLine <> 0 Then Deallocate_( FLine)
 	End Destructor

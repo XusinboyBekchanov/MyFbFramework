@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
 	#define QContainerControl(__Ptr__) *Cast(ContainerControl Ptr,__Ptr__)
 	
-	Type ContainerControl Extends Control
+	Private Type ContainerControl Extends Control
 	Private:
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef message As Message)

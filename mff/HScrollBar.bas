@@ -14,7 +14,7 @@
 #include once "HScrollBar.bi"
 
 Namespace My.Sys.Forms
-	Function HScrollBar.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function HScrollBar.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "arrowchangesize": Return @This.FArrowChangeSize
 		Case "maxvalue": Return @This.FMax
@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function HScrollBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function HScrollBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "arrowchangesize": This.ArrowChangeSize = QInteger(Value)
 		Case "maxvalue": This.MaxValue = QInteger(Value)
@@ -42,27 +42,27 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property HScrollBar.TabIndex As Integer
+	Private Property HScrollBar.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property HScrollBar.TabIndex(Value As Integer)
+	Private Property HScrollBar.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property HScrollBar.TabStop As Boolean
+	Private Property HScrollBar.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property HScrollBar.TabStop(Value As Boolean)
+	Private Property HScrollBar.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property HScrollBar.MinValue As Integer
+	Private Property HScrollBar.MinValue As Integer
 		Return FMin
 	End Property
 	
-	Property HScrollBar.MinValue(Value As Integer)
+	Private Property HScrollBar.MinValue(Value As Integer)
 		FMin = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_range(gtk_range(widget), FMin, FMax)
@@ -71,11 +71,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property HScrollBar.MaxValue As Integer
+	Private Property HScrollBar.MaxValue As Integer
 		Return FMax
 	End Property
 	
-	Property HScrollBar.MaxValue(Value As Integer)
+	Private Property HScrollBar.MaxValue(Value As Integer)
 		FMax = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_range(gtk_range(widget), FMin, FMax)
@@ -84,7 +84,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property HScrollBar.Position As Integer
+	Private Property HScrollBar.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = gtk_range_get_value(gtk_range(widget))
 		#else
@@ -93,7 +93,7 @@ Namespace My.Sys.Forms
 		Return FPosition
 	End Property
 	
-	Property HScrollBar.Position(Value As Integer)
+	Private Property HScrollBar.Position(Value As Integer)
 		FPosition = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_value(gtk_range(widget), CDbl(Value))
@@ -102,22 +102,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property HScrollBar.ArrowChangeSize As Integer
+	Private Property HScrollBar.ArrowChangeSize As Integer
 		Return FArrowChangeSize
 	End Property
 	
-	Property HScrollBar.ArrowChangeSize(Value As Integer)
+	Private Property HScrollBar.ArrowChangeSize(Value As Integer)
 		FArrowChangeSize = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
 		#endif
 	End Property
 	
-	Property HScrollBar.PageSize As Integer
+	Private Property HScrollBar.PageSize As Integer
 		Return FPageSize
 	End Property
 	
-	Property HScrollBar.PageSize(Value As Integer)
+	Private Property HScrollBar.PageSize(Value As Integer)
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
 		#ifdef __USE_GTK__
@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub HScrollBar.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub HScrollBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QHScrollBar(Sender.Child)
 					.MinValue = .MinValue
@@ -141,11 +141,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub HScrollBar.WndProc(ByRef Message As Message)
+		Private Sub HScrollBar.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 		
-	Sub HScrollBar.ProcessMessage(ByRef Message As Message)
+	Private Sub HScrollBar.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Static As Integer OldPos
 			Select Case Message.Msg
@@ -198,18 +198,18 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(message)
 	End Sub
 	
-	Operator HScrollBar.Cast As Control Ptr
+	Private Operator HScrollBar.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub HScrollBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
+		Private Sub HScrollBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 			Dim As HScrollBar Ptr scr = user_data
 			If scr->OnScroll Then scr->OnScroll(*scr, gtk_range_get_value(range))
 		End Sub
 	#endif
 	
-	Constructor HScrollBar
+	Private Constructor HScrollBar
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				widget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL)
@@ -243,6 +243,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor HScrollBar
+	Private Destructor HScrollBar
 	End Destructor
 End Namespace

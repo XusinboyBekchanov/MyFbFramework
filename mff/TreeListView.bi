@@ -13,7 +13,7 @@ Namespace My.Sys.Forms
 	
 	Type PTreeListViewItem As TreeListViewItem Ptr
 	
-	Type TreeListViewItems Extends My.Sys.Object
+	Private Type TreeListViewItems Extends My.Sys.Object
 	Private:
 		FItems As List
 		PItem As PTreeListViewItem
@@ -50,7 +50,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type TreeListViewItem Extends My.Sys.Object
+	Private Type TreeListViewItem Extends My.Sys.Object
 	Private:
 		FText               As WString Ptr
 		FSubItems           As WStringList
@@ -119,7 +119,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type TreeListViewColumn Extends My.Sys.Object
+	Private Type TreeListViewColumn Extends My.Sys.Object
 	Private:
 		FText            As WString Ptr
 		FHint            As WString Ptr
@@ -156,7 +156,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type TreeListViewColumns
+	Private Type TreeListViewColumns
 	Private:
 		FColumns As List
 		#ifdef __USE_GTK__
@@ -179,7 +179,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type TreeListView Extends Control
+	Private Type TreeListView Extends Control
 	Private:
 		FColumnHeaderHidden As Boolean
 		FSingleClickActivate As Boolean

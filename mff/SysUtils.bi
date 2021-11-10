@@ -97,7 +97,7 @@ Declare Function iGet(Value As Any Ptr) As Integer
 Declare Function ZGet(ByRef subject As ZString Ptr) As String
 
 Namespace ClassContainer
-	Type ClassType
+	Private Type ClassType
 	Protected:
 		FClassName As WString Ptr
 		FClassAncestor As WString Ptr

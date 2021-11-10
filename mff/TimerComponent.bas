@@ -7,7 +7,7 @@
 #include once "TimerComponent.bi"
 
 Namespace My.Sys.Forms
-	Function TimerComponent.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function TimerComponent.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "enabled": Return Cast(Any Ptr, @This.FEnabled)
 		Case "interval": Return Cast(Any Ptr, @This.FInterval)
@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function TimerComponent.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function TimerComponent.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "enabled": This.Enabled = QBoolean(Value)
 		Case "interval": This.Interval = QInteger(Value)
@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifdef __USE_GTK__
-		Function TimerProc(ByVal user_data As gpointer) As gboolean
+		Private Function TimerProc(ByVal user_data As gpointer) As gboolean
 			With TimersList
 				Dim As TimerComponent Ptr tmr = user_data
 				If tmr <> 0 Then
@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 			End With
 		End Function
 	#else
-		Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
+		Private Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
 			With TimersList
 				If .Contains(idEvent) Then
 					Var tmr = Cast(TimerComponent Ptr, .Object(.IndexOf(idEvent)))
@@ -48,11 +48,11 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Property TimerComponent.Enabled As Boolean
+	Private Property TimerComponent.Enabled As Boolean
 		Return FEnabled
 	End Property
 	
-	Property TimerComponent.Enabled(Value As Boolean)
+	Private Property TimerComponent.Enabled(Value As Boolean)
 		FEnabled = Value
 		If FInterval <> 0 AndAlso Not FDesignMode Then
 			#ifdef __USE_GTK__
@@ -74,11 +74,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TimerComponent.Interval As Integer
+	Private Property TimerComponent.Interval As Integer
 		Return FInterval
 	End Property
 	
-	Property TimerComponent.Interval(Value As Integer)
+	Private Property TimerComponent.Interval(Value As Integer)
 		FInterval = Value
 		If FEnabled AndAlso Not FDesignMode Then
 			TimersList.Remove TimersList.IndexOf(ID)
@@ -97,17 +97,17 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Operator TimerComponent.Cast As Any Ptr
+	Private Operator TimerComponent.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor TimerComponent
+	Private Constructor TimerComponent
 		Interval = 10
 		WLet(FClassName, "TimerComponent")
 		FEnabled = False
 	End Constructor
 	
-	Destructor TimerComponent
+	Private Destructor TimerComponent
 		Enabled = False
 	End Destructor
 End Namespace

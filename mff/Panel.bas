@@ -15,7 +15,7 @@
 '#Include Once "Canvas.bi"
 
 Namespace My.Sys.Forms
-	Function Panel.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Panel.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -23,7 +23,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Panel.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Panel.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -37,78 +37,78 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property Panel.TabIndex As Integer
+	Private Property Panel.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property Panel.TabIndex(Value As Integer)
+	Private Property Panel.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property Panel.TabStop As Boolean
+	Private Property Panel.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property Panel.TabStop(Value As Boolean)
+	Private Property Panel.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property Panel.Text ByRef As WString
+	Private Property Panel.Text ByRef As WString
 		Return WGet(FText)
 	End Property
 	
-	Property Panel.Text(ByRef Value As WString)
+	Private Property Panel.Text(ByRef Value As WString)
 		Base.Text = Value
 	End Property
 		
-	Property Panel.BevelInner As Integer
+	Private Property Panel.BevelInner As Integer
 		Return FBevelInner
 	End Property
 	
-	Property Panel.BevelInner(Value As Integer)
+	Private Property Panel.BevelInner(Value As Integer)
 		FBevelInner = Value
 		Invalidate
 	End Property
 	
-	Property Panel.BevelOuter As Integer
+	Private Property Panel.BevelOuter As Integer
 		Return FBevelOuter
 	End Property
 	
-	Property Panel.BevelOuter(Value As Integer)
+	Private Property Panel.BevelOuter(Value As Integer)
 		FBevelOuter = Value
 		Invalidate
 	End Property
 	
-	Property Panel.BevelWidth As Integer
+	Private Property Panel.BevelWidth As Integer
 		Return FBevelWidth
 	End Property
 	
-	Property Panel.BevelWidth(Value As Integer)
+	Private Property Panel.BevelWidth(Value As Integer)
 		FBevelWidth = Value
 		Invalidate
 	End Property
 	
-	Property Panel.BorderWidth As Integer
+	Private Property Panel.BorderWidth As Integer
 		Return FBorderWidth
 	End Property
 	
-	Property Panel.BorderWidth(Value As Integer)
+	Private Property Panel.BorderWidth(Value As Integer)
 		FBorderWidth = Value
 		Invalidate
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub Panel.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub Panel.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QPanel(Sender.Child)
 				End With
 			End If
 		End Sub
 		
-		Sub Panel.WndProc(ByRef Message As Message)
+		Private Sub Panel.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
-	Sub Panel.ProcessMessage(ByRef Message As Message)
+	Private Sub Panel.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
@@ -201,14 +201,14 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub Panel.AdjustColors(FBevel As Integer)
+		Private Sub Panel.AdjustColors(FBevel As Integer)
 			FTopColor = GetSysColor(COLOR_BTNHIGHLIGHT)
 			If FBevel = bvLowered Then FTopColor = GetSysColor(COLOR_BTNSHADOW)
 			FBottomColor = GetSysColor(COLOR_BTNSHADOW)
 			If FBevel = bvLowered Then FBottomColor = GetSysColor(COLOR_BTNHIGHLIGHT)
 		End Sub
 		
-		Sub Panel.DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
+		Private Sub Panel.DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Canvas.Pen.Color = FTopColor
 			Canvas.Line(R.Left, R.Top, R.Right, R.Top)
 			Canvas.Line(R.Left, R.Top, R.Left, R.Bottom)
@@ -217,7 +217,7 @@ Namespace My.Sys.Forms
 			Canvas.Line(R.Left, R.Bottom, R.Right, R.Bottom)
 		End Sub
 		
-		Sub Panel.Frame3D(R As My.Sys.Drawing.RECT, AWidth As Integer)
+		Private Sub Panel.Frame3D(R As My.Sys.Drawing.RECT, AWidth As Integer)
 			Canvas.Pen.Size = 1
 			R.Bottom -= 1
 			R.Right  -= 1
@@ -231,11 +231,11 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Operator Panel.Cast As Control Ptr
+	Private Operator Panel.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor Panel
+	Private Constructor Panel
 		With This
 			#ifdef __USE_GTK__
 				'widget = gtk_scrolled_window_new(null, null)
@@ -285,7 +285,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor Panel
+	Private Destructor Panel
 		#ifndef __USE_GTK__
 			UnregisterClass "Panel", GetModuleHandle(NULL)
 		#endif

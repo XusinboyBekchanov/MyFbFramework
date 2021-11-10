@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
 	#define QLinkLabel(__Ptr__) *Cast(LinkLabel Ptr, __Ptr__)
 	
-	Type LinkLabel Extends Control
+	Private Type LinkLabel Extends Control
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)

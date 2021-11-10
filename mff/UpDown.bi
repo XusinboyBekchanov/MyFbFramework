@@ -17,15 +17,15 @@
 Namespace My.Sys.Forms
 	#define QUpDown(__Ptr__) *Cast(UpDown Ptr,__Ptr__)
 	
-	Enum UpDownOrientation
+	Private Enum UpDownOrientation
 		udVertical,udHorizontal
 	End Enum
 	
-	Enum UpDownAlignment
+	Private Enum UpDownAlignment
 		udRight,udLeft
 	End Enum
 	
-	Type UpDown Extends Control
+	Private Type UpDown Extends Control
 	Private:
 		FPosition     As Integer
 		FMinValue     As Integer

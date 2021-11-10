@@ -7,7 +7,7 @@
 #include once "IPAddress.bi"
 
 Namespace My.Sys.Forms
-	Function IPAddress.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function IPAddress.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "tabindex": Return @FTabIndex
 		Case "text": Text: Return FText.vptr
@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function IPAddress.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function IPAddress.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case "text": Text = QWString(Value)
@@ -29,23 +29,23 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property IPAddress.TabIndex As Integer
+	Private Property IPAddress.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property IPAddress.TabIndex(Value As Integer)
+	Private Property IPAddress.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property IPAddress.TabStop As Boolean
+	Private Property IPAddress.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property IPAddress.TabStop(Value As Boolean)
+	Private Property IPAddress.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Sub IPAddress.Clear
+	Private Sub IPAddress.Clear
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To 3
 				gtk_entry_set_text(gtk_entry(Entries(i)), !"\0")
@@ -55,7 +55,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property IPAddress.Text ByRef As WString
+	Private Property IPAddress.Text ByRef As WString
 		#ifdef __USE_GTK__
 			FText = Trim(WStr(*gtk_entry_get_text(gtk_entry(Entries(0)))))
 			For i As Integer = 1 To 3
@@ -67,7 +67,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property IPAddress.Text(ByRef Value As WString)
+	Private Property IPAddress.Text(ByRef Value As WString)
 		FText = Value
 		If Value = "" Then
 			This.Clear
@@ -89,16 +89,16 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			With *Cast(IPAddress Ptr, @Sender)
 				.Text = .FText
 			End With
 		End Sub
 		
-		Sub IPAddress.WndProc(ByRef Message As Message)
+		Private Sub IPAddress.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Function IPAddress.IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Private Function IPAddress.IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As IPAddress Ptr Ctrl
 			Dim Message As Message
 			Ctrl = GetProp(FWindow, "MFFControl")
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub IPAddress.ProcessMessage(ByRef Message As Message)
+	Private Sub IPAddress.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -160,12 +160,12 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage Message
 	End Sub
 	
-	Operator IPAddress.Cast As My.Sys.Forms.Control Ptr
+	Private Operator IPAddress.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub IPAddress.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+		Private Sub IPAddress.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As IPAddress Ptr ipa = user_data
 			If allocation->width <> ipa->AllocatedWidth OrElse allocation->height <> ipa->AllocatedHeight Then
 				ipa->AllocatedWidth = allocation->width
@@ -174,7 +174,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function IPAddress.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function IPAddress.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As IPAddress Ptr Ctrl = Cast(Any Ptr, data1)
 			If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
 				Dim allocation As GtkAllocation
@@ -256,7 +256,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function IPAddress.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function IPAddress.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As IPAddress Ptr ipa = Cast(Any Ptr, data1)
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			ipa->win = Event->window
@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function IPAddress.Entry_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function IPAddress.Entry_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As IPAddress Ptr ipa = user_data
 			Select Case Event->key.keyval
 			Case GDK_KEY_Home
@@ -395,18 +395,18 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Sub IPAddress.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+		Private Sub IPAddress.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As IPAddress Ptr ipa = user_data
 			Dim As Control Ptr btn = ipa->GetForm()->FDefaultButton
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
 		End Sub
 		
-		Sub IPAddress.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
+		Private Sub IPAddress.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As IPAddress Ptr ipa = user_data
 			If ipa AndAlso ipa->OnChange Then ipa->OnChange(*ipa)
 		End Sub
 		
-		Sub IPAddress.Entry_GrabFocus(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub IPAddress.Entry_GrabFocus(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As IPAddress Ptr ipa = user_data
 			If ipa->CurrentEntry <> 0 AndAlso ipa->CurrentEntry <> widget Then
 				Dim As Integer Index = 3, Value
@@ -431,7 +431,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Constructor IPAddress
+	Private Constructor IPAddress
 		#ifndef __USE_GTK__
 			Dim As INITCOMMONCONTROLSEX icex
 			
@@ -491,7 +491,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor IPAddress
+	Private Destructor IPAddress
 		#ifndef __USE_GTK__
 			Handle = 0
 			UnregisterClass "IPAddress", GetModuleHandle(NULL)

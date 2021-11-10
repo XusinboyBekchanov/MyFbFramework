@@ -10,7 +10,7 @@
 #endif
 
 Namespace My.Sys.Forms
-	Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "editstyle": Return @FEditStyle
 		Case "selalignment": FSelIntVal = SelAlignment: Return @FSelIntVal
@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function RichTextBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function RichTextBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -72,23 +72,23 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property RichTextBox.TabIndex As Integer
+	Private Property RichTextBox.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property RichTextBox.TabIndex(Value As Integer)
+	Private Property RichTextBox.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property RichTextBox.TabStop As Boolean
+	Private Property RichTextBox.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property RichTextBox.TabStop(Value As Boolean)
+	Private Property RichTextBox.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Function RichTextBox.GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
+	Private Function RichTextBox.GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString
 		Dim cpMax2 As Integer = cpMax
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter _start, _end
@@ -107,7 +107,7 @@ Namespace My.Sys.Forms
 		Return *FTextRange
 	End Function
 	
-	Property RichTextBox.SelAlignment As AlignmentConstants
+	Private Property RichTextBox.SelAlignment As AlignmentConstants
 		#ifdef __USE_GTK__
 			Dim As Integer iAlignment = GetIntProperty("justification")
 			Return IIf(iAlignment = GTK_JUSTIFY_CENTER, AlignmentConstants.taCenter, IIf(iAlignment = GTK_JUSTIFY_RIGHT, AlignmentConstants.taRight, AlignmentConstants.taLeft))
@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelAlignment(Value As AlignmentConstants)
+	Private Property RichTextBox.SelAlignment(Value As AlignmentConstants)
 		#ifdef __USE_GTK__
 			SetIntProperty "justification", IIf(Value = AlignmentConstants.taLeft, GTK_JUSTIFY_LEFT, IIf(Value = AlignmentConstants.taCenter, GTK_JUSTIFY_CENTER, IIf(Value = AlignmentConstants.taRight, GTK_JUSTIFY_RIGHT, 0)))
 		#else
@@ -133,7 +133,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelBullet As Boolean
+	Private Property RichTextBox.SelBullet As Boolean
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter FStart, FEnd
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
@@ -158,7 +158,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelBullet(Value As Boolean)
+	Private Property RichTextBox.SelBullet(Value As Boolean)
 		#ifdef __USE_GTK__
 			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
 			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag, TrueTextTag, FalseTextTag
@@ -201,7 +201,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelIndent As Integer
+	Private Property RichTextBox.SelIndent As Integer
 		#ifdef __USE_GTK__
 			Return gtk_text_view_get_indent(gtk_text_view(widget))
 		#else
@@ -214,7 +214,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelIndent(Value As Integer)
+	Private Property RichTextBox.SelIndent(Value As Integer)
 		#ifdef __USE_GTK__
 			gtk_text_view_set_indent(gtk_text_view(widget), Value)
 		#else
@@ -226,7 +226,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelRightIndent As Integer
+	Private Property RichTextBox.SelRightIndent As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("right-margin")
 		#else
@@ -239,7 +239,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelRightIndent(Value As Integer)
+	Private Property RichTextBox.SelRightIndent(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty("right-margin", Value)
 		#else
@@ -251,7 +251,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelHangingIndent As Integer
+	Private Property RichTextBox.SelHangingIndent As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("indent") - SelIndent
 		#else
@@ -264,7 +264,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelHangingIndent(Value As Integer)
+	Private Property RichTextBox.SelHangingIndent(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty("indent", SelIndent + Value)
 		#else
@@ -276,7 +276,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelTabCount As Integer
+	Private Property RichTextBox.SelTabCount As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter FStart, FEnd
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
@@ -303,7 +303,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelTabCount(Value As Integer)
+	Private Property RichTextBox.SelTabCount(Value As Integer)
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter FStart, FEnd
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
@@ -335,7 +335,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelTabs(sElement As Integer) As Integer
+	Private Property RichTextBox.SelTabs(sElement As Integer) As Integer
 		#ifdef __USE_GTK__
 			If sElement >= 0 AndAlso sElement < SelTabCount Then
 				Dim As GtkTextIter FStart, FEnd
@@ -366,7 +366,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelTabs(sElement As Integer, Value As Integer)
+	Private Property RichTextBox.SelTabs(sElement As Integer, Value As Integer)
 		#ifdef __USE_GTK__
 			If sElement >= 0 AndAlso sElement < SelTabCount Then
 				Dim As GtkTextIter FStart, FEnd
@@ -400,7 +400,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelBackColor As Integer
+	Private Property RichTextBox.SelBackColor As Integer
 		#ifdef __USE_GTK__
 			Return BGRToRGBA(ValInt(GetStrProperty("background")))
 		#else
@@ -413,7 +413,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelBackColor(Value As Integer)
+	Private Property RichTextBox.SelBackColor(Value As Integer)
 		#ifdef __USE_GTK__
 			SetStrProperty "background", "#" & Hex(RGBAToBGR(Value), 6), True
 		#else
@@ -426,7 +426,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelColor As Integer
+	Private Property RichTextBox.SelColor As Integer
 		#ifdef __USE_GTK__
 			Return BGRToRGBA(ValInt(GetStrProperty("foreground")))
 		#else
@@ -439,7 +439,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelColor(Value As Integer)
+	Private Property RichTextBox.SelColor(Value As Integer)
 		#ifdef __USE_GTK__
 			SetStrProperty "foreground", "#" & Hex(RGBAToBGR(Value), 6), True
 		#else
@@ -452,7 +452,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelFontName ByRef As WString
+	Private Property RichTextBox.SelFontName ByRef As WString
 		#ifdef __USE_GTK__
 			Return GetStrProperty("family")
 		#else
@@ -465,7 +465,7 @@ Namespace My.Sys.Forms
 		Return Font.Name
 	End Property
 	
-	Property RichTextBox.SelFontName(ByRef Value As WString)
+	Private Property RichTextBox.SelFontName(ByRef Value As WString)
 		#ifdef __USE_GTK__
 			SetStrProperty("family", Value)
 		#else
@@ -477,7 +477,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelFontSize As Integer
+	Private Property RichTextBox.SelFontSize As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("size")
 		#else
@@ -490,7 +490,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelFontSize(Value As Integer)
+	Private Property RichTextBox.SelFontSize(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty "size", Value
 		#else
@@ -503,7 +503,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function RichTextBox.GetStrProperty(sProperty As String) ByRef As WString
+		Private Function RichTextBox.GetStrProperty(sProperty As String) ByRef As WString
 			Dim As GtkTextIter FStart, FEnd
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
@@ -518,7 +518,7 @@ Namespace My.Sys.Forms
 			Return *FSelWStrVal
 		End Function
 		
-		Sub RichTextBox.SetStrProperty(sProperty As String, ByRef Value As WString, WithoutPrevValue As Boolean = False)
+		Private Sub RichTextBox.SetStrProperty(sProperty As String, ByRef Value As WString, WithoutPrevValue As Boolean = False)
 			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
 			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag
 			Dim As String NeedTagName = sProperty & Value, NotNeedTagName = sProperty & IIf(WithoutPrevValue, "", GetStrProperty(sProperty))
@@ -537,7 +537,7 @@ Namespace My.Sys.Forms
 			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
 		End Sub
 		
-		Function RichTextBox.GetIntProperty(sProperty As String) As Integer
+		Private Function RichTextBox.GetIntProperty(sProperty As String) As Integer
 			Dim As GtkTextIter FStart, FEnd
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @FStart, @FEnd)
 			Dim As Integer iResult
@@ -553,7 +553,7 @@ Namespace My.Sys.Forms
 			Return iResult
 		End Function
 		
-		Sub RichTextBox.SetIntProperty(sProperty As String, Value As Integer)
+		Private Sub RichTextBox.SetIntProperty(sProperty As String, Value As Integer)
 			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
 			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag
 			Dim As String NeedTagName = sProperty & Str(Value), NotNeedTagName = sProperty & Str(GetIntProperty(sProperty))
@@ -572,7 +572,7 @@ Namespace My.Sys.Forms
 			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(gtk_text_view(widget)), NeedTextTag, @FStart, @FEnd)
 		End Sub
 		
-		Function RichTextBox.GetBoolProperty(sProperty As String, NeedValue As Integer) As Boolean
+		Private Function RichTextBox.GetBoolProperty(sProperty As String, NeedValue As Integer) As Boolean
 			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
 			Dim As GtkTextTag Ptr NeedTextTag
 			Dim As String NeedTagName = sProperty & Str(NeedValue)
@@ -591,7 +591,7 @@ Namespace My.Sys.Forms
 			Return bResult
 		End Function
 		
-		Sub RichTextBox.SetBoolProperty(sProperty As String, Value As Boolean, TrueValue As Integer, FalseValue As Integer)
+		Private Sub RichTextBox.SetBoolProperty(sProperty As String, Value As Boolean, TrueValue As Integer, FalseValue As Integer)
 			Dim As GtkTextTagTable Ptr TextTagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(gtk_text_view(widget)))
 			Dim As GtkTextTag Ptr NeedTextTag, NotNeedTextTag, TrueTextTag, FalseTextTag
 			Dim As String NeedTagName, TrueTagName = sProperty & Str(TrueValue), FalseTagName = sProperty & Str(FalseValue)
@@ -620,7 +620,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Property RichTextBox.SelBold As Boolean
+	Private Property RichTextBox.SelBold As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("weight", PANGO_WEIGHT_BOLD)
 		#else
@@ -633,7 +633,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelBold(Value As Boolean)
+	Private Property RichTextBox.SelBold(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "weight", Value, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL
 		#else
@@ -646,7 +646,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelItalic As Boolean
+	Private Property RichTextBox.SelItalic As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("style", PANGO_STYLE_ITALIC)
 		#else
@@ -659,7 +659,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelItalic(Value As Boolean)
+	Private Property RichTextBox.SelItalic(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "style", Value, PANGO_STYLE_ITALIC, PANGO_STYLE_NORMAL
 		#else
@@ -672,7 +672,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelUnderline As Boolean
+	Private Property RichTextBox.SelUnderline As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("underline", PANGO_UNDERLINE_SINGLE)
 		#else
@@ -685,7 +685,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelUnderline(Value As Boolean)
+	Private Property RichTextBox.SelUnderline(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "style", Value, PANGO_UNDERLINE_SINGLE, PANGO_UNDERLINE_NONE
 		#else
@@ -698,7 +698,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelStrikeout As Boolean
+	Private Property RichTextBox.SelStrikeout As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("strikethrough", True)
 		#else
@@ -711,7 +711,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelStrikeout(Value As Boolean)
+	Private Property RichTextBox.SelStrikeout(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "strikethrough", Value, True, False
 		#else
@@ -724,7 +724,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelProtected As Boolean
+	Private Property RichTextBox.SelProtected As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("editable", True)
 		#else
@@ -737,7 +737,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelProtected(Value As Boolean)
+	Private Property RichTextBox.SelProtected(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "editable", Value, True, False
 		#else
@@ -750,7 +750,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelCharOffset As Integer
+	Private Property RichTextBox.SelCharOffset As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("rise")
 		#else
@@ -763,7 +763,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelCharOffset(Value As Integer)
+	Private Property RichTextBox.SelCharOffset(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty("rise", Value)
 		#else
@@ -775,7 +775,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelCharSet As Integer
+	Private Property RichTextBox.SelCharSet As Integer
 		#ifndef __USE_GTK__
 			If FHandle Then
 				cf.dwMask = CFM_CHARSET
@@ -786,7 +786,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property RichTextBox.SelCharSet(Value As Integer)
+	Private Property RichTextBox.SelCharSet(Value As Integer)
 		#ifndef __USE_GTK__
 			If FHandle Then
 				cf.dwMask = CFM_CHARSET
@@ -796,7 +796,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function RichTextBox.GetCharIndexFromPos(p As My.Sys.Drawing.Point) As Integer
+	Private Function RichTextBox.GetCharIndexFromPos(p As My.Sys.Drawing.Point) As Integer
 		#ifndef __USE_GTK__
 			Return Perform(EM_CHARFROMPOS, 0, CInt(@p))
 		#else
@@ -806,7 +806,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Property RichTextBox.Zoom As Integer
+	Private Property RichTextBox.Zoom As Integer
 		Dim As Integer wp, lp
 		Var Result = FZoom
 		#ifndef __USE_GTK__
@@ -819,7 +819,7 @@ Namespace My.Sys.Forms
 		Return Result
 	End Property
 	
-	Property RichTextBox.Zoom(Value As Integer)
+	Private Property RichTextBox.Zoom(Value As Integer)
 		FZoom = Value
 		#ifndef __USE_GTK__
 			If Value = 0 Then
@@ -830,7 +830,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function RichTextBox.BottomLine As Integer
+	Private Function RichTextBox.BottomLine As Integer
 		#ifndef __USE_GTK__
 			Dim r As ..Rect, i As Integer
 			Perform(EM_GETRECT, 0, CInt(@r))
@@ -843,7 +843,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Function RichTextBox.CanRedo As Boolean
+	Private Function RichTextBox.CanRedo As Boolean
 		#ifndef __USE_GTK__
 			If FHandle Then
 				Return (Perform(EM_CANREDO, 0, 0) <> 0)
@@ -855,19 +855,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Sub RichTextBox.Undo
+	Private Sub RichTextBox.Undo
 		#ifndef __USE_GTK__
 			If FHandle Then Perform(EM_UNDO, 0, 0)
 		#endif
 	End Sub
 	
-	Sub RichTextBox.Redo
+	Private Sub RichTextBox.Redo
 		#ifndef __USE_GTK__
 			If FHandle Then Perform(EM_REDO, 0, 0)
 		#endif
 	End Sub
 	
-	Function RichTextBox.Find(ByRef Value As WString) As Boolean
+	Private Function RichTextBox.Find(ByRef Value As WString) As Boolean
 		#ifndef __USE_GTK__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
@@ -893,7 +893,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Function RichTextBox.FindNext(ByRef Value As WString = "") As Boolean
+	Private Function RichTextBox.FindNext(ByRef Value As WString = "") As Boolean
 		#ifndef __USE_GTK__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
@@ -926,7 +926,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Function RichTextBox.FindPrev(ByRef Value As WString = "") As Boolean
+	Private Function RichTextBox.FindPrev(ByRef Value As WString = "") As Boolean
 		#ifndef __USE_GTK__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
@@ -957,11 +957,11 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Sub RichTextBox.WndProc(ByRef message As Message)
+		Private Sub RichTextBox.WndProc(ByRef message As Message)
 		End Sub
 	#endif
 	
-	Sub RichTextBox.ProcessMessage(ByRef message As Message)
+	Private Sub RichTextBox.ProcessMessage(ByRef message As Message)
 		#ifndef __USE_GTK__
 			'?message.msg & ": " & GetMessageName(message.msg)
 			Select Case message.Msg
@@ -1003,11 +1003,11 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Property RichTextBox.EditStyle As Boolean
+	Private Property RichTextBox.EditStyle As Boolean
 		Return FEditStyle
 	End Property
 	
-	Property RichTextBox.EditStyle(Value As Boolean)
+	Private Property RichTextBox.EditStyle(Value As Boolean)
 		FEditStyle = Value
 		#ifndef __USE_GTK__
 			If FHandle Then
@@ -1016,7 +1016,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property RichTextBox.SelText ByRef As WString
+	Private Property RichTextBox.SelText ByRef As WString
 		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter _start, _end
@@ -1039,7 +1039,7 @@ Namespace My.Sys.Forms
 		Return *FSelText
 	End Property
 	
-	Property RichTextBox.SelText(ByRef Value As WString)
+	Private Property RichTextBox.SelText(ByRef Value As WString)
 		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
 		#ifdef __USE_GTK__
@@ -1054,7 +1054,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Function RichTextBox.StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
+		Private Function RichTextBox.StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
 			Dim As Integer length
 			ReadFile(hFile, pBuffer, NumBytes, Cast(LPDWORD, @length), 0)
 			*pBytesRead = length
@@ -1063,7 +1063,7 @@ Namespace My.Sys.Forms
 			EndIf
 		End Function
 		
-		Function RichTextBox.StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
+		Private Function RichTextBox.StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
 			Dim As Integer length
 			WriteFile(hFile, pBuffer, NumBytes, Cast(LPDWORD, @length), 0)
 			*pBytesWritten = length
@@ -1072,7 +1072,7 @@ Namespace My.Sys.Forms
 			End If
 		End Function
 		
-		Function RichTextBox.GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
+		Private Function RichTextBox.GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
 			Dim ptxt As UString Ptr = Cast(UString Ptr, dwCookie)
 			ptxt->AppendBuffer(pbBuff, cb)
 			*pcb = cb
@@ -1080,7 +1080,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property RichTextBox.TextRTF As String
+	Private Property RichTextBox.TextRTF As String
 		Dim As String s
 		#ifndef __USE_GTK__
 			If FHandle Then
@@ -1096,7 +1096,7 @@ Namespace My.Sys.Forms
 		Return s
 	End Property
 	
-	Property RichTextBox.TextRTF(Value As String)
+	Private Property RichTextBox.TextRTF(Value As String)
 		#ifndef __USE_GTK__
 			If FHandle Then
 				Dim bb As SETTEXTEX
@@ -1107,19 +1107,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function RichTextBox.AddImageFromFile(ByRef File As WString) As Boolean
+	Private Function RichTextBox.AddImageFromFile(ByRef File As WString) As Boolean
 		Dim As My.Sys.Drawing.BitmapType Bitm
 		Bitm.LoadFromFile(File)
 		Return AddImage(Bitm)
 	End Function
 	
-	Function RichTextBox.AddImage(ByRef ResName As WString) As Boolean
+	Private Function RichTextBox.AddImage(ByRef ResName As WString) As Boolean
 		Dim As My.Sys.Drawing.BitmapType Bitm
 		Bitm.LoadFromResourceName(ResName)
 		Return AddImage(Bitm)
 	End Function
 	
-	Function RichTextBox.AddImage(ByRef Ico As My.Sys.Drawing.Icon) As Boolean
+	Private Function RichTextBox.AddImage(ByRef Ico As My.Sys.Drawing.Icon) As Boolean
 		Dim As My.Sys.Drawing.BitmapType Bitm
 		#ifdef __USE_GTK__
 			Bitm.Handle = Ico.Handle
@@ -1129,7 +1129,7 @@ Namespace My.Sys.Forms
 		Return AddImage(Bitm)
 	End Function
 	
-	Function RichTextBox.AddImage(ByRef Cur As My.Sys.Drawing.Cursor) As Boolean
+	Private Function RichTextBox.AddImage(ByRef Cur As My.Sys.Drawing.Cursor) As Boolean
 		Dim As My.Sys.Drawing.BitmapType Bitm
 		#ifndef __USE_GTK__
 			Bitm.Handle = Cur.ToBitmap
@@ -1137,7 +1137,7 @@ Namespace My.Sys.Forms
 		Return AddImage(Bitm)
 	End Function
 	
-	Function RichTextBox.AddImage(ByRef Bitm As My.Sys.Drawing.BitmapType) As Boolean
+	Private Function RichTextBox.AddImage(ByRef Bitm As My.Sys.Drawing.BitmapType) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GtkWidget Ptr img
 			Dim As GtkTextIter _start, _end
@@ -1268,7 +1268,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
+	Private Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
 		#ifndef __USE_GTK__
 			If FHandle Then
 				Dim hFile As ..Handle
@@ -1285,7 +1285,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub RichTextBox.SaveToFile(ByRef Value As WString, bRTF As Boolean)
+	Private Sub RichTextBox.SaveToFile(ByRef Value As WString, bRTF As Boolean)
 		#ifndef __USE_GTK__
 			If Not bRTF Then
 				Base.SaveToFile(Value)
@@ -1304,7 +1304,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function RichTextBox.SelPrint(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
+	Private Function RichTextBox.SelPrint(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
 		#ifdef __USE_GTK__
 			Return False
 		#else
@@ -1377,7 +1377,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Sub RichTextBox.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub RichTextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QRichTextBox(Sender.Child)
 					If .MaxLength <> 0 Then
@@ -1396,11 +1396,11 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Operator RichTextBox.Cast As Control Ptr
+	Private Operator RichTextBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor RichTextBox
+	Private Constructor RichTextBox
 		With This
 			#ifdef __USE_GTK__
 				widget = gtk_text_view_new()
@@ -1426,7 +1426,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor RichTextBox
+	Private Destructor RichTextBox
 		WDeallocate FFindText
 		WDeallocate FTextRange
 		WDeallocate FSelWStrVal

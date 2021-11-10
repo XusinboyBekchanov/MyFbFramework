@@ -87,7 +87,7 @@
 Using My.Sys.Forms
 
 #ifndef __USE_GTK__
-	Function DllMain(hinstDLL As HINSTANCE, fdwReason As DWORD, lpvReserved As LPVOID) As Boolean
+	Private Function DllMain(hinstDLL As HINSTANCE, fdwReason As DWORD, lpvReserved As LPVOID) As Boolean
 		Select Case fdwReason
 		Case DLL_PROCESS_ATTACH
 		Case DLL_PROCESS_DETACH
@@ -101,7 +101,7 @@ Using My.Sys.Forms
 #ifdef __EXPORT_PROCS__
 	Dim Shared Objects As List
 	Common Shared Ctrl As Control Ptr
-	Function CreateControl Alias "CreateControl"(ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Control Ptr) As Control Ptr Export
+	Function CreateControl Alias "CreateControl" (ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Control Ptr) As Control Ptr Export
 		Ctrl = 0
 		Select Case LCase(ClassName)
 		Case "animate": Ctrl = New_( Animate)
@@ -162,7 +162,7 @@ Using My.Sys.Forms
 	End Function
 	
 	Common Shared Cpnt As Component Ptr
-	Function CreateComponent Alias "CreateComponent"(ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Component Ptr Export
+	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Component Ptr Export
 		Cpnt = 0
 		Select Case LCase(ClassName)
 		Case "imagelist": Cpnt = New_( ImageList)

@@ -12,7 +12,7 @@
 #include once "SysUtils.bi"
 
 #ifndef __USE_GTK__
-	Function EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
+	Private Function EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
 		Type WindowType
 			As HWND Handle
 		End Type
@@ -23,7 +23,7 @@
 		Return True
 	End Function
 	
-	Function MainHandle As HWND
+	Private Function MainHandle As HWND
 		Type WindowType
 			As HWND Handle
 		End Type
@@ -33,7 +33,7 @@
 	End Function
 #endif
 
-Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
+Private Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
 	
 	#ifdef UNICODE
 		Dim ErrorString         As WString Ptr
@@ -62,50 +62,50 @@ Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, 
 	
 End Function
 
-Function iGet(Value As Any Ptr) As Integer
+Private Function iGet(Value As Any Ptr) As Integer
 	If Value = 0 Then Return 0 Else Return *Cast(Integer Ptr, Value)
 End Function
 
-Function ZGet(ByRef subject As ZString Ptr) As String
+Private Function ZGet(ByRef subject As ZString Ptr) As String
 	If subject = 0 Then Return ""
 	Return *subject
 End Function
 
 Namespace ClassContainer
-	Property ClassType.ClassName ByRef As WString
+	Private Property ClassType.ClassName ByRef As WString
 		Return WGet(FClassName)
 	End Property
 	
-	Property ClassType.ClassName(ByRef Value As WString)
+	Private Property ClassType.ClassName(ByRef Value As WString)
 		WLet(FClassName, Value)
 	End Property
 	
-	Property ClassType.ClassAncestor ByRef As WString
+	Private Property ClassType.ClassAncestor ByRef As WString
 		Return WGet(FClassAncestor)
 	End Property
 	
-	Property ClassType.ClassAncestor(ByRef Value As WString)
+	Private Property ClassType.ClassAncestor(ByRef Value As WString)
 		WLet(FClassAncestor, Value)
 	End Property
 	
-	Constructor ClassType
+	Private Constructor ClassType
 		'FClassName = CAllocate(0)
 		'FClassAncestor = CAllocate(0)
 	End Constructor
 	
-	Destructor ClassType
+	Private Destructor ClassType
 		If FClassName Then Deallocate_((FClassName))
 		If FClassAncestor Then Deallocate_((FClassAncestor))
 	End Destructor
 	
-	Function FindClass(ByRef ClassName As WString) As Integer
+	Private Function FindClass(ByRef ClassName As WString) As Integer
 		For i As Integer = 0 To UBound(Classes)
 			If UCase(Classes(i).ClassName) = UCase(ClassName) Then Return i
 		Next i
 		Return -1
 	End Function
 	
-	Sub StoreClass(ByRef ClassName As WString, ByRef ClassAncestor As WString, ClassProc As Any Ptr)
+	Private Sub StoreClass(ByRef ClassName As WString, ByRef ClassAncestor As WString, ClassProc As Any Ptr)
 		If FindClass(ClassName) = -1 Then
 			ReDim Preserve Classes(UBound(Classes)+1) As ClassType
 			Classes(UBound(Classes)).ClassName = ClassName
@@ -114,7 +114,7 @@ Namespace ClassContainer
 		End If
 	End Sub
 	
-	Function GetClassProc Overload(ByRef ClassName As WString) As Any Ptr
+	Private Function GetClassProc Overload(ByRef ClassName As WString) As Any Ptr
 		For i As Integer = 0 To UBound(Classes)
 			If UCase(Classes(i).ClassName) = UCase(ClassName) Then Return Classes(i).ClassProc
 		Next i
@@ -122,21 +122,21 @@ Namespace ClassContainer
 	End Function
 	
 	#ifndef __USE_GTK__
-		Function GetClassProc(FWindow As HWND) As Any Ptr
+		Private Function GetClassProc(FWindow As HWND) As Any Ptr
 			Dim As WString * 255 c
 			Dim As Integer L
 			L = GetClassName(FWindow, c, 255)
 			Return GetClassProc(Left(c, L))
 		End Function
 		
-		Function GetClassNameOf(FWindow As HWND) As String
+		Private Function GetClassNameOf(FWindow As HWND) As String
 			Dim As WString * 255 c
 			Dim As Integer L
 			L = GetClassName(FWindow, c, 255)
 			Return Left(c, L)
 		End Function
 		
-		Sub Finalization Destructor
+		Private Sub Finalization Destructor
 			For i As Integer = 0 To UBound(Classes)
 				UnregisterClass Classes(i).ClassName, GetModuleHandle(NULL)
 			Next i
@@ -147,7 +147,7 @@ End Namespace
 ' =====================================================================================
 ' Scale the location point X per DPI
 ' =====================================================================================
-Function ScaleX (ByVal cx As Single) As Single
+Private Function ScaleX(ByVal cx As Single) As Single
 	#ifndef __USE_GTK__
 		Static bb As Single
 		If bb = 0 Then
@@ -165,7 +165,7 @@ End Function
 ' =====================================================================================
 ' Scale the location point X per DPI
 ' =====================================================================================
-Function UnScaleX (ByVal cx As Single) As Single
+Private Function UnScaleX (ByVal cx As Single) As Single
 	#ifndef __USE_GTK__
 		Static bb As Single
 		If bb = 0 Then
@@ -183,7 +183,7 @@ End Function
 ' =====================================================================================
 ' Scale the location point Y per DPI
 ' =====================================================================================
-Function ScaleY(ByVal cy As Single) As Single
+Private Function ScaleY(ByVal cy As Single) As Single
 	#ifndef __USE_GTK__
 		Static bb As Single
 		If bb=0 Then
@@ -201,7 +201,7 @@ End Function
 ' =====================================================================================
 ' Scale the location point Y per DPI
 ' =====================================================================================
-Function UnScaleY(ByVal cy As Single) As Single
+Private Function UnScaleY(ByVal cy As Single) As Single
 	#ifndef __USE_GTK__
 		Static bb As Single
 		If bb=0 Then
@@ -216,7 +216,7 @@ Function UnScaleY(ByVal cy As Single) As Single
 	#endif
 End Function
 
-Public Function _Abs(Value As Boolean) As Integer
+Private Function _Abs(Value As Boolean) As Integer
 	Return Abs(CInt(Value))
 End Function
 
@@ -228,7 +228,7 @@ End Function
 ' Delimiters are case-sensitive.
 ' Example: StringParseCount("one,two,three", ",")   -> 3
 ' ========================================================================================
-Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WString = ",", MatchCase As Boolean = True) As Long
+Private Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WString = ",", MatchCase As Boolean = True) As Long
 	If MainStr = "" OrElse Delimiter = "" Then Return 0
 	Dim nCount As Long = 1
 	Dim nPos As Long = 1
@@ -245,7 +245,7 @@ Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WSt
 	Return nCount
 End Function
 
-Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
+Private Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
 	Return StringParseCount(Subject, searchtext, MatchCase) - 1
 End Function
 
@@ -267,7 +267,7 @@ End Function
 'Return 0
 'End Function
 
-Sub Split(ByRef subject As WString, ByRef Delimiter As WString, result() As UString, MatchCase As Boolean = True)
+Private Sub Split(ByRef subject As WString, ByRef Delimiter As WString, result() As UString, MatchCase As Boolean = True)
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim result(0)
@@ -289,7 +289,7 @@ Sub Split(ByRef subject As WString, ByRef Delimiter As WString, result() As UStr
 	result(n - 1) = Mid(subject, p, i - p)
 End Sub
 
-Function Join(subject() As UString, ByRef Delimiter As WString, iStart As Integer = 0, iStep As Integer = 1) As UString
+Private Function Join(subject() As UString, ByRef Delimiter As WString, iStart As Integer = 0, iStep As Integer = 1) As UString
 	Dim As UString Result
 	For i As Integer = iStart To UBound(subject) Step iStep
 		Result &= IIf(i = iStart, "", Delimiter) & subject(i)
@@ -297,11 +297,11 @@ Function Join(subject() As UString, ByRef Delimiter As WString, iStart As Intege
 	Return Result
 End Function
 
-Function StartsWith(ByRef a As WString, ByRef b As WString) As Boolean
+Private Function StartsWith(ByRef a As WString, ByRef b As WString) As Boolean
 	Return Left(a, Len(b)) = b
 End Function
 
-Function EndsWith(ByRef a As WString, ByRef b As WString) As Boolean
+Private Function EndsWith(ByRef a As WString, ByRef b As WString) As Boolean
 	Return Right(a, Len(b)) = b
 End Function
 
@@ -326,7 +326,7 @@ End Function
 '            StringPathName("C:\VisualFBEditor\Poject.Bas","NAMEEX")  ->Poject.Bas
 '            StringPathName("C:\VisualFBEditor\Poject.Bas","EXTN")     -> .Bas
 ' ========================================================================================
-Function StringPathName(ByRef wszFileSpec As WString,ByRef wszOption As Const WString = "PATH") As UString
+Private Function StringPathName(ByRef wszFileSpec As WString, ByRef wszOption As Const WString = "PATH") As UString
 	If Len(wszFileSpec) = 0 Then Return ""
 	Dim As UString Result
 	Select Case UCase(wszOption)
@@ -362,7 +362,7 @@ Function StringPathName(ByRef wszFileSpec As WString,ByRef wszOption As Const WS
 	Return Result
 End Function
 
-Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+Private Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 	Dim As Long nLen = Len(wszMainStr), nPos =0
 	If (nStart = 0) OrElse (nStart > nLen) OrElse nLen =0 Then Return wszMainStr
 	If nStart < 0 Then nStart = nLen + nStart + 1
@@ -386,7 +386,7 @@ Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr A
 	Return Mid(wszMainStr, nStart)
 End Function
 
-Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+Private Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 	Dim As Long nLen = Len(wszMainStr), nPos1, nPos2
 	If (nStart = 0) OrElse (nStart > nLen) Then Return wszMainStr
 	If nStart < 0 Then nStart = nLen + nStart + 1
@@ -407,7 +407,7 @@ Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WSt
 	Return Mid(wszMainStr, nPos1, nLen)
 End Function
 
-Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString,Result() As WString Ptr, MatchCase As Boolean = True) As Long
+Private Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
 	Dim As Long PositionStart = 1, PositionEnd = 1, n = 0
 	If Len(wszMainStr) < Len(ParseStart + ParseEnd) OrElse ParseStart="" OrElse ParseEnd = "" Then Return -1
 	Do
@@ -433,7 +433,7 @@ Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Con
 	Return n
 End Function
 
-Function FreeFile_ As Long
+Private Function FreeFile_ As Long
 	For i As Integer = 1 To filenumberCounter
 		If filenumbers[i] = False Then filenumbers[i] = True: Return i
 	Next
@@ -443,7 +443,7 @@ Function FreeFile_ As Long
 	Return filenumberCounter
 End Function
 
-Function CloseFile_(filenum As Long) As Long
+Private Function CloseFile_(filenum As Long) As Long
 	If filenumberCounter >= filenum Then
 		If filenumbers[filenum] = True Then
 			filenumbers[filenum] = False

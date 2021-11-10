@@ -22,7 +22,7 @@
 Namespace My.Sys.Forms
 	#define QChart(__Ptr__) *Cast(Chart Ptr, __Ptr__)
 	
-	Public Enum TextAlignmentH
+	Private Enum TextAlignmentH
 		cLeft
 		cCenter
 		cRight
@@ -43,7 +43,7 @@ Namespace My.Sys.Forms
 		FontStyleStrikeout = 8
 	End Enum
 	
-	Public Enum ChartStyles
+	Private Enum ChartStyles
 		CS_Pie
 		CS_Donut
 		CS_Area
@@ -52,25 +52,25 @@ Namespace My.Sys.Forms
 		CS_StackedBarsPercent
 	End Enum
 	
-	Public Enum ChartOrientations
+	Private Enum ChartOrientations
 		CO_Vertical
 		CO_Horizontal
 	End Enum
 	
-	Public Enum LegendAligns
+	Private Enum LegendAligns
 		LA_LEFT
 		LA_TOP
 		LA_RIGHT
 		LA_BOTTOM
 	End Enum
 	
-	Public Enum LabelsPositions
+	Private Enum LabelsPositions
 		LP_Inside
 		LP_Outside
 		LP_TwoColumns
 	End Enum
 	
-	Public Enum LabelsAlignments
+	Private Enum LabelsAlignments
 		LP_TOP
 		LP_CENTER
 		LP_BOTTOM
@@ -78,27 +78,27 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	#ifdef __USE_GTK__
-		Type RectL
+		Private Type RectL
 			Left As Long
 			Top As Long
 			Right As Long
 			Bottom As Long
 		End Type
-		Type RectF
+		Private Type RectF
 			X As Single
 			Y As Single
 			Width As Single
 			Height As Single
 		End Type
-		Type POINTL
+		Private Type POINTL
 			x As Long
 			y As Long
 		End Type
-		Type POINTF
+		Private Type POINTF
 			x As Single
 			y As Single
 		End Type
-		Type SizeF
+		Private Type SizeF
 			Width As Single
 			Height As Single
 		End Type
@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 	
 	Private Const GDIP_OK As Long = &H0
 	
-	Type Chart Extends Control
+	Private Type Chart Extends Control
 	Private:
 		Dim nScale As Single
 		

@@ -12,13 +12,13 @@
 
 #include once "Dialogs.bi"
 
-Sub OpenFileOptions.Include(Value As Integer)
+Private Sub OpenFileOptions.Include(Value As Integer)
 	Count += 1
 	Options = Reallocate_(Options, Count*SizeOf(Integer))
 	Options[Count-1] = Value
 End Sub
 
-Sub OpenFileOptions.Exclude(Value As Integer)
+Private Sub OpenFileOptions.Exclude(Value As Integer)
 	Dim As Integer Idx
 	For i As Integer = 0 To Count -1
 		If Options[i] = Value Then Idx  = 1
@@ -32,7 +32,7 @@ Sub OpenFileOptions.Exclude(Value As Integer)
 	Options = Reallocate_(Options,SizeOf(Integer) * Count)
 End Sub
 
-Operator OpenFileOptions.Cast As Integer
+Private Operator OpenFileOptions.Cast As Integer
 	Dim As Integer O
 	For i As Integer = 0 To Count -1
 		O Or= Options[i]
@@ -40,15 +40,15 @@ Operator OpenFileOptions.Cast As Integer
 	Return O
 End Operator
 
-Destructor OpenFileOptions
+Private Destructor OpenFileOptions
 	If Options Then Deallocate_(Options)
 End Destructor
 
-Property OpenFileDialog.MultiSelect As Boolean
+Private Property OpenFileDialog.MultiSelect As Boolean
 	Return FMultiSelect
 End Property
 
-Property OpenFileDialog.MultiSelect(Value As Boolean)
+Private Property OpenFileDialog.MultiSelect(Value As Boolean)
 	FMultiSelect = Value
 	If Value Then
 		Options.Include ofAllowMultiSelect
@@ -57,60 +57,60 @@ Property OpenFileDialog.MultiSelect(Value As Boolean)
 	End If
 End Property
 
-Property OpenFileDialog.InitialDir ByRef As WString
+Private Property OpenFileDialog.InitialDir ByRef As WString
 	Return WGet(FInitialDir)
 End Property
 
-Property OpenFileDialog.InitialDir(ByRef Value As WString)
+Private Property OpenFileDialog.InitialDir(ByRef Value As WString)
 	FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 	*FInitialDir = Value
 End Property
 
-Property OpenFileDialog.Caption ByRef As WString
+Private Property OpenFileDialog.Caption ByRef As WString
 	Return WGet(FCaption)
 End Property
 
-Property OpenFileDialog.Caption(ByRef Value As WString)
+Private Property OpenFileDialog.Caption(ByRef Value As WString)
 	FCaption    = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
 	*FCaption = Value
 End Property
 
-Property OpenFileDialog.DefaultExt ByRef As WString
+Private Property OpenFileDialog.DefaultExt ByRef As WString
 	Return WGet(FDefaultExt)
 End Property
 
-Property OpenFileDialog.DefaultExt(ByRef Value As WString)
+Private Property OpenFileDialog.DefaultExt(ByRef Value As WString)
 	FDefaultExt    = Reallocate_(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
 	*FDefaultExt = Value
 End Property
 
-Property OpenFileDialog.FileName ByRef As WString
+Private Property OpenFileDialog.FileName ByRef As WString
 	Return WGet(FFileName)
 End Property
 
-Property OpenFileDialog.FileName(ByRef Value As WString)
+Private Property OpenFileDialog.FileName(ByRef Value As WString)
 	WLet(FFileName, Value)
 End Property
 
-Property OpenFileDialog.FileTitle ByRef As WString
+Private Property OpenFileDialog.FileTitle ByRef As WString
 	Return WGet(FFileTitle)
 End Property
 
-Property OpenFileDialog.FileTitle(ByRef Value As WString)
+Private Property OpenFileDialog.FileTitle(ByRef Value As WString)
 	WLet(FFileTitle, Value)
 End Property
 
-Property OpenFileDialog.Filter ByRef As WString
+Private Property OpenFileDialog.Filter ByRef As WString
 	Return WGet(FFilter)
 End Property
 
-Property OpenFileDialog.Filter(ByRef Value As WString)
+Private Property OpenFileDialog.Filter(ByRef Value As WString)
 	FFilter    = Reallocate_(FFilter, (Len(Value) + 1) * SizeOf(WString))
 	*FFilter = Value
 End Property
 
 #ifndef __USE_GTK__
-	Function OpenFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
+	Private Function OpenFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 		Static As OpenFileDialog Ptr OpenDial
 		Select Case Msg
 		Case WM_INITDIALOG
@@ -162,7 +162,7 @@ End Property
 	End Function
 #endif
 
-Function OpenFileDialog.Execute As Boolean
+Private Function OpenFileDialog.Execute As Boolean
 	On Error Goto ErrorHandler
 	Dim bResult As Boolean
 	FileNames.Clear
@@ -288,7 +288,7 @@ Function OpenFileDialog.Execute As Boolean
 	"in module " & ZGet(Ermn())
 End Function
 
-Constructor OpenFileDialog
+Private Constructor OpenFileDialog
 	'FInitialDir       = CAllocate(0)
 	'FCaption          = CAllocate(0)
 	'FDefaultExt       = CAllocate(0)
@@ -310,7 +310,7 @@ Constructor OpenFileDialog
 	WLet(FClassName, "OpenFileDialog")
 End Constructor
 
-Destructor OpenFileDialog
+Private Destructor OpenFileDialog
 	If FInitialDir Then Deallocate_( FInitialDir)
 	If FCaption Then Deallocate_( FCaption)
 	If FDefaultExt Then Deallocate_( FDefaultExt)
@@ -319,53 +319,53 @@ Destructor OpenFileDialog
 	If FFilter Then DeAllocate_( FFilter)
 End Destructor
 
-Property SaveFileDialog.InitialDir ByRef As WString
+Private Property SaveFileDialog.InitialDir ByRef As WString
 	Return WGet(FInitialDir)
 End Property
 
-Property SaveFileDialog.InitialDir(ByRef Value As WString)
+Private Property SaveFileDialog.InitialDir(ByRef Value As WString)
 	FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 	*FInitialDir = Value
 End Property
 
-Property SaveFileDialog.Caption ByRef As WString
+Private Property SaveFileDialog.Caption ByRef As WString
 	Return WGet(FCaption)
 End Property
 
-Property SaveFileDialog.Caption(ByRef Value As WString)
+Private Property SaveFileDialog.Caption(ByRef Value As WString)
 	FCaption    = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
 	*FCaption = Value
 End Property
 
-Property SaveFileDialog.DefaultExt ByRef As WString
+Private Property SaveFileDialog.DefaultExt ByRef As WString
 	Return WGet(FDefaultExt)
 End Property
 
-Property SaveFileDialog.DefaultExt(ByRef Value As WString)
+Private Property SaveFileDialog.DefaultExt(ByRef Value As WString)
 	FDefaultExt    = Reallocate_(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
 	*FDefaultExt = Value
 End Property
 
-Property SaveFileDialog.FileName ByRef As WString
+Private Property SaveFileDialog.FileName ByRef As WString
 	Return WGet(FFileName)
 End Property
 
-Property SaveFileDialog.FileName(ByRef Value As WString)
+Private Property SaveFileDialog.FileName(ByRef Value As WString)
 	FFileName    = Reallocate_(FFileName, (Len(Value) + 1) * SizeOf(WString))
 	*FFileName = Value
 End Property
 
-Property SaveFileDialog.Filter ByRef As WString
+Private Property SaveFileDialog.Filter ByRef As WString
 	Return WGet(FFilter)
 End Property
 
-Property SaveFileDialog.Filter(ByRef Value As WString)
+Private Property SaveFileDialog.Filter(ByRef Value As WString)
 	FFilter    = Reallocate_(FFilter, (Len(Value) + 1) * SizeOf(WString))
 	*FFilter = Value
 End Property
 
 #ifndef __USE_GTK__
-	Function SaveFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
+	Private Function SaveFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 		Static As My.Sys.Forms.Control Ptr Ctrl
 		Static As SaveFileDialog Ptr SaveDial
 		Select Case Msg
@@ -414,7 +414,7 @@ End Property
 	End Function
 #endif
 
-Function SaveFileDialog.Execute As Boolean
+Private Function SaveFileDialog.Execute As Boolean
 	Dim bResult As Boolean
 	#ifdef __USE_GTK__
 		Dim As GtkWindow Ptr win
@@ -535,15 +535,15 @@ Function SaveFileDialog.Execute As Boolean
 	Return bResult
 End Function
 
-Property SaveFileDialog.Color As Integer
+Private Property SaveFileDialog.Color As Integer
 	Return Control.BackColor
 End Property
 
-Property SaveFileDialog.Color(Value As Integer)
+Private Property SaveFileDialog.Color(Value As Integer)
 	Control.BackColor = Value
 End Property
 
-Constructor SaveFileDialog
+Private Constructor SaveFileDialog
 	FInitialDir   = 0 'CAllocate_(0)
 	FCaption      = 0 'CAllocate_(0)
 	FDefaultExt   = 0 'CAllocate_(0)
@@ -562,7 +562,7 @@ Constructor SaveFileDialog
 	#endif
 End Constructor
 
-Destructor SaveFileDialog
+Private Destructor SaveFileDialog
 	If FInitialDir <> 0 Then Deallocate_( FInitialDir)
 	If FCaption <> 0 Then Deallocate_( FCaption)
 	If FDefaultExt <> 0 Then Deallocate_( FDefaultExt)
@@ -570,7 +570,7 @@ Destructor SaveFileDialog
 	If FFilter <> 0 Then Deallocate_( FFilter)
 End Destructor
 
-Function FontDialog.Execute As Boolean
+Private Function FontDialog.Execute As Boolean
 	Static As Integer FWidth(2) = {400,700}
 	#ifdef __USE_GTK__
 		Dim As Boolean bResult
@@ -644,53 +644,53 @@ Function FontDialog.Execute As Boolean
 	#endif
 End Function
 
-Constructor FontDialog
+Private Constructor FontDialog
 	MaxFontSize = 0
 	MinFontSize = 0
 	WLet(FClassName, "FontDialog")
 End Constructor
 
-Destructor FontDialog
+Private Destructor FontDialog
 End Destructor
 
-Property FolderBrowserDialog.Caption ByRef As WString
+Private Property FolderBrowserDialog.Caption ByRef As WString
 	Return WGet(FCaption)
 End Property
 
-Property FolderBrowserDialog.Caption(ByRef Value As WString)
+Private Property FolderBrowserDialog.Caption(ByRef Value As WString)
 	FCaption    = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
 	*FCaption = Value
 End Property
 
-Property FolderBrowserDialog.Title ByRef As WString
+Private Property FolderBrowserDialog.Title ByRef As WString
 	Return WGet(FTitle)
 End Property
 
-Property FolderBrowserDialog.Title(ByRef Value As WString)
+Private Property FolderBrowserDialog.Title(ByRef Value As WString)
 	FTitle    = Reallocate_(FTitle, (Len(Value) + 1) * SizeOf(WString))
 	*FTitle = Value
 End Property
 
-Property FolderBrowserDialog.InitialDir ByRef As WString
+Private Property FolderBrowserDialog.InitialDir ByRef As WString
 	Return WGet(FInitialDir)
 End Property
 
-Property FolderBrowserDialog.InitialDir(ByRef Value As WString)
+Private Property FolderBrowserDialog.InitialDir(ByRef Value As WString)
 	FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 	*FInitialDir = Value
 End Property
 
-Property FolderBrowserDialog.Directory ByRef As WString
+Private Property FolderBrowserDialog.Directory ByRef As WString
 	Return WGet(FDirectory)
 End Property
 
-Property FolderBrowserDialog.Directory(ByRef Value As WString)
+Private Property FolderBrowserDialog.Directory(ByRef Value As WString)
 	FDirectory    = Reallocate_(FDirectory, (Len(Value) + 1) * SizeOf(WString))
 	*FDirectory = Value
 End Property
 
 #ifndef __USE_GTK__
-	Function FolderBrowserDialog.Hook(FWindow As HWND,uMsg As uINT,lParam As LPARAM,lpData As LPARAM) As Integer
+	Private Function FolderBrowserDialog.Hook(FWindow As HWND, uMsg As uINT, lParam As LPARAM, lpData As LPARAM) As Integer
 		Dim As FolderBrowserDialog Ptr BrowseDial
 		Dim As My.Sys.Forms.Control Ptr Ctrl
 		Dim R As Rect
@@ -715,7 +715,7 @@ End Property
 	End Function
 #endif
 
-Function FolderBrowserDialog.Execute As Boolean
+Private Function FolderBrowserDialog.Execute As Boolean
 	Dim As Boolean bResult
 	#ifdef __USE_GTK__
 		Dim As GtkWindow Ptr win
@@ -776,7 +776,7 @@ Function FolderBrowserDialog.Execute As Boolean
 	#endif
 End Function
 
-Constructor FolderBrowserDialog
+Private Constructor FolderBrowserDialog
 	FCaption = 0 'CAllocate_(0)
 	FTitle = 0 'CAllocate_(0)
 	WLet(FClassName, "FolderBrowserDialog")
@@ -786,7 +786,7 @@ Constructor FolderBrowserDialog
 	Title = "Please select a Folder :"
 End Constructor
 
-Destructor FolderBrowserDialog
+Private Destructor FolderBrowserDialog
 	If FCaption <> 0 Then Deallocate_( FCaption)
 	If FTitle <> 0 Then Deallocate_( FTitle)
 	If FInitialDir <> 0 Then Deallocate_( FInitialDir)
@@ -794,7 +794,7 @@ Destructor FolderBrowserDialog
 End Destructor
 
 #ifndef __USE_GTK__
-	Function ColorDialog.Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
+	Private Function ColorDialog.Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
 		Static As HBrush Brush
 		Select Case Msg
 		Case wm_initdialog
@@ -840,15 +840,15 @@ End Destructor
 	End Function
 #endif
 
-Property ColorDialog.Caption ByRef As WString
+Private Property ColorDialog.Caption ByRef As WString
 	Return WGet(_Caption)
 End Property
 
-Property ColorDialog.Caption(ByRef Value As WString)
+Private Property ColorDialog.Caption(ByRef Value As WString)
 	WLet(_Caption, Value)
 End Property
 
-Function ColorDialog.Execute As Boolean
+Private Function ColorDialog.Execute As Boolean
 	#ifdef __USE_GTK__
 		Dim As Boolean bResult
 		Dim As GtkWindow Ptr win
@@ -904,11 +904,11 @@ Function ColorDialog.Execute As Boolean
 	#endif
 End Function
 
-Operator ColorDialog.Cast As Any Ptr
+Private Operator ColorDialog.Cast As Any Ptr
 	Return @This
 End Operator
 
-Constructor ColorDialog
+Private Constructor ColorDialog
 	Caption = "Choose Color..."
 	WLet(FClassName, "ColorDialog")
 	#ifndef __USE_GTK__
@@ -916,7 +916,7 @@ Constructor ColorDialog
 	#endif
 End Constructor
 
-Destructor ColorDialog
+Private Destructor ColorDialog
 	WDeallocate _Caption
 End Destructor
 

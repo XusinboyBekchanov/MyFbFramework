@@ -18,7 +18,7 @@
 Namespace My.Sys.Forms
 	#define QForm(__Ptr__) *Cast(Form Ptr,__Ptr__)
 	
-	Enum ModalResults
+	Private Enum ModalResults
 		'Nothing шs returned from the dialog box. This means that the modal dialog continues running.
 		None
 		'The dialog box return value is OK (usually sent from a button labeled OK).
@@ -37,7 +37,7 @@ Namespace My.Sys.Forms
 		No
 	End Enum
 	
-	Enum FormBorderStyle
+	Private Enum FormBorderStyle
 		None
 		SizableToolWindow
 		FixedToolWindow
@@ -47,14 +47,14 @@ Namespace My.Sys.Forms
 		FixedDialog
 	End Enum
 	
-	Enum FormStyles
+	Private Enum FormStyles
 		fsNormal
 		fsMDIForm
 		fsMDIChild
 		fsStayOnTop
 	End Enum
 	
-	Enum FormStartPosition
+	Private Enum FormStartPosition
 		Manual
 		CenterScreen
 		DefaultLocation
@@ -62,14 +62,14 @@ Namespace My.Sys.Forms
 		CenterParent
 	End Enum
 	
-	Enum WindowStates
+	Private Enum WindowStates
 		wsHide
 		wsNormal
 		wsMaximized
 		wsMinimized
 	End Enum
 	
-	Type Form Extends ContainerControl
+	Private Type Form Extends ContainerControl
 	Private:
 		FMainForm      As Boolean
 		FMainStyle(2)  As Integer

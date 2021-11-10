@@ -14,7 +14,7 @@
 #include once "ListControl.bi"
 
 Namespace My.Sys.Forms
-	Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "borderstyle": Return @FBorderStyle
 		Case "multicolumn": Return @FMultiColumn
@@ -34,7 +34,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "borderstyle": BorderStyle = QInteger(Value)
 		Case "multicolumn": MultiColumn = QBoolean(Value)
@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property ListControl.Selected(Index As Integer) As Boolean
+	Private Property ListControl.Selected(Index As Integer) As Boolean
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
@@ -61,7 +61,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListControl.Selected(Index As Integer, Value As Boolean)
+	Private Property ListControl.Selected(Index As Integer, Value As Boolean)
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
@@ -75,7 +75,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub ListControl.SelectAll
+	Private Sub ListControl.SelectAll
 		#ifdef __USE_GTK__
 			If widget Then
 				gtk_tree_selection_select_all(TreeSelection)
@@ -85,7 +85,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ListControl.UnSelectAll
+	Private Sub ListControl.UnSelectAll
 		#ifdef __USE_GTK__
 			gtk_tree_selection_unselect_all(TreeSelection)
 		#else
@@ -93,11 +93,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property ListControl.SelectionMode As SelectionModes
+	Private Property ListControl.SelectionMode As SelectionModes
 		Return FSelectionMode
 	End Property
 	
-	Property ListControl.SelectionMode(Value As SelectionModes)
+	Private Property ListControl.SelectionMode(Value As SelectionModes)
 		FSelectionMode = Value
 		#ifdef __USE_GTK__
 			Select Case FSelectionMode
@@ -123,27 +123,27 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListControl.TabIndex As Integer
+	Private Property ListControl.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property ListControl.TabIndex(Value As Integer)
+	Private Property ListControl.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property ListControl.TabStop As Boolean
+	Private Property ListControl.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property ListControl.TabStop(Value As Boolean)
+	Private Property ListControl.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property ListControl.MultiColumn As Boolean
+	Private Property ListControl.MultiColumn As Boolean
 		Return FMultiColumn
 	End Property
 	
-	Property ListControl.MultiColumn(Value As Boolean)
+	Private Property ListControl.MultiColumn(Value As Boolean)
 		If Value <> FMultiColumn Then
 			FMultiColumn = Value
 			#ifndef __USE_GTK__
@@ -152,11 +152,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListControl.IntegralHeight As Boolean
+	Private Property ListControl.IntegralHeight As Boolean
 		Return FIntegralHeight
 	End Property
 	
-	Property ListControl.IntegralHeight(Value As Boolean)
+	Private Property ListControl.IntegralHeight(Value As Boolean)
 		If Value <> FIntegralHeight Then
 			FIntegralHeight = Value
 			#ifndef __USE_GTK__
@@ -165,11 +165,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListControl.Style As ListControlStyle
+	Private Property ListControl.Style As ListControlStyle
 		Return FStyle
 	End Property
 	
-	Property ListControl.Style(Value As ListControlStyle)
+	Private Property ListControl.Style(Value As ListControlStyle)
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifndef __USE_GTK__
@@ -184,11 +184,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListControl.Ctl3D As Boolean
+	Private Property ListControl.Ctl3D As Boolean
 		Return FCtl3D
 	End Property
 	
-	Property ListControl.Ctl3D(Value As Boolean)
+	Private Property ListControl.Ctl3D(Value As Boolean)
 		If Value <> FCtl3D Then
 			FCtl3D = Value
 			#ifndef __USE_GTK__
@@ -197,7 +197,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListControl.ItemCount As Integer
+	Private Property ListControl.ItemCount As Integer
 		'		#ifndef __USE_GTK__
 		'			If Handle Then
 		'				Return Perform(LB_GETCOUNT,0,0)
@@ -206,32 +206,32 @@ Namespace My.Sys.Forms
 		Return Items.Count
 	End Property
 	
-	Property ListControl.ItemCount(Value As Integer)
+	Private Property ListControl.ItemCount(Value As Integer)
 	End Property
 	
-	Property ListControl.ItemHeight As Integer
+	Private Property ListControl.ItemHeight As Integer
 		Return FItemHeight
 	End Property
 	
-	Property ListControl.ItemHeight(Value As Integer)
+	Private Property ListControl.ItemHeight(Value As Integer)
 		FItemHeight = Value
 		#ifndef __USE_GTK__
 			If Handle Then Perform(LB_SETITEMHEIGHT,0,MakeLParam(FItemHeight,0))
 		#endif
 	End Property
 	
-	Property ListControl.TopIndex As Integer
+	Private Property ListControl.TopIndex As Integer
 		Return FTopIndex
 	End Property
 	
-	Property ListControl.TopIndex(Value As Integer)
+	Private Property ListControl.TopIndex(Value As Integer)
 		FTopIndex = Value
 		#ifndef __USE_GTK__
 			If Handle Then Perform(LB_SETTOPINDEX,FTopIndex,0)
 		#endif
 	End Property
 	
-	Property ListControl.ItemIndex As Integer
+	Private Property ListControl.ItemIndex As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
@@ -270,7 +270,7 @@ Namespace My.Sys.Forms
 		Return FItemIndex
 	End Property
 	
-	Property ListControl.ItemIndex(Value As Integer)
+	Private Property ListControl.ItemIndex(Value As Integer)
 		FItemIndex = Value
 		#ifdef __USE_GTK__
 			If ListStore Then
@@ -294,7 +294,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListControl.SelCount As Integer
+	Private Property ListControl.SelCount As Integer
 		#ifdef __USE_GTK__
 			FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
 		#else
@@ -303,11 +303,11 @@ Namespace My.Sys.Forms
 		Return FSelCount
 	End Property
 	
-	Property ListControl.SelCount(Value As Integer)
+	Private Property ListControl.SelCount(Value As Integer)
 		FSelCount = Value
 	End Property
 	
-	Property ListControl.SelItems As Integer Ptr
+	Private Property ListControl.SelItems As Integer Ptr
 		#ifdef __USE_GTK__
 			FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
 			ReDim AItems(FSelCount)
@@ -333,18 +333,18 @@ Namespace My.Sys.Forms
 		Return FSelItems
 	End Property
 	
-	Property ListControl.SelItems(Value As Integer Ptr)
+	Private Property ListControl.SelItems(Value As Integer Ptr)
 		FSelItems = Value
 	End Property
 	
-	Property ListControl.Text ByRef As WString
+	Private Property ListControl.Text ByRef As WString
 		If Handle Then
 			FText = Items.Item(ItemIndex)
 		End If
 		Return *FText.vptr
 	End Property
 	
-	Property ListControl.Text(ByRef Value As WString)
+	Private Property ListControl.Text(ByRef Value As WString)
 		FText = Value
 		#ifdef __USE_GTK__
 			ItemIndex = Items.IndexOf(Value)
@@ -353,11 +353,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListControl.Sort As Boolean
+	Private Property ListControl.Sort As Boolean
 		Return FSort
 	End Property
 	
-	Property ListControl.Sort(Value As Boolean)
+	Private Property ListControl.Sort(Value As Boolean)
 		If Value <> FSort Then
 			FSort = Value
 			#ifndef __USE_GTK__
@@ -366,15 +366,15 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListControl.ItemData(FIndex As Integer) As Any Ptr
+	Private Property ListControl.ItemData(FIndex As Integer) As Any Ptr
 		Return Items.Object(FIndex)
 	End Property
 	
-	Property ListControl.ItemData(FIndex As Integer, Obj As Any Ptr)
+	Private Property ListControl.ItemData(FIndex As Integer, Obj As Any Ptr)
 		Items.Object(FIndex) = Obj
 	End Property
 	
-	Property ListControl.Item(FIndex As Integer) ByRef As WString
+	Private Property ListControl.Item(FIndex As Integer) ByRef As WString
 		#ifndef __USE_GTK__
 			If FHandle Then
 				Dim As Integer L
@@ -394,11 +394,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListControl.Item(FIndex As Integer, ByRef FItem As WString)
+	Private Property ListControl.Item(FIndex As Integer, ByRef FItem As WString)
 		Items.Item(FIndex) = FItem
 	End Property
 	
-	Sub ListControl.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
+	Private Sub ListControl.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Dim i As Integer
 		If FSort Then
 			For i = 0 To Items.Count - 1
@@ -417,7 +417,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ListControl.RemoveItem(FIndex As Integer)
+	Private Sub ListControl.RemoveItem(FIndex As Integer)
 		Items.Remove(FIndex)
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
@@ -428,7 +428,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
+	Private Sub ListControl.InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
 		If FSort Then
 			AddItem FItem, Obj
 			Exit Sub
@@ -443,7 +443,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ListControl.Clear
+	Private Sub ListControl.Clear
 		Items.Clear
 		#ifdef __USE_GTK__
 			gtk_list_store_clear(ListStore)
@@ -451,7 +451,7 @@ Namespace My.Sys.Forms
 			Perform(LB_RESETCONTENT,0,0)
 		#endif
 	End Sub
-	Function ListControl.IndexOf(ByRef FItem As WString) As Integer
+	Private Function ListControl.IndexOf(ByRef FItem As WString) As Integer
 		#ifndef __USE_GTK__
 			Return Perform(LB_FINDSTRING, -1, CInt(FItem))
 		#else
@@ -459,12 +459,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Function ListControl.IndexOfData(Obj As Any Ptr) As Integer
+	Private Function ListControl.IndexOfData(Obj As Any Ptr) As Integer
 		Return Items.IndexOfObject(Obj)
 	End Function
 	
 	#ifndef __USE_GTK__
-		Sub ListControl.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ListControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QListControl(Sender.Child)
 					For i As Integer = 0 To .Items.Count -1
@@ -485,10 +485,10 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ListControl.WndProc(ByRef Message As Message)
+		Private Sub ListControl.WndProc(ByRef Message As Message)
 		End Sub
 	#else
-		Sub ListControl.SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		Private Sub ListControl.SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As ListControl Ptr lst = Cast(Any Ptr, user_data)
 			If lst Then
 				If lst->OnChange Then lst->OnChange(*lst)
@@ -496,7 +496,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub ListControl.ProcessMessage(ByRef Message As Message)
+	Private Sub ListControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -574,7 +574,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Sub ListControl.SaveToFile(ByRef File As WString)
+	Private Sub ListControl.SaveToFile(ByRef File As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
@@ -593,7 +593,7 @@ Namespace My.Sys.Forms
 		Close #F
 	End Sub
 	
-	Sub ListControl.LoadFromFile(ByRef File As WString)
+	Private Sub ListControl.LoadFromFile(ByRef File As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
@@ -611,11 +611,11 @@ Namespace My.Sys.Forms
 		Close #F
 	End Sub
 	
-	Operator ListControl.Cast As Control Ptr
+	Private Operator ListControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor ListControl
+	Private Constructor ListControl
 		With This
 			#ifdef __USE_GTK__
 				Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
@@ -659,7 +659,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ListControl
+	Private Destructor ListControl
 		'If Items Then DeAllocate Items
 	End Destructor
 End Namespace

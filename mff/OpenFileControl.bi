@@ -16,7 +16,7 @@
 #endif
 
 Namespace My.Sys.Forms
-	Type OpenFileControl Extends Control
+	Private Type OpenFileControl Extends Control
 	Private:
 		#ifdef __USE_GTK__
 			Declare Static Sub FileChooser_CurrentFolderChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)

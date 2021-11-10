@@ -8,7 +8,7 @@
 
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
-		Function WebBrowser.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Private Function WebBrowser.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Function WebBrowser.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Private Function WebBrowser.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -33,23 +33,23 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property WebBrowser.TabIndex As Integer
+	Private Property WebBrowser.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property WebBrowser.TabIndex(Value As Integer)
+	Private Property WebBrowser.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property WebBrowser.TabStop As Boolean
+	Private Property WebBrowser.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property WebBrowser.TabStop(Value As Boolean)
+	Private Property WebBrowser.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Sub WebBrowser.Navigate(ByVal URL As WString Ptr)
+	Private Sub WebBrowser.Navigate(ByVal URL As WString Ptr)
 		#ifdef __USE_GTK__
 			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUTF8(*URL))
 		#else
@@ -59,7 +59,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub WebBrowser.GoForward()
+	Private Sub WebBrowser.GoForward()
 		#ifdef __USE_GTK__
 			If webkit_web_view_can_go_forward(widget) Then
 				webkit_web_view_go_forward(widget)
@@ -69,7 +69,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub WebBrowser.GoBack()
+	Private Sub WebBrowser.GoBack()
 		#ifdef __USE_GTK__
 			If webkit_web_view_can_go_forward(widget) Then
 				webkit_web_view_go_forward(widget)
@@ -79,7 +79,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub WebBrowser.Refresh()
+	Private Sub WebBrowser.Refresh()
 		#ifdef __USE_GTK__
 			webkit_web_view_reload_bypass_cache(widget)
 		#else
@@ -87,7 +87,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function WebBrowser.GetURL() As UString
+	Private Function WebBrowser.GetURL() As UString
 		Dim As UString sRet
 		Dim As WString Ptr buf = sRet.vptr
 		#ifdef __USE_GTK__
@@ -98,7 +98,7 @@ Namespace My.Sys.Forms
 		Return *buf
 	End Function
 	
-	Function WebBrowser.State() As Integer
+	Private Function WebBrowser.State() As Integer
 		Dim iState As Integer
 		#ifdef __USE_GTK__
 			'#ifdef __USE_GTK3__
@@ -116,7 +116,7 @@ Namespace My.Sys.Forms
 		Return iState
 	End Function
 	
-	Sub WebBrowser.Stop()
+	Private Sub WebBrowser.Stop()
 		#ifdef __USE_GTK__
 			webkit_web_view_stop_loading(widget)
 		#else
@@ -124,7 +124,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function WebBrowser.GetBody(ByVal flag As Long) As UString
+	Private Function WebBrowser.GetBody(ByVal flag As Long) As UString
 		#ifdef __USE_GTK__
 			#ifndef __USE_GTK3__
 				Dim As String Ptr bBuf = webkit_web_resource_get_data(webkit_web_view_get_main_resource(widget))
@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Sub WebBrowser.SetBody(ByRef text As WString)
+	Private Sub WebBrowser.SetBody(ByRef text As WString)
 		#ifdef __USE_GTK__
 			'#ifdef __USE_GTK3__
 			'	webkit_web_view_load_html(Cast(Any Ptr, widget), ToUTF8(text))
@@ -182,7 +182,7 @@ Namespace My.Sys.Forms
 	End Sub
 
 	#ifndef __USE_GTK__
-		Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender Then
 				With QWebBrowser(Sender.Child)
 					Dim i As Integer
@@ -205,19 +205,19 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub WebBrowser.WndProc(ByRef Message As Message)
+		Private Sub WebBrowser.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub WebBrowser.ProcessMessage(ByRef Message As Message)
+	Private Sub WebBrowser.ProcessMessage(ByRef Message As Message)
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator WebBrowser.Cast As My.Sys.Forms.Control Ptr
+	Private Operator WebBrowser.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
-	Constructor WebBrowser
+	Private Constructor WebBrowser
 		With This
 			WLet(FClassName, "WebBrowser")
 			FText = "about:blank"
@@ -251,7 +251,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor WebBrowser
+	Private Destructor WebBrowser
 		#ifndef __USE_GTK__
 			'This.Stop()
 			'DestroyWindow FHandle

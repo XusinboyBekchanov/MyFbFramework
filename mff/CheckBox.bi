@@ -16,7 +16,7 @@
 Namespace My.Sys.Forms
 	#define QCheckBox(__Ptr__) *Cast(CheckBox Ptr,__Ptr__)
 	
-	Type CheckBox Extends Control
+	Private Type CheckBox Extends Control
 	Private:
 		FAlignment  As Integer
 		FChecked    As Boolean

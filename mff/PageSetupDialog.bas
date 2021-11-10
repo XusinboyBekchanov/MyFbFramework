@@ -12,13 +12,13 @@
 
 'Property PageSetupDialog.Left() As Integer: Return xLeft: End Property
 'Property PageSetupDialog.Left(value As Integer): xLeft=value: End Property
-Property PageSetupDialog.PrinterName() As String: Return xPrinterName: End Property
-Property PageSetupDialog.PrinterName(value As String): End Property            ' Read only
+Private Property PageSetupDialog.PrinterName() As String: Return xPrinterName: End Property
+Private Property PageSetupDialog.PrinterName(value As String): End Property            ' Read only
 'Property PageSetupDialog.Top() As Integer: Return xTop: End Property
 'Property PageSetupDialog.Top(value As Integer): xTop=value: End Property
 
 #ifndef __USE_GTK__
-	Function PageHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	Private Function PageHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
 			Dim As PAGESETUPDLG Ptr lpPSD=Cast(PAGESETUPDLG Ptr,lParam)
 			Dim As PageSetupDialog Ptr lpPSDDlg=Cast(PageSetupDialog Ptr, lpPSD->lCustData)
@@ -38,7 +38,7 @@ Property PageSetupDialog.PrinterName(value As String): End Property            '
 	End Function
 #endif
 
-Function PageSetupDialog.Execute() As Boolean
+Private Function PageSetupDialog.Execute() As Boolean
 	#ifndef __USE_GTK__
 		Dim As PAGESETUPDLG psd
 		Dim As Double value, divsor=100.0                                  ' Default metric
@@ -74,6 +74,6 @@ Function PageSetupDialog.Execute() As Boolean
 	Return False
 End Function
 
-Constructor PageSetupDialog
+Private Constructor PageSetupDialog
 	WLet(FClassName, "PageSetupDialog")
 End Constructor

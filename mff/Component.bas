@@ -7,12 +7,12 @@
 #include once "Component.bi"
 
 Namespace My.Sys.ComponentModel
-	Function MarginsType.ToString ByRef As WString
+	Private Function MarginsType.ToString ByRef As WString
 		WLet(FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom)
 		Return *FTemp
 	End Function
 	
-	Function Component.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Component.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "designmode": Return @FDesignMode
 		Case "classancestor": Return FClassAncestor
@@ -47,7 +47,7 @@ Namespace My.Sys.ComponentModel
 		Return 0
 	End Function
 	
-	Function Component.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Component.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value <> 0 Then
 			Select Case LCase(PropertyName)
 			Case "tag": This.Tag = Value
@@ -82,7 +82,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	#ifndef GetTopLevel_Off
-		Function Component.GetTopLevel As Component Ptr
+		Private Function Component.GetTopLevel As Component Ptr
 			If FParent = 0 Then
 				Return @This
 			Else
@@ -92,11 +92,11 @@ Namespace My.Sys.ComponentModel
 	#endif
 	
 	#ifndef Parent_Off
-		Property Component.Parent As Component Ptr
+		Private Property Component.Parent As Component Ptr
 			Return FParent
 		End Property
 		
-		Property Component.Parent(Value As Component Ptr)
+		Private Property Component.Parent(Value As Component Ptr)
 			If FParent <> Value Then
 				FParent = Value
 				#ifdef __USE_GTK__
@@ -119,23 +119,23 @@ Namespace My.Sys.ComponentModel
 		End Property
 	#endif
 	
-	Function Component.ClassAncestor ByRef As WString
+	Private Function Component.ClassAncestor ByRef As WString
 		Return WGet(FClassAncestor)
 	End Function
 	
-	Property Component.DesignMode As Boolean
+	Private Property Component.DesignMode As Boolean
 		Return FDesignMode
 	End Property
 	
-	Property Component.DesignMode(Value As Boolean)
+	Private Property Component.DesignMode(Value As Boolean)
 		FDesignMode = Value
 	End Property
 	
-	Property Component.Name ByRef As WString
+	Private Property Component.Name ByRef As WString
 		Return WGet(FName)
 	End Property
 	
-	Property Component.Name(ByRef Value As WString)
+	Private Property Component.Name(ByRef Value As WString)
 		WLet(FName, Value)
 		#ifdef __USE_GTK__
 			If gtk_is_widget(widget) Then gtk_widget_set_name(widget, Value)
@@ -144,26 +144,26 @@ Namespace My.Sys.ComponentModel
 	
 	#ifndef Handle_Off
 		#ifdef __USE_GTK__
-			Property Component.Handle As GtkWidget Ptr
+			Private Property Component.Handle As GtkWidget Ptr
 				Return widget
 			End Property
 			
-			Property Component.Handle(Value As GtkWidget Ptr)
+			Private Property Component.Handle(Value As GtkWidget Ptr)
 				widget = Value
 			End Property
 		#else
-			Property Component.Handle As HWND
+			Private Property Component.Handle As HWND
 				Return FHandle
 			End Property
 			
-			Property Component.Handle(Value As HWND)
+			Private Property Component.Handle(Value As HWND)
 				FHandle = Value
 			End Property
 		#endif
 	#endif
 	
 	#ifndef Move_Off
-		Sub Component.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		Private Sub Component.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			'#ifdef __USE_GTK__
 			'	Dim As Integer iLeft = FLeft, iTop = FTop, iWidth = FWidth, iHeight = FHeight
 			'#else
@@ -236,14 +236,14 @@ Namespace My.Sys.ComponentModel
 		End Sub
 	#endif
 	
-	Sub Component.GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
+	Private Sub Component.GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
 		*ALeft = This.Left
 		*ATop = This.Top
 		*AWidth = This.Width
 		*AHeight = This.Height
 	End Sub
 	
-	Sub Component.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+	Private Sub Component.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		FLeft   = ALeft
 		FTop    = ATop
 		FWidth  = AWidth
@@ -254,7 +254,7 @@ Namespace My.Sys.ComponentModel
 	End Sub
 	
 	#ifndef Left_Off
-		Property Component.Left As Integer
+		Private Property Component.Left As Integer
 			#ifdef __USE_GTK__
 				If gtk_is_window(widget) Then
 					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
@@ -280,14 +280,14 @@ Namespace My.Sys.ComponentModel
 			Return FLeft
 		End Property
 		
-		Property Component.Left(Value As Integer)
+		Private Property Component.Left(Value As Integer)
 			FLeft = Value
 			Move FLeft, Top, This.Width, Height
 		End Property
 	#endif
 	
 	#ifndef Top_Off
-		Property Component.Top As Integer
+		Private Property Component.Top As Integer
 			#ifdef __USE_GTK__
 				Dim ControlChanged As Boolean
 				If gtk_is_window(widget) Then
@@ -318,14 +318,14 @@ Namespace My.Sys.ComponentModel
 			Return FTop
 		End Property
 		
-		Property Component.Top(Value As Integer)
+		Private Property Component.Top(Value As Integer)
 			FTop = Value
 			Move This.Left, FTop, This.Width, Height
 		End Property
 	#endif
 	
 	#ifndef Width_Off
-		Property Component.Width As Integer
+		Private Property Component.Width As Integer
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
@@ -360,14 +360,14 @@ Namespace My.Sys.ComponentModel
 			Return FWidth
 		End Property
 		
-		Property Component.Width(Value As Integer)
+		Private Property Component.Width(Value As Integer)
 			FWidth = Max(FMinWidth, Value)
 			Move This.Left, This.Top, FWidth, Height
 		End Property
 	#endif
 	
 	#ifndef Height_Off
-		Property Component.Height As Integer
+		Private Property Component.Height As Integer
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
@@ -396,17 +396,17 @@ Namespace My.Sys.ComponentModel
 			Return FHeight
 		End Property
 		
-		Property Component.Height(Value As Integer)
+		Private Property Component.Height(Value As Integer)
 			FHeight = Max(FMinHeight, Value)
 			Move This.Left, This.Top, This.Width, FHeight
 		End Property
 	#endif
 	
-	Function Component.ToString ByRef As WString
+	Private Function Component.ToString ByRef As WString
 		Return This.Name
 	End Function
 	
-	Destructor Component
+	Private Destructor Component
 		WDeallocate FName
 		WDeallocate FClassAncestor
 		#ifdef __USE_GTK__
@@ -455,31 +455,32 @@ Namespace My.Sys.ComponentModel
 	End Destructor
 End Namespace
 
-Sub ThreadsEnter
+Private Sub ThreadsEnter
 	#ifdef __USE_GTK__
 		gdk_threads_enter()
 	#endif
 End Sub
 
-Sub ThreadsLeave
+Private Sub ThreadsLeave
 	#ifdef __USE_GTK__
 		gdk_threads_leave()
 	#endif
 End Sub
 
-Function Q_Component Alias "Q_Component"(Cpnt As Any Ptr) As My.Sys.ComponentModel.Component Ptr __EXPORT__
-	Return Cast(My.Sys.ComponentModel.Component Ptr, Cpnt)
-End Function
-
-Sub ComponentGetBounds Alias "ComponentGetBounds"(Cpnt As My.Sys.ComponentModel.Component Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr) __EXPORT__
-	Cpnt->GetBounds(ALeft, ATop, AWidth, AHeight)
-End Sub
-
-Sub ComponentSetBounds Alias "ComponentSetBounds"(Cpnt As My.Sys.ComponentModel.Component Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer) __EXPORT__
-	Cpnt->SetBounds(ALeft, ATop, AWidth, AHeight)
-End Sub
-
-Function IsComponent Alias "IsComponent"(Obj As My.Sys.Object Ptr) As Boolean Export
-	Return *Obj Is My.Sys.ComponentModel.Component
-End Function
+#ifdef __EXPORT_PROCS__
+	Function Q_Component Alias "Q_Component"(Cpnt As Any Ptr) As My.Sys.ComponentModel.Component Ptr __EXPORT__
+		Return Cast(My.Sys.ComponentModel.Component Ptr, Cpnt)
+	End Function
 	
+	Sub ComponentGetBounds Alias "ComponentGetBounds"(Cpnt As My.Sys.ComponentModel.Component Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr) __EXPORT__
+		Cpnt->GetBounds(ALeft, ATop, AWidth, AHeight)
+	End Sub
+	
+	Sub ComponentSetBounds Alias "ComponentSetBounds"(Cpnt As My.Sys.ComponentModel.Component Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer) __EXPORT__
+		Cpnt->SetBounds(ALeft, ATop, AWidth, AHeight)
+	End Sub
+	
+	Function IsComponent Alias "IsComponent"(Obj As My.Sys.Object Ptr) As Boolean Export
+		Return *Obj Is My.Sys.ComponentModel.Component
+	End Function
+#endif

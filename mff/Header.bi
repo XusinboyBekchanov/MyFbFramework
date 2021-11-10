@@ -18,13 +18,13 @@ Namespace My.Sys.Forms
 	#define QHeader(__Ptr__) *Cast(Header Ptr,__Ptr__)
 	#define QHeaderSection(__Ptr__) *Cast(HeaderSection Ptr, __Ptr__)
 	
-	Type PHeaderControl As Header
+	Private Type PHeaderControl As Header
 	
-	Enum HeaderSectionStyle
+	Private Enum HeaderSectionStyle
 		hdsText, hdsOwnerDraw
 	End Enum
 	
-	Type HeaderSection Extends My.Sys.Object
+	Private Type HeaderSection Extends My.Sys.Object
 	Private:
 		FCaption      As WString Ptr
 		FAlignment    As Integer
@@ -64,11 +64,11 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Enum HeaderStyle
+	Private Enum HeaderStyle
 		hsNormal = 0, hsOwnerDraw
 	End Enum
 	
-	Type Header Extends Control
+	Private Type Header Extends Control
 	Private:
 		FStyle            As HeaderStyle
 		FFullDrag         As Boolean

@@ -14,7 +14,7 @@
 Namespace My.Sys.Forms
 	#define QCheckedListBox(__Ptr__) *Cast(CheckedListBox Ptr,__Ptr__)
 	
-	Type CheckedListBox Extends ListControl
+	Private Type CheckedListBox Extends ListControl
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)

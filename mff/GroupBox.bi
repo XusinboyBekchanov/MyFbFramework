@@ -16,7 +16,7 @@
 Namespace My.Sys.Forms
 	#define QGroupBox(__Ptr__) *Cast(GroupBox Ptr,__Ptr__)
 	
-	Type GroupBox Extends ContainerControl
+	Private Type GroupBox Extends ContainerControl
 	Private:
 		FParentColor As Integer
 		#ifndef __USE_GTK__

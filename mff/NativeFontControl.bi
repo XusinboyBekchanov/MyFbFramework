@@ -9,7 +9,7 @@
 'Namespace My.Sys.Forms
 '	#define QNativeFontControl(__Ptr__) *Cast(NativeFontControl Ptr, __Ptr__)
 '	
-'	Type NativeFontControl Extends Control
+'	Private Type NativeFontControl Extends Control
 '	Private:
 '		#ifndef __USE_GTK__
 '			Declare Static Sub WndProc(ByRef Message As Message)

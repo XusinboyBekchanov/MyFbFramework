@@ -20,7 +20,7 @@
 Const OFN_ENABLEINCLUDENOTIFY = &H400000
 
 #ifdef __USE_GTK__
-	Enum OpenOption
+	Private Enum OpenOption
 		ofReadOnly
 		ofOverwritePrompt
 		ofHideReadOnly
@@ -43,7 +43,7 @@ Const OFN_ENABLEINCLUDENOTIFY = &H400000
 		ofEnableSizing
 	End Enum
 #else
-	Enum OpenOption
+	Private Enum OpenOption
 		ofReadOnly            = OFN_READONLY
 		ofOverwritePrompt     = OFN_OVERWRITEPROMPT
 		ofHideReadOnly        = OFN_HIDEREADONLY
@@ -67,7 +67,7 @@ Const OFN_ENABLEINCLUDENOTIFY = &H400000
 	End Enum
 #endif
 
-Type OpenFileOptions
+Private Type OpenFileOptions
 	Count   As Integer
 	Options As Integer Ptr
 	Declare Sub Include(Value As Integer)
@@ -76,12 +76,12 @@ Type OpenFileOptions
 	Declare Destructor
 End Type
 
-Type Dialog Extends Component
+Private Type Dialog Extends Component
 Public:
 	Declare Abstract Function Execute As Boolean
 End Type
 
-Type OpenFileDialog Extends Dialog
+Private Type OpenFileDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
 		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
@@ -127,7 +127,7 @@ Public:
 	OnTypeChange      As Sub(ByRef Sender As OpenFileDialog, Index As Integer)
 End Type
 
-Type SaveFileDialog Extends Dialog
+Private Type SaveFileDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
 		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
@@ -165,7 +165,7 @@ Public:
 	OnTypeChange      As Sub(ByRef Sender As My.Sys.Forms.Control, Index As Integer)
 End Type
 
-Type FontDialog Extends Dialog
+Private Type FontDialog Extends Dialog
 	Font        As My.Sys.Drawing.Font
 	MaxFontSize As Integer
 	MinFontSize As Integer
@@ -174,7 +174,7 @@ Type FontDialog Extends Dialog
 	Declare Destructor
 End Type
 
-Type FolderBrowserDialog Extends Dialog
+Private Type FolderBrowserDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
 		Declare Static Function Hook(hWnd As HWND, uMsg As uINT, lParam As LPARAM, lpData As LPARAM) As Integer
@@ -202,7 +202,7 @@ Public:
 	Declare Destructor
 End Type
 
-Type ColorDialog Extends Dialog
+Private Type ColorDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
 		CC              As CHOOSECOLOR

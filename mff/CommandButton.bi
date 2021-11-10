@@ -17,12 +17,12 @@
 #include once "Graphic.bi"
 #include once "List.bi"
 
-Enum ButtonStyle
+Private Enum ButtonStyle
 	bsText, bsBitmap, bsIcon, bsCursor, bsOwnerDraw
 End Enum
 
 Namespace My.Sys.Forms
-	Type CommandButton Extends Control
+	Private Type CommandButton Extends Control
 	Private:
 		FStyle      As ButtonStyle
 		FDefault    As Boolean

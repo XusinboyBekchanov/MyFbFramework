@@ -11,15 +11,15 @@
 '###############################################################################
 
 #include once "IniFile.bi"
-Property IniFile.File ByRef As WString
+Private Property IniFile.File ByRef As WString
 	Return WGet(FFile)
 End Property
 
-Property IniFile.File(ByRef Value As WString)
+Private Property IniFile.File(ByRef Value As WString)
 	WLet(FFile, Value)
 End Property
 
-Property IniFile.SectionCount As Integer
+Private Property IniFile.SectionCount As Integer
 	FSectionCount = 0
 	Dim As WString Ptr s
 	For i As Integer = 0 To FLines.Count -1
@@ -29,10 +29,10 @@ Property IniFile.SectionCount As Integer
 	Return FSectionCount
 End Property
 
-Property IniFile.SectionCount(Value As Integer)
+Private Property IniFile.SectionCount(Value As Integer)
 End Property
 
-Function IniFile.SectionExists(ByRef Section As WString) As Integer
+Private Function IniFile.SectionExists(ByRef Section As WString) As Integer
 	Dim As WString Ptr s
 	For i As Integer = 0 To FLines.Count -1
 		s = @FLines.Item(i)
@@ -47,7 +47,7 @@ Function IniFile.SectionExists(ByRef Section As WString) As Integer
 	Return -1
 End Function
 
-Function IniFile.KeyExists(ByRef Section As WString, ByRef Key As WString) As Integer
+Private Function IniFile.KeyExists(ByRef Section As WString, ByRef Key As WString) As Integer
 	Dim As Integer x
 	Dim As WString Ptr s
 	x = SectionExists(Section)
@@ -65,7 +65,7 @@ Function IniFile.KeyExists(ByRef Section As WString, ByRef Key As WString) As In
 	Return -1
 End Function
 'David Change
-Function IniFile.KeyRemove(ByRef Section As WString, ByRef Key As WString) As Boolean
+Private Function IniFile.KeyRemove(ByRef Section As WString, ByRef Key As WString) As Boolean
 	Dim As Integer x
 	Dim As WString Ptr s
 	x = SectionExists(Section)
@@ -85,7 +85,7 @@ Function IniFile.KeyRemove(ByRef Section As WString, ByRef Key As WString) As Bo
 	End If
 	Return False
 End Function
-Sub IniFile.Load(ByRef FileName As WString = "")
+Private Sub IniFile.Load(ByRef FileName As WString = "")
 
 	Dim Result As Integer=-1 'David Change
 	If FileName <> "" Then WLet(FFile, FileName)
@@ -107,7 +107,7 @@ Sub IniFile.Load(ByRef FileName As WString = "")
 	End If
 End Sub
 
-Sub IniFile.Update
+Private Sub IniFile.Update
 	'If Open(File For Binary Access Write As #Fn) = 0 Then
 	Dim As Integer Fn = FreeFile
 	If Open(*FFile For Output Encoding "utf-8" As #Fn) =0 Then
@@ -118,7 +118,7 @@ Sub IniFile.Update
 	End If
 End Sub
 
-Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
+Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
 	Dim As Integer SecIndex, KeyIndex
 	SecIndex = SectionExists(Section)
 	If SecIndex <> -1 Then
@@ -156,7 +156,7 @@ Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value A
 	End If
 End Sub
 
-Sub IniFile.WriteFloat(ByRef Section As WString, ByRef Key As WString, Value As Double)
+Private Sub IniFile.WriteFloat(ByRef Section As WString, ByRef Key As WString, Value As Double)
 	Dim As Integer SecIndex,KeyIndex
 	SecIndex = SectionExists(Section)
 	If SecIndex <> -1 Then
@@ -194,7 +194,7 @@ Sub IniFile.WriteFloat(ByRef Section As WString, ByRef Key As WString, Value As 
 	End If
 End Sub
 
-Sub IniFile.WriteBool(ByRef Section As WString, ByRef Key As WString, Value As Boolean)
+Private Sub IniFile.WriteBool(ByRef Section As WString, ByRef Key As WString, Value As Boolean)
 	Dim As Integer SecIndex, KeyIndex
 	SecIndex = SectionExists(Section)
 	If SecIndex <> -1 Then
@@ -232,7 +232,7 @@ Sub IniFile.WriteBool(ByRef Section As WString, ByRef Key As WString, Value As B
 	End If
 End Sub
 
-Sub IniFile.WriteString(ByRef Section As WString, ByRef Key As WString, ByRef Value As WString)
+Private Sub IniFile.WriteString(ByRef Section As WString, ByRef Key As WString, ByRef Value As WString)
 	Dim As Integer SecIndex, KeyIndex
 	SecIndex = SectionExists(Section)
 	If SecIndex <> -1 Then
@@ -270,7 +270,7 @@ Sub IniFile.WriteString(ByRef Section As WString, ByRef Key As WString, ByRef Va
 	End If
 End Sub
 
-Function IniFile.ReadInteger(ByRef Section As WString, ByRef Key As WString, Inplace As Integer = 0) As Integer
+Private Function IniFile.ReadInteger(ByRef Section As WString, ByRef Key As WString, Inplace As Integer = 0) As Integer
 	Dim As Integer Index
 	Dim As WString Ptr s
 	If SectionExists(Section) <> -1 Then
@@ -287,7 +287,7 @@ Function IniFile.ReadInteger(ByRef Section As WString, ByRef Key As WString, Inp
 	End If
 End Function
 
-Function IniFile.ReadFloat(ByRef Section As WString, ByRef Key As WString, Inplace As Double = 0.0) As Double
+Private Function IniFile.ReadFloat(ByRef Section As WString, ByRef Key As WString, Inplace As Double = 0.0) As Double
 	Dim As Integer Index
 	Dim As WString Ptr s
 	If SectionExists(Section) <> -1 Then
@@ -303,7 +303,7 @@ Function IniFile.ReadFloat(ByRef Section As WString, ByRef Key As WString, Inpla
 	End If
 End Function
 
-Function IniFile.ReadBool(ByRef Section As WString, ByRef Key As WString, Inplace As Boolean = False) As Boolean
+Private Function IniFile.ReadBool(ByRef Section As WString, ByRef Key As WString, Inplace As Boolean = False) As Boolean
 	Dim As Integer Index
 	Dim As WString Ptr s
 	If SectionExists(Section) <> -1 Then
@@ -319,7 +319,7 @@ Function IniFile.ReadBool(ByRef Section As WString, ByRef Key As WString, Inplac
 	End If
 End Function
 
-Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") As UString
+Private Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") As UString
 	Dim As Integer Index
 	If SectionExists(Section) <> -1 Then
 		Index = KeyExists(Section, Key)
@@ -333,11 +333,11 @@ Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRe
 	End If
 End Function
 
-Operator IniFile.Cast As Any Ptr
+Private Operator IniFile.Cast As Any Ptr
 	Return @This
 End Operator
 
-Constructor IniFile
+Private Constructor IniFile
 	Dim As WString * 255 Tx
 	Dim As Integer L, i, k
 	#ifndef __USE_GTK__
@@ -352,7 +352,7 @@ Constructor IniFile
 	#endif
 End Constructor
 
-Destructor IniFile
+Private Destructor IniFile
 	If FFile Then Deallocate_( FFile)
 	FLines.Clear
 End Destructor

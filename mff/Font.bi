@@ -16,7 +16,7 @@
 Using My.Sys.ComponentModel
 
 #ifdef __USE_GTK__
-	Enum FontCharset
+	Private Enum FontCharset
 		Default
 		Ansi
 		Arabic
@@ -38,7 +38,7 @@ Using My.Sys.ComponentModel
 		Vietnamese
 	End Enum
 #else
-	Enum FontCharset
+	Private Enum FontCharset
 		Default     = DEFAULT_CHARSET
 		Ansi        = ANSI_CHARSET
 		Arabic      = ARABIC_CHARSET
@@ -64,7 +64,7 @@ Using My.Sys.ComponentModel
 Namespace My.Sys.Drawing
 	#define QFont(__Ptr__) *Cast(Font Ptr,__Ptr__)
 	
-	Type Font Extends My.Sys.Object
+	Private Type Font Extends My.Sys.Object
 	Private:
 		FBold      As Boolean
 		FItalic    As Boolean

@@ -10,7 +10,7 @@
 #endif
 
 Namespace My.Sys.Forms
-	Sub TreeNode.SelectItem
+	Private Sub TreeNode.SelectItem
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)), @TreeIter)
 		#else
@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TreeNode.Collapse
+	Private Sub TreeNode.Collapse
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @TreeIter))
@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TreeNode.Expand
+	Private Sub TreeNode.Expand
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @TreeIter))
@@ -42,7 +42,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function TreeNode.IsExpanded As Boolean
+	Private Function TreeNode.IsExpanded As Boolean
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @TreeIter))
@@ -55,7 +55,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Property TreeNode.Bold As Boolean
+	Private Property TreeNode.Bold As Boolean
 		#ifdef __USE_GTK__
 			Return  FBold
 		#else
@@ -66,7 +66,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TreeNode.Bold(Value As Boolean)
+	Private Property TreeNode.Bold(Value As Boolean)
 		FBold = Value
 		#ifdef __USE_GTK__
 		#else
@@ -76,7 +76,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function TreeNode.Index As Integer
+	Private Function TreeNode.Index As Integer
 		If FParentNode <> 0 Then
 			Return FParentNode->Nodes.IndexOf(@This)
 		ElseIf Parent <> 0 Then
@@ -86,15 +86,15 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Function TreeNode.ToString ByRef As WString
+	Private Function TreeNode.ToString ByRef As WString
 		Return This.Name
 	End Function
 	
-	Property TreeNode.Text ByRef As WString
+	Private Property TreeNode.Text ByRef As WString
 		Return *FText.vptr
 	End Property
 	
-	Property TreeNode.Text(ByRef Value As WString)
+	Private Property TreeNode.Text(ByRef Value As WString)
 		FText = Value
 		#ifdef __USE_GTK__
 			If Parent AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
@@ -114,43 +114,43 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TreeNode.IsUpdated As Boolean
+	Private Property TreeNode.IsUpdated As Boolean
 		Return FIsUpdated
 	End Property
 	
-	Property TreeNode.IsUpdated(Value As Boolean)
+	Private Property TreeNode.IsUpdated(Value As Boolean)
 		FIsUpdated = Value
 	End Property
 	
-	Property TreeNode.Checked As Boolean
+	Private Property TreeNode.Checked As Boolean
 		Return FChecked
 	End Property
 	
-	Property TreeNode.Checked(Value As Boolean)
+	Private Property TreeNode.Checked(Value As Boolean)
 		FChecked = Value
 	End Property
 	
-	Property TreeNode.Hint ByRef As WString
+	Private Property TreeNode.Hint ByRef As WString
 		Return WGet(FHint)
 	End Property
 	
-	Property TreeNode.Hint(ByRef Value As WString)
+	Private Property TreeNode.Hint(ByRef Value As WString)
 		WLet(FHint, Value)
 	End Property
 	
-	Property TreeNode.Name ByRef As WString
+	Private Property TreeNode.Name ByRef As WString
 		Return WGet(FName)
 	End Property
 	
-	Property TreeNode.Name(ByRef Value As WString)
+	Private Property TreeNode.Name(ByRef Value As WString)
 		WLet(FName, Value)
 	End Property
 	
-	Property TreeNode.ImageIndex As Integer
+	Private Property TreeNode.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property TreeNode.ImageIndex(Value As Integer)
+	Private Property TreeNode.ImageIndex(Value As Integer)
 		FImageIndex = Value
 		#ifdef __USE_GTK__
 			If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
@@ -169,11 +169,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TreeNode.ImageKey ByRef As WString
+	Private Property TreeNode.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property TreeNode.ImageKey(ByRef Value As WString)
+	Private Property TreeNode.ImageKey(ByRef Value As WString)
 		If Value <> *FImageKey Then
 			WLet(FImageKey, Value)
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->Images Then
@@ -193,11 +193,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TreeNode.SelectedImageIndex As Integer
+	Private Property TreeNode.SelectedImageIndex As Integer
 		Return FSelectedImageIndex
 	End Property
 	
-	Property TreeNode.SelectedImageIndex(Value As Integer)
+	Private Property TreeNode.SelectedImageIndex(Value As Integer)
 		FSelectedImageIndex = Value
 		If Parent AndAlso Parent->Handle Then
 			#ifdef __USE_GTK__
@@ -214,19 +214,19 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TreeNode.ParentNode As TreeNode Ptr
+	Private Property TreeNode.ParentNode As TreeNode Ptr
 		Return FParentNode
 	End Property
 	
-	Property TreeNode.ParentNode(Value As TreeNode Ptr)
+	Private Property TreeNode.ParentNode(Value As TreeNode Ptr)
 		FParentNode = Value
 	End Property
 	
-	Property TreeNode.SelectedImageKey ByRef As WString
+	Private Property TreeNode.SelectedImageKey ByRef As WString
 		Return WGet(FSelectedImageKey)
 	End Property
 	
-	Property TreeNode.SelectedImageKey(ByRef Value As WString)
+	Private Property TreeNode.SelectedImageKey(ByRef Value As WString)
 		WLet(FSelectedImageKey, Value)
 		If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
 			FSelectedImageIndex = Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(*FSelectedImageKey)
@@ -244,11 +244,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TreeNode.Visible As Boolean
+	Private Property TreeNode.Visible As Boolean
 		Return FVisible
 	End Property
 	
-	Property TreeNode.Visible(Value As Boolean)
+	Private Property TreeNode.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
 			If Parent Then
@@ -259,11 +259,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Operator TreeNode.Cast As Any Ptr
+	Private Operator TreeNode.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor TreeNode
+	Private Constructor TreeNode
 		Nodes.Clear
 		Nodes.Parent = Parent
 		Nodes.ParentNode = @This
@@ -276,11 +276,11 @@ Namespace My.Sys.Forms
 		FSelectedImageIndex = -1
 	End Constructor
 	
-	Function TreeNode.IsDisposed As Boolean
+	Private Function TreeNode.IsDisposed As Boolean
 		Return FIsDisposed
 	End Function
 	
-	Destructor TreeNode
+	Private Destructor TreeNode
 		Nodes.Clear
 		FIsDisposed = True 
 		#ifdef __USE_GTK__
@@ -303,16 +303,16 @@ Namespace My.Sys.Forms
 		WDeAllocate FSelectedImageKey
 	End Destructor
 	
-	Constructor TreeNodeCollection
+	Private Constructor TreeNodeCollection
 		This.Clear
 	End Constructor
 	
-	Destructor TreeNodeCollection
+	Private Destructor TreeNodeCollection
 		This.Clear
 	End Destructor
 	
 	#ifdef __USE_GTK__
-		Function TreeNodeCollection.FindByIterUser_Data(User_Data As Any Ptr) As TreeNode Ptr
+		Private Function TreeNodeCollection.FindByIterUser_Data(User_Data As Any Ptr) As TreeNode Ptr
 			If ParentNode AndAlso ParentNode->TreeIter.User_Data = User_Data Then Return ParentNode
 			For i As Integer = 0 To Count - 1
 				PNode = Item(i)->Nodes.FindByIterUser_Data(User_Data)
@@ -321,7 +321,7 @@ Namespace My.Sys.Forms
 			Return 0
 		End Function
 	#else
-		Function TreeNodeCollection.FindByHandle(hti As HTREEItem) As TreeNode Ptr
+		Private Function TreeNodeCollection.FindByHandle(hti As HTREEItem) As TreeNode Ptr
 			If ParentNode AndAlso ParentNode->Handle = hti Then Return ParentNode
 			For i As Integer = 0 To Count - 1
 				PNode = Item(i)->Nodes.FindByHandle(hti)
@@ -331,23 +331,23 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property TreeNodeCollection.Count As Integer
+	Private Property TreeNodeCollection.Count As Integer
 		Return FNodes.Count
 	End Property
 	
-	Property TreeNodeCollection.Count(Value As Integer)
+	Private Property TreeNodeCollection.Count(Value As Integer)
 	End Property
 	
-	Property TreeNodeCollection.Item(Index As Integer) As TreeNode Ptr
+	Private Property TreeNodeCollection.Item(Index As Integer) As TreeNode Ptr
 		Return Cast(TreeNode Ptr, FNodes.Items[Index])
 	End Property
 	
-	Property TreeNodeCollection.Item(Index As Integer, Value As TreeNode Ptr)
+	Private Property TreeNodeCollection.Item(Index As Integer, Value As TreeNode Ptr)
 		'QTreeNode(FNodes.Items[Index]) = Value
 		FNodes.Items[Index] = Value 'David Change
 	End Property
 	
-	Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
+	Private Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
 		Dim PNode As PTreeNode
 		PNode = New_( TreeNode)
 		PNode->FDynamic = True
@@ -398,7 +398,7 @@ Namespace My.Sys.Forms
 		Return PNode
 	End Function
 	
-	Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString, bSorted As Boolean = False) As TreeNode Ptr
+	Private Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString, bSorted As Boolean = False) As TreeNode Ptr
 		Dim As TreeNode Ptr PNode
 		If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
 			PNode = This.Add(FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey), bSorted)
@@ -409,7 +409,7 @@ Namespace My.Sys.Forms
 		Return PNode
 	End Function
 	
-	Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
+	Private Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
 		Dim PNode As PTreeNode
 		PNode = New_( TreeNode)
 		PNode->FDynamic = True
@@ -453,7 +453,7 @@ Namespace My.Sys.Forms
 		Return PNode
 	End Function
 	
-	Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString) As TreeNode Ptr
+	Private Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString) As TreeNode Ptr
 		Dim PNode As PTreeNode
 		If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
 			PNode = This.Insert(Index, FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey))
@@ -464,7 +464,7 @@ Namespace My.Sys.Forms
 		Return PNode
 	End Function
 	
-	Sub TreeNodeCollection.Remove(Index As Integer)
+	Private Sub TreeNodeCollection.Remove(Index As Integer)
 '		#ifdef __USE_GTK__
 '			If Parent AndAlso Parent->widget Then
 '				gtk_tree_store_remove(Cast(TreeView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
@@ -477,7 +477,7 @@ Namespace My.Sys.Forms
 		Delete_( Item(Index))
 		FNodes.Remove Index
 	End Sub
-	Sub TreeNodeCollection.EditLabel
+	Private Sub TreeNodeCollection.EditLabel
 		#ifdef __USE_GTK__
 		#else
 			If Parent AndAlso Parent->Handle AndAlso FParentNode->Handle Then
@@ -486,45 +486,45 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function TreeNodeCollection.IndexOf(ByRef FNode As TreeNode Ptr) As Integer
+	Private Function TreeNodeCollection.IndexOf(ByRef FNode As TreeNode Ptr) As Integer
 		Return FNodes.IndexOF(FNode)
 	End Function
 	
-	Function TreeNodeCollection.IndexOf(ByRef Text As WString) As Integer
+	Private Function TreeNodeCollection.IndexOf(ByRef Text As WString) As Integer
 		For i As Integer = 0 To Count - 1
 			If Item(i)->Text = Text Then Return i
 		Next i
 		Return -1
 	End Function
 	
-	Function TreeNodeCollection.IndexOfKey(ByRef Key As WString) As Integer
+	Private Function TreeNodeCollection.IndexOfKey(ByRef Key As WString) As Integer
 		For i As Integer = 0 To Count - 1
 			If Item(i)->Name = Key Then Return i
 		Next i
 		Return -1
 	End Function
 	
-	Function TreeNodeCollection.Contains(ByRef FNode As TreeNode Ptr) As Boolean
+	Private Function TreeNodeCollection.Contains(ByRef FNode As TreeNode Ptr) As Boolean
 		Return IndexOF(FNode) <> -1
 	End Function
 	
-	Function TreeNodeCollection.Contains(ByRef Text As WString) As Boolean
+	Private Function TreeNodeCollection.Contains(ByRef Text As WString) As Boolean
 		Return IndexOF(Text) <> -1
 	End Function
 	
-	Function TreeNodeCollection.ContainsKey(ByRef Key As WString) As Boolean
+	Private Function TreeNodeCollection.ContainsKey(ByRef Key As WString) As Boolean
 		Return IndexOFKey(Key) <> -1
 	End Function
 	
-	Property TreeNodeCollection.ParentNode As PTreeNode
+	Private Property TreeNodeCollection.ParentNode As PTreeNode
 		Return FParentNode
 	End Property
 	
-	Property TreeNodeCollection.ParentNode(Value As PTreeNode)
+	Private Property TreeNodeCollection.ParentNode(Value As PTreeNode)
 		FParentNode = Value
 	End Property
 	
-	Sub TreeNodeCollection.Clear
+	Private Sub TreeNodeCollection.Clear
 '		If ParentNode = 0 Then
 '			#ifdef __USE_GTK__
 '				If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeView Ptr, Parent)->TreeStore)
@@ -543,7 +543,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef ReadProperty_Off
-		Function TreeView.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Private Function TreeView.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "editlabels": Return @FEditLabels
 			Case "hideselection": Return @FHideSelection
@@ -560,7 +560,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Function TreeView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Private Function TreeView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -582,24 +582,24 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property TreeView.TabIndex As Integer
+	Private Property TreeView.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property TreeView.TabIndex(Value As Integer)
+	Private Property TreeView.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property TreeView.TabStop As Boolean
+	Private Property TreeView.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property TreeView.TabStop(Value As Boolean)
+	Private Property TreeView.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub TreeView.SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
+		Private Sub TreeView.SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			Dim hChildNode As HTREEITEM
 			Do While hNode
 				TreeView_Expand(FHandle, hNode, tvMessage)
@@ -610,7 +610,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub TreeView.CollapseAll
+	Private Sub TreeView.CollapseAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_collapse_all(gtk_tree_view(widget))
 		#else
@@ -618,7 +618,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub TreeView.ExpandAll
+	Private Sub TreeView.ExpandAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_expand_all(gtk_tree_view(widget))
 		#else
@@ -626,22 +626,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property TreeView.HideSelection As Boolean
+	Private Property TreeView.HideSelection As Boolean
 		Return FHideSelection
 	End Property
 	
-	Property TreeView.HideSelection(Value As Boolean)
+	Private Property TreeView.HideSelection(Value As Boolean)
 		FHideSelection = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TVS_SHOWSELALWAYS, Not Value
 		#endif
 	End Property
 	
-	Property TreeView.EditLabels As Boolean
+	Private Property TreeView.EditLabels As Boolean
 		Return FEditLabels
 	End Property
 	
-	Property TreeView.EditLabels(Value As Boolean)
+	Private Property TreeView.EditLabels(Value As Boolean)
 		FEditLabels = Value
 		#ifdef __USE_GTK__
 			Dim As GValue bValue '= G_VALUE_INIT
@@ -655,7 +655,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TreeView.SelectedNode As TreeNode Ptr
+	Private Property TreeView.SelectedNode As TreeNode Ptr
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
@@ -670,7 +670,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property TreeView.SelectedNode(Value As TreeNode Ptr)
+	Private Property TreeView.SelectedNode(Value As TreeNode Ptr)
 		#ifdef __USE_GTK__
 			If TreeSelection Then gtk_tree_selection_select_iter(TreeSelection, @Value->TreeIter)
 		#else
@@ -678,7 +678,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Function TreeView.DraggedNode As TreeNode Ptr
+	Private Function TreeView.DraggedNode As TreeNode Ptr
 		#ifdef __USE_GTK__
 			Dim As GtkTreePath Ptr path
 			Dim As GtkTreeVIewDropPosition Pos1
@@ -696,19 +696,19 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Property TreeView.ShowHint As Boolean
+	Private Property TreeView.ShowHint As Boolean
 		Return FShowHint
 	End Property
 	
-	Property TreeView.ShowHint(Value As Boolean)
+	Private Property TreeView.ShowHint(Value As Boolean)
 		FShowHint = Value
 	End Property
 	
-	Property TreeView.Sorted As Boolean
+	Private Property TreeView.Sorted As Boolean
 		Return FSorted
 	End Property
 	
-	Property TreeView.Sorted(Value As Boolean)
+	Private Property TreeView.Sorted(Value As Boolean)
 		FSorted = Value
 		#ifdef __USE_GTK__
 			If Value Then
@@ -720,11 +720,11 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub TreeView.WndProc(ByRef Message As Message)
+		Private Sub TreeView.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub TreeView.ProcessMessage(ByRef Message As Message)
+	Private Sub TreeView.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -854,10 +854,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub TreeView.HandleIsDestroyed(ByRef Sender As Control)
+		Private Sub TreeView.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
-		Sub TreeView.CreateNodes(PNode As TreeNode Ptr)
+		Private Sub TreeView.CreateNodes(PNode As TreeNode Ptr)
 			With PNode->Nodes
 				For i As Integer = 0 To .Count - 1
 					Dim tvis As TVINSERTSTRUCT
@@ -878,7 +878,7 @@ Namespace My.Sys.Forms
 			End With
 		End Sub
 		
-		Sub TreeView.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub TreeView.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTreeView(Sender.Child)
 					If .Images Then .Images->ParentWindow = @Sender
@@ -910,12 +910,12 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Operator TreeView.Cast As Control Ptr
+	Private Operator TreeView.Cast As Control Ptr
 		Return @This
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub TreeView.TreeView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+		Private Sub TreeView.TreeView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As TreeView Ptr tv = Cast(Any Ptr, user_data)
 			If tv Then
 				Dim As GtkTreeModel Ptr model
@@ -927,7 +927,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub TreeView.TreeView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		Private Sub TreeView.TreeView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As TreeView Ptr tv = Cast(Any Ptr, user_data)
 			If tv Then
 				Dim As GtkTreeIter iter
@@ -964,7 +964,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function TreeView.TreeView_ButtonRelease(widget As GtkWidget Ptr, e As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function TreeView.TreeView_ButtonRelease(widget As GtkWidget Ptr, e As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			Dim Message As Message
 			If e->button.button = 3 AndAlso tv->ContextMenu Then
@@ -976,7 +976,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function TreeView.TreeView_QueryTooltip(widget As GtkWidget Ptr, x As gint, y As gint, keyboard_mode As Boolean, tooltip As GtkTooltip Ptr, user_data As Any Ptr) As Boolean
+		Private Function TreeView.TreeView_QueryTooltip(widget As GtkWidget Ptr, x As gint, y As gint, keyboard_mode As Boolean, tooltip As GtkTooltip Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			Dim As GtkTreeIter iter
 			Dim As GtkTreePath Ptr path
@@ -990,7 +990,7 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 		
-		Sub TreeView.Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As Const gchar Ptr, user_data As Any Ptr)
+		Private Sub TreeView.Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As Const gchar Ptr, user_data As Any Ptr)
 			Dim As TreeView Ptr tv = user_data
 			Dim As GtkTreeIter iter
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(tv->Handle))
@@ -1004,7 +1004,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub TreeView.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+		Private Sub TreeView.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
 			Dim As TreeView Ptr tv = user_data
 			Dim As GtkTreeIter iter
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(tv->Handle))
@@ -1018,7 +1018,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function TreeView.TestCollapseRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+		Private Function TreeView.TestCollapseRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
 				Dim bCancel As Boolean
@@ -1028,7 +1028,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function TreeView.TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+		Private Function TreeView.TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
 				Dim bCancel As Boolean
@@ -1038,7 +1038,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function TreeView.RowCollapsed(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+		Private Function TreeView.RowCollapsed(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
 				If tv->OnNodeCollapsed Then tv->OnNodeCollapsed(*tv, *tv->Nodes.FindByIterUser_Data(iter->User_Data))
@@ -1046,7 +1046,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function TreeView.RowExpanded(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+		Private Function TreeView.RowExpanded(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
 				If tv->OnNodeExpanded Then tv->OnNodeExpanded(*tv, *tv->Nodes.FindByIterUser_Data(iter->User_Data))
@@ -1055,7 +1055,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Constructor TreeView
+	Private Constructor TreeView
 		Nodes.Clear
 		Nodes.Parent = @This
 		FEnabled = True
@@ -1118,7 +1118,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor TreeView
+	Private Destructor TreeView
 		Nodes.Clear
 		#ifdef __USE_GTK__
 			

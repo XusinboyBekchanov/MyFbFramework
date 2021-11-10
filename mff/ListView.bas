@@ -7,7 +7,7 @@
 #include once "ListView.bi"
 
 Namespace My.Sys.Forms
-	Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "allowcolumnreorder": Return @FAllowColumnReorder
 		Case "borderselect": Return @FBorderSelect
@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -61,23 +61,23 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property ListView.TabIndex As Integer
+	Private Property ListView.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property ListView.TabIndex(Value As Integer)
+	Private Property ListView.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property ListView.TabStop As Boolean
+	Private Property ListView.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property ListView.TabStop(Value As Boolean)
+	Private Property ListView.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Function ListViewItem.Index As Integer
+	Private Function ListViewItem.Index As Integer
 		If Parent Then
 			Return Cast(ListView Ptr, Parent)->ListItems.IndexOf(@This)
 		Else
@@ -85,7 +85,7 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Sub ListViewItem.SelectItem
+	Private Sub ListViewItem.SelectItem
 		#ifdef __USE_GTK__
 			If Parent Then
 				If gtk_is_icon_view(Parent->Handle) Then
@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property ListViewItem.Text(iSubItem As Integer) ByRef As WString
+	Private Property ListViewItem.Text(iSubItem As Integer) ByRef As WString
 		#ifdef __USE_GTK__
 			If FSubItems.Count > iSubItem Then
 				Return FSubItems.Item(iSubItem)
@@ -137,7 +137,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function ListViewGetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
+		Private Function ListViewGetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
 			If gtk_is_widget(widget) Then
 				If gtk_is_tree_view(widget) Then
 					Return gtk_tree_view_get_model(gtk_tree_view(widget))
@@ -148,7 +148,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property ListViewItem.Text(iSubItem As Integer, ByRef Value As WString)
+	Private Property ListViewItem.Text(iSubItem As Integer, ByRef Value As WString)
 		WLet(FText, Value)
 		If Parent Then
 			Dim ic As Integer = FSubItems.Count
@@ -176,7 +176,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListViewItem.State As Integer
+	Private Property ListViewItem.State As Integer
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
@@ -189,7 +189,7 @@ Namespace My.Sys.Forms
 		Return FState
 	End Property
 	
-	Property ListViewItem.State(Value As Integer)
+	Private Property ListViewItem.State(Value As Integer)
 		FState = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -202,7 +202,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListViewItem.Indent As Integer
+	Private Property ListViewItem.Indent As Integer
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_INDENT
@@ -215,7 +215,7 @@ Namespace My.Sys.Forms
 		Return FIndent
 	End Property
 	
-	Property ListViewItem.Indent(Value As Integer)
+	Private Property ListViewItem.Indent(Value As Integer)
 		FIndent = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -232,7 +232,7 @@ Namespace My.Sys.Forms
 	Const LVIS_CHECKED = 8192
 	Const LVIS_CHECKEDMASK = 12288
 	
-	Property ListViewItem.Checked As Boolean
+	Private Property ListViewItem.Checked As Boolean
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			Dim As Boolean bChecked
@@ -251,7 +251,7 @@ Namespace My.Sys.Forms
 		Return FChecked
 	End Property
 	
-	Property ListViewItem.Checked(Value As Boolean)
+	Private Property ListViewItem.Checked(Value As Boolean)
 		FChecked = Value
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
@@ -272,20 +272,20 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListViewItem.Hint ByRef As WString
+	Private Property ListViewItem.Hint ByRef As WString
 		Return WGet(FHint)
 	End Property
 	
-	Property ListViewItem.Hint(ByRef Value As WString)
+	Private Property ListViewItem.Hint(ByRef Value As WString)
 		WLet(FHint, Value)
 	End Property
 	
 	
-	Property ListViewItem.ImageIndex As Integer
+	Private Property ListViewItem.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property ListViewItem.ImageIndex(Value As Integer)
+	Private Property ListViewItem.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
 			#ifndef __USE_GTK__
@@ -300,11 +300,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListViewItem.SelectedImageIndex As Integer
+	Private Property ListViewItem.SelectedImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property ListViewItem.SelectedImageIndex(Value As Integer)
+	Private Property ListViewItem.SelectedImageIndex(Value As Integer)
 		If Value <> FSelectedImageIndex Then
 			FSelectedImageIndex = Value
 			If Parent Then
@@ -315,15 +315,15 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListViewItem.Visible As Boolean
+	Private Property ListViewItem.Visible As Boolean
 		Return FVisible
 	End Property
 	
-	Property ListViewItem.ImageKey ByRef As WString
+	Private Property ListViewItem.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property ListViewItem.ImageKey(ByRef Value As WString)
+	Private Property ListViewItem.ImageKey(ByRef Value As WString)
 		'If Value <> *FImageKey Then
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
@@ -347,11 +347,11 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
-	Property ListViewItem.SelectedImageKey ByRef As WString
+	Private Property ListViewItem.SelectedImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property ListViewItem.SelectedImageKey(ByRef Value As WString)
+	Private Property ListViewItem.SelectedImageKey(ByRef Value As WString)
 		'If Value <> *FSelectedImageKey Then
 		WLet(FSelectedImageKey, Value)
 		If Parent Then
@@ -362,7 +362,7 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
-	Property ListViewItem.Visible(Value As Boolean)
+	Private Property ListViewItem.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
 			If Parent Then
@@ -373,11 +373,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Operator ListViewItem.Cast As Any Ptr
+	Private Operator ListViewItem.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ListViewItem
+	Private Constructor ListViewItem
 		FHint = 0 'CAllocate_(0)
 		FText = 0 'CAllocate_(0)
 		FVisible    = 1
@@ -388,7 +388,7 @@ Namespace My.Sys.Forms
 		FSmallImageIndex = -1
 	End Constructor
 	
-	Destructor ListViewItem
+	Private Destructor ListViewItem
 		If FHint Then Deallocate_( FHint)
 		If FText Then Deallocate_( FText)
 		If FImageKey Then Deallocate_( FImageKey)
@@ -396,17 +396,17 @@ Namespace My.Sys.Forms
 		If FSmallImageKey Then Deallocate_( FSmallImageKey)
 	End Destructor
 	
-	Sub ListViewColumn.SelectItem
+	Private Sub ListViewColumn.SelectItem
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
 		#endif
 	End Sub
 	
-	Property ListViewColumn.Text ByRef As WString
+	Private Property ListViewColumn.Text ByRef As WString
 		Return WGet(FText)
 	End Property
 	
-	Property ListViewColumn.Text(ByRef Value As WString)
+	Private Property ListViewColumn.Text(ByRef Value As WString)
 		WLet(FText, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -420,11 +420,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListViewColumn.Width As Integer
+	Private Property ListViewColumn.Width As Integer
 		Return FWidth
 	End Property
 	
-	Property ListViewColumn.Width(Value As Integer)
+	Private Property ListViewColumn.Width(Value As Integer)
 		FWidth = Value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
@@ -443,11 +443,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListViewColumn.Format As ColumnFormat
+	Private Property ListViewColumn.Format As ColumnFormat
 		Return FFormat
 	End Property
 	
-	Property ListViewColumn.Format(Value As ColumnFormat)
+	Private Property ListViewColumn.Format(Value As ColumnFormat)
 		FFormat = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -460,20 +460,20 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListViewColumn.Hint ByRef As WString
+	Private Property ListViewColumn.Hint ByRef As WString
 		Return WGet(FHint)
 	End Property
 	
-	Property ListViewColumn.Hint(ByRef Value As WString)
+	Private Property ListViewColumn.Hint(ByRef Value As WString)
 		WLet(FHint, Value)
 	End Property
 	
 	
-	Property ListViewColumn.ImageIndex As Integer
+	Private Property ListViewColumn.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property ListViewColumn.ImageIndex(Value As Integer)
+	Private Property ListViewColumn.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
 			If Parent Then
@@ -484,11 +484,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListViewColumn.Visible As Boolean
+	Private Property ListViewColumn.Visible As Boolean
 		Return FVisible
 	End Property
 	
-	Property ListViewColumn.Visible(Value As Boolean)
+	Private Property ListViewColumn.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
 			If Parent Then
@@ -499,21 +499,21 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ListViewColumn.Editable As Boolean
+	Private Property ListViewColumn.Editable As Boolean
 		Return FEditable
 	End Property
 	
-	Property ListViewColumn.Editable(Value As Boolean)
+	Private Property ListViewColumn.Editable(Value As Boolean)
 		If Value <> FEditable Then
 			FEditable = Value
 		End If
 	End Property
 	
-	Operator ListViewColumn.Cast As Any Ptr
+	Private Operator ListViewColumn.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ListViewColumn
+	Private Constructor ListViewColumn
 		FHint = 0 'CAllocate_(0)
 		FText = 0 'CAllocate_(0)
 		FVisible    = 1
@@ -522,29 +522,29 @@ Namespace My.Sys.Forms
 		FImageIndex = -1
 	End Constructor
 	
-	Destructor ListViewColumn
+	Private Destructor ListViewColumn
 		If FHint Then Deallocate_( FHint)
 		If FText Then Deallocate_( FText)
 	End Destructor
 	
-	Property ListViewItems.Count As Integer
+	Private Property ListViewItems.Count As Integer
 		Return FItems.Count
 	End Property
 	
-	Property ListViewItems.Count(Value As Integer)
+	Private Property ListViewItems.Count(Value As Integer)
 	End Property
 	
-	Property ListViewItems.Item(Index As Integer) As ListViewItem Ptr
+	Private Property ListViewItems.Item(Index As Integer) As ListViewItem Ptr
 		Return FItems.Items[Index] 'QListViewItem(FItems.Items[Index])
 	End Property
 	
-	Property ListViewItems.Item(Index As Integer, Value As ListViewItem Ptr)
+	Private Property ListViewItems.Item(Index As Integer, Value As ListViewItem Ptr)
 		'QToolButton(FItems.Items[Index]) = Value
 		FItems.Items[Index] = Value  'David Change
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function ListViewItems.FindByIterUser_Data(User_Data As Any Ptr) As ListViewItem Ptr
+		Private Function ListViewItems.FindByIterUser_Data(User_Data As Any Ptr) As ListViewItem Ptr
 			For i As Integer = 0 To Count - 1
 				If Item(i)->TreeIter.User_Data = User_Data Then Return Item(i)
 			Next i
@@ -552,7 +552,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Function ListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As ListViewItem Ptr
+	Private Function ListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As ListViewItem Ptr
 		PItem = New_( ListViewItem)
 		Dim i As Integer = Index
 		Dim As SortStyle iSortStyle = Cast(ListView Ptr, Parent)->Sort
@@ -606,7 +606,7 @@ Namespace My.Sys.Forms
 		Return PItem
 	End Function
 	
-	Function ListViewItems.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As ListViewItem Ptr
+	Private Function ListViewItems.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As ListViewItem Ptr
 		If Parent AndAlso Cast(ListView Ptr, Parent)->Images Then
 			PItem = Add(FCaption, Cast(ListView Ptr, Parent)->Images->IndexOf(FImageKey), State, Indent, Index)
 		Else
@@ -616,7 +616,7 @@ Namespace My.Sys.Forms
 		Return PItem
 	End Function
 	
-	Function ListViewItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
+	Private Function ListViewItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
 		Dim As ListViewItem Ptr PItem
 		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
@@ -647,7 +647,7 @@ Namespace My.Sys.Forms
 		Return PItem
 	End Function
 	
-	Sub ListViewItems.Remove(Index As Integer)
+	Private Sub ListViewItems.Remove(Index As Integer)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_remove(gtk_list_store(ListViewGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
@@ -661,7 +661,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Function ListViewCompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
+		Private Function ListViewCompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 			Dim As ListViewItem Ptr FirstItem = Cast(ListViewItem Ptr, lParam1), SecondItem = Cast(ListViewItem Ptr, lParam2)
 			If FirstItem <> 0 AndAlso SecondItem <> 0 Then
 				Select Case FirstItem->Text(0)
@@ -674,7 +674,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub ListViewItems.Sort
+	Private Sub ListViewItems.Sort
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @ListViewCompareFunc)
@@ -683,11 +683,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function ListViewItems.IndexOf(ByRef FItem As ListViewItem Ptr) As Integer
+	Private Function ListViewItems.IndexOf(ByRef FItem As ListViewItem Ptr) As Integer
 		Return FItems.IndexOF(FItem)
 	End Function
 	
-	Function ListViewItems.IndexOf(ByRef Caption As WString) As Integer
+	Private Function ListViewItems.IndexOf(ByRef Caption As WString) As Integer
 		For i As Integer = 0 To Count - 1
 			If LCase(QListViewItem(FItems.Items[i]).Text(0)) = LCase(Caption) Then
 				Return i
@@ -696,11 +696,11 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Function ListViewItems.Contains(ByRef Caption As WString) As Boolean
+	Private Function ListViewItems.Contains(ByRef Caption As WString) As Boolean
 		Return IndexOf(Caption) <> -1
 	End Function
 	
-	Sub ListViewItems.Clear
+	Private Sub ListViewItems.Clear
 		#ifdef __USE_GTK__
 			If Parent AndAlso gtk_list_store(ListViewGetModel(Parent->Handle)) Then gtk_list_store_clear(gtk_list_store(ListViewGetModel(Parent->Handle)))
 		#else
@@ -712,35 +712,35 @@ Namespace My.Sys.Forms
 		FItems.Clear
 	End Sub
 	
-	Operator ListViewItems.Cast As Any Ptr
+	Private Operator ListViewItems.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ListViewItems
+	Private Constructor ListViewItems
 		This.Clear
 	End Constructor
 	
-	Destructor ListViewItems
+	Private Destructor ListViewItems
 		This.Clear
 	End Destructor
 	
-	Property ListViewColumns.Count As Integer
+	Private Property ListViewColumns.Count As Integer
 		Return FColumns.Count
 	End Property
 	
-	Property ListViewColumns.Count(Value As Integer)
+	Private Property ListViewColumns.Count(Value As Integer)
 	End Property
 	
-	Property ListViewColumns.Column(Index As Integer) As ListViewColumn Ptr
+	Private Property ListViewColumns.Column(Index As Integer) As ListViewColumn Ptr
 		Return QListViewColumn(FColumns.Items[Index])
 	End Property
 	
-	Property ListViewColumns.Column(Index As Integer, Value As ListViewColumn Ptr)
+	Private Property ListViewColumns.Column(Index As Integer, Value As ListViewColumn Ptr)
 		'QListViewColumn(FColumns.Items[Index]) = Value
 	End Property
 	
 	#ifdef __USE_GTK__
-		Sub ListViewColumns.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
+		Private Sub ListViewColumns.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
 			Dim As ListViewColumn Ptr PColumn = user_data
 			If PColumn = 0 Then Exit Sub
 			Dim As ListView Ptr lv = Cast(ListView Ptr, PColumn->Parent)
@@ -748,7 +748,7 @@ Namespace My.Sys.Forms
 			If lv->OnCellEdited Then lv->OnCellEdited(*lv, Val(*path), PColumn->Index, *new_text)
 		End Sub
 	
-		Sub ListViewColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
+		Private Sub ListViewColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = user_data
 			Dim As GtkListStore Ptr model = gtk_list_store(ListViewGetModel(lv->Handle))
 			Dim As GtkTreeIter iter
@@ -768,7 +768,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As ListViewColumn Ptr
+	Private Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As ListViewColumn Ptr
 		Dim As ListViewColumn Ptr PColumn
 		Dim As Integer Index
 		#ifndef __USE_GTK__
@@ -850,7 +850,7 @@ Namespace My.Sys.Forms
 		Return PColumn
 	End Function
 	
-	Sub ListViewColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As ColumnFormat = cfLeft)
+	Private Sub ListViewColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As ColumnFormat = cfLeft)
 		Dim As ListViewColumn Ptr PColumn
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
@@ -882,7 +882,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub ListViewColumns.Remove(Index As Integer)
+	Private Sub ListViewColumns.Remove(Index As Integer)
 		FColumns.Remove Index
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -891,11 +891,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function ListViewColumns.IndexOf(ByRef FColumn As ListViewColumn Ptr) As Integer
+	Private Function ListViewColumns.IndexOf(ByRef FColumn As ListViewColumn Ptr) As Integer
 		Return FColumns.IndexOF(FColumn)
 	End Function
 	
-	Sub ListViewColumns.Clear
+	Private Sub ListViewColumns.Clear
 		For i As Integer = Count -1 To 0 Step -1
 			Delete_( @QListViewColumn(FColumns.Items[i]))
 			Remove i
@@ -903,19 +903,19 @@ Namespace My.Sys.Forms
 		FColumns.Clear
 	End Sub
 	
-	Operator ListViewColumns.Cast As Any Ptr
+	Private Operator ListViewColumns.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ListViewColumns
+	Private Constructor ListViewColumns
 		This.Clear
 	End Constructor
 	
-	Destructor ListViewColumns
+	Private Destructor ListViewColumns
 		This.Clear
 	End Destructor
 	
-	Sub ListView.Init()
+	Private Sub ListView.Init()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(TreeViewWidget)) = NULL Then
 				With This
@@ -940,11 +940,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property ListView.ColumnHeaderHidden As Boolean
+	Private Property ListView.ColumnHeaderHidden As Boolean
 		Return FColumnHeaderHidden
 	End Property
 	
-	Property ListView.ColumnHeaderHidden(Value As Boolean)
+	Private Property ListView.ColumnHeaderHidden(Value As Boolean)
 		FColumnHeaderHidden = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(TreeViewWidget), Not Value)
@@ -953,7 +953,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub ListView.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
+	Private Sub ListView.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		#ifndef __USE_GTK__
 			If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
 			If Value Then
@@ -965,11 +965,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property ListView.SingleClickActivate As Boolean
+	Private Property ListView.SingleClickActivate As Boolean
 		Return FSingleClickActivate
 	End Property
 	
-	Property ListView.SingleClickActivate(Value As Boolean)
+	Private Property ListView.SingleClickActivate(Value As Boolean)
 		FSingleClickActivate = Value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
@@ -983,11 +983,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.HoverSelection As Boolean
+	Private Property ListView.HoverSelection As Boolean
 		Return FHoverSelection
 	End Property
 	
-	Property ListView.HoverSelection(Value As Boolean)
+	Private Property ListView.HoverSelection(Value As Boolean)
 		FHoverSelection = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_hover_selection(gtk_tree_view(TreeViewWidget), Value)
@@ -996,11 +996,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.AllowColumnReorder As Boolean
+	Private Property ListView.AllowColumnReorder As Boolean
 		Return FAllowColumnReorder
 	End Property
 	
-	Property ListView.AllowColumnReorder(Value As Boolean)
+	Private Property ListView.AllowColumnReorder(Value As Boolean)
 		FAllowColumnReorder = Value
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To Columns.Count - 1
@@ -1011,22 +1011,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.BorderSelect As Boolean
+	Private Property ListView.BorderSelect As Boolean
 		Return FBorderSelect
 	End Property
 	
-	Property ListView.BorderSelect(Value As Boolean)
+	Private Property ListView.BorderSelect(Value As Boolean)
 		FBorderSelect = Value
 		#ifndef __USE_GTK__
 			ChangeLVExStyle LVS_EX_BORDERSELECT, Value
 		#endif
 	End Property
 	
-	Property ListView.GridLines As Boolean
+	Private Property ListView.GridLines As Boolean
 		Return FGridLines
 	End Property
 	
-	Property ListView.GridLines(Value As Boolean)
+	Private Property ListView.GridLines(Value As Boolean)
 		FGridLines = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(TreeViewWidget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
@@ -1035,51 +1035,51 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.CheckBoxes As Boolean
+	Private Property ListView.CheckBoxes As Boolean
 		Return FCheckBoxes
 	End Property
 	
-	Property ListView.CheckBoxes(Value As Boolean)
+	Private Property ListView.CheckBoxes(Value As Boolean)
 		FCheckBoxes = Value
 		#ifndef __USE_GTK__
 			ChangeLVExStyle LVS_EX_CHECKBOXES, Value
 		#endif
 	End Property
 	
-	Property ListView.FullRowSelect As Boolean
+	Private Property ListView.FullRowSelect As Boolean
 		Return FFullRowSelect
 	End Property
 	
-	Property ListView.FullRowSelect(Value As Boolean)
+	Private Property ListView.FullRowSelect(Value As Boolean)
 		FFullRowSelect = Value
 		#ifndef __USE_GTK__
 			ChangeLVExStyle LVS_EX_FULLROWSELECT, Value
 		#endif
 	End Property
 	
-	Property ListView.LabelTip As Boolean
+	Private Property ListView.LabelTip As Boolean
 		Return FLabelTip
 	End Property
 	
-	Property ListView.LabelTip(Value As Boolean)
+	Private Property ListView.LabelTip(Value As Boolean)
 		FLabelTip = Value
 		#ifndef __USE_GTK__
 			ChangeLVExStyle LVS_EX_LABELTIP, Value
 		#endif
 	End Property
 	
-	Property ListView.HoverTime As Integer
+	Private Property ListView.HoverTime As Integer
 		Return FHoverTime
 	End Property
 	
-	Property ListView.HoverTime(Value As Integer)
+	Private Property ListView.HoverTime(Value As Integer)
 		FHoverTime = Value
 		#ifndef __USE_GTK__
 			If Handle Then Perform(LVM_SETHOVERTIME, 0, Value)
 		#endif
 	End Property
 	
-	Property ListView.View As ViewStyle
+	Private Property ListView.View As ViewStyle
 		#ifndef __USE_GTK__
 			If Handle Then
 				FView = ListView_GetView(Handle)
@@ -1088,7 +1088,7 @@ Namespace My.Sys.Forms
 		Return FView
 	End Property
 	
-	Property ListView.View(Value As ViewStyle)
+	Private Property ListView.View(Value As ViewStyle)
 		FView = Value
 		#ifdef __USE_GTK__
 			If FView = ViewStyle.vsDetails Then
@@ -1132,7 +1132,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.SelectedItem As ListViewItem Ptr
+	Private Property ListView.SelectedItem As ListViewItem Ptr
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_is_icon_view(widget) Then
@@ -1159,7 +1159,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property ListView.SelectedItemIndex As Integer
+	Private Property ListView.SelectedItemIndex As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_is_icon_view(widget) Then
@@ -1193,7 +1193,7 @@ Namespace My.Sys.Forms
 		Return -1
 	End Property
 	
-	Property ListView.SelectedItemIndex(Value As Integer)
+	Private Property ListView.SelectedItemIndex(Value As Integer)
 		#ifdef __USE_GTK__
 			If gtk_is_icon_view(widget) Then
 				gtk_icon_view_select_path(gtk_icon_view(widget), gtk_tree_path_new_from_string(Trim(Str(Value))))
@@ -1216,11 +1216,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.SelectedItem(Value As ListViewItem Ptr)
+	Private Property ListView.SelectedItem(Value As ListViewItem Ptr)
 		Value->SelectItem
 	End Property
 	
-	Property ListView.SelectedColumn As ListViewColumn Ptr
+	Private Property ListView.SelectedColumn As ListViewColumn Ptr
 		#ifndef __USE_GTK__
 			If Handle Then
 				Return Columns.Column(ListView_GetSelectedColumn(Handle))
@@ -1229,11 +1229,11 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Property ListView.Sort As SortStyle
+	Private Property ListView.Sort As SortStyle
 		Return FSortStyle
 	End Property
 	
-	Property ListView.Sort(Value As SortStyle)
+	Private Property ListView.Sort(Value As SortStyle)
 		FSortStyle = Value
 		#ifndef __USE_GTK__
 			Select Case FSortStyle
@@ -1250,24 +1250,24 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ListView.SelectedColumn(Value As ListViewColumn Ptr)
+	Private Property ListView.SelectedColumn(Value As ListViewColumn Ptr)
 		#ifndef __USE_GTK__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
 		#endif
 	End Property
 	
-	Property ListView.ShowHint As Boolean
+	Private Property ListView.ShowHint As Boolean
 		Return FShowHint
 	End Property
 	
-	Property ListView.ShowHint(Value As Boolean)
+	Private Property ListView.ShowHint(Value As Boolean)
 		FShowHint = Value
 	End Property
 	
-	Sub ListView.WndProc(ByRef Message As Message)
+	Private Sub ListView.WndProc(ByRef Message As Message)
 	End Sub
 	
-	Sub ListView.ProcessMessage(ByRef Message As Message)
+	Private Sub ListView.ProcessMessage(ByRef Message As Message)
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
@@ -1389,10 +1389,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub ListView.HandleIsDestroyed(ByRef Sender As Control)
+		Private Sub ListView.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
-		Sub ListView.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ListView.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QListView(Sender.Child)
 					If .Images Then
@@ -1466,12 +1466,12 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Operator ListView.Cast As Control Ptr
+	Private Operator ListView.Cast As Control Ptr
 		Return @This
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub ListView.ListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+		Private Sub ListView.ListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeModel Ptr model
@@ -1483,7 +1483,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ListView.ListView_ItemActivated(icon_view As GtkIconView Ptr, path As GtkTreePath Ptr, user_data As Any Ptr)
+		Private Sub ListView.ListView_ItemActivated(icon_view As GtkIconView Ptr, path As GtkTreePath Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeModel Ptr model
@@ -1495,7 +1495,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ListView.ListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		Private Sub ListView.ListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeIter iter
@@ -1516,7 +1516,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ListView.IconView_SelectionChanged(iconview As GtkIconView Ptr, user_data As Any Ptr)
+		Private Sub ListView.IconView_SelectionChanged(iconview As GtkIconView Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeIter iter
@@ -1541,19 +1541,19 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ListView.ListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub ListView.ListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = user_data
 			lv->Init
 		End Sub
 		
-		Function ListView.ListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
+		Private Function ListView.ListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
 			Dim As ListView Ptr lv = user_data
 			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
 			Return True
 		End Function
 	#endif
 	
-	Constructor ListView
+	Private Constructor ListView
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(3, G_TYPE_BOOLEAN, GDK_TYPE_PIXBUF, G_TYPE_STRING)
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
@@ -1613,7 +1613,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ListView
+	Private Destructor ListView
 		ListItems.Clear
 		#ifndef __USE_GTK__
 			UnregisterClass "ListView",GetmoduleHandle(NULL)

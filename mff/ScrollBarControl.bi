@@ -16,11 +16,11 @@
 Namespace My.Sys.Forms
 	#define QScrollBarControl(__Ptr__) *Cast(ScrollBarControl Ptr,__Ptr__)
 	
-	Enum ScrollBarControlStyle
+	Private Enum ScrollBarControlStyle
 		sbHorizontal, sbVertical
 	End Enum
 	
-	Type ScrollBarControl Extends Control
+	Private Type ScrollBarControl Extends Control
 	Private:
 		FStyle      	As ScrollBarControlStyle
 		FMin        	As Integer

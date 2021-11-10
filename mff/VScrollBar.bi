@@ -15,7 +15,7 @@
 Namespace My.Sys.Forms
 	#define QVScrollBar(__Ptr__) *Cast(VScrollBar Ptr,__Ptr__)
 	
-	Type VScrollBar Extends Control
+	Private Type VScrollBar Extends Control
 	Private:
 		FMin            As Integer
 		FMax            As Integer

@@ -16,7 +16,7 @@
 Namespace My.Sys.Forms
 	#define QComboBoxEdit(__Ptr__) *Cast(ComboBoxEdit Ptr,__Ptr__)
 	
-	Enum ComboBoxEditStyle
+	Private Enum ComboBoxEditStyle
 		cbSimple            = 0
 		cbDropDown
 		cbDropDownList
@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 		cbOwnerDrawVariable
 	End Enum
 	
-	Type ComboBoxEdit Extends Control
+	Private Type ComboBoxEdit Extends Control
 	Private:
 		FSort             As Boolean
 		FItemText         As WString Ptr

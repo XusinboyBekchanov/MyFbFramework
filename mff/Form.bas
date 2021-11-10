@@ -14,7 +14,7 @@
 #include once "Form.bi"
 
 Namespace My.Sys.Forms
-	Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
 		Case "activecontrol": Return FActiveControl
@@ -40,7 +40,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Form.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Form.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case "activecontrol": This.ActiveControl = 0
@@ -81,21 +81,21 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property Form.ActiveControl As Control Ptr
+	Private Property Form.ActiveControl As Control Ptr
 		Return FActiveControl
 	End Property
 	
-	Property Form.ActiveControl(Value As Control Ptr)
+	Private Property Form.ActiveControl(Value As Control Ptr)
 		FActiveControl = Value
 		If FActiveControl Then FActiveControl->SetFocus
 		If OnActiveControlChange Then OnActiveControlChange(This)
 	End Property
 
-	Property Form.Owner As Form Ptr
+	Private Property Form.Owner As Form Ptr
 		Return Cast(Form Ptr, FOwner)
 	End Property
 
-	Property Form.Owner(Value As Form Ptr)
+	Private Property Form.Owner(Value As Form Ptr)
 		If Value <> FOwner Then
 			FOwner = Value
 			#ifndef __USE_GTK__
@@ -107,11 +107,11 @@ Namespace My.Sys.Forms
 	End Property
 
 	#ifdef __USE_GTK__
-		Property Form.ParentWidget As GtkWidget Ptr
+		Private Property Form.ParentWidget As GtkWidget Ptr
 			Return FParentWidget
 		End Property
 
-		Property Form.ParentWidget(Value As GtkWidget Ptr)
+		Private Property Form.ParentWidget(Value As GtkWidget Ptr)
 			If Not GTK_IS_BOX(widget) Then
 				g_object_ref(box)
 				gtk_container_remove(gtk_container(WindowWidget), box)
@@ -139,11 +139,11 @@ Namespace My.Sys.Forms
 		End Property
 	#endif
 
-	Property Form.DefaultButton As Control Ptr
+	Private Property Form.DefaultButton As Control Ptr
 		Return FDefaultButton
 	End Property
 
-	Property Form.DefaultButton(Value As Control Ptr)
+	Private Property Form.DefaultButton(Value As Control Ptr)
 		FDefaultButton = Value
 		#ifdef __USE_GTK__
 			If Value <> 0 Then
@@ -159,19 +159,19 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 
-	Property Form.CancelButton As Control Ptr
+	Private Property Form.CancelButton As Control Ptr
 		Return FCancelButton
 	End Property
 
-	Property Form.CancelButton(Value As Control Ptr)
+	Private Property Form.CancelButton(Value As Control Ptr)
 		FCancelButton = Value
 	End Property
 
-	Property Form.MainForm As Boolean
+	Private Property Form.MainForm As Boolean
 		Return FMainForm
 	End Property
 
-	Property Form.MainForm(Value As Boolean)
+	Private Property Form.MainForm(Value As Boolean)
 		If Value <> FMainForm Then
 			FMainForm = Value
 			If pApp <> 0 Then
@@ -188,20 +188,20 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 
-	Property Form.Menu As MainMenu Ptr
+	Private Property Form.Menu As MainMenu Ptr
 		Return FMenu
 	End Property
 
-	Property Form.Menu(Value As MainMenu Ptr)
+	Private Property Form.Menu(Value As MainMenu Ptr)
 		FMenu = Value
 		If FMenu Then FMenu->ParentWindow = @This
 	End Property
 
-	Property Form.StartPosition As Integer
+	Private Property Form.StartPosition As Integer
 		Return FStartPosition
 	End Property
 
-	Property Form.StartPosition(Value As Integer)
+	Private Property Form.StartPosition(Value As Integer)
 		FStartPosition = Value
 		#ifdef __USE_GTK__
 			If gtk_is_window(widget) Then
@@ -225,11 +225,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.Opacity As Integer
+	Private Property Form.Opacity As Integer
 		Return FOpacity
 	End Property
 
-	Property Form.Opacity(Value As Integer)
+	Private Property Form.Opacity(Value As Integer)
 		FOpacity = Value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
@@ -245,11 +245,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.ControlBox As Boolean
+	Private Property Form.ControlBox As Boolean
 		Return FControlBox
 	End Property
 
-	Property Form.ControlBox(Value As Boolean)
+	Private Property Form.ControlBox(Value As Boolean)
 		FControlBox = Value
 		#ifndef __USE_GTK__
 			ChangeStyle WS_SYSMENU, Value
@@ -257,11 +257,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.MinimizeBox As Boolean
+	Private Property Form.MinimizeBox As Boolean
 		Return FMinimizeBox
 	End Property
 
-	Property Form.MinimizeBox(Value As Boolean)
+	Private Property Form.MinimizeBox(Value As Boolean)
 		FMinimizeBox = Value
 		#ifndef __USE_GTK__
 			ChangeStyle WS_MINIMIZEBOX, Value
@@ -269,11 +269,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.MaximizeBox As Boolean
+	Private Property Form.MaximizeBox As Boolean
 		Return FMaximizeBox
 	End Property
 
-	Property Form.MaximizeBox(Value As Boolean)
+	Private Property Form.MaximizeBox(Value As Boolean)
 		FMaximizeBox = Value
 		#ifndef __USE_GTK__
 			ChangeStyle WS_MAXIMIZEBOX, Value
@@ -281,11 +281,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.BorderStyle As Integer
+	Private Property Form.BorderStyle As Integer
 		Return FBorderStyle
 	End Property
 
-	Property Form.BorderStyle(Value As Integer)
+	Private Property Form.BorderStyle(Value As Integer)
 		FBorderStyle = Value
 		#ifdef __USE_GTK__
 			Select Case Value
@@ -408,12 +408,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.FormStyle As Integer
+	Private Property Form.FormStyle As Integer
 		Return FFormStyle
 	End Property
 	
 	#ifdef __USE_GTK__
-		Function Form.Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function Form.Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			If gtk_is_layout(widget) Then
 				#ifdef __USE_GTK3__
 					Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
@@ -427,7 +427,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function Form.Client_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function Form.Client_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			Client_Draw(widget, cr, data1)
 			cairo_destroy(cr)
@@ -435,7 +435,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property Form.FormStyle(Value As Integer)
+	Private Property Form.FormStyle(Value As Integer)
 		If Value = FFormStyle Then Exit Property
 		FFormStyle = Value
 		Select Case FFormStyle
@@ -479,11 +479,11 @@ Namespace My.Sys.Forms
 		End Select
 	End Property
 	
-	Property Form.Parent As Control Ptr
+	Private Property Form.Parent As Control Ptr
 		Return Cast(Control Ptr, @FParent)
 	End Property
 
-	Property Form.Parent(value As Control Ptr)
+	Private Property Form.Parent(value As Control Ptr)
 		#ifdef __USE_GTK__
 			If FormStyle = fsMDIChild Then
 				Base.FParent = value
@@ -531,7 +531,7 @@ Namespace My.Sys.Forms
 		Return FWindowState
 	End Property
 
-	Property Form.WindowState(Value As Integer)
+	Private Property Form.WindowState(Value As Integer)
 		FWindowState = Value
 		#ifdef __USE_GTK__
 			If gtk_is_window(widget) Then
@@ -570,19 +570,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.Caption ByRef As WString
+	Private Property Form.Caption ByRef As WString
 		Return Text
 	End Property
 
-	Property Form.Caption(ByRef Value As WString)
+	Private Property Form.Caption(ByRef Value As WString)
 		Text = Value
 	End Property
 
-	Property Form.Text ByRef As WString
+	Private Property Form.Text ByRef As WString
 		Return Base.Text
 	End Property
 
-	Property Form.Text(ByRef Value As WString)
+	Private Property Form.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
@@ -609,15 +609,15 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	Property Form.Enabled As Boolean
+	Private Property Form.Enabled As Boolean
 		Return Base.Enabled
 	End Property
 
-	Property Form.Enabled(Value As Boolean)
+	Private Property Form.Enabled(Value As Boolean)
 		Base.Enabled = Value
 	End Property
 
-	Sub Form.ActiveControlChanged(ByRef Sender As Control)
+	Private Sub Form.ActiveControlChanged(ByRef Sender As Control)
 		If Sender.Child Then
 			With QForm(Sender.Child)
 				If .OnActiveControlChange Then .OnActiveControlChange(QForm(Sender.Child))
@@ -626,11 +626,11 @@ Namespace My.Sys.Forms
 	End Sub
 
 	#ifndef __USE_GTK__
-		Sub Form.WndProc(ByRef message As Message)
+		Private Sub Form.WndProc(ByRef message As Message)
 			
 		End Sub
 
-		Sub Form.HandleIsDestroyed(ByRef Sender As Control)
+		Private Sub Form.HandleIsDestroyed(ByRef Sender As Control)
 			If Sender.Child Then
 				With QForm(Sender.Child)
 					SetMenu .Handle,NULL
@@ -683,7 +683,7 @@ Namespace My.Sys.Forms
 		'	        End Select
 		'	    End Function
 
-		Sub Form.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub Form.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				Dim As HMENU NoNeedSysMenu
 				With QForm(Sender.Child)
@@ -755,7 +755,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 	#else
-		Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
+		Private Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
 			pApp->FDeactivated = False
 			If pApp->FActivated Then
 				pApp->FActivated = False
@@ -767,7 +767,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 
-	Sub Form.ProcessMessage(ByRef msg As Message)
+	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
 		#ifdef __USE_GTK__
 			Select Case msg.event->Type
@@ -998,7 +998,7 @@ Namespace My.Sys.Forms
 	End Sub
 
 	'David Change
-	Sub Form.BringToFront
+	Private Sub Form.BringToFront
 		#ifndef __USE_GTK__
 			'If Handle Then BringWindowToTop Handle
 			'Const HWND_TOPMOST = -1
@@ -1007,13 +1007,13 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Sub Form.SendToBack
+	Private Sub Form.SendToBack
 		#ifndef __USE_GTK__
 			If Handle Then SetWindowPos Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 		#endif
 	End Sub
 
-	Property Form.Visible() As Boolean
+	Private Property Form.Visible() As Boolean
 		#ifndef __USE_GTK__
 			If FHandle Then
 				FVisible = IsWindowVisible(FHandle)
@@ -1022,7 +1022,7 @@ Namespace My.Sys.Forms
 		Return FVisible
 	End Property
 
-	Property Form.Visible(Value As Boolean)
+	Private Property Form.Visible(Value As Boolean)
 		FVisible = Value
 		If Value Then
 			Show
@@ -1031,7 +1031,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub Form.ShowItems(Ctrl As Control Ptr)
+	Private Sub Form.ShowItems(Ctrl As Control Ptr)
 		#ifdef __USE_GTK__
 			If CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget))) Then
 				If Ctrl->box Then gtk_widget_show(Ctrl->box)
@@ -1046,7 +1046,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub Form.HideItems(Ctrl As Control Ptr)
+	Private Sub Form.HideItems(Ctrl As Control Ptr)
 		#ifdef __USE_GTK__
 			If Not (CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget)))) Then
 				If Ctrl->box Then gtk_widget_hide(Ctrl->box)
@@ -1061,7 +1061,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub Form.Show
+	Private Sub Form.Show
 		#ifdef __USE_GTK__
 			RequestAlign
 			If widget Then
@@ -1177,7 +1177,7 @@ Namespace My.Sys.Forms
 		If OnShow Then OnShow(This)
 	End Sub
 
-	Sub Form.Show(ByRef OwnerForm As Form)
+	Private Sub Form.Show(ByRef OwnerForm As Form)
 		This.FParent = @OwnerForm
 		#ifdef __USE_GTK__
 			gtk_window_set_transient_for(gtk_window(widget), gtk_window(OwnerForm.Widget))
@@ -1185,12 +1185,12 @@ Namespace My.Sys.Forms
 		This.Show
 	End Sub
 
-	Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
+	Private Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
 		This.FParent = @OwnerForm
 		Return This.ShowModal()
 	End Function
 
-	Function Form.ShowModal() As Integer
+	Private Function Form.ShowModal() As Integer
 		#ifdef __USE_GTK__
 			If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(gtk_window(widget), gtk_window(pApp->ActiveForm->Widget))
 			gtk_window_set_modal(gtk_window(widget), True)
@@ -1249,7 +1249,7 @@ Namespace My.Sys.Forms
 		Function = ModalResult
 	End Function
 
-	Sub Form.Hide
+	Private Sub Form.Hide
 		#ifdef __USE_GTK__
 			If Widget Then
 				#ifdef __USE_GTK3__
@@ -1271,7 +1271,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Sub Form.Maximize
+	Private Sub Form.Maximize
 		#ifdef __USE_GTK__
 			gtk_window_maximize(GTK_WINDOW(widget))
 		#else
@@ -1281,7 +1281,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Sub Form.Minimize
+	Private Sub Form.Minimize
 		#ifdef __USE_GTK__
 			gtk_window_iconify(GTK_WINDOW(widget))
 		#else
@@ -1291,7 +1291,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Sub Form.CloseForm
+	Private Sub Form.CloseForm
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				gtk_window_close(Gtk_Window(widget))
@@ -1318,7 +1318,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Sub Form.CenterToParent()
+	Private Sub Form.CenterToParent()
 		If FParent Then
 			With *Cast(Control Ptr, FParent)
 				#ifdef __USE_GTK__
@@ -1331,7 +1331,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 
-	Sub Form.CenterToScreen()
+	Private Sub Form.CenterToScreen()
 		#ifdef __USE_GTK__
 			gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
@@ -1341,7 +1341,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Function Form.EnumMenuItems(Item As MenuItem) As Boolean
+	Private Function Form.EnumMenuItems(Item As MenuItem) As Boolean
 		FMenuItems.Add Item
 		For i As Integer = 0 To Item.Count -1
 			EnumMenuItems *Item.Item(i)
@@ -1349,7 +1349,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 
-	Sub Form.GetMenuItems
+	Private Sub Form.GetMenuItems
 		FMenuItems.Clear
 		If This.Menu Then
 			For i As Integer = 0 To This.Menu->Count -1
@@ -1358,7 +1358,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 
-	Sub Form.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub Form.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
@@ -1391,11 +1391,11 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	Operator Form.Cast As Control Ptr
+	Private Operator Form.Cast As Control Ptr
 		Return @This
 	End Operator
 
-	Sub Form.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+	Private Sub Form.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 		With *Cast(Form Ptr, Sender.Graphic)
 			#ifdef __USE_GTK__
 			#else
@@ -1404,7 +1404,7 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	Constructor Form
+	Private Constructor Form
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
 			WindowWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
@@ -1480,7 +1480,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Constructor
 
-	Destructor Form
+	Private Destructor Form
 '		If OnFree Then OnFree(This)
 '		#ifndef __USE_GTK__
 '			If FHandle Then FreeWnd

@@ -7,7 +7,7 @@
 #include once "PageScroller.bi"
 
 Namespace My.Sys.Forms
-	Function PageScroller.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function PageScroller.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "arrowchangesize": Return @FArrowChangeSize
 		Case "autoscroll": Return @FAutoScroll
@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function PageScroller.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function PageScroller.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -39,37 +39,37 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property PageScroller.ArrowChangeSize As Integer
+	Private Property PageScroller.ArrowChangeSize As Integer
 		Return FArrowChangeSize
 	End Property
 	
-	Property PageScroller.ArrowChangeSize(Value As Integer)
+	Private Property PageScroller.ArrowChangeSize(Value As Integer)
 		FArrowChangeSize = Value
 	End Property
 	
-	Property PageScroller.AutoScroll As Boolean
+	Private Property PageScroller.AutoScroll As Boolean
 		Return FAutoScroll
 	End Property
 	
-	Property PageScroller.AutoScroll(Value As Boolean)
+	Private Property PageScroller.AutoScroll(Value As Boolean)
 		FAutoScroll = Value
 		#ifndef __USE_GTK__
 			ChangeStyle PGS_AUTOSCROLL, Value
 		#endif
 	End Property
 	
-	Property PageScroller.ChildDragDrop As Boolean
+	Private Property PageScroller.ChildDragDrop As Boolean
 		Return FChildDragDrop
 	End Property
 	
-	Property PageScroller.ChildDragDrop(Value As Boolean)
+	Private Property PageScroller.ChildDragDrop(Value As Boolean)
 		FChildDragDrop = Value
 		#ifndef __USE_GTK__
 			ChangeStyle PGS_DRAGNDROP, Value
 		#endif
 	End Property
 	
-	Property PageScroller.Position As Integer
+	Private Property PageScroller.Position As Integer
 		#ifndef __USE_GTK__
 			If FHandle Then
 				FPosition = SendMessage(FHandle, PGM_GETPOS, 0, 0)
@@ -78,7 +78,7 @@ Namespace My.Sys.Forms
 		Return FPosition
 	End Property
 	
-	Property PageScroller.Position(Value As Integer)
+	Private Property PageScroller.Position(Value As Integer)
 		FPosition = Max(0, Value)
 		#ifdef __USE_GTK__
 			If ChildControl AndAlso ChildControl->Handle Then
@@ -103,11 +103,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property PageScroller.Style As PageScrollerStyle
+	Private Property PageScroller.Style As PageScrollerStyle
 		Return FStyle
 	End Property
 	
-	Property PageScroller.Style(Value As PageScrollerStyle)
+	Private Property PageScroller.Style(Value As PageScrollerStyle)
 		Dim As PageScrollerStyle OldStyle
 		Dim As Integer iWidth, iHeight
 		OldStyle = FStyle
@@ -130,24 +130,24 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property PageScroller.TabIndex As Integer
+	Private Property PageScroller.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property PageScroller.TabIndex(Value As Integer)
+	Private Property PageScroller.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property PageScroller.TabStop As Boolean
+	Private Property PageScroller.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property PageScroller.TabStop(Value As Boolean)
+	Private Property PageScroller.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub PageScroller.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub PageScroller.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QPageScroller(Sender.Child)
 					If .ChildControl AndAlso .ChildControl->Handle Then SendMessage(.Handle, PGM_SETCHILD, 0, Cast(LPARAM, .ChildControl->Handle))
@@ -155,11 +155,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub PageScroller.WndProc(ByRef Message As Message)
+		Private Sub PageScroller.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub PageScroller.Add(Ctrl As Control Ptr)
+	Private Sub PageScroller.Add(Ctrl As Control Ptr)
 		If ChildControl = 0 Then
 			ChildControl = Ctrl
 			Base.Add(Ctrl)
@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub PageScroller.ProcessMessage(ByRef Message As Message)
+	Private Sub PageScroller.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_NOTIFY
@@ -211,12 +211,12 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator PageScroller.Cast As My.Sys.Forms.Control Ptr
+	Private Operator PageScroller.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub PageScroller.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+		Private Sub PageScroller.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As PageScroller Ptr psc = user_data
 			If allocation->width <> psc->AllocatedWidth OrElse allocation->height <> psc->AllocatedHeight Then
 				psc->AllocatedWidth = allocation->width
@@ -248,7 +248,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub PageScroller.Layout_Press(widget As GtkWidget Ptr)
+		Private Sub PageScroller.Layout_Press(widget As GtkWidget Ptr)
 			Dim As PageScroller Ptr psc = @This
 			Dim allocation As GtkAllocation
 			Dim As Integer NewPosition
@@ -304,7 +304,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function PageScroller.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function PageScroller.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As PageScroller Ptr psc = Cast(Any Ptr, data1)
 			Dim allocation As GtkAllocation
 			Dim As Integer Pressed = 0
@@ -421,7 +421,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function PageScroller.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function PageScroller.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As PageScroller Ptr psc = Cast(Any Ptr, data1)
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			Layout_Draw(widget, cr, data1)
@@ -429,7 +429,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function PageScroller.Layout_hover_cb(ByVal user_data As gpointer) As gboolean
+		Private Function PageScroller.Layout_hover_cb(ByVal user_data As gpointer) As gboolean
 			If hover_timer_id Then
 				If user_data = MouseHoverMessage.widget Then
 					Dim As PageScroller Ptr psc = Cast(PageScroller Ptr, MouseHoverMessage.Sender)
@@ -440,7 +440,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function PageScroller.Layout_EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function PageScroller.Layout_EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As PageScroller Ptr psc = user_data
 			Dim As GdkEvent Ptr e = Event
 			Select Case Event->Type
@@ -487,7 +487,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Constructor PageScroller
+	Private Constructor PageScroller
 		With This
 			WLet(FClassName, "PageScroller")
 			WLet(FClassAncestor, "SysPager")
@@ -551,7 +551,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor PageScroller
+	Private Destructor PageScroller
 		#ifndef __USE_GTK__
 			UnregisterClass "PageScroller", GetModuleHandle(NULL)
 		#endif

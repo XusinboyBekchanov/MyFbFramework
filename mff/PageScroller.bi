@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	#define QPageScroller(__Ptr__) *Cast(PageScroller Ptr, __Ptr__)
 	
 	#ifndef __USE_GTK__
-		Type NMPGSCROLL2 Field = 1
+		Private Type NMPGSCROLL2 Field = 1
 		    As NMHDR hdr
 		    As Short fwKeys
 		    As ..RECT rcParent
@@ -21,11 +21,11 @@ Namespace My.Sys.Forms
 		End Type
 	#endif
 	
-	Enum PageScrollerStyle
+	Private Enum PageScrollerStyle
 		psHorizontal, psVertical
 	End Enum
 	
-	Type PageScroller Extends ContainerControl
+	Private Type PageScroller Extends ContainerControl
 	Private:
 		FArrowChangeSize    As Integer
 		FAutoScroll         As Boolean

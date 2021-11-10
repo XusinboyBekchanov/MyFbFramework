@@ -13,52 +13,52 @@
 #include once "WStringList.bi"
 
 'WStringListItem
-Property WStringListItem.Value ByRef As WString
+Private Property WStringListItem.Value ByRef As WString
 	Return WGet(FValue)
 End Property
 
-Property WStringListItem.Value(ByRef V As WString)
+Private Property WStringListItem.Value(ByRef V As WString)
 	WLet(FValue, V)
 End Property
 
-Operator WStringListItem.Cast As Any Ptr
+Private Operator WStringListItem.Cast As Any Ptr
 	Return Obj
 End Operator
 
-Operator WStringListItem.Cast As String
+Private Operator WStringListItem.Cast As String
 	Return Value
 End Operator
 
-Operator WStringListItem.Let(V As Any Ptr)
+Private Operator WStringListItem.Let(V As Any Ptr)
 	Obj = V
 End Operator
 
-Operator WStringListItem.Let(ByRef V As WString)
+Private Operator WStringListItem.Let(ByRef V As WString)
 	WLet(FValue, V)
 End Operator
 
-Constructor WStringListItem
+Private Constructor WStringListItem
 	Value = ""
 	Obj  = 0
 End Constructor
 
-Destructor WStringListItem
+Private Destructor WStringListItem
 	If FValue Then Deallocate_((FValue))
 	Obj  = 0
 End Destructor
 
-Operator WStringList.Cast As Any Ptr
+Private Operator WStringList.Cast As Any Ptr
 	Return @This
 End Operator
 
-Property WStringList.Count As Integer
+Private Property WStringList.Count As Integer
 	Return FItems.Count
 End Property
 
-Property WStringList.Count(Value As Integer)
+Private Property WStringList.Count(Value As Integer)
 End Property
 
-Property WStringList.Text ByRef As WString
+Private Property WStringList.Text ByRef As WString
 	WLet(FText, "")
 	For i As Integer = 0 To FCount -1
 		If i <> FCount -1 Then
@@ -70,7 +70,7 @@ Property WStringList.Text ByRef As WString
 	Return *FText
 End Property
 
-Property WStringList.Text(ByRef Value As WString)
+Private Property WStringList.Text(ByRef Value As WString)
 	WLet(FText, "")
 	This.Clear
 	For i As Integer = 0 To Len(Value)
@@ -82,33 +82,33 @@ Property WStringList.Text(ByRef Value As WString)
 	Next i
 End Property
 
-Property WStringList.Item(Index As Integer) ByRef As WString
+Private Property WStringList.Item(Index As Integer) ByRef As WString
 	If Index >= 0 And Index <= FCount -1 Then
 		Return QWStringListItem(FItems.Items[Index]).Value
 	End If
 	Return ""
 End Property
 
-Property WStringList.Item(Index As Integer, ByRef FItem As WString)
+Private Property WStringList.Item(Index As Integer, ByRef FItem As WString)
 	If Index >= 0 And Index <= FCount -1 Then
 		QWStringListItem(FItems.Items[Index]).Value = FItem
 	End If
 End Property
 
-Property WStringList.Object(Index As Integer) As Any Ptr
+Private Property WStringList.Object(Index As Integer) As Any Ptr
 	If Index >= 0 And Index <= FItems.Count -1 Then
 		Return QWStringListItem(FItems.Items[Index]).Obj
 	End If
 	Return 0
 End Property
 
-Property WStringList.Object(Index As Integer, FObj As Any Ptr)
+Private Property WStringList.Object(Index As Integer, FObj As Any Ptr)
 	If Index >= 0 And Index <= FCount -1 Then
 		QWStringListItem(FItems.Items[Index]).Obj = FObj
 	End If
 End Property
 
-Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
+Private Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
 	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
 	With *nItem
 		.Value  = FItem
@@ -120,7 +120,7 @@ Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
 	FCount = FItems.Count
 End Sub
 
-Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
+Private Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
 	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
 	With *nItem
 		.Value  = FItem
@@ -132,13 +132,13 @@ Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr
 	FCount = FItems.Count
 End Sub
 
-Sub WStringList.Exchange(Index1 As Integer, Index2 As Integer)
+Private Sub WStringList.Exchange(Index1 As Integer, Index2 As Integer)
 	FItems.Exchange(Index1, Index2)
 	If OnExchange Then OnExchange(This, Index1, Index2)
 	If OnChange Then OnChange(This)
 End Sub
 
-Sub WStringList.Remove(Index As Integer)
+Private Sub WStringList.Remove(Index As Integer)
 	Delete_( Cast(WStringListItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
 	FCount -=1' FItems.Count
@@ -146,7 +146,7 @@ Sub WStringList.Remove(Index As Integer)
 	If OnChange Then OnChange(This)
 End Sub
 
-Sub WStringList.Sort(MatchCase As Boolean = False)
+Private Sub WStringList.Sort(MatchCase As Boolean = False)
 	Dim As Integer i,j
 	For i = 1 To FCount -1
 		For j = FCount -1 To i Step -1
@@ -159,7 +159,7 @@ Sub WStringList.Sort(MatchCase As Boolean = False)
 	Next
 End Sub
 
-Sub WStringList.Clear
+Private Sub WStringList.Clear
 	If FCount < 1 Then Exit Sub
 	For i As Integer = FCount - 1 To 0 Step -1
 		If FItems.Items[i] <> 0 Then Delete_( Cast(WStringListItem Ptr, FItems.Items[i]))
@@ -170,7 +170,7 @@ Sub WStringList.Clear
 	If OnChange Then OnChange(This)
 End Sub
 
-Sub WStringList.SaveToFile(ByRef FileName As WString)
+Private Sub WStringList.SaveToFile(ByRef FileName As WString)
 	Dim As Integer Fn
 	Fn = FreeFile
 	'If Open(FileName For Binary Access Write As #Fn) = 0 Then
@@ -185,7 +185,7 @@ Sub WStringList.SaveToFile(ByRef FileName As WString)
 	Close #Fn
 End Sub
 
-Sub WStringList.LoadFromFile(ByRef FileName As WString)
+Private Sub WStringList.LoadFromFile(ByRef FileName As WString)
 	Dim As Integer Fn = FreeFile, Result = -1
 	Dim Buff As WString * 2000 'David Change for V1.07 Line Input not working fine
 	'If Open(FileName For Binary Access Read As #F) = 0 Then
@@ -204,38 +204,38 @@ Sub WStringList.LoadFromFile(ByRef FileName As WString)
 	Close #Fn
 End Sub
 
-Function WStringList.IndexOf(ByRef FItem As WString) As Integer
+Private Function WStringList.IndexOf(ByRef FItem As WString) As Integer
 	For i As Integer = 0 To FCount -1
 		If LCase(QWStringListItem(FItems.Items[i]).Value) = LCase(FItem) Then Return i
 	Next i
 	Return -1
 End Function
 
-Function WStringList.IndexOfObject(FObj As Any Ptr) As Integer
+Private Function WStringList.IndexOfObject(FObj As Any Ptr) As Integer
 	For i As Integer = 0 To FCount -1
 		If QWStringListItem(FItems.Items[i]).Obj = FObj Then Return i
 	Next i
 	Return -1
 End Function
 
-Function WStringList.Contains(ByRef FItem As WString) As Boolean
+Private Function WStringList.Contains(ByRef FItem As WString) As Boolean
 	Return IndexOf(FItem) <> -1
 End Function
 
-Function WStringList.ContainsObject(FObj As Any Ptr) As Boolean
+Private Function WStringList.ContainsObject(FObj As Any Ptr) As Boolean
 	Return IndexOfObject(FObj) <> -1
 End Function
 
-Operator WStringList.Let(ByRef Value As WString)
+Private Operator WStringList.Let(ByRef Value As WString)
 	This.Text = Value
 End Operator
 
-Constructor WStringList
+Private Constructor WStringList
 	FItems.Clear
 	FCount = 0
 End Constructor
 
-Destructor WStringList
+Private Destructor WStringList
 '	If FCount>0 Then
 '		For i As Integer = FCount - 1 To 0 Step -1
 '			Delete_( Cast(WStringListItem Ptr, FItems.Items[i]))

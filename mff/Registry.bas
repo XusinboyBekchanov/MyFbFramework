@@ -1,7 +1,7 @@
 ﻿#include once "Registry.bi"
 
 #ifndef __USE_GTK__
-	Function ReadRegistry(ByVal Group As HKEY, ByVal Section As LPCWSTR, ByVal Key As LPCWSTR) As String
+	Private Function ReadRegistry(ByVal Group As HKEY, ByVal Section As LPCWSTR, ByVal Key As LPCWSTR) As String
 		Dim As DWORD lDataTypeValue, lValueLength
 		Dim sValue As String * 2048
 		Dim As String Tstr1, Tstr2
@@ -42,7 +42,7 @@
 		
 	End Function
 	
-	Sub WriteRegistry(ByVal Group As HKEY, ByVal Section As LPCWSTR, ByVal Key As LPCWSTR, ByVal ValType As InTypes, value As String)
+	Private Sub WriteRegistry(ByVal Group As HKEY, ByVal Section As LPCWSTR, ByVal Key As LPCWSTR, ByVal ValType As InTypes, value As String)
 		Dim lResult As Integer
 		Dim lKeyValue As HKEY
 		Dim lNewVal As DWORD

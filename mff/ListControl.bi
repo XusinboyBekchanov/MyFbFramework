@@ -17,20 +17,20 @@
 Namespace My.Sys.Forms
 	#define QListControl(__Ptr__) *Cast(ListControl Ptr, __Ptr__)
 	
-	Enum ListControlStyle
+	Private Enum ListControlStyle
 		lbNormal = 0
 		lbOwnerDrawFixed
 		lbOwnerDrawVariable
 	End Enum
 	
-	Enum SelectionModes
+	Private Enum SelectionModes
 		smNone = 0
 		smOne
 		smMultiSimple
 		smMultiExtended
 	End Enum
 	
-	Type ListControl Extends Control
+	Private Type ListControl Extends Control
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)

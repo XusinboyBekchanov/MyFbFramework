@@ -14,7 +14,7 @@
 #include once "TrackBar.bi"
 
 Namespace My.Sys.Forms
-	Function TrackBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function TrackBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "frequency": Return @FFrequency
 		Case "maxvalue": Return @FMaxValue
@@ -35,7 +35,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function TrackBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function TrackBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -62,23 +62,23 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property TrackBar.TabIndex As Integer
+	Private Property TrackBar.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property TrackBar.TabIndex(Value As Integer)
+	Private Property TrackBar.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property TrackBar.TabStop As Boolean
+	Private Property TrackBar.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property TrackBar.TabStop(Value As Boolean)
+	Private Property TrackBar.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Sub TrackBar.SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
+	Private Sub TrackBar.SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
 		If AMax < AMin Then Exit Sub
 		If APosition < AMin Then APosition = AMin
 		If APosition > AMax Then APosition = AMax
@@ -103,11 +103,11 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Property TrackBar.MinValue As Integer
+	Private Property TrackBar.MinValue As Integer
 		Return FMinValue
 	End Property
 	
-	Property TrackBar.MinValue(Value As Integer)
+	Private Property TrackBar.MinValue(Value As Integer)
 		FMinValue = Value
 		#ifdef __USE_GTK__
 			If Value <= FMaxValue Then
@@ -120,11 +120,11 @@ Namespace My.Sys.Forms
 		'SetRanges(FPosition, Value, FMaxValue)
 	End Property
 	
-	Property TrackBar.MaxValue As Integer
+	Private Property TrackBar.MaxValue As Integer
 		Return FMaxValue
 	End Property
 	
-	Property TrackBar.MaxValue(Value As Integer)
+	Private Property TrackBar.MaxValue(Value As Integer)
 		FMaxValue = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_range(gtk_range(widget), FMinValue, Value)
@@ -135,7 +135,7 @@ Namespace My.Sys.Forms
 		'SetRanges(FPosition, FMinValue, Value)
 	End Property
 	
-	Property TrackBar.Position As Integer
+	Private Property TrackBar.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = gtk_range_get_value(gtk_range(widget))
 		#else
@@ -144,7 +144,7 @@ Namespace My.Sys.Forms
 		Return FPosition
 	End Property
 	
-	Property TrackBar.Position(Value As Integer)
+	Private Property TrackBar.Position(Value As Integer)
 		FPosition = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_value(gtk_range(widget), CDbl(Value))
@@ -155,11 +155,11 @@ Namespace My.Sys.Forms
 		'SetRanges(Value, FMinValue, FMaxValue)
 	End Property
 	
-	Property TrackBar.LineSize  As Integer
+	Private Property TrackBar.LineSize  As Integer
 		Return FLineSize
 	End Property
 	
-	Property TrackBar.LineSize(Value As Integer)
+	Private Property TrackBar.LineSize(Value As Integer)
 		If Value <> FLineSize Then
 			FLineSize = Value
 			#ifdef __USE_GTK__
@@ -170,11 +170,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TrackBar.PageSize  As Integer
+	Private Property TrackBar.PageSize  As Integer
 		Return FPageSize
 	End Property
 	
-	Property TrackBar.PageSize(Value As Integer)
+	Private Property TrackBar.PageSize(Value As Integer)
 		If Value <> FPageSize Then
 			FPageSize = Value
 			#ifdef __USE_GTK__
@@ -185,11 +185,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TrackBar.ThumbLength  As Integer
+	Private Property TrackBar.ThumbLength  As Integer
 		Return FThumbLength
 	End Property
 	
-	Property TrackBar.ThumbLength(Value As Integer)
+	Private Property TrackBar.ThumbLength(Value As Integer)
 		If Value <> FThumbLength Then
 			FThumbLength = Value
 			#ifdef __USE_GTK__
@@ -200,11 +200,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TrackBar.Frequency As Integer
+	Private Property TrackBar.Frequency As Integer
 		Return FFrequency
 	End Property
 	
-	Property TrackBar.Frequency(Value As Integer)
+	Private Property TrackBar.Frequency(Value As Integer)
 		If Value <> FFrequency Then
 			FFrequency = Value
 			#ifdef __USE_GTK__
@@ -215,11 +215,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TrackBar.SliderVisible As Boolean
+	Private Property TrackBar.SliderVisible As Boolean
 		Return FSliderVisible
 	End Property
 	
-	Property TrackBar.SliderVisible(Value As Boolean)
+	Private Property TrackBar.SliderVisible(Value As Boolean)
 		If Value <> FSliderVisible Then
 			FSliderVisible = Value
 			#ifndef __USE_GTK__
@@ -228,11 +228,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TrackBar.SelStart As Integer
+	Private Property TrackBar.SelStart As Integer
 		Return FSelStart
 	End Property
 	
-	Property TrackBar.SelStart(Value As Integer)
+	Private Property TrackBar.SelStart(Value As Integer)
 		If Value <> FSelStart Then
 			FSelStart = Value
 			#ifndef __USE_GTK__
@@ -247,11 +247,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TrackBar.SelEnd As Integer
+	Private Property TrackBar.SelEnd As Integer
 		Return FSelEnd
 	End Property
 	
-	Property TrackBar.SelEnd(Value As Integer)
+	Private Property TrackBar.SelEnd(Value As Integer)
 		If Value <> SelEnd Then
 			FSelEnd = Value
 			#ifndef __USE_GTK__
@@ -266,7 +266,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub TrackBar.AddTickMark(Value As Integer)
+	Private Sub TrackBar.AddTickMark(Value As Integer)
 		#ifdef __USE_GTK__
 			If FTickMark = tmTopLeft Then
 				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
@@ -282,7 +282,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	
-	Sub TrackBar.ClearTickMarks
+	Private Sub TrackBar.ClearTickMarks
 		#ifdef __USE_GTK__
 			gtk_scale_clear_marks(gtk_scale(widget))
 			If FTickMark = tmTopLeft Then
@@ -302,11 +302,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property TrackBar.TickMark As TickMarks
+	Private Property TrackBar.TickMark As TickMarks
 		Return FTickMark
 	End Property
 	
-	Property TrackBar.TickMark(Value As TickMarks)
+	Private Property TrackBar.TickMark(Value As TickMarks)
 		FTickMark = Value
 		#ifdef __USE_GTK__
 			TickStyle = FTickStyle 
@@ -316,11 +316,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TrackBar.TickStyle As TickStyles
+	Private Property TrackBar.TickStyle As TickStyles
 		Return FTickStyle
 	End Property
 	
-	Property TrackBar.TickStyle(Value As TickStyles)
+	Private Property TrackBar.TickStyle(Value As TickStyles)
 		FTickStyle = Value
 		#ifdef __USE_GTK__
 			Select Case FTickStyle
@@ -356,11 +356,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TrackBar.Style As TrackBarOrientation
+	Private Property TrackBar.Style As TrackBarOrientation
 		Return FStyle
 	End Property
 	
-	Property TrackBar.Style(Value As TrackBarOrientation)
+	Private Property TrackBar.Style(Value As TrackBarOrientation)
 		Dim As Integer OldStyle
 		Dim As Integer iWidth, iHeight
 		OldStyle = FStyle
@@ -390,7 +390,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub TrackBar.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub TrackBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTrackBar(Sender.Child)
 					.Perform(TBM_SETTHUMBLENGTH, .FThumbLength, 0)
@@ -409,11 +409,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub TrackBar.WndProc(ByRef Message As Message)
+		Private Sub TrackBar.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub TrackBar.ProcessMessage(ByRef Message As Message)
+	Private Sub TrackBar.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_HSCROLL
@@ -427,19 +427,19 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator TrackBar.Cast As Control Ptr
+	Private Operator TrackBar.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub TrackBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
+		Private Sub TrackBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 			Dim As TrackBar Ptr trb = user_data
 			If trb->OnScroll Then trb->OnScroll(*trb)
 			If trb->OnChange Then trb->OnChange(*trb, gtk_range_get_value(range))
 		End Sub
 	#endif
 	
-	Constructor TrackBar
+	Private Constructor TrackBar
 		Dim As Boolean Result
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
@@ -497,6 +497,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor TrackBar
+	Private Destructor TrackBar
 	End Destructor
 End Namespace

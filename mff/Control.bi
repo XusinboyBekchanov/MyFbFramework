@@ -27,29 +27,29 @@ Namespace My.Sys.Forms
 	#ifndef Control_Off
 		#define QControl(__Ptr__) *Cast(Control Ptr,__Ptr__)
 		
-		Enum BorderStyles
+		Private Enum BorderStyles
 			bsNone, bsClient
 		End Enum
 		
-		Enum DockStyle
+		Private Enum DockStyle
 			alNone, alLeft, alRight, alTop, alBottom, alClient
 		End Enum
 		
-		Enum AnchorStyle
+		Private Enum AnchorStyle
 			asNone
 			asAnchor
 			asAnchorProportional
 		End Enum
 		
-		Enum AlignmentConstants
+		Private Enum AlignmentConstants
 			taLeft, taCenter, taRight
 		End Enum
 	
-		Enum CheckAlignmentConstants
+		Private Enum CheckAlignmentConstants
 			chLeft, chRight
 		End Enum
 	
-		Type SizeConstraints Extends My.Sys.Object
+		Private Type SizeConstraints Extends My.Sys.Object
 			Declare Function ToString ByRef As WString
 			Left  As Integer
 			Top    As Integer
@@ -57,15 +57,15 @@ Namespace My.Sys.Forms
 			Height As Integer
 		End Type
 		
-		Type ControlProperty
+		Private Type ControlProperty
 			Name As String * 50
 			Type As String * 50
 			Comment As WString Ptr
 		End Type
 		
-		Type PControl As Control Ptr
+		Private Type PControl As Control Ptr
 		
-		Type AnchorType Extends My.Sys.Object
+		Private Type AnchorType Extends My.Sys.Object
 			Declare Function ToString ByRef As WString
 			Left         As Integer 'AnchorStyle
 			Top          As Integer 'AnchorStyle
@@ -73,12 +73,12 @@ Namespace My.Sys.Forms
 			Bottom       As Integer 'AnchorStyle
 		End Type
 		
-		Type ControlCollection Extends My.Sys.Object '...'
+		Private Type ControlCollection Extends My.Sys.Object
 			
 		End Type
 		
 		#ifdef __USE_GTK__
-			Type MouseHoverMessageType
+			Private Type MouseHoverMessageType
 				Sender As PControl
 				X As Double
 				Y As Double
@@ -90,7 +90,7 @@ Namespace My.Sys.Forms
 			Dim Shared hover_timer_id As UInteger
 		#endif
 		
-		Type Control Extends Component
+		Private Type Control Extends Component
 		Private:
 			Tracked As Boolean
 			FMouseInClient As Boolean

@@ -13,7 +13,7 @@
 #include once "StringList.bi"
 #define QIniFile(__Ptr__) *Cast(IniFile Ptr,__Ptr__)
 
-Type IniFile
+Private Type IniFile
 Private:
 	FFile As WString Ptr
 	FLines        As WStringList

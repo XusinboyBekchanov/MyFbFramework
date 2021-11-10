@@ -2,7 +2,7 @@
 #include once "vbcompat.bi"
 
 ' Possible registry data types
-Enum InTypes
+Private Enum InTypes
 	ValNull = 0
 	ValString = 1
 	ValXString = 2

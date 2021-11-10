@@ -15,7 +15,7 @@
 
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
-		Function TabPage.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Private Function TabPage.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "parent": Return FParent
 			Case "text": Return FCaption
@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Function TabPage.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Private Function TabPage.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)
 				Case "parent": This.Parent = Value
@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef __USE_GTK__
-		Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabPage(Sender.Child)
 					If .UseVisualStyleBackColor Then
@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub TabPage.ProcessMessage(ByRef msg As Message)
+	Private Sub TabPage.ProcessMessage(ByRef msg As Message)
 		#ifndef __USE_GTK__
 			FTheme = GetWindowTheme(Msg.hWnd)
 			Dim As ..RECT rct
@@ -124,14 +124,14 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(msg)
 	End Sub
 	
-	Property TabPage.Index As Integer
+	Private Property TabPage.Index As Integer
 		If This.Parent AndAlso *Base.Parent Is TabControl Then
 			Return Cast(TabControl Ptr, This.Parent)->IndexOfTab(@This)
 		End If
 		Return -1
 	End Property
 	
-	Sub TabPage.Update()
+	Private Sub TabPage.Update()
 		If This.Parent AndAlso *Base.Parent Is TabControl Then
 			#ifndef __USE_GTK__
 				If This.Parent->Handle Then
@@ -152,25 +152,25 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub TabPage.SelectTab()
+	Private Sub TabPage.SelectTab()
 		If This.Parent AndAlso *Base.Parent Is TabControl Then
 			Cast(TabControl Ptr, This.Parent)->SelectedTabIndex = Index
 		End If
 	End Sub
 	
-	Property TabPage.Caption ByRef As WString
+	Private Property TabPage.Caption ByRef As WString
 		Return This.Text
 	End Property
 	
-	Property TabPage.Caption(ByRef Value As WString)
+	Private Property TabPage.Caption(ByRef Value As WString)
 		This.Text = Value
 	End Property
 	
-	Property TabPage.Text ByRef As WString
+	Private Property TabPage.Text ByRef As WString
 		Return WGet(FCaption)
 	End Property
 	
-	Property TabPage.Text(ByRef Value As WString)
+	Private Property TabPage.Text(ByRef Value As WString)
 		WLet(FCaption, Value)
 		#ifdef __USE_GTK__
 			If gtk_is_label(_Label) Then
@@ -182,39 +182,39 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef Parent_Off
-		Property TabPage.Parent As TabControl Ptr
+		Private Property TabPage.Parent As TabControl Ptr
 			Return Cast(TabControl Ptr, FParent)
 		End Property
 		
-		Property TabPage.Parent(Value As TabControl Ptr)
+		Private Property TabPage.Parent(Value As TabControl Ptr)
 			FParent = Value
 			If Value Then Value->AddTab(@This)
 		End Property
 	#endif
 	
-	Property TabPage.Object As Any Ptr
+	Private Property TabPage.Object As Any Ptr
 		Return FObject
 	End Property
 	
-	Property TabPage.Object(Value As Any Ptr)
+	Private Property TabPage.Object(Value As Any Ptr)
 		FObject = Value
 		Update
 	End Property
 	
-	Property TabPage.ImageIndex As Integer
+	Private Property TabPage.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property TabPage.ImageIndex(Value As Integer)
+	Private Property TabPage.ImageIndex(Value As Integer)
 		FImageIndex = Value
 		Update
 	End Property
 	
-	Property TabPage.ImageKey ByRef As WString
+	Private Property TabPage.ImageKey ByRef As WString
 		Return *FImageKey
 	End Property
 	
-	Property TabPage.ImageKey(ByRef Value As WString)
+	Private Property TabPage.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			gtk_image_set_from_icon_name(gtk_image(_icon), ToUTF8(Value), GTK_ICON_SIZE_MENU)
@@ -223,19 +223,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Operator TabPage.Cast As Any Ptr
+	Private Operator TabPage.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Operator TabPage.Let(ByRef Value As WString)
+	Private Operator TabPage.Let(ByRef Value As WString)
 		Caption = Value
 	End Operator
 	
-	Operator TabPage.Cast As Control Ptr
+	Private Operator TabPage.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor TabPage
+	Private Constructor TabPage
 		'Caption = ""
 		FObject    = 0
 		FImageIndex        = 0
@@ -256,14 +256,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Constructor
 	
-	Destructor TabPage
+	Private Destructor TabPage
 		'If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
 		WDeallocate FCaption
 		WDeallocate FImageKey
 	End Destructor
 	
 	#ifndef ReadProperty_Off
-		Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Private Function TabControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
 			Case "selectedtabindex": Return @FSelectedTabIndex
@@ -274,7 +274,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Function TabControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Private Function TabControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -290,39 +290,39 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property TabControl.TabIndex As Integer
+	Private Property TabControl.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property TabControl.TabIndex(Value As Integer)
+	Private Property TabControl.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property TabControl.TabStop As Boolean
+	Private Property TabControl.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property TabControl.TabStop(Value As Boolean)
+	Private Property TabControl.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property TabPage.TabIndex As Integer
+	Private Property TabPage.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property TabPage.TabIndex(Value As Integer)
+	Private Property TabPage.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property TabPage.TabStop As Boolean
+	Private Property TabPage.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property TabPage.TabStop(Value As Boolean)
+	Private Property TabPage.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property TabControl.SelectedTabIndex As Integer
+	Private Property TabControl.SelectedTabIndex As Integer
 		#ifdef __USE_GTK__
 			Return gtk_notebook_get_current_page(gtk_notebook(widget))
 		#else
@@ -330,7 +330,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TabControl.SelectedTabIndex(Value As Integer)
+	Private Property TabControl.SelectedTabIndex(Value As Integer)
 		FSelectedTabIndex = Value
 		#ifdef __USE_GTK__
 			gtk_notebook_set_current_page(gtk_notebook(widget), Value)
@@ -351,7 +351,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Sub TabControl.SetMargins()
+	Private Sub TabControl.SetMargins()
 		Select Case FTabPosition
 		Case 0: Base.SetMargins 4 + ItemWidth(0), 2, 4, 3
 		Case 1: Base.SetMargins 2, 2, 4 + ItemWidth(0), 3
@@ -360,11 +360,11 @@ Namespace My.Sys.Forms
 		End Select
 	End Sub
 	
-	Property TabControl.TabPosition As My.Sys.Forms.TabPosition
+	Private Property TabControl.TabPosition As My.Sys.Forms.TabPosition
 		Return FTabPosition
 	End Property
 	
-	Property TabControl.TabPosition(Value As My.Sys.Forms.TabPosition)
+	Private Property TabControl.TabPosition(Value As My.Sys.Forms.TabPosition)
 		FTabPosition = Value
 		#ifdef __USE_GTK__
 			gtk_notebook_set_tab_pos(gtk_notebook(widget), FTabPosition)
@@ -409,11 +409,11 @@ Namespace My.Sys.Forms
 		SetMargins
 	End Property
 	
-	Property TabControl.TabStyle As My.Sys.Forms.TabStyle
+	Private Property TabControl.TabStyle As My.Sys.Forms.TabStyle
 		Return FTabStyle
 	End Property
 	
-	Property TabControl.TabStyle(Value As My.Sys.Forms.TabStyle)
+	Private Property TabControl.TabStyle(Value As My.Sys.Forms.TabStyle)
 		FTabStyle = Value
 		#ifndef __USE_GTK__
 			Select Case FTabStyle
@@ -433,11 +433,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property TabControl.FlatButtons As Boolean
+	Private Property TabControl.FlatButtons As Boolean
 		Return FFlatButtons
 	End Property
 	
-	Property TabControl.FlatButtons(Value As Boolean)
+	Private Property TabControl.FlatButtons(Value As Boolean)
 		FFlatButtons = Value
 		#ifndef __USE_GTK__
 			Select Case FFlatButtons
@@ -454,11 +454,11 @@ Namespace My.Sys.Forms
 		'RecreateWnd
 	End Property
 	
-	Property TabControl.Multiline As Boolean
+	Private Property TabControl.Multiline As Boolean
 		Return FMultiline
 	End Property
 	
-	Property TabControl.Multiline(Value As Boolean)
+	Private Property TabControl.Multiline(Value As Boolean)
 		FMultiline = Value
 		#ifndef __USE_GTK__
 			Select Case FMultiline
@@ -481,11 +481,11 @@ Namespace My.Sys.Forms
 		RecreateWnd
 	End Property
 	
-	Property TabControl.Reorderable As Boolean
+	Private Property TabControl.Reorderable As Boolean
 		Return FReorderable
 	End Property
 	
-	Property TabControl.Reorderable(Value As Boolean)
+	Private Property TabControl.Reorderable(Value As Boolean)
 		FReorderable = Value
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To TabCount - 1
@@ -495,7 +495,7 @@ Namespace My.Sys.Forms
 		RecreateWnd
 	End Property
 	
-	Property TabControl.TabCount As Integer
+	Private Property TabControl.TabCount As Integer
 		#ifndef __USE_GTK__
 			If Handle Then
 				FTabCount = Perform(TCM_GETITEMCOUNT,0,0)
@@ -504,17 +504,17 @@ Namespace My.Sys.Forms
 		Return FTabCount
 	End Property
 	
-	Property TabControl.TabCount(Value As Integer)
+	Private Property TabControl.TabCount(Value As Integer)
 	End Property
 	
-	Property TabControl.Tab(Index As Integer) As TabPage Ptr
+	Private Property TabControl.Tab(Index As Integer) As TabPage Ptr
 		Return Tabs[Index]
 	End Property
 	
-	Property TabControl.Tab(Index As Integer,Value As TabPage Ptr)
+	Private Property TabControl.Tab(Index As Integer, Value As TabPage Ptr)
 	End Property
 	
-	Property TabControl.SelectedTab As TabPage Ptr
+	Private Property TabControl.SelectedTab As TabPage Ptr
 		If SelectedTabIndex >= 0 And SelectedTabIndex <= TabCount - 1 Then
 			Return Tabs[SelectedTabIndex]
 		Else
@@ -522,11 +522,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property TabControl.SelectedTab(Value As TabPage Ptr)
+	Private Property TabControl.SelectedTab(Value As TabPage Ptr)
 		SelectedTabIndex = IndexOfTab(Value)
 	End Property
 	
-	Function TabControl.ItemHeight(Index As Integer) As Integer
+	Private Function TabControl.ItemHeight(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK3__
@@ -543,7 +543,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function TabControl.ItemWidth(Index As Integer) As Integer
+	Private Function TabControl.ItemWidth(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK3__
@@ -560,7 +560,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function TabControl.ItemLeft(Index As Integer) As Integer
+	Private Function TabControl.ItemLeft(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifndef __USE_GTK__
 				Dim As ..Rect R
@@ -571,7 +571,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function TabControl.ItemTop(Index As Integer) As Integer
+	Private Function TabControl.ItemTop(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifndef __USE_GTK__
 				Dim As ..Rect R
@@ -583,10 +583,10 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Sub TabControl.WndProc(ByRef Message As Message)
+		Private Sub TabControl.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabControl(Sender.Child)
 					If .Images Then .Images->ParentWindow = @Sender
@@ -614,7 +614,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub TabControl.ProcessMessage(ByRef Message As Message)
+	Private Sub TabControl.ProcessMessage(ByRef Message As Message)
 			#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_DRAWITEM
@@ -678,7 +678,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
+	Private Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
 		FTabCount += 1
 		Dim tb As TabPage Ptr = New_( TabPage)
 		tb->FDynamic = True
@@ -724,7 +724,7 @@ Namespace My.Sys.Forms
 		Return Tabs[FTabCount - 1]
 	End Function
 	
-	Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ByRef ImageKey As WString) As TabPage Ptr
+	Private Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ByRef ImageKey As WString) As TabPage Ptr
 		Dim tb As TabPage Ptr
 		If Images Then
 			tb = AddTab(Caption, aObject, Images->IndexOf(ImageKey))
@@ -735,7 +735,7 @@ Namespace My.Sys.Forms
 		Return tb
 	End Function
 	
-	Sub TabControl.AddTab(ByRef tp As TabPage Ptr)
+	Private Sub TabControl.AddTab(ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
 		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
@@ -780,7 +780,7 @@ Namespace My.Sys.Forms
 		This.Add(Tabs[FTabCount - 1])
 	End Sub
 	
-	Sub TabControl.ReorderTab(ByVal tp As TabPage Ptr, Index As Integer)
+	Private Sub TabControl.ReorderTab(ByVal tp As TabPage Ptr, Index As Integer)
 		Dim As Integer i
 		Dim As TabPage Ptr It
 		If Index >= 0 And Index <= FTabCount -1 Then
@@ -807,7 +807,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub TabControl.DeleteTab(Index As Integer)
+	Private Sub TabControl.DeleteTab(Index As Integer)
 		Dim As Integer i
 		Dim As TabPage Ptr It
 		If Index >= 0 And Index <= FTabCount -1 Then
@@ -838,7 +838,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)
+	Private Sub TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)
 		Dim As Integer i
 		Dim As TabPage Ptr It
 		#ifndef __USE_GTK__
@@ -868,7 +868,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub TabControl.InsertTab(Index As Integer, ByRef tp As TabPage Ptr)
+	Private Sub TabControl.InsertTab(Index As Integer, ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
 		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
@@ -912,11 +912,11 @@ Namespace My.Sys.Forms
 		This.Add(Tabs[Index])
 	End Sub
 	
-	Operator TabControl.Cast As Control Ptr
+	Private Operator TabControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Function TabControl.IndexOfTab(Value As TabPage Ptr) As Integer
+	Private Function TabControl.IndexOfTab(Value As TabPage Ptr) As Integer
 		Dim As Integer i
 		For i = 0 To TabCount - 1
 			If Tabs[i] = Value Then Return i
@@ -925,14 +925,14 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifdef __USE_GTK__
-		Sub TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+		Private Sub TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 			Dim As TabControl Ptr tc = user_data
 			tc->Tabs[page_num]->RequestAlign
 			If tc->OnSelChange Then tc->OnSelChange(*tc, page_num)
 		End Sub
 	#endif
 	
-	Constructor TabControl
+	Private Constructor TabControl
 		SetMargins
 		With This
 			#ifdef __USE_GTK__
@@ -961,7 +961,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor TabControl
+	Private Destructor TabControl
 		For i As Integer = 0 To FTabCount - 1
 			Tabs[i]->Parent = 0
 			If Tabs[i]->FDynamic Then Delete_(Tabs[i])

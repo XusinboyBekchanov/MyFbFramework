@@ -10,7 +10,7 @@
 
 #include once "Dialogs.bi"
 
-Type PageSetupDialog Extends Dialog
+Private Type PageSetupDialog Extends Dialog
 Private:
 	xLeft As Integer        = -1                        ' Default to center
 	xTop As Integer         = -1                        ' ditto

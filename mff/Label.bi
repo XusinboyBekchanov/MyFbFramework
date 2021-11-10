@@ -16,15 +16,15 @@
 Namespace My.Sys.Forms
 	#define QLabel(__Ptr__) *Cast(Label Ptr,__Ptr__)
 	
-	Enum LabelStyle
+	Private Enum LabelStyle
 		lsText, lsBitmap, lsIcon, lsCursor, lsEmf, lsOwnerDraw
 	End Enum
 	
-	Enum LabelBorder
+	Private Enum LabelBorder
 		sbNone, sbSimple, sbSunken
 	End Enum
 	
-	Type Label Extends Control
+	Private Type Label Extends Control
 	Private:
 		FBorder           As Integer
 		FStyle            As Integer

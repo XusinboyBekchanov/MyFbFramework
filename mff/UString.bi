@@ -11,9 +11,9 @@
 #endif
 #include once "FBMemCheck.bi"
 
-Type UStr As UString
+Private Type UStr As UString
 
-Type UString Extends WString
+Private Type UString Extends WString
 Public:
 	Declare Constructor()
 	Declare Constructor(ByRef Value As WString)

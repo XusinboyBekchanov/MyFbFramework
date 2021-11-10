@@ -60,7 +60,7 @@
 		
 		Dim Shared FuncName_ As String
 		
-		Type FBMemCheck
+		Private Type FBMemCheck
 		Private:
 			_FuncName As String
 		Public:
@@ -68,7 +68,7 @@
 			Declare Destructor
 		End Type
 		
-		Type fbmld_t
+		Private Type fbmld_t
 			pt       As Any Ptr
 			bytes    As UInteger
 			file     As String
@@ -295,12 +295,12 @@
 			
 		End Sub
 		
-		Constructor FBMemCheck(ByRef FuncName As String)
+		Private Constructor FBMemCheck(ByRef FuncName As String)
 			fbmld_exit
 			FuncName_ = FuncName
 		End Constructor
 		
-		Destructor FBMemCheck
+		Private Destructor FBMemCheck
 			fbmld_exit
 		End Destructor
 		

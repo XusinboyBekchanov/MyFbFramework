@@ -4,7 +4,7 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
 '################################################################################
 
-#Include Once "ToolTips.bi"
+#include once "ToolTips.bi"
 
 Namespace My.Sys.Forms
 	'    #IfNDef __USE_GTK__
@@ -24,32 +24,32 @@ Namespace My.Sys.Forms
 	'		End Sub
 	'	#EndIf
 	
-	Operator ToolTips.Cast As My.Sys.ComponentModel.Component Ptr
+	Private Operator ToolTips.Cast As My.Sys.ComponentModel.Component Ptr
 		Return Cast(My.Sys.ComponentModel.Component Ptr, @This)
 	End Operator
 	
-	Constructor ToolTips
+	Private Constructor ToolTips
 		With This
 			WLet(FClassName, "ToolTips")
 			WLet(FClassAncestor, "tooltips_class32")
-			#IfDef __USE_GTK__
+			#ifdef __USE_GTK__
 				'Widget = gtk_tooltips_new()
-			#Else
+			#else
 				'				.RegisterClass "ToolTips","tooltips_class32"
 				'				.Style        = TTS_ALWAYSTIP Or WS_POPUP
 				'				.ExStyle      = WS_EX_TOPMOST
 				'				.ChildProc    = @WndProc
 				'				.OnHandleIsAllocated = @HandleIsAllocated
-			#EndIf
+			#endif
 			'            .Width        = 175
 			'            .Height       = 21
 			'            .Child        = @This
 		End With
 	End Constructor
 	
-	Destructor ToolTips
-		#IfNDef __USE_GTK__
+	Private Destructor ToolTips
+		#ifndef __USE_GTK__
 			'			UnregisterClass "ToolTips",GetModuleHandle(NULL)
-		#EndIf
+		#endif
 	End Destructor
 End Namespace

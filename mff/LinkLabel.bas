@@ -7,7 +7,7 @@
 #include once "LinkLabel.bi"
 
 Namespace My.Sys.Forms
-	Function LinkLabel.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function LinkLabel.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "tabindex": Return @FTabIndex
 		Case "text": Return FText.vptr
@@ -16,7 +16,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function LinkLabel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function LinkLabel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case "text": Text = QWString(Value)
@@ -25,27 +25,27 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property LinkLabel.TabIndex As Integer
+	Private Property LinkLabel.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property LinkLabel.TabIndex(Value As Integer)
+	Private Property LinkLabel.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property LinkLabel.TabStop As Boolean
+	Private Property LinkLabel.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property LinkLabel.TabStop(Value As Boolean)
+	Private Property LinkLabel.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property LinkLabel.Text ByRef As WString
+	Private Property LinkLabel.Text ByRef As WString
 		Return Base.Text
 	End Property
 	
-	Property LinkLabel.Text(ByRef Value As WString)
+	Private Property LinkLabel.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_markup_with_mnemonic(gtk_label(widget), ToUtf8(Replace(Value, "&", "_")))
@@ -53,7 +53,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub LinkLabel.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub LinkLabel.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QLinkLabel(Sender.Child)
 					
@@ -61,11 +61,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub LinkLabel.WndProc(ByRef Message As Message)
+		Private Sub LinkLabel.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub LinkLabel.ProcessMessage(ByRef Message As Message)
+	Private Sub LinkLabel.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_NOTIFY
@@ -85,7 +85,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Function LinkLabel.ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
+		Private Function LinkLabel.ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As LinkLabel Ptr lab = user_data
 			Dim As Integer Action = 1
 			If lab->OnLinkClicked Then lab->OnLinkClicked(*lab, 0, *uri, Action)
@@ -98,11 +98,11 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Operator LinkLabel.Cast As My.Sys.Forms.Control Ptr
+	Private Operator LinkLabel.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
-	Constructor LinkLabel
+	Private Constructor LinkLabel
 		With This
 			WLet(FClassName, "LinkLabel")
 			#ifdef __USE_GTK__
@@ -131,7 +131,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor LinkLabel
+	Private Destructor LinkLabel
 		#ifndef __USE_GTK__
 			UnregisterClass "LinkLabel", GetModuleHandle(NULL)
 		#endif

@@ -17,7 +17,7 @@
 Namespace My.Sys.Forms
 	#define QAnimate(__Ptr__) *Cast(Animate Ptr,__Ptr__)
 	
-	Enum CommonAVIs
+	Private Enum CommonAVIs
 		aviNone         = 0
 		aviFindFolder   = 150
 		aviFindFile     = 151
@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		aviCopyFileEx   = 165
 	End Enum
 	
-	Type Animate Extends Control
+	Private Type Animate Extends Control
 	Private:
 		FFrameCount     As Integer
 		FFrameWidth     As Long

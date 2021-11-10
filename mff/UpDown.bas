@@ -16,7 +16,7 @@
 
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
-		Function UpDown.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Private Function UpDown.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Function UpDown.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Private Function UpDown.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -41,113 +41,113 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Property UpDown.TabIndex As Integer
+	Private Property UpDown.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property UpDown.TabIndex(Value As Integer)
+	Private Property UpDown.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property UpDown.TabStop As Boolean
+	Private Property UpDown.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property UpDown.TabStop(Value As Boolean)
+	Private Property UpDown.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property UpDown.MinValue As Integer
+	Private Property UpDown.MinValue As Integer
 		Return FMinValue
 	End Property
 	
-	Property UpDown.MinValue(Value As Integer)
+	Private Property UpDown.MinValue(Value As Integer)
 		FMinValue = Value
 		#ifndef __USE_GTK__
 			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MakeLong(FMaxValue, FMinValue))
 		#endif
 	End Property
 	
-	Property UpDown.MaxValue As Integer
+	Private Property UpDown.MaxValue As Integer
 		Return FMaxValue
 	End Property
 	
-	Property UpDown.MaxValue(Value As Integer)
+	Private Property UpDown.MaxValue(Value As Integer)
 		FMaxValue = Value
 		#ifndef __USE_GTK__
 			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MakeLong(FMaxValue, FMinValue))
 		#endif
 	End Property
 	
-	Property UpDown.Position As Integer
-		#IfNDef __USE_GTK__
+	Private Property UpDown.Position As Integer
+		#ifndef __USE_GTK__
 			If Handle Then
 				FPosition = LoWord(SendMessage(Handle, UDM_GETPOS, 0, 0))
 			End If
-		#EndIf
+		#endif
 		Return FPosition
 	End Property
 	
-	Property UpDown.Position(Value As Integer)
+	Private Property UpDown.Position(Value As Integer)
 		FPosition = Value
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then
 				SendMessage(Handle, UDM_SETPOS, 0, MakeLong(FPosition, 0))
 				If FAssociate Then
 					FAssociate->Text = Str(Position)
 				End If
 			End If
-		#EndIf
+		#endif
 	End Property
 	
-	Property UpDown.Increment As Integer
+	Private Property UpDown.Increment As Integer
 		Return FIncrement
 	End Property
 	
-	Property UpDown.Increment(Value As Integer)
-		If Value <> FIncrement then
+	Private Property UpDown.Increment(Value As Integer)
+		If Value <> FIncrement Then
 			FIncrement = Value
-			#IfNDef __USE_GTK__
-				If Handle then
+			#ifndef __USE_GTK__
+				If Handle Then
 					SendMessage(Handle, UDM_GETACCEL, 1, CInt(@FUDAccel(0)))
 					FUDAccel(0).nInc = Value
 					SendMessage(Handle, UDM_SETACCEL, 1, CInt(@FUDAccel(0)))
 				End If
-			#EndIf
+			#endif
 		End If
 	End Property
 	
-	Property UpDown.Thousands As Boolean
+	Private Property UpDown.Thousands As Boolean
 		Return FThousands
 	End Property
 	
-	Property UpDown.Thousands(Value As Boolean)
+	Private Property UpDown.Thousands(Value As Boolean)
 		If FThousands <> Value Then
 			FThousands = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
-			#EndIf
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+			#endif
 		End If
 	End Property
 	
-	Property UpDown.Wrap As Boolean
+	Private Property UpDown.Wrap As Boolean
 		Return FWrap
 	End Property
 	
-	Property UpDown.Wrap(Value As Boolean)
+	Private Property UpDown.Wrap(Value As Boolean)
 		If FWrap <> Value Then
 			FWrap = Value
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
-			#EndIf
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+			#endif
 		End If
 	End Property
 	
-	Property UpDown.Style As Integer
+	Private Property UpDown.Style As Integer
 		Return FStyle
 	End Property
 	
-	Property UpDown.Style(Value As Integer)
+	Private Property UpDown.Style(Value As Integer)
 		Dim As Integer OldStyle,Temp
 		OldStyle = FStyle
 		If FStyle <> Value Then
@@ -157,17 +157,17 @@ Namespace My.Sys.Forms
 				This.Width = Height
 				Height = Temp
 			End If
-			#IfNDef __USE_GTK__
-				Base.Style = WS_CHILD OR UDS_SETBUDDYINT OR AStyle(Abs_(FStyle)) OR AAlignment(Abs_(FAlignment)) OR AWrap(Abs_(FWrap)) OR AArrowKeys(Abs_(FArrowKeys)) OR AAThousand(Abs_(FThousands))
-			#EndIf
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+			#endif
 		End If
 	End Property
 	
-	Property UpDown.Associate As Control Ptr
+	Private Property UpDown.Associate As Control Ptr
 		Return FAssociate
 	End Property
 	
-	Property UpDown.Associate(Value As Control Ptr)
+	Private Property UpDown.Associate(Value As Control Ptr)
 		FAssociate = Value
 		If FAssociate Then
 			If UCase(FAssociate->ClassName) = "TEXTBOX" Then
@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUpDown(Sender.Child)
 					SendMessage(.Handle, UDM_SETRANGE, 0, MakeLong(.FMaxValue, .FMinValue))
@@ -194,10 +194,10 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub UpDown.WndProc(ByRef Message As Message)
+		Private Sub UpDown.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Sub UpDown.ProcessMessage(ByRef Message As Message)
+		Private Sub UpDown.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
 			Case WM_SIZE
 				Dim As ..Rect R
@@ -214,19 +214,19 @@ Namespace My.Sys.Forms
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
-	#EndIf
+	#endif
 	
-	Operator UpDown.Cast As Control Ptr
+	Private Operator UpDown.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor UpDown
+	Private Constructor UpDown
 		Dim As Boolean Result
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			widget = gtk_spin_button_new(NULL, 1, 0)
-		#Else
+		#else
 			Dim As INITCOMMONCONTROLSEX ICC
-			ICC.dwSize = SizeOF(ICC)
+			ICC.dwSize = SizeOf(ICC)
 			ICC.dwICC  = ICC_UPDOWN_CLASS
 			Result = InitCommonControlsEx(@ICC)
 			If Not Result Then InitCommonControls
@@ -271,6 +271,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor UpDown
+	Private Destructor UpDown
 	End Destructor
 End Namespace

@@ -7,7 +7,7 @@
 #include once "HotKey.bi"
 
 Namespace My.Sys.Forms
-	Function HotKey.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function HotKey.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "text": Text: Return FText.vptr
 		Case "tabindex": Return @FTabIndex
@@ -16,7 +16,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function HotKey.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function HotKey.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "text": This.Text = QWString(Value)
 		Case "tabindex": TabIndex = QInteger(Value)
@@ -25,24 +25,24 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property HotKey.TabIndex As Integer
+	Private Property HotKey.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property HotKey.TabIndex(Value As Integer)
+	Private Property HotKey.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property HotKey.TabStop As Boolean
+	Private Property HotKey.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property HotKey.TabStop(Value As Boolean)
+	Private Property HotKey.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		Private Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QHotKey(Sender.Child)
 					
@@ -50,11 +50,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub HotKey.WndProc(ByRef Message As Message)
+		Private Sub HotKey.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub HotKey.ProcessMessage(ByRef Message As Message)
+	Private Sub HotKey.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			Select Case Message.event->Type
@@ -156,7 +156,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Property HotKey.Text ByRef As WString
+	Private Property HotKey.Text ByRef As WString
 		#ifdef __USE_GTK__
 			FText = Replace(WStr(*gtk_entry_get_text(gtk_entry(widget))), " ", "")
 		#else
@@ -170,7 +170,7 @@ Namespace My.Sys.Forms
 		Return *FText.vptr
 	End Property
 	
-	Property HotKey.Text(ByRef Value As WString)
+	Private Property HotKey.Text(ByRef Value As WString)
 		FText = Value
 		#ifdef __USE_GTK__
 			Dim sKey As String = Value
@@ -194,19 +194,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Operator HotKey.Cast As My.Sys.Forms.Control Ptr
+	Private Operator HotKey.Cast As My.Sys.Forms.Control Ptr
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub HotKey.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+		Private Sub HotKey.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As HotKey Ptr hk = user_data
 			Dim As Control Ptr btn = hk->GetForm()->FDefaultButton
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
 		End Sub
 	#endif
 	
-	Constructor HotKey
+	Private Constructor HotKey
 		With This
 			WLet(FClassName, "HotKey")
 			WLet(FClassAncestor, "msctls_hotkey32")
@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor HotKey
+	Private Destructor HotKey
 		#ifndef __USE_GTK__
 			UnregisterClass "HotKey", GetModuleHandle(NULL)
 		#endif

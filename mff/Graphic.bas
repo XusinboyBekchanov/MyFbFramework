@@ -14,7 +14,7 @@
 #include once "Graphic.bi"
 
 Namespace My.Sys.Drawing
-	Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "bitmap": Return @Bitmap
 		Case "icon": Return @Icon
@@ -26,7 +26,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 	
-	Function GraphicType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function GraphicType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value <> 0 Then
 			Select Case LCase(PropertyName)
 			Case "bitmap": This.Bitmap = QWString(Value)
@@ -38,7 +38,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Sub GraphicType.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
+	Private Sub GraphicType.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		If Sender.Graphic Then
 			With QGraphic(Sender.Graphic)
 				'#IfNDef __USE_GTK__
@@ -53,7 +53,7 @@ Namespace My.Sys.Drawing
 		End If
 	End Sub
 	
-	Sub GraphicType.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+	Private Sub GraphicType.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 		If Sender.Graphic Then
 			With QGraphic(Sender.Graphic)
 				'#IfNDef __USE_GTK__
@@ -67,7 +67,7 @@ Namespace My.Sys.Drawing
 		End If
 	End Sub
 	
-	Sub GraphicType.CursorChanged(ByRef Sender As My.Sys.Drawing.Cursor)
+	Private Sub GraphicType.CursorChanged(ByRef Sender As My.Sys.Drawing.Cursor)
 		If Sender.Graphic Then
 			With QGraphic(Sender.Graphic)
 				'#IfNDef __USE_GTK__
@@ -81,7 +81,7 @@ Namespace My.Sys.Drawing
 		End If
 	End Sub
 	
-	Function GraphicType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function GraphicType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		Dim As Integer Pos1 = InStrRev(File, ".")
 		Select Case LCase(Mid(File, Pos1 + 1))
 		Case "bmp": Return Bitmap.LoadFromFile(File, cxDesired, cyDesired)
@@ -92,7 +92,7 @@ Namespace My.Sys.Drawing
 		End Select
 	End Function
 	
-	Function GraphicType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function GraphicType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 		#else
@@ -113,7 +113,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Function
 	
-	Function GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		FResName = ResName
 		#ifdef __USE_GTK__
 			Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
@@ -134,7 +134,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Function
 		
-	Function GraphicType.SaveToFile(ByRef File As WString) As Boolean
+	Private Function GraphicType.SaveToFile(ByRef File As WString) As Boolean
 		If Bitmap.Handle <> 0 Then
 			Return Bitmap.SaveToFile(File)
 		ElseIf Icon.Handle <> 0 Then
@@ -145,29 +145,29 @@ Namespace My.Sys.Drawing
 		Return False
 	End Function
 	
-	Operator GraphicType.Let(ByRef Value As WString)
+	Private Operator GraphicType.Let(ByRef Value As WString)
 		If (Not LoadFromResourceID(Val(Value))) AndAlso (Not LoadFromResourceName(Value)) Then
 			LoadFromFile(Value)
 		End If
 	End Operator
 	
-	Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.BitmapType)
+	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.BitmapType)
 		Bitmap.Handle = Value.Handle
 	End Operator
 	
-	Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Icon)
+	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Icon)
 		Icon.Handle = Value.Handle
 	End Operator
 	
-	Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Cursor)
+	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Cursor)
 		Cursor.Handle = Value.Handle
 	End Operator
 	
-	Function GraphicType.ToString() ByRef As WString
+	Private Function GraphicType.ToString() ByRef As WString
 		Return *FResName.vptr
 	End Function
 	
-	Constructor GraphicType
+	Private Constructor GraphicType
 		WLet(FClassName, "GraphicType")
 		This.Bitmap.Graphic = @This
 		This.Bitmap.Changed = @BitmapChanged
@@ -177,10 +177,12 @@ Namespace My.Sys.Drawing
 		This.Cursor.Changed = @CursorChanged
 	End Constructor
 	
-	Destructor GraphicType
+	Private Destructor GraphicType
 	End Destructor
 End Namespace
 
-Sub GraphicTypeLoadFromFile Alias "GraphicTypeLoadFromFile"(Graphic As My.Sys.Drawing.GraphicType Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) __EXPORT__
-	Graphic->LoadFromFile(File, cxDesired, cyDesired)
-End Sub
+#ifdef __EXPORT_PROCS__
+	Sub GraphicTypeLoadFromFile Alias "GraphicTypeLoadFromFile"(Graphic As My.Sys.Drawing.GraphicType Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) __EXPORT__
+		Graphic->LoadFromFile(File, cxDesired, cyDesired)
+	End Sub
+#endif

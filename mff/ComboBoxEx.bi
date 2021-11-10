@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 	'        cbeOwnerDrawVariable
 	'    End Enum
 	
-	Type ComboBoxItem Extends My.Sys.Object
+	Private Type ComboBoxItem Extends My.Sys.Object
 	Private:
 		FText            As WString Ptr
 		FObject          As Any Ptr
@@ -57,7 +57,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ComboBoxExItems
+	Private Type ComboBoxExItems
 	Private:
 		FItems As List
 		PItem As ComboBoxItem Ptr
@@ -82,7 +82,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ComboBoxEx Extends ComboBoxEdit
+	Private Type ComboBoxEx Extends ComboBoxEdit
 	Private:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__

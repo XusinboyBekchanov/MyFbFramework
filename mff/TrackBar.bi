@@ -16,19 +16,19 @@
 Namespace My.Sys.Forms
 	#define QTrackBar(__Ptr__) *Cast(TrackBar Ptr,__Ptr__)
 	
-	Enum TrackBarOrientation
+	Private Enum TrackBarOrientation
 		tbHorizontal, tbVertical
 	End Enum
 	
-	Enum TickMarks
+	Private Enum TickMarks
 		tmBottomRight, tmTopLeft, tmBoth
 	End Enum
 	
-	Enum TickStyles
+	Private Enum TickStyles
 		tsNone, tsAuto, tsManual
 	End Enum
 	
-	Type TrackBar Extends Control
+	Private Type TrackBar Extends Control
 	Private:
 		FPosition         As Integer
 		FMinValue         As Integer

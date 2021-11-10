@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Drawing
-	Enum ImageTypes
+	Private Enum ImageTypes
 		Bitmap = 0
 		Icon = 0
 		Cursor = 0
@@ -22,7 +22,7 @@ Namespace My.Sys.Drawing
 	
 	#define QGraphic(__Ptr__) *Cast(GraphicType Ptr,__Ptr__)
 	
-	Type GraphicType Extends My.Sys.Object
+	Private Type GraphicType Extends My.Sys.Object
 	Private:
 		FResName As UString
 		Declare Static Sub BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)

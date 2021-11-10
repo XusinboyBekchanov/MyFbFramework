@@ -15,7 +15,7 @@
 #define QIntegerListItem(__Ptr__) *Cast(IntegerListItem Ptr,__Ptr__)
 #define QIntegerList(__Ptr__) *Cast(IntegerList Ptr,__Ptr__)
 
-Type IntegerListItem Extends Object
+Private Type IntegerListItem Extends Object
 Private:
 	FValue   As Integer
 Public:
@@ -30,7 +30,7 @@ Public:
 	Declare Destructor
 End Type
 
-Type IntegerList Extends Object
+Private Type IntegerList Extends Object
 Private:
 	FCount   As Integer
 	FItems   As List

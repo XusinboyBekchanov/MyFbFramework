@@ -17,7 +17,7 @@
 '#endif
 #include once "Graphics.bi"
 
-Function ColorToRGB(FColor As Integer) As Integer
+Private Function ColorToRGB(FColor As Integer) As Integer
 	If FColor < 0 Then
 		#ifdef __USE_GTK__
 			Return FColor
@@ -29,7 +29,7 @@ Function ColorToRGB(FColor As Integer) As Integer
 	End If
 End Function
 
-Function RGBAToBGR(FColor As UInteger) As Integer
+Private Function RGBAToBGR(FColor As UInteger) As Integer
 	#ifdef __USE_GTK__
 		Return BGR(GetRed(FColor), GetGreen(FColor), GetBlue(FColor))
 	#else
@@ -37,7 +37,7 @@ Function RGBAToBGR(FColor As UInteger) As Integer
 	#endif
 End Function
 
-Function BGRToRGBA(FColor As UInteger) As UInteger
+Private Function BGRToRGBA(FColor As UInteger) As UInteger
 	#ifdef __USE_GTK__
 		Return RGBA(GetRed(FColor), GetGreen(FColor), GetBlue(FColor), 255)
 	#else
@@ -45,27 +45,27 @@ Function BGRToRGBA(FColor As UInteger) As UInteger
 	#endif
 End Function
 
-Function GetRed(FColor As Long) As Integer
+Private Function GetRed(FColor As Long) As Integer
 	Return CUInt(FColor) And 255
 End Function
 
-Function GetGreen(FColor As Long) As Integer
+Private Function GetGreen(FColor As Long) As Integer
 	Return CUInt(FColor) Shr 8 And 255
 End Function
 
-Function GetBlue(FColor As Long) As Integer
+Private Function GetBlue(FColor As Long) As Integer
 	Return CUInt(FColor) Shr 16 And 255
 End Function
 
-Function GetRedD(FColor As Long) As Double
+Private Function GetRedD(FColor As Long) As Double
 	Return Abs(CUInt(FColor) And 255) / 255.0
 End Function
 
-Function GetGreenD(FColor As Long) As Double
+Private Function GetGreenD(FColor As Long) As Double
 	Return Abs(CUInt(FColor) Shr 8 And 255) / 255.0
 End Function
 
-Function GetBlueD(FColor As Long) As Double
+Private Function GetBlueD(FColor As Long) As Double
 	Return Abs(CUInt(FColor) Shr 16 And 255) / 255.0
 End Function
 'End Namespace

@@ -11,7 +11,7 @@
 #endif
 
 Namespace My.Sys.Forms
-	Function ComboBoxItem.Index As Integer
+	Private Function ComboBoxItem.Index As Integer
 		If Parent Then
 			Return Cast(ComboBoxEx Ptr, Parent)->Items.IndexOf(@This)
 		Else
@@ -19,7 +19,7 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Property ComboBoxItem.Text ByRef As WString
+	Private Property ComboBoxItem.Text ByRef As WString
 		'        If Parent AndAlso Parent->Handle Then
 		'            WReallocate FText, 255
 		'            Dim cbei As COMBOBOXEXITEM
@@ -32,7 +32,7 @@ Namespace My.Sys.Forms
 		Return WGet(FText)
 	End Property
 	
-	Property ComboBoxItem.Text(ByRef Value As WString)
+	Private Property ComboBoxItem.Text(ByRef Value As WString)
 		WLet(FText, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -50,28 +50,28 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxItem.Object As Any Ptr
+	Private Property ComboBoxItem.Object As Any Ptr
 		Return FObject
 	End Property
 	
-	Property ComboBoxItem.Object(Value As Any Ptr)
+	Private Property ComboBoxItem.Object(Value As Any Ptr)
 		FObject = Value
 	End Property
 	
-	Property ComboBoxItem.Hint ByRef As WString
+	Private Property ComboBoxItem.Hint ByRef As WString
 		Return WGet(FHint)
 	End Property
 	
-	Property ComboBoxItem.Hint(ByRef Value As WString)
+	Private Property ComboBoxItem.Hint(ByRef Value As WString)
 		WLet(FHint, Value)
 	End Property
 	
 	
-	Property ComboBoxItem.ImageIndex As Integer
+	Private Property ComboBoxItem.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property ComboBoxItem.ImageIndex(Value As Integer)
+	Private Property ComboBoxItem.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
 			#ifndef __USE_GTK__
@@ -86,11 +86,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ComboBoxItem.ImageKey ByRef As WString
+	Private Property ComboBoxItem.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property ComboBoxItem.ImageKey(ByRef Value As WString)
+	Private Property ComboBoxItem.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
@@ -99,11 +99,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxItem.SelectedImageIndex As Integer
+	Private Property ComboBoxItem.SelectedImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property ComboBoxItem.SelectedImageIndex(Value As Integer)
+	Private Property ComboBoxItem.SelectedImageIndex(Value As Integer)
 		If Value <> FSelectedImageIndex Then
 			FSelectedImageIndex = Value
 			#ifndef __USE_GTK__
@@ -118,11 +118,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ComboBoxItem.OverlayIndex As Integer
+	Private Property ComboBoxItem.OverlayIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property ComboBoxItem.OverlayIndex(Value As Integer)
+	Private Property ComboBoxItem.OverlayIndex(Value As Integer)
 		If Value <> FOverlayIndex Then
 			FOverlayIndex = Value
 			#ifndef __USE_GTK__
@@ -137,11 +137,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ComboBoxItem.Indent As Integer
+	Private Property ComboBoxItem.Indent As Integer
 		Return FIndent
 	End Property
 	
-	Property ComboBoxItem.Indent(Value As Integer)
+	Private Property ComboBoxItem.Indent(Value As Integer)
 		If Value <> FIndent Then
 			FIndent = Value
 			#ifndef __USE_GTK__
@@ -156,11 +156,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Operator ComboBoxItem.Cast As Any Ptr
+	Private Operator ComboBoxItem.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ComboBoxItem
+	Private Constructor ComboBoxItem
 		FHint = 0 'CAllocate_(0)
 		FText = 0 'CAllocate_(0)
 		Text    = ""
@@ -170,28 +170,28 @@ Namespace My.Sys.Forms
 		FOverlayIndex = -1
 	End Constructor
 	
-	Destructor ComboBoxItem
+	Private Destructor ComboBoxItem
 		If FHint Then Deallocate_( FHint)
 		If FText Then Deallocate_( FText)
 		If FImageKey Then Deallocate_( FImageKey)
 	End Destructor
 	
-	Property ComboBoxExItems.Count As Integer
+	Private Property ComboBoxExItems.Count As Integer
 		Return FItems.Count
 	End Property
 	
-	Property ComboBoxExItems.Count(Value As Integer)
+	Private Property ComboBoxExItems.Count(Value As Integer)
 	End Property
 	
-	Property ComboBoxExItems.Item(Index As Integer) As ComboBoxItem Ptr
+	Private Property ComboBoxExItems.Item(Index As Integer) As ComboBoxItem Ptr
 		If Index <= FItems.Count Then Return QComboBoxItem(FItems.Items[Index]) Else Return 0
 	End Property
 	
-	Property ComboBoxExItems.Item(Index As Integer, Value As ComboBoxItem Ptr)
+	Private Property ComboBoxExItems.Item(Index As Integer, Value As ComboBoxItem Ptr)
 		'QToolButton(FItems.Items[Index]) = Value
 	End Property
 	
-	Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
+	Private Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
 		PItem = New_( ComboBoxItem)
 		Dim i As Integer
 		If Cast(ComboBoxEx Ptr, Parent)->Sort Then
@@ -245,7 +245,7 @@ Namespace My.Sys.Forms
 		Return PItem
 	End Function
 	
-	Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
+	Private Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, ByRef ImageKey As WString, ByRef SelectedImageKey As WString = "", ByRef OverlayKey As WString = "", Indent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
 		Dim Value As ComboBoxItem Ptr
 		If Parent AndAlso Cast(ComboBoxEx Ptr, Parent)->ImagesList Then
 			With *Cast(ComboBoxEx Ptr, Parent)->ImagesList
@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Sub ComboBoxExItems.Remove(Index As Integer)
+	Private Sub ComboBoxExItems.Remove(Index As Integer)
 		If Index = -1 Then Exit Sub
 		If Parent Then
 			#ifdef __USE_GTK__
@@ -271,22 +271,22 @@ Namespace My.Sys.Forms
 		FItems.Remove Index
 	End Sub
 	
-	Function ComboBoxExItems.IndexOf(ByRef FItem As ComboBoxItem Ptr) As Integer
+	Private Function ComboBoxExItems.IndexOf(ByRef FItem As ComboBoxItem Ptr) As Integer
 		Return FItems.IndexOf(FItem)
 	End Function
 	
-	Function ComboBoxExItems.IndexOf(ByRef Text As WString) As Integer
+	Private Function ComboBoxExItems.IndexOf(ByRef Text As WString) As Integer
 		For i As Integer = 0 To FItems.Count - 1
 			If *Cast(ComboBoxItem Ptr, FItems.Items[i]).Text = Text Then Return i
 		Next i
 		Return -1
 	End Function
 	
-	Function ComboBoxExItems.Contains(ByRef Text As WString) As Boolean
+	Private Function ComboBoxExItems.Contains(ByRef Text As WString) As Boolean
 		Return IndexOf(Text) <> -1
 	End Function
 	
-	Sub ComboBoxExItems.Clear
+	Private Sub ComboBoxExItems.Clear
 		#ifdef __USE_GTK__
 			If Parent Then gtk_list_store_clear(Cast(ComboBoxEx Ptr, Parent)->ListStore)
 		#else
@@ -298,19 +298,19 @@ Namespace My.Sys.Forms
 		FItems.Clear
 	End Sub
 	
-	Operator ComboBoxExItems.Cast As Any Ptr
+	Private Operator ComboBoxExItems.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor ComboBoxExItems
+	Private Constructor ComboBoxExItems
 		This.Clear
 	End Constructor
 	
-	Destructor ComboBoxExItems
+	Private Destructor ComboBoxExItems
 		This.Clear
 	End Destructor
 	
-	Function ComboBoxEx.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function ComboBoxEx.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "imageslist": Return ImagesList
 		Case "integralheight": Return @FIntegralHeight
@@ -319,7 +319,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ComboBoxEx.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ComboBoxEx.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.Items.Add *FName: This.ItemIndex = 0
 		Case "imageslist": ImagesList = Value
@@ -338,7 +338,7 @@ Namespace My.Sys.Forms
 	'        If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
 	'    End Property
 	
-	Property ComboBoxEx.Text ByRef As WString
+	Private Property ComboBoxEx.Text ByRef As WString
 		If This.FStyle >= cbDropDownList Then
 			FText = This.Items.Item(This.ItemIndex)->Text
 		Else
@@ -351,7 +351,7 @@ Namespace My.Sys.Forms
 		Return *FText.vptr
 	End Property
 	
-	Property ComboBoxEx.Text(ByRef Value As WString)
+	Private Property ComboBoxEx.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), This.IndexOf(Value))
@@ -360,11 +360,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ComboBoxEx.IntegralHeight As Boolean
+	Private Property ComboBoxEx.IntegralHeight As Boolean
 		Return FIntegralHeight
 	End Property
 	
-	Property ComboBoxEx.IntegralHeight(Value As Boolean)
+	Private Property ComboBoxEx.IntegralHeight(Value As Boolean)
 		FIntegralHeight = Value
 		#ifndef __USE_GTK__
 			ChangeStyle CBS_NOINTEGRALHEIGHT, Not Value
@@ -372,7 +372,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEx(Sender.Child)
 					If .Style <> cbOwnerDrawVariable AndAlso .ItemHeight <> 0 Then
@@ -404,7 +404,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef __USE_GTK__
-		Sub ComboBoxEx.WndProc(ByRef Message As Message)
+		Private Sub ComboBoxEx.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'                Cast(ComboBoxEx Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
@@ -413,7 +413,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
+	Private Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
 			Select Case Message.Msg
@@ -498,11 +498,11 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(message)
 	End Sub
 	
-	Operator ComboBoxEx.Cast As Control Ptr
+	Private Operator ComboBoxEx.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor ComboBoxEx
+	Private Constructor ComboBoxEx
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING)
 			widget = gtk_combo_box_new_with_model(GTK_TREE_MODEL(ListStore))
@@ -555,7 +555,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ComboBoxEx
+	Private Destructor ComboBoxEx
 		Items.Clear
 		#ifndef __USE_GTK__
 			UnregisterClass "ComboBoxEx", GetModuleHandle(NULL)

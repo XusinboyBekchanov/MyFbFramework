@@ -14,14 +14,14 @@
 'Property PrintDialog.Left(value As Integer): xLeft=value: End Property
 'Property PrintDialog.Top() As Integer: Return xTop: End Property
 'Property PrintDialog.Top(value As Integer): xTop=value: End Property
-Property PrintDialog.SetupDialog() As Integer: Return xSetupDialog: End Property
-Property PrintDialog.SetupDialog(value As Integer)
+Private Property PrintDialog.SetupDialog() As Integer: Return xSetupDialog: End Property
+Private Property PrintDialog.SetupDialog(value As Integer)
 	If value Then xSetupDialog=True Else xSetupDialog=False
 End Property
 
 #ifndef __USE_GTK__
 	' Currently, these two HookProcs are exactly the same code, but may change....
-	Function PrintHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	Private Function PrintHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
 			Dim As PRINTDLG Ptr lpPRN=Cast(PRINTDLG Ptr,lParam)
 			Dim As PrintDialog Ptr lpPRNDlg=Cast(PrintDialog Ptr, lpPRN->lCustData)
@@ -39,7 +39,7 @@ End Property
 		End If
 		Return 0
 	End Function
-	Function SetUpHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	Private Function SetUpHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
 			Dim As PRINTDLG Ptr lpPRN=Cast(PRINTDLG Ptr,lParam)
 			Dim As PrintDialog Ptr lpPRNDlg=Cast(PrintDialog Ptr, lpPRN->lCustData)
@@ -59,7 +59,7 @@ End Property
 	End Function
 #endif
 ' Handles either a Print Setup dialog or Printer dialog
-Function PrintDialog.Execute() As Boolean
+Private Function PrintDialog.Execute() As Boolean
 	#ifndef __USE_GTK__
 		Dim As PRINTDLG pd
 		
@@ -89,6 +89,6 @@ Function PrintDialog.Execute() As Boolean
 	Return False
 End Function
 
-Constructor PrintDialog
+Private Constructor PrintDialog
 	WLet(FClassName, "PrintDialog")
 End Constructor

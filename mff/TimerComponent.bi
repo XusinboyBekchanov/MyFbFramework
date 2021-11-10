@@ -13,7 +13,7 @@ Dim Shared TimersList As IntegerList
 
 Namespace My.Sys.Forms
 	
-	Type TimerComponent Extends Component
+	Private Type TimerComponent Extends Component
 	Private:
 		FEnabled As Boolean
 		FInterval As Integer

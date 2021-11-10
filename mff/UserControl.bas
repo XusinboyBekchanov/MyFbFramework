@@ -9,17 +9,17 @@
 
 Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
-		Sub UserControl.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub UserControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUserControl(Sender.Child)
 				End With
 			End If
 		End Sub
 		
-		Sub UserControl.WndProc(ByRef Message As Message)
+		Private Sub UserControl.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
-	Sub UserControl.ProcessMessage(ByRef Message As Message)
+	Private Sub UserControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_PAINT, WM_Create
@@ -28,11 +28,11 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator UserControl.Cast As Control Ptr
+	Private Operator UserControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor UserControl
+	Private Constructor UserControl
 		With This
 			#ifdef __USE_GTK__
 				widget = gtk_layout_new(null, null)
@@ -54,7 +54,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor UserControl
+	Private Destructor UserControl
 		#ifndef __USE_GTK__
 			UnregisterClass "UserControl", GetModuleHandle(NULL)
 		#endif

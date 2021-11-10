@@ -10,7 +10,7 @@
 Namespace My.Sys.Forms
 	#define QUserControl(__Ptr__) *Cast(UserControl Ptr,__Ptr__)
 	
-	Type UserControl Extends ContainerControl
+	Private Type UserControl Extends ContainerControl
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)

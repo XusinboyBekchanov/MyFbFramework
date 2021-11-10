@@ -14,7 +14,7 @@
 Namespace My.Sys.Forms
 	#define QHScrollBar(__Ptr__) *Cast(HScrollBar Ptr,__Ptr__)
 	
-	Type HScrollBar Extends Control
+	Private Type HScrollBar Extends Control
 	Private:
 		FMin            As Integer
 		FMax            As Integer

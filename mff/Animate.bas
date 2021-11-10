@@ -12,7 +12,7 @@
 #include once "Animate.bi"
 
 Namespace My.Sys.Forms
-	Function Animate.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function Animate.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "autoplay": Return @FAutoPlay
 		Case "autosize": Return @FAutoSize
@@ -29,7 +29,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Animate.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Animate.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "autoplay": AutoPlay = QBoolean(Value)
 		Case "autosize": AutoSize = QBoolean(Value)
@@ -46,7 +46,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Sub Animate.GetAnimateInfo
+	Private Sub Animate.GetAnimateInfo
 		#ifdef __USE_GTK__
 			If pixbuf_animation <> 0 Then
 				FFrameWidth = gdk_pixbuf_animation_get_width(pixbuf_animation)
@@ -88,11 +88,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Property Animate.Center As Boolean
+	Private Property Animate.Center As Boolean
 		Return FCenter
 	End Property
 	
-	Property Animate.Center(Value As Boolean)
+	Private Property Animate.Center(Value As Boolean)
 		If FCenter <> Value Then
 			FCenter = Value
 			#ifndef __USE_GTK__
@@ -101,11 +101,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Animate.Transparency As Boolean
+	Private Property Animate.Transparency As Boolean
 		Return FTransparent
 	End Property
 	
-	Property Animate.Transparency(Value As Boolean)
+	Private Property Animate.Transparency(Value As Boolean)
 		If FTransparent <> Value Then
 			FTransparent = Value
 			#ifndef __USE_GTK__
@@ -114,11 +114,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Animate.Timers As Boolean
+	Private Property Animate.Timers As Boolean
 		Return FTimers
 	End Property
 	
-	Property Animate.Timers(Value As Boolean)
+	Private Property Animate.Timers(Value As Boolean)
 		If FTimers <> Value Then
 			FTimers = Value
 			#ifndef __USE_GTK__
@@ -127,11 +127,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Animate.File ByRef As WString
+	Private Property Animate.File ByRef As WString
 		Return WGet(FFile)
 	End Property
 	
-	Property Animate.File(ByRef Value As WString)
+	Private Property Animate.File(ByRef Value As WString)
 		FFile = Reallocate_(FFile, (Len(Value) + 1) * SizeOf(WString))
 		*FFile = Value
 		#ifdef __USE_GTK__
@@ -144,19 +144,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Animate.Repeat As Integer
+	Private Property Animate.Repeat As Integer
 		Return FRepeat
 	End Property
 	
-	Property Animate.Repeat(Value As Integer)
+	Private Property Animate.Repeat(Value As Integer)
 		FRepeat = Value
 	End Property
 	
-	Property Animate.AutoPlay As Boolean
+	Private Property Animate.AutoPlay As Boolean
 		Return FAutoPlay
 	End Property
 	
-	Property Animate.AutoPlay(Value As Boolean)
+	Private Property Animate.AutoPlay(Value As Boolean)
 		If FAutoPlay <> Value Then
 			FAutoPlay = Value
 			#ifndef __USE_GTK__
@@ -165,11 +165,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Animate.AutoSize As Boolean
+	Private Property Animate.AutoSize As Boolean
 		Return FAutoSize
 	End Property
 	
-	Property Animate.AutoSize(Value As Boolean)
+	Private Property Animate.AutoSize(Value As Boolean)
 		FAutoSize = Value
 		#ifndef __USE_GTK__
 			If CInt(FAutoSize) AndAlso CInt(FHandle) AndAlso CInt(Not FDesignMode) Then
@@ -179,11 +179,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Animate.CommonAvi As CommonAVIs
+	Private Property Animate.CommonAvi As CommonAVIs
 		Return FCommonAvi
 	End Property
 	
-	Property Animate.CommonAvi(Value As CommonAVIs)
+	Private Property Animate.CommonAvi(Value As CommonAVIs)
 		FCommonAvi = Value
 		#ifndef __USE_GTK__
 			If Handle Then
@@ -193,45 +193,45 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Animate.StartFrame As Integer
+	Private Property Animate.StartFrame As Integer
 		Return FStartFrame
 	End Property
 	
-	Property Animate.StartFrame(Value As Integer)
+	Private Property Animate.StartFrame(Value As Integer)
 		FstartFrame = Value
 		If FStartFrame < 0 Then FStartFrame = 0
 		If FPlay Then This.Stop
 		Play
 	End Property
 	
-	Property Animate.StopFrame As Integer
+	Private Property Animate.StopFrame As Integer
 		Return FStopFrame
 	End Property
 	
-	Property Animate.StopFrame(Value As Integer)
+	Private Property Animate.StopFrame(Value As Integer)
 		FStopFrame = Value
 		If FStopFrame > FFrameCount Then FStopFrame = FFrameCount
 		If FPlay Then This.Stop
 		Play
 	End Property
 	
-	Function Animate.FrameCount As Integer
+	Private Function Animate.FrameCount As Integer
 		GetAnimateInfo
 		Return FFrameCount
 	End Function
 	
-	Function Animate.FrameHeight As Integer
+	Private Function Animate.FrameHeight As Integer
 		GetAnimateInfo
 		Return FFrameHeight
 	End Function
 	
-	Function Animate.FrameWidth As Integer
+	Private Function Animate.FrameWidth As Integer
 		GetAnimateInfo
 		Return FFrameWidth
 	End Function
 	
 	#ifndef __USE_GTK__
-		Sub Animate.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub Animate.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QAnimate(Sender.Child)
 					SetClassLongPtr(.Handle, GCLP_HBRBACKGROUND, 0)
@@ -241,13 +241,13 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub Animate.WndProc(ByRef Message As Message)
+		Private Sub Animate.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 			End If
 		End Sub
 	#endif
 		
-	Sub Animate.ProcessMessage(ByRef Message As Message)
+	Private Sub Animate.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_COMMAND
@@ -274,7 +274,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Sub Animate.Open
+	Private Sub Animate.Open
 		#ifdef __USE_GTK__
 			If OnOpen Then OnOpen(This)
 			If FAutoPlay Then
@@ -339,7 +339,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Function Animate.IsPlaying As Boolean
+	Private Function Animate.IsPlaying As Boolean
 		#ifdef __USE_GTK__
 			Return FPlay
 		#else
@@ -351,7 +351,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Sub Animate.Play
+	Private Sub Animate.Play
 		#ifdef __USE_GTK__
 			If pixbuf_animation <> 0 Then
 				Dim As GTimeVal gTime
@@ -375,7 +375,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub Animate.Stop
+	Private Sub Animate.Stop
 		#ifdef __USE_GTK__
 			If OnStop Then OnStop(This)
 			FPlay = False
@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub Animate.Close
+	Private Sub Animate.Close
 		#ifdef __USE_GTK__
 			If OnClose Then OnClose(This)
 			FOpen = 0
@@ -416,12 +416,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Operator Animate.Cast As Control Ptr
+	Private Operator Animate.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Function Animate.Timer_cb(ByVal user_data As gpointer) As gboolean
+		Private Function Animate.Timer_cb(ByVal user_data As gpointer) As gboolean
 			Dim As Animate Ptr anim = user_data
 			If anim->FPlay Then
 				Dim As GTimeVal gTime
@@ -433,7 +433,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function Animate.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+		Private Function Animate.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Animate Ptr anim = data1
 			#ifdef __USE_GTK3__
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
@@ -477,14 +477,14 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function Animate.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Private Function Animate.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			DesignDraw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
 		End Function
 		
-		Sub Animate.Screen_Changed(widget As GtkWidget Ptr, old_screen As GdkScreen Ptr, userdata As gpointer)
+		Private Sub Animate.Screen_Changed(widget As GtkWidget Ptr, old_screen As GdkScreen Ptr, userdata As gpointer)
 			Dim As Animate Ptr anim = userdata
 			/' To check If the display supports Alpha channels, Get the colormap '/
 			Dim As GdkScreen Ptr pScreen = gtk_widget_get_screen(widget)
@@ -515,7 +515,7 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 	#else
-		Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As USTRING) As Integer
+		Private Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As USTRING) As Integer
 			If (FAILED(hr)) Then
 				Var MB = MessageBox(0, "Error associated with " & *Inter_face.vptr & ". Want Continue?", "Error", MB_YESNO)
 				If MB = IDNO Then
@@ -526,7 +526,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Constructor Animate
+	Private Constructor Animate
 		Dim As Boolean Result
 		#ifdef __USE_GTK__
 			widget = gtk_image_new()
@@ -580,7 +580,7 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor Animate
+	Private Destructor Animate
 		If FFile Then Deallocate_( FFile)
 		#ifndef __USE_GTK__
 			If pGraph Then

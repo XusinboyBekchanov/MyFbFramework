@@ -13,7 +13,7 @@
 #include once "Pen.bi"
 
 Namespace My.Sys.Drawing
-	Function Pen.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Pen.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "color": Return @FColor
 		Case "style": Return @FStyle
@@ -24,7 +24,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 	
-	Function Pen.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Pen.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "color": This.Color = QInteger(Value)
 		Case "style": This.Style = QInteger(Value)
@@ -35,54 +35,54 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Property Pen.Color As ULong
+	Private Property Pen.Color As ULong
 		Return FColor
 	End Property
 	
-	Property Pen.Color(Value As ULong)
+	Private Property Pen.Color(Value As ULong)
 		FColor = Value
 		Create
 	End Property
 	
-	Property Pen.Style As Integer
+	Private Property Pen.Style As Integer
 		Return FStyle
 	End Property
 	
-	Property Pen.Style(Value As Integer)
+	Private Property Pen.Style(Value As Integer)
 		FStyle = Value
 		Create
 	End Property
 	
-	Property Pen.Mode As Integer
+	Private Property Pen.Mode As Integer
 		Return FMode
 	End Property
 	
-	Property Pen.Mode(Value As Integer)
+	Private Property Pen.Mode(Value As Integer)
 		FMode = Value
 		Create
 	End Property
 	
-	Property Pen.Size As Integer
+	Private Property Pen.Size As Integer
 		Return FSize
 	End Property
 	
-	Property Pen.Size(Value As Integer)
+	Private Property Pen.Size(Value As Integer)
 		FSize = Value
 		Create
 	End Property
 	
-	Sub Pen.Create
+	Private Sub Pen.Create
 		#ifndef __USE_GTK__
 			If Handle Then DeleteObject Handle
 			Handle = CreatePen(FStyle,FSize,FColor)
 		#endif
 	End Sub
 	
-	Operator Pen.Cast As Any Ptr
+	Private Operator Pen.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor Pen
+	Private Constructor Pen
 		FSize  = 1
 		FColor = 0
 		FMode  = pmCopy
@@ -91,7 +91,7 @@ Namespace My.Sys.Drawing
 		WLet(FClassName, "Pen")
 	End Constructor
 	
-	Destructor Pen
+	Private Destructor Pen
 		#ifndef __USE_GTK__
 			If Handle Then DeleteObject Handle
 		#endif

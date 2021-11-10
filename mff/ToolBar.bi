@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 	'#DEFINE TBSTYLE_TRANSPARENT &H8000
 	'#DEFINE TBN_DROPDOWN (TBN_FIRST - 10)
 	
-	Enum ToolButtonStyle
+	Private Enum ToolButtonStyle
 		tbsAutosize      = 16
 		tbsButton        = 0
 		tbsCheck         = 2
@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 		tbsWholeDropdown = 128
 	End Enum
 	
-	Enum ToolButtonState
+	Private Enum ToolButtonState
 		tstIndeterminate	= 16
 		tstEnabled			= 4
 		tstHidden			= 8
@@ -44,7 +44,7 @@ Namespace My.Sys.Forms
 		tstWrap				= 32
 	End Enum
 	
-	Type ToolButton Extends My.Sys.Object
+	Private Type ToolButton Extends My.Sys.Object
 	Private:
 		FCaption      As WString Ptr
 		FImageIndex   As Integer
@@ -116,7 +116,7 @@ Namespace My.Sys.Forms
 		OnClick As Sub(ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Type ToolButtons Extends My.Sys.Object
+	Private Type ToolButtons Extends My.Sys.Object
 	Private:
 		FButtons As List
 	Public:
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ToolBar Extends Control
+	Private Type ToolBar Extends Control
 	Private:
 		FButtonWidth    As Integer
 		FButtonHeight   As Integer

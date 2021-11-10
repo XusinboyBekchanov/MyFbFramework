@@ -78,7 +78,7 @@
 Namespace My.Sys.Drawing
 	#define QCursor(__Ptr__) *Cast(Cursor Ptr,__Ptr__)
 	
-	Type Cursor Extends My.Sys.Object
+	Private Type Cursor Extends My.Sys.Object
 	Private:
 		FWidth     As Integer
 		FHeight    As Integer

@@ -1,7 +1,7 @@
 ﻿#include once "UString.bi"
 #include once "utf_conv.bi"
 
-Constructor UString()
+Private Constructor UString()
 	m_Length = 0
 	m_BytesCount = SizeOf(WString)
 	m_Data = CAllocate_(SizeOf(WString))
@@ -10,7 +10,7 @@ Constructor UString()
 	End If
 End Constructor
 
-Constructor UString(ByRef Value As WString)
+Private Constructor UString(ByRef Value As WString)
 	m_Length = Len(Value)
 	m_BytesCount = (m_Length + 1) * SizeOf(WString)
 	m_Data = CAllocate_(m_BytesCount)
@@ -19,7 +19,7 @@ Constructor UString(ByRef Value As WString)
 	End If
 End Constructor
 
-Constructor UString(ByRef Value As UString)
+Private Constructor UString(ByRef Value As UString)
 	m_Length = Value.m_Length
 	m_BytesCount = Value.m_BytesCount
 	m_Data = CAllocate_(m_BytesCount)
@@ -28,41 +28,41 @@ Constructor UString(ByRef Value As UString)
 	End If
 End Constructor
 
-Destructor UString
+Private Destructor UString
 	If m_Data <> 0 Then
 		Deallocate_(m_Data)
 	End If
 End Destructor
 
-Function UString.StartsWith(ByRef Value As UString) As Boolean
+Private Function UString.StartsWith(ByRef Value As UString) As Boolean
 	Return Left(*m_Data, Value.Length) = *(Value.vptr)
 End Function
 
-Function UString.EndsWith(ByRef Value As UString) As Boolean
+Private Function UString.EndsWith(ByRef Value As UString) As Boolean
 	Return Right(*m_Data, Value.Length) = *(Value.vptr)
 End Function
 
-Function UString.ToLower As UString
+Private Function UString.ToLower As UString
 	Return LCase(*m_Data)
 End Function
 
-Function UString.ToUpper As UString
+Private Function UString.ToUpper As UString
 	Return UCase(*m_Data)
 End Function
 
-Function UString.TrimAll As UString
+Private Function UString.TrimAll As UString
 	Return Trim(*m_Data)
 End Function
 
-Function UString.TrimEnd As UString
+Private Function UString.TrimEnd As UString
 	Return RTrim(*m_Data)
 End Function
 
-Function UString.TrimStart As UString
+Private Function UString.TrimStart As UString
 	Return LTrim(*m_Data)
 End Function
 
-Sub UString.Resize(NewLength As Integer)
+Private Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then
 	m_BytesCount = (NewLength + 1) * SizeOf(WString)
 	m_Length = NewLength
@@ -74,7 +74,7 @@ Sub UString.Resize(NewLength As Integer)
 	'End If
 End Sub
 
-Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
+Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
 	This.Resize(m_Length + NumBytes)
 	If m_Data = 0 Then Return False
 	#ifndef __USE_GTK__
@@ -84,13 +84,13 @@ Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULo
 	Return True
 End Function
 
-Operator UString.[](ByVal Index As Integer) ByRef As UShort
+Private Operator UString.[](ByVal Index As Integer) ByRef As UShort
 	Static Zero As UShort = 0
 	If Index < 0 Or Index > m_Length Then Return Zero
 	Operator = *Cast(UShort Ptr, m_Data + (Index * 2))
 End Operator
 
-Operator UString.Let(ByRef lhs As UString)
+Private Operator UString.Let(ByRef lhs As UString)
 	If @This <> @lhs Then
 		If lhs.m_Length > m_Length Then
 			If m_Data <> 0 Then
@@ -108,7 +108,7 @@ Operator UString.Let(ByRef lhs As UString)
 	End If
 End Operator
 
-Operator UString.Let(ByRef lhs As WString)
+Private Operator UString.Let(ByRef lhs As WString)
 	Resize Len(lhs)
 	If m_Data <> 0 Then
 		*m_Data = lhs
@@ -116,31 +116,31 @@ Operator UString.Let(ByRef lhs As WString)
 	End If
 End Operator
 
-Property UString.Length() As Integer
+Private Property UString.Length() As Integer
 	Return m_Length
 End Property
 
-Operator UString.Cast() ByRef As WString
+Private Operator UString.Cast() ByRef As WString
 	Return *m_Data
 End Operator
 
-Operator UString.Cast() As Any Ptr
+Private Operator UString.Cast() As Any Ptr
 	Return CPtr(Any Ptr, m_Data)
 End Operator
 
-Function UString.vptr As WString Ptr
+Private Function UString.vptr As WString Ptr
 	Return m_Data
 End Function
 
-Function Val Overload(ByRef subject As UString) As Double
+Private Function Val Overload(ByRef subject As UString) As Double
 	Return Val(*(subject.vptr))
 End Function
 
-Operator Len(ByRef lhs As UString) As Integer
+Private Operator Len(ByRef lhs As UString) As Integer
 	Return Len(*lhs.vptr)
 End Operator
 
-Function WStrPtr(ByRef Value As UString) As WString Ptr
+Private Function WStrPtr(ByRef Value As UString) As WString Ptr
 	Return Value.vptr
 End Function
 
@@ -148,7 +148,7 @@ End Function
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
 	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
 #else
-	Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
 			'Dim TempWStr As WString Ptr
 			'WLet TempWStr, *subject
@@ -162,13 +162,13 @@ End Function
 		End If
 	End Sub
 	
-	Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
+	Private Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
 		WReAllocate(subject, Len(txt))
 		*subject = txt
 	End Sub
 #endif
 
-Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
+Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
 	If ExistsSubjectInTxt Then
 		Dim TempWStr As WString Ptr
 		WLet(TempWStr, txt)
@@ -180,7 +180,7 @@ Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTx
 	End If
 End Sub
 
-Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
+Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 	Dim TempWStr As WString Ptr
 	If AddBefore Then
 		WLet(TempWStr, txt & WGet(subject))
@@ -191,7 +191,7 @@ Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolea
 	WDeallocate TempWStr
 End Sub
 
-Function tallynumW Overload(ByRef somestring As WString, ByRef partstring As WString) As Integer
+Private Function tallynumW Overload(ByRef somestring As WString, ByRef partstring As WString) As Integer
 	Dim As Integer i,j,ln,lnp,count,num
 	ln=Len(somestring):If ln=0 Then Return 0
 	lnp=Len(partstring):If lnp=0 Then Return 0
@@ -211,7 +211,7 @@ Function tallynumW Overload(ByRef somestring As WString, ByRef partstring As WSt
 	Return count
 End Function
 
-Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
+Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
 	If Len(FindingText) = 0 Then Return Expression
 	Dim As WString Ptr original, find
 	If MatchCase Then
@@ -264,31 +264,31 @@ Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRe
 	Return *wres
 End Function
 
-Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
+Private Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
 	Return *(lhs.vptr) & *(rhs.vptr)
 End Operator
 
-Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
+Private Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
 	Return Left(*(subject.vptr), n)
 End Function
 
-Sub WDeAllocate Overload(ByRef subject As WString Ptr)
+Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
 	If subject <> 0 Then Deallocate_(subject)
 	subject = 0
 End Sub
 
-Sub WDeAllocate Overload(subject() As WString Ptr)
+Private Sub WDeAllocate Overload(subject() As WString Ptr)
 	For i As Integer = 0 To UBound(subject)
 		'If subject(i) <> 0 Then Deallocate(subject(i))
 		subject(i) = 0
 	Next
 End Sub
 
-Function WGet(ByRef subject As WString Ptr) ByRef As WString
+Private Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	If subject = 0 Then Return WStr("") Else Return *subject
 End Function
 
-Function ToUtf8(ByRef nWString As WString) As String
+Private Function ToUtf8(ByRef nWString As WString) As String
 	'	#ifdef __USE_GTK__
 	'		Static As gchar Ptr s = NULL
 	'		Dim As GError Ptr Error1 = NULL
@@ -351,7 +351,7 @@ Function ToUtf8(ByRef nWString As WString) As String
 	'#endif
 End Function
 
-Function FromUtf8(pZString As ZString Ptr) ByRef As WString
+Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'	#ifdef __USE_GTK__
 	'		Return g_locale_from_utf8(*pZString, Len(*pZString), 0, 0, 0)
 	'	#else
@@ -383,7 +383,7 @@ Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As L
 	Return strn
 End Function
 
-Function FileExists(ByRef filename As UString) As Long
+Private Function FileExists(ByRef filename As UString) As Long
 	#ifndef __USE_GTK__
 		If PathFileExistsW(filename.vptr) Then
 			Return -1

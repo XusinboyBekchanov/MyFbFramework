@@ -16,15 +16,15 @@
 Namespace My.Sys.Forms
 	#define QTextBox(__Ptr__) *Cast(TextBox Ptr,__Ptr__)
 	
-	Enum CharCases
+	Private Enum CharCases
 		ecNone, ecLower, ecUpper
 	End Enum
 	
-	Enum ScrollBarsType
+	Private Enum ScrollBarsType
 		None, Vertical, Horizontal, Both
 	End Enum
 	
-	Type TextBox Extends Control
+	Private Type TextBox Extends Control
 	Private:
 		#ifdef __USE_GTK__
 			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)

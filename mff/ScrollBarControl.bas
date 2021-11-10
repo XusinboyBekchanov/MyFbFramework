@@ -14,7 +14,7 @@
 #include once "ScrollBarControl.bi"
 
 Namespace My.Sys.Forms
-	Function ScrollBarControl.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function ScrollBarControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "arrowchangesize": Return @This.FArrowChangeSize
 		Case "maxvalue": Return @This.FMax
@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function ScrollBarControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ScrollBarControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "arrowchangesize": This.ArrowChangeSize = QInteger(Value)
 		Case "maxvalue": This.MaxValue = QInteger(Value)
@@ -42,27 +42,27 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property ScrollBarControl.TabIndex As Integer
+	Private Property ScrollBarControl.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property ScrollBarControl.TabIndex(Value As Integer)
+	Private Property ScrollBarControl.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property ScrollBarControl.TabStop As Boolean
+	Private Property ScrollBarControl.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property ScrollBarControl.TabStop(Value As Boolean)
+	Private Property ScrollBarControl.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property ScrollBarControl.Style As ScrollBarControlStyle
+	Private Property ScrollBarControl.Style As ScrollBarControlStyle
 		Return FStyle
 	End Property
 	
-	Property ScrollBarControl.Style(Value As ScrollBarControlStyle)
+	Private Property ScrollBarControl.Style(Value As ScrollBarControlStyle)
 		Dim As ScrollBarControlStyle OldStyle
 		Dim As Integer iWidth, iHeight
 		OldStyle = FStyle
@@ -92,11 +92,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property ScrollBarControl.MinValue As Integer
+	Private Property ScrollBarControl.MinValue As Integer
 		Return FMin
 	End Property
 	
-	Property ScrollBarControl.MinValue(Value As Integer)
+	Private Property ScrollBarControl.MinValue(Value As Integer)
 		FMin = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_range(gtk_range(widget), FMin, FMax)
@@ -105,11 +105,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ScrollBarControl.MaxValue As Integer
+	Private Property ScrollBarControl.MaxValue As Integer
 		Return FMax
 	End Property
 	
-	Property ScrollBarControl.MaxValue(Value As Integer)
+	Private Property ScrollBarControl.MaxValue(Value As Integer)
 		FMax = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_range(gtk_range(widget), FMin, FMax)
@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property ScrollBarControl.Position As Integer
+	Private Property ScrollBarControl.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = gtk_range_get_value(gtk_range(widget))
 		#else
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 		Return FPosition
 	End Property
 	
-	Property ScrollBarControl.Position(Value As Integer)
+	Private Property ScrollBarControl.Position(Value As Integer)
 		FPosition = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_value(gtk_range(widget), CDbl(Value))
@@ -137,22 +137,22 @@ Namespace My.Sys.Forms
 		If OnScroll Then OnScroll(This, FPosition)
 	End Property
 	
-	Property ScrollBarControl.ArrowChangeSize As Integer
+	Private Property ScrollBarControl.ArrowChangeSize As Integer
 		Return FArrowChangeSize
 	End Property
 	
-	Property ScrollBarControl.ArrowChangeSize(Value As Integer)
+	Private Property ScrollBarControl.ArrowChangeSize(Value As Integer)
 		FArrowChangeSize = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
 		#endif
 	End Property
 	
-	Property ScrollBarControl.PageSize As Integer
+	Private Property ScrollBarControl.PageSize As Integer
 		Return FPageSize
 	End Property
 	
-	Property ScrollBarControl.PageSize(Value As Integer)
+	Private Property ScrollBarControl.PageSize(Value As Integer)
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
 		#ifdef __USE_GTK__
@@ -165,7 +165,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Sub ScrollBarControl.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ScrollBarControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollBarControl(Sender.Child)
 					.MinValue = .MinValue
@@ -176,11 +176,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub ScrollBarControl.WndProc(ByRef Message As Message)
+		Private Sub ScrollBarControl.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub ScrollBarControl.ProcessMessage(ByRef Message As Message)
+	Private Sub ScrollBarControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Static As Integer OldPos
 			Select Case Message.Msg
@@ -233,18 +233,18 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(message)
 	End Sub
 	
-	Operator ScrollBarControl.Cast As Control Ptr
+	Private Operator ScrollBarControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Sub ScrollBarControl.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
+		Private Sub ScrollBarControl.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 			Dim As ScrollBarControl Ptr scr = user_data
 			If scr->OnScroll Then scr->OnScroll(*scr, gtk_range_get_value(range))
 		End Sub
 	#endif
 	
-	Constructor ScrollBarControl
+	Private Constructor ScrollBarControl
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				widget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL)
@@ -283,6 +283,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor ScrollBarControl
+	Private Destructor ScrollBarControl
 	End Destructor
 End Namespace

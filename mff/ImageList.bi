@@ -20,7 +20,7 @@ Using My.Sys.ComponentModel
 
 Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
-		Enum DrawingStyles
+		Private Enum DrawingStyles
 			dsFocus
 			dsNormal
 			dsSelected
@@ -30,12 +30,12 @@ Namespace My.Sys.Forms
 			dsBlend50
 		End Enum
 		
-		Enum ImageTypes
+		Private Enum ImageTypes
 			itImage = 0
 			itMask
 		End Enum
 	#else
-		Enum DrawingStyles
+		Private Enum DrawingStyles
 			dsFocus       = ILD_FOCUS
 			dsNormal      = ILD_NORMAL
 			dsSelected    = ILD_SELECTED
@@ -45,13 +45,13 @@ Namespace My.Sys.Forms
 			dsBlend50     = ILD_BLEND50
 		End Enum
 		
-		Enum ImageTypes
+		Private Enum ImageTypes
 			itImage = 0
 			itMask  = ILD_MASK
 		End Enum
 	#endif
 	
-	Type ImageList Extends Component
+	Private Type ImageList Extends Component
 	Private:
 		FParentWindow   As Component Ptr
 		FImageWidth     As Integer

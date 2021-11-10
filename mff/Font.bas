@@ -17,7 +17,7 @@ Dim Shared DefaultFont As My.Sys.Drawing.Font
 pDefaultFont = @DefaultFont
 
 Namespace My.Sys.Drawing
-	Function Font.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Font.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "name": Return FName
 		Case "color": Return @FColor
@@ -33,7 +33,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 	
-	Function Font.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Font.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value <> 0 Then
 			Select Case LCase(PropertyName)
 			Case "name": This.Name = QWString(Value)
@@ -51,7 +51,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Sub Font.Create
+	Private Sub Font.Create
 		If WGet(FName) = "" Then
 			WLet(FName, DefaultFont.Name)
 		End If
@@ -85,11 +85,11 @@ Namespace My.Sys.Drawing
 		End If
 	End Sub
 	
-	Property Font.Parent As Component Ptr
+	Private Property Font.Parent As Component Ptr
 		Return FParent
 	End Property
 	
-	Property Font.Parent(Value As Component Ptr)
+	Private Property Font.Parent(Value As Component Ptr)
 		FParent = value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
@@ -106,102 +106,102 @@ Namespace My.Sys.Drawing
 		#endif
 	End Property
 	
-	Property Font.Name ByRef As WString
+	Private Property Font.Name ByRef As WString
 		Return WGet(FName)
 	End Property
 	
-	Property Font.Name(ByRef Value As WString)
+	Private Property Font.Name(ByRef Value As WString)
 		WLet(FName, value)
 		Create
 	End Property
 	
-	Property Font.Color As Integer
+	Private Property Font.Color As Integer
 		Return FColor
 	End Property
 	
-	Property Font.Color(Value As Integer)
+	Private Property Font.Color(Value As Integer)
 		FColor = value
 		'Create
 	End Property
 	
-	Property Font.CharSet As Integer
+	Private Property Font.CharSet As Integer
 		Return FCharSet
 	End Property
 	
-	Property Font.CharSet(Value As Integer)
+	Private Property Font.CharSet(Value As Integer)
 		FCharSet = value
 		Create
 	End Property
 	
-	Property Font.Size As Integer
+	Private Property Font.Size As Integer
 		Return FSize
 	End Property
 	
-	Property Font.Size(Value As Integer)
+	Private Property Font.Size(Value As Integer)
 		FSize = value
 		Create
 	End Property
 	
 	'FOrientation
-	Property Font.Orientation As Integer
+	Private Property Font.Orientation As Integer
 		Return FOrientation
 	End Property
 	
-	Property Font.Orientation(Value As Integer)
+	Private Property Font.Orientation(Value As Integer)
 		FOrientation = value
 		Create
 	End Property
 	
-	Property Font.Bold As Boolean
+	Private Property Font.Bold As Boolean
 		Return FBold
 	End Property
 	
-	Property Font.Bold(Value As Boolean)
+	Private Property Font.Bold(Value As Boolean)
 		FBold = value
 		Create
 	End Property
 	
-	Property Font.Italic As Boolean
+	Private Property Font.Italic As Boolean
 		Return FItalic
 	End Property
 	
-	Property Font.Italic(Value As Boolean)
+	Private Property Font.Italic(Value As Boolean)
 		FItalic = value
 		Create
 	End Property
 	
-	Property Font.Underline As Boolean
+	Private Property Font.Underline As Boolean
 		Return FUnderline
 	End Property
 	
-	Property Font.Underline(Value As Boolean)
+	Private Property Font.Underline(Value As Boolean)
 		FUnderline = value
 		Create
 	End Property
 	
-	Property Font.StrikeOut As Boolean
+	Private Property Font.StrikeOut As Boolean
 		Return FStrikeout
 	End Property
 	
-	Property Font.StrikeOut(Value As Boolean)
+	Private Property Font.StrikeOut(Value As Boolean)
 		FStrikeout = value
 		Create
 	End Property
 	
-	Operator Font.Cast As Any Ptr
+	Private Operator Font.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Operator Font.Cast ByRef As WString
+	Private Operator Font.Cast ByRef As WString
 		Return ToString
 	End Operator
 	
-	Function Font.ToString ByRef As WString
+	Private Function Font.ToString ByRef As WString
 		WLet(FTemp, This.Name & ", " & This.Size)
 		Return *FTemp
 	End Function
 	
-	Operator Font.Let(Value As Font)
+	Private Operator Font.Let(Value As Font)
 		With Value
 			WLet(FName, .Name)
 			FBold      = .Bold
@@ -216,7 +216,7 @@ Namespace My.Sys.Drawing
 		Create
 	End Operator
 	
-	Constructor Font
+	Private Constructor Font
 		WLet(FClassName, "Font")
 		FCharSet  = FontCharset.Default
 		WLet(FName, DefaultFont.Name)
@@ -232,7 +232,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Constructor
 	
-	Destructor Font
+	Private Destructor Font
 		WDeallocate FName
 		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)

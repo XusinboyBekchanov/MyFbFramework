@@ -17,7 +17,7 @@ Dim Shared App As My.Application
 pApp = @App
 
 Namespace My
-	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "mainform": Return @FMainForm
 		Case "version": WLet(FTemp, WStr(Version)): Return FTemp
@@ -28,7 +28,7 @@ Namespace My
 		Return 0
 	End Function
 	
-	Function Application.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Application.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -43,15 +43,15 @@ Namespace My
 		Return True
 	End Function
 	
-	Function Application.Version As Const String
+	Private Function Application.Version As Const String
 		Return GetVerInfo("FileVersion")
 	End Function
 	
-	Property Application.Icon As My.Sys.Drawing.Icon
+	Private Property Application.Icon As My.Sys.Drawing.Icon
 		Return FIcon
 	End Property
 	
-	Property Application.Icon(value As My.Sys.Drawing.Icon)
+	Private Property Application.Icon(value As My.Sys.Drawing.Icon)
 		Dim As Integer i
 		FIcon = Value
 		#ifndef __USE_GTK__
@@ -63,7 +63,7 @@ Namespace My
 		#endif
 	End Property
 	
-	Property Application.Title ByRef As WString
+	Private Property Application.Title ByRef As WString
 		If FTitle = 0 Then
 			WLet FTitle, GetVerInfo("ApplicationTitle")
 			If *FTitle = "" Then
@@ -84,11 +84,11 @@ Namespace My
 		Return *FTitle
 	End Property
 	
-	Property Application.Title(ByRef Value As WString)
+	Private Property Application.Title(ByRef Value As WString)
 		WLet(FTitle, Value)
 	End Property
 	
-	Property Application.ExeName ByRef As WString
+	Private Property Application.ExeName ByRef As WString
 		Dim As WString*255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
@@ -108,10 +108,10 @@ Namespace My
 		Return *FExeName
 	End Property
 	
-	Property Application.ExeName(ByRef Value As WString)
+	Private Property Application.ExeName(ByRef Value As WString)
 	End Property
 	
-	Property Application.FileName ByRef As WString
+	Private Property Application.FileName ByRef As WString
 		Dim As Integer L
 		#ifndef __FB_WIN32__
 			Dim As ZString * 255 Tx
@@ -126,18 +126,18 @@ Namespace My
 		Return *FFileName
 	End Property
 	
-	Property Application.ActiveForm As My.Sys.Forms.Control Ptr
+	Private Property Application.ActiveForm As My.Sys.Forms.Control Ptr
 		Return FActiveForm
 	End Property
 	
-	Property Application.ActiveForm(Value As My.Sys.Forms.Control Ptr)
+	Private Property Application.ActiveForm(Value As My.Sys.Forms.Control Ptr)
 		FActiveForm = Value
 		#ifndef __USE_GTK__
 			If Value Then SetForegroundWindow(Value->Handle)
 		#endif
 	End Property
 	
-	Property Application.MainForm As My.Sys.Forms.Control Ptr
+	Private Property Application.MainForm As My.Sys.Forms.Control Ptr
 		'        For i As Integer = 0 To FormCount -1
 		'            If (Forms[i]->ExStyle AND WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
 		'                FMainForm = Forms[i]
@@ -146,40 +146,40 @@ Namespace My
 		'        Next i
 	End Property
 	
-	Property Application.MainForm(Value As My.Sys.Forms.Control Ptr)
+	Private Property Application.MainForm(Value As My.Sys.Forms.Control Ptr)
 		FMainForm = Value
 		#ifdef __USE_GTK__
 			If FMainForm AndAlso FMainForm->Handle Then g_signal_connect(FMainForm->Handle, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
 		#endif
 	End Property
 	
-	Property Application.ControlCount As Integer
+	Private Property Application.ControlCount As Integer
 		GetControls
 		Return FControlCount
 	End Property
 	
-	Property Application.ControlCount(Value  As Integer)
+	Private Property Application.ControlCount(Value  As Integer)
 	End Property
 	
-	Property Application.Controls As My.Sys.Forms.Control Ptr Ptr
+	Private Property Application.Controls As My.Sys.Forms.Control Ptr Ptr
 		GetControls
 		Return FControls
 	End Property
 	
-	Property Application.Controls(Value  As My.Sys.Forms.Control Ptr Ptr)
+	Private Property Application.Controls(Value  As My.Sys.Forms.Control Ptr Ptr)
 	End Property
 	
-	Function Application.FormCount As Integer
+	Private Function Application.FormCount As Integer
 		GetForms
 		Return FFormCount
 	End Function
 	
-	Property Application.Forms As My.Sys.Forms.Control Ptr Ptr
+	Private Property Application.Forms As My.Sys.Forms.Control Ptr Ptr
 		GetForms
 		Return FForms
 	End Property
 	
-	Property Application.Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
+	Private Property Application.Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
 	End Property
 	
 '	Property Application.HintColor As Integer
@@ -238,19 +238,19 @@ Namespace My
 '		Next i
 '	End Property
 	
-	Sub Application.HelpCommand(CommandID As Integer,FData As Long)
+	Private Sub Application.HelpCommand(CommandID As Integer,FData As Long)
 		#ifndef __USE_GTK__
 			If MainForm Then WinHelp(MainForm->Handle,HelpFile,CommandID,FData)
 		#endif
 	End Sub
 	
-	Sub Application.HelpContext(ContextID As Long)
+	Private Sub Application.HelpContext(ContextID As Long)
 		#ifndef __USE_GTK__
 			If MainForm Then WinHelp(MainForm->Handle,HelpFile,HELP_CONTEXT,ContextID)
 		#endif
 	End Sub
 	
-	Sub Application.HelpJump(TopicID As String)
+	Private Sub Application.HelpJump(TopicID As String)
 		Dim StrFmt As String
 		StrFmt = "JumpID(" + Chr(34) + Chr(34) + ","+ Chr(34) + TopicID + Chr(34) + ")"+ Chr(0)
 		If MainForm Then
@@ -262,7 +262,7 @@ Namespace My
 		End If
 	End Sub
 	
-	Sub Application.Run
+	Private Sub Application.Run
 		#ifdef __USE_GTK__
 			'gdk_threads_enter()
 			gtk_main()
@@ -326,14 +326,14 @@ Namespace My
 		#endif
 	End Sub
 	
-	Sub Application.Terminate
+	Private Sub Application.Terminate
 		#ifndef __USE_GTK__
 			PostQuitMessage(0)
 		#endif
 		End 1
 	End Sub
 	
-	Sub Application.DoEvents
+	Private Sub Application.DoEvents
 		#ifdef __USE_GTK__
 			While gtk_events_pending()
 				gtk_main_iteration
@@ -351,7 +351,7 @@ Namespace My
 		#endif
 	End Sub
 	
-	Function Application.IndexOfControl(Control As My.Sys.Forms.Control Ptr) As Integer
+	Private Function Application.IndexOfControl(Control As My.Sys.Forms.Control Ptr) As Integer
 		Dim As Integer i
 		For i = 0 To ControlCount -1
 			If Controls[i] = Control Then Return i
@@ -360,7 +360,7 @@ Namespace My
 	End Function
 	
 	#ifndef __USE_GTK__
-		Function Application.FindControl(ControlHandle As HWND) As My.Sys.Forms.Control Ptr
+		Private Function Application.FindControl(ControlHandle As HWND) As My.Sys.Forms.Control Ptr
 			Dim As Integer i
 			If Controls Then
 				For i = 0 To ControlCount -1
@@ -371,7 +371,7 @@ Namespace My
 		End Function
 	#endif
 	
-	Function Application.FindControl(ControlName As String) As My.Sys.Forms.Control Ptr
+	Private Function Application.FindControl(ControlName As String) As My.Sys.Forms.Control Ptr
 		Dim As Integer i
 		If Controls Then
 			For i = 0 To ControlCount -1
@@ -381,7 +381,7 @@ Namespace My
 		Return NULL
 	End Function
 	
-	Function Application.IndexOfForm(Form As My.Sys.Forms.Control Ptr) As Integer
+	Private Function Application.IndexOfForm(Form As My.Sys.Forms.Control Ptr) As Integer
 		Dim As Integer i
 		If Forms Then
 			For i = 0 To FormCount -1
@@ -392,7 +392,7 @@ Namespace My
 	End Function
 	
 	#ifndef __USE_GTK__
-		Function Application.EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
+		Private Function Application.EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
 			Dim As My.Sys.Forms.Control Ptr AControl
 			Dim As Application Ptr Appl
 			Appl = Cast(Application Ptr, lData)
@@ -410,7 +410,7 @@ Namespace My
 		End Function
 	#endif
 	
-	Sub Application.GetForms
+	Private Sub Application.GetForms
 		'FForms = 0 'CAllocate_(0)
 		FFormCount = 0
 		#ifndef __USE_GTK__
@@ -418,7 +418,7 @@ Namespace My
 		#endif
 	End Sub
 	
-	Sub Application.EnumControls(Control As My.Sys.Forms.Control)
+	Private Sub Application.EnumControls(Control As My.Sys.Forms.Control)
 		Dim As Integer i
 		For i = 0 To Control.ControlCount -1
 			FControlCount += 1
@@ -428,7 +428,7 @@ Namespace My
 		Next i
 	End Sub
 	
-	Sub Application.GetControls
+	Private Sub Application.GetControls
 		Dim As Integer i
 		'FControls = 0 ' CAllocate_(0)
 		FControlCount = 0
@@ -438,13 +438,13 @@ Namespace My
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Function Application.EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
+		Private Function Application.EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
 			*Cast(WStringList Ptr, hData).Add(LogFont->lfFaceName)
 			Return True
 		End Function
 	#endif
 	
-	Sub Application.GetFonts
+	Private Sub Application.GetFonts
 		#ifndef __USE_GTK__
 			Dim DC    As HDC
 			Dim LFont As LOGFONTA
@@ -460,11 +460,11 @@ Namespace My
 		#endif
 	End Sub
 	
-	Operator Application.Cast As Any Ptr
+	Private Operator Application.Cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Function Application.GetVerInfo(ByRef InfoName As String) As String
+	Private Function Application.GetVerInfo(ByRef InfoName As String) As String
 		Dim As ULong iret
 		If TranslationString = "" Then Return ""
 		Dim As WString Ptr value = 0
@@ -477,7 +477,7 @@ Namespace My
 		Return WGet(value)
 	End Function
 	
-	Constructor Application
+	Private Constructor Application
 		If pApp = 0 Then pApp = @This
 		#ifdef __USE_GTK__
 			'g_thread_init(NULL)
@@ -551,7 +551,7 @@ Namespace My
 		#endif
 	End Constructor
 	
-	Destructor Application
+	Private Destructor Application
 		pApp = 0
 		If FForms Then Deallocate_( FForms)
 		If FFileName Then Deallocate_( FFileName)
@@ -562,7 +562,7 @@ Namespace My
 	End Destructor
 End Namespace
 
-Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer __EXPORT__
+Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer __EXPORT__
 	Dim As Integer Result = -1
 	Dim As WString Ptr FCaption
 	Dim As Integer MsgTypeIn, ButtonsTypeIn
@@ -671,10 +671,12 @@ Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString
 	Return Result
 End Function
 
-Function ApplicationMainForm Alias "ApplicationMainForm"(App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
-	Return App->MainForm
-End Function
-
-Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString __EXPORT__
-	Return App->FileName
-End Function
+#ifdef __EXPORT_PROCS__
+	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
+		Return App->MainForm
+	End Function
+	
+	Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString __EXPORT__
+		Return App->FileName
+	End Function
+#endif

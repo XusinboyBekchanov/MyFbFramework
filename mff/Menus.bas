@@ -17,7 +17,7 @@
 
 Namespace My.Sys.Forms
 	/' Global '/
-	Sub AllocateCommand(value As PMenuItem)
+	Private Sub AllocateCommand(value As PMenuItem)
 		Static As Integer uniqueId
 		If uniqueId = 0 Then uniqueId = 999
 		If value Then
@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Function MenuItem.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function MenuItem.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "caption": Return FCaption
 		Case "checked": Return @FChecked
@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 
-	Function MenuItem.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function MenuItem.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case "owner": This.Owner = Value
@@ -87,11 +87,11 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Function MenuItem.ToString ByRef As WString
+	Private Function MenuItem.ToString ByRef As WString
 		Return This.Name
 	End Function
 	
-	Sub TraverseItems(Item As MenuItem)
+	Private Sub TraverseItems(Item As MenuItem)
 		#ifndef __USE_GTK__
 			Dim As MenuItemInfo mii
 			mii.cbsize = SizeOf(mii)
@@ -107,7 +107,7 @@ Namespace My.Sys.Forms
 	
 	/' MenuItem '/
 	#ifndef __USE_GTK__
-		Sub MenuItem.SetInfo(ByRef value As MENUITEMINFO)
+		Private Sub MenuItem.SetInfo(ByRef value As MENUITEMINFO)
 			If *FCaption = "" Then
 				*FCaption = Chr(0)
 			End If
@@ -137,7 +137,7 @@ Namespace My.Sys.Forms
 			value.cch         = Len(*pCaption)
 		End Sub
 		
-		Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
+		Private Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
 			If Parent AndAlso Parent->Handle Then
 				SetMenuItemInfo(Parent->Handle, FMenuIndex, True, @value)
 			ElseIf This.Owner AndAlso This.Owner->Handle Then
@@ -146,19 +146,19 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Property MenuItem.MenuIndex As Integer
+	Private Property MenuItem.MenuIndex As Integer
 		Return FMenuIndex
 	End Property
 	
-	Property MenuItem.MenuIndex(value As Integer)
+	Private Property MenuItem.MenuIndex(value As Integer)
 		FMenuIndex = value
 	End Property
 	
-	Property MenuItem.Name ByRef As WString
+	Private Property MenuItem.Name ByRef As WString
 		Return WGet(FName)
 	End Property
 	
-	Property MenuItem.Name(ByRef value As WString)
+	Private Property MenuItem.Name(ByRef value As WString)
 		WLet(FName, value)
 	End Property
 	
@@ -433,11 +433,11 @@ Namespace My.Sys.Forms
 	'            return hr
 	'    End Function
 	
-	Property MenuItem.Image As My.Sys.Drawing.BitmapType
+	Private Property MenuItem.Image As My.Sys.Drawing.BitmapType
 		Return FImage
 	End Property
 	
-	Property MenuItem.Image(value As My.Sys.Drawing.BitmapType)
+	Private Property MenuItem.Image(value As My.Sys.Drawing.BitmapType)
 		FImage = value
 		#ifndef __USE_GTK__
 			Dim mii As MENUITEMINFOW
@@ -449,7 +449,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property MenuItem.Image(ByRef value As WString)
+	Private Property MenuItem.Image(ByRef value As WString)
 		FImage = value
 		#ifndef __USE_GTK__
 			Dim mii As MENUITEMINFOW
@@ -461,11 +461,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property MenuItem.ImageIndex As Integer
+	Private Property MenuItem.ImageIndex As Integer
 		Return FImageIndex
 	End Property
 	
-	Property MenuItem.ImageIndex(value As Integer)
+	Private Property MenuItem.ImageIndex(value As Integer)
 		FImageIndex = value
 		If value <> -1 AndAlso owner AndAlso owner->imageslist Then
 			#ifndef __USE_GTK__
@@ -482,7 +482,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Sub MenuItem.MenuItemActivate(m_item As GtkMenuItem Ptr, user_data As Any Ptr)
+		Private Sub MenuItem.MenuItemActivate(m_item As GtkMenuItem Ptr, user_data As Any Ptr)
 			Dim As MenuItem Ptr Ctrl = user_data
 			If Ctrl->FMenuItemChecked Then
 				Ctrl->FMenuItemChecked = False 
@@ -493,18 +493,18 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Function MenuItem.MenuItemButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		Private Function MenuItem.MenuItemButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As MenuItem Ptr mi = user_data
 			If mi->OnClick Then mi->OnClick(*mi)
 			Return False
 		End Function
 	#endif
 	
-	Property MenuItem.ImageKey ByRef As WString
+	Private Property MenuItem.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
 	
-	Property MenuItem.ImageKey(ByRef value As WString)
+	Private Property MenuItem.ImageKey(ByRef value As WString)
 		WLet(FImageKey, value)
 		#ifdef __USE_GTK__
 			If Icon Then
@@ -521,29 +521,29 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property MenuItem.Command As Integer
+	Private Property MenuItem.Command As Integer
 		Return FCommand
 	End Property
 	
-	Property MenuItem.Command(value As Integer)
+	Private Property MenuItem.Command(value As Integer)
 		FCommand = value
 	End Property
 	
 	#ifndef __USE_GTK__
-		Property MenuItem.Handle As HMENU
+		Private Property MenuItem.Handle As HMENU
 			Return FHandle
 		End Property
 		
-		Property MenuItem.Handle(value As HMENU)
+		Private Property MenuItem.Handle(value As HMENU)
 			FHandle = value
 		End Property
 	#endif
 	
-	Property MenuItem.Owner As PMenu
+	Private Property MenuItem.Owner As PMenu
 		Return FOwner
 	End Property
 	
-	Property MenuItem.Owner(value As PMenu)
+	Private Property MenuItem.Owner(value As PMenu)
 		FOwner = value
 	End Property
 	
@@ -557,11 +557,11 @@ Namespace My.Sys.Forms
 	'		end property
 	'	#EndIf
 	
-	Property MenuItem.Parent As PMenuItem
+	Private Property MenuItem.Parent As PMenuItem
 		Return FParent
 	End Property
 	
-	Property MenuItem.Parent(value As PMenuItem)
+	Private Property MenuItem.Parent(value As PMenuItem)
 		If FParent <> value Then
 			Dim As PMenuItem SaveParent = FParent
 			FParent = value
@@ -570,22 +570,22 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property MenuItem.ParentMenu As PMenu
+	Private Property MenuItem.ParentMenu As PMenu
 		Return FOwner
 	End Property
 	
-	Property MenuItem.ParentMenu(value As PMenu)
+	Private Property MenuItem.ParentMenu(value As PMenu)
 		Dim As PMenu SaveParent = FOwner
 		FOwner = value
 		If SaveParent Then SaveParent->Remove(@This)
 		If FOwner Then FOwner->Add(@This)
 	End Property
 	
-	Property MenuItem.Caption ByRef As WString
+	Private Property MenuItem.Caption ByRef As WString
 		Return WGet(FCaption)
 	End Property
 	
-	Property MenuItem.Caption(ByRef value As WString)
+	Private Property MenuItem.Caption(ByRef value As WString)
 		FCaption = Reallocate_(FCaption, (Len(value) + 1) * SizeOf(WString))
 		*FCaption = value
 		#ifdef __USE_GTK__
@@ -643,11 +643,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property MenuItem.Checked As Boolean
+	Private Property MenuItem.Checked As Boolean
 		Return FChecked
 	End Property
 	
-	Property MenuItem.Checked(value As Boolean)
+	Private Property MenuItem.Checked(value As Boolean)
 		FChecked = value
 		#ifdef __USE_GTK__
 			If gtk_is_check_menu_item(widget) Then
@@ -672,11 +672,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property MenuItem.RadioItem As Boolean
+	Private Property MenuItem.RadioItem As Boolean
 		Return FRadioItem
 	End Property
 	
-	Property MenuItem.RadioItem(value As Boolean)
+	Private Property MenuItem.RadioItem(value As Boolean)
 		FRadioItem = value
 		Dim As Integer First,Last
 		If Parent Then
@@ -693,11 +693,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property MenuItem.Enabled As Boolean
+	Private Property MenuItem.Enabled As Boolean
 		Return FEnabled
 	End Property
 	
-	Property MenuItem.Enabled(value As Boolean)
+	Private Property MenuItem.Enabled(value As Boolean)
 		FEnabled = value
 		#ifdef __USE_GTK__
 			gtk_widget_set_sensitive(widget, FEnabled)
@@ -714,11 +714,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property MenuItem.Visible As Boolean
+	Private Property MenuItem.Visible As Boolean
 		Return FVisible
 	End Property
 	
-	Property MenuItem.Visible(value As Boolean)
+	Private Property MenuItem.Visible(value As Boolean)
 		If fvisible = value Then Exit Property
 		FVisible = value
 		#ifdef __USE_GTK__
@@ -737,28 +737,28 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property MenuItem.Count As Integer
+	Private Property MenuItem.Count As Integer
 		Return FCount
 	End Property
 	
-	Property MenuItem.Count(value As Integer)
+	Private Property MenuItem.Count(value As Integer)
 	End Property
 	
-	Property MenuItem.Item(index As Integer) As PMenuItem
+	Private Property MenuItem.Item(index As Integer) As PMenuItem
 		If (index > -1) And (index  <FCount) Then
 			Return FItems[index]
 		End If
 		Return NULL
 	End Property
 	
-	Property MenuItem.Item(index As Integer,value As PMenuItem)
+	Private Property MenuItem.Item(index As Integer, value As PMenuItem)
 	End Property
 	
-	Sub MenuItem.Click
+	Private Sub MenuItem.Click
 		If onClick Then onClick(This)
 	End Sub
 	
-	Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
+	Private Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
 		If IndexOf(value) = -1 Then
 			FCount += 1
 			FItems = Reallocate_(FItems, SizeOf(PMenuItem)*FCount)
@@ -815,14 +815,14 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Function MenuItem.Add(ByRef sCaption As WString) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
 		Value->FDynamic = True
 		Add(Value)
 		Return Value
 	End Function
 	
-	Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImage.Handle     = iImage.Handle
@@ -832,7 +832,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImageIndex = iImageIndex
@@ -842,7 +842,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, eClick, Checkable))
 		Value->FDynamic = True
 		WLet(Value->FImageKey, sImageKey)
@@ -853,14 +853,14 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Sub MenuItem.Add(value() As PMenuItem)
+	Private Sub MenuItem.Add(value() As PMenuItem)
 		For i As Integer = 0 To UBound(value)
 			Add(value(i))
 		Next
 	End Sub
 	
 	#if Not defined(__FB_64BIT__) And Not defined(__FB_GCC__)
-		Sub MenuItem.AddRange cdecl(CountArgs As Integer, ...)
+		Private Sub MenuItem.AddRange cdecl(CountArgs As Integer, ...)
 			Dim value As Any Ptr
 			value = va_first()
 			For i As Integer = 1 To CountArgs
@@ -870,7 +870,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub MenuItem.Insert(Index As Integer, value As PMenuItem)
+	Private Sub MenuItem.Insert(Index As Integer, value As PMenuItem)
 		If IndexOf(value) = -1 Then
 			If (Index>-1) And (Index<FCount) Then
 				FCount += 1
@@ -913,7 +913,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub MenuItem.Remove(value As PMenuItem)
+	Private Sub MenuItem.Remove(value As PMenuItem)
 		Dim As Integer Index,i
 		Dim As PMenuItem FItem
 		Index = IndexOf(value)
@@ -943,7 +943,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub MenuItem.Clear
+	Private Sub MenuItem.Clear
 		For i As Integer = Count - 1 To 0 Step -1
 			If FItems[i]->FDynamic Then Delete_(FItems[i])
 			#ifndef __USE_GTK__
@@ -959,7 +959,7 @@ Namespace My.Sys.Forms
 		FCount = 0
 	End Sub
 	
-	Function MenuItem.IndexOf(value As PMenuItem) As Integer
+	Private Function MenuItem.IndexOf(value As PMenuItem) As Integer
 		Dim As Integer i
 		For i = 0 To FCount -1
 			If FItems[i] = value Then Return i
@@ -967,7 +967,7 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Function MenuItem.Find(value As Integer) As PMenuItem
+	Private Function MenuItem.Find(value As Integer) As PMenuItem
 		Dim As PMenuItem FItem
 		For i As Integer = 0 To FCount -1
 			If Item(i)->Command = value Then Return Item(i)
@@ -977,7 +977,7 @@ Namespace My.Sys.Forms
 		Return NULL
 	End Function
 	
-	Function MenuItem.Find(ByRef value As WString) As PMenuItem
+	Private Function MenuItem.Find(ByRef value As WString) As PMenuItem
 		Dim As PMenuItem FItem
 		For i As Integer = 0 To FCount - 1
 			If Item(i)->Name = value Then Return Item(i)
@@ -987,17 +987,17 @@ Namespace My.Sys.Forms
 		Return NULL
 	End Function
 	
-	Operator MenuItem.cast As Any Ptr
+	Private Operator MenuItem.cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Sub MenuItem.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
+	Private Sub MenuItem.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		With *Cast(MenuItem Ptr, Sender.Graphic)
 			'.Caption = .Caption
 		End With
 	End Sub
 	
-	Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null, Checkable As Boolean = False)
+	Private Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null, Checkable As Boolean = False)
 		FVisible    = True
 		FEnabled    = True
 		FChecked    = False
@@ -1066,7 +1066,7 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, wImageKey)
 	End Constructor
 	
-	Destructor MenuItem
+	Private Destructor MenuItem
 		'	If FParent Then
 		'		FParent->Remove(@This)
 		'	End If
@@ -1088,7 +1088,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	/' Menu '/
-	Function Menu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function Menu.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
 		Case "count": Return @FCount
@@ -1101,7 +1101,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 
-	Function Menu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Menu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -1119,28 +1119,28 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Property Menu.Handle As HMENU
+		Private Property Menu.Handle As HMENU
 			Return FHandle
 		End Property
 		
-		Property Menu.Handle(value As HMENU)
+		Private Property Menu.Handle(value As HMENU)
 			FHandle = value
 		End Property
 	#endif
-	Property Menu.ParentWindow As Component Ptr
+	Private Property Menu.ParentWindow As Component Ptr
 		Return FParentWindow
 	End Property
 	
-	Property Menu.ParentWindow(value As Component Ptr)
+	Private Property Menu.ParentWindow(value As Component Ptr)
 		FParentWindow = value
 		If ImagesList Then ImagesList->ParentWindow = FParentWindow
 	End Property
 	
-	Property Menu.Style As Integer
+	Private Property Menu.Style As Integer
 		Return FStyle
 	End Property
 	
-	Property Menu.Style(value As Integer)
+	Private Property Menu.Style(value As Integer)
 		FStyle = value
 		#ifndef __USE_GTK__
 			If Handle Then
@@ -1161,15 +1161,15 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Menu.DisplayIcons As Boolean
+	Private Property Menu.DisplayIcons As Boolean
 		Return FDisplayIcons
 	End Property
 	
-	Property Menu.DisplayIcons(Value As Boolean)
+	Private Property Menu.DisplayIcons(Value As Boolean)
 		FDisplayIcons = Value
 	End Property
 	
-	Property Menu.Color As Integer
+	Private Property Menu.Color As Integer
 		#ifndef __USE_GTK__
 			If handle Then
 				Dim As menuinfo mif
@@ -1186,7 +1186,7 @@ Namespace My.Sys.Forms
 		Return FColor
 	End Property
 	
-	Property Menu.Color(value As Integer)
+	Private Property Menu.Color(value As Integer)
 		FColor = value
 		#ifndef __USE_GTK__
 			If Handle Then
@@ -1208,36 +1208,36 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Property Menu.ColorizeEntire As Integer
+	Private Property Menu.ColorizeEntire As Integer
 		Return FIncSubitems
 	End Property
 	
-	Property Menu.ColorizeEntire(value As Integer)
+	Private Property Menu.ColorizeEntire(value As Integer)
 		FIncSubitems = value
 		Color = FColor
 	End Property
 	
-	Property Menu.Count As Integer
+	Private Property Menu.Count As Integer
 		Return FCount
 	End Property
 	
-	Property Menu.Count(value As Integer)
+	Private Property Menu.Count(value As Integer)
 	End Property
 	
-	Property Menu.Item(index As Integer) As MenuItem Ptr
+	Private Property Menu.Item(index As Integer) As MenuItem Ptr
 		If (index > -1) And (index < FCount) Then
 			Return FItems[Index]
 		End If
 		Return NULL
 	End Property
 	
-	Property Menu.Item(index As Integer,value As MenuItem Ptr)
+	Private Property Menu.Item(index As Integer, value As MenuItem Ptr)
 		If (index > -1) And (index < FCount) Then
 			FItems[Index] = value
 		End If
 	End Property
 	
-	Sub Menu.Add(value As PMenuItem, Index As Integer = -1)
+	Private Sub Menu.Add(value As PMenuItem, Index As Integer = -1)
 		#ifndef __USE_GTK__
 			Dim As MenuItemInfo FInfo
 		#endif
@@ -1289,14 +1289,14 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Function Menu.Add(ByRef sCaption As WString) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
 		Value->FDynamic = True
 		Add(Value)
 		Return Value
 	End Function
 	
-	Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->Image     = iImage
@@ -1307,7 +1307,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->ImageIndex = iImageIndex
@@ -1318,7 +1318,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, , Checkable))
 		Value->FDynamic = True
 		'WLet Value->FImageKey, sImageKey
@@ -1329,14 +1329,14 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Sub Menu.Add(value() As PMenuItem)
+	Private Sub Menu.Add(value() As PMenuItem)
 		For i As Integer = 0 To UBound(value)
 			Add(value(i))
 		Next
 	End Sub
 	
 	#if Not defined(__FB_64BIT__) And Not defined(__FB_GCC__)
-		Sub Menu.AddRange cdecl(CountArgs As Integer, ...)
+		Private Sub Menu.AddRange cdecl(CountArgs As Integer, ...)
 			Dim value As Any Ptr
 			value = va_first()
 			For i As Integer = 1 To CountArgs
@@ -1346,7 +1346,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub Menu.Insert(Index As Integer,value As PMenuItem)
+	Private Sub Menu.Insert(Index As Integer, value As PMenuItem)
 		#ifndef __USE_GTK__
 			Dim As MenuItemInfo FInfo
 		#endif
@@ -1386,7 +1386,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub Menu.Remove(value As PMenuItem)
+	Private Sub Menu.Remove(value As PMenuItem)
 		Dim As Integer Index,i
 		Dim As PMenuItem FItem
 		Index = IndexOf(value)
@@ -1406,14 +1406,14 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Function Menu.IndexOf(value As PMenuItem) As Integer
+	Private Function Menu.IndexOf(value As PMenuItem) As Integer
 		For i As Integer = 0 To FCount-1
 			If FItems[i] = value Then Return i
 		Next i
 		Return -1
 	End Function
 	
-	Function Menu.Find(value As Integer) As MenuItem Ptr
+	Private Function Menu.Find(value As Integer) As MenuItem Ptr
 		Dim As MenuItem Ptr FItem
 		For i As Integer = 0 To FCount-1
 			If Item(i)->Command = value Then Return Item(i)
@@ -1423,7 +1423,7 @@ Namespace My.Sys.Forms
 		Return NULL
 	End Function
 	
-	Function Menu.Find(ByRef Value As WString) As MenuItem Ptr
+	Private Function Menu.Find(ByRef Value As WString) As MenuItem Ptr
 		Dim As MenuItem Ptr FItem
 		For i As Integer = 0 To FCount-1
 			If Item(i)->Name = value Then Return Item(i)
@@ -1433,7 +1433,7 @@ Namespace My.Sys.Forms
 		Return NULL
 	End Function
 	
-	Sub Menu.Clear
+	Private Sub Menu.Clear
 		If FItems Then
 			For i As Integer = FCount - 1 To 0 Step -1
 				If Item(i)->FDynamic Then Delete_(Item(i))
@@ -1443,19 +1443,19 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub Menu.ProcessMessage(ByRef message As Message)
+	Private Sub Menu.ProcessMessage(ByRef message As Message)
 		
 	End Sub
 	
-	Operator Menu.cast As Any Ptr
+	Private Operator Menu.cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor Menu
+	Private Constructor Menu
 		FDisplayIcons = True
 	End Constructor
 	
-	Destructor Menu
+	Private Destructor Menu
 		This.Clear
 		#ifndef __USE_GTK__
 			If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
@@ -1466,7 +1466,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Destructor
 	
-	Function MainMenu.EnumMenuItems(ByRef Item As MenuItem) As Boolean
+	Private Function MainMenu.EnumMenuItems(ByRef Item As MenuItem) As Boolean
 		FMenuItems.Add Item
 		For i As Integer = 0 To Item.Count -1
 			EnumMenuItems *Item.Item(i)
@@ -1474,7 +1474,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Function GetAscKeyCode(HotKey As String) As Integer
+	Private Function GetAscKeyCode(HotKey As String) As Integer
 		Select Case HotKey
 		Case "Break": Return 03
 		Case "Backspace", "Back": Return 08
@@ -1520,7 +1520,7 @@ Namespace My.Sys.Forms
 		End Select
 	End Function
 	
-	Function GetChrKeyCode(KeyCode As Integer) As String
+	Private Function GetChrKeyCode(KeyCode As Integer) As String
 		Select Case KeyCode
 		Case 03: Return "Break"
 		Case 08: Return "Backspace"
@@ -1567,7 +1567,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	/' MainMenu '/
-	Function MainMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function MainMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -1575,7 +1575,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 
-	Function MainMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function MainMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -1588,7 +1588,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property MainMenu.ParentWindow(value As Component Ptr)
+	Private Property MainMenu.ParentWindow(value As Component Ptr)
 		FParentWindow = value
 		If value Then
 			#ifdef __USE_GTK__
@@ -1666,7 +1666,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub MainMenu.ProcessMessages(ByRef message As Message)
+	Private Sub MainMenu.ProcessMessages(ByRef message As Message)
 		Dim As PMenuItem I
 		#ifdef __USE_GTK__
 		#else
@@ -1675,11 +1675,11 @@ Namespace My.Sys.Forms
 		If I Then I->Click
 	End Sub
 	
-	Operator MainMenu.cast As Any Ptr
+	Private Operator MainMenu.cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor MainMenu
+	Private Constructor MainMenu
 		#ifdef __USE_GTK__
 			widget = gtk_menu_bar_new()
 		#else
@@ -1698,12 +1698,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Constructor
 	
-	Destructor MainMenu
+	Private Destructor MainMenu
 	End Destructor
 	
 	
 	/' PopupMenu '/
-	Function PopupMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+	Private Function PopupMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -1711,7 +1711,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 
-	Function PopupMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function PopupMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		If Value = 0 Then
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -1724,7 +1724,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property PopupMenu.ParentWindow(value As Component Ptr)
+	Private Property PopupMenu.ParentWindow(value As Component Ptr)
 		#ifdef __USE_GTK__
 			If FParentWindow = 0 Then
 				'gtk_menu_attach_to_widget(gtk_menu(widget), value->widget, NULL)
@@ -1734,7 +1734,7 @@ Namespace My.Sys.Forms
 		Base.ParentWindow = Value
 	End Property
 	
-	Sub PopupMenu.Popup(x As Integer,y As Integer, msg As Message Ptr = 0)
+	Private Sub PopupMenu.Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
 		#ifdef __USE_GTK__
 			If msg <> 0 Then
 				gtk_widget_show(widget)
@@ -1747,7 +1747,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub PopupMenu.ProcessMessages(ByRef message As Message)
+	Private Sub PopupMenu.ProcessMessages(ByRef message As Message)
 		Dim As PMenuItem I
 		#ifndef __USE_GTK__
 			I = Find(LoWord(message.wparam))
@@ -1755,11 +1755,11 @@ Namespace My.Sys.Forms
 		If I Then I->Click
 	End Sub
 	
-	Operator PopupMenu.cast As Any Ptr
+	Private Operator PopupMenu.cast As Any Ptr
 		Return @This
 	End Operator
 	
-	Constructor PopupMenu
+	Private Constructor PopupMenu
 		#ifdef __USE_GTK__
 			widget = gtk_menu_new()
 			gtk_menu_set_reserve_toggle_size(gtk_menu(widget) , False)
@@ -1774,16 +1774,16 @@ Namespace My.Sys.Forms
 		WLet(FClassName, "PopupMenu")
 	End Constructor
 	
-	Destructor PopupMenu
+	Private Destructor PopupMenu
 	End Destructor
 End Namespace
 
 #ifdef __EXPORT_PROCS__
-	Function MenuItemItemsCount Alias "MenuItemItemsCount"(PMenuItem As My.Sys.Forms.MenuItem Ptr) As Integer Export
+	Function MenuItemItemsCount Alias "MenuItemItemsCount" (PMenuItem As My.Sys.Forms.MenuItem Ptr) As Integer Export
 		Return PMenuItem->Count
 	End Function
 	
-	Function MenuItemsCount Alias "MenuItemsCount"(PMenu As My.Sys.Forms.Menu Ptr) As Integer Export
+	Function MenuItemsCount Alias "MenuItemsCount" (PMenu As My.Sys.Forms.Menu Ptr) As Integer Export
 		Return PMenu->Count
 	End Function
 	

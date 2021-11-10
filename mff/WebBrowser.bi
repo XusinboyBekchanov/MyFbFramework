@@ -36,7 +36,7 @@
 Namespace My.Sys.Forms
 	#define QWebBrowser(__Ptr__) *Cast(WebBrowser Ptr, __Ptr__)
 	
-	Type WebBrowser Extends Control
+	Private Type WebBrowser Extends Control
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)

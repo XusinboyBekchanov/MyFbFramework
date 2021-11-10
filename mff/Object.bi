@@ -23,7 +23,7 @@ Namespace My.Sys
 	#define QZString(__Ptr__) *Cast(ZString Ptr,__Ptr__)
 	#define QObject(__Ptr__) *Cast(My.Sys.Object Ptr,__Ptr__)
 	
-	Type Object Extends Object
+	Private Type Object Extends Object
 	Protected:
 		#ifdef __USE_GTK__
 			Accelerator     As GtkAccelGroup Ptr

@@ -1,7 +1,7 @@
-#Include Once "Controls.bi"
+#include once "Controls.bi"
 
-Type PColorDialog As TColorDialog Ptr
-Type TColorDialog
+Private Type PColorDialog As TColorDialog Ptr
+Private Type TColorDialog
      Private:
      CC              As CHOOSECOLOR
      Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger

@@ -14,7 +14,7 @@
 #include once "Label.bi"
 
 Namespace My.Sys.Forms
-	Function Label.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function Label.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "alignment": Return @FAlignment
 		Case "border": Return @FBorder
@@ -32,7 +32,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Function Label.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function Label.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "alignment": If Value <> 0 Then This.Alignment = *Cast(AlignmentConstants Ptr, Value)
 		Case "border": If Value <> 0 Then This.Border = QInteger(Value)
@@ -49,46 +49,46 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Property Label.Caption ByRef As WString
+	Private Property Label.Caption ByRef As WString
 		Return Text
 	End Property
 	
-	Property Label.Caption(ByRef Value As WString)
+	Private Property Label.Caption(ByRef Value As WString)
 		Text = Value
 	End Property
 	
-	Property Label.TabIndex As Integer
+	Private Property Label.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Property Label.TabIndex(Value As Integer)
+	Private Property Label.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Property Label.TabStop As Boolean
+	Private Property Label.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Property Label.TabStop(Value As Boolean)
+	Private Property Label.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
-	Property Label.Text ByRef As WString
+	Private Property Label.Text ByRef As WString
 		Return Base.Text
 	End Property
 	
-	Property Label.Text(ByRef Value As WString)
+	Private Property Label.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
 		#endif
 	End Property
 	
-	Property Label.Border As Integer
+	Private Property Label.Border As Integer
 		Return FBorder
 	End Property
 	
-	Sub Label.ChangeLabelStyle
+	Private Sub Label.ChangeLabelStyle
 		If Style <> lsText Then
 			#ifndef __USE_GTK__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
@@ -101,62 +101,62 @@ Namespace My.Sys.Forms
 		RecreateWnd
 	End Sub
 	
-	Property Label.Border(Value As Integer)
+	Private Property Label.Border(Value As Integer)
 		If Value <> FBorder Then
 			FBorder = Value
 			ChangeLabelStyle
 		End If
 	End Property
 	
-	Property Label.Style As Integer
+	Private Property Label.Style As Integer
 		Return FStyle
 	End Property
 	
-	Property Label.Style(Value As Integer)
+	Private Property Label.Style(Value As Integer)
 		If Value <> FStyle Then
 			FStyle = Value
 			ChangeLabelStyle
 		End If
 	End Property
 	
-	Property Label.RealSizeImage As Boolean
+	Private Property Label.RealSizeImage As Boolean
 		Return FRealSizeImage
 	End Property
 	
-	Property Label.RealSizeImage(Value As Boolean)
+	Private Property Label.RealSizeImage(Value As Boolean)
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			ChangeLabelStyle
 		End If
 	End Property
 	
-	Property Label.CenterImage As Boolean
+	Private Property Label.CenterImage As Boolean
 		Return FCenterImage
 	End Property
 	
-	Property Label.CenterImage(Value As Boolean)
+	Private Property Label.CenterImage(Value As Boolean)
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			ChangeLabelStyle
 		End If
 	End Property
 	
-	Property Label.Alignment As AlignmentConstants
+	Private Property Label.Alignment As AlignmentConstants
 		Return FAlignment
 	End Property
 	
-	Property Label.Alignment(Value As AlignmentConstants)
+	Private Property Label.Alignment(Value As AlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
 			ChangeLabelStyle
 		End If
 	End Property
 	
-	Property Label.WordWraps As Boolean
+	Private Property Label.WordWraps As Boolean
 		Return FWordWraps
 	End Property
 	
-	Property Label.WordWraps(Value As Boolean)
+	Private Property Label.WordWraps(Value As Boolean)
 		If Value <> FWordWraps Then
 			FWordWraps = value
 			#ifdef __USE_GTK__
@@ -167,7 +167,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Sub Label.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub Label.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifndef __USE_GTK__
@@ -191,7 +191,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Sub Label.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub Label.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QLabel(Sender.Child)
 					.Perform(STM_SETIMAGE, .Graphic.ImageType,CInt(.Graphic.Image))
@@ -199,11 +199,11 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Sub Label.WndProc(ByRef Message As Message)
+		Private Sub Label.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
 		
-	Sub Label.ProcessMessage(ByRef Message As Message)
+	Private Sub Label.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
@@ -236,11 +236,11 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Operator Label.Cast As Control Ptr
+	Private Operator Label.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Constructor Label
+	Private Constructor Label
 		#ifdef __USE_GTK__
 			widget = gtk_label_new("")
 			#ifdef __USE_GTK3__
@@ -298,6 +298,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Destructor Label
+	Private Destructor Label
 	End Destructor
 End Namespace

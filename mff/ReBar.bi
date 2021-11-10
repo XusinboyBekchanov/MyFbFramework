@@ -11,15 +11,15 @@ Namespace My.Sys.Forms
 	#define QReBar(__Ptr__) *Cast(ReBar Ptr, __Ptr__)
 	#define REBAR_HEIGHT 35
 	
-	Enum GripperStyles
+	Private Enum GripperStyles
 		Auto
 		GripperAlways
 		NoGripper
 	End Enum
 	
-	Type PReBar As ReBar Ptr
+	Private Type PReBar As ReBar Ptr
 	
-	Type ReBarBand Extends My.Sys.Object
+	Private Type ReBarBand Extends My.Sys.Object
 	Private:
 		FBreak As Boolean
 		FCaption As WString Ptr
@@ -99,7 +99,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ReBarBandCollection
+	Private Type ReBarBandCollection
 	Private:
 		FItems As List
 	Public:
@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Type ReBar Extends ContainerControl
+	Private Type ReBar Extends ContainerControl
 	Private:
 		FAutoSize As Boolean
 		FRowCount As Integer

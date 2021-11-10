@@ -10,7 +10,7 @@
 
 Namespace My
 	Namespace Sys
-		Function Name As String
+		Private Function Name As String
 			#if __USE_GTK__
 				Return "Linux"
 			#else
@@ -18,7 +18,7 @@ Namespace My
 			#endif
 		End Function
 		
-		Function Version As Long
+		Private Function Version As Long
 			#if __USE_GTK__
 				
 			#else
@@ -50,7 +50,7 @@ Namespace My
 			#endif
 		End Function
 		
-		Function Build As Long
+		Private Function Build As Long
 			#if __USE_GTK__
 				
 			#else
@@ -63,7 +63,7 @@ Namespace My
 			#endif
 		End Function
 		
-		Function Platform As Long
+		Private Function Platform As Long
 			#if __USE_GTK__
 				
 			#else
