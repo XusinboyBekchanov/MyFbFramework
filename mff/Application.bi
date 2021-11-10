@@ -41,7 +41,7 @@
 '#DEFINE crVSplit      LoadCursor(GetModuleHandle(NULL),"VSPLIT")
 '#DEFINE crNoDrop      LoadCursor(GetModuleHandle(NULL),"NODROP")
 '
-Enum MessageType
+Private Enum MessageType
 	mtInfo
 	mtWarning
 	mtQuestion
@@ -49,7 +49,7 @@ Enum MessageType
 	mtOther
 End Enum
 
-Enum ButtonsTypes
+Private Enum ButtonsTypes
 	btNone
 	btOK
 	btYesNo
@@ -57,7 +57,7 @@ Enum ButtonsTypes
 	btOkCancel
 End Enum
 
-Enum MessageResult
+Private Enum MessageResult
 	mrAbort
 	mrCancel
 	mrIgnore
@@ -69,7 +69,7 @@ End Enum
 
 'Declare Function MsgBox(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer
 
-Enum ShutdownMode
+Private Enum ShutdownMode
 	smAfterMainFormCloses
 	smAfterAllFormsCloses
 End Enum
@@ -77,7 +77,7 @@ End Enum
 Namespace My
 	#define QApplication(__Ptr__) *Cast(Application Ptr,__Ptr__)
 	
-	Type Application Extends My.Sys.Object
+	Private Type Application Extends My.Sys.Object
 	Private:
 		FTitle          As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon

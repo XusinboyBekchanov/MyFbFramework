@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
 	#define QTreeListViewItem(__Ptr__) *Cast(TreeListViewItem Ptr, __Ptr__)
 	#define QTreeListViewColumn(__Ptr__) *Cast(TreeListViewColumn Ptr,__Ptr__)
 	
-	Type PTreeListViewItem As TreeListViewItem Ptr
+	Private Type PTreeListViewItem As TreeListViewItem Ptr
 	
 	Private Type TreeListViewItems Extends My.Sys.Object
 	Private:

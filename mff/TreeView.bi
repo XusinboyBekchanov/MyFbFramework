@@ -7,12 +7,10 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	Type PTreeNode As TreeNode Ptr
+	#define QTreeView(__Ptr__) *Cast(TreeView Ptr, __Ptr__)
+	#define QTreeNode(__Ptr__) *Cast(TreeNode Ptr, __Ptr__)
 	
-	#define QTreeView(__Ptr__) *Cast(TreeView Ptr,__Ptr__)
-	#define QTreeNode(__Ptr__) *Cast(TreeNode Ptr,__Ptr__)
-	
-	Type PTreeNode As TreeNode Ptr
+	Private Type PTreeNode As TreeNode Ptr
 	
 	Private Type TreeNodeCollection Extends My.Sys.Object
 	Private:

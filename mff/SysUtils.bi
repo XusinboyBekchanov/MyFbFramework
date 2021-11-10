@@ -37,8 +37,10 @@
 #include once "UString.bi"
 
 #ifdef __EXPORT_PROCS__
+	#define PublicOrPrivate Public
 	#define __EXPORT__ Export
 #else
+	#define PublicOrPrivate Private
 	#define __EXPORT__
 #endif
 

@@ -35,10 +35,10 @@
 Using My.Sys.ComponentModel
 
 Namespace My.Sys.Forms
-	Type PMenu      As Menu Ptr
-	Type PMainMenu  As MainMenu Ptr
-	Type PPopupMenu As PopupMenu Ptr
-	Type PMenuItem  As MenuItem Ptr
+	Private Type PMenu      As Menu Ptr
+	Private Type PMainMenu  As MainMenu Ptr
+	Private Type PPopupMenu As PopupMenu Ptr
+	Private Type PMenuItem  As MenuItem Ptr
 	
 	#define QMenuItem(__Ptr__)  *Cast(PMenuItem,__Ptr__)
 	#define QMenu(__Ptr__)      *Cast(PMenu,__Ptr__)

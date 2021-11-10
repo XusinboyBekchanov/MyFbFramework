@@ -76,7 +76,7 @@ Namespace My.Sys.Drawing
 		End Enum
 	#endif
 	
-	Type Canvas Extends My.Sys.Object
+	Private Type Canvas Extends My.Sys.Object
 	Private:
 		ParentControl As My.Sys.ComponentModel.Component Ptr
 		Declare Sub GetDevice

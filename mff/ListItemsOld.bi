@@ -14,7 +14,7 @@
 
 #define QListItems(__Ptr__) *Cast(ListItems Ptr,__Ptr__)
 
-Type ListItems Extends Object
+Private Type ListItems Extends Object
 Private:
 	FItems As WStringList
 Public:
