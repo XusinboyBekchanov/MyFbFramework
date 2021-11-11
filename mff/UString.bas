@@ -35,11 +35,11 @@ Private Destructor UString
 End Destructor
 
 Private Function UString.StartsWith(ByRef Value As UString) As Boolean
-	Return Left(*m_Data, Value.Length) = *(Value.vptr)
+	Return Left(*m_Data, Value.m_Length) = * (Value.vptr)
 End Function
 
 Private Function UString.EndsWith(ByRef Value As UString) As Boolean
-	Return Right(*m_Data, Value.Length) = *(Value.vptr)
+	Return Right(*m_Data, Value.m_Length) = * (Value.vptr)
 End Function
 
 Private Function UString.ToLower As UString
