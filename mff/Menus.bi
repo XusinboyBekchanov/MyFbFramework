@@ -84,7 +84,7 @@ Namespace My.Sys.Forms
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Tag As Any Ptr
-		SubMenu As PMenu
+		SubMenu As PPopUpMenu
 		#ifndef __USE_GTK__
 			'declare property Menu as HMENU
 			'declare property Menu(value as HMENU)
@@ -169,6 +169,7 @@ Namespace My.Sys.Forms
 		FColor   As Integer
 		FDisplayIcons As Boolean
 		FMenuItems    As List
+		FParentMenuItem As MenuItem Ptr
 		FParentWindow As Component Ptr
 		FIncSubItems  As Integer
 		Declare Sub GetMenuItems
@@ -234,6 +235,8 @@ Namespace My.Sys.Forms
 	Public:
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Property ParentMenuItem As MenuItem Ptr
+		Declare Property ParentMenuItem(value As MenuItem Ptr)
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Sub Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
 		Declare Virtual Sub ProcessMessages(ByRef message As Message)

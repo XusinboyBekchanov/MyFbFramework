@@ -726,6 +726,7 @@ Namespace My.Sys.Forms
 					If widget Then
 						'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
 						gtk_widget_set_visible(widget, Value)
+						gtk_widget_set_no_show_all(widget, Not Value)
 					End If
 				#else
 					If FHandle = 0 And CInt(Value) Then
@@ -1413,7 +1414,7 @@ Namespace My.Sys.Forms
 		Private Sub Control.GetPopupMenuItems
 			FPopupMenuItems.Clear
 			If ContextMenu Then
-				For i As Integer = 0 To ContextMenu->Count -1
+				For i As Integer = 0 To ContextMenu->Count - 1
 					EnumPopupMenuItems *ContextMenu->Item(i)
 				Next i
 			End If

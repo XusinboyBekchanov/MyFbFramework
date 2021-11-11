@@ -799,11 +799,13 @@ Namespace My.Sys.Forms
 				End If
 				gtk_widget_show(value->widget)
 			#else
-				If Handle = 0 Then
-					Handle = CreatePopupMenu
+				If SubMenu = 0 Then
+					SubMenu = New_( PopUpMenu)
+					SubMenu->ParentMenuItem = @This
+					Handle = SubMenu->Handle
 					Dim As menuinfo mif
 					mif.cbSize     = SizeOf(mif)
-					mif.dwmenudata = Cast(dword_Ptr,Cast(Any Ptr, @This))
+					mif.dwmenudata = Cast(dword_Ptr, Cast(Any Ptr, SubMenu)) '@This))
 					mif.fMask      = MIM_MENUDATA
 					.SetMenuInfo(Handle, @mif)
 					SetInfo(FInfo)
@@ -1218,26 +1220,46 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Menu.Count As Integer
-		Return FCount
+		If FParentMenuItem Then
+			Return FParentMenuItem->Count
+		Else
+			Return FCount
+		End If
 	End Property
 	
 	Private Property Menu.Count(value As Integer)
 	End Property
 	
 	Private Property Menu.Item(index As Integer) As MenuItem Ptr
-		If (index > -1) And (index < FCount) Then
-			Return FItems[Index]
+		If FParentMenuItem Then
+			If (index > -1) And (index < FParentMenuItem->Count) Then
+				Return FParentMenuItem->Item(index)
+			End If
+		Else
+			If (index > -1) And (index < FCount) Then
+				Return FItems[Index]
+			End If
 		End If
 		Return NULL
 	End Property
 	
 	Private Property Menu.Item(index As Integer, value As MenuItem Ptr)
-		If (index > -1) And (index < FCount) Then
-			FItems[Index] = value
+		If FParentMenuItem Then
+			If (index > -1) And (index < FParentMenuItem->Count) Then
+				FParentMenuItem->Item(Index) = value
+			End If
+		Else
+			If (index > -1) And (index < FCount) Then
+				FItems[Index] = value
+			End If
 		End If
 	End Property
 	
 	Private Sub Menu.Add(value As PMenuItem, Index As Integer = -1)
+		If FParentMenuItem Then
+			FParentMenuItem->Add value, Index
+			Exit Sub
+		End If
 		#ifndef __USE_GTK__
 			Dim As MenuItemInfo FInfo
 		#endif
@@ -1347,6 +1369,10 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub Menu.Insert(Index As Integer, value As PMenuItem)
+		If FParentMenuItem Then
+			FParentMenuItem->Insert Index, Value
+			Exit Sub
+		End If
 		#ifndef __USE_GTK__
 			Dim As MenuItemInfo FInfo
 		#endif
@@ -1723,6 +1749,14 @@ Namespace My.Sys.Forms
 		End If
 		Return True
 	End Function
+	
+	Private Property PopupMenu.ParentMenuItem As MenuItem Ptr
+		Return FParentMenuItem
+	End Property
+	
+	Private Property PopupMenu.ParentMenuItem(value As MenuItem Ptr)
+		FParentMenuItem = Value
+	End Property
 	
 	Private Property PopupMenu.ParentWindow(value As Component Ptr)
 		#ifdef __USE_GTK__

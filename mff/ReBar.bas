@@ -330,6 +330,7 @@ Namespace My.Sys.Forms
 		FVisible = Value
 		#ifdef __USE_GTK__
 			gtk_widget_set_visible(Child->Handle, Value)
+			gtk_widget_set_no_show_all(Child->Handle, Not Value)
 			If Parent Then Parent->UpdateReBar
 		#else
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then SendMessage(Parent->Handle, RB_SHOWBAND, Index, Value)
