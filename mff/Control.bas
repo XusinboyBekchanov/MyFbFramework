@@ -353,7 +353,6 @@ Namespace My.Sys.Forms
 				Return WGet(FText.vptr)
 			End Property
 			
-			Dim Shared TempString As String
 			Private Property Control.Text(ByRef Value As WString)
 				FText = Value
 				#ifdef __USE_GTK__
