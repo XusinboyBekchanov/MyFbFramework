@@ -725,7 +725,7 @@ Namespace My.Sys.Forms
 					If widget Then
 						'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
 						gtk_widget_set_visible(widget, Value)
-						gtk_widget_set_no_show_all(widget, Not Value)
+						'gtk_widget_set_no_show_all(widget, Not Value)
 					End If
 				#else
 					If FHandle = 0 And CInt(Value) Then

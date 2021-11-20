@@ -1018,9 +1018,9 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Widget)), ToUTF8(Value), -1)
-'				buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
-'				gtk_text_buffer_get_selection_bounds(buffer, @_start, @_end)
-'				gtk_text_view_scroll_to_iter(gtk_text_view(Widget), @_end, 0, False, 0, 0)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+				Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(gtk_text_view(Widget)), NULL, @_end, False)
+				gtk_text_view_scroll_to_mark(gtk_text_view(Widget), ptextmark, 0., False, 0., 0.)
 			Else
 				Dim As gint Pos1 = gtk_editable_get_position(gtk_editable(widget))
 				gtk_editable_insert_text(gtk_editable(widget), ToUTF8(*FSelText), -1, @Pos1)
