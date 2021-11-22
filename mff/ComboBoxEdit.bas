@@ -234,7 +234,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), IndexOf(Value))
 		#else
-			If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+			If FStyle > 1 Then
+				If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+			Else
+				If FHandle Then Perform(WM_SETTEXT, -1, CInt(FText.vptr))
+			End If
 		#endif
 	End Property
 	
