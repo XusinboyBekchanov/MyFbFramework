@@ -9,7 +9,11 @@
 '#  Modified by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                       #
 '################################################################################
 
-#ifndef __FB_WIN32__
+#ifdef __FB_ANDROID__
+	#ifndef __USE_JNI__
+		#define __USE_JNI__
+	#endif
+#elseif Not defined(__FB_WIN32__)
 	#ifndef __USE_GTK__
 		#define __USE_GTK__
 	#endif
@@ -24,15 +28,17 @@
 	#include once "Windows.bi"
 #endif
 
-#ifndef __USE_GTK__
+#ifdef __USE_GTK__
+	#define FHandle Widget
+#elseif defined(__USE_JNI__)
+	#include once "jni.bi"
+#else
 	#include once "win/wincrypt.bi"
 	#include once "Win/CommCtrl.bi"
 	#include once "Win/CommDlg.bi"
 	#include once "Win/RichEdit.bi"
 	#include once "win/iphlpapi.bi"
 	#define Instance GetModuleHandle(NULL)
-#else
-	#define FHandle Widget
 #endif
 #include once "UString.bi"
 
@@ -64,7 +70,7 @@ Const HELP_SETPOPUP_POS = &Hd
 
 '#DEFINE __AUTOMATE_CREATE_CHILDS__
 
-#ifndef __USE_GTK__
+#ifdef __FB_WIN32__
 	#define CM_NOTIFYCHILD 39998
 	#define CM_CHANGEIMAGE 39999
 	#define CM_CTLCOLOR    40000
@@ -121,7 +127,7 @@ Namespace ClassContainer
 	
 	Declare Function GetClassProc Overload(ByRef ClassName As WString) As Any Ptr
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Declare Function GetClassProc(FWindow As HWND) As Any Ptr
 		
 		Declare Function GetClassNameOf(FWindow As HWND) As String

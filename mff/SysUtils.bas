@@ -11,7 +11,7 @@
 
 #include once "SysUtils.bi"
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	Private Function EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
 		Type WindowType
 			As HWND Handle
@@ -44,8 +44,7 @@ Private Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort 
 	
 	If Code = 0 AndAlso WithCode Then Return "e: " & Str(Code)
 	
-	#ifdef __USE_GTK__
-	#else
+	#ifdef __USE_WINAPI__
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM Or FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, Code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), ErrorString, MaxLen, NULL)
 		If (ErrorString <> 0) Then
 			If WithCode Then
@@ -121,7 +120,7 @@ Namespace ClassContainer
 		Return 0
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function GetClassProc(FWindow As HWND) As Any Ptr
 			Dim As WString * 255 c
 			Dim As Integer L
@@ -148,7 +147,7 @@ End Namespace
 ' Scale the location point X per DPI
 ' =====================================================================================
 Private Function ScaleX(ByVal cx As Single) As Single
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Static bb As Single
 		If bb = 0 Then
 			Dim hDC As HDC
@@ -166,7 +165,7 @@ End Function
 ' Scale the location point X per DPI
 ' =====================================================================================
 Private Function UnScaleX (ByVal cx As Single) As Single
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Static bb As Single
 		If bb = 0 Then
 			Dim hDC As HDC
@@ -184,7 +183,7 @@ End Function
 ' Scale the location point Y per DPI
 ' =====================================================================================
 Private Function ScaleY(ByVal cy As Single) As Single
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Static bb As Single
 		If bb=0 Then
 			Dim hDC As HDC
@@ -202,7 +201,7 @@ End Function
 ' Scale the location point Y per DPI
 ' =====================================================================================
 Private Function UnScaleY(ByVal cy As Single) As Single
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Static bb As Single
 		If bb=0 Then
 			Dim hDC As HDC

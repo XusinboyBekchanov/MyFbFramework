@@ -77,7 +77,7 @@ End Sub
 Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
 	This.Resize(m_Length + NumBytes)
 	If m_Data = 0 Then Return False
-	#ifndef __USE_GTK__
+	#ifdef __FB_WIN32__
 		memcpy(m_Data + m_BufferLen, addrMemory, NumBytes)
 	#endif
 	m_BufferLen += NumBytes
@@ -383,19 +383,22 @@ Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As L
 	Return strn
 End Function
 
-Private Function FileExists(ByRef filename As UString) As Long
-	#ifndef __USE_GTK__
-		If PathFileExistsW(filename.vptr) Then
-			Return -1
-		Else
+#ifndef __USE_JNI__
+	Private Function FileExists(ByRef filename As UString) As Long
+		#ifdef __USE_GTK__
+			If g_file_test(ToUTF8(*filename.vptr), G_FILE_TEST_EXISTS) Then
+				Return -1
+			Else
+				Return 0
+			End If
+		#elseif __USE_JNI__
 			Return 0
-		End If
-	#else
-		If g_file_test(ToUTF8(*filename.vptr), G_FILE_TEST_EXISTS) Then
-			Return -1
-		Else
-			Return 0
-		End If
-	#endif
-End Function
-
+		#else
+			If PathFileExistsW(filename.vptr) Then
+				Return -1
+			Else
+				Return 0
+			End If
+		#endif
+	End Function
+#endif

@@ -1,10 +1,12 @@
 ﻿#define UNICODE
 #include once "file.bi"
-#undef FileExists
-#ifdef __USE_GTK__
-	#include once "glib.bi"
-#else
-	#include once "win\shlwapi.bi"
+#ifndef __USE_JNI__
+	#undef FileExists
+	#ifdef __USE_GTK__
+		#include once "glib.bi"
+	#else
+		#include once "win\shlwapi.bi"
+	#endif
 #endif
 #ifndef MEMCHECK
 	#define MEMCHECK 0
@@ -82,7 +84,7 @@ Declare Function ToUtf8(ByRef nWString As WString) As String
 
 Declare Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 
-#ifndef __USE_GTK__
+#ifndef __USE_JNI__
 	Declare Function FileExists Overload(ByRef filename As UString) As Long
 #endif
 
