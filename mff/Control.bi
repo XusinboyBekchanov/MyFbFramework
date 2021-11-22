@@ -131,7 +131,7 @@ Namespace My.Sys.Forms
 			FText              As UString
 			FHint              As WString Ptr
 			FShowHint          As Boolean
-			FAlign             As Integer
+			FAlign             As DockStyle
 			FClientWidth       As Integer
 			FClientHeight      As Integer
 			FBackColor         As Integer
@@ -267,8 +267,8 @@ Namespace My.Sys.Forms
 			Declare Property Parent As Control Ptr
 			Declare Property Parent(Value As Control Ptr)
 			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent (Windows, Linux).
-			Declare Property Align As Integer 'DockStyle
-			Declare Property Align(Value As Integer) 'DockStyle
+			Declare Property Align As DockStyle
+			Declare Property Align(Value As DockStyle)
 			'Returns/sets the width of the client area of the control (Windows, Linux).
 			Declare Function ClientWidth As Integer
 			'Returns/sets the height of the client area of the control (Windows, Linux).

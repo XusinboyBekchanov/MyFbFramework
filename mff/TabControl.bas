@@ -249,7 +249,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			This.RegisterClass "TabPage", @This
 		#else
-			Align = 5
+			Align = DockStyle.alClient
 			Base.Style = WS_CHILD Or DS_SETFOREGROUND
 			This.OnHandleIsAllocated = @HandleIsAllocated
 			This.RegisterClass "TabPage", "Panel"

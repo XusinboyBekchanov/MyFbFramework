@@ -63,7 +63,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Property Splitter.Align(value As SplitterAlignmentConstants)
-		Base.Align = value
+		Base.Align = *Cast(DockStyle Ptr, @value)
 		Select Case value
 		Case 1, 2
 			This.Cursor = crSizeWE

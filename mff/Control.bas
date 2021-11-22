@@ -81,7 +81,7 @@ Namespace My.Sys.Forms
 					End Select
 				Else
 					Select Case LCase(PropertyName)
-					Case "align": This.Align = QInteger(Value)
+					Case "align": This.Align = *Cast(DockStyle Ptr, Value)
 					Case "allowdrop": This.AllowDrop = QBoolean(Value)
 					Case "anchor.left": This.Anchor.Left = QInteger(Value)
 					Case "anchor.right": This.Anchor.Right = QInteger(Value)
@@ -401,11 +401,11 @@ Namespace My.Sys.Forms
 		#endif
 		
 		#ifndef Align_Off
-			Private Property Control.Align As Integer
+			Private Property Control.Align As DockStyle
 				Return FAlign
 			End Property
 			
-			Private Property Control.Align(Value As Integer)
+			Private Property Control.Align(Value As DockStyle)
 				FAlign = Value
 				'                #IfDef __USE_GTK__
 				'					If widget Then

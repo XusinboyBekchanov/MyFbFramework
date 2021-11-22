@@ -805,7 +805,7 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "Header")
 			.Width             = 150
 			.Height            = 24
-			.Align             = 3
+			.Align             = DockStyle.alTop
 		End With
 	End Constructor
 	
