@@ -528,7 +528,7 @@ Namespace My.Sys.Forms
 		If Result <> 0 Then Result = Open(File For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(File For Input As #Fn)
 		If Result = 0 Then
-			FText = WInput(LOF(1), #Fn)
+			FText = WInput(LOF(Fn), #Fn)
 			#ifdef __USE_GTK__
 				If gtk_is_text_view(widget) Then
 					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
@@ -708,7 +708,7 @@ Namespace My.Sys.Forms
 				iSelStartRow = SendMessage(FHandle, EM_LINEFROMCHAR, iSelStart, 0)
 				iSelStartCol = iSelStart - SendMessage(FHandle, EM_LINEINDEX, iSelStartRow, 0)
 				iSelEndRow = SendMessage(FHandle, EM_LINEFROMCHAR, iSelEnd, 0)
-				iSelEndCol = iSelStart - SendMessage(FHandle, EM_LINEINDEX, iSelEndRow, 0)
+				iSelEndCol = iSelEnd - SendMessage(FHandle, EM_LINEINDEX, iSelEndRow, 0)
 			End If
 		#endif
 	End Sub
