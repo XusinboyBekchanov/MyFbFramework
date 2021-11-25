@@ -93,8 +93,10 @@ Namespace My.Sys.Drawing
 		Graphic    		As Any Ptr
 		#ifdef __USE_GTK__
 			Handle 		As GdkCursor Ptr
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Handle		As HCURSOR
+		#elseif defined(__USE_JNI__)
+			Handle		As jobject
 		#endif
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
@@ -108,14 +110,15 @@ Namespace My.Sys.Drawing
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		Declare Function LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Function ToBitmap() As HBitmap
 		#endif
 		Declare Function ToString() ByRef As WString
 		Declare Operator Cast As Any Ptr
+		Declare Operator Let(Value As Integer)
 		#ifdef __USE_GTK__
 			Declare Operator Let(Value As GdkCursorType)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Operator Let(Value As HCURSOR)
 		#endif
 		Declare Operator Let(ByRef Value As WString)

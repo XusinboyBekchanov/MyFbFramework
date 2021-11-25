@@ -98,7 +98,7 @@ Namespace My.Sys.Forms
 	Private Property Form.Owner(Value As Form Ptr)
 		If Value <> FOwner Then
 			FOwner = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle AndAlso FOwner AndAlso FOwner->Handle Then
 					SetParent FOwner->Handle, Handle
 				End If
@@ -176,7 +176,7 @@ Namespace My.Sys.Forms
 			FMainForm = Value
 			If pApp <> 0 Then
 				If pApp->MainForm <> 0 Then Cast(Form Ptr, pApp->MainForm)->MainForm = False
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					ChangeExStyle WS_EX_APPWINDOW, Value
 				#endif
 				If FMainForm Then
@@ -237,7 +237,7 @@ Namespace My.Sys.Forms
 			#else
 				gtk_window_set_opacity(gtk_window(widget), Value / 255.0)
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeExStyle WS_EX_LAYERED, Cast(Boolean, 255 - FOpacity)
 			If FHandle Then
 				SetLayeredWindowAttributes(FHandle, 0, FOpacity, LWA_ALPHA)
@@ -251,7 +251,7 @@ Namespace My.Sys.Forms
 
 	Private Property Form.ControlBox(Value As Boolean)
 		FControlBox = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle WS_SYSMENU, Value
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 
 	Private Property Form.MinimizeBox(Value As Boolean)
 		FMinimizeBox = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle WS_MINIMIZEBOX, Value
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 
 	Private Property Form.MaximizeBox(Value As Boolean)
 		FMaximizeBox = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle WS_MAXIMIZEBOX, Value
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
@@ -361,7 +361,7 @@ Namespace My.Sys.Forms
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle WS_POPUP, False
 			ChangeStyle WS_BORDER, False
 			ChangeStyle WS_THICKFRAME, False
@@ -444,7 +444,7 @@ Namespace My.Sys.Forms
 				If gtk_is_window(widget) Then
 					gtk_window_set_keep_above (GTK_WINDOW(widget), False)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If (ExStyle And WS_EX_TOPMOST) = WS_EX_TOPMOST Then
 					ExStyle = ExStyle And Not WS_EX_TOPMOST
 					SetWindowPos Handle,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
@@ -461,7 +461,7 @@ Namespace My.Sys.Forms
 				If gtk_is_widget(layoutwidget) Then gtk_container_add(GTK_CONTAINER(layoutwidget), FClient)
 			#endif
 		Case 2 'fsMDIChild
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeExStyle WS_EX_MDICHILD, True
 				If FHandle Then RecreateWnd
 			#endif
@@ -470,7 +470,7 @@ Namespace My.Sys.Forms
 				If gtk_is_window(widget) Then
 					gtk_window_set_keep_above (GTK_WINDOW(widget), True)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If (ExStyle And WS_EX_TOPMOST) <> WS_EX_TOPMOST Then
 					ExStyle = ExStyle Or WS_EX_TOPMOST
 					SetWindowPos Handle,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
@@ -497,7 +497,7 @@ Namespace My.Sys.Forms
 			If Cast(Form Ptr, value)->FFormStyle = fsMDIForm Then
 				#ifdef __USE_GTK__
 					ParentWidget = Cast(Form Ptr, value)->FClient
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If IsWindow(FHandle) Then
 						SetParent(FHandle, IIf(value, Cast(Form Ptr, value)->FClient, 0))
 					End If
@@ -517,7 +517,7 @@ Namespace My.Sys.Forms
 					FWindowState = WindowStates.wsNormal
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If IsIconic(Handle) Then
 					FWindowState = WindowStates.wsMinimized
@@ -544,7 +544,7 @@ Namespace My.Sys.Forms
 				Case WindowStates.wsHide:       gtk_widget_hide(widget)
 				End Select
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If Not FDesignMode Then
 					Dim nState As Long
@@ -625,7 +625,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Form.WndProc(ByRef message As Message)
 			
 		End Sub
@@ -633,7 +633,7 @@ Namespace My.Sys.Forms
 		Private Sub Form.HandleIsDestroyed(ByRef Sender As Control)
 			If Sender.Child Then
 				With QForm(Sender.Child)
-					SetMenu .Handle,NULL
+					SetMenu .Handle, NULL
 					DrawMenuBar .Handle
 				End With
 			End If
@@ -754,6 +754,22 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
+	#elseif defined(__USE_JNI__)
+		Sub Java_mff_application_MainActivity_OnCreateJNI__Ljava_lang_Object_2 Alias "Java_mff_application_MainActivity_OnCreateJNI__Ljava_lang_Object_2" (ByVal env As JNIEnv Ptr, This_ As jobject, layout As jobject) Export
+			If pApp Then
+				pApp->env = env
+				Dim As jclass activityThread = (*env)->FindClass(env, "android/app/ActivityThread")
+				Dim As jmethodID currentActivityThread = (*env)->GetStaticMethodID(env, activityThread, "currentActivityThread", "()Landroid/app/ActivityThread;")
+				Dim As jobject at = (*env)->CallStaticObjectMethod(env, activityThread, currentActivityThread)
+				Dim As jmethodID getApplication = (*env)->GetMethodID(env, activityThread, "getApplication", "()Landroid/app/Application;")
+				pApp->Instance = (*env)->CallObjectMethod(env, at, getApplication)
+				If pApp->MainForm Then
+					pApp->MainForm->Handle = This_
+					pApp->MainForm->layoutview = layout
+					pApp->MainForm->CreateWnd
+				End If
+			End If
+		End Sub
 	#else
 		Private Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
 			pApp->FDeactivated = False
@@ -821,7 +837,7 @@ Namespace My.Sys.Forms
 			Case Else
 				
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Static As Boolean IsMenuItem
 			Select Case msg.Msg
 			Case WM_GETMINMAXINFO
@@ -986,7 +1002,7 @@ Namespace My.Sys.Forms
 			End Select
 		#endif
 		Base.ProcessMessage(msg)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case FFormStyle
 			Case fsMDIChild
 				Msg.Result = -3 
@@ -999,7 +1015,7 @@ Namespace My.Sys.Forms
 
 	'David Change
 	Private Sub Form.BringToFront
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'If Handle Then BringWindowToTop Handle
 			'Const HWND_TOPMOST = -1
 			'Const HWND_NOTOPMOST = -2
@@ -1008,13 +1024,13 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Private Sub Form.SendToBack
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then SetWindowPos Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 		#endif
 	End Sub
 
 	Private Property Form.Visible() As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				FVisible = IsWindowVisible(FHandle)
 			End If
@@ -1158,7 +1174,7 @@ Namespace My.Sys.Forms
 				HideItems @This
 				'Requests @This
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If IsIconic(Handle) Then
 				ShowWindow Handle, SW_SHOWNORMAL
 '			ElseIf IsWindowVisible(Handle) Then
@@ -1198,7 +1214,7 @@ Namespace My.Sys.Forms
 			'If OnShow Then OnShow(This)
 			gtk_main()
 			gtk_window_set_modal(gtk_window(widget), False)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Integer i
 			Dim As Any Ptr Mtx
 			FParentHandle = GetFocus()
@@ -1261,7 +1277,7 @@ Namespace My.Sys.Forms
 					gtk_widget_hide(widget)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If IsWindowVisible(Handle) Then
 					If OnHide Then OnHide(This)
@@ -1274,7 +1290,7 @@ Namespace My.Sys.Forms
 	Private Sub Form.Maximize
 		#ifdef __USE_GTK__
 			gtk_window_maximize(GTK_WINDOW(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If IsIconic(Handle) = 0 Then
 				ShowWindow Handle, SW_MAXIMIZE
 			End If
@@ -1284,7 +1300,7 @@ Namespace My.Sys.Forms
 	Private Sub Form.Minimize
 		#ifdef __USE_GTK__
 			gtk_window_iconify(GTK_WINDOW(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If IsIconic(Handle) = 0 Then
 				ShowWindow Handle, SW_MINIMIZE
 			End If
@@ -1313,7 +1329,7 @@ Namespace My.Sys.Forms
 				Case 2
 				End Select
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(WM_CLOSE, 0, 0)
 		#endif
 	End Sub
@@ -1335,7 +1351,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
-		#else
+		#elseif defined(__USE_WINAPI__)
 			This.Left = (UnScaleX(GetSystemMetrics(SM_CXSCREEN)) - This.Width) \ 2
 			This.Top  = (UnScaleY(GetSystemMetrics(SM_CYSCREEN)) - This.Height) \ 2
 		#endif
@@ -1397,8 +1413,7 @@ Namespace My.Sys.Forms
 
 	Private Sub Form.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 		With *Cast(Form Ptr, Sender.Graphic)
-			#ifdef __USE_GTK__
-			#else
+			#ifdef __USE_WINAPI__
 				SendMessage(.Handle, WM_SETICON, 1, CInt(.Icon.Handle))
 			#endif
 		End With
@@ -1412,7 +1427,7 @@ Namespace My.Sys.Forms
 			'gtk_window_set_policy(GTK_WINDOW(widget), true, false, false)
 			This.RegisterClass "Form", @This
 			If gtk_is_widget(layoutwidget) Then gtk_layout_put(GTK_LAYOUT(layoutwidget), ImageWidget, 0, 0)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			FMainStyle(0)  = 0
 			FMainStyle(1)  = WS_EX_APPWINDOW
 			FClassStyle(0) = CS_VREDRAW Or CS_HREDRAW Or CS_DBLCLKS
@@ -1455,13 +1470,13 @@ Namespace My.Sys.Forms
 		Icon.Changed = @IconChanged
 		With This
 			.Child             = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.ChildProc         = @WndProc
 			#endif
 			WLet(FClassName, "Form")
 			WLet(FClassAncestor, "")
 			.OnActiveControlChanged = @ActiveControlChanged
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.ExStyle           = WS_EX_CONTROLPARENT Or WS_EX_WINDOWEDGE 'FExStyle(FBorderStyle) OR FMainStyle(FMainForm)
 				.Style             = WS_CAPTION Or WS_SYSMENU Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX Or WS_THICKFRAME Or WS_DLGFRAME Or WS_BORDER 'FStyle(FBorderStyle) Or FChild(Abs_(FIsChild))
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
@@ -1486,7 +1501,7 @@ Namespace My.Sys.Forms
 '			If FHandle Then FreeWnd
 '		#endif
 		FMenuItems.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Accelerator Then DestroyAcceleratorTable(Accelerator)
 		#endif
 		'UnregisterClass ClassName, GetModuleHandle(NULL)

@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 				Case "helpcontext": Return @HelpContext
 					#ifdef __USE_GTK__
 					Case "parentwidget": Return FParentWidget
-					#else
+					#elseif defined(__USE_WINAPI__)
 					Case "parenthandle": Return @FParentHandle
 					#endif
 				Case "enabled": Return @FEnabled
@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 					Case "parent": This.Parent = Value
 						#ifdef __USE_GTK__
 						Case "parentwidget": This.ParentWidget = Value
-						#else
+						#elseif defined(__USE_WINAPI__)
 						Case "parenthandle": This.ParentHandle = *Cast(HWND Ptr, Value)
 						#endif
 					Case "tabstop": ChangeTabStop QBoolean(Value)
@@ -178,7 +178,7 @@ Namespace My.Sys.Forms
 				Else
 					gtk_drag_dest_unset(widget)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeExStyle WS_EX_ACCEPTFILES, Value
 				If Handle Then RecreateWnd
 			#endif
@@ -194,15 +194,17 @@ Namespace My.Sys.Forms
 			Private Function Control.Focused As Boolean
 				#ifdef __USE_GTK__
 					Return widget AndAlso gtk_widget_is_focus(widget)
-				#else
+				#elseif defined(__USE_WINAPI__)
 					Return GetFocus = FHandle
+				#else
+					Return False
 				#endif
 			End Function
 		#endif
 		
 		#ifndef GetTextLength_Off
 			Private Function Control.GetTextLength() As Integer
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If FHandle Then
 						Return Perform(WM_GETTEXTLENGTH, 0, 0)
 					Else
@@ -249,7 +251,7 @@ Namespace My.Sys.Forms
 							gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_NONE)
 						End If
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					ChangeExStyle WS_EX_CLIENTEDGE, Value
 				#endif
 			End Property
@@ -257,7 +259,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef Style_Off
 			Private Property Control.Style As Integer
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If Handle Then
 						FStyle = GetWindowLong(Handle, GWL_STYLE)
 					End If
@@ -267,7 +269,7 @@ Namespace My.Sys.Forms
 			
 			Private Property Control.Style(Value As Integer)
 				FStyle = Value
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If FHandle Then 
 						SetWindowLong(FHandle, GWL_STYLE, FStyle)
 						'SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
@@ -279,7 +281,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef ExStyle_Off
 			Private Property Control.ExStyle As Integer
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If Handle Then
 						FExStyle = GetWindowLong(Handle, GWL_EXSTYLE)
 					End If
@@ -297,7 +299,7 @@ Namespace My.Sys.Forms
 			Private Property Control.IsChild As Boolean
 				#ifdef __USE_GTK__
 					FIsChild = gtk_widget_get_parent(IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget))) <> 0
-				#else
+				#elseif defined(__USE_WINAPI__)
 					FIsChild = StyleExists(WS_CHILD)
 				#endif
 				Return FIsChild
@@ -317,7 +319,7 @@ Namespace My.Sys.Forms
 							gtk_widget_unparent(CtrlWidget)
 						End If
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					ChangeStyle WS_CHILD, Value
 					If Handle Then RecreateWnd
 				#endif
@@ -326,7 +328,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef ID_Off
 			Private Property Control.ID As Integer
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If Handle Then
 						FID = GetDlgCtrlID(Handle)
 					End If
@@ -341,8 +343,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef Text_Off
 			Private Property Control.Text ByRef As WString
-				#ifdef __USE_GTK__
-				#else
+				#ifdef __USE_WINAPI__
 					If FHandle Then
 						Dim As Integer L
 						L = Perform(WM_GETTEXTLENGTH, 0, 0)
@@ -365,7 +366,7 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If FHandle Then
 						'If Value = "" Then
 						'    SetWindowTextA FHandle, TempString
@@ -388,7 +389,7 @@ Namespace My.Sys.Forms
 					If FSHowHint Then
 						If widget Then gtk_widget_set_tooltip_text(widget, ToUTF8(Value))
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If FHandle Then
 						If ToolTipHandle Then
 							SendMessage(ToolTipHandle, TTM_GETTOOLINFO, 0, CInt(@FToolInfo))
@@ -464,7 +465,7 @@ Namespace My.Sys.Forms
 						FClientWidth = This.Width
 						'FClientWidth = minimum.width
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If FHandle Then
 						Dim As ..Rect R
 						GetClientRect Handle , @R
@@ -510,7 +511,7 @@ Namespace My.Sys.Forms
 						'FClientHeight = gtk_widget_get_allocated_height(widget) - 10
 						FClientHeight = This.Height
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If Handle Then
 						Dim As ..Rect R
 						GetClientRect Handle, @R
@@ -546,9 +547,9 @@ Namespace My.Sys.Forms
 							gtk_widget_set_tooltip_text(widget, "")
 						End If
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If Handle Then
-						If ToolTipHandle Then SendMessage(ToolTipHandle,TTM_ACTIVATE,FShowHint,0)
+						If ToolTipHandle Then SendMessage(ToolTipHandle, TTM_ACTIVATE, FShowHint, 0)
 					End If
 				#endif
 			End Property
@@ -664,7 +665,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End Property
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Private Property Control.ParentHandle As HWND
 				Return FParentHandle
 			End Property
@@ -676,13 +677,13 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.ChangeTabStop(Value As Boolean)
 			FTabStop = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle WS_TABSTOP, Value
 			#endif
 		End Sub
 		
 		Private Property Control.Grouped As Boolean
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				FGrouped = StyleExists(WS_GROUP)
 			#endif
 			Return FGrouped
@@ -690,13 +691,13 @@ Namespace My.Sys.Forms
 		
 		Private Property Control.Grouped(Value As Boolean)
 			FGrouped = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle WS_GROUP, Value
 			#endif
 		End Property
 		
 		Private Property Control.Enabled As Boolean
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle Then FEnabled = IsWindowEnabled(Handle)
 			#endif
 			Return FEnabled
@@ -706,13 +707,13 @@ Namespace My.Sys.Forms
 			FEnabled = Value
 			#ifdef __USE_GTK__
 				If Widget Then gtk_widget_set_sensitive(Widget, FEnabled)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then EnableWindow FHandle, FEnabled
 			#endif
 		End Property
 		
 		Private Property Control.Visible() As Boolean
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FHandle Then FVisible = IsWindowVisible(FHandle)
 			#endif
 			Return FVisible
@@ -727,7 +728,7 @@ Namespace My.Sys.Forms
 						gtk_widget_set_visible(widget, Value)
 						'gtk_widget_set_no_show_all(widget, Not Value)
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If FHandle = 0 And CInt(Value) Then
 						CreateWnd
 					End If
@@ -757,7 +758,7 @@ Namespace My.Sys.Forms
 			Dim As Long nTop    = ScaleY(FTop)
 			Dim As Long nWidth  = ScaleX(FWidth)
 			Dim As Long nHeight = ScaleY(FHeight)
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle Then Exit Sub
 				Dim As HWND HParent
 				Dim As Integer ControlID = 0
@@ -863,18 +864,24 @@ Namespace My.Sys.Forms
 					Instance,_
 					@This) ' '
 				#endif
+			#endif
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 				If Handle Then
-					If ClassName <> "IPAddress" Then
-						SetWindowLongPtr(Handle, GWLP_USERDATA, CInt(Child))
-					End If
-					SetProp(Handle, "MFFControl", @This)
-					If SubClass Then
-						PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
-					End If
+					#ifdef __USE_WINAPI__
+						If ClassName <> "IPAddress" Then
+							SetWindowLongPtr(Handle, GWLP_USERDATA, CInt(Child))
+						End If
+						SetProp(Handle, "MFFControl", @This)
+						If SubClass Then
+							PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
+						End If
+					#endif
 					BringToFront
 					This.Font.Parent = @This 'If This.Font Then
-					SendMessage FHandle, CM_CREATE, 0, 0
-					If ShowHint Then AllocateHint
+					#ifdef __USE_WINAPI__
+						SendMessage FHandle, CM_CREATE, 0, 0
+						If ShowHint Then AllocateHint
+					#endif
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
 						FAnchoredParentHeight = Cast(Control Ptr, FParent)->Height
@@ -893,8 +900,12 @@ Namespace My.Sys.Forms
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
 					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If OnCreate Then OnCreate(This)
-					If FVisible Then If ClassName = "Form" Then This.Show Else ShowWindow(FHandle, SW_SHOWNORMAL)
-					Update
+					#ifdef __USE_WINAPI__
+						If FVisible Then If ClassName = "Form" Then This.Show Else ShowWindow(FHandle, SW_SHOWNORMAL)
+						Update
+					#elseif defined(__USE_JNI__)
+						If FVisible Then This.Show
+					#endif
 				Else
 					'Print ClassName, GetErrorString(GetLastError, , True)
 				End If
@@ -926,7 +937,7 @@ Namespace My.Sys.Forms
 '				If gtk_is_widget(ScrolledWidget) Then
 '					gtk_widget_destroy(ScrolledWidget)
 '				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
 				If FHandle Then
 					'					For i As Integer = 0 To ControlCount - 1
@@ -1114,7 +1125,7 @@ Namespace My.Sys.Forms
 					If OnPaint Then OnPaint(This, Canvas)
 				Case GDK_EVENT_LAST
 				End Select
-			#else
+			#elseif defined(__USE_WINAPI__)
 				bShift = GetKeyState(VK_SHIFT) And 8000
 				bCtrl = GetKeyState(VK_CONTROL) And 8000
 				Select Case Message.Msg
@@ -1386,7 +1397,7 @@ Namespace My.Sys.Forms
 					
 				End Select
 				Message.Result = True
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Select Case Message.Msg
 				Case WM_NCHITTEST
 					If FDesignMode Then
@@ -1458,7 +1469,7 @@ Namespace My.Sys.Forms
 				End If
 				Return Message.Result
 			End Function
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Private Function Control.DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Dim Message As Message
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
@@ -1805,7 +1816,7 @@ Namespace My.Sys.Forms
 				End If
 				Return Result
 			End Function
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Private Function Control.RegisterClass(ByRef wClassName As WString, ByRef wClassAncestor As WString = "", WndProcAddr As Any Ptr = 0) As Integer
 				Dim As Integer Result
 				Dim As WNDCLASSEX Wc
@@ -2038,7 +2049,7 @@ Namespace My.Sys.Forms
 			'This.UpdateUnLock
 		End Sub
 		
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Private Sub Control.ClientToScreen(ByRef P As Point)
 				If Handle Then .ClientToScreen Handle, Cast(..Point Ptr, @P)
 			End Sub
@@ -2049,7 +2060,7 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Private Sub Control.Invalidate
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle Then InvalidateRect Handle, 0, True
 			#endif
 		End Sub
@@ -2057,7 +2068,7 @@ Namespace My.Sys.Forms
 		Private Sub Control.Repaint
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then
 					RedrawWindow Handle, 0, 0, RDW_INVALIDATE
 					Update
@@ -2068,19 +2079,19 @@ Namespace My.Sys.Forms
 		Private Sub Control.Update
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then UpdateWindow Handle
 			#endif
 		End Sub
 		
 		Private Sub Control.UpdateLock
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FHandle Then LockWindowUpdate FHandle
 			#endif
 		End Sub
 		
 		Private Sub Control.UpdateUnLock
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FHandle Then LockWindowUpdate 0
 			#endif
 		End Sub
@@ -2088,7 +2099,7 @@ Namespace My.Sys.Forms
 		Private Sub Control.SetFocus
 			#ifdef __USE_GTK__
 				If widget Then gtk_widget_grab_focus(widget)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then .SetFocus Handle
 			#endif
 		End Sub
@@ -2106,7 +2117,7 @@ Namespace My.Sys.Forms
 					gtk_container_remove(gtk_container(This.Parent->layoutwidget), CtrlWidget)
 					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then SetWindowPos Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE 'BringWindowToTop Handle
 			#endif
 		End Sub
@@ -2131,12 +2142,12 @@ Namespace My.Sys.Forms
 						End If
 					Next
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then SetWindowPos Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			#endif
 		End Sub
 		
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Private Sub Control.AllocateHint
 				If Handle Then
 					If ToolTipHandle Then DestroyWindow ToolTipHandle
@@ -2203,7 +2214,7 @@ Namespace My.Sys.Forms
 					Ctrl->FAnchoredTop = Ctrl->FTop
 					Ctrl->FAnchoredRight = Ctrl->FAnchoredParentWidth - Ctrl->FWidth - Ctrl->FLeft
 					Ctrl->FAnchoredBottom = Ctrl->FAnchoredParentHeight - Ctrl->FHeight - Ctrl->FTop
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If Ctrl->Handle Then
 						If Handle Then
 							SetParent Ctrl->Handle, Handle

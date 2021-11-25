@@ -32,6 +32,8 @@
 	#define FHandle Widget
 #elseif defined(__USE_JNI__)
 	#include once "jni.bi"
+	#define max(a, b) IIf((a) > (b), (a), (b))
+	#define min(a, b) IIf((a) < (b), (a), (b))
 #else
 	#include once "win/wincrypt.bi"
 	#include once "Win/CommCtrl.bi"

@@ -95,7 +95,7 @@ Namespace My.Sys.Drawing
 	Private Function GraphicType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			FResName = Str(ResID)
 			If FindResource(ModuleHandle, FResName, RT_BITMAP) Then
 				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
@@ -110,6 +110,8 @@ Namespace My.Sys.Drawing
 			Else
 				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 			End If
+		#else
+			Return False
 		#endif
 	End Function
 	
@@ -117,7 +119,7 @@ Namespace My.Sys.Drawing
 		FResName = ResName
 		#ifdef __USE_GTK__
 			Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FindResource(ModuleHandle, ResName, RT_BITMAP) Then
 				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
 			ElseIf FindResource(ModuleHandle, ResName, "PNG") Then
@@ -131,6 +133,8 @@ Namespace My.Sys.Drawing
 			Else
 				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
 			End If
+		#else
+			Return False
 		#endif
 	End Function
 		

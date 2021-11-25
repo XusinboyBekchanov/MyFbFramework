@@ -61,7 +61,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Sub Brush.Create
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LOGBRUSH LB
 			LB.lbColor = FColor
 			LB.lbHatch = FHatchStyle
@@ -92,7 +92,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Brush
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then DeleteObject Handle
 		#endif
 	End Destructor

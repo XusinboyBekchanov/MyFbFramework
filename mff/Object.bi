@@ -28,7 +28,7 @@ Namespace My.Sys
 		#ifdef __USE_GTK__
 			Accelerator     As GtkAccelGroup Ptr
 			layoutwidget	As GtkWidget Ptr
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Accelerator        As HACCEL
 		#endif
 		Designer As Object Ptr
@@ -40,6 +40,9 @@ Namespace My.Sys
 			FDeactivated As Boolean
 		#endif
 	Public:
+		#if defined(__USE_JNI__)
+			layoutview      As jobject
+		#endif
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function ClassName ByRef As WString
 		' Function to get any typename in the inheritance up hierarchy

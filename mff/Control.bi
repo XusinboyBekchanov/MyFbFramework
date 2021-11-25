@@ -16,7 +16,7 @@
 #include once "Graphics.bi"
 #include once "Canvas.bi"
 #include once "IntegerList.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "win/commctrl.bi"
 	#include once "win/shellapi.bi"
 #endif
@@ -107,7 +107,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FParentWidget As GtkWidget Ptr
 				FClient As GtkWidget Ptr
-			#else
+			#elseif defined(__USE_WINAPI__)
 				FParentHandle As HWND
 				FClient As HWND
 			#endif
@@ -119,7 +119,7 @@ Namespace My.Sys.Forms
 				Declare Static Function Control_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 				Declare Static Sub DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, Data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
 				Declare Static Function ConfigureEventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			#else
+			#elseif defined(__USE_WINAPI__)
 				FToolInfo          As TOOLINFO
 			#endif
 			FBorderStyle       As Integer
@@ -194,7 +194,7 @@ Namespace My.Sys.Forms
 				Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Declare Static Function EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Declare Static Function EventAfterProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Declare Static Function RegisterClass(ByRef wClassName As WString, ByRef wClassAncestor As WString = "", WndProcAddr As Any Ptr = 0) As Integer
 				Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Static Function DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
@@ -206,7 +206,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Declare Property ParentWidget As GtkWidget Ptr
 				Declare Property ParentWidget(Value As GtkWidget Ptr)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Declare Property ParentHandle As HWND
 				Declare Property ParentHandle(Value As HWND)
 				ToolTipHandle       As HWND
@@ -306,7 +306,7 @@ Namespace My.Sys.Forms
 			Declare Sub RecreateWnd
 			'Destroys the specified window handle (Windows, Linux).
 			Declare Sub FreeWnd
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				'Converts the client-area coordinates of a specified point to screen coordinates (Windows only).
 				Declare Sub ClientToScreen(ByRef P As Point)
 				'Converts the screen coordinates of a specified point on the screen to client coordinates (Windows only).

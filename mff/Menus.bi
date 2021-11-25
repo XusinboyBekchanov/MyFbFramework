@@ -15,7 +15,7 @@
 
 #include once "Component.bi"
 #include once "ImageList.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "win/uxtheme.bi"
 #endif
 
@@ -52,7 +52,7 @@ Namespace My.Sys.Forms
 	Private Type MenuItem Extends My.Sys.Object
 	Private:
 		Declare Static Sub BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FInfo	    	As MENUITEMINFO
 		#endif
 		FCount		    	As Integer
@@ -73,7 +73,7 @@ Namespace My.Sys.Forms
 		FImageKey		    As WString Ptr
 		FOwnerDraw		    As Integer
 	Protected:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FHandle		    As HMENU
 			'FMenu  		As HMENU
 		#endif
@@ -85,14 +85,14 @@ Namespace My.Sys.Forms
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Tag As Any Ptr
 		SubMenu As PPopUpMenu
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'declare property Menu as HMENU
 			'declare property Menu(value as HMENU)
 			Declare Property Handle As HMENU
 			Declare Property Handle(value As HMENU)
 			Declare Sub SetInfo(ByRef value As MENUITEMINFO)
 			Declare Sub SetItemInfo(ByRef value As MENUITEMINFO)
-		#else
+		#elseif defined(__USE_GTK__)
 			accelerator_key As guint
 			accelerator_mods As GdkModifierType
 			Box				As GtkWidget Ptr
@@ -161,7 +161,7 @@ Namespace My.Sys.Forms
 		FCount   As Integer
 		FItems   As PMenuItem Ptr
 	Protected:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FInfo    As MENUINFO
 			FHandle  As HMENU
 		#endif
@@ -182,7 +182,7 @@ Namespace My.Sys.Forms
 		Declare Property DisplayIcons(value As Boolean)
 		Declare Property ParentWindow As Component Ptr
 		Declare Property ParentWindow(value As Component Ptr)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Property Handle As HMENU
 			Declare Property Handle(value As HMENU)
 		#endif

@@ -21,7 +21,7 @@ Private Function ColorToRGB(FColor As Integer) As Integer
 	If FColor < 0 Then
 		#ifdef __USE_GTK__
 			Return FColor
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Return GetSysColor(FColor And &H000000FF)
 		#endif
 	Else

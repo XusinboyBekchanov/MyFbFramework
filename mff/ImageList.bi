@@ -19,22 +19,7 @@
 Using My.Sys.ComponentModel
 
 Namespace My.Sys.Forms
-	#ifdef __USE_GTK__
-		Private Enum DrawingStyles
-			dsFocus
-			dsNormal
-			dsSelected
-			dsTransparent
-			dsBlend
-			dsBlend25
-			dsBlend50
-		End Enum
-		
-		Private Enum ImageTypes
-			itImage = 0
-			itMask
-		End Enum
-	#else
+	#ifdef __USE_WINAPI__
 		Private Enum DrawingStyles
 			dsFocus       = ILD_FOCUS
 			dsNormal      = ILD_NORMAL
@@ -48,6 +33,21 @@ Namespace My.Sys.Forms
 		Private Enum ImageTypes
 			itImage = 0
 			itMask  = ILD_MASK
+		End Enum
+	#else
+		Private Enum DrawingStyles
+			dsFocus
+			dsNormal
+			dsSelected
+			dsTransparent
+			dsBlend
+			dsBlend25
+			dsBlend50
+		End Enum
+		
+		Private Enum ImageTypes
+			itImage = 0
+			itMask
 		End Enum
 	#endif
 	
@@ -71,7 +71,9 @@ Namespace My.Sys.Forms
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#ifdef __USE_GTK__
 			Handle      As GtkIconTheme Ptr
-		#else
+		#elseif defined(__USE_JNI__)
+			Handle      As jobject
+		#elseif defined(__USE_WINAPI__)
 			Handle      As HIMAGELIST
 		#endif
 		InitialCount    As Integer

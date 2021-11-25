@@ -76,7 +76,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Function Cursor.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			If Handle Then DestroyCursor(Handle)
@@ -100,7 +100,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Function Cursor.LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
@@ -121,7 +121,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Function Cursor.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
@@ -173,13 +173,18 @@ Namespace My.Sys.Drawing
 		Return *FResName
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function Cursor.ToBitmap() As hBitmap
 			Dim As BitmapType bmpType
 			bmpType = Handle
 			Return bmpType.Handle
 		End Function
 	#endif
+	
+	Private Operator Cursor.Let(Value As Integer)
+		'LoadFromResourceID(Value)
+		'This.ResName = WStr(Value)
+	End Operator
 	
 	#ifdef __USE_GTK__
 		Private Operator Cursor.Let(Value As GdkCursorType)
@@ -189,7 +194,7 @@ Namespace My.Sys.Drawing
 			End If
 		End Operator
 		
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Private Operator Cursor.Let(Value As HCURSOR)
 			If Handle Then DestroyCursor(Handle)
 			Handle = Value
@@ -197,7 +202,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Operator Cursor.Let(Value As Cursor)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then DestroyCursor(Handle)
 		#endif
 		Handle = Value.Handle
@@ -212,7 +217,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Cursor
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle <> 0 Then 
 				DestroyCursor Handle
 			End If

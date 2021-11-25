@@ -74,7 +74,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property CommandButton.Default As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				FDefault = (Style And BS_DEFPUSHBUTTON)
 			End If
@@ -87,7 +87,7 @@ Namespace My.Sys.Forms
 			FDefault = Value
 			#ifdef __USE_GTK__
 				gtk_widget_set_can_default(Widget, Value)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeStyle BS_PUSHLIKE, False
 				ChangeStyle BS_DEFPUSHBUTTON, True
 			#endif
@@ -101,7 +101,7 @@ Namespace My.Sys.Forms
 	Private Property CommandButton.Style(Value As ButtonStyle)
 		If Value <> FStyle Then
 			FStyle = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or ADefault(Abs_(FDefault))
 			#endif
 		End If
@@ -110,7 +110,7 @@ Namespace My.Sys.Forms
 	Private Sub CommandButton.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					Select Case ImageType
 					Case IMAGE_BITMAP
 						'QCommandButton(.Ctrl->Child).Style = bsBitmap
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub CommandButton.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCommandButton(Sender.Child)
@@ -154,7 +154,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub CommandButton.ProcessMessage(ByRef msg As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case msg.Msg
 				'        Case BM_CLICK
 				'            If OnClick Then OnClick(This)
@@ -196,11 +196,31 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	Private Sub CommandButton.CreateWnd
+		#ifdef __USE_JNI__
+			If pApp = 0 OrElse pApp->env = 0 OrElse pApp->Instance = 0 Then Exit Sub
+			Dim env As JNIEnv Ptr = pApp->env
+			If FHandle <> 0 Then Exit Sub
+			Dim As jclass class_button = (*env)->FindClass(env, "android/widget/Button")
+			Dim As jmethodID eventConstructor = (*env)->GetMethodID(env, class_button, "<init>", "(Landroid/content/Context;)V")
+			FHandle = (*env)->NewObject(env, class_button, eventConstructor, pApp->Instance)
+			Dim As jmethodID setTextMethod = (*env)->GetMethodID(env, class_button, "setText", "(Ljava/lang/CharSequence;)V")
+			Dim As ZString * 100 ButtonText = ToUTF8(FText)
+			(*env)->CallVoidMethod(env, FHandle, setTextMethod, (*env)->NewStringUTF(env, @ButtonText))
+			If This.Parent AndAlso This.Parent->layoutview Then
+				Dim As jclass class_viewgroup = (*env)->FindClass(env, "android/view/ViewGroup")
+				Dim As jmethodID addviewMethod = (*env)->GetMethodID(env, class_viewgroup, "addView", "(Landroid/view/View;)V")
+				(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle)
+			End If
+		#endif
+		Base.CreateWnd
+	End Sub
+	
 	Private Constructor CommandButton
 		#ifdef __USE_GTK__
 			widget = gtk_button_new_with_label("")
 			g_signal_connect(widget, "clicked", G_CALLBACK(@Clicked), @This)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			AStyle(0)        = BS_TEXT
 			AStyle(1)        = BS_BITMAP
 			AStyle(2)        = BS_ICON
@@ -214,17 +234,17 @@ Namespace My.Sys.Forms
 		FTabStop = True
 		With This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "CommandButton", "Button"
 				.ChildProc   = @WndProc
 				'.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
-			#else
+			#elseif defined(__USE_GTK__)
 				.RegisterClass "CommandButton", @This
 			#endif
 			WLet(FClassName, "CommandButton")
 			WLet(FClassAncestor, "Button")
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.ExStyle     = 0
 				Base.Style       = WS_CHILD Or WS_TABSTOP Or AStyle(Abs_(FStyle)) Or ADefault(Abs_(FDefault))
 			#endif

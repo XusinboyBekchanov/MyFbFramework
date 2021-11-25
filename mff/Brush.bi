@@ -13,23 +13,7 @@
 #include once "Object.bi"
 
 Namespace My.Sys.Drawing
-	#ifdef __USE_GTK__
-		Private Enum BrushStyle
-			bsSolid
-			bsClear
-			bsHatch
-			bsPattern
-		End Enum
-		
-		Private Enum HatchStyle
-			hsHorizontal
-			hsVertical
-			hsFDiagonal
-			hsDiagonal
-			hsCross
-			hsDiagCross
-		End Enum
-	#else
+	#ifdef __USE_WINAPI__
 		Private Enum BrushStyle
 			bsSolid   = BS_SOLID
 			bsClear   = BS_NULL
@@ -45,6 +29,22 @@ Namespace My.Sys.Drawing
 			hsCross      = HS_CROSS
 			hsDiagCross  = HS_DIAGCROSS
 		End Enum
+	#else
+		Private Enum BrushStyle
+			bsSolid
+			bsClear
+			bsHatch
+			bsPattern
+		End Enum
+		
+		Private Enum HatchStyle
+			hsHorizontal
+			hsVertical
+			hsFDiagonal
+			hsDiagonal
+			hsCross
+			hsDiagCross
+		End Enum
 	#endif
 	
 	Private Type Brush Extends My.Sys.Object
@@ -54,7 +54,7 @@ Namespace My.Sys.Drawing
 		FHatchStyle  As HatchStyle
 		Declare Sub Create
 	Public:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Handle       As HBRUSH
 		#endif
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr

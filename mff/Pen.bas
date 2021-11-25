@@ -72,7 +72,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Sub Pen.Create
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then DeleteObject Handle
 			Handle = CreatePen(FStyle,FSize,FColor)
 		#endif
@@ -92,7 +92,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Pen
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then DeleteObject Handle
 		#endif
 	End Destructor

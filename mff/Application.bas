@@ -54,7 +54,7 @@ Namespace My
 	Private Property Application.Icon(value As My.Sys.Drawing.Icon)
 		Dim As Integer i
 		FIcon = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FIcon.Handle Then
 				For i = 0 To FormCount -1
 					SendMessage Forms[i]->Handle,WM_SETICON,ICON_BIG,CInt(FIcon.Handle)
@@ -71,7 +71,7 @@ Namespace My
 					If MainForm Then
 						WLet(FTitle, MainForm->Text)
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					For i As Integer = 0 To FormCount -1
 						If (GetWindowLong(Forms[i]->Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
 							WLet(FTitle, Forms[i]->Text)
@@ -132,7 +132,7 @@ Namespace My
 	
 	Private Property Application.ActiveForm(Value As My.Sys.Forms.Control Ptr)
 		FActiveForm = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Value Then SetForegroundWindow(Value->Handle)
 		#endif
 	End Property
@@ -239,13 +239,13 @@ Namespace My
 '	End Property
 	
 	Private Sub Application.HelpCommand(CommandID As Integer,FData As Long)
-		#ifndef __USE_GTK__
-			If MainForm Then WinHelp(MainForm->Handle,HelpFile,CommandID,FData)
+		#ifdef __USE_WINAPI__
+			If MainForm Then WinHelp(MainForm->Handle, HelpFile, CommandID, FData)
 		#endif
 	End Sub
 	
 	Private Sub Application.HelpContext(ContextID As Long)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If MainForm Then WinHelp(MainForm->Handle,HelpFile,HELP_CONTEXT,ContextID)
 		#endif
 	End Sub
@@ -254,7 +254,7 @@ Namespace My
 		Dim StrFmt As String
 		StrFmt = "JumpID(" + Chr(34) + Chr(34) + ","+ Chr(34) + TopicID + Chr(34) + ")"+ Chr(0)
 		If MainForm Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If WinHelp(MainForm->Handle,HelpFile,HELP_COMMAND,CInt(StrPtr(StrFmt))) = 0 Then
 					WinHelp(MainForm->Handle,HelpFile,HELP_CONTENTS,NULL)
 				End If
@@ -267,7 +267,7 @@ Namespace My
 			'gdk_threads_enter()
 			gtk_main()
 			'gdk_threads_leave()
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As MSG msg
 			If FormCount = 0 Then
 				End 10
@@ -327,7 +327,7 @@ Namespace My
 	End Sub
 	
 	Private Sub Application.Terminate
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			PostQuitMessage(0)
 		#endif
 		End 1
@@ -338,7 +338,7 @@ Namespace My
 			While gtk_events_pending()
 				gtk_main_iteration
 			Wend
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As MSG M
 			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
 				If GetMessage(@M, NULL, 0, 0) <> WM_QUIT Then
@@ -359,7 +359,7 @@ Namespace My
 		Return -1
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function Application.FindControl(ControlHandle As HWND) As My.Sys.Forms.Control Ptr
 			Dim As Integer i
 			If Controls Then
@@ -391,7 +391,7 @@ Namespace My
 		Return -1
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function Application.EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
 			Dim As My.Sys.Forms.Control Ptr AControl
 			Dim As Application Ptr Appl
@@ -413,7 +413,7 @@ Namespace My
 	Private Sub Application.GetForms
 		'FForms = 0 'CAllocate_(0)
 		FFormCount = 0
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			EnumThreadWindows GetCurrentThreadID, Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@This)
 		#endif
 	End Sub
@@ -437,7 +437,7 @@ Namespace My
 		Next i
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function Application.EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
 			*Cast(WStringList Ptr, hData).Add(LogFont->lfFaceName)
 			Return True
@@ -445,7 +445,7 @@ Namespace My
 	#endif
 	
 	Private Sub Application.GetFonts
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim DC    As HDC
 			Dim LFont As LOGFONTA
 			DC = GetDC(HWND_DESKTOP)
@@ -455,7 +455,7 @@ Namespace My
 		'       EnumFontFamilies(DC,NULL,@EnumFontsProc,Cint(@Fonts)) 'OR
 		'EnumFontFamiliesEx(DC,@LFont,@EnumFontsProc,CInt(@s), 0)
 		'EnumFonts(DC,NULL,@EnumFontsProc,CInt(NULL))
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ReleaseDC(HWND_DESKTOP,DC)
 		#endif
 	End Sub
@@ -469,7 +469,7 @@ Namespace My
 		If TranslationString = "" Then Return ""
 		Dim As WString Ptr value = 0
 		Dim As String FullInfoName = $"\StringFileInfo\" & TranslationString & "\" & InfoName
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If VerQueryValue(_vinfo, FullInfoName, @value, @iret) Then
 				''~ value = cast( zstring ptr, vqinfo )
 			End If
@@ -481,7 +481,7 @@ Namespace My
 		If pApp = 0 Then pApp = @This
 		#ifdef __USE_GTK__
 			'g_thread_init(NULL)
-			#ifndef __FB_WIN32__
+			#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
 				gdk_threads_init()
 			#endif
 			
@@ -499,6 +499,8 @@ Namespace My
 			'	End If
 			'	l = l->Next
 			'Wend
+		#elseif defined(__USE_JNI__)
+			
 		#else
 			Const ICC_ALL =  _
 			ICC_ANIMATE_CLASS      Or _
@@ -527,13 +529,13 @@ Namespace My
 			Instance = GetModuleHandle(NULL)
 		#endif
 		GetFonts
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As DWORD ret, discard
 		#endif
 		This.initialized = False
 		This._vinfo = 0
 		ExeName
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ret = GetFileVersionInfoSize(FFileName, @discard)
 			If ret <> 0 Then
 				This._vinfo = Allocate_(ret)
@@ -573,7 +575,7 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 	'        If GetActiveWindow = App.Forms[i]->Handle Then ActiveForm = App.Forms[i]
 	'        If App.Forms[i]->Handle Then App.Forms[i]->Enabled = False
 	'    Next i
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Dim As HWND Wnd
 	#endif
 	'    If ActiveForm Then
@@ -631,7 +633,7 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 		Case GTK_RESPONSE_YES: Result = mrYes
 		End Select
 		gtk_widget_destroy (dialog)
-	#else
+	#elseif defined(__USE_WINAPI__)
 '		Wnd = GetActiveWindow()
 '		If App.MainForm <> 0 Then
 '			Wnd = App.MainForm->Handle

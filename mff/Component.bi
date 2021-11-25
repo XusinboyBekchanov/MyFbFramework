@@ -38,6 +38,8 @@ Namespace My.Sys.ComponentModel
 			scrolledwidget	As GtkWidget Ptr
 			eventboxwidget  As GtkWidget Ptr
 			overlaywidget   As GtkWidget Ptr
+		#elseif defined(__USE_JNI__)
+			FHandle         As jobject
 		#else
 			FHandle         As HWND
 		#endif
@@ -53,6 +55,10 @@ Namespace My.Sys.ComponentModel
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As GtkWidget Ptr
 			Declare Property Handle(Value As GtkWidget Ptr)
+		#elseif defined(__USE_JNI__)
+			'Gets the window handle that the control is bound to.
+			Declare Property Handle As jobject
+			Declare Property Handle(Value As jobject)
 		#else
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As HWND
@@ -101,7 +107,7 @@ Private Type Message
 		widget As GtkWidget Ptr
 		Event As GdkEvent Ptr
 		Result   As Boolean
-	#else
+	#elseif defined(__USE_WINAPI__)
 		hWnd     As HWND
 		Msg      As UINT
 		wParam   As WPARAM
@@ -177,6 +183,8 @@ Private Enum Keys
 		F10 = GDK_KEY_F10
 		F11 = GDK_KEY_F11
 		F12 = GDK_KEY_F12
+	#elseif defined(__USE_JNI__)
+		Esc = 0
 	#else
 		Esc = VK_ESCAPE
 		Left = VK_LEFT

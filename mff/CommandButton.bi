@@ -56,9 +56,11 @@ Namespace My.Sys.Forms
 		Declare Property Style As ButtonStyle
 		Declare Property Style(Value As ButtonStyle)
 		Declare Operator Cast As Control Ptr
+		'Creates the window (Windows, Android)
+		Declare Virtual Sub CreateWnd
 		Declare Constructor
 		Declare Destructor
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			OnDraw  As Sub(ByRef Sender As CommandButton, ByRef R As Rect, DC As HDC = 0)
 		#endif
 	End Type

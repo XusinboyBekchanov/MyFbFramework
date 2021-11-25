@@ -66,7 +66,7 @@ Namespace My.Sys.Drawing
 	Private Property Icon.Height(Value As Integer)
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function Icon.ToBitmap() As hBitmap
 			Dim As HWND desktop = GetDesktopWindow()
 			If (desktop = NULL) Then
@@ -126,7 +126,7 @@ Namespace My.Sys.Drawing
 				Handle = gdk_pixbuf_new_from_file_at_size(ToUTF8(File), cx, cy, @gerr)
 			End If
 			If Handle = 0 Then Return False
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			If Handle Then DestroyIcon(Handle)
@@ -158,7 +158,7 @@ Namespace My.Sys.Drawing
 				Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
 			End If
 			If gerr Then Print gerr->code, *gerr->message
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			This.ResName = ResourceName
@@ -178,7 +178,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Function Icon.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As ICONINFO ICIF
 			Dim As BITMAP BMP
 			This.ResName = WStr(ResID)
@@ -222,21 +222,23 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Operator Icon.Let(Value As Icon)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then DestroyIcon(Handle)
 		#endif
 		Handle = Value.Handle
 	End Operator
 	
-	#ifdef __USE_GTK__
-		Private Operator Icon.Let(Value As GdkPixBuf Ptr)
-			If Handle Then g_object_unref(Handle)
-	#else
-		Private Operator Icon.Let(Value As HICON)
-			If Handle Then DestroyIcon(Handle)
+	#ifndef __USE_JNI__
+		#ifdef __USE_GTK__
+			Private Operator Icon.Let(Value As GdkPixBuf Ptr)
+				If Handle Then g_object_unref(Handle)
+		#elseif defined(__USE_WINAPI__)
+			Private Operator Icon.Let(Value As HICON)
+				If Handle Then DestroyIcon(Handle)
+		#endif
+			Handle = Value
+		End Operator
 	#endif
-		Handle = Value
-	End Operator
 	
 	Private Constructor Icon
 		WLet(FClassName, "Icon")
@@ -246,7 +248,7 @@ Namespace My.Sys.Drawing
 		WDeallocate FResName
 		#ifdef __USE_GTK__
 			If Handle Then g_object_unref(Handle)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then DestroyIcon Handle
 		#endif
 	End Destructor

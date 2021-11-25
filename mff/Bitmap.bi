@@ -13,7 +13,7 @@
 
 #include once "Object.bi"
 #include once "Graphics.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#ifdef __FB_64BIT__
 		#inclib "gdiplus"
 		#include once "win/gdiplus-c.bi"
@@ -22,7 +22,7 @@
 		#include once "win/gdiplus.bi"
 		Using gdiplus
 	#endif
-#else
+#elseif defined(__USE_GTK__)
 	#include once "gtk/gtk.bi"
 	#ifdef __USE_GTK3__
 		#include once "glib-object.bi"
@@ -36,7 +36,7 @@ Namespace My.Sys.Drawing
 	Private:
 		FWidth       As ULong
 		FHeight      As ULong
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FDevice      As HDC
 			Declare Function LoadFromHICON(IcoHandle As HICON) As Boolean
 		#endif
@@ -50,7 +50,9 @@ Namespace My.Sys.Drawing
 		Graphic      As Any Ptr
 		#ifdef __USE_GTK__
 			Handle 		As GdkPixBuf Ptr
-		#else
+		#elseif defined(__USE_JNI__)
+			Handle       As jobject
+		#elseif defined(__USE_WINAPI__)
 			Handle       As HBITMAP
 		#endif
 		Brush        As My.Sys.Drawing.Brush
@@ -73,7 +75,7 @@ Namespace My.Sys.Drawing
 		Declare Operator Let(ByRef Value As WString)
 		#ifdef __USE_GTK__
 			Declare Operator Let(Value As GdkPixBuf Ptr)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Operator Let(Value As HBITMAP)
 			Declare Operator Let(Value As HICON)
 		#endif

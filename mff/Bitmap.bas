@@ -18,7 +18,7 @@ Namespace My.Sys.Drawing
 		Select Case LCase(PropertyName)
 			#ifdef __USE_GTK__
 			Case "handle": Return Handle
-			#else
+			#elseif defined(__USE_WINAPI__)
 			Case "handle": Return @Handle
 			#endif
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -75,7 +75,7 @@ Namespace My.Sys.Drawing
 				Handle = gdk_pixbuf_new_from_file_at_size(ToUTF8(File), cxDesired, cyDesired, @gerr)
 			End If
 			If Handle = 0 Then Return False
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Integer Pos1 = InStrRev(File, ".")
 			Select Case LCase(Mid(File, Pos1 + 1))
 			Case "bmp"
@@ -115,7 +115,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Function BitmapType.SaveToFile(ByRef File As WString) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Type RGB3 Field = 1
 				G As Byte
 				B As Byte
@@ -174,7 +174,7 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function BitmapType.LoadFromHICON(IcoHandle As HICON) As Boolean
 			' Initialize Gdiplus
 			Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
@@ -298,7 +298,7 @@ Namespace My.Sys.Drawing
 				Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
 			End If
 			If gerr Then Print gerr->code, *gerr->message
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			Dim As BITMAP BMP
 			If FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
@@ -369,7 +369,7 @@ Namespace My.Sys.Drawing
 	Private Function BitmapType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
 			Return False
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
@@ -383,7 +383,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Sub BitmapType.Create
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim rc As ..Rect
 			Dim As HDC Dc
 			If Handle Then DeleteObject Handle
@@ -402,7 +402,7 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub BitmapType.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim rc As ..RECT
 			rc.Left = 0
 			rc.Top = 0
@@ -414,7 +414,7 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub BitmapType.Free
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then DeleteObject Handle
 			Handle = 0
 		#endif
@@ -440,7 +440,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Operator
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Operator BitmapType.Let(Value As HBITMAP)
 			Handle = Value
 		End Operator
@@ -458,7 +458,7 @@ Namespace My.Sys.Drawing
 	
 	Private Constructor BitmapType
 		WLet(FClassName, "BitmapType")
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FLoadFlag(0) = 0
 			FLoadFlag(1) = LR_LOADTRANSPARENT
 		#endif
@@ -473,7 +473,7 @@ Namespace My.Sys.Drawing
 		Free
 		#ifdef __USE_GTK__
 			If Handle Then g_object_unref(Handle)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FDevice Then DeleteObject FDevice
 			If Handle Then DeleteObject Handle
 		#endif

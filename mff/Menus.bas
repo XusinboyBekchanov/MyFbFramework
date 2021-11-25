@@ -47,7 +47,7 @@ Namespace My.Sys.Forms
 		Case "tag": Return Tag
 		#ifdef __USE_GTK__
 			Case "widget": Return @widget
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Case "handle": Return @FHandle
 		#endif
 		Case "visible": Return @FVisible
@@ -92,7 +92,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub TraverseItems(Item As MenuItem)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As MenuItemInfo mii
 			mii.cbsize = SizeOf(mii)
 			mii.fMask  = MIIM_TYPE
@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	/' MenuItem '/
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub MenuItem.SetInfo(ByRef value As MENUITEMINFO)
 			If *FCaption = "" Then
 				*FCaption = Chr(0)
@@ -439,7 +439,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MenuItem.Image(value As My.Sys.Drawing.BitmapType)
 		FImage = value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim mii As MENUITEMINFOW
 			mii.cbSize = SizeOf(mii)
 			mii.fMask = MIIM_BITMAP
@@ -451,7 +451,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MenuItem.Image(ByRef value As WString)
 		FImage = value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim mii As MENUITEMINFOW
 			mii.cbSize = SizeOf(mii)
 			mii.fMask = MIIM_BITMAP
@@ -468,7 +468,7 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.ImageIndex(value As Integer)
 		FImageIndex = value
 		If value <> -1 AndAlso owner AndAlso owner->imageslist Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				FImage.Handle = owner->imageslist->GetIcon(value).ToBitmap
 				
 				Dim mii As MENUITEMINFOW
@@ -529,7 +529,7 @@ Namespace My.Sys.Forms
 		FCommand = value
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Property MenuItem.Handle As HMENU
 			Return FHandle
 		End Property
@@ -619,7 +619,7 @@ Namespace My.Sys.Forms
 					gtk_label_set_text_with_mnemonic(gtk_label(label), ToUTF8(*FText))
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			FInfo.cbSize      = SizeOf(FInfo)
 			FInfo.fMask       = MIIM_STRING Or MIIM_FTYPE
 			FInfo.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
@@ -654,7 +654,7 @@ Namespace My.Sys.Forms
 				FMenuItemChecked = True
 				gtk_check_menu_item_set_active(gtk_check_menu_item(widget), value)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Integer FCheck(-1 To 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
 			If Parent AndAlso Parent->Handle Then
 				If Handle Then
@@ -687,7 +687,7 @@ Namespace My.Sys.Forms
 					gtk_check_menu_item_set_draw_as_radio(gtk_check_menu_item(widget), True)
 					gtk_check_menu_item_set_active(gtk_check_menu_item(widget), value)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				CheckMenuRadioItem(Parent->Handle, First, Last, MenuIndex, MF_BYPOSITION)
 			#endif
 		End If
@@ -701,7 +701,7 @@ Namespace My.Sys.Forms
 		FEnabled = value
 		#ifdef __USE_GTK__
 			gtk_widget_set_sensitive(widget, FEnabled)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Integer FEnable(0 To 1) => {MF_DISABLED Or MF_GRAYED, MF_ENABLED}
 			If Parent Then
 				EnableMenuItem(Parent->Handle, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
@@ -723,7 +723,7 @@ Namespace My.Sys.Forms
 		FVisible = value
 		#ifdef __USE_GTK__
 			gtk_widget_set_visible(widget, FVisible)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FVisible = False Then
 				If Parent Then
 					RemoveMenu(Parent->Handle, MenuIndex, MF_BYPOSITION)
@@ -798,7 +798,7 @@ Namespace My.Sys.Forms
 					gtk_widget_show(value->label)
 				End If
 				gtk_widget_show(value->widget)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If SubMenu = 0 Then
 					SubMenu = New_( PopUpMenu)
 					SubMenu->ParentMenuItem = @This
@@ -889,7 +889,7 @@ Namespace My.Sys.Forms
 				'				#EndIf
 				AllocateCommand(value)
 				If FCount > 0 Then
-					#ifndef __USE_GTK__
+					#ifdef __USE_WINAPI__
 						If Handle = 0 Then
 							Handle = CreatePopupMenu
 							Dim As menuinfo mif
@@ -904,7 +904,7 @@ Namespace My.Sys.Forms
 						End If
 					#endif
 				End If
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					value->SetInfo(FInfo)
 					InsertMenuItem(Handle,Index,True,@FInfo)
 				#endif
@@ -937,7 +937,7 @@ Namespace My.Sys.Forms
 				If widget Then
 					'gtk_container_remove(gtk_container(widget), value->widget)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then
 					RemoveMenu(Handle, Index, MF_BYPOSITION)
 				End If
@@ -948,7 +948,7 @@ Namespace My.Sys.Forms
 	Private Sub MenuItem.Clear
 		For i As Integer = Count - 1 To 0 Step -1
 			If FItems[i]->FDynamic Then Delete_(FItems[i])
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle Then
 					RemoveMenu(Handle, i, MF_BYPOSITION)
 				End If
@@ -1081,7 +1081,7 @@ Namespace My.Sys.Forms
 		WDeallocate FImageKey
 		#ifdef __USE_GTK__
 			If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				DestroyMenu(FHandle)
 				FHandle = 0
@@ -1120,7 +1120,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Property Menu.Handle As HMENU
 			Return FHandle
 		End Property
@@ -1144,7 +1144,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Menu.Style(value As Integer)
 		FStyle = value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				If value Then
 					For i As Integer = 0 To FCount-1
@@ -1172,7 +1172,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Menu.Color As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If handle Then
 				Dim As menuinfo mif
 				mif.cbSize = SizeOf(mif)
@@ -1190,7 +1190,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Menu.Color(value As Integer)
 		FColor = value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Dim As menuinfo mif
 				mif.cbSize = SizeOf(mif)
@@ -1260,7 +1260,7 @@ Namespace My.Sys.Forms
 			FParentMenuItem->Add value, Index
 			Exit Sub
 		End If
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As MenuItemInfo FInfo
 		#endif
 		If IndexOf(value) = -1 Then
@@ -1295,7 +1295,7 @@ Namespace My.Sys.Forms
 					EndIf
 					'gtk_widget_show_all(widget)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				value->SetInfo(FInfo)
 				InsertMenuItem(Handle, Index, True, @FInfo)
 			#endif
@@ -1305,7 +1305,7 @@ Namespace My.Sys.Forms
 				'				value->item(i)->Menu  = Handle
 				'				#EndIf
 			Next i
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FParentWindow AndAlso IsWindow(FParentWindow->Handle) Then DrawMenuBar(FParentWindow->Handle)
 			#endif
 		End If
@@ -1373,7 +1373,7 @@ Namespace My.Sys.Forms
 			FParentMenuItem->Insert Index, Value
 			Exit Sub
 		End If
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As MenuItemInfo FInfo
 		#endif
 		If IndexOf(value) = -1 Then
@@ -1386,13 +1386,13 @@ Namespace My.Sys.Forms
 				FItems[Index]    = value
 				value->MenuIndex = Index
 				value->Parent    = NULL
-				#ifndef __USE_GTK__
-					value->Handle    = IIf(value->Handle,value->Handle,CreatePopupMenu)
+				#ifdef __USE_WINAPI__
+					value->Handle    = IIf(value->Handle, value->Handle, CreatePopupMenu)
 					'				value->Menu      = Handle
 				#endif
 				value->Owner     = @This
 				AllocateCommand(value)
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					value->SetInfo(FInfo)
 					InsertMenuItem(Handle,Index,True,@FInfo)
 				#endif
@@ -1405,7 +1405,7 @@ Namespace My.Sys.Forms
 					'					value->item(i)->Menu  = Handle
 					'				#EndIf
 				Next i
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If FParentWindow AndAlso IsWindow(FParentWindow->Handle) Then DrawMenuBar(FParentWindow->Handle)
 				#endif
 			End If
@@ -1426,7 +1426,7 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To FCount-1
 				FItems[i]->MenuIndex = i
 			Next i
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FParentWindow AndAlso IsWindow(FParentWindow->Handle) Then DrawMenuBar(FParentWindow->Handle)
 			#endif
 		End If
@@ -1483,7 +1483,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor Menu
 		This.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
 			If FHandle Then
 				DestroyMenu(FHandle)
@@ -1638,7 +1638,7 @@ Namespace My.Sys.Forms
 						gtk_widget_show(widget)
 					End If
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FParentWindow AndAlso IsWindow(FParentWindow->Handle) Then
 					SetMenu(FParentWindow->Handle, This.FHandle)
 					DrawMenuBar(FParentWindow->Handle)
@@ -1661,7 +1661,7 @@ Namespace My.Sys.Forms
 						gtk_widget_add_accelerator(mi->widget, "activate", FParentWindow->Accelerator, mi->accelerator_key, mi->accelerator_mods, GTK_ACCEL_VISIBLE)
 					End If
 				Next i
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As String mnuCaption, HotKey
 				Dim As Integer Pos1, CountOfHotKeys = 0
 				ReDim accl(1) As ACCEL
@@ -1694,8 +1694,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub MainMenu.ProcessMessages(ByRef message As Message)
 		Dim As PMenuItem I
-		#ifdef __USE_GTK__
-		#else
+		#ifdef __USE_WINAPI__
 			I = Find(LoWord(message.wparam))
 		#endif
 		If I Then I->Click
@@ -1708,12 +1707,12 @@ Namespace My.Sys.Forms
 	Private Constructor MainMenu
 		#ifdef __USE_GTK__
 			widget = gtk_menu_bar_new()
-		#else
+		#elseif defined(__USE_WINAPI__)
 			This.FHandle      = CreateMenu
 		#endif
 		WLet(FClassName, "MainMenu")
 		FIncSubItems = 1
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FColor       = GetSysColor(color_menu)
 			FInfo.cbSize = SizeOf(FInfo)
 			If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
@@ -1774,16 +1773,16 @@ Namespace My.Sys.Forms
 				gtk_widget_show(widget)
 				gtk_menu_popup (gtk_menu(widget), NULL, NULL, NULL, NULL, msg->event->button.button, msg->event->button.time)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FParentWindow AndAlso FParentWindow->Handle Then
-				TrackPopupMenuEx(This.FHandle,0,x,y,FParentWindow->Handle,0)
+				TrackPopupMenuEx(This.FHandle, 0, x, y, FParentWindow->Handle, 0)
 			End If
 		#endif
 	End Sub
 	
 	Private Sub PopupMenu.ProcessMessages(ByRef message As Message)
 		Dim As PMenuItem I
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			I = Find(LoWord(message.wparam))
 		#endif
 		If I Then I->Click
@@ -1798,7 +1797,7 @@ Namespace My.Sys.Forms
 			widget = gtk_menu_new()
 			gtk_menu_set_reserve_toggle_size(gtk_menu(widget) , False)
 			'gtk_menu_set_screen(gtk_menu(widget), gdk_screen_get_default())
-		#else
+		#elseif defined(__USE_WINAPI__)
 			This.FHandle = CreatePopupMenu
 			FInfo.cbsize     = SizeOf(FInfo)
 			FInfo.fmask      = MIM_MENUDATA

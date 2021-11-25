@@ -67,7 +67,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ImageList.ImageWidth(Value As Integer)
 		FImageWidth = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ImageList_SetIconSize(Handle, FImageWidth, FImageHeight)
 		#endif
 		NotifyWindow
@@ -79,14 +79,14 @@ Namespace My.Sys.Forms
 	
 	Private Property ImageList.ImageHeight(Value As Integer)
 		FImageHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ImageList_SetIconSize(Handle, FImageWidth, FImageHeight)
 		#endif
 		NotifyWindow
 	End Property
 	
 	Private Property ImageList.BackColor As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FBackColor = ImageList_GetBKColor(Handle)
 		#endif
 		Return FBackColor
@@ -94,7 +94,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ImageList.BackColor(Value As Integer)
 		FBackColor = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ImageList_SetBKColor(Handle,FBackColor)
 		#endif
 		NotifyWindow
@@ -110,7 +110,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ImageList.Count As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FCount = ImageList_GetImageCount(Handle)
 		#endif
 		Return FCount
@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ImageList.Count(Value As Integer)
 		FCount = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FCount = ImageList_SetImageCount(Handle, Value)
 		#endif
 	End Property
@@ -129,14 +129,14 @@ Namespace My.Sys.Forms
 	
 	Private Sub ImageList.NotifyWindow
 		If ParentWindow Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If ParentWindow->Handle Then RedrawWindow ParentWindow->Handle, 0, 0, RDW_ERASE Or RDW_INVALIDATE
 			#endif
 		End If
 	End Sub
 	
 	Private Sub ImageList.Create
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then ImageList_Destroy Handle
 			Handle = ImageList_Create(FImageWidth, FImageHeight, ILC_MASK Or ILC_COLOR32, InitialCount, GrowCount)
 		#endif
@@ -146,7 +146,7 @@ Namespace My.Sys.Forms
 		FNotChange = True
 		If Not FNotAdd Then Items.Add(Key)
 		FNotChange = False
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ImageList_Add(Handle, Bmp.Handle, Mask.Handle)
 		#endif
 	End Sub
@@ -155,7 +155,7 @@ Namespace My.Sys.Forms
 		FNotChange = True
 		If Not FNotAdd Then Items.Add(Key)
 		FNotChange = False
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ImageList_AddIcon(Handle, Icon.Handle)
 		#endif
 	End Sub
@@ -164,7 +164,7 @@ Namespace My.Sys.Forms
 		FNotChange = True
 		If Not FNotAdd Then Items.Add(Key)
 		FNotChange = False
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ImageList_AddIcon(Handle, Cursor.Handle)
 		#endif
 	End Sub
@@ -206,7 +206,7 @@ Namespace My.Sys.Forms
 			Items.Add Key, ResName
 			This.Add Bitm, Bitm, Key
 			FNotAdd = False
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			FNotAdd = True
 			If FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
@@ -245,7 +245,7 @@ Namespace My.Sys.Forms
 		FNotChange = True
 		If Not FNotAdd Then Items.Add(Key)
 		FNotChange = False
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Bmp.Width <> FImageWidth OrElse Bmp.Height <> FImageHeight Then
 				Dim As HBitmap HBitm
 				Dim As HWND desktop = GetDesktopWindow()
@@ -294,7 +294,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub ImageList.AddMasked(ByRef ResName As WString, iMaskColor As Integer, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			Bitm.LoadFromResourceName(ResName, ModuleHandle_)
@@ -400,7 +400,7 @@ Namespace My.Sys.Forms
 '	End Sub
 	
 	Private Sub ImageList.Remove(Index As Integer)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FNotChange = True
 			Items.Remove Index
 			FNotChange = False
@@ -414,7 +414,7 @@ Namespace My.Sys.Forms
 	
 	Private Function ImageList.GetBitmap(Index As Integer) As My.Sys.Drawing.BitmapType
 		'Dim As My.Sys.Drawing.BitmapType Ptr BMP
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim IMIF As ImageInfo
 			'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
@@ -427,7 +427,7 @@ Namespace My.Sys.Forms
 	
 	Private Function ImageList.GetMask(Index As Integer) As My.Sys.Drawing.BitmapType
 		'Dim As My.Sys.Drawing.BitmapType Ptr BMP
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim IMIF As ImageInfo
 			'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
 			ImageList_GetImageInfo(Handle,Index,@IMIF)
@@ -441,7 +441,7 @@ Namespace My.Sys.Forms
 	Private Function ImageList.GetIcon(Index As Integer) As My.Sys.Drawing.Icon
 		'Dim As My.Sys.Drawing.Icon Ptr ICO
 		'ICO = CAllocate_(SizeOf(My.Sys.Drawing.Icon))
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'ICO->Handle =
 		#else
 			Return 0
@@ -452,7 +452,7 @@ Namespace My.Sys.Forms
 	Private Function ImageList.GetCursor(Index As Integer) As My.Sys.Drawing.Cursor
 		'Dim As My.Sys.Drawing.Cursor Ptr CUR
 		'CUR = CAllocate_(SizeOf(My.Sys.Drawing.Cursor))
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'CUR->Handle =
 		#else
 			Return 0
@@ -477,7 +477,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub ImageList.Draw(Index As Integer, ByRef Canvas As My.Sys.Drawing.Canvas, X As Integer, Y As Integer, iWidth As Integer = -1, iHeight As Integer = -1, FG As Integer = -1, BK As Integer = -1)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If iWidth = -1 Then
 				ImageList_Draw(Handle, Index, Canvas.Handle, X, Y, DrawingStyle Or ImageType)
 			Else
@@ -490,7 +490,7 @@ Namespace My.Sys.Forms
 		FNotChange = True
 		Items.Clear
 		FNotChange = False
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ImageList_Remove Handle, -1
 		#endif
 	End Sub
@@ -500,7 +500,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Sub ImageList.ImageList_Change(ByRef Sender As Dictionary)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As ImageList Ptr pimgList = Sender.Tag
 			If Not pimgList->FNotChange Then
 				Dim As Dictionary Items
@@ -529,14 +529,14 @@ Namespace My.Sys.Forms
 		Items.OnChange = @ImageList_Change
 		#ifdef __USE_GTK__
 			Handle = gtk_icon_theme_new()
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Handle = ImageList_Create(FImageWidth, FImageHeight, ILC_MASK Or ILC_COLORDDB, InitialCount, GrowCount)
 			'Create
 		#endif
 	End Constructor
 	
 	Private Destructor ImageList
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then ImageList_Destroy Handle
 		#endif
 	End Destructor

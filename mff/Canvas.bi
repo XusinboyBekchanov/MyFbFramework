@@ -27,31 +27,7 @@ Namespace My.Sys.Drawing
 		Y As Long
 	End Type
 	
-	#ifdef __USE_GTK__
-		Private Enum FillStyle
-			fsSurface
-			fsBorder
-		End Enum
-		
-		Private Enum CopyMode
-			cmBlackness
-			cmDestInvert
-			cmMergeCopy
-			cmMergePaint
-			cmNotSrcCopy
-			cmNotSrcErase
-			cmPatCopy
-			cmPatInvert
-			cmPatPaint
-			cmSecAnd
-			cmSrcCopy
-			cmSrcErase
-			cmSrcInvert
-			cmSrcPaint
-			cmWithness
-		End Enum
-		
-	#else
+	#ifdef __USE_WINAPI__
 		Private Enum FillStyle
 			fsSurface = FLOODFILLSURFACE
 			fsBorder  = FLOODFILLBORDER
@@ -74,6 +50,29 @@ Namespace My.Sys.Drawing
 			cmSrcPaint    = SRCPAINT
 			cmWithness    = WHITENESS
 		End Enum
+	#else
+		Private Enum FillStyle
+			fsSurface
+			fsBorder
+		End Enum
+		
+		Private Enum CopyMode
+			cmBlackness
+			cmDestInvert
+			cmMergeCopy
+			cmMergePaint
+			cmNotSrcCopy
+			cmNotSrcErase
+			cmPatCopy
+			cmPatInvert
+			cmPatPaint
+			cmSecAnd
+			cmSrcCopy
+			cmSrcErase
+			cmSrcInvert
+			cmSrcPaint
+			cmWithness
+		End Enum
 	#endif
 	
 	Private Type Canvas Extends My.Sys.Object
@@ -88,8 +87,10 @@ Namespace My.Sys.Drawing
 			Handle  As cairo_t Ptr
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Handle  As HDC
+		#elseif defined(__USE_JNI__)
+			Handle  As jobject
 		#endif
 		Pen         As My.Sys.Drawing.Pen
 		Brush       As My.Sys.Drawing.Brush

@@ -59,6 +59,8 @@ Namespace My.Sys.ComponentModel
 				Case "layoutwidget": This.layoutwidget = Value
 				Case "overlaywidget": This.overlaywidget = Value
 				Case "eventboxwidget": This.eventboxwidget = Value
+				#elseif defined(__USE_JNI__)
+				Case "handle": This.Handle = *Cast(jobject Ptr, Value)
 				#else
 				Case "handle": This.Handle = *Cast(HWND Ptr, Value)
 				#endif
@@ -108,7 +110,7 @@ Namespace My.Sys.ComponentModel
 							gtk_layout_move(GTK_LAYOUT(Value->layoutwidget), widget, FLeft, FTop)
 						End If
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If FDesignMode AndAlso FHandle <> 0 AndAlso Value <> 0 AndAlso Value->Handle <> 0 Then
 						If GetParent(FHandle) <> Value->Handle Then
 							SetParent FHandle, Value->Handle
@@ -150,6 +152,14 @@ Namespace My.Sys.ComponentModel
 			
 			Private Property Component.Handle(Value As GtkWidget Ptr)
 				widget = Value
+			End Property
+		#elseif defined(__USE_JNI__)
+			Private Property Component.Handle As jobject
+				Return FHandle
+			End Property
+			
+			Private Property Component.Handle(Value As jobject)
+				FHandle = Value
 			End Property
 		#else
 			Private Property Component.Handle As HWND
@@ -228,7 +238,7 @@ Namespace My.Sys.ComponentModel
 						'Requests @This
 					End If
 				EndIf
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then 
 					MoveWindow FHandle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight), True
 				End If
@@ -266,7 +276,7 @@ Namespace My.Sys.ComponentModel
 						FLeft = allocation.x
 					End If
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
 					Else
@@ -304,7 +314,7 @@ Namespace My.Sys.ComponentModel
 				If CInt(ControlChanged) AndAlso CInt(Parent) AndAlso CInt(Parent->ClassName = "GroupBox") Then
 					FTop + = 20
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					If FParent AndAlso UCase(FParent->ClassName) = "SYSTABCONTROL32" Or UCase(FParent->ClassName) = "TABCONTROL" Then
 					Else
@@ -348,7 +358,7 @@ Namespace My.Sys.ComponentModel
 						'FWidth = Max(gtk_widget_get_allocated_width(widget), FWidth)
 					End If
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					Dim As Rect R
 					GetWindowRect Handle, @R
@@ -385,7 +395,7 @@ Namespace My.Sys.ComponentModel
 						#endif
 					End If
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					Dim As Rect R
 					GetWindowRect Handle, @R
@@ -446,7 +456,7 @@ Namespace My.Sys.ComponentModel
 					box = 0
 				End If
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				DestroyWindow FHandle
 				FHandle = 0

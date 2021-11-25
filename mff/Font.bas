@@ -61,7 +61,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
 			Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then DeleteObject(Handle)
 			Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,FOrientation*FSize,FOrientation*FSize,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
 		#endif
@@ -75,9 +75,9 @@ Namespace My.Sys.Drawing
 							gtk_widget_modify_font(FParent->Handle, Handle)
 						#endif
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If FParent->Handle Then
-						SendMessage(FParent->Handle, WM_SETFONT, CUInt(Handle),True)
+						SendMessage(FParent->Handle, WM_SETFONT, CUInt(Handle), True)
 						InvalidateRect FParent->Handle, 0, True
 					End If
 				#endif
@@ -221,7 +221,7 @@ Namespace My.Sys.Drawing
 		FCharSet  = FontCharset.Default
 		WLet(FName, DefaultFont.Name)
 		FSize     = DefaultFont.Size
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As HDC Dc
 			Dc = GetDC(HWND_DESKTOP)
 			FCyPixels = GetDeviceCaps(DC, LOGPIXELSY)
@@ -236,7 +236,7 @@ Namespace My.Sys.Drawing
 		WDeallocate FName
 		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then DeleteObject(Handle)
 		#endif
 	End Destructor

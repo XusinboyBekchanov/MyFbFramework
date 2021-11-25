@@ -15,7 +15,7 @@
 #include once "Control.bi"
 #ifdef __USE_GTK__
 	#include once "gmodule.bi"
-#else
+#elseif defined(__USE_WINAPI__)
 	#include once "win/winver.bi"
 #endif
 
@@ -95,7 +95,7 @@ Namespace My
 		FMainForm       As My.Sys.Forms.Control Ptr
 		Declare Sub GetControls
 		Declare Sub EnumControls(Control As My.Sys.Forms.Control)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Function EnumThreadWindowsProc(FWindow As HWND,LData As LParam) As Bool
 			Declare Static Function EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
 		#endif
@@ -111,8 +111,11 @@ Namespace My
 		MouseX          As Integer
 		MouseY          As Integer
 		HelpFile        As String
-		#ifndef __USE_GTK__
-			Instance        As HINSTANCE
+		#ifdef __USE_WINAPI__
+			Instance     As HINSTANCE
+		#elseif defined(__USE_JNI__)
+			Instance     As jobject
+			env          As JNIEnv Ptr
 		#endif
 		Declare Property ActiveForm As My.Sys.Forms.Control Ptr
 		Declare Property ActiveForm(Value As My.Sys.Forms.Control Ptr)
@@ -152,7 +155,7 @@ Namespace My
 		Declare Sub HelpContext(ContextID As Long)
 		Declare Sub HelpJump(TopicID As String)
 		Declare Function IndexOfForm(Form As My.Sys.Forms.Control Ptr) As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Function FindControl Overload(ControlHandle As HWND) As My.Sys.Forms.Control Ptr
 		#endif
 		Declare Function FindControl(ControlName As String) As My.Sys.Forms.Control Ptr

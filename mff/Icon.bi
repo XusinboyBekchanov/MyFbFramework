@@ -30,7 +30,9 @@ Namespace My.Sys.Drawing
 		Graphic As Any Ptr
 		#ifdef __USE_GTK__
 			Handle As GdkPixBuf Ptr
-		#else
+		#elseif defined(__USE_JNI__)
+			Handle  As jobject
+		#elseif defined(__USE_WINAPI__)
 			Handle  As HICON
 		#endif
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -46,7 +48,7 @@ Namespace My.Sys.Drawing
 		Declare Function LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 		Declare Function ToString() ByRef As WString
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Function ToBitmap() As hBitmap
 		#endif
 		Declare Operator Cast As Any Ptr
@@ -56,7 +58,7 @@ Namespace My.Sys.Drawing
 		Declare Operator Let(Value As Icon)
 		#ifdef __USE_GTK__
 			Declare Operator Let(Value As GdkPixBuf Ptr)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Operator Let(Value As HICON)
 		#endif
 		Declare Constructor

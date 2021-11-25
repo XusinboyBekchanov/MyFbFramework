@@ -13,36 +13,7 @@
 #include once "Object.bi"
 
 Namespace My.Sys.Drawing
-	#ifdef __USE_GTK__
-		Private Enum PenStyle
-			psSolid
-			psDash
-			psDot
-			psDashDot
-			psDashDotDot
-			psClear
-			psInsideFrame
-		End Enum
-		
-		Private Enum PenMode
-			pmBlack
-			pmWhite
-			pmNop
-			pmNot
-			pmCopy
-			pmNotCopy
-			pmMergePenNot
-			pmMaskPenNot
-			pmMergeNotPen
-			pmMaskNotPen
-			pmMerge
-			pmNotMerge
-			pmMask
-			pmNotMask
-			pmXor
-			pmNotXor
-		End Enum
-	#else
+	#ifdef __USE_WINAPI__
 		Private Enum PenStyle
 			psSolid       = PS_SOLID
 			psDash        = PS_DASH
@@ -71,6 +42,35 @@ Namespace My.Sys.Drawing
 			pmXor         = R2_XORPEN
 			pmNotXor      = R2_NOTXORPEN
 		End Enum
+	#else
+		Private Enum PenStyle
+			psSolid
+			psDash
+			psDot
+			psDashDot
+			psDashDotDot
+			psClear
+			psInsideFrame
+		End Enum
+		
+		Private Enum PenMode
+			pmBlack
+			pmWhite
+			pmNop
+			pmNot
+			pmCopy
+			pmNotCopy
+			pmMergePenNot
+			pmMaskPenNot
+			pmMergeNotPen
+			pmMaskNotPen
+			pmMerge
+			pmNotMerge
+			pmMask
+			pmNotMask
+			pmXor
+			pmNotXor
+		End Enum
 	#endif
 	
 	Private Type Pen Extends My.Sys.Object
@@ -81,7 +81,7 @@ Namespace My.Sys.Drawing
 		FSize   As Integer
 		Declare Sub Create
 	Public:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Handle  As HPEN
 		#endif
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr

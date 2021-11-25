@@ -15,29 +15,7 @@
 
 Using My.Sys.ComponentModel
 
-#ifdef __USE_GTK__
-	Private Enum FontCharset
-		Default
-		Ansi
-		Arabic
-		Baltic
-		ChineseBig5
-		EastEurope
-		GB2312
-		Greek
-		Hangul
-		Hebrew
-		Johab
-		Mac
-		OEM
-		Russian
-		Shiftjis
-		Symbol
-		Thai
-		Turkish
-		Vietnamese
-	End Enum
-#else
+#ifdef __USE_WINAPI__
 	Private Enum FontCharset
 		Default     = DEFAULT_CHARSET
 		Ansi        = ANSI_CHARSET
@@ -58,6 +36,28 @@ Using My.Sys.ComponentModel
 		Thai        = THAI_CHARSET
 		Turkish     = TURKISH_CHARSET
 		Vietnamese  = VIETNAMESE_CHARSET
+	End Enum
+#else
+	Private Enum FontCharset
+		Default
+		Ansi
+		Arabic
+		Baltic
+		ChineseBig5
+		EastEurope
+		GB2312
+		Greek
+		Hangul
+		Hebrew
+		Johab
+		Mac
+		OEM
+		Russian
+		Shiftjis
+		Symbol
+		Thai
+		Turkish
+		Vietnamese
 	End Enum
 #endif
 
@@ -83,7 +83,9 @@ Namespace My.Sys.Drawing
 	Public:
 		#ifdef __USE_GTK__
 			Handle As PangoFontDescription Ptr
-		#else
+		#elseif defined(__USE_JNI__)
+			Handle As jobject
+		#elseif defined(__USE_WINAPI__)
 			Handle As HFONT
 		#endif
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
