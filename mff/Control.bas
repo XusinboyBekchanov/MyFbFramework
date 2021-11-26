@@ -12,6 +12,7 @@
 '###############################################################################
 
 #include once "Control.bi"
+#include once "Application.bi"
 
 Namespace My.Sys.Forms
 	#ifndef Control_Off
@@ -874,6 +875,15 @@ Namespace My.Sys.Forms
 						SetProp(Handle, "MFFControl", @This)
 						If SubClass Then
 							PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
+						End If
+					#elseif defined(__USE_JNI__)
+						If This.Parent AndAlso This.Parent->layoutview Then
+							If pApp AndAlso pApp->env Then
+								Dim env As JNIEnv Ptr = pApp->env
+								Dim As jclass class_viewgroup = (*env)->FindClass(env, "android/view/ViewGroup")
+								Dim As jmethodID addviewMethod = (*env)->GetMethodID(env, class_viewgroup, "addView", "(Landroid/view/View;)V")
+								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle)
+							End If
 						End If
 					#endif
 					BringToFront

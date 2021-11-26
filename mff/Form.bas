@@ -754,23 +754,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-	#elseif defined(__USE_JNI__)
-		Sub Java_mff_application_MainActivity_OnCreateJNI__Ljava_lang_Object_2 Alias "Java_mff_application_MainActivity_OnCreateJNI__Ljava_lang_Object_2" (ByVal env As JNIEnv Ptr, This_ As jobject, layout As jobject) Export
-			If pApp Then
-				pApp->env = env
-				Dim As jclass activityThread = (*env)->FindClass(env, "android/app/ActivityThread")
-				Dim As jmethodID currentActivityThread = (*env)->GetStaticMethodID(env, activityThread, "currentActivityThread", "()Landroid/app/ActivityThread;")
-				Dim As jobject at = (*env)->CallStaticObjectMethod(env, activityThread, currentActivityThread)
-				Dim As jmethodID getApplication = (*env)->GetMethodID(env, activityThread, "getApplication", "()Landroid/app/Application;")
-				pApp->Instance = (*env)->CallObjectMethod(env, at, getApplication)
-				If pApp->MainForm Then
-					pApp->MainForm->Handle = This_
-					pApp->MainForm->layoutview = layout
-					pApp->MainForm->CreateWnd
-				End If
-			End If
-		End Sub
-	#else
+	#elseif defined(__USE_GTK__)
 		Private Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
 			pApp->FDeactivated = False
 			If pApp->FActivated Then

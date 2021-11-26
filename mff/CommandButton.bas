@@ -207,11 +207,6 @@ Namespace My.Sys.Forms
 			Dim As jmethodID setTextMethod = (*env)->GetMethodID(env, class_button, "setText", "(Ljava/lang/CharSequence;)V")
 			Dim As ZString * 100 ButtonText = ToUTF8(FText)
 			(*env)->CallVoidMethod(env, FHandle, setTextMethod, (*env)->NewStringUTF(env, @ButtonText))
-			If This.Parent AndAlso This.Parent->layoutview Then
-				Dim As jclass class_viewgroup = (*env)->FindClass(env, "android/view/ViewGroup")
-				Dim As jmethodID addviewMethod = (*env)->GetMethodID(env, class_viewgroup, "addView", "(Landroid/view/View;)V")
-				(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle)
-			End If
 		#endif
 		Base.CreateWnd
 	End Sub
