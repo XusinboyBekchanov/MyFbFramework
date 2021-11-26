@@ -877,12 +877,25 @@ Namespace My.Sys.Forms
 							PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
 						End If
 					#elseif defined(__USE_JNI__)
-						If This.Parent AndAlso This.Parent->layoutview Then
-							If pApp AndAlso pApp->env Then
+						If pApp AndAlso pApp->env Then
+							If *FClassAncestor <> "" Then class_object = (*pApp->env)->FindClass(pApp->env, *FClassAncestor)
+							If This.Parent AndAlso This.Parent->layoutview Then
 								Dim env As JNIEnv Ptr = pApp->env
 								Dim As jclass class_viewgroup = (*env)->FindClass(env, "android/view/ViewGroup")
-								Dim As jmethodID addviewMethod = (*env)->GetMethodID(env, class_viewgroup, "addView", "(Landroid/view/View;)V")
-								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle)
+								Dim As jmethodID addviewMethod = (*env)->GetMethodID(env, class_viewgroup, "addView", "(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V")
+								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/view/ViewGroup$MarginLayoutParams")
+								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(II)V")
+								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, FWidth, FHeight)
+								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
+								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
+								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
+								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
+								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
+'								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+'								Dim As jmethodID setLeftMethod = (*env)->GetMethodID(env, class_view, "setLeft", "(I)V")
+'								Dim As jmethodID setTopMethod = (*env)->GetMethodID(env, class_view, "setTop", "(I)V")
+'								(*env)->CallVoidMethod(env, FHandle, setLeftMethod, FLeft)
+'								(*env)->CallVoidMethod(env, FHandle, setTopMethod, FTop)
 							End If
 						End If
 					#endif

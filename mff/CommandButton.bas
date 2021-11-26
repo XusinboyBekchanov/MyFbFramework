@@ -70,6 +70,11 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_text_with_mnemonic(gtk_label(gtk_bin_get_child(gtk_bin(widget))), ToUtf8(Replace(Value, "&", "_")))
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				Dim As jmethodID setTextMethod = (*pApp->env)->GetMethodID(pApp->env, class_object, "setText", "(Ljava/lang/CharSequence;)V")
+				(*pApp->env)->CallVoidMethod(pApp->env, FHandle, setTextMethod, (*pApp->env)->NewStringUTF(pApp->env, ToUTF8(FText)))
+			End If
 		#endif
 	End Property
 	
@@ -199,14 +204,11 @@ Namespace My.Sys.Forms
 	Private Sub CommandButton.CreateWnd
 		#ifdef __USE_JNI__
 			If pApp = 0 OrElse pApp->env = 0 OrElse pApp->Instance = 0 Then Exit Sub
-			Dim env As JNIEnv Ptr = pApp->env
 			If FHandle <> 0 Then Exit Sub
-			Dim As jclass class_button = (*env)->FindClass(env, "android/widget/Button")
-			Dim As jmethodID eventConstructor = (*env)->GetMethodID(env, class_button, "<init>", "(Landroid/content/Context;)V")
-			FHandle = (*env)->NewObject(env, class_button, eventConstructor, pApp->Instance)
-			Dim As jmethodID setTextMethod = (*env)->GetMethodID(env, class_button, "setText", "(Ljava/lang/CharSequence;)V")
-			Dim As ZString * 100 ButtonText = ToUTF8(FText)
-			(*env)->CallVoidMethod(env, FHandle, setTextMethod, (*env)->NewStringUTF(env, @ButtonText))
+			class_object = (*pApp->env)->FindClass(pApp->env, *FClassAncestor)
+			Dim As jmethodID ConstructorMethod = (*pApp->env)->GetMethodID(pApp->env, class_object, "<init>", "(Landroid/content/Context;)V")
+			FHandle = (*pApp->env)->NewObject(pApp->env, class_object, ConstructorMethod, pApp->Instance)
+			Text = FText
 		#endif
 		Base.CreateWnd
 	End Sub
@@ -229,16 +231,18 @@ Namespace My.Sys.Forms
 		FTabStop = True
 		With This
 			.Child       = @This
+			WLet(FClassName, "CommandButton")
 			#ifdef __USE_WINAPI__
+				WLet(FClassAncestor, "Button")
 				.RegisterClass "CommandButton", "Button"
 				.ChildProc   = @WndProc
 				'.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_GTK__)
 				.RegisterClass "CommandButton", @This
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/Button")
 			#endif
-			WLet(FClassName, "CommandButton")
-			WLet(FClassAncestor, "Button")
 			#ifdef __USE_WINAPI__
 				.ExStyle     = 0
 				Base.Style       = WS_CHILD Or WS_TABSTOP Or AStyle(Abs_(FStyle)) Or ADefault(Abs_(FDefault))

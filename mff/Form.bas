@@ -606,6 +606,11 @@ Namespace My.Sys.Forms
 					End If
 				#endif
 			End If
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				Dim As jmethodID setTitleMethod = (*pApp->env)->GetMethodID(pApp->env, class_object, "setTitle", "(Ljava/lang/CharSequence;)V")
+				(*pApp->env)->CallVoidMethod(pApp->env, FHandle, setTitleMethod, (*pApp->env)->NewStringUTF(pApp->env, ToUTF8(FText)))
+			End If
 		#endif
 	End Property
 
@@ -1458,7 +1463,6 @@ Namespace My.Sys.Forms
 				.ChildProc         = @WndProc
 			#endif
 			WLet(FClassName, "Form")
-			WLet(FClassAncestor, "")
 			.OnActiveControlChanged = @ActiveControlChanged
 			#ifdef __USE_WINAPI__
 				.ExStyle           = WS_EX_CONTROLPARENT Or WS_EX_WINDOWEDGE 'FExStyle(FBorderStyle) OR FMainStyle(FMainForm)
@@ -1467,9 +1471,15 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.Width             = 350 'CW_USEDEFAULT
 				.Height            = 300 'CW_USEDEFAULT
-			#else
+				WLet(FClassAncestor, "")
+			#elseif defined(__USE_JNI__)
 				.Width             = 350
 				.Height            = 300
+				WLet(FClassAncestor, "android/app/Activity")
+			#elseif defined(__USE_GTK__)
+				.Width             = 350
+				.Height            = 300
+				WLet(FClassAncestor, "GtkWindow")
 			#endif
 			.StartPosition = DefaultLocation
 		End With

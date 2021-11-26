@@ -674,7 +674,7 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 End Function
 
 #ifdef __USE_JNI__
-	Sub Java_com_mff_application_MainActivity_OnCreateJNI Alias "Java_com_mff_application_MainActivity_OnCreateJNI" (ByVal env As JNIEnv Ptr, This_ As jobject) Export
+	Sub Java_com_mff_application_MainActivity_OnCreateJNI Alias "Java_com_mff_application_MainActivity_OnCreateJNI" (ByVal env As JNIEnv Ptr, This_ As jobject, layout As jobject) Export
 		If pApp Then
 			pApp->env = env
 			Dim As jclass activityThread = (*env)->FindClass(env, "android/app/ActivityThread")
@@ -684,18 +684,18 @@ End Function
 			pApp->Instance = (*env)->CallObjectMethod(env, at, getApplication)
 			If pApp->MainForm Then
 				pApp->MainForm->Handle = This_
-				Dim As jclass activityClass = (*env)->FindClass(env, "android/app/Activity")
-				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
-				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
-				Dim As jclass windowClass = (*env)->FindClass(env, "android/view/Window")
-				Dim As jmethodID getDecorView = (*env)->GetMethodID(env, windowClass, "getDecorView", "()Landroid/view/View;")
-				Dim As jobject decorView = (*env)->CallObjectMethod(env, iWindow, getDecorView)
-				Dim As jclass viewgroupClass = (*env)->FindClass(env, "android/view/ViewGroup")
-				Dim As jmethodID getChildAt = (*env)->GetMethodID(env, viewgroupClass, "getChildAt", "(I)Landroid/view/View;")
-				Dim As jobject ViewGroup = (*env)->CallObjectMethod(env, decorView, getChildAt, 0)
+'				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
+'				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
+'				Dim As jclass windowClass = (*env)->FindClass(env, "android/view/Window")
+'				Dim As jmethodID getDecorView = (*env)->GetMethodID(env, windowClass, "getDecorView", "()Landroid/view/View;")
+'				Dim As jobject decorView = (*env)->CallObjectMethod(env, iWindow, getDecorView)
+'				Dim As jclass viewgroupClass = (*env)->FindClass(env, "android/view/ViewGroup")
+'				Dim As jmethodID getChildAt = (*env)->GetMethodID(env, viewgroupClass, "getChildAt", "(I)Landroid/view/View;")
+'				Dim As jobject ViewGroup = (*env)->CallObjectMethod(env, decorView, getChildAt, 0)
 				'Dim As jobject ViewGroup2 = (*env)->CallObjectMethod(env, ViewGroup, getChildAt, 0)
-				pApp->MainForm->layoutview = ViewGroup
+				pApp->MainForm->layoutview = layout 'ViewGroup
 				pApp->MainForm->CreateWnd
+				pApp->MainForm->Text = pApp->MainForm->Text 'ViewGroup
 			End If
 		End If
 	End Sub

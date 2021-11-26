@@ -40,6 +40,7 @@ Namespace My.Sys.ComponentModel
 			overlaywidget   As GtkWidget Ptr
 		#elseif defined(__USE_JNI__)
 			FHandle         As jobject
+			class_object    As jclass
 		#else
 			FHandle         As HWND
 		#endif
