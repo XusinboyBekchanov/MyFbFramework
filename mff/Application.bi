@@ -115,7 +115,6 @@ Namespace My
 			Instance     As HINSTANCE
 		#elseif defined(__USE_JNI__)
 			Instance     As jobject
-			env          As JNIEnv Ptr
 		#endif
 		Declare Property ActiveForm As My.Sys.Forms.Control Ptr
 		Declare Property ActiveForm(Value As My.Sys.Forms.Control Ptr)

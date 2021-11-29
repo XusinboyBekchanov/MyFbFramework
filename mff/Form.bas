@@ -608,8 +608,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				Dim As jmethodID setTitleMethod = (*pApp->env)->GetMethodID(pApp->env, class_object, "setTitle", "(Ljava/lang/CharSequence;)V")
-				(*pApp->env)->CallVoidMethod(pApp->env, FHandle, setTitleMethod, (*pApp->env)->NewStringUTF(pApp->env, ToUTF8(FText)))
+				CallVoidMethod(FHandle, *FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V", (*env)->NewStringUTF(env, ToUTF8(FText)))
 			End If
 		#endif
 	End Property
@@ -1475,7 +1474,7 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_JNI__)
 				.Width             = 350
 				.Height            = 300
-				WLet(FClassAncestor, "android/app/Activity")
+				WLet(FClassAncestor, Replace(__FB_QUOTE__(Package), "_", "/") & "/mffActivity")
 			#elseif defined(__USE_GTK__)
 				.Width             = 350
 				.Height            = 300
@@ -1501,3 +1500,40 @@ Namespace My.Sys.Forms
 		'UnregisterClass ClassName, GetModuleHandle(NULL)
 	End Destructor
 End Namespace
+
+#ifdef __USE_JNI__
+	Sub mffActivity_onCreate Alias AddToPackage(Package, mffActivity_onCreate) (ByVal env1 As JNIEnv Ptr, This_ As jobject, layout As jobject) Export
+		If pApp Then
+			If env = 0 Then
+				env = env1
+				Dim As jclass activityThread = (*env)->FindClass(env, "android/app/ActivityThread")
+				Dim As jmethodID currentActivityThread = (*env)->GetStaticMethodID(env, activityThread, "currentActivityThread", "()Landroid/app/ActivityThread;")
+				Dim As jobject at = (*env)->CallStaticObjectMethod(env, activityThread, currentActivityThread)
+				Dim As jmethodID getApplication = (*env)->GetMethodID(env, activityThread, "getApplication", "()Landroid/app/Application;")
+				pApp->Instance = (*env)->CallObjectMethod(env, at, getApplication)
+				Dim As jobject res = CallObjectMethod(pApp->Instance, "android/content/Context", "getResources", "()Landroid/content/res/Resources;")
+				Dim As jobject displaymetrics = CallObjectMethod(res, "android/content/res/Resources", "getDisplayMetrics", "()Landroid/util/DisplayMetrics;")
+				Dim As jclass displaymetricsClass = (*env)->FindClass(env, "android/util/DisplayMetrics")
+				Dim As jfieldID xdpiField = (*env)->GetFieldID(env, displaymetricsClass, "xdpi", "F")
+				Dim As jfieldID ydpiField = (*env)->GetFieldID(env, displaymetricsClass, "ydpi", "F")
+				xdpi = (*env)->GetFloatField(env, displaymetrics, xdpiField) / 100
+				ydpi = (*env)->GetFloatField(env, displaymetrics, ydpiField) / 100
+				If pApp->MainForm Then
+					pApp->MainForm->Handle = This_
+	'				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
+	'				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
+	'				Dim As jclass windowClass = (*env)->FindClass(env, "android/view/Window")
+	'				Dim As jmethodID getDecorView = (*env)->GetMethodID(env, windowClass, "getDecorView", "()Landroid/view/View;")
+	'				Dim As jobject decorView = (*env)->CallObjectMethod(env, iWindow, getDecorView)
+	'				Dim As jclass viewgroupClass = (*env)->FindClass(env, "android/view/ViewGroup")
+	'				Dim As jmethodID getChildAt = (*env)->GetMethodID(env, viewgroupClass, "getChildAt", "(I)Landroid/view/View;")
+	'				Dim As jobject ViewGroup = (*env)->CallObjectMethod(env, decorView, getChildAt, 0)
+					'Dim As jobject ViewGroup2 = (*env)->CallObjectMethod(env, ViewGroup, getChildAt, 0)
+					pApp->MainForm->layoutview = layout 'ViewGroup
+					pApp->MainForm->CreateWnd
+					pApp->MainForm->Text = pApp->MainForm->Text 'ViewGroup
+				End If
+			End If
+		End If
+	End Sub
+#endif

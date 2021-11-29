@@ -339,7 +339,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNodeCollection.Item(Index As Integer) As TreeNode Ptr
-		Return Cast(TreeNode Ptr, FNodes.Items[Index])
+		Return FNodes.Items[Index]
 	End Property
 	
 	Private Property TreeNodeCollection.Item(Index As Integer, Value As TreeNode Ptr)

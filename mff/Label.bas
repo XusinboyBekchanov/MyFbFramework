@@ -81,6 +81,10 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				CallVoidMethod(FHandle, "android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V", (*env)->NewStringUTF(env, ToUTF8(FText)))
+			End If
 		#endif
 	End Property
 	
@@ -90,11 +94,11 @@ Namespace My.Sys.Forms
 	
 	Private Sub Label.ChangeLabelStyle
 		If Style <> lsText Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 			#endif
 		Else
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or AAlignment(Abs_(FAlignment))
 			#endif
 		End If
@@ -170,7 +174,7 @@ Namespace My.Sys.Forms
 	Private Sub Label.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					Select Case ImageType
 					Case IMAGE_BITMAP
 						QLabel(.Ctrl->Child).Style = lsBitmap
@@ -190,7 +194,7 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Label.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QLabel(Sender.Child)
@@ -204,7 +208,7 @@ Namespace My.Sys.Forms
 	#endif
 		
 	Private Sub Label.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -254,7 +258,7 @@ Namespace My.Sys.Forms
 				gtk_container_add(gtk_container(eventboxwidget), widget)
 			#endif
 			This.RegisterClass "Label", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			AStyle(0)           = 0
 			AStyle(1)           = SS_BITMAP
 			AStyle(2)           = SS_ICON
@@ -282,7 +286,7 @@ Namespace My.Sys.Forms
 		FTabIndex          = -1
 		With This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "Label", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
@@ -290,9 +294,11 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
+				WLet(FClassAncestor, "Static")
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/TextView")
 			#endif
 			WLet(FClassName, "Label")
-			WLet(FClassAncestor, "Static")
 			.Width       = 90
 			.Height      = ScaleY(Max(8, Font.Size) /72*96+6)  '中文字号VS英文字号(磅)VS像素值的对应关系：八号＝5磅(5pt) ==(5/72)*96=6.67 =6px
 		End With

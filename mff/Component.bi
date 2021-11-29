@@ -22,6 +22,7 @@ Namespace My.Sys.ComponentModel
 		FClassAncestor      As WString Ptr
 		FDesignMode         As Boolean
 		FCreated            As Boolean
+		FID                 As Integer
 		FName               As WString Ptr
 		FLeft               As Integer
 		FTop                As Integer
@@ -40,7 +41,6 @@ Namespace My.Sys.ComponentModel
 			overlaywidget   As GtkWidget Ptr
 		#elseif defined(__USE_JNI__)
 			FHandle         As jobject
-			class_object    As jclass
 		#else
 			FHandle         As HWND
 		#endif

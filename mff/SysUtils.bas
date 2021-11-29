@@ -143,77 +143,135 @@ Namespace ClassContainer
 	#endif
 End Namespace
 
-' =====================================================================================
-' Scale the location point X per DPI
-' =====================================================================================
-Private Function ScaleX(ByVal cx As Single) As Single
-	#ifdef __USE_WINAPI__
-		Static bb As Single
-		If bb = 0 Then
-			Dim hDC As HDC
-			hDC = GetDC(Null)
-			bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-			ReleaseDC Null, hDC
-		End If
-		Function = cx * bb
-	#else
-		Function = cx
-	#endif
-End Function
+#ifdef __USE_JNI__
+	#include once "PointerList.bi"
+	Dim Shared As PointerList Handles
+	Handles.Add 0
+	
+	#define AddToPackage(Package, EventName) __FB_QUOTE__(Java_##Package##_##EventName)
+	
+	Function FindJNIClass(className As String) As jclass
+		Return (*env)->FindClass(env, className)
+	End Function
+	
+	Function GetMethodID(javaclass As jclass, methodName As String, typeName As String) As jmethodID
+		Return (*env)->GetMethodID(env, javaclass, methodName, typeName)
+	End Function
+	
+	Function GetFieldID(javaclass As jclass, fieldName As String, typeName As String) As jfieldID
+		Return (*env)->GetFieldID(env, javaclass, fieldName, typeName)
+	End Function
+	
+	Function CallObjectMethod(obj As jobject, className As String, methodName As String, typeName As String) As jobject
+		Return (*env)->CallObjectMethod(env, obj, GetMethodID(FindJNIClass(className), methodName, typeName))
+	End Function
+	
+	Function GetIntField(obj As jobject, className As String, fieldName As String, typeName As String) As Integer
+		Return (*env)->GetIntField(env, obj, GetFieldID(FindJNIClass(className), fieldName, typeName))
+	End Function
+	
+	Function CallIntMethod(obj As jobject, className As String, methodName As String, typeName As String) As Integer
+		Return (*env)->CallIntMethod(env, obj, GetMethodID(FindJNIClass(className), methodName, typeName))
+	End Function
+	
+	Sub CallVoidMethod(obj As jobject, className As String, methodName As String, typeName As String, Setting As jobject)
+		(*env)->CallVoidMethod(env, obj, GetMethodID(FindJNIClass(className), methodName, typeName), Setting)
+	End Sub
+#endif
 
 ' =====================================================================================
 ' Scale the location point X per DPI
 ' =====================================================================================
-Private Function UnScaleX (ByVal cx As Single) As Single
-	#ifdef __USE_WINAPI__
-		Static bb As Single
-		If bb = 0 Then
-			Dim hDC As HDC
-			hDC = GetDC(Null)
-			bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-			ReleaseDC Null, hDC
-		End If
-		Function = cx / bb
-	#else
-		Function = cx
-	#endif
-End Function
+#ifdef __USE_JNI__
+	Private Function ScaleX(ByVal cx As Single) As Integer
+		Function = cx * xdpi
+	End Function
+#else
+	Private Function ScaleX(ByVal cx As Single) As Single
+		#ifdef __USE_WINAPI__
+			Static bb As Single
+			If bb = 0 Then
+				Dim hDC As HDC
+				hDC = GetDC(Null)
+				bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+				ReleaseDC Null, hDC
+			End If
+			Function = cx * bb
+		#else
+			Function = cx
+		#endif
+	End Function
+#endif
+' =====================================================================================
+' Scale the location point X per DPI
+' =====================================================================================
+#ifdef __USE_JNI__
+	Private Function UnScaleX(ByVal cx As Single) As Integer
+		Function = cx / xdpi
+	End Function
+#else
+	Private Function UnScaleX(ByVal cx As Single) As Single
+		#ifdef __USE_WINAPI__
+			Static bb As Single
+			If bb = 0 Then
+				Dim hDC As HDC
+				hDC = GetDC(Null)
+				bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+				ReleaseDC Null, hDC
+			End If
+			Function = cx / bb
+		#else
+			Function = cx
+		#endif
+	End Function
+#endif
+' =====================================================================================
+' Scale the location point Y per DPI
+' =====================================================================================
+#ifdef __USE_JNI__
+	Private Function ScaleY(ByVal cy As Single) As Integer
+		Function = cy * ydpi
+	End Function
+#else
+	Private Function ScaleY(ByVal cy As Single) As Single
+		#ifdef __USE_WINAPI__
+			Static bb As Single
+			If bb = 0 Then
+				Dim hDC As HDC
+				hDC = GetDC(Null)
+				bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+				ReleaseDC Null, hDC
+			End If
+			Function = cy * bb
+		#else
+			Function = cy
+		#endif
+	End Function
+#endif
 
 ' =====================================================================================
 ' Scale the location point Y per DPI
 ' =====================================================================================
-Private Function ScaleY(ByVal cy As Single) As Single
-	#ifdef __USE_WINAPI__
-		Static bb As Single
-		If bb=0 Then
-			Dim hDC As HDC
-			hDC = GetDC(Null)
-			bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-			ReleaseDC Null, hDC
-		End If
-		Function = cy * bb
-	#else
-		Function = cy
-	#endif
-End Function
-
-' =====================================================================================
-' Scale the location point Y per DPI
-' =====================================================================================
-Private Function UnScaleY(ByVal cy As Single) As Single
-	#ifdef __USE_WINAPI__
-		Static bb As Single
-		If bb=0 Then
-			Dim hDC As HDC
-			hDC = GetDC(Null)
-			bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-			ReleaseDC Null, hDC
-		End If
-		Function = cy / bb
-	#else
-		Function = cy
-	#endif
-End Function
+#ifdef __USE_JNI__
+	Private Function UnScaleY(ByVal cy As Single) As Integer
+		Function = cy / ydpi
+	End Function
+#else
+	Private Function UnScaleY(ByVal cy As Single) As Single
+		#ifdef __USE_WINAPI__
+			Static bb As Single
+			If bb=0 Then
+				Dim hDC As HDC
+				hDC = GetDC(Null)
+				bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+				ReleaseDC Null, hDC
+			End If
+			Function = cy / bb
+		#else
+			Function = cy
+		#endif
+	End Function
+#endif
 
 Private Function _Abs(Value As Boolean) As Integer
 	Return Abs(CInt(Value))

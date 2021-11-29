@@ -29,7 +29,7 @@ Namespace My.Sys.Forms
 		FBevelOuter  As Integer
 		FBorderWidth As Integer
 		FBevelWidth  As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Sub AdjustColors(FBevel As Integer)
@@ -56,6 +56,7 @@ Namespace My.Sys.Forms
 		Declare Property TabStop(Value As Boolean)
 		Declare Virtual Property Text ByRef As WString
 		Declare Virtual Property Text(ByRef Value As WString)
+		Declare Sub CreateWnd
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

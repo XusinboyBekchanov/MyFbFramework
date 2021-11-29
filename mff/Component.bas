@@ -242,6 +242,18 @@ Namespace My.Sys.ComponentModel
 				If FHandle Then 
 					MoveWindow FHandle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight), True
 				End If
+			#elseif defined(__USE_JNI__)
+				If env = 0 OrElse FHandle = 0 Then Exit Sub
+				Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+				Dim As jmethodID setLayoutParams = (*env)->GetMethodID(env, class_view, "setLayoutParams", "(Landroid/view/ViewGroup$LayoutParams;)V")
+				Dim As jclass class_LayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
+				Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_LayoutParams, "<init>", "(IIII)V")
+				Dim As jobject LayoutParams = (*env)->NewObject(env, class_LayoutParams, ConstructorMethod, ScaleX(FWidth), ScaleY(FHeight), ScaleX(FLeft), ScaleY(FTop))
+				'Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
+				'CallVoidMethod(FHandle, "android/widget/Button", "setText", "(Ljava/lang/CharSequence;)V", (*env)->NewStringUTF(env, ToUTF8(Str((*env)->GetIntField(env, MarginLayoutParams, LeftField)))))
+'				Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
+'				(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
+				(*env)->CallVoidMethod(env, FHandle, setLayoutParams, LayoutParams)
 			#endif
 		End Sub
 	#endif
@@ -286,6 +298,19 @@ Namespace My.Sys.ComponentModel
 						FLeft = UnScaleX(R.Left)
 					End If
 				End If
+			#elseif defined(__USE_JNI__)
+				If ClassName = "Form" Then
+					FLeft = 0
+				Else
+					If FHandle Then
+						Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+						Dim As jmethodID getLayoutParamsMethod = (*env)->GetMethodID(env, class_view, "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
+						Dim As jobject MarginLayoutParams = (*env)->CallObjectMethod(env, FHandle, getLayoutParamsMethod)
+						Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
+						Dim As jfieldID xField = (*env)->GetFieldID(env, class_MarginLayoutParams, "x", "I")
+						FLeft = UnScaleX((*env)->GetIntField(env, MarginLayoutParams, xField))
+					End If
+				End If
 			#endif
 			Return FLeft
 		End Property
@@ -322,6 +347,15 @@ Namespace My.Sys.ComponentModel
 						GetWindowRect Handle,@R
 						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
 						FTop = UnScaleY(R.Top)
+					End If
+				End If
+			#elseif defined(__USE_JNI__)
+				If ClassName = "Form" Then
+					FLeft = 0
+				Else
+					If FHandle Then
+						Dim As jobject MarginLayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
+						FTop = UnScaleY(GetIntField(MarginLayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "y", "I"))
 					End If
 				End If
 			#endif
@@ -366,6 +400,17 @@ Namespace My.Sys.ComponentModel
 					FWidth = UnScaleX(R.Right - R.Left)
 					'#endif
 				End If
+			#elseif defined(__USE_JNI__)
+				If FHandle Then
+					If ClassName = "Form" Then
+						Dim As jobject iWindow = CallObjectMethod(FHandle, "android/app/Activity", "getWindow", "()Landroid/view/Window;")
+						Dim As jobject decorView = CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;")
+						FWidth = UnScaleX(CallIntMethod(decorView, "android/view/View", "getWidth", "()I"))
+					Else
+						Dim As jobject LayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
+						FWidth = UnScaleX(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "width", "I"))
+					End If
+				End If
 			#endif
 			Return FWidth
 		End Property
@@ -401,6 +446,17 @@ Namespace My.Sys.ComponentModel
 					GetWindowRect Handle, @R
 					MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
 					FHeight = UnScaleY(R.Bottom - R.Top)
+				End If
+			#elseif defined(__USE_JNI__)
+				If FHandle Then
+					If ClassName = "Form" Then
+						Dim As jobject iWindow = CallObjectMethod(FHandle, "android/app/Activity", "getWindow", "()Landroid/view/Window;")
+						Dim As jobject decorView = CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;")
+						FHeight = UnScaleY(CallIntMethod(decorView, "android/view/View", "getHeight", "()I"))
+					Else
+						Dim As jobject LayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
+						FHeight = UnScaleY(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "height", "I"))
+					End If
 				End If
 			#endif
 			Return FHeight

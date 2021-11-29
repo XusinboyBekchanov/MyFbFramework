@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 					gtk_entry_set_alignment(gtk_entry(WidgetEntry), 1.0)
 					gtk_text_view_set_justification(gtk_text_view(WidgetTextView), GTK_JUSTIFY_RIGHT)
 				End Select
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeStyle ES_LEFT, False
 				ChangeStyle ES_CENTER, False
 				ChangeStyle ES_RIGHT, False
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				gtk_text_view_scroll_to_mark(gtk_text_view(widget), gtk_text_buffer_get_insert(gtk_text_view_get_buffer(gtk_text_view(widget))), 0.0, True, 0.5, 0.5)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Perform EM_SCROLLCARET, 0, 0
 		#endif
 	End Sub
@@ -148,7 +148,7 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				FLeftMargin = gtk_text_view_get_left_margin(gtk_text_view(widget))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As DWORD Result = SendMessage(FHandle, EM_GETMARGINS, 0, 0)
 				FLeftMargin = LoWord(Result)
@@ -163,7 +163,7 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				gtk_text_view_set_left_margin(gtk_text_view(widget), Value)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MakeWord(FLeftMargin, FRightMargin))
 			End If
@@ -175,7 +175,7 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				FRightMargin = gtk_text_view_get_right_margin(gtk_text_view(widget))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As DWORD Result = SendMessage(FHandle, EM_GETMARGINS, 0, 0)
 				FRightMargin = HiWord(Result)
@@ -190,7 +190,7 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				gtk_text_view_set_right_margin(gtk_text_view(widget), Value)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MakeWord(FLeftMargin, FRightMargin))
 			End If
@@ -198,7 +198,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TextBox.WantReturn() As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FWantReturn = StyleExists(ES_WANTRETURN)
 		#endif
 		Return FWantReturn
@@ -206,7 +206,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TextBox.WantReturn(Value As Boolean)
 		FWantReturn = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle ES_WANTRETURN, Value
 		#endif
 	End Property
@@ -232,7 +232,7 @@ Namespace My.Sys.Forms
 		FMultiline = Value
 		#ifdef __USE_GTK__
 			ChangeWidget
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FMultiline Then
 				Base.Style = Base.Style Or ES_MULTILINE Or ES_WANTRETURN
 			Else
@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, Index)
 				gtk_text_buffer_insert(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, ToUTF8(wsLine & Chr(13) & Chr(10)), -1)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As WString Ptr sLine = CAllocate_(MAXLENGTH * SizeOf(WString))
 			If Index >= 0 Then
 				iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
@@ -284,7 +284,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, Index + 1)
 				gtk_text_buffer_delete(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, @_endline)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 			If iStart >= 0 Then
 				iEnd = SendMessage(FHandle, EM_LINEINDEX, Index + 1, 0)
@@ -306,6 +306,21 @@ Namespace My.Sys.Forms
 				Else
 					FText = WStr(*gtk_entry_get_text(gtk_entry(widget)))
 				EndIf
+			End If
+			Return *FText.vptr
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				Dim As jobject CharSequence = CallObjectMethod(FHandle, "android/widget/EditText", "getText", "()Ljava/lang/CharSequence;")
+				Dim As jclass cCharSequence = (*env)->FindClass(env, "java/lang/CharSequence")
+				Dim As jmethodID mLength = (*env)->GetMethodID(env, cCharSequence, "length", "()I")
+				Dim As jmethodID mCharAt = (*env)->GetMethodID(env, cCharSequence, "charAt", "(I)C")
+				Dim As Integer length = (*env)->CallIntMethod(env, CharSequence, mLength)
+				FText = ""
+				FText.Resize length
+				For i As Integer = 0 To length - 1
+				    FText.vptr[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
+				Next
+				FText.vptr[length] = 0
 			End If
 			Return *FText.vptr
 		#else
@@ -330,6 +345,10 @@ Namespace My.Sys.Forms
 					gtk_entry_set_text(gtk_entry(widget), ToUtf8(Value))
 				End If
 			EndIf
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				CallVoidMethod(FHandle, "android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V", (*env)->NewStringUTF(env, ToUTF8(FText)))
+			End If
 		#endif
 	End Property
 	
@@ -360,7 +379,7 @@ Namespace My.Sys.Forms
 					gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_NONE)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FBorderStyle Then
 				'Base.Style = Base.Style Or WS_BORDER
 				Base.ExStyle = WS_EX_CLIENTEDGE
@@ -380,8 +399,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_text_view_set_editable(gtk_text_view(WidgetTextView), Not Value)
 			gtk_editable_set_editable(gtk_editable(WidgetEntry), Not Value)
-		#else
-			If Handle Then Perform(EM_SETREADONLY,FReadOnly,0)
+		#elseif defined(__USE_WINAPI__)
+			If Handle Then Perform(EM_SETREADONLY, FReadOnly, 0)
 		#endif
 	End Property
 	
@@ -402,7 +421,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TextBox.HideSelection(Value As Boolean)
 		FHideSelection = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Not FHideSelection Then Base.Style = Base.Style Or ES_NOHIDESEL Else Base.Style = Base.Style And Not ES_NOHIDESEL
 		#endif
 	End Property
@@ -433,7 +452,7 @@ Namespace My.Sys.Forms
 					Case ecUpper: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_UPPERCASE_CHARS): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_UPPERCASE_CHARS)
 					End Select
 				#endif
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeStyle(ES_LOWERCASE, False)
 				ChangeStyle(ES_UPPERCASE, False)
 				Select Case FCharCase
@@ -455,7 +474,7 @@ Namespace My.Sys.Forms
 			If gtk_is_entry(widget) Then
 				gtk_entry_set_visibility(gtk_entry(widget), Not Value)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If FMasked Then
 					If WGet(FMaskChar) = "" Then
@@ -480,7 +499,7 @@ Namespace My.Sys.Forms
 			If gtk_is_entry(widget) Then
 				gtk_entry_set_invisible_char(gtk_entry(widget), Asc(Value))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(EM_SETPASSWORDCHAR, Asc(Value), 0)
 		#endif
 	End Property
@@ -496,7 +515,7 @@ Namespace My.Sys.Forms
 					End If
 				Next
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then FTopLine = Perform(EM_GETFIRSTVISIBLELINE, 0, 0)
 		#endif
 		Return FTopLine
@@ -510,7 +529,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_topline, Value)
 				gtk_text_view_forward_display_line(gtk_text_view(widget), @_topline)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(10012, FTopLine, 0)
 		#endif
 	End Property
@@ -544,7 +563,7 @@ Namespace My.Sys.Forms
 						gtk_entry_set_text(gtk_entry(widget), ToUtf8(FText))
 					End If
 				EndIf
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then SetWindowText(FHandle, FText.vptr)
 			#endif
 			Close #Fn
@@ -567,7 +586,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, Index + 1)
 				Return Len(WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, @_endline, True)))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As Integer CharIndex = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 				Return SendMessage(FHandle, EM_LINELENGTH, CharIndex, 0)
@@ -588,7 +607,7 @@ Namespace My.Sys.Forms
 					End If
 				Next
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Return SendMessage(FHandle, EM_LINEFROMCHAR, Index, 0)
 			End If
@@ -605,7 +624,7 @@ Namespace My.Sys.Forms
 			Else
 				Return 0
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Return SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 			End If
@@ -624,7 +643,7 @@ Namespace My.Sys.Forms
 			ElseIf Index = 0 Then
 				Return Text
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As Integer lThisChar = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 				Dim As Integer lChar = SendMessage(FHandle, em_linelength, lThisChar, 0)
@@ -649,7 +668,7 @@ Namespace My.Sys.Forms
 			ElseIf Index = 0 Then
 				Text = Value
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As Integer iStart, iEnd
 				iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
@@ -676,7 +695,7 @@ Namespace My.Sys.Forms
 					gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @iSelStart), Cast(gint Ptr, @iSelEnd))
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				SendMessage(FHandle, EM_GETSEL, CInt(@iSelStart), CInt(@iSelEnd))
 			End If
@@ -701,7 +720,7 @@ Namespace My.Sys.Forms
 				iSelStartRow = 0
 				iSelEndRow = 0
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As Integer iSelStart, iSelEnd
 				SendMessage(FHandle, EM_GETSEL, CInt(@iSelStart), CInt(@iSelEnd))
@@ -724,9 +743,13 @@ Namespace My.Sys.Forms
 			Else
 				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @iSelStart), *Cast(gint Ptr, @iSelEnd))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				SendMessage(FHandle, EM_SETSEL, iSelStart, iSelEnd)
+			End If
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(FindJNIClass(*FClassAncestor), "selSelection", "(II)V"), iSelStart, iSelEnd)
 			End If
 		#endif
 	End Sub
@@ -743,7 +766,7 @@ Namespace My.Sys.Forms
 			ElseIf iSelStartRow = 0 Then
 				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @iSelStartCol), *Cast(gint Ptr, @iSelEndCol))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As Integer iSelStart, iSelEnd
 				iSelStart = SendMessage(FHandle, EM_LINEINDEX, iSelStartRow, 0) + iSelStartCol
@@ -762,7 +785,7 @@ Namespace My.Sys.Forms
 			Else
 				Return gtk_text_buffer_get_line_count(gtk_text_view_get_buffer(gtk_text_view(widget)))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Return SendMessage(FHandle, EM_GetLineCount, 0, 0)
 			End If
@@ -783,7 +806,7 @@ Namespace My.Sys.Forms
 			Else
 				Return Type(gtk_editable_get_position(gtk_editable(widget)), 0)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				x = HiWord(SendMessage(FHandle, EM_GETSEL, 0, 0))
 				y = SendMessage(FHandle, EM_LINEFROMCHAR, x, 0)
@@ -805,7 +828,7 @@ Namespace My.Sys.Forms
 		FScrollBars = Value
 		#ifdef __USE_GTK__
 			ChangeWidget
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case FScrollBars
 			Case 0
 				This.Style = This.Style And Not (ws_hscroll Or ws_vscroll)
@@ -863,7 +886,7 @@ Namespace My.Sys.Forms
 			Else
 				gtk_text_view_set_wrap_mode(gtk_text_view(widget), GTK_WRAP_NONE)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Value Then
 				This.Style = This.Style And Not es_autohscroll
 			Else
@@ -883,7 +906,7 @@ Namespace My.Sys.Forms
 			Else
 				FSelStart = gtk_editable_get_position(gtk_editable(widget))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@FSelStart), 0)
 		#endif
 		Return FSelStart
@@ -899,8 +922,10 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, Value)
 				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_start)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_SETSEL, Value, Value)
+		#elseif defined(__USE_JNI__)
+			SetSel Value, Value
 		#endif
 	End Property
 	
@@ -915,7 +940,7 @@ Namespace My.Sys.Forms
 				LStart = gtk_text_iter_get_offset(@_start)
 				LEnd = gtk_text_iter_get_offset(@_end)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 		#endif
 		FSelLength = LEnd - LStart
@@ -939,7 +964,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_endnew, FEnd)
 				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_endnew)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 			FEnd = LStart + Value
 			SendMessage(Handle, EM_SETSEL, LStart, FEnd)
@@ -957,7 +982,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
 				LEnd = gtk_text_iter_get_offset(@_end)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, 0, CInt(@LEnd))
 		#endif
 		FSelEnd = LEnd
@@ -977,7 +1002,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_endnew, FSelEnd)
 				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_endnew)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 			SendMessage(Handle, EM_SETSEL, LStart, FSelEnd)
 			SendMessage(Handle, EM_SCROLLCARET, 0,0)
@@ -995,7 +1020,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
 				WLet FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, @_end, True))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As Integer LStart, LEnd
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
@@ -1025,7 +1050,7 @@ Namespace My.Sys.Forms
 				Dim As gint Pos1 = gtk_editable_get_position(gtk_editable(widget))
 				gtk_editable_insert_text(gtk_editable(widget), ToUTF8(*FSelText), -1, @Pos1)
 			EndIf
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(FHandle, EM_REPLACESEL, 0, CInt(FSelText))
 		#endif
 	End Property
@@ -1040,7 +1065,7 @@ Namespace My.Sys.Forms
 			If gtk_is_entry(widget) Then
 				gtk_entry_set_max_length(gtk_entry(widget), Value)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(EM_LIMITTEXT, Value, 0)
 		#endif
 	End Property
@@ -1050,7 +1075,7 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				FModified = gtk_text_buffer_get_modified(gtk_text_view_get_buffer(gtk_text_view(widget)))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				FModified = (Perform(EM_GETMODIFY, 0, 0) <> 0)
 			End If
@@ -1064,14 +1089,14 @@ Namespace My.Sys.Forms
 			If gtk_is_text_view(widget) Then
 				gtk_text_buffer_set_modified(gtk_text_view_get_buffer(gtk_text_view(widget)), FModified)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
-				Perform(EM_SETMODIFY, Cast(Byte,Value), 0)
+				Perform(EM_SETMODIFY, Cast(Byte, Value), 0)
 			End If
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TextBox.WndProc(ByRef message As Message)
 		End Sub
 		
@@ -1098,7 +1123,7 @@ Namespace My.Sys.Forms
 					Message.Result = True 
 				End If
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			'?GetMessageName(message.msg)
 			Select Case message.Msg
 			Case CM_CTLCOLOR
@@ -1182,13 +1207,13 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub TextBox.ClearUndo
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then Perform(EM_EMPTYUNDOBUFFER, 0, 0)
 		#endif
 	End Sub
 	
 	Private Function TextBox.CanUndo As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Return (Perform(EM_CANUNDO, 0, 0) <> 0)
 			Else
@@ -1200,7 +1225,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub TextBox.Undo
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then Perform(WM_UNDO, 0, 0)
 		#endif
 	End Sub
@@ -1212,7 +1237,7 @@ Namespace My.Sys.Forms
 			Else
 				gtk_text_buffer_paste_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), 0, True)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(WM_PASTE, 0, 0)
 		#endif
 	End Sub
@@ -1241,7 +1266,7 @@ Namespace My.Sys.Forms
 			Else
 				gtk_text_buffer_copy_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(WM_COPY, 0, 0)
 		#endif
 	End Sub
@@ -1253,7 +1278,7 @@ Namespace My.Sys.Forms
 			Else
 				gtk_text_buffer_cut_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), True)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(WM_CUT, 0, 0)
 		#endif
 	End Sub
@@ -1268,8 +1293,10 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(gtk_text_view(Widget))))
 				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(EM_SETSEL, 0, -1)
+		#elseif defined(__USE_JNI__)
+			If FHandle Then (*env)->CallVoidMethod(env, FHandle, GetMethodID(FindJNIClass(*FClassAncestor), "selectAll", "()V"))
 		#endif
 	End Sub
 	
@@ -1396,7 +1423,7 @@ Namespace My.Sys.Forms
 			scrolledwidget = 0
 			Widget = WidgetEntry
 			This.RegisterClass "TextBox", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ACharCase(0)      = 0
 			ACharCase(1)      = ES_UPPERCASE
 			ACharCase(2)      = ES_LOWERCASE
@@ -1421,7 +1448,7 @@ Namespace My.Sys.Forms
 		FWantReturn        = True
 		FTabStop = True
 		With This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ChildProc   = @WndProc
 				.ExStyle     = WS_EX_CLIENTEDGE ' OR ES_AUTOHSCROLL OR ES_AUTOVSCROLL
@@ -1429,9 +1456,11 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 				.DoubleBuffered = True
 				.RegisterClass "TextBox", "Edit"
+				WLet(FClassAncestor, "Edit")
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, Replace(__FB_QUOTE__(Package), "_", "/") & "/mffEditText")
 			#endif
 			WLet(FClassName, "TextBox")
-			WLet(FClassAncestor, "Edit")
 			.Child       = @This
 			.Width       = 121
 			.Height      = ScaleY(Font.Size /72*96+6) '21
@@ -1444,3 +1473,13 @@ Namespace My.Sys.Forms
 		If FLine <> 0 Then Deallocate_( FLine)
 	End Destructor
 End Namespace
+
+#ifdef __USE_JNI__
+	Sub mffEditText_onTextChanged Alias AddToPackage(Package, mffEditText_onTextChanged) (ByVal env As JNIEnv Ptr, This_ As jobject, s As jobject, start As Integer, before As Integer, count As Integer) Export
+		Dim As Integer ID = CallIntMethod(This_, "android/view/View", "getId", "()I")
+		Dim As My.Sys.Forms.TextBox Ptr txt = Handles.Item(ID)
+		If txt Then
+			If txt->OnChange Then txt->OnChange(*txt)
+		End If
+	End Sub
+#endif

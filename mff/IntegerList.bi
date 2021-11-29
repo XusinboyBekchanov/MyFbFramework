@@ -45,6 +45,8 @@ Public:
 	Declare Sub Insert(Index As Integer, FItem As Integer, FObj As Any Ptr = 0)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
+	Declare Function Get(iItem As Integer, Obj As Any Ptr = 0) As Any Ptr
+	Declare Sub Set(iItem As Integer, Obj As Any Ptr)
 	Declare Sub Sort
 	Declare Sub Clear
 	Declare Function IndexOf(FItem As Integer) As Integer

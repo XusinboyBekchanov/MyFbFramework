@@ -97,7 +97,7 @@ Namespace My.Sys.Forms
 		Invalidate
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Panel.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QPanel(Sender.Child)
@@ -109,7 +109,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	Private Sub Panel.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
 				If OnPaint Then OnPaint(This, Canvas)
@@ -200,7 +200,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Panel.AdjustColors(FBevel As Integer)
 			FTopColor = GetSysColor(COLOR_BTNHIGHLIGHT)
 			If FBevel = bvLowered Then FTopColor = GetSysColor(COLOR_BTNSHADOW)
@@ -234,6 +234,13 @@ Namespace My.Sys.Forms
 	Private Operator Panel.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
+	
+	Private Sub Panel.CreateWnd
+		Base.CreateWnd
+		#ifdef __USE_JNI__
+			layoutview = FHandle
+		#endif
+	End Sub
 	
 	Private Constructor Panel
 		With This
@@ -270,13 +277,15 @@ Namespace My.Sys.Forms
 			'PopupMenu.Ctrl = This
 			Canvas.Ctrl    = @This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "Panel"
 				.ChildProc   = @WndProc
 				.ExStyle     = 0
 				.Style       = WS_CHILD
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/AbsoluteLayout")
 			#endif
 			FTabIndex          = -1
 			WLet(FClassName, "Panel")
@@ -286,7 +295,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor Panel
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "Panel", GetModuleHandle(NULL)
 		#endif
 	End Destructor

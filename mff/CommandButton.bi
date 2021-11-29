@@ -56,8 +56,6 @@ Namespace My.Sys.Forms
 		Declare Property Style As ButtonStyle
 		Declare Property Style(Value As ButtonStyle)
 		Declare Operator Cast As Control Ptr
-		'Creates the window (Windows, Android)
-		Declare Virtual Sub CreateWnd
 		Declare Constructor
 		Declare Destructor
 		#ifdef __USE_WINAPI__

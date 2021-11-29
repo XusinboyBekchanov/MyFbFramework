@@ -72,8 +72,7 @@ Namespace My.Sys.Forms
 			gtk_label_set_text_with_mnemonic(gtk_label(gtk_bin_get_child(gtk_bin(widget))), ToUtf8(Replace(Value, "&", "_")))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				Dim As jmethodID setTextMethod = (*pApp->env)->GetMethodID(pApp->env, class_object, "setText", "(Ljava/lang/CharSequence;)V")
-				(*pApp->env)->CallVoidMethod(pApp->env, FHandle, setTextMethod, (*pApp->env)->NewStringUTF(pApp->env, ToUTF8(FText)))
+				CallVoidMethod(FHandle, "android/widget/Button", "setText", "(Ljava/lang/CharSequence;)V", (*env)->NewStringUTF(env, ToUTF8(FText)))
 			End If
 		#endif
 	End Property
@@ -200,18 +199,6 @@ Namespace My.Sys.Forms
 			If but->OnClick Then but->OnClick(*but)
 		End Sub
 	#endif
-	
-	Private Sub CommandButton.CreateWnd
-		#ifdef __USE_JNI__
-			If pApp = 0 OrElse pApp->env = 0 OrElse pApp->Instance = 0 Then Exit Sub
-			If FHandle <> 0 Then Exit Sub
-			class_object = (*pApp->env)->FindClass(pApp->env, *FClassAncestor)
-			Dim As jmethodID ConstructorMethod = (*pApp->env)->GetMethodID(pApp->env, class_object, "<init>", "(Landroid/content/Context;)V")
-			FHandle = (*pApp->env)->NewObject(pApp->env, class_object, ConstructorMethod, pApp->Instance)
-			Text = FText
-		#endif
-		Base.CreateWnd
-	End Sub
 	
 	Private Constructor CommandButton
 		#ifdef __USE_GTK__

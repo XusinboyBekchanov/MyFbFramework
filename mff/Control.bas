@@ -481,6 +481,14 @@ Namespace My.Sys.Forms
 						'                End If
 						'            End If
 					End If
+				#elseif defined(__USE_JNI__)
+					If FHandle Then
+						If layoutview Then
+							FClientWidth = UnScaleX(CallIntMethod(layoutview, "android/view/View", "getWidth", "()I"))
+						Else
+							FClientWidth = This.Width
+						End If
+					End If
 				#endif
 				Return FClientWidth
 			End Function
@@ -526,6 +534,14 @@ Namespace My.Sys.Forms
 						'                    FClientHeight = R.Bottom - 2
 						'                End If
 						'            End If
+					End If
+				#elseif defined(__USE_JNI__)
+					If FHandle Then
+						If layoutview Then
+							FClientHeight = UnScaleY(CallIntMethod(layoutview, "android/view/View", "getHeight", "()I"))
+						Else
+							FClientHeight = This.Height
+						End If
 					End If
 				#endif
 				Return FClientHeight
@@ -865,6 +881,14 @@ Namespace My.Sys.Forms
 					Instance,_
 					@This) ' '
 				#endif
+			#elseif defined(__USE_JNI__)
+				If pApp = 0 OrElse env = 0 OrElse pApp->Instance = 0 Then Exit Sub
+				If FHandle = 0 AndAlso *FClassAncestor <> "" Then
+					Dim As jclass class_object = (*env)->FindClass(env, *FClassAncestor)
+					Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_object, "<init>", "(Landroid/content/Context;)V")
+					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, pApp->Instance)
+				End If
+				Text = FText
 			#endif
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 				If Handle Then
@@ -877,20 +901,47 @@ Namespace My.Sys.Forms
 							PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
 						End If
 					#elseif defined(__USE_JNI__)
-						If pApp AndAlso pApp->env Then
-							If *FClassAncestor <> "" Then class_object = (*pApp->env)->FindClass(pApp->env, *FClassAncestor)
+						If pApp AndAlso env Then
+							Handles.Add @This
+							FHandle = (*env)->NewGlobalRef(env, FHandle)
+							If layoutview Then
+								layoutview = (*env)->NewGlobalRef(env, layoutview)
+								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+								(*env)->CallVoidMethod(env, layoutview, GetMethodID(class_view, "setId", "(I)V"), FID)
+								Dim As jmethodID setOnClickListener = (*env)->GetMethodID(env, class_view, "setOnClickListener", "(Landroid/view/View$OnClickListener;)V")
+								(*env)->CallVoidMethod(env, layoutview, setOnClickListener, pApp->MainForm->Handle)
+								Dim As jmethodID addOnLayoutChangeListener = (*env)->GetMethodID(env, class_view, "addOnLayoutChangeListener", "(Landroid/view/View$OnLayoutChangeListener;)V")
+								(*env)->CallVoidMethod(env, layoutview, addOnLayoutChangeListener, pApp->MainForm->Handle)
+							End If
+							FID = Handles.Count - 1
 							If This.Parent AndAlso This.Parent->layoutview Then
-								Dim env As JNIEnv Ptr = pApp->env
+								(*env)->CallVoidMethod(env, FHandle, GetMethodID(FindJNIClass("android/view/View"), "setId", "(I)V"), FID)
 								Dim As jclass class_viewgroup = (*env)->FindClass(env, "android/view/ViewGroup")
 								Dim As jmethodID addviewMethod = (*env)->GetMethodID(env, class_viewgroup, "addView", "(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V")
-								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/view/ViewGroup$MarginLayoutParams")
-								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(II)V")
-								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, FWidth, FHeight)
-								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
-								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
-								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
-								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
+								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
+								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(IIII)V")
+								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, ScaleX(FWidth), ScaleY(FHeight), ScaleX(FLeft), ScaleY(FTop))
+'								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
+'								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
+'								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
+'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
 								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
+								'Text = Str(1)
+								If OnClick Then
+									Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+									Dim As jmethodID setOnClickListener = (*env)->GetMethodID(env, class_view, "setOnClickListener", "(Landroid/view/View$OnClickListener;)V")
+									(*env)->CallVoidMethod(env, FHandle, setOnClickListener, pApp->MainForm->Handle)
+									Dim As jmethodID addOnLayoutChangeListener = (*env)->GetMethodID(env, class_view, "addOnLayoutChangeListener", "(Landroid/view/View$OnLayoutChangeListener;)V")
+									(*env)->CallVoidMethod(env, FHandle, addOnLayoutChangeListener, pApp->MainForm->Handle)
+								End If
+'								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/view/ViewGroup$MarginLayoutParams")
+'								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(II)V")
+'								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, FWidth, FHeight)
+'								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
+'								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
+'								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
+'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
+'								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
 '								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
 '								Dim As jmethodID setLeftMethod = (*env)->GetMethodID(env, class_view, "setLeft", "(I)V")
 '								Dim As jmethodID setTopMethod = (*env)->GetMethodID(env, class_view, "setTop", "(I)V")
@@ -2379,6 +2430,27 @@ Namespace My.Sys.Forms
 		End Destructor
 	#endif
 End Namespace
+
+#ifdef __USE_JNI__
+	Sub onClick Alias AddToPackage(Package, mffActivity_onClick) (ByVal env As JNIEnv Ptr, This_ As jobject, v As jobject) Export
+		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
+		If Ctrl Then
+			If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl)
+		End If
+	End Sub
+	
+	Sub onLayoutChange Alias AddToPackage(Package, mffActivity_onLayoutChange) (ByVal env As JNIEnv Ptr, This_ As jobject, v As jobject, lLeft As jint, tTop As jint, rRight as jint, bBottom as jint, oldLeft as jint, oldTop as jint, oldRight as jint, oldBottom as jint) Export
+		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
+		If Ctrl Then
+			If Ctrl->Controls Then
+				Ctrl->RequestAlign
+			End If
+			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl, rRight - lLeft, bBottom - tTop)
+		End If
+	End Sub
+#endif
 
 #ifdef __EXPORT_PROCS__
 	Function Q_Control Alias "QControl" (Ctrl As Any Ptr) As My.Sys.Forms.Control Ptr __EXPORT__

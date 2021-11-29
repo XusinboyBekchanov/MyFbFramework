@@ -28,6 +28,8 @@ Private Type PointerList Extends Object
         Declare Sub Insert(Index As Integer, _Item As Any Ptr, Obj As Any Ptr = 0)
         Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
         Declare Sub Remove(Index As Integer)
+        Declare Function Get(_Item As Any Ptr, Obj As Any Ptr = 0) As Any Ptr
+        Declare Sub Set(_Item As Any Ptr, Obj As Any Ptr)
         Declare Sub Clear
         Declare Function IndexOf(Item As Any Ptr) As Integer
         Declare Function IndexOfObject(Obj As Any Ptr) As Integer
@@ -128,6 +130,22 @@ End Function
 Private Function PointerList.ContainsObject(Obj As Any Ptr) As Boolean
     Return IndexOfObject(Obj) <> -1
 End Function
+
+Private Function PointerList.Get(_Item As Any Ptr, Obj As Any Ptr = 0) As Any Ptr
+	For i As Integer = 0 To Count - 1
+        If QPointerListItem(FItems.Items[i]).Value = _Item Then Return QPointerListItem(FItems.Items[i]).Object
+	Next i
+	Return Obj
+End Function
+
+Private Sub PointerList.Set(_Item As Any Ptr, Obj As Any Ptr)
+	For i As Integer = 0 To Count - 1
+        If QPointerListItem(FItems.Items[i]).Value = _Item Then 
+        	QPointerListItem(FItems.Items[i]).Object = Obj
+        	Exit Sub
+        End If
+	Next i
+End Sub
 
 Private Constructor PointerList
     FItems.Clear

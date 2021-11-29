@@ -75,7 +75,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 		OnClick    As Sub(ByRef Sender As Label)
 		OnDblClick As Sub(ByRef Sender As Label)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			OnDraw     As Sub(ByRef Sender As Label,ByRef R As Rect,DC As HDC = 0)
 		#endif
 	End Type

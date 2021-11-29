@@ -93,6 +93,10 @@ Const HELP_SETPOPUP_POS = &Hd
 	Declare Function EnumThreadWindowsProc(FWindow As HWND,LData As LParam) As Bool
 	
 	Declare Function MainHandle As HWND
+#elseif defined(__USE_JNI__)
+	Dim Shared env          As JNIEnv Ptr
+	Dim Shared xdpi         As Double
+	Dim Shared ydpi         As Double
 #endif
 
 Dim Shared As Long filenumberCounter
@@ -100,8 +104,17 @@ Dim Shared As Boolean Ptr filenumbers
 Declare Function FreeFile_ As Long
 Declare Function CloseFile_(filenum As Long) As Long
 
-Declare Function ScaleX (ByVal cx As Single) As Single
-Declare Function ScaleY (ByVal cy As Single) As Single
+#ifdef __USE_JNI__
+	Declare Function ScaleX(ByVal cx As Single) As Integer
+	Declare Function ScaleY(ByVal cy As Single) As Integer
+	Declare Function UnScaleX(ByVal cx As Single) As Integer
+	Declare Function UnScaleY(ByVal cy As Single) As Integer
+#else
+	Declare Function ScaleX(ByVal cx As Single) As Single
+	Declare Function ScaleY(ByVal cy As Single) As Single
+	Declare Function UnScaleX(ByVal cx As Single) As Single
+	Declare Function UnScaleY(ByVal cy As Single) As Single
+#endif
 
 Declare Function iGet(Value As Any Ptr) As Integer
 Declare Function ZGet(ByRef subject As ZString Ptr) As String

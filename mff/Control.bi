@@ -101,7 +101,6 @@ Namespace My.Sys.Forms
 			FAnchoredParentWidth As Integer
 			FAnchoredParentHeight As Integer
 		Protected:
-			FID                As Integer
 			FOwner             As Control Ptr
 			FDisposed As Boolean
 			#ifdef __USE_GTK__

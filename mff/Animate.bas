@@ -299,6 +299,9 @@ Namespace My.Sys.Forms
 								If pGraph = 0 Then
 									Dim As WString Ptr wFile
 									WLet wFile, Replace(*FFile, "/", "\")
+									If StartsWith(*wFile, "./") OrElse StartsWith(*wFile, ".\") Then
+										WLetEx wFile, ExePath & Mid(*wFile, 2), True
+									End If
 									Error_HR(CoInitialize(0), "CoInitialize")
 									Error_HR(CoCreateInstance(@CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, @IID_IGraphBuilder, @pGraph), "CoCreateInstance")
 									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaControl, @pControl  ), "IMediaControl")
