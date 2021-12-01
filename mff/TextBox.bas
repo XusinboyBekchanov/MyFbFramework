@@ -347,7 +347,7 @@ Namespace My.Sys.Forms
 			EndIf
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				CallVoidMethod(FHandle, "android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V", (*env)->NewStringUTF(env, ToUTF8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
 			End If
 		#endif
 	End Property
@@ -749,7 +749,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(FindJNIClass(*FClassAncestor), "selSelection", "(II)V"), iSelStart, iSelEnd)
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "selSelection", "(II)V"), iSelStart, iSelEnd)
 			End If
 		#endif
 	End Sub
@@ -1296,7 +1296,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(EM_SETSEL, 0, -1)
 		#elseif defined(__USE_JNI__)
-			If FHandle Then (*env)->CallVoidMethod(env, FHandle, GetMethodID(FindJNIClass(*FClassAncestor), "selectAll", "()V"))
+			If FHandle Then (*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "selectAll", "()V"))
 		#endif
 	End Sub
 	

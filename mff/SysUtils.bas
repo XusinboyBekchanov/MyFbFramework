@@ -154,29 +154,25 @@ End Namespace
 		Return (*env)->FindClass(env, className)
 	End Function
 	
-	Function GetMethodID(javaclass As jclass, methodName As String, typeName As String) As jmethodID
-		Return (*env)->GetMethodID(env, javaclass, methodName, typeName)
+	Function GetMethodID(className As String, methodName As String, typeName As String) As jmethodID
+		Return (*env)->GetMethodID(env, FindJNIClass(className), methodName, typeName)
 	End Function
 	
-	Function GetFieldID(javaclass As jclass, fieldName As String, typeName As String) As jfieldID
-		Return (*env)->GetFieldID(env, javaclass, fieldName, typeName)
+	Function GetFieldID(className As String, fieldName As String, typeName As String) As jfieldID
+		Return (*env)->GetFieldID(env, FindJNIClass(className), fieldName, typeName)
 	End Function
 	
 	Function CallObjectMethod(obj As jobject, className As String, methodName As String, typeName As String) As jobject
-		Return (*env)->CallObjectMethod(env, obj, GetMethodID(FindJNIClass(className), methodName, typeName))
+		Return (*env)->CallObjectMethod(env, obj, GetMethodID(className, methodName, typeName))
 	End Function
 	
 	Function GetIntField(obj As jobject, className As String, fieldName As String, typeName As String) As Integer
-		Return (*env)->GetIntField(env, obj, GetFieldID(FindJNIClass(className), fieldName, typeName))
+		Return (*env)->GetIntField(env, obj, GetFieldID(className, fieldName, typeName))
 	End Function
 	
 	Function CallIntMethod(obj As jobject, className As String, methodName As String, typeName As String) As Integer
-		Return (*env)->CallIntMethod(env, obj, GetMethodID(FindJNIClass(className), methodName, typeName))
+		Return (*env)->CallIntMethod(env, obj, GetMethodID(className, methodName, typeName))
 	End Function
-	
-	Sub CallVoidMethod(obj As jobject, className As String, methodName As String, typeName As String, Setting As jobject)
-		(*env)->CallVoidMethod(env, obj, GetMethodID(FindJNIClass(className), methodName, typeName), Setting)
-	End Sub
 #endif
 
 ' =====================================================================================

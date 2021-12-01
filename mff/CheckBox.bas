@@ -45,7 +45,7 @@ Namespace My.Sys.Forms
 	Private Property CheckBox.Alignment(Value As CheckAlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle BS_LEFT, False
 				ChangeStyle BS_RIGHTBUTTON, False
 				Select Case Value
@@ -89,38 +89,54 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_button_set_label(GTK_BUTTON(widget), ToUtf8(Value))
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+			End If
 		#endif
 	End Property
 	
 	Private Property CheckBox.Checked As Boolean
-		#ifdef __USE_GTK__
-			If widget Then FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
-		#else
-			If FHandle Then FChecked = Perform(BM_GETCHECK, 0, 0)
-		#endif
+		If FHandle Then
+			#ifdef __USE_GTK__
+				FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
+			#elseif defined(__USE_WINAPI__)
+				FChecked = Perform(BM_GETCHECK, 0, 0)
+			#elseif defined(__USE_JNI__)
+				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
+			#endif
+		End If
 		Return FChecked
 	End Property
 	
 	Private Property CheckBox.Checked(Value As Boolean)
 		FChecked = Value
-		#ifdef __USE_GTK__
-			If widget Then gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
-		#else
-			If Handle Then Perform(BM_SETCHECK,FChecked,0)
-		#endif
+		If FHandle Then
+			#ifdef __USE_GTK__
+				gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
+			#elseif defined(__USE_WINAPI__)
+				Perform(BM_SETCHECK, FChecked, 0)
+			#elseif defined(__USE_JNI__)
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
+			#endif
+		End If
 	End Property
 	
 	Private Sub CheckBox.HandleIsAllocated(ByRef Sender As Control)
-		If Sender.Child Then
-			#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
+			If Sender.Child Then
 				With QCheckBox(Sender.Child)
 					.Perform(BM_SETCHECK, .FChecked, 0)
 				End With
-			#endif
-		End If
+			End If
+		#elseif defined(__USE_JNI__)
+			With QCheckBox(@Sender)
+				If .FChecked Then .Checked = .FChecked
+			End With
+		#endif
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub CheckBox.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
@@ -131,7 +147,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub CheckBox.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -172,20 +188,22 @@ Namespace My.Sys.Forms
 				widget = gtk_check_button_new_with_label("")
 				.RegisterClass "CheckBox", @This
 				g_signal_connect(widget, "toggled", G_CALLBACK(@CheckBox_Toggled), @This)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "CheckBox", "Button"
+				WLet(FClassAncestor, "Button")
 				.ChildProc              = @WndProc
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/CheckBox")
 			#endif
 			WLet(FClassName, "CheckBox")
-			WLet(FClassAncestor, "Button")
 			FTabIndex = -1
 			FTabStop = True
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.ExStyle                = 0
 				.Style                  = WS_CHILD Or BS_CHECKBOX
 				.BackColor                  = GetSysColor(COLOR_BTNFACE)
-				.OnHandleIsAllocated    = @HandleIsAllocated
 			#endif
+			.OnHandleIsAllocated    = @HandleIsAllocated
 			.Width                  = 90
 			.Height                 = 17
 			.FTabIndex              = -1

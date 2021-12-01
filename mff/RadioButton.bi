@@ -20,10 +20,10 @@ Namespace My.Sys.Forms
 	Private:
 		FAlignment  As Integer
 		FChecked    As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
+		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:

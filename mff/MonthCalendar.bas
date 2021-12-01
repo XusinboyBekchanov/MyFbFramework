@@ -63,10 +63,12 @@ Namespace My.Sys.Forms
 				Dim As guint y, m, d
 				gtk_calendar_get_date(gtk_calendar(FHandle), @y, @m, @d)
 				FSelectedDate = DateSerial(y, m + 1, d)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
 				MonthCal_GetCurSel(This.FHandle, @pst)
 				FSelectedDate = DateSerial(pst.wYear, pst.wMonth, pst.wDay)
+			#elseif defined(__USE_JNI__)
+				FSelectedDate = (*env)->CallLongMethod(env, FHandle, GetMethodID(*FClassAncestor, "getDate", "()J"))
 			#endif
 		End If
 		Return FSelectedDate
@@ -84,12 +86,14 @@ Namespace My.Sys.Forms
 						gtk_calendar_unmark_day(gtk_calendar(FHandle), Day(Now))
 					End If
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
 				pst.wYear  = Year(Value)
 				pst.wMonth = Month(Value)
 				pst.wDay   = Day(Value)
 				MonthCal_SetCurSel(This.FHandle, @pst)
+			#elseif defined(__USE_JNI__)
+				 (*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setDate", "(J)V"), FSelectedDate)
 			#endif
 		End If
 		FSelectedDate = Value
@@ -101,7 +105,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
 				FWeekNumbers = StyleExists(GTK_CALENDAR_SHOW_WEEK_NUMBERS)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				FWeekNumbers = StyleExists(MCS_WEEKNUMBERS)
 			#endif
 		End If
@@ -114,7 +118,7 @@ Namespace My.Sys.Forms
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
 				ChangeStyle GTK_CALENDAR_SHOW_WEEK_NUMBERS, Value
 				gtk_calendar_set_display_options(gtk_calendar(FHandle), FStyle)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeStyle MCS_WEEKNUMBERS, Value
 				This.Repaint
 			#endif
@@ -124,7 +128,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MonthCalendar.TodayCircle() As Boolean
 		If This.FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				FTodayCircle = Not StyleExists(MCS_NOTODAYCIRCLE)
 			#endif
 		End If
@@ -133,7 +137,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MonthCalendar.TodayCircle(ByVal Value As Boolean)
 		If This.FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle MCS_NOTODAYCIRCLE, Not Value
 				This.Repaint
 			#endif
@@ -143,7 +147,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MonthCalendar.TodaySelector() As Boolean
 		If This.FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				FTodaySelector = Not StyleExists(MCS_NOTODAY)
 			#endif
 		End If
@@ -152,7 +156,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MonthCalendar.TodaySelector(ByVal Value As Boolean)
 		If This.FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle MCS_NOTODAY, Not Value
 				This.Repaint
 			#endif
@@ -162,7 +166,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MonthCalendar.TrailingDates() As Boolean
 		If This.FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				#if _WIN32_WINNT >= &h0600
 					FTrailingDates = Not StyleExists(MCS_NOTRAILINGDATES)
 				#endif
@@ -174,7 +178,7 @@ Namespace My.Sys.Forms
 	
 	Private Property MonthCalendar.TrailingDates(ByVal Value As Boolean)
 		If This.FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				#if _WIN32_WINNT >= &h0600
 					ChangeStyle MCS_NOTRAILINGDATES, Not Value
 				#endif
@@ -189,7 +193,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
 				FShortDayNames = StyleExists(GTK_CALENDAR_SHOW_DAY_NAMES)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				#if _WIN32_WINNT >= &h0600
 					FShortDayNames = StylExists(MCS_SHORTDAYSOFWEEK)
 				#endif
@@ -204,7 +208,7 @@ Namespace My.Sys.Forms
 				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
 				ChangeStyle GTK_CALENDAR_SHOW_DAY_NAMES, Value
 				gtk_calendar_set_display_options(gtk_calendar(FHandle), FStyle)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				#if _WIN32_WINNT >= &h0600
 					ChangeStyle MCS_SHORTDAYSOFWEEK, Value
 				#endif
@@ -214,7 +218,7 @@ Namespace My.Sys.Forms
 		FShortDayNames = Value
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub MonthCalendar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QMonthCalendar(Sender.Child)
@@ -228,7 +232,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub MonthCalendar.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_NOTIFY
 				Dim lpChange As NMSELCHANGE Ptr = Cast(NMSELCHANGE Ptr, message.lparam)
@@ -258,19 +262,21 @@ Namespace My.Sys.Forms
 	Private Constructor MonthCalendar
 		With This
 			WLet(FClassName, "MonthCalendar")
-			WLet(FClassAncestor, "SysMonthCal32")
 			FTabIndex          = -1
 			FTabStop           = True
 			#ifdef __USE_GTK__
 				widget = gtk_calendar_new ()
 				g_signal_connect(widget, "day-selected", G_CALLBACK(@Calendar_DaySelected), @This)
 				.RegisterClass "MonthCalendar", @This
-			#else
-				.RegisterClass "MonthCalendar","SysMonthCal32"
+			#elseif defined(__USE_WINAPI__)
+				.RegisterClass "MonthCalendar", "SysMonthCal32"
+				WLet(FClassAncestor, "SysMonthCal32")
 				.Style        = WS_CHILD
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/CalendarView")
 			#endif
 			.Width        = 175
 			.Height       = 21
@@ -279,7 +285,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor MonthCalendar
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "MonthCalendar",GetModuleHandle(NULL)
 		#endif
 	End Destructor

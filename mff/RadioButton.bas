@@ -45,7 +45,7 @@ Namespace My.Sys.Forms
 	Private Property RadioButton.Alignment(Value As CheckAlignmentConstants)
 		If Value <> FAlignment Then
 			FAlignment = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle BS_LEFT, False
 				ChangeStyle BS_RIGHTBUTTON, False
 				Select Case Value
@@ -108,36 +108,54 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_text_with_mnemonic(gtk_label(gtk_bin_get_child(gtk_bin(widget))), ToUtf8(Replace(Value, "&", "_")))
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+			End If
 		#endif
 	End Property
 	
 	Private Property RadioButton.Checked As Boolean
-		#ifdef __USE_GTK__
-			If widget Then FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
-		#else
-			If Handle Then FChecked = Perform(BM_GETCHECK, 0, 0)
-		#endif
+		If FHandle Then
+			#ifdef __USE_GTK__
+				FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
+			#elseif defined(__USE_WINAPI__)
+				FChecked = Perform(BM_GETCHECK, 0, 0)
+			#elseif defined(__USE_JNI__)
+				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
+			#endif
+		End If
 		Return FChecked
 	End Property
 	
 	Private Property RadioButton.Checked(Value As Boolean)
 		FChecked = Value
-		#ifdef __USE_GTK__
-			If widget Then gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
-		#else
-			If Handle Then Perform(BM_SETCHECK, FChecked, 0)
-		#endif
+		If FHandle Then
+			#ifdef __USE_GTK__
+				gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
+			#elseif defined(__USE_WINAPI__)
+				Perform(BM_SETCHECK, FChecked, 0)
+			#elseif defined(__USE_JNI__)
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
+			#endif
+		End If
 	End Property
 	
-	#ifndef __USE_GTK__
-		Private Sub RadioButton.HandleIsAllocated(ByRef Sender As Control)
+	Private Sub RadioButton.HandleIsAllocated(ByRef Sender As Control)
+		#ifdef __USE_WINAPI__
 			If Sender.Child Then
 				With QRadioButton(Sender.Child)
 					.Perform(BM_SETCHECK, .FChecked, 0)
 				End With
 			End If
-		End Sub
-		
+		#elseif defined(__USE_JNI__)
+			With QRadioButton(@Sender)
+				If .FChecked Then .Checked = .FChecked
+			End With
+		#endif
+	End Sub
+	
+	#ifdef __USE_WINAPI__
 		Private Sub RadioButton.WndProc(ByRef Message As Message)
 			If Message.Sender Then
 				
@@ -146,7 +164,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub RadioButton.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR
 				Static As HDC Dc
@@ -182,19 +200,21 @@ Namespace My.Sys.Forms
 				widget = gtk_radio_button_new_with_label (NULL, "")
 				g_signal_connect(widget, "toggled", G_CALLBACK(@RadioButton_Toggled), @This)
 				.RegisterClass "RadioButton", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "RadioButton","Button"
 				.ChildProc   = @WndProc
 				.ExStyle     = 0
 				.Style       = WS_CHILD Or BS_AUTORADIOBUTTON
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				.DoubleBuffered = True
-				.OnHandleIsAllocated = @HandleIsAllocated
+				WLet(FClassAncestor, "Button")
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/RadioButton")
 			#endif
+			.OnHandleIsAllocated = @HandleIsAllocated
 			FTabIndex          = -1
 			FTabStop = True
 			WLet(FClassName, "RadioButton")
-			WLet(FClassAncestor, "Button")
 			.Width       = 90
 			.Height      = 17
 		End With

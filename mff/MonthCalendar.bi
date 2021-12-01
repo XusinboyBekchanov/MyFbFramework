@@ -12,10 +12,10 @@ Namespace My.Sys.Forms
 	
 	Private Type MonthCalendar Extends Control
 	Private:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#else
+		#elseif defined(__USE_GTK__)
 			Declare Static Sub Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
 		#endif
 	Protected:
