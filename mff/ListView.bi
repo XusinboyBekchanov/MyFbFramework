@@ -17,35 +17,7 @@ Private Enum SortStyle
 	ssSortDescending
 End Enum
 
-#ifdef __USE_GTK__
-	Private Enum ViewStyle
-		vsIcon
-		vsDetails
-		vsSmallIcon
-		vsList
-		vsTile
-		vsMax
-	End Enum
-	
-	Private Enum ColumnFormat
-		cfLeft
-		cfRight
-		cfCenter
-		cfJustifyMask
-		cfImage
-		cfBitmapOnRight
-		cfColHasImages
-		'cfFixedWidth
-		'cfNoDpiScale
-		'cfFixedRatio
-		'cfLineBreak
-		cfFill
-		'cfWrap
-		'cfNoTitle
-		'cfSplitButton
-		'cfTilePlacementMask
-	End Enum
-#else
+#ifdef __USE_WINAPI__
 	Private Enum ViewStyle
 		vsIcon = LV_VIEW_ICON
 		vsDetails = LV_VIEW_DETAILS
@@ -73,6 +45,34 @@ End Enum
 		'cfSplitButton = LVCFMT_SPLITBUTTON
 		'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
 	End Enum
+#else
+	Private Enum ViewStyle
+		vsIcon
+		vsDetails
+		vsSmallIcon
+		vsList
+		vsTile
+		vsMax
+	End Enum
+	
+	Private Enum ColumnFormat
+		cfLeft
+		cfRight
+		cfCenter
+		cfJustifyMask
+		cfImage
+		cfBitmapOnRight
+		cfColHasImages
+		'cfFixedWidth
+		'cfNoDpiScale
+		'cfFixedRatio
+		'cfLineBreak
+		cfFill
+		'cfWrap
+		'cfNoTitle
+		'cfSplitButton
+		'cfTilePlacementMask
+	End Enum
 #endif
 
 Namespace My.Sys.Forms
@@ -95,7 +95,7 @@ Namespace My.Sys.Forms
 		FState              As Integer
 		FChecked            As Boolean
 		FIndent             As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim lvi             As LVITEM
 		#endif
 	Public:
@@ -201,7 +201,7 @@ Namespace My.Sys.Forms
 	Private:
 		FItems As List
 		PItem As ListViewItem Ptr
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			lvi As LVITEM
 		#endif
 	Public:
@@ -324,7 +324,7 @@ Namespace My.Sys.Forms
 End Namespace
 
 'TODO:
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	'const LVS_ICON = &h0
 	'const LVS_REPORT = &h1
 	'const LVS_SMALLICON = &h2

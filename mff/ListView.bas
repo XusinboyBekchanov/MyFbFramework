@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim lvi As LVITEM
 				lvi.iItem = Index
@@ -109,13 +109,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Property ListViewItem.Text(iSubItem As Integer) ByRef As WString
-		#ifdef __USE_GTK__
-			If FSubItems.Count > iSubItem Then
-				Return FSubItems.Item(iSubItem)
-			Else
-				Return WStr("")
-			End If
-		#else
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				WReallocate(FText, 255)
 				lvi.Mask = LVIF_TEXT
@@ -132,6 +126,12 @@ Namespace My.Sys.Forms
 				Else
 					Return WStr("")
 				End If
+			End If
+		#else
+			If FSubItems.Count > iSubItem Then
+				Return FSubItems.Item(iSubItem)
+			Else
+				Return WStr("")
 			End If
 		#endif
 	End Property
@@ -163,7 +163,7 @@ Namespace My.Sys.Forms
 				If ListViewGetModel(Parent->Handle) Then
 					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, iSubItem + 3, ToUtf8(Value), -1)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent->Handle Then
 					lvi.Mask = LVIF_TEXT
 					lvi.iItem = Index
@@ -177,7 +177,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListViewItem.State As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -191,7 +191,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListViewItem.State(Value As Integer)
 		FState = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -203,7 +203,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListViewItem.Indent As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_INDENT
 				lvi.iItem = Index
@@ -217,7 +217,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListViewItem.Indent(Value As Integer)
 		FIndent = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_INDENT
 				lvi.iItem = Index
@@ -239,7 +239,7 @@ Namespace My.Sys.Forms
 			gtk_tree_model_get_iter_from_string(ListViewGetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
 			gtk_tree_model_get(ListViewGetModel(Parent->Handle), @iter, 0, @bChecked, -1)
 			Return bChecked
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -257,7 +257,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(ListViewGetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
 			gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @Iter, 0, Value, -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
@@ -280,7 +280,6 @@ Namespace My.Sys.Forms
 		WLet(FHint, Value)
 	End Property
 	
-	
 	Private Property ListViewItem.ImageIndex As Integer
 		Return FImageIndex
 	End Property
@@ -288,7 +287,7 @@ Namespace My.Sys.Forms
 	Private Property ListViewItem.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					lvi.Mask = LVIF_IMAGE
 					lvi.iItem = Index
@@ -334,7 +333,7 @@ Namespace My.Sys.Forms
 					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUTF8(Value), -1)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
 				FImageIndex = Cast(ListView Ptr, Parent)->Images->IndexOf(Value)
 				lvi.Mask = LVIF_IMAGE
@@ -397,7 +396,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Private Sub ListViewColumn.SelectItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
 		#endif
 	End Sub
@@ -408,7 +407,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListViewColumn.Text(ByRef Value As WString)
 		WLet(FText, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_TEXT Or LVCF_SUBITEM
@@ -432,7 +431,7 @@ Namespace My.Sys.Forms
 			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
@@ -449,7 +448,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListViewColumn.Format(Value As ColumnFormat)
 		FFormat = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_FMT Or LVCF_SUBITEM
@@ -467,7 +466,6 @@ Namespace My.Sys.Forms
 	Private Property ListViewColumn.Hint(ByRef Value As WString)
 		WLet(FHint, Value)
 	End Property
-	
 	
 	Private Property ListViewColumn.ImageIndex As Integer
 		Return FImageIndex
@@ -584,7 +582,7 @@ Namespace My.Sys.Forms
 				gtk_list_store_append(gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter)
 			End If
 			gtk_list_store_set (gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
@@ -599,7 +597,7 @@ Namespace My.Sys.Forms
 		If Parent Then
 			PItem->Parent = Parent
 			PItem->Text(0) = FCaption
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
 			#endif
 		End If
@@ -618,7 +616,7 @@ Namespace My.Sys.Forms
 	
 	Private Function ListViewItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As ListViewItem Ptr
 		Dim As ListViewItem Ptr PItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVITEM lvi
 		#endif
 		PItem = New_( ListViewItem)
@@ -629,7 +627,7 @@ Namespace My.Sys.Forms
 			.State          = State
 			.Indent         = Indent
 		End With
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_Param
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
@@ -652,7 +650,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_remove(gtk_list_store(ListViewGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
@@ -660,7 +658,7 @@ Namespace My.Sys.Forms
 		FItems.Remove Index
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function ListViewCompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 			Dim As ListViewItem Ptr FirstItem = Cast(ListViewItem Ptr, lParam1), SecondItem = Cast(ListViewItem Ptr, lParam2)
 			If FirstItem <> 0 AndAlso SecondItem <> 0 Then
@@ -675,7 +673,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ListViewItems.Sort
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @ListViewCompareFunc)
 				'ListView_SortItems Parent->Handle, @CompareFunc, 0
@@ -703,7 +701,7 @@ Namespace My.Sys.Forms
 	Private Sub ListViewItems.Clear
 		#ifdef __USE_GTK__
 			If Parent AndAlso gtk_list_store(ListViewGetModel(Parent->Handle)) Then gtk_list_store_clear(gtk_list_store(ListViewGetModel(Parent->Handle)))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
@@ -771,7 +769,7 @@ Namespace My.Sys.Forms
 	Private Function ListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As ListViewColumn Ptr
 		Dim As ListViewColumn Ptr PColumn
 		Dim As Integer Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
 		PColumn = New_( ListViewColumn)
@@ -828,7 +826,7 @@ Namespace My.Sys.Forms
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
 				#endif
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
 			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
@@ -841,7 +839,7 @@ Namespace My.Sys.Forms
 			PColumn->Parent = Parent
 			#ifdef __USE_GTK__
 				
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
 				End If
@@ -852,7 +850,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ListViewColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As ColumnFormat = cfLeft)
 		Dim As ListViewColumn Ptr PColumn
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
 		PColumn = New_( ListViewColumn)
@@ -864,7 +862,7 @@ Namespace My.Sys.Forms
 			.Width     = iWidth
 			.Format = Format
 		End With
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
 			lvc.cx=0
@@ -884,7 +882,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ListViewColumns.Remove(Index As Integer)
 		FColumns.Remove Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
@@ -948,13 +946,13 @@ Namespace My.Sys.Forms
 		FColumnHeaderHidden = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(TreeViewWidget), Not Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle LVS_NOCOLUMNHEADER, Value
 		#endif
 	End Property
 	
 	Private Sub ListView.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
 			If Value Then
 				If ((FLVExStyle And iStyle) <> iStyle) Then FLVExStyle = FLVExStyle Or iStyle
@@ -978,7 +976,7 @@ Namespace My.Sys.Forms
 			#else
 				
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_ONECLICKACTIVATE, Value
 		#endif
 	End Property
@@ -991,7 +989,7 @@ Namespace My.Sys.Forms
 		FHoverSelection = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_hover_selection(gtk_tree_view(TreeViewWidget), Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_TRACKSELECT, Value
 		#endif
 	End Property
@@ -1006,7 +1004,7 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To Columns.Count - 1
 				gtk_tree_view_column_set_reorderable(Columns.Column(i)->Column, Value)
 			Next
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_HEADERDRAGDROP, Value
 		#endif
 	End Property
@@ -1017,7 +1015,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListView.BorderSelect(Value As Boolean)
 		FBorderSelect = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeLVExStyle LVS_EX_BORDERSELECT, Value
 		#endif
 	End Property
@@ -1030,7 +1028,7 @@ Namespace My.Sys.Forms
 		FGridLines = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(TreeViewWidget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_GRIDLINES, Value
 		#endif
 	End Property
@@ -1041,7 +1039,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListView.CheckBoxes(Value As Boolean)
 		FCheckBoxes = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeLVExStyle LVS_EX_CHECKBOXES, Value
 		#endif
 	End Property
@@ -1052,7 +1050,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListView.FullRowSelect(Value As Boolean)
 		FFullRowSelect = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeLVExStyle LVS_EX_FULLROWSELECT, Value
 		#endif
 	End Property
@@ -1063,7 +1061,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListView.LabelTip(Value As Boolean)
 		FLabelTip = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeLVExStyle LVS_EX_LABELTIP, Value
 		#endif
 	End Property
@@ -1074,13 +1072,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ListView.HoverTime(Value As Integer)
 		FHoverTime = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(LVM_SETHOVERTIME, 0, Value)
 		#endif
 	End Property
 	
 	Private Property ListView.View As ViewStyle
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				FView = ListView_GetView(Handle)
 			End If
@@ -1127,7 +1125,7 @@ Namespace My.Sys.Forms
 				Case vsList, vsTile, vsMax: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_HORIZONTAL): gtk_icon_view_set_columns(gtk_icon_view(widget), 1)
 				End Select
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform LVM_SETVIEW, Cast(wparam, Cast(dword, Value)), 0
 		#endif
 	End Property
@@ -1150,7 +1148,7 @@ Namespace My.Sys.Forms
 					Return ListItems.FindByIterUser_Data(iter.User_Data)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Dim As Integer item = ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 				If item <> -1 Then Return ListItems.Item(item)
@@ -1185,7 +1183,7 @@ Namespace My.Sys.Forms
 					Return i
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
@@ -1209,7 +1207,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			End If
@@ -1221,7 +1219,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListView.SelectedColumn As ListViewColumn Ptr
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Return Columns.Column(ListView_GetSelectedColumn(Handle))
 			End If
@@ -1235,7 +1233,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListView.Sort(Value As SortStyle)
 		FSortStyle = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case FSortStyle
 			Case SortStyle.ssNone
 				ChangeStyle LVS_SORTASCENDING, False
@@ -1251,7 +1249,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListView.SelectedColumn(Value As ListViewColumn Ptr)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
 		#endif
 	End Property
@@ -1291,7 +1289,7 @@ Namespace My.Sys.Forms
 					If OnItemKeyDown Then OnItemKeyDown(This, SelectedItemIndex, Message.event->Key.keyval, Message.event->Key.state)
 				End If
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
@@ -1388,7 +1386,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub ListView.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
@@ -1597,7 +1595,7 @@ Namespace My.Sys.Forms
 		FTabStop = True
 		With This
 			.Child             = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.RegisterClass "ListView", WC_ListView
@@ -1606,6 +1604,8 @@ Namespace My.Sys.Forms
 				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
 				WLet(FClassAncestor, WC_ListView)
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/ListView")
 			#endif
 			WLet(FClassName, "ListView")
 			.Width             = 121
@@ -1615,9 +1615,9 @@ Namespace My.Sys.Forms
 	
 	Private Destructor ListView
 		ListItems.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "ListView",GetmoduleHandle(NULL)
-		#else
+		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
 			If gtk_is_widget(TreeViewWidget) Then gtk_widget_destroy(TreeViewWidget)
 			If gtk_is_widget(IconViewWidget) Then gtk_widget_destroy(IconViewWidget)
