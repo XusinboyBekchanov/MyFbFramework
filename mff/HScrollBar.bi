@@ -11,6 +11,8 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
+#include once "ScrollBarControl.bi"
+
 Namespace My.Sys.Forms
 	#define QHScrollBar(__Ptr__) *Cast(HScrollBar Ptr,__Ptr__)
 	
