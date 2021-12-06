@@ -178,21 +178,16 @@ Namespace My.Sys.Forms
 			Declare Property Style(Value As Integer)
 			Declare Property ExStyle As Integer
 			Declare Property ExStyle(Value As Integer)
-			Declare Virtual Sub ProcessMessage(ByRef message As Message)
-			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 			Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			OnActiveControlChanged As Sub(ByRef Sender As Control)
-			#ifndef __USE_GTK__
-				OnHandleIsAllocated As Sub(ByRef Sender As Control)
-				OnHandleIsDestroyed As Sub(ByRef Sender As Control)
-			#else
-				Declare Static Function hover_cb(ByVal user_data As gpointer) As gboolean
-				Declare Static Function Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, horizontal As Boolean, user_data As Any Ptr) As Boolean
-			#endif
+			OnHandleIsAllocated As Sub(ByRef Sender As Control)
+			OnHandleIsDestroyed As Sub(ByRef Sender As Control)
 			#ifdef __USE_GTK__
 				Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Declare Static Function EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Declare Static Function EventAfterProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+				Declare Static Function hover_cb(ByVal user_data As gpointer) As gboolean
+				Declare Static Function Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, horizontal As Boolean, user_data As Any Ptr) As Boolean
 			#elseif defined(__USE_WINAPI__)
 				Declare Static Function RegisterClass(ByRef wClassName As WString, ByRef wClassAncestor As WString = "", WndProcAddr As Any Ptr = 0) As Integer
 				Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
@@ -210,6 +205,8 @@ Namespace My.Sys.Forms
 				Declare Property ParentHandle(Value As HWND)
 				ToolTipHandle       As HWND
 			#endif
+			Declare Virtual Sub ProcessMessage(ByRef message As Message)
+			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 		Public:
 			'Canvas is all about drawing in a container (Windows, Linux).
 			Canvas        As My.Sys.Drawing.Canvas

@@ -17,7 +17,7 @@
 	#ifndef __USE_GTK__
 		#define __USE_GTK__
 	#endif
-#else
+#elseif Not defined(__USE_GTK__)
 	#ifndef __USE_WINAPI__
 		#define __USE_WINAPI__
 	#endif
