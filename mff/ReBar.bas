@@ -74,7 +74,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
 				Dim As REBARBANDINFO rbBand
-				Dim As RECT rct
+				Dim As ..RECT rct
 				rbBand.fMask = RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
 				rbBand.hwndChild = Value->Handle                                        ' (RBBIM_CHILD flag)
 				GetWindowRect(Value->Handle, @rct)
@@ -379,7 +379,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
 				Dim As REBARBANDINFO rbBand
-				Dim As RECT rct
+				Dim As ..RECT rct
 				rbBand.cbSize = SizeOf(REBARBANDINFO)
 				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
 				If (FImageIndex > -1) AndAlso Parent->ImageList AndAlso (Parent->ImageList->Count > 0) Then
@@ -400,7 +400,7 @@ Namespace My.Sys.Forms
 					FMinHeight = rct.Bottom - rct.Top
 					FWidth = rct.Right - rct.Left
 					If *FChild Is ToolBar Then
-						Dim As SIZE sz
+						Dim As ..SIZE sz
 						SendMessage FChild->Handle, TB_GETIDEALSIZE, False, Cast(LParam, @sz)
 						FIdealWidth = sz.cx
 						FMinWidth = sz.cx
@@ -482,7 +482,7 @@ Namespace My.Sys.Forms
 		#else
 			If Parent AndAlso Parent->Handle Then
 				Dim As REBARBANDINFO rbBand
-				Dim As RECT rct
+				Dim As ..RECT rct
 				
 				rbBand.cbSize = SizeOf(REBARBANDINFO)
 				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE

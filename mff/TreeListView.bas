@@ -1168,7 +1168,7 @@ Namespace My.Sys.Forms
 				If (ListView_HitTest(Handle, @lvhti) <> -1) Then
 					Var tlvi = GetTreeListViewItem(lvhti.iItem)
 					If tlvi AndAlso tlvi->Nodes.Count > 0 Then
-						Dim As Rect lpRect
+						Dim As ..Rect lpRect
 						ListView_GetSubItemRect(FHandle, lvhti.iItem, 0, LVIR_BOUNDS, @lpRect)
 						If lvhti.flags = LVHT_ONITEMSTATEICON OrElse (FOwnerDraw AndAlso lvhti.pt.x >= lpRect.Left + 3 + tlvi->Indent * 16 AndAlso lvhti.pt.x <= lpRect.Left + 3 + 16 + tlvi->Indent * 16 AndAlso _
 							lvhti.pt.y >= lpRect.Top AndAlso lvhti.pt.y <= lpRect.Top + 16) Then

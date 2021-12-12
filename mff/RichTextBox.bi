@@ -14,8 +14,8 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Function StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
-			Declare Static Function StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
+			Declare Static Function StreamInProc(hFile As ..Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
+			Declare Static Function StreamOutProc (hFile As ..Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
 			Declare Static Function GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
 		#else
 			Declare Function GetStrProperty(sProperty As String) ByRef As WString

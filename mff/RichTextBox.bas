@@ -1054,7 +1054,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Private Function RichTextBox.StreamInProc(hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
+		Private Function RichTextBox.StreamInProc(hFile As ..Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOl
 			Dim As Integer length
 			ReadFile(hFile, pBuffer, NumBytes, Cast(LPDWORD, @length), 0)
 			*pBytesRead = length
@@ -1063,7 +1063,7 @@ Namespace My.Sys.Forms
 			EndIf
 		End Function
 		
-		Private Function RichTextBox.StreamOutProc (hFile As Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
+		Private Function RichTextBox.StreamOutProc (hFile As ..Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
 			Dim As Integer length
 			WriteFile(hFile, pBuffer, NumBytes, Cast(LPDWORD, @length), 0)
 			*pBytesWritten = length
