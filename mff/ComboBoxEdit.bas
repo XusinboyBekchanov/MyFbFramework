@@ -674,14 +674,16 @@ Namespace My.Sys.Forms
 	Private Destructor ComboBoxEdit
 		WDeallocate FItemText
 		#ifdef __USE_GTK__
-			If gtk_is_widget(DropDownWidget) Then
-				gtk_widget_destroy(DropDownWidget)
-				DropDownWidget = 0
-			End If
-			If gtk_is_widget(DropDownListWidget) Then
-				gtk_widget_destroy(DropDownListWidget)
-				DropDownListWidget = 0
-			End If
+			#ifndef __FB_WIN32__
+				If gtk_is_widget(DropDownWidget) Then
+					gtk_widget_destroy(DropDownWidget)
+					DropDownWidget = 0
+				End If
+				If gtk_is_widget(DropDownListWidget) Then
+					gtk_widget_destroy(DropDownListWidget)
+					DropDownListWidget = 0
+				End If
+			#endif
 			Widget = 0
 			'			If This.Parent AndAlso This.Parent->Widget Then
 			'				gtk_container_remove(gtk_container(This.Parent->Widget), gtk_widget(Widget))

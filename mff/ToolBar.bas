@@ -482,7 +482,9 @@ Namespace My.Sys.Forms
 	Private Destructor ToolButton
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+				#ifndef __FB_WIN32__
+					If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+				#endif
 			#endif
 		#else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle

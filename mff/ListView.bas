@@ -719,7 +719,10 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ListViewItems
-		This.Clear
+		#if defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+		#else
+			This.Clear
+		#endif
 	End Destructor
 	
 	Private Property ListViewColumns.Count As Integer
@@ -1614,13 +1617,18 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ListView
-		ListItems.Clear
+		#if defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+		#else
+			ListItems.Clear
+		#endif
 		#ifdef __USE_WINAPI__
 			UnregisterClass "ListView",GetmoduleHandle(NULL)
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
-			If gtk_is_widget(TreeViewWidget) AndAlso TreeViewWidget <> widget Then gtk_widget_destroy(TreeViewWidget)
-			If gtk_is_widget(IconViewWidget) AndAlso IconViewWidget <> widget Then gtk_widget_destroy(IconViewWidget)
+			#ifndef __FB_WIN32__
+				If gtk_is_widget(TreeViewWidget) AndAlso TreeViewWidget <> widget Then gtk_widget_destroy(TreeViewWidget)
+				If gtk_is_widget(IconViewWidget) AndAlso IconViewWidget <> widget Then gtk_widget_destroy(IconViewWidget)
+			#endif
 		#endif
 	End Destructor
 End Namespace

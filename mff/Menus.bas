@@ -1080,7 +1080,9 @@ Namespace My.Sys.Forms
 		WDeallocate FName
 		WDeallocate FImageKey
 		#ifdef __USE_GTK__
-			If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+			#ifndef __FB_WIN32__
+				If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				DestroyMenu(FHandle)
