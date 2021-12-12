@@ -706,7 +706,7 @@ End Property
 			'               (R.Right-R.Left),(R.Bottom-R.Top),_
 			'               1)
 			'End If
-			'SendMessage(FWindow,BFFM_SETSELECTIONA,1,CUint(lpData))
+			SendMessage(FWindow, BFFM_SETSELECTION, 1, CUInt(lpData))
 			'If Len(BrowseDial->Caption) then
 			'   SetWindowText(FWindow, BrowseDial->FCaption)
 			'End If
@@ -751,7 +751,7 @@ Private Function FolderBrowserDialog.Execute As Boolean
 		BI.hWndOwner      = MainHandle
 		BI.pszDisplayName = xPath
 		BI.lpszTitle      = FTitle
-		'BI.lpfn           = @FolderBrowserDialog.Hook
+		BI.lpfn           = @FolderBrowserDialog.Hook
 		BI.lParam         = Cast(LPARAM, FInitialDir)
 		'Message.Captured = Control
 		pidl = SHBrowseForFolder(@BI)
