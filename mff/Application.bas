@@ -481,11 +481,13 @@ Namespace My
 		If pApp = 0 Then pApp = @This
 		#ifdef __USE_GTK__
 			'g_thread_init(NULL)
-			#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
+			#ifdef __FB_WIN32__
+				g_thread_init(NULL)
+			#else
 				gdk_threads_init()
 			#endif
-			
 			gtk_init(NULL, NULL)
+			
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(ExePath & "/resources"))
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(ExePath & "/Resources"))
 			'gtk_icon_theme_add_resource_path(gtk_icon_theme_get_default(), exepath & "/resources")

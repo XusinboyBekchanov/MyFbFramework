@@ -1297,9 +1297,9 @@ Namespace My.Sys.Forms
 
 	Private Sub Form.CloseForm
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-				gtk_window_close(Gtk_Window(widget))
-			#else
+			'#ifdef __USE_GTK3__
+			'	gtk_window_close(Gtk_Window(widget))
+			'#else
 				Dim As Integer Action = 1
 				If OnClose Then OnClose(This, Action)
 				Select Case Action
@@ -1316,7 +1316,7 @@ Namespace My.Sys.Forms
 					End If
 				Case 2
 				End Select
-			#endif
+			'#endif
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(WM_CLOSE, 0, 0)
 		#endif

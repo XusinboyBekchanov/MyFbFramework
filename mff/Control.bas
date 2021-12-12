@@ -1260,6 +1260,8 @@ Namespace My.Sys.Forms
 							Message.Result = Cast(LRESULT, Brush.Handle)
 						'End If
 					End If
+				Case WM_CTLCOLORBTN
+					?1
 				Case WM_SIZE
 					If Controls Then
 						RequestAlign

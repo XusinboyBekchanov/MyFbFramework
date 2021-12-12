@@ -1619,8 +1619,8 @@ Namespace My.Sys.Forms
 			UnregisterClass "ListView",GetmoduleHandle(NULL)
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
-			If gtk_is_widget(TreeViewWidget) Then gtk_widget_destroy(TreeViewWidget)
-			If gtk_is_widget(IconViewWidget) Then gtk_widget_destroy(IconViewWidget)
+			If gtk_is_widget(TreeViewWidget) AndAlso TreeViewWidget <> widget Then gtk_widget_destroy(TreeViewWidget)
+			If gtk_is_widget(IconViewWidget) AndAlso IconViewWidget <> widget Then gtk_widget_destroy(IconViewWidget)
 		#endif
 	End Destructor
 End Namespace

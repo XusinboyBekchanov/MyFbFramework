@@ -521,15 +521,28 @@ Namespace My.Sys.ComponentModel
 	End Destructor
 End Namespace
 
+Function ThreadCreate_(ByVal ProcPtr_ As Sub ( ByVal userdata As Any Ptr ), ByVal param As Any Ptr = 0, ByVal stack_size As Integer = 0) As Any Ptr
+	#if defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+		ProcPtr_(param)
+		Return 0
+	#else
+		Return ThreadCreate(ProcPtr_, param, stack_size)
+	#endif
+End Function
+
 Private Sub ThreadsEnter
-	#ifdef __USE_GTK__
+	#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
 		gdk_threads_enter()
 	#endif
 End Sub
 
 Private Sub ThreadsLeave
-	#ifdef __USE_GTK__
-		gdk_threads_leave()
+	#ifdef __USE_GTK__ 
+		#ifdef __FB_WIN32__
+			If gtk_events_pending() Then gtk_main_iteration()
+		#else
+			gdk_threads_leave()
+		#endif
 	#endif
 End Sub
 
