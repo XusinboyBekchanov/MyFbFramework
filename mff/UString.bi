@@ -56,8 +56,6 @@ Declare Function WStrPtr(ByRef Value As UString) As WString Ptr
 
 Declare Operator & (ByRef LeftText As UString, ByRef RightText As UString) As UString
 
-Declare Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
-
 Declare Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
 
 Declare Function Val Overload(ByRef subject As UString) As Double
@@ -85,7 +83,8 @@ Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 
 #ifndef __USE_JNI__
-	Declare Function FileExists Overload(ByRef filename As UString) As Long
+	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean
+	Declare Function FileExists Overload(ByRef FileName As WString) As Boolean
 #endif
 
 #ifndef __USE_MAKE__

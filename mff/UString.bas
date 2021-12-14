@@ -152,12 +152,6 @@ End Function
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
-			'Dim TempWStr As WString Ptr
-			'WLet TempWStr, *subject
-			'WDeallocate subject
-			'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
-			'*subject = Left(*TempWStr, lLen)
-			'WDeallocate TempWStr
 			subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		Else
 			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
@@ -213,6 +207,14 @@ Private Function tallynumW Overload(ByRef somestring As WString, ByRef partstrin
 	Return count
 End Function
 
+Private Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
+	Return *(lhs.vptr) & *(rhs.vptr)
+End Operator
+
+Private Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
+	Return Left(*(subject.vptr), n)
+End Function
+
 Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
 	If Len(FindingText) = 0 Then Return Expression
 	Dim As WString Ptr original, find
@@ -264,14 +266,6 @@ Private Function Replace(ByRef Expression As WString, ByRef FindingText As WStri
 		WDeallocate find
 	End If
 	Return *wres
-End Function
-
-Private Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
-	Return *(lhs.vptr) & *(rhs.vptr)
-End Operator
-
-Private Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
-	Return Left(*(subject.vptr), n)
 End Function
 
 Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
@@ -386,20 +380,38 @@ Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As L
 End Function
 
 #ifndef __USE_JNI__
-	Private Function FileExists(ByRef filename As UString) As Long
+	Private Function FileExists (ByRef FileName As UString) As Boolean
 		#ifdef __USE_GTK__
-			If g_file_test(ToUTF8(*filename.vptr), G_FILE_TEST_EXISTS) Then
-				Return -1
+			If g_file_test(ToUtf8(*FileName.vptr), G_FILE_TEST_EXISTS) Then
+				Return True
 			Else
-				Return 0
+				Return False
 			End If
 		#elseif __USE_JNI__
 			Return 0
 		#else
 			If PathFileExistsW(filename.vptr) Then
-				Return -1
+				Return True
 			Else
-				Return 0
+				Return False
+			End If
+		#endif
+	End Function
+	
+	Private Function FileExists Overload(ByRef FileName As WString) As Boolean
+		#ifdef __USE_GTK__
+			If g_file_test(ToUtf8(FileName), G_FILE_TEST_EXISTS) Then
+				Return True
+			Else
+				Return False
+			End If
+		#elseif __USE_JNI__
+			Return 0
+		#else
+			If PathFileExistsW(FileName) Then
+				Return True
+			Else
+				Return False
 			End If
 		#endif
 	End Function

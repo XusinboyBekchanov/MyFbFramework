@@ -161,7 +161,7 @@ Namespace My.Sys.ComponentModel
 			Private Property Component.Handle(Value As jobject)
 				FHandle = Value
 			End Property
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Private Property Component.Handle As HWND
 				Return FHandle
 			End Property

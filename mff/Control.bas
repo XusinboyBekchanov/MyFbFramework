@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				ChangeExStyle WS_EX_ACCEPTFILES, Value
-				If Handle Then RecreateWnd
+				If FHandle Then RecreateWnd
 			#endif
 		End Property
 			
@@ -261,8 +261,8 @@ Namespace My.Sys.Forms
 		#ifndef Style_Off
 			Private Property Control.Style As Integer
 				#ifdef __USE_WINAPI__
-					If Handle Then
-						FStyle = GetWindowLong(Handle, GWL_STYLE)
+					If FHandle Then
+						FStyle = GetWindowLong(FHandle, GWL_STYLE)
 					End If
 				#endif
 				Return FStyle
@@ -283,8 +283,8 @@ Namespace My.Sys.Forms
 		#ifndef ExStyle_Off
 			Private Property Control.ExStyle As Integer
 				#ifdef __USE_WINAPI__
-					If Handle Then
-						FExStyle = GetWindowLong(Handle, GWL_EXSTYLE)
+					If FHandle Then
+						FExStyle = GetWindowLong(FHandle, GWL_EXSTYLE)
 					End If
 				#endif
 				Return FExStyle
@@ -292,7 +292,7 @@ Namespace My.Sys.Forms
 			
 			Private Property Control.ExStyle(Value As Integer)
 				FExStyle = Value
-				'If Handle Then RecreateWnd
+				'If FHandle Then RecreateWnd
 			End Property
 		#endif
 		
@@ -322,7 +322,7 @@ Namespace My.Sys.Forms
 					End If
 				#elseif defined(__USE_WINAPI__)
 					ChangeStyle WS_CHILD, Value
-					If Handle Then RecreateWnd
+					If FHandle Then RecreateWnd
 				#endif
 			End Property
 		#endif
@@ -330,8 +330,8 @@ Namespace My.Sys.Forms
 		#ifndef ID_Off
 			Private Property Control.ID As Integer
 				#ifdef __USE_WINAPI__
-					If Handle Then
-						FID = GetDlgCtrlID(Handle)
+					If FHandle Then
+						FID = GetDlgCtrlID(FHandle)
 					End If
 				#endif
 				Return FID
@@ -469,7 +469,7 @@ Namespace My.Sys.Forms
 				#elseif defined(__USE_WINAPI__)
 					If FHandle Then
 						Dim As ..Rect R
-						GetClientRect Handle , @R
+						GetClientRect FHandle , @R
 						FClientWidth = UnScaleX(R.Right)
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
 						'                InflateRect @R, -4, -4
@@ -521,9 +521,9 @@ Namespace My.Sys.Forms
 						FClientHeight = This.Height
 					End If
 				#elseif defined(__USE_WINAPI__)
-					If Handle Then
+					If FHandle Then
 						Dim As ..Rect R
-						GetClientRect Handle, @R
+						GetClientRect FHandle, @R
 						FClientHeight = UnScaleY(R.Bottom)
 						'            If UCase(ClassName) = "SYSTABCONTROL32" OR UCase(ClassName) = "TABCONTROL" Then
 						'                InflateRect @R,-4, -4
@@ -565,7 +565,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				#elseif defined(__USE_WINAPI__)
-					If Handle Then
+					If FHandle Then
 						If ToolTipHandle Then SendMessage(ToolTipHandle, TTM_ACTIVATE, FShowHint, 0)
 					End If
 				#endif
@@ -715,7 +715,7 @@ Namespace My.Sys.Forms
 		
 		Private Property Control.Enabled As Boolean
 			#ifdef __USE_WINAPI__
-				If Handle Then FEnabled = IsWindowEnabled(Handle)
+				If FHandle Then FEnabled = IsWindowEnabled(FHandle)
 			#endif
 			Return FEnabled
 		End Property
@@ -776,7 +776,7 @@ Namespace My.Sys.Forms
 			Dim As Long nWidth  = ScaleX(FWidth)
 			Dim As Long nHeight = ScaleY(FHeight)
 			#ifdef __USE_WINAPI__
-				If Handle Then Exit Sub
+				If FHandle Then Exit Sub
 				Dim As HWND HParent
 				Dim As Integer ControlID = 0
 				If (Style And WS_CHILD) = WS_CHILD Then
@@ -868,7 +868,7 @@ Namespace My.Sys.Forms
 					End If
 					CreationControl = @This
 					'RegisterClass ClassName, ClassAncestor
-					FHandle = CreateWindowExW(FExStyle, _
+					Handle = CreateWindowExW(FExStyle, _
 					FClassName,_
 					FText.vptr,_
 					FStyle,_
@@ -886,24 +886,24 @@ Namespace My.Sys.Forms
 				If FHandle = 0 AndAlso *FClassAncestor <> "" Then
 					Dim As jclass class_object = (*env)->FindClass(env, *FClassAncestor)
 					Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_object, "<init>", "(Landroid/content/Context;)V")
-					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, pApp->Instance)
+					Handle = (*env)->NewObject(env, class_object, ConstructorMethod, pApp->Instance)
 				End If
 				Text = FText
 			#endif
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
-				If Handle Then
+				If FHandle Then
 					#ifdef __USE_WINAPI__
 						If ClassName <> "IPAddress" Then
-							SetWindowLongPtr(Handle, GWLP_USERDATA, CInt(Child))
+							SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(Child))
 						End If
-						SetProp(Handle, "MFFControl", @This)
+						SetProp(FHandle, "MFFControl", @This)
 						If SubClass Then
-							PrevProc = Cast(Any Ptr, SetWindowLongPtr(Handle, GWLP_WNDPROC, CInt(@CallWndProc)))
+							PrevProc = Cast(Any Ptr, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@CallWndProc)))
 						End If
 					#elseif defined(__USE_JNI__)
 						If pApp AndAlso env Then
 							Handles.Add @This
-							FHandle = (*env)->NewGlobalRef(env, FHandle)
+							Handle = (*env)->NewGlobalRef(env, FHandle)
 							If layoutview Then
 								layoutview = (*env)->NewGlobalRef(env, layoutview)
 								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
@@ -989,7 +989,7 @@ Namespace My.Sys.Forms
 		Private Sub Control.RecreateWnd
 			Dim As Integer i
 			#ifndef __USE_GTK__
-				If Handle = 0 Then Exit Sub
+				If FHandle = 0 Then Exit Sub
 				'For i = 0 To ControlCount -1
 				'    Controls[i]->FreeWnd
 				'Next i
@@ -1018,7 +1018,7 @@ Namespace My.Sys.Forms
 					'						Controls[i]->FreeWnd
 					'					Next
 					If ClassName <> "IPAddress" Then DestroyWindow FHandle
-					FHandle = 0
+					Handle = 0
 				End If
 				If ToolTipHandle Then
 					DestroyWindow ToolTipHandle
@@ -1275,7 +1275,7 @@ Namespace My.Sys.Forms
 				Case WM_WINDOWPOSCHANGED
 					If OnMove Then OnMove(This)
 				Case WM_CANCELMODE
-					SendMessage(Handle,CM_CANCELMODE,0,0)
+					SendMessage(FHandle, CM_CANCELMODE, 0, 0)
 				Case WM_LBUTTONDOWN
 					DownButton = 0
 					If OnMouseDown Then OnMouseDown(This, 0, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
@@ -1314,7 +1314,7 @@ Namespace My.Sys.Forms
 						'miStruct->itemWidth = miStruct->itemWidth + 8
 						'If miStruct->itemHeight < 18 Then miStruct->itemHeight = 18
 					Case ODT_LISTBOX,ODT_COMBOBOX
-						SendMessage(GetDlgItem(Handle,Message.wParam),CM_MEASUREITEM,Message.wParam,Message.lParam)
+						SendMessage(GetDlgItem(FHandle, Message.wParam), CM_MEASUREITEM, Message.wParam, Message.lParam)
 					End Select
 				Case WM_DRAWITEM
 					Dim As DRAWITEMSTRUCT Ptr diStruct
@@ -1348,7 +1348,7 @@ Namespace My.Sys.Forms
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
 						event_.dwFlags = TME_LEAVE Or TME_HOVER
-						event_.hwndTrack = Handle
+						event_.hwndTrack = FHandle
 						'event_.dwHoverTime = 10
 						TrackMouseEvent(@event_)
 						This.Tracked = True
@@ -1458,7 +1458,7 @@ Namespace My.Sys.Forms
 				Case WM_DESTROY
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
 					If OnDestroy Then OnDestroy(This)
-					'FHandle = 0
+					'Handle = 0
 				End Select
 			#endif
 		End Sub
@@ -1484,7 +1484,7 @@ Namespace My.Sys.Forms
 				Case WM_DESTROY
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
 					If OnDestroy Then OnDestroy(This)
-					'FHandle = 0
+					'Handle = 0
 				End Select
 			#endif
 		End Sub
@@ -1644,8 +1644,8 @@ Namespace My.Sys.Forms
 			End Function
 			
 			Private Function Control.Perform(Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-				If Handle Then
-					Return SendMessageW(Handle, Msg, wParam, lParam)
+				If FHandle Then
+					Return SendMessageW(FHandle, Msg, wParam, lParam)
 				Else
 					Return 0
 				End If
@@ -2023,7 +2023,7 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK__
 							If CInt(.FVisible) Then
 						#else
-							If CInt(.FVisible) AndAlso CInt(.FHandle) Then
+							If CInt(.FVisible) AndAlso CInt(.Handle) Then
 						#endif
 							aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
 							This.FWidth = This.Width: This.FHeight = This.Height
@@ -2127,17 +2127,17 @@ Namespace My.Sys.Forms
 		
 		#ifdef __USE_WINAPI__
 			Private Sub Control.ClientToScreen(ByRef P As Point)
-				If Handle Then .ClientToScreen Handle, Cast(..Point Ptr, @P)
+				If FHandle Then .ClientToScreen FHandle, Cast(..Point Ptr, @P)
 			End Sub
 			
 			Private Sub Control.ScreenToClient(ByRef P As Point)
-				If Handle Then .ScreenToClient Handle, Cast(..Point Ptr, @P)
+				If FHandle Then .ScreenToClient FHandle, Cast(..Point Ptr, @P)
 			End Sub
 		#endif
 		
 		Private Sub Control.Invalidate
 			#ifdef __USE_WINAPI__
-				If Handle Then InvalidateRect Handle, 0, True
+				If FHandle Then InvalidateRect FHandle, 0, True
 			#endif
 		End Sub
 		
@@ -2145,8 +2145,8 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 			#elseif defined(__USE_WINAPI__)
-				If Handle Then
-					RedrawWindow Handle, 0, 0, RDW_INVALIDATE
+				If FHandle Then
+					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE
 					Update
 				End If
 			#endif
@@ -2156,7 +2156,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 			#elseif defined(__USE_WINAPI__)
-				If Handle Then UpdateWindow Handle
+				If FHandle Then UpdateWindow FHandle
 			#endif
 		End Sub
 		
@@ -2176,7 +2176,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If widget Then gtk_widget_grab_focus(widget)
 			#elseif defined(__USE_WINAPI__)
-				If Handle Then .SetFocus Handle
+				If FHandle Then .SetFocus FHandle
 			#endif
 		End Sub
 		
@@ -2194,7 +2194,7 @@ Namespace My.Sys.Forms
 					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 				End If
 			#elseif defined(__USE_WINAPI__)
-				If Handle Then SetWindowPos Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE 'BringWindowToTop Handle
+				If FHandle Then SetWindowPos FHandle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE 'BringWindowToTop Handle
 			#endif
 		End Sub
 		
@@ -2219,13 +2219,13 @@ Namespace My.Sys.Forms
 					Next
 				End If
 			#elseif defined(__USE_WINAPI__)
-				If Handle Then SetWindowPos Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+				If FHandle Then SetWindowPos FHandle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			#endif
 		End Sub
 		
 		#ifdef __USE_WINAPI__
 			Private Sub Control.AllocateHint
-				If Handle Then
+				If FHandle Then
 					If ToolTipHandle Then DestroyWindow ToolTipHandle
 					ToolTipHandle = CreateWindowEx(0, TOOLTIPS_CLASS, "", TTS_ALWAYSTIP Or WS_POPUP, 0, 0, 0, 0, FHandle, NULL, GetModuleHandle(NULL), NULL)
 					FToolInfo.cbSize=SizeOf(TOOLINFO)
@@ -2233,7 +2233,7 @@ Namespace My.Sys.Forms
 					SendMessage(ToolTipHandle, TTM_SETDELAYTIME, TTDT_INITIAL, 100)
 					If FParent Then FToolInfo.hwnd = FParent->Handle
 					FToolInfo.hinst    = GetModuleHandle(NULL)
-					FToolInfo.uId      = Cast(Integer, Handle)
+					FToolInfo.uId      = Cast(Integer, FHandle)
 					FToolInfo.lpszText = FHint
 					SendMessage(ToolTipHandle, TTM_ADDTOOL, 0, CInt(@FToolInfo))
 				End If
@@ -2292,8 +2292,8 @@ Namespace My.Sys.Forms
 					Ctrl->FAnchoredBottom = Ctrl->FAnchoredParentHeight - Ctrl->FHeight - Ctrl->FTop
 				#elseif defined(__USE_WINAPI__)
 					If Ctrl->Handle Then
-						If Handle Then
-							SetParent Ctrl->Handle, Handle
+						If FHandle Then
+							SetParent Ctrl->Handle, FHandle
 							Ctrl->FAnchoredParentWidth = This.Width
 							Ctrl->FAnchoredParentHeight = This.Height
 							Ctrl->FAnchoredLeft = Ctrl->FLeft
@@ -2301,7 +2301,7 @@ Namespace My.Sys.Forms
 							Ctrl->FAnchoredRight = Ctrl->FAnchoredParentWidth - Ctrl->FWidth - Ctrl->FLeft
 							Ctrl->FAnchoredBottom = Ctrl->FAnchoredParentHeight - Ctrl->FHeight - Ctrl->FTop
 						End If
-					ElseIf Handle Then
+					ElseIf FHandle Then
 						'#IFDEF __AUTOMATE_CREATE_CHILDS__
 						Ctrl->CreateWnd
 						'#ENDIF
