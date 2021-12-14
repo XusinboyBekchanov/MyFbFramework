@@ -390,7 +390,7 @@ End Function
 		#elseif __USE_JNI__
 			Return 0
 		#else
-			If Dir(*FileName.vptr) <> "" Then
+			If PathFileExistsW(filename.vptr) Then
 				Return True
 			Else
 				Return False
@@ -408,7 +408,7 @@ End Function
 		#elseif __USE_JNI__
 			Return 0
 		#else
-			If Dir(FileName) <> "" Then
+			If PathFileExistsW(FileName) Then
 				Return True
 			Else
 				Return False
