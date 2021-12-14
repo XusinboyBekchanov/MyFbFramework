@@ -690,7 +690,7 @@ Private Property FolderBrowserDialog.Directory(ByRef Value As WString)
 End Property
 
 #ifndef __USE_GTK__
-	Private Function FolderBrowserDialog.Hook(FWindow As HWND, uMsg As uINT, lParam As LPARAM, lpData As LPARAM) As Integer
+	Private Function FolderBrowserDialog.Hook(FWindow As HWND, uMsg As uINT, lParam As LPARAM, lpData As LPARAM) As Long
 		Dim As FolderBrowserDialog Ptr BrowseDial
 		Dim As My.Sys.Forms.Control Ptr Ctrl
 		Dim R As Rect

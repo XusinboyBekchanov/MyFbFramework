@@ -177,7 +177,7 @@ End Type
 Private Type FolderBrowserDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(hWnd As HWND, uMsg As uINT, lParam As LPARAM, lpData As LPARAM) As Integer
+		Declare Static Function Hook(hWnd As HWND, uMsg As uINT, lParam As LPARAM, lpData As LPARAM) As Long
 	#endif
 	Control    As My.Sys.Forms.Control
 	FCaption    As WString Ptr

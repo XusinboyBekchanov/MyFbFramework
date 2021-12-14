@@ -132,9 +132,9 @@ Namespace My
 	
 	Private Property Application.ActiveForm(Value As My.Sys.Forms.Control Ptr)
 		FActiveForm = Value
-		#ifdef __USE_WINAPI__
-			If Value Then SetForegroundWindow(Value->Handle)
-		#endif
+'		#ifdef __USE_WINAPI__
+'			If Value Then SetForegroundWindow(Value->Handle)
+'		#endif
 	End Property
 	
 	Private Property Application.MainForm As My.Sys.Forms.Control Ptr
