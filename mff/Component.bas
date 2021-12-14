@@ -161,7 +161,7 @@ Namespace My.Sys.ComponentModel
 			Private Property Component.Handle(Value As jobject)
 				FHandle = Value
 			End Property
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Private Property Component.Handle As HWND
 				Return FHandle
 			End Property
@@ -291,6 +291,10 @@ Namespace My.Sys.ComponentModel
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
+						Dim As Rect R
+						GetWindowRect Handle,@R
+						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
+						FLeft = UnScaleX(R.Left)
 					Else
 						Dim As Rect R
 						GetWindowRect Handle,@R

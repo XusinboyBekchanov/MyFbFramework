@@ -675,6 +675,20 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 	Return Result
 End Function
 
+PublicOrPrivate Sub DebugPrint(ByRef MSG As WString, bWriteLog As Boolean = True, bShowMsg As Boolean = True)
+	If bWriteLog Then
+		Dim As Integer Result, Fn = FreeFile()
+		Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
+		If Result = 0 Then
+			Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & MSG & Space(20) 'cut some word if some unicode inside.
+			Close #Fn
+		End If
+	End If
+	Dim As String outMsg = MSG
+	Print outMsg
+	If bShowMsg Then MsgBox MSG, "Visual freeBasic Editor"
+End Sub
+
 #ifdef __EXPORT_PROCS__
 	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
 		Return App->MainForm

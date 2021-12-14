@@ -152,12 +152,6 @@ End Function
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
-			'Dim TempWStr As WString Ptr
-			'WLet TempWStr, *subject
-			'WDeallocate subject
-			'subject = Cast(WString Ptr, Allocate((lLen + 1) * SizeOf(WString)))
-			'*subject = Left(*TempWStr, lLen)
-			'WDeallocate TempWStr
 			subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		Else
 			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
@@ -211,59 +205,6 @@ Private Function tallynumW Overload(ByRef somestring As WString, ByRef partstrin
 		i=i+lnp-1
 	Loop Until i>=ln-1
 	Return count
-End Function
-
-Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
-	If Len(FindingText) = 0 Then Return Expression
-	Dim As WString Ptr original, find
-	If MatchCase Then
-		original = @Expression
-		find = @FindingText
-	Else
-		WLet(original, LCase(Expression))
-		WLet(find, LCase(FindingText))
-	End If
-	Var t = tallynumW(*original, *find)                 'find occurencies of find
-	If t = 0 Then Return Expression
-	Dim As Long found, n, staid, m, c
-	Var Lf = Len(FindingText), Lr = Len(ReplacingText), Lo = Len(Expression)
-	t = Len(Expression) - t * Lf + t * Lr               'length of output string
-	Dim As UString res
-	res.Resize t                                        'output string
-	Dim As WString Ptr wres = res.vptr
-	n = Start - 1
-	For i As Integer = 0 To n - 1
-		(*wres)[i] = Expression[i]
-	Next
-	Do
-		If (*original)[n] = (*find)[0] Then             'got a possible
-			For m = 0 To Lf - 1
-				If (*original)[n + m] <> (*find)[m] Then Goto lbl 'no
-			Next m
-			found = 1                                   'Bingo
-		End If
-		If found Then
-			For m = 0 To Lr - 1
-				(*wres)[staid] = replacingtext[m]   'insert the replacerment
-				staid += 1
-			Next m
-			n += Lf
-			found = 0
-			c += 1
-			Continue Do
-		End If
-		lbl:
-		(*wres)[staid] = Expression[n]
-		staid += 1
-		n += 1
-	Loop Until n >= Lo
-	(*wres)[staid] = 0
-	Count = c
-	If Not MatchCase Then
-		WDeallocate original
-		WDeallocate find
-	End If
-	Return *wres
 End Function
 
 Private Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
@@ -386,20 +327,38 @@ Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As L
 End Function
 
 #ifndef __USE_JNI__
-	Private Function FileExists(ByRef filename As UString) As Long
+	Private Function FileExists (ByRef FileName As UString) As Boolean
 		#ifdef __USE_GTK__
-			If g_file_test(ToUTF8(*filename.vptr), G_FILE_TEST_EXISTS) Then
-				Return -1
+			If g_file_test(ToUtf8(*FileName.vptr), G_FILE_TEST_EXISTS) Then
+				Return True
 			Else
-				Return 0
+				Return False
 			End If
 		#elseif __USE_JNI__
 			Return 0
 		#else
-			If PathFileExistsW(filename.vptr) Then
-				Return -1
+			If Dir(*FileName.vptr) <> "" Then
+				Return True
 			Else
-				Return 0
+				Return False
+			End If
+		#endif
+	End Function
+	
+	Private Function FileExists Overload(ByRef FileName As WString) As Boolean
+		#ifdef __USE_GTK__
+			If g_file_test(ToUtf8(FileName), G_FILE_TEST_EXISTS) Then
+				Return True
+			Else
+				Return False
+			End If
+		#elseif __USE_JNI__
+			Return 0
+		#else
+			If Dir(FileName) <> "" Then
+				Return True
+			Else
+				Return False
 			End If
 		#endif
 	End Function
