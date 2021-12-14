@@ -686,7 +686,7 @@ Private Sub DebugPrint(ByRef MSG As WString, bWriteLog As Boolean = True, bShowM
 	End If
 	Dim As String outMsg = MSG
 	Print outMsg
-	If bShowMsg Then MsgBox MSG, "Visual FreeBasic Editor"
+	If bShowMsg Then MsgBox MSG, "Visual FB Editor"
 End Sub
 
 #ifdef __EXPORT_PROCS__

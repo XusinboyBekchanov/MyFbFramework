@@ -326,73 +326,73 @@ End Function
 'Return 0
 'End Function
 
-Private Function Replace Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByRef wszReplaceWith As Const WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
-	If wszMainStr = "" OrElse wszMatchStr = "" OrElse wszMatchStr = wszReplaceWith Then Return wszMainStr
-	Dim As WString Ptr TempString
-	WLet TempString, wszMainStr
-	Dim nLenReplaceWith As Long = Len(wszReplaceWith)
-	Dim nLen As Long = Len(wszMatchStr)
-	If Start < 0 Then Start = nLen + Start + 1
-	Dim As Long nPos = Start, C =0
-	Do
-		C += 1
-		If MatchCase Then
-			nPos = InStr(nPos, *TempString, wszMatchStr)
-		Else
-			nPos = InStr(nPos, UCase(*TempString), UCase(wszMatchStr))
-		End If
-		If nPos = 0 Then Exit Do
-		WLet TempString, Mid(*TempString, 1, nPos - 1) + wszReplaceWith + Mid(*TempString, nPos + nLen)
-		nPos += nLenReplaceWith
-	Loop
-	Count = C
-	Function = *TempString
-	Deallocate TempString
-End Function
-
-' ========================================================================================
-' * Within a specified string, replace all occurrences of any of the individual string
-' specified in the wszMainStr string.
-' Will skip the one which is one of the wszReplaceWith
-' Example: ReplaceAny("abacadabra", "abc", "*")  ->  a*aa*aada*ara   ' -> *****d**r*
-' Example: ReplaceAny("abacadabefra", "ab|bc|ef", "*")  ->  a*aa*aada*ara   ' ->
-' ========================================================================================
-Private Function Replace Overload(ByRef wszMainStr As WString, MatchedStr() As WString Ptr, ReplaceWith() As WString Ptr, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
-	Dim As Long i = 1, nLen = Len(wszMainStr), nLen1 = UBound(MatchedStr), nLen2 = UBound(ReplaceWith), C = 0
-	If nLen = 0 OrElse nLen1 = 0 OrElse nLen2 = 0  OrElse nLen2 <> nLen Then Return wszMainStr
-	Dim As WString Ptr TempString
-	Dim As String wszMatchStr, wszReplaceWith
-	WLet TempString, wszMainStr
-	nLen = nLen1 
-	For j As Integer = 0 To nLen
-		wszReplaceWith = *ReplaceWith(j) : wszMatchStr = *MatchedStr(j)
-		nLen1 = Len(wszMatchStr) : nLen2 = Len(wszReplaceWith)
-		For x As Integer = 1 To nLen1
-			'skip the one which is one of the wszReplaceWith
-			If InStr(Start, wszReplaceWith, Mid(wszMatchStr, x, 1)) > 0 Then Continue For
-			C += 1
-			Do While i <= Len(*TempString)
-				If MatchCase Then
-					If Mid(wszMatchStr, x, 1) = Mid(*TempString, i, 1) Then
-						'Mid(*TempString, i, 1) = wszReplaceWith
-						WLet TempString, Mid(*TempString, 1, i - 1) + wszReplaceWith + Mid(*TempString, i + 1)
-						i += nLen2
-					End If
-				Else
-					If UCase(Mid(wszMatchStr, x, 1)) = UCase(Mid(*TempString, i, 1)) Then
-						WLet TempString, Mid(*TempString, 1, i - 1) + wszReplaceWith + Mid(*TempString, i + 1)
-						i += nLen2
-					End If
-				End If
-				i +=1
-			Loop
-			i=1
-		Next
-	Next
-	Count = C
-	Function = *TempString
-	Deallocate TempString
-End Function
+'Private Function Replace Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByRef wszReplaceWith As Const WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
+'	If wszMainStr = "" OrElse wszMatchStr = "" OrElse wszMatchStr = wszReplaceWith Then Return wszMainStr
+'	Dim As WString Ptr TempString
+'	WLet TempString, wszMainStr
+'	Dim nLenReplaceWith As Long = Len(wszReplaceWith)
+'	Dim nLen As Long = Len(wszMatchStr)
+'	If Start < 0 Then Start = nLen + Start + 1
+'	Dim As Long nPos = Start, C =0
+'	Do
+'		C += 1
+'		If MatchCase Then
+'			nPos = InStr(nPos, *TempString, wszMatchStr)
+'		Else
+'			nPos = InStr(nPos, UCase(*TempString), UCase(wszMatchStr))
+'		End If
+'		If nPos = 0 Then Exit Do
+'		WLet TempString, Mid(*TempString, 1, nPos - 1) + wszReplaceWith + Mid(*TempString, nPos + nLen)
+'		nPos += nLenReplaceWith
+'	Loop
+'	Count = C
+'	Function = *TempString
+'	Deallocate TempString
+'End Function
+'
+'' ========================================================================================
+'' * Within a specified string, replace all occurrences of any of the individual string
+'' specified in the wszMainStr string.
+'' Will skip the one which is one of the wszReplaceWith
+'' Example: ReplaceAny("abacadabra", "abc", "*")  ->  a*aa*aada*ara   ' -> *****d**r*
+'' Example: ReplaceAny("abacadabefra", "ab|bc|ef", "*")  ->  a*aa*aada*ara   ' ->
+'' ========================================================================================
+'Private Function Replace Overload(ByRef wszMainStr As WString, MatchedStr() As WString Ptr, ReplaceWith() As WString Ptr, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
+'	Dim As Long i = 1, nLen = Len(wszMainStr), nLen1 = UBound(MatchedStr), nLen2 = UBound(ReplaceWith), C = 0
+'	If nLen = 0 OrElse nLen1 = 0 OrElse nLen2 = 0  OrElse nLen2 <> nLen Then Return wszMainStr
+'	Dim As WString Ptr TempString
+'	Dim As String wszMatchStr, wszReplaceWith
+'	WLet TempString, wszMainStr
+'	nLen = nLen1 
+'	For j As Integer = 0 To nLen
+'		wszReplaceWith = *ReplaceWith(j) : wszMatchStr = *MatchedStr(j)
+'		nLen1 = Len(wszMatchStr) : nLen2 = Len(wszReplaceWith)
+'		For x As Integer = 1 To nLen1
+'			'skip the one which is one of the wszReplaceWith
+'			If InStr(Start, wszReplaceWith, Mid(wszMatchStr, x, 1)) > 0 Then Continue For
+'			C += 1
+'			Do While i <= Len(*TempString)
+'				If MatchCase Then
+'					If Mid(wszMatchStr, x, 1) = Mid(*TempString, i, 1) Then
+'						'Mid(*TempString, i, 1) = wszReplaceWith
+'						WLet TempString, Mid(*TempString, 1, i - 1) + wszReplaceWith + Mid(*TempString, i + 1)
+'						i += nLen2
+'					End If
+'				Else
+'					If UCase(Mid(wszMatchStr, x, 1)) = UCase(Mid(*TempString, i, 1)) Then
+'						WLet TempString, Mid(*TempString, 1, i - 1) + wszReplaceWith + Mid(*TempString, i + 1)
+'						i += nLen2
+'					End If
+'				End If
+'				i +=1
+'			Loop
+'			i=1
+'		Next
+'	Next
+'	Count = C
+'	Function = *TempString
+'	Deallocate TempString
+'End Function
 
 Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True)
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1
