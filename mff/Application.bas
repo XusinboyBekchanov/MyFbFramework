@@ -675,7 +675,7 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 	Return Result
 End Function
 
-PublicOrPrivate Sub DebugPrint(ByRef MSG As WString, bWriteLog As Boolean = True, bShowMsg As Boolean = True)
+Private Sub DebugPrint(ByRef MSG As WString, bWriteLog As Boolean = True, bShowMsg As Boolean = True)
 	If bWriteLog Then
 		Dim As Integer Result, Fn = FreeFile()
 		Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
@@ -686,7 +686,7 @@ PublicOrPrivate Sub DebugPrint(ByRef MSG As WString, bWriteLog As Boolean = True
 	End If
 	Dim As String outMsg = MSG
 	Print outMsg
-	If bShowMsg Then MsgBox MSG, "Visual freeBasic Editor"
+	If bShowMsg Then MsgBox MSG, "Visual FreeBasic Editor"
 End Sub
 
 #ifdef __EXPORT_PROCS__
