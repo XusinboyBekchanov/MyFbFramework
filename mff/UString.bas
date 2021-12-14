@@ -215,6 +215,59 @@ Private Function Left Overload(ByRef subject As UString, ByVal n As Integer) As 
 	Return Left(*(subject.vptr), n)
 End Function
 
+Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
+	If Len(FindingText) = 0 Then Return Expression
+	Dim As WString Ptr original, find
+	If MatchCase Then
+		original = @Expression
+		find = @FindingText
+	Else
+		WLet(original, LCase(Expression))
+		WLet(find, LCase(FindingText))
+	End If
+	Var t = tallynumW(*original, *find)                 'find occurencies of find
+	If t = 0 Then Return Expression
+	Dim As Long found, n, staid, m, c
+	Var Lf = Len(FindingText), Lr = Len(ReplacingText), Lo = Len(Expression)
+	t = Len(Expression) - t * Lf + t * Lr               'length of output string
+	Dim As UString res
+	res.Resize t                                        'output string
+	Dim As WString Ptr wres = res.vptr
+	n = Start - 1
+	For i As Integer = 0 To n - 1
+		(*wres)[i] = Expression[i]
+	Next
+	Do
+		If (*original)[n] = (*find)[0] Then             'got a possible
+			For m = 0 To Lf - 1
+				If (*original)[n + m] <> (*find)[m] Then Goto lbl 'no
+			Next m
+			found = 1                                   'Bingo
+		End If
+		If found Then
+			For m = 0 To Lr - 1
+				(*wres)[staid] = replacingtext[m]   'insert the replacerment
+				staid += 1
+			Next m
+			n += Lf
+			found = 0
+			c += 1
+			Continue Do
+		End If
+		lbl:
+		(*wres)[staid] = Expression[n]
+		staid += 1
+		n += 1
+	Loop Until n >= Lo
+	(*wres)[staid] = 0
+	Count = c
+	If Not MatchCase Then
+		WDeallocate original
+		WDeallocate find
+	End If
+	Return *wres
+End Function
+
 Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
 	If subject <> 0 Then Deallocate_(subject)
 	subject = 0
