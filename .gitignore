@@ -1,7 +1,6 @@
 *.7z
 *.bak
 *.exe
-*.dll.a
 *_gtk*
 *.so
 *.o
