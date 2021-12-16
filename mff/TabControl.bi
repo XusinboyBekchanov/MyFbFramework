@@ -67,6 +67,9 @@ Namespace My.Sys.Forms
 		Declare Property ImageKey(ByRef Value As WString)
 		Declare Property Parent As PTabControl
 		Declare Property Parent(Value As PTabControl)
+		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux).
+		Declare Virtual Property Visible As Boolean
+		Declare Virtual Property Visible(Value As Boolean)
 		Declare Operator Let(ByRef Value As WString)
 		Declare Operator Cast As Control Ptr
 		Declare Operator Cast As Any Ptr

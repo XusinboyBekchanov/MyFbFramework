@@ -279,8 +279,8 @@ Namespace My.Sys.Forms
 			Declare Property Enabled As Boolean
 			Declare Property Enabled(Value As Boolean)
 			'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux).
-			Declare Property Visible As Boolean
-			Declare Property Visible(Value As Boolean)
+			Declare Virtual Property Visible As Boolean
+			Declare Virtual Property Visible(Value As Boolean)
 			'Gets the number of controls in the Control collection (Windows, Linux).
 			Declare Function ControlCount() As Integer
 			'Determines the length, in characters, of the text associated with a window (Windows, Linux).
