@@ -56,6 +56,8 @@ Namespace My.Sys.Forms
 		Declare Property TabStop(Value As Boolean)
 		Declare Virtual Property Text ByRef As WString
 		Declare Virtual Property Text(ByRef Value As WString)
+		Declare Virtual Property Visible As Boolean
+		Declare Virtual Property Visible(Value As Boolean)
 		Declare Sub CreateWnd
 		Declare Operator Cast As Control Ptr
 		Declare Constructor

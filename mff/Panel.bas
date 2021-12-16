@@ -231,6 +231,14 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	Property Panel.Visible As Boolean
+		Return Base.Visible
+	End Property
+	
+	Property Panel.Visible(Value As Boolean)
+		Base.Visible = Value
+	End Property
+	
 	Private Operator Panel.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator

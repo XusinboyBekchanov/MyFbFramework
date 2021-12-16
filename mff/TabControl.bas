@@ -224,7 +224,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property TabPage.Visible As Boolean
-		Return FVisible
+		Return Base.Visible
 	End Property
 	
 	Property TabPage.Visible(Value As Boolean)
@@ -232,23 +232,24 @@ Namespace My.Sys.Forms
 			FVisible = Value
 			If Value Then
 				#ifdef __USE_WINAPI__
-					Dim As TCITEMW Ti
-					Dim As Integer LenSt = Len(Caption) + 1
-					Dim As WString Ptr St = CAllocate_(LenSt * Len(WString))
-					St = @Caption
-					Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
-					Ti.pszText    = St
-					Ti.cchTextMax = LenSt
-					If Tabs[FTabCount - 1]->Object Then Ti.lParam = Cast(LPARAM, Tabs[FTabCount - 1]->Object)
-					Ti.iImage = Tabs[FTabCount - 1]->ImageIndex
-					SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+'					Dim As TCITEMW Ti
+'					Dim As Integer LenSt = Len(Caption) + 1
+'					Dim As WString Ptr St = CAllocate_(LenSt * Len(WString))
+'					St = @Caption
+'					Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
+'					Ti.pszText    = St
+'					Ti.cchTextMax = LenSt
+'					If Tabs[FTabCount - 1]->Object Then Ti.lParam = Cast(LPARAM, Tabs[FTabCount - 1]->Object)
+'					Ti.iImage = Tabs[FTabCount - 1]->ImageIndex
+'					SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
 				#endif
 			Else
 				#ifdef __USE_WINAPI__
-					Perform(TCM_DELETEITEM, Index, 0)
+					'Perform(TCM_DELETEITEM, Index, 0)
 				#endif
 			End If
 		End If
+		Base.Visible = Value
 	End Property
 	
 	Private Operator TabPage.Cast As Any Ptr
