@@ -886,7 +886,7 @@ Namespace My.Sys.Forms
 				If FHandle = 0 AndAlso *FClassAncestor <> "" Then
 					Dim As jclass class_object = (*env)->FindClass(env, *FClassAncestor)
 					Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_object, "<init>", "(Landroid/content/Context;)V")
-					Handle = (*env)->NewObject(env, class_object, ConstructorMethod, pApp->Instance)
+					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, pApp->Instance)
 				End If
 				Text = FText
 			#endif
@@ -903,7 +903,7 @@ Namespace My.Sys.Forms
 					#elseif defined(__USE_JNI__)
 						If pApp AndAlso env Then
 							Handles.Add @This
-							Handle = (*env)->NewGlobalRef(env, FHandle)
+							FHandle = (*env)->NewGlobalRef(env, FHandle)
 							If layoutview Then
 								layoutview = (*env)->NewGlobalRef(env, layoutview)
 								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
