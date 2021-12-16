@@ -2,5 +2,6 @@
 *.bak
 *.exe
 *_gtk*
+*.dll*
 *.so
 *.o
