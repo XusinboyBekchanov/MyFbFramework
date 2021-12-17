@@ -19,6 +19,8 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Property Visible As Boolean
+		Declare Virtual Property Visible(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Operator Cast As Any Ptr
 		Declare Constructor

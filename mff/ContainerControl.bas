@@ -71,6 +71,14 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
+	Property ContainerControl.Visible As Boolean
+		Return Base.Visible
+	End Property
+	
+	Property ContainerControl.Visible(Value As Boolean)
+		Base.Visible = Value
+	End Property
+	
 	Private Operator ContainerControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
