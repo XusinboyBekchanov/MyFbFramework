@@ -258,7 +258,7 @@ Namespace My.Sys.ComponentModel
 		End Sub
 	#endif
 	
-	Private Sub Component.GetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+	Private Sub Component.GetBounds(ByRef ALeft As Integer, ByRef ATop As Integer, ByRef AWidth As Integer, ByRef AHeight As Integer)
 		ALeft = This.Left
 		ATop = This.Top
 		AWidth = This.Width
@@ -552,7 +552,7 @@ End Sub
 	End Function
 	
 	Sub ComponentGetBounds Alias "ComponentGetBounds"(Cpnt As My.Sys.ComponentModel.Component Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr) __EXPORT__
-		Cpnt->GetBounds(ALeft, ATop, AWidth, AHeight)
+		Cpnt->GetBounds(*ALeft, *ATop, *AWidth, *AHeight)
 	End Sub
 	
 	Sub ComponentSetBounds Alias "ComponentSetBounds"(Cpnt As My.Sys.ComponentModel.Component Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer) __EXPORT__
