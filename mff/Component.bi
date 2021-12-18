@@ -86,7 +86,7 @@ Namespace My.Sys.ComponentModel
 		Declare Property Height As Integer
 		Declare Property Height(Value As Integer)
 		'Gets the bounds of the control to the specified location and size.
-		Declare Sub GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
+		Declare Sub GetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		'Sets the bounds of the control to the specified location and size.
 		Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		'Gets a value that indicates whether the Component is currently in design mode.

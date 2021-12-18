@@ -339,6 +339,7 @@ Namespace My.Sys.Forms
 			If This.Parent <> 0 AndAlso This.Parent->Handle <> 0 Then
 				ThreadID = ThreadCreate(@CreateWnd, @This)
 				Do While FHandle = 0
+					Sleep(200, 1)
 					pApp->DoEvents
 				Loop
 				SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(@This))
