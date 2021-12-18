@@ -258,11 +258,11 @@ Namespace My.Sys.ComponentModel
 		End Sub
 	#endif
 	
-	Private Sub Component.GetBounds(ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
-		*ALeft = This.Left
-		*ATop = This.Top
-		*AWidth = This.Width
-		*AHeight = This.Height
+	Private Sub Component.GetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+		ALeft = This.Left
+		ATop = This.Top
+		AWidth = This.Width
+		AHeight = This.Height
 	End Sub
 	
 	Private Sub Component.SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
@@ -293,7 +293,7 @@ Namespace My.Sys.ComponentModel
 					If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
 					Else
 						Dim As Rect R
-						GetWindowRect Handle,@R
+						GetWindowRect Handle, @R
 						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
 						FLeft = UnScaleX(R.Left)
 					End If
