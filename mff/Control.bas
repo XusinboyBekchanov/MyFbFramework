@@ -954,7 +954,7 @@ Namespace My.Sys.Forms
 					This.Font.Parent = @This 'If This.Font Then
 					#ifdef __USE_WINAPI__
 						SendMessage FHandle, CM_CREATE, 0, 0
-						If ShowHint Then AllocateHint
+						If ShowHint AndAlso Hint <> "" Then AllocateHint
 					#endif
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
