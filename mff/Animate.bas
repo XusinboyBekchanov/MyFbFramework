@@ -128,7 +128,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Animate.File ByRef As WString
-		Return WGet(FFile)
+		If FFile> 0 Then Return *FFile Else Return ""
 	End Property
 	
 	Private Property Animate.File(ByRef Value As WString)
