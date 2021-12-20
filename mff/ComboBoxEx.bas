@@ -339,24 +339,46 @@ Namespace My.Sys.Forms
 	'    End Property
 	
 	Private Property ComboBoxEx.Text ByRef As WString
-		If This.FStyle >= cbDropDownList Then
-			FText = This.Items.Item(This.ItemIndex)->Text
-		Else
-			#ifdef __USE_GTK__
-				FText = WStr(*gtk_combo_box_text_get_active_text(gtk_combo_box_text(widget)))
-			#else
-				Base.Text
-			#endif
-		End If
+		#ifdef __USE_WINAPI__
+			Dim As Integer L
+			Dim As LRESULT h
+			Select Case This.FStyle
+			Case ComboBoxEditStyle.cbSimple
+				h = SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)
+			Case ComboBoxEditStyle.cbDropDown
+				h = SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)
+			End Select
+			l = SendMessageW(Cast(HWND, h), WM_GETTEXTLENGTH, 0, 0)
+			FText.Resize(L + 1)
+			GetWindowText(Cast(HWND, h), FText.vptr, L + 1)
+		#elseif defined(__USE_GTK__)
+			If This.FStyle >= cbDropDownList Then
+				FText = This.Items.Item(This.ItemIndex)->Text
+			Else
+				'#ifdef __USE_GTK__
+					FText = WStr(*gtk_combo_box_text_get_active_text(gtk_combo_box_text(widget)))
+'				#else
+'					Base.Text
+'				#endif
+			End If
+		#endif
 		Return *FText.vptr
 	End Property
 	
 	Private Property ComboBoxEx.Text(ByRef Value As WString)
 		Base.Text = Value
-		#ifdef __USE_GTK__
+		#ifdef __USE_WINAPI__
+			Select Case This.FStyle
+			Case ComboBoxEditStyle.cbSimple
+				SendMessageW(Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)), WM_SETTEXT, -1, CInt(FText.vptr))
+			Case ComboBoxEditStyle.cbDropDown
+				SendMessageW(Cast(HWND,SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)), WM_SETTEXT, -1, CInt(FText.vptr))
+			Case Else
+				Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+			End Select
+			'If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+		#elseif defined(__USE_GTK__)
 			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), This.IndexOf(Value))
-		#else
-			If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
 		#endif
 	End Property
 	
