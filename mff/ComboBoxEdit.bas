@@ -460,6 +460,7 @@ Namespace My.Sys.Forms
 				Case CBN_SELENDCANCEL
 					If OnSelectCanceled Then OnSelectCanceled(This)
 				Case CBN_EDITCHANGE
+					If OnChange Then OnChange(This)
 				Case CBN_EDITUPDATE
 				Case CBN_CLOSEUP
 					If OnCloseUp Then OnCloseUp(This)
