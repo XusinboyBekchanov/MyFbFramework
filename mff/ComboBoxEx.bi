@@ -89,6 +89,8 @@ Namespace My.Sys.Forms
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
+	Protected:
+		Declare Sub UpdateListHeight
 	Public:
 		#ifdef __USE_GTK__
 			ListStore As GtkListStore Ptr

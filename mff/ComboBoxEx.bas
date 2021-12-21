@@ -393,6 +393,16 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Sub ComboBoxEx.UpdateListHeight
+		If This.Style <> cbSimple Then
+			#ifndef __USE_GTK__
+				Dim As LRESULT h
+				h = SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)
+				MoveWindow Cast(HWND, h), 0, 0, ScaleX(This.Width), ScaleY(This.Height + (IIf(ItemHeight = 0, 13, ItemHeight) * FDropDownCount)), 1
+			#endif
+		End If
+	End Sub
+	
 	#ifndef __USE_GTK__
 		Private Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -552,7 +562,7 @@ Namespace My.Sys.Forms
 		Items.Parent       = @This
 		FIntegralHeight    = False
 		FTabStop           = True
-		ItemHeight         = 13
+		'ItemHeight         = 13
 		FDropDownCount     = 8
 		With This
 			.Child       = @This
