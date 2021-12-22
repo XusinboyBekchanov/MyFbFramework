@@ -105,6 +105,8 @@ Namespace My.Sys.Forms
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
+		Declare Property Style As ComboBoxEditStyle
+		Declare Property Style(Value As ComboBoxEditStyle)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

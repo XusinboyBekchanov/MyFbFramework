@@ -35,11 +35,11 @@ Namespace My.Sys.Forms
 			lpfnEditWndProc As Any Ptr
 		#endif
 		FSelColor         As Integer
-		AStyle(5)         As Integer
 		ASortStyle(2)     As Integer
-		AIntegralHeight(2)As Integer
+		AIntegralHeight(2) As Integer
 		Declare Sub GetChilds
 	Protected:
+		AStyle(5)         As Integer
 		FDropDownCount    As Integer
 		FStyle            As Integer
 		FIntegralHeight   As Boolean
@@ -63,8 +63,8 @@ Namespace My.Sys.Forms
 		Items             As WStringList
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Property Style As ComboBoxEditStyle
-		Declare Property Style(Value As ComboBoxEditStyle)
+		Declare Virtual Property Style As ComboBoxEditStyle
+		Declare Virtual Property Style(Value As ComboBoxEditStyle)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
