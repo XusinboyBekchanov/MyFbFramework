@@ -45,7 +45,7 @@ Namespace My.Sys.Forms
 		FIntegralHeight   As Boolean
 		FItemIndex        As Integer
 		FSelected         As Boolean
-		Declare Sub UpdateListHeight
+		Declare Virtual Sub UpdateListHeight
 		#ifndef __USE_GTK__
 			Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)

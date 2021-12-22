@@ -41,7 +41,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_append (ListStore, @iter)
 			gtk_list_store_set(ListStore, @iter, 1, ToUtf8(FItem), -1)
 		#else
-			If Handle Then Perform(LB_ADDSTRING, 0, CInt(FItem))
+			If Handle Then Perform(LB_ADDSTRING, 0, CInt(@FItem))
 		#endif
 	End Sub
 	
