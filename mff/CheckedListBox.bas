@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 					Select Case lpdis->itemAction
 					Case ODA_DRAWENTIRE, ODA_SELECT
 						'DRAW BACKGROUND
-						FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
+						FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle 'GetSysColorBrush(COLOR_WINDOW)
 						If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
 							rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
 							rc.top    = lpdis->rcItem.top
@@ -133,18 +133,19 @@ Namespace My.Sys.Forms
 							FillRect lpdis->hDC, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
 							SetBkColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
 							SetTextColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT)                'Set text color
-							If ItemIndex = lpdis->itemID AndAlso Focused Then
-								DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
+							'If ItemIndex = lpdis->itemID AndAlso Focused Then
+							If Focused AndAlso lpdis->itemAction = ODA_SELECT Then
+								'DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
 							End If
 						Else
-							FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
-							SetBkColor lpdis->hDC, GetSysColor(COLOR_WINDOW)                    'Set text Background
+							FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle ' GetSysColorBrush(COLOR_WINDOW)
+							SetBkColor lpdis->hDC, Brush.Color 'GetSysColor(COLOR_WINDOW)                    'Set text Background
 							SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
 							If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
 								rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
 								rc.top    = lpdis->rcItem.top
 								rc.bottom = lpdis->rcItem.bottom
-								DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
+								'DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
 							End If
 						End If
 						'DRAW TEXT
@@ -161,7 +162,7 @@ Namespace My.Sys.Forms
 						End If
 						Message.Result = True : Exit Sub
 					Case ODA_FOCUS
-						DrawFocusRect lpdis->hDC, @lpdis->rcItem  'draw focus rectangle
+						'DrawFocusRect lpdis->hDC, @lpdis->rcItem  'draw focus rectangle
 						Message.Result = True : Exit Sub
 					End Select
 				End If
