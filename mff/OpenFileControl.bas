@@ -280,7 +280,7 @@ Namespace My.Sys.Forms
 			Dim dwFlags As DWORD = Cast(Integer, OpenDial->Options)
 			Dim dwBufLen As DWORD
 			Dim wMarkers As WString * 4 = "||"
-			If ..Right(*OpenDial->FFilter, 1) <> "|" Then wMarkers += "|"
+			If Right(*OpenDial->FFilter, 1) <> "|" Then wMarkers += "|"
 			Dim wFilter As WString Ptr '* 260 = ""
 			WLet(wFilter, *OpenDial->FFilter & wMarkers)
 			Dim dwFilterStrSize As DWORD = Len(wFilter)
