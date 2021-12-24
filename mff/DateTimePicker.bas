@@ -749,7 +749,7 @@ Namespace My.Sys.Forms
 						If Not (StartsWith(LCase(FDateTimePart), "mmm") OrElse StartsWith(LCase(FDateTimePart), "ddd")) Then
 							Dim As UString txt = Text
 							Dim As String sp = " "
-							gtk_entry_set_text(gtk_entry(widget), ToUTF8(..Left(txt, SelStart) & String(SelEnd - SelStart - Len(PressedNumber), sp) & ..Right(PressedNumber, SelEnd - SelStart) & Mid(txt, SelEnd + 1)))
+							gtk_entry_set_text(gtk_entry(widget), ToUTF8(..Left(txt, SelStart) & String(SelEnd - SelStart - Len(PressedNumber), sp) & Right(PressedNumber, SelEnd - SelStart) & Mid(txt, SelEnd + 1)))
 						End If
 						SelectRegion SelStart + 1
 						If Len(PressedNumber) = IIf(..Left(FDateTimePart, 1) = "y", 4, 2) Then

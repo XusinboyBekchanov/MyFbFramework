@@ -218,7 +218,7 @@ Private Function OpenFileDialog.Execute As Boolean
 		Dim dwFlags As DWORD = Cast(Integer, Options)
 		Dim dwBufLen As DWORD
 		Dim wMarkers As WString * 4 = "||"
-		If ..Right(*FFilter, 1) <> "|" Then wMarkers += "|"
+		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
 		Dim wFilter As WString Ptr '* 260 = ""
 		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(wFilter)
@@ -478,7 +478,7 @@ Private Function SaveFileDialog.Execute As Boolean
 		Dim dwFlags As DWORD = Cast(Integer, Options)
 		Dim dwBufLen As DWORD
 		Dim wMarkers As WString * 4 = "||"
-		If ..Right(*FFilter, 1) <> "|" Then wMarkers += "|"
+		If Right(*FFilter, 1) <> "|" Then wMarkers += "|"
 		Dim wFilter As WString Ptr
 		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(*wFilter)
