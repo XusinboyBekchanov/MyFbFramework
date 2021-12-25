@@ -90,13 +90,13 @@ Namespace My.Sys.Forms
 		Declare Property Item(FIndex As Integer) ByRef As WString
 		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
 		Declare Operator Cast As Control Ptr
-		Declare Sub AddItem(ByRef FItem As WString)
-		Declare Sub RemoveItem(FIndex As Integer)
-		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
-		Declare Function IndexOf(ByRef Item As WString) As Integer
-		Declare Function Contains(ByRef Item As WString) As Boolean
-		Declare Function IndexOfData(pData As Any Ptr) As Integer
-		Declare Sub Clear
+		Declare Virtual Sub AddItem(ByRef FItem As WString)
+		Declare Virtual Sub RemoveItem(FIndex As Integer)
+		Declare Virtual Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
+		Declare Virtual Function IndexOf(ByRef Item As WString) As Integer
+		Declare Virtual Function Contains(ByRef Item As WString) As Boolean
+		Declare Virtual Function IndexOfData(pData As Any Ptr) As Integer
+		Declare Virtual Sub Clear
 		Declare Sub ShowDropDown(Value As Boolean)
 		Declare Sub SaveToFile(ByRef File As WString)
 		Declare Sub LoadFromFile(ByRef File As WString)
