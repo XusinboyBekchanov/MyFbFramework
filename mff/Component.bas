@@ -551,7 +551,7 @@ End Sub
 		Return Cast(My.Sys.ComponentModel.Component Ptr, Cpnt)
 	End Function
 	
-	Sub ComponentGetBounds Alias "ComponentGetBounds" (Cpnt As My.Sys.ComponentModel.Component Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer) __EXPORT__
+	Sub ComponentGetBounds Alias "ComponentGetBounds" (Cpnt As My.Sys.ComponentModel.Component Ptr, ByRef ALeft As Integer, ByRef ATop As Integer, ByRef AWidth As Integer, ByRef AHeight As Integer) __EXPORT__
 		Cpnt->GetBounds(ALeft, ATop, AWidth, AHeight)
 	End Sub
 	

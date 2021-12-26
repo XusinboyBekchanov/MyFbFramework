@@ -339,29 +339,29 @@ Namespace My.Sys.Forms
 	'    End Property
 	
 	Private Property ComboBoxEx.Text ByRef As WString
-		#ifdef __USE_WINAPI__
-			Dim As Integer L
-			Dim As LRESULT h
-			Select Case This.FStyle
-			Case ComboBoxEditStyle.cbSimple
-				h = SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)
-			Case ComboBoxEditStyle.cbDropDown
-				h = SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)
-			End Select
-			l = SendMessageW(Cast(HWND, h), WM_GETTEXTLENGTH, 0, 0)
-			FText.Resize(L + 1)
-			GetWindowText(Cast(HWND, h), FText.vptr, L + 1)
-		#elseif defined(__USE_GTK__)
-			If This.FStyle >= cbDropDownList Then
-				FText = This.Items.Item(This.ItemIndex)->Text
-			Else
+		If This.FStyle >= cbDropDownList Then
+			FText = This.Items.Item(This.ItemIndex)->Text
+		Else
+			#ifdef __USE_WINAPI__
+				Dim As Integer L
+				Dim As LRESULT h
+				Select Case This.FStyle
+				Case ComboBoxEditStyle.cbSimple
+					h = SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)
+				Case ComboBoxEditStyle.cbDropDown
+					h = SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)
+				End Select
+				l = SendMessageW(Cast(HWND, h), WM_GETTEXTLENGTH, 0, 0)
+				FText.Resize(L + 1)
+				GetWindowText(Cast(HWND, h), FText.vptr, L + 1)
+			#elseif defined(__USE_GTK__)
 				'#ifdef __USE_GTK__
 					FText = WStr(*gtk_combo_box_text_get_active_text(gtk_combo_box_text(widget)))
 '				#else
 '					Base.Text
 '				#endif
-			End If
-		#endif
+			#endif
+		End If
 		Return *FText.vptr
 	End Property
 	
@@ -455,7 +455,7 @@ Namespace My.Sys.Forms
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
 					OnDrawItem(This, lpdis->itemID, lpdis->itemState, *Cast(Rect Ptr, @lpdis->rcItem), lpdis->hDC)
-				ElseIf Base.FStyle = cbOwnerDrawFixed Then
+				Else 'If Base.FStyle = cbOwnerDrawFixed Then
 					If lpdis->itemID = &HFFFFFFFF& Then
 						Exit Sub
 					EndIf
@@ -464,7 +464,7 @@ Namespace My.Sys.Forms
 						'DRAW BACKGROUND
 						If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
 						Else
-							FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
+							FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle 'GetSysColorBrush(COLOR_WINDOW)
 						End If
 						If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
 							If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
@@ -483,8 +483,8 @@ Namespace My.Sys.Forms
 							If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
 								SetBKMode lpdis->hDC, TRANSPARENT
 							Else
-								FillRect lpdis->hDC, @lpdis->rcItem, GetSysColorBrush(COLOR_WINDOW)
-								SetBkColor lpdis->hDC, GetSysColor(COLOR_WINDOW)                    'Set text Background
+								FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle 'GetSysColorBrush(COLOR_WINDOW)
+								SetBkColor lpdis->hDC, Brush.Color 'GetSysColor(COLOR_WINDOW)                    'Set text Background
 							End If
 							SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
 							If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
@@ -529,6 +529,21 @@ Namespace My.Sys.Forms
 		#endif
 		Base.ProcessMessage(message)
 	End Sub
+	
+	Private Property ComboBoxEx.Style As ComboBoxEditStyle
+		Return Base.FStyle
+	End Property
+	
+	Private Property ComboBoxEx.Style(Value As ComboBoxEditStyle)
+		If Value <> Base.FStyle Then
+			Base.FStyle = Value
+			#ifdef __USE_GTK__
+				Base.Style = Value
+			#else
+				Base.Base.Style = WS_CHILD Or AStyle(Abs_(Value))
+			#endif
+		End If
+	End Property
 	
 	Private Operator ComboBoxEx.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
