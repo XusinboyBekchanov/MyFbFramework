@@ -1214,7 +1214,7 @@ Namespace My.Sys.Forms
 			'?"..." & GetCapture
 			'ReleaseCapture
 			For i = 0 To pApp->FormCount - 1
-				If pApp->Forms[i] = Cast(Form Ptr, pApp->Forms[i]->Child) Then Cast(Form Ptr, pApp->Forms[i]->Child)->Enabled = False
+				pApp->Forms[i]->Enabled = False
 			Next i
 			Enabled = True
 			Visible = True
@@ -1245,7 +1245,7 @@ Namespace My.Sys.Forms
 			Wend
 			Visible = False
 			For i = 0 To pApp->FormCount - 1
-				If pApp->Forms[i] = Cast(Form Ptr, pApp->Forms[i]->Child) Then Cast(Form Ptr, pApp->Forms[i]->Child)->Enabled = True
+				pApp->Forms[i]->Enabled = True
 			Next i
 			ReleaseCapture
 			SetForegroundWindow FParentHandle
