@@ -1206,15 +1206,15 @@ Namespace My.Sys.Forms
 			Dim As Integer i
 			Dim As Any Ptr Mtx
 			FParentHandle = GetFocus()
-			If IsWindowVisible(Handle) Then
+			If IsWindowVisible(FHandle) Then
 				This.SetFocus
 				Exit Function
 			End If
 			If GetCapture <> 0 Then SendMessage(GetCapture,WM_CANCELMODE,0,0)
 			'?"..." & GetCapture
 			'ReleaseCapture
-			For i = 0 To pApp->FormCount -1
-				If pApp->Forms[i]->Child > 0 AndAlso pApp->Forms[i]->Handle <> Handle Then Cast(Form Ptr, pApp->Forms[i]->Child)->Enabled = False
+			For i = 0 To pApp->FormCount - 1
+				If pApp->Forms[i] = Cast(Form Ptr, pApp->Forms[i]->Child) Then Cast(Form Ptr, pApp->Forms[i]->Child)->Enabled = False
 			Next i
 			Enabled = True
 			Visible = True
@@ -1244,10 +1244,10 @@ Namespace My.Sys.Forms
 				If IsWindowVisible(FHandle) = 0 Then Exit While
 			Wend
 			Visible = False
-			For i = 0 To pApp->FormCount -1
-				If pApp->Forms[i]->Child > 0 Then Cast(Form Ptr, pApp->Forms[i]->Child)->Enabled = True
+			For i = 0 To pApp->FormCount - 1
+				If pApp->Forms[i] = Cast(Form Ptr, pApp->Forms[i]->Child) Then Cast(Form Ptr, pApp->Forms[i]->Child)->Enabled = True
 			Next i
-			'ReleaseCapture
+			ReleaseCapture
 			SetForegroundWindow FParentHandle
 		#endif
 		Function = ModalResult

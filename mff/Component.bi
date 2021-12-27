@@ -163,15 +163,15 @@ End Type
 
 Private Enum Keys
 	#ifdef __USE_GTK__
-		Esc = GDK_KEY_ESCAPE
-		Left = GDK_KEY_LEFT
-		Right = GDK_KEY_RIGHT
-		Up = GDK_KEY_UP
-		Down = GDK_KEY_DOWN
-		Home = GDK_KEY_HOME
-		EndKey = GDK_KEY_END
-		DeleteKey = GDK_KEY_DELETE
-		Enter = GDK_KEY_RETURN
+		Key_Esc = GDK_KEY_ESCAPE
+		Key_Left = GDK_KEY_LEFT
+		Key_Right = GDK_KEY_RIGHT
+		Key_Up = GDK_KEY_UP
+		Key_Down = GDK_KEY_DOWN
+		Key_Home = GDK_KEY_HOME
+		Key_End = GDK_KEY_END
+		Key_Delete = GDK_KEY_DELETE
+		Key_Enter = GDK_KEY_RETURN
 		F1 = GDK_KEY_F1
 		F2 = GDK_KEY_F2
 		F3 = GDK_KEY_F3
@@ -185,17 +185,17 @@ Private Enum Keys
 		F11 = GDK_KEY_F11
 		F12 = GDK_KEY_F12
 	#elseif defined(__USE_JNI__)
-		Esc = 0
+		Key_Esc = 0
 	#else
-		Esc = VK_ESCAPE
-		Left = VK_LEFT
-		Right = VK_RIGHT
-		Up = VK_UP
-		Down = VK_DOWN
-		Home = VK_HOME
-		EndKey = VK_END
-		DeleteKey = VK_DELETE
-		Enter = VK_RETURN
+		Key_Esc = VK_ESCAPE
+		Key_Left = VK_LEFT
+		Key_Right = VK_RIGHT
+		Key_Up = VK_UP
+		Key_Down = VK_DOWN
+		Key_Home = VK_HOME
+		Key_End = VK_END
+		Key_Delete = VK_DELETE
+		Key_Enter = VK_RETURN
 		F1 = VK_F1
 		F2 = VK_F2
 		F3 = VK_F3
