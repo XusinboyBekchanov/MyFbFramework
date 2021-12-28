@@ -381,11 +381,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If This.Column Then FWidth = gtk_tree_view_column_get_width(This.Column)
 		#else
-			If Parent AndAlso Parent->Handle Then
-				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
-				lvc.iSubItem = Index
-				ListView_GetColumn(Parent->Handle, Index, @lvc)
+			Dim lvc As LVCOLUMN
+			lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
+			lvc.iSubItem = Index
+			If Parent AndAlso Parent->Handle AndAlso ListView_GetColumn(Parent->Handle, Index, @lvc) Then
 				FWidth = UnScaleX(lvc.cx)
 			End If
 		#endif
@@ -1319,8 +1318,9 @@ Namespace My.Sys.Forms
 						lvc.cchTextMax           = Len(.Columns.Column(i)->text)
 						lvc.iImage             = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem         = i
+						Var iWidth = .Columns.Column(i)->Width
 						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, ScaleX(.Columns.Column(i)->Width))
+						ListView_SetColumnWidth(.FHandle, i, ScaleX(iWidth))
 					Next i
 					For i As Integer = 0 To .Nodes.Count -1
 						Dim lvi As LVITEM

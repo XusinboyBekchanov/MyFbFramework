@@ -169,7 +169,7 @@ Namespace My.Sys.Forms
 		Declare Property Count(Value As Integer)
 		Declare Property Column(Index As Integer) As TreeListViewColumn Ptr
 		Declare Property Column(Index As Integer, Value As TreeListViewColumn Ptr)
-		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, Editable As Boolean = False) As TreeListViewColumn Ptr
+		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As TreeListViewColumn Ptr
 		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft)
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FColumn As TreeListViewColumn Ptr) As Integer
