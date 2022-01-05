@@ -99,11 +99,6 @@ Const HELP_SETPOPUP_POS = &Hd
 	Dim Shared ydpi         As Double
 #endif
 
-Dim Shared As Long filenumberCounter
-Dim Shared As Boolean Ptr filenumbers
-Declare Function FreeFile_ As Long
-Declare Function CloseFile_(filenum As Long) As Long
-
 #ifdef __USE_JNI__
 	Declare Function ScaleX(ByVal cx As Single) As Integer
 	Declare Function ScaleY(ByVal cy As Single) As Integer

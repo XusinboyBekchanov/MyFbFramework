@@ -417,6 +417,11 @@ Namespace My.Sys.Forms
 				If ThreadID <> 0 AndAlso IsWindow(GetParent(FHandle)) Then ThreadWait(ThreadID) 'AndAlso IsWindow(GetParent(FHandle)) 
 			End If
 			FHandle = 0
+		#else
+			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@FileChooser_CurrentFolderChanged), @This)
+			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@FileChooser_FileActivated), @This)
+			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@FileChooser_SelectionChanged), @This)
+			widget = 0
 		#endif
 	End Destructor
 End Namespace

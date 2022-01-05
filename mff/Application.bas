@@ -68,9 +68,7 @@ Namespace My
 			WLet FTitle, GetVerInfo("ApplicationTitle")
 			If *FTitle = "" Then
 				#ifdef __USE_GTK__
-					If MainForm Then
-						WLet(FTitle, MainForm->Text)
-					End If
+					WLet(FTitle, APP_TITLE)
 				#elseif defined(__USE_WINAPI__)
 					For i As Integer = 0 To FormCount -1
 						If (GetWindowLong(Forms[i]->Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then

@@ -100,6 +100,27 @@ Namespace My.Sys.Forms
 		Else
 			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or AAlignment(Abs_(FAlignment))
+			#else
+				Select Case FAlignment
+				Case AlignmentConstants.taLeft
+					#ifdef __USE_GTK3__
+						gtk_label_set_xalign(GTK_LABEL (widget), 0.0)
+					#else
+						gtk_misc_set_alignment(gtk_misc(widget), 0, 0)
+					#endif
+				Case AlignmentConstants.taCenter
+					#ifdef __USE_GTK3__
+						gtk_label_set_xalign(GTK_LABEL (widget), 0.5)
+					#else
+						gtk_misc_set_alignment(gtk_misc(widget), 0.5, 0)
+					#endif
+				Case AlignmentConstants.taRight
+					#ifdef __USE_GTK3__
+						gtk_label_set_xalign(GTK_LABEL (widget), 1.0)
+					#else
+						gtk_misc_set_alignment(gtk_misc(widget), 1, 0)
+					#endif
+				End Select
 			#endif
 		End If
 		RecreateWnd

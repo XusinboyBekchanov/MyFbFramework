@@ -386,11 +386,12 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					#ifdef __USE_GTK__
-						If FVisible Then
-							gtk_widget_show(Widget)
-						Else
-							gtk_widget_hide(Widget)
-						End If
+						gtk_widget_set_visible(widget, FVisible)
+'						If FVisible Then
+'							gtk_widget_show(Widget)
+'						Else
+'							gtk_widget_hide(Widget)
+'						End If
 					#else
 						SendMessage(.Handle, TB_HIDEBUTTON, FCommandID, MakeLong(Not FVisible, 0))
 					#endif

@@ -45,7 +45,6 @@ Namespace My
 				dwVersion = GetVersion
 				nMajorVer = LoByte(LoWord(dwVersion))
 				nMinorVer = HiByte(LoWord(dwVersion))
-				?nMajorVer, nMinorVer
 				Return (nMajorVer + nMinorVer / 100) * 100
 			#endif
 		End Function

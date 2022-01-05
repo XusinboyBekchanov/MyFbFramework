@@ -476,3 +476,44 @@
 	#endif '' MEMCHECK = 0
 	
 #endif '' __FBMEMCHECK__
+
+#ifndef __FBFILENUMCHECK__
+	#define __FBFILENUMCHECK__
+	
+	#ifndef FILENUMCHECK
+		#define FILENUMCHECK 1
+	#endif
+	
+	#if FILENUMCHECK = 0
+		#define FreeFile_ FreeFile
+		#define CloseFile_(filenum) Close filenum
+	#else
+		Common Shared As Long filenumberCounter
+		Common Shared As Boolean Ptr filenumbers
+		Declare Function FreeFile_ As Long
+		Declare Function CloseFile_(filenum As Long) As Long
+		
+		Private Function FreeFile_ As Long
+			For i As Integer = 1 To filenumberCounter
+				If filenumbers[i] = False Then filenumbers[i] = True: Return i
+			Next
+			filenumberCounter += 1
+			filenumbers = Reallocate_(filenumbers, (filenumberCounter + 1) * SizeOf(Boolean))
+			filenumbers[filenumberCounter] = True
+			Return filenumberCounter
+		End Function
+		
+		Private Function CloseFile_(filenum As Long) As Long
+			If filenumberCounter >= filenum Then
+				If filenumbers[filenum] = True Then
+					filenumbers[filenum] = False
+				Else
+					Print "File number closed earlier"
+				End If
+			Else
+				Print "File number not retrieved from FreeFile"
+			End If
+			Return Close(filenum)
+		End Function
+	#endif
+#endif

@@ -382,7 +382,7 @@ End Function
 #ifndef __USE_JNI__
 	Private Function FileExists (ByRef FileName As UString) As Boolean
 		#ifdef __USE_GTK__
-			If g_file_test(ToUtf8(*FileName.vptr), G_FILE_TEST_EXISTS) Then
+			If *FileName.vptr <> "" AndAlso g_file_test(ToUtf8(*FileName.vptr), G_FILE_TEST_EXISTS) Then
 				Return True
 			Else
 				Return False
@@ -400,7 +400,7 @@ End Function
 	
 	Private Function FileExists Overload(ByRef FileName As WString) As Boolean
 		#ifdef __USE_GTK__
-			If g_file_test(ToUtf8(FileName), G_FILE_TEST_EXISTS) Then
+			If FileName <> "" AndAlso g_file_test(ToUtf8(FileName), G_FILE_TEST_EXISTS) Then
 				Return True
 			Else
 				Return False

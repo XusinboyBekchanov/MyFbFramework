@@ -602,29 +602,6 @@ Private Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStar
 	Return n
 End Function
 
-Private Function FreeFile_ As Long
-	For i As Integer = 1 To filenumberCounter
-		If filenumbers[i] = False Then filenumbers[i] = True: Return i
-	Next
-	filenumberCounter += 1
-	filenumbers = Reallocate_(filenumbers, (filenumberCounter + 1) * SizeOf(Boolean))
-	filenumbers[filenumberCounter] = True
-	Return filenumberCounter
-End Function
-
-Private Function CloseFile_(filenum As Long) As Long
-	If filenumberCounter >= filenum Then
-		If filenumbers[filenum] = True Then
-			filenumbers[filenum] = False
-		Else
-			Print "File number closed earlier"
-		End If
-	Else
-		Print "File number not retrieved from FreeFile"
-	End If
-	Return Close(filenum)
-End Function
-
 '#ifdef GetMN
 	Private Function GetMessageName(Message As Integer) As String
 		Select Case Message

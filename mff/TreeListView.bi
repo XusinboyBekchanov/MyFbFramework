@@ -127,10 +127,11 @@ Namespace My.Sys.Forms
 		FWidth      As Integer
 		FFormat      As ColumnFormat
 		FVisible      As Boolean
-		FEditable	 As Boolean
+		FEditable    As Boolean
 	Public:
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Column
+			Dim As GtkCellRenderer Ptr rendertext
 		#endif
 		Index As Integer
 		Parent   As Control Ptr
@@ -182,17 +183,21 @@ Namespace My.Sys.Forms
 	Private Type TreeListView Extends Control
 	Private:
 		FColumnHeaderHidden As Boolean
+		FEditLabels As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
 		FOwnerDraw As Boolean
+		FPressedSubItem As Integer
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Protected:
 		#ifdef __USE_GTK__
+			Dim As GtkCellRenderer Ptr rendertext
 			Declare Static Function TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 		#else
+			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
 		#endif
 	Public:
@@ -212,6 +217,8 @@ Namespace My.Sys.Forms
 		Declare Sub ExpandAll
 		Declare Property ColumnHeaderHidden As Boolean
 		Declare Property ColumnHeaderHidden(Value As Boolean)
+		Declare Property EditLabels As Boolean
+		Declare Property EditLabels(Value As Boolean)
 		Declare Property OwnerDraw As Boolean
 		Declare Property OwnerDraw(Value As Boolean)
 		Declare Property ShowHint As Boolean
@@ -238,8 +245,8 @@ Namespace My.Sys.Forms
 		OnItemDblClick As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 		OnItemKeyDown As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 		OnItemExpanding As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-		OnCellEditing As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr)
-		OnCellEdited As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString)
+		OnCellEditing As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
+		OnCellEdited As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
 		OnSelectedItemChanged As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 		OnBeginScroll As Sub(ByRef Sender As TreeListView)
 		OnEndScroll As Sub(ByRef Sender As TreeListView)

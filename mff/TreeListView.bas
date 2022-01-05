@@ -5,6 +5,7 @@
 '################################################################################
 
 #include once "TreeListView.bi"
+#include once "TextBox.bi"
 
 Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
@@ -473,6 +474,17 @@ Namespace My.Sys.Forms
 	Private Property TreeListViewColumn.Editable(Value As Boolean)
 		If Value <> FEditable Then
 			FEditable = Value
+			If Index = 0 Then
+				
+			End If
+			#ifdef __USE_GTK__
+				Dim As GValue bValue '= G_VALUE_INIT
+				g_value_init_(@bValue, G_TYPE_BOOLEAN)
+				g_value_set_boolean(@bValue, Value)
+				g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
+				g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
+				g_value_unset(@bValue)
+			#endif
 		End If
 	End Property
 	
@@ -627,6 +639,16 @@ Namespace My.Sys.Forms
 				ParentItem->State = IIf(ParentItem->IsExpanded, 2, 1)
 			End If
 			#ifdef __USE_GTK__
+				If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
+					Cast(TreeListView Ptr, Parent)->Init
+					If ParentItem <> 0 Then
+						gtk_tree_store_insert(Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, @.ParentItem->TreeIter, Index)
+					Else
+						gtk_tree_store_insert(Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, NULL, Index)
+					End If
+					gtk_tree_store_set(Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
+				End If
+				PItem->Text(0) = FCaption
 			#else
 				If Parent AndAlso Parent->Handle Then
 					lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_PARAM
@@ -709,6 +731,7 @@ Namespace My.Sys.Forms
 '			Next i
 '		End If
 		FItems.Clear
+		If ParentItem Then ParentItem->State = 0
 	End Sub
 	
 	Private Operator TreeListViewItems.Cast As Any Ptr
@@ -747,8 +770,12 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, *new_text)
-				'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
+				Dim Cancel As Boolean
+				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, *new_text, Cancel)
+				If Not Cancel Then
+					lv->Nodes.FindByIterUser_Data(iter.User_Data)->Text(PColumn->Index) = *new_text
+					'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
+				End If
 			End If
 		End Sub
 		
@@ -759,10 +786,16 @@ Namespace My.Sys.Forms
 			If lv = 0 Then Exit Sub
 			Dim As GtkTreeIter iter
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
-			Dim As Control Ptr CellEditor
+			Dim As TextBox txt
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, CellEditor)
-				If CellEditor <> 0 Then editable = gtk_cell_editable(CellEditor->Handle)
+				Dim Cancel As Boolean
+				txt.Handle = Cast(GtkWidget Ptr, editable)
+				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, @txt, Cancel)
+				txt.Handle = 0
+				If Cancel Then
+					gtk_cell_editable_editing_done(editable)
+				End If
+				'If CellEditor <> 0 Then editable = gtk_cell_editable(CellEditor->Handle)
 			End If
 		End Sub
 	#endif
@@ -793,13 +826,13 @@ Namespace My.Sys.Forms
 					Next i
 				End With
 				PColumn->Column = gtk_tree_view_column_new()
-				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new ()
+				PColumn->rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
 					g_value_init_(@bValue, G_TYPE_BOOLEAN)
 					g_value_set_boolean(@bValue, True)
-					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
-					g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
+					g_object_set_property(G_OBJECT(PColumn->rendertext), "editable", @bValue)
+					g_object_set_property(G_OBJECT(PColumn->rendertext), "editable-set", @bValue)
 					g_value_unset(@bValue)
 					'Dim bTrue As gboolean = True
 					'g_object_set(rendertext, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL)
@@ -811,10 +844,10 @@ Namespace My.Sys.Forms
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
 					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 0)
 				End If
-				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
-				g_signal_connect(G_OBJECT(rendertext), "editing-started", G_CALLBACK (@Cell_Editing), PColumn)
-				gtk_tree_view_column_pack_start(PColumn->Column, rendertext, True)
-				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
+				g_signal_connect(G_OBJECT(PColumn->rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
+				g_signal_connect(G_OBJECT(PColumn->rendertext), "editing-started", G_CALLBACK (@Cell_Editing), PColumn)
+				gtk_tree_view_column_pack_start(PColumn->Column, PColumn->rendertext, True)
+				gtk_tree_view_column_add_attribute(PColumn->Column, PColumn->rendertext, ToUTF8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(TreeListView Ptr, Parent)->Handle), PColumn->Column)
@@ -993,6 +1026,21 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property TreeListView.EditLabels As Boolean
+		Return FEditLabels
+	End Property
+	
+	Private Property TreeListView.EditLabels(Value As Boolean)
+		FEditLabels = Value
+		#ifdef __USE_GTK__
+'			If Columns.Count > 0 Then
+'				Columns.Column(0)->Editable = Value
+'			End If
+		#else
+			ChangeStyle LVS_EDITLABELS, Value
+		#endif
+	End Property
+	
 	Private Property TreeListView.SingleClickActivate As Boolean
 		Return FSingleClickActivate
 	End Property
@@ -1127,7 +1175,15 @@ Namespace My.Sys.Forms
 	Private Sub TreeListView.WndProc(ByRef Message As Message)
 	End Sub
 	
-	
+	#ifdef __USE_WINAPI__
+		Function TreeListView.EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Select Case uMsg
+			Case WM_WINDOWPOSCHANGING
+				*Cast(WINDOWPOS Ptr, lParam).x = Cast(Integer, GetProp(hDlg, "@@@Left"))
+			End Select
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
+	#endif
 	
 	Private Sub TreeListView.ProcessMessage(ByRef Message As Message)
 		'?message.msg, GetMessageName(message.msg)
@@ -1180,6 +1236,8 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End If
+				ListView_SubItemHitTest(Handle, @lvhti)
+				FPressedSubItem = lvhti.iSubItem
 			Case WM_KEYDOWN
 				Dim iIndent As Integer
 				Var tlvi = SelectedItem
@@ -1215,6 +1273,42 @@ Namespace My.Sys.Forms
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
 				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, GetTreeListViewItem(lvp->iItem))
 				Case HDN_ITEMCHANGED:
+				Case LVN_BEGINLABELEDIT
+					If FPressedSubItem < Columns.Count AndAlso Not Columns.Column(FPressedSubItem)->Editable Then Message.Result = -1: Exit Sub
+					If FPressedSubItem >= Columns.Count Then Message.Result = -1: Exit Sub
+					Dim lvp1 As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, message.lparam)
+					Dim bCancel As Boolean
+					Dim As TextBox txt
+					txt.Handle = Cast(HWND, SendMessage(FHandle, LVM_GETEDITCONTROL, 0, 0))
+					If FPressedSubItem <> 0 Then
+						If GetWindowLongPtr(txt.Handle, GWLP_WNDPROC) <> @EditControlProc Then 
+							SetProp(txt.Handle, "@@@Proc", Cast(..Handle, SetWindowLongPtr(txt.Handle, GWLP_WNDPROC, CInt(@EditControlProc))))
+						End If
+						Dim As ..Rect lpRect
+						ListView_GetSubItemRect(FHandle, lvp1->item.iItem, FPressedSubItem, LVIR_BOUNDS, @lpRect)
+						SetProp(txt.Handle, "@@@Left", Cast(..Handle, Cast(Integer, lpRect.Left)))
+						txt.Text = GetTreeListViewItem(lvp1->item.iItem)->Text(FPressedSubItem)
+					End If
+					If OnCellEditing Then OnCellEditing(This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, @txt, bCancel)
+					txt.Handle = 0
+					If bCancel Then Message.Result = -1: Exit Sub
+				Case LVN_ENDLABELEDIT
+					Dim lvp1 As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, message.lparam)
+					If lvp1->item.pszText <> 0 Then
+						Dim bCancel As Boolean
+						If OnCellEdited Then OnCellEdited(This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, *lvp1->item.pszText, bCancel)
+						If bCancel Then 
+							Message.Result = 0
+						Else
+							GetTreeListViewItem(lvp1->item.iItem)->Text(FPressedSubItem) = *lvp1->item.pszText
+							If FPressedSubItem > 0 Then
+								Message.Result = 0
+							Else
+								Message.Result = -1
+							End If
+							Exit Sub
+						End If
+					End If
 				End Select
 			Case WM_NOTIFY
 				Select Case message.Wparam
@@ -1230,8 +1324,6 @@ Namespace My.Sys.Forms
 				Case LVN_INSERTITEM
 				Case LVN_DELETEITEM
 				Case LVN_DELETEALLITEMS
-				Case LVN_BEGINLABELEDIT
-				Case LVN_ENDLABELEDIT
 				Case LVN_COLUMNCLICK
 				Case LVN_BEGINDRAG
 				Case LVN_BEGINRDRAG
@@ -1399,12 +1491,20 @@ Namespace My.Sys.Forms
 	Private Sub TreeListView.CollapseAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_collapse_all(gtk_tree_view(widget))
+		#else
+			For i As Integer = 0 To Nodes.Count - 1
+				Nodes.Item(i)->Collapse
+			Next
 		#endif
 	End Sub
 	
 	Private Sub TreeListView.ExpandAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_expand_all(gtk_tree_view(widget))
+		#else
+			For i As Integer = 0 To Nodes.Count - 1
+				Nodes.Item(i)->Expand
+			Next
 		#endif
 	End Sub
 	

@@ -18,6 +18,9 @@
 #elseif defined(__USE_WINAPI__)
 	#include once "win/winver.bi"
 #endif
+#ifndef APP_TITLE
+	#define APP_TITLE ""
+#endif
 
 '#DEFINE crArrow       LoadCursor(0,IDC_ARROW)
 '#DEFINE crAppStarting LoadCursor(0,IDC_APPSTARTING)

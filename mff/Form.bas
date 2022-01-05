@@ -148,10 +148,14 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Value <> 0 Then
 				gtk_widget_set_can_default(Value->Widget, True)
-				gtk_window_set_default(gtk_window(Widget), Value->Widget)
+				If gtk_is_window(widget) Then
+					gtk_window_set_default(gtk_window(Widget), Value->Widget)
+				End If
 				'gtk_widget_grab_default(Value->Widget)
 			Else
-				gtk_window_set_default(gtk_window(Widget), NULL)
+				If gtk_is_window(widget) Then
+					gtk_window_set_default(gtk_window(Widget), NULL)
+				End If
 			End If
 		#endif
 		If FDefaultButton AndAlso UCase(*FDefaultButton.ClassName) = "COMMANDBUTTON" Then
@@ -178,6 +182,8 @@ Namespace My.Sys.Forms
 				If pApp->MainForm <> 0 Then Cast(Form Ptr, pApp->MainForm)->MainForm = False
 				#ifdef __USE_WINAPI__
 					ChangeExStyle WS_EX_APPWINDOW, Value
+				#else
+					If GTK_IS_BOX(Widget) Then Exit Property
 				#endif
 				If FMainForm Then
 					pApp->MainForm = @This
@@ -235,7 +241,9 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK3__
 				gtk_widget_set_opacity(widget, Value / 255.0)
 			#else
-				gtk_window_set_opacity(gtk_window(widget), Value / 255.0)
+				If gtk_is_window(widget) Then
+					gtk_window_set_opacity(gtk_window(widget), Value / 255.0)
+				End If
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			ChangeExStyle WS_EX_LAYERED, Cast(Boolean, 255 - FOpacity)
@@ -792,8 +800,10 @@ Namespace My.Sys.Forms
 						'#ifdef __USE_GTK3__
 							
 						'#else
-							If gtk_window_get_modal (gtk_window(widget)) Then 
-								gtk_main_quit()
+							If gtk_is_window(widget) Then
+								If gtk_window_get_modal (gtk_window(widget)) Then 
+									gtk_main_quit()
+								End If
 							End If
 							gtk_widget_hide(widget)
 							msg.Result = -1
@@ -1184,7 +1194,9 @@ Namespace My.Sys.Forms
 	Private Sub Form.Show(ByRef OwnerForm As Form)
 		This.FParent = @OwnerForm
 		#ifdef __USE_GTK__
-			gtk_window_set_transient_for(gtk_window(widget), gtk_window(OwnerForm.Widget))
+			If gtk_is_window(widget) AndAlso gtk_is_window(OwnerForm.Widget) Then
+				gtk_window_set_transient_for(gtk_window(widget), gtk_window(OwnerForm.Widget))
+			End If
 		#endif
 		This.Show
 	End Sub
@@ -1277,7 +1289,9 @@ Namespace My.Sys.Forms
 
 	Private Sub Form.Maximize
 		#ifdef __USE_GTK__
-			gtk_window_maximize(GTK_WINDOW(widget))
+			If gtk_is_window(widget) Then
+				gtk_window_maximize(GTK_WINDOW(widget))
+			End If
 		#elseif defined(__USE_WINAPI__)
 			If IsIconic(Handle) = 0 Then
 				ShowWindow Handle, SW_MAXIMIZE
@@ -1287,7 +1301,9 @@ Namespace My.Sys.Forms
 
 	Private Sub Form.Minimize
 		#ifdef __USE_GTK__
-			gtk_window_iconify(GTK_WINDOW(widget))
+			If gtk_is_window(widget) Then
+				gtk_window_iconify(GTK_WINDOW(widget))
+			End If
 		#elseif defined(__USE_WINAPI__)
 			If IsIconic(Handle) = 0 Then
 				ShowWindow Handle, SW_MINIMIZE
@@ -1309,8 +1325,10 @@ Namespace My.Sys.Forms
 						If gtk_is_widget(widget) Then gtk_widget_destroy(widget)
 						gtk_main_quit()
 					Else
-						If gtk_window_get_modal (gtk_window(widget)) Then 
-							gtk_main_quit()
+						If gtk_is_window(widget) Then
+							If gtk_window_get_modal (gtk_window(widget)) Then 
+								gtk_main_quit()
+							End If
 						End If
 						gtk_widget_hide(widget)
 					End If
@@ -1326,8 +1344,10 @@ Namespace My.Sys.Forms
 		If FParent Then
 			With *Cast(Control Ptr, FParent)
 				#ifdef __USE_GTK__
-					gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
-					gtk_window_move(gtk_window(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+					If gtk_is_window(widget) Then
+						gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
+						gtk_window_move(gtk_window(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+					End If
 				#else
 					This.Left = .Left + (.Width - This.Width) \ 2: This.Top  = .Top + (.Height - This.Height) \ 2
 				#endif
@@ -1337,7 +1357,9 @@ Namespace My.Sys.Forms
 
 	Private Sub Form.CenterToScreen()
 		#ifdef __USE_GTK__
-			gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+			If gtk_is_window(widget) Then
+				gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+			End If
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
 		#elseif defined(__USE_WINAPI__)
 			This.Left = (UnScaleX(GetSystemMetrics(SM_CXSCREEN)) - This.Width) \ 2
@@ -1482,7 +1504,10 @@ Namespace My.Sys.Forms
 			#endif
 			.StartPosition = DefaultLocation
 		End With
-		If pApp->MainForm = 0 Then MainForm = True
+		If pApp->MainForm = 0 Then 
+			pApp->MainForm = @This
+			FMainForm = True
+		End If
 		#ifdef __AUTOMATE_CREATE_FORM__
 			CreateWnd
 		#endif
