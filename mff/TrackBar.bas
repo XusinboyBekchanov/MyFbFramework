@@ -149,7 +149,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_range_set_value(gtk_range(widget), CDbl(Value))
 		#else
-			If Handle Then Perform(TBM_SETPOS, FPosition, True)
+			If Handle Then Perform(TBM_SETPOS, True, FPosition)
 		#endif
 		If OnChange Then OnChange(This, FPosition)
 		'SetRanges(Value, FMinValue, FMaxValue)
