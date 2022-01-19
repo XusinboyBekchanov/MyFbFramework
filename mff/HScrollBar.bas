@@ -135,7 +135,7 @@ Namespace My.Sys.Forms
 				With QHScrollBar(Sender.Child)
 					.MinValue = .MinValue
 					.MaxValue = .MaxValue
-					.Position = .Position
+					.Position = .FPosition
 					.PageSize = .PageSize
 				End With
 			End If
