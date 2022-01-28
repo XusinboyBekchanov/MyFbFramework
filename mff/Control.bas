@@ -974,6 +974,7 @@ Namespace My.Sys.Forms
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
 					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If OnCreate Then OnCreate(This)
+					If Not FEnabled Then Enabled = FEnabled
 					#ifdef __USE_WINAPI__
 						If FVisible Then If ClassName = "Form" Then This.Show Else ShowWindow(FHandle, SW_SHOWNORMAL)
 						Update
