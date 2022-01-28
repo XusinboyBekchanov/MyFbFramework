@@ -81,12 +81,14 @@ Namespace My.Sys.Drawing
 		Declare Sub GetDevice
 		Declare Sub ReleaseDevice
 		iTemp As Integer
+		#ifdef __USE_GTK__
+			Dim As PangoContext Ptr pcontext
+			Dim As PangoLayout Ptr layout
+		#endif
 	Public:
 		HandleSetted As Boolean
 		#ifdef __USE_GTK__
 			Handle  As cairo_t Ptr
-			Dim As PangoContext Ptr pcontext
-			Dim As PangoLayout Ptr layout
 		#elseif defined(__USE_WINAPI__)
 			Handle  As HDC
 		#elseif defined(__USE_JNI__)

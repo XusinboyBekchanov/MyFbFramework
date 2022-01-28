@@ -56,14 +56,20 @@ Namespace My.Sys.ComponentModel
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As GtkWidget Ptr
 			Declare Property Handle(Value As GtkWidget Ptr)
+			Declare Property LayoutHandle As GtkWidget Ptr
+			Declare Property LayoutHandle(Value As GtkWidget Ptr)
 		#elseif defined(__USE_JNI__)
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As jobject
 			Declare Property Handle(Value As jobject)
+			Declare Property LayoutHandle As jobject
+			Declare Property LayoutHandle(Value As jobject)
 		#else
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As HWND
 			Declare Property Handle(Value As HWND)
+			Declare Property LayoutHandle As HWND
+			Declare Property LayoutHandle(Value As HWND)
 		#endif
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean

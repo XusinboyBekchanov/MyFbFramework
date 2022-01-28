@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 				ReleaseDC Handle, Dc
    				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			Case WM_COMMAND
-				CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
+				'CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
 			Case CM_CTLCOLOR
 '				Static As HDC Dc
 '				Dc = Cast(HDC, Message.wParam)
@@ -117,9 +117,9 @@ Namespace My.Sys.Forms
 '				SetBKColor Dc, This.BackColor
 '				SetBKMode Dc, OPAQUE
 			Case CM_COMMAND
-				If Message.wParamHi = BN_CLICKED Then
-					If OnClick Then OnClick(This)
-				End If
+'				If Message.wParamHi = BN_CLICKED Then
+'					If OnClick Then OnClick(This)
+'				End If
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

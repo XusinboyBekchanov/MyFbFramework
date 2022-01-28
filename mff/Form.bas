@@ -182,7 +182,7 @@ Namespace My.Sys.Forms
 				If pApp->MainForm <> 0 Then Cast(Form Ptr, pApp->MainForm)->MainForm = False
 				#ifdef __USE_WINAPI__
 					ChangeExStyle WS_EX_APPWINDOW, Value
-				#else
+				#elseif defined(__USE_GTK__)
 					If GTK_IS_BOX(Widget) Then Exit Property
 				#endif
 				If FMainForm Then
@@ -1554,7 +1554,7 @@ End Namespace
 	'				Dim As jmethodID getChildAt = (*env)->GetMethodID(env, viewgroupClass, "getChildAt", "(I)Landroid/view/View;")
 	'				Dim As jobject ViewGroup = (*env)->CallObjectMethod(env, decorView, getChildAt, 0)
 					'Dim As jobject ViewGroup2 = (*env)->CallObjectMethod(env, ViewGroup, getChildAt, 0)
-					pApp->MainForm->layoutview = layout 'ViewGroup
+					pApp->MainForm->LayoutHandle = layout 'ViewGroup
 					pApp->MainForm->CreateWnd
 					pApp->MainForm->Text = pApp->MainForm->Text 'ViewGroup
 				End If

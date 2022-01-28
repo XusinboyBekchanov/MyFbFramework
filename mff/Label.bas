@@ -100,7 +100,7 @@ Namespace My.Sys.Forms
 		Else
 			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or AAlignment(Abs_(FAlignment))
-			#else
+			#elseif defined(__USE_GTK__)
 				Select Case FAlignment
 				Case AlignmentConstants.taLeft
 					#ifdef __USE_GTK3__

@@ -153,6 +153,14 @@ Namespace My.Sys.ComponentModel
 			Private Property Component.Handle(Value As GtkWidget Ptr)
 				widget = Value
 			End Property
+			
+			Private Property Component.LayoutHandle As GtkWidget Ptr
+				Return layoutwidget
+			End Property
+			
+			Private Property Component.LayoutHandle(Value As GtkWidget Ptr)
+				layoutwidget = Value
+			End Property
 		#elseif defined(__USE_JNI__)
 			Private Property Component.Handle As jobject
 				Return FHandle
@@ -161,12 +169,28 @@ Namespace My.Sys.ComponentModel
 			Private Property Component.Handle(Value As jobject)
 				FHandle = Value
 			End Property
+			
+			Private Property Component.LayoutHandle As jobject
+				Return layoutview
+			End Property
+			
+			Private Property Component.LayoutHandle(Value As jobject)
+				layoutview = Value
+			End Property
 		#elseif defined(__USE_WINAPI__)
 			Private Property Component.Handle As HWND
 				Return FHandle
 			End Property
 			
 			Private Property Component.Handle(Value As HWND)
+				FHandle = Value
+			End Property
+			
+			Private Property Component.LayoutHandle As HWND
+				Return FHandle
+			End Property
+			
+			Private Property Component.LayoutHandle(Value As HWND)
 				FHandle = Value
 			End Property
 		#endif
