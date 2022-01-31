@@ -486,8 +486,9 @@ Namespace My.Sys.Forms
 				.RegisterClass "TrackBar", TRACKBAR_CLASS
 				.ChildProc         = @WndProc
 				.ExStyle           = 0
-				Base.Style             = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
-				.BackColor             = GetSysColor(COLOR_BTNFACE)
+				Base.Style         = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
+				.BackColor         = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor  = .BackColor
 				WLet(FClassAncestor, TRACKBAR_CLASS)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif

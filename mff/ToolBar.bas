@@ -933,6 +933,11 @@ Namespace My.Sys.Forms
 		If Sender.Child Then
 			With QToolBar(Sender.Child)
 				#ifndef __USE_GTK__
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr) ' "DarkMode", "DarkMode_InfoPaneToolbar", "DarkMode_BBComposited", "DarkMode_InactiveBBComposited", "DarkMode_MaxBBComposited", "DarkMode_MaxInactiveBBComposited"
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					End If
 					If .ImagesList Then .ImagesList->ParentWindow = @Sender: If .ImagesList->Handle Then .Perform(TB_SETIMAGELIST,0,CInt(.ImagesList->Handle))
 					If .HotImagesList Then .HotImagesList->ParentWindow = @Sender: If .HotImagesList->Handle Then .Perform(TB_SETHOTIMAGELIST,0,CInt(.HotImagesList->Handle))
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))

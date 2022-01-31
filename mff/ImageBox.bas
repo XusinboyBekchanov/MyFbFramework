@@ -231,6 +231,7 @@ Namespace My.Sys.Forms
 				Base.ExStyle     = 0
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "ImageBox")

@@ -663,6 +663,11 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Sender.Child Then
 				With QToolPalette(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "DarkMode_BBComposited", nullptr)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					End If
 					If .ImagesList Then .ImagesList->ParentWindow = @Sender: If .ImagesList->Handle Then .Perform(TB_SETIMAGELIST,0,CInt(.ImagesList->Handle))
 					If .HotImagesList Then .HotImagesList->ParentWindow = @Sender: If .HotImagesList->Handle Then .Perform(TB_SETHOTIMAGELIST,0,CInt(.HotImagesList->Handle))
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))

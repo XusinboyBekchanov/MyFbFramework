@@ -145,6 +145,12 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			If Sender.Child Then
 				With QRadioButton(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "", "")
+						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					End If
 					.Perform(BM_SETCHECK, .FChecked, 0)
 				End With
 			End If
@@ -206,6 +212,7 @@ Namespace My.Sys.Forms
 				.ExStyle     = 0
 				.Style       = WS_CHILD Or BS_AUTORADIOBUTTON
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
 				WLet(FClassAncestor, "Button")
 			#elseif defined(__USE_JNI__)

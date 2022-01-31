@@ -699,6 +699,11 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				Dim As HMENU NoNeedSysMenu
 				With QForm(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						RefreshTitleBarThemeColor(.FHandle)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					End If
 					SetClassLong(.Handle,GCL_STYLE,.FClassStyle(.BorderStyle))
 					If .FBorderStyle = 2 Then
 						SetClassLongPtr(.Handle,GCLP_HICON,NULL)
@@ -846,8 +851,14 @@ Namespace My.Sys.Forms
 					Dim FLY_pMinMaxInfo As MINMAXINFO Ptr = Cast(MINMAXINFO Ptr, Msg.lParam)
 					Msg.Result = 0
 				End If
-			Case WM_PAINT
-				Dim As HDC Dc,memDC
+			Case WM_THEMECHANGED
+				If (g_darkModeSupported) Then
+					_AllowDarkModeForWindow(Msg.hWnd, g_darkModeEnabled)
+					RefreshTitleBarThemeColor(Msg.hWnd)
+					UpdateWindow(Msg.hWnd)
+				End If
+			Case WM_PAINT ', WM_ERASEBKGND
+				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps
 				Canvas.HandleSetted = True
@@ -856,7 +867,7 @@ Namespace My.Sys.Forms
 					MemDC = CreateCompatibleDC(DC)
 					Bmp   = CreateCompatibleBitmap(DC,Ps.rcpaint.Right,Ps.rcpaint.Bottom)
 					SelectObject(MemDc,Bmp)
-					SendMessage(Handle,WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
+					SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
 					FillRect memDc,@Ps.rcpaint, Brush.Handle
 					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
@@ -1489,6 +1500,7 @@ Namespace My.Sys.Forms
 				.ExStyle           = WS_EX_CONTROLPARENT Or WS_EX_WINDOWEDGE 'FExStyle(FBorderStyle) OR FMainStyle(FMainForm)
 				.Style             = WS_CAPTION Or WS_SYSMENU Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX Or WS_THICKFRAME Or WS_DLGFRAME Or WS_BORDER 'FStyle(FBorderStyle) Or FChild(Abs_(FIsChild))
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.Width             = 350 'CW_USEDEFAULT
 				.Height            = 300 'CW_USEDEFAULT

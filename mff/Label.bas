@@ -313,6 +313,7 @@ Namespace My.Sys.Forms
 				Base.ExStyle     = 0
 				ChangeLabelStyle
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, "Static")

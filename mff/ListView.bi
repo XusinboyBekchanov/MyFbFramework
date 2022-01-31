@@ -260,6 +260,9 @@ Namespace My.Sys.Forms
 			TreeViewWidget As GtkWidget Ptr
 			IconViewWidget As GtkWidget Ptr
 			PrevIndex As Integer
+		#elseif defined(__USE_WINAPI__)
+			hHeader As HWND
+			headerTextColor As COLORREF
 		#endif
 	Public:
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr

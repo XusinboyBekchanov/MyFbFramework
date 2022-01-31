@@ -133,6 +133,7 @@ Namespace My.Sys.Forms
 			FAlign             As DockStyle
 			FClientWidth       As Integer
 			FClientHeight      As Integer
+			FDefaultBackColor  As Integer
 			FBackColor         As Integer
 			FBackColorRed      As Double
 			FBackColorGreen    As Double

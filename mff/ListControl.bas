@@ -652,6 +652,7 @@ Namespace My.Sys.Forms
 				.ExStyle     = WS_EX_CLIENTEDGE
 				Base.Style       = WS_CHILD Or WS_HSCROLL Or WS_VSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY
 				.BackColor       = GetSysColor(COLOR_WINDOW)
+				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width       = 121

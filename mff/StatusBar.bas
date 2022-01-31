@@ -349,8 +349,15 @@ Namespace My.Sys.Forms
 		Private Sub StatusBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QStatusBar(Sender.Child)
-					SetClassLong .Handle, GCL_STYLE, GetClassLong(.Handle,GCL_STYLE) And Not CS_HREDRAW
-					.Perform(SB_SETBKCOLOR, 0, .BackColor)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "DarkMode:ExplorerStatusBar", nullptr)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						UpdateWindow(.FHandle)
+					End If
+					'SetClassLong .Handle, GCL_STYLE, GetClassLong(.Handle,GCL_STYLE) And Not CS_HREDRAW
+					'.Perform(SB_SETBKCOLOR, 0, .BackColor)
 					.SimpleText = .SimpleText
 					.SimplePanel = .SimplePanel
 					.UpdatePanels
@@ -396,6 +403,7 @@ Namespace My.Sys.Forms
 				.Style        = WS_CHILD Or CCS_NOPARENTALIGN Or AStyle(Abs_(FSizeGrip)) Or WS_CLIPCHILDREN Or WS_CLIPSIBLINGS Or CCS_BOTTOM Or SBARS_TOOLTIPS
 				.ExStyle      = 0
 				.BackColor        = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True

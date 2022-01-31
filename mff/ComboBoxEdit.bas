@@ -393,6 +393,11 @@ Namespace My.Sys.Forms
 		Private Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "DarkMode_CFD", nullptr)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					End If
 					.GetChilds
 					If .Style <> cbOwnerDrawVariable AndAlso .FItemHeight <> 0 Then
 						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.FItemHeight))
@@ -658,6 +663,7 @@ Namespace My.Sys.Forms
 				.ExStyle       = 0
 				Base.Style     = WS_CHILD Or WS_VSCROLL Or WS_TABSTOP Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(Abs_(FStyle)) Or ASortStyle(Abs_(FSort)) Or AIntegralHeight(Abs_(FIntegralHeight))
 				.BackColor         = GetSysColor(COLOR_WINDOW)
+				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width          = 121

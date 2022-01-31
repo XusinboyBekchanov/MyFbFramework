@@ -21,6 +21,7 @@ Namespace My.Sys.Forms
 		FParentColor As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)

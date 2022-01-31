@@ -635,6 +635,18 @@ Namespace My.Sys.Forms
 		Private Sub ReBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QReBar(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						'SetWindowTheme(.FHandle, "DarkModeNavbar", nullptr)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						SendMessage(.FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
+						SendMessage(.FHandle, RB_SETBKCOLOR, 0, Cast(LPARAM, darkBkColor))
+						Dim As COLORSCHEME csch
+						csch.dwSize = SizeOf(COLORSCHEME)
+						csch.clrBtnShadow = darkBkColor
+						csch.clrBtnHighlight = darkHlBkColor
+						SendMessage(.FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
+					End If
 					.UpdateRebar()
 					For i As Integer = 0 To .Bands.Count - 1
 						.Bands.Item(i)->Child = .Bands.Item(i)->Child
@@ -964,6 +976,7 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 			#endif
 			.Width        = 100
 			.Height       = 25

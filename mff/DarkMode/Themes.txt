@@ -1,0 +1,483 @@
+<!--
+	Author:	Mr GRiM
+-->
+<stylescript>
+	<add>
+	<!-- Windows 10 Dark Mode > Toolbars, Headers, & Rebar -->
+		<class name="DarkModeNavbarComposited::Rebar"/>
+		<class name="DarkModeInactiveNavbarComposited::Rebar"/>
+		<class name="DarkModeMaxNavbarComposited::Rebar"/>
+		<class name="DarkModeMaxInactiveNavbarComposited::Rebar"/>
+		<class name="DarkModeNavbarBase::Rebar"/>
+		<class name="DarkModeNavbarNonTopmost::Rebar"/>
+		<class name="DarkModeNavbar::Rebar"/>
+		<class name="DarkModeInactiveNavbar::Rebar"/>
+		<class name="DarkModeMaxNavbar::Rebar"/>
+		<class name="DarkModeMaxInactiveNavbar::Rebar"/>
+		<class name="DarkMode::Toolbar"/>
+		<class name="DarkMode_ItemsView::Header"/>
+	<!-- Windows 10 Dark Mode > Address, Breadcrumb, & Search -->
+		<class name="DarkMode_ABComposited::AddressBand"/>
+		<class name="DarkMode_AddressComposited::ComboBox"/>
+		<class name="DarkMode_InactiveAddressComposited::ComboBox"/>
+		<class name="DarkMode_MaxAddressComposited::ComboBox"/>
+		<class name="DarkMode_MaxInactiveAddressComposited::ComboBox"/>
+		<class name="DarkMode_AddressComposited::Edit"/>
+		<class name="DarkMode_InactiveAddressComposited::Edit"/>
+		<class name="DarkMode_MaxAddressComposited::Edit"/>
+		<class name="DarkMode_MaxInactiveAddressComposited::Edit"/>
+		<class name="DarkMode_BBComposited::Toolbar"/>
+		<class name="DarkMode_InactiveBBComposited::Toolbar"/>
+		<class name="DarkMode_MaxBBComposited::Toolbar"/>
+		<class name="DarkMode_MaxInactiveBBComposited::Toolbar"/>
+		<class name="DarkMode::TryHarder"/>
+		<class name="DarkMode_SearchBoxEditComposited::Edit"/>
+		<class name="DarkMode_InactiveSearchBoxEditComposited::Edit"/>
+		<class name="DarkMode_MaxSearchBoxEditComposited::Edit"/>
+		<class name="DarkMode_MaxInactiveSearchBoxEditComposited::Edit"/>
+		<class name="DarkMode_SearchBoxComposited::SearchBox"/>
+		<class name="DarkMode_InactiveSearchBoxComposited::SearchBox"/>
+		<class name="DarkMode_MaxSearchBoxComposited::SearchBox"/>
+		<class name="DarkMode_MaxInactiveSearchBoxComposited::SearchBox"/>
+		<class name="DarkMode::SearchBox"/>
+	<!-- Windows 10 Dark Mode > Buttons, Boxes, & Controls -->
+		<class name="Explorer::Button"/>
+		<class name="DarkMode_Explorer::Button"/>
+		<class name="DarkMode::Navigation"/>
+		<class name="CFD::Combobox"/>
+		<class name="DarkMode_CFD::Combobox"/>
+		<class name="Explorer::ScrollBar"/>
+		<class name="DarkMode_Explorer::ScrollBar"/>
+	<!-- Windows 10 Dark Mode > Lists, Menus, & Tabs -->
+		<class name="DarkMode::Menu"/>
+		<class name="DarkMode_ImmersiveStart::Menu"/>
+	<!-- Windows 10 Dark Mode > Explorer & Shell -->
+		<class name="DarkMode_Explorer::TreeView"/>
+		<class name="DarkMode::CommandModule"/>
+		<class name="Explorer::CommandModule"/>
+		<class name="DarkMode_Explorer::CommandModule"/>
+		<class name="DarkMode_Explorer::Tooltip"/>
+		<class name="DarkMode::ReadingPane"/>
+		<class name="DarkMode::PreviewPane"/>
+		<class name="DarkMode::ProperTree"/>
+		<class name="ExplorerNavPane"/>
+		<class name="DarkMode::ExplorerNavPane"/>
+		<class name="DarkMode::ItemsView"/>
+		<class name="DarkMode_CFD::Edit"/>
+		<class name="DarkMode_Explorer::Edit"/>
+		<class name="DarkMode_ItemsView::ListView"/>
+		<class name="ExplorerStatusBar"/>
+		<class name="DarkMode::ExplorerStatusBar"/>
+		<class name="DarkMode_InfoPaneToolbar::Toolbar"/>
+		<class name="CommonItemsDialog"/>
+		<class name="DarkMode::CommonItemsDialog"/>
+	</add>
+	<copy>
+	<!-- Windows 10 Dark Mode > Toolbars, Headers, & Rebar -->
+
+		<properties sourceClass="NavbarComposited::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeNavbarComposited::Rebar" destPart="0" destState="0"/>
+		<properties sourceClass="InactiveNavbarComposited::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeInactiveNavbarComposited::Rebar" destPart="0" destState="0"/>
+		<properties sourceClass="MaxNavbarComposited::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeMaxNavbarComposited::Rebar" destPart="0" destState="0"/>
+		<properties sourceClass="MaxInactiveNavbarComposited::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeMaxInactiveNavbarComposited::Rebar" destPart="0" destState="0"/>
+		<properties sourceClass="Navbar::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeNavbar::Rebar" destPart="0" destState="0"/>
+		<properties sourceClass="InactiveNavbar::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeInactiveNavbar::Rebar" destPart="0" destState="0"/>
+		<properties sourceClass="MaxNavbar::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeMaxNavbar::Rebar" destPart="0" destState="0"/>
+		<properties sourceClass="MaxInactiveNavbar::Rebar" sourcePart="0" sourceState="0" destClass="DarkModeMaxInactiveNavbar::Rebar" destPart="0" destState="0"/>
+		
+		<properties sourceClass="Toolbar" sourcePart="0" sourceState="0" destClass="DarkMode::Toolbar" destPart="0" destState="0"/>
+		<properties sourceClass="Toolbar" sourcePart="1" sourceState="0" destClass="DarkMode::Toolbar" destPart="1" destState="0"/>
+		<properties sourceClass="Toolbar" sourcePart="2" sourceState="0" destClass="DarkMode::Toolbar" destPart="2" destState="0"/>
+		<properties sourceClass="Toolbar" sourcePart="3" sourceState="0" destClass="DarkMode::Toolbar" destPart="3" destState="0"/>
+		<properties sourceClass="Toolbar" sourcePart="7" sourceState="0" destClass="DarkMode::Toolbar" destPart="7" destState="0"/>
+		
+		<properties sourceClass="ItemsView::Header" sourcePart="0" sourceState="0" destClass="DarkMode_ItemsView::Header" destPart="0" destState="0"/>
+		<properties sourceClass="ItemsView::Header" sourcePart="1" sourceState="0" destClass="DarkMode_ItemsView::Header" destPart="1" destState="0"/>
+		<properties sourceClass="ItemsView::Header" sourcePart="4" sourceState="0" destClass="DarkMode_ItemsView::Header" destPart="4" destState="0"/>
+		<properties sourceClass="ItemsView::Header" sourcePart="5" sourceState="0" destClass="DarkMode_ItemsView::Header" destPart="5" destState="0"/>
+
+	<!-- Windows 10 Dark Mode > Address, Breadcrumb, & Search -->
+
+		<properties sourceClass="AB::AddressBand" sourcePart="0" sourceState="0" destClass="DarkMode_ABComposited::AddressBand" destPart="0" destState="0"/>
+		<properties sourceClass="AB::AddressBand" sourcePart="1" sourceState="0" destClass="DarkMode_ABComposited::AddressBand" destPart="1" destState="0"/>
+		
+		<properties sourceClass="ComboBox" sourcePart="0" sourceState="0" destClass="DarkMode_AddressComposited::ComboBox" destPart="0" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="1" sourceState="0" destClass="DarkMode_AddressComposited::ComboBox" destPart="1" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="4" sourceState="0" destClass="DarkMode_AddressComposited::ComboBox" destPart="4" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="5" sourceState="0" destClass="DarkMode_AddressComposited::ComboBox" destPart="5" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="6" sourceState="0" destClass="DarkMode_AddressComposited::ComboBox" destPart="6" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="7" sourceState="0" destClass="DarkMode_AddressComposited::ComboBox" destPart="7" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="8" sourceState="0" destClass="DarkMode_AddressComposited::ComboBox" destPart="8" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="0" sourceState="0" destClass="DarkMode_InactiveAddressComposited::ComboBox" destPart="0" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="1" sourceState="0" destClass="DarkMode_InactiveAddressComposited::ComboBox" destPart="1" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="4" sourceState="0" destClass="DarkMode_InactiveAddressComposited::ComboBox" destPart="4" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="5" sourceState="0" destClass="DarkMode_InactiveAddressComposited::ComboBox" destPart="5" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="6" sourceState="0" destClass="DarkMode_InactiveAddressComposited::ComboBox" destPart="6" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="7" sourceState="0" destClass="DarkMode_InactiveAddressComposited::ComboBox" destPart="7" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="8" sourceState="0" destClass="DarkMode_InactiveAddressComposited::ComboBox" destPart="8" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="0" sourceState="0" destClass="DarkMode_MaxAddressComposited::ComboBox" destPart="0" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="1" sourceState="0" destClass="DarkMode_MaxAddressComposited::ComboBox" destPart="1" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="4" sourceState="0" destClass="DarkMode_MaxAddressComposited::ComboBox" destPart="4" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="5" sourceState="0" destClass="DarkMode_MaxAddressComposited::ComboBox" destPart="5" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="6" sourceState="0" destClass="DarkMode_MaxAddressComposited::ComboBox" destPart="6" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="7" sourceState="0" destClass="DarkMode_MaxAddressComposited::ComboBox" destPart="7" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="8" sourceState="0" destClass="DarkMode_MaxAddressComposited::ComboBox" destPart="8" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="0" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::ComboBox" destPart="0" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="1" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::ComboBox" destPart="1" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="4" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::ComboBox" destPart="4" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="5" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::ComboBox" destPart="5" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="6" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::ComboBox" destPart="6" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="7" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::ComboBox" destPart="7" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="8" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::ComboBox" destPart="8" destState="0"/>
+		
+		<properties sourceClass="AddressComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_AddressComposited::Edit" destPart="0" destState="0"/>
+		<properties sourceClass="Address::Edit" sourcePart="5" sourceState="0" destClass="DarkMode_AddressComposited::Edit" destPart="5" destState="0"/>
+		<properties sourceClass="AddressComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_InactiveAddressComposited::Edit" destPart="0" destState="0"/>
+		<properties sourceClass="Address::Edit" sourcePart="5" sourceState="0" destClass="DarkMode_InactiveAddressComposited::Edit" destPart="5" destState="0"/>
+		<properties sourceClass="AddressComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_MaxAddressComposited::Edit" destPart="0" destState="0"/>
+		<properties sourceClass="Address::Edit" sourcePart="5" sourceState="0" destClass="DarkMode_MaxAddressComposited::Edit" destPart="5" destState="0"/>
+		<properties sourceClass="AddressComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::Edit" destPart="0" destState="0"/>
+		<properties sourceClass="Address::Edit" sourcePart="5" sourceState="0" destClass="DarkMode_MaxInactiveAddressComposited::Edit" destPart="5" destState="0"/>
+		
+		<!--properties sourceClass="BBComposited::Toolbar" sourcePart="0" sourceState="0" destClass="DarkMode_BBComposited::Toolbar" destPart="0" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="1" sourceState="0" destClass="DarkMode_BBComposited::Toolbar" destPart="1" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="3" sourceState="0" destClass="DarkMode_BBComposited::Toolbar" destPart="3" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="4" sourceState="0" destClass="DarkMode_BBComposited::Toolbar" destPart="4" destState="0"/>
+		<properties sourceClass="BBComposited::Toolbar" sourcePart="0" sourceState="0" destClass="DarkMode_InactiveBBComposited::Toolbar" destPart="0" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="1" sourceState="0" destClass="DarkMode_InactiveBBComposited::Toolbar" destPart="1" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="3" sourceState="0" destClass="DarkMode_InactiveBBComposited::Toolbar" destPart="3" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="4" sourceState="0" destClass="DarkMode_InactiveBBComposited::Toolbar" destPart="4" destState="0"/>
+		<properties sourceClass="BBComposited::Toolbar" sourcePart="0" sourceState="0" destClass="DarkMode_MaxBBComposited::Toolbar" destPart="0" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="1" sourceState="0" destClass="DarkMode_MaxBBComposited::Toolbar" destPart="1" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="3" sourceState="0" destClass="DarkMode_MaxBBComposited::Toolbar" destPart="3" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="4" sourceState="0" destClass="DarkMode_MaxBBComposited::Toolbar" destPart="4" destState="0"/>
+		<properties sourceClass="BBComposited::Toolbar" sourcePart="0" sourceState="0" destClass="DarkMode_MaxInactiveBBComposited::Toolbar" destPart="0" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="1" sourceState="0" destClass="DarkMode_MaxInactiveBBComposited::Toolbar" destPart="1" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="3" sourceState="0" destClass="DarkMode_MaxInactiveBBComposited::Toolbar" destPart="3" destState="0"/>
+		<properties sourceClass="BB::Toolbar" sourcePart="4" sourceState="0" destClass="DarkMode_MaxInactiveBBComposited::Toolbar" destPart="4" destState="0"/-->
+		
+		<properties sourceClass="TryHarder" sourcePart="0" sourceState="0" destClass="DarkMode::TryHarder" destPart="0" destState="0"/>
+		<properties sourceClass="TryHarder" sourcePart="1" sourceState="0" destClass="DarkMode::TryHarder" destPart="1" destState="0"/>
+		<properties sourceClass="TryHarder" sourcePart="1" sourceState="1" destClass="DarkMode::TryHarder" destPart="1" destState="1"/>
+		<properties sourceClass="TryHarder" sourcePart="1" sourceState="2" destClass="DarkMode::TryHarder" destPart="1" destState="2"/>
+		<properties sourceClass="TryHarder" sourcePart="2" sourceState="0" destClass="DarkMode::TryHarder" destPart="2" destState="0"/>
+		
+		<properties sourceClass="SearchBoxEditComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_SearchBoxEditComposited::Edit" destPart="0" destState="0"/>
+		<properties sourceClass="InactiveSearchBoxEditComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_InactiveSearchBoxEditComposited::Edit" destPart="0" destState="0"/>
+		<properties sourceClass="MaxSearchBoxEditComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_MaxSearchBoxEditComposited::Edit" destPart="0" destState="0"/>
+		<properties sourceClass="MaxInactiveSearchBoxEditComposited::Edit" sourcePart="0" sourceState="0" destClass="DarkMode_MaxInactiveSearchBoxEditComposited::Edit" destPart="0" destState="0"/>
+		
+		<properties sourceClass="SearchBox" sourcePart="0" sourceState="0" destClass="DarkMode_SearchBoxComposited::SearchBox" destPart="0" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="1" sourceState="0" destClass="DarkMode_SearchBoxComposited::SearchBox" destPart="1" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="2" sourceState="0" destClass="DarkMode_SearchBoxComposited::SearchBox" destPart="2" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="3" sourceState="0" destClass="DarkMode_SearchBoxComposited::SearchBox" destPart="3" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="0" sourceState="0" destClass="DarkMode_InactiveSearchBoxComposited::SearchBox" destPart="0" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="1" sourceState="0" destClass="DarkMode_InactiveSearchBoxComposited::SearchBox" destPart="1" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="2" sourceState="0" destClass="DarkMode_InactiveSearchBoxComposited::SearchBox" destPart="2" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="3" sourceState="0" destClass="DarkMode_InactiveSearchBoxComposited::SearchBox" destPart="3" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="0" sourceState="0" destClass="DarkMode_MaxSearchBoxComposited::SearchBox" destPart="0" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="1" sourceState="0" destClass="DarkMode_MaxSearchBoxComposited::SearchBox" destPart="1" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="2" sourceState="0" destClass="DarkMode_MaxSearchBoxComposited::SearchBox" destPart="2" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="3" sourceState="0" destClass="DarkMode_MaxSearchBoxComposited::SearchBox" destPart="3" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="0" sourceState="0" destClass="DarkMode_MaxInactiveSearchBoxComposited::SearchBox" destPart="0" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="1" sourceState="0" destClass="DarkMode_MaxInactiveSearchBoxComposited::SearchBox" destPart="1" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="2" sourceState="0" destClass="DarkMode_MaxInactiveSearchBoxComposited::SearchBox" destPart="2" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="3" sourceState="0" destClass="DarkMode_MaxInactiveSearchBoxComposited::SearchBox" destPart="3" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="0" sourceState="0" destClass="DarkMode::SearchBox" destPart="0" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="1" sourceState="0" destClass="DarkMode::SearchBox" destPart="1" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="2" sourceState="0" destClass="DarkMode::SearchBox" destPart="2" destState="0"/>
+		<properties sourceClass="SearchBox" sourcePart="3" sourceState="0" destClass="DarkMode::SearchBox" destPart="3" destState="0"/>
+
+	<!-- Windows 10 Dark Mode > Buttons, Boxes, & Controls -->
+	
+		<properties sourceClass="Button" sourcePart="1" sourceState="0" destClass="Explorer::Button" destPart="1" destState="0"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="1" destClass="Explorer::Button" destPart="1" destState="1"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="2" destClass="Explorer::Button" destPart="1" destState="2"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="3" destClass="Explorer::Button" destPart="1" destState="3"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="4" destClass="Explorer::Button" destPart="1" destState="4"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="5" destClass="Explorer::Button" destPart="1" destState="5"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="6" destClass="Explorer::Button" destPart="1" destState="6"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="0" destClass="DarkMode_Explorer::Button" destPart="1" destState="0"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="1" destClass="DarkMode_Explorer::Button" destPart="1" destState="1"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="2" destClass="DarkMode_Explorer::Button" destPart="1" destState="2"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="3" destClass="DarkMode_Explorer::Button" destPart="1" destState="3"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="4" destClass="DarkMode_Explorer::Button" destPart="1" destState="4"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="5" destClass="DarkMode_Explorer::Button" destPart="1" destState="5"/>
+		<properties sourceClass="Button" sourcePart="1" sourceState="6" destClass="DarkMode_Explorer::Button" destPart="1" destState="6"/>
+		
+		<properties sourceClass="Navigation" sourcePart="1" sourceState="0" destClass="DarkMode::Navigation" destPart="1" destState="0"/>
+		<properties sourceClass="Navigation" sourcePart="2" sourceState="0" destClass="DarkMode::Navigation" destPart="2" destState="0"/>
+		<properties sourceClass="Navigation" sourcePart="3" sourceState="0" destClass="DarkMode::Navigation" destPart="3" destState="0"/>
+		
+		<properties sourceClass="ComboBox" sourcePart="9" sourceState="1" destClass="CFD::Combobox" destPart="9" destState="1"/>
+		<properties sourceClass="ComboBox" sourcePart="9" sourceState="2" destClass="CFD::ComboBox" destPart="9" destState="2"/>
+		
+		<properties sourceClass="ComboBox" sourcePart="0" sourceState="0" destClass="DarkMode_CFD::ComboBox" destPart="0" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="1" sourceState="0" destClass="DarkMode_CFD::ComboBox" destPart="1" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="4" sourceState="0" destClass="DarkMode_CFD::ComboBox" destPart="4" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="5" sourceState="0" destClass="DarkMode_CFD::ComboBox" destPart="5" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="6" sourceState="0" destClass="DarkMode_CFD::ComboBox" destPart="6" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="7" sourceState="0" destClass="DarkMode_CFD::ComboBox" destPart="7" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="8" sourceState="0" destClass="DarkMode_CFD::ComboBox" destPart="8" destState="0"/>
+		<properties sourceClass="ComboBox" sourcePart="9" sourceState="1" destClass="DarkMode_CFD::ComboBox" destPart="9" destState="1"/>
+		<properties sourceClass="ComboBox" sourcePart="9" sourceState="2" destClass="DarkMode_CFD::ComboBox" destPart="9" destState="2"/>
+		
+		<properties sourceClass="ScrollBar" sourcePart="1" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="1" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="2" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="2" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="3" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="3" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="4" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="4" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="5" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="5" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="6" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="6" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="7" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="7" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="8" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="8" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="9" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="9" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="10" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="10" destState="0"/>
+		<properties sourceClass="ScrollBar" sourcePart="11" sourceState="0" destClass="DarkMode_Explorer::ScrollBar" destPart="11" destState="0"/>
+		
+	
+	<!-- Windows 10 Dark Mode > Lists, Menus, & Tabs -->
+	
+		<properties sourceClass="Menu" sourcePart="9" sourceState="0" destClass="DarkMode::Menu" destPart="9" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="10" sourceState="0" destClass="DarkMode::Menu" destPart="10" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="11" sourceState="0" destClass="DarkMode::Menu" destPart="11" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="12" sourceState="0" destClass="DarkMode::Menu" destPart="12" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="13" sourceState="0" destClass="DarkMode::Menu" destPart="13" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="14" sourceState="0" destClass="DarkMode::Menu" destPart="14" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="14" sourceState="1" destClass="DarkMode::Menu" destPart="14" destState="1"/>
+		<properties sourceClass="Menu" sourcePart="14" sourceState="2" destClass="DarkMode::Menu" destPart="14" destState="2"/>
+		<properties sourceClass="Menu" sourcePart="14" sourceState="3" destClass="DarkMode::Menu" destPart="14" destState="3"/>
+		<properties sourceClass="Menu" sourcePart="14" sourceState="4" destClass="DarkMode::Menu" destPart="14" destState="4"/>
+		<properties sourceClass="Menu" sourcePart="15" sourceState="0" destClass="DarkMode::Menu" destPart="15" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="16" sourceState="0" destClass="DarkMode::Menu" destPart="16" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="17" sourceState="0" destClass="DarkMode::Menu" destPart="17" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="18" sourceState="0" destClass="DarkMode::Menu" destPart="18" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="19" sourceState="0" destClass="DarkMode::Menu" destPart="19" destState="0"/>
+		<properties sourceClass="Menu" sourcePart="20" sourceState="0" destClass="DarkMode::Menu" destPart="20" destState="0"/>
+		<properties sourceClass="ImmersiveStart::Menu" sourcePart="9" sourceState="0" destClass="DarkMode_ImmersiveStart::Menu" destPart="9" destState="0"/>
+		<properties sourceClass="ImmersiveStart::Menu" sourcePart="14" sourceState="0" destClass="DarkMode_ImmersiveStart::Menu" destPart="14" destState="0"/>
+		<properties sourceClass="ImmersiveStart::Menu" sourcePart="14" sourceState="1" destClass="DarkMode_ImmersiveStart::Menu" destPart="14" destState="1"/>
+		<properties sourceClass="ImmersiveStart::Menu" sourcePart="14" sourceState="2" destClass="DarkMode_ImmersiveStart::Menu" destPart="14" destState="2"/>
+		<properties sourceClass="ImmersiveStart::Menu" sourcePart="14" sourceState="3" destClass="DarkMode_ImmersiveStart::Menu" destPart="14" destState="3"/>
+		<properties sourceClass="ImmersiveStart::Menu" sourcePart="14" sourceState="4" destClass="DarkMode_ImmersiveStart::Menu" destPart="14" destState="4"/>
+		<properties sourceClass="ImmersiveStart::Menu" sourcePart="15" sourceState="0" destClass="DarkMode_ImmersiveStart::Menu" destPart="15" destState="0"/>
+
+		<!-- Windows 10 Dark Mode > Explorer & Shell -->
+
+		<properties sourceClass="Explorer::Edit" sourcePart="1" sourceState="1" destClass="DarkMode_Explorer::Edit" destPart="1" destState="1"/>
+		<properties sourceClass="Explorer::Edit" sourcePart="3" sourceState="1" destClass="DarkMode_Explorer::Edit" destPart="3" destState="1"/>
+		<properties sourceClass="Explorer::Edit" sourcePart="1" sourceState="1" destClass="DarkMode_CFD::Edit" destPart="1" destState="1"/>
+		<properties sourceClass="Explorer::Edit" sourcePart="3" sourceState="1" destClass="DarkMode_CFD::Edit" destPart="3" destState="1"/>
+		
+		<properties sourceClass="ItemsView" sourcePart="0" sourceState="0" destClass="DarkMode::ItemsView" destPart="0" destState="0"/>
+		<properties sourceClass="ItemsView" sourcePart="1" sourceState="1" destClass="DarkMode::ItemsView" destPart="1" destState="1"/>
+		<properties sourceClass="ItemsView" sourcePart="1" sourceState="2" destClass="DarkMode::ItemsView" destPart="1" destState="2"/>
+		<properties sourceClass="ItemsView" sourcePart="1" sourceState="1" destClass="DarkMode::ItemsView" destPart="1" destState="3"/>
+		<properties sourceClass="ItemsView" sourcePart="1" sourceState="2" destClass="DarkMode::ItemsView" destPart="1" destState="4"/>
+		<properties sourceClass="ItemsView" sourcePart="2" sourceState="0" destClass="DarkMode::ItemsView" destPart="2" destState="0"/>
+		<properties sourceClass="ItemsView" sourcePart="3" sourceState="1" destClass="DarkMode::ItemsView" destPart="3" destState="1"/>
+		<properties sourceClass="ItemsView" sourcePart="3" sourceState="2" destClass="DarkMode::ItemsView" destPart="3" destState="2"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="1" destClass="DarkMode::ItemsView" destPart="4" destState="1"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="2" destClass="DarkMode::ItemsView" destPart="4" destState="2"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="3" destClass="DarkMode::ItemsView" destPart="4" destState="3"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="4" destClass="DarkMode::ItemsView" destPart="4" destState="4"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="5" destClass="DarkMode::ItemsView" destPart="4" destState="5"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="6" destClass="DarkMode::ItemsView" destPart="4" destState="6"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="7" destClass="DarkMode::ItemsView" destPart="4" destState="7"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="8" destClass="DarkMode::ItemsView" destPart="4" destState="8"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="9" destClass="DarkMode::ItemsView" destPart="4" destState="9"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="10" destClass="DarkMode::ItemsView" destPart="4" destState="10"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="2" destClass="DarkMode::ItemsView" destPart="4" destState="11"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="2" destClass="DarkMode::ItemsView" destPart="4" destState="12"/>
+		<properties sourceClass="ItemsView" sourcePart="4" sourceState="2" destClass="DarkMode::ItemsView" destPart="4" destState="13"/>
+		<properties sourceClass="ItemsView" sourcePart="6" sourceState="1" destClass="DarkMode::ItemsView" destPart="6" destState="1"/>
+		<properties sourceClass="ItemsView" sourcePart="7" sourceState="0" destClass="DarkMode::ItemsView" destPart="7" destState="0"/>
+		
+		<properties sourceClass="ItemsView::ListView" sourcePart="1" sourceState="2" destClass="DarkMode_ItemsView::ListView" destPart="1" destState="2"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="1" sourceState="3" destClass="DarkMode_ItemsView::ListView" destPart="1" destState="3"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="1" sourceState="5" destClass="DarkMode_ItemsView::ListView" destPart="1" destState="5"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="1" sourceState="6" destClass="DarkMode_ItemsView::ListView" destPart="1" destState="6"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="1" destClass="DarkMode_ItemsView::ListView" destPart="1" destState="1"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="4" destClass="DarkMode_ItemsView::ListView" destPart="1" destState="4"/>
+		
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="0" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="0"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="2" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="2"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="4" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="4"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="6" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="6"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="8" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="8"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="10" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="10"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="11" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="11"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="12" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="12"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="13" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="13"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="14" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="14"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="15" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="15"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="6" sourceState="16" destClass="DarkMode_ItemsView::ListView" destPart="6" destState="16"/>
+		
+		<properties sourceClass="ItemsView::ListView" sourcePart="7" sourceState="0" destClass="DarkMode_ItemsView::ListView" destPart="7" destState="0"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="8" sourceState="0" destClass="DarkMode_ItemsView::ListView" destPart="8" destState="0"/>
+		<properties sourceClass="ItemsView::ListView" sourcePart="9" sourceState="0" destClass="DarkMode_ItemsView::ListView" destPart="9" destState="0"/>
+		
+		<properties sourceClass="ItemsView" sourcePart="0" sourceState="0" destClass="ExplorerStatusBar" destPart="0" destState="0"/>
+		<properties sourceClass="ItemsView" sourcePart="0" sourceState="0" destClass="DarkMode::ExplorerStatusBar" destPart="0" destState="0"/>
+		
+		<properties sourceClass="Explorer::TreeView" sourcePart="0" sourceState="0" destClass="DarkMode_Explorer::TreeView" destPart="0" destState="0"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="0" destClass="DarkMode_Explorer::TreeView" destPart="1" destState="0"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="1" destClass="DarkMode_Explorer::TreeView" destPart="1" destState="1"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="2" destClass="DarkMode_Explorer::TreeView" destPart="1" destState="2"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="3" destClass="DarkMode_Explorer::TreeView" destPart="1" destState="3"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="4" destClass="DarkMode_Explorer::TreeView" destPart="1" destState="4"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="5" destClass="DarkMode_Explorer::TreeView" destPart="1" destState="5"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="1" sourceState="6" destClass="DarkMode_Explorer::TreeView" destPart="1" destState="6"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="2" sourceState="0" destClass="DarkMode_Explorer::TreeView" destPart="2" destState="0"/>
+		<properties sourceClass="Explorer::TreeView" sourcePart="4" sourceState="0" destClass="DarkMode_Explorer::TreeView" destPart="4" destState="0"/>
+		
+		<!--properties sourceClass="CommandModule" sourcePart="1" sourceState="0" destClass="DarkMode::CommandModule" destPart="1" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="2" sourceState="0" destClass="DarkMode::CommandModule" destPart="2" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="3" sourceState="0" destClass="DarkMode::CommandModule" destPart="3" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="3" sourceState="1" destClass="DarkMode::CommandModule" destPart="3" destState="1"/>
+		<properties sourceClass="CommandModule" sourcePart="3" sourceState="6" destClass="DarkMode::CommandModule" destPart="3" destState="6"/>
+		<properties sourceClass="CommandModule" sourcePart="4" sourceState="0" destClass="DarkMode::CommandModule" destPart="4" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="4" sourceState="1" destClass="DarkMode::CommandModule" destPart="4" destState="1"/>
+		<properties sourceClass="CommandModule" sourcePart="4" sourceState="6" destClass="DarkMode::CommandModule" destPart="4" destState="6"/>
+		<properties sourceClass="CommandModule" sourcePart="5" sourceState="0" destClass="DarkMode::CommandModule" destPart="5" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="5" sourceState="1" destClass="DarkMode::CommandModule" destPart="5" destState="1"/>
+		<properties sourceClass="CommandModule" sourcePart="5" sourceState="6" destClass="DarkMode::CommandModule" destPart="5" destState="6"/>
+		<properties sourceClass="CommandModule" sourcePart="6" sourceState="0" destClass="DarkMode::CommandModule" destPart="6" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="7" sourceState="0" destClass="DarkMode::CommandModule" destPart="7" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="10" sourceState="0" destClass="DarkMode::CommandModule" destPart="10" destState="0"/-->
+		
+		<properties sourceClass="CommandModule" sourcePart="2" sourceState="0" destClass="Explorer::CommandModule" destPart="2" destState="0"/>
+		<properties sourceClass="CommandModule" sourcePart="3" sourceState="0" destClass="DarkMode_Explorer::CommandModule" destPart="3" destState="0"/>
+		
+		<properties sourceClass="Tooltip" sourcePart="0" sourceState="0" destClass="DarkMode_Explorer::Tooltip" destPart="0" destState="0"/>
+		<properties sourceClass="Tooltip" sourcePart="1" sourceState="0" destClass="DarkMode_Explorer::Tooltip" destPart="1" destState="0"/>
+		<properties sourceClass="Tooltip" sourcePart="2" sourceState="0" destClass="DarkMode_Explorer::Tooltip" destPart="2" destState="0"/>
+		<properties sourceClass="Tooltip" sourcePart="3" sourceState="0" destClass="DarkMode_Explorer::Tooltip" destPart="3" destState="0"/>
+		
+		<properties sourceClass="ReadingPane" sourcePart="1" sourceState="0" destClass="DarkMode::ReadingPane" destPart="1" destState="0"/>
+		<properties sourceClass="ReadingPane" sourcePart="2" sourceState="0" destClass="DarkMode::ReadingPane" destPart="2" destState="0"/>
+		
+		<properties sourceClass="PreviewPane" sourcePart="1" sourceState="1" destClass="DarkMode::PreviewPane" destPart="1" destState="1"/>
+		<properties sourceClass="PreviewPane" sourcePart="1" sourceState="2" destClass="DarkMode::PreviewPane" destPart="1" destState="2"/>
+		<properties sourceClass="PreviewPane" sourcePart="3" sourceState="0" destClass="DarkMode::PreviewPane" destPart="3" destState="0"/>
+		<properties sourceClass="PreviewPane" sourcePart="4" sourceState="0" destClass="DarkMode::PreviewPane" destPart="4" destState="0"/>
+		<properties sourceClass="PreviewPane" sourcePart="5" sourceState="0" destClass="DarkMode::PreviewPane" destPart="5" destState="0"/>
+		<properties sourceClass="PreviewPane" sourcePart="6" sourceState="0" destClass="DarkMode::PreviewPane" destPart="6" destState="0"/>
+		<properties sourceClass="PreviewPane" sourcePart="7" sourceState="1" destClass="DarkMode::PreviewPane" destPart="7" destState="1"/>
+		<properties sourceClass="PreviewPane" sourcePart="7" sourceState="2" destClass="DarkMode::PreviewPane" destPart="7" destState="2"/>
+		<properties sourceClass="PreviewPane" sourcePart="8" sourceState="0" destClass="DarkMode::PreviewPane" destPart="8" destState="0"/>
+		<properties sourceClass="PreviewPane" sourcePart="9" sourceState="1" destClass="DarkMode::PreviewPane" destPart="9" destState="1"/>
+		<properties sourceClass="PreviewPane" sourcePart="9" sourceState="2" destClass="DarkMode::PreviewPane" destPart="9" destState="2"/>
+		
+		<properties sourceClass="ProperTree" sourcePart="1" sourceState="1" destClass="DarkMode::ProperTree" destPart="1" destState="1"/>
+		<properties sourceClass="ProperTree" sourcePart="2" sourceState="0" destClass="DarkMode::ProperTree" destPart="2" destState="0"/>
+		<properties sourceClass="ProperTree" sourcePart="3" sourceState="0" destClass="DarkMode::ProperTree" destPart="3" destState="0"/>
+		
+		<properties sourceClass="ItemsView" sourcePart="0" sourceState="0" destClass="ExplorerNavPane" destPart="0" destState="0"/>
+		<properties sourceClass="ProperTree" sourcePart="2" sourceState="0" destClass="ExplorerNavPane" destPart="0" destState="0"/>
+		<properties sourceClass="ItemsView" sourcePart="0" sourceState="0" destClass="DarkMode::ExplorerNavPane" destPart="0" destState="0"/>
+		<properties sourceClass="ProperTree" sourcePart="2" sourceState="0" destClass="DarkMode::ExplorerNavPane" destPart="0" destState="0"/>
+		
+		<properties sourceClass="InfoPaneToolbar::Toolbar" sourcePart="0" sourceState="0" destClass="DarkMode_InfoPaneToolbar::Toolbar" destPart="0" destState="0"/>
+		<properties sourceClass="InfoPaneToolbar::Toolbar" sourcePart="0" sourceState="4" destClass="DarkMode_InfoPaneToolbar::Toolbar" destPart="0" destState="4"/>
+		<properties sourceClass="InfoPaneToolbar::Toolbar" sourcePart="3" sourceState="0" destClass="DarkMode_InfoPaneToolbar::Toolbar" destPart="3" destState="0"/>
+		
+		<properties sourceClass="Toolbar" sourcePart="1" sourceState="0" destClass="DarkMode_InfoPaneToolbar::Toolbar" destPart="1" destState="0"/>
+		<properties sourceClass="Toolbar" sourcePart="2" sourceState="0" destClass="DarkMode_InfoPaneToolbar::Toolbar" destPart="2" destState="0"/>
+		<properties sourceClass="Toolbar" sourcePart="3" sourceState="0" destClass="DarkMode_InfoPaneToolbar::Toolbar" destPart="3" destState="0"/>
+		<properties sourceClass="Toolbar" sourcePart="7" sourceState="0" destClass="DarkMode_InfoPaneToolbar::Toolbar" destPart="7" destState="0"/>
+		
+	</copy>
+	<add>
+	
+		<property class="DarkModeNavbarComposited::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		<property class="DarkModeInactiveNavbarComposited::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		<property class="DarkModeMaxNavbarComposited::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		<property class="DarkModeMaxInactiveNavbarComposited::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		<property class="DarkModeNavbar::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		<property class="DarkModeInactiveNavbar::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		<property class="DarkModeMaxNavbar::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		<property class="DarkModeMaxInactiveNavbar::Rebar" part="0" state="0" name="BGTYPE:ENUM" value="NONE"/>
+		
+		<property class="DarkMode_AddressComposited::ComboBox" part="9" state="1" name="FILLCOLOR:COLOR" value="191919"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="9" state="1" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="9" state="2" name="FILLCOLOR:COLOR" value="d77800"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="9" state="2" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="9" state="1" name="FILLCOLOR:COLOR" value="191919"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="9" state="1" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="9" state="2" name="FILLCOLOR:COLOR" value="d77800"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="9" state="2" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="9" state="1" name="FILLCOLOR:COLOR" value="191919"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="9" state="1" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="9" state="2" name="FILLCOLOR:COLOR" value="d77800"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="9" state="2" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="9" state="1" name="FILLCOLOR:COLOR" value="191919"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="9" state="1" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="9" state="2" name="FILLCOLOR:COLOR" value="d77800"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="9" state="2" name="TEXTCOLOR:COLOR" value="ffffff"/>
+
+		<property class="DarkMode_Explorer::ScrollBar" part="11" state="0" name="FILLCOLOR:COLOR" value="383838"/>
+		<property class="ScrollBar" part="11" state="0" name="FILLCOLOR:COLOR" value="383838"/>
+		<property class="DarkMode_Explorer::Edit" part="3" state="1" name="BGTYPE:ENUM" value="BORDERFILL"/>
+		<property class="DarkMode_Explorer::Edit" part="3" state="1" name="FILLCOLOR:COLOR" value="212121"/>
+		<property class="DarkMode_CFD::Edit" part="3" state="1" name="BGTYPE:ENUM" value="BORDERFILL"/>
+		<property class="DarkMode_CFD::Edit" part="3" state="1" name="FILLCOLOR:COLOR" value="212121"/>
+		
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="0" name="BGTYPE:ENUM" value="BORDERFILL"/>
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="0" name="BORDERSIZE:INT" value="0"/>
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="0" name="FILLCOLOR:COLOR" value="383838"/>
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="2" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="3" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="5" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="6" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		<property class="DarkMode_InfoPaneToolbar::Toolbar" part="0" state="8" name="TEXTCOLOR:COLOR" value="ffffff"/>
+		
+		<property class="CommonItemsDialog" part="1" state="0" name="BGTYPE:ENUM" value="BORDERFILL"/>
+		<property class="CommonItemsDialog" part="1" state="0" name="FILLCOLOR:COLOR" value="f0f0f0"/>
+		<property class="CommonItemsDialog" part="1" state="0" name="BORDERSIZE:INT" value="0"/>
+		
+		<property class="DarkMode::CommonItemsDialog" part="1" state="0" name="BGTYPE:ENUM" value="BORDERFILL"/>
+		<property class="DarkMode::CommonItemsDialog" part="1" state="0" name="FILLCOLOR:COLOR" value="383838"/>
+		<property class="DarkMode::CommonItemsDialog" part="1" state="0" name="BORDERSIZE:INT" value="0"/>
+	</add>
+	<remove>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="GLYPHTYPE:ENUM"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="IMAGESELECTTYPE:ENUM"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="MINDPI1:INT"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="MINDPI2:INT"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="MINDPI3:INT"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="CONTENTMARGINS:MARGINS"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE1:FILENAME"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE2:FILENAME"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE3:FILENAME"/>
+		<property class="DarkMode_AddressComposited::ComboBox" part="0" state="0" name="TRANSITIONDURATIONS:INTLIST"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="GLYPHTYPE:ENUM"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGESELECTTYPE:ENUM"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="MINDPI1:INT"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="MINDPI2:INT"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="MINDPI3:INT"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="CONTENTMARGINS:MARGINS"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE1:FILENAME"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE2:FILENAME"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE3:FILENAME"/>
+		<property class="DarkMode_InactiveAddressComposited::ComboBox" part="0" state="0" name="TRANSITIONDURATIONS:INTLIST"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="GLYPHTYPE:ENUM"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="IMAGESELECTTYPE:ENUM"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="MINDPI1:INT"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="MINDPI2:INT"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="MINDPI3:INT"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="CONTENTMARGINS:MARGINS"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE1:FILENAME"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE2:FILENAME"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE3:FILENAME"/>
+		<property class="DarkMode_MaxAddressComposited::ComboBox" part="0" state="0" name="TRANSITIONDURATIONS:INTLIST"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="GLYPHTYPE:ENUM"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGESELECTTYPE:ENUM"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="MINDPI1:INT"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="MINDPI2:INT"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="MINDPI3:INT"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="CONTENTMARGINS:MARGINS"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE1:FILENAME"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE2:FILENAME"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="IMAGEFILE3:FILENAME"/>
+		<property class="DarkMode_MaxInactiveAddressComposited::ComboBox" part="0" state="0" name="TRANSITIONDURATIONS:INTLIST"/>
+	</remove>
+</stylescript>

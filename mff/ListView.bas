@@ -5,6 +5,9 @@
 '###############################################################################
 
 #include once "ListView.bi"
+#ifdef __USE_WINAPI__
+	#include once "win/tmschema.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Private Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -1297,6 +1300,51 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				Message.Result = 0
 			Case WM_SIZE
+			Case WM_NOTIFY
+				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
+					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+					Select Case nmcd->dwDrawStage
+					Case CDDS_PREPAINT
+						Message.Result = CDRF_NOTIFYITEMDRAW
+						Return
+					Case CDDS_ITEMPREPAINT
+						'Var info = Cast(SubclassInfo Ptr, dwRefData)
+						SetTextColor(nmcd->hdc, headerTextColor)
+						Message.Result = CDRF_DODEFAULT
+						Return
+					End Select
+				End If
+			Case WM_THEMECHANGED
+				If (g_darkModeSupported) Then
+					Dim As HWND hHeader = ListView_GetHeader(Message.hWnd)
+
+					AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
+					AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+
+					Dim As HTHEME hTheme '= OpenThemeData(nullptr, "ItemsView")
+					'If (hTheme) Then
+					'	Dim As COLORREF Color1
+					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
+							ListView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
+					'	End If
+					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
+							ListView_SetTextBkColor(Message.hWnd, darkBkColor) 'Color1)
+							ListView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+					'	End If
+					'	CloseThemeData(hTheme)
+					'End If
+
+					hTheme = OpenThemeData(hHeader, "Header")
+					If (hTheme) Then
+						'Var info = reinterpret_cast<SubclassInfo*>(dwRefData);
+						GetThemeColor(hTheme, HP_HEADERITEM, 0, TMT_TEXTCOLOR, @headerTextColor)
+						CloseThemeData(hTheme)
+					End If
+
+					SendMessageW(hHeader, WM_THEMECHANGED, Message.wParam, Message.lParam)
+
+					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
+				End If
 			Case CM_NOTIFY
 				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, message.lparam)
 				Select Case lvp->hdr.code
@@ -1396,6 +1444,13 @@ Namespace My.Sys.Forms
 		Private Sub ListView.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QListView(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						.hHeader = ListView_GetHeader(.FHandle)
+						SetWindowTheme(.hHeader, "DarkMode_ItemsView", nullptr) ' DarkMode
+						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr) ' DarkMode
+						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						AllowDarkModeForWindow(.hHeader, g_darkModeEnabled)
+					End If
 					If .Images Then
 						.Images->ParentWindow = @Sender
 						If .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)

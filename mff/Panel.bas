@@ -111,9 +111,9 @@ Namespace My.Sys.Forms
 	Private Sub Panel.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			Case WM_ERASEBKGND
-				If OnPaint Then OnPaint(This, Canvas)
-			Case WM_PAINT, WM_Create
+'			Case WM_ERASEBKGND
+'				If OnPaint Then OnPaint(This, Canvas)
+			Case WM_PAINT, WM_Create, WM_ERASEBKGND
 				Dim As Integer W,H
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
@@ -291,6 +291,7 @@ Namespace My.Sys.Forms
 				.ExStyle     = 0
 				.Style       = WS_CHILD
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/AbsoluteLayout")

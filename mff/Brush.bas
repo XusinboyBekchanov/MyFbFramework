@@ -12,6 +12,14 @@
 
 #include once "Brush.bi"
 
+Const As COLORREF darkBkColor = &h383838 '&h202020, &h1e1e1e
+Const As COLORREF darkHlBkColor = &h626262
+Const As COLORREF darkTextColor = &hFFFFFF
+
+Dim Shared As HBRUSH hbrBkgnd, hbrHlBkgnd
+hbrBkgnd = CreateSolidBrush(darkBkColor)
+hbrHlBkgnd = CreateSolidBrush(darkHlBkColor)
+
 Namespace My.Sys.Drawing
 	Private Function Brush.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
@@ -65,7 +73,6 @@ Namespace My.Sys.Drawing
 			Dim As LOGBRUSH LB
 			LB.lbColor = FColor
 			LB.lbHatch = FHatchStyle
-			If Handle Then DeleteObject Handle
 			Select Case FStyle
 			Case bsClear
 				LB.lbStyle = BS_NULL
@@ -75,7 +82,7 @@ Namespace My.Sys.Drawing
 				LB.lbStyle = BS_HATCHED
 				LB.lbHatch = FHatchStyle
 			End Select
-			If Handle Then DeleteObject(Handle)
+			If Handle AndAlso Handle <> hbrBkgnd Then DeleteObject(Handle)
 			Handle = CreateBrushIndirect(@LB)
 		#endif
 	End Sub
@@ -93,7 +100,7 @@ Namespace My.Sys.Drawing
 	
 	Private Destructor Brush
 		#ifdef __USE_WINAPI__
-			If Handle Then DeleteObject Handle
+			If Handle AndAlso Handle <> hbrBkgnd Then DeleteObject Handle
 		#endif
 	End Destructor
 End Namespace

@@ -893,6 +893,11 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 				If FHandle Then
 					#ifdef __USE_WINAPI__
+						If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor) Then
+							Brush.Handle = hbrBkgnd
+							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						End If
 						If ClassName <> "IPAddress" Then
 							SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(Child))
 						End If
@@ -1235,7 +1240,7 @@ Namespace My.Sys.Forms
 					Else
 						If OnScroll Then OnScroll(This)
 					End If
-				Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC
+				Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC, WM_CTLCOLORBTN
 					Dim As Control Ptr Child
 					If Message.Msg = WM_CTLCOLORSTATIC Then
 						If (GetWindowLong(CPtr(HWND, Message.LParam), GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
@@ -1246,23 +1251,49 @@ Namespace My.Sys.Forms
 					Child = GetProp(CPtr(HWND, Message.LParam), "MFFControl")
 					If Child Then
 						With *Child
-							SendMessage(CPtr(HWND, Message.LParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
+							If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor) Then
+								Dim As HDC hd = Cast(HDC, Message.wParam)
+								SetTextColor(hd, darkTextColor)
+								SetBkColor(hd, darkBkColor)
+								If .Brush.Handle <> hbrBkgnd Then .Brush.Handle = hbrBkgnd
+							Else
+								SendMessage(CPtr(HWND, Message.LParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
+							End If
 							Message.Result = Cast(LRESULT, .Brush.Handle)
+							Return
 						End With
 					Else
 						Dim As HDC Dc
 						DC = Cast(HDC, Message.wParam)
 						'Child = Cast(Control Ptr, GetWindowLongPtr(Message.hWnd, GWLP_USERDATA))
 						'If Child Then
-							SetBKMode(DC, TRANSPARENT)
-							SetBKColor(DC, BackColor)
-							SetTextColor(DC, Font.Color)
-							SetBKMode(DC, OPAQUE)
+							If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor) Then
+								Dim As HDC hd = Cast(HDC, Message.wParam)
+								SetTextColor(hd, darkTextColor)
+								SetBkColor(hd, darkBkColor)
+								If Brush.Handle <> hbrBkgnd Then Brush.Handle = hbrBkgnd
+							Else
+								SetBKMode(DC, TRANSPARENT)
+								SetBKColor(DC, BackColor)
+								SetTextColor(DC, Font.Color)
+								SetBKMode(DC, OPAQUE)
+							End If
 							Message.Result = Cast(LRESULT, Brush.Handle)
+							Return
 						'End If
 					End If
+				Case WM_SETTINGCHANGE
+					If g_darkModeSupported AndAlso CBool(IsColorSchemeChangeMessage(Message.lParam)) Then
+						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
+					End If
+				Case WM_THEMECHANGED
+					If g_darkModeSupported Then
+						_AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
+						RefreshTitleBarThemeColor(Message.hWnd)
+						UpdateWindow(Message.hWnd)
+					End If
 				Case WM_CTLCOLORBTN
-					?1
+					'?1
 				Case WM_SIZE
 					If Controls Then
 						RequestAlign
@@ -1457,6 +1488,7 @@ Namespace My.Sys.Forms
 						If NextCtrl Then NextCtrl->SetFocus
 					End If
 				Case WM_DESTROY
+					If Brush.Handle = hbrBkgnd Then Brush.Handle = 0
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
 					If OnDestroy Then OnDestroy(This)
 					'Handle = 0
@@ -1933,7 +1965,7 @@ Namespace My.Sys.Forms
 						Wc.Style = CS_DBLCLKS Or CS_HREDRAW Or CS_VREDRAW
 						Wc.hInstance     = Instance
 						Wc.hCursor       = LoadCursor(NULL, IDC_ARROW)
-						Wc.hbrBackground = Cast(HBRUSH, 16)
+						Wc.hbrBackground = Cast(HBRUSH, 0)
 						Result = .RegisterClassEx(@Wc)
 					End If
 				End If
@@ -2395,6 +2427,7 @@ Namespace My.Sys.Forms
 			FWidth = 0
 			FHeight = 0
 			FBackColor = -1
+			FDefaultBackColor = FBackColor
 			FTabIndex = -2
 			FShowHint = True
 			FVisible = True

@@ -5,8 +5,9 @@
 '################################################################################
 
 #include once "TreeView.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "win\commctrl.bi"
+	#include once "win\tmschema.bi"
 #endif
 
 Namespace My.Sys.Forms
@@ -746,6 +747,40 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				Message.Result = 0
 			Case WM_SIZE
+			Case WM_NOTIFY
+				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
+					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+					Select Case nmcd->dwDrawStage
+					Case CDDS_PREPAINT
+						Message.Result = CDRF_NOTIFYITEMDRAW
+						Return
+					Case CDDS_ITEMPREPAINT
+						'Var info = Cast(SubclassInfo Ptr, dwRefData)
+						'SetTextColor(nmcd->hdc, headerTextColor)
+						Message.Result = CDRF_DODEFAULT
+						Return
+					End Select
+				End If
+			Case WM_THEMECHANGED
+				If (g_darkModeSupported) Then
+
+					AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
+
+					'Dim As HTHEME hTheme = OpenThemeData(nullptr, "ItemsView")
+					'If (hTheme) Then
+						'Dim As COLORREF Color1
+						'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
+							TreeView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
+						'End If
+						'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
+							'TreeView_SetTextBkColor(Message.hWnd, Color1)
+							TreeView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+						'End If
+					'	CloseThemeData(hTheme)
+					'End If
+
+					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
+				End If
 			Case CM_NOTIFY
 				Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lparam)
 				If tvp->itemNew.hItem <> 0 Then
@@ -881,6 +916,13 @@ Namespace My.Sys.Forms
 		Private Sub TreeView.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTreeView(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						UpdateWindow(.FHandle)
+					End If
 					If .Images Then .Images->ParentWindow = @Sender
 					If .SelectedImages Then .SelectedImages->ParentWindow = @Sender
 					'.Perform(TB_BUTTONSTRUCTSIZE,SizeOF(TBBUTTON),0)
@@ -1107,6 +1149,7 @@ Namespace My.Sys.Forms
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_VISIBLE Or TVS_HASLINES Or TVS_LINESATROOT Or TVS_HASBUTTONS
 				.BackColor       = GetSysColor(COLOR_WINDOW) 'David Change
+				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
 			#endif
 			BorderStyle = BorderStyles.bsClient

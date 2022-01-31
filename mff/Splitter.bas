@@ -48,17 +48,17 @@ Namespace My.Sys.Forms
 	
 	Private Sub Splitter.DrawTrackSplit(x As Integer, y As Integer)
 		#ifndef __USE_GTK__
-			Static As Word DotBits(7) =>{&H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA}
-			Dim As HDC Dc
-			Dim As HBRUSH hbr
-			Dim As HBITMAP Bmp
-			Dc  = GetDCEx(This.Parent->Handle,0,dcx_cache Or dcx_clipsiblings) ' or dcx_lockwindowupdate
-			Bmp = CreateBitmap(8,8,1,1,@DotBits(0))
-			hbr = SelectObject(Dc,CreatePatternBrush(Bmp))
-			DeleteObject(Bmp)
-			PatBlt(Dc, x, y, ScaleX(ClientWidth), ScaleY(ClientHeight), patinvert)
-			DeleteObject(SelectObject(Dc,hbr))
-			ReleaseDC(This.Parent->Handle,Dc)
+'			Static As Word DotBits(7) =>{&H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA}
+'			Dim As HDC Dc
+'			Dim As HBRUSH hbr
+'			Dim As HBITMAP Bmp
+'			Dc  = GetDCEx(This.Parent->Handle,0,dcx_cache Or dcx_clipsiblings) ' or dcx_lockwindowupdate
+'			Bmp = CreateBitmap(8,8,1,1,@DotBits(0))
+'			hbr = SelectObject(Dc,CreatePatternBrush(Bmp))
+'			DeleteObject(Bmp)
+'			PatBlt(Dc, x, y, ScaleX(ClientWidth), ScaleY(ClientHeight), patinvert)
+'			DeleteObject(SelectObject(Dc,hbr))
+'			ReleaseDC(This.Parent->Handle,Dc)
 		#endif
 	End Sub
 	
@@ -123,9 +123,12 @@ Namespace My.Sys.Forms
 				Dim As HDC Dc
 				Dc = GetDC(Handle)
 				GetClientRect Handle, @R
+				SetBKMode Dc, TRANSPARENT
 				FillRect Dc, @R, Brush.Handle
+				SetBKColor Dc, OPAQUE
 				ReleaseDC Handle, DC
-				'	Message.Result = 0
+				Message.Result = 0
+				Exit Sub
 		#endif
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_PRESS
@@ -214,7 +217,8 @@ Namespace My.Sys.Forms
 							'		This.Parent->RequestAlign
 						#endif
 						This.Parent->UpdateUnLock
-						This.Parent->Update
+						This.Repaint
+						'This.Parent->Update
 						'Parent->Update
 					End If
 					#ifndef __USE_GTK__
@@ -358,6 +362,7 @@ Namespace My.Sys.Forms
 				.ChildProc = @WndProc
 				.Style     = WS_CHILD
 				.BackColor     = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				'.DoubleBuffered = True
 			#endif
 			This.Cursor.Ctrl = @This

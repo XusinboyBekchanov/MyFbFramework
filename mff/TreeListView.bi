@@ -196,9 +196,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkCellRenderer Ptr rendertext
 			Declare Static Function TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
+			hHeader As HWND
+			headerTextColor As COLORREF
 		#endif
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr

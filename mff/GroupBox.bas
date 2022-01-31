@@ -93,6 +93,21 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	Private Sub GroupBox.HandleIsAllocated(ByRef Sender As Control)
+		#ifdef __USE_WINAPI__
+			If Sender.Child Then
+				With QGroupBox(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "", "")
+						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				End With
+			End If
+		#endif
+	End Sub
+	
 	Private Sub GroupBox.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
@@ -109,7 +124,7 @@ Namespace My.Sys.Forms
    				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			Case WM_COMMAND
 				'CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
-			Case CM_CTLCOLOR
+'			Case CM_CTLCOLOR
 '				Static As HDC Dc
 '				Dc = Cast(HDC, Message.wParam)
 '				SetBKMode Dc, TRANSPARENT
@@ -151,6 +166,8 @@ Namespace My.Sys.Forms
 				.BackColor       = -1
 			#else
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
+				.OnHandleIsAllocated    = @HandleIsAllocated
 			#endif
 			.Width       = 121
 			.Height      = 51

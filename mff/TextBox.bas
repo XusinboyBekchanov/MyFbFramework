@@ -1453,7 +1453,8 @@ Namespace My.Sys.Forms
 				.ChildProc   = @WndProc
 				.ExStyle     = WS_EX_CLIENTEDGE ' OR ES_AUTOHSCROLL OR ES_AUTOVSCROLL
 				.Style       = WS_CHILD Or ES_AUTOHSCROLL Or WS_TABSTOP Or ES_WANTRETURN Or ACharCase(Abs_(FCharCase)) Or AMaskStyle(Abs_(FMasked)) Or AOEMConvert(Abs_(FOEMConvert)) Or AHideSelection(Abs_(FHideSelection))
-				.BackColor       = GetSysColor(COLOR_WINDOW)
+				.BackColor        = GetSysColor(COLOR_WINDOW)
+				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
 				.RegisterClass "TextBox", "Edit"
 				WLet(FClassAncestor, "Edit")

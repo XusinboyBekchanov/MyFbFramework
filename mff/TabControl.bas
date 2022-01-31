@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 			Case WM_DESTROY
 				CloseThemeData(FTheme)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
-				If UseVisualStyleBackColor Then
+				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If IsAppThemed() Then
 						GetClientRect(Cast(HWND, Msg.lParam), @rct)
 						DrawThemeParentBackground(Cast(HWND, Msg.lParam), Cast(HDC, Msg.wParam), @rct)
@@ -78,7 +78,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_PAINT
-				If UseVisualStyleBackColor Then
+				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If IsAppThemed() Then
 						GetClientRect(Msg.hWnd, @rct)
 						DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
@@ -87,7 +87,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_ERASEBKGND
-				If UseVisualStyleBackColor Then
+				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If IsAppThemed() Then
 						GetClientRect(Msg.hWnd, @rct)
 						DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_PRINTCLIENT
-				If UseVisualStyleBackColor Then
+				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If IsAppThemed() Then
 						Dim As ..RECT rct
 						GetClientRect(Msg.hWnd, @rct)
@@ -618,6 +618,13 @@ Namespace My.Sys.Forms
 		Private Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabControl(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						'SetWindowTheme(.FHandle, "DarkMode::Menu", nullptr)
+						SetWindowTheme(.FHandle, "DarkMode_ImmersiveStart", nullptr) ' DarkMode
+						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					End If
 					If .Images Then .Images->ParentWindow = @Sender
 					If .Images AndAlso .Images->Handle Then .Perform(TCM_SETIMAGELIST,0,CInt(.Images->Handle))
 					For i As Integer = 0 To .FTabCount - 1
@@ -666,6 +673,50 @@ Namespace My.Sys.Forms
 					DeleteObject(NewFontHandle)
 				End If
 				Message.Result = 0
+			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Dim As HDC Dc, memDC
+					Dim As HBITMAP Bmp
+					Dim As PAINTSTRUCT Ps
+					Canvas.HandleSetted = True
+					Dc = BeginPaint(Handle,@Ps)
+					FillRect Dc, @Ps.rcpaint, Brush.Handle
+					Canvas.Handle = Dc
+					Dim As LogFont LogRec
+					Dim As hFont OldFontHandle, NewFontHandle
+					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+						GetObject Font.Handle, SizeOf(LogRec), @LogRec
+						LogRec.lfEscapement = 90 * 10
+						NewFontHandle = CreateFontIndirect(@LogRec)
+						OldFontHandle = SelectObject(Dc, NewFontHandle)
+					Else
+						OldFontHandle = SelectObject(Dc, Font.Handle)
+					End If
+					SetTextColor(Dc, darkTextColor)
+					SetBKMode(Dc, TRANSPARENT)
+					For i As Integer = 0 To TabCount - 1
+						If i = SelectedTabIndex Then
+							Dim As ..Rect R
+							Perform(TCM_GETITEMRECT, i, CInt(@R))
+							FillRect(Dc, @R, hbrHlBkgnd)
+						End If
+						If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+							.TextOut(Dc, IIf(FTabPosition = tpLeft, ScaleX(2), ScaleX(This.Width - ItemWidth(i))), ScaleY(ItemTop(i) + ItemHeight(i) - 5), Tabs[i]->Caption, Len(Tabs[i]->Caption))
+						Else
+							.TextOut(Dc, ScaleY(ItemLeft(i) + 5), ScaleY(ItemTop(i) + 3), Tabs[i]->Caption, Len(Tabs[i]->Caption))
+						End If
+					Next i
+					SetBKMode(dc, OPAQUE)
+					NewFontHandle = SelectObject(dc, OldFontHandle)
+					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+						DeleteObject(NewFontHandle)
+					End If
+					If OnPaint Then OnPaint(This, Canvas)
+					EndPaint Handle,@Ps
+					Message.Result = 0
+					Canvas.HandleSetted = False
+					Return
+				End If
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
 				DownButton = 0
