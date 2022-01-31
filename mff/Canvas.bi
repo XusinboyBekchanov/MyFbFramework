@@ -81,6 +81,7 @@ Namespace My.Sys.Drawing
 		Declare Sub GetDevice
 		Declare Sub ReleaseDevice
 		iTemp As Integer
+	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout
