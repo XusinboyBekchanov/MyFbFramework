@@ -12,7 +12,9 @@
 '###############################################################################
 
 #include once "Application.bi"
-#include once "DarkMode/DarkMode.bas"
+#ifdef __USE_WINAPI__
+	#include once "DarkMode/DarkMode.bas"
+#endif
 
 Dim Shared App As My.Application
 pApp = @App
@@ -91,7 +93,7 @@ Namespace My
 		Dim As WString*255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
 		#else
 			Tx = Command(0)
@@ -112,7 +114,7 @@ Namespace My
 	
 	Private Property Application.FileName ByRef As WString
 		Dim As Integer L
-		#ifndef __FB_WIN32__
+		#ifdef __USE_GTK__
 			Dim As ZString * 255 Tx
 			'L = readlink("/proc/self/exe", @Tx, 255 - 1)
 			Tx = Command(0)

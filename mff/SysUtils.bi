@@ -23,7 +23,7 @@
 	#endif
 #endif
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	#define UNICODE
 	#include once "Windows.bi"
 #endif
@@ -72,7 +72,7 @@ Const HELP_SETPOPUP_POS = &Hd
 
 '#DEFINE __AUTOMATE_CREATE_CHILDS__
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	#define CM_NOTIFYCHILD 39998
 	#define CM_CHANGEIMAGE 39999
 	#define CM_CTLCOLOR    40000

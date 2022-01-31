@@ -79,7 +79,7 @@ End Sub
 Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
 	This.Resize(m_Length + NumBytes)
 	If m_Data = 0 Then Return False
-	#ifdef __FB_WIN32__
+	#ifdef __USE_WINAPI__
 		memcpy(m_Data + m_BufferLen, addrMemory, NumBytes)
 	#endif
 	m_BufferLen += NumBytes

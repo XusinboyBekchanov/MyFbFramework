@@ -12,13 +12,15 @@
 
 #include once "Brush.bi"
 
-Const As COLORREF darkBkColor = &h383838 '&h202020, &h1e1e1e
-Const As COLORREF darkHlBkColor = &h626262
-Const As COLORREF darkTextColor = &hFFFFFF
-
-Dim Shared As HBRUSH hbrBkgnd, hbrHlBkgnd
-hbrBkgnd = CreateSolidBrush(darkBkColor)
-hbrHlBkgnd = CreateSolidBrush(darkHlBkColor)
+#ifdef __USE_WINAPI__
+	Const As COLORREF darkBkColor = &h383838 '&h202020, &h1e1e1e
+	Const As COLORREF darkHlBkColor = &h626262
+	Const As COLORREF darkTextColor = &hFFFFFF
+	
+	Dim Shared As HBRUSH hbrBkgnd, hbrHlBkgnd
+	hbrBkgnd = CreateSolidBrush(darkBkColor)
+	hbrHlBkgnd = CreateSolidBrush(darkHlBkColor)
+#endif
 
 Namespace My.Sys.Drawing
 	Private Function Brush.ReadProperty(ByRef PropertyName As String) As Any Ptr

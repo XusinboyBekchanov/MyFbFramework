@@ -93,8 +93,8 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Sub GroupBox.HandleIsAllocated(ByRef Sender As Control)
-		#ifdef __USE_WINAPI__
+	#ifdef __USE_WINAPI__
+		Private Sub GroupBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QGroupBox(Sender.Child)
 					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
@@ -105,8 +105,8 @@ Namespace My.Sys.Forms
 					End If
 				End With
 			End If
-		#endif
-	End Sub
+		End Sub
+	#endif
 	
 	Private Sub GroupBox.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
