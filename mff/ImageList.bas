@@ -234,7 +234,7 @@ Namespace My.Sys.Forms
 				Dim As My.Sys.Drawing.BitmapType Bitm
 				Bitm.LoadFromResourceName(ResName, ModuleHandle_)
 				Items.Add Key, ResName
-				This.Add Bitm, Bitm, Key
+				This.AddMasked Bitm, clBlack, Key
 			End If
 			FNotAdd = False
 		#endif

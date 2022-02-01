@@ -604,8 +604,20 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
 				.ChildProc   = @WndProc
-				Select Case ReadRegistry(HKEY_LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ReleaseId")
-				Case "1809", "1903"
+				Type fnRtlGetNtVersionNumbers As Sub(major As LPDWORD, minor As LPDWORD, build As LPDWORD)
+				Dim As fnRtlGetNtVersionNumbers RtlGetNtVersionNumbers
+				Dim As HMODULE hNtdllModule = GetModuleHandle("ntdll.dll")
+				If (hNtdllModule) Then
+					RtlGetNtVersionNumbers = Cast(fnRtlGetNtVersionNumbers, GetProcAddress(hNtdllModule, "RtlGetNtVersionNumbers"))
+				End If
+				Dim As DWORD g_buildNumber = 0
+				If (RtlGetNtVersionNumbers) Then
+					Dim As DWORD major, minor
+					RtlGetNtVersionNumbers(@major, @minor, @g_buildNumber)
+					g_buildNumber = g_buildNumber And &hF0000000
+				End If
+				Select Case g_buildNumber
+				Case 17763 /'1809'/, 18362 /'1903'/
 					Base.FStyle             = cbOwnerDrawFixed
 					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
 				Case Else
