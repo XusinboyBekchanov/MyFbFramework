@@ -6,7 +6,7 @@
 
 #include once "ListView.bi"
 #ifdef __USE_WINAPI__
-	#include once "win/tmschema.bi"
+	#include once "win\tmschema.bi"
 #endif
 
 Namespace My.Sys.Forms

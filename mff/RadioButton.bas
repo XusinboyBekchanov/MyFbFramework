@@ -12,6 +12,9 @@
 '###############################################################################
 
 #include once "RadioButton.bi"
+#ifdef __USE_WINAPI__
+	#include once "win\tmschema.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Private Function RadioButton.ReadProperty(PropertyName As String) As Any Ptr
@@ -146,7 +149,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QRadioButton(Sender.Child)
 					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						SetWindowTheme(.FHandle, "", "")
+						'SetWindowTheme(.FHandle, "", "")
 						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
 						.Brush.Handle = hbrBkgnd
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
@@ -183,6 +186,80 @@ Namespace My.Sys.Forms
 				If Message.wParamHi = BN_CLICKED Then
 					If OnClick Then OnClick(This)
 				End If
+			Case CM_NOTIFY
+        		If (g_darkModeSupported AndAlso g_darkModeEnabled OrElse FForeColor <> 0) AndAlso Message.lParam <> 0 AndAlso Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW Then
+            		Dim As NMCUSTOMDRAW Ptr pnm = Cast(LPNMCUSTOMDRAW, Message.lParam)
+                    Select Case pnm->dwDrawStage
+					Case CDDS_PREERASE
+                        Dim As HRESULT hr = DrawThemeParentBackground(pnm->hdr.hwndFrom, pnm->hdc, @pnm->rc)
+                        If FAILED(hr) Then ' If failed draw without theme
+                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
+                            Message.Result = True
+                            Return
+                        End If
+
+                        Dim As HTHEME hTheme = OpenThemeData(pnm->hdr.hwndFrom, "BUTTON")
+
+                        If hTheme = 0 Then ' If failed draw without theme
+                            CloseThemeData(hTheme)
+                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
+                            Message.Result = True
+                            Return
+                        End If
+                           
+                        Dim As LRESULT state = SendMessage(pnm->hdr.hwndFrom, BM_GETSTATE, 0, 0)
+ 
+                        Dim As Integer stateID ' parameter for DrawThemeBackground
+
+                        Dim As UINT uiItemState = pnm->uItemState
+						Dim As bool bChecked = This.Checked
+						
+						If (uiItemState And CDIS_DISABLED) Then
+							stateID = IIf(bChecked, RBS_CHECKEDDISABLED, RBS_UNCHECKEDDISABLED)
+						ElseIf (uiItemState And CDIS_SELECTED) Then
+						    stateID = IIf(bChecked, RBS_CHECKEDPRESSED, RBS_UNCHECKEDPRESSED)
+						Else
+						    If (uiItemState And CDIS_HOT) Then
+						        stateID = IIf(bChecked, RBS_CHECKEDHOT, RBS_UNCHECKEDHOT)
+						    Else
+						        stateID = IIf(bChecked, RBS_CHECKEDNORMAL, RBS_UNCHECKEDNORMAL)
+						    End If
+						End If
+						
+                        Dim As ..RECT r
+                        Dim As ..SIZE s
+ 
+                        ' Get check box dimensions so we can calculate 
+                        ' rectangle dimensions For text
+                        GetThemePartSize(hTheme, pnm->hdc, BP_RADIOBUTTON, stateID, NULL, TS_TRUE, @s)
+ 
+                        r.left = pnm->rc.left
+                        r.top = pnm->rc.top ' + 2
+                        r.right = pnm->rc.left + s.cx
+                        r.bottom = pnm->rc.Bottom ' r.top + s.cy
+
+                        DrawThemeBackground(hTheme, pnm->hdc, BP_RADIOBUTTON, stateID, @r, NULL)
+ 
+                        ' adjust rectangle for text drawing
+                        'pnm->rc.top += r.top - 2
+                        pnm->rc.left += 3 + s.cx
+
+						SelectObject(pnm->hdc, Font.Handle)
+                        DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
+						If (uiItemState And CDIS_FOCUS) Then
+							Dim Sz As ..SIZE
+							GetTextExtentPoint32(pnm->hdc, @This.Text, Len(This.Text), @Sz)
+							pnm->rc.left -= 1
+							pnm->rc.top = (pnm->rc.bottom - r.top - (s.cy + 2)) / 2
+							pnm->rc.right = pnm->rc.left + sz.cx + 2
+							pnm->rc.bottom = pnm->rc.top + s.cy + 2
+							DrawFocusRect(pnm->hdc, @pnm->rc)
+						End If
+                        CloseThemeData(hTheme)
+                        Message.Result = Cast(LONG_PTR, CDRF_SKIPDEFAULT)
+                        Return
+                    End Select
+                End If
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

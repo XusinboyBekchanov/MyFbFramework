@@ -12,6 +12,9 @@
 '###############################################################################
 
 #include once "GroupBox.bi"
+#ifdef __USE_WINAPI__
+	#include once "win\tmschema.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Private Function GroupBox.ReadProperty(PropertyName As String) As Any Ptr
@@ -119,7 +122,7 @@ Namespace My.Sys.Forms
 				Dim As ..Rect R
 				GetClientRect Handle,@R
 				Dc = GetDC(Handle)
-				FillRect Dc,@R,This.Brush.Handle
+				FillRect Dc, @R, This.Brush.Handle
 				ReleaseDC Handle, Dc
    				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			Case WM_COMMAND
@@ -135,6 +138,64 @@ Namespace My.Sys.Forms
 '				If Message.wParamHi = BN_CLICKED Then
 '					If OnClick Then OnClick(This)
 '				End If
+			Case CM_NOTIFY
+        		If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso Message.lParam <> 0 AndAlso Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW Then
+        			Dim As NMCUSTOMDRAW Ptr pnm = Cast(LPNMCUSTOMDRAW, Message.lParam)
+        			Select Case pnm->dwDrawStage
+					Case CDDS_PREERASE
+                        Dim As HRESULT hr = DrawThemeParentBackground(pnm->hdr.hwndFrom, pnm->hdc, @pnm->rc)
+                        If FAILED(hr) Then ' If failed draw without theme
+                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
+                            Message.Result = True
+                            Return
+                        End If
+
+                        Dim As HTHEME hTheme = OpenThemeData(pnm->hdr.hwndFrom, "BUTTON")
+
+                        If hTheme = 0 Then ' If failed draw without theme
+                            CloseThemeData(hTheme)
+                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
+                            Message.Result = True
+                            Return
+                        End If
+                           
+                        Dim As LRESULT state = SendMessage(pnm->hdr.hwndFrom, BM_GETSTATE, 0, 0)
+ 
+                        Dim As Integer stateID ' parameter for DrawThemeBackground
+
+                        Dim As UINT uiItemState = pnm->uItemState
+						
+						If (uiItemState And CDIS_DISABLED) Then
+							stateID = GBS_DISABLED
+						Else
+						    stateID = GBS_NORMAL
+						End If
+						
+                        Dim As ..RECT r
+                        Dim As ..SIZE s
+ 
+                        ' Get check box dimensions so we can calculate 
+                        ' rectangle dimensions For text
+                        GetThemePartSize(hTheme, pnm->hdc, BP_GROUPBOX, stateID, NULL, TS_TRUE, @s)
+ 
+                        r.left = pnm->rc.left
+                        r.top = pnm->rc.top ' + 2
+                        r.right = pnm->rc.left + s.cx
+                        r.bottom = pnm->rc.Bottom ' r.top + s.cy
+
+                        DrawThemeBackground(hTheme, pnm->hdc, BP_GROUPBOX, stateID, @r, NULL)
+ 
+                        ' adjust rectangle for text drawing
+                        'pnm->rc.top += r.top - 2
+                        pnm->rc.left += 3 + s.cx
+
+						'SelectObject(pnm->hdc, Font.Handle)
+                        DrawText(pnm->hdc, This.Text & "0", -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
+                        CloseThemeData(hTheme)
+                        Message.Result = Cast(LONG_PTR, CDRF_SKIPDEFAULT)
+                        Return
+                    End Select
+        		End If
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
