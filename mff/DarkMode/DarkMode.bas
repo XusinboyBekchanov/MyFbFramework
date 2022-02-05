@@ -129,7 +129,7 @@ End Function
 
 Sub SetTitleBarThemeColor(hWnd As HWND, dark As BOOL)
 	If (g_buildNumber < 18362) Then
-		SetPropW(hWnd, "UseImmersiveDarkModeColors", Cast(HANDLE, dark))
+		SetPropW(hWnd, "UseImmersiveDarkModeColors", Cast(HANDLE, Cast(LONG_PTR, dark)))
 	ElseIf (_SetWindowCompositionAttribute) Then
 		Dim As WINDOWCOMPOSITIONATTRIBDATA Data1 = (WCA_USEDARKMODECOLORS, @dark, SizeOf(dark) )
 		_SetWindowCompositionAttribute(hWnd, @Data1)
