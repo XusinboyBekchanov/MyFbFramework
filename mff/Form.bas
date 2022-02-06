@@ -12,6 +12,9 @@
 '################################################################################
 
 #include once "Form.bi"
+#ifdef __USE_WINAPI__
+	#include once "win/uxtheme.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Private Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -90,11 +93,11 @@ Namespace My.Sys.Forms
 		If FActiveControl Then FActiveControl->SetFocus
 		If OnActiveControlChange Then OnActiveControlChange(This)
 	End Property
-
+	
 	Private Property Form.Owner As Form Ptr
 		Return Cast(Form Ptr, FOwner)
 	End Property
-
+	
 	Private Property Form.Owner(Value As Form Ptr)
 		If Value <> FOwner Then
 			FOwner = Value
@@ -105,12 +108,12 @@ Namespace My.Sys.Forms
 			#endif
 		End If
 	End Property
-
+	
 	#ifdef __USE_GTK__
 		Private Property Form.ParentWidget As GtkWidget Ptr
 			Return FParentWidget
 		End Property
-
+		
 		Private Property Form.ParentWidget(Value As GtkWidget Ptr)
 			If Not GTK_IS_BOX(widget) Then
 				g_object_ref(box)
@@ -138,11 +141,11 @@ Namespace My.Sys.Forms
 			End If
 		End Property
 	#endif
-
+	
 	Private Property Form.DefaultButton As Control Ptr
 		Return FDefaultButton
 	End Property
-
+	
 	Private Property Form.DefaultButton(Value As Control Ptr)
 		FDefaultButton = Value
 		#ifdef __USE_GTK__
@@ -162,19 +165,19 @@ Namespace My.Sys.Forms
 			
 		End If
 	End Property
-
+	
 	Private Property Form.CancelButton As Control Ptr
 		Return FCancelButton
 	End Property
-
+	
 	Private Property Form.CancelButton(Value As Control Ptr)
 		FCancelButton = Value
 	End Property
-
+	
 	Private Property Form.MainForm As Boolean
 		Return FMainForm
 	End Property
-
+	
 	Private Property Form.MainForm(Value As Boolean)
 		If Value <> FMainForm Then
 			FMainForm = Value
@@ -193,20 +196,20 @@ Namespace My.Sys.Forms
 			End If
 		End If
 	End Property
-
+	
 	Private Property Form.Menu As MainMenu Ptr
 		Return FMenu
 	End Property
-
+	
 	Private Property Form.Menu(Value As MainMenu Ptr)
 		FMenu = Value
 		If FMenu Then FMenu->ParentWindow = @This
 	End Property
-
+	
 	Private Property Form.StartPosition As Integer
 		Return FStartPosition
 	End Property
-
+	
 	Private Property Form.StartPosition(Value As Integer)
 		FStartPosition = Value
 		#ifdef __USE_GTK__
@@ -230,11 +233,11 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Property
-
+	
 	Private Property Form.Opacity As Integer
 		Return FOpacity
 	End Property
-
+	
 	Private Property Form.Opacity(Value As Integer)
 		FOpacity = Value
 		#ifdef __USE_GTK__
@@ -252,11 +255,11 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Property
-
+	
 	Private Property Form.ControlBox As Boolean
 		Return FControlBox
 	End Property
-
+	
 	Private Property Form.ControlBox(Value As Boolean)
 		FControlBox = Value
 		#ifdef __USE_WINAPI__
@@ -264,11 +267,11 @@ Namespace My.Sys.Forms
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
 	End Property
-
+	
 	Private Property Form.MinimizeBox As Boolean
 		Return FMinimizeBox
 	End Property
-
+	
 	Private Property Form.MinimizeBox(Value As Boolean)
 		FMinimizeBox = Value
 		#ifdef __USE_WINAPI__
@@ -276,11 +279,11 @@ Namespace My.Sys.Forms
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
 	End Property
-
+	
 	Private Property Form.MaximizeBox As Boolean
 		Return FMaximizeBox
 	End Property
-
+	
 	Private Property Form.MaximizeBox(Value As Boolean)
 		FMaximizeBox = Value
 		#ifdef __USE_WINAPI__
@@ -288,11 +291,11 @@ Namespace My.Sys.Forms
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
 	End Property
-
+	
 	Private Property Form.BorderStyle As Integer
 		Return FBorderStyle
 	End Property
-
+	
 	Private Property Form.BorderStyle(Value As Integer)
 		FBorderStyle = Value
 		#ifdef __USE_GTK__
@@ -415,7 +418,7 @@ Namespace My.Sys.Forms
 			If FHandle Then SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
 	End Property
-
+	
 	Private Property Form.FormStyle As Integer
 		Return FFormStyle
 	End Property
@@ -490,7 +493,7 @@ Namespace My.Sys.Forms
 	Private Property Form.Parent As Control Ptr
 		Return Cast(Control Ptr, @FParent)
 	End Property
-
+	
 	Private Property Form.Parent(value As Control Ptr)
 		#ifdef __USE_GTK__
 			If FormStyle = fsMDIChild Then
@@ -513,7 +516,7 @@ Namespace My.Sys.Forms
 			End If
 		End If
 	End Property
-
+	
 	Property Form.WindowState As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_window(widget) Then
@@ -538,7 +541,7 @@ Namespace My.Sys.Forms
 		#endif
 		Return FWindowState
 	End Property
-
+	
 	Private Property Form.WindowState(Value As Integer)
 		FWindowState = Value
 		#ifdef __USE_GTK__
@@ -548,7 +551,7 @@ Namespace My.Sys.Forms
 				Select Case FWindowState
 				Case WindowStates.wsMinimized:  gtk_window_iconify(GTK_WINDOW(widget))
 				Case WindowStates.wsMaximized:  gtk_window_maximize(GTK_WINDOW(widget))
-				Case WindowStates.wsNormal:     
+				Case WindowStates.wsNormal:
 				Case WindowStates.wsHide:       gtk_widget_hide(widget)
 				End Select
 			End If
@@ -571,25 +574,25 @@ Namespace My.Sys.Forms
 				Select Case FWindowState
 				Case WindowStates.wsMinimized:  ChangeStyle WS_MINIMIZE, True
 				Case WindowStates.wsMaximized:  ChangeStyle WS_MAXIMIZE, True
-				Case WindowStates.wsNormal:     
+				Case WindowStates.wsNormal:
 				Case WindowStates.wsHide:       ChangeStyle WS_VISIBLE, False
 				End Select
 			End If
 		#endif
 	End Property
-
+	
 	Private Property Form.Caption ByRef As WString
 		Return Text
 	End Property
-
+	
 	Private Property Form.Caption(ByRef Value As WString)
 		Text = Value
 	End Property
-
+	
 	Private Property Form.Text ByRef As WString
 		Return Base.Text
 	End Property
-
+	
 	Private Property Form.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
@@ -620,15 +623,15 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Property
-
+	
 	Private Property Form.Enabled As Boolean
 		Return Base.Enabled
 	End Property
-
+	
 	Private Property Form.Enabled(Value As Boolean)
 		Base.Enabled = Value
 	End Property
-
+	
 	Private Sub Form.ActiveControlChanged(ByRef Sender As Control)
 		If Sender.Child Then
 			With QForm(Sender.Child)
@@ -636,12 +639,12 @@ Namespace My.Sys.Forms
 			End With
 		End If
 	End Sub
-
+	
 	#ifdef __USE_WINAPI__
 		Private Sub Form.WndProc(ByRef message As Message)
 			
 		End Sub
-
+		
 		Private Sub Form.HandleIsDestroyed(ByRef Sender As Control)
 			If Sender.Child Then
 				With QForm(Sender.Child)
@@ -650,7 +653,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-
+		
 		'		Function GetAscKeyCode(HotKey As String) As Integer
 		'	        Select Case HotKey
 		'	        Case "Backspace", "Back": Return 08
@@ -694,7 +697,7 @@ Namespace My.Sys.Forms
 		'	        Case Else: Return Asc(HotKey)
 		'	        End Select
 		'	    End Function
-
+		
 		Private Sub Form.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				Dim As HMENU NoNeedSysMenu
@@ -742,32 +745,32 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					End Select
-'					.GetMenuItems
-'					Dim As String mnuCaption, HotKey
-'					Dim As Integer Pos1, CountOfHotKeys = 0
-'					Dim As MenuItem Ptr mi
-'					ReDim accl(1) As ACCEL
-'					For i As Integer = 0 To .FMenuItems.Count - 1
-'						mi = .FMenuItems.Items[i]
-'						mnuCaption = mi->Caption
-'						Pos1 = InStr(mnuCaption, !"\t")
-'						If Pos1 > 0 Then
-'							CountOfHotKeys = CountOfHotKeys + 1
-'							HotKey = Mid(mnuCaption, Pos1 + 1)
-'							ReDim Preserve accl(CountOfHotKeys - 1) As ACCEL
-'							If InStr(HotKey, "Ctrl") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FCONTROL
-'							If InStr(HotKey, "Shift") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FSHIFT
-'							If InStr(HotKey, "Alt") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FALT
-'							accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FVIRTKEY
-'							Pos1 = InStrRev(HotKey, "+")
-'							If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
-'							accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
-'							accl(CountOfHotKeys - 1).cmd = mi->Command
-'						End If
-'					Next i
-'					If .Accelerator <> 0 Then DestroyAcceleratorTable(.Accelerator)
-'					.Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
-'					Erase accl
+					'					.GetMenuItems
+					'					Dim As String mnuCaption, HotKey
+					'					Dim As Integer Pos1, CountOfHotKeys = 0
+					'					Dim As MenuItem Ptr mi
+					'					ReDim accl(1) As ACCEL
+					'					For i As Integer = 0 To .FMenuItems.Count - 1
+					'						mi = .FMenuItems.Items[i]
+					'						mnuCaption = mi->Caption
+					'						Pos1 = InStr(mnuCaption, !"\t")
+					'						If Pos1 > 0 Then
+					'							CountOfHotKeys = CountOfHotKeys + 1
+					'							HotKey = Mid(mnuCaption, Pos1 + 1)
+					'							ReDim Preserve accl(CountOfHotKeys - 1) As ACCEL
+					'							If InStr(HotKey, "Ctrl") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FCONTROL
+					'							If InStr(HotKey, "Shift") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FSHIFT
+					'							If InStr(HotKey, "Alt") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FALT
+					'							accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FVIRTKEY
+					'							Pos1 = InStrRev(HotKey, "+")
+					'							If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
+					'							accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
+					'							accl(CountOfHotKeys - 1).cmd = mi->Command
+					'						End If
+					'					Next i
+					'					If .Accelerator <> 0 Then DestroyAcceleratorTable(.Accelerator)
+					'					.Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
+					'					Erase accl
 				End With
 			End If
 		End Sub
@@ -783,7 +786,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 	#endif
-
+	
 	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
 		#ifdef __USE_GTK__
@@ -803,38 +806,38 @@ Namespace My.Sys.Forms
 						#endif
 					Else
 						'#ifdef __USE_GTK3__
-							
+						
 						'#else
-							If gtk_is_window(widget) Then
-								If gtk_window_get_modal (gtk_window(widget)) Then 
-									gtk_main_quit()
-								End If
+						If gtk_is_window(widget) Then
+							If gtk_window_get_modal (gtk_window(widget)) Then
+								gtk_main_quit()
 							End If
-							gtk_widget_hide(widget)
-							msg.Result = -1
+						End If
+						gtk_widget_hide(widget)
+						msg.Result = -1
 						'#endif
 					End If
 				Case 2
 					msg.Result = -1
 				End Select
 			Case GDK_FOCUS_CHANGE
-					If Cast(GdkEventFocus Ptr, msg.event)->in Then
-						If OnActivateApp OrElse OnDeactivateApp Then
-							If pApp Then
-								pApp->FActivated = True
-								If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
-							End If
-						End If
-						If OnActivate Then OnActivate(This)
-					Else
-						If OnDeactivate Then OnDeactivate(This)
-						If OnActivateApp OrElse OnDeactivateApp Then
-							If pApp Then
-								pApp->FDeactivated = True
-								g_timeout_add(500, Cast(GSourceFunc, @deactivate_cb), @This)
-							End If
+				If Cast(GdkEventFocus Ptr, msg.event)->in Then
+					If OnActivateApp OrElse OnDeactivateApp Then
+						If pApp Then
+							pApp->FActivated = True
+							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
 						End If
 					End If
+					If OnActivate Then OnActivate(This)
+				Else
+					If OnDeactivate Then OnDeactivate(This)
+					If OnActivateApp OrElse OnDeactivateApp Then
+						If pApp Then
+							pApp->FDeactivated = True
+							g_timeout_add(500, Cast(GSourceFunc, @deactivate_cb), @This)
+						End If
+					End If
+				End If
 			Case GDK_WINDOW_STATE
 				
 			Case Else
@@ -856,6 +859,128 @@ Namespace My.Sys.Forms
 					_AllowDarkModeForWindow(Msg.hWnd, g_darkModeEnabled)
 					RefreshTitleBarThemeColor(Msg.hWnd)
 					UpdateWindow(Msg.hWnd)
+				End If
+			Case WM_UAHDRAWMENU
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Dim As UAHMENU Ptr pUDM = Cast(UAHMENU Ptr, Msg.lParam)
+					Dim As ..RECT rc = Type( 0 )
+					
+					' Get the menubar rect
+					Dim As MENUBARINFO mbi = Type(  SizeOf(mbi) )
+					GetMenuBarInfo(Msg.hWnd, OBJID_MENU, 0, @mbi)
+					
+					Dim As ..RECT rcWindow
+					GetWindowRect(Msg.hWnd, @rcWindow)
+					
+					' the rcBar is offset by the window rect
+					rc = mbi.rcBar
+					OffsetRect(@rc, -rcWindow.left, -rcWindow.top)
+					
+					FillRect(pUDM->hdc, @rc, hbrBkgnd)
+					
+					Msg.Result = True
+					Return
+				End If
+			Case WM_UAHDRAWMENUITEM
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Dim As UAHDRAWMENUITEM Ptr pUDMI = Cast(UAHDRAWMENUITEM Ptr, Msg.lParam)
+					
+					Dim As HBRUSH Ptr pbrBackground = @hbrBkgnd
+					
+					' get the menu item string
+					Dim As WString * 256 menuString
+					Dim As MENUITEMINFO mii = Type( SizeOf(mii), MIIM_STRING )
+					mii.dwTypeData = @menuString
+					mii.cch = 256
+					
+					GetMenuItemInfo(pUDMI->um.hmenu, pUDMI->umi.iPosition, True, @mii)
+					
+					' get the item state for drawing
+					
+					Dim As DWORD dwFlags = DT_CENTER Or DT_SINGLELINE Or DT_VCENTER
+					
+					Enum POPUPITEMSTATES
+						MPI_NORMAL = 1,
+						MPI_HOT = 2,
+						MPI_DISABLED = 3,
+						MPI_DISABLEDHOT = 4,
+					End Enum
+					
+					Dim As Integer iTextStateID = 0
+					Dim As Integer iBackgroundStateID = 0
+					If ((pUDMI->dis.itemState And ODS_INACTIVE) Or (pUDMI->dis.itemState And ODS_DEFAULT)) Then
+						' normal display
+						iTextStateID = MPI_NORMAL
+						iBackgroundStateID = MPI_NORMAL
+					End If
+					If (pUDMI->dis.itemState And ODS_HOTLIGHT) Then
+						' hot tracking
+						iTextStateID = MPI_HOT
+						iBackgroundStateID = MPI_HOT
+						
+						pbrBackground = @hbrHlBkgnd '@g_brItemBackgroundHot
+					End If
+					If (pUDMI->dis.itemState And ODS_SELECTED) Then
+						' clicked -- MENU_POPUPITEM has no state for this, though MENU_BARITEM does
+						iTextStateID = MPI_HOT
+						iBackgroundStateID = MPI_HOT
+						
+						pbrBackground = @hbrHlBkgnd '@g_brItemBackgroundSelected
+					End If
+					If ((pUDMI->dis.itemState And ODS_GRAYED) Or (pUDMI->dis.itemState And ODS_DISABLED)) Then
+						' disabled / grey text
+						iTextStateID = MPI_DISABLED
+						iBackgroundStateID = MPI_DISABLED
+					End If
+					If (pUDMI->dis.itemState And ODS_NOACCEL) Then
+						dwFlags Or = DT_HIDEPREFIX
+					End If
+					
+					If (g_menuTheme = 0) Then
+						g_menuTheme = OpenThemeData(Msg.hWnd, "Menu")
+					End If
+					
+					'Dim As DTTOPTS opts = Type( SizeOf(opts), DTT_TEXTCOLOR, IIf(iTextStateID <> MPI_DISABLED, RGB(&h00, &h00, &h20), RGB(&h40, &h40, &h40) )
+					
+					FillRect(pUDMI->um.hdc, @pUDMI->dis.rcItem, *pbrBackground)
+					SetBKMode pUDMI->um.hdc, TRANSPARENT
+					SetTextColor pUDMI->um.hdc, darkTextColor
+					SetBKColor pUDMI->um.hdc, darkBkColor
+					DrawText pUDMI->um.hdc, menuString, mii.cch, @pUDMI->dis.rcItem, dwFlags
+					SetBKMode pUDMI->um.hdc, OPAQUE
+					'DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, @pUDMI->dis.rcItem, @opts)
+					
+					Msg.Result = True
+					Return
+				End If
+			Case WM_NCPAINT, WM_NCACTIVATE
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					DefWindowProc(Msg.hWnd, Msg.Msg, Msg.wParam, Msg.lParam)
+					Dim As MENUBARINFO mbi = Type( SizeOf(mbi) )
+					If (GetMenuBarInfo(Msg.hWnd, OBJID_MENU, 0, @mbi) = 0) Then
+						Msg.Result = True
+						Return
+					End If
+					
+					Dim As RECT rcClient = Type( 0 )
+					GetClientRect(Msg.hWnd, @rcClient)
+					MapWindowPoints(Msg.hWnd, nullptr, Cast(Point Ptr, @rcClient), 2)
+					
+					Dim As RECT rcWindow = Type( 0 )
+					GetWindowRect(Msg.hWnd, @rcWindow)
+					
+					OffsetRect(@rcClient, -rcWindow.left, -rcWindow.top)
+					
+					' the rcBar is offset by the window rect
+					Dim As RECT rcAnnoyingLine = rcClient
+					rcAnnoyingLine.bottom = rcAnnoyingLine.top
+					rcAnnoyingLine.top -= 1
+					
+					Dim As HDC Dc = GetWindowDC(Msg.hWnd)
+					FillRect(Dc, @rcAnnoyingLine, hbrBkgnd)
+					ReleaseDC(Msg.hWnd, Dc)
+					Msg.Result = True
+					Return
 				End If
 			Case WM_PAINT ', WM_ERASEBKGND
 				Dim As HDC Dc, memDC
@@ -929,8 +1054,8 @@ Namespace My.Sys.Forms
 				IsMenuItem = True
 			Case WM_INITMENU
 			Case WM_INITMENUPOPUP
-'			Case WM_TIMER
-'				If OnTimer Then OnTimer(This)
+				'			Case WM_TIMER
+				'				If OnTimer Then OnTimer(This)
 			Case WM_ACTIVATE
 				Select Case msg.wParamLo
 				Case WA_ACTIVE, WA_CLICKACTIVE
@@ -1014,14 +1139,14 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Select Case FFormStyle
 			Case fsMDIChild
-				Msg.Result = -3 
+				Msg.Result = -3
 			Case fsMDIForm
 				Msg.hWnd = FClient
 				Msg.Result = -4
 			End Select
 		#endif
 	End Sub
-
+	
 	'David Change
 	Private Sub Form.BringToFront
 		#ifdef __USE_WINAPI__
@@ -1031,13 +1156,13 @@ Namespace My.Sys.Forms
 			If Handle Then SetWindowPos(Handle, HWND_TOP,0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)' This.Left, This.Top, This.Width, This.Height, 0)
 		#endif
 	End Sub
-
+	
 	Private Sub Form.SendToBack
 		#ifdef __USE_WINAPI__
 			If Handle Then SetWindowPos Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 		#endif
 	End Sub
-
+	
 	Private Property Form.Visible() As Boolean
 		#ifdef __USE_WINAPI__
 			If FHandle Then
@@ -1046,7 +1171,7 @@ Namespace My.Sys.Forms
 		#endif
 		Return FVisible
 	End Property
-
+	
 	Private Property Form.Visible(Value As Boolean)
 		FVisible = Value
 		If Value Then
@@ -1174,10 +1299,10 @@ Namespace My.Sys.Forms
 					StartPosition = Manual
 				End If
 				'If Menu Then gtk_widget_show_all(Menu->widget)
-'				gtk_widget_show(ImageWidget)
-'				If box Then gtk_widget_show(box)
-'				If layoutwidget Then gtk_widget_show(layoutwidget)
-'				gtk_widget_show(widget)
+				'				gtk_widget_show(ImageWidget)
+				'				If box Then gtk_widget_show(box)
+				'				If layoutwidget Then gtk_widget_show(layoutwidget)
+				'				gtk_widget_show(widget)
 				gtk_widget_show_all(widget)
 				'ShowItems @This
 				HideItems @This
@@ -1186,8 +1311,8 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If IsIconic(Handle) Then
 				ShowWindow Handle, SW_SHOWNORMAL
-'			ElseIf IsWindowVisible(Handle) Then
-'				This.SetFocus
+				'			ElseIf IsWindowVisible(Handle) Then
+				'				This.SetFocus
 			Else
 				If Handle Then
 					ShowWindow Handle, FCmdShow(FWindowState)
@@ -1201,7 +1326,7 @@ Namespace My.Sys.Forms
 		#endif
 		If OnShow Then OnShow(This)
 	End Sub
-
+	
 	Private Sub Form.Show(ByRef OwnerForm As Form)
 		This.FParent = @OwnerForm
 		#ifdef __USE_GTK__
@@ -1211,12 +1336,12 @@ Namespace My.Sys.Forms
 		#endif
 		This.Show
 	End Sub
-
+	
 	Private Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
 		This.FParent = @OwnerForm
 		Return This.ShowModal()
 	End Function
-
+	
 	Private Function Form.ShowModal() As Integer
 		#ifdef __USE_GTK__
 			If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(gtk_window(widget), gtk_window(pApp->ActiveForm->Widget))
@@ -1275,7 +1400,7 @@ Namespace My.Sys.Forms
 		#endif
 		Function = ModalResult
 	End Function
-
+	
 	Private Sub Form.Hide
 		#ifdef __USE_GTK__
 			If Widget Then
@@ -1297,7 +1422,7 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
-
+	
 	Private Sub Form.Maximize
 		#ifdef __USE_GTK__
 			If gtk_is_window(widget) Then
@@ -1309,7 +1434,7 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
-
+	
 	Private Sub Form.Minimize
 		#ifdef __USE_GTK__
 			If gtk_is_window(widget) Then
@@ -1321,36 +1446,36 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
-
+	
 	Private Sub Form.CloseForm
 		#ifdef __USE_GTK__
 			'#ifdef __USE_GTK3__
 			'	gtk_window_close(Gtk_Window(widget))
 			'#else
-				Dim As Integer Action = 1
-				If OnClose Then OnClose(This, Action)
-				Select Case Action
-				Case 0
-				Case 1
-					If MainForm Then
-						If gtk_is_widget(widget) Then gtk_widget_destroy(widget)
-						gtk_main_quit()
-					Else
-						If gtk_is_window(widget) Then
-							If gtk_window_get_modal (gtk_window(widget)) Then 
-								gtk_main_quit()
-							End If
+			Dim As Integer Action = 1
+			If OnClose Then OnClose(This, Action)
+			Select Case Action
+			Case 0
+			Case 1
+				If MainForm Then
+					If gtk_is_widget(widget) Then gtk_widget_destroy(widget)
+					gtk_main_quit()
+				Else
+					If gtk_is_window(widget) Then
+						If gtk_window_get_modal (gtk_window(widget)) Then
+							gtk_main_quit()
 						End If
-						gtk_widget_hide(widget)
 					End If
-				Case 2
-				End Select
+					gtk_widget_hide(widget)
+				End If
+			Case 2
+			End Select
 			'#endif
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(WM_CLOSE, 0, 0)
 		#endif
 	End Sub
-
+	
 	Private Sub Form.CenterToParent()
 		If FParent Then
 			With *Cast(Control Ptr, FParent)
@@ -1365,7 +1490,7 @@ Namespace My.Sys.Forms
 			End With
 		End If
 	End Sub
-
+	
 	Private Sub Form.CenterToScreen()
 		#ifdef __USE_GTK__
 			If gtk_is_window(widget) Then
@@ -1377,7 +1502,7 @@ Namespace My.Sys.Forms
 			This.Top  = (UnScaleY(GetSystemMetrics(SM_CYSCREEN)) - This.Height) \ 2
 		#endif
 	End Sub
-
+	
 	Private Function Form.EnumMenuItems(Item As MenuItem) As Boolean
 		FMenuItems.Add Item
 		For i As Integer = 0 To Item.Count -1
@@ -1385,7 +1510,7 @@ Namespace My.Sys.Forms
 		Next i
 		Return True
 	End Function
-
+	
 	Private Sub Form.GetMenuItems
 		FMenuItems.Clear
 		If This.Menu Then
@@ -1394,7 +1519,7 @@ Namespace My.Sys.Forms
 			Next i
 		End If
 	End Sub
-
+	
 	Private Sub Form.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
@@ -1408,20 +1533,20 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 				#else
-'					Select Case ImageType
-'					Case 0
-'						QForm(.Ctrl->Child).ChangeStyle SS_BITMAP, True
-'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Bitmap.Handle))
-'					Case 1
-'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
-'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
-'					Case 2
-'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
-'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
-'					Case 3
-'						QForm(.Ctrl->Child).ChangeStyle SS_ENHMETAFILE, True
-'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(0))
-'					End Select
+					'					Select Case ImageType
+					'					Case 0
+					'						QForm(.Ctrl->Child).ChangeStyle SS_BITMAP, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Bitmap.Handle))
+					'					Case 1
+					'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
+					'					Case 2
+					'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
+					'					Case 3
+					'						QForm(.Ctrl->Child).ChangeStyle SS_ENHMETAFILE, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(0))
+					'					End Select
 					.Ctrl->Repaint
 				#endif
 			End If
@@ -1431,7 +1556,7 @@ Namespace My.Sys.Forms
 	Private Operator Form.Cast As Control Ptr
 		Return @This
 	End Operator
-
+	
 	Private Sub Form.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 		With *Cast(Form Ptr, Sender.Graphic)
 			#ifdef __USE_WINAPI__
@@ -1516,7 +1641,7 @@ Namespace My.Sys.Forms
 			#endif
 			.StartPosition = DefaultLocation
 		End With
-		If pApp->MainForm = 0 Then 
+		If pApp->MainForm = 0 Then
 			pApp->MainForm = @This
 			FMainForm = True
 		End If
@@ -1524,12 +1649,12 @@ Namespace My.Sys.Forms
 			CreateWnd
 		#endif
 	End Constructor
-
+	
 	Private Destructor Form
-'		If OnFree Then OnFree(This)
-'		#ifndef __USE_GTK__
-'			If FHandle Then FreeWnd
-'		#endif
+		'		If OnFree Then OnFree(This)
+		'		#ifndef __USE_GTK__
+		'			If FHandle Then FreeWnd
+		'		#endif
 		FMenuItems.Clear
 		#ifdef __USE_WINAPI__
 			If Accelerator Then DestroyAcceleratorTable(Accelerator)
@@ -1557,14 +1682,14 @@ End Namespace
 				ydpi = (*env)->GetFloatField(env, displaymetrics, ydpiField) / 100
 				If pApp->MainForm Then
 					pApp->MainForm->Handle = This_
-	'				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
-	'				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
-	'				Dim As jclass windowClass = (*env)->FindClass(env, "android/view/Window")
-	'				Dim As jmethodID getDecorView = (*env)->GetMethodID(env, windowClass, "getDecorView", "()Landroid/view/View;")
-	'				Dim As jobject decorView = (*env)->CallObjectMethod(env, iWindow, getDecorView)
-	'				Dim As jclass viewgroupClass = (*env)->FindClass(env, "android/view/ViewGroup")
-	'				Dim As jmethodID getChildAt = (*env)->GetMethodID(env, viewgroupClass, "getChildAt", "(I)Landroid/view/View;")
-	'				Dim As jobject ViewGroup = (*env)->CallObjectMethod(env, decorView, getChildAt, 0)
+					'				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
+					'				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
+					'				Dim As jclass windowClass = (*env)->FindClass(env, "android/view/Window")
+					'				Dim As jmethodID getDecorView = (*env)->GetMethodID(env, windowClass, "getDecorView", "()Landroid/view/View;")
+					'				Dim As jobject decorView = (*env)->CallObjectMethod(env, iWindow, getDecorView)
+					'				Dim As jclass viewgroupClass = (*env)->FindClass(env, "android/view/ViewGroup")
+					'				Dim As jmethodID getChildAt = (*env)->GetMethodID(env, viewgroupClass, "getChildAt", "(I)Landroid/view/View;")
+					'				Dim As jobject ViewGroup = (*env)->CallObjectMethod(env, decorView, getChildAt, 0)
 					'Dim As jobject ViewGroup2 = (*env)->CallObjectMethod(env, ViewGroup, getChildAt, 0)
 					pApp->MainForm->LayoutHandle = layout 'ViewGroup
 					pApp->MainForm->CreateWnd

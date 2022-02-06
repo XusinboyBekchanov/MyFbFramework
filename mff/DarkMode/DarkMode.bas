@@ -4,7 +4,10 @@
 
 #include "IatHook.bi"
 
+#include "UAHMenuBar.bi"
+
 #include "win\Uxtheme.bi"
+
 '#include "Vssym32.bi"
 
 '#include <unordered_set>
