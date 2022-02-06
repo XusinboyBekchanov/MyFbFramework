@@ -678,10 +678,11 @@ Namespace My.Sys.Forms
 					Dim As HDC Dc, memDC
 					Dim As HBITMAP Bmp
 					Dim As PAINTSTRUCT Ps
+					Dc = BeginPaint(Handle, @Ps)
 					Canvas.HandleSetted = True
-					Dc = BeginPaint(Handle,@Ps)
-					FillRect Dc, @Ps.rcpaint, Brush.Handle
 					Canvas.Handle = Dc
+					If OnPaint Then OnPaint(This, Canvas)
+					FillRect Dc, @Ps.rcpaint, Brush.Handle
 					Dim As LogFont LogRec
 					Dim As hFont OldFontHandle, NewFontHandle
 					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
@@ -695,15 +696,20 @@ Namespace My.Sys.Forms
 					SetTextColor(Dc, darkTextColor)
 					SetBKMode(Dc, TRANSPARENT)
 					For i As Integer = 0 To TabCount - 1
+						Dim As ..Rect R
+						Perform(TCM_GETITEMRECT, i, CInt(@R))
 						If i = SelectedTabIndex Then
-							Dim As ..Rect R
-							Perform(TCM_GETITEMRECT, i, CInt(@R))
 							FillRect(Dc, @R, hbrHlBkgnd)
 						End If
 						If FTabPosition = tpLeft Or FTabPosition = tpRight Then
 							.TextOut(Dc, IIf(FTabPosition = tpLeft, ScaleX(2), ScaleX(This.Width - ItemWidth(i))), ScaleY(ItemTop(i) + ItemHeight(i) - 5), Tabs[i]->Caption, Len(Tabs[i]->Caption))
 						Else
-							.TextOut(Dc, ScaleY(ItemLeft(i) + 5), ScaleY(ItemTop(i) + 3), Tabs[i]->Caption, Len(Tabs[i]->Caption))
+							If Images Then
+								ImageList_Draw(Images->Handle, IIf(Tabs[i]->ImageKey <> "", Images->IndexOf(Tabs[i]->ImageKey), Tabs[i]->ImageIndex), Dc, R.Left + 3, R.Top + 3, ILD_TRANSPARENT)
+								.TextOut(Dc, R.Left + 5 + Images->ImageWidth, R.Top + 3, Tabs[i]->Caption, Len(Tabs[i]->Caption))
+							Else
+								.TextOut(Dc, R.Left + 5, R.Top + 3, Tabs[i]->Caption, Len(Tabs[i]->Caption))
+							End If
 						End If
 					Next i
 					SetBKMode(dc, OPAQUE)
@@ -711,8 +717,7 @@ Namespace My.Sys.Forms
 					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
 						DeleteObject(NewFontHandle)
 					End If
-					If OnPaint Then OnPaint(This, Canvas)
-					EndPaint Handle,@Ps
+					EndPaint Handle, @Ps
 					Message.Result = 0
 					Canvas.HandleSetted = False
 					Return

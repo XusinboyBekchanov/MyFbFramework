@@ -350,7 +350,10 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QStatusBar(Sender.Child)
 					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						SetWindowTheme(.FHandle, "DarkMode:ExplorerStatusBar", nullptr)
+						'SetWindowTheme(.FHandle, "DarkMode:ExplorerStatusBar", nullptr)
+						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
+						'SetWindowTheme(.FHandle, "", "")
+						SendMessage .FHandle, SB_SETBKCOLOR, 0, darkBkColor
 						.Brush.Handle = hbrBkgnd
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
 						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
@@ -369,6 +372,39 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub StatusBar.ProcessMessage(ByRef Message As Message)
+			Select Case Message.Msg
+			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Dim As HDC Dc, memDC
+					Dim As HBITMAP Bmp
+					Dim As PAINTSTRUCT Ps
+					Dim As ..Rect R
+					Canvas.HandleSetted = True
+					Dc = BeginPaint(Handle, @Ps)
+					FillRect Dc, @Ps.rcpaint, Brush.Handle
+					Canvas.Handle = Dc
+					Dim As hFont OldFontHandle, NewFontHandle
+					OldFontHandle = SelectObject(Dc, Font.Handle)
+					SetTextColor(Dc, darkTextColor)
+					SetBKMode(Dc, TRANSPARENT)
+					For i As Integer = 0 To Count - 1
+						SendMessage FHandle, SB_GETRECT, i, Cast(LPARAM, @R)
+'						Canvas.Pen.Color = clWhite
+'						SelectObject(Dc, Canvas.Pen.Handle)
+'						MoveToEx Dc, R.Left - 1, 3, 0
+'						LineTo Dc, R.Left - 1, R.Bottom - 3
+						.TextOut(Dc, R.Left + 3, R.Top + 3, Panels[i]->Caption, Len(Panels[i]->Caption))
+					Next i
+					SetBKMode(dc, OPAQUE)
+					NewFontHandle = SelectObject(dc, OldFontHandle)
+					If OnPaint Then OnPaint(This, Canvas)
+					EndPaint Handle, @Ps
+					Message.Result = 0
+					Canvas.HandleSetted = False
+					Return
+				End If
+			Case Else
+			End Select
 			Base.ProcessMessage(Message)
 		End Sub
 	#endif
