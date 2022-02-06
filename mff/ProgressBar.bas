@@ -238,6 +238,17 @@ Namespace My.Sys.Forms
 		Private Sub ProgressBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With  QProgressBar(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
+						SetWindowTheme(.FHandle, "", "")
+						SendMessage(.FHandle, PBM_SETBKCOLOR, 0, Cast(LPARAM, darkHlBkColor))
+						SendMessage(.FHandle, PBM_SETBARCOLOR, 0, Cast(LPARAM, BGR(6, 176, 37)))
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						'UpdateWindow(.FHandle)
+					End If
 					If .FMode32 Then
 						.Perform(PBM_SETRANGE32, .FMinValue, .FMaxValue)
 					Else
