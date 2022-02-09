@@ -1313,6 +1313,42 @@ Namespace My.Sys.Forms
 				Case NM_KEYDOWN:
 					Dim nmk As NMKEY Ptr = Cast(NMKEY Ptr, message.lparam)
 					If OnItemKeyDown Then OnItemKeyDown(This, GetTreeListViewItem(lvp->iItem))
+				Case NM_CUSTOMDRAW
+					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+						Select Case nmcd->dwDrawStage
+						Case CDDS_PREPAINT
+							Message.Result = CDRF_NOTIFYPOSTPAINT
+							Return
+						Case CDDS_POSTPAINT
+							Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
+							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GridLinesPen)
+							Dim As Integer Widths, Heights
+							Dim As SCROLLINFO sif
+							sif.cbSize = SizeOf(sif)
+							sif.fMask  = SIF_POS
+							GetScrollInfo(FHandle, SB_HORZ, @sif)
+							Widths -= sif.nPos
+							For i As Integer = 0 To Columns.Count - 1
+								Widths += Columns.Column(i)->Width
+								MoveToEx nmcd->hdc, Widths, 0, 0
+								LineTo nmcd->hdc, Widths, This.Height
+							Next i
+							Dim As HWND hHeader = ListView_GetHeader(FHandle)
+							Dim As ..Rect R
+							GetWindowRect(hHeader, @R)
+							Heights = R.Bottom - R.Top - 1
+							For i As Integer = 0 To (This.Height - Heights) / 17
+								Heights += 17
+								MoveToEx nmcd->hdc, 0, Heights, 0
+								LineTo nmcd->hdc, This.Width, Heights
+							Next i
+							SelectObject(nmcd->hdc, PrevPen)
+							DeleteObject GridLinesPen
+							Message.Result = CDRF_DODEFAULT
+							Return
+						End Select
+					End If
 				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, GetTreeListViewItem(lvp->iItem))
 				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)

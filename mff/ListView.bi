@@ -247,6 +247,7 @@ Namespace My.Sys.Forms
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		'Declare Virtual Sub ProcessMessageAfter(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Declare Static Sub ListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Declare Static Sub ListView_ItemActivated(icon_view As GtkIconView Ptr, path As GtkTreePath Ptr, user_data As Any Ptr)

@@ -1353,6 +1353,42 @@ Namespace My.Sys.Forms
 				Case NM_KEYDOWN: 
 					Dim As LPNMKEY lpnmk = Cast(LPNMKEY, Message.lParam)
 					If OnItemKeyDown Then OnItemKeyDown(This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
+				Case NM_CUSTOMDRAW
+					If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso CBool(FView = ViewStyle.vsDetails) AndAlso FGridLines) Then
+						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+						Select Case nmcd->dwDrawStage
+						Case CDDS_PREPAINT
+							Message.Result = CDRF_NOTIFYPOSTPAINT
+							Return
+						Case CDDS_POSTPAINT
+							Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
+							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GridLinesPen)
+							Dim As Integer Widths, Heights
+							Dim As SCROLLINFO sif
+							sif.cbSize = SizeOf(sif)
+							sif.fMask  = SIF_POS
+							GetScrollInfo(FHandle, SB_HORZ, @sif)
+							Widths -= sif.nPos
+							For i As Integer = 0 To Columns.Count - 1
+								Widths += Columns.Column(i)->Width
+								MoveToEx nmcd->hdc, Widths, 0, 0
+								LineTo nmcd->hdc, Widths, This.Height
+							Next i
+							Dim As HWND hHeader = ListView_GetHeader(FHandle)
+							Dim As ..Rect R
+							GetWindowRect(hHeader, @R)
+							Heights = R.Bottom - R.Top - 1
+							For i As Integer = 0 To (This.Height - Heights) / 17
+								Heights += 17
+								MoveToEx nmcd->hdc, 0, Heights, 0
+								LineTo nmcd->hdc, This.Width, Heights
+							Next i
+							SelectObject(nmcd->hdc, PrevPen)
+							DeleteObject GridLinesPen
+							Message.Result = CDRF_DODEFAULT
+							Return
+						End Select
+					End If
 				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, lvp->iItem)
 				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
@@ -1362,11 +1398,6 @@ Namespace My.Sys.Forms
 					If bCancel Then Message.Result = -1: Exit Sub 
 				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
-				End Select
-			Case WM_NOTIFY
-				Select Case message.Wparam
-				Case LVN_ENDSCROLL
-				Case LVN_ENDSCROLL
 				End Select
 			Case CM_COMMAND
 				Select Case message.Wparam

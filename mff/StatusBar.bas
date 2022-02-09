@@ -373,6 +373,11 @@ Namespace My.Sys.Forms
 		
 		Private Sub StatusBar.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
+			Case WM_ERASEBKGND
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Message.Result = -1
+					Exit Sub
+				End If
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As HDC Dc, memDC

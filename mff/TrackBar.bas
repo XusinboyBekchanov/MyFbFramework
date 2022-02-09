@@ -393,6 +393,17 @@ Namespace My.Sys.Forms
 		Private Sub TrackBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTrackBar(Sender.Child)
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
+						'SetWindowTheme(.FHandle, "", "")
+'						SendMessage(.FHandle, PBM_SETBKCOLOR, 0, Cast(LPARAM, darkHlBkColor))
+'						SendMessage(.FHandle, PBM_SETBARCOLOR, 0, Cast(LPARAM, BGR(6, 176, 37)))
+						.Brush.Handle = hbrBkgnd
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						'UpdateWindow(.FHandle)
+					End If
 					.Perform(TBM_SETTHUMBLENGTH, .FThumbLength, 0)
 					.Perform(TBM_SETLINESIZE, 0, .FLineSize)
 					.Perform(TBM_SETPAGESIZE, 0, .FPageSize)
@@ -422,6 +433,7 @@ Namespace My.Sys.Forms
 			Case CM_VSCROLL
 				FPosition = Perform(TBM_GETPOS, 0, 0)
 				If OnChange Then OnChange(This, Position)
+			
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

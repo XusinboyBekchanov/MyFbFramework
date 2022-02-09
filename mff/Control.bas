@@ -1663,9 +1663,9 @@ Namespace My.Sys.Forms
 				If cp <> 0 Then
 					Message.Result = CallWindowProc(cp, FWindow, Msg, wParam, lParam)
 				End If
-				'				If Ctrl Then
-				'					Ctrl->ProcessMessageAfter(Message)
-				'				End If
+'				If Ctrl AndAlso Ctrl->ClassName <> "" Then
+'					Ctrl->ProcessMessageAfter(Message)
+'				End If
 				Return Message.Result
 				'    Exit Function
 				'ErrorHandler:
