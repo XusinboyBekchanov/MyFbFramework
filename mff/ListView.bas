@@ -423,6 +423,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListViewColumn.Width As Integer
+		#if defined(__USE_WINAPI__)
+			If Parent AndAlso Parent->Handle Then
+				Dim lvc As LVCOLUMN
+				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
+				lvc.iSubItem = Index
+				ListView_GetColumn(Parent->Handle, Index, @lvc)
+				FWidth = UnScaleX(lvc.cx)
+			End If
+		#endif
 		Return FWidth
 	End Property
 	
@@ -1499,6 +1508,7 @@ Namespace My.Sys.Forms
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
 					If .HoverTime Then .HoverTime = .FHoverTime
 					.View = .FView
+					Var TempHandle = .FHandle
 					For i As Integer = 0 To .Columns.Count -1
 						Dim lvc As LVCOLUMN
 						lvc.mask            = LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
@@ -1508,10 +1518,11 @@ Namespace My.Sys.Forms
 						lvc.cchTextMax      = Len(.Columns.Column(i)->Text)
 						lvc.iImage          = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem        = i
+						.FHandle            = 0
+						lvc.cx              = ScaleX(.Columns.Column(i)->Width)
+						.FHandle            = TempHandle
 						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, ScaleX(.Columns.Column(i)->Width))
 					Next i
-					Var TempHandle = .FHandle
 					For i As Integer = 0 To .ListItems.Count - 1
 						For j As Integer = 0 To .Columns.Count - 1
 							.FHandle = 0
