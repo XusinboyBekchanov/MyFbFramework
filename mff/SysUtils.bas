@@ -1666,18 +1666,28 @@ End Function
 
 Private Function match(subject As WString Ptr, pattern As WString Ptr) As Boolean
 	
+	#define CH_QUOTE 63 '' ASCII for ?
+	#define CH_MULT  42 '' ASCII for *
+	
 	If pattern[0] = 0 AndAlso subject[0] = 0 Then
 		Return True
 	End If
 	
-	If pattern[0] = Asc("?") OrElse pattern[0] = subject[0] Then
+	If pattern[0] = CH_QUOTE OrElse pattern[0] = subject[0] Then
 		Return match(subject + 1, pattern + 1)
 	End If
 	
-	If pattern[0] = Asc("*") Then
+	If pattern[0] = CH_MULT Then
 		Return match(subject, pattern + 1) OrElse match(subject + 1, pattern)
 	End If
 	
 	Return False
 	
+End Function
+
+Private Function InStrMatch(subject As WString Ptr, pattern As WString Ptr, Start As Integer = 1) As Integer
+	For i As Integer = Start To Len(*subject)
+		If match(subject + (i - 1), pattern) Then Return i
+	Next
+	Return 0
 End Function
