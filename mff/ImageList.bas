@@ -169,34 +169,6 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Sub ImageList.AddFromFile(ByRef File As WString, ByRef Key As WString = "")
-		FNotChange = True
-		Dim As Integer Pos1 = InStrRev(File, ".")
-		Select Case LCase(Mid(File, Pos1 + 1))
-		Case "bmp"
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromFile(File)
-			This.Add Bitm, Bitm, Key
-		Case "png"
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromFile(File)
-			This.AddMasked Bitm, clBlack, Key
-		Case "ico"
-			Dim As My.Sys.Drawing.Icon Ico
-			Ico.LoadFromFile(File)
-			This.Add Ico, Key
-		Case "cur"
-			Dim As My.Sys.Drawing.Cursor Cur
-			Cur.LoadFromFile(File)
-			This.Add Cur, Key
-		Case Else
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromFile(File)
-			This.Add Bitm, Bitm, Key
-		End Select
-		FNotChange = False
-	End Sub
-	
 	Private Sub ImageList.Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
 		FNotChange = True
 		#ifdef __USE_GTK__
@@ -232,12 +204,40 @@ Namespace My.Sys.Forms
 				This.Add Cur, Key
 			Else
 				Dim As My.Sys.Drawing.BitmapType Bitm
-				Bitm.LoadFromResourceName(ResName, ModuleHandle_)
+				Bitm.LoadFromResourceName(ResName, ModuleHandle)
 				Items.Add Key, ResName
 				This.AddMasked Bitm, clBlack, Key
 			End If
 			FNotAdd = False
 		#endif
+		FNotChange = False
+	End Sub
+	
+	Private Sub ImageList.AddFromFile(ByRef File As WString, ByRef Key As WString = "")
+		FNotChange = True
+		Dim As Integer Pos1 = InStrRev(File, ".")
+		Select Case LCase(Mid(File, Pos1 + 1))
+		Case "bmp"
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromFile(File)
+			This.Add Bitm, Bitm, Key
+		Case "png"
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromFile(File)
+			This.AddMasked Bitm, clBlack, Key
+		Case "ico"
+			Dim As My.Sys.Drawing.Icon Ico
+			Ico.LoadFromFile(File)
+			This.Add Ico, Key
+		Case "cur"
+			Dim As My.Sys.Drawing.Cursor Cur
+			Cur.LoadFromFile(File)
+			This.Add Cur, Key
+		Case Else
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Bitm.LoadFromFile(File)
+			This.Add Bitm, Bitm, Key
+		End Select
 		FNotChange = False
 	End Sub
 	

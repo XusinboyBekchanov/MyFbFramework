@@ -410,14 +410,13 @@ Namespace My.Sys.Forms
 					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
 						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(.FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
 						Dim As COMBOBOXINFO cbINFO
+						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
 						GetComboBoxInfo(cmbHandle, @cbINFO)
 						Dim As HWND lstHandle = cbINFO.hwndList
 						SetWindowTheme(cmbHandle, "DarkMode_CFD", nullptr)
 						SetWindowTheme(lstHandle, "DarkMode_Explorer", nullptr)
 						.Brush.Handle = hbrBkgnd
-						_AllowDarkModeForWindow(lstHandle, g_darkModeEnabled)
 						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
-						SendMessageW(lstHandle, WM_THEMECHANGED, 0, 0)
 					End If
 					If .Style <> cbOwnerDrawVariable AndAlso .ItemHeight <> 0 Then
 						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.ItemHeight))

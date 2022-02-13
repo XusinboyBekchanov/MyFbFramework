@@ -397,6 +397,15 @@ Namespace My.Sys.Forms
 						SetWindowTheme(.FHandle, "DarkMode_CFD", nullptr)
 						.Brush.Handle = hbrBkgnd
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						Dim As COMBOBOXINFO cbi
+						cbi.cbSize = SizeOf(COMBOBOXINFO)
+						Dim As BOOL result = GetComboBoxInfo(.FHandle, @cbi)
+						If result Then
+							If cbi.hwndList Then
+								'dark scrollbar for listbox of combobox
+								SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr)
+							End If
+						End If
 					End If
 					.GetChilds
 					If .Style <> cbOwnerDrawVariable AndAlso .FItemHeight <> 0 Then

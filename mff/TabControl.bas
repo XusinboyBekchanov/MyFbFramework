@@ -673,6 +673,13 @@ Namespace My.Sys.Forms
 					DeleteObject(NewFontHandle)
 				End If
 				Message.Result = 0
+			Case WM_THEMECHANGED
+				
+			Case WM_ERASEBKGND
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Message.Result = -1
+					Exit Sub
+				End If
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As HDC Dc, memDC

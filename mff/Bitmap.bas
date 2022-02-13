@@ -301,9 +301,9 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 			Dim As BITMAP BMP
-			If FileExists(ExePath & "./Resources/" & ResName & ".png") Then
+			If ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".png") Then
 				LoadFromFile(ExePath & "./Resources/" & ResName & ".png", cxDesired, cyDesired)
-			ElseIf FileExists(ExePath & "./Resources/" & ResName & ".ico") Then
+			ElseIf ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".ico") Then
 				LoadFromFile(ExePath & "./Resources/" & ResName & ".ico", cxDesired, cyDesired)
 			ElseIf FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
 				Handle = LoadImage(ModuleHandle, ResName, IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
