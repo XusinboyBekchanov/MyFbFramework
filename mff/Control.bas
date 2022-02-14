@@ -1252,14 +1252,17 @@ Namespace My.Sys.Forms
 					If Child Then
 						With *Child
 							If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor) Then
-								Dim As HDC hd = Cast(HDC, Message.wParam)
-								SetTextColor(hd, darkTextColor)
-								SetBkColor(hd, darkBkColor)
-								If .Brush.Handle <> hbrBkgnd Then .Brush.Handle = hbrBkgnd
+								If .ClassAncestor <> "ScrollBar" Then
+									Dim As HDC hd = Cast(HDC, Message.wParam)
+									SetTextColor(hd, darkTextColor)
+									SetBkColor(hd, darkBkColor)
+									If .Brush.Handle <> hbrBkgnd Then .Brush.Handle = hbrBkgnd
+									Message.Result = Cast(LRESULT, .Brush.Handle)
+								End If
 							Else
 								SendMessage(CPtr(HWND, Message.LParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
+								Message.Result = Cast(LRESULT, .Brush.Handle)
 							End If
-							Message.Result = Cast(LRESULT, .Brush.Handle)
 							Return
 						End With
 					Else

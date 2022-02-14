@@ -664,7 +664,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QToolPalette(Sender.Child)
 					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						SetWindowTheme(.FHandle, "DarkMode_BBComposited", nullptr)
+						SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr) 'DarkMode_BBComposited
 						.Brush.Handle = hbrBkgnd
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
 					End If
