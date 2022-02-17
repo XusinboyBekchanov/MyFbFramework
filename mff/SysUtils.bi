@@ -62,10 +62,12 @@
 
 #define Me This
 
-#ifdef __USE_GTK__
-	#define _L_ Print __LINE__, __FILE__, __FUNCTION__:
-#else
-	#define _L_ Print __LINE__, __FILE__, __FUNCTION__, GetErrorString(GetLastError, , True):
+#ifndef _L
+	#ifdef __USE_GTK__
+		#define _L Print __LINE__, __FILE__, __FUNCTION__:
+	#else
+		#define _L Print __LINE__, __FILE__, __FUNCTION__, GetErrorString(GetLastError, , True):
+	#endif
 #endif
 
 Const HELP_SETPOPUP_POS = &Hd
