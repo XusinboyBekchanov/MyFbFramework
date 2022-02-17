@@ -526,7 +526,7 @@ Namespace My.Sys.Forms
 		FImageWidth  = 16
 		FImageHeight = 16
 		Items.Tag = @This
-		Items.OnChange = @ImageList_Change
+		'Items.OnChange = @ImageList_Change
 		#ifdef __USE_GTK__
 			Handle = gtk_icon_theme_new()
 		#elseif defined(__USE_WINAPI__)
