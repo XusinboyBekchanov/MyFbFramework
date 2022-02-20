@@ -222,6 +222,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ReBarBand.Height As Integer
+		#ifdef __USE_WINAPI__
+			Dim rc As My.Sys.Drawing.RECT
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
+				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
+				FHeight = rc.Bottom - rc.Top
+			End If
+		#endif
 		Return FHeight
 	End Property
 	
@@ -240,6 +247,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ReBarBand.Width As Integer
+		#ifdef __USE_WINAPI__
+			Dim rc As My.Sys.Drawing.RECT
+			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
+				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
+				FWidth = rc.Right - rc.Left
+			End If
+		#endif
 		Return FWidth
 	End Property
 	
@@ -783,9 +797,34 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim ptnmRebar As NMREBAR Ptr            ' information about a notification message
 				ptnmRebar = Cast(NMREBAR Ptr,  Message.lParam)
-				If ptnmRebar->hdr.code = RBN_HEIGHTCHANGE Then
+				Select Case ptnmRebar->hdr.code
+				Case RBN_HEIGHTCHANGE
 					If OnHeightChange Then OnHeightChange(This)
-				End If
+				Case NM_CUSTOMDRAW
+					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+						Select Case nmcd->dwDrawStage
+						Case CDDS_PREPAINT
+							Message.Result = CDRF_NOTIFYPOSTPAINT
+							Return
+						Case CDDS_POSTPAINT
+							Dim As HPEN GripperPen = CreatePen(PS_SOLID, 1, darkBkColor)
+							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GripperPen)
+							Dim rc As My.Sys.Drawing.RECT
+							For i As Integer = 0 To Bands.Count - 1
+								SendMessage(FHandle, RB_GETRECT, i, Cast(LPARAM, @rc))
+								MoveToEx nmcd->hdc, rc.Left + 2, 2, 0
+								LineTo nmcd->hdc, rc.Left + 2, rc.Bottom - rc.Top - 3
+								MoveToEx nmcd->hdc, rc.Left + 3, 2, 0
+								LineTo nmcd->hdc, rc.Left + 3, rc.Bottom - rc.Top - 3
+							Next i
+							SelectObject(nmcd->hdc, PrevPen)
+							DeleteObject GripperPen
+							Message.Result = CDRF_DODEFAULT
+							Return
+						End Select
+					End If
+				End Select
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

@@ -902,6 +902,32 @@ Namespace My.Sys.Forms
 							TrackPopupMenu(Buttons.Item(i)->DropDownMenu.Handle, 0, R.Left, R.Bottom, 0, Tbn->hdr.hwndFrom, NULL)
 						End If
 					End If
+				Case NM_CUSTOMDRAW
+					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+						Select Case nmcd->dwDrawStage
+						Case CDDS_PREPAINT
+							Message.Result = CDRF_NOTIFYPOSTPAINT
+							Return
+						Case CDDS_POSTPAINT
+							Dim As HPEN SeparatorPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
+							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, SeparatorPen)
+							Dim rc As My.Sys.Drawing.RECT
+							For i As Integer = 0 To Buttons.Count - 1
+								If Buttons.Item(i)->Style = ToolButtonStyle.tbsSeparator Then
+									SendMessage(FHandle, TB_GETITEMRECT, i, Cast(LPARAM, @rc))
+									If rc.Left <> 0 Then
+										MoveToEx nmcd->hdc, rc.Left + 3, 2, 0
+										LineTo nmcd->hdc, rc.Left + 3, rc.Bottom - rc.Top - 3
+									End If
+								End If
+							Next i
+							SelectObject(nmcd->hdc, PrevPen)
+							DeleteObject SeparatorPen
+							Message.Result = CDRF_DODEFAULT
+							Return
+						End Select
+					End If
 				End Select
 			Case CM_NEEDTEXT
 				Dim As LPTOOLTIPTEXT TTX
