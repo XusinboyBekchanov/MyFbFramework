@@ -813,10 +813,10 @@ Namespace My.Sys.Forms
 							Dim rc As My.Sys.Drawing.RECT
 							For i As Integer = 0 To Bands.Count - 1
 								SendMessage(FHandle, RB_GETRECT, i, Cast(LPARAM, @rc))
-								MoveToEx nmcd->hdc, rc.Left + 2, 2, 0
-								LineTo nmcd->hdc, rc.Left + 2, rc.Bottom - rc.Top - 3
-								MoveToEx nmcd->hdc, rc.Left + 3, 2, 0
-								LineTo nmcd->hdc, rc.Left + 3, rc.Bottom - rc.Top - 3
+								MoveToEx nmcd->hdc, rc.Left + 2, rc.Top + 2, 0
+								LineTo nmcd->hdc, rc.Left + 2, rc.Bottom - 3
+								MoveToEx nmcd->hdc, rc.Left + 3, rc.Top + 2, 0
+								LineTo nmcd->hdc, rc.Left + 3, rc.Bottom - 3
 							Next i
 							SelectObject(nmcd->hdc, PrevPen)
 							DeleteObject GripperPen
