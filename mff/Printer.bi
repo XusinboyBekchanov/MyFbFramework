@@ -12,7 +12,7 @@
 	#define CRLF Chr(10,13)
 #endif
 #include once "Canvas.bi"
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	#include once "win/winspool.bi"
 #endif
 

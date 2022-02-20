@@ -5,13 +5,15 @@
 '#  Windows version functions based on WinFBX/Afx/AfxWin.inc                   #
 '###############################################################################
 
-#define UNICODE
-#include once "windows.bi"
+#ifndef __USE_GTK__
+	#define UNICODE
+	#include once "windows.bi"
+#endif
 
 Namespace My
 	Namespace Sys
 		Private Function Name As String
-			#if __USE_GTK__
+			#ifdef __USE_GTK__
 				Return "Linux"
 			#else
 				Return "Windows"
@@ -19,7 +21,7 @@ Namespace My
 		End Function
 		
 		Private Function Version As Long
-			#if __USE_GTK__
+			#ifdef __USE_GTK__
 				
 			#else
 				' ========================================================================================
@@ -50,7 +52,7 @@ Namespace My
 		End Function
 		
 		Private Function Build As Long
-			#if __USE_GTK__
+			#ifdef __USE_GTK__
 				
 			#else
 				' ========================================================================================
@@ -63,7 +65,7 @@ Namespace My
 		End Function
 		
 		Private Function Platform As Long
-			#if __USE_GTK__
+			#ifdef __USE_GTK__
 				
 			#else
 				' ========================================================================================
