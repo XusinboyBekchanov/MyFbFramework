@@ -732,7 +732,12 @@ Namespace My.Sys.Forms
 				End If
 			Else
 				SetInfo(FInfo)
-				SetItemInfo(FInfo)
+				If Parent Then
+					InsertMenuItem(Parent->Handle, MenuIndex, True, @FInfo)
+				ElseIf Owner AndAlso Owner->Handle Then
+					InsertMenuItem(Owner->Handle, MenuIndex, True, @FInfo)
+				End If
+				'SetItemInfo(FInfo)
 			End If
 		#endif
 	End Property
@@ -797,7 +802,9 @@ Namespace My.Sys.Forms
 					gtk_label_set_text_with_mnemonic(gtk_label(Value->label), ToUTF8(*Value->FText & "	"))
 					gtk_widget_show(value->label)
 				End If
-				gtk_widget_show(value->widget)
+				If value->FVisible Then
+					gtk_widget_show(value->widget)
+				End If
 			#elseif defined(__USE_WINAPI__)
 				If SubMenu = 0 Then
 					SubMenu = New_( PopUpMenu)
@@ -812,7 +819,9 @@ Namespace My.Sys.Forms
 					SetItemInfo(FInfo)
 				End If
 				value->SetInfo(FInfo)
-				InsertMenuItem(Handle, Index, True, @FInfo)
+				If value->FVisible Then
+					InsertMenuItem(Handle, Index, True, @FInfo)
+				End If
 			#endif
 		End If
 	End Sub
@@ -1299,7 +1308,9 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				value->SetInfo(FInfo)
-				InsertMenuItem(Handle, Index, True, @FInfo)
+				If value->Visible Then
+					InsertMenuItem(Handle, Index, True, @FInfo)
+				End If
 			#endif
 			For i As Integer = 0 To value->Count-1
 				value->item(i)->Owner = value->Owner
