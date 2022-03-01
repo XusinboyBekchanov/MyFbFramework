@@ -1126,13 +1126,47 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			'?GetMessageName(message.msg)
 			Select Case message.Msg
+			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Dim As Any Ptr cp = GetClassProc(Message.hWnd)
+					If cp <> 0 Then
+						Message.Result = CallWindowProc(cp, Message.hWnd, Message.Msg, Message.wParam, Message.lParam)
+					End If
+					'Dim As PAINTSTRUCT Ps
+					Dim As HDC Dc
+					Dc = GetWindowDC(Handle) 'BeginPaint(Handle, @Ps)
+					Dim As RECT r = Type( 0 )
+					GetWindowRect(message.hWnd, @r)
+					r.Right -= r.Left + 2
+					r.Bottom -= r.Top + 2
+					r.Left = 1
+					r.Top = 1
+					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkBkColor)
+					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
+					'Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
+					'Rectangle Dc, 1, 1, r.Right - r.Left - 2, r.Bottom - r.Top - 2
+					'Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkBkColor)
+					'Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
+					MoveToEx Dc, R.Left, R.Top, 0
+					LineTo Dc, R.Right, R.Top
+					LineTo Dc, R.Right, R.Bottom
+					LineTo Dc, R.Left, R.Bottom
+					LineTo Dc, R.Left, R.Top
+					SelectObject(Dc, PrevPen)
+					'SelectObject(Dc, PrevBrush)
+					'EndPaint Handle, @Ps
+					ReleaseDc(Handle, Dc)
+					DeleteObject NewPen
+					Message.Result = 0
+					Return
+				End If
 			Case CM_CTLCOLOR
 				Static As HDC Dc
-				Dc = Cast(HDC,Message.wParam)
+				Dc = Cast(HDC, Message.wParam)
 				SetBKMode Dc, TRANSPARENT
-				SetTextColor Dc,Font.Color
-				SetBKColor Dc,This.BackColor
-				SetBKMode Dc,OPAQUE
+				SetTextColor Dc, Font.Color
+				SetBKColor Dc, This.BackColor
+				SetBKMode Dc, OPAQUE
 			Case CM_COMMAND
 				Select Case Message.wParamHi
 				Case BN_CLICKED

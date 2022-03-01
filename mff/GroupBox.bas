@@ -116,86 +116,55 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
 			Case WM_PAINT
-				Dim As Integer W,H
-				Dim As HDC Dc,memDC
+				Dim As Integer W, H
+				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As ..Rect R
-				GetClientRect Handle,@R
-				Dc = GetDC(Handle)
-				FillRect Dc, @R, This.Brush.Handle
-				ReleaseDC Handle, Dc
-   				RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
+				Dim As PAINTSTRUCT Ps
+				This.Canvas.HandleSetted = True
+				Dc = BeginPaint(Handle, @Ps)
+				FillRect Dc, @Ps.rcpaint, This.Brush.Handle
+				This.Canvas.Handle = Dc
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Dim As LRESULT state = SendMessage(FHandle, BM_GETSTATE, 0, 0)
+					Dim As Integer stateID
+					'					stateID = GBS_DISABLED
+					stateID = GBS_NORMAL
+					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
+					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
+					Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
+					Rectangle Dc, Ps.rcpaint.Left, Ps.rcpaint.Top + 6, Ps.rcpaint.Right, Ps.rcpaint.Bottom
+					SetTextColor(Dc, darkTextColor)
+					SetBkColor(Dc, darkBkColor)
+					Dim As hFont OldFontHandle, NewFontHandle
+					OldFontHandle = SelectObject(Dc, This.Font.Handle)
+					TextOut(Dc, Ps.rcpaint.Left + 6, Ps.rcpaint.Top, @This.Text, Len(This.Text))
+					NewFontHandle = SelectObject(dc, OldFontHandle)
+					SelectObject(Dc, PrevPen)
+					SelectObject(Dc, PrevBrush)
+					EndPaint Handle, @Ps
+					DeleteObject NewPen
+					Message.Result = 0
+					This.Canvas.HandleSetted = False
+					Return
+				Else
+					EndPaint Handle, @Ps
+					'ReleaseDC Handle, Dc
+					RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
+				End If
 			Case WM_COMMAND
 				'CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
-'			Case CM_CTLCOLOR
-'				Static As HDC Dc
-'				Dc = Cast(HDC, Message.wParam)
-'				SetBKMode Dc, TRANSPARENT
-'				SetTextColor Dc, This.Font.Color
-'				SetBKColor Dc, This.BackColor
-'				SetBKMode Dc, OPAQUE
+				'			Case CM_CTLCOLOR
+				'				Static As HDC Dc
+				'				Dc = Cast(HDC, Message.wParam)
+				'				SetBKMode Dc, TRANSPARENT
+				'				SetTextColor Dc, This.Font.Color
+				'				SetBKColor Dc, This.BackColor
+				'				SetBKMode Dc, OPAQUE
 			Case CM_COMMAND
-'				If Message.wParamHi = BN_CLICKED Then
-'					If OnClick Then OnClick(This)
-'				End If
-			Case CM_NOTIFY
-        		If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso Message.lParam <> 0 AndAlso Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW Then
-        			Dim As NMCUSTOMDRAW Ptr pnm = Cast(LPNMCUSTOMDRAW, Message.lParam)
-        			Select Case pnm->dwDrawStage
-					Case CDDS_PREERASE
-                        Dim As HRESULT hr = DrawThemeParentBackground(pnm->hdr.hwndFrom, pnm->hdc, @pnm->rc)
-                        If FAILED(hr) Then ' If failed draw without theme
-                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
-                            Message.Result = True
-                            Return
-                        End If
-
-                        Dim As HTHEME hTheme = OpenThemeData(pnm->hdr.hwndFrom, "BUTTON")
-
-                        If hTheme = 0 Then ' If failed draw without theme
-                            CloseThemeData(hTheme)
-                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
-                            Message.Result = True
-                            Return
-                        End If
-                           
-                        Dim As LRESULT state = SendMessage(pnm->hdr.hwndFrom, BM_GETSTATE, 0, 0)
- 
-                        Dim As Integer stateID ' parameter for DrawThemeBackground
-
-                        Dim As UINT uiItemState = pnm->uItemState
-						
-						If (uiItemState And CDIS_DISABLED) Then
-							stateID = GBS_DISABLED
-						Else
-						    stateID = GBS_NORMAL
-						End If
-						
-                        Dim As ..RECT r
-                        Dim As ..SIZE s
- 
-                        ' Get check box dimensions so we can calculate 
-                        ' rectangle dimensions For text
-                        GetThemePartSize(hTheme, pnm->hdc, BP_GROUPBOX, stateID, NULL, TS_TRUE, @s)
- 
-                        r.left = pnm->rc.left
-                        r.top = pnm->rc.top ' + 2
-                        r.right = pnm->rc.left + s.cx
-                        r.bottom = pnm->rc.Bottom ' r.top + s.cy
-
-                        DrawThemeBackground(hTheme, pnm->hdc, BP_GROUPBOX, stateID, @r, NULL)
- 
-                        ' adjust rectangle for text drawing
-                        'pnm->rc.top += r.top - 2
-                        pnm->rc.left += 3 + s.cx
-
-						'SelectObject(pnm->hdc, Font.Handle)
-                        DrawText(pnm->hdc, This.Text & "0", -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
-                        CloseThemeData(hTheme)
-                        Message.Result = Cast(LONG_PTR, CDRF_SKIPDEFAULT)
-                        Return
-                    End Select
-        		End If
+				'				If Message.wParamHi = BN_CLICKED Then
+				'					If OnClick Then OnClick(This)
+				'				End If
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
