@@ -1126,8 +1126,8 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			'?GetMessageName(message.msg)
 			Select Case message.Msg
-			Case WM_PAINT
-				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+			Case WM_PAINT, WM_MOUSELEAVE, WM_MOUSEMOVE
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso (CBool(message.Msg <> WM_MOUSEMOVE) OrElse (CBool(message.Msg = WM_MOUSEMOVE) AndAlso FMouseInClient)) Then
 					Dim As Any Ptr cp = GetClassProc(Message.hWnd)
 					If cp <> 0 Then
 						Message.Result = CallWindowProc(cp, Message.hWnd, Message.Msg, Message.wParam, Message.lParam)

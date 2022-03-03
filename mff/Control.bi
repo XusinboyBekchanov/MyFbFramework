@@ -93,7 +93,6 @@ Namespace My.Sys.Forms
 		Private Type Control Extends Component
 		Private:
 			Tracked As Boolean
-			FMouseInClient As Boolean
 			FAnchoredLeft     As Integer
 			FAnchoredTop     As Integer
 			FAnchoredRight     As Integer
@@ -101,6 +100,7 @@ Namespace My.Sys.Forms
 			FAnchoredParentWidth As Integer
 			FAnchoredParentHeight As Integer
 		Protected:
+			FMouseInClient As Boolean
 			FOwner             As Control Ptr
 			FDisposed As Boolean
 			#ifdef __USE_GTK__

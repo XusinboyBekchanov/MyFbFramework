@@ -1402,7 +1402,7 @@ Namespace My.Sys.Forms
 					If OnMouseWheel Then OnMouseWheel(This, scrDirection, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
 				Case WM_MOUSELEAVE
 					If OnMouseLeave Then OnMouseLeave(This)
-					This.FMouseInClient = False 
+					This.FMouseInClient = False
 					This.Tracked = False
 				Case WM_MOUSEHOVER
 					If OnMouseHover Then OnMouseHover(This, DownButton, UnScaleX(Message.lParamLo), UnScaleX(Message.lParamHi), Message.wParam And &HFFFF)
