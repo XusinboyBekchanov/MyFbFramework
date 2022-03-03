@@ -1132,29 +1132,20 @@ Namespace My.Sys.Forms
 					If cp <> 0 Then
 						Message.Result = CallWindowProc(cp, Message.hWnd, Message.Msg, Message.wParam, Message.lParam)
 					End If
-					'Dim As PAINTSTRUCT Ps
 					Dim As HDC Dc
-					Dc = GetWindowDC(Handle) 'BeginPaint(Handle, @Ps)
+					Dc = GetWindowDC(Handle)
 					Dim As RECT r = Type( 0 )
 					GetWindowRect(message.hWnd, @r)
-					r.Right -= r.Left + 2
-					r.Bottom -= r.Top + 2
+					r.Right -= r.Left + 1
+					r.Bottom -= r.Top + 1
 					r.Left = 1
 					r.Top = 1
 					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkBkColor)
 					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
-					'Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
-					'Rectangle Dc, 1, 1, r.Right - r.Left - 2, r.Bottom - r.Top - 2
-					'Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkBkColor)
-					'Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
-					MoveToEx Dc, R.Left, R.Top, 0
-					LineTo Dc, R.Right, R.Top
-					LineTo Dc, R.Right, R.Bottom
-					LineTo Dc, R.Left, R.Bottom
-					LineTo Dc, R.Left, R.Top
+					Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
+					Rectangle Dc, R.Left, r.Top, r.Right, r.Bottom
 					SelectObject(Dc, PrevPen)
-					'SelectObject(Dc, PrevBrush)
-					'EndPaint Handle, @Ps
+					SelectObject(Dc, PrevBrush)
 					ReleaseDc(Handle, Dc)
 					DeleteObject NewPen
 					Message.Result = 0
