@@ -25,6 +25,12 @@ Namespace My.Sys.Forms
 			Dim As GtkFileFilter Ptr filefilter(Any)
 		#else
 			Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
+			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
+			Declare Static Function EnumListViewsProc(hDlg As HWND, lParam1 As LPARAM) As Boolean
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookListView(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookListViewParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookComboBoxParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			ThreadID As Any Ptr
 		#endif
 		FInitialDir   As WString Ptr

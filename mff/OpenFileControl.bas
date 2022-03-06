@@ -211,6 +211,207 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
+		Function OpenFileControl.HookListView(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Select Case uMsg
+			Case WM_NOTIFY
+				If (Cast(LPNMHDR, lParam)->code = NM_CUSTOMDRAW) Then
+					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, lParam)
+					Select Case nmcd->dwDrawStage
+					Case CDDS_PREPAINT
+						Return CDRF_NOTIFYITEMDRAW
+					Case CDDS_ITEMPREPAINT
+						SetTextColor(nmcd->hdc, darkTextColor) 'headerTextColor)
+						Return CDRF_DODEFAULT
+					End Select
+				End If
+			End Select
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
+		
+		Function OpenFileControl.HookListViewParent(hDlg As HWND, uMsg As UINT, wParam1 As WPARAM, lParam1 As LPARAM) As LRESULT
+			Select Case uMsg
+			Case WM_NOTIFY
+				If (Cast(LPNMHDR, lParam1)->code = NM_CUSTOMDRAW) AndAlso ListView_GetView(Cast(LPNMCUSTOMDRAW, lParam1)->hdr.hwndFrom) = 1 Then
+					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, lParam1)
+					Select Case nmcd->dwDrawStage
+					Case CDDS_PREPAINT
+						FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
+						Return CDRF_NOTIFYITEMDRAW Or CDRF_NOTIFYPOSTERASE Or CDRF_NOTIFYPOSTPAINT
+					Case CDDS_POSTPAINT
+						Dim rc As ..RECT
+						Dim As Integer SelectedItem = ListView_GetNextItem(nmcd->hdr.hwndFrom, -1, LVNI_SELECTED)
+						Dim As Integer SelectedColumn = ListView_GetSelectedColumn(nmcd->hdr.hwndFrom)
+						Dim zTxt As WString * 64
+						Dim lvi As LVITEM
+						For i As Integer = 0 To ListView_GetItemCount(nmcd->hdr.hwndFrom) - 1
+							If i <> SelectedItem Then
+								ListView_GetSubItemRect(nmcd->hdr.hwndFrom, i, SelectedColumn, LVIR_LABEL, @rc)
+								FillRect nmcd->hdc, @rc, hbrBkgnd
+								lvi.Mask = LVIF_TEXT
+								lvi.iItem = i
+								lvi.iSubItem   = SelectedColumn
+								lvi.pszText    = @zTxt
+								lvi.cchTextMax = 64
+								ListView_GetItem(nmcd->hdr.hwndFrom, @lvi)
+								SetTextColor nmcd->hdc, darkTextColor
+								If SelectedColumn = 0 Then
+									rc.Left += 2
+									rc.Top += 2
+								Else
+									rc.Left += 6
+									rc.Top += 2
+								End If
+								DrawText nmcd->hdc, @zTxt, Len(zTxt), @rc, DT_END_ELLIPSIS     'Draw text
+							End If
+						Next i
+						Return CDRF_DODEFAULT
+					Case CDDS_ITEMPREPAINT
+						SetBkMode nmcd->hdc, TRANSPARENT
+						FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
+						Return CDRF_DODEFAULT
+					End Select
+				End If
+			End Select
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam1, lParam1)
+		End Function
+		
+		Function OpenFileControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Select Case uMsg
+			Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC, WM_CTLCOLORBTN, WM_CTLCOLOREDIT
+				Dim As HDC hd = Cast(HDC, wParam)
+				'SetBKMode hd, TRANSPARENT
+				SetTextColor(hd, darkTextColor)
+				SetBkColor(hd, darkBkColor)
+				'SetBKMode hd, OPAQUE
+				Return Cast(LRESULT, hbrBkgnd)
+'			Case WM_DRAWITEM
+'				CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+'				Dim As DRAWITEMSTRUCT Ptr diStruct = Cast(DRAWITEMSTRUCT Ptr, lParam)
+'				If diStruct->itemID = -1 Then Return 0
+'				Dim As Integer ItemID, State
+'				Dim As ..Rect R
+'				Dim As HDC Dc
+'    			Dim As HBITMAP hbmIcon = Cast(HBITMAP, diStruct->itemData)
+'    			Dim As HBITMAP hbmMask
+'    			#define CX_BITMAP 16
+'				#define CY_BITMAP 16
+'				ItemID = Cast(Integer, diStruct->itemID)
+'				State = Cast(Integer, diStruct->itemState)
+'				R = Cast(..Rect, diStruct->rcItem)
+'				Dc = diStruct->hDC
+'				If (diStruct->itemState And ODS_COMBOBOXEDIT) <> 0 Then State = State Or ODS_ComboBOXEDIT
+'				If (diStruct->itemState And ODS_DEFAULT) <> 0 Then State = State Or ODS_DEFAULT
+'				Dim As WString * 256 FItemText
+'				'Var L = SendMessage(diStruct->hwndItem, CB_GETLBTEXTLEN, diStruct->itemID, 0)
+'				'WReallocate(FItemText, L)
+'				SendMessage(diStruct->hwndItem, CB_GETLBTEXT, diStruct->itemID, CInt(@FItemText))
+'				?diStruct->itemData
+''				Dim As COMBOBOXINFO cbi
+''				cbi.cbSize = SizeOf(COMBOBOXINFO)
+''				Dim As BOOL result = GetComboBoxInfo(diStruct->hwndItem, @cbi)
+''				If result Then
+''					If cbi.hwndList Then
+''						Dim As Integer L
+''						Dim As WString Ptr FText
+''						L = SendMessage(cbi.hwndList, LB_GETTEXTLEN, diStruct->itemID, 0)
+''						WReallocate FText, L
+''						WLet FText, Space(L)
+''						SendMessage(cbi.hwndList, LB_GETTEXT, diStruct->itemID, CInt(@FText))
+''						FItemText = *FText
+''					End If
+''				End If
+'				?FItemText ', L
+'				If (State And ODS_SELECTED) = ODS_SELECTED Then
+'					FillRect Dc, @R, hbrBkgnd
+'					SetTextColor Dc, darkTextColor
+'					SetBKColor Dc, darkBkColor
+'					'TextOut(Dc, R.Left + 2, R.Top, @FItemText, Len(FItemText))
+'					'If (State And ODS_FOCUS) = ODS_FOCUS Then DrawFocusRect(DC, @R)
+'				Else
+'					FillRect Dc, @R, hbrBkgnd
+'					SetTextColor Dc, darkTextColor
+'					SetBKColor Dc, darkBkColor
+'					'TextOut(Dc, R.Left + 2, R.Top, @FItemText, Len(FItemText))
+'				End If
+'				Dim As TEXTMETRIC tm
+'				Dim As Integer x
+'				Dim As Integer y
+'				GetTextMetrics(diStruct->hDC, @tm)
+'				y = (diStruct->rcItem.bottom + diStruct->rcItem.top - tm.tmHeight) / 2
+'				x = LoWord(GetDialogBaseUnits()) / 4
+'				
+'				ExtTextOut(diStruct->hDC, CX_BITMAP + 2 * x, y, ETO_CLIPPED Or ETO_OPAQUE, @diStruct->rcItem, @FItemText, Len(FItemText), NULL)
+'            
+'				Dim As HDC hdc = CreateCompatibleDC(diStruct->hDC)
+'				If hdc = NULL Then Return 0
+'				
+'				SelectObject(hdc, hbmMask)
+'				BitBlt(diStruct->hDC, x, diStruct->rcItem.top + 1, CX_BITMAP, CY_BITMAP, hdc, 0, 0, SRCAND)
+'				
+'				SelectObject(hdc, hbmIcon)
+'				BitBlt(diStruct->hDC, x, diStruct->rcItem.top + 1, CX_BITMAP, CY_BITMAP, hdc, 0, 0, SRCPAINT)
+' 				
+'				DeleteDC(hdc)
+'				
+'    			If (diStruct->itemState And ODS_FOCUS) Then DrawFocusRect(diStruct->hDC, @diStruct->rcItem)
+'				
+'				Return 0
+			End Select
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
+		
+		Function OpenFileControl.HookComboBoxParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
+		
+		Function OpenFileControl.EnumChildsProc(hDlg As HWND, lParam1 As LPARAM) As Boolean
+			Select Case GetClassNameOf(hDlg)
+			Case "ComboBox"
+				SetWindowTheme(hDlg, "DarkMode_CFD", nullptr)
+				Dim As COMBOBOXINFO cbi
+				cbi.cbSize = SizeOf(COMBOBOXINFO)
+				Dim As BOOL result = GetComboBoxInfo(hDlg, @cbi)
+				If result Then
+					If cbi.hwndList Then SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr) 'dark scrollbar for listbox of combobox
+				End If
+				SetProp(hDlg, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookChildProc))))
+			Case "ToolbarWindow32"
+				SetWindowTheme(hDlg, "DarkMode_InfoPaneToolbar", nullptr)
+			Case "SysHeader32"
+				SetWindowTheme(hDlg, "DarkMode_ItemsView", nullptr)
+			Case "SysListView32"
+				ListView_SetTextColor(hDlg, darkTextColor)
+				ListView_SetTextBkColor(hDlg, darkBkColor)
+				ListView_SetBkColor(hDlg, darkBkColor)
+			Case Else
+				SetWindowTheme(hDlg, "DarkMode_Explorer", nullptr)
+			End Select
+			AllowDarkModeForWindow(hDlg, g_darkModeEnabled)
+			SendMessageW(hDlg, WM_THEMECHANGED, 0, 0)
+			Return True
+		End Function
+		
+		Function OpenFileControl.EnumListViewsProc(hDlg As HWND, lParam1 As LPARAM) As Boolean
+			Select Case GetClassNameOf(hDlg)
+			Case "SysListView32"
+				Dim As HWND hHeader = ListView_GetHeader(hDlg)
+				'SetWindowTheme(hDlg, "DarkMode_Explorer", nullptr)
+				SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr)
+				ListView_SetTextColor(hDlg, darkTextColor) 'Color1)
+				ListView_SetTextBkColor(hDlg, darkBkColor) 'Color1)
+				ListView_SetBkColor(hDlg, darkBkColor) 'Color1)
+				If Cast(WNDPROC, GetWindowLongPtr(hDlg, GWLP_WNDPROC)) <> CInt(@HookListView) Then
+					SetProp(hDlg, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookListView))))
+				End If
+				If Cast(WNDPROC, GetWindowLongPtr(GetParent(hDlg), GWLP_WNDPROC)) <> CInt(@HookListViewParent) Then
+					SetProp(GetParent(hDlg), "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(GetParent(hDlg), GWLP_WNDPROC, CInt(@HookListViewParent))))
+				End If
+				AllowDarkModeForWindow(hDlg, g_darkModeEnabled)
+				SendMessageW(hDlg, WM_THEMECHANGED, 0, 0)
+			End Select
+			Return True
+		End Function
+		
 		Private Function OpenFileControl.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 			Static As OpenFileControl Ptr OpenDial
 			Select Case Msg
@@ -251,6 +452,9 @@ Namespace My.Sys.Forms
 				Case CDN_SELCHANGE
 					If OpenDial Then If OpenDial->OnSelectionChange Then OpenDial->OnSelectionChange(*OpenDial)
 				Case CDN_FOLDERCHANGE
+					If g_darkModeSupported AndAlso g_darkModeEnabled Then
+						EnumChildWindows(OpenDial->Handle, Cast(WNDENUMPROC, @EnumListViewsProc), 0)
+					End If
 					If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial)
 				Case CDN_TYPECHANGE
 					Dim As Integer Index
@@ -342,6 +546,13 @@ Namespace My.Sys.Forms
 					Sleep(300, 1)
 					pApp->DoEvents
 				Loop
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					SetProp(FHandle, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
+					SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+					AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					EnumChildWindows(FHandle, Cast(WNDENUMPROC, @EnumChildsProc), 0)
+				End If
 				SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(@This))
 			End If
 		#endif
