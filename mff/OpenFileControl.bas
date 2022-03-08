@@ -220,7 +220,9 @@ Namespace My.Sys.Forms
 					Case CDDS_PREPAINT
 						Return CDRF_NOTIFYITEMDRAW
 					Case CDDS_ITEMPREPAINT
-						SetTextColor(nmcd->hdc, darkTextColor) 'headerTextColor)
+						If g_darkModeEnabled Then
+							SetTextColor(nmcd->hdc, darkTextColor) 'headerTextColor)
+						End If
 						Return CDRF_DODEFAULT
 					End Select
 				End If
@@ -231,7 +233,7 @@ Namespace My.Sys.Forms
 		Function OpenFileControl.HookListViewParent(hDlg As HWND, uMsg As UINT, wParam1 As WPARAM, lParam1 As LPARAM) As LRESULT
 			Select Case uMsg
 			Case WM_NOTIFY
-				If (Cast(LPNMHDR, lParam1)->code = NM_CUSTOMDRAW) AndAlso ListView_GetView(Cast(LPNMCUSTOMDRAW, lParam1)->hdr.hwndFrom) = 1 Then
+				If (Cast(LPNMHDR, lParam1)->code = NM_CUSTOMDRAW) AndAlso ListView_GetView(Cast(LPNMCUSTOMDRAW, lParam1)->hdr.hwndFrom) = 1 AndAlso CInt(g_darkModeEnabled) Then
 					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, lParam1)
 					Select Case nmcd->dwDrawStage
 					Case CDDS_PREPAINT
@@ -277,13 +279,36 @@ Namespace My.Sys.Forms
 		
 		Function OpenFileControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Select Case uMsg
+			Case WM_PAINT
+				Dim As OpenFileControl Ptr OpenDial = Cast(OpenFileControl Ptr, GetWindowLongPtr(hDlg, GWLP_USERDATA))
+				If OpenDial Then
+					If g_darkModeEnabled Then
+						If Not OpenDial->FDarkMode Then
+							OpenDial->FDarkMode = True
+							SetWindowTheme(hDlg, "DarkMode_Explorer", nullptr)
+							AllowDarkModeForWindow(hDlg, g_darkModeEnabled)
+							SendMessageW(hDlg, WM_THEMECHANGED, 0, 0)
+							EnumChildWindows(hDlg, Cast(WNDENUMPROC, @EnumChildsProc), 0)
+						End If
+					Else
+						If OpenDial->FDarkMode Then
+							OpenDial->FDarkMode = False
+							SetWindowTheme(hDlg, NULL, NULL)
+							AllowDarkModeForWindow(hDlg, g_darkModeEnabled)
+							SendMessageW(hDlg, WM_THEMECHANGED, 0, 0)
+							EnumChildWindows(hDlg, Cast(WNDENUMPROC, @EnumChildsProc), 0)
+						End If
+					End If
+				End If
 			Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC, WM_CTLCOLORBTN, WM_CTLCOLOREDIT
-				Dim As HDC hd = Cast(HDC, wParam)
-				'SetBKMode hd, TRANSPARENT
-				SetTextColor(hd, darkTextColor)
-				SetBkColor(hd, darkBkColor)
-				'SetBKMode hd, OPAQUE
-				Return Cast(LRESULT, hbrBkgnd)
+				If g_darkModeEnabled Then
+					Dim As HDC hd = Cast(HDC, wParam)
+					'SetBKMode hd, TRANSPARENT
+					SetTextColor(hd, darkTextColor)
+					SetBkColor(hd, darkBkColor)
+					'SetBKMode hd, OPAQUE
+					Return Cast(LRESULT, hbrBkgnd)
+				End If
 '			Case WM_DRAWITEM
 '				CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 '				Dim As DRAWITEMSTRUCT Ptr diStruct = Cast(DRAWITEMSTRUCT Ptr, lParam)
@@ -367,24 +392,52 @@ Namespace My.Sys.Forms
 		Function OpenFileControl.EnumChildsProc(hDlg As HWND, lParam1 As LPARAM) As Boolean
 			Select Case GetClassNameOf(hDlg)
 			Case "ComboBox"
-				SetWindowTheme(hDlg, "DarkMode_CFD", nullptr)
+				If g_darkModeEnabled Then
+					SetWindowTheme(hDlg, "DarkMode_CFD", nullptr)
+				Else
+					SetWindowTheme(hDlg, NULL, NULL)
+				End If
 				Dim As COMBOBOXINFO cbi
 				cbi.cbSize = SizeOf(COMBOBOXINFO)
 				Dim As BOOL result = GetComboBoxInfo(hDlg, @cbi)
 				If result Then
-					If cbi.hwndList Then SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr) 'dark scrollbar for listbox of combobox
+					If g_darkModeEnabled Then
+						If cbi.hwndList Then SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr) 'dark scrollbar for listbox of combobox
+					Else
+						If cbi.hwndList Then SetWindowTheme(cbi.hwndList, NULL, NULL)
+					End If
 				End If
-				SetProp(hDlg, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookChildProc))))
+				If GetWindowLongPtr(hDlg, GWLP_WNDPROC) <> @HookChildProc Then
+					SetProp(hDlg, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookChildProc))))
+				End If
 			Case "ToolbarWindow32"
-				SetWindowTheme(hDlg, "DarkMode_InfoPaneToolbar", nullptr)
+				If g_darkModeEnabled Then
+					SetWindowTheme(hDlg, "DarkMode_InfoPaneToolbar", nullptr)
+				Else
+					SetWindowTheme(hDlg, NULL, NULL)
+				End If
 			Case "SysHeader32"
-				SetWindowTheme(hDlg, "DarkMode_ItemsView", nullptr)
+				If g_darkModeEnabled Then
+					SetWindowTheme(hDlg, "DarkMode_ItemsView", nullptr)
+				Else
+					SetWindowTheme(hDlg, NULL, NULL)
+				End If
 			Case "SysListView32"
-				ListView_SetTextColor(hDlg, darkTextColor)
-				ListView_SetTextBkColor(hDlg, darkBkColor)
-				ListView_SetBkColor(hDlg, darkBkColor)
+				If g_darkModeEnabled Then
+					ListView_SetTextColor(hDlg, darkTextColor)
+					ListView_SetTextBkColor(hDlg, darkBkColor)
+					ListView_SetBkColor(hDlg, darkBkColor)
+				Else
+					ListView_SetTextColor(hDlg, GetSysColor(COLOR_WINDOWTEXT))
+					ListView_SetTextBkColor(hDlg, GetSysColor(COLOR_WINDOW))
+					ListView_SetBkColor(hDlg, GetSysColor(COLOR_WINDOW))
+				End If
 			Case Else
-				SetWindowTheme(hDlg, "DarkMode_Explorer", nullptr)
+				If g_darkModeEnabled Then
+					SetWindowTheme(hDlg, "DarkMode_Explorer", nullptr)
+				Else
+					SetWindowTheme(hDlg, NULL, NULL)
+				End If
 			End Select
 			AllowDarkModeForWindow(hDlg, g_darkModeEnabled)
 			SendMessageW(hDlg, WM_THEMECHANGED, 0, 0)
@@ -396,10 +449,17 @@ Namespace My.Sys.Forms
 			Case "SysListView32"
 				Dim As HWND hHeader = ListView_GetHeader(hDlg)
 				'SetWindowTheme(hDlg, "DarkMode_Explorer", nullptr)
-				SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr)
-				ListView_SetTextColor(hDlg, darkTextColor) 'Color1)
-				ListView_SetTextBkColor(hDlg, darkBkColor) 'Color1)
-				ListView_SetBkColor(hDlg, darkBkColor) 'Color1)
+				If g_darkModeEnabled Then
+					SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr)
+					ListView_SetTextColor(hDlg, darkTextColor) 'Color1)
+					ListView_SetTextBkColor(hDlg, darkBkColor) 'Color1)
+					ListView_SetBkColor(hDlg, darkBkColor) 'Color1)
+				Else
+					SetWindowTheme(hHeader, NULL, NULL)
+					ListView_SetTextColor(hDlg, GetSysColor(COLOR_WINDOWTEXT)) 'Color1)
+					ListView_SetTextBkColor(hDlg, GetSysColor(COLOR_WINDOW)) 'Color1)
+					ListView_SetBkColor(hDlg, GetSysColor(COLOR_WINDOW)) 'Color1)
+				End If
 				If Cast(WNDPROC, GetWindowLongPtr(hDlg, GWLP_WNDPROC)) <> CInt(@HookListView) Then
 					SetProp(hDlg, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookListView))))
 				End If
@@ -546,13 +606,14 @@ Namespace My.Sys.Forms
 					Sleep(300, 1)
 					pApp->DoEvents
 				Loop
-				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					SetProp(FHandle, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
-					SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-					AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-					EnumChildWindows(FHandle, Cast(WNDENUMPROC, @EnumChildsProc), 0)
-				End If
+				SetProp(FHandle, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
+'				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+'					SetProp(FHandle, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
+'					SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+'					AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+'					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'					EnumChildWindows(FHandle, Cast(WNDENUMPROC, @EnumChildsProc), 0)
+'				End If
 				SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(@This))
 			End If
 		#endif

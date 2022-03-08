@@ -62,7 +62,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TabPage.ProcessMessage(ByRef msg As Message)
 		#ifndef __USE_GTK__
-			FTheme = GetWindowTheme(Msg.hWnd)
+			'FTheme = GetWindowTheme(Msg.hWnd)
 			Dim As ..RECT rct
 			Select Case msg.msg
 			Case WM_DESTROY
@@ -79,6 +79,11 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_PAINT
 				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
+					If FDarkMode AndAlso msg.hWnd = FHandle Then
+						FDarkMode = False
+						SetWindowTheme(FHandle, NULL, "TAB")
+						FTheme = OpenThemeData(FHandle, "Window")
+					End If
 					If IsAppThemed() Then
 						GetClientRect(Msg.hWnd, @rct)
 						DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
@@ -618,15 +623,8 @@ Namespace My.Sys.Forms
 		Private Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabControl(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						'SetWindowTheme(.FHandle, "DarkMode::Menu", nullptr)
-						SetWindowTheme(.FHandle, "DarkMode_ImmersiveStart", nullptr) ' DarkMode
-						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					End If
 					If .Images Then .Images->ParentWindow = @Sender
-					If .Images AndAlso .Images->Handle Then .Perform(TCM_SETIMAGELIST,0,CInt(.Images->Handle))
+					If .Images AndAlso .Images->Handle Then .Perform(TCM_SETIMAGELIST, 0, CInt(.Images->Handle))
 					For i As Integer = 0 To .FTabCount - 1
 						Dim As TCITEMW Ti
 						Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
@@ -681,7 +679,16 @@ Namespace My.Sys.Forms
 					Exit Sub
 				End If
 			Case WM_PAINT
-				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						'SetWindowTheme(FHandle, "DarkMode::Menu", nullptr)
+						SetWindowTheme(FHandle, "DarkMode_ImmersiveStart", nullptr) ' DarkMode
+						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						Repaint
+					End If
 					Dim As HDC Dc, memDC
 					Dim As HBITMAP Bmp
 					Dim As PAINTSTRUCT Ps
@@ -728,6 +735,20 @@ Namespace My.Sys.Forms
 					Message.Result = 0
 					Canvas.HandleSetted = False
 					Return
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						'SetWindowTheme(FHandle, "DarkMode::Menu", nullptr)
+						SetWindowTheme(FHandle, NULL, NULL) ' DarkMode
+						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						If FBackColor = -1 Then
+							Brush.Handle = 0
+						Else
+							Brush.Color = FBackColor
+						End If
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						Repaint
+					End If
 				End If
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN

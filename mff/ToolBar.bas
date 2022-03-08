@@ -861,6 +861,14 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						SetWindowTheme(FHandle, "DarkMode_InfoPaneToolbar", nullptr) ' "DarkMode", "DarkMode_InfoPaneToolbar", "DarkMode_BBComposited", "DarkMode_InactiveBBComposited", "DarkMode_MaxBBComposited", "DarkMode_MaxInactiveBBComposited"
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				End If
 				Message.Result = 0
 			Case WM_SIZE
 				If AutoSize Then
@@ -903,7 +911,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				Case NM_CUSTOMDRAW
-					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
 						Select Case nmcd->dwDrawStage
 						Case CDDS_PREPAINT
@@ -931,7 +939,7 @@ Namespace My.Sys.Forms
 				End Select
 			Case CM_NEEDTEXT
 				Dim As LPTOOLTIPTEXT TTX
-				TTX = Cast(LPTOOLTIPTEXT,Message.lParam)
+				TTX = Cast(LPTOOLTIPTEXT, Message.lParam)
 				TTX->hInst = GetModuleHandle(NULL)
 				If TTX->hdr.idFrom Then
 					Dim As TBButton TB
@@ -959,15 +967,10 @@ Namespace My.Sys.Forms
 		If Sender.Child Then
 			With QToolBar(Sender.Child)
 				#ifndef __USE_GTK__
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr) ' "DarkMode", "DarkMode_InfoPaneToolbar", "DarkMode_BBComposited", "DarkMode_InactiveBBComposited", "DarkMode_MaxBBComposited", "DarkMode_MaxInactiveBBComposited"
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					End If
 					If .ImagesList Then .ImagesList->ParentWindow = @Sender: If .ImagesList->Handle Then .Perform(TB_SETIMAGELIST,0,CInt(.ImagesList->Handle))
-					If .HotImagesList Then .HotImagesList->ParentWindow = @Sender: If .HotImagesList->Handle Then .Perform(TB_SETHOTIMAGELIST,0,CInt(.HotImagesList->Handle))
+					If .HotImagesList Then .HotImagesList->ParentWindow = @Sender: If .HotImagesList->Handle Then .Perform(TB_SETHOTIMAGELIST, 0, CInt(.HotImagesList->Handle))
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
-					.Perform(TB_BUTTONSTRUCTSIZE,SizeOf(TBBUTTON),0)
+					.Perform(TB_BUTTONSTRUCTSIZE, SizeOf(TBBUTTON), 0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
 					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
 					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))

@@ -407,17 +407,6 @@ Namespace My.Sys.Forms
 		Private Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEx(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(.FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
-						Dim As COMBOBOXINFO cbINFO
-						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
-						GetComboBoxInfo(cmbHandle, @cbINFO)
-						Dim As HWND lstHandle = cbINFO.hwndList
-						SetWindowTheme(cmbHandle, "DarkMode_CFD", nullptr)
-						SetWindowTheme(lstHandle, "DarkMode_Explorer", nullptr)
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
-					End If
 					If .Style <> cbOwnerDrawVariable AndAlso .ItemHeight <> 0 Then
 						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.ItemHeight))
 					End If
@@ -460,6 +449,38 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
 			Select Case Message.Msg
+			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
+						Dim As COMBOBOXINFO cbINFO
+						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+						GetComboBoxInfo(cmbHandle, @cbINFO)
+						Dim As HWND lstHandle = cbINFO.hwndList
+						SetWindowTheme(cmbHandle, "DarkMode_CFD", nullptr)
+						SetWindowTheme(lstHandle, "DarkMode_Explorer", nullptr)
+						Brush.Handle = hbrBkgnd
+						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
+						Dim As COMBOBOXINFO cbINFO
+						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+						GetComboBoxInfo(cmbHandle, @cbINFO)
+						Dim As HWND lstHandle = cbINFO.hwndList
+						SetWindowTheme(cmbHandle, NULL, NULL)
+						SetWindowTheme(lstHandle, NULL, NULL)
+						If FBackColor = -1 Then
+							Brush.Handle = 0
+						Else
+							Brush.Color = FBackColor
+						End If
+						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				End If
 			Case WM_DRAWITEM
 				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
 				Dim As Integer ItemID, State

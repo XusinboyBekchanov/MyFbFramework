@@ -702,15 +702,10 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				Dim As HMENU NoNeedSysMenu
 				With QForm(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						RefreshTitleBarThemeColor(.FHandle)
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					End If
 					SetClassLong(.Handle,GCL_STYLE,.FClassStyle(.BorderStyle))
 					If .FBorderStyle = 2 Then
 						SetClassLongPtr(.Handle,GCLP_HICON,NULL)
-						SendMessage(.Handle,WM_SETICON,1,NULL)
+						SendMessage(.Handle, WM_SETICON, 1, NULL)
 						NoNeedSysMenu = GetSystemMenu(.Handle, False)
 						DeleteMenu(NoNeedSysMenu, SC_TASKLIST, MF_BYCOMMAND)
 						DeleteMenu(NoNeedSysMenu, 7, MF_BYPOSITION)
@@ -982,12 +977,33 @@ Namespace My.Sys.Forms
 					Msg.Result = True
 					Return
 				End If
-			Case WM_PAINT ', WM_ERASEBKGND
+			Case WM_PAINT, WM_ERASEBKGND
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps
 				Canvas.HandleSetted = True
-				Dc = BeginPaint(Handle,@Ps)
+				Dc = BeginPaint(Handle, @Ps)
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						RefreshTitleBarThemeColor(FHandle)
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						RefreshTitleBarThemeColor(FHandle)
+						If FBackColor = -1 Then
+							Brush.Handle = 0
+						Else
+							Brush.Color = FBackColor
+						End If
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+					End If
+				End If
 				If DoubleBuffered Then
 					MemDC = CreateCompatibleDC(DC)
 					Bmp   = CreateCompatibleBitmap(DC,Ps.rcpaint.Right,Ps.rcpaint.Bottom)

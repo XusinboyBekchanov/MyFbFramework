@@ -100,12 +100,7 @@ Namespace My.Sys.Forms
 		Private Sub GroupBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QGroupBox(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						SetWindowTheme(.FHandle, "", "")
-						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					End If
+					
 				End With
 			End If
 		End Sub
@@ -115,7 +110,28 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						'SetWindowTheme(.FHandle, "", "")
+						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						'SetWindowTheme(.FHandle, "", "")
+						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+						If FBackColor = -1 Then
+							Brush.Handle = 0
+						Else
+							Brush.Color = FBackColor
+						End If
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				End If
 				Dim As Integer W, H
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp

@@ -649,7 +649,7 @@ Namespace My.Sys.Forms
 		Private Sub ReBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QReBar(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+					'If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
 						'SetWindowTheme(.FHandle, "DarkModeNavbar", nullptr)
 						.Brush.Handle = hbrBkgnd
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
@@ -660,7 +660,8 @@ Namespace My.Sys.Forms
 						csch.clrBtnShadow = darkBkColor
 						csch.clrBtnHighlight = darkHlBkColor
 						SendMessage(.FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
-					End If
+						.FDarkMode = True
+					'End If
 					.UpdateRebar()
 					For i As Integer = 0 To .Bands.Count - 1
 						.Bands.Item(i)->Child = .Bands.Item(i)->Child
@@ -801,7 +802,21 @@ Namespace My.Sys.Forms
 				Case RBN_HEIGHTCHANGE
 					If OnHeightChange Then OnHeightChange(This)
 				Case NM_CUSTOMDRAW
-					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+						If Not FDarkMode Then
+							FDarkMode = True
+							'SetWindowTheme(FHandle, "DarkModeNavbar", nullptr)
+							Brush.Handle = hbrBkgnd
+							SendMessage(FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
+							SendMessage(FHandle, RB_SETBKCOLOR, 0, Cast(LPARAM, darkBkColor))
+							Dim As COLORSCHEME csch
+							csch.dwSize = SizeOf(COLORSCHEME)
+							csch.clrBtnShadow = darkBkColor
+							csch.clrBtnHighlight = darkHlBkColor
+							SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
+							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							Repaint
+						End If
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
 						Select Case nmcd->dwDrawStage
 						Case CDDS_PREPAINT
@@ -823,6 +838,23 @@ Namespace My.Sys.Forms
 							Message.Result = CDRF_DODEFAULT
 							Return
 						End Select
+					Else
+						If FDarkMode Then
+							FDarkMode = False
+							If FBackColor = -1 Then
+								Brush.Handle = 0
+							Else
+								Brush.Color = FBackColor
+							End If
+							SendMessage(Handle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, This.Font.Color))
+							SendMessage(Handle, RB_SETBKCOLOR, 0, Cast(LPARAM, FBackColor))
+							Dim As COLORSCHEME csch
+							csch.dwSize = SizeOf(COLORSCHEME)
+							csch.clrBtnShadow = FBackColor
+							csch.clrBtnHighlight = FBackColor
+							SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
+							SetWindowTheme(FHandle, NULL, NULL)
+						End If
 					End If
 				End Select
 			End Select
@@ -953,17 +985,33 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To rb->Bands.Count - 1
 				With *rb->Bands.Item(i)
 					cairo_set_line_width(cr, 1)
-					cairo_set_source_rgb(cr, 222 / 255.0, 222 / 255.0, 222 / 255.0)
+					If g_darkModeEnabled Then
+						cairo_set_source_rgb(cr, 0 / 255.0, 0 / 255.0, 0 / 255.0)
+					Else
+						cairo_set_source_rgb(cr, 222 / 255.0, 222 / 255.0, 222 / 255.0)
+					End If
 					cairo_rectangle cr, .Left + 0.5, .Top - 1 + 0.5, .Width, .Height
 					cairo_stroke(cr)
 					For j As Integer = 0 To .Height - 6 Step 4
-						cairo_set_source_rgb(cr, 195 / 255.0, 195 / 255.0, 195 / 255.0)
+						If g_darkModeEnabled Then
+							cairo_set_source_rgb(cr, 0 / 255.0, 0 / 255.0, 0 / 255.0)
+						Else
+							cairo_set_source_rgb(cr, 195 / 255.0, 195 / 255.0, 195 / 255.0)
+						End If
 						'cairo_move_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 0.5
 						'cairo_line_to cr, .Left + 5 + 1 + 0.5, .Top + j + 3 + 1 + 0.5
 						'cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 1 + 0.5
-						cairo_rectangle cr, .Left + 5, .Top + j + 3, 2, 2
+						If g_darkModeEnabled Then
+							cairo_set_source_rgb(cr, 0 / 255.0, 0 / 255.0, 0 / 255.0)
+						Else
+							cairo_rectangle cr, .Left + 5, .Top + j + 3, 2, 2
+						End If
 						cairo_fill(cr)
-						cairo_set_source_rgb(cr, 228 / 255.0, 228 / 255.0, 228 / 255.0)
+						If g_darkModeEnabled Then
+							cairo_set_source_rgb(cr, 0 / 255.0, 0 / 255.0, 0 / 255.0)
+						Else
+							cairo_set_source_rgb(cr, 228 / 255.0, 228 / 255.0, 228 / 255.0)
+						End If
 						'cairo_move_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
 						'cairo_line_to cr, .Left + 5 + 0.5, .Top + j + 3 + 0.5
 						cairo_rectangle cr, .Left + 5, .Top + j + 3, 1, 1

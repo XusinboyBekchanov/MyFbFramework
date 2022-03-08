@@ -120,6 +120,7 @@ Namespace My.Sys.Forms
 				Declare Static Function ConfigureEventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			#elseif defined(__USE_WINAPI__)
 				FToolInfo          As TOOLINFO
+				FDarkMode          As Boolean
 			#endif
 			FBorderStyle       As Integer
 			FExStyle           As Integer

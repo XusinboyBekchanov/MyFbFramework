@@ -893,11 +893,11 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 				If FHandle Then
 					#ifdef __USE_WINAPI__
-						If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor) Then
-							Brush.Handle = hbrBkgnd
-							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						End If
+'						If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor) Then
+'							Brush.Handle = hbrBkgnd
+'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'						End If
 						If ClassName <> "IPAddress" Then
 							SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(Child))
 						End If
@@ -1215,7 +1215,32 @@ Namespace My.Sys.Forms
 							Message.Result = HTTRANSPARENT
 						End If
 					End If
-				Case WM_PAINT
+				Case WM_PAINT ', WM_NCPAINT
+					If g_darkModeSupported AndAlso g_darkModeEnabled Then
+						If Not FDarkMode Then
+							FDarkMode = True
+							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+							'If FDefaultBackColor = FBackColor Then
+								Brush.Handle = hbrBkgnd
+							'End If
+							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+							Repaint
+						End If
+					Else
+						If FDarkMode Then
+							FDarkMode = False
+							SetWindowTheme(FHandle, NULL, NULL)
+							If FBackColor = -1 Then
+								Brush.Handle = 0
+							Else
+								Brush.Color = FBackColor
+							End If
+							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							Repaint
+						End If
+					End If
 					If OnPaint Then
 						Dim As HDC DC = GetDC(FHandle)
 						Canvas.HandleSetted = True
@@ -1256,11 +1281,17 @@ Namespace My.Sys.Forms
 									Dim As HDC hd = Cast(HDC, Message.wParam)
 									SetTextColor(hd, darkTextColor)
 									SetBkColor(hd, darkBkColor)
-									If .Brush.Handle <> hbrBkgnd Then .Brush.Handle = hbrBkgnd
+									If .Brush.Handle <> hbrBkgnd Then
+										.Brush.Handle = hbrBkgnd
+									End If
 									Message.Result = Cast(LRESULT, .Brush.Handle)
 								End If
 							Else
 								SendMessage(CPtr(HWND, Message.LParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
+'								If .Brush.Handle = hbrBkgnd Then
+'									.Brush.Color = .FBackColor
+'									SetWindowTheme(.FHandle, NULL, NULL)
+'								End If
 								Message.Result = Cast(LRESULT, .Brush.Handle)
 							End If
 							Return
@@ -1274,12 +1305,18 @@ Namespace My.Sys.Forms
 								Dim As HDC hd = Cast(HDC, Message.wParam)
 								SetTextColor(hd, darkTextColor)
 								SetBkColor(hd, darkBkColor)
-								If Brush.Handle <> hbrBkgnd Then Brush.Handle = hbrBkgnd
+								If Brush.Handle <> hbrBkgnd Then 
+									Brush.Handle = hbrBkgnd
+								End If
 							Else
 								SetBKMode(DC, TRANSPARENT)
 								SetBKColor(DC, BackColor)
 								SetTextColor(DC, Font.Color)
 								SetBKMode(DC, OPAQUE)
+'								If Brush.Handle = hbrBkgnd Then
+'									Brush.Color = FBackColor
+'									SetWindowTheme(FHandle, NULL, NULL)
+'								End If
 							End If
 							Message.Result = Cast(LRESULT, Brush.Handle)
 							Return

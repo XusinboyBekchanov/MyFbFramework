@@ -33,6 +33,8 @@ Namespace My.Sys.Forms
 			Declare Static Function HookComboBoxParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			ThreadID As Any Ptr
 		#endif
+	Protected:
+		FDarkMode     As Boolean
 		FInitialDir   As WString Ptr
 		FMultiSelect  As Boolean
 		FDefaultExt   As WString Ptr

@@ -238,17 +238,6 @@ Namespace My.Sys.Forms
 		Private Sub ProgressBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With  QProgressBar(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
-						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
-						SetWindowTheme(.FHandle, "", "")
-						SendMessage(.FHandle, PBM_SETBKCOLOR, 0, Cast(LPARAM, darkHlBkColor))
-						SendMessage(.FHandle, PBM_SETBARCOLOR, 0, Cast(LPARAM, BGR(6, 176, 37)))
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
-						'UpdateWindow(.FHandle)
-					End If
 					If .FMode32 Then
 						.Perform(PBM_SETRANGE32, .FMinValue, .FMaxValue)
 					Else
@@ -266,6 +255,36 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ProgressBar.ProcessMessage(ByRef Message As Message)
+		Select Case Message.Msg
+			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
+						SetWindowTheme(FHandle, "", "")
+						SendMessage(FHandle, PBM_SETBKCOLOR, 0, Cast(LPARAM, darkHlBkColor))
+						SendMessage(FHandle, PBM_SETBARCOLOR, 0, Cast(LPARAM, BGR(6, 176, 37)))
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						'UpdateWindow(.FHandle)
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
+						SetWindowTheme(FHandle, NULL, NULL)
+'						SendMessage(FHandle, PBM_SETBKCOLOR, 0, Cast(LPARAM, darkHlBkColor))
+'						SendMessage(FHandle, PBM_SETBARCOLOR, 0, Cast(LPARAM, BGR(6, 176, 37)))
+						Brush.Color = FBackColor
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						'UpdateWindow(.FHandle)
+					End If
+				End If
+		End Select
 		Base.ProcessMessage(Message)
 	End Sub
 	

@@ -12,12 +12,7 @@
 '###############################################################################
 
 #include once "Application.bi"
-#ifdef __USE_WINAPI__
-	#include once "DarkMode/DarkMode.bas"
-#else
-	Common Shared As Boolean g_darkModeSupported
-	Common Shared As Boolean g_darkModeEnabled
-#endif
+#include once "DarkMode/DarkMode.bas"
 
 Dim Shared App As My.Application
 pApp = @App

@@ -349,16 +349,6 @@ Namespace My.Sys.Forms
 		Private Sub StatusBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QStatusBar(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						'SetWindowTheme(.FHandle, "DarkMode:ExplorerStatusBar", nullptr)
-						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
-						'SetWindowTheme(.FHandle, "", "")
-						SendMessage .FHandle, SB_SETBKCOLOR, 0, darkBkColor
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
-						UpdateWindow(.FHandle)
-					End If
 					'SetClassLong .Handle, GCL_STYLE, GetClassLong(.Handle,GCL_STYLE) And Not CS_HREDRAW
 					'.Perform(SB_SETBKCOLOR, 0, .BackColor)
 					.SimpleText = .SimpleText
@@ -379,7 +369,18 @@ Namespace My.Sys.Forms
 					Exit Sub
 				End If
 			Case WM_PAINT
-				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						'SetWindowTheme(.FHandle, "DarkMode:ExplorerStatusBar", nullptr)
+						'SetWindowTheme(.FHandle, "DarkMode_InfoPaneToolbar", nullptr)
+						'SetWindowTheme(.FHandle, "", "")
+						SendMessage FHandle, SB_SETBKCOLOR, 0, darkBkColor
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						UpdateWindow(FHandle)
+					End If
 					Dim As HDC Dc, memDC
 					Dim As HBITMAP Bmp
 					Dim As PAINTSTRUCT Ps

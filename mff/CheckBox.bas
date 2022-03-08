@@ -83,7 +83,7 @@ Namespace My.Sys.Forms
 	Private Property CheckBox.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
-		
+	
 	Private Property CheckBox.Text ByRef As WString
 		Return Base.Text
 	End Property
@@ -129,12 +129,6 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			If Sender.Child Then
 				With QCheckBox(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						'SetWindowTheme(.FHandle, "", "")
-						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					End If
 					.Perform(BM_SETCHECK, .FChecked, 0)
 				End With
 			End If
@@ -175,64 +169,66 @@ Namespace My.Sys.Forms
 					If OnClick Then OnClick(This)
 				End If
 			Case CM_NOTIFY
-        		If (g_darkModeSupported AndAlso g_darkModeEnabled OrElse FForeColor <> 0) AndAlso Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW Then
-            		Dim As NMCUSTOMDRAW Ptr pnm = Cast(LPNMCUSTOMDRAW, Message.lParam)
-                    Select Case pnm->dwDrawStage
-                    Case CDDS_PREERASE
-                        Dim As HRESULT hr = DrawThemeParentBackground(pnm->hdr.hwndFrom, pnm->hdc, @pnm->rc)
-                        If FAILED(hr) Then ' If failed draw without theme
-                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
-                            Message.Result = True
-                            Return
-                        End If
-
-                        Dim As HTHEME hTheme = OpenThemeData(pnm->hdr.hwndFrom, "BUTTON")
-
-                        If hTheme = 0 Then ' If failed draw without theme
-                            CloseThemeData(hTheme)
-                            SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
-                            Message.Result = True
-                            Return
-                        End If
-
-                        Dim As LRESULT state = SendMessage(pnm->hdr.hwndFrom, BM_GETSTATE, 0, 0)
-
-                        Dim As Integer stateID ' parameter for DrawThemeBackground
-
-                        Dim As UINT uiItemState = pnm->uItemState
+				If (g_darkModeSupported AndAlso g_darkModeEnabled OrElse FForeColor <> 0) AndAlso Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW Then
+					Dim As NMCUSTOMDRAW Ptr pnm = Cast(LPNMCUSTOMDRAW, Message.lParam)
+					Select Case pnm->dwDrawStage
+					Case CDDS_PREERASE
+						Dim As HRESULT hr = DrawThemeParentBackground(pnm->hdr.hwndFrom, pnm->hdc, @pnm->rc)
+						If FAILED(hr) Then ' If failed draw without theme
+							SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
+							Message.Result = True
+							Return
+						End If
+						
+						Dim As HTHEME hTheme = OpenThemeData(pnm->hdr.hwndFrom, "BUTTON")
+						
+						If hTheme = 0 Then ' If failed draw without theme
+							CloseThemeData(hTheme)
+							SetWindowLongPtr(Message.hWnd, DWLP_MSGRESULT, Cast(LONG_PTR, CDRF_DODEFAULT))
+							Message.Result = True
+							Return
+						End If
+						
+						Dim As LRESULT state = SendMessage(pnm->hdr.hwndFrom, BM_GETSTATE, 0, 0)
+						
+						Dim As Integer stateID ' parameter for DrawThemeBackground
+						
+						Dim As UINT uiItemState = pnm->uItemState
 						Dim As bool bChecked = This.Checked
 						
 						If (uiItemState And CDIS_DISABLED) Then
 							stateID = IIf(bChecked, CBS_CHECKEDDISABLED, CBS_UNCHECKEDDISABLED)
 						ElseIf (uiItemState And CDIS_SELECTED) Then
-						    stateID = IIf(bChecked, CBS_CHECKEDPRESSED, CBS_UNCHECKEDPRESSED)
+							stateID = IIf(bChecked, CBS_CHECKEDPRESSED, CBS_UNCHECKEDPRESSED)
 						Else
-						    If (uiItemState And CDIS_HOT) Then
-						        stateID = IIf(bChecked, CBS_CHECKEDHOT, CBS_UNCHECKEDHOT)
-						    Else
-						        stateID = IIf(bChecked, CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL)
-						    End If
+							If (uiItemState And CDIS_HOT) Then
+								stateID = IIf(bChecked, CBS_CHECKEDHOT, CBS_UNCHECKEDHOT)
+							Else
+								stateID = IIf(bChecked, CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL)
+							End If
 						End If
 						
-                        Dim As ..RECT r
-                        Dim As ..SIZE s
-
-                        ' Get check box dimensions so we can calculate 
-                        ' rectangle dimensions For text
-                        GetThemePartSize(hTheme, pnm->hdc, BP_CHECKBOX, stateID, NULL, TS_TRUE, @s)
-
-                        r.left = pnm->rc.left
-                        r.top = pnm->rc.top ' + 2
-                        r.right = pnm->rc.left + s.cx
-                        r.bottom = pnm->rc.Bottom ' r.top + s.cy
-
-                        DrawThemeBackground(hTheme, pnm->hdc, BP_CHECKBOX, stateID, @r, NULL)
-
-                        ' adjust rectangle for text drawing
-                        'pnm->rc.top += r.top - 2
-                        pnm->rc.left += 3 + s.cx
-
-                        DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
+						Dim As ..RECT r
+						Dim As ..SIZE s
+						
+						' Get check box dimensions so we can calculate
+						' rectangle dimensions For text
+						GetThemePartSize(hTheme, pnm->hdc, BP_CHECKBOX, stateID, NULL, TS_TRUE, @s)
+						
+						r.left = pnm->rc.left
+						r.top = pnm->rc.top ' + 2
+						r.right = pnm->rc.left + s.cx
+						r.bottom = pnm->rc.Bottom ' r.top + s.cy
+						
+						DrawThemeBackground(hTheme, pnm->hdc, BP_CHECKBOX, stateID, @r, NULL)
+						
+						' adjust rectangle for text drawing
+						'pnm->rc.top += r.top - 2
+						pnm->rc.left += 3 + s.cx
+						If (uiItemState And CDIS_DISABLED) Then
+							SetTextColor(pnm->hdc, darkHlBkColor)
+						End If
+						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
 						If (uiItemState And CDIS_FOCUS) Then
 							Dim Sz As ..SIZE
 							GetTextExtentPoint32(pnm->hdc, @This.Text, Len(This.Text), @Sz)
@@ -242,11 +238,11 @@ Namespace My.Sys.Forms
 							pnm->rc.bottom = pnm->rc.top + s.cy + 2
 							DrawFocusRect(pnm->hdc, @pnm->rc)
 						End If
-                        CloseThemeData(hTheme)
-                        Message.Result = Cast(LONG_PTR, CDRF_SKIPDEFAULT)
-                        Return
-                    End Select
-                End If
+						CloseThemeData(hTheme)
+						Message.Result = Cast(LONG_PTR, CDRF_SKIPDEFAULT)
+						Return
+					End Select
+				End If
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

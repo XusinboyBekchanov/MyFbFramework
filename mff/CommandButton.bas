@@ -135,11 +135,6 @@ Namespace My.Sys.Forms
 		Private Sub CommandButton.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCommandButton(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled Then
-						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					End If
 					.Perform(BM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
 				End With
 			End If
@@ -165,6 +160,12 @@ Namespace My.Sys.Forms
 	Private Sub CommandButton.ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_WINAPI__
 			Select Case msg.Msg
+			Case WM_PAINT
+'				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+'					SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+'					.Brush.Handle = hbrBkgnd
+'					SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+'				End If
 				'        Case BM_CLICK
 				'            If OnClick Then OnClick(This)
 			Case CM_COMMAND

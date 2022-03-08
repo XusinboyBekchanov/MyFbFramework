@@ -770,11 +770,19 @@ Namespace My.Sys.Forms
 					'If (hTheme) Then
 						'Dim As COLORREF Color1
 						'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
+						If g_darkModeEnabled Then
 							TreeView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
+						Else
+							TreeView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
+						End If
 						'End If
 						'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
 							'TreeView_SetTextBkColor(Message.hWnd, Color1)
-							TreeView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+							If g_darkModeEnabled Then
+								TreeView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+							Else
+								TreeView_SetBkColor(Message.hWnd, FBackColor) 'Color1)
+							End If
 						'End If
 					'	CloseThemeData(hTheme)
 					'End If
@@ -916,13 +924,6 @@ Namespace My.Sys.Forms
 		Private Sub TreeView.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTreeView(Sender.Child)
-					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
-						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
-						.Brush.Handle = hbrBkgnd
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
-						UpdateWindow(.FHandle)
-					End If
 					If .Images Then .Images->ParentWindow = @Sender
 					If .SelectedImages Then .SelectedImages->ParentWindow = @Sender
 					'.Perform(TB_BUTTONSTRUCTSIZE,SizeOF(TBBUTTON),0)

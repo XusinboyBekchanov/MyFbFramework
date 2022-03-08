@@ -1128,6 +1128,13 @@ Namespace My.Sys.Forms
 			Select Case message.Msg
 			Case WM_PAINT, WM_MOUSELEAVE, WM_MOUSEMOVE
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso (CBool(message.Msg <> WM_MOUSEMOVE) OrElse (CBool(message.Msg = WM_MOUSEMOVE) AndAlso FMouseInClient)) Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						Brush.Handle = hbrBkgnd
+						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						Repaint
+					End If
 					Dim As Any Ptr cp = GetClassProc(Message.hWnd)
 					If cp <> 0 Then
 						Message.Result = CallWindowProc(cp, Message.hWnd, Message.Msg, Message.wParam, Message.lParam)

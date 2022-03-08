@@ -120,6 +120,24 @@ Namespace My.Sys.Forms
 				Dim As ..Rect R, RFrame
 				GetClientRect Handle, @R
 				Dc = GetDC(Handle)
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						If FBackColor = -1 Then
+							Brush.Handle = 0
+						Else
+							Brush.Color = FBackColor
+						End If
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				End If
 				If DoubleBuffered Then
 					MemDC = CreateCompatibleDC(DC)
 					Bmp   = CreateCompatibleBitmap(DC, R.Right, R.Bottom)

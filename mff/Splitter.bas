@@ -119,6 +119,23 @@ Namespace My.Sys.Forms
 			Case WM_SETCURSOR
 				If CInt(Cursor.Handle <> 0) AndAlso CInt(Not FDesignMode) Then Message.Result = Cast(LResult, SetCursor(Cursor.Handle)): Return
 			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						If FBackColor = -1 Then
+							Brush.Handle = 0
+						Else
+							Brush.Color = FBackColor
+						End If
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					End If
+				End If
 				Dim As ..Rect R
 				Dim As HDC Dc
 				Dc = GetDC(Handle)
