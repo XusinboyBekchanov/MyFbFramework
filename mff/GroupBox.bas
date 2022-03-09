@@ -116,7 +116,7 @@ Namespace My.Sys.Forms
 						FDarkMode = True
 						'SetWindowTheme(.FHandle, "", "")
 						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
-						Brush.Handle = hbrBkgnd
+						This.Brush.Handle = hbrBkgnd
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				Else
@@ -125,9 +125,9 @@ Namespace My.Sys.Forms
 						'SetWindowTheme(.FHandle, "", "")
 						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
 						If FBackColor = -1 Then
-							Brush.Handle = 0
+							This.Brush.Handle = 0
 						Else
-							Brush.Color = FBackColor
+							This.Brush.Color = FBackColor
 						End If
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 					End If
