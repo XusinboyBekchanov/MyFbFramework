@@ -1183,6 +1183,24 @@ Namespace My.Sys.Forms
 			End Select
 			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function
+		
+		Private Sub TreeListView.SetDark(Value As Boolean)
+			Base.SetDark Value
+			If Value Then
+				hHeader = ListView_GetHeader(FHandle)
+				SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr) ' DarkMode
+				SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr) ' DarkMode
+				AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+				AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+			Else
+				hHeader = ListView_GetHeader(FHandle)
+				SetWindowTheme(hHeader, NULL, NULL) ' DarkMode
+				SetWindowTheme(FHandle, NULL, NULL) ' DarkMode
+				AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+				AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+			End If
+			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
+		End Sub
 	#endif
 	
 	Private Sub TreeListView.ProcessMessage(ByRef Message As Message)
@@ -1198,21 +1216,23 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						hHeader = ListView_GetHeader(FHandle)
-						SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr) ' DarkMode
-						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr) ' DarkMode
-						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+						SetDark True
+'						FDarkMode = True
+'						hHeader = ListView_GetHeader(FHandle)
+'						SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr) ' DarkMode
+'						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr) ' DarkMode
+'						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+'						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						hHeader = ListView_GetHeader(FHandle)
-						SetWindowTheme(hHeader, NULL, NULL) ' DarkMode
-						SetWindowTheme(FHandle, NULL, NULL) ' DarkMode
-						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+						SetDark False
+'						FDarkMode = False
+'						hHeader = ListView_GetHeader(FHandle)
+'						SetWindowTheme(hHeader, NULL, NULL) ' DarkMode
+'						SetWindowTheme(FHandle, NULL, NULL) ' DarkMode
+'						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+'						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
 					End If
 				End If
 				Message.Result = 0

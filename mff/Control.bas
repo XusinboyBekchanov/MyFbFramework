@@ -48,7 +48,6 @@ Namespace My.Sys.Forms
 				Case "controlcount": Return @FControlCount
 				Case "cursor": Return @This.Cursor
 				Case "doublebuffered": Return @DoubleBuffered
-				Case "darkmode": Return @FDarkMode
 				Case "grouped": Return @FGrouped
 				Case "helpcontext": Return @HelpContext
 					#ifdef __USE_GTK__
@@ -90,7 +89,6 @@ Namespace My.Sys.Forms
 					Case "anchor.top": This.Anchor.Top = QInteger(Value)
 					Case "anchor.bottom": This.Anchor.Bottom = QInteger(Value)
 					Case "cursor": This.Cursor = QWString(Value)
-					Case "darkmode": This.DarkMode = QBoolean(Value)
 					Case "doublebuffered": This.DoubleBuffered = QBoolean(Value)
 					Case "borderstyle": This.BorderStyle = QInteger(Value)
 					Case "backcolor": This.BackColor = QInteger(Value)
@@ -772,28 +770,26 @@ Namespace My.Sys.Forms
 			Visible = False
 		End Sub
 		
-		Private Property Control.DarkMode As Boolean
-			Return FDarkMode
-		End Property
-		
-		Private Property Control.DarkMode(Value As Boolean)
-			'FDarkMode = Value
-			If Value Then
-				If FDefaultBackColor = FBackColor Then
-					Brush.Handle = hbrBkgnd
-				End If
-				SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-			Else
-				SetWindowTheme(FHandle, NULL, NULL)
-				If FBackColor = -1 Then
-					Brush.Handle = 0
+		#ifdef __USE_WINAPI__
+			Private Sub Control.SetDark(Value As Boolean)
+				FDarkMode = Value
+				If Value Then
+					If FDefaultBackColor = FBackColor Then
+						Brush.Handle = hbrBkgnd
+					End If
+					SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
 				Else
-					Brush.Color = FBackColor
+					SetWindowTheme(FHandle, NULL, NULL)
+					If FBackColor = -1 Then
+						Brush.Handle = 0
+					Else
+						Brush.Color = FBackColor
+					End If
 				End If
-			End If
-			AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-			SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-		End Property
+				AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+				SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+			End Sub
+		#endif
 		
 		Private Sub Control.CreateWnd
 			Dim As Long nLeft   = ScaleX(FLeft)
@@ -918,20 +914,20 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 				If FHandle Then
 					#ifdef __USE_WINAPI__
-						If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
-							DarkMode = True
-'							If FDefaultBackColor = FBackColor Then
-'								Brush.Handle = hbrBkgnd
-'							End If
-'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						End If
 						If ClassName <> "IPAddress" Then
 							SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(Child))
 						End If
 						SetProp(FHandle, "MFFControl", @This)
 						If SubClass Then
 							PrevProc = Cast(Any Ptr, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@CallWndProc)))
+						End If
+						If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+							SetDark True
+'							If FDefaultBackColor = FBackColor Then
+'								Brush.Handle = hbrBkgnd
+'							End If
+'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						End If
 					#elseif defined(__USE_JNI__)
 						If pApp AndAlso env Then
@@ -1246,26 +1242,28 @@ Namespace My.Sys.Forms
 				Case WM_PAINT ', WM_NCPAINT
 					If g_darkModeSupported AndAlso g_darkModeEnabled Then
 						If Not FDarkMode Then
-							FDarkMode = True
-							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-							If FDefaultBackColor = FBackColor Then
-								Brush.Handle = hbrBkgnd
-							End If
-							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+							SetDark True
+'							FDarkMode = True
+'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+'							If FDefaultBackColor = FBackColor Then
+'								Brush.Handle = hbrBkgnd
+'							End If
+'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 							Repaint
 						End If
 					Else
 						If FDarkMode Then
-							FDarkMode = False
-							SetWindowTheme(FHandle, NULL, NULL)
-							If FBackColor = -1 Then
-								Brush.Handle = 0
-							Else
-								Brush.Color = FBackColor
-							End If
-							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							SetDark False
+'							FDarkMode = False
+'							SetWindowTheme(FHandle, NULL, NULL)
+'							If FBackColor = -1 Then
+'								Brush.Handle = 0
+'							Else
+'								Brush.Color = FBackColor
+'							End If
+'							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 							Repaint
 						End If
 					End If
@@ -1355,11 +1353,11 @@ Namespace My.Sys.Forms
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
 				Case WM_THEMECHANGED
-					If g_darkModeSupported Then
-						_AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
-						RefreshTitleBarThemeColor(Message.hWnd)
-						UpdateWindow(Message.hWnd)
-					End If
+'					If g_darkModeSupported Then
+'						_AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
+'						RefreshTitleBarThemeColor(Message.hWnd)
+'						UpdateWindow(Message.hWnd)
+'					End If
 				Case WM_CTLCOLORBTN
 					'?1
 				Case WM_SIZE

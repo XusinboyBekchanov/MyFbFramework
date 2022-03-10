@@ -50,6 +50,7 @@ Namespace My.Sys.Forms
 			Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Function SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Virtual Sub SetDark(Value As Boolean)
 		#else
 			Declare Static Sub ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Declare Static Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean

@@ -433,6 +433,44 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	#ifdef __USE_WINAPI__
+		Private Sub ComboBoxEdit.SetDark(Value As Boolean)
+			Base.SetDark Value
+			If Value Then
+				SetWindowTheme(FHandle, "DarkMode_CFD", nullptr)
+				Brush.Handle = hbrBkgnd
+				SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+				Dim As COMBOBOXINFO cbi
+				cbi.cbSize = SizeOf(COMBOBOXINFO)
+				Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
+				If result Then
+					If cbi.hwndList Then
+						'dark scrollbar for listbox of combobox
+						SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr)
+					End If
+				End If
+			Else
+				SetWindowTheme(FHandle, NULL, NULL)
+				If FBackColor = -1 Then
+					Brush.Handle = 0
+				Else
+					Brush.Color = FBackColor
+				End If
+				SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+				Dim As COMBOBOXINFO cbi
+				cbi.cbSize = SizeOf(COMBOBOXINFO)
+				Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
+				If result Then
+					If cbi.hwndList Then
+						'dark scrollbar for listbox of combobox
+						SetWindowTheme(cbi.hwndList, NULL, NULL)
+					End If
+				End If
+			End If
+			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
+		End Sub
+	#endif
+	
 	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
@@ -441,41 +479,43 @@ Namespace My.Sys.Forms
 			Case WM_CREATE
 				
 			Case WM_PAINT
-				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						SetWindowTheme(FHandle, "DarkMode_CFD", nullptr)
-						Brush.Handle = hbrBkgnd
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						Dim As COMBOBOXINFO cbi
-						cbi.cbSize = SizeOf(COMBOBOXINFO)
-						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
-						If result Then
-							If cbi.hwndList Then
-								'dark scrollbar for listbox of combobox
-								SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr)
-							End If
-						End If
+						SetDark True
+'						FDarkMode = True
+'						SetWindowTheme(FHandle, "DarkMode_CFD", nullptr)
+'						Brush.Handle = hbrBkgnd
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'						Dim As COMBOBOXINFO cbi
+'						cbi.cbSize = SizeOf(COMBOBOXINFO)
+'						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
+'						If result Then
+'							If cbi.hwndList Then
+'								'dark scrollbar for listbox of combobox
+'								SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr)
+'							End If
+'						End If
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						SetWindowTheme(FHandle, NULL, NULL)
-						If FBackColor = -1 Then
-							Brush.Handle = 0
-						Else
-							Brush.Color = FBackColor
-						End If
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						Dim As COMBOBOXINFO cbi
-						cbi.cbSize = SizeOf(COMBOBOXINFO)
-						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
-						If result Then
-							If cbi.hwndList Then
-								'dark scrollbar for listbox of combobox
-								SetWindowTheme(cbi.hwndList, NULL, NULL)
-							End If
-						End If
+						SetDark False
+'						FDarkMode = False
+'						SetWindowTheme(FHandle, NULL, NULL)
+'						If FBackColor = -1 Then
+'							Brush.Handle = 0
+'						Else
+'							Brush.Color = FBackColor
+'						End If
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'						Dim As COMBOBOXINFO cbi
+'						cbi.cbSize = SizeOf(COMBOBOXINFO)
+'						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
+'						If result Then
+'							If cbi.hwndList Then
+'								'dark scrollbar for listbox of combobox
+'								SetWindowTheme(cbi.hwndList, NULL, NULL)
+'							End If
+'						End If
 					End If
 				End If
 				Message.Result = 0

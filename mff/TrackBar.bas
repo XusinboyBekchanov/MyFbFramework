@@ -401,7 +401,7 @@ Namespace My.Sys.Forms
 '						SendMessage(.FHandle, PBM_SETBARCOLOR, 0, Cast(LPARAM, BGR(6, 176, 37)))
 						.Brush.Handle = hbrBkgnd
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
 						'UpdateWindow(.FHandle)
 					End If
 					.Perform(TBM_SETTHUMBLENGTH, .FThumbLength, 0)

@@ -95,6 +95,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
 		Declare Function EnumMenuItems(Item As MenuItem) As Boolean
 		Declare Sub GetMenuItems
@@ -128,9 +129,6 @@ Namespace My.Sys.Forms
 		'Returns/sets the active control on the container control (Windows, Linux).
 		Declare Property ActiveControl As Control Ptr
 		Declare Property ActiveControl(Value As Control Ptr)
-		'Returns/sets the dark mode of the form (Windows only).
-		Declare Virtual Property DarkMode As Boolean
-		Declare Virtual Property DarkMode(Value As Boolean)
 		'Returns/sets the default button for dialog, acts on the Enter / Return key (Windows, Linux)
 		Declare Property DefaultButton As Control Ptr 'CommandButton
 		Declare Property DefaultButton(Value As Control Ptr)

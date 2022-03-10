@@ -199,6 +199,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
+			Declare Virtual Sub SetDark(Value As Boolean)
 			hHeader As HWND
 			headerTextColor As COLORREF
 		#endif

@@ -782,15 +782,13 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Property Form.DarkMode As Boolean
-		Return FDarkMode
-	End Property
-	
-	Private Property Form.DarkMode(Value As Boolean)
-		Base.DarkMode = Value
-		RefreshTitleBarThemeColor(FHandle)
-		RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
-	End Property
+	#ifdef __USE_WINAPI__
+		Private Sub Form.SetDark(Value As Boolean)
+			Base.SetDark Value
+			RefreshTitleBarThemeColor(FHandle)
+			RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+		End Sub
+	#endif
 	
 	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
@@ -861,7 +859,7 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_THEMECHANGED
 				If (g_darkModeSupported) Then
-					_AllowDarkModeForWindow(Msg.hWnd, g_darkModeEnabled)
+					AllowDarkModeForWindow(Msg.hWnd, g_darkModeEnabled)
 					RefreshTitleBarThemeColor(Msg.hWnd)
 					UpdateWindow(Msg.hWnd)
 				End If
@@ -994,25 +992,27 @@ Namespace My.Sys.Forms
 				Canvas.HandleSetted = True
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						RefreshTitleBarThemeColor(FHandle)
-						If FDefaultBackColor = FBackColor Then
-							Brush.Handle = hbrBkgnd
-						End If
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						SetDark True
+'						FDarkMode = True
+'						RefreshTitleBarThemeColor(FHandle)
+'						If FDefaultBackColor = FBackColor Then
+'							Brush.Handle = hbrBkgnd
+'						End If
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						RefreshTitleBarThemeColor(FHandle)
-						If FBackColor = -1 Then
-							Brush.Handle = 0
-						Else
-							Brush.Color = FBackColor
-						End If
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						SetDark False
+'						FDarkMode = False
+'						RefreshTitleBarThemeColor(FHandle)
+'						If FBackColor = -1 Then
+'							Brush.Handle = 0
+'						Else
+'							Brush.Color = FBackColor
+'						End If
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				End If
 				Dc = BeginPaint(Handle, @Ps)

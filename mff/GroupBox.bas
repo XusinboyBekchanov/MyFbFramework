@@ -113,23 +113,25 @@ Namespace My.Sys.Forms
 			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						'SetWindowTheme(.FHandle, "", "")
-						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
-						This.Brush.Handle = hbrBkgnd
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						SetDark True
+'						FDarkMode = True
+'						'SetWindowTheme(.FHandle, "", "")
+'						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+'						This.Brush.Handle = hbrBkgnd
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						'SetWindowTheme(.FHandle, "", "")
-						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
-						If FBackColor = -1 Then
-							This.Brush.Handle = 0
-						Else
-							This.Brush.Color = FBackColor
-						End If
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						SetDark False
+'						FDarkMode = False
+'						'SetWindowTheme(.FHandle, "", "")
+'						'SetWindowTheme(.FHandle, "DarkMode", nullptr)
+'						If FBackColor = -1 Then
+'							This.Brush.Handle = 0
+'						Else
+'							This.Brush.Color = FBackColor
+'						End If
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				End If
 				Dim As Integer W, H

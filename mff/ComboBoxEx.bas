@@ -445,6 +445,38 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#ifdef __USE_WINAPI__
+		Private Sub ComboBoxEx.SetDark(Value As Boolean)
+			Base.SetDark Value
+			If Value Then
+				Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
+				Dim As COMBOBOXINFO cbINFO
+				cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+				GetComboBoxInfo(cmbHandle, @cbINFO)
+				Dim As HWND lstHandle = cbINFO.hwndList
+				SetWindowTheme(cmbHandle, "DarkMode_CFD", nullptr)
+				SetWindowTheme(lstHandle, "DarkMode_Explorer", nullptr)
+				Brush.Handle = hbrBkgnd
+				'SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+			Else
+				Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
+				Dim As COMBOBOXINFO cbINFO
+				cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+				GetComboBoxInfo(cmbHandle, @cbINFO)
+				Dim As HWND lstHandle = cbINFO.hwndList
+				SetWindowTheme(cmbHandle, NULL, NULL)
+				SetWindowTheme(lstHandle, NULL, NULL)
+				If FBackColor = -1 Then
+					Brush.Handle = 0
+				Else
+					Brush.Color = FBackColor
+				End If
+				'SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+			End If
+			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
+		End Sub
+	#endif
+	
 	Private Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
@@ -452,33 +484,35 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
-						Dim As COMBOBOXINFO cbINFO
-						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
-						GetComboBoxInfo(cmbHandle, @cbINFO)
-						Dim As HWND lstHandle = cbINFO.hwndList
-						SetWindowTheme(cmbHandle, "DarkMode_CFD", nullptr)
-						SetWindowTheme(lstHandle, "DarkMode_Explorer", nullptr)
-						Brush.Handle = hbrBkgnd
-						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+						SetDark True
+'						FDarkMode = True
+'						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
+'						Dim As COMBOBOXINFO cbINFO
+'						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+'						GetComboBoxInfo(cmbHandle, @cbINFO)
+'						Dim As HWND lstHandle = cbINFO.hwndList
+'						SetWindowTheme(cmbHandle, "DarkMode_CFD", nullptr)
+'						SetWindowTheme(lstHandle, "DarkMode_Explorer", nullptr)
+'						Brush.Handle = hbrBkgnd
+'						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
-						Dim As COMBOBOXINFO cbINFO
-						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
-						GetComboBoxInfo(cmbHandle, @cbINFO)
-						Dim As HWND lstHandle = cbINFO.hwndList
-						SetWindowTheme(cmbHandle, NULL, NULL)
-						SetWindowTheme(lstHandle, NULL, NULL)
-						If FBackColor = -1 Then
-							Brush.Handle = 0
-						Else
-							Brush.Color = FBackColor
-						End If
-						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+						SetDark False
+'						FDarkMode = False
+'						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
+'						Dim As COMBOBOXINFO cbINFO
+'						cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+'						GetComboBoxInfo(cmbHandle, @cbINFO)
+'						Dim As HWND lstHandle = cbINFO.hwndList
+'						SetWindowTheme(cmbHandle, NULL, NULL)
+'						SetWindowTheme(lstHandle, NULL, NULL)
+'						If FBackColor = -1 Then
+'							Brush.Handle = 0
+'						Else
+'							Brush.Color = FBackColor
+'						End If
+'						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				End If
 			Case WM_DRAWITEM

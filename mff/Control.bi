@@ -197,6 +197,7 @@ Namespace My.Sys.Forms
 				Declare Static Function CallWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Static Function SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Function Perform(Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+				Declare Virtual Sub SetDark(Value As Boolean)
 				Declare Sub AllocateHint
 			#endif
 			#ifdef __USE_GTK__
@@ -246,9 +247,6 @@ Namespace My.Sys.Forms
 			'Returns/sets the PopupMenu associated with this control (Windows, Linux).
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)
-			'Returns/sets the dark mode of the control (Windows only).
-			Declare Virtual Property DarkMode As Boolean
-			Declare Virtual Property DarkMode(Value As Boolean)
 			'Returns/sets the text contained in the control (Windows, Linux).
 			Declare Virtual Property Text ByRef As WString
 			Declare Virtual Property Text(ByRef Value As WString)

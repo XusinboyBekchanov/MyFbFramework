@@ -88,6 +88,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
 	Protected:
 		Declare Sub UpdateListHeight

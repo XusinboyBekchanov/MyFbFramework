@@ -262,6 +262,7 @@ Namespace My.Sys.Forms
 			IconViewWidget As GtkWidget Ptr
 			PrevIndex As Integer
 		#elseif defined(__USE_WINAPI__)
+			Declare Virtual Sub SetDark(Value As Boolean)
 			hHeader As HWND
 			headerTextColor As COLORREF
 		#endif

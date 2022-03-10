@@ -122,20 +122,21 @@ Namespace My.Sys.Forms
 				Dc = GetDC(Handle)
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						Brush.Handle = hbrBkgnd
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						
+						SetDark True
+'						FDarkMode = True
+'						Brush.Handle = hbrBkgnd
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						If FBackColor = -1 Then
-							Brush.Handle = 0
-						Else
-							Brush.Color = FBackColor
-						End If
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						SetDark False
+'						FDarkMode = False
+'						If FBackColor = -1 Then
+'							Brush.Handle = 0
+'						Else
+'							Brush.Color = FBackColor
+'						End If
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				End If
 				If DoubleBuffered Then

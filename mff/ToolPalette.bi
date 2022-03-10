@@ -123,6 +123,9 @@ Namespace My.Sys.Forms
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetDropDownMenuItems
+		#ifdef __USE_WINAPI__
+			Declare Virtual Sub SetDark(Value As Boolean)
+		#endif
 	Public:
 		Groups          As ToolGroups
 		Declare Property ImagesList As ImageList Ptr

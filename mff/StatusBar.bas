@@ -378,7 +378,7 @@ Namespace My.Sys.Forms
 						SendMessage FHandle, SB_SETBKCOLOR, 0, darkBkColor
 						Brush.Handle = hbrBkgnd
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 						UpdateWindow(FHandle)
 					End If
 					Dim As HDC Dc, memDC

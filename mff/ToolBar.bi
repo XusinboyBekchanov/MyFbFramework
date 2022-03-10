@@ -167,6 +167,9 @@ Namespace My.Sys.Forms
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetDropDownMenuItems
+		#ifdef __USE_WINAPI__
+			Declare Virtual Sub SetDark(Value As Boolean)
+		#endif
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean

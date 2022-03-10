@@ -43,7 +43,10 @@ Namespace My.Sys.Forms
 			Dim progress_bar_timer_id As UInteger
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
-		Declare Sub SetRange(AMin As Integer,AMax As Integer)
+		Declare Sub SetRange(AMin As Integer, AMax As Integer)
+		#ifdef __USE_WINAPI__
+			Declare Virtual Sub SetDark(Value As Boolean)
+		#endif
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
