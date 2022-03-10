@@ -246,6 +246,9 @@ Namespace My.Sys.Forms
 			'Returns/sets the PopupMenu associated with this control (Windows, Linux).
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)
+			'Returns/sets the dark mode of the control (Windows only).
+			Declare Virtual Property DarkMode As Boolean
+			Declare Virtual Property DarkMode(Value As Boolean)
 			'Returns/sets the text contained in the control (Windows, Linux).
 			Declare Virtual Property Text ByRef As WString
 			Declare Virtual Property Text(ByRef Value As WString)

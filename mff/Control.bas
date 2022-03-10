@@ -48,6 +48,7 @@ Namespace My.Sys.Forms
 				Case "controlcount": Return @FControlCount
 				Case "cursor": Return @This.Cursor
 				Case "doublebuffered": Return @DoubleBuffered
+				Case "darkmode": Return @FDarkMode
 				Case "grouped": Return @FGrouped
 				Case "helpcontext": Return @HelpContext
 					#ifdef __USE_GTK__
@@ -89,6 +90,7 @@ Namespace My.Sys.Forms
 					Case "anchor.top": This.Anchor.Top = QInteger(Value)
 					Case "anchor.bottom": This.Anchor.Bottom = QInteger(Value)
 					Case "cursor": This.Cursor = QWString(Value)
+					Case "darkmode": This.DarkMode = QBoolean(Value)
 					Case "doublebuffered": This.DoubleBuffered = QBoolean(Value)
 					Case "borderstyle": This.BorderStyle = QInteger(Value)
 					Case "backcolor": This.BackColor = QInteger(Value)
@@ -770,6 +772,29 @@ Namespace My.Sys.Forms
 			Visible = False
 		End Sub
 		
+		Private Property Control.DarkMode As Boolean
+			Return FDarkMode
+		End Property
+		
+		Private Property Control.DarkMode(Value As Boolean)
+			'FDarkMode = Value
+			If Value Then
+				If FDefaultBackColor = FBackColor Then
+					Brush.Handle = hbrBkgnd
+				End If
+				SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+			Else
+				SetWindowTheme(FHandle, NULL, NULL)
+				If FBackColor = -1 Then
+					Brush.Handle = 0
+				Else
+					Brush.Color = FBackColor
+				End If
+			End If
+			AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+			SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+		End Property
+		
 		Private Sub Control.CreateWnd
 			Dim As Long nLeft   = ScaleX(FLeft)
 			Dim As Long nTop    = ScaleY(FTop)
@@ -893,11 +918,14 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 				If FHandle Then
 					#ifdef __USE_WINAPI__
-'						If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor) Then
-'							Brush.Handle = hbrBkgnd
+						If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+							DarkMode = True
+'							If FDefaultBackColor = FBackColor Then
+'								Brush.Handle = hbrBkgnd
+'							End If
 '							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
 '							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-'						End If
+						End If
 						If ClassName <> "IPAddress" Then
 							SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(Child))
 						End If

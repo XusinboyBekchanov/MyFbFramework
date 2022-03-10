@@ -128,6 +128,9 @@ Namespace My.Sys.Forms
 		'Returns/sets the active control on the container control (Windows, Linux).
 		Declare Property ActiveControl As Control Ptr
 		Declare Property ActiveControl(Value As Control Ptr)
+		'Returns/sets the dark mode of the form (Windows only).
+		Declare Virtual Property DarkMode As Boolean
+		Declare Virtual Property DarkMode(Value As Boolean)
 		'Returns/sets the default button for dialog, acts on the Enter / Return key (Windows, Linux)
 		Declare Property DefaultButton As Control Ptr 'CommandButton
 		Declare Property DefaultButton(Value As Control Ptr)

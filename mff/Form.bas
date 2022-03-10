@@ -782,6 +782,16 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	Private Property Form.DarkMode As Boolean
+		Return FDarkMode
+	End Property
+	
+	Private Property Form.DarkMode(Value As Boolean)
+		Base.DarkMode = Value
+		RefreshTitleBarThemeColor(FHandle)
+		RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+	End Property
+	
 	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
 		#ifdef __USE_GTK__
@@ -982,12 +992,13 @@ Namespace My.Sys.Forms
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps
 				Canvas.HandleSetted = True
-				Dc = BeginPaint(Handle, @Ps)
-				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						FDarkMode = True
 						RefreshTitleBarThemeColor(FHandle)
-						Brush.Handle = hbrBkgnd
+						If FDefaultBackColor = FBackColor Then
+							Brush.Handle = hbrBkgnd
+						End If
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
@@ -1004,6 +1015,7 @@ Namespace My.Sys.Forms
 						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				End If
+				Dc = BeginPaint(Handle, @Ps)
 				If DoubleBuffered Then
 					MemDC = CreateCompatibleDC(DC)
 					Bmp   = CreateCompatibleBitmap(DC,Ps.rcpaint.Right,Ps.rcpaint.Bottom)
