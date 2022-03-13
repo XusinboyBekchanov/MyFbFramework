@@ -863,7 +863,12 @@ Namespace My.Sys.Forms
 			If Value Then
 				SetWindowTheme(FHandle, "DarkMode_InfoPaneToolbar", nullptr) ' "DarkMode", "DarkMode_InfoPaneToolbar", "DarkMode_BBComposited", "DarkMode_InactiveBBComposited", "DarkMode_MaxBBComposited", "DarkMode_MaxInactiveBBComposited"
 				Brush.Handle = hbrBkgnd
+				Dim As HWND hwndTT = Cast(HWND, SendMessage(FHandle, TB_GETTOOLTIPS, 0, 0))
+				SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
 				'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+			Else
+				Dim As HWND hwndTT = Cast(HWND, SendMessage(FHandle, TB_GETTOOLTIPS, 0, 0))
+				SetWindowTheme(hwndTT, NULL, NULL)
 			End If
 			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
 		End Sub
@@ -873,7 +878,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_PAINT
-				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
 '						FDarkMode = True

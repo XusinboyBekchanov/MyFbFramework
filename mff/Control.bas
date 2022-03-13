@@ -778,8 +778,10 @@ Namespace My.Sys.Forms
 						Brush.Handle = hbrBkgnd
 					End If
 					SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+					If ToolTipHandle <> 0 Then SetWindowTheme(ToolTipHandle, "DarkMode_Explorer", nullptr)
 				Else
 					SetWindowTheme(FHandle, NULL, NULL)
+					If ToolTipHandle <> 0 Then SetWindowTheme(ToolTipHandle, NULL, NULL)
 					If FBackColor = -1 Then
 						Brush.Handle = 0
 					Else
@@ -1529,7 +1531,7 @@ Namespace My.Sys.Forms
 				Case WM_NOTIFY
 					Dim As LPNMHDR NM
 					Static As HWND FWindow
-					NM = Cast(LPNMHDR,Message.lParam)
+					NM = Cast(LPNMHDR, Message.lParam)
 					If NM->Code = TTN_NEEDTEXT Then
 						If FWindow Then SendMessage FWindow,CM_NEEDTEXT,Message.wParam, Message.lParam
 					Else
