@@ -217,10 +217,18 @@ Private Function Dictionary.IndexOf(ByRef wText As WString) As Integer
 	Return -1
 End Function
 
-Private Function Dictionary.IndexOfKey(ByRef Key As WString) As Integer
-	For i As Integer = 0 To Count - 1
-		If QDictionaryItem(FItems.Items[i]).Key = Key Then Return i
-	Next i
+Private Function Dictionary.IndexOfKey(ByRef Key As WString, Object As Any Ptr = 0) As Integer
+	If Object = 0 Then
+		For i As Integer = 0 To Count - 1
+			If QDictionaryItem(FItems.Items[i]).Key = Key Then Return i
+		Next i
+	Else
+		For i As Integer = 0 To Count - 1
+			With QDictionaryItem(FItems.Items[i])
+				If .Key = Key AndAlso .Object = Object Then Return i
+			End With
+		Next i
+	End If
 	Return -1
 End Function
 
@@ -301,8 +309,8 @@ Private Function Dictionary.Contains(ByRef wText As WString) As Boolean
 	Return IndexOf(wText) <> -1
 End Function
 
-Private Function Dictionary.ContainsKey(ByRef Key As WString) As Boolean
-	Return IndexOfKey(Key) <> -1
+Private Function Dictionary.ContainsKey(ByRef Key As WString, Object As Any Ptr = 0) As Boolean
+	Return IndexOfKey(Key, Object) <> -1
 End Function
 
 Private Function Dictionary.ContainsObject(Object As Any Ptr) As Boolean

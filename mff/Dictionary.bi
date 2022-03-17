@@ -55,7 +55,7 @@ Public:
 	Declare Sub SortKeys
 	Declare Sub Clear
 	Declare Function IndexOf(ByRef wText As WString) As Integer
-	Declare Function IndexOfKey(ByRef Key As WString) As Integer
+	Declare Function IndexOfKey(ByRef Key As WString, Object As Any Ptr = 0) As Integer
 	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
 	Declare Sub Set(ByRef Key As WString, ByRef wText As WString = "", Object As Any Ptr = 0)
 	Declare Function Get(Index As Integer, ByRef DefaultText As WString = "") ByRef As WString
@@ -65,7 +65,7 @@ Public:
 	Declare Function GetText(ByRef Key As WString) ByRef As WString
 	Declare Function GetObject(ByRef Key As WString) As Any Ptr
 	Declare Function Contains(ByRef wText As WString) As Boolean
-	Declare Function ContainsKey(ByRef Key As WString) As Boolean
+	Declare Function ContainsKey(ByRef Key As WString, Object As Any Ptr = 0) As Boolean
 	Declare Function ContainsObject(Object As Any Ptr) As Boolean
 	Declare Sub SaveToFile(ByRef FileName As WString)
 	Declare Sub LoadFromFile(ByRef FileName As WString)
