@@ -95,7 +95,9 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub SetDark(Value As Boolean)
+			#ifdef __USE_WINAPI__
+				Declare Virtual Sub SetDark(Value As Boolean)
+			#endif
 		#endif
 		Declare Function EnumMenuItems(Item As MenuItem) As Boolean
 		Declare Sub GetMenuItems
