@@ -1,3 +1,244 @@
+Version 1.3.0 (March 18, 2022)
+- Improved: ReBar Dark Mode in Linux
+- Added: Object parameter to Dictionary IndexOfKey And ContainsOfKey functions
+- Added: Dark Mode for ToolTips
+- Improved: Dark Mode
+- Added: Changing from Dark Mode to HighLight Mode
+- Added: DarkMode For OpenFileControl 
+- Fixed: TextBox DarkMode
+- Changed: GroupBox and TextBox Border Color on Dark Mode
+- Fixed: MenuItem.Visible property
+- Fixed: Compiling with __USE_GTK__
+- Fixed: Compiling for Android
+- Changed: DarkMode ReBar control to hide white line and ToolBar control to show separator
+- Changed: Numbering from _L_ to _L macros
+- Fixed: Saving resource files (*.rc) end lines with CRLF
+- Fixed: Showing error message on closing IDE
+- Improved: The quality of some resources file
+- Fixed: ComboBoxEdit and ComboBoxEx ScrollBar Dark Mode
+- Fixed: Resources file for Dark Mode
+- Added: InStrMatch function
+- Fixed: Showing ListView GridLines in Dark mode
+- Changed: ListView and TreeListView GridLines Color on Dark mode
+- Fixed: StatusBar Erase Background
+- Added: DarkMode for ProgressBar
+- Added: DarkMode to MenuBar
+- Improved: TabControl and StatusBar Dark mode
+- Fixed: DarkMode on 64-bit
+- Fixed: CheckBox and RadioButton ForeColor property
+- Added: Dark Mode
+- Fixed: Controls Enabled function on create
+- Fixed: Twice OnClick event on the controls in GroupBox
+- Fixed: Set TrackBar Position property
+- Fixed: Saving ScrollBar Position on Design mode
+- Added: EditLabels property to TreeListView
+- Fixed: TreeListView Columns Width property
+- Changed: ComponentGetBounds procedure from Integer Ptr to Integer
+- Fixed: ComboBoxEx Style property and CheckedListBox BackColor property
+- Fixed: ComboBoxEx List Height
+- Fixed: CheckedListBox AddItem method
+- Fixed: ComboBoxEx Text property
+- Fixed: OnChange event on ComboBoxEdit
+- Fixed: Blinking of the close, maximize, minimize buttons of the form when the mouse over them in Windows 7.
+- Changed: Component GetBounds function
+- Added: Visible property to TabPage
+- Fixed: Activating another form on form activation event in Windows 7.
+- Added: Debug print function to save debug log
+- Added: InitialDir to FolderBrowserDialog
+- Fixed: Destructor on Windows GTK
+- Added: CheckBox, RadioButton, MonthCalendar on Android
+- Added: Form, Label, Panel, TextBox, CommandButton controls on Android
+- Added: Left, Top, Width and Height properties to controls in Android
+- Fixed: __USE_GTK__, __USE_WINAPI__ and __USE_JNI__ defines
+- Added: __USE_JNI__ define for Android
+- Changed: Align property type from Integer to Enum
+- Fixed: TextBox LoadFromFile and GetSel method
+- Fixed: ComboBoxEdit Text property
+- Fixed: TextBox SelText and Control Visible property
+- Added: ParentMenuItem property to PopUpMenu
+- Added: Private keyword for all types and procedures
+- Fixed: TabControl RequestAlign (for TabPages)
+- Fixed: Rect and Point types on 64-bit
+- Fixed: Form Resizing on Minimized state
+- Added: TextBox LeftMargin and RightMargin on Linux
+- Added: TextBox LeftMargin and RightMargin properties
+- Added: OnDrawItem and OnMeasureItem events to TreeListView
+- Fixed: Bitmap and Icon LoadFromResourceName functions
+- Fixed: Set system color to RichTextBox
+- Added: AddImage function to RichTextBox on Linux
+- Added: SelPrint function to RichTextBox
+- Added: AddImage functions to RichTextBox
+- Added: AddImageFromFile function to RichTextBox on Windows
+- Added: RichTextBox SelAlignment, SelBackColor, SelColor, SelBold, SelBullet, SelCharOffset, SelCharSet, SelFontName, SelFontSize, SelIndent, SelItalic, SelProtected, SelRightIndent, SelHangingIndent, SelTabCount, SelUnderline, SelStrikeout properties on Windows and Linux
+- Added: RichTextBox Find, FindNext, FindPrev, GetTextRange functions on Linux
+- Added: RichTextBox OnProtectChange event on Windows
+- Fixed: ToolBar and ReBar
+- Added: ReBarBand
+- Improved: ReBar moved to Container controls
+- Added: ReBar on Windows
+- Fixed: Canvas GetPixel, TextWidth and TextHeight functions
+- Added: PageScroller on Linux
+- Added: PageScroller control on Windows
+- Removed: NativeFontControl
+- Fixed: HotKey and Form set text property on Linux
+- Fixed: Text property of LinkLabel
+- Added: Home, End keys, Control and Shift masks to IPAddress control on Linux
+- Fixed: IPAddress control Text property
+- Added: OnChange and OnFieldChanged events to IPAddress control on Linux
+- Added: IPAddress control on Linux
+- Added: OnChange event to IPAddress control
+- Fixed: IPAddress in Windows
+- Added: HotKey Control on Linux
+- Added: Resizable property to Header Control and HeaderSection
+- Fixed: Header Control Height on Linux
+- Added: OnChanging, OnChanged, OnTrack and OnSectionDblClick events to Header control on Linux
+- Added: Header control on Linux
+- Improved: Filled OpenFileControl Read and Write Property functions
+- Added: OpenFileControl
+- Added: Grid control in Linux
+- Added: MonthCalendar
+- Fixed: DateTimePicker Text property on Linux
+- Fixed: Changing year and month in DateTimePicker calendar on Linux.
+- Fixed: DateTimePicker in Gtk2
+- Added: DateTimePicker in Linux
+- Added: ShowNone property to DateTimePicker
+- Improved: DateTimePicker
+- Fixed: Control SetBounds method in Linux
+- Fixed: Width and Height properties of Components in Linux
+- Added: ToolButton Width and Height property in Linux
+- Fixed: Chart sizing in Linux GTK2
+- Fixed: Showing Chart Control in Windows
+- Fixed: MenuItem Checked property
+- Improved: Animate Control supports all media file formats in Windows (including .gif, .mp4 and etc.)
+- Added: IsPlaying funtion to Animate control
+- Added: OnOpen event of Animate control on Windows and Linux
+- Added: OnStart, OnStop and OnClose events to Animate control on Linux
+- Added: Animate Control in Linux
+- Improved: Filled Animate Read and Write property functions
+- Fixed: Compiling with FreeBasic 1.09
+- Improved: TreeListView ListItems property and TreeListViewItem Items property names changed to name Nodes
+- Fixed: TreeView OnSelChanging event
+- Improved: ToolPalette Group collapsed style in Windows
+- Improved: Filled TreeListView Read and Write properties
+- Removed: SmallImages, GroupHeaderImages and View property of TreeListView
+- Fixed: Create TreeListView items in constructor in Windows
+- Fixed: TreeNode ImageIndex property
+- Fixed: TreeNode SelectedImageIndex property
+- Added: Get by index function to Dictionary, OnItemDblClick, OnItemKeyDown and OnSelectedItemChanging events to ListView in Linux
+- Added: Images, SelectedImages and EditLabels property to TreeView in Linux, DraggedNode function to TreeView in Linux, OnNodeClick, OnNodeDblClick, OnNodeCollapsing, OnNodeCollapsed, OnNodeExpanding, OnNodeExpanded, OnSelChanging, OnBeforeLabelEdit and OnAfterLabelEdit events to TreeView in Linux
+- Added: IsChild property to Control in Linux
+- Fixed: TreeView add nodes on Form constructor
+- Added: OnNodeCollapsing, OnNodeCollapsed, OnBeforeLabelEdit events to TreeView in Windows
+- Fixed: Form OnShow event
+- Added: ListView Sort property in Linux, Fixed: ListView View property in Linux
+- Fixed: TabPage ImageKey property, PopupMenu ParentWindow property and ListView View property in Linux
+- Added: View Property and OnItemClick event to ListView in Linux
+- Added: ListView CheckBoxes property and ListViewItem Checked property in Linux
+- Added: BorderStyle, AllowColumnReorder and GridLines properties to ListView in Linux
+- Fixed: ProgressBar ProcessMessage method
+- Fixed: StepBy and StepIt methods of ProgressBar in Linux
+- Improved: Filled ProgressBar Read and Write property functions
+- Added: TrackBar ClearTickMarks method
+- Fixed: ListView SelectedItemIndex property and ListItems.Add function in Linux
+- Added: OnScroll and OnChange events to TrackBar in Linux
+- Fixed: AddTickMark in tmBoth TickStyle in Linux
+- Added: tmManual TickStyle to TrackBar in Linux
+- Added: tmBosh style TickMark to TrackBar in Linux
+- Removed: Tick property of TrackBar.
+- Added: MinValue, MaxValue, Position, LineSize, PageSize, ThumbLength, Frequency, TickStyle and Style property and AddTickMark method to TrackBar in Linux
+- Improved: Filled TrackBar Read and Write property function
+- Added: BGR function in Linux
+- Fixed: BackColor and ForeColor property of Control in Linux
+- Fixed: ScrollarBar controls set MaxValue
+- Added: BringToFront and SendToBack methods to Control in Linux
+- Improved: Filled Read and Write property functions of ScrollBar controls
+- Fixed: Set Text property of GroupBox from Property Grid
+- Added: Registry functions
+- Fixed: TabIndex, TabStop and Text property of TabPage
+- Fixed: Text property of ComboBox and ComboBoxEx
+- Fixed: Form Constraints property in Linux
+- Fixed: Leaking GDI objects
+- Added: Contraints property to controls in Linux
+- Fixed: Get Top position of controls contained in GroupBox
+- Added: SelCount and SelItems properties to ListControl in Linux
+- Fixed: Check items of CheckedListBox in Linux
+- Fixed: Delete GDI objects
+- Fixed: MultiColumn in CheckedListBox
+- Changed: Columns property of ListControl and CheckedListBox to name MultiColumn
+- Fixed: Filled Read and Write property function of CheckedListBox
+- Fixed: CheckedListBox draw focus
+- Added: CheckedListBox in Windows
+- Added: CheckedListBox control in Linux
+- Added: SelItems and SelCount properties to ListControl in Windows
+- Improved: ListBox AddItem and InsertItem method
+- Improved: ListBox Read and Write property function
+- Added: Sort property to ListControl in Linux
+- Added: ListControl borders in Linux
+- Improved: ComboBoxEx Read and Write property functions
+- Removed: AddObject and InsertObject methods from ComboBoxEdit
+- Added: OnMouseEnter, OnMouseMove, OnMouseHover, OnMouseLeave events to ComboBoxes in Linux
+- Fixed: Control ShowHint property in Linux
+- Added: Sort property to ComboBox and ComboBoxEx in Linux
+- Added: OnSelectCanceled event to ComboBox in Linux
+- Fixed: Grid control
+- Fixed: TextBox LoadFromFile method in Linux
+- Changed: Control Perform function access type from Public to Protected
+- Improved: Private, Protected and Public functions and properties
+- Fixed: Label events in Linux
+- Fixed: OnDropFile event in GTK2
+- Added: OnDropFile event to Control in Linux
+- Added: OnActivate, OnActivateApp, OnDeactivate, OnDeactivateApp event to Form in Linux;
+- Removed: OnFree, OnTimer event from Form in Linux
+- Fixed: ComboBoxEdit ItemHeight property
+- Fixed: TextBox in Gtk2
+- Added: ListControl SelectAll sub
+- Added: OnCopy, OnCut, OnPaste, OnScroll, OnUpdate event and Alignment, CaretPos, CharCase, Ctl3D, Lines, MaskChar, Masked, MaxLength, Modified, ScrollBars, SelEnd, SelLength, SelStart, SelText, TopLine, WantReturn, WantTab properties to TextBox in Linux
+- Improved: ImageBox visible in Design mode
+- Fixed: TabStop property of Controls
+- Added: OnMouseHover event to Control in Linux
+- Added: ListView HoverSelection property in Linux
+- Fixed: ImageBox OnClik and OnDblClick event in Linux
+- Fixed: Select ImageBox in Designer
+- Fixed: TextBox WordWraps property in Design Mode
+- Fixed: ImageBox events
+- Fixed: Bitmap and Graphic LoadFromResourceID functions in Linux
+- Added: OnEndScroll event to ListView and TreeListView in Linux
+- Fixed: TextBox CutToClipboard, CopyToClipboard, PasteFromClipboard and SelectAll properties
+- Fixed: Form Hide property in GTK2 (in Linux)
+- Fixed: Hint property of Control
+- Added: Form OnHide event in Linux
+- Added: Checked property to ListViewItem
+- Fixed: ScrollBars and WordWraps properties of TextBox works in design mode
+- Added: WordWrap property to Label
+- Improved: Form and Control help info
+- Fixed: UString Resize
+- Fixed: Form ActiveControl property in Design mode
+- Fixed: AllowColumnReorder, BorderSelect, CheckBoxes, LabelTip properties of ListView
+- Fixed: Color property of ColorDialog
+- Added: OnMove event to Controls
+- Fixed: Hint property Controls in Linux
+- Fixed: Form WindowState in Linux
+- Fixed: ImageBox resizing on select image.
+- Added: AllowColumnReorder, BorderSelect, CheckBoxes, GridLines, HoverTime, FullRowSelect, LabelTip properties to ListView
+- Added: OnMouseEnter event to Controls
+- Added: WordWraps property to TextBox in Linux
+- Improved: Label Read and Write Property functions
+- Fixed: Selecting ListView row when mouse hovers
+- Fixed: Form StartPosition property in Linux
+- Fixed: TextBox GotFocus and LostFocus event in Linux
+- Added: AllowDrop property to Control
+- Fixed: Open and Save Dialogs Caption, Filter, FilterIndex, FileName and InitialDir properties in Linux
+- Added: Initial changes for MDIForm and MDIChild in Linux
+- Fixed: MDIForm and MDIChild properties in Windows
+- Removed: NoScale argument from Control.SetMargins and Component.SetBounds
+- Added: High DPI compatibility
+- Added: TextBox changed event in Linux
+- Added: MinExtra to Splitter
+- Fixed: Update controls on drag Splitter
+- Fixed: Splitter not drags bigger than parent
+- Added: SplitterAlignmentConstants enum
+- Fixed: Set properties of TextBox and RichTextBox in the PropertyGrid
+- Fixed: ListControl AddItem procedure in Linux
 Version 1.2.9 (July 14, 2021)
 - Fixed: Show windows on DPI sets
 - Fixed: CheckBox problem in GroupBox
