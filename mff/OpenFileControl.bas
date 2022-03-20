@@ -227,7 +227,7 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 			End Select
-			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function
 		
 		Function OpenFileControl.HookListViewParent(hDlg As HWND, uMsg As UINT, wParam1 As WPARAM, lParam1 As LPARAM) As LRESULT
@@ -274,7 +274,7 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 			End Select
-			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam1, lParam1)
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam1, lParam1)
 		End Function
 		
 		Function OpenFileControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
@@ -310,7 +310,7 @@ Namespace My.Sys.Forms
 					Return Cast(LRESULT, hbrBkgnd)
 				End If
 '			Case WM_DRAWITEM
-'				CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+'				CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
 '				Dim As DRAWITEMSTRUCT Ptr diStruct = Cast(DRAWITEMSTRUCT Ptr, lParam)
 '				If diStruct->itemID = -1 Then Return 0
 '				Dim As Integer ItemID, State
@@ -382,11 +382,11 @@ Namespace My.Sys.Forms
 '				
 '				Return 0
 			End Select
-			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function
 		
 		Function OpenFileControl.HookComboBoxParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function
 		
 		Function OpenFileControl.EnumChildsProc(hDlg As HWND, lParam1 As LPARAM) As Boolean
@@ -408,7 +408,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				If GetWindowLongPtr(hDlg, GWLP_WNDPROC) <> @HookChildProc Then
-					SetProp(hDlg, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookChildProc))))
+					SetProp(hDlg, "@@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookChildProc))))
 				End If
 			Case "ToolbarWindow32"
 				If g_darkModeEnabled Then
@@ -461,10 +461,10 @@ Namespace My.Sys.Forms
 					ListView_SetBkColor(hDlg, GetSysColor(COLOR_WINDOW)) 'Color1)
 				End If
 				If Cast(WNDPROC, GetWindowLongPtr(hDlg, GWLP_WNDPROC)) <> CInt(@HookListView) Then
-					SetProp(hDlg, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookListView))))
+					SetProp(hDlg, "@@@@Proc", Cast(WNDPROC, SetWindowLongPtr(hDlg, GWLP_WNDPROC, CInt(@HookListView))))
 				End If
 				If Cast(WNDPROC, GetWindowLongPtr(GetParent(hDlg), GWLP_WNDPROC)) <> CInt(@HookListViewParent) Then
-					SetProp(GetParent(hDlg), "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(GetParent(hDlg), GWLP_WNDPROC, CInt(@HookListViewParent))))
+					SetProp(GetParent(hDlg), "@@@@Proc", Cast(WNDPROC, SetWindowLongPtr(GetParent(hDlg), GWLP_WNDPROC, CInt(@HookListViewParent))))
 				End If
 				AllowDarkModeForWindow(hDlg, g_darkModeEnabled)
 				SendMessageW(hDlg, WM_THEMECHANGED, 0, 0)
@@ -606,9 +606,9 @@ Namespace My.Sys.Forms
 					Sleep(300, 1)
 					pApp->DoEvents
 				Loop
-				SetProp(FHandle, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
+				SetProp(FHandle, "@@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
 '				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-'					SetProp(FHandle, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
+'					SetProp(FHandle, "@@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(@HookChildProc))))
 '					SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
 '					AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 '					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
@@ -685,6 +685,10 @@ Namespace My.Sys.Forms
 			'SetActiveWindow(GetParent(FHandle))
 			'SendMessage(GetDlgItem(GetParent(FHandle), IDCANCEL), BM_CLICK, 0, 0)
 			'EndDialog(GetParent(FHandle), 1)
+			If FHandle Then
+				SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(GetProp(FHandle, "@@@@Proc")))
+				
+			End If
 			If Not FDesignMode Then
 				If ThreadID <> 0 AndAlso IsWindow(GetParent(FHandle)) Then ThreadWait(ThreadID) 'AndAlso IsWindow(GetParent(FHandle)) 
 			End If
