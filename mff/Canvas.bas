@@ -330,8 +330,8 @@ Namespace My.Sys.Drawing
 		ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.SetPixel(x As Integer,y As Integer,PixelColor As Integer)
-		GetDevice
+	Private Sub Canvas.SetPixel(x As Integer, y As Integer, PixelColor As Integer, Actioning As Boolean = False)
+		If Not Actioning Then GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0)
 			.cairo_rectangle(Handle, x, y, 1, 1)
@@ -339,7 +339,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			.SetPixel Handle, ScaleX(x), ScaleY(y), PixelColor
 		#endif
-		ReleaseDevice
+		If Not Actioning Then ReleaseDevice
 	End Sub
 	
 	Private Function Canvas.GetPixel(x As Integer, y As Integer) As Integer

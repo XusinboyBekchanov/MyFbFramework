@@ -78,8 +78,6 @@ Namespace My.Sys.Drawing
 	Private Type Canvas Extends My.Sys.Object
 	Private:
 		ParentControl As My.Sys.ComponentModel.Component Ptr
-		Declare Sub GetDevice
-		Declare Sub ReleaseDevice
 		iTemp As Integer
 	Protected:
 		#ifdef __USE_GTK__
@@ -100,6 +98,8 @@ Namespace My.Sys.Drawing
 		Font        As My.Sys.Drawing.Font
 		Clip        As Boolean
 		CopyMode    As CopyMode
+		Declare Sub GetDevice
+		Declare Sub ReleaseDevice
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Width As Integer
@@ -127,7 +127,7 @@ Namespace My.Sys.Drawing
 		Declare Sub PolylineTo(Points As Point Ptr,Count As Integer)
 		Declare Sub PolyBeizer(Points As Point Ptr,Count As Integer)
 		Declare Sub PolyBeizerTo(Points As Point Ptr,Count As Integer)
-		Declare Sub SetPixel(x As Integer,y As Integer,PixelColor As Integer)
+		Declare Sub SetPixel(x As Integer, y As Integer, PixelColor As Integer, Actioning As Boolean = False)
 		Declare Function GetPixel(x As Integer,y As Integer) As Integer
 		Declare Sub TextOut(x As Integer, y As Integer, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub DrawTransparent(x As Integer, y As Integer, Image As Any Ptr, cTransparentColor As UInteger = 0)
