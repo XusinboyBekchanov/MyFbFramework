@@ -91,6 +91,7 @@ Namespace My.Sys.Drawing
 			End Select
 			If Handle AndAlso Handle <> hbrBkgnd Then DeleteObject(Handle)
 			Handle = CreateBrushIndirect(@LB)
+			If Handle Then If OnCreate Then OnCreate(This)
 		#endif
 	End Sub
 	

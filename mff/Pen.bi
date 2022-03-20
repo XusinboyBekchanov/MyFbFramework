@@ -84,6 +84,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			Handle  As HPEN
 		#endif
+		Parent As My.Sys.Object Ptr
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Color As ULong
@@ -95,6 +96,7 @@ Namespace My.Sys.Drawing
 		Declare Property Size As Integer
 		Declare Property Size(Value As Integer)
 		Declare Operator Cast As Any Ptr
+		OnCreate As Sub(ByRef Sender As Pen)
 		Declare Constructor
 		Declare Destructor
 	End Type

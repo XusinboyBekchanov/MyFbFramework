@@ -74,7 +74,8 @@ Namespace My.Sys.Drawing
 	Private Sub Pen.Create
 		#ifdef __USE_WINAPI__
 			If Handle Then DeleteObject Handle
-			Handle = CreatePen(FStyle,FSize,FColor)
+			Handle = CreatePen(FStyle, FSize, FColor)
+			If Handle Then If OnCreate Then OnCreate(This)
 		#endif
 	End Sub
 	

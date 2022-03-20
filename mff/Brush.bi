@@ -57,6 +57,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			Handle       As HBRUSH
 		#endif
+		Parent As My.Sys.Object Ptr
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Color As Integer
@@ -66,6 +67,7 @@ Namespace My.Sys.Drawing
 		Declare Property HatchStyle As Integer 'HatchStyle
 		Declare Property HatchStyle(Value As Integer)
 		Declare Operator Cast As Any Ptr
+		OnCreate As Sub(ByRef Sender As Brush)
 		Declare Constructor
 		Declare Destructor
 	End Type

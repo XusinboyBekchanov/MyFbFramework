@@ -66,30 +66,31 @@ Namespace My.Sys.Drawing
 			Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,FOrientation*FSize,FOrientation*FSize,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
 		#endif
 		If Handle Then
-			If FParent Then
+			If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component Then
 				#ifdef __USE_GTK__
-					If FParent->Handle Then
+					If QComponent(FParent).Handle Then
 						#ifdef __USE_GTK3__
-							gtk_widget_override_font(FParent->Handle, Handle)
+							gtk_widget_override_font(QComponent(FParent).Handle, Handle)
 						#else
-							gtk_widget_modify_font(FParent->Handle, Handle)
+							gtk_widget_modify_font(QComponent(FParent).Handle, Handle)
 						#endif
 					End If
 				#elseif defined(__USE_WINAPI__)
-					If FParent->Handle Then
-						SendMessage(FParent->Handle, WM_SETFONT, CUInt(Handle), True)
-						InvalidateRect FParent->Handle, 0, True
+					If QComponent(FParent).Handle Then
+						SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), True)
+						InvalidateRect QComponent(FParent).Handle, 0, True
 					End If
 				#endif
 			End If
+			If OnCreate Then OnCreate(This)
 		End If
 	End Sub
 	
-	Private Property Font.Parent As Component Ptr
+	Private Property Font.Parent As My.Sys.Object Ptr
 		Return FParent
 	End Property
 	
-	Private Property Font.Parent(Value As Component Ptr)
+	Private Property Font.Parent(Value As My.Sys.Object Ptr)
 		FParent = value
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__

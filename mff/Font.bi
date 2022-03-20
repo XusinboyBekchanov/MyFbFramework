@@ -74,7 +74,7 @@ Namespace My.Sys.Drawing
 		FName      As WString Ptr
 		FColor     As Integer
 		FCharSet   As Integer
-		FParent    As Component Ptr
+		FParent    As My.Sys.Object Ptr
 		FBolds(2)  As Integer
 		FCyPixels  As Integer
 		FEscapement As Integer = 0 '是字体的倾斜角。 David Change
@@ -91,8 +91,8 @@ Namespace My.Sys.Drawing
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Function ToString ByRef As WString
-		Declare Property Parent As Component Ptr
-		Declare Property Parent(Value As Component Ptr)
+		Declare Property Parent As My.Sys.Object Ptr
+		Declare Property Parent(Value As My.Sys.Object Ptr)
 		Declare Property Name ByRef As WString
 		Declare Property Name(ByRef Value As WString)
 		Declare Property Color As Integer
@@ -114,6 +114,7 @@ Namespace My.Sys.Drawing
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast ByRef As WString
 		Declare Operator Let(Value As Font)
+		OnCreate As Sub(ByRef Sender As Font)
 		Declare Constructor
 		Declare Destructor
 	End Type
