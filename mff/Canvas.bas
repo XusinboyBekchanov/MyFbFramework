@@ -132,6 +132,7 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.CreateDoubleBuffer
 		#ifdef __USE_WINAPI__
+			If Not Handle Then GetDevice
 			DC = Handle
 			MemDC = CreateCompatibleDC(DC)
 			CompatibleBmp = CreateCompatibleBitmap(DC, This.Width, This.Height)
