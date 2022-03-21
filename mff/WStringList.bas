@@ -226,6 +226,14 @@ Private Function WStringList.ContainsObject(FObj As Any Ptr) As Boolean
 	Return IndexOfObject(FObj) <> -1
 End Function
 
+Private Function WStringList.CountOf(ByRef FItem As WString) As Integer
+	Dim _Count As Integer
+	For i As Integer = 0 To FCount - 1
+		If LCase(QWStringListItem(FItems.Items[i]).Value) = LCase(FItem) Then _Count += 1
+	Next i
+	Return _Count
+End Function
+
 Private Operator WStringList.Let(ByRef Value As WString)
 	This.Text = Value
 End Operator

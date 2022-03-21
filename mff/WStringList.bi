@@ -56,6 +56,7 @@ Public:
 	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
 	Declare Function Contains(ByRef FItem As WString) As Boolean
 	Declare Function ContainsObject(FObj As Any Ptr) As Boolean
+	Declare Function CountOf(ByRef FItem As WString) As Integer
 	Declare Sub SaveToFile(ByRef FileName As WString)
 	Declare Sub LoadFromFile(ByRef FileName As WString)
 	Declare Operator Let(ByRef Value As WString)
