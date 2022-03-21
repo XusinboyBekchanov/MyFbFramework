@@ -253,6 +253,10 @@ Namespace My.Sys.Forms
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Sub GetCenterPie(X As Single, Y As Single)
+		Declare Property AxisMax() As Single
+		Declare Property AxisMax(Value As Single)
+		Declare Property AxisMin() As Single
+		Declare Property AxisMin(Value As Single)
 		Declare Property Count() As Long
 		Declare Property Special(Index As Long, Value As Boolean)
 		Declare Property Special(Index As Long) As Boolean

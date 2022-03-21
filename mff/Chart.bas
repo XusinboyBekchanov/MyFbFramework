@@ -20,6 +20,8 @@ Namespace My.Sys.Forms
 	Private Function Chart.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
+		Case "axismax": Return @m_AxisMax
+		Case "axismin": Return @m_AxisMin
 		Case "backcoloropacity": Return @m_BackColorOpacity
 		Case "border": Return @m_Border
 		Case "bordercolor": Return @m_BorderColor
@@ -62,6 +64,8 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "axismax": AxisMax = QSingle(Value)
+			Case "axismin": AxisMin = QSingle(Value)
 			Case "backcoloropacity": BackColorOpacity = QLong(Value)
 			Case "border": Border = QBoolean(Value)
 			Case "bordercolor": BorderColor = QInteger(Value)
@@ -169,6 +173,24 @@ Namespace My.Sys.Forms
 		m_AxisAngle = AxisAngle
 		m_AxisAlign = AxisAlign
 	End Sub
+	
+	Private Property Chart.AxisMax As Single
+		Return m_AxisMax
+	End Property
+	
+	Private Property Chart.AxisMax(Value As Single)
+		m_AxisMax = Value
+		Refresh
+	End Property
+	
+	Private Property Chart.AxisMin As Single
+		Return m_AxisMin
+	End Property
+	
+	Private Property Chart.AxisMin(Value As Single)
+		m_AxisMin = Value
+		Refresh
+	End Property
 	
 	Private Property Chart.Title() ByRef As WString
 		Return *m_Title.vptr
@@ -1734,8 +1756,8 @@ Namespace My.Sys.Forms
 			
 			'If SerieCount > 1 Then BarSpace = LW * 4
 			
-			Max = IIf(m_AxisMax > 0, m_AxisMax, GetMax())
-			Min = IIf(m_AxisMin < 0, m_AxisMin, GetMin())
+			Max = IIf(m_AxisMax <> 0, m_AxisMax, GetMax())
+			Min = IIf(m_AxisMin <> 0, m_AxisMin, GetMin())
 			
 			If m_AxisXVisible Then
 				For i = 0 To cAxisItem->Count - 1
@@ -2342,8 +2364,8 @@ Namespace My.Sys.Forms
 				
 				If SerieCount > 1 Then BarSpace = LW * 4
 				
-				Max = IIf(m_AxisMax > 0, m_AxisMax, GetMax())
-				Min = IIf(m_AxisMin < 0, m_AxisMin, GetMin())
+				Max = IIf(m_AxisMax <> 0, m_AxisMax, GetMax())
+				Min = IIf(m_AxisMin <> 0, m_AxisMin, GetMin())
 				
 				Canvas.Font = This.Font
 				
@@ -2925,8 +2947,8 @@ Namespace My.Sys.Forms
 				lForeColor = RGBtoARGB(FForeColor, 100)
 				If SerieCount > 1 Then BarSpace = LW * 4
 				
-				Max = IIf(m_AxisMax > 0, m_AxisMax, GetMax())
-				Min = IIf(m_AxisMin < 0, m_AxisMin, GetMin())
+				Max = IIf(m_AxisMax <> 0, m_AxisMax, GetMax())
+				Min = IIf(m_AxisMin <> 0, m_AxisMin, GetMin())
 				
 				Canvas.Font = This.Font
 				
