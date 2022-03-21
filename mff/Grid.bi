@@ -212,6 +212,7 @@ Namespace My.Sys.Forms
 		FSortStyle As GridSortStyle
 		FHoverSelection As Boolean
 		FLVExStyle As Integer
+		FCol As Integer
 		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
@@ -262,6 +263,8 @@ Namespace My.Sys.Forms
 		Declare Property SelectedRowIndex(Value As Integer)
 		Declare Property SelectedColumn As GridColumn Ptr
 		Declare Property SelectedColumn(Value As GridColumn Ptr)
+		Declare Property SelectedColumnIndex As Integer
+		Declare Property SelectedColumnIndex(Value As Integer)
 		Declare Property SingleClickActivate As Boolean
 		Declare Property SingleClickActivate(Value As Boolean)
 		Declare Property TabIndex As Integer

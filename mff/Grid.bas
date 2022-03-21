@@ -1024,18 +1024,19 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Grid.SelectedColumn As GridColumn Ptr
-		#ifndef __USE_GTK__
-			If Handle Then
-				Return Columns.Column(ListView_GetSelectedColumn(Handle))
-			End If
-		#endif
-		Return 0
+		Return Columns.Column(FCol)
 	End Property
 	
 	Private Property Grid.SelectedColumn(Value As GridColumn Ptr)
-		#ifndef __USE_GTK__
-			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
-		#endif
+		FCol = Value->Index
+	End Property
+	
+	Private Property Grid.SelectedColumnIndex As Integer
+		Return FCol
+	End Property
+	
+	Private Property Grid.SelectedColumnIndex(Value As Integer)
+		FCol = Value
 	End Property
 	
 	Private Property Grid.Sort As GridSortStyle
@@ -1118,6 +1119,23 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				Message.Result = 0
 			Case WM_SIZE
+			Case WM_KEYUP
+				Select Case Message.wParam
+				Case VK_LEFT
+					FCol -= 1
+					If FCol < 0 Then FCol = 0
+					Repaint
+				Case VK_RIGHT, VK_RETURN
+					FCol += 1
+					If FCol > Columns.Count - 1 Then FCol = Columns.Count - 1
+					Repaint
+				End Select
+			Case WM_LBUTTONDOWN
+				Dim lvhti As LVHITTESTINFO
+				lvhti.pt.x = Message.lParamLo
+				lvhti.pt.y = Message.lParamHi
+				ListView_SubItemHitTest(Handle, @lvhti)
+				FCol = lvhti.iSubItem
 			Case WM_THEMECHANGED
 				If (g_darkModeSupported) Then
 					Dim As HWND hHeader = ListView_GetHeader(Message.hWnd)
@@ -1161,7 +1179,7 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, message.lparam)
 				Select Case lvp->hdr.code
-				Case NM_CLICK: If OnRowClick Then OnRowClick(This, lvp->iItem)
+				Case NM_CLICK: FCol = lvp->iSubItem: Repaint: If OnRowClick Then OnRowClick(This, lvp->iItem)
 				Case NM_DBLCLK: If OnRowDblClick Then OnRowDblClick(This, lvp->iItem)
 				Case NM_KEYDOWN: 
 					Dim As LPNMKEY lpnmk = Cast(LPNMKEY, Message.lParam)
@@ -1176,13 +1194,60 @@ Namespace My.Sys.Forms
 				Case LVN_ITEMCHANGED: If OnSelectedRowChanged Then OnSelectedRowChanged(This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
 				Case NM_CUSTOMDRAW
-					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
-						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
-						Select Case nmcd->dwDrawStage
-						Case CDDS_PREPAINT
-							Message.Result = CDRF_NOTIFYPOSTPAINT
-							Return
-						Case CDDS_POSTPAINT
+					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+					Select Case nmcd->dwDrawStage
+					Case CDDS_PREPAINT
+						Message.Result = CDRF_NOTIFYITEMDRAW Or CDRF_NOTIFYPOSTPAINT
+						Return
+					Case CDDS_ITEMPREPAINT
+						SetBkMode nmcd->hdc, TRANSPARENT
+						'FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
+						Message.Result = CDRF_DODEFAULT
+						Return
+					Case CDDS_POSTPAINT
+						Dim As ..RECT rc, rc_
+						Dim As Integer SelectedItem = ListView_GetNextItem(nmcd->hdr.hwndFrom, -1, LVNI_SELECTED)
+						Dim zTxt As WString * 64
+						Dim lvi As LVITEM
+						For i As Integer = 0 To Columns.Count - 1
+							ListView_GetSubItemRect(nmcd->hdr.hwndFrom, SelectedItem, i, LVIR_LABEL, @rc)
+							lvi.Mask = LVIF_TEXT
+							lvi.iItem = SelectedItem
+							lvi.iSubItem   = i
+							lvi.pszText    = @zTxt
+							lvi.cchTextMax = 64
+							ListView_GetItem(nmcd->hdr.hwndFrom, @lvi)
+							If i = FCol OrElse FFullRowSelect Then
+								'FillRect nmcd->hdc, @rc, hbrBkgnd
+								FillRect nmcd->hdc, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
+								'SelectObject nmcd->hdc, GetSysColorBrush(COLOR_HIGHLIGHTTEXT)
+								rc_.Left = rc.Left
+								rc_.Top = rc.Top
+								rc_.Right = rc.Right
+								rc_.Bottom = rc.Bottom - 1
+								If i > 0 Then rc_.Left += 1
+								If i = FCol Then
+									DrawFocusRect nmcd->hdc, @rc_ 'draw focus rectangle
+								End If
+							Else
+								If g_darkModeEnabled Then
+									FillRect nmcd->hdc, @rc, hbrBkgnd
+								Else
+									FillRect nmcd->hdc, @rc, GetSysColorBrush(COLOR_WINDOW)
+								End If
+							End If
+							'SetBkMode nmcd->hdc, TRANSPARENT
+							SetTextColor nmcd->hdc, darkTextColor
+							If i = 0 Then
+								rc.Left += 2
+								rc.Top += 2
+							Else
+								rc.Left += 6
+								rc.Top += 2
+							End If
+							DrawText nmcd->hdc, @zTxt, Len(zTxt), @rc, DT_END_ELLIPSIS     'Draw text
+						Next i
+						If g_darkModeEnabled Then
 							Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
 							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GridLinesPen)
 							Dim As Integer Widths, Heights
@@ -1207,10 +1272,10 @@ Namespace My.Sys.Forms
 							Next i
 							SelectObject(nmcd->hdc, PrevPen)
 							DeleteObject GridLinesPen
-							Message.Result = CDRF_DODEFAULT
-							Return
-						End Select
-					End If
+						End If
+						Message.Result = CDRF_SKIPPOSTPAINT Or CDRF_SKIPDEFAULT
+						Return
+					End Select
 				End Select
 			Case WM_NOTIFY
 				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
