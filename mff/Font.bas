@@ -93,15 +93,17 @@ Namespace My.Sys.Drawing
 	Private Property Font.Parent(Value As My.Sys.Object Ptr)
 		FParent = value
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-				Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Handle)
-				Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
-			#else
-				Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Handle)
-				Var pfd = WidgetStyle->font_desc
-			#endif
-			WLet(FName, WStr(*pango_font_description_get_family(pfd)))
-			FSize = pango_font_description_get_size(pfd) / PANGO_SCALE
+			If *FParent Is My.Sys.ComponentModel.Component
+				#ifdef __USE_GTK3__
+					Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Handle)
+					Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
+				#else
+					Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Handle)
+					Var pfd = WidgetStyle->font_desc
+				#endif
+				WLet(FName, WStr(*pango_font_description_get_family(pfd)))
+				FSize = pango_font_description_get_size(pfd) / PANGO_SCALE
+			End If
 		#else
 			Create
 		#endif
