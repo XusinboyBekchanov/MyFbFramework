@@ -93,7 +93,7 @@ Namespace My.Sys.Drawing
 	Private Property Font.Parent(Value As My.Sys.Object Ptr)
 		FParent = value
 		#ifdef __USE_GTK__
-			If *FParent Is My.Sys.ComponentModel.Component
+			If *FParent Is My.Sys.ComponentModel.Component Then
 				#ifdef __USE_GTK3__
 					Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Handle)
 					Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
