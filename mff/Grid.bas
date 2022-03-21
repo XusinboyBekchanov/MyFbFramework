@@ -5,6 +5,9 @@
 '###############################################################################
 
 #include once "Grid.bi"
+#ifdef __USE_WINAPI__
+	#include once "win\tmschema.bi"
+#endif
 
 Namespace My.Sys.Forms
 	Private Function GridRow.Index As Integer
@@ -296,6 +299,16 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property GridColumn.Width As Integer
+		#ifdef __USE_GTK__
+			If This.Column Then FWidth = gtk_tree_view_column_get_width(This.Column)
+		#else
+			Dim lvc As LVCOLUMN
+			lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
+			lvc.iSubItem = Index
+			If Parent AndAlso Parent->Handle AndAlso ListView_GetColumn(Parent->Handle, Index, @lvc) Then
+				FWidth = UnScaleX(lvc.cx)
+			End If
+		#endif
 		Return FWidth
 	End Property
 	
@@ -1057,6 +1070,26 @@ Namespace My.Sys.Forms
 	Private Sub Grid.WndProc(ByRef Message As Message)
 	End Sub
 	
+	#ifdef __USE_WINAPI__
+		Private Sub Grid.SetDark(Value As Boolean)
+			Base.SetDark Value
+			If Value Then
+				hHeader = ListView_GetHeader(FHandle)
+				SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr) ' DarkMode
+				SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr) ' DarkMode
+				AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+				AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+			Else
+				hHeader = ListView_GetHeader(FHandle)
+				SetWindowTheme(hHeader, NULL, NULL) ' DarkMode
+				SetWindowTheme(FHandle, NULL, NULL) ' DarkMode
+				AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+				AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+			End If
+			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
+		End Sub
+	#endif
+	
 	Private Sub Grid.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
@@ -1085,6 +1118,46 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				Message.Result = 0
 			Case WM_SIZE
+			Case WM_THEMECHANGED
+				If (g_darkModeSupported) Then
+					Dim As HWND hHeader = ListView_GetHeader(Message.hWnd)
+
+					AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
+					AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+
+					Dim As HTHEME hTheme '= OpenThemeData(nullptr, "ItemsView")
+					'If (hTheme) Then
+					'	Dim As COLORREF Color1
+					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
+							If g_darkModeEnabled Then
+								ListView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
+							Else
+								ListView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
+							End If
+					'	End If
+					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
+							If g_darkModeEnabled Then
+								ListView_SetTextBkColor(Message.hWnd, darkBkColor) 'Color1)
+								ListView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+							Else
+								ListView_SetTextBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
+								ListView_SetBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
+							End If
+					'	End If
+					'	CloseThemeData(hTheme)
+					'End If
+
+					hTheme = OpenThemeData(hHeader, "Header")
+					If (hTheme) Then
+						'Var info = reinterpret_cast<SubclassInfo*>(dwRefData);
+						GetThemeColor(hTheme, HP_HEADERITEM, 0, TMT_TEXTCOLOR, @headerTextColor)
+						CloseThemeData(hTheme)
+					End If
+
+					SendMessageW(hHeader, WM_THEMECHANGED, Message.wParam, Message.lParam)
+
+					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
+				End If
 			Case CM_NOTIFY
 				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, message.lparam)
 				Select Case lvp->hdr.code
@@ -1102,8 +1175,59 @@ Namespace My.Sys.Forms
 					If bCancel Then Message.Result = -1: Exit Sub 
 				Case LVN_ITEMCHANGED: If OnSelectedRowChanged Then OnSelectedRowChanged(This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
+				Case NM_CUSTOMDRAW
+					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+						Select Case nmcd->dwDrawStage
+						Case CDDS_PREPAINT
+							Message.Result = CDRF_NOTIFYPOSTPAINT
+							Return
+						Case CDDS_POSTPAINT
+							Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
+							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GridLinesPen)
+							Dim As Integer Widths, Heights
+							Dim As SCROLLINFO sif
+							sif.cbSize = SizeOf(sif)
+							sif.fMask  = SIF_POS
+							GetScrollInfo(FHandle, SB_HORZ, @sif)
+							Widths -= sif.nPos
+							For i As Integer = 0 To Columns.Count - 1
+								Widths += Columns.Column(i)->Width
+								MoveToEx nmcd->hdc, Widths, 0, 0
+								LineTo nmcd->hdc, Widths, This.Height
+							Next i
+							Dim As HWND hHeader = ListView_GetHeader(FHandle)
+							Dim As ..Rect R
+							GetWindowRect(hHeader, @R)
+							Heights = R.Bottom - R.Top - 1
+							For i As Integer = 0 To (This.Height - Heights) / 17
+								Heights += 17
+								MoveToEx nmcd->hdc, 0, Heights, 0
+								LineTo nmcd->hdc, This.Width, Heights
+							Next i
+							SelectObject(nmcd->hdc, PrevPen)
+							DeleteObject GridLinesPen
+							Message.Result = CDRF_DODEFAULT
+							Return
+						End Select
+					End If
 				End Select
 			Case WM_NOTIFY
+				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
+					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+					Select Case nmcd->dwDrawStage
+					Case CDDS_PREPAINT
+						Message.Result = CDRF_NOTIFYITEMDRAW
+						Return
+					Case CDDS_ITEMPREPAINT
+						'Var info = Cast(SubclassInfo Ptr, dwRefData)
+						If g_darkModeEnabled Then
+							SetTextColor(nmcd->hdc, headerTextColor)
+						End If
+						Message.Result = CDRF_DODEFAULT
+						Return
+					End Select
+				End If
 				Select Case message.Wparam
 				Case LVN_ENDSCROLL
 				Case LVN_ENDSCROLL
@@ -1207,8 +1331,9 @@ Namespace My.Sys.Forms
 						lvc.cchTextMax      = Len(.Columns.Column(i)->Text)
 						lvc.iImage          = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem        = i
+						Var iWidth = .Columns.Column(i)->Width
 						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, ScaleX(.Columns.Column(i)->Width))
+						ListView_SetColumnWidth(.FHandle, i, ScaleX(iWidth))
 					Next i
 					Var TempHandle = .FHandle
 					For i As Integer = 0 To .Rows.Count - 1

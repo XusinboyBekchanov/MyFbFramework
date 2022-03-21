@@ -226,6 +226,10 @@ Namespace My.Sys.Forms
 			TreeSelection As GtkTreeSelection Ptr
 			ColumnTypes As GType Ptr
 			PrevIndex As Integer
+		#elseif defined(__USE_WINAPI__)
+			Declare Virtual Sub SetDark(Value As Boolean)
+			hHeader As HWND
+			headerTextColor As COLORREF
 		#endif
 	Public:
 		Declare Sub Init()
