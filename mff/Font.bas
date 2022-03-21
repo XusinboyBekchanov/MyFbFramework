@@ -95,10 +95,10 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			If *FParent Is My.Sys.ComponentModel.Component Then
 				#ifdef __USE_GTK3__
-					Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(FParent->Handle)
+					Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(QComponent(FParent).Handle)
 					Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
 				#else
-					Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(FParent->Handle)
+					Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(QComponent(FParent).Handle)
 					Var pfd = WidgetStyle->font_desc
 				#endif
 				WLet(FName, WStr(*pango_font_description_get_family(pfd)))
