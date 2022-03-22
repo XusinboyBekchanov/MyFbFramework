@@ -23,8 +23,8 @@ Namespace My.Sys.Drawing
 	End Type
 
 	Private Type Point
-		X As Long
-		Y As Long
+		X As Double
+		Y As Double
 	End Type
 	
 	#ifdef __USE_WINAPI__
@@ -81,7 +81,11 @@ Namespace My.Sys.Drawing
 		Declare Static Sub Font_Create(ByRef Sender As Font)
 		Declare Static Sub Pen_Create(ByRef Sender As Pen)
 		Declare Static Sub Brush_Create(ByRef Sender As Brush)
-		iTemp As Integer
+		iTemp        As Double
+		imgScaleX    As Double 
+		imgScaleY    As Double
+		imgOffsetX   As Double 
+		imgOffsetY   As Double
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
@@ -116,34 +120,35 @@ Namespace My.Sys.Drawing
 		Declare Property Ctrl As My.Sys.ComponentModel.Component Ptr
 		Declare Property Ctrl (Value As My.Sys.ComponentModel.Component Ptr)
 		Declare Property Pixel(xy As Point) As Integer
-		Declare Property Pixel(xy As Point,Value As Integer)
-		Declare Sub MoveTo(x As Integer,y As Integer)
-		Declare Sub LineTo(x As Integer,y As Integer)
-		Declare Sub Line(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
-		Declare Sub Rectangle Overload(x As Integer, y As Integer, x1 As Integer, y1 As Integer)
+		Declare Property Pixel(xy As Point, Value As Integer)
+		Declare Sub Scale(x As Double, y As Double, x1 As Double, y1 As Double)
+		Declare Sub MoveTo(x As Double,y As Double)
+		Declare Sub LineTo(x As Double,y As Double)
+		Declare Sub Line(x As Double, y As Double, x1 As Double, y1 As Double)
+		Declare Sub Rectangle Overload(x As Double, y As Double, x1 As Double, y1 As Double)
 		Declare Sub Rectangle(R As Rect)
-		Declare Sub Ellipse Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer)
+		Declare Sub Ellipse Overload(x As Double, y As Double, x1 As Double, y1 As Double)
 		Declare Sub Ellipse(R As Rect)
-		Declare Sub RoundRect Overload(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nWidth As Integer,nHeight As Integer)
+		Declare Sub RoundRect Overload(x As Double, y As Double, x1 As Double, y1 As Double, nWidth As Integer, nHeight As Integer)
 		Declare Sub RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
-		Declare Sub Polygon(Points As Point Ptr,Count As Integer)
-		Declare Sub Pie(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
-		Declare Sub Arc(x As Integer,y As Integer,x1 As Integer,y1 As Integer,xStart As Integer, yStart As Integer,xEnd As Integer,yEnd As Integer)
-		Declare Sub ArcTo(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
-		Declare Sub AngleArc(x As Integer,y As Integer,Radius As Integer,StartAngle As Single,SweepAngle As Single)
-		Declare Sub Chord(x As Integer,y As Integer,x1 As Integer,y1 As Integer,nXRadial1 As Integer,nYRadial1 As Integer,nXRadial2 As Integer,nYRadial2 As Integer)
-		Declare Sub Polyline(Points As Point Ptr,Count As Integer)
-		Declare Sub PolylineTo(Points As Point Ptr,Count As Integer)
-		Declare Sub PolyBeizer(Points As Point Ptr,Count As Integer)
-		Declare Sub PolyBeizerTo(Points As Point Ptr,Count As Integer)
-		Declare Sub SetPixel(x As Integer, y As Integer, PixelColor As Integer)
-		Declare Function GetPixel(x As Integer,y As Integer) As Integer
-		Declare Sub TextOut(x As Integer, y As Integer, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
-		Declare Sub DrawTransparent(x As Integer, y As Integer, Image As Any Ptr, cTransparentColor As UInteger = 0)
-		Declare Sub Draw(x As Integer,y As Integer,Image As Any Ptr)
-		Declare Sub StretchDraw(x As Integer,y As Integer,nWidth As Integer,nHeight As Integer,Image As Any Ptr)
+		Declare Sub Polygon(Points As Point Ptr,Count As Long)
+		Declare Sub Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
+		Declare Sub Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Integer, yStart As Integer, xEnd As Integer, yEnd As Integer)
+		Declare Sub ArcTo(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
+		Declare Sub AngleArc(x As Double, y As Double, Radius As Double, StartAngle As Double, SweepAngle As Double)
+		Declare Sub Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
+		Declare Sub Polyline(Points As Point Ptr, Count As Long)
+		Declare Sub PolylineTo(Points As Point Ptr, Count As Long)
+		Declare Sub PolyBeizer(Points As Point Ptr, Count As Long)
+		Declare Sub PolyBeizerTo(Points As Point Ptr, Count As Long)
+		Declare Sub SetPixel(x As Double, y As Double, PixelColor As Integer)
+		Declare Function GetPixel(x As Double, y As Double) As Integer
+		Declare Sub TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
+		Declare Sub DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
+		Declare Sub Draw(x As Double, y As Double, Image As Any Ptr)
+		Declare Sub StretchDraw(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
 		Declare Sub CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
-		Declare Sub FloodFill(x As Integer,y As Integer,FillColor As Integer,FillStyle As FillStyle)
+		Declare Sub FloodFill(x As Double, y As Double, FillColor As Integer, FillStyle As FillStyle)
 		Declare Sub FillRect(R As Rect, FillColor As Integer = -1)
 		Declare Sub DrawFocusRect(R As Rect)
 		Declare Function TextWidth(ByRef FText As WString) As Integer
