@@ -23,8 +23,8 @@ Namespace My.Sys.Drawing
 	End Type
 
 	Private Type Point
-		X As Double
-		Y As Double
+		X As Long
+		Y As Long
 	End Type
 	
 	#ifdef __USE_WINAPI__
