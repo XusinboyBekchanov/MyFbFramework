@@ -1760,12 +1760,14 @@ Namespace My.Sys.Forms
 			Min = IIf(m_AxisMin <> 0, m_AxisMin, GetMin())
 			
 			If m_AxisXVisible Then
-				For i = 0 To cAxisItem->Count - 1
-					TextWidth = Canvas.TextWidth(cAxisItem->Item(i)) * 1.3
-					TextHeight = Canvas.TextHeight(cAxisItem->Item(i)) * 1.3
-					If TextWidth > AxisX.Width Then AxisX.Width = TextWidth
-					If TextHeight > AxisX.Height Then AxisX.Height = TextHeight
-				Next
+				If cAxisItem <> 0 Then
+					For i = 0 To cAxisItem->Count - 1
+						TextWidth = Canvas.TextWidth(cAxisItem->Item(i)) * 1.3
+						TextHeight = Canvas.TextHeight(cAxisItem->Item(i)) * 1.3
+						If TextWidth > AxisX.Width Then AxisX.Width = TextWidth
+						If TextHeight > AxisX.Height Then AxisX.Height = TextHeight
+					Next
+				End If
 				
 				If m_AxisAngle <> 0 Then
 					With AxisX
@@ -1865,7 +1867,7 @@ Namespace My.Sys.Forms
 				End Select
 			End If
 			
-			If cAxisItem->Count Then
+			If cAxisItem AndAlso cAxisItem->Count Then
 				AxisDistance = (mWidth - mPenWidth) / (cAxisItem->Count - 1)
 			End If
 			
@@ -2343,11 +2345,13 @@ Namespace My.Sys.Forms
 				
 				'Horizontal Axis
 				If m_AxisXVisible Then
-					For i = 0 To cAxisItem->Count - 1
-						XX = MarginLeft + AxisDistance * (i) - (AxisDistance / 2) ' - 1
-						m_AxisAlign = cCenter
-						DrawText cAxisItem->Item(i), XX, TopHeader + mHeight, AxisDistance, Footer, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
-					Next
+					If cAxisItem Then
+						For i = 0 To cAxisItem->Count - 1
+							XX = MarginLeft + AxisDistance * (i) - (AxisDistance / 2) ' - 1
+							m_AxisAlign = cCenter
+							DrawText cAxisItem->Item(i), XX, TopHeader + mHeight, AxisDistance, Footer, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
+						Next
+					End If
 				End If
 				
 			'End If
@@ -2370,12 +2374,14 @@ Namespace My.Sys.Forms
 				Canvas.Font = This.Font
 				
 				If m_AxisXVisible Then
-					For i = 0 To cAxisItem->Count - 1
-						TextWidth = Canvas.TextWidth(cAxisItem->Item(i)) * 1.3
-						TextHeight = Canvas.TextHeight(cAxisItem->Item(i)) * 1.3
-						If TextWidth > AxisX.Width Then AxisX.Width = TextWidth
-						If TextHeight > AxisX.Height Then AxisX.Height = TextHeight
-					Next
+					If cAxisItem Then
+						For i = 0 To cAxisItem->Count - 1
+							TextWidth = Canvas.TextWidth(cAxisItem->Item(i)) * 1.3
+							TextHeight = Canvas.TextHeight(cAxisItem->Item(i)) * 1.3
+							If TextWidth > AxisX.Width Then AxisX.Width = TextWidth
+							If TextHeight > AxisX.Height Then AxisX.Height = TextHeight
+						Next
+					End If
 					
 					If m_AxisAngle <> 0 Then
 						With AxisX
@@ -2475,7 +2481,7 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 				
-				If cAxisItem->Count Then
+				If cAxisItem AndAlso cAxisItem->Count Then
 					AxisDistance = (mWidth - mPenWidth) / cAxisItem->Count
 				End If
 				
@@ -2930,10 +2936,12 @@ Namespace My.Sys.Forms
 				'*-
 				'Horizontal Axis
 				If m_AxisXVisible Then
-					For i = 0 To cAxisItem->Count - 1
-						XX = MarginLeft + AxisDistance * (i) ' - 1
-						DrawText cAxisItem->Item(i), XX, TopHeader + mHeight, AxisDistance, Footer, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
-					Next
+					If cAxisItem Then
+						For i = 0 To cAxisItem->Count - 1
+							XX = MarginLeft + AxisDistance * (i) ' - 1
+							DrawText cAxisItem->Item(i), XX, TopHeader + mHeight, AxisDistance, Footer, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
+						Next
+					End If
 				End If
 				
 			Else
@@ -3056,7 +3064,7 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 				
-				If cAxisItem->Count Then
+				If cAxisItem AndAlso cAxisItem->Count Then
 					AxisDistance = (mHeight - mPenWidth) / cAxisItem->Count
 				End If
 				
