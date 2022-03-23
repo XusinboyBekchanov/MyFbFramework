@@ -188,6 +188,7 @@ Namespace My.Sys.Forms
 		FSortStyle As SortStyle
 		FOwnerDraw As Boolean
 		FPressedSubItem As Integer
+		FItemHeight As Integer
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)

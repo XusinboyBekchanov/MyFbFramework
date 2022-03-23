@@ -213,6 +213,7 @@ Namespace My.Sys.Forms
 		FHoverSelection As Boolean
 		FLVExStyle As Integer
 		FCol As Integer
+		FItemHeight As Integer
 		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)

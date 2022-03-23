@@ -1220,17 +1220,17 @@ Namespace My.Sys.Forms
 			Canvas.Font = This.Font
 			If m_LegendVisible Then
 				For i = 0 To ItemsCount - 1
-					m_Item(i).TextHeight = Canvas.TextHeight(m_Item(i).ItemName) * 1.5
-					m_Item(i).TextWidth = Canvas.TextWidth(m_Item(i).ItemName) * 1.5 + m_Item(i).TextHeight
+					m_Item(i).TextHeight = ScaleY(Canvas.TextHeight(m_Item(i).ItemName)) * 1.5
+					m_Item(i).TextWidth = ScaleX(Canvas.TextWidth(m_Item(i).ItemName)) * 1.5 + m_Item(i).TextHeight
 				Next
 			End If
 			
 			If Len(m_Title) Then
-				GetTextSize(*m_Title.vptr, This.ClientWidth, 0, m_TitleFont, True, TitleSize)
+				GetTextSize(*m_Title.vptr, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
 				TopHeader = TopHeader + TitleSize.Height
 			End If
-			mWidth = This.ClientWidth - MarginLeft - MarginRight
-			mHeight = This.ClientHeight - TopHeader - Footer
+			mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
+			mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
 			
 			'Calculate the Legend Area
 			If m_LegendVisible Then
@@ -1289,8 +1289,8 @@ Namespace My.Sys.Forms
 			
 			Dim RectF_ As RectF
 			With RectF_
-				.Width = This.ClientWidth - 1 * nScale
-				.Height = This.ClientHeight - 1 * nScale
+				.Width = ScaleX(This.ClientWidth) - 1 * nScale
+				.Height = ScaleY(This.ClientHeight) - 1 * nScale
 			End With
 			
 			RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
@@ -1331,8 +1331,8 @@ Namespace My.Sys.Forms
 					.text = Replace(.text, "{V}", WStr(Round(.Value, 1)))
 					.text = Replace(.text, "{LF}", Chr(10))
 					
-					TextWidth = Canvas.TextWidth(.text) * 1.3
-					TextHeight = Canvas.TextHeight(.text) * 1.3
+					TextWidth = ScaleX(Canvas.TextWidth(.text)) * 1.3
+					TextHeight = ScaleY(Canvas.TextHeight(.text)) * 1.3
 					If TextWidth > LblWidth Then LblWidth = TextWidth
 					If TextHeight > LblHeight Then LblHeight = TextHeight
 				End With
@@ -1514,7 +1514,7 @@ Namespace My.Sys.Forms
 				If m_LabelsVisible Then
 					If m_LabelsPositions = LP_TwoColumns Then
 						Dim LineOut As Integer
-						LineOut = Canvas.TextHeight("Aj") / 2
+						LineOut = ScaleY(Canvas.TextHeight("Aj")) / 2
 						
 						#ifdef __USE_GTK__
 							Var BrushColor = RGBtoARGB(m_Item(i).ItemColor, 50), BrushAlpha = 0.5
@@ -1746,7 +1746,7 @@ Namespace My.Sys.Forms
 			
 			Canvas.Font = This.Font
 			'PT16 = 16 * nScale
-			PT16 = (This.ClientWidth + This.ClientHeight) * 2.5 / 100
+			PT16 = (ScaleX(This.ClientWidth) + ScaleY(This.ClientHeight)) * 2.5 / 100
 			
 			PT24 = 24 * nScale
 			mPenWidth = 1 * nScale
@@ -1762,8 +1762,8 @@ Namespace My.Sys.Forms
 			If m_AxisXVisible Then
 				If cAxisItem <> 0 Then
 					For i = 0 To cAxisItem->Count - 1
-						TextWidth = Canvas.TextWidth(cAxisItem->Item(i)) * 1.3
-						TextHeight = Canvas.TextHeight(cAxisItem->Item(i)) * 1.3
+						TextWidth = ScaleX(Canvas.TextWidth(cAxisItem->Item(i))) * 1.3
+						TextHeight = ScaleY(Canvas.TextHeight(cAxisItem->Item(i))) * 1.3
 						If TextWidth > AxisX.Width Then AxisX.Width = TextWidth
 						If TextHeight > AxisX.Height Then AxisX.Height = TextHeight
 					Next
@@ -1790,20 +1790,20 @@ Namespace My.Sys.Forms
 				sDisplay = Replace(m_LabelsFormats, "{V}", WStr(Value))
 				sDisplay = Replace(sDisplay, "{LF}", Chr(10))
 				If Len(sDisplay) = 1 Then sDisplay = "0.9"
-				AxisY.Width = Canvas.TextWidth(WStr(sDisplay)) * 1.5
-				AxisY.Height = Canvas.TextHeight(WStr(sDisplay)) * 1.5
+				AxisY.Width = ScaleX(Canvas.TextWidth(WStr(sDisplay))) * 1.5
+				AxisY.Height = ScaleY(Canvas.TextHeight(WStr(sDisplay))) * 1.5
 			End If
 			
 			
 			If m_LegendVisible Then
 				For i = 0 To SerieCount - 1
-					m_Serie(i).TextHeight = Canvas.TextHeight(m_Serie(i).SerieName) * 1.5
-					m_Serie(i).TextWidth = Canvas.TextWidth(m_Serie(i).SerieName) * 1.5 + m_Serie(i).TextHeight
+					m_Serie(i).TextHeight = ScaleY(Canvas.TextHeight(m_Serie(i).SerieName)) * 1.5
+					m_Serie(i).TextWidth = ScaleX(Canvas.TextWidth(m_Serie(i).SerieName)) * 1.5 + m_Serie(i).TextHeight
 				Next
 			End If
 			
 			If Len(m_Title) Then
-				GetTextSize(m_Title, This.ClientWidth, 0, m_TitleFont, True, TitleSize)
+				GetTextSize(m_Title, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
 			End If
 			
 			MarginRight = PT16
@@ -1811,8 +1811,8 @@ Namespace My.Sys.Forms
 			MarginLeft = PT16 + AxisY.Width
 			Footer = PT16 + AxisX.Height
 			
-			mWidth = This.ClientWidth - MarginLeft - MarginRight
-			mHeight = This.ClientHeight - TopHeader - Footer
+			mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
+			mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
 			
 			If m_LegendVisible Then
 				ColRow = 1
@@ -1945,8 +1945,8 @@ Namespace My.Sys.Forms
 '				
 				Dim RectF_ As RectF
 				With RectF_
-					.Width = This.ClientWidth - 1 * nScale
-					.Height = This.ClientHeight - 1 * nScale
+					.Width = ScaleX(This.ClientWidth) - 1 * nScale
+					.Height = ScaleY(This.ClientHeight) - 1 * nScale
 				End With
 				
 				RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
@@ -1975,7 +1975,7 @@ Namespace My.Sys.Forms
 							cairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
 							cairo_stroke(cr)
 						#else
-							GdipDrawLine hGraphics, hPen, MarginLeft, YY, This.ClientWidth - MarginRight - mPenWidth, YY
+							GdipDrawLine hGraphics, hPen, MarginLeft, YY, ScaleX(This.ClientWidth) - MarginRight - mPenWidth, YY
 						#endif
 					End If
 					
@@ -2359,7 +2359,7 @@ Namespace My.Sys.Forms
 			If m_ChartOrientation = CO_Vertical Then
 				
 				'PT16 = 16 * nScale
-				PT16 = (This.ClientWidth + This.ClientHeight) * 2.5 / 100
+				PT16 = (ScaleX(This.ClientWidth) + ScaleY(This.ClientHeight)) * 2.5 / 100
 				
 				PT24 = 24 * nScale
 				mPenWidth = 1 * nScale
@@ -2376,8 +2376,8 @@ Namespace My.Sys.Forms
 				If m_AxisXVisible Then
 					If cAxisItem Then
 						For i = 0 To cAxisItem->Count - 1
-							TextWidth = Canvas.TextWidth(cAxisItem->Item(i)) * 1.3
-							TextHeight = Canvas.TextHeight(cAxisItem->Item(i)) * 1.3
+							TextWidth = ScaleX(Canvas.TextWidth(cAxisItem->Item(i))) * 1.3
+							TextHeight = ScaleY(Canvas.TextHeight(cAxisItem->Item(i))) * 1.3
 							If TextWidth > AxisX.Width Then AxisX.Width = TextWidth
 							If TextHeight > AxisX.Height Then AxisX.Height = TextHeight
 						Next
@@ -2404,20 +2404,20 @@ Namespace My.Sys.Forms
 					sDisplay = Replace(m_LabelsFormats, "{V}", WStr(Value))
 					sDisplay = Replace(sDisplay, "{LF}", Chr(10))
 					If Len(sDisplay) = 1 Then sDisplay = "0.9"
-					AxisY.Width = Canvas.TextWidth(WStr(sDisplay)) * 1.5
-					AxisY.Height = Canvas.TextHeight(WStr(sDisplay)) * 1.5
+					AxisY.Width = ScaleX(Canvas.TextWidth(WStr(sDisplay))) * 1.5
+					AxisY.Height = ScaleY(Canvas.TextHeight(WStr(sDisplay))) * 1.5
 				End If
 				
 				
 				If m_LegendVisible Then
 					For i = 0 To SerieCount - 1
-						m_Serie(i).TextHeight = Canvas.TextHeight(m_Serie(i).SerieName) * 1.5
-						m_Serie(i).TextWidth = Canvas.TextWidth(m_Serie(i).SerieName) * 1.5 + m_Serie(i).TextHeight
+						m_Serie(i).TextHeight = ScaleY(Canvas.TextHeight(m_Serie(i).SerieName)) * 1.5
+						m_Serie(i).TextWidth = ScaleX(Canvas.TextWidth(m_Serie(i).SerieName)) * 1.5 + m_Serie(i).TextHeight
 					Next
 				End If
 				
 				If Len(m_Title) Then
-					GetTextSize(m_Title, This.ClientWidth, 0, m_TitleFont, True, TitleSize)
+					GetTextSize(m_Title, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
 				End If
 				
 				MarginRight = PT16
@@ -2425,8 +2425,8 @@ Namespace My.Sys.Forms
 				MarginLeft = PT16 + AxisY.Width
 				Footer = PT16 + AxisX.Height
 				
-				mWidth = This.ClientWidth - MarginLeft - MarginRight
-				mHeight = This.ClientHeight - TopHeader - Footer
+				mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
+				mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
 				
 				If m_LegendVisible Then
 					ColRow = 1
@@ -2571,8 +2571,8 @@ Namespace My.Sys.Forms
 				
 				Dim RectF_ As RectF
 				With RectF_
-					.Width = This.ClientWidth - 1 * nScale
-					.Height = This.ClientHeight - 1 * nScale
+					.Width = ScaleX(This.ClientWidth) - 1 * nScale
+					.Height = ScaleY(This.ClientHeight) - 1 * nScale
 				End With
 				
 				RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
@@ -2613,7 +2613,7 @@ Namespace My.Sys.Forms
 							cairo_move_to(cr, MarginLeft, YY)
 							cairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
 						#else
-							GdipDrawLine hGraphics, hPen, MarginLeft, YY, This.ClientWidth - MarginRight - mPenWidth, YY
+							GdipDrawLine hGraphics, hPen, MarginLeft, YY, ScaleX(This.ClientWidth) - MarginRight - mPenWidth, YY
 						#endif
 					End If
 					
@@ -2719,8 +2719,8 @@ Namespace My.Sys.Forms
 					
 					With RectL_
 						.Top = TopHeader
-						.Right = This.ClientWidth
-						.Bottom = This.ClientHeight
+						.Right = ScaleX(This.ClientWidth)
+						.Bottom = ScaleY(This.ClientHeight)
 					End With
 					
 					For j = 0 To UBound(m_Serie(i).Rects)
@@ -2887,8 +2887,8 @@ Namespace My.Sys.Forms
 							With mRect
 								sDisplay = Replace(m_LabelsFormats, "{V}", WStr(m_Serie(i).Values->Item(j))) ' + 1
 								sDisplay = Replace(sDisplay, "{LF}", Chr(10))
-								TextHeight = Canvas.TextHeight(sDisplay) * 1.3
-								TextWidth = Canvas.TextWidth(sDisplay) * 1.5
+								TextHeight = ScaleY(Canvas.TextHeight(sDisplay)) * 1.3
+								TextWidth = ScaleX(Canvas.TextWidth(sDisplay)) * 1.5
 								If (TextHeight > .Bottom Or m_LabelsPositions = LP_ABOVE) And m_ChartStyle = CS_GroupedColumn Then
 									.Top = .Top - TextHeight
 									.Bottom = TextHeight
@@ -2929,7 +2929,7 @@ Namespace My.Sys.Forms
 					cairo_stroke(cr)
 				#else
 					GdipCreatePen1(RGBtoARGB(m_LinesColor, 100), LW, &H2, @hPen)
-					GdipDrawLine hGraphics, hPen, MarginLeft, ZeroPoint, This.ClientWidth - MarginRight - mPenWidth, ZeroPoint
+					GdipDrawLine hGraphics, hPen, MarginLeft, ZeroPoint, ScaleX(This.ClientWidth) - MarginRight - mPenWidth, ZeroPoint
 					GdipDeletePen hPen
 				#endif
 				
@@ -2947,7 +2947,7 @@ Namespace My.Sys.Forms
 			Else
 				
 				'PT16 = 16 * nScale
-				PT16 = (This.ClientWidth + This.ClientHeight) * 2.5 / 100
+				PT16 = (ScaleX(This.ClientWidth) + ScaleY(This.ClientHeight)) * 2.5 / 100
 				
 				PT24 = 24 * nScale
 				mPenWidth = 1 * nScale
@@ -2962,8 +2962,8 @@ Namespace My.Sys.Forms
 				
 				If m_AxisYVisible Then
 					For i = 0 To cAxisItem->Count - 1
-						TextWidth = Canvas.TextWidth(cAxisItem->Item(i)) * 1.3
-						TextHeight = Canvas.TextHeight(cAxisItem->Item(i)) * 1.5
+						TextWidth = ScaleX(Canvas.TextWidth(cAxisItem->Item(i))) * 1.3
+						TextHeight = ScaleY(Canvas.TextHeight(cAxisItem->Item(i))) * 1.5
 						If TextWidth > AxisY.Width Then AxisY.Width = TextWidth
 						If TextHeight > AxisY.Height Then AxisY.Height = TextHeight
 					Next
@@ -2988,19 +2988,19 @@ Namespace My.Sys.Forms
 					Value = IIf(Len(WStr(Max)) > Len(WStr(Min)), Max, Min)
 					sDisplay = Replace(m_LabelsFormats, "{V}", WStr(Value))
 					sDisplay = Replace(sDisplay, "{LF}", Chr(10))
-					AxisX.Width = Canvas.TextWidth(WStr(sDisplay)) * 1.5
-					AxisX.Height = Canvas.TextHeight(WStr(sDisplay)) * 1.5
+					AxisX.Width = ScaleX(Canvas.TextWidth(WStr(sDisplay))) * 1.5
+					AxisX.Height = ScaleY(Canvas.TextHeight(WStr(sDisplay))) * 1.5
 				End If
 				
 				If m_LegendVisible Then
 					For i = 0 To SerieCount - 1
-						m_Serie(i).TextHeight = Canvas.TextHeight(m_Serie(i).SerieName) * 1.5
-						m_Serie(i).TextWidth = Canvas.TextWidth(m_Serie(i).SerieName) * 1.5 + m_Serie(i).TextHeight
+						m_Serie(i).TextHeight = ScaleX(Canvas.TextHeight(m_Serie(i).SerieName)) * 1.5
+						m_Serie(i).TextWidth = ScaleY(Canvas.TextWidth(m_Serie(i).SerieName)) * 1.5 + m_Serie(i).TextHeight
 					Next
 				End If
 				
 				If Len(m_Title) Then
-					GetTextSize(m_Title, This.ClientWidth, 0, m_TitleFont, True, TitleSize)
+					GetTextSize(m_Title, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
 				End If
 				
 				MarginRight = PT16
@@ -3008,8 +3008,8 @@ Namespace My.Sys.Forms
 				MarginLeft = PT16 + AxisY.Width
 				Footer = PT16 + AxisX.Height
 				
-				mWidth = This.ClientWidth - MarginLeft - MarginRight
-				mHeight = This.ClientHeight - TopHeader - Footer
+				mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
+				mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
 				
 				If m_LegendVisible Then
 					ColRow = 1
@@ -3156,8 +3156,8 @@ Namespace My.Sys.Forms
 				
 				Dim RectF_ As RectF
 				With RectF_
-					.Width = This.ClientWidth - 1 * nScale
-					.Height = This.ClientHeight - 1 * nScale
+					.Width = ScaleX(This.ClientWidth) - 1 * nScale
+					.Height = ScaleY(This.ClientHeight) - 1 * nScale
 				End With
 				RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
 				
@@ -3316,8 +3316,8 @@ Namespace My.Sys.Forms
 					
 					With RectL_
 						.Top = TopHeader
-						.Right = This.ClientWidth - MarginRight
-						.Bottom = This.ClientHeight
+						.Right = ScaleX(This.ClientWidth) - MarginRight
+						.Bottom = ScaleY(This.ClientHeight)
 					End With
 					
 					For j = 0 To UBound(m_Serie(i).Rects)
@@ -3482,8 +3482,8 @@ Namespace My.Sys.Forms
 							With mRect
 								sDisplay = Replace(m_LabelsFormats, "{V}", WStr(m_Serie(i).Values->Item(j))) ' + 1
 								sDisplay = Replace(sDisplay, "{LF}", Chr(10))
-								TextHeight = Canvas.TextHeight(sDisplay) * 1.3
-								TextWidth = Canvas.TextWidth(sDisplay) * 1.5
+								TextHeight = ScaleX(Canvas.TextHeight(sDisplay)) * 1.3
+								TextWidth = ScaleY(Canvas.TextWidth(sDisplay)) * 1.5
 								If (TextWidth > .Right Or m_LabelsPositions = LP_ABOVE) And m_ChartStyle = CS_GroupedColumn Then
 									.Left = .Left + .Right + PT16 / 10
 									.Right = TextWidth
@@ -3548,7 +3548,7 @@ Namespace My.Sys.Forms
 		
 		'Title
 		If Len(m_Title) Then
-			DrawText m_Title, 0, PT16 / 2, This.ClientWidth, TopHeader, m_TitleFont, RGBtoARGB(m_TitleForeColor, 100), cCenter, cTop, True
+			DrawText m_Title, 0, PT16 / 2, ScaleX(This.ClientWidth), TopHeader, m_TitleFont, RGBtoARGB(m_TitleForeColor, 100), cCenter, cTop, True
 		End If
 		
 		Select Case ChartStyle
@@ -3582,7 +3582,7 @@ Namespace My.Sys.Forms
 			If HotItem > -1 Then
 				lForeColor = RGBtoARGB(FForeColor, 100)
 				LW = m_LinesWidth * nScale
-				TM = Canvas.TextHeight("Aj") / 4
+				TM = ScaleY(Canvas.TextHeight("Aj")) / 4
 				
 				sText = m_Item(HotItem).ItemName & ": " & m_Item(HotItem).text
 				GetTextSize sText, 0, 0, This.Font, False, SZ
@@ -3608,8 +3608,8 @@ Namespace My.Sys.Forms
 					
 					If .X < 0 Then .X = LW
 					If .Y < 0 Then .Y = LW
-					If .X + .Width >= This.ClientWidth - LW Then .X = This.ClientWidth - .Width - LW
-					If .Y + .Height >= This.ClientHeight - LW Then .Y = This.ClientHeight - .Height - LW
+					If .X + .Width >= ScaleX(This.ClientWidth) - LW Then .X = ScaleX(This.ClientWidth) - .Width - LW
+					If .Y + .Height >= ScaleY(This.ClientHeight) - LW Then .Y = ScaleY(This.ClientHeight) - .Height - LW
 				End With
 				
 				RoundRect RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM, True, 90, 80
@@ -3646,7 +3646,7 @@ Namespace My.Sys.Forms
 			If mHotBar > -1 Then
 				lForeColor = RGBtoARGB(FForeColor, 100)
 				LW = m_LinesWidth * nScale
-				TM = Canvas.TextHeight("Aj") / 4
+				TM = ScaleY(Canvas.TextHeight("Aj")) / 4
 				bBold = This.Font.Bold
 				
 				If cAxisItem->Count = m_Serie(i).Values->Count Then
@@ -3680,8 +3680,8 @@ Namespace My.Sys.Forms
 					
 					If .X < 0 Then .X = LW
 					If .Y < 0 Then .Y = LW
-					If .X + .Width > This.ClientWidth Then .X = This.ClientWidth - .Width - LW
-					If .Y + .Height > This.ClientHeight Then .Y = This.ClientHeight - .Height - LW
+					If .X + .Width > ScaleX(This.ClientWidth) Then .X = ScaleX(This.ClientWidth) - .Width - LW
+					If .Y + .Height > ScaleY(This.ClientHeight) Then .Y = ScaleY(This.ClientHeight) - .Height - LW
 				End With
 				
 				RoundRect RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_LinesColor, 80), TM, , 90, 80
@@ -3754,7 +3754,7 @@ Namespace My.Sys.Forms
 			Dim SZ As SIZEF
 			
 			If mHotBar > -1 Then
-				TM = Canvas.TextHeight("Aj") / 4
+				TM = ScaleY(Canvas.TextHeight("Aj")) / 4
 				lForeColor = RGBtoARGB(FForeColor, 100)
 				LW = m_LinesWidth * nScale
 				
@@ -3782,8 +3782,8 @@ Namespace My.Sys.Forms
 								
 								If .X < 0 Then .X = LW
 								If .Y < 0 Then .Y = LW
-								If .X + .Width >= This.ClientWidth - LW Then .X = This.ClientWidth - .Width - LW
-								If .Y + .Height >= This.ClientHeight - LW Then .Y = This.ClientHeight - .Height - LW
+								If .X + .Width >= ScaleX(This.ClientWidth) - LW Then .X = ScaleX(This.ClientWidth) - .Width - LW
+								If .Y + .Height >= ScaleY(This.ClientHeight) - LW Then .Y = ScaleY(This.ClientHeight) - .Height - LW
 							End With
 							
 							RoundRect RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Serie(i).SerieColor, 80), TM, , 90, 80
@@ -4015,7 +4015,7 @@ Namespace My.Sys.Forms
 				Dim Dc As HDC
 				'Dim As HDC bufDC
 				Dim As HBITMAP bufBMP
-				Dim As Integer mClientWidth = This.ClientWidth, mClientHeight = This.ClientHeight
+				Dim As Integer mClientWidth = ScaleX(This.ClientWidth), mClientHeight = ScaleY(This.ClientHeight)
 				Dc = BeginPaint(This.Handle, @ps)
 				hD = CreateCompatibleDC(Dc)
 				bufBMP = CreateCompatibleBitmap(Dc, mClientWidth, mClientHeight)

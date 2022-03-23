@@ -1430,19 +1430,38 @@ Namespace My.Sys.Forms
 							sif.fMask  = SIF_POS
 							GetScrollInfo(FHandle, SB_HORZ, @sif)
 							Widths -= sif.nPos
+							Dim lvc As LVCOLUMN
 							For i As Integer = 0 To Columns.Count - 1
-								Widths += Columns.Column(i)->Width
+								lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
+								lvc.iSubItem = i
+								ListView_GetColumn(FHandle, i, @lvc)
+								Widths += lvc.cx
 								MoveToEx nmcd->hdc, Widths, 0, 0
-								LineTo nmcd->hdc, Widths, This.Height
+								LineTo nmcd->hdc, Widths, ScaleY(This.Height)
 							Next i
 							Dim As HWND hHeader = ListView_GetHeader(FHandle)
 							Dim As ..Rect R
 							GetWindowRect(hHeader, @R)
 							Heights = R.Bottom - R.Top - 1
-							For i As Integer = 0 To (This.Height - Heights) / 17
-								Heights += 17
+							Dim rc As ..RECT
+							If ListView_GetItemCount(FHandle) = 0 Then
+								If FItemHeight = 0 Then
+									Dim As LVITEM lvi
+									lvi.Mask = LVIF_PARAM
+									lvi.LParam = 0
+									ListView_InsertItem(FHandle, @lvi)
+									ListView_GetItemRect FHandle, 0, @rc, LVIR_BOUNDS
+									ListView_DeleteItem(FHandle, 0)
+									FItemHeight = rc.Bottom - rc.Top
+								End If
+							Else
+								ListView_GetItemRect FHandle, 0, @rc, LVIR_BOUNDS
+								FItemHeight = rc.Bottom - rc.Top
+							End If
+							For i As Integer = 0 To ListView_GetCountPerPage(FHandle)
+								Heights += FItemHeight
 								MoveToEx nmcd->hdc, 0, Heights, 0
-								LineTo nmcd->hdc, This.Width, Heights
+								LineTo nmcd->hdc, ScaleX(This.Width), Heights
 							Next i
 							SelectObject(nmcd->hdc, PrevPen)
 							DeleteObject GridLinesPen
