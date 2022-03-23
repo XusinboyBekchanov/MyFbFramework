@@ -81,7 +81,11 @@ Namespace My.Sys.Drawing
 		Declare Static Sub Font_Create(ByRef Sender As Font)
 		Declare Static Sub Pen_Create(ByRef Sender As Pen)
 		Declare Static Sub Brush_Create(ByRef Sender As Brush)
-		iTemp        As Double
+		iTemp        As Integer
+		FDrawWidth   As Integer 
+		FScaleWidth  As Long 
+		FScaleHeight As Long
+		 
 		imgScaleX    As Double 
 		imgScaleY    As Double
 		imgOffsetX   As Double 
@@ -122,6 +126,11 @@ Namespace My.Sys.Drawing
 		Declare Property Pixel(xy As Point) As Integer
 		Declare Property Pixel(xy As Point, Value As Integer)
 		Declare Sub Scale(x As Double, y As Double, x1 As Double, y1 As Double)
+		Declare Property ScaleWidth As Integer
+		Declare Property ScaleHeight As Integer
+		Declare Property DrawWidth As Integer
+		Declare Property DrawWidth(Value As Integer)
+		Declare Sub Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
 		Declare Sub MoveTo(x As Double,y As Double)
 		Declare Sub LineTo(x As Double,y As Double)
 		Declare Sub Line(x As Double, y As Double, x1 As Double, y1 As Double)
@@ -129,18 +138,19 @@ Namespace My.Sys.Drawing
 		Declare Sub Rectangle(R As Rect)
 		Declare Sub Ellipse Overload(x As Double, y As Double, x1 As Double, y1 As Double)
 		Declare Sub Ellipse(R As Rect)
+		Declare Sub Circle(x As Double, y As Double, Radial As Double)
 		Declare Sub RoundRect Overload(x As Double, y As Double, x1 As Double, y1 As Double, nWidth As Integer, nHeight As Integer)
 		Declare Sub RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
 		Declare Sub Polygon(Points As Point Ptr,Count As Long)
 		Declare Sub Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
-		Declare Sub Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Integer, yStart As Integer, xEnd As Integer, yEnd As Integer)
+		Declare Sub Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Double, yStart As Double, xEnd As Double, yEnd As Double)
 		Declare Sub ArcTo(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		Declare Sub AngleArc(x As Double, y As Double, Radius As Double, StartAngle As Double, SweepAngle As Double)
 		Declare Sub Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
-		Declare Sub Polyline(Points As Point Ptr, Count As Long)
-		Declare Sub PolylineTo(Points As Point Ptr, Count As Long)
-		Declare Sub PolyBeizer(Points As Point Ptr, Count As Long)
-		Declare Sub PolyBeizerTo(Points As Point Ptr, Count As Long)
+		Declare Sub Polyline(Points() As Point, Count As Long)
+		Declare Sub PolylineTo(Points() As Point, Count As Long)
+		Declare Sub PolyBeizer(Points() As Point, Count As Long)
+		Declare Sub PolyBeizerTo(Points() As Point, Count As Long)
 		Declare Sub SetPixel(x As Double, y As Double, PixelColor As Integer)
 		Declare Function GetPixel(x As Double, y As Double) As Integer
 		Declare Sub TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
