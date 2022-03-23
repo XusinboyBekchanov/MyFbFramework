@@ -2623,7 +2623,7 @@ Namespace My.Sys.Forms
 						DrawText sDisplay, 0, YY - RangeHeight / 2, MarginLeft - 8 * nScale, RangeHeight, This.Font, lForeColor, cRight, cMiddle
 					End If
 					YY = YY - RangeHeight
-					yRange = yRange + CLng(iStep * NumDecim)
+					yRange = yRange + (iStep * NumDecim) 'CLng(iStep * NumDecim)
 				Next
 				
 				If m_VerticalLines And SerieCount > 0 Then

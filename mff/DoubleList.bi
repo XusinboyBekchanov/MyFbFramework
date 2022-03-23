@@ -17,7 +17,7 @@
 
 Private Type DoubleListItem Extends Object
 Private:
-	FValue   As Integer
+	FValue   As Double
 Public:
 	Declare Property Value As Double
 	Declare Property Value(V As Double)
