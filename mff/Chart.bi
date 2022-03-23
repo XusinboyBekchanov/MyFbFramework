@@ -74,7 +74,6 @@ Namespace My.Sys.Forms
 		LP_TOP
 		LP_CENTER
 		LP_BOTTOM
-		LP_ABOVE
 	End Enum
 	
 	#ifdef __USE_GTK__
@@ -159,6 +158,7 @@ Namespace My.Sys.Forms
 		Dim m_LabelsVisible As Boolean
 		Dim m_LabelsPositions As LabelsPositions
 		Dim m_LabelsAlignments As LabelsAlignments
+		Dim m_LabelsFormat As UString
 		Dim m_LabelsFormats As UString
 		Dim m_BorderColor As ULong
 		Dim m_BorderRound As Long
@@ -234,6 +234,7 @@ Namespace My.Sys.Forms
 		Declare Sub MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Declare Function PtInRectL(Rect As RectL, ByVal X As Long, ByVal Y As Long) As Boolean
 		Declare Function PtInPath(hPath As Any Ptr, X As Single, Y As Single) As Boolean
+		Declare Function FormatLabel(ByVal numerical_expression As Double, ByRef formatting_expression As WString = "") As UString
 		Declare Sub Show()
 		Declare Sub Paint()
 		#ifndef __USE_GTK__
@@ -293,10 +294,16 @@ Namespace My.Sys.Forms
 		Declare Property BorderRound(ByVal New_Value As Long)
 		Declare Property BorderColor() As ULong
 		Declare Property BorderColor(ByVal New_Value As ULong)
-		Declare Property LabelsFormats() ByRef As WString
-		Declare Property LabelsFormats(ByRef New_Value As WString)
 		Declare Property LabelsAlignment() As LabelsAlignments
 		Declare Property LabelsAlignment(ByVal New_Value As LabelsAlignments)
+		Declare Property LabelsFormat() ByRef As WString
+		Declare Property LabelsFormat(ByRef New_Value As WString)
+		Declare Property LabelsFormats() ByRef As WString
+		Declare Property LabelsFormats(ByRef New_Value As WString)
+		Declare Property LabelsPosition() As LabelsPositions
+		Declare Property LabelsPosition(ByVal New_Value As LabelsPositions)
+		Declare Property LabelsVisible() As Boolean
+		Declare Property LabelsVisible(ByVal New_Value As Boolean)
 		Declare Property FillGradient() As Boolean
 		Declare Property FillGradient(ByVal New_Value As Boolean)
 		Declare Property ChartStyle() As ChartStyles
@@ -315,10 +322,6 @@ Namespace My.Sys.Forms
 		Declare Property SeparatorLineWidth(ByVal New_Value As Single)
 		Declare Property SeparatorLineColor() As ULong
 		Declare Property SeparatorLineColor(ByVal New_Value As ULong)
-		Declare Property LabelsPosition() As LabelsPositions
-		Declare Property LabelsPosition(ByVal New_Value As LabelsPositions)
-		Declare Property LabelsVisible() As Boolean
-		Declare Property LabelsVisible(ByVal New_Value As Boolean)
 		Declare Property Rotation() As Long
 		Declare Property Rotation(ByVal New_Value As Long)
 		Declare Function GetWindowsDPI() As Double

@@ -15,6 +15,7 @@
 '################################################################################
 
 #include once "Chart.bi"
+#include once "vbcompat.bi"
 
 Namespace My.Sys.Forms
 	Private Function Chart.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -35,6 +36,7 @@ Namespace My.Sys.Forms
 		Case "fillopacity": Return @m_FillOpacity
 			'Case "itemcolor": Return @m_ItemColor
 		Case "labelsalignment": Return @m_LabelsAlignments
+		Case "labelsformat": Return m_LabelsFormat.vptr
 		Case "labelsformats": Return m_LabelsFormats.vptr
 		Case "labelsposition": Return @m_LabelsPositions
 		Case "labelsvisible": Return @m_LabelsVisible
@@ -78,6 +80,7 @@ Namespace My.Sys.Forms
 			Case "fillopacity": FillOpacity = QLong(Value)
 				'Case "itemcolor": ItemColor = QInteger(Value)
 			Case "labelsalignment": LabelsAlignment = *Cast(LabelsAlignments Ptr, Value)
+			Case "labelsformat": LabelsFormat = QWString(Value)
 			Case "labelsformats": LabelsFormats = QWString(Value)
 			Case "labelsposition": LabelsPosition = *Cast(LabelsPositions Ptr, Value)
 			Case "labelsvisible": LabelsVisible = QBoolean(Value)
@@ -271,6 +274,15 @@ Namespace My.Sys.Forms
 	
 	Private Property Chart.BorderColor(ByVal New_Value As ULong)
 		m_BorderColor = New_Value
+		Refresh
+	End Property
+	
+	Private Property Chart.LabelsFormat() ByRef As WString
+		Return *m_LabelsFormat.vptr
+	End Property
+	
+	Private Property Chart.LabelsFormat(ByRef New_Value As WString)
+		m_LabelsFormat = New_Value
 		Refresh
 	End Property
 	
@@ -2885,11 +2897,11 @@ Namespace My.Sys.Forms
 						For j = 0 To m_Serie(i).Values->Count - 1
 							mRect = m_Serie(i).Rects(j)
 							With mRect
-								sDisplay = Replace(m_LabelsFormats, "{V}", WStr(m_Serie(i).Values->Item(j))) ' + 1
+								sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_LabelsFormat)) ' + 1
 								sDisplay = Replace(sDisplay, "{LF}", Chr(10))
 								TextHeight = ScaleY(Canvas.TextHeight(sDisplay)) * 1.3
 								TextWidth = ScaleX(Canvas.TextWidth(sDisplay)) * 1.5
-								If (TextHeight > .Bottom Or m_LabelsPositions = LP_ABOVE) And m_ChartStyle = CS_GroupedColumn Then
+								If (TextHeight > .Bottom Or m_LabelsPositions = LP_Outside) And m_ChartStyle = CS_GroupedColumn Then
 									.Top = .Top - TextHeight
 									.Bottom = TextHeight
 									lColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
@@ -2912,7 +2924,7 @@ Namespace My.Sys.Forms
 								End If
 								
 								
-								DrawText sDisplay, .Left, .Top, .Right, .Bottom, This.Font, lColor, cCenter, m_LabelsPositions
+								DrawText sDisplay, .Left, .Top, .Right, .Bottom, This.Font, lColor, cCenter, m_LabelsAlignments
 							End With
 						Next
 					Next
@@ -3480,11 +3492,11 @@ Namespace My.Sys.Forms
 						For j = 0 To m_Serie(i).Values->Count - 1
 							mRect = m_Serie(i).Rects(j)
 							With mRect
-								sDisplay = Replace(m_LabelsFormats, "{V}", WStr(m_Serie(i).Values->Item(j))) ' + 1
+								sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_LabelsFormat)) ' + 1
 								sDisplay = Replace(sDisplay, "{LF}", Chr(10))
 								TextHeight = ScaleX(Canvas.TextHeight(sDisplay)) * 1.3
 								TextWidth = ScaleY(Canvas.TextWidth(sDisplay)) * 1.5
-								If (TextWidth > .Right Or m_LabelsPositions = LP_ABOVE) And m_ChartStyle = CS_GroupedColumn Then
+								If (TextWidth > .Right Or m_LabelsPositions = LP_Outside) And m_ChartStyle = CS_GroupedColumn Then
 									.Left = .Left + .Right + PT16 / 10
 									.Right = TextWidth
 									lColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
@@ -3507,7 +3519,7 @@ Namespace My.Sys.Forms
 								End If
 								
 								
-								DrawText sDisplay, .Left, .Top, .Right, .Bottom, This.Font, lColor, m_LabelsPositions, cMiddle
+								DrawText sDisplay, .Left, .Top, .Right, .Bottom, This.Font, lColor, m_LabelsAlignments, cMiddle
 							End With
 						Next
 					Next
@@ -3938,6 +3950,14 @@ Namespace My.Sys.Forms
 		
 		IsDarkColor = ((CLng(bBGRA(0)) + (CLng(bBGRA(1) * 3)) + CLng(bBGRA(2))) / 2) < 382
 		
+	End Function
+	
+	Private Function Chart.FormatLabel(ByVal numerical_expression As Double, ByRef formatting_expression As WString = "") As UString
+		If formatting_expression = "" Then
+			Return WStr(numerical_expression)
+		Else
+			Return Format(numerical_expression, formatting_expression)
+		End If
 	End Function
 	
 	Private Sub Chart.Example()
