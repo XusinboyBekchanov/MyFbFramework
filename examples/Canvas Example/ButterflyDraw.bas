@@ -9,6 +9,7 @@
 	#include once "mff/Textbox.bi"
 	#include once "mff/Pen.bi"
 	Using My.Sys.Forms
+	Using My.Sys.Drawing
 	
 	Type Form1Type Extends Form
 		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
@@ -298,17 +299,17 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		Next
 		
 		'绘制不同模式的直线
-		.DrawWidth = 3 '设置画笔宽度
-		.Pen.Style = 0 'PenStyle.psDashDot
+		.DrawWidth = 1 '设置画笔宽度
+		.Pen.Style = PenStyle.psSolid
 		.Line(-10, -10, -100, -10)
 		
-		.Pen.Style = 1 'PenStyle.psDashDot
+		.Pen.Style = PenStyle.psDash
 		.Line(-10, -20, -100, -20)
 		
-		.Pen.Style = 3 'PenStyle.psDashDot
+		.Pen.Style = PenStyle.psDashDot
 		.Line -10, -30, -100, -30
 		
-		.Pen.Style = 4 'PenStyle.psDashDot
+		.Pen.Style = PenStyle.psDashDotDot
 		.Line -10, -40, -100, -40
 		
 		.DrawWidth = 2 '设置画笔宽度
@@ -340,13 +341,15 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		'绘制不同填充模式的矩形
 		.Pen.Size = 1
 		.Pen.Color = clGreen
-		.Brush.Style = 0
+		.Brush.Color = clRed
+		.Brush.Style = BrushStyles.bsHatch
+		.Brush.HatchStyle = HatchStyles.hsFDiagonal
 		.Rectangle(20, -20, 60, -30) ' HS_BDIAGONAL, RGB(255, 0, 0));
-		.Brush.Style = 1
+		.Brush.HatchStyle = HatchStyles.hsCross
 		.Rectangle(20, -40, 60, -50) ' HS_CROSS, RGB(0, 255, 0));
-		.Brush.Style = 2
+		.Brush.HatchStyle = HatchStyles.hsDiagCross
 		.Rectangle(20, -60, 60, -70) ' HS_DIAGCROSS, RGB(0, 0, 255));
-		.Brush.Style = 3
+		.Brush.HatchStyle = HatchStyles.hsVertical
 		.Rectangle(20, -80, 60, -90) ' HS_VERTICAL, RGB(0, 0, 0));
 		
 		'绘制位图

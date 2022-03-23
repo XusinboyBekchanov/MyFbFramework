@@ -41,8 +41,8 @@ Namespace My.Sys.Drawing
 	Private Function Brush.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "color": This.Color = QInteger(Value)
-		Case "style": This.Style = QInteger(Value)
-		Case "hatchstyle": This.HatchStyle = QInteger(Value)
+		Case "style": This.Style = *Cast(BrushStyles Ptr, Value)
+		Case "hatchstyle": This.HatchStyle = *Cast(HatchStyles Ptr, Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -57,20 +57,20 @@ Namespace My.Sys.Drawing
 		Create
 	End Property
 	
-	Private Property Brush.Style As Integer
+	Private Property Brush.Style As BrushStyles
 		Return FStyle
 	End Property
 	
-	Private Property Brush.Style(Value As Integer)
+	Private Property Brush.Style(Value As BrushStyles)
 		FStyle = Value
 		Create
 	End Property
 	
-	Private Property Brush.HatchStyle As Integer
+	Private Property Brush.HatchStyle As HatchStyles
 		Return FHatchStyle
 	End Property
 	
-	Private Property Brush.HatchStyle(Value As Integer)
+	Private Property Brush.HatchStyle(Value As HatchStyles)
 		FHatchStyle = Value
 		Create
 	End Property

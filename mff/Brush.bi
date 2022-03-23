@@ -14,14 +14,14 @@
 
 Namespace My.Sys.Drawing
 	#ifdef __USE_WINAPI__
-		Private Enum BrushStyle
+		Private Enum BrushStyles
 			bsSolid   = BS_SOLID
 			bsClear   = BS_NULL
 			bsHatch   = BS_HATCHED
 			bsPattern = BS_PATTERN
 		End Enum
 		
-		Private Enum HatchStyle
+		Private Enum HatchStyles
 			hsHorizontal = HS_HORIZONTAL
 			hsVertical   = HS_VERTICAL
 			hsFDiagonal  = HS_FDIAGONAL
@@ -30,14 +30,14 @@ Namespace My.Sys.Drawing
 			hsDiagCross  = HS_DIAGCROSS
 		End Enum
 	#else
-		Private Enum BrushStyle
+		Private Enum BrushStyles
 			bsSolid
 			bsClear
 			bsHatch
 			bsPattern
 		End Enum
 		
-		Private Enum HatchStyle
+		Private Enum HatchStyles
 			hsHorizontal
 			hsVertical
 			hsFDiagonal
@@ -50,8 +50,8 @@ Namespace My.Sys.Drawing
 	Private Type Brush Extends My.Sys.Object
 	Private:
 		FColor       As Integer
-		FStyle       As BrushStyle
-		FHatchStyle  As HatchStyle
+		FStyle       As BrushStyles
+		FHatchStyle  As HatchStyles
 		Declare Sub Create
 	Public:
 		#ifdef __USE_WINAPI__
@@ -62,10 +62,10 @@ Namespace My.Sys.Drawing
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property Color As Integer
 		Declare Property Color(Value As Integer)
-		Declare Property Style As Integer 'BrushStyle
-		Declare Property Style(Value As Integer)
-		Declare Property HatchStyle As Integer 'HatchStyle
-		Declare Property HatchStyle(Value As Integer)
+		Declare Property Style As BrushStyles
+		Declare Property Style(Value As BrushStyles)
+		Declare Property HatchStyle As HatchStyles
+		Declare Property HatchStyle(Value As HatchStyles)
 		Declare Operator Cast As Any Ptr
 		OnCreate As Sub(ByRef Sender As Brush)
 		Declare Constructor
