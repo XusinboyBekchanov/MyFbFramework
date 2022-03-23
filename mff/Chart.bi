@@ -160,6 +160,7 @@ Namespace My.Sys.Forms
 		Dim m_LabelsAlignments As LabelsAlignments
 		Dim m_LabelsFormat As UString
 		Dim m_LabelsFormats As UString
+		Dim m_ToolTipsFormat As UString
 		Dim m_BorderColor As ULong
 		Dim m_BorderRound As Long
 		Dim m_Rotation  As Long
@@ -324,6 +325,8 @@ Namespace My.Sys.Forms
 		Declare Property SeparatorLineColor(ByVal New_Value As ULong)
 		Declare Property Rotation() As Long
 		Declare Property Rotation(ByVal New_Value As Long)
+		Declare Property ToolTipsFormat() ByRef As WString
+		Declare Property ToolTipsFormat(ByRef New_Value As WString)
 		Declare Function GetWindowsDPI() As Double
 		Declare Sub Refresh()
 		Declare Operator Cast As My.Sys.Forms.Control Ptr

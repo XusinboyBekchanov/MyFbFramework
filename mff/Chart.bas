@@ -53,6 +53,7 @@ Namespace My.Sys.Forms
 		Case "title": Return m_Title.vptr
 		Case "titlefont": Return @m_TitleFont
 		Case "titleforecolor": Return @m_TitleForeColor
+		Case "tooltipsformat": Return m_ToolTipsFormat.vptr
 		Case "verticallines": Return @m_VerticalLines
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -96,6 +97,7 @@ Namespace My.Sys.Forms
 				'Case "special": Special = QBoolean(Value)
 			Case "title": Title = QWString(Value)
 			Case "titleforecolor": TitleForeColor = QInteger(Value)
+			Case "tooltipsformat": ToolTipsFormat = QWString(Value)
 			Case "verticallines": VerticalLines = QBoolean(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
@@ -292,6 +294,15 @@ Namespace My.Sys.Forms
 	
 	Private Property Chart.LabelsFormats(ByRef New_Value As WString)
 		m_LabelsFormats = New_Value
+		Refresh
+	End Property
+	
+	Private Property Chart.ToolTipsFormat() ByRef As WString
+		Return *m_ToolTipsFormat.vptr
+	End Property
+	
+	Private Property Chart.ToolTipsFormat(ByRef New_Value As WString)
+		m_ToolTipsFormat = New_Value
 		Refresh
 	End Property
 	
@@ -3673,7 +3684,7 @@ Namespace My.Sys.Forms
 					
 					For j = 0 To m_Serie(i).Values->Count - 1
 						If mHotBar = j Then ' - 1
-							sDisplay = Replace(m_LabelsFormats, "{V}", WStr(m_Serie(i).Values->Item(j)))
+							sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_ToolTipsFormat))
 							sDisplay = Replace(sDisplay, "{LF}", Chr(10))
 							sText = sText & m_Serie(i).SerieName & ": " & sDisplay & Chr(13, 10)
 						End If
@@ -3717,7 +3728,7 @@ Namespace My.Sys.Forms
 						If mHotBar = j Then  'mHotSerie = I And ' - 1
 							
 							
-							sDisplay = Replace(m_LabelsFormats, "{V}", WStr(m_Serie(i).Values->Item(j)))
+							sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_ToolTipsFormat))
 							sDisplay = Replace(sDisplay, "{LF}", Chr(10))
 							'sText =  & sDisplay
 							
@@ -3779,7 +3790,7 @@ Namespace My.Sys.Forms
 							If cAxisItem->Count = m_Serie(i).Values->Count Then
 								sText = cAxisItem->Item(j) & Chr(13, 10)
 							End If
-							sDisplay = Replace(m_LabelsFormats, "{V}", WStr(m_Serie(i).Values->Item(j)))
+							sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_ToolTipsFormat))
 							sDisplay = Replace(sDisplay, "{LF}", Chr(10))
 							sText = sText & m_Serie(i).SerieName & ": " & sDisplay
 							
