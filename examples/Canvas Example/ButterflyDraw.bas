@@ -1,5 +1,5 @@
 ﻿#ifdef __FB_WIN32__
-	'#Compile "Form1.rc"
+	''#Compile "Form1.rc"
 #endif
 '#Region "Form"
 	#include once "mff/Form.bi"
@@ -7,7 +7,7 @@
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Picture.bi"
 	#include once "mff/Textbox.bi"
-	
+	#include once "mff/Pen.bi"
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
@@ -17,9 +17,13 @@
 		Declare Sub Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Static Sub Form_Resize_(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Static Sub cmdGDIDraw_Click_(ByRef Sender As Control)
+		Declare Sub cmdGDIDraw_Click(ByRef Sender As Control)
+		Declare Static Sub cmdGDICls_Click_(ByRef Sender As Control)
+		Declare Sub cmdGDICls_Click(ByRef Sender As Control)
 		Declare Constructor
 		
-		Dim As CommandButton CommandButton1
+		Dim As CommandButton CommandButton1, cmdGDIDraw, cmdGDICls
 		Dim As Picture Picture1
 		Dim As TextBox Text1(1), Text2(1), Text3(1), Text4(1), Text5(1)
 	End Type
@@ -36,13 +40,13 @@
 		' CommandButton1
 		With CommandButton1
 			.Name = "CommandButton1"
-			.Text = "Start Draw" '"开始绘画"
+			.Text = "Start Draw"  '"开始绘画"
 			.TabIndex = 1
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.Anchor.Top = AnchorStyle.asNone
 			.Anchor.Left = AnchorStyle.asAnchor
-			.Anchor.Right = AnchorStyle.asAnchor
-			.SetBounds 30, 230, 280, 30
+			.Anchor.Right = AnchorStyle.asNone
+			.SetBounds 17, 231, 140, 30
 			.Designer = @This
 			.OnClick = @CommandButton1_Click_
 			.Parent = @This
@@ -142,7 +146,42 @@
 			.SetBounds 280, 30, 40, 20
 			.Parent = @This
 		End With
+		' cmdGDIDraw
+		With cmdGDIDraw
+			.Name = "cmdGDIDraw"
+			.Text = "Scale"
+			.TabIndex = 12
+			.Anchor.Top = AnchorStyle.asNone
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asNone
+			.Anchor.Left = AnchorStyle.asAnchor
+			.SetBounds 167, 231, 79, 30
+			.Designer = @This
+			.OnClick = @cmdGDIDraw_Click_
+			.Parent = @This
+		End With
+		' cmdGDICls
+		With cmdGDICls
+			.Name = "cmdGDICls"
+			.Text = "Cls"
+			.TabIndex = 13
+			.Caption = "Cls"
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.SetBounds 250, 231, 79, 30
+			.Designer = @This
+			.OnClick = @cmdGDICls_Click_
+			.Parent = @This
+		End With
 	End Constructor
+	
+	Private Sub Form1Type.cmdGDICls_Click_(ByRef Sender As Control)
+		*Cast(Form1Type Ptr, Sender.Designer).cmdGDICls_Click(Sender)
+	End Sub
+	
+	Private Sub Form1Type.cmdGDIDraw_Click_(ByRef Sender As Control)
+		*Cast(Form1Type Ptr, Sender.Designer).cmdGDIDraw_Click(Sender)
+	End Sub
 	
 	Private Sub Form1Type.Form_Resize_(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		*Cast(Form1Type Ptr, Sender.Designer).Form_Resize(Sender, NewWidth, NewHeight)
@@ -168,62 +207,63 @@
 '#End Region
 
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
-    Dim As Double A(1), B(1), C(1), D(1), E(1), X, Y
-    Dim T As Long = GetTickCount
-    Picture1.Style= 16
-    
-    ' Coordination  坐标系统
-    'Me.Cls
-    'Picture1.Canvas.Pen.Color = clBlack 
-    'Picture1.BackColor = clBlack  
-    CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
-    'Picture1.Visible = False
-    Picture1.Canvas.GetDevice
-    Picture1.Canvas.CreateDoubleBuffer
-    
-    Picture1.Canvas.Scale(-10, -10, 10, 10)
-    'Picture1.Canvas.Scale(0, 0, 310, 170)
-    Picture1.Canvas.Pen.Color = clGreen 
-    ' draw across  画十字线条
-    Picture1.Canvas.Line -10 , 0 , 10 , 00 
-    Picture1.Canvas.Line 0 , -10 , 0 , 10 
-    Picture1.Canvas.TextOut 10 , 0, "1", clGreen , -1
-    Picture1.Canvas.TextOut 10, 20 - 2, "2", clGreen , -1
-    Picture1.Canvas.TextOut 000 , 10, "3", clGreen , -1
-    Picture1.Canvas.TextOut 20 - 3 , 1000, "4", clGreen , -1
-    Picture1.Canvas.TextOut 1 , 1, "0", clGreen , -1
-    
-    ' drawing arrow  化箭头
-'    Picture1.Canvas.Line 0 , 1000 , -125 , 950 
-'    Picture1.Canvas.Line 0 , 1000 , 125 , 950 
-'    Picture1.Canvas.Line 1000 , 0 , 950 , 125 
-'    Picture1.Canvas.Line 1000 , 0 , 950 , -125 
-    '
-    A(0) = Val(Text1(0).Text): A(1) = Val(Text1(1).Text)
-    B(0) = Val(Text2(0).Text): B(1) = Val(Text2(1).Text)
-    C(0) = Val(Text3(0).Text): C(1) = Val(Text3(1).Text)
-    D(0) = Val(Text4(0).Text): D(1) = Val(Text4(1).Text)
-    E(0) = Val(Text5(0).Text): E(1) = Val(Text5(1).Text)
-    '
-    If A(0) < 1 Then A(0) = 1: If A(1) < 1 Then A(1) = 1
-    If D(0) < 1 Then D(0) = 1: If D(1) < 1 Then D(1) = 1
-    If E(0) < 1 Then E(0) = 1: If E(1) < 1 Then E(1) = 1
-
-    For i As Long = -72000 To 72000 'Step  0.1
-        x = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0))) 
-        y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1))) 
-        Picture1.Canvas.SetPixel x, y, clRed
-        'Picture1.Canvas.TextOut 20, 20, Str(i), clYellow, -1
-    Next
-    Picture1.Canvas.TextOut - 9, -9, "Elapsed Time: " & GetTickCount - t & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1  
-    'Picture1.Visible = True
-    Picture1.Canvas.TransferDoubleBuffer
-    Picture1.Canvas.DeleteDoubleBuffer
-    Picture1.Canvas.ReleaseDevice
-    
-    
-    CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" '
-
+	Dim As Double A(1), B(1), C(1), D(1), E(1), X, Y
+	Dim T As Long = GetTickCount
+	' Coordination  坐标系统
+	'Me.Cls
+	'.Pen.Color = clBlack
+	'Picture1.BackColor = clBlack
+	CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
+	'Picture1.Visible = False
+	Picture1.Style = 16
+	With Picture1.Canvas
+		.GetDevice
+		.CreateDoubleBuffer
+		.Scale(-10, -10, 10, 10)
+		.Pen.Color = clGreen
+		.Pen.Size = 2
+		.Pen.Style = 3 'PenStyle.psDashDot
+		'.Pen.Mode = PenMode.pmMerge
+		' draw across  画十字线条
+		.Line -10 , 0 , 10 , 00
+		.Line 0 , -10 , 0 , 10
+		.TextOut 10 , 0, "1", clGreen , -1
+		.TextOut 10, 20 - 2, "2", clGreen , -1
+		.TextOut 00 , 10, "3", clGreen , -1
+		.TextOut 20 - 3 , 1000, "4", clGreen , -1
+		.TextOut 1 , 1, "0", clGreen , -1
+		
+		' drawing arrow  化箭头
+		'    .Line 0 , 1000 , -125 , 950
+		'    .Line 0 , 1000 , 125 , 950
+		'    .Line 1000 , 0 , 950 , 125
+		'    .Line 1000 , 0 , 950 , -125
+		'
+		A(0) = Val(Text1(0).Text): A(1) = Val(Text1(1).Text)
+		B(0) = Val(Text2(0).Text): B(1) = Val(Text2(1).Text)
+		C(0) = Val(Text3(0).Text): C(1) = Val(Text3(1).Text)
+		D(0) = Val(Text4(0).Text): D(1) = Val(Text4(1).Text)
+		E(0) = Val(Text5(0).Text): E(1) = Val(Text5(1).Text)
+		'
+		If A(0) < 1 Then A(0) = 1: If A(1) < 1 Then A(1) = 1
+		If D(0) < 1 Then D(0) = 1: If D(1) < 1 Then D(1) = 1
+		If E(0) < 1 Then E(0) = 1: If E(1) < 1 Then E(1) = 1
+		
+		For i As Long = -72000 To 72000 'Step  0.1
+			x = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0)))
+			y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1)))
+			.SetPixel x, y, clRed
+			'.TextOut 20, 20, Str(i), clYellow, -1
+		Next
+		.TextOut - 9, -9, "Elapsed Time: " & GetTickCount - t & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
+		'Picture1.Visible = True
+		.TransferDoubleBuffer
+		.DeleteDoubleBuffer
+		'.ReleaseDevice
+	End With
+	
+	CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" '
+	
 	
 	'
 End Sub
@@ -234,4 +274,98 @@ End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	Picture1.BackColor = clBlack
+End Sub
+
+Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
+	Picture1.Style = 16
+	With Picture1.Canvas
+		.GetDevice
+		.CreateDoubleBuffer
+		.Scale(-100, 100, 100, -100)
+		.Pen.Color = clGreen
+		.Pen.Size = 1
+		.Pen.Style = 3 'PenStyle.psDashDot
+		.Line (-100, 0, 100, 0) '画X轴
+		.Line (0, 100, 0, -100) '画Y轴
+		
+		.Circle (0, 0, 5) '绘制红色圆心
+		.TextOut 0,  0, "(0,0)" , clGreen, -1 '原点坐标
+		.TextOut 90, 10, "X轴", clGreen, -1    '标记X轴
+		.TextOut 5, 95,  "Y轴", clGreen, -1     '标记Y轴
+		
+		For i As Integer = 10 To 50 Step 4
+			.SetPixel(i, 10, clRed) '绘制像素点
+		Next
+		
+		'绘制不同模式的直线
+		.DrawWidth = 3 '设置画笔宽度
+		.Pen.Style = 0 'PenStyle.psDashDot
+		.Line(-10, -10, -100, -10)
+		
+		.Pen.Style = 1 'PenStyle.psDashDot
+		.Line(-10, -20, -100, -20)
+		
+		.Pen.Style = 3 'PenStyle.psDashDot
+		.Line -10, -30, -100, -30
+		
+		.Pen.Style = 4 'PenStyle.psDashDot
+		.Line -10, -40, -100, -40
+		
+		.DrawWidth = 2 '设置画笔宽度
+		.Pen.Style = 0
+		'绘制弧线、弦割线、饼图
+		.Arc(30, 50, 70, 80, 70, 60, 30, 60)
+		.Chord(10, 60, 40, 80, 40, 60, 10, 70)
+		.Pie(20, 70, 40, 50, 60, 80, 40, 60)
+		
+		Dim As Point pt(4) = {(-60, + 20), (-90, + 110), (-10, 0), (-30, 70)}
+		'{{90, 130}, {60, 40}, {140, 150}, {160, 80}}
+		'//绘制椭圆、矩形
+		.Ellipse(pt(0).X, pt(0).y, pt(1).X, pt(0).y)
+		.Rectangle(pt(2).X, pt(2).y, pt(3).X, pt(3).y)
+		
+		'绘制贝塞尔曲线
+		.Pen.Color = clRed
+		.DrawWidth = 2  'DrawWidth
+		.PolyBeizer(pt(), 4)
+		'标出贝塞尔曲线的四个锚点
+		.Circle(pt(0).x, pt(0).y, 4)
+		.Circle(pt(1).x, pt(1).y, 4)
+		.Circle(pt(2).x, pt(2).y, 4)
+		.Circle(pt(3).x, pt(3).y, 4)
+		
+		'绘制圆
+		.Circle(0, 00, 30)
+		
+		'绘制不同填充模式的矩形
+		.Pen.Size = 1
+		.Pen.Color = clGreen
+		.Brush.Style = 0
+		.Rectangle(20, -20, 60, -30) ' HS_BDIAGONAL, RGB(255, 0, 0));
+		.Brush.Style = 1
+		.Rectangle(20, -40, 60, -50) ' HS_CROSS, RGB(0, 255, 0));
+		.Brush.Style = 2
+		.Rectangle(20, -60, 60, -70) ' HS_DIAGCROSS, RGB(0, 0, 255));
+		.Brush.Style = 3
+		.Rectangle(20, -80, 60, -90) ' HS_VERTICAL, RGB(0, 0, 0));
+		
+		'绘制位图
+		'DrawBmpRect(180, 140, 180, 100, TEXT("chenggong.bmp"));
+		
+		'绘制文本
+		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
+		.TransferDoubleBuffer
+		.DeleteDoubleBuffer
+		.ReleaseDevice
+	End With
+End Sub
+
+Private Sub Form1Type.cmdGDICls_Click(ByRef Sender As Control)
+	With Picture1.Canvas
+		.GetDevice
+		.Cls(50, -20, 60, -40)
+		Sleep(200)
+		.Cls 
+		.ReleaseDevice
+	End With
 End Sub
