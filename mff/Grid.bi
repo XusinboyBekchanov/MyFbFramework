@@ -53,7 +53,23 @@ End Enum
 Namespace My.Sys.Forms
 	#define QGrid(__Ptr__) *Cast(Grid Ptr,__Ptr__)
 	#define QGridRow(__Ptr__) *Cast(GridRow Ptr, __Ptr__)
+	#define QGridCell(__Ptr__) *Cast(GridCell Ptr, __Ptr__)
 	#define QGridColumn(__Ptr__) *Cast(GridColumn Ptr,__Ptr__)
+	
+	Type PGridRow As GridRow Ptr
+	Type PGridColumn As GridColumn Ptr
+	
+	Private Type GridCell Extends My.Sys.Object
+	Public:
+		Column As PGridColumn
+		Parent As Control Ptr
+		Row As PGridRow
+		Tag As Any Ptr
+		Declare Sub SelectItem
+		Declare Property Text ByRef As WString
+		Declare Property Text(ByRef Value As WString)
+		Declare Operator Cast As Any Ptr
+	End Type
 	
 	Private Type GridRow Extends My.Sys.Object
 	Private:
@@ -80,10 +96,7 @@ Namespace My.Sys.Forms
 		Tag As Any Ptr
 		Declare Sub SelectItem
 		Declare Function Index As Integer
-		Declare Property TabIndex As Integer
-		Declare Property TabIndex(Value As Integer)
-		Declare Property TabStop As Boolean
-		Declare Property TabStop(Value As Boolean)
+		Declare Function Item(ColumnIndex As Integer) As GridCell Ptr
 		Declare Property Text(iColumn As Integer) ByRef As WString
 		Declare Property Text(iColumn As Integer, ByRef Value As WString)
 		Declare Property Hint ByRef As WString
@@ -106,6 +119,7 @@ Namespace My.Sys.Forms
 		Declare Property Indent(Value As Integer)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
+		Declare Operator [](ColumnIndex As Integer) ByRef As GridCell
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
@@ -244,6 +258,7 @@ Namespace My.Sys.Forms
 		GroupHeaderImages       As ImageList Ptr
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Operator [](RowIndex As Integer) ByRef As GridRow
 		Declare Property AllowColumnReorder As Boolean
 		Declare Property AllowColumnReorder(Value As Boolean)
 		Declare Property ColumnHeaderHidden As Boolean

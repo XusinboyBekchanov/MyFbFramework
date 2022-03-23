@@ -18,6 +18,13 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
+	Private Sub GridCell.SelectItem
+		With *Cast(Grid Ptr, Parent)
+			.SelectedColumn = Column
+			.SelectedRow = Row
+		End With
+	End Sub
+	
 	Private Sub GridRow.SelectItem
 		#ifdef __USE_GTK__
 			If Parent Then
@@ -36,6 +43,36 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
+	
+	Private Function GridRow.Item(ColumnIndex As Integer) As GridCell Ptr
+		Dim ic As Integer = FColumns.Count
+		Dim cc As Integer = Cast(Grid Ptr, Parent)->Columns.Count
+		If ic < cc Then
+			For i As Integer = ic + 1 To cc
+				FColumns.Add ""
+			Next i
+		End If
+		If ColumnIndex < FColumns.Count Then
+			Dim As GridCell Ptr Cell = FColumns.Object(ColumnIndex)
+			If Cell = 0 Then
+				Cell = New GridCell
+				Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(ColumnIndex)
+				Cell->Row = Cast(Grid Ptr, Parent)->Rows.Item(Index)
+				Cell->Parent = Parent
+			End If
+			Return Cell
+		Else
+			Return 0
+		End If
+	End Function
+	
+	Private Property GridCell.Text ByRef As WString
+		Return Row->Text(Column->Index)
+	End Property
+	
+	Private Property GridCell.Text(ByRef Value As WString)
+		Row->Text(Column->Index) = Value
+	End Property
 	
 	Private Property GridRow.Text(iColumn As Integer) ByRef As WString
 		#ifdef __USE_GTK__
@@ -253,6 +290,10 @@ Namespace My.Sys.Forms
 			End If
 		End If
 	End Property
+	
+	Private Operator GridRow.[](ColumnIndex As Integer) ByRef As GridCell
+		Return *Item(ColumnIndex)
+	End Operator
 	
 	Private Operator GridRow.Cast As Any Ptr
 		Return @This
@@ -1493,6 +1534,10 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 	#endif
+	
+	Private Operator Grid.[](RowIndex As Integer) ByRef As GridRow
+		Return *Rows.Item(RowIndex)
+	End Operator
 	
 	Private Operator Grid.Cast As Control Ptr
 		Return @This
