@@ -30,10 +30,14 @@
 			.Parent = @This
 			.Columns.Add "Column 1", , 150
 			.Columns.Add "Column 2", , 150
+			.Columns[1].Tag = @"0"
 			.Rows.Add "Row 1 Column 1"
 			.Rows.Add "Row 2 Column 1"
+			.Rows.Add "Row 3 Column 1"
 			Grid1[0][1].Text = "Row 1 Column 2"
 			Grid1[1][1].Text = "Row 2 Column 2"
+			.Rows[2][1].Text = "Row 3 Column 2"
+			.Rows[2].Tag = @"1"
 		End With
 	End Constructor
 	

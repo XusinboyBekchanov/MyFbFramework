@@ -141,7 +141,8 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeViewColumn Ptr Column
 		#endif
 		Index As Integer
-		Parent   As Control Ptr
+		Parent As Control Ptr
+		Tag As Any Ptr
 		Declare Sub SelectItem
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
@@ -187,6 +188,7 @@ Namespace My.Sys.Forms
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
 		Declare Sub Sort
+		Declare Operator [](Index As Integer) ByRef As GridRow
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
@@ -210,6 +212,7 @@ Namespace My.Sys.Forms
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
 		Declare Sub Clear
+		Declare Operator [](Index As Integer) ByRef As GridColumn
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor

@@ -625,6 +625,10 @@ Namespace My.Sys.Forms
 		FItems.Clear
 	End Sub
 	
+	Private Operator GridRows.[](Index As Integer) ByRef As GridRow
+		Return *Item(Index)
+	End Operator
+	
 	Private Operator GridRows.Cast As Any Ptr
 		Return @This
 	End Operator
@@ -806,6 +810,10 @@ Namespace My.Sys.Forms
 		Next i
 		FColumns.Clear
 	End Sub
+	
+	Private Operator GridColumns.[](Index As Integer) ByRef As GridColumn
+		Return *Column(Index)
+	End Operator
 	
 	Private Operator GridColumns.Cast As Any Ptr
 		Return @This
