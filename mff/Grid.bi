@@ -261,7 +261,7 @@ Namespace My.Sys.Forms
 		GroupHeaderImages       As ImageList Ptr
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Operator [](RowIndex As Integer) ByRef As GridRow
+		Declare Function Cell(RowIndex As Integer, ColumnIndex As Integer) As GridCell Ptr
 		Declare Property AllowColumnReorder As Boolean
 		Declare Property AllowColumnReorder(Value As Boolean)
 		Declare Property ColumnHeaderHidden As Boolean
@@ -293,6 +293,7 @@ Namespace My.Sys.Forms
 		'Gets or sets a value indicating whether an row is automatically selected when the mouse pointer remains over the item for a few seconds.
 		Declare Property HoverSelection As Boolean
 		Declare Property HoverSelection(Value As Boolean)
+		Declare Operator [](RowIndex As Integer) ByRef As GridRow
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

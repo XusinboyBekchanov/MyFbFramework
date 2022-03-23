@@ -920,6 +920,10 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Function Grid.Cell(RowIndex As Integer, ColumnIndex As Integer) As GridCell Ptr
+		Return Rows.Item(RowIndex)->Item(ColumnIndex)
+	End Function
+	
 	Private Sub Grid.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		#ifndef __USE_GTK__
 			If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
