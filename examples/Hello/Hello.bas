@@ -1,10 +1,10 @@
-﻿#IfDef __FB_Win32__
+﻿#ifdef __FB_WIN32__
 	'#Compile -exx -s gui "Example.rc"
-#Else
+#else
 	'#Compile -exx
-#EndIf
-#Include "mff/Form.bi"
-#Include "mff/CommandButton.bi"
+#endif
+#include "mff/Form.bi"
+#include "mff/CommandButton.bi"
 
 Using My.Sys.Forms
 
@@ -19,7 +19,7 @@ cmd.SetBounds 100, 100, 150, 30
 cmd.OnClick = @cmd_Click
 frm.Add @cmd
 
-frm.Center
+frm.CenterToScreen
 frm.Show
 
 App.Run
