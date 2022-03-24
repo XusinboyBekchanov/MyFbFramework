@@ -311,6 +311,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor GridRow
+		For i As Integer = 0 To FColumns.Count - 1
+			If FColumns.Object(i) <> 0 Then Delete_(Cast(GridCell Ptr, FColumns.Object(i)))
+		Next
 		If FHint Then Deallocate_( FHint)
 		If FText Then Deallocate_( FText)
 	End Destructor
