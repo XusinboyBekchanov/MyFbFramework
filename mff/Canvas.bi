@@ -50,6 +50,11 @@ Namespace My.Sys.Drawing
 			cmSrcPaint    = SRCPAINT
 			cmWithness    = WHITENESS
 		End Enum
+		
+		Private Enum BackMode
+			bmOpaque        = OPAQUE
+			bmTransparent   = TRANSPARENT
+		End Enum
 	#else
 		Private Enum FillStyle
 			fsSurface
@@ -73,6 +78,11 @@ Namespace My.Sys.Drawing
 			cmSrcPaint
 			cmWithness
 		End Enum
+		
+		Private Enum BackMode
+			bmOpaque
+			bmTransparent
+		End Enum
 	#endif
 	
 	Private Type Canvas Extends My.Sys.Object
@@ -81,16 +91,18 @@ Namespace My.Sys.Drawing
 		Declare Static Sub Font_Create(ByRef Sender As Font)
 		Declare Static Sub Pen_Create(ByRef Sender As Pen)
 		Declare Static Sub Brush_Create(ByRef Sender As Brush)
-		iTemp        As Integer
-		FBackColor   As Integer 
-		FDrawWidth   As Integer 
-		FScaleWidth  As Long 
-		FScaleHeight As Long
+		iTemp           As Integer
+		FBackColor      As Integer 
+		FDrawBackColor  As Integer 
+		FDrawBackMode   As BackMode
+		FDrawWidth      As Integer 
+		FScaleWidth     As Long 
+		FScaleHeight    As Long
 		 
-		imgScaleX    As Double 
-		imgScaleY    As Double
-		imgOffsetX   As Double 
-		imgOffsetY   As Double
+		imgScaleX       As Double 
+		imgScaleY       As Double
+		imgOffsetX      As Double 
+		imgOffsetY      As Double
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
@@ -133,6 +145,10 @@ Namespace My.Sys.Drawing
 		Declare Property ScaleHeight As Integer
 		Declare Property DrawWidth As Integer
 		Declare Property DrawWidth(Value As Integer)
+		Declare Property DrawBackColor As Integer
+		Declare Property DrawBackColor(Value As Integer)
+		Declare Property DrawBackMode As BackMode
+		Declare Property DrawBackMode(Value As BackMode)
 		Declare Sub Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
 		Declare Sub MoveTo(x As Double,y As Double)
 		Declare Sub LineTo(x As Double,y As Double)

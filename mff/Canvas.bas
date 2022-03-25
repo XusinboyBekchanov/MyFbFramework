@@ -48,6 +48,28 @@ Namespace My.Sys.Drawing
 		FBackColor = Value
 	End Property
 	
+	Private Property Canvas.DrawBackColor As Integer
+		Return FDrawBackColor
+	End Property
+	
+	Private Property Canvas.DrawBackColor(Value As Integer)
+		FDrawBackColor = Value
+		#ifdef __USE_WINAPI__
+			SetBkColor Handle, FDrawBackColor
+		#endif
+	End Property
+	
+	Private Property Canvas.DrawBackMode As BackMode
+		Return FDrawBackMode
+	End Property
+	
+	Private Property Canvas.DrawBackMode(Value As BackMode)
+		FDrawBackMode = Value
+		#ifdef __USE_WINAPI__
+			SetBkMode Handle, FDrawBackMode
+		#endif
+	End Property
+	
 	Private Property Canvas.Width As Integer
 		If ParentControl Then
 			Return ParentControl->Width
