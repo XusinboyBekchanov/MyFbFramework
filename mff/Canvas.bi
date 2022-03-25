@@ -13,7 +13,7 @@
 #include once "Component.bi"
 
 Namespace My.Sys.Drawing
-	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr,__Ptr__)
+	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr, __Ptr__)
 	
 	Private Type Rect
 		Left As Long
@@ -82,6 +82,7 @@ Namespace My.Sys.Drawing
 		Declare Static Sub Pen_Create(ByRef Sender As Pen)
 		Declare Static Sub Brush_Create(ByRef Sender As Brush)
 		iTemp        As Integer
+		FBackColor   As Integer 
 		FDrawWidth   As Integer 
 		FScaleWidth  As Long 
 		FScaleHeight As Long
@@ -123,6 +124,8 @@ Namespace My.Sys.Drawing
 		Declare Property Height As Integer
 		Declare Property Ctrl As My.Sys.ComponentModel.Component Ptr
 		Declare Property Ctrl (Value As My.Sys.ComponentModel.Component Ptr)
+		Declare Property BackColor As Integer
+		Declare Property BackColor(Value As Integer)
 		Declare Property Pixel(xy As Point) As Integer
 		Declare Property Pixel(xy As Point, Value As Integer)
 		Declare Sub Scale(x As Double, y As Double, x1 As Double, y1 As Double)

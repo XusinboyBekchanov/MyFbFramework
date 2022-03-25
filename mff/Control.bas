@@ -583,6 +583,7 @@ Namespace My.Sys.Forms
 				FBackColorGreen = GetGreen(Value) / 255.0
 				FBackColorBlue = GetBlue(Value) / 255.0
 				Brush.Color = FBackColor
+				Canvas.BackColor = FBackColor
 				Invalidate
 			End Property
 			
@@ -2546,7 +2547,7 @@ End Namespace
 		End If
 	End Sub
 	
-	Sub onLayoutChange Alias AddToPackage(Package, mffActivity_onLayoutChange) (ByVal env As JNIEnv Ptr, This_ As jobject, v As jobject, lLeft As jint, tTop As jint, rRight as jint, bBottom as jint, oldLeft as jint, oldTop as jint, oldRight as jint, oldBottom as jint) Export
+	Sub onLayoutChange Alias AddToPackage(Package, mffActivity_onLayoutChange) (ByVal env As JNIEnv Ptr, This_ As jobject, v As jobject, lLeft As jint, tTop As jint, rRight As jint, bBottom As jint, oldLeft As jint, oldTop As jint, oldRight As jint, oldBottom As jint) Export
 		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
 		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
 		If Ctrl Then

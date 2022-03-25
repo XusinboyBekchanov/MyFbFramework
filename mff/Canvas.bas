@@ -10,6 +10,7 @@
 '################################################################################
 
 #include once "Canvas.bi"
+#include once "Control.bi"
 
 Namespace My.Sys.Drawing
 	Private Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -39,6 +40,14 @@ Namespace My.Sys.Drawing
 		End Select
 		Return True
 	End Function
+	
+	Private Property Canvas.BackColor As Integer
+		Return FBackColor
+	End Property
+	
+	Private Property Canvas.BackColor(Value As Integer)
+		FBackColor = Value
+	End Property
 	
 	Private Property Canvas.Width As Integer
 		If ParentControl Then
@@ -77,13 +86,13 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
 		If Not HandleSetted Then GetDevice
-		If ParentControl > 0 AndAlso Ctrl > 0 Then
-			Dim As Integer FillColor = clBlack 'Ctrl->BackColor
+		If ParentControl > 0 Then
+			Dim As Integer FillColor = FBackColor
 			#ifdef __USE_GTK__
 				cairo_set_source_rgb(Handle, GetRed(FillColor), GetBlue(FillColor), GetGreen(FillColor))
 				cairo_fill_preserve(Handle)
 			#elseif defined(__USE_WINAPI__)
-				Dim As HBRUSH B = CreateSolidBrush(FillColor)
+				Dim As HBRUSH B ' = CreateSolidBrush(FillColor)
 				Dim As ..Rect R
 				'Dim As HBRUSH OldB = selectobj
 				If x = x1 AndAlso Y = y1 AndAlso X = y Then
