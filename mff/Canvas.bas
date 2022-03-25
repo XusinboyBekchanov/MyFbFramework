@@ -10,7 +10,6 @@
 '################################################################################
 
 #include once "Canvas.bi"
-#include once "Control.bi"
 
 Namespace My.Sys.Drawing
 	Private Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
