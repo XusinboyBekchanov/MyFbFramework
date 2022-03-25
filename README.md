@@ -1,4 +1,4 @@
-# MyFbFramework |<a href="https://github.com/XusinboyBekchanov/MyFbFramework/README_CN.md">中文介绍</a>|<a href="https://github.com/XusinboyBekchanov/MyFbFramework/README.md">English</a>
+# MyFbFramework | <a href="https://github.com/XusinboyBekchanov/MyFbFramework/blob/master/README_CN.md">中文介绍</a> | <a href="https://github.com/XusinboyBekchanov/MyFbFramework/blob/master/README.md">English</a>
 
 ## My FreeBasic Framework
 
