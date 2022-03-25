@@ -1,4 +1,4 @@
-# MyFbFramework |<a href="https://github.com/XusinboyBekchanov/MyFbFramework/README_CN.md">÷–ŒƒΩÈ…‹</a>|<a href="https://github.com/XusinboyBekchanov/MyFbFramework/README.md">English</a>
+# MyFbFramework |<README_CN.md">‰∏≠Êñá‰ªãÁªç</a>|<a href="https://github.com/XusinboyBekchanov/MyFbFramework/README.md">English</a>
 
 ## My FreeBasic Framework
 
