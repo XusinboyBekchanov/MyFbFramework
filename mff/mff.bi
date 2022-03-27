@@ -54,6 +54,7 @@
 #include once "Graphic.bi"
 #include once "Graphics.bi"
 #include once "Grid.bi"
+#include once "GridData.bi"
 #include once "GroupBox.bi"
 #include once "GUI.bi"
 #include once "Header.bi"
@@ -137,6 +138,7 @@ Using My.Sys.Forms
 		Case "datetimepicker": Ctrl = New_( DateTimePicker)
 		Case "form": Ctrl = New_( Form)
 		Case "grid": Ctrl = New_( Grid)
+		Case "griddata": Ctrl = New_( GridData)
 		Case "groupbox": Ctrl = New_( GroupBox)
 		Case "header": Ctrl = New_( Header)
 		Case "hotkey": Ctrl = New_( HotKey)
@@ -242,6 +244,7 @@ Using My.Sys.Forms
 		Case "datetimepicker": Delete_( Cast(DateTimePicker Ptr, Ctrl))
 		Case "form": Delete_( Cast(Form Ptr, Ctrl))
 		Case "grid": Delete_( Cast(Grid Ptr, Ctrl))
+		Case "griddata": Delete_( Cast(GridData Ptr, Ctrl))
 		Case "groupbox": Delete_( Cast(GroupBox Ptr, Ctrl))
 		Case "header": Delete_( Cast(Header Ptr, Ctrl))
 		Case "hotkey": Delete_( Cast(HotKey Ptr, Ctrl))
