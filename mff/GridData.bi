@@ -8,6 +8,7 @@
 #include once "ComboBoxEdit.bi"
 #include once "ListView.bi"
 #include once "ImageList.bi"
+#include once "Grid.bi"
  
 #define CHRCheck WChr(30)
 #define CHRUnCheck WChr(31)
@@ -54,49 +55,49 @@ Private Enum FocusRectEnum
 End Enum
 
 
-Private Enum GridSortStyle
-	ssNone
-	ssSortAscending
-	ssSortDescending
-End Enum
-
-#ifdef __USE_GTK__
-	Private Enum GridColumnFormat
-		gcfLeft
-		gcfRight
-		gcfCenter
-		gcfJustifyMask
-		gcfImage
-		gcfBitmapOnRight
-		gcfColHasImages
-		'cfFixedWidth
-		'cfNoDpiScale
-		'cfFixedRatio
-		'cfLineBreak
-		'cfWrap
-		'cfNoTitle
-		'cfSplitButton
-		'cfTilePlacementMask
-	End Enum
-#else
-	Private Enum GridColumnFormat
-		gcfLeft = LVCFMT_LEFT
-		gcfRight = LVCFMT_RIGHT
-		gcfCenter = LVCFMT_CENTER
-		gcfJustifyMask = LVCFMT_JUSTIFYMASK
-		gcfImage = LVCFMT_IMAGE
-		gcfBitmapOnRight = LVCFMT_BITMAP_ON_RIGHT
-		gcfColHasImages = LVCFMT_COL_HAS_IMAGES
-		'cfFixedWidth = LVCFMT_FIXED_WIDTH
-		'cfNoDpiScale = LVCFMT_NO_DPI_SCALE
-		'cfFixedRatio = LVCFMT_FIXED_RATIO
-		'cfLineBreak = LVCFMT_LINE_BREAK
-		'cfWrap = LVCFMT_WRAP
-		'cfNoTitle = LVCFMT_NO_TITLE
-		'cfSplitButton = LVCFMT_SPLITBUTTON
-		'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
-	End Enum
-#endif
+'Private Enum GridSortStyle
+'	ssNone
+'	ssSortAscending
+'	ssSortDescending
+'End Enum
+'
+'#ifdef __USE_GTK__
+'	Private Enum GridColumnFormat
+'		gcfLeft
+'		gcfRight
+'		gcfCenter
+'		gcfJustifyMask
+'		gcfImage
+'		gcfBitmapOnRight
+'		gcfColHasImages
+'		'cfFixedWidth
+'		'cfNoDpiScale
+'		'cfFixedRatio
+'		'cfLineBreak
+'		'cfWrap
+'		'cfNoTitle
+'		'cfSplitButton
+'		'cfTilePlacementMask
+'	End Enum
+'#else
+'	Private Enum GridColumnFormat
+'		gcfLeft = LVCFMT_LEFT
+'		gcfRight = LVCFMT_RIGHT
+'		gcfCenter = LVCFMT_CENTER
+'		gcfJustifyMask = LVCFMT_JUSTIFYMASK
+'		gcfImage = LVCFMT_IMAGE
+'		gcfBitmapOnRight = LVCFMT_BITMAP_ON_RIGHT
+'		gcfColHasImages = LVCFMT_COL_HAS_IMAGES
+'		'cfFixedWidth = LVCFMT_FIXED_WIDTH
+'		'cfNoDpiScale = LVCFMT_NO_DPI_SCALE
+'		'cfFixedRatio = LVCFMT_FIXED_RATIO
+'		'cfLineBreak = LVCFMT_LINE_BREAK
+'		'cfWrap = LVCFMT_WRAP
+'		'cfNoTitle = LVCFMT_NO_TITLE
+'		'cfSplitButton = LVCFMT_SPLITBUTTON
+'		'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
+'	End Enum
+'#endif
 
 ' Private Enum GridCellFormatEnum
 '   CFBackColor = 1
