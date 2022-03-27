@@ -16,15 +16,15 @@ Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr, __Ptr__)
 	
 	Private Type Rect
-		Left As Integer
-		Top As Integer
-		Right As Integer
-		Bottom As Integer
+		Left As Long
+		Top As Long
+		Right As Long
+		Bottom As Long
 	End Type
 
 	Private Type Point
-		X As Integer
-		Y As Integer
+		X As Long
+		Y As Long
 	End Type
 	
 	#ifdef __USE_WINAPI__
