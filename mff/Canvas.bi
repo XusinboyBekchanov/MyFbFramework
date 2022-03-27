@@ -16,15 +16,15 @@ Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr, __Ptr__)
 	
 	Private Type Rect
-		Left As Long
-		Top As Long
-		Right As Long
-		Bottom As Long
+		Left As Integer
+		Top As Integer
+		Right As Integer
+		Bottom As Integer
 	End Type
 
 	Private Type Point
-		X As Long
-		Y As Long
+		X As Integer
+		Y As Integer
 	End Type
 	
 	#ifdef __USE_WINAPI__
@@ -51,7 +51,7 @@ Namespace My.Sys.Drawing
 			cmWithness    = WHITENESS
 		End Enum
 		
-		Private Enum BackMode
+		Private Enum BrushFillMode
 			bmOpaque        = OPAQUE
 			bmTransparent   = TRANSPARENT
 		End Enum
@@ -79,7 +79,7 @@ Namespace My.Sys.Drawing
 			cmWithness
 		End Enum
 		
-		Private Enum BackMode
+		Private Enum BrushFillMode
 			bmOpaque
 			bmTransparent
 		End Enum
@@ -93,8 +93,8 @@ Namespace My.Sys.Drawing
 		Declare Static Sub Brush_Create(ByRef Sender As Brush)
 		iTemp           As Integer
 		FBackColor      As Integer 
-		FDrawBackColor  As Integer 
-		FDrawBackMode   As BackMode
+		FFillColor  As Integer 
+		FFillMode   As BrushFillMode
 		FDrawWidth      As Integer 
 		FScaleWidth     As Long 
 		FScaleHeight    As Long
@@ -145,19 +145,19 @@ Namespace My.Sys.Drawing
 		Declare Property ScaleHeight As Integer
 		Declare Property DrawWidth As Integer
 		Declare Property DrawWidth(Value As Integer)
-		Declare Property DrawBackColor As Integer
-		Declare Property DrawBackColor(Value As Integer)
-		Declare Property DrawBackMode As BackMode
-		Declare Property DrawBackMode(Value As BackMode)
+		Declare Property FillColor As Integer
+		Declare Property FillColor(Value As Integer)
+		Declare Property FillMode As BrushFillMode
+		Declare Property FillMode(Value As BrushFillMode)
 		Declare Sub Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
 		Declare Sub MoveTo(x As Double,y As Double)
 		Declare Sub LineTo(x As Double,y As Double)
-		Declare Sub Line(x As Double, y As Double, x1 As Double, y1 As Double)
+		Declare Sub Line(x As Double, y As Double, x1 As Double, y1 As Double, FillColorBK As Integer = -1, BF As String = "" )
 		Declare Sub Rectangle Overload(x As Double, y As Double, x1 As Double, y1 As Double)
 		Declare Sub Rectangle(R As Rect)
 		Declare Sub Ellipse Overload(x As Double, y As Double, x1 As Double, y1 As Double)
 		Declare Sub Ellipse(R As Rect)
-		Declare Sub Circle(x As Double, y As Double, Radial As Double)
+		Declare Sub Circle(x As Double, y As Double, Radial As Double, FillColorBK As Integer = -1)
 		Declare Sub RoundRect Overload(x As Double, y As Double, x1 As Double, y1 As Double, nWidth As Integer, nHeight As Integer)
 		Declare Sub RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
 		Declare Sub Polygon(Points As Point Ptr,Count As Long)
@@ -177,8 +177,8 @@ Namespace My.Sys.Drawing
 		Declare Sub Draw(x As Double, y As Double, Image As Any Ptr)
 		Declare Sub StretchDraw(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
 		Declare Sub CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
-		Declare Sub FloodFill(x As Double, y As Double, FillColor As Integer, FillStyle As FillStyle)
-		Declare Sub FillRect(R As Rect, FillColor As Integer = -1)
+		Declare Sub FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)
+		Declare Sub FillRect(R As Rect, FillColorBK As Integer = -1)
 		Declare Sub DrawFocusRect(R As Rect)
 		Declare Function TextWidth(ByRef FText As WString) As Integer
 		Declare Function TextHeight(ByRef FText As WString) As Integer

@@ -48,25 +48,25 @@ Namespace My.Sys.Drawing
 		FBackColor = Value
 	End Property
 	
-	Private Property Canvas.DrawBackColor As Integer
-		Return FDrawBackColor
+	Private Property Canvas.FillColor As Integer
+		Return FFillColor
 	End Property
 	
-	Private Property Canvas.DrawBackColor(Value As Integer)
-		FDrawBackColor = Value
+	Private Property Canvas.FillColor(Value As Integer)
+		FFillColor = Value
 		#ifdef __USE_WINAPI__
-			SetBkColor Handle, FDrawBackColor
+			SetBkColor Handle, FFillColor
 		#endif
 	End Property
 	
-	Private Property Canvas.DrawBackMode As BackMode
-		Return FDrawBackMode
+	Private Property Canvas.FillMode As BrushFillMode
+		Return FFillMode
 	End Property
 	
-	Private Property Canvas.DrawBackMode(Value As BackMode)
-		FDrawBackMode = Value
+	Private Property Canvas.FillMode(Value As BrushFillMode)
+		FFillMode = Value
 		#ifdef __USE_WINAPI__
-			SetBkMode Handle, FDrawBackMode
+			SetBkMode Handle, FFillMode
 		#endif
 	End Property
 	
@@ -108,14 +108,12 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
 		If Not HandleSetted Then GetDevice
 		If ParentControl > 0 Then
-			Dim As Integer FillColor = FBackColor
 			#ifdef __USE_GTK__
-				cairo_set_source_rgb(Handle, GetRed(FillColor), GetBlue(FillColor), GetGreen(FillColor))
+				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetBlue(FBackColor), GetGreen(FBackColor))
 				cairo_fill_preserve(Handle)
 			#elseif defined(__USE_WINAPI__)
-				Dim As HBRUSH B ' = CreateSolidBrush(FillColor)
+				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
 				Dim As ..Rect R
-				'Dim As HBRUSH OldB = selectobj
 				If x = x1 AndAlso Y = y1 AndAlso X = y Then
 					R.Left = 0
 					R.Top = 0
@@ -128,7 +126,6 @@ Namespace My.Sys.Drawing
 					R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
 					R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
 				End If
-				B = CreateSolidBrush(FillColor)
 				.FillRect Handle, Cast(..Rect Ptr, @R), B
 				DeleteObject B
 			#endif
@@ -281,16 +278,30 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.Line(x As Double, y As Double, x1 As Double, y1 As Double)
+	Private Sub Canvas.Line(x As Double, y As Double, x1 As Double, y1 As Double, FillColorBk As Integer = -1, BoxBF As String = "" )
 		If Not HandleSetted Then GetDevice
-		#ifdef __USE_GTK__
-			cairo_move_to(Handle, x - 0.5, y - 0.5)
-			cairo_line_to(Handle, x1 - 0.5, y1 - 0.5)
-			cairo_stroke(Handle)
-		#elseif defined(__USE_WINAPI__)
-			.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
-			.LineTo Handle, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
-		#endif
+		If BoxBF <> "" Then
+			If BoxBF = "F" Then
+				'Special code for VB6
+				If FillColorBk = -1 Then FillColorBk = FBackColor
+				Dim As Integer OldFillColor = Brush.Color
+				Brush.Color = FillColorBk
+				Rectangle(x, y, x1, y1)
+				Brush.Color = OldFillColor
+			Else
+				Rectangle(x, y, x1, y1)
+			End If
+		Else
+			
+			#ifdef __USE_GTK__
+				cairo_move_to(Handle, x - 0.5, y - 0.5)
+				cairo_line_to(Handle, x1 - 0.5, y1 - 0.5)
+				cairo_stroke(Handle)
+			#elseif defined(__USE_WINAPI__)
+				.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
+				.LineTo Handle, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
+			#endif
+		End If
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
@@ -350,8 +361,12 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.Circle(x As Double, y As Double, Radial As Double)
+	Private Sub Canvas.Circle(x As Double, y As Double, Radial As Double, FillColorBK As Integer = -1)
 		If Not HandleSetted Then GetDevice
+		'Special code for VB6
+		If FillColorBk = -1 Then FillColorBk = FBackColor
+		Dim As Integer OldFillColor = Brush.Color
+		Brush.Color = FillColorBK
 		#ifdef __USE_GTK__
 			cairo_arc(Handle, x , y, Radial, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
@@ -360,6 +375,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			.Ellipse Handle, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(x + Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y + Radial / 2) * imgScaleY + imgOffsetY
 		#endif
+		Brush.Color = OldFillColor
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
@@ -688,18 +704,20 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.FloodFill(x As Double, y As Double, FillColor As Integer, FillStyle As FillStyle)
+	Private Sub Canvas.FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)
 		If Not HandleSetted Then GetDevice
+		If FillColorBk = -1 Then FillColorBk = FBackColor
 		#ifdef __USE_WINAPI__
-			.ExtFloodFill Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, FillColor, FillStyle
+			.ExtFloodFill Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, FillColorBK, FillStyleBK
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.FillRect(R As Rect, FillColor As Integer = -1)
+	Private Sub Canvas.FillRect(R As Rect, FillColorBK As Integer = -1)
 		If Not HandleSetted Then GetDevice
+		If FillColorBk = -1 Then FillColorBk = FBackColor
 		#ifdef __USE_GTK__
-			cairo_set_source_rgb(Handle, GetRed(FillColor), GetBlue(FillColor), GetGreen(FillColor))
+			cairo_set_source_rgb(Handle, GetRed(FillColorBK), GetBlue(FillColorBK), GetGreen(FillColorBK))
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
 			Static As HBRUSH B
@@ -708,8 +726,8 @@ Namespace My.Sys.Drawing
 			R.Top = ScaleY(R.Top) * imgScaleY + imgOffsetY
 			R.Right = ScaleX(R.Right) * imgScaleX + imgOffsetX
 			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
-			If FillColor <> -1 Then
-				B = CreateSolidBrush(FillColor)
+			If FillColorBK <> -1 Then
+				B = CreateSolidBrush(FillColorBK)
 				.FillRect Handle, Cast(..Rect Ptr, @R), B
 			Else
 				.FillRect Handle, Cast(..Rect Ptr, @R), Brush.Handle
@@ -824,6 +842,7 @@ Namespace My.Sys.Drawing
 		Pen.OnCreate = @Pen_Create
 		Brush.Parent = @This
 		Brush.OnCreate = @Brush_Create
+		Brush.Style = BrushStyles.bsClear
 		imgScaleX = 1
 		imgScaleY = 1
 		FDrawWidth = 1
