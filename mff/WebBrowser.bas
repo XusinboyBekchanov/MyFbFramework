@@ -191,15 +191,19 @@ Namespace My.Sys.Forms
 					Dim iIUnknown As Integer
 					Dim pIUnknown As Integer Ptr = @iIUnknown
 					Dim IUnknown1 As IUnknownVtbl Ptr
-					AtlAxGetControl = Cast(Any Ptr, GetProcAddress(.hWebBrowser, "AtlAxGetControl"))
-					AtlAxGetControl(.FHandle, pIUnknown)
-					If pIUnknown <> 0 AndAlso *pIUnknown <> 0 Then
-						IUnknown1 = Cast(IUnknownVtbl Ptr, *pIUnknown)
-						i = IUnknown1->AddRef(Cast(IUnknown Ptr, pIUnknown))
-						i = IUnknown1->QueryInterface(Cast(IUnknown Ptr, pIUnknown), @IID_IWebBrowser2, @.pIWebBrowser)
-						.g_IWebBrowser = Cast(IWebBrowser2Vtbl Ptr, *.pIWebBrowser)
-						i = .g_IWebBrowser->AddRef(Cast(IWebBrowser2 Ptr, .pIWebBrowser))
-						i = IUnknown1->Release(Cast(IUnknown Ptr, pIUnknown))
+					If .hWebBrowser <> 0 Then
+						AtlAxGetControl = Cast(Any Ptr, GetProcAddress(.hWebBrowser, "AtlAxGetControl"))
+						If AtlAxGetControl <> 0 Then
+							AtlAxGetControl(.FHandle, pIUnknown)
+							If pIUnknown <> 0 AndAlso *pIUnknown <> 0 Then
+								IUnknown1 = Cast(IUnknownVtbl Ptr, *pIUnknown)
+								i = IUnknown1->AddRef(Cast(IUnknown Ptr, pIUnknown))
+								i = IUnknown1->QueryInterface(Cast(IUnknown Ptr, pIUnknown), @IID_IWebBrowser2, @.pIWebBrowser)
+								.g_IWebBrowser = Cast(IWebBrowser2Vtbl Ptr, *.pIWebBrowser)
+								i = .g_IWebBrowser->AddRef(Cast(IWebBrowser2 Ptr, .pIWebBrowser))
+								i = IUnknown1->Release(Cast(IUnknown Ptr, pIUnknown))
+							End If
+						End If
 					End If
 				End With
 			End If
@@ -236,8 +240,10 @@ Namespace My.Sys.Forms
 				If hWebBrowser Then
 					Dim AtlAxWinInit As Function As Boolean
 					AtlAxWinInit = Cast(Any Ptr, GetProcAddress(hWebBrowser, "AtlAxWinInit"))
-					AtlAxWinInit()
-					.RegisterClass "WebBrowser", "AtlAxWin"
+					If AtlAxWinInit Then
+						AtlAxWinInit()
+						.RegisterClass "WebBrowser", "AtlAxWin"
+					End If
 					WLet(.FClassAncestor, "AtlAxWin")
 				End If
 				.Style        = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL

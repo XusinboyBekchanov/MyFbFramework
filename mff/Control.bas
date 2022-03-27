@@ -917,7 +917,7 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 				If FHandle Then
 					#ifdef __USE_WINAPI__
-						If ClassName <> "IPAddress" Then
+						If GetWindowLongPtr(FHandle, GWLP_USERDATA) = 0 Then
 							SetWindowLongPtr(FHandle, GWLP_USERDATA, CInt(Child))
 						End If
 						SetProp(FHandle, "MFFControl", @This)
