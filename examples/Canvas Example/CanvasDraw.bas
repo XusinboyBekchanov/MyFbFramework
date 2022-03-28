@@ -247,7 +247,6 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'Picture1.Visible = False
 	Picture1.Style = 16
-	Picture1.Canvas.BackColor = Picture1.BackColor 'Must be set Canvas.BackColor here 
 	With Picture1.Canvas
 		.CreateDoubleBuffer
 		.Cls 
@@ -310,7 +309,6 @@ End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 	Picture1.Style = 16
-	Picture1.Canvas.BackColor = Picture1.BackColor 'Must be set Canvas.BackColor here 
 	With Picture1.Canvas
 		.CreateDoubleBuffer
 		.Cls 
@@ -416,7 +414,6 @@ End Sub
 Private Sub Form1Type.cmdGDIDraw1_Click(ByRef Sender As Control)
 	Dim As Single r, xi, yi, xj, yj, x0, y0, aif
 	Picture1.Style = 16
-	Picture1.Canvas.BackColor = Picture1.BackColor
 	'	With Picture1.Canvas
 	'		.CreateDoubleBuffer
 	'		.Pen.Color = clGreen
