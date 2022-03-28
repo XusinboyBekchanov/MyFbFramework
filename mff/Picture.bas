@@ -223,7 +223,6 @@ Namespace My.Sys.Forms
 			ARealSizeImage(1)= SS_REALSIZEIMAGE
 		#endif
 		Canvas.Ctrl    = @This
-		Canvas.FillColor = This.BackColor
 		Graphic.Ctrl = @This
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1

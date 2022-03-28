@@ -46,6 +46,7 @@ Namespace My.Sys.Drawing
 	
 	Private Property Canvas.BackColor(Value As Integer)
 		FBackColor = Value
+		FillColor = FBackColor
 	End Property
 	
 	Private Property Canvas.FillColor As Integer
@@ -56,6 +57,8 @@ Namespace My.Sys.Drawing
 		FFillColor = Value
 		#ifdef __USE_WINAPI__
 			SetBkColor Handle, FFillColor
+			Brush.Color = FFillColor
+			FloodFill(1, 1, FFillColor, FillStyle.fsSurface)
 		#endif
 	End Property
 	
@@ -119,7 +122,7 @@ Namespace My.Sys.Drawing
 					R.Top = 0
 					R.Right = ParentControl->width
 					R.Bottom = ParentControl->Height
-					'Remove SCale
+					'Remove Scale
 					imgScaleX = 1
 					imgScaleY = 1
 					imgOffsetX = 0
@@ -237,11 +240,12 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.DeleteDoubleBuffer
 		#ifdef __USE_WINAPI__
+			TransferDoubleBuffer
 			Handle = DC
 			HandleSetted = False
 			DeleteObject(CompatibleBmp)
 			DeleteDC(memDC)
-			ReleaseDevice
+			If Not HandleSetted Then ReleaseDevice
 		#endif
 	End Sub
 	
@@ -853,10 +857,10 @@ Namespace My.Sys.Drawing
 		Font.OnCreate = @Font_Create
 		Pen.Parent = @This
 		Pen.OnCreate = @Pen_Create
-		'Pen.Color =
 		Brush.Parent = @This
 		Brush.OnCreate = @Brush_Create
-		Brush.Style = BrushStyles.bsClear
+		'Brush.Style = BrushStyles.bsClear
+		Brush.Style = BrushStyles.bsSolid
 		imgScaleX = 1
 		imgScaleY = 1
 		FDrawWidth = 1

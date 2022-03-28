@@ -93,8 +93,8 @@ Namespace My.Sys.Drawing
 		Declare Static Sub Brush_Create(ByRef Sender As Brush)
 		iTemp           As Integer
 		FBackColor      As Integer 
-		FFillColor  As Integer 
-		FFillMode   As BrushFillMode
+		FFillColor      As Integer 
+		FFillMode       As BrushFillMode
 		FDrawWidth      As Integer 
 		FScaleWidth     As Long 
 		FScaleHeight    As Long
