@@ -1,7 +1,7 @@
 ﻿#ifdef __FB_WIN32__
 	''#Compile "Form1.rc"
 #endif
-'#Region "Form" '...'
+'#Region "Form"
 	#include once "mff/Form.bi"
 	#include once "mff/Label.bi"
 	#include once "mff/CommandButton.bi"
@@ -31,7 +31,7 @@
 		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Constructor
 		
-		Dim As CommandButton CommandButton1, cmdGDIDraw, cmdGDICls, cmdGDIDraw1
+		Dim As CommandButton CommandButton1, cmdGDIDraw, cmdGDICls
 		Dim As Picture Picture1
 		Dim As TextBox Text1(1), Text2(1), Text3(1), Text4(1), Text5(1)
 	End Type
@@ -55,7 +55,7 @@
 			.Anchor.Top = AnchorStyle.asNone
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asNone
-			.SetBounds 13, 231, 71, 30
+			.SetBounds 13, 230, 71, 30
 			.Designer = @This
 			.OnClick = @CommandButton1_Click_
 			.Parent = @This
@@ -69,7 +69,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
-			.BackColor = 8421376
+			.BackColor = 8388736
 			.SetBounds 12, 56, 310, 170
 			.Designer = @This
 			.OnPaint = @Picture1_Paint_
@@ -177,22 +177,9 @@
 			.Caption = "Cls"
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
-			.SetBounds 163, 232, 79, 30
+			.SetBounds 170, 232, 79, 30
 			.Designer = @This
 			.OnClick = @cmdGDICls_Click_
-			.Parent = @This
-		End With
-		' cmdGDIDraw1
-		With cmdGDIDraw1
-			.Name = "cmdGDIDraw1"
-			.Text = "DrawCirc"
-			.TabIndex = 14
-			.Anchor.Left = AnchorStyle.asAnchor
-			.Anchor.Bottom = AnchorStyle.asAnchor
-			.Caption = "DrawCirc"
-			.SetBounds 243, 233, 85, 30
-			.Designer = @This
-			.OnClick = @cmdGDIDraw1_Click_
 			.Parent = @This
 		End With
 	End Constructor
@@ -200,11 +187,7 @@
 	Private Sub Form1Type.Form_Click_(ByRef Sender As Control)
 		*Cast(Form1Type Ptr, Sender.Designer).Form_Click(Sender)
 	End Sub
-	
-	Private Sub Form1Type.cmdGDIDraw1_Click_(ByRef Sender As Control)
-		*Cast(Form1Type Ptr, Sender.Designer).cmdGDIDraw1_Click(Sender)
-	End Sub
-	
+ 
 	Private Sub Form1Type.CommandButton2_Click_(ByRef Sender As Control)
 		*Cast(Form1Type Ptr, Sender.Designer).CommandButton2_Click(Sender)
 	End Sub
@@ -317,7 +300,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Pen.Size = 1
 		.Pen.Style = 3 'PenStyle.psDashDot
 		'Print Picture1.BackColor
-		'.FillMode = BrushFillMode.bmTransparent
+		.FillMode = BrushFillMode.bmTransparent
 		.Line (-100, 0, 100, 0) '画X轴
 		.Line (0, 100, 0, -100) '画Y轴
 		
@@ -347,7 +330,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Pen.Style = PenStyle.psDashDotDot
 		.Line -10, -40, -100, -40
 		
-		.Brush.Style = BrushStyles.bsPattern
+		.Brush.Style = BrushStyles.bsSolid  
 		.Line 40, 20, 80, 40, , "F"
 		.Line 40, 70, 80, 90, clBlue, "F"
 		
@@ -383,18 +366,23 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Brush.Color = clRed
 		.Brush.Style = BrushStyles.bsClear
 		.FillColor = clBlue
-		.Rectangle(20, -20, 60, -30) ' HS_BDIAGONAL, RGB(255, 0, 0));
+		.Rectangle(20, -20, 60, -30) ' HS_BDIAGONAL, RGB(255, 0, 0))
+		.Brush.Color = clRed
 		.Brush.Style = BrushStyles.bsHatch
 		.Brush.HatchStyle = HatchStyles.hsCross
 		.Rectangle(20, -40, 60, -50) ' HS_CROSS, RGB(0, 255, 0));
+		.Pen.Color = clGreen
 		.FillColor = clYellow
 		.Brush.HatchStyle = HatchStyles.hsDiagCross
-		.Rectangle(20, -60, 60, -70) ' HS_DIAGCROSS, RGB(0, 0, 255));
+		.FillColor = clYellow
+		.Rectangle(20, -60, 60, -70) ' HS_DIAGCROSS, RGB(0, 0, 255))
+		.Pen.Color = clYellow
 		.Brush.HatchStyle = HatchStyles.hsVertical
-		.Rectangle(20, -80, 60, -90) ' HS_VERTICAL, RGB(0, 0, 0));
+		.FillColor = clGray 
+		.Rectangle(20, -80, 60, -90) ' HS_VERTICAL, RGB(0, 0, 0))
 		
-		'绘制位图
-		'DrawBmpRect(10, 140, 180, 100, TEXT("chenggong.bmp"));
+		'Draw Image   绘制位图
+		'StretchDraw(10, 140, 180, 100, TEXT("chenggong.bmp"))
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
@@ -410,59 +398,7 @@ Private Sub Form1Type.cmdGDICls_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-
-Private Sub Form1Type.cmdGDIDraw1_Click(ByRef Sender As Control)
-	Dim As Single r, xi, yi, xj, yj, x0, y0, aif
-	Picture1.Style = 16
-	'	With Picture1.Canvas
-	'		.CreateDoubleBuffer
-	'		.Pen.Color = clGreen
-	'		.Pen.Size = 1
-	'		.Pen.Style = 3 'PenStyle.psDashDot
-	'		r = .ScaleHeight / 2                  ' 圆的半径
-	'		x0 = .ScaleWidth / 2                  ' 圆心
-	'		y0 = .ScaleHeight / 2
-	'		Dim As Integer n = 17                ' 等分圆周n份
-	'		aif = 3.1415926 * 2 / n              ' 等分角
-	'		For i As Integer = 1 To n - 1        ' 选择(xi, yi)点
-	'			xi = r * Cos(i * aif) + x0
-	'			yi = r * Sin(i * aif) + y0
-	'			For j As Integer = i + 1 To n    ' 选择(xj, yj)点
-	'				xj = r * Cos(j * aif) + x0
-	'				yj = r * Sin(j * aif) + y0
-	'				.Line (xi, yi, xj, yj, CLRed)  ' 等分点相连
-	'			Next j
-	'		Next i
-	'		.TransferDoubleBuffer
-	'		.DeleteDoubleBuffer
-	'End With
-	
-	Dim T As Single, i As Long, w As Single, h As Single, fx1 As Single
-	Randomize
-	T = Timer
-	With Picture1.Canvas
-		.Cls 
-		.CreateDoubleBuffer
-		.FillMode = BrushFillMode.bmTransparent
-		.Pen.Color = clGreen
-		.Pen.Size = 1
-		w = .ScaleWidth
-		h = .ScaleHeight
-		'.Visible = False
-		For i = 1 To 360000
-			'.CurrentX = w * Rnd
-			'.CurrentY = h * Rnd
-			.Line w * Rnd, h * Rnd, w, h , Rnd * &HFFFFFF
-		Next
-		'.Visible = True
-		'.TextOut - 9, -9, "计算时间：" & Int(100000# / (Timer - T + 0.00001)) & " 根/秒", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
-		'.TransferDoubleBuffer
-		.DeleteDoubleBuffer
-	End With
-   cmdGDIDraw1.Text = Int(100000# / (Timer - T + 0.00001)) & " Line/Sec"
-
-End Sub
-
 Private Sub Form1Type.Form_Click(ByRef Sender As Control)
 	
 End Sub
+

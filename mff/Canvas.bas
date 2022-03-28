@@ -57,8 +57,8 @@ Namespace My.Sys.Drawing
 		FFillColor = Value
 		#ifdef __USE_WINAPI__
 			SetBkColor Handle, FFillColor
-			Brush.Color = FFillColor
-			FloodFill(1, 1, FFillColor, FillStyle.fsSurface)
+			'Brush.Color = FFillColor
+			'FloodFill(1, 1, FFillColor, FillStyle.fsSurface)
 		#endif
 	End Property
 	
