@@ -608,8 +608,10 @@ Namespace My.Sys.Forms
 			End Property
 			
 			Private Property Control.Parent(Value As Control Ptr)
-				FParent = Value
-				If Value Then Value->Add(@This)
+				If FParent <> Value Then
+					FParent = Value
+					If Value Then Value->Add(@This)
+				End If
 			End Property
 		#endif
 		
