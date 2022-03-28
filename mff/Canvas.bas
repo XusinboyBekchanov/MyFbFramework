@@ -119,7 +119,14 @@ Namespace My.Sys.Drawing
 					R.Top = 0
 					R.Right = ParentControl->width
 					R.Bottom = ParentControl->Height
-					
+					'Remove SCale
+					imgScaleX = 1
+					imgScaleY = 1
+					imgOffsetX = 0
+					imgOffsetY = 0
+					FDrawWidth = 1
+					FScaleWidth = This.Width
+					FScaleHeight =  This.Height
 				Else
 					R.Left = ScaleX(x) * imgScaleX + imgOffsetX
 					R.Top = ScaleY(y) * imgScaleY + imgOffsetY
@@ -139,7 +146,7 @@ Namespace My.Sys.Drawing
 	Private Property Canvas.Ctrl(Value As My.Sys.ComponentModel.Component Ptr)
 		ParentControl = Value
 		If ParentControl Then
-			'ParentControl->Canvas = @This
+			'			ParentControl->Canvas = @This
 			'			If *Ctrl Is My.Sys.Forms.Control Then
 			'				Brush.Color = Cast(My.Sys.Forms.Control Ptr, Ctrl)->BackColor
 			'			End If
@@ -292,15 +299,21 @@ Namespace My.Sys.Drawing
 				Rectangle(x, y, x1, y1)
 			End If
 		Else
-			
 			#ifdef __USE_GTK__
 				cairo_move_to(Handle, x - 0.5, y - 0.5)
 				cairo_line_to(Handle, x1 - 0.5, y1 - 0.5)
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
+				Dim As Integer OldPenColor
+				If FillColorBk <> -1 Then
+					OldPenColor = Pen.Color
+					Pen.Color = FillColorBk
+				End If
 				.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
 				.LineTo Handle, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
+				If FillColorBk <> -1 Then Pen.Color = OldPenColor
 			#endif
+			
 		End If
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -840,6 +853,7 @@ Namespace My.Sys.Drawing
 		Font.OnCreate = @Font_Create
 		Pen.Parent = @This
 		Pen.OnCreate = @Pen_Create
+		'Pen.Color =
 		Brush.Parent = @This
 		Brush.OnCreate = @Brush_Create
 		Brush.Style = BrushStyles.bsClear
