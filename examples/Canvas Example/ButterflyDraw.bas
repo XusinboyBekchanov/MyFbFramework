@@ -211,21 +211,23 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	Dim As Double A(1), B(1), C(1), D(1), E(1), X, Y
 	Dim T As Long = GetTickCount
 	' Coordination  坐标系统
-	'Me.Cls
-	'.Pen.Color = clBlack
-	'Picture1.BackColor = clBlack
 	CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'Picture1.Visible = False
 	Picture1.Style = 16
+	Picture1.Canvas.BackColor = Picture1.BackColor 'Must be set Canvas.BackColor here 
 	With Picture1.Canvas
-		.GetDevice
 		.CreateDoubleBuffer
+		.Cls 
 		.Scale(-10, -10, 10, 10)
 		.Pen.Color = clGreen
 		.Pen.Size = 2
 		.Pen.Style = 3 'PenStyle.psDashDot
 		'.Pen.Mode = PenMode.pmMerge
 		' draw across  画十字线条
+		'.FillMode = BrushFillMode.bmOpaque  
+		'.Brush.Style = BrushStyles.bsSolid 
+		'.Rectangle -10 , -10 , 10 , 10
+		'.Line -10 , -10 , 10 , 10, clblue, "BF"
 		.Line -10 , 0 , 10 , 00
 		.Line 0 , -10 , 0 , 10
 		.TextOut 10 , 0, "1", clGreen , -1
@@ -258,16 +260,11 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 		Next
 		.TextOut - 9, -9, "Elapsed Time: " & GetTickCount - t & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
 		'Picture1.Visible = True
-		.TransferDoubleBuffer
 		.DeleteDoubleBuffer
-		'.ReleaseDevice
 	End With
 	
-	CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" '
-	
-	
-	'
-End Sub
+	CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" 
+	'End Sub
 
 Private Sub Form1Type.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	'CommandButton1_Click(sender)
@@ -279,17 +276,23 @@ End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 	Picture1.Style = 16
+	Picture1.Canvas.BackColor = Picture1.BackColor 'Must be set Canvas.BackColor here 
 	With Picture1.Canvas
-		.GetDevice
 		.CreateDoubleBuffer
+		.Cls 
 		.Scale(-100, 100, 100, -100)
 		.Pen.Color = clGreen
 		.Pen.Size = 1
 		.Pen.Style = 3 'PenStyle.psDashDot
+		'Print Picture1.BackColor
+		'.FillMode = BrushFillMode.bmTransparent
 		.Line (-100, 0, 100, 0) '画X轴
 		.Line (0, 100, 0, -100) '画Y轴
 		
+		.Brush.Style = BrushStyles.bsSolid
 		.Circle (0, 0, 5) '绘制红色圆心
+		.Brush.Style = BrushStyles.bsClear
+		
 		.TextOut 0,  0, "(0,0)" , clGreen, -1 '原点坐标
 		.TextOut 90, 10, "X轴", clGreen, -1    '标记X轴
 		.TextOut 5, 95,  "Y轴", clGreen, -1     '标记Y轴
@@ -311,6 +314,10 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		
 		.Pen.Style = PenStyle.psDashDotDot
 		.Line -10, -40, -100, -40
+		
+		.Brush.Style = BrushStyles.bsPattern
+		.Line 40, 20, 80, 40, , "F"
+		.Line 40, 70, 80, 90, clBlue, "F"
 		
 		.DrawWidth = 2 '设置画笔宽度
 		.Pen.Style = 0
@@ -336,30 +343,30 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Circle(pt(3).x, pt(3).y, 4)
 		
 		'绘制圆
-		.Circle(0, 00, 30)
+		.Circle(50, 40, 30, clYellow)
 		
 		'绘制不同填充模式的矩形
 		.Pen.Size = 1
 		.Pen.Color = clGreen
 		.Brush.Color = clRed
-		.Brush.Style = BrushStyles.bsHatch
-		.Brush.HatchStyle = HatchStyles.hsFDiagonal
+		.Brush.Style = BrushStyles.bsClear
+		.FillColor = clBlue
 		.Rectangle(20, -20, 60, -30) ' HS_BDIAGONAL, RGB(255, 0, 0));
+		.Brush.Style = BrushStyles.bsHatch
 		.Brush.HatchStyle = HatchStyles.hsCross
 		.Rectangle(20, -40, 60, -50) ' HS_CROSS, RGB(0, 255, 0));
+		.FillColor = clYellow
 		.Brush.HatchStyle = HatchStyles.hsDiagCross
 		.Rectangle(20, -60, 60, -70) ' HS_DIAGCROSS, RGB(0, 0, 255));
 		.Brush.HatchStyle = HatchStyles.hsVertical
 		.Rectangle(20, -80, 60, -90) ' HS_VERTICAL, RGB(0, 0, 0));
 		
 		'绘制位图
-		'DrawBmpRect(180, 140, 180, 100, TEXT("chenggong.bmp"));
+		'DrawBmpRect(10, 140, 180, 100, TEXT("chenggong.bmp"));
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
-		.TransferDoubleBuffer
 		.DeleteDoubleBuffer
-		.ReleaseDevice
 	End With
 End Sub
 
