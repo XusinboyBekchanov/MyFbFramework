@@ -132,6 +132,18 @@ Namespace My.Sys.Forms
 		Return m_Item(Index).ItemColor
 	End Property
 	
+	Private Function Chart.SeriesCount As Long
+		Return SerieCount
+	End Function
+	
+	Private Function Chart.AxisItemsCount As Long
+		If cAxisItem = 0 Then
+			Return 0
+		Else
+			Return cAxisItem->Count
+		End If
+	End Function
+	
 	Private Sub Chart.Clear()
 		Dim i As Long
 		For i = 0 To ItemsCount - 1

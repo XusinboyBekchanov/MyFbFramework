@@ -178,6 +178,7 @@ Namespace My.Sys.Forms
 		Dim HotItem As Long
 		Dim cAxisItem As WStringList Ptr
 		Dim m_Serie(Any) As tSerie
+		Dim SerieCount As Long
 		Dim mHotSerie As Long
 		Dim mHotBar As Long
 		Dim MarginLeft As Single
@@ -250,7 +251,6 @@ Namespace My.Sys.Forms
 		Declare Function GetMax() As Single
 		Declare Function GetMin() As Single
 	Public:
-		SerieCount As Long
 		Declare Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
@@ -277,6 +277,8 @@ Namespace My.Sys.Forms
 		Declare Sub AddSerie(ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr, cCustomColors As IntegerList Ptr = 0)
 		Declare Sub AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
 		Declare Sub UpdateSerie(ByVal Index As Integer, ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr)
+		Declare Function SeriesCount As Long
+		Declare Function AxisItemsCount As Long
 		Declare Function SumSerieValues(Index As Long, bPositives As Boolean = False) As Single
 		Declare Sub Wait(Interval As Integer)
 		Declare Property Title() ByRef As WString
