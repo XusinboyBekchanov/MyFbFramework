@@ -365,15 +365,19 @@ Namespace My.Sys.Forms
 		GridEditDateTimePicker As DateTimePicker
 		ImgListGrid            As ImageList
 
-		FLvi                      As LVITEM
-		mHandleHeader             As HWND
-		mClientRect               As Rect
-		mClientRectHeader         As Rect
+		#ifdef __USE_WINAPI__
+			FLvi                  As LVITEM
+			mHandleHeader             As HWND
+			mClientRect               As Rect
+			mClientRectHeader         As Rect
+		#endif
 		mRowHeightHeader          As Integer = -1
 		mRowHeight                As Integer = -1
 		mRowHeightShow(Any)       As Integer
-		mGridDC                   As HDC
-		mGridDCHeader             As HDC
+		#ifdef __USE_WINAPI__
+			mGridDC                   As HDC
+			mGridDCHeader             As HDC
+		#endif
 		mRow                      As Integer =0
 		mCol                      As Integer =1
 		mRowHover                 As Integer = 0
@@ -389,7 +393,11 @@ Namespace My.Sys.Forms
 		mGridColorFore           As Integer = clBlack
 		mGridColorEditBack       As Integer = BGR(190, 255, 255)' &H9AFA00'clWhite
 		mGridLineWidth           As Integer = 1
-		mGridLinePenMode         As Integer = PS_SOLID
+		#ifdef __USE_WINAPI__
+			mGridLinePenMode         As Integer = PS_SOLID
+		#else
+			mGridLinePenMode         As Integer
+		#endif
 		mGridFocusRect           As FocusRectEnum = FocusRect_Row
 		mShowHoverBar            As Boolean = True
 		mShowSelection           As Boolean = True
@@ -402,14 +410,16 @@ Namespace My.Sys.Forms
 		mSysScrollWidth          As Integer = 20
 		mScrollMaxV              As Integer = 0
 
-		Declare Sub EditControlShow(ByRef tComboColOld As Integer,ByVal tRow As Integer,ByVal tCol As Integer)
-		Declare Sub DrawRect(tDc As HDC,R As Rect,FillColor As Integer = -1,tSelctionRow As Integer = -1,tSelctionCol As Integer = -1)
-		Declare Sub DrawLine(HDC As HDC, x1 As Integer, y1 As Integer, x2 As Integer, y2 As Integer, lColor As Integer, lWidth As Integer = 1, lLineType As Integer = PS_SOLID)
-		Declare Sub DrawSortArrow(DC As HDC,lX As Integer, lY As Integer,lWidth As Integer, lStep As Integer, nOrientation As SortStyle)
-		Declare Sub GridReDraw(RowShowStart As Integer,RowShowEnd As Integer,RowHover As Integer=-1, ColHover As Integer=-1,DrawHeadOnly As Boolean =False)
-		Declare Static Sub WNDPROC(ByRef Message As Message)
-		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+		#ifdef __USE_WINAPI__
+			Declare Sub EditControlShow(ByRef tComboColOld As Integer, ByVal tRow As Integer, ByVal tCol As Integer)
+			Declare Sub DrawRect(tDc As HDC, R As Rect, FillColor As Integer = -1, tSelctionRow As Integer = -1, tSelctionCol As Integer = -1)
+			Declare Sub DrawLine(HDC As HDC, x1 As Integer, y1 As Integer, x2 As Integer, y2 As Integer, lColor As Integer, lWidth As Integer = 1, lLineType As Integer = PS_SOLID)
+			Declare Sub DrawSortArrow(DC As HDC, lX As Integer, lY As Integer, lWidth As Integer, lStep As Integer, nOrientation As SortStyle)
+			Declare Sub GridReDraw(RowShowStart As Integer, RowShowEnd As Integer, RowHover As Integer = -1, ColHover As Integer = -1, DrawHeadOnly As Boolean = False)
+			Declare Static Sub WNDPROC(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+		#endif
 		Declare Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub SortData(iCol As Integer,tSortStyle As SortStyle)
 
@@ -455,8 +465,10 @@ Namespace My.Sys.Forms
 		Declare Property SelectedColumn(Value As GridDataColumn Ptr)
 		Declare Property SingleClickActivate As Boolean
 		Declare Property SingleClickActivate(Value As Boolean)
-		Declare Property HandleHeader As HWND
-		Declare Property HandleHeader(Value As HWND)
+		#ifdef __USE_WINAPI__
+			Declare Property HandleHeader As HWND
+			Declare Property HandleHeader(Value As HWND)
+		#endif
 		Declare Property RowHeightHeader As Integer
 		Declare Property RowHeightHeader(Value As Integer)
 		Declare Property RowHeight As Integer
@@ -478,13 +490,17 @@ Namespace My.Sys.Forms
 		OnHeadClick As Sub(ByRef Sender As GridData, ColIndex As Integer)
 		OnHeadColWidthAdjust As Sub(ByRef Sender As GridData, ColIndex As Integer)
 		OnItemActivate As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
-		OnItemClick As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer,tGridDCC As HDC)
-		OnItemDblClick As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer,tGridDCC As HDC)
+		#ifdef __USE_WINAPI__
+			OnItemClick As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer,tGridDCC As HDC)
+			OnItemDblClick As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+		#endif
 		OnItemKeyDown As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
 		OnItemExpanding As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
 		OnCellEditing As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr, SubItemIndex As Integer, CellEditor As Control Ptr)
 		OnCellEdited As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr, SubItemIndex As Integer, ByRef NewText As WString)
-		OnSelectedItemChanged As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+		#ifdef __USE_WINAPI__
+			OnSelectedItemChanged As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+		#endif
 		OnBeginScroll As Sub(ByRef Sender As GridData)
 		OnEndScroll As Sub(ByRef Sender As GridData)
 	End Type

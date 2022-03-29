@@ -94,10 +94,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.DrawWidth As Integer
-		#ifdef __USE_GTK__
-		#elseif defined(__USE_WINAPI__)
-			Return FDrawWidth
-		#endif
+		Return FDrawWidth
 	End Property
 	
 	Private Property Canvas.DrawWidth(Value As Integer)

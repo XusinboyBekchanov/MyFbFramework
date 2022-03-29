@@ -25,9 +25,9 @@ Namespace My.Sys.Forms
 
 	Private Sub GridDataItem.Collapse
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(GridData Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(GridData Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(GridData Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->widget), TreePath)
+				gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -55,9 +55,9 @@ Namespace My.Sys.Forms
 
 	Private Sub GridDataItem.Expand
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(GridData Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(GridData Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(GridData Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->widget), TreePath, False)
+				gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->Handle), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -99,12 +99,11 @@ Namespace My.Sys.Forms
 
 	Private Function GridDataItem.IsExpanded As Boolean
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget AndAlso Cast(GridData Ptr, Parent)->TreeStore Then
+			If Parent AndAlso Parent->Handle AndAlso Cast(GridData Ptr, Parent)->TreeStore Then
 				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(GridData Ptr, Parent)->TreeStore), @TreeIter))
-				Var bResult = gtk_tree_view_row_expanded(GTK_TREE_VIEW(Parent->widget), TreePath)
-				"in line " & Erl() & " " & _
-				Return bResult
+				FExpanded = gtk_tree_view_row_expanded(GTK_TREE_VIEW(Parent->Handle), TreePath)
 			End If
+			Return FExpanded
 		#else
 			Return FExpanded
 			'If Parent AndAlso Parent->Handle Then Return TreeView_GetItemState(Parent->Handle, Handle, TVIS_EXPANDED)
@@ -308,7 +307,7 @@ Namespace My.Sys.Forms
 		'If Value <> *FImageKey Then
 		WLet FImageKey, Value
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_set (Cast(GridData Ptr, Parent)->TreeStore, @TreeIter, 0, ToUtf8(Value), -1)
 			End If
 		#else
@@ -716,7 +715,7 @@ Namespace My.Sys.Forms
 
 	Private Sub GridDataItems.Remove(Index As Integer)
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->widget Then
+			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_remove(Cast(GridData Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
 			End If
 		#else
@@ -821,7 +820,7 @@ Namespace My.Sys.Forms
 			Dim As GridData Ptr lv = Cast(GridData Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->widget))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data), PColumn->Index, *new_text)
 				'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
@@ -834,11 +833,11 @@ Namespace My.Sys.Forms
 			Dim As GridData Ptr lv = Cast(GridData Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->widget))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->Handle))
 			Dim As Control Ptr CellEditor
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data), PColumn->Index, CellEditor)
-				If CellEditor <> 0 Then editable = GTK_CELL_EDITABLE(CellEditor->widget)
+				If CellEditor <> 0 Then editable = GTK_CELL_EDITABLE(CellEditor->Handle)
 			End If
 		End Sub
 	#endif
@@ -866,7 +865,7 @@ Namespace My.Sys.Forms
 		End With
 		#ifdef __USE_GTK__
 			If Parent Then
-				With *Cast(ListView Ptr, Parent)
+				With *Cast(GridData Ptr, Parent)
 					If .ColumnTypes Then Delete [] .ColumnTypes
 					.ColumnTypes = New GType[Index + 2]
 					For i As Integer = 0 To Index + 1
@@ -875,18 +874,18 @@ Namespace My.Sys.Forms
 				End With
 				PColumn->Column = gtk_tree_view_column_new()
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new ()
-				If ColEditable Then
-					Dim As GValue bValue '= G_VALUE_INIT
-					g_value_init_(@bValue, G_TYPE_BOOLEAN)
-					g_value_set_boolean(@bValue, True)
-					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
-					g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
-					g_value_unset(@bValue)
-					'Dim bTrue As gboolean = True
-					'g_object_set(rendertext, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL)
-					'g_object_set(gtk_cell_renderer_text(rendertext), "editable-set", true, NULL)
-					'g_object_set(rendertext, "editable", bTrue, NULL)
-				End If
+'				If ColEditable Then
+'					Dim As GValue bValue '= G_VALUE_INIT
+'					g_value_init_(@bValue, G_TYPE_BOOLEAN)
+'					g_value_set_boolean(@bValue, True)
+'					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
+'					g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
+'					g_value_unset(@bValue)
+'					'Dim bTrue As gboolean = True
+'					'g_object_set(rendertext, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL)
+'					'g_object_set(gtk_cell_renderer_text(rendertext), "editable-set", true, NULL)
+'					'g_object_set(rendertext, "editable", bTrue, NULL)
+'				End If
 				If Index = 0 Then
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
@@ -898,7 +897,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
-				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(ListView Ptr, Parent)->widget), PColumn->Column)
+				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(GridData Ptr, Parent)->Handle), PColumn->Column)
 				#ifdef __USE_GTK3__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else
@@ -1124,15 +1123,17 @@ ErrorHandler:
 				lvi.statemask = LVNI_SELECTED
 				ListView_SetItem(Handle, @lvi)
 			End If
-		#Endif
+		#endif
 	End Property
 
-	Private Property GridData.HandleHeader As HWND
-		Return mHandleHeader
-	End Property
-	Private Property GridData.HandleHeader(Value As HWND)
-		mHandleHeader=Value
-	End Property
+	#ifdef __USE_WINAPI__
+		Private Property GridData.HandleHeader As HWND
+			Return mHandleHeader
+		End Property
+		Private Property GridData.HandleHeader(Value As HWND)
+			mHandleHeader=Value
+		End Property
+	#endif
 
 	Private Sub GridData.SetGridLines(tFocusRect As Integer=-1,tDrawMode As Integer=-1,_
 		tColorLine As Integer=-1,tColorLineHeader As Integer=-1,tColorEditBack As Integer=-1,tColorSelected As Integer=-1,_
@@ -1189,9 +1190,11 @@ ErrorHandler:
 		mFItalicHeader =tItalicHeader
 		mFUnderlineHeader=tUnderlineHeader
 		mFStrikeOutHeader=tStrikeoutHeader
-		mFCharSetHeader=tCharSetHeader
-		If mFontHandleHeader Then DeleteObject(mFontHandleHeader)
-		mFontHandleHeader=CreateFontW(-MulDiv(mFSizeHeader,mFCyPixelsHeader,72),0,mFOrientationHeader*mFSizeHeader,mFOrientationHeader*mFSizeHeader,mFBoldsHeader(Abs_(mFBoldHeader)),mFItalicHeader,mFUnderlineHeader,mFStrikeOutHeader,mFCharSetHeader,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*mFNameHeader)
+		mFCharSetHeader = tCharSetHeader
+		#ifdef __USE_WINAPI__
+			If mFontHandleHeader Then DeleteObject(mFontHandleHeader)
+			mFontHandleHeader = CreateFontW(-MulDiv(mFSizeHeader, mFCyPixelsHeader, 72), 0, mFOrientationHeader*mFSizeHeader, mFOrientationHeader*mFSizeHeader, mFBoldsHeader(Abs_(mFBoldHeader)), mFItalicHeader, mFUnderlineHeader, mFStrikeOutHeader, mFCharSetHeader, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *mFNameHeader)
+		#endif
 	End Sub
 
 	Private Sub GridData.SetFont(tName As WString="",tSize As Integer=-1,tCharSet As Integer=FontCharset.Default,tBolds As Boolean=False,tItalic As Boolean=False,tUnderline As Boolean=False,tStrikeout As Boolean=False)
@@ -1201,11 +1204,13 @@ ErrorHandler:
 		mFItalic =tItalic
 		mFUnderline=tUnderline
 		mFStrikeOut=tStrikeout
-		mFCharSet=tCharSet
-		If mFontHandleBody Then DeleteObject(mFontHandleBody)
-		mFontHandleBody=CreateFontW(-MulDiv(mFSize,mFCyPixels,72),0,mFOrientation*mFSize,mFOrientation*mFSize,mFBolds(Abs_(mFBold)),mFItalic,mFUnderline,mFStrikeOut,mFCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*mFName)
-		If mFontHandleBodyUnderline Then DeleteObject(mFontHandleBodyUnderline)
-		mFontHandleBodyUnderline=CreateFontW(-MulDiv(mFSize,mFCyPixels,72),0,mFOrientation*mFSize,mFOrientation*mFSize,mFBolds(Abs_(mFBold)),mFItalic,True,mFStrikeOut,mFCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*mFName)
+		mFCharSet = tCharSet
+		#ifdef __USE_WINAPI__
+			If mFontHandleBody Then DeleteObject(mFontHandleBody)
+			mFontHandleBody=CreateFontW(-MulDiv(mFSize,mFCyPixels,72),0,mFOrientation*mFSize,mFOrientation*mFSize,mFBolds(Abs_(mFBold)),mFItalic,mFUnderline,mFStrikeOut,mFCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*mFName)
+			If mFontHandleBodyUnderline Then DeleteObject(mFontHandleBodyUnderline)
+			mFontHandleBodyUnderline= CreateFontW(-MulDiv(mFSize, mFCyPixels, 72), 0, mFOrientation*mFSize, mFOrientation*mFSize, mFBolds(Abs_(mFBold)), mFItalic, True, mFStrikeOut, mFCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *mFName)
+		#endif
 
 	End Sub
 
@@ -1281,7 +1286,9 @@ ErrorHandler:
 	End Property
 	Private Sub GridData.Refresh()
 		' dim as RECT RectCell
-		GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)     '
+		#ifdef __USE_WINAPI__
+			GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage, mRow, mCol)     '
+		#endif
 		'PostMessage(Handle, WM_SIZE, 0, 0) 'Force to Refresh. better than GridReDraw because it is not updated sometimes.
 	End Sub
 
@@ -1296,8 +1303,10 @@ ErrorHandler:
 		Dim tItemCount As Integer
 		tItemCount= ListItems.Count'ListItems.Item(j)->Text(iCOl)
 		Dim tItem As GridDataItem Ptr
-		Dim As HCURSOR hCurSave = GetCursor()
-		SetCursor(LoadCursor(0, IDC_WAIT))
+		#ifdef __USE_WINAPI__
+			Dim As HCURSOR hCurSave = GetCursor()
+			SetCursor(LoadCursor(0, IDC_WAIT))
+		#endif
 		'print "Sort Start ",time
 		If tSortStyle=GridSortStyle.ssSortDescending Then
 			For i = tItemCount -1 To 0  Step -1
@@ -1367,9 +1376,9 @@ ErrorHandler:
 	End Property
 
 	Private Property GridData.SelectedColumn(Value As GridDataColumn Ptr)
-		#IfnDef __USE_GTK__
+		#ifndef __USE_GTK__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
-		#Endif
+		#endif
 	End Property
 
 	Private Property GridData.ShowHint As Boolean
@@ -1387,10 +1396,11 @@ ErrorHandler:
 		mAllowEdit = Value
 	End Property
 
+	#ifdef __USE_WINAPI__
 	Private Sub GridData.WndProc(ByRef Message As Message)
 	End Sub
 
-	Private Sub GridData.DrawLine(tDC As HDC, x1 As Integer, y1 As Integer, x2 As Integer, y2 As Integer, lColor As Integer=-1, lWidth As Integer = 1,lLineType As Integer = PS_SOLID)
+	Private Sub GridData.DrawLine(tDC As HDC, x1 As Integer, y1 As Integer, x2 As Integer, y2 As Integer, lColor As Integer = -1, lWidth As Integer = 1, lLineType As Integer = PS_SOLID)
 		Dim pt As LPPOINT
 		If lColor <>-1 Then
 			Static As  HPEN HPEN,hPenSele
@@ -1407,7 +1417,7 @@ ErrorHandler:
 
 	End Sub
 	Private Sub GridData.DrawRect(tDc As hDC,R As Rect,FillColor As Integer = -1,tSelctionRow As Integer = -1,tSelctionCol As Integer = -1)
-		#IfnDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Static As HBRUSH BSelction
 			Static As HBRUSH BCellBack
 			Static As Integer FillColorSave
@@ -1799,6 +1809,7 @@ ErrorHandler:
 		DeleteDC(MemDC)
 		ReleaseDC(Handle, GridDC)
 	End Sub
+	#endif
 	Private Sub GridData.ProcessMessage(ByRef Message As Message)
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
@@ -2176,11 +2187,12 @@ ErrorHandler:
 				End Select
 				'Case CM_NEEDTEXT
 			End Select
+			WDeAllocate sText
 		#endif
-		WDeAllocate sText
 		Base.ProcessMessage(Message)
 	End Sub
 
+	#ifdef __USE_WINAPI__
 	Private Sub GridData.EditControlShow(ByRef tComboColOld As Integer,ByVal tRow As Integer,ByVal tCol As Integer)
 		If mAllowEdit=False Then Exit Sub
 		If ListItems.Item(mRow)->Locked OrElse Columns.Column(mCol)->Locked Then Exit Sub
@@ -2308,7 +2320,7 @@ ErrorHandler:
 		UpdateWindow Handle
 		WDeallocate sText
 	End Sub
-
+	#endif
 	#ifndef __USE_GTK__
 		Private Sub GridData.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
@@ -2459,7 +2471,9 @@ ErrorHandler:
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data))
+					#if 0
+						If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data))
+					#endif
 				End If
 			End If
 		End Sub
@@ -2469,7 +2483,7 @@ ErrorHandler:
 			lv->Init
 		End Sub
 
-		Private Function GridData.TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+		Private Function GridData.GridData_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As GridData Ptr lv = user_data
 			If lv Then
 				Dim As GtkTreeModel Ptr model
