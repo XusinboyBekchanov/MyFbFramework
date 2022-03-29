@@ -902,7 +902,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub Chart.UpdateSerie(ByVal Index As Integer, ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr)
-		'Dim TempCol As DoubleList Ptr
+		Dim TempCol As DoubleList Ptr
 		Dim i As Long, j As Long
 		Dim Dif As Single
 		Dim bCancel As Boolean
@@ -913,8 +913,8 @@ Namespace My.Sys.Forms
 		With m_Serie(Index)
 			.SerieName = SerieName
 			.SerieColor = SerieColor
-			'TempCol = .Values
-			
+'			TempCol = .Values
+'			
 '			For i = 1 To 10
 '				.Values = New DoubleList Ptr
 '				For j = 1 To Values->Count
