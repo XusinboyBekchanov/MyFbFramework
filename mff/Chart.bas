@@ -913,19 +913,19 @@ Namespace My.Sys.Forms
 		With m_Serie(Index)
 			.SerieName = SerieName
 			.SerieColor = SerieColor
-'			TempCol = .Values
-'			
-'			For i = 1 To 10
-'				.Values = New DoubleList Ptr
-'				For j = 1 To Values->Count
-'					Dif = Values->Item(j) - TempCol->Item(j)
-'					.Values->Add Round(TempCol->Item(j) + i * Dif / 10)
-'				Next
-'				Me.Refresh
-'				pApp->DoEvents
-'				Wait 1
-'				'
-'			Next
+			TempCol = .Values
+			
+			For i = 1 To 10
+				.Values = New DoubleList
+				For j = 0 To Values->Count - 1
+					Dif = Values->Item(j) - TempCol->Item(j)
+					.Values->Add TempCol->Item(j) + i * Dif / 10
+				Next
+				Me.Refresh
+				pApp->DoEvents
+				Wait 1
+				Delete_(.Values)
+			Next
 			.Values = Values
 			Me.LabelsVisible = bVisible
 		End With
