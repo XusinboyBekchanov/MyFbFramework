@@ -178,7 +178,6 @@ Namespace My.Sys.Forms
 		Dim HotItem As Long
 		Dim cAxisItem As WStringList Ptr
 		Dim m_Serie(Any) As tSerie
-		Dim SerieCount As Long
 		Dim mHotSerie As Long
 		Dim mHotBar As Long
 		Dim MarginLeft As Single
@@ -251,6 +250,7 @@ Namespace My.Sys.Forms
 		Declare Function GetMax() As Single
 		Declare Function GetMin() As Single
 	Public:
+		SerieCount As Long
 		Declare Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
