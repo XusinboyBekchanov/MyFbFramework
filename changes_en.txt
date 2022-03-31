@@ -1,3 +1,39 @@
+Version 1.3.1 (March 31, 2022)
+- Added: OnMoving event to Splitter
+- Added: SeriesCount and AxisItemsCount functions to Chart control
+- Fixed: Chart UpdateSerie with animation
+- Fixed: Chart UpdateSerie method
+- Fixed: Control Parent property
+- Added: FillColor and FillMode property to Canvas
+- Removed: Picture Canvas field, Picture control gets Canvas field from Base type
+- Fixed: Drawing with BackColor on Canvas
+- Improved: Canvas Line function
+- Fixed: Add Circle function to Canvas
+- Fixed: WebBrowser Segmentation violation signal
+- Fixed: Compiling GridData control
+- Added: GridData control
+- Added: Canvas BackColor property for Cls method
+- Added: ToolTipsFormat property to Chart control
+- Fixed: LabelsPositions and LabelsAlignments properties of Chart control
+- Added: LabelsFormat property to Chart control
+- Added: Cell function to Grid control
+- Added: Tag Property to GridColumn
+- Added: Grid Example
+- Added: GridCell to Grid control
+- Added: ButterflyDraw example
+- Fixed: Hello Example compiling
+- Added: Scale and Cls function to Canvas
+- Fixed: Showing Double values in Chart control
+- Fixed: High DPI Chart, Grid, ListView and TreeListView controls
+- Fixed: Chart control without data
+- Added: Scale function to Canvas on Windows
+- Added: SelectedColumnIndex property to Grid control
+- Added: Dark mode for Grid control
+- Added: AxisMax and AxisMin property to Chart control
+- Added: CountOf function to WStringList
+- Added: CreateDoubleBuffer, TransferDoubleBuffer and DeleteDoubleBuffer methods to Canvas
+- Improved: Canvas SetPixel method and Changed: GetDevice and ReleaseDevice method visibility from Private: to Public:
+- Fixed: OpenFileControl crash on Design Mode
 Version 1.3.0 (March 18, 2022)
 - Improved: ReBar Dark Mode in Linux
 - Added: Object parameter to Dictionary IndexOfKey And ContainsOfKey functions
