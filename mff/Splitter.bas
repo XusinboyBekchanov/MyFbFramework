@@ -228,7 +228,7 @@ Namespace My.Sys.Forms
 						End Select
 						xOrig = xCur
 						yOrig = yCur
-						If onMoved Then onMoved(This)
+						If OnMoving Then OnMoving(This)
 						This.Parent->RequestAlign
 						#ifdef __USE_GTK__
 							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign 
@@ -324,6 +324,7 @@ Namespace My.Sys.Forms
 			'               End If
 			'               Parent->RequestAlign
 			'            End If
+			If OnMoved Then OnMoved(This)
 		End Select
 		Base.ProcessMessage(Message)
 	End Sub
