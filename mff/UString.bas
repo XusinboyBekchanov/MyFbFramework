@@ -356,13 +356,11 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'UTF-16 big-endian: FE FF
 	'UTF-32 little-endian: FF FE 00 00
 	'UTF-32 big-endian: 00 00 FE FF
-	Dim cbLen As Integer
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
-	Dim buffer As WString Ptr
-	WLet(buffer, WString(m_BufferLen * 5 + 1, 0))
-	'WReallocate buffer, m_BufferLen * 5 + 1
-	Return WGet(UTFToWChar(1, pZString, buffer, @cbLen))
+	Dim As WString Ptr buffer
+	WReallocate buffer, m_BufferLen
+	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 	'#endif
 End Function
 
