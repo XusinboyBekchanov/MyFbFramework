@@ -342,7 +342,7 @@ Namespace My
 		#elseif defined(__USE_WINAPI__)
 			Dim As MSG M
 			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
-				If PeekMessage(@M, NULL, 0, 0) <> WM_QUIT Then
+				If GetMessage(@M, NULL, 0, 0) <> WM_QUIT Then
 					TranslateMessage @M
 					DispatchMessage @M
 				Else
