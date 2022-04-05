@@ -256,6 +256,12 @@ Namespace My.Sys.Forms
 			'Returns/sets the value indicating show hint (Windows, Linux).
 			Declare Property ShowHint As Boolean
 			Declare Property ShowHint(Value As Boolean)
+			'Returns/sets the coordinates of the upper-left corner of the control relative to the upper-left corner of its container.
+			Declare Property Location As My.Sys.Drawing.Point
+			Declare Property Location(Value As My.Sys.Drawing.Point)
+			'Returns/sets the height and width of the control.
+			Declare Property Size As My.Sys.Drawing.Size
+			Declare Property Size(Value As My.Sys.Drawing.Size)
 			'Returns/sets the background color used to display text and graphics in an object (Windows, Linux).
 			Declare Property BackColor As Integer
 			Declare Property BackColor(Value As Integer)

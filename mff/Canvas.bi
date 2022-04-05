@@ -27,6 +27,11 @@ Namespace My.Sys.Drawing
 		Y As Long
 	End Type
 	
+	Private Type Size
+		Width As Long
+		Height As Long
+	End Type
+	
 	#ifdef __USE_WINAPI__
 		Private Enum FillStyle
 			fsSurface = FLOODFILLSURFACE

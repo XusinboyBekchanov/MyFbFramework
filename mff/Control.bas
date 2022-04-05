@@ -148,6 +148,22 @@ Namespace My.Sys.Forms
 		'        If FHandle Then Move
 		'    End Property
 		
+		Private Property Control.Location As My.Sys.Drawing.Point
+			Return Type(This.Left, This.Top)
+		End Property
+		
+		Private Property Control.Location(Value As My.Sys.Drawing.Point)
+			This.SetBounds Value.X, Value.Y, This.Width, This.Height
+		End Property
+		
+		Private Property Control.Size As My.Sys.Drawing.Size
+			Return Type(This.Width, This.Height)
+		End Property
+		
+		Private Property Control.Size(Value As My.Sys.Drawing.Size)
+			This.SetBounds This.Left, This.Top, Value.Width, Value.Height
+		End Property
+		
 		Private Property Control.AllowDrop As Boolean
 			Return FAllowDrop
 		End Property
