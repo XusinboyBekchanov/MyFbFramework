@@ -2373,7 +2373,7 @@ ErrorHandler:
 
 					SendMessage(.Handle, WM_SETFONT,CUInt(.mFontHandleBody),True)
 					SelectObject(GridDC,.mFontHandleBody)
-					Dim Sz As SIZE
+					Dim Sz As ..SIZE
 					GetTextExtentPoint32(GridDC,"B",Len("B"),@Sz)
 					.mFontHeight=Sz.cY
 					.mFontWidth=Sz.cX
