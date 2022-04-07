@@ -754,8 +754,10 @@ Namespace My.Sys.Forms
 			Case WM_LBUTTONDOWN
 				DownButton = 0
 				FMousePos = Message.lParamLo
+				SetCapture FHandle
 			Case WM_LBUTTONUP
 				DownButton = -1
+				ReleaseCapture
 			Case WM_MOUSEMOVE
 				If CInt(FReorderable) AndAlso CInt(DownButton = 0) Then
 					Dim As ..Rect R1, R2, R3
