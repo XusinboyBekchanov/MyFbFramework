@@ -1500,7 +1500,7 @@ Namespace My.Sys.Forms
 			End Select
 			'#endif
 		#elseif defined(__USE_WINAPI__)
-			If Handle Then Perform(WM_CLOSE, 0, 0)
+			If Handle Then SendMessage(Handle, WM_CLOSE, 0, 0)
 		#endif
 	End Sub
 	
