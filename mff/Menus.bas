@@ -870,16 +870,18 @@ Namespace My.Sys.Forms
 		Next
 	End Sub
 	
-	#if Not defined(__FB_64BIT__) And Not defined(__FB_GCC__)
-		Private Sub MenuItem.AddRange cdecl(CountArgs As Integer, ...)
-			Dim value As Any Ptr
-			value = va_first()
-			For i As Integer = 1 To CountArgs
-				Add(va_arg(value, PMenuItem))
-				value = va_next(value, Long)
-			Next
-		End Sub
-	#endif
+	Private Sub MenuItem.AddRange cdecl(CountArgs As Integer, ...)
+		'Dim value As Any Ptr
+		Dim args As Cva_List
+		'value = va_first()
+		Cva_Start(args, CountArgs)
+		For i As Integer = 1 To CountArgs
+			'Add(va_arg(value, PMenuItem))
+			Add(Cva_Arg(args, PMenuItem))
+			'value = va_next(value, Long)
+		Next
+		Cva_End(args)
+	End Sub
 	
 	Private Sub MenuItem.Insert(Index As Integer, value As PMenuItem)
 		If IndexOf(value) = -1 Then
@@ -1370,16 +1372,18 @@ Namespace My.Sys.Forms
 		Next
 	End Sub
 	
-	#if Not defined(__FB_64BIT__) And Not defined(__FB_GCC__)
-		Private Sub Menu.AddRange cdecl(CountArgs As Integer, ...)
-			Dim value As Any Ptr
-			value = va_first()
-			For i As Integer = 1 To CountArgs
-				Add(va_arg(value, PMenuItem))
-				value = va_next(value, Long)
-			Next
-		End Sub
-	#endif
+	Private Sub Menu.AddRange cdecl(CountArgs As Integer, ...)
+		'Dim value As Any Ptr
+		Dim args As Cva_List
+		'value = va_first()
+		Cva_Start(args, CountArgs)
+		For i As Integer = 1 To CountArgs
+			'Add(va_arg(value, PMenuItem))
+			Add(Cva_Arg(args, PMenuItem))
+			'value = va_next(value, Long)
+		Next
+		Cva_End(args)
+	End Sub
 	
 	Private Sub Menu.Insert(Index As Integer, value As PMenuItem)
 		If FParentMenuItem Then

@@ -2438,16 +2438,18 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		#if Not defined(__FB_64BIT__) And Not defined(__FB_GCC__)
-			Private Sub Control.AddRange cdecl(CountArgs As Integer, ...)
-				Dim value As Any Ptr
-				value = va_first()
-				For i As Integer = 1 To CountArgs
-					Add(va_arg(value, Control Ptr))
-					value = va_next(value, Long)
-				Next
-			End Sub
-		#endif
+		Private Sub Control.AddRange cdecl(CountArgs As Integer, ...)
+			'Dim value As Any Ptr
+			Dim args As Cva_List
+			'value = va_first()
+			Cva_Start(args, CountArgs)
+			For i As Integer = 1 To CountArgs
+				'Add(va_arg(value, Control Ptr))
+				Add(Cva_Arg(args, Control Ptr))
+				'value = va_next(value, Long)
+			Next
+			Cva_End(args)
+		End Sub
 		
 		Private Sub Control.Remove(Ctrl As Control Ptr)
 			Dim As Any Ptr P

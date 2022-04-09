@@ -657,56 +657,58 @@ Namespace My.Sys.Forms
 		Return PSection
 	End Function
 	
-	#ifndef __FB_64BIT__
-		Private Sub Header.AddSections cdecl(FCount As Integer, ...)
-			Dim As Any Ptr Arg
-			Dim As HeaderSection Ptr PSection
-			Arg = va_first()
-			For i As Integer = 0 To FCount - 1
-				PSection = New_( HeaderSection)
-				With *PSection
-					.HeaderControl = @This
-					.Caption       = *va_arg(Arg, WString Ptr)
+	Private Sub Header.AddSections cdecl(FCount As Integer, ...)
+		Dim As HeaderSection Ptr PSection
+		'Dim As Any Ptr Arg
+		Dim args As Cva_List
+		'Arg = va_first()
+		Cva_Start(args, FCount)
+		For i As Integer = 0 To FCount - 1
+			PSection = New_( HeaderSection)
+			With *PSection
+				.HeaderControl = @This
+				'.Caption       = *va_arg(Arg, WString Ptr)
+				.Caption       = *Cva_Arg(args, WString Ptr)
+			End With
+			FSections.Add PSection
+			#ifdef __USE_GTK__
+				PSection->Handle = gtk_tree_view_column_new()
+				gtk_tree_view_column_set_reorderable(PSection->Handle, FDragReorder)
+				gtk_tree_view_column_set_resizable(PSection->Handle, FResizable)
+				gtk_tree_view_column_set_clickable(PSection->Handle, FStyle = HeaderStyle.hsNormal)
+				gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(PSection->Caption))
+				gtk_tree_view_append_column(GTK_TREE_VIEW(FHandle), PSection->Handle)
+				Dim As gint wx, wy
+				gtk_tree_view_convert_bin_window_to_widget_coords(gtk_tree_view(FHandle), 0, 0, @wx, @wy)
+				gtk_widget_set_size_request(FHandle, FWidth, wy)
+				g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
+			#else
+				Dim As HDITEM HI
+				With HI
+					.mask       = HDI_FORMAT Or HDI_LPARAM Or HDI_TEXT Or HDI_WIDTH
+					.pszText    = @PSection->Caption
+					.cchTextMax = Len(PSection->Caption)
+					.cxy        = PSection->Width
+					.fmt        = AFmt(Abs_(PSection->Alignment))
+					.iImage     = PSection->ImageIndex
+					If .iImage <> -1 Then
+						.mask = .mask Or HDI_IMAGE
+						.fmt  = .fmt Or HDF_IMAGE
+					End If
+					If PSection->Style Then
+						.fmt = .fmt Or HDF_OWNERDRAW
+					Else
+						.fmt = .fmt Or HDF_STRING
+					End If
+					.hbm        = NULL
+					.lParam     = Cast(LParam,PSection)
 				End With
-				FSections.Add PSection
-				#ifdef __USE_GTK__
-					PSection->Handle = gtk_tree_view_column_new()
-					gtk_tree_view_column_set_reorderable(PSection->Handle, FDragReorder)
-					gtk_tree_view_column_set_resizable(PSection->Handle, FResizable)
-					gtk_tree_view_column_set_clickable(PSection->Handle, FStyle = HeaderStyle.hsNormal)
-					gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(PSection->Caption))
-					gtk_tree_view_append_column(GTK_TREE_VIEW(FHandle), PSection->Handle)
-					Dim As gint wx, wy
-					gtk_tree_view_convert_bin_window_to_widget_coords(gtk_tree_view(FHandle), 0, 0, @wx, @wy)
-					gtk_widget_set_size_request(FHandle, FWidth, wy)
-					g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
-				#else
-					Dim As HDITEM HI
-					With HI
-						.mask       = HDI_FORMAT Or HDI_LPARAM Or HDI_TEXT Or HDI_WIDTH
-						.pszText    = @PSection->Caption
-						.cchTextMax = Len(PSection->Caption)
-						.cxy        = PSection->Width
-						.fmt        = AFmt(Abs_(PSection->Alignment))
-						.iImage     = PSection->ImageIndex
-						If .iImage <> -1 Then
-							.mask = .mask Or HDI_IMAGE
-							.fmt  = .fmt Or HDF_IMAGE
-						End If
-						If PSection->Style Then
-							.fmt = .fmt Or HDF_OWNERDRAW
-						Else
-							.fmt = .fmt Or HDF_STRING
-						End If
-						.hbm        = NULL
-						.lParam     = Cast(LParam,PSection)
-					End With
-					If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
-				#endif
-				Arg = va_next(Arg, WString Ptr)
-			Next i
-		End Sub
-	#endif
+				If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
+			#endif
+			'Arg = va_next(Arg, WString Ptr)
+		Next i
+		Cva_End(args)
+	End Sub
 	
 	Private Sub Header.RemoveSection(Index As Integer)
 		If Index >= 0 And Index <= SectionCount - 1 Then
