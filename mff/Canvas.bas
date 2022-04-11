@@ -580,6 +580,40 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
+	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSourse As HBITMAP) As HBITMAP
+		If Not HandleSetted Then GetDevice
+		#ifdef __USE_GTK__
+			Dim As Hbitmap ImageDest
+			If nWidth <> 0 AndAlso nHeight <> 0 Then
+				ImageDest = gdk_pixbuf_new (GDK_COLORSPACE_RGB, True, 8 , nWidth, nHeight)
+				If ImageDest Then
+					gdk_pixbuf_copy_area(ImageSourse, X, Y, nWidth, nHeght, ImageDest, 0, 0)
+					Return ImageDest
+				EndIf
+			EndIf
+			Return 0
+		#elseif defined(__USE_WINAPI__)
+			Dim As GpImage Ptr pImage1
+			Dim As GpImage Ptr pImage2
+			Dim As HBITMAP     ImageDest
+			' // Initialize Gdiplus
+			Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
+			StartupInput.GdiplusVersion = 1
+			GdiplusStartup(@token, @StartupInput, NULL)
+			If token = NULL Then Return False
+			GdipCreateBitmapFromHBITMAP(ImageSourse, NULL, Cast(GpBitmap Ptr Ptr, @pImage1))
+			GdipCloneBitmapArea (x, y, nWidth, nHeight, 0, Cast(GpBitmap Ptr , pImage1) , Cast(GpBitmap Ptr Ptr, @pImage2))
+			GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr , pImage2) , @ImageDest, 0)
+			' // Free the image
+			If pImage1 Then GdipDisposeImage pImage1
+			If pImage2 Then GdipDisposeImage pImage2
+			' // Shutdown Gdiplus
+			GdiplusShutdown token
+			Return ImageDest
+		#endif
+		If Not HandleSetted Then ReleaseDevice
+	End Function
+	
 	Private Sub Canvas.Draw(x As Double, y As Double, Image As Any Ptr)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
@@ -697,7 +731,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.StretchDraw(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
+	Private Sub Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
 			Dim As HDC MemDC
