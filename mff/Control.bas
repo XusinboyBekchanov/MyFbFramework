@@ -1100,6 +1100,8 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
+		#define WM_DPICHANGED       &h02E0
+		
 		Private Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
 			If OnMessage Then OnMessage(This, Message)
@@ -1373,6 +1375,11 @@ Namespace My.Sys.Forms
 					If g_darkModeSupported AndAlso CBool(IsColorSchemeChangeMessage(Message.lParam)) Then
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
+				Case WM_DPICHANGED
+					Dim As ..RECT Ptr rc = Cast(RECT Ptr, Message.lParam)
+					Move rc->Left, rc->Top, rc->Right - rc->Left, rc->Bottom - rc->Top
+					Message.Result = 0
+					Return
 				Case WM_THEMECHANGED
 '					If g_darkModeSupported Then
 '						_AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
