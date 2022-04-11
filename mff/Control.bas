@@ -1378,6 +1378,9 @@ Namespace My.Sys.Forms
 				Case WM_DPICHANGED
 					Dim As ..RECT Ptr rc = Cast(RECT Ptr, Message.lParam)
 					Move rc->Left, rc->Top, rc->Right - rc->Left, rc->Bottom - rc->Top
+					For i As Integer = 0 To ControlCount - 1
+						'Controls[i]->
+					Next
 					Message.Result = 0
 					Return
 				Case WM_THEMECHANGED

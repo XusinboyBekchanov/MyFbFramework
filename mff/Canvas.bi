@@ -177,7 +177,7 @@ Namespace My.Sys.Drawing
 		Declare Sub PolyBeizerTo(Points() As Point, Count As Long)
 		Declare Sub SetPixel(x As Double, y As Double, PixelColor As Integer)
 		Declare Function GetPixel(x As Double, y As Double) As Integer
-		Declare Function Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSourse As HBITMAP) As HBITMAP
+		Declare Function Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSourse As Any Ptr) As Any Ptr
 		Declare Sub TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
 		Declare Sub Draw(x As Double, y As Double, Image As Any Ptr)

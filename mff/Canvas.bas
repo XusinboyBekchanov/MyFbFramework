@@ -580,12 +580,12 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSourse As HBITMAP) As HBITMAP
+	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSourse As Any Ptr) As Any Ptr
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
-			Dim As Hbitmap ImageDest
+			Dim As GdkPixbuf Ptr ImageDest
 			If nWidth <> 0 AndAlso nHeight <> 0 Then
-				ImageDest = gdk_pixbuf_new (GDK_COLORSPACE_RGB, True, 8 , nWidth, nHeight)
+				ImageDest = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8 , nWidth, nHeight)
 				If ImageDest Then
 					gdk_pixbuf_copy_area(ImageSourse, X, Y, nWidth, nHeght, ImageDest, 0, 0)
 					Return ImageDest
