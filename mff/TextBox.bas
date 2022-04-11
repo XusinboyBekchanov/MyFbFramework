@@ -1473,7 +1473,7 @@ Namespace My.Sys.Forms
 		FBorderStyle      = 1
 		FHideSelection    = 1
 		FCtl3D            = True
-		WLet FMaskChar, ""
+		WLet(FMaskChar, "")
 		FMaxLength          = 64000
 		FEnabled = True
 		FTabIndex          = -1
@@ -1504,6 +1504,7 @@ Namespace My.Sys.Forms
 	Private Destructor TextBox
 		If FSelText <> 0 Then Deallocate_( FSelText)
 		If FLine <> 0 Then Deallocate_( FLine)
+		WDeallocate(FMaskChar)
 	End Destructor
 End Namespace
 

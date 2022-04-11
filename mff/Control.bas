@@ -401,7 +401,7 @@ Namespace My.Sys.Forms
 			End Property
 			
 			Private Property Control.Hint(ByRef Value As WString)
-				WLet FHint, Value
+				WLet(FHint, Value)
 				#ifdef __USE_GTK__
 					If FSHowHint Then
 						If widget Then gtk_widget_set_tooltip_text(widget, ToUTF8(Value))

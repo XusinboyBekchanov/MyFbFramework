@@ -298,7 +298,7 @@ Namespace My.Sys.Forms
 							If Perform(ACM_OPENW, 0, CInt(FFile)) = 0 Then
 								If pGraph = 0 Then
 									Dim As WString Ptr wFile
-									WLet wFile, Replace(*FFile, "/", "\")
+									WLet(wFile, Replace(*FFile, "/", "\"))
 									If StartsWith(*wFile, "./") OrElse StartsWith(*wFile, ".\") Then
 										WLetEx wFile, ExePath & Mid(*wFile, 2), True
 									End If

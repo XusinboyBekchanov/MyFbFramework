@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property DateTimePicker.CustomFormat(ByRef Value As WString)
-		WLet FCustomFormat, Value
+		WLet(FCustomFormat, Value)
 		If FHandle Then
 			If FDateFormat = DateTimePickerFormat.CustomFormat Then
 				#ifdef __USE_GTK__
@@ -986,7 +986,7 @@ Namespace My.Sys.Forms
 		
 		'Result = InitCommonControlsEx(@ICC)
 		'If Not Result Then InitCommonControls
-		WLet FFormat, "dd MMMM yyyy"
+		WLet(FFormat, "dd MMMM yyyy")
 		FChecked = True
 		FTabIndex          = -1
 		FTabStop           = True

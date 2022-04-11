@@ -430,7 +430,7 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Operator BitmapType.Let(ByRef Value As WString)
-		WLet FResName, Value
+		WLet(FResName, Value)
 		#ifdef __USE_GTK__
 			If StartsWith(Value, "/") Then
 				LoadFromFile(Value)

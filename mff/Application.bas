@@ -66,7 +66,7 @@ Namespace My
 	
 	Private Property Application.Title ByRef As WString
 		If FTitle = 0 Then
-			WLet FTitle, GetVerInfo("ApplicationTitle")
+			WLet(FTitle, GetVerInfo("ApplicationTitle"))
 			If *FTitle = "" Then
 				#ifdef __USE_GTK__
 					WLet(FTitle, APP_TITLE)

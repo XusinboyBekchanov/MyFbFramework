@@ -189,6 +189,9 @@ Namespace My.Sys.Forms
 		Dim mWidth As Single
 		Dim PtDistance As Single
 		Dim AxisDistance As Single
+		Dim m_WStringList As WStringList Ptr
+		Dim m_DoubleList1 As DoubleList Ptr
+		Dim m_DoubleList2 As DoubleList Ptr
 		
 		Dim m_PT As POINTL
 		Dim m_Left As Long

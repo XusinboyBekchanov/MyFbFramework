@@ -285,7 +285,7 @@ Private Property Dictionary.Text(ByRef Value As WString)
 	Dim As Integer Pos1
 	For i As Integer = 0 To Len(Value)
 		If Value[i] = 10 Or Value[i] = 0 Then
-			WLet(*FText, Trim(Mid(*FText, 1, Len(*FText)), Any WChr(13) & WChr(10)))
+			WLet(FText, Trim(Mid(*FText, 1, Len(*FText)), Any WChr(13) & WChr(10)))
 			Pos1 = InStr(*FText, ": ")
 			Dim As DictionaryItem Ptr nItem = New_( DictionaryItem)
 			With *nItem

@@ -53,7 +53,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ReBarBand.Caption(ByRef Value As WString)
-		WLet FCaption, Value
+		WLet(FCaption, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
 				Dim As REBARBANDINFO rbBand
@@ -150,7 +150,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ReBarBand.ImageKey(ByRef Value As WString)
-		WLet FImageKey, Value
+		WLet(FImageKey, Value)
 		If Parent AndAlso Parent->ImageList Then
 			ImageIndex = Parent->ImageList->IndexOf(*FImageKey)
 		End If

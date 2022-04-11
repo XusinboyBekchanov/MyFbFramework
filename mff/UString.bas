@@ -62,6 +62,47 @@ Private Function UString.TrimStart As UString
 	Return LTrim(*m_Data)
 End Function
 
+#if MEMCHECK
+	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
+	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+#else
+	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+		If subject <> 0 Then
+			subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+		Else
+			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+		End If
+	End Sub
+	
+	Private Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
+		WReAllocate(subject, Len(txt))
+		*subject = txt
+	End Sub
+#endif
+
+Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
+	If ExistsSubjectInTxt Then
+		Dim TempWStr As WString Ptr
+		WLet(TempWStr, txt)
+		WLet(subject, *TempWStr)
+		WDeallocate TempWStr
+	Else
+		WReAllocate(subject, Len(txt))
+		*subject = txt
+	End If
+End Sub
+
+Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
+	Dim TempWStr As WString Ptr
+	If AddBefore Then
+		WLet(TempWStr, txt & WGet(subject))
+	Else
+		WLet(TempWStr, WGet(subject) & txt)
+	End If
+	WLet(subject, *TempWStr)
+	WDeallocate TempWStr
+End Sub
+
 Private Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then
 	m_BytesCount = (NewLength + 1) * SizeOf(WString)
@@ -146,49 +187,8 @@ Private Function WStrPtr(ByRef Value As UString) As WString Ptr
 	Return Value.vptr
 End Function
 
-#if MEMCHECK
-	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
-	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
-#else
-	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
-		If subject <> 0 Then
-			subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
-		Else
-			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
-		End If
-	End Sub
-	
-	Private Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
-		WReAllocate(subject, Len(txt))
-		*subject = txt
-	End Sub
-#endif
-
-Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
-	If ExistsSubjectInTxt Then
-		Dim TempWStr As WString Ptr
-		WLet(TempWStr, txt)
-		WLet(subject, *TempWStr)
-		WDeallocate TempWStr
-	Else
-		WReAllocate(subject, Len(txt))
-		*subject = txt
-	End If
-End Sub
-
-Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
-	Dim TempWStr As WString Ptr
-	If AddBefore Then
-		WLet(TempWStr, txt & WGet(subject))
-	Else
-		WLet(TempWStr, WGet(subject) & txt)
-	End If
-	WLet(subject, *TempWStr)
-	WDeallocate TempWStr
-End Sub
-
 Private Function tallynumW Overload(ByRef somestring As WString, ByRef partstring As WString) As Integer
-	Dim As Integer i,j,ln,lnp,count,num
+	Dim As Integer i, j, ln, lnp, count, num
 	ln=Len(somestring):If ln=0 Then Return 0
 	lnp=Len(partstring):If lnp=0 Then Return 0
 	count=0
@@ -359,7 +359,7 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
 	Dim As WString Ptr buffer
-	WReallocate buffer, m_BufferLen
+	WReallocate(buffer, m_BufferLen)
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 	'#endif
 End Function

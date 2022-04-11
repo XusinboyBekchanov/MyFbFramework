@@ -436,7 +436,7 @@ Private Sub Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const
 				items += 20
 				ReDim Preserve Result(0 To items - 1)
 			End If
-			WLet Result(n), Mid(wszMainStr, p, i - p)
+			WLet(Result(n), Mid(wszMainStr, p, i - p))
 			n += 1
 			p = i + tLen
 			i = p
@@ -445,12 +445,12 @@ Private Sub Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const
 		i += 1
 	Loop
 	ReDim Preserve Result(n)
-	WLet Result(n), Mid(wszMainStr, p, i - p)
+	WLet(Result(n), Mid(wszMainStr, p, i - p))
 End Sub
 
 Private Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As WString Ptr TmpString
-	WLet TmpString, ""
+	WLet(TmpString, "")
 	For i As Integer = iStart To UBound(subject) Step iStep
 		WAdd TmpString, IIf(i = iStart, "", Delimiter) & *subject(i)
 	Next

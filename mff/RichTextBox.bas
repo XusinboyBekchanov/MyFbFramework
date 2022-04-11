@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 		Case "selcharoffset": FSelIntVal = SelCharOffset: Return @FSelIntVal
 		Case "selcharset": FSelIntVal = SelCharSet: Return @FSelIntVal
 		Case "selcolor": FSelIntVal = SelColor: Return @FSelIntVal
-		Case "selfontname": WLet FSelWStrVal, SelFontName: Return FSelWStrVal
+		Case "selfontname": WLet(FSelWStrVal, SelFontName): Return FSelWStrVal
 		Case "selfontsize": FSelIntVal = SelFontSize: Return @FSelIntVal
 		Case "selindent": FSelIntVal = SelIndent: Return @FSelIntVal
 		Case "selitalic": FSelBoolVal = SelItalic: Return @FSelBoolVal

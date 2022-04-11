@@ -129,9 +129,9 @@ Namespace My.Sys.Forms
 			End If
 			value.dwItemData  = Cast(dword_Ptr, Cast(Any Ptr, @This))
 			If *FCaption = "-" Then
-				WLet pCaption, "|"
+				WLet(pCaption, "|")
 			Else
-				WLet pCaption, *FCaption
+				WLet(pCaption, *FCaption)
 			End If
 			value.dwTypeData  = pCaption
 			value.cch         = Len(*pCaption)
@@ -625,9 +625,9 @@ Namespace My.Sys.Forms
 			FInfo.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
 			Dim As WString Ptr pCaption
 			If *FCaption = "-" Then
-				WLet pCaption, "|"
+				WLet(pCaption, "|")
 			Else
-				WLet pCaption, *FCaption
+				WLet(pCaption, *FCaption)
 			End If
 			FInfo.dwTypeData = pCaption
 			FInfo.cch        = Len(*pCaption)

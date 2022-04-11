@@ -16,10 +16,10 @@ Namespace My.Sys.Forms
 	Private Function OpenFileControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "defaultext": Return FDefaultExt
-		Case "filename": WLet FFileName, FileName: Return FFileName
-		Case "filetitle": WLet FFileTitle, FileTitle: Return FFileTitle
+		Case "filename": WLet(FFileName, FileName): Return FFileName
+		Case "filetitle": WLet(FFileTitle, FileTitle): Return FFileTitle
 		Case "filter": Return FFilter
-		Case "initialdir": WLet FInitialDir, InitialDir: Return FInitialDir
+		Case "initialdir": WLet(FInitialDir, InitialDir): Return FInitialDir
 		Case "multiselect": Return @FMultiSelect
 		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -81,7 +81,7 @@ Namespace My.Sys.Forms
 				Dim As Integer iSize = 1024
 				Dim As WString * 1024 Path
 				If SendMessage(FHandle, CDM_GETFOLDERPATH, iSize, Cast(WPARAM, @Path)) > 0 Then
-					WLet FInitialDir, Path
+					WLet(FInitialDir, Path)
 				End If
 			#endif
 		End If
@@ -120,7 +120,7 @@ Namespace My.Sys.Forms
 				Dim As Integer iSize = 1024
 				Dim As WString * 1024 Path
 				If SendMessage(FHandle, CDM_GETFILEPATH, iSize, Cast(WPARAM, @Path)) > 0 Then
-					WLet FFileName, Path
+					WLet(FFileName, Path)
 				End If
 			#endif
 		End If
@@ -152,7 +152,7 @@ Namespace My.Sys.Forms
 				Dim As Integer iSize = 1024
 				Dim As WString * 1024 Path
 				If SendMessage(FHandle, CDM_GETSPEC, iSize, Cast(WPARAM, @Path)) > 0 Then
-					WLet FFileTitle, Path
+					WLet(FFileTitle, Path)
 				End If
 			#endif
 		End If

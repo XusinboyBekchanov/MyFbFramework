@@ -171,7 +171,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	Private Property GridDataItem.Text(iSubItem As Integer, ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		For i As Integer = FSubItems.Count To iSubItem
 			FSubItems.Add ""
 		Next
@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 	End Property
 
 	Private Property GridDataItem.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 
 	Private Property GridDataItem.ImageIndex As Integer
@@ -305,7 +305,7 @@ Namespace My.Sys.Forms
 
 	Private Property GridDataItem.ImageKey(ByRef Value As WString)
 		'If Value <> *FImageKey Then
-		WLet FImageKey, Value
+		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_set (Cast(GridData Ptr, Parent)->TreeStore, @TreeIter, 0, ToUtf8(Value), -1)
@@ -326,7 +326,7 @@ Namespace My.Sys.Forms
 
 	Private Property GridDataItem.SelectedImageKey(ByRef Value As WString)
 		'If Value <> *FSelectedImageKey Then
-		WLet FSelectedImageKey, Value
+		WLet(FSelectedImageKey, Value)
 		If Parent Then
 			With QControl(Parent)
 				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
 	End Property
 
 	Private Property GridDataColumn.Text(ByRef Value As WString)
-		WLet FText, Value
+		WLet(FText, Value)
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
@@ -501,7 +501,7 @@ Namespace My.Sys.Forms
 	End Property
 
 	Private Property GridDataColumn.Hint(ByRef Value As WString)
-		WLet FHint, Value
+		WLet(FHint, Value)
 	End Property
 
 	Private Property GridDataColumn.GridEditComboItem ByRef As WString
@@ -509,7 +509,7 @@ Namespace My.Sys.Forms
 	End Property
 
 	Private Property GridDataColumn.GridEditComboItem(ByRef Value As WString)
-		WLet FGridEditComboItem, Value
+		WLet(FGridEditComboItem, Value)
 	End Property
 
 	Private Property GridDataColumn.ImageIndex As Integer
@@ -1184,7 +1184,7 @@ ErrorHandler:
 
 		If tFontColor<>-1 Then mHeaderForeColor=tFontColor
 		If tFontColorBK<>-1 Then mHeaderBackColor=tFontColorBK
-		If Len(tNameHeader)>0 Then WLET mFNameHeader, tNameHeader
+		If Len(tNameHeader) > 0 Then WLET(mFNameHeader, tNameHeader)
 		If tSizeHeader<>-1 Then mFSizeHeader=tSizeHeader
 		mFBoldHeader=tBoldsHeader
 		mFItalicHeader =tItalicHeader
@@ -1198,7 +1198,7 @@ ErrorHandler:
 	End Sub
 
 	Private Sub GridData.SetFont(tName As WString="",tSize As Integer=-1,tCharSet As Integer=FontCharset.Default,tBolds As Boolean=False,tItalic As Boolean=False,tUnderline As Boolean=False,tStrikeout As Boolean=False)
-		If Len(tName)>0 Then WLET mFName, tName
+		If Len(tName) > 0 Then WLET(mFName, tName)
 		If tSize<>-1 Then mFSize=tSize
 		mFBold=tBolds
 		mFItalic =tItalic
@@ -1565,7 +1565,7 @@ ErrorHandler:
 			'Print "CType ",iCT," DataType ",Columns.Column(iCol)->DataType
 			'SendMessage(mHandleHeader, WM_SETREDRAW, False, 0) 'DO NOT UPDATING THE TITLE BAR
 			RectHeader=REC(iCol)
-			WLet sText,Columns.Column(iCol)->Text
+			WLet(sText, Columns.Column(iCol)->Text)
 			RectHeader.Top=0
 			RectHeader.Bottom =mRowHeightHeader'REC(0).Top
 			RectHeader.Left=Si.nPos+REC(iCol).Left
@@ -1627,9 +1627,9 @@ ErrorHandler:
 				If RectCell.Right-RectCell.Left <= 1 Then Continue For
 				iColorBK = ListItems.Item(iRow)->BackColor(iCOl)
 				If iCOl=0 Then
-					WLet sText,WStr(iRow+1)
+					WLet(sText,WStr(iRow+1))
 				Else
-					WLet sText,ListItems.Item(iRow)->Text(iCOl)
+					WLet(sText,ListItems.Item(iRow)->Text(iCOl))
 				End If
 
 				iCT = Columns.Column(iCol)->ControlType
@@ -1675,9 +1675,9 @@ ErrorHandler:
 				Case CT_ProgressBar' = 4
 					DrawRect(MemDC, RectCell, iColorBK,iRow,iCol)
 					If Val(*sText)>100 Then
-						wlet sText,"100%"
+						wlet(sText, "100%")
 					ElseIf Val(*sText)<0 Then
-						wLet sText,"0%"
+						wLet(sText,"0%")
 					Else
 						wAdd sText,"%"
 					End If
@@ -2215,7 +2215,7 @@ ErrorHandler:
 		'Move to new position
 		If tRow>=0 AndAlso tCol>0 Then
 			mRow=tRow: mCol=tCol
-			WLet sText,ListItems.Item(mRow)->Text(mCol)
+			WLet(sText,ListItems.Item(mRow)->Text(mCol))
 			ListView_GetSubItemRect(HANDLE, mRow, mCol, LVIR_BOUNDS, @RectCell)
 
 			Select Case Columns.Column(mCol)->ControlType
@@ -2530,8 +2530,8 @@ ErrorHandler:
 		'Font
 		mFBolds(0) = 400
 		mFBolds(1) = 700
-		WLet mFName, This.Font.Name     '"TAHOMA"
-		WLet mFNameHeader, This.Font.Name  '"TAHOMA"
+		WLet(mFName, This.Font.Name)     '"TAHOMA"
+		WLet(mFNameHeader, This.Font.Name)  '"TAHOMA"
 		mFCharSet=FontCharset.Default
 		mFCharSetHeader=FontCharset.Default
 		mFBoldsHeader(0) = 400
@@ -2569,9 +2569,9 @@ ErrorHandler:
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_OWNERDRAWFIXED 'Or LVS_SHOWSELALWAYS OR LVS_EDITLABELS OR LVS_EX_DOUBLEBUFFER
 				.DoubleBuffered = True
-				WLet FClassAncestor, WC_ListView
+				WLet(FClassAncestor, WC_ListView)
 			#endif
-			WLet FClassName, "GridData"
+			WLet(FClassName, "GridData")
 			.Width             = 121
 			.Height            = 121
 		End With

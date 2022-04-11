@@ -149,7 +149,7 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Operator Cursor.Let(ByRef Value As WString)
-		WLet FResName, Value
+		WLet(FResName, Value)
 		#ifndef __USE_GTK__
 			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 				LoadFromFile(Value)

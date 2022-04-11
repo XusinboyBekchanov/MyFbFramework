@@ -59,7 +59,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property StatusPanel.Name(ByRef Value As WString)
-		WLet FName, Value
+		WLet(FName, Value)
 	End Property
 	
 	Private Property StatusPanel.Parent As Control Ptr
@@ -134,7 +134,7 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Private Constructor StatusPanel
-		WLet FClassName, "StatusPanel"
+		WLet(FClassName, "StatusPanel")
 		Caption     = ""
 		FWidth      = 50
 		FAlignment  = 0
