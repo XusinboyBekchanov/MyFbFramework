@@ -580,14 +580,14 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSourse As Any Ptr) As Any Ptr
+	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSource As Any Ptr) As Any Ptr
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
 			Dim As GdkPixbuf Ptr ImageDest
 			If nWidth <> 0 AndAlso nHeight <> 0 Then
 				ImageDest = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8 , nWidth, nHeight)
 				If ImageDest Then
-					gdk_pixbuf_copy_area(ImageSourse, X, Y, nWidth, nHeght, ImageDest, 0, 0)
+					gdk_pixbuf_copy_area(ImageSource, X, Y, nWidth, nHeght, ImageDest, 0, 0)
 					Return ImageDest
 				EndIf
 			EndIf
@@ -601,7 +601,7 @@ Namespace My.Sys.Drawing
 			StartupInput.GdiplusVersion = 1
 			GdiplusStartup(@token, @StartupInput, NULL)
 			If token = NULL Then Return False
-			GdipCreateBitmapFromHBITMAP(ImageSourse, NULL, Cast(GpBitmap Ptr Ptr, @pImage1))
+			GdipCreateBitmapFromHBITMAP(ImageSource, NULL, Cast(GpBitmap Ptr Ptr, @pImage1))
 			GdipCloneBitmapArea (x, y, nWidth, nHeight, 0, Cast(GpBitmap Ptr , pImage1) , Cast(GpBitmap Ptr Ptr, @pImage2))
 			GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr , pImage2) , @ImageDest, 0)
 			' // Free the image
