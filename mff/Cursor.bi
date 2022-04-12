@@ -66,6 +66,7 @@
 	#define crSizeWE      LoadCursor(0,IDC_SIZEWE)
 	#define crUpArrow     LoadCursor(0,IDC_UPARROW)
 	#define crWait        LoadCursor(0,IDC_WAIT)
+	#define crHand        LoadCursor(0,IDC_HAND)
 	#define crDrag        LoadCursor(GetModuleHandle(NULL),"DRAG")
 	#define crMultiDrag   LoadCursor(GetModuleHandle(NULL),"MULTIDRAG")
 	#define crHandPoint   LoadCursor(GetModuleHandle(NULL),"HANDPOINT")
