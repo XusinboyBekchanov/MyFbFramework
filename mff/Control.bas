@@ -910,10 +910,12 @@ Namespace My.Sys.Forms
 					End If
 					CreationControl = @This
 					'RegisterClass ClassName, ClassAncestor
-					Handle = CreateWindowExW(FExStyle, _
-					FClassName,_
-					FText.vptr,_
-					FStyle,_
+					Dim As DWORD dExStyle = FExStyle
+					Dim As DWORD dStyle = FStyle
+					FHandle = CreateWindowExW(dExStyle, _
+					FClassName, _
+					FText.vptr, _
+					dStyle, _
 					nLeft, _
 					nTop, _
 					nWidth, _
@@ -1679,7 +1681,7 @@ Namespace My.Sys.Forms
 			Private Function Control.DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Dim Message As Message
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
-				Message = Type(Ctrl, FWindow,Msg,wParam,lParam,0,LoWord(wParam),HiWord(wParam),LoWord(lParam),HiWord(lParam), 0)
+				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), 0)
 				If Ctrl Then
 					'?Ctrl
 					If Ctrl->ClassName <> "" Then
@@ -1739,6 +1741,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr Ctrl
 				Dim Message As Message
 				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				'Ctrl = GetProp(FWindow, "MFFControl")
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				If Ctrl Then
 					With *Ctrl
@@ -2028,6 +2031,7 @@ Namespace My.Sys.Forms
 				Dim As WNDCLASSEX Wc
 				Dim As Any Ptr ClassProc
 				Dim Proc As Function(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT = WndProcAddr
+				ZeroMemory(@Wc, SizeOf(WNDCLASSEX))
 				Wc.cbsize = SizeOf(WNDCLASSEX)
 				If wClassAncestor <> "" Then
 					If GetClassInfoEx(0, wClassAncestor, @Wc) <> 0 Then
@@ -2371,6 +2375,7 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Private Sub Control.Add(Ctrl As Control Ptr)
+    On Error Goto ErrorHandler
 			If Ctrl Then
 				If WGet(FClassName) = "Form1" Then
 					Ctrl = Ctrl
@@ -2379,7 +2384,7 @@ Namespace My.Sys.Forms
 				Ctrl->FParent = @This
 				FControlCount += 1
 				Controls = Reallocate_(Controls, SizeOf(Control Ptr)*FControlCount)
-				Controls[FControlCount -1] = Ctrl
+				Controls[FControlCount - 1] = Ctrl
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					Dim As Boolean bAdded
@@ -2446,6 +2451,12 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
+    Exit Sub
+ErrorHandler:
+    MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+        "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+        "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+        "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 		End Sub
 		
 		Private Sub Control.AddRange cdecl(CountArgs As Integer, ...)

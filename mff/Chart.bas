@@ -1182,6 +1182,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub Chart.Draw()
+    On Error Goto ErrorHandler
 		#ifndef __USE_GTK__
 			Dim hPath As GpPath Ptr
 			Dim hBrush As GpBrush Ptr, hPen As GpPen Ptr
@@ -1883,7 +1884,7 @@ Namespace My.Sys.Forms
 				Case LA_BOTTOM, LA_TOP
 					With LabelsRect
 						
-						.Bottom = m_Serie(0).TextHeight + PT16 / 2
+						If SerieCount > 0 Then .Bottom = m_Serie(0).TextHeight + PT16 / 2
 						TextWidth = 0
 						For i = 0 To SerieCount - 1
 							If TextWidth + m_Serie(i).TextWidth > mWidth Then
@@ -2996,12 +2997,14 @@ Namespace My.Sys.Forms
 				Canvas.Font = This.Font
 				
 				If m_AxisYVisible Then
-					For i = 0 To cAxisItem->Count - 1
-						TextWidth = ScaleX(Canvas.TextWidth(cAxisItem->Item(i))) * 1.3
-						TextHeight = ScaleY(Canvas.TextHeight(cAxisItem->Item(i))) * 1.5
-						If TextWidth > AxisY.Width Then AxisY.Width = TextWidth
-						If TextHeight > AxisY.Height Then AxisY.Height = TextHeight
-					Next
+					If cAxisItem Then
+						For i = 0 To cAxisItem->Count - 1
+							TextWidth = ScaleX(Canvas.TextWidth(cAxisItem->Item(i))) * 1.3
+							TextHeight = ScaleY(Canvas.TextHeight(cAxisItem->Item(i))) * 1.5
+							If TextWidth > AxisY.Width Then AxisY.Width = TextWidth
+							If TextHeight > AxisY.Height Then AxisY.Height = TextHeight
+						Next
+					End If
 					
 					If m_AxisAngle <> 0 Then
 						With AxisY
@@ -3566,16 +3569,18 @@ Namespace My.Sys.Forms
 				
 				'vertical Axis
 				If m_AxisYVisible Then
-					For i = 0 To cAxisItem->Count - 1
-						YY = TopHeader + AxisDistance * (i) ' - 1
-						If m_LegendAlign = LA_LEFT Then
-							XX = LabelsRect.Left + LabelsRect.Right
-						Else
-							XX = PT16
-						End If
-						
-						DrawText cAxisItem->Item(i), XX, YY, MarginLeft - XX - PT16 / 10, AxisDistance, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
-					Next
+					If cAxisItem Then
+						For i = 0 To cAxisItem->Count - 1
+							YY = TopHeader + AxisDistance * (i) ' - 1
+							If m_LegendAlign = LA_LEFT Then
+								XX = LabelsRect.Left + LabelsRect.Right
+							Else
+								XX = PT16
+							End If
+							
+							DrawText cAxisItem->Item(i), XX, YY, MarginLeft - XX - PT16 / 10, AxisDistance, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
+						Next
+					End If
 				End If
 				
 			End If
@@ -3597,6 +3602,12 @@ Namespace My.Sys.Forms
 			GdipDeleteGraphics(hGraphics)
 		#endif
 		
+    Exit Sub
+ErrorHandler:
+    MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+        "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+        "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+        "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	End Sub
 	
 	'*3
@@ -4219,7 +4230,7 @@ Namespace My.Sys.Forms
 			If gToken Then
 				GdiplusShutdown(gToken)
 			End If
-			'UnregisterClass "Chart",GetModuleHandle(NULL)
+			UnregisterClass "Chart", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace
