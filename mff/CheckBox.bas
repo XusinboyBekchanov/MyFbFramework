@@ -228,6 +228,8 @@ Namespace My.Sys.Forms
 						If (uiItemState And CDIS_DISABLED) Then
 							SetTextColor(pnm->hdc, darkHlBkColor)
 						End If
+						Dim As hFont OldFontHandle, NewFontHandle
+						OldFontHandle = SelectObject(pnm->hdc, This.Font.Handle)
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
 						If (uiItemState And CDIS_FOCUS) Then
 							Dim Sz As ..SIZE
@@ -238,6 +240,7 @@ Namespace My.Sys.Forms
 							pnm->rc.bottom = pnm->rc.top + s.cy + 2
 							DrawFocusRect(pnm->hdc, @pnm->rc)
 						End If
+						NewFontHandle = SelectObject(pnm->hdc, OldFontHandle)
 						CloseThemeData(hTheme)
 						Message.Result = Cast(LONG_PTR, CDRF_SKIPDEFAULT)
 						Return
