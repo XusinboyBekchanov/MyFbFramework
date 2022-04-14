@@ -630,6 +630,18 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
+	Private Sub Canvas.Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
+		This.Draw(x, y, Image.Handle)
+	End Sub
+	
+	Private Sub Canvas.Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)
+		If Not HandleSetted Then GetDevice
+		#ifdef __USE_WINAPI__
+			DrawIconEx(Handle, x, y, Image.Handle, Image.Width, Image.Height, 0, 0, DI_NORMAL)
+		#endif
+		If Not HandleSetted Then ReleaseDevice
+	End Sub
+	
 	Private Sub Canvas.DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
@@ -729,6 +741,10 @@ Namespace My.Sys.Drawing
 			DeleteDC(hdcTemp)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
+	End Sub
+	
+	Private Sub Canvas.DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
+		DrawTransparent x, y, Image.Handle, cTransparentColor
 	End Sub
 	
 	Private Sub Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)

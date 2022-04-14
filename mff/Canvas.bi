@@ -180,7 +180,10 @@ Namespace My.Sys.Drawing
 		Declare Function Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSource As Any Ptr) As Any Ptr
 		Declare Sub TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
+		Declare Sub DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
 		Declare Sub Draw(x As Double, y As Double, Image As Any Ptr)
+		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
+		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)
 		Declare Sub DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
 		Declare Sub CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
 		Declare Sub FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)
