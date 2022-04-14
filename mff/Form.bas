@@ -1056,7 +1056,7 @@ Namespace My.Sys.Forms
 						'PostQuitMessage 0
 						End 0
 					Else
-						ShowWindow Handle,SW_HIDE
+						ShowWindow Handle, SW_HIDE
 						msg.Result = -1
 					End If
 				Case 2

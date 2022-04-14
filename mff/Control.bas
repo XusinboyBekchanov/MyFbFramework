@@ -2057,7 +2057,7 @@ Namespace My.Sys.Forms
 							StoreClass wClassName, wClassAncestor, ClassProc
 						End If
 					Else
-						MessageBox NULL, wClassName & "' sinfini qayd qilish imkoni yo`q.", "Control", MB_ICONERROR
+						MessageBox NULL, ML("Unable to register class") & " '" & wClassName & "'", "Control", MB_ICONERROR
 					End If
 				Else
 					If GetClassInfoEx(GetModuleHandle(NULL), wClassName, @Wc) = 0 Then
