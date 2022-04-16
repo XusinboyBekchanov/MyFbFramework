@@ -8,7 +8,7 @@
 '2022年4月12日 阿凡达增加棋盘大小可以动态修改，修复棋盘从10X0放大到19X19后算法不准，电脑乱走。
 '2022年4月13日 阿凡达增加可换棋盘颜色, 调整搜索范围，改变游戏难易程度
 #ifdef __FB_WIN32__
-	#cmdline "VisualFBEditor.rc"
+	#cmdline "FiveInARow.rc"
 #endif
 
 Dim Shared As Single MouseX, MouseY

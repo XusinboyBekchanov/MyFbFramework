@@ -587,7 +587,7 @@ Namespace My.Sys.Drawing
 			If nWidth <> 0 AndAlso nHeight <> 0 Then
 				ImageDest = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8 , nWidth, nHeight)
 				If ImageDest Then
-					gdk_pixbuf_copy_area(ImageSource, X, Y, nWidth, nHeght, ImageDest, 0, 0)
+					gdk_pixbuf_copy_area(ImageSource, X, Y, nWidth, nHeight, ImageDest, 0, 0)
 					Return ImageDest
 				EndIf
 			EndIf

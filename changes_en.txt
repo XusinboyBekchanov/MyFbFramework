@@ -1,3 +1,15 @@
+Version 1.3.2 (April 16, 2022)
+- Fixed: Unable to register class message
+- Fixed: CheckBox Font in Dark Mode
+- Added: Game FiveInARow example
+- Added: Import Get function in Canvas like freeBasic Graphics function to grab an image
+- Added: DPI Change handling
+- Improved: AddRange control methods are available in gcc backend and 64-bit.
+- Fixed: Reorder TabPage on Windows
+- Fixed: GridData compiling
+- Added: Location and Size properties to Control
+- Fixed: Hanging in DoEvents Function
+- Fixed: FromUTF8 function
 Version 1.3.1 (March 31, 2022)
 - Added: OnMoving event to Splitter
 - Added: SeriesCount and AxisItemsCount functions to Chart control
