@@ -40,7 +40,7 @@ Namespace My.Sys.Forms
 			#else
 				.RegisterClass "ToolTips", "tooltips_class32"
 				.Style        = WS_POPUP
-				.ExStyle      = WS_EX_TOPMOST
+				.ExStyle      = 0 'WS_EX_TOPMOST
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
