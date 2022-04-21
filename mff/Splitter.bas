@@ -236,7 +236,7 @@ Namespace My.Sys.Forms
 							'		This.Parent->RequestAlign
 						#endif
 						This.Parent->UpdateUnLock
-						This.Repaint
+						This.Parent->Repaint
 						'This.Parent->Update
 						'Parent->Update
 					End If
