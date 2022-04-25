@@ -135,6 +135,8 @@ Namespace My.Sys.Forms
 		Declare Property Count(value As Integer)
 		Declare Property Item(index As Integer) As PMenuItem
 		Declare Property Item(index As Integer, value As PMenuItem)
+		Declare Property Item(ByRef Key As WString) As PMenuItem
+		Declare Property Item(ByRef Key As WString, value As PMenuItem)
 		Declare Sub Click
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
@@ -148,7 +150,8 @@ Namespace My.Sys.Forms
 		Declare Sub Insert(index As Integer, value As PMenuItem)
 		Declare Sub Clear
 		Declare Function IndexOf(value As PMenuItem) As Integer
-		Declare Function Find(value  As Integer) As PMenuItem
+		Declare Function IndexOf(ByRef Key As WString) As Integer
+		Declare Function Find(value As Integer) As PMenuItem
 		Declare Function Find(ByRef value As WString) As PMenuItem
 		Declare Operator Cast As Any Ptr
 		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null, Checkable As Boolean = False)
@@ -196,6 +199,8 @@ Namespace My.Sys.Forms
 		Declare Property Count(value As Integer)
 		Declare Property Item(index As Integer) As PMenuItem
 		Declare Property Item(index As Integer, value As PMenuItem)
+		Declare Property Item(ByRef Key As WString) As PMenuItem
+		Declare Property Item(ByRef Key As WString, value As PMenuItem)
 		Declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
 		Declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
@@ -207,6 +212,7 @@ Namespace My.Sys.Forms
 		Declare Sub Insert(index As Integer, value As PMenuItem)
 		Declare Sub Clear
 		Declare Function IndexOf(value As PMenuItem) As Integer
+		Declare Function IndexOf(ByRef Key As WString) As Integer
 		Declare Function Find(value  As Integer) As PMenuItem
 		Declare Function Find(ByRef value As WString) As PMenuItem
 		Declare Operator Cast As Any Ptr

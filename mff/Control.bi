@@ -342,7 +342,7 @@ Namespace My.Sys.Forms
 			'Sets the left, top, right, bottom margins for a container control (Windows, Linux).
 			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
 			'Adds the specified control to the control collection (Windows, Linux).
-			Declare Virtual Sub Add(Ctrl As Control Ptr)
+			Declare Virtual Sub Add(Ctrl As Control Ptr, Index As Integer = -1)
 			'Adds the specified controls range to the control collection (Windows, Linux).
 			Declare Sub AddRange cdecl(CountArgs As Integer, ...)
 			'Removes the specified control from the control collection (Windows, Linux).

@@ -2374,7 +2374,7 @@ Namespace My.Sys.Forms
 			End Sub
 		#endif
 		
-		Private Sub Control.Add(Ctrl As Control Ptr)
+		Private Sub Control.Add(Ctrl As Control Ptr, Index As Integer = -1)
     On Error Goto ErrorHandler
 			If Ctrl Then
 				If WGet(FClassName) = "Form1" Then
@@ -2384,7 +2384,14 @@ Namespace My.Sys.Forms
 				Ctrl->FParent = @This
 				FControlCount += 1
 				Controls = Reallocate_(Controls, SizeOf(Control Ptr)*FControlCount)
-				Controls[FControlCount - 1] = Ctrl
+				If Index = -1 Then
+					Controls[FControlCount - 1] = Ctrl
+				Else
+					For i As Integer = Index To FControlCount - 2
+						Controls[i + 1] = Controls[i]
+					Next
+					Controls[Index] = Ctrl
+				End If
 				#ifdef __USE_GTK__
 					Dim As Integer FrameTop
 					Dim As Boolean bAdded

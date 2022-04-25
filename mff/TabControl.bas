@@ -855,6 +855,9 @@ Namespace My.Sys.Forms
 		'tp->TabPageControl = @This
 		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tp
+'		If tp->Parent <> 0 Then
+'			Cast(TabControl Ptr, tp->Parent)->DeleteTab(tp)
+'		End If
 		#ifdef __USE_GTK__
 			If widget Then
 				#ifdef __USE_GTK3__
@@ -951,6 +954,10 @@ Namespace My.Sys.Forms
 			End If
 			If FTabCount = 0 Then SetMargins
 		End If
+	End Sub
+	
+	Private Sub TabControl.DeleteTab(Value As TabPage Ptr)
+		DeleteTab IndexOfTab(value)
 	End Sub
 	
 	Private Sub TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)

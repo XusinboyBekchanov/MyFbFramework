@@ -759,6 +759,13 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.Item(index As Integer, value As PMenuItem)
 	End Property
 	
+	Private Property MenuItem.Item(ByRef Key As WString) As PMenuItem
+		Return This.Item(This.IndexOf(Key))
+	End Property
+	
+	Private Property MenuItem.Item(ByRef Key As WString, value As PMenuItem)
+	End Property
+	
 	Private Sub MenuItem.Click
 		If onClick Then onClick(This)
 	End Sub
@@ -976,6 +983,14 @@ Namespace My.Sys.Forms
 		Dim As Integer i
 		For i = 0 To FCount -1
 			If FItems[i] = value Then Return i
+		Next i
+		Return -1
+	End Function
+	
+	Private Function MenuItem.IndexOf(ByRef Key As WString) As Integer
+		Dim As Integer i
+		For i = 0 To FCount -1
+			If FItems[i]->Name = Key Then Return i
 		Next i
 		Return -1
 	End Function
@@ -1268,6 +1283,14 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
+	Private Property Menu.Item(ByRef Key As WString) As PMenuItem
+		Return This.Item(This.IndexOf(Key))
+	End Property
+	
+	Private Property Menu.Item(ByRef Key As WString, value As PMenuItem)
+		This.Item(This.IndexOf(Key)) = value
+	End Property
+	
 	Private Sub Menu.Add(value As PMenuItem, Index As Integer = -1)
 		If FParentMenuItem Then
 			FParentMenuItem->Add value, Index
@@ -1450,8 +1473,15 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function Menu.IndexOf(value As PMenuItem) As Integer
-		For i As Integer = 0 To FCount-1
+		For i As Integer = 0 To FCount - 1
 			If FItems[i] = value Then Return i
+		Next i
+		Return -1
+	End Function
+	
+	Private Function Menu.IndexOf(ByRef Key As WString) As Integer
+		For i As Integer = 0 To FCount - 1
+			If FItems[i]->Name = Key Then Return i
 		Next i
 		Return -1
 	End Function
