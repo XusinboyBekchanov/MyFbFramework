@@ -58,13 +58,45 @@ Private Function UString.TrimEnd As UString
 	Return RTrim(*m_Data)
 End Function
 
+Private Function UString.LoadFromFile(ByRef File As WString) As Boolean
+	Dim Result As Integer
+	Dim Fn As Integer = FreeFile
+	Result = Open(File For Input Encoding "utf-8" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-32" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input As #Fn)
+	If Result = 0 Then
+		m_BytesCount = LOF(Fn)
+		m_Data = CAllocate_((m_BytesCount + 1) * SizeOf(String)) 
+		If m_Data <> 0 Then
+			*m_Data = WInput(m_BytesCount, #Fn)
+			m_Length = Len(*m_Data)
+			Close #Fn
+			Return True
+		End If
+		Close #Fn
+	End If
+	Return False
+End Function
+
+Private Function UString.SaveToFile(ByRef File As WString) As Boolean
+	Dim As Integer Fn = FreeFile
+	If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
+		Print #Fn, *m_Data; 'Automaticaly add a Cr LF to the ends of file for each time without ";" 
+		Close #Fn
+		Return True
+	Else
+		Return False
+	End If
+End Function
+
 Private Function UString.TrimStart As UString
 	Return LTrim(*m_Data)
 End Function
 
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
-	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -120,9 +152,9 @@ End Sub
 Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
 	This.Resize(m_Length + NumBytes)
 	If m_Data = 0 Then Return False
-	#ifdef __USE_WINAPI__
-		memcpy(m_Data + m_BufferLen, addrMemory, NumBytes)
-	#endif
+	'#ifdef __USE_WINAPI__
+		Fb_MemCopy(m_Data + m_BufferLen, addrMemory, NumBytes)
+	'#endif
 	m_BufferLen += NumBytes
 	Return True
 End Function
