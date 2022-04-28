@@ -364,7 +364,7 @@ Private Function FromUtf8(pZString As ZString Ptr) As String
 	Deallocate buffer
 End Function
 
-Function Utf8WebtoStr(Utf8str As String) As String
+Private Function Utf8WebtoStr(Utf8str As String) As String
 	Dim eLen As Integer = Len(Utf8str)
 	If eLen = 0 Then Return ""
 	Dim wsStr As WString Ptr = CAllocate(eLen * 2 + 2)
@@ -376,6 +376,7 @@ Function Utf8WebtoStr(Utf8str As String) As String
 	Deallocate wsStr
 
 End Function
+
 Private Function LoadFromFile(ByRef File As WString, ByVal WebUTF8 As Long = 0) As String
 	Dim As Integer Result = -1, AscIIFile, BytesCount
 	Dim Fn As Integer = FreeFile
