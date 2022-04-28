@@ -896,6 +896,7 @@ Namespace My.Sys.Forms
 			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[FTabCount - 1])
+		Tabs[FTabCount - 1]->SendToBack
 	End Sub
 	
 	Private Sub TabControl.ReorderTab(ByVal tp As TabPage Ptr, Index As Integer)
