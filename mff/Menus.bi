@@ -243,6 +243,7 @@ Namespace My.Sys.Forms
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Property ParentMenuItem As MenuItem Ptr
 		Declare Property ParentMenuItem(value As MenuItem Ptr)
+		Declare Property ParentWindow As Component Ptr
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Sub Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
 		Declare Virtual Sub ProcessMessages(ByRef message As Message)

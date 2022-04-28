@@ -1804,6 +1804,10 @@ Namespace My.Sys.Forms
 		FParentMenuItem = Value
 	End Property
 	
+	Private Property PopupMenu.ParentWindow As Component Ptr
+		Return Base.ParentWindow
+	End Property
+	
 	Private Property PopupMenu.ParentWindow(value As Component Ptr)
 		#ifdef __USE_GTK__
 			If FParentWindow = 0 Then
