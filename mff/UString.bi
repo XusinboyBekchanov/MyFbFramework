@@ -69,7 +69,7 @@ Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSub
 Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function Utf8WebtoStr(Utf8str As String) As String
-Declare Function FromUtf8(pZString As ZString Ptr) As String
+Declare Function FromUtf8(pZString As ZString Ptr) As UString
 Declare Function LoadFromFile(ByRef File As WString, ByVal encod As Long = 0) As String
 Declare Function SaveToFile(ByRef File As WString, ByRef wData As Const WString) As Boolean
 

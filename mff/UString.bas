@@ -347,7 +347,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	'#endif
 End Function
 
-Private Function FromUtf8(pZString As ZString Ptr) As String
+Private Function FromUtf8(pZString As ZString Ptr) As UString
 	'	#ifdef __USE_GTK__
 	'		Return g_locale_from_utf8(*pZString, Len(*pZString), 0, 0, 0)
 	'	#else
@@ -360,8 +360,12 @@ Private Function FromUtf8(pZString As ZString Ptr) As String
 	If m_BufferLen = 0 Then Return ""
 	Dim As WString Ptr buffer
 	WReallocate(buffer, m_BufferLen)
-	Function = WGet(UTFToWChar(UTF_ENCOD_UTF8, pZString, buffer, @m_BufferLen))
+	m_BufferLen += 2
+	Dim As UString Result
+	Result = WGet(UTFToWChar(UTF_ENCOD_UTF8, pZString, buffer, @m_BufferLen))
+	Result = *buffer
 	Deallocate buffer
+	Return *Result.vptr
 End Function
 
 Private Function Utf8WebtoStr(Utf8str As String) As String
