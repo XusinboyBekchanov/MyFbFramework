@@ -347,7 +347,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	'#endif
 End Function
 
-Private Function FromUtf8(pZString As ZString Ptr) As UString
+Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'	#ifdef __USE_GTK__
 	'		Return g_locale_from_utf8(*pZString, Len(*pZString), 0, 0, 0)
 	'	#else
@@ -360,50 +360,34 @@ Private Function FromUtf8(pZString As ZString Ptr) As UString
 	If m_BufferLen = 0 Then Return ""
 	Dim As WString Ptr buffer
 	WReallocate(buffer, m_BufferLen)
-	m_BufferLen += 2
-	Dim As UString Result
-	Result = WGet(UTFToWChar(UTF_ENCOD_UTF8, pZString, buffer, @m_BufferLen))
-	Result = *buffer
-	Deallocate buffer
-	Return *Result.vptr
+	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 End Function
 
-Private Function Utf8WebtoStr(Utf8str As String) As String
-	Dim eLen As Integer = Len(Utf8str)
-	If eLen = 0 Then Return ""
-	Dim wsStr As WString Ptr = CAllocate(eLen * 2 + 2)
-	UTFToWChar(UTF_ENCOD_UTF8, StrPtr(Utf8str), wsStr, @eLen)
-	Dim ZStr As String
-	ZStr = String(eLen * 2 + 2, 0)
-	Dim ZStrLen As Integer = WideCharToMultiByte(CP_ACP, 0, wsStr, eLen, StrPtr(ZStr), eLen * 2 + 2, Null, Null)
-	If ZStrLen Then Function = Left(ZStr, ZStrLen)
-	Deallocate wsStr
-
-End Function
-
-Private Function LoadFromFile(ByRef File As WString, ByVal WebUTF8 As Long = 0) As String
-	Dim As Integer Result = -1, AscIIFile, BytesCount
+Private Function LoadFromFile(ByRef File As WString, ByVal AnsiFile As Boolean = False) As String
+	Dim As Integer Result = -1, AscIIFile= 0, BytesCount
 	Dim Fn As Integer = FreeFile
-	Result = Open(File For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(File For Input Encoding "utf-32" As #Fn)
+	Result = Open(File For Input Encoding "utf-8" As #Fn) : AscIIFile = 2
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn): AscIIFile = 3
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-32" As #Fn): AscIIFile = 4
 	If Result <> 0 Then Result = Open(File For Input As #Fn) : AscIIFile = 1
 	If Result = 0 Then
 		BytesCount = LOF(Fn)
-		If AscIIFile = 1 AndAlso WebUTF8 = 1 Then  ' This is for UTF-8 txt file, No diffrence between the ASCII(WebUTF8=0) text file and UTF(WebUTF8=1) file in OS windows
-			Function = fromUTF8(WInput(BytesCount, #Fn))
-		ElseIf AscIIFile = 1 AndAlso WebUTF8 > 1 Then  'This is for web Html in OS windows (WebUTF8=2), but this function do not know by itself.
-			Dim As String Buff0, BuffOut
+		If AscIIFile = 1 AndAlso AnsiFile = False Then  ' This is for UTF-8 txt file, No diffrence between the ASCII text file and UTF file in OS windows
+			Dim As String Buffer, BuffRead
 			Do Until EOF(Fn)
-				Line Input #Fn, Buff0    'For Wrong decoding of UTF8 html, need string
-				BuffOut &=  Buff0
+				Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
+				Buffer &=  BuffRead
 			Loop
-			Function = Utf8WebtoStr(BuffOut)
+			Dim As WString Ptr pBuff2: wLet pBuff2, (FromUTF8(StrPtr(Buffer)))
+			If Buffer <> *pBuff2 Then 
+				Buffer = *pBuff2
+			End If
+			Function = Buffer
+			Deallocate pBuff2
 		Else
-			Function =  WInput(BytesCount, #Fn) 'For ANSI or other ASCII file including Unicode
+			Function =  WInput(BytesCount, #Fn) 'For ANSI or other UTF16 UTF32 file including Unicode
 		End If
 		Close #Fn
-		Print AscIIFile
 	Else
 		Return ""
 	End If
