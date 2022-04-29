@@ -58,38 +58,6 @@ Private Function UString.TrimEnd As UString
 	Return RTrim(*m_Data)
 End Function
 
-Private Function UString.LoadFromFile(ByRef File As WString) As Boolean
-	Dim Result As Integer
-	Dim Fn As Integer = FreeFile
-	Result = Open(File For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(File For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(File For Input As #Fn)
-	If Result = 0 Then
-		m_BytesCount = LOF(Fn)
-		m_Data = CAllocate_((m_BytesCount + 1) * SizeOf(String)) 
-		If m_Data <> 0 Then
-			*m_Data = WInput(m_BytesCount, #Fn)
-			m_Length = Len(*m_Data)
-			Close #Fn
-			Return True
-		End If
-		Close #Fn
-	End If
-	Return False
-End Function
-
-Private Function UString.SaveToFile(ByRef File As WString) As Boolean
-	Dim As Integer Fn = FreeFile
-	If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
-		Print #Fn, *m_Data; 'Automaticaly add a Cr LF to the ends of file for each time without ";" 
-		Close #Fn
-		Return True
-	Else
-		Return False
-	End If
-End Function
-
 Private Function UString.TrimStart As UString
 	Return LTrim(*m_Data)
 End Function
@@ -153,7 +121,7 @@ Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumByte
 	This.Resize(m_Length + NumBytes)
 	If m_Data = 0 Then Return False
 	'#ifdef __USE_WINAPI__
-		Fb_MemCopy(m_Data + m_BufferLen, addrMemory, NumBytes)
+	Fb_MemCopy(m_Data + m_BufferLen, addrMemory, NumBytes)
 	'#endif
 	m_BufferLen += NumBytes
 	Return True
@@ -379,7 +347,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	'#endif
 End Function
 
-Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
+Private Function FromUtf8(pZString As ZString Ptr) As String
 	'	#ifdef __USE_GTK__
 	'		Return g_locale_from_utf8(*pZString, Len(*pZString), 0, 0, 0)
 	'	#else
@@ -392,8 +360,60 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	If m_BufferLen = 0 Then Return ""
 	Dim As WString Ptr buffer
 	WReallocate(buffer, m_BufferLen)
-	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
-	'#endif
+	Function = WGet(UTFToWChar(UTF_ENCOD_UTF8, pZString, buffer, @m_BufferLen))
+	Deallocate buffer
+End Function
+
+Private Function Utf8WebtoStr(Utf8str As String) As String
+	Dim eLen As Integer = Len(Utf8str)
+	If eLen = 0 Then Return ""
+	Dim wsStr As WString Ptr = CAllocate(eLen * 2 + 2)
+	UTFToWChar(UTF_ENCOD_UTF8, StrPtr(Utf8str), wsStr, @eLen)
+	Dim ZStr As String
+	ZStr = String(eLen * 2 + 2, 0)
+	Dim ZStrLen As Integer = WideCharToMultiByte(CP_ACP, 0, wsStr, eLen, StrPtr(ZStr), eLen * 2 + 2, Null, Null)
+	If ZStrLen Then Function = Left(ZStr, ZStrLen)
+	Deallocate wsStr
+
+End Function
+
+Private Function LoadFromFile(ByRef File As WString, ByVal WebUTF8 As Long = 0) As String
+	Dim As Integer Result = -1, AscIIFile, BytesCount
+	Dim Fn As Integer = FreeFile
+	Result = Open(File For Input Encoding "utf-8" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-32" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input As #Fn) : AscIIFile = 1
+	If Result = 0 Then
+		BytesCount = LOF(Fn)
+		If AscIIFile = 1 AndAlso WebUTF8 = 1 Then  ' This is for UTF-8 txt file, No diffrence between the ASCII(WebUTF8=0) text file and UTF(WebUTF8=1) file in OS windows
+			Function = fromUTF8(WInput(BytesCount, #Fn))
+		ElseIf AscIIFile = 1 AndAlso WebUTF8 > 1 Then  'This is for web Html in OS windows (WebUTF8=2), but this function do not know by itself.
+			Dim As String Buff0, BuffOut
+			Do Until EOF(Fn)
+				Line Input #Fn, Buff0    'For Wrong decoding of UTF8 html, need string
+				BuffOut &=  Buff0
+			Loop
+			Function = Utf8WebtoStr(BuffOut)
+		Else
+			Function =  WInput(BytesCount, #Fn) 'For ANSI or other ASCII file including Unicode
+		End If
+		Close #Fn
+		Print AscIIFile
+	Else
+		Return ""
+	End If
+End Function
+
+Private Function SaveToFile(ByRef File As WString, ByRef wData As Const WString) As Boolean
+	Dim As Integer Fn = FreeFile
+	If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
+		Print #Fn, wData; 'Automaticaly add a Cr LF to the ends of file for each time without ";"
+		Close #Fn
+		Return True
+	Else
+		Return False
+	End If
 End Function
 
 Private Function StrLSet(ByRef MainStr As Const WString, ByVal StringLength As Long, ByRef PadCharacter As Const WString = " ") As UString
