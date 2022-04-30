@@ -363,12 +363,12 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 End Function
 
-Private Function LoadFromFile(ByRef File As WString, ByVal AnsiFile As Boolean = False) As String
+Private Function LoadFromFile(ByRef File As WString, ByVal AnsiFile As Boolean = True) As String
 	Dim As Integer Result = -1, AscIIFile= 0, BytesCount
 	Dim Fn As Integer = FreeFile
-	Result = Open(File For Input Encoding "utf-8" As #Fn) : AscIIFile = 2
-	If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn): AscIIFile = 3
-	If Result <> 0 Then Result = Open(File For Input Encoding "utf-32" As #Fn): AscIIFile = 4
+	Result = Open(File For Input Encoding "utf-8" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn)
+	If Result <> 0 Then Result = Open(File For Input Encoding "utf-32" As #Fn)
 	If Result <> 0 Then Result = Open(File For Input As #Fn) : AscIIFile = 1
 	If Result = 0 Then
 		BytesCount = LOF(Fn)
@@ -378,14 +378,9 @@ Private Function LoadFromFile(ByRef File As WString, ByVal AnsiFile As Boolean =
 				Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
 				Buffer &=  BuffRead
 			Loop
-			Dim As WString Ptr pBuff2: wLet pBuff2, (FromUTF8(StrPtr(Buffer)))
-			If Buffer <> *pBuff2 Then 
-				Buffer = *pBuff2
-			End If
-			Function = Buffer
-			Deallocate pBuff2
+			Function = FromUTF8(StrPtr(Buffer))
 		Else
-			Function =  WInput(BytesCount, #Fn) 'For ANSI or other UTF16 UTF32 file including Unicode
+			Function =  WInput(BytesCount, #Fn) 'For ANSI file or other UTF16 UTF32 file including Unicode
 		End If
 		Close #Fn
 	Else
