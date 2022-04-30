@@ -376,7 +376,7 @@ Private Function LoadFromFile(ByRef File As WString, ByVal AnsiFile As Boolean =
 			Dim As String Buffer, BuffRead
 			Do Until EOF(Fn)
 				Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
-				Buffer &=  BuffRead
+				Buffer &=  Chr(13,10) & BuffRead
 			Loop
 			Function = FromUTF8(StrPtr(Buffer))
 		Else
