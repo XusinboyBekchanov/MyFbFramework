@@ -359,6 +359,7 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
 	Static As WString Ptr buffer
+	WDeallocate buffer
 	WReallocate(buffer, m_BufferLen)
 	*buffer = String(m_BufferLen, 0)
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
@@ -381,10 +382,9 @@ Private Function LoadFromFile(ByRef File As WString) ByRef As WString
 		Buffer = *tmpWstr
 		'Print "Len(*tmpWstr), Len(Buffer), BytesCount ", Len(*tmpWstr), Len(Buffer), BytesCount
 		If AscIIFile = 1 AndAlso Len(*tmpWstr) = Len(Buffer) Then  ' This is for UTF-8 txt file, No diffrence between the ASCII text file and UTF file in OS windows
-			#ifdef __USE_WINAPI__
 				'Print " Is UTF8"
 				Fn = FreeFile
-				Buffer=""
+				Buffer = ""
 				If Open(File For Input As #Fn) = 0 Then
 					Do Until EOF(Fn)
 						Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
@@ -402,7 +402,6 @@ Private Function LoadFromFile(ByRef File As WString) ByRef As WString
 				Else
 					Return ""
 				End If
-			#endif
 		End If
 		Return *tmpWstr
 	Else
