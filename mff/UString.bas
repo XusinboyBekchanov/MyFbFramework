@@ -358,12 +358,13 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'UTF-32 big-endian: 00 00 FE FF
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
-	Dim As WString Ptr buffer
+	Static As WString Ptr buffer
 	WReallocate(buffer, m_BufferLen)
+	*buffer = String(m_BufferLen, 0)
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 End Function
 
-Private Function LoadFromFile(ByRef File As WString, ByVal AnsiFile As Boolean = True) As String
+Private Function LoadFromFile(ByRef File As WString) ByRef As WString
 	Dim As Integer Result = -1, AscIIFile= 0, BytesCount
 	Dim Fn As Integer = FreeFile
 	Result = Open(File For Input Encoding "utf-8" As #Fn)
@@ -372,17 +373,38 @@ Private Function LoadFromFile(ByRef File As WString, ByVal AnsiFile As Boolean =
 	If Result <> 0 Then Result = Open(File For Input As #Fn) : AscIIFile = 1
 	If Result = 0 Then
 		BytesCount = LOF(Fn)
-		If AscIIFile = 1 AndAlso AnsiFile = False Then  ' This is for UTF-8 txt file, No diffrence between the ASCII text file and UTF file in OS windows
-			Dim As String Buffer, BuffRead
-			Do Until EOF(Fn)
-				Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
-				Buffer &=  Chr(13,10) & BuffRead
-			Loop
-			Function = FromUTF8(StrPtr(Buffer))
-		Else
-			Function =  WInput(BytesCount, #Fn) 'For ANSI file or other UTF16 UTF32 file including Unicode
-		End If
+		Dim As String Buffer, BuffRead
+		Static As WString Ptr tmpWstr
+		tmpWstr = Reallocate(tmpWstr, (BytesCount + 1) * SizeOf(WString))
+		*tmpWstr =  WInput(BytesCount, #Fn)
 		Close #Fn
+		Buffer = *tmpWstr
+		'Print "Len(*tmpWstr), Len(Buffer), BytesCount ", Len(*tmpWstr), Len(Buffer), BytesCount
+		If AscIIFile = 1 AndAlso Len(*tmpWstr) = Len(Buffer) Then  ' This is for UTF-8 txt file, No diffrence between the ASCII text file and UTF file in OS windows
+			#ifdef __USE_WINAPI__
+				'Print " Is UTF8"
+				Fn = FreeFile
+				Buffer=""
+				If Open(File For Input As #Fn) = 0 Then
+					Do Until EOF(Fn)
+						Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
+						If Buffer = "" Then
+							Buffer = BuffRead
+						Else
+							Buffer &= Chr(13, 10) & BuffRead
+						End If
+					Loop
+					Close #Fn
+					Buffer &= Chr(0) ' Will get more data for English text file without chr(0) like Zstring
+					BytesCount = Len(Buffer)
+					tmpWstr = Reallocate(tmpWstr, (BytesCount + 1) * SizeOf(WString))
+					UTFToWChar(1, StrPtr(Buffer), tmpWstr, @BytesCount)
+				Else
+					Return ""
+				End If
+			#endif
+		End If
+		Return *tmpWstr
 	Else
 		Return ""
 	End If
