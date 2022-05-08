@@ -683,9 +683,9 @@ Namespace Debug
 		Dim Shared As Any Ptr Handle
 	#endif
 	
-	Private Sub Clear()
+	Private Sub Clear
 		#ifdef __FB_WIN32__
-			If IsWindow(Handle) Then SetWindowTextW Handle, @""
+			If IsWindow(Handle) Then SendMessage(Handle, WM_SETTEXT, Cast(WPARAM, 0), Cast(LPARAM, @""))
 		#else
 			If gtk_is_text_view(Handle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(gtk_text_view(Handle)), !"\0", -1)
 		#endif
