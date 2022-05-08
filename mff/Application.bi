@@ -174,7 +174,7 @@ Common Shared pApp As My.Application Ptr 'Global for entire Application
 'Displays a message in a dialog box, waits for the user to click a button, and returns an Integer indicating which button the user clicked.
 Declare Function MsgBox Alias "MsgBox"(ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer
 Namespace Debug
-	Declare Sub Clear()
+	Declare Sub Clear
 	Declare Sub Print(ByRef MSG As WString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 End Namespace
 Declare Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr

@@ -254,13 +254,33 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ToolButton.State As Integer
+		#ifndef __USE_GTK__
+			If Ctrl AndAlso Ctrl->Handle Then
+				Dim As TBBUTTONINFO info
+				info.cbSize = SizeOf(info)
+				info.dwMask = TBIF_STATE
+				info.idCommand = FCommandID
+				SendMessage(Ctrl->Handle, TB_GETBUTTONINFO, FCommandID, Cast(LParam, @info))
+				FState = info.fsState
+			End If
+		#endif
 		Return FState
 	End Property
 	
 	Private Property ToolButton.State(Value As Integer)
 		If Value <> FState Then
 			FState = Value
-			If Ctrl Then QControl(Ctrl).RecreateWnd
+			#ifndef __USE_GTK__
+				If Ctrl AndAlso Ctrl->Handle Then
+					Dim As TBBUTTONINFO info
+					info.cbSize = SizeOf(info)
+					info.dwMask = TBIF_STATE
+					info.idCommand = FCommandID
+					info.fsState = Value
+					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
+				End If
+			#endif
+			'If Ctrl Then QControl(Ctrl).RecreateWnd
 		End If
 	End Property
 	
@@ -393,6 +413,20 @@ Namespace My.Sys.Forms
 '							gtk_widget_hide(Widget)
 '						End If
 					#else
+'						Dim As TBBUTTONINFO info
+'						info.cbSize = SizeOf(info)
+'						info.dwMask = TBIF_STATE
+'						info.idCommand = FCommandID
+'						SendMessage(Ctrl->Handle, TB_GETBUTTONINFO, FCommandID, Cast(LParam, @info))
+'						info.cbSize = SizeOf(info)
+'						info.dwMask = TBIF_STATE
+'						info.idCommand = FCommandID
+'						If Not Value Then
+'							If ((info.fsState And tstHidden) <> tstHidden) Then info.fsState = info.fsState Or tstHidden
+'						ElseIf ((info.fsState And tstHidden) = tstHidden) Then
+'							info.fsState = info.fsState And Not tstHidden
+'						End If
+'						SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
 						SendMessage(.Handle, TB_HIDEBUTTON, FCommandID, MakeLong(Not FVisible, 0))
 					#endif
 				End With
@@ -992,7 +1026,9 @@ Namespace My.Sys.Forms
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
 					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
 					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
+					Var FHandle = .FHandle
 					For i As Integer = 0 To .Buttons.Count - 1
+						.FHandle = 0
 						Dim As TBBUTTON TB
 						'Dim As WString Ptr s = .Buttons.Button(i)->Caption
 						TB.fsState   = .Buttons.Item(i)->State
@@ -1007,7 +1043,8 @@ Namespace My.Sys.Forms
 						Else
 							TB.iString   = 0
 						End If
-						TB.dwData    = Cast(DWord_Ptr,@.Buttons.Item(i)->DropDownMenu)
+						TB.dwData    = Cast(DWord_Ptr, @.Buttons.Item(i)->DropDownMenu)
+						.FHandle = FHandle
 						.Perform(TB_ADDBUTTONS,1,CInt(@TB))
 						If Not .Buttons.Item(i)->Visible Then .Perform(TB_HIDEBUTTON, .Buttons.Item(i)->CommandID, MakeLong(True, 0))
 					Next i
