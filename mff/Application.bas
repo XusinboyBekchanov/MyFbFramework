@@ -678,7 +678,7 @@ End Function
 
 Namespace Debug
 	#ifdef _DebugWindow_
-		Dim Shared As Any Ptr Handle = _DebugWindow_
+		Dim Shared As Any Ptr Handle = Cast(Any Ptr, _DebugWindow_)
 	#else
 		Dim Shared As Any Ptr Handle
 	#endif
