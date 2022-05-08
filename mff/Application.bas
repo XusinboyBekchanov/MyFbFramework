@@ -676,18 +676,65 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 	Return Result
 End Function
 
-Private Sub DebugPrint(ByRef MSG As WString, bWriteLog As Boolean = True, bPrintMsg As Boolean = True, bShowMsg As Boolean = True)
-	If bWriteLog Then
-		Dim As Integer Result, Fn = FreeFile()
-		Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
-		If Result = 0 Then
-			Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & MSG & Space(20) 'cut some word if some unicode inside.
-			Close #Fn
+Namespace Debug
+	#ifdef _DebugWindow_
+		Dim Shared As Any Ptr Handle = _DebugWindow_
+	#else
+		Dim Shared As Any Ptr Handle
+	#endif
+	
+	Private Sub Clear()
+		#ifdef __FB_WIN32__
+			If IsWindow(Handle) Then SetWindowTextW Handle, @""
+		#else
+			If gtk_is_text_view(Handle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(gtk_text_view(Handle)), !"\0", -1)
+		#endif
+	End Sub
+	
+	Private Sub Print(ByRef MSG As WString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		If bWriteLog Then
+			Dim As Integer Result, Fn = FreeFile()
+			Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
+			If Result = 0 Then
+				.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & MSG & Space(20) 'cut some word if some unicode inside.
+				Close #Fn
+			End If
 		End If
-	End If
-	If bPrintMsg Then Print MSG
-	If bShowMsg Then MsgBox MSG, "Visual FB Editor"
-End Sub
+		If bPrintMsg Then .Print MSG
+		If bShowMsg Then MsgBox MSG, "Visual FB Editor"
+		If bPrintToDebugWindow Then
+			#ifdef __FB_WIN32__
+				If IsWindow(Handle) Then
+					If SendMessage(GetParent(GetParent(Handle)), TCM_GETCURSEL, 0, 0) <> 5 Then
+						SendMessage(GetParent(GetParent(Handle)), TCM_SETCURSEL, 5, 0)
+						ShowWindow(GetParent(Handle), SW_SHOW)
+						BringWindowToTop(GetParent(Handle))
+					End If
+					Dim As WString Ptr SelText
+					WLet SelText, MSG & Chr(13, 10)
+					SendMessage(Handle, EM_REPLACESEL, 0, CInt(SelText))
+					WDeallocate SelText
+				End If
+			#else
+				If gtk_is_text_view(Handle) Then
+					If gtk_notebook_get_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle)))) <> 5 Then
+						gtk_notebook_set_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle))), 5)
+					End If
+					Dim As GtkTextIter _start, _end
+					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Handle)), ToUTF8(MSG & Chr(13, 10)), -1)
+					gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Handle)), @_start, @_end)
+					Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(gtk_text_view(Handle)), NULL, @_end, False)
+					gtk_text_view_scroll_to_mark(gtk_text_view(Handle), ptextmark, 0., False, 0., 0.)
+					#ifdef __USE_GTK__
+						While gtk_events_pending()
+							gtk_main_iteration()
+						Wend
+					#endif
+				End If
+			#endif
+		End If
+	End Sub
+End Namespace
 
 #ifdef __EXPORT_PROCS__
 	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__

@@ -746,10 +746,16 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				SendMessage(FHandle, EM_SETSEL, iSelStart, iSelEnd)
+			Else
+				FSelStart = iSelStart
+				FSelEnd = iSelEnd
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "selSelection", "(II)V"), iSelStart, iSelEnd)
+			Else
+				FSelStart = iSelStart
+				FSelEnd = iSelEnd
 			End If
 		#endif
 	End Sub
@@ -1106,7 +1112,8 @@ Namespace My.Sys.Forms
 					'If .MaxLength <> 0 Then
 					.Perform(EM_LIMITTEXT, -1, 0)
 					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
-					If .FMasked Then .Masked = True 
+					If .FMasked Then .Masked = True
+					If .FSelStart <> 0 OrElse .FSelEnd <> 0 Then .SetSel .FSelStart, .FSelEnd
 					'.MaxLength = .MaxLength
 					'End If
 				End With
