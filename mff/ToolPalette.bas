@@ -720,7 +720,9 @@ Namespace My.Sys.Forms
 						TB.iString = 0
 						TB.dwData = 0
 						.Perform(TB_ADDBUTTONS, 1, CInt(@TB))
+						Var FHandle = .FHandle
 						For i As Integer = 0 To .Groups.Item(j)->Buttons.Count - 1
+							.FHandle = 0
 							.Groups.Item(j)->Buttons.Item(i)->Ctrl = @Sender
 							'Dim As WString Ptr s = .Buttons.Button(i)->Caption
 							If i = .Groups.Item(j)->Buttons.Count - 1 Then
@@ -737,6 +739,7 @@ Namespace My.Sys.Forms
 								TB.iString   = 0
 							End If
 							TB.dwData    = Cast(DWord_Ptr, @.Groups.Item(j)->Buttons.Item(i)->DropDownMenu)
+							.FHandle = FHandle
 							.Perform(TB_ADDBUTTONS, 1, CInt(@TB))
 						Next i
 					Next j
