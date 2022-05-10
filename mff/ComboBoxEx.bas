@@ -6,9 +6,6 @@
 '###############################################################################
 
 #include once "ComboBoxEx.bi"
-#ifndef __USE_GTK__
-	#include once "Registry.bi"
-#endif
 
 Namespace My.Sys.Forms
 	Private Function ComboBoxItem.Index As Integer
