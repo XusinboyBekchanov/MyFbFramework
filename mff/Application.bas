@@ -684,7 +684,7 @@ Namespace Debug
 	#endif
 	
 	Private Sub Clear
-		#ifdef __FB_WIN32__
+		#ifndef __USE_GTK__
 			If IsWindow(Handle) Then SendMessage(Handle, WM_SETTEXT, Cast(WPARAM, 0), Cast(LPARAM, @""))
 		#else
 			If gtk_is_text_view(Handle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(gtk_text_view(Handle)), !"\0", -1)
@@ -703,7 +703,7 @@ Namespace Debug
 		If bPrintMsg Then .Print MSG
 		If bShowMsg Then MsgBox MSG, "Visual FB Editor"
 		If bPrintToDebugWindow Then
-			#ifdef __FB_WIN32__
+			#ifndef __USE_GTK__
 				If IsWindow(Handle) Then
 					If SendMessage(GetParent(GetParent(Handle)), TCM_GETCURSEL, 0, 0) <> 5 Then
 						SendMessage(GetParent(GetParent(Handle)), TCM_SETCURSEL, 5, 0)
