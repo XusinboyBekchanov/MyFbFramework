@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 	Private Property ImageList.ImageWidth(Value As Integer)
 		FImageWidth = Value
 		#ifdef __USE_WINAPI__
-			ImageList_SetIconSize(Handle, FImageWidth, FImageHeight)
+			ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
 		#endif
 		NotifyWindow
 	End Property
@@ -80,7 +80,7 @@ Namespace My.Sys.Forms
 	Private Property ImageList.ImageHeight(Value As Integer)
 		FImageHeight = Value
 		#ifdef __USE_WINAPI__
-			ImageList_SetIconSize(Handle, FImageWidth, FImageHeight)
+			ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
 		#endif
 		NotifyWindow
 	End Property
@@ -246,7 +246,7 @@ Namespace My.Sys.Forms
 		If Not FNotAdd Then Items.Add(Key)
 		FNotChange = False
 		#ifdef __USE_WINAPI__
-			If Bmp.Width <> FImageWidth OrElse Bmp.Height <> FImageHeight Then
+			If Bmp.Width <> ScaleX(FImageWidth) OrElse Bmp.Height <> ScaleY(FImageHeight) Then
 				Dim As HBitmap HBitm
 				Dim As HWND desktop = GetDesktopWindow()
 				If (desktop <> NULL) Then
@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 							ReleaseDC(desktop, screen_dev)
 						Else
 							' Create a new bitmap of icon size
-							HBitm = CreateCompatibleBitmap(screen_dev, 16, 16)
+							HBitm = CreateCompatibleBitmap(screen_dev, ScaleX(FImageWidth), ScaleY(FImageHeight))
 							If (HBitm = NULL) Then
 								DeleteDC(dst_hdc)
 								ReleaseDC(desktop, screen_dev)
@@ -273,7 +273,7 @@ Namespace My.Sys.Forms
 									MemDC = CreateCompatibleDC(screen_dev)
 									OldBitmap = SelectObject(MemDC, Bmp.Handle)
 									GetObject(Cast(HBitmap, Bmp.Handle), SizeOf(Bitmap01), @Bitmap01)
-									StretchBlt(dst_hdc, 0, 0, FImageWidth, FImageHeight, MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
+									StretchBlt(dst_hdc, 0, 0, ScaleX(FImageWidth), ScaleY(FImageHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
 									' Restore settings
 									SelectObject(MemDC, OldBitmap)
 									SelectObject(dst_hdc, old_dst_bmp)
@@ -530,7 +530,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Handle = gtk_icon_theme_new()
 		#elseif defined(__USE_WINAPI__)
-			Handle = ImageList_Create(FImageWidth, FImageHeight, ILC_MASK Or ILC_COLORDDB, InitialCount, GrowCount)
+			Handle = ImageList_Create(ScaleX(FImageWidth), ScaleY(FImageHeight), ILC_MASK Or ILC_COLORDDB, InitialCount, GrowCount)
 			'Create
 		#endif
 	End Constructor
