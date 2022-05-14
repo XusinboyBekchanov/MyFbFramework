@@ -689,8 +689,8 @@ Namespace My.Sys.Forms
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
 					.Perform(TB_BUTTONSTRUCTSIZE, SizeOf(TBBUTTON), 0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
-					.Perform(TB_SETBUTTONSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
-					.Perform(TB_SETBITMAPSIZE,0,MakeLong(.ButtonWidth,.ButtonHeight))
+					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(ScaleX(.ButtonWidth), ScaleY(.ButtonHeight)))
+					.Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.ButtonWidth), ScaleY(.ButtonHeight)))
 					Dim As TBBUTTON TB
 					For j As Integer = 0 To .Groups.Count -1
 						If j > 0 Then

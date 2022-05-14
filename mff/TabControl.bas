@@ -720,7 +720,7 @@ Namespace My.Sys.Forms
 						Else
 							If Images Then
 								ImageList_Draw(Images->Handle, IIf(Tabs[i]->ImageKey <> "", Images->IndexOf(Tabs[i]->ImageKey), Tabs[i]->ImageIndex), Dc, R.Left + 3, R.Top + 2, ILD_TRANSPARENT)
-								.TextOut(Dc, R.Left + 5 + Images->ImageWidth, R.Top + 3, Tabs[i]->Caption, Len(Tabs[i]->Caption))
+								.TextOut(Dc, R.Left + 5 + ScaleX(Images->ImageWidth), R.Top + 3, Tabs[i]->Caption, Len(Tabs[i]->Caption))
 							Else
 								.TextOut(Dc, R.Left + 5, R.Top + 3, Tabs[i]->Caption, Len(Tabs[i]->Caption))
 							End If
