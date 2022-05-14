@@ -519,7 +519,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Constructor ImageList(ByVal iImageWidth As Integer = 32, ByVal iImageHeight As Integer = 32)
+	Private Constructor ImageList(ByVal iImageWidth As Integer = ScaleX(16), ByVal iImageHeight As Integer = ScaleY(16))
 		WLet(FClassName, "ImageList")
 		InitialCount = 4
 		GrowCount = 4

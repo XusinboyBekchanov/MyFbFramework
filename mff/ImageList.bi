@@ -124,7 +124,7 @@ Namespace My.Sys.Forms
 		Declare Sub Draw(Index As Integer, ByRef Canvas As My.Sys.Drawing.Canvas, X As Integer, Y As Integer, iWidth As Integer = -1, iHeight As Integer = -1, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
-		Declare Constructor(ByVal iImageWidth As Integer = 32, ByVal iImageHeight As Integer = 32)
+		Declare Constructor(ByVal iImageWidth As Integer = ScaleX(16), ByVal iImageHeight As Integer = ScaleY(16))
 		Declare Destructor
 		OnChange As Sub(ByRef Sender As ImageList)
 	End Type
