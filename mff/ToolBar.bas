@@ -1025,7 +1025,7 @@ Namespace My.Sys.Forms
 					.Perform(TB_BUTTONSTRUCTSIZE, SizeOf(TBBUTTON), 0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
 					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
-					.Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
+					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
 					Var FHandle = .FHandle
 					For i As Integer = 0 To .Buttons.Count - 1
 						.FHandle = 0
@@ -1089,10 +1089,10 @@ Namespace My.Sys.Forms
 			#endif
 			FTransparent    = 1
 			FAutosize       = 1
-			FButtonWidth    = ScaleX(16)
-			FButtonHeight   = ScaleY(16)
-			FBitmapWidth    = ScaleX(16)
-			FBitmapHeight   = ScaleY(16)
+			FButtonWidth    = 16
+			FButtonHeight   = 16
+			FBitmapWidth    = 16
+			FBitmapHeight   = 16
 			Buttons.Parent  = This
 			FEnabled = True
 			#ifndef __USE_GTK__
