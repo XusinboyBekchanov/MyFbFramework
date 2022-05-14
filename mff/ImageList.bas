@@ -519,12 +519,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Constructor ImageList
+	Private Constructor ImageList(ByVal iImageWidth As Integer = 32, ByVal iImageHeight As Integer = 32)
 		WLet(FClassName, "ImageList")
 		InitialCount = 4
 		GrowCount = 4
-		FImageWidth  = 16
-		FImageHeight = 16
+		FImageWidth  = iImageWidth
+		FImageHeight = iImageHeight
 		Items.Tag = @This
 		'Items.OnChange = @ImageList_Change
 		#ifdef __USE_GTK__
