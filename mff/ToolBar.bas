@@ -1063,8 +1063,6 @@ Namespace My.Sys.Forms
 	
 	Private Constructor ToolBar
 		With This
-			FButtonWidth    = 16
-			FButtonHeight   = 16
 			#ifdef __USE_GTK__
 				widget = gtk_toolbar_new()
 				gtk_toolbar_set_style(GTK_TOOLBAR(widget), GTK_TOOLBAR_BOTH_HORIZ)

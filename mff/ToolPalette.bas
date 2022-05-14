@@ -689,8 +689,8 @@ Namespace My.Sys.Forms
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
 					.Perform(TB_BUTTONSTRUCTSIZE, SizeOf(TBBUTTON), 0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
-					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(ScaleX(.ButtonWidth), ScaleY(.ButtonHeight)))
-					.Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.ButtonWidth), ScaleY(.ButtonHeight)))
+					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(.ButtonWidth, .ButtonHeight))
+					.Perform(TB_SETBITMAPSIZE, 0, MakeLong(.ButtonWidth, .ButtonHeight))
 					Dim As TBBUTTON TB
 					For j As Integer = 0 To .Groups.Count -1
 						If j > 0 Then
@@ -756,8 +756,6 @@ Namespace My.Sys.Forms
 	
 	Private Constructor ToolPalette
 		With This
-			FButtonWidth    = 16
-			FButtonHeight   = 16
 			#ifdef __USE_GTK__
 				widget = gtk_tool_palette_new()
 				gtk_tool_palette_set_style(gtk_tool_palette(widget), GTK_TOOLBAR_BOTH_HORIZ)
@@ -787,8 +785,8 @@ Namespace My.Sys.Forms
 			#endif
 			FTransparent    = 1
 			FAutosize       = 1
-			FButtonWidth    = 16
-			FButtonHeight   = 16
+			FButtonWidth    = ScaleX(16)
+			FButtonHeight   = ScaleY(16)
 			Groups.Parent  = @This
 			FEnabled = True
 			#ifndef __USE_GTK__
