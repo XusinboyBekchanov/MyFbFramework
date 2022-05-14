@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Handle Then
 				If Style <> cbOwnerDrawVariable  Then
-					FItemHeight = Perform(CB_GETITEMHEIGHT, 0, 0)
+					FItemHeight = UnScaleY(Perform(CB_GETITEMHEIGHT, 0, 0))
 				End If
 			End If
 		#endif
