@@ -165,7 +165,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
-				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MakeWord(FLeftMargin, FRightMargin))
+				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MakeWord(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
 			End If
 		#endif
 	End Property
