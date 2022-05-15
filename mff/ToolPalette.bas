@@ -547,7 +547,7 @@ Namespace My.Sys.Forms
 	Private Property ToolPalette.ButtonWidth(Value As Integer)
 		FButtonWidth = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
+			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
 		#endif
 	End Property
 	
@@ -558,7 +558,7 @@ Namespace My.Sys.Forms
 	Private Property ToolPalette.ButtonHeight(Value As Integer)
 		FButtonHeight = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
+			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
 		#endif
 	End Property
 	
@@ -785,8 +785,8 @@ Namespace My.Sys.Forms
 			#endif
 			FTransparent    = 1
 			FAutosize       = 1
-			FButtonWidth    = ScaleX(16)
-			FButtonHeight   = ScaleY(16)
+			FButtonWidth    = 16
+			FButtonHeight   = 16
 			Groups.Parent  = @This
 			FEnabled = True
 			#ifndef __USE_GTK__
