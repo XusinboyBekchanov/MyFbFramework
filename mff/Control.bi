@@ -334,7 +334,7 @@ Namespace My.Sys.Forms
 			'Sends the control to the back of the z-order (Windows only).
 			Declare Sub SendToBack
 			'Instructs the parent of a control to reposition the control, enforcing its Align property (Windows, Linux).
-			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False)
+			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			'Displays the control to the user (Windows, Linux).
 			Declare Virtual Sub Show
 			'Conceals the control from the user (Windows, Linux).

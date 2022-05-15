@@ -785,7 +785,7 @@ Namespace My.Sys.Forms
 			Case WM_COMMAND
 				Message.Result = -1
 			Case WM_SIZE
-				If This.Parent Then This.Parent->RequestAlign
+				If This.Parent Then This.Parent->RequestAlign , , , @This
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)

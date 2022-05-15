@@ -2082,7 +2082,7 @@ Namespace My.Sys.Forms
 			RequestAlign
 		End Sub
 		
-		Private Sub Control.RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False)
+		Private Sub Control.RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			#ifdef __USE_GTK__
 				If GTK_IS_NOTEBOOK(widget) Then
 					For i As Integer = 0 To ControlCount - 1
@@ -2173,7 +2173,7 @@ Namespace My.Sys.Forms
 							ElseIf .Anchor.Bottom <> asNone Then
 								aTop = This.FHeight - .FHeight - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
 							End If
-							.SetBounds(aLeft, aTop, aWidth, aHeight)
+							If bWithoutControl <> Controls[i] Then .SetBounds(aLeft, aTop, aWidth, aHeight)
 						End If
 					End If
 				End With
@@ -2206,7 +2206,7 @@ Namespace My.Sys.Forms
 				With *ListTop[i]
 					If .FVisible Then
 						tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
-						.SetBounds(0 + .ExtraMargins.Left, tTop - .Height - .ExtraMargins.Bottom, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
+						If bWithoutControl <> ListTop[i] Then .SetBounds(0 + .ExtraMargins.Left, tTop - .Height - .ExtraMargins.Bottom, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
 					End If
 				End With
 			Next i
@@ -2215,7 +2215,7 @@ Namespace My.Sys.Forms
 				With *ListBottom[i]
 					If .FVisible Then
 						bTop -= .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
-						.SetBounds(0 + .ExtraMargins.Left, bTop + .ExtraMargins.Top, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
+						If bWithoutControl <> ListBottom[i] Then .SetBounds(0 + .ExtraMargins.Left, bTop + .ExtraMargins.Top, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
 					End If
 				End With
 			Next i
@@ -2224,7 +2224,7 @@ Namespace My.Sys.Forms
 				With *ListLeft[i]
 					If .FVisible Then
 						lLeft += .ExtraMargins.Left + .Width + .ExtraMargins.Right
-						.SetBounds(lLeft - .Width - .ExtraMargins.Right, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+						If bWithoutControl <> ListLeft[i] Then .SetBounds(lLeft - .Width - .ExtraMargins.Right, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
 					End If
 				End With
 			Next i
@@ -2233,14 +2233,14 @@ Namespace My.Sys.Forms
 				With *ListRight[i]
 					If .FVisible Then
 						rLeft -= .ExtraMargins.Left + .Width + .ExtraMargins.Right
-						.SetBounds(rLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+						If bWithoutControl <> ListRight[i] Then .SetBounds(rLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
 					End If
 				End With
 			Next i
 			For i = 0 To ClientCount -1
 				With *ListClient[i]
 					'If .FVisible Then
-						.SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+						If bWithoutControl <> ListClient[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
 					'End If
 				End With
 			Next i
