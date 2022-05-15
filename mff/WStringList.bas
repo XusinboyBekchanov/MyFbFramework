@@ -108,17 +108,28 @@ Private Property WStringList.Object(Index As Integer, FObj As Any Ptr)
 	End If
 End Property
 
-Private Sub WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0)
+Private Function WStringList.Add(ByRef FItem As WString, FObj As Any Ptr = 0, SortInsert As Boolean = False) As Integer
 	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
+	Dim As Integer Index
 	With *nItem
 		.Value  = FItem
 		.Obj = FObj
 	End With
-	FItems.Add nItem
-	If OnAdd Then OnAdd(This, FItem, FObj)
+	If SortInsert Then
+		For Index = 0 To FItems.Count - 1
+			If Item(Index) > FItem Then Exit For
+		Next
+		FItems.Insert Index, nItem
+		If OnInsert Then OnInsert(This, Index, FItem, FObj)
+	Else
+		FItems.Add nItem
+		Index = FItems.Count - 1
+		If OnAdd Then OnAdd(This, FItem, FObj)
+	End If
 	If OnChange Then OnChange(This)
 	FCount = FItems.Count
-End Sub
+	Return Index
+End Function
 
 Private Sub WStringList.Insert(Index As Integer, ByRef FItem As WString, FObj As Any Ptr = 0)
 	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
