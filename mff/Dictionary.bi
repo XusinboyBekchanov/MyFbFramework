@@ -16,60 +16,64 @@
 #define QDictionaryItem(__Ptr__) *Cast(DictionaryItem Ptr,__Ptr__)
 #define QDictionary(__Ptr__) *Cast(Dictionary Ptr,__Ptr__)
 
-Private Type DictionaryItem Extends Object
+Private Type DictionaryItem 'Extends Object
 Private:
-	FKey   As WString Ptr
-	FText    As WString Ptr
+	FKey            As WString Ptr
+	FText           As WString Ptr
 Public:
 	Declare Property Key ByRef As WString
-	Declare Property Key(ByRef V As WString)
+	Declare Property Key(ByRef v As WString)
 	Declare Property Text ByRef As WString
-	Declare Property Text(ByRef V As WString)
+	Declare Property Text(ByRef v As WString)
 	Object As Any Ptr
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor
 End Type
 
-Private Type Dictionary Extends Object
+Private Type Dictionary 'Extends Object
 Private:
-	FCount      As Integer
-	FText       As WString Ptr
-	FItems      As List
+	FCount             As Integer
+	FText              As WString Ptr
+	FItems             As List
+	FSortKeysMatchCase  As Boolean 
+	FSortMatchCase      As Boolean 
 Public:
-	Tag         As Any Ptr
+	Tag                As Any Ptr
+	Sorted            As Boolean 
+	SortKeysed      As Boolean
 	Declare Property Count As Integer
-	Declare Property Count(Value As Integer)
-	Declare Property Item(Index As Integer) As DictionaryItem Ptr
-	Declare Property Item(Index As Integer, FItem As DictionaryItem Ptr)
-	Declare Property Item(ByRef Key As WString) As DictionaryItem Ptr
-	Declare Property Item(ByRef Key As WString, FItem As DictionaryItem Ptr)
+	Declare Property Count(value As Integer)
+	Declare Property item(Index As Integer) As DictionaryItem Ptr
+	Declare Property item(Index As Integer, iItem As DictionaryItem Ptr)
+	Declare Property item(ByRef iKey As WString) As DictionaryItem Ptr
+	Declare Property item(ByRef iKey As WString, iItem As DictionaryItem Ptr)
 	Declare Property Text ByRef As WString
-	Declare Property Text(ByRef Value As WString)
-	Declare Sub Add(ByRef Key As WString = "", ByRef wText As WString = "", Object As Any Ptr = 0)
-	Declare Sub Insert(Index As Integer, ByRef Key As WString = "", ByRef wText As WString = "", Object As Any Ptr = 0)
+	Declare Property Text(ByRef value As WString)
+	Declare Sub Add(ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
+	Declare Sub Insert(Index As Integer, ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
 	Declare Sub Remove(Index As Integer)
-	Declare Sub Remove(ByRef Key As WString)
+	Declare Sub Remove(ByRef iKey As WString)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
-	Declare Sub Sort
-	Declare Sub SortKeys
+	Declare Sub Sort(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
+	Declare Sub SortKeys(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
 	Declare Sub Clear
-	Declare Function IndexOf(ByRef wText As WString) As Integer
-	Declare Function IndexOfKey(ByRef Key As WString, Object As Any Ptr = 0) As Integer
-	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
-	Declare Sub Set(ByRef Key As WString, ByRef wText As WString = "", Object As Any Ptr = 0)
+	Declare Function IndexOf(ByRef wText  As Const WString, ByVal MatchCase As Boolean = False) As Integer
+	Declare Function IndexOfKey(ByRef iKey As Const WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Integer
+	Declare Function IndexOfObject(iObject As Any Ptr) As Integer
+	Declare Sub Set(ByRef iKey As WString, ByRef wText As WString = "", iObject As Any Ptr = 0)
+	Declare Function Get(ByRef iKey As WString, ByRef DefaultText As WString = "") ByRef As WString
 	Declare Function Get(Index As Integer, ByRef DefaultText As WString = "") ByRef As WString
-	Declare Function Get(ByRef Key As WString, ByRef DefaultText As WString = "") ByRef As WString
-	Declare Function GetKey(ByRef wText As WString) ByRef As WString
-	Declare Function GetKey(Object As Any Ptr) ByRef As WString
-	Declare Function GetText(ByRef Key As WString) ByRef As WString
-	Declare Function GetObject(ByRef Key As WString) As Any Ptr
-	Declare Function Contains(ByRef wText As WString) As Boolean
-	Declare Function ContainsKey(ByRef Key As WString, Object As Any Ptr = 0) As Boolean
-	Declare Function ContainsObject(Object As Any Ptr) As Boolean
+	Declare Function GetKey(ByRef wText As WString, ByVal MatchCase As Boolean = False) ByRef As WString
+	Declare Function GetKey(iObject As Any Ptr) ByRef As WString
+	Declare Function gettext(ByRef iKey As WString, ByVal MatchCase As Boolean = False) ByRef As WString
+	Declare Function GetObject(ByRef iKey As WString, ByVal MatchCase As Boolean = False) As Any Ptr
+	Declare Function Contains(ByRef wText As WString, ByVal MatchCase As Boolean = False) As Boolean
+	Declare Function ContainsKey(ByRef iKey As WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Boolean
+	Declare Function ContainsObject(iObject As Any Ptr) As Boolean
 	Declare Sub SaveToFile(ByRef FileName As WString)
 	Declare Sub LoadFromFile(ByRef FileName As WString)
-	Declare Operator Let(ByRef Value As WString)
+	Declare Operator Let(ByRef value As WString)
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor
@@ -79,3 +83,4 @@ End Type
 #ifndef __USE_MAKE__
 	#include once "Dictionary.bas"
 #endif
+ 
