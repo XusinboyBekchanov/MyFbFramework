@@ -3,7 +3,7 @@
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                      #
 '#  Based on:                                                                  #
-'#   TWStringList.bi                                                            #
+'#   TStringList.bi                                                            #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.0                                                             #
