@@ -20,6 +20,22 @@ Private Property WStringList.Count As Integer
 	Return FCount
 End Property
 
+Private Property WStringList.MatchCase(iValue As Boolean)
+	FMatchCase = iValue
+End Property
+
+Private Property WStringList.MatchCase As Boolean
+	Return FMatchCase
+End Property
+
+Private Property WStringList.MatchFullWords(iValue As Boolean)
+	FMatchFullWords = iValue
+End Property
+
+Private Property WStringList.MatchFullWords As Boolean
+	Return FMatchFullWords
+End Property
+
 Private Property WStringList.Sorted(iValue As Boolean)
 	FSorted = iValue
 End Property
@@ -75,11 +91,9 @@ Private Property WStringList.Object(Index As Integer, FObj As Any Ptr)
 	If Index > -1 And Index < FCount Then Objects.Item(Index) = FObj
 End Property
 
-Private Function WStringList.Add(ByRef iValue As Const WString, FObj As Any Ptr = 0, ByVal SortInsert As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
+Private Function WStringList.Add(ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer
 	'If iValue = "" Then Return -1 'We should allow add a empty records. Will gpt trouble in TreeListview if not allowed.
-	If CBool(FCount > 0) AndAlso (SortInsert OrElse FSorted) Then
-		FSorted = True
-		FSortMatchCase = MatchCase
+	If CBool(FCount > 0) AndAlso FSorted Then
 		Return This.Insert(-1, iValue, FObj)
 	Else
 		Dim As WString Ptr iText = CAllocate((Len(iValue) + 1) * SizeOf(WString))
@@ -95,9 +109,9 @@ End Function
 Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer
 	Dim As Integer j
 	If (CBool(Index = -1) OrElse FSorted) AndAlso CBool(FCount > 0) Then ' Sorted Insert
-		Dim As Integer tFindIndex = IndexOf(iValue, FSortMatchCase, False)
+		Dim As Integer tFindIndex = IndexOf(iValue, FMatchCase, False)
 		If tFindIndex < 0 OrElse tFindIndex > Fcount - 1 Then tFindIndex = 0
-		If FSortMatchCase Then
+		If FMatchCase Then
 			For j = tFindIndex To Fcount - 1
 				If *Cast(WString Ptr, Items.Item(j)) >= iValue Then Exit For
 			Next
@@ -136,7 +150,7 @@ Private Sub WStringList.Remove(Index As Integer)
 	If OnRemove Then OnRemove(This, Index)
 End Sub
 
-Private Sub WStringList.Sort(ByVal MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
+Private Sub WStringList.Sort(iLeft As Integer = 0, iRight As Integer = 0)
 	If FCount <= 1 Then Return
 	If iRight = 0 Then iRight = FCount - 1
 	If iLeft < 0 Then iLeft = 0
@@ -169,8 +183,8 @@ Private Sub WStringList.Sort(ByVal MatchCase As Boolean = False, iLeft As Intege
 	End If
 	'Items.Item(i) = iKey  'NOT OK /*当在当组内找完一遍以后就把中间数key回归*/
 	'Objects.Item(i) = iObj
-	If j > iLeft Then This.Sort(MatchCase, iLeft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
-	If i < iRight Then This.Sort(MatchCase, i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
+	If j > iLeft Then This.Sort(iLeft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
+	If i < iRight Then This.Sort(i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
 	
 	'	'bubbleSort , Add flag for fast quit if it is sorted already
 	'	Dim As Boolean flag
@@ -186,7 +200,6 @@ Private Sub WStringList.Sort(ByVal MatchCase As Boolean = False, iLeft As Intege
 	'		If flag = False Then Return
 	'	Next
 	
-	FSortMatchCase = MatchCase
 	FSorted = True
 	If OnChange Then OnChange(This)
 End Sub
@@ -202,8 +215,6 @@ Private Sub WStringList.Clear
 	Items.Clear
 	Objects.Clear
 	FCount = 0
-	FSortMatchCase = False
-	FSorted = False
 	If OnClear Then OnClear(This)
 End Sub
 
@@ -239,13 +250,13 @@ Private Sub WStringList.LoadFromFile(ByRef FileName As WString)
 	Close #Fn
 End Sub
 
-Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal MatchCase As Boolean = False, ByVal MatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
+Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
 	'If iValue = "" OrElse FCount < 1 Then Return -1 'We should allow add a empty records. Will get trouble in TreeListview if not allowed.
 	If FCount < 1 Then Return -1
 	If iStart < 0 Then iStart = 0
 	If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
 		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
-		If FSortMatchCase Then  ' Action with the same sorting mode only
+		If FMatchCase Then  ' Action with the same sorting mode only
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
 				If *Cast(WString Ptr, Items.Item(MidIndex)) = iValue Then
@@ -256,7 +267,7 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal MatchC
 					RightIndex = MidIndex - 1
 				End If
 			Wend
-			Return IIf(MatchFullWords, -1, LeftIndex)
+			Return IIf(bMatchFullWords, -1, LeftIndex)
 		Else
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
@@ -284,7 +295,7 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal MatchC
 	End If
 End Function
 
-Private Function WStringList.Contains(ByRef iValue As Const WString, ByVal MatchCase As Boolean = False, ByVal MatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Boolean
+Private Function WStringList.Contains(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Boolean
 	Return IndexOf(iValue, MatchCase, True, iStart) <> -1
 End Function
 
@@ -316,6 +327,8 @@ Private Constructor WStringList
 	Items.Clear
 	Objects.Clear
 	FCount = 0
+	FMatchFullWords = True
+	'FSorted = True
 End Constructor
 
 Private Destructor WStringList

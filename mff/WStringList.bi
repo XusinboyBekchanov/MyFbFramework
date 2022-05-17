@@ -17,29 +17,34 @@
 
 Private Type WStringList
 Private:
-	FText   As WString Ptr
-	FSortMatchCase      As Boolean
+	FText               As WString Ptr
+	FMatchCase          As Boolean
+	FMatchFullWords     As Boolean
 	FSorted             As Boolean
 	FCount              As Integer
-	Items   As List
-	Objects  As List
+	Items               As List
+	Objects             As List
 Public:
-	Declare Property Sorted      As Boolean 
-	Declare Property Sorted(iValue As Boolean)
 	Tag As Any Ptr
 	Declare Property Count As Integer
 	Declare Property Count(iValue As Integer)
 	Declare Property Item(Index As Integer) ByRef As WString
 	Declare Property Item(Index As Integer, iValue As Const WString)
+	Declare Property MatchCase As Boolean 
+	Declare Property MatchCase(iValue As Boolean)
+	Declare Property MatchFullWords As Boolean 
+	Declare Property MatchFullWords(iValue As Boolean)
+	Declare Property Sorted As Boolean 
+	Declare Property Sorted(iValue As Boolean)
 	Declare Property Text ByRef As WString
 	Declare Property Text(ByRef Value As WString)
 	Declare Property Object(Index As Integer) As Any Ptr
 	Declare Property Object(Index As Integer, FObj As Any Ptr)
-	Declare Function Add(ByRef iValue As Const WString, FObj As Any Ptr = 0, ByVal SortInsert As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
+	Declare Function Add(ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer
 	Declare Function Insert(ByVal Index As Integer, ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer 
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
-	Declare Sub remove(Index As Integer)
-	Declare Sub Sort(ByVal MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
+	Declare Sub Remove(Index As Integer)
+	Declare Sub Sort(iLeft As Integer = 0, iRight As Integer = 0)
 	Declare Sub Clear
 	Declare Function IndexOf(ByRef iValue As Const WString, ByVal MatchCase As Boolean = False, ByVal MatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
 	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
