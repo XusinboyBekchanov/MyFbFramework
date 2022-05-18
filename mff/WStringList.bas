@@ -109,16 +109,35 @@ End Function
 Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer
 	Dim As Integer j
 	If (CBool(Index = -1) OrElse FSorted) AndAlso CBool(FCount > 0) Then ' Sorted Insert
-		Dim As Integer tFindIndex = IndexOf(iValue, FMatchCase, False)
-		If tFindIndex < 0 OrElse tFindIndex > Fcount - 1 Then tFindIndex = 0
-		If FMatchCase Then
-			For j = tFindIndex To Fcount - 1
-				If *Cast(WString Ptr, Items.Item(j)) >= iValue Then Exit For
-			Next
+		Dim As Integer iStart = 0
+		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
+		j = FCount
+		If FMatchCase Then  ' Action with the same sorting mode only
+			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+				MidIndex = (RightIndex + LeftIndex) \ 2
+				If *Cast(WString Ptr, Items.Item(MidIndex)) = iValue Then
+					j = MidIndex: Exit While
+				ElseIf *Cast(WString Ptr, Items.Item(MidIndex)) > iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <= iValue) Then
+					j = MidIndex: Exit While
+				ElseIf *Cast(WString Ptr, Items.Item(MidIndex)) < iValue Then
+					LeftIndex = MidIndex + 1
+				Else
+					RightIndex = MidIndex - 1
+				End If
+			Wend
 		Else
-			For j = tFindIndex To Fcount - 1
-				If (LCase(*Cast(WString Ptr, Items.Item(j)))) >= LCase(iValue) Then Exit For
-			Next
+			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+				MidIndex = (RightIndex + LeftIndex) \ 2
+				If LCase(*Cast(WString Ptr, Items.Item(MidIndex))) = LCase(iValue) Then
+					j = MidIndex: Exit While
+				ElseIf LCase(*Cast(WString Ptr, Items.Item(MidIndex))) > LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <= LCase(iValue)) Then
+					j = MidIndex: Exit While
+				ElseIf LCase(*Cast(WString Ptr, Items.Item(MidIndex))) < LCase(iValue) Then
+					LeftIndex = MidIndex + 1
+				Else
+					RightIndex = MidIndex - 1
+				End If
+			Wend
 		End If
 		FSorted = True
 	Else
