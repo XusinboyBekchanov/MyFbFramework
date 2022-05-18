@@ -115,11 +115,9 @@ Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As Cons
 		If FMatchCase Then  ' Action with the same sorting mode only
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
-				If *Cast(WString Ptr, Items.Item(MidIndex)) = iValue Then
+				If *Cast(WString Ptr, Items.Item(MidIndex)) > iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <= iValue) Then
 					j = MidIndex: Exit While
-				ElseIf *Cast(WString Ptr, Items.Item(MidIndex)) > iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <= iValue) Then
-					j = MidIndex: Exit While
-				ElseIf *Cast(WString Ptr, Items.Item(MidIndex)) < iValue Then
+				ElseIf *Cast(WString Ptr, Items.Item(MidIndex)) <= iValue Then
 					LeftIndex = MidIndex + 1
 				Else
 					RightIndex = MidIndex - 1
@@ -128,11 +126,9 @@ Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As Cons
 		Else
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
-				If LCase(*Cast(WString Ptr, Items.Item(MidIndex))) = LCase(iValue) Then
+				If LCase(*Cast(WString Ptr, Items.Item(MidIndex))) > LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <= LCase(iValue)) Then
 					j = MidIndex: Exit While
-				ElseIf LCase(*Cast(WString Ptr, Items.Item(MidIndex))) > LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <= LCase(iValue)) Then
-					j = MidIndex: Exit While
-				ElseIf LCase(*Cast(WString Ptr, Items.Item(MidIndex))) < LCase(iValue) Then
+				ElseIf LCase(*Cast(WString Ptr, Items.Item(MidIndex))) <= LCase(iValue) Then
 					LeftIndex = MidIndex + 1
 				Else
 					RightIndex = MidIndex - 1
@@ -144,6 +140,7 @@ Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As Cons
 		j = IIf(Index > 0, Index, Fcount)
 		FSorted = False
 	End If
+	'?j, FCount, *Cast(WString Ptr, Items.Item(j - 1)), iValue, *Cast(WString Ptr, Items.Item(j))
 	Dim As WString Ptr iText = CAllocate((Len(iValue) + 1) * SizeOf(WString))
 	*iText = iValue
 	Items.Insert j, iText
@@ -278,7 +275,7 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatch
 		If FMatchCase Then  ' Action with the same sorting mode only
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
-				If *Cast(WString Ptr, Items.Item(MidIndex)) = iValue Then
+				If *Cast(WString Ptr, Items.Item(MidIndex)) = iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <> iValue) Then
 					Return MidIndex
 				ElseIf *Cast(WString Ptr, Items.Item(MidIndex)) < iValue Then
 					LeftIndex = MidIndex + 1
@@ -290,7 +287,7 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatch
 		Else
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
-				If LCase(*Cast(WString Ptr, Items.Item(MidIndex))) = LCase(iValue) Then
+				If LCase(*Cast(WString Ptr, Items.Item(MidIndex))) = LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <> LCase(iValue)) Then
 					Return MidIndex
 				ElseIf LCase(*Cast(WString Ptr, Items.Item(MidIndex))) < LCase(iValue) Then
 					LeftIndex = MidIndex + 1
