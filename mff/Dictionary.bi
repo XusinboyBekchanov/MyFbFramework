@@ -52,13 +52,13 @@ Public:
 	Declare Property Text(ByRef value As WString)
 	Declare Sub Add(ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
 	Declare Sub Insert(Index As Integer, ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
-	Declare Sub Remove(Index As Integer)
-	Declare Sub Remove(ByRef iKey As WString)
+	Declare Sub remove(Index As Integer)
+	Declare Sub remove(ByRef iKey As WString)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Sort(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
 	Declare Sub SortKeys(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
 	Declare Sub Clear
-	Declare Function IndexOf(ByRef wText  As Const WString, ByVal MatchCase As Boolean = False) As Integer
+	Declare Function IndexOf(ByRef wText As Const WString, ByVal MatchCase As Boolean = False, ByVal MatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
 	Declare Function IndexOfKey(ByRef iKey As Const WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Integer
 	Declare Function IndexOfObject(iObject As Any Ptr) As Integer
 	Declare Sub Set(ByRef iKey As WString, ByRef wText As WString = "", iObject As Any Ptr = 0)

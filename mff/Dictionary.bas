@@ -311,10 +311,10 @@ Private Sub Dictionary.LoadFromFile(ByRef filename As WString)
 	If OnChange Then OnChange(This)
 End Sub
 
-Private Function Dictionary.IndexOf(ByRef wText As Const WString, ByVal MatchCase As Boolean = False) As Integer
+Private Function Dictionary.IndexOf(ByRef wText As Const WString, ByVal MatchCase As Boolean = False, ByVal MatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
 	If Trim(wText) = "" OrElse FItems.Count < 1 Then Return -1
-	If Sorted Then  'Fast Binary Search
-		Dim As Integer LeftIndex, RightIndex = FItems.Count - 1,  MidIndex = (FItems.Count - 1) Shr 1
+	If Sorted AndAlso MatchFullWords = False Then  'Fast Binary Search
+		Dim As Integer LeftIndex = iStart , RightIndex = FItems.Count - 1,  MidIndex = (FItems.Count - 1 + iStart) \ 2
 		If FSortMatchCase Then  ' Action with the same sorting mode only
 			While (LeftIndex <= RightIndex And LeftIndex < FItems.Count And RightIndex >= 0)
 				MidIndex = (RightIndex + LeftIndex) Shr 1
@@ -341,14 +341,26 @@ Private Function Dictionary.IndexOf(ByRef wText As Const WString, ByVal MatchCas
 			Return -1
 		End If
 	Else
-		If MatchCase Then
-			For i As Integer = 0 To FItems.Count - 1
-				If QDictionaryItem(FItems.Items[i]).Text = wText Then Return i
-			Next i
+		If MatchFullWords Then
+			If MatchCase Then
+				For i As Integer = iStart To FItems.Count - 1
+					If QDictionaryItem(FItems.Items[i]).Text = wText Then Return i
+				Next
+			Else
+				For i As Integer = iStart To FItems.Count - 1
+					If LCase(QDictionaryItem(FItems.Items[i]).Text) = LCase(wText) Then Return i
+				Next
+			End If
 		Else
-			For i As Integer = 0 To FItems.Count - 1
-				If LCase(QDictionaryItem(FItems.Items[i]).Text) = LCase(wText) Then Return i
-			Next i
+			If MatchCase Then
+				For i As Integer = iStart To FItems.Count - 1
+					If InStr(QDictionaryItem(FItems.Items[i]).Text, wText) Then Return i
+				Next
+			Else
+				For i As Integer = iStart To FItems.Count - 1
+					If InStr(LCase(QDictionaryItem(FItems.Items[i]).Text), LCase(wText)) Then Return i
+				Next
+			End If
 		End If
 	End If
 	Return -1
@@ -394,17 +406,17 @@ Private Function Dictionary.IndexOfKey(ByRef iKey As Const WString, iObject As A
 	Else
 		If MatchCase Then
 			For i As Integer = 0 To FItems.Count - 1
-				If QDictionaryItem(FItems.Items[i]).Key = iKey Then 
+				If QDictionaryItem(FItems.Items[i]).Key = iKey Then
 					If iObject >  0 Then
 						If QDictionaryItem(FItems.Items[i]).Object = iObject Then Return i Else Return -1
 					Else
 						Return i
 					End If
-			End If
+				End If
 			Next i
 		Else
 			For i As Integer = 0 To FItems.Count - 1
-				If LCase(QDictionaryItem(FItems.Items[i]).Key) = LCase(iKey) Then 
+				If LCase(QDictionaryItem(FItems.Items[i]).Key) = LCase(iKey) Then
 					If iObject >  0 Then
 						If QDictionaryItem(FItems.Items[i]).Object = iObject Then Return i Else Return -1
 					Else
