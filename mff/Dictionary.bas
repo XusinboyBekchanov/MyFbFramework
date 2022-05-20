@@ -270,7 +270,7 @@ Private Sub Dictionary.SaveToFile(ByRef FileName As WString)
 	'If Open(FileName For Binary Access Write As #F) = 0 Then
 	If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then 'David Change
 		For i As Integer = 0 To FItems.Count - 1
-			Print #Fn, Item(i)->Key & WChr(9) & " " & Item(i)->Text 'David Change
+			Print #Fn, Item(i)->Key & Chr(9) & " " & Item(i)->Text 'David Change
 		Next
 		Close #Fn
 	End If
@@ -291,15 +291,15 @@ Private Sub Dictionary.LoadFromFile(ByRef filename As WString)
 		While Not EOF(Fn)
 			Line Input #Fn, Buff
 			If Trim(Buff, Any !"\t ")<>"" Then  'David Change
-				Pos1=InStr(Buff,WChr(9))
+				Pos1=InStr(Buff, Chr(9))
 				If Pos1 > 0 Then
 					Dim As DictionaryItem Ptr nItem = New DictionaryItem
 					With *nItem
 						If Pos1 > 0 Then
-							.Key  = ..Left(*FText, Pos1 - 1)
-							.Text = Mid(*FText, Pos1 + 2)
+							.Key  = ..Left(Buff, Pos1 - 1)
+							.Text = Mid(Buff, Pos1 + 2)
 						Else
-							.Key  = *FText
+							.Key  = Buff
 						End If
 					End With
 					FItems.Add nItem
