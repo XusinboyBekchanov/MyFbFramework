@@ -65,7 +65,7 @@ Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
 #endif
 
-Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
+Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
 Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) ByRef As WString
