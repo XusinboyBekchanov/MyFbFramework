@@ -80,12 +80,15 @@ End Function
 	End Sub
 #endif
 
-Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean)
+' Using WLetEx if the length of target is longer than the length of source. 
+Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
 	If ExistsSubjectInTxt Then
-		Dim TempWStr As WString Ptr
-		WLet(TempWStr, txt)
-		WLet(subject, *TempWStr)
-		WDeallocate TempWStr
+		Dim As WString Ptr TempWStr = CAllocate((Len(txt) + 1) * SizeOf(WString))
+		If TempWStr > 0 Then
+			*TempWStr = txt
+			Deallocate subject
+			subject = TempWStr
+		End If
 	Else
 		WReAllocate(subject, Len(txt))
 		*subject = txt
@@ -382,26 +385,26 @@ Private Function LoadFromFile(ByRef File As WString) ByRef As WString
 		Buffer = *tmpWstr
 		'Print "Len(*tmpWstr), Len(Buffer), BytesCount ", Len(*tmpWstr), Len(Buffer), BytesCount
 		If AscIIFile = 1 AndAlso Len(*tmpWstr) = Len(Buffer) Then  ' This is for UTF-8 txt file, No diffrence between the ASCII text file and UTF file in OS windows
-				'Print " Is UTF8"
-				Fn = FreeFile
-				Buffer = ""
-				If Open(File For Input As #Fn) = 0 Then
-					Do Until EOF(Fn)
-						Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
-						If Buffer = "" Then
-							Buffer = BuffRead
-						Else
-							Buffer &= Chr(13, 10) & BuffRead
-						End If
-					Loop
-					Close #Fn
-					Buffer &= Chr(0) ' Will get more data for English text file without chr(0) like Zstring
-					BytesCount = Len(Buffer)
-					tmpWstr = Reallocate(tmpWstr, (BytesCount + 1) * SizeOf(WString))
-					UTFToWChar(1, StrPtr(Buffer), tmpWstr, @BytesCount)
-				Else
-					Return ""
-				End If
+			'Print " Is UTF8"
+			Fn = FreeFile
+			Buffer = ""
+			If Open(File For Input As #Fn) = 0 Then
+				Do Until EOF(Fn)
+					Line Input #Fn, BuffRead    'For Wrong decoding of UTF8 html, need string
+					If Buffer = "" Then
+						Buffer = BuffRead
+					Else
+						Buffer &= Chr(13, 10) & BuffRead
+					End If
+				Loop
+				Close #Fn
+				Buffer &= Chr(0) ' Will get more data for English text file without chr(0) like Zstring
+				BytesCount = Len(Buffer)
+				tmpWstr = Reallocate(tmpWstr, (BytesCount + 1) * SizeOf(WString))
+				UTFToWChar(1, StrPtr(Buffer), tmpWstr, @BytesCount)
+			Else
+				Return ""
+			End If
 		End If
 		Return *tmpWstr
 	Else
