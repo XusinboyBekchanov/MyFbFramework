@@ -412,7 +412,7 @@ Namespace My.Sys.Forms
 							SendMessage(ToolTipHandle, TTM_GETTOOLINFO, 0, CInt(@FToolInfo))
 							FToolInfo.lpszText = FHint
 							SendMessage(ToolTipHandle, TTM_UPDATETIPTEXT, 0, CInt(@FToolInfo))
-						Else
+						ElseIf FShowHint Then
 							AllocateHint
 						End If
 					End If
