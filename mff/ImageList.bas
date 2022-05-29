@@ -206,7 +206,8 @@ Namespace My.Sys.Forms
 				Dim As My.Sys.Drawing.BitmapType Bitm
 				Bitm.LoadFromResourceName(ResName, ModuleHandle)
 				Items.Add Key, ResName
-				This.AddMasked Bitm, clBlack, Key
+				'This.AddMasked Bitm, clBlack, Key
+				ImageList_Add(Handle, Bitm.Handle, NULL)
 			End If
 			FNotAdd = False
 		#endif
@@ -530,7 +531,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Handle = gtk_icon_theme_new()
 		#elseif defined(__USE_WINAPI__)
-			Handle = ImageList_Create(ScaleX(FImageWidth), ScaleY(FImageHeight), ILC_MASK Or ILC_COLORDDB, InitialCount, GrowCount)
+			Handle = ImageList_Create(ScaleX(FImageWidth), ScaleY(FImageHeight), ILC_COLOR32, InitialCount, GrowCount) 'ILC_MASK Or 
 			'Create
 		#endif
 	End Constructor
