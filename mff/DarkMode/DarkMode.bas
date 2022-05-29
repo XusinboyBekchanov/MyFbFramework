@@ -91,8 +91,6 @@
 	Type fnSetPreferredAppMode As Function(appMode As PreferredAppMode) As PreferredAppMode ' ordinal 135, in 1903
 	Type fnIsDarkModeAllowedForApp As Function() As BOOL ' ordinal 139
 	
-	#define nullptr 0
-	
 	Dim Shared As fnSetWindowCompositionAttribute _SetWindowCompositionAttribute = nullptr
 	Dim Shared As fnShouldAppsUseDarkMode _ShouldAppsUseDarkMode = nullptr
 	Dim Shared As fnAllowDarkModeForWindow _AllowDarkModeForWindow = nullptr

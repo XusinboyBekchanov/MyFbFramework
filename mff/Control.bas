@@ -2462,7 +2462,7 @@ Namespace My.Sys.Forms
 			End If
     Exit Sub
 ErrorHandler:
-    MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+    Print ErrDescription(Err) & " (" & Err & ") " & _
         "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
         "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
         "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "

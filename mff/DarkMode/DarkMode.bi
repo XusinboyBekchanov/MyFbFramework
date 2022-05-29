@@ -16,5 +16,6 @@ Common Shared As Boolean g_darkModeEnabled
 	Declare Sub InitDarkMode()
 	Declare Function IsWindows11() As BOOL
 #endif
+#define nullptr 0
 Declare Sub SetDarkMode(useDarkMode As Boolean, fixDarkScrollbar As Boolean)
 
