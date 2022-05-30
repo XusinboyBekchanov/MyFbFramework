@@ -567,6 +567,66 @@ Namespace My
 	End Destructor
 End Namespace
 
+Namespace Debug
+	#ifdef _DebugWindow_
+		Dim Shared As Any Ptr Handle = Cast(Any Ptr, _DebugWindow_)
+	#else
+		Dim Shared As Any Ptr Handle
+	#endif
+	
+	Private Sub Clear
+		#ifndef __USE_GTK__
+			If IsWindow(Handle) Then SendMessage(Handle, WM_SETTEXT, Cast(WPARAM, 0), Cast(LPARAM, @""))
+		#else
+			If gtk_is_text_view(Handle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(gtk_text_view(Handle)), !"\0", -1)
+		#endif
+	End Sub
+	
+	Private Sub Print(ByRef MSG As WString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		If bWriteLog Then
+			Dim As Integer Result, Fn = FreeFile()
+			Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
+			If Result = 0 Then
+				.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & MSG & Space(20) 'cut some word if some unicode inside.
+				Close #Fn
+			End If
+		End If
+		If bPrintMsg Then .Print MSG
+		If bShowMsg Then MsgBox MSG, "Visual FB Editor"
+		If bPrintToDebugWindow Then
+			#ifndef __USE_GTK__
+				If IsWindow(Handle) Then
+					If SendMessage(GetParent(GetParent(Handle)), TCM_GETCURSEL, 0, 0) <> 5 Then
+						SendMessage(GetParent(GetParent(Handle)), TCM_SETCURSEL, 5, 0)
+						ShowWindow(GetParent(Handle), SW_SHOW)
+						BringWindowToTop(GetParent(Handle))
+					End If
+					Dim As WString Ptr SelText
+					WLet SelText, MSG & Chr(13, 10)
+					SendMessage(Handle, EM_REPLACESEL, 0, CInt(SelText))
+					WDeallocate SelText
+				End If
+			#else
+				If gtk_is_text_view(Handle) Then
+					If gtk_notebook_get_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle)))) <> 5 Then
+						gtk_notebook_set_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle))), 5)
+					End If
+					Dim As GtkTextIter _start, _end
+					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Handle)), ToUTF8(MSG & Chr(13, 10)), -1)
+					gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Handle)), @_start, @_end)
+					Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(gtk_text_view(Handle)), NULL, @_end, False)
+					gtk_text_view_scroll_to_mark(gtk_text_view(Handle), ptextmark, 0., False, 0., 0.)
+					#ifdef __USE_GTK__
+						While gtk_events_pending()
+							gtk_main_iteration()
+						Wend
+					#endif
+				End If
+			#endif
+		End If
+	End Sub
+End Namespace
+
 PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer __EXPORT__
 	Dim As Integer Result = -1
 	Dim As WString Ptr FCaption
@@ -676,65 +736,164 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 	Return Result
 End Function
 
-Namespace Debug
-	#ifdef _DebugWindow_
-		Dim Shared As Any Ptr Handle = Cast(Any Ptr, _DebugWindow_)
-	#else
-		Dim Shared As Any Ptr Handle
-	#endif
-	
-	Private Sub Clear
-		#ifndef __USE_GTK__
-			If IsWindow(Handle) Then SendMessage(Handle, WM_SETTEXT, Cast(WPARAM, 0), Cast(LPARAM, @""))
-		#else
-			If gtk_is_text_view(Handle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(gtk_text_view(Handle)), !"\0", -1)
-		#endif
-	End Sub
-	
-	Private Sub Print(ByRef MSG As WString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-		If bWriteLog Then
-			Dim As Integer Result, Fn = FreeFile()
-			Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
-			If Result = 0 Then
-				.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & MSG & Space(20) 'cut some word if some unicode inside.
-				Close #Fn
+Private Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean 
+   Dim As Boolean IsUTF8 = True
+    Dim As Integer iStart = 0, iEnd = Len(SourceStr)
+    While (iStart < iEnd)
+        If SourceStr[iStart] < &H80 Then
+            '(10000000): 值小于&H80的为ASCII字符  
+            iStart += 1     
+        ElseIf (SourceStr[iStart] < &HC0) Then
+            '(11000000): 值介于&H80与&HC0之间的为无效UTF-8字符
+            IsUTF8 = False     
+            Exit While     
+        ElseIf (SourceStr[iStart] < &HE0) Then
+            '(11100000): 此范围内为2字节UTF-8字符
+            If iStart >= iEnd - 1 Then Exit While     
+            If ((SourceStr[iStart + 1] And &HC0) <> &H80) Then
+            	IsUTF8 = False     
+                Exit While     
+            End If
+            iStart += 2     
+        ElseIf (SourceStr[iStart] < (&HF0)) Then
+            '(11110000): 此范围内为3字节UTF-8字符
+            If iStart >= iEnd - 2 Then Exit While     
+            If ((SourceStr[iStart + 1] And &HC0) <> &H80) Or ((SourceStr[iStart + 2] And &HC0) <> &H80) Then
+                IsUTF8 = False     
+                Exit While     
+            End If
+            iStart += 3     
+        Else
+            IsUTF8 = False     
+            Exit While
+        End If
+    Wend
+    Return IsUTF8     
+End Function
+
+Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
+	Dim As String Buff, EncodingStr, NewLineStr
+	Dim As Integer Result = -1, Fn = FreeFile_, FileSize
+	'check the Newlinetype again for missing Cr in AsicII file
+	Fn = FreeFile_
+	If Open(FileName For Binary Access Read As #Fn) = 0 Then
+		FileSize = LOF(Fn) + 1
+		buff = String(4, 0)
+		Get #Fn, , Buff
+		If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
+			FileEncoding = FileEncodings.Utf32BOM
+			EncodingStr = "utf-32"
+			buff = String(1024, 0)
+			Get #Fn, 0, Buff
+			'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
+		ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
+			FileEncoding = FileEncodings.Utf16BOM
+			EncodingStr = "utf-16"
+			buff = String(1024, 0)
+			Get #Fn, 0, Buff
+		ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
+			FileEncoding = FileEncodings.Utf8BOM
+			EncodingStr = "utf-8"
+			buff = String(1024, 0)
+			Get #Fn, 0, Buff
+		Else
+			buff = String(FileSize, 0)
+			Get #Fn, 0, Buff
+			If (CheckUTF8NoBOM(Buff)) Then
+				FileEncoding = FileEncodings.UTF8
+				EncodingStr = "ascii"
+			Else
+				FileEncoding = FileEncodings.PlainText
+				EncodingStr = "ascii"
 			End If
 		End If
-		If bPrintMsg Then .Print MSG
-		If bShowMsg Then MsgBox MSG, "Visual FB Editor"
-		If bPrintToDebugWindow Then
-			#ifndef __USE_GTK__
-				If IsWindow(Handle) Then
-					If SendMessage(GetParent(GetParent(Handle)), TCM_GETCURSEL, 0, 0) <> 5 Then
-						SendMessage(GetParent(GetParent(Handle)), TCM_SETCURSEL, 5, 0)
-						ShowWindow(GetParent(Handle), SW_SHOW)
-						BringWindowToTop(GetParent(Handle))
-					End If
-					Dim As WString Ptr SelText
-					WLet SelText, MSG & Chr(13, 10)
-					SendMessage(Handle, EM_REPLACESEL, 0, CInt(SelText))
-					WDeallocate SelText
-				End If
-			#else
-				If gtk_is_text_view(Handle) Then
-					If gtk_notebook_get_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle)))) <> 5 Then
-						gtk_notebook_set_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle))), 5)
-					End If
-					Dim As GtkTextIter _start, _end
-					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Handle)), ToUTF8(MSG & Chr(13, 10)), -1)
-					gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Handle)), @_start, @_end)
-					Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(gtk_text_view(Handle)), NULL, @_end, False)
-					gtk_text_view_scroll_to_mark(gtk_text_view(Handle), ptextmark, 0., False, 0., 0.)
-					#ifdef __USE_GTK__
-						While gtk_events_pending()
-							gtk_main_iteration()
-						Wend
-					#endif
-				End If
-			#endif
+		'Debug.Print Str(Len(buffer))
+		If InStr(Buff, Chr(13, 10)) Then
+			NewLineType= NewLineTypes.WindowsCRLF
+			NewLineStr = Chr(10)
+		ElseIf InStr(Buff, Chr(10)) Then
+			NewLineType= NewLineTypes.LinuxLF
+			NewLineStr = Chr(10)
+		ElseIf InStr(Buff, Chr(13)) Then
+			NewLineType= NewLineTypes.MacOSCR
+			NewLineStr = Chr(13)
+		Else
+			NewLineType= NewLineTypes.WindowsCRLF
+			NewLineStr = Chr(10)
 		End If
-	End Sub
-End Namespace
+	Else
+		Debug.Print "Open file failure!" &  " " + "in function" + " LoadFromFile" + " " & FileName, True
+		CloseFile_(Fn)
+		Return ""
+	End If
+	CloseFile_(Fn)
+	
+	Static As WString Ptr pBuff
+	Fn = FreeFile_
+	Result = Open(FileName For Input Encoding EncodingStr As #Fn)
+	If Result = 0 Then
+		pBuff = Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
+		If FileEncoding = FileEncodings.UTF8 Then
+			Buff =  Input(FileSize, #Fn)
+			UTFToWChar(1, StrPtr(Buff), *pBuff, @FileSize)
+		Else
+			*pBuff =  WInput(FileSize, #Fn)
+		End If
+	End If
+	CloseFile_(Fn)
+	Return *pBuff
+End Function
+
+Public Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
+		Dim As Integer Fn = FreeFile_
+		Dim As Integer Result
+		Dim As String FileEncodingText, NewLine
+		If FileEncoding = FileEncodings.Utf8 Then
+			FileEncodingText = "ascii"
+		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
+			FileEncodingText = "utf-8"
+		ElseIf FileEncoding = FileEncodings.Utf16BOM Then
+			FileEncodingText = "utf-16"
+		ElseIf FileEncoding = FileEncodings.Utf32BOM Then
+			FileEncodingText = "utf-32"
+		Else
+			FileEncodingText = "ascii"
+		End If
+		If NewLineType = NewLineTypes.LinuxLF Then
+			NewLine = Chr(10)
+		ElseIf NewLineType = NewLineTypes.MacOSCR Then
+			NewLine = Chr(13)
+		Else
+			NewLine = "" ' Chr(13, 10) No neeed replace
+		End If
+		If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
+			If FileEncoding = FileEncodings.Utf8 Then
+				If NewLine <> "" Then
+					Print #Fn, ToUtf8(Replace(wData, Chr(13, 10), NewLine)); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
+				Else
+					Print #Fn, ToUtf8(wData); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
+				End If
+				
+			ElseIf FileEncoding = FileEncodings.PlainText Then
+				If NewLine <> "" Then
+					Print #Fn, Str(Replace(wData, Chr(13, 10), NewLine));
+				Else
+					Print #Fn, Str(wData); 
+				End If
+			Else
+				If NewLine <> "" Then
+					Print #Fn, Replace(wData, Chr(13, 10), NewLine);
+				Else
+					Print #Fn, wData; 
+				End If
+			End If
+		Else
+			Debug.Print "Save file failure! "  & FileName, True
+			Return False
+		End If
+		CloseFile_(Fn)
+		Return True
+End Function
 
 #ifdef __EXPORT_PROCS__
 	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
