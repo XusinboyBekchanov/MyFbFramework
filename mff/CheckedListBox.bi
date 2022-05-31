@@ -32,8 +32,8 @@ Namespace My.Sys.Forms
 		Declare Property Checked(Index As Integer, Value As Boolean)
 		Declare Sub AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
-		Declare Sub SaveToFile(ByRef File As WString)
-		Declare Sub LoadFromFile(ByRef File As WString)
+		Declare Sub SaveToFile(ByRef FileName As WString)
+		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Constructor
 		Declare Destructor
 	End Type

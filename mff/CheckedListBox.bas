@@ -255,11 +255,11 @@ Namespace My.Sys.Forms
 	#endif
 	
 	
-	Private Sub CheckedListBox.SaveToFile(ByRef File As WString)
+	Private Sub CheckedListBox.SaveToFile(ByRef FileName As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
-		Open File For Binary Access Write As #F
+		Open FileName For Output Encoding "utf-8" As #F
 		For i = 0 To ItemCount - 1
 			#ifdef __USE_GTK__
 				Print #F, Items.Item(i)
@@ -272,24 +272,23 @@ Namespace My.Sys.Forms
 			#endif
 		Next i
 		Close #F
+		Deallocate s
 	End Sub
 	
-	Private Sub CheckedListBox.LoadFromFile(ByRef File As WString)
+	Private Sub CheckedListBox.LoadFromFile(ByRef FileName As WString)
 		Dim As Integer F, i
-		Dim As WString Ptr s
+		Dim As WString * 1024 s
 		F = FreeFile
 		This.Clear
-		Open File For Binary Access Read As #F
-		s = CAllocate_((LOF(F) + 1) * SizeOf(WString))
+		Open FileName For Input Encoding "utf-8" As #F
 		While Not EOF(F)
-			Line Input #F, *s
+			Line Input #F, s
 			#ifdef __USE_GTK__
-				AddItem *s
+				AddItem s
 			#else
-				Perform(LB_ADDSTRING, 0, CInt(s))
+				Perform(LB_ADDSTRING, 0, CInt(@s))
 			#endif
 		Wend
-		Deallocate s
 		Close #F
 	End Sub
 	
