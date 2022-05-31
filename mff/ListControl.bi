@@ -107,8 +107,8 @@ Namespace My.Sys.Forms
 		Declare Sub SelectAll
 		Declare Sub UnSelectAll
 		Declare Sub Clear
-		Declare Sub SaveToFile(ByRef File As WString)
-		Declare Sub LoadFromFile(ByRef File As WString)
+		Declare Sub SaveToFile(ByRef FileName As WString)
+		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Constructor
 		Declare Destructor
 		OnChange      As Sub(ByRef Sender As ListControl)

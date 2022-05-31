@@ -629,7 +629,7 @@ Namespace My.Sys.Forms
 		Dim As Integer F, i
 		Dim As WString Ptr s
 		F = FreeFile
-		Open File For Binary Access Write As #F
+		Open File For Output Encoding "utf-8" As #F
 		For i = 0 To ItemCount -1
 			#ifndef __USE_GTK__
 				Dim TextLen As Integer = Perform(CB_GETLBTEXTLEN, i, 0)
@@ -640,19 +640,19 @@ Namespace My.Sys.Forms
 			#endif
 		Next i
 		Close #F
+		Deallocate s
 	End Sub
 	
-	Private Sub ComboBoxEdit.LoadFromFile(ByRef File As WString)
+	Private Sub ComboBoxEdit.LoadFromFile(ByRef FileName As WString)
 		Dim As Integer F, i
-		Dim As WString Ptr s
+		Dim As WString * 1024 s
 		F = FreeFile
 		Clear
-		Open File For Binary Access Read As #F
-		s = CAllocate_((LOF(F) + 1) * SizeOf(WString))
+		Open FileName For Input Encoding "utf-8" As #F
 		While Not EOF(F)
-			Line Input #F, *s
+			Line Input #F, s
 			#ifndef __USE_GTK__
-				Perform(CB_ADDSTRING, 0, CInt(s))
+				Perform(CB_ADDSTRING, 0, CInt(@s))
 			#endif
 		Wend
 		Close #F

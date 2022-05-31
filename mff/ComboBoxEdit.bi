@@ -99,8 +99,8 @@ Namespace My.Sys.Forms
 		Declare Virtual Function IndexOfData(pData As Any Ptr) As Integer
 		Declare Virtual Sub Clear
 		Declare Sub ShowDropDown(Value As Boolean)
-		Declare Sub SaveToFile(ByRef File As WString)
-		Declare Sub LoadFromFile(ByRef File As WString)
+		Declare Sub SaveToFile(ByRef FileName As WString)
+		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Static Sub RegisterClass
 		Declare Constructor
 		Declare Destructor
