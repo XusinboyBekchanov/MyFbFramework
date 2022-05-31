@@ -776,7 +776,7 @@ Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As Fi
 	Dim As Integer Result = -1, Fn = FreeFile_, FileSize
 	'check the Newlinetype again for missing Cr in AsicII file
 	Fn = FreeFile_
-	If Dir(FileName) <> "" AndAlso Open(FileName For Binary As #Fn) = 0 Then
+	If Open(FileName For Binary Access Read As #Fn) = 0 Then
 		FileSize = LOF(Fn) + 1
 		buff = String(4, 0)
 		Get #Fn, , Buff
