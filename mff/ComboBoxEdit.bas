@@ -287,7 +287,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxEdit.Item(FIndex As Integer, ByRef FItem As WString)
 		'Items.Item(FIndex) = FItem  'not refresh
 		RemoveItem(FIndex)
-		AddItem(FItem)
+		InsertItem(FIndex, FItem)
 	End Property
 	
 	Private Sub ComboBoxEdit.UpdateListHeight
