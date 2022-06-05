@@ -1055,13 +1055,13 @@ Namespace My.Sys.Forms
 					'				#endif
 				End If
 				gtk_image_set_pixel_size(gtk_image(icon), 16)
-				#ifndef __USE_GTK3__
+				#ifdef __USE_GTK2__
 					widget = gtk_image_menu_item_new_with_mnemonic(ToUTF8(wCaption))
 					gtk_image_menu_item_set_image (gtk_image_menu_item(widget), icon)
 					gtk_image_menu_item_set_always_show_image(gtk_image_menu_item(widget), wImageKey <> "")
 					label = gtk_bin_get_child (GTK_BIN (widget))
 				#else
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
 					#else
 						box = gtk_hbox_new(False, 1)
@@ -1069,7 +1069,11 @@ Namespace My.Sys.Forms
 					widget = gtk_menu_item_new()
 					label = gtk_accel_label_new (ToUTF8(wCaption & "   "))
 					gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (label), widget)
-					gtk_box_pack_end (GTK_BOX (box), label, True, True, 0)
+					#ifdef __USE_GTK4__
+						gtk_box_pack_end(GTK_BOX (box), label)
+					#else
+						gtk_box_pack_end(GTK_BOX (box), label, True, True, 0)
+					#endif
 					#ifdef __USE_GTK3__
 						gtk_label_set_xalign (GTK_LABEL (label), 0.0)
 					#else
@@ -1668,7 +1672,11 @@ Namespace My.Sys.Forms
 				If value Then
 					If value->layoutwidget Then
 						'gtk_container_add(GTK_CONTAINER(value->layoutwidget), widget)
-						If value->box Then gtk_box_pack_start(Gtk_Box(value->box), widget, False, False, 0)
+						#ifdef __USE_GTK4__
+							If value->box Then gtk_box_pack_start(Gtk_Box(value->box), widget)
+						#else
+							If value->box Then gtk_box_pack_start(Gtk_Box(value->box), widget, False, False, 0)
+						#endif
 						Dim As GdkGeometry hints
 						hints.base_width = 0
 						hints.base_height = 0
@@ -1676,12 +1684,14 @@ Namespace My.Sys.Forms
 						hints.min_height = 0
 						hints.width_inc = 1
 						hints.height_inc = 1
-						gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
-						For i As Integer = 0 To Count - 1
-							If Item(i)->SubMenu Then
-								gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), Item(i)->SubMenu->Widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
-							End If
-						Next i
+						#ifndef __USE_GTK4__
+							gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+							For i As Integer = 0 To Count - 1
+								If Item(i)->SubMenu Then
+									gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), Item(i)->SubMenu->Widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+								End If
+							Next i
+						#endif
 						gtk_widget_show(widget)
 					End If
 				End If

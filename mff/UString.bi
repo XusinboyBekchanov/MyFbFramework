@@ -3,7 +3,12 @@
 #ifndef __USE_JNI__
 	#undef FileExists
 	#ifdef __USE_GTK__
-		#include once "glib.bi"
+		#ifdef __USE_GTK4__
+			#include once "gir_headers/Gir/GLib-2.0.bi"
+			#include once "gir_headers/Gir/_GLibMacros-2.0.bi"
+		#else
+			#include once "glib.bi"
+		#endif
 	#else
 		#include once "win\shlwapi.bi"
 	#endif

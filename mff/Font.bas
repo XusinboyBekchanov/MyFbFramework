@@ -69,8 +69,10 @@ Namespace My.Sys.Drawing
 			If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component Then
 				#ifdef __USE_GTK__
 					If QComponent(FParent).Handle Then
-						#ifdef __USE_GTK3__
-							gtk_widget_override_font(QComponent(FParent).Handle, Handle)
+						#ifndef __USE_GTK2__
+							#ifndef __USE_GTK4__
+								gtk_widget_override_font(QComponent(FParent).Handle, Handle)
+							#endif
 						#else
 							gtk_widget_modify_font(QComponent(FParent).Handle, Handle)
 						#endif
@@ -94,9 +96,14 @@ Namespace My.Sys.Drawing
 		FParent = value
 		#ifdef __USE_GTK__
 			If *FParent Is My.Sys.ComponentModel.Component Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(QComponent(FParent).Handle)
-					Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
+					Dim As PangoFontDescription Ptr pfd
+					#ifdef __USE_GTK4__
+						gtk_style_context_get(WidgetStyle, GTK_STATE_FLAG_NORMAL, "font", @pfd, NULL)
+					#else
+						Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
+					#endif
 				#else
 					Dim As GtkStyle Ptr WidgetStyle = gtk_widget_get_style(QComponent(FParent).Handle)
 					Var pfd = WidgetStyle->font_desc

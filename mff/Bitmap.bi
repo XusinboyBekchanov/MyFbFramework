@@ -23,9 +23,13 @@
 		Using gdiplus
 	#endif
 #elseif defined(__USE_GTK__)
-	#include once "gtk/gtk.bi"
-	#ifdef __USE_GTK3__
-		#include once "glib-object.bi"
+	#ifdef __USE_GTK4__
+		#include once "gir_headers/Gir/Gtk-4.0.bi"
+	#else
+		#include once "gtk/gtk.bi"
+		#ifdef __USE_GTK3__
+			#include once "glib-object.bi"
+		#endif
 	#endif
 #endif
 

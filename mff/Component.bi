@@ -129,7 +129,7 @@ Private Type Message
 End Type
 
 #ifdef __USE_GTK__
-	#ifndef __USE_GTK3__
+	#ifdef __USE_GTK2__
 		Const GDK_KEY_Escape = &hff1b
 		Const GDK_KEY_Left = &hff51
 		Const GDK_KEY_Right = &hff53

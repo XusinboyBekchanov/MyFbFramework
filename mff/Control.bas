@@ -460,7 +460,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Dim As GtkRequisition minimum, requisition
 					If layoutwidget Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							FClientWidth = gtk_widget_get_allocated_width(layoutwidget)
 						#else
 							FClientWidth = layoutwidget->allocation.width
@@ -517,7 +517,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Dim As GtkRequisition minimum, requisition
 					If layoutwidget Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							FClientHeight = gtk_widget_get_allocated_height(layoutwidget)
 						#else
 							FClientHeight = layoutwidget->allocation.height
@@ -1116,18 +1116,30 @@ Namespace My.Sys.Forms
 				Case GDK_BUTTON_PRESS
 					'Message.Result = True
 					DownButton = e->button.button - 1
-					If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
-						If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
-					End If
+					#ifdef __USE_GTK4__
+						If gtk_widget_get_window(widget) = e->Motion.window Then
+							If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+						End If
+					#else
+						If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+							If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+						End If
+					#endif
 				Case GDK_BUTTON_RELEASE
 					'Message.Result = True
 					DownButton = -1
 					If gtk_is_button(widget) = 0 Then
 						If OnClick Then OnClick(This)
 					End If
-					If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
-						If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
-					End If
+					#ifdef __USE_GTK4__
+						If gtk_widget_get_window(widget) = e->Motion.window Then
+							If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+						End If
+					#else
+						If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+							If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+						End If
+					#endif
 					If e->button.button = 3 AndAlso ContextMenu Then
 						Message.Result = True
 						If ContextMenu->widget Then
@@ -1148,7 +1160,11 @@ Namespace My.Sys.Forms
 					#endif
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
+					#ifdef __USE_GTK4__
+					If gtk_widget_get_window(widget) = e->Motion.window Then
+					#else
 					If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+					#endif
 						If OnMouseMove Then OnMouseMove(This, DownButton, e->Motion.x, e->Motion.y, e->Motion.state)
 						hover_timer_id = 0
 						If OnMouseHover Then
@@ -1852,12 +1868,16 @@ Namespace My.Sys.Forms
 			
 			Private Function Control.Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
+				#ifdef __USE_GTK4__
+				If Ctrl <> 0 AndAlso (gtk_is_layout(widget)) Then
+				#else
 				If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
+				#endif
 					Ctrl->Canvas.HandleSetted = True 
 					Ctrl->Canvas.Handle = cr
 '					Dim allocation As GtkAllocation
 '					gtk_widget_get_allocation(widget, @allocation)
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 					#else
 						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
@@ -1885,9 +1905,11 @@ Namespace My.Sys.Forms
 			End Function
 			
 			Private Function Control.Control_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-				Control_Draw(widget, cr, data1)
-				cairo_destroy(cr)
+				#ifdef __USE_GTK2__
+					Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+					Control_Draw(widget, cr, data1)
+					cairo_destroy(cr)
+				#endif
 				Return False
 			End Function
 			
@@ -1955,73 +1977,87 @@ Namespace My.Sys.Forms
 				Dim As Boolean Result
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
 				If layoutwidget Then
-					gtk_widget_set_events(layoutwidget, _
-					GDK_EXPOSURE_MASK Or _
-					GDK_SCROLL_MASK Or _
-					GDK_STRUCTURE_MASK Or _
-					GDK_KEY_PRESS_MASK Or _
-					GDK_KEY_RELEASE_MASK Or _
-					GDK_FOCUS_CHANGE_MASK Or _
-					GDK_LEAVE_NOTIFY_MASK Or _
-					GDK_BUTTON_PRESS_MASK Or _
-					GDK_BUTTON_RELEASE_MASK Or _
-					GDK_POINTER_MOTION_MASK Or _
-					GDK_POINTER_MOTION_HINT_MASK)
-					'Result = g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
-					'Result = g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
-					#ifdef __USE_GTK3__
-						g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
-						'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
+					#ifdef __USE_GTK4__
+'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
+'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
+'						gtk_widget_add_controller(layoutwidget, controller)
 					#else
-						g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
-						g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
+						gtk_widget_set_events(layoutwidget, _
+						GDK_EXPOSURE_MASK Or _
+						GDK_SCROLL_MASK Or _
+						GDK_STRUCTURE_MASK Or _
+						GDK_KEY_PRESS_MASK Or _
+						GDK_KEY_RELEASE_MASK Or _
+						GDK_FOCUS_CHANGE_MASK Or _
+						GDK_LEAVE_NOTIFY_MASK Or _
+						GDK_BUTTON_PRESS_MASK Or _
+						GDK_BUTTON_RELEASE_MASK Or _
+						GDK_POINTER_MOTION_MASK Or _
+						GDK_POINTER_MOTION_HINT_MASK)
+						'Result = g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
+						'Result = g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+						#ifdef __USE_GTK3__
+							g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
+							'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
+						#else
+							g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
+							g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
+						#endif
 					#endif
 				End If
 				If widget Then
 					Font.Parent = @This
-					gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
-					GDK_EXPOSURE_MASK Or _
-					GDK_SCROLL_MASK Or _
-					GDK_STRUCTURE_MASK Or _
-					GDK_KEY_PRESS_MASK Or _
-					GDK_KEY_RELEASE_MASK Or _
-					GDK_FOCUS_CHANGE_MASK Or _
-					GDK_LEAVE_NOTIFY_MASK Or _
-					GDK_BUTTON_PRESS_MASK Or _
-					GDK_BUTTON_RELEASE_MASK Or _
-					GDK_POINTER_MOTION_MASK Or _
-					GDK_POINTER_MOTION_HINT_MASK)
-					Result = g_signal_connect(widget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
-					Result = g_signal_connect(widget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
-					Result = g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(@ConfigureEventProc), @This)
-					#ifdef __USE_GTK3__
-						g_signal_connect(widget, "draw", G_CALLBACK(@Control_Draw), Obj)
+					#ifdef __USE_GTK4__
+'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
+'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
+'						gtk_widget_add_controller(layoutwidget, controller)
 					#else
-						g_signal_connect(widget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
+						gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
+						GDK_EXPOSURE_MASK Or _
+						GDK_SCROLL_MASK Or _
+						GDK_STRUCTURE_MASK Or _
+						GDK_KEY_PRESS_MASK Or _
+						GDK_KEY_RELEASE_MASK Or _
+						GDK_FOCUS_CHANGE_MASK Or _
+						GDK_LEAVE_NOTIFY_MASK Or _
+						GDK_BUTTON_PRESS_MASK Or _
+						GDK_BUTTON_RELEASE_MASK Or _
+						GDK_POINTER_MOTION_MASK Or _
+						GDK_POINTER_MOTION_HINT_MASK)
+						Result = g_signal_connect(widget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
+						Result = g_signal_connect(widget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+						Result = g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(@ConfigureEventProc), @This)
+						#ifdef __USE_GTK3__
+							g_signal_connect(widget, "draw", G_CALLBACK(@Control_Draw), Obj)
+						#else
+							g_signal_connect(widget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
+						#endif
 					#endif
 				End If
-				If eventboxwidget Then
-					Font.Parent = @This
-					gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
-					GDK_EXPOSURE_MASK Or _
-					GDK_SCROLL_MASK Or _
-					GDK_STRUCTURE_MASK Or _
-					GDK_KEY_PRESS_MASK Or _
-					GDK_KEY_RELEASE_MASK Or _
-					GDK_FOCUS_CHANGE_MASK Or _
-					GDK_LEAVE_NOTIFY_MASK Or _
-					GDK_BUTTON_PRESS_MASK Or _
-					GDK_BUTTON_RELEASE_MASK Or _
-					GDK_POINTER_MOTION_MASK Or _
-					GDK_POINTER_MOTION_HINT_MASK)
-					Result = g_signal_connect(eventboxwidget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
-					Result = g_signal_connect(eventboxwidget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
-					#ifdef __USE_GTK3__
-						g_signal_connect(eventboxwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
-					#else
-						g_signal_connect(eventboxwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
-					#endif
-				End If
+				#ifndef __USE_GTK4__
+					If eventboxwidget Then
+						Font.Parent = @This
+						gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
+						GDK_EXPOSURE_MASK Or _
+						GDK_SCROLL_MASK Or _
+						GDK_STRUCTURE_MASK Or _
+						GDK_KEY_PRESS_MASK Or _
+						GDK_KEY_RELEASE_MASK Or _
+						GDK_FOCUS_CHANGE_MASK Or _
+						GDK_LEAVE_NOTIFY_MASK Or _
+						GDK_BUTTON_PRESS_MASK Or _
+						GDK_BUTTON_RELEASE_MASK Or _
+						GDK_POINTER_MOTION_MASK Or _
+						GDK_POINTER_MOTION_HINT_MASK)
+						Result = g_signal_connect(eventboxwidget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
+						Result = g_signal_connect(eventboxwidget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+						#ifdef __USE_GTK3__
+							g_signal_connect(eventboxwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
+						#else
+							g_signal_connect(eventboxwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
+						#endif
+					End If
+				#endif
 				If scrolledwidget Then
 					Result = g_signal_connect(scrolledwidget, "scroll-child", G_CALLBACK(@Control_Scroll), @This)
 				End If

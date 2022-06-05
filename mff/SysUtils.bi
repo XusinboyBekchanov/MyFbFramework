@@ -30,6 +30,10 @@
 
 #ifdef __USE_GTK__
 	#define FHandle Widget
+	#if defined(__USE_GTK3__) Or defined(__USE_GTK4__)
+	#else
+		#define __USE_GTK2__
+	#endif
 #elseif defined(__USE_JNI__)
 	#include once "jni.bi"
 	#define max(a, b) IIf((a) > (b), (a), (b))

@@ -482,12 +482,20 @@ Namespace My
 		If pApp = 0 Then pApp = @This
 		#ifdef __USE_GTK__
 			'g_thread_init(NULL)
-			#ifdef __FB_WIN32__
-				g_thread_init(NULL)
-			#else
+			#ifdef __USE_GTK4__
 				gdk_threads_init()
+			#else
+				#ifdef __FB_WIN32__
+					g_thread_init(NULL)
+				#else
+					gdk_threads_init()
+				#endif
 			#endif
-			gtk_init(NULL, NULL)
+			#ifdef __USE_GTK4__
+				gtk_init()
+			#else
+				gtk_init(NULL, NULL)
+			#endif
 			
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(ExePath & "/resources"))
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(ExePath & "/Resources"))
@@ -677,14 +685,20 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 		gtk_window_set_transient_for(gtk_window(dialog), win)
 		gtk_window_set_title(gtk_window(dialog), ToUTF8(*FCaption))
 		If ButtonsType = btYesNoCancel Then
-			#ifdef __USE_GTK3__
-				gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_CANCEL)), GTK_RESPONSE_CANCEL)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_NO)), GTK_RESPONSE_NO)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_YES)), GTK_RESPONSE_YES)
+			#ifdef __USE_GTK4__
+				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-cancel", GTK_RESPONSE_CANCEL)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-no", GTK_RESPONSE_NO)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-yes", GTK_RESPONSE_YES)
 			#else
-				gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_NO, GTK_RESPONSE_NO)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_YES, GTK_RESPONSE_YES)
+				#ifndef __USE_GTK2__
+					gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_CANCEL)), GTK_RESPONSE_CANCEL)
+					gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_NO)), GTK_RESPONSE_NO)
+					gtk_dialog_add_button(GTK_DIALOG(dialog), ToUTF8(*Cast(WString Ptr, GTK_STOCK_YES)), GTK_RESPONSE_YES)
+				#else
+					gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL)
+					gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_NO, GTK_RESPONSE_NO)
+					gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_YES, GTK_RESPONSE_YES)
+				#endif
 			#endif
 			gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_YES)
 		End If

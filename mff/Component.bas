@@ -398,13 +398,13 @@ Namespace My.Sys.ComponentModel
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							FWidth = gtk_widget_get_allocated_width(widget)
 						#else
 							FWidth = widget->allocation.width
 						#endif
 					ElseIf CtrlWidget Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							If gtk_widget_get_allocated_width(CtrlWidget) > 1 Then FWidth = gtk_widget_get_allocated_width(CtrlWidget)
 						#else
 							If CtrlWidget->allocation.width > 1 Then FWidth = CtrlWidget->allocation.width
@@ -451,13 +451,13 @@ Namespace My.Sys.ComponentModel
 				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							FHeight = gtk_widget_get_allocated_height(widget)
 						#else
 							FHeight = widget->allocation.height
 						#endif
 					ElseIf CtrlWidget Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							If gtk_widget_get_allocated_height(CtrlWidget) > 1 Then FHeight = gtk_widget_get_allocated_height(CtrlWidget)
 						#else
 							If CtrlWidget->allocation.height > 1 Then FHeight = CtrlWidget->allocation.height

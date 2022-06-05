@@ -1,0 +1,3 @@
+*.bas linguist-language=FreeBasic
+*.bi linguist-language=FreeBasic
+*.md linguist-documentation

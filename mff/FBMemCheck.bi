@@ -505,7 +505,7 @@
 		
 		Private Function CloseFile_(filenum As Long) As Long
 			If filenumberCounter >= filenum Then
-				If filenumbers[filenum] = True Then
+				If filenumbers[filenum] Then
 					filenumbers[filenum] = False
 				Else
 					Print "File number closed earlier"

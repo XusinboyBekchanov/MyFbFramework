@@ -111,6 +111,10 @@ Namespace My.Sys.Drawing
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
+			#ifdef __USE_GTK4__
+				Dim As cairo_region_t Ptr cairoRegion
+				Dim As GdkDrawingContext Ptr DrawingContext
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			Dim As HDC DC, memDC
 			Dim As HBITMAP CompatibleBmp

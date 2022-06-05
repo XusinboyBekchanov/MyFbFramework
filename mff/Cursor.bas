@@ -159,11 +159,15 @@ Namespace My.Sys.Drawing
 				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->Handle)
 				Handle = gdk_cursor_new_from_name(pdisplay, Value)
 				Dim As GdkWindow Ptr win
-				If gtk_is_layout(Ctrl->Handle) Then
-					win = gtk_layout_get_bin_window(gtk_layout(Ctrl->Handle))
-				Else
+				#ifdef __USE_GTK4__
 					win = gtk_widget_get_parent_window(Ctrl->Handle)
-				End If
+				#else
+					If gtk_is_layout(Ctrl->Handle) Then
+						win = gtk_fixed_layout_get_bin_window(gtk_layout(Ctrl->Handle))
+					Else
+						win = gtk_widget_get_parent_window(Ctrl->Handle)
+					End If
+				#endif
 				If win Then gdk_window_set_cursor(win, Handle)
 			End If
 		#endif

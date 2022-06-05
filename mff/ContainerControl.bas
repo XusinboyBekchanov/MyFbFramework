@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 			If CInt(widget) AndAlso CInt(GTK_IS_NOTEBOOK(widget) <> 1) Then
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
 				If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
 					#else
 						box = gtk_vbox_new(False, 0)
@@ -36,7 +36,11 @@ Namespace My.Sys.Forms
 					If gtk_is_widget(box) Then gtk_container_add(GTK_CONTAINER(widget), box)
 					layoutwidget = gtk_layout_new(null, null)
 					'gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
-					gtk_box_pack_end(Gtk_Box(box), layoutwidget, True, True, 0)
+					#ifdef __USE_GTK4__
+						gtk_box_pack_end(Gtk_Box(box), layoutwidget)
+					#else
+						gtk_box_pack_end(Gtk_Box(box), layoutwidget, True, True, 0)
+					#endif
 					'g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)

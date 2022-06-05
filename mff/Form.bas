@@ -135,7 +135,11 @@ Namespace My.Sys.Forms
 					'gdk_color_parse ("white", @color2)
 					'gtk_widget_modify_fg(HeaderBarWidget, GTK_STATE_NORMAL, @color2)
 				#endif
-				gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget, False, False, 0)
+				#ifdef __USE_GTK4__
+					gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget)
+				#else
+					gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget, False, False, 0)
+				#endif
 				Base.ParentWidget = Value
 				BorderStyle = BorderStyle
 			End If
@@ -224,7 +228,13 @@ Namespace My.Sys.Forms
 						End With
 					Else ' CenterScreen
 						gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
-						gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+						#ifdef __USE_GTK4__
+							Dim As GdkRectangle workarea
+							gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
+							gtk_window_move(gtk_window(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+						#else
+							gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+						#endif
 					End If
 				Case 2: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
 				Case 3: 'gtk_window_set_default_size(gtk_window(widget), -1, -1) ' DefaultBounds
@@ -245,7 +255,11 @@ Namespace My.Sys.Forms
 				gtk_widget_set_opacity(widget, Value / 255.0)
 			#else
 				If gtk_is_window(widget) Then
-					gtk_window_set_opacity(gtk_window(widget), Value / 255.0)
+					#ifdef __USE_GTK4__
+						gtk_widget_set_opacity(gtk_widget(widget), Value / 255.0)
+					#else
+						gtk_window_set_opacity(gtk_window(widget), Value / 255.0)
+					#endif
 				End If
 			#endif
 		#elseif defined(__USE_WINAPI__)
@@ -309,7 +323,9 @@ Namespace My.Sys.Forms
 				hints.width_inc = 1
 				hints.height_inc = 1
 				If Gtk_Is_Window(Widget) Then
-					gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+					#ifndef __USE_GTK4__
+						gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+					#endif
 				End If
 			Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
 				
@@ -426,7 +442,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Function Form.Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			If gtk_is_layout(widget) Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 				#else
 					Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
@@ -439,9 +455,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function Form.Client_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-			Client_Draw(widget, cr, data1)
-			cairo_destroy(cr)
+			#ifdef __USE_GTK2__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+				Client_Draw(widget, cr, data1)
+				cairo_destroy(cr)
+			#endif
 			Return False
 		End Function
 	#endif
@@ -1216,7 +1234,11 @@ Namespace My.Sys.Forms
 				If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
 				If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
 				If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
-				If Ctrl->widget Then If Not *Ctrl Is ContainerControl Then gtk_widget_show_all(Ctrl->widget) Else gtk_widget_show(Ctrl->widget)
+				#ifdef __USE_GTK4__
+					If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
+				#else
+					If Ctrl->widget Then If Not *Ctrl Is ContainerControl Then gtk_widget_show_all(Ctrl->widget) Else gtk_widget_show(Ctrl->widget)
+				#endif
 			End If
 			For i As Integer = 0 To Ctrl->ControlCount - 1
 				ShowItems Ctrl->Controls[i]
@@ -1276,12 +1298,19 @@ Namespace My.Sys.Forms
 							hints.max_height = FHeight
 							hints.width_inc = 1
 							hints.height_inc = 1
-							gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+							#ifndef __USE_GTK4__
+								gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+							#endif
 						Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
 							
 						End Select
 						If Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
 							Dim As GdkGeometry hints
+							#ifdef __USE_GTK4__
+								Dim As GdkRectangle workarea
+								gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
+								gtk_window_move(gtk_window(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+							#endif
 							If Constraints.Width <> 0 Then
 								hints.base_width = Constraints.Width
 								hints.min_width = Constraints.Width
@@ -1290,7 +1319,11 @@ Namespace My.Sys.Forms
 							Else
 								hints.base_width = FWidth
 								hints.min_width = 0
-								hints.max_width = gdk_screen_get_width(gtk_widget_get_screen(widget))
+								#ifdef __USE_GTK4__
+									hints.max_width = workarea.width
+								#else
+									hints.max_width = gdk_screen_get_width(gtk_widget_get_screen(widget))
+								#endif
 								hints.width_inc = 1
 							End If
 							If Constraints.Height <> 0 Then
@@ -1301,10 +1334,16 @@ Namespace My.Sys.Forms
 							Else
 								hints.base_height = FHeight
 								hints.min_height = 0
-								hints.max_height = gdk_screen_get_height(gtk_widget_get_screen(widget))
+								#ifdef __USE_GTK4__
+									hints.max_width = workarea.height
+								#else
+									hints.max_height = gdk_screen_get_height(gtk_widget_get_screen(widget))
+								#endif
 								hints.height_inc = 1
 							End If
-							gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+							#ifndef __USE_GTK4__
+								gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+							#endif
 						End If
 						Select Case FBorderStyle
 						Case FormBorderStyle.None
@@ -1331,9 +1370,13 @@ Namespace My.Sys.Forms
 				'				If box Then gtk_widget_show(box)
 				'				If layoutwidget Then gtk_widget_show(layoutwidget)
 				'				gtk_widget_show(widget)
-				gtk_widget_show_all(widget)
-				'ShowItems @This
-				HideItems @This
+				#ifdef __USE_GTK4__
+					gtk_widget_show(widget)
+				#else
+					gtk_widget_show_all(widget)
+					'ShowItems @This
+					HideItems @This
+				#endif
 				'Requests @This
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -1522,7 +1565,13 @@ Namespace My.Sys.Forms
 	Private Sub Form.CenterToScreen()
 		#ifdef __USE_GTK__
 			If gtk_is_window(widget) Then
-				gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+				#ifdef __USE_GTK4__
+					Dim As GdkRectangle workarea
+					gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
+					gtk_window_move(gtk_window(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+				#else
+					gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+				#endif
 			End If
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
 		#elseif defined(__USE_WINAPI__)

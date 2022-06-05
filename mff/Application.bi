@@ -15,7 +15,11 @@
 #include once "DarkMode/DarkMode.bi"
 #include once "Control.bi"
 #ifdef __USE_GTK__
-	#include once "gmodule.bi"
+	#ifdef __USE_GTK4__
+		#include once "gir_headers/Gir/GModule-2.0.bi"
+	#else
+		#include once "gmodule.bi"
+	#endif
 #elseif defined(__USE_WINAPI__)
 	#include once "win/winver.bi"
 #endif

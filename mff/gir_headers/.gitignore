@@ -1,0 +1,16 @@
+$ cat .gitignore
+
+# Can ignore specific files
+Makefile
+info.txt
+cmake_install.cmake
+install_manifest.txt
+
+
+# Can also ignore all directories and files in a directory.
+
+input*/**/*
+gir-1.0*/**/*
+CMakeFiles/**/*
+_CPack*/**/*
+

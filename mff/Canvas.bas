@@ -185,7 +185,15 @@ Namespace My.Sys.Drawing
 						pango_layout_set_font_description(layout, Font.Handle)
 						If Not HandleSetted Then
 							If ParentControl->layoutwidget Then
-								Handle = gdk_cairo_create(gtk_layout_get_bin_window(gtk_layout(ParentControl->layoutwidget)))
+								#ifdef __USE_GTK4__
+									Dim As GdkDrawContext Ptr drawContext
+									cairoRegion = cairo_region_create()
+									Dim As GdkDrawingContext Ptr drawingContext
+									drawingContext = gdk_window_begin_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), drawContext, cairoRegion)
+									Handle = gdk_drawing_context_get_cairo_context(drawingContext)
+								#else
+									Handle = gdk_cairo_create(gtk_layout_get_bin_window(gtk_layout(ParentControl->layoutwidget)))
+								#endif
 							End If
 						End If
 					End If
@@ -210,8 +218,13 @@ Namespace My.Sys.Drawing
 		If HandleSetted Then Exit Sub
 		#ifdef __USE_GTK__
 			If layout Then g_object_unref(layout)
-			If pcontext Then g_object_unref(pcontext)
-			If Handle Then cairo_destroy(Handle)
+			#ifdef __USE_GTK4__
+				gdk_window_end_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), drawingContext)
+				cairo_region_destroy(cairoRegion)
+			#else
+				If pcontext Then g_object_unref(pcontext)
+				If Handle Then cairo_destroy(Handle)
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			If ParentControl Then If Handle Then ReleaseDc ParentControl->Handle, Handle
 		#endif
