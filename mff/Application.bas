@@ -787,7 +787,7 @@ End Function
 
 Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
 	Dim As String Buff, EncodingStr, NewLineStr
-	Dim As Integer Result = -1, Fn = FreeFile_, FileSize
+	Dim As Integer Result = -1, Fn, FileSize
 	'check the Newlinetype again for missing Cr in AsicII file
 	Fn = FreeFile_
 	If Open(FileName For Binary Access Read As #Fn) = 0 Then
@@ -859,54 +859,54 @@ Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As Fi
 End Function
 
 Public Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
-		Dim As Integer Fn = FreeFile_
-		Dim As Integer Result
-		Dim As String FileEncodingText, NewLine
+	Dim As Integer Fn = FreeFile_
+	Dim As Integer Result
+	Dim As String FileEncodingText, NewLine
+	If FileEncoding = FileEncodings.Utf8 Then
+		FileEncodingText = "ascii"
+	ElseIf FileEncoding = FileEncodings.Utf8BOM Then
+		FileEncodingText = "utf-8"
+	ElseIf FileEncoding = FileEncodings.Utf16BOM Then
+		FileEncodingText = "utf-16"
+	ElseIf FileEncoding = FileEncodings.Utf32BOM Then
+		FileEncodingText = "utf-32"
+	Else
+		FileEncodingText = "ascii"
+	End If
+	If NewLineType = NewLineTypes.LinuxLF Then
+		NewLine = Chr(10)
+	ElseIf NewLineType = NewLineTypes.MacOSCR Then
+		NewLine = Chr(13)
+	Else
+		NewLine = "" ' Chr(13, 10) No neeed replace
+	End If
+	If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
 		If FileEncoding = FileEncodings.Utf8 Then
-			FileEncodingText = "ascii"
-		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
-			FileEncodingText = "utf-8"
-		ElseIf FileEncoding = FileEncodings.Utf16BOM Then
-			FileEncodingText = "utf-16"
-		ElseIf FileEncoding = FileEncodings.Utf32BOM Then
-			FileEncodingText = "utf-32"
-		Else
-			FileEncodingText = "ascii"
-		End If
-		If NewLineType = NewLineTypes.LinuxLF Then
-			NewLine = Chr(10)
-		ElseIf NewLineType = NewLineTypes.MacOSCR Then
-			NewLine = Chr(13)
-		Else
-			NewLine = "" ' Chr(13, 10) No neeed replace
-		End If
-		If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
-			If FileEncoding = FileEncodings.Utf8 Then
-				If NewLine <> "" Then
-					Print #Fn, ToUtf8(Replace(wData, Chr(13, 10), NewLine)); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
-				Else
-					Print #Fn, ToUtf8(wData); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
-				End If
-				
-			ElseIf FileEncoding = FileEncodings.PlainText Then
-				If NewLine <> "" Then
-					Print #Fn, Str(Replace(wData, Chr(13, 10), NewLine));
-				Else
-					Print #Fn, Str(wData); 
-				End If
+			If NewLine <> "" Then
+				Print #Fn, ToUtf8(Replace(wData, Chr(13, 10), NewLine)); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
 			Else
-				If NewLine <> "" Then
-					Print #Fn, Replace(wData, Chr(13, 10), NewLine);
-				Else
-					Print #Fn, wData; 
-				End If
+				Print #Fn, ToUtf8(wData); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
+			End If
+			
+		ElseIf FileEncoding = FileEncodings.PlainText Then
+			If NewLine <> "" Then
+				Print #Fn, Str(Replace(wData, Chr(13, 10), NewLine));
+			Else
+				Print #Fn, Str(wData); 
 			End If
 		Else
-			Debug.Print "Save file failure! "  & FileName, True
-			Return False
+			If NewLine <> "" Then
+				Print #Fn, Replace(wData, Chr(13, 10), NewLine);
+			Else
+				Print #Fn, wData; 
+			End If
 		End If
-		CloseFile_(Fn)
-		Return True
+	Else
+		Debug.Print "Save file failure! "  & FileName, True
+		Return False
+	End If
+	CloseFile_(Fn)
+	Return True
 End Function
 
 #ifdef __EXPORT_PROCS__
