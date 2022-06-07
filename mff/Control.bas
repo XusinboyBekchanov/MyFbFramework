@@ -2141,8 +2141,8 @@ Namespace My.Sys.Forms
 			Dim As Integer tTop, bTop, lLeft, rLeft
 			Dim As Integer aLeft, aTop, aWidth, aHeight
 			If ControlCount = 0 Then Exit Sub
-			If iClientWidth = -1 Then iClientWidth = ClientWidth '- Margins.Left - Margins.Right
-			If iClientHeight = -1 Then iClientHeight = ClientHeight '- Margins.Top - Margins.Bottom
+			If iClientWidth = -1 Then iClientWidth = ClientWidth - Margins.Left - Margins.Right
+			If iClientHeight = -1 Then iClientHeight = ClientHeight - Margins.Top - Margins.Bottom
 			lLeft = 0
 			rLeft = iClientWidth
 			tTop  = 0

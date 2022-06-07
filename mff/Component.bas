@@ -215,8 +215,8 @@ Namespace My.Sys.ComponentModel
 					#endif
 					iLeft = iLeft + cParent->Margins.Left
 					iTop = iTop + cParent->Margins.Top
-					iWidth = iWidth - cParent->Margins.Left - cParent->Margins.Right
-					iHeight = iHeight - cParent->Margins.Top - cParent->Margins.Bottom
+					'iWidth = iWidth - cParent->Margins.Left - cParent->Margins.Right
+					'iHeight = iHeight - cParent->Margins.Top - cParent->Margins.Bottom
 					'iWidth = Min(iWidth, Max(0, cParent->Width - iLeft - cParent->Margins.Right))
 					'iHeight = Min(iHeight, Max(0, cParent->Height - iTop - cParent->Margins.Bottom))
 				End If
