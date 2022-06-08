@@ -151,12 +151,12 @@ Namespace My.Sys.Forms
 					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
 					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
 					Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
-					Rectangle Dc, ScaleX(This.Left), ScaleY(This.Top) + 6, ScaleX(This.Left + This.Width), ScaleY(This.Top + This.Height) - 1
+					Rectangle Dc, 0, 6, ScaleX(This.Width), ScaleY(This.Height) - 1
 					SetTextColor(Dc, darkTextColor)
 					SetBkColor(Dc, darkBkColor)
 					Dim As hFont OldFontHandle, NewFontHandle
 					OldFontHandle = SelectObject(Dc, This.Font.Handle)
-					TextOut(Dc, ScaleX(This.Left) + 6, ScaleY(This.Top), @This.Text, Len(This.Text))
+					TextOut(Dc, 6, 0, @This.Text, Len(This.Text))
 					NewFontHandle = SelectObject(dc, OldFontHandle)
 					SelectObject(Dc, PrevPen)
 					SelectObject(Dc, PrevBrush)
