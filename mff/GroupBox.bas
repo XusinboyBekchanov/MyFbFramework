@@ -110,7 +110,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						SetDark True
@@ -146,17 +146,17 @@ Namespace My.Sys.Forms
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As LRESULT state = SendMessage(FHandle, BM_GETSTATE, 0, 0)
 					Dim As Integer stateID
-					'					stateID = GBS_DISABLED
+					'stateID = GBS_DISABLED
 					stateID = GBS_NORMAL
 					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
 					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
 					Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
-					Rectangle Dc, Ps.rcpaint.Left, Ps.rcpaint.Top + 6, Ps.rcpaint.Right, Ps.rcpaint.Bottom - 1
+					Rectangle Dc, ScaleX(This.Left), ScaleY(This.Top) + 6, ScaleX(This.Left + This.Width), ScaleY(This.Top + This.Height) - 1
 					SetTextColor(Dc, darkTextColor)
 					SetBkColor(Dc, darkBkColor)
 					Dim As hFont OldFontHandle, NewFontHandle
 					OldFontHandle = SelectObject(Dc, This.Font.Handle)
-					TextOut(Dc, Ps.rcpaint.Left + 6, Ps.rcpaint.Top, @This.Text, Len(This.Text))
+					TextOut(Dc, ScaleX(This.Left) + 6, ScaleY(This.Top), @This.Text, Len(This.Text))
 					NewFontHandle = SelectObject(dc, OldFontHandle)
 					SelectObject(Dc, PrevPen)
 					SelectObject(Dc, PrevBrush)
