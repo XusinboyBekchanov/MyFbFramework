@@ -163,7 +163,7 @@ Namespace My.Sys.Drawing
 					win = gtk_widget_get_parent_window(Ctrl->Handle)
 				#else
 					If gtk_is_layout(Ctrl->Handle) Then
-						win = gtk_fixed_layout_get_bin_window(gtk_layout(Ctrl->Handle))
+						win = gtk_layout_get_bin_window(gtk_layout(Ctrl->Handle))
 					Else
 						win = gtk_widget_get_parent_window(Ctrl->Handle)
 					End If

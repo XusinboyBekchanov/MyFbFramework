@@ -98,8 +98,8 @@ Namespace My.Sys.Drawing
 			If *FParent Is My.Sys.ComponentModel.Component Then
 				#ifndef __USE_GTK2__
 					Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(QComponent(FParent).Handle)
-					Dim As PangoFontDescription Ptr pfd
 					#ifdef __USE_GTK4__
+						Dim As PangoFontDescription Ptr pfd
 						gtk_style_context_get(WidgetStyle, GTK_STATE_FLAG_NORMAL, "font", @pfd, NULL)
 					#else
 						Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
