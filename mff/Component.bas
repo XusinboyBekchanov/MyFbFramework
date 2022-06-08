@@ -312,6 +312,7 @@ Namespace My.Sys.ComponentModel
 						Dim allocation As GtkAllocation
 						gtk_widget_get_allocation(CtrlWidget, @allocation)
 						FLeft = allocation.x
+						If FParent Then FLeft -= FParent->Margins.Left
 					End If
 				End If
 			#elseif defined(__USE_WINAPI__)
@@ -322,6 +323,7 @@ Namespace My.Sys.ComponentModel
 						GetWindowRect Handle, @R
 						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
 						FLeft = UnScaleX(R.Left)
+						If FParent Then FLeft -= FParent->Margins.Left
 					End If
 				End If
 			#elseif defined(__USE_JNI__)
@@ -335,6 +337,7 @@ Namespace My.Sys.ComponentModel
 						Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
 						Dim As jfieldID xField = (*env)->GetFieldID(env, class_MarginLayoutParams, "x", "I")
 						FLeft = UnScaleX((*env)->GetIntField(env, MarginLayoutParams, xField))
+						If FParent Then FLeft -= FParent->Margins.Left
 					End If
 				End If
 			#endif
@@ -359,6 +362,7 @@ Namespace My.Sys.ComponentModel
 						Dim allocation As GtkAllocation
 						gtk_widget_get_allocation(CtrlWidget, @allocation)
 						FTop = allocation.y
+						If FParent Then FTop -= FParent->Margins.Top
 						ControlChanged = True
 					End If
 				End If
@@ -373,6 +377,7 @@ Namespace My.Sys.ComponentModel
 						GetWindowRect Handle,@R
 						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
 						FTop = UnScaleY(R.Top)
+						If FParent Then FTop -= FParent->Margins.Top
 					End If
 				End If
 			#elseif defined(__USE_JNI__)
@@ -382,6 +387,7 @@ Namespace My.Sys.ComponentModel
 					If FHandle Then
 						Dim As jobject MarginLayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
 						FTop = UnScaleY(GetIntField(MarginLayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "y", "I"))
+						If FParent Then FTop -= FParent->Margins.Top
 					End If
 				End If
 			#endif
