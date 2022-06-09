@@ -2141,13 +2141,13 @@ Namespace My.Sys.Forms
 			Dim As Integer tTop, bTop, lLeft, rLeft
 			Dim As Integer aLeft, aTop, aWidth, aHeight
 			If ControlCount = 0 Then Exit Sub
-			If iClientWidth = -1 Then iClientWidth = ClientWidth - Margins.Left - Margins.Right
-			If iClientHeight = -1 Then iClientHeight = ClientHeight - Margins.Top - Margins.Bottom
+			If iClientWidth = -1 Then iClientWidth = ClientWidth
+			If iClientHeight = -1 Then iClientHeight = ClientHeight
 			If iClientWidth <= 0 OrElse iClientHeight <= 0 Then Exit Sub
-			lLeft = 0
-			rLeft = iClientWidth
-			tTop  = 0
-			bTop  = iClientHeight
+			lLeft = Margins.Left
+			rLeft = iClientWidth - Margins.Right
+			tTop  = Margins.Top
+			bTop  = iClientHeight - Margins.Bottom
 			#ifdef __USE_GTK__
 				If rLeft <= 1 And bTop <= 1 Then
 					Exit Sub
@@ -2245,7 +2245,7 @@ Namespace My.Sys.Forms
 				With *ListTop[i]
 					If .FVisible Then
 						tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
-						If bWithoutControl <> ListTop[i] Then .SetBounds(0 + .ExtraMargins.Left, tTop - .Height - .ExtraMargins.Bottom, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
+						If bWithoutControl <> ListTop[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop - .Height - .ExtraMargins.Bottom, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
 					End If
 				End With
 			Next i
@@ -2254,7 +2254,7 @@ Namespace My.Sys.Forms
 				With *ListBottom[i]
 					If .FVisible Then
 						bTop -= .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
-						If bWithoutControl <> ListBottom[i] Then .SetBounds(0 + .ExtraMargins.Left, bTop + .ExtraMargins.Top, rLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
+						If bWithoutControl <> ListBottom[i] Then .SetBounds(lLeft + .ExtraMargins.Left, bTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
 					End If
 				End With
 			Next i
