@@ -293,7 +293,10 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxEdit.UpdateListHeight
 		If Style <> cbSimple Then
 			#ifndef __USE_GTK__
-				MoveWindow Handle, ScaleX(This.Left), ScaleY(This.Top), ScaleX(This.Width), ScaleY(This.Height + (ItemHeight * FDropDownCount)), 1
+				Dim As ..Rect R
+				GetWindowRect Handle, @R
+				MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
+				MoveWindow Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top + ScaleY(ItemHeight * FDropDownCount), 1
 			#endif
 		End If
 	End Sub

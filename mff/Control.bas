@@ -2143,6 +2143,7 @@ Namespace My.Sys.Forms
 			If ControlCount = 0 Then Exit Sub
 			If iClientWidth = -1 Then iClientWidth = ClientWidth - Margins.Left - Margins.Right
 			If iClientHeight = -1 Then iClientHeight = ClientHeight - Margins.Top - Margins.Bottom
+			If iClientWidth <= 0 OrElse iClientHeight <= 0 Then Exit Sub
 			lLeft = 0
 			rLeft = iClientWidth
 			tTop  = 0
