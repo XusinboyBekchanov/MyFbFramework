@@ -266,18 +266,20 @@ Private Sub WStringList.LoadFromFile(ByRef FileName As WString)
 	Close #Fn
 End Sub
 
-Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
+Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0, ByRef ItemText As UString = "") As Integer
 	'If iValue = "" OrElse FCount < 1 Then Return -1 'We should allow add a empty records. Will get trouble in TreeListview if not allowed.
 	If FCount < 1 Then Return -1
 	If iStart < 0 Then iStart = 0
+	Dim As String ItemText1
 	If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
 		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
 		If FMatchCase Then  ' Action with the same sorting mode only
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
-				If *Cast(WString Ptr, Items.Item(MidIndex)) = iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <> iValue) Then
+				ItemText = *Cast(WString Ptr, Items.Item(MidIndex))
+				If ItemText = iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <> iValue) Then
 					Return MidIndex
-				ElseIf *Cast(WString Ptr, Items.Item(MidIndex)) < iValue Then
+				ElseIf ItemText < iValue Then
 					LeftIndex = MidIndex + 1
 				Else
 					RightIndex = MidIndex - 1
@@ -287,9 +289,10 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatch
 		Else
 			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
 				MidIndex = (RightIndex + LeftIndex) \ 2
-				If LCase(*Cast(WString Ptr, Items.Item(MidIndex))) = LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <> LCase(iValue)) Then
+				ItemText = *Cast(WString Ptr, Items.Item(MidIndex))
+				If LCase(ItemText) = LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <> LCase(iValue)) Then
 					Return MidIndex
-				ElseIf LCase(*Cast(WString Ptr, Items.Item(MidIndex))) < LCase(iValue) Then
+				ElseIf LCase(ItemText) < LCase(iValue) Then
 					LeftIndex = MidIndex + 1
 				Else
 					RightIndex = MidIndex - 1
