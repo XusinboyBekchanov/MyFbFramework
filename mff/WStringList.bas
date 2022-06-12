@@ -270,7 +270,6 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatch
 	'If iValue = "" OrElse FCount < 1 Then Return -1 'We should allow add a empty records. Will get trouble in TreeListview if not allowed.
 	If FCount < 1 Then Return -1
 	If iStart < 0 Then iStart = 0
-	Dim As String ItemText1
 	If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
 		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
 		If FMatchCase Then  ' Action with the same sorting mode only
@@ -303,11 +302,13 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatch
 	Else
 		If MatchCase Then
 			For j As Integer = 0 To FCount - 1
-				If *Cast(WString Ptr, Items.Item(j)) = iValue Then Return j
+				ItemText = *Cast(WString Ptr, Items.Item(j))
+				If ItemText = iValue Then Return j
 			Next
 		Else
 			For j As Integer = 0 To FCount - 1
-				If LCase(*Cast(WString Ptr, Items.Item(j))) = LCase(iValue) Then Return j
+				ItemText = *Cast(WString Ptr, Items.Item(j))
+				If LCase(ItemText) = LCase(iValue) Then Return j
 			Next
 		End If
 		Return -1
