@@ -15,7 +15,7 @@
 		#inclib "webkitgtk-1.0"
 	#endif
 	Extern "C"
-		Declare Function webkit_web_view_new() As gtkwidget Ptr
+		Declare Function webkit_web_view_new() As GtkWidget Ptr
 		Declare Sub webkit_web_view_load_uri(web_view As Any Ptr, uri As gchar Ptr)
 		Declare Sub webkit_web_view_load_html(web_view As Any Ptr, text As gchar Ptr , base_uri As gchar Ptr = 0)
 		Declare Sub webkit_web_view_load_html_string(web_view As Any Ptr , text As gchar Ptr , base_uri As gchar Ptr = 0)
@@ -63,8 +63,8 @@ Namespace My.Sys.Forms
 		Declare Function GetURL() As UString
 		Declare Function State() As Integer
 		Declare Sub Stop()
-		Declare Function GetBody(ByVal flag As Long) As UString
-		Declare Sub SetBody(ByRef text As WString)
+		Declare Function GetBody(ByVal flag As Long = 0) As String
+		Declare Sub SetBody(ByRef tText As WString, ByVal flag As Long = 0)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
