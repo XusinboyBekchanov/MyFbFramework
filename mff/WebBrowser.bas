@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub WebBrowser.Navigate(ByVal URL As WString Ptr)
 		#ifdef __USE_GTK__
-			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUTF8(*URL))
+			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUtf8(*URL))
 		#else
 			Dim vUrl As VARIANT : vUrl.vt = VT_BSTR : vUrl.bstrVal = SysAllocString(URL)
 			g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
@@ -104,11 +104,11 @@ Namespace My.Sys.Forms
 			'#ifdef __USE_GTK3__
 			'	Return webkit_web_view_is_loading(widget)
 			'#else
-				If webkit_web_view_get_load_status(widget) = 2 Then
-					Return False
-				Else
-					Return True
-				End If
+			If webkit_web_view_get_load_status(widget) = 2 Then
+				Return False
+			Else
+				Return True
+			End If
 			'#endif
 		#else
 			g_IWebBrowser->get_Busy(Cast(IWebBrowser2 Ptr, pIWebBrowser), Cast(VARIANT_BOOL Ptr, @iState))
@@ -124,63 +124,85 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Function WebBrowser.GetBody(ByVal flag As Long) As UString
+	Private Function WebBrowser.GetBody(ByVal flag As Long = 0) As String
 		#ifdef __USE_GTK__
 			#ifndef __USE_GTK3__
 				Dim As String Ptr bBuf = webkit_web_resource_get_data(webkit_web_view_get_main_resource(widget))
 				If bBuf = 0 Then
 					Return ""
 				Else
-					Return *bBuf 
-				EndIf 
+					Return *bBuf
+				EndIf
 			#else
 				Return ""
 			#endif
 		#else
-			Dim text As WString Ptr
-			Dim As UString sRet
-			text = sRet.vptr
+			Dim tText As WString Ptr
 			Dim As IHTMLDocument2 Ptr htmldoc2
 			Dim As IDispatch Ptr doc
-			Dim As IHTMLElement Ptr BODY
 			g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
-			If (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
-				htmlDoc2->lpVtbl->get_body(htmlDoc2, @BODY)
-				If flag=0 Then
-					BODY->lpVtbl->get_innerHTML(BODY, @TEXT)
-				Else
-					BODY->lpVtbl->get_outerHTML(BODY, @TEXT)
+			Function = ""
+			If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
+				If htmlDoc2 Then
+					Dim As IHTMLElement Ptr BODY
+					htmlDoc2->lpVtbl->get_body(htmlDoc2, @BODY)
+					If BODY > 0 Then
+						Select Case flag
+						Case 0
+							BODY->lpVtbl->get_innerHTML(BODY, @tText)
+						Case 1
+							BODY->lpVtbl->get_outerHTML(BODY, @tText)
+						Case 2
+							BODY->lpVtbl->get_innerText(BODY, @tText)
+						Case 3
+							BODY->lpVtbl->get_outerText(BODY, @tText)
+						End Select
+						Function = *tText
+						BODY->lpVtbl->Release(BODY)
+					End If
+					htmlDoc2->lpVtbl->Release(htmlDoc2)
 				End If
-				Function = *text
-				BODY->lpVtbl->Release(BODY)
 				doc->lpVtbl->Release(doc)
-				htmlDoc2->lpVtbl->Release(htmlDoc2)
 			End If
+			Deallocate tText
 		#endif
 	End Function
 	
-	Private Sub WebBrowser.SetBody(ByRef text As WString)
+	Private Sub WebBrowser.SetBody(ByRef tText As WString, ByVal flag As Long = 0)
 		#ifdef __USE_GTK__
 			'#ifdef __USE_GTK3__
-			'	webkit_web_view_load_html(Cast(Any Ptr, widget), ToUTF8(text))
+			'	webkit_web_view_load_html(Cast(Any Ptr, widget), ToUTF8(tText))
 			'#else
-				webkit_web_view_load_html_string(Cast(Any Ptr, widget), ToUTF8(text))
+			webkit_web_view_load_html_string(Cast(Any Ptr, widget), ToUtf8(tText))
 			'#endif
 		#else
 			Dim As IHTMLDocument2 Ptr htmldoc2
 			Dim As IDispatch Ptr doc
-			Dim As IHTMLElement Ptr BODY
 			g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
-			If (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
-				htmlDoc2->lpVtbl->get_body(htmlDoc2, @BODY)
-				BODY->lpVtbl->put_innerHTML(BODY, @text)
-				BODY->lpVtbl->Release(BODY)
+			If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
+				If htmlDoc2 Then
+					Dim As IHTMLElement Ptr BODY
+					htmlDoc2->lpVtbl->get_body(htmlDoc2, @BODY)
+					If BODY > 0 Then
+						Select Case flag
+						Case 0
+							BODY->lpVtbl->put_innerHTML(BODY, @tText)
+						Case 1
+							BODY->lpVtbl->put_outerHTML(BODY, @tText)
+						Case 2
+							BODY->lpVtbl->put_innerText(BODY, @tText)
+						Case 3
+							BODY->lpVtbl->put_outerText(BODY, @tText)
+						End Select
+						BODY->lpVtbl->Release(BODY)
+					End If
+					htmlDoc2->lpVtbl->Release(htmlDoc2)
+				End If
 				doc->lpVtbl->Release(doc)
-				htmlDoc2->lpVtbl->Release(htmlDoc2)
 			End If
 		#endif
 	End Sub
-
+	
 	#ifndef __USE_GTK__
 		Private Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender Then
@@ -248,7 +270,7 @@ Namespace My.Sys.Forms
 				End If
 				.Style        = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
 				.ExStyle      = WS_EX_CLIENTEDGE
-				.ChildProc    = @WndProc
+				.ChildProc    = @WNDPROC
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width        = 175
