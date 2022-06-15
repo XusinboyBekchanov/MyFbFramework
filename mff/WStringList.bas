@@ -315,8 +315,9 @@ Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatch
 	End If
 End Function
 
-Private Function WStringList.Contains(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Boolean
-	Return IndexOf(iValue, MatchCase, True, iStart) <> -1
+Private Function WStringList.Contains(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0, ByRef Idx As Integer = -1) As Boolean
+	Idx = IndexOf(iValue, MatchCase, True, iStart)
+	Return Idx <> -1
 End Function
 
 Private Function WStringList.IndexOfObject(FObj As Any Ptr) As Integer
