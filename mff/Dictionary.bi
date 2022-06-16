@@ -44,10 +44,10 @@ Public:
 	SortKeysed      As Boolean
 	Declare Property Count As Integer
 	Declare Property Count(value As Integer)
-	Declare Property item(Index As Integer) As DictionaryItem Ptr
-	Declare Property item(Index As Integer, iItem As DictionaryItem Ptr)
-	Declare Property item(ByRef iKey As WString) As DictionaryItem Ptr
-	Declare Property item(ByRef iKey As WString, iItem As DictionaryItem Ptr)
+	Declare Property Item(Index As Integer) As DictionaryItem Ptr
+	Declare Property Item(Index As Integer, iItem As DictionaryItem Ptr)
+	Declare Property Item(ByRef iKey As WString) As DictionaryItem Ptr
+	Declare Property Item(ByRef iKey As WString, iItem As DictionaryItem Ptr)
 	Declare Property Text ByRef As WString
 	Declare Property Text(ByRef value As WString)
 	Declare Sub Add(ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
