@@ -87,7 +87,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ImageList.BackColor As Integer
 		#ifdef __USE_WINAPI__
-			FBackColor = ImageList_GetBKColor(Handle)
+			FBackColor = ImageList_GetBkColor(Handle)
 		#endif
 		Return FBackColor
 	End Property
@@ -95,7 +95,7 @@ Namespace My.Sys.Forms
 	Private Property ImageList.BackColor(Value As Integer)
 		FBackColor = Value
 		#ifdef __USE_WINAPI__
-			ImageList_SetBKColor(Handle,FBackColor)
+			ImageList_SetBkColor(Handle,FBackColor)
 		#endif
 		NotifyWindow
 	End Property
@@ -206,8 +206,11 @@ Namespace My.Sys.Forms
 				Dim As My.Sys.Drawing.BitmapType Bitm
 				Bitm.LoadFromResourceName(ResName, ModuleHandle)
 				Items.Add Key, ResName
-				'This.AddMasked Bitm, clBlack, Key
-				ImageList_Add(Handle, Bitm.Handle, NULL)
+				If FImageWidth <> ScaleX(FImageWidth) Then
+					This.AddMasked Bitm, clBlack, Key
+				Else
+					ImageList_Add(Handle, Bitm.Handle, NULL)
+				End If
 			End If
 			FNotAdd = False
 		#endif
@@ -248,7 +251,7 @@ Namespace My.Sys.Forms
 		FNotChange = False
 		#ifdef __USE_WINAPI__
 			If Bmp.Width <> ScaleX(FImageWidth) OrElse Bmp.Height <> ScaleY(FImageHeight) Then
-				Dim As HBitmap HBitm
+				Dim As HBITMAP HBitm
 				Dim As HWND desktop = GetDesktopWindow()
 				If (desktop <> NULL) Then
 					Dim As HDC screen_dev = GetDC(desktop)
@@ -273,7 +276,7 @@ Namespace My.Sys.Forms
 									Dim As BITMAP Bitmap01
 									MemDC = CreateCompatibleDC(screen_dev)
 									OldBitmap = SelectObject(MemDC, Bmp.Handle)
-									GetObject(Cast(HBitmap, Bmp.Handle), SizeOf(Bitmap01), @Bitmap01)
+									GetObject(Cast(HBITMAP, Bmp.Handle), SizeOf(Bitmap01), @Bitmap01)
 									StretchBlt(dst_hdc, 0, 0, ScaleX(FImageWidth), ScaleY(FImageHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
 									' Restore settings
 									SelectObject(MemDC, OldBitmap)
