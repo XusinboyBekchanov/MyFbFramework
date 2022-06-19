@@ -585,10 +585,10 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 			pango_cairo_show_layout_line(Handle, pl)
 		#elseif defined(__USE_WINAPI__)
-			If BK = -1 Then SetBKMode(Handle, TRANSPARENT) Else SetBKColor(Handle, BK)
+			If BK = -1 Then SetBkMode(Handle, TRANSPARENT) Else SetBkColor(Handle, BK)
 			If FG = -1 Then SetTextColor(Handle, Font.Color) Else SetTextColor(Handle, FG)
-			.TextOut(Handle, ScaleX(X) * imgScaleX + imgOffsetX, ScaleY(Y) * imgScaleY + imgOffsetY, @s, Len(s))
-			If BK = -1 Then SetBKMode(Handle, OPAQUE)
+			.TextOut(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, @s, Len(s))
+			If BK = -1 Then SetBkMode(Handle, OPAQUE)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -600,7 +600,7 @@ Namespace My.Sys.Drawing
 			If nWidth <> 0 AndAlso nHeight <> 0 Then
 				ImageDest = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8 , nWidth, nHeight)
 				If ImageDest Then
-					gdk_pixbuf_copy_area(ImageSource, X, Y, nWidth, nHeight, ImageDest, 0, 0)
+					gdk_pixbuf_copy_area(ImageSource, x, y, nWidth, nHeight, ImageDest, 0, 0)
 					Return ImageDest
 				EndIf
 			EndIf
@@ -625,6 +625,7 @@ Namespace My.Sys.Drawing
 			Return ImageDest
 		#endif
 		If Not HandleSetted Then ReleaseDevice
+		Return 0
 	End Function
 	
 	Private Sub Canvas.Draw(x As Double, y As Double, Image As Any Ptr)

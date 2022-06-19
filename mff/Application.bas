@@ -583,9 +583,9 @@ Namespace Debug
 	#endif
 	
 	Private Sub Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If IsWindow(Handle) Then SendMessage(Handle, WM_SETTEXT, Cast(WPARAM, 0), Cast(LPARAM, @""))
-		#else
+		#elseif defined(__USE_GTK__)
 			If gtk_is_text_view(Handle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(gtk_text_view(Handle)), !"\0", -1)
 		#endif
 	End Sub
@@ -602,7 +602,7 @@ Namespace Debug
 		If bPrintMsg Then .Print MSG
 		If bShowMsg Then MsgBox MSG, "Visual FB Editor"
 		If bPrintToDebugWindow Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If IsWindow(Handle) Then
 					If SendMessage(GetParent(GetParent(Handle)), TCM_GETCURSEL, 0, 0) <> 5 Then
 						SendMessage(GetParent(GetParent(Handle)), TCM_SETCURSEL, 5, 0)
@@ -612,15 +612,15 @@ Namespace Debug
 					Dim As WString Ptr SelText
 					WLet SelText, MSG & Chr(13, 10)
 					SendMessage(Handle, EM_REPLACESEL, 0, CInt(SelText))
-					WDeallocate SelText
+					WDeAllocate SelText
 				End If
-			#else
+			#elseif defined(__USE_GTK__)
 				If gtk_is_text_view(Handle) Then
 					If gtk_notebook_get_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle)))) <> 5 Then
 						gtk_notebook_set_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle))), 5)
 					End If
 					Dim As GtkTextIter _start, _end
-					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Handle)), ToUTF8(MSG & Chr(13, 10)), -1)
+					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Handle)), ToUtf8(MSG & Chr(13, 10)), -1)
 					gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Handle)), @_start, @_end)
 					Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(gtk_text_view(Handle)), NULL, @_end, False)
 					gtk_text_view_scroll_to_mark(gtk_text_view(Handle), ptextmark, 0., False, 0., 0.)
