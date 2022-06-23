@@ -22,9 +22,9 @@ Private:
 	FText           As WString Ptr
 Public:
 	Declare Property Key ByRef As WString
-	Declare Property Key(ByRef v As WString)
+	Declare Property Key(ByRef V As WString)
 	Declare Property Text ByRef As WString
-	Declare Property Text(ByRef v As WString)
+	Declare Property Text(ByRef V As WString)
 	Object As Any Ptr
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
@@ -52,8 +52,8 @@ Public:
 	Declare Property Text(ByRef value As WString)
 	Declare Sub Add(ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
 	Declare Sub Insert(Index As Integer, ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
-	Declare Sub remove(Index As Integer)
-	Declare Sub remove(ByRef iKey As WString)
+	Declare Sub Remove(Index As Integer)
+	Declare Sub Remove(ByRef iKey As WString)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Sort(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
 	Declare Sub SortKeys(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
@@ -66,7 +66,7 @@ Public:
 	Declare Function Get(Index As Integer, ByRef DefaultText As WString = "") ByRef As WString
 	Declare Function GetKey(ByRef wText As WString, ByVal MatchCase As Boolean = False) ByRef As WString
 	Declare Function GetKey(iObject As Any Ptr) ByRef As WString
-	Declare Function gettext(ByRef iKey As WString, ByVal MatchCase As Boolean = False) ByRef As WString
+	Declare Function GetText(ByRef iKey As WString, ByVal MatchCase As Boolean = False) ByRef As WString
 	Declare Function GetObject(ByRef iKey As WString, ByVal MatchCase As Boolean = False) As Any Ptr
 	Declare Function Contains(ByRef wText As WString, ByVal MatchCase As Boolean = False) As Boolean
 	Declare Function ContainsKey(ByRef iKey As WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Boolean
