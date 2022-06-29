@@ -16,15 +16,15 @@
 Namespace My.Sys.Forms
 	Private Constructor ToolGroup
 		#ifdef __USE_GTK__
-			widget = gtk_tool_item_group_new("")
+			Widget = gtk_tool_item_group_new("")
 		#endif
 		FExpanded = True
 		Buttons.Parent = @This
 	End Constructor
 	
 	Private Destructor ToolGroup
-		WDeallocate FCaption
-		WDeallocate FName
+		WDeAllocate FCaption
+		WDeAllocate FName
 	End Destructor
 	
 	Private Property ToolGroup.CommandID As Integer
@@ -540,6 +540,28 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property ToolPalette.BitmapWidth As Integer
+		Return FBitmapWidth
+	End Property
+	
+	Private Property ToolPalette.BitmapWidth(Value As Integer)
+		FBitmapWidth = Value
+		#ifndef __USE_GTK__
+			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
+		#endif
+	End Property
+	
+	Private Property ToolPalette.BitmapHeight As Integer
+		Return FBitmapHeight
+	End Property
+	
+	Private Property ToolPalette.BitmapHeight(Value As Integer)
+		FBitmapHeight = Value
+		#ifndef __USE_GTK__
+			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
+		#endif
+	End Property
+	
 	Private Property ToolPalette.ButtonWidth As Integer
 		Return FButtonWidth
 	End Property
@@ -547,7 +569,7 @@ Namespace My.Sys.Forms
 	Private Property ToolPalette.ButtonWidth(Value As Integer)
 		FButtonWidth = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
+			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
 		#endif
 	End Property
 	
@@ -558,7 +580,7 @@ Namespace My.Sys.Forms
 	Private Property ToolPalette.ButtonHeight(Value As Integer)
 		FButtonHeight = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
+			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
 		#endif
 	End Property
 	
@@ -640,10 +662,10 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim As TBNOTIFY Ptr Tbn
 				Dim As TBBUTTON TB
-				Dim As RECT R
+				Dim As Rect R
 				Dim As Integer i
 				Tbn = Cast(TBNOTIFY Ptr,Message.lParam)
-				Select Case Tbn->hdr.Code
+				Select Case Tbn->hdr.code
 				Case TBN_DROPDOWN
 					If Tbn->iItem <> -1 Then
 						SendMessage(Tbn->hdr.hwndFrom, TB_GETRECT, Tbn->iItem, CInt(@R))
@@ -657,9 +679,9 @@ Namespace My.Sys.Forms
 			Case CM_NEEDTEXT
 				Dim As LPTOOLTIPTEXT TTX
 				TTX = Cast(LPTOOLTIPTEXT,Message.lParam)
-				TTX->hInst = GetModuleHandle(NULL)
+				TTX->hinst = GetModuleHandle(NULL)
 				If TTX->hdr.idFrom Then
-					Dim As TBButton TB
+					Dim As TBBUTTON TB
 					Dim As Integer Index
 					Index = Perform(TB_COMMANDTOINDEX,TTX->hdr.idFrom,0)
 					If Perform(TB_GETBUTTON,Index,CInt(@TB)) Then
@@ -674,7 +696,7 @@ Namespace My.Sys.Forms
 				End If
 			End Select
 		#endif
-		Base.ProcessMessage(message)
+		Base.ProcessMessage(Message)
 	End Sub
 	
 	Private Sub ToolPalette.HandleIsDestroyed(ByRef Sender As Control)
@@ -689,8 +711,8 @@ Namespace My.Sys.Forms
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
 					.Perform(TB_BUTTONSTRUCTSIZE, SizeOf(TBBUTTON), 0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
-					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(.ButtonWidth, .ButtonHeight))
-					.Perform(TB_SETBITMAPSIZE, 0, MakeLong(.ButtonWidth, .ButtonHeight))
+					.Perform(TB_SETBUTTONSIZE, 0, MAKELONG(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
+					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MAKELONG(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
 					Dim As TBBUTTON TB
 					For j As Integer = 0 To .Groups.Count -1
 						If j > 0 Then
@@ -785,6 +807,8 @@ Namespace My.Sys.Forms
 			#endif
 			FTransparent    = 1
 			FAutosize       = 1
+			FBitmapWidth    = 16
+			FBitmapHeight   = 16
 			FButtonWidth    = 16
 			FButtonHeight   = 16
 			Groups.Parent  = @This

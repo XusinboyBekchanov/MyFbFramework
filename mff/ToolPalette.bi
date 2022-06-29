@@ -95,6 +95,8 @@ Namespace My.Sys.Forms
 	
 	Private Type ToolPalette Extends Control
 	Private:
+		FBitmapWidth    As Integer
+		FBitmapHeight   As Integer
 		FButtonWidth    As Integer
 		FButtonHeight   As Integer
 		FColor          As Integer
@@ -148,6 +150,10 @@ Namespace My.Sys.Forms
 		Declare Property Divider(Value As Boolean)
 		Declare Property Style As Integer
 		Declare Property Style(Value As Integer)
+		Declare Property BitmapWidth As Integer
+		Declare Property BitmapWidth(Value As Integer)
+		Declare Property BitmapHeight As Integer
+		Declare Property BitmapHeight(Value As Integer)
 		Declare Property ButtonWidth As Integer
 		Declare Property ButtonWidth(Value As Integer)
 		Declare Property ButtonHeight As Integer
