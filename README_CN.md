@@ -1,4 +1,5 @@
-﻿# MyFbFramework | <a href="README_CN.md">中文介绍</a> | <a href="README.md">English</a>
+Language: <a href="README.md">English</a> | <b>中文介绍</b>
+# MyFbFramework
 
 ## MyFbFramework框架介绍
 MyFbFramework是类Basic语言的freeBASIC编程语言编写的公用，基本控件库，目前共有83个公用类，控件。语法在本质上类似于编程语言 vb.net， 使用这些类即可快速、轻松地创建类型安全软件产品。
