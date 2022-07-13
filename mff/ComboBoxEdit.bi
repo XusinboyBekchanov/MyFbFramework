@@ -64,32 +64,32 @@ Namespace My.Sys.Forms
 		Items             As WStringList
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Property TabIndex As Integer
+		Declare Virtual Property TabIndex(Value As Integer)
+		Declare Virtual Property TabStop As Boolean
+		Declare Virtual Property TabStop(Value As Boolean)
+		Declare Virtual Property SelColor As Integer
+		Declare Virtual Property SelColor(Value As Integer)
+		Declare Virtual Property ItemIndex As Integer
+		Declare Virtual Property ItemIndex(Value As Integer)
+		Declare Virtual Property ItemHeight As Integer
+		Declare Virtual Property ItemHeight(Value As Integer)
+		Declare Virtual Property ItemCount As Integer
+		Declare Virtual Property ItemCount(Value As Integer)
+		Declare Virtual Property DropDownCount As Integer
+		Declare Virtual Property DropDownCount(Value As Integer)
+		Declare Virtual Property IntegralHeight As Boolean
+		Declare Virtual Property IntegralHeight(Value As Boolean)
+		Declare Virtual Property Sort As Boolean
+		Declare Virtual Property Sort(Value As Boolean)
 		Declare Virtual Property Style As ComboBoxEditStyle
 		Declare Virtual Property Style(Value As ComboBoxEditStyle)
-		Declare Property TabIndex As Integer
-		Declare Property TabIndex(Value As Integer)
-		Declare Property TabStop As Boolean
-		Declare Property TabStop(Value As Boolean)
-		Declare Virtual Property Text ByRef As WString
-		Declare Virtual Property Text(ByRef Value As WString)
-		Declare Property SelColor As Integer
-		Declare Property SelColor(Value As Integer)
-		Declare Property ItemIndex As Integer
-		Declare Property ItemIndex(Value As Integer)
-		Declare Property ItemHeight As Integer
-		Declare Property ItemHeight(Value As Integer)
-		Declare Property ItemCount As Integer
-		Declare Property ItemCount(Value As Integer)
-		Declare Property DropDownCount As Integer
-		Declare Property DropDownCount(Value As Integer)
-		Declare Property IntegralHeight As Boolean
-		Declare Property IntegralHeight(Value As Boolean)
-		Declare Property Sort As Boolean
-		Declare Property Sort(Value As Boolean)
 		Declare Virtual Property ItemData(FIndex As Integer) As Any Ptr
 		Declare Virtual Property ItemData(FIndex As Integer, Value As Any Ptr)
 		Declare Virtual Property Item(FIndex As Integer) ByRef As WString
 		Declare Virtual Property Item(FIndex As Integer, ByRef FItem As WString)
+		Declare Virtual Property Text ByRef As WString
+		Declare Virtual Property Text(ByRef Value As WString)
 		Declare Virtual Sub AddItem(ByRef FItem As WString)
 		Declare Virtual Sub RemoveItem(FIndex As Integer)
 		Declare Virtual Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
@@ -97,9 +97,9 @@ Namespace My.Sys.Forms
 		Declare Virtual Function Contains(ByRef Item As WString) As Boolean
 		Declare Virtual Function IndexOfData(pData As Any Ptr) As Integer
 		Declare Virtual Sub Clear
-		Declare Sub ShowDropDown(Value As Boolean)
-		Declare Sub SaveToFile(ByRef FileName As WString)
-		Declare Sub LoadFromFile(ByRef FileName As WString)
+		Declare Virtual Sub ShowDropDown(Value As Boolean)
+		Declare Virtual Sub SaveToFile(ByRef FileName As WString)
+		Declare Virtual Sub LoadFromFile(ByRef FileName As WString)
 		Declare Static Sub RegisterClass
 		Declare Operator Cast As Control Ptr
 		Declare Constructor

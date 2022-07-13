@@ -368,6 +368,20 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property ComboBoxEx.Item(Index As Integer) ByRef As WString
+		If Items.Item(Index) Then
+			Return Items.Item(Index)->Text
+		Else
+			Return ""
+		End If
+	End Property
+	
+	Private Property ComboBoxEx.Item(Index As Integer, ByRef FItem As WString)
+		If Items.Item(Index) Then
+			Items.Item(Index)->Text = FItem
+		End If
+	End Property
+	
 	Private Property ComboBoxEx.ItemData(Index As Integer) As Any Ptr
 		If Items.Item(Index) Then
 			Return Items.Item(Index)->Object
@@ -382,18 +396,16 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Property ComboBoxEx.Item(Index As Integer) ByRef As WString
-		If Items.Item(Index) Then
-			Return Items.Item(Index)->Text
-		Else
-			Return ""
-		End If
+	Private Property ComboBoxEx.ItemCount As Integer
+		#ifndef __USE_GTK__
+			If Handle Then
+				Return Perform(CB_GETCOUNT,0,0)
+			End If
+		#endif
+		Return Items.Count
 	End Property
 	
-	Private Property ComboBoxEx.Item(Index As Integer, ByRef FItem As WString)
-		If Items.Item(Index) Then
-			Items.Item(Index)->Text = FItem
-		End If
+	Private Property ComboBoxEx.ItemCount(Value As Integer)
 	End Property
 	
 	Private Property ComboBoxEx.Text ByRef As WString
@@ -448,6 +460,10 @@ Namespace My.Sys.Forms
 				MoveWindow Cast(HWND, h), 0, 0, ScaleX(This.Width), ScaleY(This.Height + (IIf(ItemHeight = 0, 13, ItemHeight) * FDropDownCount)), 1
 			#endif
 		End If
+	End Sub
+	
+	Private Sub ComboBoxEx.Clear
+		Items.Clear
 	End Sub
 	
 	#ifndef __USE_GTK__

@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
 		#ifdef __USE_GTK__
-			gtk_combo_box_popup(gtk_combo_box(widget))
+			gtk_combo_box_popup(GTK_COMBO_BOX(widget))
 		#else
 			Perform CB_SHOWDROPDOWN, Value, 0
 		#endif
@@ -110,37 +110,37 @@ Namespace My.Sys.Forms
 			FStyle = Value
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr Ctrlwidget = IIf(FStyle <= 1, DropDownWidget, DropDownListWidget)
-				If Widget = Ctrlwidget Then Exit Property
+				If widget = Ctrlwidget Then Exit Property
 				If Ctrlwidget = DropDownWidget Then
-					Widget = DropDownWidget
+					widget = DropDownWidget
 					gtk_widget_hide(DropDownListWidget)
 					If gtk_widget_get_parent(DropDownListWidget) = eventboxwidget Then
 						g_object_ref(DropDownListWidget)
-						gtk_container_remove(gtk_container(eventboxwidget), DropDownListWidget)
+						gtk_container_remove(GTK_CONTAINER(eventboxwidget), DropDownListWidget)
 					End If
-					gtk_container_add(gtk_container(eventboxwidget), widget)
+					gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 					If widget Then 
 						g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
-						g_object_set_data(G_OBJECT(gtk_bin_get_child(gtk_bin(DropDownWidget))), "@@@Control2", @This)
+						g_object_set_data(G_OBJECT(gtk_bin_get_child(GTK_BIN(DropDownWidget))), "@@@Control2", @This)
 					End If
 					Dim As GtkTreeIter Iter
-					If gtk_tree_model_get_iter_first(gtk_combo_box_get_model(gtk_combo_box(widget)), @Iter) = False Then
+					If gtk_tree_model_get_iter_first(gtk_combo_box_get_model(GTK_COMBO_BOX(widget)), @Iter) = False Then
 						This.Clear
 						This.AddItem *FName: This.ItemIndex = 0
 					End If
-					gtk_widget_show(Widget)
+					gtk_widget_show(widget)
 				Else
-					Widget = DropDownListWidget
+					widget = DropDownListWidget
 					gtk_widget_hide(DropDownWidget)
 					If gtk_widget_get_parent(DropDownWidget) = eventboxwidget Then
 						g_object_ref(DropDownWidget)
-						gtk_container_remove(gtk_container(eventboxwidget), DropDownWidget)
+						gtk_container_remove(GTK_CONTAINER(eventboxwidget), DropDownWidget)
 					End If
-					gtk_container_add(gtk_container(eventboxwidget), widget)
-					gtk_widget_show(Widget)
+					gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
+					gtk_widget_show(widget)
 				End If
 			#else
-				Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(Abs_(FStyle)) Or ASortStyle(Abs_(FSort)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
 			#endif
 		End If
 	End Property
@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxEdit.IntegralHeight(Value As Boolean)
 		FIntegralHeight = Value
 		#ifndef __USE_GTK__
-			Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(Abs_(FStyle)) Or ASortStyle(Abs_(FSort)) Or AIntegralHeight(Abs_(FIntegralHeight))
+			Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
 		#endif
 	End Property
 	
@@ -200,7 +200,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEdit.ItemIndex As Integer
 		#ifdef __USE_GTK__
-			If widget Then FItemIndex = gtk_combo_box_get_active (Gtk_Combo_Box(widget))
+			If widget Then FItemIndex = gtk_combo_box_get_active (GTK_COMBO_BOX(widget))
 		#else
 			If Handle Then FItemIndex = Perform(CB_GETCURSEL, 0, 0)
 		#endif
@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxEdit.ItemIndex(Value As Integer)
 		FItemIndex = Value
 		#ifdef __USE_GTK__
-			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), Value)
+			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), Value)
 		#else
 			If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
 		#endif
@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 			FText = This.Item(This.ItemIndex)
 		Else
 			#ifdef __USE_GTK__
-				FText = WStr(*gtk_combo_box_text_get_active_text(gtk_combo_box_text(widget)))
+				FText = WStr(*gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))
 			#else
 				Base.Text
 			#endif
@@ -232,7 +232,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxEdit.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), IndexOf(Value))
+			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), IndexOf(Value))
 		#else
 			If FStyle > 1 Then
 				If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
@@ -579,7 +579,7 @@ Namespace My.Sys.Forms
 				State = Cast(Integer, diStruct->itemState)
 				R = Cast(..Rect, diStruct->rcItem)
 				Dc = diStruct->hDC
-				If (diStruct->itemState And ODS_COMBOBOXEDIT) <> 0 Then State = State Or ODS_ComboBOXEDIT
+				If (diStruct->itemState And ODS_COMBOBOXEDIT) <> 0 Then State = State Or ODS_COMBOBOXEDIT
 				If (diStruct->itemState And ODS_DEFAULT) <> 0 Then State = State Or ODS_DEFAULT
 				If OnDrawItem Then
 					OnDrawItem(This, ItemID, State, *Cast(Rect Ptr, @R), Dc)
@@ -605,13 +605,13 @@ Namespace My.Sys.Forms
 			Case WM_KEYDOWN
 				If OnKeyDown Then OnKeyDown(This, Message.wParam, Message.wParam And &HFFFF)
 			Case WM_KEYUP
-				If message.wParam = VK_RETURN Then
+				If Message.wParam = VK_RETURN Then
 					If OnActivate Then OnActivate(This)
 				End If
 				If OnKeyUp Then OnKeyUp(This, Message.wParam, Message.wParam And &HFFFF)
 			End Select
 		#endif
-		Base.ProcessMessage(message)
+		Base.ProcessMessage(Message)
 	End Sub
 	
 	Private Sub ComboBoxEdit.Clear
@@ -619,7 +619,7 @@ Namespace My.Sys.Forms
 		Items.Clear
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				gtk_combo_box_text_remove_all(gtk_combo_box_text(widget))
+				gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(widget))
 			#else
 				Dim As GtkListStore Ptr store
 				store = GTK_LIST_STORE (gtk_combo_box_get_model (GTK_COMBO_BOX (widget)))
@@ -652,13 +652,11 @@ Namespace My.Sys.Forms
 		Dim As Integer F, i
 		Dim As WString * 1024 s
 		F = FreeFile
-		Clear
+		This.Clear
 		Open FileName For Input Encoding "utf-8" As #F
 		While Not EOF(F)
 			Line Input #F, s
-			#ifndef __USE_GTK__
-				Perform(CB_ADDSTRING, 0, CInt(@s))
-			#endif
+			This.AddItem s
 		Wend
 		Close #F
 	End Sub
@@ -671,7 +669,7 @@ Namespace My.Sys.Forms
 		Private Sub ComboBoxEdit.ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			cbo->FSelected = False
-			If cbo->OnDropdown Then cbo->OnDropdown(*cbo)
+			If cbo->OnDropDown Then cbo->OnDropDown(*cbo)
 		End Sub
 		
 		Private Function ComboBoxEdit.ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean

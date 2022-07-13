@@ -101,24 +101,25 @@ Namespace My.Sys.Forms
 		ImagesList         As ImageList Ptr
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		'            Declare Property ItemIndex As Integer
-		'            Declare Property ItemIndex(Value As Integer)
-		Declare Property IntegralHeight As Boolean
-		Declare Property IntegralHeight(Value As Boolean)
-		Declare Property Text ByRef As WString
-		Declare Property Text(ByRef Value As WString)
-		Declare Property Style As ComboBoxEditStyle
-		Declare Property Style(Value As ComboBoxEditStyle)
-		Declare Property ItemData(FIndex As Integer) As Any Ptr
-		Declare Property ItemData(FIndex As Integer, Value As Any Ptr)
-		Declare Property Item(FIndex As Integer) ByRef As WString
-		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
+		Declare Virtual Property IntegralHeight As Boolean
+		Declare Virtual Property IntegralHeight(Value As Boolean)
+		Declare Virtual Property Style As ComboBoxEditStyle
+		Declare Virtual Property Style(Value As ComboBoxEditStyle)
+		Declare Virtual Property Item(FIndex As Integer) ByRef As WString
+		Declare Virtual Property Item(FIndex As Integer, ByRef FItem As WString)
+		Declare Virtual Property ItemData(FIndex As Integer) As Any Ptr
+		Declare Virtual Property ItemData(FIndex As Integer, Value As Any Ptr)
+		Declare Virtual Property ItemCount As Integer
+		Declare Virtual Property ItemCount(Value As Integer)
+		Declare Virtual Property Text ByRef As WString
+		Declare Virtual Property Text(ByRef Value As WString)
 		Declare Virtual Sub AddItem(ByRef FItem As WString)
 		Declare Virtual Sub RemoveItem(FIndex As Integer)
 		Declare Virtual Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
 		Declare Virtual Function IndexOf(ByRef Item As WString) As Integer
 		Declare Virtual Function Contains(ByRef Item As WString) As Boolean
 		Declare Virtual Function IndexOfData(pData As Any Ptr) As Integer
+		Declare Virtual Sub Clear
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
