@@ -47,9 +47,9 @@ Namespace My.Sys.Forms
 		FSelected         As Boolean
 		Declare Virtual Sub UpdateListHeight
 		#ifndef __USE_GTK__
-			Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function WindowProc(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Function SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function SUBCLASSPROC(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
 			Declare Virtual Sub SetDark(Value As Boolean)
 		#else
 			Declare Static Sub ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
@@ -70,8 +70,8 @@ Namespace My.Sys.Forms
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
-		Declare Property Text ByRef As WString
-		Declare Property Text(ByRef Value As WString)
+		Declare Virtual Property Text ByRef As WString
+		Declare Virtual Property Text(ByRef Value As WString)
 		Declare Property SelColor As Integer
 		Declare Property SelColor(Value As Integer)
 		Declare Property ItemIndex As Integer
@@ -86,11 +86,10 @@ Namespace My.Sys.Forms
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property Sort As Boolean
 		Declare Property Sort(Value As Boolean)
-		Declare Property ItemData(FIndex As Integer) As Any Ptr
-		Declare Property ItemData(FIndex As Integer, Value As Any Ptr)
-		Declare Property Item(FIndex As Integer) ByRef As WString
-		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
-		Declare Operator Cast As Control Ptr
+		Declare Virtual Property ItemData(FIndex As Integer) As Any Ptr
+		Declare Virtual Property ItemData(FIndex As Integer, Value As Any Ptr)
+		Declare Virtual Property Item(FIndex As Integer) ByRef As WString
+		Declare Virtual Property Item(FIndex As Integer, ByRef FItem As WString)
 		Declare Virtual Sub AddItem(ByRef FItem As WString)
 		Declare Virtual Sub RemoveItem(FIndex As Integer)
 		Declare Virtual Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
@@ -102,6 +101,7 @@ Namespace My.Sys.Forms
 		Declare Sub SaveToFile(ByRef FileName As WString)
 		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Static Sub RegisterClass
+		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
 		OnActivate          As Sub(ByRef Sender As ComboBoxEdit)
@@ -113,7 +113,7 @@ Namespace My.Sys.Forms
 		OnKeyDown           As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		OnKeyUp             As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		#ifndef __USE_GTK__
-			OnMeasureItem       As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer, ByRef Height As UInt)
+			OnMeasureItem       As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer, ByRef Height As UINT)
 			OnDrawItem          As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, ByRef R As Rect, DC As HDC = 0)
 		#endif
 		OnSelected          As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)

@@ -33,12 +33,12 @@ Namespace My.Sys.Forms
 		WLet(FText, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 1, ToUTF8(Value), -1)
+				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 1, ToUtf8(Value), -1)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
 				Dim cbei As COMBOBOXEXITEM
-				cbei.Mask = CBEIF_TEXT
+				cbei.mask = CBEIF_TEXT
 				cbei.iItem = Index
 				cbei.pszText    = FText
 				cbei.cchTextMax = Len(*FText)
@@ -144,7 +144,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
-					cbei.Mask = CBEIF_INDENT
+					cbei.mask = CBEIF_INDENT
 					cbei.iItem = Index
 					cbei.iIndent = FIndent
 					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
@@ -224,7 +224,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FText), -1)
 			'gtk_widget_show_all(Parent->widget)
 		#else
-			cbei.Mask = CBEIF_IMAGE Or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
+			cbei.mask = CBEIF_IMAGE Or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
 			cbei.pszText  = @FText
 			cbei.cchTextMax = Len(FText)
 			cbei.iItem = IIf(Index = -1, FItems.Count - 1, Index)
@@ -279,6 +279,13 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
+	Function ComboBoxExItems.IndexOfData(pData As Any Ptr) As Integer
+		For i As Integer = 0 To FItems.Count - 1
+			If *Cast(ComboBoxItem Ptr, FItems.Items[i]).Object = pData Then Return i
+		Next i
+		Return -1
+	End Function
+	
 	Private Function ComboBoxExItems.Contains(ByRef Text As WString) As Boolean
 		Return IndexOf(Text) <> -1
 	End Function
@@ -326,14 +333,68 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	'    Property ComboBoxEx.ItemIndex As Integer
-	'        Return FItemIndex
-	'    End Property
-	'
-	'    Property ComboBoxEx.ItemIndex(Value As Integer)
-	'        FItemIndex = Value
-	'        If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
-	'    End Property
+	Private Sub ComboBoxEx.AddItem(ByRef FItem As WString)
+		Items.Add FItem
+	End Sub
+	
+	Private Sub ComboBoxEx.RemoveItem(Index As Integer)
+		Items.Remove(Index)
+	End Sub
+	
+	Private Sub ComboBoxEx.InsertItem(Index As Integer, ByRef FItem As WString)
+		Items.Add FItem, , , , , , Index
+	End Sub
+	
+	Private Function ComboBoxEx.IndexOf(ByRef FItem As WString) As Integer
+		Return Items.IndexOf(FItem)
+	End Function
+	
+	Private Function ComboBoxEx.Contains(ByRef FItem As WString) As Boolean
+		Return IndexOf(FItem) <> -1
+	End Function
+	
+	Private Function ComboBoxEx.IndexOfData(pData As Any Ptr) As Integer
+		Return Items.IndexOfData(pData)
+	End Function
+	
+	Private Property ComboBoxEx.IntegralHeight As Boolean
+		Return FIntegralHeight
+	End Property
+	
+	Private Property ComboBoxEx.IntegralHeight(Value As Boolean)
+		FIntegralHeight = Value
+		#ifndef __USE_GTK__
+			ChangeStyle CBS_NOINTEGRALHEIGHT, Not Value
+		#endif
+	End Property
+	
+	Private Property ComboBoxEx.ItemData(Index As Integer) As Any Ptr
+		If Items.Item(Index) Then
+			Return Items.Item(Index)->Object
+		Else
+			Return 0
+		End If
+	End Property
+	
+	Private Property ComboBoxEx.ItemData(Index As Integer, Value As Any Ptr)
+		If Items.Item(Index) Then
+			Items.Item(Index)->Object = Value
+		End If
+	End Property
+	
+	Private Property ComboBoxEx.Item(Index As Integer) ByRef As WString
+		If Items.Item(Index) Then
+			Return Items.Item(Index)->Text
+		Else
+			Return ""
+		End If
+	End Property
+	
+	Private Property ComboBoxEx.Item(Index As Integer, ByRef FItem As WString)
+		If Items.Item(Index) Then
+			Items.Item(Index)->Text = FItem
+		End If
+	End Property
 	
 	Private Property ComboBoxEx.Text ByRef As WString
 		If This.FStyle >= cbDropDownList Then
@@ -348,12 +409,12 @@ Namespace My.Sys.Forms
 				Case ComboBoxEditStyle.cbDropDown
 					h = SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)
 				End Select
-				l = SendMessageW(Cast(HWND, h), WM_GETTEXTLENGTH, 0, 0)
+				L = SendMessageW(Cast(HWND, h), WM_GETTEXTLENGTH, 0, 0)
 				FText.Resize(L + 1)
 				GetWindowText(Cast(HWND, h), FText.vptr, L + 1)
 			#elseif defined(__USE_GTK__)
 				'#ifdef __USE_GTK__
-					FText = WStr(*gtk_combo_box_text_get_active_text(gtk_combo_box_text(widget)))
+					FText = WStr(*gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))
 '				#else
 '					Base.Text
 '				#endif
@@ -375,18 +436,7 @@ Namespace My.Sys.Forms
 			End Select
 			'If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
 		#elseif defined(__USE_GTK__)
-			If widget Then gtk_combo_box_set_active (Gtk_Combo_Box(widget), This.IndexOf(Value))
-		#endif
-	End Property
-	
-	Private Property ComboBoxEx.IntegralHeight As Boolean
-		Return FIntegralHeight
-	End Property
-	
-	Private Property ComboBoxEx.IntegralHeight(Value As Boolean)
-		FIntegralHeight = Value
-		#ifndef __USE_GTK__
-			ChangeStyle CBS_NOINTEGRALHEIGHT, Not Value
+			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), This.IndexOf(Value))
 		#endif
 	End Property
 	
@@ -415,7 +465,7 @@ Namespace My.Sys.Forms
 					Dim As Integer i
 					For i = 0 To .Items.Count - 1
 						Dim As COMBOBOXEXITEM cbei
-						cbei.Mask = CBEIF_TEXT Or CBEIF_IMAGE Or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE
+						cbei.mask = CBEIF_TEXT Or CBEIF_IMAGE Or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE
 						cbei.pszText  = @.Items.Item(i)->Text
 						cbei.cchTextMax = Len(.Items.Item(i)->Text)
 						cbei.iItem = -1
@@ -433,7 +483,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef __USE_GTK__
-		Private Sub ComboBoxEx.WndProc(ByRef Message As Message)
+		Private Sub ComboBoxEx.WNDPROC(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
 			'                Cast(ComboBoxEx Ptr,Cast(TControl Ptr,Message.Sender)->Child)->ProcessMessage(Message)
@@ -476,7 +526,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
-			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
+			Dim pt As ..Point, rc As ..Rect, t As Long, itd As Long
 			Select Case Message.Msg
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
@@ -531,7 +581,7 @@ Namespace My.Sys.Forms
 						End If
 						If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
 							If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
-								SetBKMode lpdis->hDC, TRANSPARENT
+								SetBkMode lpdis->hDC, TRANSPARENT
 								If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 									SetTextColor lpdis->hDC, darkTextColor                'Set text color
 								Else
@@ -548,7 +598,7 @@ Namespace My.Sys.Forms
 							End If
 						Else
 							If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
-								SetBKMode lpdis->hDC, TRANSPARENT
+								SetBkMode lpdis->hDC, TRANSPARENT
 							Else
 								FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle 'GetSysColorBrush(COLOR_WINDOW)
 								SetBkColor lpdis->hDC, Brush.Color 'GetSysColor(COLOR_WINDOW)                    'Set text Background
@@ -560,8 +610,8 @@ Namespace My.Sys.Forms
 							End If
 							If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
 								rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
-								rc.top    = lpdis->rcItem.top
-								rc.bottom = lpdis->rcItem.bottom
+								rc.Top    = lpdis->rcItem.Top
+								rc.Bottom = lpdis->rcItem.Bottom
 								DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
 							End If
 						End If
@@ -569,11 +619,11 @@ Namespace My.Sys.Forms
 						'SendMessage message.hWnd, CB_GETLBTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
 						If lpdis->itemID >= 0 AndAlso lpdis->itemID < Items.Count Then
 							zTxt = Items.Item(lpdis->itemID)->Text
-							TextOut lpdis->hDC, lpdis->rcItem.Left + ScaleX(18 + 3) + IIf(lpdis->itemState And ODS_COMBOBOXEDIT, 0, Items.Item(lpdis->itemID)->Indent * 11), lpdis->rcItem.top + 1, @zTxt, Len(zTxt)     'Draw text
+							TextOut lpdis->hDC, lpdis->rcItem.Left + ScaleX(18 + 3) + IIf(lpdis->itemState And ODS_COMBOBOXEDIT, 0, Items.Item(lpdis->itemID)->Indent * 11), lpdis->rcItem.Top + 1, @zTxt, Len(zTxt)     'Draw text
 							'DRAW IMAGE
 							rc.Left   = lpdis->rcItem.Left + 2 : rc.Right = lpdis->rcItem.Left + 15               'Set cordinates
-							rc.top    = lpdis->rcItem.top + 1
-							rc.bottom = lpdis->rcItem.bottom - 1
+							rc.Top    = lpdis->rcItem.Top + 1
+							rc.Bottom = lpdis->rcItem.Bottom - 1
 							If ImagesList AndAlso ImagesList->Handle Then
 								ImageList_Draw(ImagesList->Handle, Items.Item(lpdis->itemID)->ImageIndex, lpdis->hDC, rc.Left + IIf(lpdis->itemState And ODS_COMBOBOXEDIT, 0, Items.Item(lpdis->itemID)->Indent * 11), rc.Top, ILD_TRANSPARENT)
 							End If

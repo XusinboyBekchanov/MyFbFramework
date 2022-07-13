@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 		Case "dropdowncount": Return @FDropDownCount
 		Case "integralheight": Return @FIntegralHeight
 		Case "itemheight": Return @FItemHeight
-		Case "selcolor": Return @FSelCOlor
+		Case "selcolor": Return @FSelColor
 		Case "sort": Return @FSort
 		Case "style": Return @FStyle
 		Case "tabindex": Return @FTabIndex
@@ -271,7 +271,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Handle Then
 				L = Perform(CB_GETLBTEXTLEN, FIndex, 0)
-				WReallocate(FItemText, L)
+				WReAllocate(FItemText, L)
 				Perform(CB_GETLBTEXT, FIndex, CInt(FItemText))
 				Return *FItemText
 			Else
@@ -314,9 +314,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If widget Then
 				If FSort Then
-					gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), i, ToUtf8(FItem))
+					gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(widget), i, ToUtf8(FItem))
 				Else
-					gtk_combo_box_text_append_text(gtk_combo_box_text(widget), ToUtf8(FItem))
+					gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(widget), ToUtf8(FItem))
 				End If
 			End If
 		#else
@@ -330,8 +330,8 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxEdit.RemoveItem(FIndex As Integer)
 		Items.Remove(FIndex)
 		#ifdef __USE_GTK__
-			If Widget Then
-				gtk_combo_box_text_remove(gtk_combo_box_text(widget), FIndex)
+			If widget Then
+				gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(widget), FIndex)
 			End If
 		#else
 			If FHandle Then
@@ -348,7 +348,7 @@ Namespace My.Sys.Forms
 		End If
 		Items.Insert(FIndex, FItem)
 		#ifdef __USE_GTK__
-			gtk_combo_box_text_insert_text(gtk_combo_box_text(widget), FIndex, ToUtf8(FItem))
+			gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(widget), FIndex, ToUtf8(FItem))
 		#else
 			If FHandle Then
 				Perform(CB_INSERTSTRING, FIndex, CInt(@FItem))
@@ -370,7 +370,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Private Function ComboBoxEdit.SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Private Function ComboBoxEdit.SUBCLASSPROC(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As ComboBoxEdit Ptr Ctrl
 			Dim As Message Message
 			Ctrl = Cast(ComboBoxEdit Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
@@ -527,10 +527,10 @@ Namespace My.Sys.Forms
 			Case CM_CTLCOLOR
 				Dim As HDC Dc
 				Dc = Cast(HDC, Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc, Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 			Case CM_CANCELMODE
 				If Message.Sender <> This Then Perform(CB_SHOWDROPDOWN, 0, 0)
 			Case CM_COMMAND
@@ -565,7 +565,7 @@ Namespace My.Sys.Forms
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
 				ItemID = Cast(Integer,miStruct->itemID)
 				If OnMeasureItem Then
-					OnMeasureItem(This, itemID,miStruct->itemHeight)
+					OnMeasureItem(This, ItemID,miStruct->itemHeight)
 				Else
 					miStruct->itemHeight = ItemHeight
 				End If
@@ -590,13 +590,13 @@ Namespace My.Sys.Forms
 						B = CreateSolidBrush(FSelColor)
 						FillRect Dc, @R, B
 						SetTextColor Dc, clHighlightText
-						SetBKColor Dc, FSelColor
+						SetBkColor Dc, FSelColor
 						TextOut(Dc,R.Left + 2, R.Top, Item(ItemID),Len(Item(ItemID)))
-						If (State And ODS_FOCUS) = ODS_FOCUS Then DrawFocusRect(DC, @R)
+						If (State And ODS_FOCUS) = ODS_FOCUS Then DrawFocusRect(Dc, @R)
 					Else
 						FillRect Dc, @R, Brush.Handle
 						SetTextColor Dc, Font.Color
-						SetBKColor Dc, This.BackColor
+						SetBkColor Dc, This.BackColor
 						TextOut(Dc, R.Left + 2, R.Top, Item(ItemID), Len(Item(ItemID)))
 					End If
 				End If

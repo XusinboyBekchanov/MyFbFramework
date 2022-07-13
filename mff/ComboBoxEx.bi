@@ -75,6 +75,7 @@ Namespace My.Sys.Forms
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef Item As ComboBoxItem Ptr) As Integer
 		Declare Function IndexOf(ByRef Text As WString) As Integer
+		Declare Function IndexOfData(pData As Any Ptr) As Integer
 		Declare Function Contains(ByRef Text As WString) As Boolean
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
@@ -86,7 +87,7 @@ Namespace My.Sys.Forms
 	Private:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
@@ -108,6 +109,16 @@ Namespace My.Sys.Forms
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Style As ComboBoxEditStyle
 		Declare Property Style(Value As ComboBoxEditStyle)
+		Declare Property ItemData(FIndex As Integer) As Any Ptr
+		Declare Property ItemData(FIndex As Integer, Value As Any Ptr)
+		Declare Property Item(FIndex As Integer) ByRef As WString
+		Declare Property Item(FIndex As Integer, ByRef FItem As WString)
+		Declare Virtual Sub AddItem(ByRef FItem As WString)
+		Declare Virtual Sub RemoveItem(FIndex As Integer)
+		Declare Virtual Sub InsertItem(FIndex As Integer, ByRef FItem As WString)
+		Declare Virtual Function IndexOf(ByRef Item As WString) As Integer
+		Declare Virtual Function Contains(ByRef Item As WString) As Boolean
+		Declare Virtual Function IndexOfData(pData As Any Ptr) As Integer
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
