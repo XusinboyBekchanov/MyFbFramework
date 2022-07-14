@@ -106,7 +106,6 @@ Namespace My.Sys.Forms
 		Declare Destructor
 		OnActivate          As Sub(ByRef Sender As ComboBoxEdit)
 		OnChange            As Sub(ByRef Sender As ComboBoxEdit)
-		OnDblClick          As Sub(ByRef Sender As ComboBoxEdit)
 		OnDropDown          As Sub(ByRef Sender As ComboBoxEdit)
 		OnCloseUp           As Sub(ByRef Sender As ComboBoxEdit)
 		OnKeyPress          As Sub(ByRef Sender As ComboBoxEdit, Key As Byte, Shift As Integer)

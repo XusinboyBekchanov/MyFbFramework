@@ -479,8 +479,6 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_LBUTTONDBLCLK
-				If OnDblClick Then OnDblClick(This)
 			Case WM_NCCREATE
 				
 			Case WM_CREATE

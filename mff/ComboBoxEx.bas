@@ -492,6 +492,9 @@ Namespace My.Sys.Forms
 					cbINFO.cbSize = SizeOf(COMBOBOXINFO)
 					GetComboBoxInfo(h, @cbINFO)
 					h = cbINFO.hwndItem
+					If h = cbINFO.hwndCombo Then
+						h = FindWindowEx(h, 0, "Edit", 0)
+					End If
 					If GetWindowLongPtr(h, GWLP_WNDPROC) <> @HookChildProc Then
 						SetProp(h, "MFFControl", Sender.Child)
 						SetProp(h, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(h, GWLP_WNDPROC, CInt(@HookChildProc))))
