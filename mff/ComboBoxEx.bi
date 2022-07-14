@@ -88,6 +88,7 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif

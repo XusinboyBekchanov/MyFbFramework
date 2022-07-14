@@ -91,7 +91,7 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 0, ToUTF8(Value), -1)
+				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 0, ToUtf8(Value), -1)
 			End If
 		#endif
 	End Property
@@ -467,6 +467,15 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
+		Function ComboBoxEx.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Select Case uMsg
+			Case WM_LBUTTONDBLCLK
+				Dim As ComboBoxEx Ptr cbo = GetProp(hDlg, "MFFControl")
+				If cbo->OnDblClick Then cbo->OnDblClick(*cbo)
+			End Select
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
+		
 		Private Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEx(Sender.Child)
@@ -477,6 +486,15 @@ Namespace My.Sys.Forms
 					If .ImagesList Then
 						.ImagesList->ParentWindow = @Sender
 						.Perform CBEM_SETIMAGELIST, 0, CInt(.ImagesList->Handle)
+					End If
+					Dim As HWND h = Cast(HWND, SendMessage(.Handle, CBEM_GETCOMBOCONTROL, 0, 0))
+					Dim As COMBOBOXINFO cbINFO
+					cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+					GetComboBoxInfo(h, @cbINFO)
+					h = cbINFO.hwndItem
+					If GetWindowLongPtr(h, GWLP_WNDPROC) <> @HookChildProc Then
+						SetProp(h, "MFFControl", Sender.Child)
+						SetProp(h, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(h, GWLP_WNDPROC, CInt(@HookChildProc))))
 					End If
 					Dim As Integer i
 					For i = 0 To .Items.Count - 1
@@ -664,7 +682,7 @@ Namespace My.Sys.Forms
 				'            End Select
 			End Select
 		#endif
-		Base.ProcessMessage(message)
+		Base.ProcessMessage(Message)
 	End Sub
 	
 	Private Property ComboBoxEx.Style As ComboBoxEditStyle
@@ -677,7 +695,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Base.Style = Value
 			#else
-				Base.Base.Style = WS_CHILD Or AStyle(Abs_(Value))
+				Base.Base.Style = WS_CHILD Or AStyle(abs_(Value))
 			#endif
 		End If
 	End Property
@@ -721,7 +739,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
 				.ChildProc   = @WndProc
-				Type fnRtlGetNtVersionNumbers As Sub(major As LPDWORD, minor As LPDWORD, build As LPDWORD)
+				Type fnRtlGetNtVersionNumbers As Sub(major As LPDWORD, minor As LPDWORD, Build As LPDWORD)
 				Dim As fnRtlGetNtVersionNumbers RtlGetNtVersionNumbers
 				Dim As HMODULE hNtdllModule = GetModuleHandle("ntdll.dll")
 				If (hNtdllModule) Then

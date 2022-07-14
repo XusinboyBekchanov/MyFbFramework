@@ -370,7 +370,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Private Function ComboBoxEdit.SUBCLASSPROC(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Private Function ComboBoxEdit.SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As ComboBoxEdit Ptr Ctrl
 			Dim As Message Message
 			Ctrl = Cast(ComboBoxEdit Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
@@ -479,6 +479,8 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
+			Case WM_LBUTTONDBLCLK
+				If OnDblClick Then OnDblClick(This)
 			Case WM_NCCREATE
 				
 			Case WM_CREATE
