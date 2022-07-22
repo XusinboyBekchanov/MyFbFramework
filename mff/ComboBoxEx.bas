@@ -605,7 +605,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_DRAWITEM
-				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
+				Dim lpdis As DRAWITEMSTRUCT Ptr
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
@@ -660,8 +660,8 @@ Namespace My.Sys.Forms
 						'DRAW TEXT
 						'SendMessage message.hWnd, CB_GETLBTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
 						If lpdis->itemID >= 0 AndAlso lpdis->itemID < Items.Count Then
-							zTxt = Items.Item(lpdis->itemID)->Text
-							TextOut lpdis->hDC, lpdis->rcItem.Left + ScaleX(18 + 3) + IIf(lpdis->itemState And ODS_COMBOBOXEDIT, 0, Items.Item(lpdis->itemID)->Indent * 11), lpdis->rcItem.Top + 1, @zTxt, Len(zTxt)     'Draw text
+							Dim As WString Ptr zTxt = @Items.Item(lpdis->itemID)->Text
+							TextOut lpdis->hDC, lpdis->rcItem.Left + ScaleX(18 + 3) + IIf(lpdis->itemState And ODS_COMBOBOXEDIT, 0, Items.Item(lpdis->itemID)->Indent * 11), lpdis->rcItem.Top + 1, zTxt, Len(*zTxt)     'Draw text
 							'DRAW IMAGE
 							rc.Left   = lpdis->rcItem.Left + 2 : rc.Right = lpdis->rcItem.Left + 15               'Set cordinates
 							rc.Top    = lpdis->rcItem.Top + 1
