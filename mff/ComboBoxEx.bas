@@ -467,13 +467,18 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Function ComboBoxEx.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Select Case uMsg
-			Case WM_LBUTTONDBLCLK
-				Dim As ComboBoxEx Ptr cbo = GetProp(hDlg, "MFFControl")
-				If cbo->OnDblClick Then cbo->OnDblClick(*cbo)
-			End Select
-			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
+		Function ComboBoxEx.HookChildProc(hDlg As HWND, uMsg As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+			Dim As ComboBoxEx Ptr cbo = GetProp(hDlg, "MFFControl")
+			If cbo Then
+				Dim Message As Message
+				Message = Type(cbo, hDlg, uMsg, WPARAM, LPARAM, 0, LoWord(WPARAM), HiWord(WPARAM), LoWord(LPARAM), HiWord(LPARAM), Message.Captured)
+				cbo->ProcessMessage(Message)
+				'Select Case uMsg
+				'Case WM_LBUTTONDBLCLK
+				'	If cbo->OnDblClick Then cbo->OnDblClick(*cbo)
+				'End Select
+			End If
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, WPARAM, LPARAM)
 		End Function
 		
 		Private Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
