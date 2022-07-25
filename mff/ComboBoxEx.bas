@@ -74,7 +74,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
-					cbei.Mask = CBEIF_IMAGE
+					cbei.mask = CBEIF_IMAGE
 					cbei.iItem = Index
 					cbei.iImage = FImageIndex
 					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
@@ -477,6 +477,15 @@ Namespace My.Sys.Forms
 				'Case WM_LBUTTONDBLCLK
 				'	If cbo->OnDblClick Then cbo->OnDblClick(*cbo)
 				'End Select
+				If Message.Result = -1 Then
+					Return Message.Result
+				ElseIf Message.Result = -2 Then
+					uMsg = Message.Msg
+					WPARAM = Message.wParam
+					LPARAM = Message.lParam
+				ElseIf Message.Result <> 0 Then
+					Return Message.Result
+				End If
 			End If
 			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, WPARAM, LPARAM)
 		End Function
@@ -497,6 +506,10 @@ Namespace My.Sys.Forms
 					cbINFO.cbSize = SizeOf(COMBOBOXINFO)
 					GetComboBoxInfo(h, @cbINFO)
 					h = cbINFO.hwndItem
+					If GetWindowLongPtr(h, GWLP_WNDPROC) <> @HookChildProc Then
+						SetProp(h, "MFFControl", Sender.Child)
+						SetProp(h, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(h, GWLP_WNDPROC, CInt(@HookChildProc))))
+					End If
 					If h = cbINFO.hwndCombo Then
 						h = FindWindowEx(h, 0, "Edit", 0)
 					End If
