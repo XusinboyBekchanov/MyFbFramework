@@ -213,6 +213,7 @@ Namespace My.Sys.Forms
 			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), Value)
 		#else
 			If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
+			If OnChange Then OnChange(This)
 		#endif
 	End Property
 	
