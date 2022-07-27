@@ -716,7 +716,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Base.Style = Value
 			#else
-				Base.Base.Style = WS_CHILD Or AStyle(abs_(Value))
+				Base.Base.Style = WS_CHILD Or CBS_AUTOHSCROLL Or AStyle(abs_(Value))
 			#endif
 		End If
 	End Property
@@ -740,7 +740,7 @@ Namespace My.Sys.Forms
 			gtk_cell_layout_pack_start( GTK_CELL_LAYOUT(widget), renderer, True)
 			gtk_cell_layout_set_attributes( GTK_CELL_LAYOUT(widget), renderer, ToUtf8("text"), 1, NULL)
 			eventboxwidget = gtk_event_box_new()
-			gtk_container_add(gtk_container(eventboxwidget), widget)
+			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			Base.Base.RegisterClass "ComboBoxEx", @This
 		#else
 			Dim As INITCOMMONCONTROLSEX icex
@@ -748,7 +748,7 @@ Namespace My.Sys.Forms
 			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
 			icex.dwICC = ICC_USEREX_CLASSES
 			
-			InitCommonControlsEx(@icex)
+			INITCOMMONCONTROLSEX(@icex)
 		#endif
 		Items.Parent       = @This
 		FIntegralHeight    = False
@@ -759,7 +759,7 @@ Namespace My.Sys.Forms
 			.Child       = @This
 			#ifndef __USE_GTK__
 				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
-				.ChildProc   = @WndProc
+				.ChildProc   = @WNDPROC
 				Type fnRtlGetNtVersionNumbers As Sub(major As LPDWORD, minor As LPDWORD, Build As LPDWORD)
 				Dim As fnRtlGetNtVersionNumbers RtlGetNtVersionNumbers
 				Dim As HMODULE hNtdllModule = GetModuleHandle("ntdll.dll")
@@ -775,10 +775,10 @@ Namespace My.Sys.Forms
 				Select Case g_buildNumber
 				Case 17763 /'1809'/, 18362 /'1903'/
 					Base.FStyle             = cbOwnerDrawFixed
-					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
+					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_AUTOHSCROLL Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
 				Case Else
 					Base.FStyle             = cbDropDownList
-					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or WS_VSCROLL
+					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_AUTOHSCROLL Or WS_VSCROLL
 				End Select
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.BackColor       = GetSysColor(COLOR_WINDOW)
