@@ -380,7 +380,7 @@ Namespace My.Sys.Forms
 			'Occurs when the control is double-clicked (Windows, Linux).
 			OnDblClick   As Sub(ByRef Sender As Control)
 			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux).
-			OnKeyPress   As Sub(ByRef Sender As Control, Key As Byte)
+			OnKeyPress   As Sub(ByRef Sender As Control, Key As Integer)
 			'Occurs when a key is pressed while the control has focus (Windows, Linux).
 			OnKeyDown    As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
 			'Occurs when a key is released while the control has focus (Windows, Linux).
