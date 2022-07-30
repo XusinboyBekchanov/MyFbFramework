@@ -12,7 +12,7 @@ Namespace My.Sys.Forms
 	Private Type ToolTips Extends Control
 	Private:
 		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
@@ -20,6 +20,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
+		OnLinkClicked As Sub(ByRef Sender As ToolTips, ByRef link As WString)
 	End Type
 End Namespace
 

@@ -14,11 +14,19 @@ Namespace My.Sys.Forms
 			End With
 		End Sub
 		
-		Sub ToolTips.WndProc(ByRef Message As Message)
+		Sub ToolTips.WNDPROC(ByRef Message As Message)
 		End Sub
 		
 		Sub ToolTips.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
+			Case CM_NOTIFY
+				Dim As LPNMHDR LP = Cast(LPNMHDR, Message.lParam)
+				Select Case LP->code
+				Case TTN_LINKCLICK
+					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, Message.lParam)
+					Dim As LITEM item = pNMLink1->item
+					If OnLinkClicked Then OnLinkClicked(This, item.szUrl)
+				End Select
 			Case WM_MOUSEMOVE
 				Message.Result = -1
 				Return
@@ -52,7 +60,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor ToolTips
 		#ifndef __USE_GTK__
-			UnregisterClass "ToolTips", GetModuleHandle(NULL)
+			'UnregisterClass "ToolTips", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace
