@@ -386,7 +386,7 @@ Namespace My.Sys.Forms
 			'Occurs when a key is released while the control has focus (Windows, Linux).
 			OnKeyUp      As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
 			'Occurs when the window receives a message (Windows, Linux).
-			OnMessage    As Sub(ByRef Sender As Control, ByRef msg As Message)
+			OnMessage    As Sub(ByRef Sender As Control, ByRef MSG As Message)
 			'Occurs when the control is resized (Windows, Linux).
 			OnResize     As Sub(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 			'Occurs when the scroll box has been moved by either a mouse or keyboard action (Windows only).
