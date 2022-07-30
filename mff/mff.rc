@@ -48,6 +48,7 @@ Printer PNG "../resources/Printer.png"
 ProgressBar PNG "../resources/ProgressBar.png"
 RichTextBox PNG "../resources/RichTextBox.png"
 ScrollBarControl PNG "../resources/HScrollBar.png"
+ScrollableWindow PNG "../resources/ScrollableWindow.png"
 TabPage PNG "../resources/TabPage.png"
 ToolPalette PNG "../resources/ToolPalette.png"
 HScrollBar PNG "../resources/HScrollBar.png"
@@ -70,8 +71,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,3,3,1108
-#define VER_FILEVERSION_STR         "1.3.3.1108\0"
+#define VER_FILEVERSION             1,3,3,1122
+#define VER_FILEVERSION_STR         "1.3.3.1122\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
