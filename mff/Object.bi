@@ -73,7 +73,7 @@ Namespace My.Sys
 '	Private Type MouseUpEvent    As Sub(ByRef Sender As My.Sys.Object, MouseButton As Short, X As Integer, Y As Integer, Shift As Integer)
 '	Private Type MouseMoveEvent  As Sub(ByRef Sender As My.Sys.Object, X As Integer, Y As Integer, Shift As Integer)
 '	Private Type MouseWheelEvent As Sub(ByRef Sender As My.Sys.Object, Direction As Short, X As Integer, Y As Integer, Shift As Integer)
-'	Private Type KeyPressEvent   As Sub(ByRef Sender As My.Sys.Object, Key As Byte)
+'	Private Type KeyPressEvent   As Sub(ByRef Sender As My.Sys.Object, Key As Integer)
 '	Private Type KeyDownEvent    As Sub(ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
 '	Private Type KeyUpEvent      As Sub(ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
 '	Private Type TimerEvent      As Sub(ByRef Sender As My.Sys.Object, TimerId As Integer, TimerProc As Any Ptr = 0)

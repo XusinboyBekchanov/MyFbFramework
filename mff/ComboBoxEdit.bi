@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 		OnChange            As Sub(ByRef Sender As ComboBoxEdit)
 		OnDropDown          As Sub(ByRef Sender As ComboBoxEdit)
 		OnCloseUp           As Sub(ByRef Sender As ComboBoxEdit)
-		OnKeyPress          As Sub(ByRef Sender As ComboBoxEdit, Key As Byte, Shift As Integer)
+		OnKeyPress          As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		OnKeyDown           As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		OnKeyUp             As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		#ifndef __USE_GTK__
