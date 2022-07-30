@@ -77,8 +77,10 @@ Namespace My.Sys.Forms
 		MaxWidth = 0
 		MaxHeight = 0
 		For i As Integer = 0 To ControlCount - 1
-			If MaxWidth < Controls[i]->Left + Controls[i]->Width Then MaxWidth = Controls[i]->Left + Controls[i]->Width
-			If MaxHeight < Controls[i]->Top + Controls[i]->Height Then MaxHeight = Controls[i]->Top + Controls[i]->Height
+			If Controls[i]->Visible Then 
+				If MaxWidth < Controls[i]->Left + Controls[i]->Width Then MaxWidth = Controls[i]->Left + Controls[i]->Width
+				If MaxHeight < Controls[i]->Top + Controls[i]->Height Then MaxHeight = Controls[i]->Top + Controls[i]->Height
+			End If
 		Next
 	End Sub
 	
