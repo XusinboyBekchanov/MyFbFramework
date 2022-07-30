@@ -26,36 +26,39 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Function ContainerControl.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 			If CInt(widget) AndAlso CInt(GTK_IS_NOTEBOOK(widget) <> 1) Then
-				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
-				If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
+				Dim PROC As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
+				If GTK_IS_WIDGET(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 					#ifndef __USE_GTK2__
 						box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
 					#else
 						box = gtk_vbox_new(False, 0)
 					#endif
-					If gtk_is_widget(box) Then gtk_container_add(GTK_CONTAINER(widget), box)
-					layoutwidget = gtk_layout_new(null, null)
+					If GTK_IS_WIDGET(box) Then gtk_container_add(GTK_CONTAINER(widget), box)
+					layoutwidget = gtk_layout_new(NULL, NULL)
 					'gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
 					#ifdef __USE_GTK4__
-						gtk_box_pack_end(Gtk_Box(box), layoutwidget)
+						gtk_box_pack_end(GTK_BOX(box), layoutwidget)
 					#else
-						gtk_box_pack_end(Gtk_Box(box), layoutwidget, True, True, 0)
+						gtk_box_pack_end(GTK_BOX(box), layoutwidget, True, True, 0)
 					#endif
 					'g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
 					'gtk_widget_set_child_visible(scrolledwidget, true)
-				ElseIf gtk_is_layout(widget) = 1 Then
+				ElseIf GTK_IS_LAYOUT(widget) = 1 Then
 					layoutwidget = widget
-				ElseIf gtk_is_fixed(widget) = 1 Then
+				ElseIf GTK_IS_FIXED(widget) = 1 Then
 					fixedwidget = widget
-				ElseIf gtk_is_box(widget) = 1 Then
+				ElseIf GTK_IS_BOX(widget) = 1 Then
 					box = widget
+				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
+					fixedwidget = gtk_fixed_new()
+					gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), fixedwidget)
 				Else
 					'box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
 					'gtk_container_add(GTK_CONTAINER(widget), box)
-					layoutwidget = gtk_layout_new(null, null)
-					If gtk_is_widget(layoutwidget) Then gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
+					layoutwidget = gtk_layout_new(NULL, NULL)
+					If GTK_IS_WIDGET(layoutwidget) Then gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
 					'gtk_box_pack_end(Gtk_Box(box), layoutwidget, true, true, 0)
 					'g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
