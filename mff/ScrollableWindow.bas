@@ -86,8 +86,11 @@ Namespace My.Sys.Forms
 	
 	Private Sub ScrollableWindow.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
+			Static bShifted As Boolean
+			Static scrStyle As Integer, scrDirection As Integer
 			Dim Si As SCROLLINFO
 			Dim As Integer MaxWidth, MaxHeight, ScrollPos
+			bShifted = GetKeyState(VK_SHIFT) And 8000
 			Select Case Message.Msg
 			Case WM_PAINT
 				Dim As HDC Dc, memDC
@@ -124,6 +127,41 @@ Namespace My.Sys.Forms
 				Message.Result = 0
 				Canvas.HandleSetted = False
 				Return
+			Case WM_MOUSEWHEEL
+				#ifdef __FB_64BIT__
+					If Message.wParam < 4000000000 Then
+						scrDirection = 1
+					Else
+						scrDirection = -1
+					End If
+				#else
+					scrDirection = Sgn(Message.wParam)
+				#endif
+				Var scrStyle = IIf(bShifted, SB_HORZ, SB_VERT)
+				Si.cbSize = SizeOf(Si)
+				Si.fMask  = SIF_ALL
+				GetScrollInfo (Message.hWnd, scrStyle, @Si)
+				ScrollPos = Si.nPos
+				If scrDirection = -1 Then
+					Si.nPos = min(Si.nPos + 3, Si.nMax)
+				Else
+					Si.nPos = Max(Si.nPos - 3, Si.nMin)
+				End If
+				Si.fMask = SIF_POS
+				SetScrollInfo(Message.hWnd, scrStyle, @Si, True)
+				GetScrollInfo (Message.hWnd, scrStyle, @Si)
+				
+				If Si.nPos <> ScrollPos Then
+					If bShifted Then
+						ScrollWindow(Message.hWnd, (ScrollPos - Si.nPos), 0, NULL, NULL)
+					Else
+						ScrollWindow(Message.hWnd, 0, (ScrollPos - Si.nPos), NULL, NULL)
+					End If
+					UpdateWindow (Message.hWnd)
+					
+					If OnScroll Then OnScroll(This)
+					
+				End If
 			Case WM_VSCROLL
 				Si.cbSize = SizeOf(Si)
 				Si.fMask  = SIF_ALL
@@ -222,6 +260,8 @@ Namespace My.Sys.Forms
 				.ChildProc   = @WNDPROC
 				.ExStyle     = 0
 				Base.Style       = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
+				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
 			#endif

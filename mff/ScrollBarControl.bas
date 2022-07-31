@@ -79,14 +79,14 @@ Namespace My.Sys.Forms
 				iWidth = This.Width
 				iHeight = Height
 				#ifdef __USE_GTK__
-					gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_HORIZONTAL)
+					gtk_orientable_set_orientation(GTK_ORIENTABLE(widget), GTK_ORIENTATION_HORIZONTAL)
 				#endif
 				This.Width = iHeight
 				Height  = iWidth
 			End If
 			FStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle))
+				Base.Style = WS_CHILD Or AStyle(abs_(FStyle))
 			#endif
 			If This.Parent Then This.Parent->RequestAlign
 		End If
@@ -99,7 +99,7 @@ Namespace My.Sys.Forms
 	Private Property ScrollBarControl.MinValue(Value As Integer)
 		FMin = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_range(gtk_range(widget), FMin, FMax)
+			gtk_range_set_range(GTK_RANGE(widget), FMin, FMax)
 		#else
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
@@ -112,7 +112,7 @@ Namespace My.Sys.Forms
 	Private Property ScrollBarControl.MaxValue(Value As Integer)
 		FMax = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_range(gtk_range(widget), FMin, FMax)
+			gtk_range_set_range(GTK_RANGE(widget), FMin, FMax)
 		#else
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
@@ -120,7 +120,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ScrollBarControl.Position As Integer
 		#ifdef __USE_GTK__
-			FPosition = gtk_range_get_value(gtk_range(widget))
+			FPosition = gtk_range_get_value(GTK_RANGE(widget))
 		#else
 			If Handle Then FPosition = Perform(SBM_GETPOS, 0, 0)
 		#endif
@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 	Private Property ScrollBarControl.Position(Value As Integer)
 		FPosition = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_value(gtk_range(widget), CDbl(Value))
+			gtk_range_set_value(GTK_RANGE(widget), CDbl(Value))
 		#else
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
 		#endif
@@ -144,7 +144,7 @@ Namespace My.Sys.Forms
 	Private Property ScrollBarControl.ArrowChangeSize(Value As Integer)
 		FArrowChangeSize = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+			gtk_range_set_increments(GTK_RANGE(widget), FArrowChangeSize, FPageSize)
 		#endif
 	End Property
 	
@@ -156,7 +156,7 @@ Namespace My.Sys.Forms
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+			gtk_range_set_increments(GTK_RANGE(widget), FArrowChangeSize, FPageSize)
 		#else
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
@@ -192,45 +192,45 @@ Namespace My.Sys.Forms
 				'			#ENDIF
 				Message.Result = 0
 			Case CM_CREATE
-				sif.cbSize = SizeOf(sif)
-				sif.fMask  = SIF_RANGE Or SIF_PAGE
-				sif.nMin   = FMin
-				sif.nMax   = FMax
-				sif.nPage  = FPageSize
-				SetScrollInfo(FHandle, SB_CTL, @sif, True)
+				SIF.cbSize = SizeOf(SIF)
+				SIF.fMask  = SIF_RANGE Or SIF_PAGE
+				SIF.nMin   = FMin
+				SIF.nMax   = FMax
+				SIF.nPage  = FPageSize
+				SetScrollInfo(FHandle, SB_CTL, @SIF, True)
 			Case CM_HSCROLL, CM_VSCROLL
 				Var lo = LoWord(Message.wParam)
-				sif.cbSize = SizeOf(sif)
-				sif.fMask  = SIF_ALL
-				GetScrollInfo (FHandle, SB_CTL, @sif)
-				OldPos = sif.nPos
+				SIF.cbSize = SizeOf(SIF)
+				SIF.fMask  = SIF_ALL
+				GetScrollInfo (FHandle, SB_CTL, @SIF)
+				OldPos = SIF.nPos
 				Select Case lo
 				Case SB_TOP, SB_LEFT
-					sif.nPos = sif.nMin
+					SIF.nPos = SIF.nMin
 				Case SB_BOTTOM, SB_RIGHT
-					sif.nPos = sif.nMax
+					SIF.nPos = SIF.nMax
 				Case SB_LINEUP, SB_LINELEFT
-					sif.nPos -= FArrowChangeSize
+					SIF.nPos -= FArrowChangeSize
 				Case SB_LINEDOWN, SB_LINERIGHT
-					sif.nPos += FArrowChangeSize
+					SIF.nPos += FArrowChangeSize
 				Case SB_PAGEUP, SB_PAGELEFT
-					sif.nPos -= sif.nPage
+					SIF.nPos -= SIF.nPage
 				Case SB_PAGEDOWN, SB_PAGERIGHT
-					sif.nPos += sif.nPage
+					SIF.nPos += SIF.nPage
 				Case SB_THUMBPOSITION, SB_THUMBTRACK
-					sif.nPos = sif.nTrackPos
+					SIF.nPos = SIF.nTrackPos
 				End Select
-				sif.fMask = SIF_POS
-				SetScrollInfo(FHandle, SB_CTL, @sif, True)
-				GetScrollInfo(FHandle, SB_CTL, @sif)
-				If (Not sif.nPos = OldPos) Then
+				SIF.fMask = SIF_POS
+				SetScrollInfo(FHandle, SB_CTL, @SIF, True)
+				GetScrollInfo(FHandle, SB_CTL, @SIF)
+				If (Not SIF.nPos = OldPos) Then
 					If OnScroll Then
-						OnScroll(This, Cast(Integer, sif.nPos))
+						OnScroll(This, Cast(Integer, SIF.nPos))
 					End If
 				End If
 			End Select
 		#endif
-		Base.ProcessMessage(message)
+		Base.ProcessMessage(Message)
 	End Sub
 	
 	Private Operator ScrollBarControl.Cast As Control Ptr
