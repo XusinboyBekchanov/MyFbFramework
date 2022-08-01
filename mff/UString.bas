@@ -68,7 +68,9 @@ End Function
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
-			subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+			Deallocate_(subject)
+			subject = CAllocate_((lLen + 1) * SizeOf(WString))
+			'subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		Else
 			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		End If

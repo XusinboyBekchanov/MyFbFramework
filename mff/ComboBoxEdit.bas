@@ -219,7 +219,11 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEdit.Text ByRef As WString
 		If FStyle >= cbDropDownList Then
-			FText = This.Item(This.ItemIndex)
+			If This.ItemIndex > -1 Then
+				FText = This.Item(This.ItemIndex)
+			Else
+				FText = ""
+			End If
 		Else
 			#ifdef __USE_GTK__
 				FText = WStr(*gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))

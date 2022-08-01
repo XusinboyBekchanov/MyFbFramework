@@ -903,11 +903,11 @@ Namespace My.Sys.Forms
 						If (Style And (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS) Then
 							Style = Style Or (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)
 						End If
-						If (Style And (ATabStop(Abs_(FTabStop)) Or AGrouped(Abs_(FGrouped)))) <> (ATabStop(Abs_(FTabStop)) Or AGrouped(Abs_(FGrouped))) Then
-							Style = Style Or (ATabStop(Abs_(FTabStop)) Or AGrouped(Abs_(FGrouped)))
+						If (Style And (ATabStop(abs_(FTabStop)) Or AGrouped(abs_(FGrouped)))) <> (ATabStop(abs_(FTabStop)) Or AGrouped(abs_(FGrouped))) Then
+							Style = Style Or (ATabStop(abs_(FTabStop)) Or AGrouped(abs_(FGrouped)))
 						End If
-						If (ExStyle And AControlParent(Abs_(FControlParent))) <> AControlParent(Abs_(FControlParent)) Then
-							ExStyle = ExStyle Or AControlParent(Abs_(FControlParent))
+						If (ExStyle And AControlParent(abs_(FControlParent))) <> AControlParent(abs_(FControlParent)) Then
+							ExStyle = ExStyle Or AControlParent(abs_(FControlParent))
 						End If
 					End If
 					CreationControl = @This
@@ -922,9 +922,9 @@ Namespace My.Sys.Forms
 					nTop, _
 					nWidth, _
 					nHeight, _
-					HParent,_
-					Cast(HMENU, ControlID),_
-					Instance,_
+					HParent, _
+					Cast(HMENU, ControlID), _
+					Instance, _
 					@This) ' '
 				#endif
 			#elseif defined(__USE_JNI__)

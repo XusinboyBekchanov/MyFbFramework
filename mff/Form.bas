@@ -470,39 +470,39 @@ Namespace My.Sys.Forms
 		Select Case FFormStyle
 		Case 0 'fsNormal
 			#ifdef __USE_GTK__
-				If gtk_is_window(widget) Then
+				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_keep_above (GTK_WINDOW(widget), False)
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If (ExStyle And WS_EX_TOPMOST) = WS_EX_TOPMOST Then
 					ExStyle = ExStyle And Not WS_EX_TOPMOST
-					SetWindowPos Handle,HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
+					If FHandle Then SetWindowPos Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
 				End If
 			#endif
 		Case 1 'fsMDIForm
 			#ifdef __USE_GTK__
-				FClient = gtk_layout_new(null, null)
+				FClient = gtk_layout_new(NULL, NULL)
 				#ifdef __USE_GTK3__
 					g_signal_connect(FClient, "draw", G_CALLBACK(@Client_Draw), @This)
 				#else
 					g_signal_connect(FClient, "expose-event", G_CALLBACK(@Client_ExposeEvent), @This)
 				#endif
-				If gtk_is_widget(layoutwidget) Then gtk_container_add(GTK_CONTAINER(layoutwidget), FClient)
+				If GTK_IS_WIDGET(layoutwidget) Then gtk_container_add(GTK_CONTAINER(layoutwidget), FClient)
 			#endif
 		Case 2 'fsMDIChild
 			#ifdef __USE_WINAPI__
 				ChangeExStyle WS_EX_MDICHILD, True
-				If FHandle Then RecreateWnd
+				If FHandle <> 0 AndAlso Not DesignMode Then RecreateWnd
 			#endif
 		Case 3 'fsStayOnTop
 			#ifdef __USE_GTK__
-				If gtk_is_window(widget) Then
+				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_keep_above (GTK_WINDOW(widget), True)
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If (ExStyle And WS_EX_TOPMOST) <> WS_EX_TOPMOST Then
 					ExStyle = ExStyle Or WS_EX_TOPMOST
-					SetWindowPos Handle,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
+					If FHandle Then SetWindowPos Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOACTIVATE Or SWP_NOSIZE
 				End If
 			#endif
 		End Select
@@ -747,7 +747,8 @@ Namespace My.Sys.Forms
 						Dim FClientStruct As CLIENTCREATESTRUCT
 						FClientStruct.hWindowMenu = 0 'GetSubMenu(GetMenu(.FHandle), WINDOWMENU)
 						FClientStruct.idFirstChild = &H00FF
-						.FClient = CreateWindowEx(0, "MDICLIENT", "", WS_CHILD Or WS_VISIBLE Or WS_VSCROLL Or WS_HSCROLL Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, 0, 0, .FHandle, Cast(hmenu, &hcac), instance, @FClientStruct)
+						.FClient = CreateWindowEx(0, "MDICLIENT", "", WS_CHILD Or WS_VISIBLE Or WS_VSCROLL Or WS_HSCROLL Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, 100, 100, .FHandle, Cast(HMENU, &hcac), Instance, @FClientStruct)
+						?.FClient
 						ShowWindow(.FClient, SW_SHOW)
 					Case fsMDIChild
 						If .FParent Then
@@ -794,7 +795,7 @@ Namespace My.Sys.Forms
 				pApp->FActivated = False
 			Else
 				Dim As Form Ptr frm = user_data
-				If frm->OnDeactivateApp Then frm->OnDeactivateApp(*frm)
+				If frm->OnDeActivateApp Then frm->OnDeActivateApp(*frm)
 			End If
 			Return False
 		End Function
@@ -811,7 +812,7 @@ Namespace My.Sys.Forms
 	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
 		#ifdef __USE_GTK__
-			Select Case msg.event->Type
+			Select Case msg.Event->type
 			Case GDK_DELETE
 				If OnClose Then OnClose(This, Action)
 				Select Case Action
@@ -829,8 +830,8 @@ Namespace My.Sys.Forms
 						'#ifdef __USE_GTK3__
 						
 						'#else
-						If gtk_is_window(widget) Then
-							If gtk_window_get_modal (gtk_window(widget)) Then
+						If GTK_IS_WINDOW(widget) Then
+							If gtk_window_get_modal (GTK_WINDOW(widget)) Then
 								gtk_main_quit()
 							End If
 						End If
@@ -842,8 +843,8 @@ Namespace My.Sys.Forms
 					msg.Result = -1
 				End Select
 			Case GDK_FOCUS_CHANGE
-				If Cast(GdkEventFocus Ptr, msg.event)->in Then
-					If OnActivateApp OrElse OnDeactivateApp Then
+				If Cast(GdkEventFocus Ptr, msg.Event)->in Then
+					If OnActivateApp OrElse OnDeActivateApp Then
 						If pApp Then
 							pApp->FActivated = True
 							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
@@ -851,8 +852,8 @@ Namespace My.Sys.Forms
 					End If
 					If OnActivate Then OnActivate(This)
 				Else
-					If OnDeactivate Then OnDeactivate(This)
-					If OnActivateApp OrElse OnDeactivateApp Then
+					If OnDeActivate Then OnDeActivate(This)
+					If OnActivateApp OrElse OnDeActivateApp Then
 						If pApp Then
 							pApp->FDeactivated = True
 							g_timeout_add(500, Cast(GSourceFunc, @deactivate_cb), @This)
@@ -872,39 +873,39 @@ Namespace My.Sys.Forms
 				'不要为MDI子窗体处理此消息，因为它会干扰子窗体的最大化 - Do not process this message for MDI child forms, as it will interfere with the maximization of child forms
 				If (GetWindowLongPtr(Handle, GWL_EXSTYLE) And WS_EX_MDICHILD) = WS_EX_MDICHILD Then
 					'DefWindowProcW(Handle, Msg.Msg, Msg.wParam, Msg.lParam)
-					Dim FLY_pMinMaxInfo As MINMAXINFO Ptr = Cast(MINMAXINFO Ptr, Msg.lParam)
-					Msg.Result = 0
+					Dim FLY_pMinMaxInfo As MINMAXINFO Ptr = Cast(MINMAXINFO Ptr, msg.lParam)
+					msg.Result = 0
 				End If
 			Case WM_THEMECHANGED
 				If (g_darkModeSupported) Then
-					AllowDarkModeForWindow(Msg.hWnd, g_darkModeEnabled)
-					RefreshTitleBarThemeColor(Msg.hWnd)
-					UpdateWindow(Msg.hWnd)
+					AllowDarkModeForWindow(msg.hWnd, g_darkModeEnabled)
+					RefreshTitleBarThemeColor(msg.hWnd)
+					UpdateWindow(msg.hWnd)
 				End If
 			Case WM_UAHDRAWMENU
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					Dim As UAHMENU Ptr pUDM = Cast(UAHMENU Ptr, Msg.lParam)
-					Dim As ..RECT rc = Type( 0 )
+					Dim As UAHMENU Ptr pUDM = Cast(UAHMENU Ptr, msg.lParam)
+					Dim As ..Rect rc = Type( 0 )
 					
 					' Get the menubar rect
 					Dim As MENUBARINFO mbi = Type(  SizeOf(mbi) )
-					GetMenuBarInfo(Msg.hWnd, OBJID_MENU, 0, @mbi)
+					GetMenuBarInfo(msg.hWnd, OBJID_MENU, 0, @mbi)
 					
-					Dim As ..RECT rcWindow
-					GetWindowRect(Msg.hWnd, @rcWindow)
+					Dim As ..Rect rcWindow
+					GetWindowRect(msg.hWnd, @rcWindow)
 					
 					' the rcBar is offset by the window rect
 					rc = mbi.rcBar
-					OffsetRect(@rc, -rcWindow.left, -rcWindow.top)
+					OffsetRect(@rc, -rcWindow.Left, -rcWindow.Top)
 					
 					FillRect(pUDM->hdc, @rc, hbrBkgnd)
 					
-					Msg.Result = True
+					msg.Result = True
 					Return
 				End If
 			Case WM_UAHDRAWMENUITEM
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					Dim As UAHDRAWMENUITEM Ptr pUDMI = Cast(UAHDRAWMENUITEM Ptr, Msg.lParam)
+					Dim As UAHDRAWMENUITEM Ptr pUDMI = Cast(UAHDRAWMENUITEM Ptr, msg.lParam)
 					
 					Dim As HBRUSH Ptr pbrBackground = @hbrBkgnd
 					
@@ -958,49 +959,49 @@ Namespace My.Sys.Forms
 					End If
 					
 					If (g_menuTheme = 0) Then
-						g_menuTheme = OpenThemeData(Msg.hWnd, "Menu")
+						g_menuTheme = OpenThemeData(MSG.hwnd, "Menu")
 					End If
 					
 					'Dim As DTTOPTS opts = Type( SizeOf(opts), DTT_TEXTCOLOR, IIf(iTextStateID <> MPI_DISABLED, RGB(&h00, &h00, &h20), RGB(&h40, &h40, &h40) )
 					
 					FillRect(pUDMI->um.hdc, @pUDMI->dis.rcItem, *pbrBackground)
-					SetBKMode pUDMI->um.hdc, TRANSPARENT
+					SetBkMode pUDMI->um.hdc, TRANSPARENT
 					SetTextColor pUDMI->um.hdc, darkTextColor
-					SetBKColor pUDMI->um.hdc, darkBkColor
+					SetBkColor pUDMI->um.hdc, darkBkColor
 					DrawText pUDMI->um.hdc, menuString, mii.cch, @pUDMI->dis.rcItem, dwFlags
-					SetBKMode pUDMI->um.hdc, OPAQUE
+					SetBkMode pUDMI->um.hdc, OPAQUE
 					'DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, @pUDMI->dis.rcItem, @opts)
 					
-					Msg.Result = True
+					MSG.Result = True
 					Return
 				End If
 			Case WM_NCPAINT, WM_NCACTIVATE
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					DefWindowProc(Msg.hWnd, Msg.Msg, Msg.wParam, Msg.lParam)
+					DefWindowProc(MSG.hwnd, MSG.Msg, MSG.wParam, MSG.lParam)
 					Dim As MENUBARINFO mbi = Type( SizeOf(mbi) )
-					If (GetMenuBarInfo(Msg.hWnd, OBJID_MENU, 0, @mbi) = 0) Then
-						Msg.Result = True
+					If (GetMenuBarInfo(MSG.hwnd, OBJID_MENU, 0, @mbi) = 0) Then
+						MSG.Result = True
 						Return
 					End If
 					
-					Dim As RECT rcClient = Type( 0 )
-					GetClientRect(Msg.hWnd, @rcClient)
-					MapWindowPoints(Msg.hWnd, nullptr, Cast(Point Ptr, @rcClient), 2)
+					Dim As Rect rcClient = Type( 0 )
+					GetClientRect(MSG.hwnd, @rcClient)
+					MapWindowPoints(MSG.hwnd, nullptr, Cast(Point Ptr, @rcClient), 2)
 					
-					Dim As RECT rcWindow = Type( 0 )
-					GetWindowRect(Msg.hWnd, @rcWindow)
+					Dim As Rect rcWindow = Type( 0 )
+					GetWindowRect(MSG.hwnd, @rcWindow)
 					
-					OffsetRect(@rcClient, -rcWindow.left, -rcWindow.top)
+					OffsetRect(@rcClient, -rcWindow.Left, -rcWindow.Top)
 					
 					' the rcBar is offset by the window rect
-					Dim As RECT rcAnnoyingLine = rcClient
-					rcAnnoyingLine.bottom = rcAnnoyingLine.top
-					rcAnnoyingLine.top -= 1
+					Dim As Rect rcAnnoyingLine = rcClient
+					rcAnnoyingLine.Bottom = rcAnnoyingLine.Top
+					rcAnnoyingLine.Top -= 1
 					
-					Dim As HDC Dc = GetWindowDC(Msg.hWnd)
+					Dim As HDC Dc = GetWindowDC(MSG.hwnd)
 					FillRect(Dc, @rcAnnoyingLine, hbrBkgnd)
-					ReleaseDC(Msg.hWnd, Dc)
-					Msg.Result = True
+					ReleaseDC(MSG.hwnd, Dc)
+					MSG.Result = True
 					Return
 				End If
 			Case WM_PAINT, WM_ERASEBKGND
@@ -1033,27 +1034,27 @@ Namespace My.Sys.Forms
 '						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				End If
-				Dc = BeginPaint(Handle, @Ps)
+				Dc = BeginPaint(HANDLE, @Ps)
 				If DoubleBuffered Then
-					MemDC = CreateCompatibleDC(DC)
-					Bmp   = CreateCompatibleBitmap(DC,Ps.rcpaint.Right,Ps.rcpaint.Bottom)
-					SelectObject(MemDc,Bmp)
-					SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
-					FillRect memDc,@Ps.rcpaint, Brush.Handle
+					memDC = CreateCompatibleDC(Dc)
+					Bmp   = CreateCompatibleBitmap(Dc,Ps.rcPaint.Right,Ps.rcPaint.Bottom)
+					SelectObject(memDC,Bmp)
+					SendMessage(HANDLE, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
+					FillRect memDC,@Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
 					If OnPaint Then OnPaint(This, Canvas)
-					BitBlt(DC, 0, 0, Ps.rcpaint.Right, Ps.rcpaint.Bottom, MemDC, 0, 0, SRCCOPY)
+					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
-					DeleteDC(MemDC)
+					DeleteDC(memDC)
 				Else
-					FillRect Dc, @Ps.rcpaint, Brush.Handle
+					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
 					If OnPaint Then OnPaint(This, Canvas)
 				End If
-				EndPaint Handle,@Ps
-				msg.Result = 0
+				EndPaint HANDLE,@Ps
+				MSG.Result = 0
 				Canvas.HandleSetted = False
 				Return
 			Case WM_SIZE
@@ -1248,7 +1249,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.HideItems(Ctrl As Control Ptr)
 		#ifdef __USE_GTK__
-			If Not (CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget)))) Then
+			If Not (CInt(Ctrl->FVisible) OrElse CInt(GTK_IS_NOTEBOOK(gtk_widget_get_parent(Ctrl->widget)))) Then
 				If Ctrl->box Then gtk_widget_hide(Ctrl->box)
 				If Ctrl->scrolledwidget Then gtk_widget_hide(Ctrl->scrolledwidget)
 				If Ctrl->eventboxwidget Then gtk_widget_hide(Ctrl->eventboxwidget)
@@ -1273,43 +1274,43 @@ Namespace My.Sys.Forms
 					FFormCreated = True
 					If FStartPosition <> 0 Then StartPosition = FStartPosition
 					If Icon.ResName <> "" Then
-						If gtk_is_window(widget) Then
+						If GTK_IS_WINDOW(widget) Then
 							Dim As GList Ptr list1 = NULL
 							Dim As GError Ptr gerr
 							Dim As GdkPixbuf Ptr gtkicon
 							If Icon.ResName <> "" Then
-								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUTF8(Icon.ResName), 16, 16, @gerr)
+								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUtf8(Icon.ResName), 16, 16, @gerr)
 								If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
-								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUTF8(Icon.ResName), 48, 48, @gerr)
+								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUtf8(Icon.ResName), 48, 48, @gerr)
 								If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
-								gtk_window_set_icon_list(GTK_WINDOW(Widget), list1)
+								gtk_window_set_icon_list(GTK_WINDOW(widget), list1)
 							End If
 						End If
 					End If
-					If Gtk_Is_Window(Widget) Then
-						Select Case FBorderStyle
-						Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
-							Dim As GdkGeometry hints
-							hints.base_width = FWidth
-							hints.base_height = FHeight
-							hints.min_width = FWidth
-							hints.min_height = FHeight
-							hints.max_width = FWidth
-							hints.max_height = FHeight
-							hints.width_inc = 1
-							hints.height_inc = 1
-							#ifndef __USE_GTK4__
-								gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
-							#endif
-						Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
-							
-						End Select
+					If GTK_IS_WINDOW(widget) Then
+'						Select Case FBorderStyle
+'						Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
+'							Dim As GdkGeometry hints
+'							hints.base_width = FWidth
+'							hints.base_height = FHeight
+'							hints.min_width = FWidth
+'							hints.min_height = FHeight
+'							hints.max_width = FWidth
+'							hints.max_height = FHeight
+'							hints.width_inc = 1
+'							hints.height_inc = 1
+'							#ifndef __USE_GTK4__
+'								gtk_window_set_geometry_hints(GTK_WINDOW(widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+'							#endif
+'						Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
+'							
+'						End Select
 						If Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
 							Dim As GdkGeometry hints
 							#ifdef __USE_GTK4__
 								Dim As GdkRectangle workarea
 								gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-								gtk_window_move(gtk_window(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+								gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 							#endif
 							If Constraints.Width <> 0 Then
 								hints.base_width = Constraints.Width
@@ -1320,7 +1321,7 @@ Namespace My.Sys.Forms
 								hints.base_width = FWidth
 								hints.min_width = 0
 								#ifdef __USE_GTK4__
-									hints.max_width = workarea.width
+									hints.max_width = workarea.Width
 								#else
 									hints.max_width = gdk_screen_get_width(gtk_widget_get_screen(widget))
 								#endif
@@ -1342,24 +1343,24 @@ Namespace My.Sys.Forms
 								hints.height_inc = 1
 							End If
 							#ifndef __USE_GTK4__
-								gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+								gtk_window_set_geometry_hints(GTK_WINDOW(widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
 							#endif
 						End If
 						Select Case FBorderStyle
 						Case FormBorderStyle.None
-							gtk_window_set_resizable(gtk_window(widget), False)
+							gtk_window_set_resizable(GTK_WINDOW(widget), False)
 						Case FormBorderStyle.SizableToolWindow
-							gtk_window_set_resizable(gtk_window(widget), True)
+							gtk_window_set_resizable(GTK_WINDOW(widget), True)
 						Case FormBorderStyle.FixedToolWindow
-							gtk_window_set_resizable(gtk_window(widget), False)
+							gtk_window_set_resizable(GTK_WINDOW(widget), False)
 						Case FormBorderStyle.Sizable
-							gtk_window_set_resizable(gtk_window(widget), True)
+							gtk_window_set_resizable(GTK_WINDOW(widget), True)
 						Case FormBorderStyle.Fixed3D
-							gtk_window_set_resizable(gtk_window(widget), False)
+							gtk_window_set_resizable(GTK_WINDOW(widget), False)
 						Case FormBorderStyle.FixedSingle
-							gtk_window_set_resizable(gtk_window(widget), False)
+							gtk_window_set_resizable(GTK_WINDOW(widget), False)
 						Case FormBorderStyle.FixedDialog
-							gtk_window_set_resizable(gtk_window(widget), False)
+							gtk_window_set_resizable(GTK_WINDOW(widget), False)
 						End Select
 					End If
 				Else
@@ -1401,8 +1402,8 @@ Namespace My.Sys.Forms
 	Private Sub Form.Show(ByRef OwnerForm As Form)
 		This.FParent = @OwnerForm
 		#ifdef __USE_GTK__
-			If gtk_is_window(widget) AndAlso gtk_is_window(OwnerForm.Widget) Then
-				gtk_window_set_transient_for(gtk_window(widget), gtk_window(OwnerForm.Widget))
+			If GTK_IS_WINDOW(widget) AndAlso GTK_IS_WINDOW(OwnerForm.widget) Then
+				gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(OwnerForm.widget))
 			End If
 		#endif
 		This.Show
@@ -1415,12 +1416,12 @@ Namespace My.Sys.Forms
 	
 	Private Function Form.ShowModal() As Integer
 		#ifdef __USE_GTK__
-			If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(gtk_window(widget), gtk_window(pApp->ActiveForm->Widget))
-			gtk_window_set_modal(gtk_window(widget), True)
+			If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(pApp->ActiveForm->widget))
+			gtk_window_set_modal(GTK_WINDOW(widget), True)
 			This.Show
 			'If OnShow Then OnShow(This)
 			gtk_main()
-			gtk_window_set_modal(gtk_window(widget), False)
+			gtk_window_set_modal(GTK_WINDOW(widget), False)
 		#elseif defined(__USE_WINAPI__)
 			Dim As Integer i
 			Dim As Any Ptr Mtx
@@ -1443,14 +1444,14 @@ Namespace My.Sys.Forms
 				TranslateAndDispatch = True
 				If Accelerator Then TranslateAndDispatch = TranslateAccelerator(FHandle, Accelerator, @msg) = 0
 				If TranslateAndDispatch Then
-					Select Case Msg.message
+					Select Case msg.message
 					Case WM_KEYDOWN
-						Select Case Msg.wParam
+						Select Case msg.wParam
 						Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
 							If Not GetFocus() = Handle Then
 								SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
 								TranslateAndDispatch = False
-							ElseIf IsDialogMessage(Handle, @Msg) Then
+							ElseIf IsDialogMessage(Handle, @msg) Then
 								TranslateAndDispatch = False
 							End If
 						End Select
@@ -1474,9 +1475,9 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.Hide
 		#ifdef __USE_GTK__
-			If Widget Then
+			If widget Then
 				#ifdef __USE_GTK3__
-					If gtk_widget_is_visible(Widget) Then
+					If gtk_widget_is_visible(widget) Then
 				#else
 					If gtk_widget_get_visible(Widget) Then
 				#endif
