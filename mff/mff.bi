@@ -85,6 +85,7 @@
 #include once "RadioButton.bi"
 #include once "ReBar.bi"
 #include once "RichTextBox.bi"
+#include once "ScrollableWindow.bi"
 #include once "ScrollBarControl.bi"
 #include once "HScrollBar.bi"
 #include once "VScrollBar.bi"
@@ -159,6 +160,7 @@ Using My.Sys.Forms
 		Case "richtextbox": Ctrl = New_( RichTextBox)
 		Case "tabcontrol": Ctrl = New_( TabControl)
 		Case "tabpage": Ctrl = New_( TabPage)
+		Case "scrollablewindow": Ctrl = New_(ScrollableWindow)
 		Case "scrollbarcontrol": Ctrl = New_( ScrollBarControl)
 		Case "hscrollbar": Ctrl = New_( HScrollBar)
 		Case "vscrollbar": Ctrl = New_( VScrollBar)
@@ -194,7 +196,7 @@ Using My.Sys.Forms
 		Case "timercomponent": Cpnt = New_( TimerComponent)
 		Case "tooltips": Cpnt = New_( ToolTips)
 		Case "mainmenu": Cpnt = New_( MainMenu)
-		Case "popupmenu": Cpnt = New_( PopUpMenu)
+		Case "popupmenu": Cpnt = New_( PopupMenu)
 		Case "colordialog": Cpnt = New_( ColorDialog)
 		Case "folderbrowserdialog": Cpnt = New_( FolderBrowserDialog)
 		Case "fontdialog": Cpnt = New_( FontDialog)
@@ -269,6 +271,7 @@ Using My.Sys.Forms
 		Case "richtextbox": Delete_( Cast(RichTextBox Ptr, Ctrl))
 		Case "tabcontrol": Delete_( Cast(TabControl Ptr, Ctrl))
 		Case "tabpage": Delete_( Cast(TabPage Ptr, Ctrl))
+		Case "scrollablewindow": Delete_( Cast(ScrollableWindow Ptr, Ctrl))
 		Case "scrollbarcontrol": Delete_( Cast(ScrollBarControl Ptr, Ctrl))
 		Case "hscrollbar": Delete_( Cast(HScrollBar Ptr, Ctrl))
 		Case "vscrollbar": Delete_( Cast(VScrollBar Ptr, Ctrl))
@@ -286,7 +289,7 @@ Using My.Sys.Forms
 		Case "imagelist": Delete_( Cast(ImageList Ptr, Ctrl))
 		Case "timercomponent": Delete_( Cast(TimerComponent Ptr, Ctrl))
 		Case "mainmenu": Delete_( Cast(MainMenu Ptr, Ctrl))
-		Case "popupmenu": Delete_( Cast(PopUpMenu Ptr, Ctrl))
+		Case "popupmenu": Delete_( Cast(PopupMenu Ptr, Ctrl))
 		Case "folderbrowserdialog": Delete_( Cast(FolderBrowserDialog Ptr, Ctrl))
 		Case "colordialog": Delete_( Cast(ColorDialog Ptr, Ctrl))
 		Case "fontdialog": Delete_( Cast(FontDialog Ptr, Ctrl))
