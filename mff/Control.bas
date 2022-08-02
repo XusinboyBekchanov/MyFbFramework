@@ -914,18 +914,32 @@ Namespace My.Sys.Forms
 					'RegisterClass ClassName, ClassAncestor
 					Dim As DWORD dExStyle = FExStyle
 					Dim As DWORD dStyle = FStyle
-					FHandle = CreateWindowExW(dExStyle, _
-					FClassName, _
-					FText.vptr, _
-					dStyle, _
-					nLeft, _
-					nTop, _
-					nWidth, _
-					nHeight, _
-					HParent, _
-					Cast(HMENU, ControlID), _
-					Instance, _
-					@This) ' '
+'					If ExStyleExists(WS_EX_MDICHILD) Then
+'						Dim As MDICREATESTRUCT mdicreate
+'						mdicreate.szClass = FClassName
+'						mdicreate.szTitle = FText.vptr
+'						mdicreate.hOwner  = GetModuleHandle(0)
+'						mdicreate.x       = nLeft
+'						mdicreate.y       = nTop
+'						mdicreate.cx      = nWidth
+'						mdicreate.cy      = nHeight
+'						mdicreate.style   = dStyle
+'						mdicreate.lParam  = Cast(LPARAM, @This)
+'						FHandle = Cast(HWND, SendMessage(HParent, WM_MDICREATE, 0, Cast(LPARAM, @mdicreate)))
+'					Else
+						FHandle = CreateWindowExW(dExStyle, _
+						FClassName, _
+						FText.vptr, _
+						dStyle, _
+						nLeft, _
+						nTop, _
+						nWidth, _
+						nHeight, _
+						HParent, _
+						Cast(HMENU, ControlID), _
+						Instance, _
+						@This) ' '
+					'End If
 				#endif
 			#elseif defined(__USE_JNI__)
 				If pApp = 0 OrElse env = 0 OrElse pApp->Instance = 0 Then Exit Sub
@@ -1110,33 +1124,33 @@ Namespace My.Sys.Forms
 			Static bShift As Boolean, bCtrl As Boolean
 			If OnMessage Then OnMessage(This, Message)
 			#ifdef __USE_GTK__
-				Dim As GdkEvent Ptr e = Message.event
-				Select Case Message.event->Type
+				Dim As GdkEvent Ptr e = Message.Event
+				Select Case Message.Event->type
 				Case GDK_NOTHING
 				Case GDK_BUTTON_PRESS
 					'Message.Result = True
 					DownButton = e->button.button - 1
 					#ifdef __USE_GTK4__
-						If gtk_widget_get_window(widget) = e->Motion.window Then
+						If gtk_widget_get_window(widget) = e->motion.window Then
 							If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#else
-						If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+						If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
 							If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#endif
 				Case GDK_BUTTON_RELEASE
 					'Message.Result = True
 					DownButton = -1
-					If gtk_is_button(widget) = 0 Then
+					If GTK_IS_BUTTON(widget) = 0 Then
 						If OnClick Then OnClick(This)
 					End If
 					#ifdef __USE_GTK4__
-						If gtk_widget_get_window(widget) = e->Motion.window Then
+						If gtk_widget_get_window(widget) = e->motion.window Then
 							If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#else
-						If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+						If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
 							If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#endif
@@ -1161,26 +1175,26 @@ Namespace My.Sys.Forms
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
 					#ifdef __USE_GTK4__
-					If gtk_widget_get_window(widget) = e->Motion.window Then
+					If gtk_widget_get_window(widget) = e->motion.window Then
 					#else
-					If gtk_widget_get_window(widget) = e->Motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(gtk_layout(layoutwidget)) = e->Motion.window) Then
+					If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
 					#endif
-						If OnMouseMove Then OnMouseMove(This, DownButton, e->Motion.x, e->Motion.y, e->Motion.state)
+						If OnMouseMove Then OnMouseMove(This, DownButton, e->motion.x, e->motion.y, e->motion.state)
 						hover_timer_id = 0
 						If OnMouseHover Then
 							Dim As Boolean Ptr pBoolean = New Boolean
-							MouseHoverMessage = Type(@This, e->Motion.x, e->Motion.y, e->Motion.state, pBoolean, widget)
+							MouseHoverMessage = Type(@This, e->motion.x, e->motion.y, e->motion.state, pBoolean, widget)
 							hover_timer_id = g_timeout_add(1000, Cast(GSourceFunc, @hover_cb), pBoolean)
 							Message.Result = True
 						End If
 					End If
 				Case GDK_KEY_PRESS
 					'Message.Result = True
-					If OnKeyDown Then OnKeyDown(This, e->Key.keyval, e->Key.state)
-					If CInt(OnKeyPress) AndAlso CInt(Not Message.Result) Then OnKeyPress(This, Asc(*e->Key.string))
+					If OnKeyDown Then OnKeyDown(This, e->key.keyval, e->key.state)
+					If CInt(OnKeyPress) AndAlso CInt(Not Message.Result) Then OnKeyPress(This, Asc(*e->key.string))
 				Case GDK_KEY_RELEASE
 					'Message.Result = True
-					If OnKeyUp Then OnKeyUp(This, e->Key.keyval, e->Key.state)
+					If OnKeyUp Then OnKeyUp(This, e->key.keyval, e->key.state)
 				Case GDK_ENTER_NOTIFY
 					If OnMouseEnter Then OnMouseEnter(This)
 				Case GDK_LEAVE_NOTIFY
@@ -1244,12 +1258,12 @@ Namespace My.Sys.Forms
 					'RequestAlign
 				Case GDK_SCROLL
 					#ifdef __USE_GTK3__
-						If OnMouseWheel Then OnMouseWheel(This, e->Scroll.delta_x, e->Scroll.x, e->Scroll.y, e->Scroll.state)
+						If OnMouseWheel Then OnMouseWheel(This, e->scroll.delta_x, e->scroll.x, e->scroll.y, e->scroll.state)
 					#else
-						If e->Scroll.direction = GDK_SCROLL_UP Then
-							If OnMouseWheel Then OnMouseWheel(This, -1, e->Scroll.x, e->Scroll.y, e->Scroll.state)
+						If e->scroll.direction = GDK_SCROLL_UP Then
+							If OnMouseWheel Then OnMouseWheel(This, -1, e->scroll.x, e->scroll.y, e->scroll.state)
 						Else
-							If OnMouseWheel Then OnMouseWheel(This, 1, e->Scroll.x, e->Scroll.y, e->Scroll.state)
+							If OnMouseWheel Then OnMouseWheel(This, 1, e->scroll.x, e->scroll.y, e->scroll.state)
 						End If
 					#endif
 				Case GDK_FOCUS_CHANGE
@@ -1319,30 +1333,30 @@ Namespace My.Sys.Forms
 						ReleaseDC FHandle, DC
 					End If
 				Case WM_SETCURSOR
-					If CInt(This.Cursor.Handle <> 0) AndAlso CInt(LoWord(message.lParam) = HTCLIENT) AndAlso CInt(Not FDesignMode) Then
-						Message.Result = Cast(LResult, SetCursor(This.Cursor.Handle))
+					If CInt(This.Cursor.Handle <> 0) AndAlso CInt(LoWord(Message.lParam) = HTCLIENT) AndAlso CInt(Not FDesignMode) Then
+						Message.Result = Cast(LRESULT, SetCursor(This.Cursor.Handle))
 					End If
 				Case WM_HSCROLL
-					If Not Message.LParam = Null Then
-						SendMessage Cast(HWND, Message.LParam), CM_HSCROLL, Cast(WParam, Message.WParam), Cast(LParam, Message.LParam)
+					If Not Message.lParam = NULL Then
+						SendMessage Cast(HWND, Message.lParam), CM_HSCROLL, Cast(WPARAM, Message.wParam), Cast(LPARAM, Message.lParam)
 					Else
 						If OnScroll Then OnScroll(This)
 					End If
 				Case WM_VSCROLL
-					If Not Message.LParam = Null Then
-						SendMessage Cast(HWND, Message.LParam), CM_VSCROLL, Cast(WParam, Message.WParam), Cast(LParam, Message.LParam)
+					If Not Message.lParam = NULL Then
+						SendMessage Cast(HWND, Message.lParam), CM_VSCROLL, Cast(WPARAM, Message.wParam), Cast(LPARAM, Message.lParam)
 					Else
 						If OnScroll Then OnScroll(This)
 					End If
 				Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC, WM_CTLCOLORBTN
 					Dim As Control Ptr Child
 					If Message.Msg = WM_CTLCOLORSTATIC Then
-						If (GetWindowLong(CPtr(HWND, Message.LParam), GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
+						If (GetWindowLong(CPtr(HWND, Message.lParam), GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
 							Exit Select
 						End If
 					End If
 					
-					Child = GetProp(CPtr(HWND, Message.LParam), "MFFControl")
+					Child = GetProp(CPtr(HWND, Message.lParam), "MFFControl")
 					If Child Then
 						With *Child
 							If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor) Then
@@ -1356,7 +1370,7 @@ Namespace My.Sys.Forms
 									Message.Result = Cast(LRESULT, .Brush.Handle)
 								End If
 							Else
-								SendMessage(CPtr(HWND, Message.LParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
+								SendMessage(CPtr(HWND, Message.lParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
 '								If .Brush.Handle = hbrBkgnd Then
 '									.Brush.Color = .FBackColor
 '									SetWindowTheme(.FHandle, NULL, NULL)
@@ -1366,7 +1380,7 @@ Namespace My.Sys.Forms
 							Return
 						End With
 					Else
-						Dim As HDC Dc
+						Dim As HDC DC
 						DC = Cast(HDC, Message.wParam)
 						'Child = Cast(Control Ptr, GetWindowLongPtr(Message.hWnd, GWLP_USERDATA))
 						'If Child Then
@@ -1378,10 +1392,10 @@ Namespace My.Sys.Forms
 									Brush.Handle = hbrBkgnd
 								End If
 							Else
-								SetBKMode(DC, TRANSPARENT)
-								SetBKColor(DC, BackColor)
+								SetBkMode(DC, TRANSPARENT)
+								SetBkColor(DC, BackColor)
 								SetTextColor(DC, Font.Color)
-								SetBKMode(DC, OPAQUE)
+								SetBkMode(DC, OPAQUE)
 '								If Brush.Handle = hbrBkgnd Then
 '									Brush.Color = FBackColor
 '									SetWindowTheme(FHandle, NULL, NULL)
@@ -1396,7 +1410,7 @@ Namespace My.Sys.Forms
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
 				Case WM_DPICHANGED
-					Dim As ..RECT Ptr rc = Cast(RECT Ptr, Message.lParam)
+					Dim As ..Rect Ptr rc = Cast(Rect Ptr, Message.lParam)
 					Move rc->Left, rc->Top, rc->Right - rc->Left, rc->Bottom - rc->Top
 					For i As Integer = 0 To ControlCount - 1
 						'Controls[i]->
@@ -1415,7 +1429,7 @@ Namespace My.Sys.Forms
 					If Controls Then
 						RequestAlign
 					End If
-					If OnReSize Then OnReSize(This, This.Width, This.Height)
+					If OnResize Then OnResize(This, This.Width, This.Height)
 				Case WM_WINDOWPOSCHANGING
 					If Constraints.Left <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).x  = Constraints.Left
 					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top
@@ -1449,10 +1463,10 @@ Namespace My.Sys.Forms
 					If ContextMenu Then
 						If ContextMenu->Handle Then
 							Dim As ..Point P
-							P.x = Message.lParamLo
-							P.y = Message.lParamHi
+							P.X = Message.lParamLo
+							P.Y = Message.lParamHi
 							.ClientToScreen(This.Handle, @P)
-							ContextMenu->Popup(P.x, P.y)
+							ContextMenu->Popup(P.X, P.Y)
 						End If
 					End If
 				Case WM_MEASUREITEM
@@ -1499,7 +1513,7 @@ Namespace My.Sys.Forms
 						event_.dwFlags = TME_LEAVE Or TME_HOVER
 						event_.hwndTrack = FHandle
 						'event_.dwHoverTime = 10
-						TrackMouseEvent(@event_)
+						TRACKMOUSEEVENT(@event_)
 						This.Tracked = True
 					End If
 				Case WM_MOUSEWHEEL
@@ -1608,15 +1622,15 @@ Namespace My.Sys.Forms
 					If Brush.Handle = hbrBkgnd Then Brush.Handle = 0
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
 					If OnDestroy Then OnDestroy(This)
-					'Handle = 0
+					Handle = 0
 				End Select
 			#endif
 		End Sub
 		
 		Private Sub Control.ProcessMessageAfter(ByRef Message As Message)
 			#ifdef __USE_GTK__
-				Dim As GdkEvent Ptr e = Message.event
-				Select Case Message.event->Type
+				Dim As GdkEvent Ptr e = Message.Event
+				Select Case Message.Event->type
 				Case GDK_CONFIGURE
 					
 				Case GDK_WINDOW_STATE
@@ -1946,13 +1960,13 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr Ctrl = user_data
 				If Ctrl Then
 					If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 OrElse Ctrl->Constraints.Width <> 0 OrElse Ctrl->Constraints.Height <> 0 Then
-						If gtk_is_window(widget) Then
+						If GTK_IS_WINDOW(widget) Then
 							'g_signal_handlers_block_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), user_data)
 							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
 								Dim As GdkRectangle rect
 								gdk_window_get_frame_extents(gtk_widget_get_window(widget), @rect)
 								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> rect.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> rect.y Then
-									gtk_window_move(gtk_window(widget), _
+									gtk_window_move(GTK_WINDOW(widget), _
 										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, rect.x), _
 										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, rect.y))
 								End If
@@ -2068,15 +2082,15 @@ Namespace My.Sys.Forms
 				Dim As Integer Result
 				Dim As WNDCLASSEX Wc
 				Dim As Any Ptr ClassProc
-				Dim Proc As Function(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT = WndProcAddr
+				Dim PROC As Function(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT = WndProcAddr
 				ZeroMemory(@Wc, SizeOf(WNDCLASSEX))
-				Wc.cbsize = SizeOf(WNDCLASSEX)
+				Wc.cbSize = SizeOf(WNDCLASSEX)
 				If wClassAncestor <> "" Then
 					If GetClassInfoEx(0, wClassAncestor, @Wc) <> 0 Then
 						ClassProc = Wc.lpfnWndProc
 						Wc.lpszClassName = @wClassName
 						If wClassName <> "WebBrowser" Then
-							Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @SuperWndProc, Proc)
+							Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @SuperWndProc, PROC)
 							Wc.cbWndExtra += 4
 						End If
 						Wc.hInstance     = Instance
@@ -2089,7 +2103,7 @@ Namespace My.Sys.Forms
 						ClassProc = GetClassProc(wClassAncestor)
 						'If Cursor AndAlso Cursor->Handle Then Wc.hCursor = Cursor->Handle
 						Wc.lpszClassName = @wClassName
-						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @DefWndProc, Proc)
+						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @DefWndProc, PROC)
 						Result = .RegisterClassEx(@Wc)
 						If Result Then
 							StoreClass wClassName, wClassAncestor, ClassProc
@@ -2100,8 +2114,8 @@ Namespace My.Sys.Forms
 				Else
 					If GetClassInfoEx(GetModuleHandle(NULL), wClassName, @Wc) = 0 Then
 						Wc.lpszClassName = @wClassName
-						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @DefWndProc, Proc)
-						Wc.Style = CS_DBLCLKS Or CS_HREDRAW Or CS_VREDRAW
+						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @DefWndProc, PROC)
+						Wc.style = CS_DBLCLKS Or CS_HREDRAW Or CS_VREDRAW
 						Wc.hInstance     = Instance
 						Wc.hCursor       = LoadCursor(NULL, IDC_ARROW)
 						Wc.hbrBackground = Cast(HBRUSH, 0)
@@ -2285,7 +2299,7 @@ Namespace My.Sys.Forms
 			Next i
 			#ifdef __USE_GTK__
 				If FClient Then
-					gtk_layout_move(gtk_layout(layoutwidget), FClient, lLeft, tTop)
+					gtk_layout_move(GTK_LAYOUT(layoutwidget), FClient, lLeft, tTop)
 					gtk_widget_set_size_request(FClient, Max(0, rLeft - lLeft), Max(0, bTop - tTop))
 				End If
 			#endif
@@ -2316,7 +2330,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.Repaint
 			#ifdef __USE_GTK__
-				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
+				If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE

@@ -117,18 +117,18 @@ Namespace My.Sys.Forms
 		Private Property Form.ParentWidget(Value As GtkWidget Ptr)
 			If Not GTK_IS_BOX(widget) Then
 				g_object_ref(box)
-				gtk_container_remove(gtk_container(WindowWidget), box)
-				Widget = box
-				gtk_widget_set_size_request(Widget, FWidth, FHeight)
+				gtk_container_remove(GTK_CONTAINER(WindowWidget), box)
+				widget = box
+				gtk_widget_set_size_request(widget, FWidth, FHeight)
 				#ifdef __USE_GTK3__
 					HeaderBarWidget = gtk_header_bar_new()
 					gtk_widget_set_sensitive(HeaderBarWidget, False)
-					gtk_header_bar_set_has_subtitle(gtk_header_bar(HeaderBarWidget), False)
+					gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(HeaderBarWidget), False)
 					'gtk_widget_set_size_request(widget, FW, 1)
-					gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(FText))
+					gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBarWidget), ToUtf8(FText))
 					'gtk_header_bar_set_show_close_button(gtk_header_bar(HeaderBarWidget), True)
 				#else
-					HeaderBarWidget = gtk_label_new(ToUTF8(FText))
+					HeaderBarWidget = gtk_label_new(ToUtf8(FText))
 					'Dim As GdkColor color1, color2
 					'gdk_color_parse ("black", @color1)
 					'gtk_widget_modify_bg(HeaderBarWidget, GTK_STATE_NORMAL, @color1)
@@ -136,9 +136,9 @@ Namespace My.Sys.Forms
 					'gtk_widget_modify_fg(HeaderBarWidget, GTK_STATE_NORMAL, @color2)
 				#endif
 				#ifdef __USE_GTK4__
-					gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget)
+					gtk_box_pack_start(GTK_BOX(widget), HeaderBarWidget)
 				#else
-					gtk_box_pack_start(Gtk_Box(widget), HeaderBarWidget, False, False, 0)
+					gtk_box_pack_start(GTK_BOX(widget), HeaderBarWidget, False, False, 0)
 				#endif
 				Base.ParentWidget = Value
 				BorderStyle = BorderStyle
@@ -154,14 +154,14 @@ Namespace My.Sys.Forms
 		FDefaultButton = Value
 		#ifdef __USE_GTK__
 			If Value <> 0 Then
-				gtk_widget_set_can_default(Value->Widget, True)
-				If gtk_is_window(widget) Then
-					gtk_window_set_default(gtk_window(Widget), Value->Widget)
+				gtk_widget_set_can_default(Value->widget, True)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_default(GTK_WINDOW(widget), Value->widget)
 				End If
 				'gtk_widget_grab_default(Value->Widget)
 			Else
-				If gtk_is_window(widget) Then
-					gtk_window_set_default(gtk_window(Widget), NULL)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_default(GTK_WINDOW(widget), NULL)
 				End If
 			End If
 		#endif
@@ -190,7 +190,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_WINAPI__
 					ChangeExStyle WS_EX_APPWINDOW, Value
 				#elseif defined(__USE_GTK__)
-					If GTK_IS_BOX(Widget) Then Exit Property
+					If GTK_IS_BOX(widget) Then Exit Property
 				#endif
 				If FMainForm Then
 					pApp->MainForm = @This
@@ -217,28 +217,28 @@ Namespace My.Sys.Forms
 	Private Property Form.StartPosition(Value As Integer)
 		FStartPosition = Value
 		#ifdef __USE_GTK__
-			If gtk_is_window(widget) Then
+			If GTK_IS_WINDOW(widget) Then
 				Select Case FStartPosition
-				Case 0: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_NONE) ' Manual
+				Case 0: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_NONE) ' Manual
 				Case 1, 4 ' CenterScreen, CenterParent
 					If FStartPosition = 4 AndAlso FParent Then ' CenterParent
-						gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER_ON_PARENT)
+						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER_ON_PARENT)
 						With *Cast(Control Ptr, FParent)
-							gtk_window_move(gtk_window(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+							gtk_window_move(GTK_WINDOW(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
 						End With
 					Else ' CenterScreen
-						gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
+						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
 						#ifdef __USE_GTK4__
 							Dim As GdkRectangle workarea
 							gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-							gtk_window_move(gtk_window(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+							gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 						#else
-							gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+							gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 						#endif
 					End If
-				Case 2: gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
+				Case 2: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
 				Case 3: 'gtk_window_set_default_size(gtk_window(widget), -1, -1) ' DefaultBounds
-					gtk_window_resize(gtk_window(widget), 1000, 600)
+					gtk_window_resize(GTK_WINDOW(widget), 1000, 600)
 				End Select
 			End If
 		#endif
@@ -254,11 +254,11 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK3__
 				gtk_widget_set_opacity(widget, Value / 255.0)
 			#else
-				If gtk_is_window(widget) Then
+				If GTK_IS_WINDOW(widget) Then
 					#ifdef __USE_GTK4__
-						gtk_widget_set_opacity(gtk_widget(widget), Value / 255.0)
+						gtk_widget_set_opacity(GTK_WIDGET(widget), Value / 255.0)
 					#else
-						gtk_window_set_opacity(gtk_window(widget), Value / 255.0)
+						gtk_window_set_opacity(GTK_WINDOW(widget), Value / 255.0)
 					#endif
 				End If
 			#endif
@@ -322,9 +322,9 @@ Namespace My.Sys.Forms
 				hints.min_height = FHeight
 				hints.width_inc = 1
 				hints.height_inc = 1
-				If Gtk_Is_Window(Widget) Then
+				If GTK_IS_WINDOW(widget) Then
 					#ifndef __USE_GTK4__
-						gtk_window_set_geometry_hints(gtk_window(Widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+						gtk_window_set_geometry_hints(GTK_WINDOW(widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
 					#endif
 				End If
 			Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
@@ -332,31 +332,31 @@ Namespace My.Sys.Forms
 			End Select
 			Select Case Value
 			Case FormBorderStyle.None
-				If Gtk_Is_Window(Widget) Then
-					gtk_window_set_decorated(gtk_window(widget), False)
-					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_SPLASHSCREEN)
-					gtk_window_set_resizable(gtk_window(widget), False)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_decorated(GTK_WINDOW(widget), False)
+					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_SPLASHSCREEN)
+					gtk_window_set_resizable(GTK_WINDOW(widget), False)
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, False)
 				End If
 			Case FormBorderStyle.SizableToolWindow
-				If Gtk_Is_Window(Widget) Then
-					gtk_window_set_decorated(gtk_window(widget), True)
-					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DOCK)
-					gtk_window_set_resizable(gtk_window(widget), True)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_decorated(GTK_WINDOW(widget), True)
+					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DOCK)
+					gtk_window_set_resizable(GTK_WINDOW(widget), True)
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.FixedToolWindow
-				If Gtk_Is_Window(Widget) Then
-					gtk_window_set_decorated(gtk_window(widget), True)
-					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DOCK)
-					gtk_window_set_resizable(gtk_window(widget), False)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_decorated(GTK_WINDOW(widget), True)
+					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DOCK)
+					gtk_window_set_resizable(GTK_WINDOW(widget), False)
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.Sizable
-				If Gtk_Is_Window(Widget) Then
+				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(gtk_window(widget), True)
 					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_NORMAL)
 					gtk_window_set_resizable(gtk_window(widget), True)
@@ -364,7 +364,7 @@ Namespace My.Sys.Forms
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.Fixed3D
-				If Gtk_Is_Window(Widget) Then
+				If Gtk_Is_Window(widget) Then
 					gtk_window_set_decorated(gtk_window(widget), True)
 					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
 					gtk_window_set_resizable(gtk_window(widget), False)
@@ -372,7 +372,7 @@ Namespace My.Sys.Forms
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.FixedSingle
-				If Gtk_Is_Window(Widget) Then
+				If Gtk_Is_Window(widget) Then
 					gtk_window_set_decorated(gtk_window(widget), True)
 					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
 					gtk_window_set_resizable(gtk_window(widget), False)
@@ -380,7 +380,7 @@ Namespace My.Sys.Forms
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.FixedDialog
-				If Gtk_Is_Window(Widget) Then
+				If Gtk_Is_Window(widget) Then
 					gtk_window_set_decorated(gtk_window(widget), True)
 					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
 					gtk_window_set_resizable(gtk_window(widget), False)
@@ -441,7 +441,7 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Private Function Form.Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
-			If gtk_is_layout(widget) Then
+			If GTK_IS_LAYOUT(widget) Then
 				#ifndef __USE_GTK2__
 					Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 				#else
@@ -537,7 +537,7 @@ Namespace My.Sys.Forms
 	
 	Property Form.WindowState As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_window(widget) Then
+			If GTK_IS_WINDOW(widget) Then
 				If gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_ICONIFIED = GDK_WINDOW_STATE_ICONIFIED Then
 					FWindowState = WindowStates.wsMinimized
 				ElseIf gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_MAXIMIZED = GDK_WINDOW_STATE_MAXIMIZED Then
@@ -563,7 +563,7 @@ Namespace My.Sys.Forms
 	Private Property Form.WindowState(Value As Integer)
 		FWindowState = Value
 		#ifdef __USE_GTK__
-			If gtk_is_window(widget) Then
+			If GTK_IS_WINDOW(widget) Then
 				gtk_window_deiconify(GTK_WINDOW(widget))
 				gtk_window_unmaximize(GTK_WINDOW(widget))
 				Select Case FWindowState
@@ -623,21 +623,21 @@ Namespace My.Sys.Forms
 			ElseIf HeaderBarWidget Then
 				#ifdef __USE_GTK3__
 					If Value = "" Then
-						gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), !"\0")
+						gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBarWidget), !"\0")
 					Else
-						gtk_header_bar_set_title(gtk_header_bar(HeaderBarWidget), ToUTF8(Value))
+						gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBarWidget), ToUtf8(Value))
 					End If
 				#else
 					If Value = "" Then
-						gtk_label_set_text(gtk_label(HeaderBarWidget), !"\0")
+						gtk_label_set_text(GTK_LABEL(HeaderBarWidget), !"\0")
 					Else
-						gtk_label_set_text(gtk_label(HeaderBarWidget), ToUTF8(Value))
+						gtk_label_set_text(GTK_LABEL(HeaderBarWidget), ToUtf8(Value))
 					End If
 				#endif
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
 	End Property
@@ -734,9 +734,9 @@ Namespace My.Sys.Forms
 						DeleteMenu(NoNeedSysMenu, SC_RESTORE, MF_BYCOMMAND)
 					Else
 						SendMessage(.Handle, WM_SETICON, 1, CInt(.Icon.Handle))
-						GetSystemMenu(.Handle, True)
-						EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
-						EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
+						'GetSystemMenu(.Handle, True)
+						'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
+						'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 					End If
 					If .Opacity <> 255 Then SetLayeredWindowAttributes(.Handle, 0, .Opacity, LWA_ALPHA)
 					.ChangeTabIndex -2
@@ -959,7 +959,7 @@ Namespace My.Sys.Forms
 					End If
 					
 					If (g_menuTheme = 0) Then
-						g_menuTheme = OpenThemeData(MSG.hwnd, "Menu")
+						g_menuTheme = OpenThemeData(msg.hWnd, "Menu")
 					End If
 					
 					'Dim As DTTOPTS opts = Type( SizeOf(opts), DTT_TEXTCOLOR, IIf(iTextStateID <> MPI_DISABLED, RGB(&h00, &h00, &h20), RGB(&h40, &h40, &h40) )
@@ -972,24 +972,24 @@ Namespace My.Sys.Forms
 					SetBkMode pUDMI->um.hdc, OPAQUE
 					'DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, @pUDMI->dis.rcItem, @opts)
 					
-					MSG.Result = True
+					msg.Result = True
 					Return
 				End If
 			Case WM_NCPAINT, WM_NCACTIVATE
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					DefWindowProc(MSG.hwnd, MSG.Msg, MSG.wParam, MSG.lParam)
+					DefWindowProc(msg.hWnd, msg.Msg, msg.wParam, msg.lParam)
 					Dim As MENUBARINFO mbi = Type( SizeOf(mbi) )
-					If (GetMenuBarInfo(MSG.hwnd, OBJID_MENU, 0, @mbi) = 0) Then
-						MSG.Result = True
+					If (GetMenuBarInfo(msg.hWnd, OBJID_MENU, 0, @mbi) = 0) Then
+						msg.Result = True
 						Return
 					End If
 					
 					Dim As Rect rcClient = Type( 0 )
-					GetClientRect(MSG.hwnd, @rcClient)
-					MapWindowPoints(MSG.hwnd, nullptr, Cast(Point Ptr, @rcClient), 2)
+					GetClientRect(msg.hWnd, @rcClient)
+					MapWindowPoints(msg.hWnd, nullptr, Cast(Point Ptr, @rcClient), 2)
 					
 					Dim As Rect rcWindow = Type( 0 )
-					GetWindowRect(MSG.hwnd, @rcWindow)
+					GetWindowRect(msg.hWnd, @rcWindow)
 					
 					OffsetRect(@rcClient, -rcWindow.Left, -rcWindow.Top)
 					
@@ -998,10 +998,10 @@ Namespace My.Sys.Forms
 					rcAnnoyingLine.Bottom = rcAnnoyingLine.Top
 					rcAnnoyingLine.Top -= 1
 					
-					Dim As HDC Dc = GetWindowDC(MSG.hwnd)
+					Dim As HDC Dc = GetWindowDC(msg.hWnd)
 					FillRect(Dc, @rcAnnoyingLine, hbrBkgnd)
-					ReleaseDC(MSG.hwnd, Dc)
-					MSG.Result = True
+					ReleaseDC(msg.hWnd, Dc)
+					msg.Result = True
 					Return
 				End If
 			Case WM_PAINT, WM_ERASEBKGND
@@ -1034,12 +1034,12 @@ Namespace My.Sys.Forms
 '						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				End If
-				Dc = BeginPaint(HANDLE, @Ps)
+				Dc = BeginPaint(Handle, @Ps)
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
 					Bmp   = CreateCompatibleBitmap(Dc,Ps.rcPaint.Right,Ps.rcPaint.Bottom)
 					SelectObject(memDC,Bmp)
-					SendMessage(HANDLE, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
+					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC,@Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
@@ -1053,16 +1053,15 @@ Namespace My.Sys.Forms
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
 					If OnPaint Then OnPaint(This, Canvas)
 				End If
-				EndPaint HANDLE,@Ps
-				MSG.Result = 0
+				EndPaint Handle,@Ps
+				msg.Result = 0
 				Canvas.HandleSetted = False
 				Return
 			Case WM_SIZE
 				If Not This.WindowState = wsMinimized Then
 					RequestAlign
 				End If
-				If OnReSize Then OnReSize(This, This.Width, This.Height)
-				Return
+				If OnResize Then OnResize(This, This.Width, This.Height)
 			Case WM_CLOSE
 				If OnClose Then
 					OnClose(This, Action)
@@ -1079,7 +1078,7 @@ Namespace My.Sys.Forms
 						msg.Result = -1
 					End If
 				Case 2
-					ShowWindow Handle,SW_MINIMIZE
+					ShowWindow Handle, SW_MINIMIZE
 					msg.Result = -1
 				End Select
 			Case WM_COMMAND
@@ -1156,7 +1155,7 @@ Namespace My.Sys.Forms
 					Id = 0
 					If This.Menu Then
 						For i = 0 To This.Menu->Count -1
-							If This.Menu->Item(i)->Command = HIF->iCtrlID Then
+							If This.Menu->Item(i)->Command = HIF->iCtrlId Then
 								Id = i
 								Exit For
 							End If
@@ -1186,10 +1185,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Select Case FFormStyle
 			Case fsMDIChild
-				Msg.Result = -3
+				msg.Result = -3
 			Case fsMDIForm
-				Msg.hWnd = FClient
-				Msg.Result = -4
+				msg.hWnd = FClient
+				msg.Result = -4
 			End Select
 		#endif
 	End Sub
@@ -1479,7 +1478,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK3__
 					If gtk_widget_is_visible(widget) Then
 				#else
-					If gtk_widget_get_visible(Widget) Then
+					If gtk_widget_get_visible(widget) Then
 				#endif
 					If OnHide Then OnHide(This)
 					gtk_widget_hide(widget)
@@ -1647,7 +1646,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
 			WindowWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
-			Widget = WindowWidget
+			widget = WindowWidget
 			'gtk_window_set_policy(GTK_WINDOW(widget), true, false, false)
 			This.RegisterClass "Form", @This
 			If gtk_is_widget(layoutwidget) Then gtk_layout_put(GTK_LAYOUT(layoutwidget), ImageWidget, 0, 0)
