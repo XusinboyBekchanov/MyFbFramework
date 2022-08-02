@@ -1057,7 +1057,7 @@ Namespace My.Sys.Forms
 				Canvas.HandleSetted = False
 				Return
 			Case WM_SIZE
-				If Not This.WindowState = wsMinimized Then
+				If Not IsIconic(FHandle) Then
 					RequestAlign
 				End If
 				If OnResize Then OnResize(This, This.Width, This.Height)
