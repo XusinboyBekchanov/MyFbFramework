@@ -748,7 +748,6 @@ Namespace My.Sys.Forms
 						FClientStruct.hWindowMenu = 0 'GetSubMenu(GetMenu(.FHandle), WINDOWMENU)
 						FClientStruct.idFirstChild = &H00FF
 						.FClient = CreateWindowEx(0, "MDICLIENT", "", WS_CHILD Or WS_VISIBLE Or WS_VSCROLL Or WS_HSCROLL Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, 100, 100, .FHandle, Cast(HMENU, &hcac), Instance, @FClientStruct)
-						?.FClient
 						ShowWindow(.FClient, SW_SHOW)
 					Case fsMDIChild
 						If .FParent Then
