@@ -116,7 +116,7 @@ Namespace My.Sys.Forms
 				Declare Static Sub Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Declare Static Function Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Declare Static Function Control_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-				Declare Static Sub DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, Data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
+				Declare Static Sub DragDataReceived(self As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, x As gint, y As gint, Data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
 				Declare Static Function ConfigureEventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			#elseif defined(__USE_WINAPI__)
 				FToolInfo          As TOOLINFO
@@ -125,6 +125,7 @@ Namespace My.Sys.Forms
 			FBorderStyle       As Integer
 			FExStyle           As Integer
 			FAllowDrop         As Boolean
+			FControlIndex      As Integer
 			FControlParent     As Integer
 			FStartPosition     As Integer
 			FStyle             As Integer
@@ -171,6 +172,7 @@ Namespace My.Sys.Forms
 			Declare Sub GetControls
 			Declare Sub ChangeExStyle(iStyle As Integer, Value As Boolean)
 			Declare Sub ChangeStyle(iStyle As Integer, Value As Boolean)
+			Declare Sub ChangeControlIndex(Ctrl As Control Ptr, Index As Integer)
 			Declare Sub ChangeTabIndex(Value As Integer)
 			Declare Sub ChangeTabStop(Value As Boolean)
 			Declare Sub AddProperty(Name As String, Type As String, ByRef Comment As WString)
@@ -189,14 +191,14 @@ Namespace My.Sys.Forms
 				Declare Static Function EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Declare Static Function EventAfterProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Declare Static Function hover_cb(ByVal user_data As gpointer) As gboolean
-				Declare Static Function Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, horizontal As Boolean, user_data As Any Ptr) As Boolean
+				Declare Static Function Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, Horizontal As Boolean, user_data As Any Ptr) As Boolean
 			#elseif defined(__USE_WINAPI__)
 				Declare Static Function RegisterClass(ByRef wClassName As WString, ByRef wClassAncestor As WString = "", WndProcAddr As Any Ptr = 0) As Integer
-				Declare Static Function WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-				Declare Static Function DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-				Declare Static Function CallWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-				Declare Static Function SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-				Declare Function Perform(Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+				Declare Static Function WindowProc(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+				Declare Static Function DefWndProc(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+				Declare Static Function CallWndProc(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+				Declare Static Function SuperWndProc(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+				Declare Function Perform(MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
 				Declare Virtual Sub SetDark(Value As Boolean)
 				Declare Sub AllocateHint
 			#endif
@@ -247,6 +249,8 @@ Namespace My.Sys.Forms
 			'Returns/sets the PopupMenu associated with this control (Windows, Linux).
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)
+			Declare Property ControlIndex As Integer
+			Declare Property ControlIndex(Value As Integer)
 			'Returns/sets the text contained in the control (Windows, Linux).
 			Declare Virtual Property Text ByRef As WString
 			Declare Virtual Property Text(ByRef Value As WString)

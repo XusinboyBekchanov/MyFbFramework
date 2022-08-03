@@ -45,6 +45,7 @@ Namespace My.Sys.Forms
 				Case "constraints.width": Return @Constraints.Width
 				Case "constraints.height": Return @Constraints.Height
 				Case "contextmenu": Return ContextMenu
+				Case "controlindex": FControlIndex = ControlIndex: Return @FControlIndex
 				Case "controlcount": Return @FControlCount
 				Case "cursor": Return @This.Cursor
 				Case "doublebuffered": Return @DoubleBuffered
@@ -96,6 +97,7 @@ Namespace My.Sys.Forms
 					Case "constraints.top": This.Constraints.Top = QInteger(Value)
 					Case "constraints.width": This.Constraints.Width = QInteger(Value)
 					Case "constraints.height": This.Constraints.Height = QInteger(Value)
+					Case "controlindex": This.ControlIndex = QInteger(Value)
 					Case "contextmenu": This.ContextMenu = Cast(PopupMenu Ptr, Value)
 					Case "enabled": This.Enabled = QBoolean(Value)
 					Case "grouped": This.Grouped = QBoolean(Value)
@@ -172,7 +174,7 @@ Namespace My.Sys.Forms
 			FAllowDrop = Value
 			#ifdef __USE_GTK__
 				If Value Then
-					If gtk_is_entry(widget) OrElse gtk_is_text_view(widget) Then
+					If GTK_IS_ENTRY(widget) OrElse GTK_IS_TEXT_VIEW(widget) Then
 						#ifndef __USE_GTK3__
 							Dim As GtkTargetEntry mytargets
 							mytargets.target = Allocate(SizeOf(gchar) * 14)
@@ -180,7 +182,7 @@ Namespace My.Sys.Forms
 							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, @mytargets, 1, GDK_ACTION_COPY)
 							Deallocate mytargets.target
 						#else
-							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, Gtk_Target_Entry_new("text/uri-list", 4, 0), 1, GDK_ACTION_COPY)
+							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, gtk_target_entry_new("text/uri-list", 4, 0), 1, GDK_ACTION_COPY)
 						#endif
 						'gtk_drag_dest_add_text_targets(widget)
 					Else
@@ -200,7 +202,7 @@ Namespace My.Sys.Forms
 				If FHandle Then RecreateWnd
 			#endif
 		End Property
-			
+		
 		#ifndef ControlCount_Off
 			Private Function Control.ControlCount As Integer
 				Return FControlCount
@@ -263,9 +265,9 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If scrolledwidget Then
 						If Value Then
-							gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
+							gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_OUT)
 						Else
-							gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_NONE)
+							gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_NONE)
 						End If
 					End If
 				#elseif defined(__USE_WINAPI__)
@@ -287,7 +289,7 @@ Namespace My.Sys.Forms
 			Private Property Control.Style(Value As Integer)
 				FStyle = Value
 				#ifdef __USE_WINAPI__
-					If FHandle Then 
+					If FHandle Then
 						SetWindowLong(FHandle, GWL_STYLE, FStyle)
 						'SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 						'RecreateWnd
@@ -328,7 +330,7 @@ Namespace My.Sys.Forms
 					If FIsChild <> Value Then
 						If Value Then
 							If Parent AndAlso Parent->layoutwidget Then
-								gtk_layout_put(gtk_layout(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))), FLeft, FTop)
+								gtk_layout_put(GTK_LAYOUT(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))), FLeft, FTop)
 							End If
 						Else
 							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
@@ -358,6 +360,20 @@ Namespace My.Sys.Forms
 			End Property
 		#endif
 		
+		Private Property Control.ControlIndex As Integer
+			If This.FParent Then
+				Return Cast(Control Ptr, This.FParent)->IndexOf(@This)
+			Else
+				Return -1
+			End If
+		End Property
+		
+		Private Property Control.ControlIndex(Value As Integer)
+			If This.FParent Then
+				Cast(Control Ptr, This.FParent)->ChangeControlIndex @This, Value
+			End If
+		End Property
+			
 		#ifndef Text_Off
 			Private Property Control.Text ByRef As WString
 				#ifdef __USE_WINAPI__
@@ -403,8 +419,8 @@ Namespace My.Sys.Forms
 			Private Property Control.Hint(ByRef Value As WString)
 				WLet(FHint, Value)
 				#ifdef __USE_GTK__
-					If FSHowHint Then
-						If widget Then gtk_widget_set_tooltip_text(widget, ToUTF8(Value))
+					If FShowHint Then
+						If widget Then gtk_widget_set_tooltip_text(widget, ToUtf8(Value))
 					End If
 				#elseif defined(__USE_WINAPI__)
 					If FHandle Then
@@ -577,7 +593,7 @@ Namespace My.Sys.Forms
 					If widget Then gtk_widget_set_has_tooltip(widget, Value)
 					If WGet(FHint) <> "" Then
 						If Value Then
-							gtk_widget_set_tooltip_text(widget, ToUTF8(*FHint))
+							gtk_widget_set_tooltip_text(widget, ToUtf8(*FHint))
 						Else
 							gtk_widget_set_tooltip_text(widget, "")
 						End If
@@ -659,6 +675,23 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
+		Private Sub Control.ChangeControlIndex(Ctrl As Control Ptr, Index As Integer)
+			Dim OldIndex As Integer = This.IndexOf(Ctrl)
+			If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= FControlCount - 1 Then
+				If Index < OldIndex Then
+					For i As Integer = OldIndex - 1 To Index Step -1
+						Controls[i + 1] = Controls[i]
+					Next i
+					Controls[Index] = Ctrl
+				Else
+					For i As Integer = OldIndex + 1 To Index
+						Controls[i - 1] = Controls[i]
+					Next i
+					Controls[Index] = Ctrl
+				End If
+			End If
+		End Sub
+		
 		Private Sub Control.ChangeTabIndex(Value As Integer)
 			FTabIndex = Value
 			#ifndef __USE_GTK__
@@ -693,7 +726,7 @@ Namespace My.Sys.Forms
 			
 			Private Property Control.ParentWidget(Value As GtkWidget Ptr)
 				FParentWidget = Value
-				If gtk_is_widget(widget) Then
+				If GTK_IS_WIDGET(widget) Then
 					If GTK_IS_LAYOUT(Value) Then
 						gtk_layout_put(GTK_LAYOUT(Value), widget, FLeft, FTop)
 					ElseIf GTK_IS_FIXED(Value) Then
@@ -744,7 +777,7 @@ Namespace My.Sys.Forms
 		Private Property Control.Enabled(Value As Boolean)
 			FEnabled = Value
 			#ifdef __USE_GTK__
-				If Widget Then gtk_widget_set_sensitive(Widget, FEnabled)
+				If widget Then gtk_widget_set_sensitive(widget, FEnabled)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then EnableWindow FHandle, FEnabled
 			#endif
@@ -895,10 +928,10 @@ Namespace My.Sys.Forms
 					If ClassName = "WebBrowser" Then
 						'Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
 						'ExStyle = 0
-'					ElseIf ClassName = "IPAddress" Then
-'						Text = ""
-'						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE Or WS_OVERLAPPED
-'						ExStyle = 0
+						'					ElseIf ClassName = "IPAddress" Then
+						'						Text = ""
+						'						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE Or WS_OVERLAPPED
+						'						ExStyle = 0
 					Else
 						If (Style And (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)) <> (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS) Then
 							Style = Style Or (WS_CLIPCHILDREN Or WS_CLIPSIBLINGS)
@@ -914,31 +947,31 @@ Namespace My.Sys.Forms
 					'RegisterClass ClassName, ClassAncestor
 					Dim As DWORD dExStyle = FExStyle
 					Dim As DWORD dStyle = FStyle
-'					If ExStyleExists(WS_EX_MDICHILD) Then
-'						Dim As MDICREATESTRUCT mdicreate
-'						mdicreate.szClass = FClassName
-'						mdicreate.szTitle = FText.vptr
-'						mdicreate.hOwner  = GetModuleHandle(0)
-'						mdicreate.x       = nLeft
-'						mdicreate.y       = nTop
-'						mdicreate.cx      = nWidth
-'						mdicreate.cy      = nHeight
-'						mdicreate.style   = dStyle
-'						mdicreate.lParam  = Cast(LPARAM, @This)
-'						FHandle = Cast(HWND, SendMessage(HParent, WM_MDICREATE, 0, Cast(LPARAM, @mdicreate)))
-'					Else
-						FHandle = CreateWindowExW(dExStyle, _
-						FClassName, _
-						FText.vptr, _
-						dStyle, _
-						nLeft, _
-						nTop, _
-						nWidth, _
-						nHeight, _
-						HParent, _
-						Cast(HMENU, ControlID), _
-						Instance, _
-						@This) ' '
+					'					If ExStyleExists(WS_EX_MDICHILD) Then
+					'						Dim As MDICREATESTRUCT mdicreate
+					'						mdicreate.szClass = FClassName
+					'						mdicreate.szTitle = FText.vptr
+					'						mdicreate.hOwner  = GetModuleHandle(0)
+					'						mdicreate.x       = nLeft
+					'						mdicreate.y       = nTop
+					'						mdicreate.cx      = nWidth
+					'						mdicreate.cy      = nHeight
+					'						mdicreate.style   = dStyle
+					'						mdicreate.lParam  = Cast(LPARAM, @This)
+					'						FHandle = Cast(HWND, SendMessage(HParent, WM_MDICREATE, 0, Cast(LPARAM, @mdicreate)))
+					'					Else
+					FHandle = CreateWindowExW(dExStyle, _
+					FClassName, _
+					FText.vptr, _
+					dStyle, _
+					nLeft, _
+					nTop, _
+					nWidth, _
+					nHeight, _
+					HParent, _
+					Cast(HMENU, ControlID), _
+					Instance, _
+					@This) ' '
 					'End If
 				#endif
 			#elseif defined(__USE_JNI__)
@@ -962,11 +995,11 @@ Namespace My.Sys.Forms
 						End If
 						If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
 							SetDark True
-'							If FDefaultBackColor = FBackColor Then
-'								Brush.Handle = hbrBkgnd
-'							End If
-'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							'							If FDefaultBackColor = FBackColor Then
+							'								Brush.Handle = hbrBkgnd
+							'							End If
+							'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+							'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						End If
 					#elseif defined(__USE_JNI__)
 						If pApp AndAlso env Then
@@ -989,10 +1022,10 @@ Namespace My.Sys.Forms
 								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
 								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(IIII)V")
 								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, ScaleX(FWidth), ScaleY(FHeight), ScaleX(FLeft), ScaleY(FTop))
-'								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
-'								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
-'								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
-'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
+								'								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
+								'								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
+								'								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
+								'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
 								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
 								'Text = Str(1)
 								If OnClick Then
@@ -1002,19 +1035,19 @@ Namespace My.Sys.Forms
 									Dim As jmethodID addOnLayoutChangeListener = (*env)->GetMethodID(env, class_view, "addOnLayoutChangeListener", "(Landroid/view/View$OnLayoutChangeListener;)V")
 									(*env)->CallVoidMethod(env, FHandle, addOnLayoutChangeListener, pApp->MainForm->Handle)
 								End If
-'								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/view/ViewGroup$MarginLayoutParams")
-'								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(II)V")
-'								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, FWidth, FHeight)
-'								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
-'								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
-'								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
-'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
-'								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
-'								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
-'								Dim As jmethodID setLeftMethod = (*env)->GetMethodID(env, class_view, "setLeft", "(I)V")
-'								Dim As jmethodID setTopMethod = (*env)->GetMethodID(env, class_view, "setTop", "(I)V")
-'								(*env)->CallVoidMethod(env, FHandle, setLeftMethod, FLeft)
-'								(*env)->CallVoidMethod(env, FHandle, setTopMethod, FTop)
+								'								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/view/ViewGroup$MarginLayoutParams")
+								'								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(II)V")
+								'								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, FWidth, FHeight)
+								'								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
+								'								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
+								'								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
+								'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
+								'								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
+								'								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+								'								Dim As jmethodID setLeftMethod = (*env)->GetMethodID(env, class_view, "setLeft", "(I)V")
+								'								Dim As jmethodID setTopMethod = (*env)->GetMethodID(env, class_view, "setTop", "(I)V")
+								'								(*env)->CallVoidMethod(env, FHandle, setLeftMethod, FLeft)
+								'								(*env)->CallVoidMethod(env, FHandle, setTopMethod, FTop)
 							End If
 						End If
 					#endif
@@ -1074,12 +1107,12 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.FreeWnd
 			#ifdef __USE_GTK__
-'				If gtk_is_widget(Widget) Then
-'					gtk_widget_destroy(Widget)
-'				End If
-'				If gtk_is_widget(ScrolledWidget) Then
-'					gtk_widget_destroy(ScrolledWidget)
-'				End If
+				'				If gtk_is_widget(Widget) Then
+				'					gtk_widget_destroy(Widget)
+				'				End If
+				'				If gtk_is_widget(ScrolledWidget) Then
+				'					gtk_widget_destroy(ScrolledWidget)
+				'				End If
 			#elseif defined(__USE_WINAPI__)
 				If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
 				If FHandle Then
@@ -1175,9 +1208,9 @@ Namespace My.Sys.Forms
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
 					#ifdef __USE_GTK4__
-					If gtk_widget_get_window(widget) = e->motion.window Then
+						If gtk_widget_get_window(widget) = e->motion.window Then
 					#else
-					If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
+						If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
 					#endif
 						If OnMouseMove Then OnMouseMove(This, DownButton, e->motion.x, e->motion.y, e->motion.state)
 						hover_timer_id = 0
@@ -1200,19 +1233,19 @@ Namespace My.Sys.Forms
 				Case GDK_LEAVE_NOTIFY
 					If OnMouseLeave Then OnMouseLeave(This)
 				Case GDK_CONFIGURE
-'					If Constraints.Left <> 0 OrElse Constraints.Top <> 0 OrElse Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
-'						g_signal_handlers_block_by_func(G_OBJECT(Message.widget), G_CALLBACK(@EventProc), @This)
-'						SetBounds(IIf(Constraints.Left, Constraints.Left, e->configure.x), IIf(Constraints.Top, Constraints.Top, e->configure.y), IIf(Constraints.Width, Constraints.Width, e->configure.Width), IIf(Constraints.Height, Constraints.Height, e->configure.Height))
-'						g_signal_handlers_unblock_by_func(G_OBJECT (Message.widget), G_CALLBACK(@EventProc), @This)
-'						g_signal_stop_emission_by_name(G_OBJECT(Message.widget), "event")
-'						Message.Result = True
-'					End If
-'					If gtk_is_window(widget) Then
-'						If Constraints.Left <> 0 Then gtk_window_move(gtk_window(widget), Constraints.Left, e->configure.y): Message.Result = True: Return
-'						If Constraints.Top <> 0 Then gtk_window_move(gtk_window(widget), e->configure.x, Constraints.Top): Message.Result = True: Return
-'						If Constraints.Width <> 0 Then gtk_window_resize(gtk_window(widget), Constraints.Width, e->configure.height): Message.Result = True: Return
-'						If Constraints.Height <> 0 Then gtk_window_resize(gtk_window(widget), e->configure.width, Constraints.Height): Message.Result = True: Return
-'					End If
+					'					If Constraints.Left <> 0 OrElse Constraints.Top <> 0 OrElse Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
+					'						g_signal_handlers_block_by_func(G_OBJECT(Message.widget), G_CALLBACK(@EventProc), @This)
+					'						SetBounds(IIf(Constraints.Left, Constraints.Left, e->configure.x), IIf(Constraints.Top, Constraints.Top, e->configure.y), IIf(Constraints.Width, Constraints.Width, e->configure.Width), IIf(Constraints.Height, Constraints.Height, e->configure.Height))
+					'						g_signal_handlers_unblock_by_func(G_OBJECT (Message.widget), G_CALLBACK(@EventProc), @This)
+					'						g_signal_stop_emission_by_name(G_OBJECT(Message.widget), "event")
+					'						Message.Result = True
+					'					End If
+					'					If gtk_is_window(widget) Then
+					'						If Constraints.Left <> 0 Then gtk_window_move(gtk_window(widget), Constraints.Left, e->configure.y): Message.Result = True: Return
+					'						If Constraints.Top <> 0 Then gtk_window_move(gtk_window(widget), e->configure.x, Constraints.Top): Message.Result = True: Return
+					'						If Constraints.Width <> 0 Then gtk_window_resize(gtk_window(widget), Constraints.Width, e->configure.height): Message.Result = True: Return
+					'						If Constraints.Height <> 0 Then gtk_window_resize(gtk_window(widget), e->configure.width, Constraints.Height): Message.Result = True: Return
+					'					End If
 					If OnMove Then OnMove(This)
 					'If OnResize Then OnResize(This)
 					'RequestAlign
@@ -1300,27 +1333,27 @@ Namespace My.Sys.Forms
 					If g_darkModeSupported AndAlso g_darkModeEnabled Then
 						If Not FDarkMode Then
 							SetDark True
-'							FDarkMode = True
-'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-'							If FDefaultBackColor = FBackColor Then
-'								Brush.Handle = hbrBkgnd
-'							End If
-'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-'							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+							'							FDarkMode = True
+							'							SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+							'							If FDefaultBackColor = FBackColor Then
+							'								Brush.Handle = hbrBkgnd
+							'							End If
+							'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							'							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 							Repaint
 						End If
 					Else
 						If FDarkMode Then
 							SetDark False
-'							FDarkMode = False
-'							SetWindowTheme(FHandle, NULL, NULL)
-'							If FBackColor = -1 Then
-'								Brush.Handle = 0
-'							Else
-'								Brush.Color = FBackColor
-'							End If
-'							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							'							FDarkMode = False
+							'							SetWindowTheme(FHandle, NULL, NULL)
+							'							If FBackColor = -1 Then
+							'								Brush.Handle = 0
+							'							Else
+							'								Brush.Color = FBackColor
+							'							End If
+							'							_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+							'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 							Repaint
 						End If
 					End If
@@ -1371,10 +1404,10 @@ Namespace My.Sys.Forms
 								End If
 							Else
 								SendMessage(CPtr(HWND, Message.lParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
-'								If .Brush.Handle = hbrBkgnd Then
-'									.Brush.Color = .FBackColor
-'									SetWindowTheme(.FHandle, NULL, NULL)
-'								End If
+								'								If .Brush.Handle = hbrBkgnd Then
+								'									.Brush.Color = .FBackColor
+								'									SetWindowTheme(.FHandle, NULL, NULL)
+								'								End If
 								Message.Result = Cast(LRESULT, .Brush.Handle)
 							End If
 							Return
@@ -1384,25 +1417,25 @@ Namespace My.Sys.Forms
 						DC = Cast(HDC, Message.wParam)
 						'Child = Cast(Control Ptr, GetWindowLongPtr(Message.hWnd, GWLP_USERDATA))
 						'If Child Then
-							If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor) Then
-								Dim As HDC hd = Cast(HDC, Message.wParam)
-								SetTextColor(hd, darkTextColor)
-								SetBkColor(hd, darkBkColor)
-								If Brush.Handle <> hbrBkgnd Then 
-									Brush.Handle = hbrBkgnd
-								End If
-							Else
-								SetBkMode(DC, TRANSPARENT)
-								SetBkColor(DC, BackColor)
-								SetTextColor(DC, Font.Color)
-								SetBkMode(DC, OPAQUE)
-'								If Brush.Handle = hbrBkgnd Then
-'									Brush.Color = FBackColor
-'									SetWindowTheme(FHandle, NULL, NULL)
-'								End If
+						If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor) Then
+							Dim As HDC hd = Cast(HDC, Message.wParam)
+							SetTextColor(hd, darkTextColor)
+							SetBkColor(hd, darkBkColor)
+							If Brush.Handle <> hbrBkgnd Then
+								Brush.Handle = hbrBkgnd
 							End If
-							Message.Result = Cast(LRESULT, Brush.Handle)
-							Return
+						Else
+							SetBkMode(DC, TRANSPARENT)
+							SetBkColor(DC, BackColor)
+							SetTextColor(DC, Font.Color)
+							SetBkMode(DC, OPAQUE)
+							'								If Brush.Handle = hbrBkgnd Then
+							'									Brush.Color = FBackColor
+							'									SetWindowTheme(FHandle, NULL, NULL)
+							'								End If
+						End If
+						Message.Result = Cast(LRESULT, Brush.Handle)
+						Return
 						'End If
 					End If
 				Case WM_SETTINGCHANGE
@@ -1418,11 +1451,11 @@ Namespace My.Sys.Forms
 					Message.Result = 0
 					Return
 				Case WM_THEMECHANGED
-'					If g_darkModeSupported Then
-'						_AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
-'						RefreshTitleBarThemeColor(Message.hWnd)
-'						UpdateWindow(Message.hWnd)
-'					End If
+					'					If g_darkModeSupported Then
+					'						_AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
+					'						RefreshTitleBarThemeColor(Message.hWnd)
+					'						UpdateWindow(Message.hWnd)
+					'					End If
 				Case WM_CTLCOLORBTN
 					'?1
 				Case WM_SIZE
@@ -1496,7 +1529,7 @@ Namespace My.Sys.Forms
 					For i As Integer = 0 To FPopupMenuItems.Count -1
 						mi = FPopupMenuItems.Items[i]
 						If mi->Command = Message.wParamLo Then
-							If mi->OnClick Then mi->OnClick(*mi)
+							If mi->onClick Then mi->onClick(*mi)
 							Exit For
 						End If
 					Next i
@@ -1537,12 +1570,12 @@ Namespace My.Sys.Forms
 					This.Tracked = False
 				Case WM_DROPFILES
 					If OnDropFile Then
-						Dim As HDrop iDrop = Cast(HDrop, Message.wParam)
+						Dim As HDROP iDrop = Cast(HDROP, Message.wParam)
 						Dim As Integer filecount, length, i
 						filecount = DragQueryFile(iDrop, -1, NULL, 0)
 						Dim As WString Ptr filename
 						For i = 0 To filecount - 1
-							WReallocate(filename, MAX_PATH)
+							WReAllocate(filename, MAX_PATH)
 							length = DragQueryFile(iDrop, i, filename, MAX_PATH)
 							'*filename = Left(*filename, length)
 							If OnDropFile Then OnDropFile(This, *filename)
@@ -1550,28 +1583,28 @@ Namespace My.Sys.Forms
 						DragFinish iDrop
 					End If
 				Case WM_CHAR
-					If OnKeyPress Then OnKeyPress(This, Message.WParam)
+					If OnKeyPress Then OnKeyPress(This, Message.wParam)
 				Case WM_KEYDOWN
-					If OnKeyDown Then OnKeyDown(This, Message.WParam, Message.lParam And &HFFFF)
+					If OnKeyDown Then OnKeyDown(This, Message.wParam, Message.lParam And &HFFFF)
 					If GetKeyState(VK_MENU) >= 0 Then
-						Select Case LoWord(message.wParam)
+						Select Case LoWord(Message.wParam)
 						Case VK_TAB
-'							Dim Frm As Control Ptr = GetForm
-'							If Frm Then
-'								Frm->SelectNextControl bShift
-'								Message.Result = -1:
-'								Exit Sub
-'							End If
+							'							Dim Frm As Control Ptr = GetForm
+							'							If Frm Then
+							'								Frm->SelectNextControl bShift
+							'								Message.Result = -1:
+							'								Exit Sub
+							'							End If
 						Case VK_RETURN
-							Dim Frm As Control Ptr = GetForm
-							If Frm AndAlso frm->FDefaultButton AndAlso frm->FDefaultButton->OnClick Then
+							Dim frm As Control Ptr = GetForm
+							If frm AndAlso frm->FDefaultButton AndAlso frm->FDefaultButton->OnClick Then
 								frm->FDefaultButton->OnClick(*frm->FDefaultButton)
 								Message.Result = -1:
 								Exit Sub
 							End If
 						Case VK_ESCAPE
-							Dim Frm As Control Ptr = GetForm
-							If Frm AndAlso frm->FCancelButton AndAlso frm->FCancelButton->OnClick Then
+							Dim frm As Control Ptr = GetForm
+							If frm AndAlso frm->FCancelButton AndAlso frm->FCancelButton->OnClick Then
 								frm->FCancelButton->OnClick(*frm->FCancelButton)
 								Message.Result = -1:
 								Exit Sub
@@ -1579,7 +1612,7 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 				Case WM_KEYUP
-					If OnKeyUp Then OnKeyUp(This, LoWord(Message.WParam), Message.lParam And &HFFFF)
+					If OnKeyUp Then OnKeyUp(This, LoWord(Message.wParam), Message.lParam And &HFFFF)
 				Case WM_SETFOCUS
 					If OnGotFocus Then OnGotFocus(This)
 					If Not FDesignMode Then
@@ -1595,7 +1628,7 @@ Namespace My.Sys.Forms
 					Dim As LPNMHDR NM
 					Static As HWND FWindow
 					NM = Cast(LPNMHDR, Message.lParam)
-					If NM->Code = TTN_NEEDTEXT Then
+					If NM->code = TTN_NEEDTEXT Then
 						If FWindow Then SendMessage FWindow,CM_NEEDTEXT,Message.wParam, Message.lParam
 					Else
 						FWindow = NM->hwndFrom
@@ -1795,9 +1828,9 @@ Namespace My.Sys.Forms
 				If cp <> 0 Then
 					Message.Result = CallWindowProc(cp, FWindow, Msg, wParam, lParam)
 				End If
-'				If Ctrl AndAlso Ctrl->ClassName <> "" Then
-'					Ctrl->ProcessMessageAfter(Message)
-'				End If
+				'				If Ctrl AndAlso Ctrl->ClassName <> "" Then
+				'					Ctrl->ProcessMessageAfter(Message)
+				'				End If
 				Return Message.Result
 				'    Exit Function
 				'ErrorHandler:
@@ -1819,7 +1852,7 @@ Namespace My.Sys.Forms
 		
 		Private Function Control.SelectNextControl(Prev As Boolean = False) As Control Ptr
 			#ifdef __USE_GTK__
- 
+				
 			#else
 				Dim As Control Ptr ParentCtrl = GetForm
 				Dim As Control Ptr Ctrl
@@ -1854,17 +1887,17 @@ Namespace My.Sys.Forms
 		Private Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			Base.Move IIf(Constraints.Left, Constraints.Left, cLeft), IIf(Constraints.Top, Constraints.Top, cTop), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
 		End Sub
-			
+		
 		#ifdef __USE_GTK__
 			Private Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
-				If gtk_is_layout(widget) Then
-					Dim As Integer AllocatedWidth = allocation->width, AllocatedHeight = allocation->height
-'					#ifdef __USE_GTK3__
-'						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
-'					#else
-'						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
-'					#endif
+				If GTK_IS_LAYOUT(widget) Then
+					Dim As Integer AllocatedWidth = allocation->Width, AllocatedHeight = allocation->height
+					'					#ifdef __USE_GTK3__
+					'						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+					'					#else
+					'						Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+					'					#endif
 					''					If Ctrl->BackColor <> -1 Then
 					''						Dim As Integer iColor = Ctrl->BackColor
 					''						cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
@@ -1883,14 +1916,14 @@ Namespace My.Sys.Forms
 			Private Function Control.Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
 				#ifdef __USE_GTK4__
-				If Ctrl <> 0 AndAlso (gtk_is_layout(widget)) Then
+					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget)) Then
 				#else
-				If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
+					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_EVENT_BOX(widget)) Then
 				#endif
-					Ctrl->Canvas.HandleSetted = True 
+					Ctrl->Canvas.HandleSetted = True
 					Ctrl->Canvas.Handle = cr
-'					Dim allocation As GtkAllocation
-'					gtk_widget_get_allocation(widget, @allocation)
+					'					Dim allocation As GtkAllocation
+					'					gtk_widget_get_allocation(widget, @allocation)
 					#ifndef __USE_GTK2__
 						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 					#else
@@ -1904,9 +1937,9 @@ Namespace My.Sys.Forms
 						cairo_fill(cr)
 					End If
 					If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
-'					#ifdef __USE_GTK3__
-'						Control_SizeAllocate(widget, @allocation, data1)
-'					#endif
+					'					#ifdef __USE_GTK3__
+					'						Control_SizeAllocate(widget, @allocation, data1)
+					'					#endif
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
@@ -1940,14 +1973,14 @@ Namespace My.Sys.Forms
 						Dim As UString res(Any)
 						Dim As UString datatext = *Cast(gchar Ptr, gtk_selection_data_get_data(selection_data)) '*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0)
 						'If StartsWith(datatext, "file://") Then
-							datatext = Mid(datatext, 8)
-							Split(datatext, Chr(13) & Chr(10), res())
-							For i As Integer = 0 To UBound(res)
-								If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
-								If Trim(res(i)) <> "" Then
-									Ctrl->OnDropFile(*Ctrl, res(i))
-								End If
-							Next
+						datatext = Mid(datatext, 8)
+						Split(datatext, Chr(13) & Chr(10), res())
+						For i As Integer = 0 To UBound(res)
+							If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
+							If Trim(res(i)) <> "" Then
+								Ctrl->OnDropFile(*Ctrl, res(i))
+							End If
+						Next
 						'End If
 					End If
 					gtk_drag_finish(context, True, False, Time)
@@ -1967,17 +2000,17 @@ Namespace My.Sys.Forms
 								gdk_window_get_frame_extents(gtk_widget_get_window(widget), @rect)
 								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> rect.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> rect.y Then
 									gtk_window_move(GTK_WINDOW(widget), _
-										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, rect.x), _
-										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, rect.y))
+									IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, rect.x), _
+									IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, rect.y))
 								End If
 							End If
-'							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
-'								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> e->configure.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> e->configure.y - 37 Then
-'									gtk_window_move(gtk_window(widget), _
-'										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, e->configure.x), _
-'										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, e->configure.y - 37))
-'								End If
-'							End If
+							'							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
+							'								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> e->configure.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> e->configure.y - 37 Then
+							'									gtk_window_move(gtk_window(widget), _
+							'										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, e->configure.x), _
+							'										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, e->configure.y - 37))
+							'								End If
+							'							End If
 							'g_signal_handlers_unblock_by_func(G_OBJECT (widget), G_CALLBACK(@ConfigureEventProc), user_data)
 							'g_signal_stop_emission_by_name(G_OBJECT(widget), "configure-event")
 							Return True
@@ -1992,9 +2025,9 @@ Namespace My.Sys.Forms
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
 				If layoutwidget Then
 					#ifdef __USE_GTK4__
-'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
-'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
-'						gtk_widget_add_controller(layoutwidget, controller)
+						'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
+						'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
+						'						gtk_widget_add_controller(layoutwidget, controller)
 					#else
 						gtk_widget_set_events(layoutwidget, _
 						GDK_EXPOSURE_MASK Or _
@@ -2022,9 +2055,9 @@ Namespace My.Sys.Forms
 				If widget Then
 					Font.Parent = @This
 					#ifdef __USE_GTK4__
-'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
-'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
-'						gtk_widget_add_controller(layoutwidget, controller)
+						'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
+						'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
+						'						gtk_widget_add_controller(layoutwidget, controller)
 					#else
 						gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
 						GDK_EXPOSURE_MASK Or _
@@ -2293,7 +2326,7 @@ Namespace My.Sys.Forms
 			For i = 0 To ClientCount -1
 				With *ListClient[i]
 					'If .FVisible Then
-						If bWithoutControl <> ListClient[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+					If bWithoutControl <> ListClient[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
 					'End If
 				End With
 			Next i
@@ -2377,8 +2410,8 @@ Namespace My.Sys.Forms
 						CtrlWidget = gtk_widget_get_parent(CtrlWidget)
 					End Select
 					g_object_ref(CtrlWidget)
-					gtk_container_remove(gtk_container(This.Parent->layoutwidget), CtrlWidget)
-					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
+					gtk_container_remove(GTK_CONTAINER(This.Parent->layoutwidget), CtrlWidget)
+					gtk_layout_put(GTK_LAYOUT(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then SetWindowPos FHandle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE 'BringWindowToTop Handle
@@ -2400,8 +2433,8 @@ Namespace My.Sys.Forms
 							iLeft = This.Parent->Controls[i]->Left
 							iTop = This.Parent->Controls[i]->Top
 							g_object_ref(CtrlWidget)
-							gtk_container_remove(gtk_container(This.Parent->layoutwidget), CtrlWidget)
-							gtk_layout_put(gtk_layout(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
+							gtk_container_remove(GTK_CONTAINER(This.Parent->layoutwidget), CtrlWidget)
+							gtk_layout_put(GTK_LAYOUT(This.Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 						End If
 					Next
 				End If
@@ -2428,7 +2461,7 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Private Sub Control.Add(Ctrl As Control Ptr, Index As Integer = -1)
-    On Error Goto ErrorHandler
+			On Error Goto ErrorHandler
 			If Ctrl Then
 				If WGet(FClassName) = "Form1" Then
 					Ctrl = Ctrl
@@ -2449,21 +2482,21 @@ Namespace My.Sys.Forms
 					Dim As Integer FrameTop
 					Dim As Boolean bAdded
 					'If Not FDesignMode Then
-						If widget AndAlso gtk_is_frame(widget) Then FrameTop = 20
+					If widget AndAlso GTK_IS_FRAME(widget) Then FrameTop = 20
 					'End If
 					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->layoutwidget AndAlso gtk_widget_get_parent(Ctrl->layoutwidget) <> Ctrl->widget, Ctrl->layoutwidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget))))
-					If gtk_is_widget(Ctrlwidget) Then
+					If GTK_IS_WIDGET(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-						 	gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
-						 	bAdded = True 
+							gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+							bAdded = True
 						ElseIf fixedwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
 							bAdded = True
-						ElseIf gtk_is_text_view(widget) Then
+						ElseIf GTK_IS_TEXT_VIEW(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-							gtk_text_view_add_child_in_window(gtk_text_view(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+							gtk_text_view_add_child_in_window(GTK_TEXT_VIEW(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, Ctrl->FLeft, Ctrl->FTop - FrameTop)
 							bAdded = True
 						End If
 					End If
@@ -2472,7 +2505,7 @@ Namespace My.Sys.Forms
 					If Ctrl->overlaywidget Then g_object_set_data(G_OBJECT(Ctrl->overlaywidget), "@@@Control2", Ctrl)
 					If Ctrl->widget Then g_object_set_data(G_OBJECT(Ctrl->widget), "@@@Control2", Ctrl)
 					If Ctrl->layoutwidget Then g_object_set_data(G_OBJECT(Ctrl->layoutwidget), "@@@Control2", Ctrl)
-					If CInt(bAdded) AndAlso CInt(CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget)))) Then
+					If CInt(bAdded) AndAlso CInt(CInt(Ctrl->FVisible) OrElse CInt(GTK_IS_NOTEBOOK(gtk_widget_get_parent(Ctrl->widget)))) Then
 						If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
 						If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
 						If Ctrl->overlaywidget Then gtk_widget_show(Ctrl->overlaywidget)
@@ -2511,12 +2544,12 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-    Exit Sub
-ErrorHandler:
-    Print ErrDescription(Err) & " (" & Err & ") " & _
-        "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-        "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-        "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+			Exit Sub
+			ErrorHandler:
+			Print ErrDescription(Err) & " (" & Err & ") " & _
+			"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+			"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+			"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 		End Sub
 		
 		Private Sub Control.AddRange cdecl(CountArgs As Integer, ...)
@@ -2608,7 +2641,7 @@ ErrorHandler:
 		Private Destructor Control
 			#ifndef __FB_WIN32__
 				#ifdef __USE_GTK__
-					If gtk_is_widget(layoutwidget) Then
+					If GTK_IS_WIDGET(layoutwidget) Then
 						#ifdef __USE_GTK3__
 							g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)
 						#else
@@ -2616,12 +2649,12 @@ ErrorHandler:
 							g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_SizeAllocate), @This)
 						#endif
 					End If
-					If gtk_is_widget(widget) Then
+					If GTK_IS_WIDGET(widget) Then
 						g_signal_handlers_disconnect_by_func(IIf(eventboxwidget, eventboxwidget, widget), G_CALLBACK(@EventProc), @This)
 						g_signal_handlers_disconnect_by_func(IIf(eventboxwidget, eventboxwidget, widget), G_CALLBACK(@EventAfterProc), @This)
 						g_signal_handlers_disconnect_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), @This)
 					End If
-					If gtk_is_widget(scrolledwidget) Then
+					If GTK_IS_WIDGET(scrolledwidget) Then
 						g_signal_handlers_disconnect_by_func(scrolledwidget, G_CALLBACK(@Control_Scroll), @This)
 					End If
 				#endif

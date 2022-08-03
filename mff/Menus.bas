@@ -151,7 +151,7 @@ Namespace My.Sys.Forms
 		Dim OldIndex As Integer = This.IndexOf(Value)
 		If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= FCount - 1 Then
 			If Index < OldIndex Then
-				For i As Integer = Index To OldIndex - 1
+				For i As Integer = OldIndex - 1 To Index Step -1
 					FItems[i + 1] = FItems[i]
 				Next i
 				FItems[Index] = Value
@@ -1557,7 +1557,7 @@ Namespace My.Sys.Forms
 		Dim OldIndex As Integer = This.IndexOf(Value)
 		If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= FCount - 1 Then
 			If Index < OldIndex Then
-				For i As Integer = Index To OldIndex - 1
+				For i As Integer = OldIndex - 1 To Index Step -1
 					FItems[i + 1] = FItems[i]
 				Next i
 				FItems[Index] = Value
