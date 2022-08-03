@@ -41,12 +41,13 @@ Namespace My.Sys.Forms
 		Case "menuindex": Return @FMenuIndex
 		Case "name": Return FName
 		Case "owner": Return FOwner
-		Case "parent": Return FParent
+		Case "parent": Return Parent
 		Case "parentmenu": Return FOwner
+		Case "parentmenuitem": Return FParentMenuItem
 		Case "radioitem": Return @FRadioItem
 		Case "tag": Return Tag
 		#ifdef __USE_GTK__
-			Case "widget": Return @widget
+			Case "widget": Return @Widget
 		#elseif defined(__USE_WINAPI__)
 			Case "handle": Return @FHandle
 		#endif
@@ -93,13 +94,13 @@ Namespace My.Sys.Forms
 	
 	Private Sub TraverseItems(Item As MenuItem)
 		#ifdef __USE_WINAPI__
-			Dim As MenuItemInfo mii
-			mii.cbsize = SizeOf(mii)
+			Dim As MENUITEMINFO mii
+			mii.cbSize = SizeOf(mii)
 			mii.fMask  = MIIM_TYPE
 			For i As Integer = 0 To Item.Count-1
-				GetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
+				GetMenuItemInfo(Item.HANDLE,Item.Item(i)->MenuIndex,True,@mii)
 				mii.fType = IIf((mii.fType And MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
-				SetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
+				SetMenuItemInfo(Item.HANDLE,Item.Item(i)->MenuIndex,True,@mii)
 				TraverseItems(*Item.Item(i))
 			Next i
 		#endif
@@ -112,22 +113,22 @@ Namespace My.Sys.Forms
 				*FCaption = Chr(0)
 			End If
 			value.cbSize      = SizeOf(value)
-			value.fMask       = IIf(Handle,MIIM_SUBMENU,MIIM_ID) Or MIIM_FTYPE Or MIIM_BITMAP Or MIIM_STRING Or MIIM_DATA Or MIIM_STATE
-			value.hSubMenu    = Handle
+			value.fMask       = IIf(HANDLE,MIIM_SUBMENU,MIIM_ID) Or MIIM_FTYPE Or MIIM_BITMAP Or MIIM_STRING Or MIIM_DATA Or MIIM_STATE
+			value.hSubMenu    = HANDLE
 			value.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
 			value.fState      = IIf(FEnabled, MFS_ENABLED, MFS_DISABLED) Or IIf(FChecked, MFS_CHECKED, MFS_UNCHECKED)
-			value.wID         = IIf(Handle, -1, This.Command)
-			If FImageIndex <> - 1 AndAlso owner AndAlso owner->imageslist Then
+			value.wID         = IIf(HANDLE, -1, This.Command)
+			If FImageIndex <> - 1 AndAlso Owner AndAlso Owner->ImagesList Then
 				FImage.LoadFromHICON(Owner->ImagesList->GetIcon(FImageIndex).Handle)
 			ElseIf WGet(FImageKey) <> "" Then
 				FImage.LoadFromResourceName(*FImageKey)
 			End If
-			If owner <> 0 AndAlso Not owner->DisplayIcons Then
-				Value.hbmpItem     = 0
+			If Owner <> 0 AndAlso Not Owner->DisplayIcons Then
+				value.hbmpItem     = 0
 			Else
-				Value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
+				value.hbmpItem     = FImage.Handle 'IIf(FImageIndex <> - 1, HBMMENU_CALLBACK, FImage.Handle)
 			End If
-			value.dwItemData  = Cast(dword_Ptr, Cast(Any Ptr, @This))
+			value.dwItemData  = Cast(DWORD_PTR, Cast(Any Ptr, @This))
 			If *FCaption = "-" Then
 				WLet(pCaption, "|")
 			Else
@@ -138,8 +139,8 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
-			If Parent AndAlso Parent->Handle Then
-				SetMenuItemInfo(Parent->Handle, FMenuIndex, True, @value)
+			If ParentMenuItem AndAlso ParentMenuItem->HANDLE Then
+				SetMenuItemInfo(ParentMenuItem->HANDLE, FMenuIndex, True, @value)
 			ElseIf This.Owner AndAlso This.Owner->Handle Then
 				SetMenuItemInfo(This.Owner->Handle, FMenuIndex, True, @value)
 			End If
@@ -508,7 +509,7 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, value)
 		#ifdef __USE_GTK__
 			If Icon Then
-				gtk_image_set_from_icon_name(GTK_IMAGE(icon), Value, GTK_ICON_SIZE_MENU)
+				gtk_image_set_from_icon_name(GTK_IMAGE(Icon), value, GTK_ICON_SIZE_MENU)
 			Else
 				
 			End If
@@ -516,8 +517,8 @@ Namespace My.Sys.Forms
 		'gtk_container_add (GTK_CONTAINER (box), icon)
 		'gtk_container_add (GTK_CONTAINER (widget), box)
 		'gtk_widget_show_all (widget)
-		If value <> "" AndAlso owner AndAlso owner->imageslist Then
-			ImageIndex = owner->imageslist->IndexOf(value)
+		If value <> "" AndAlso Owner AndAlso Owner->ImagesList Then
+			ImageIndex = Owner->ImagesList->IndexOf(value)
 		End If
 	End Property
 	
@@ -557,16 +558,19 @@ Namespace My.Sys.Forms
 	'		end property
 	'	#EndIf
 	
-	Private Property MenuItem.Parent As PMenuItem
-		Return FParent
+	Private Property MenuItem.Parent As My.Sys.Object Ptr
+		If FParentMenuItem Then
+			Return FParentMenuItem
+		Else
+			Return FOwner
+		End If
 	End Property
 	
-	Private Property MenuItem.Parent(value As PMenuItem)
-		If FParent <> value Then
-			Dim As PMenuItem SaveParent = FParent
-			FParent = value
-			If SaveParent Then SaveParent->Remove(@This)
-			If FParent Then FParent->Add(@This)
+	Private Property MenuItem.Parent(value As My.Sys.Object Ptr)
+		If *value Is Menu Then
+			ParentMenu = Cast(Menu Ptr, value)
+		ElseIf *value Is MenuItem Then
+			ParentMenuItem = Cast(MenuItem Ptr, value)
 		End If
 	End Property
 	
@@ -581,6 +585,19 @@ Namespace My.Sys.Forms
 		If FOwner Then FOwner->Add(@This)
 	End Property
 	
+	Private Property MenuItem.ParentMenuItem As PMenuItem
+		Return FParentMenuItem
+	End Property
+	
+	Private Property MenuItem.ParentMenuItem(value As PMenuItem)
+		If FParentMenuItem <> value Then
+			Dim As PMenuItem SaveParent = FParentMenuItem
+			FParentMenuItem = value
+			If SaveParent Then SaveParent->remove(@This)
+			If FParentMenuItem Then FParentMenuItem->Add(@This)
+		End If
+	End Property
+	
 	Private Property MenuItem.Caption ByRef As WString
 		Return WGet(FCaption)
 	End Property
@@ -589,23 +606,23 @@ Namespace My.Sys.Forms
 		FCaption = Reallocate_(FCaption, (Len(value) + 1) * SizeOf(WString))
 		*FCaption = value
 		#ifdef __USE_GTK__
-			If Value <> "-" Then
+			If value <> "-" Then
 				Dim p As Integer = InStr(value, !"\t")
 				If p > 0 Then
 					Dim As String HotKey = Mid(value, p + 1)
 					WLet(FText, Replace(.Left(value, p), "&", "_"))
 					WLet(FAccelerator, HotKey)
-					gtk_label_set_text_with_mnemonic(gtk_label(label), ToUTF8(*FText))
+					gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), ToUtf8(*FText))
 					If HotKey <> "" Then
 						HotKey = Replace(HotKey, "Ctrl+", "<Ctrl>")
 						HotKey = Replace(HotKey, "Alt+", "<Alt>")
 						HotKey = Replace(HotKey, "Shift+", "<Shift>")
-						gtk_accelerator_parse(ToUTF8(HotKey), @accelerator_key, @accelerator_mods)
+						gtk_accelerator_parse(ToUtf8(HotKey), @accelerator_key, @accelerator_mods)
 						#ifdef __USE_GTK3__
-							gtk_accel_label_set_accel(GTK_ACCEL_LABEL (label), accelerator_key, accelerator_mods) 'accelerator_mods)
+							gtk_accel_label_set_accel(GTK_ACCEL_LABEL (Label), accelerator_key, accelerator_mods) 'accelerator_mods)
 						#else
 							If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Accelerator Then
-								gtk_widget_add_accelerator (label, "activate", Owner->ParentWindow->Accelerator, accelerator_key, accelerator_mods, GTK_ACCEL_VISIBLE)
+								gtk_widget_add_accelerator (Label, "activate", Owner->ParentWindow->Accelerator, accelerator_key, accelerator_mods, GTK_ACCEL_VISIBLE)
 							End If
 						#endif
 						'If Owner Then
@@ -616,7 +633,7 @@ Namespace My.Sys.Forms
 					End If
 				Else
 					WLet(FText, Replace(value, "&", "_"))
-					gtk_label_set_text_with_mnemonic(gtk_label(label), ToUTF8(*FText))
+					gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), ToUtf8(*FText))
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -631,15 +648,15 @@ Namespace My.Sys.Forms
 			End If
 			FInfo.dwTypeData = pCaption
 			FInfo.cch        = Len(*pCaption)
-			If Parent Then
-				SetMenuItemInfo(Parent->Handle, MenuIndex, True, @FInfo)
+			If ParentMenuItem Then
+				SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
 			ElseIf Owner AndAlso Owner->Handle Then
 				SetMenuItemInfo(Owner->Handle, MenuIndex, True, @FInfo)
 			End If
 			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
 				DrawMenuBar(Owner->ParentWindow->Handle)
 			End If
-			WDeallocate pCaption
+			WDeAllocate pCaption
 		#endif
 	End Property
 	
@@ -650,17 +667,17 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.Checked(value As Boolean)
 		FChecked = value
 		#ifdef __USE_GTK__
-			If gtk_is_check_menu_item(widget) Then
+			If GTK_IS_CHECK_MENU_ITEM(Widget) Then
 				FMenuItemChecked = True
-				gtk_check_menu_item_set_active(gtk_check_menu_item(widget), value)
+				gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			Dim As Integer FCheck(-1 To 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
-			If Parent AndAlso Parent->Handle Then
+			If ParentMenuItem AndAlso ParentMenuItem->Handle Then
 				If Handle Then
-					CheckMenuItem(Parent->Handle, CInt(Handle), MF_POPUP Or FCheck(FChecked))
+					CheckMenuItem(ParentMenuItem->Handle, CInt(Handle), MF_POPUP Or FCheck(FChecked))
 				Else
-					CheckMenuItem(Parent->Handle, MenuIndex, MF_BYPOSITION Or FCheck(FChecked))
+					CheckMenuItem(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION Or FCheck(FChecked))
 				End If
 			ElseIf Owner AndAlso Owner->Handle Then
 				If Handle Then
@@ -679,16 +696,16 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.RadioItem(value As Boolean)
 		FRadioItem = value
 		Dim As Integer First,Last
-		If Parent Then
-			First = Parent->Item(0)->MenuIndex
-			Last  = Parent->Item(Parent->Count-1)->MenuIndex
+		If ParentMenuItem Then
+			First = ParentMenuItem->Item(0)->MenuIndex
+			Last  = ParentMenuItem->Item(ParentMenuItem->Count - 1)->MenuIndex
 			#ifdef __USE_GTK__
-				If gtk_is_check_menu_item(widget) Then
-					gtk_check_menu_item_set_draw_as_radio(gtk_check_menu_item(widget), True)
-					gtk_check_menu_item_set_active(gtk_check_menu_item(widget), value)
+				If GTK_IS_CHECK_MENU_ITEM(Widget) Then
+					gtk_check_menu_item_set_draw_as_radio(GTK_CHECK_MENU_ITEM(Widget), True)
+					gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
 				End If
 			#elseif defined(__USE_WINAPI__)
-				CheckMenuRadioItem(Parent->Handle, First, Last, MenuIndex, MF_BYPOSITION)
+				CheckMenuRadioItem(ParentMenuItem->Handle, First, Last, MenuIndex, MF_BYPOSITION)
 			#endif
 		End If
 	End Property
@@ -700,13 +717,13 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.Enabled(value As Boolean)
 		FEnabled = value
 		#ifdef __USE_GTK__
-			gtk_widget_set_sensitive(widget, FEnabled)
+			gtk_widget_set_sensitive(Widget, FEnabled)
 		#elseif defined(__USE_WINAPI__)
 			Dim As Integer FEnable(0 To 1) => {MF_DISABLED Or MF_GRAYED, MF_ENABLED}
-			If Parent Then
-				EnableMenuItem(Parent->Handle, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
+			If ParentMenuItem Then
+				EnableMenuItem(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION Or FEnable(abs_(FEnabled)))
 			ElseIf Owner AndAlso Owner->Handle Then
-				EnableMenuItem(Owner->Handle, MenuIndex, mf_byposition Or FEnable(Abs_(FEnabled)))
+				EnableMenuItem(Owner->Handle, MenuIndex, MF_BYPOSITION Or FEnable(abs_(FEnabled)))
 			End If
 			'		If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
 			'			DrawMenuBar(Owner->ParentWindow->Handle)
@@ -719,21 +736,21 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property MenuItem.Visible(value As Boolean)
-		If fvisible = value Then Exit Property
+		If FVisible = value Then Exit Property
 		FVisible = value
 		#ifdef __USE_GTK__
-			gtk_widget_set_visible(widget, FVisible)
+			gtk_widget_set_visible(Widget, FVisible)
 		#elseif defined(__USE_WINAPI__)
 			If FVisible = False Then
-				If Parent Then
-					RemoveMenu(Parent->Handle, MenuIndex, MF_BYPOSITION)
+				If ParentMenuItem Then
+					RemoveMenu(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION)
 				ElseIf Owner AndAlso Owner->Handle Then
 					RemoveMenu(Owner->Handle, MenuIndex, MF_BYPOSITION)
 				End If
 			Else
 				SetInfo(FInfo)
-				If Parent Then
-					InsertMenuItem(Parent->Handle, MenuIndex, True, @FInfo)
+				If ParentMenuItem Then
+					InsertMenuItem(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
 				ElseIf Owner AndAlso Owner->Handle Then
 					InsertMenuItem(Owner->Handle, MenuIndex, True, @FInfo)
 				End If
@@ -782,7 +799,7 @@ Namespace My.Sys.Forms
 				Index = FCount - 1
 			End If
 			value->MenuIndex = Index
-			value->FParent    = @This
+			value->FParentMenuItem    = @This
 			value->Owner     = Owner
 			'			#IfNDef __USE_GTK__
 			'				value->Menu      = This.Menu
@@ -791,12 +808,12 @@ Namespace My.Sys.Forms
 			FItems[Index]            = value
 			#ifdef __USE_GTK__
 				If SubMenu = 0 Then
-					SubMenu = New_( PopUpMenu)
-					gtk_menu_item_set_submenu(gtk_menu_item(widget), SubMenu->Handle)
+					SubMenu = New_( PopupMenu)
+					gtk_menu_item_set_submenu(GTK_MENU_ITEM(Widget), SubMenu->Handle)
 					gtk_widget_show(SubMenu->Handle)
 				End If
 				If Index = -1 Then
-					gtk_menu_shell_append(gtk_menu_shell(SubMenu->Handle), value->widget)
+					gtk_menu_shell_append(GTK_MENU_SHELL(SubMenu->Handle), value->Widget)
 				Else
 					gtk_menu_shell_insert(gtk_menu_shell(SubMenu->Handle), value->widget, Index)
 				End If
@@ -900,7 +917,7 @@ Namespace My.Sys.Forms
 				Next i
 				FItems[Index]            = value
 				FItems[Index]->MenuIndex = Index
-				FItems[Index]->FParent    = @This
+				FItems[Index]->FParentMenuItem    = @This
 				FItems[Index]->Owner     = Owner
 				'				#IfNDef __USE_GTK__
 				'					FItems[Index]->Menu      = This.Menu
@@ -910,14 +927,14 @@ Namespace My.Sys.Forms
 					#ifdef __USE_WINAPI__
 						If Handle = 0 Then
 							Handle = CreatePopupMenu
-							Dim As menuinfo mif
+							Dim As MENUINFO mif
 							mif.cbSize     = SizeOf(mif)
-							mif.dwmenudata = Cast(dword_Ptr,Cast(Any Ptr,@This))
+							mif.dwMenuData = Cast(DWORD_PTR,Cast(Any Ptr,@This))
 							mif.fMask      = MIM_MENUDATA
 							.SetMenuInfo(Handle,@mif)
 							SetInfo(FInfo)
-							If Parent Then
-								SetMenuItemInfo(Parent->Handle,MenuIndex,True,@FInfo)
+							If ParentMenuItem Then
+								SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
 							End If
 						End If
 					#endif
@@ -1103,15 +1120,15 @@ Namespace My.Sys.Forms
 		'		FParent->Remove(@This)
 		'	End If
 		This.Clear
-		WDeallocate pCaption
-		WDeallocate FCaption
-		WDeallocate FText
-		WDeallocate FAccelerator
-		WDeallocate FName
-		WDeallocate FImageKey
+		WDeAllocate pCaption
+		WDeAllocate FCaption
+		WDeAllocate FText
+		WDeAllocate FAccelerator
+		WDeAllocate FName
+		WDeAllocate FImageKey
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
-				If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+				If gtk_is_widget(Widget) Then gtk_widget_destroy(Widget)
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -1127,9 +1144,11 @@ Namespace My.Sys.Forms
 		Select Case FTempString
 		Case "count": Return @FCount
 		Case "color": Return @FColor
-		Case "colorizeentire": Return @FIncSubitems
+		Case "colorizeentire": Return @FIncSubItems
 		Case "displayicons": Return @FDisplayIcons
 		Case "imageslist": Return ImagesList
+		Case "parentwindow": Return FParentWindow
+		Case "style": Return @FStyle
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
 		Return 0
@@ -1146,6 +1165,8 @@ Namespace My.Sys.Forms
 			Case "colorizeentire": This.ColorizeEntire = QInteger(Value)
 			Case "displayicons": DisplayIcons = QBoolean(Value)
 			Case "imageslist": ImagesList = Value
+			Case "parentwindow": ParentWindow = Value
+			Case "style": FStyle = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 		End If
@@ -1205,8 +1226,8 @@ Namespace My.Sys.Forms
 	
 	Private Property Menu.Color As Integer
 		#ifdef __USE_WINAPI__
-			If handle Then
-				Dim As menuinfo mif
+			If Handle Then
+				Dim As MENUINFO mif
 				mif.cbSize = SizeOf(mif)
 				mif.fMask  = MIM_BACKGROUND
 				If GetMenuInfo(Handle,@mif) Then
@@ -1224,7 +1245,7 @@ Namespace My.Sys.Forms
 		FColor = value
 		#ifdef __USE_WINAPI__
 			If Handle Then
-				Dim As menuinfo mif
+				Dim As MENUINFO mif
 				mif.cbSize = SizeOf(mif)
 				GetMenuInfo(Handle,@mif)
 				If mif.hbrBack Then
@@ -1235,7 +1256,7 @@ Namespace My.Sys.Forms
 				SetMenuInfo(Handle,@mif)
 				If FParentWindow AndAlso FParentWindow->Handle Then
 					DrawMenuBar(FParentWindow->Handle)
-					RedrawWindow(FParentWindow->Handle,0,0,rdw_invalidate Or rdw_erase)
+					RedrawWindow(FParentWindow->Handle,0,0,RDW_INVALIDATE Or RDW_ERASE)
 					UpdateWindow(FParentWindow->Handle)
 				End If
 			End If
@@ -1243,11 +1264,11 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Menu.ColorizeEntire As Integer
-		Return FIncSubitems
+		Return FIncSubItems
 	End Property
 	
 	Private Property Menu.ColorizeEntire(value As Integer)
-		FIncSubitems = value
+		FIncSubItems = value
 		Color = FColor
 	End Property
 	
@@ -1269,7 +1290,7 @@ Namespace My.Sys.Forms
 			End If
 		Else
 			If (index > -1) And (index < FCount) Then
-				Return FItems[Index]
+				Return FItems[index]
 			End If
 		End If
 		Return NULL
@@ -1278,11 +1299,11 @@ Namespace My.Sys.Forms
 	Private Property Menu.Item(index As Integer, value As MenuItem Ptr)
 		If FParentMenuItem Then
 			If (index > -1) And (index < FParentMenuItem->Count) Then
-				FParentMenuItem->Item(Index) = value
+				FParentMenuItem->Item(index) = value
 			End If
 		Else
 			If (index > -1) And (index < FCount) Then
-				FItems[Index] = value
+				FItems[index] = value
 			End If
 		End If
 	End Property
@@ -1301,11 +1322,11 @@ Namespace My.Sys.Forms
 			Exit Sub
 		End If
 		#ifdef __USE_WINAPI__
-			Dim As MenuItemInfo FInfo
+			Dim As MENUITEMINFO FInfo
 		#endif
 		If IndexOf(value) = -1 Then
 			FCount          +=1
-			FItems           = reallocate_(FItems, SizeOf(PMenuItem)*FCount)
+			FItems           = Reallocate_(FItems, SizeOf(PMenuItem)*FCount)
 			If Index <> -1 Then
 				For i As Integer = FCount - 1 To Index + 1 Step -1
 					FItems[i] = FItems[i-1]
@@ -1314,7 +1335,7 @@ Namespace My.Sys.Forms
 				Index = FCount - 1
 			End If
 			FItems[Index] = value
-			value->Parent    = Null
+			value->Parent    = NULL
 			value->MenuIndex = Index
 			'               #IfNDef __USE_GTK__
 			'				value->Menu      = Handle
@@ -1322,16 +1343,16 @@ Namespace My.Sys.Forms
 			value->Owner     = @This
 			AllocateCommand(value)
 			#ifdef __USE_GTK__
-				gtk_menu_shell_insert(gtk_menu_shell(widget), value->widget, Index)
-				gtk_widget_show(value->widget)
-				If value->label Then gtk_widget_show(value->label)
+				gtk_menu_shell_insert(GTK_MENU_SHELL(widget), value->Widget, Index)
+				gtk_widget_show(value->Widget)
+				If value->Label Then gtk_widget_show(value->Label)
 				If ClassName = "MainMenu" Then
 				End If
-				If gtk_is_menu_bar(widget) <> 1 Then
-					If Value->box Then
-						gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
-						gtk_widget_show(value->box)
-						gtk_widget_show(value->icon)
+				If GTK_IS_MENU_BAR(widget) <> 1 Then
+					If value->Box Then
+						gtk_container_add (GTK_CONTAINER (value->Box), value->Icon)
+						gtk_widget_show(value->Box)
+						gtk_widget_show(value->Icon)
 					EndIf
 					'gtk_widget_show_all(widget)
 				End If
@@ -1342,7 +1363,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 			For i As Integer = 0 To value->Count-1
-				value->item(i)->Owner = value->Owner
+				value->Item(i)->Owner = value->Owner
 				'               #IfNDef __USE_GTK__
 				'				value->item(i)->Menu  = Handle
 				'				#EndIf
@@ -1360,35 +1381,35 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->Image     = iImage
 		Value->Name     = sKey
-		Value->OnClick     = eClick
-		Value->OnClick     = eClick
+		Value->onClick     = eClick
+		Value->onClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->ImageIndex = iImageIndex
 		Value->Caption     = sCaption
 		Value->Name     = sKey
-		Value->OnClick     = eClick
+		Value->onClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, , Checkable))
 		Value->FDynamic = True
 		'WLet Value->FImageKey, sImageKey
 		If ImagesList Then Value->ImageIndex = ImagesList->IndexOf(sImageKey)
 		Value->Name     = sKey
-		Value->OnClick     = eClick
+		Value->onClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
@@ -1414,11 +1435,11 @@ Namespace My.Sys.Forms
 	
 	Private Sub Menu.Insert(Index As Integer, value As PMenuItem)
 		If FParentMenuItem Then
-			FParentMenuItem->Insert Index, Value
+			FParentMenuItem->Insert Index, value
 			Exit Sub
 		End If
 		#ifdef __USE_WINAPI__
-			Dim As MenuItemInfo FInfo
+			Dim As MENUITEMINFO FInfo
 		#endif
 		If IndexOf(value) = -1 Then
 			If (Index>-1) And (Index<FCount) Then
@@ -1431,7 +1452,7 @@ Namespace My.Sys.Forms
 				value->MenuIndex = Index
 				value->Parent    = NULL
 				#ifdef __USE_WINAPI__
-					value->Handle    = IIf(value->Handle, value->Handle, CreatePopupMenu)
+					value->HANDLE    = IIf(value->HANDLE, value->HANDLE, CreatePopupMenu)
 					'				value->Menu      = Handle
 				#endif
 				value->Owner     = @This
@@ -1444,7 +1465,7 @@ Namespace My.Sys.Forms
 					FItems[i]->MenuIndex = i
 				Next i
 				For i As Integer = 0 To value->Count-1
-					value->item(i)->Owner = value->Owner
+					value->Item(i)->Owner = value->Owner
 					'                  #IfNDef __USE_GTK__
 					'					value->item(i)->Menu  = Handle
 					'				#EndIf
@@ -1503,9 +1524,9 @@ Namespace My.Sys.Forms
 	Private Function Menu.Find(ByRef Value As WString) As MenuItem Ptr
 		Dim As MenuItem Ptr FItem
 		For i As Integer = 0 To FCount-1
-			If Item(i)->Name = value Then Return Item(i)
-			FItem = Item(i)->Find(value)
-			If FItem Then If FItem->Name = value Then Return FItem
+			If Item(i)->Name = Value Then Return Item(i)
+			FItem = Item(i)->Find(Value)
+			If FItem Then If FItem->Name = Value Then Return FItem
 		Next i
 		Return NULL
 	End Function
@@ -1515,7 +1536,7 @@ Namespace My.Sys.Forms
 			For i As Integer = FCount - 1 To 0 Step -1
 				If Item(i)->FDynamic Then Delete_(Item(i))
 			Next i
-			If FItems <> 0 Then delete_SquareBrackets( FItems)
+			If FItems <> 0 Then Delete_SquareBrackets( FItems)
 			FItems = 0 'callocate_(0)
 		End If
 	End Sub
@@ -1673,9 +1694,9 @@ Namespace My.Sys.Forms
 					If value->layoutwidget Then
 						'gtk_container_add(GTK_CONTAINER(value->layoutwidget), widget)
 						#ifdef __USE_GTK4__
-							If value->box Then gtk_box_pack_start(Gtk_Box(value->box), widget)
+							If value->box Then gtk_box_pack_start(GTK_BOX(value->box), widget)
 						#else
-							If value->box Then gtk_box_pack_start(Gtk_Box(value->box), widget, False, False, 0)
+							If value->box Then gtk_box_pack_start(GTK_BOX(value->box), widget, False, False, 0)
 						#endif
 						Dim As GdkGeometry hints
 						hints.base_width = 0

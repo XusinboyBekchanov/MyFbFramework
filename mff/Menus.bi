@@ -63,7 +63,7 @@ Namespace My.Sys.Forms
 		FAccelerator	    As WString Ptr
 		FChecked		    As Boolean
 		FRadioItem		    As Boolean
-		FParent			    As PMenuItem
+		FParentMenuItem     As PMenuItem
 		FEnabled		    As Boolean
 		FVisible		    As Boolean
 		FCommand		    As Integer
@@ -84,7 +84,7 @@ Namespace My.Sys.Forms
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Tag As Any Ptr
-		SubMenu As PPopUpMenu
+		SubMenu As PPopupMenu
 		#ifdef __USE_WINAPI__
 			'declare property Menu as HMENU
 			'declare property Menu(value as HMENU)
@@ -99,17 +99,19 @@ Namespace My.Sys.Forms
 			Icon			As GtkWidget Ptr
 			Label			As GtkWidget Ptr
 			Widget 			As GtkWidget Ptr
-			Declare Static Sub MenuItemActivate(menuitem As GtkMenuItem Ptr, user_data As Any Ptr)
+			Declare Static Sub MenuItemActivate(MenuItem As GtkMenuItem Ptr, user_data As Any Ptr)
 			Declare Static Function MenuItemButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 		#endif
 		Declare Property Owner As PMenu
 		Declare Property Owner(value As PMenu)
 		Declare Property Name ByRef As WString
 		Declare Property Name(ByRef value As WString)
-		Declare Property Parent As PMenuItem
-		Declare Property Parent(value As PMenuItem)
+		Declare Property Parent As My.Sys.Object Ptr
+		Declare Property Parent(value As My.Sys.Object Ptr)
 		Declare Property ParentMenu As PMenu
 		Declare Property ParentMenu(value As PMenu)
+		Declare Property ParentMenuItem As PMenuItem
+		Declare Property ParentMenuItem(value As PMenuItem)
 		Declare Property Command As Integer
 		Declare Property Command(value As Integer)
 		Declare Property MenuIndex As Integer
@@ -140,13 +142,13 @@ Namespace My.Sys.Forms
 		Declare Sub Click
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
 		Declare Sub Add(ByRef value As PMenuItem, Index As Integer = -1)
 		Declare Sub Add(value() As PMenuItem)
 		Declare Sub AddRange cdecl(CountArgs As Integer, ...)
-		Declare Sub Remove(value As PMenuItem)
+		Declare Sub remove(value As PMenuItem)
 		Declare Sub Insert(index As Integer, value As PMenuItem)
 		Declare Sub Clear
 		Declare Function IndexOf(value As PMenuItem) As Integer
@@ -154,9 +156,9 @@ Namespace My.Sys.Forms
 		Declare Function Find(value As Integer) As PMenuItem
 		Declare Function Find(ByRef value As WString) As PMenuItem
 		Declare Operator Cast As Any Ptr
-		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null, Checkable As Boolean = False)
+		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False)
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As MenuItem)
+		onClick As Sub(ByRef Sender As MenuItem)
 	End Type
 	
 	Private Type Menu Extends Component
@@ -228,7 +230,7 @@ Namespace My.Sys.Forms
 	Public:
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Declare Virtual Sub ProcessMessages(ByRef message As Message)
+		Declare Virtual Sub ProcessMessages(ByRef Message As Message)
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -245,8 +247,8 @@ Namespace My.Sys.Forms
 		Declare Property ParentMenuItem(value As MenuItem Ptr)
 		Declare Property ParentWindow As Component Ptr
 		Declare Property ParentWindow(value As Component Ptr)
-		Declare Sub Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
-		Declare Virtual Sub ProcessMessages(ByRef message As Message)
+		Declare Sub Popup(x As Integer, y As Integer, MSG As Message Ptr = 0)
+		Declare Virtual Sub ProcessMessages(ByRef Message As Message)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
@@ -266,7 +268,7 @@ End Namespace
 	
 	Declare Function MenuFindByName Alias "MenuFindByName"(PMenu As My.Sys.Forms.Menu Ptr, ByRef FName As WString) As My.Sys.Forms.MenuItem Ptr
 	
-	Declare Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr
+	Declare Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr
 	
 	Declare Function MenuItemAddWithBitmapType Alias "MenuItemAddWithBitmapType"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType Ptr, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr
 	
