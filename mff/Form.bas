@@ -722,10 +722,10 @@ Namespace My.Sys.Forms
 				Select Case uMsg
 				Case WM_WINDOWPOSCHANGING
 					Dim As WINDOWPOS Ptr lpwp = Cast(WINDOWPOS Ptr, LPARAM)
-					lpwp->x = frm->FClientX
-					lpwp->y = frm->FClientY
-					lpwp->cx = frm->FClientW
-					lpwp->cy = frm->FClientH
+					lpwp->x = ScaleX(frm->FClientX)
+					lpwp->y = ScaleY(frm->FClientY)
+					lpwp->cx = ScaleX(frm->FClientW)
+					lpwp->cy = ScaleY(frm->FClientH)
 				End Select
 			End If
 			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, WPARAM, LPARAM)

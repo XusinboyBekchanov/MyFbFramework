@@ -2187,7 +2187,6 @@ Namespace My.Sys.Forms
 			Dim As Integer i,LeftCount = 0, RightCount = 0, TopCount = 0, BottomCount = 0, ClientCount = 0
 			Dim As Integer tTop, bTop, lLeft, rLeft
 			Dim As Integer aLeft, aTop, aWidth, aHeight
-			If ControlCount = 0 Then Exit Sub
 			If iClientWidth = -1 Then iClientWidth = ClientWidth
 			If iClientHeight = -1 Then iClientHeight = ClientHeight
 			If iClientWidth <= 0 OrElse iClientHeight <= 0 Then Exit Sub
@@ -2195,141 +2194,143 @@ Namespace My.Sys.Forms
 			rLeft = iClientWidth - Margins.Right
 			tTop  = Margins.Top
 			bTop  = iClientHeight - Margins.Bottom
-			#ifdef __USE_GTK__
-				If rLeft <= 1 And bTop <= 1 Then
-					Exit Sub
-				End If
-				If layoutwidget Then
-					'gtk_layout_set_size(gtk_layout(layoutwidget), rLeft, bTop)
-					'gtk_widget_set_size_request(layoutwidget, Max(0, rLeft), Max(0, tTop))
-				ElseIf fixedwidget Then
-					gtk_widget_set_size_request(fixedwidget, Max(0, rLeft), Max(0, tTop))
-				End If
-				'If FMenu AndAlso FMenu->widget Then
-				'	tTop = gtk_widget_get_allocated_height(FMenu->widget)
-				'	gtk_widget_set_size_request(FMenu->widget, Max(0, rLeft), Max(0, tTop))
-				'End If
-				'If fixedwidget Then
-				'	gtk_widget_set_size_request(fixedwidget, Max(0, rLeft), Max(0, bTop))
-				'End If
-			#endif
-			'This.UpdateLock
-			For i = 0 To ControlCount -1
-				'If Controls[i]->Handle = 0 Then Continue For
-				Select Case Controls[i]->Align
-				Case 1'alLeft
-					LeftCount += 1
-					ListLeft = Reallocate_(ListLeft,SizeOf(Control Ptr)*LeftCount)
-					ListLeft[LeftCount - 1] = Controls[i]
-				Case 2'alRight
-					RightCount += 1
-					ListRight = Reallocate_(ListRight,SizeOf(Control Ptr)*RightCount)
-					ListRight[RightCount - 1] = Controls[i]
-				Case 3'alTop
-					TopCount += 1
-					ListTop = Reallocate_(ListTop,SizeOf(Control Ptr)*TopCount)
-					ListTop[TopCount - 1] = Controls[i]
-				Case 4'alBottom
-					BottomCount += 1
-					ListBottom = Reallocate_(ListBottom,SizeOf(Control Ptr)*BottomCount)
-					ListBottom[BottomCount - 1] = Controls[i]
-				Case 5'alClient
-					ClientCount += 1
-					ListClient = Reallocate_(ListClient,SizeOf(Control Ptr)*ClientCount)
-					ListClient[ClientCount - 1] = Controls[i]
-				End Select
-				With *Controls[i]
-					If Cast(Integer, .Anchor.Left) + Cast(Integer, .Anchor.Right) + Cast(Integer, .Anchor.Top) + Cast(Integer, .Anchor.Bottom) <> 0 Then
-						#ifdef __USE_GTK__
-							If CInt(.FVisible) Then
-						#else
-							If CInt(.FVisible) AndAlso CInt(.Handle) Then
-						#endif
-							aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
-							This.FWidth = This.Width: This.FHeight = This.Height
-							If .Anchor.Left <> asNone Then
-								If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
-								If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
-							ElseIf .Anchor.Right <> asNone Then
-								aLeft = This.FWidth - .FWidth - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
-							End If
-							If .Anchor.Top <> asNone Then
-								If .Anchor.Top = asAnchorProportional Then aTop = This.FHeight / .FAnchoredParentHeight * .FAnchoredTop
-								If .Anchor.Bottom <> asNone Then aHeight = This.FHeight - aTop - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
-							ElseIf .Anchor.Bottom <> asNone Then
-								aTop = This.FHeight - .FHeight - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
-							End If
-							If bWithoutControl <> Controls[i] Then .SetBounds(aLeft, aTop, aWidth, aHeight)
-						End If
+			If ControlCount <> 0 Then
+				#ifdef __USE_GTK__
+					If rLeft <= 1 And bTop <= 1 Then
+						Exit Sub
 					End If
-				End With
-				'                Select Case Controls[i]->Align
-				'						Case 0 'None
-				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_BASELINE)
-				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_BASELINE)
-				'						Case 1 'Left
-				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_START)
-				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
-				'						Case 2 'Right
-				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_END)
-				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
-				'						Case 3 'Top
-				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
-				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_START)
-				'						Case 4 'Bottom
-				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
-				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_END)
-				'						Case 5 'Client
-				'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
-				'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
-				'						End Select
-				
-			Next i
-			'#IfDef __USE_GTK__
-			'#Else
-			'?ClassName, rLeft, bTop
-			For i = 0 To TopCount -1
-				With *ListTop[i]
-					If .FVisible Then
-						tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
-						If bWithoutControl <> ListTop[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop - .Height - .ExtraMargins.Bottom, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
+					If layoutwidget Then
+						'gtk_layout_set_size(gtk_layout(layoutwidget), rLeft, bTop)
+						'gtk_widget_set_size_request(layoutwidget, Max(0, rLeft), Max(0, tTop))
+					ElseIf fixedwidget Then
+						gtk_widget_set_size_request(fixedwidget, Max(0, rLeft), Max(0, tTop))
 					End If
-				End With
-			Next i
-			'bTop = ClientHeight
-			For i = 0 To BottomCount -1
-				With *ListBottom[i]
-					If .FVisible Then
-						bTop -= .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
-						If bWithoutControl <> ListBottom[i] Then .SetBounds(lLeft + .ExtraMargins.Left, bTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
-					End If
-				End With
-			Next i
-			'lLeft = 0
-			For i = 0 To LeftCount -1
-				With *ListLeft[i]
-					If .FVisible Then
-						lLeft += .ExtraMargins.Left + .Width + .ExtraMargins.Right
-						If bWithoutControl <> ListLeft[i] Then .SetBounds(lLeft - .Width - .ExtraMargins.Right, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
-					End If
-				End With
-			Next i
-			'rLeft = ClientWidth
-			For i = 0 To RightCount -1
-				With *ListRight[i]
-					If .FVisible Then
-						rLeft -= .ExtraMargins.Left + .Width + .ExtraMargins.Right
-						If bWithoutControl <> ListRight[i] Then .SetBounds(rLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
-					End If
-				End With
-			Next i
-			For i = 0 To ClientCount -1
-				With *ListClient[i]
-					'If .FVisible Then
-					If bWithoutControl <> ListClient[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+					'If FMenu AndAlso FMenu->widget Then
+					'	tTop = gtk_widget_get_allocated_height(FMenu->widget)
+					'	gtk_widget_set_size_request(FMenu->widget, Max(0, rLeft), Max(0, tTop))
 					'End If
-				End With
-			Next i
+					'If fixedwidget Then
+					'	gtk_widget_set_size_request(fixedwidget, Max(0, rLeft), Max(0, bTop))
+					'End If
+				#endif
+				'This.UpdateLock
+				For i = 0 To ControlCount -1
+					'If Controls[i]->Handle = 0 Then Continue For
+					Select Case Controls[i]->Align
+					Case 1'alLeft
+						LeftCount += 1
+						ListLeft = Reallocate_(ListLeft,SizeOf(Control Ptr)*LeftCount)
+						ListLeft[LeftCount - 1] = Controls[i]
+					Case 2'alRight
+						RightCount += 1
+						ListRight = Reallocate_(ListRight,SizeOf(Control Ptr)*RightCount)
+						ListRight[RightCount - 1] = Controls[i]
+					Case 3'alTop
+						TopCount += 1
+						ListTop = Reallocate_(ListTop,SizeOf(Control Ptr)*TopCount)
+						ListTop[TopCount - 1] = Controls[i]
+					Case 4'alBottom
+						BottomCount += 1
+						ListBottom = Reallocate_(ListBottom,SizeOf(Control Ptr)*BottomCount)
+						ListBottom[BottomCount - 1] = Controls[i]
+					Case 5'alClient
+						ClientCount += 1
+						ListClient = Reallocate_(ListClient,SizeOf(Control Ptr)*ClientCount)
+						ListClient[ClientCount - 1] = Controls[i]
+					End Select
+					With *Controls[i]
+						If Cast(Integer, .Anchor.Left) + Cast(Integer, .Anchor.Right) + Cast(Integer, .Anchor.Top) + Cast(Integer, .Anchor.Bottom) <> 0 Then
+							#ifdef __USE_GTK__
+								If CInt(.FVisible) Then
+							#else
+								If CInt(.FVisible) AndAlso CInt(.Handle) Then
+							#endif
+								aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
+								This.FWidth = This.Width: This.FHeight = This.Height
+								If .Anchor.Left <> asNone Then
+									If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
+									If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
+								ElseIf .Anchor.Right <> asNone Then
+									aLeft = This.FWidth - .FWidth - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
+								End If
+								If .Anchor.Top <> asNone Then
+									If .Anchor.Top = asAnchorProportional Then aTop = This.FHeight / .FAnchoredParentHeight * .FAnchoredTop
+									If .Anchor.Bottom <> asNone Then aHeight = This.FHeight - aTop - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
+								ElseIf .Anchor.Bottom <> asNone Then
+									aTop = This.FHeight - .FHeight - IIf(.Anchor.Bottom = asAnchor, .FAnchoredBottom, This.FHeight / .FAnchoredParentHeight * .FAnchoredBottom)
+								End If
+								If bWithoutControl <> Controls[i] Then .SetBounds(aLeft, aTop, aWidth, aHeight)
+							End If
+						End If
+					End With
+					'                Select Case Controls[i]->Align
+					'						Case 0 'None
+					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_BASELINE)
+					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_BASELINE)
+					'						Case 1 'Left
+					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_START)
+					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'						Case 2 'Right
+					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_END)
+					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'						Case 3 'Top
+					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_START)
+					'						Case 4 'Bottom
+					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_END)
+					'						Case 5 'Client
+					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'						End Select
+					
+				Next i
+				'#IfDef __USE_GTK__
+				'#Else
+				'?ClassName, rLeft, bTop
+				For i = 0 To TopCount -1
+					With *ListTop[i]
+						If .FVisible Then
+							tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
+							If bWithoutControl <> ListTop[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop - .Height - .ExtraMargins.Bottom, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
+						End If
+					End With
+				Next i
+				'bTop = ClientHeight
+				For i = 0 To BottomCount -1
+					With *ListBottom[i]
+						If .FVisible Then
+							bTop -= .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
+							If bWithoutControl <> ListBottom[i] Then .SetBounds(lLeft + .ExtraMargins.Left, bTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height)
+						End If
+					End With
+				Next i
+				'lLeft = 0
+				For i = 0 To LeftCount -1
+					With *ListLeft[i]
+						If .FVisible Then
+							lLeft += .ExtraMargins.Left + .Width + .ExtraMargins.Right
+							If bWithoutControl <> ListLeft[i] Then .SetBounds(lLeft - .Width - .ExtraMargins.Right, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+						End If
+					End With
+				Next i
+				'rLeft = ClientWidth
+				For i = 0 To RightCount -1
+					With *ListRight[i]
+						If .FVisible Then
+							rLeft -= .ExtraMargins.Left + .Width + .ExtraMargins.Right
+							If bWithoutControl <> ListRight[i] Then .SetBounds(rLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+						End If
+					End With
+				Next i
+				For i = 0 To ClientCount -1
+					With *ListClient[i]
+						'If .FVisible Then
+						If bWithoutControl <> ListClient[i] Then .SetBounds(lLeft + .ExtraMargins.Left, tTop + .ExtraMargins.Top, rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom)
+						'End If
+					End With
+				Next i
+			End If
 			#ifdef __USE_GTK__
 				If FClient Then
 					gtk_layout_move(GTK_LAYOUT(layoutwidget), FClient, lLeft, tTop)
@@ -2338,7 +2339,7 @@ Namespace My.Sys.Forms
 			#else
 				If FClient Then
 					FClientX = lLeft: FClientY = tTop: FClientW = Max(0, rLeft - lLeft): FClientH = Max(0, bTop - tTop)
-					MoveWindow FClient, FClientX, FClientY, FClientW, FClientH, True
+					MoveWindow FClient, ScaleX(FClientX), ScaleY(FClientY), ScaleX(FClientW), ScaleY(FClientH), True
 				End If
 			#endif
 			'#EndIf
