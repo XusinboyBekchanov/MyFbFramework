@@ -4069,12 +4069,12 @@ ErrorHandler:
 				Dim As HBITMAP bufBMP
 				Dim As Integer mClientWidth = ScaleX(This.ClientWidth), mClientHeight = ScaleY(This.ClientHeight)
 				Dc = BeginPaint(This.Handle, @ps)
-				hD = CreateCompatibleDC(Dc)
+				hd = CreateCompatibleDC(Dc)
 				bufBMP = CreateCompatibleBitmap(Dc, mClientWidth, mClientHeight)
-				SelectObject(hD, bufBMP)
+				SelectObject(hd, bufBMP)
 				This.Paint
-				BitBlt(Dc, 0, 0, mClientWidth, mClientHeight, hD, 0, 0, SRCCOPY)
-				DeleteDc hD
+				BitBlt(Dc, 0, 0, mClientWidth, mClientHeight, hd, 0, 0, SRCCOPY)
+				DeleteDC hd
 				DeleteObject bufBMP
 				EndPaint(This.Handle, @ps)
 				Message.Result = 0
@@ -4104,6 +4104,7 @@ ErrorHandler:
 	#ifdef __USE_GTK__
 		Private Function Chart.OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Dim As Chart Ptr chrt = Cast(Any Ptr, data1)
+			chrt->Canvas.HandleSetted = True
 			If chrt->cr = 0 Then
 				chrt->cr = cr
 				chrt->Canvas.Handle = cr
