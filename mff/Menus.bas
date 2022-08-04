@@ -98,9 +98,9 @@ Namespace My.Sys.Forms
 			mii.cbSize = SizeOf(mii)
 			mii.fMask  = MIIM_TYPE
 			For i As Integer = 0 To Item.Count-1
-				GetMenuItemInfo(Item.HANDLE,Item.Item(i)->MenuIndex,True,@mii)
+				GetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
 				mii.fType = IIf((mii.fType And MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
-				SetMenuItemInfo(Item.HANDLE,Item.Item(i)->MenuIndex,True,@mii)
+				SetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
 				TraverseItems(*Item.Item(i))
 			Next i
 		#endif
@@ -113,11 +113,11 @@ Namespace My.Sys.Forms
 				*FCaption = Chr(0)
 			End If
 			value.cbSize      = SizeOf(value)
-			value.fMask       = IIf(HANDLE,MIIM_SUBMENU,MIIM_ID) Or MIIM_FTYPE Or MIIM_BITMAP Or MIIM_STRING Or MIIM_DATA Or MIIM_STATE
-			value.hSubMenu    = HANDLE
+			value.fMask       = IIf(Handle,MIIM_SUBMENU,MIIM_ID) Or MIIM_FTYPE Or MIIM_BITMAP Or MIIM_STRING Or MIIM_DATA Or MIIM_STATE
+			value.hSubMenu    = Handle
 			value.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
 			value.fState      = IIf(FEnabled, MFS_ENABLED, MFS_DISABLED) Or IIf(FChecked, MFS_CHECKED, MFS_UNCHECKED)
-			value.wID         = IIf(HANDLE, -1, This.Command)
+			value.wID         = IIf(Handle, -1, This.Command)
 			If FImageIndex <> - 1 AndAlso Owner AndAlso Owner->ImagesList Then
 				FImage.LoadFromHICON(Owner->ImagesList->GetIcon(FImageIndex).Handle)
 			ElseIf WGet(FImageKey) <> "" Then
@@ -139,13 +139,30 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
-			If ParentMenuItem AndAlso ParentMenuItem->HANDLE Then
-				SetMenuItemInfo(ParentMenuItem->HANDLE, FMenuIndex, True, @value)
+			If ParentMenuItem AndAlso ParentMenuItem->Handle Then
+				SetMenuItemInfo(ParentMenuItem->Handle, FMenuIndex, True, @value)
 			ElseIf This.Owner AndAlso This.Owner->Handle Then
 				SetMenuItemInfo(This.Owner->Handle, FMenuIndex, True, @value)
 			End If
 		End Sub
 	#endif
+	
+	Private Sub MenuItem.ChangeIndex(Value As PMenuItem, Index As Integer)
+		Dim OldIndex As Integer = This.IndexOf(Value)
+		If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= FCount - 1 Then
+			If Index < OldIndex Then
+				For i As Integer = Index To OldIndex - 1
+					FItems[i + 1] = FItems[i]
+				Next i
+				FItems[Index] = Value
+			Else
+				For i As Integer = OldIndex + 1 To Index
+					FItems[i - 1] = FItems[i]
+				Next i
+				FItems[Index] = Value
+			End If
+		End If
+	End Sub
 	
 	Private Property MenuItem.MenuIndex As Integer
 		Return FMenuIndex
@@ -153,6 +170,11 @@ Namespace My.Sys.Forms
 	
 	Private Property MenuItem.MenuIndex(value As Integer)
 		FMenuIndex = value
+		If FParentMenuItem Then
+			FParentMenuItem->ChangeIndex @This, FMenuIndex
+		ElseIf FOwner Then
+			FOwner->ChangeIndex @This, FMenuIndex
+		End If
 	End Property
 	
 	Private Property MenuItem.Name ByRef As WString
@@ -815,9 +837,9 @@ Namespace My.Sys.Forms
 				If Index = -1 Then
 					gtk_menu_shell_append(GTK_MENU_SHELL(SubMenu->Handle), value->Widget)
 				Else
-					gtk_menu_shell_insert(gtk_menu_shell(SubMenu->Handle), value->widget, Index)
+					gtk_menu_shell_insert(GTK_MENU_SHELL(SubMenu->Handle), value->Widget, Index)
 				End If
-				If Value->box Then
+				If value->Box Then
 					gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
 					gtk_widget_show(value->box)
 					gtk_widget_show(value->icon)
@@ -950,7 +972,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Private Sub MenuItem.Remove(value As PMenuItem)
+	Private Sub MenuItem.remove(value As PMenuItem)
 		Dim As Integer Index,i
 		Dim As PMenuItem FItem
 		Index = IndexOf(value)
@@ -969,7 +991,7 @@ Namespace My.Sys.Forms
 				Next i
 			End If
 			#ifdef __USE_GTK__
-				If widget Then
+				If Widget Then
 					'gtk_container_remove(gtk_container(widget), value->widget)
 				End If
 			#elseif defined(__USE_WINAPI__)
@@ -1452,7 +1474,7 @@ Namespace My.Sys.Forms
 				value->MenuIndex = Index
 				value->Parent    = NULL
 				#ifdef __USE_WINAPI__
-					value->HANDLE    = IIf(value->HANDLE, value->HANDLE, CreatePopupMenu)
+					value->Handle    = IIf(value->Handle, value->Handle, CreatePopupMenu)
 					'				value->Menu      = Handle
 				#endif
 				value->Owner     = @This
@@ -1530,6 +1552,23 @@ Namespace My.Sys.Forms
 		Next i
 		Return NULL
 	End Function
+	
+	Private Sub Menu.ChangeIndex(Value As PMenuItem, Index As Integer)
+		Dim OldIndex As Integer = This.IndexOf(Value)
+		If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= FCount - 1 Then
+			If Index < OldIndex Then
+				For i As Integer = Index To OldIndex - 1
+					FItems[i + 1] = FItems[i]
+				Next i
+				FItems[Index] = Value
+			Else
+				For i As Integer = OldIndex + 1 To Index
+					FItems[i - 1] = FItems[i]
+				Next i
+				FItems[Index] = Value
+			End If
+		End If
+	End Sub
 	
 	Private Sub Menu.Clear
 		If FItems Then
