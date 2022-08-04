@@ -253,18 +253,18 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 		If E(0) < 1 Then E(0) = 1: If E(1) < 1 Then E(1) = 1
 		
 		For i As Long = -72000 To 72000 'Step  0.1
-			x = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0)))
-			y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1)))
-			.SetPixel x, y, clRed
+			X = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0)))
+			Y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1)))
+			.SetPixel X, Y, clRed
 			'.TextOut 20, 20, Str(i), clYellow, -1
 		Next
-		.TextOut - 9, -9, "Elapsed Time: " & GetTickCount - t & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
+		.TextOut - 9, -9, "Elapsed Time: " & GetTickCount - T & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
 		'Picture1.Visible = True
 		.DeleteDoubleBuffer
 	End With
 	
 	CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" 
-	'End Sub
+End Sub
 
 Private Sub Form1Type.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	'CommandButton1_Click(sender)
