@@ -194,6 +194,7 @@ Namespace My.Sys.Drawing
 								#else
 									Handle = gdk_cairo_create(gtk_layout_get_bin_window(GTK_LAYOUT(ParentControl->layoutwidget)))
 								#endif
+								HandleSetted = True
 							End If
 						End If
 					End If
@@ -215,7 +216,6 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.ReleaseDevice
-		If HandleSetted Then Exit Sub
 		#ifdef __USE_GTK__
 			If layout Then g_object_unref(layout)
 			#ifdef __USE_GTK4__
@@ -223,9 +223,11 @@ Namespace My.Sys.Drawing
 				cairo_region_destroy(cairoRegion)
 			#else
 				If pcontext Then g_object_unref(pcontext)
-				If Handle Then cairo_destroy(Handle)
+				If Handle AndAlso G_IS_OBJECT(Handle) Then cairo_destroy(Handle)
+				HandleSetted = False
 			#endif
 		#elseif defined(__USE_WINAPI__)
+			If HandleSetted Then Exit Sub
 			If ParentControl Then If Handle Then ReleaseDC ParentControl->Handle, Handle
 		#endif
 	End Sub
@@ -263,8 +265,8 @@ Namespace My.Sys.Drawing
 		If ParentControl Then
 			imgScaleX = Min(ParentControl->Width, ParentControl->Height) / (x1 - x)
 			imgScaleY = Min(ParentControl->Width, ParentControl->Height) / (y1 - y)
-			imgOffsetX = IIf(ParentControl->Width > ParentControl->Height, (ParentControl->Width - ParentControl->Height) / 2 - X * imgScaleX, -x * imgScaleX)
-			imgOffsetY = IIf(ParentControl->Height > ParentControl->Width, (ParentControl->Height - ParentControl->Width) / 2 - y * imgScaley, -y * imgScaleY)
+			imgOffsetX = IIf(ParentControl->Width > ParentControl->Height, (ParentControl->Width - ParentControl->Height) / 2 - x * imgScaleX, -x * imgScaleX)
+			imgOffsetY = IIf(ParentControl->Height > ParentControl->Width, (ParentControl->Height - ParentControl->Width) / 2 - y * imgScaleY, -y * imgScaleY)
 			FScaleWidth = x1 - x
 			FScaleHeight = y1 - y
 		Else
@@ -314,8 +316,8 @@ Namespace My.Sys.Drawing
 			End If
 		Else
 			#ifdef __USE_GTK__
-				cairo_move_to(Handle, x - 0.5, y - 0.5)
-				cairo_line_to(Handle, x1 - 0.5, y1 - 0.5)
+				cairo_move_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
+				cairo_line_to(Handle, x1 * imgScaleX + imgOffsetX - 0.5, y1 * imgScaleY + imgOffsetY - 0.5)
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
 				Dim As Integer OldPenColor
@@ -538,7 +540,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0)
-			.cairo_rectangle(Handle, x, y, 1, 1)
+			.cairo_rectangle(Handle, x * imgScaleX + imgOffsetX, y * imgScaleY + imgOffsetY, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.SetPixel Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, PixelColor
@@ -561,7 +563,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend2
 			Dim As Double iRed, iGreen, iBlue
-			pango_layout_set_text(layout, ToUTF8(s), Len(ToUTF8(s)))
+			pango_layout_set_text(layout, ToUtf8(s), Len(ToUtf8(s)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef PANGO_VERSION
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -575,7 +577,7 @@ Namespace My.Sys.Drawing
 				.cairo_rectangle (Handle, x, y, extend2.width, extend2.height)
 				cairo_fill (Handle)
 			End If
-			cairo_move_to(Handle, x + 0.5, y + extend2.height + 0.5)
+			cairo_move_to(Handle, x * imgScaleX + imgOffsetX + 0.5, y * imgScaleY + imgOffsetY + extend2.height + 0.5)
 			If FG = -1 Then
 				iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
 			Else
