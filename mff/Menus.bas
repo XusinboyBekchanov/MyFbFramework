@@ -655,7 +655,11 @@ Namespace My.Sys.Forms
 					End If
 				Else
 					WLet(FText, Replace(value, "&", "_"))
-					gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), ToUtf8(*FText))
+					If *FText = "" Then
+						gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), !"\0")
+					Else
+						gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), ToUtf8(*FText))
+					End If
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -1064,64 +1068,64 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	Private Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = Null, Checkable As Boolean = False)
+	Private Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False)
 		FVisible    = True
 		FEnabled    = True
 		FChecked    = False
 		#ifdef __USE_GTK__
 			If wCaption = "-" Then
-				widget = gtk_separator_menu_item_new()
+				Widget = gtk_separator_menu_item_new()
 				'ElseIf wImageKey = "" Then
 				'
 				'	widget = gtk_menu_item_new_with_mnemonic(wCaption)
-				label = gtk_bin_get_child (GTK_BIN (widget))
+				Label = gtk_bin_get_child (GTK_BIN (Widget))
 				'	g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
 			ElseIf Checkable Then
-				widget = gtk_check_menu_item_new_with_label (ToUTF8(wCaption))
+				Widget = gtk_check_menu_item_new_with_label (ToUtf8(wCaption))
 				'ElseIf wImageKey = "" Then
 				'
 				'	widget = gtk_menu_item_new_with_mnemonic(wCaption)
-				label = gtk_bin_get_child (GTK_BIN (widget))
+				Label = gtk_bin_get_child (GTK_BIN (Widget))
 				'g_signal_connect(widget, "button-release-event", G_CALLBACK(@MenuItemButtonPressEvent), @This)
-				g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+				g_signal_connect(Widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
 			Else
 				If wImageKey = "" Then
-					icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
+					Icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
 				Else
-					icon = gtk_image_new_from_icon_name(ToUTF8(wImageKey), GTK_ICON_SIZE_MENU)
+					Icon = gtk_image_new_from_icon_name(ToUtf8(wImageKey), GTK_ICON_SIZE_MENU)
 					'				#ifndef __USE_GTK3__
 					'					gtk_misc_set_alignment (GTK_MISC (icon), 0.0, 0.0)
 					'				#endif
 				End If
-				gtk_image_set_pixel_size(gtk_image(icon), 16)
+				gtk_image_set_pixel_size(GTK_IMAGE(Icon), 16)
 				#ifdef __USE_GTK2__
-					widget = gtk_image_menu_item_new_with_mnemonic(ToUTF8(wCaption))
-					gtk_image_menu_item_set_image (gtk_image_menu_item(widget), icon)
-					gtk_image_menu_item_set_always_show_image(gtk_image_menu_item(widget), wImageKey <> "")
-					label = gtk_bin_get_child (GTK_BIN (widget))
+					Widget = gtk_image_menu_item_new_with_mnemonic(ToUtf8(wCaption))
+					gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(Widget), Icon)
+					gtk_image_menu_item_set_always_show_image(GTK_IMAGE_MENU_ITEM(Widget), wImageKey <> "")
+					Label = gtk_bin_get_child (GTK_BIN (Widget))
 				#else
 					#ifndef __USE_GTK2__
-						box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+						Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
 					#else
-						box = gtk_hbox_new(False, 1)
+						Box = gtk_hbox_new(False, 1)
 					#endif
-					widget = gtk_menu_item_new()
-					label = gtk_accel_label_new (ToUTF8(wCaption & "   "))
-					gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (label), widget)
+					Widget = gtk_menu_item_new()
+					Label = gtk_accel_label_new (ToUtf8(wCaption & "   "))
+					gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (Label), Widget)
 					#ifdef __USE_GTK4__
-						gtk_box_pack_end(GTK_BOX (box), label)
+						gtk_box_pack_end(GTK_BOX (Box), Label)
 					#else
-						gtk_box_pack_end(GTK_BOX (box), label, True, True, 0)
+						gtk_box_pack_end(GTK_BOX (Box), Label, True, True, 0)
 					#endif
 					#ifdef __USE_GTK3__
-						gtk_label_set_xalign (GTK_LABEL (label), 0.0)
+						gtk_label_set_xalign (GTK_LABEL (Label), 0.0)
 					#else
-						gtk_label_set_justify(GTK_LABEL (label), GTK_JUSTIFY_LEFT)
+						gtk_label_set_justify(GTK_LABEL (Label), GTK_JUSTIFY_LEFT)
 					#endif
 					'gtk_container_add (GTK_CONTAINER (box), label)
-					gtk_container_add (GTK_CONTAINER (widget), box)
+					gtk_container_add (GTK_CONTAINER (Widget), Box)
 				#endif
-				g_signal_connect(widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+				g_signal_connect(Widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
 				'g_signal_connect(widget, "event", G_CALLBACK(@EventProc), @This)
 				'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
 			End If
@@ -1132,7 +1136,7 @@ Namespace My.Sys.Forms
 		#endif
 		Caption = wCaption
 		FImageIndex = -1
-		OnClick = eClick
+		onClick = eClick
 		WLet(FClassName, "MenuItem")
 		WLet(FImageKey, wImageKey)
 	End Constructor
