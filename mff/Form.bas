@@ -716,6 +716,21 @@ Namespace My.Sys.Forms
 		'	        End Select
 		'	    End Function
 		
+		Function Form.HookClientProc(hDlg As HWND, uMsg As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+			Dim As Form Ptr frm = GetProp(hDlg, "MFFControl")
+			If frm Then
+				Select Case uMsg
+				Case WM_WINDOWPOSCHANGING
+					Dim As WINDOWPOS Ptr lpwp = Cast(WINDOWPOS Ptr, LPARAM)
+					lpwp->x = frm->FClientX
+					lpwp->y = frm->FClientY
+					lpwp->cx = frm->FClientW
+					lpwp->cy = frm->FClientH
+				End Select
+			End If
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, WPARAM, LPARAM)
+		End Function
+		
 		Private Sub Form.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				Dim As HMENU NoNeedSysMenu
@@ -748,6 +763,10 @@ Namespace My.Sys.Forms
 						FClientStruct.hWindowMenu = 0 'GetSubMenu(GetMenu(.FHandle), WINDOWMENU)
 						FClientStruct.idFirstChild = &H00FF
 						.FClient = CreateWindowEx(0, "MDICLIENT", "", WS_CHILD Or WS_VISIBLE Or WS_VSCROLL Or WS_HSCROLL Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, 100, 100, .FHandle, Cast(HMENU, &hcac), Instance, @FClientStruct)
+						If GetWindowLongPtr(.FClient, GWLP_WNDPROC) <> @HookClientProc Then
+							SetProp(.FClient, "MFFControl", Sender.Child)
+							SetProp(.FClient, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(.FClient, GWLP_WNDPROC, CInt(@HookClientProc))))
+						End If
 						ShowWindow(.FClient, SW_SHOW)
 					Case fsMDIChild
 						If .FParent Then
@@ -1057,10 +1076,21 @@ Namespace My.Sys.Forms
 				Canvas.HandleSetted = False
 				Return
 			Case WM_SIZE
+				'Dim As Rect rc1
+				'If FClient <> 0 Then GetClientRect FClient, @rc1
 				If Not IsIconic(FHandle) Then
 					RequestAlign
 				End If
 				If OnResize Then OnResize(This, This.Width, This.Height)
+				'If FClient <> 0 Then
+				'	Dim As Rect rc2
+				'	GetClientRect FClient, @rc2
+				'	If rc1.Right <> rc2.Right OrElse rc1.Bottom <> rc2.Bottom Then
+				'		'msg.hWnd = FClient
+				'		msg.Result = -4
+				'		Return
+				'	End If
+				'End If
 			Case WM_CLOSE
 				If OnClose Then
 					OnClose(This, Action)
@@ -1087,7 +1117,7 @@ Namespace My.Sys.Forms
 					mi = FMenuItems.Items[i]
 					With *mi
 						If .Command = msg.wParamLo Then
-							If .OnClick Then .OnClick(*mi)
+							If .onClick Then .onClick(*mi)
 							msg.Result = -2
 							msg.Msg = 0
 							Exit For
