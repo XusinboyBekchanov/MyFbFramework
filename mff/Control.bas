@@ -2335,6 +2335,10 @@ Namespace My.Sys.Forms
 					gtk_layout_move(GTK_LAYOUT(layoutwidget), FClient, lLeft, tTop)
 					gtk_widget_set_size_request(FClient, Max(0, rLeft - lLeft), Max(0, bTop - tTop))
 				End If
+			#else
+				If FClient Then
+					MoveWindow FClient, lLeft, tTop, Max(0, rLeft - lLeft), Max(0, bTop - tTop), True
+				End If
 			#endif
 			'#EndIf
 			If ListLeft   Then Deallocate_( ListLeft)
