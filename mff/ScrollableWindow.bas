@@ -47,16 +47,22 @@ Namespace My.Sys.Forms
 			GetMax MaxWidth, MaxHeight
 			
 			Si.cbSize = SizeOf(Si)
+			Si.fMask  = SIF_ALL
+			GetScrollInfo (This.Handle, SB_HORZ, @Si)
+			Si.cbSize = SizeOf(Si)
 			Si.fMask  = SIF_RANGE Or SIF_PAGE
 			Si.nMin   = 0
-			Si.nMax   = MaxWidth
+			Si.nMax   = Max(MaxWidth, IIf(Si.nPos = 0, 0, This.ClientWidth + Si.nPos))
 			Si.nPage  = This.ClientWidth
 			SetScrollInfo(This.Handle, SB_HORZ, @Si, True)
 			
 			Si.cbSize = SizeOf(Si)
+			Si.fMask  = SIF_ALL
+			GetScrollInfo (This.Handle, SB_VERT, @Si)
+			Si.cbSize = SizeOf(Si)
 			Si.fMask  = SIF_RANGE Or SIF_PAGE
 			Si.nMin   = 0
-			Si.nMax   = MaxHeight
+			Si.nMax   = Max(MaxHeight, IIf(Si.nPos = 0, 0, This.ClientHeight + Si.nPos))
 			Si.nPage  = This.ClientHeight
 			SetScrollInfo(This.Handle, SB_VERT, @Si, True)
 		End Sub
@@ -138,14 +144,15 @@ Namespace My.Sys.Forms
 					scrDirection = Sgn(Message.wParam)
 				#endif
 				Var scrStyle = IIf(bShifted, SB_HORZ, SB_VERT)
+				Var ArrowChangeSize = IIf(bShifted, FHorizontalArrowChangeSize, FVerticalArrowChangeSize)
 				Si.cbSize = SizeOf(Si)
 				Si.fMask  = SIF_ALL
 				GetScrollInfo (Message.hWnd, scrStyle, @Si)
 				ScrollPos = Si.nPos
 				If scrDirection = -1 Then
-					Si.nPos = min(Si.nPos + 3, Si.nMax)
+					Si.nPos = Min(Si.nPos + ArrowChangeSize, Si.nMax)
 				Else
-					Si.nPos = Max(Si.nPos - 3, Si.nMin)
+					Si.nPos = Max(Si.nPos - ArrowChangeSize, Si.nMin)
 				End If
 				Si.fMask = SIF_POS
 				SetScrollInfo(Message.hWnd, scrStyle, @Si, True)
@@ -157,6 +164,7 @@ Namespace My.Sys.Forms
 					Else
 						ScrollWindow(Message.hWnd, 0, (ScrollPos - Si.nPos), NULL, NULL)
 					End If
+					If Si.nPos = 0 Then SetScrollsInfo
 					UpdateWindow (Message.hWnd)
 					
 					If OnScroll Then OnScroll(This)
@@ -175,9 +183,9 @@ Namespace My.Sys.Forms
 				Case SB_BOTTOM
 					Si.nPos = Si.nMax
 				Case SB_LINEUP
-					Si.nPos -= 1
+					Si.nPos -= FVerticalArrowChangeSize
 				Case SB_LINEDOWN
-					Si.nPos += 1
+					Si.nPos += FVerticalArrowChangeSize
 				Case SB_PAGEUP
 					Si.nPos -= Si.nPage
 				Case SB_PAGEDOWN
@@ -193,6 +201,7 @@ Namespace My.Sys.Forms
 				If Si.nPos <> ScrollPos Then
 					
 					ScrollWindow(Message.hWnd, 0, (ScrollPos - Si.nPos), NULL, NULL)
+					If Si.nPos = 0 Then SetScrollsInfo
 					UpdateWindow (Message.hWnd)
 					
 					If OnScroll Then OnScroll(This)
@@ -211,9 +220,9 @@ Namespace My.Sys.Forms
 				Case SB_RIGHT
 					Si.nPos = Si.nMax
 				Case SB_LINELEFT
-					Si.nPos -= 1
+					Si.nPos -= FHorizontalArrowChangeSize
 				Case SB_LINERIGHT
-					Si.nPos += 1
+					Si.nPos += FHorizontalArrowChangeSize
 				Case SB_PAGELEFT
 					Si.nPos -= Si.nPage
 				Case SB_PAGERIGHT
@@ -229,6 +238,7 @@ Namespace My.Sys.Forms
 				If Si.nPos <> ScrollPos Then
 					
 					ScrollWindow (Message.hWnd, (ScrollPos - Si.nPos), 0, NULL, NULL)
+					If Si.nPos = 0 Then SetScrollsInfo
 					UpdateWindow (Message.hWnd)
 					
 					If OnScroll Then OnScroll(This)
@@ -266,6 +276,8 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 			#endif
 			WLet(FClassName, "ScrollableWindow")
+			FHorizontalArrowChangeSize = 10
+			FVerticalArrowChangeSize = 10
 			.Width      = 121
 			.Height     = 41
 		End With
