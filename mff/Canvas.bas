@@ -114,10 +114,10 @@ Namespace My.Sys.Drawing
 			#elseif defined(__USE_WINAPI__)
 				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
 				Dim As ..Rect R
-				If x = x1 AndAlso Y = y1 AndAlso X = y Then
+				If x = x1 AndAlso y = y1 AndAlso x = y Then
 					R.Left = 0
 					R.Top = 0
-					R.Right = ParentControl->width
+					R.Right = ParentControl->Width
 					R.Bottom = ParentControl->Height
 					'Remove Scale
 					imgScaleX = 1
@@ -156,7 +156,7 @@ Namespace My.Sys.Drawing
 	Private Property Canvas.Pixel(xy As Point) As Integer
 		GetDevice
 		#ifdef __USE_WINAPI__
-			Return .GetPixel(Handle, ScaleX(xy.x), ScaleY(xy.y))
+			Return .GetPixel(Handle, ScaleX(xy.X), ScaleY(xy.Y))
 		#else
 			Return 0
 		#endif
@@ -167,10 +167,10 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetBlue(Value) / 255.0, GetGreen(Value) / 255.0)
-			.cairo_rectangle(Handle, xy.x, xy.y, 1, 1)
+			.cairo_rectangle(Handle, xy.X, xy.Y, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.SetPixel(Handle, ScaleX(xy.x) * imgScaleX + imgOffsetX, ScaleY(xy.y) * imgScaleY + imgOffsetY, Value)
+			.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Property
@@ -192,7 +192,7 @@ Namespace My.Sys.Drawing
 									drawingContext = gdk_window_begin_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), drawContext, cairoRegion)
 									Handle = gdk_drawing_context_get_cairo_context(drawingContext)
 								#else
-									Handle = gdk_cairo_create(gtk_layout_get_bin_window(gtk_layout(ParentControl->layoutwidget)))
+									Handle = gdk_cairo_create(gtk_layout_get_bin_window(GTK_LAYOUT(ParentControl->layoutwidget)))
 								#endif
 							End If
 						End If
@@ -200,9 +200,9 @@ Namespace My.Sys.Drawing
 				#elseif defined(__USE_WINAPI__)
 					If ParentControl->Handle Then
 						If Clip Then
-							Handle = GetDcEx(ParentControl->Handle, 0, DCX_PARENTCLIP Or DCX_CACHE)
+							Handle = GetDCEx(ParentControl->Handle, 0, DCX_PARENTCLIP Or DCX_CACHE)
 						Else
-							Handle = GetDc(ParentControl->Handle)
+							Handle = GetDC(ParentControl->Handle)
 						End If
 						SelectObject(Handle, Font.Handle)
 						SelectObject(Handle, Pen.Handle)
@@ -219,14 +219,14 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			If layout Then g_object_unref(layout)
 			#ifdef __USE_GTK4__
-				gdk_window_end_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), drawingContext)
+				gdk_window_end_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), DrawingContext)
 				cairo_region_destroy(cairoRegion)
 			#else
 				If pcontext Then g_object_unref(pcontext)
 				If Handle Then cairo_destroy(Handle)
 			#endif
 		#elseif defined(__USE_WINAPI__)
-			If ParentControl Then If Handle Then ReleaseDc ParentControl->Handle, Handle
+			If ParentControl Then If Handle Then ReleaseDC ParentControl->Handle, Handle
 		#endif
 	End Sub
 	
@@ -234,7 +234,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			If Not HandleSetted Then GetDevice
 			DC = Handle
-			MemDC = CreateCompatibleDC(DC)
+			memDC = CreateCompatibleDC(DC)
 			CompatibleBmp = CreateCompatibleBitmap(DC, This.Width, This.Height)
 			SelectObject(memDC, CompatibleBmp)
 			Handle = memDC
@@ -244,7 +244,7 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.TransferDoubleBuffer
 		#ifdef __USE_WINAPI__
-			BitBlt(DC, 0, 0, This.Width, This.Height, MemDC, 0, 0, SRCCOPY)
+			BitBlt(DC, 0, 0, This.Width, This.Height, memDC, 0, 0, SRCCOPY)
 		#endif
 	End Sub
 	
@@ -261,8 +261,8 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.Scale(x As Double, y As Double, x1 As Double, y1 As Double)
 		If ParentControl Then
-			imgScaleX = min(ParentControl->Width, ParentControl->Height) / (X1 - X)
-			imgScaleY = min(ParentControl->Width, ParentControl->Height) / (Y1 - Y)
+			imgScaleX = Min(ParentControl->Width, ParentControl->Height) / (x1 - x)
+			imgScaleY = Min(ParentControl->Width, ParentControl->Height) / (y1 - y)
 			imgOffsetX = IIf(ParentControl->Width > ParentControl->Height, (ParentControl->Width - ParentControl->Height) / 2 - X * imgScaleX, -x * imgScaleX)
 			imgOffsetY = IIf(ParentControl->Height > ParentControl->Width, (ParentControl->Height - ParentControl->Width) / 2 - y * imgScaley, -y * imgScaleY)
 			FScaleWidth = x1 - x
@@ -667,11 +667,11 @@ Namespace My.Sys.Drawing
 			Dim As ..Point      ptSize
 			
 			hdcTemp = CreateCompatibleDC(Handle)
-			SelectObject(hdcTemp, Cast(HBitmap, Image))   ' Выбираем битмап
+			SelectObject(hdcTemp, Cast(HBITMAP, Image))   ' Выбираем битмап
 			
-			GetObject(Cast(HBitmap, Image), SizeOf(BITMAP), Cast(LPSTR, @bm))
-			ptSize.x = bm.bmWidth            ' Получаем ширину битмапа
-			ptSize.y = bm.bmHeight           ' Получаем высоту битмапа
+			GetObject(Cast(HBITMAP, Image), SizeOf(BITMAP), Cast(LPSTR, @bm))
+			ptSize.X = bm.bmWidth            ' Получаем ширину битмапа
+			ptSize.Y = bm.bmHeight           ' Получаем высоту битмапа
 			DPtoLP(hdcTemp, @ptSize, 1)      ' Конвертируем из координат
 			' устройства в логические
 			' точки
@@ -685,13 +685,13 @@ Namespace My.Sys.Drawing
 			' Создаём битмап для каждого DC.
 			
 			' Монохромный DC
-			bmAndBack   = CreateBitmap(ptSize.x, ptSize.y, 1, 1, NULL)
+			bmAndBack   = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
 			
 			' Монохромный DC
-			bmAndObject = CreateBitmap(ptSize.x, ptSize.y, 1, 1, NULL)
+			bmAndObject = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
 			
-			bmAndMem    = CreateCompatibleBitmap(Handle, ptSize.x, ptSize.y)
-			bmSave      = CreateCompatibleBitmap(Handle, ptSize.x, ptSize.y)
+			bmAndMem    = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
+			bmSave      = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
 			
 			' В каждом DC должен быть выбран объект битмапа для хранения
 			' пикселей.
@@ -705,7 +705,7 @@ Namespace My.Sys.Drawing
 			
 			' Сохраняем битмап, переданный в параметре функции, так как
 			' он будет изменён.
-			BitBlt(hdcSave, 0, 0, ptSize.x, ptSize.y, hdcTemp, 0, 0, SRCCOPY)
+			BitBlt(hdcSave, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
 			
 			' Устанавливаем фоновый цвет (в исходном DC) тех частей,
 			' которые будут прозрачными.
@@ -713,33 +713,33 @@ Namespace My.Sys.Drawing
 			
 			' Создаём маску для битмапа путём вызова BitBlt из исходного
 			' битмапа на монохромный битмап.
-			BitBlt(hdcObject, 0, 0, ptSize.x, ptSize.y, hdcTemp, 0, 0, SRCCOPY)
+			BitBlt(hdcObject, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
 			
 			' Устанавливаем фоновый цвет исходного DC обратно в
 			' оригинальный цвет.
 			SetBkColor(hdcTemp, cColor)
 			
 			' Создаём инверсию маски.
-			BitBlt(hdcBack, 0, 0, ptSize.x, ptSize.y, hdcObject, 0, 0, NOTSRCCOPY)
+			BitBlt(hdcBack, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, NOTSRCCOPY)
 			
 			' Копируем фон главного DC в конечный.
-			BitBlt(hdcMem, 0, 0, ptSize.x, ptSize.y, Handle, x, y, SRCCOPY)
+			BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, Handle, x, y, SRCCOPY)
 			
 			' Накладываем маску на те места, где будет помещён битмап.
-			BitBlt(hdcMem, 0, 0, ptSize.x, ptSize.y, hdcObject, 0, 0, SRCAND)
+			BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, SRCAND)
 			
 			' Накладываем маску на прозрачные пиксели битмапа.
-			BitBlt(hdcTemp, 0, 0, ptSize.x, ptSize.y, hdcBack, 0, 0, SRCAND)
+			BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcBack, 0, 0, SRCAND)
 			
 			' Xor-им битмап с фоном на конечном DC.
-			BitBlt(hdcMem, 0, 0, ptSize.x, ptSize.y, hdcTemp, 0, 0, SRCPAINT)
+			BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCPAINT)
 			
 			' Копируем на экран.
-			BitBlt(Handle, x, y, ptSize.x, ptSize.y, hdcMem, 0, 0, SRCCOPY)
+			BitBlt(Handle, x, y, ptSize.X, ptSize.Y, hdcMem, 0, 0, SRCCOPY)
 			
 			' Помещаем оригинальный битмап обратно в битмап, переданный в
 			' параметре функции.
-			BitBlt(hdcTemp, 0, 0, ptSize.x, ptSize.y, hdcSave, 0, 0, SRCCOPY)
+			BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcSave, 0, 0, SRCCOPY)
 			
 			' Удаляем битмапы из памяти.
 			DeleteObject(SelectObject(hdcBack, bmBackOld))
@@ -758,7 +758,7 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
-		DrawTransparent x, y, Image.Handle, cTransparentColor
+		DrawTransparent ScaleX(x), ScaleY(y), Image.Handle, cTransparentColor
 	End Sub
 	
 	Private Sub Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
@@ -768,9 +768,9 @@ Namespace My.Sys.Drawing
 			Dim As HBITMAP OldBitmap
 			Dim As BITMAP Bitmap01
 			MemDC = CreateCompatibleDC(Handle)
-			OldBitmap = SelectObject(MemDC, Cast(HBitmap, Image))
-			GetObject(Cast(HBitmap, Image), SizeOf(Bitmap01), @Bitmap01)
-			StretchBlt(Handle, ScaleX(x), ScaleY(y), Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, ScaleX(nWidth), ScaleY(nHeight), SRCCOPY)
+			OldBitmap = SelectObject(MemDC, Cast(HBITMAP, Image))
+			GetObject(Cast(HBITMAP, Image), SizeOf(Bitmap01), @Bitmap01)
+			StretchBlt(Handle, ScaleX(x), ScaleY(y), ScaleX(nWidth), ScaleX(nHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
 		#endif
@@ -784,7 +784,7 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)
 		If Not HandleSetted Then GetDevice
-		If FillColorBk = -1 Then FillColorBk = FBackColor
+		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_WINAPI__
 			.ExtFloodFill Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, FillColorBK, FillStyleBK
 		#endif

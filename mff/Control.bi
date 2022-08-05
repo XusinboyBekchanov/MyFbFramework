@@ -109,6 +109,7 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WINAPI__)
 				FParentHandle As HWND
 				FClient As HWND
+				As Integer FClientX, FClientY, FClientW, FClientH
 			#endif
 			#ifdef __USE_GTK__
 				AllocatedHeight As Integer

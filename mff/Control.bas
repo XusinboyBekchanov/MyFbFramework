@@ -2337,7 +2337,8 @@ Namespace My.Sys.Forms
 				End If
 			#else
 				If FClient Then
-					MoveWindow FClient, lLeft, tTop, Max(0, rLeft - lLeft), Max(0, bTop - tTop), True
+					FClientX = lLeft: FClientY = tTop: FClientW = Max(0, rLeft - lLeft): FClientH = Max(0, bTop - tTop)
+					MoveWindow FClient, FClientX, FClientY, FClientW, FClientH, True
 				End If
 			#endif
 			'#EndIf
