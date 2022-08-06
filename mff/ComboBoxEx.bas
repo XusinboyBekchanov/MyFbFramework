@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ComboBoxExItems.Item(Index As Integer) As ComboBoxItem Ptr
-		If Index <= FItems.Count Then Return QComboBoxItem(FItems.Items[Index]) Else Return 0
+		If Index > -1 AndAlso Index < FItems.Count Then Return QComboBoxItem(FItems.Items[Index]) Else Return 0
 	End Property
 	
 	Private Property ComboBoxExItems.Item(Index As Integer, Value As ComboBoxItem Ptr)
@@ -410,7 +410,11 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEx.Text ByRef As WString
 		If This.FStyle >= cbDropDownList Then
-			FText = This.Items.Item(This.ItemIndex)->Text
+			If This.ItemIndex = -1 Then
+				FText = ""
+			Else
+				FText = This.Items.Item(This.ItemIndex)->Text
+			End If
 		Else
 			#ifdef __USE_WINAPI__
 				Dim As Integer L
