@@ -91,6 +91,7 @@ Namespace My.Sys.Forms
 		FImageKey           As WString Ptr
 		FSelectedImageKey   As WString Ptr
 		FSmallImageKey      As WString Ptr
+		FSelected           As Boolean
 		FVisible            As Boolean
 		FState              As Integer
 		FChecked            As Boolean
@@ -126,6 +127,8 @@ Namespace My.Sys.Forms
 		Declare Property SmallImageKey(ByRef Value As WString)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
+		Declare Property Selected As Boolean
+		Declare Property Selected(Value As Boolean)
 		Declare Property State As Integer
 		Declare Property State(Value As Integer)
 		Declare Property Indent As Integer

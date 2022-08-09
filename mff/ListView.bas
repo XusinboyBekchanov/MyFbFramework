@@ -88,14 +88,53 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
+	Private Property ListViewItem.Selected As Boolean
+		#ifdef __USE_GTK__
+			'Dim As GtkTreeIter iter
+			'Dim As Boolean bChecked
+			'gtk_tree_model_get_iter_from_string(ListViewGetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
+			'gtk_tree_model_get(ListViewGetModel(Parent->Handle), @iter, 0, @bChecked, -1)
+			'Return bChecked
+		#elseif defined(__USE_WINAPI__)
+			If Parent AndAlso Parent->Handle Then
+				lvi.mask = LVIF_STATE
+				lvi.iItem = Index
+				lvi.iSubItem = 0
+    			lvi.stateMask = LVIS_SELECTED
+				ListView_GetItem(Parent->Handle, @lvi)
+				?lvi.state, (lvi.state And LVIS_SELECTED) = LVIS_SELECTED
+				FSelected = (lvi.state And LVIS_SELECTED) = LVIS_SELECTED
+			End If
+		#endif
+		Return FSelected
+	End Property
+	
+	Private Property ListViewItem.Selected(Value As Boolean)
+		FSelected = Value
+		If Parent AndAlso Parent->Handle Then
+			lvi.mask = LVIF_STATE
+			lvi.iItem = Index
+			ListView_GetItem(Parent->Handle, @lvi)
+			If Value Then
+				If (lvi.state And LVIS_SELECTED) <> LVIS_SELECTED Then
+					lvi.state = lvi.state Or LVIS_SELECTED
+					ListView_SetItem(Parent->Handle, @lvi)
+				End If
+			ElseIf (lvi.state And LVIS_SELECTED) = LVIS_SELECTED Then
+				lvi.state = lvi.state And Not LVIS_SELECTED
+				ListView_SetItem(Parent->Handle, @lvi)
+			End If
+		End If
+	End Property
+	
 	Private Sub ListViewItem.SelectItem
 		#ifdef __USE_GTK__
 			If Parent Then
-				If gtk_is_icon_view(Parent->Handle) Then
-					gtk_icon_view_select_path(gtk_icon_view(Parent->Handle), gtk_tree_path_new_from_string(Trim(Str(This.Index))))
+				If GTK_IS_ICON_VIEW(Parent->Handle) Then
+					gtk_icon_view_select_path(GTK_ICON_VIEW(Parent->Handle), gtk_tree_path_new_from_string(Trim(Str(This.Index))))
 				Else
-					If gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)) Then
-						gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)), @TreeIter)
+					If gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)) Then
+						gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
 					End If
 				End If
 			End If
@@ -105,7 +144,7 @@ Namespace My.Sys.Forms
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				lvi.state    = LVIS_SELECTED Or LVIS_FOCUSED
-				lvi.statemask = LVIF_STATE
+				lvi.stateMask = LVIF_STATE
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
@@ -114,8 +153,8 @@ Namespace My.Sys.Forms
 	Private Property ListViewItem.Text(iSubItem As Integer) ByRef As WString
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
-				WReallocate(FText, 255)
-				lvi.Mask = LVIF_TEXT
+				WReAllocate(FText, 255)
+				lvi.mask = LVIF_TEXT
 				lvi.iItem = Index
 				lvi.iSubItem   = iSubItem
 				lvi.pszText    = FText
@@ -199,7 +238,7 @@ Namespace My.Sys.Forms
 				lvi.Mask = LVIF_STATE
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
-				lvi.State    = Value
+				lvi.state    = Value
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
@@ -208,7 +247,7 @@ Namespace My.Sys.Forms
 	Private Property ListViewItem.Indent As Integer
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_INDENT
+				lvi.mask = LVIF_INDENT
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				ListView_GetItem(Parent->Handle, @lvi)
@@ -222,7 +261,7 @@ Namespace My.Sys.Forms
 		FIndent = Value
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_INDENT
+				lvi.mask = LVIF_INDENT
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				lvi.iIndent    = Value
@@ -244,7 +283,7 @@ Namespace My.Sys.Forms
 			Return bChecked
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_STATE
+				lvi.mask = LVIF_STATE
 				lvi.iItem = Index
 				lvi.stateMask = LVIS_CHECKEDMASK
 				ListView_GetItem(Parent->Handle, @lvi)
@@ -259,10 +298,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(ListViewGetModel(Parent->Handle), @iter, Trim(Str(This.Index)))
-			gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @Iter, 0, Value, -1)
+			gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @iter, 0, Value, -1)
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_STATE
+				lvi.mask = LVIF_STATE
 				lvi.iItem = Index
 				lvi.stateMask = LVIS_CHECKEDMASK
 				If Value Then
@@ -292,7 +331,7 @@ Namespace My.Sys.Forms
 			FImageIndex = Value
 			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
-					lvi.Mask = LVIF_IMAGE
+					lvi.mask = LVIF_IMAGE
 					lvi.iItem = Index
 					lvi.iSubItem   = 0
 					lvi.iImage     = Value
@@ -321,6 +360,17 @@ Namespace My.Sys.Forms
 		Return FVisible
 	End Property
 	
+	Private Property ListViewItem.Visible(Value As Boolean)
+		If Value <> FVisible Then
+			FVisible = Value
+			If Parent Then
+				With QControl(Parent)
+					'.Perform(TB_HIDEBUTTON, FCommandID, MakeLong(NOT FVisible, 0))
+				End With
+			End If
+		End If
+	End Property
+	
 	Private Property ListViewItem.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
@@ -332,14 +382,14 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Dim As GError Ptr gerr
 				If Value <> "" Then
-					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUTF8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUTF8(Value), -1)
+					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
 				FImageIndex = Cast(ListView Ptr, Parent)->Images->IndexOf(Value)
-				lvi.Mask = LVIF_IMAGE
+				lvi.mask = LVIF_IMAGE
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				lvi.iImage     = FImageIndex
@@ -362,17 +412,6 @@ Namespace My.Sys.Forms
 			End With
 		End If
 		'End If
-	End Property
-	
-	Private Property ListViewItem.Visible(Value As Boolean)
-		If Value <> FVisible Then
-			FVisible = Value
-			If Parent Then
-				With QControl(Parent)
-					'.Perform(TB_HIDEBUTTON, FCommandID, MakeLong(NOT FVisible, 0))
-				End With
-			End If
-		End If
 	End Property
 	
 	Private Operator ListViewItem.Cast As Any Ptr
