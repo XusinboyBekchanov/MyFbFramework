@@ -183,7 +183,7 @@ Using My.Sys.Forms
 			Ctrl->WriteProperty("Text", @Text)
 			Ctrl->SetBounds lLeft, lTop, lWidth, lHeight
 			Ctrl->WriteProperty("Parent", Parent)
-			Objects.Add Ctrl
+			If Not Objects.Contains(Ctrl) Then Objects.Add Ctrl
 		EndIf
 		Return Ctrl
 	End Function
@@ -213,7 +213,7 @@ Using My.Sys.Forms
 			Cpnt->Left = lLeft
 			Cpnt->Top = lTop
 			Cpnt->WriteProperty("Parent", Parent)
-			Objects.Add Cpnt
+			If Not Objects.Contains(Cpnt) Then Objects.Add Cpnt
 		EndIf
 		Return Cpnt
 	End Function
@@ -228,7 +228,9 @@ Using My.Sys.Forms
 		Case "toolbutton": Obj = New_( ToolButton)
 		Case Else: Obj = CreateComponent(ClassName, "", 0, 0, 0)
 		End Select
-		Objects.Add Obj
+		If Obj Then
+			If Not Objects.Contains(Obj) Then Objects.Add Obj
+		End If
 		Return Obj
 	End Function
 	
@@ -343,7 +345,7 @@ Using My.Sys.Forms
 				Return False
 			End If
 			If Cpnt = 0 Then Return False
-			Select Case LCase(cpnt->ClassName)
+			Select Case LCase(Cpnt->ClassName)
 			Case "imagelist":
 			End Select
 			Return True

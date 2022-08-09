@@ -28,7 +28,7 @@ Public:
 	Declare Sub Remove(Index As Integer)
 	Declare Sub Clear
 	Declare Function IndexOf(FItem As Any Ptr) As Integer
-	Declare Function Contains(FItem As Any Ptr) As Boolean
+	Declare Function Contains(FItem As Any Ptr, ByRef Idx As Integer = -1) As Boolean
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor

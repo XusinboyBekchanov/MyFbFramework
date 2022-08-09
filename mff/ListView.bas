@@ -1081,6 +1081,17 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property ListView.MultiSelect As Boolean
+		Return FMultiSelect
+	End Property
+	
+	Private Property ListView.MultiSelect(Value As Boolean)
+		FMultiSelect = Value
+		#ifdef __USE_WINAPI__
+			ChangeStyle LVS_SINGLESEL, Not Value
+		#endif
+	End Property
+	
 	Private Property ListView.HoverTime As Integer
 		Return FHoverTime
 	End Property
@@ -1106,19 +1117,19 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If FView = ViewStyle.vsDetails Then
 				If widget <> TreeViewWidget Then
-					Widget = TreeViewWidget
+					widget = TreeViewWidget
 					gtk_widget_hide(IconViewWidget)
 					If gtk_widget_get_parent(IconViewWidget) = scrolledwidget Then
 						g_object_ref(IconViewWidget)
-						gtk_container_remove(gtk_container(scrolledwidget), IconViewWidget)
+						gtk_container_remove(GTK_CONTAINER(scrolledwidget), IconViewWidget)
 					End If
-					gtk_container_add(gtk_container(scrolledwidget), widget)
-					gtk_tree_view_set_model(gtk_tree_view(widget), gtk_icon_view_get_model(gtk_icon_view(IconViewWidget)))
-					gtk_widget_show(Widget)
+					gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
+					gtk_tree_view_set_model(GTK_TREE_VIEW(widget), gtk_icon_view_get_model(GTK_ICON_VIEW(IconViewWidget)))
+					gtk_widget_show(widget)
 				End If
 			Else
 				If widget <> IconViewWidget Then
-					Widget = IconViewWidget
+					widget = IconViewWidget
 					gtk_widget_hide(TreeViewWidget)
 					If gtk_widget_get_parent(TreeViewWidget) = scrolledwidget Then
 						g_object_ref(TreeViewWidget)
@@ -1719,24 +1730,24 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(3, G_TYPE_BOOLEAN, GDK_TYPE_PIXBUF, G_TYPE_STRING)
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
 			TreeViewWidget = gtk_tree_view_new()
 			IconViewWidget = gtk_icon_view_new()
 			widget = TreeViewWidget
-			gtk_container_add(gtk_container(scrolledwidget), widget)
+			gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
 			#ifdef __USE_GTK3__
-				g_signal_connect(gtk_scrollable_get_hadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
-				g_signal_connect(gtk_scrollable_get_vadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+				g_signal_connect(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
 			#else
-				g_signal_connect(gtk_tree_view_get_hadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
-				g_signal_connect(gtk_tree_view_get_vadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+				g_signal_connect(gtk_tree_view_get_hadjustment(GTK_TREE_VIEW(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
+				g_signal_connect(gtk_tree_view_get_vadjustment(GTK_TREE_VIEW(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
 			#endif
-			g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@ListView_Map), @This)
-			g_signal_connect(gtk_tree_view(widget), "row-activated", G_CALLBACK(@ListView_RowActivated), @This)
-			g_signal_connect(gtk_icon_view(IconViewWidget), "item-activated", G_CALLBACK(@ListView_ItemActivated), @This)
-			g_signal_connect(gtk_icon_view(IconViewWidget), "selection-changed", G_CALLBACK(@IconView_SelectionChanged), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "map", G_CALLBACK(@ListView_Map), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "row-activated", G_CALLBACK(@ListView_RowActivated), @This)
+			g_signal_connect(GTK_ICON_VIEW(IconViewWidget), "item-activated", G_CALLBACK(@ListView_ItemActivated), @This)
+			g_signal_connect(GTK_ICON_VIEW(IconViewWidget), "selection-changed", G_CALLBACK(@IconView_SelectionChanged), @This)
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@ListView_SelectionChanged), @This)
 			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), GTK_TREE_VIEW_GRID_LINES_BOTH)
@@ -1762,12 +1773,12 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
-				.RegisterClass "ListView", WC_ListView
+				.RegisterClass "ListView", WC_LISTVIEW
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
-				WLet(FClassAncestor, WC_ListView)
+				WLet(FClassAncestor, WC_LISTVIEW)
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/ListView")
 			#endif

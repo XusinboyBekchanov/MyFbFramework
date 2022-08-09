@@ -34,6 +34,7 @@ Public:
 	
 	Declare Operator Let(ByRef Value As WString)
 	Declare Operator Let(ByRef Value As UString)
+	Declare Operator Let(ByRef Value As Const ZString)
 	
 	Declare Operator Cast() ByRef As WString
 	Declare Operator Cast() As Any Ptr

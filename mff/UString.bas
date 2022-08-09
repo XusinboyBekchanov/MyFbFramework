@@ -105,14 +105,14 @@ Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore A
 		WLet(TempWStr, WGet(subject) & txt)
 	End If
 	WLet(subject, *TempWStr)
-	WDeallocate TempWStr
+	WDeAllocate TempWStr
 End Sub
 
 Private Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then
 	m_BytesCount = (NewLength + 1) * SizeOf(WString)
 	If m_Length < NewLength Then
-		WReallocate(m_Data, NewLength)
+		WReAllocate(m_Data, NewLength)
 	End If
 	m_Length = NewLength
 	'		If m_Data <> 0 Then
@@ -161,6 +161,14 @@ Private Operator UString.Let(ByRef lhs As WString)
 	If m_Data <> 0 Then
 		*m_Data = lhs
 		m_BufferLen = Len(lhs) * 2
+	End If
+End Operator
+
+Private Operator UString.Let(ByRef Value As Const ZString)
+	Resize Len(Value)
+	If m_Data <> 0 Then
+		*m_Data = Value
+		m_BufferLen = Len(Value) * 2
 	End If
 End Operator
 
@@ -251,7 +259,7 @@ Private Function Replace(ByRef Expression As WString, ByRef FindingText As WStri
 		End If
 		If found Then
 			For m = 0 To Lr - 1
-				(*wres)[staid] = replacingtext[m]   'insert the replacerment
+				(*wres)[staid] = ReplacingText[m]   'insert the replacerment
 				staid += 1
 			Next m
 			n += Lf
@@ -268,7 +276,7 @@ Private Function Replace(ByRef Expression As WString, ByRef FindingText As WStri
 	Count = c
 	If Not MatchCase Then
 		WDeallocate original
-		WDeallocate find
+		WDeAllocate find
 	End If
 	Return *wres
 End Function
@@ -364,8 +372,8 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
 	Static As WString Ptr buffer
-	WDeallocate buffer
-	WReallocate(buffer, m_BufferLen)
+	WDeAllocate buffer
+	WReAllocate(buffer, m_BufferLen)
 	*buffer = String(m_BufferLen, 0)
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 End Function
@@ -394,7 +402,7 @@ End Function
 		#elseif __USE_JNI__
 			Return 0
 		#else
-			If PathFileExistsW(filename.vptr) Then
+			If PathFileExistsW(FileName.vptr) Then
 				Return True
 			Else
 				Return False

@@ -62,7 +62,7 @@ Private Sub List.Exchange(Index1 As Integer, Index2 As Integer)
 	End If
 End Sub
 
-Private Sub List.Remove(Index As Integer)
+Private Sub List.remove(Index As Integer)
 	'David Change
 	Dim As Integer i
 	If Count>0 AndAlso Index >= 0 AndAlso Index <= Count -1 Then
@@ -94,8 +94,9 @@ Private Function List.IndexOf(FItem As Any Ptr) As Integer
 	Return -1
 End Function
 
-Private Function List.Contains(FItem As Any Ptr) As Boolean
-	Return IndexOf(FItem) <> -1
+Private Function List.Contains(FItem As Any Ptr, ByRef Idx As Integer = -1) As Boolean
+	Idx = IndexOf(FItem)
+	Return Idx <> -1
 End Function
 
 Private Constructor List

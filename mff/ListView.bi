@@ -237,6 +237,7 @@ Namespace My.Sys.Forms
 		FHoverTime As Integer
 		FFullRowSelect As Boolean
 		FLabelTip As Boolean
+		FMultiSelect As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
 		FHoverSelection As Boolean
@@ -293,6 +294,8 @@ Namespace My.Sys.Forms
 		Declare Property GridLines(Value As Boolean)
 		Declare Property LabelTip As Boolean
 		Declare Property LabelTip(Value As Boolean)
+		Declare Property MultiSelect As Boolean
+		Declare Property MultiSelect(Value As Boolean)
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property TabIndex As Integer

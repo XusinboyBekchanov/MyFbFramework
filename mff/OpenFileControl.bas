@@ -504,7 +504,7 @@ Namespace My.Sys.Forms
 				Dim As OpenFileControl Ptr OpenDial = Cast(OpenFileControl Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				Dim As OFNOTIFY Ptr POF
 				POF = Cast(OFNOTIFY Ptr, lParam)
-				Select Case POF->hdr.Code
+				Select Case POF->hdr.code
 				Case CDN_FILEOK
 					If OpenDial Then If OpenDial->OnFileActivate Then OpenDial->OnFileActivate(*OpenDial)
 					SetWindowLongPtr FWindow, DWLP_MSGRESULT, 1
@@ -548,7 +548,7 @@ Namespace My.Sys.Forms
 			Dim wFilter As WString Ptr '* 260 = ""
 			WLet(wFilter, *OpenDial->FFilter & wMarkers)
 			Dim dwFilterStrSize As DWORD = Len(wFilter)
-			Dim pchar As WChar Ptr = wFilter
+			Dim pchar As WCHAR Ptr = wFilter
 			For i As Long = 0 To Len(*wFilter) - 1
 				If pchar[i] = Asc("|") Then pchar[i] = 0
 			Next
@@ -579,16 +579,16 @@ Namespace My.Sys.Forms
 			ofn.lpstrFileTitle       = OpenDial->FFileTitle
 			ofn.nMaxFileTitle       = 256
 			'ofn.lpstrFile[0] = 0
-			ofn.nMaxFile        = (Max_Path + 1) * 100
+			ofn.nMaxFile        = (MAX_PATH + 1) * 100
 			ofn.lpstrInitialDir = OpenDial->FInitialDir
 			ofn.Flags = dwFlags
 			ofn.lpfnHook           = Cast(LPOFNHOOKPROC, @Hook)
 			ofn.lCustData          = Cast(LPARAM, OpenDial)
 			If OpenDial->FDefaultExt Then ofn.lpstrDefExt = OpenDial->FDefaultExt
-			bResult = GetOpenFilename(@ofn)
+			bResult = GetOpenFileName(@ofn)
 			OpenDial->ThreadID = 0
 			'Deallocate cwsFile
-			WDeallocate wFilter
+			WDeAllocate wFilter
 			Exit Sub
 			ErrorHandler:
 			MsgBox ErrDescription(Err) & " (" & Err & ") " & _
