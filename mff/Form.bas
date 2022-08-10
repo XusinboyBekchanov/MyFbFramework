@@ -1131,6 +1131,14 @@ Namespace My.Sys.Forms
 			Case WM_INITMENUPOPUP
 				'			Case WM_TIMER
 				'				If OnTimer Then OnTimer(This)
+			Case WM_MDIACTIVATE
+				If msg.lParam = msg.hWnd Then
+					pApp->ActiveForm = @This
+					If OnActivate Then OnActivate(This)
+				End If
+				If msg.wParam = msg.hWnd Then
+					If OnDeActivate Then OnDeActivate(This)
+				End If
 			Case WM_ACTIVATE
 				Select Case msg.wParamLo
 				Case WA_ACTIVE, WA_CLICKACTIVE
@@ -1258,7 +1266,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.ShowItems(Ctrl As Control Ptr)
 		#ifdef __USE_GTK__
-			If CInt(Ctrl->FVisible) OrElse CInt(gtk_is_notebook(gtk_widget_get_parent(Ctrl->widget))) Then
+			If CInt(Ctrl->FVisible) OrElse CInt(GTK_IS_NOTEBOOK(gtk_widget_get_parent(Ctrl->widget))) Then
 				If Ctrl->box Then gtk_widget_show(Ctrl->box)
 				If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
 				If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)

@@ -280,9 +280,9 @@ Namespace My
 				If FActiveForm <> 0 Then
 					If FActiveForm->Accelerator Then TranslateAndDispatch = TranslateAccelerator(FActiveForm->Handle, FActiveForm->Accelerator, @msg) = 0
 					If TranslateAndDispatch Then
-						Select Case Msg.message
+						Select Case msg.message
 						Case WM_KEYDOWN
-							Select Case Msg.wParam
+							Select Case msg.wParam
 							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
 								'If Not GetFocus() = FActiveForm->Handle Then
 									FActiveForm->SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
