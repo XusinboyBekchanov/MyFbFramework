@@ -1,5 +1,5 @@
 ﻿'###############################################################################
-'#  ScrollableWindow.bi                                                        #
+'#  ScrollControl.bi                                                           #
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
@@ -7,9 +7,9 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QScrollableWindow(__Ptr__) *Cast(ScrollableWindow Ptr, __Ptr__)
+	#define QScrollControl(__Ptr__) *Cast(ScrollControl Ptr, __Ptr__)
 	
-	Private Type ScrollableWindow Extends ContainerControl
+	Private Type ScrollControl Extends ContainerControl
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
@@ -33,10 +33,10 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnScroll As Sub(ByRef Sender As ScrollableWindow)
+		OnScroll As Sub(ByRef Sender As ScrollControl)
 	End Type
 End Namespace
 
 #ifndef __USE_MAKE__
-	#include once "ScrollableWindow.bas"
+	#include once "ScrollControl.bas"
 #endif

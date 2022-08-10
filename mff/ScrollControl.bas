@@ -1,13 +1,13 @@
 ﻿'###############################################################################
-'#  ScrollableWindow.bi                                                        #
+'#  ScrollControl.bi                                                           #
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
 
-#include once "ScrollableWindow.bi"
+#include once "ScrollControl.bi"
 
 Namespace My.Sys.Forms
-	Private Function ScrollableWindow.ReadProperty(PropertyName As String) As Any Ptr
+	Private Function ScrollControl.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "tabindex": Return @FTabIndex
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -15,7 +15,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	Private Function ScrollableWindow.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Private Function ScrollControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
 		Case "tabindex": TabIndex = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -23,24 +23,24 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Private Property ScrollableWindow.TabIndex As Integer
+	Private Property ScrollControl.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Private Property ScrollableWindow.TabIndex(Value As Integer)
+	Private Property ScrollControl.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Private Property ScrollableWindow.TabStop As Boolean
+	Private Property ScrollControl.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Private Property ScrollableWindow.TabStop(Value As Boolean)
+	Private Property ScrollControl.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
 	#ifndef __USE_GTK__
-		Private Sub ScrollableWindow.SetScrollsInfo
+		Private Sub ScrollControl.SetScrollsInfo
 			Dim Si As SCROLLINFO
 			Dim As Integer MaxWidth, MaxHeight
 			
@@ -67,19 +67,19 @@ Namespace My.Sys.Forms
 			SetScrollInfo(This.Handle, SB_VERT, @Si, True)
 		End Sub
 		
-		Private Sub ScrollableWindow.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub ScrollControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
-				With QScrollableWindow(Sender.Child)
+				With QScrollControl(Sender.Child)
 					.SetScrollsInfo
 				End With
 			End If
 		End Sub
 		
-		Private Sub ScrollableWindow.WNDPROC(ByRef Message As Message)
+		Private Sub ScrollControl.WNDPROC(ByRef Message As Message)
 		End Sub
 	#endif
 	
-	Sub ScrollableWindow.GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
+	Sub ScrollControl.GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
 		MaxWidth = 0
 		MaxHeight = 0
 		For i As Integer = 0 To ControlCount - 1
@@ -90,7 +90,7 @@ Namespace My.Sys.Forms
 		Next
 	End Sub
 	
-	Private Sub ScrollableWindow.ProcessMessage(ByRef Message As Message)
+	Private Sub ScrollControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Static bShifted As Boolean
 			Static scrStyle As Integer, scrDirection As Integer
@@ -251,22 +251,22 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	Private Operator ScrollableWindow.Cast As Control Ptr
+	Private Operator ScrollControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Private Constructor ScrollableWindow
+	Private Constructor ScrollControl
 		#ifdef __USE_GTK__
 			widget = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
-			This.RegisterClass "ScrollableWindow", @This
+			This.RegisterClass "ScrollControl", @This
 		#endif
 		FTabIndex       = -1
 		With This
 			.Child      = @This
 			#ifndef __USE_GTK__
-				.RegisterClass "ScrollableWindow"
+				.RegisterClass "ScrollControl"
 				.ChildProc   = @WNDPROC
 				.ExStyle     = 0
 				Base.Style       = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
 			#endif
-			WLet(FClassName, "ScrollableWindow")
+			WLet(FClassName, "ScrollControl")
 			FHorizontalArrowChangeSize = 10
 			FVerticalArrowChangeSize = 10
 			.Width      = 121
@@ -283,6 +283,6 @@ Namespace My.Sys.Forms
 		End With
 	End Constructor
 	
-	Private Destructor ScrollableWindow
+	Private Destructor ScrollControl
 	End Destructor
 End Namespace

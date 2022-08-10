@@ -85,8 +85,8 @@
 #include once "RadioButton.bi"
 #include once "ReBar.bi"
 #include once "RichTextBox.bi"
-#include once "ScrollableWindow.bi"
 #include once "ScrollBarControl.bi"
+#include once "ScrollControl.bi"
 #include once "HScrollBar.bi"
 #include once "VScrollBar.bi"
 #include once "Splitter.bi"
@@ -160,8 +160,8 @@ Using My.Sys.Forms
 		Case "richtextbox": Ctrl = New_( RichTextBox)
 		Case "tabcontrol": Ctrl = New_( TabControl)
 		Case "tabpage": Ctrl = New_( TabPage)
-		Case "scrollablewindow": Ctrl = New_(ScrollableWindow)
 		Case "scrollbarcontrol": Ctrl = New_( ScrollBarControl)
+		Case "scrollcontrol": Ctrl = New_(ScrollControl)
 		Case "hscrollbar": Ctrl = New_( HScrollBar)
 		Case "vscrollbar": Ctrl = New_( VScrollBar)
 		Case "splitter": Ctrl = New_( Splitter)
@@ -273,8 +273,8 @@ Using My.Sys.Forms
 		Case "richtextbox": Delete_( Cast(RichTextBox Ptr, Ctrl))
 		Case "tabcontrol": Delete_( Cast(TabControl Ptr, Ctrl))
 		Case "tabpage": Delete_( Cast(TabPage Ptr, Ctrl))
-		Case "scrollablewindow": Delete_( Cast(ScrollableWindow Ptr, Ctrl))
 		Case "scrollbarcontrol": Delete_( Cast(ScrollBarControl Ptr, Ctrl))
+		Case "scrollcontrol": Delete_( Cast(ScrollControl Ptr, Ctrl))
 		Case "hscrollbar": Delete_( Cast(HScrollBar Ptr, Ctrl))
 		Case "vscrollbar": Delete_( Cast(VScrollBar Ptr, Ctrl))
 		Case "splitter": Delete_( Cast(Splitter Ptr, Ctrl))
