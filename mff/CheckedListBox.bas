@@ -76,9 +76,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
-			gtk_list_store_set(ListStore, @Iter, 0, Value, -1)
+			gtk_list_store_set(ListStore, @iter, 0, Value, -1)
 		#else
-			If Handle Then Perform(LB_SETITEMDATA, Index, Abs_(Value))
+			If Handle Then Perform(LB_SETITEMDATA, Index, abs_(Value))
 		#endif
 	End Property
 	
@@ -91,7 +91,7 @@ Namespace My.Sys.Forms
 						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(s))
 					Next i
-					.Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
+					.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(.ItemHeight, 0))
 					.MultiColumn = .MultiColumn
 					.ItemIndex = .ItemIndex
 					If .SelectionMode = SelectionModes.smMultiSimple Or .SelectionMode = SelectionModes.smMultiExtended Then
@@ -110,7 +110,7 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
-			Dim pt As ..Point, rc As ..RECT, t As Long, itd As Long
+			Dim pt As ..Point, rc As ..Rect, t As Long, itd As Long
 			Select Case Message.Msg
 			Case CM_DRAWITEM
 				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
@@ -128,8 +128,8 @@ Namespace My.Sys.Forms
 						FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle 'GetSysColorBrush(COLOR_WINDOW)
 						If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
 							rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
-							rc.top    = lpdis->rcItem.top
-							rc.bottom = lpdis->rcItem.bottom
+							rc.Top    = lpdis->rcItem.Top
+							rc.Bottom = lpdis->rcItem.Bottom
 							FillRect lpdis->hDC, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
 							SetBkColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
 							SetTextColor lpdis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT)                'Set text color
@@ -140,26 +140,36 @@ Namespace My.Sys.Forms
 						Else
 							FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle ' GetSysColorBrush(COLOR_WINDOW)
 							SetBkColor lpdis->hDC, Brush.Color 'GetSysColor(COLOR_WINDOW)                    'Set text Background
-							SetTextColor lpdis->hDC, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+							SetTextColor lpdis->hDC, IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))                'Set text color
 							If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
 								rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
-								rc.top    = lpdis->rcItem.top
-								rc.bottom = lpdis->rcItem.bottom
+								rc.Top    = lpdis->rcItem.Top
+								rc.Bottom = lpdis->rcItem.Bottom
 								'DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
 							End If
 						End If
 						'DRAW TEXT
-						SendMessage message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
-						TextOut lpdis->hDC, lpdis->rcItem.Left + 18, lpdis->rcItem.top + 2, @zTxt, Len(zTxt)     'Draw text
+						SendMessage Message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
+						TextOut lpdis->hDC, lpdis->rcItem.Left + 18, lpdis->rcItem.Top + 2, @zTxt, Len(zTxt)     'Draw text
 						'DRAW CHECKBOX
 						rc.Left   = lpdis->rcItem.Left + 2 : rc.Right = lpdis->rcItem.Left + 15               'Set cordinates
-						rc.top    = lpdis->rcItem.top + 2
-						rc.bottom = lpdis->rcItem.bottom - 1
-						If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows
-							DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK Or DFCS_CHECKED
+						rc.Top    = lpdis->rcItem.Top + 2
+						rc.Bottom = lpdis->rcItem.Bottom - 1
+						fTheme = OpenThemeData(FHandle, "BUTTON")
+						If fTheme Then
+							If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows Then
+								DrawThemeBackground(fTheme, lpdis->hDC, BP_CHECKBOX, CBS_CHECKEDNORMAL, @rc, 0)
+							Else
+								DrawThemeBackground(fTheme, lpdis->hDC, BP_CHECKBOX, CBS_UNCHECKEDNORMAL, @rc, 0)
+							End If
 						Else
-							DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK
+							If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows Then
+								DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK Or DFCS_CHECKED
+							Else
+								DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK
+							End If
 						End If
+						CloseThemeData(fTheme)
 						Message.Result = True : Exit Sub
 					Case ODA_FOCUS
 						'DrawFocusRect lpdis->hDC, @lpdis->rcItem  'draw focus rectangle
@@ -168,8 +178,8 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_LBUTTONDOWN
 				If Message.wParam = MK_LBUTTON  Then                                            'respond to mouse click
-					pt.x = LoWord(Message.lParam) : pt.y = HiWord(Message.lParam)                       'get cursor pos
-					t = SendMessage(Message.hWnd, LB_ITEMFROMPOINT, 0, MakeLong(pt.x, pt.y))    'get sel. item
+					pt.X = LoWord(Message.lParam) : pt.Y = HiWord(Message.lParam)                       'get cursor pos
+					t = SendMessage(Message.hWnd, LB_ITEMFROMPOINT, 0, MAKELONG(pt.X, pt.Y))    'get sel. item
 					SendMessage Message.hWnd, LB_GETITEMRECT, t, Cast(LPARAM, @rc)                            'get sel. item's rect
 					rc.Left   = rc.Left + 2 : rc.Right = rc.Left + 15                                       'checkbox cordinates
 					If PtInRect(@rc, pt) Then
