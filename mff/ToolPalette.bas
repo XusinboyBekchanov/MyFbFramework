@@ -84,13 +84,13 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					.UpdateLock
-					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MakeLong(FExpanded, 0))
-					SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MakeLong(IIf(Value, 0, 1), 0))
-					SendMessage(.Handle, TB_HIDEBUTTON, FCommandID * 10 + 1, MakeLong(Not FExpanded, 0))
+					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MAKELONG(FExpanded, 0))
+					SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MAKELONG(IIf(Value, 0, 1), 0))
+					SendMessage(.Handle, TB_HIDEBUTTON, FCommandID * 10 + 1, MAKELONG(Not FExpanded, 0))
 					For i As Integer = 0 To Buttons.Count - 1
 						Buttons.Item(i)->Visible = FExpanded
 					Next
-					.UpdateUnlock
+					.UpdateUnLock
 				End With
 			End If
 		#endif
@@ -130,45 +130,45 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Select Case FStyle
 				Case tbsSeparator
-					.widget = gtk_widget(gtk_separator_tool_item_new())
+					.Widget = GTK_WIDGET(gtk_separator_tool_item_new())
 				Case Else
 					Select Case FStyle
 					Case tbsButton
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsAutosize
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsCheck
-						.widget = gtk_widget(gtk_toggle_tool_button_new())
+						.Widget = GTK_WIDGET(gtk_toggle_tool_button_new())
 					Case tbsCheckGroup
-						If FButtons.Count > 1 AndAlso gtk_is_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget) Then
-							.widget = gtk_widget(gtk_radio_tool_button_new_from_widget(gtk_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget)))
+						If FButtons.Count > 1 AndAlso GTK_IS_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget) Then
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new_from_widget(GTK_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget)))
 						Else
-							.widget = gtk_widget(gtk_radio_tool_button_new(NULL))
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new(NULL))
 						End If
 					Case tbsGroup
-						If FButtons.Count > 1 AndAlso gtk_is_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget) Then
-							.widget = gtk_widget(gtk_radio_tool_button_new_from_widget(gtk_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget)))
+						If FButtons.Count > 1 AndAlso GTK_IS_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget) Then
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new_from_widget(GTK_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget)))
 						Else
-							.widget = gtk_widget(gtk_radio_tool_button_new(NULL))
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new(NULL))
 						End If
 					Case tbsDropDown
-						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
-						gtk_widget_show_all(.widget)
+						.Widget = GTK_WIDGET(gtk_menu_tool_button_new(NULL, ToUtf8(FCaption)))
+						gtk_menu_tool_button_set_menu(GTK_MENU_TOOL_BUTTON(.Widget), .DropDownMenu.Handle)
+						gtk_widget_show_all(.Widget)
 					Case tbsNoPrefix
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsShowText
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsWholeDropdown
-						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
+						.Widget = GTK_WIDGET(gtk_menu_tool_button_new(NULL, ToUtf8(FCaption)))
+						gtk_menu_tool_button_set_menu(GTK_MENU_TOOL_BUTTON(.Widget), .DropDownMenu.Handle)
 					Case Else
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					End Select
-					gtk_tool_item_set_tooltip_text(gtk_tool_item(.widget), ToUTF8(FHint))
-					g_signal_connect(.widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
+					gtk_tool_item_set_tooltip_text(GTK_TOOL_ITEM(.Widget), ToUtf8(FHint))
+					g_signal_connect(.Widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
 				End Select
-				gtk_widget_show_all(.widget)
+				gtk_widget_show_all(.Widget)
 			#endif
 			.State        = FState
 			.ImageIndex     = FImageIndex
@@ -182,7 +182,7 @@ Namespace My.Sys.Forms
 		PButton->Ctrl = @Cast(ToolGroup Ptr, Parent)->Ctrl
 		#ifdef __USE_GTK__
 			If Parent Then
-				gtk_tool_item_group_insert(gtk_tool_item_group(Cast(ToolGroup Ptr, Parent)->widget), gtk_tool_item(PButton->widget), Index)
+				gtk_tool_item_group_insert(GTK_TOOL_ITEM_GROUP(Cast(ToolGroup Ptr, Parent)->Widget), GTK_TOOL_ITEM(PButton->Widget), Index)
 			End If
 		#else
 			Dim As TBBUTTON TB
@@ -195,7 +195,7 @@ Namespace My.Sys.Forms
 			Else
 				TB.iString = 0
 			End If
-			TB.dwData = Cast(DWord_Ptr, @PButton->DropDownMenu)
+			TB.dwData = Cast(DWORD_PTR, @PButton->DropDownMenu)
 			If This.Parent AndAlso Cast(ToolGroup Ptr, This.Parent)->Ctrl Then
 				With *Cast(ToolGroup Ptr, This.Parent)
 					If Index = -1 Then
@@ -230,13 +230,15 @@ Namespace My.Sys.Forms
 		FButtons.Remove Index
 		If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
 			#ifndef __USE_GTK__
-				SendMessage(Cast(ToolGroup Ptr, Parent)->Ctrl->Handle, TB_DELETEBUTTON, Index, 0)
+				With *Cast(ToolGroup Ptr, Parent)
+					SendMessage(.Ctrl->Handle, TB_DELETEBUTTON, SendMessage(.Ctrl->Handle, TB_COMMANDTOINDEX, .CommandID, 0) + Index + 2, 0)
+				End With
 			#endif
 		End If
 	End Sub
 	
 	Private Function ToolGroupButtons.IndexOf(ByRef FButton As ToolButton Ptr) As Integer
-		Return FButtons.IndexOF(FButton)
+		Return FButtons.IndexOf(FButton)
 	End Function
 	
 	Private Function ToolGroupButtons.IndexOf(ByRef Key As WString) As Integer
@@ -297,7 +299,7 @@ Namespace My.Sys.Forms
 		PGroup->Ctrl = Parent
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_container_add(GTK_CONTAINER (Parent->Handle), PGroup->widget)
+				gtk_container_add(GTK_CONTAINER (Parent->Handle), PGroup->Widget)
 			End If
 		#else
 			If Parent Then
