@@ -111,20 +111,22 @@ Namespace My.Sys.Forms
 	
 	Private Property ListViewItem.Selected(Value As Boolean)
 		FSelected = Value
-		If Parent AndAlso Parent->Handle Then
-			lvi.mask = LVIF_STATE
-			lvi.iItem = Index
-			ListView_GetItem(Parent->Handle, @lvi)
-			If Value Then
-				If (lvi.state And LVIS_SELECTED) <> LVIS_SELECTED Then
-					lvi.state = lvi.state Or LVIS_SELECTED
+		#ifdef __USE_WINAPI__
+			If Parent AndAlso Parent->Handle Then
+				lvi.mask = LVIF_STATE
+				lvi.iItem = Index
+				ListView_GetItem(Parent->Handle, @lvi)
+				If Value Then
+					If (lvi.state And LVIS_SELECTED) <> LVIS_SELECTED Then
+						lvi.state = lvi.state Or LVIS_SELECTED
+						ListView_SetItem(Parent->Handle, @lvi)
+					End If
+				ElseIf (lvi.state And LVIS_SELECTED) = LVIS_SELECTED Then
+					lvi.state = lvi.state And Not LVIS_SELECTED
 					ListView_SetItem(Parent->Handle, @lvi)
 				End If
-			ElseIf (lvi.state And LVIS_SELECTED) = LVIS_SELECTED Then
-				lvi.state = lvi.state And Not LVIS_SELECTED
-				ListView_SetItem(Parent->Handle, @lvi)
 			End If
-		End If
+		#endif
 	End Property
 	
 	Private Sub ListViewItem.SelectItem

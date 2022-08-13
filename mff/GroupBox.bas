@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 				Dim As PAINTSTRUCT Ps
 				This.Canvas.HandleSetted = True
 				Dc = BeginPaint(Handle, @Ps)
-				FillRect Dc, @Ps.rcpaint, This.Brush.Handle
+				FillRect Dc, @Ps.rcPaint, This.Brush.Handle
 				This.Canvas.Handle = Dc
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As LRESULT state = SendMessage(FHandle, BM_GETSTATE, 0, 0)
@@ -150,14 +150,14 @@ Namespace My.Sys.Forms
 					stateID = GBS_NORMAL
 					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
 					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
-					Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
+					Dim As HPEN PrevBrush = SelectObject(Dc, hbrBkgnd)
 					Rectangle Dc, 0, 6, ScaleX(This.Width), ScaleY(This.Height) - 1
 					SetTextColor(Dc, darkTextColor)
 					SetBkColor(Dc, darkBkColor)
-					Dim As hFont OldFontHandle, NewFontHandle
+					Dim As HFONT OldFontHandle, NewFontHandle
 					OldFontHandle = SelectObject(Dc, This.Font.Handle)
 					TextOut(Dc, 6, 0, @This.Text, Len(This.Text))
-					NewFontHandle = SelectObject(dc, OldFontHandle)
+					NewFontHandle = SelectObject(Dc, OldFontHandle)
 					SelectObject(Dc, PrevPen)
 					SelectObject(Dc, PrevBrush)
 					EndPaint Handle, @Ps
