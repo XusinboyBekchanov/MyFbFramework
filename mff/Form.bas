@@ -231,7 +231,7 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK4__
 							Dim As GdkRectangle workarea
 							gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-							gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+							gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 						#else
 							gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 						#endif
@@ -335,7 +335,9 @@ Namespace My.Sys.Forms
 				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(GTK_WINDOW(widget), False)
 					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_SPLASHSCREEN)
-					gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					#ifndef __USE_GTK3__
+						gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, False)
 				End If
@@ -351,39 +353,47 @@ Namespace My.Sys.Forms
 				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(GTK_WINDOW(widget), True)
 					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DOCK)
-					gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					#ifndef __USE_GTK3__
+						gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.Sizable
 				If GTK_IS_WINDOW(widget) Then
-					gtk_window_set_decorated(gtk_window(widget), True)
-					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_NORMAL)
-					gtk_window_set_resizable(gtk_window(widget), True)
+					gtk_window_set_decorated(GTK_WINDOW(widget), True)
+					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_NORMAL)
+					gtk_window_set_resizable(GTK_WINDOW(widget), True)
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.Fixed3D
-				If Gtk_Is_Window(widget) Then
-					gtk_window_set_decorated(gtk_window(widget), True)
-					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
-					gtk_window_set_resizable(gtk_window(widget), False)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_decorated(GTK_WINDOW(widget), True)
+					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
+					#ifndef __USE_GTK3__
+						gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.FixedSingle
-				If Gtk_Is_Window(widget) Then
-					gtk_window_set_decorated(gtk_window(widget), True)
-					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
-					gtk_window_set_resizable(gtk_window(widget), False)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_decorated(GTK_WINDOW(widget), True)
+					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
+					#ifndef __USE_GTK3__
+						gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
 			Case FormBorderStyle.FixedDialog
-				If Gtk_Is_Window(widget) Then
-					gtk_window_set_decorated(gtk_window(widget), True)
-					gtk_window_set_type_hint(gtk_window(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
-					gtk_window_set_resizable(gtk_window(widget), False)
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_set_decorated(GTK_WINDOW(widget), True)
+					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
+					#ifndef __USE_GTK3__
+						gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
@@ -1384,19 +1394,29 @@ Namespace My.Sys.Forms
 						End If
 						Select Case FBorderStyle
 						Case FormBorderStyle.None
-							gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#ifndef __USE_GTK3__
+								gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#endif
 						Case FormBorderStyle.SizableToolWindow
 							gtk_window_set_resizable(GTK_WINDOW(widget), True)
 						Case FormBorderStyle.FixedToolWindow
-							gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#ifndef __USE_GTK3__
+								gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#endif
 						Case FormBorderStyle.Sizable
 							gtk_window_set_resizable(GTK_WINDOW(widget), True)
 						Case FormBorderStyle.Fixed3D
-							gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#ifndef __USE_GTK3__
+								gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#endif
 						Case FormBorderStyle.FixedSingle
-							gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#ifndef __USE_GTK3__
+								gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#endif
 						Case FormBorderStyle.FixedDialog
-							gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#ifndef __USE_GTK3__
+								gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							#endif
 						End Select
 					End If
 				Else
@@ -1545,7 +1565,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.Minimize
 		#ifdef __USE_GTK__
-			If gtk_is_window(widget) Then
+			If GTK_IS_WINDOW(widget) Then
 				gtk_window_iconify(GTK_WINDOW(widget))
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -1566,11 +1586,11 @@ Namespace My.Sys.Forms
 			Case 0
 			Case 1
 				If MainForm Then
-					If gtk_is_widget(widget) Then gtk_widget_destroy(widget)
+					If GTK_IS_WIDGET(widget) Then gtk_widget_destroy(widget)
 					gtk_main_quit()
 				Else
-					If gtk_is_window(widget) Then
-						If gtk_window_get_modal (gtk_window(widget)) Then
+					If GTK_IS_WINDOW(widget) Then
+						If gtk_window_get_modal (GTK_WINDOW(widget)) Then
 							gtk_main_quit()
 						End If
 					End If
@@ -1601,13 +1621,13 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.CenterToScreen()
 		#ifdef __USE_GTK__
-			If gtk_is_window(widget) Then
+			If GTK_IS_WINDOW(widget) Then
 				#ifdef __USE_GTK4__
 					Dim As GdkRectangle workarea
 					gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-					gtk_window_move(gtk_window(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+					gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 				#else
-					gtk_window_move(gtk_window(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+					gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 				#endif
 			End If
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
@@ -1638,12 +1658,12 @@ Namespace My.Sys.Forms
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
-					If gtk_is_image(QForm(.Ctrl->Child).ImageWidget) Then
+					If GTK_IS_IMAGE(QForm(.Ctrl->Child).ImageWidget) Then
 						Select Case ImageType
 						Case 0
-							gtk_image_set_from_pixbuf(gtk_image(QForm(.Ctrl->Child).ImageWidget), .Bitmap.Handle)
+							gtk_image_set_from_pixbuf(GTK_IMAGE(QForm(.Ctrl->Child).ImageWidget), .Bitmap.Handle)
 						Case 1
-							gtk_image_set_from_pixbuf(gtk_image(QForm(.Ctrl->Child).ImageWidget), .Icon.Handle)
+							gtk_image_set_from_pixbuf(GTK_IMAGE(QForm(.Ctrl->Child).ImageWidget), .Icon.Handle)
 						End Select
 					End If
 				#else
