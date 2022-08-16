@@ -373,12 +373,8 @@ Private Function Dictionary.IndexOfKey(ByRef iKey As Const WString, iObject As A
 		If FSortKeysMatchCase Then  ' Action with the same sorting mode only
 			While (LeftIndex <= RightIndex)
 				MidIndex = (RightIndex + LeftIndex) Shr 1
-				If QDictionaryItem(FItems.Items[MidIndex]).Key = iKey Then
-					If iObject >  0 Then
-						If QDictionaryItem(FItems.Items[MidIndex]).Object = iObject Then Return MidIndex Else Return -1
-					Else
-						Return MidIndex
-					End If
+				If QDictionaryItem(FItems.Items[MidIndex]).Key = iKey AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[MidIndex]).Object = iObject) Then
+					Return MidIndex
 				ElseIf QDictionaryItem(FItems.Items[MidIndex]).Key < iKey Then
 					LeftIndex = MidIndex + 1
 				Else
@@ -389,12 +385,8 @@ Private Function Dictionary.IndexOfKey(ByRef iKey As Const WString, iObject As A
 		Else
 			While (LeftIndex <= RightIndex)
 				MidIndex = (RightIndex + LeftIndex) Shr 1
-				If LCase(QDictionaryItem(FItems.Items[MidIndex]).Key) = LCase(iKey) Then
-					If iObject >  0 Then
-						If QDictionaryItem(FItems.Items[MidIndex]).Object = iObject Then Return MidIndex Else Return -1
-					Else
-						Return MidIndex
-					End If
+				If LCase(QDictionaryItem(FItems.Items[MidIndex]).Key) = LCase(iKey) AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[MidIndex]).Object = iObject) Then
+					Return MidIndex
 				ElseIf LCase(QDictionaryItem(FItems.Items[MidIndex]).Key) < LCase(iKey) Then
 					LeftIndex = MidIndex + 1
 				Else
@@ -406,22 +398,14 @@ Private Function Dictionary.IndexOfKey(ByRef iKey As Const WString, iObject As A
 	Else
 		If MatchCase Then
 			For i As Integer = 0 To FItems.Count - 1
-				If QDictionaryItem(FItems.Items[i]).Key = iKey Then
-					If iObject >  0 Then
-						If QDictionaryItem(FItems.Items[i]).Object = iObject Then Return i Else Return -1
-					Else
-						Return i
-					End If
+				If QDictionaryItem(FItems.Items[i]).Key = iKey AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[i]).Object = iObject) Then
+					Return i
 				End If
 			Next i
 		Else
 			For i As Integer = 0 To FItems.Count - 1
-				If LCase(QDictionaryItem(FItems.Items[i]).Key) = LCase(iKey) Then
-					If iObject >  0 Then
-						If QDictionaryItem(FItems.Items[i]).Object = iObject Then Return i Else Return -1
-					Else
-						Return i
-					End If
+				If LCase(QDictionaryItem(FItems.Items[i]).Key) = LCase(iKey) AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[i]).Object = iObject) Then
+					Return i
 				End If
 			Next i
 		End If
