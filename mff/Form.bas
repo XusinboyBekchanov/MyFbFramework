@@ -1649,7 +1649,7 @@ Namespace My.Sys.Forms
 		FMenuItems.Clear
 		If This.Menu Then
 			#ifdef __USE_WINAPI__
-				If IsMenu(This.Menu->Handle) <> 1 Then Exit Sub
+				If IsMenu(This.Menu->Handle) = 0 Then Exit Sub
 			#endif
 			For i As Integer = 0 To This.Menu->Count -1
 				EnumMenuItems *This.Menu->Item(i)
