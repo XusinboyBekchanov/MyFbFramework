@@ -69,10 +69,10 @@ Namespace My.Sys.Forms
 	Private Property CommandButton.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			gtk_label_set_text_with_mnemonic(gtk_label(gtk_bin_get_child(gtk_bin(widget))), ToUtf8(Replace(Value, "&", "_")))
+			gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
 	End Property
@@ -90,10 +90,10 @@ Namespace My.Sys.Forms
 		If Value <> FDefault Then
 			FDefault = Value
 			#ifdef __USE_GTK__
-				gtk_widget_set_can_default(Widget, Value)
+				gtk_widget_set_can_default(widget, Value)
 			#elseif defined(__USE_WINAPI__)
-				ChangeStyle BS_PUSHLIKE, False
-				ChangeStyle BS_DEFPUSHBUTTON, True
+				'ChangeStyle BS_PUSHLIKE, False
+				ChangeStyle BS_DEFPUSHBUTTON, Value
 			#endif
 		End If
 	End Property
@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifdef __USE_WINAPI__
-				Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or ADefault(Abs_(FDefault))
+				Base.Style = WS_CHILD Or AStyle(abs_(FStyle)) Or ADefault(abs_(FDefault))
 			#endif
 		End If
 	End Property
@@ -238,7 +238,7 @@ Namespace My.Sys.Forms
 			#endif
 			#ifdef __USE_WINAPI__
 				.ExStyle     = 0
-				Base.Style       = WS_CHILD Or WS_TABSTOP Or AStyle(Abs_(FStyle)) Or ADefault(Abs_(FDefault))
+				Base.Style       = WS_CHILD Or WS_TABSTOP Or AStyle(abs_(FStyle)) Or ADefault(abs_(FDefault))
 			#endif
 			.Width       = 75
 			.Height      = 25

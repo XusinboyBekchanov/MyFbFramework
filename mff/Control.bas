@@ -370,7 +370,10 @@ Namespace My.Sys.Forms
 		
 		Private Property Control.ControlIndex(Value As Integer)
 			If This.FParent Then
-				Cast(Control Ptr, This.FParent)->ChangeControlIndex @This, Value
+				With *Cast(Control Ptr, This.FParent)
+					.ChangeControlIndex @This, Value
+					.RequestAlign
+				End With
 			End If
 		End Property
 			
@@ -2189,6 +2192,7 @@ Namespace My.Sys.Forms
 			Dim As Integer aLeft, aTop, aWidth, aHeight
 			If iClientWidth = -1 Then iClientWidth = ClientWidth
 			If iClientHeight = -1 Then iClientHeight = ClientHeight
+			If ClassName = "ScrollControl" Then iClientWidth = Width: iClientHeight = Height
 			If iClientWidth <= 0 OrElse iClientHeight <= 0 Then Exit Sub
 			lLeft = Margins.Left
 			rLeft = iClientWidth - Margins.Right

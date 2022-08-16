@@ -864,7 +864,7 @@ Namespace My.Sys.Drawing
 			pango_layout_set_font_description (layout, desc)
 			pango_layout_set_text(layout, ToUTF8(FText), Len(ToUTF8(FText)))
 			pango_cairo_update_layout(Handle, layout)
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
@@ -875,9 +875,9 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_JNI__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__)
-			Dim Sz As ..SIZE
+			Dim Sz As ..Size
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
-			Function = UnScaleY(Sz.cY)
+			Function = UnScaleY(Sz.cy)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Function
