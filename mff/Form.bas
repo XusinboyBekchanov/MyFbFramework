@@ -1608,9 +1608,9 @@ Namespace My.Sys.Forms
 		If FParent Then
 			With *Cast(Control Ptr, FParent)
 				#ifdef __USE_GTK__
-					If gtk_is_window(widget) Then
-						gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER)
-						gtk_window_move(gtk_window(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+					If GTK_IS_WINDOW(widget) Then
+						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
+						gtk_window_move(GTK_WINDOW(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
 					End If
 				#else
 					This.Left = .Left + (.Width - This.Width) \ 2: This.Top  = .Top + (.Height - This.Height) \ 2
@@ -1625,7 +1625,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK4__
 					Dim As GdkRectangle workarea
 					gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-					gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+					gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 				#else
 					gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 				#endif
@@ -1648,6 +1648,9 @@ Namespace My.Sys.Forms
 	Private Sub Form.GetMenuItems
 		FMenuItems.Clear
 		If This.Menu Then
+			#ifdef __USE_WINAPI__
+				If Not IsMenu(This.Menu->Handle) Then Exit Sub
+			#endif
 			For i As Integer = 0 To This.Menu->Count -1
 				EnumMenuItems *This.Menu->Item(i)
 			Next i
@@ -1751,7 +1754,7 @@ Namespace My.Sys.Forms
 		With This
 			.Child             = @This
 			#ifdef __USE_WINAPI__
-				.ChildProc         = @WndProc
+				.ChildProc         = @WNDPROC
 			#endif
 			WLet(FClassName, "Form")
 			.OnActiveControlChanged = @ActiveControlChanged
@@ -1789,6 +1792,7 @@ Namespace My.Sys.Forms
 		'		#ifndef __USE_GTK__
 		'			If FHandle Then FreeWnd
 		'		#endif
+		This.Menu = 0
 		FMenuItems.Clear
 		#ifdef __USE_WINAPI__
 			If Accelerator Then DestroyAcceleratorTable(Accelerator)

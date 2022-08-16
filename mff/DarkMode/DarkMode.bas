@@ -151,8 +151,8 @@
 		SetTitleBarThemeColor(hWnd, dark)
 	End Sub
 	
-	Function IsColorSchemeChangeMessage(lParam As LPARAM) As bool
-		Dim As bool Is1 = False
+	Function IsColorSchemeChangeMessage(lParam As LPARAM) As BOOL
+		Dim As BOOL Is1 = False
 		If (lParam AndAlso (0 = lstrcmpi(Cast(LPCWCH, lParam), "ImmersiveColorSet")) AndAlso _RefreshImmersiveColorPolicyState) Then
 			_RefreshImmersiveColorPolicyState()
 			Is1 = True
@@ -163,14 +163,14 @@
 		Return Is1
 	End Function
 	
-	Function IsColorSchemeChangeMessage(message As UINT, lParam As LPARAM) As bool
+	Function IsColorSchemeChangeMessage(message As UINT, lParam As LPARAM) As BOOL
 		If (message = WM_SETTINGCHANGE) Then
 			Return IsColorSchemeChangeMessage(lParam)
 		End If
 		Return False
 	End Function
 	
-	Sub AllowDarkModeForApp(allow As bool)
+	Sub AllowDarkModeForApp(allow As BOOL)
 		If (_AllowDarkModeForApp) Then
 			_AllowDarkModeForApp(allow)
 		ElseIf (_SetPreferredAppMode) Then
@@ -188,11 +188,11 @@
 	
 	Dim Shared As List g_darkScrollBarWindows
 	Dim Shared As Any Ptr g_darkScrollBarMutex
-	g_darkScrollBarMutex = MutexCreate
+	'g_darkScrollBarMutex = MutexCreate
 	
 	Sub EnableDarkScrollBarForWindowAndChildren(hwnd As HWND)
 		'MutexLock(g_darkScrollBarMutex)
-		g_darkScrollBarWindows.add(hwnd)
+		g_darkScrollBarWindows.Add(hwnd)
 	End Sub
 	
 	Function IsWindowOrParentUsingDarkScrollBar(hwnd As HWND) As BOOL
