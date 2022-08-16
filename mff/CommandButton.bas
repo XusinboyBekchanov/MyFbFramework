@@ -92,8 +92,12 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_widget_set_can_default(widget, Value)
 			#elseif defined(__USE_WINAPI__)
-				'ChangeStyle BS_PUSHLIKE, False
+				ChangeStyle BS_PUSHLIKE, False
 				ChangeStyle BS_DEFPUSHBUTTON, Value
+				Dim As Control Ptr frm = This.GetForm
+				If frm Then
+					frm->FDefaultButton = IIf(Value, @This, 0)
+				End If
 			#endif
 		End If
 	End Property
