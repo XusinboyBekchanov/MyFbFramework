@@ -149,7 +149,7 @@ Namespace My.Sys.Forms
 		Declare Sub Add(ByRef value As PMenuItem, Index As Integer = -1)
 		Declare Sub Add(value() As PMenuItem)
 		Declare Sub AddRange cdecl(CountArgs As Integer, ...)
-		Declare Sub remove(value As PMenuItem)
+		Declare Sub Remove(value As PMenuItem)
 		Declare Sub Insert(index As Integer, value As PMenuItem)
 		Declare Sub Clear
 		Declare Function IndexOf(value As PMenuItem) As Integer
@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False)
 		Declare Destructor
-		onClick As Sub(ByRef Sender As MenuItem)
+		OnClick As Sub(ByRef Sender As MenuItem)
 	End Type
 	
 	Private Type Menu Extends Component

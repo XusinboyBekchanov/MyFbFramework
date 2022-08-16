@@ -976,7 +976,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Private Sub MenuItem.remove(value As PMenuItem)
+	Private Sub MenuItem.Remove(value As PMenuItem)
 		Dim As Integer Index,i
 		Dim As PMenuItem FItem
 		Index = IndexOf(value)
