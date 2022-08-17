@@ -199,7 +199,7 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				ChangeExStyle WS_EX_ACCEPTFILES, Value
-				If FHandle Then RecreateWnd
+				If FHandle AndAlso Not FDesignMode Then RecreateWnd
 			#endif
 		End Property
 		
