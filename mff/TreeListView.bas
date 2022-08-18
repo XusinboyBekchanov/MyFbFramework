@@ -1319,9 +1319,10 @@ Namespace My.Sys.Forms
 					Var tlvi = GetTreeListViewItem(lvhti.iItem)
 					If tlvi AndAlso tlvi->Nodes.Count > 0 Then
 						Dim As ..Rect lpRect
+						Dim As Integer sX16 = ScaleX(16) 						
 						ListView_GetSubItemRect(FHandle, lvhti.iItem, 0, LVIR_BOUNDS, @lpRect)
-						If lvhti.flags = LVHT_ONITEMSTATEICON OrElse (FOwnerDraw AndAlso lvhti.pt.x >= lpRect.Left + 3 + tlvi->Indent * 16 AndAlso lvhti.pt.x <= lpRect.Left + 3 + 16 + tlvi->Indent * 16 AndAlso _
-							lvhti.pt.y >= lpRect.Top AndAlso lvhti.pt.y <= lpRect.Top + 16) Then
+						If lvhti.flags = LVHT_ONITEMSTATEICON OrElse (FOwnerDraw AndAlso lvhti.pt.X >= lpRect.Left + 3 + tlvi->Indent * sX16 AndAlso lvhti.pt.X <= lpRect.Left + 3 + sX16+ tlvi->Indent * sX16 AndAlso _
+							lvhti.pt.Y >= lpRect.Top AndAlso lvhti.pt.Y <= lpRect.Bottom) Then
 							If tlvi->IsExpanded Then
 								tlvi->Collapse
 							Else
