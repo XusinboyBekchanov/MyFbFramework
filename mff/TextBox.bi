@@ -61,6 +61,7 @@ Namespace My.Sys.Forms
 		FMaxLength        As Integer
 		FModified         As Boolean
 		FLeftMargin       As Integer
+		FNumbersOnly      As Boolean
 		FRightMargin      As Integer
 		ACharCase(3)      As Long
 		AMaskStyle(2)     As Long
@@ -119,6 +120,8 @@ Namespace My.Sys.Forms
 		Declare Property Masked(Value As Boolean)
 		Declare Property MaskChar ByRef As WString
 		Declare Property MaskChar(ByRef Value As WString)
+		Declare Property NumbersOnly As Boolean
+		Declare Property NumbersOnly(Value As Boolean)
 		Declare Property LeftMargin As Integer
 		Declare Property LeftMargin(Value As Integer)
 		Declare Property RightMargin As Integer

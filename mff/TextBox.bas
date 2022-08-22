@@ -28,6 +28,7 @@ Namespace My.Sys.Forms
 			Case "maxlength": Return @FMaxLength
 			Case "modified": Return @FModified
 			Case "multiline": Return @FMultiline
+			Case "numbersonly": Return @FNumbersOnly
 			Case "oemconvert": Return @FOEMConvert
 			Case "readonly": Return @FReadOnly
 			Case "scrollbars": Return @FScrollBars
@@ -65,6 +66,7 @@ Namespace My.Sys.Forms
 				Case "maxlength": MaxLength = QInteger(Value)
 				Case "modified": Modified = QBoolean(Value)
 				Case "multiline": Multiline = QBoolean(Value)
+				Case "numbersonly": NumbersOnly = QBoolean(Value)
 				Case "oemconvert": OEMConvert = QBoolean(Value)
 				Case "readonly": ReadOnly = QBoolean(Value)
 				Case "scrollbars": ScrollBars = *Cast(ScrollBarsType Ptr, Value)
@@ -447,9 +449,9 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK3__
 					Select Case FCharCase
-					Case ecNone: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_NONE): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_NONE)
-					Case ecLower: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_LOWERCASE): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_LOWERCASE)
-					Case ecUpper: gtk_entry_set_input_hints(gtk_entry(WidgetEntry), GTK_INPUT_HINT_UPPERCASE_CHARS): gtk_text_view_set_input_hints(gtk_text_view(WidgetTextView), GTK_INPUT_HINT_UPPERCASE_CHARS)
+					Case ecNone: gtk_entry_set_input_hints(GTK_ENTRY(WidgetEntry), GTK_INPUT_HINT_NONE): gtk_text_view_set_input_hints(GTK_TEXT_VIEW(WidgetTextView), GTK_INPUT_HINT_NONE)
+					Case ecLower: gtk_entry_set_input_hints(GTK_ENTRY(WidgetEntry), GTK_INPUT_HINT_LOWERCASE): gtk_text_view_set_input_hints(GTK_TEXT_VIEW(WidgetTextView), GTK_INPUT_HINT_LOWERCASE)
+					Case ecUpper: gtk_entry_set_input_hints(GTK_ENTRY(WidgetEntry), GTK_INPUT_HINT_UPPERCASE_CHARS): gtk_text_view_set_input_hints(GTK_TEXT_VIEW(WidgetTextView), GTK_INPUT_HINT_UPPERCASE_CHARS)
 					End Select
 				#endif
 			#elseif defined(__USE_WINAPI__)
@@ -471,8 +473,8 @@ Namespace My.Sys.Forms
 	Private Property TextBox.Masked(Value As Boolean)
 		FMasked = Value
 		#ifdef __USE_GTK__
-			If gtk_is_entry(widget) Then
-				gtk_entry_set_visibility(gtk_entry(widget), Not Value)
+			If GTK_IS_ENTRY(widget) Then
+				gtk_entry_set_visibility(GTK_ENTRY(widget), Not Value)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
@@ -496,21 +498,34 @@ Namespace My.Sys.Forms
 	Private Property TextBox.MaskChar(ByRef Value As WString)
 		WLet(FMaskChar, Value)
 		#ifdef __USE_GTK__
-			If gtk_is_entry(widget) Then
-				gtk_entry_set_invisible_char(gtk_entry(widget), Asc(Value))
+			If GTK_IS_ENTRY(widget) Then
+				gtk_entry_set_invisible_char(GTK_ENTRY(widget), Asc(Value))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(EM_SETPASSWORDCHAR, Asc(Value), 0)
 		#endif
 	End Property
 	
+	Private Property TextBox.NumbersOnly As Boolean
+		Return FMasked
+	End Property
+	
+	Private Property TextBox.NumbersOnly(Value As Boolean)
+		FNumbersOnly = Value
+		#ifdef __USE_GTK__
+			
+		#elseif defined(__USE_WINAPI__)
+			ChangeStyle ES_NUMBER, Value
+		#endif
+	End Property
+	
 	Private Property TextBox.TopLine As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				For i As Integer = 0 To LinesCount - 1
 					Dim As GtkTextIter _startline
-					gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, i)
-					If gtk_text_view_starts_display_line(gtk_text_view(widget), @_startline) Then
+					gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, i)
+					If gtk_text_view_starts_display_line(GTK_TEXT_VIEW(widget), @_startline) Then
 						Return i
 					End If
 				Next
@@ -524,10 +539,10 @@ Namespace My.Sys.Forms
 	Private Property TextBox.TopLine(Value As Integer)
 		FTopLine = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _topline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_topline, Value)
-				gtk_text_view_forward_display_line(gtk_text_view(widget), @_topline)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_topline, Value)
+				gtk_text_view_forward_display_line(GTK_TEXT_VIEW(widget), @_topline)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(10012, FTopLine, 0)
