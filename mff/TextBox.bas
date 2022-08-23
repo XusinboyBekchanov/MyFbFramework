@@ -507,7 +507,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TextBox.NumbersOnly As Boolean
-		Return FMasked
+		Return FNumbersOnly
 	End Property
 	
 	Private Property TextBox.NumbersOnly(Value As Boolean)
