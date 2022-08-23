@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 		If FThousands <> Value Then
 			FThousands = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 			#endif
 		End If
 	End Property
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 		If FWrap <> Value Then
 			FWrap = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 			#endif
 		End If
 	End Property
@@ -158,7 +158,7 @@ Namespace My.Sys.Forms
 				Height = Temp
 			End If
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 			#endif
 		End If
 	End Property
@@ -184,12 +184,17 @@ Namespace My.Sys.Forms
 		Private Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUpDown(Sender.Child)
-					SendMessage(.Handle, UDM_SETRANGE, 0, MakeLong(.FMaxValue, .FMinValue))
-					SendMessage(.Handle, UDM_SETPOS, 0, MakeLong(.FPosition, 0))
+					SendMessage(.Handle, UDM_SETRANGE, 0, MAKELONG(.FMaxValue, .FMinValue))
+					SendMessage(.Handle, UDM_SETPOS, 0, MAKELONG(.FMinValue, 0))
 					SendMessage(.Handle, UDM_GETACCEL, 1, CInt(@.FUDAccel(0)))
 					.FUDAccel(0).nInc = .FIncrement
 					SendMessage(.Handle, UDM_SETACCEL, 1, CInt(@.FUDAccel(0)))
 					.Position = .FPosition
+					If UCase(.FAssociate->ClassName) = "TEXTBOX" Then
+						SendMessage(.Handle, UDM_SETBUDDY, CInt(.FAssociate->Handle), 0)
+						.FAssociate->Text = WStr(.Position)
+					Else
+					End If
 				End With
 			End If
 		End Sub
@@ -197,19 +202,40 @@ Namespace My.Sys.Forms
 		Private Sub UpDown.WndProc(ByRef Message As Message)
 		End Sub
 		
+		Private Sub UpDown.SetDark(Value As Boolean)
+			Base.SetDark Value
+			If Value Then
+				SetWindowTheme(FHandle, "DarkMode", nullptr)
+			Else
+				SetWindowTheme(FHandle, NULL, NULL)
+			End If
+		End Sub
+		
 		Private Sub UpDown.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
+				Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					If Not FDarkMode Then
+						SetDark True
+					End If
+				Else
+					If FDarkMode Then
+						SetDark False
+					End If
+				End If
+				Message.Result = 0
 			Case WM_SIZE
 				Dim As ..Rect R
 				GetClientRect Handle, @R
 				InvalidateRect Handle, @R, True
 			Case CM_NOTIFY
 				Dim As NMHDR Ptr NM
-				NM = Cast(LPNMHDR,Message.lParam)
-				If NM->Code = UDN_DELTAPOS Then
+				NM = Cast(LPNMHDR, Message.lParam)
+				If NM->code = UDN_DELTAPOS Then
 					Dim As NM_UPDOWN Ptr NMUD
-					NMUD = Cast(NM_UPDOWN Ptr,Message.lParam)
-					If OnChanging Then OnChanging(This,NMUD->iPos,NMUD->iDelta)
+					NMUD = Cast(NM_UPDOWN Ptr, Message.lParam)
+					If OnChanging Then OnChanging(This, NMUD->iPos, NMUD->iDelta)
+					If FAssociate Then FAssociate->Text = WStr(NMUD->iPos)
 				End If
 			End Select
 			Base.ProcessMessage(Message)
@@ -228,7 +254,7 @@ Namespace My.Sys.Forms
 			Dim As INITCOMMONCONTROLSEX ICC
 			ICC.dwSize = SizeOf(ICC)
 			ICC.dwICC  = ICC_UPDOWN_CLASS
-			Result = InitCommonControlsEx(@ICC)
+			Result = INITCOMMONCONTROLSEX(@ICC)
 			If Not Result Then InitCommonControls
 			AStyle(0)        = 0
 			AStyle(1)        = UDS_HORZ
@@ -260,7 +286,7 @@ Namespace My.Sys.Forms
 				.ChildProc         = @WndProc
 				WLet(FClassAncestor, UPDOWN_CLASS)
 				.ExStyle           = 0
-				Base.Style             = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(Abs_(FStyle)) Or AAlignment(Abs_(FAlignment)) Or AWrap(Abs_(FWrap)) Or AArrowKeys(Abs_(FArrowKeys)) Or AAThousand(Abs_(FThousands))
+				Base.Style             = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.Width             = GetSystemMetrics(SM_CXVSCROLL)

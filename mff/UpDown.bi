@@ -51,6 +51,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 		Declare Sub SetRange(AMin As Integer, AMax As Integer)
+		Declare Sub SetDark(Value As Boolean)
 	Public:
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
