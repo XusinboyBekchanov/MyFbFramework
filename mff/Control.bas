@@ -1658,7 +1658,7 @@ Namespace My.Sys.Forms
 					If Brush.Handle = hbrBkgnd Then Brush.Handle = 0
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
 					If OnDestroy Then OnDestroy(This)
-					Handle = 0
+					'Handle = 0
 				End Select
 			#endif
 		End Sub
