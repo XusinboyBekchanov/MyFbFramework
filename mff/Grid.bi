@@ -297,6 +297,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
+		OnColumnClick As Sub(ByRef Sender As Grid, ByVal ColIndex As Integer)
 		OnRowActivate As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
 		OnRowClick As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
 		OnRowDblClick As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)

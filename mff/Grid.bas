@@ -21,15 +21,15 @@ Namespace My.Sys.Forms
 	Private Sub GridCell.SelectItem
 		With *Cast(Grid Ptr, Parent)
 			.SelectedColumn = Column
-			.SelectedRow = Row
+			.SelectedRow = row
 		End With
 	End Sub
 	
 	Private Sub GridRow.SelectItem
 		#ifdef __USE_GTK__
 			If Parent Then
-				If gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)) Then
-					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)), @TreeIter)
+				If gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)) Then
+					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
 				End If
 			End If
 		#else
@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				lvi.state    = LVIS_SELECTED Or LVIS_FOCUSED
-				lvi.statemask = LVIF_STATE
+				lvi.stateMask = LVIF_STATE
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
@@ -711,7 +711,7 @@ Namespace My.Sys.Forms
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
-					g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					G_VALUE_INIT_(@bValue, G_TYPE_BOOLEAN)
 					g_value_set_boolean(@bValue, True)
 					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 					g_value_unset(@bValue)
@@ -723,14 +723,14 @@ Namespace My.Sys.Forms
 				If Index = 0 Then
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
-					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 2)
+					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUtf8("icon_name"), 2)
 				End If
 				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				gtk_tree_view_column_pack_start(PColumn->Column, rendertext, True)
-				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 3)
+				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUtf8("text"), Index + 3)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
-				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
-				If gtk_is_tree_view(Parent->Handle) Then
+				gtk_tree_view_column_set_title(PColumn->Column, ToUtf8(FCaption))
+				If GTK_IS_TREE_VIEW(Parent->Handle) Then
 					gtk_tree_view_append_column(GTK_TREE_VIEW(Parent->Handle), PColumn->Column)
 				Else
 					gtk_tree_view_append_column(GTK_TREE_VIEW(g_object_get_data(G_OBJECT(Parent->Handle), "@@@TreeView")), PColumn->Column)
@@ -742,8 +742,8 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 		#else
-			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvC.fmt       =  Format
+			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvc.fmt       =  Format
 			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
@@ -1149,8 +1149,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub Grid.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_MAP
 				Init
 			Case GDK_BUTTON_RELEASE
@@ -1167,7 +1167,7 @@ Namespace My.Sys.Forms
 				End If
 			Case GDK_KEY_PRESS
 				If SelectedRowIndex <> -1 Then
-					If OnRowKeyDown Then OnRowKeyDown(This, SelectedRowIndex, Message.event->Key.keyval, Message.event->Key.state)
+					If OnRowKeyDown Then OnRowKeyDown(This, SelectedRowIndex, Message.Event->key.keyval, Message.Event->key.state)
 				End If
 			End Select
 		#else
@@ -1188,8 +1188,8 @@ Namespace My.Sys.Forms
 				End Select
 			Case WM_LBUTTONDOWN
 				Dim lvhti As LVHITTESTINFO
-				lvhti.pt.x = Message.lParamLo
-				lvhti.pt.y = Message.lParamHi
+				lvhti.pt.X = Message.lParamLo
+				lvhti.pt.Y = Message.lParamHi
 				ListView_SubItemHitTest(Handle, @lvhti)
 				FCol = lvhti.iSubItem
 			Case WM_THEMECHANGED
@@ -1233,7 +1233,7 @@ Namespace My.Sys.Forms
 					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
 				End If
 			Case CM_NOTIFY
-				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, message.lparam)
+				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, Message.lParam)
 				Select Case lvp->hdr.code
 				Case NM_CLICK: FCol = lvp->iSubItem: Repaint: If OnRowClick Then OnRowClick(This, lvp->iItem)
 				Case NM_DBLCLK: If OnRowDblClick Then OnRowDblClick(This, lvp->iItem)
@@ -1243,6 +1243,8 @@ Namespace My.Sys.Forms
 				Case LVN_ITEMACTIVATE: If OnRowActivate Then OnRowActivate(This, lvp->iItem)
 				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
+				Case LVN_COLUMNCLICK
+					If OnColumnClick Then OnColumnClick(This, lvp->iSubItem)
 				Case LVN_ITEMCHANGING: 
 					Dim bCancel As Boolean
 					If OnSelectedRowChanging Then OnSelectedRowChanging(This, lvp->iItem, bCancel)
@@ -1261,13 +1263,13 @@ Namespace My.Sys.Forms
 						Message.Result = CDRF_DODEFAULT
 						Return
 					Case CDDS_POSTPAINT
-						Dim As ..RECT rc, rc_
-						Dim As Integer SelectedItem = ListView_GetNextItem(nmcd->hdr.hwndFrom, -1, LVNI_SELECTED)
+						Dim As ..Rect rc, rc_
+						Dim As Integer SelectedItem = ListView_GetNextItem(nmcd->hdr.hwndFrom, -1, LVNI_SELECTED), frmt
 						Dim zTxt As WString * 64
 						Dim lvi As LVITEM
 						For i As Integer = 0 To Columns.Count - 1
 							ListView_GetSubItemRect(nmcd->hdr.hwndFrom, SelectedItem, i, LVIR_LABEL, @rc)
-							lvi.Mask = LVIF_TEXT
+							lvi.mask = LVIF_TEXT
 							lvi.iItem = SelectedItem
 							lvi.iSubItem   = i
 							lvi.pszText    = @zTxt
@@ -1297,11 +1299,20 @@ Namespace My.Sys.Forms
 							If i = 0 Then
 								rc.Left += 2
 								rc.Top += 2
+								rc.Right -= 6
 							Else
 								rc.Left += 6
 								rc.Top += 2
+								rc.Right -= 6
 							End If
-							DrawText nmcd->hdc, @zTxt, Len(zTxt), @rc, DT_END_ELLIPSIS     'Draw text
+							If i <> 0 Then
+								Select Case Columns.Column(i)->Format 
+								Case GridColumnFormat.gcfLeft: frmt = DT_LEFT
+								Case GridColumnFormat.gcfCenter: frmt = DT_CENTER
+								Case GridColumnFormat.gcfRight: frmt = DT_RIGHT
+								End Select
+							End If
+							DrawText nmcd->hdc, @zTxt, Len(zTxt), @rc, DT_END_ELLIPSIS Or frmt 'Draw text
 						Next i
 						If g_darkModeEnabled Then
 							Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
@@ -1325,12 +1336,12 @@ Namespace My.Sys.Forms
 							Dim As ..Rect R
 							GetWindowRect(hHeader, @R)
 							Heights = R.Bottom - R.Top - 1
-							Dim rc As ..RECT
+							Dim rc As ..Rect
 							If ListView_GetItemCount(FHandle) = 0 Then
 								If FItemHeight = 0 Then
 									Dim As LVITEM lvi
-									lvi.Mask = LVIF_PARAM
-									lvi.LParam = 0
+									lvi.mask = LVIF_PARAM
+									lvi.lParam = 0
 									ListView_InsertItem(FHandle, @lvi)
 									ListView_GetItemRect FHandle, 0, @rc, LVIR_BOUNDS
 									ListView_DeleteItem(FHandle, 0)
@@ -1368,12 +1379,12 @@ Namespace My.Sys.Forms
 						Return
 					End Select
 				End If
-				Select Case message.Wparam
+				Select Case Message.wParam
 				Case LVN_ENDSCROLL
 				Case LVN_ENDSCROLL
 				End Select
 			Case CM_COMMAND
-				Select Case message.Wparam
+				Select Case Message.wParam
 				Case LVN_ITEMACTIVATE
 				Case LVN_KEYDOWN
 				Case LVN_ITEMCHANGING
@@ -1383,7 +1394,6 @@ Namespace My.Sys.Forms
 				Case LVN_DELETEALLITEMS
 				Case LVN_BEGINLABELEDIT
 				Case LVN_ENDLABELEDIT
-				Case LVN_COLUMNCLICK
 				Case LVN_BEGINDRAG
 				Case LVN_BEGINRDRAG
 				Case LVN_ODCACHEHINT
