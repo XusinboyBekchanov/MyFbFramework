@@ -833,6 +833,11 @@ Namespace My.Sys.Forms
 		Private Sub Form.SetDark(Value As Boolean)
 			Base.SetDark Value
 			RefreshTitleBarThemeColor(FHandle)
+			If FClient Then
+				SetWindowTheme(FClient, "DarkMode_Explorer", nullptr)
+				AllowDarkModeForWindow(FClient, g_darkModeEnabled)
+				SendMessageW(FClient, WM_THEMECHANGED, 0, 0)
+			End If
 			RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 		End Sub
 	#endif

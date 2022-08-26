@@ -1532,7 +1532,7 @@ Namespace My.Sys.Forms
 					For i As Integer = 0 To FPopupMenuItems.Count -1
 						mi = FPopupMenuItems.Items[i]
 						If mi->Command = Message.wParamLo Then
-							If mi->onClick Then mi->onClick(*mi)
+							If mi->OnClick Then mi->OnClick(*mi)
 							Exit For
 						End If
 					Next i
