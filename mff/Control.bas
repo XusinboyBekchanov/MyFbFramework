@@ -801,6 +801,7 @@ Namespace My.Sys.Forms
 						'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
 						gtk_widget_set_visible(widget, Value)
 						'gtk_widget_set_no_show_all(widget, Not Value)
+						If Value Then RequestAlign
 					End If
 				#elseif defined(__USE_WINAPI__)
 					If FHandle = 0 And CInt(Value) Then
@@ -1894,7 +1895,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Private Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
-				If GTK_IS_LAYOUT(widget) Then
+				If GTK_IS_LAYOUT(widget) OrElse GTK_IS_SCROLLED_WINDOW(widget) Then
 					Dim As Integer AllocatedWidth = allocation->Width, AllocatedHeight = allocation->height
 					'					#ifdef __USE_GTK3__
 					'						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
@@ -2083,6 +2084,9 @@ Namespace My.Sys.Forms
 							g_signal_connect(widget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
 						#endif
 					#endif
+					If GTK_IS_SCROLLED_WINDOW(widget) Then
+						g_signal_connect(widget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
+					End If
 				End If
 				#ifndef __USE_GTK4__
 					If eventboxwidget Then
@@ -2170,6 +2174,21 @@ Namespace My.Sys.Forms
 			RequestAlign
 		End Sub
 		
+		Sub Control.GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
+			MaxWidth = 0
+			MaxHeight = 0
+			For i As Integer = 0 To ControlCount - 1
+				With *Controls[i]
+					If .FVisible Then 
+						If MaxWidth < .Left + .Width + .ExtraMargins.Right Then MaxWidth = .Left + .Width + .ExtraMargins.Right
+						If MaxHeight < .Top + .Height + .ExtraMargins.Bottom Then MaxHeight = .Top + .Height + .ExtraMargins.Bottom
+					End If
+				End With
+			Next
+			MaxWidth += Margins.Right
+			MaxHeight += Margins.Bottom
+		End Sub
+		
 		Private Sub Control.RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			#ifdef __USE_GTK__
 				If GTK_IS_NOTEBOOK(widget) Then
@@ -2192,7 +2211,7 @@ Namespace My.Sys.Forms
 			Dim As Integer aLeft, aTop, aWidth, aHeight
 			If iClientWidth = -1 Then iClientWidth = ClientWidth
 			If iClientHeight = -1 Then iClientHeight = ClientHeight
-			If ClassName = "ScrollControl" Then iClientWidth = Width: iClientHeight = Height
+			'If ClassName = "ScrollControl" Then iClientWidth = Width: iClientHeight = Height
 			If iClientWidth <= 0 OrElse iClientHeight <= 0 Then Exit Sub
 			lLeft = Margins.Left
 			rLeft = iClientWidth - Margins.Right
@@ -2207,7 +2226,7 @@ Namespace My.Sys.Forms
 						'gtk_layout_set_size(gtk_layout(layoutwidget), rLeft, bTop)
 						'gtk_widget_set_size_request(layoutwidget, Max(0, rLeft), Max(0, tTop))
 					ElseIf fixedwidget Then
-						gtk_widget_set_size_request(fixedwidget, Max(0, rLeft), Max(0, tTop))
+						'gtk_widget_set_size_request(fixedwidget, Max(0, rLeft), Max(0, tTop))
 					End If
 					'If FMenu AndAlso FMenu->widget Then
 					'	tTop = gtk_widget_get_allocated_height(FMenu->widget)
@@ -2335,6 +2354,19 @@ Namespace My.Sys.Forms
 					End With
 				Next i
 			End If
+			If FAutoSize Then
+				Dim As Integer MaxWidth, MaxHeight
+				
+				GetMax MaxWidth, MaxHeight
+				#ifdef __USE_GTK__
+					If Height <> MaxHeight Then '+ AllocatedHeight - iClientHeight Then
+						Height = MaxHeight ' + AllocatedHeight - iClientHeight
+						If This.Parent Then This.Parent->RequestAlign
+					End If
+				#else
+					Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+				#endif
+			End If
 			#ifdef __USE_GTK__
 				If FClient Then
 					gtk_layout_move(GTK_LAYOUT(layoutwidget), FClient, lLeft, tTop)
@@ -2384,7 +2416,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.Update
 			#ifdef __USE_GTK__
-				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
+				If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then UpdateWindow FHandle
 			#endif

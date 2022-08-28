@@ -10,6 +10,7 @@ Namespace My.Sys.Forms
 	Private Function ContainerControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		FTempString = LCase(PropertyName)
 		Select Case FTempString
+		Case "autosize": Return @FAutoSize
 		Case "canvas": Return @Canvas
 		Case Else: Return Base.ReadProperty(PropertyName)
 		End Select
@@ -18,6 +19,7 @@ Namespace My.Sys.Forms
 	
 	Private Function ContainerControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Select Case LCase(PropertyName)
+		Case "autosize": AutoSize = QBoolean(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
 		End Select
 		Return True
@@ -84,6 +86,14 @@ Namespace My.Sys.Forms
 	
 	Property ContainerControl.Visible(Value As Boolean)
 		Base.Visible = Value
+	End Property
+	
+	Property ContainerControl.AutoSize As Boolean
+		Return FAutoSize
+	End Property
+	
+	Property ContainerControl.AutoSize(Value As Boolean)
+		FAutoSize = Value
 	End Property
 	
 	Private Operator ContainerControl.Cast As Control Ptr

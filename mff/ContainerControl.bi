@@ -12,13 +12,15 @@ Namespace My.Sys.Forms
 	Private Type ContainerControl Extends Control
 	Private:
 	Protected:
-		Declare Virtual Sub ProcessMessage(ByRef message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifdef __USE_GTK__
 			Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 		#endif
 		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Declare Virtual Property AutoSize As Boolean
+		Declare Virtual Property AutoSize(Value As Boolean)
 		Declare Virtual Property Visible As Boolean
 		Declare Virtual Property Visible(Value As Boolean)
 		Declare Operator Cast As Control Ptr

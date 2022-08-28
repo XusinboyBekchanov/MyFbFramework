@@ -83,7 +83,7 @@ Namespace My.Sys.Forms
 			gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
 	End Property
@@ -95,30 +95,30 @@ Namespace My.Sys.Forms
 	Private Sub Label.ChangeLabelStyle
 		If Style <> lsText Then
 			#ifdef __USE_WINAPI__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(abs_(FBorder)) Or AStyle(abs_(FStyle)) Or AWordWraps(abs_(FWordWraps)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
 		Else
 			#ifdef __USE_WINAPI__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(Abs_(FBorder)) Or AStyle(Abs_(FStyle)) Or AWordWraps(Abs_(FWordWraps)) Or AAlignment(Abs_(FAlignment))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(abs_(FBorder)) Or AStyle(abs_(FStyle)) Or AWordWraps(abs_(FWordWraps)) Or AAlignment(abs_(FAlignment)) Or ACenterImage(abs_(FCenterImage))
 			#elseif defined(__USE_GTK__)
 				Select Case FAlignment
 				Case AlignmentConstants.taLeft
 					#ifdef __USE_GTK3__
 						gtk_label_set_xalign(GTK_LABEL (widget), 0.0)
 					#else
-						gtk_misc_set_alignment(gtk_misc(widget), 0, 0)
+						gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)
 					#endif
 				Case AlignmentConstants.taCenter
 					#ifdef __USE_GTK3__
 						gtk_label_set_xalign(GTK_LABEL (widget), 0.5)
 					#else
-						gtk_misc_set_alignment(gtk_misc(widget), 0.5, 0)
+						gtk_misc_set_alignment(GTK_MISC(widget), 0.5, 0)
 					#endif
 				Case AlignmentConstants.taRight
 					#ifdef __USE_GTK3__
 						gtk_label_set_xalign(GTK_LABEL (widget), 1.0)
 					#else
-						gtk_misc_set_alignment(gtk_misc(widget), 1, 0)
+						gtk_misc_set_alignment(GTK_MISC(widget), 1, 0)
 					#endif
 				End Select
 			#endif
@@ -234,10 +234,10 @@ Namespace My.Sys.Forms
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc,Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(This)
@@ -271,12 +271,12 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK3__
 				gtk_label_set_xalign (GTK_LABEL (widget), 0.0)
 			#else
-				gtk_misc_set_alignment(gtk_misc(widget), 0, 0)
+				gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)
 			#endif
-			gtk_label_set_line_wrap(gtk_label(widget), True)
+			gtk_label_set_line_wrap(GTK_LABEL(widget), True)
 			#ifdef __USE_GTK3__
 				eventboxwidget = gtk_event_box_new()
-				gtk_container_add(gtk_container(eventboxwidget), widget)
+				gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			#endif
 			This.RegisterClass "Label", @This
 		#elseif defined(__USE_WINAPI__)
@@ -303,18 +303,18 @@ Namespace My.Sys.Forms
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
 		FWordWraps       = True
-		'FAlignment = 2
-		FTabIndex          = -1
+		FAlignment       = 0
+		FTabIndex        = -1
 		With This
 			.Child       = @This
 			#ifdef __USE_WINAPI__
 				.RegisterClass "Label", "Static"
-				.ChildProc   = @WndProc
-				Base.ExStyle     = 0
+				.ChildProc        = @WndProc
+				Base.ExStyle      = 0
 				ChangeLabelStyle
-				.BackColor       = GetSysColor(COLOR_BTNFACE)
+				.BackColor        = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
-				.DoubleBuffered = True
+				.DoubleBuffered   = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, "Static")
 			#elseif defined(__USE_JNI__)

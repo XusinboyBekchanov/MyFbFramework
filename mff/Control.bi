@@ -100,6 +100,7 @@ Namespace My.Sys.Forms
 			FAnchoredParentWidth As Integer
 			FAnchoredParentHeight As Integer
 		Protected:
+			FAutoSize As Boolean
 			FMouseInClient As Boolean
 			FOwner             As Control Ptr
 			FDisposed As Boolean
@@ -211,8 +212,9 @@ Namespace My.Sys.Forms
 				Declare Property ParentHandle(Value As HWND)
 				ToolTipHandle       As HWND
 			#endif
-			Declare Virtual Sub ProcessMessage(ByRef message As Message)
-			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
+			Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
+			Declare Virtual Sub ProcessMessage(ByRef message As message)
+			Declare Virtual Sub ProcessMessageAfter(ByRef message As message)
 		Public:
 			'Canvas is all about drawing in a container (Windows, Linux).
 			Canvas        As My.Sys.Drawing.Canvas

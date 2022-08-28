@@ -1107,8 +1107,8 @@ Namespace My.Sys.Forms
 	Private Property TextBox.Modified(Value As Boolean)
 		FModified = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				gtk_text_buffer_set_modified(gtk_text_view_get_buffer(gtk_text_view(widget)), FModified)
+			If GTK_IS_TEXT_VIEW(widget) Then
+				gtk_text_buffer_set_modified(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), FModified)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
@@ -1138,15 +1138,15 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.ProcessMessage(ByRef message As Message)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = message.Event
+			Select Case message.Event->type
 			Case GDK_KEY_PRESS
-				If FWantReturn = False AndAlso Asc(*e->Key.string) = 13 Then
-					Message.Result = True 
+				If FWantReturn = False AndAlso Asc(*e->key.string) = 13 Then
+					message.Result = True 
 				End If
 			End Select
 		#elseif defined(__USE_WINAPI__)
-			'?GetMessageName(message.msg)
+			'?GetMessageName(message.Msg)
 			Select Case message.Msg
 			Case WM_PAINT, WM_MOUSELEAVE, WM_MOUSEMOVE
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso (CBool(message.Msg <> WM_MOUSEMOVE) OrElse (CBool(message.Msg = WM_MOUSEMOVE) AndAlso FMouseInClient)) Then
@@ -1157,13 +1157,13 @@ Namespace My.Sys.Forms
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						Repaint
 					End If
-					Dim As Any Ptr cp = GetClassProc(Message.hWnd)
+					Dim As Any Ptr cp = GetClassProc(message.hWnd)
 					If cp <> 0 Then
-						Message.Result = CallWindowProc(cp, Message.hWnd, Message.Msg, Message.wParam, Message.lParam)
+						message.Result = CallWindowProc(cp, message.hWnd, message.Msg, message.wParam, message.lParam)
 					End If
 					Dim As HDC Dc
 					Dc = GetWindowDC(Handle)
-					Dim As RECT r = Type( 0 )
+					Dim As Rect r = Type( 0 )
 					GetWindowRect(message.hWnd, @r)
 					r.Right -= r.Left + 1
 					r.Bottom -= r.Top + 1
@@ -1172,10 +1172,10 @@ Namespace My.Sys.Forms
 					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkBkColor)
 					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
 					Dim As HPEN PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
-					Rectangle Dc, R.Left, r.Top, r.Right, r.Bottom
+					Rectangle Dc, r.Left, r.Top, r.Right, r.Bottom
 					SelectObject(Dc, PrevPen)
 					SelectObject(Dc, PrevBrush)
-					ReleaseDc(Handle, Dc)
+					ReleaseDC(Handle, Dc)
 					DeleteObject NewPen
 					Message.Result = 0
 					Return
@@ -1286,10 +1286,10 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.PasteFromClipboard
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_paste_clipboard(gtk_editable(widget))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_paste_clipboard(GTK_EDITABLE(widget))
 			Else
-				gtk_text_buffer_paste_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), 0, True)
+				gtk_text_buffer_paste_clipboard(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), 0, True)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(WM_PASTE, 0, 0)

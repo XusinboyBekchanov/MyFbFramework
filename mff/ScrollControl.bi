@@ -21,7 +21,6 @@ Namespace My.Sys.Forms
 		Dim As Integer FHorizontalArrowChangeSize
 		Dim As Integer FVerticalArrowChangeSize
 		Declare Sub SetScrollsInfo
-		Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Declare Function ReadProperty(PropertyName As String) As Any Ptr

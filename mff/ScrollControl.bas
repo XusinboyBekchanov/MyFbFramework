@@ -79,17 +79,6 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub ScrollControl.GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
-		MaxWidth = 0
-		MaxHeight = 0
-		For i As Integer = 0 To ControlCount - 1
-			If Controls[i]->Visible Then 
-				If MaxWidth < Controls[i]->Left + Controls[i]->Width Then MaxWidth = Controls[i]->Left + Controls[i]->Width
-				If MaxHeight < Controls[i]->Top + Controls[i]->Height Then MaxHeight = Controls[i]->Top + Controls[i]->Height
-			End If
-		Next
-	End Sub
-	
 	Private Sub ScrollControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Static bShifted As Boolean
