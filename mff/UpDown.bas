@@ -190,7 +190,7 @@ Namespace My.Sys.Forms
 					.FUDAccel(0).nInc = .FIncrement
 					SendMessage(.Handle, UDM_SETACCEL, 1, CInt(@.FUDAccel(0)))
 					.Position = .FPosition
-					If UCase(.FAssociate->ClassName) = "TEXTBOX" Then
+					If .FAssociate AndAlso UCase(.FAssociate->ClassName) = "TEXTBOX" Then
 						SendMessage(.Handle, UDM_SETBUDDY, CInt(.FAssociate->Handle), 0)
 						.FAssociate->Text = WStr(.Position)
 					Else
