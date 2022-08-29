@@ -16,10 +16,11 @@
 Namespace My.Sys.Forms
 	Private Function ToolButton.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
+		Case "buttonindex": FButtonIndex = ButtonIndex: Return @FButtonIndex
 		Case "caption": Return FCaption
 		Case "checked": Return @FChecked
 		Case "commandid": Return @FCommandID
-		Case "dropdownmenu": Return @DropdownMenu
+		Case "dropdownmenu": Return @DropDownMenu
 		Case "enabled": Return @FEnabled
 		Case "hint": Return FHint
 		Case "imageindex": Return @FImageIndex
@@ -48,6 +49,7 @@ Namespace My.Sys.Forms
 			End Select
 		Else
 			Select Case LCase(PropertyName)
+			Case "buttonindex": This.ButtonIndex = QInteger(Value)
 			Case "caption": This.Caption = QWString(Value)
 			Case "checked": This.Checked = QBoolean(Value)
 			Case "commandid": This.CommandID = QInteger(Value)
@@ -128,6 +130,24 @@ Namespace My.Sys.Forms
 		Next j
 	End Sub
 	
+	Private Property ToolButton.ButtonIndex As Integer
+		If Ctrl Then
+			Return Cast(ToolBar Ptr, Ctrl)->Buttons.IndexOf(@This)
+		Else
+			Return -1
+		End If
+	End Property
+	
+	Private Sub ToolButtons.ChangeIndex(Btn As ToolButton Ptr, Index As Integer)
+		FButtons.ChangeIndex Btn, Index
+	End Sub
+	
+	Private Property ToolButton.ButtonIndex(Value As Integer)
+		If Ctrl Then
+			Cast(ToolBar Ptr, Ctrl)->Buttons.ChangeIndex @This, Value
+		End If
+	End Property
+		
 	Private Function ToolButton.ToString ByRef As WString
 		Return This.Name
 	End Function
@@ -141,7 +161,7 @@ Namespace My.Sys.Forms
 		If Value <> *FCaption Then
 			WLet(FCaption, Value)
 			#ifdef __USE_GTK__
-				gtk_tool_button_set_label(gtk_tool_button(widget), ToUTF8(Value))
+				gtk_tool_button_set_label(GTK_TOOL_BUTTON(Widget), ToUtf8(Value))
 			#else
 				Dim As TBBUTTON TB
 				If Ctrl Then
@@ -210,7 +230,7 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					#ifndef __USE_GTK__
-						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
+						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MAKELONG(FImageIndex, 0))
 					#endif
 				End With
 			End If
@@ -246,7 +266,7 @@ Namespace My.Sys.Forms
 					info.dwMask = TBIF_STYLE
 					info.idCommand = FCommandID
 					info.fsStyle = Value
-					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
+					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LPARAM, @info))
 				End If
 			#endif
 			'If Ctrl AndAlso Ctrl->Handle Then QControl(Ctrl).RecreateWnd
@@ -260,7 +280,7 @@ Namespace My.Sys.Forms
 				info.cbSize = SizeOf(info)
 				info.dwMask = TBIF_STATE
 				info.idCommand = FCommandID
-				SendMessage(Ctrl->Handle, TB_GETBUTTONINFO, FCommandID, Cast(LParam, @info))
+				SendMessage(Ctrl->Handle, TB_GETBUTTONINFO, FCommandID, Cast(LPARAM, @info))
 				FState = info.fsState
 			End If
 		#endif
@@ -277,7 +297,7 @@ Namespace My.Sys.Forms
 					info.dwMask = TBIF_STATE
 					info.idCommand = FCommandID
 					info.fsState = Value
-					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
+					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LPARAM, @info))
 				End If
 			#endif
 			'If Ctrl Then QControl(Ctrl).RecreateWnd
@@ -311,7 +331,7 @@ Namespace My.Sys.Forms
 				With QControl(Ctrl)
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
-						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
+						SendMessage(.Handle, TB_GETITEMRECT, i, CInt(@R))
 						FButtonLeft = R.Left
 					End If
 				End With
@@ -331,7 +351,7 @@ Namespace My.Sys.Forms
 					Dim As ..Rect R
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
-						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
+						SendMessage(.Handle, TB_GETITEMRECT, i, CInt(@R))
 						FButtonTop = R.Top
 					End If
 				#endif
@@ -357,7 +377,7 @@ Namespace My.Sys.Forms
 					Dim As ..Rect R
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
-						SendMessage(.Handle, TB_GETITEMRECT, I, CInt(@R))
+						SendMessage(.Handle, TB_GETITEMRECT, i, CInt(@R))
 						FButtonWidth = R.Right - R.Left
 					End If
 				End With
@@ -384,7 +404,7 @@ Namespace My.Sys.Forms
 				With QControl(Ctrl)
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
-						SendMessage(.Handle, TB_GETITEMRECT,I,CInt(@R))
+						SendMessage(.Handle, TB_GETITEMRECT,i,CInt(@R))
 						FButtonHeight = R.Bottom - R.Top
 					End If
 				End With
@@ -406,7 +426,7 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					#ifdef __USE_GTK__
-						gtk_widget_set_visible(widget, FVisible)
+						gtk_widget_set_visible(Widget, FVisible)
 '						If FVisible Then
 '							gtk_widget_show(Widget)
 '						Else
@@ -427,7 +447,7 @@ Namespace My.Sys.Forms
 '							info.fsState = info.fsState And Not tstHidden
 '						End If
 '						SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LParam, @info))
-						SendMessage(.Handle, TB_HIDEBUTTON, FCommandID, MakeLong(Not FVisible, 0))
+						SendMessage(.Handle, TB_HIDEBUTTON, FCommandID, MAKELONG(Not FVisible, 0))
 					#endif
 				End With
 			End If
@@ -444,10 +464,10 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				With QControl(Ctrl)
 					#ifdef __USE_GTK__
-						gtk_widget_set_sensitive(widget, FEnabled)
+						gtk_widget_set_sensitive(Widget, FEnabled)
 					#else
-						SendMessage(.Handle, TB_ENABLEBUTTON, FCommandID, MakeLong(FEnabled, 0))
-						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex,0))
+						SendMessage(.Handle, TB_ENABLEBUTTON, FCommandID, MAKELONG(FEnabled, 0))
+						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MAKELONG(FImageIndex,0))
 					#endif
 				End With
 			End If
@@ -458,8 +478,8 @@ Namespace My.Sys.Forms
 		If Ctrl Then
 			With QControl(Ctrl)
 				#ifdef __USE_GTK__
-					If gtk_is_toggle_tool_button(widget) Then
-						FChecked = gtk_toggle_tool_button_get_active(gtk_toggle_tool_button(widget))
+					If GTK_IS_TOGGLE_TOOL_BUTTON(Widget) Then
+						FChecked = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(Widget))
 					Else
 						FChecked = False
 					End If
@@ -477,12 +497,12 @@ Namespace My.Sys.Forms
 		If Ctrl Then
 			With QControl(Ctrl)
 				#ifdef __USE_GTK__
-					If gtk_is_toggle_tool_button(widget) Then
-						gtk_toggle_tool_button_set_active(gtk_toggle_tool_button(widget), Value)
+					If GTK_IS_TOGGLE_TOOL_BUTTON(Widget) Then
+						gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(Widget), Value)
 						If OnClick Then OnClick(This)
 					End If
 				#else
-					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MakeLong(FChecked, 0))
+					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MAKELONG(FChecked, 0))
 					If OnClick Then OnClick(This)
 				#endif
 			End With
@@ -502,7 +522,7 @@ Namespace My.Sys.Forms
 		FCaption = 0 'CAllocate_(0)
 		WLet(FClassName, "ToolButton")
 		#ifdef __USE_GTK__
-			Widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8("")))
+			Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8("")))
 		#endif
 		FStyle      = tbsButton
 		FEnabled    = 1
@@ -518,16 +538,16 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				#ifndef __FB_WIN32__
-					If gtk_is_widget(widget) Then gtk_widget_destroy(Widget)
+					If GTK_IS_WIDGET(Widget) Then gtk_widget_destroy(Widget)
 				#endif
 			#endif
 		#else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
 		#endif
-		WDeallocate FHint
-		WDeallocate FCaption
-		WDeallocate FImageKey
-		WDeallocate FName
+		WDeAllocate FHint
+		WDeAllocate FCaption
+		WDeAllocate FImageKey
+		WDeAllocate FName
 	End Destructor
 	
 	Private Property ToolButtons.Count As Integer

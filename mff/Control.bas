@@ -2763,4 +2763,8 @@ End Namespace
 	Sub ControlFreeWnd Alias "ControlFreeWnd"(Ctrl As My.Sys.Forms.Control Ptr) Export
 		Ctrl->FreeWnd()
 	End Sub
+	
+	Sub ControlRepaint Alias "ControlRepaint" (Ctrl As My.Sys.Forms.Control Ptr) Export
+		Ctrl->Repaint()
+	End Sub
 #endif

@@ -22,6 +22,7 @@ Namespace My.Sys.Forms
 		Case "icon": Return @Icon
 		Case "index": Return @Index
 		Case "name": Return FName
+		Case "panelindex": FPanelIndex = PanelIndex: Return @FPanelIndex
 		Case "parent": Return StatusBarControl
 		Case "realwidth": FRealWidth = RealWidth: Return @FRealWidth
 		Case "width": Return @FWidth
@@ -37,6 +38,7 @@ Namespace My.Sys.Forms
 		Case "caption": This.Caption = QWString(Value)
 		Case "icon": This.Icon = QWString(Value)
 		Case "name": This.Name = QWString(Value)
+		Case "panelindex": This.PanelIndex = QInteger(Value)
 		Case "parent": This.Parent = Value
 		Case "width": This.Width = QInteger(Value)
 		Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -60,6 +62,37 @@ Namespace My.Sys.Forms
 	
 	Private Property StatusPanel.Name(ByRef Value As WString)
 		WLet(FName, Value)
+	End Property
+	
+	Private Property StatusPanel.PanelIndex As Integer
+		If StatusBarControl Then
+			Return Cast(StatusBar Ptr, StatusBarControl)->IndexOf(@This)
+		Else
+			Return -1
+		End If
+	End Property
+	
+	Private Sub StatusBar.ChangePanelIndex(ByRef stPanel As StatusPanel Ptr, Index As Integer)
+		Dim OldIndex As Integer = This.IndexOf(stPanel)
+		If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= Count - 1 Then
+			If Index < OldIndex Then
+				For i As Integer = OldIndex - 1 To Index Step -1
+					Panels[i + 1] = Panels[i]
+				Next i
+				Panels[Index] = stPanel
+			Else
+				For i As Integer = OldIndex + 1 To Index
+					Panels[i - 1] = Panels[i]
+				Next i
+				Panels[Index] = stPanel
+			End If
+		End If
+	End Sub
+	
+	Private Property StatusPanel.PanelIndex(Value As Integer)
+		If StatusBarControl Then
+			Cast(StatusBar Ptr, StatusBarControl)->ChangePanelIndex @This, Value
+		End If
 	End Property
 	
 	Private Property StatusPanel.Parent As Control Ptr
@@ -89,7 +122,7 @@ Namespace My.Sys.Forms
 			If StatusBarControl->Handle Then
 				Dim As ..Rect rct
 				Dim As Integer Index = Cast(StatusBar Ptr, StatusBarControl)->IndexOf(@This)
-				SendMessage(StatusBarControl->Handle, SB_GETRECT, Index, Cast(LParam, @rct))
+				SendMessage(StatusBarControl->Handle, SB_GETRECT, Index, Cast(LPARAM, @rct))
 				FRealWidth = rct.Right - rct.Left
 			End If
 		#endif

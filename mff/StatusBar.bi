@@ -42,6 +42,7 @@ Namespace My.Sys.Forms
 	Private:
 		FAlignment  As Integer
 		FCaption    As WString Ptr
+		FPanelIndex As Integer
 		FName       As WString Ptr
 		FBevel      As BevelStyle
 		FWidth      As Integer
@@ -65,6 +66,8 @@ Namespace My.Sys.Forms
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property Name ByRef As WString
 		Declare Property Name(ByRef Value As WString)
+		Declare Property PanelIndex As Integer
+		Declare Property PanelIndex(Value As Integer)
 		Declare Property Parent As Control Ptr
 		Declare Property Parent(Value As Control Ptr)
 		Declare Property Width As Integer
@@ -110,6 +113,7 @@ Namespace My.Sys.Forms
 		Declare Sub Add(stPanel As StatusPanel Ptr)
 		Declare Sub Remove(Index As Integer)
 		Declare Sub Clear
+		Declare Sub ChangePanelIndex(ByRef stPanel As StatusPanel Ptr, Index As Integer)
 		Declare Sub UpdatePanels
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor

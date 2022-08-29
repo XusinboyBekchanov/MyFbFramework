@@ -62,7 +62,24 @@ Private Sub List.Exchange(Index1 As Integer, Index2 As Integer)
 	End If
 End Sub
 
-Private Sub List.remove(Index As Integer)
+Private Sub List.ChangeIndex(FItem As Any Ptr, Index As Integer)
+	Dim OldIndex As Integer = This.IndexOf(FItem)
+	If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= Count - 1 Then
+		If Index < OldIndex Then
+			For i As Integer = OldIndex - 1 To Index Step -1
+				Items[i + 1] = Items[i]
+			Next i
+			Items[Index] = FItem
+		Else
+			For i As Integer = OldIndex + 1 To Index
+				Items[i - 1] = Items[i]
+			Next i
+			Items[Index] = FItem
+		End If
+	End If
+End Sub
+
+Private Sub List.Remove(Index As Integer)
 	'David Change
 	Dim As Integer i
 	If Count>0 AndAlso Index >= 0 AndAlso Index <= Count -1 Then

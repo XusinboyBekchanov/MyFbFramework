@@ -213,8 +213,8 @@ Namespace My.Sys.Forms
 				ToolTipHandle       As HWND
 			#endif
 			Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
-			Declare Virtual Sub ProcessMessage(ByRef message As message)
-			Declare Virtual Sub ProcessMessageAfter(ByRef message As message)
+			Declare Virtual Sub ProcessMessage(ByRef message As Message)
+			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 		Public:
 			'Canvas is all about drawing in a container (Windows, Linux).
 			Canvas        As My.Sys.Drawing.Canvas

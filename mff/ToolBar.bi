@@ -60,6 +60,7 @@ Namespace My.Sys.Forms
 		FEnabled      As Boolean
 		FChecked      As Boolean
 		FCommandID    As Integer
+		FButtonIndex  As Integer
 		FButtonLeft   As Integer
 		FButtonTop    As Integer
 		FButtonWidth  As Integer
@@ -76,6 +77,8 @@ Namespace My.Sys.Forms
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		Declare Virtual Function ToString ByRef As WString
+		Declare Property ButtonIndex As Integer
+		Declare Property ButtonIndex(Value As Integer)
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property Name ByRef As WString
@@ -133,6 +136,7 @@ Namespace My.Sys.Forms
 		Declare Function IndexOf(ByRef FButton As ToolButton Ptr) As Integer
 		Declare Function IndexOf(ByRef Key As WString) As Integer
 		Declare Sub Clear
+		Declare Sub ChangeIndex(FButton As ToolButton Ptr, Index As Integer)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
@@ -178,6 +182,7 @@ Namespace My.Sys.Forms
 		HotImagesList   As ImageList Ptr
 		DisabledImagesList As ImageList Ptr
 		'Declare Function Buttons(Index As Integer) As ToolButton
+		Declare Sub ChangeButtonIndex(Btn As ToolButton Ptr, Index As Integer)
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property AutoSize As Boolean
@@ -203,7 +208,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnButtonClick As Sub(ByRef Sender As ToolBar,ByRef Button As ToolButton)
+		OnButtonClick As Sub(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 	End Type
 	
 	#ifdef __USE_GTK__
