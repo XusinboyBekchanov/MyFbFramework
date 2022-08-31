@@ -751,9 +751,9 @@ Namespace My.Sys.Forms
 			ElseIf Owner AndAlso Owner->Handle Then
 				EnableMenuItem(Owner->Handle, MenuIndex, MF_BYPOSITION Or FEnable(abs_(FEnabled)))
 			End If
-			'		If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
-			'			DrawMenuBar(Owner->ParentWindow->Handle)
-			'		End If
+			If ParentMenuItem = 0 AndAlso Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
+				DrawMenuBar(Owner->ParentWindow->Handle)
+			End If
 		#endif
 	End Property
 	
@@ -1136,7 +1136,7 @@ Namespace My.Sys.Forms
 		#endif
 		Caption = wCaption
 		FImageIndex = -1
-		onClick = eClick
+		OnClick = eClick
 		WLet(FClassName, "MenuItem")
 		WLet(FImageKey, wImageKey)
 	End Constructor
@@ -1154,7 +1154,7 @@ Namespace My.Sys.Forms
 		WDeAllocate FImageKey
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
-				If gtk_is_widget(Widget) Then gtk_widget_destroy(Widget)
+				If GTK_IS_WIDGET(Widget) Then gtk_widget_destroy(Widget)
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -1749,10 +1749,10 @@ Namespace My.Sys.Forms
 						hints.width_inc = 1
 						hints.height_inc = 1
 						#ifndef __USE_GTK4__
-							gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+							gtk_window_set_geometry_hints(GTK_WINDOW(gtk_widget_get_toplevel(widget)), widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
 							For i As Integer = 0 To Count - 1
 								If Item(i)->SubMenu Then
-									gtk_window_set_geometry_hints(gtk_window(gtk_widget_get_toplevel(widget)), Item(i)->SubMenu->Widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
+									gtk_window_set_geometry_hints(GTK_WINDOW(gtk_widget_get_toplevel(widget)), Item(i)->SubMenu->widget, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_BASE_SIZE)
 								End If
 							Next i
 						#endif
@@ -1779,7 +1779,7 @@ Namespace My.Sys.Forms
 						gtk_window_add_accel_group (GTK_WINDOW (FParentWindow->widget), FParentWindow->Accelerator)
 					End If
 					If mi->accelerator_key <> 0 Then
-						gtk_widget_add_accelerator(mi->widget, "activate", FParentWindow->Accelerator, mi->accelerator_key, mi->accelerator_mods, GTK_ACCEL_VISIBLE)
+						gtk_widget_add_accelerator(mi->Widget, "activate", FParentWindow->Accelerator, mi->accelerator_key, mi->accelerator_mods, GTK_ACCEL_VISIBLE)
 					End If
 				Next i
 			#elseif defined(__USE_WINAPI__)
@@ -1816,7 +1816,7 @@ Namespace My.Sys.Forms
 	Private Sub MainMenu.ProcessMessages(ByRef message As Message)
 		Dim As PMenuItem I
 		#ifdef __USE_WINAPI__
-			I = Find(LoWord(message.wparam))
+			I = Find(LoWord(message.wParam))
 		#endif
 		If I Then I->Click
 	End Sub
@@ -1834,12 +1834,12 @@ Namespace My.Sys.Forms
 		WLet(FClassName, "MainMenu")
 		FIncSubItems = 1
 		#ifdef __USE_WINAPI__
-			FColor       = GetSysColor(color_menu)
+			FColor       = GetSysColor(COLOR_MENU)
 			FInfo.cbSize = SizeOf(FInfo)
 			If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
 			FInfo.hbrBack    = CreateSolidBrush(FColor)
-			FInfo.dwmenudata = Cast(dword_Ptr,Cast(Any Ptr,@This))
-			FInfo.fMask      = MIM_BACKGROUND Or IIf(FIncSubItems,MIM_APPLYTOSUBMENUS,0) Or mim_menudata
+			FInfo.dwMenuData = Cast(DWORD_PTR,Cast(Any Ptr,@This))
+			FInfo.fMask      = MIM_BACKGROUND Or IIf(FIncSubItems,MIM_APPLYTOSUBMENUS,0) Or MIM_MENUDATA
 			SetMenuInfo(This.FHandle,@FInfo)
 		#endif
 	End Constructor
@@ -1875,7 +1875,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property PopupMenu.ParentMenuItem(value As MenuItem Ptr)
-		FParentMenuItem = Value
+		FParentMenuItem = value
 	End Property
 	
 	Private Property PopupMenu.ParentWindow As Component Ptr
@@ -1924,9 +1924,9 @@ Namespace My.Sys.Forms
 			'gtk_menu_set_screen(gtk_menu(widget), gdk_screen_get_default())
 		#elseif defined(__USE_WINAPI__)
 			This.FHandle = CreatePopupMenu
-			FInfo.cbsize     = SizeOf(FInfo)
-			FInfo.fmask      = MIM_MENUDATA
-			FInfo.dwmenudata = Cast(dword_Ptr,Cast(Any Ptr,@This))
+			FInfo.cbSize     = SizeOf(FInfo)
+			FInfo.fMask      = MIM_MENUDATA
+			FInfo.dwMenuData = Cast(DWORD_PTR,Cast(Any Ptr,@This))
 			SetMenuInfo(This.FHandle,@FInfo)
 		#endif
 		WLet(FClassName, "PopupMenu")
@@ -1965,15 +1965,15 @@ End Namespace
 		Return PMenu->Find(FCommand)
 	End Function
 	
-	Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
+	Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenuItem->Add(sCaption, sImageKey, sKey, eClick, False, Index)
 	End Function
 	
-	Function MenuAdd Alias "MenuAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
+	Function MenuAdd Alias "MenuAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenuItem->Add(sCaption, sImageKey, sKey, eClick, False, Index)
 	End Function
 	
-	Function MenuItemAddWithBitmapType Alias "MenuItemAddWithBitmapType"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType Ptr, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
+	Function MenuItemAddWithBitmapType Alias "MenuItemAddWithBitmapType"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType Ptr, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenuItem->Add(sCaption, *iImage, sKey, eClick, False, Index)
 	End Function
 	
