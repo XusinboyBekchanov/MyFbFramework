@@ -378,7 +378,7 @@ Namespace My.Sys.Forms
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_GETITEMRECT, i, CInt(@R))
-						FButtonWidth = R.Right - R.Left
+						FButtonWidth = UnScaleX(R.Right - R.Left)
 					End If
 				End With
 			End If
@@ -405,7 +405,7 @@ Namespace My.Sys.Forms
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_GETITEMRECT,i,CInt(@R))
-						FButtonHeight = R.Bottom - R.Top
+						FButtonHeight = UnScaleY(R.Bottom - R.Top)
 					End If
 				End With
 			End If
@@ -837,7 +837,7 @@ Namespace My.Sys.Forms
 	Private Property ToolBar.BitmapWidth(Value As Integer)
 		FBitmapWidth = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MakeLong(FBitmapWidth, FBitmapHeight))
+			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
 		#endif
 	End Property
 	
@@ -848,7 +848,7 @@ Namespace My.Sys.Forms
 	Private Property ToolBar.BitmapHeight(Value As Integer)
 		FBitmapHeight = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MakeLong(FBitmapWidth, FBitmapHeight))
+			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
 		#endif
 	End Property
 	
@@ -856,7 +856,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Handle Then
 				Var Size = Perform(TB_GETBUTTONSIZE, 0, 0)
-				FButtonWidth = LoWord(Size)
+				FButtonWidth = UnScaleX(LoWord(Size))
 			End If
 		#endif
 		Return FButtonWidth
@@ -865,7 +865,7 @@ Namespace My.Sys.Forms
 	Private Property ToolBar.ButtonWidth(Value As Integer)
 		FButtonWidth = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
+			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(FButtonWidth,FButtonHeight))
 		#endif
 	End Property
 	
@@ -873,7 +873,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Handle Then
 				Var Size = Perform(TB_GETBUTTONSIZE, 0, 0)
-				FButtonHeight = HiWord(Size)
+				FButtonHeight = UnScaleY(HiWord(Size))
 			End If
 		#endif
 		Return FButtonHeight
@@ -882,7 +882,7 @@ Namespace My.Sys.Forms
 	Private Property ToolBar.ButtonHeight(Value As Integer)
 		FButtonHeight = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(TB_SETBUTTONSIZE,0,MakeLong(FButtonWidth,FButtonHeight))
+			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(FButtonWidth,FButtonHeight))
 		#endif
 	End Property
 	
