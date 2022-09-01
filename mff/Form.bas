@@ -1132,7 +1132,7 @@ Namespace My.Sys.Forms
 					mi = FMenuItems.Items[i]
 					With *mi
 						If .Command = msg.wParamLo Then
-							If .onClick Then .onClick(*mi)
+							If .OnClick Then .OnClick(*mi)
 							msg.Result = -2
 							msg.Msg = 0
 							Exit For
@@ -1235,13 +1235,15 @@ Namespace My.Sys.Forms
 		#endif
 		Base.ProcessMessage(msg)
 		#ifdef __USE_WINAPI__
-			Select Case FFormStyle
-			Case fsMDIChild
-				msg.Result = -3
-			Case fsMDIForm
-				msg.hWnd = FClient
-				msg.Result = -4
-			End Select
+			If msg.Result = 0 Then
+				Select Case FFormStyle
+				Case fsMDIChild
+					msg.Result = -3
+				Case fsMDIForm
+					msg.hWnd = FClient
+					msg.Result = -4
+				End Select
+			End If
 		#endif
 	End Sub
 	
