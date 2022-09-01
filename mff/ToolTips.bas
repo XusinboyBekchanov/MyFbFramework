@@ -68,8 +68,8 @@ Namespace My.Sys.Forms
 	Private Sub ToolTips.Show
 		If FText = "" Then FText = " "
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(*FText))
-			gtk_window_move(GTK_WINDOW(winTooltip), X, Y)
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(FText))
+			gtk_window_move(GTK_WINDOW(winTooltip), FLeft, FTop)
 			gtk_window_resize(GTK_WINDOW(winTooltip), 100, 25)
 			gtk_widget_show_all(winTooltip)
 		#else
