@@ -15,13 +15,15 @@ Namespace My.Sys.Forms
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Sub CreateWnd
 		#else
-			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
+			Declare Static Function ActivateLink(Label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As GtkWidget Ptr winTooltip
 			lblTooltip As GtkWidget Ptr
 		#endif
 	Public:
+		#ifndef __USE_GTK__
+			Declare Sub CreateWnd
+		#endif
 		'Displays the ToolTip to the user (Windows only).
 		Declare Virtual Sub Show
 		'Conceals the ToolTip from the user (Windows only).

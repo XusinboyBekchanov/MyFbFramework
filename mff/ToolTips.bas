@@ -105,7 +105,7 @@ Namespace My.Sys.Forms
 			Var Result = SendMessage(FHandle, TTM_GETBUBBLESIZE, 0, Cast(LPARAM, @ti))
 			
 			Dim As ..Rect rc
-			.ClientToScreen(Parent->Handle, @rc)
+			.ClientToScreen(Parent->Handle, Cast(..Point Ptr, @rc))
 			SendMessage(FHandle, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + FLeft, rc.Top + FTop))
 		#endif
 	End Sub
