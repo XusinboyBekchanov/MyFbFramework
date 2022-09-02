@@ -125,9 +125,11 @@ End Sub
 Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
 	This.Resize(m_Length + NumBytes)
 	If m_Data = 0 Then Return False
-	'#ifdef __USE_WINAPI__
-	Fb_MemCopy(m_Data + m_BufferLen, addrMemory, NumBytes)
-	'#endif
+	#ifdef __USE_GTK__
+		Fb_MemCopy(m_Data + m_BufferLen, addrMemory, NumBytes)
+	#else
+		memcpy(m_Data + m_BufferLen, addrMemory, NumBytes)
+	#endif
 	m_BufferLen += NumBytes
 	Return True
 End Function
