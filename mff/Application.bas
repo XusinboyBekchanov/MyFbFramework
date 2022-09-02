@@ -21,7 +21,7 @@ Namespace My
 	Private Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "mainform": Return @FMainForm
-		Case "version": WLet(FTemp, WStr(Version)): Return FTemp
+		Case "version": WLet(FTemp, WStr(VERSION)): Return FTemp
 		Case "title": Title: Return FTitle
 		Case "filename": Return @This.FileName
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -279,6 +279,7 @@ Namespace My
 				TranslateAndDispatch = True
 				If FActiveForm <> 0 Then
 					If FActiveForm->Accelerator Then TranslateAndDispatch = TranslateAccelerator(FActiveForm->Handle, FActiveForm->Accelerator, @msg) = 0
+					If FActiveForm->Parent AndAlso FActiveForm->Parent->Accelerator Then TranslateAndDispatch = TranslateAccelerator(FActiveForm->Parent->Handle, FActiveForm->Parent->Accelerator, @msg) = 0
 					If TranslateAndDispatch Then
 						Select Case msg.message
 						Case WM_KEYDOWN
@@ -312,7 +313,7 @@ Namespace My
 					End If
 				End If
 				If OnMessage Then
-					mess = Type(@This, Msg.Hwnd, Msg.Message, Msg.wParam, Msg.lParam, 0, LoWord(Msg.wParam), HiWord(Msg.wParam), LoWord(Msg.lParam), HiWord(Msg.lParam), 0)
+					mess = Type(@This, msg.hwnd, msg.message, msg.wParam, msg.lParam, 0, LoWord(msg.wParam), HiWord(msg.wParam), LoWord(msg.lParam), HiWord(msg.lParam), 0)
 					OnMessage(mess)
 					If mess.Result Then TranslateAndDispatch = False
 				End If
@@ -320,8 +321,8 @@ Namespace My
 					TranslateMessage @msg
 					DispatchMessage @msg
 				End If
-				MouseX = msg.Pt.x
-				MouseY = msg.Pt.y
+				MouseX = msg.pt.X
+				MouseY = msg.pt.Y
 				If OnMouseMove Then OnMouseMove(MouseX, MouseY)
 			Wend
 		#endif
