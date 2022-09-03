@@ -1041,6 +1041,7 @@ Namespace My.Sys.Forms
 							' disabled / grey text
 							iTextStateID = MPI_DISABLED
 							iBackgroundStateID = MPI_DISABLED
+							pbrBackground = @hbrBkgnd
 						End If
 						If (pUDMI->dis.itemState And ODS_NOACCEL) Then
 							dwFlags Or = DT_HIDEPREFIX
@@ -1054,7 +1055,11 @@ Namespace My.Sys.Forms
 						
 						FillRect(pUDMI->um.hdc, @pUDMI->dis.rcItem, *pbrBackground)
 						SetBkMode pUDMI->um.hdc, TRANSPARENT
-						SetTextColor pUDMI->um.hdc, darkTextColor
+						If iTextStateID = MPI_DISABLED Then
+							SetTextColor pUDMI->um.hdc, darkHlBkColor
+						Else
+							SetTextColor pUDMI->um.hdc, darkTextColor
+						End If
 						SetBkColor pUDMI->um.hdc, darkBkColor
 						DrawText pUDMI->um.hdc, menuString, mii.cch, @pUDMI->dis.rcItem, dwFlags
 						SetBkMode pUDMI->um.hdc, OPAQUE
