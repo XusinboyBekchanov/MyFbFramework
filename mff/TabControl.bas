@@ -581,9 +581,9 @@ Namespace My.Sys.Forms
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK3__
-					Return gtk_widget_get_allocated_width(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+					Return gtk_widget_get_allocated_width(gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget))
 				#else
-					Return gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget)->allocation.width
+					Return gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)->allocation.width
 				#endif
 			#else
 				Dim As ..Rect R
@@ -653,24 +653,26 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case CM_DRAWITEM
 				If FTabPosition = tpLeft Or FTabPosition = tpRight Then
-					Dim As LogFont LogRec
-					Dim As hFont OldFontHandle, NewFontHandle
-					Dim hdc As hdc
+					Dim As LOGFONT LogRec
+					Dim As HFONT OldFontHandle, NewFontHandle
+					Dim hdc As HDC
 					GetObject Font.Handle, SizeOf(LogRec), @LogRec
 					LogRec.lfEscapement = 90 * 10
 					NewFontHandle = CreateFontIndirect(@LogRec)
-					hdc = GetDc(FHandle)
+					hdc = GetDC(FHandle)
 					OldFontHandle = SelectObject(hdc, NewFontHandle)
-					SetBKMode(hdc, TRANSPARENT)
+					SetBkMode(hdc, TRANSPARENT)
 					For i As Integer = 0 To TabCount - 1
 						.TextOut(hdc, IIf(FTabPosition = tpLeft, ScaleX(2), ScaleX(This.Width - ItemWidth(i))), ScaleY(ItemTop(i) + ItemHeight(i) - 5), Tabs[i]->Caption, Len(Tabs[i]->Caption))
 					Next i
-					SetBKMode(hdc,OPAQUE)
+					SetBkMode(hdc,OPAQUE)
 					NewFontHandle = SelectObject(hdc, OldFontHandle)
-					ReleaseDc FHandle, hdc
+					ReleaseDC FHandle, hdc
 					DeleteObject(NewFontHandle)
 				End If
 				Message.Result = 0
+			Case WM_DESTROY
+				If Images Then Perform(TCM_SETIMAGELIST, 0, 0)
 			Case WM_THEMECHANGED
 				
 			Case WM_ERASEBKGND

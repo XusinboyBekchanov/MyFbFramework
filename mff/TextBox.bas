@@ -1094,7 +1094,7 @@ Namespace My.Sys.Forms
 	Private Property TextBox.Modified As Boolean
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
-				FModified = gtk_text_buffer_get_modified(gtk_text_view_get_buffer(gtk_text_view(widget)))
+				FModified = gtk_text_buffer_get_modified(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
@@ -1146,7 +1146,6 @@ Namespace My.Sys.Forms
 				End If
 			End Select
 		#elseif defined(__USE_WINAPI__)
-			'?GetMessageName(message.Msg)
 			Select Case message.Msg
 			Case WM_PAINT, WM_MOUSELEAVE, WM_MOUSEMOVE
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso (CBool(message.Msg <> WM_MOUSEMOVE) OrElse (CBool(message.Msg = WM_MOUSEMOVE) AndAlso FMouseInClient)) Then
@@ -1177,18 +1176,18 @@ Namespace My.Sys.Forms
 					SelectObject(Dc, PrevBrush)
 					ReleaseDC(Handle, Dc)
 					DeleteObject NewPen
-					Message.Result = 0
+					message.Result = 0
 					Return
 				End If
 			Case CM_CTLCOLOR
 				Static As HDC Dc
-				Dc = Cast(HDC, Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				Dc = Cast(HDC, message.wParam)
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc, Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
-				Select Case Message.wParamHi
+				Select Case message.wParamHi
 				Case BN_CLICKED
 					If OnClick Then OnClick(This)
 				Case EN_CHANGE
@@ -1204,10 +1203,10 @@ Namespace My.Sys.Forms
 				Case EN_HSCROLL
 					If OnScroll Then OnScroll(This)
 				End Select
-				message.result = 0
+				message.Result = 0
 			Case WM_CHAR
 				If Len(*FInputFilter)>0 Then
-					If InStr(*FInputFilter,WChr(Message.WParam))=0 And Message.wParam>31 Then message.result = -1
+					If InStr(*FInputFilter,WChr(message.wParam))=0 And message.wParam>31 Then message.Result = -1
 				End If
 			Case WM_KEYUP
 				'David Change
@@ -1224,7 +1223,7 @@ Namespace My.Sys.Forms
 				If ParentHandle>0 Then
 					Select Case message.wParam
 					Case VK_RETURN, VK_ESCAPE, VK_DOWN, VK_UP, VK_LEFT, VK_RIGHT, VK_TAB
-						PostMessage(ParentHandle, CM_COMMAND, Message.wParam, 9999)
+						PostMessage(ParentHandle, CM_COMMAND, message.wParam, 9999)
 						'case VK_HOME,VK_END,VK_PRIOR,VK_NEXT,VK_INSERT,VK_DELETE,VK_BACK
 						'case VK_MENU 'VK_CONTROL VK_SHIFT
 						'print "TextBox VK_MENU: ",VK_MENU

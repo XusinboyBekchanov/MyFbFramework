@@ -13,33 +13,33 @@
 Namespace My.Sys.Forms
 	Private Sub TreeNode.SelectItem
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(Parent->Handle)), @TreeIter)
+			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
 		#else
-			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, Handle, TVGN_CARET)
+			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, HANDLE, TVGN_CARET)
 		#endif
 	End Sub
 	
 	Private Sub TreeNode.Collapse
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @TreeIter))
-				gtk_tree_view_collapse_row(gtk_tree_view(Parent->Handle), TreePath)
+			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)), @TreeIter))
+				gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
-			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
+			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, HANDLE, TVE_EXPAND)
 		#endif
 	End Sub
 	
 	Private Sub TreeNode.Expand
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @TreeIter))
-				gtk_tree_view_expand_row(gtk_tree_view(Parent->Handle), TreePath, False)
+			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)), @TreeIter))
+				gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->Handle), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
-			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
+			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, HANDLE, TVE_EXPAND)
 		#endif
 	End Sub
 	
@@ -727,8 +727,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeView.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_BUTTON_RELEASE
 				If SelectedNode <> 0 Then
 					If OnNodeClick Then OnNodeClick(This, *SelectedNode)
@@ -746,6 +746,9 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
+			Case WM_DESTROY
+				If Images Then TreeView_SetImageList(FHandle, 0, TVSIL_NORMAL)
+				If SelectedImages Then TreeView_SetImageList(FHandle, 0, TVSIL_STATE)
 			Case WM_SIZE
 			Case WM_NOTIFY
 				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
@@ -904,9 +907,9 @@ Namespace My.Sys.Forms
 			With PNode->Nodes
 				For i As Integer = 0 To .Count - 1
 					Dim tvis As TVINSERTSTRUCT
-					tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @.Item(i)->text
-					tvis.item.cchTextMax           = Len(.Item(i)->text)
+					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
+					tvis.item.pszText              = @.Item(i)->Text
+					tvis.item.cchTextMax           = Len(.Item(i)->Text)
 					tvis.item.iImage             = .Item(i)->ImageIndex
 					tvis.item.iSelectedImage     = .Item(i)->SelectedImageIndex
 					tvis.hInsertAfter            = 0
@@ -938,9 +941,9 @@ Namespace My.Sys.Forms
 					If .SelectedImages AndAlso .SelectedImages->Handle Then TreeView_SetImageList(.FHandle, CInt(.SelectedImages->Handle), TVSIL_STATE)
 					For i As Integer = 0 To .Nodes.Count -1
 						Dim tvis As TVINSERTSTRUCT
-						tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-						tvis.item.pszText              = @.Nodes.Item(i)->text
-						tvis.item.cchTextMax           = Len(.Nodes.Item(i)->text)
+						tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
+						tvis.item.pszText              = @.Nodes.Item(i)->Text
+						tvis.item.cchTextMax           = Len(.Nodes.Item(i)->Text)
 						tvis.item.iImage             = .Nodes.Item(i)->ImageIndex
 						tvis.item.iSelectedImage     = .Nodes.Item(i)->SelectedImageIndex
 						tvis.hInsertAfter            = 0
@@ -965,7 +968,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				model = gtk_tree_view_get_model(tree_view)
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If tv->OnNodeActivate Then tv->OnNodeActivate(*tv, *tv->Nodes.FindByIterUser_Data(iter.User_Data))
+					If tv->OnNodeActivate Then tv->OnNodeActivate(*tv, *tv->Nodes.FindByIterUser_Data(iter.user_data))
 				End If
 			End If
 		End Sub

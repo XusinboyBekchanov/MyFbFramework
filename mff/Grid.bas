@@ -1174,6 +1174,11 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
+			Case WM_DESTROY
+				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_NORMAL)
+				If StateImages Then ListView_SetImageList(FHandle, 0, LVSIL_STATE)
+				If SmallImages Then ListView_SetImageList(FHandle, 0, LVSIL_SMALL)
+				If GroupHeaderImages Then ListView_SetImageList(FHandle, 0, LVSIL_GROUPHEADER)
 			Case WM_SIZE
 			Case WM_KEYUP
 				Select Case Message.wParam

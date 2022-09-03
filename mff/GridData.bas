@@ -1258,7 +1258,7 @@ ErrorHandler:
 			lvi.mask = LVIF_PARAM
 			lvi.iItem = iItem
 			If ListView_GetItem(Handle, @lvi) Then
-				Return Cast(GridDataItem Ptr, lvi.LParam)
+				Return Cast(GridDataItem Ptr, lvi.lParam)
 			End If
 			Return 0
 		End Function
@@ -1773,19 +1773,19 @@ ErrorHandler:
 			RectCell.Top =mRowHeightHeader+mRowHeight*(RowHover-RowShowStart)+2
 			RectCell.Bottom =RectCell.Top+ mRowHeight
 			'Draw Focus Row
-			DrawFocusRect(MemDC, @RectCell)
+			DrawFocusRect(memDC, @RectCell)
 		End If
 		'Draw Bottom Line of Grid Body
-		If mGridLineDrawMode = GRIDLINE_Both Or mGridLineDrawMode = GRIDLINE_HOrizontal Then  ' GRIDLINE_None Both GRIDLINE_VerticalThen
-			DrawLine(MemDC,REC(0).Left,RectCell.Top+mRowHeight, REC(iColEnd).Right,RectCell.Top+mRowHeight,mGridColorLine,mGridLineWidth,mGridLinePenMode)
+		If mGridLineDrawMode = GRIDLINE_Both Or mGridLineDrawMode = GRIDLINE_Horizontal Then  ' GRIDLINE_None Both GRIDLINE_VerticalThen
+			DrawLine(memDC,REC(0).Left,RectCell.Top+mRowHeight, REC(iColEnd).Right,RectCell.Top+mRowHeight,mGridColorLine,mGridLineWidth,mGridLinePenMode)
 		End If
 
 		If mGridLineDrawMode = GRIDLINE_Both Or mGridLineDrawMode = GRIDLINE_Vertical Then  ' GRIDLINE_None GRIDLINE_HOrizontal Then
 			For iCol=iColStart To iColEnd
-				DrawLine(MemDC,REC(iCol).Left-1,0, REC(iCol).Left-1,REC(0).Bottom,mGridColorLine,mGridLineWidth,mGridLinePenMode)
+				DrawLine(memDC,REC(iCol).Left-1,0, REC(iCol).Left-1,REC(0).Bottom,mGridColorLine,mGridLineWidth,mGridLinePenMode)
 			Next
 			'Draw Right Line of Grid Body
-			DrawLine(MemDC,REC(iColEnd).Right,0, REC(iColEnd).Right,REC(0).Bottom,mGridColorLine,mGridLineWidth,mGridLinePenMode)
+			DrawLine(memDC,REC(iColEnd).Right,0, REC(iColEnd).Right,REC(0).Bottom,mGridColorLine,mGridLineWidth,mGridLinePenMode)
 		End If
 
 		'    'Draw the Blank area
@@ -1804,9 +1804,9 @@ ErrorHandler:
 		'        'Have to draw bottom line again to cover the background?
 		'        DrawLine(MemDC,RectCell.Left,RectCell.Top-1, RectCell.Right,RectCell.Top-1,mGridColorLine,mGridLineWidth,mGridLinePenMode)
 		'    End If
-		BitBlt(GridDC, 0, 0,mClientRect.Right, mClientRect.Bottom, MemDC, 0, 0, SRCCOPY)
+		BitBlt(GridDC, 0, 0,mClientRect.Right, mClientRect.Bottom, memDC, 0, 0, SRCCOPY)
 		DeleteObject(Bmp)
-		DeleteDC(MemDC)
+		DeleteDC(memDC)
 		ReleaseDC(Handle, GridDC)
 	End Sub
 	#endif
@@ -1814,17 +1814,17 @@ ErrorHandler:
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->Type
+			Select Case Message.Event->type
 			Case GDK_MAP
 				Init
 			End Select
 		#else
-			Static As hDC nmcdhDC '=-1
+			Static As HDC nmcdhDC '=-1
 			Static As Boolean tSCROLL_HorV,tRefresh
 			Static As Integer  ComboColOld
 			Dim tMOUSEWHEEL As Boolean = False
 			Dim lplvcd As NMLVCUSTOMDRAW Ptr
-			Dim As RECT RectCell
+			Dim As Rect RectCell
 			Dim As WString Ptr sText
 			Dim As SCROLLINFO Si
 			'if WM_PAINT<>Message.Msg and Message.Msg<>WM_DRAWITEM then print *FClassName +": " +GetMessageName(message.msg)
@@ -1838,16 +1838,21 @@ ErrorHandler:
 				'message.Result = -1' CDRF_SKIPDEFAULT 'CDRF_SKIPDEFAULT=4  This is very important for custmor draw Will infect the other window showing if have Value
 				' case WM_ICONERASEBKGND
 			Case WM_ERASEBKGND
-				message.Result = -1'CDRF_SKIPDEFAULT  ' This is very important for custmor draw
+				Message.Result = -1'CDRF_SKIPDEFAULT  ' This is very important for custmor draw
 				'      case WM_NCHITTEST
 				'      CASE WM_WINDOWPOSCHANGING
 				'         message.Result =    CDRF_SKIPDEFAULT
 			Case WM_DRAWITEM '
-				message.Result =-1'CDRF_SKIPDEFAULT
+				Message.Result =-1'CDRF_SKIPDEFAULT
 				'      Case WM_SETFOCUS
 				'         PRINT "WM_SETFOCUS "
 				'Case WM_NCPAINT
 				'    message.Result = CDRF_SKIPDEFAULT
+			Case WM_DESTROY
+				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_NORMAL)
+				If StateImages Then ListView_SetImageList(FHandle, 0, LVSIL_STATE)
+				If SmallImages Then ListView_SetImageList(FHandle, 0, LVSIL_SMALL)
+				If GroupHeaderImages Then ListView_SetImageList(FHandle, 0, LVSIL_GROUPHEADER)
 			Case WM_SIZE
 				mCountPerPage = ListView_GetCountPerPage(Handle)
 				mDrawRowStart=ListView_GetTopIndex(Handle)

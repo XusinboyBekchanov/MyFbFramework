@@ -1399,8 +1399,10 @@ Namespace My.Sys.Forms
 							If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor) Then
 								If .ClassAncestor <> "ScrollBar" Then
 									Dim As HDC hd = Cast(HDC, Message.wParam)
+									'SetBkMode hd, TRANSPARENT
 									SetTextColor(hd, darkTextColor)
 									SetBkColor(hd, darkBkColor)
+									'SetBkMode hd, OPAQUE
 									If .Brush.Handle <> hbrBkgnd Then
 										.Brush.Handle = hbrBkgnd
 									End If
@@ -1658,8 +1660,7 @@ Namespace My.Sys.Forms
 				Case WM_DESTROY
 					If Brush.Handle = hbrBkgnd Then Brush.Handle = 0
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
-					If OnDestroy Then OnDestroy(This)
-					'Handle = 0
+					If OnDestroy Then OnDestroy(This) Else Handle = 0
 				End Select
 			#endif
 		End Sub
@@ -2237,7 +2238,29 @@ Namespace My.Sys.Forms
 					'End If
 				#endif
 				'This.UpdateLock
-				For i = 0 To ControlCount -1
+				'#ifdef __USE_GTK__
+				'	Dim bNotPainted As Boolean
+				'	For i = 0 To ControlCount - 1
+				'		If Controls[i]->FAutoSize Then
+				'			If Controls[i]->AllocatedWidth = 0 AndAlso Controls[i]->AllocatedHeight = 0 Then
+				'				Controls[i]->Repaint
+				'				bNotPainted = True
+				'			End If
+				'		End If
+				'	Next
+				'	If bNotPainted Then
+				'		AllocatedWidth = 0
+				'		AllocatedHeight = 0
+				'		Repaint
+				'		'If FAutoSize AndAlso This.Parent Then
+				'			This.Parent->AllocatedWidth = 0
+				'			This.Parent->AllocatedHeight = 0
+				'		'	This.Parent->Repaint
+				'		'End If
+				'		Exit Sub
+				'	End If
+				'#endif
+				For i = 0 To ControlCount - 1
 					'If Controls[i]->Handle = 0 Then Continue For
 					Select Case Controls[i]->Align
 					Case 1'alLeft
@@ -2250,7 +2273,7 @@ Namespace My.Sys.Forms
 						ListRight[RightCount - 1] = Controls[i]
 					Case 3'alTop
 						TopCount += 1
-						ListTop = Reallocate_(ListTop,SizeOf(Control Ptr)*TopCount)
+						ListTop = Reallocate_(ListTop, SizeOf(Control Ptr)*TopCount)
 						ListTop[TopCount - 1] = Controls[i]
 					Case 4'alBottom
 						BottomCount += 1
@@ -2361,7 +2384,15 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If Height <> MaxHeight Then '+ AllocatedHeight - iClientHeight Then
 						Height = MaxHeight ' + AllocatedHeight - iClientHeight
-						If This.Parent Then This.Parent->RequestAlign
+						'This.AllocatedWidth = 0
+						'This.AllocatedHeight = 0
+						'This.Repaint
+						'If This.Parent Then
+						'	'This.Parent->RequestAlign , , True
+						'	This.Parent->AllocatedWidth = 0
+						'	This.Parent->AllocatedHeight = 0
+						'	'This.Parent->Repaint
+						'End If
 					End If
 				#else
 					Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight

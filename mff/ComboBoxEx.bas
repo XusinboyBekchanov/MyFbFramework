@@ -621,6 +621,8 @@ Namespace My.Sys.Forms
 '						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				End If
+			Case WM_DESTROY
+				If ImagesList Then Perform CBEM_SETIMAGELIST, 0, 0
 			Case WM_DRAWITEM
 				Dim lpdis As DRAWITEMSTRUCT Ptr
 				Dim As Integer ItemID, State

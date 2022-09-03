@@ -1118,11 +1118,16 @@ Namespace My.Sys.Forms
 						'PostQuitMessage 0
 						End 0
 					Else
-						ShowWindow Handle, SW_HIDE
-						msg.Result = -1
+						#ifdef __HIDE_NO_MAIN_FORM_ON_CLOSE__
+							ShowWindow Handle, SW_HIDE
+							msg.Result = -1
+						#endif
 					End If
 				Case 2
 					ShowWindow Handle, SW_MINIMIZE
+					msg.Result = -1
+				Case 3
+					ShowWindow Handle, SW_HIDE
 					msg.Result = -1
 				End Select
 			Case WM_COMMAND

@@ -956,6 +956,10 @@ Namespace My.Sys.Forms
 						Exit For
 					End If
 				Next i
+			Case WM_DESTROY
+				If ImagesList Then Perform(TB_SETIMAGELIST, 0, 0)
+				If HotImagesList Then Perform(TB_SETHOTIMAGELIST, 0, 0)
+				If DisabledImagesList Then Perform(TB_SETDISABLEDIMAGELIST, 0, 0)
 			Case CM_COMMAND
 				Dim As Integer Index
 				Dim As TBBUTTON TB
@@ -969,10 +973,10 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim As TBNOTIFY Ptr Tbn
 				Dim As TBBUTTON TB
-				Dim As ..RECT R
+				Dim As ..Rect R
 				Dim As Integer i
 				Tbn = Cast(TBNOTIFY Ptr,Message.lParam)
-				Select Case Tbn->hdr.Code
+				Select Case Tbn->hdr.code
 				Case TBN_DROPDOWN
 					If Tbn->iItem <> -1 Then
 						SendMessage(Tbn->hdr.hwndFrom, TB_GETRECT, Tbn->iItem, CInt(@R))
@@ -992,7 +996,7 @@ Namespace My.Sys.Forms
 						Case CDDS_POSTPAINT
 							Dim As HPEN SeparatorPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
 							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, SeparatorPen)
-							Dim rc As My.Sys.Drawing.RECT
+							Dim rc As My.Sys.Drawing.Rect
 							For i As Integer = 0 To Buttons.Count - 1
 								If Buttons.Item(i)->Style = ToolButtonStyle.tbsSeparator Then
 									SendMessage(FHandle, TB_GETITEMRECT, i, Cast(LPARAM, @rc))
@@ -1012,9 +1016,9 @@ Namespace My.Sys.Forms
 			Case CM_NEEDTEXT
 				Dim As LPTOOLTIPTEXT TTX
 				TTX = Cast(LPTOOLTIPTEXT, Message.lParam)
-				TTX->hInst = GetModuleHandle(NULL)
+				TTX->hinst = GetModuleHandle(NULL)
 				If TTX->hdr.idFrom Then
-					Dim As TBButton TB
+					Dim As TBBUTTON TB
 					Dim As Integer Index
 					Index = Perform(TB_COMMANDTOINDEX,TTX->hdr.idFrom,0)
 					If Perform(TB_GETBUTTON,Index,CInt(@TB)) Then
@@ -1029,7 +1033,7 @@ Namespace My.Sys.Forms
 				End If
 			End Select
 		#endif
-		Base.ProcessMessage(message)
+		Base.ProcessMessage(Message)
 	End Sub
 	
 	Private Sub ToolBar.HandleIsDestroyed(ByRef Sender As Control)
@@ -1044,8 +1048,8 @@ Namespace My.Sys.Forms
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
 					.Perform(TB_BUTTONSTRUCTSIZE, SizeOf(TBBUTTON), 0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
-					.Perform(TB_SETBUTTONSIZE, 0, MakeLong(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
-					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MakeLong(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
+					.Perform(TB_SETBUTTONSIZE, 0, MAKELONG(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
+					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MAKELONG(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
 					Var FHandle = .FHandle
 					For i As Integer = 0 To .Buttons.Count - 1
 						.FHandle = 0
@@ -1063,10 +1067,10 @@ Namespace My.Sys.Forms
 						Else
 							TB.iString   = 0
 						End If
-						TB.dwData    = Cast(DWord_Ptr, @.Buttons.Item(i)->DropDownMenu)
+						TB.dwData    = Cast(DWORD_PTR, @.Buttons.Item(i)->DropDownMenu)
 						.FHandle = FHandle
 						.Perform(TB_ADDBUTTONS,1,CInt(@TB))
-						If Not .Buttons.Item(i)->Visible Then .Perform(TB_HIDEBUTTON, .Buttons.Item(i)->CommandID, MakeLong(True, 0))
+						If Not .Buttons.Item(i)->Visible Then .Perform(TB_HIDEBUTTON, .Buttons.Item(i)->CommandID, MAKELONG(True, 0))
 					Next i
 					If .AutoSize Then .Perform(TB_AUTOSIZE,0,0)
 				#endif

@@ -423,7 +423,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.AutoSize As Boolean
 		#ifndef __USE_GTK__
-			FAutoSize = StyleExists(TBSTYLE_AUTOSIZE)
+			FAutosize = StyleExists(TBSTYLE_AUTOSIZE)
 		#endif
 		Return FAutoSize
 	End Property
@@ -629,6 +629,10 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case WM_DESTROY
+				If ImagesList Then Perform(TB_SETIMAGELIST, 0, 0)
+				If HotImagesList Then Perform(TB_SETHOTIMAGELIST, 0, 0)
+				If DisabledImagesList Then Perform(TB_SETDISABLEDIMAGELIST, 0, 0)
 			Case WM_SIZE
 				If AutoSize Then
 					Dim As ..Rect R

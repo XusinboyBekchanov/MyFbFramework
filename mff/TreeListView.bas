@@ -16,7 +16,7 @@ Namespace My.Sys.Forms
 				lvi.iItem = i
 				lvi.iSubItem   = 0
 				ListView_GetItem(Parent->Handle, @lvi)
-				If lvi.LParam = Cast(LParam, @This) Then
+				If lvi.LParam = Cast(LPARAM, @This) Then
 					Return i
 				End If
 			Next i
@@ -27,8 +27,8 @@ Namespace My.Sys.Forms
 	Private Sub TreeListViewItem.Collapse
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_collapse_row(gtk_tree_view(Parent->Handle), TreePath)
+				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
+				gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -585,16 +585,16 @@ Namespace My.Sys.Forms
 				PItem->Text(0) = FCaption
 			#else
 				If CInt(Parent) AndAlso CInt(Parent->Handle) AndAlso CInt(CInt(ParentItem = 0) OrElse CInt(ParentItem->IsExpanded)) Then
-					lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 					lvi.pszText  = @FCaption
 					lvi.cchTextMax = Len(FCaption)
 					lvi.iItem = FItems.Count - 1
 					lvi.iSubItem = 0
 					lvi.iImage   = FImageIndex
-					lvi.State   = INDEXTOSTATEIMAGEMASK(State)
+					lvi.state   = INDEXTOSTATEIMAGEMASK(State)
 					lvi.stateMask = LVIS_STATEIMAGEMASK
 					lvi.iIndent   = .Indent
-					lvi.LParam = Cast(LParam, PItem)
+					lvi.lParam = Cast(LPARAM, PItem)
 					ListView_InsertItem(Parent->Handle, @lvi)
 				End If
 			#endif
@@ -1206,8 +1206,8 @@ Namespace My.Sys.Forms
 	Private Sub TreeListView.ProcessMessage(ByRef Message As Message)
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_MAP
 				Init
 			End Select
@@ -1236,6 +1236,9 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case WM_DESTROY
+				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_NORMAL)
+				If StateImages Then ListView_SetImageList(FHandle, 0, LVSIL_STATE)
 			Case WM_NOTIFY
 				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
 					Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)

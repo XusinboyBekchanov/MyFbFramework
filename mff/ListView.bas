@@ -1355,8 +1355,8 @@ Namespace My.Sys.Forms
 	Private Sub ListView.ProcessMessage(ByRef Message As Message)
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_MAP
 				Init
 			Case GDK_BUTTON_RELEASE
@@ -1373,7 +1373,7 @@ Namespace My.Sys.Forms
 				End If
 			Case GDK_KEY_PRESS
 				If SelectedItemIndex <> -1 Then
-					If OnItemKeyDown Then OnItemKeyDown(This, SelectedItemIndex, Message.event->Key.keyval, Message.event->Key.state)
+					If OnItemKeyDown Then OnItemKeyDown(This, SelectedItemIndex, Message.Event->key.keyval, Message.Event->key.state)
 				End If
 			End Select
 		#elseif defined(__USE_WINAPI__)
@@ -1401,6 +1401,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case WM_DESTROY
+				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_NORMAL)
+				If StateImages Then ListView_SetImageList(FHandle, 0, LVSIL_STATE)
+				If SmallImages Then ListView_SetImageList(FHandle, 0, LVSIL_SMALL)
+				If GroupHeaderImages Then ListView_SetImageList(FHandle, 0, LVSIL_GROUPHEADER)
 			Case WM_SIZE
 			Case WM_NOTIFY
 				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
@@ -1459,7 +1464,7 @@ Namespace My.Sys.Forms
 					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
 				End If
 			Case CM_NOTIFY
-				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, message.lparam)
+				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, Message.lParam)
 				Select Case lvp->hdr.code
 				Case NM_CLICK: If OnItemClick Then OnItemClick(This, lvp->iItem)
 				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(This, lvp->iItem)
@@ -1648,7 +1653,7 @@ Namespace My.Sys.Forms
 							lvi.iItem           = i
 							lvi.iSubItem        = j
 							If j = 0 Then
-								lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_Param
+								lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 								lvi.iImage          = .ListItems.Item(i)->ImageIndex
 								lvi.State   = INDEXTOSTATEIMAGEMASK(.ListItems.Item(i)->State)
 								lvi.stateMask = LVIS_STATEIMAGEMASK
