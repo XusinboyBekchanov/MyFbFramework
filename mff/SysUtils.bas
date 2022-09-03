@@ -12,9 +12,9 @@
 #include once "SysUtils.bi"
 
 #ifdef __USE_WINAPI__
-	Private Function EnumThreadWindowsProc(FWindow As HWND, LData As LParam) As Bool
+	Private Function EnumThreadWindowsProc(FWindow As HWND, LData As LPARAM) As BOOL
 		Type WindowType
-			As HWND Handle
+			As HWND HANDLE
 		End Type
 		Dim As WindowType Ptr Wnd = Cast(WindowType Ptr, lData)
 		If (GetWindowLong(FWindow, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
@@ -25,10 +25,10 @@
 	
 	Private Function MainHandle As HWND
 		Type WindowType
-			As HWND Handle
+			As HWND HANDLE
 		End Type
 		Dim As WindowType Wnd
-		EnumThreadWindows GetCurrentThreadID,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@Wnd)
+		EnumThreadWindows GetCurrentThreadId,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@Wnd)
 		Return Wnd.Handle
 	End Function
 #endif
@@ -188,9 +188,9 @@ End Namespace
 			Static bb As Single
 			If bb = 0 Then
 				Dim hDC As HDC
-				hDC = GetDC(Null)
+				hDC = GetDC(NULL)
 				bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-				ReleaseDC Null, hDC
+				ReleaseDC NULL, hDC
 				If bb = 0 Then bb = 1
 			End If
 			Function = cx * bb
@@ -684,6 +684,12 @@ Private Function GetMessageName(Message As Integer) As String
 	Case 134: Return "WM_NCACTIVATE"
 	Case 135: Return "WM_GETDLGCODE"
 	Case 136: Return "WM_SYNCPAINT"
+	Case 144: Return "WM_UAHDESTROYWINDOW"
+	Case 145: Return "WM_UAHDRAWMENU"
+	Case 146: Return "WM_UAHDRAWMENUITEM"
+	Case 147: Return "WM_UAHINITMENU"
+	Case 148: Return "WM_UAHMEASUREMENUITEM"
+	Case 149: Return "WM_UAHNCPAINTMENUPOPUP"
 	Case 160: Return "WM_NCMOUSEMOVE"
 	Case 161: Return "WM_NCLBUTTONDOWN"
 	Case 162: Return "WM_NCLBUTTONUP"

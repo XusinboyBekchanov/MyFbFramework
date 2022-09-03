@@ -944,66 +944,122 @@ Namespace My.Sys.Forms
 					
 					' get the menu item string
 					Dim As WString * 256 menuString
-					Dim As MENUITEMINFO mii = Type( SizeOf(mii), MIIM_STRING )
+					Dim As MENUITEMINFO mii = Type( SizeOf(mii), MIIM_STRING Or MIIM_BITMAP)
 					mii.dwTypeData = @menuString
 					mii.cch = 256
 					
 					GetMenuItemInfo(pUDMI->um.hmenu, pUDMI->umi.iPosition, True, @mii)
 					
-					' get the item state for drawing
-					
-					Dim As DWORD dwFlags = DT_CENTER Or DT_SINGLELINE Or DT_VCENTER
-					
-					Enum POPUPITEMSTATES
-						MPI_NORMAL = 1,
-						MPI_HOT = 2,
-						MPI_DISABLED = 3,
-						MPI_DISABLEDHOT = 4,
-					End Enum
-					
-					Dim As Integer iTextStateID = 0
-					Dim As Integer iBackgroundStateID = 0
-					If ((pUDMI->dis.itemState And ODS_INACTIVE) Or (pUDMI->dis.itemState And ODS_DEFAULT)) Then
-						' normal display
-						iTextStateID = MPI_NORMAL
-						iBackgroundStateID = MPI_NORMAL
-					End If
-					If (pUDMI->dis.itemState And ODS_HOTLIGHT) Then
-						' hot tracking
-						iTextStateID = MPI_HOT
-						iBackgroundStateID = MPI_HOT
+					If mii.hbmpItem = HBMMENU_MBAR_MINIMIZE OrElse mii.hbmpItem = HBMMENU_MBAR_RESTORE OrElse mii.hbmpItem = HBMMENU_MBAR_CLOSE Then
+						If mii.hbmpItem = HBMMENU_MBAR_MINIMIZE Then
+							Dim As MENUITEMINFO mii0 = Type( SizeOf(mii), MIIM_STRING Or MIIM_BITMAP Or MIIM_CHECKMARKS Or MIIM_DATA)
+							mii0.dwTypeData = @menuString
+							mii0.cch = 256
+							GetMenuItemInfo(pUDMI->um.hmenu, 0, True, @mii0)
+							Dim As HWND h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
+							If h Then
+								Dim As HWND hIco = Cast(HICON, SendMessage(h, WM_GETICON, ICON_SMALL, 0))
+								If hIco = 0 Then hIco = LoadIcon(0, IDI_APPLICATION)
+								DrawIconEx(pUDMI->um.hdc, 15, 32, hIco, 16, 16, 0, 0, DI_NORMAL)
+							End If
+						End If
 						
-						pbrBackground = @hbrHlBkgnd '@g_brItemBackgroundHot
-					End If
-					If (pUDMI->dis.itemState And ODS_SELECTED) Then
-						' clicked -- MENU_POPUPITEM has no state for this, though MENU_BARITEM does
-						iTextStateID = MPI_HOT
-						iBackgroundStateID = MPI_HOT
+						Dim As HPEN Pen = CreatePen(PS_SOLID, 0, IIf(pUDMI->dis.itemState And ODS_SELECTED, BGR(153, 153, 153), BGR(98, 98, 98)))
+						Dim As HPEN PrevPen = SelectObject(pUDMI->um.hdc, Pen)
+						Dim As HBRUSH PrevBrush = SelectObject(pUDMI->um.hdc, hbrBkgnd)
 						
-						pbrBackground = @hbrHlBkgnd '@g_brItemBackgroundSelected
+						FillRect(pUDMI->um.hdc, @pUDMI->dis.rcItem, *pbrBackground)
+						
+						If pUDMI->dis.itemState And ODS_SELECTED Then SelectObject(pUDMI->um.hdc, hbrHlBkgnd)
+						Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left, pUDMI->dis.rcItem.Top + 1, pUDMI->dis.rcItem.Right - 1, pUDMI->dis.rcItem.Bottom
+						DeleteObject(Pen)
+						
+						Select Case mii.hbmpItem
+						Case HBMMENU_MBAR_MINIMIZE
+							Pen = CreatePen(PS_SOLID, 0, BGR(122, 136, 150))
+							SelectObject(pUDMI->um.hdc, Pen)
+							Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 5, pUDMI->dis.rcItem.Top + 12, pUDMI->dis.rcItem.Right - 8, pUDMI->dis.rcItem.Bottom - 5
+							DeleteObject(Pen)
+						Case HBMMENU_MBAR_RESTORE
+							Pen = CreatePen(PS_SOLID, 0, BGR(122, 136, 150))
+							SelectObject(pUDMI->um.hdc, Pen)
+							Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 5, pUDMI->dis.rcItem.Top + 10, pUDMI->dis.rcItem.Right - 8, pUDMI->dis.rcItem.Bottom - 5
+							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 5, pUDMI->dis.rcItem.Top + 9, 0
+							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 8, pUDMI->dis.rcItem.Top + 9
+							SetPixel pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 7, pUDMI->dis.rcItem.Top + 8, BGR(122, 136, 150)
+							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Top + 8, 0
+							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Top + 11
+							Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 7, pUDMI->dis.rcItem.Top + 6, pUDMI->dis.rcItem.Right - 6, pUDMI->dis.rcItem.Top + 8
+							DeleteObject(Pen)
+						Case HBMMENU_MBAR_CLOSE
+							Pen = CreatePen(PS_SOLID, 2, BGR(122, 136, 150))
+							SelectObject(pUDMI->um.hdc, Pen)
+							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 6, pUDMI->dis.rcItem.Top + 7, 0
+							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Bottom - 6
+							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Top + 7, 0
+							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 6, pUDMI->dis.rcItem.Bottom - 6
+							DeleteObject(Pen)
+						End Select
+						
+						SelectObject(pUDMI->um.hdc, PrevPen)
+						SelectObject(pUDMI->um.hdc, PrevBrush)
+						
+					Else
+						' get the item state for drawing
+						
+						Dim As DWORD dwFlags = DT_CENTER Or DT_SINGLELINE Or DT_VCENTER
+						
+						Enum POPUPITEMSTATES
+							MPI_NORMAL = 1,
+							MPI_HOT = 2,
+							MPI_DISABLED = 3,
+							MPI_DISABLEDHOT = 4,
+						End Enum
+						
+						Dim As Integer iTextStateID = 0
+						Dim As Integer iBackgroundStateID = 0
+						If ((pUDMI->dis.itemState And ODS_INACTIVE) Or (pUDMI->dis.itemState And ODS_DEFAULT)) Then
+							' normal display
+							iTextStateID = MPI_NORMAL
+							iBackgroundStateID = MPI_NORMAL
+						End If
+						If (pUDMI->dis.itemState And ODS_HOTLIGHT) Then
+							' hot tracking
+							iTextStateID = MPI_HOT
+							iBackgroundStateID = MPI_HOT
+							
+							pbrBackground = @hbrHlBkgnd '@g_brItemBackgroundHot
+						End If
+						If (pUDMI->dis.itemState And ODS_SELECTED) Then
+							' clicked -- MENU_POPUPITEM has no state for this, though MENU_BARITEM does
+							iTextStateID = MPI_HOT
+							iBackgroundStateID = MPI_HOT
+							
+							pbrBackground = @hbrHlBkgnd '@g_brItemBackgroundSelected
+						End If
+						If ((pUDMI->dis.itemState And ODS_GRAYED) Or (pUDMI->dis.itemState And ODS_DISABLED)) Then
+							' disabled / grey text
+							iTextStateID = MPI_DISABLED
+							iBackgroundStateID = MPI_DISABLED
+						End If
+						If (pUDMI->dis.itemState And ODS_NOACCEL) Then
+							dwFlags Or = DT_HIDEPREFIX
+						End If
+						
+						If (g_menuTheme = 0) Then
+							g_menuTheme = OpenThemeData(msg.hWnd, "Menu")
+						End If
+						
+						'Dim As DTTOPTS opts = Type( SizeOf(opts), DTT_TEXTCOLOR, IIf(iTextStateID <> MPI_DISABLED, RGB(&h00, &h00, &h20), RGB(&h40, &h40, &h40) )
+						
+						FillRect(pUDMI->um.hdc, @pUDMI->dis.rcItem, *pbrBackground)
+						SetBkMode pUDMI->um.hdc, TRANSPARENT
+						SetTextColor pUDMI->um.hdc, darkTextColor
+						SetBkColor pUDMI->um.hdc, darkBkColor
+						DrawText pUDMI->um.hdc, menuString, mii.cch, @pUDMI->dis.rcItem, dwFlags
+						SetBkMode pUDMI->um.hdc, OPAQUE
+						'DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, @pUDMI->dis.rcItem, @opts)
 					End If
-					If ((pUDMI->dis.itemState And ODS_GRAYED) Or (pUDMI->dis.itemState And ODS_DISABLED)) Then
-						' disabled / grey text
-						iTextStateID = MPI_DISABLED
-						iBackgroundStateID = MPI_DISABLED
-					End If
-					If (pUDMI->dis.itemState And ODS_NOACCEL) Then
-						dwFlags Or = DT_HIDEPREFIX
-					End If
-					
-					If (g_menuTheme = 0) Then
-						g_menuTheme = OpenThemeData(msg.hWnd, "Menu")
-					End If
-					
-					'Dim As DTTOPTS opts = Type( SizeOf(opts), DTT_TEXTCOLOR, IIf(iTextStateID <> MPI_DISABLED, RGB(&h00, &h00, &h20), RGB(&h40, &h40, &h40) )
-					
-					FillRect(pUDMI->um.hdc, @pUDMI->dis.rcItem, *pbrBackground)
-					SetBkMode pUDMI->um.hdc, TRANSPARENT
-					SetTextColor pUDMI->um.hdc, darkTextColor
-					SetBkColor pUDMI->um.hdc, darkBkColor
-					DrawText pUDMI->um.hdc, menuString, mii.cch, @pUDMI->dis.rcItem, dwFlags
-					SetBkMode pUDMI->um.hdc, OPAQUE
-					'DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, @pUDMI->dis.rcItem, @opts)
 					
 					msg.Result = True
 					Return
