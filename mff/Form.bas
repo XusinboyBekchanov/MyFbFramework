@@ -958,7 +958,7 @@ Namespace My.Sys.Forms
 							GetMenuItemInfo(pUDMI->um.hmenu, 0, True, @mii0)
 							Dim As HWND h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
 							If h Then
-								Dim As HWND hIco = Cast(HICON, SendMessage(h, WM_GETICON, ICON_SMALL, 0))
+								Dim As HICON hIco = Cast(HICON, SendMessage(h, WM_GETICON, Cast(WPARAM, ICON_SMALL), 0))
 								If hIco = 0 Then hIco = LoadIcon(0, IDI_APPLICATION)
 								DrawIconEx(pUDMI->um.hdc, 15, 32, hIco, 16, 16, 0, 0, DI_NORMAL)
 							End If
