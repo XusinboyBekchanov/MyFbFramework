@@ -112,12 +112,13 @@ Namespace My
 		FControlCount   As Integer
 		FControls       As My.Sys.Forms.Control Ptr Ptr
 		FActiveForm     As My.Sys.Forms.Control Ptr
+		FActiveMDIChild As My.Sys.Forms.Control Ptr
 		FMainForm       As My.Sys.Forms.Control Ptr
 		Declare Sub GetControls
 		Declare Sub EnumControls(Control As My.Sys.Forms.Control)
 		#ifdef __USE_WINAPI__
-			Declare Static Function EnumThreadWindowsProc(FWindow As HWND,LData As LParam) As Bool
-			Declare Static Function EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
+			Declare Static Function EnumThreadWindowsProc(FWindow As HWND,LData As LPARAM) As BOOL
+			Declare Static Function EnumFontsProc(LogFont As LogFont Ptr, TextMetric As TextMetric Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
 		#endif
 		Declare Sub GetFonts
 		Declare Sub GetForms
@@ -138,6 +139,8 @@ Namespace My
 		#endif
 		Declare Property ActiveForm As My.Sys.Forms.Control Ptr
 		Declare Property ActiveForm(Value As My.Sys.Forms.Control Ptr)
+		Declare Property ActiveMDIChild As My.Sys.Forms.Control Ptr
+		Declare Property ActiveMDIChild(Value As My.Sys.Forms.Control Ptr)
 		Declare Property FileName ByRef As WString
 		Declare Property FileName(ByRef Value As WString)
 		Declare Function Version() As Const String

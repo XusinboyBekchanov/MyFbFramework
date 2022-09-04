@@ -1214,7 +1214,7 @@ Namespace My.Sys.Forms
 				'				If OnTimer Then OnTimer(This)
 			Case WM_MDIACTIVATE
 				If msg.lParam = msg.hWnd Then
-					pApp->ActiveForm = @This
+					pApp->ActiveMDIChild = @This
 					If OnActivate Then OnActivate(This)
 				End If
 				If msg.wParam = msg.hWnd Then

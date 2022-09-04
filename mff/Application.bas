@@ -138,6 +138,17 @@ Namespace My
 '		#endif
 	End Property
 	
+	Private Property Application.ActiveMDIChild As My.Sys.Forms.Control Ptr
+		Return FActiveMDIChild
+	End Property
+	
+	Private Property Application.ActiveMDIChild(Value As My.Sys.Forms.Control Ptr)
+		FActiveMDIChild = Value
+'		#ifdef __USE_WINAPI__
+'			If Value Then SetForegroundWindow(Value->Handle)
+'		#endif
+	End Property
+	
 	Private Property Application.MainForm As My.Sys.Forms.Control Ptr
 		'        For i As Integer = 0 To FormCount -1
 		'            If (Forms[i]->ExStyle AND WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
