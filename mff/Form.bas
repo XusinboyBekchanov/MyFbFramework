@@ -959,8 +959,9 @@ Namespace My.Sys.Forms
 							Dim As HWND h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
 							If h Then
 								Dim As HICON hIco = Cast(HICON, SendMessage(h, WM_GETICON, Cast(WPARAM, ICON_SMALL), 0))
+								Dim As Integer iTop = ScaleY(31) + (pUDMI->dis.rcItem.Bottom - pUDMI->dis.rcItem.Top - 1 - ScaleY(16)) / 2
 								If hIco = 0 Then hIco = LoadIcon(0, IDI_APPLICATION)
-								DrawIconEx(pUDMI->um.hdc, 15, 32, hIco, 16, 16, 0, 0, DI_NORMAL)
+								DrawIconEx(pUDMI->um.hdc, 15, iTop, hIco, ScaleX(16), ScaleY(16), 0, 0, DI_NORMAL)
 							End If
 						End If
 						
@@ -974,30 +975,32 @@ Namespace My.Sys.Forms
 						Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left, pUDMI->dis.rcItem.Top + 1, pUDMI->dis.rcItem.Right - 1, pUDMI->dis.rcItem.Bottom
 						DeleteObject(Pen)
 						
+						Dim As Integer iLeft = pUDMI->dis.rcItem.Left + (pUDMI->dis.rcItem.Right - 1 - pUDMI->dis.rcItem.Left - 8) / 2
+						Dim As Integer iTop = pUDMI->dis.rcItem.Top + (pUDMI->dis.rcItem.Bottom - 1 - pUDMI->dis.rcItem.Top - 8) / 2 + 1
 						Select Case mii.hbmpItem
 						Case HBMMENU_MBAR_MINIMIZE
 							Pen = CreatePen(PS_SOLID, 0, BGR(122, 136, 150))
 							SelectObject(pUDMI->um.hdc, Pen)
-							Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 5, pUDMI->dis.rcItem.Top + 12, pUDMI->dis.rcItem.Right - 8, pUDMI->dis.rcItem.Bottom - 5
+							Rectangle pUDMI->um.hdc, iLeft, iTop + 6, iLeft + 6, iTop + 6 + 2
 							DeleteObject(Pen)
 						Case HBMMENU_MBAR_RESTORE
 							Pen = CreatePen(PS_SOLID, 0, BGR(122, 136, 150))
 							SelectObject(pUDMI->um.hdc, Pen)
-							Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 5, pUDMI->dis.rcItem.Top + 10, pUDMI->dis.rcItem.Right - 8, pUDMI->dis.rcItem.Bottom - 5
-							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 5, pUDMI->dis.rcItem.Top + 9, 0
-							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 8, pUDMI->dis.rcItem.Top + 9
-							SetPixel pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 7, pUDMI->dis.rcItem.Top + 8, BGR(122, 136, 150)
-							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Top + 8, 0
-							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Top + 11
-							Rectangle pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 7, pUDMI->dis.rcItem.Top + 6, pUDMI->dis.rcItem.Right - 6, pUDMI->dis.rcItem.Top + 8
+							Rectangle pUDMI->um.hdc, iLeft, iTop + 4, iLeft + 6, iTop + 4 + 4
+							MoveToEx pUDMI->um.hdc, iLeft, iTop + 3, 0
+							LineTo pUDMI->um.hdc, iLeft + 6, iTop + 3
+							SetPixel pUDMI->um.hdc, iLeft + 2, iTop + 2, BGR(122, 136, 150)
+							MoveToEx pUDMI->um.hdc, iLeft + 7, iTop + 2, 0
+							LineTo pUDMI->um.hdc, iLeft + 7, iTop + 5
+							Rectangle pUDMI->um.hdc, iLeft + 2, iTop, iLeft + 8, iTop + 2
 							DeleteObject(Pen)
 						Case HBMMENU_MBAR_CLOSE
 							Pen = CreatePen(PS_SOLID, 2, BGR(122, 136, 150))
 							SelectObject(pUDMI->um.hdc, Pen)
-							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 6, pUDMI->dis.rcItem.Top + 7, 0
-							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Bottom - 6
-							MoveToEx pUDMI->um.hdc, pUDMI->dis.rcItem.Right - 7, pUDMI->dis.rcItem.Top + 7, 0
-							LineTo pUDMI->um.hdc, pUDMI->dis.rcItem.Left + 6, pUDMI->dis.rcItem.Bottom - 6
+							MoveToEx pUDMI->um.hdc, iLeft + 1, iTop + 1, 0
+							LineTo pUDMI->um.hdc, iLeft + 7, iTop + 7
+							MoveToEx pUDMI->um.hdc, iLeft + 7, iTop + 1, 0
+							LineTo pUDMI->um.hdc, iLeft + 1, iTop + 7
 							DeleteObject(Pen)
 						End Select
 						
