@@ -120,7 +120,7 @@ Namespace My.Sys.Forms
 			value.wID         = IIf(Handle, -1, This.Command)
 			If FImageIndex <> - 1 AndAlso Owner AndAlso Owner->ImagesList Then
 				FImage.LoadFromHICON(Owner->ImagesList->GetIcon(FImageIndex).Handle)
-			ElseIf WGet(FImageKey) <> "" Then
+			ElseIf WGet(FImageKey) <> "" AndAlso FImage.Handle = 0 Then
 				FImage.LoadFromResourceName(*FImageKey)
 			End If
 			If Owner <> 0 AndAlso Not Owner->DisplayIcons Then
@@ -490,9 +490,9 @@ Namespace My.Sys.Forms
 	
 	Private Property MenuItem.ImageIndex(value As Integer)
 		FImageIndex = value
-		If value <> -1 AndAlso owner AndAlso owner->imageslist Then
+		If value <> -1 AndAlso Owner AndAlso Owner->ImagesList Then
 			#ifdef __USE_WINAPI__
-				FImage.Handle = owner->imageslist->GetIcon(value).ToBitmap
+				FImage.Handle = Owner->ImagesList->GetIcon(value).ToBitmap
 				
 				Dim mii As MENUITEMINFOW
 				mii.cbSize = SizeOf(mii)
