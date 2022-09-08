@@ -78,6 +78,8 @@ End Type
 
 Private Type Dialog Extends Component
 Public:
+	Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+	Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	Declare Abstract Function Execute As Boolean
 End Type
 
@@ -116,9 +118,6 @@ Public:
 	Declare Property FileTitle(ByRef Value As WString)
 	Declare Property Filter ByRef As WString
 	Declare Property Filter(ByRef Value As WString)
-	#ifndef __USE_GTK__
-		Handle       As HWND
-	#endif
 	Options      As OpenFileOptions
 	Center       As Boolean
 	Declare Function Execute As Boolean
@@ -143,6 +142,8 @@ Private:
 Public:
 	Declare Function ReadProperty(PropertyName As String) As Any Ptr
 	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	Options      As OpenFileOptions
+	Center       As Boolean
 	FilterIndex  As Integer
 	Declare Property InitialDir ByRef As WString
 	Declare Property InitialDir(ByRef Value As WString)
@@ -154,11 +155,6 @@ Public:
 	Declare Property FileName(ByRef Value As WString)
 	Declare Property Filter ByRef As WString
 	Declare Property Filter(ByRef Value As WString)
-	#ifndef __USE_GTK__
-		Handle       As HWND
-	#endif
-	Options      As OpenFileOptions
-	Center       As Boolean
 	Declare Property Color As Integer
 	Declare Property Color(Value As Integer)
 	Declare Function Execute As Boolean
@@ -170,6 +166,8 @@ Public:
 End Type
 
 Private Type FontDialog Extends Dialog
+	Declare Function ReadProperty(PropertyName As String) As Any Ptr
+	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	Font        As My.Sys.Drawing.Font
 	MaxFontSize As Integer
 	MinFontSize As Integer
@@ -181,17 +179,17 @@ End Type
 Private Type FolderBrowserDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(hWnd As HWND, uMsg As uINT, lParam As LPARAM, lpData As LPARAM) As Long
+		Declare Static Function Hook(hWnd As HWND, uMsg As UINT, lParam As LPARAM, lpData As LPARAM) As Long
 	#endif
-	Control    As My.Sys.Forms.Control
+	Control     As My.Sys.Forms.Control
 	FCaption    As WString Ptr
 	FTitle      As WString Ptr
 	FInitialDir As WString Ptr
 	FDirectory  As WString Ptr
 Public:
-	#ifndef __USE_GTK__
-		Handle     As HWND
-	#endif
+	Center      As Boolean
+	Declare Function ReadProperty(PropertyName As String) As Any Ptr
+	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	Declare Property Caption ByRef As WString
 	Declare Property Caption(ByRef Value As WString)
 	Declare Property Title ByRef As WString
@@ -200,7 +198,6 @@ Public:
 	Declare Property InitialDir(ByRef Value As WString)
 	Declare Property Directory ByRef As WString
 	Declare Property Directory(ByRef Value As WString)
-	Center     As Boolean
 	Declare Function Execute As Boolean
 	Declare Constructor
 	Declare Destructor
@@ -216,13 +213,10 @@ Private:
 		Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
 	#endif
 Public:
+	Declare Function ReadProperty(PropertyName As String) As Any Ptr
+	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	Parent          As My.Sys.Forms.Control Ptr
 	Center          As Integer
-	#ifndef __USE_GTK__
-		Handle          As Hwnd
-	#endif
-	Declare Property Caption ByRef As WString
-	Declare Property Caption(ByRef Value As WString)
 	Color           As Integer
 	Style           As Integer
 	#ifndef __USE_GTK__
@@ -233,6 +227,8 @@ Public:
 		}
 	#endif
 	BackColor       As Integer
+	Declare Property Caption ByRef As WString
+	Declare Property Caption(ByRef Value As WString)
 	Declare Operator Cast As Any Ptr
 	Declare Function Execute As Boolean
 	Declare Constructor
