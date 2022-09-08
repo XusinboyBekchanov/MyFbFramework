@@ -95,6 +95,8 @@ Private:
 	FFileTitle    As WString Ptr
 	FFilter       As WString Ptr
 Public:
+	Declare Function ReadProperty(PropertyName As String) As Any Ptr
+	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	FileNames 	As WStringList
 	#ifndef __USE_GTK__
 		
@@ -139,6 +141,8 @@ Private:
 	FFileName     As WString Ptr
 	FFilter       As WString Ptr
 Public:
+	Declare Function ReadProperty(PropertyName As String) As Any Ptr
+	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	FilterIndex  As Integer
 	Declare Property InitialDir ByRef As WString
 	Declare Property InitialDir(ByRef Value As WString)

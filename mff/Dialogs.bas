@@ -44,6 +44,44 @@ Private Destructor OpenFileOptions
 	If Options Then Deallocate_(Options)
 End Destructor
 
+Private Function OpenFileDialog.ReadProperty(PropertyName As String) As Any Ptr
+	Select Case LCase(PropertyName)
+	Case "caption": Return FCaption
+	Case "center": Return @Center
+	Case "defaultext": Return FDefaultExt
+	Case "filename": Return FFileName
+	Case "filetitle": Return FFileTitle
+	Case "filter": Return FFilter
+	Case "filterindex": Return @FilterIndex
+	#ifndef __USE_GTK__
+	Case "handle": Return @Handle
+	#endif
+	Case "initialdir": Return FInitialDir
+	Case "multiselect": Return @FMultiSelect
+	Case Else: Return Base.ReadProperty(PropertyName)
+	End Select
+	Return 0
+End Function
+
+Private Function OpenFileDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Select Case LCase(PropertyName)
+	Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
+	Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
+	Case "defaultext": If Value <> 0 Then This.DefaultExt = QWString(Value)
+	Case "filename": If Value <> 0 Then This.FileName = QWString(Value)
+	Case "filetitle": If Value <> 0 Then This.FileTitle = QWString(Value)
+	Case "filter": If Value <> 0 Then This.Filter = QWString(Value)
+	Case "filterindex": If Value <> 0 Then This.FilterIndex = QInteger(Value)
+	#ifndef __USE_GTK__
+	Case "handle": If Value <> 0 Then This.Handle = *Cast(HWND Ptr, Value)
+	#endif
+	Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
+	Case "multiselect": If Value <> 0 Then This.MultiSelect = QBoolean(Value)
+	Case Else: Return Base.WriteProperty(PropertyName, Value)
+	End Select
+	Return True
+End Function
+
 Private Property OpenFileDialog.MultiSelect As Boolean
 	Return FMultiSelect
 End Property
@@ -114,14 +152,14 @@ End Property
 		Static As OpenFileDialog Ptr OpenDial
 		Select Case Msg
 		Case WM_INITDIALOG
-			OpenDial = Cast(OpenFileDialog Ptr, Cast(lpOpenFileName, lParam)->lCustData)
+			OpenDial = Cast(OpenFileDialog Ptr, Cast(LPOPENFILENAME, lParam)->lCustData)
 			OpenDial->Handle = FWindow
 			SetWindowLongPtr(FWindow, GWLP_USERDATA, CInt(OpenDial))
 		Case WM_NOTIFY
 			Dim As OFNOTIFY Ptr POF
 			Dim As OpenFileDialog Ptr OpenDial = Cast(OpenFileDialog Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 			POF = Cast(OFNOTIFY Ptr, lParam)
-			Select Case POF->hdr.Code
+			Select Case POF->hdr.code
 '			Case FILEOKSTRING
 '				Return 2
 			Case CDN_FILEOK
@@ -151,8 +189,8 @@ End Property
 						T = R.Top
 						W = R.Right - R.Left
 						H = R.Bottom - R.Top
-						L = (GetSysTemMetrics(SM_CXSCREEN) - W)\2
-						T = (GetSysTemMetrics(SM_CYSCREEN) - H)\2
+						L = (GetSystemMetrics(SM_CXSCREEN) - W)\2
+						T = (GetSystemMetrics(SM_CYSCREEN) - H)\2
 						SetWindowPos GetParent(FWindow),0,L,T,0,0,SWP_NOACTIVATE Or SWP_NOSIZE Or SWP_NOZORDER
 					End If
 				End If
@@ -170,13 +208,13 @@ Private Function OpenFileDialog.Execute As Boolean
 		Dim As GtkWindow Ptr win
 		Dim As GtkFileFilter Ptr filefilter()
 		If pApp->MainForm Then
-			win = Gtk_Window(pApp->MainForm->widget)
+			win = GTK_WINDOW(pApp->MainForm->widget)
 		End If
-		widget =  gtk_file_chooser_dialog_new (ToUTF8(*FCaption), _
+		widget =  gtk_file_chooser_dialog_new (ToUtf8(*FCaption), _
 		win, _
 		GTK_FILE_CHOOSER_ACTION_OPEN, _
-		ToUTF8("Cancel"), GTK_RESPONSE_CANCEL, _
-		ToUTF8("Open"), GTK_RESPONSE_ACCEPT, _
+		ToUtf8("Cancel"), GTK_RESPONSE_CANCEL, _
+		ToUtf8("Open"), GTK_RESPONSE_ACCEPT, _
 		NULL)
 		Dim As UString res()
 		If *FFilter <> "" Then
@@ -187,23 +225,23 @@ Private Function OpenFileDialog.Execute As Boolean
 				If res(i) = "" Then Continue For
 				j += 1
 				filefilter(j) = gtk_file_filter_new()
-				gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
+				gtk_file_filter_set_name(filefilter(j), ToUtf8(res(i - 1)))
 				gtk_file_filter_add_pattern(filefilter(j), res(i))
 				gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
 			Next
 			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
 		End If
 		If WGet(FFileName) <> "" Then
-			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
+			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
 		End If
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
-		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
 		If FMultiSelect Then gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), True)
 		Dim As Integer result = gtk_dialog_run (GTK_DIALOG (widget))
 		bResult = result = GTK_RESPONSE_ACCEPT
 		If bResult Then
-			filename = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
+			FileName = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
 			Dim As GSList Ptr l = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER (widget))
 			While (l)
 				FileNames.Add *Cast(ZString Ptr, l->Data)
@@ -222,7 +260,7 @@ Private Function OpenFileDialog.Execute As Boolean
 		Dim wFilter As WString Ptr '* 260 = ""
 		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(wFilter)
-		Dim pchar As WChar Ptr = wFilter
+		Dim pchar As WCHAR Ptr = wFilter
 		For i As Long = 0 To Len(*wFilter) - 1
 			If pchar[i] = Asc("|") Then pchar[i] = 0
 		Next
@@ -252,18 +290,18 @@ Private Function OpenFileDialog.Execute As Boolean
 		ofn.lpstrFileTitle       = FFileTitle
 		ofn.nMaxFileTitle       = 256
 		'ofn.lpstrFile[0] = 0
-		ofn.nMaxFile        = (Max_Path + 1) * 100
+		ofn.nMaxFile        = (MAX_PATH + 1) * 100
 		ofn.lpstrInitialDir = FInitialDir
 		If Len(*FCaption) Then ofn.lpstrTitle = FCaption
 		ofn.Flags = dwFlags
 		ofn.lpfnHook           = Cast(LPOFNHOOKPROC, @Hook)
 		ofn.lCustData          = Cast(LPARAM, @This)
 		If FDefaultExt Then ofn.lpstrDefExt = FDefaultExt
-		bResult = GetOpenFilename(@ofn)
+		bResult = GetOpenFileName(@ofn)
 		If bResult Then
 			FileName = cwsFile
 			Dim buff As WString Ptr = @cwsFile
-			For i As Integer = 0 To max_path * 100
+			For i As Integer = 0 To MAX_PATH * 100
 				If i <> 0 AndAlso buff[i] = 0 Then
 					If buff[i - 1] = 0 Then
 						Exit For
@@ -277,7 +315,7 @@ Private Function OpenFileDialog.Execute As Boolean
 			If FileNames.Count > 1 Then FileNames.Remove 0
 		End If
 		'Deallocate cwsFile
-		WDeallocate wFilter
+		WDeAllocate wFilter
 	#endif
 	Return bResult
 	Exit Function
@@ -299,8 +337,8 @@ Private Constructor OpenFileDialog
 	#else
 		Options.Include OFN_PATHMUSTEXIST
 		Options.Include OFN_FILEMUSTEXIST
+		Options.Include OFN_EXPLORER
 		'Options.Include OFN_HIDEREADONLY
-		'Options.Include OFN_EXPLORER
 		'Options.Include OFN_ENABLEHOOK
 	#endif
 	Caption           = "Open ..."
@@ -314,10 +352,44 @@ Private Destructor OpenFileDialog
 	If FInitialDir Then Deallocate_( FInitialDir)
 	If FCaption Then Deallocate_( FCaption)
 	If FDefaultExt Then Deallocate_( FDefaultExt)
-	If FFileName Then DeAllocate_( FFileName)
-	If FFileTitle Then DeAllocate_( FFileTitle)
-	If FFilter Then DeAllocate_( FFilter)
+	If FFileName Then Deallocate_( FFileName)
+	If FFileTitle Then Deallocate_( FFileTitle)
+	If FFilter Then Deallocate_( FFilter)
 End Destructor
+
+Private Function SaveFileDialog.ReadProperty(PropertyName As String) As Any Ptr
+	Select Case LCase(PropertyName)
+	Case "caption": Return FCaption
+	Case "center": Return @Center
+	Case "defaultext": Return FDefaultExt
+	Case "filename": Return FFileName
+	Case "filter": Return FFilter
+	Case "filterindex": Return @FilterIndex
+	#ifndef __USE_GTK__
+	Case "handle": Return @Handle
+	#endif
+	Case "initialdir": Return FInitialDir
+	Case Else: Return Base.ReadProperty(PropertyName)
+	End Select
+	Return 0
+End Function
+
+Private Function SaveFileDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	Select Case LCase(PropertyName)
+	Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
+	Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
+	Case "defaultext": If Value <> 0 Then This.DefaultExt = QWString(Value)
+	Case "filename": If Value <> 0 Then This.FileName = QWString(Value)
+	Case "filter": If Value <> 0 Then This.Filter = QWString(Value)
+	Case "filterindex": If Value <> 0 Then This.FilterIndex = QInteger(Value)
+	#ifndef __USE_GTK__
+	Case "handle": If Value <> 0 Then This.Handle = *Cast(HWND Ptr, Value)
+	#endif
+	Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
+	Case Else: Return Base.WriteProperty(PropertyName, Value)
+	End Select
+	Return True
+End Function
 
 Private Property SaveFileDialog.InitialDir ByRef As WString
 	Return WGet(FInitialDir)
@@ -376,7 +448,7 @@ End Property
 		Case WM_NOTIFY
 			Dim As OFNOTIFY Ptr POF
 			POF = Cast(OFNOTIFY Ptr,lParam)
-			Select Case POF->hdr.Code
+			Select Case POF->hdr.code
 			Case CDN_FILEOK
 				SetWindowLongPtr GetParent(FWindow),DWLP_MSGRESULT,1
 				Exit Function
@@ -403,7 +475,7 @@ End Property
 						T = R.Top
 						W = R.Right - R.Left
 						H = R.Bottom - R.Top
-						L = (GetSysTemMetrics(SM_CXSCREEN) - W)\2
+						L = (GetSystemMetrics(SM_CXSCREEN) - W)\2
 						T = (GetSysTemMetrics(SM_CYSCREEN) - H)\2:Print L,T
 						SetWindowPos GetParent(FWindow),0,L,T,0,0,SWP_NOACTIVATE Or SWP_NOSIZE Or SWP_NOZORDER
 					End If
@@ -420,13 +492,13 @@ Private Function SaveFileDialog.Execute As Boolean
 		Dim As GtkWindow Ptr win
 		Dim As GtkFileFilter Ptr filefilter(), curfilefilter
 		If pApp->MainForm Then
-			win = Gtk_Window(pApp->MainForm->widget)
+			win = GTK_WINDOW(pApp->MainForm->widget)
 		End If
-		widget =  gtk_file_chooser_dialog_new (ToUTF8(*FCaption), _
+		widget =  gtk_file_chooser_dialog_new (ToUtf8(*FCaption), _
 		win, _
 		GTK_FILE_CHOOSER_ACTION_SAVE, _
-		ToUTF8("Cancel"), GTK_RESPONSE_CANCEL, _
-		ToUTF8("Save"), GTK_RESPONSE_ACCEPT, _
+		ToUtf8("Cancel"), GTK_RESPONSE_CANCEL, _
+		ToUtf8("Save"), GTK_RESPONSE_ACCEPT, _
 		NULL)
 		Dim As UString res()
 		If *FFilter <> "" Then
@@ -437,17 +509,17 @@ Private Function SaveFileDialog.Execute As Boolean
 				If res(i) = "" Then Continue For
 				j += 1
 				filefilter(j) = gtk_file_filter_new()
-				gtk_file_filter_set_name(filefilter(j), ToUTF8(res(i - 1)))
+				gtk_file_filter_set_name(filefilter(j), ToUtf8(res(i - 1)))
 				gtk_file_filter_add_pattern(filefilter(j), res(i))
 				gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
 			Next
 			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
 		End If
 		If WGet(FFileName) <> "" Then
-			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
+			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
 		End If
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
-		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
 		'gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), true)
 		Dim As Integer result = gtk_dialog_run (GTK_DIALOG (widget))
@@ -482,7 +554,7 @@ Private Function SaveFileDialog.Execute As Boolean
 		Dim wFilter As WString Ptr
 		WLet(wFilter, *FFilter & wMarkers)
 		Dim dwFilterStrSize As DWORD = Len(*wFilter)
-		Dim pchar As WChar Ptr = wFilter
+		Dim pchar As WCHAR Ptr = wFilter
 		For i As Long = 0 To Len(*wFilter) - 1
 			If pchar[i] = Asc("|") Then pchar[i] = 0
 		Next
