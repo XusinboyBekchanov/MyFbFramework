@@ -549,8 +549,9 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TabControl.SelectedTab As TabPage Ptr
-		If SelectedTabIndex >= 0 And SelectedTabIndex <= TabCount - 1 Then
-			Return Tabs[SelectedTabIndex]
+		Var Idx = SelectedTabIndex
+		If Idx >= 0 AndAlso Idx <= TabCount - 1 Then
+			Return Tabs[Idx]
 		Else
 			Return 0
 		End If
@@ -564,9 +565,9 @@ Namespace My.Sys.Forms
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK3__
-					Return gtk_widget_get_allocated_height(gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget))
+					Return gtk_widget_get_allocated_height(gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget))
 				#else
-					Return gtk_notebook_get_tab_label(gtk_notebook(widget), Tabs[Index]->Widget)->allocation.height
+					Return gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)->allocation.height
 				#endif
 			#else
 				Dim As ..Rect R
@@ -1010,9 +1011,9 @@ Namespace My.Sys.Forms
 				tp->_label = gtk_label_new(ToUTF8(tp->Caption))
 				gtk_container_add (GTK_CONTAINER (tp->_box), tp->_label)
 				'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
-				gtk_widget_show_all(tp->_box)
-				gtk_notebook_insert_page(gtk_notebook(widget), tp->widget, tp->_box, Index)
-				gtk_notebook_set_tab_reorderable(gtk_notebook(widget), tp->widget, FReorderable)
+				gtk_widget_show_all(tp->_Box)
+				gtk_notebook_insert_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box, Index)
+				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
 				'RequestAlign
 			End If
 			tp->Visible = FTabCount = 1
@@ -1029,7 +1030,7 @@ Namespace My.Sys.Forms
 				Ti.cchTextMax = Len(tp->Caption)
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Ti.iImage = tp->ImageIndex
-				SendmessageW(FHandle, TCM_INSERTITEMW, Index, CInt(@Ti))
+				SendMessageW(FHandle, TCM_INSERTITEMW, Index, CInt(@Ti))
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1
