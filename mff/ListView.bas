@@ -592,14 +592,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListViewItems.Item(Index As Integer, Value As ListViewItem Ptr)
-		'QToolButton(FItems.Items[Index]) = Value
-		FItems.Items[Index] = Value  'David Change
+		If Index >= 0 AndAlso Index < FItems.Count Then
+			FItems.Items[Index] = Value  'David Change
+		End If
 	End Property
 	
 	#ifdef __USE_GTK__
 		Private Function ListViewItems.FindByIterUser_Data(User_Data As Any Ptr) As ListViewItem Ptr
 			For i As Integer = 0 To Count - 1
-				If Item(i)->TreeIter.user_data = User_Data Then Return Item(i)
+				If Item(i)->TreeIter.User_Data = User_Data Then Return Item(i)
 			Next i
 			Return 0
 		End Function
@@ -632,7 +633,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Cast(ListView Ptr, Parent)->Init
 			If iSortStyle <> SortStyle.ssNone OrElse Index <> -1 Then
-				gtk_list_store_insert(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, i)
+				gtk_list_store_insert(gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, i)
 			Else
 				gtk_list_store_append(gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter)
 			End If
@@ -1842,12 +1843,12 @@ Namespace My.Sys.Forms
 			ListItems.Clear
 		#endif
 		#ifdef __USE_WINAPI__
-			UnregisterClass "ListView",GetModuleHandle(NULL)
+			UnregisterClass "ListView",GetmoduleHandle(NULL)
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
 			#ifndef __FB_WIN32__
-				If GTK_IS_WIDGET(TreeViewWidget) AndAlso TreeViewWidget <> widget Then gtk_widget_destroy(TreeViewWidget)
-				If GTK_IS_WIDGET(IconViewWidget) AndAlso IconViewWidget <> widget Then gtk_widget_destroy(IconViewWidget)
+				If gtk_is_widget(TreeViewWidget) AndAlso TreeViewWidget <> widget Then gtk_widget_destroy(TreeViewWidget)
+				If gtk_is_widget(IconViewWidget) AndAlso IconViewWidget <> widget Then gtk_widget_destroy(IconViewWidget)
 			#endif
 		#endif
 	End Destructor

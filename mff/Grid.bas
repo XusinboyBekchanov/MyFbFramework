@@ -465,17 +465,21 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property GridRows.Item(Index As Integer) As GridRow Ptr
-		Return QGridRow(FItems.Items[Index])
+		If Index >= 0 AndAlso Index < FItems.Count Then
+			Return FItems.Items[Index]
+		End If
 	End Property
 	
 	Private Property GridRows.Item(Index As Integer, Value As GridRow Ptr)
-		'QToolButton(FItems.Items[Index]) = Value
+		If Index >= 0 AndAlso Index < FItems.Count Then
+			FItems.Items[Index] = Value
+		End If
 	End Property
 	
 	#ifdef __USE_GTK__
 		Private Function GridRows.FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
 			For i As Integer = 0 To Count - 1
-				If Item(i)->TreeIter.User_Data = User_Data Then Return Item(i)
+				If Item(i)->TreeIter.user_data = User_Data Then Return Item(i)
 			Next i
 			Return 0
 		End Function
@@ -667,7 +671,7 @@ Namespace My.Sys.Forms
 			If lv = 0 Then Exit Sub
 			If lv->OnCellEdited Then lv->OnCellEdited(*lv, Val(*path), PColumn->Index, *new_text)
 		End Sub
-	
+		
 		Private Sub GridColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = user_data
 			Dim As GtkListStore Ptr model = gtk_list_store(GridGetModel(lv->Handle))
@@ -968,7 +972,7 @@ Namespace My.Sys.Forms
 			ChangeLVExStyle LVS_EX_TRACKSELECT, Value
 		#endif
 	End Property
-
+	
 	Private Property Grid.HoverTime As Integer
 		Return FHoverTime
 	End Property
@@ -979,7 +983,7 @@ Namespace My.Sys.Forms
 			If Handle Then Perform(LVM_SETHOVERTIME, 0, Value)
 		#endif
 	End Property
-		
+	
 	Private Property Grid.AllowColumnReorder As Boolean
 		Return FAllowColumnReorder
 	End Property
@@ -1157,11 +1161,11 @@ Namespace My.Sys.Forms
 				If SelectedRowIndex <> -1 Then
 					If OnRowClick Then OnRowClick(This, SelectedRowIndex)
 				End If
-			#ifdef __USE_GTK3__
-			Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
-			#else
-			Case GDK_2BUTTON_PRESS
-			#endif
+				#ifdef __USE_GTK3__
+				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
+				#else
+				Case GDK_2BUTTON_PRESS
+				#endif
 				If SelectedRowIndex <> -1 Then
 					If OnRowDblClick Then OnRowDblClick(This, SelectedRowIndex)
 				End If
@@ -1200,41 +1204,41 @@ Namespace My.Sys.Forms
 			Case WM_THEMECHANGED
 				If (g_darkModeSupported) Then
 					Dim As HWND hHeader = ListView_GetHeader(Message.hWnd)
-
+					
 					AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
 					AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
-
+					
 					Dim As HTHEME hTheme '= OpenThemeData(nullptr, "ItemsView")
 					'If (hTheme) Then
 					'	Dim As COLORREF Color1
 					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
-							If g_darkModeEnabled Then
-								ListView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
-							Else
-								ListView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
-							End If
+					If g_darkModeEnabled Then
+						ListView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
+					Else
+						ListView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
+					End If
 					'	End If
 					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
-							If g_darkModeEnabled Then
-								ListView_SetTextBkColor(Message.hWnd, darkBkColor) 'Color1)
-								ListView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
-							Else
-								ListView_SetTextBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
-								ListView_SetBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
-							End If
+					If g_darkModeEnabled Then
+						ListView_SetTextBkColor(Message.hWnd, darkBkColor) 'Color1)
+						ListView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+					Else
+						ListView_SetTextBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
+						ListView_SetBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
+					End If
 					'	End If
 					'	CloseThemeData(hTheme)
 					'End If
-
+					
 					hTheme = OpenThemeData(hHeader, "Header")
 					If (hTheme) Then
 						'Var info = reinterpret_cast<SubclassInfo*>(dwRefData);
 						GetThemeColor(hTheme, HP_HEADERITEM, 0, TMT_TEXTCOLOR, @headerTextColor)
 						CloseThemeData(hTheme)
 					End If
-
+					
 					SendMessageW(hHeader, WM_THEMECHANGED, Message.wParam, Message.lParam)
-
+					
 					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
 				End If
 			Case CM_NOTIFY
@@ -1242,7 +1246,7 @@ Namespace My.Sys.Forms
 				Select Case lvp->hdr.code
 				Case NM_CLICK: FCol = lvp->iSubItem: Repaint: If OnRowClick Then OnRowClick(This, lvp->iItem)
 				Case NM_DBLCLK: If OnRowDblClick Then OnRowDblClick(This, lvp->iItem)
-				Case NM_KEYDOWN: 
+				Case NM_KEYDOWN:
 					Dim As LPNMKEY lpnmk = Cast(LPNMKEY, Message.lParam)
 					If OnRowKeyDown Then OnRowKeyDown(This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
 				Case LVN_ITEMACTIVATE: If OnRowActivate Then OnRowActivate(This, lvp->iItem)
@@ -1250,10 +1254,10 @@ Namespace My.Sys.Forms
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
 				Case LVN_COLUMNCLICK
 					If OnColumnClick Then OnColumnClick(This, lvp->iSubItem)
-				Case LVN_ITEMCHANGING: 
+				Case LVN_ITEMCHANGING:
 					Dim bCancel As Boolean
 					If OnSelectedRowChanging Then OnSelectedRowChanging(This, lvp->iItem, bCancel)
-					If bCancel Then Message.Result = -1: Exit Sub 
+					If bCancel Then Message.Result = -1: Exit Sub
 				Case LVN_ITEMCHANGED: If OnSelectedRowChanged Then OnSelectedRowChanged(This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
 				Case NM_CUSTOMDRAW
@@ -1311,7 +1315,7 @@ Namespace My.Sys.Forms
 								rc.Right -= 6
 							End If
 							If i <> 0 Then
-								Select Case Columns.Column(i)->Format 
+								Select Case Columns.Column(i)->Format
 								Case GridColumnFormat.gcfLeft: frmt = DT_LEFT
 								Case GridColumnFormat.gcfCenter: frmt = DT_CENTER
 								Case GridColumnFormat.gcfRight: frmt = DT_RIGHT
