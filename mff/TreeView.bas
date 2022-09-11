@@ -15,7 +15,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
 		#else
-			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, HANDLE, TVGN_CARET)
+			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, Handle, TVGN_CARET)
 		#endif
 	End Sub
 	
@@ -27,7 +27,7 @@ Namespace My.Sys.Forms
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
-			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, HANDLE, TVE_EXPAND)
+			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
 		#endif
 	End Sub
 	
@@ -39,15 +39,15 @@ Namespace My.Sys.Forms
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
-			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, HANDLE, TVE_EXPAND)
+			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
 		#endif
 	End Sub
 	
 	Private Function TreeNode.IsExpanded As Boolean
 		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)), @TreeIter))
-				Var bResult = gtk_tree_view_row_expanded(gtk_tree_view(Parent->Handle), TreePath)
+			If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)), @TreeIter))
+				Var bResult = gtk_tree_view_row_expanded(GTK_TREE_VIEW(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 				Return bResult
 			End If
@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Return  FBold
 		#else
-			If Parent AndAlso Parent->Handle Then 
+			If Parent AndAlso Parent->Handle Then
 				FBold = TreeView_GetItemState(Parent->Handle, Handle, TVIS_BOLD)
 				Return FBold
 			End If
@@ -98,8 +98,8 @@ Namespace My.Sys.Forms
 	Private Property TreeNode.Text(ByRef Value As WString)
 		FText = Value
 		#ifdef __USE_GTK__
-			If Parent AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-				gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 1, ToUTF8(Value), -1)
+			If Parent AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 1, ToUtf8(Value), -1)
 			EndIf
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -154,8 +154,8 @@ Namespace My.Sys.Forms
 	Private Property TreeNode.ImageIndex(Value As Integer)
 		FImageIndex = Value
 		#ifdef __USE_GTK__
-			If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-				gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
+			If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
 			EndIf
 		#else
 			If Value <> FImageIndex Then
@@ -180,8 +180,8 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->Images Then
 				FImageIndex = Cast(TreeView Ptr, Parent)->Images->IndexOf(*FImageKey)
 				#ifdef __USE_GTK__
-					If gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
-						gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
+					If gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+						gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
 					EndIf
 				#else
 					Dim tvi As TVITEM
@@ -232,8 +232,8 @@ Namespace My.Sys.Forms
 		If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
 			FSelectedImageIndex = Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(*FSelectedImageKey)
 			#ifdef __USE_GTK__
-				If CInt(Cast(TreeView Ptr, Parent)->SelectedNode = @This) AndAlso CInt(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))) Then
-					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Cast(TreeView Ptr, Parent)->SelectedImages->Items.Get(FSelectedImageIndex)), -1)
+				If CInt(Cast(TreeView Ptr, Parent)->SelectedNode = @This) AndAlso CInt(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))) Then
+					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->SelectedImages->Items.Get(FSelectedImageIndex)), -1)
 				End If
 			#else
 				Dim tvi As TVITEM
@@ -283,11 +283,11 @@ Namespace My.Sys.Forms
 	
 	Private Destructor TreeNode
 		Nodes.Clear
-		FIsDisposed = True 
+		FIsDisposed = True
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				If gtk_is_tree_view(Parent->Handle) Then
-					gtk_tree_store_remove(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @This.TreeIter)
+				If GTK_IS_TREE_VIEW(Parent->Handle) Then
+					gtk_tree_store_remove(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @This.TreeIter)
 					This.TreeIter.user_data = 0
 				End If
 			End If
@@ -314,7 +314,7 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Private Function TreeNodeCollection.FindByIterUser_Data(User_Data As Any Ptr) As TreeNode Ptr
-			If ParentNode AndAlso ParentNode->TreeIter.User_Data = User_Data Then Return ParentNode
+			If ParentNode AndAlso ParentNode->TreeIter.user_data = User_Data Then Return ParentNode
 			For i As Integer = 0 To Count - 1
 				PNode = Item(i)->Nodes.FindByIterUser_Data(User_Data)
 				If PNode <> 0 Then Return PNode
@@ -322,7 +322,7 @@ Namespace My.Sys.Forms
 			Return 0
 		End Function
 	#else
-		Private Function TreeNodeCollection.FindByHandle(hti As HTREEItem) As TreeNode Ptr
+		Private Function TreeNodeCollection.FindByHandle(hti As HTREEITEM) As TreeNode Ptr
 			If ParentNode AndAlso ParentNode->Handle = hti Then Return ParentNode
 			For i As Integer = 0 To Count - 1
 				PNode = Item(i)->Nodes.FindByHandle(hti)
@@ -340,12 +340,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNodeCollection.Item(Index As Integer) As TreeNode Ptr
-		Return FNodes.Items[Index]
+		If Index >= 0 AndAlso Index < FNodes.Count Then
+			Return FNodes.Items[Index]
+		End If
 	End Property
 	
 	Private Property TreeNodeCollection.Item(Index As Integer, Value As TreeNode Ptr)
-		'QTreeNode(FNodes.Items[Index]) = Value
-		FNodes.Items[Index] = Value 'David Change
+		If Index >= 0 AndAlso Index < FNodes.Count Then
+			FNodes.Items[Index] = Value 'David Change
+		End If
 	End Property
 	
 	Private Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
@@ -386,7 +389,7 @@ Namespace My.Sys.Forms
 				If Parent AndAlso Parent->Handle Then
 					tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
 					tvis.item.pszText              = @Ftext
-					tvis.item.cchTextMax           = Len(Ftext)
+					tvis.item.cchTextMax           = Len(FText)
 					tvis.item.iImage             = FImageIndex
 					tvis.item.iSelectedImage     = FSelectedImageIndex
 					tvis.hInsertAfter            = IIf(Cast(TreeView Ptr, Parent)->Sorted Or bSorted, TVI_SORT, 0)
@@ -466,15 +469,15 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub TreeNodeCollection.Remove(Index As Integer)
-'		#ifdef __USE_GTK__
-'			If Parent AndAlso Parent->widget Then
-'				gtk_tree_store_remove(Cast(TreeView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
-'			End If
-'		#else
-'			If Parent AndAlso Parent->Handle Then
-'				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
-'			End If
-'		#endif
+		'		#ifdef __USE_GTK__
+		'			If Parent AndAlso Parent->widget Then
+		'				gtk_tree_store_remove(Cast(TreeView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
+		'			End If
+		'		#else
+		'			If Parent AndAlso Parent->Handle Then
+		'				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
+		'			End If
+		'		#endif
 		Delete_( Item(Index))
 		FNodes.Remove Index
 	End Sub
@@ -488,7 +491,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function TreeNodeCollection.IndexOf(ByRef FNode As TreeNode Ptr) As Integer
-		Return FNodes.IndexOF(FNode)
+		Return FNodes.IndexOf(FNode)
 	End Function
 	
 	Private Function TreeNodeCollection.IndexOf(ByRef Text As WString) As Integer
@@ -506,15 +509,15 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function TreeNodeCollection.Contains(ByRef FNode As TreeNode Ptr) As Boolean
-		Return IndexOF(FNode) <> -1
+		Return IndexOf(FNode) <> -1
 	End Function
 	
 	Private Function TreeNodeCollection.Contains(ByRef Text As WString) As Boolean
-		Return IndexOF(Text) <> -1
+		Return IndexOf(Text) <> -1
 	End Function
 	
 	Private Function TreeNodeCollection.ContainsKey(ByRef Key As WString) As Boolean
-		Return IndexOFKey(Key) <> -1
+		Return IndexOfKey(Key) <> -1
 	End Function
 	
 	Private Property TreeNodeCollection.ParentNode As PTreeNode
@@ -526,20 +529,20 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub TreeNodeCollection.Clear
-'		If ParentNode = 0 Then
-'			#ifdef __USE_GTK__
-'				If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeView Ptr, Parent)->TreeStore)
-'			#else
-'				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
-'			#endif
-			For i As Integer = Count - 1 To 0 Step -1
-				If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
-			Next i
-'		Else
-'			For i As Integer = Count - 1 To 0 Step -1
-'				Remove i
-'			Next i
-'		End If
+		'		If ParentNode = 0 Then
+		'			#ifdef __USE_GTK__
+		'				If Parent AndAlso Cast(TreeView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeView Ptr, Parent)->TreeStore)
+		'			#else
+		'				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
+		'			#endif
+		For i As Integer = Count - 1 To 0 Step -1
+			If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
+		Next i
+		'		Else
+		'			For i As Integer = Count - 1 To 0 Step -1
+		'				Remove i
+		'			Next i
+		'		End If
 		FNodes.Clear
 	End Sub
 	
@@ -660,7 +663,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Return Nodes.FindByIterUser_Data(iter.User_Data)
+				Return Nodes.FindByIterUser_Data(iter.user_data)
 			End If
 		#else
 			If Handle Then
@@ -713,9 +716,9 @@ Namespace My.Sys.Forms
 		FSorted = Value
 		#ifdef __USE_GTK__
 			If Value Then
-				gtk_tree_sortable_set_sort_column_id(gtk_tree_sortable(TreeStore), GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID, GTK_SORT_ASCENDING)
+				gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(TreeStore), GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID, GTK_SORT_ASCENDING)
 			Else
-				gtk_tree_sortable_set_sort_column_id(gtk_tree_sortable(TreeStore), GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID, GTK_SORT_ASCENDING)
+				gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(TreeStore), GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID, GTK_SORT_ASCENDING)
 			End If
 		#endif
 	End Property
@@ -733,11 +736,11 @@ Namespace My.Sys.Forms
 				If SelectedNode <> 0 Then
 					If OnNodeClick Then OnNodeClick(This, *SelectedNode)
 				End If
-			#ifdef __USE_GTK3__
-			Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
-			#else
-			Case GDK_2BUTTON_PRESS
-			#endif
+				#ifdef __USE_GTK3__
+				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
+				#else
+				Case GDK_2BUTTON_PRESS
+				#endif
 				If SelectedNode <> 0 Then
 					If OnNodeDblClick Then OnNodeDblClick(This, *SelectedNode)
 				End If
@@ -766,30 +769,30 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_THEMECHANGED
 				If (g_darkModeSupported) Then
-
+					
 					AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
-
+					
 					'Dim As HTHEME hTheme = OpenThemeData(nullptr, "ItemsView")
 					'If (hTheme) Then
-						'Dim As COLORREF Color1
-						'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
-						If g_darkModeEnabled Then
-							TreeView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
-						Else
-							TreeView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
-						End If
-						'End If
-						'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
-							'TreeView_SetTextBkColor(Message.hWnd, Color1)
-							If g_darkModeEnabled Then
-								TreeView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
-							Else
-								TreeView_SetBkColor(Message.hWnd, FBackColor) 'Color1)
-							End If
-						'End If
+					'Dim As COLORREF Color1
+					'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
+					If g_darkModeEnabled Then
+						TreeView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
+					Else
+						TreeView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
+					End If
+					'End If
+					'If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
+					'TreeView_SetTextBkColor(Message.hWnd, Color1)
+					If g_darkModeEnabled Then
+						TreeView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+					Else
+						TreeView_SetBkColor(Message.hWnd, FBackColor) 'Color1)
+					End If
+					'End If
 					'	CloseThemeData(hTheme)
 					'End If
-
+					
 					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
 				End If
 			Case CM_NOTIFY
@@ -978,9 +981,9 @@ Namespace My.Sys.Forms
 			If tv Then
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
-				If gtk_is_tree_store(tv->TreeStore) Then
+				If GTK_IS_TREE_STORE(tv->TreeStore) Then
 					If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-						Dim As TreeNode Ptr SelNode = tv->Nodes.FindByIterUser_Data(iter.User_Data)
+						Dim As TreeNode Ptr SelNode = tv->Nodes.FindByIterUser_Data(iter.user_data)
 						If tv->PrevNode <> 0 AndAlso tv->PrevNode->IsDisposed = False AndAlso tv->PrevNode <> SelNode Then
 							Dim bCancel As Boolean
 							If tv->OnSelChanging Then tv->OnSelChanging(*tv, *tv->PrevNode, bCancel)
@@ -988,21 +991,21 @@ Namespace My.Sys.Forms
 								tv->SelectedNode = tv->PrevNode
 								Exit Sub
 							End If
-'							If tv->Images <> 0 AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
-'								If tv->PrevNode->ImageKey <> "" Then
-'									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageKey)), -1)
-'								ElseIf tv->PrevNode->ImageIndex > -1 Then
-'									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageIndex)), -1)
-'								End If
-'							End If
+							'							If tv->Images <> 0 AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
+							'								If tv->PrevNode->ImageKey <> "" Then
+							'									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageKey)), -1)
+							'								ElseIf tv->PrevNode->ImageIndex > -1 Then
+							'									gtk_tree_store_set(tv->TreeStore, @tv->PrevNode->TreeIter, 0, ToUTF8(tv->Images->Items.Get(tv->PrevNode->ImageIndex)), -1)
+							'								End If
+							'							End If
 						End If
-'						If SelNode <> 0 AndAlso SelNode->IsDisposed = False AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
-'							If SelNode->SelectedImageKey <> "" Then
-'								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageKey)), -1)
-'							ElseIf SelNode->SelectedImageIndex > -1 Then
-'								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageIndex)), -1)
-'							End If
-'						End If
+						'						If SelNode <> 0 AndAlso SelNode->IsDisposed = False AndAlso tv->SelectedImages <> 0 AndAlso tv->TreeStore <> 0 Then
+						'							If SelNode->SelectedImageKey <> "" Then
+						'								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageKey)), -1)
+						'							ElseIf SelNode->SelectedImageIndex > -1 Then
+						'								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageIndex)), -1)
+						'							End If
+						'						End If
 						If tv->OnSelChanged Then tv->OnSelChanged(*tv, *SelNode)
 						tv->PrevNode = SelNode
 					End If
@@ -1039,9 +1042,9 @@ Namespace My.Sys.Forms
 		Private Sub TreeView.Cell_Editing(cell As GtkCellRenderer Ptr, editable As GtkCellEditable Ptr, path As Const gchar Ptr, user_data As Any Ptr)
 			Dim As TreeView Ptr tv = user_data
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(tv->Handle))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(tv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.User_Data)
+				Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.user_data)
 				Dim As Boolean bCancel
 				If tv->OnBeforeLabelEdit Then tv->OnBeforeLabelEdit(*tv, *tn, tn->Text, bCancel)
 				If bCancel Then
@@ -1053,13 +1056,13 @@ Namespace My.Sys.Forms
 		Private Sub TreeView.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
 			Dim As TreeView Ptr tv = user_data
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(tv->Handle))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(tv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.User_Data)
+				Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.user_data)
 				Dim As Boolean bCancel
 				If tv->OnAfterLabelEdit Then tv->OnAfterLabelEdit(*tv, *tn, *new_text, bCancel)
-				If Not bCancel Then 
-					gtk_tree_store_set(gtk_tree_store(model), @iter, 1, ToUTF8(*new_text), -1)
+				If Not bCancel Then
+					gtk_tree_store_set(GTK_TREE_STORE(model), @iter, 1, ToUtf8(*new_text), -1)
 				End If
 			End If
 		End Sub
@@ -1087,7 +1090,7 @@ Namespace My.Sys.Forms
 		Private Function TreeView.RowCollapsed(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
-				If tv->OnNodeCollapsed Then tv->OnNodeCollapsed(*tv, *tv->Nodes.FindByIterUser_Data(iter->User_Data))
+				If tv->OnNodeCollapsed Then tv->OnNodeCollapsed(*tv, *tv->Nodes.FindByIterUser_Data(iter->user_data))
 			End If
 			Return False
 		End Function
@@ -1095,7 +1098,7 @@ Namespace My.Sys.Forms
 		Private Function TreeView.RowExpanded(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
-				If tv->OnNodeExpanded Then tv->OnNodeExpanded(*tv, *tv->Nodes.FindByIterUser_Data(iter->User_Data))
+				If tv->OnNodeExpanded Then tv->OnNodeExpanded(*tv, *tv->Nodes.FindByIterUser_Data(iter->user_data))
 			End If
 			Return False
 		End Function
@@ -1113,18 +1116,18 @@ Namespace My.Sys.Forms
 				Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 				rendertext = gtk_cell_renderer_text_new()
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+				gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 				TreeStore = gtk_tree_store_new(2, G_TYPE_STRING, G_TYPE_STRING)
 				widget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(TreeStore))
-				gtk_container_add(gtk_container(scrolledwidget), widget)
+				gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 				TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
 				
 				gtk_tree_view_column_pack_start(col, renderpixbuf, False)
-				gtk_tree_view_column_add_attribute(col, renderpixbuf, ToUTF8("icon_name"), 0)
+				gtk_tree_view_column_add_attribute(col, renderpixbuf, ToUtf8("icon_name"), 0)
 				'gtk_tree_view_append_column(GTK_TREE_VIEW(widget), colpixbuf)
 				
 				gtk_tree_view_column_pack_start(col, rendertext, True)
-				gtk_tree_view_column_add_attribute(col, rendertext, ToUTF8("text"), 1)
+				gtk_tree_view_column_add_attribute(col, rendertext, ToUtf8("text"), 1)
 				gtk_tree_view_append_column(GTK_TREE_VIEW(widget), col)
 				
 				gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), False)
@@ -1135,14 +1138,14 @@ Namespace My.Sys.Forms
 				
 				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK(@Cell_Edited), @This)
 				g_signal_connect(G_OBJECT(rendertext), "editing-started", G_CALLBACK(@Cell_Editing), @This)
-				g_signal_connect(gtk_tree_view(widget), "button-release-event", G_CALLBACK(@TreeView_ButtonRelease), @This)
+				g_signal_connect(GTK_TREE_VIEW(widget), "button-release-event", G_CALLBACK(@TreeView_ButtonRelease), @This)
 				g_signal_connect(widget, "row-activated", G_CALLBACK(@TreeView_RowActivated), @This)
 				g_signal_connect(widget, "query-tooltip", G_CALLBACK(@TreeView_QueryTooltip), @This)
 				g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@TreeView_SelectionChanged), @This)
-				g_signal_connect(gtk_tree_view(widget), "test-collapse-row", G_CALLBACK(@TestCollapseRow), @This)
-				g_signal_connect(gtk_tree_view(widget), "test-expand-row", G_CALLBACK(@TestExpandRow), @This)
-				g_signal_connect(gtk_tree_view(widget), "row-collapsed", G_CALLBACK(@RowCollapsed), @This)
-				g_signal_connect(gtk_tree_view(widget), "row-expanded", G_CALLBACK(@RowExpanded), @This)
+				g_signal_connect(GTK_TREE_VIEW(widget), "test-collapse-row", G_CALLBACK(@TestCollapseRow), @This)
+				g_signal_connect(GTK_TREE_VIEW(widget), "test-expand-row", G_CALLBACK(@TestExpandRow), @This)
+				g_signal_connect(GTK_TREE_VIEW(widget), "row-collapsed", G_CALLBACK(@RowCollapsed), @This)
+				g_signal_connect(GTK_TREE_VIEW(widget), "row-expanded", G_CALLBACK(@RowExpanded), @This)
 				This.RegisterClass "TreeView", @This
 			#else
 				.OnHandleIsAllocated = @HandleIsAllocated
@@ -1170,7 +1173,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			
 		#else
-			UnregisterClass "TreeView", GetmoduleHandle(NULL)
+			UnregisterClass "TreeView", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

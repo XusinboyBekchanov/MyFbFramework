@@ -12,11 +12,11 @@ Namespace My.Sys.Forms
 		Private Function TreeListViewItem.GetItemIndex() As Integer
 			Var nItem = ListView_GetItemCount(Parent->Handle)
 			For i As Integer = 0 To nItem - 1
-				lvi.Mask = LVIF_PARAM
+				lvi.mask = LVIF_PARAM
 				lvi.iItem = i
 				lvi.iSubItem   = 0
 				ListView_GetItem(Parent->Handle, @lvi)
-				If lvi.LParam = Cast(LPARAM, @This) Then
+				If lvi.lParam = Cast(LPARAM, @This) Then
 					Return i
 				End If
 			Next i
@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 				Var nItem = ListView_GetItemCount(Parent->Handle)
 				Var i = ItemIndex + 1
 				Do While i < nItem
-					lvi.Mask = LVIF_INDENT
+					lvi.mask = LVIF_INDENT
 					lvi.iItem = i
 					lvi.iSubItem   = 0
 					ListView_GetItem(Parent->Handle, @lvi)
@@ -57,8 +57,8 @@ Namespace My.Sys.Forms
 	Private Sub TreeListViewItem.Expand
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_expand_row(gtk_tree_view(Parent->Handle), TreePath, False)
+				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
+				gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->Handle), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
@@ -67,24 +67,24 @@ Namespace My.Sys.Forms
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex <> -1 Then
 					For i As Integer = 0 To Nodes.Count - 1
-						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_PARAM
+						lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 						lvi.pszText  = @Nodes.Item(i)->Text(0)
 						lvi.cchTextMax = Len(Nodes.Item(i)->Text(0))
 						lvi.iItem = ItemIndex + i + 1
 						lvi.iImage   = Nodes.Item(i)->FImageIndex
 						If Nodes.Item(i)->Nodes.Count > 0 Then
-							lvi.State   = INDEXTOSTATEIMAGEMASK(1)
+							lvi.state   = INDEXTOSTATEIMAGEMASK(1)
 							Nodes.Item(i)->FExpanded = False
 						Else
-							lvi.State   = 0
+							lvi.state   = 0
 						End If
 						lvi.stateMask = LVIS_STATEIMAGEMASK
 						lvi.iIndent   = Nodes.Item(i)->Indent
-						lvi.LParam = Cast(LParam, Nodes.Item(i))
+						lvi.lParam = Cast(LPARAM, Nodes.Item(i))
 						ListView_InsertItem(Parent->Handle, @lvi)
 						For j As Integer = 1 To Cast(TreeListView Ptr, Parent)->Columns.Count - 1
 							Dim As LVITEM lvi1
-							lvi1.Mask = LVIF_TEXT
+							lvi1.mask = LVIF_TEXT
 							lvi1.iItem = ItemIndex + i + 1
 							lvi1.iSubItem   = j
 							lvi1.pszText    = @Nodes.Item(i)->Text(j)
@@ -101,8 +101,8 @@ Namespace My.Sys.Forms
 	Private Function TreeListViewItem.IsExpanded As Boolean
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				Var bResult = gtk_tree_view_row_expanded(gtk_tree_view(Parent->Handle), TreePath)
+				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
+				Var bResult = gtk_tree_view_row_expanded(GTK_TREE_VIEW(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 				Return bResult
 			End If
@@ -132,13 +132,13 @@ Namespace My.Sys.Forms
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex = -1 Then Exit Sub
 				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_SELECTED, LVIS_SELECTED)
-            	ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_FOCUSED, LVIS_FOCUSED)
-'				Dim lvi As LVITEM
-'				lvi.iItem = ItemIndex
-'				lvi.iSubItem   = 0
-'				lvi.state    = LVIS_SELECTED
-'				lvi.statemask = LVNI_SELECTED
-'				ListView_SetItem(Parent->Handle, @lvi)
+				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_FOCUSED, LVIS_FOCUSED)
+				'				Dim lvi As LVITEM
+				'				lvi.iItem = ItemIndex
+				'				lvi.iSubItem   = 0
+				'				lvi.state    = LVIS_SELECTED
+				'				lvi.statemask = LVNI_SELECTED
+				'				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
 	End Sub
@@ -166,7 +166,7 @@ Namespace My.Sys.Forms
 				If Parent AndAlso Parent->Handle Then
 					Var ItemIndex = This.GetItemIndex
 					If ItemIndex = -1 Then Exit Property
-					lvi.Mask = LVIF_TEXT
+					lvi.mask = LVIF_TEXT
 					lvi.iItem = ItemIndex
 					lvi.iSubItem   = iSubItem
 					lvi.pszText    = FText
@@ -187,10 +187,10 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = GetItemIndex
 				If ItemIndex = -1 Then Exit Property
-				lvi.Mask = LVIF_STATE
+				lvi.mask = LVIF_STATE
 				lvi.iItem = ItemIndex
 				lvi.iSubItem   = 0
-				lvi.State    = INDEXTOSTATEIMAGEMASK(Value)
+				lvi.state    = INDEXTOSTATEIMAGEMASK(Value)
 				lvi.stateMask = LVIS_STATEIMAGEMASK
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
@@ -207,7 +207,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = GetItemIndex
 				If ItemIndex = -1 Then Exit Property
-				lvi.Mask = LVIF_INDENT
+				lvi.mask = LVIF_INDENT
 				lvi.iItem = ItemIndex
 				lvi.iSubItem   = 0
 				lvi.iIndent    = Value
@@ -276,7 +276,7 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUTF8(Value), -1)
+				gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUtf8(Value), -1)
 			End If
 		#else
 			If Parent Then
@@ -347,11 +347,11 @@ Namespace My.Sys.Forms
 				If ItemIndex <> -1 Then ListView_DeleteItem(Parent->Handle, ItemIndex)
 			End If
 		#endif
-		WDeallocate FHint
-		WDeallocate FText
-		WDeallocate FImageKey
-		WDeallocate FSelectedImageKey
-		WDeallocate FSmallImageKey
+		WDeAllocate FHint
+		WDeAllocate FText
+		WDeAllocate FImageKey
+		WDeAllocate FSelectedImageKey
+		WDeAllocate FSmallImageKey
 	End Destructor
 	
 	Private Sub TreeListViewColumn.SelectItem
@@ -514,17 +514,20 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeListViewItems.Item(Index As Integer) As TreeListViewItem Ptr
-		Return FItems.Items[Index] 'QListViewItem(FItems.Items[Index])
+		If Index >= 0 AndAlso Index < FItems.Count Then
+			Return FItems.Items[Index]
+		End If
 	End Property
 	
 	Private Property TreeListViewItems.Item(Index As Integer, Value As TreeListViewItem Ptr)
-		'QToolButton(FItems.Items[Index]) = Value
-		FItems.Items[Index] = Value 'David Change
+		If Index >= 0 AndAlso Index < FItems.Count Then
+			FItems.Items[Index] = Value 'David Change
+		End If
 	End Property
 	
 	#ifdef __USE_GTK__
 		Private Function TreeListViewItems.FindByIterUser_Data(User_Data As Any Ptr) As TreeListViewItem Ptr
-			If ParentItem AndAlso ParentItem->TreeIter.User_Data = User_Data Then Return ParentItem
+			If ParentItem AndAlso ParentItem->TreeIter.user_data = User_Data Then Return ParentItem
 			For i As Integer = 0 To Count - 1
 				PItem = Item(i)->Nodes.FindByIterUser_Data(User_Data)
 				If PItem <> 0 Then Return PItem
@@ -532,7 +535,7 @@ Namespace My.Sys.Forms
 			Return 0
 		End Function
 	#else
-		Private Function TreeListViewItems.FindByHandle(Value As LParam) As TreeListViewItem Ptr
+		Private Function TreeListViewItems.FindByHandle(Value As LPARAM) As TreeListViewItem Ptr
 			If ParentItem AndAlso ParentItem->Handle = Value Then Return ParentItem
 			For i As Integer = 0 To Count - 1
 				PItem = Item(i)->Nodes.FindByHandle(Value)
@@ -565,7 +568,7 @@ Namespace My.Sys.Forms
 			End If
 			.Parent         = Parent
 			#ifndef __USE_GTK__
-				.Handle = Cast(LParam, PItem)
+				.Handle = Cast(LPARAM, PItem)
 			#endif
 			.Nodes.Parent         = Parent
 			.ParentItem        = ParentItem
@@ -630,7 +633,7 @@ Namespace My.Sys.Forms
 				.Indent        = 0
 			End If
 			#ifndef __USE_GTK__
-				.Handle 		= Cast(LParam, PItem)
+				.Handle 		= Cast(LPARAM, PItem)
 			#endif
 			.Parent         = Parent
 			.Nodes.Parent         = Parent
@@ -651,15 +654,15 @@ Namespace My.Sys.Forms
 				PItem->Text(0) = FCaption
 			#else
 				If Parent AndAlso Parent->Handle Then
-					lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_PARAM
+					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 					lvi.pszText  = @FCaption
 					lvi.cchTextMax = Len(FCaption)
 					lvi.iItem = Index
 					lvi.iImage   = FImageIndex
-					lvi.State   = INDEXTOSTATEIMAGEMASK(State)
+					lvi.state   = INDEXTOSTATEIMAGEMASK(State)
 					lvi.stateMask = LVIS_STATEIMAGEMASK
 					lvi.iIndent   = .Indent
-					lvi.LParam = Cast(LParam, PItem)
+					lvi.lParam = Cast(LPARAM, PItem)
 					ListView_InsertItem(Parent->Handle, @lvi)
 				End If
 			#endif
@@ -668,17 +671,17 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub TreeListViewItems.Remove(Index As Integer)
-'		#ifdef __USE_GTK__
-'			If Parent AndAlso Parent->widget Then
-'				'gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
-'				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
-'			End If
-'		#else
-'			If Parent AndAlso Parent->Handle Then
-'				'Item(Index)->Visible = False
-'				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
-'			End If
-'		#endif
+		'		#ifdef __USE_GTK__
+		'			If Parent AndAlso Parent->widget Then
+		'				'gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
+		'				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
+		'			End If
+		'		#else
+		'			If Parent AndAlso Parent->Handle Then
+		'				'Item(Index)->Visible = False
+		'				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
+		'			End If
+		'		#endif
 		If Cast(TreeListViewItem Ptr, FItems.Items[Index])->FDynamic Then Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 	End Sub
@@ -699,7 +702,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function TreeListViewItems.IndexOf(ByRef FItem As TreeListViewItem Ptr) As Integer
-		Return FItems.IndexOF(FItem)
+		Return FItems.IndexOf(FItem)
 	End Function
 	
 	Private Function TreeListViewItems.IndexOf(ByRef Caption As WString) As Integer
@@ -716,20 +719,20 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub TreeListViewItems.Clear
-'		If FParentItem = 0 Then
-'			#ifdef __USE_GTK__
-'				If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
-'			#else
-'				If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
-'			#endif
-			For i As Integer = Count - 1 To 0 Step -1
-				If Cast(TreeListViewItem Ptr, FItems.Items[i])->FDynamic Then Delete_(Cast(TreeListViewItem Ptr, FItems.Items[i]))
-			Next i
-'		Else
-'			For i As Integer = Count - 1 To 0 Step -1
-'				Remove i
-'			Next i
-'		End If
+		'		If FParentItem = 0 Then
+		'			#ifdef __USE_GTK__
+		'				If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
+		'			#else
+		'				If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
+		'			#endif
+		For i As Integer = Count - 1 To 0 Step -1
+			If Cast(TreeListViewItem Ptr, FItems.Items[i])->FDynamic Then Delete_(Cast(TreeListViewItem Ptr, FItems.Items[i]))
+		Next i
+		'		Else
+		'			For i As Integer = Count - 1 To 0 Step -1
+		'				Remove i
+		'			Next i
+		'		End If
 		FItems.Clear
 		If ParentItem Then ParentItem->State = 0
 	End Sub
@@ -768,10 +771,10 @@ Namespace My.Sys.Forms
 			Dim As TreeListView Ptr lv = Cast(TreeListView Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				Dim Cancel As Boolean
-				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, *new_text, Cancel)
+				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data), PColumn->Index, *new_text, Cancel)
 				If Not Cancel Then
 					lv->Nodes.FindByIterUser_Data(iter.User_Data)->Text(PColumn->Index) = *new_text
 					'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
@@ -785,12 +788,12 @@ Namespace My.Sys.Forms
 			Dim As TreeListView Ptr lv = Cast(TreeListView Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
 			Dim As GtkTreeIter iter
-			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(gtk_tree_view(lv->Handle))
+			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->Handle))
 			Dim As TextBox txt
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				Dim Cancel As Boolean
 				txt.Handle = Cast(GtkWidget Ptr, editable)
-				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data), PColumn->Index, @txt, Cancel)
+				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data), PColumn->Index, @txt, Cancel)
 				txt.Handle = 0
 				If Cancel Then
 					gtk_cell_editable_editing_done(editable)
@@ -847,9 +850,9 @@ Namespace My.Sys.Forms
 				g_signal_connect(G_OBJECT(PColumn->rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				g_signal_connect(G_OBJECT(PColumn->rendertext), "editing-started", G_CALLBACK (@Cell_Editing), PColumn)
 				gtk_tree_view_column_pack_start(PColumn->Column, PColumn->rendertext, True)
-				gtk_tree_view_column_add_attribute(PColumn->Column, PColumn->rendertext, ToUTF8("text"), Index + 1)
+				gtk_tree_view_column_add_attribute(PColumn->Column, PColumn->rendertext, ToUtf8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
-				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
+				gtk_tree_view_column_set_title(PColumn->Column, ToUtf8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(TreeListView Ptr, Parent)->Handle), PColumn->Column)
 				#ifdef __USE_GTK3__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
@@ -858,8 +861,8 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 		#else
-			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvC.fmt       =  Format
+			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvc.fmt       =  Format
 			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
@@ -921,7 +924,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function TreeListViewColumns.IndexOf(ByRef FColumn As TreeListViewColumn Ptr) As Integer
-		Return FColumns.IndexOF(FColumn)
+		Return FColumns.IndexOf(FColumn)
 	End Function
 	
 	Private Sub TreeListViewColumns.Clear
@@ -994,9 +997,9 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeListView.Init()
 		#ifdef __USE_GTK__
-			If gtk_tree_view_get_model(gtk_tree_view(widget)) = NULL Then
+			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
 				gtk_tree_store_set_column_types(TreeStore, Columns.Count + 1, ColumnTypes)
-				gtk_tree_view_set_model(gtk_tree_view(widget), GTK_TREE_MODEL(TreeStore))
+				gtk_tree_view_set_model(GTK_TREE_VIEW(widget), GTK_TREE_MODEL(TreeStore))
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			End If
 		#endif
@@ -1033,9 +1036,9 @@ Namespace My.Sys.Forms
 	Private Property TreeListView.EditLabels(Value As Boolean)
 		FEditLabels = Value
 		#ifdef __USE_GTK__
-'			If Columns.Count > 0 Then
-'				Columns.Column(0)->Editable = Value
-'			End If
+			'			If Columns.Count > 0 Then
+			'				Columns.Column(0)->Editable = Value
+			'			End If
 		#else
 			ChangeStyle LVS_EDITLABELS, Value
 		#endif
@@ -1062,7 +1065,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Return Nodes.FindByIterUser_Data(iter.User_Data)
+				Return Nodes.FindByIterUser_Data(iter.user_data)
 			End If
 		#else
 			If Handle Then
@@ -1077,7 +1080,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Dim As TreeListViewItem Ptr lvi = Nodes.FindByIterUser_Data(iter.User_Data)
+				Dim As TreeListViewItem Ptr lvi = Nodes.FindByIterUser_Data(iter.user_data)
 				If lvi <> 0 Then Return lvi->Index
 			End If
 		#else
@@ -1095,19 +1098,19 @@ Namespace My.Sys.Forms
 					gtk_tree_selection_unselect_all(TreeSelection)
 				ElseIf Value > -1 AndAlso Value < Nodes.Count Then
 					gtk_tree_selection_select_iter(TreeSelection, @Nodes.Item(Value)->TreeIter)
-					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(TreeStore), @Nodes.Item(Value)->TreeIter), NULL, False, 0, 0)
+					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(TreeStore), @Nodes.Item(Value)->TreeIter), NULL, False, 0, 0)
 				End If
 			End If
 		#else
 			If Handle Then
 				ListView_SetItemState(Handle, Value, LVIS_SELECTED, LVIS_SELECTED)
-            	ListView_SetItemState(Handle, Value, LVIS_FOCUSED, LVIS_FOCUSED)
-'				Dim lvi As LVITEM
-'				lvi.iItem = Value
-'				lvi.iSubItem   = 0
-'				lvi.state    = LVIS_SELECTED
-'				lvi.statemask = LVNI_SELECTED
-'				ListView_SetItem(Handle, @lvi)
+				ListView_SetItemState(Handle, Value, LVIS_FOCUSED, LVIS_FOCUSED)
+				'				Dim lvi As LVITEM
+				'				lvi.iItem = Value
+				'				lvi.iSubItem   = 0
+				'				lvi.state    = LVIS_SELECTED
+				'				lvi.statemask = LVNI_SELECTED
+				'				ListView_SetItem(Handle, @lvi)
 			End If
 		#endif
 	End Property
@@ -1131,7 +1134,7 @@ Namespace My.Sys.Forms
 			lvi.mask = LVIF_PARAM
 			lvi.iItem = iItem
 			If ListView_GetItem(Handle, @lvi) Then
-				Return Cast(TreeListViewItem Ptr, lvi.LParam)
+				Return Cast(TreeListViewItem Ptr, lvi.lParam)
 			End If
 			Return 0
 		End Function
@@ -1217,22 +1220,22 @@ Namespace My.Sys.Forms
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						SetDark True
-'						FDarkMode = True
-'						hHeader = ListView_GetHeader(FHandle)
-'						SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr) ' DarkMode
-'						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr) ' DarkMode
-'						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-'						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+						'						FDarkMode = True
+						'						hHeader = ListView_GetHeader(FHandle)
+						'						SetWindowTheme(hHeader, "DarkMode_ItemsView", nullptr) ' DarkMode
+						'						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr) ' DarkMode
+						'						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						'						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
 					End If
 				Else
 					If FDarkMode Then
 						SetDark False
-'						FDarkMode = False
-'						hHeader = ListView_GetHeader(FHandle)
-'						SetWindowTheme(hHeader, NULL, NULL) ' DarkMode
-'						SetWindowTheme(FHandle, NULL, NULL) ' DarkMode
-'						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-'						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
+						'						FDarkMode = False
+						'						hHeader = ListView_GetHeader(FHandle)
+						'						SetWindowTheme(hHeader, NULL, NULL) ' DarkMode
+						'						SetWindowTheme(FHandle, NULL, NULL) ' DarkMode
+						'						AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						'						AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
 					End If
 				End If
 				Message.Result = 0
@@ -1258,48 +1261,48 @@ Namespace My.Sys.Forms
 			Case WM_THEMECHANGED
 				If (g_darkModeSupported) Then
 					Dim As HWND hHeader = ListView_GetHeader(Message.hWnd)
-
+					
 					AllowDarkModeForWindow(Message.hWnd, g_darkModeEnabled)
 					AllowDarkModeForWindow(hHeader, g_darkModeEnabled)
-
+					
 					Dim As HTHEME hTheme '= OpenThemeData(nullptr, "ItemsView")
 					'If (hTheme) Then
 					'	Dim As COLORREF Color1
 					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_TEXTCOLOR, @Color1))) Then
-							If g_darkModeEnabled Then
-								ListView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
-							Else
-								ListView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
-							End If
+					If g_darkModeEnabled Then
+						ListView_SetTextColor(Message.hWnd, darkTextColor) 'Color1)
+					Else
+						ListView_SetTextColor(Message.hWnd, Font.Color) 'Color1)
+					End If
 					'	End If
 					'	If (SUCCEEDED(GetThemeColor(hTheme, 0, 0, TMT_FILLCOLOR, @Color1))) Then
-							If g_darkModeEnabled Then
-								ListView_SetTextBkColor(Message.hWnd, darkBkColor) 'Color1)
-								ListView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
-							Else
-								ListView_SetTextBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
-								ListView_SetBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
-							End If
+					If g_darkModeEnabled Then
+						ListView_SetTextBkColor(Message.hWnd, darkBkColor) 'Color1)
+						ListView_SetBkColor(Message.hWnd, darkBkColor) 'Color1)
+					Else
+						ListView_SetTextBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
+						ListView_SetBkColor(Message.hWnd, GetSysColor(COLOR_WINDOW)) 'Color1)
+					End If
 					'	End If
 					'	CloseThemeData(hTheme)
 					'End If
-
+					
 					hTheme = OpenThemeData(hHeader, "Header")
 					If (hTheme) Then
 						'Var info = reinterpret_cast<SubclassInfo*>(dwRefData);
 						GetThemeColor(hTheme, HP_HEADERITEM, 0, TMT_TEXTCOLOR, @headerTextColor)
 						CloseThemeData(hTheme)
 					End If
-
+					
 					SendMessageW(hHeader, WM_THEMECHANGED, Message.wParam, Message.lParam)
-
+					
 					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
 				End If
 			Case CM_DRAWITEM
 				Dim lpdis As DRAWITEMSTRUCT Ptr
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
-				If OnDrawItem Then 
+				If OnDrawItem Then
 					Canvas.HandleSetted = True
 					Canvas.Handle = lpdis->hDC
 					OnDrawItem(This, GetTreeListViewItem(lpdis->itemID), lpdis->itemState, lpdis->itemAction, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), Canvas)
@@ -1312,17 +1315,17 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
 				ItemID = Cast(Integer, miStruct->itemID)
-				If OnMeasureItem Then OnMeasureItem(This, GetTreeListViewItem(itemID), miStruct->itemWidth, miStruct->itemHeight)
+				If OnMeasureItem Then OnMeasureItem(This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
 				Dim lvhti As LVHITTESTINFO
-				lvhti.pt.x = Message.lParamLo
-				lvhti.pt.y = Message.lParamHi
+				lvhti.pt.X = Message.lParamLo
+				lvhti.pt.Y = Message.lParamHi
 				If (ListView_HitTest(Handle, @lvhti) <> -1) Then
 					Var tlvi = GetTreeListViewItem(lvhti.iItem)
 					If tlvi AndAlso tlvi->Nodes.Count > 0 Then
 						Dim As ..Rect lpRect
-						Dim As Integer sX16 = ScaleX(16) 						
+						Dim As Integer sX16 = ScaleX(16)
 						ListView_GetSubItemRect(FHandle, lvhti.iItem, 0, LVIR_BOUNDS, @lpRect)
 						If lvhti.flags = LVHT_ONITEMSTATEICON OrElse (FOwnerDraw AndAlso lvhti.pt.X >= lpRect.Left + 3 + tlvi->Indent * sX16 AndAlso lvhti.pt.X <= lpRect.Left + 3 + sX16+ tlvi->Indent * sX16 AndAlso _
 							lvhti.pt.Y >= lpRect.Top AndAlso lvhti.pt.Y <= lpRect.Bottom) Then
@@ -1341,7 +1344,7 @@ Namespace My.Sys.Forms
 				Dim iIndent As Integer
 				Var tlvi = SelectedItem
 				If tlvi Then
-					Select Case LoWord(message.wParam)
+					Select Case LoWord(Message.wParam)
 					Case VK_LEFT, VK_BACK
 						If tlvi->IsExpanded Then
 							tlvi->Collapse
@@ -1360,12 +1363,12 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 			Case CM_NOTIFY
-				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, message.lparam)
+				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, Message.lParam)
 				Select Case lvp->hdr.code
 				Case NM_CLICK: If OnItemClick Then OnItemClick(This, GetTreeListViewItem(lvp->iItem))
 				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(This, GetTreeListViewItem(lvp->iItem))
 				Case NM_KEYDOWN:
-					Dim nmk As NMKEY Ptr = Cast(NMKEY Ptr, message.lparam)
+					Dim nmk As NMKEY Ptr = Cast(NMKEY Ptr, Message.lParam)
 					If OnItemKeyDown Then OnItemKeyDown(This, GetTreeListViewItem(lvp->iItem))
 				Case NM_CUSTOMDRAW
 					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
@@ -1396,12 +1399,12 @@ Namespace My.Sys.Forms
 							Dim As ..Rect R
 							GetWindowRect(hHeader, @R)
 							Heights = R.Bottom - R.Top - 1
-							Dim rc As ..RECT
+							Dim rc As ..Rect
 							If ListView_GetItemCount(FHandle) = 0 Then
 								If FItemHeight = 0 Then
 									Dim As LVITEM lvi
-									lvi.Mask = LVIF_PARAM
-									lvi.LParam = 0
+									lvi.mask = LVIF_PARAM
+									lvi.lParam = 0
 									ListView_InsertItem(FHandle, @lvi)
 									ListView_GetItemRect FHandle, 0, @rc, LVIR_BOUNDS
 									ListView_DeleteItem(FHandle, 0)
@@ -1430,28 +1433,28 @@ Namespace My.Sys.Forms
 				Case LVN_BEGINLABELEDIT
 					If FPressedSubItem < Columns.Count AndAlso Not Columns.Column(FPressedSubItem)->Editable Then Message.Result = -1: Exit Sub
 					If FPressedSubItem >= Columns.Count Then Message.Result = -1: Exit Sub
-					Dim lvp1 As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, message.lparam)
+					Dim lvp1 As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
 					Dim bCancel As Boolean
 					Dim As TextBox txt
 					txt.Handle = Cast(HWND, SendMessage(FHandle, LVM_GETEDITCONTROL, 0, 0))
 					If FPressedSubItem <> 0 Then
-						If GetWindowLongPtr(txt.Handle, GWLP_WNDPROC) <> @EditControlProc Then 
-							SetProp(txt.Handle, "@@@Proc", Cast(..Handle, SetWindowLongPtr(txt.Handle, GWLP_WNDPROC, CInt(@EditControlProc))))
+						If GetWindowLongPtr(txt.Handle, GWLP_WNDPROC) <> @EditControlProc Then
+							SetProp(txt.Handle, "@@@Proc", Cast(..HANDLE, SetWindowLongPtr(txt.Handle, GWLP_WNDPROC, CInt(@EditControlProc))))
 						End If
 						Dim As ..Rect lpRect
 						ListView_GetSubItemRect(FHandle, lvp1->item.iItem, FPressedSubItem, LVIR_BOUNDS, @lpRect)
-						SetProp(txt.Handle, "@@@Left", Cast(..Handle, Cast(Integer, lpRect.Left)))
+						SetProp(txt.Handle, "@@@Left", Cast(..HANDLE, Cast(Integer, lpRect.Left)))
 						txt.Text = GetTreeListViewItem(lvp1->item.iItem)->Text(FPressedSubItem)
 					End If
 					If OnCellEditing Then OnCellEditing(This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, @txt, bCancel)
 					txt.Handle = 0
 					If bCancel Then Message.Result = -1: Exit Sub
 				Case LVN_ENDLABELEDIT
-					Dim lvp1 As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, message.lparam)
+					Dim lvp1 As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
 					If lvp1->item.pszText <> 0 Then
 						Dim bCancel As Boolean
 						If OnCellEdited Then OnCellEdited(This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, *lvp1->item.pszText, bCancel)
-						If bCancel Then 
+						If bCancel Then
 							Message.Result = 0
 						Else
 							GetTreeListViewItem(lvp1->item.iItem)->Text(FPressedSubItem) = *lvp1->item.pszText
@@ -1465,12 +1468,12 @@ Namespace My.Sys.Forms
 					End If
 				End Select
 			Case WM_NOTIFY
-				Select Case message.Wparam
+				Select Case Message.wParam
 				Case LVN_ENDSCROLL
 				Case LVN_ENDSCROLL
 				End Select
 			Case CM_COMMAND
-				Select Case message.Wparam
+				Select Case Message.wParam
 				Case LVN_ITEMACTIVATE
 				Case LVN_KEYDOWN
 				Case LVN_ITEMCHANGING
@@ -1547,7 +1550,7 @@ Namespace My.Sys.Forms
 						.Images->ParentWindow = @Sender
 						If .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_SMALL)
 					End If
-					If .StateImages Then 
+					If .StateImages Then
 						.StateImages->ParentWindow = @Sender
 						If .StateImages->Handle Then ListView_SetImageList(.FHandle, CInt(.StateImages->Handle), LVSIL_STATE)
 					End If
@@ -1557,11 +1560,11 @@ Namespace My.Sys.Forms
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
 					For i As Integer = 0 To .Columns.Count - 1
 						Dim lvc As LVCOLUMN
-						lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-						lvC.fmt       =  .Columns.Column(i)->Format
+						lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+						lvc.fmt       =  .Columns.Column(i)->Format
 						lvc.cx=0
 						lvc.pszText              = @.Columns.Column(i)->Text
-						lvc.cchTextMax           = Len(.Columns.Column(i)->text)
+						lvc.cchTextMax           = Len(.Columns.Column(i)->Text)
 						lvc.iImage             = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem         = i
 						Var iWidth = .Columns.Column(i)->Width
@@ -1570,20 +1573,20 @@ Namespace My.Sys.Forms
 					Next i
 					For i As Integer = 0 To .Nodes.Count -1
 						Dim lvi As LVITEM
-						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+						lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 						lvi.pszText             = @.Nodes.Item(i)->Text(0)
-						lvi.cchTextMax          = Len(.Nodes.Item(i)->text(0))
+						lvi.cchTextMax          = Len(.Nodes.Item(i)->Text(0))
 						lvi.iItem               = i
 						lvi.iSubItem            = 0
 						lvi.iImage              = .Nodes.Item(i)->ImageIndex
-						lvi.State              = INDEXTOSTATEIMAGEMASK(.Nodes.Item(i)->State)
+						lvi.state              = INDEXTOSTATEIMAGEMASK(.Nodes.Item(i)->State)
 						lvi.stateMask           = LVIS_STATEIMAGEMASK
 						lvi.iIndent             = .Nodes.Item(i)->Indent
-						lvi.LParam              = Cast(LParam, .Nodes.Item(i))
+						lvi.lParam              = Cast(LPARAM, .Nodes.Item(i))
 						ListView_InsertItem(.FHandle, @lvi)
 						For j As Integer = 0 To .Columns.Count - 1
 							Dim As LVITEM lvi1
-							lvi1.Mask = LVIF_TEXT
+							lvi1.mask = LVIF_TEXT
 							lvi1.iItem = i
 							lvi1.iSubItem   = j
 							lvi1.pszText    = @.Nodes.Item(i)->Text(j)
@@ -1609,7 +1612,7 @@ Namespace My.Sys.Forms
 				model = gtk_tree_view_get_model(tree_view)
 				
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnItemActivate Then lv->OnItemActivate(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data))
+					If lv->OnItemActivate Then lv->OnItemActivate(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data))
 				End If
 			End If
 		End Sub
@@ -1620,7 +1623,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->Nodes.FindByIterUser_Data(iter.User_Data))
+					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data))
 				End If
 			End If
 		End Sub
@@ -1635,7 +1638,7 @@ Namespace My.Sys.Forms
 			If lv Then
 				Dim As GtkTreeModel Ptr model
 				model = gtk_tree_view_get_model(tree_view)
-				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv, lv->Nodes.FindByIterUser_Data(iter->User_Data))
+				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv, lv->Nodes.FindByIterUser_Data(iter->user_data))
 			End If
 			Return False
 		End Function
@@ -1644,7 +1647,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeListView.CollapseAll
 		#ifdef __USE_GTK__
-			gtk_tree_view_collapse_all(gtk_tree_view(widget))
+			gtk_tree_view_collapse_all(GTK_TREE_VIEW(widget))
 		#else
 			For i As Integer = 0 To Nodes.Count - 1
 				Nodes.Item(i)->Collapse
@@ -1654,7 +1657,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeListView.ExpandAll
 		#ifdef __USE_GTK__
-			gtk_tree_view_expand_all(gtk_tree_view(widget))
+			gtk_tree_view_expand_all(GTK_TREE_VIEW(widget))
 		#else
 			For i As Integer = 0 To Nodes.Count - 1
 				Nodes.Item(i)->Expand
@@ -1673,21 +1676,21 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			TreeStore = gtk_tree_store_new(1, G_TYPE_STRING)
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
 			widget = gtk_tree_view_new()
-			gtk_container_add(gtk_container(scrolledwidget), widget)
+			gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
 			#ifdef __USE_GTK3__
-				g_signal_connect(gtk_scrollable_get_hadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
-				g_signal_connect(gtk_scrollable_get_vadjustment(gtk_scrollable(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+				g_signal_connect(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
 			#else
-				g_signal_connect(gtk_tree_view_get_hadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
-				g_signal_connect(gtk_tree_view_get_vadjustment(gtk_tree_view(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+				g_signal_connect(gtk_tree_view_get_hadjustment(GTK_TREE_VIEW(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
+				g_signal_connect(gtk_tree_view_get_vadjustment(GTK_TREE_VIEW(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
 			#endif
-			g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@TreeListView_Map), @This)
-			g_signal_connect(gtk_tree_view(widget), "row-activated", G_CALLBACK(@TreeListView_RowActivated), @This)
-			g_signal_connect(gtk_tree_view(widget), "test-expand-row", G_CALLBACK(@TreeListView_TestExpandRow), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "map", G_CALLBACK(@TreeListView_Map), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "row-activated", G_CALLBACK(@TreeListView_RowActivated), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "test-expand-row", G_CALLBACK(@TreeListView_TestExpandRow), @This)
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@TreeListView_SelectionChanged), @This)
 			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), GTK_TREE_VIEW_GRID_LINES_BOTH)
@@ -1707,11 +1710,11 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
-				.RegisterClass "TreeListView", WC_ListView
+				.RegisterClass "TreeListView", WC_LISTVIEW
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
-				WLet(FClassAncestor, WC_ListView)
+				WLet(FClassAncestor, WC_LISTVIEW)
 			#endif
 			WLet(FClassName, "TreeListView")
 			.Width             = 121
@@ -1723,7 +1726,7 @@ Namespace My.Sys.Forms
 		'Nodes.Clear
 		'Columns.Clear
 		#ifndef __USE_GTK__
-			UnregisterClass "TreeListView",GetmoduleHandle(NULL)
+			UnregisterClass "TreeListView",GetModuleHandle(NULL)
 		#else
 			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
 		#endif
