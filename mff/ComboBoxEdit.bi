@@ -100,6 +100,11 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ShowDropDown(Value As Boolean)
 		Declare Virtual Sub SaveToFile(ByRef FileName As WString)
 		Declare Virtual Sub LoadFromFile(ByRef FileName As WString)
+		Declare Virtual Sub Undo
+		Declare Virtual Sub PasteFromClipboard
+		Declare Virtual Sub CopyToClipboard
+		Declare Virtual Sub CutToClipboard
+		Declare Virtual Sub SelectAll
 		Declare Static Sub RegisterClass
 		Declare Operator Cast As Control Ptr
 		Declare Constructor

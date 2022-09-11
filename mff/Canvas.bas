@@ -20,9 +20,9 @@ Namespace My.Sys.Drawing
 		Case "clip": Return @Clip
 		Case "copymode": Return @CopyMode
 			#ifdef __USE_GTK__
-			Case "handle": Return Handle
+			Case "handle": Return HANDLE
 			#else
-			Case "handle": Return @Handle
+			Case "handle": Return @HANDLE
 			#endif
 		Case "height": iTemp = This.Height: Return @iTemp
 		Case "width": iTemp = This.Width: Return @iTemp
@@ -637,8 +637,8 @@ Namespace My.Sys.Drawing
 			Dim As HBITMAP OldBitmap
 			Dim As BITMAP Bitmap01
 			MemDC = CreateCompatibleDC(Handle)
-			OldBitmap = SelectObject(MemDC, Cast(HBitmap, Image))
-			GetObject(Cast(HBitmap, Image), SizeOf(Bitmap01), @Bitmap01)
+			OldBitmap = SelectObject(MemDC, Cast(HBITMAP, Image))
+			GetObject(Cast(HBITMAP, Image), SizeOf(Bitmap01), @Bitmap01)
 			BitBlt(Handle, ScaleX(x), ScaleY(y), Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)

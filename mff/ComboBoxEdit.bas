@@ -42,6 +42,52 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
+	Private Sub ComboBoxEdit.Undo
+		#ifdef __USE_WINAPI__
+			If FEditHandle Then SendMessage(FEditHandle, WM_UNDO, 0, 0)
+		#endif
+	End Sub
+	
+	Private Sub ComboBoxEdit.PasteFromClipboard
+		#ifdef __USE_GTK__
+			If GTK_IS_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))) Then
+				gtk_editable_paste_clipboard(GTK_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))))
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If FEditHandle Then SendMessage(FEditHandle, WM_PASTE, 0, 0)
+		#endif
+	End Sub
+	
+	Private Sub ComboBoxEdit.CopyToClipboard
+		#ifdef __USE_GTK__
+			If GTK_IS_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))) Then
+				gtk_editable_copy_clipboard(GTK_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))))
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If FEditHandle Then SendMessage(FEditHandle, WM_COPY, 0, 0)
+		#endif
+	End Sub
+	
+	Private Sub ComboBoxEdit.CutToClipboard
+		#ifdef __USE_GTK__
+			If GTK_IS_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))) Then
+				gtk_editable_cut_clipboard(GTK_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))))
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If FEditHandle Then SendMessage(FEditHandle, WM_CUT, 0, 0)
+		#endif
+	End Sub
+	
+	Private Sub ComboBoxEdit.SelectAll
+		#ifdef __USE_GTK__
+			If GTK_IS_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))) Then
+				gtk_editable_select_region(GTK_EDITABLE(gtk_bin_get_child(GTK_BIN(widget))), 0, -1)
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If FEditHandle Then SendMessage(FEditHandle, EM_SETSEL, 0, -1)
+		#endif
+	End Sub
+	
 	Private Property ComboBoxEdit.TabIndex As Integer
 		Return FTabIndex
 	End Property
@@ -418,7 +464,7 @@ Namespace My.Sys.Forms
 					.Text = .FText
 					If .FEditHandle <> 0 Then
 						SetWindowLongPtr(.FEditHandle, GWLP_USERDATA, CInt(.Child))
-						.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SubClassProc)))
+						.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SUBCLASSPROC)))
 					End If
 				End With
 			End If
