@@ -476,7 +476,7 @@ Namespace My.Sys.Forms
 			Static As OpenFileControl Ptr OpenDial
 			Select Case Msg
 			Case WM_INITDIALOG
-				OpenDial = Cast(OpenFileControl Ptr, Cast(lpOpenFileName, lParam)->lCustData)
+				OpenDial = Cast(OpenFileControl Ptr, Cast(LPOPENFILENAME, lParam)->lCustData)
 				OpenDial->Handle = GetParent(FWindow)
 				SetWindowLongPtr(FWindow, GWLP_USERDATA, CInt(OpenDial))
 				If OpenDial->Parent = 0 OrElse OpenDial->Parent->Handle = 0 Then SendMessage(GetParent(FWindow), WM_SYSCOMMAND, SC_CLOSE, 0)
@@ -590,7 +590,7 @@ Namespace My.Sys.Forms
 			'Deallocate cwsFile
 			WDeAllocate wFilter
 			Exit Sub
-			ErrorHandler:
+	ErrorHandler:
 			MsgBox ErrDescription(Err) & " (" & Err & ") " & _
 			"in line " & Erl() & " " & _
 			"in function " & ZGet(Erfn()) & " " & _
@@ -601,6 +601,8 @@ Namespace My.Sys.Forms
 	Private Sub OpenFileControl.CreateWnd
 		#ifndef __USE_GTK__
 			If This.Parent <> 0 AndAlso This.Parent->Handle <> 0 Then
+				FHandle = 0
+				FDarkMode = False
 				ThreadID = ThreadCreate(@CreateWnd, @This)
 				Do While FHandle = 0
 					Sleep(300, 1)
