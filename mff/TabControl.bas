@@ -94,19 +94,19 @@ Namespace My.Sys.Forms
 			Case WM_ERASEBKGND
 				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If IsAppThemed() Then
-						GetClientRect(Msg.hWnd, @rct)
-						DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
-						Msg.Result = 1
+						GetClientRect(msg.hWnd, @rct)
+						DrawThemeBackground(FTheme, Cast(HDC, msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
+						msg.Result = 1
 						Return
 					End If
 				End If
 			Case WM_PRINTCLIENT
 				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If IsAppThemed() Then
-						Dim As ..RECT rct
-						GetClientRect(Msg.hWnd, @rct)
-						FillRect(Cast(HDC, Msg.wParam), @rct, GetStockObject(NULL_BRUSH))
-						Msg.Result = True
+						Dim As ..Rect rct
+						GetClientRect(msg.hWnd, @rct)
+						FillRect(Cast(HDC, msg.wParam), @rct, GetStockObject(NULL_BRUSH))
+						msg.Result = True
 						Return
 					End If
 				End If
@@ -145,7 +145,7 @@ Namespace My.Sys.Forms
 					This.Parent->Perform(TCM_GETITEM, Index, CInt(@Ti))
 					Ti.cchTextMax = Len(WGet(FCaption)) + 1
 					Ti.pszText = FCaption
-					If FObject Then Ti.lparam = Cast(LParam, FObject)
+					If FObject Then Ti.lParam = Cast(LPARAM, FObject)
 					If Cast(TabControl Ptr, This.Parent)->Images AndAlso FImageKey <> 0 Then
 						Ti.iImage = Cast(TabControl Ptr, This.Parent)->Images->IndexOf(*FImageKey)
 					Else
@@ -178,8 +178,8 @@ Namespace My.Sys.Forms
 	Private Property TabPage.Text(ByRef Value As WString)
 		WLet(FCaption, Value)
 		#ifdef __USE_GTK__
-			If gtk_is_label(_Label) Then
-				gtk_label_set_text(gtk_Label(_Label), ToUTF8(Value))
+			If GTK_IS_LABEL(_Label) Then
+				gtk_label_set_text(GTK_LABEL(_Label), ToUtf8(Value))
 			End If
 		#else
 			Update
@@ -222,7 +222,7 @@ Namespace My.Sys.Forms
 	Private Property TabPage.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
-			gtk_image_set_from_icon_name(gtk_image(_icon), ToUTF8(Value), GTK_ICON_SIZE_MENU)
+			gtk_image_set_from_icon_name(GTK_IMAGE(_Icon), ToUtf8(Value), GTK_ICON_SIZE_MENU)
 		#else
 			Update
 		#endif
@@ -358,7 +358,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TabControl.SelectedTabIndex As Integer
 		#ifdef __USE_GTK__
-			Return gtk_notebook_get_current_page(gtk_notebook(widget))
+			Return gtk_notebook_get_current_page(GTK_NOTEBOOK(widget))
 		#else
 			Return Perform(TCM_GETCURSEL,0,0)
 		#endif
@@ -367,7 +367,7 @@ Namespace My.Sys.Forms
 	Private Property TabControl.SelectedTabIndex(Value As Integer)
 		FSelectedTabIndex = Value
 		#ifdef __USE_GTK__
-			gtk_notebook_set_current_page(gtk_notebook(widget), Value)
+			gtk_notebook_set_current_page(GTK_NOTEBOOK(widget), Value)
 		#else
 			If Handle Then
 				Perform(TCM_SETCURSEL,FSelectedTabIndex,0)
@@ -375,7 +375,7 @@ Namespace My.Sys.Forms
 				For i As Integer = 0 To TabCount - 1
 					Tabs[i]->Visible = i = Id
 					If FDesignMode Then
-						ShowWindow(Tabs[i]->Handle, Abs_(i = Id))
+						ShowWindow(Tabs[i]->Handle, abs_(i = Id))
 						If i <> Id Then SetWindowPos Tabs[i]->Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 					End If
 				Next i
@@ -523,7 +523,7 @@ Namespace My.Sys.Forms
 		FReorderable = Value
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To TabCount - 1
-				gtk_notebook_set_tab_reorderable(gtk_notebook(widget), Tabs[i]->Widget, Value)
+				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), Tabs[i]->widget, Value)
 			Next
 		#endif
 		RecreateWnd
@@ -786,7 +786,7 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim As LPNMHDR NM
 				NM = Cast(LPNMHDR,Message.lParam)
-				If NM->Code = TCN_SELCHANGE Then
+				If NM->code = TCN_SELCHANGE Then
 					SelectedTabIndex = SelectedTabIndex
 				End If
 			Case WM_NCHITTEST
@@ -801,25 +801,25 @@ Namespace My.Sys.Forms
 		Dim tb As TabPage Ptr = New_( TabPage)
 		tb->FDynamic = True
 		tb->Caption = Caption
-		tb->Object = AObject
+		tb->Object = aObject
 		tb->ImageIndex = ImageIndex
 		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tb
 		#ifdef __USE_GTK__
 			If widget Then
 				#ifdef __USE_GTK3__
-					tb->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					tb->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
 				#else
-					tb->_box = gtk_hbox_new(False, 1)
+					tb->_Box = gtk_hbox_new(False, 1)
 				#endif
-				tb->_icon = gtk_image_new_from_icon_name(ToUTF8(tb->ImageKey), GTK_ICON_SIZE_MENU)
-				gtk_container_add (GTK_CONTAINER (tb->_box), tb->_icon)
-				tb->_label = gtk_label_new(ToUTF8(tb->Caption))
-				gtk_container_add (GTK_CONTAINER (tb->_box), tb->_label)
+				tb->_Icon = gtk_image_new_from_icon_name(ToUtf8(tb->ImageKey), GTK_ICON_SIZE_MENU)
+				gtk_container_add (GTK_CONTAINER (tb->_Box), tb->_Icon)
+				tb->_Label = gtk_label_new(ToUtf8(tb->Caption))
+				gtk_container_add (GTK_CONTAINER (tb->_Box), tb->_Label)
 				'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
-				gtk_widget_show_all(tb->_box)
-				gtk_notebook_append_page(gtk_notebook(widget), tb->widget, tb->_box)
-				gtk_notebook_set_tab_reorderable(gtk_notebook(widget), tb->widget, FReorderable)
+				gtk_widget_show_all(tb->_Box)
+				gtk_notebook_append_page(GTK_NOTEBOOK(widget), tb->widget, tb->_Box)
+				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tb->widget, FReorderable)
 				'gtk_notebook_append_page(gtk_notebook(widget), tb->widget, gtk_label_new(ToUTF8(Caption)))
 			End If
 		#else
@@ -833,7 +833,7 @@ Namespace My.Sys.Forms
 				Ti.cchTextMax = LenSt
 				If Tabs[FTabCount - 1]->Object Then Ti.lParam = Cast(LPARAM, Tabs[FTabCount - 1]->Object)
 				Ti.iImage = Tabs[FTabCount - 1]->ImageIndex
-				SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+				SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
 			End If
 			SetMargins
 		#endif
@@ -864,18 +864,18 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If widget Then
 				#ifdef __USE_GTK3__
-					tp->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
 				#else
-					tp->_box = gtk_hbox_new(False, 1)
+					tp->_Box = gtk_hbox_new(False, 1)
 				#endif
-				tp->_icon = gtk_image_new_from_icon_name(ToUTF8(tp->ImageKey), GTK_ICON_SIZE_MENU)
-				gtk_container_add (GTK_CONTAINER (tp->_box), tp->_icon)
-				tp->_label = gtk_label_new(ToUTF8(tp->Caption))
-				gtk_container_add (GTK_CONTAINER (tp->_box), tp->_label)
+				tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
+				tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
+				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
 				'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
-				gtk_widget_show_all(tp->_box)
-				gtk_notebook_append_page(gtk_notebook(widget), tp->widget, tp->_box)
-				gtk_notebook_set_tab_reorderable(gtk_notebook(widget), tp->widget, FReorderable)
+				gtk_widget_show_all(tp->_Box)
+				gtk_notebook_append_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box)
+				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
 				'RequestAlign
 			End If
 			tp->Visible = FTabCount = 1
@@ -892,8 +892,8 @@ Namespace My.Sys.Forms
 				Ti.cchTextMax = Len(tp->Caption)
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Ti.iImage = tp->ImageIndex
-				SendmessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
-				WDeallocate St
+				SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+				WDeAllocate St
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1

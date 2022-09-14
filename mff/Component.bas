@@ -208,7 +208,7 @@ Namespace My.Sys.ComponentModel
 				If cParent Then
 					#ifdef __USE_GTK__
 						'If Not FDesignMode Then
-							If cParent->widget AndAlso gtk_is_frame(cParent->widget) Then
+							If cParent->widget AndAlso GTK_IS_FRAME(cParent->widget) Then
 								iTop -= 20
 							End If
 						'End If
@@ -232,7 +232,7 @@ Namespace My.Sys.ComponentModel
 					Exit Sub
 				End If
 				If widget Then
-					If gtk_is_widget(widget) AndAlso gtk_widget_is_toplevel(widget) Then
+					If GTK_IS_WIDGET(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
 						gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
 						'gtk_window_resize(GTK_WINDOW(widget), Max(1, iWidth), Max(1, iHeight))
@@ -243,13 +243,13 @@ Namespace My.Sys.ComponentModel
 						'If Parent AndAlso Parent->fixedwidget Then gtk_fixed_move(gtk_fixed(Parent->fixedwidget), widget, iLeft, iTop)
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 						If Parent Then
-							If Parent->layoutwidget AndAlso gtk_is_layout(gtk_widget_get_parent(CtrlWidget)) Then
+							If Parent->layoutwidget AndAlso GTK_IS_LAYOUT(gtk_widget_get_parent(CtrlWidget)) Then
 								'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
-								gtk_layout_move(gtk_layout(Parent->layoutwidget), CtrlWidget, iLeft, iTop)
+								gtk_layout_move(GTK_LAYOUT(Parent->layoutwidget), CtrlWidget, iLeft, iTop)
 							ElseIf Parent->fixedwidget Then
-								gtk_fixed_move(gtk_fixed(Parent->fixedwidget), CtrlWidget, iLeft, iTop)
-							ElseIf gtk_is_text_view(Parent->widget) Then
-								gtk_text_view_move_child(gtk_text_view(Parent->widget), CtrlWidget, iLeft, iTop)
+								gtk_fixed_move(GTK_FIXED(Parent->fixedwidget), CtrlWidget, iLeft, iTop)
+							ElseIf GTK_IS_TEXT_VIEW(Parent->widget) Then
+								gtk_text_view_move_child(GTK_TEXT_VIEW(Parent->widget), CtrlWidget, iLeft, iTop)
 							End If
 						End If
 						'gtk_widget_set_size_allocation(widget, @allocation)
@@ -304,8 +304,8 @@ Namespace My.Sys.ComponentModel
 	#ifndef Left_Off
 		Private Property Component.Left As Integer
 			#ifdef __USE_GTK__
-				If gtk_is_window(widget) Then
-					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
 				Else
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then

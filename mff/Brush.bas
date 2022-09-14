@@ -25,6 +25,10 @@
 	Dim Shared As HTHEME g_menuTheme = 0
 	hbrBkgnd = CreateSolidBrush(darkBkColor)
 	hbrHlBkgnd = CreateSolidBrush(darkHlBkColor)
+#else
+	Const As Integer darkBkColor = &h383838
+	Const As Integer darkHlBkColor = &h626262
+	Const As Integer darkTextColor = &hFFFFFF
 #endif
 
 Namespace My.Sys.Drawing
