@@ -847,7 +847,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
-				SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+				'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 			End Sub
 		#endif
 		
