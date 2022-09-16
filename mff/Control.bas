@@ -2582,13 +2582,19 @@ Namespace My.Sys.Forms
 								#ifdef __USE_GTK4__
 									gtk_box_pack_end(GTK_BOX(widget), Ctrlwidget)
 								#else
-									gtk_box_pack_end(GTK_BOX(widget), Ctrlwidget, True, True, 0)
+									gtk_box_pack_end(GTK_BOX(widget), Ctrlwidget, False, False, 0)
+								#endif
+							ElseIf Ctrl->Align = DockStyle.alClient Then
+								#ifdef __USE_GTK4__
+									gtk_box_pack_start(GTK_BOX(widget), Ctrlwidget)
+								#else
+									gtk_box_pack_start(GTK_BOX(widget), Ctrlwidget, True, True, 0)
 								#endif
 							Else
 								#ifdef __USE_GTK4__
 									gtk_box_pack_start(GTK_BOX(widget), Ctrlwidget)
 								#else
-									gtk_box_pack_start(GTK_BOX(widget), Ctrlwidget, True, True, 0)
+									gtk_box_pack_start(GTK_BOX(widget), Ctrlwidget, False, False, 0)
 								#endif
 							End If
 							bAdded = True
