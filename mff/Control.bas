@@ -2572,10 +2572,12 @@ Namespace My.Sys.Forms
 							bAdded = True
 						ElseIf GTK_IS_BOX(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-							gtk_widget_set_margin_left(Ctrlwidget, Ctrl->ExtraMargins.Left)
-							gtk_widget_set_margin_top(Ctrlwidget, Ctrl->ExtraMargins.Top)
-							gtk_widget_set_margin_right(Ctrlwidget, Ctrl->ExtraMargins.Right)
-							gtk_widget_set_margin_bottom(Ctrlwidget, Ctrl->ExtraMargins.Bottom)
+							#ifdef __USE_GTK3__
+								gtk_widget_set_margin_left(Ctrlwidget, Ctrl->ExtraMargins.Left)
+								gtk_widget_set_margin_top(Ctrlwidget, Ctrl->ExtraMargins.Top)
+								gtk_widget_set_margin_right(Ctrlwidget, Ctrl->ExtraMargins.Right)
+								gtk_widget_set_margin_bottom(Ctrlwidget, Ctrl->ExtraMargins.Bottom)
+							#endif
 							If Ctrl->Align = DockStyle.alRight OrElse Ctrl->Align = DockStyle.alBottom Then
 								#ifdef __USE_GTK4__
 									gtk_box_pack_end(GTK_BOX(widget), Ctrlwidget)
