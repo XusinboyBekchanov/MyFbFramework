@@ -58,6 +58,7 @@
 #include once "GroupBox.bi"
 #include once "GUI.bi"
 #include once "Header.bi"
+#include once "HorizontalBox.bi"
 #include once "HotKey.bi"
 #include once "Icon.bi"
 #include once "ImageBox.bi"
@@ -104,6 +105,7 @@
 #include once "TreeView.bi"
 #include once "UpDown.bi"
 #include once "UserControl.bi"
+#include once "VerticalBox.bi"
 #if defined(__USE_WEBKITGTK__) Or Not defined(__USE_GTK__)
 	#include once "WebBrowser.bi"
 #endif
@@ -142,6 +144,7 @@ Using My.Sys.Forms
 		Case "griddata": Ctrl = New_( GridData)
 		Case "groupbox": Ctrl = New_( GroupBox)
 		Case "header": Ctrl = New_( Header)
+		Case "horizontalbox": Ctrl = New_(HorizontalBox)
 		Case "hotkey": Ctrl = New_( HotKey)
 		Case "ipaddress": Ctrl = New_( IPAddress)
 		Case "imagebox": Ctrl = New_( ImageBox)
@@ -174,6 +177,7 @@ Using My.Sys.Forms
 		Case "treeview": Ctrl = New_( TreeView)
 		Case "updown": Ctrl = New_( UpDown)
 		Case "usercontrol": Ctrl = New_( UserControl)
+		Case "verticalbox": Ctrl = New_( VerticalBox)
 		#if defined(__USE_WEBKITGTK__) Or Not defined(__USE_GTK__)
 			Case "webbrowser": Ctrl = New_(WebBrowser)
 		#endif
@@ -252,6 +256,7 @@ Using My.Sys.Forms
 		Case "groupbox": Delete_( Cast(GroupBox Ptr, Ctrl))
 		Case "header": Delete_( Cast(Header Ptr, Ctrl))
 		Case "hotkey": Delete_( Cast(HotKey Ptr, Ctrl))
+		Case "horizontalbox": Delete_(Cast(HorizontalBox Ptr, Ctrl))
 		Case "ipaddress": Delete_( Cast(IPAddress Ptr, Ctrl))
 		Case "imagebox": Delete_( Cast(ImageBox Ptr, Ctrl))
 		Case "label": Delete_( Cast(Label Ptr, Ctrl))
@@ -297,6 +302,7 @@ Using My.Sys.Forms
 		Case "fontdialog": Delete_( Cast(FontDialog Ptr, Ctrl))
 		Case "openfiledialog": Delete_( Cast(OpenFileDialog Ptr, Ctrl))
 		Case "savefiledialog": Delete_( Cast(SaveFileDialog Ptr, Ctrl))
+		Case "verticalbox": Delete_( Cast(VerticalBox Ptr, Ctrl))
 		#if defined(__USE_WEBKITGTK__) Or Not defined(__USE_GTK__)
 			Case "webbrowser": Delete_( Cast(WebBrowser Ptr, Ctrl))
 		#endif

@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 		FBevelWidth  As Integer
 		#ifdef __USE_WINAPI__
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Sub AdjustColors(FBevel As Integer)
 			Declare Sub DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Declare Sub Frame3D(R As My.Sys.Drawing.Rect, AWidth As Integer)

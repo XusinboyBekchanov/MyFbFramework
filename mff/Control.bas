@@ -2309,27 +2309,26 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					End With
-					'                Select Case Controls[i]->Align
-					'						Case 0 'None
-					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_BASELINE)
-					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_BASELINE)
-					'						Case 1 'Left
-					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_START)
-					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
-					'						Case 2 'Right
-					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_END)
-					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
-					'						Case 3 'Top
-					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
-					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_START)
-					'						Case 4 'Bottom
-					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
-					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_END)
-					'						Case 5 'Client
-					'							gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
-					'							gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
-					'						End Select
-					
+					'Select Case Controls[i]->Align
+					'Case 0 'None
+					'	gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_BASELINE)
+					'	gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_BASELINE)
+					'Case 1 'Left
+					'	gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_START)
+					'	gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'Case 2 'Right
+					'	gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_END)
+					'	gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'Case 3 'Top
+					'	gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'	gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_START)
+					'Case 4 'Bottom
+					'	gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'	gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_END)
+					'Case 5 'Client
+					'	gtk_widget_set_halign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'	gtk_widget_set_valign(Controls[i]->widget, GTK_ALIGN_FILL)
+					'End Select
 				Next i
 				'#IfDef __USE_GTK__
 				'#Else
@@ -2395,7 +2394,7 @@ Namespace My.Sys.Forms
 						'End If
 					End If
 				#else
-					Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+					If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 Then Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
 				#endif
 			End If
 			#ifdef __USE_GTK__
@@ -2571,6 +2570,26 @@ Namespace My.Sys.Forms
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_text_view_add_child_in_window(GTK_TEXT_VIEW(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, Ctrl->FLeft, Ctrl->FTop - FrameTop)
 							bAdded = True
+						ElseIf GTK_IS_BOX(widget) Then
+							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+							gtk_widget_set_margin_left(Ctrlwidget, Ctrl->ExtraMargins.Left)
+							gtk_widget_set_margin_top(Ctrlwidget, Ctrl->ExtraMargins.Top)
+							gtk_widget_set_margin_right(Ctrlwidget, Ctrl->ExtraMargins.Right)
+							gtk_widget_set_margin_bottom(Ctrlwidget, Ctrl->ExtraMargins.Bottom)
+							If Ctrl->Align = DockStyle.alRight OrElse Ctrl->Align = DockStyle.alBottom Then
+								#ifdef __USE_GTK4__
+									gtk_box_pack_end(GTK_BOX(widget), Ctrlwidget)
+								#else
+									gtk_box_pack_end(GTK_BOX(widget), Ctrlwidget, True, True, 0)
+								#endif
+							Else
+								#ifdef __USE_GTK4__
+									gtk_box_pack_start(GTK_BOX(widget), Ctrlwidget)
+								#else
+									gtk_box_pack_start(GTK_BOX(widget), Ctrlwidget, True, True, 0)
+								#endif
+							End If
+							bAdded = True
 						End If
 					End If
 					If Ctrl->eventboxwidget Then g_object_set_data(G_OBJECT(Ctrl->eventboxwidget), "@@@Control2", Ctrl)
@@ -2608,7 +2627,7 @@ Namespace My.Sys.Forms
 						'#ENDIF
 					End If
 				#endif
-				If Ctrl->FTabIndex = -1 Then Ctrl->ChangeTabIndex -1
+				If Ctrl->FTabIndex = -1 Then Ctrl->ChangeTabIndex - 1
 				RequestAlign
 				If FSaveParent Then
 					If FSaveParent <> @This Then
