@@ -218,7 +218,7 @@ Private Function OpenFileDialog.Execute As Boolean
 		If pApp->MainForm Then
 			win = GTK_WINDOW(pApp->MainForm->widget)
 		End If
-		widget =  gtk_file_chooser_dialog_new (ToUtf8(*FCaption), _
+		widget =  gtk_file_chooser_dialog_new(ToUtf8(*FCaption), _
 		win, _
 		GTK_FILE_CHOOSER_ACTION_OPEN, _
 		ToUtf8("Cancel"), GTK_RESPONSE_CANCEL, _
@@ -245,16 +245,18 @@ Private Function OpenFileDialog.Execute As Boolean
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
-		If FMultiSelect Then gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), True)
+		Dim bTrue As gboolean = 1
+		gtk_file_chooser_set_action(GTK_FILE_CHOOSER(widget), GTK_FILE_CHOOSER_ACTION_OPEN)
+		If FMultiSelect Then gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), bTrue)
 		Dim As Integer result = gtk_dialog_run (GTK_DIALOG (widget))
 		bResult = result = GTK_RESPONSE_ACCEPT
 		If bResult Then
 			FileName = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
 			Dim As GSList Ptr l = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER (widget))
 			While (l)
-				FileNames.Add *Cast(ZString Ptr, l->Data)
-				g_free(l->Data)
-				l = l->Next
+				FileNames.Add *Cast(ZString Ptr, l->data)
+				g_free(l->data)
+				l = l->next
 			Wend
 			g_slist_free(l)
 		End If
