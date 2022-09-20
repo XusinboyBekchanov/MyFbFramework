@@ -587,18 +587,18 @@ Namespace My
 	End Destructor
 End Namespace
 
+#ifdef _DebugWindow_
+	Dim Shared As Any Ptr DebugWindowHandle = Cast(Any Ptr, _DebugWindow_)
+#else
+	Dim Shared As Any Ptr DebugWindowHandle
+#endif
+
 Namespace Debug
-	#ifdef _DebugWindow_
-		Dim Shared As Any Ptr Handle = Cast(Any Ptr, _DebugWindow_)
-	#else
-		Dim Shared As Any Ptr Handle
-	#endif
-	
 	Private Sub Clear
 		#ifdef __USE_WINAPI__
-			If IsWindow(Handle) Then SendMessage(Handle, WM_SETTEXT, Cast(WPARAM, 0), Cast(LPARAM, @""))
+			If IsWindow(DebugWindowHandle) Then SendMessage(DebugWindowHandle, WM_SETTEXT, Cast(WPARAM, 0), Cast(LPARAM, @""))
 		#elseif defined(__USE_GTK__)
-			If gtk_is_text_view(Handle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(gtk_text_view(Handle)), !"\0", -1)
+			If GTK_IS_TEXT_VIEW(DebugWindowHandle) Then gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), !"\0", -1)
 		#endif
 	End Sub
 	
@@ -615,27 +615,27 @@ Namespace Debug
 		If bShowMsg Then MsgBox MSG, "Visual FB Editor"
 		If bPrintToDebugWindow Then
 			#ifdef __USE_WINAPI__
-				If IsWindow(Handle) Then
-					If SendMessage(GetParent(GetParent(Handle)), TCM_GETCURSEL, 0, 0) <> 5 Then
-						SendMessage(GetParent(GetParent(Handle)), TCM_SETCURSEL, 5, 0)
-						ShowWindow(GetParent(Handle), SW_SHOW)
-						BringWindowToTop(GetParent(Handle))
+				If IsWindow(DebugWindowHandle) Then
+					If SendMessage(GetParent(GetParent(DebugWindowHandle)), TCM_GETCURSEL, 0, 0) <> 5 Then
+						SendMessage(GetParent(GetParent(DebugWindowHandle)), TCM_SETCURSEL, 5, 0)
+						ShowWindow(GetParent(DebugWindowHandle), SW_SHOW)
+						BringWindowToTop(GetParent(DebugWindowHandle))
 					End If
 					Dim As WString Ptr SelText
 					WLet SelText, MSG & Chr(13, 10)
-					SendMessage(Handle, EM_REPLACESEL, 0, CInt(SelText))
+					SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
 					WDeAllocate SelText
 				End If
 			#elseif defined(__USE_GTK__)
-				If gtk_is_text_view(Handle) Then
-					If gtk_notebook_get_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle)))) <> 5 Then
-						gtk_notebook_set_current_page(gtk_notebook(gtk_widget_get_parent(gtk_widget_get_parent(Handle))), 5)
+				If GTK_IS_TEXT_VIEW(DebugWindowHandle) Then
+					If gtk_notebook_get_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle)))) <> 5 Then
+						gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle))), 5)
 					End If
 					Dim As GtkTextIter _start, _end
-					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Handle)), ToUtf8(MSG & Chr(13, 10)), -1)
-					gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Handle)), @_start, @_end)
-					Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(gtk_text_view(Handle)), NULL, @_end, False)
-					gtk_text_view_scroll_to_mark(gtk_text_view(Handle), ptextmark, 0., False, 0., 0.)
+					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), ToUtf8(MSG & Chr(13, 10)), -1)
+					gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), @_start, @_end)
+					Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), NULL, @_end, False)
+					gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(DebugWindowHandle), ptextmark, 0., False, 0., 0.)
 					#ifdef __USE_GTK__
 						While gtk_events_pending()
 							gtk_main_iteration()
@@ -804,29 +804,29 @@ Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As Fi
 	Fn = FreeFile_
 	If Open(FileName For Binary Access Read As #Fn) = 0 Then
 		FileSize = LOF(Fn) + 1
-		buff = String(4, 0)
+		Buff = String(4, 0)
 		Get #Fn, , Buff
 		If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
 			FileEncoding = FileEncodings.Utf32BOM
 			EncodingStr = "utf-32"
-			buff = String(1024, 0)
+			Buff = String(1024, 0)
 			Get #Fn, 0, Buff
 			'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
 		ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
 			FileEncoding = FileEncodings.Utf16BOM
 			EncodingStr = "utf-16"
-			buff = String(1024, 0)
+			Buff = String(1024, 0)
 			Get #Fn, 0, Buff
 		ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
 			FileEncoding = FileEncodings.Utf8BOM
 			EncodingStr = "utf-8"
-			buff = String(1024, 0)
+			Buff = String(1024, 0)
 			Get #Fn, 0, Buff
 		Else
-			buff = String(FileSize, 0)
+			Buff = String(FileSize, 0)
 			Get #Fn, 0, Buff
 			If (CheckUTF8NoBOM(Buff)) Then
-				FileEncoding = FileEncodings.UTF8
+				FileEncoding = FileEncodings.Utf8
 				EncodingStr = "ascii"
 			Else
 				FileEncoding = FileEncodings.PlainText
@@ -859,7 +859,7 @@ Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As Fi
 	Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 	If Result = 0 Then
 		pBuff = Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
-		If FileEncoding = FileEncodings.UTF8 Then
+		If FileEncoding = FileEncodings.Utf8 Then
 			Buff =  Input(FileSize, #Fn)
 			UTFToWChar(1, StrPtr(Buff), *pBuff, @FileSize)
 		Else
