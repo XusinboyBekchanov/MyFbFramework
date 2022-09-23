@@ -966,7 +966,7 @@ Namespace My.Sys.Forms
 					'					Else
 					FHandle = CreateWindowExW(dExStyle, _
 					FClassName, _
-					IIf(ClassName = "WebBrowser", 0, FText.vptr), _
+					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, FText.vptr), _
 					dStyle, _
 					nLeft, _
 					nTop, _
