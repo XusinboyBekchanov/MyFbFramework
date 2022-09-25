@@ -21,7 +21,7 @@ Namespace My
 	Private Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
 		Case "mainform": Return @FMainForm
-		Case "version": WLet(FTemp, WStr(VERSION)): Return FTemp
+		Case "version": WLet(FTemp, WStr(Version)): Return FTemp
 		Case "title": Title: Return FTitle
 		Case "filename": Return @This.FileName
 		Case Else: Return Base.ReadProperty(PropertyName)
@@ -622,7 +622,7 @@ Namespace Debug
 						BringWindowToTop(GetParent(DebugWindowHandle))
 					End If
 					Dim As WString Ptr SelText
-					WLet SelText, MSG & Chr(13, 10)
+					WLet(SelText, MSG & Chr(13, 10))
 					SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
 					WDeAllocate SelText
 				End If

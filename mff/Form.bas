@@ -335,9 +335,9 @@ Namespace My.Sys.Forms
 				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(GTK_WINDOW(widget), False)
 					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_SPLASHSCREEN)
-					#ifndef __USE_GTK3__
-						gtk_window_set_resizable(GTK_WINDOW(widget), False)
-					#endif
+					'#ifndef __USE_GTK3__
+					'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					'#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, False)
 				End If
@@ -353,9 +353,9 @@ Namespace My.Sys.Forms
 				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(GTK_WINDOW(widget), True)
 					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DOCK)
-					#ifndef __USE_GTK3__
-						gtk_window_set_resizable(GTK_WINDOW(widget), False)
-					#endif
+					'#ifndef __USE_GTK3__
+					'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					'#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
@@ -371,9 +371,9 @@ Namespace My.Sys.Forms
 				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(GTK_WINDOW(widget), True)
 					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
-					#ifndef __USE_GTK3__
-						gtk_window_set_resizable(GTK_WINDOW(widget), False)
-					#endif
+					'#ifndef __USE_GTK3__
+					'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					'#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
@@ -381,9 +381,9 @@ Namespace My.Sys.Forms
 				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(GTK_WINDOW(widget), True)
 					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
-					#ifndef __USE_GTK3__
-						gtk_window_set_resizable(GTK_WINDOW(widget), False)
-					#endif
+					'#ifndef __USE_GTK3__
+					'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					'#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
@@ -391,9 +391,9 @@ Namespace My.Sys.Forms
 				If GTK_IS_WINDOW(widget) Then
 					gtk_window_set_decorated(GTK_WINDOW(widget), True)
 					gtk_window_set_type_hint(GTK_WINDOW(widget), GDK_WINDOW_TYPE_HINT_DIALOG)
-					#ifndef __USE_GTK3__
-						gtk_window_set_resizable(GTK_WINDOW(widget), False)
-					#endif
+					'#ifndef __USE_GTK3__
+					'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+					'#endif
 				Else
 					gtk_widget_set_visible(HeaderBarWidget, True)
 				End If
@@ -1471,29 +1471,29 @@ Namespace My.Sys.Forms
 						End If
 						Select Case FBorderStyle
 						Case FormBorderStyle.None
-							#ifndef __USE_GTK3__
-								gtk_window_set_resizable(GTK_WINDOW(widget), False)
-							#endif
+							'#ifndef __USE_GTK3__
+							'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							'#endif
 						Case FormBorderStyle.SizableToolWindow
 							gtk_window_set_resizable(GTK_WINDOW(widget), True)
 						Case FormBorderStyle.FixedToolWindow
-							#ifndef __USE_GTK3__
-								gtk_window_set_resizable(GTK_WINDOW(widget), False)
-							#endif
+							'#ifndef __USE_GTK3__
+							'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							'#endif
 						Case FormBorderStyle.Sizable
 							gtk_window_set_resizable(GTK_WINDOW(widget), True)
 						Case FormBorderStyle.Fixed3D
-							#ifndef __USE_GTK3__
-								gtk_window_set_resizable(GTK_WINDOW(widget), False)
-							#endif
+							'#ifndef __USE_GTK3__
+							'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							'#endif
 						Case FormBorderStyle.FixedSingle
-							#ifndef __USE_GTK3__
-								gtk_window_set_resizable(GTK_WINDOW(widget), False)
-							#endif
+							'#ifndef __USE_GTK3__
+							'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							'#endif
 						Case FormBorderStyle.FixedDialog
-							#ifndef __USE_GTK3__
-								gtk_window_set_resizable(GTK_WINDOW(widget), False)
-							#endif
+							'#ifndef __USE_GTK3__
+							'	gtk_window_set_resizable(GTK_WINDOW(widget), False)
+							'#endif
 						End Select
 					End If
 				Else

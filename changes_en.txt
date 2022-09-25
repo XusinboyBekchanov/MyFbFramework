@@ -1,3 +1,111 @@
+Version 1.3.3 (September 23, 2022)
+- Fixed: WebBrowser Navigate method
+- Fixed: Compiling with gtk2
+- Added: HorizontalBox and VerticalBox container controls
+- Fixed: Opening multiple files with OpenFileDialog on Linux
+- Fixed: ActiveForm property of Application on Linux
+- Fixed: Application Run method
+- Fixed: Recreating OpenFileControl
+- Added: Undo, PasteFromClipboard, CopyToClipboard, CutToClipboard, SelectAll methods to ComboBoxEdit and ComboBoxEx
+- Fixed: the Index of Items for all Control
+- Fixed: Crashing IDE on Linux
+- Added: Ability to change properties of FolderBrowserDialog, FontDialog and ColorDialog through the Properties window
+- Added: Ability to change properties of OpenFileDialog and SaveFileDialog through the Properties window
+- Improved: Showing MDI Child Icon and Minimize, Restore and Close buttons in High DPI
+- Fixed: Image and ImageKey property of MenuItem
+- Added: ActiveMDIChild property to Application
+- Fixed: Showing MDI Child Icon and Minimize, Restore, Close buttons on Dark Mode
+- Added: __HIDE_NO_MAIN_FORM_ON_CLOSE__ define
+- Fixed: RichTextBox TextRTF property and adding to Designer
+- Fixed: BitmapWidth, BitmapHeight, ButtonWidth and ButtonHeight properties of ToolBar on High DPI
+- Fixed: Set Colors in MDI forms
+- Fixed: Show, Hide And CreateWnd methods of ToolTips
+- Fixed: Drawing of the top menu when enabling and disabling elements of the top menu.
+- Fixed: WebBrowser designing
+- Changed: License to modifiedLGPL
+- Added: ControlRepaint Export sub for Control, ChangeIndex method for List, PanelIndex property to StatusPanel, ChangePanelIndex method for StatusBar, ButtonIndex property to ToolButton, ChangeIndex method to ToolButtons
+- Fixed: UpDown control
+- Added: AutoSize property to ContainerControl
+- Added: Vertical centering text of Label with CenterImage property
+- Fixed: Dark mode of MDI Client window
+- Added: OnColumnClick event to Grid
+- Added: NumbersOnly property to TextBox
+- Fixed: AllowDrop property of Control on Design mode
+- Fixed: Form Closing errors
+- Fixed: Dictionary IndexOfKey function
+- Improved: Setting the default property of a CommandButton sets or unsets the DefaultButton property of the parent Form.
+- Fixed: CommandButton Default property
+- Fixed: ToolPalette Remove tool buttons
+- Improved: Drawing checkboxes in CheckedListBox
+- Added: OnActivate and OnDeActivate events to MDI Child
+- Fixed: Tab on MDI Child
+- Added: Selected property to ListView Item
+- Fixed: MDI Form on High DPI
+- Updated: Canvas functions in Linux for Scale
+- Fixed: Crashing Chart control
+- Improved: MDI Form
+- Fixed: Set empty caption to MenuItem on Linux
+- Added: ChangeIndex procedure to Control
+- Added: ControlIndex property to Control
+- Added: ParentMenuItem property to MeniItem
+- Fixed: Form WindowState property on startup
+- Fixed: Closing and Showing MDI Child
+- Fixed: Showing MDI Child Form on Design Mode
+- Added: MouseWheel to ScrollControl
+- Added: ScrollControl on Linux
+- Added: ScrollControl
+- Added: OnLinkClicked event to ToolTips
+- Fixed: KeyPress event of Controls to get Unicode symbols
+- Fixed: ComboBoxEx Text Limit
+- Fixed: Display of ComboBoxEx items with long text
+- Improved: ComboBoxEx events
+- Fixed: OnDblClick event of ComboBoxEx
+- Improved: OnDblClick event triggers also in TextBox for ComboBoxEdit & ComboBoxEx.
+- Added: ItemCount function and Clear method to ComboBoxEx (to extend the properties and methods of the base class)
+- Added: AddItem, RemoveItem and InsertItem methods, Item and ItemData properties, IndexOf, Contains and IndexOfData functions to ComboBoxEx
+- Fixed: Showing ToolPalette icons on High DPI
+- Fixed: Compiling on Android
+- Added: ByRef Idx parameter to WStringList Contains function
+- Fixed: Get and set inner and outer text and html in function GetBody/SetBody of WebBrowser
+- Added: ItemText parameter to IndexOf function of WStringList
+- Improved: Control RequestAlign method
+- Fixed: Showing ComboBoxEdit
+- Fixed: Drawing GroupBox on Dark Mode
+- Fixed: File number leak
+- Fixed: Control Margins property
+- Added: __USE_GTK4__ define
+- Fixed: Refresh ComboBoxEdit items after change item by Index
+- Fixed: LoadFromFile and SaveToFile functions of CheckedListBox, ComboBoxEdit and ListControl
+- Added: LoadFromFile and SaveToFile functions
+- Fixed: Showing EditControl Tooltip
+- Fixed: Showing ToolTip for Form
+- Improved: WLetEx function
+- Added: MatchFullWords optional parameter to IndexOf function of Dictionary
+- Improved: WStringList Sorted Add
+- Added: MatchCase and MatchFullWords properties to WStringList
+- Added: SortInsert parameter to WStringList Add function
+- Improved: The speed IndexOf functions of WStringList and Dictionary
+- Fixed: TextBox Left and Right Margins on High DPI
+- Improved: Set Images to Menu from ImageList
+- Fixed: Hang when changing IDE width at High DPI
+- Fixed: ToolBar on High DPI
+- Fixed: High DPI of ComboBoxEx, TabControl and ToolPalette controls
+- Fixed: ComboBoxEdit Item Height on High DPI
+- Fixed: ImageList on High DPI
+- Added: My.Sys.Registry namespace
+- Fixed: ToolButton State property
+- Added: Debug.Clear function
+- Changed: DebugPrint to Debug.Print
+- Added: Printing with Debug.Print to Debug Window
+- Added: Setting SelStart and SelEnd methods of TextBox in Constructor
+- Improved: Dictionary IndexOfKey method
+- Fixed: FromUTF8 function
+- Fixed: TabPage on Designer
+- Fixed: PopupMenu ParentWindow property (get)
+- Added: Index Parameter to Control Add Method
+- Added: Get and Set Menu and MenuItem Items by Key
+- Added: TabControl DeleteTab by TabPage Pointer
+- Fixed: Splitter update on moving
 Version 1.3.2 (April 16, 2022)
 - Fixed: Unable to register class message
 - Fixed: CheckBox Font in Dark Mode

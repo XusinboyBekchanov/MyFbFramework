@@ -76,7 +76,7 @@ Namespace My.Sys.Forms
 	Private Property OpenFileControl.InitialDir ByRef As WString
 		If FHandle Then
 			#ifdef __USE_GTK__
-				WLet FInitialDir, WStr(*gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER (widget)))
+				WLet(FInitialDir, WStr(*gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER (widget))))
 			#else
 				Dim As Integer iSize = 1024
 				Dim As WString * 1024 Path
@@ -93,7 +93,7 @@ Namespace My.Sys.Forms
 		*FInitialDir = Value
 		#ifdef __USE_GTK__
 			If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUTF8(*FInitialDir))
+			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
 		#endif
 	End Property
 	
@@ -112,7 +112,7 @@ Namespace My.Sys.Forms
 	Private Property OpenFileControl.FileName ByRef As WString
 		If FHandle Then
 			#ifdef __USE_GTK__
-				WLet FFileName, WStr(*gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget)))
+				WLet(FFileName, WStr(*gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget))))
 				If InStr(*FFileName, ".") = 0 Then
 					If *FDefaultExt <> "" Then WAdd FFileName, "." & *FDefaultExt
 				End If
@@ -133,7 +133,7 @@ Namespace My.Sys.Forms
 			If WGet(FFileName) = "" Then
 				gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), !"\0")
 			Else
-				gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUTF8(*FFileName))
+				gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
 			End If
 		#endif
 	End Property
@@ -144,9 +144,9 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Dim As Integer Pos1 = InStrRev(*FFileName, "/")
 				If Pos1 > 0 Then
-					WLet FFileTitle, Mid(*FFileName, Pos1 + 1)
+					WLet(FFileTitle, Mid(*FFileName, Pos1 + 1))
 				Else
-					WLet FFileTitle, *FFileName
+					WLet(FFileTitle, *FFileName)
 				End If
 			#else
 				Dim As Integer iSize = 1024

@@ -55,6 +55,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
 			Return gtk_tree_selection_iter_is_selected(TreeSelection, @iter)
 		#else
 			If Handle Then Return Perform(LB_GETSEL, Index, 0)
@@ -71,7 +72,7 @@ Namespace My.Sys.Forms
 				gtk_tree_selection_unselect_iter(TreeSelection, @iter)
 			End If
 		#else
-			If Handle Then Perform(LB_SETSEL, Abs_(Value), Index)
+			If Handle Then Perform(LB_SETSEL, abs_(Value), Index)
 		#endif
 	End Property
 	
@@ -81,7 +82,7 @@ Namespace My.Sys.Forms
 				gtk_tree_selection_select_all(TreeSelection)
 			End If
 		#else
-			If Handle Then Perform(LB_SETSEL, Abs_(True), -1)
+			If Handle Then Perform(LB_SETSEL, abs_(True), -1)
 		#endif
 	End Sub
 	
@@ -89,7 +90,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_tree_selection_unselect_all(TreeSelection)
 		#else
-			If Handle Then Perform(LB_SETSEL, Abs_(False), -1)
+			If Handle Then Perform(LB_SETSEL, abs_(False), -1)
 		#endif
 	End Sub
 	
@@ -621,16 +622,16 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-				gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
+				gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+				gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_OUT)
 				ListStore = gtk_list_store_new(1, G_TYPE_STRING)
 				widget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(ListStore))
-				gtk_container_add(gtk_container(scrolledwidget), widget)
+				gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 				TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
 				g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@SelectionChanged), @This)
 				
 				gtk_tree_view_column_pack_start(col, rendertext, True)
-				gtk_tree_view_column_add_attribute(col, rendertext, ToUTF8("text"), 0)
+				gtk_tree_view_column_add_attribute(col, rendertext, ToUtf8("text"), 0)
 				gtk_tree_view_append_column(GTK_TREE_VIEW(widget), col)
 				
 				gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), False)

@@ -50,10 +50,11 @@ Public:
 	Declare Function ToLower As UString
 	Declare Function ToUpper As UString
 	
-	m_Data As WString Ptr
 	m_Length As Integer
 	m_BufferLen As Integer
 	m_BytesCount As Integer
+	
+	m_Data As WString Ptr
 Protected:
 	
 End Type

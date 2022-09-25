@@ -131,7 +131,11 @@ Namespace My.Sys.Forms
 	Private Constructor HorizontalBox
 		With This
 			#ifdef __USE_GTK__
-				widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0)
+				#ifdef __USE_GTK2__
+					widget = gtk_hbox_new(False, 0)
+				#else
+					widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0)
+				#endif
 				.RegisterClass "HorizontalBox", @This
 			#endif
 			FAutoSize = True

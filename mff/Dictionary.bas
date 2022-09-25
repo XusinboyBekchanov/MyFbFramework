@@ -18,7 +18,7 @@ Private Property DictionaryItem.Key ByRef As WString
 End Property
 
 Private Property DictionaryItem.Key(ByRef v As WString)
-	WLet FKey, v
+	WLet(FKey, v)
 End Property
 
 Private Property DictionaryItem.Text ByRef As WString
@@ -26,7 +26,7 @@ Private Property DictionaryItem.Text ByRef As WString
 End Property
 
 Private Property DictionaryItem.Text(ByRef v As WString)
-	WLet FText, v
+	WLet(FText, v)
 End Property
 
 Private Constructor DictionaryItem
@@ -459,24 +459,24 @@ End Function
 
 Private Property Dictionary.Text ByRef As WString
 	If FItems.Count < 1 Then Return ""
-	WLet FText, ""
+	WLet(FText, "")
 	For i As Integer = 0 To FItems.Count - 1
 		If i <> FItems.Count - 1 Then
-			WLet FText, *FText & Item(i)->Key & Chr(9) & " " & Item(i)->Text & Chr(13) & Chr(10)
+			WLet(FText, *FText & Item(i)->Key & Chr(9) & " " & Item(i)->Text & Chr(13) & Chr(10))
 		Else
-			WLet FText, *FText & Item(i)->Key & Chr(9) & " " & Item(i)->Text
+			WLet(FText, *FText & Item(i)->Key & Chr(9) & " " & Item(i)->Text)
 		End If
 	Next i
 	If FText > 0 Then Return *FText Else Return ""
 End Property
 
 Private Property Dictionary.Text(ByRef value As WString)
-	WLet FText, ""
+	WLet(FText, "")
 	This.Clear
 	Dim As Integer Pos1
 	For i As Integer = 0 To Len(value)
 		If value[i] = 10 Or value[i] = 0 Then
-			WLet *FText, Trim(Mid(*FText, 1, Len(*FText)), Any WChr(13) & WChr(10))
+			WLet(FText, Trim(Mid(*FText, 1, Len(*FText)), Any WChr(13) & WChr(10)))
 			Pos1 = InStr(*FText, WChr(9) & " ")
 			Dim As DictionaryItem Ptr nItem = New DictionaryItem
 			With *nItem
@@ -488,7 +488,7 @@ Private Property Dictionary.Text(ByRef value As WString)
 				End If
 			End With
 			FItems.Add nItem
-			WLet FText, ""
+			WLet(FText, "")
 		Else
 			WAdd FText, WChr(value[i])
 		End If

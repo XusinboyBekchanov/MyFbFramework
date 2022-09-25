@@ -53,7 +53,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUtf8(*URL))
 		#else
-			Dim vUrl As VARIANT : vUrl.vt = VT_BSTR : vUrl.bstrVal = SysAllocString(URL)
+			Dim vUrl As VARIANT: vUrl.vt = VT_BSTR : vUrl.bstrVal = SysAllocString(URL)
 			g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
 			VariantClear(@vUrl)
 		#endif
@@ -143,9 +143,9 @@ Namespace My.Sys.Forms
 			g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
 			Function = ""
 			If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
-				If htmlDoc2 Then
+				If htmldoc2 Then
 					Dim As IHTMLElement Ptr BODY
-					htmlDoc2->lpVtbl->get_body(htmlDoc2, @BODY)
+					htmldoc2->lpVtbl->get_body(htmldoc2, @BODY)
 					If BODY > 0 Then
 						Select Case flag
 						Case 0
@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 						Function = *tText
 						BODY->lpVtbl->Release(BODY)
 					End If
-					htmlDoc2->lpVtbl->Release(htmlDoc2)
+					htmldoc2->lpVtbl->Release(htmldoc2)
 				End If
 				doc->lpVtbl->Release(doc)
 			End If
@@ -180,9 +180,9 @@ Namespace My.Sys.Forms
 			Dim As IDispatch Ptr doc
 			g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
 			If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
-				If htmlDoc2 Then
+				If htmldoc2 Then
 					Dim As IHTMLElement Ptr BODY
-					htmlDoc2->lpVtbl->get_body(htmlDoc2, @BODY)
+					htmldoc2->lpVtbl->get_body(htmldoc2, @BODY)
 					If BODY > 0 Then
 						Select Case flag
 						Case 0
@@ -196,7 +196,7 @@ Namespace My.Sys.Forms
 						End Select
 						BODY->lpVtbl->Release(BODY)
 					End If
-					htmlDoc2->lpVtbl->Release(htmlDoc2)
+					htmldoc2->lpVtbl->Release(htmldoc2)
 				End If
 				doc->lpVtbl->Release(doc)
 			End If
@@ -270,7 +270,7 @@ Namespace My.Sys.Forms
 				End If
 				.Style        = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
 				.ExStyle      = WS_EX_CLIENTEDGE
-				.ChildProc    = @WNDPROC
+				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width        = 175

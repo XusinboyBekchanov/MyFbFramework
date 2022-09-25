@@ -1203,19 +1203,19 @@ Namespace My.Sys.Forms
 	Private Property ListView.SelectedItem As ListViewItem Ptr
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			If gtk_is_icon_view(widget) Then
-				Dim As GList Ptr list = gtk_icon_view_get_selected_items(gtk_icon_view(widget))
+			If GTK_IS_ICON_VIEW(widget) Then
+				Dim As GList Ptr list = gtk_icon_view_get_selected_items(GTK_ICON_VIEW(widget))
 				Dim As GtkTreePath Ptr path
 				Dim i As Integer
 				If (list) Then
-					path = list->Data
+					path = list->data
 					i = gtk_tree_path_get_indices(path)[0]
 				End If
 				g_list_free_full(list, Cast(GDestroyNotify, @gtk_tree_path_free))
 				Return ListItems.Item(i)
 			Else
 				If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-					Return ListItems.FindByIterUser_Data(iter.User_Data)
+					Return ListItems.FindByIterUser_Data(iter.user_data)
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -1230,22 +1230,22 @@ Namespace My.Sys.Forms
 	Private Property ListView.SelectedItemIndex As Integer
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			If gtk_is_icon_view(widget) Then
-				Dim As GList Ptr list = gtk_icon_view_get_selected_items(gtk_icon_view(widget))
+			If GTK_IS_ICON_VIEW(widget) Then
+				Dim As GList Ptr list = gtk_icon_view_get_selected_items(GTK_ICON_VIEW(widget))
 				Dim As GtkTreePath Ptr path
 				Dim i As Integer
 				If (list) Then
-					path = list->Data
+					path = list->data
 					i = gtk_tree_path_get_indices(path)[0]
 				End If
 				g_list_free_full(list, Cast(GDestroyNotify, @gtk_tree_path_free))
 				Return i
-			Else
+			ElseIf GTK_IS_TREE_SELECTION(TreeSelection) Then
 				If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
 					Dim As Integer i
 					Dim As GtkTreePath Ptr path
 					
-					path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
+					path = gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter)
 					i = gtk_tree_path_get_indices(path)[0]
 					gtk_tree_path_free(path)
 					'				Dim As ListViewItem Ptr lvi = ListItems.FindByIterUser_Data(iter.User_Data)
@@ -1263,17 +1263,17 @@ Namespace My.Sys.Forms
 	
 	Private Property ListView.SelectedItemIndex(Value As Integer)
 		#ifdef __USE_GTK__
-			If gtk_is_icon_view(widget) Then
-				gtk_icon_view_select_path(gtk_icon_view(widget), gtk_tree_path_new_from_string(Trim(Str(Value))))
+			If GTK_IS_ICON_VIEW(widget) Then
+				gtk_icon_view_select_path(GTK_ICON_VIEW(widget), gtk_tree_path_new_from_string(Trim(Str(Value))))
 			Else
 				If TreeSelection Then
 					If Value = -1 Then
 						gtk_tree_selection_unselect_all(TreeSelection)
 					ElseIf Value > -1 AndAlso Value < ListItems.Count Then
 						Dim As GtkTreeIter iter
-						gtk_tree_model_get_iter_from_string(gtk_tree_model(ListStore), @iter, Trim(Str(Value)))
+						gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Value)))
 						gtk_tree_selection_select_iter(TreeSelection, @iter)
-						gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
+						gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
 					End If
 				End If
 			End If

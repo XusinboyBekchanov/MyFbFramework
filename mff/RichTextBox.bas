@@ -94,7 +94,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTextIter _start, _end
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, cpMin)
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, cpMax)
-			WLet FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end, True))
+			WLet(FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end, True)))
 		#else
 			Dim txtrange As TEXTRANGE
 			If cpMax2 = -1 Then cpMax2 = This.GetTextLength
@@ -511,7 +511,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTextTag Ptr TextTag = list->data
 				Dim As gchar Ptr strval
 				g_object_get(TextTag, sProperty, @strval, NULL)
-				If *strval <> "" Then WLet FSelWStrVal, WStr(*strval)
+				If *strval <> "" Then WLet(FSelWStrVal, WStr(*strval))
 				list = g_slist_next(list)
 			Wend
 			g_slist_free(list)
@@ -1020,7 +1020,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter _start, _end
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
-			WLet FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end, True))
+			WLet(FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end, True)))
 		#else
 			If FHandle Then
 				Dim charArr As CHARRANGE

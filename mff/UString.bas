@@ -64,13 +64,16 @@ End Function
 
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
-#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
-			Deallocate_(subject)
-			subject = CAllocate_((lLen + 1) * SizeOf(WString))
-			'subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+			#ifdef __USE_GTK__
+				subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+			#else
+				Deallocate_(subject)
+				subject = CAllocate_((lLen + 1) * SizeOf(WString))
+			#endif
 		Else
 			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		End If
@@ -277,7 +280,7 @@ Private Function Replace(ByRef Expression As WString, ByRef FindingText As WStri
 	(*wres)[staid] = 0
 	Count = c
 	If Not MatchCase Then
-		WDeallocate original
+		WDeAllocate original
 		WDeAllocate find
 	End If
 	Return *wres

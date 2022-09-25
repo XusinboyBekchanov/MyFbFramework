@@ -280,11 +280,11 @@ Namespace My.Sys.Forms
 		Const Empty = ""
 		Dim As Integer iStart, iEnd
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _startline, _endline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, Index)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, Index + 1)
-				gtk_text_buffer_delete(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, @_endline)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, Index)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endline, Index + 1)
+				gtk_text_buffer_delete(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, @_endline)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
@@ -299,14 +299,14 @@ Namespace My.Sys.Forms
 	
 	Private Property TextBox.Text ByRef As WString
 		#ifdef __USE_GTK__
-			If gtk_is_widget(widget) Then
-				If gtk_is_text_view(widget) Then
-					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+			If GTK_IS_WIDGET(widget) Then
+				If GTK_IS_TEXT_VIEW(widget) Then
+					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 					Dim As GtkTextIter _start, _end
 					gtk_text_buffer_get_bounds(buffer, @_start, @_end)
 					FText = WStr(*gtk_text_buffer_get_text(buffer, @_start, @_end, True))
 				Else
-					FText = WStr(*gtk_entry_get_text(gtk_entry(widget)))
+					FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
 				EndIf
 			End If
 			Return *FText.vptr
@@ -333,8 +333,8 @@ Namespace My.Sys.Forms
 	Private Property TextBox.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+			If GTK_IS_TEXT_VIEW(widget) Then
+				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 				If Value = "" Then
 					gtk_text_buffer_set_text(buffer, !"\0", -1)
 				Else
@@ -342,14 +342,14 @@ Namespace My.Sys.Forms
 				End If
 			Else
 				If Value = "" Then
-					gtk_entry_set_text(gtk_entry(widget), !"\0")
+					gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
 				Else
-					gtk_entry_set_text(gtk_entry(widget), ToUtf8(Value))
+					gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Value))
 				End If
 			EndIf
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
 	End Property
@@ -357,10 +357,10 @@ Namespace My.Sys.Forms
 	Private Function TextBox.GetTextLength() As Integer
 		#ifdef __USE_GTK__
 			If FMultiline Then
-				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 				Return gtk_text_buffer_get_char_count(buffer)
 			Else
-				Return gtk_entry_get_text_length(gtk_entry(widget))
+				Return gtk_entry_get_text_length(GTK_ENTRY(widget))
 			End If
 		#else
 			Return Base.GetTextLength
@@ -374,11 +374,11 @@ Namespace My.Sys.Forms
 	Private Property TextBox.BorderStyle(Value As BorderStyles)
 		FBorderStyle = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				If FBorderStyle Then
-					gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
+					gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_OUT)
 				Else
-					gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_NONE)
+					gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_NONE)
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -399,8 +399,8 @@ Namespace My.Sys.Forms
 	Private Property TextBox.ReadOnly(Value As Boolean)
 		FReadOnly = Value
 		#ifdef __USE_GTK__
-			gtk_text_view_set_editable(gtk_text_view(WidgetTextView), Not Value)
-			gtk_editable_set_editable(gtk_editable(WidgetEntry), Not Value)
+			gtk_text_view_set_editable(GTK_TEXT_VIEW(WidgetTextView), Not Value)
+			gtk_editable_set_editable(GTK_EDITABLE(WidgetEntry), Not Value)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(EM_SETREADONLY, FReadOnly, 0)
 		#endif
@@ -564,8 +564,8 @@ Namespace My.Sys.Forms
 		If Result = 0 Then
 			FText = WInput(LOF(Fn), #Fn)
 			#ifdef __USE_GTK__
-				If gtk_is_text_view(widget) Then
-					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+				If GTK_IS_TEXT_VIEW(widget) Then
+					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 					If FText = "" Then
 						gtk_text_buffer_set_text(buffer, !"\0", -1)
 					Else
@@ -573,9 +573,9 @@ Namespace My.Sys.Forms
 					End If
 				Else
 					If FText = "" Then
-						gtk_entry_set_text(gtk_entry(widget), !"\0")
+						gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
 					Else
-						gtk_entry_set_text(gtk_entry(widget), ToUtf8(FText))
+						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(FText))
 					End If
 				EndIf
 			#elseif defined(__USE_WINAPI__)
@@ -595,11 +595,11 @@ Namespace My.Sys.Forms
 	
 	Private Function TextBox.GetLineLength(Index As Integer = -1) As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _startline, _endline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, Index)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, Index + 1)
-				Return Len(WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, @_endline, True)))
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, Index)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endline, Index + 1)
+				Return Len(WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, @_endline, True)))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -612,11 +612,11 @@ Namespace My.Sys.Forms
 	
 	Private Function TextBox.GetLineFromCharIndex(Index As Integer = -1) As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				For i As Integer = 0 To LinesCount - 1
 					Dim As GtkTextIter _startline, _endline
-					gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, i)
-					gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, i + 1)
+					gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, i)
+					gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endline, i + 1)
 					If Index >= gtk_text_iter_get_offset(@_startline) AndAlso Index <= gtk_text_iter_get_offset(@_endline) Then
 						Return i
 					End If
@@ -632,9 +632,9 @@ Namespace My.Sys.Forms
 	
 	Private Function TextBox.GetCharIndexFromLine(Index As Integer) As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _startline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, Index)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, Index)
 				Return gtk_text_iter_get_offset(@_startline)
 			Else
 				Return 0
@@ -649,11 +649,11 @@ Namespace My.Sys.Forms
 	
 	Private Property TextBox.Lines(Index As Integer) ByRef As WString
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _startline, _endline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, Index)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, Index + 1)
-				WLet(FLine, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, @_endline, True)))
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, Index)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endline, Index + 1)
+				WLet(FLine, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, @_endline, True)))
 				Return *FLine
 			ElseIf Index = 0 Then
 				Return Text
@@ -661,11 +661,11 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim As Integer lThisChar = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
-				Dim As Integer lChar = SendMessage(FHandle, em_linelength, lThisChar, 0)
+				Dim As Integer lChar = SendMessage(FHandle, EM_LINELENGTH, lThisChar, 0)
 				WLet(FLine, WSpace(lChar))
 				Mid(*FLine, 1, 1) = WChr(lChar And &HFF)
 				Mid(*FLine, 2, 1) = WChr(lChar \ &H100)
-				SendMessage(FHandle, em_getline, Index, CInt(FLine))
+				SendMessage(FHandle, EM_GETLINE, Index, CInt(FLine))
 				Return *FLine
 			End If
 		#endif
@@ -674,12 +674,12 @@ Namespace My.Sys.Forms
 	
 	Private Property TextBox.Lines(Index As Integer, ByRef Value As WString)
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _startline, _endline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, Index)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, Index + 1)
-				gtk_text_buffer_delete(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, @_endline)
-				gtk_text_buffer_insert(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, ToUTF8(Value & Chr(13) & Chr(10)), -1)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, Index)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endline, Index + 1)
+				gtk_text_buffer_delete(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, @_endline)
+				gtk_text_buffer_insert(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, ToUtf8(Value & Chr(13) & Chr(10)), -1)
 			ElseIf Index = 0 Then
 				Text = Value
 			End If
@@ -700,14 +700,14 @@ Namespace My.Sys.Forms
 	Private Sub TextBox.GetSel(ByRef iSelStart As Integer, ByRef iSelEnd As Integer)
 		#ifdef __USE_GTK__
 			If widget Then
-				If gtk_is_text_view(widget) Then
+				If GTK_IS_TEXT_VIEW(widget) Then
 					Dim As GtkTextIter _start, _end
-					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 					gtk_text_buffer_get_selection_bounds(buffer, @_start, @_end)
 					iSelStart = gtk_text_iter_get_offset(@_start)
 					iSelEnd = gtk_text_iter_get_offset(@_end)
 				Else
-					gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @iSelStart), Cast(gint Ptr, @iSelEnd))
+					gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @iSelStart), Cast(gint Ptr, @iSelEnd))
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -719,19 +719,19 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.GetSel(ByRef iSelStartRow As Integer, ByRef iSelStartCol As Integer, ByRef iSelEndRow As Integer, ByRef iSelEndCol As Integer)
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _start, _end, _startline, _endline
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, @_end)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				Dim As Integer StartCharIndex = gtk_text_iter_get_offset(@_start)
 				Dim As Integer EndCharIndex = gtk_text_iter_get_offset(@_end)
 				iSelStartRow = GetLineFromCharIndex(StartCharIndex)
 				iSelEndRow = GetLineFromCharIndex(EndCharIndex)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, iSelStartRow)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, iSelEndRow)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, iSelStartRow)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endline, iSelEndRow)
 				iSelStartCol = StartCharIndex - gtk_text_iter_get_offset(@_startline)
 				iSelEndCol = EndCharIndex - gtk_text_iter_get_offset(@_endline)
 			Else
-				gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @iSelStartCol), Cast(gint Ptr, @iSelEndCol))
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @iSelStartCol), Cast(gint Ptr, @iSelEndCol))
 				iSelStartRow = 0
 				iSelEndRow = 0
 			End If
@@ -749,14 +749,14 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.SetSel(iSelStart As Integer, iSelEnd As Integer)
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _start, _end
-				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(Widget))
+				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 				gtk_text_buffer_get_iter_at_offset(buffer, @_start, iSelStart)
 				gtk_text_buffer_get_iter_at_offset(buffer, @_end, iSelEnd)
 				gtk_text_buffer_select_range(buffer, @_start, @_end)
 			Else
-				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @iSelStart), *Cast(gint Ptr, @iSelEnd))
+				gtk_editable_select_region(GTK_EDITABLE(widget), *Cast(gint Ptr, @iSelStart), *Cast(gint Ptr, @iSelEnd))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -777,15 +777,15 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.SetSel(iSelStartRow As Integer, iSelStartCol As Integer, iSelEndRow As Integer, iSelEndCol As Integer)
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _start, _end, _startline, _endline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, iSelStartRow)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_endline, iSelEndRow)
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, gtk_text_iter_get_offset(@_startline) + iSelStartCol)
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(widget)), @_end, gtk_text_iter_get_offset(@_endline) + iSelEndCol)
-				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, @_end)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, iSelStartRow)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endline, iSelEndRow)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, gtk_text_iter_get_offset(@_startline) + iSelStartCol)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, gtk_text_iter_get_offset(@_endline) + iSelEndCol)
+				gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 			ElseIf iSelStartRow = 0 Then
-				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @iSelStartCol), *Cast(gint Ptr, @iSelEndCol))
+				gtk_editable_select_region(GTK_EDITABLE(widget), *Cast(gint Ptr, @iSelStartCol), *Cast(gint Ptr, @iSelEndCol))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -799,16 +799,16 @@ Namespace My.Sys.Forms
 	
 	Private Function TextBox.LinesCount As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				If Text <> "" Then
 					Return 1
 				End If
 			Else
-				Return gtk_text_buffer_get_line_count(gtk_text_view_get_buffer(gtk_text_view(widget)))
+				Return gtk_text_buffer_get_line_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
-				Return SendMessage(FHandle, EM_GetLineCount, 0, 0)
+				Return SendMessage(FHandle, EM_GETLINECOUNT, 0, 0)
 			End If
 		#endif
 		Return 0
@@ -819,13 +819,13 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
 				Dim As GtkTextIter _start, _end, _startline
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, @_end)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				Dim As Integer CurCharIndex = gtk_text_iter_get_offset(@_start)
 				Dim As Integer CurLineIndex = GetLineFromCharIndex(CurCharIndex)
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, CurLineIndex)
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, CurLineIndex)
 				Return Type(CurCharIndex - gtk_text_iter_get_offset(@_startline), CurLineIndex)
 			Else
-				Return Type(gtk_editable_get_position(gtk_editable(widget)), 0)
+				Return Type(gtk_editable_get_position(GTK_EDITABLE(widget)), 0)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -852,13 +852,13 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			Select Case FScrollBars
 			Case 0
-				This.Style = This.Style And Not (ws_hscroll Or ws_vscroll)
+				This.Style = This.Style And Not (WS_HSCROLL Or WS_VSCROLL)
 			Case 1
-				This.Style = (This.Style And Not ws_hscroll) Or ws_vscroll
+				This.Style = (This.Style And Not WS_HSCROLL) Or WS_VSCROLL
 			Case 2
-				This.Style = (This.Style And Not ws_vscroll) Or ws_hscroll
+				This.Style = (This.Style And Not WS_VSCROLL) Or WS_HSCROLL
 			Case 3
-				This.Style = This.Style Or (ws_hscroll Or ws_vscroll)
+				This.Style = This.Style Or (WS_HSCROLL Or WS_VSCROLL)
 			End Select
 			RecreateWnd
 		#endif
@@ -870,28 +870,28 @@ Namespace My.Sys.Forms
 
 	#ifdef __USE_GTK__
 		Private Sub TextBox.ChangeWidget()
-			Dim As GtkWidget Ptr Ctrlwidget = IIf(CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollbars), WidgetTextView, WidgetEntry)
-			If Widget = Ctrlwidget Then Exit Sub
-			Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(gtk_text_view(WidgetTextView))
-			If CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollbars) Then
-				Widget = WidgetTextView
+			Dim As GtkWidget Ptr Ctrlwidget = IIf(CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollBars), WidgetTextView, WidgetEntry)
+			If widget = Ctrlwidget Then Exit Sub
+			Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(WidgetTextView))
+			If CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollBars) Then
+				widget = WidgetTextView
 				scrolledwidget = WidgetScrolledWindow
 				gtk_widget_hide(WidgetEntry)
 				If CInt(gtk_widget_get_parent(scrolledwidget) = 0) AndAlso CInt(This.Parent) AndAlso CInt(This.Parent->layoutwidget) Then
-					gtk_layout_put(gtk_layout(This.Parent->layoutwidget), scrolledwidget, FLeft, FTop)
+					gtk_layout_put(GTK_LAYOUT(This.Parent->layoutwidget), scrolledwidget, FLeft, FTop)
 				End If
 				If scrolledwidget Then g_object_set_data(G_OBJECT(scrolledwidget), "@@@Control2", @This)
 				If widget Then g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
 				SetBounds(FLeft, FTop, FWidth, FHeight)
-				gtk_text_buffer_set_text(buffer, *gtk_entry_get_text(gtk_entry(WidgetEntry)), -1)
+				gtk_text_buffer_set_text(buffer, *gtk_entry_get_text(GTK_ENTRY(WidgetEntry)), -1)
 				gtk_widget_show_all(scrolledwidget)
 			Else
-				Widget = WidgetEntry
+				widget = WidgetEntry
 				gtk_widget_hide(scrolledwidget)
 				SetBounds(FLeft, FTop, FWidth, FHeight)
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_get_bounds(buffer, @_start, @_end)
-				gtk_entry_set_text(gtk_entry(widget), *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
+				gtk_entry_set_text(GTK_ENTRY(widget), *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
 				gtk_widget_show(WidgetEntry)
 				scrolledwidget = 0
 			End If
@@ -899,19 +899,19 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property TextBox.WordWraps(Value As Boolean)
-		FWordWraps = value
+		FWordWraps = Value
 		#ifdef __USE_GTK__
 			ChangeWidget
 			If Value Then
-				gtk_text_view_set_wrap_mode(gtk_text_view(widget), GTK_WRAP_WORD)
+				gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(widget), GTK_WRAP_WORD)
 			Else
-				gtk_text_view_set_wrap_mode(gtk_text_view(widget), GTK_WRAP_NONE)
+				gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(widget), GTK_WRAP_NONE)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Value Then
-				This.Style = This.Style And Not es_autohscroll
+				This.Style = This.Style And Not ES_AUTOHSCROLL
 			Else
-				This.Style = This.Style Or es_autohscroll
+				This.Style = This.Style Or ES_AUTOHSCROLL
 			End If
 			RecreateWnd
 		#endif
@@ -920,12 +920,12 @@ Namespace My.Sys.Forms
 	Private Property TextBox.SelStart As Integer
 		Dim As Integer LStart
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				FSelStart = gtk_text_iter_get_offset(@_start)
 			Else
-				FSelStart = gtk_editable_get_position(gtk_editable(widget))
+				FSelStart = gtk_editable_get_position(GTK_EDITABLE(widget))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@FSelStart), 0)
@@ -936,12 +936,12 @@ Namespace My.Sys.Forms
 	Private Property TextBox.SelStart(Value As Integer)
 		FSelStart = Value
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_set_position(gtk_editable(widget), Value)
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_set_position(GTK_EDITABLE(widget), Value)
 			Else
 				Dim As GtkTextIter _start
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, Value)
-				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_start)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, Value)
+				gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_start)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_SETSEL, Value, Value)
@@ -953,11 +953,11 @@ Namespace My.Sys.Forms
 	Private Property TextBox.SelLength As Integer
 		Dim As Integer LStart,LEnd
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
 			Else
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				LStart = gtk_text_iter_get_offset(@_start)
 				LEnd = gtk_text_iter_get_offset(@_end)
 			End If
@@ -972,18 +972,18 @@ Namespace My.Sys.Forms
 		Dim As Integer LStart, LEnd, FEnd
 		FSelLength = Value
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
 				FEnd = LStart + Value
 				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @LStart), *Cast(gint Ptr, @LEnd))
 			Else
 				Dim As GtkTextIter _start, _end, _endnew
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				LStart = gtk_text_iter_get_offset(@_start)
 				LEnd = gtk_text_iter_get_offset(@_end)
 				FEnd = LStart + Value
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_endnew, FEnd)
-				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_endnew)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endnew, FEnd)
+				gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_endnew)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
@@ -996,11 +996,11 @@ Namespace My.Sys.Forms
 	Private Property TextBox.SelEnd As Integer
 		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
 			Else
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				LEnd = gtk_text_iter_get_offset(@_end)
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -1014,14 +1014,14 @@ Namespace My.Sys.Forms
 		Dim As Integer LStart, LEnd, FEnd
 		FSelEnd = Value
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
-				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @LStart), *Cast(gint Ptr, @LEnd))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
+				gtk_editable_select_region(GTK_EDITABLE(widget), *Cast(gint Ptr, @LStart), *Cast(gint Ptr, @LEnd))
 			Else
 				Dim As GtkTextIter _start, _end, _endnew
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_endnew, FSelEnd)
-				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_endnew)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_endnew, FSelEnd)
+				gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_endnew)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
@@ -1033,13 +1033,13 @@ Namespace My.Sys.Forms
 	Private Property TextBox.SelText ByRef As WString
 		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_get_selection_bounds(gtk_editable(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
-				WLet FSelText, WStr(*gtk_editable_get_chars(gtk_editable(widget), LStart, FSelEnd))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
+				WLet(FSelText, WStr(*gtk_editable_get_chars(GTK_EDITABLE(widget), LStart, FSelEnd)))
 			Else
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
-				WLet FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(gtk_text_view(widget)), @_start, @_end, True))
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
+				WLet(FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end, True)))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -1061,15 +1061,15 @@ Namespace My.Sys.Forms
 		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(gtk_text_view(Widget)), ToUTF8(Value), -1)
-				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
-				Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(gtk_text_view(Widget)), NULL, @_end, False)
-				gtk_text_view_scroll_to_mark(gtk_text_view(Widget), ptextmark, 0., False, 0., 0.)
+				gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), ToUtf8(Value), -1)
+				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
+				Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), NULL, @_end, False)
+				gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), ptextmark, 0., False, 0., 0.)
 			Else
-				Dim As gint Pos1 = gtk_editable_get_position(gtk_editable(widget))
-				gtk_editable_insert_text(gtk_editable(widget), ToUTF8(*FSelText), -1, @Pos1)
+				Dim As gint Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget))
+				gtk_editable_insert_text(GTK_EDITABLE(widget), ToUtf8(*FSelText), -1, @Pos1)
 			EndIf
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(FHandle, EM_REPLACESEL, 0, CInt(FSelText))
@@ -1083,8 +1083,8 @@ Namespace My.Sys.Forms
 	Private Property TextBox.MaxLength(Value As Integer)
 		FMaxLength = Value
 		#ifdef __USE_GTK__
-			If gtk_is_entry(widget) Then
-				gtk_entry_set_max_length(gtk_entry(widget), Value)
+			If GTK_IS_ENTRY(widget) Then
+				gtk_entry_set_max_length(GTK_ENTRY(widget), Value)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(EM_LIMITTEXT, Value, 0)
@@ -1093,7 +1093,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TextBox.Modified As Boolean
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				FModified = gtk_text_buffer_get_modified(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)))
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -1247,8 +1247,8 @@ Namespace My.Sys.Forms
 				Dim Action As Integer = 1
 				If OnPaste Then OnPaste(This, Action)
 				Select Case Action
-				Case 0: message.result = -1
-				Case 1: message.result = 0
+				Case 0: message.Result = -1
+				Case 1: message.Result = 0
 				End Select
 			End Select
 		#endif
@@ -1314,10 +1314,10 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.CopyToClipboard
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_copy_clipboard(gtk_editable(widget))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_copy_clipboard(GTK_EDITABLE(widget))
 			Else
-				gtk_text_buffer_copy_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))
+				gtk_text_buffer_copy_clipboard(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(WM_COPY, 0, 0)
@@ -1326,10 +1326,10 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.CutToClipboard
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_cut_clipboard(gtk_editable(widget))
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_cut_clipboard(GTK_EDITABLE(widget))
 			Else
-				gtk_text_buffer_cut_clipboard(gtk_text_view_get_buffer(gtk_text_view(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), True)
+				gtk_text_buffer_cut_clipboard(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), gtk_clipboard_get(GDK_SELECTION_CLIPBOARD), True)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(WM_CUT, 0, 0)
@@ -1338,13 +1338,13 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.SelectAll
 		#ifdef __USE_GTK__
-			If gtk_is_editable(widget) Then
-				gtk_editable_select_region(gtk_editable(widget), 0, -1)
+			If GTK_IS_EDITABLE(widget) Then
+				gtk_editable_select_region(GTK_EDITABLE(widget), 0, -1)
 			Else
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, 0)
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(gtk_text_view(Widget))))
-				gtk_text_buffer_select_range(gtk_text_view_get_buffer(gtk_text_view(Widget)), @_start, @_end)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, 0)
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))))
+				gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then Perform(EM_SETSEL, 0, -1)
@@ -1411,8 +1411,8 @@ Namespace My.Sys.Forms
 		
 		Private Sub TextBox.TextView_SetScrollAdjustments(textview As GtkTextView Ptr, arg1 As GtkAdjustment Ptr, arg2 As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
-			If gtk_is_widget(arg1) Then g_signal_connect(arg1, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
-			If gtk_is_widget(arg2) Then g_signal_connect(arg2, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
+			If GTK_IS_WIDGET(arg1) Then g_signal_connect(arg1, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
+			If GTK_IS_WIDGET(arg2) Then g_signal_connect(arg2, "value-changed", G_CALLBACK(@Adjustment_ValueChanged), txt)
 		End Sub
 		
 		Private Sub TextBox.Adjustment_ValueChanged(adjustment As GtkAdjustment Ptr, user_data As Any Ptr)
@@ -1430,7 +1430,7 @@ Namespace My.Sys.Forms
 			If txt->CharCase <> ecNone Then
 				g_signal_handlers_block_by_func(G_OBJECT (self), G_CALLBACK(@Entry_InsertText), user_data)
 				Dim As gint pos1 = gtk_editable_get_position(self)
-				gtk_editable_insert_text(self, ToUTF8(IIf(txt->CharCase = ecLower, LCase(*new_text), UCase(*new_text))), new_text_length, position)
+				gtk_editable_insert_text(self, ToUtf8(IIf(txt->CharCase = ecLower, LCase(*new_text), UCase(*new_text))), new_text_length, position)
 				g_signal_handlers_unblock_by_func(G_OBJECT (self), G_CALLBACK(@Entry_InsertText), user_data)
 				g_signal_stop_emission_by_name(G_OBJECT(self), "insert_text")
 			End If
@@ -1442,39 +1442,39 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			WidgetEntry = gtk_entry_new()
 			WidgetTextView = gtk_text_view_new()
-			gtk_entry_set_activates_default(gtk_entry(WidgetEntry), True)
-			gtk_entry_set_width_chars(gtk_entry(WidgetEntry), 0)
-			g_signal_connect(gtk_entry(WidgetEntry), "activate", G_CALLBACK(@Entry_Activate), @This)
-			g_signal_connect(gtk_entry(WidgetEntry), "changed", G_CALLBACK(@Entry_Changed), @This)
-			g_signal_connect(gtk_widget(WidgetEntry), "focus-in-event", G_CALLBACK(@Entry_FocusInEvent), @This)
-			g_signal_connect(gtk_widget(WidgetEntry), "focus-out-event", G_CALLBACK(@Entry_FocusOutEvent), @This)
-			g_signal_connect(gtk_widget(WidgetEntry), "copy-clipboard", G_CALLBACK(@Entry_CopyClipboard), @This)
-			g_signal_connect(gtk_widget(WidgetEntry), "cut-clipboard", G_CALLBACK(@Entry_CutClipboard), @This)
-			g_signal_connect(gtk_widget(WidgetEntry), "paste-clipboard", G_CALLBACK(@Entry_PasteClipboard), @This)
-			g_signal_connect(gtk_widget(WidgetTextView), "copy-clipboard", G_CALLBACK(@Entry_CopyClipboard), @This)
-			g_signal_connect(gtk_widget(WidgetTextView), "cut-clipboard", G_CALLBACK(@Entry_CutClipboard), @This)
-			g_signal_connect(gtk_widget(WidgetTextView), "paste-clipboard", G_CALLBACK(@Entry_PasteClipboard), @This)
+			gtk_entry_set_activates_default(GTK_ENTRY(WidgetEntry), True)
+			gtk_entry_set_width_chars(GTK_ENTRY(WidgetEntry), 0)
+			g_signal_connect(GTK_ENTRY(WidgetEntry), "activate", G_CALLBACK(@Entry_Activate), @This)
+			g_signal_connect(GTK_ENTRY(WidgetEntry), "changed", G_CALLBACK(@Entry_Changed), @This)
+			g_signal_connect(GTK_WIDGET(WidgetEntry), "focus-in-event", G_CALLBACK(@Entry_FocusInEvent), @This)
+			g_signal_connect(GTK_WIDGET(WidgetEntry), "focus-out-event", G_CALLBACK(@Entry_FocusOutEvent), @This)
+			g_signal_connect(GTK_WIDGET(WidgetEntry), "copy-clipboard", G_CALLBACK(@Entry_CopyClipboard), @This)
+			g_signal_connect(GTK_WIDGET(WidgetEntry), "cut-clipboard", G_CALLBACK(@Entry_CutClipboard), @This)
+			g_signal_connect(GTK_WIDGET(WidgetEntry), "paste-clipboard", G_CALLBACK(@Entry_PasteClipboard), @This)
+			g_signal_connect(GTK_WIDGET(WidgetTextView), "copy-clipboard", G_CALLBACK(@Entry_CopyClipboard), @This)
+			g_signal_connect(GTK_WIDGET(WidgetTextView), "cut-clipboard", G_CALLBACK(@Entry_CutClipboard), @This)
+			g_signal_connect(GTK_WIDGET(WidgetTextView), "paste-clipboard", G_CALLBACK(@Entry_PasteClipboard), @This)
 			#ifdef __USE_GTK3__
-				g_signal_connect(gtk_scrollable_get_hadjustment(gtk_scrollable(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
+				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
 				g_signal_connect(gtk_scrollable_get_vadjustment(gtk_scrollable(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
 			#else
-				g_signal_connect(gtk_widget(WidgetTextView), "set-scroll-adjustments", G_CALLBACK(@TextView_SetScrollAdjustments), @This)
+				g_signal_connect(GTK_WIDGET(WidgetTextView), "set-scroll-adjustments", G_CALLBACK(@TextView_SetScrollAdjustments), @This)
 			#endif
-			g_signal_connect(gtk_text_view(WidgetTextView), "preedit-changed", G_CALLBACK(@Preedit_Changed), @This)
-			g_signal_connect(gtk_entry(WidgetEntry), "preedit-changed", G_CALLBACK(@Preedit_Changed), @This)
-			g_signal_connect(gtk_text_view_get_buffer(gtk_text_view(WidgetTextView)), "changed", G_CALLBACK(@TextBuffer_Changed), @This)
+			g_signal_connect(GTK_TEXT_VIEW(WidgetTextView), "preedit-changed", G_CALLBACK(@Preedit_Changed), @This)
+			g_signal_connect(GTK_ENTRY(WidgetEntry), "preedit-changed", G_CALLBACK(@Preedit_Changed), @This)
+			g_signal_connect(gtk_text_view_get_buffer(GTK_TEXT_VIEW(WidgetTextView)), "changed", G_CALLBACK(@TextBuffer_Changed), @This)
 			#ifndef __USE_GTK3__
-				g_signal_connect(gtk_editable(WidgetEntry), "insert-text", G_CALLBACK(@Entry_InsertText), @This)
+				g_signal_connect(GTK_EDITABLE(WidgetEntry), "insert-text", G_CALLBACK(@Entry_InsertText), @This)
 			#endif
 			WidgetScrolledWindow = gtk_scrolled_window_new(NULL, NULL)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(WidgetScrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-			gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(WidgetScrolledWindow), GTK_SHADOW_OUT)
-			gtk_container_add(gtk_container(WidgetScrolledWindow), WidgetTextView)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(WidgetScrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(WidgetScrolledWindow), GTK_SHADOW_OUT)
+			gtk_container_add(GTK_CONTAINER(WidgetScrolledWindow), WidgetTextView)
 			scrolledwidget = WidgetScrolledWindow
-			Widget = WidgetTextView
+			widget = WidgetTextView
 			This.RegisterClass "TextBox", @This
 			scrolledwidget = 0
-			Widget = WidgetEntry
+			widget = WidgetEntry
 			This.RegisterClass "TextBox", @This
 		#elseif defined(__USE_WINAPI__)
 			ACharCase(0)      = 0
@@ -1495,7 +1495,9 @@ Namespace My.Sys.Forms
 		FHideSelection    = 1
 		FCtl3D            = True
 		WLet(FMaskChar, "")
-		FMaxLength          = 64000
+		#ifdef __USE_WINAPI__
+			FMaxLength          = 64000
+		#endif
 		FEnabled = True
 		FTabIndex          = -1
 		FWantReturn        = True
@@ -1505,7 +1507,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ChildProc   = @WndProc
 				.ExStyle     = WS_EX_CLIENTEDGE ' OR ES_AUTOHSCROLL OR ES_AUTOVSCROLL
-				.Style       = WS_CHILD Or ES_AUTOHSCROLL Or WS_TABSTOP Or ES_WANTRETURN Or ACharCase(Abs_(FCharCase)) Or AMaskStyle(Abs_(FMasked)) Or AOEMConvert(Abs_(FOEMConvert)) Or AHideSelection(Abs_(FHideSelection))
+				.Style       = WS_CHILD Or ES_AUTOHSCROLL Or WS_TABSTOP Or ES_WANTRETURN Or ACharCase(abs_(FCharCase)) Or AMaskStyle(abs_(FMasked)) Or AOEMConvert(abs_(FOEMConvert)) Or AHideSelection(abs_(FHideSelection))
 				.BackColor        = GetSysColor(COLOR_WINDOW)
 				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
@@ -1525,12 +1527,12 @@ Namespace My.Sys.Forms
 	Private Destructor TextBox
 		If FSelText <> 0 Then Deallocate_( FSelText)
 		If FLine <> 0 Then Deallocate_( FLine)
-		WDeallocate(FMaskChar)
+		WDeAllocate(FMaskChar)
 	End Destructor
 End Namespace
 
 #ifdef __USE_JNI__
-	Sub mffEditText_onTextChanged Alias AddToPackage(Package, mffEditText_onTextChanged) (ByVal env As JNIEnv Ptr, This_ As jobject, s As jobject, start As Integer, before As Integer, count As Integer) Export
+	Sub mffEditText_onTextChanged Alias AddToPackage(Package, mffEditText_onTextChanged) (ByVal env As JNIEnv Ptr, This_ As jobject, s As jobject, start As Integer, before As Integer, Count As Integer) Export
 		Dim As Integer ID = CallIntMethod(This_, "android/view/View", "getId", "()I")
 		Dim As My.Sys.Forms.TextBox Ptr txt = Handles.Item(ID)
 		If txt Then

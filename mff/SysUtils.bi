@@ -31,7 +31,7 @@
 #ifdef __USE_GTK__
 	#define FHandle Widget
 	#if defined(__USE_GTK3__) Or defined(__USE_GTK4__)
-	#else
+	#elseif Not defined(__USE_GTK2__)
 		#define __USE_GTK2__
 	#endif
 #elseif defined(__USE_JNI__)

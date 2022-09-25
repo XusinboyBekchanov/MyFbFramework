@@ -131,7 +131,11 @@ Namespace My.Sys.Forms
 	Private Constructor VerticalBox
 		With This
 			#ifdef __USE_GTK__
-				widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
+				#ifdef __USE_GTK2__
+					widget = gtk_vbox_new(False, 0)
+				#else
+					widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
+				#endif
 				.RegisterClass "VerticalBox", @This
 			#endif
 			FAutoSize = True
