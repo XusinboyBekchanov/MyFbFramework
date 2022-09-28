@@ -60,8 +60,12 @@ Namespace My.Sys
 		Declare Function FullTypeName(ByVal baseIndex As Integer = 0) As UString
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast ByRef As WString
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off		
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Constructor
 		Declare Destructor
 	End Type

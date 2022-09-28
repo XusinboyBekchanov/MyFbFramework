@@ -125,10 +125,14 @@ Namespace My.Sys.Forms
 		Graphic As My.Sys.Drawing.GraphicType
 		'Returns/sets the dialog result for the form (Windows, Linux).
 		ModalResult   As Integer 'ModalResults
-		'Reads value from the name of property (Windows, Linux).
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		'Writes value to the name of property (Windows, Linux).
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			'Reads value from the name of property (Windows, Linux).
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			'Writes value to the name of property (Windows, Linux).
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		'Returns/sets the active control on the container control (Windows, Linux).
 		Declare Property ActiveControl As Control Ptr
 		Declare Property ActiveControl(Value As Control Ptr)

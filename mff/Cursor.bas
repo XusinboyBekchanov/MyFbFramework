@@ -14,35 +14,39 @@
 #include once "Cursor.bi"
 
 Namespace My.Sys.Drawing
-	Private Function Cursor.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "graphic": Return @Graphic
-		Case "height": Return @FHeight
-		Case "hotspotx": Return @FHotSpotX
-		Case "hotspoty": Return @FHotSpotY
-		Case "width": Return @FWidth
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
-
-	Private Function Cursor.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
+	#ifndef ReadProperty_Off
+		Private Function Cursor.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			Case "graphic": Return @Graphic
+			Case "height": Return @FHeight
+			Case "hotspotx": Return @FHotSpotX
+			Case "hotspoty": Return @FHotSpotY
+			Case "width": Return @FWidth
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "height": This.Height = QInteger(Value)
-			Case "hotspotx": This.HotSpotX = QInteger(Value)
-			Case "hotspoty": This.HotSpotY = QInteger(Value)
-			Case "width": This.Width = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
-			
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function Cursor.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "height": This.Height = QInteger(Value)
+				Case "hotspotx": This.HotSpotX = QInteger(Value)
+				Case "hotspoty": This.HotSpotY = QInteger(Value)
+				Case "width": This.Width = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
+	
 	Private Property Cursor.Width As Integer
 		Return FWidth
 	End Property
@@ -162,8 +166,8 @@ Namespace My.Sys.Drawing
 				#ifdef __USE_GTK4__
 					win = gtk_widget_get_parent_window(Ctrl->Handle)
 				#else
-					If gtk_is_layout(Ctrl->Handle) Then
-						win = gtk_layout_get_bin_window(gtk_layout(Ctrl->Handle))
+					If GTK_IS_LAYOUT(Ctrl->Handle) Then
+						win = gtk_layout_get_bin_window(GTK_LAYOUT(Ctrl->Handle))
 					Else
 						win = gtk_widget_get_parent_window(Ctrl->Handle)
 					End If
@@ -178,7 +182,7 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	#ifdef __USE_WINAPI__
-		Private Function Cursor.ToBitmap() As hBitmap
+		Private Function Cursor.ToBitmap() As HBITMAP
 			Dim As BitmapType bmpType
 			bmpType = Handle
 			Return bmpType.Handle

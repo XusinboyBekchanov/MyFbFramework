@@ -18,31 +18,35 @@ Dim Shared App As My.Application
 pApp = @App
 
 Namespace My
-	Private Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "mainform": Return @FMainForm
-		Case "version": WLet(FTemp, WStr(Version)): Return FTemp
-		Case "title": Title: Return FTitle
-		Case "filename": Return @This.FileName
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "mainform": Return @FMainForm
+			Case "version": WLet(FTemp, WStr(Version)): Return FTemp
+			Case "title": Title: Return FTitle
+			Case "filename": Return @This.FileName
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Application.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "mainform": This.MainForm = Value
-			Case "title": This.Title = QWString(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Application.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "mainform": This.MainForm = Value
+				Case "title": This.Title = QWString(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Function Application.Version As Const String
 		Return GetVerInfo("FileVersion")
@@ -807,7 +811,7 @@ Private Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
     Return IsUTF8     
 End Function
 
-Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
+Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
 	Dim As String Buff, EncodingStr, NewLineStr
 	Dim As Integer Result = -1, Fn, FileSize
 	'check the Newlinetype again for missing Cr in AsicII file
@@ -880,7 +884,7 @@ Public Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As Fi
 	Return *pBuff
 End Function
 
-Public Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
+Private Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
 	Dim As Integer Fn = FreeFile_
 	Dim As Integer Result
 	Dim As String FileEncodingText, NewLine

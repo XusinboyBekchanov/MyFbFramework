@@ -14,30 +14,34 @@
 #include once "Bitmap.bi"
 
 Namespace My.Sys.Drawing
-	Private Function BitmapType.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-			#ifdef __USE_GTK__
-			Case "handle": Return Handle
-			#elseif defined(__USE_WINAPI__)
-			Case "handle": Return @Handle
-			#endif
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function BitmapType.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+				#ifdef __USE_GTK__
+				Case "handle": Return Handle
+				#elseif defined(__USE_WINAPI__)
+				Case "handle": Return @Handle
+				#endif
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function BitmapType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function BitmapType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property BitmapType.Width As Integer
 		Return FWidth

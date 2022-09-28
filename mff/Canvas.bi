@@ -139,8 +139,12 @@ Namespace My.Sys.Drawing
 		Declare Sub CreateDoubleBuffer
 		Declare Sub TransferDoubleBuffer
 		Declare Sub DeleteDoubleBuffer
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property Width As Integer
 		Declare Property Height As Integer
 		Declare Property Ctrl As My.Sys.ComponentModel.Component Ptr

@@ -67,8 +67,12 @@ Namespace My.Sys.Forms
 		Declare Sub NotifyWindow
 	Public:
 		Items           As Dictionary
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		#ifdef __USE_GTK__
 			Handle      As GtkIconTheme Ptr
 		#elseif defined(__USE_JNI__)

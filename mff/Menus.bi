@@ -82,8 +82,12 @@ Namespace My.Sys.Forms
 		FMenuItemChecked    As Boolean
 		Declare Sub ChangeIndex(value As PMenuItem, Index As Integer)
 	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean   
+		#endif
 		Tag As Any Ptr
 		SubMenu As PPopupMenu
 		#ifdef __USE_WINAPI__
@@ -181,8 +185,12 @@ Namespace My.Sys.Forms
 		Declare Sub GetMenuItems
 		Declare Virtual Sub ProcessMessage(ByRef mess As Message)
 	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		ImagesList       As ImageList Ptr
 		Declare Property DisplayIcons As Boolean
 		Declare Property DisplayIcons(value As Boolean)
@@ -230,8 +238,12 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Function EnumMenuItems(ByRef Item As MenuItem) As Boolean
 	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Virtual Sub ProcessMessages(ByRef Message As Message)
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Operator Cast As Any Ptr
@@ -243,8 +255,12 @@ Namespace My.Sys.Forms
 	Private:
 	Protected:
 	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property ParentMenuItem As MenuItem Ptr
 		Declare Property ParentMenuItem(value As MenuItem Ptr)
 		Declare Property ParentWindow As Component Ptr

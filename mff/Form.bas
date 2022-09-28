@@ -17,72 +17,76 @@
 #endif
 
 Namespace My.Sys.Forms
-	Private Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		FTempString = LCase(PropertyName)
-		Select Case FTempString
-		Case "activecontrol": Return FActiveControl
-		Case "borderstyle": Return @FBorderStyle
-		Case "cancelbutton": Return FCancelButton
-		Case "caption": Return This.FText.vptr
-		Case "defaultbutton": Return FDefaultButton
-		Case "icon": Return @Icon
-		Case "controlbox": Return @FControlBox
-		Case "minimizebox": Return @FMinimizeBox
-		Case "maximizebox": Return @FMaximizeBox
-		Case "formstyle": Return @FFormStyle
-		Case "menu": Return Menu
-		Case "mainform": Return @FMainForm
-		Case "modalresult": Return @ModalResult
-		Case "opacity": Return @FOpacity
-		Case "owner": Return FOwner
-		Case "windowstate": Return @FWindowState
-		Case "startposition": Return @FStartPosition
-		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Form.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			FTempString = LCase(PropertyName)
+			Select Case FTempString
+			Case "activecontrol": Return FActiveControl
+			Case "borderstyle": Return @FBorderStyle
+			Case "cancelbutton": Return FCancelButton
+			Case "caption": Return This.FText.vptr
+			Case "defaultbutton": Return FDefaultButton
+			Case "icon": Return @Icon
+			Case "controlbox": Return @FControlBox
+			Case "minimizebox": Return @FMinimizeBox
+			Case "maximizebox": Return @FMaximizeBox
+			Case "formstyle": Return @FFormStyle
+			Case "menu": Return Menu
+			Case "mainform": Return @FMainForm
+			Case "modalresult": Return @ModalResult
+			Case "opacity": Return @FOpacity
+			Case "owner": Return FOwner
+			Case "windowstate": Return @FWindowState
+			Case "startposition": Return @FStartPosition
+			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Form.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case "activecontrol": This.ActiveControl = 0
-			Case "menu": This.Menu = 0
-			Case "cancelbutton": This.CancelButton = 0
-			Case "defaultbutton": This.DefaultButton = 0
-			Case "owner": This.Owner = 0
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "activecontrol": This.ActiveControl = Cast(Control Ptr, Value)
-			Case "borderstyle": This.BorderStyle = QInteger(Value)
-			Case "cancelbutton": This.CancelButton = Cast(Control Ptr, Value)
-			Case "caption": This.Caption = QWString(Value)
-			Case "defaultbutton": This.DefaultButton = Cast(Control Ptr, Value)
-			Case "formstyle": This.FormStyle = QInteger(Value)
-			Case "controlbox": This.ControlBox = QBoolean(Value)
-			Case "minimizebox": This.MinimizeBox = QBoolean(Value)
-			Case "maximizebox": This.MaximizeBox = QBoolean(Value)
-			Case "icon": This.Icon = QWString(Value)
-			Case "mainform": This.MainForm = QBoolean(Value)
-			Case "menu": This.Menu = Cast(MainMenu Ptr, Value)
-			Case "modalresult": This.ModalResult = QInteger(Value)
-			Case "opacity": This.Opacity = QInteger(Value)
-			Case "owner": This.Owner = Cast(Form Ptr, Value)
-				#ifdef __USE_GTK__
-				Case "parentwidget": This.ParentWidget = Value
-				#endif
-			Case "text": This.Text = QWString(Value)
-			Case "windowstate": This.WindowState = QInteger(Value)
-			Case "startposition": This.StartPosition = QInteger(Value)
-			Case "visible": This.Visible = QBoolean(Value)
-			Case "graphic": This.Graphic = QWString(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Form.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case "activecontrol": This.ActiveControl = 0
+				Case "menu": This.Menu = 0
+				Case "cancelbutton": This.CancelButton = 0
+				Case "defaultbutton": This.DefaultButton = 0
+				Case "owner": This.Owner = 0
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "activecontrol": This.ActiveControl = Cast(Control Ptr, Value)
+				Case "borderstyle": This.BorderStyle = QInteger(Value)
+				Case "cancelbutton": This.CancelButton = Cast(Control Ptr, Value)
+				Case "caption": This.Caption = QWString(Value)
+				Case "defaultbutton": This.DefaultButton = Cast(Control Ptr, Value)
+				Case "formstyle": This.FormStyle = QInteger(Value)
+				Case "controlbox": This.ControlBox = QBoolean(Value)
+				Case "minimizebox": This.MinimizeBox = QBoolean(Value)
+				Case "maximizebox": This.MaximizeBox = QBoolean(Value)
+				Case "icon": This.Icon = QWString(Value)
+				Case "mainform": This.MainForm = QBoolean(Value)
+				Case "menu": This.Menu = Cast(MainMenu Ptr, Value)
+				Case "modalresult": This.ModalResult = QInteger(Value)
+				Case "opacity": This.Opacity = QInteger(Value)
+				Case "owner": This.Owner = Cast(Form Ptr, Value)
+					#ifdef __USE_GTK__
+					Case "parentwidget": This.ParentWidget = Value
+					#endif
+				Case "text": This.Text = QWString(Value)
+				Case "windowstate": This.WindowState = QInteger(Value)
+				Case "startposition": This.StartPosition = QInteger(Value)
+				Case "visible": This.Visible = QBoolean(Value)
+				Case "graphic": This.Graphic = QWString(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property Form.ActiveControl As Control Ptr
 		Return FActiveControl

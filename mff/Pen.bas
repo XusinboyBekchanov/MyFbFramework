@@ -13,27 +13,31 @@
 #include once "Pen.bi"
 
 Namespace My.Sys.Drawing
-	Private Function Pen.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "color": Return @FColor
-		Case "style": Return @FStyle
-		Case "mode": Return @FMode
-		Case "size": Return @FSize
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Pen.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "color": Return @FColor
+			Case "style": Return @FStyle
+			Case "mode": Return @FMode
+			Case "size": Return @FSize
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Pen.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "color": This.Color = QInteger(Value)
-		Case "style": This.Style = QInteger(Value)
-		Case "mode": This.Mode = QInteger(Value)
-		Case "size": This.Size = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Pen.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "color": This.Color = QInteger(Value)
+			Case "style": This.Style = QInteger(Value)
+			Case "mode": This.Mode = QInteger(Value)
+			Case "size": This.Size = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property Pen.Color As ULong
 		Return FColor

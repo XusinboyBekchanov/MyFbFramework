@@ -213,17 +213,21 @@ Namespace My.Sys.Forms
 				ToolTipHandle       As HWND
 			#endif
 			Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
-			Declare Virtual Sub ProcessMessage(ByRef message As Message)
-			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
+			Declare Virtual Sub ProcessMessage(ByRef message As message)
+			Declare Virtual Sub ProcessMessageAfter(ByRef message As message)
 		Public:
 			'Canvas is all about drawing in a container (Windows, Linux).
 			Canvas        As My.Sys.Drawing.Canvas
 			'Activates the next control (Windows only).
 			Declare Function SelectNextControl(Prev As Boolean = False) As Control Ptr
-			'Reads value from the name of property (Windows, Linux).
-			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-			'Writes value to the name of property (Windows, Linux).
-			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			#ifndef ReadProperty_Off
+				'Reads value from the name of property (Windows, Linux).
+				Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+			#endif
+			#ifndef WriteProperty_Off
+				'Writes value to the name of property (Windows, Linux).
+				Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			#endif
 			'Returs/sets a value indicating type is subclass or not (Windows only).
 			SubClass            As Boolean
 			'Returns a Font object (Windows, Linux).

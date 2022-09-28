@@ -14,43 +14,47 @@
 #include once "ImageList.bi"
 
 Namespace My.Sys.Forms
-	Private Function ImageList.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "backcolor": Return @FBackColor
-		Case "count": FCount = This.Count: Return @FCount
-		Case "drawingstyle": Return @This.DrawingStyle
-		Case "growcount": Return @GrowCount
-		Case "imagelisthandle": Return Handle
-		Case "imagewidth": Return @FImageWidth
-		Case "imageheight": Return @FImageHeight
-		Case "imagetype": Return @ImageType
-		Case "initialcount": Return @InitialCount
-		Case "items": Return @Items.Text
-		Case "maskcolor": Return @FMaskColor
-		Case "parentwindow": Return FParentWindow
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ImageList.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "backcolor": Return @FBackColor
+			Case "count": FCount = This.Count: Return @FCount
+			Case "drawingstyle": Return @This.DrawingStyle
+			Case "growcount": Return @GrowCount
+			Case "imagelisthandle": Return Handle
+			Case "imagewidth": Return @FImageWidth
+			Case "imageheight": Return @FImageHeight
+			Case "imagetype": Return @ImageType
+			Case "initialcount": Return @InitialCount
+			Case "items": Return @Items.Text
+			Case "maskcolor": Return @FMaskColor
+			Case "parentwindow": Return FParentWindow
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ImageList.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "backcolor": This.BackColor = QInteger(Value)
-		Case "count": This.Count = QInteger(Value)
-		Case "drawingstyle": This.DrawingStyle = *Cast(DrawingStyles Ptr, @Value)
-		Case "growcount": This.GrowCount = QInteger(Value)
-		Case "imagelisthandle": This.Handle = Value
-		Case "imagewidth": This.ImageWidth = QInteger(Value)
-		Case "imageheight": This.ImageHeight = QInteger(Value)
-		Case "imagetype": This.ImageType = *Cast(ImageTypes Ptr, @Value)
-		Case "initialcount": This.InitialCount = QInteger(Value)
-		Case "items": This.Items = QWString(Value)
-		Case "maskcolor": This.MaskColor = QInteger(Value)
-		Case "parentwindow": This.ParentWindow = Value
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ImageList.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "backcolor": This.BackColor = QInteger(Value)
+			Case "count": This.Count = QInteger(Value)
+			Case "drawingstyle": This.DrawingStyle = *Cast(DrawingStyles Ptr, @Value)
+			Case "growcount": This.GrowCount = QInteger(Value)
+			Case "imagelisthandle": This.Handle = Value
+			Case "imagewidth": This.ImageWidth = QInteger(Value)
+			Case "imageheight": This.ImageHeight = QInteger(Value)
+			Case "imagetype": This.ImageType = *Cast(ImageTypes Ptr, @Value)
+			Case "initialcount": This.InitialCount = QInteger(Value)
+			Case "items": This.Items = QWString(Value)
+			Case "maskcolor": This.MaskColor = QInteger(Value)
+			Case "parentwindow": This.ParentWindow = Value
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property ImageList.ParentWindow As Component Ptr
 		Return FParentWindow

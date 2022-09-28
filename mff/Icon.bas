@@ -13,32 +13,36 @@
 #include once "Icon.bi"
 
 Namespace My.Sys.Drawing
-	Private Function Icon.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		#ifdef __USE_GTK__
-		Case "handle": Return Handle
-		#else
-		Case "handle": Return @Handle
-		#endif
-		Case "height": Return @FHeight
-		Case "width": Return @FWidth
-		Case "resname": Return FResName
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
-	
-	Private Function Icon.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value <> 0 Then
+	#ifndef ReadProperty_Off
+		Private Function Icon.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "height": This.Height = QInteger(Value)
-			Case "width": This.Width = QInteger(Value)
-			Case "resname": This.ResName = QWString(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			#ifdef __USE_GTK__
+			Case "handle": Return Handle
+			#else
+			Case "handle": Return @Handle
+			#endif
+			Case "height": Return @FHeight
+			Case "width": Return @FWidth
+			Case "resname": Return FResName
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function Icon.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value <> 0 Then
+				Select Case LCase(PropertyName)
+				Case "height": This.Height = QInteger(Value)
+				Case "width": This.Width = QInteger(Value)
+				Case "resname": This.ResName = QWString(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property Icon.ResName ByRef As WString
 		Return WGet(FResName)

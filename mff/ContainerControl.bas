@@ -7,23 +7,27 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	Private Function ContainerControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		FTempString = LCase(PropertyName)
-		Select Case FTempString
-		Case "autosize": Return @FAutoSize
-		Case "canvas": Return @Canvas
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ContainerControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			FTempString = LCase(PropertyName)
+			Select Case FTempString
+			Case "autosize": Return @FAutoSize
+			Case "canvas": Return @Canvas
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ContainerControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "autosize": AutoSize = QBoolean(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ContainerControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "autosize": AutoSize = QBoolean(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	#ifdef __USE_GTK__
 		Private Function ContainerControl.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean

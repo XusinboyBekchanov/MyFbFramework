@@ -17,39 +17,43 @@ Dim Shared DefaultFont As My.Sys.Drawing.Font
 pDefaultFont = @DefaultFont
 
 Namespace My.Sys.Drawing
-	Private Function Font.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "name": Return FName
-		Case "color": Return @FColor
-		Case "size": Return @FSize
-		Case "charset": Return @FCharset
-		Case "bold": Return @FBold
-		Case "italic": Return @FItalic
-		Case "underline": Return @FUnderline
-		Case "strikeout": Return @FStrikeOut
-		Case "orientation": Return @FOrientation
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
-	
-	Private Function Font.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value <> 0 Then
+	#ifndef ReadProperty_Off
+		Private Function Font.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "name": This.Name = QWString(Value)
-			Case "color": This.Color = QInteger(Value)
-			Case "size": This.Size = QInteger(Value)
-			Case "charset": This.Charset = QInteger(Value)
-			Case "bold": This.Bold = QBoolean(Value)
-			Case "italic": This.Italic = QBoolean(Value)
-			Case "underline": This.Underline = QBoolean(Value)
-			Case "strikeout": This.StrikeOut = QBoolean(Value)
-			Case "orientation": This.Orientation = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			Case "name": Return FName
+			Case "color": Return @FColor
+			Case "size": Return @FSize
+			Case "charset": Return @FCharSet
+			Case "bold": Return @FBold
+			Case "italic": Return @FItalic
+			Case "underline": Return @FUnderline
+			Case "strikeout": Return @FStrikeOut
+			Case "orientation": Return @FOrientation
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function Font.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value <> 0 Then
+				Select Case LCase(PropertyName)
+				Case "name": This.Name = QWString(Value)
+				Case "color": This.Color = QInteger(Value)
+				Case "size": This.Size = QInteger(Value)
+				Case "charset": This.CharSet = QInteger(Value)
+				Case "bold": This.Bold = QBoolean(Value)
+				Case "italic": This.Italic = QBoolean(Value)
+				Case "underline": This.Underline = QBoolean(Value)
+				Case "strikeout": This.StrikeOut = QBoolean(Value)
+				Case "orientation": This.Orientation = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Sub Font.Create
 		If WGet(FName) = "" Then

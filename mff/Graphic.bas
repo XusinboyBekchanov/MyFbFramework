@@ -14,29 +14,33 @@
 #include once "Graphic.bi"
 
 Namespace My.Sys.Drawing
-	Private Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "bitmap": Return @Bitmap
-		Case "icon": Return @Icon
-		Case "cursor": Return @Cursor
-		Case "image": Return Image
-		Case "imagetype": Return @ImageType
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
-	
-	Private Function GraphicType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value <> 0 Then
+	#ifndef ReadProperty_Off
+		Private Function GraphicType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "bitmap": This.Bitmap = QWString(Value)
-			Case "icon": This.Icon = QWString(Value)
-			Case "cursor": This.Cursor = QWString(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			Case "bitmap": Return @Bitmap
+			Case "icon": Return @Icon
+			Case "cursor": Return @Cursor
+			Case "image": Return Image
+			Case "imagetype": Return @ImageType
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function GraphicType.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value <> 0 Then
+				Select Case LCase(PropertyName)
+				Case "bitmap": This.Bitmap = QWString(Value)
+				Case "icon": This.Icon = QWString(Value)
+				Case "cursor": This.Cursor = QWString(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Sub GraphicType.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
 		If Sender.Graphic Then

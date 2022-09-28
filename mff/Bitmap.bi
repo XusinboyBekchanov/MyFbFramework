@@ -20,7 +20,7 @@
 	#else
 		#include once "win/ddraw.bi"
 		#include once "win/gdiplus.bi"
-		Using gdiplus
+		Using Gdiplus
 	#endif
 #elseif defined(__USE_GTK__)
 	#ifdef __USE_GTK4__
@@ -48,11 +48,15 @@ Namespace My.Sys.Drawing
 		FResName As WString Ptr
 		Declare Sub Create
 	Public:
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Graphic      As Any Ptr
 		#ifdef __USE_GTK__
-			Handle 		As GdkPixBuf Ptr
+			Handle 		As GdkPixbuf Ptr
 		#elseif defined(__USE_JNI__)
 			Handle       As jobject
 		#elseif defined(__USE_WINAPI__)

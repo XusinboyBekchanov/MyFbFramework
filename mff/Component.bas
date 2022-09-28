@@ -12,76 +12,80 @@ Namespace My.Sys.ComponentModel
 		Return *FTemp
 	End Function
 	
-	Private Function Component.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "designmode": Return @FDesignMode
-		Case "classancestor": Return FClassAncestor
-		Case "tag": Return Tag
-			#ifdef __USE_GTK__
-			Case "handle": Return widget
-			Case "widget": Return widget
-			Case "layoutwidget": Return layoutwidget
-			Case "overlaywidget": Return overlaywidget
-			Case "eventboxwidget": Return eventboxwidget
-			#else
-			Case "handle": Return @FHandle
-			#endif
-		Case "left": FLeft = This.Left: Return @FLeft
-		Case "top": FTop = This.Top: Return @FTop
-		Case "width": FWidth = This.Width: Return @FWidth
-		Case "height": FHeight = This.Height: Return @FHeight
-		Case "parent": Return FParent
-		Case "margins": Return @Margins
-		Case "margins.left": Return @Margins.Left
-		Case "margins.right": Return @Margins.Right
-		Case "margins.top": Return @Margins.Top
-		Case "margins.bottom": Return @Margins.Bottom
-		Case "extramargins": Return @ExtraMargins
-		Case "extramargins.left": Return @ExtraMargins.Left
-		Case "extramargins.right": Return @ExtraMargins.Right
-		Case "extramargins.top": Return @ExtraMargins.Top
-		Case "extramargins.bottom": Return @ExtraMargins.Bottom
-		Case "name": Return FName
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
-	
-	Private Function Component.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value <> 0 Then
+	#ifndef ReadProperty_Off
+		Private Function Component.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "tag": This.Tag = Value
-			Case "name": This.Name = QWString(Value)
-			Case "designmode": This.DesignMode = QBoolean(Value)
+			Case "designmode": Return @FDesignMode
+			Case "classancestor": Return FClassAncestor
+			Case "tag": Return Tag
 				#ifdef __USE_GTK__
-				Case "handle": This.Handle = Value
-				Case "widget": This.widget = Value
-				Case "layoutwidget": This.layoutwidget = Value
-				Case "overlaywidget": This.overlaywidget = Value
-				Case "eventboxwidget": This.eventboxwidget = Value
-				#elseif defined(__USE_JNI__)
-				Case "handle": This.Handle = *Cast(jobject Ptr, Value)
+				Case "handle": Return widget
+				Case "widget": Return widget
+				Case "layoutwidget": Return layoutwidget
+				Case "overlaywidget": Return overlaywidget
+				Case "eventboxwidget": Return eventboxwidget
 				#else
-				Case "handle": This.Handle = *Cast(HWND Ptr, Value)
+				Case "handle": Return @FHandle
 				#endif
-			Case "left": This.Left = QInteger(Value)
-			Case "top": This.Top = QInteger(Value)
-			Case "width": This.Width = QInteger(Value)
-			Case "height": This.Height = QInteger(Value)
-			Case "parent": This.Parent = Value
-			Case "margins.left": This.Margins.Left = QInteger(Value)
-			Case "margins.right": This.Margins.Right = QInteger(Value)
-			Case "margins.top": This.Margins.Top = QInteger(Value)
-			Case "margins.bottom": This.Margins.Bottom = QInteger(Value)
-			Case "extramargins.left": This.ExtraMargins.Left = QInteger(Value)
-			Case "extramargins.right": This.ExtraMargins.Right = QInteger(Value)
-			Case "extramargins.top": This.ExtraMargins.Top = QInteger(Value)
-			Case "extramargins.bottom": This.ExtraMargins.Bottom = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			Case "left": FLeft = This.Left: Return @FLeft
+			Case "top": FTop = This.Top: Return @FTop
+			Case "width": FWidth = This.Width: Return @FWidth
+			Case "height": FHeight = This.Height: Return @FHeight
+			Case "parent": Return FParent
+			Case "margins": Return @Margins
+			Case "margins.left": Return @Margins.Left
+			Case "margins.right": Return @Margins.Right
+			Case "margins.top": Return @Margins.Top
+			Case "margins.bottom": Return @Margins.Bottom
+			Case "extramargins": Return @ExtraMargins
+			Case "extramargins.left": Return @ExtraMargins.Left
+			Case "extramargins.right": Return @ExtraMargins.Right
+			Case "extramargins.top": Return @ExtraMargins.Top
+			Case "extramargins.bottom": Return @ExtraMargins.Bottom
+			Case "name": Return FName
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function Component.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value <> 0 Then
+				Select Case LCase(PropertyName)
+				Case "tag": This.Tag = Value
+				Case "name": This.Name = QWString(Value)
+				Case "designmode": This.DesignMode = QBoolean(Value)
+					#ifdef __USE_GTK__
+					Case "handle": This.Handle = Value
+					Case "widget": This.widget = Value
+					Case "layoutwidget": This.layoutwidget = Value
+					Case "overlaywidget": This.overlaywidget = Value
+					Case "eventboxwidget": This.eventboxwidget = Value
+					#elseif defined(__USE_JNI__)
+					Case "handle": This.Handle = *Cast(jobject Ptr, Value)
+					#else
+					Case "handle": This.Handle = *Cast(HWND Ptr, Value)
+					#endif
+				Case "left": This.Left = QInteger(Value)
+				Case "top": This.Top = QInteger(Value)
+				Case "width": This.Width = QInteger(Value)
+				Case "height": This.Height = QInteger(Value)
+				Case "parent": This.Parent = Value
+				Case "margins.left": This.Margins.Left = QInteger(Value)
+				Case "margins.right": This.Margins.Right = QInteger(Value)
+				Case "margins.top": This.Margins.Top = QInteger(Value)
+				Case "margins.bottom": This.Margins.Bottom = QInteger(Value)
+				Case "extramargins.left": This.ExtraMargins.Left = QInteger(Value)
+				Case "extramargins.right": This.ExtraMargins.Right = QInteger(Value)
+				Case "extramargins.top": This.ExtraMargins.Top = QInteger(Value)
+				Case "extramargins.bottom": This.ExtraMargins.Bottom = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	#ifndef GetTopLevel_Off
 		Private Function Component.GetTopLevel As Component Ptr

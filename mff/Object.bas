@@ -7,23 +7,27 @@
 #include once "Object.bi"
 
 Namespace My.Sys
-	Private Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "classname": Return FClassName
-		Case Else: Return 0
-		End Select
-		Return 0
-	End Function
-	
-	Private Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value <> 0 Then
+	#ifndef ReadProperty_Off
+		Private Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case Else: Return False
+			Case "classname": Return FClassName
+			Case Else: Return 0
 			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
 	
+	#ifndef WriteProperty_Off	
+		Private Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value <> 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return False
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
+
 	Private Operator Object.Cast ByRef As WString
 		Return This.ClassName
 	End Operator

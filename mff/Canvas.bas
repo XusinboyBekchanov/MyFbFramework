@@ -12,33 +12,37 @@
 #include once "Canvas.bi"
 
 Namespace My.Sys.Drawing
-	Private Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "pen": Return @Pen
-		Case "brush": Return @Brush
-		Case "font": Return @Font
-		Case "clip": Return @Clip
-		Case "copymode": Return @CopyMode
-			#ifdef __USE_GTK__
-			Case "handle": Return HANDLE
-			#else
-			Case "handle": Return @HANDLE
-			#endif
-		Case "height": iTemp = This.Height: Return @iTemp
-		Case "width": iTemp = This.Width: Return @iTemp
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "pen": Return @Pen
+			Case "brush": Return @Brush
+			Case "font": Return @Font
+			Case "clip": Return @Clip
+			Case "copymode": Return @CopyMode
+				#ifdef __USE_GTK__
+				Case "handle": Return Handle
+				#else
+				Case "handle": Return @Handle
+				#endif
+			Case "height": iTemp = This.Height: Return @iTemp
+			Case "width": iTemp = This.Width: Return @iTemp
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Canvas.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "clip": This.Clip = QBoolean(Value)
-		Case "copymode": This.CopyMode = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Canvas.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "clip": This.Clip = QBoolean(Value)
+			Case "copymode": This.CopyMode = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property Canvas.BackColor As Integer
 		Return FBackColor

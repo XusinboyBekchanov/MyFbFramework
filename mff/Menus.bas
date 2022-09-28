@@ -28,65 +28,69 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Private Function MenuItem.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "caption": Return FCaption
-		Case "checked": Return @FChecked
-		Case "command": Return @FCommand
-		Case "count": Return @FCount
-		Case "enabled": Return @FEnabled
-		Case "image": Return @FImage
-		Case "imageindex": Return @FImageIndex
-		Case "imagekey": Return FImageKey
-		Case "menuindex": Return @FMenuIndex
-		Case "name": Return FName
-		Case "owner": Return FOwner
-		Case "parent": Return Parent
-		Case "parentmenu": Return FOwner
-		Case "parentmenuitem": Return FParentMenuItem
-		Case "radioitem": Return @FRadioItem
-		Case "tag": Return Tag
-		#ifdef __USE_GTK__
-			Case "widget": Return @Widget
-		#elseif defined(__USE_WINAPI__)
-			Case "handle": Return @FHandle
-		#endif
-		Case "visible": Return @FVisible
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function MenuItem.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "caption": Return FCaption
+			Case "checked": Return @FChecked
+			Case "command": Return @FCommand
+			Case "count": Return @FCount
+			Case "enabled": Return @FEnabled
+			Case "image": Return @FImage
+			Case "imageindex": Return @FImageIndex
+			Case "imagekey": Return FImageKey
+			Case "menuindex": Return @FMenuIndex
+			Case "name": Return FName
+			Case "owner": Return FOwner
+			Case "parent": Return Parent
+			Case "parentmenu": Return FOwner
+			Case "parentmenuitem": Return FParentMenuItem
+			Case "radioitem": Return @FRadioItem
+			Case "tag": Return Tag
+			#ifdef __USE_GTK__
+				Case "widget": Return @Widget
+			#elseif defined(__USE_WINAPI__)
+				Case "handle": Return @FHandle
+			#endif
+			Case "visible": Return @FVisible
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 
-	Private Function MenuItem.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case "owner": This.Owner = Value
-			Case "parent": This.Parent = Value
-			Case "parentmenu": This.ParentMenu = Value
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "caption": This.Caption = QWString(Value)
-			Case "checked": This.Checked = QBoolean(Value)
-			Case "command": This.Command = QInteger(Value)
-			Case "enabled": This.Enabled = QBoolean(Value)
-			Case "image": This.Image = QWString(Value)
-			Case "imageindex": This.ImageIndex = QInteger(Value)
-			Case "imagekey": This.ImageKey = QWString(Value)
-			Case "menuindex": This.MenuIndex = QInteger(Value)
-			Case "name": This.Name = QWString(Value)
-			Case "owner": This.Owner = Value
-			Case "parent": This.Parent = Value
-			Case "parentmenu": This.ParentMenu = Value
-			Case "radioitem": This.RadioItem = QBoolean(Value)
-			Case "tag": This.Tag = Value
-			Case "visible": This.Visible = QBoolean(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function MenuItem.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case "owner": This.Owner = Value
+				Case "parent": This.Parent = Value
+				Case "parentmenu": This.ParentMenu = Value
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "caption": This.Caption = QWString(Value)
+				Case "checked": This.Checked = QBoolean(Value)
+				Case "command": This.Command = QInteger(Value)
+				Case "enabled": This.Enabled = QBoolean(Value)
+				Case "image": This.Image = QWString(Value)
+				Case "imageindex": This.ImageIndex = QInteger(Value)
+				Case "imagekey": This.ImageKey = QWString(Value)
+				Case "menuindex": This.MenuIndex = QInteger(Value)
+				Case "name": This.Name = QWString(Value)
+				Case "owner": This.Owner = Value
+				Case "parent": This.Parent = Value
+				Case "parentmenu": This.ParentMenu = Value
+				Case "radioitem": This.RadioItem = QBoolean(Value)
+				Case "tag": This.Tag = Value
+				Case "visible": This.Visible = QBoolean(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Function MenuItem.ToString ByRef As WString
 		Return This.Name
@@ -1165,39 +1169,43 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	/' Menu '/
-	Private Function Menu.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		FTempString = LCase(PropertyName)
-		Select Case FTempString
-		Case "count": Return @FCount
-		Case "color": Return @FColor
-		Case "colorizeentire": Return @FIncSubItems
-		Case "displayicons": Return @FDisplayIcons
-		Case "imageslist": Return ImagesList
-		Case "parentwindow": Return FParentWindow
-		Case "style": Return @FStyle
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Menu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			FTempString = LCase(PropertyName)
+			Select Case FTempString
+			Case "count": Return @FCount
+			Case "color": Return @FColor
+			Case "colorizeentire": Return @FIncSubItems
+			Case "displayicons": Return @FDisplayIcons
+			Case "imageslist": Return ImagesList
+			Case "parentwindow": Return FParentWindow
+			Case "style": Return @FStyle
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 
-	Private Function Menu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "color": This.Color = QInteger(Value)
-			Case "colorizeentire": This.ColorizeEntire = QInteger(Value)
-			Case "displayicons": DisplayIcons = QBoolean(Value)
-			Case "imageslist": ImagesList = Value
-			Case "parentwindow": ParentWindow = Value
-			Case "style": FStyle = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Menu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "color": This.Color = QInteger(Value)
+				Case "colorizeentire": This.ColorizeEntire = QInteger(Value)
+				Case "displayicons": DisplayIcons = QBoolean(Value)
+				Case "imageslist": ImagesList = Value
+				Case "parentwindow": ParentWindow = Value
+				Case "style": FStyle = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	#ifdef __USE_WINAPI__
 		Private Property Menu.Handle As HMENU
@@ -1708,26 +1716,30 @@ Namespace My.Sys.Forms
 	End Function
 	
 	/' MainMenu '/
-	Private Function MainMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		FTempString = LCase(PropertyName)
-		Select Case FTempString
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
-
-	Private Function MainMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+	#ifndef ReadProperty_Off
+		Private Function MainMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			FTempString = LCase(PropertyName)
+			Select Case FTempString
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function MainMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property MainMenu.ParentWindow(value As Component Ptr)
 		FParentWindow = value
@@ -1849,26 +1861,30 @@ Namespace My.Sys.Forms
 	
 	
 	/' PopupMenu '/
-	Private Function PopupMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		FTempString = LCase(PropertyName)
-		Select Case FTempString
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function PopupMenu.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			FTempString = LCase(PropertyName)
+			Select Case FTempString
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 
-	Private Function PopupMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function PopupMenu.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property PopupMenu.ParentMenuItem As MenuItem Ptr
 		Return FParentMenuItem

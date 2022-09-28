@@ -71,8 +71,12 @@ Namespace My.Sys.ComponentModel
 			Declare Property LayoutHandle As HWND
 			Declare Property LayoutHandle(Value As HWND)
 		#endif
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		'Returns a string that represents the current object.
 		Declare Virtual Function ToString ByRef As WString
 		'Returns ancestor class of control.
