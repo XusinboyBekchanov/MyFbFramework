@@ -12,39 +12,43 @@
 #include once "Animate.bi"
 
 Namespace My.Sys.Forms
-	Private Function Animate.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "autoplay": Return @FAutoPlay
-		Case "autosize": Return @FAutoSize
-		Case "center": Return @FCenter
-		Case "commonavi": Return @FCommonAVI
-		Case "file": Return FFile
-		Case "repeat": Return @FRepeat
-		Case "startframe": Return @FStartFrame
-		Case "stopframe": Return @FStopFrame
-		Case "timers": Return @FTimers
-		Case "transparency": Return @FTransparent
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Animate.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "autoplay": Return @FAutoPlay
+			Case "autosize": Return @FAutoSize
+			Case "center": Return @FCenter
+			Case "commonavi": Return @FCommonAvi
+			Case "file": Return FFile
+			Case "repeat": Return @FRepeat
+			Case "startframe": Return @FStartFrame
+			Case "stopframe": Return @FStopFrame
+			Case "timers": Return @FTimers
+			Case "transparency": Return @FTransparent
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Animate.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "autoplay": AutoPlay = QBoolean(Value)
-		Case "autosize": AutoSize = QBoolean(Value)
-		Case "center": Center = QBoolean(Value)
-		Case "commonavi": CommonAVI = *Cast(CommonAVIs Ptr, Value)
-		Case "file": File = QWString(Value)
-		Case "repeat": Repeat = QInteger(Value)
-		Case "startframe": StartFrame = QInteger(Value)
-		Case "stopframe": StopFrame = QInteger(Value)
-		Case "timers": Timers = QBoolean(Value)
-		Case "transparency": Transparency = QBoolean(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Animate.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "autoplay": AutoPlay = QBoolean(Value)
+			Case "autosize": AutoSize = QBoolean(Value)
+			Case "center": Center = QBoolean(Value)
+			Case "commonavi": CommonAvi = *Cast(CommonAVIs Ptr, Value)
+			Case "file": File = QWString(Value)
+			Case "repeat": Repeat = QInteger(Value)
+			Case "startframe": StartFrame = QInteger(Value)
+			Case "stopframe": StopFrame = QInteger(Value)
+			Case "timers": Timers = QBoolean(Value)
+			Case "transparency": Transparency = QBoolean(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Sub Animate.GetAnimateInfo
 		#ifdef __USE_GTK__
@@ -72,7 +76,7 @@ Namespace My.Sys.Forms
 					FFrameWidth  = Buff[16]
 					FFrameHeight = Buff[17]
 				Else
-					Resource  = FindResource(GetModuleHandle("Shell32"),MakeIntResource(FCommonAvi),"AVI")
+					Resource  = FindResource(GetModuleHandle("Shell32"),MAKEINTRESOURCE(FCommonAvi),"AVI")
 					Global    = LoadResource(GetModuleHandle("Shell32"),Resource)
 					PResource = LockResource(Global)
 					Size = SizeOfResource(GetModuleHandle("Shell32"),Resource)

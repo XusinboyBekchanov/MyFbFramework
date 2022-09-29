@@ -204,7 +204,7 @@ Namespace My.Sys.Forms
 		Dim m_DonutWidth2 As Long
 		
 		#ifndef __USE_GTK__
-			Dim c_lhWnd As hWND
+			Dim c_lhWnd As HWND
 			Dim hGraphics As GpGraphics Ptr
 			Dim hd As HDC
 		#else
@@ -231,7 +231,7 @@ Namespace My.Sys.Forms
 		Declare Sub InitProperties()
 		Declare Static Sub tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
 		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
-		Declare Sub GetTextSize(ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
+		Declare Sub GetTextSize(ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SizeF)
 		Declare Sub DrawText(ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As TextAlignmentH = 0, VAlign As TextAlignmentV = 0, bWordWrap As Boolean = False, Angle As Single = 0)
 		Declare Sub HitTest(X As Single, Y As Single, HitResult As Integer)
 		Declare Sub MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -255,8 +255,12 @@ Namespace My.Sys.Forms
 		Declare Function GetMin() As Single
 	Public:
 		Declare Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Sub GetCenterPie(X As Single, Y As Single)
 		Declare Property AxisMax() As Single
 		Declare Property AxisMax(Value As Single)

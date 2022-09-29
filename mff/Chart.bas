@@ -18,96 +18,100 @@
 #include once "vbcompat.bi"
 
 Namespace My.Sys.Forms
-	Private Function Chart.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		FTempString = LCase(PropertyName)
-		Select Case FTempString
-		Case "axismax": Return @m_AxisMax
-		Case "axismin": Return @m_AxisMin
-		Case "backcoloropacity": Return @m_BackColorOpacity
-		Case "border": Return @m_Border
-		Case "bordercolor": Return @m_BorderColor
-		Case "borderround": Return @m_BorderRound
-		Case "canvas": Return @Canvas
-		Case "chartstyle": Return @m_ChartStyle
-		Case "chartorientation": Return @m_ChartOrientation
-		Case "count": Return @ItemsCount
-		Case "donutwidth": Return @m_DonutWidth
-		Case "fillgradient": Return @m_FillGradient
-		Case "fillopacity": Return @m_FillOpacity
-			'Case "itemcolor": Return @m_ItemColor
-		Case "labelsalignment": Return @m_LabelsAlignments
-		Case "labelsformat": Return m_LabelsFormat.vptr
-		Case "labelsformats": Return m_LabelsFormats.vptr
-		Case "labelsposition": Return @m_LabelsPositions
-		Case "labelsvisible": Return @m_LabelsVisible
-		Case "legendalign": Return @m_LegendAlign
-		Case "legendvisible": Return @m_LegendVisible
-		Case "linescolor": Return @m_LinesColor
-		Case "linescurve": Return @m_LinesCurve
-		Case "lineswidth": Return @m_LinesWidth
-		Case "rotation": Return @m_Rotation
-		Case "separatorline": Return @m_SeparatorLine
-		Case "separatorlinecolor": Return @m_SeparatorLineColor
-		Case "separatorlinewidth": Return @m_SeparatorLineWidth
-			'Case "special": Return @m_Special
-		Case "title": Return m_Title.vptr
-		Case "titlefont": Return @m_TitleFont
-		Case "titleforecolor": Return @m_TitleForeColor
-		Case "tooltipsformat": Return m_ToolTipsFormat.vptr
-		Case "verticallines": Return @m_VerticalLines
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Chart.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			FTempString = LCase(PropertyName)
+			Select Case FTempString
+			Case "axismax": Return @m_AxisMax
+			Case "axismin": Return @m_AxisMin
+			Case "backcoloropacity": Return @m_BackColorOpacity
+			Case "border": Return @m_Border
+			Case "bordercolor": Return @m_BorderColor
+			Case "borderround": Return @m_BorderRound
+			Case "canvas": Return @Canvas
+			Case "chartstyle": Return @m_ChartStyle
+			Case "chartorientation": Return @m_ChartOrientation
+			Case "count": Return @ItemsCount
+			Case "donutwidth": Return @m_DonutWidth
+			Case "fillgradient": Return @m_FillGradient
+			Case "fillopacity": Return @m_FillOpacity
+				'Case "itemcolor": Return @m_ItemColor
+			Case "labelsalignment": Return @m_LabelsAlignments
+			Case "labelsformat": Return m_LabelsFormat.vptr
+			Case "labelsformats": Return m_LabelsFormats.vptr
+			Case "labelsposition": Return @m_LabelsPositions
+			Case "labelsvisible": Return @m_LabelsVisible
+			Case "legendalign": Return @m_LegendAlign
+			Case "legendvisible": Return @m_LegendVisible
+			Case "linescolor": Return @m_LinesColor
+			Case "linescurve": Return @m_LinesCurve
+			Case "lineswidth": Return @m_LinesWidth
+			Case "rotation": Return @m_Rotation
+			Case "separatorline": Return @m_SeparatorLine
+			Case "separatorlinecolor": Return @m_SeparatorLineColor
+			Case "separatorlinewidth": Return @m_SeparatorLineWidth
+				'Case "special": Return @m_Special
+			Case "title": Return m_Title.vptr
+			Case "titlefont": Return @m_TitleFont
+			Case "titleforecolor": Return @m_TitleForeColor
+			Case "tooltipsformat": Return m_ToolTipsFormat.vptr
+			Case "verticallines": Return @m_VerticalLines
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Chart.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "axismax": AxisMax = QSingle(Value)
-			Case "axismin": AxisMin = QSingle(Value)
-			Case "backcoloropacity": BackColorOpacity = QLong(Value)
-			Case "border": Border = QBoolean(Value)
-			Case "bordercolor": BorderColor = QInteger(Value)
-			Case "borderround": BorderRound = QLong(Value)
-			Case "chartstyle": ChartStyle = *Cast(ChartStyles Ptr, Value)
-			Case "chartorientation": ChartOrientation = *Cast(ChartOrientations Ptr, Value)
-			Case "designmode": FDesignMode = QBoolean(Value): If FDesignMode Then Example: Refresh
-			Case "donutwidth": DonutWidth = QSingle(Value)
-			Case "fillgradient": FillGradient = QBoolean(Value)
-			Case "fillopacity": FillOpacity = QLong(Value)
-				'Case "itemcolor": ItemColor = QInteger(Value)
-			Case "labelsalignment": LabelsAlignment = *Cast(LabelsAlignments Ptr, Value)
-			Case "labelsformat": LabelsFormat = QWString(Value)
-			Case "labelsformats": LabelsFormats = QWString(Value)
-			Case "labelsposition": LabelsPosition = *Cast(LabelsPositions Ptr, Value)
-			Case "labelsvisible": LabelsVisible = QBoolean(Value)
-			Case "legendalign": LegendAlign = *Cast(LegendAligns Ptr, Value)
-			Case "legendvisible": LegendVisible = QBoolean(Value)
-			Case "linescolor": LinesColor = QInteger(Value)
-			Case "linescurve": LinesCurve = QBoolean(Value)
-			Case "lineswidth": LinesWidth = QLong(Value)
-			Case "rotation": Rotation = QLong(Value)
-			Case "separatorline": SeparatorLine = QBoolean(Value)
-			Case "separatorlinecolor": SeparatorLineColor = QInteger(Value)
-			Case "separatorlinewidth": SeparatorLineWidth = QSingle(Value)
-				'Case "special": Special = QBoolean(Value)
-			Case "title": Title = QWString(Value)
-			Case "titleforecolor": TitleForeColor = QInteger(Value)
-			Case "tooltipsformat": ToolTipsFormat = QWString(Value)
-			Case "verticallines": VerticalLines = QBoolean(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Chart.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "axismax": AxisMax = QSingle(Value)
+				Case "axismin": AxisMin = QSingle(Value)
+				Case "backcoloropacity": BackColorOpacity = QLong(Value)
+				Case "border": Border = QBoolean(Value)
+				Case "bordercolor": BorderColor = QInteger(Value)
+				Case "borderround": BorderRound = QLong(Value)
+				Case "chartstyle": ChartStyle = *Cast(ChartStyles Ptr, Value)
+				Case "chartorientation": ChartOrientation = *Cast(ChartOrientations Ptr, Value)
+				Case "designmode": FDesignMode = QBoolean(Value): If FDesignMode Then Example: Refresh
+				Case "donutwidth": DonutWidth = QSingle(Value)
+				Case "fillgradient": FillGradient = QBoolean(Value)
+				Case "fillopacity": FillOpacity = QLong(Value)
+					'Case "itemcolor": ItemColor = QInteger(Value)
+				Case "labelsalignment": LabelsAlignment = *Cast(LabelsAlignments Ptr, Value)
+				Case "labelsformat": LabelsFormat = QWString(Value)
+				Case "labelsformats": LabelsFormats = QWString(Value)
+				Case "labelsposition": LabelsPosition = *Cast(LabelsPositions Ptr, Value)
+				Case "labelsvisible": LabelsVisible = QBoolean(Value)
+				Case "legendalign": LegendAlign = *Cast(LegendAligns Ptr, Value)
+				Case "legendvisible": LegendVisible = QBoolean(Value)
+				Case "linescolor": LinesColor = QInteger(Value)
+				Case "linescurve": LinesCurve = QBoolean(Value)
+				Case "lineswidth": LinesWidth = QLong(Value)
+				Case "rotation": Rotation = QLong(Value)
+				Case "separatorline": SeparatorLine = QBoolean(Value)
+				Case "separatorlinecolor": SeparatorLineColor = QInteger(Value)
+				Case "separatorlinewidth": SeparatorLineWidth = QSingle(Value)
+					'Case "special": Special = QBoolean(Value)
+				Case "title": Title = QWString(Value)
+				Case "titleforecolor": TitleForeColor = QInteger(Value)
+				Case "tooltipsformat": ToolTipsFormat = QWString(Value)
+				Case "verticallines": VerticalLines = QBoolean(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Sub Chart.GetCenterPie(X As Single, Y As Single)
 		X = m_CenterCircle.x
-		Y = m_CenterCircle.Y
+		Y = m_CenterCircle.y
 	End Sub
 	
 	Private Property Chart.Count() As Long

@@ -78,15 +78,19 @@ End Type
 
 Private Type Dialog Extends Component
 Public:
-	Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-	Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#ifndef ReadProperty_Off
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+	#endif
+	#ifndef WriteProperty_Off
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#endif
 	Declare Abstract Function Execute As Boolean
 End Type
 
 Private Type OpenFileDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
+		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As wParam, lParam As lParam) As UInteger
 	#endif
 	Control     As My.Sys.Forms.Control
 	FInitialDir   As WString Ptr
@@ -97,8 +101,12 @@ Private:
 	FFileTitle    As WString Ptr
 	FFilter       As WString Ptr
 Public:
-	Declare Function ReadProperty(PropertyName As String) As Any Ptr
-	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#ifndef ReadProperty_Off
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+	#endif
+	#ifndef WriteProperty_Off
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#endif
 	FileNames 	As WStringList
 	#ifndef __USE_GTK__
 		
@@ -131,7 +139,7 @@ End Type
 Private Type SaveFileDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
+		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As wParam, lParam As lParam) As UInteger
 	#endif
 	Control      As My.Sys.Forms.Control
 	FInitialDir   As WString Ptr
@@ -140,8 +148,12 @@ Private:
 	FFileName     As WString Ptr
 	FFilter       As WString Ptr
 Public:
-	Declare Function ReadProperty(PropertyName As String) As Any Ptr
-	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#ifndef ReadProperty_Off
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+	#endif
+	#ifndef WriteProperty_Off
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#endif
 	Options      As OpenFileOptions
 	Center       As Boolean
 	FilterIndex  As Integer
@@ -166,8 +178,12 @@ Public:
 End Type
 
 Private Type FontDialog Extends Dialog
-	Declare Function ReadProperty(PropertyName As String) As Any Ptr
-	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#ifndef ReadProperty_Off
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+	#endif
+	#ifndef WriteProperty_Off
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#endif
 	Font        As My.Sys.Drawing.Font
 	MaxFontSize As Integer
 	MinFontSize As Integer
@@ -179,7 +195,7 @@ End Type
 Private Type FolderBrowserDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(hWnd As HWND, uMsg As UINT, lParam As LPARAM, lpData As LPARAM) As Long
+		Declare Static Function Hook(hWnd As hWnd, uMsg As UINT, lParam As lParam, lpData As lParam) As Long
 	#endif
 	Control     As My.Sys.Forms.Control
 	FCaption    As WString Ptr
@@ -188,8 +204,12 @@ Private:
 	FDirectory  As WString Ptr
 Public:
 	Center      As Boolean
-	Declare Function ReadProperty(PropertyName As String) As Any Ptr
-	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#ifndef ReadProperty_Off
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+	#endif
+	#ifndef WriteProperty_Off
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#endif
 	Declare Property Caption ByRef As WString
 	Declare Property Caption(ByRef Value As WString)
 	Declare Property Title ByRef As WString
@@ -210,11 +230,15 @@ Private:
 	#endif
 	_Caption        As WString Ptr
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
+		Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As wParam,lParam As lParam) As UInteger
 	#endif
 Public:
-	Declare Function ReadProperty(PropertyName As String) As Any Ptr
-	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#ifndef ReadProperty_Off
+		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+	#endif
+	#ifndef WriteProperty_Off
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	#endif
 	Parent          As My.Sys.Forms.Control Ptr
 	Center          As Integer
 	Color           As Integer

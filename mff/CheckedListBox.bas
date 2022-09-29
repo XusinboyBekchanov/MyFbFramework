@@ -12,19 +12,23 @@
 #include once "CheckedListBox.bi"
 
 Namespace My.Sys.Forms
-	Private Function CheckedListBox.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function CheckedListBox.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function CheckedListBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function CheckedListBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Sub CheckedListBox.AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Dim i As Integer

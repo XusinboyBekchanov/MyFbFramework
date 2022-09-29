@@ -44,51 +44,59 @@ Private Destructor OpenFileOptions
 	If Options Then Deallocate_(Options)
 End Destructor
 
-Private Function Dialog.ReadProperty(PropertyName As String) As Any Ptr
-	Select Case LCase(PropertyName)
-	Case Else: Return Base.ReadProperty(PropertyName)
-	End Select
-	Return 0
-End Function
+#ifndef ReadProperty_Off
+	Private Function Dialog.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+#endif
 
-Private Function Dialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-	Select Case LCase(PropertyName)
-	Case Else: Return Base.WriteProperty(PropertyName, Value)
-	End Select
-	Return True
-End Function
+#ifndef WriteProperty_Off
+	Private Function Dialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+#endif
 
-Private Function OpenFileDialog.ReadProperty(PropertyName As String) As Any Ptr
-	Select Case LCase(PropertyName)
-	Case "caption": Return FCaption
-	Case "center": Return @Center
-	Case "defaultext": Return FDefaultExt
-	Case "filename": Return FFileName
-	Case "filetitle": Return FFileTitle
-	Case "filter": Return FFilter
-	Case "filterindex": Return @FilterIndex
-	Case "initialdir": Return FInitialDir
-	Case "multiselect": Return @FMultiSelect
-	Case Else: Return Base.ReadProperty(PropertyName)
-	End Select
-	Return 0
-End Function
+#ifndef ReadProperty_Off
+	Private Function OpenFileDialog.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "caption": Return FCaption
+		Case "center": Return @Center
+		Case "defaultext": Return FDefaultExt
+		Case "filename": Return FFileName
+		Case "filetitle": Return FFileTitle
+		Case "filter": Return FFilter
+		Case "filterindex": Return @FilterIndex
+		Case "initialdir": Return FInitialDir
+		Case "multiselect": Return @FMultiSelect
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+#endif
 
-Private Function OpenFileDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-	Select Case LCase(PropertyName)
-	Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
-	Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
-	Case "defaultext": If Value <> 0 Then This.DefaultExt = QWString(Value)
-	Case "filename": If Value <> 0 Then This.FileName = QWString(Value)
-	Case "filetitle": If Value <> 0 Then This.FileTitle = QWString(Value)
-	Case "filter": If Value <> 0 Then This.Filter = QWString(Value)
-	Case "filterindex": If Value <> 0 Then This.FilterIndex = QInteger(Value)
-	Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
-	Case "multiselect": If Value <> 0 Then This.MultiSelect = QBoolean(Value)
-	Case Else: Return Base.WriteProperty(PropertyName, Value)
-	End Select
-	Return True
-End Function
+#ifndef WriteProperty_Off
+	Private Function OpenFileDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
+		Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
+		Case "defaultext": If Value <> 0 Then This.DefaultExt = QWString(Value)
+		Case "filename": If Value <> 0 Then This.FileName = QWString(Value)
+		Case "filetitle": If Value <> 0 Then This.FileTitle = QWString(Value)
+		Case "filter": If Value <> 0 Then This.Filter = QWString(Value)
+		Case "filterindex": If Value <> 0 Then This.FilterIndex = QInteger(Value)
+		Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
+		Case "multiselect": If Value <> 0 Then This.MultiSelect = QBoolean(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+#endif
 
 Private Property OpenFileDialog.MultiSelect As Boolean
 	Return FMultiSelect
@@ -367,33 +375,37 @@ Private Destructor OpenFileDialog
 	If FFilter Then Deallocate_( FFilter)
 End Destructor
 
-Private Function SaveFileDialog.ReadProperty(PropertyName As String) As Any Ptr
-	Select Case LCase(PropertyName)
-	Case "caption": Return FCaption
-	Case "center": Return @Center
-	Case "defaultext": Return FDefaultExt
-	Case "filename": Return FFileName
-	Case "filter": Return FFilter
-	Case "filterindex": Return @FilterIndex
-	Case "initialdir": Return FInitialDir
-	Case Else: Return Base.ReadProperty(PropertyName)
-	End Select
-	Return 0
-End Function
+#ifndef ReadProperty_Off
+	Private Function SaveFileDialog.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "caption": Return FCaption
+		Case "center": Return @Center
+		Case "defaultext": Return FDefaultExt
+		Case "filename": Return FFileName
+		Case "filter": Return FFilter
+		Case "filterindex": Return @FilterIndex
+		Case "initialdir": Return FInitialDir
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+#endif
 
-Private Function SaveFileDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-	Select Case LCase(PropertyName)
-	Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
-	Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
-	Case "defaultext": If Value <> 0 Then This.DefaultExt = QWString(Value)
-	Case "filename": If Value <> 0 Then This.FileName = QWString(Value)
-	Case "filter": If Value <> 0 Then This.Filter = QWString(Value)
-	Case "filterindex": If Value <> 0 Then This.FilterIndex = QInteger(Value)
-	Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
-	Case Else: Return Base.WriteProperty(PropertyName, Value)
-	End Select
-	Return True
-End Function
+#ifndef WriteProperty_Off
+	Private Function SaveFileDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
+		Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
+		Case "defaultext": If Value <> 0 Then This.DefaultExt = QWString(Value)
+		Case "filename": If Value <> 0 Then This.FileName = QWString(Value)
+		Case "filter": If Value <> 0 Then This.Filter = QWString(Value)
+		Case "filterindex": If Value <> 0 Then This.FilterIndex = QInteger(Value)
+		Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+#endif
 
 Private Property SaveFileDialog.InitialDir ByRef As WString
 	Return WGet(FInitialDir)
@@ -646,25 +658,29 @@ Private Destructor SaveFileDialog
 	If FFilter <> 0 Then Deallocate_( FFilter)
 End Destructor
 
-Private Function FontDialog.ReadProperty(PropertyName As String) As Any Ptr
-	Select Case LCase(PropertyName)
-	Case "font": Return @This.Font
-	Case "maxfontsize": Return @MaxFontSize
-	Case "minfontsize": Return @MinFontSize
-	Case Else: Return Base.ReadProperty(PropertyName)
-	End Select
-	Return 0
-End Function
+#ifndef ReadProperty_Off
+	Private Function FontDialog.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "font": Return @This.Font
+		Case "maxfontsize": Return @MaxFontSize
+		Case "minfontsize": Return @MinFontSize
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+#endif
 
-Private Function FontDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-	Select Case LCase(PropertyName)
-	Case "font": If Value <> 0 Then This.Font = *Cast(My.Sys.Drawing.Font Ptr, Value)
-	Case "maxfontsize": If Value <> 0 Then This.MaxFontSize = QInteger(Value)
-	Case "minfontsize": If Value <> 0 Then This.MinFontSize = QInteger(Value)
-	Case Else: Return Base.WriteProperty(PropertyName, Value)
-	End Select
-	Return True
-End Function
+#ifndef WriteProperty_Off
+	Private Function FontDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "font": If Value <> 0 Then This.Font = *Cast(My.Sys.Drawing.Font Ptr, Value)
+		Case "maxfontsize": If Value <> 0 Then This.MaxFontSize = QInteger(Value)
+		Case "minfontsize": If Value <> 0 Then This.MinFontSize = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+#endif
 
 Private Function FontDialog.Execute As Boolean
 	Static As Integer FWidth(2) = {400,700}
@@ -713,22 +729,22 @@ Private Function FontDialog.Execute As Boolean
 		Dim As HDC Dc
 		Dc = GetDC(HWND_DESKTOP)
 		LGF.lfItalic      = Font.Italic
-		LGF.lfUnderLine   = Font.UnderLine
+		LGF.lfUnderline   = Font.Underline
 		LGF.lfStrikeOut   = Font.StrikeOut
 		LGF.lfHeight      = -MulDiv(Font.Size, GetDeviceCaps(Dc, LOGPIXELSY), 72)
-		LGF.lfWeight      = FWidth(Abs_(Font.Bold))
+		LGF.lfWeight      = FWidth(abs_(Font.Bold))
 		LGF.lfFaceName    = Font.Name
 		CF.lStructSize    = SizeOf(CHOOSEFONT)
 		CF.hwndOwner      = MainHandle
-		CF.HDC            = Dc
+		CF.hDC            = Dc
 		CF.Flags          = CF_BOTH Or CF_EFFECTS Or CF_INITTOLOGFONTSTRUCT
 		CF.rgbColors      = Font.Color
 		CF.lpLogFont      = @LGF
 		ReleaseDC HWND_DESKTOP,Dc
-		If ChooseFont(@CF) <> 0 Then
+		If CHOOSEFONT(@CF) <> 0 Then
 			Font.Name        = LGF.lfFaceName
 			Font.Italic      = LGF.lfItalic
-			Font.UnderLine   = LGF.lfUnderLine
+			Font.Underline   = LGF.lfUnderline
 			Font.StrikeOut   = LGF.lfStrikeOut
 			Font.Color       = CF.rgbColors
 			Font.Size        = CF.iPointSize / 10
@@ -749,29 +765,33 @@ End Constructor
 Private Destructor FontDialog
 End Destructor
 
-Private Function FolderBrowserDialog.ReadProperty(PropertyName As String) As Any Ptr
-	Select Case LCase(PropertyName)
-	Case "caption": Return FCaption
-	Case "center": Return @Center
-	Case "directory": Return FDirectory
-	Case "title": Return FTitle
-	Case "initialdir": Return FInitialDir
-	Case Else: Return Base.ReadProperty(PropertyName)
-	End Select
-	Return 0
-End Function
+#ifndef ReadProperty_Off
+	Private Function FolderBrowserDialog.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "caption": Return FCaption
+		Case "center": Return @Center
+		Case "directory": Return FDirectory
+		Case "title": Return FTitle
+		Case "initialdir": Return FInitialDir
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+#endif
 
-Private Function FolderBrowserDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-	Select Case LCase(PropertyName)
-	Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
-	Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
-	Case "directory": If Value <> 0 Then This.Directory = QWString(Value)
-	Case "title": If Value <> 0 Then This.Title = QWString(Value)
-	Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
-	Case Else: Return Base.WriteProperty(PropertyName, Value)
-	End Select
-	Return True
-End Function
+#ifndef WriteProperty_Off
+	Private Function FolderBrowserDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
+		Case "center": If Value <> 0 Then This.Center = QBoolean(Value)
+		Case "directory": If Value <> 0 Then This.Directory = QWString(Value)
+		Case "title": If Value <> 0 Then This.Title = QWString(Value)
+		Case "initialdir": If Value <> 0 Then This.InitialDir = QWString(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+#endif
 
 Private Property FolderBrowserDialog.Caption ByRef As WString
 	Return WGet(FCaption)
@@ -913,31 +933,35 @@ Private Destructor FolderBrowserDialog
 	If FDirectory <> 0 Then Deallocate_( FDirectory)
 End Destructor
 
-Private Function ColorDialog.ReadProperty(PropertyName As String) As Any Ptr
-	Select Case LCase(PropertyName)
-	Case "caption": Return _Caption
-	Case "center": Return @Center
-	Case "color": Return @Color
-	Case "backcolor": Return @BackColor
-	Case "parent": Return Parent
-	Case "style": Return @Style
-	Case Else: Return Base.ReadProperty(PropertyName)
-	End Select
-	Return 0
-End Function
+#ifndef ReadProperty_Off
+	Private Function ColorDialog.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "caption": Return _Caption
+		Case "center": Return @Center
+		Case "color": Return @Color
+		Case "backcolor": Return @BackColor
+		Case "parent": Return Parent
+		Case "style": Return @Style
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+#endif
 
-Private Function ColorDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-	Select Case LCase(PropertyName)
-	Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
-	Case "center": If Value <> 0 Then This.Center = QInteger(Value)
-	Case "color": If Value <> 0 Then This.Color = QInteger(Value)
-	Case "backcolor": If Value <> 0 Then This.BackColor = QInteger(Value)
-	Case "parent": This.Parent = Value
-	Case "style": If Value <> 0 Then This.BackColor = QInteger(Value)
-	Case Else: Return Base.WriteProperty(PropertyName, Value)
-	End Select
-	Return True
-End Function
+#ifndef WriteProperty_Off
+	Private Function ColorDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "caption": If Value <> 0 Then This.Caption = QWString(Value)
+		Case "center": If Value <> 0 Then This.Center = QInteger(Value)
+		Case "color": If Value <> 0 Then This.Color = QInteger(Value)
+		Case "backcolor": If Value <> 0 Then This.BackColor = QInteger(Value)
+		Case "parent": This.Parent = Value
+		Case "style": If Value <> 0 Then This.BackColor = QInteger(Value)
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+#endif
 
 #ifndef __USE_GTK__
 	Private Function ColorDialog.Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger

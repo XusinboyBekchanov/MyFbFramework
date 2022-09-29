@@ -13,34 +13,38 @@
 #include once "ComboBoxEdit.bi"
 
 Namespace My.Sys.Forms
-	Private Function ComboBoxEdit.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "dropdowncount": Return @FDropDownCount
-		Case "integralheight": Return @FIntegralHeight
-		Case "itemheight": Return @FItemHeight
-		Case "selcolor": Return @FSelColor
-		Case "sort": Return @FSort
-		Case "style": Return @FStyle
-		Case "tabindex": Return @FTabIndex
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ComboBoxEdit.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "dropdowncount": Return @FDropDownCount
+			Case "integralheight": Return @FIntegralHeight
+			Case "itemheight": Return @FItemHeight
+			Case "selcolor": Return @FSelColor
+			Case "sort": Return @FSort
+			Case "style": Return @FStyle
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ComboBoxEdit.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.AddItem *FName: This.ItemIndex = 0
-		Case "dropdowncount": DropDownCount = QInteger(Value)
-		Case "integralheight": This.IntegralHeight = QBoolean(Value)
-		Case "itemheight": This.ItemHeight = QInteger(Value)
-		Case "selcolor": This.SelColor = QInteger(Value)
-		Case "sort": This.Sort = QBoolean(Value)
-		Case "style": This.Style = *Cast(ComboBoxEditStyle Ptr, Value)
-		Case "tabindex": TabIndex = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ComboBoxEdit.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.AddItem *FName: This.ItemIndex = 0
+			Case "dropdowncount": DropDownCount = QInteger(Value)
+			Case "integralheight": This.IntegralHeight = QBoolean(Value)
+			Case "itemheight": This.ItemHeight = QInteger(Value)
+			Case "selcolor": This.SelColor = QInteger(Value)
+			Case "sort": This.Sort = QBoolean(Value)
+			Case "style": This.Style = *Cast(ComboBoxEditStyle Ptr, Value)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Sub ComboBoxEdit.Undo
 		#ifdef __USE_WINAPI__

@@ -27,8 +27,12 @@ Namespace My.Sys.Forms
 			Declare Static Sub Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, model As GtkListStore Ptr)
 		#endif
 	Public:
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property Checked(Index As Integer) As Boolean
 		Declare Property Checked(Index As Integer, Value As Boolean)
 		Declare Sub AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)

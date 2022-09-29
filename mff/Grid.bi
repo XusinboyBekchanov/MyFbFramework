@@ -259,8 +259,12 @@ Namespace My.Sys.Forms
 		SmallImages       As ImageList Ptr
 		StateImages       As ImageList Ptr
 		GroupHeaderImages       As ImageList Ptr
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Function Cell(RowIndex As Integer, ColumnIndex As Integer) As GridCell Ptr
 		Declare Property AllowColumnReorder As Boolean
 		Declare Property AllowColumnReorder(Value As Boolean)

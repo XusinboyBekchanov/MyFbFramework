@@ -7,41 +7,45 @@
 #include once "DateTimePicker.bi"
 
 Namespace My.Sys.Forms
-	Private Function DateTimePicker.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "calendarrightalign": Return @FRightAlign
-		Case "checked": Return @FChecked
-		Case "dateformat": Return @FDateFormat
-		Case "customformat": Return FCustomFormat
-		Case "shownone": Return @FShowNone
-		Case "showupdown": Return @FShowUpDown
-		Case "selecteddate": Return @FSelectedDate
-		Case "selecteddatetime": Return @FSelectedDateTime
-		Case "selectedtime": Return @FSelectedTime
-		Case "tabindex": Return @FTabIndex
-		Case "timepicker": Return @FTimePicker
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function DateTimePicker.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "calendarrightalign": Return @FRightAlign
+			Case "checked": Return @FChecked
+			Case "dateformat": Return @FDateFormat
+			Case "customformat": Return FCustomFormat
+			Case "shownone": Return @FShowNone
+			Case "showupdown": Return @FShowUpDown
+			Case "selecteddate": Return @FSelectedDate
+			Case "selecteddatetime": Return @FSelectedDateTime
+			Case "selectedtime": Return @FSelectedTime
+			Case "tabindex": Return @FTabIndex
+			Case "timepicker": Return @FTimePicker
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function DateTimePicker.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "calendarrightalign": CalendarRightAlign = QBoolean(Value)
-		Case "checked": Checked = QBoolean(Value)
-		Case "dateformat": DateFormat = *Cast(DateTimePickerFormat Ptr, Value)
-		Case "customformat": CustomFormat = QWString(Value)
-		Case "shownone": ShowNone = QBoolean(Value)
-		Case "showupdown": ShowUpDown = QBoolean(Value)
-		Case "selecteddate": SelectedDate = QLong(Value)
-		Case "selecteddatetime": SelectedDateTime = QDouble(Value)
-		Case "selectedtime": SelectedTime = QDouble(Value)
-		Case "tabindex": TabIndex = QInteger(Value)
-		Case "timepicker": TimePicker = QBoolean(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function DateTimePicker.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "calendarrightalign": CalendarRightAlign = QBoolean(Value)
+			Case "checked": Checked = QBoolean(Value)
+			Case "dateformat": DateFormat = *Cast(DateTimePickerFormat Ptr, Value)
+			Case "customformat": CustomFormat = QWString(Value)
+			Case "shownone": ShowNone = QBoolean(Value)
+			Case "showupdown": ShowUpDown = QBoolean(Value)
+			Case "selecteddate": SelectedDate = QLong(Value)
+			Case "selecteddatetime": SelectedDateTime = QDouble(Value)
+			Case "selectedtime": SelectedTime = QDouble(Value)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case "timepicker": TimePicker = QBoolean(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property DateTimePicker.CustomFormat ByRef As WString
 		Return WGet(FCustomFormat)

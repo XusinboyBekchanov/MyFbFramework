@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As USTRING) As Integer
+			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As UString) As Integer
 			As IGraphBuilder   Ptr pGraph
 			As IMediaControl   Ptr pControl
 			As IMediaEvent     Ptr pEvent
@@ -75,8 +75,12 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetAnimateInfo
 	Public:
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property Center As Boolean
 		Declare Property Center(Value As Boolean)
 		Declare Property Transparency As Boolean

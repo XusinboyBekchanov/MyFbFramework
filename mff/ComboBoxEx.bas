@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
-					cbei.Mask = CBEIF_SELECTEDIMAGE
+					cbei.mask = CBEIF_SELECTEDIMAGE
 					cbei.iItem = Index
 					cbei.iSelectedImage = FSelectedImageIndex
 					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
-					cbei.Mask = CBEIF_OVERLAY
+					cbei.mask = CBEIF_OVERLAY
 					cbei.iItem = Index
 					cbei.iOverlay = FOverlayIndex
 					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
@@ -314,24 +314,28 @@ Namespace My.Sys.Forms
 		This.Clear
 	End Destructor
 	
-	Private Function ComboBoxEx.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "imageslist": Return ImagesList
-		Case "integralheight": Return @FIntegralHeight
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ComboBoxEx.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "imageslist": Return ImagesList
+			Case "integralheight": Return @FIntegralHeight
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ComboBoxEx.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.Items.Add *FName: This.ItemIndex = 0
-		Case "imageslist": ImagesList = Value
-		Case "integralheight": IntegralHeight = QBoolean(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ComboBoxEx.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then This.Items.Add *FName: This.ItemIndex = 0
+			Case "imageslist": ImagesList = Value
+			Case "integralheight": IntegralHeight = QBoolean(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Sub ComboBoxEx.AddItem(ByRef FItem As WString)
 		Items.Add FItem

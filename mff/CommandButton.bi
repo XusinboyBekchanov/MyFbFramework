@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		AStyle(4)   As Integer
 		ADefault(2) As Integer
 		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef message As Message)
+			Declare Static Sub WndProc(ByRef message As message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#else
 			Declare Static Sub Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
@@ -38,11 +38,15 @@ Namespace My.Sys.Forms
 		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		Declare Function EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 	Protected:
-		Declare Virtual Sub ProcessMessage(ByRef message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef message As message)
 	Public:
 		Graphic     As My.Sys.Drawing.GraphicType
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property TabIndex As Integer

@@ -89,8 +89,12 @@ Namespace My.Sys.Drawing
 		FResName As WString Ptr
 		Declare Sub Create
 	Public:
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Ctrl 			As My.Sys.ComponentModel.Component Ptr
 		Graphic    		As Any Ptr
 		#ifdef __USE_GTK__
@@ -113,7 +117,7 @@ Namespace My.Sys.Drawing
 		Declare Function LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_WINAPI__
-			Declare Function ToBitmap() As HBitmap
+			Declare Function ToBitmap() As HBITMAP
 		#endif
 		Declare Function ToString() ByRef As WString
 		Declare Operator Cast As Any Ptr

@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			#ifdef __USE_WINAPI__
-				Declare Static Function HookClientProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+				Declare Static Function HookClientProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
 				Declare Virtual Sub SetDark(Value As Boolean)
 			#endif
 		#endif

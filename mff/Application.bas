@@ -58,7 +58,7 @@ Namespace My
 	
 	Private Property Application.Icon(value As My.Sys.Drawing.Icon)
 		Dim As Integer i
-		FIcon = Value
+		FIcon = value
 		#ifdef __USE_WINAPI__
 			If FIcon.Handle Then
 				For i = 0 To FormCount -1

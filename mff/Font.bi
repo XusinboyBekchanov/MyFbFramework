@@ -88,8 +88,12 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			Handle As HFONT
 		#endif
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Function ToString ByRef As WString
 		Declare Property Parent As My.Sys.Object Ptr
 		Declare Property Parent(Value As My.Sys.Object Ptr)

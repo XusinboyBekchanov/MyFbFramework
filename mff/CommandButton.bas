@@ -14,29 +14,33 @@
 #include once "CommandButton.bi"
 
 Namespace My.Sys.Forms
-	Private Function CommandButton.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "caption": Return Cast(Any Ptr, This.FText.vptr)
-		Case "default": Return Cast(Any Ptr, @FDefault)
-		Case "tabindex": Return @FTabIndex
-		Case "text": Return Cast(Any Ptr, This.FText.vptr)
-		Case "graphic": Return @Graphic
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function CommandButton.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "caption": Return Cast(Any Ptr, This.FText.vptr)
+			Case "default": Return Cast(Any Ptr, @FDefault)
+			Case "tabindex": Return @FTabIndex
+			Case "text": Return Cast(Any Ptr, This.FText.vptr)
+			Case "graphic": Return @Graphic
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function CommandButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "caption": If Value <> 0 Then This.Text = QWString(Value)
-		Case "default": If Value <> 0 Then This.Default = QBoolean(Value)
-		Case "tabindex": If Value <> 0 Then This.TabIndex = QInteger(Value)
-		Case "text": If Value <> 0 Then This.Text = QWString(Value)
-		Case "graphic": If Value <> 0 Then This.Graphic = QWString(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function CommandButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "caption": If Value <> 0 Then This.Text = QWString(Value)
+			Case "default": If Value <> 0 Then This.Default = QBoolean(Value)
+			Case "tabindex": If Value <> 0 Then This.TabIndex = QInteger(Value)
+			Case "text": If Value <> 0 Then This.Text = QWString(Value)
+			Case "graphic": If Value <> 0 Then This.Graphic = QWString(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property CommandButton.Caption ByRef As WString
 		Return This.Text

@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 	Private Sub GridCell.SelectItem
 		With *Cast(Grid Ptr, Parent)
 			.SelectedColumn = Column
-			.SelectedRow = row
+			.SelectedRow = Row
 		End With
 	End Sub
 	
@@ -83,8 +83,8 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
-				WReallocate(FText, 255)
-				lvi.Mask = LVIF_TEXT
+				WReAllocate(FText, 255)
+				lvi.mask = LVIF_TEXT
 				lvi.iItem = Index
 				lvi.iSubItem   = iColumn
 				lvi.pszText    = FText
@@ -104,8 +104,8 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Private Function GridGetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
-			If gtk_is_widget(widget) Then
-				Return gtk_tree_view_get_model(gtk_tree_view(widget))
+			If GTK_IS_WIDGET(widget) Then
+				Return gtk_tree_view_get_model(GTK_TREE_VIEW(widget))
 			End If
 		End Function
 	#endif
@@ -123,11 +123,11 @@ Namespace My.Sys.Forms
 			If iColumn < cc Then FColumns.Item(iColumn) = Value
 			#ifdef __USE_GTK__
 				If GridGetModel(Parent->Handle) Then
-					gtk_list_store_set(gtk_list_store(GridGetModel(Parent->Handle)), @TreeIter, iColumn + 3, ToUtf8(Value), -1)
+					gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, iColumn + 3, ToUtf8(Value), -1)
 				End If
 			#else
 				If Parent->Handle Then
-					lvi.Mask = LVIF_TEXT
+					lvi.mask = LVIF_TEXT
 					lvi.iItem = Index
 					lvi.iSubItem   = iColumn
 					lvi.pszText    = FText
@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 	Private Property GridRow.State As Integer
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_STATE
+				lvi.mask = LVIF_STATE
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				ListView_GetItem(Parent->Handle, @lvi)
@@ -155,10 +155,10 @@ Namespace My.Sys.Forms
 		FState = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_STATE
+				lvi.mask = LVIF_STATE
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
-				lvi.State    = Value
+				lvi.state    = Value
 				ListView_SetItem(Parent->Handle, @lvi)
 			End If
 		#endif
@@ -182,7 +182,7 @@ Namespace My.Sys.Forms
 			FImageIndex = Value
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
-					lvi.Mask = LVIF_IMAGE
+					lvi.mask = LVIF_IMAGE
 					lvi.iItem = Index
 					lvi.iSubItem   = 0
 					lvi.iImage     = Value
@@ -195,7 +195,7 @@ Namespace My.Sys.Forms
 	Private Property GridRow.Indent As Integer
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_INDENT
+				lvi.mask = LVIF_INDENT
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				ListView_GetItem(Parent->Handle, @lvi)
@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 		FIndent = Value
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_INDENT
+				lvi.mask = LVIF_INDENT
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				lvi.iIndent    = Value
@@ -244,14 +244,14 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Dim As GError Ptr gerr
 				If Value <> "" Then
-					gtk_list_store_set(gtk_list_store(GridGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUTF8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-					gtk_list_store_set(gtk_list_store(GridGetModel(Parent->Handle)), @TreeIter, 2, ToUTF8(Value), -1)
+					gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+					gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
 				End If
 			End If
 		#else
 			If Parent AndAlso Parent->Handle AndAlso Cast(Grid Ptr, Parent)->Images Then
 				FImageIndex = Cast(Grid Ptr, Parent)->Images->IndexOf(Value)
-				lvi.Mask = LVIF_IMAGE
+				lvi.mask = LVIF_IMAGE
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				lvi.iImage     = FImageIndex
@@ -512,19 +512,19 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Cast(Grid Ptr, Parent)->Init
 			If iSortStyle <> GridSortStyle.ssNone OrElse Index <> -1 Then
-				gtk_list_store_insert(gtk_list_store(GridGetModel(Parent->Handle)), @PItem->TreeIter, i)
+				gtk_list_store_insert(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, i)
 			Else
-				gtk_list_store_append(gtk_list_store(GridGetModel(Parent->Handle)), @PItem->TreeIter)
+				gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
 			End If
-			gtk_list_store_set (gtk_list_store(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
+			gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
 		#else
-			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+			lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = IIf(Index = -1, FItems.Count - 1, Index)
 			lvi.iSubItem = 0
 			lvi.iImage   = FImageIndex
-			lvi.State   = INDEXTOSTATEIMAGEMASK(State)
+			lvi.state   = INDEXTOSTATEIMAGEMASK(State)
 			lvi.stateMask = LVIS_STATEIMAGEMASK
 			lvi.iIndent   = Indent
 			lvi.lParam    = Cast(LPARAM, PItem)
@@ -563,12 +563,12 @@ Namespace My.Sys.Forms
 			.Indent         = Indent
 		End With
 		#ifndef __USE_GTK__
-			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_Param
+			lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = Index
 			lvi.iImage   = FImageIndex
-			lvi.State   = INDEXTOSTATEIMAGEMASK(State)
+			lvi.state   = INDEXTOSTATEIMAGEMASK(State)
 			lvi.stateMask = LVIS_STATEIMAGEMASK
 			lvi.iIndent   = Indent
 			lvi.lParam    = Cast(LPARAM, PItem)
@@ -610,19 +610,19 @@ Namespace My.Sys.Forms
 	Private Sub GridRows.Sort
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @CompareFunc)
+				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WPARAM, @CompareFunc)
 				'ListView_SortItems Parent->Handle, @CompareFunc, 0
 			End If
 		#endif
 	End Sub
 	
 	Private Function GridRows.IndexOf(ByRef FItem As GridRow Ptr) As Integer
-		Return FItems.IndexOF(FItem)
+		Return FItems.IndexOf(FItem)
 	End Function
 	
 	Private Sub GridRows.Clear
 		#ifdef __USE_GTK__
-			If Parent AndAlso gtk_list_store(GridGetModel(Parent->Handle)) Then gtk_list_store_clear(gtk_list_store(GridGetModel(Parent->Handle)))
+			If Parent AndAlso GTK_LIST_STORE(GridGetModel(Parent->Handle)) Then gtk_list_store_clear(GTK_LIST_STORE(GridGetModel(Parent->Handle)))
 		#else
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
@@ -674,7 +674,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub GridColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = user_data
-			Dim As GtkListStore Ptr model = gtk_list_store(GridGetModel(lv->Handle))
+			Dim As GtkListStore Ptr model = GTK_LIST_STORE(GridGetModel(lv->Handle))
 			Dim As GtkTreeIter iter
 			Dim As gboolean active
 			
@@ -715,7 +715,7 @@ Namespace My.Sys.Forms
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
-					G_VALUE_INIT_(@bValue, G_TYPE_BOOLEAN)
+					g_value_init_(@bValue, G_TYPE_BOOLEAN)
 					g_value_set_boolean(@bValue, True)
 					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 					g_value_unset(@bValue)
@@ -780,8 +780,8 @@ Namespace My.Sys.Forms
 				.Width     = iWidth
 				.Format = Format
 			End With
-			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvC.fmt       =  Format
+			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvc.fmt       =  Format
 			lvc.cx=0
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
@@ -807,7 +807,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function GridColumns.IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
-		Return FColumns.IndexOF(FColumn)
+		Return FColumns.IndexOf(FColumn)
 	End Function
 	
 	Private Sub GridColumns.Clear
@@ -834,49 +834,53 @@ Namespace My.Sys.Forms
 		This.Clear
 	End Destructor
 	
-	Private Function Grid.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "allowcolumnreorder": Return @FAllowColumnReorder
-		Case "columnheaderhidden": Return @FColumnHeaderHidden
-		Case "fullrowselect": Return @FFullRowSelect
-		Case "hovertime": Return @FHoverTime
-		Case "gridlines": Return @FGridLines
-		Case "images": Return Images
-		Case "stateimages": Return StateImages
-		Case "smallimages": Return SmallImages
-		Case "singleclickactivate": Return @FSingleClickActivate
-		Case "sort": Return @FSortStyle
-		Case "tabindex": Return @FTabIndex
-		Case "hoverselection": Return @FHoverSelection
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Grid.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "allowcolumnreorder": Return @FAllowColumnReorder
+			Case "columnheaderhidden": Return @FColumnHeaderHidden
+			Case "fullrowselect": Return @FFullRowSelect
+			Case "hovertime": Return @FHoverTime
+			Case "gridlines": Return @FGridLines
+			Case "images": Return Images
+			Case "stateimages": Return StateImages
+			Case "smallimages": Return SmallImages
+			Case "singleclickactivate": Return @FSingleClickActivate
+			Case "sort": Return @FSortStyle
+			Case "tabindex": Return @FTabIndex
+			Case "hoverselection": Return @FHoverSelection
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Grid.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "allowcolumnreorder": AllowColumnReorder = QBoolean(Value)
-			Case "columnheaderhidden": ColumnHeaderHidden = QBoolean(Value)
-			Case "fullrowselect": FullRowSelect = QBoolean(Value)
-			Case "hovertime": HoverTime = QInteger(Value)
-			Case "gridlines": GridLines = QBoolean(Value)
-			Case "images": Images = Cast(ImageList Ptr, Value)
-			Case "stateimages": StateImages = Cast(ImageList Ptr, Value)
-			Case "smallimages": SmallImages = Cast(ImageList Ptr, Value)
-			Case "singleclickactivate": SingleClickActivate = QBoolean(Value)
-			Case "sort": Sort = *Cast(GridSortStyle Ptr, Value)
-			Case "tabindex": TabIndex = QInteger(Value)
-			Case "hoverselection": HoverSelection = QBoolean(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Grid.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "allowcolumnreorder": AllowColumnReorder = QBoolean(Value)
+				Case "columnheaderhidden": ColumnHeaderHidden = QBoolean(Value)
+				Case "fullrowselect": FullRowSelect = QBoolean(Value)
+				Case "hovertime": HoverTime = QInteger(Value)
+				Case "gridlines": GridLines = QBoolean(Value)
+				Case "images": Images = Cast(ImageList Ptr, Value)
+				Case "stateimages": StateImages = Cast(ImageList Ptr, Value)
+				Case "smallimages": SmallImages = Cast(ImageList Ptr, Value)
+				Case "singleclickactivate": SingleClickActivate = QBoolean(Value)
+				Case "sort": Sort = *Cast(GridSortStyle Ptr, Value)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case "hoverselection": HoverSelection = QBoolean(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property Grid.TabIndex As Integer
 		Return FTabIndex

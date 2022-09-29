@@ -15,7 +15,7 @@
 
 Namespace My.Sys.Drawing
 	Private Enum ImageTypes
-		Bitmap = 0
+		BITMAP = 0
 		Icon = 0
 		Cursor = 0
 	End Enum
@@ -35,8 +35,12 @@ Namespace My.Sys.Drawing
 		Cursor    As My.Sys.Drawing.Cursor
 		Image     As Any Ptr
 		ImageType As ImageTypes
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Function ToString() ByRef As WString
 		Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
