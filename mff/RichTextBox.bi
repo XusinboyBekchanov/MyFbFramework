@@ -12,10 +12,10 @@ Namespace My.Sys.Forms
 	Private Type RichTextBox Extends TextBox
 	Private:
 		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef message As Message)
+			Declare Static Sub WndProc(ByRef message As message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Function StreamInProc(hFile As ..Handle, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
-			Declare Static Function StreamOutProc (hFile As ..Handle, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
+			Declare Static Function StreamInProc(hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
+			Declare Static Function StreamOutProc (hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
 			Declare Static Function GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
 		#else
 			Declare Function GetStrProperty(sProperty As String) ByRef As WString
@@ -41,10 +41,14 @@ Namespace My.Sys.Forms
 		#endif
 		FEditStyle As Boolean
 		FZoom As Integer
-		Declare Virtual Sub ProcessMessage(ByRef message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef message As message)
 	Public:
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Function CanRedo As Boolean
 		Declare Function GetCharIndexFromPos(p As My.Sys.Drawing.Point) As Integer
 		Declare Function GetTextRange(cpMin As Integer, cpMax As Integer) ByRef As WString

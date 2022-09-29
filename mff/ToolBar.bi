@@ -74,8 +74,12 @@ Namespace My.Sys.Forms
 		Ctrl          As Control Ptr
 		DropDownMenu  As PopupMenu
 		Tag           As Any Ptr
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Virtual Function ToString ByRef As WString
 		Declare Property ButtonIndex As Integer
 		Declare Property ButtonIndex(Value As Integer)
@@ -175,8 +179,12 @@ Namespace My.Sys.Forms
 			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
 	Public:
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Buttons         As ToolButtons
 		ImagesList      As ImageList Ptr
 		HotImagesList   As ImageList Ptr

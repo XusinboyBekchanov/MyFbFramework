@@ -14,42 +14,46 @@
 #include once "ListControl.bi"
 
 Namespace My.Sys.Forms
-	Private Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "borderstyle": Return @FBorderStyle
-		Case "multicolumn": Return @FMultiColumn
-		Case "ctl3d": Return @FCtl3D
-		Case "integralheight": Return @FIntegralHeight
-			'Case "itemcount": Return @FItemCount
-		Case "itemheight": Return @FItemHeight
-		Case "itemindex": Return @FItemIndex
-		Case "selectionmode": Return @FSelectionMode
-		Case "selcount": Return @FSelCount
-		Case "sort": Return @FSort
-		Case "style": Return @FStyle
-		Case "tabindex": Return @FTabIndex
-		Case "topindex": Return @FTopIndex
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ListControl.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "borderstyle": Return @FBorderStyle
+			Case "multicolumn": Return @FMultiColumn
+			Case "ctl3d": Return @FCtl3D
+			Case "integralheight": Return @FIntegralHeight
+				'Case "itemcount": Return @FItemCount
+			Case "itemheight": Return @FItemHeight
+			Case "itemindex": Return @FItemIndex
+			Case "selectionmode": Return @FSelectionMode
+			Case "selcount": Return @FSelCount
+			Case "sort": Return @FSort
+			Case "style": Return @FStyle
+			Case "tabindex": Return @FTabIndex
+			Case "topindex": Return @FTopIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "borderstyle": BorderStyle = QInteger(Value)
-		Case "multicolumn": MultiColumn = QBoolean(Value)
-		Case "ctl3d": Ctl3D = QBoolean(Value)
-		Case "integralheight": IntegralHeight = QBoolean(Value)
-		Case "itemheight": ItemHeight = QInteger(Value)
-		Case "selectionmode": SelectionMode = *Cast(SelectionModes Ptr, Value)
-		Case "sort": Sort = QBoolean(Value)
-		Case "style": Style = *Cast(ListControlStyle Ptr, Value)
-		Case "tabindex": TabIndex = QInteger(Value)
-		Case "topindex": TopIndex = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "borderstyle": BorderStyle = QInteger(Value)
+			Case "multicolumn": MultiColumn = QBoolean(Value)
+			Case "ctl3d": Ctl3D = QBoolean(Value)
+			Case "integralheight": IntegralHeight = QBoolean(Value)
+			Case "itemheight": ItemHeight = QInteger(Value)
+			Case "selectionmode": SelectionMode = *Cast(SelectionModes Ptr, Value)
+			Case "sort": Sort = QBoolean(Value)
+			Case "style": Style = *Cast(ListControlStyle Ptr, Value)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case "topindex": TopIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property ListControl.Selected(Index As Integer) As Boolean
 		#ifdef __USE_GTK__
@@ -473,7 +477,7 @@ Namespace My.Sys.Forms
 						'						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 					Next i
-					.Perform(LB_SETITEMHEIGHT, 0, MakeLParam(.ItemHeight, 0))
+					.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(.ItemHeight, 0))
 					.MultiColumn = .MultiColumn
 					.ItemIndex = .ItemIndex
 					If .SelectionMode = SelectionModes.smMultiSimple Or .SelectionMode = SelectionModes.smMultiExtended Then
@@ -505,10 +509,10 @@ Namespace My.Sys.Forms
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc, Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				Select Case Message.wParamHi
 				Case LBN_SELCHANGE
@@ -530,7 +534,7 @@ Namespace My.Sys.Forms
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
 				ItemID = Cast(Integer,miStruct->itemID)
 				If OnMeasureItem Then
-					OnMeasureItem(This,itemID,miStruct->itemHeight)
+					OnMeasureItem(This,ItemID,miStruct->itemHeight)
 				Else
 					miStruct->itemHeight = ItemHeight
 				End If

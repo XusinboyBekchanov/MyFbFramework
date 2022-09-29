@@ -14,23 +14,27 @@
 #include once "Splitter.bi"
 
 Namespace My.Sys.Forms
-	Private Function Splitter.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "align": Return @FAlign
-		Case "minextra": Return @MinExtra
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Splitter.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "align": Return @FAlign
+			Case "minextra": Return @MinExtra
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Splitter.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "align": This.Align = *Cast(SplitterAlignmentConstants Ptr, Value)
-		Case "minextra": This.MinExtra = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Splitter.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "align": This.Align = *Cast(SplitterAlignmentConstants Ptr, Value)
+			Case "minextra": This.MinExtra = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	#ifndef __USE_GTK__
 		Private Sub Splitter.WndProc(ByRef Message As Message)

@@ -12,29 +12,33 @@
 'https://blog.csdn.net/mmmvp/article/details/365155
 #include once "Picture.bi"
 Namespace My.Sys.Forms
-	Private Function Picture.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
-		Case "tabindex": Return @FTabIndex
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Picture.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Picture.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "graphic": This.Graphic = QWString(Value)
-			Case "tabindex": TabIndex = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Picture.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "graphic": This.Graphic = QWString(Value)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property Picture.TabIndex As Integer
 		Return FTabIndex

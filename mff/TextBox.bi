@@ -82,12 +82,16 @@ Namespace My.Sys.Forms
 			WidgetTextView As GtkWidget Ptr
 			Declare Sub ChangeWidget()
 		#else
-			Declare Static Sub WndProc(ByRef message As Message)
+			Declare Static Sub WndProc(ByRef message As message)
 		#endif
-		Declare Virtual Sub ProcessMessage(ByRef message As Message)
+		Declare Virtual Sub ProcessMessage(ByRef message As message)
 	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Sub AddLine(ByRef wsLine As WString)
 		Declare Sub InsertLine(Index As Integer, ByRef wsLine As WString)
 		Declare Sub RemoveLine(Index As Integer)

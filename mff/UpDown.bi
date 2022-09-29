@@ -53,8 +53,12 @@ Namespace My.Sys.Forms
 		Declare Sub SetRange(AMin As Integer, AMax As Integer)
 		Declare Sub SetDark(Value As Boolean)
 	Public:
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property MinValue As Integer
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer

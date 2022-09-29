@@ -947,37 +947,41 @@ Namespace My.Sys.Forms
 		This.Clear
 	End Destructor
 	
-	Private Function TreeListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "columnheaderhidden": Return @FColumnHeaderHidden
-		Case "images": Return Images
-		Case "singleclickactivate": Return @FSingleClickActivate
-		Case "sort": Return @FSortStyle
-		Case "stateimages": Return StateImages
-		Case "tabindex": Return @FTabIndex
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function TreeListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "columnheaderhidden": Return @FColumnHeaderHidden
+			Case "images": Return Images
+			Case "singleclickactivate": Return @FSingleClickActivate
+			Case "sort": Return @FSortStyle
+			Case "stateimages": Return StateImages
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function TreeListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "columnheaderhidden": This.ColumnHeaderHidden = QBoolean(Value)
-			Case "images": This.Images = Value
-			Case "singleclickactivate": This.SingleClickActivate = QBoolean(Value)
-			Case "sort": This.Sort = *Cast(SortStyle Ptr, Value)
-			Case "stateimages": This.StateImages = Value
-			Case "tabindex": This.TabIndex = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function TreeListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "columnheaderhidden": This.ColumnHeaderHidden = QBoolean(Value)
+				Case "images": This.Images = Value
+				Case "singleclickactivate": This.SingleClickActivate = QBoolean(Value)
+				Case "sort": This.Sort = *Cast(SortStyle Ptr, Value)
+				Case "stateimages": This.StateImages = Value
+				Case "tabindex": This.TabIndex = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property TreeListView.TabIndex As Integer
 		Return FTabIndex

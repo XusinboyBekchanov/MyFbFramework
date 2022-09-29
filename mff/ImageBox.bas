@@ -14,27 +14,31 @@
 #include once "ImageBox.bi"
 
 Namespace My.Sys.Forms
-	Private Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "centerimage": Return @FCenterImage
-		Case "realsizeimage": Return @FRealSizeImage
-		Case "style": Return @FImageStyle
-		Case "graphic": Return Cast(Any Ptr, @This.Graphic)
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "centerimage": Return @FCenterImage
+			Case "realsizeimage": Return @FRealSizeImage
+			Case "style": Return @FImageStyle
+			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
-		Case "realsizeimage": If Value <> 0 Then This.RealSizeImage = QBoolean(Value)
-		Case "style": If Value <> 0 Then This.Style = QInteger(Value)
-		Case "graphic": This.Graphic = QWString(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
+			Case "realsizeimage": If Value <> 0 Then This.RealSizeImage = QBoolean(Value)
+			Case "style": If Value <> 0 Then This.Style = QInteger(Value)
+			Case "graphic": This.Graphic = QWString(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property ImageBox.DesignMode As Boolean
 		Return FDesignMode

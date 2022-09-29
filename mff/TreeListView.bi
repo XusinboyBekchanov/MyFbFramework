@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As PTreeListViewItem
 		#else
-			Declare Function FindByHandle(Value As LParam) As PTreeListViewItem
+			Declare Function FindByHandle(Value As LPARAM) As PTreeListViewItem
 		#endif
 		Parent   As Control Ptr
 		Declare Property Count As Integer
@@ -77,7 +77,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			TreeIter As GtkTreeIter
 		#else
-			Handle As LParam
+			Handle As LPARAM
 			Declare Function GetItemIndex() As Integer
 		#endif
 		Parent   As Control Ptr
@@ -198,15 +198,19 @@ Namespace My.Sys.Forms
 			Dim As GtkCellRenderer Ptr rendertext
 			Declare Static Function TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 		#elseif defined(__USE_WINAPI__)
-			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
 			Declare Virtual Sub SetDark(Value As Boolean)
 			hHeader As HWND
 			headerTextColor As COLORREF
 		#endif
 	Public:
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		#ifdef __USE_GTK__
 			TreeStore As GtkTreeStore Ptr
 			TreeSelection As GtkTreeSelection Ptr

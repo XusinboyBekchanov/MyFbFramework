@@ -14,112 +14,120 @@
 #include once "ToolBar.bi"
 
 Namespace My.Sys.Forms
-	Private Function ToolButton.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "buttonindex": FButtonIndex = ButtonIndex: Return @FButtonIndex
-		Case "caption": Return FCaption
-		Case "checked": Return @FChecked
-		Case "commandid": Return @FCommandID
-		Case "dropdownmenu": Return @DropDownMenu
-		Case "enabled": Return @FEnabled
-		Case "hint": Return FHint
-		Case "imageindex": Return @FImageIndex
-		Case "imagekey": Return FImageKey
-		Case "left": FButtonLeft = This.Left: Return @FButtonLeft
-		Case "top": FButtonTop = This.Top: Return @FButtonTop
-		Case "name": Return FName
-		Case "showhint": Return @FShowHint
-		Case "state": Return @FState
-		Case "style": Return @FStyle
-		Case "tag": Return This.Tag
-		Case "visible": Return @FVisible
-		Case "width": FButtonWidth = This.Width: Return @FButtonWidth
-		Case "height": FButtonHeight = This.Height: Return @FButtonHeight
-		Case "parent": Return Ctrl
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
-
-	Private Function ToolButton.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
+	#ifndef ReadProperty_Off
+		Private Function ToolButton.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "parent": This.Parent = Value
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			Case "buttonindex": FButtonIndex = ButtonIndex: Return @FButtonIndex
+			Case "caption": Return FCaption
+			Case "checked": Return @FChecked
+			Case "commandid": Return @FCommandID
+			Case "dropdownmenu": Return @DropDownMenu
+			Case "enabled": Return @FEnabled
+			Case "hint": Return FHint
+			Case "imageindex": Return @FImageIndex
+			Case "imagekey": Return FImageKey
+			Case "left": FButtonLeft = This.Left: Return @FButtonLeft
+			Case "top": FButtonTop = This.Top: Return @FButtonTop
+			Case "name": Return FName
+			Case "showhint": Return @FShowHint
+			Case "state": Return @FState
+			Case "style": Return @FStyle
+			Case "tag": Return This.Tag
+			Case "visible": Return @FVisible
+			Case "width": FButtonWidth = This.Width: Return @FButtonWidth
+			Case "height": FButtonHeight = This.Height: Return @FButtonHeight
+			Case "parent": Return Ctrl
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "buttonindex": This.ButtonIndex = QInteger(Value)
-			Case "caption": This.Caption = QWString(Value)
-			Case "checked": This.Checked = QBoolean(Value)
-			Case "commandid": This.CommandID = QInteger(Value)
-			Case "enabled": This.Enabled = QBoolean(Value)
-			Case "hint": This.Hint = QWString(Value)
-			Case "imageindex": This.ImageIndex = QInteger(Value)
-			Case "imagekey": This.ImageKey = QWString(Value)
-			Case "left": This.Left = QInteger(Value)
-			Case "top": This.Top = QInteger(Value)
-			Case "name": This.Name = QWString(Value)
-			Case "showhint": This.ShowHint = QBoolean(Value)
-			Case "state": This.State = QInteger(Value)
-			Case "style": This.Style = QInteger(Value)
-			Case "tag": This.Tag = Value
-			Case "parent": This.Parent = Value
-			Case "visible": This.Visible = QBoolean(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ToolBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "autosize": Return @FAutosize
-		Case "caption": Return FText.vptr
-		Case "flat": Return @FFlat
-		Case "list": Return @FList
-		Case "wrapable": Return @FWrapable
-		Case "transparency": Return @FTransparent
-		Case "disabledimageslist": Return DisabledImagesList
-		Case "hotimageslist": Return HotImagesList
-		Case "imageslist": Return ImagesList
-		Case "divider": Return @FDivider
-		Case "bitmapwidth": FBitmapWidth = This.BitmapWidth: Return @FBitmapWidth
-		Case "bitmapheight": FBitmapHeight = This.BitmapHeight: Return @FBitmapHeight
-		Case "buttonwidth": FButtonWidth = This.ButtonWidth: Return @FButtonWidth
-		Case "buttonheight": FButtonHeight = This.ButtonHeight: Return @FButtonHeight
-		Case "buttonscount": FButtonsCount = Buttons.Count: Return @FButtonsCount
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ToolButton.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case "parent": This.Parent = Value
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "buttonindex": This.ButtonIndex = QInteger(Value)
+				Case "caption": This.Caption = QWString(Value)
+				Case "checked": This.Checked = QBoolean(Value)
+				Case "commandid": This.CommandID = QInteger(Value)
+				Case "enabled": This.Enabled = QBoolean(Value)
+				Case "hint": This.Hint = QWString(Value)
+				Case "imageindex": This.ImageIndex = QInteger(Value)
+				Case "imagekey": This.ImageKey = QWString(Value)
+				Case "left": This.Left = QInteger(Value)
+				Case "top": This.Top = QInteger(Value)
+				Case "name": This.Name = QWString(Value)
+				Case "showhint": This.ShowHint = QBoolean(Value)
+				Case "state": This.State = QInteger(Value)
+				Case "style": This.Style = QInteger(Value)
+				Case "tag": This.Tag = Value
+				Case "parent": This.Parent = Value
+				Case "visible": This.Visible = QBoolean(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
-	Private Function ToolBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
+	#ifndef ReadProperty_Off
+		Private Function ToolBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			Case "autosize": Return @FAutosize
+			Case "caption": Return FText.vptr
+			Case "flat": Return @FFlat
+			Case "list": Return @FList
+			Case "wrapable": Return @FWrapable
+			Case "transparency": Return @FTransparent
+			Case "disabledimageslist": Return DisabledImagesList
+			Case "hotimageslist": Return HotImagesList
+			Case "imageslist": Return ImagesList
+			Case "divider": Return @FDivider
+			Case "bitmapwidth": FBitmapWidth = This.BitmapWidth: Return @FBitmapWidth
+			Case "bitmapheight": FBitmapHeight = This.BitmapHeight: Return @FBitmapHeight
+			Case "buttonwidth": FButtonWidth = This.ButtonWidth: Return @FButtonWidth
+			Case "buttonheight": FButtonHeight = This.ButtonHeight: Return @FButtonHeight
+			Case "buttonscount": FButtonsCount = Buttons.Count: Return @FButtonsCount
+			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "autosize": This.Autosize = QBoolean(Value)
-			Case "bitmapwidth": This.BitmapWidth = QInteger(Value)
-			Case "bitmapheight": This.BitmapHeight = QInteger(Value)
-			Case "buttonwidth": This.ButtonWidth = QInteger(Value)
-			Case "buttonheight": This.ButtonHeight = QInteger(Value)
-			Case "caption": This.Caption = QWString(Value)
-			Case "flat": This.Flat = QBoolean(Value)
-			Case "list": This.List = QBoolean(Value)
-			Case "disabledimageslist": This.DisabledImagesList = Value
-			Case "hotimageslist": This.HotImagesList = Value
-			Case "imageslist": This.ImagesList = Value
-			Case "divider": This.Divider = QBoolean(Value)
-			Case "transparency": This.Transparency = QBoolean(Value)
-			Case "wrapable": This.Wrapable = QBoolean(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function ToolBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "autosize": This.AutoSize = QBoolean(Value)
+				Case "bitmapwidth": This.BitmapWidth = QInteger(Value)
+				Case "bitmapheight": This.BitmapHeight = QInteger(Value)
+				Case "buttonwidth": This.ButtonWidth = QInteger(Value)
+				Case "buttonheight": This.ButtonHeight = QInteger(Value)
+				Case "caption": This.Caption = QWString(Value)
+				Case "flat": This.Flat = QBoolean(Value)
+				Case "list": This.List = QBoolean(Value)
+				Case "disabledimageslist": This.DisabledImagesList = Value
+				Case "hotimageslist": This.HotImagesList = Value
+				Case "imageslist": This.ImagesList = Value
+				Case "divider": This.Divider = QBoolean(Value)
+				Case "transparency": This.Transparency = QBoolean(Value)
+				Case "wrapable": This.Wrapable = QBoolean(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Sub ToolBar.GetDropDownMenuItems
 		FPopupMenuItems.Clear

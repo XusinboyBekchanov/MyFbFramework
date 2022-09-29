@@ -7,25 +7,29 @@
 #include once "TimerComponent.bi"
 
 Namespace My.Sys.Forms
-	Private Function TimerComponent.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "enabled": Return Cast(Any Ptr, @This.FEnabled)
-		Case "interval": Return Cast(Any Ptr, @This.FInterval)
-		Case "ontimer": Return Cast(Any Ptr, This.OnTimer)
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function TimerComponent.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "enabled": Return Cast(Any Ptr, @This.FEnabled)
+			Case "interval": Return Cast(Any Ptr, @This.FInterval)
+			Case "ontimer": Return Cast(Any Ptr, This.OnTimer)
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function TimerComponent.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "enabled": This.Enabled = QBoolean(Value)
-		Case "interval": This.Interval = QInteger(Value)
-		Case "ontimer": This.OnTimer = Value
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function TimerComponent.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "enabled": This.Enabled = QBoolean(Value)
+			Case "interval": This.Interval = QInteger(Value)
+			Case "ontimer": This.OnTimer = Value
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	#ifdef __USE_GTK__
 		Private Function TimerProc(ByVal user_data As gpointer) As gboolean
@@ -38,7 +42,7 @@ Namespace My.Sys.Forms
 			End With
 		End Function
 	#else
-		Private Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
+		Private Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As UINT, idEvent As Integer, dwTime As DWORD)
 			With TimersList
 				If .Contains(idEvent) Then
 					Var tmr = Cast(TimerComponent Ptr, .Object(.IndexOf(idEvent)))

@@ -14,39 +14,43 @@
 #include once "ProgressBar.bi"
 
 Namespace My.Sys.Forms
-	Private Function ProgressBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "marquee": Return @FMarquee
-		Case "maxvalue": Return @FMaxValue
-		Case "minvalue": Return @FMinValue
-		Case "orientation": Return @FOrientation
-		Case "position": Return @FPosition
-		Case "smooth": Return @FSmooth
-		Case "stepvalue": Return @FStep
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ProgressBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "marquee": Return @FMarquee
+			Case "maxvalue": Return @FMaxValue
+			Case "minvalue": Return @FMinValue
+			Case "orientation": Return @FOrientation
+			Case "position": Return @FPosition
+			Case "smooth": Return @FSmooth
+			Case "stepvalue": Return @FStep
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ProgressBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "marquee": Marquee = QBoolean(Value)
-			Case "maxvalue": MaxValue = QInteger(Value)
-			Case "minvalue": MinValue = QInteger(Value)
-			Case "orientation": Orientation = *Cast(ProgressBarOrientation Ptr, Value)
-			Case "smooth": Smooth = QBoolean(Value)
-			Case "stepvalue": StepValue = QInteger(Value)
-			Case "position": Position = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ProgressBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "marquee": Marquee = QBoolean(Value)
+				Case "maxvalue": MaxValue = QInteger(Value)
+				Case "minvalue": MinValue = QInteger(Value)
+				Case "orientation": Orientation = *Cast(ProgressBarOrientation Ptr, Value)
+				Case "smooth": Smooth = QBoolean(Value)
+				Case "stepvalue": StepValue = QInteger(Value)
+				Case "position": Position = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Sub ProgressBar.SetRange(AMin As Integer, AMax As Integer)
 		If AMax < AMin Then Exit Sub

@@ -292,8 +292,8 @@ Namespace My.Sys.Forms
 	
 	Private Destructor TabPage
 		'If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
-		WDeallocate FCaption
-		WDeallocate FImageKey
+		WDeAllocate FCaption
+		WDeAllocate FImageKey
 	End Destructor
 	
 	#ifndef ReadProperty_Off

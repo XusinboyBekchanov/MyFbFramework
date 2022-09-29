@@ -10,59 +10,63 @@
 #endif
 
 Namespace My.Sys.Forms
-	Private Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "allowcolumnreorder": Return @FAllowColumnReorder
-		Case "borderselect": Return @FBorderSelect
-		Case "checkboxes": Return @FCheckBoxes
-		Case "columnheaderhidden": Return @FColumnHeaderHidden
-		Case "fullrowselect": Return @FFullRowSelect
-		Case "hovertime": Return @FHoverTime
-		Case "gridlines": Return @FGridLines
-		Case "images": Return Images
-		Case "stateimages": Return StateImages
-		Case "smallimages": Return SmallImages
-		Case "groupheaderimages": Return GroupHeaderImages
-		Case "labeltip": Return @FLabelTip
-		Case "singleclickactivate": Return @FSingleClickActivate
-		Case "sort": Return @FSortStyle
-		Case "tabindex": Return @FTabIndex
-		Case "hoverselection": Return @FHoverSelection
-		Case "view": Return @FView
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ListView.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "allowcolumnreorder": Return @FAllowColumnReorder
+			Case "borderselect": Return @FBorderSelect
+			Case "checkboxes": Return @FCheckBoxes
+			Case "columnheaderhidden": Return @FColumnHeaderHidden
+			Case "fullrowselect": Return @FFullRowSelect
+			Case "hovertime": Return @FHoverTime
+			Case "gridlines": Return @FGridLines
+			Case "images": Return Images
+			Case "stateimages": Return StateImages
+			Case "smallimages": Return SmallImages
+			Case "groupheaderimages": Return GroupHeaderImages
+			Case "labeltip": Return @FLabelTip
+			Case "singleclickactivate": Return @FSingleClickActivate
+			Case "sort": Return @FSortStyle
+			Case "tabindex": Return @FTabIndex
+			Case "hoverselection": Return @FHoverSelection
+			Case "view": Return @FView
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "allowcolumnreorder": AllowColumnReorder = QBoolean(Value)
-			Case "borderselect": BorderSelect = QBoolean(Value)
-			Case "checkboxes": CheckBoxes = QBoolean(Value)
-			Case "columnheaderhidden": ColumnHeaderHidden = QBoolean(Value)
-			Case "fullrowselect": FullRowSelect = QBoolean(Value)
-			Case "hovertime": HoverTime = QInteger(Value)
-			Case "gridlines": GridLines = QBoolean(Value)
-			Case "images": Images = Cast(ImageList Ptr, Value)
-			Case "stateimages": StateImages = Cast(ImageList Ptr, Value)
-			Case "smallimages": SmallImages = Cast(ImageList Ptr, Value)
-			Case "groupheaderimages": GroupHeaderImages = Cast(ImageList Ptr, Value)
-			Case "labeltip": LabelTip = QBoolean(Value)
-			Case "singleclickactivate": SingleClickActivate = QBoolean(Value)
-			Case "sort": Sort = *Cast(SortStyle Ptr, Value)
-			Case "tabindex": TabIndex = QInteger(Value)
-			Case "hoverselection": HoverSelection = QBoolean(Value)
-			Case "view": This.View = *Cast(ViewStyle Ptr, Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ListView.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "allowcolumnreorder": AllowColumnReorder = QBoolean(Value)
+				Case "borderselect": BorderSelect = QBoolean(Value)
+				Case "checkboxes": CheckBoxes = QBoolean(Value)
+				Case "columnheaderhidden": ColumnHeaderHidden = QBoolean(Value)
+				Case "fullrowselect": FullRowSelect = QBoolean(Value)
+				Case "hovertime": HoverTime = QInteger(Value)
+				Case "gridlines": GridLines = QBoolean(Value)
+				Case "images": Images = Cast(ImageList Ptr, Value)
+				Case "stateimages": StateImages = Cast(ImageList Ptr, Value)
+				Case "smallimages": SmallImages = Cast(ImageList Ptr, Value)
+				Case "groupheaderimages": GroupHeaderImages = Cast(ImageList Ptr, Value)
+				Case "labeltip": LabelTip = QBoolean(Value)
+				Case "singleclickactivate": SingleClickActivate = QBoolean(Value)
+				Case "sort": Sort = *Cast(SortStyle Ptr, Value)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case "hoverselection": HoverSelection = QBoolean(Value)
+				Case "view": This.View = *Cast(ViewStyle Ptr, Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property ListView.TabIndex As Integer
 		Return FTabIndex

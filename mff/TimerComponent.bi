@@ -18,12 +18,16 @@ Namespace My.Sys.Forms
 		FEnabled As Boolean
 		FInterval As Integer
 		#ifndef __USE_GTK__
-			Declare Static Sub TimerProc(hwnd As HWND, uMsg As Uint, idEvent As Integer, dwTime As DWord)
+			Declare Static Sub TimerProc(hwnd As hwnd, uMsg As UINT, idEvent As Integer, dwTime As DWORD)
 		#endif
 	Public:
 		ID            As Integer
-		Declare Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property Enabled As Boolean
 		Declare Property Enabled(Value As Boolean)
 		Declare Property Interval As Integer

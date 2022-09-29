@@ -24,13 +24,13 @@ Namespace My.Sys.Forms
 			Declare Static Sub FileChooser_SelectionChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As GtkFileFilter Ptr filefilter(Any)
 		#else
-			Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
-			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
+			Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As wParam, lParam As lParam) As UInteger
+			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As lParam) As Boolean
 			Declare Static Function EnumListViewsProc(hDlg As HWND, lParam1 As LPARAM) As Boolean
-			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Declare Static Function HookListView(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Declare Static Function HookListViewParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Declare Static Function HookComboBoxParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function HookListView(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function HookListViewParent(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function HookComboBoxParent(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
 			ThreadID As Any Ptr
 		#endif
 	Protected:
@@ -44,8 +44,12 @@ Namespace My.Sys.Forms
 		FFilterIndex  As Integer
 		FFilterCount  As Integer
 	Public:
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		FileNames     As WStringList
 		Options       As OpenFileOptions
 		Declare Property MultiSelect As Boolean

@@ -35,8 +35,12 @@ Namespace My.Sys.Forms
 		Declare Sub DrawTrackSplit(x As Integer, y As Integer)
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
-		Declare Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		#ifdef __USE_GTK__
 			Dim As Boolean bCursor
 		#endif

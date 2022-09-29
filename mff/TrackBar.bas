@@ -14,53 +14,57 @@
 #include once "TrackBar.bi"
 
 Namespace My.Sys.Forms
-	Private Function TrackBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "frequency": Return @FFrequency
-		Case "maxvalue": Return @FMaxValue
-		Case "minvalue": Return @FMinValue
-		Case "linesize": Return @FLineSize
-		Case "pagesize": Return @FPageSize
-		Case "position": Return @FPosition
-		Case "selstart": Return @FSelStart
-		Case "selend": Return @FSelEnd
-		Case "slidervisible": Return @FSliderVisible
-		Case "style": Return @FStyle
-		Case "tabindex": Return @FTabIndex
-		Case "tickmark": Return @FTickMark
-		Case "tickstyle": Return @FTickStyle
-		Case "thumblength": Return @FThumbLength
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function TrackBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "frequency": Return @FFrequency
+			Case "maxvalue": Return @FMaxValue
+			Case "minvalue": Return @FMinValue
+			Case "linesize": Return @FLineSize
+			Case "pagesize": Return @FPageSize
+			Case "position": Return @FPosition
+			Case "selstart": Return @FSelStart
+			Case "selend": Return @FSelEnd
+			Case "slidervisible": Return @FSliderVisible
+			Case "style": Return @FStyle
+			Case "tabindex": Return @FTabIndex
+			Case "tickmark": Return @FTickMark
+			Case "tickstyle": Return @FTickStyle
+			Case "thumblength": Return @FThumbLength
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function TrackBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "frequency": This.Frequency = QInteger(Value)
-			Case "maxvalue": MaxValue = QInteger(Value)
-			Case "minvalue": MinValue = QInteger(Value)
-			Case "linesize": LineSize = QInteger(Value)
-			Case "pagesize": PageSize = QInteger(Value)
-			Case "position": Position = QInteger(Value)
-			Case "selstart": SelStart = QInteger(Value)
-			Case "selend": SelEnd = QInteger(Value)
-			Case "slidervisible": SliderVisible = QBoolean(Value)
-			Case "style": This.Style = *Cast(TrackBarOrientation Ptr, Value)
-			Case "tabindex": This.TabIndex = QInteger(Value)
-			Case "tickmark": This.TickMark = *Cast(TickMarks Ptr, Value)
-			Case "tickstyle": This.TickStyle = *Cast(TickStyles Ptr, Value)
-			Case "thumblength": ThumbLength = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function TrackBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "frequency": This.Frequency = QInteger(Value)
+				Case "maxvalue": MaxValue = QInteger(Value)
+				Case "minvalue": MinValue = QInteger(Value)
+				Case "linesize": LineSize = QInteger(Value)
+				Case "pagesize": PageSize = QInteger(Value)
+				Case "position": Position = QInteger(Value)
+				Case "selstart": SelStart = QInteger(Value)
+				Case "selend": SelEnd = QInteger(Value)
+				Case "slidervisible": SliderVisible = QBoolean(Value)
+				Case "style": This.Style = *Cast(TrackBarOrientation Ptr, Value)
+				Case "tabindex": This.TabIndex = QInteger(Value)
+				Case "tickmark": This.TickMark = *Cast(TickMarks Ptr, Value)
+				Case "tickstyle": This.TickStyle = *Cast(TickStyles Ptr, Value)
+				Case "thumblength": ThumbLength = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property TrackBar.TabIndex As Integer
 		Return FTabIndex

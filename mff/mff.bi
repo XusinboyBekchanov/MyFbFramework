@@ -184,9 +184,13 @@ Using My.Sys.Forms
 		End Select
 		If Ctrl Then
 			Ctrl->Name = sName
-			Ctrl->WriteProperty("Text", @Text)
+			#ifndef WriteProperty_Off
+				Ctrl->WriteProperty("Text", @Text)
+			#endif
 			Ctrl->SetBounds lLeft, lTop, lWidth, lHeight
-			Ctrl->WriteProperty("Parent", Parent)
+			#ifndef WriteProperty_Off
+				Ctrl->WriteProperty("Parent", Parent)
+			#endif
 			If Not Objects.Contains(Ctrl) Then Objects.Add Ctrl
 		EndIf
 		Return Ctrl
@@ -216,7 +220,9 @@ Using My.Sys.Forms
 			Cpnt->Name = sName
 			Cpnt->Left = lLeft
 			Cpnt->Top = lTop
-			Cpnt->WriteProperty("Parent", Parent)
+			#ifndef WriteProperty_Off
+				Cpnt->WriteProperty("Parent", Parent)
+			#endif
 			If Not Objects.Contains(Cpnt) Then Objects.Add Cpnt
 		EndIf
 		Return Cpnt

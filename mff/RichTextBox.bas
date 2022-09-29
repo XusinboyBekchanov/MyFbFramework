@@ -10,67 +10,71 @@
 #endif
 
 Namespace My.Sys.Forms
-	Private Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "editstyle": Return @FEditStyle
-		Case "selalignment": FSelIntVal = SelAlignment: Return @FSelIntVal
-		Case "selbackcolor": FSelIntVal = SelBackColor: Return @FSelIntVal
-		Case "selbold": FSelBoolVal = SelBold: Return @FSelBoolVal
-		Case "selbullet": FSelBoolVal = SelBullet: Return @FSelBoolVal
-		Case "selcharoffset": FSelIntVal = SelCharOffset: Return @FSelIntVal
-		Case "selcharset": FSelIntVal = SelCharSet: Return @FSelIntVal
-		Case "selcolor": FSelIntVal = SelColor: Return @FSelIntVal
-		Case "selfontname": WLet(FSelWStrVal, SelFontName): Return FSelWStrVal
-		Case "selfontsize": FSelIntVal = SelFontSize: Return @FSelIntVal
-		Case "selindent": FSelIntVal = SelIndent: Return @FSelIntVal
-		Case "selitalic": FSelBoolVal = SelItalic: Return @FSelBoolVal
-		Case "selprotected": FSelBoolVal = SelProtected: Return @FSelBoolVal
-		Case "selrightindent": FSelIntVal = SelRightIndent: Return @FSelIntVal
-		Case "selhangingindent": FSelIntVal = SelHangingIndent: Return @FSelIntVal
-		Case "seltabcount": FSelIntVal = SelTabCount: Return @FSelIntVal
-		Case "selunderline": FSelBoolVal = SelUnderline: Return @FSelBoolVal
-		Case "selstrikeout": FSelBoolVal = SelStrikeout: Return @FSelBoolVal
-		Case "tabindex": Return @FTabIndex
-		Case "textrtf": TextRTF: Return FTextRTF.vptr
-		Case "zoom": Return @FZoom
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function RichTextBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "editstyle": Return @FEditStyle
+			Case "selalignment": FSelIntVal = SelAlignment: Return @FSelIntVal
+			Case "selbackcolor": FSelIntVal = SelBackColor: Return @FSelIntVal
+			Case "selbold": FSelBoolVal = SelBold: Return @FSelBoolVal
+			Case "selbullet": FSelBoolVal = SelBullet: Return @FSelBoolVal
+			Case "selcharoffset": FSelIntVal = SelCharOffset: Return @FSelIntVal
+			Case "selcharset": FSelIntVal = SelCharSet: Return @FSelIntVal
+			Case "selcolor": FSelIntVal = SelColor: Return @FSelIntVal
+			Case "selfontname": WLet(FSelWStrVal, SelFontName): Return FSelWStrVal
+			Case "selfontsize": FSelIntVal = SelFontSize: Return @FSelIntVal
+			Case "selindent": FSelIntVal = SelIndent: Return @FSelIntVal
+			Case "selitalic": FSelBoolVal = SelItalic: Return @FSelBoolVal
+			Case "selprotected": FSelBoolVal = SelProtected: Return @FSelBoolVal
+			Case "selrightindent": FSelIntVal = SelRightIndent: Return @FSelIntVal
+			Case "selhangingindent": FSelIntVal = SelHangingIndent: Return @FSelIntVal
+			Case "seltabcount": FSelIntVal = SelTabCount: Return @FSelIntVal
+			Case "selunderline": FSelBoolVal = SelUnderline: Return @FSelBoolVal
+			Case "selstrikeout": FSelBoolVal = SelStrikeout: Return @FSelBoolVal
+			Case "tabindex": Return @FTabIndex
+			Case "textrtf": TextRTF: Return FTextRTF.vptr
+			Case "zoom": Return @FZoom
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function RichTextBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		If Value = 0 Then
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		Else
-			Select Case LCase(PropertyName)
-			Case "editstyle": EditStyle = QBoolean(Value)
-			Case "selalignment": SelAlignment = *Cast(AlignmentConstants Ptr, Value)
-			Case "selbackcolor": SelBackColor = QInteger(Value)
-			Case "selbold": SelBold = QBoolean(Value)
-			Case "selbullet": SelBullet = QBoolean(Value)
-			Case "selcharoffset": SelCharOffset = QInteger(Value)
-			Case "selcharset": SelCharSet = QInteger(Value)
-			Case "selcolor": SelColor = QInteger(Value)
-			Case "selfontname": SelFontName = QWString(Value)
-			Case "selfontsize": SelFontSize = QInteger(Value)
-			Case "selindent": SelIndent = QInteger(Value)
-			Case "selitalic": SelItalic = QBoolean(Value)
-			Case "selprotected": SelProtected = QBoolean(Value)
-			Case "selrightindent": SelRightIndent = QInteger(Value)
-			Case "selhangingindent": SelHangingIndent = QInteger(Value)
-			Case "seltabcount": SelTabCount = QInteger(Value)
-			Case "selunderline": SelUnderline = QBoolean(Value)
-			Case "selstrikeout": SelStrikeout = QBoolean(Value)
-			Case "tabindex": TabIndex = QInteger(Value)
-			Case "textrtf": TextRTF = QWString(Value)
-			Case "zoom": Zoom = QInteger(Value)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-		End If
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function RichTextBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "editstyle": EditStyle = QBoolean(Value)
+				Case "selalignment": SelAlignment = *Cast(AlignmentConstants Ptr, Value)
+				Case "selbackcolor": SelBackColor = QInteger(Value)
+				Case "selbold": SelBold = QBoolean(Value)
+				Case "selbullet": SelBullet = QBoolean(Value)
+				Case "selcharoffset": SelCharOffset = QInteger(Value)
+				Case "selcharset": SelCharSet = QInteger(Value)
+				Case "selcolor": SelColor = QInteger(Value)
+				Case "selfontname": SelFontName = QWString(Value)
+				Case "selfontsize": SelFontSize = QInteger(Value)
+				Case "selindent": SelIndent = QInteger(Value)
+				Case "selitalic": SelItalic = QBoolean(Value)
+				Case "selprotected": SelProtected = QBoolean(Value)
+				Case "selrightindent": SelRightIndent = QInteger(Value)
+				Case "selhangingindent": SelHangingIndent = QInteger(Value)
+				Case "seltabcount": SelTabCount = QInteger(Value)
+				Case "selunderline": SelUnderline = QBoolean(Value)
+				Case "selstrikeout": SelStrikeout = QBoolean(Value)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case "textrtf": TextRTF = QWString(Value)
+				Case "zoom": Zoom = QInteger(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Private Property RichTextBox.TabIndex As Integer
 		Return FTabIndex

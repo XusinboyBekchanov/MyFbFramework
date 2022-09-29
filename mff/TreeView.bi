@@ -40,7 +40,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As PTreeNode
 		#else
-			Declare Function FindByHandle(hti As HTREEItem) As PTreeNode
+			Declare Function FindByHandle(hti As HTREEITEM) As PTreeNode
 		#endif
 		Declare Sub Clear
 		Declare Sub Sort
@@ -141,8 +141,12 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Images          As ImageList Ptr
 		SelectedImages  As ImageList Ptr
 		Nodes           As TreeNodeCollection

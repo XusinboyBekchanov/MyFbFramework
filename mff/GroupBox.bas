@@ -17,25 +17,29 @@
 #endif
 
 Namespace My.Sys.Forms
-	Private Function GroupBox.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "caption": Return FText.vptr
-		Case "text": Return FText.vptr
-		Case "tabindex": Return @FTabIndex
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function GroupBox.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "caption": Return FText.vptr
+			Case "text": Return FText.vptr
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function GroupBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "caption": This.Caption = QWString(Value)
-		Case "text": This.Text = QWString(Value)
-		Case "tabindex": TabIndex = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function GroupBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "caption": This.Caption = QWString(Value)
+			Case "text": This.Text = QWString(Value)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property GroupBox.TabIndex As Integer
 		Return FTabIndex

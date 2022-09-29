@@ -88,7 +88,7 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
-			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
@@ -100,8 +100,12 @@ Namespace My.Sys.Forms
 		#endif
 		Items             As ComboBoxExItems
 		ImagesList         As ImageList Ptr
-		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Virtual Property IntegralHeight As Boolean
 		Declare Virtual Property IntegralHeight(Value As Boolean)
 		Declare Virtual Property Style As ComboBoxEditStyle

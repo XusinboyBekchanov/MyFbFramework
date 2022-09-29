@@ -14,33 +14,37 @@
 #include once "ScrollBarControl.bi"
 
 Namespace My.Sys.Forms
-	Private Function ScrollBarControl.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "arrowchangesize": Return @This.FArrowChangeSize
-		Case "maxvalue": Return @This.FMax
-		Case "minvalue": Return @This.FMin
-		Case "pagesize": Return @This.FPageSize
-		Case "position": Return @This.FPosition
-		Case "style": Return @This.FStyle
-		Case "tabindex": Return @FTabIndex
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function ScrollBarControl.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "arrowchangesize": Return @This.FArrowChangeSize
+			Case "maxvalue": Return @This.FMax
+			Case "minvalue": Return @This.FMin
+			Case "pagesize": Return @This.FPageSize
+			Case "position": Return @This.FPosition
+			Case "style": Return @This.FStyle
+			Case "tabindex": Return @FTabIndex
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function ScrollBarControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "arrowchangesize": This.ArrowChangeSize = QInteger(Value)
-		Case "maxvalue": This.MaxValue = QInteger(Value)
-		Case "minvalue": This.MinValue = QInteger(Value)
-		Case "pagesize": This.PageSize = QInteger(Value)
-		Case "position": This.Position = QInteger(Value)
-		Case "style": This.Style = *Cast(ScrollBarControlStyle Ptr, Value)
-		Case "tabindex": TabIndex = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function ScrollBarControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "arrowchangesize": This.ArrowChangeSize = QInteger(Value)
+			Case "maxvalue": This.MaxValue = QInteger(Value)
+			Case "minvalue": This.MinValue = QInteger(Value)
+			Case "pagesize": This.PageSize = QInteger(Value)
+			Case "position": This.Position = QInteger(Value)
+			Case "style": This.Style = *Cast(ScrollBarControlStyle Ptr, Value)
+			Case "tabindex": TabIndex = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property ScrollBarControl.TabIndex As Integer
 		Return FTabIndex

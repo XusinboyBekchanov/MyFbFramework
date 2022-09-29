@@ -39,8 +39,12 @@ Namespace My.Sys.Forms
 			FTheme		As HTHEME
 		#endif
 	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Virtual Sub ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_GTK__
 			_Box			As GtkWidget Ptr
@@ -101,8 +105,12 @@ Namespace My.Sys.Forms
 	Public:
 		Images        As ImageList Ptr
 		Tabs          As TabPage Ptr Ptr
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property SelectedTabIndex As Integer
 		Declare Property SelectedTabIndex(Value As Integer)
 		Declare Property TabIndex As Integer

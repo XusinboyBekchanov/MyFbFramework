@@ -36,9 +36,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Handle Then
 				If LabelHandle Then
-					gtk_label_set_label(gtk_label(LabelHandle), ToUTF8(Value))
+					gtk_label_set_label(GTK_LABEL(LabelHandle), ToUtf8(Value))
 				Else
-					gtk_tree_view_column_set_title(Handle, ToUTF8(Value))
+					gtk_tree_view_column_set_title(Handle, ToUtf8(Value))
 				End If
 			End If
 		#endif
@@ -155,28 +155,32 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	'Header
-	Private Function Header.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "dragreorder": Return @FDragReorder
-		Case "fulldrag": Return @FFullDrag
-		Case "hottrack": Return @FHotTrack
-		Case "sectioncount": FSectionCount = SectionCount: Return @FSectionCount
-		Case "style": Return @FStyle
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function Header.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "dragreorder": Return @FDragReorder
+			Case "fulldrag": Return @FFullDrag
+			Case "hottrack": Return @FHotTrack
+			Case "sectioncount": FSectionCount = SectionCount: Return @FSectionCount
+			Case "style": Return @FStyle
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function Header.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "dragreorder": If Value <> 0 Then This.DragReorder = QBoolean(Value)
-		Case "fulldrag": If Value <> 0 Then This.FullDrag = QBoolean(Value)
-		Case "hottrack": If Value <> 0 Then This.HotTrack = QBoolean(Value)
-		Case "style": If Value <> 0 Then This.Style = *Cast(HeaderStyle Ptr, Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function Header.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "dragreorder": If Value <> 0 Then This.DragReorder = QBoolean(Value)
+			Case "fulldrag": If Value <> 0 Then This.FullDrag = QBoolean(Value)
+			Case "hottrack": If Value <> 0 Then This.HotTrack = QBoolean(Value)
+			Case "style": If Value <> 0 Then This.Style = *Cast(HeaderStyle Ptr, Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property Header.Style As HeaderStyle
 		Return FStyle

@@ -14,37 +14,41 @@
 #include once "StatusBar.bi"
 
 Namespace My.Sys.Forms
-	Private Function StatusPanel.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "alignment": Return @FAlignment
-		Case "bevel": Return @FBevel
-		Case "caption": Return FCaption
-		Case "icon": Return @Icon
-		Case "index": Return @Index
-		Case "name": Return FName
-		Case "panelindex": FPanelIndex = PanelIndex: Return @FPanelIndex
-		Case "parent": Return StatusBarControl
-		Case "realwidth": FRealWidth = RealWidth: Return @FRealWidth
-		Case "width": Return @FWidth
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function StatusPanel.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "alignment": Return @FAlignment
+			Case "bevel": Return @FBevel
+			Case "caption": Return FCaption
+			Case "icon": Return @Icon
+			Case "index": Return @Index
+			Case "name": Return FName
+			Case "panelindex": FPanelIndex = PanelIndex: Return @FPanelIndex
+			Case "parent": Return StatusBarControl
+			Case "realwidth": FRealWidth = RealWidth: Return @FRealWidth
+			Case "width": Return @FWidth
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function StatusPanel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "alignment": This.Alignment = QInteger(Value)
-		Case "bevel": This.Bevel = *Cast(BevelStyle Ptr, Value)
-		Case "caption": This.Caption = QWString(Value)
-		Case "icon": This.Icon = QWString(Value)
-		Case "name": This.Name = QWString(Value)
-		Case "panelindex": This.PanelIndex = QInteger(Value)
-		Case "parent": This.Parent = Value
-		Case "width": This.Width = QInteger(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function StatusPanel.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "alignment": This.Alignment = QInteger(Value)
+			Case "bevel": This.Bevel = *Cast(BevelStyle Ptr, Value)
+			Case "caption": This.Caption = QWString(Value)
+			Case "icon": This.Icon = QWString(Value)
+			Case "name": This.Name = QWString(Value)
+			Case "panelindex": This.PanelIndex = QInteger(Value)
+			Case "parent": This.Parent = Value
+			Case "width": This.Width = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Property StatusPanel.Caption ByRef As WString
 		Return *FCaption
@@ -180,27 +184,31 @@ Namespace My.Sys.Forms
 		If FCaption Then Deallocate_( FCaption)
 	End Destructor
 	
-	Private Function StatusBar.ReadProperty(PropertyName As String) As Any Ptr
-		Select Case LCase(PropertyName)
-		Case "count": Return @Count
-		Case "simplepanel": Return @FSimplePanel
-		Case "simpletext": Return FSimpleText
-		Case "sizegrip": Return @FSizeGrip
-		Case Else: Return Base.ReadProperty(PropertyName)
-		End Select
-		Return 0
-	End Function
+	#ifndef ReadProperty_Off
+		Private Function StatusBar.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "count": Return @Count
+			Case "simplepanel": Return @FSimplePanel
+			Case "simpletext": Return FSimpleText
+			Case "sizegrip": Return @FSizeGrip
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
 	
-	Private Function StatusBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
-		Select Case LCase(PropertyName)
-		Case "backcolor": This.BackColor = QInteger(Value)
-		Case "simplepanel": This.SimplePanel = QBoolean(Value)
-		Case "simpletext": This.SimpleText = QWString(Value)
-		Case "sizegrip": This.SizeGrip = QBoolean(Value)
-		Case Else: Return Base.WriteProperty(PropertyName, Value)
-		End Select
-		Return True
-	End Function
+	#ifndef WriteProperty_Off
+		Private Function StatusBar.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "backcolor": This.BackColor = QInteger(Value)
+			Case "simplepanel": This.SimplePanel = QBoolean(Value)
+			Case "simpletext": This.SimpleText = QWString(Value)
+			Case "sizegrip": This.SizeGrip = QBoolean(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
 	
 	Private Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
 		Count += 1

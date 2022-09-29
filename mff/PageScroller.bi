@@ -13,7 +13,7 @@ Namespace My.Sys.Forms
 		Private Type NMPGSCROLL2 Field = 1
 		    As NMHDR hdr
 		    As Short fwKeys
-		    As ..RECT rcParent
+		    As ..Rect rcParent
 		    As Integer iDir
 		    As Integer iXpos
 		    As Integer iYpos
@@ -49,8 +49,12 @@ Namespace My.Sys.Forms
 		ChildControl        As Control Ptr
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
-		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property ArrowChangeSize As Integer
 		Declare Property ArrowChangeSize(Value As Integer)
 		Declare Property AutoScroll As Boolean

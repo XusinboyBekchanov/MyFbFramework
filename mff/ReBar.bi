@@ -148,8 +148,12 @@ Namespace My.Sys.Forms
 			Dim As GdkCursor Ptr gdkCursorColResize
 		#endif
 	Public:
-		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Bands           As ReBarBandCollection
 		ImageList       As ImageList Ptr                                                                                        ' One image per band
 		ImageBacking    As My.Sys.Drawing.BitmapType                                                                            ' Bitmap used for backing image

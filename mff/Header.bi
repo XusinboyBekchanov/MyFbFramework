@@ -105,8 +105,12 @@ Namespace My.Sys.Forms
 		Declare Function EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 		Declare Sub Init()
 	Public:
-		Declare Function ReadProperty(PropertyName As String) As Any Ptr
-		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Images            As ImageList Ptr
 		Declare Property Style As HeaderStyle
 		Declare Property Style(Value As HeaderStyle)
