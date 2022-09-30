@@ -114,10 +114,10 @@ Namespace My.Sys.Forms
 	Private Property RadioButton.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			gtk_label_set_text_with_mnemonic(gtk_label(gtk_bin_get_child(gtk_bin(widget))), ToUtf8(Replace(Value, "&", "_")))
+			gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
 	End Property
@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 	Private Property RadioButton.Checked As Boolean
 		If FHandle Then
 			#ifdef __USE_GTK__
-				FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
+				FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
 			#elseif defined(__USE_WINAPI__)
 				FChecked = Perform(BM_GETCHECK, 0, 0)
 			#elseif defined(__USE_JNI__)
@@ -139,9 +139,13 @@ Namespace My.Sys.Forms
 		FChecked = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
-				gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
 			#elseif defined(__USE_WINAPI__)
-				Perform(BM_SETCHECK, FChecked, 0)
+				If FChecked Then
+					Perform(BM_CLICK, 0, 0)
+				Else
+					Perform(BM_SETCHECK, FChecked, 0)
+				End If
 			#elseif defined(__USE_JNI__)
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
 			#endif
@@ -176,10 +180,10 @@ Namespace My.Sys.Forms
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc,Font.Color
-				SetBKColor Dc,This.BackColor
-				SetBKMode Dc,OPAQUE
+				SetBkColor Dc,This.BackColor
+				SetBkMode Dc,OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
 					If OnClick Then OnClick(This)
