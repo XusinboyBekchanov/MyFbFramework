@@ -428,12 +428,12 @@ Namespace My.Sys.Forms
 					Dim As ..Rect R
 					Canvas.HandleSetted = True
 					Dc = BeginPaint(Handle, @Ps)
-					FillRect Dc, @Ps.rcpaint, Brush.Handle
+					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
-					Dim As hFont OldFontHandle, NewFontHandle
+					Dim As HFONT OldFontHandle, NewFontHandle
 					OldFontHandle = SelectObject(Dc, Font.Handle)
 					SetTextColor(Dc, darkTextColor)
-					SetBKMode(Dc, TRANSPARENT)
+					SetBkMode(Dc, TRANSPARENT)
 					For i As Integer = 0 To Count - 1
 						SendMessage FHandle, SB_GETRECT, i, Cast(LPARAM, @R)
 '						Canvas.Pen.Color = clWhite
@@ -442,8 +442,8 @@ Namespace My.Sys.Forms
 '						LineTo Dc, R.Left - 1, R.Bottom - 3
 						.TextOut(Dc, R.Left + 3, R.Top + 3, Panels[i]->Caption, Len(Panels[i]->Caption))
 					Next i
-					SetBKMode(dc, OPAQUE)
-					NewFontHandle = SelectObject(dc, OldFontHandle)
+					SetBkMode(Dc, OPAQUE)
+					NewFontHandle = SelectObject(Dc, OldFontHandle)
 					If OnPaint Then OnPaint(This, Canvas)
 					EndPaint Handle, @Ps
 					Message.Result = 0

@@ -999,6 +999,7 @@ Namespace My.Sys.Forms
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
 						Select Case nmcd->dwDrawStage
 						Case CDDS_PREPAINT
+							FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
 							Message.Result = CDRF_NOTIFYPOSTPAINT
 							Return
 						Case CDDS_POSTPAINT

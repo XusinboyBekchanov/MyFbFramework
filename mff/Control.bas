@@ -1450,10 +1450,21 @@ Namespace My.Sys.Forms
 					End If
 				Case WM_DPICHANGED
 					Dim As ..Rect Ptr rc = Cast(Rect Ptr, Message.lParam)
-					Move rc->Left, rc->Top, rc->Right - rc->Left, rc->Bottom - rc->Top
+					If rc <> 0 Then
+						oldxdpi = xdpi
+						oldydpi = ydpi
+						xdpi = LoWord(Message.wParam) / 96
+						ydpi = HiWord(Message.wParam) / 96
+					End If
 					For i As Integer = 0 To ControlCount - 1
-						'Controls[i]->
+						Controls[i]->Perform(WM_DPICHANGED, Message.wParam, 0)
 					Next
+					If rc = 0 Then
+						Move This.Left * (xdpi / oldxdpi), This.Top * (ydpi / oldydpi), This.Width * (xdpi / oldxdpi), This.Height * (ydpi / oldydpi)
+					Else
+						Move UnScaleX(rc->Left), UnScaleY(rc->Top), UnScaleX(rc->Right - rc->Left), UnScaleY(rc->Bottom - rc->Top)
+					End If
+					Font.Size = Font.Size
 					Message.Result = 0
 					Return
 				Case WM_THEMECHANGED

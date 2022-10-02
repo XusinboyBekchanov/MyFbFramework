@@ -16,9 +16,9 @@
 		Type WindowType
 			As HWND HANDLE
 		End Type
-		Dim As WindowType Ptr Wnd = Cast(WindowType Ptr, lData)
+		Dim As WindowType Ptr Wnd = Cast(WindowType Ptr, LData)
 		If (GetWindowLong(FWindow, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
-			Wnd->Handle = FWindow
+			Wnd->HANDLE = FWindow
 		End If
 		Return True
 	End Function
@@ -29,7 +29,7 @@
 		End Type
 		Dim As WindowType Wnd
 		EnumThreadWindows GetCurrentThreadId,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@Wnd)
-		Return Wnd.Handle
+		Return Wnd.HANDLE
 	End Function
 #endif
 
@@ -185,15 +185,14 @@ End Namespace
 #else
 	Private Function ScaleX(ByVal cx As Single) As Single
 		#ifdef __USE_WINAPI__
-			Static bb As Single
-			If bb = 0 Then
+			If xdpi = 0 Then
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
-				bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
 				ReleaseDC NULL, hDC
-				If bb = 0 Then bb = 1
+				If xdpi = 0 Then xdpi = 1
 			End If
-			Function = cx * bb
+			Function = cx * xdpi
 		#else
 			Function = cx
 		#endif
@@ -204,21 +203,20 @@ End Namespace
 ' =====================================================================================
 #ifdef __USE_JNI__
 	Private Function UnScaleX(ByVal cx As Single) As Integer
-		If xDpi = 0 Then xDpi = 1
+		If xdpi = 0 Then xdpi = 1
 		Function = cx / xdpi
 	End Function
 #else
 	Private Function UnScaleX(ByVal cx As Single) As Single
 		#ifdef __USE_WINAPI__
-			Static bb As Single
-			If bb = 0 Then
+			If xdpi = 0 Then
 				Dim hDC As HDC
-				hDC = GetDC(Null)
-				bb = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-				ReleaseDC Null, hDC
-				If bb = 0 Then bb = 1
+				hDC = GetDC(NULL)
+				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+				ReleaseDC NULL, hDC
+				If xdpi = 0 Then xdpi = 1
 			End If
-			Function = cx / bb
+			Function = cx / xdpi
 		#else
 			Function = cx
 		#endif
@@ -234,15 +232,14 @@ End Namespace
 #else
 	Private Function ScaleY(ByVal cy As Single) As Single
 		#ifdef __USE_WINAPI__
-			Static bb As Single
-			If bb = 0 Then
+			If ydpi = 0 Then
 				Dim hDC As HDC
-				hDC = GetDC(Null)
-				bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-				ReleaseDC Null, hDC
-				If bb = 0 Then bb = 1
+				hDC = GetDC(NULL)
+				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+				ReleaseDC NULL, hDC
+				If ydpi = 0 Then ydpi = 1
 			End If
-			Function = cy * bb
+			Function = cy * ydpi
 		#else
 			Function = cy
 		#endif
@@ -254,21 +251,20 @@ End Namespace
 ' =====================================================================================
 #ifdef __USE_JNI__
 	Private Function UnScaleY(ByVal cy As Single) As Integer
-		If yDpi = 0 Then yDpi = 1
+		If ydpi = 0 Then ydpi = 1
 		Function = cy / ydpi
 	End Function
 #else
 	Private Function UnScaleY(ByVal cy As Single) As Single
 		#ifdef __USE_WINAPI__
-			Static bb As Single
-			If bb=0 Then
+			If ydpi = 0 Then
 				Dim hDC As HDC
-				hDC = GetDC(Null)
-				bb = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-				ReleaseDC Null, hDC
-				If bb = 0 Then bb = 1
+				hDC = GetDC(NULL)
+				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+				ReleaseDC NULL, hDC
+				If ydpi = 0 Then ydpi = 1
 			End If
-			Function = cy / bb
+			Function = cy / ydpi
 		#else
 			Function = cy
 		#endif
@@ -305,7 +301,7 @@ Private Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As C
 End Function
 
 Private Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
-	Return StringParseCount(Subject, searchtext, MatchCase) - 1
+	Return StringParseCount(subject, searchtext, MatchCase) - 1
 End Function
 
 'Function InStrPos(ByRef subject As WString, ByRef searchtext() AS Wstring, start As Integer = 1) As Integer

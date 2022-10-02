@@ -76,7 +76,6 @@ Namespace My.Sys.Drawing
 		FCharSet   As Integer
 		FParent    As My.Sys.Object Ptr
 		FBolds(2)  As Integer
-		FCyPixels  As Integer
 		FEscapement As Integer = 0 '是字体的倾斜角。 David Change
 		FOrientation As Integer = 0 '是字体的倾斜角。 David Change
 		Declare Sub Create

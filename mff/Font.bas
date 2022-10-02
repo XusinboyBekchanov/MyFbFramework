@@ -67,7 +67,7 @@ Namespace My.Sys.Drawing
 			Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then DeleteObject(Handle)
-			Handle = CreateFontW(-MulDiv(FSize,FcyPixels,72),0,FOrientation*FSize,FOrientation*FSize,FBolds(Abs_(FBold)),FItalic,FUnderline,FStrikeout,FCharSet,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,*FName)
+			Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation*FSize, FOrientation*FSize, FBolds(abs_(FBold)), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
 		#endif
 		If Handle Then
 			If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component Then
@@ -97,7 +97,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Parent(Value As My.Sys.Object Ptr)
-		FParent = value
+		FParent = Value
 		#ifdef __USE_GTK__
 			If *FParent Is My.Sys.ComponentModel.Component Then
 				#ifndef __USE_GTK2__
@@ -125,7 +125,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Name(ByRef Value As WString)
-		WLet(FName, value)
+		WLet(FName, Value)
 		Create
 	End Property
 	
@@ -134,7 +134,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Color(Value As Integer)
-		FColor = value
+		FColor = Value
 		'Create
 	End Property
 	
@@ -143,7 +143,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.CharSet(Value As Integer)
-		FCharSet = value
+		FCharSet = Value
 		Create
 	End Property
 	
@@ -152,7 +152,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Size(Value As Integer)
-		FSize = value
+		FSize = Value
 		Create
 	End Property
 	
@@ -162,7 +162,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Orientation(Value As Integer)
-		FOrientation = value
+		FOrientation = Value
 		Create
 	End Property
 	
@@ -171,7 +171,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Bold(Value As Boolean)
-		FBold = value
+		FBold = Value
 		Create
 	End Property
 	
@@ -180,7 +180,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Italic(Value As Boolean)
-		FItalic = value
+		FItalic = Value
 		Create
 	End Property
 	
@@ -189,16 +189,16 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Font.Underline(Value As Boolean)
-		FUnderline = value
+		FUnderline = Value
 		Create
 	End Property
 	
 	Private Property Font.StrikeOut As Boolean
-		Return FStrikeout
+		Return FStrikeOut
 	End Property
 	
 	Private Property Font.StrikeOut(Value As Boolean)
-		FStrikeout = value
+		FStrikeOut = Value
 		Create
 	End Property
 	
@@ -236,10 +236,12 @@ Namespace My.Sys.Drawing
 		WLet(FName, DefaultFont.Name)
 		FSize     = DefaultFont.Size
 		#ifdef __USE_WINAPI__
-			Dim As HDC Dc
-			Dc = GetDC(HWND_DESKTOP)
-			FCyPixels = GetDeviceCaps(DC, LOGPIXELSY)
-			ReleaseDC(HWND_DESKTOP,DC)
+			If ydpi = 0 Then
+				Dim As HDC Dc
+				Dc = GetDC(HWND_DESKTOP)
+				ydpi = GetDeviceCaps(Dc, LOGPIXELSY) / 96
+				ReleaseDC(HWND_DESKTOP, Dc)
+			End If
 			FBolds(0) = 400
 			FBolds(1) = 700
 			'Create
@@ -247,7 +249,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Font
-		WDeallocate FName
+		WDeAllocate FName
 		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
 		#elseif defined(__USE_WINAPI__)

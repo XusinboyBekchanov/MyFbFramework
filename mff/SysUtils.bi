@@ -96,14 +96,16 @@ Const HELP_SETPOPUP_POS = &Hd
 	
 	'Dim Shared As Message Message
 	
-	Declare Function EnumThreadWindowsProc(FWindow As HWND,LData As LParam) As Bool
+	Declare Function EnumThreadWindowsProc(FWindow As HWND,LData As LPARAM) As BOOL
 	
 	Declare Function MainHandle As HWND
 #elseif defined(__USE_JNI__)
 	Dim Shared env          As JNIEnv Ptr
-	Dim Shared xdpi         As Double
-	Dim Shared ydpi         As Double
 #endif
+Dim Shared xdpi         As Double
+Dim Shared ydpi         As Double
+Dim Shared oldxdpi      As Double
+Dim Shared oldydpi      As Double
 
 #ifdef __USE_JNI__
 	Declare Function ScaleX(ByVal cx As Single) As Integer

@@ -666,7 +666,7 @@ Namespace My.Sys.Forms
 						SendMessage(.FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
 						.FDarkMode = True
 					'End If
-					.UpdateRebar()
+					.UpdateReBar()
 					For i As Integer = 0 To .Bands.Count - 1
 						.Bands.Item(i)->Child = .Bands.Item(i)->Child
 						.Bands.Item(i)->Update True
@@ -681,8 +681,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub ReBar.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_BUTTON_PRESS
 				bPressed = True
 				If InRect Then
@@ -784,8 +784,70 @@ Namespace My.Sys.Forms
 			End Select
 		#else
 			Select Case Message.Msg
+			Case WM_DPICHANGED
+				Brush.Handle = hbrBkgnd
+				SendMessage(FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
+				SendMessage(FHandle, RB_SETBKCOLOR, 0, Cast(LPARAM, darkBkColor))
+				Dim As COLORSCHEME csch
+				csch.dwSize = SizeOf(COLORSCHEME)
+				csch.clrBtnShadow = darkBkColor
+				csch.clrBtnHighlight = darkHlBkColor
+				SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
+				SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+				Repaint
+			Case WM_ERASEBKGND
+				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
+				'	Message.Result = -1
+				'	Exit Sub
+				'End If
 			Case WM_PAINT
-				Message.Result = 0
+				'If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+				'	If Not FDarkMode Then
+				'		If Not FDarkMode Then
+				'			FDarkMode = True
+				'			'SetWindowTheme(FHandle, "DarkModeNavbar", nullptr)
+				'			Brush.Handle = hbrBkgnd
+				'			SendMessage(FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
+				'			SendMessage(FHandle, RB_SETBKCOLOR, 0, Cast(LPARAM, darkBkColor))
+				'			Dim As COLORSCHEME csch
+				'			csch.dwSize = SizeOf(COLORSCHEME)
+				'			csch.clrBtnShadow = darkBkColor
+				'			csch.clrBtnHighlight = darkHlBkColor
+				'			SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
+				'			SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+				'			Repaint
+				'		End If
+				'	End If
+				'End If
+				'Dim As HDC Dc, memDC
+				'Dim As HBITMAP Bmp
+				'Dim As PAINTSTRUCT Ps
+				'Dim As ..Rect R
+				'Canvas.HandleSetted = True
+				'Dc = BeginPaint(Handle, @Ps)
+				'FillRect Dc, @Ps.rcPaint, Brush.Handle
+				'Canvas.Handle = Dc
+				'Dim As HPEN GripperPen = CreatePen(PS_SOLID, 1, darkBkColor)
+				'Dim As HPEN GripperPen1 = CreatePen(PS_SOLID, 1, darkHlBkColor)
+				'Dim As HPEN PrevPen = SelectObject(Dc, GripperPen)
+				'Dim rc As My.Sys.Drawing.Rect
+				'For i As Integer = 0 To Bands.Count - 1
+				'	SendMessage(FHandle, RB_GETRECT, i, Cast(LPARAM, @rc))
+				'	SelectObject(Dc, GripperPen1)
+				'	MoveToEx Dc, rc.Left + 2, rc.Top + 2, 0
+				'	LineTo Dc, rc.Left + 2, rc.Bottom - 3
+				'	SelectObject(Dc, GripperPen1)
+				'	MoveToEx Dc, rc.Left + 3, rc.Top + 2, 0
+				'	LineTo Dc, rc.Left + 3, rc.Bottom - 3
+				'Next i
+				'SelectObject(Dc, PrevPen)
+				'DeleteObject GripperPen
+				'DeleteObject GripperPen1
+				'If OnPaint Then OnPaint(This, Canvas)
+				'EndPaint Handle, @Ps
+				'Message.Result = -1
+				'Canvas.HandleSetted = False
+				'Return
 			Case WM_COMMAND
 				Message.Result = -1
 			Case WM_SIZE
@@ -824,21 +886,27 @@ Namespace My.Sys.Forms
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
 						Select Case nmcd->dwDrawStage
 						Case CDDS_PREPAINT
-							Message.Result = CDRF_NOTIFYPOSTPAINT
+							'FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
+							Message.Result = CDRF_NOTIFYPOSTPAINT Or CDRF_NOTIFYPOSTERASE
 							Return
 						Case CDDS_POSTPAINT
 							Dim As HPEN GripperPen = CreatePen(PS_SOLID, 1, darkBkColor)
+							Dim As HPEN GripperPen1 = CreatePen(PS_SOLID, 1, darkBkColor)
 							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GripperPen)
-							Dim rc As My.Sys.Drawing.RECT
+							'FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
+							Dim rc As My.Sys.Drawing.Rect
 							For i As Integer = 0 To Bands.Count - 1
 								SendMessage(FHandle, RB_GETRECT, i, Cast(LPARAM, @rc))
+								SelectObject(nmcd->hdc, GripperPen1)
 								MoveToEx nmcd->hdc, rc.Left + 2, rc.Top + 2, 0
 								LineTo nmcd->hdc, rc.Left + 2, rc.Bottom - 3
+								SelectObject(nmcd->hdc, GripperPen1)
 								MoveToEx nmcd->hdc, rc.Left + 3, rc.Top + 2, 0
 								LineTo nmcd->hdc, rc.Left + 3, rc.Bottom - 3
 							Next i
 							SelectObject(nmcd->hdc, PrevPen)
 							DeleteObject GripperPen
+							DeleteObject GripperPen1
 							Message.Result = CDRF_DODEFAULT
 							Return
 						End Select
@@ -873,8 +941,8 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub ReBar.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As ReBar Ptr rb = user_data
-			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
-				rb->AllocatedWidth = allocation->width
+			If allocation->Width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
+				rb->AllocatedWidth = allocation->Width
 				rb->AllocatedHeight = allocation->height
 				Dim ChildAllocation As GtkAllocation
 				Dim ChildWidget As GtkWidget Ptr
@@ -883,20 +951,20 @@ Namespace My.Sys.Forms
 					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
 					If rb->Bands.Item(i)->MinWidth = 0 OrElse rb->Bands.Item(i)->MinHeight = 0 Then
 						rb->bWithoutUpdate = True
-						rb->Bands.Item(i)->MinWidth = ChildAllocation.width + 11
+						rb->Bands.Item(i)->MinWidth = ChildAllocation.Width + 11
 						rb->Bands.Item(i)->MinHeight = ChildAllocation.height + 2
-						rb->Bands.Item(i)->IdealWidth = ChildAllocation.width + 11
-						rb->Bands.Item(i)->RequestedWidth = ChildAllocation.width + 11
-						rb->Bands.Item(i)->Width = ChildAllocation.width + 11
+						rb->Bands.Item(i)->IdealWidth = ChildAllocation.Width + 11
+						rb->Bands.Item(i)->RequestedWidth = ChildAllocation.Width + 11
+						rb->Bands.Item(i)->Width = ChildAllocation.Width + 11
 						rb->Bands.Item(i)->Height = ChildAllocation.height + 2
 						If *rb->Bands.Item(i)->Child Is ToolBar Then
-							gtk_toolbar_set_show_arrow(gtk_toolbar(rb->Bands.Item(i)->Child->Handle), True)
+							gtk_toolbar_set_show_arrow(GTK_TOOLBAR(rb->Bands.Item(i)->Child->Handle), True)
 						End If
 						rb->bWithoutUpdate = False
 					End If
 				Next
 				Dim As Boolean bNextNewLine
-				Dim As Integer FLeft, FTop, FWidth = allocation->width, FHeight, OldBandIndex, RowHeight, FMinWidths
+				Dim As Integer FLeft, FTop, FWidth = allocation->Width, FHeight, OldBandIndex, RowHeight, FMinWidths
 				rb->FRowCount = 0
 				For i As Integer = 0 To rb->Bands.Count - 1
 					If Not rb->Bands.Item(i)->Visible Then Continue For
@@ -922,7 +990,7 @@ Namespace My.Sys.Forms
 					End If
 					FWidth -= rb->Bands.Item(i)->MinWidth
 					If bNextNewLine Then
-						FWidth = allocation->width
+						FWidth = allocation->Width
 						FLeft = 0
 						For j As Integer = OldBandIndex To i
 							If Not rb->Bands.Item(j)->Visible Then Continue For
@@ -934,7 +1002,7 @@ Namespace My.Sys.Forms
 							With *rb->Bands.Item(j)
 								ChildWidget = .Child->Handle
 								.Left = FLeft
-								gtk_layout_move(gtk_layout(widget), ChildWidget, .Left + 11, .Top)
+								gtk_layout_move(GTK_LAYOUT(widget), ChildWidget, .Left + 11, .Top)
 								rb->bWithoutUpdate = True
 								If j = i Then
 									.Width = FWidth
@@ -948,7 +1016,7 @@ Namespace My.Sys.Forms
 							FLeft += rb->Bands.Item(j)->Width
 							FWidth -= rb->Bands.Item(j)->Width
 						Next
-						FWidth = allocation->width
+						FWidth = allocation->Width
 						FLeft = 0
 						FTop += rb->Bands.Item(i)->Height
 						OldBandIndex = i + 1
