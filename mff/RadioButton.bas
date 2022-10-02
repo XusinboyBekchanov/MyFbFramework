@@ -97,9 +97,9 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To Value->ControlCount - 1
 				If Value->Controls[i]->ClassName = "RadioButton" Then
 					#ifdef __USE_GTK3__
-						gtk_radio_button_join_group(gtk_radio_button(widget), gtk_radio_button(Value->Controls[i]->Widget))
+						gtk_radio_button_join_group(GTK_RADIO_BUTTON(widget), GTK_RADIO_BUTTON(Value->Controls[i]->widget))
 					#else
-						gtk_radio_button_set_group(gtk_radio_button(widget), gtk_radio_button_get_group(gtk_radio_button(Value->Controls[i]->Widget)))
+						gtk_radio_button_set_group(GTK_RADIO_BUTTON(widget), gtk_radio_button_get_group(GTK_RADIO_BUTTON(Value->Controls[i]->widget)))
 					#endif
 					Exit For
 				End If
@@ -141,10 +141,17 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
 			#elseif defined(__USE_WINAPI__)
+				Perform(BM_SETCHECK, FChecked, 0)
 				If FChecked Then
-					Perform(BM_CLICK, 0, 0)
-				Else
-					Perform(BM_SETCHECK, FChecked, 0)
+					If FParent Then
+						For i As Integer = 0 To This.Parent->ControlCount - 1
+							If This.Parent->Controls[i]->ClassName = "RadioButton" Then
+								If This.Parent->Controls[i] <> @This Then
+									This.Parent->Controls[i]->Perform(BM_SETCHECK, 0, 0)
+								End If
+							End If
+						Next
+					End If
 				End If
 			#elseif defined(__USE_JNI__)
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
