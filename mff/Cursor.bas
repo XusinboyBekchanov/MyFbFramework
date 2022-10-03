@@ -79,71 +79,79 @@ Namespace My.Sys.Drawing
 		FHotSpotY = Value
 	End Property
 	
-	Private Function Cursor.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
-		#ifdef __USE_WINAPI__
-			Dim As ICONINFO ICIF
-			Dim As BITMAP BMP
-			If Handle Then DestroyCursor(Handle)
-			Handle = LoadImage(0, File, IMAGE_CURSOR, cx, cy, LR_LOADFROMFILE)
-			If Handle = 0 Then Return False
-			GetIconInfo(Handle, @ICIF)
-			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
-			FHotSpotX = ICIF.xHotSpot
-			FHotSpotY = ICIF.yHotSpot
-			DeleteObject(ICIF.hbmColor)
-			DeleteObject(ICIF.hbmMask)
-		#endif
-		If Changed Then Changed(This)
-		Return True
-	End Function
+	#ifndef Cursor_LoadFromFile_Off
+		Private Function Cursor.LoadFromFile(ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+			#ifdef __USE_WINAPI__
+				Dim As ICONINFO ICIF
+				Dim As BITMAP BMP
+				If Handle Then DestroyCursor(Handle)
+				Handle = LoadImage(0, File, IMAGE_CURSOR, cx, cy, LR_LOADFROMFILE)
+				If Handle = 0 Then Return False
+				GetIconInfo(Handle, @ICIF)
+				GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
+				FWidth  = BMP.bmWidth
+				FHeight = BMP.bmHeight
+				FHotSpotX = ICIF.xHotspot
+				FHotSpotY = ICIF.yHotspot
+				DeleteObject(ICIF.hbmColor)
+				DeleteObject(ICIF.hbmMask)
+			#endif
+			If Changed Then Changed(This)
+			Return True
+		End Function
+	#endif
 	
-	Private Function Cursor.SaveToFile(ByRef File As WString) As Boolean
-		Return False
-	End Function
+	#ifndef Cursor_SaveToFile_Off
+		Private Function Cursor.SaveToFile(ByRef File As WString) As Boolean
+			Return False
+		End Function
+	#endif
 	
-	Private Function Cursor.LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#ifdef __USE_WINAPI__
-			Dim As ICONINFO ICIF
-			Dim As BITMAP BMP
-			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			If Handle Then DestroyCursor(Handle)
-			Handle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
-			If Handle = 0 Then Return False
-'			GetIconInfo(Handle, @ICIF)
-'			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
-'			FWidth  = BMP.bmWidth
-'			FHeight = BMP.bmHeight
-'			FHotSpotX = ICIF.xHotSpot
-'			FHotSpotY = ICIF.yHotSpot
-'			?DeleteObject(ICIF.hbmColor)
-'			?DeleteObject(ICIF.hbmMask)
-		#endif
-		If Changed Then Changed(This)
-		Return True
-	End Function
+	#ifndef Cursor_LoadFromResourceName_Off
+		Private Function Cursor.LoadFromResourceName(ByRef ResName As WString, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+			#ifdef __USE_WINAPI__
+				Dim As ICONINFO ICIF
+				Dim As BITMAP BMP
+				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+				If Handle Then DestroyCursor(Handle)
+				Handle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+				If Handle = 0 Then Return False
+	'			GetIconInfo(Handle, @ICIF)
+	'			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
+	'			FWidth  = BMP.bmWidth
+	'			FHeight = BMP.bmHeight
+	'			FHotSpotX = ICIF.xHotSpot
+	'			FHotSpotY = ICIF.yHotSpot
+	'			?DeleteObject(ICIF.hbmColor)
+	'			?DeleteObject(ICIF.hbmMask)
+			#endif
+			If Changed Then Changed(This)
+			Return True
+		End Function
+	#endif
 	
-	Private Function Cursor.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#ifdef __USE_WINAPI__
-			Dim As ICONINFO ICIF
-			Dim As BITMAP BMP
-			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			If Handle Then DestroyCursor(Handle)
-			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
-			If handle = 0 Then Return False
-			GetIconInfo(Handle,@ICIF)
-			GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
-			FHotSpotX = ICIF.xHotSpot
-			FHotSpotY = ICIF.yHotSpot
-			DeleteObject(ICIF.hbmColor)
-			DeleteObject(ICIF.hbmMask)
-		#endif
-		If Changed Then Changed(This)
-		Return True
-	End Function
+	#ifndef Cursor_LoadFromResourceID_Off
+		Private Function Cursor.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+			#ifdef __USE_WINAPI__
+				Dim As ICONINFO ICIF
+				Dim As BITMAP BMP
+				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+				If Handle Then DestroyCursor(Handle)
+				Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+				If Handle = 0 Then Return False
+				GetIconInfo(Handle,@ICIF)
+				GetObject(ICIF.hbmColor,SizeOf(BMP), @BMP)
+				FWidth  = BMP.bmWidth
+				FHeight = BMP.bmHeight
+				FHotSpotX = ICIF.xHotspot
+				FHotSpotY = ICIF.yHotspot
+				DeleteObject(ICIF.hbmColor)
+				DeleteObject(ICIF.hbmMask)
+			#endif
+			If Changed Then Changed(This)
+			Return True
+		End Function
+	#endif
 	
 	Private Sub Cursor.Create
 	End Sub

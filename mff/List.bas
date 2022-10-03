@@ -26,11 +26,13 @@ Private Property List.Item(Index As Integer) As Any Ptr
 	End If
 End Property
 
-Private Property List.Item(Index As Integer, FItem As Any Ptr)
-	If Index >= 0 And Index <= Count -1 Then
-		Items[Index] = FItem
-	End If
-End Property
+#ifndef List_Item_Set_Off
+	Private Property List.Item(Index As Integer, FItem As Any Ptr)
+		If Index >= 0 And Index <= Count -1 Then
+			Items[Index] = FItem
+		End If
+	End Property
+#endif
 
 Private Sub List.Add(FItem As Any Ptr)
 	Items = Reallocate_(Items, (Count + 1) * SizeOf(Any Ptr))

@@ -48,30 +48,36 @@ Namespace My.Sys.Drawing
 		Return WGet(FResName)
 	End Property
 	
-	Private Property Icon.ResName(ByRef Value As WString)
-		WLet(FResName, Value)
-	End Property
+	#ifndef Icon_ResName_Set_Off
+		Private Property Icon.ResName(ByRef Value As WString)
+			WLet(FResName, Value)
+		End Property
+	#endif
 	
 	Private Function Icon.ToString() ByRef As WString
 		Return *FResName
 	End Function
 	
-	Private Property Icon.Width As Integer
-		Return FWidth
-	End Property
+	#ifndef Icon_Width_Get_Off
+		Private Property Icon.Width As Integer
+			Return FWidth
+		End Property
+	#endif
 	
 	Private Property Icon.Width(Value As Integer)
 	End Property
 	
-	Private Property Icon.Height As Integer
-		Return FWidth
-	End Property
+	#ifndef Icon_Height_Get_Off
+		Private Property Icon.Height As Integer
+			Return FWidth
+		End Property
+	#endif
 	
 	Private Property Icon.Height(Value As Integer)
 	End Property
 	
 	#ifdef __USE_WINAPI__
-		Private Function Icon.ToBitmap() As hBitmap
+		Private Function Icon.ToBitmap() As HBITMAP
 			Dim As HWND desktop = GetDesktopWindow()
 			If (desktop = NULL) Then
 				Return NULL
@@ -125,9 +131,9 @@ Namespace My.Sys.Drawing
 			Dim As GError Ptr gerr
 			If File = "" Then Return False
 			If cx = 0 AndAlso cy = 0 Then
-				Handle = gdk_pixbuf_new_from_file(ToUTF8(File), @gerr)
+				Handle = gdk_pixbuf_new_from_file(ToUtf8(File), @gerr)
 			Else
-				Handle = gdk_pixbuf_new_from_file_at_size(ToUTF8(File), cx, cy, @gerr)
+				Handle = gdk_pixbuf_new_from_file_at_size(ToUtf8(File), cx, cy, @gerr)
 			End If
 			If Handle = 0 Then Return False
 		#elseif defined(__USE_WINAPI__)
@@ -147,59 +153,65 @@ Namespace My.Sys.Drawing
 		Return True
 	End Function
 	
-	Private Function Icon.SaveToFile(ByRef File As WString) As Boolean
-		Return False
-	End Function
+	#ifndef Icon_SaveToFile_Off
+		Private Function Icon.SaveToFile(ByRef File As WString) As Boolean
+			Return False
+		End Function
+	#endif
 	
-	Private Function Icon.LoadFromResourceName(ByRef ResourceName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
-		#ifdef __USE_GTK__
-			Dim As GError Ptr gerr
-			If FileExists("./Resources/" & ResName & ".ico") Then
-				Handle = gdk_pixbuf_new_from_file(ToUTF8("./Resources/" & ResName & ".ico"), @gerr)
-			ElseIf FileExists("./resources/" & ResName & ".ico") Then
-				Handle = gdk_pixbuf_new_from_file(ToUTF8("./resources/" & ResName & ".ico"), @gerr)
-			Else
-				Handle = gdk_pixbuf_new_from_resource(ToUTF8(ResName), @gerr)
-			End If
-			If gerr Then Print gerr->code, *gerr->message
-		#elseif defined(__USE_WINAPI__)
-			Dim As ICONINFO ICIF
-			Dim As BITMAP BMP
-			This.ResName = ResourceName
-			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			If Handle Then DestroyIcon(Handle)
-			Handle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
-			If Handle = 0 Then Return False
-			GetIconInfo(Handle, @ICIF)
-			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
-			DeleteObject(ICIF.hbmColor)
-			DeleteObject(ICIF.hbmMask)
-		#endif
-		If Changed Then Changed(This)
-		Return True
-	End Function
+	#ifndef Icon_LoadFromResourceName_Off
+		Private Function Icon.LoadFromResourceName(ByRef ResourceName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
+			#ifdef __USE_GTK__
+				Dim As GError Ptr gerr
+				If FileExists("./Resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".ico"), @gerr)
+				ElseIf FileExists("./resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".ico"), @gerr)
+				Else
+					Handle = gdk_pixbuf_new_from_resource(ToUtf8(ResName), @gerr)
+				End If
+				If gerr Then Print gerr->code, *gerr->message
+			#elseif defined(__USE_WINAPI__)
+				Dim As ICONINFO ICIF
+				Dim As BITMAP BMP
+				This.ResName = ResourceName
+				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+				If Handle Then DestroyIcon(Handle)
+				Handle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+				If Handle = 0 Then Return False
+				GetIconInfo(Handle, @ICIF)
+				GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
+				FWidth  = BMP.bmWidth
+				FHeight = BMP.bmHeight
+				DeleteObject(ICIF.hbmColor)
+				DeleteObject(ICIF.hbmMask)
+			#endif
+			If Changed Then Changed(This)
+			Return True
+		End Function
+	#endif
 	
-	Private Function Icon.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
-		#ifdef __USE_WINAPI__
-			Dim As ICONINFO ICIF
-			Dim As BITMAP BMP
-			This.ResName = WStr(ResID)
-			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			If Handle <> 0 Then DestroyIcon(Handle)
-			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
-			If Handle = 0 Then Return False
-			GetIconInfo(Handle, @ICIF)
-			GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
-			DeleteObject(ICIF.hbmColor)
-			DeleteObject(ICIF.hbmMask)
-		#endif
-		If Changed Then Changed(This)
-		Return True
-	End Function
+	#ifndef Icon_LoadFromResourceID_Off
+		Private Function Icon.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
+			#ifdef __USE_WINAPI__
+				Dim As ICONINFO ICIF
+				Dim As BITMAP BMP
+				This.ResName = WStr(ResID)
+				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+				If Handle <> 0 Then DestroyIcon(Handle)
+				Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_ICON, cx, cy, LR_COPYFROMRESOURCE)
+				If Handle = 0 Then Return False
+				GetIconInfo(Handle, @ICIF)
+				GetObject(ICIF.hbmColor, SizeOf(BMP), @BMP)
+				FWidth  = BMP.bmWidth
+				FHeight = BMP.bmHeight
+				DeleteObject(ICIF.hbmColor)
+				DeleteObject(ICIF.hbmMask)
+			#endif
+			If Changed Then Changed(This)
+			Return True
+		End Function
+	#endif
 	
 	Private Operator Icon.Cast As Any Ptr
 		Return @This

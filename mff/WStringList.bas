@@ -20,13 +20,17 @@ Private Property WStringList.Count As Integer
 	Return FCount
 End Property
 
-Private Property WStringList.MatchCase(iValue As Boolean)
-	FMatchCase = iValue
-End Property
+#ifndef WStringList_MatchCase_Get_Off
+	Private Property WStringList.MatchCase As Boolean
+		Return FMatchCase
+	End Property
+#endif
 
-Private Property WStringList.MatchCase As Boolean
-	Return FMatchCase
-End Property
+#ifndef WStringList_MatchCase_Set_Off
+	Private Property WStringList.MatchCase(iValue As Boolean)
+		FMatchCase = iValue
+	End Property
+#endif
 
 Private Property WStringList.MatchFullWords(iValue As Boolean)
 	FMatchFullWords = iValue
@@ -59,17 +63,19 @@ Private Property WStringList.Text ByRef As WString
 	Return *FText
 End Property
 
-Private Property WStringList.Text(ByRef Value As WString)
-	WLet(FText, "")
-	This.Clear
-	For i As Integer = 0 To Len(Value)
-		WAdd FText, WChr(Value[i])
-		If Value[i] = 10 Or Value[i] = 0 Then
-			This.Add Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13))
-			WLet(FText, "")
-		End If
-	Next i
-End Property
+#ifndef WStringList_Text_Set_Off
+	Private Property WStringList.Text(ByRef Value As WString)
+		WLet(FText, "")
+		This.Clear
+		For i As Integer = 0 To Len(Value)
+			WAdd FText, WChr(Value[i])
+			If Value[i] = 10 Or Value[i] = 0 Then
+				This.Add Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13))
+				WLet(FText, "")
+			End If
+		Next i
+	End Property
+#endif
 
 Private Property WStringList.Item(Index As Integer) ByRef As WString
 	If (Index > -1 And Index < FCount) AndAlso Items.Item(Index) > 0 Then Return *Cast(WString Ptr, Items.Item(Index)) Else Return ""
@@ -91,20 +97,22 @@ Private Property WStringList.Object(Index As Integer, FObj As Any Ptr)
 	If Index > -1 And Index < FCount Then Objects.Item(Index) = FObj
 End Property
 
-Private Function WStringList.Add(ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer
-	'If iValue = "" Then Return -1 'We should allow add a empty records. Will gpt trouble in TreeListview if not allowed.
-	If CBool(FCount > 0) AndAlso FSorted Then
-		Return This.Insert(-1, iValue, FObj)
-	Else
-		Dim As WString Ptr iText = CAllocate((Len(iValue) + 1) * SizeOf(WString))
-		*Itext = iValue
-		Items.Add iText
-		Objects.Add FObj
-		FCount = Items.Count
-		Return Fcount - 1
-	End If
-	If OnAdd Then OnAdd(This, iValue, FObj)
-End Function
+#ifndef WStringList_Add_Off
+	Private Function WStringList.Add(ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer
+		'If iValue = "" Then Return -1 'We should allow add a empty records. Will gpt trouble in TreeListview if not allowed.
+		If CBool(FCount > 0) AndAlso FSorted Then
+			Return This.Insert(-1, iValue, FObj)
+		Else
+			Dim As WString Ptr iText = CAllocate((Len(iValue) + 1) * SizeOf(WString))
+			*iText = iValue
+			Items.Add iText
+			Objects.Add FObj
+			FCount = Items.Count
+			Return FCount - 1
+		End If
+		If OnAdd Then OnAdd(This, iValue, FObj)
+	End Function
+#endif
 
 Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As Const WString, FObj As Any Ptr = 0) As Integer
 	Dim As Integer j
@@ -166,59 +174,61 @@ Private Sub WStringList.Remove(Index As Integer)
 	If OnRemove Then OnRemove(This, Index)
 End Sub
 
-Private Sub WStringList.Sort(iLeft As Integer = 0, iRight As Integer = 0)
-	If FCount <= 1 Then Return
-	If iRight = 0 Then iRight = FCount - 1
-	If iLeft < 0 Then iLeft = 0
-	If (iRight <> 0 AndAlso (iLeft >= iRight)) Then Return
-	Dim As Integer i = ileft, j = iRight
-	'QuickSort
-	Dim As WString Ptr iKey = Cast (WString Ptr, Items.Item(i))
-	If MatchCase Then
-		While (i < FCount And j >= 0 And i <= j) '/*控制在当组内寻找一遍
-			While (*iKey < *Cast(WString Ptr, Items.Item(j)) AndAlso i < j)
-				j -= 1
+#ifndef WStringList_Sort_Off
+	Private Sub WStringList.Sort(iLeft As Integer = 0, iRight As Integer = 0)
+		If FCount <= 1 Then Return
+		If iRight = 0 Then iRight = FCount - 1
+		If iLeft < 0 Then iLeft = 0
+		If (iRight <> 0 AndAlso (iLeft >= iRight)) Then Return
+		Dim As Integer i = iLeft, j = iRight
+		'QuickSort
+		Dim As WString Ptr iKey = Cast (WString Ptr, Items.Item(i))
+		If MatchCase Then
+			While (i < FCount And j >= 0 And i <= j) '/*控制在当组内寻找一遍
+				While (*iKey < *Cast(WString Ptr, Items.Item(j)) AndAlso i < j)
+					j -= 1
+				Wend
+				If i <= j Then Exchange i, j: i += 1
+				While (*iKey >= *Cast(WString Ptr, Items.Item(i)) AndAlso i < j)
+					i += 1
+				Wend
+				If i <= j Then Exchange i, j:  j -= 1
 			Wend
-			If i <= j Then Exchange i, j: i += 1
-			While (*iKey >= *Cast(WString Ptr, Items.Item(i)) AndAlso i < j)
-				i += 1
+		Else
+			While (i < FCount And j >= 0 And i <= j) '/*控制在当组内寻找一遍
+				While (LCase(*iKey) < LCase(*Cast(WString Ptr, Items.Item(j))) AndAlso i < j)
+					j -= 1
+				Wend
+				If i <= j Then Exchange i, j: i += 1
+				While (LCase(*iKey) >= LCase(*Cast (WString Ptr, Items.Item(i))) AndAlso i < j)
+					i += 1
+				Wend
+				If i <= j Then Exchange i, j: j -= 1
 			Wend
-			If i <= j Then Exchange i, j:  j -= 1
-		Wend
-	Else
-		While (i < FCount And j >= 0 And i <= j) '/*控制在当组内寻找一遍
-			While (LCase(*iKey) < LCase(*Cast(WString Ptr, Items.Item(j))) AndAlso i < j)
-				j -= 1
-			Wend
-			If i <= j Then Exchange i, j: i += 1
-			While (LCase(*iKey) >= LCase(*Cast (WString Ptr, Items.Item(i))) AndAlso i < j)
-				i += 1
-			Wend
-			If i <= j Then Exchange i, j: j -= 1
-		Wend
-	End If
-	'Items.Item(i) = iKey  'NOT OK /*当在当组内找完一遍以后就把中间数key回归*/
-	'Objects.Item(i) = iObj
-	If j > iLeft Then This.Sort(iLeft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
-	If i < iRight Then This.Sort(i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
-	
-	'	'bubbleSort , Add flag for fast quit if it is sorted already
-	'	Dim As Boolean flag
-	'	For i = 0 To FCount - 1
-	'		flag = False
-	'		For j = 0 To FCount - i - 2
-	'			If MatchCase Then
-	'				If *Cast(WString Ptr, Items.Item(j)) > *Cast(WString Ptr, Items.Item(j + 1)) Then Exchange j , j + 1 : flag = True
-	'			Else
-	'				If (LCase(*Cast(WString Ptr, Items.Item(j))) > LCase(*Cast(WString Ptr, Items.Item(j + 1)))) Then Exchange j, j + 1 : flag = True
-	'			End If
-	'		Next
-	'		If flag = False Then Return
-	'	Next
-	
-	FSorted = True
-	If OnChange Then OnChange(This)
-End Sub
+		End If
+		'Items.Item(i) = iKey  'NOT OK /*当在当组内找完一遍以后就把中间数key回归*/
+		'Objects.Item(i) = iObj
+		If j > iLeft Then This.Sort(iLeft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
+		If i < iRight Then This.Sort(i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
+		
+		'	'bubbleSort , Add flag for fast quit if it is sorted already
+		'	Dim As Boolean flag
+		'	For i = 0 To FCount - 1
+		'		flag = False
+		'		For j = 0 To FCount - i - 2
+		'			If MatchCase Then
+		'				If *Cast(WString Ptr, Items.Item(j)) > *Cast(WString Ptr, Items.Item(j + 1)) Then Exchange j , j + 1 : flag = True
+		'			Else
+		'				If (LCase(*Cast(WString Ptr, Items.Item(j))) > LCase(*Cast(WString Ptr, Items.Item(j + 1)))) Then Exchange j, j + 1 : flag = True
+		'			End If
+		'		Next
+		'		If flag = False Then Return
+		'	Next
+		
+		FSorted = True
+		If OnChange Then OnChange(This)
+	End Sub
+#endif
 
 Private Sub WStringList.Clear
 	If FCount < 1 Then Exit Sub
@@ -266,67 +276,71 @@ Private Sub WStringList.LoadFromFile(ByRef FileName As WString)
 	Close #Fn
 End Sub
 
-Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0, ByRef ItemText As UString = "") As Integer
-	'If iValue = "" OrElse FCount < 1 Then Return -1 'We should allow add a empty records. Will get trouble in TreeListview if not allowed.
-	If FCount < 1 Then Return -1
-	If iStart < 0 Then iStart = 0
-	If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
-		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
-		If FMatchCase Then  ' Action with the same sorting mode only
-			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
-				MidIndex = (RightIndex + LeftIndex) \ 2
-				ItemText = *Cast(WString Ptr, Items.Item(MidIndex))
-				If ItemText = iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <> iValue) Then
-					Return MidIndex
-				ElseIf ItemText < iValue Then
-					LeftIndex = MidIndex + 1
-				Else
-					RightIndex = MidIndex - 1
-				End If
-			Wend
-			Return IIf(bMatchFullWords, -1, LeftIndex)
+#ifndef WStringList_IndexOf_Off
+	Private Function WStringList.IndexOf(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0, ByRef ItemText As UString = "") As Integer
+		'If iValue = "" OrElse FCount < 1 Then Return -1 'We should allow add a empty records. Will get trouble in TreeListview if not allowed.
+		If FCount < 1 Then Return -1
+		If iStart < 0 Then iStart = 0
+		If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
+			Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
+			If FMatchCase Then  ' Action with the same sorting mode only
+				While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+					MidIndex = (RightIndex + LeftIndex) \ 2
+					ItemText = *Cast(WString Ptr, Items.Item(MidIndex))
+					If ItemText = iValue AndAlso (MidIndex = 0 OrElse *Cast(WString Ptr, Items.Item(MidIndex - 1)) <> iValue) Then
+						Return MidIndex
+					ElseIf ItemText < iValue Then
+						LeftIndex = MidIndex + 1
+					Else
+						RightIndex = MidIndex - 1
+					End If
+				Wend
+				Return IIf(bMatchFullWords, -1, LeftIndex)
+			Else
+				While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+					MidIndex = (RightIndex + LeftIndex) \ 2
+					ItemText = *Cast(WString Ptr, Items.Item(MidIndex))
+					If LCase(ItemText) = LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <> LCase(iValue)) Then
+						Return MidIndex
+					ElseIf LCase(ItemText) < LCase(iValue) Then
+						LeftIndex = MidIndex + 1
+					Else
+						RightIndex = MidIndex - 1
+					End If
+				Wend
+				Return IIf(MatchFullWords, -1, LeftIndex)
+			End If
 		Else
-			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
-				MidIndex = (RightIndex + LeftIndex) \ 2
-				ItemText = *Cast(WString Ptr, Items.Item(MidIndex))
-				If LCase(ItemText) = LCase(iValue) AndAlso (MidIndex = 0 OrElse LCase(*Cast(WString Ptr, Items.Item(MidIndex - 1))) <> LCase(iValue)) Then
-					Return MidIndex
-				ElseIf LCase(ItemText) < LCase(iValue) Then
-					LeftIndex = MidIndex + 1
-				Else
-					RightIndex = MidIndex - 1
-				End If
-			Wend
-			Return IIf(MatchFullWords, -1, LeftIndex)
+			If MatchCase Then
+				For j As Integer = 0 To FCount - 1
+					ItemText = *Cast(WString Ptr, Items.Item(j))
+					If ItemText = iValue Then Return j
+				Next
+			Else
+				For j As Integer = 0 To FCount - 1
+					ItemText = *Cast(WString Ptr, Items.Item(j))
+					If LCase(ItemText) = LCase(iValue) Then Return j
+				Next
+			End If
+			Return -1
 		End If
-	Else
-		If MatchCase Then
-			For j As Integer = 0 To FCount - 1
-				ItemText = *Cast(WString Ptr, Items.Item(j))
-				If ItemText = iValue Then Return j
-			Next
-		Else
-			For j As Integer = 0 To FCount - 1
-				ItemText = *Cast(WString Ptr, Items.Item(j))
-				If LCase(ItemText) = LCase(iValue) Then Return j
-			Next
-		End If
-		Return -1
-	End If
-End Function
+	End Function
+#endif
 
 Private Function WStringList.Contains(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0, ByRef Idx As Integer = -1) As Boolean
 	Idx = IndexOf(iValue, MatchCase, True, iStart)
 	Return Idx <> -1
 End Function
 
-Private Function WStringList.IndexOfObject(FObj As Any Ptr) As Integer
-	If FObj = 0 OrElse FCount < 1 Then Return -1
-	For j As Integer = 0 To FCount - 1
-		If Objects.Item(j) = FObj Then Return j
-	Next
-	Return -1
-End Function
+#ifndef WStringList_IndexOfObject_Off
+	Private Function WStringList.IndexOfObject(FObj As Any Ptr) As Integer
+		If FObj = 0 OrElse FCount < 1 Then Return -1
+		For j As Integer = 0 To FCount - 1
+			If Objects.Item(j) = FObj Then Return j
+		Next
+		Return -1
+	End Function
+#endif
 
 Private Function WStringList.ContainsObject(FObj As Any Ptr) As Boolean
 	Return IndexOfObject(FObj) <> -1

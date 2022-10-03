@@ -248,11 +248,13 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
-	Private Sub Canvas.TransferDoubleBuffer
-		#ifdef __USE_WINAPI__
-			BitBlt(DC, 0, 0, This.Width, This.Height, memDC, 0, 0, SRCCOPY)
-		#endif
-	End Sub
+	#ifndef Canvas_TransferDoubleBuffer_Off
+		Private Sub Canvas.TransferDoubleBuffer
+			#ifdef __USE_WINAPI__
+				BitBlt(DC, 0, 0, This.Width, This.Height, memDC, 0, 0, SRCCOPY)
+			#endif
+		End Sub
+	#endif
 	
 	Private Sub Canvas.DeleteDoubleBuffer
 		#ifdef __USE_WINAPI__
@@ -338,23 +340,25 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.Rectangle Overload(x As Double, y As Double, x1 As Double, y1 As Double)
-		If Not HandleSetted Then GetDevice
-		#ifdef __USE_GTK__
-			cairo_move_to (Handle, x - 0.5, y - 0.5)
-			cairo_line_to (Handle, x1 - 0.5, y - 0.5)
-			cairo_line_to (Handle, x1 - 0.5, y1 - 0.5)
-			cairo_line_to (Handle, x - 0.5, y1 - 0.5)
-			cairo_line_to (Handle, x - 0.5, y - 0.5)
-			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
-			cairo_fill_preserve(Handle)
-			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
-			cairo_stroke(Handle)
-		#elseif defined(__USE_WINAPI__)
-			.Rectangle Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX , ScaleY(y1) * imgScaleY + imgOffsetY
-		#endif
-		If Not HandleSetted Then ReleaseDevice
-	End Sub
+	#ifndef Canvas_Rectangle_Double_Double_Double_Double_Off
+		Private Sub Canvas.Rectangle Overload(x As Double, y As Double, x1 As Double, y1 As Double)
+			If Not HandleSetted Then GetDevice
+			#ifdef __USE_GTK__
+				cairo_move_to (Handle, x - 0.5, y - 0.5)
+				cairo_line_to (Handle, x1 - 0.5, y - 0.5)
+				cairo_line_to (Handle, x1 - 0.5, y1 - 0.5)
+				cairo_line_to (Handle, x - 0.5, y1 - 0.5)
+				cairo_line_to (Handle, x - 0.5, y - 0.5)
+				cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+				cairo_fill_preserve(Handle)
+				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+				cairo_stroke(Handle)
+			#elseif defined(__USE_WINAPI__)
+				.Rectangle Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX , ScaleY(y1) * imgScaleY + imgOffsetY
+			#endif
+			If Not HandleSetted Then ReleaseDevice
+		End Sub
+	#endif
 	
 	Private Sub Canvas.Rectangle(R As Rect)
 		If Not HandleSetted Then GetDevice
@@ -662,110 +666,112 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
-		If Not HandleSetted Then GetDevice
-		#ifdef __USE_WINAPI__
-			Dim As BITMAP     bm
-			Dim As COLORREF   cColor
-			Dim As HBITMAP    bmAndBack, bmAndObject, bmAndMem, bmSave
-			Dim As HBITMAP    bmBackOld, bmObjectOld, bmMemOld, bmSaveOld
-			Dim As HDC        hdcMem, hdcBack, hdcObject, hdcTemp, hdcSave
-			Dim As ..Point      ptSize
-			
-			hdcTemp = CreateCompatibleDC(Handle)
-			SelectObject(hdcTemp, Cast(HBITMAP, Image))   ' Выбираем битмап
-			
-			GetObject(Cast(HBITMAP, Image), SizeOf(BITMAP), Cast(LPSTR, @bm))
-			ptSize.X = bm.bmWidth            ' Получаем ширину битмапа
-			ptSize.Y = bm.bmHeight           ' Получаем высоту битмапа
-			DPtoLP(hdcTemp, @ptSize, 1)      ' Конвертируем из координат
-			' устройства в логические
-			' точки
-			
-			' Создаём несколько DC для хранения временных данных.
-			hdcBack   = CreateCompatibleDC(Handle)
-			hdcObject = CreateCompatibleDC(Handle)
-			hdcMem    = CreateCompatibleDC(Handle)
-			hdcSave   = CreateCompatibleDC(Handle)
-			
-			' Создаём битмап для каждого DC.
-			
-			' Монохромный DC
-			bmAndBack   = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
-			
-			' Монохромный DC
-			bmAndObject = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
-			
-			bmAndMem    = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
-			bmSave      = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
-			
-			' В каждом DC должен быть выбран объект битмапа для хранения
-			' пикселей.
-			bmBackOld   = SelectObject(hdcBack, bmAndBack)
-			bmObjectOld = SelectObject(hdcObject, bmAndObject)
-			bmMemOld    = SelectObject(hdcMem, bmAndMem)
-			bmSaveOld   = SelectObject(hdcSave, bmSave)
-			
-			' Устанавливаем режим маппинга.
-			SetMapMode(hdcTemp, GetMapMode(Handle))
-			
-			' Сохраняем битмап, переданный в параметре функции, так как
-			' он будет изменён.
-			BitBlt(hdcSave, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
-			
-			' Устанавливаем фоновый цвет (в исходном DC) тех частей,
-			' которые будут прозрачными.
-			cColor = SetBkColor(hdcTemp, cTransparentColor)
-			
-			' Создаём маску для битмапа путём вызова BitBlt из исходного
-			' битмапа на монохромный битмап.
-			BitBlt(hdcObject, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
-			
-			' Устанавливаем фоновый цвет исходного DC обратно в
-			' оригинальный цвет.
-			SetBkColor(hdcTemp, cColor)
-			
-			' Создаём инверсию маски.
-			BitBlt(hdcBack, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, NOTSRCCOPY)
-			
-			' Копируем фон главного DC в конечный.
-			BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, Handle, x, y, SRCCOPY)
-			
-			' Накладываем маску на те места, где будет помещён битмап.
-			BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, SRCAND)
-			
-			' Накладываем маску на прозрачные пиксели битмапа.
-			BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcBack, 0, 0, SRCAND)
-			
-			' Xor-им битмап с фоном на конечном DC.
-			BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCPAINT)
-			
-			' Копируем на экран.
-			BitBlt(Handle, x, y, ptSize.X, ptSize.Y, hdcMem, 0, 0, SRCCOPY)
-			
-			' Помещаем оригинальный битмап обратно в битмап, переданный в
-			' параметре функции.
-			BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcSave, 0, 0, SRCCOPY)
-			
-			' Удаляем битмапы из памяти.
-			DeleteObject(SelectObject(hdcBack, bmBackOld))
-			DeleteObject(SelectObject(hdcObject, bmObjectOld))
-			DeleteObject(SelectObject(hdcMem, bmMemOld))
-			DeleteObject(SelectObject(hdcSave, bmSaveOld))
-			
-			' Удаляем DC из памяти.
-			DeleteDC(hdcMem)
-			DeleteDC(hdcBack)
-			DeleteDC(hdcObject)
-			DeleteDC(hdcSave)
-			DeleteDC(hdcTemp)
-		#endif
-		If Not HandleSetted Then ReleaseDevice
-	End Sub
-	
-	Private Sub Canvas.DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
-		DrawTransparent ScaleX(x), ScaleY(y), Image.Handle, cTransparentColor
-	End Sub
+	#ifndef Canvas_DrawTransparent_Off
+		Private Sub Canvas.DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
+			If Not HandleSetted Then GetDevice
+			#ifdef __USE_WINAPI__
+				Dim As BITMAP     bm
+				Dim As COLORREF   cColor
+				Dim As HBITMAP    bmAndBack, bmAndObject, bmAndMem, bmSave
+				Dim As HBITMAP    bmBackOld, bmObjectOld, bmMemOld, bmSaveOld
+				Dim As HDC        hdcMem, hdcBack, hdcObject, hdcTemp, hdcSave
+				Dim As ..Point      ptSize
+				
+				hdcTemp = CreateCompatibleDC(Handle)
+				SelectObject(hdcTemp, Cast(HBITMAP, Image))   ' Выбираем битмап
+				
+				GetObject(Cast(HBITMAP, Image), SizeOf(BITMAP), Cast(LPSTR, @bm))
+				ptSize.X = bm.bmWidth            ' Получаем ширину битмапа
+				ptSize.Y = bm.bmHeight           ' Получаем высоту битмапа
+				DPtoLP(hdcTemp, @ptSize, 1)      ' Конвертируем из координат
+				' устройства в логические
+				' точки
+				
+				' Создаём несколько DC для хранения временных данных.
+				hdcBack   = CreateCompatibleDC(Handle)
+				hdcObject = CreateCompatibleDC(Handle)
+				hdcMem    = CreateCompatibleDC(Handle)
+				hdcSave   = CreateCompatibleDC(Handle)
+				
+				' Создаём битмап для каждого DC.
+				
+				' Монохромный DC
+				bmAndBack   = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
+				
+				' Монохромный DC
+				bmAndObject = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
+				
+				bmAndMem    = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
+				bmSave      = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
+				
+				' В каждом DC должен быть выбран объект битмапа для хранения
+				' пикселей.
+				bmBackOld   = SelectObject(hdcBack, bmAndBack)
+				bmObjectOld = SelectObject(hdcObject, bmAndObject)
+				bmMemOld    = SelectObject(hdcMem, bmAndMem)
+				bmSaveOld   = SelectObject(hdcSave, bmSave)
+				
+				' Устанавливаем режим маппинга.
+				SetMapMode(hdcTemp, GetMapMode(Handle))
+				
+				' Сохраняем битмап, переданный в параметре функции, так как
+				' он будет изменён.
+				BitBlt(hdcSave, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
+				
+				' Устанавливаем фоновый цвет (в исходном DC) тех частей,
+				' которые будут прозрачными.
+				cColor = SetBkColor(hdcTemp, cTransparentColor)
+				
+				' Создаём маску для битмапа путём вызова BitBlt из исходного
+				' битмапа на монохромный битмап.
+				BitBlt(hdcObject, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
+				
+				' Устанавливаем фоновый цвет исходного DC обратно в
+				' оригинальный цвет.
+				SetBkColor(hdcTemp, cColor)
+				
+				' Создаём инверсию маски.
+				BitBlt(hdcBack, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, NOTSRCCOPY)
+				
+				' Копируем фон главного DC в конечный.
+				BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, Handle, x, y, SRCCOPY)
+				
+				' Накладываем маску на те места, где будет помещён битмап.
+				BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, SRCAND)
+				
+				' Накладываем маску на прозрачные пиксели битмапа.
+				BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcBack, 0, 0, SRCAND)
+				
+				' Xor-им битмап с фоном на конечном DC.
+				BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCPAINT)
+				
+				' Копируем на экран.
+				BitBlt(Handle, x, y, ptSize.X, ptSize.Y, hdcMem, 0, 0, SRCCOPY)
+				
+				' Помещаем оригинальный битмап обратно в битмап, переданный в
+				' параметре функции.
+				BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcSave, 0, 0, SRCCOPY)
+				
+				' Удаляем битмапы из памяти.
+				DeleteObject(SelectObject(hdcBack, bmBackOld))
+				DeleteObject(SelectObject(hdcObject, bmObjectOld))
+				DeleteObject(SelectObject(hdcMem, bmMemOld))
+				DeleteObject(SelectObject(hdcSave, bmSaveOld))
+				
+				' Удаляем DC из памяти.
+				DeleteDC(hdcMem)
+				DeleteDC(hdcBack)
+				DeleteDC(hdcObject)
+				DeleteDC(hdcSave)
+				DeleteDC(hdcTemp)
+			#endif
+			If Not HandleSetted Then ReleaseDevice
+		End Sub
+		
+		Private Sub Canvas.DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
+			DrawTransparent ScaleX(x), ScaleY(y), Image.Handle, cTransparentColor
+		End Sub
+	#endif
 	
 	Private Sub Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
 		If Not HandleSetted Then GetDevice
@@ -799,7 +805,7 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.FillRect(R As Rect, FillColorBK As Integer = -1)
 		If Not HandleSetted Then GetDevice
-		If FillColorBk = -1 Then FillColorBk = FBackColor
+		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(FillColorBK), GetBlue(FillColorBK), GetGreen(FillColorBK))
 			cairo_fill_preserve(Handle)

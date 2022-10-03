@@ -133,10 +133,12 @@ Namespace My.Sys.Drawing
 		Return FColor
 	End Property
 	
-	Private Property Font.Color(Value As Integer)
-		FColor = Value
-		'Create
-	End Property
+	#ifndef Font_Color_Set_Off
+		Private Property Font.Color(Value As Integer)
+			FColor = Value
+			'Create
+		End Property
+	#endif
 	
 	Private Property Font.CharSet As Integer
 		Return FCharSet

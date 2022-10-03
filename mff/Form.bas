@@ -1546,69 +1546,71 @@ Namespace My.Sys.Forms
 		This.Show
 	End Sub
 	
-	Private Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
-		This.FParent = @OwnerForm
-		Return This.ShowModal()
-	End Function
-	
-	Private Function Form.ShowModal() As Integer
-		#ifdef __USE_GTK__
-			If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(pApp->ActiveForm->widget))
-			gtk_window_set_modal(GTK_WINDOW(widget), True)
-			This.Show
-			'If OnShow Then OnShow(This)
-			gtk_main()
-			gtk_window_set_modal(GTK_WINDOW(widget), False)
-		#elseif defined(__USE_WINAPI__)
-			Dim As Integer i
-			Dim As Any Ptr Mtx
-			FParentHandle = GetFocus()
-			If IsWindowVisible(FHandle) Then
-				This.SetFocus
-				Exit Function
-			End If
-			If GetCapture <> 0 Then SendMessage(GetCapture,WM_CANCELMODE,0,0)
-			'?"..." & GetCapture
-			'ReleaseCapture
-			For i = 0 To pApp->FormCount - 1
-				pApp->Forms[i]->Enabled = False
-			Next i
-			Enabled = True
-			Visible = True
-			Dim As MSG msg
-			Dim TranslateAndDispatch As Boolean
-			While GetMessage(@msg, NULL, 0, 0)
-				TranslateAndDispatch = True
-				If Accelerator Then TranslateAndDispatch = TranslateAccelerator(FHandle, Accelerator, @msg) = 0
-				If TranslateAndDispatch Then
-					Select Case msg.message
-					Case WM_KEYDOWN
-						Select Case msg.wParam
-						Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
-							If Not GetFocus() = Handle Then
-								SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
-								TranslateAndDispatch = False
-							ElseIf IsDialogMessage(Handle, @msg) Then
-								TranslateAndDispatch = False
-							End If
+	#ifndef Form_ShowModal_Off
+		Private Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
+			This.FParent = @OwnerForm
+			Return This.ShowModal()
+		End Function
+		
+		Private Function Form.ShowModal() As Integer
+			#ifdef __USE_GTK__
+				If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(pApp->ActiveForm->widget))
+				gtk_window_set_modal(GTK_WINDOW(widget), True)
+				This.Show
+				'If OnShow Then OnShow(This)
+				gtk_main()
+				gtk_window_set_modal(GTK_WINDOW(widget), False)
+			#elseif defined(__USE_WINAPI__)
+				Dim As Integer i
+				Dim As Any Ptr Mtx
+				FParentHandle = GetFocus()
+				If IsWindowVisible(FHandle) Then
+					This.SetFocus
+					Exit Function
+				End If
+				If GetCapture <> 0 Then SendMessage(GetCapture,WM_CANCELMODE,0,0)
+				'?"..." & GetCapture
+				'ReleaseCapture
+				For i = 0 To pApp->FormCount - 1
+					pApp->Forms[i]->Enabled = False
+				Next i
+				Enabled = True
+				Visible = True
+				Dim As MSG msg
+				Dim TranslateAndDispatch As Boolean
+				While GetMessage(@msg, NULL, 0, 0)
+					TranslateAndDispatch = True
+					If Accelerator Then TranslateAndDispatch = TranslateAccelerator(FHandle, Accelerator, @msg) = 0
+					If TranslateAndDispatch Then
+						Select Case msg.message
+						Case WM_KEYDOWN
+							Select Case msg.wParam
+							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
+								If Not GetFocus() = Handle Then
+									SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
+									TranslateAndDispatch = False
+								ElseIf IsDialogMessage(Handle, @msg) Then
+									TranslateAndDispatch = False
+								End If
+							End Select
 						End Select
-					End Select
-				End If
-				If TranslateAndDispatch Then
-					TranslateMessage @msg
-					DispatchMessage @msg
-				End If
-				If IsWindowVisible(FHandle) = 0 Then Exit While
-			Wend
-			Visible = False
-			For i = 0 To pApp->FormCount - 1
-				pApp->Forms[i]->Enabled = True
-			Next i
-			ReleaseCapture
-			SetForegroundWindow FParentHandle
-		#endif
-		Function = ModalResult
-	End Function
+					End If
+					If TranslateAndDispatch Then
+						TranslateMessage @msg
+						DispatchMessage @msg
+					End If
+					If IsWindowVisible(FHandle) = 0 Then Exit While
+				Wend
+				Visible = False
+				For i = 0 To pApp->FormCount - 1
+					pApp->Forms[i]->Enabled = True
+				Next i
+				ReleaseCapture
+				SetForegroundWindow FParentHandle
+			#endif
+			Function = ModalResult
+		End Function
+	#endif
 	
 	Private Sub Form.Hide
 		#ifdef __USE_GTK__
@@ -1634,7 +1636,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.Maximize
 		#ifdef __USE_GTK__
-			If gtk_is_window(widget) Then
+			If GTK_IS_WINDOW(widget) Then
 				gtk_window_maximize(GTK_WINDOW(widget))
 			End If
 		#elseif defined(__USE_WINAPI__)

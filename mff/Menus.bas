@@ -96,19 +96,21 @@ Namespace My.Sys.Forms
 		Return This.Name
 	End Function
 	
-	Private Sub TraverseItems(Item As MenuItem)
-		#ifdef __USE_WINAPI__
-			Dim As MENUITEMINFO mii
-			mii.cbSize = SizeOf(mii)
-			mii.fMask  = MIIM_TYPE
-			For i As Integer = 0 To Item.Count-1
-				GetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
-				mii.fType = IIf((mii.fType And MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
-				SetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
-				TraverseItems(*Item.Item(i))
-			Next i
-		#endif
-	End Sub
+	#ifndef TraverseItems_Off
+		Private Sub TraverseItems(Item As MenuItem)
+			#ifdef __USE_WINAPI__
+				Dim As MENUITEMINFO mii
+				mii.cbSize = SizeOf(mii)
+				mii.fMask  = MIIM_TYPE
+				For i As Integer = 0 To Item.Count-1
+					GetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
+					mii.fType = IIf((mii.fType And MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
+					SetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
+					TraverseItems(*Item.Item(i))
+				Next i
+			#endif
+		End Sub
+	#endif
 	
 	/' MenuItem '/
 	#ifdef __USE_WINAPI__
@@ -123,7 +125,9 @@ Namespace My.Sys.Forms
 			value.fState      = IIf(FEnabled, MFS_ENABLED, MFS_DISABLED) Or IIf(FChecked, MFS_CHECKED, MFS_UNCHECKED)
 			value.wID         = IIf(Handle, -1, This.Command)
 			If FImageIndex <> - 1 AndAlso Owner AndAlso Owner->ImagesList Then
-				FImage.LoadFromHICON(Owner->ImagesList->GetIcon(FImageIndex).Handle)
+				#ifndef BitmapType_LoadFromHICON_Off
+					FImage.LoadFromHICON(Owner->ImagesList->GetIcon(FImageIndex).Handle)
+				#endif
 			ElseIf WGet(FImageKey) <> "" AndAlso FImage.Handle = 0 Then
 				FImage.LoadFromResourceName(*FImageKey)
 			End If
@@ -185,9 +189,11 @@ Namespace My.Sys.Forms
 		Return WGet(FName)
 	End Property
 	
-	Private Property MenuItem.Name(ByRef value As WString)
-		WLet(FName, value)
-	End Property
+	#ifndef MenuItem_Name_Set_Off
+		Private Property MenuItem.Name(ByRef value As WString)
+			WLet(FName, value)
+		End Property
+	#endif
 	
 	'    declare function BeginPanningFeedback(byval hwnd as HWND) as WINBOOL
 	'    declare function UpdatePanningFeedback(byval hwnd as HWND, byval lTotalOverpanOffsetX as LONG, byval lTotalOverpanOffsetY as LONG, byval fInInertia as WINBOOL) as WINBOOL
@@ -464,17 +470,19 @@ Namespace My.Sys.Forms
 		Return FImage
 	End Property
 	
-	Private Property MenuItem.Image(value As My.Sys.Drawing.BitmapType)
-		FImage = value
-		#ifdef __USE_WINAPI__
-			Dim mii As MENUITEMINFOW
-			mii.cbSize = SizeOf(mii)
-			mii.fMask = MIIM_BITMAP
-			mii.hbmpItem = value.Handle
-			
-			SetItemInfo mii
-		#endif
-	End Property
+	#ifndef MenuItem_Image_Set_BitmapType_Off
+		Private Property MenuItem.Image(value As My.Sys.Drawing.BitmapType)
+			FImage = value
+			#ifdef __USE_WINAPI__
+				Dim mii As MENUITEMINFOW
+				mii.cbSize = SizeOf(mii)
+				mii.fMask = MIIM_BITMAP
+				mii.hbmpItem = value.Handle
+				
+				SetItemInfo mii
+			#endif
+		End Property
+	#endif
 	
 	Private Property MenuItem.Image(ByRef value As WString)
 		FImage = value
@@ -492,21 +500,23 @@ Namespace My.Sys.Forms
 		Return FImageIndex
 	End Property
 	
-	Private Property MenuItem.ImageIndex(value As Integer)
-		FImageIndex = value
-		If value <> -1 AndAlso Owner AndAlso Owner->ImagesList Then
-			#ifdef __USE_WINAPI__
-				FImage.Handle = Owner->ImagesList->GetIcon(value).ToBitmap
-				
-				Dim mii As MENUITEMINFOW
-				mii.cbSize = SizeOf(mii)
-				mii.fMask = MIIM_BITMAP
-				mii.hbmpItem = FImage.Handle 'HBMMENU_CALLBACK
-				
-				SetItemInfo mii
-			#endif
-		End If
-	End Property
+	#ifndef MenuItem_ImageIndex_Set_Off
+		Private Property MenuItem.ImageIndex(value As Integer)
+			FImageIndex = value
+			If value <> -1 AndAlso Owner AndAlso Owner->ImagesList Then
+				#ifdef __USE_WINAPI__
+					FImage.Handle = Owner->ImagesList->GetIcon(value).ToBitmap
+					
+					Dim mii As MENUITEMINFOW
+					mii.cbSize = SizeOf(mii)
+					mii.fMask = MIIM_BITMAP
+					mii.hbmpItem = FImage.Handle 'HBMMENU_CALLBACK
+					
+					SetItemInfo mii
+				#endif
+			End If
+		End Property
+	#endif
 	
 	#ifdef __USE_GTK__
 		Private Sub MenuItem.MenuItemActivate(m_item As GtkMenuItem Ptr, user_data As Any Ptr)
@@ -937,48 +947,50 @@ Namespace My.Sys.Forms
 		Cva_End(args)
 	End Sub
 	
-	Private Sub MenuItem.Insert(Index As Integer, value As PMenuItem)
-		If IndexOf(value) = -1 Then
-			If (Index>-1) And (Index<FCount) Then
-				FCount += 1
-				FItems = Reallocate_(FItems,SizeOf(PMenuItem)*FCount)
-				For i As Integer = Index+1 To FCount-1
-					FItems[i] = FItems[i-1]
-				Next i
-				FItems[Index]            = value
-				FItems[Index]->MenuIndex = Index
-				FItems[Index]->FParentMenuItem    = @This
-				FItems[Index]->Owner     = Owner
-				'				#IfNDef __USE_GTK__
-				'					FItems[Index]->Menu      = This.Menu
-				'				#EndIf
-				AllocateCommand(value)
-				If FCount > 0 Then
-					#ifdef __USE_WINAPI__
-						If Handle = 0 Then
-							Handle = CreatePopupMenu
-							Dim As MENUINFO mif
-							mif.cbSize     = SizeOf(mif)
-							mif.dwMenuData = Cast(DWORD_PTR,Cast(Any Ptr,@This))
-							mif.fMask      = MIM_MENUDATA
-							.SetMenuInfo(Handle,@mif)
-							SetInfo(FInfo)
-							If ParentMenuItem Then
-								SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
+	#ifndef MenuItem_Insert_Off
+		Private Sub MenuItem.Insert(Index As Integer, value As PMenuItem)
+			If IndexOf(value) = -1 Then
+				If (Index>-1) And (Index<FCount) Then
+					FCount += 1
+					FItems = Reallocate_(FItems,SizeOf(PMenuItem)*FCount)
+					For i As Integer = Index+1 To FCount-1
+						FItems[i] = FItems[i-1]
+					Next i
+					FItems[Index]            = value
+					FItems[Index]->MenuIndex = Index
+					FItems[Index]->FParentMenuItem    = @This
+					FItems[Index]->Owner     = Owner
+					'				#IfNDef __USE_GTK__
+					'					FItems[Index]->Menu      = This.Menu
+					'				#EndIf
+					AllocateCommand(value)
+					If FCount > 0 Then
+						#ifdef __USE_WINAPI__
+							If Handle = 0 Then
+								Handle = CreatePopupMenu
+								Dim As MENUINFO mif
+								mif.cbSize     = SizeOf(mif)
+								mif.dwMenuData = Cast(DWORD_PTR,Cast(Any Ptr,@This))
+								mif.fMask      = MIM_MENUDATA
+								.SetMenuInfo(Handle,@mif)
+								SetInfo(FInfo)
+								If ParentMenuItem Then
+									SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
+								End If
 							End If
-						End If
+						#endif
+					End If
+					#ifdef __USE_WINAPI__
+						value->SetInfo(FInfo)
+						InsertMenuItem(Handle,Index,True,@FInfo)
 					#endif
+					For i As Integer = 0 To FCount-1
+						FItems[i]->MenuIndex = i
+					Next i
 				End If
-				#ifdef __USE_WINAPI__
-					value->SetInfo(FInfo)
-					InsertMenuItem(Handle,Index,True,@FInfo)
-				#endif
-				For i As Integer = 0 To FCount-1
-					FItems[i]->MenuIndex = i
-				Next i
 			End If
-		End If
-	End Sub
+		End Sub
+	#endif
 	
 	Private Sub MenuItem.Remove(value As PMenuItem)
 		Dim As Integer Index,i
@@ -1034,13 +1046,15 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Private Function MenuItem.IndexOf(ByRef Key As WString) As Integer
-		Dim As Integer i
-		For i = 0 To FCount -1
-			If FItems[i]->Name = Key Then Return i
-		Next i
-		Return -1
-	End Function
+	#ifndef MenuItem_IndexOf_WString_Off
+		Private Function MenuItem.IndexOf(ByRef Key As WString) As Integer
+			Dim As Integer i
+			For i = 0 To FCount -1
+				If FItems[i]->Name = Key Then Return i
+			Next i
+			Return -1
+		End Function
+	#endif
 	
 	Private Function MenuItem.Find(value As Integer) As PMenuItem
 		Dim As PMenuItem FItem
@@ -1052,15 +1066,17 @@ Namespace My.Sys.Forms
 		Return NULL
 	End Function
 	
-	Private Function MenuItem.Find(ByRef value As WString) As PMenuItem
-		Dim As PMenuItem FItem
-		For i As Integer = 0 To FCount - 1
-			If Item(i)->Name = value Then Return Item(i)
-			FItem = Item(i)->Find(value)
-			If FItem Then If FItem->Name = value Then Return FItem
-		Next i
-		Return NULL
-	End Function
+	#ifndef MenuItem_Find_WString_Off
+		Private Function MenuItem.Find(ByRef value As WString) As PMenuItem
+			Dim As PMenuItem FItem
+			For i As Integer = 0 To FCount - 1
+				If Item(i)->Name = value Then Return Item(i)
+				FItem = Item(i)->Find(value)
+				If FItem Then If FItem->Name = value Then Return FItem
+			Next i
+			Return NULL
+		End Function
+	#endif
 	
 	Private Operator MenuItem.cast As Any Ptr
 		Return @This
@@ -1275,27 +1291,29 @@ Namespace My.Sys.Forms
 		Return FColor
 	End Property
 	
-	Private Property Menu.Color(value As Integer)
-		FColor = value
-		#ifdef __USE_WINAPI__
-			If Handle Then
-				Dim As MENUINFO mif
-				mif.cbSize = SizeOf(mif)
-				GetMenuInfo(Handle,@mif)
-				If mif.hbrBack Then
-					DeleteObject(mif.hbrBack)
+	#ifndef Menu_Color_Set_Off
+		Private Property Menu.Color(value As Integer)
+			FColor = value
+			#ifdef __USE_WINAPI__
+				If Handle Then
+					Dim As MENUINFO mif
+					mif.cbSize = SizeOf(mif)
+					GetMenuInfo(Handle,@mif)
+					If mif.hbrBack Then
+						DeleteObject(mif.hbrBack)
+					End If
+					mif.hbrBack = CreateSolidBrush(FColor)
+					mif.fMask   = MIM_BACKGROUND Or IIf(FIncSubItems,MIM_APPLYTOSUBMENUS,0)
+					SetMenuInfo(Handle,@mif)
+					If FParentWindow AndAlso FParentWindow->Handle Then
+						DrawMenuBar(FParentWindow->Handle)
+						RedrawWindow(FParentWindow->Handle,0,0,RDW_INVALIDATE Or RDW_ERASE)
+						UpdateWindow(FParentWindow->Handle)
+					End If
 				End If
-				mif.hbrBack = CreateSolidBrush(FColor)
-				mif.fMask   = MIM_BACKGROUND Or IIf(FIncSubItems,MIM_APPLYTOSUBMENUS,0)
-				SetMenuInfo(Handle,@mif)
-				If FParentWindow AndAlso FParentWindow->Handle Then
-					DrawMenuBar(FParentWindow->Handle)
-					RedrawWindow(FParentWindow->Handle,0,0,RDW_INVALIDATE Or RDW_ERASE)
-					UpdateWindow(FParentWindow->Handle)
-				End If
-			End If
-		#endif
-	End Property
+			#endif
+		End Property
+	#endif
 	
 	Private Property Menu.ColorizeEntire As Integer
 		Return FIncSubItems
@@ -1330,17 +1348,19 @@ Namespace My.Sys.Forms
 		Return NULL
 	End Property
 	
-	Private Property Menu.Item(index As Integer, value As MenuItem Ptr)
-		If FParentMenuItem Then
-			If (index > -1) And (index < FParentMenuItem->Count) Then
-				FParentMenuItem->Item(index) = value
+	#ifndef Menu_Item_Set_MenuItem_Off
+		Private Property Menu.Item(index As Integer, value As MenuItem Ptr)
+			If FParentMenuItem Then
+				If (index > -1) And (index < FParentMenuItem->Count) Then
+					FParentMenuItem->Item(index) = value
+				End If
+			Else
+				If (index > -1) And (index < FCount) Then
+					FItems[index] = value
+				End If
 			End If
-		Else
-			If (index > -1) And (index < FCount) Then
-				FItems[index] = value
-			End If
-		End If
-	End Property
+		End Property
+	#endif
 	
 	Private Property Menu.Item(ByRef Key As WString) As PMenuItem
 		Return This.Item(This.IndexOf(Key))
@@ -1538,12 +1558,14 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Private Function Menu.IndexOf(ByRef Key As WString) As Integer
-		For i As Integer = 0 To FCount - 1
-			If FItems[i]->Name = Key Then Return i
-		Next i
-		Return -1
-	End Function
+	#ifndef Menu_IndexOf_WString_Off
+		Private Function Menu.IndexOf(ByRef Key As WString) As Integer
+			For i As Integer = 0 To FCount - 1
+				If FItems[i]->Name = Key Then Return i
+			Next i
+			Return -1
+		End Function
+	#endif
 	
 	Private Function Menu.Find(value As Integer) As MenuItem Ptr
 		Dim As MenuItem Ptr FItem

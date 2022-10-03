@@ -127,9 +127,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Private Function ImageList.IndexOf(ByRef Key As WString) As Integer
-		Return Items.IndexOfKey(Key)
-	End Function
+	#ifndef ImageList_IndexOf_Off
+		Private Function ImageList.IndexOf(ByRef Key As WString) As Integer
+			Return Items.IndexOfKey(Key)
+		End Function
+	#endif
 	
 	Private Sub ImageList.NotifyWindow
 		If ParentWindow Then
@@ -178,82 +180,86 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Sub ImageList.Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
-		FNotChange = True
-		#ifdef __USE_GTK__
-			FNotAdd = True
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromResourceName(ResName)
-			Items.Add Key, ResName
-			This.Add Bitm, Bitm, Key
-			FNotAdd = False
-		#elseif defined(__USE_WINAPI__)
-			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			FNotAdd = True
-			If FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
+	#ifndef ImageList_Add_WString_Off
+		Private Sub ImageList.Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
+			FNotChange = True
+			#ifdef __USE_GTK__
+				FNotAdd = True
 				Dim As My.Sys.Drawing.BitmapType Bitm
-				Bitm.LoadFromResourceName(ResName, ModuleHandle_)
+				Bitm.LoadFromResourceName(ResName)
 				Items.Add Key, ResName
 				This.Add Bitm, Bitm, Key
-			ElseIf FindResource(ModuleHandle_, ResName, "PNG") OrElse FindResource(ModuleHandle_, ResName, RT_RCDATA) Then
-				'AddPng ResName, Key, ModuleHandle_
-				Dim As My.Sys.Drawing.BitmapType Bitm
-				Bitm.LoadFromResourceName(ResName, ModuleHandle_, , , clWhite)
-				Items.Add Key, ResName
-				This.AddMasked Bitm, clWhite, Key
-			ElseIf FindResource(ModuleHandle_, ResName, RT_ICON) OrElse FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
-				Dim As My.Sys.Drawing.Icon Ico
-				Ico.LoadFromResourceName(ResName, ModuleHandle_)
-				Items.Add Key, ResName
-				This.Add Ico, Key
-			ElseIf FindResource(ModuleHandle_, ResName, RT_CURSOR) OrElse FindResource(ModuleHandle_, ResName, RT_GROUP_CURSOR)  Then
-				Dim As My.Sys.Drawing.Cursor Cur
-				Cur.LoadFromResourceName(ResName, ModuleHandle_)
-				Items.Add Key, ResName
-				This.Add Cur, Key
-			Else
-				Dim As My.Sys.Drawing.BitmapType Bitm
-				If Bitm.LoadFromResourceName(ResName, ModuleHandle) Then
+				FNotAdd = False
+			#elseif defined(__USE_WINAPI__)
+				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+				FNotAdd = True
+				If FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
+					Dim As My.Sys.Drawing.BitmapType Bitm
+					Bitm.LoadFromResourceName(ResName, ModuleHandle_)
 					Items.Add Key, ResName
-					If FImageWidth <> ScaleX(FImageWidth) Then
-						This.AddMasked Bitm, clBlack, Key
-					Else
-						ImageList_Add(Handle, Bitm.Handle, NULL)
+					This.Add Bitm, Bitm, Key
+				ElseIf FindResource(ModuleHandle_, ResName, "PNG") OrElse FindResource(ModuleHandle_, ResName, RT_RCDATA) Then
+					'AddPng ResName, Key, ModuleHandle_
+					Dim As My.Sys.Drawing.BitmapType Bitm
+					Bitm.LoadFromResourceName(ResName, ModuleHandle_, , , clWhite)
+					Items.Add Key, ResName
+					This.AddMasked Bitm, clWhite, Key
+				ElseIf FindResource(ModuleHandle_, ResName, RT_ICON) OrElse FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
+					Dim As My.Sys.Drawing.Icon Ico
+					Ico.LoadFromResourceName(ResName, ModuleHandle_)
+					Items.Add Key, ResName
+					This.Add Ico, Key
+				ElseIf FindResource(ModuleHandle_, ResName, RT_CURSOR) OrElse FindResource(ModuleHandle_, ResName, RT_GROUP_CURSOR)  Then
+					Dim As My.Sys.Drawing.Cursor Cur
+					Cur.LoadFromResourceName(ResName, ModuleHandle_)
+					Items.Add Key, ResName
+					This.Add Cur, Key
+				Else
+					Dim As My.Sys.Drawing.BitmapType Bitm
+					If Bitm.LoadFromResourceName(ResName, ModuleHandle) Then
+						Items.Add Key, ResName
+						If FImageWidth <> ScaleX(FImageWidth) Then
+							This.AddMasked Bitm, clBlack, Key
+						Else
+							ImageList_Add(Handle, Bitm.Handle, NULL)
+						End If
 					End If
 				End If
-			End If
-			FNotAdd = False
-		#endif
-		FNotChange = False
-	End Sub
+				FNotAdd = False
+			#endif
+			FNotChange = False
+		End Sub
+	#endif
 	
-	Private Sub ImageList.AddFromFile(ByRef File As WString, ByRef Key As WString = "")
-		FNotChange = True
-		Dim As Integer Pos1 = InStrRev(File, ".")
-		Select Case LCase(Mid(File, Pos1 + 1))
-		Case "bmp"
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromFile(File)
-			This.Add Bitm, Bitm, Key
-		Case "png"
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromFile(File)
-			This.AddMasked Bitm, clBlack, Key
-		Case "ico"
-			Dim As My.Sys.Drawing.Icon Ico
-			Ico.LoadFromFile(File)
-			This.Add Ico, Key
-		Case "cur"
-			Dim As My.Sys.Drawing.Cursor Cur
-			Cur.LoadFromFile(File)
-			This.Add Cur, Key
-		Case Else
-			Dim As My.Sys.Drawing.BitmapType Bitm
-			Bitm.LoadFromFile(File)
-			This.Add Bitm, Bitm, Key
-		End Select
-		FNotChange = False
-	End Sub
+	#ifndef ImageList_AddFromFile_Off
+		Private Sub ImageList.AddFromFile(ByRef File As WString, ByRef Key As WString = "")
+			FNotChange = True
+			Dim As Integer Pos1 = InStrRev(File, ".")
+			Select Case LCase(Mid(File, Pos1 + 1))
+			Case "bmp"
+				Dim As My.Sys.Drawing.BitmapType Bitm
+				Bitm.LoadFromFile(File)
+				This.Add Bitm, Bitm, Key
+			Case "png"
+				Dim As My.Sys.Drawing.BitmapType Bitm
+				Bitm.LoadFromFile(File)
+				This.AddMasked Bitm, clBlack, Key
+			Case "ico"
+				Dim As My.Sys.Drawing.Icon Ico
+				Ico.LoadFromFile(File)
+				This.Add Ico, Key
+			Case "cur"
+				Dim As My.Sys.Drawing.Cursor Cur
+				Cur.LoadFromFile(File)
+				This.Add Cur, Key
+			Case Else
+				Dim As My.Sys.Drawing.BitmapType Bitm
+				Bitm.LoadFromFile(File)
+				This.Add Bitm, Bitm, Key
+			End Select
+			FNotChange = False
+		End Sub
+	#endif
 	
 	Private Sub ImageList.AddMasked(ByRef Bmp As My.Sys.Drawing.BitmapType, iMaskColor As Integer, ByRef Key As WString = "")
 		FNotChange = True
@@ -413,66 +419,76 @@ Namespace My.Sys.Forms
 	'		This.SetImage(IndexOf(Key), Image)
 	'	End Sub
 	
-	Private Sub ImageList.Remove(Index As Integer)
-		#ifdef __USE_WINAPI__
-			FNotChange = True
-			Items.Remove Index
-			FNotChange = False
-			ImageList_Remove(Handle, Index)
-		#endif
-	End Sub
+	#ifndef ImageList_Remove_Integer_Off
+		Private Sub ImageList.Remove(Index As Integer)
+			#ifdef __USE_WINAPI__
+				FNotChange = True
+				Items.Remove Index
+				FNotChange = False
+				ImageList_Remove(Handle, Index)
+			#endif
+		End Sub
+	#endif
 	
 	Private Sub ImageList.Remove(ByRef Key As WString)
 		Remove(IndexOf(Key))
 	End Sub
 	
-	Private Function ImageList.GetBitmap(Index As Integer) As My.Sys.Drawing.BitmapType
-		'Dim As My.Sys.Drawing.BitmapType Ptr BMP
-		#ifdef __USE_WINAPI__
-			Dim IMIF As ImageInfo
-			'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
-			ImageList_GetImageInfo(Handle,Index,@IMIF)
-			Return IMIF.hbmImage 'BMP->Handle =
-		#else
-			Return FBMP
-		#endif
-		'Return *BMP
-	End Function
+	#ifndef ImageList_GetMask_Integer_Off
+		Private Function ImageList.GetBitmap(Index As Integer) As My.Sys.Drawing.BitmapType
+			'Dim As My.Sys.Drawing.BitmapType Ptr BMP
+			#ifdef __USE_WINAPI__
+				Dim IMIF As ImageInfo
+				'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
+				ImageList_GetImageInfo(Handle,Index,@IMIF)
+				Return IMIF.hbmImage 'BMP->Handle =
+			#else
+				Return FBMP
+			#endif
+			'Return *BMP
+		End Function
+	#endif
 	
-	Private Function ImageList.GetMask(Index As Integer) As My.Sys.Drawing.BitmapType
-		'Dim As My.Sys.Drawing.BitmapType Ptr BMP
-		#ifdef __USE_WINAPI__
-			Dim IMIF As ImageInfo
-			'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
-			ImageList_GetImageInfo(Handle,Index,@IMIF)
-			Return IMIF.hbmMask 'BMP->Handle =
-		#else
-			Return FBMP
-		#endif
-		'Return *BMP
-	End Function
+	#ifndef ImageList_GetMask_Integer_Off
+		Private Function ImageList.GetMask(Index As Integer) As My.Sys.Drawing.BitmapType
+			'Dim As My.Sys.Drawing.BitmapType Ptr BMP
+			#ifdef __USE_WINAPI__
+				Dim IMIF As ImageInfo
+				'BMP = CAllocate_(SizeOf(My.Sys.Drawing.BitmapType))
+				ImageList_GetImageInfo(Handle,Index,@IMIF)
+				Return IMIF.hbmMask 'BMP->Handle =
+			#else
+				Return FBMP
+			#endif
+			'Return *BMP
+		End Function
+	#endif
 	
-	Private Function ImageList.GetIcon(Index As Integer) As My.Sys.Drawing.Icon
-		'Dim As My.Sys.Drawing.Icon Ptr ICO
-		'ICO = CAllocate_(SizeOf(My.Sys.Drawing.Icon))
-		#ifdef __USE_WINAPI__
-			Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'ICO->Handle =
-		#else
-			Return 0
-		#endif
-		'Return *ICO
-	End Function
+	#ifndef ImageList_GetIcon_Integer_Off
+		Private Function ImageList.GetIcon(Index As Integer) As My.Sys.Drawing.Icon
+			'Dim As My.Sys.Drawing.Icon Ptr ICO
+			'ICO = CAllocate_(SizeOf(My.Sys.Drawing.Icon))
+			#ifdef __USE_WINAPI__
+				Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'ICO->Handle =
+			#else
+				Return 0
+			#endif
+			'Return *ICO
+		End Function
+	#endif
 	
-	Private Function ImageList.GetCursor(Index As Integer) As My.Sys.Drawing.Cursor
-		'Dim As My.Sys.Drawing.Cursor Ptr CUR
-		'CUR = CAllocate_(SizeOf(My.Sys.Drawing.Cursor))
-		#ifdef __USE_WINAPI__
-			Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'CUR->Handle =
-		#else
-			Return 0
-		#endif
-		'Return *CUR
-	End Function
+	#ifndef ImageList_GetCursor_Integer_Off
+		Private Function ImageList.GetCursor(Index As Integer) As My.Sys.Drawing.Cursor
+			'Dim As My.Sys.Drawing.Cursor Ptr CUR
+			'CUR = CAllocate_(SizeOf(My.Sys.Drawing.Cursor))
+			#ifdef __USE_WINAPI__
+				Return ImageList_GetIcon(Handle, Index, DrawingStyle Or ImageType) 'CUR->Handle =
+			#else
+				Return 0
+			#endif
+			'Return *CUR
+		End Function
+	#endif
 	
 	Private Function ImageList.GetBitmap(ByRef Key As WString) As My.Sys.Drawing.BitmapType
 		Return GetBitmap(IndexOf(Key))
@@ -500,14 +516,16 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Sub ImageList.Clear
-		FNotChange = True
-		Items.Clear
-		FNotChange = False
-		#ifdef __USE_WINAPI__
-			ImageList_Remove Handle, -1
-		#endif
-	End Sub
+	#ifndef ImageList_Clear_Off
+		Private Sub ImageList.Clear
+			FNotChange = True
+			Items.Clear
+			FNotChange = False
+			#ifdef __USE_WINAPI__
+				ImageList_Remove Handle, -1
+			#endif
+		End Sub
+	#endif
 	
 	Private Operator ImageList.Cast As Any Ptr
 		Return @This

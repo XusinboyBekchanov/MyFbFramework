@@ -245,7 +245,7 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		#ifndef TopLevelControl_Off
+		#ifndef Control_TopLevelControl_Off
 			Private Function Control.TopLevelControl As Control Ptr
 				If FParent = 0 Then
 					Return @This
@@ -639,36 +639,44 @@ Namespace My.Sys.Forms
 			End Property
 		#endif
 		
-		#ifndef Parent_Off
-			Private Property Control.Parent As Control Ptr
-				Return Cast(Control Ptr, FParent)
-			End Property
+		#ifndef Control_Parent_Off
+			#ifndef Control_Parent_Get_Off
+				Private Property Control.Parent As Control Ptr
+					Return Cast(Control Ptr, FParent)
+				End Property
+			#endif
 			
-			Private Property Control.Parent(Value As Control Ptr)
-				If FParent <> Value Then
-					FParent = Value
-					If Value Then Value->Add(@This)
-				End If
-			End Property
+			#ifndef Control_Parent_Set_Off
+				Private Property Control.Parent(Value As Control Ptr)
+					If FParent <> Value Then
+						FParent = Value
+						If Value Then Value->Add(@This)
+					End If
+				End Property
+			#endif
 		#endif
 		
-		#ifndef StyleExists_Off
+		#ifndef Control_StyleExists_Off
 			Private Function Control.StyleExists(iStyle As Integer) As Boolean
 				Return (Style And iStyle) = iStyle
 			End Function
 		#endif
 		
-		Private Function Control.ExStyleExists(iStyle As Integer) As Boolean '...'
-			Return (ExStyle AND iStyle) = iStyle
-		End Function
+		#ifndef Control_ExStyleExists_Off
+			Private Function Control.ExStyleExists(iStyle As Integer) As Boolean
+				Return (ExStyle And iStyle) = iStyle
+			End Function
+		#endif
 		
-		Private Sub Control.ChangeStyle(iStyle As Integer, Value As Boolean)
-			If Value Then
-				If ((Style And iStyle) <> iStyle) Then Style = Style Or iStyle
-			ElseIf ((Style And iStyle) = iStyle) Then
-				Style = Style And Not iStyle
-			End If
-		End Sub
+		#ifndef Control_ChangeStyle_Off
+			Private Sub Control.ChangeStyle(iStyle As Integer, Value As Boolean)
+				If Value Then
+					If ((Style And iStyle) <> iStyle) Then Style = Style Or iStyle
+				ElseIf ((Style And iStyle) = iStyle) Then
+					Style = Style And Not iStyle
+				End If
+			End Sub
+		#endif
 		
 		Private Sub Control.ChangeExStyle(iStyle As Integer, Value As Boolean)
 			If Value Then
@@ -678,22 +686,24 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Private Sub Control.ChangeControlIndex(Ctrl As Control Ptr, Index As Integer)
-			Dim OldIndex As Integer = This.IndexOf(Ctrl)
-			If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= FControlCount - 1 Then
-				If Index < OldIndex Then
-					For i As Integer = OldIndex - 1 To Index Step -1
-						Controls[i + 1] = Controls[i]
-					Next i
-					Controls[Index] = Ctrl
-				Else
-					For i As Integer = OldIndex + 1 To Index
-						Controls[i - 1] = Controls[i]
-					Next i
-					Controls[Index] = Ctrl
+		#ifndef Control_ChangeControlIndex_Off
+			Private Sub Control.ChangeControlIndex(Ctrl As Control Ptr, Index As Integer)
+				Dim OldIndex As Integer = This.IndexOf(Ctrl)
+				If OldIndex > -1 AndAlso OldIndex <> Index AndAlso Index <= FControlCount - 1 Then
+					If Index < OldIndex Then
+						For i As Integer = OldIndex - 1 To Index Step -1
+							Controls[i + 1] = Controls[i]
+						Next i
+						Controls[Index] = Ctrl
+					Else
+						For i As Integer = OldIndex + 1 To Index
+							Controls[i - 1] = Controls[i]
+						Next i
+						Controls[Index] = Ctrl
+					End If
 				End If
-			End If
-		End Sub
+			End Sub
+		#endif
 		
 		Private Sub Control.ChangeTabIndex(Value As Integer)
 			FTabIndex = Value
@@ -1092,22 +1102,24 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
-		Private Sub Control.RecreateWnd
-			Dim As Integer i
-			#ifndef __USE_GTK__
-				If FHandle = 0 Then Exit Sub
-				'For i = 0 To ControlCount -1
-				'    Controls[i]->FreeWnd
-				'Next i
-				FreeWnd
-				CreateWnd
-				For i = 0 To ControlCount -1
-					Controls[i]->RecreateWnd
-					Controls[i]->RequestAlign
-				Next i
-				RequestAlign
-			#endif
-		End Sub
+		#ifndef Control_RecreateWnd_Off
+			Private Sub Control.RecreateWnd
+				Dim As Integer i
+				#ifndef __USE_GTK__
+					If FHandle = 0 Then Exit Sub
+					'For i = 0 To ControlCount -1
+					'    Controls[i]->FreeWnd
+					'Next i
+					FreeWnd
+					CreateWnd
+					For i = 0 To ControlCount -1
+						Controls[i]->RecreateWnd
+						Controls[i]->RequestAlign
+					Next i
+					RequestAlign
+				#endif
+			End Sub
+		#endif
 		
 		Private Sub Control.FreeWnd
 			#ifdef __USE_GTK__
@@ -2705,13 +2717,15 @@ Namespace My.Sys.Forms
 			Return -1
 		End Function
 		
-		Private Function Control.IndexOf(CtrlName As String) As Integer
-			Dim As Integer i
-			For i = 0 To ControlCount -1
-				If Controls[i]->Name = CtrlName Then Return i
-			Next i
-			Return -1
-		End Function
+		#ifndef Control_IndexOf_String_Off
+			Private Function Control.IndexOf(CtrlName As String) As Integer
+				Dim As Integer i
+				For i = 0 To ControlCount -1
+					If Controls[i]->Name = CtrlName Then Return i
+				Next i
+				Return -1
+			End Function
+		#endif
 		
 		Private Function Control.ControlByName(CtrlName As String) As Control Ptr
 			Dim i As Integer = IndexOf(CtrlName)

@@ -74,7 +74,9 @@ Namespace My.Sys.Drawing
 		Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		#ifdef __USE_WINAPI__
-			Declare Function LoadFromHICON(IcoHandle As HICON) As Boolean
+			#ifndef BitmapType_LoadFromHICON_Off
+				Declare Function LoadFromHICON(IcoHandle As HICON) As Boolean
+			#endif
 		#endif
 		Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean 'David Change
 		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
@@ -84,7 +86,7 @@ Namespace My.Sys.Drawing
 		Declare Operator Cast As Any Ptr
 		Declare Operator Let(ByRef Value As WString)
 		#ifdef __USE_GTK__
-			Declare Operator Let(Value As GdkPixBuf Ptr)
+			Declare Operator Let(Value As GdkPixbuf Ptr)
 		#elseif defined(__USE_WINAPI__)
 			Declare Operator Let(Value As HBITMAP)
 			Declare Operator Let(Value As HICON)

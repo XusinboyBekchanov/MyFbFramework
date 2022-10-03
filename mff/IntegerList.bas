@@ -126,12 +126,14 @@ Private Sub IntegerList.Clear
 	FItems.Clear
 End Sub
 
-Private Function IntegerList.IndexOf(FItem As Integer) As Integer
-	For i As Integer = 0 To Count -1
-		If QIntegerListItem(FItems.Items[i]).Value = FItem Then Return i
-	Next i
-	Return -1
-End Function
+#ifndef IntegerList_IndexOf_Off
+	Private Function IntegerList.IndexOf(FItem As Integer) As Integer
+		For i As Integer = 0 To Count -1
+			If QIntegerListItem(FItems.Items[i]).Value = FItem Then Return i
+		Next i
+		Return -1
+	End Function
+#endif
 
 Private Function IntegerList.IndexOfObject(FObj As Any Ptr) As Integer
 	For i As Integer = 0 To Count -1
