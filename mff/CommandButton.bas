@@ -106,9 +106,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Property CommandButton.Style As ButtonStyle
-		Return FStyle
-	End Property
+	#ifndef CommandButton_Style_Get_Off
+		Private Property CommandButton.Style As ButtonStyle
+			Return FStyle
+		End Property
+	#endif
 	
 	Private Property CommandButton.Style(Value As ButtonStyle)
 		If Value <> FStyle Then
@@ -157,13 +159,15 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Function CommandButton.EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
-		For i As Integer = 0 To Item.Count -1
-			List.Add Item.Item(i)
-			EnumMenuItems *Item.Item(i),List
-		Next i
-		Return True
-	End Function
+	#ifndef CommandButton_EnumMenuItems_Off
+		Private Function CommandButton.EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
+			For i As Integer = 0 To Item.Count -1
+				List.Add Item.Item(i)
+				EnumMenuItems *Item.Item(i),List
+			Next i
+			Return True
+		End Function
+	#endif
 	
 	Private Sub CommandButton.ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_WINAPI__

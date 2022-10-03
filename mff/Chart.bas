@@ -166,34 +166,40 @@ Namespace My.Sys.Forms
 		Me.Refresh
 	End Sub
 	
-	Private Sub Chart.AddItem(ByRef ItemName As WString, Value As Single, Item_Color As Long, bSpecial As Boolean = False)
-		ReDim Preserve m_Item(ItemsCount)
-		With m_Item(ItemsCount)
-			.ItemName = ItemName
-			.ItemColor = Item_Color
-			.Value = Value
-			.Special = bSpecial
-		End With
-		ItemsCount = ItemsCount + 1
-	End Sub
+	#ifndef Chart_AddItem_Off
+		Private Sub Chart.AddItem(ByRef ItemName As WString, Value As Single, Item_Color As Long, bSpecial As Boolean = False)
+			ReDim Preserve m_Item(ItemsCount)
+			With m_Item(ItemsCount)
+				.ItemName = ItemName
+				.ItemColor = Item_Color
+				.Value = Value
+				.Special = bSpecial
+			End With
+			ItemsCount = ItemsCount + 1
+		End Sub
+	#endif
 	
-	Private Sub Chart.AddSerie(ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr, cCustomColors As IntegerList Ptr)
-		ReDim Preserve m_Serie(SerieCount)
-		With m_Serie(SerieCount)
-			.SerieName = SerieName
-			.SerieColor = SerieColor
-			.Values = Values
-			.CustomColors = cCustomColors
-		End With
-		SerieCount = SerieCount + 1
-	End Sub
+	#ifndef Chart_AddSerie_Off
+		Private Sub Chart.AddSerie(ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr, cCustomColors As IntegerList Ptr)
+			ReDim Preserve m_Serie(SerieCount)
+			With m_Serie(SerieCount)
+				.SerieName = SerieName
+				.SerieColor = SerieColor
+				.Values = Values
+				.CustomColors = cCustomColors
+			End With
+			SerieCount = SerieCount + 1
+		End Sub
+	#endif
 	
-	Private Sub Chart.AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
-		cAxisItem = AxisItems
-		m_WordWrap = WordWrap
-		m_AxisAngle = AxisAngle
-		m_AxisAlign = AxisAlign
-	End Sub
+	#ifndef Chart_AddAxisItems_Off
+		Private Sub Chart.AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
+			cAxisItem = AxisItems
+			m_WordWrap = WordWrap
+			m_AxisAngle = AxisAngle
+			m_AxisAlign = AxisAlign
+		End Sub
+	#endif
 	
 	Private Property Chart.AxisMax As Single
 		Return m_AxisMax
@@ -462,14 +468,18 @@ Namespace My.Sys.Forms
 		Refresh
 	End Property
 	
-	Private Property Chart.LabelsVisible() As Boolean
-		LabelsVisible = m_LabelsVisible
-	End Property
+	#ifndef Chart_LabelsVisible_Get_Off
+		Private Property Chart.LabelsVisible() As Boolean
+			LabelsVisible = m_LabelsVisible
+		End Property
+	#endif
 	
-	Private Property Chart.LabelsVisible(ByVal New_Value As Boolean)
-		m_LabelsVisible = New_Value
-		Refresh
-	End Property
+	#ifndef Chart_LabelsVisible_Set_Off
+		Private Property Chart.LabelsVisible(ByVal New_Value As Boolean)
+			m_LabelsVisible = New_Value
+			Refresh
+		End Property
+	#endif
 	
 	Private Property Chart.Rotation() As Long
 		Rotation = m_Rotation
@@ -947,13 +957,15 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	Private Sub Chart.Wait(Interval As Integer)
-		Dim t As Single
-		t = Timer + Interval / 100
-		Do While t > Timer
-			'DoEvents
-		Loop
-	End Sub
+	#ifndef Chart_Wait_Off
+		Private Sub Chart.Wait(Interval As Integer)
+			Dim t As Single
+			t = Timer + Interval / 100
+			Do While t > Timer
+				'DoEvents
+			Loop
+		End Sub
+	#endif
 	
 	Private Function Chart.PtInRectL(Rect_ As RectL, ByVal X As Long, ByVal Y As Long) As Boolean
 		With Rect_
@@ -975,7 +987,7 @@ Namespace My.Sys.Forms
 		'		ReleaseDc FHandle, hd
 		'Repaint
 		#ifdef __USE_GTK__
-			If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
+			If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 		#else
 			RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			UpdateWindow FHandle

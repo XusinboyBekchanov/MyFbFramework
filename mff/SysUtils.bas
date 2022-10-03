@@ -277,34 +277,36 @@ Private Function _Abs(Value As Boolean) As Integer
 	Return Abs(CInt(Value))
 End Function
 
-' ========================================================================================
-' * Returns the count of delimited fields from a string expression.
-' If wszMainStr is empty (a null string) or contains no delimiter character(s), the string
-' is considered to contain exactly one sub-field. In this case, AfxStrParseCount returns the value 0.
-' Delimiter contains a string (one or more characters) that must be fully matched.
-' Delimiters are case-sensitive.
-' Example: StringParseCount("one,two,three", ",")   -> 3
-' ========================================================================================
-Private Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WString = ",", MatchCase As Boolean = True) As Long
-	If MainStr = "" OrElse Delimiter = "" Then Return 0
-	Dim nCount As Long = 1
-	Dim nPos As Long = 1
-	Do
-		If MatchCase Then
-			nPos = InStr(nPos, MainStr, Delimiter)
-		Else
-			nPos = InStr(nPos, UCase(MainStr), UCase(Delimiter))
-		End If
-		If nPos = 0 Then Exit Do
-		nCount += 1
-		nPos += Len(Delimiter)
-	Loop
-	Return nCount
-End Function
-
-Private Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
-	Return StringParseCount(subject, searchtext, MatchCase) - 1
-End Function
+#ifndef StringParseCount_Off
+	' ========================================================================================
+	' * Returns the count of delimited fields from a string expression.
+	' If wszMainStr is empty (a null string) or contains no delimiter character(s), the string
+	' is considered to contain exactly one sub-field. In this case, AfxStrParseCount returns the value 0.
+	' Delimiter contains a string (one or more characters) that must be fully matched.
+	' Delimiters are case-sensitive.
+	' Example: StringParseCount("one,two,three", ",")   -> 3
+	' ========================================================================================
+	Private Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WString = ",", MatchCase As Boolean = True) As Long
+		If MainStr = "" OrElse Delimiter = "" Then Return 0
+		Dim nCount As Long = 1
+		Dim nPos As Long = 1
+		Do
+			If MatchCase Then
+				nPos = InStr(nPos, MainStr, Delimiter)
+			Else
+				nPos = InStr(nPos, UCase(MainStr), UCase(Delimiter))
+			End If
+			If nPos = 0 Then Exit Do
+			nCount += 1
+			nPos += Len(Delimiter)
+		Loop
+		Return nCount
+	End Function
+	
+	Private Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
+		Return StringParseCount(subject, searchtext, MatchCase) - 1
+	End Function
+#endif
 
 'Function InStrPos(ByRef subject As WString, ByRef searchtext() AS Wstring, start As Integer = 1) As Integer
 'FOr i As Integer = 1 To Len(subject)
@@ -1668,30 +1670,32 @@ Private Function ErrDescription(Code As Integer) ByRef As WString
 	End Select
 End Function
 
-Private Function match(ByRef subject As WString Ptr, ByRef pattern As WString Ptr) As Boolean
-	
-	#define CH_QUOTE 63 '' ASCII for ?
-	#define CH_MULT  42 '' ASCII for *
-	
-	If (*pattern)[0] = 0 Then 'AndAlso (*subject)[0] = 0 Then
-		Return True
-	End If
-	
-	If (*pattern)[0] = CH_QUOTE OrElse (*pattern)[0] = (*subject)[0] Then
-		Return match(subject + 1, pattern + 1)
-	End If
-	
-	If (*pattern)[0] = CH_MULT Then
-		Return match(subject, pattern + 1) OrElse match(subject + 1, pattern)
-	End If
-	
-	Return False
-	
-End Function
+#ifndef Match_Off
+	Private Function match(ByRef subject As WString Ptr, ByRef pattern As WString Ptr) As Boolean
+		
+		#define CH_QUOTE 63 '' ASCII for ?
+		#define CH_MULT  42 '' ASCII for *
+		
+		If (*pattern)[0] = 0 Then 'AndAlso (*subject)[0] = 0 Then
+			Return True
+		End If
+		
+		If (*pattern)[0] = CH_QUOTE OrElse (*pattern)[0] = (*subject)[0] Then
+			Return match(subject + 1, pattern + 1)
+		End If
+		
+		If (*pattern)[0] = CH_MULT Then
+			Return match(subject, pattern + 1) OrElse match(subject + 1, pattern)
+		End If
+		
+		Return False
+		
+	End Function
 
-Private Function InStrMatch(ByRef subject As WString, ByRef pattern As WString, Start As Integer = 1) As Integer
-	For i As Integer = Start To Len(subject)
-		If match(@subject + (i - 1), @pattern) Then Return i
-	Next
-	Return 0
-End Function
+	Private Function InStrMatch(ByRef subject As WString, ByRef pattern As WString, Start As Integer = 1) As Integer
+		For i As Integer = Start To Len(subject)
+			If match(@subject + (i - 1), @pattern) Then Return i
+		Next
+		Return 0
+	End Function
+#endif

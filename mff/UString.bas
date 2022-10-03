@@ -100,16 +100,18 @@ Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSub
 	End If
 End Sub
 
-Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
-	Dim TempWStr As WString Ptr
-	If AddBefore Then
-		WLet(TempWStr, txt & WGet(subject))
-	Else
-		WLet(TempWStr, WGet(subject) & txt)
-	End If
-	WLet(subject, *TempWStr)
-	WDeAllocate TempWStr
-End Sub
+#ifndef WAdd_Off
+	Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
+		Dim TempWStr As WString Ptr
+		If AddBefore Then
+			WLet(TempWStr, txt & WGet(subject))
+		Else
+			WLet(TempWStr, WGet(subject) & txt)
+		End If
+		WLet(subject, *TempWStr)
+		WDeAllocate TempWStr
+	End Sub
+#endif
 
 Private Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then

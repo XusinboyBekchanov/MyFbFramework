@@ -87,7 +87,7 @@ Namespace My.Sys.ComponentModel
 		End Function
 	#endif
 	
-	#ifndef GetTopLevel_Off
+	#ifndef Component_GetTopLevel_Off
 		Private Function Component.GetTopLevel As Component Ptr
 			If FParent = 0 Then
 				Return @This
@@ -106,7 +106,7 @@ Namespace My.Sys.ComponentModel
 			If FParent <> Value Then
 				FParent = Value
 				#ifdef __USE_GTK__
-					If FDesignMode AndAlso widget <> 0 AndAlso gtk_is_widget(widget) AndAlso Value <> 0 AndAlso Value->layoutwidget <> 0 Then
+					If FDesignMode AndAlso widget <> 0 AndAlso GTK_IS_WIDGET(widget) AndAlso Value <> 0 AndAlso Value->layoutwidget <> 0 Then
 						If gtk_widget_get_parent(widget) <> Value->layoutwidget Then
 							If gtk_widget_get_parent(widget) <> 0 Then gtk_widget_unparent(widget)
 							gtk_layout_put(GTK_LAYOUT(Value->layoutwidget), widget, FLeft, FTop)
@@ -348,18 +348,20 @@ Namespace My.Sys.ComponentModel
 			Return FLeft
 		End Property
 		
-		Private Property Component.Left(Value As Integer)
-			FLeft = Value
-			Move FLeft, Top, This.Width, Height
-		End Property
+		#ifndef Component_Left_Set_Off
+			Private Property Component.Left(Value As Integer)
+				FLeft = Value
+				Move FLeft, Top, This.Width, Height
+			End Property
+		#endif
 	#endif
 	
 	#ifndef Top_Off
 		Private Property Component.Top As Integer
 			#ifdef __USE_GTK__
 				Dim ControlChanged As Boolean
-				If gtk_is_window(widget) Then
-					gtk_window_get_position(gtk_window(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
+				If GTK_IS_WINDOW(widget) Then
+					gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
 				Else
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
@@ -398,16 +400,18 @@ Namespace My.Sys.ComponentModel
 			Return FTop
 		End Property
 		
-		Private Property Component.Top(Value As Integer)
-			FTop = Value
-			Move This.Left, FTop, This.Width, Height
-		End Property
+		#ifndef Component_Top_Set_Off
+			Private Property Component.Top(Value As Integer)
+				FTop = Value
+				Move This.Left, FTop, This.Width, Height
+			End Property
+		#endif
 	#endif
 	
 	#ifndef Width_Off
 		Private Property Component.Width As Integer
 			#ifdef __USE_GTK__
-				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
+				If GTK_IS_WIDGET(widget) AndAlso gtk_widget_get_realized(widget) Then
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 						#ifndef __USE_GTK2__

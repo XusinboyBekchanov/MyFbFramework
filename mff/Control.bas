@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		#ifndef GetTextLength_Off
+		#ifndef Control_GetTextLength_Off
 			Private Function Control.GetTextLength() As Integer
 				#ifdef __USE_WINAPI__
 					If FHandle Then
@@ -759,12 +759,14 @@ Namespace My.Sys.Forms
 			End Property
 		#endif
 		
-		Private Sub Control.ChangeTabStop(Value As Boolean)
-			FTabStop = Value
-			#ifdef __USE_WINAPI__
-				ChangeStyle WS_TABSTOP, Value
-			#endif
-		End Sub
+		#ifndef Control_ChangeTabStop_Off
+			Private Sub Control.ChangeTabStop(Value As Boolean)
+				FTabStop = Value
+				#ifdef __USE_WINAPI__
+					ChangeStyle WS_TABSTOP, Value
+				#endif
+			End Sub
+		#endif
 		
 		Private Property Control.Grouped As Boolean
 			#ifdef __USE_WINAPI__

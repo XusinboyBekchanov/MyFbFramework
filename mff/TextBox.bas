@@ -248,33 +248,35 @@ Namespace My.Sys.Forms
 		InsertLine(LinesCount - 1, wsLine)
 	End Sub
 	
-	Private Sub TextBox.InsertLine(Index As Integer, ByRef wsLine As WString)
-		Dim As Integer iStart, LineLen
-		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				Dim As GtkTextIter _startline
-				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, Index)
-				gtk_text_buffer_insert(gtk_text_view_get_buffer(gtk_text_view(widget)), @_startline, ToUTF8(wsLine & Chr(13) & Chr(10)), -1)
-			End If
-		#elseif defined(__USE_WINAPI__)
-			Dim As WString Ptr sLine = CAllocate_(MAXLENGTH * SizeOf(WString))
-			If Index >= 0 Then
-				iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
-				If iStart >= 0 Then
-					*sLine = wsline + WChr(13) & WChr(10)
-				Else
-					iStart = SendMessage(FHandle, EM_LINEINDEX, Index - 1, 0)
-					If iStart < 0 Then Exit Sub
-					LineLen = SendMessage(FHandle, EM_LINELENGTH, SelStart,0)
-					If LineLen = 0 Then Exit Sub
-					iStart += LineLen
-					*sLine = WChr(13) & WChr(10) + wsLine
+	#ifndef TextBox_InsertLine_Off
+		Private Sub TextBox.InsertLine(Index As Integer, ByRef wsLine As WString)
+			Dim As Integer iStart, LineLen
+			#ifdef __USE_GTK__
+				If GTK_IS_TEXT_VIEW(widget) Then
+					Dim As GtkTextIter _startline
+					gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, Index)
+					gtk_text_buffer_insert(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, ToUtf8(wsLine & Chr(13) & Chr(10)), -1)
 				End If
-				SendMessage(FHandle, EM_SETSEL, iStart, iStart)
-				SendMessage(FHandle, EM_REPLACESEL, 0, CInt(sLine))
-			End If
-		#endif
-	End Sub
+			#elseif defined(__USE_WINAPI__)
+				Dim As WString Ptr sLine = CAllocate_(MaxLength * SizeOf(WString))
+				If Index >= 0 Then
+					iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
+					If iStart >= 0 Then
+						*sLine = wsLine + WChr(13) & WChr(10)
+					Else
+						iStart = SendMessage(FHandle, EM_LINEINDEX, Index - 1, 0)
+						If iStart < 0 Then Exit Sub
+						LineLen = SendMessage(FHandle, EM_LINELENGTH, SelStart,0)
+						If LineLen = 0 Then Exit Sub
+						iStart += LineLen
+						*sLine = WChr(13) & WChr(10) + wsLine
+					End If
+					SendMessage(FHandle, EM_SETSEL, iStart, iStart)
+					SendMessage(FHandle, EM_REPLACESEL, 0, CInt(sLine))
+				End If
+			#endif
+		End Sub
+	#endif
 	
 	Private Sub TextBox.RemoveLine(Index As Integer)
 		Const Empty = ""
@@ -797,27 +799,29 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Function TextBox.LinesCount As Integer
-		#ifdef __USE_GTK__
-			If GTK_IS_TEXT_VIEW(widget) Then
-				If Text <> "" Then
-					Return 1
+	#ifndef TextBox_LinesCount_Off
+		Private Function TextBox.LinesCount As Integer
+			#ifdef __USE_GTK__
+				If GTK_IS_TEXT_VIEW(widget) Then
+					If Text <> "" Then
+						Return 1
+					End If
+				Else
+					Return gtk_text_buffer_get_line_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)))
 				End If
-			Else
-				Return gtk_text_buffer_get_line_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)))
-			End If
-		#elseif defined(__USE_WINAPI__)
-			If FHandle Then
-				Return SendMessage(FHandle, EM_GETLINECOUNT, 0, 0)
-			End If
-		#endif
-		Return 0
-	End Function
+			#elseif defined(__USE_WINAPI__)
+				If FHandle Then
+					Return SendMessage(FHandle, EM_GETLINECOUNT, 0, 0)
+				End If
+			#endif
+			Return 0
+		End Function
+	#endif
 	
 	Private Property TextBox.CaretPos As My.Sys.Drawing.Point
 		Dim As Integer x, y
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _start, _end, _startline
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				Dim As Integer CurCharIndex = gtk_text_iter_get_offset(@_start)

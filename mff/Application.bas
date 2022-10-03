@@ -358,23 +358,25 @@ Namespace My
 		End 1
 	End Sub
 	
-	Private Sub Application.DoEvents
-		#ifdef __USE_GTK__
-			While gtk_events_pending()
-				gtk_main_iteration
-			Wend
-		#elseif defined(__USE_WINAPI__)
-			Dim As MSG M
-			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
-				If M.message <> WM_QUIT Then
-					TranslateMessage @M
-					DispatchMessage @M
-				Else
-					If (GetWindowLong(M.hwnd,GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then End -1
-				End If
-			Wend
-		#endif
-	End Sub
+	#ifndef Application_DoEvents_Off
+		Private Sub Application.DoEvents
+			#ifdef __USE_GTK__
+				While gtk_events_pending()
+					gtk_main_iteration
+				Wend
+			#elseif defined(__USE_WINAPI__)
+				Dim As MSG M
+				While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
+					If M.message <> WM_QUIT Then
+						TranslateMessage @M
+						DispatchMessage @M
+					Else
+						If (GetWindowLong(M.hwnd,GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then End -1
+					End If
+				Wend
+			#endif
+		End Sub
+	#endif
 	
 	Private Function Application.IndexOfControl(Control As My.Sys.Forms.Control Ptr) As Integer
 		Dim As Integer i

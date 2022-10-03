@@ -80,14 +80,16 @@ Private Property DoubleList.Object(Index As Integer, FObj As Any Ptr)
 	End If
 End Property
 
-Private Sub DoubleList.Add(FItem As Double, FObj As Any Ptr = 0)
-	Dim As DoubleListItem Ptr nItem = New_( DoubleListItem)
-	With *nItem
-		.Value  = FItem
-		.Object = FObj
-	End With
-	FItems.Add nItem
-End Sub
+#ifndef DoubleList_Add_Off
+	Private Sub DoubleList.Add(FItem As Double, FObj As Any Ptr = 0)
+		Dim As DoubleListItem Ptr nItem = New_( DoubleListItem)
+		With *nItem
+			.Value  = FItem
+			.Object = FObj
+		End With
+		FItems.Add nItem
+	End Sub
+#endif
 
 Private Sub DoubleList.Insert(Index As Integer, FItem As Double, FObj As Any Ptr = 0)
 	Dim As DoubleListItem Ptr nItem = New_( DoubleListItem)
@@ -98,9 +100,11 @@ Private Sub DoubleList.Insert(Index As Integer, FItem As Double, FObj As Any Ptr
 	FItems.Insert Index, nItem
 End Sub
 
-Private Sub DoubleList.Exchange(Index1 As Integer, Index2 As Integer)
-	FItems.Exchange(Index1, Index2)
-End Sub
+#ifndef DoubleList_Exchange_Off
+	Private Sub DoubleList.Exchange(Index1 As Integer, Index2 As Integer)
+		FItems.Exchange(Index1, Index2)
+	End Sub
+#endif
 
 Private Sub DoubleList.Remove(Index As Integer)
 	If Index = -1 Then Exit Sub
@@ -126,12 +130,14 @@ Private Sub DoubleList.Clear
 	FItems.Clear
 End Sub
 
-Private Function DoubleList.IndexOf(FItem As Double) As Integer
-	For i As Integer = 0 To Count -1
-		If QDoubleListItem(FItems.Items[i]).Value = FItem Then Return i
-	Next i
-	Return -1
-End Function
+#ifndef DoubleList_IndexOf_Off
+	Private Function DoubleList.IndexOf(FItem As Double) As Integer
+		For i As Integer = 0 To Count -1
+			If QDoubleListItem(FItems.Items[i]).Value = FItem Then Return i
+		Next i
+		Return -1
+	End Function
+#endif
 
 Private Function DoubleList.IndexOfObject(FObj As Any Ptr) As Integer
 	For i As Integer = 0 To Count -1

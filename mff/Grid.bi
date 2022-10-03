@@ -171,6 +171,7 @@ Namespace My.Sys.Forms
 		PItem As GridRow Ptr
 		#ifndef __USE_GTK__
 			lvi As LVITEM
+			Declare Static Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 		#endif
 	Public:
 		#ifdef __USE_GTK__

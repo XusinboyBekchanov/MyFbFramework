@@ -39,14 +39,18 @@ Namespace My.Sys.Drawing
 		End Function
 	#endif
 	
-	Private Property Pen.Color As ULong
-		Return FColor
-	End Property
+	#ifndef Pen_Color_Get_Off
+		Private Property Pen.Color As ULong
+			Return FColor
+		End Property
+	#endif
 	
-	Private Property Pen.Color(Value As ULong)
-		FColor = Value
-		Create
-	End Property
+	#ifndef Pen_Color_Set_Off
+		Private Property Pen.Color(Value As ULong)
+			FColor = Value
+			Create
+		End Property
+	#endif
 	
 	Private Property Pen.Style As Integer
 		Return FStyle
@@ -70,18 +74,22 @@ Namespace My.Sys.Drawing
 		Return FSize
 	End Property
 	
-	Private Property Pen.Size(Value As Integer)
-		FSize = Value
-		Create
-	End Property
+	#ifndef Pen_Size_Set_Off
+		Private Property Pen.Size(Value As Integer)
+			FSize = Value
+			Create
+		End Property
+	#endif
 	
-	Private Sub Pen.Create
-		#ifdef __USE_WINAPI__
-			If Handle Then DeleteObject Handle
-			Handle = CreatePen(FStyle, FSize, FColor)
-			If Handle Then If OnCreate Then OnCreate(This)
-		#endif
-	End Sub
+	#ifndef Pen_Create_Off
+		Private Sub Pen.Create
+			#ifdef __USE_WINAPI__
+				If Handle Then DeleteObject Handle
+				Handle = CreatePen(FStyle, FSize, FColor)
+				If Handle Then If OnCreate Then OnCreate(This)
+			#endif
+		End Sub
+	#endif
 	
 	Private Operator Pen.Cast As Any Ptr
 		Return @This

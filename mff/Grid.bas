@@ -44,27 +44,29 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Function GridRow.Item(ColumnIndex As Integer) As GridCell Ptr
-		Dim ic As Integer = FColumns.Count
-		Dim cc As Integer = Cast(Grid Ptr, Parent)->Columns.Count
-		If ic < cc Then
-			For i As Integer = ic + 1 To cc
-				FColumns.Add ""
-			Next i
-		End If
-		If ColumnIndex < FColumns.Count Then
-			Dim As GridCell Ptr Cell = FColumns.Object(ColumnIndex)
-			If Cell = 0 Then
-				Cell = New GridCell
-				Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(ColumnIndex)
-				Cell->Row = Cast(Grid Ptr, Parent)->Rows.Item(Index)
-				Cell->Parent = Parent
+	#ifndef GridRow_Item_Off
+		Private Function GridRow.Item(ColumnIndex As Integer) As GridCell Ptr
+			Dim ic As Integer = FColumns.Count
+			Dim cc As Integer = Cast(Grid Ptr, Parent)->Columns.Count
+			If ic < cc Then
+				For i As Integer = ic + 1 To cc
+					FColumns.Add ""
+				Next i
 			End If
-			Return Cell
-		Else
-			Return 0
-		End If
-	End Function
+			If ColumnIndex < FColumns.Count Then
+				Dim As GridCell Ptr Cell = FColumns.Object(ColumnIndex)
+				If Cell = 0 Then
+					Cell = New GridCell
+					Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(ColumnIndex)
+					Cell->Row = Cast(Grid Ptr, Parent)->Rows.Item(Index)
+					Cell->Parent = Parent
+				End If
+				Return Cell
+			Else
+				Return 0
+			End If
+		End Function
+	#endif
 	
 	Private Property GridCell.Text ByRef As WString
 		Return Row->Text(Column->Index)
@@ -151,18 +153,20 @@ Namespace My.Sys.Forms
 		Return FState
 	End Property
 	
-	Private Property GridRow.State(Value As Integer)
-		FState = Value
-		#ifndef __USE_GTK__
-			If Parent AndAlso Parent->Handle Then
-				lvi.mask = LVIF_STATE
-				lvi.iItem = Index
-				lvi.iSubItem   = 0
-				lvi.state    = Value
-				ListView_SetItem(Parent->Handle, @lvi)
-			End If
-		#endif
-	End Property
+	#ifndef GridRow_State_Set_Off
+		Private Property GridRow.State(Value As Integer)
+			FState = Value
+			#ifndef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					lvi.mask = LVIF_STATE
+					lvi.iItem = Index
+					lvi.iSubItem   = 0
+					lvi.state    = Value
+					ListView_SetItem(Parent->Handle, @lvi)
+				End If
+			#endif
+		End Property
+	#endif
 	
 	Private Property GridRow.Hint ByRef As WString
 		Return WGet(FHint)
@@ -177,20 +181,22 @@ Namespace My.Sys.Forms
 		Return FImageIndex
 	End Property
 	
-	Private Property GridRow.ImageIndex(Value As Integer)
-		If Value <> FImageIndex Then
-			FImageIndex = Value
-			#ifndef __USE_GTK__
-				If Parent AndAlso Parent->Handle Then
-					lvi.mask = LVIF_IMAGE
-					lvi.iItem = Index
-					lvi.iSubItem   = 0
-					lvi.iImage     = Value
-					ListView_SetItem(Parent->Handle, @lvi)
-				End If
-			#endif
-		End If
-	End Property
+	#ifndef GridRow_ImageIndex_Set_Off
+		Private Property GridRow.ImageIndex(Value As Integer)
+			If Value <> FImageIndex Then
+				FImageIndex = Value
+				#ifndef __USE_GTK__
+					If Parent AndAlso Parent->Handle Then
+						lvi.mask = LVIF_IMAGE
+						lvi.iItem = Index
+						lvi.iSubItem   = 0
+						lvi.iImage     = Value
+						ListView_SetItem(Parent->Handle, @lvi)
+					End If
+				#endif
+			End If
+		End Property
+	#endif
 	
 	Private Property GridRow.Indent As Integer
 		#ifndef __USE_GTK__
@@ -205,18 +211,20 @@ Namespace My.Sys.Forms
 		Return FIndent
 	End Property
 	
-	Private Property GridRow.Indent(Value As Integer)
-		FIndent = Value
-		#ifndef __USE_GTK__
-			If Parent AndAlso Parent->Handle Then
-				lvi.mask = LVIF_INDENT
-				lvi.iItem = Index
-				lvi.iSubItem   = 0
-				lvi.iIndent    = Value
-				ListView_SetItem(Parent->Handle, @lvi)
-			End If
-		#endif
-	End Property
+	#ifndef GridRow_Indent_Set_Off
+		Private Property GridRow.Indent(Value As Integer)
+			FIndent = Value
+			#ifndef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					lvi.mask = LVIF_INDENT
+					lvi.iItem = Index
+					lvi.iSubItem   = 0
+					lvi.iIndent    = Value
+					ListView_SetItem(Parent->Handle, @lvi)
+				End If
+			#endif
+		End Property
+	#endif
 	
 	Private Property GridRow.SelectedImageIndex As Integer
 		Return FImageIndex
@@ -237,29 +245,31 @@ Namespace My.Sys.Forms
 		Return WGet(FImageKey)
 	End Property
 	
-	Private Property GridRow.ImageKey(ByRef Value As WString)
-		'If Value <> *FImageKey Then
-		WLet(FImageKey, Value)
-		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Handle Then
-				Dim As GError Ptr gerr
-				If Value <> "" Then
-					gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-					gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+	#ifndef GridRow_ImageKey_Set_Off
+		Private Property GridRow.ImageKey(ByRef Value As WString)
+			'If Value <> *FImageKey Then
+			WLet(FImageKey, Value)
+			#ifdef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					Dim As GError Ptr gerr
+					If Value <> "" Then
+						gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+						gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+					End If
 				End If
-			End If
-		#else
-			If Parent AndAlso Parent->Handle AndAlso Cast(Grid Ptr, Parent)->Images Then
-				FImageIndex = Cast(Grid Ptr, Parent)->Images->IndexOf(Value)
-				lvi.mask = LVIF_IMAGE
-				lvi.iItem = Index
-				lvi.iSubItem   = 0
-				lvi.iImage     = FImageIndex
-				ListView_SetItem(Parent->Handle, @lvi)
-			End If
-		#endif
-		'End If
-	End Property
+			#else
+				If Parent AndAlso Parent->Handle AndAlso Cast(Grid Ptr, Parent)->Images Then
+					FImageIndex = Cast(Grid Ptr, Parent)->Images->IndexOf(Value)
+					lvi.mask = LVIF_IMAGE
+					lvi.iItem = Index
+					lvi.iSubItem   = 0
+					lvi.iImage     = FImageIndex
+					ListView_SetItem(Parent->Handle, @lvi)
+				End If
+			#endif
+			'End If
+		End Property
+	#endif
 	
 	Private Property GridRow.SelectedImageKey ByRef As WString
 		Return WGet(FImageKey)
@@ -356,40 +366,44 @@ Namespace My.Sys.Forms
 		Return FWidth
 	End Property
 	
-	Private Property GridColumn.Width(Value As Integer)
-		FWidth = Value
-		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
-				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
+	#ifndef GridColumn_Width_Set_Off
+		Private Property GridColumn.Width(Value As Integer)
+			FWidth = Value
+			#ifdef __USE_GTK__
+				#ifdef __USE_GTK3__
+					If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
+				#else
+					If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
+				#endif
 			#else
-				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
+				If Parent AndAlso Parent->Handle Then
+					Dim lvc As LVCOLUMN
+					lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
+					lvc.iSubItem = Index
+					ListView_SetColumn(Parent->Handle, Index, @lvc)
+				End If
 			#endif
-		#else
-			If Parent AndAlso Parent->Handle Then
-				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
-				lvc.iSubItem = Index
-				ListView_SetColumn(Parent->Handle, Index, @lvc)
-			End If
-		#endif
-	End Property
+		End Property
+	#endif
 	
 	Private Property GridColumn.Format As GridColumnFormat
 		Return FFormat
 	End Property
 	
-	Private Property GridColumn.Format(Value As GridColumnFormat)
-		FFormat = Value
-		#ifndef __USE_GTK__
-			If Parent AndAlso Parent->Handle Then
-				Dim lvc As LVCOLUMN
-				lvc.mask = LVCF_FMT Or LVCF_SUBITEM
-				lvc.iSubItem = Index
-				lvc.fmt = Value
-				ListView_SetColumn(Parent->Handle, Index, @lvc)
-			End If
-		#endif
-	End Property
+	#ifndef GridColumn_Format_Set_Off
+		Private Property GridColumn.Format(Value As GridColumnFormat)
+			FFormat = Value
+			#ifndef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					Dim lvc As LVCOLUMN
+					lvc.mask = LVCF_FMT Or LVCF_SUBITEM
+					lvc.iSubItem = Index
+					lvc.fmt = Value
+					ListView_SetColumn(Parent->Handle, Index, @lvc)
+				End If
+			#endif
+		End Property
+	#endif
 	
 	Private Property GridColumn.Hint ByRef As WString
 		Return WGet(FHint)
@@ -403,16 +417,18 @@ Namespace My.Sys.Forms
 		Return FImageIndex
 	End Property
 	
-	Private Property GridColumn.ImageIndex(Value As Integer)
-		If Value <> FImageIndex Then
-			FImageIndex = Value
-			If Parent Then
-				With QControl(Parent)
-					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-				End With
+	#ifndef GridColumn_ImageIndex_Set_Off
+		Private Property GridColumn.ImageIndex(Value As Integer)
+			If Value <> FImageIndex Then
+				FImageIndex = Value
+				If Parent Then
+					With QControl(Parent)
+						'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
+					End With
+				End If
 			End If
-		End If
-	End Property
+		End Property
+	#endif
 	
 	Private Property GridColumn.Visible As Boolean
 		Return FVisible
@@ -485,59 +501,61 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
-		PItem = New_(GridRow)
-		Dim i As Integer = Index
-		Dim As GridSortStyle iSortStyle = Cast(Grid Ptr, Parent)->Sort
-		If iSortStyle <> GridSortStyle.ssNone Then
-			For i = 0 To FItems.Count - 1
-				If iSortStyle = GridSortStyle.ssSortAscending Then
-					If Cast(GridRow Ptr, FItems.Item(i))->Text(0) > FCaption Then Exit For
-				Else
-					If Cast(GridRow Ptr, FItems.Item(i))->Text(0) < FCaption Then Exit For
-				End If
-			Next
-			FItems.Insert i, PItem
-		ElseIf Index = -1 Then
-			FItems.Add PItem
-		Else
-			FItems.Insert i, PItem
-		End If
-		With *PItem
-			.ImageIndex     = FImageIndex
-			.Text(0)        = FCaption
-			.State        = State
-			.Indent        = Indent
-		End With
-		#ifdef __USE_GTK__
-			Cast(Grid Ptr, Parent)->Init
-			If iSortStyle <> GridSortStyle.ssNone OrElse Index <> -1 Then
-				gtk_list_store_insert(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, i)
+	#ifndef GridRows_Add_Integer_Off
+		Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
+			PItem = New_(GridRow)
+			Dim i As Integer = Index
+			Dim As GridSortStyle iSortStyle = Cast(Grid Ptr, Parent)->Sort
+			If iSortStyle <> GridSortStyle.ssNone Then
+				For i = 0 To FItems.Count - 1
+					If iSortStyle = GridSortStyle.ssSortAscending Then
+						If Cast(GridRow Ptr, FItems.Item(i))->Text(0) > FCaption Then Exit For
+					Else
+						If Cast(GridRow Ptr, FItems.Item(i))->Text(0) < FCaption Then Exit For
+					End If
+				Next
+				FItems.Insert i, PItem
+			ElseIf Index = -1 Then
+				FItems.Add PItem
 			Else
-				gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
+				FItems.Insert i, PItem
 			End If
-			gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
-		#else
-			lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
-			lvi.pszText  = @FCaption
-			lvi.cchTextMax = Len(FCaption)
-			lvi.iItem = IIf(Index = -1, FItems.Count - 1, Index)
-			lvi.iSubItem = 0
-			lvi.iImage   = FImageIndex
-			lvi.state   = INDEXTOSTATEIMAGEMASK(State)
-			lvi.stateMask = LVIS_STATEIMAGEMASK
-			lvi.iIndent   = Indent
-			lvi.lParam    = Cast(LPARAM, PItem)
-		#endif
-		If Parent Then
-			PItem->Parent = Parent
-			PItem->Text(0) = FCaption
-			#ifndef __USE_GTK__
-				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
+			With *PItem
+				.ImageIndex     = FImageIndex
+				.Text(0)        = FCaption
+				.State        = State
+				.Indent        = Indent
+			End With
+			#ifdef __USE_GTK__
+				Cast(Grid Ptr, Parent)->Init
+				If iSortStyle <> GridSortStyle.ssNone OrElse Index <> -1 Then
+					gtk_list_store_insert(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, i)
+				Else
+					gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
+				End If
+				gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
+			#else
+				lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+				lvi.pszText  = @FCaption
+				lvi.cchTextMax = Len(FCaption)
+				lvi.iItem = IIf(Index = -1, FItems.Count - 1, Index)
+				lvi.iSubItem = 0
+				lvi.iImage   = FImageIndex
+				lvi.state   = INDEXTOSTATEIMAGEMASK(State)
+				lvi.stateMask = LVIS_STATEIMAGEMASK
+				lvi.iIndent   = Indent
+				lvi.lParam    = Cast(LPARAM, PItem)
 			#endif
-		End If
-		Return PItem
-	End Function
+			If Parent Then
+				PItem->Parent = Parent
+				PItem->Text(0) = FCaption
+				#ifndef __USE_GTK__
+					If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
+				#endif
+			End If
+			Return PItem
+		End Function
+	#endif
 	
 	Private Function GridRows.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
 		If Parent AndAlso Cast(Grid Ptr, Parent)->Images Then
@@ -583,7 +601,7 @@ Namespace My.Sys.Forms
 	Private Sub GridRows.Remove(Index As Integer)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_remove(gtk_list_store(GridGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
+				gtk_list_store_remove(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -594,17 +612,19 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Private Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
-			Dim As GridRow Ptr FirstItem = Cast(GridRow Ptr, lParam1), SecondItem = Cast(GridRow Ptr, lParam2)
-			If FirstItem <> 0 AndAlso SecondItem <> 0 Then
-				Select Case FirstItem->Text(0)
-				Case Is < SecondItem->Text(0): Return -1
-				Case Is > SecondItem->Text(0): Return 1
-				Case Else: Return 0
-				End Select
-			End If
-			Return 0
-		End Function
+		#ifndef GridRows_CompareFunc_Off
+			Private Function GridRows.CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
+				Dim As GridRow Ptr FirstItem = Cast(GridRow Ptr, lParam1), SecondItem = Cast(GridRow Ptr, lParam2)
+				If FirstItem <> 0 AndAlso SecondItem <> 0 Then
+					Select Case FirstItem->Text(0)
+					Case Is < SecondItem->Text(0): Return -1
+					Case Is > SecondItem->Text(0): Return 1
+					Case Else: Return 0
+					End Select
+				End If
+				Return 0
+			End Function
+		#endif
 	#endif
 	
 	Private Sub GridRows.Sort
@@ -935,17 +955,19 @@ Namespace My.Sys.Forms
 		Return Rows.Item(RowIndex)->Item(ColumnIndex)
 	End Function
 	
-	Private Sub Grid.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
-		#ifndef __USE_GTK__
-			If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-			If Value Then
-				If ((FLVExStyle And iStyle) <> iStyle) Then FLVExStyle = FLVExStyle Or iStyle
-			ElseIf ((FLVExStyle And iStyle) = iStyle) Then
-				FLVExStyle = FLVExStyle And Not iStyle
-			End If
-			If FHandle Then SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal FLVExStyle)
-		#endif
-	End Sub
+	#ifndef Grid_ChangeLVExStyle_Off
+		Private Sub Grid.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
+			#ifndef __USE_GTK__
+				If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
+				If Value Then
+					If ((FLVExStyle And iStyle) <> iStyle) Then FLVExStyle = FLVExStyle Or iStyle
+				ElseIf ((FLVExStyle And iStyle) = iStyle) Then
+					FLVExStyle = FLVExStyle And Not iStyle
+				End If
+				If FHandle Then SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal FLVExStyle)
+			#endif
+		End Sub
+	#endif
 	
 	Private Property Grid.SingleClickActivate As Boolean
 		Return FSingleClickActivate
@@ -971,7 +993,7 @@ Namespace My.Sys.Forms
 	Private Property Grid.HoverSelection(Value As Boolean)
 		FHoverSelection = Value
 		#ifdef __USE_GTK__
-			gtk_tree_view_set_hover_selection(gtk_tree_view(Widget), Value)
+			gtk_tree_view_set_hover_selection(GTK_TREE_VIEW(widget), Value)
 		#else
 			ChangeLVExStyle LVS_EX_TRACKSELECT, Value
 		#endif
@@ -1056,9 +1078,9 @@ Namespace My.Sys.Forms
 					gtk_tree_selection_unselect_all(TreeSelection)
 				ElseIf Value > -1 AndAlso Value < Rows.Count Then
 					Dim As GtkTreeIter iter
-					gtk_tree_model_get_iter_from_string(gtk_tree_model(ListStore), @iter, Trim(Str(Value)))
+					gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Value)))
 					gtk_tree_selection_select_iter(TreeSelection, @iter)
-					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
+					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
 				End If
 			End If
 		#else
@@ -1072,7 +1094,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Return Rows.FindByIterUser_Data(iter.User_Data)
+				Return Rows.FindByIterUser_Data(iter.user_data)
 			End If
 		#else
 			If Handle Then
@@ -1083,17 +1105,21 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	Private Property Grid.SelectedRow(Value As GridRow Ptr)
-		Value->SelectItem
-	End Property
+	#ifndef Grid_SelectedRow_Off
+		Private Property Grid.SelectedRow(Value As GridRow Ptr)
+			Value->SelectItem
+		End Property
+	#endif
 	
 	Private Property Grid.SelectedColumn As GridColumn Ptr
 		Return Columns.Column(FCol)
 	End Property
 	
-	Private Property Grid.SelectedColumn(Value As GridColumn Ptr)
-		FCol = Value->Index
-	End Property
+	#ifndef Grid_SelectedColumn_Off
+		Private Property Grid.SelectedColumn(Value As GridColumn Ptr)
+			FCol = Value->Index
+		End Property
+	#endif
 	
 	Private Property Grid.SelectedColumnIndex As Integer
 		Return FCol

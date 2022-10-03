@@ -56,9 +56,11 @@ Namespace My.Sys.Drawing
 		End Function
 	#endif
 	
-	Private Property Brush.Color As Integer
-		Return FColor
-	End Property
+	#ifndef Brush_Color_Get_Off
+		Private Property Brush.Color As Integer
+			Return FColor
+		End Property
+	#endif
 	
 	Private Property Brush.Color(Value As Integer)
 		FColor = Value
