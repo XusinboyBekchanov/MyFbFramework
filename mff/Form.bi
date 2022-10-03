@@ -201,12 +201,10 @@ Namespace My.Sys.Forms
 		Declare Sub Show
 		'Shows the form with the specified owner to the user (Windows, Linux).
 		Declare Sub Show(ByRef OwnerForm As Form)
-		#ifndef Form_ShowModal_Off
-			'Shows the form as a modal dialog box (Windows, Linux).
-			Declare Function ShowModal As Integer
-			'Shows the form As a modal dialog box With the specified owner (Windows, Linux).
-			Declare Function ShowModal(ByRef Parent As Form) As Integer
-		#endif
+		'Shows the form as a modal dialog box (Windows, Linux).
+		Declare Function ShowModal As Integer
+		'Shows the form As a modal dialog box With the specified owner (Windows, Linux).
+		Declare Function ShowModal(ByRef Parent As Form) As Integer
 		'Conceals the control from the user.
 		Declare Sub Hide
 		'Maximizes the window (Windows, Linux).

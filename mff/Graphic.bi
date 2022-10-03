@@ -42,18 +42,10 @@ Namespace My.Sys.Drawing
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Function ToString() ByRef As WString
-		#ifndef GraphicType_LoadFromFile_Off
-			Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#endif
-		#ifndef GraphicType_SaveToFile_Off
-			Declare Function SaveToFile(ByRef File As WString) As Boolean
-		#endif
-		#ifndef GraphicType_LoadFromResourceID_Off
-			Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		#endif
-		#ifndef GraphicType_LoadFromResourceName_Off
-			Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
-		#endif
+		Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Declare Function SaveToFile(ByRef File As WString) As Boolean
+		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
 		Declare Constructor
 		Declare Destructor
 		Declare Operator Let(ByRef Value As WString)

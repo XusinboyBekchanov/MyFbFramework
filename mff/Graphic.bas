@@ -162,11 +162,9 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Operator GraphicType.Let(ByRef Value As WString)
-		#if Not defined(GraphicType_LoadFromResourceID_Off) OrElse Not defined(GraphicType_LoadFromResourceID_Off) OrElse Not defined(GraphicType_LoadFromFile_Off)
-			If (Not LoadFromResourceID(Val(Value))) AndAlso (Not LoadFromResourceName(Value)) Then
-				LoadFromFile(Value)
-			End If
-		#endif
+		If (Not LoadFromResourceID(Val(Value))) AndAlso (Not LoadFromResourceName(Value)) Then
+			LoadFromFile(Value)
+		End If
 	End Operator
 	
 	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.BitmapType)

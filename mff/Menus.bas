@@ -125,9 +125,7 @@ Namespace My.Sys.Forms
 			value.fState      = IIf(FEnabled, MFS_ENABLED, MFS_DISABLED) Or IIf(FChecked, MFS_CHECKED, MFS_UNCHECKED)
 			value.wID         = IIf(Handle, -1, This.Command)
 			If FImageIndex <> - 1 AndAlso Owner AndAlso Owner->ImagesList Then
-				#ifndef BitmapType_LoadFromHICON_Off
-					FImage.LoadFromHICON(Owner->ImagesList->GetIcon(FImageIndex).Handle)
-				#endif
+				FImage.LoadFromHICON(Owner->ImagesList->GetIcon(FImageIndex).Handle)
 			ElseIf WGet(FImageKey) <> "" AndAlso FImage.Handle = 0 Then
 				FImage.LoadFromResourceName(*FImageKey)
 			End If

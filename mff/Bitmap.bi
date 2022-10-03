@@ -74,9 +74,7 @@ Namespace My.Sys.Drawing
 		Declare Function LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		#ifdef __USE_WINAPI__
-			#ifndef BitmapType_LoadFromHICON_Off
-				Declare Function LoadFromHICON(IcoHandle As HICON) As Boolean
-			#endif
+			Declare Function LoadFromHICON(IcoHandle As HICON) As Boolean
 		#endif
 		Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean 'David Change
 		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean 'David Change

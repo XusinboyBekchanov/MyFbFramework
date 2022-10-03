@@ -295,96 +295,94 @@ Namespace My.Sys.Drawing
 		#endif
 	#endif
 	
-	Private Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
-		#ifdef __USE_GTK__
-			Dim As GError Ptr gerr
-			If FileExists("./Resources/" & ResName & ".png") Then
-				Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".png"), @gerr)
-			ElseIf FileExists("./resources/" & ResName & ".png") Then
-				Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".png"), @gerr)
-			ElseIf FileExists("./Resources/" & ResName & ".ico") Then
-				Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".ico"), @gerr)
-			ElseIf FileExists("./resources/" & ResName & ".ico") Then
-				Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".ico"), @gerr)
-			Else
-				Handle = gdk_pixbuf_new_from_resource(ToUtf8(ResName), @gerr)
-			End If
-			If gerr Then Print gerr->code, *gerr->message
-		#elseif defined(__USE_WINAPI__)
-			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			Dim As BITMAP BMP
-			If ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".png") Then
-				LoadFromFile(ExePath & "./Resources/" & ResName & ".png", cxDesired, cyDesired)
-			ElseIf ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".ico") Then
-				LoadFromFile(ExePath & "./Resources/" & ResName & ".ico", cxDesired, cyDesired)
-			ElseIf FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
-				Handle = LoadImage(ModuleHandle, ResName, IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
-			ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
-				Dim As HICON IcoHandle
-				IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
-				If IcoHandle = 0 Then Return False
-				#ifndef BitmapType_LoadFromHICON_Off
-					LoadFromHICON(IcoHandle)
-				#endif
-			ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_CURSOR) Then
-				Dim As HICON IcoHandle
-				IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
-				#ifndef BitmapType_LoadFromHICON_Off
-					LoadFromHICON(IcoHandle)
-				#endif
-			Else
-				Dim As HRSRC hPicture = FindResourceW(ModuleHandle_, ResName, "PNG")
-				If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_GROUP_ICON)
-				If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_RCDATA)
-				Dim As HRSRC hPictureData
-				Dim As Unsigned Long dwSize = SizeofResource(ModuleHandle_, hPicture)
-				Dim As HGLOBAL hGlobal = NULL
-				If hPicture = 0 Then Return False
-				hPictureData = LockResource(LoadResource(ModuleHandle_, hPicture))
-				If hPictureData = 0 Then Return False
-				hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwSize)
-				If hGlobal = 0 Then Return False
-				' Lock the memory
-				Dim As LPVOID pData = GlobalLock(hGlobal)
-				If pData = 0 Then
-					GlobalFree(hGlobal)
-					Return False
+	#ifndef BitmapType_LoadFromResourceName_Off
+		Private Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
+			#ifdef __USE_GTK__
+				Dim As GError Ptr gerr
+				If FileExists("./Resources/" & ResName & ".png") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".png"), @gerr)
+				ElseIf FileExists("./resources/" & ResName & ".png") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".png"), @gerr)
+				ElseIf FileExists("./Resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".ico"), @gerr)
+				ElseIf FileExists("./resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".ico"), @gerr)
+				Else
+					Handle = gdk_pixbuf_new_from_resource(ToUtf8(ResName), @gerr)
 				End If
-				' Initialize Gdiplus
-				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
-				StartupInput.GdiplusVersion = 1
-				GdiplusStartup(@token, @StartupInput, NULL)
-				' Copy the image from the binary string file to global memory
-				CopyMemory(pData, hPictureData, dwSize)
-				Dim As IStream Ptr pngstream = NULL
-				If SUCCEEDED(CreateStreamOnHGlobal(hGlobal, False, @pngstream)) Then
-					If pngstream Then
-						'Dim As gdiplus.Color clr
-						Dim pImage As GpImage Ptr ', hImage As HICON
-						' Create a bitmap from the data contained in the stream
-						GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
-						' Create icon from image
-						GdipCreateHBitmapFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
-						
-						' Free the image
-						If pImage Then GdipDisposeImage pImage
-						pngstream->lpVtbl->Release(pngstream)
+				If gerr Then Print gerr->code, *gerr->message
+			#elseif defined(__USE_WINAPI__)
+				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
+				Dim As BITMAP BMP
+				If ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".png") Then
+					LoadFromFile(ExePath & "./Resources/" & ResName & ".png", cxDesired, cyDesired)
+				ElseIf ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".ico") Then
+					LoadFromFile(ExePath & "./Resources/" & ResName & ".ico", cxDesired, cyDesired)
+				ElseIf FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
+					Handle = LoadImage(ModuleHandle, ResName, IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
+				ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
+					Dim As HICON IcoHandle
+					IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+					If IcoHandle = 0 Then Return False
+					LoadFromHICON(IcoHandle)
+				ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_CURSOR) Then
+					Dim As HICON IcoHandle
+					IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+					LoadFromHICON(IcoHandle)
+				Else
+					Dim As HRSRC hPicture = FindResourceW(ModuleHandle_, ResName, "PNG")
+					If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_GROUP_ICON)
+					If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_RCDATA)
+					Dim As HRSRC hPictureData
+					Dim As Unsigned Long dwSize = SizeofResource(ModuleHandle_, hPicture)
+					Dim As HGLOBAL hGlobal = NULL
+					If hPicture = 0 Then Return False
+					hPictureData = LockResource(LoadResource(ModuleHandle_, hPicture))
+					If hPictureData = 0 Then Return False
+					hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwSize)
+					If hGlobal = 0 Then Return False
+					' Lock the memory
+					Dim As LPVOID pData = GlobalLock(hGlobal)
+					If pData = 0 Then
+						GlobalFree(hGlobal)
+						Return False
 					End If
+					' Initialize Gdiplus
+					Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
+					StartupInput.GdiplusVersion = 1
+					GdiplusStartup(@token, @StartupInput, NULL)
+					' Copy the image from the binary string file to global memory
+					CopyMemory(pData, hPictureData, dwSize)
+					Dim As IStream Ptr pngstream = NULL
+					If SUCCEEDED(CreateStreamOnHGlobal(hGlobal, False, @pngstream)) Then
+						If pngstream Then
+							'Dim As gdiplus.Color clr
+							Dim pImage As GpImage Ptr ', hImage As HICON
+							' Create a bitmap from the data contained in the stream
+							GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
+							' Create icon from image
+							GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
+							
+							' Free the image
+							If pImage Then GdipDisposeImage pImage
+							pngstream->lpVtbl->Release(pngstream)
+						End If
+					End If
+					' Unlock the memory
+					GlobalUnlock pData
+					' Free the memory
+					GlobalFree hGlobal
+					' Shutdown Gdiplus
+					GdiplusShutdown token
 				End If
-				' Unlock the memory
-				GlobalUnlock pData
-				' Free the memory
-				GlobalFree hGlobal
-				' Shutdown Gdiplus
-				GdiplusShutdown token
-			End If
-			GetObject(Handle,SizeOf(BMP),@BMP)
-			FWidth  = BMP.bmWidth
-			FHeight = BMP.bmHeight
-		#endif
-		If Changed Then Changed(This)
-		Return Handle <> 0
-	End Function
+				GetObject(Handle,SizeOf(BMP),@BMP)
+				FWidth  = BMP.bmWidth
+				FHeight = BMP.bmHeight
+			#endif
+			If Changed Then Changed(This)
+			Return Handle <> 0
+		End Function
+	#endif
 	
 	Private Function BitmapType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		#ifdef __USE_GTK__
@@ -392,7 +390,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(Abs_(FTransparent)))
+			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
 			If Handle = 0 Then Return False
 			GetObject(Handle,SizeOf(BMP),@BMP)
 			FWidth  = BMP.bmWidth
@@ -423,7 +421,7 @@ Namespace My.Sys.Drawing
 	
 	Private Sub BitmapType.Clear
 		#ifdef __USE_WINAPI__
-			Dim rc As ..RECT
+			Dim rc As ..Rect
 			rc.Left = 0
 			rc.Top = 0
 			rc.Right = FWidth
@@ -513,7 +511,7 @@ End Namespace
 		#ifdef __USE_GTK__
 			Return Bitm->LoadFromResourceName(ResName)
 		#else
-			Return Bitm->LoadFromResourceName(ResName, Cast(HInstance, ModuleHandle))
+			Return Bitm->LoadFromResourceName(ResName, Cast(HINSTANCE, ModuleHandle))
 		#endif
 	End Function
 	
