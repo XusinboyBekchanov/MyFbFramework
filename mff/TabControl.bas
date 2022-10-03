@@ -643,7 +643,10 @@ Namespace My.Sys.Forms
 						.SetMargins
 					Next
 					.RequestAlign
-					If .TabCount > 0 Then .Tabs[0]->BringToFront()
+					If .TabCount > 0 AndAlso .SelectedTabIndex < .TabCount Then
+						.SelectedTabIndex = .FSelectedTabIndex
+						'.Tabs[.SelectedTabIndex]->BringToFront()
+					End If
 				End With
 			End If
 		End Sub
