@@ -856,20 +856,20 @@ Namespace My.Sys.Forms
 					gtk_menu_shell_insert(GTK_MENU_SHELL(SubMenu->Handle), value->Widget, Index)
 				End If
 				If value->Box Then
-					gtk_container_add (GTK_CONTAINER (Value->box), Value->icon)
-					gtk_widget_show(value->box)
-					gtk_widget_show(value->icon)
+					gtk_container_add (GTK_CONTAINER (value->Box), value->Icon)
+					gtk_widget_show(value->Box)
+					gtk_widget_show(value->Icon)
 				EndIf
-				If Value->label Then
-					gtk_label_set_text_with_mnemonic(gtk_label(Value->label), ToUTF8(*Value->FText & "	"))
-					gtk_widget_show(value->label)
+				If value->Label Then
+					gtk_label_set_text_with_mnemonic(GTK_LABEL(value->Label), ToUtf8(*value->FText & "	"))
+					gtk_widget_show(value->Label)
 				End If
 				If value->FVisible Then
-					gtk_widget_show(value->widget)
+					gtk_widget_show(value->Widget)
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If SubMenu = 0 Then
-					SubMenu = New_( PopUpMenu)
+					SubMenu = New_( PopupMenu)
 					SubMenu->ParentMenuItem = @This
 					Handle = SubMenu->Handle
 					Dim As menuinfo mif
@@ -895,32 +895,35 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImage.Handle     = iImage.Handle
 		Value->Name     = sKey
+		Value->Enabled  = bEnabled
 		Value->OnClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Private Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImageIndex = iImageIndex
 		Value->Name     = sKey
+		Value->Enabled  = bEnabled
 		Value->OnClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = Null, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, eClick, Checkable))
 		Value->FDynamic = True
 		WLet(Value->FImageKey, sImageKey)
 		If Owner AndAlso Owner->ImagesList Then Value->FImageIndex = Owner->ImagesList->IndexOf(sImageKey)
 		Value->Name     = sKey
+		Value->Enabled  = bEnabled
 		Value->OnClick     = eClick
 		Add(Value, Index)
 		Return Value
@@ -1433,35 +1436,37 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->Image     = iImage
 		Value->Name     = sKey
-		Value->onClick     = eClick
-		Value->onClick     = eClick
+		Value->Enabled     = bEnabled
+		Value->OnClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->ImageIndex = iImageIndex
 		Value->Caption     = sCaption
 		Value->Name     = sKey
-		Value->onClick     = eClick
+		Value->Enabled     = bEnabled
+		Value->OnClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, , Checkable))
 		Value->FDynamic = True
 		'WLet Value->FImageKey, sImageKey
 		If ImagesList Then Value->ImageIndex = ImagesList->IndexOf(sImageKey)
 		Value->Name     = sKey
-		Value->onClick     = eClick
+		Value->Enabled     = bEnabled
+		Value->OnClick     = eClick
 		Add(Value, Index)
 		Return Value
 	End Function
