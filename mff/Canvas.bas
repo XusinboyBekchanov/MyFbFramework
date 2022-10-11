@@ -121,16 +121,16 @@ Namespace My.Sys.Drawing
 				If x = x1 AndAlso y = y1 AndAlso x = y Then
 					R.Left = 0
 					R.Top = 0
-					R.Right = ParentControl->Width
-					R.Bottom = ParentControl->Height
+					R.Right = ScaleX(ParentControl->Width)
+					R.Bottom = ScaleY(ParentControl->Height)
 					'Remove Scale
 					imgScaleX = 1
 					imgScaleY = 1
 					imgOffsetX = 0
 					imgOffsetY = 0
 					FDrawWidth = 1
-					FScaleWidth = This.Width
-					FScaleHeight =  This.Height
+					FScaleWidth = ScaleX(This.Width)
+					FScaleHeight =  ScaleY(This.Height)
 				Else
 					R.Left = ScaleX(x) * imgScaleX + imgOffsetX
 					R.Top = ScaleY(y) * imgScaleY + imgOffsetY
@@ -241,7 +241,7 @@ Namespace My.Sys.Drawing
 			If Not HandleSetted Then GetDevice
 			DC = Handle
 			memDC = CreateCompatibleDC(DC)
-			CompatibleBmp = CreateCompatibleBitmap(DC, This.Width, This.Height)
+			CompatibleBmp = CreateCompatibleBitmap(DC, ScaleX(This.Width) , ScaleY(This.Height))
 			SelectObject(memDC, CompatibleBmp)
 			Handle = memDC
 			HandleSetted = True
@@ -251,7 +251,7 @@ Namespace My.Sys.Drawing
 	#ifndef Canvas_TransferDoubleBuffer_Off
 		Private Sub Canvas.TransferDoubleBuffer
 			#ifdef __USE_WINAPI__
-				BitBlt(DC, 0, 0, This.Width, This.Height, memDC, 0, 0, SRCCOPY)
+			BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
 			#endif
 		End Sub
 	#endif
