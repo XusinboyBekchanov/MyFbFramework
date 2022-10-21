@@ -1187,6 +1187,11 @@ Namespace My.Sys.Forms
 						'PostQuitMessage 0
 						End 0
 					Else
+						If InShowModal Then
+							For i As Integer = 0 To pApp->FormCount - 1
+								pApp->Forms[i]->Enabled = True
+							Next i
+						EndIf
 						#ifdef __HIDE_NO_MAIN_FORM_ON_CLOSE__
 							ShowWindow Handle, SW_HIDE
 							msg.Result = -1
@@ -1576,13 +1581,13 @@ Namespace My.Sys.Forms
 				Next i
 				Enabled = True
 				Visible = True
+				InShowModal = True
 				Dim As MSG msg
 				Dim TranslateAndDispatch As Boolean
 				While GetMessage(@msg, NULL, 0, 0)
 					TranslateAndDispatch = True
 					If Accelerator Then TranslateAndDispatch = TranslateAccelerator(FHandle, Accelerator, @msg) = 0
 					If TranslateAndDispatch Then
-						
 						Select Case msg.message
 						Case WM_KEYDOWN
 							Select Case msg.wParam
@@ -1594,10 +1599,6 @@ Namespace My.Sys.Forms
 									TranslateAndDispatch = False
 								End If
 							End Select
-						Case 96
-							For i = 0 To pApp->FormCount - 1
-								pApp->Forms[i]->Enabled = True
-							Next i
 						End Select
 					End If
 					If TranslateAndDispatch Then
@@ -1609,6 +1610,7 @@ Namespace My.Sys.Forms
 				For i = 0 To pApp->FormCount - 1
 					pApp->Forms[i]->Enabled = True
 				Next i
+				InShowModal = False
 				Visible = False
 				ReleaseCapture
 				'SetForegroundWindow FParentHandle
@@ -1713,7 +1715,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK4__
 					Dim As GdkRectangle workarea
 					gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-					gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+					gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 				#else
 					gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 				#endif
@@ -1797,7 +1799,7 @@ Namespace My.Sys.Forms
 			widget = WindowWidget
 			'gtk_window_set_policy(GTK_WINDOW(widget), true, false, false)
 			This.RegisterClass "Form", @This
-			If gtk_is_widget(layoutwidget) Then gtk_layout_put(GTK_LAYOUT(layoutwidget), ImageWidget, 0, 0)
+			If GTK_IS_WIDGET(layoutwidget) Then gtk_layout_put(GTK_LAYOUT(layoutwidget), ImageWidget, 0, 0)
 		#elseif defined(__USE_WINAPI__)
 			FMainStyle(0)  = 0
 			FMainStyle(1)  = WS_EX_APPWINDOW

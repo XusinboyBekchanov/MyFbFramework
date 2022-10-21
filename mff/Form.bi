@@ -72,6 +72,7 @@ Namespace My.Sys.Forms
 	Private Type Form Extends ContainerControl
 	Private:
 		FMainForm      As Boolean
+		InShowModal    As Boolean
 		FMainStyle(2)  As Integer
 		FMenuItems     As List
 		FBorderStyle   As Integer
