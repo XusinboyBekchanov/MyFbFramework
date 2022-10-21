@@ -81,8 +81,8 @@ Namespace My.Sys
 	End Constructor
 	
 	Private Destructor Object
-		WDeallocate FTemp
-		WDeallocate FClassName
+		WDeAllocate FTemp
+		WDeAllocate FClassName
 	End Destructor
 End Namespace
 

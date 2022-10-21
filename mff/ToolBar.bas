@@ -467,7 +467,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ToolButton.Enabled(Value As Boolean)
-		If Value <> FEnabled Then
+		'If Value <> FEnabled Then
 			FEnabled = Value
 			If Ctrl Then
 				With QControl(Ctrl)
@@ -479,7 +479,7 @@ Namespace My.Sys.Forms
 					#endif
 				End With
 			End If
-		End If
+		'End If
 	End Property
 	
 	Private Property ToolButton.Checked As Boolean
