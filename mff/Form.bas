@@ -1582,6 +1582,7 @@ Namespace My.Sys.Forms
 					TranslateAndDispatch = True
 					If Accelerator Then TranslateAndDispatch = TranslateAccelerator(FHandle, Accelerator, @msg) = 0
 					If TranslateAndDispatch Then
+						
 						Select Case msg.message
 						Case WM_KEYDOWN
 							Select Case msg.wParam
@@ -1593,6 +1594,10 @@ Namespace My.Sys.Forms
 									TranslateAndDispatch = False
 								End If
 							End Select
+						Case 96
+							For i = 0 To pApp->FormCount - 1
+								pApp->Forms[i]->Enabled = True
+							Next i
 						End Select
 					End If
 					If TranslateAndDispatch Then
@@ -1601,12 +1606,12 @@ Namespace My.Sys.Forms
 					End If
 					If IsWindowVisible(FHandle) = 0 Then Exit While
 				Wend
-				Visible = False
 				For i = 0 To pApp->FormCount - 1
 					pApp->Forms[i]->Enabled = True
 				Next i
+				Visible = False
 				ReleaseCapture
-				SetForegroundWindow FParentHandle
+				'SetForegroundWindow FParentHandle
 			#endif
 			Function = ModalResult
 		End Function
