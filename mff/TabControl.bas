@@ -63,17 +63,17 @@ Namespace My.Sys.Forms
 	Private Sub TabPage.ProcessMessage(ByRef msg As Message)
 		#ifndef __USE_GTK__
 			'FTheme = GetWindowTheme(Msg.hWnd)
-			Dim As ..RECT rct
-			Select Case msg.msg
+			Dim As ..Rect rct
+			Select Case msg.Msg
 			Case WM_DESTROY
 				CloseThemeData(FTheme)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If IsAppThemed() Then
-						GetClientRect(Cast(HWND, Msg.lParam), @rct)
-						DrawThemeParentBackground(Cast(HWND, Msg.lParam), Cast(HDC, Msg.wParam), @rct)
-						SetBkMode(Cast(HDC, Msg.wParam), TRANSPARENT)
-						Msg.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
+						GetClientRect(Cast(HWND, msg.lParam), @rct)
+						DrawThemeParentBackground(Cast(HWND, msg.lParam), Cast(HDC, msg.wParam), @rct)
+						SetBkMode(Cast(HDC, msg.wParam), TRANSPARENT)
+						msg.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 						Return
 					End If
 				End If
@@ -85,8 +85,8 @@ Namespace My.Sys.Forms
 						FTheme = OpenThemeData(FHandle, "Window")
 					End If
 					If IsAppThemed() Then
-						GetClientRect(Msg.hWnd, @rct)
-						DrawThemeBackground(FTheme, Cast(HDC, Msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
+						GetClientRect(msg.hWnd, @rct)
+						DrawThemeBackground(FTheme, Cast(HDC, msg.wParam), 10, 0, @rct, NULL) 'TABP_BODY = 10
 						'Msg.Result = True
 						Return
 					End If
@@ -151,7 +151,8 @@ Namespace My.Sys.Forms
 					Else
 						Ti.iImage = FImageIndex
 					End If
-					This.Parent->Perform(TCM_SETITEM,Index,CInt(@Ti))
+					This.Parent->Perform(TCM_SETITEM, Index, CInt(@Ti))
+					Ti.lParam = 0
 				End If
 			#endif
 		End If
@@ -162,6 +163,13 @@ Namespace My.Sys.Forms
 			Cast(TabControl Ptr, This.Parent)->SelectedTabIndex = Index
 		End If
 	End Sub
+	
+	Private Function TabPage.IsSelected() As Boolean
+		If This.Parent AndAlso *Base.Parent Is TabControl Then
+			Return Cast(TabControl Ptr, This.Parent)->SelectedTabIndex = Index
+		End If
+		Return False
+	End Function
 	
 	Private Property TabPage.Caption ByRef As WString
 		Return This.Text
@@ -401,15 +409,15 @@ Namespace My.Sys.Forms
 	Private Property TabControl.TabPosition(Value As My.Sys.Forms.TabPosition)
 		FTabPosition = Value
 		#ifdef __USE_GTK__
-			gtk_notebook_set_tab_pos(gtk_notebook(widget), FTabPosition)
+			gtk_notebook_set_tab_pos(GTK_NOTEBOOK(widget), FTabPosition)
 			For i As Integer = 0 To TabCount - 1
 				Select Case FTabPosition
 				Case 0, 1
-					gtk_label_set_text(GTK_LABEL(Tabs[i]->_label), ToUTF8(" " & Tabs[i]->Caption & " "))
-					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_label), 90)
+					gtk_label_set_text(GTK_LABEL(Tabs[i]->_Label), ToUtf8(" " & Tabs[i]->Caption & " "))
+					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_Label), 90)
 				Case 2, 3
-					gtk_label_set_text(GTK_LABEL(Tabs[i]->_label), ToUTF8(Tabs[i]->Caption))
-					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_label), 0)
+					gtk_label_set_text(GTK_LABEL(Tabs[i]->_Label), ToUtf8(Tabs[i]->Caption))
+					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_Label), 0)
 				End Select
 			Next
 		#else
@@ -636,9 +644,12 @@ Namespace My.Sys.Forms
 						Else
 							Ti.iImage = .Tabs[i]->ImageIndex
 						End If
-						'If .Tabs[i]->Object Then Ti.lParam = Cast(LPARAM, .Tabs[i]->Object)
-						Ti.lParam = Cast(LPARAM, .Handle)
+						Ti.lParam = 0
+						If .Tabs[i]->Object Then Ti.lParam = Cast(LPARAM, .Tabs[i]->Object)
+						'Ti.lParam = Cast(LPARAM, .Handle)
 						.Perform(TCM_INSERTITEM, i, CInt(@Ti))
+						.SetTabPageIndex(.Tabs[i], i)
+						Ti.lParam = 0
 						'EnableThemeDialogTexture(.Tabs[i]->Handle, ETDT_ENABLETAB)
 						.SetMargins
 					Next
@@ -702,9 +713,9 @@ Namespace My.Sys.Forms
 					Canvas.HandleSetted = True
 					Canvas.Handle = Dc
 					If OnPaint Then OnPaint(This, Canvas)
-					FillRect Dc, @Ps.rcpaint, Brush.Handle
-					Dim As LogFont LogRec
-					Dim As hFont OldFontHandle, NewFontHandle
+					FillRect Dc, @Ps.rcPaint, Brush.Handle
+					Dim As LOGFONT LogRec
+					Dim As HFONT OldFontHandle, NewFontHandle
 					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
 						GetObject Font.Handle, SizeOf(LogRec), @LogRec
 						LogRec.lfEscapement = 90 * 10
@@ -714,7 +725,7 @@ Namespace My.Sys.Forms
 						OldFontHandle = SelectObject(Dc, Font.Handle)
 					End If
 					SetTextColor(Dc, darkTextColor)
-					SetBKMode(Dc, TRANSPARENT)
+					SetBkMode(Dc, TRANSPARENT)
 					For i As Integer = 0 To TabCount - 1
 						Dim As ..Rect R
 						Perform(TCM_GETITEMRECT, i, CInt(@R))
@@ -732,8 +743,8 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					Next i
-					SetBKMode(dc, OPAQUE)
-					NewFontHandle = SelectObject(dc, OldFontHandle)
+					SetBkMode(Dc, OPAQUE)
+					NewFontHandle = SelectObject(Dc, OldFontHandle)
 					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
 						DeleteObject(NewFontHandle)
 					End If
@@ -801,29 +812,29 @@ Namespace My.Sys.Forms
 	
 	Private Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
 		FTabCount += 1
-		Dim tb As TabPage Ptr = New_( TabPage)
-		tb->FDynamic = True
-		tb->Caption = Caption
-		tb->Object = aObject
-		tb->ImageIndex = ImageIndex
+		Dim tp As TabPage Ptr = New_( TabPage)
+		tp->FDynamic = True
+		tp->Caption = Caption
+		tp->Object = aObject
+		tp->ImageIndex = ImageIndex
 		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
-		Tabs[FTabCount - 1] = tb
+		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then
 				#ifdef __USE_GTK3__
-					tb->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
 				#else
-					tb->_Box = gtk_hbox_new(False, 1)
+					tp->_Box = gtk_hbox_new(False, 1)
 				#endif
-				tb->_Icon = gtk_image_new_from_icon_name(ToUtf8(tb->ImageKey), GTK_ICON_SIZE_MENU)
-				gtk_container_add (GTK_CONTAINER (tb->_Box), tb->_Icon)
-				tb->_Label = gtk_label_new(ToUtf8(tb->Caption))
-				gtk_container_add (GTK_CONTAINER (tb->_Box), tb->_Label)
+				tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
+				tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
+				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
 				'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
-				gtk_widget_show_all(tb->_Box)
-				gtk_notebook_append_page(GTK_NOTEBOOK(widget), tb->widget, tb->_Box)
-				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tb->widget, FReorderable)
-				'gtk_notebook_append_page(gtk_notebook(widget), tb->widget, gtk_label_new(ToUTF8(Caption)))
+				gtk_widget_show_all(tp->_Box)
+				gtk_notebook_append_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box)
+				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
+				'gtk_notebook_append_page(gtk_notebook(widget), tp->widget, gtk_label_new(ToUTF8(Caption)))
 			End If
 		#else
 			If Handle Then
@@ -837,11 +848,13 @@ Namespace My.Sys.Forms
 				If Tabs[FTabCount - 1]->Object Then Ti.lParam = Cast(LPARAM, Tabs[FTabCount - 1]->Object)
 				Ti.iImage = Tabs[FTabCount - 1]->ImageIndex
 				SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+				SetTabPageIndex(tp, FTabCount - 1)
+				Ti.lParam = 0
 			End If
 			SetMargins
 		#endif
-		This.Add(tb)
-		tb->Visible = FTabCount = 1
+		This.Add(tp)
+		tp->Visible = FTabCount = 1
 		Return Tabs[FTabCount - 1]
 	End Function
 	
@@ -896,6 +909,8 @@ Namespace My.Sys.Forms
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Ti.iImage = tp->ImageIndex
 				SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
+				SetTabPageIndex(tp, FTabCount - 1)
+				Ti.lParam = 0
 				WDeAllocate St
 			End If
 			SetMargins
@@ -915,8 +930,10 @@ Namespace My.Sys.Forms
 					Tabs[i + 1] = It
 					If i = Index Then
 						Tabs[Index] = tp
+						SetTabPageIndex(tp, Index)
 					End If
 					Tabs[i + 1]->Update
+					SetTabPageIndex(It, i + 1)
 				Next i
 				Tabs[Index]->Update
 			Else
@@ -924,11 +941,19 @@ Namespace My.Sys.Forms
 					It = Tabs[i]
 					Tabs[i - 1] = It
 					Tabs[i - 1]->Update
+					SetTabPageIndex(It, i - 1)
 				Next i
 				Tabs[Index] = tp
 				Tabs[Index]->Update
+				SetTabPageIndex(tp, Index)
 			End If
 			SelectedTabIndex = Index
+		End If
+	End Sub
+	
+	Private Sub TabControl.SetTabPageIndex(tp As TabPage Ptr, Index As Integer)
+		If tp AndAlso tp->Handle Then
+			SetProp(tp->Handle, "@@@Index", Cast(.HANDLE, Index))
 		End If
 	End Sub
 	
@@ -941,6 +966,7 @@ Namespace My.Sys.Forms
 			For i = Index + 1 To FTabCount -1
 				It = Tabs[i]
 				Tabs[i - 1] = It
+				SetTabPageIndex(It, i - 1)
 			Next i
 			FTabCount -= 1
 			If FTabCount = 0 Then
@@ -950,7 +976,7 @@ Namespace My.Sys.Forms
 				Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage Ptr))
 			End If
 			#ifdef __USE_GTK__
-				gtk_notebook_remove_page(gtk_notebook(widget), Index)
+				gtk_notebook_remove_page(GTK_NOTEBOOK(widget), Index)
 			#else
 				Perform(TCM_DELETEITEM,Index,0)
 			#endif
@@ -964,7 +990,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub TabControl.DeleteTab(Value As TabPage Ptr)
-		DeleteTab IndexOfTab(value)
+		DeleteTab IndexOfTab(Value)
 	End Sub
 	
 	Private Sub TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)
@@ -980,17 +1006,20 @@ Namespace My.Sys.Forms
 			For i = Index To FTabCount -2
 				It = Tabs[i]
 				Tabs[i + 1] = It
+				SetTabPageIndex(It, i + 1)
 			Next i
 			Tabs[Index] = New_( TabPage)
 			Tabs[Index]->FDynamic = True
 			Tabs[Index]->Caption = Caption
-			Tabs[Index]->Object = aObject
+			Tabs[Index]->Object = AObject
 			'Tabs[Index]->TabPageControl = @This
 			#ifndef __USE_GTK__
 				Ti.pszText    = @(Tabs[Index]->Caption)
 				Ti.cchTextMax = Len(Tabs[Index]->Caption) + 1
 				If Tabs[Index]->Object Then Ti.lParam = Cast(LPARAM, Tabs[Index]->Object)
 				Perform(TCM_INSERTITEM, Index, CInt(@Ti))
+				SetTabPageIndex(Tabs[Index], Index)
+				Ti.lParam = 0
 			#endif
 			SetMargins
 			This.Add(Tabs[Index])
@@ -1005,14 +1034,14 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If widget Then
 				#ifdef __USE_GTK3__
-					tp->_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
 				#else
-					tp->_box = gtk_hbox_new(False, 1)
+					tp->_Box = gtk_hbox_new(False, 1)
 				#endif
-				tp->_icon = gtk_image_new_from_icon_name(ToUTF8(tp->ImageKey), GTK_ICON_SIZE_MENU)
-				gtk_container_add (GTK_CONTAINER (tp->_box), tp->_icon)
-				tp->_label = gtk_label_new(ToUTF8(tp->Caption))
-				gtk_container_add (GTK_CONTAINER (tp->_box), tp->_label)
+				tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
+				tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
+				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
 				'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
 				gtk_widget_show_all(tp->_Box)
 				gtk_notebook_insert_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box, Index)
@@ -1034,6 +1063,8 @@ Namespace My.Sys.Forms
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Ti.iImage = tp->ImageIndex
 				SendMessageW(FHandle, TCM_INSERTITEMW, Index, CInt(@Ti))
+				SetTabPageIndex(tp, FTabCount - 1)
+				Ti.lParam = 0
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1
@@ -1066,8 +1097,8 @@ Namespace My.Sys.Forms
 		With This
 			#ifdef __USE_GTK__
 				widget = gtk_notebook_new()
-				gtk_notebook_set_scrollable(gtk_notebook(widget), True)
-				g_signal_connect(gtk_notebook(widget), "switch-page", G_CALLBACK(@TabControl_SwitchPage), @This)
+				gtk_notebook_set_scrollable(GTK_NOTEBOOK(widget), True)
+				g_signal_connect(GTK_NOTEBOOK(widget), "switch-page", G_CALLBACK(@TabControl_SwitchPage), @This)
 				.RegisterClass "TabControl", @This
 			#else
 				WLet(FClassAncestor, "SysTabControl32")

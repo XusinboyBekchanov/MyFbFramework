@@ -649,10 +649,13 @@ Namespace Debug
 			If bPrintToDebugWindow Then
 				#ifdef __USE_WINAPI__
 					If IsWindow(DebugWindowHandle) Then
-						If SendMessage(GetParent(GetParent(DebugWindowHandle)), TCM_GETCURSEL, 0, 0) <> 5 Then
-							SendMessage(GetParent(GetParent(DebugWindowHandle)), TCM_SETCURSEL, 5, 0)
-							ShowWindow(GetParent(DebugWindowHandle), SW_SHOW)
-							BringWindowToTop(GetParent(DebugWindowHandle))
+						Dim As HWND TabPageHandle = GetParent(DebugWindowHandle)
+						Dim As HWND TabControlHandle = GetParent(TabPageHandle)
+						Dim As Integer Index = Cast(Integer, GetProp(TabPageHandle, "@@@Index"))
+						If SendMessage(TabControlHandle, TCM_GETCURSEL, 0, 0) <> Index Then
+							SendMessage(TabControlHandle, TCM_SETCURSEL, Index, 0)
+							ShowWindow(TabPageHandle, SW_SHOW)
+							BringWindowToTop(TabPageHandle)
 						End If
 						Dim As WString Ptr SelText
 						WLet(SelText, MSG & Chr(13, 10))
@@ -661,8 +664,11 @@ Namespace Debug
 					End If
 				#elseif defined(__USE_GTK__)
 					If GTK_IS_TEXT_VIEW(DebugWindowHandle) Then
-						If gtk_notebook_get_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle)))) <> 5 Then
-							gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle))), 5)
+						Dim As GtkWidget Ptr TabPageHandle = gtk_widget_get_parent(DebugWindowHandle)
+						Dim As GtkWidget Ptr TabControlHandle = gtk_widget_get_parent(TabPageHandle)
+						Dim As Integer Index = gtk_notebook_page_num(GTK_NOTEBOOK(TabControlHandle), TabPageHandle)
+						If gtk_notebook_get_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle)))) <> Index Then
+							gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle))), Index)
 						End If
 						Dim As GtkTextIter _start, _end
 						gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), ToUtf8(MSG & Chr(13, 10)), -1)

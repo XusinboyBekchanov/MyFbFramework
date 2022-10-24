@@ -77,6 +77,7 @@ Namespace My.Sys.Forms
 		Declare Operator Let(ByRef Value As WString)
 		Declare Operator Cast As Control Ptr
 		Declare Operator Cast As Any Ptr
+		Declare Function IsSelected() As Boolean
 		Declare Sub SelectTab()
 		Declare Sub Update()
 		Declare Constructor
@@ -99,6 +100,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Sub SetTabPageIndex(tp As TabPage Ptr, Index As Integer)
 		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
