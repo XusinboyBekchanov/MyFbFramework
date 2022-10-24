@@ -98,6 +98,7 @@ Namespace My.Sys.Forms
 		FTabPosition        As My.Sys.Forms.TabPosition
 		FTabStyle           As My.Sys.Forms.TabStyle
 		FMousePos           As Integer
+		DownTab             As TabPage Ptr
 		Declare Sub SetMargins()
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
