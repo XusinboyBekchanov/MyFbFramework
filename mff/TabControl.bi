@@ -105,6 +105,11 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Sub SetTabPageIndex(tp As TabPage Ptr, Index As Integer)
 			Declare Function GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
+		#else
+			Declare Static Sub TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+			Declare Static Sub TabControl_PageAdded(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+			Declare Static Sub TabControl_PageRemoved(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+			Declare Static Sub TabControl_PageReordered(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
@@ -164,6 +169,9 @@ Namespace My.Sys.Forms
 		OnSelChanging As Sub(ByRef Sender As TabControl, NewIndex As Integer)
 		OnGotFocus   As Sub(ByRef Sender As TabControl)
 		OnLostFocus   As Sub(ByRef Sender As TabControl)
+		OnTabAdded As Sub(ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
+		OnTabRemoved As Sub(ByRef Sender As TabControl, Page As TabPage Ptr, FromIndex As Integer)
+		OnTabReordered As Sub(ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
 	End Type
 End Namespace
 

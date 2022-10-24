@@ -2053,6 +2053,7 @@ Namespace My.Sys.Forms
 			Private Function Control.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Dim As Boolean Result
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
+				g_object_set_data(G_OBJECT(widget), "MFFControl", Cast(gpointer, @This))
 				If layoutwidget Then
 					#ifdef __USE_GTK4__
 						'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()

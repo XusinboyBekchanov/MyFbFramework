@@ -923,6 +923,7 @@ Namespace My.Sys.Forms
 		#endif
 		This.Add(tp)
 		tp->Visible = FTabCount = 1
+		If OnTabAdded Then OnTabAdded(This, Tabs[FTabCount - 1], FTabCount - 1)
 		Return Tabs[FTabCount - 1]
 	End Function
 	
@@ -989,6 +990,7 @@ Namespace My.Sys.Forms
 			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[FTabCount - 1])
+		If OnTabAdded Then OnTabAdded(This, Tabs[FTabCount - 1], FTabCount - 1)
 		Tabs[FTabCount - 1]->SendToBack
 	End Sub
 	
@@ -1020,22 +1022,27 @@ Namespace My.Sys.Forms
 				SetTabPageIndex(tp, Index)
 			End If
 			SelectedTabIndex = Index
+			If OnTabReordered Then OnTabReordered(This, tp, Index)
 		End If
 	End Sub
 	
 	Private Sub TabControl.SetTabPageIndex(tp As TabPage Ptr, Index As Integer)
-		If tp AndAlso tp->Handle Then
-			SetProp(tp->Handle, "@@@Index", Cast(.HANDLE, Index))
-		End If
+		#ifdef __USE_WINAPI__
+			If tp AndAlso tp->Handle Then
+				SetProp(tp->Handle, "@@@Index", Cast(.HANDLE, Index))
+			End If
+		#endif
 	End Sub
 	
 	Private Sub TabControl.DeleteTab(Index As Integer)
 		Dim As Integer i
-		Dim As TabPage Ptr It
-		If Index >= 0 And Index <= FTabCount -1 Then
-			If Tabs[Index]->FDynamic Then Delete_(Tabs[Index])
+		Dim As TabPage Ptr It, Prev
+		If Index >= 0 And Index <= FTabCount - 1 Then
+			Prev = Tabs[Index]
+			Prev->Parent = 0
 			This.Remove(Tabs[Index])
-			For i = Index + 1 To FTabCount -1
+			If Prev->FDynamic Then Delete_(Prev)
+			For i = Index + 1 To FTabCount - 1
 				It = Tabs[i]
 				Tabs[i - 1] = It
 				SetTabPageIndex(It, i - 1)
@@ -1045,12 +1052,12 @@ Namespace My.Sys.Forms
 				Deallocate_(Tabs)
 				Tabs = 0
 			Else
-				Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage Ptr))
+				Tabs = Reallocate_(Tabs, FTabCount * SizeOf(TabPage Ptr))
 			End If
 			#ifdef __USE_GTK__
 				gtk_notebook_remove_page(GTK_NOTEBOOK(widget), Index)
 			#else
-				Perform(TCM_DELETEITEM,Index,0)
+				Perform(TCM_DELETEITEM, Index, 0)
 			#endif
 			If Index > 0 Then
 				SelectedTabIndex = Index - 1
@@ -1058,6 +1065,7 @@ Namespace My.Sys.Forms
 				SelectedTabIndex = Index + 1
 			End If
 			If FTabCount = 0 Then SetMargins
+			If OnTabRemoved Then OnTabRemoved(This, Prev, Index)
 		End If
 	End Sub
 	
@@ -1095,6 +1103,7 @@ Namespace My.Sys.Forms
 			#endif
 			SetMargins
 			This.Add(Tabs[Index])
+			If OnTabAdded Then OnTabAdded(This, Tabs[Index], Index)
 		End If
 	End Sub
 	
@@ -1143,6 +1152,7 @@ Namespace My.Sys.Forms
 			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[Index])
+		If OnTabAdded Then OnTabAdded(This, Tabs[Index], Index)
 	End Sub
 	
 	Private Operator TabControl.Cast As Control Ptr
@@ -1158,10 +1168,50 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifdef __USE_GTK__
-		Private Sub TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+		Private Sub TabControl.TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 			Dim As TabControl Ptr tc = user_data
 			tc->Tabs[page_num]->RequestAlign
 			If tc->OnSelChange Then tc->OnSelChange(*tc, page_num)
+		End Sub
+		
+		Private Sub TabControl.TabControl_PageAdded(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+			Dim As TabControl Ptr tc = user_data
+			Dim As TabPage Ptr tp = Cast(Any Ptr, g_object_get_data(G_OBJECT(page), "MFFControl"))
+			If tc->IndexOfTab(tp) = -1 Then
+				tc->FTabCount += 1
+				tc->Tabs = Reallocate_(tc->Tabs, tc->FTabCount * SizeOf(TabPage Ptr))
+				Dim As TabPage Ptr It
+				For i As Integer = page_num To tc->FTabCount - 2
+					It = tc->Tabs[i]
+					tc->Tabs[i + 1] = It
+				Next i
+				If tc->OnTabAdded Then tc->OnTabAdded(*tc, tp, page_num)
+			End If
+		End Sub
+		
+		Private Sub TabControl.TabControl_PageRemoved(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+			Dim As TabControl Ptr tc = user_data
+			Dim As TabPage Ptr tp = Cast(Any Ptr, g_object_get_data(G_OBJECT(page), "MFFControl"))
+			If tc->IndexOfTab(tp) > 0 Then
+				For i As Integer = page_num + 1 To tc->FTabCount - 1
+					it = tc->Tabs[i]
+					tc->Tabs[i - 1] = it
+				Next i
+				tc->FTabCount -= 1
+				If tc->FTabCount = 0 Then
+					Deallocate_(tc->Tabs)
+					tc->Tabs = 0
+				Else
+					tc->Tabs = Reallocate_(tc->Tabs, tc->FTabCount * SizeOf(TabPage Ptr))
+				End If
+				If tc->OnTabRemoved Then tc->OnTabRemoved(*tc, tp, page_num)
+			End If
+		End Sub
+		
+		Private Sub TabControl.TabControl_PageReordered(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
+			Dim As TabControl Ptr tc = user_data
+			Dim As TabPage Ptr tp = Cast(Any Ptr, g_object_get_data(G_OBJECT(page), "MFFControl"))
+			tc->ReorderTab tp, page_num
 		End Sub
 	#endif
 	
@@ -1172,6 +1222,9 @@ Namespace My.Sys.Forms
 				widget = gtk_notebook_new()
 				gtk_notebook_set_scrollable(GTK_NOTEBOOK(widget), True)
 				g_signal_connect(GTK_NOTEBOOK(widget), "switch-page", G_CALLBACK(@TabControl_SwitchPage), @This)
+				g_signal_connect(GTK_NOTEBOOK(widget), "page-added", G_CALLBACK(@TabControl_PageAdded), @This)
+				g_signal_connect(GTK_NOTEBOOK(widget), "page-removed", G_CALLBACK(@TabControl_PageRemoved), @This)
+				g_signal_connect(GTK_NOTEBOOK(widget), "page-reordered", G_CALLBACK(@TabControl_PageReordered), @This)
 				.RegisterClass "TabControl", @This
 			#else
 				WLet(FClassAncestor, "SysTabControl32")
