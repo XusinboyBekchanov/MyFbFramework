@@ -88,9 +88,11 @@ Namespace My.Sys.Forms
 	
 	Private Type TabControl Extends ContainerControl
 	Private:
+		FGroupName          As WString Ptr
 		FSelectedTabIndex   As Integer
 		FTabCount           As Integer
 		FMultiline          As Boolean
+		FDetachable         As Boolean
 		FReorderable        As Boolean
 		FFlatButtons        As Boolean
 		FTabPosition        As My.Sys.Forms.TabPosition
@@ -101,6 +103,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Sub SetTabPageIndex(tp As TabPage Ptr, Index As Integer)
+			Declare Function GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
 		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
@@ -113,6 +116,8 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		Declare Property GroupName ByRef As WString
+		Declare Property GroupName(ByRef Value As WString)
 		Declare Property SelectedTabIndex As Integer
 		Declare Property SelectedTabIndex(Value As Integer)
 		Declare Property TabIndex As Integer
@@ -131,6 +136,8 @@ Namespace My.Sys.Forms
 		Declare Property Multiline(Value As Boolean)
 		Declare Property Reorderable As Boolean
 		Declare Property Reorderable(Value As Boolean)
+		Declare Property Detachable As Boolean
+		Declare Property Detachable(Value As Boolean)
 		Declare Property SelectedTab As TabPage Ptr
 		Declare Property SelectedTab(Value As TabPage Ptr)
 		Declare Property Tab(Index As Integer) As TabPage Ptr

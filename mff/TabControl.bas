@@ -47,6 +47,17 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	Private Property TabControl.GroupName ByRef As WString
+		Return *FGroupName
+	End Property
+	
+	Private Property TabControl.GroupName(ByRef Value As WString)
+		WLet(FGroupName, Value)
+		#ifdef __USE_GTK__
+			gtk_notebook_set_group_name(GTK_NOTEBOOK(FHandle), ToUtf8(Value))
+		#endif
+	End Property
+	
 	#ifndef __USE_GTK__
 		Private Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -534,7 +545,19 @@ Namespace My.Sys.Forms
 				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), Tabs[i]->widget, Value)
 			Next
 		#endif
-		RecreateWnd
+	End Property
+	
+	Private Property TabControl.Detachable As Boolean
+		Return FDetachable
+	End Property
+	
+	Private Property TabControl.Detachable(Value As Boolean)
+		FDetachable = Value
+		#ifdef __USE_GTK__
+			For i As Integer = 0 To TabCount - 1
+				gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), Tabs[i]->widget, Value)
+			Next
+		#endif
 	End Property
 	
 	Private Property TabControl.TabCount As Integer
@@ -661,6 +684,20 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
+		
+		Private Function TabControl.GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
+			Dim Result As HWND = ChildWindowFromPoint(ParentHwnd, Type<..Point>(X, Y))
+			If Result = 0 OrElse Result = ParentHwnd Then
+				Return 0
+			ElseIf GetClassNameOf(Result) = "TabControl" Then
+				Dim As TabControl Ptr pTabControl = GetProp(Result, "MFFControl")
+				If pTabControl->GroupName = GroupName Then Return pTabControl
+			End If
+			Dim As ..Rect R
+			GetWindowRect Result, @R
+			MapWindowPoints 0, ParentHwnd, Cast(..Point Ptr, @R), 2
+			Return GetChildTabControl(Result, X - R.Left, Y - R.Top)
+		End Function
 	#endif
 	
 	Private Sub TabControl.ProcessMessage(ByRef Message As Message)
@@ -796,6 +833,22 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End If
+				If CInt(FDetachable) AndAlso CInt(DownButton = 0) Then
+					Var SelTb = SelectedTab
+					If SelTb <> 0 Then
+						Dim As Control Ptr ParentForm = GetForm
+						If ParentForm <> 0 AndAlso ParentForm->Handle Then
+							Dim As Point pt
+							GetCursorPos @pt
+							..ScreenToClient ParentForm->Handle, @pt
+							Dim As TabControl Ptr pTabControl = GetChildTabControl(ParentForm->Handle, pt.X, pt.Y)
+							If pTabControl <> 0 AndAlso pTabControl <> @This Then
+								DeleteTab(SelTb)
+								SelTb->Parent = pTabControl
+							End If
+						End If
+					End If
+				End If
 			Case CM_COMMAND
 			Case CM_NOTIFY
 				Dim As LPNMHDR NM
@@ -834,6 +887,7 @@ Namespace My.Sys.Forms
 				gtk_widget_show_all(tp->_Box)
 				gtk_notebook_append_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box)
 				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
+				gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 				'gtk_notebook_append_page(gtk_notebook(widget), tp->widget, gtk_label_new(ToUTF8(Caption)))
 			End If
 		#else
@@ -892,6 +946,7 @@ Namespace My.Sys.Forms
 				gtk_widget_show_all(tp->_Box)
 				gtk_notebook_append_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box)
 				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
+				gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 				'RequestAlign
 			End If
 			tp->Visible = FTabCount = 1
@@ -1046,6 +1101,7 @@ Namespace My.Sys.Forms
 				gtk_widget_show_all(tp->_Box)
 				gtk_notebook_insert_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box, Index)
 				gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
+				gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 				'RequestAlign
 			End If
 			tp->Visible = FTabCount = 1
@@ -1127,6 +1183,7 @@ Namespace My.Sys.Forms
 			If Tabs[i]->FDynamic Then Delete_(Tabs[i])
 		Next
 		If Tabs <> 0 Then Deallocate_(Tabs)
+		WDeAllocate(FGroupName)
 		'UnregisterClass "TabControl", GetModuleHandle(NULL)
 	End Destructor
 	
