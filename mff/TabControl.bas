@@ -980,7 +980,11 @@ Namespace My.Sys.Forms
 				Ti.pszText    = St
 				Ti.cchTextMax = Len(tp->Caption)
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
-				Ti.iImage = tp->ImageIndex
+				If tp->ImageKey <> "" AndAlso Images Then
+					Ti.iImage = Images->IndexOf(tp->ImageKey)
+				Else
+					Ti.iImage = tp->ImageIndex
+				End If
 				SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
 				SetTabPageIndex(tp, FTabCount - 1)
 				Ti.lParam = 0
