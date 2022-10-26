@@ -189,12 +189,12 @@ Namespace My.Sys.Forms
 	Private Property TextBox.RightMargin(Value As Integer)
 		FRightMargin = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				gtk_text_view_set_right_margin(gtk_text_view(widget), Value)
+			If GTK_IS_TEXT_VIEW(widget) Then
+				gtk_text_view_set_right_margin(GTK_TEXT_VIEW(widget), Value)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
-				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MakeWord(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
+				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKEWORD(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
 			End If
 		#endif
 	End Property
@@ -220,8 +220,8 @@ Namespace My.Sys.Forms
 	Private Property TextBox.WantTab(Value As Boolean)
 		FWantTab = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				gtk_text_view_set_accepts_tab(gtk_text_view(widget), Value)
+			If GTK_IS_TEXT_VIEW(widget) Then
+				gtk_text_view_set_accepts_tab(GTK_TEXT_VIEW(widget), Value)
 			End If
 		#endif
 	End Property
@@ -1370,7 +1370,7 @@ Namespace My.Sys.Forms
 		Private Sub TextBox.TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			If txt Then
-				If CInt(txt->FMaxLength > 0) AndAlso CInt(gtk_is_text_view(txt->widget)) AndAlso CInt(Len(txt->Text) > txt->FMaxLength) Then
+				If CInt(txt->FMaxLength > 0) AndAlso CInt(GTK_IS_TEXT_VIEW(txt->widget)) AndAlso CInt(Len(txt->Text) > txt->FMaxLength) Then
 					txt->Text = .Left(txt->Text, txt->FMaxLength)
 				Else
 					If txt->OnChange Then txt->OnChange(*txt)

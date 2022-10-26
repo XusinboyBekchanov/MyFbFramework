@@ -1,5 +1,5 @@
 ﻿'###############################################################################
-'#  UpDown.bi                                                                  #
+'#  NumericUpDown.bi                                                                  #
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
@@ -11,46 +11,20 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
-#include once "Control.bi"
-'Const UDN_DELTAPOS = (UDN_FIRST - 1)
+#include once "UpDown.bi"
 
 Namespace My.Sys.Forms
-	#define QUpDown(__Ptr__) *Cast(UpDown Ptr,__Ptr__)
+	#define QNumericUpDown(__Ptr__) *Cast(NumericUpDown Ptr, __Ptr__)
 	
-	Private Enum UpDownOrientation
-		udVertical,udHorizontal
-	End Enum
-	
-	Private Enum UpDownAlignment
-		udRight,udLeft
-	End Enum
-	
-	Private Type UpDown Extends Control
+	Private Type NumericUpDown Extends Control
 	Private:
-	Protected:
-		FPosition     As Integer
-		FMinValue     As Integer
-		FMaxValue     As Integer
-		FStyle        As UpDownOrientation
-		FArrowKeys    As Boolean
-		FIncrement    As Integer
-		FAlignment    As Integer
-		FThousands    As Boolean
-		FWrap         As Boolean
 		#ifndef __USE_GTK__
-			FUDAccel(1)   As UDACCEL
-		#endif
-		AStyle(2)     As Integer
-		AAlignment(2) As Integer
-		AWrap(2)      As Integer
-		AArrowKeys(2) As Integer
-		AAThousand(2) As Integer
-		FAssociate    As Control Ptr
-		#ifndef __USE_GTK__
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
-		Declare Sub SetRange(AMin As Integer, AMax As Integer)
+	Protected:
+		As UpDown UpDownControl
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -77,17 +51,13 @@ Namespace My.Sys.Forms
 		Declare Property Thousands(Value As Boolean)
 		Declare Property Wrap As Boolean
 		Declare Property Wrap(Value As Boolean)
-		Declare Property Style As UpDownOrientation
-		Declare Property Style(Value As UpDownOrientation)
-		Declare Property Associate As Control Ptr
-		Declare Property Associate(Value As Control Ptr)
+		Declare Sub SelectAll
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChanging   As Sub(ByRef Sender As UpDown,Value As Integer,Direction As Integer)
 	End Type
 End Namespace
 
 #ifndef __USE_MAKE__
-	#include once "UpDown.bas"
+	#include once "NumericUpDown.bas"
 #endif

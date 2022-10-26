@@ -2559,7 +2559,7 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Private Sub Control.Add(Ctrl As Control Ptr, Index As Integer = -1)
-			On Error Goto ErrorHandler
+			'On Error Goto ErrorHandler
 			If Ctrl Then
 				If WGet(FClassName) = "Form1" Then
 					Ctrl = Ctrl
@@ -2670,12 +2670,12 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-			Exit Sub
-			ErrorHandler:
-			Print ErrDescription(Err) & " (" & Err & ") " & _
-			"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-			"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-			"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+			'Exit Sub
+			'ErrorHandler:
+			'Print ErrDescription(Err) & " (" & Err & ") " & _
+			'"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+			'"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+			'"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 		End Sub
 		
 		Private Sub Control.AddRange cdecl(CountArgs As Integer, ...)
