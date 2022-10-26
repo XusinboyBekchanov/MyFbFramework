@@ -1205,8 +1205,10 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub TabControl.TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 			Dim As TabControl Ptr tc = user_data
-			tc->Tabs[page_num]->RequestAlign
-			If tc->OnSelChange Then tc->OnSelChange(*tc, page_num)
+			If tc AndAlso tc->Tabs[page_num] Then
+				tc->Tabs[page_num]->RequestAlign
+				If tc->OnSelChange Then tc->OnSelChange(*tc, page_num)
+			End If
 		End Sub
 		
 		Private Sub TabControl.TabControl_PageAdded(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
