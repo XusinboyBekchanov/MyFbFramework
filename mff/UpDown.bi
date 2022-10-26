@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		FPosition     As Integer
 		FMinValue     As Integer
 		FMaxValue     As Integer
-		FStyle        As Integer
+		FStyle        As UpDownOrientation
 		FArrowKeys    As Boolean
 		FIncrement    As Integer
 		FAlignment    As Integer
@@ -47,11 +47,9 @@ Namespace My.Sys.Forms
 		FAssociate    As Control Ptr
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 		Declare Sub SetRange(AMin As Integer, AMax As Integer)
-		Declare Sub SetDark(Value As Boolean)
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -59,6 +57,7 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Property MinValue As Integer
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer
@@ -77,8 +76,8 @@ Namespace My.Sys.Forms
 		Declare Property Thousands(Value As Boolean)
 		Declare Property Wrap As Boolean
 		Declare Property Wrap(Value As Boolean)
-		Declare Property Style As Integer
-		Declare Property Style(Value As Integer)
+		Declare Property Style As UpDownOrientation
+		Declare Property Style(Value As UpDownOrientation)
 		Declare Property Associate As Control Ptr
 		Declare Property Associate(Value As Control Ptr)
 		Declare Operator Cast As Control Ptr

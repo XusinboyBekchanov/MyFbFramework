@@ -64,7 +64,7 @@ Namespace My.Sys.Forms
 	Private Property UpDown.MinValue(Value As Integer)
 		FMinValue = Value
 		#ifndef __USE_GTK__
-			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MakeLong(FMaxValue, FMinValue))
+			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MAKELONG(FMaxValue, FMinValue))
 		#endif
 	End Property
 	
@@ -75,7 +75,7 @@ Namespace My.Sys.Forms
 	Private Property UpDown.MaxValue(Value As Integer)
 		FMaxValue = Value
 		#ifndef __USE_GTK__
-			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MakeLong(FMaxValue, FMinValue))
+			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MAKELONG(FMaxValue, FMinValue))
 		#endif
 	End Property
 	
@@ -92,7 +92,7 @@ Namespace My.Sys.Forms
 		FPosition = Value
 		#ifndef __USE_GTK__
 			If Handle Then
-				SendMessage(Handle, UDM_SETPOS, 0, MakeLong(FPosition, 0))
+				SendMessage(Handle, UDM_SETPOS, 0, MAKELONG(FPosition, 0))
 				If FAssociate Then
 					FAssociate->Text = Str(Position)
 				End If
@@ -143,11 +143,11 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Property UpDown.Style As Integer
+	Private Property UpDown.Style As UpDownOrientation
 		Return FStyle
 	End Property
 	
-	Private Property UpDown.Style(Value As Integer)
+	Private Property UpDown.Style(Value As UpDownOrientation)
 		Dim As Integer OldStyle,Temp
 		OldStyle = FStyle
 		If FStyle <> Value Then
@@ -202,28 +202,117 @@ Namespace My.Sys.Forms
 		Private Sub UpDown.WndProc(ByRef Message As Message)
 		End Sub
 		
-		Private Sub UpDown.SetDark(Value As Boolean)
-			Base.SetDark Value
-			If Value Then
-				SetWindowTheme(FHandle, "DarkMode", nullptr)
-			Else
-				SetWindowTheme(FHandle, NULL, NULL)
-			End If
-		End Sub
-		
 		Private Sub UpDown.ProcessMessage(ByRef Message As Message)
+			Static As Integer DownButton, X, Y
+			Static As Boolean MouseIn
 			Select Case Message.Msg
 				Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					If Not FDarkMode Then
-						SetDark True
+					Dim As HDC Dc, memDC
+					Dim As HBITMAP Bmp
+					Dim As PAINTSTRUCT Ps
+					Dim As ..Rect R
+					Dim As Integer iWidth = Width, iHeight = Height
+					Canvas.HandleSetted = True
+					Dc = BeginPaint(Handle, @Ps)
+					Canvas.Handle = Dc
+					Canvas.Pen.Color = BGR(56, 56, 56)
+					Canvas.Brush.Color = BGR(51, 51, 51)
+					Rectangle Dc, 0, 0, iWidth, iHeight
+					Canvas.Pen.Color = BGR(155, 155, 155)
+					If FStyle = UpDownOrientation.udVertical Then
+						If MouseIn AndAlso Y <= iHeight / 2 Then
+							If DownButton = 1 Then
+								Canvas.Brush.Color = BGR(102, 102, 102)
+							Else
+								Canvas.Brush.Color = BGR(69, 69, 69)
+							End If
+						Else
+							Canvas.Brush.Color = BGR(51, 51, 51)
+						End If
+						Rectangle Dc, 1, 1, iWidth - 1, iHeight / 2
+						If MouseIn AndAlso Y > iHeight / 2 Then
+							If DownButton = 1 Then
+								Canvas.Brush.Color = BGR(102, 102, 102)
+							Else
+								Canvas.Brush.Color = BGR(69, 69, 69)
+							End If
+						Else
+							Canvas.Brush.Color = BGR(51, 51, 51)
+						End If
+						Rectangle Dc, 1, iHeight / 2, iWidth - 1, iHeight - 1
+						Canvas.Pen.Color = BGR(173, 173, 173)
+						MoveToEx Dc, Fix((iWidth - 3) / 2) + 1, 1 + Fix((iHeight / 2 - 4) / 2), 0
+						LineTo Dc, Fix((iWidth - 3) / 2) + 2, 1 + Fix((iHeight / 2 - 4) / 2)
+						MoveToEx Dc, Fix((iWidth - 3) / 2), 1 + Fix((iHeight / 2 - 4) / 2) + 1, 0
+						LineTo Dc, Fix((iWidth - 3) / 2) + 3, 1 + Fix((iHeight / 2 - 4) / 2) + 1
+						MoveToEx Dc, Fix((iWidth - 3) / 2) - 1, 1 + Fix((iHeight / 2 - 4) / 2) + 2, 0
+						LineTo Dc, Fix((iWidth - 3) / 2) + 4, 1 + Fix((iHeight / 2 - 4) / 2) + 2
+						
+						MoveToEx Dc, Fix((iWidth - 3) / 2) - 1, 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2), 0
+						LineTo Dc, Fix((iWidth - 3) / 2) + 4, 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2)
+						MoveToEx Dc, Fix((iWidth - 3) / 2), 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2) + 1, 0
+						LineTo Dc, Fix((iWidth - 3) / 2) + 3, 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2) + 1
+						MoveToEx Dc, Fix((iWidth - 3) / 2) + 1, 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2) + 2, 0
+						LineTo Dc, Fix((iWidth - 3) / 2) + 2, 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2) + 2
+					Else
+						If MouseIn AndAlso X <= iWidth / 2 Then
+							If DownButton = 1 Then
+								Canvas.Brush.Color = BGR(102, 102, 102)
+							Else
+								Canvas.Brush.Color = BGR(69, 69, 69)
+							End If
+						Else
+							Canvas.Brush.Color = BGR(51, 51, 51)
+						End If
+						Rectangle Dc, 1, 1, iWidth / 2, iHeight - 1
+						If MouseIn AndAlso X > iWidth / 2 Then
+							If DownButton = 1 Then
+								Canvas.Brush.Color = BGR(102, 102, 102)
+							Else
+								Canvas.Brush.Color = BGR(69, 69, 69)
+							End If
+						Else
+							Canvas.Brush.Color = BGR(51, 51, 51)
+						End If
+						Rectangle Dc, iWidth / 2, 1, iWidth - 1, iHeight - 1
+						Canvas.Pen.Color = BGR(173, 173, 173)
+						MoveToEx Dc, 1 + Fix((iWidth / 2 - 4) / 2), Fix((iHeight - 3) / 2) + 1, 0
+						LineTo Dc, 1 + Fix((iWidth / 2 - 4) / 2), Fix((iHeight - 3) / 2) + 2
+						MoveToEx Dc, 1 + Fix((iWidth / 2 - 4) / 2) + 1, Fix((iHeight - 3) / 2), 0
+						LineTo Dc, 1 + Fix((iWidth / 2 - 4) / 2) + 1, Fix((iHeight - 3) / 2) + 3
+						MoveToEx Dc, 1 + Fix((iWidth / 2 - 4) / 2) + 2, Fix((iHeight - 3) / 2) - 1, 0
+						LineTo Dc, 1 + Fix((iWidth / 2 - 4) / 2) + 2, Fix((iHeight - 3) / 2) + 4
+						
+						MoveToEx Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2), Fix((iHeight - 3) / 2) - 1, 0
+						LineTo Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2), Fix((iHeight - 3) / 2) + 4
+						MoveToEx Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2) + 1, Fix((iHeight - 3) / 2), 0
+						LineTo Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2) + 1, Fix((iHeight - 3) / 2) + 3
+						MoveToEx Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2) + 2, Fix((iHeight - 3) / 2) + 1, 0
+						LineTo Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2) + 2, Fix((iHeight - 3) / 2) + 2
 					End If
+					If OnPaint Then OnPaint(This, Canvas)
+					EndPaint Handle, @Ps
+					Canvas.HandleSetted = False
+					Message.Result = -1
+					Return
 				Else
-					If FDarkMode Then
-						SetDark False
-					End If
+					Message.Result = 0
 				End If
-				Message.Result = 0
+			Case WM_LBUTTONDOWN
+				DownButton = 1
+				X = Message.lParamLo
+				Y = Message.lParamHi
+			Case WM_LBUTTONUP
+				DownButton = 0
+			Case WM_MOUSELEAVE
+				MouseIn = False
+			Case WM_MOUSEMOVE
+				If Not MouseIn Then
+					MouseIn = True
+				End If
+				X = Message.lParamLo
+				Y = Message.lParamHi
 			Case WM_SIZE
 				Dim As ..Rect R
 				GetClientRect Handle, @R

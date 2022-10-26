@@ -658,6 +658,25 @@ Namespace My.Sys.Forms
 		Private Sub TabControl.WndProc(ByRef Message As Message)
 		End Sub
 		
+		Function TabControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Dim As TabControl Ptr tc = GetProp(hDlg, "MFFControl")
+			If tc Then
+				Dim Message As Message
+				Message = Type(tc, hDlg, uMsg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
+				tc->UpDownControl.ProcessMessage(Message)
+				If Message.Result = -1 Then
+					Return Message.Result
+				ElseIf Message.Result = -2 Then
+					uMsg = Message.Msg
+					wParam = Message.wParam
+					lParam = Message.lParam
+				ElseIf Message.Result <> 0 Then
+					Return Message.Result
+				End If
+			End If
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
+		
 		Private Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabControl(Sender.Child)
@@ -707,7 +726,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TabControl.ProcessMessage(ByRef Message As Message)
-			#ifndef __USE_GTK__
+		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case CM_DRAWITEM
 				If FTabPosition = tpLeft Or FTabPosition = tpRight Then
@@ -729,6 +748,15 @@ Namespace My.Sys.Forms
 					DeleteObject(NewFontHandle)
 				End If
 				Message.Result = 0
+			Case WM_SIZE
+				Dim As HWND h = FindWindowEx(FHandle, 0, "msctls_updown32", 0)
+				If h AndAlso UpDownControl.Handle <> h Then
+					UpDownControl.Handle = h
+					If GetWindowLongPtr(h, GWLP_WNDPROC) <> @HookChildProc Then
+						SetProp(h, "MFFControl", This.Child)
+						SetProp(h, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(h, GWLP_WNDPROC, CInt(@HookChildProc))))
+					End If
+				End If
 			Case WM_DESTROY
 				If Images Then Perform(TCM_SETIMAGELIST, 0, 0)
 			Case WM_THEMECHANGED
@@ -1233,6 +1261,7 @@ Namespace My.Sys.Forms
 			#else
 				WLet(FClassAncestor, "SysTabControl32")
 				.RegisterClass "TabControl", "SysTabControl32"
+				UpDownControl.Style = UpDownOrientation.udHorizontal
 			#endif
 			WLet(FClassName, "TabControl")
 			.Child       = @This
