@@ -155,8 +155,10 @@ Namespace My.Sys.Forms
 		
 		Private Sub NumericUpDown.WndProc(ByRef Message As Message)
 		End Sub
-		
-		Private Sub NumericUpDown.ProcessMessage(ByRef Message As Message)
+	#endif
+	
+	Private Sub NumericUpDown.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_SIZE
 				With This
@@ -195,9 +197,9 @@ Namespace My.Sys.Forms
 					Return
 				End If
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Private Operator NumericUpDown.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)

@@ -107,7 +107,6 @@ Namespace My.Sys.Forms
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Sub SetTabPageIndex(tp As TabPage Ptr, Index As Integer)
 			Declare Function GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
 		#elseif defined(__USE_GTK__)
 			Declare Static Sub TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
@@ -115,6 +114,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub TabControl_PageRemoved(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 			Declare Static Sub TabControl_PageReordered(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 		#endif
+		Declare Sub SetTabPageIndex(tp As TabPage Ptr, Index As Integer)
 	Protected:
 		#ifdef __USE_WINAPI__
 			UpDownControl As UpDown

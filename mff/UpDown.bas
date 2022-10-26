@@ -203,8 +203,10 @@ Namespace My.Sys.Forms
 		
 		Private Sub UpDown.WndProc(ByRef Message As Message)
 		End Sub
-		
-		Private Sub UpDown.ProcessMessage(ByRef Message As Message)
+	#endif
+	
+	Private Sub UpDown.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_WINAPI__
 			Static As Integer DownButton, X, Y
 			Static As Boolean MouseIn
 			Select Case Message.Msg
@@ -329,9 +331,9 @@ Namespace My.Sys.Forms
 					If FAssociate Then FAssociate->Text = WStr(NMUD->iPos)
 				End If
 			End Select
-			Base.ProcessMessage(Message)
-		End Sub
-	#endif
+		#endif
+		Base.ProcessMessage(Message)
+	End Sub
 	
 	Private Operator UpDown.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)

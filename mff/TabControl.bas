@@ -704,27 +704,27 @@ Namespace My.Sys.Forms
 			MapWindowPoints 0, ParentHwnd, Cast(..Point Ptr, @R), 2
 			Return GetChildTabControl(Result, X - R.Left, Y - R.Top)
 		End Function
+		
+		Function TabControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Dim As TabControl Ptr tc = GetProp(hDlg, "MFFControl")
+			If tc Then
+				Dim Message As Message
+				Message = Type(tc, hDlg, uMsg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
+				tc->UpDownControl.ProcessMessage(Message)
+				If Message.Result = -1 Then
+					Return Message.Result
+				ElseIf Message.Result = -2 Then
+					uMsg = Message.Msg
+					wParam = Message.wParam
+					lParam = Message.lParam
+				ElseIf Message.Result <> 0 Then
+					Return Message.Result
+				End If
+			End If
+			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
 	#endif
 	
-	Function TabControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-		Dim As TabControl Ptr tc = GetProp(hDlg, "MFFControl")
-		If tc Then
-			Dim Message As Message
-			Message = Type(tc, hDlg, uMsg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
-			tc->UpDownControl.ProcessMessage(Message)
-			If Message.Result = -1 Then
-				Return Message.Result
-			ElseIf Message.Result = -2 Then
-				uMsg = Message.Msg
-				wParam = Message.wParam
-				lParam = Message.lParam
-			ElseIf Message.Result <> 0 Then
-				Return Message.Result
-			End If
-		End If
-		Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
-	End Function
-		
 	Private Sub TabControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
@@ -1228,9 +1228,10 @@ Namespace My.Sys.Forms
 			Dim As TabControl Ptr tc = user_data
 			Dim As TabPage Ptr tp = Cast(Any Ptr, g_object_get_data(G_OBJECT(page), "MFFControl"))
 			If tc->IndexOfTab(tp) > 0 Then
+				Dim As TabPage Ptr It
 				For i As Integer = page_num + 1 To tc->FTabCount - 1
-					it = tc->Tabs[i]
-					tc->Tabs[i - 1] = it
+					It = tc->Tabs[i]
+					tc->Tabs[i - 1] = It
 				Next i
 				tc->FTabCount -= 1
 				If tc->FTabCount = 0 Then
