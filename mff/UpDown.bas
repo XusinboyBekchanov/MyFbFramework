@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 					Rectangle Dc, 0, 0, iWidth, iHeight
 					Canvas.Pen.Color = BGR(155, 155, 155)
 					If FStyle = UpDownOrientation.udVertical Then
-						If MouseIn AndAlso Y <= iHeight / 2 Then
+						If MouseIn AndAlso Y < iHeight / 2 Then
 							If DownButton = 1 Then
 								Canvas.Brush.Color = BGR(102, 102, 102)
 							Else
@@ -256,7 +256,7 @@ Namespace My.Sys.Forms
 						MoveToEx Dc, Fix((iWidth - 3) / 2) + 1, 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2) + 2, 0
 						LineTo Dc, Fix((iWidth - 3) / 2) + 2, 1 + Fix(iHeight / 2 - 1 + (iHeight / 2 - 4) / 2) + 2
 					Else
-						If MouseIn AndAlso X <= iWidth / 2 Then
+						If MouseIn AndAlso X < iWidth / 2 Then
 							If DownButton = 1 Then
 								Canvas.Brush.Color = BGR(102, 102, 102)
 							Else
