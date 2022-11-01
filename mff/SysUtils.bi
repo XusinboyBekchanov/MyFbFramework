@@ -76,6 +76,21 @@
 
 Const HELP_SETPOPUP_POS = &Hd
 
+#macro RedefineClassKeyword
+	#undef Class
+	#define Class Type
+	#define __StartOfClassBody__ End Type
+	#macro __EndOfClassBody__
+		Scope
+		#undef Class
+		#macro Class
+			Scope
+			#undef Class
+			#define Class Type
+		#endmacro
+	#endmacro
+#endmacro
+
 '#DEFINE __AUTOMATE_CREATE_CHILDS__
 
 #ifdef __USE_WINAPI__
