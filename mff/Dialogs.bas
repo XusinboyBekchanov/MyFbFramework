@@ -891,6 +891,7 @@ Private Function FolderBrowserDialog.Execute As Boolean
 		BI.hwndOwner      = MainHandle
 		BI.pszDisplayName = xPath
 		BI.lpszTitle      = FTitle
+		BI.ulFlags        = BIF_USENEWUI 
 		BI.lpfn           = @FolderBrowserDialog.Hook
 		BI.lParam         = Cast(LPARAM, FInitialDir)
 		'Message.Captured = Control
