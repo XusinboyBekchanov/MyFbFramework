@@ -94,14 +94,20 @@ End Namespace
 	#endif
 	
 	#ifndef ReadProperty_Off
-		Function ReadProperty Alias "ReadProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String) As Any Ptr Export
-			Return Ctrl->ReadProperty(PropertyName)
+		Function ReadProperty Alias "ReadProperty" (Obj As My.Sys.Object Ptr, ByRef PropertyName As String) As Any Ptr Export
+			Return Obj->ReadProperty(PropertyName)
 		End Function
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Function WriteProperty Alias "WriteProperty"(Ctrl As My.Sys.Object Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean Export
-			Return Ctrl->WriteProperty(PropertyName, Value)
+		Function WriteProperty Alias "WriteProperty" (Obj As My.Sys.Object Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean Export
+			Return Obj->WriteProperty(PropertyName, Value)
+		End Function
+	#endif
+	
+	#ifndef FullTypeName_Off
+		Function FullTypeName Alias "FullTypeName" (Obj As My.Sys.Object Ptr, ByVal baseIndex As Integer = 0) As UString Export
+			Return Obj->FullTypeName(baseIndex)
 		End Function
 	#endif
 #endif

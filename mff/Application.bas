@@ -12,7 +12,7 @@
 '###############################################################################
 
 #include once "Application.bi"
-#include once "DarkMode/DarkMode.bas"
+#include once "DarkMode/DarkMode.bi"
 
 Dim Shared App As My.Application
 pApp = @App
