@@ -1169,8 +1169,6 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		#define WM_DPICHANGED       &h02E0
-		
 		Private Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
 			If OnMessage Then OnMessage(This, Message)

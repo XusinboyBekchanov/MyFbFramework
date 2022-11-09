@@ -12,6 +12,23 @@
 
 #include once "Object.bi"
 
+#ifdef __USE_WINAPI__
+	Const As COLORREF darkBkColor = &h383838 '&h202020, &h1e1e1e
+	Const As COLORREF darkHlBkColor = &h626262
+	Const As COLORREF darkTextColor = &hFFFFFF
+	
+	' ugly colors for illustration purposes
+	Dim Shared As HBRUSH g_brItemBackground
+	Dim Shared As HBRUSH g_brItemBackgroundHot
+	Dim Shared As HBRUSH g_brItemBackgroundSelected
+	Dim Shared As HBRUSH hbrBkgnd, hbrHlBkgnd
+	Dim Shared As HTHEME g_menuTheme = 0
+#else
+	Const As Integer darkBkColor = &h383838
+	Const As Integer darkHlBkColor = &h626262
+	Const As Integer darkTextColor = &hFFFFFF
+#endif
+
 Namespace My.Sys.Drawing
 	#ifdef __USE_WINAPI__
 		Private Enum BrushStyles

@@ -98,7 +98,7 @@ Namespace My.Sys.Forms
 			gtk_button_set_label(GTK_BUTTON(widget), ToUtf8(Value))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUTF8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
 	End Property
@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 	Private Property CheckBox.Checked As Boolean
 		If FHandle Then
 			#ifdef __USE_GTK__
-				FChecked = gtk_toggle_button_get_active(gtk_toggle_button(widget))
+				FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
 			#elseif defined(__USE_WINAPI__)
 				FChecked = Perform(BM_GETCHECK, 0, 0)
 			#elseif defined(__USE_JNI__)
@@ -120,7 +120,7 @@ Namespace My.Sys.Forms
 		FChecked = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
-				gtk_toggle_button_set_active(gtk_toggle_button(widget), Value)
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
 			#elseif defined(__USE_WINAPI__)
 				Perform(BM_SETCHECK, FChecked, 0)
 			#elseif defined(__USE_JNI__)
@@ -159,10 +159,10 @@ Namespace My.Sys.Forms
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC, Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc, Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
 					If Checked = 0 Then
@@ -198,7 +198,7 @@ Namespace My.Sys.Forms
 						Dim As Integer stateID ' parameter for DrawThemeBackground
 						
 						Dim As UINT uiItemState = pnm->uItemState
-						Dim As bool bChecked = This.Checked
+						Dim As BOOL bChecked = This.Checked
 						
 						If (uiItemState And CDIS_DISABLED) Then
 							stateID = IIf(bChecked, CBS_CHECKEDDISABLED, CBS_UNCHECKEDDISABLED)
@@ -212,27 +212,27 @@ Namespace My.Sys.Forms
 							End If
 						End If
 						
-						Dim As ..RECT r
-						Dim As ..SIZE s
+						Dim As ..Rect r
+						Dim As ..Size s
 						
 						' Get check box dimensions so we can calculate
 						' rectangle dimensions For text
 						GetThemePartSize(hTheme, pnm->hdc, BP_CHECKBOX, stateID, NULL, TS_TRUE, @s)
 						
-						r.left = pnm->rc.left
-						r.top = pnm->rc.top ' + 2
-						r.right = pnm->rc.left + s.cx
-						r.bottom = pnm->rc.Bottom ' r.top + s.cy
+						r.Left = pnm->rc.Left
+						r.Top = pnm->rc.Top ' + 2
+						r.Right = pnm->rc.Left + s.cx
+						r.Bottom = pnm->rc.Bottom ' r.top + s.cy
 						
 						DrawThemeBackground(hTheme, pnm->hdc, BP_CHECKBOX, stateID, @r, NULL)
 						
 						' adjust rectangle for text drawing
 						'pnm->rc.top += r.top - 2
-						pnm->rc.left += 3 + s.cx
+						pnm->rc.Left += 3 + s.cx
 						If (uiItemState And CDIS_DISABLED) Then
 							SetTextColor(pnm->hdc, darkHlBkColor)
 						End If
-						Dim As hFont OldFontHandle, NewFontHandle
+						Dim As HFONT OldFontHandle, NewFontHandle
 						OldFontHandle = SelectObject(pnm->hdc, This.Font.Handle)
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
 						If (uiItemState And CDIS_FOCUS) Then

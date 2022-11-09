@@ -4,7 +4,7 @@
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
 
-#include once "Control.bi"
+#include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
 	#define QScrollControl(__Ptr__) *Cast(ScrollControl Ptr, __Ptr__)

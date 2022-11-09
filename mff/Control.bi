@@ -16,10 +16,12 @@
 #include once "Graphics.bi"
 #include once "Canvas.bi"
 #include once "IntegerList.bi"
+#include once "DarkMode/DarkMode.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/commctrl.bi"
 	#include once "win/shellapi.bi"
 #endif
+#define WM_DPICHANGED       &h02E0
 
 Using My.Sys.ComponentModel
 

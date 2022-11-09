@@ -6,6 +6,9 @@
 
 #include once "TreeListView.bi"
 #include once "TextBox.bi"
+#ifdef __USE_WINAPI__
+	#include once "win\tmschema.bi"
+#endif
 
 Namespace My.Sys.Forms
 	#ifndef __USE_GTK__

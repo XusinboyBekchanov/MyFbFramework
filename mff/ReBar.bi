@@ -6,6 +6,7 @@
 
 #include once "ToolBar.bi"
 #include once "Graphic.bi"
+#include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
 	#define QReBar(__Ptr__) *Cast(ReBar Ptr, __Ptr__)

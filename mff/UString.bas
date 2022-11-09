@@ -1,5 +1,4 @@
 ﻿#include once "UString.bi"
-#include once "utf_conv.bi"
 
 Private Constructor UString()
 	m_Length = 0

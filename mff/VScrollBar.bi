@@ -11,6 +11,7 @@
 '#  by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                               #
 '###############################################################################
 
+#include once "ScrollBarControl.bi"
 
 Namespace My.Sys.Forms
 	#define QVScrollBar(__Ptr__) *Cast(VScrollBar Ptr,__Ptr__)

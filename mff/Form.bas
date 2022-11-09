@@ -14,6 +14,7 @@
 #include once "Form.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/uxtheme.bi"
+	#include once "DarkMode/UAHMenuBar.bi"
 #endif
 
 Namespace My.Sys.Forms

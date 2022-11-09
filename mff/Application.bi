@@ -12,7 +12,6 @@
 '###############################################################################
 
 #include once "WStringList.bi"
-#include once "DarkMode/DarkMode.bi"
 #include once "Control.bi"
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK4__

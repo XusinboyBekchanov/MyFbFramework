@@ -18,6 +18,7 @@
 #include once "TimerComponent.bi"
 #include once "DoubleList.bi"
 #include once "IntegerList.bi"
+#include once "WStringList.bi"
 
 Namespace My.Sys.Forms
 	#define QChart(__Ptr__) *Cast(Chart Ptr, __Ptr__)
@@ -344,7 +345,7 @@ Namespace My.Sys.Forms
 		OnItemClick As Sub(Index As Long)
 	End Type
 	
-	Declare Function Round(X As Double, Drob As Integer = 0) As Integer
+	Declare Function Round(x As Double, Drob As Integer = 0) As Integer
 End Namespace
 
 #ifndef __USE_MAKE__

@@ -16,6 +16,7 @@
 
 #include once "Chart.bi"
 #include once "vbcompat.bi"
+#include once "Application.bi"
 
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off

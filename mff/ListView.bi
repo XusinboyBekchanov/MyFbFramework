@@ -5,6 +5,7 @@
 '###############################################################################
 
 #include once "Control.bi"
+#include once "WStringList.bi"
 #ifdef __USE_GTK__
 	#include once "glib-object.bi"
 #endif

@@ -5,6 +5,7 @@
 '###############################################################################
 
 #include once "Control.bi"
+#include once "WStringList.bi"
 
 Private Enum GridSortStyle
 	ssNone

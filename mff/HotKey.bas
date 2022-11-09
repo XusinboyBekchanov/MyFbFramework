@@ -140,9 +140,9 @@ Namespace My.Sys.Forms
 					End Select
 					If Not bKeyPressed Then
 						KeyName = !"\0"
-						If WStr(*gtk_entry_get_text(gtk_entry(widget))) <> KeyName Then
-							gtk_entry_set_text(gtk_entry(widget), KeyName)
-							gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
+						If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
+							gtk_entry_set_text(GTK_ENTRY(widget), KeyName)
+							gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
 							If OnChange Then OnChange(This)
 						End If
 					End If
@@ -162,9 +162,9 @@ Namespace My.Sys.Forms
 	
 	Private Property HotKey.Text ByRef As WString
 		#ifdef __USE_GTK__
-			FText = Replace(WStr(*gtk_entry_get_text(gtk_entry(widget))), " ", "")
+			FText = Replace(WStr(*gtk_entry_get_text(GTK_ENTRY(widget))), " ", "")
 		#else
-			Dim wHotKey As Word
+			Dim wHotKey As WORD
 			wHotKey = SendMessage(Handle, HKM_GETHOTKEY, 0, 0)
 			FText = GetChrKeyCode(LoByte(LoWord(wHotKey)))
 			If (HiByte(LoWord(wHotKey)) And HOTKEYF_SHIFT) = HOTKEYF_SHIFT Then FText = "Shift+" & FText

@@ -16,6 +16,7 @@
 #ifndef MEMCHECK
 	#define MEMCHECK 0
 #endif
+#include once "utf_conv.bi"
 #include once "FBMemCheck.bi"
 
 Private Type UStr As UString
@@ -76,6 +77,7 @@ Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSub
 Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) ByRef As WString
+Declare Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
 
 #ifndef __USE_JNI__
 	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean

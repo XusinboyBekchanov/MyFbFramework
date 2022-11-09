@@ -12,6 +12,7 @@
 '******************************************************************************
 
 #include once "Cursor.bi"
+#include once "Bitmap.bi"
 
 Namespace My.Sys.Drawing
 	#ifndef ReadProperty_Off

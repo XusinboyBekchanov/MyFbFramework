@@ -4,7 +4,9 @@
 '#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
 '################################################################################
 #include once "GridData.bi"
+#include once "Application.bi"
 #include once "vbcompat.bi"
+
 Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Private Function GridDataItem.GetItemIndex() As Integer

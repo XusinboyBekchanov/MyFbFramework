@@ -275,6 +275,8 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Declare Function GetAscKeyCode(HotKey As String) As Integer
+	
+	Declare Function GetChrKeyCode(KeyCode As Integer) As String
 End Namespace
 
 #ifdef __EXPORT_PROCS__
@@ -288,7 +290,7 @@ End Namespace
 	
 	Declare Function MenuItemAdd Alias "MenuItemAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr
 	
-	Declare Function MenuItemAddWithBitmapType Alias "MenuItemAddWithBitmapType"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType Ptr, sKey As String = "", eClick As Any Ptr = Null, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr
+	Declare Function MenuItemAddWithBitmapType Alias "MenuItemAddWithBitmapType"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType Ptr, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr
 	
 	Declare Sub MenuItemRemove Alias "MenuItemRemove"(ParentMenuItem As My.Sys.Forms.MenuItem Ptr, PMenuItem As My.Sys.Forms.MenuItem Ptr)
 	

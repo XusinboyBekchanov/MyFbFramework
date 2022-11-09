@@ -10,6 +10,9 @@
 '###############################################################################
 
 #include once "CheckedListBox.bi"
+#ifdef __USE_WINAPI__
+	#include once "win\tmschema.bi"
+#endif
 
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
@@ -110,7 +113,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef __USE_GTK__
-		Private Sub CheckedListBox.WndProc(ByRef Message As Message)
+		Private Sub CheckedListBox.WNDPROC(ByRef Message As Message)
 		End Sub
 		
 		Private Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
