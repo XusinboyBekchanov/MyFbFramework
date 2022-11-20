@@ -522,7 +522,7 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 	#else
-		Private Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As USTRING) As Integer
+		Private Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As UString) As Integer
 			If (FAILED(hr)) Then
 				Var MB = MessageBox(0, "Error associated with " & *Inter_face.vptr & ". Want Continue?", "Error", MB_YESNO)
 				If MB = IDNO Then
@@ -538,7 +538,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			widget = gtk_image_new()
 			eventboxwidget = gtk_event_box_new()
-			gtk_container_add(gtk_container(eventboxwidget), widget)
+			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			gtk_widget_set_app_paintable(widget, True)
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK3__
@@ -554,7 +554,7 @@ Namespace My.Sys.Forms
 			FFile = 0 'CAllocate_(0)
 			ICC.dwSize = SizeOf(ICC)
 			ICC.dwICC  = ICC_ANIMATE_CLASS
-			Result = InitCommonControlsEx(@ICC)
+			Result = INITCOMMONCONTROLSEX(@ICC)
 			If Not Result Then InitCommonControls
 			ACenter(0)      = 0
 			ACenter(1)      = ACS_CENTER
@@ -562,8 +562,8 @@ Namespace My.Sys.Forms
 			ATransparent(1) = ACS_TRANSPARENT
 			ATimer(0)       = 0
 			ATimer(1)       = ACS_TIMER
-			AAutoplay(0)    = 0
-			AAutoplay(1)    = ACS_AUTOPLAY
+			AAutoPlay(0)    = 0
+			AAutoPlay(1)    = ACS_AUTOPLAY
 		#endif
 		FRepeat         = -1
 		FStopFrame      = -1
@@ -577,7 +577,7 @@ Namespace My.Sys.Forms
 				.ChildProc         = @WndProc
 				WLet(FClassAncestor, ANIMATE_CLASS)
 				.ExStyle           = WS_EX_TRANSPARENT
-				.Style             = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+				.Style             = WS_CHILD Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
@@ -596,7 +596,7 @@ Namespace My.Sys.Forms
 				IVideoWindow_Release (vidwindow)
 				IMediaSeeking_Release(medseek)
 				IBasicVideo_Release  (basvideo)
-				IBasicAudio_Release  (basAudio)
+				IBasicAudio_Release  (BasAudio)
 				IGraphBuilder_Release(pGraph)
 				CoUninitialize()
 			EndIf
