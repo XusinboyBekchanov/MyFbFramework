@@ -310,7 +310,7 @@ Namespace My
 							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
 								'If Not GetFocus() = FActiveForm->Handle Then
 									FActiveForm->SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
-									TranslateAndDispatch = False
+									'TranslateAndDispatch = False
 								'ElseIf IsDialogMessage(FActiveForm->Handle, @Msg) Then
 								'	TranslateAndDispatch = False
 								'End If
@@ -675,11 +675,9 @@ Namespace Debug
 						gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), @_start, @_end)
 						Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), NULL, @_end, False)
 						gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(DebugWindowHandle), ptextmark, 0., False, 0., 0.)
-						#ifdef __USE_GTK__
-							While gtk_events_pending()
-								gtk_main_iteration()
-							Wend
-						#endif
+						While gtk_events_pending()
+							gtk_main_iteration()
+						Wend
 					End If
 				#endif
 			End If
