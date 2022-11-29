@@ -490,16 +490,23 @@
 	#else
 		Common Shared As Long filenumberCounter
 		Common Shared As Boolean Ptr filenumbers
-		Declare Function FreeFile_ As Long
+		#define FreeFile_ FreeFileNumber_(__FILE__, __FUNCTION__, __LINE__)
+		
+		Declare Function FreeFileNumber_(ByRef file As String, ByRef funcname As String, ByVal linenum As Integer) As Long
 		Declare Function CloseFile_(filenum As Long) As Long
 		
-		Private Function FreeFile_ As Long
+		Private Function FreeFileNumber_(ByRef file As String, ByRef funcname As String, ByVal linenum As Integer) As Long
 			For i As Integer = 1 To filenumberCounter
-				If filenumbers[i] = False Then filenumbers[i] = True: Return i
+				If filenumbers[i] = False Then 
+					filenumbers[i] = True
+					'?"FreeFile: ", i, file, funcname, linenum
+					Return i
+				End If
 			Next
 			filenumberCounter += 1
 			filenumbers = Reallocate_(filenumbers, (filenumberCounter + 1) * SizeOf(Boolean))
 			filenumbers[filenumberCounter] = True
+			'?"FreeFile: ", filenumberCounter, file, funcname, linenum
 			Return filenumberCounter
 		End Function
 		
@@ -513,6 +520,7 @@
 			Else
 				Print "File number not retrieved from FreeFile"
 			End If
+			'?"Close: ", filenum
 			Return Close(filenum)
 		End Function
 	#endif

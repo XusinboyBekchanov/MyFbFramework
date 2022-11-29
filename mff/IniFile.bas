@@ -102,8 +102,8 @@ Private Sub IniFile.Load(ByRef FileName As WString = "")
 			Line Input #Fn, Buff
 			If Buff <> "" Then FLines.Add Buff
 		Wend
-		Close #Fn
 	End If
+	CloseFile_(Fn)
 End Sub
 
 Private Sub IniFile.Update
@@ -113,8 +113,8 @@ Private Sub IniFile.Update
 		For i As Integer = 0 To FLines.Count -1
 			Print #Fn, FLines.Item(i)
 		Next i
-		Close #Fn
 	End If
+	CloseFile_(Fn)
 End Sub
 
 Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
@@ -345,9 +345,9 @@ Private Constructor IniFile
 		For i = 0 To Len(Tx)
 			If Tx[i] = Asc(".") Then k = i +1
 		Next i
-		Wlet(FFile, Mid(Tx, 1, k - 1) + ".ini")
+		WLet(FFile, Mid(Tx, 1, k - 1) + ".ini")
 	#else
-		Wlet(FFile, "Config.ini") 'David Change for hanging in linux
+		WLet(FFile, "Config.ini") 'David Change for hanging in linux
 	#endif
 End Constructor
 

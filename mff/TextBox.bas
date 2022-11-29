@@ -558,7 +558,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.LoadFromFile(ByRef File As WString)
 		Dim Result As Integer
-		Dim Fn As Integer = FreeFile
+		Dim Fn As Integer = FreeFile_
 		Result = Open(File For Input Encoding "utf-32" As #Fn)
 		If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(File For Input Encoding "utf-8" As #Fn)
@@ -583,16 +583,16 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then SetWindowText(FHandle, FText.vptr)
 			#endif
-			Close #Fn
 		End If
+		CloseFile_(Fn)
 	End Sub
 	
-	Private Sub TextBox.SaveToFile(ByRef File As WString)
-		Dim As Integer Fn = FreeFile
-		If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
+	Private Sub TextBox.SaveToFile(ByRef FILE As WString)
+		Dim As Integer Fn = FreeFile_
+		If Open(FILE For Output Encoding "utf-8" As #Fn) = 0 Then
 			Print #Fn, Text;
 		End If
-		Close #Fn
+		CloseFile_(Fn)
 	End Sub
 	
 	Private Function TextBox.GetLineLength(Index As Integer = -1) As Integer

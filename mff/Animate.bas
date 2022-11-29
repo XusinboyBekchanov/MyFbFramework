@@ -68,10 +68,10 @@ Namespace My.Sys.Forms
 				Dim As Integer F, Size
 				Dim As Integer Ptr Buff = Allocate_(18*SizeOf(Integer))
 				If *FFile <> "" Then
-					F = FreeFile
+					F = FreeFile_
 					.Open *FFile For Binary Access Read As #F
 					Get #F, , *Buff, 18
-					.Close #F
+					CloseFile_(F)
 					FFrameCount  = Buff[12]
 					FFrameWidth  = Buff[16]
 					FFrameHeight = Buff[17]
@@ -79,7 +79,7 @@ Namespace My.Sys.Forms
 					Resource  = FindResource(GetModuleHandle("Shell32"),MAKEINTRESOURCE(FCommonAvi),"AVI")
 					Global    = LoadResource(GetModuleHandle("Shell32"),Resource)
 					PResource = LockResource(Global)
-					Size = SizeOfResource(GetModuleHandle("Shell32"),Resource)
+					Size = SizeofResource(GetModuleHandle("Shell32"),Resource)
 					P = Allocate_(Size)
 					P = PResource
 					FreeResource(Resource)

@@ -688,7 +688,7 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxEdit.SaveToFile(ByRef File As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
-		F = FreeFile
+		F = FreeFile_
 		Open File For Output Encoding "utf-8" As #F
 		For i = 0 To ItemCount -1
 			#ifndef __USE_GTK__
@@ -699,21 +699,21 @@ Namespace My.Sys.Forms
 				Print #F, *s
 			#endif
 		Next i
-		Close #F
+		CloseFile_(F)
 		Deallocate s
 	End Sub
 	
 	Private Sub ComboBoxEdit.LoadFromFile(ByRef FileName As WString)
 		Dim As Integer F, i
 		Dim As WString * 1024 s
-		F = FreeFile
+		F = FreeFile_
 		This.Clear
 		Open FileName For Input Encoding "utf-8" As #F
 		While Not EOF(F)
 			Line Input #F, s
 			This.AddItem s
 		Wend
-		Close #F
+		CloseFile_(F)
 	End Sub
 	
 	Private Operator ComboBoxEdit.Cast As Control Ptr

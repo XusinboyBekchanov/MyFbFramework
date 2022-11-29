@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 	Private Sub CheckedListBox.SaveToFile(ByRef FileName As WString)
 		Dim As Integer F, i
 		Dim As WString Ptr s
-		F = FreeFile
+		F = FreeFile_
 		Open FileName For Output Encoding "utf-8" As #F
 		For i = 0 To ItemCount - 1
 			#ifdef __USE_GTK__
@@ -288,14 +288,14 @@ Namespace My.Sys.Forms
 				Print #F, *s
 			#endif
 		Next i
-		Close #F
+		CloseFile_(F)
 		Deallocate s
 	End Sub
 	
 	Private Sub CheckedListBox.LoadFromFile(ByRef FileName As WString)
 		Dim As Integer F, i
 		Dim As WString * 1024 s
-		F = FreeFile
+		F = FreeFile_
 		This.Clear
 		Open FileName For Input Encoding "utf-8" As #F
 		While Not EOF(F)
@@ -306,7 +306,7 @@ Namespace My.Sys.Forms
 				Perform(LB_ADDSTRING, 0, CInt(@s))
 			#endif
 		Wend
-		Close #F
+		CloseFile_(F)
 	End Sub
 	
 	#ifdef __USE_GTK__

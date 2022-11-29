@@ -246,19 +246,19 @@ End Sub
 
 Private Sub WStringList.SaveToFile(ByRef FileName As WString)
 	Dim As Integer Fn
-	Fn = FreeFile()
+	Fn = FreeFile_
 	If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then 'David Change
 		For i As Integer = 0 To FCount -1
 			Print #Fn, *Cast(WString Ptr, Items.Item(i))
 			'Print #Fn, Item(i)
 		Next
-		Close #Fn
 	End If
+	CloseFile_(Fn)
 End Sub
 
 Private Sub WStringList.LoadFromFile(ByRef FileName As WString)
 	'Items.LoadFromFile File
-	Dim As Integer Fn = FreeFile, Result = -1
+	Dim As Integer Fn = FreeFile_, Result = -1
 	Dim Buff As WString * 2000 'David Change for V1.07 Line Input not working fine
 	'If Open(FileName For Binary Access Read As #F) = 0 Then
 	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
@@ -273,7 +273,7 @@ Private Sub WStringList.LoadFromFile(ByRef FileName As WString)
 			Add Trim(Buff)
 		Wend
 	End If
-	Close #Fn
+	CloseFile_(Fn)
 End Sub
 
 #ifndef WStringList_IndexOf_Off

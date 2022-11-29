@@ -280,18 +280,18 @@ End Sub
 
 Private Sub Dictionary.SaveToFile(ByRef FileName As WString)
 	If FItems.Count < 1 Then Exit Sub
-	Dim As Integer Fn = FreeFile()
+	Dim As Integer Fn = FreeFile_
 	'If Open(FileName For Binary Access Write As #F) = 0 Then
 	If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then 'David Change
 		For i As Integer = 0 To FItems.Count - 1
 			Print #Fn, Item(i)->Key & Chr(9) & " " & Item(i)->Text 'David Change
 		Next
-		Close #Fn
 	End If
+	CloseFile_(Fn)
 End Sub
 
 Private Sub Dictionary.LoadFromFile(ByRef filename As WString)
-	Dim As Integer Fn = FreeFile(), Result = -1, Pos1 = -1
+	Dim As Integer Fn = FreeFile_, Result = -1, Pos1 = -1
 	Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
 	'If Open(FileName For Binary Access Read As #Fn) = 0 Then
 	Result = Open(filename For Input Encoding "utf-8" As #Fn)
@@ -320,8 +320,8 @@ Private Sub Dictionary.LoadFromFile(ByRef filename As WString)
 				End If
 			End If
 		Wend
-		Close #Fn
 	End If
+	CloseFile_(Fn)
 	If OnChange Then OnChange(This)
 End Sub
 

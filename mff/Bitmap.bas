@@ -149,7 +149,6 @@ Namespace My.Sys.Drawing
 				End Type
 				Static As BitmapStruct BM
 				Dim As Integer F,x,y,Clr,Count = 0
-				F = FreeFile
 				ReDim PixelData(FWidth * FHeight - 1) As RGB3
 				For y = FHeight-1 To 0 Step -1
 					For x = 0 To FWidth - 1
@@ -175,10 +174,11 @@ Namespace My.Sys.Drawing
 				BM.bmpHeight       = FHeight
 				BM.bmpDataSize     = FWidth * FHeight * 3
 				BM.FileSize        = BM.bmpDataOffset + BM.bmpDataSize
+				F = FreeFile_
 				Open File For Binary Access Write As #F
 				Put #F,,BM
 				Put #F,,PixelData()
-				Close #F
+				CloseFile_(F)
 			#endif
 			Return True
 		End Function
