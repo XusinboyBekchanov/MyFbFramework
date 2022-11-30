@@ -185,11 +185,11 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Private Function ListViewGetModel(widget As GtkWidget Ptr) As GtkTreeModel Ptr
-			If gtk_is_widget(widget) Then
-				If gtk_is_tree_view(widget) Then
-					Return gtk_tree_view_get_model(gtk_tree_view(widget))
+			If GTK_IS_WIDGET(widget) Then
+				If GTK_IS_TREE_VIEW(widget) Then
+					Return gtk_tree_view_get_model(GTK_TREE_VIEW(widget))
 				Else
-					Return gtk_icon_view_get_model(gtk_icon_view(widget))
+					Return gtk_icon_view_get_model(GTK_ICON_VIEW(widget))
 				End If
 			End If
 		End Function
@@ -208,11 +208,11 @@ Namespace My.Sys.Forms
 			If iSubItem < cc Then FSubItems.Item(iSubItem) = Value
 			#ifdef __USE_GTK__
 				If ListViewGetModel(Parent->Handle) Then
-					gtk_list_store_set(gtk_list_store(ListViewGetModel(Parent->Handle)), @TreeIter, iSubItem + 3, ToUtf8(Value), -1)
+					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, iSubItem + 3, ToUtf8(Value), -1)
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If Parent->Handle Then
-					lvi.Mask = LVIF_TEXT
+					lvi.mask = LVIF_TEXT
 					lvi.iItem = Index
 					lvi.iSubItem   = iSubItem
 					lvi.pszText    = FText
@@ -226,7 +226,7 @@ Namespace My.Sys.Forms
 	Private Property ListViewItem.State As Integer
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_STATE
+				lvi.mask = LVIF_STATE
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				ListView_GetItem(Parent->Handle, @lvi)
@@ -603,7 +603,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Function ListViewItems.FindByIterUser_Data(User_Data As Any Ptr) As ListViewItem Ptr
 			For i As Integer = 0 To Count - 1
-				If Item(i)->TreeIter.User_Data = User_Data Then Return Item(i)
+				If Item(i)->TreeIter.user_data = User_Data Then Return Item(i)
 			Next i
 			Return 0
 		End Function
@@ -636,29 +636,29 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Cast(ListView Ptr, Parent)->Init
 			If iSortStyle <> SortStyle.ssNone OrElse Index <> -1 Then
-				gtk_list_store_insert(gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, i)
+				gtk_list_store_insert(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, i)
 			Else
-				gtk_list_store_append(gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter)
+				gtk_list_store_append(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @PItem->TreeIter)
 			End If
-			gtk_list_store_set (gtk_list_store(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
+			gtk_list_store_set (GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
 		#elseif defined(__USE_WINAPI__)
-			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+			lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = IIf(Index = -1, FItems.Count - 1, Index)
 			lvi.iSubItem = 0
 			lvi.iImage   = FImageIndex
-			lvi.State   = INDEXTOSTATEIMAGEMASK(State)
+			lvi.state   = INDEXTOSTATEIMAGEMASK(State)
 			lvi.stateMask = LVIS_STATEIMAGEMASK
 			lvi.iIndent   = Indent
 			lvi.lParam    = Cast(LPARAM, PItem)
 		#endif
 		If Parent Then
-			PItem->Parent = Parent
-			PItem->Text(0) = FCaption
 			#ifdef __USE_WINAPI__
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
 			#endif
+			PItem->Parent = Parent
+			PItem->Text(0) = FCaption
 		End If
 		Return PItem
 	End Function
@@ -687,12 +687,12 @@ Namespace My.Sys.Forms
 			.Indent         = Indent
 		End With
 		#ifdef __USE_WINAPI__
-			lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_State Or LVIF_Indent Or LVIF_Param
+			lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 			lvi.pszText  = @FCaption
 			lvi.cchTextMax = Len(FCaption)
 			lvi.iItem = Index
 			lvi.iImage   = FImageIndex
-			lvi.State   = INDEXTOSTATEIMAGEMASK(State)
+			lvi.state   = INDEXTOSTATEIMAGEMASK(State)
 			lvi.stateMask = LVIS_STATEIMAGEMASK
 			lvi.iIndent   = Indent
 			lvi.lParam    = Cast(LPARAM, PItem)
@@ -707,7 +707,7 @@ Namespace My.Sys.Forms
 	Private Sub ListViewItems.Remove(Index As Integer)
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				gtk_list_store_remove(gtk_list_store(ListViewGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
+				gtk_list_store_remove(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
