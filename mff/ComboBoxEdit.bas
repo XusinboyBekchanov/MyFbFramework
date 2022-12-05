@@ -700,7 +700,7 @@ Namespace My.Sys.Forms
 			#endif
 		Next i
 		CloseFile_(F)
-		Deallocate s
+		Deallocate_(s)
 	End Sub
 	
 	Private Sub ComboBoxEdit.LoadFromFile(ByRef FileName As WString)
@@ -791,7 +791,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Base.RegisterClass "ComboBoxEdit", "ComboBox"
 				.ExStyle       = 0
-				Base.Style     = WS_CHILD Or WS_VSCROLL Or WS_TABSTOP Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(Abs_(FStyle)) Or ASortStyle(Abs_(FSort)) Or AIntegralHeight(Abs_(FIntegralHeight))
+				Base.Style     = WS_CHILD Or WS_VSCROLL Or WS_TABSTOP Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
 				.BackColor         = GetSysColor(COLOR_WINDOW)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
@@ -809,7 +809,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ComboBoxEdit
-		WDeallocate FItemText
+		WDeAllocate(FItemText)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
 				If gtk_is_widget(DropDownWidget) Then

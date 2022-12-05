@@ -64,6 +64,7 @@ End Function
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
 	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+	#define WDeAllocate(subject) If subject <> 0 Then: Deallocate_(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -82,15 +83,27 @@ End Function
 		WReAllocate(subject, Len(txt))
 		*subject = txt
 	End Sub
+
+	Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
+		If subject <> 0 Then Deallocate_(subject)
+		subject = 0
+	End Sub
 #endif
+
+Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
+	For i As Integer = 0 To UBound(subject)
+		'If subject(i) <> 0 Then Deallocate(subject(i))
+		subject(i) = 0
+	Next
+End Sub
 
 ' Using WLetEx if the length of target is longer than the length of source.
 Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
 	If ExistsSubjectInTxt Then
-		Dim As WString Ptr TempWStr = CAllocate((Len(txt) + 1) * SizeOf(WString))
+		Dim As WString Ptr TempWStr = CAllocate_((Len(txt) + 1) * SizeOf(WString))
 		If TempWStr > 0 Then
 			*TempWStr = txt
-			Deallocate subject
+			WDeAllocate(subject)
 			subject = TempWStr
 		End If
 	Else
@@ -108,7 +121,7 @@ End Sub
 			WLet(TempWStr, WGet(subject) & txt)
 		End If
 		WLet(subject, *TempWStr)
-		WDeAllocate TempWStr
+		WDeAllocate(TempWStr)
 	End Sub
 #endif
 
@@ -282,24 +295,12 @@ End Function
 		(*wres)[staid] = 0
 		Count = c
 		If Not MatchCase Then
-			WDeAllocate original
-			WDeAllocate find
+			WDeAllocate(original)
+			WDeAllocate(find)
 		End If
 		Return *wres
 	End Function
 #endif
-
-Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
-	If subject <> 0 Then Deallocate_(subject)
-	subject = 0
-End Sub
-
-Private Sub WDeAllocate Overload(subject() As WString Ptr)
-	For i As Integer = 0 To UBound(subject)
-		'If subject(i) <> 0 Then Deallocate(subject(i))
-		subject(i) = 0
-	Next
-End Sub
 
 Private Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	If subject = 0 Then Return WStr("") Else Return *subject
@@ -380,7 +381,7 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Dim m_BufferLen As Integer = Len(*pZString)
 	If m_BufferLen = 0 Then Return ""
 	Static As WString Ptr buffer
-	WDeAllocate buffer
+	WDeAllocate(buffer)
 	WReAllocate(buffer, m_BufferLen)
 	*buffer = String(m_BufferLen, 0)
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))

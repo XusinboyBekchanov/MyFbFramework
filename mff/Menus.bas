@@ -694,7 +694,7 @@ Namespace My.Sys.Forms
 			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
 				DrawMenuBar(Owner->ParentWindow->Handle)
 			End If
-			WDeAllocate pCaption
+			WDeAllocate(pCaption)
 		#endif
 	End Property
 	
@@ -822,7 +822,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub MenuItem.Click
-		If onClick Then onClick(This)
+		If OnClick Then OnClick(This)
 	End Sub
 	
 	Private Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
@@ -872,9 +872,9 @@ Namespace My.Sys.Forms
 					SubMenu = New_( PopupMenu)
 					SubMenu->ParentMenuItem = @This
 					Handle = SubMenu->Handle
-					Dim As menuinfo mif
+					Dim As MENUINFO mif
 					mif.cbSize     = SizeOf(mif)
-					mif.dwmenudata = Cast(dword_Ptr, Cast(Any Ptr, SubMenu)) '@This))
+					mif.dwMenuData = Cast(DWORD_PTR, Cast(Any Ptr, SubMenu)) '@This))
 					mif.fMask      = MIM_MENUDATA
 					.SetMenuInfo(Handle, @mif)
 					SetInfo(FInfo)
@@ -1034,7 +1034,7 @@ Namespace My.Sys.Forms
 			'Remove FItems[i]
 			'FItems[i] = NULL
 		Next i
-		If FItems <> 0 Then delete_SquareBrackets( FItems)
+		If FItems <> 0 Then Deallocate_(FItems)
 		FItems = 0 'CAllocate_(0)
 		FCount = 0
 	End Sub
@@ -1167,12 +1167,13 @@ Namespace My.Sys.Forms
 		'		FParent->Remove(@This)
 		'	End If
 		This.Clear
-		WDeAllocate pCaption
-		WDeAllocate FCaption
-		WDeAllocate FText
-		WDeAllocate FAccelerator
-		WDeAllocate FName
-		WDeAllocate FImageKey
+		WDeAllocate(pCaption)
+		WDeAllocate(FCaption)
+		WDeAllocate(FText)
+		WDeAllocate(FAccelerator)
+		WDeAllocate(FName)
+		WDeAllocate(FImageKey)
+		If SubMenu Then Delete_(SubMenu)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
 				If GTK_IS_WIDGET(Widget) Then gtk_widget_destroy(Widget)

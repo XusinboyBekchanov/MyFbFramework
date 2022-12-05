@@ -374,11 +374,11 @@ Namespace My.Sys.Forms
 	
 	Private Destructor GridDataItem
 		Items.Clear
-		WDeAllocate FHint
-		WDeAllocate FText
-		WDeAllocate FImageKey
-		WDeAllocate FSelectedImageKey
-		WDeAllocate FSmallImageKey
+		WDeAllocate(FHint)
+		WDeAllocate(FText)
+		WDeAllocate(FImageKey)
+		WDeAllocate(FSelectedImageKey)
+		WDeAllocate(FSmallImageKey)
 		Erase mCellBackColor
 		Erase mCellForeColor
 	End Destructor

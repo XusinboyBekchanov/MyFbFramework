@@ -40,8 +40,8 @@ Private Constructor DictionaryItem
 End Constructor
 
 Private Destructor DictionaryItem
-	If FKey Then Deallocate FKey
-	If FText Then Deallocate FText
+	If FKey Then Deallocate_(FKey)
+	If FText Then Deallocate_(FText)
 End Destructor
 
 Private Operator DictionaryItem.Cast As Any Ptr
@@ -85,7 +85,7 @@ End Property
 
 #ifndef Dictionary_Add_Off
 	Private Sub Dictionary.Add(ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
-		Dim As DictionaryItem Ptr nItem = New DictionaryItem
+		Dim As DictionaryItem Ptr nItem = New_(DictionaryItem)
 		With *nItem
 			.Key  = iKey
 			.Text = wText
@@ -127,7 +127,7 @@ Private Function Dictionary.Get(Index As Integer, ByRef DefaultText As WString =
 End Function
 
 Private Sub Dictionary.Insert(Index As Integer, ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
-	Dim As DictionaryItem Ptr nItem = New DictionaryItem
+	Dim As DictionaryItem Ptr nItem = New_(DictionaryItem)
 	With *nItem
 		.Key  = iKey
 		.Text = wText
@@ -146,7 +146,7 @@ End Sub
 
 Private Sub Dictionary.Remove(Index As Integer)
 	If Index >= 0 And Index <= Count - 1 Then
-		Delete Cast(DictionaryItem Ptr, FItems.Items[Index])
+		Delete_(Cast(DictionaryItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 		If OnChange Then OnChange(This)
 	End If
@@ -272,7 +272,7 @@ End Sub
 Private Sub Dictionary.Clear
 	If FItems.Count < 1 Then Exit Sub
 	For i As Integer = FItems.Count - 1 To 0 Step -1
-		Delete Cast(DictionaryItem Ptr, FItems.Items[i])
+		Delete_(Cast(DictionaryItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
 	If OnChange Then OnChange(This)
@@ -307,7 +307,7 @@ Private Sub Dictionary.LoadFromFile(ByRef filename As WString)
 			If Trim(Buff, Any !"\t ")<>"" Then  'David Change
 				Pos1=InStr(Buff, Chr(9))
 				If Pos1 > 0 Then
-					Dim As DictionaryItem Ptr nItem = New DictionaryItem
+					Dim As DictionaryItem Ptr nItem = New_(DictionaryItem)
 					With *nItem
 						If Pos1 > 0 Then
 							.Key  = ..Left(Buff, Pos1 - 1)
@@ -501,7 +501,7 @@ End Function
 			If value[i] = 10 Or value[i] = 0 Then
 				WLet(FText, Trim(Mid(*FText, 1, Len(*FText)), Any WChr(13) & WChr(10)))
 				Pos1 = InStr(*FText, WChr(9) & " ")
-				Dim As DictionaryItem Ptr nItem = New DictionaryItem
+				Dim As DictionaryItem Ptr nItem = New_(DictionaryItem)
 				With *nItem
 					If Pos1 > 0 Then
 						.Key  = ..Left(*FText, Pos1 - 1)
@@ -543,11 +543,11 @@ End Constructor
 Private Destructor Dictionary
 	If FItems.Count > 0 Then
 		For i As Integer = FItems.Count - 1 To 0 Step -1
-			Delete  Cast(DictionaryItem Ptr, FItems.Items[i])
+			Delete_(Cast(DictionaryItem Ptr, FItems.Items[i]))
 		Next i
 		FItems.Clear
 		This.Clear
 	End If
-	If FText Then Deallocate FText
+	If FText Then Deallocate_(FText)
 End Destructor
 

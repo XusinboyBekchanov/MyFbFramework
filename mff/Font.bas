@@ -250,8 +250,8 @@ Namespace My.Sys.Drawing
 		#endif
 	End Constructor
 	
-	Private Destructor Font
-		WDeAllocate FName
+	Destructor Font
+		WDeAllocate(FName)
 		#ifdef __USE_GTK__
 			If Handle Then pango_font_description_free (Handle)
 		#elseif defined(__USE_WINAPI__)

@@ -552,10 +552,10 @@ Namespace My.Sys.Forms
 		#else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
 		#endif
-		WDeAllocate FHint
-		WDeAllocate FCaption
-		WDeAllocate FImageKey
-		WDeAllocate FName
+		WDeAllocate(FHint)
+		WDeAllocate(FCaption)
+		WDeAllocate(FImageKey)
+		WDeAllocate(FName)
 	End Destructor
 	
 	Private Property ToolButtons.Count As Integer

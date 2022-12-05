@@ -350,11 +350,11 @@ Namespace My.Sys.Forms
 				If ItemIndex <> -1 Then ListView_DeleteItem(Parent->Handle, ItemIndex)
 			End If
 		#endif
-		WDeAllocate FHint
-		WDeAllocate FText
-		WDeAllocate FImageKey
-		WDeAllocate FSelectedImageKey
-		WDeAllocate FSmallImageKey
+		WDeAllocate(FHint)
+		WDeAllocate(FText)
+		WDeAllocate(FImageKey)
+		WDeAllocate(FSelectedImageKey)
+		WDeAllocate(FSmallImageKey)
 	End Destructor
 	
 	Private Sub TreeListViewColumn.SelectItem

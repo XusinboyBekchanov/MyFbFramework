@@ -660,7 +660,7 @@ Namespace Debug
 						Dim As WString Ptr SelText
 						WLet(SelText, MSG & Chr(13, 10))
 						SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
-						WDeAllocate SelText
+						WDeAllocate(SelText)
 					End If
 				#elseif defined(__USE_GTK__)
 					If GTK_IS_TEXT_VIEW(DebugWindowHandle) Then
@@ -796,7 +796,7 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 	'    For i As Integer = 0 To App.FormCount -1
 	'        If App.Forms[i]->Handle Then App.Forms[i]->Enabled = True
 	'    Next i
-	WDeAllocate FCaption
+	WDeAllocate(FCaption)
 	Return Result
 End Function
 

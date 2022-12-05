@@ -451,17 +451,17 @@ End Sub
 Private Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As WString Ptr TmpString
 	WLet(TmpString, "")
-	For i As Integer = iStart To UBound(subject) Step iStep
-		WAdd TmpString, IIf(i = iStart, "", Delimiter) & *subject(i)
+	For i As Integer = iStart To UBound(Subject) Step iStep
+		WAdd TmpString, IIf(i = iStart, "", Delimiter) & *Subject(i)
 	Next
 	Function = *TmpString
-	Deallocate TmpString
+	Deallocate_(TmpString)
 End Function
 
 Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
 	Dim As UString Result
-	For i As Integer = iStart To UBound(subject) Step iStep
-		Result &= IIf(i = iStart, "", Delimiter) & subject(i)
+	For i As Integer = iStart To UBound(Subject) Step iStep
+		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
 	Next
 	Return Result
 End Function

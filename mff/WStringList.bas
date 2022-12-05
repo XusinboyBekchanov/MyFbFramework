@@ -83,7 +83,8 @@ End Property
 
 Private Property WStringList.Item(Index As Integer, iValue As Const WString)
 	If Index > -1 And Index < FCount Then
-		Dim As WString Ptr iText = CAllocate((Len(iValue) + 1) * SizeOf(WString))
+		WDeAllocate(Items.Item(Index))
+		Dim As WString Ptr iText = CAllocate_((Len(iValue) + 1) * SizeOf(WString))
 		*iText = iValue
 		Items.Item(Index) = iText
 	End If
@@ -103,7 +104,7 @@ End Property
 		If CBool(FCount > 0) AndAlso FSorted Then
 			Return This.Insert(-1, iValue, FObj)
 		Else
-			Dim As WString Ptr iText = CAllocate((Len(iValue) + 1) * SizeOf(WString))
+			Dim As WString Ptr iText = CAllocate_((Len(iValue) + 1) * SizeOf(WString))
 			*iText = iValue
 			Items.Add iText
 			Objects.Add FObj
@@ -145,11 +146,11 @@ Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As Cons
 		End If
 		FSorted = True
 	Else
-		j = IIf(Index > 0, Index, Fcount)
+		j = IIf(Index > 0, Index, FCount)
 		FSorted = False
 	End If
 	'?j, FCount, *Cast(WString Ptr, Items.Item(j - 1)), iValue, *Cast(WString Ptr, Items.Item(j))
-	Dim As WString Ptr iText = CAllocate((Len(iValue) + 1) * SizeOf(WString))
+	Dim As WString Ptr iText = CAllocate_((Len(iValue) + 1) * SizeOf(WString))
 	*iText = iValue
 	Items.Insert j, iText
 	Objects.Insert j, FObj
@@ -166,7 +167,7 @@ End Sub
 
 Private Sub WStringList.Remove(Index As Integer)
 	If FCount < 1 OrElse Index < 0 OrElse Index > FCount - 1 Then Exit Sub
-	If Items.Item(Index) > 0 Then Deallocate Items.Item(Index)
+	If Items.Item(Index) > 0 Then Deallocate_(Items.Item(Index))
 	Items.Remove Index
 	'If Objects.Item(Index) > 0 Then Delete Objects.Item(Index)
 	Objects.Remove Index
@@ -231,12 +232,8 @@ End Sub
 #endif
 
 Private Sub WStringList.Clear
-	If FCount < 1 Then Exit Sub
-	For i As Integer = FCount - 1 To 0
-		If Items.Item(i) > 0 Then Deallocate Items.Item(i)
-		'If Objects.Item(i) > 0 Then Delete Objects.Item(i)
-		Objects.Remove i
-		Items.Remove i
+	For i As Integer = FCount - 1 To 0 Step -1
+		WDeAllocate(Items.Item(i))
 	Next
 	Items.Clear
 	Objects.Clear
@@ -367,9 +364,7 @@ Private Constructor WStringList
 End Constructor
 
 Private Destructor WStringList
-	Items.Clear
-	Objects.Clear
-	FCount = 0
 	This.Clear
+	FCount = 0
 End Destructor
 

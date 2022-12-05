@@ -512,42 +512,42 @@ Namespace My.Sys.ComponentModel
 		Return This.Name
 	End Function
 	
-	Private Destructor Component
-		WDeallocate FName
-		WDeallocate FClassAncestor
+	Destructor Component
+		WDeAllocate(FName)
+		WDeAllocate(FClassAncestor)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
-				If gtk_is_widget(Widget) Then
+				If GTK_IS_WIDGET(widget) Then
 					#ifdef __USE_GTK3__
-						gtk_widget_destroy(Widget)
+						gtk_widget_destroy(widget)
 					#else
-						If gtk_is_menu_shell(Widget) = 0 Then
-							gtk_widget_destroy(Widget)
+						If GTK_IS_MENU_SHELL(widget) = 0 Then
+							gtk_widget_destroy(widget)
 						End If
 					#endif
-					Widget = 0
+					widget = 0
 				End If
-				If gtk_is_widget(overlaywidget) Then
+				If GTK_IS_WIDGET(overlaywidget) Then
 					gtk_widget_destroy(overlaywidget)
 					overlaywidget = 0
 				End If
-				If gtk_is_widget(ScrolledWidget) Then
-					gtk_widget_destroy(ScrolledWidget)
-					ScrolledWidget = 0
+				If GTK_IS_WIDGET(scrolledwidget) Then
+					gtk_widget_destroy(scrolledwidget)
+					scrolledwidget = 0
 				End If
-				If gtk_is_widget(EventBoxWidget) Then
-					gtk_widget_destroy(EventBoxWidget)
-					EventBoxWidget = 0
+				If GTK_IS_WIDGET(eventboxwidget) Then
+					gtk_widget_destroy(eventboxwidget)
+					eventboxwidget = 0
 				End If
-				If gtk_is_widget(fixedwidget) Then
+				If GTK_IS_WIDGET(fixedwidget) Then
 					gtk_widget_destroy(fixedwidget)
 					fixedwidget = 0
 				End If
-				If gtk_is_widget(layoutwidget) Then
+				If GTK_IS_WIDGET(layoutwidget) Then
 					gtk_widget_destroy(layoutwidget)
 					layoutwidget = 0
 				End If
-				If gtk_is_widget(box) Then
+				If GTK_IS_WIDGET(box) Then
 					gtk_widget_destroy(box)
 					box = 0
 				End If

@@ -75,7 +75,7 @@ Private Property PointerList.Object(Index As Integer, Value As Any Ptr)
 End Property
 
 Private Sub PointerList.Add(_Item As Any Ptr, Obj As Any Ptr = 0)
-    Dim As PointerListItem Ptr nItem = New PointerListItem
+    Dim As PointerListItem Ptr nItem = New_(PointerListItem)
     With *nItem
         .Value  = _Item
         .Object = Obj
@@ -84,7 +84,7 @@ Private Sub PointerList.Add(_Item As Any Ptr, Obj As Any Ptr = 0)
 End Sub
 
 Private Sub PointerList.Insert(Index As Integer, _Item As Any Ptr, Obj As Any Ptr = 0)
-    Dim As PointerListItem Ptr nItem = New PointerListItem
+    Dim As PointerListItem Ptr nItem = New_(PointerListItem)
     With *nItem
         .Value  = _Item
         .Object = Obj
@@ -98,13 +98,13 @@ End Sub
 
 Private Sub PointerList.Remove(Index As Integer)
     If Index = -1 Then Exit Sub
-    Delete Cast(PointerListItem Ptr, FItems.Items[Index])
+    Delete_(Cast(PointerListItem Ptr, FItems.Items[Index]))
     FItems.Remove Index
 End Sub
 
 Private Sub PointerList.Clear
     For i As Integer = Count -1 To 0 Step -1
-        Delete Cast(PointerListItem Ptr, FItems.Items[i])
+        Delete_(Cast(PointerListItem Ptr, FItems.Items[i]))
     Next i
     FItems.Clear
 End Sub
@@ -153,6 +153,6 @@ End Constructor
 
 Private Destructor PointerList
     For i As Integer = Count - 1 To 0 Step -1
-        Delete Cast(PointerListItem Ptr, FItems.Items[i])
+        Delete_(Cast(PointerListItem Ptr, FItems.Items[i]))
     Next i
 End Destructor

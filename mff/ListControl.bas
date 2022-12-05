@@ -596,7 +596,7 @@ Namespace My.Sys.Forms
 			#endif
 		Next i
 		CloseFile_(F)
-		Deallocate s
+		Deallocate_(s)
 	End Sub
 	
 	Private Sub ListControl.LoadFromFile(ByRef FileName As WString)

@@ -239,7 +239,7 @@ Namespace My.Sys.Drawing
 				DestroyCursor Handle
 			End If
 		#endif
-		WDeallocate FResName
+		WDeallocate(FResName)
 	End Destructor
 End Namespace
 

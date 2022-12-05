@@ -592,7 +592,7 @@ Namespace My.Sys.Forms
 			bResult = GetOpenFileName(@ofn)
 			OpenDial->ThreadID = 0
 			'Deallocate cwsFile
-			WDeAllocate wFilter
+			WDeAllocate(wFilter)
 			Exit Sub
 	ErrorHandler:
 			MsgBox ErrDescription(Err) & " (" & Err & ") " & _

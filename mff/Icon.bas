@@ -246,7 +246,7 @@ Namespace My.Sys.Drawing
 	
 	#ifndef __USE_JNI__
 		#ifdef __USE_GTK__
-			Private Operator Icon.Let(Value As GdkPixBuf Ptr)
+			Private Operator Icon.Let(Value As GdkPixbuf Ptr)
 				If Handle Then g_object_unref(Handle)
 		#elseif defined(__USE_WINAPI__)
 			Private Operator Icon.Let(Value As HICON)
@@ -261,7 +261,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Icon
-		WDeallocate FResName
+		WDeAllocate(FResName)
 		#ifdef __USE_GTK__
 			If Handle Then g_object_unref(Handle)
 		#elseif defined(__USE_WINAPI__)

@@ -177,10 +177,10 @@ Namespace My.Sys.Forms
 					If GTK_IS_ENTRY(widget) OrElse GTK_IS_TEXT_VIEW(widget) Then
 						#ifndef __USE_GTK3__
 							Dim As GtkTargetEntry mytargets
-							mytargets.target = Allocate(SizeOf(gchar) * 14)
+							mytargets.target = Allocate_(SizeOf(gchar) * 14)
 							*mytargets.target = "text/uri-list"
 							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, @mytargets, 1, GDK_ACTION_COPY)
-							Deallocate mytargets.target
+							Deallocate_(mytargets.target)
 						#else
 							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, gtk_target_entry_new("text/uri-list", 4, 0), 1, GDK_ACTION_COPY)
 						#endif
@@ -2787,7 +2787,7 @@ Namespace My.Sys.Forms
 			#endif
 			FreeWnd
 			'If FText Then Deallocate FText
-			If FHint Then Deallocate FHint
+			If FHint Then Deallocate_(FHint)
 			'			Dim As Integer i
 			'			For i = 0 To ControlCount -1
 			'			    If Controls[i] Then Controls[i]->Free

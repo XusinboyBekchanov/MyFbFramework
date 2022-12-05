@@ -414,8 +414,8 @@ Namespace My.Sys.Forms
 					FMinHeight = rct.Bottom - rct.Top
 					FWidth = rct.Right - rct.Left
 					If *FChild Is ToolBar Then
-						Dim As ..SIZE sz
-						SendMessage FChild->Handle, TB_GETIDEALSIZE, False, Cast(LParam, @sz)
+						Dim As ..Size sz
+						SendMessage FChild->Handle, TB_GETIDEALSIZE, False, Cast(LPARAM, @sz)
 						FIdealWidth = sz.cx
 						FMinWidth = sz.cx
 						FWidth = sz.cx
@@ -428,17 +428,17 @@ Namespace My.Sys.Forms
 				rbBand.cx = FWidth                                              ' Length of the band (RBBIM_SIZE flag)
 				rbBand.cxIdeal = FIdealWidth
 				If Create Then
-					SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(lParam, @rbBand))
+					SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(LPARAM, @rbBand))
 					Maximize
 				Else
-					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(lParam, @rbBand))
+					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
 				End If
 			End If
 		#endif
 	End Sub
 	
-	Private Function ReBarBand.GetRect() As My.Sys.Drawing.RECT
-		Dim rc As My.Sys.Drawing.RECT
+	Private Function ReBarBand.GetRect() As My.Sys.Drawing.Rect
+		Dim rc As My.Sys.Drawing.Rect
 		#ifdef __USE_GTK__
 			rc.Left = FLeft
 			rc.Top = FTop
@@ -455,8 +455,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ReBarBand
-		WDeallocate FCaption
-		WDeallocate FImageKey
+		WDeAllocate(FCaption)
+		WDeAllocate(FImageKey)
 	End Destructor
 	
 	Private Function ReBarBandCollection.Count As Integer

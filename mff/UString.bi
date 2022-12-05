@@ -65,13 +65,13 @@ Declare Operator & (ByRef LeftText As UString, ByRef RightText As UString) As US
 Declare Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
 Declare Function Val Overload(ByRef subject As UString) As Double
 Declare Operator Len(ByRef lhs As UString) As Integer
-Declare Sub WDeAllocate Overload(ByRef subject As WString Ptr)
-Declare Sub WDeAllocate Overload(subject() As WString Ptr)
 Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 #if MEMCHECK = 0
 	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
+	Declare Sub WDeAllocate Overload(ByRef subject As WString Ptr)
 #endif
+Declare Sub WDeAllocateEx Overload(subject() As WString Ptr)
 
 Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
 Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)

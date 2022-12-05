@@ -317,8 +317,8 @@ Namespace My.Sys.Forms
 	
 	Private Destructor TabPage
 		'If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
-		WDeAllocate FCaption
-		WDeAllocate FImageKey
+		WDeAllocate(FCaption)
+		WDeAllocate(FImageKey)
 	End Destructor
 	
 	#ifndef ReadProperty_Off
@@ -1019,7 +1019,7 @@ Namespace My.Sys.Forms
 				SendMessageW(FHandle, TCM_INSERTITEMW, FTabCount - 1, CInt(@Ti))
 				SetTabPageIndex(tp, FTabCount - 1)
 				Ti.lParam = 0
-				WDeAllocate St
+				WDeAllocate(St)
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1

@@ -1432,9 +1432,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor RichTextBox
-		WDeAllocate FFindText
-		WDeAllocate FTextRange
-		WDeAllocate FSelWStrVal
+		WDeAllocate(FFindText)
+		WDeAllocate(FTextRange)
+		WDeAllocate(FSelWStrVal)
 		#ifndef __USE_GTK__
 			DestroyWindow FHandle
 			FreeLibrary(hRichTextBox)

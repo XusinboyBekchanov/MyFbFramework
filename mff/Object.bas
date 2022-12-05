@@ -80,9 +80,9 @@ Namespace My.Sys
 		'FName = CAllocate(0)
 	End Constructor
 	
-	Private Destructor Object
-		WDeAllocate FTemp
-		WDeAllocate FClassName
+	Destructor Object
+		WDeAllocate(FTemp)
+		WDeAllocate(FClassName)
 	End Destructor
 End Namespace
 

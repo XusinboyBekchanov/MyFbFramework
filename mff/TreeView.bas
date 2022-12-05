@@ -297,11 +297,11 @@ Namespace My.Sys.Forms
 				This.Handle = 0
 			End If
 		#endif
-		WDeAllocate FHint
-		WDeAllocate FName
+		WDeAllocate(FHint)
+		WDeAllocate(FName)
 		'WDeAllocate FText
-		WDeAllocate FImageKey
-		WDeAllocate FSelectedImageKey
+		WDeAllocate(FImageKey)
+		WDeAllocate(FSelectedImageKey)
 	End Destructor
 	
 	Private Constructor TreeNodeCollection

@@ -289,7 +289,7 @@ Namespace My.Sys.Forms
 			#endif
 		Next i
 		CloseFile_(F)
-		Deallocate s
+		Deallocate_(s)
 	End Sub
 	
 	Private Sub CheckedListBox.LoadFromFile(ByRef FileName As WString)

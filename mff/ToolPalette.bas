@@ -23,8 +23,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ToolGroup
-		WDeAllocate FCaption
-		WDeAllocate FName
+		WDeAllocate(FCaption)
+		WDeAllocate(FName)
 	End Destructor
 	
 	Private Property ToolGroup.CommandID As Integer

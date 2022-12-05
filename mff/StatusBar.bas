@@ -291,7 +291,7 @@ Namespace My.Sys.Forms
 			Next i
 			FWidth(Count - 1) = -1
 			#ifndef __USE_GTK__
-				Perform(SB_SETPARTS, Count, Cast(LParam, CInt(@FWidth(0))))
+				Perform(SB_SETPARTS, Count, Cast(LPARAM, CInt(@FWidth(0))))
 			#endif
 			For i = 0 To Count - 1
 				If Panels[i]->Alignment = 0 Then
@@ -304,18 +304,18 @@ Namespace My.Sys.Forms
 					WLet(s, Panels[i]->Caption)
 				End If
 				#ifndef __USE_GTK__
-					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LParam, CInt(s)))
-					Perform(SB_SETICON, i, Cast(LParam, CInt(Panels[i]->Icon.Handle)))
+					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LPARAM, CInt(s)))
+					Perform(SB_SETICON, i, Cast(LPARAM, CInt(Panels[i]->Icon.Handle)))
 				#endif
 				WLet(ss, *ss & IIf(i = 0, "", !"\t") & Panels[i]->Caption)
 			Next i
 		End If
 		#ifdef __USE_GTK__
-			gtk_statusbar_push(gtk_statusbar(widget), context_id, ToUTF8(*ss))
+			gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, ToUtf8(*ss))
 		#endif
 		Invalidate
-		WDeallocate s
-		WDeallocate ss
+		WDeAllocate(s)
+		WDeAllocate(ss)
 	End Sub
 	
 	Private Property StatusBar.Panel(Index As Integer) As StatusPanel Ptr

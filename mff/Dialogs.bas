@@ -333,7 +333,7 @@ Private Function OpenFileDialog.Execute As Boolean
 			If FileNames.Count > 1 Then FileNames.Remove 0
 		End If
 		'Deallocate cwsFile
-		WDeAllocate wFilter
+		WDeAllocate(wFilter)
 	#endif
 	Return bResult
 	Exit Function
@@ -1088,6 +1088,6 @@ Private Constructor ColorDialog
 End Constructor
 
 Private Destructor ColorDialog
-	WDeAllocate _Caption
+	WDeAllocate(_Caption)
 End Destructor
 
