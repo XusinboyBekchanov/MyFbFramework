@@ -139,9 +139,9 @@ Namespace My
 	
 	Private Property Application.ActiveForm(Value As My.Sys.Forms.Control Ptr)
 		FActiveForm = Value
-'		#ifdef __USE_WINAPI__
-'			If Value Then SetForegroundWindow(Value->Handle)
-'		#endif
+		'		#ifdef __USE_WINAPI__
+		'			If Value Then SetForegroundWindow(Value->Handle)
+		'		#endif
 	End Property
 	
 	Private Property Application.ActiveMDIChild As My.Sys.Forms.Control Ptr
@@ -150,9 +150,9 @@ Namespace My
 	
 	Private Property Application.ActiveMDIChild(Value As My.Sys.Forms.Control Ptr)
 		FActiveMDIChild = Value
-'		#ifdef __USE_WINAPI__
-'			If Value Then SetForegroundWindow(Value->Handle)
-'		#endif
+		'		#ifdef __USE_WINAPI__
+		'			If Value Then SetForegroundWindow(Value->Handle)
+		'		#endif
 	End Property
 	
 	Private Property Application.MainForm As My.Sys.Forms.Control Ptr
@@ -206,61 +206,61 @@ Namespace My
 	Private Property Application.Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
 	End Property
 	
-'	Property Application.HintColor As Integer
-'		Return FHintColor
-'	End Property
-'	
-'	Property Application.HintColor(value As Integer)
-'		Dim As Integer i
-'		FHintColor = value
-'		For i = 0 To ControlCount -1
-'			#ifndef __USE_GTK__
-'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETTIPBKCOLOR,value,0)
-'			#endif
-'		Next i
-'	End Property
-'	
-'	Property Application.HintPause As Integer
-'		Return FHintPause
-'	End Property
-'	
-'	Property Application.HintPause (value As Integer)
-'		Dim As Integer i
-'		FHintPause = value
-'		For i = 0 To ControlCount -1
-'			#ifndef __USE_GTK__
-'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_INITIAL,value)
-'			#endif
-'		Next i
-'	End Property
-'	
-'	Property Application.HintShortPause As Integer
-'		Return FHintShortPause
-'	End Property
-'	
-'	Property Application.HintShortPause(value As Integer)
-'		Dim As Integer i
-'		FHintShortPause = value
-'		For i = 0 To ControlCount -1
-'			#ifndef __USE_GTK__
-'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_RESHOW,value)
-'			#endif
-'		Next i
-'	End Property
-'	
-'	Property Application.HintHidePause As Integer
-'		Return FHintHidePause
-'	End Property
-'	
-'	Property Application.HintHidePause(value As Integer)
-'		Dim As Integer i
-'		FHintHidePause = value
-'		For i = 0 To ControlCount -1
-'			#ifndef __USE_GTK__
-'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_AUTOPOP,value)
-'			#endif
-'		Next i
-'	End Property
+	'	Property Application.HintColor As Integer
+	'		Return FHintColor
+	'	End Property
+	'
+	'	Property Application.HintColor(value As Integer)
+	'		Dim As Integer i
+	'		FHintColor = value
+	'		For i = 0 To ControlCount -1
+	'			#ifndef __USE_GTK__
+	'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETTIPBKCOLOR,value,0)
+	'			#endif
+	'		Next i
+	'	End Property
+	'
+	'	Property Application.HintPause As Integer
+	'		Return FHintPause
+	'	End Property
+	'
+	'	Property Application.HintPause (value As Integer)
+	'		Dim As Integer i
+	'		FHintPause = value
+	'		For i = 0 To ControlCount -1
+	'			#ifndef __USE_GTK__
+	'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_INITIAL,value)
+	'			#endif
+	'		Next i
+	'	End Property
+	'
+	'	Property Application.HintShortPause As Integer
+	'		Return FHintShortPause
+	'	End Property
+	'
+	'	Property Application.HintShortPause(value As Integer)
+	'		Dim As Integer i
+	'		FHintShortPause = value
+	'		For i = 0 To ControlCount -1
+	'			#ifndef __USE_GTK__
+	'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_RESHOW,value)
+	'			#endif
+	'		Next i
+	'	End Property
+	'
+	'	Property Application.HintHidePause As Integer
+	'		Return FHintHidePause
+	'	End Property
+	'
+	'	Property Application.HintHidePause(value As Integer)
+	'		Dim As Integer i
+	'		FHintHidePause = value
+	'		For i = 0 To ControlCount -1
+	'			#ifndef __USE_GTK__
+	'				If Controls[i]->ToolTipHandle Then SendMessage(Controls[i]->ToolTipHandle,TTM_SETDELAYTIME,TTDT_AUTOPOP,value)
+	'			#endif
+	'		Next i
+	'	End Property
 	
 	Private Sub Application.HelpCommand(CommandID As Integer,FData As Long)
 		#ifdef __USE_WINAPI__
@@ -309,28 +309,28 @@ Namespace My
 							Select Case msg.wParam
 							Case VK_TAB ', VK_LEFT, VK_UP, VK_DOWN, VK_RIGHT, VK_PRIOR, VK_NEXT
 								'If Not GetFocus() = FActiveForm->Handle Then
-									FActiveForm->SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
-									'TranslateAndDispatch = False
+								FActiveForm->SelectNextControl(GetKeyState(VK_SHIFT) And 8000)
+								'TranslateAndDispatch = False
 								'ElseIf IsDialogMessage(FActiveForm->Handle, @Msg) Then
 								'	TranslateAndDispatch = False
 								'End If
-'								Dim KeyStateArray(256) As Byte
-'								Dim As Integer OldState
-'								Dim As Boolean bSet
-'								If Not GetFocus() = FActiveForm->Handle Then
-'									bSet = True
-'									GetKeyboardState(ByVal VarPtr(keyStateArray(0)))
-'									OldState = KeyStateArray(VK_SHIFT)
-'									KeyStateArray(VK_SHIFT) = IIf(GetKeyState(VK_SHIFT) And 8000, 0, -127)
-'									SetKeyboardState(ByVal VarPtr(keyStateArray(0)))
-'								End If
-'								If IsDialogMessage(FActiveForm->Handle, @Msg) Then
-'									TranslateAndDispatch = False
-'								End If
-'								If bSet Then
-'									KeyStateArray(VK_SHIFT) = OldState
-'									SetKeyboardState(ByVal VarPtr(keyStateArray(0)))
-'								End If
+								'								Dim KeyStateArray(256) As Byte
+								'								Dim As Integer OldState
+								'								Dim As Boolean bSet
+								'								If Not GetFocus() = FActiveForm->Handle Then
+								'									bSet = True
+								'									GetKeyboardState(ByVal VarPtr(keyStateArray(0)))
+								'									OldState = KeyStateArray(VK_SHIFT)
+								'									KeyStateArray(VK_SHIFT) = IIf(GetKeyState(VK_SHIFT) And 8000, 0, -127)
+								'									SetKeyboardState(ByVal VarPtr(keyStateArray(0)))
+								'								End If
+								'								If IsDialogMessage(FActiveForm->Handle, @Msg) Then
+								'									TranslateAndDispatch = False
+								'								End If
+								'								If bSet Then
+								'									KeyStateArray(VK_SHIFT) = OldState
+								'									SetKeyboardState(ByVal VarPtr(keyStateArray(0)))
+								'								End If
 							End Select
 						End Select
 					End If
@@ -685,7 +685,7 @@ Namespace Debug
 	#endif
 End Namespace
 
-PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer __EXPORT__
+Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As Integer = 0, ButtonsType As Integer = 1) As Integer __EXPORT__
 	Dim As Integer Result = -1
 	Dim As WString Ptr FCaption
 	Dim As Integer MsgTypeIn, ButtonsTypeIn
@@ -761,10 +761,10 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 		End Select
 		gtk_widget_destroy (dialog)
 	#elseif defined(__USE_WINAPI__)
-'		Wnd = GetActiveWindow()
-'		If App.MainForm <> 0 Then
-'			Wnd = App.MainForm->Handle
-'		End If
+		'		Wnd = GetActiveWindow()
+		'		If App.MainForm <> 0 Then
+		'			Wnd = App.MainForm->Handle
+		'		End If
 		Select Case MsgType
 		Case mtInfo: MsgTypeIn = MB_ICONINFORMATION
 		Case mtWarning: MsgTypeIn = MB_ICONEXCLAMATION
@@ -800,40 +800,226 @@ PublicOrPrivate Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef C
 	Return Result
 End Function
 
+Type TInputBox
+	#ifdef __FB_WIN32__
+		As MSG msg
+		As HWND hWnd, hwnd1, hwnd2, hwnd3
+		As WString * 1024 mess
+		As BOOL flag
+		As DEVMODE dm(0)
+		As HFONT font,font1
+		As Integer size
+	#else
+		dialog As GtkWidget  Ptr
+		
+		entry As GtkWidget  Ptr
+		
+		sText As ZString*1024
+		
+		iFlag As Long
+	#endif
+End Type
+
+#ifdef __USE_GTK__
+	Sub EventbuttonInputBoxSub cdecl(Gwindow As GtkWidget Ptr,  data_ As gpointer) Export
+		
+		Dim As TInputBox Ptr tib = data_
+		
+		tib->sText = *gtk_entry_get_text(Cast(Any Ptr,tib->entry))
+		
+		gtk_dialog_response(Cast(Any Ptr, tib->dialog) , GTK_RESPONSE_OK)
+		
+	End Sub
+	
+	Function EventEntryInputBoxFunc cdecl( Gwindow As GtkWidget Ptr, gEvent As GdkEvent Ptr, data_ As gpointer) As gboolean Export
+		
+		Dim As TInputBox Ptr tib = data_
+		
+		If tib->iFlag = 0 AndAlso Cast(GdkEventButton Ptr,gEvent)->type = GDK_BUTTON_PRESS Then
+			
+			gtk_entry_set_text(Cast(Any Ptr,tib->entry) , "")
+			
+			tib->iFlag = 1
+			
+		End If
+		
+		Return False
+		
+	End Function
+#endif
+
+Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "EnterText:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString Export
+	#ifdef __FB_WIN32__
+		Dim As HWND hwFocus = GetFocus()
+		Dim InputBox_ As TInputBox
+		InputBox_.dm(0).dmSize = SizeOf(DEVMODE)
+		EnumDisplaySettings( 0, ENUM_CURRENT_SETTINGS, @InputBox_.dm(0))
+		InputBox_.hWnd  = CreateWindowEx(WS_EX_CONTROLPARENT, "#32770", @sCaption, WS_TILED Or WS_VISIBLE, InputBox_.dm(0).dmPelsWidth / 2 - 155, InputBox_.dm(0).dmPelsHeight / 2 - 70, 310, 130, hParentWin, 0, 0, 0 )
+		InputBox_.hwnd1 = CreateWindowEx(WS_EX_CLIENTEDGE, "Edit", @sDefaultText, WS_CHILD Or WS_VISIBLE Or WS_TABSTOP Or iFlag, 10, 33, 275, 25, InputBox_.hWnd, 0, 0, 0)
+		InputBox_.hwnd2 = CreateWindowEx(0, "Button", "OK", WS_CHILD Or WS_VISIBLE Or WS_TABSTOP, 106, 65, 80, 25, InputBox_.hWnd, 0, 0, 0)
+		InputBox_.hwnd3 = CreateWindowEx(0, "Static", @sMessageText, WS_CHILD Or WS_VISIBLE, 10, 10, 275, 20, InputBox_.hWnd, 0, 0, 0)
+		
+		InputBox_.size  = -MulDiv(10, GetDeviceCaps(CreateDC("DISPLAY",0,0,0), LOGPIXELSY), 72)
+		InputBox_.font  = CreateFont(InputBox_.size,0,0,0,0,1,0,0,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH Or FF_DONTCARE,"Times New Roman")
+		SendMessage(InputBox_.hwnd3,WM_SETFONT,Cast(WPARAM,InputBox_.font),0)
+		InputBox_.font1 = CreateFont(InputBox_.size,0,0,0,0,0,0,0,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH Or FF_DONTCARE,"Times New Roman")
+		SendMessage(InputBox_.hwnd2,WM_SETFONT,Cast(WPARAM,InputBox_.font1),0)
+		SendMessage(InputBox_.hwnd1,WM_SETFONT,Cast(WPARAM,InputBox_.font1),0)
+		
+		While GetMessage(@InputBox_.msg, 0, 0, 0 )
+			If IsDialogMessage(InputBox_.hWnd ,@InputBox_.msg)  = 0 Then
+				TranslateMessage(@InputBox_.msg )
+				DispatchMessage(@InputBox_.msg )
+			End If
+			Select Case InputBox_.msg.hwnd
+			Case InputBox_.hwnd2
+				Dim As Integer iMsg = InputBox_.msg.message
+				If (iMsg = WM_LBUTTONDOWN) OrElse (iMsg = WM_KEYUP AndAlso (InputBox_.msg.wParam = 32 OrElse InputBox_.msg.wParam = 13)) Then
+					SendMessage(InputBox_.hwnd1,WM_GETTEXT,1024,Cast(LPARAM ,@InputBox_.mess))
+					Dim As UString sRet = InputBox_.mess
+					Function = sRet
+					DestroyWindow(InputBox_.hWnd)
+					InputBox_.flag=0
+					SetFocus(hwFocus)
+					Exit Function
+				End If
+			Case InputBox_.hwnd1
+				If InputBox_.msg.message=WM_LBUTTONDOWN Then
+					If iFlag2 <> 0 Then
+						If InputBox_.flag=0 Then
+							InputBox_.flag=1
+							SetWindowText(InputBox_.hwnd1 , "")
+						End If
+					End If
+				End If
+			End Select
+		Wend
+		SetFocus(hwFocus)
+	#else
+		Dim As GtkWidget  Ptr dialog
+		
+		Dim As GtkWidget  Ptr label
+		
+		Dim As GtkWidget  Ptr entry
+		
+		Dim As GtkWidget  Ptr button
+		
+		Dim As GtkWidget  Ptr hBoxDialog , vBox , hBox1 , hBox2 , hBox3 , vboxfill
+		
+		dialog = gtk_dialog_new ()
+		
+		If hParentWin Then
+			
+			gtk_window_set_transient_for(GTK_WINDOW(dialog) , Cast(Any Ptr,hParentWin))
+			
+		End If
+		
+		hBoxDialog = gtk_dialog_get_action_area(GTK_DIALOG(dialog))
+		
+		gtk_window_set_title (GTK_WINDOW (dialog), sCaption)
+		
+		label = gtk_label_new (sMessageText)
+		
+		entry = gtk_entry_new ()
+		
+		button = gtk_button_new_with_label("OK")
+		
+		vBox = gtk_vbox_new( 0 , 5)
+		
+		hBox1 = gtk_hbox_new( 1 , 180)
+		
+		hBox2 = gtk_hbox_new( 1 , 0)
+		
+		hBox3 = gtk_hbox_new( 1 , 0)
+		
+		vboxfill = gtk_vbox_new( 0 , 0)
+		
+		gtk_box_pack_start(Cast(Any Ptr , vBox), hBox1 , 0 , 1, 0)
+		
+		gtk_box_pack_start(Cast(Any Ptr , vBox), hBox2 , 1 , 1, 0)
+		
+		gtk_box_pack_start(Cast(Any Ptr , vBox), hBox3 , 1 , 1, 6)
+		
+		gtk_box_pack_start(Cast(Any Ptr , hBoxDialog), vBox , 1 , 1, 0)
+		
+		gtk_box_pack_start(Cast(Any Ptr , hBox1), label , 0 , 1, 0)
+		
+		gtk_box_pack_start(Cast(Any Ptr , hBox1), vboxfill , 1 , 1, 0)
+		
+		gtk_box_pack_start(Cast(Any Ptr , hBox2), entry , 1 , 1, 0)
+		
+		gtk_box_pack_start(Cast(Any Ptr , hBox3), button ,1 , 1, 100)
+		
+		gtk_widget_set_size_request(entry, 300, 30)
+		
+		If Len(sDefaultText) Then
+			
+			gtk_entry_set_text (Cast(Any Ptr,entry) , sDefaultText)
+			
+		End If
+		
+		Dim As TInputBox Ptr tib = New TInputBox
+		
+		tib->dialog = dialog
+		
+		tib->entry = entry
+		
+		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK (@EventbuttonInputBoxSub),tib)
+		
+		If iFlag2 Then
+			
+			g_signal_connect(G_OBJECT(entry), "event", G_CALLBACK (@EventEntryInputBoxFunc), tib)
+			
+		End If
+		
+		gtk_widget_show_all (dialog)
+		
+		If gtk_dialog_run (Cast(Any Ptr ,dialog)) = GTK_RESPONSE_OK Then
+			
+			Function = Trim(tib->sText, Chr(0))
+			
+		End If
+		
+		Delete tib
+		
+		gtk_widget_destroy(dialog)
+	#endif
+End Function
+
 #ifndef LoadFromFile_Off
-	Private Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean 
-	   Dim As Boolean IsUTF8 = True
-	    Dim As Integer iStart = 0, iEnd = Len(SourceStr)
-	    While (iStart < iEnd)
-	        If SourceStr[iStart] < &H80 Then
-	            '(10000000): 值小于&H80的为ASCII字符  
-	            iStart += 1     
-	        ElseIf (SourceStr[iStart] < &HC0) Then
-	            '(11000000): 值介于&H80与&HC0之间的为无效UTF-8字符
-	            IsUTF8 = False     
-	            Exit While     
-	        ElseIf (SourceStr[iStart] < &HE0) Then
-	            '(11100000): 此范围内为2字节UTF-8字符
-	            If iStart >= iEnd - 1 Then Exit While     
-	            If ((SourceStr[iStart + 1] And &HC0) <> &H80) Then
-	            	IsUTF8 = False     
-	                Exit While     
-	            End If
-	            iStart += 2     
-	        ElseIf (SourceStr[iStart] < (&HF0)) Then
-	            '(11110000): 此范围内为3字节UTF-8字符
-	            If iStart >= iEnd - 2 Then Exit While     
-	            If ((SourceStr[iStart + 1] And &HC0) <> &H80) Or ((SourceStr[iStart + 2] And &HC0) <> &H80) Then
-	                IsUTF8 = False     
-	                Exit While     
-	            End If
-	            iStart += 3     
-	        Else
-	            IsUTF8 = False     
-	            Exit While
-	        End If
-	    Wend
-	    Return IsUTF8     
+	Private Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
+		Dim As Boolean IsUTF8 = True
+		Dim As Integer iStart = 0, iEnd = Len(SourceStr)
+		While (iStart < iEnd)
+			If SourceStr[iStart] < &H80 Then
+				'(10000000): 值小于&H80的为ASCII字符
+				iStart += 1
+			ElseIf (SourceStr[iStart] < &HC0) Then
+				'(11000000): 值介于&H80与&HC0之间的为无效UTF-8字符
+				IsUTF8 = False
+				Exit While
+			ElseIf (SourceStr[iStart] < &HE0) Then
+				'(11100000): 此范围内为2字节UTF-8字符
+				If iStart >= iEnd - 1 Then Exit While
+				If ((SourceStr[iStart + 1] And &HC0) <> &H80) Then
+					IsUTF8 = False
+					Exit While
+				End If
+				iStart += 2
+			ElseIf (SourceStr[iStart] < (&HF0)) Then
+				'(11110000): 此范围内为3字节UTF-8字符
+				If iStart >= iEnd - 2 Then Exit While
+				If ((SourceStr[iStart + 1] And &HC0) <> &H80) Or ((SourceStr[iStart + 2] And &HC0) <> &H80) Then
+					IsUTF8 = False
+					Exit While
+				End If
+				iStart += 3
+			Else
+				IsUTF8 = False
+				Exit While
+			End If
+		Wend
+		Return IsUTF8
 	End Function
 	
 	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
@@ -945,13 +1131,13 @@ End Function
 				If NewLine <> "" Then
 					Print #Fn, Str(Replace(wData, Chr(13, 10), NewLine));
 				Else
-					Print #Fn, Str(wData); 
+					Print #Fn, Str(wData);
 				End If
 			Else
 				If NewLine <> "" Then
 					Print #Fn, Replace(wData, Chr(13, 10), NewLine);
 				Else
-					Print #Fn, wData; 
+					Print #Fn, wData;
 				End If
 			End If
 		Else
