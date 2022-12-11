@@ -809,13 +809,15 @@ Type TInputBox
 		As DEVMODE dm(0)
 		As HFONT font,font1
 		As Integer size
-	#else
-		dialog As GtkWidget  Ptr
+	#elseif defined(__USE_GTK__)
+		dialog As GtkWidget Ptr
 		
-		entry As GtkWidget  Ptr
+		entry As GtkWidget Ptr
 		
 		sText As ZString*1024
 		
+		iFlag As Long
+	#else
 		iFlag As Long
 	#endif
 End Type
@@ -895,7 +897,7 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 			End Select
 		Wend
 		SetFocus(hwFocus)
-	#else
+	#elseif defined(__USE_GTK__)
 		Dim As GtkWidget  Ptr dialog
 		
 		Dim As GtkWidget  Ptr label
@@ -983,6 +985,8 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		Delete tib
 		
 		gtk_widget_destroy(dialog)
+	#else
+		Function = ""
 	#endif
 End Function
 
