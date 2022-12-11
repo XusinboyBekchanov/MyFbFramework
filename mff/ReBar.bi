@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 		ImageBacking    As My.Sys.Drawing.BitmapType                                                                            ' Bitmap used for backing image
 		Declare Property AutoSize As Boolean
 		Declare Property AutoSize(Value As Boolean)
-		Declare Sub Add(Ctrl As Control Ptr)
+		Declare Sub Add(Ctrl As Control Ptr, Index As Integer = -1)
 		Declare Sub UpdateReBar()
 		Declare Function RowCount As Integer
 		Declare Operator Cast As My.Sys.Forms.Control Ptr

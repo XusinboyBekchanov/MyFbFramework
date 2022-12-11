@@ -163,17 +163,17 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Sub PageScroller.Add(Ctrl As Control Ptr)
+	Private Sub PageScroller.Add(Ctrl As Control Ptr, Index As Integer = -1)
 		If ChildControl = 0 Then
 			ChildControl = Ctrl
 			Base.Add(Ctrl)
 			#ifdef __USE_GTK__
 				g_object_ref(Layout1)
 				g_object_ref(Layout2)
-				gtk_container_remove(gtk_container(widget), Layout1)
-				gtk_container_remove(gtk_container(widget), Layout2)
-				gtk_layout_put(gtk_layout(widget), Layout1, 0, 0)
-				gtk_layout_put(gtk_layout(widget), Layout2, 0, 0)
+				gtk_container_remove(GTK_CONTAINER(widget), Layout1)
+				gtk_container_remove(GTK_CONTAINER(widget), Layout2)
+				gtk_layout_put(GTK_LAYOUT(widget), Layout1, 0, 0)
+				gtk_layout_put(GTK_LAYOUT(widget), Layout2, 0, 0)
 			#else
 				If FHandle AndAlso Ctrl->Handle Then
 					SendMessage(FHandle, PGM_SETCHILD, 0, Cast(LPARAM, Ctrl->Handle))
@@ -187,6 +187,14 @@ Namespace My.Sys.Forms
 	Private Sub PageScroller.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
+			Case WM_PAINT
+				Dim As HDC Dc
+				Dim As PAINTSTRUCT Ps
+				Dc = BeginPaint(FHandle, @Ps)
+				FillRect Dc, @Ps.rcPaint, Brush.Handle
+				EndPaint FHandle, @Ps
+				Message.Result = 0
+				Return
 			Case CM_NOTIFY
 				Dim As NMHDR Ptr nmhdr_ = Cast(NMHDR Ptr, Message.lParam)
 				If nmhdr_->code = PGN_CALCSIZE Then
@@ -222,15 +230,15 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub PageScroller.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As PageScroller Ptr psc = user_data
-			If allocation->width <> psc->AllocatedWidth OrElse allocation->height <> psc->AllocatedHeight Then
-				psc->AllocatedWidth = allocation->width
+			If allocation->Width <> psc->AllocatedWidth OrElse allocation->height <> psc->AllocatedHeight Then
+				psc->AllocatedWidth = allocation->Width
 				psc->AllocatedHeight = allocation->height
 				If widget = psc->Handle Then
 					Select Case psc->Style
 					Case psHorizontal
 						gtk_widget_set_size_request(psc->Layout1, 12, allocation->height)
 						gtk_widget_set_size_request(psc->Layout2, 12, allocation->height)
-						gtk_layout_move(gtk_layout(psc->Handle), psc->Layout2, allocation->width - 12, 0)
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->Layout2, allocation->Width - 12, 0)
 					Case psVertical
 						gtk_widget_set_size_request(psc->Layout1, allocation->width, 12)
 						gtk_widget_set_size_request(psc->Layout2, allocation->width, 12)
@@ -435,9 +443,9 @@ Namespace My.Sys.Forms
 		
 		Private Function PageScroller.Layout_hover_cb(ByVal user_data As gpointer) As gboolean
 			If hover_timer_id Then
-				If user_data = MouseHoverMessage.widget Then
+				If user_data = MouseHoverMessage.Widget Then
 					Dim As PageScroller Ptr psc = Cast(PageScroller Ptr, MouseHoverMessage.Sender)
-					psc->Layout_Press(MouseHoverMessage.widget)
+					psc->Layout_Press(MouseHoverMessage.Widget)
 					Return True
 				End If
 			End If

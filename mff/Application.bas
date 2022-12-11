@@ -850,7 +850,7 @@ End Type
 	End Function
 #endif
 
-Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "EnterText:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString Export
+Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "Enter text:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString Export
 	#ifdef __FB_WIN32__
 		Dim As HWND hwFocus = GetFocus()
 		Dim InputBox_ As TInputBox
@@ -867,6 +867,7 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		InputBox_.font1 = CreateFont(InputBox_.size,0,0,0,0,0,0,0,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH Or FF_DONTCARE,"Times New Roman")
 		SendMessage(InputBox_.hwnd2,WM_SETFONT,Cast(WPARAM,InputBox_.font1),0)
 		SendMessage(InputBox_.hwnd1,WM_SETFONT,Cast(WPARAM,InputBox_.font1),0)
+		SetFocus InputBox_.hwnd1
 		
 		While GetMessage(@InputBox_.msg, 0, 0, 0 )
 			If IsDialogMessage(InputBox_.hWnd ,@InputBox_.msg)  = 0 Then

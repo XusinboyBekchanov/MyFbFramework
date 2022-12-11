@@ -70,7 +70,7 @@ Namespace My.Sys.Forms
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
 		'Adds the specified control to the control collection (Windows, Linux).
-		Declare Sub Add(Ctrl As Control Ptr)
+		Declare Sub Add(Ctrl As Control Ptr, Index As Integer = -1)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor

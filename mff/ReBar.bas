@@ -644,8 +644,8 @@ Namespace My.Sys.Forms
 		Return FRowCount
 	End Function
 	
-	Private Sub ReBar.Add(Ctrl As Control Ptr)
-		Base.Add(Ctrl)
+	Private Sub ReBar.Add(Ctrl As Control Ptr, Index As Integer = -1)
+		Base.Add(Ctrl, Index)
 		Bands.Add Ctrl
 	End Sub
 	
