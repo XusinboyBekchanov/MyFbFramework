@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 			Si.cbSize = SizeOf(Si)
 			Si.fMask  = SIF_RANGE Or SIF_PAGE
 			Si.nMin   = 0
-			Si.nMax   = Max(MaxWidth, IIf(Si.nPos = 0, 0, This.ClientWidth + Si.nPos))
+			Si.nMax   = Max(MaxWidth, IIf(Si.nPos = 0, 0, This.ClientWidth + Si.nPos)) - 1
 			Si.nPage  = This.ClientWidth
 			SetScrollInfo(This.Handle, SB_HORZ, @Si, True)
 			
@@ -66,7 +66,7 @@ Namespace My.Sys.Forms
 			Si.cbSize = SizeOf(Si)
 			Si.fMask  = SIF_RANGE Or SIF_PAGE
 			Si.nMin   = 0
-			Si.nMax   = Max(MaxHeight, IIf(Si.nPos = 0, 0, This.ClientHeight + Si.nPos))
+			Si.nMax   = Max(MaxHeight, IIf(Si.nPos = 0, 0, This.ClientHeight + Si.nPos)) - 1
 			Si.nPage  = This.ClientHeight
 			SetScrollInfo(This.Handle, SB_VERT, @Si, True)
 		End Sub

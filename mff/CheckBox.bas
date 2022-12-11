@@ -21,6 +21,7 @@ Namespace My.Sys.Forms
 		Private Function CheckBox.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
+			Case "autosize": Return @FAutoSize
 			Case "caption": Return FText.vptr
 			Case "text": Return FText.vptr
 			Case "checked": Return @FChecked
@@ -35,6 +36,7 @@ Namespace My.Sys.Forms
 		Private Function CheckBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
 			Case "alignment": Alignment = *Cast(CheckAlignmentConstants Ptr, Value)
+			Case "autosize": AutoSize = QBoolean(Value)
 			Case "caption": This.Caption = QWString(Value)
 			Case "text": This.Text = QWString(Value)
 			Case "checked": Checked = QBoolean(Value)
@@ -62,6 +64,19 @@ Namespace My.Sys.Forms
 				RecreateWnd
 			#endif
 		End If
+	End Property
+	
+	Private Property CheckBox.AutoSize As Boolean
+		Return FAutoSize
+	End Property
+	
+	Private Property CheckBox.AutoSize(Value As Boolean)
+		FAutoSize = Value
+		#ifdef __USE_WINAPI__
+			If FHandle Then
+				Width = 1
+			End If
+		#endif
 	End Property
 	
 	Private Property CheckBox.Caption ByRef As WString
@@ -100,6 +115,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
+		#elseif defined(__USE_WINAPI__)
+			If FAutoSize Then AutoSize = True
 		#endif
 	End Property
 	
@@ -172,6 +189,15 @@ Namespace My.Sys.Forms
 					End If
 					If OnClick Then OnClick(This)
 				End If
+			Case WM_WINDOWPOSCHANGING
+				If FAutoSize Then
+					Dim As ..Size Size_
+					SendMessage(FHandle, BCM_GETIDEALSIZE, 0, Cast(LPARAM, @Size_))
+					With *Cast(WINDOWPOS Ptr, Message.lParam)
+						.cx = Size_.cx
+						.cy = Size_.cy
+					End With
+				End If
 			Case CM_NOTIFY
 				If (g_darkModeSupported AndAlso g_darkModeEnabled OrElse FForeColor <> 0) AndAlso Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW Then
 					Dim As NMCUSTOMDRAW Ptr pnm = Cast(LPNMCUSTOMDRAW, Message.lParam)
@@ -236,12 +262,12 @@ Namespace My.Sys.Forms
 						OldFontHandle = SelectObject(pnm->hdc, This.Font.Handle)
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
 						If (uiItemState And CDIS_FOCUS) Then
-							Dim Sz As ..SIZE
+							Dim Sz As ..Size
 							GetTextExtentPoint32(pnm->hdc, @This.Text, Len(This.Text), @Sz)
-							pnm->rc.left -= 1
-							pnm->rc.top = (pnm->rc.bottom - r.top - (s.cy + 2)) / 2
-							pnm->rc.right = pnm->rc.left + sz.cx + 2
-							pnm->rc.bottom = pnm->rc.top + s.cy + 2
+							pnm->rc.Left -= 1
+							pnm->rc.Top = (pnm->rc.Bottom - r.Top - (s.cy + 2)) / 2
+							pnm->rc.Right = pnm->rc.Left + Sz.cx + 2
+							pnm->rc.Bottom = pnm->rc.Top + s.cy + 2
 							DrawFocusRect(pnm->hdc, @pnm->rc)
 						End If
 						NewFontHandle = SelectObject(pnm->hdc, OldFontHandle)

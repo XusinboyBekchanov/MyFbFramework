@@ -33,6 +33,8 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		Declare Property AutoSize As Boolean
+		Declare Property AutoSize(Value As Boolean)
 		Declare Property Alignment As CheckAlignmentConstants
 		Declare Property Alignment(Value As CheckAlignmentConstants)
 		Declare Property Caption ByRef As WString
