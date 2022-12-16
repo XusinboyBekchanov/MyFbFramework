@@ -15,7 +15,7 @@
 #include once "DarkMode/DarkMode.bi"
 
 Dim Shared App As My.Application
-pApp = @App
+If pApp = 0 Then pApp = @App
 
 Namespace My
 	#ifndef ReadProperty_Off
@@ -595,7 +595,7 @@ Namespace My
 	End Constructor
 	
 	Private Destructor Application
-		pApp = 0
+		If pApp = @This Then pApp = 0
 		If FForms Then Deallocate_( FForms)
 		If FFileName Then Deallocate_( FFileName)
 		If FExeName Then Deallocate_( FExeName)
