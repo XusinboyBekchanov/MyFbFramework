@@ -52,10 +52,10 @@ End Enum
 #endif
 
 Namespace My.Sys.Forms
-	#define QGrid(__Ptr__) *Cast(Grid Ptr,__Ptr__)
-	#define QGridRow(__Ptr__) *Cast(GridRow Ptr, __Ptr__)
-	#define QGridCell(__Ptr__) *Cast(GridCell Ptr, __Ptr__)
-	#define QGridColumn(__Ptr__) *Cast(GridColumn Ptr,__Ptr__)
+	#define QGrid(__Ptr__) (*Cast(Grid Ptr,__Ptr__))
+	#define QGridRow(__Ptr__) (*Cast(GridRow Ptr, __Ptr__))
+	#define QGridCell(__Ptr__) (*Cast(GridCell Ptr, __Ptr__))
+	#define QGridColumn(__Ptr__) (*Cast(GridColumn Ptr,__Ptr__))
 	
 	Type PGridRow As GridRow Ptr
 	Type PGridColumn As GridColumn Ptr

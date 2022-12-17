@@ -14,7 +14,7 @@
 #include once "ScrollBarControl.bi"
 
 Namespace My.Sys.Forms
-	#define QHScrollBar(__Ptr__) *Cast(HScrollBar Ptr,__Ptr__)
+	#define QHScrollBar(__Ptr__) (*Cast(HScrollBar Ptr,__Ptr__))
 	
 	Private Type HScrollBar Extends Control
 	Private:

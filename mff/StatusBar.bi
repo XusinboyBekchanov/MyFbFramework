@@ -15,8 +15,8 @@
 #include once "Menus.bi"
 
 Namespace My.Sys.Forms
-	#define QStatusBar(__Ptr__) *Cast(StatusBar Ptr, __Ptr__)
-	#define QStatusPanel(__Ptr__) *Cast(StatusPanel Ptr, __Ptr__)
+	#define QStatusBar(__Ptr__) (*Cast(StatusBar Ptr, __Ptr__))
+	#define QStatusPanel(__Ptr__) (*Cast(StatusPanel Ptr, __Ptr__))
 	
 	#ifdef __USE_GTK__
 		Private Enum BevelStyle

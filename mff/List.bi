@@ -13,7 +13,7 @@
 
 #include once "SysUtils.bi"
 
-#define QList(__Ptr__) *Cast(List Ptr,__Ptr__)
+#define QList(__Ptr__) (*Cast(List Ptr,__Ptr__))
 
 Private Type List
 Private:

@@ -170,7 +170,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#endif
-		If FDefaultButton AndAlso UCase(*FDefaultButton.ClassName) = "COMMANDBUTTON" Then
+		If FDefaultButton AndAlso UCase((*FDefaultButton).ClassName) = "COMMANDBUTTON" Then
 			
 		End If
 	End Property

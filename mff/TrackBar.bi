@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QTrackBar(__Ptr__) *Cast(TrackBar Ptr,__Ptr__)
+	#define QTrackBar(__Ptr__) (*Cast(TrackBar Ptr,__Ptr__))
 	
 	Private Enum TrackBarOrientation
 		tbHorizontal, tbVertical

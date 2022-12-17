@@ -15,7 +15,7 @@
 #endif
 
 Namespace My.Sys.Forms
-	#define QAnimate(__Ptr__) *Cast(Animate Ptr,__Ptr__)
+	#define QAnimate(__Ptr__) (*Cast(Animate Ptr,__Ptr__))
 	
 	Private Enum CommonAVIs
 		aviNone         = 0

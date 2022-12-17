@@ -7,7 +7,7 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	#define QHorizontalBox(__Ptr__) *Cast(HorizontalBox Ptr,__Ptr__)
+	#define QHorizontalBox(__Ptr__) (*Cast(HorizontalBox Ptr,__Ptr__))
 	
 	Private Type HorizontalBox Extends ContainerControl
 	Private:

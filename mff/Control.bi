@@ -27,7 +27,7 @@ Using My.Sys.ComponentModel
 
 Namespace My.Sys.Forms
 	#ifndef Control_Off
-		#define QControl(__Ptr__) *Cast(Control Ptr,__Ptr__)
+		#define QControl(__Ptr__) (*Cast(Control Ptr,__Ptr__))
 		
 		Private Enum BorderStyles
 			bsNone, bsClient

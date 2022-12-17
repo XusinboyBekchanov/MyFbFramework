@@ -14,7 +14,7 @@
 #include once "Graphic.bi"
 
 Namespace My.Sys.Forms
-	#define QLabel(__Ptr__) *Cast(Label Ptr,__Ptr__)
+	#define QLabel(__Ptr__) (*Cast(Label Ptr,__Ptr__))
 	
 	Private Enum LabelStyle
 		lsText, lsBitmap, lsIcon, lsCursor, lsEmf, lsOwnerDraw

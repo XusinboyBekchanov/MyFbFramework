@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QTextBox(__Ptr__) *Cast(TextBox Ptr,__Ptr__)
+	#define QTextBox(__Ptr__) (*Cast(TextBox Ptr,__Ptr__))
 	
 	Private Enum CharCases
 		ecNone, ecLower, ecUpper

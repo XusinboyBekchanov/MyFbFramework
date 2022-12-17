@@ -62,7 +62,7 @@ Using My.Sys.ComponentModel
 #endif
 
 Namespace My.Sys.Drawing
-	#define QFont(__Ptr__) *Cast(Font Ptr,__Ptr__)
+	#define QFont(__Ptr__) (*Cast(Font Ptr,__Ptr__))
 	
 	Private Type Font Extends My.Sys.Object
 	Private:

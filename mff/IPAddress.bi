@@ -7,7 +7,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QIPAddress(__Ptr__) *Cast(IPAddress Ptr, __Ptr__)
+	#define QIPAddress(__Ptr__) (*Cast(IPAddress Ptr, __Ptr__))
 	
 	Private Type IPAddress Extends Control
 	Private:

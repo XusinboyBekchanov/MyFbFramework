@@ -14,7 +14,7 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	#define QGroupBox(__Ptr__) *Cast(GroupBox Ptr,__Ptr__)
+	#define QGroupBox(__Ptr__) (*Cast(GroupBox Ptr,__Ptr__))
 	
 	Private Type GroupBox Extends ContainerControl
 	Private:

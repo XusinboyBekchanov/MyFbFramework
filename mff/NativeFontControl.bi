@@ -7,7 +7,7 @@
 '#include once "Control.bi"
 '
 'Namespace My.Sys.Forms
-'	#define QNativeFontControl(__Ptr__) *Cast(NativeFontControl Ptr, __Ptr__)
+'	#define QNativeFontControl(__Ptr__) (*Cast(NativeFontControl Ptr, __Ptr__))
 '	
 '	Private Type NativeFontControl Extends Control
 '	Private:

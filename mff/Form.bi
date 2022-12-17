@@ -16,7 +16,7 @@
 #include once "Graphic.bi"
 
 Namespace My.Sys.Forms
-	#define QForm(__Ptr__) *Cast(Form Ptr,__Ptr__)
+	#define QForm(__Ptr__) (*Cast(Form Ptr,__Ptr__))
 	
 	Private Enum ModalResults
 		'Nothing шs returned from the dialog box. This means that the modal dialog continues running.

@@ -15,8 +15,8 @@
 #include once "List.bi"
 
 Namespace My.Sys.Forms
-	#define QHeader(__Ptr__) *Cast(Header Ptr,__Ptr__)
-	#define QHeaderSection(__Ptr__) *Cast(HeaderSection Ptr, __Ptr__)
+	#define QHeader(__Ptr__) (*Cast(Header Ptr,__Ptr__))
+	#define QHeaderSection(__Ptr__) (*Cast(HeaderSection Ptr, __Ptr__))
 	
 	Private Type PHeaderControl As Header
 	

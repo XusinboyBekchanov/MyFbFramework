@@ -6,8 +6,8 @@
 
 #include once "List.bi"
 
-#define QPointerListItem(__Ptr__) *Cast(PointerListItem Ptr,__Ptr__)
-#define QPointerList(__Ptr__) *Cast(PointerList Ptr,__Ptr__)
+#define QPointerListItem(__Ptr__) (*Cast(PointerListItem Ptr,__Ptr__))
+#define QPointerList(__Ptr__) (*Cast(PointerList Ptr,__Ptr__))
 
 Private Type PointerListItem Extends Object
     Value As Any Ptr

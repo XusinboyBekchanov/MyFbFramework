@@ -7,7 +7,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QLinkLabel(__Ptr__) *Cast(LinkLabel Ptr, __Ptr__)
+	#define QLinkLabel(__Ptr__) (*Cast(LinkLabel Ptr, __Ptr__))
 	
 	Private Type LinkLabel Extends Control
 	Private:

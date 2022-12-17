@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QCheckBox(__Ptr__) *Cast(CheckBox Ptr,__Ptr__)
+	#define QCheckBox(__Ptr__) (*Cast(CheckBox Ptr,__Ptr__))
 	
 	Private Type CheckBox Extends Control
 	Private:

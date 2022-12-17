@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QScrollBarControl(__Ptr__) *Cast(ScrollBarControl Ptr,__Ptr__)
+	#define QScrollBarControl(__Ptr__) (*Cast(ScrollBarControl Ptr,__Ptr__))
 	
 	Private Enum ScrollBarControlStyle
 		sbHorizontal, sbVertical

@@ -118,9 +118,9 @@ Private Enum GridFocusRectModeEnum
 End Enum
 
 Namespace My.Sys.Forms
-	#define QGridData(__Ptr__) *Cast(GridData Ptr,__Ptr__)
-	#define QGridDataItem(__Ptr__) *Cast(GridDataItem Ptr,__Ptr__)
-	#define QGridDataColumn(__Ptr__) *Cast(GridDataColumn Ptr,__Ptr__)
+	#define QGridData(__Ptr__) (*Cast(GridData Ptr,__Ptr__))
+	#define QGridDataItem(__Ptr__) (*Cast(GridDataItem Ptr,__Ptr__))
+	#define QGridDataColumn(__Ptr__) (*Cast(GridDataColumn Ptr,__Ptr__))
 
 	Private Type PGridDataItem As GridDataItem Ptr
 	Private Type GridDataItems

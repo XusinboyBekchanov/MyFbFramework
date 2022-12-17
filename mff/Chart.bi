@@ -21,7 +21,7 @@
 #include once "WStringList.bi"
 
 Namespace My.Sys.Forms
-	#define QChart(__Ptr__) *Cast(Chart Ptr, __Ptr__)
+	#define QChart(__Ptr__) (*Cast(Chart Ptr, __Ptr__))
 	
 	Private Enum TextAlignmentH
 		cLeft

@@ -15,7 +15,7 @@
 #include once "WStringList.bi"
 
 Namespace My.Sys.Forms
-	#define QListControl(__Ptr__) *Cast(ListControl Ptr, __Ptr__)
+	#define QListControl(__Ptr__) (*Cast(ListControl Ptr, __Ptr__))
 	
 	Private Enum ListControlStyle
 		lbNormal = 0

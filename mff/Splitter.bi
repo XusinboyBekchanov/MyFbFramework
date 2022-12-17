@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QSplitter(__Ptr__) *Cast(Splitter Ptr, __Ptr__)
+	#define QSplitter(__Ptr__) (*Cast(Splitter Ptr, __Ptr__))
 	
 	Private Enum SplitterAlignmentConstants
 		alNone

@@ -94,7 +94,7 @@ Private Enum ShutdownMode
 End Enum
 
 Namespace My
-	#define QApplication(__Ptr__) *Cast(Application Ptr,__Ptr__)
+	#define QApplication(__Ptr__) (*Cast(Application Ptr,__Ptr__))
 	
 	Private Type Application Extends My.Sys.Object
 	Private:

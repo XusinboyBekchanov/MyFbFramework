@@ -7,9 +7,9 @@
 #include once "ListView.bi"
 
 Namespace My.Sys.Forms
-	#define QTreeListView(__Ptr__) *Cast(TreeListView Ptr,__Ptr__)
-	#define QTreeListViewItem(__Ptr__) *Cast(TreeListViewItem Ptr, __Ptr__)
-	#define QTreeListViewColumn(__Ptr__) *Cast(TreeListViewColumn Ptr,__Ptr__)
+	#define QTreeListView(__Ptr__) (*Cast(TreeListView Ptr,__Ptr__))
+	#define QTreeListViewItem(__Ptr__) (*Cast(TreeListViewItem Ptr, __Ptr__))
+	#define QTreeListViewColumn(__Ptr__) (*Cast(TreeListViewColumn Ptr,__Ptr__))
 	
 	Private Type PTreeListViewItem As TreeListViewItem Ptr
 	

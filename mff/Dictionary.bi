@@ -13,8 +13,8 @@
 #include once "List.bi"
 #include once "SysUtils.bi"
 
-#define QDictionaryItem(__Ptr__) *Cast(DictionaryItem Ptr,__Ptr__)
-#define QDictionary(__Ptr__) *Cast(Dictionary Ptr,__Ptr__)
+#define QDictionaryItem(__Ptr__) (*Cast(DictionaryItem Ptr,__Ptr__))
+#define QDictionary(__Ptr__) (*Cast(Dictionary Ptr,__Ptr__))
 
 Private Type DictionaryItem 'Extends Object
 Private:

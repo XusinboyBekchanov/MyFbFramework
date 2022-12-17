@@ -9,7 +9,7 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	#define QReBar(__Ptr__) *Cast(ReBar Ptr, __Ptr__)
+	#define QReBar(__Ptr__) (*Cast(ReBar Ptr, __Ptr__))
 	#define REBAR_HEIGHT 35
 	
 	Private Enum GripperStyles

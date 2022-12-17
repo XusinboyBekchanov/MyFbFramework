@@ -274,14 +274,14 @@ Namespace My.Sys.Forms
 	
 	Private Function ComboBoxExItems.IndexOf(ByRef Text As WString) As Integer
 		For i As Integer = 0 To FItems.Count - 1
-			If *Cast(ComboBoxItem Ptr, FItems.Items[i]).Text = Text Then Return i
+			If (*Cast(ComboBoxItem Ptr, FItems.Items[i])).Text = Text Then Return i
 		Next i
 		Return -1
 	End Function
 	
 	Function ComboBoxExItems.IndexOfData(pData As Any Ptr) As Integer
 		For i As Integer = 0 To FItems.Count - 1
-			If *Cast(ComboBoxItem Ptr, FItems.Items[i]).Object = pData Then Return i
+			If (*Cast(ComboBoxItem Ptr, FItems.Items[i])).Object = pData Then Return i
 		Next i
 		Return -1
 	End Function

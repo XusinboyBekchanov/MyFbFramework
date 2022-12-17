@@ -12,7 +12,7 @@
 #include once "WStringList.bi"
 '#include once "Control.bi"
 
-#define QListItems(__Ptr__) *Cast(ListItems Ptr,__Ptr__)
+#define QListItems(__Ptr__) (*Cast(ListItems Ptr,__Ptr__))
 
 Private Type ListItems Extends Object
 Private:

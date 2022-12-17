@@ -7,7 +7,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QToolTips(__Ptr__) *Cast(ToolTips Ptr, __Ptr__)
+	#define QToolTips(__Ptr__) (*Cast(ToolTips Ptr, __Ptr__))
 	
 	Private Type ToolTips Extends Control
 	Private:

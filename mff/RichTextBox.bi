@@ -7,7 +7,7 @@
 #include once "TextBox.bi"
 
 Namespace My.Sys.Forms
-	#define QRichTextBox(__Ptr__) *Cast(RichTextBox Ptr,__Ptr__)
+	#define QRichTextBox(__Ptr__) (*Cast(RichTextBox Ptr,__Ptr__))
 	
 	Private Type RichTextBox Extends TextBox
 	Private:

@@ -40,10 +40,10 @@ Namespace My.Sys.Forms
 	Private Type PPopupMenu As PopupMenu Ptr
 	Private Type PMenuItem  As MenuItem Ptr
 	
-	#define QMenuItem(__Ptr__)  *Cast(PMenuItem,__Ptr__)
-	#define QMenu(__Ptr__)      *Cast(PMenu,__Ptr__)
-	#define QPopupMenu(__Ptr__) *Cast(PPopupMenu,__Ptr__)
-	#define QMainMenu(__Ptr__)     *Cast(PMainMenu,__Ptr__)
+	#define QMenuItem(__Ptr__)  (*Cast(PMenuItem, __Ptr__))
+	#define QMenu(__Ptr__)      (*Cast(PMenu, __Ptr__))
+	#define QPopupMenu(__Ptr__) (*Cast(PPopupMenu, __Ptr__))
+	#define QMainMenu(__Ptr__)     (*Cast(PMainMenu, __Ptr__))
 	
 	Const MIM_BACKGROUND      = &H2
 	Const MIM_APPLYTOSUBMENUS = &H80000000

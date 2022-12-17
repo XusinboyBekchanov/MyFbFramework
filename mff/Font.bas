@@ -84,7 +84,7 @@ Namespace My.Sys.Drawing
 				#elseif defined(__USE_WINAPI__)
 					If QComponent(FParent).Handle Then
 						SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), True)
-						InvalidateRect QComponent(FParent).Handle, 0, True
+						InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
 					End If
 				#endif
 			End If

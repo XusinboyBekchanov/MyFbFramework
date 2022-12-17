@@ -12,8 +12,8 @@
 
 #include once "List.bi"
 
-#define QIntegerListItem(__Ptr__) *Cast(IntegerListItem Ptr,__Ptr__)
-#define QIntegerList(__Ptr__) *Cast(IntegerList Ptr,__Ptr__)
+#define QIntegerListItem(__Ptr__) (*Cast(IntegerListItem Ptr,__Ptr__))
+#define QIntegerList(__Ptr__) (*Cast(IntegerList Ptr,__Ptr__))
 
 Private Type IntegerListItem Extends Object
 Private:

@@ -8,7 +8,7 @@
 #include once "vbcompat.bi"
 
 Namespace My.Sys.Forms
-	#define QDateTimePicker(__Ptr__) *Cast(DateTimePicker Ptr, __Ptr__)
+	#define QDateTimePicker(__Ptr__) (*Cast(DateTimePicker Ptr, __Ptr__))
 	
 	Private Enum DateTimePickerFormat
 		LongDate = 0

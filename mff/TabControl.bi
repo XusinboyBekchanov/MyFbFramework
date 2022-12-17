@@ -19,8 +19,8 @@
 #endif
 
 Namespace My.Sys.Forms
-	#define QTabControl(__Ptr__) *Cast(TabControl Ptr,__Ptr__)
-	#define QTabPage(__Ptr__) *Cast(TabPage Ptr, __Ptr__)
+	#define QTabControl(__Ptr__) (*Cast(TabControl Ptr,__Ptr__))
+	#define QTabPage(__Ptr__) (*Cast(TabPage Ptr, __Ptr__))
 	
 	Private Enum TabStyle
 		tsTabs,tsButtons,tsOwnerDrawFixed

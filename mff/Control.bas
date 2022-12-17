@@ -240,7 +240,7 @@ Namespace My.Sys.Forms
 				If FParent = 0 OrElse WGet(FClassName) = "Form" OrElse WGet(FClassName) = "UserControl" Then
 					Return @This
 				Else
-					Return QControl(FParent)->GetForm()
+					Return QControl(FParent).GetForm()
 				End If
 			End Function
 		#endif
@@ -250,7 +250,7 @@ Namespace My.Sys.Forms
 				If FParent = 0 Then
 					Return @This
 				Else
-					Return QControl(FParent)->TopLevelControl()
+					Return QControl(FParent).TopLevelControl()
 				End If
 			End Function
 		#endif

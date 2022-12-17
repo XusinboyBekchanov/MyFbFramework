@@ -11,7 +11,7 @@
 '###############################################################################
 
 #include once "StringList.bi"
-#define QIniFile(__Ptr__) *Cast(IniFile Ptr,__Ptr__)
+#define QIniFile(__Ptr__) (*Cast(IniFile Ptr,__Ptr__))
 
 Private Type IniFile
 Private:

@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QProgressBar(__Ptr__) *Cast(ProgressBar Ptr,__Ptr__)
+	#define QProgressBar(__Ptr__) (*Cast(ProgressBar Ptr,__Ptr__))
 	
 	Private Enum ProgressBarOrientation
 		pbHorizontal, pbVertical

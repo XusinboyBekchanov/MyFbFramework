@@ -7,7 +7,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QHotKey(__Ptr__) *Cast(HotKey Ptr, __Ptr__)
+	#define QHotKey(__Ptr__) (*Cast(HotKey Ptr, __Ptr__))
 	
 	Private Type HotKey Extends Control
 	Private:

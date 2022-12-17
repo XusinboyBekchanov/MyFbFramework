@@ -493,7 +493,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub Chart.tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
-		*Cast(Chart Ptr, Sender.Designer).tmrMOUSEOVER_Timer(Sender)
+		(*Cast(Chart Ptr, Sender.Designer)).tmrMOUSEOVER_Timer(Sender)
 	End Sub
 	Private Sub Chart.tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
 		'		#ifndef __USE_GTK__

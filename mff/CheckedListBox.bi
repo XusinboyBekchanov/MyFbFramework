@@ -12,7 +12,7 @@
 #include once "ListControl.bi"
 
 Namespace My.Sys.Forms
-	#define QCheckedListBox(__Ptr__) *Cast(CheckedListBox Ptr,__Ptr__)
+	#define QCheckedListBox(__Ptr__) (*Cast(CheckedListBox Ptr,__Ptr__))
 	
 	Private Type CheckedListBox Extends ListControl
 	Private:

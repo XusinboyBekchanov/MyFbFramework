@@ -8,7 +8,7 @@
 #include once "vbcompat.bi"
 
 Namespace My.Sys.Forms
-	#define QMonthCalendar(__Ptr__) *Cast(MonthCalendar Ptr, __Ptr__)
+	#define QMonthCalendar(__Ptr__) (*Cast(MonthCalendar Ptr, __Ptr__))
 	
 	Private Type MonthCalendar Extends Control
 	Private:

@@ -20,7 +20,7 @@ Namespace My.Sys.Drawing
 		Cursor = 0
 	End Enum
 	
-	#define QGraphic(__Ptr__) *Cast(GraphicType Ptr,__Ptr__)
+	#define QGraphic(__Ptr__) (*Cast(GraphicType Ptr,__Ptr__))
 	
 	Private Type GraphicType Extends My.Sys.Object
 	Private:

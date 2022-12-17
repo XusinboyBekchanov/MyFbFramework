@@ -14,8 +14,8 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QToolBar(__Ptr__) *Cast(ToolBar Ptr,__Ptr__)
-	#define QToolButton(__Ptr__) *Cast(ToolButton Ptr,__Ptr__)
+	#define QToolBar(__Ptr__) (*Cast(ToolBar Ptr, __Ptr__))
+	#define QToolButton(__Ptr__) (*Cast(ToolButton Ptr, __Ptr__))
 	
 	'#DEFINE TBSTYLE_TRANSPARENT &H8000
 	'#DEFINE TBN_DROPDOWN (TBN_FIRST - 10)

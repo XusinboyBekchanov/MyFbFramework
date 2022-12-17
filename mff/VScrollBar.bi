@@ -14,7 +14,7 @@
 #include once "ScrollBarControl.bi"
 
 Namespace My.Sys.Forms
-	#define QVScrollBar(__Ptr__) *Cast(VScrollBar Ptr,__Ptr__)
+	#define QVScrollBar(__Ptr__) (*Cast(VScrollBar Ptr,__Ptr__))
 	
 	Private Type VScrollBar Extends Control
 	Private:

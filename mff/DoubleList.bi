@@ -12,8 +12,8 @@
 
 #include once "List.bi"
 
-#define QDoubleListItem(__Ptr__) *Cast(DoubleListItem Ptr,__Ptr__)
-#define QDoubleList(__Ptr__) *Cast(DoubleList Ptr,__Ptr__)
+#define QDoubleListItem(__Ptr__) (*Cast(DoubleListItem Ptr,__Ptr__))
+#define QDoubleList(__Ptr__) (*Cast(DoubleList Ptr,__Ptr__))
 
 Private Type DoubleListItem Extends Object
 Private:

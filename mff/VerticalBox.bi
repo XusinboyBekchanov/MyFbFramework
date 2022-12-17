@@ -7,7 +7,7 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	#define QVerticalBox(__Ptr__) *Cast(VerticalBox Ptr,__Ptr__)
+	#define QVerticalBox(__Ptr__) (*Cast(VerticalBox Ptr,__Ptr__))
 	
 	Private Type VerticalBox Extends ContainerControl
 	Private:

@@ -14,7 +14,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QRadioButton(__Ptr__) *Cast(RadioButton Ptr,__Ptr__)
+	#define QRadioButton(__Ptr__) (*Cast(RadioButton Ptr,__Ptr__))
 	
 	Private Type RadioButton Extends Control
 	Private:

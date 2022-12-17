@@ -14,7 +14,7 @@
 #include once "UpDown.bi"
 
 Namespace My.Sys.Forms
-	#define QNumericUpDown(__Ptr__) *Cast(NumericUpDown Ptr, __Ptr__)
+	#define QNumericUpDown(__Ptr__) (*Cast(NumericUpDown Ptr, __Ptr__))
 	
 	Private Type NumericUpDown Extends Control
 	Private:

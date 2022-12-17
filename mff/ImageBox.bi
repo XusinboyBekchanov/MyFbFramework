@@ -14,7 +14,7 @@
 #include once "Graphic.bi"
 
 Namespace My.Sys.Forms
-	#define QImageBox(__Ptr__) *Cast(ImageBox Ptr,__Ptr__)
+	#define QImageBox(__Ptr__) (*Cast(ImageBox Ptr,__Ptr__))
 	
 	Private Enum ImageBoxStyle
 		ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw

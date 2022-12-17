@@ -34,7 +34,7 @@
 #endif
 
 Namespace My.Sys.Forms
-	#define QWebBrowser(__Ptr__) *Cast(WebBrowser Ptr, __Ptr__)
+	#define QWebBrowser(__Ptr__) (*Cast(WebBrowser Ptr, __Ptr__))
 	
 	Private Type WebBrowser Extends Control
 	Private:

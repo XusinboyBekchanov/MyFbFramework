@@ -14,8 +14,8 @@
 #include once "ToolBar.bi"
 
 Namespace My.Sys.Forms
-	#define QToolGroup(__Ptr__) *Cast(ToolGroup Ptr,__Ptr__)
-	#define QToolPalette(__Ptr__) *Cast(ToolPalette Ptr,__Ptr__)
+	#define QToolGroup(__Ptr__) (*Cast(ToolGroup Ptr,__Ptr__))
+	#define QToolPalette(__Ptr__) (*Cast(ToolPalette Ptr,__Ptr__))
 	
 	Private Enum ToolPaletteStyle
 		tpsIcons

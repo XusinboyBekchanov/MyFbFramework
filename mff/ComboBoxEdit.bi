@@ -14,7 +14,7 @@
 #include once "WStringList.bi"
 
 Namespace My.Sys.Forms
-	#define QComboBoxEdit(__Ptr__) *Cast(ComboBoxEdit Ptr,__Ptr__)
+	#define QComboBoxEdit(__Ptr__) (*Cast(ComboBoxEdit Ptr,__Ptr__))
 	
 	Private Enum ComboBoxEditStyle
 		cbSimple            = 0

@@ -7,7 +7,7 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	#define QPageScroller(__Ptr__) *Cast(PageScroller Ptr, __Ptr__)
+	#define QPageScroller(__Ptr__) (*Cast(PageScroller Ptr, __Ptr__))
 	
 	#ifndef __USE_GTK__
 		Private Type NMPGSCROLL2 Field = 1

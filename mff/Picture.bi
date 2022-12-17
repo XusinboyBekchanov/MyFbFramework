@@ -15,7 +15,7 @@
 #include once "Canvas.bi"
 
 Namespace My.Sys.Forms
-	#define QPicture(__Ptr__) *Cast(Picture Ptr,__Ptr__)
+	#define QPicture(__Ptr__) (*Cast(Picture Ptr,__Ptr__))
 	
 	Private Enum PictureStyle
 		ssText, ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw

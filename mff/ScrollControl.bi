@@ -7,7 +7,7 @@
 #include once "ContainerControl.bi"
 
 Namespace My.Sys.Forms
-	#define QScrollControl(__Ptr__) *Cast(ScrollControl Ptr, __Ptr__)
+	#define QScrollControl(__Ptr__) (*Cast(ScrollControl Ptr, __Ptr__))
 	
 	Private Type ScrollControl Extends ContainerControl
 	Private:

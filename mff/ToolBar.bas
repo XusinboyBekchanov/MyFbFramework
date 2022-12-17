@@ -255,7 +255,7 @@ Namespace My.Sys.Forms
 			If GTK_IS_TOOL_BUTTON(Widget) Then gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(Widget), Value)
 		#else
 			If Ctrl AndAlso QToolBar(Ctrl).ImagesList Then
-				ImageIndex = QToolBar(Ctrl).ImagesList->IndexOf(Value)
+				ImageIndex = Cast(ToolBar Ptr, Ctrl)->ImagesList->IndexOf(Value)
 			End If
 		#endif
 	End Property

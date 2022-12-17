@@ -7,7 +7,7 @@
 #include once "Object.bi"
 
 Namespace My.Sys.ComponentModel
-	#define QComponent(__Ptr__) *Cast(Component Ptr, __Ptr__)
+	#define QComponent(__Ptr__) (*Cast(Component Ptr, __Ptr__))
 	
 	Private Type MarginsType Extends My.Sys.Object
 		Declare Function ToString ByRef As WString

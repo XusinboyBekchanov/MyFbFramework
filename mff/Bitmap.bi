@@ -34,7 +34,7 @@
 #endif
 
 Namespace My.Sys.Drawing
-	#define QBitmapType(__Ptr__) *Cast(BitmapType Ptr,__Ptr__)
+	#define QBitmapType(__Ptr__) (*Cast(BitmapType Ptr,__Ptr__))
 	
 	Private Type BitmapType Extends My.Sys.Object
 	Private:

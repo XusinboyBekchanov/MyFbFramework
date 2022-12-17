@@ -15,7 +15,7 @@
 '#Include Once "Canvas.bi"
 
 Namespace My.Sys.Forms
-	#define QPanel(__Ptr__) *Cast(Panel Ptr,__Ptr__)
+	#define QPanel(__Ptr__) (*Cast(Panel Ptr,__Ptr__))
 	
 	Private Enum Bevel
 		bvNone, bvLowered, bvRaised

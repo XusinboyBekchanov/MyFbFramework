@@ -11,7 +11,7 @@
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
 
-#define QCommandButton(__Ptr__) *Cast(CommandButton Ptr,__Ptr__)
+#define QCommandButton(__Ptr__) (*Cast(CommandButton Ptr,__Ptr__))
 
 #include once "Control.bi"
 #include once "Graphic.bi"

@@ -8,7 +8,7 @@
 '#Include Once "Canvas.bi"
 
 Namespace My.Sys.Forms
-	#define QUserControl(__Ptr__) *Cast(UserControl Ptr,__Ptr__)
+	#define QUserControl(__Ptr__) (*Cast(UserControl Ptr,__Ptr__))
 	
 	Private Type UserControl Extends ContainerControl
 	Private:

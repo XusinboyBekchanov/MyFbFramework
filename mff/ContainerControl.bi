@@ -7,7 +7,7 @@
 #include once "Control.bi"
 
 Namespace My.Sys.Forms
-	#define QContainerControl(__Ptr__) *Cast(ContainerControl Ptr,__Ptr__)
+	#define QContainerControl(__Ptr__) (*Cast(ContainerControl Ptr,__Ptr__))
 	
 	Private Type ContainerControl Extends Control
 	Private:

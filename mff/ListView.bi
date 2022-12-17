@@ -77,9 +77,9 @@ End Enum
 #endif
 
 Namespace My.Sys.Forms
-	#define QListView(__Ptr__) *Cast(ListView Ptr,__Ptr__)
-	#define QListViewItem(__Ptr__) *Cast(ListViewItem Ptr,__Ptr__)
-	#define QListViewColumn(__Ptr__) *Cast(ListViewColumn Ptr,__Ptr__)
+	#define QListView(__Ptr__) (*Cast(ListView Ptr,__Ptr__))
+	#define QListViewItem(__Ptr__) (*Cast(ListViewItem Ptr,__Ptr__))
+	#define QListViewColumn(__Ptr__) (*Cast(ListViewColumn Ptr,__Ptr__))
 	
 	Private Type ListViewItem Extends My.Sys.Object
 	Private:

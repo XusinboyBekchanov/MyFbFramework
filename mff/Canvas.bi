@@ -13,7 +13,7 @@
 #include once "Component.bi"
 
 Namespace My.Sys.Drawing
-	#define QCanvas(__Ptr__)  *Cast(Canvas Ptr, __Ptr__)
+	#define QCanvas(__Ptr__) (*Cast(Canvas Ptr, __Ptr__))
 	
 	Private Type Rect
 		Left As Long
