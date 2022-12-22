@@ -51,6 +51,12 @@ Namespace My.Sys.Forms
 				Case "doublebuffered": Return @DoubleBuffered
 				Case "grouped": Return @FGrouped
 				Case "helpcontext": Return @HelpContext
+				Case "location": WLet(FTemp, WStr(FLeft) & ", " & WStr(FTop)): Return FTemp
+				Case "location.x": Return @FLeft
+				Case "location.y": Return @FTop
+				Case "size": WLet(FTemp, WStr(FWidth) & ", " & WStr(FHeight)): Return FTemp
+				Case "size.width": Return @FWidth
+				Case "size.height": Return @FHeight
 					#ifdef __USE_GTK__
 					Case "parentwidget": Return FParentWidget
 					#elseif defined(__USE_WINAPI__)
@@ -106,6 +112,10 @@ Namespace My.Sys.Forms
 					Case "id": This.ID = QInteger(Value)
 					Case "ischild": This.IsChild = QInteger(Value)
 					Case "forecolor": This.ForeColor = QInteger(Value)
+					Case "location.x": This.Left = QInteger(Value)
+					Case "location.y": This.Top = QInteger(Value)
+					Case "size.width": This.Width = QInteger(Value)
+					Case "size.height": This.Height = QInteger(Value)
 					Case "parent": This.Parent = Value
 						#ifdef __USE_GTK__
 						Case "parentwidget": This.ParentWidget = Value
