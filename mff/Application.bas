@@ -468,7 +468,7 @@ Namespace My
 	
 	#ifdef __USE_WINAPI__
 		Private Function Application.EnumFontsProc(LogFont As LOGFONT Ptr, TextMetric As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
-			*Cast(WStringList Ptr, hData).Add(LogFont->lfFaceName)
+			Cast(WStringList Ptr, hData)->Add(LogFont->lfFaceName)
 			Return True
 		End Function
 	#endif

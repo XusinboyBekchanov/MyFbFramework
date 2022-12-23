@@ -188,7 +188,7 @@ End Property
 				If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial)
 			Case CDN_TYPECHANGE
 				Dim As Integer Index
-				Index = *Cast(OPENFILENAME Ptr,POF->lpOFN).nFilterIndex
+				Index = Cast(OPENFILENAME Ptr, POF->lpOFN)->nFilterIndex
 				If OpenDial Then
 					OpenDial->FilterIndex = Index
 					If OpenDial->OnTypeChange Then
@@ -474,7 +474,7 @@ End Property
 				If SaveDial Then If SaveDial->OnFolderChange Then SaveDial->OnFolderChange(*Ctrl)
 			Case CDN_TYPECHANGE
 				Dim As Integer Index
-				Index = *Cast(OPENFILENAME Ptr,POF->lpOFN).nFilterIndex
+				Index = Cast(OPENFILENAME Ptr, POF->lpOFN)->nFilterIndex
 				If SaveDial Then
 					SaveDial->FilterIndex = Index
 					If SaveDial->OnTypeChange Then
@@ -969,7 +969,7 @@ End Destructor
 		Static As HBRUSH Brush
 		Select Case Msg
 		Case WM_INITDIALOG
-			Dim As ColorDialog Ptr CommonDialog = Cast(ColorDialog Ptr,*Cast(LPCHOOSECOLOR,lParam).lCustData)
+			Dim As ColorDialog Ptr CommonDialog = Cast(ColorDialog Ptr, Cast(LPCHOOSECOLOR, lParam)->lCustData)
 			If CommonDialog Then
 				CommonDialog->Handle = FWindow
 				SetWindowLongPtr(FWindow,DWLP_MSGRESULT,CInt(CommonDialog))

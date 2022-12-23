@@ -1189,7 +1189,7 @@ Namespace My.Sys.Forms
 		Function TreeListView.EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Select Case uMsg
 			Case WM_WINDOWPOSCHANGING
-				*Cast(WINDOWPOS Ptr, lParam).x = Cast(Integer, GetProp(hDlg, "@@@Left"))
+				Cast(WINDOWPOS Ptr, lParam)->x = Cast(Integer, GetProp(hDlg, "@@@Left"))
 			End Select
 			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function

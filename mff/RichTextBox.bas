@@ -974,12 +974,12 @@ Namespace My.Sys.Forms
 					If OnSelChange Then OnSelChange(This)
 					message.Result = 0
 				Case EN_REQUESTRESIZE
-					With *Cast(REQRESIZE Ptr, message.lParam).rc
+					With Cast(REQRESIZE Ptr, message.lParam)->rc
 						If OnResize Then OnResize(This, .Right - .Left, .Bottom - .Top)
 					End With
 				Case EN_PROTECTED
 					Static As Boolean AllowChange  = 1
-					With *Cast(ENPROTECTED Ptr, message.lParam).chrg
+					With Cast(ENPROTECTED Ptr, message.lParam)->chrg
 						If OnProtectChange Then
 							OnProtectChange(This, .cpMin, .cpMax, AllowChange)
 							If Not AllowChange Then message.Result = 1

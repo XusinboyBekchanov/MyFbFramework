@@ -522,7 +522,7 @@ Namespace My.Sys.Forms
 					If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial)
 				Case CDN_TYPECHANGE
 					Dim As Integer Index
-					Index = *Cast(OPENFILENAME Ptr, POF->lpOFN).nFilterIndex
+					Index = (*Cast(OPENFILENAME Ptr, POF->lpOFN)).nFilterIndex
 					If OpenDial Then
 						OpenDial->FilterIndex = Index
 						If OpenDial->OnTypeChange Then

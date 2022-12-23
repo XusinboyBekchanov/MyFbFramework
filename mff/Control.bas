@@ -1503,10 +1503,10 @@ Namespace My.Sys.Forms
 					End If
 					If OnResize Then OnResize(This, This.Width, This.Height)
 				Case WM_WINDOWPOSCHANGING
-					If Constraints.Left <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).x  = Constraints.Left
-					If Constraints.Top <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).y  = Constraints.Top
-					If Constraints.Width <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cx = Constraints.Width
-					If Constraints.Height <> 0 Then *Cast(WINDOWPOS Ptr, Message.lParam).cy = Constraints.Height
+					If Constraints.Left <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->x  = Constraints.Left
+					If Constraints.Top <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->y  = Constraints.Top
+					If Constraints.Width <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->cx = Constraints.Width
+					If Constraints.Height <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->cy = Constraints.Height
 				Case WM_WINDOWPOSCHANGED
 					If OnMove Then OnMove(This)
 				Case WM_CANCELMODE
