@@ -22,7 +22,17 @@ Namespace My.Sys.Forms
 	Private Sub UserControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_PAINT, WM_Create
+			Case WM_PAINT
+				Dim As HDC Dc
+				Dim As PAINTSTRUCT Ps
+				Canvas.HandleSetted = True
+				Dc = BeginPaint(Handle, @Ps)
+				FillRect Dc, @Ps.rcPaint, Brush.Handle
+				If OnPaint Then OnPaint(This, Canvas)
+				EndPaint Handle, @Ps
+				Message.Result = 0
+				Canvas.HandleSetted = False
+				Return
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
@@ -35,7 +45,7 @@ Namespace My.Sys.Forms
 	Private Constructor UserControl
 		With This
 			#ifdef __USE_GTK__
-				widget = gtk_layout_new(null, null)
+				widget = gtk_layout_new(NULL, NULL)
 				.RegisterClass "UserControl", @This
 			#endif
 			Canvas.Ctrl    = @This
