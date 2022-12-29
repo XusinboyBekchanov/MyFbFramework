@@ -693,7 +693,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 
-	Private Sub ToolButtons.Add(PButton As ToolButton Ptr, Index As Integer = -1)
+	Private Function ToolButtons.Add(PButton As ToolButton Ptr, Index As Integer = -1) As ToolButton Ptr
 		FButtons.Add PButton
 		With *PButton
 			.CommandID      = 10 + FButtons.Count
@@ -701,7 +701,7 @@ Namespace My.Sys.Forms
 		PButton->Ctrl = Parent
 		#ifdef __USE_GTK__
 			If Parent Then
-				gtk_toolbar_insert(gtk_toolbar(Parent->Handle), gtk_tool_item(PButton->widget), Index)
+				gtk_toolbar_insert(GTK_TOOLBAR(Parent->Handle), GTK_TOOL_ITEM(PButton->Widget), Index)
 			End If
 		#else
 			Dim As TBBUTTON TB
@@ -714,7 +714,7 @@ Namespace My.Sys.Forms
 			Else
 				TB.iString = 0
 			End If
-			TB.dwData = Cast(DWord_Ptr, @PButton->DropDownMenu)
+			TB.dwData = Cast(DWORD_PTR, @PButton->DropDownMenu)
 			If Parent Then
 				If Index <> -1 Then
 					SendMessage(Parent->Handle, TB_INSERTBUTTON, Index, CInt(@TB))
@@ -723,7 +723,8 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#endif
-	End Sub
+		Return PButton
+	End Function
 	
 	Private Sub ToolButtons.Remove(Index As Integer)
 		FButtons.Remove Index
@@ -735,7 +736,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function ToolButtons.IndexOf(ByRef FButton As ToolButton Ptr) As Integer
-		Return FButtons.IndexOF(FButton)
+		Return FButtons.IndexOf(FButton)
 	End Function
 	
 	Private Function ToolButtons.IndexOf(ByRef Key As WString) As Integer

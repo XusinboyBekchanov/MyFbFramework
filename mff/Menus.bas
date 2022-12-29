@@ -734,16 +734,21 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.RadioItem(value As Boolean)
 		FRadioItem = value
 		Dim As Integer First,Last
-		If ParentMenuItem Then
-			First = ParentMenuItem->Item(0)->MenuIndex
-			Last  = ParentMenuItem->Item(ParentMenuItem->Count - 1)->MenuIndex
+		If ParentMenuItem OrElse ParentMenu Then
+			If ParentMenuItem Then
+				First = ParentMenuItem->Item(0)->MenuIndex
+				Last  = ParentMenuItem->Item(ParentMenuItem->Count - 1)->MenuIndex
+			Else
+				First = ParentMenu->Item(0)->MenuIndex
+				Last  = ParentMenu->Item(ParentMenu->Count - 1)->MenuIndex
+			End If
 			#ifdef __USE_GTK__
 				If GTK_IS_CHECK_MENU_ITEM(Widget) Then
 					gtk_check_menu_item_set_draw_as_radio(GTK_CHECK_MENU_ITEM(Widget), True)
 					gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
 				End If
 			#elseif defined(__USE_WINAPI__)
-				CheckMenuRadioItem(ParentMenuItem->Handle, First, Last, MenuIndex, MF_BYPOSITION)
+				CheckMenuRadioItem(ParentMenu->Handle, First, Last, MenuIndex, MF_BYPOSITION)
 			#endif
 		End If
 	End Property
