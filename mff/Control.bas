@@ -1787,9 +1787,13 @@ Namespace My.Sys.Forms
 			Private Function Control.DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Dim Message As Message
 				Dim As Control Ptr Ctrl
-				'Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
-				'If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
-				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				'Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
+				'If CtrlID = 0 Then
+					Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				'Else
+				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
+				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
+				'End If
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), 0)
 				If Ctrl Then
 					'?Ctrl
@@ -1823,8 +1827,13 @@ Namespace My.Sys.Forms
 				Dim Message As Message
 				Dim As Control Ptr Ctrl
 				Dim As Any Ptr Proc = @DefWindowProc
-				Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
-				If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
+				Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
+				'If CtrlID = 0 Then
+					Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				'Else
+				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
+				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
+				'End If
 				'Ctrl = Cast(Any Ptr,GetWindowLongPtr(FWindow,GWLP_USERDATA))
 				Message = Type(Ctrl, FWindow,Msg,wParam,lParam,0,LoWord(wParam),HiWord(wParam),LoWord(lParam),HiWord(lParam),Message.Captured)
 				If Ctrl Then
@@ -1851,9 +1860,13 @@ Namespace My.Sys.Forms
 				'On Error Goto ErrorHandler
 				Dim As Control Ptr Ctrl
 				Dim Message As Message
-				Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
-				If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
-				'Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
+				If CtrlID = 0 Then
+					Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				Else
+					Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
+					If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
+				End If
 				'Ctrl = GetProp(FWindow, "MFFControl")
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				If Ctrl Then
