@@ -215,13 +215,18 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListControl.ItemHeight As Integer
+		#ifndef __USE_GTK__
+			If Handle Then
+				FItemHeight = UnScaleY(Perform(LB_GETITEMHEIGHT, 0, 0))
+			End If
+		#endif
 		Return FItemHeight
 	End Property
 	
 	Private Property ListControl.ItemHeight(Value As Integer)
 		FItemHeight = Value
 		#ifndef __USE_GTK__
-			If Handle Then Perform(LB_SETITEMHEIGHT,0,MakeLParam(FItemHeight,0))
+			If Handle Then Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(ScaleY(FItemHeight), 0))
 		#endif
 	End Property
 	
@@ -242,11 +247,11 @@ Namespace My.Sys.Forms
 			If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
 				FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
 				If FSelCount > 0 Then
-					Dim As GtkTreeModel Ptr model = gtk_tree_model(ListStore)
+					Dim As GtkTreeModel Ptr model = GTK_TREE_MODEL(ListStore)
 					Dim As GList Ptr list = gtk_tree_selection_get_selected_rows(TreeSelection, @model)
 					Dim As GtkTreePath Ptr path
 					If list Then
-						path = list->Data
+						path = list->data
 						FItemIndex = gtk_tree_path_get_indices(path)[0]
 					End If
 					g_list_foreach(list, Cast(GFunc, @gtk_tree_path_free), NULL)
@@ -258,7 +263,7 @@ Namespace My.Sys.Forms
 				If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
 					Dim As Integer i
 					Dim As GtkTreePath Ptr path
-					path = gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter)
+					path = gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter)
 					FItemIndex = gtk_tree_path_get_indices(path)[0]
 					gtk_tree_path_free(path)
 				End If
@@ -280,12 +285,12 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If ListStore Then
 				If Value = -1 Then
-					gtk_tree_selection_unselect_all(gtk_tree_view_get_selection(gtk_tree_view(widget)))
+					gtk_tree_selection_unselect_all(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)))
 				ElseIf Value > -1 AndAlso Value < Items.Count Then
 					Dim As GtkTreeIter iter
 					gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Value)))
-					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(gtk_tree_view(widget)), @iter)
-					gtk_tree_view_scroll_to_cell(gtk_tree_view(widget), gtk_tree_model_get_path(gtk_tree_model(ListStore), @iter), NULL, False, 0, 0)
+					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), @iter)
+					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
 				End If
 			End If
 		#else
@@ -316,14 +321,14 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
 			ReDim AItems(FSelCount)
-			Dim As GtkTreeModel Ptr model = gtk_tree_model(ListStore)
+			Dim As GtkTreeModel Ptr model = GTK_TREE_MODEL(ListStore)
 			Dim As GList Ptr list = gtk_tree_selection_get_selected_rows(TreeSelection, @model)
 			Dim As GtkTreePath Ptr path
 			Dim i As Integer
 			While (list)
-				path = list->Data
+				path = list->data
 				AItems(i) = gtk_tree_path_get_indices(path)[0]
-				list = list->Next
+				list = list->next
 				i += 1
 			Wend
 			g_list_foreach(list, Cast(GFunc, @gtk_tree_path_free), NULL)
@@ -441,8 +446,8 @@ Namespace My.Sys.Forms
 		Items.Insert(FIndex, FItem, Obj)
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			gtk_list_store_insert(ListStore, @Iter, FIndex)
-			gtk_list_store_set (ListStore, @Iter, 0, ToUtf8(FItem), -1)
+			gtk_list_store_insert(ListStore, @iter, FIndex)
+			gtk_list_store_set (ListStore, @iter, 0, ToUtf8(FItem), -1)
 		#else
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
 		#endif
@@ -477,7 +482,7 @@ Namespace My.Sys.Forms
 						'						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 					Next i
-					.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(.ItemHeight, 0))
+					'.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(.ItemHeight, 0))
 					.MultiColumn = .MultiColumn
 					.ItemIndex = .ItemIndex
 					If .SelectionMode = SelectionModes.smMultiSimple Or .SelectionMode = SelectionModes.smMultiExtended Then
@@ -536,7 +541,7 @@ Namespace My.Sys.Forms
 				If OnMeasureItem Then
 					OnMeasureItem(This,ItemID,miStruct->itemHeight)
 				Else
-					miStruct->itemHeight = ItemHeight
+					miStruct->itemHeight = ScaleY(SendMessage(FHandle, LB_GETITEMHEIGHT, 0, 0)) 'ScaleY(ItemHeight)
 				End If
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
@@ -558,13 +563,13 @@ Namespace My.Sys.Forms
 						FillRect Dc,@R,B
 						R.Left += 2
 						SetTextColor Dc,clHighlightText
-						SetBKColor Dc,&H800000
+						SetBkColor Dc,&H800000
 						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX)
 					Else
 						FillRect Dc, @R, Brush.Handle
 						R.Left += 2
 						SetTextColor Dc, Font.Color
-						SetBKColor Dc, This.BackColor
+						SetBkColor Dc, This.BackColor
 						DrawText(Dc,Item(ItemID),Len(Item(ItemID)),@R,DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX)
 					End If
 				End If

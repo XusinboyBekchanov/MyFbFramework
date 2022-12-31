@@ -333,7 +333,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property TreeNodeCollection.Count As Integer
-		Return FNodes.Count
+		Return FCount
 	End Property
 	
 	Private Property TreeNodeCollection.Count(Value As Integer)
@@ -364,6 +364,7 @@ Namespace My.Sys.Forms
 				End If
 			Next
 		End If
+		FCount = FCount + 1
 		If iIndex = -1 Then FNodes.Add PNode Else FNodes.Insert iIndex, PNode
 		With *PNode
 			.Text         = FText
@@ -375,20 +376,20 @@ Namespace My.Sys.Forms
 			.Nodes.Parent         = Parent
 			.ParentNode        = Cast(TreeNode Ptr, ParentNode)
 			#ifdef __USE_GTK__
-				If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
+				If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 					If .ParentNode Then
-						gtk_tree_store_insert(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, iIndex)
+						gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, iIndex)
 					Else
-						gtk_tree_store_insert(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, NULL, iIndex)
+						gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, NULL, iIndex)
 					End If
-					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, 1, ToUTF8(FText), -1)
+					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
 					.ImageIndex = .ImageIndex
 				EndIf
 			#else
 				Dim As TVINSERTSTRUCT tvis
 				If Parent AndAlso Parent->Handle Then
-					tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @Ftext
+					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
+					tvis.item.pszText              = @FText
 					tvis.item.cchTextMax           = Len(FText)
 					tvis.item.iImage             = FImageIndex
 					tvis.item.iSelectedImage     = FSelectedImageIndex
@@ -417,7 +418,8 @@ Namespace My.Sys.Forms
 		Dim PNode As PTreeNode
 		PNode = New_( TreeNode)
 		PNode->FDynamic = True
-		FNodes.Add PNode
+		FNodes.Insert Index, PNode
+		FCount = FCount + 1
 		With *PNode
 			.Text         = FText
 			.Name         = FKey
@@ -428,23 +430,23 @@ Namespace My.Sys.Forms
 			.Nodes.Parent         = Parent
 			.ParentNode        = ParentNode
 			#ifdef __USE_GTK__
-				If Parent AndAlso gtk_tree_view_get_model(gtk_tree_view(Parent->Handle)) Then
+				If Parent AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 					If .ParentNode Then
-						gtk_tree_store_insert(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, Index)
+						gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, Index)
 					Else
-						gtk_tree_store_insert(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, NULL, Index)
+						gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, NULL, Index)
 					End If
-					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @.TreeIter, 1, ToUTF8(FText), -1)
+					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
 				EndIf
 			#else
 				Dim As TVINSERTSTRUCT tvis
 				If Parent->Handle Then
-					tvis.Item.Mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @Ftext
-					tvis.item.cchTextMax           = Len(Ftext)
+					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
+					tvis.item.pszText              = @FText
+					tvis.item.cchTextMax           = Len(FText)
 					tvis.item.iImage             = FImageIndex
 					tvis.item.iSelectedImage     = FSelectedImageIndex
-					tvis.hInsertAfter            = Item(Index)->Handle
+					tvis.hInsertAfter            = IIf(Index = 0, TVI_FIRST, IIf(Index < 0, TVI_LAST, Item(Index - 1)->Handle))
 					If ParentNode Then
 						tvis.hParent               = ParentNode->Handle
 					Else
@@ -478,8 +480,10 @@ Namespace My.Sys.Forms
 		'				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
 		'			End If
 		'		#endif
-		Delete_( Item(Index))
+		Var FNode = Item(Index)
 		FNodes.Remove Index
+		Delete_(FNode)
+		FCount = FCount - 1
 	End Sub
 	Private Sub TreeNodeCollection.EditLabel
 		#ifdef __USE_GTK__
@@ -535,8 +539,11 @@ Namespace My.Sys.Forms
 		'			#else
 		'				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
 		'			#endif
-		For i As Integer = Count - 1 To 0 Step -1
-			If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
+		FCount = 0
+		For i As Integer = FNodes.Count - 1 To 0 Step -1
+			Var FNode = Cast(TreeNode Ptr, FNodes.Items[i])
+			FNodes.Remove i
+			If FNode->FDynamic Then Delete_(FNode)
 		Next i
 		'		Else
 		'			For i As Integer = Count - 1 To 0 Step -1

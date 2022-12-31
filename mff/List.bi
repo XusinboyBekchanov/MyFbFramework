@@ -11,7 +11,7 @@
 '*  Modified by Xusinboy Bekchanov(2018-2019)  Liu XiaLin                     *
 '******************************************************************************
 
-#include once "SysUtils.bi"
+#include once "UString.bi"
 
 #define QList(__Ptr__) (*Cast(List Ptr,__Ptr__))
 

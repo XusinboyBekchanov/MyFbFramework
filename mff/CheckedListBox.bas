@@ -98,7 +98,7 @@ Namespace My.Sys.Forms
 						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(s))
 					Next i
-					.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(.ItemHeight, 0))
+					'.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(ScaleY(.ItemHeight), 0))
 					.MultiColumn = .MultiColumn
 					.ItemIndex = .ItemIndex
 					If .SelectionMode = SelectionModes.smMultiSimple Or .SelectionMode = SelectionModes.smMultiExtended Then
@@ -134,7 +134,7 @@ Namespace My.Sys.Forms
 						'DRAW BACKGROUND
 						FillRect lpdis->hDC, @lpdis->rcItem, Brush.Handle 'GetSysColorBrush(COLOR_WINDOW)
 						If (lpdis->itemState And ODS_SELECTED)   Then                       'if selected Then
-							rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+							rc.Left   = lpdis->rcItem.Left + ScaleX(16): rc.Right = lpdis->rcItem.Right              '  Set cordinates
 							rc.Top    = lpdis->rcItem.Top
 							rc.Bottom = lpdis->rcItem.Bottom
 							FillRect lpdis->hDC, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
@@ -149,7 +149,7 @@ Namespace My.Sys.Forms
 							SetBkColor lpdis->hDC, Brush.Color 'GetSysColor(COLOR_WINDOW)                    'Set text Background
 							SetTextColor lpdis->hDC, IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))                'Set text color
 							If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
-								rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+								rc.Left   = lpdis->rcItem.Left + ScaleX(16) : rc.Right = lpdis->rcItem.Right              '  Set cordinates
 								rc.Top    = lpdis->rcItem.Top
 								rc.Bottom = lpdis->rcItem.Bottom
 								'DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
@@ -157,11 +157,11 @@ Namespace My.Sys.Forms
 						End If
 						'DRAW TEXT
 						SendMessage Message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
-						TextOut lpdis->hDC, lpdis->rcItem.Left + 18, lpdis->rcItem.Top + 2, @zTxt, Len(zTxt)     'Draw text
+						TextOut lpdis->hDC, lpdis->rcItem.Left + ScaleX(18), lpdis->rcItem.Top + ScaleY(2), @zTxt, Len(zTxt)     'Draw text
 						'DRAW CHECKBOX
-						rc.Left   = lpdis->rcItem.Left + 2 : rc.Right = lpdis->rcItem.Left + 15               'Set cordinates
-						rc.Top    = lpdis->rcItem.Top + 2
-						rc.Bottom = lpdis->rcItem.Bottom - 1
+						rc.Left   = lpdis->rcItem.Left + ScaleX(2): rc.Right = lpdis->rcItem.Left + ScaleX(15)               'Set cordinates
+						rc.Top    = lpdis->rcItem.Top + ScaleY(2)
+						rc.Bottom = lpdis->rcItem.Bottom - ScaleY(1)
 						fTheme = OpenThemeData(FHandle, "BUTTON")
 						If fTheme Then
 							If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows Then
@@ -334,19 +334,19 @@ Namespace My.Sys.Forms
 			Dim As GtkCellRenderer Ptr rendertoggle = gtk_cell_renderer_toggle_new()
 			Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-			gtk_scrolled_window_set_shadow_type(gtk_scrolled_window(scrolledwidget), GTK_SHADOW_OUT)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_OUT)
 			ListStore = gtk_list_store_new(2, G_TYPE_BOOLEAN, G_TYPE_STRING)
 			widget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(ListStore))
-			gtk_container_add(gtk_container(scrolledwidget), widget)
+			gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
 			
 			gtk_tree_view_column_pack_start(col, rendertoggle, False)
-			gtk_tree_view_column_add_attribute(col, rendertoggle, ToUTF8("active"), 0)
-			g_signal_connect(rendertoggle, "toggled", G_CALLBACK(@check), ListStore)
+			gtk_tree_view_column_add_attribute(col, rendertoggle, ToUtf8("active"), 0)
+			g_signal_connect(rendertoggle, "toggled", G_CALLBACK(@Check), ListStore)
 			
 			gtk_tree_view_column_pack_start(col, rendertext, True)
-			gtk_tree_view_column_add_attribute(col, rendertext, ToUTF8("text"), 1)
+			gtk_tree_view_column_add_attribute(col, rendertext, ToUtf8("text"), 1)
 			gtk_tree_view_append_column(GTK_TREE_VIEW(widget), col)
 			
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), False)
@@ -367,7 +367,7 @@ Namespace My.Sys.Forms
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "CheckedListBox", "ListBox"
-				.ChildProc   = @WndProc
+				.ChildProc   = @WNDPROC
 				.ExStyle     = WS_EX_CLIENTEDGE
 				Base.Base.Style       = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL Or LBS_HASSTRINGS Or LBS_NOTIFY Or LBS_DISABLENOSCROLL Or LBS_OWNERDRAWFIXED
 				.BackColor       = GetSysColor(COLOR_WINDOW)

@@ -50,7 +50,7 @@ Private Sub List.Insert(Index As Integer, FItem As Any Ptr)
 			Items[i] = Items[i-1]
 		Next i
 		Items[Index] = FItem
-	ElseIf Index > Count -1 Then
+	Else
 		This.Add FItem
 	End If
 End Sub

@@ -885,7 +885,8 @@ Namespace My.Sys.Forms
 				If (Style And WS_CHILD) = WS_CHILD Then
 					If FParent Then
 						HParent = FParent->Handle
-						FID =  1000 + Cast(Control Ptr, FParent)->ControlCount
+						Handles.Add @This
+						FID =  1000 + Handles.Count - 1 'Cast(Control Ptr, FParent)->ControlCount
 						ControlID = FID
 					ElseIf FOwner <> 0 AndAlso FOwner->Handle Then
 						HParent = FOwner->Handle
@@ -1543,12 +1544,12 @@ Namespace My.Sys.Forms
 					End If
 				Case WM_MEASUREITEM
 					Dim As MEASUREITEMSTRUCT Ptr miStruct
-					miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
+					miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
 					Select Case miStruct->CtlType
 					Case ODT_MENU
 						'miStruct->itemWidth = miStruct->itemWidth + 8
 						'If miStruct->itemHeight < 18 Then miStruct->itemHeight = 18
-					Case ODT_LISTBOX,ODT_COMBOBOX
+					Case ODT_LISTBOX, ODT_COMBOBOX
 						SendMessage(GetDlgItem(FHandle, Message.wParam), CM_MEASUREITEM, Message.wParam, Message.lParam)
 					End Select
 				Case WM_DRAWITEM
@@ -1694,6 +1695,8 @@ Namespace My.Sys.Forms
 					If Brush.Handle = hbrBkgnd Then Brush.Handle = 0
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
 					If OnDestroy Then OnDestroy(This) Else Handle = 0
+				Case WM_NCDESTROY
+					Handle = 0
 				End Select
 			#endif
 		End Sub
@@ -1783,7 +1786,10 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			Private Function Control.DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Dim Message As Message
-				Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				Dim As Control Ptr Ctrl
+				'Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
+				'If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
+				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), 0)
 				If Ctrl Then
 					'?Ctrl
@@ -1817,7 +1823,9 @@ Namespace My.Sys.Forms
 				Dim Message As Message
 				Dim As Control Ptr Ctrl
 				Dim As Any Ptr Proc = @DefWindowProc
-				Ctrl = Cast(Any Ptr,GetWindowLongPtr(FWindow,GWLP_USERDATA))
+				Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
+				If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
+				'Ctrl = Cast(Any Ptr,GetWindowLongPtr(FWindow,GWLP_USERDATA))
 				Message = Type(Ctrl, FWindow,Msg,wParam,lParam,0,LoWord(wParam),HiWord(wParam),LoWord(lParam),HiWord(lParam),Message.Captured)
 				If Ctrl Then
 					Proc = Ctrl->PrevProc
@@ -1840,10 +1848,12 @@ Namespace My.Sys.Forms
 			End Function
 			
 			Private Function Control.SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-				'    			On Error Goto ErrorHandler
+				'On Error Goto ErrorHandler
 				Dim As Control Ptr Ctrl
 				Dim Message As Message
-				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
+				If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
+				'Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				'Ctrl = GetProp(FWindow, "MFFControl")
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				If Ctrl Then

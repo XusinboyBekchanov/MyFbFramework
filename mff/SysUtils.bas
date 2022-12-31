@@ -145,9 +145,9 @@ Namespace ClassContainer
 	#endif
 End Namespace
 
+#include once "PointerList.bi"
+Dim Shared As PointerList Handles
 #ifdef __USE_JNI__
-	#include once "PointerList.bi"
-	Dim Shared As PointerList Handles
 	Handles.Add 0
 	
 	#define AddToPackage(Package, EventName) __FB_QUOTE__(Java_##Package##_##EventName)

@@ -216,7 +216,7 @@ Namespace My.Sys.Forms
 					Dim As HBITMAP Bmp
 					Dim As PAINTSTRUCT Ps
 					Dim As ..Rect R
-					Dim As Integer iWidth = Width, iHeight = Height
+					Dim As Integer iWidth = ScaleX(Width), iHeight = ScaleY(Height)
 					Canvas.HandleSetted = True
 					Dc = BeginPaint(Handle, @Ps)
 					Canvas.Handle = Dc
