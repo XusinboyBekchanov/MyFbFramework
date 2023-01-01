@@ -1550,11 +1550,21 @@ Namespace My.Sys.Forms
 						'miStruct->itemWidth = miStruct->itemWidth + 8
 						'If miStruct->itemHeight < 18 Then miStruct->itemHeight = 18
 					Case ODT_LISTBOX, ODT_COMBOBOX
+						Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(GetDlgItem(FHandle, Message.wParam), GWLP_USERDATA))
+						If Ctrl = 0 Then
+							If Message.wParam - 1000 < Handles.Count Then
+								Ctrl = Handles.Item(Message.wParam - 1000)
+								If Ctrl Then
+									Ctrl->Handle = GetDlgItem(FHandle, Message.wParam)
+									SetWindowLongPtr Ctrl->Handle, GWLP_USERDATA, CInt(Ctrl)
+								End If
+							End If
+						End If
 						SendMessage(GetDlgItem(FHandle, Message.wParam), CM_MEASUREITEM, Message.wParam, Message.lParam)
 					End Select
 				Case WM_DRAWITEM
 					Dim As DRAWITEMSTRUCT Ptr diStruct
-					diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
+					diStruct = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 					Select Case diStruct->CtlType
 					Case ODT_MENU
 						'If This.ContextMenu AndAlso This.ContextMenu->ImagesList AndAlso This.ContextMenu->ImagesList->Handle AndAlso diStruct->itemData <> 0 Then
