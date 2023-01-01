@@ -141,8 +141,8 @@ Namespace My.Sys.Forms
 		Private Sub NumericUpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QNumericUpDown(Sender.Child)
-					MoveWindow .FHandle, .FLeft, .FTop, .FWidth, .FHeight, True
-					MoveWindow .UpDownControl.Handle, .Width - .UpDownControl.Width - 3, -1, .UpDownControl.Width, .Height - 2, True
+					MoveWindow .FHandle, ScaleX(.FLeft), ScaleY(.FTop), ScaleX(.FWidth), ScaleY(.FHeight), True
+					MoveWindow .UpDownControl.Handle, ScaleX(.Width - .UpDownControl.Width - 2) - 1, -1, ScaleX(.UpDownControl.Width), ScaleY(.Height) - 2, True
 					'SendMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN Or EC_LEFTMARGIN, MAKEWORD(ScaleX(0), ScaleX(.UpDownControl.Width)))
 					Dim h As HWND = .UpDownControl.Handle
 					If GetWindowLongPtr(h, GWLP_WNDPROC) <> @HookChildProc Then
