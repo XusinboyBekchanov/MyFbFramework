@@ -188,7 +188,7 @@ Namespace My.Sys.Forms
 					pt.X = LoWord(Message.lParam) : pt.Y = HiWord(Message.lParam)                       'get cursor pos
 					t = SendMessage(Message.hWnd, LB_ITEMFROMPOINT, 0, MAKELONG(pt.X, pt.Y))    'get sel. item
 					SendMessage Message.hWnd, LB_GETITEMRECT, t, Cast(LPARAM, @rc)                            'get sel. item's rect
-					rc.Left   = rc.Left + 2 : rc.Right = rc.Left + 15                                       'checkbox cordinates
+					rc.Left   = rc.Left + 2 : rc.Right = rc.Left + ScaleX(15)                                      'checkbox cordinates
 					If PtInRect(@rc, pt) Then
 						itd = Not CBool(SendMessage(Message.hWnd, LB_GETITEMDATA, t, 0))                 'get toggled item data
 						SendMessage Message.hWnd, LB_SETITEMDATA, t, itd                            'set toggled item data
