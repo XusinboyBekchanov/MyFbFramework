@@ -819,11 +819,19 @@ Namespace My.Sys.Forms
 			FVisible = Value
 			If (Not FDesignMode) OrElse Value Then
 				#ifdef __USE_GTK__
-					If widget Then
-						'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
+					'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
+					If scrolledwidget Then
+						If Value Then
+							gtk_widget_show_all(scrolledwidget)
+							'gtk_widget_set_no_show_all(widget, Not Value)
+							If Value Then gtk_widget_queue_draw(scrolledwidget)
+						Else
+							gtk_widget_set_visible(scrolledwidget, Value)
+						End If
+					ElseIf widget Then
 						gtk_widget_set_visible(widget, Value)
 						'gtk_widget_set_no_show_all(widget, Not Value)
-						If Value Then RequestAlign
+						If Value Then gtk_widget_queue_draw(widget)
 					End If
 				#elseif defined(__USE_WINAPI__)
 					If FHandle = 0 And CInt(Value) Then

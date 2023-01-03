@@ -145,8 +145,10 @@ Namespace ClassContainer
 	#endif
 End Namespace
 
-#include once "PointerList.bi"
-Dim Shared As PointerList Handles
+#ifndef __FB_LINUX__
+	#include once "PointerList.bi"
+	Dim Shared As PointerList Handles
+#EndIf
 #ifdef __USE_JNI__
 	Handles.Add 0
 	
@@ -401,7 +403,7 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 		Exit Sub
 	End If
 	Do While i <= ls
-		If Mid(subject, i, tLen) = delimiter Then
+		If Mid(subject, i, tLen) = Delimiter Then
 			n = n + 1
 			ReDim Preserve Result(n - 1)
 			Result(n - 1) = Mid(subject, p, i - p)

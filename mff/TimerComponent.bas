@@ -32,7 +32,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifdef __USE_GTK__
-		Private Function TimerProc(ByVal user_data As gpointer) As gboolean
+		Private Function TimerComponent_TimerProc(ByVal user_data As gpointer) As gboolean
 			With TimersList
 				Dim As TimerComponent Ptr tmr = user_data
 				If tmr <> 0 Then
@@ -61,17 +61,17 @@ Namespace My.Sys.Forms
 		If FInterval <> 0 AndAlso Not FDesignMode Then
 			#ifdef __USE_GTK__
 				If FEnabled Then
-					ID = g_timeout_add(Interval, Cast(GSOURCEFUNC, @TimerProc), Cast(gpointer, @This))
+					ID = g_timeout_add(Interval, Cast(GSourceFunc, @TimerComponent_TimerProc), Cast(gpointer, @This))
 					TimersList.Add ID, @This
 				Else
 					TimersList.Remove TimersList.IndexOf(ID)
 				End If
 			#else
 				If FEnabled Then
-					ID = SetTimer(Null, 0, Interval, @TimerProc)
+					ID = SetTimer(NULL, 0, Interval, @TimerProc)
 					TimersList.Add ID, @This
 				Else
-					If ID Then KillTimer Null, ID
+					If ID Then KillTimer NULL, ID
 					TimersList.Remove TimersList.IndexOf(ID)
 				End If
 			#endif
@@ -87,14 +87,14 @@ Namespace My.Sys.Forms
 		If FEnabled AndAlso Not FDesignMode Then
 			TimersList.Remove TimersList.IndexOf(ID)
 			#ifndef __USE_GTK__
-				If ID Then KillTimer Null, ID
+				If ID Then KillTimer NULL, ID
 			#endif
 			ID = 0
 			If FInterval > 0 Then
 				#ifdef __USE_GTK__
-					ID = g_timeout_add(Interval, Cast(GSOURCEFUNC, @TimerProc), Cast(gpointer, @This))
+					ID = g_timeout_add(Interval, Cast(GSourceFunc, @TimerComponent_TimerProc), Cast(gpointer, @This))
 				#else
-					ID = SetTimer(Null, 0, Interval, @TimerProc)
+					ID = SetTimer(NULL, 0, Interval, @TimerProc)
 				#endif
 				TimersList.Add ID, @This
 			End If

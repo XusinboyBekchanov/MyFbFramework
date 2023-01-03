@@ -206,6 +206,9 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor NumericUpDown
+		#ifdef __USE_GTK__
+			widget = gtk_spin_button_new(NULL, 1, 0)
+		#endif
 		With This
 			.Child             = @This
 			UpDownControl.Associate = @This

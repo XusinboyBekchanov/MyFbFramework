@@ -42,7 +42,7 @@
 		#define Delete_(pt) Delete pt
 		#define Delete_SquareBrackets(pt) Delete[] pt
 	#else
-		#include "crt.bi"
+		#include once "crt.bi"
 		
 		#define Allocate_(bytes) fbmld_allocate(bytes, __FILE__, __FUNCTION__, __LINE__)
 		#define CAllocate_(bytes) fbmld_callocate(bytes, __FILE__, __FUNCTION__, __LINE__)
