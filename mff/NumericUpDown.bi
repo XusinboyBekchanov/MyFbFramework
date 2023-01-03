@@ -47,6 +47,8 @@ Namespace My.Sys.Forms
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
+		Declare Property Text ByRef As WString
+		Declare Property Text(ByRef Value As WString)
 		Declare Property Thousands As Boolean
 		Declare Property Thousands(Value As Boolean)
 		Declare Property Wrap As Boolean

@@ -87,6 +87,21 @@ Namespace My.Sys.Forms
 		UpDownControl.Increment = Value
 	End Property
 	
+	Private Property NumericUpDown.Text ByRef As WString
+		#ifdef __USE_GTK__
+			Return UpDownControl.Text
+		#else
+			Return Base.Text
+		#endif
+	End Property
+	
+	Private Property NumericUpDown.Text(ByRef Value As WString)
+		If UpDownControl.Text <> Value Then
+			UpDownControl.Text = Value
+		End If
+		Base.Text = Value
+	End Property
+	
 	Private Property NumericUpDown.Thousands As Boolean
 		Return UpDownControl.Thousands
 	End Property
@@ -207,7 +222,7 @@ Namespace My.Sys.Forms
 	
 	Private Constructor NumericUpDown
 		#ifdef __USE_GTK__
-			widget = gtk_spin_button_new(NULL, 1, 0)
+			widget = UpDownControl.Handle
 		#endif
 		With This
 			.Child             = @This
