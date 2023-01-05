@@ -333,7 +333,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property TreeNodeCollection.Count As Integer
-		Return FCount
+		Return FNodes.Count
 	End Property
 	
 	Private Property TreeNodeCollection.Count(Value As Integer)
@@ -364,7 +364,6 @@ Namespace My.Sys.Forms
 				End If
 			Next
 		End If
-		FCount = FCount + 1
 		If iIndex = -1 Then FNodes.Add PNode Else FNodes.Insert iIndex, PNode
 		With *PNode
 			.Text         = FText
@@ -419,7 +418,6 @@ Namespace My.Sys.Forms
 		PNode = New_( TreeNode)
 		PNode->FDynamic = True
 		FNodes.Insert Index, PNode
-		FCount = FCount + 1
 		With *PNode
 			.Text         = FText
 			.Name         = FKey
@@ -480,10 +478,8 @@ Namespace My.Sys.Forms
 		'				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
 		'			End If
 		'		#endif
-		Var FNode = Item(Index)
+		Delete_(Item(Index))
 		FNodes.Remove Index
-		Delete_(FNode)
-		FCount = FCount - 1
 	End Sub
 	Private Sub TreeNodeCollection.EditLabel
 		#ifdef __USE_GTK__
@@ -539,11 +535,8 @@ Namespace My.Sys.Forms
 		'			#else
 		'				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
 		'			#endif
-		FCount = 0
 		For i As Integer = FNodes.Count - 1 To 0 Step -1
-			Var FNode = Cast(TreeNode Ptr, FNodes.Items[i])
-			FNodes.Remove i
-			If FNode->FDynamic Then Delete_(FNode)
+			If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
 		Next i
 		'		Else
 		'			For i As Integer = Count - 1 To 0 Step -1

@@ -15,7 +15,6 @@ Namespace My.Sys.Forms
 	Private Type TreeNodeCollection Extends My.Sys.Object
 	Private:
 		FNodes As List
-		FCount As Integer
 		FParentNode As PTreeNode
 		PNode As PTreeNode
 	Public:
