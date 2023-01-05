@@ -121,7 +121,7 @@ Namespace My.Sys.Drawing
 		#endif
 		Declare Function ToString() ByRef As WString
 		Declare Operator Cast As Any Ptr
-		Declare Operator Let(Value As Integer)
+		'Declare Operator Let(Value As Integer)
 		#ifdef __USE_GTK__
 			Declare Operator Let(Value As GdkCursorType)
 		#elseif defined(__USE_WINAPI__)

@@ -198,10 +198,10 @@ Namespace My.Sys.Drawing
 		End Function
 	#endif
 	
-	Private Operator Cursor.Let(Value As Integer)
-		'LoadFromResourceID(Value)
-		'This.ResName = WStr(Value)
-	End Operator
+	'Private Operator Cursor.Let(Value As Integer)
+	'	'LoadFromResourceID(Value)
+	'	'This.ResName = WStr(Value)
+	'End Operator
 	
 	#ifdef __USE_GTK__
 		Private Operator Cursor.Let(Value As GdkCursorType)
