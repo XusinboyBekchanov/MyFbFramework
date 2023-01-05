@@ -215,6 +215,7 @@ Namespace My.Sys.Drawing
 		Private Operator Cursor.Let(Value As HCURSOR)
 			If Handle Then DestroyCursor(Handle)
 			Handle = Value
+			If Ctrl AndAlso Ctrl->Handle Then SendMessage(Ctrl->Handle, WM_SETCURSOR, Cast(WPARAM, Ctrl->Handle), Cast(LPARAM, 1))
 		End Operator
 	#endif
 	
@@ -223,6 +224,9 @@ Namespace My.Sys.Drawing
 			If Handle Then DestroyCursor(Handle)
 		#endif
 		Handle = Value.Handle
+		#ifdef __USE_WINAPI__
+			If Ctrl AndAlso Ctrl->Handle Then SendMessage(Ctrl->Handle, WM_SETCURSOR, Cast(WPARAM, Ctrl->Handle), Cast(LPARAM, 1))
+		#EndIf
 	End Operator
 	
 	Private Constructor Cursor
@@ -239,7 +243,7 @@ Namespace My.Sys.Drawing
 				DestroyCursor Handle
 			End If
 		#endif
-		WDeallocate(FResName)
+		WDeAllocate(FResName)
 	End Destructor
 End Namespace
 

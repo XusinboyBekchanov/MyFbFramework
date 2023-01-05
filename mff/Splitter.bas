@@ -389,7 +389,6 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = .BackColor
 				'.DoubleBuffered = True
 			#endif
-			This.Cursor.Ctrl = @This
 			WLet(FClassName, "Splitter")
 			WLet(FClassAncestor, "")
 			.Width     = 3

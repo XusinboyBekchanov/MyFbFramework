@@ -2812,6 +2812,7 @@ Namespace My.Sys.Forms
 			FShowHint = True
 			FVisible = True
 			FEnabled = True
+			Cursor.Ctrl = @This
 			'FHint = CAllocate(0)
 		End Constructor
 		
