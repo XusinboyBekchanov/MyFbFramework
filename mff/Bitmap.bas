@@ -74,6 +74,7 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Function BitmapType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Free
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
 			If File = "" Then Return False
@@ -187,6 +188,7 @@ Namespace My.Sys.Drawing
 	#ifdef __USE_WINAPI__
 		#ifndef BitmapType_LoadFromHICON_Off
 			Private Function BitmapType.LoadFromHICON(IcoHandle As HICON) As Boolean
+				Free
 				' Initialize Gdiplus
 				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
 				StartupInput.GdiplusVersion = 1
@@ -297,6 +299,7 @@ Namespace My.Sys.Drawing
 	
 	#ifndef BitmapType_LoadFromResourceName_Off
 		Private Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
+			Free
 			#ifdef __USE_GTK__
 				Dim As GError Ptr gerr
 				If FileExists("./Resources/" & ResName & ".png") Then
@@ -385,6 +388,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Function BitmapType.LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		Free
 		#ifdef __USE_GTK__
 			Return False
 		#elseif defined(__USE_WINAPI__)
@@ -402,16 +406,16 @@ Namespace My.Sys.Drawing
 	
 	Private Sub BitmapType.Create
 		#ifdef __USE_WINAPI__
-			Dim rc As ..Rect
+			Dim rc As ..RECT
 			Dim As HDC Dc
 			If Handle Then DeleteObject Handle
 			Dc = GetDC(0)
 			FDevice = CreateCompatibleDC(Dc)
 			ReleaseDC 0,Dc
-			rc.Left = 0
-			rc.Top = 0
-			rc.Right = FWidth
-			rc.Bottom = FHeight
+			rc.left = 0
+			rc.top = 0
+			rc.right = FWidth
+			rc.bottom = FHeight
 			Handle = CreateCompatibleBitmap(FDevice,FWidth,FHeight)
 			SelectObject FDevice,Handle
 			FillRect(FDevice, @rc, Brush.Handle)
@@ -421,11 +425,11 @@ Namespace My.Sys.Drawing
 	
 	Private Sub BitmapType.Clear
 		#ifdef __USE_WINAPI__
-			Dim rc As ..Rect
-			rc.Left = 0
-			rc.Top = 0
-			rc.Right = FWidth
-			rc.Bottom = FHeight
+			Dim rc As ..RECT
+			rc.left = 0
+			rc.top = 0
+			rc.right = FWidth
+			rc.bottom = FHeight
 			FillRect FDevice, @rc, Brush.Handle
 		#endif
 		If Changed Then Changed(This)
@@ -445,6 +449,7 @@ Namespace My.Sys.Drawing
 	
 	#ifndef BitmapType_Let_WString_Off
 		Private Operator BitmapType.Let(ByRef Value As WString)
+			Free
 			WLet(FResName, Value)
 			#ifdef __USE_GTK__
 				If StartsWith(Value, "/") Then
@@ -463,12 +468,14 @@ Namespace My.Sys.Drawing
 	#ifdef __USE_WINAPI__
 		#ifndef BitmapType_Let_HBITMAP_Off
 			Private Operator BitmapType.Let(Value As HBITMAP)
+				Free
 				Handle = Value
 			End Operator
 		#endif
 		
 		#ifndef BitmapType_Let_HICON_Off
 			Private Operator BitmapType.Let(Value As HICON)
+				Free
 				#ifndef BitmapType_LoadFromHICON_Off
 					LoadFromHICON(Value)
 				#endif
