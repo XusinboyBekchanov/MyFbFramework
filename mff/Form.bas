@@ -37,6 +37,7 @@ Namespace My.Sys.Forms
 			Case "modalresult": Return @ModalResult
 			Case "opacity": Return @FOpacity
 			Case "owner": Return FOwner
+			Case "transparentcolor": Return @FTransparentColor
 			Case "windowstate": Return @FWindowState
 			Case "startposition": Return @FStartPosition
 			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
@@ -78,6 +79,7 @@ Namespace My.Sys.Forms
 					Case "parentwidget": This.ParentWidget = Value
 					#endif
 				Case "text": This.Text = QWString(Value)
+				Case "transparentcolor": This.TransparentColor = QInteger(Value)
 				Case "windowstate": This.WindowState = QInteger(Value)
 				Case "startposition": This.StartPosition = QInteger(Value)
 				Case "visible": This.Visible = QBoolean(Value)
@@ -270,8 +272,24 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			ChangeExStyle WS_EX_LAYERED, Cast(Boolean, 255 - FOpacity)
 			If FHandle Then
-				SetLayeredWindowAttributes(FHandle, 0, FOpacity, LWA_ALPHA)
+				If FOpacity = 0 Then
+					SetLayeredWindowAttributes(FHandle, FTransparentColor, 0, LWA_COLORKEY)
+				Else
+					SetLayeredWindowAttributes(FHandle, 0, FOpacity, LWA_ALPHA)
+				End If
 			End If
+		#endif
+	End Property
+	
+	Private Property Form.TransparentColor As Integer
+		Return FTransparentColor
+	End Property
+	
+	Private Property Form.TransparentColor(Value As Integer)
+		FTransparentColor = Value
+		#ifdef __USE_WINAPI__
+			ChangeExStyle WS_EX_LAYERED, Cast(Boolean, 255 - FOpacity)
+			If FHandle Then SetLayeredWindowAttributes(FHandle, FTransparentColor, 0, LWA_COLORKEY)
 		#endif
 	End Property
 	
@@ -674,7 +692,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_WINAPI__
-		Private Sub Form.WndProc(ByRef message As Message)
+		Private Sub Form.WNDPROC(ByRef message As Message)
 			
 		End Sub
 		
@@ -768,7 +786,7 @@ Namespace My.Sys.Forms
 						'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 						'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 					End If
-					If .Opacity <> 255 Then SetLayeredWindowAttributes(.Handle, 0, .Opacity, LWA_ALPHA)
+					If .Opacity <> 255 Then SetLayeredWindowAttributes(.Handle, .TransparentColor, .Opacity, IIf(.Opacity = 0, LWA_COLORKEY, LWA_ALPHA))
 					.ChangeTabIndex -2
 					SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
 					If .Menu Then .Menu->ParentWindow = @Sender

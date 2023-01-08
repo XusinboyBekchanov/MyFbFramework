@@ -113,6 +113,7 @@ Namespace My.Sys.Forms
 		FMinimizeBox    As Boolean
 		FMaximizeBox    As Boolean
 		FOpacity        As Integer
+		FTransparentColor As Integer
 		#ifdef __USE_GTK__
 			WindowWidget As GtkWidget Ptr
 			HeaderBarWidget As GtkWidget Ptr
@@ -167,6 +168,9 @@ Namespace My.Sys.Forms
 		'Returns/sets the text contained in the control (Windows, Linux).
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
+		'Returns/sets the transparent color used to display text and graphics in a form (Windows only).
+		Declare Property TransparentColor As Integer
+		Declare Property TransparentColor(Value As Integer)
 		'Returns/sets a value indicating whether a Control-menu box is displayed on a form at run time (Windows only)
 		Declare Property ControlBox As Boolean
 		Declare Property ControlBox(Value As Boolean)
