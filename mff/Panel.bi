@@ -36,6 +36,7 @@ Namespace My.Sys.Forms
 			Declare Sub DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Declare Sub Frame3D(R As My.Sys.Drawing.Rect, AWidth As Integer)
 		#endif
+		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
@@ -45,7 +46,8 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
-		'Canvas        As My.Sys.Drawing.Canvas
+		'Returns/sets a graphic to be displayed in a control (Windows, Linux).
+		Graphic As My.Sys.Drawing.GraphicType
 		Declare Property BevelInner As Integer
 		Declare Property BevelInner(Value As Integer)
 		Declare Property BevelOuter As Integer

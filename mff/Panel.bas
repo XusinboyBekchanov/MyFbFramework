@@ -109,7 +109,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Private Sub Panel.WndProc(ByRef Message As Message)
+		Private Sub Panel.WNDPROC(ByRef Message As Message)
 		End Sub
 	#endif
 	Private Sub Panel.ProcessMessage(ByRef Message As Message)
@@ -117,7 +117,7 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 '			Case WM_ERASEBKGND
 '				If OnPaint Then OnPaint(This, Canvas)
-			Case WM_PAINT, WM_Create, WM_ERASEBKGND
+			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND
 				Dim As Integer W,H
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
@@ -144,11 +144,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				If DoubleBuffered Then
-					MemDC = CreateCompatibleDC(DC)
-					Bmp   = CreateCompatibleBitmap(DC, R.Right, R.Bottom)
-					SelectObject(MemDc, Bmp)
+					memDC = CreateCompatibleDC(Dc)
+					Bmp   = CreateCompatibleBitmap(Dc, R.Right, R.Bottom)
+					SelectObject(memDC, Bmp)
 					'SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
-					FillRect memDc, @R, This.Brush.Handle
+					FillRect memDC, @R, This.Brush.Handle
 					SetBkMode(memDC, TRANSPARENT)
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
@@ -177,16 +177,17 @@ Namespace My.Sys.Forms
 						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
 					Canvas.HandleSetted = True
-					Canvas.Handle = MemDC
+					Canvas.Handle = memDC
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, Graphic.Bitmap
 					If OnPaint Then OnPaint(This, Canvas)
 					Canvas.HandleSetted = False
-					BitBlt(DC, 0, 0, R.Right, R.Bottom, MemDC, 0, 0, SRCCOPY)
+					BitBlt(Dc, 0, 0, R.Right, R.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
-					DeleteDC(MemDC)
+					DeleteDC(memDC)
 				Else
-					SetBKMode Dc, TRANSPARENT
+					SetBkMode Dc, TRANSPARENT
 					FillRect Dc, @R, This.Brush.Handle
-					SetBKColor Dc, OPAQUE
+					SetBkColor Dc, OPAQUE
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
 					'Canvas.TextOut((R.Right - W)/2,(R.Bottom - H)/2,Text,Font.Color,-1)
@@ -213,6 +214,7 @@ Namespace My.Sys.Forms
 						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
 					Canvas.Handle = Dc
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, Graphic.Bitmap
 					If OnPaint Then OnPaint(This, Canvas)
 				End If
 				ReleaseDC Handle, Dc
@@ -233,24 +235,24 @@ Namespace My.Sys.Forms
 		
 		Private Sub Panel.DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))
 			Canvas.Pen.Color = FTopColor
-			Canvas.Line(R.Left, R.Top, R.Right, R.Top)
-			Canvas.Line(R.Left, R.Top, R.Left, R.Bottom)
+			Canvas.Line(R.left, R.top, R.right, R.top)
+			Canvas.Line(R.left, R.top, R.left, R.bottom)
 			Canvas.Pen.Color = FBottomColor
-			Canvas.Line(R.Right, R.Top, R.Right, R.Bottom)
-			Canvas.Line(R.Left, R.Bottom, R.Right, R.Bottom)
+			Canvas.Line(R.right, R.top, R.right, R.bottom)
+			Canvas.Line(R.left, R.bottom, R.right, R.bottom)
 		End Sub
 		
 		Private Sub Panel.Frame3D(R As My.Sys.Drawing.RECT, AWidth As Integer)
 			Canvas.Pen.Size = 1
-			R.Bottom -= 1
-			R.Right  -= 1
+			R.bottom -= 1
+			R.right  -= 1
 			While AWidth > 0
 				AWidth -= 1
 				DoRect(R)
-				InflateRect(Cast(..Rect Ptr, @R), -1, -1)
+				InflateRect(Cast(..RECT Ptr, @R), -1, -1)
 			Wend
-			R.Bottom += 1
-			R.Right  += 1
+			R.bottom += 1
+			R.right  += 1
 		End Sub
 	#endif
 	
@@ -273,6 +275,39 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Private Sub Panel.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		With Sender
+			If .Ctrl->Child Then
+				#ifdef __USE_GTK__
+					'If GTK_IS_IMAGE(QForm(.Ctrl->Child).ImageWidget) Then
+					'	Select Case ImageType
+					'	Case 0
+					'		gtk_image_set_from_pixbuf(GTK_IMAGE(QForm(.Ctrl->Child).ImageWidget), .Bitmap.Handle)
+					'	Case 1
+					'		gtk_image_set_from_pixbuf(GTK_IMAGE(QForm(.Ctrl->Child).ImageWidget), .Icon.Handle)
+					'	End Select
+					'End If
+				#else
+					'					Select Case ImageType
+					'					Case 0
+					'						QForm(.Ctrl->Child).ChangeStyle SS_BITMAP, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Bitmap.Handle))
+					'					Case 1
+					'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
+					'					Case 2
+					'						QForm(.Ctrl->Child).ChangeStyle SS_ICON, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Icon.Handle))
+					'					Case 3
+					'						QForm(.Ctrl->Child).ChangeStyle SS_ENHMETAFILE, True
+					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(0))
+					'					End Select
+					.Ctrl->Repaint
+				#endif
+			End If
+		End With
+	End Sub
+	
 	Private Constructor Panel
 		With This
 			#ifdef __USE_GTK__
@@ -280,7 +315,7 @@ Namespace My.Sys.Forms
 				'widget = gtk_layout_new(null, null)
 				'widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
 				'gtk_container_add(GTK_CONTAINER(widget), box)
-				widget = gtk_layout_new(null, null)
+				widget = gtk_layout_new(NULL, NULL)
 				'gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
 				'gtk_box_pack_end(Gtk_Box(widget), layoutwidget, true, true, 0)
 				
@@ -306,11 +341,13 @@ Namespace My.Sys.Forms
 			FBorderWidth = 0
 			'FBevelWidth=2
 			'PopupMenu.Ctrl = This
-			Canvas.Ctrl    = @This
-			.Child       = @This
+			.Child          = @This
+			.Canvas.Ctrl    = @This
+			.Graphic.Ctrl   = @This
+			.Graphic.OnChange = @GraphicChange
 			#ifdef __USE_WINAPI__
 				.RegisterClass "Panel"
-				.ChildProc   = @WndProc
+				.ChildProc   = @WNDPROC
 				.ExStyle     = 0
 				.Style       = WS_CHILD
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
