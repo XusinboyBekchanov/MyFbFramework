@@ -187,9 +187,9 @@ Namespace My.Sys.Forms
 	
 	Private Property Label.WordWraps(Value As Boolean)
 		If Value <> FWordWraps Then
-			FWordWraps = value
+			FWordWraps = Value
 			#ifdef __USE_GTK__
-				gtk_label_set_line_wrap(gtk_label(widget), Value)
+				gtk_label_set_line_wrap(GTK_LABEL(widget), Value)
 			#else
 				ChangeLabelStyle
 			#endif
@@ -203,16 +203,20 @@ Namespace My.Sys.Forms
 					Select Case ImageType
 					Case IMAGE_BITMAP
 						QLabel(.Ctrl->Child).Style = lsBitmap
-						QLabel(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Bitmap.Handle))
+						QLabel(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(Sender.Bitmap.Handle))
+						QLabel(.Ctrl->Child).RecreateWnd
 					Case IMAGE_ICON
 						QLabel(.Ctrl->Child).Style = lsIcon
 						QLabel(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Icon.Handle))
+						QLabel(.Ctrl->Child).RecreateWnd
 					Case IMAGE_CURSOR
 						QLabel(.Ctrl->Child).Style = lsCursor
 						QLabel(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Icon.Handle))
+						QLabel(.Ctrl->Child).RecreateWnd
 					Case IMAGE_ENHMETAFILE
 						QLabel(.Ctrl->Child).Style = lsEmf
 						QLabel(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(0))
+						QLabel(.Ctrl->Child).RecreateWnd
 					End Select
 				#endif
 			End If
@@ -303,7 +307,7 @@ Namespace My.Sys.Forms
 			AWordWraps(0)       = SS_ENDELLIPSIS
 			AWordWraps(1)       = 0
 		#endif
-		Graphic.Ctrl = This
+		Graphic.Ctrl = @This
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
 		FWordWraps       = True
