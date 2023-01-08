@@ -189,6 +189,7 @@ Namespace My.Sys.Drawing
 		Declare Sub TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
 		Declare Sub DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
+		Declare Sub DrawAlpha(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
 		Declare Sub Draw(x As Double, y As Double, Image As Any Ptr)
 		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
 		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)

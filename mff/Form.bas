@@ -1140,20 +1140,20 @@ Namespace My.Sys.Forms
 				Dc = BeginPaint(Handle, @Ps)
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
-					Bmp   = CreateCompatibleBitmap(Dc,Ps.rcPaint.Right,Ps.rcPaint.Bottom)
-					SelectObject(memDC,Bmp)
+					Bmp   = CreateCompatibleBitmap(Dc, Ps.rcPaint.right, Ps.rcPaint.bottom)
+					SelectObject(memDC, Bmp)
 					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
-					FillRect memDC,@Ps.rcPaint, Brush.Handle
+					FillRect memDC, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
-					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, Graphic.Bitmap
 					If OnPaint Then OnPaint(This, Canvas)
-					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
+					BitBlt(Dc, 0, 0, Ps.rcPaint.right, Ps.rcPaint.bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				Else
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
-					If Graphic.Bitmap.Handle <> 0 Then Canvas.Draw 0, 0, Graphic.Bitmap.Handle
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, Graphic.Bitmap
 					If OnPaint Then OnPaint(This, Canvas)
 				End If
 				EndPaint Handle,@Ps
