@@ -12,7 +12,6 @@
 '################################################################################
 
 #include once "ContainerControl.bi"
-#include once "Application.bi"
 #include once "Graphic.bi"
 
 Namespace My.Sys.Forms
@@ -108,8 +107,8 @@ Namespace My.Sys.Forms
 		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
 	Protected:
-		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		FControlBox     As Boolean
+		FKeyPreview     As Boolean
 		FMinimizeBox    As Boolean
 		FMaximizeBox    As Boolean
 		FOpacity        As Integer
@@ -121,6 +120,7 @@ Namespace My.Sys.Forms
 			Declare Property ParentWidget(Value As GtkWidget Ptr)
 		#endif
 	Public:
+		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		'Returns the icon displayed when a form is minimized at run time (Windows, Linux).
 		Icon          As My.Sys.Drawing.Icon
 		'Returns/sets a graphic to be displayed in a control (Windows, Linux).
@@ -153,6 +153,9 @@ Namespace My.Sys.Forms
 		'Returns/sets a value that indicates whether form is minimized, maximized, or normal (Windows, Linux).
 		Declare Property WindowState As Integer 'WindowStates
 		Declare Property WindowState(Value As Integer)
+		'Returns/sets whether keyboard events for an object are invoked before keyboard events for controls on that object.
+		Declare Property KeyPreview As Boolean
+		Declare Property KeyPreview(Value As Boolean)
 		'Returns/sets the starting position of the form at run time (Windows, Linux).
 		Declare Property StartPosition As Integer 'FormStartPosition
 		Declare Property StartPosition(Value As Integer)

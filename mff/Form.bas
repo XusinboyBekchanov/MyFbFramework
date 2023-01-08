@@ -12,6 +12,7 @@
 '################################################################################
 
 #include once "Form.bi"
+#include once "Application.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/uxtheme.bi"
 	#include once "DarkMode/UAHMenuBar.bi"
@@ -29,6 +30,7 @@ Namespace My.Sys.Forms
 			Case "defaultbutton": Return FDefaultButton
 			Case "icon": Return @Icon
 			Case "controlbox": Return @FControlBox
+			Case "keypreview": Return @FKeyPreview
 			Case "minimizebox": Return @FMinimizeBox
 			Case "maximizebox": Return @FMaximizeBox
 			Case "formstyle": Return @FFormStyle
@@ -67,6 +69,7 @@ Namespace My.Sys.Forms
 				Case "defaultbutton": This.DefaultButton = Cast(Control Ptr, Value)
 				Case "formstyle": This.FormStyle = QInteger(Value)
 				Case "controlbox": This.ControlBox = QBoolean(Value)
+				Case "keypreview": This.KeyPreview = QBoolean(Value)
 				Case "minimizebox": This.MinimizeBox = QBoolean(Value)
 				Case "maximizebox": This.MaximizeBox = QBoolean(Value)
 				Case "icon": This.Icon = QWString(Value)
@@ -114,6 +117,14 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End If
+	End Property
+	
+	Private Property Form.KeyPreview As Boolean
+		Return FKeyPreview
+	End Property
+	
+	Private Property Form.KeyPreview(Value As Boolean)
+		FKeyPreview = Value
 	End Property
 	
 	#ifdef __USE_GTK__
@@ -1915,6 +1926,7 @@ End Namespace
 				Dim As jobject at = (*env)->CallStaticObjectMethod(env, activityThread, currentActivityThread)
 				Dim As jmethodID getApplication = (*env)->GetMethodID(env, activityThread, "getApplication", "()Landroid/app/Application;")
 				pApp->Instance = (*env)->CallObjectMethod(env, at, getApplication)
+				Instance = pApp->Instance
 				Dim As jobject res = CallObjectMethod(pApp->Instance, "android/content/Context", "getResources", "()Landroid/content/res/Resources;")
 				Dim As jobject displaymetrics = CallObjectMethod(res, "android/content/res/Resources", "getDisplayMetrics", "()Landroid/util/DisplayMetrics;")
 				Dim As jclass displaymetricsClass = (*env)->FindClass(env, "android/util/DisplayMetrics")

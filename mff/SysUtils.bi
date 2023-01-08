@@ -115,7 +115,8 @@ Const HELP_SETPOPUP_POS = &Hd
 	
 	Declare Function MainHandle As HWND
 #elseif defined(__USE_JNI__)
-	Dim Shared env          As JNIEnv Ptr
+	Dim Shared env         As JNIEnv Ptr
+	Dim Shared Instance As jobject
 #endif
 Dim Shared xdpi         As Double
 Dim Shared ydpi         As Double

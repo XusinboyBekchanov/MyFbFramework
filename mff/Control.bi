@@ -215,9 +215,9 @@ Namespace My.Sys.Forms
 				ToolTipHandle       As HWND
 			#endif
 			Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
-			Declare Virtual Sub ProcessMessage(ByRef message As message)
 			Declare Virtual Sub ProcessMessageAfter(ByRef message As message)
 		Public:
+			Declare Virtual Sub ProcessMessage(ByRef message As message)
 			'Canvas is all about drawing in a container (Windows, Linux).
 			Canvas        As My.Sys.Drawing.Canvas
 			'Activates the next control (Windows only).
@@ -412,6 +412,9 @@ Namespace My.Sys.Forms
 		
 		Dim Shared CreationControl As Control Ptr
 	#endif
+	#ifdef __USE_JNI__
+		Dim Shared AppMainForm As Control Ptr
+	#EndIf
 End Namespace
 
 #ifdef __EXPORT_PROCS__

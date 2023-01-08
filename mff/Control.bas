@@ -12,7 +12,6 @@
 '###############################################################################
 
 #include once "Control.bi"
-#include once "Application.bi"
 
 Namespace My.Sys.Forms
 	#ifndef Control_Off
@@ -1010,11 +1009,11 @@ Namespace My.Sys.Forms
 					'End If
 				#endif
 			#elseif defined(__USE_JNI__)
-				If pApp = 0 OrElse env = 0 OrElse pApp->Instance = 0 Then Exit Sub
+				If env = 0 OrElse Instance = 0 Then Exit Sub
 				If FHandle = 0 AndAlso *FClassAncestor <> "" Then
 					Dim As jclass class_object = (*env)->FindClass(env, *FClassAncestor)
 					Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_object, "<init>", "(Landroid/content/Context;)V")
-					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, pApp->Instance)
+					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, Instance)
 				End If
 				Text = FText
 			#endif
@@ -1037,7 +1036,7 @@ Namespace My.Sys.Forms
 							'							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						End If
 					#elseif defined(__USE_JNI__)
-						If pApp AndAlso env Then
+						If env Then
 							Handles.Add @This
 							FHandle = (*env)->NewGlobalRef(env, FHandle)
 							If layoutview Then
@@ -1045,9 +1044,9 @@ Namespace My.Sys.Forms
 								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
 								(*env)->CallVoidMethod(env, layoutview, (*env)->GetMethodID(env, class_view, "setId", "(I)V"), FID)
 								Dim As jmethodID setOnClickListener = (*env)->GetMethodID(env, class_view, "setOnClickListener", "(Landroid/view/View$OnClickListener;)V")
-								(*env)->CallVoidMethod(env, layoutview, setOnClickListener, pApp->MainForm->Handle)
+								(*env)->CallVoidMethod(env, layoutview, setOnClickListener, AppMainForm->Handle)
 								Dim As jmethodID addOnLayoutChangeListener = (*env)->GetMethodID(env, class_view, "addOnLayoutChangeListener", "(Landroid/view/View$OnLayoutChangeListener;)V")
-								(*env)->CallVoidMethod(env, layoutview, addOnLayoutChangeListener, pApp->MainForm->Handle)
+								(*env)->CallVoidMethod(env, layoutview, addOnLayoutChangeListener, AppMainForm->Handle)
 							End If
 							FID = Handles.Count - 1
 							If This.Parent AndAlso This.Parent->layoutview Then
@@ -1066,9 +1065,9 @@ Namespace My.Sys.Forms
 								If OnClick Then
 									Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
 									Dim As jmethodID setOnClickListener = (*env)->GetMethodID(env, class_view, "setOnClickListener", "(Landroid/view/View$OnClickListener;)V")
-									(*env)->CallVoidMethod(env, FHandle, setOnClickListener, pApp->MainForm->Handle)
+									(*env)->CallVoidMethod(env, FHandle, setOnClickListener, AppMainForm->Handle)
 									Dim As jmethodID addOnLayoutChangeListener = (*env)->GetMethodID(env, class_view, "addOnLayoutChangeListener", "(Landroid/view/View$OnLayoutChangeListener;)V")
-									(*env)->CallVoidMethod(env, FHandle, addOnLayoutChangeListener, pApp->MainForm->Handle)
+									(*env)->CallVoidMethod(env, FHandle, addOnLayoutChangeListener, AppMainForm->Handle)
 								End If
 								'								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/view/ViewGroup$MarginLayoutParams")
 								'								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(II)V")

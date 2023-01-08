@@ -30,6 +30,7 @@
 #define __EXPORT_PROCS__
 #define MEMCHECK 0
 
+#include once "Form.bi"
 #include once "Animate.bi"
 #include once "Application.bi"
 #include once "Bitmap.bi"
@@ -50,7 +51,6 @@
 #include once "DateTimePicker.bi"
 #include once "Dialogs.bi"
 #include once "Font.bi"
-#include once "Form.bi"
 #include once "Graphic.bi"
 #include once "Graphics.bi"
 #include once "Grid.bi"

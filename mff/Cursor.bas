@@ -198,10 +198,13 @@ Namespace My.Sys.Drawing
 		End Function
 	#endif
 	
-	'Private Operator Cursor.Let(Value As Integer)
-	'	'LoadFromResourceID(Value)
-	'	'This.ResName = WStr(Value)
-	'End Operator
+	Private Operator Cursor.Let(Value As Integer)
+		#ifdef __USE_WINAPI__
+			If Handle Then DestroyCursor(Handle)
+			Handle = Cast(HCURSOR, Value)
+			If Ctrl AndAlso Ctrl->Handle Then SendMessage(Ctrl->Handle, WM_SETCURSOR, Cast(WPARAM, Ctrl->Handle), Cast(LPARAM, 1))
+		#endif
+	End Operator
 	
 	#ifdef __USE_GTK__
 		Private Operator Cursor.Let(Value As GdkCursorType)

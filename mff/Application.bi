@@ -12,7 +12,7 @@
 '###############################################################################
 
 #include once "WStringList.bi"
-#include once "Control.bi"
+#include once "Form.bi"
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK4__
 		#include once "gir_headers/Gir/GModule-2.0.bi"
@@ -107,17 +107,17 @@ Namespace My
 		FHintShortPause As Integer
 		FHintHidePause  As Integer
 		FFormCount      As Integer
-		FForms          As My.Sys.Forms.Control Ptr Ptr
+		FForms          As My.Sys.Forms.Form Ptr Ptr
 		FControlCount   As Integer
 		FControls       As My.Sys.Forms.Control Ptr Ptr
-		FActiveForm     As My.Sys.Forms.Control Ptr
-		FActiveMDIChild As My.Sys.Forms.Control Ptr
-		FMainForm       As My.Sys.Forms.Control Ptr
+		FActiveForm     As My.Sys.Forms.Form Ptr
+		FActiveMDIChild As My.Sys.Forms.Form Ptr
+		FMainForm       As My.Sys.Forms.Form Ptr
 		Declare Sub GetControls
 		Declare Sub EnumControls(Control As My.Sys.Forms.Control)
 		#ifdef __USE_WINAPI__
 			Declare Static Function EnumThreadWindowsProc(FWindow As HWND,LData As LPARAM) As BOOL
-			Declare Static Function EnumFontsProc(LogFont As LogFont Ptr, TextMetric As TextMetric Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
+			Declare Static Function EnumFontsProc(LOGFONT As LOGFONT Ptr, TEXTMETRIC As TEXTMETRIC Ptr, FontStyle As DWORD, hData As LPARAM) As Integer
 		#endif
 		Declare Sub GetFonts
 		Declare Sub GetForms
@@ -140,23 +140,23 @@ Namespace My
 		#elseif defined(__USE_JNI__)
 			Instance     As jobject
 		#endif
-		Declare Property ActiveForm As My.Sys.Forms.Control Ptr
-		Declare Property ActiveForm(Value As My.Sys.Forms.Control Ptr)
-		Declare Property ActiveMDIChild As My.Sys.Forms.Control Ptr
-		Declare Property ActiveMDIChild(Value As My.Sys.Forms.Control Ptr)
+		Declare Property ActiveForm As My.Sys.Forms.Form Ptr
+		Declare Property ActiveForm(Value As My.Sys.Forms.Form Ptr)
+		Declare Property ActiveMDIChild As My.Sys.Forms.Form Ptr
+		Declare Property ActiveMDIChild(Value As My.Sys.Forms.Form Ptr)
 		Declare Property FileName ByRef As WString
 		Declare Property FileName(ByRef Value As WString)
 		Declare Function Version() As Const String
 		Declare Function GetVerInfo(ByRef InfoName As String) As String
 		
 		Declare Property Icon As My.Sys.Drawing.Icon
-		Declare Property Icon(value As My.Sys.Drawing.Icon)
+		Declare Property Icon(Value As My.Sys.Drawing.Icon)
 		Declare Property Title ByRef As WString
 		Declare Property Title(ByRef Value As WString)
 		Declare Property ExeName ByRef As WString
 		Declare Property ExeName(ByRef Value As WString)
-		Declare Property MainForm As My.Sys.Forms.Control Ptr
-		Declare Property MainForm(Value As My.Sys.Forms.Control Ptr)
+		Declare Property MainForm As My.Sys.Forms.Form Ptr
+		Declare Property MainForm(Value As My.Sys.Forms.Form Ptr)
 '		Declare Property HintColor As Integer
 '		Declare Property HintColor(value As Integer)
 '		Declare Property HintPause As Integer
@@ -170,8 +170,8 @@ Namespace My
 		Declare Property Controls As My.Sys.Forms.Control Ptr Ptr
 		Declare Property Controls(Value  As My.Sys.Forms.Control Ptr Ptr)
 		Declare Function FormCount As Integer
-		Declare Property Forms As My.Sys.Forms.Control Ptr Ptr
-		Declare Property Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
+		Declare Property Forms As My.Sys.Forms.Form Ptr Ptr
+		Declare Property Forms(Value As My.Sys.Forms.Form Ptr Ptr)
 		Declare Operator Cast As Any Ptr
 		Declare Sub Run
 		Declare Sub Terminate
@@ -179,7 +179,7 @@ Namespace My
 		Declare Sub HelpCommand(CommandID As Integer,FData As Long)
 		Declare Sub HelpContext(ContextID As Long)
 		Declare Sub HelpJump(TopicID As String)
-		Declare Function IndexOfForm(Form As My.Sys.Forms.Control Ptr) As Integer
+		Declare Function IndexOfForm(Form As My.Sys.Forms.Form Ptr) As Integer
 		#ifdef __USE_WINAPI__
 			Declare Function FindControl Overload(ControlHandle As HWND) As My.Sys.Forms.Control Ptr
 		#endif
@@ -188,7 +188,7 @@ Namespace My
 		Declare Constructor
 		Declare Destructor
 		OnMouseMove As Sub(ByRef X As Integer, ByRef Y As Integer)
-		OnMessage As Sub(ByRef msg As Message)
+		OnMessage As Sub(ByRef MSG As Message)
 	End Type
 End Namespace
 

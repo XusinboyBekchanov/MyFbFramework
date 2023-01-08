@@ -12,6 +12,7 @@
 '###############################################################################
 
 #include once "Application.bi"
+#include once "Form.bi"
 #include once "DarkMode/DarkMode.bi"
 
 Dim Shared App As My.Application
@@ -133,29 +134,29 @@ Namespace My
 		Return *FFileName
 	End Property
 	
-	Private Property Application.ActiveForm As My.Sys.Forms.Control Ptr
+	Private Property Application.ActiveForm As My.Sys.Forms.Form Ptr
 		Return FActiveForm
 	End Property
 	
-	Private Property Application.ActiveForm(Value As My.Sys.Forms.Control Ptr)
+	Private Property Application.ActiveForm(Value As My.Sys.Forms.Form Ptr)
 		FActiveForm = Value
 		'		#ifdef __USE_WINAPI__
 		'			If Value Then SetForegroundWindow(Value->Handle)
 		'		#endif
 	End Property
 	
-	Private Property Application.ActiveMDIChild As My.Sys.Forms.Control Ptr
+	Private Property Application.ActiveMDIChild As My.Sys.Forms.Form Ptr
 		Return FActiveMDIChild
 	End Property
 	
-	Private Property Application.ActiveMDIChild(Value As My.Sys.Forms.Control Ptr)
+	Private Property Application.ActiveMDIChild(Value As My.Sys.Forms.Form Ptr)
 		FActiveMDIChild = Value
 		'		#ifdef __USE_WINAPI__
 		'			If Value Then SetForegroundWindow(Value->Handle)
 		'		#endif
 	End Property
 	
-	Private Property Application.MainForm As My.Sys.Forms.Control Ptr
+	Private Property Application.MainForm As My.Sys.Forms.Form Ptr
 		'        For i As Integer = 0 To FormCount -1
 		'            If (Forms[i]->ExStyle AND WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
 		'                FMainForm = Forms[i]
@@ -164,10 +165,12 @@ Namespace My
 		'        Next i
 	End Property
 	
-	Private Property Application.MainForm(Value As My.Sys.Forms.Control Ptr)
+	Private Property Application.MainForm(Value As My.Sys.Forms.Form Ptr)
 		FMainForm = Value
 		#ifdef __USE_GTK__
 			If FMainForm AndAlso FMainForm->Handle Then g_signal_connect(FMainForm->Handle, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
+		#elseif defined(__USE_JNI__)
+			My.Sys.Forms.AppMainForm = FMainForm
 		#endif
 	End Property
 	
@@ -197,13 +200,13 @@ Namespace My
 	End Function
 	
 	#ifndef Application_Forms_Get_Off
-		Private Property Application.Forms As My.Sys.Forms.Control Ptr Ptr
+		Private Property Application.Forms As My.Sys.Forms.Form Ptr Ptr
 			GetForms
 			Return FForms
 		End Property
 	#endif
 	
-	Private Property Application.Forms(Value  As My.Sys.Forms.Control Ptr Ptr)
+	Private Property Application.Forms(Value  As My.Sys.Forms.Form Ptr Ptr)
 	End Property
 	
 	'	Property Application.HintColor As Integer
@@ -340,6 +343,14 @@ Namespace My
 					OnMessage(mess)
 					If mess.Result Then TranslateAndDispatch = False
 				End If
+				If FActiveForm <> 0 AndAlso FActiveForm->KeyPreview Then
+					Select Case msg.message
+					Case WM_KEYDOWN, WM_KEYUP, WM_CHAR
+						mess = Type(@This, msg.hwnd, msg.message, msg.wParam, msg.lParam, 0, LoWord(msg.wParam), HiWord(msg.wParam), LoWord(msg.lParam), HiWord(msg.lParam), 0)
+						FActiveForm->ProcessMessage(mess)
+						If mess.Result Then TranslateAndDispatch = False
+					End Select
+				End If
 				If TranslateAndDispatch Then
 					TranslateMessage @msg
 					DispatchMessage @msg
@@ -408,7 +419,7 @@ Namespace My
 		Return NULL
 	End Function
 	
-	Private Function Application.IndexOfForm(Form As My.Sys.Forms.Control Ptr) As Integer
+	Private Function Application.IndexOfForm(Form As My.Sys.Forms.Form Ptr) As Integer
 		Dim As Integer i
 		If Forms Then
 			For i = 0 To FormCount -1
@@ -420,16 +431,16 @@ Namespace My
 	
 	#ifdef __USE_WINAPI__
 		Private Function Application.EnumThreadWindowsProc(FWindow As HWND, LData As LPARAM) As BOOL
-			Dim As My.Sys.Forms.Control Ptr AControl
+			Dim As My.Sys.Forms.Form Ptr AForm
 			Dim As Application Ptr Appl
 			Appl = Cast(Application Ptr, LData)
-			AControl = Cast(My.Sys.Forms.Control Ptr, GetWindowLongPtr(FWindow,GWLP_USERDATA))
+			AForm = Cast(My.Sys.Forms.Form Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 			If Appl Then
-				If AControl Then
+				If AForm Then
 					With QApplication(Appl)
 						.FFormCount += 1
-						.FForms = Reallocate_(.FForms,SizeOf(My.Sys.Forms.Control Ptr)*.FFormCount)
-						.FForms[.FFormCount -1] = AControl
+						.FForms = Reallocate_(.FForms, SizeOf(My.Sys.Forms.Form Ptr) *.FFormCount)
+						.FForms[.FFormCount - 1] = AForm
 					End With
 				End If
 			End If
