@@ -270,14 +270,8 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		#elseif defined(__USE_WINAPI__)
-			ChangeExStyle WS_EX_LAYERED, Cast(Boolean, 255 - FOpacity)
-			If FHandle Then
-				If FOpacity = 0 Then
-					SetLayeredWindowAttributes(FHandle, FTransparentColor, 0, LWA_COLORKEY)
-				Else
-					SetLayeredWindowAttributes(FHandle, 0, FOpacity, LWA_ALPHA)
-				End If
-			End If
+			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparentColor <> -1
+			If FHandle Then SetLayeredWindowAttributes(FHandle, FTransparentColor, FOpacity, LWA_COLORKEY Or LWA_ALPHA)
 		#endif
 	End Property
 	
@@ -288,8 +282,8 @@ Namespace My.Sys.Forms
 	Private Property Form.TransparentColor(Value As Integer)
 		FTransparentColor = Value
 		#ifdef __USE_WINAPI__
-			ChangeExStyle WS_EX_LAYERED, Cast(Boolean, 255 - FOpacity)
-			If FHandle Then SetLayeredWindowAttributes(FHandle, FTransparentColor, 0, LWA_COLORKEY)
+			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparentColor <> -1
+			If FHandle Then SetLayeredWindowAttributes(FHandle, FTransparentColor, FOpacity, LWA_COLORKEY Or LWA_ALPHA)
 		#endif
 	End Property
 	
@@ -786,7 +780,7 @@ Namespace My.Sys.Forms
 						'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 						'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 					End If
-					If .Opacity <> 255 Then SetLayeredWindowAttributes(.Handle, .TransparentColor, .Opacity, IIf(.Opacity = 0, LWA_COLORKEY, LWA_ALPHA))
+					If .Opacity <> 255 OrElse .TransparentColor <> -1 Then SetLayeredWindowAttributes(.Handle, .TransparentColor, .Opacity, LWA_COLORKEY Or LWA_ALPHA)
 					.ChangeTabIndex -2
 					SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
 					If .Menu Then .Menu->ParentWindow = @Sender
@@ -1855,6 +1849,7 @@ Namespace My.Sys.Forms
 		FMinimizeBox = True
 		FMaximizeBox = True
 		FOpacity = 255
+		FTransparentColor = -1
 		Canvas.Ctrl    = @This
 		Graphic.Ctrl = @This
 		Graphic.OnChange = @GraphicChange
