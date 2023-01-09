@@ -284,7 +284,7 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparent
-			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, LWA_COLORKEY Or LWA_ALPHA)
+			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, IIf(FTransparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
 		#endif
 	End Property
 	
@@ -296,7 +296,7 @@ Namespace My.Sys.Forms
 		FTransparent = Value
 		#ifdef __USE_WINAPI__
 			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparent
-			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, LWA_COLORKEY Or LWA_ALPHA)
+			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, IIf(FTransparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
 		#endif
 	End Property
 	
@@ -307,7 +307,7 @@ Namespace My.Sys.Forms
 	Private Property Form.TransparentColor(Value As Integer)
 		FTransparentColor = Value
 		#ifdef __USE_WINAPI__
-			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, LWA_COLORKEY Or LWA_ALPHA)
+			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, IIf(FTransparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
 		#endif
 	End Property
 	
@@ -804,7 +804,7 @@ Namespace My.Sys.Forms
 						'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 						'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 					End If
-					If .Opacity <> 255 OrElse .Transparent Then SetLayeredWindowAttributes(.Handle, IIF(.TransparentColor = -1, .BackColor, .TransparentColor), .Opacity, LWA_COLORKEY Or LWA_ALPHA)
+					If .Opacity <> 255 OrElse .Transparent Then SetLayeredWindowAttributes(.Handle, IIf(.TransparentColor = -1, .BackColor, .TransparentColor), .Opacity, IIf(.Transparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
 					.ChangeTabIndex -2
 					SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
 					If .Menu Then .Menu->ParentWindow = @Sender
