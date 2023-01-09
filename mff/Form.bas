@@ -39,6 +39,7 @@ Namespace My.Sys.Forms
 			Case "modalresult": Return @ModalResult
 			Case "opacity": Return @FOpacity
 			Case "owner": Return FOwner
+			Case "transparent": Return @FTransparent
 			Case "transparentcolor": Return @FTransparentColor
 			Case "windowstate": Return @FWindowState
 			Case "startposition": Return @FStartPosition
@@ -82,6 +83,7 @@ Namespace My.Sys.Forms
 					Case "parentwidget": This.ParentWidget = Value
 					#endif
 				Case "text": This.Text = QWString(Value)
+				Case "transparent": This.Transparent = QBoolean(Value)
 				Case "transparentcolor": This.TransparentColor = QInteger(Value)
 				Case "windowstate": This.WindowState = QInteger(Value)
 				Case "startposition": This.StartPosition = QInteger(Value)
@@ -249,7 +251,7 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK4__
 							Dim As GdkRectangle workarea
 							gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-							gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+							gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 						#else
 							gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
 						#endif
@@ -281,8 +283,20 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		#elseif defined(__USE_WINAPI__)
-			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparentColor <> -1
-			If FHandle Then SetLayeredWindowAttributes(FHandle, FTransparentColor, FOpacity, LWA_COLORKEY Or LWA_ALPHA)
+			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparent
+			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, LWA_COLORKEY Or LWA_ALPHA)
+		#endif
+	End Property
+	
+	Private Property Form.Transparent As Boolean
+		Return FTransparent
+	End Property
+	
+	Private Property Form.Transparent(Value As Boolean)
+		FTransparent = Value
+		#ifdef __USE_WINAPI__
+			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparent
+			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, LWA_COLORKEY Or LWA_ALPHA)
 		#endif
 	End Property
 	
@@ -293,8 +307,7 @@ Namespace My.Sys.Forms
 	Private Property Form.TransparentColor(Value As Integer)
 		FTransparentColor = Value
 		#ifdef __USE_WINAPI__
-			ChangeExStyle WS_EX_LAYERED, FOpacity <> 255 OrElse FTransparentColor <> -1
-			If FHandle Then SetLayeredWindowAttributes(FHandle, FTransparentColor, FOpacity, LWA_COLORKEY Or LWA_ALPHA)
+			If FHandle Then SetLayeredWindowAttributes(FHandle, IIf(FTransparentColor = -1, FBackColor, FTransparentColor), FOpacity, LWA_COLORKEY Or LWA_ALPHA)
 		#endif
 	End Property
 	
@@ -791,7 +804,7 @@ Namespace My.Sys.Forms
 						'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 						'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 					End If
-					If .Opacity <> 255 OrElse .TransparentColor <> -1 Then SetLayeredWindowAttributes(.Handle, .TransparentColor, .Opacity, LWA_COLORKEY Or LWA_ALPHA)
+					If .Opacity <> 255 OrElse .Transparent Then SetLayeredWindowAttributes(.Handle, IIF(.TransparentColor = -1, .BackColor, .TransparentColor), .Opacity, LWA_COLORKEY Or LWA_ALPHA)
 					.ChangeTabIndex -2
 					SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
 					If .Menu Then .Menu->ParentWindow = @Sender
