@@ -57,7 +57,7 @@ Public:
 	Declare Property Object(Index As Integer) As Any Ptr
 	Declare Property Object(Index As Integer, FObj As Any Ptr)
 	Declare Function Add(ByRef iValue As WString, FObj As Any Ptr = 0) As Integer
-	Declare Function Insert(ByVal Index As Integer, ByRef iValue As WString, FObj As Any Ptr = 0) As Integer 
+	Declare Function Insert(ByVal Index As Integer, ByRef iValue As WString, FObj As Any Ptr = 0) As Integer
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
 	Declare Sub Sort(iLeft As Integer = 0, iRight As Integer = 0)

@@ -56,6 +56,9 @@ Private Property WStringList.Count As Integer
 	Return FCount
 End Property
 
+Private Property WStringList.Count(iValue As Integer)
+End Property
+
 #ifndef WStringList_MatchCase_Get_Off
 	Private Property WStringList.MatchCase As Boolean
 		Return FMatchCase
@@ -82,9 +85,6 @@ End Property
 
 Private Property WStringList.Sorted As Boolean
 	Return FSorted
-End Property
-
-Private Property WStringList.Count(iValue As Integer)
 End Property
 
 Private Property WStringList.Text ByRef As WString
@@ -160,9 +160,9 @@ End Property
 			End With
 			FItems.Add nItem
 			FCount = FItems.Count
+			If OnAdd Then OnAdd(This, iValue, FObj)
 			Return FCount - 1
 		End If
-		If OnAdd Then OnAdd(This, iValue, FObj)
 	End Function
 #endif
 
