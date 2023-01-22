@@ -240,7 +240,7 @@ Namespace My.Sys.Forms
 		FState = Value
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
-				lvi.Mask = LVIF_STATE
+				lvi.mask = LVIF_STATE
 				lvi.iItem = Index
 				lvi.iSubItem   = 0
 				lvi.state    = Value
@@ -714,6 +714,7 @@ Namespace My.Sys.Forms
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
 		#endif
+		Delete_(Cast(ListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 	End Sub
 	
@@ -734,14 +735,14 @@ Namespace My.Sys.Forms
 	Private Sub ListViewItems.Sort
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
-				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WParam, @ListViewCompareFunc)
+				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WPARAM, @ListViewCompareFunc)
 				'ListView_SortItems Parent->Handle, @CompareFunc, 0
 			End If
 		#endif
 	End Sub
 	
 	Private Function ListViewItems.IndexOf(ByRef FItem As ListViewItem Ptr) As Integer
-		Return FItems.IndexOF(FItem)
+		Return FItems.IndexOf(FItem)
 	End Function
 	
 	Private Function ListViewItems.IndexOf(ByRef Caption As WString) As Integer
@@ -759,7 +760,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ListViewItems.Clear
 		#ifdef __USE_GTK__
-			If Parent AndAlso gtk_list_store(ListViewGetModel(Parent->Handle)) Then gtk_list_store_clear(gtk_list_store(ListViewGetModel(Parent->Handle)))
+			If Parent AndAlso GTK_LIST_STORE(ListViewGetModel(Parent->Handle)) Then gtk_list_store_clear(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)))
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
@@ -810,7 +811,7 @@ Namespace My.Sys.Forms
 	
 		Private Sub ListViewColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 			Dim As ListView Ptr lv = user_data
-			Dim As GtkListStore Ptr model = gtk_list_store(ListViewGetModel(lv->Handle))
+			Dim As GtkListStore Ptr model = GTK_LIST_STORE(ListViewGetModel(lv->Handle))
 			Dim As GtkTreeIter iter
 			Dim As gboolean active
 			
