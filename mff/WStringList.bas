@@ -400,7 +400,7 @@ End Sub
 #endif
 
 Private Function WStringList.Contains(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0, ByRef Idx As Integer = -1, ByRef ListItem As WStringListItem Ptr = 0) As Boolean
-	Idx = IndexOf(iValue, MatchCase, True, iStart, ListItem)
+	Idx = IndexOf(iValue, bMatchCase, True, iStart, ListItem)
 	Return Idx <> -1
 End Function
 

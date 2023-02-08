@@ -1199,6 +1199,7 @@ Namespace My.Sys.Forms
 			Case WM_SIZE
 				'Dim As Rect rc1
 				'If FClient <> 0 Then GetClientRect FClient, @rc1
+				xdpi = 0: ydpi = 0 'For muilti screen and have diffrent values.
 				If Not IsIconic(FHandle) Then
 					RequestAlign
 				End If
