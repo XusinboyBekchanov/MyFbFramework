@@ -120,8 +120,6 @@ Const HELP_SETPOPUP_POS = &Hd
 #endif
 Dim Shared xdpi         As Double
 Dim Shared ydpi         As Double
-Dim Shared oldxdpi      As Double
-Dim Shared oldydpi      As Double
 
 #ifdef __USE_JNI__
 	Declare Function ScaleX(ByVal cx As Single) As Integer
