@@ -786,6 +786,15 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				Dim As HMENU NoNeedSysMenu
 				With QForm(Sender.Child)
+					'xdpi = 0: ydpi = 0 'For muilti screen and have diffrent values.
+					Dim hDC As HDC
+					hDC = GetDC(.HANDLE)
+					xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+					ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+					ReleaseDC(.HANDLE, hDC)
+					If xdpi = 0 Then xdpi = 1
+					If ydpi = 0 Then ydpi = 1
+					.FDpiFormX = xdpi : .FDpiFormY = ydpi
 					SetClassLong(.Handle,GCL_STYLE,.FClassStyle(.BorderStyle))
 					If .FBorderStyle = 2 Then
 						SetClassLongPtr(.Handle,GCLP_HICON,NULL)
@@ -957,6 +966,20 @@ Namespace My.Sys.Forms
 					RefreshTitleBarThemeColor(msg.hWnd)
 					UpdateWindow(msg.hWnd)
 				End If
+			Case WM_DPICHANGED
+				'Print "DPICHANGED Forms xdpi=" & xdpi & "ydpi=" & ydpi
+				Dim hDC As HDC
+				hDC = GetDC(FHandle)
+				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+				ReleaseDC(FHandle, hDC)
+				If xdpi = 0 Then xdpi = FDpiFormX
+				If ydpi = 0 Then ydpi = FDpiFormY
+				If Not IsIconic(FHandle) AndAlso (xdpi <> FDpiFormX OrElse ydpi <> FDpiFormY) Then 
+					FDpiFormX = xdpi
+					FDpiFormY = ydpi
+					RequestAlign
+				End If
 			Case WM_UAHDRAWMENU
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As UAHMENU Ptr pUDM = Cast(UAHMENU Ptr, msg.lParam)
@@ -1099,7 +1122,7 @@ Namespace My.Sys.Forms
 						'Dim As DTTOPTS opts = Type( SizeOf(opts), DTT_TEXTCOLOR, IIf(iTextStateID <> MPI_DISABLED, RGB(&h00, &h00, &h20), RGB(&h40, &h40, &h40) )
 						
 						FillRect(pUDMI->um.hdc, @pUDMI->dis.rcItem, *pbrBackground)
-						SetBkMode pUDMI->um.hdc, TRANSPARENT
+						SetBkMode pUDMI->um.hdc, Transparent
 						If iTextStateID = MPI_DISABLED Then
 							SetTextColor pUDMI->um.hdc, darkHlBkColor
 						Else
@@ -1176,14 +1199,14 @@ Namespace My.Sys.Forms
 				Dc = BeginPaint(Handle, @Ps)
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
-					Bmp   = CreateCompatibleBitmap(Dc, Ps.rcPaint.right, Ps.rcPaint.bottom)
+					Bmp   = CreateCompatibleBitmap(Dc, Ps.rcPaint.Right, Ps.rcPaint.Bottom)
 					SelectObject(memDC, Bmp)
 					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, Graphic.Bitmap
 					If OnPaint Then OnPaint(This, Canvas)
-					BitBlt(Dc, 0, 0, Ps.rcPaint.right, Ps.rcPaint.bottom, memDC, 0, 0, SRCCOPY)
+					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				Else
@@ -1199,7 +1222,8 @@ Namespace My.Sys.Forms
 			Case WM_SIZE
 				'Dim As Rect rc1
 				'If FClient <> 0 Then GetClientRect FClient, @rc1
-				xdpi = 0: ydpi = 0 'For muilti screen and have diffrent values.
+				xdpi = FDpiFormX
+				ydpi = FDpiFormY
 				If Not IsIconic(FHandle) Then
 					RequestAlign
 				End If
@@ -1272,6 +1296,8 @@ Namespace My.Sys.Forms
 					If OnDeActivate Then OnDeActivate(This)
 				End If
 			Case WM_ACTIVATE
+				xdpi = FDpiFormX
+				ydpi = FDpiFormY
 				Select Case msg.wParamLo
 				Case WA_ACTIVE, WA_CLICKACTIVE
 					pApp->ActiveForm = @This
@@ -1592,6 +1618,7 @@ Namespace My.Sys.Forms
 	#ifndef Form_ShowModal_Off
 		Private Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
 			This.FParent = @OwnerForm
+			CenterToParent
 			Return This.ShowModal()
 		End Function
 		

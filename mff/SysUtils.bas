@@ -189,12 +189,14 @@ End Namespace
 #else
 	Private Function ScaleX(ByVal cx As Single) As Single
 		#ifdef __USE_WINAPI__
-			If xdpi = 0 Then
+			If xdpi = 0 OrElse ydpi = 0 Then
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
 				If xdpi = 0 Then xdpi = 1
+				If ydpi = 0 Then ydpi = 1
 			End If
 			Function = cx * xdpi
 		#else
@@ -213,12 +215,14 @@ End Namespace
 #else
 	Private Function UnScaleX(ByVal cx As Single) As Single
 		#ifdef __USE_WINAPI__
-			If xdpi = 0 Then
+			If xdpi = 0 OrElse ydpi = 0 Then
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
 				If xdpi = 0 Then xdpi = 1
+				If ydpi = 0 Then ydpi = 1
 			End If
 			Function = cx / xdpi
 		#else
@@ -236,11 +240,13 @@ End Namespace
 #else
 	Private Function ScaleY(ByVal cy As Single) As Single
 		#ifdef __USE_WINAPI__
-			If ydpi = 0 Then
+			If xdpi = 0 OrElse ydpi = 0 Then
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
+				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
 				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
+				If xdpi = 0 Then xdpi = 1
 				If ydpi = 0 Then ydpi = 1
 			End If
 			Function = cy * ydpi
@@ -261,11 +267,13 @@ End Namespace
 #else
 	Private Function UnScaleY(ByVal cy As Single) As Single
 		#ifdef __USE_WINAPI__
-			If ydpi = 0 Then
+			If xdpi = 0 OrElse ydpi = 0 Then
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
+				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
 				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
+				If xdpi = 0 Then xdpi = 1
 				If ydpi = 0 Then ydpi = 1
 			End If
 			Function = cy / ydpi

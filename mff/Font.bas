@@ -238,11 +238,14 @@ Namespace My.Sys.Drawing
 		WLet(FName, DefaultFont.Name)
 		FSize     = DefaultFont.Size
 		#ifdef __USE_WINAPI__
-			If ydpi = 0 Then
+			If xdpi = 0 OrElse ydpi = 0 Then
 				Dim As HDC Dc
-				Dc = GetDC(HWND_DESKTOP)
+				Dc = GetDC(NULL)
+				xdpi = GetDeviceCaps(Dc, LOGPIXELSX) / 96
 				ydpi = GetDeviceCaps(Dc, LOGPIXELSY) / 96
-				ReleaseDC(HWND_DESKTOP, Dc)
+				If xdpi = 0 Then xdpi = 1
+				If ydpi = 0 Then ydpi = 1
+				ReleaseDC(NULL, Dc)
 			End If
 			FBolds(0) = 400
 			FBolds(1) = 700
