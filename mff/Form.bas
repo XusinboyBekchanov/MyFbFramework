@@ -1618,6 +1618,7 @@ Namespace My.Sys.Forms
 	#ifndef Form_ShowModal_Off
 		Private Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
 			This.FParent = @OwnerForm
+			CenterToParent
 			Return This.ShowModal()
 		End Function
 		
