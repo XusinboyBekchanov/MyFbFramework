@@ -98,7 +98,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			#ifdef __USE_WINAPI__
-				Declare Static Function HookClientProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+				Declare Static Function HookClientProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Declare Virtual Sub SetDark(Value As Boolean)
 			#endif
 		#endif
@@ -230,7 +230,7 @@ Namespace My.Sys.Forms
 		'Centers the position of the form within the bounds of the parent form (Windows, Linux).
 		Declare Sub CenterToParent
 		'Centers the form on the current screen (Windows, Linux).
-		Declare Sub CenterToScreen
+		Declare Sub CenterToScreen(ByVal ScrLeft As Integer = 0, ByVal ScrTop As Integer = 0, ByVal ScrWidth As Integer = 0, ByVal ScrHeight As Integer = 0)
 		Declare Constructor
 		Declare Destructor
 		'Occurs when the form is activated in code or by the user (Windows, Linux).
