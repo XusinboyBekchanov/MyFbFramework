@@ -261,6 +261,12 @@ Namespace My.Sys.Forms
 					gtk_window_resize(GTK_WINDOW(widget), 1000, 600)
 				End Select
 			End If
+		#elseif defined(__USE_WINAPI__)
+			If FStartPosition = FormStartPosition.CenterParent Then 
+				CenterToParent 
+			ElseIf FStartPosition = FormStartPosition.CenterScreen Then 
+				CenterToScreen
+			End If
 		#endif
 	End Property
 	
@@ -1618,7 +1624,6 @@ Namespace My.Sys.Forms
 	#ifndef Form_ShowModal_Off
 		Private Function Form.ShowModal(ByRef OwnerForm As Form) As Integer
 			This.FParent = @OwnerForm
-			CenterToParent
 			Return This.ShowModal()
 		End Function
 		
@@ -1769,12 +1774,13 @@ Namespace My.Sys.Forms
 					End If
 				#else
 					This.Left = .Left + (.Width - This.Width) \ 2: This.Top  = .Top + (.Height - This.Height) \ 2
+					Move This.Left, This.Top, This.Width, This.Height
 				#endif
 			End With
 		End If
 	End Sub
 	
-	Private Sub Form.CenterToScreen()
+	Private Sub Form.CenterToScreen(ByVal ScrLeft As Integer = 0, ByVal ScrTop As Integer = 0, ByVal ScrWidth As Integer = 0, ByVal ScrHeight As Integer = 0)
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
 				#ifdef __USE_GTK4__
@@ -1787,8 +1793,14 @@ Namespace My.Sys.Forms
 			End If
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
 		#elseif defined(__USE_WINAPI__)
-			This.Left = (UnScaleX(GetSystemMetrics(SM_CXSCREEN)) - This.Width) \ 2
-			This.Top  = (UnScaleY(GetSystemMetrics(SM_CYSCREEN)) - This.Height) \ 2
+			If ScrHeight = 0 AndAlso ScrWidth = 0 Then
+				This.Left = (UnScaleX(GetSystemMetrics(SM_CXSCREEN)) - This.Width) \ 2
+				This.Top  = (UnScaleY(GetSystemMetrics(SM_CYSCREEN)) - This.Height) \ 2
+			Else
+				This.Left = ScrLeft + (ScrWidth - This.Width) \ 2
+				This.Top  = ScrTop + (ScrHeight - This.Height) \ 2
+			End If
+			Move This.Left, This.Top, This.Width, This.Height
 		#endif
 	End Sub
 	
