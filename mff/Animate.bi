@@ -32,9 +32,12 @@ Namespace My.Sys.Forms
 	
 	Private Type Animate Extends Control
 	Private:
-		FFrameCount     As Integer
+		FFrameCount     As Double
 		FFrameWidth     As Long
 		FFrameHeight    As Long
+		FPosition       As Double
+		FBalance        As Integer
+		FVolume         As Integer
 		FStartFrame     As Integer
 		FStopFrame      As Integer
 		FAutoSize       As Boolean
@@ -58,19 +61,20 @@ Namespace My.Sys.Forms
 			Dim As GdkPixbufAnimation Ptr pixbuf_animation
 			Dim As GdkPixbufAnimationIter Ptr iter
 		#else
-			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As UString) As Integer
+			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As WString) As Integer
 			As IGraphBuilder   Ptr pGraph
-			As IMediaControl   Ptr pControl
+			As IMediaControl   Ptr PControl
 			As IMediaEvent     Ptr pEvent
 			As IVideoWindow    Ptr vidwindow
 			As IMediaSeeking   Ptr medseek
+			As IMediaPosition  Ptr medPosition 
 			As IBasicVideo     Ptr basvideo
 			As IBasicAudio     Ptr BasAudio
 		#endif
 	Protected:
-		FOpen           As Boolean
+		fopen           As Boolean
 		FPlay           As Boolean
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetAnimateInfo
@@ -87,8 +91,8 @@ Namespace My.Sys.Forms
 		Declare Property Transparency(Value As Boolean)
 		Declare Property Timers As Boolean
 		Declare Property Timers(Value As Boolean)
-		Declare Property File ByRef As WString
-		Declare Property File(ByRef Value As WString)
+		Declare Property FILE ByRef As WString
+		Declare Property FILE(ByRef Value As WString)
 		Declare Property AutoPlay As Boolean
 		Declare Property AutoPlay(Value As Boolean)
 		Declare Property AutoSize As Boolean
@@ -97,6 +101,12 @@ Namespace My.Sys.Forms
 		Declare Property CommonAvi(Value As CommonAVIs)
 		Declare Property Repeat As Integer
 		Declare Property Repeat(Value As Integer)
+		Declare Property Volume As Long
+		Declare Property Volume(Value As Long)
+		Declare Property Balance As Long
+		Declare Property Balance(Value As Long)
+		Declare Property Position As Double
+		Declare Property Position(Value As Double)
 		Declare Property StartFrame As Integer
 		Declare Property StartFrame(Value As Integer)
 		Declare Property StopFrame As Integer
