@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 			Case "autosize": AutoSize = QBoolean(Value)
 			Case "center": Center = QBoolean(Value)
 			Case "commonavi": CommonAvi = *Cast(CommonAVIs Ptr, Value)
-			Case "file": File = QWString(Value)
+			Case "file": FILE = QWString(Value)
 			Case "repeat": Repeat = QInteger(Value)
 			Case "startframe": StartFrame = QInteger(Value)
 			Case "stopframe": StopFrame = QInteger(Value)
@@ -60,6 +60,7 @@ Namespace My.Sys.Forms
 			If basvideo <> 0 Then
 				IBasicVideo_get_SourceWidth(basvideo, @FFrameWidth)
 				IBasicVideo_get_SourceHeight(basvideo, @FFrameHeight)
+				If medPosition <> 0 Then IMediaPosition_get_Duration(medPosition, @FFrameCount) Else FFrameCount = 0
 			Else
 				Dim As HRSRC Resource
 				Dim As HGLOBAL Global
@@ -100,7 +101,7 @@ Namespace My.Sys.Forms
 		If FCenter <> Value Then
 			FCenter = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+				Base.Style = WS_CHILD Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 			#endif
 		End If
 	End Property
@@ -113,7 +114,7 @@ Namespace My.Sys.Forms
 		If FTransparent <> Value Then
 			FTransparent = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+				Base.Style = WS_CHILD Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 			#endif
 		End If
 	End Property
@@ -126,20 +127,20 @@ Namespace My.Sys.Forms
 		If FTimers <> Value Then
 			FTimers = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+				Base.Style = WS_CHILD Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 			#endif
 		End If
 	End Property
 	
-	Private Property Animate.File ByRef As WString
+	Private Property Animate.FILE ByRef As WString
 		If FFile> 0 Then Return *FFile Else Return ""
 	End Property
 	
-	Private Property Animate.File(ByRef Value As WString)
+	Private Property Animate.FILE(ByRef Value As WString)
 		FFile = Reallocate_(FFile, (Len(Value) + 1) * SizeOf(WString))
 		*FFile = Value
 		#ifdef __USE_GTK__
-			pixbuf_animation = gdk_pixbuf_animation_new_from_file(ToUTF8(*FFile), NULL)
+			pixbuf_animation = gdk_pixbuf_animation_new_from_file(ToUtf8(*FFile), NULL)
 		#else
 			If FHandle Then
 				SetWindowLongPtr Handle, GWLP_HINSTANCE, CInt(GetModuleHandle(NULL))
@@ -164,7 +165,7 @@ Namespace My.Sys.Forms
 		If FAutoPlay <> Value Then
 			FAutoPlay = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or ACenter(Abs_(FCenter)) Or ATransparent(Abs_(FTransparent)) Or ATimer(Abs_(FTimers)) Or AAutoPlay(Abs_(FAutoPlay))
+				Base.Style = WS_CHILD Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 			#endif
 		End If
 	End Property
@@ -197,12 +198,41 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property Animate.Volume As Long
+		If BasAudio <> 0 Then IBasicAudio_get_Volume(BasAudio, @FVolume)
+		Return FVolume
+	End Property
+	
+	Private Property Animate.Volume(Value As Long)
+		If BasAudio <> 0 Then FVolume = Value: IBasicAudio_put_Volume(BasAudio, FVolume)
+	End Property
+	
+	Private Property Animate.Balance As Long
+		If BasAudio <> 0 Then IBasicAudio_get_Balance(BasAudio, @FBalance)
+		Return FBalance
+	End Property
+	
+	Private Property Animate.Balance(Value As Long)
+		If BasAudio <> 0 Then FBalance = Value: IBasicAudio_put_Balance(BasAudio, FBalance)
+	End Property
+	
+	Private Property Animate.Position As Double
+		If medPosition <> 0 Then IMediaPosition_get_CurrentPosition(medPosition, @FPosition) Else FPosition = -1
+		Return FPosition
+	End Property
+	
+	Private Property Animate.Position(Value As Double)
+		If medPosition <> 0 Then FPosition = Value: IMediaPosition_put_CurrentPosition(medPosition, FPosition)
+		If FPlay Then This.Stop
+		Play
+	End Property
+	
 	Private Property Animate.StartFrame As Integer
 		Return FStartFrame
 	End Property
 	
 	Private Property Animate.StartFrame(Value As Integer)
-		FstartFrame = Value
+		FStartFrame = Value
 		If FStartFrame < 0 Then FStartFrame = 0
 		If FPlay Then This.Stop
 		Play
@@ -239,13 +269,13 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QAnimate(Sender.Child)
 					SetClassLongPtr(.Handle, GCLP_HBRBACKGROUND, 0)
-					If .FOpen Then .Open
+					If .fopen Then .Open
 					If .FPlay Then .Play
 				End With
 			End If
 		End Sub
 		
-		Private Sub Animate.WndProc(ByRef Message As Message)
+		Private Sub Animate.WNDPROC(ByRef Message As Message)
 			If Message.Sender Then
 			End If
 		End Sub
@@ -291,12 +321,12 @@ Namespace My.Sys.Forms
 		#else
 			If Handle Then
 				If OnOpen Then OnOpen(This)
-				If CommonAVI = 0 Then
+				If CommonAvi = 0 Then
 					If *FFile <> "" Then
 						If FindResource(GetModuleHandle(NULL), *FFile, "AVI") Then
 							GetAnimateInfo
-							Animate_Open(FHandle, CInt(MakeIntResource(*FFile)))
-							FOpen = 1
+							Animate_Open(FHandle, CInt(MAKEINTRESOURCE(*FFile)))
+							fopen = 1
 						Else
 							GetAnimateInfo
 							If Perform(ACM_OPENW, 0, CInt(FFile)) = 0 Then
@@ -308,12 +338,13 @@ Namespace My.Sys.Forms
 									End If
 									Error_HR(CoInitialize(0), "CoInitialize")
 									Error_HR(CoCreateInstance(@CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, @IID_IGraphBuilder, @pGraph), "CoCreateInstance")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaControl, @pControl  ), "IMediaControl")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaControl, @PControl  ), "IMediaControl")
 									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaEvent  , @pEvent    ), "IMediaEvent")
 									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IVideoWindow , @vidwindow ), "IVideoWindow")
 									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaSeeking, @medseek   ), "IMediaSeeking")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaPosition, @medPosition), "IMediaPosition")
 									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicVideo  , @basvideo  ), "IBasicVideo")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicAudio  , @basAudio  ), "IBasicAudio")
+									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicAudio  , @BasAudio  ), "IBasicAudio")
 									IGraphBuilder_RenderFile(pGraph, wFile, NULL)
 									IVideoWindow_put_Owner(vidwindow, Cast(OAHWND, This.Handle))
 									IVideoWindow_put_WindowStyle(vidwindow, WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN)
@@ -328,17 +359,17 @@ Namespace My.Sys.Forms
 									Else
 										IVideoWindow_SetWindowPosition(vidwindow, 0, 0, FFrameWidth, FFrameHeight)
 									End If
-									WDeallocate wFile
+									WDeAllocate wFile
 									If FAutoPlay Then Play
 								End If
 							End If
 							FOpen = 1
 						End If
 					End If
-				ElseIf CommonAVI <> 0 Then
-					If FindResource(GetModuleHandle("Shell32"), MakeIntResource(FCommonAvi), "AVI") Then
+				ElseIf CommonAvi <> 0 Then
+					If FindResource(GetModuleHandle("Shell32"), MAKEINTRESOURCE(FCommonAvi), "AVI") Then
 						GetAnimateInfo
-						Perform(ACM_OPEN, CInt(GetModuleHandle("Shell32")), CInt(MakeIntResource(FCommonAvi)))
+						Perform(ACM_OPEN, CInt(GetModuleHandle("Shell32")), CInt(MAKEINTRESOURCE(FCommonAvi)))
 						FOpen = 1
 					End If
 				End If
@@ -375,7 +406,7 @@ Namespace My.Sys.Forms
 					If OnStart Then OnStart(This)
 					Error_HR(IMediaControl_Run(pControl), "Metod IMediaControl_Run")
 				Else
-					Perform(ACM_PLAY, FRepeat, MakeLong(FStartFrame, FStopFrame))
+					Perform(ACM_PLAY, FRepeat, MAKELONG(FStartFrame, FStopFrame))
 				End If
 				FPlay = True
 			End If
@@ -522,12 +553,12 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 	#else
-		Private Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As UString) As Integer
+		Private Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As WString) As Integer
 			If (FAILED(hr)) Then
-				Var MB = MessageBox(0, "Error associated with " & *Inter_face.vptr & ". Want Continue?", "Error", MB_YESNO)
+				Var MB = MessageBox(0, "Error associated with " & Inter_face & ". Want Continue?", "Error", MB_YESNO)
 				If MB = IDNO Then
 					End
-				EndIf
+				End If
 			Else Return 1
 			End If
 		End Function
@@ -574,7 +605,7 @@ Namespace My.Sys.Forms
 			.Child             = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "Animate", ANIMATE_CLASS
-				.ChildProc         = @WndProc
+				.ChildProc         = @WNDPROC
 				WLet(FClassAncestor, ANIMATE_CLASS)
 				.ExStyle           = WS_EX_TRANSPARENT
 				.Style             = WS_CHILD Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
@@ -591,10 +622,11 @@ Namespace My.Sys.Forms
 		If FFile Then Deallocate_( FFile)
 		#ifndef __USE_GTK__
 			If pGraph Then
-				IMediaControl_Release(pControl)
+				IMediaControl_Release(PControl)
 				IMediaEvent_Release  (pEvent)    
 				IVideoWindow_Release (vidwindow)
 				IMediaSeeking_Release(medseek)
+				IMediaPosition_Release(medPosition) 
 				IBasicVideo_Release  (basvideo)
 				IBasicAudio_Release  (BasAudio)
 				IGraphBuilder_Release(pGraph)
