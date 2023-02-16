@@ -1502,7 +1502,7 @@ Namespace My.Sys.Forms
 					If Controls Then
 						RequestAlign
 					End If
-					If OnResize Then OnResize(This, This.Width, This.Height)
+					If OnResize Then OnResize(This, ScaleX(This.Width), ScaleY(This.Height))
 				Case WM_WINDOWPOSCHANGING
 					If Constraints.Left <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->x  = ScaleX(Constraints.Left)
 					If Constraints.Top <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->y  = ScaleY(Constraints.Top)

@@ -1,13 +1,14 @@
 ﻿'###############################################################################
 '#  Animate.bi                                                                 #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor                                                     #
-'#  Based on:                                                                  #
 '#   TAnimate.bi                                                               #
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.0                                                             #
+'#  Updated and added cross-platform code                                      #
+'#  Authors: Xusinboy Bekchanov  Liu XiaLin                                    #
 '###############################################################################
+
 
 #include once "Control.bi"
 #ifndef __USE_GTK__
@@ -36,10 +37,12 @@ Namespace My.Sys.Forms
 		FFrameWidth     As Long
 		FFrameHeight    As Long
 		FPosition       As Double
-		FBalance        As Integer
-		FVolume         As Integer
-		FStartFrame     As Integer
-		FStopFrame      As Integer
+		FBalance        As Long
+		FVolume         As Long
+		FFullScreenMode As Long
+		FErrorInfo      As String
+		FStartFrame     As Long
+		FStopFrame      As Long
 		FAutoSize       As Boolean
 		FRepeat         As Integer
 		FCommonAvi      As CommonAVIs
@@ -67,10 +70,10 @@ Namespace My.Sys.Forms
 			As IGraphBuilder   Ptr pGraph
 			As IMediaControl   Ptr PControl
 			As IMediaEvent     Ptr pEvent
-			As IVideoWindow    Ptr vidwindow
-			As IMediaSeeking   Ptr medseek
-			As IMediaPosition  Ptr medPosition 
-			As IBasicVideo     Ptr basvideo
+			As IVideoWindow    Ptr VidWindow
+			As IMediaSeeking   Ptr MedSeek
+			As IMediaPosition  Ptr MedPosition 
+			As IBasicVideo     Ptr BasVideo
 			As IBasicAudio     Ptr BasAudio
 		#endif
 	Protected:
@@ -91,8 +94,8 @@ Namespace My.Sys.Forms
 		Declare Property Transparency(Value As Boolean)
 		Declare Property Timers As Boolean
 		Declare Property Timers(Value As Boolean)
-		Declare Property FILE ByRef As WString
-		Declare Property FILE(ByRef Value As WString)
+		Declare Property File ByRef As WString
+		Declare Property File(ByRef Value As WString)
 		Declare Property AutoPlay As Boolean
 		Declare Property AutoPlay(Value As Boolean)
 		Declare Property AutoSize As Boolean
@@ -105,19 +108,24 @@ Namespace My.Sys.Forms
 		Declare Property Volume(Value As Long)
 		Declare Property Balance As Long
 		Declare Property Balance(Value As Long)
+		Declare Property FullScreenMode As Boolean
+		Declare Property FullScreenMode(Value As Boolean)
 		Declare Property Position As Double
 		Declare Property Position(Value As Double)
-		Declare Property StartFrame As Integer
-		Declare Property StartFrame(Value As Integer)
-		Declare Property StopFrame As Integer
-		Declare Property StopFrame(Value As Integer)
-		Declare Function FrameCount As Integer
-		Declare Function FrameHeight As Integer
-		Declare Function FrameWidth As Integer
+		Declare Property StartFrame As Long
+		Declare Property StartFrame(Value As Long)
+		Declare Property StopFrame As Long
+		Declare Property StopFrame(Value As Long)
+		Declare Function FrameCount As Long
+		Declare Function FrameHeight As Long
+		Declare Function FrameWidth As Long
 		Declare Function IsPlaying As Boolean
+		Declare Function GetErrorInfo As String
+		Declare Sub SetWindowPosition(ALeft As Long, ATop As Long, AWidth As Long, AHeight As Long)
 		Declare Operator Cast As Control Ptr
 		Declare Sub Open
 		Declare Sub Play
+		Declare Sub Pause
 		Declare Sub Stop
 		Declare Sub Close
 		Declare Constructor
@@ -125,6 +133,7 @@ Namespace My.Sys.Forms
 		OnOpen  As Sub(ByRef Sender As Animate)
 		OnClose As Sub(ByRef Sender As Animate)
 		OnStart As Sub(ByRef Sender As Animate)
+		OnPause As Sub(ByRef Sender As Animate)
 		OnStop  As Sub(ByRef Sender As Animate)
 	End Type
 End Namespace
