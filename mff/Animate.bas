@@ -86,10 +86,10 @@ Namespace My.Sys.Forms
 				FFrameHeight = gdk_pixbuf_animation_get_height(pixbuf_animation)
 			End If
 		#else
-			If BasVideo <> 0 Then
+			If BasVideo > 0 Then
 				IBasicVideo_get_SourceWidth(BasVideo, @FFrameWidth)
 				IBasicVideo_get_SourceHeight(BasVideo, @FFrameHeight)
-				If MedPosition <> 0 Then IMediaPosition_get_Duration(MedPosition, @FFrameCount) Else FFrameCount = 0
+				If MedPosition > 0 Then IMediaPosition_get_Duration(MedPosition, @FFrameCount) Else FFrameCount = 0
 			Else
 				Dim As HRSRC Resource
 				Dim As HGLOBAL Global
@@ -331,10 +331,12 @@ Namespace My.Sys.Forms
 				This.Width = FFrameWidth
 				This.Height = FFrameHeight
 			End If
-			If FCenter Then
-				IVideoWindow_SetWindowPosition(VidWindow, (This.Width - FFrameWidth) / 2, (This.Height - FFrameHeight) / 2, FFrameWidth, FFrameHeight)
-			Else
-				IVideoWindow_SetWindowPosition(VidWindow, ALeft, ATop, FFrameWidth, FFrameHeight)
+			If VidWindow > 0 Then
+				If FCenter Then
+					IVideoWindow_SetWindowPosition(VidWindow, (This.Width - FFrameWidth) / 2, (This.Height - FFrameHeight) / 2, FFrameWidth, FFrameHeight)
+				Else
+					IVideoWindow_SetWindowPosition(VidWindow, ALeft, ATop, FFrameWidth, FFrameHeight)
+				End If
 			End If
 		#endif
 	End Sub
@@ -366,6 +368,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	'https://learn.microsoft.com/en-us/windows/win32/directshow/event-notification-codes.
 	Private Sub Animate.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
@@ -388,8 +391,21 @@ Namespace My.Sys.Forms
 				Dc = GetDCEx(Handle, 0, DCX_WINDOW Or DCX_CACHE Or DCX_CLIPSIBLINGS)
 				'Future utilisation
 				ReleaseDC Handle,Dc
-			Case WM_USER + 13 ’WM_GRAPHNOTIFY
-				
+			Case 70, 32 'WM_USER + 13 'WM_GRAPHNOTIFY
+				If pEvent > 0 Then
+					Dim hr As HRESULT
+					Dim lEventCode As Long
+					Dim lParam1 As LONG_PTR
+					Dim lParam2 As LONG_PTR
+					hr = pEvent->lpVtbl->GetEvent(pEvent, @lEventCode, @lParam1, @lParam2, 0)
+					If hr = S_OK Then
+						pEvent->lpVtbl->FreeEventParams(pEvent, lEventCode, lParam1, lParam2)
+						'Print WM_USER & " Message.Msg= " & Message.Msg & " Message.lParamHi=" & Message.lParamHi & " Message.lParamLo=" & Message.lParamLo & " Message.WPARAMHi" & Message.wParamHi & " Message.WPARAMLo" & Message.wParamLo
+						'Print EventMsgStr(lEventCode)
+						Message.Msg = WM_USER + 13 '
+						Message.lParamLo = lEventCode
+					End If
+				End If
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
@@ -416,7 +432,7 @@ Namespace My.Sys.Forms
 							Animate_Open(FHandle, CInt(MAKEINTRESOURCE(*FFile)))
 							fopen = 1
 						Else
-							GetAnimateInfo
+							fopen = 1
 							If Perform(ACM_OPENW, 0, CInt(FFile)) = 0 Then
 								If pGraph = 0 Then
 									Dim As WString Ptr wFile
@@ -426,43 +442,57 @@ Namespace My.Sys.Forms
 									End If
 									Error_HR(CoInitialize(0), "CoInitialize")
 									Error_HR(CoCreateInstance(@CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, @IID_IGraphBuilder, @pGraph), "CoCreateInstance")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaControl, @PControl  ), "IMediaControl")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaEvent  , @pEvent    ), "IMediaEvent")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IVideoWindow , @VidWindow ), "IVideoWindow")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaSeeking, @MedSeek   ), "IMediaSeeking")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaPosition, @MedPosition), "IMediaPosition")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicVideo  , @BasVideo  ), "IBasicVideo")
-									Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicAudio  , @BasAudio  ), "IBasicAudio")
-									'For MKV. MP4, Need Install decoding package like LAV
-									'if can't Render File install LAV from https://github.com/Nevcairiel/LAVFilters/releases"
-									Error_HR(IGraphBuilder_RenderFile(pGraph, wFile, NULL), "RenderFile, decoding Or path issue.")
-									IVideoWindow_put_Owner(VidWindow, Cast(OAHWND, This.Handle))
-									IVideoWindow_put_WindowStyle(VidWindow, WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN)
-									IBasicVideo_get_SourceWidth(BasVideo, @FFrameWidth)
-									IBasicVideo_get_SourceHeight(BasVideo, @FFrameHeight)
-									If FAutoSize Then
-										This.Width = FFrameWidth
-										This.Height = FFrameHeight
-									End If
-									If FCenter Then
-										IVideoWindow_SetWindowPosition(VidWindow, (This.Width - FFrameWidth) / 2, (This.Height - FFrameHeight) / 2, FFrameWidth, FFrameHeight)
+									If pGraph > 0 Then
+										Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaControl, @PControl  ), "IMediaControl")
+										Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaEvent  , @pEvent    ), "IMediaEvent")
+										Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IVideoWindow , @VidWindow ), "IVideoWindow")
+										Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaSeeking, @MedSeek   ), "IMediaSeeking")
+										Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IMediaPosition, @MedPosition), "IMediaPosition")
+										Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicVideo  , @BasVideo  ), "IBasicVideo")
+										Error_HR(IGraphBuilder_QueryInterface(pGraph, @IID_IBasicAudio  , @BasAudio  ), "IBasicAudio")
+										'For MKV. MP4, Need Install decoding package like LAV
+										'If can't Render File install LAV from https://github.com/Nevcairiel/LAVFilters/releases"
+										If PControl > 0 Then Error_HR(IMediaControl_RenderFile(PControl, StrPtr(*wFile)), "RenderFile, decoding, path, or Internet issue.")
+										If MedPosition > 0 Then IMediaPosition_get_Duration(MedPosition, @FFrameCount) Else FFrameCount = 0
+										If FFrameCount = 0 Then fopen = 0 : Exit Sub
+										If VidWindow > 0 Then
+											IVideoWindow_put_Owner(VidWindow, Cast(OAHWND, FHandle))
+											IVideoWindow_put_WindowStyle(VidWindow, WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN)
+											If FCenter Then
+												IVideoWindow_SetWindowPosition(VidWindow, (This.Width - FFrameWidth) / 2, (This.Height - FFrameHeight) / 2, FFrameWidth, FFrameHeight)
+											Else
+												IVideoWindow_SetWindowPosition(VidWindow, 0, 0, FFrameWidth, FFrameHeight)
+											End If
+										End If
+										If BasVideo > 0 Then
+											IBasicVideo_get_SourceWidth(BasVideo, @FFrameWidth)
+											IBasicVideo_get_SourceHeight(BasVideo, @FFrameHeight)
+										End If
+										If FAutoSize Then
+											This.Width = FFrameWidth
+											This.Height = FFrameHeight
+										End If
+										WDeAllocate wFile
+										If FAutoPlay Then Play
 									Else
-										IVideoWindow_SetWindowPosition(VidWindow, 0, 0, FFrameWidth, FFrameHeight)
+										fopen = 0
 									End If
-									WDeAllocate wFile
-									Print "Animate.Open"
-									If FAutoPlay Then Play
 								End If
 							End If
-							fopen = 1
 						End If
 					End If
 				ElseIf CommonAvi <> 0 Then
 					If FindResource(GetModuleHandle("Shell32"), MAKEINTRESOURCE(FCommonAvi), "AVI") Then
+						*FFile = ""
 						GetAnimateInfo
-						Perform(ACM_OPEN, CInt(GetModuleHandle("Shell32")), CInt(MAKEINTRESOURCE(FCommonAvi)))
+						Perform(ACM_OPENW, CInt(GetModuleHandle("Shell32")), CInt(MAKEINTRESOURCE(FCommonAvi)))
+						'Print " FFrameCount=" & FFrameCount & " FFrameHeight=" & FFrameWidth & " FFrameHeight=" & FFrameHeight
+						If FAutoPlay Then Play
 						fopen = 1
+					Else
+						Print "CommonAvi.Open not find the resource"
 					End If
+					
 				End If
 			End If
 		#endif
@@ -499,10 +529,8 @@ Namespace My.Sys.Forms
 				If PControl <> 0 Then
 					If OnStart Then OnStart(This)
 					Error_HR(IMediaControl_Run(PControl), "Metod IMediaControl_Run")
-					Print "Animate.Play"
 				Else
 					Perform(ACM_PLAY, FRepeat, MAKELONG(FStartFrame, FStopFrame))
-					Print "Animate.ACM_Play"
 				End If
 				FPlay = True
 			End If
@@ -519,10 +547,8 @@ Namespace My.Sys.Forms
 				If PControl Then
 					If OnStop Then OnStop(This)
 					Error_HR(IMediaControl_Stop(PControl), "Metod IMediaControl_Stop")
-					Print "Animate.Stop"
 				Else
 					Perform(ACM_STOP, 0, 0)
-					Print "Animate.ACM_STOP"
 				End If
 				FPlay = False
 			End If
@@ -539,7 +565,6 @@ Namespace My.Sys.Forms
 				If PControl Then
 					If OnPause Then OnPause(This)
 					Error_HR(IMediaControl_Pause(PControl), "Metod IMediaControl_Pause")
-					Print "Animate.Pause"
 				Else
 					Perform(ACM_STOP, 0, 0)
 				End If
@@ -579,10 +604,8 @@ Namespace My.Sys.Forms
 					BasVideo = NULL
 					BasAudio = NULL
 					pGraph = NULL
-					Print "Animate.Close"
 				Else
 					Perform(ACM_STOP, 0, 0)
-					Print "Animate.ACM_STOP"
 				End If
 				fopen = 0
 				FPlay = False
@@ -738,6 +761,7 @@ Namespace My.Sys.Forms
 		FStopFrame      = -1
 		FStartFrame     = 0
 		FTransparent    = True
+		FTimers = 1
 		With This
 			WLet(FClassName, "Animate")
 			.Child             = @This
