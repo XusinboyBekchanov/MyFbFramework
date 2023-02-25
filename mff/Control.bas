@@ -958,7 +958,7 @@ Namespace My.Sys.Forms
 					Case 3: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT: nWidth = CW_USEDEFAULT: nHeight = CW_USEDEFAULT ' WindowsDefaultBounds
 					End Select
 					Dim As Integer AControlParent(2) => {0, WS_EX_CONTROLPARENT}
-					Dim As Integer ATabStop(2) => {0,WS_TABSTOP},AGrouped(2) = >{0,WS_GROUP}
+					Dim As Integer ATabStop(2) = {0, WS_TABSTOP}, AGrouped(2) = {0, WS_GROUP}
 					If ClassName = "WebBrowser" Then
 						'Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
 						'ExStyle = 0

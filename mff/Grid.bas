@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 			If ColumnIndex < FColumns.Count Then
 				Dim As GridCell Ptr Cell = FColumns.Object(ColumnIndex)
 				If Cell = 0 Then
-					Cell = New GridCell
+					Cell = New_(GridCell)
 					Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(ColumnIndex)
 					Cell->Row = Cast(Grid Ptr, Parent)->Rows.Item(Index)
 					Cell->Parent = Parent
