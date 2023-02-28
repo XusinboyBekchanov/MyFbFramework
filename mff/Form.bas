@@ -925,6 +925,7 @@ Namespace My.Sys.Forms
 							End If
 						End If
 						gtk_widget_hide(widget)
+						FCreated = False
 						msg.Result = -1
 						'#endif
 					End If
