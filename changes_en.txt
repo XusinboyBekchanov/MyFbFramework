@@ -1,3 +1,61 @@
+Version 1.3.4 (March 05, 2023)
+- Added: Event Code message to Animation control
+- Added: Property FullScreenMode for control Animate
+- Added: Add Property Volume, Balance, Position to control Animate
+- Fixed: Showing forms on different screen with different DPI
+- Fixed: Removing ListViewItem
+- Improved: StringList
+- Added: MyFbFramework CHM file
+- Added: Transparent property to Form
+- Added: ListItem parameter to IndexOf and Contains functions
+- Added: KeyPreview property to Form
+- Added: TransparentColor property to Form
+- Fixed: Updating Label's Graphic
+- Added: Graphic property to Panel
+- Added: DrawAlpha to Canvas
+- Fixed: Bitmap
+- Fixed: Cursor object
+- Fixed: TreeView control's Clear method
+- Fixed: NumbericUpDown and UpDown controls on Linux
+- Fixed: Control's Visible property on Linux, Added: NumericUpDown control on Linux
+- Fixed: NumericUpDown on High DPI
+- Fixed: CheckedListBox and UpDown On High DPI
+- Fixed: MenuItem's RadioItem property.
+- Fixed: Control Constraints property on High DPI
+- Fixed: Updating UserControl
+- Fixed: Compiling with fbc 1.10.0
+- Fixed: Application
+- Fixed: PageScroller
+- Added: AutoSize property for CheckBox
+- Added: InputBox
+- Fixed: ListView Add method when type with Index
+- Fixed: File number leak
+- Fixed: Tab messages
+- Fixed: IniFile Load method
+- Added: FullTypeName Export function
+- Fixed: Compiling with Pass All Modules to Compiler option
+- Added: RedefineClassKeyword macro
+- Fixed: Detach TabPage to another TabControl on Linux
+- Fixed: Compiling on Linux
+- Added: NumericUpDown control
+- Improved: UpDown dark mode
+- Added: Dark mode for UpDown and TabControl's UpDown
+- Fixed: Showing TabPage icon on moving to another TabControl
+- Added: OnTabAdded, OnTabRemoved and OnTabReordered events to TabControl
+- Added: Detachable property to TabControl
+- Added: IsSelected function to TabPage
+- Fixed: Form ShowModal method
+- Fixed: Blink on closing Modal Form
+- Fixed: ToolBar Enabled property
+- Fixed: Function Cls in High DPI
+- Added: bEnabled parameter to Menu.Add and MenuItem.Add functions
+- Fixed: Compiling on Android
+- Added: Off Defines for Application, Brush, Chart, CommandButton, Component, Control, DoubleList, Frid, Pen, TextBox, UString, StringParseCount and Match
+- Added: #define Application_Controls_Get_Off #define Application_ControlCount_Get_Off #define Application_Title_Get_Off #define Application_GetVerInfo_Off #define Application_GetControls_Off #define Application_Forms_Get_Off #define BitmapType_Height_Get_Off #define BitmapType_Let_HBITMAP_Off #define BitmapType_Let_HICON_Off #define BitmapType_Let_WString_Off #define BitmapType_LoadFromHICON_Off #define BitmapType_SaveToFile_Off #define BitmapType_Width_Get_Off #define Canvas_DrawTransparent_Off #define Canvas_Rectangle_Double_Double_Double_Double_Off #define Canvas_TransferDoubleBuffer_Off #define Control_IndexOf_String_Off #define Control_RecreateWnd_Off #define Control_ChangeControlIndex_Off #define Control_ChangeStyle_Off #define Control_StyleExists_Off #define Control_TopLevelControl_Off #define Control_Parent_Set_Off #define Cursor_LoadFromFile_Off #define Cursor_LoadFromResourceID_Off #define Cursor_LoadFromResourceName_Off #define Cursor_SaveToFile_Off #define Debug_Print_Off #define Dictionary_Add_Off #define Dictionary_Count_Get_Off #define Dictionary_IndexOf_Off #define Dictionary_IndexOfKey_Off #define Dictionary_IndexOfObject_Off #define Dictionary_Item_Get_Integer_Off #define Dictionary_Sort_Off #define Dictionary_SortKeys_Off #define Dictionary_Text_Get_Off #define Dictionary_Text_Set_Off #define DictionaryItem_Key_Get_Off #define DictionaryItem_Text_Get_Off #define Font_Color_Set_Off #define Form_ShowModal_Off #define GraphicType_LoadFromFile_Off #define GraphicType_LoadFromResourceID_Off #define GraphicType_LoadFromResourceName_Off #define Icon_Height_Get_Off #define Icon_LoadFromResourceID_Off #define Icon_LoadFromResourceName_Off #define Icon_ResName_Set_Off #define Icon_SaveToFile_Off #define Icon_Width_Get_Off #define ImageList_Add_WString_Off #define ImageList_AddFromFile_Off #define ImageList_Clear_Off #define ImageList_GetBitmap_Integer_Off #define ImageList_GetCursor_Integer_Off #define ImageList_GetIcon_Integer_Off #define ImageList_GetMask_Integer_Off #define ImageList_IndexOf_Off #define ImageList_Remove_Integer_Off #define IntegerList_IndexOf_Off #define MainHandle_Off #define Menu_Color_Set_Off #define Menu_IndexOf_WString_Off #define Menu_Item_Set_MenuItem_Off #define MenuItem_IndexOf_WString_Off #define MenuItem_Insert_Off #define MenuItem_Find_WString_Off #define MenuItem_Image_Set_BitmapType_Off #define MenuItem_ImageIndex_Set_Off #define MenuItem_Name_Set_Off #define List_Item_Set_Off #define LoadFromFile_Off #define Replace_Off #define SaveToFile_Off #define WStringList_Add_Off #define WStringList_IndexOf_Off #define WStringList_IndexOfObject_Off #define WStringList_MatchCase_Get_Off #define WStringList_Sort_Off #define WStringList_Text_Set_Off
+- Fixed: Showing last opened TabPage on recreate TabControl window
+- Fixed: Checking RadioButton
+- Added: ReadProperty_Off and WriteProperty_Off checks for ReadProperty and WriteProperty functions.
+- Added: Debug.AssertError and Debug.AssertWarning
 Version 1.3.3 (September 23, 2022)
 - Fixed: WebBrowser Navigate method
 - Fixed: Compiling with gtk2

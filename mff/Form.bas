@@ -1513,7 +1513,7 @@ Namespace My.Sys.Forms
 							#ifdef __USE_GTK4__
 								Dim As GdkRectangle workarea
 								gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-								gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+								gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
 							#endif
 							If Constraints.Width <> 0 Then
 								hints.base_width = Constraints.Width
@@ -1524,7 +1524,7 @@ Namespace My.Sys.Forms
 								hints.base_width = FWidth
 								hints.min_width = 0
 								#ifdef __USE_GTK4__
-									hints.max_width = workarea.Width
+									hints.max_width = workarea.width
 								#else
 									hints.max_width = gdk_screen_get_width(gtk_widget_get_screen(widget))
 								#endif

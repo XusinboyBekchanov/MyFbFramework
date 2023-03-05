@@ -1936,14 +1936,18 @@ Namespace My.Sys.Forms
 				gtk_widget_show(widget)
 			End If
 		#endif
-		Base.ParentWindow = Value
+		Base.ParentWindow = value
 	End Property
 	
 	Private Sub PopupMenu.Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
 		#ifdef __USE_GTK__
 			If msg <> 0 Then
-				gtk_widget_show(widget)
-				gtk_menu_popup (gtk_menu(widget), NULL, NULL, NULL, NULL, msg->event->button.button, msg->event->button.time)
+				'gtk_widget_show(widget)
+				#ifdef __USE_GTK4__
+					gtk_menu_popup_at_pointer(GTK_MENU(widget), msg.Event)
+				#else
+					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, msg->Event->button.button, msg->Event->button.time)
+				#endif
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FParentWindow AndAlso FParentWindow->Handle Then
@@ -1955,7 +1959,7 @@ Namespace My.Sys.Forms
 	Private Sub PopupMenu.ProcessMessages(ByRef message As Message)
 		Dim As PMenuItem I
 		#ifdef __USE_WINAPI__
-			I = Find(LoWord(message.wparam))
+			I = Find(LoWord(message.wParam))
 		#endif
 		If I Then I->Click
 	End Sub
@@ -1967,7 +1971,7 @@ Namespace My.Sys.Forms
 	Private Constructor PopupMenu
 		#ifdef __USE_GTK__
 			widget = gtk_menu_new()
-			gtk_menu_set_reserve_toggle_size(gtk_menu(widget) , False)
+			gtk_menu_set_reserve_toggle_size(GTK_MENU(widget) , False)
 			'gtk_menu_set_screen(gtk_menu(widget), gdk_screen_get_default())
 		#elseif defined(__USE_WINAPI__)
 			This.FHandle = CreatePopupMenu
