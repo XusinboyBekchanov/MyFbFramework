@@ -2461,7 +2461,7 @@ Namespace My.Sys.Forms
 						'End If
 					End If
 				#else
-					If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 Then Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+					If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 Then Height = MaxHeight + Height - iClientHeight 'Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
 				#endif
 			End If
 			#ifdef __USE_GTK__
