@@ -439,7 +439,7 @@ Namespace My
 				If AForm Then
 					With QApplication(Appl)
 						.FFormCount += 1
-						.FForms = Reallocate_(.FForms, SizeOf(My.Sys.Forms.Form Ptr) *.FFormCount)
+						.FForms = Reallocate_(.FForms, SizeOf(My.Sys.Forms.Form Ptr) * .FFormCount)
 						.FForms[.FFormCount - 1] = AForm
 					End With
 				End If

@@ -836,7 +836,7 @@ Namespace My.Sys.Forms
 						ShowWindow(.FClient, SW_SHOW)
 					Case fsMDIChild
 						If .FParent Then
-							If *.FParent Is Form Then
+							If *(.FParent) Is Form Then
 								If Cast(Form Ptr, .FParent)->FFormStyle = fsMDIForm Then
 									SetParent(.FHandle, Cast(Form Ptr, .FParent)->FClient)
 								End If

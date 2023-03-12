@@ -74,8 +74,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,3,4,91
-#define VER_FILEVERSION_STR         "1.3.4.91\0"
+#define VER_FILEVERSION             1,3,5,99
+#define VER_FILEVERSION_STR         "1.3.5.99\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
@@ -83,8 +83,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 #define VER_ORIGINALFILENAME_STR    "\0"
 #define VER_PRODUCTNAME_STR         "MyFbFramework\0"
 
-#define VER_PRODUCTVERSION          1,3,4,0
-#define VER_PRODUCTVERSION_STR      "1.3.4\0"
+#define VER_PRODUCTVERSION          1,3,5,0
+#define VER_PRODUCTVERSION_STR      "1.3.5\0"
 #define VER_COMPANYNAME_STR         "\0"
 
 VS_VERSION_INFO VERSIONINFO

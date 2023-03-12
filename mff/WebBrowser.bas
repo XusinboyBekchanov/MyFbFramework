@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 								IUnknown1 = Cast(IUnknownVtbl Ptr, *pIUnknown)
 								i = IUnknown1->AddRef(Cast(IUnknown Ptr, pIUnknown))
 								i = IUnknown1->QueryInterface(Cast(IUnknown Ptr, pIUnknown), @IID_IWebBrowser2, @.pIWebBrowser)
-								.g_IWebBrowser = Cast(IWebBrowser2Vtbl Ptr, *.pIWebBrowser)
+								.g_IWebBrowser = Cast(IWebBrowser2Vtbl Ptr, *(.pIWebBrowser))
 								i = .g_IWebBrowser->AddRef(Cast(IWebBrowser2 Ptr, .pIWebBrowser))
 								i = IUnknown1->Release(Cast(IUnknown Ptr, pIUnknown))
 							End If
