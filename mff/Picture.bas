@@ -64,7 +64,7 @@ Namespace My.Sys.Forms
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -78,7 +78,7 @@ Namespace My.Sys.Forms
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -92,7 +92,7 @@ Namespace My.Sys.Forms
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -102,12 +102,12 @@ Namespace My.Sys.Forms
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
-					If gtk_is_image(QPicture(.Ctrl->Child).ImageWidget) Then
+					If GTK_IS_IMAGE(QPicture(.Ctrl->Child).ImageWidget) Then
 						Select Case ImageType
 						Case 0
-							gtk_image_set_from_pixbuf(gtk_image(QPicture(.Ctrl->Child).ImageWidget), .Bitmap.Handle)
+							gtk_image_set_from_pixbuf(GTK_IMAGE(QPicture(.Ctrl->Child).ImageWidget), .Bitmap.Handle)
 						Case 1
-							gtk_image_set_from_pixbuf(gtk_image(QPicture(.Ctrl->Child).ImageWidget), .Icon.Handle)
+							gtk_image_set_from_pixbuf(GTK_IMAGE(QPicture(.Ctrl->Child).ImageWidget), .Icon.Handle)
 						End Select
 					End If
 				#else
@@ -146,18 +146,18 @@ Namespace My.Sys.Forms
 	Private Sub Picture.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_Size
-				InvalidateRect(Handle,null,True)
+			Case WM_SIZE
+				InvalidateRect(Handle,NULL,True)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc, This.Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(This)
@@ -165,6 +165,11 @@ Namespace My.Sys.Forms
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
 				End If
+			Case WM_ERASEBKGND
+				Dim As ..Rect R
+				GetClientRect Handle, @R
+				FillRect Cast(HDC, Message.wParam),@R, Brush.Handle
+				Message.Result = -1
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As My.Sys.Drawing.Rect R

@@ -132,12 +132,12 @@ Namespace My.Sys.Drawing
 					FScaleWidth = ScaleX(This.Width)
 					FScaleHeight =  ScaleY(This.Height)
 				Else
-					R.Left = ScaleX(x) * imgScaleX + imgOffsetX
-					R.Top = ScaleY(y) * imgScaleY + imgOffsetY
-					R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
-					R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
+					R.left = ScaleX(x) * imgScaleX + imgOffsetX
+					R.top = ScaleY(y) * imgScaleY + imgOffsetY
+					R.right = ScaleX(x1) * imgScaleX + imgOffsetX
+					R.bottom = ScaleY(y1) * imgScaleY + imgOffsetY
 				End If
-				.FillRect Handle, Cast(..Rect Ptr, @R), B
+				.FillRect Handle, Cast(..RECT Ptr, @R), B
 				DeleteObject B
 			#endif
 		End If
@@ -160,7 +160,7 @@ Namespace My.Sys.Drawing
 	Private Property Canvas.Pixel(xy As Point) As Integer
 		GetDevice
 		#ifdef __USE_WINAPI__
-			Return .GetPixel(Handle, ScaleX(xy.X), ScaleY(xy.Y))
+			Return .GetPixel(Handle, ScaleX(xy.x), ScaleY(xy.y))
 		#else
 			Return 0
 		#endif
@@ -171,7 +171,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetBlue(Value) / 255.0, GetGreen(Value) / 255.0)
-			.cairo_rectangle(Handle, xy.X, xy.Y, 1, 1)
+			.cairo_rectangle(Handle, xy.x, xy.y, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
@@ -231,6 +231,10 @@ Namespace My.Sys.Drawing
 				HandleSetted = False
 			#endif
 		#elseif defined(__USE_WINAPI__)
+			If FDoubleBuffer Then 
+				DeleteDoubleBuffer
+				FDoubleBuffer = False
+			End If
 			If HandleSetted Then Exit Sub
 			If ParentControl Then If Handle Then ReleaseDC ParentControl->Handle, Handle
 		#endif
@@ -245,24 +249,21 @@ Namespace My.Sys.Drawing
 			SelectObject(memDC, CompatibleBmp)
 			Handle = memDC
 			HandleSetted = True
+			FDoubleBuffer = True
 		#endif
 	End Sub
 	
-	#ifndef Canvas_TransferDoubleBuffer_Off
-		Private Sub Canvas.TransferDoubleBuffer
-			#ifdef __USE_WINAPI__
-			BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
-			#endif
-		End Sub
-	#endif
-	
 	Private Sub Canvas.DeleteDoubleBuffer
 		#ifdef __USE_WINAPI__
-			TransferDoubleBuffer
+			If Not FDoubleBuffer Then Exit Sub
+			#ifdef __USE_WINAPI__
+				BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
+			#endif
 			Handle = DC
 			HandleSetted = False
 			DeleteObject(CompatibleBmp)
 			DeleteDC(memDC)
+			FDoubleBuffer = False
 			If Not HandleSetted Then ReleaseDevice
 		#endif
 	End Sub
