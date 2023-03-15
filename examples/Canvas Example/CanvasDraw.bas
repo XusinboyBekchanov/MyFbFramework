@@ -67,7 +67,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.BackColor = 8388736
-			.SetBounds 12, 56, 310, 170
+			.SetBounds 12, 56, 310, 160
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -376,7 +376,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
-		'.DeleteDoubleBuffer
+		.TransferDoubleBuffer
 	End With
 End Sub
 

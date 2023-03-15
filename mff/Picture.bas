@@ -168,8 +168,9 @@ Namespace My.Sys.Forms
 			Case WM_ERASEBKGND
 				Dim As ..Rect R
 				GetClientRect Handle, @R
-				FillRect Cast(HDC, Message.wParam),@R, Brush.Handle
+				FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
 				Message.Result = -1
+				Canvas.TransferDoubleBuffer
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As My.Sys.Drawing.Rect R

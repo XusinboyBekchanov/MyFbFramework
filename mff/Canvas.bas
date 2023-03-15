@@ -132,12 +132,13 @@ Namespace My.Sys.Drawing
 					FScaleWidth = ScaleX(This.Width)
 					FScaleHeight =  ScaleY(This.Height)
 				Else
-					R.left = ScaleX(x) * imgScaleX + imgOffsetX
-					R.top = ScaleY(y) * imgScaleY + imgOffsetY
-					R.right = ScaleX(x1) * imgScaleX + imgOffsetX
-					R.bottom = ScaleY(y1) * imgScaleY + imgOffsetY
+					R.Left = ScaleX(x) * imgScaleX + imgOffsetX
+					R.Top = ScaleY(y) * imgScaleY + imgOffsetY
+					R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
+					R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
 				End If
-				.FillRect Handle, Cast(..RECT Ptr, @R), B
+				.FillRect Handle, Cast(..Rect Ptr, @R), B
+				TransferDoubleBuffer
 				DeleteObject B
 			#endif
 		End If
@@ -160,7 +161,7 @@ Namespace My.Sys.Drawing
 	Private Property Canvas.Pixel(xy As Point) As Integer
 		GetDevice
 		#ifdef __USE_WINAPI__
-			Return .GetPixel(Handle, ScaleX(xy.x), ScaleY(xy.y))
+			Return .GetPixel(Handle, ScaleX(xy.X), ScaleY(xy.Y))
 		#else
 			Return 0
 		#endif
@@ -271,6 +272,7 @@ Namespace My.Sys.Drawing
 			HandleSetted = False
 			DeleteObject(CompatibleBmp)
 			DeleteDC(memDC)
+			memDC = 0
 			FDoubleBuffer = False
 			If Not HandleSetted Then ReleaseDevice
 		#endif
