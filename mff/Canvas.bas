@@ -242,6 +242,7 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.CreateDoubleBuffer
 		#ifdef __USE_WINAPI__
+			If memDC > 0 Then DeleteDoubleBuffer
 			If Not HandleSetted Then GetDevice
 			DC = Handle
 			memDC = CreateCompatibleDC(DC)
@@ -253,11 +254,18 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
+	#ifndef Canvas_TransferDoubleBuffer_Off
+		Private Sub Canvas.TransferDoubleBuffer
+			#ifdef __USE_WINAPI__
+				If memDC > 0 Then BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
+			#endif
+		End Sub
+	#endif
+	
 	Private Sub Canvas.DeleteDoubleBuffer
 		#ifdef __USE_WINAPI__
-			If Not FDoubleBuffer Then Exit Sub
 			#ifdef __USE_WINAPI__
-				BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
+				If memDC > 0 Then BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
 			#endif
 			Handle = DC
 			HandleSetted = False
@@ -613,8 +621,8 @@ Namespace My.Sys.Drawing
 				If ImageDest Then
 					gdk_pixbuf_copy_area(ImageSource, x, y, nWidth, nHeight, ImageDest, 0, 0)
 					Return ImageDest
-				EndIf
-			EndIf
+				End If
+			End If
 			Return 0
 		#elseif defined(__USE_WINAPI__)
 			Dim As GpImage Ptr pImage1
@@ -966,6 +974,7 @@ Namespace My.Sys.Drawing
 	
 	Private Destructor Canvas
 		#ifndef __USE_GTK__
+			If memDC > 0 Then DeleteDoubleBuffer
 			If Handle Then ReleaseDevice
 		#endif
 	End Destructor
