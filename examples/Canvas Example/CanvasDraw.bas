@@ -277,7 +277,7 @@ End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	'CommandButton1_Click(Sender)
-	Picture1.Canvas.TransferDoubleBuffer
+	Picture1.Canvas.TransferDoubleBuffer(0, 0, NewWidth, NewHeight)
 End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)

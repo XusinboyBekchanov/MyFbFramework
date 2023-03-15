@@ -103,6 +103,8 @@ Namespace My.Sys.Drawing
 		FDrawWidth      As Integer 
 		FScaleWidth     As Long 
 		FScaleHeight    As Long
+		FBmpWidth       As Long
+		FBmpHeight      As Long
 		FDoubleBuffer   As Boolean
 		imgScaleX       As Double 
 		imgScaleY       As Double
@@ -137,7 +139,7 @@ Namespace My.Sys.Drawing
 		Declare Sub GetDevice
 		Declare Sub ReleaseDevice
 		Declare Sub CreateDoubleBuffer
-		Declare Sub TransferDoubleBuffer
+		Declare Sub TransferDoubleBuffer(ALeft As Long = 0, ATop As Long = 0, AWidth As Long = -1, AHeight As Long = -1)
 		Declare Sub DeleteDoubleBuffer
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr

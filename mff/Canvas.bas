@@ -247,7 +247,9 @@ Namespace My.Sys.Drawing
 			If Not HandleSetted Then GetDevice
 			DC = Handle
 			memDC = CreateCompatibleDC(DC)
-			CompatibleBmp = CreateCompatibleBitmap(DC, ScaleX(This.Width) , ScaleY(This.Height))
+			FBmpWidth = ScaleX(This.Width)
+			FBmpHeight = ScaleY(This.Height)
+			CompatibleBmp = CreateCompatibleBitmap(DC, FBmpWidth, FBmpHeight)
 			SelectObject(memDC, CompatibleBmp)
 			Handle = memDC
 			HandleSetted = True
@@ -256,9 +258,11 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	#ifndef Canvas_TransferDoubleBuffer_Off
-		Private Sub Canvas.TransferDoubleBuffer
+		Private Sub Canvas.TransferDoubleBuffer(ALeft As Long = 0, ATop As Long = 0, AWidth As Long = -1, AHeight As Long = -1)
+			If AWidth = -1 Then AWidth = FBmpWidth Else AWidth = ScaleX(AWidth)
+			If AHeight = -1 Then AHeight = FBmpHeight Else AHeight = ScaleY(AHeight)
 			#ifdef __USE_WINAPI__
-				If memDC > 0 Then BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
+				If memDC > 0 Then StretchBlt(DC, ScaleX(ALeft), ScaleY(ATop),  AWidth, AHeight, memDC, 0, 0, FBmpWidth, FBmpHeight, SRCCOPY)
 			#endif
 		End Sub
 	#endif
