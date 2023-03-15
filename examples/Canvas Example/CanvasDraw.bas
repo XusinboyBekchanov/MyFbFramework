@@ -11,24 +11,22 @@
 	#include once "mff/ListControl.bi"
 	Using My.Sys.Forms
 	Using My.Sys.Drawing
-	
+
 	Type Form1Type Extends Form
-		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
+		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub Picture1_Paint_(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Static Sub _Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub Form_Resize_(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Static Sub _Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub cmdGDIDraw_Click_(ByRef Sender As Control)
+		Declare Static Sub _cmdGDIDraw_Click(ByRef Sender As Control)
 		Declare Sub cmdGDIDraw_Click(ByRef Sender As Control)
-		Declare Static Sub cmdGDICls_Click_(ByRef Sender As Control)
+		Declare Static Sub _cmdGDICls_Click(ByRef Sender As Control)
 		Declare Sub cmdGDICls_Click(ByRef Sender As Control)
-		Declare Static Sub CommandButton2_Click_(ByRef Sender As Control)
+		Declare Static Sub _CommandButton2_Click(ByRef Sender As Control)
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
-		Declare Static Sub cmdGDIDraw1_Click_(ByRef Sender As Control)
+		Declare Static Sub _cmdGDIDraw1_Click(ByRef Sender As Control)
 		Declare Sub cmdGDIDraw1_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Click_(ByRef Sender As Control)
-		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As CommandButton CommandButton1, cmdGDIDraw, cmdGDICls
@@ -42,8 +40,7 @@
 			.Name = "Form1"
 			.Text = "Form1"
 			.Designer = @This
-			.OnResize = @Form_Resize_
-			.OnClick = @Form_Click_
+			.OnResize = @_Form_Resize
 			.SetBounds 0, 0, 350, 300
 		End With
 		' CommandButton1
@@ -57,7 +54,7 @@
 			.Anchor.Right = AnchorStyle.asNone
 			.SetBounds 13, 230, 71, 30
 			.Designer = @This
-			.OnClick = @CommandButton1_Click_
+			.OnClick = @_CommandButton1_Click
 			.Parent = @This
 		End With
 		' Picture1
@@ -70,9 +67,8 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.BackColor = 8388736
-			.SetBounds 12, 56, 310, 170
+			.SetBounds 12, 56, 310, 160
 			.Designer = @This
-			.OnPaint = @Picture1_Paint_
 			.Parent = @This
 		End With
 		' Text1(0)
@@ -166,7 +162,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.SetBounds 86, 231, 79, 30
 			.Designer = @This
-			.OnClick = @cmdGDIDraw_Click_
+			.OnClick = @_cmdGDIDraw_Click
 			.Parent = @This
 		End With
 		' cmdGDICls
@@ -179,37 +175,29 @@
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 170, 232, 79, 30
 			.Designer = @This
-			.OnClick = @cmdGDICls_Click_
+			.OnClick = @_cmdGDICls_Click
 			.Parent = @This
 		End With
 	End Constructor
 	
-	Private Sub Form1Type.Form_Click_(ByRef Sender As Control)
-		*Cast(Form1Type Ptr, Sender.Designer).Form_Click(Sender)
-	End Sub
- 
-	Private Sub Form1Type.CommandButton2_Click_(ByRef Sender As Control)
-		*Cast(Form1Type Ptr, Sender.Designer).CommandButton2_Click(Sender)
+	Private Sub Form1Type._CommandButton2_Click(ByRef Sender As Control)
+		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton2_Click(Sender)
 	End Sub
 	
-	Private Sub Form1Type.cmdGDICls_Click_(ByRef Sender As Control)
-		*Cast(Form1Type Ptr, Sender.Designer).cmdGDICls_Click(Sender)
+	Private Sub Form1Type._cmdGDICls_Click(ByRef Sender As Control)
+		(*Cast(Form1Type Ptr, Sender.Designer)).cmdGDICls_Click(Sender)
 	End Sub
 	
-	Private Sub Form1Type.cmdGDIDraw_Click_(ByRef Sender As Control)
-		*Cast(Form1Type Ptr, Sender.Designer).cmdGDIDraw_Click(Sender)
+	Private Sub Form1Type._cmdGDIDraw_Click(ByRef Sender As Control)
+		(*Cast(Form1Type Ptr, Sender.Designer)).cmdGDIDraw_Click(Sender)
 	End Sub
 	
-	Private Sub Form1Type.Form_Resize_(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		*Cast(Form1Type Ptr, Sender.Designer).Form_Resize(Sender, NewWidth, NewHeight)
+	Private Sub Form1Type._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
 	End Sub
 	
-	Private Sub Form1Type.Picture1_Paint_(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		*Cast(Form1Type Ptr, Sender.Designer).Picture1_Paint(Sender, Canvas)
-	End Sub
-	
-	Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
-		*Cast(Form1Type Ptr, Sender.Designer).CommandButton1_Click(Sender)
+	Private Sub Form1Type._CommandButton1_Click(ByRef Sender As Control)
+		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 	End Sub
 	
 	Dim Shared Form1 As Form1Type
@@ -225,22 +213,22 @@
 
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	Dim As Double A(1), B(1), C(1), D(1), E(1), X, Y
-	Dim T As Long = GetTickCount
+	Dim T As Double = Timer
 	' Coordination  坐标系统
 	CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'Picture1.Visible = False
 	Picture1.Style = 16
 	With Picture1.Canvas
 		.CreateDoubleBuffer
-		.Cls 
+		.Cls
 		.Scale(-10, -10, 10, 10)
 		.Pen.Color = clGreen
 		.Pen.Size = 2
 		.Pen.Style = 3 'PenStyle.psDashDot
 		'.Pen.Mode = PenMode.pmMerge
 		' draw across  画十字线条
-		'.FillMode = BrushFillMode.bmOpaque  
-		'.Brush.Style = BrushStyles.bsSolid 
+		'.FillMode = BrushFillMode.bmOpaque
+		'.Brush.Style = BrushStyles.bsSolid
 		'.Rectangle -10 , -10 , 10 , 10
 		'.Line -10 , -10 , 10 , 10, clblue, "BF"
 		.Line -10 , 0 , 10 , 00
@@ -268,25 +256,28 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 		If E(0) < 1 Then E(0) = 1: If E(1) < 1 Then E(1) = 1
 		
 		For i As Long = -72000 To 72000 'Step  0.1
-			x = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0)))
-			y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1)))
-			.SetPixel x, y, clRed
+			X = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0)))
+			Y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1)))
+			.SetPixel X, Y, clRed
 			'.TextOut 20, 20, Str(i), clYellow, -1
 		Next
-		.TextOut - 9, -9, "Elapsed Time: " & GetTickCount - t & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
+		.TextOut - 9, -9, "Elapsed Time: " & Timer - T & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
 		'Picture1.Visible = True
-		.DeleteDoubleBuffer
+		.TransferDoubleBuffer
+		'.DeleteDoubleBuffer
 	End With
 	
-	CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" 
+	CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw"
 	'
 End Sub
 
 Private Sub Form1Type.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	'CommandButton1_Click(sender)
+	
 End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	'CommandButton1_Click(Sender)
+	'Debug.Print "NewWidth=" & NewWidth & " NewHeight=" & NewHeight
 	
 End Sub
 
@@ -294,7 +285,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 	Picture1.Style = 16
 	With Picture1.Canvas
 		.CreateDoubleBuffer
-		.Cls 
+		.Cls
 		.Scale(-100, 100, 100, -100)
 		.Pen.Color = clGreen
 		.Pen.Size = 1
@@ -309,8 +300,8 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Brush.Style = BrushStyles.bsClear
 		
 		.TextOut 0,  0, "(0,0)" , clGreen, -1 '原点坐标
-		.TextOut 90, 10, "X轴", clGreen, -1    '标记X轴
-		.TextOut 5, 95,  "Y轴", clGreen, -1     '标记Y轴
+		.TextOut 90, 10, "X", clGreen, -1    '标记X轴
+		.TextOut 5, 95,  "Y", clGreen, -1     '标记Y轴
 		
 		For i As Integer = 10 To 50 Step 4
 			.SetPixel(i, 10, clRed) '绘制像素点
@@ -330,7 +321,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Pen.Style = PenStyle.psDashDotDot
 		.Line -10, -40, -100, -40
 		
-		.Brush.Style = BrushStyles.bsSolid  
+		.Brush.Style = BrushStyles.bsSolid
 		.Line 40, 20, 80, 40, , "F"
 		.Line 40, 70, 80, 90, clBlue, "F"
 		
@@ -344,18 +335,18 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		Dim As Point pt(4) = {(-60, + 20), (-90, + 110), (-10, 0), (-30, 70)}
 		'{{90, 130}, {60, 40}, {140, 150}, {160, 80}}
 		'//绘制椭圆、矩形
-		.Ellipse(pt(0).X, pt(0).y, pt(1).X, pt(0).y)
-		.Rectangle(pt(2).X, pt(2).y, pt(3).X, pt(3).y)
+		.Ellipse(pt(0).X, pt(0).Y, pt(1).X, pt(0).Y)
+		.Rectangle(pt(2).X, pt(2).Y, pt(3).X, pt(3).Y)
 		
 		'绘制贝塞尔曲线
 		.Pen.Color = clRed
 		.DrawWidth = 2  'DrawWidth
-		.PolyBeizer(pt(), 4)
+		'.PolyBeizer(pt(), 4)
 		'标出贝塞尔曲线的四个锚点
-		.Circle(pt(0).x, pt(0).y, 4)
-		.Circle(pt(1).x, pt(1).y, 4)
-		.Circle(pt(2).x, pt(2).y, 4)
-		.Circle(pt(3).x, pt(3).y, 4)
+		.Circle(pt(0).X, pt(0).Y, 4)
+		.Circle(pt(1).X, pt(1).Y, 4)
+		.Circle(pt(2).X, pt(2).Y, 4)
+		.Circle(pt(3).X, pt(3).Y, 4)
 		
 		'绘制圆
 		.Circle(50, 40, 30, clYellow)
@@ -378,7 +369,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Rectangle(20, -60, 60, -70) ' HS_DIAGCROSS, RGB(0, 0, 255))
 		.Pen.Color = clYellow
 		.Brush.HatchStyle = HatchStyles.hsVertical
-		.FillColor = clGray 
+		.FillColor = clGray
 		.Rectangle(20, -80, 60, -90) ' HS_VERTICAL, RGB(0, 0, 0))
 		
 		'Draw Image   绘制位图
@@ -386,7 +377,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
-		.DeleteDoubleBuffer
+		.TransferDoubleBuffer
 	End With
 End Sub
 
@@ -396,9 +387,5 @@ Private Sub Form1Type.cmdGDICls_Click(ByRef Sender As Control)
 		Sleep(300)
 		.Cls
 	End With
-End Sub
-
-Private Sub Form1Type.Form_Click(ByRef Sender As Control)
-	
 End Sub
 

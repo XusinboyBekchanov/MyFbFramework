@@ -138,6 +138,7 @@ Namespace My.Sys.Drawing
 					R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
 				End If
 				.FillRect Handle, Cast(..Rect Ptr, @R), B
+				TransferDoubleBuffer
 				DeleteObject B
 			#endif
 		End If
@@ -171,7 +172,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetBlue(Value) / 255.0, GetGreen(Value) / 255.0)
-			.cairo_rectangle(Handle, xy.X, xy.Y, 1, 1)
+			.cairo_rectangle(Handle, xy.x, xy.y, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
@@ -231,6 +232,10 @@ Namespace My.Sys.Drawing
 				HandleSetted = False
 			#endif
 		#elseif defined(__USE_WINAPI__)
+			If FDoubleBuffer Then 
+				DeleteDoubleBuffer
+				FDoubleBuffer = False
+			End If
 			If HandleSetted Then Exit Sub
 			If ParentControl Then If Handle Then ReleaseDC ParentControl->Handle, Handle
 		#endif
@@ -238,31 +243,41 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.CreateDoubleBuffer
 		#ifdef __USE_WINAPI__
+			If memDC > 0 Then DeleteDoubleBuffer
 			If Not HandleSetted Then GetDevice
 			DC = Handle
 			memDC = CreateCompatibleDC(DC)
-			CompatibleBmp = CreateCompatibleBitmap(DC, ScaleX(This.Width) , ScaleY(This.Height))
+			FBmpWidth = ScaleX(This.Width)
+			FBmpHeight = ScaleY(This.Height)
+			CompatibleBmp = CreateCompatibleBitmap(DC, FBmpWidth, FBmpHeight)
 			SelectObject(memDC, CompatibleBmp)
 			Handle = memDC
 			HandleSetted = True
+			FDoubleBuffer = True
 		#endif
 	End Sub
 	
 	#ifndef Canvas_TransferDoubleBuffer_Off
-		Private Sub Canvas.TransferDoubleBuffer
+		Private Sub Canvas.TransferDoubleBuffer(ALeft As Long = 0, ATop As Long = 0, AWidth As Long = -1, AHeight As Long = -1)
+			If AWidth = -1 Then AWidth = FBmpWidth Else AWidth = ScaleX(AWidth)
+			If AHeight = -1 Then AHeight = FBmpHeight Else AHeight = ScaleY(AHeight)
 			#ifdef __USE_WINAPI__
-			BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
+				If memDC > 0 Then StretchBlt(DC, ScaleX(ALeft), ScaleY(ATop),  AWidth, AHeight, memDC, 0, 0, FBmpWidth, FBmpHeight, SRCCOPY)
 			#endif
 		End Sub
 	#endif
 	
 	Private Sub Canvas.DeleteDoubleBuffer
 		#ifdef __USE_WINAPI__
-			TransferDoubleBuffer
+			#ifdef __USE_WINAPI__
+				If memDC > 0 Then BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
+			#endif
 			Handle = DC
 			HandleSetted = False
 			DeleteObject(CompatibleBmp)
 			DeleteDC(memDC)
+			memDC = 0
+			FDoubleBuffer = False
 			If Not HandleSetted Then ReleaseDevice
 		#endif
 	End Sub
@@ -612,8 +627,8 @@ Namespace My.Sys.Drawing
 				If ImageDest Then
 					gdk_pixbuf_copy_area(ImageSource, x, y, nWidth, nHeight, ImageDest, 0, 0)
 					Return ImageDest
-				EndIf
-			EndIf
+				End If
+			End If
 			Return 0
 		#elseif defined(__USE_WINAPI__)
 			Dim As GpImage Ptr pImage1
@@ -965,6 +980,7 @@ Namespace My.Sys.Drawing
 	
 	Private Destructor Canvas
 		#ifndef __USE_GTK__
+			If memDC > 0 Then DeleteDoubleBuffer
 			If Handle Then ReleaseDevice
 		#endif
 	End Destructor
