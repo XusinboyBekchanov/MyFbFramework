@@ -166,11 +166,11 @@ Namespace My.Sys.Forms
 					If OnDblClick Then OnDblClick(This)
 				End If
 			Case WM_ERASEBKGND
-				Dim As ..Rect R
+				Dim As ..RECT R
 				GetClientRect Handle, @R
 				FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
 				Message.Result = -1
-				Canvas.TransferDoubleBuffer
+				Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As My.Sys.Drawing.Rect R
