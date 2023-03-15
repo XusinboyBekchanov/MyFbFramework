@@ -1,10 +1,4 @@
-﻿'################################################################################
-'#  AnimatePlayer.frm                                                           #
-'#  This file is an examples of MyFBFramework                                   #
-'#  Authors: Xusinboy Bekchanov Liu XiaLin                                      #
-'################################################################################
-
-#ifdef __FB_WIN32__
+﻿#ifdef __FB_WIN32__
 	''#Compile "Form1.rc"
 #endif
 '#Region "Form"
@@ -269,7 +263,8 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 		Next
 		.TextOut - 9, -9, "Elapsed Time: " & Timer - T & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
 		'Picture1.Visible = True
-		.DeleteDoubleBuffer
+		.TransferDoubleBuffer
+		'.DeleteDoubleBuffer
 	End With
 	
 	CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw"
@@ -281,7 +276,8 @@ Private Sub Form1Type.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My
 End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		CommandButton1_Click(Sender)
+	'CommandButton1_Click(Sender)
+	Picture1.Canvas.TransferDoubleBuffer
 End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
@@ -380,7 +376,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
-		.DeleteDoubleBuffer
+		'.DeleteDoubleBuffer
 	End With
 End Sub
 
