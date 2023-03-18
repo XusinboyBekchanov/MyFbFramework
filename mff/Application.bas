@@ -49,6 +49,18 @@ Namespace My
 		End Function
 	#endif
 	
+	Private Property Application.DarkMode As Boolean
+		Return FDarkMode
+	End Property
+	
+	Private Property Application.DarkMode(Value As Boolean)
+		FDarkMode = Value
+		#ifdef __USE_WINAPI__
+			If g_buildNumber = 0 Then InitDarkMode
+		#endif
+		SetDarkMode Value, False
+	End Property
+	
 	Private Function Application.Version As Const String
 		Return GetVerInfo("FileVersion")
 	End Function

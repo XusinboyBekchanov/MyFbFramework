@@ -98,6 +98,7 @@ Namespace My
 	
 	Private Type Application Extends My.Sys.Object
 	Private:
+		FDarkMode       As Boolean
 		FTitle          As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon
 		FExeName        As WString Ptr
@@ -144,11 +145,12 @@ Namespace My
 		Declare Property ActiveForm(Value As My.Sys.Forms.Form Ptr)
 		Declare Property ActiveMDIChild As My.Sys.Forms.Form Ptr
 		Declare Property ActiveMDIChild(Value As My.Sys.Forms.Form Ptr)
+		Declare Property DarkMode As Boolean
+		Declare Property DarkMode(Value As Boolean)
 		Declare Property FileName ByRef As WString
 		Declare Property FileName(ByRef Value As WString)
 		Declare Function Version() As Const String
 		Declare Function GetVerInfo(ByRef InfoName As String) As String
-		
 		Declare Property Icon As My.Sys.Drawing.Icon
 		Declare Property Icon(Value As My.Sys.Drawing.Icon)
 		Declare Property Title ByRef As WString
