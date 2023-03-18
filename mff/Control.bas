@@ -38,6 +38,7 @@ Namespace My.Sys.Forms
 				Case "anchor.bottom": Return @Anchor.Bottom
 				Case "borderstyle": Return @FBorderStyle
 				Case "backcolor": Return @FBackColor
+				Case "canvas": Return @Canvas
 				Case "constraints": Return @Constraints
 				Case "constraints.left": Return @Constraints.Left
 				Case "constraints.top": Return @Constraints.Top

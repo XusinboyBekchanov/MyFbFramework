@@ -1,5 +1,5 @@
 ﻿'################################################################################
-'#  CanvasDraw.frm                                                              #
+'#  Hello.frm                                                              #
 '#  This file is an examples of MyFBFramework.                                  #
 '#  Authors: Xusinboy Bekchanov, Liu XiaLin                                     #
 '################################################################################
