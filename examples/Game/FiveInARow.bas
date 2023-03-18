@@ -310,31 +310,31 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 	End Constructor
 	
 	Private Sub frmWuziqiType.cmdChangBK_Click_(ByRef Sender As Control)
-		*Cast(frmWuziqiType Ptr, Sender.Designer).cmdChangBK_Click(Sender)
+		(*Cast(frmWuziqiType Ptr, Sender.Designer)).cmdChangBK_Click(Sender)
 	End Sub
 	
 	Private Sub frmWuziqiType.UpDown1_Changing_(ByRef Sender As UpDown,Value As Integer,Direction As Integer)
-		*Cast(frmWuziqiType Ptr, Sender.Designer).UpDown1_Changing(Sender, Value, Direction)
+		(*Cast(frmWuziqiType Ptr, Sender.Designer)).UpDown1_Changing(Sender, Value, Direction)
 	End Sub
 	
 	Private Sub frmWuziqiType.Picture1_Click_(ByRef Sender As Picture)
-		*Cast(frmWuziqiType Ptr, Sender.Designer).Picture1_Click(Sender)
+		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Picture1_Click(Sender)
 	End Sub
 	
 	Private Sub frmWuziqiType.Picture1_MouseMove_(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		*Cast(frmWuziqiType Ptr, Sender.Designer).Picture1_MouseMove(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Picture1_MouseMove(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Private Sub frmWuziqiType.Picture1_MouseDown_(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
-		*Cast(frmWuziqiType Ptr, Sender.Designer).Picture1_MouseDown(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Picture1_MouseDown(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Private Sub frmWuziqiType.Form_Show_(ByRef Sender As Form)
-		*Cast(frmWuziqiType Ptr, Sender.Designer).Form_Show(Sender)
+		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
 	Private Sub frmWuziqiType.cmdStart_Click_(ByRef Sender As Control)
-		*Cast(frmWuziqiType Ptr, Sender.Designer).cmdStart_Click(Sender)
+		(*Cast(frmWuziqiType Ptr, Sender.Designer)).cmdStart_Click(Sender)
 	End Sub
 	
 	Dim Shared frmWuziqi As frmWuziqiType
