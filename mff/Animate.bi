@@ -6,11 +6,20 @@
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.0                                                             #
 '#  Updated and added cross-platform code                                      #
-'#  Authors: Xusinboy Bekchanov  Liu XiaLin                                    #
+'#  Authors: Xusinboy Bekchanov, Liu XiaLin                                    #
 '###############################################################################
 
 
 #include once "Control.bi"
+#ifdef GIFPlayOn
+	#Ifdef __FB_64BIT__
+		#Inclib "gdiplus"
+		#Include "win/gdiplus-c.bi"
+	#Else
+		#Include "win/gdiplus.bi"
+		Using Gdiplus
+	#Endif
+#endif
 #ifndef __USE_GTK__
 	#include once "win/dshow.bi"
 #endif
@@ -36,9 +45,16 @@ Namespace My.Sys.Forms
 		FFrameCount     As Double
 		FFrameWidth     As Long
 		FFrameHeight    As Long
+		FFrameLeft      As Long
+		FFrameTop       As Long
+		FFrameWidthOrig  As Single
+		FFrameHeightOrig As Single
 		FPosition       As Double
 		FBalance        As Long
 		FVolume         As Long
+		FRate           As Double
+		FRatio          As Double
+		FRatioFixed     As Boolean
 		FFullScreenMode As Long
 		FErrorInfo      As String
 		FStartFrame     As Long
@@ -56,6 +72,22 @@ Namespace My.Sys.Forms
 		ATransparent(2) As Integer
 		AAutoPlay(2)    As Integer
 		SupportsAlpha   As Boolean
+		#ifdef GIFPlayOn
+			gdipToken     As ULONG_PTR
+			GDIp          As GdiplusStartupInput
+			gifGdipCanvas As Any Ptr 
+			gifImagePtr   As Any Ptr 
+			FFrameDelays(Any)  As ULong
+			FFrameList    As GUID 
+			gifInterval   As Integer
+			gifDrawing    As Boolean
+		#endif
+		FFrameIndex     As Integer
+		FPlayTimeStart  As Double
+		FPlayTimePause  As Double
+		FPlayTimePauseStart As Double
+		FPlayTimeFramStart  As Double
+		
 		#ifdef __USE_GTK__
 			Declare Static Sub Screen_Changed(widget As GtkWidget Ptr, old_screen As GdkScreen Ptr, userdata As gpointer)
 			Declare Static Function DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
@@ -67,17 +99,19 @@ Namespace My.Sys.Forms
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As WString) As Integer
-			As IGraphBuilder   Ptr pGraph
-			As IMediaControl   Ptr PControl
-			As IMediaEvent     Ptr pEvent
-			As IVideoWindow    Ptr VidWindow
-			As IMediaSeeking   Ptr MedSeek
-			As IMediaPosition  Ptr MedPosition 
-			As IBasicVideo     Ptr BasVideo
-			As IBasicAudio     Ptr BasAudio
+			#ifdef MoviePlayOn
+				As IGraphBuilder   Ptr pGraph
+				As IMediaControl   Ptr PControl
+				As IMediaEvent     Ptr pEvent
+				As IVideoWindow    Ptr VidWindow
+				As IMediaSeeking   Ptr MedSeek
+				As IMediaPosition  Ptr MedPosition
+				As IBasicVideo     Ptr BasVideo
+				As IBasicAudio     Ptr BasAudio
+			#endif
 		#endif
 	Protected:
-		fopen           As Boolean
+		FOpenMode          As Integer
 		FPlay           As Boolean
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub GetAnimateInfo
@@ -108,22 +142,35 @@ Namespace My.Sys.Forms
 		Declare Property Volume(Value As Long)
 		Declare Property Balance As Long
 		Declare Property Balance(Value As Long)
+		Declare Property Rate As Double
+		Declare Property Rate(Value As Double)
+		Declare Property RatioFixed As Boolean
+		Declare Property RatioFixed(Value As Boolean)
 		Declare Property FullScreenMode As Boolean
 		Declare Property FullScreenMode(Value As Boolean)
+		#ifdef GIFPlayOn
+			Declare Sub DrawGif(ByVal FFrameIndex As Integer = 0)
+		#endif
 		Declare Property Position As Double
 		Declare Property Position(Value As Double)
 		Declare Property StartFrame As Long
 		Declare Property StartFrame(Value As Long)
 		Declare Property StopFrame As Long
 		Declare Property StopFrame(Value As Long)
+		Declare Property FrameHeight As Long
+		Declare Property FrameHeight(Value As Long)
+		Declare Property FrameWidth As Long
+		Declare Property FrameWidth(Value As Long)
+		Declare Function OpenMode As Integer
 		Declare Function FrameCount As Long
-		Declare Function FrameHeight As Long
-		Declare Function FrameWidth As Long
+		Declare Function FrameHeightOriginal As Long
+		Declare Function FrameWidthOriginal As Long
+		Declare Function Ratio As Double
 		Declare Function IsPlaying As Boolean
 		Declare Function GetErrorInfo As String
-		Declare Sub SetWindowPosition(ALeft As Long, ATop As Long, AWidth As Long, AHeight As Long)
+		Declare Sub SetMoviePosition(ByVal ALeft As Long, ByVal ATop As  Long, ByVal AWidth As Long, ByVal AHeight As Long)
 		Declare Operator Cast As Control Ptr
-		Declare Sub Open
+		Declare Function OpenFile(ByRef FileName As WString = "") As Integer
 		Declare Sub Play
 		Declare Sub Pause
 		Declare Sub Stop
