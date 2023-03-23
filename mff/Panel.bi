@@ -12,6 +12,7 @@
 '###############################################################################
 
 #include once "ContainerControl.bi"
+#include once "Graphic.bi"
 '#Include Once "Canvas.bi"
 
 Namespace My.Sys.Forms
