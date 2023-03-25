@@ -6,6 +6,7 @@
 
 #include once "Control.bi"
 #include once "WStringList.bi"
+#include once "TextBox.bi"
 
 Private Enum GridSortStyle
 	ssNone
@@ -222,21 +223,30 @@ Namespace My.Sys.Forms
 	
 	Private Type Grid Extends Control
 	Private:
-		FAllowColumnReorder As Boolean
-		FColumnHeaderHidden As Boolean
-		FGridLines As Boolean
-		FHoverTime As Integer
-		FFullRowSelect As Boolean
+		FAllowColumnReorder  As Boolean
+		FColumnHeaderHidden  As Boolean
+		FGridLines           As Boolean
+		FHoverTime           As Integer
+		FFullRowSelect       As Boolean
 		FSingleClickActivate As Boolean
-		FSortStyle As GridSortStyle
-		FHoverSelection As Boolean
-		FLVExStyle As Integer
-		FCol As Integer
-		FItemHeight As Integer
+		FSortStyle           As GridSortStyle
+		FHoverSelection      As Boolean
+		FLVExStyle           As Integer
+		FRow                 As Integer
+		FCol                 As Integer
+		FItemHeight          As Integer
+		GridEditText         As TextBox
+		FSorting             As Boolean
+		FAllowEdit           As Boolean = True
+		FGridEditTextForeColor As Integer = clWhite
+		FGridEditTextBackColor As Integer = BGR(190, 255, 255) ' &H9AFA00'clWhite
 		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
-		Declare Static Sub WndProc(ByRef Message As Message)
-		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+		#ifdef __USE_WINAPI__
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+			Declare Sub EditControlShow(ByVal tRow As Integer, ByVal tCol As Integer)
+		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Declare Static Sub Grid_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
@@ -268,6 +278,8 @@ Namespace My.Sys.Forms
 			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Function Cell(RowIndex As Integer, ColumnIndex As Integer) As GridCell Ptr
+		Declare Property AllowEdit As Boolean
+		Declare Property AllowEdit(Value As Boolean)
 		Declare Property AllowColumnReorder As Boolean
 		Declare Property AllowColumnReorder(Value As Boolean)
 		Declare Property ColumnHeaderHidden As Boolean
