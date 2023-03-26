@@ -14,6 +14,7 @@
 #include once "Component.bi"
 
 #ifdef __USE_GTK__
+	#define crDefault     "default"
 	#define crArrow       "default"
 	#define crAppStarting "progress"
 	#define crCross       "crosshair"
@@ -52,6 +53,7 @@
 	#define crVSplit      "row-resize"
 	#define crNoDrop      "no-drop"
 #else
+	#define crDefault     0
 	#define crArrow       LoadCursor(0,IDC_ARROW)
 	#define crAppStarting LoadCursor(0,IDC_APPSTARTING)
 	#define crCross       LoadCursor(0,IDC_CROSS)
