@@ -34,11 +34,23 @@ Private Destructor UString
 End Destructor
 
 Private Function UString.StartsWith(ByRef Value As UString) As Boolean
-	Return Left(*m_Data, Value.m_Length) = * (Value.vptr)
+	'Return Left(*m_Data, Value.m_Length) = * (Value.vptr)
+	If m_Length < Value.m_Length Then Return False
+	For i As Integer = 0 To Value.m_Length - 1
+		If (*m_Data)[i] <> (*Value.m_Data)[i] Then Return False
+	Next
+	Return True
 End Function
 
 Private Function UString.EndsWith(ByRef Value As UString) As Boolean
-	Return Right(*m_Data, Value.m_Length) = * (Value.vptr)
+	'Return Right(*m_Data, Value.m_Length) = * (Value.vptr)
+	If m_Length < Value.m_Length Then Return False
+	Dim j As Integer = m_Length - Value.m_Length
+	For i As Integer = 0 To Value.m_Length - 1
+		If (*m_Data)[j] <> (*Value.m_Data)[i] Then Return False
+		j += 1
+	Next
+	Return True
 End Function
 
 Private Function UString.ToLower As UString

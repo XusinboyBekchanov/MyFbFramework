@@ -477,11 +477,23 @@ Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iS
 End Function
 
 Private Function StartsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
-	If a = "" OrElse b = "" Then Return False Else Return Left(a, Len(b)) = b
+	'If a = "" OrElse b = "" Then Return False Else Return Left(a, Len(b)) = b
+	If Len(a) < Len(b) Then Return False
+	For i As Integer = 0 To Len(b) - 1
+		If a[i] <> b[i] Then Return False
+	Next
+	Return True
 End Function
 
 Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
-	If a = "" OrElse b = "" Then Return False Else Return Right(a, Len(b)) = b
+	'If a = "" OrElse b = "" Then Return False Else Return Right(a, Len(b)) = b
+	If Len(a) < Len(b) Then Return False
+	Dim j As Integer = Len(a) - Len(b)
+	For i As Integer = 0 To Len(b) - 1
+		If a[j] <> b[i] Then Return False
+		j += 1
+	Next
+	Return True
 End Function
 
 ' ========================================================================================
