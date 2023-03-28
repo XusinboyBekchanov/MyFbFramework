@@ -185,7 +185,7 @@ Declare Sub Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const
 Declare Sub Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True)
 Declare Function Join Overload(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
 Declare Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
-Declare Function StartsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
+Declare Function StartsWith(ByRef a As Const WString, ByRef b As Const WString, Start As Integer = 0) As Boolean
 Declare Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
 Declare Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 

@@ -404,6 +404,28 @@ End Function
 '	Deallocate TempString
 'End Function
 
+Private Function StartsWith(ByRef a As Const WString, ByRef b As Const WString, Start As Integer = 0) As Boolean
+	'If a = "" OrElse b = "" Then Return False Else Return Left(a, Len(b)) = b
+	If Len(a) < Len(b) Then Return False
+	Dim j As Integer = Start
+	For i As Integer = 0 To Len(b) - 1
+		If a[j] <> b[i] Then Return False
+		j += 1
+	Next
+	Return True
+End Function
+
+Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
+	'If a = "" OrElse b = "" Then Return False Else Return Right(a, Len(b)) = b
+	If Len(a) < Len(b) Then Return False
+	Dim j As Integer = Len(a) - Len(b)
+	For i As Integer = 0 To Len(b) - 1
+		If a[j] <> b[i] Then Return False
+		j += 1
+	Next
+	Return True
+End Function
+
 Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True)
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1
 	If ls < 1 OrElse tLen < 1 Then
@@ -411,7 +433,8 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 		Exit Sub
 	End If
 	Do While i <= ls
-		If Mid(subject, i, tLen) = Delimiter Then
+		If StartsWith(subject, Delimiter, i - 1) Then
+		'If Mid(subject, i, tLen) = Delimiter Then
 			n = n + 1
 			ReDim Preserve Result(n - 1)
 			Result(n - 1) = Mid(subject, p, i - p)
@@ -474,26 +497,6 @@ Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iS
 		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
 	Next
 	Return Result
-End Function
-
-Private Function StartsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
-	'If a = "" OrElse b = "" Then Return False Else Return Left(a, Len(b)) = b
-	If Len(a) < Len(b) Then Return False
-	For i As Integer = 0 To Len(b) - 1
-		If a[i] <> b[i] Then Return False
-	Next
-	Return True
-End Function
-
-Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
-	'If a = "" OrElse b = "" Then Return False Else Return Right(a, Len(b)) = b
-	If Len(a) < Len(b) Then Return False
-	Dim j As Integer = Len(a) - Len(b)
-	For i As Integer = 0 To Len(b) - 1
-		If a[j] <> b[i] Then Return False
-		j += 1
-	Next
-	Return True
 End Function
 
 ' ========================================================================================
