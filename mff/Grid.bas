@@ -723,10 +723,10 @@ Namespace My.Sys.Forms
 		Index = FColumns.Count - 1
 		With *PColumn
 			.ImageIndex     = FImageIndex
-			.Text        = FCaption
-			.Index = Index
-			.Width     = iWidth
-			.Format = Format
+			.Text           = FCaption
+			.Index          = Index
+			.Width          = iWidth
+			.Format         = Format
 		End With
 		#ifdef __USE_GTK__
 			If Parent Then
@@ -787,26 +787,26 @@ Namespace My.Sys.Forms
 		Return PColumn
 	End Function
 	
-	Private Sub GridColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As GridColumnFormat = gcfLeft)
+	Private Sub GridColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft)
 		Dim As GridColumn Ptr PColumn
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
 			PColumn = New_( GridColumn)
 			FColumns.Insert Index, PColumn
 			With *PColumn
-				.ImageIndex     = FImageIndex
+				.ImageIndex  = FImageIndex
 				.Text        = FCaption
-				.Index        = FColumns.Count - 1
-				.Width     = iWidth
-				.Format = Format
+				.Index       = Index
+				.Width       = iWidth
+				.Format      = Format
 			End With
-			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvc.fmt       =  Format
-			lvc.cx=0
-			lvc.iImage   = PColumn->ImageIndex
-			lvc.iSubItem = PColumn->Index
-			lvc.pszText  = @FCaption
-			lvc.cchTextMax = Len(FCaption)
+			lvc.mask         = LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvc.fmt          = Format
+			lvc.cx           = 0
+			lvc.iImage       = PColumn->ImageIndex
+			lvc.iSubItem     = PColumn->Index
+			lvc.pszText      = @FCaption
+			lvc.cchTextMax   = Len(FCaption)
 			If Parent Then
 				PColumn->Parent = Parent
 				If Parent->Handle Then
@@ -814,6 +814,9 @@ Namespace My.Sys.Forms
 					ListView_SetColumnWidth(Parent->Handle, Index, iWidth)
 				End If
 			End If
+			For i As Integer = FColumns.Count - 1 To Index Step -1
+				Cast(Grid Ptr, Parent)->Columns.Column(i)->Index = i
+			Next
 		#endif
 	End Sub
 	
@@ -1508,9 +1511,8 @@ Namespace My.Sys.Forms
 				Case VK_ESCAPE
 					GridEditText.Visible= False
 				Case VK_RETURN, VK_TAB
-					Print  "Now you can input RETURN Keycode" 
 					'If GridEditText.Multiline = False Then
-						Rows[FRow][FCol].Text = GridEditText.Text
+						Rows[FRow][FCol].Text  = GridEditText.Text
 						GridEditText.Visible=False ' Force refesh windows
 					'End If
 					
@@ -1557,7 +1559,6 @@ Namespace My.Sys.Forms
 	#ifdef __USE_WINAPI__
 		Private Sub Grid.EditControlShow(ByVal tRow As Integer, ByVal tCol As Integer)
 			If FAllowEdit = False OrElse tCol = 0 Then Exit Sub
-			If GridEditText.Visible = True Then Rows.Item(FRow)->Item(FCol) = GridEditText.Text
 			Dim As Rect RectCell
 			Dim As WString Ptr sText
 			'Move to new position
