@@ -979,7 +979,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Canvas
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If memDC > 0 Then DeleteDoubleBuffer
 			If Handle Then ReleaseDevice
 		#endif

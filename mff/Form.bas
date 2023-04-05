@@ -1776,7 +1776,7 @@ Namespace My.Sys.Forms
 					End If
 				#else
 					This.Left = .Left + (.Width - This.Width) \ 2: This.Top  = .Top + (.Height - This.Height) \ 2
-					Move This.Left, This.Top, This.Width, This.Height
+					This.Move This.Left, This.Top, This.Width, This.Height
 				#endif
 			End With
 		End If
