@@ -2007,4 +2007,17 @@ End Namespace
 			End If
 		End If
 	End Sub
+	
+	Sub mffActivity_onDestroy Alias AddToPackage(Package, mffActivity_onDestroy) (ByVal env1 As JNIEnv Ptr, This_ As jobject, layout As jobject) Export
+		If pApp Then
+			If env <> 0 Then
+				For i As Integer = 0 To Handles.Count - 1
+					If Handles.Item(i) <> 0 Then
+						Cast(My.Sys.Forms.Control Ptr, Handles.Item(i))->Handle = 0
+					End If
+				Next
+				env = 0
+			End If
+		End If
+	End Sub
 #endif
