@@ -24,6 +24,7 @@ Namespace My.Sys.Forms
 	Private Type Picture Extends ContainerControl
 	Private:
 		AStyle(24)        As Integer
+		FPictureStyle     As Integer
 		FRealSizeImage    As Boolean
 		FCenterImage      As Boolean
 		ARealSizeImage(2) As Integer
@@ -45,8 +46,8 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
-		Declare Property Style As Integer
-		Declare Property Style(Value As Integer)
+		Declare Property Style As PictureStyle
+		Declare Property Style(Value As PictureStyle)
 		Declare Property RealSizeImage As Boolean
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean

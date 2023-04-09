@@ -15,7 +15,10 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function Picture.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "centerimage": Return @FCenterImage
 			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
+			Case "realsizeimage": Return @FRealSizeImage
+			Case "style": Return @FPictureStyle
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -31,7 +34,10 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "centerimage": This.CenterImage = QBoolean(Value)
 				Case "graphic": This.Graphic = QWString(Value)
+				Case "realsizeimage": This.RealSizeImage = QBoolean(Value)
+				Case "style": This.Style = *Cast(PictureStyle Ptr, Value)
 				Case "tabindex": TabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
@@ -56,15 +62,15 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	Private Property Picture.Style As Integer
-		Return FStyle
+	Private Property Picture.Style As PictureStyle
+		Return FPictureStyle
 	End Property
 	
-	Private Property Picture.Style(Value As Integer)
-		If Value <> FStyle Then
-			FStyle = Value
+	Private Property Picture.Style(Value As PictureStyle)
+		If Value <> FPictureStyle Then
+			FPictureStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -78,7 +84,7 @@ Namespace My.Sys.Forms
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -92,7 +98,7 @@ Namespace My.Sys.Forms
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
 			RecreateWnd
 		End If
@@ -147,7 +153,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_SIZE
-				InvalidateRect(Handle,NULL,True)
+				InvalidateRect(HANDLE,NULL,True)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return
@@ -160,14 +166,14 @@ Namespace My.Sys.Forms
 				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
-					If OnClick Then OnClick(This)
+					If onClick Then onClick(This)
 				End If
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
 				End If
 			Case WM_ERASEBKGND
-				Dim As ..RECT R
-				GetClientRect Handle, @R
+				Dim As ..Rect R
+				GetClientRect HANDLE, @R
 				FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
 				Message.Result = -1
 				Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
@@ -195,30 +201,30 @@ Namespace My.Sys.Forms
 	Private Constructor Picture
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
-			widget = gtk_layout_new(null, null)
-			If gtk_is_widget(ImageWidget) Then gtk_layout_put(GTK_LAYOUT(widget), ImageWidget, 0, 0)
+			widget = gtk_layout_new(NULL, NULL)
+			If GTK_IS_WIDGET(ImageWidget) Then gtk_layout_put(GTK_LAYOUT(widget), ImageWidget, 0, 0)
 			This.RegisterClass "Picture", @This
 		#else
 			'https://blog.csdn.net/mmmvp/article/details/365155
 			'常数     说明
-			Astyle(0)=0
-			Astyle(1)=SS_BITMAP'在静态控件中显示一幅位图(.BMP)，由控件的文本(TEXT)指定一幅包含在资源中的位图文件(非文件名)，该风格忽略控件的宽度和高度，控件将自动调整大小以适应位图。
-			Astyle(2)=SS_ICON'在静态控件中显示一幅图标(.ICO)，由控件的文本(TEXT)指定一幅包含在资源中的图标文件(非文件名)，该风格忽略控件的宽度和高度，控件将自动调整大小以适应图标。
-			Astyle(3)=SS_ENHMETAFILE'在静态控件中显示一增强幅图元文件(.EMF)。由控件的文本(TEXT)指定图元文件名。控件大小固定不变，图元文件按比例缩放显示在控件客户区中。
-			Astyle(4)=SS_BLACKFRAME'用系统颜色组的窗口边界色(缺省为黑色)绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
-			Astyle(5)=SS_BLACKRECT'用系统颜色组的窗口边界色(缺省为黑色)绘制一个矩形实心控件。
-			Astyle(6)=SS_GRAYFRAME'用系统颜色组的屏幕背景色绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
-			Astyle(7)=SS_GRAYRECT'用系统颜色组的屏幕背景色绘制一个矩形实心控件。
-			Astyle(8)=SS_WHITEFRAME'用系统颜色组的窗口背景色(缺省为白色)绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
-			Astyle(9)=SS_WHITERECT'用系统颜色组的窗口背景色(缺省为白色)色绘制一个矩形实心控件。
-			Astyle(10)=SS_ETCHEDFRAME'用下凹的3D线条绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
-			Astyle(11)=SS_ETCHEDHORZ'用下凹的3D线条绘制控件的上下两边，框内使用与底部窗体相同的颜色（透明）。
-			Astyle(12)=SS_ETCHEDVERT'用下凹的3D线条绘制控件的左右两边，框内使用与底部窗体相同的颜色（透明）。
-			Astyle(13)=SS_RIGHTJUST'与SS_BITMAP 或 SS_ICON 配合当需要对控件的大小进行自动调整时以控件的右下角为基准，只有控件的上边和左边的位置改变。
-			Astyle(14)=SS_NOPREFIX'禁止对字符“&amp;”进行解释，通常字符“&amp;”会被解释成在下一个字符加一个下画线，“&amp;&amp;”会被解释成一个字符“&amp;”，用户可以使用SS_NOPREFIX风格来禁止这项解释。
-			Astyle(15)=SS_NOTIFY'当控件被用户单击或双击控件时向父窗口传送STN_CLICKED, STN_DBLCLK, STN_DISABLE, 或 STN_ENABLE 通知消息。
-			Astyle(16)=SS_OWNERDRAW'自绘静态控件，每当控件需要重画时，父窗口将收到WM_DRAWITEM消息。
-			Astyle(17)=SS_REALSIZEIMAGE'禁止根据位图或图标大小自动进行控件尺寸的调整，如果本常数被设定，大于控件的图片其超出部份将被截去。
+			AStyle(0)=0
+			AStyle(1)=SS_BITMAP'在静态控件中显示一幅位图(.BMP)，由控件的文本(TEXT)指定一幅包含在资源中的位图文件(非文件名)，该风格忽略控件的宽度和高度，控件将自动调整大小以适应位图。
+			AStyle(2)=SS_ICON'在静态控件中显示一幅图标(.ICO)，由控件的文本(TEXT)指定一幅包含在资源中的图标文件(非文件名)，该风格忽略控件的宽度和高度，控件将自动调整大小以适应图标。
+			AStyle(3)=SS_ENHMETAFILE'在静态控件中显示一增强幅图元文件(.EMF)。由控件的文本(TEXT)指定图元文件名。控件大小固定不变，图元文件按比例缩放显示在控件客户区中。
+			AStyle(4)=SS_BLACKFRAME'用系统颜色组的窗口边界色(缺省为黑色)绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
+			AStyle(5)=SS_BLACKRECT'用系统颜色组的窗口边界色(缺省为黑色)绘制一个矩形实心控件。
+			AStyle(6)=SS_GRAYFRAME'用系统颜色组的屏幕背景色绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
+			AStyle(7)=SS_GRAYRECT'用系统颜色组的屏幕背景色绘制一个矩形实心控件。
+			AStyle(8)=SS_WHITEFRAME'用系统颜色组的窗口背景色(缺省为白色)绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
+			AStyle(9)=SS_WHITERECT'用系统颜色组的窗口背景色(缺省为白色)色绘制一个矩形实心控件。
+			AStyle(10)=SS_ETCHEDFRAME'用下凹的3D线条绘制一个边框，框内使用与底部窗体相同的颜色（透明）。
+			AStyle(11)=SS_ETCHEDHORZ'用下凹的3D线条绘制控件的上下两边，框内使用与底部窗体相同的颜色（透明）。
+			AStyle(12)=SS_ETCHEDVERT'用下凹的3D线条绘制控件的左右两边，框内使用与底部窗体相同的颜色（透明）。
+			AStyle(13)=SS_RIGHTJUST'与SS_BITMAP 或 SS_ICON 配合当需要对控件的大小进行自动调整时以控件的右下角为基准，只有控件的上边和左边的位置改变。
+			AStyle(14)=SS_NOPREFIX'禁止对字符“&amp;”进行解释，通常字符“&amp;”会被解释成在下一个字符加一个下画线，“&amp;&amp;”会被解释成一个字符“&amp;”，用户可以使用SS_NOPREFIX风格来禁止这项解释。
+			AStyle(15)=SS_NOTIFY'当控件被用户单击或双击控件时向父窗口传送STN_CLICKED, STN_DBLCLK, STN_DISABLE, 或 STN_ENABLE 通知消息。
+			AStyle(16)=SS_OWNERDRAW'自绘静态控件，每当控件需要重画时，父窗口将收到WM_DRAWITEM消息。
+			AStyle(17)=SS_REALSIZEIMAGE'禁止根据位图或图标大小自动进行控件尺寸的调整，如果本常数被设定，大于控件的图片其超出部份将被截去。
 			Astyle(18)=SS_SUNKEN'绘制一个下沉的控件。
 			Astyle(19)=SS_CENTER'文本显示水平居中，显示之前先对文本进行格式化，超过控件宽度将自动换行。
 			Astyle(20)=SS_CENTERIMAGE'文本显示垂直居中。本常数还设定当位图或图标小于控件客户区时使用图片左上角点的颜色填充控件边缘。
@@ -237,14 +243,14 @@ Namespace My.Sys.Forms
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
 		FCenterImage = 1
-		FStyle = 0
+		FPictureStyle = ssText
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "Picture", "Static"
-				.ChildProc   = @WndProc
+				.ChildProc   = @WNDPROC
 				Base.ExStyle     = 0
-				Base.Style = WS_CHILD Or SS_NOTIFY Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage)) Or AStyle(Abs_(FStyle))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage)) Or AStyle(abs_(FPictureStyle))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
@@ -258,7 +264,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	Private Destructor Picture
 		#ifdef __USE_GTK__
-			If gtk_is_widget(ImageWidget) Then
+			If GTK_IS_WIDGET(ImageWidget) Then
 				gtk_widget_destroy(ImageWidget)
 			End If
 		#endif
