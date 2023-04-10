@@ -19,6 +19,7 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 			Case "default": Return Cast(Any Ptr, @FDefault)
+			Case "style": Return @FStyle
 			Case "tabindex": Return @FTabIndex
 			Case "text": Return Cast(Any Ptr, This.FText.vptr)
 			Case "graphic": Return @Graphic
@@ -33,6 +34,7 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "caption": If Value <> 0 Then This.Text = QWString(Value)
 			Case "default": If Value <> 0 Then This.Default = QBoolean(Value)
+			Case "style": If Value <> 0 Then This.Style = *Cast(ButtonStyle Ptr, Value)
 			Case "tabindex": If Value <> 0 Then This.TabIndex = QInteger(Value)
 			Case "text": If Value <> 0 Then This.Text = QWString(Value)
 			Case "graphic": If Value <> 0 Then This.Graphic = QWString(Value)
