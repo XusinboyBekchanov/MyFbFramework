@@ -98,15 +98,15 @@ Namespace My.Sys.Drawing
 				FHeight = BMP.bmHeight
 			Case Else
 				Dim pImage As GpImage Ptr
-				
+				If Handle Then DeleteObject Handle: Handle = 0
 				' // Initialize Gdiplus
 				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
 				StartupInput.GdiplusVersion = 1
 				GdiplusStartup(@token, @StartupInput, NULL)
-				If token = NULL Then Return False
+				If token = NULL Then If Changed Then Changed(This) End If: Return False
 				' // Load the image from file
 				GdipLoadImageFromFile(File, @pImage)
-				If pImage = NULL Then Return False
+				If pImage = NULL Then If Changed Then Changed(This) End If: Return False
 				' // Get the image width and height
 				GdipGetImageWidth(pImage, @FWidth)
 				GdipGetImageHeight(pImage, @FHeight)
