@@ -328,34 +328,34 @@ Namespace My.Sys.Forms
 		FTickStyle = Value
 		#ifdef __USE_GTK__
 			Select Case FTickStyle
-			Case 0: gtk_scale_clear_marks(gtk_scale(widget))
-			Case 1: gtk_scale_clear_marks(gtk_scale(widget))
+			Case 0: gtk_scale_clear_marks(GTK_SCALE(widget))
+			Case 1: gtk_scale_clear_marks(GTK_SCALE(widget))
 				For i As Integer = FMinValue To FMaxValue Step FFrequency
 					If FTickMark = tmTopLeft Then
-						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+						gtk_scale_add_mark(GTK_SCALE(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
 					ElseIf FTickMark = tmBottomRight Then
-						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+						gtk_scale_add_mark(GTK_SCALE(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 					ElseIf FTickMark = tmBoth Then
-						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
-						gtk_scale_add_mark(gtk_scale(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+						gtk_scale_add_mark(GTK_SCALE(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+						gtk_scale_add_mark(GTK_SCALE(widget), i, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 					End If
 				Next
-			Case 2: gtk_scale_clear_marks(gtk_scale(widget))
+			Case 2: gtk_scale_clear_marks(GTK_SCALE(widget))
 				If FTickMark = tmTopLeft Then
-					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
-					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
 				ElseIf FTickMark = tmBottomRight Then
-					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
-					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 				ElseIf FTickMark = tmBoth Then
-					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
-					gtk_scale_add_mark(gtk_scale(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
-					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
-					gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMinValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
+					gtk_scale_add_mark(GTK_SCALE(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 				End If
 			End Select
 		#else
-			Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
+			Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(abs_(FStyle)) Or ATickStyles(abs_(FTickStyle)) Or ATickMarks(abs_(FTickMark)) Or ASliderVisible(abs_(FSliderVisible))
 			RecreateWnd
 		#endif
 	End Property
@@ -374,7 +374,7 @@ Namespace My.Sys.Forms
 				iHeight = Height
 				iWidth = This.Width
 				#ifdef __USE_GTK__
-					gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_VERTICAL)
+					gtk_orientable_set_orientation(GTK_ORIENTABLE(widget), GTK_ORIENTATION_VERTICAL)
 				#endif
 				Height = iWidth
 				This.Width  = iHeight
@@ -382,13 +382,14 @@ Namespace My.Sys.Forms
 				iWidth = This.Width
 				iHeight = Height
 				#ifdef __USE_GTK__
-					gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_HORIZONTAL)
+					gtk_orientable_set_orientation(GTK_ORIENTABLE(widget), GTK_ORIENTATION_HORIZONTAL)
 				#endif
 				This.Width = iHeight
 				Height  = iWidth
 			End If
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
+				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(abs_(FStyle)) Or ATickStyles(abs_(FTickStyle)) Or ATickMarks(abs_(FTickMark)) Or ASliderVisible(abs_(FSliderVisible))
+				RecreateWnd
 			#endif
 		End If
 	End Property
