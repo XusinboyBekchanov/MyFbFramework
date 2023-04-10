@@ -72,8 +72,8 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
 			#endif
-			RecreateWnd
 		End If
+		RecreateWnd
 	End Property
 	
 	Private Property Picture.RealSizeImage As Boolean
@@ -153,7 +153,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_SIZE
-				InvalidateRect(HANDLE,NULL,True)
+				InvalidateRect(Handle,NULL,True)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return
@@ -166,14 +166,14 @@ Namespace My.Sys.Forms
 				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
-					If onClick Then onClick(This)
+					If OnClick Then OnClick(This)
 				End If
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
 				End If
 			Case WM_ERASEBKGND
 				Dim As ..Rect R
-				GetClientRect HANDLE, @R
+				GetClientRect Handle, @R
 				FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
 				Message.Result = -1
 				Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
@@ -225,13 +225,13 @@ Namespace My.Sys.Forms
 			AStyle(15)=SS_NOTIFY'当控件被用户单击或双击控件时向父窗口传送STN_CLICKED, STN_DBLCLK, STN_DISABLE, 或 STN_ENABLE 通知消息。
 			AStyle(16)=SS_OWNERDRAW'自绘静态控件，每当控件需要重画时，父窗口将收到WM_DRAWITEM消息。
 			AStyle(17)=SS_REALSIZEIMAGE'禁止根据位图或图标大小自动进行控件尺寸的调整，如果本常数被设定，大于控件的图片其超出部份将被截去。
-			Astyle(18)=SS_SUNKEN'绘制一个下沉的控件。
-			Astyle(19)=SS_CENTER'文本显示水平居中，显示之前先对文本进行格式化，超过控件宽度将自动换行。
-			Astyle(20)=SS_CENTERIMAGE'文本显示垂直居中。本常数还设定当位图或图标小于控件客户区时使用图片左上角点的颜色填充控件边缘。
-			Astyle(21)=SS_LEFT'文本显示居左，显示之前先对文本进行格式化，超过控件宽度将自动换行。
-			Astyle(22)=SS_LEFTNOWORDWRAP'文本显示居左，超过控件宽度部份将被截去，不进行自动换行处理。
-			Astyle(23)=SS_RIGHT'文本显示居右，显示之前先对文本进行格式化，超过控件宽度将自动换行。
-			Astyle(24)=SS_SIMPLE'文本在控件的左上角单行显示，不进行自动换行处理。父窗口进程不能对WM_CTLCOLORSTATIC消息进行处理。
+			AStyle(18)=SS_SUNKEN'绘制一个下沉的控件。
+			AStyle(19)=SS_CENTER'文本显示水平居中，显示之前先对文本进行格式化，超过控件宽度将自动换行。
+			AStyle(20)=SS_CENTERIMAGE'文本显示垂直居中。本常数还设定当位图或图标小于控件客户区时使用图片左上角点的颜色填充控件边缘。
+			AStyle(21)=SS_LEFT'文本显示居左，显示之前先对文本进行格式化，超过控件宽度将自动换行。
+			AStyle(22)=SS_LEFTNOWORDWRAP'文本显示居左，超过控件宽度部份将被截去，不进行自动换行处理。
+			AStyle(23)=SS_RIGHT'文本显示居右，显示之前先对文本进行格式化，超过控件宽度将自动换行。
+			AStyle(24)=SS_SIMPLE'文本在控件的左上角单行显示，不进行自动换行处理。父窗口进程不能对WM_CTLCOLORSTATIC消息进行处理。
 			
 			ACenterImage(0)  = SS_RIGHTJUST
 			ACenterImage(1)  = SS_CENTERIMAGE
@@ -248,7 +248,7 @@ Namespace My.Sys.Forms
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "Picture", "Static"
-				.ChildProc   = @WNDPROC
+				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage)) Or AStyle(abs_(FPictureStyle))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
