@@ -119,6 +119,7 @@ Namespace My.Sys.Forms
 			FStyle = Value
 			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or AStyle(abs_(FStyle)) Or ADefault(abs_(FDefault))
+				RecreateWnd
 			#endif
 		End If
 	End Property
