@@ -185,7 +185,7 @@ Namespace My.Sys.Forms
 					If res(i) = "" Then Continue For
 					FFilterCount += 1
 					filefilter(FFilterCount) = gtk_file_filter_new()
-					gtk_file_filter_set_name(filefilter(FFilterCount), ToUTF8(res(i - 1)))
+					gtk_file_filter_set_name(filefilter(FFilterCount), ToUtf8(res(i - 1)))
 					gtk_file_filter_add_pattern(filefilter(FFilterCount), res(i))
 					gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterCount))
 				Next
@@ -244,7 +244,7 @@ Namespace My.Sys.Forms
 						FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
 						Return CDRF_NOTIFYITEMDRAW Or CDRF_NOTIFYPOSTERASE Or CDRF_NOTIFYPOSTPAINT
 					Case CDDS_POSTPAINT
-						Dim rc As ..RECT
+						Dim rc As ..Rect
 						Dim As Integer SelectedItem = ListView_GetNextItem(nmcd->hdr.hwndFrom, -1, LVNI_SELECTED)
 						Dim As Integer SelectedColumn = ListView_GetSelectedColumn(nmcd->hdr.hwndFrom)
 						Dim zTxt As WString * 64
@@ -253,7 +253,7 @@ Namespace My.Sys.Forms
 							If i <> SelectedItem Then
 								ListView_GetSubItemRect(nmcd->hdr.hwndFrom, i, SelectedColumn, LVIR_LABEL, @rc)
 								FillRect nmcd->hdc, @rc, hbrBkgnd
-								lvi.Mask = LVIF_TEXT
+								lvi.mask = LVIF_TEXT
 								lvi.iItem = i
 								lvi.iSubItem   = SelectedColumn
 								lvi.pszText    = @zTxt
@@ -282,9 +282,9 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Function OpenFileControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Dim As OpenFileControl Ptr OpenDial = Cast(OpenFileControl Ptr, GetWindowLongPtr(hDlg, GWLP_USERDATA))
 			Select Case uMsg
 			Case WM_PAINT
-				Dim As OpenFileControl Ptr OpenDial = Cast(OpenFileControl Ptr, GetWindowLongPtr(hDlg, GWLP_USERDATA))
 				If OpenDial Then
 					If g_darkModeEnabled Then
 						If Not OpenDial->FDarkMode Then
@@ -303,6 +303,17 @@ Namespace My.Sys.Forms
 							EnumChildWindows(hDlg, Cast(WNDENUMPROC, @EnumChildsProc), 0)
 						End If
 					End If
+				End If
+			Case WM_WINDOWPOSCHANGING
+				If OpenDial Then
+					If OpenDial->Constraints.Left <> 0 Then Cast(WINDOWPOS Ptr, lParam)->x  = ScaleX(OpenDial->Constraints.Left)
+					If OpenDial->Constraints.Top <> 0 Then Cast(WINDOWPOS Ptr, lParam)->y  = ScaleY(OpenDial->Constraints.Top)
+					If OpenDial->Constraints.Width <> 0 Then Cast(WINDOWPOS Ptr, lParam)->cx = ScaleX(OpenDial->Constraints.Width)
+					If OpenDial->Constraints.Height <> 0 Then Cast(WINDOWPOS Ptr, lParam)->cy = ScaleY(OpenDial->Constraints.Height)
+				End If
+			Case WM_CHILDACTIVATE
+				If OpenDial Then
+					MoveWindow hDlg, OpenDial->FLeft, OpenDial->FTop, OpenDial->FWidth, OpenDial->FHeight, True
 				End If
 			Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC, WM_CTLCOLORBTN, WM_CTLCOLOREDIT
 				If g_darkModeEnabled Then
@@ -678,26 +689,12 @@ Namespace My.Sys.Forms
 	Private Destructor OpenFileControl
 		If FInitialDir Then Deallocate_( FInitialDir)
 		If FDefaultExt Then Deallocate_( FDefaultExt)
-		If FFileName Then DeAllocate_( FFileName)
-		If FFileTitle Then DeAllocate_( FFileTitle)
-		If FFilter Then DeAllocate_( FFilter)
+		If FFileName Then Deallocate_( FFileName)
+		If FFileTitle Then Deallocate_( FFileTitle)
+		If FFilter Then Deallocate_( FFilter)
 		#ifndef __USE_GTK__
-			If FDesignMode Then
-				SendMessage(GetDlgItem(GetParent(FHandle), IDCANCEL), BM_CLICK, 0, 0)
-				'SendMessage(FHandle, WM_COMMAND, IDCANCEL, 0)
-			Else
-				SendMessage(GetParent(FHandle), WM_SYSCOMMAND, SC_CLOSE, 0)
-			End If
-			'SetActiveWindow(GetParent(FHandle))
-			'SendMessage(GetDlgItem(GetParent(FHandle), IDCANCEL), BM_CLICK, 0, 0)
-			'EndDialog(GetParent(FHandle), 1)
-			If FHandle Then
-				SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(GetProp(FHandle, "@@@@Proc")))
-				
-			End If
-			If Not FDesignMode Then
-				If ThreadID <> 0 AndAlso IsWindow(GetParent(FHandle)) Then ThreadWait(ThreadID) 'AndAlso IsWindow(GetParent(FHandle)) 
-			End If
+			If FHandle Then SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(GetProp(FHandle, "@@@@Proc")))
+			SendMessage(FHandle, WM_SYSCOMMAND, SC_CLOSE, 0)
 			FHandle = 0
 		#else
 			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@FileChooser_CurrentFolderChanged), @This)
