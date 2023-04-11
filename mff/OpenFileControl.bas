@@ -286,6 +286,10 @@ Namespace My.Sys.Forms
 			Select Case uMsg
 			Case WM_PAINT
 				If OpenDial Then
+					If Not OpenDial->FFirstShowed Then
+						OpenDial->FFirstShowed = True
+						MoveWindow hDlg, OpenDial->FLeft, OpenDial->FTop, OpenDial->FWidth, OpenDial->FHeight, True
+					End If
 					If g_darkModeEnabled Then
 						If Not OpenDial->FDarkMode Then
 							OpenDial->FDarkMode = True
