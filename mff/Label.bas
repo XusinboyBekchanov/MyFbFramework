@@ -253,6 +253,8 @@ Namespace My.Sys.Forms
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
 				End If
+			Case WM_SIZE
+				InvalidateRect(Handle,NULL,True)
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As ..Rect R
