@@ -203,7 +203,7 @@ Namespace My.Sys.Forms
 					If OnDblClick Then OnDblClick(This)
 				End If
 			Case WM_PAINT
-				If ((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch) AndAlso FCenterImage) OrElse (FStretchImage = StretchMode.smStretchProportional) Then
+				If (Graphic.Bitmap.Handle <> 0) AndAlso (((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch) AndAlso FCenterImage) OrElse (FStretchImage = StretchMode.smStretchProportional)) Then
 					Dim As HDC Dc, memDC
 					Dim As PAINTSTRUCT Ps
 					Canvas.HandleSetted = True
