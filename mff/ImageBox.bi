@@ -27,6 +27,7 @@ Namespace My.Sys.Forms
 		FRealSizeImage    As Boolean
 		FCenterImage      As Boolean
 		ARealSizeImage(2) As Integer
+		ARealSizeControl(2) As Integer
 		ACenterImage(2)   As Integer
 		#ifdef __USE_GTK__
 			Declare Static Function DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
@@ -46,10 +47,12 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		Declare Property AutoSize As Boolean
+		Declare Property AutoSize(Value As Boolean)
 		Declare Property DesignMode As Boolean
 		Declare Property DesignMode(Value As Boolean)
-		Declare Property Style As Integer 'ImageBoxStyle
-		Declare Property Style(Value As Integer)
+		Declare Property Style As ImageBoxStyle
+		Declare Property Style(Value As ImageBoxStyle)
 		Declare Property RealSizeImage As Boolean
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean

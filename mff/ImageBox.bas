@@ -17,6 +17,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function ImageBox.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "autosize": Return @FAutoSize
 			Case "centerimage": Return @FCenterImage
 			Case "realsizeimage": Return @FRealSizeImage
 			Case "style": Return @FImageStyle
@@ -30,15 +31,28 @@ Namespace My.Sys.Forms
 	#ifndef WriteProperty_Off
 		Private Function ImageBox.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
+			Case "autosize": If Value <> 0 Then This.AutoSize = QBoolean(Value)
 			Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
 			Case "realsizeimage": If Value <> 0 Then This.RealSizeImage = QBoolean(Value)
-			Case "style": If Value <> 0 Then This.Style = QInteger(Value)
+			Case "style": If Value <> 0 Then This.Style = *Cast(ImageBoxStyle Ptr, Value)
 			Case "graphic": This.Graphic = QWString(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
 		End Function
 	#endif
+	
+	Private Property ImageBox.AutoSize As Boolean
+		Return FAutoSize
+	End Property
+	
+	Private Property ImageBox.AutoSize(Value As Boolean)
+		FAutoSize = Value
+		#ifndef __USE_GTK__
+			Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
+		#endif
+		RecreateWnd
+	End Property
 	
 	Private Property ImageBox.DesignMode As Boolean
 		Return FDesignMode
@@ -83,15 +97,15 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 		
-	Private Property ImageBox.Style As Integer
+	Private Property ImageBox.Style As ImageBoxStyle
 		Return FImageStyle
 	End Property
 	
-	Private Property ImageBox.Style(Value As Integer)
+	Private Property ImageBox.Style(Value As ImageBoxStyle)
 		'If Value <> FImageStyle Then
 			FImageStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
 		'End If
@@ -105,7 +119,7 @@ Namespace My.Sys.Forms
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize))  Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
 		End If
@@ -119,7 +133,7 @@ Namespace My.Sys.Forms
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize))  Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
 		End If
@@ -131,9 +145,9 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Select Case ImageType
 					Case 0
-						gtk_image_set_from_pixbuf(gtk_image(.Ctrl->widget), .Bitmap.Handle)
+						gtk_image_set_from_pixbuf(GTK_IMAGE(.Ctrl->widget), .Bitmap.Handle)
 					Case 1
-						gtk_image_set_from_pixbuf(gtk_image(.Ctrl->widget), .Icon.Handle)
+						gtk_image_set_from_pixbuf(GTK_IMAGE(.Ctrl->widget), .Icon.Handle)
 					End Select
 				#else
 					Select Case ImageType
@@ -171,13 +185,15 @@ Namespace My.Sys.Forms
 	Private Sub ImageBox.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
+			Case WM_SIZE
+				InvalidateRect(Handle,NULL,True)
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
-				SetBKMode Dc, TRANSPARENT
+				SetBkMode Dc, TRANSPARENT
 				SetTextColor Dc, This.Font.Color
-				SetBKColor Dc, This.BackColor
-				SetBKMode Dc, OPAQUE
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 '			Case CM_COMMAND
 '				If Message.wParamHi = STN_CLICKED Then
 '					If OnClick Then OnClick(This)
@@ -209,7 +225,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			widget = gtk_image_new()
 			eventboxwidget = gtk_event_box_new()
-			gtk_container_add(gtk_container(eventboxwidget), widget)
+			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			This.RegisterClass "ImageBox", @This
 		#else
 			AStyle(0)        = SS_BITMAP
@@ -220,7 +236,9 @@ Namespace My.Sys.Forms
 			ACenterImage(0)  = SS_RIGHTJUST
 			ACenterImage(1)  = SS_CENTERIMAGE
 			ARealSizeImage(0)= 0
-			ARealSizeImage(1)= SS_REALSIZEIMAGE
+			ARealSizeImage(1) = SS_REALSIZEIMAGE
+			ARealSizeControl(0) = SS_REALSIZECONTROL
+			ARealSizeControl(1) = 0
 		#endif
 		FImageStyle = 0
 		Graphic.Ctrl = @This
@@ -233,7 +251,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "ImageBox", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(Abs_(FImageStyle)) Or ARealSizeImage(Abs_(FRealSizeImage)) Or ACenterImage(Abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated

@@ -15,9 +15,11 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function Picture.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "autosize": Return @FAutoSize
 			Case "centerimage": Return @FCenterImage
 			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 			Case "realsizeimage": Return @FRealSizeImage
+			Case "stretchimage": Return @FStretchImage
 			Case "style": Return @FPictureStyle
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -34,7 +36,9 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "autosize": This.AutoSize = QBoolean(Value)
 				Case "centerimage": This.CenterImage = QBoolean(Value)
+				Case "stretchimage": This.StretchImage = *Cast(StretchMode Ptr, Value)
 				Case "graphic": This.Graphic = QWString(Value)
 				Case "realsizeimage": This.RealSizeImage = QBoolean(Value)
 				Case "style": This.Style = *Cast(PictureStyle Ptr, Value)
@@ -62,6 +66,33 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
+	Private Property Picture.AutoSize As Boolean
+		Return FAutoSize
+	End Property
+	
+	Private Property Picture.AutoSize(Value As Boolean)
+		If Value <> FAutoSize Then
+			Base.AutoSize = Value
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
+			#endif
+		End If
+		RecreateWnd
+	End Property
+	
+	Private Property Picture.StretchImage As StretchMode
+		Return FStretchImage
+	End Property
+	
+	Private Property Picture.StretchImage(Value As StretchMode)
+		If Value <> FStretchImage Then
+			FStretchImage = Value
+			#ifdef __FB_WIN32__
+				InvalidateRect(HANDLE, NULL, True)
+			#endif
+		End If
+	End Property
+	
 	Private Property Picture.Style As PictureStyle
 		Return FPictureStyle
 	End Property
@@ -70,7 +101,7 @@ Namespace My.Sys.Forms
 		If Value <> FPictureStyle Then
 			FPictureStyle = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 		End If
 		RecreateWnd
@@ -84,7 +115,7 @@ Namespace My.Sys.Forms
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
 		End If
@@ -98,7 +129,7 @@ Namespace My.Sys.Forms
 		If Value <> FCenterImage Then
 			FCenterImage = Value
 			#ifndef __USE_GTK__
-				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
 		End If
@@ -153,7 +184,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_SIZE
-				InvalidateRect(Handle,NULL,True)
+				InvalidateRect(HANDLE,NULL,True)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return
@@ -166,17 +197,53 @@ Namespace My.Sys.Forms
 				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
-					If OnClick Then OnClick(This)
+					If onClick Then onClick(This)
 				End If
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
 				End If
-			Case WM_ERASEBKGND
-				Dim As ..Rect R
-				GetClientRect Handle, @R
-				FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
-				Message.Result = -1
-				Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
+			Case WM_PAINT
+				If ((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch) AndAlso FCenterImage) OrElse (FStretchImage = StretchMode.smStretchProportional) Then
+					Dim As HDC Dc, memDC
+					Dim As PAINTSTRUCT Ps
+					Canvas.HandleSetted = True
+					Dc = BeginPaint(HANDLE, @Ps)
+					FillRect Dc, @Ps.rcPaint, Brush.Handle
+					Canvas.Handle = Dc
+					With Graphic.Bitmap
+						Select Case FStretchImage
+						Case StretchMode.smNone
+							Canvas.Draw 0, 0, .Handle
+						Case StretchMode.smStretch
+							Canvas.DrawStretch 0, 0, Me.ClientWidth, Me.ClientHeight, .Handle
+						Case StretchMode.smStretchProportional
+							If FCenterImage Then
+								If Me.ClientWidth - .Width < Me.ClientHeight - .Height Then
+									Canvas.DrawStretch 0, (Me.ClientHeight - .Height * Me.ClientWidth / .Width) / 2, Me.ClientWidth, .Height * Me.ClientWidth / .Width, .Handle
+								Else
+									Canvas.DrawStretch (Me.ClientWidth - .Width * Me.ClientHeight / .Height) / 2, 0, .Width * Me.ClientHeight / .Height, Me.ClientHeight, .Handle
+								End If
+							Else
+								If Me.ClientWidth - .Width < Me.ClientHeight - .Height Then
+									Canvas.DrawStretch 0, 0, Me.ClientWidth, .Height * Me.ClientWidth / .Width, .Handle
+								Else
+									Canvas.DrawStretch 0, 0, .Width * Me.ClientHeight / .Height, Me.ClientHeight, .Handle
+								End If
+							End If
+						End Select
+					End With
+					If OnPaint Then OnPaint(This, Canvas)
+					EndPaint HANDLE,@Ps
+					Message.Result = 0
+					Canvas.HandleSetted = False
+					Return
+				End If
+			'Case WM_ERASEBKGND
+			'	Dim As ..Rect R
+			'	GetClientRect HANDLE, @R
+			'	FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
+			'	Message.Result = -1
+			'	Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As My.Sys.Drawing.Rect R
@@ -236,21 +303,23 @@ Namespace My.Sys.Forms
 			ACenterImage(0)  = SS_RIGHTJUST
 			ACenterImage(1)  = SS_CENTERIMAGE
 			ARealSizeImage(0)= 0
-			ARealSizeImage(1)= SS_REALSIZEIMAGE
+			ARealSizeImage(1) = SS_REALSIZEIMAGE
+			ARealSizeControl(0) = SS_REALSIZECONTROL
+			ARealSizeControl(1) = 0
 		#endif
 		This.Canvas.Ctrl    = @This
 		Graphic.Ctrl = @This
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = 1
 		FCenterImage = 1
-		FPictureStyle = ssText
+		FPictureStyle = PictureStyle.ssText
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "Picture", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
-				Base.Style = WS_CHILD Or SS_NOTIFY Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage)) Or AStyle(abs_(FPictureStyle))
+				Base.Style = WS_CHILD Or SS_NOTIFY Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize)) Or AStyle(abs_(FPictureStyle))
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated

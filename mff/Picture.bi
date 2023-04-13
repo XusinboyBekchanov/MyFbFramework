@@ -21,13 +21,19 @@ Namespace My.Sys.Forms
 		ssText, ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
 	End Enum
 	
+	Private Enum StretchMode
+		smNone, smStretch, smStretchProportional
+	End Enum
+	
 	Private Type Picture Extends ContainerControl
 	Private:
 		AStyle(24)        As Integer
 		FPictureStyle     As Integer
 		FRealSizeImage    As Boolean
 		FCenterImage      As Boolean
+		FStretchImage     As StretchMode
 		ARealSizeImage(2) As Integer
+		ARealSizeControl(2) As Integer
 		ACenterImage(2)   As Integer
 		#ifdef __USE_GTK__
 			ImageWidget As GtkWidget Ptr
@@ -46,12 +52,16 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		Declare Property AutoSize As Boolean
+		Declare Property AutoSize(Value As Boolean)
 		Declare Property Style As PictureStyle
 		Declare Property Style(Value As PictureStyle)
 		Declare Property RealSizeImage As Boolean
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean
 		Declare Property CenterImage(Value As Boolean)
+		Declare Property StretchImage As StretchMode
+		Declare Property StretchImage(Value As StretchMode)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean

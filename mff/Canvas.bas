@@ -819,6 +819,7 @@ Namespace My.Sys.Drawing
 			MemDC = CreateCompatibleDC(Handle)
 			OldBitmap = SelectObject(MemDC, Cast(HBITMAP, Image))
 			GetObject(Cast(HBITMAP, Image), SizeOf(Bitmap01), @Bitmap01)
+			SetStretchBltMode(Handle, COLORONCOLOR)
 			StretchBlt(Handle, ScaleX(x), ScaleY(y), ScaleX(nWidth), ScaleX(nHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
