@@ -288,7 +288,7 @@ Namespace My.Sys.Forms
 				If OpenDial Then
 					If Not OpenDial->FFirstShowed Then
 						OpenDial->FFirstShowed = True
-						MoveWindow hDlg, OpenDial->FLeft, OpenDial->FTop, OpenDial->FWidth, OpenDial->FHeight, True
+						MoveWindow hDlg, ScaleX(OpenDial->FLeft), ScaleY(OpenDial->FTop), ScaleX(OpenDial->FWidth), ScaleY(OpenDial->FHeight), True
 					End If
 					If g_darkModeEnabled Then
 						If Not OpenDial->FDarkMode Then
