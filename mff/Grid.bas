@@ -1448,6 +1448,12 @@ Namespace My.Sys.Forms
 					Repaint
 					Message.Result = -1
 				End If
+			Case WM_LBUTTONDBLCLK
+				If FRow > 0 Then 
+					If OnRowDblClick Then OnRowDblClick(This, FRow)
+					EditControlShow(FRow, FCol)
+				End If
+				Message.Result = -1
 			Case WM_THEMECHANGED
 				If (g_darkModeSupported) Then
 					Dim As HWND hHeader = ListView_GetHeader(Message.hWnd)
@@ -1518,7 +1524,7 @@ Namespace My.Sys.Forms
 						End If
 						'Print " NM_DBLCLK=" & FCol & "  FRow=" & FRow & "  Editable=" & Rows.Item(FRow)->Editable(FCol) & "  BackColor=" & Rows.Item(FRow)->BackColor(FCol) & "  ForeColor=" & Rows.Item(FRow)->ForeColor(FCol)
 					Else
-						GridEditText.Visible= False
+						GridEditText.Visible = False
 						Message.Result = 0
 					End If
 				Case NM_KEYDOWN:
@@ -1831,7 +1837,7 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WINAPI__
 		Private Sub Grid.EditControlShow(ByVal tRow As Integer, ByVal tCol As Integer)
-			If FAllowEdit = False OrElse CBool(tCol = 0) OrElse (Not Rows.Item(tRow)->Editable(tCol)) Then Exit Sub
+			If FAllowEdit = False OrElse CBool(tCol = 0) OrElse ((Not Rows.Item(tRow)->Editable(tCol)) AndAlso (Not Rows.Item(tRow)->Editable) AndAlso (Not Columns.Item(tCol)->Editable)) Then Exit Sub
 			If tRow < 0 OrElse tCol <= 0 OrElse tRow > Rows.Count - 1 OrElse tCol > Columns.Count - 1 Then Exit Sub
 			Dim As Rect RectCell
 			Dim As WString Ptr sText
