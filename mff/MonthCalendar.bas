@@ -195,11 +195,11 @@ Namespace My.Sys.Forms
 	Private Property MonthCalendar.ShortDayNames() As Boolean
 		If This.FHandle Then
 			#ifdef __USE_GTK__
-				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
+				FStyle = gtk_calendar_get_display_options(GTK_CALENDAR(FHandle))
 				FShortDayNames = StyleExists(GTK_CALENDAR_SHOW_DAY_NAMES)
 			#elseif defined(__USE_WINAPI__)
 				#if _WIN32_WINNT >= &h0600
-					FShortDayNames = StylExists(MCS_SHORTDAYSOFWEEK)
+					FShortDayNames = StyleExists(MCS_SHORTDAYSOFWEEK)
 				#endif
 			#endif
 		End If
