@@ -1420,7 +1420,7 @@ Namespace My.Sys.Forms
 					Dim As Integer tItemSelel = ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 					If tItemSelel <> -1 Then GridEditText.Visible= False
 					Repaint
-				Case VK_SPACE
+				Case VK_SPACE, VK_F2
 					If FSorting = False Then EditControlShow(FRow, FCol)
 				Case VK_LEFT
 					FCol -= 1
