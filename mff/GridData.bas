@@ -457,11 +457,11 @@ Namespace My.Sys.Forms
 		Return FLocked
 	End Property
 	
-	Private Property GridDataColumn.SortOrder(Value As GridSortStyle)
+	Private Property GridDataColumn.SortOrder(Value As SortStyle)
 		FSortOrder = Value
 	End Property
 	
-	Private Property GridDataColumn.SortOrder As GridSortStyle
+	Private Property GridDataColumn.SortOrder As SortStyle
 		Return FSortOrder
 	End Property
 	
@@ -847,7 +847,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Function GridDataColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As GridSortStyle = GridSortStyle.ssSortAscending) As GridDataColumn Ptr
+	Private Function GridDataColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As SortStyle = SortStyle.ssSortAscending) As GridDataColumn Ptr
 		Dim As GridDataColumn Ptr PColumn
 		Dim As Integer Index
 		#ifndef __USE_GTK__
@@ -894,14 +894,14 @@ Namespace My.Sys.Forms
 				If Index = 0 Then
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
-					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 0)
+					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUtf8("icon_name"), 0)
 				End If
 				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				g_signal_connect(G_OBJECT(rendertext), "editing-started", G_CALLBACK (@Cell_Editing), PColumn)
 				gtk_tree_view_column_pack_start(PColumn->Column, rendertext, True)
-				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 1)
+				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUtf8("text"), Index + 1)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
-				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
+				gtk_tree_view_column_set_title(PColumn->Column, ToUtf8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(GridData Ptr, Parent)->Handle), PColumn->Column)
 				#ifdef __USE_GTK3__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
@@ -910,8 +910,8 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 		#else
-			lvC.mask      =LVCF_FMT Or LVCF_IMAGE Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM Or LVCFMT_IMAGE 'LVCF_TEXT |LVCF_WIDTH| LVCF_FMT |LVCF_SUBITEM
-			lvC.fmt       =  LVCFMT_LEFT Or LVCFMT_IMAGE Or LVCFMT_COL_HAS_IMAGES Or HDF_OWNERDRAW  'tFormat
+			lvc.mask      =LVCF_FMT Or LVCF_IMAGE Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM Or LVCFMT_IMAGE 'LVCF_TEXT |LVCF_WIDTH| LVCF_FMT |LVCF_SUBITEM
+			lvc.fmt       =  LVCFMT_LEFT Or LVCFMT_IMAGE Or LVCFMT_COL_HAS_IMAGES Or HDF_OWNERDRAW  'tFormat
 			lvc.cx		  = IIf(iWidth < 0, 100, iWidth)
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
@@ -931,7 +931,7 @@ Namespace My.Sys.Forms
 		Return PColumn
 	End Function
 	
-	Private Sub GridDataColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As GridSortStyle= GridSortStyle.ssSortAscending)
+	Private Sub GridDataColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As SortStyle= SortStyle.ssSortAscending)
 		Dim As GridDataColumn Ptr PColumn
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
@@ -1277,13 +1277,13 @@ Namespace My.Sys.Forms
 		FSortStyle = Value
 		#ifndef __USE_GTK__
 			Select Case FSortStyle
-			Case GridSortStyle.ssNone
+			Case SortStyle.ssNone
 				ChangeStyle LVS_SORTASCENDING, False
 				ChangeStyle LVS_SORTDESCENDING, False
-			Case GridSortStyle.ssSortAscending
+			Case SortStyle.ssSortAscending
 				ChangeStyle LVS_SORTDESCENDING, False
 				ChangeStyle LVS_SORTASCENDING, True
-			Case GridSortStyle.ssSortDescending
+			Case SortStyle.ssSortDescending
 				ChangeStyle LVS_SORTASCENDING, False
 				ChangeStyle LVS_SORTDESCENDING, True
 			End Select
@@ -1298,9 +1298,9 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub GridData.SortData(iCol As Integer,tSortStyle As SortStyle)
-		If tSortStyle = GridSortStyle.ssNone Then
+		If tSortStyle = SortStyle.ssNone Then
 			iCol=0
-			tSortStyle = GridSortStyle.ssSortDescending
+			tSortStyle = SortStyle.ssSortDescending
 		End If
 		If mSorting Then Exit Sub
 		mSorting=True
@@ -1313,21 +1313,21 @@ Namespace My.Sys.Forms
 			SetCursor(LoadCursor(0, IDC_WAIT))
 		#endif
 		'print "Sort Start ",time
-		If tSortStyle=GridSortStyle.ssSortDescending Then
+		If tSortStyle= SortStyle.ssSortDescending Then
 			For i = tItemCount -1 To 0  Step -1
 				'Skip the blank row marked by ListItems.Item(j)->Text(0))>=BLANKROW
 				If Val(ListItems.Item(i)->Text(0))<BLANKROW Then
 					For j = 1 To i
 						'Print Val(ListItems.Item(j)->Text(0))
 						If Columns.Column(iCol)->DataType=DT_Numeric Then
-							If Val(ListItems.Item(j)->Text(iCOl)) < Val(ListItems.Item(j-1)->Text(iCOl)) Then
+							If Val(ListItems.Item(j)->Text(iCol)) < Val(ListItems.Item(j-1)->Text(iCol)) Then
 								'Exchange j - 1, j
 								tItem=ListItems.Item(j-1)
 								ListItems.Item(j-1)=ListItems.Item(j)
 								ListItems.Item(j)=tItem
 							End If
 						Else
-							If LCase(ListItems.Item(j)->Text(iCOl)) < LCase(ListItems.Item(j-1)->Text(iCOl)) Then
+							If LCase(ListItems.Item(j)->Text(iCol)) < LCase(ListItems.Item(j-1)->Text(iCol)) Then
 								'Exchange j - 1, j
 								tItem=ListItems.Item(j-1)
 								ListItems.Item(j-1)=ListItems.Item(j)
@@ -1343,7 +1343,7 @@ Namespace My.Sys.Forms
 				If Val(ListItems.Item(i)->Text(0))<BLANKROW Then
 					For j = 1 To i
 						If Columns.Column(iCol)->DataType=DT_Numeric Then
-							If Val(ListItems.Item(j)->Text(iCOl)) > Val(ListItems.Item(j-1)->Text(iCOl)) Then
+							If Val(ListItems.Item(j)->Text(iCol)) > Val(ListItems.Item(j-1)->Text(iCol)) Then
 								'Exchange j - 1, j
 								tItem=ListItems.Item(j-1)
 								ListItems.Item(j-1)=ListItems.Item(j)
@@ -1461,7 +1461,7 @@ Namespace My.Sys.Forms
 				'LineTo tDc, R.Right,R.bottom
 			#endif
 		End Sub
-		Private Sub GridData.DrawSortArrow(DC As hDC,lX As Integer, lY As Integer,lWidth As Integer, lStep As Integer, nOrientation As SortStyle)
+		Private Sub GridData.DrawSortArrow(DC As HDC,lX As Integer, lY As Integer,lWidth As Integer, lStep As Integer, nOrientation As SortStyle)
 			
 			'// Purpose: Renders the Sort/Sub-Sort arrows
 			Dim hPenOld         As HPEN
@@ -1473,10 +1473,10 @@ Namespace My.Sys.Forms
 			Dim y1              As Integer
 			Dim pt              As LPPOINT
 			'ssNone ssSortAscending ssSortDescending
-			If Not nOrientation = GridSortStyle.ssNone Then
+			If Not nOrientation = SortStyle.ssNone Then
 				hPen = CreatePen(PS_SOLID, 1, cl3DDkShadow)
 				hPenOld = SelectObject(DC, hPen)
-				If nOrientation = GridSortStyle.ssSortDescending Then
+				If nOrientation = SortStyle.ssSortDescending Then
 					lVerticalChange = -1
 					lY = lY + lStep - 1
 				Else
@@ -1964,8 +1964,8 @@ Namespace My.Sys.Forms
 							GridEditComboBox.ItemIndex=GridEditComboBox.IndexOf(ListItems.Item(mRow)->Text(mCol))
 							
 							GridEditComboBox.SetFocus
-							InvalidateRect(HANDLE,@RectCell,False)
-							UpdateWindow HANDLE
+							InvalidateRect(Handle,@RectCell,False)
+							UpdateWindow Handle
 						End If
 						GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 					End If
@@ -1993,16 +1993,16 @@ Namespace My.Sys.Forms
 						'ListView_SetItemState(Handle,mCol, 0, LVIS_SELECTED)
 						'ListView_SetItemState(Handle, -1, 0, LVIS_SELECTED OR LVIS_FOCUSED)
 						'ssNone ssSortAscending ssSortDescending
-						Columns.Column(mSortColumn)->SortOrder = IIf(Columns.Column(mSortColumn)->SortOrder = GridSortStyle.ssNone, GridSortStyle.ssSortAscending, IIf(Columns.Column(mSortColumn)->SortOrder = GridSortStyle.ssSortAscending, GridSortStyle.ssSortDescending, GridSortStyle.ssNone))
-						Sortdata(mSortColumn,Columns.Column(mSortColumn)->SortOrder)
+						Columns.Column(mSortColumn)->SortOrder = IIf(Columns.Column(mSortColumn)->SortOrder = SortStyle.ssNone, SortStyle.ssSortAscending, IIf(Columns.Column(mSortColumn)->SortOrder = SortStyle.ssSortAscending, SortStyle.ssSortDescending, SortStyle.ssNone))
+						SortData(mSortColumn,Columns.Column(mSortColumn)->SortOrder)
 						GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
-						GridEditText.visible=False'Force GRID to Refresh
+						GridEditText.Visible=False'Force GRID to Refresh
 					End If
 					'RectCell.Top=0:RectCell.Left=0: RectCell.Right=This.Width: RectCell.Bottom=This.Height
-					InvalidateRect(Handle,Null,False)
+					InvalidateRect(Handle,NULL,False)
 					UpdateWindow Handle
 					If OnHeadClick Then OnHeadClick(This,lvp->iSubItem)
-					message.Result =0'CDRF_SKIPDEFAULT
+					Message.Result =0'CDRF_SKIPDEFAULT
 				Case LVN_BEGINSCROLL 'Reach here '
 					If OnBeginScroll Then OnBeginScroll(This)
 				Case LVN_ENDSCROLL 'Reach here
@@ -2574,18 +2574,18 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
-				.RegisterClass "GridData", WC_ListView
-				.ChildProc         = @WndProc
+				.RegisterClass "GridData", WC_LISTVIEW
+				.ChildProc         = @WNDPROC
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_OWNERDRAWFIXED 'Or LVS_SHOWSELALWAYS OR LVS_EDITLABELS OR LVS_EX_DOUBLEBUFFER
 				.DoubleBuffered = True
-				WLet(FClassAncestor, WC_ListView)
+				WLet(FClassAncestor, WC_LISTVIEW)
 			#endif
 			WLet(FClassName, "GridData")
 			.Width             = 121
 			.Height            = 121
 		End With
-		Columns.Add "NO.", 0, 35, cfCenter, CT_Header, False, CT_Header, , GridSortStyle.ssSortAscending
+		Columns.Add "NO.", 0, 35, cfCenter, CT_Header, False, CT_Header, , SortStyle.ssSortAscending
 		Columns.Add "Column" & Chr(10) & "One", 0,100,cfCenter, DT_String,False,CT_TextBox
 		Columns.Add "Column" & Chr(10) & "Two" , 0,100,cfCenter,DT_String,False,CT_TextBox
 		For i As Integer =1 To 50

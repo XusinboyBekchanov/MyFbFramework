@@ -1,67 +1,33 @@
-﻿'###############################################################################
-'#  Grid.bi                                                                #
-'#  This file is part of MyFBFramework                                    #
-'#  Version 1.0.0                                                              #
-'###############################################################################
-
+﻿'################################################################################
+'#  Grid.bi                                                                     #
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Xusinboy Bekchanov,  Liu XiaLin                                    #
+'################################################################################
 #include once "Control.bi"
 #include once "WStringList.bi"
 #include once "TextBox.bi"
 
-Private Enum GridSortStyle
-	ssNone
-	ssSortAscending
-	ssSortDescending
+Private Enum GridLines
+	GridLineNone
+	GridLineBoth
+	GridLineVertical
+	GridLineHorizontal
 End Enum
-
-#ifdef __USE_GTK__
-	Private Enum GridColumnFormat
-		gcfLeft
-		gcfRight
-		gcfCenter
-		gcfJustifyMask
-		gcfImage
-		gcfBitmapOnRight
-		gcfColHasImages
-		'cfFixedWidth
-		'cfNoDpiScale
-		'cfFixedRatio
-		'cfLineBreak
-		'cfWrap
-		'cfNoTitle
-		'cfSplitButton
-		'cfTilePlacementMask
-	End Enum
-#else
-	Private Enum GridColumnFormat
-		gcfLeft = LVCFMT_LEFT
-		gcfRight = LVCFMT_RIGHT
-		gcfCenter = LVCFMT_CENTER
-		gcfJustifyMask = LVCFMT_JUSTIFYMASK
-		gcfImage = LVCFMT_IMAGE
-		gcfBitmapOnRight = LVCFMT_BITMAP_ON_RIGHT
-		gcfColHasImages = LVCFMT_COL_HAS_IMAGES
-		'cfFixedWidth = LVCFMT_FIXED_WIDTH
-		'cfNoDpiScale = LVCFMT_NO_DPI_SCALE
-		'cfFixedRatio = LVCFMT_FIXED_RATIO
-		'cfLineBreak = LVCFMT_LINE_BREAK
-		'cfWrap = LVCFMT_WRAP
-		'cfNoTitle = LVCFMT_NO_TITLE
-		'cfSplitButton = LVCFMT_SPLITBUTTON
-		'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
-	End Enum
-#endif
 
 Namespace My.Sys.Forms
 	#define QGrid(__Ptr__) (*Cast(Grid Ptr,__Ptr__))
 	#define QGridRow(__Ptr__) (*Cast(GridRow Ptr, __Ptr__))
 	#define QGridCell(__Ptr__) (*Cast(GridCell Ptr, __Ptr__))
-	#define QGridColumn(__Ptr__) (*Cast(GridColumn Ptr,__Ptr__))
+	#define QGridColumn(__Ptr__) (*Cast(GridColumn Ptr, __Ptr__))
 	
 	Type PGridRow As GridRow Ptr
 	Type PGridColumn As GridColumn Ptr
 	
 	Private Type GridCell Extends My.Sys.Object
+	Private:
+		FEditable       As Boolean
+		FForeColor      As Integer
+		FBackColor      As Integer
 	Public:
 		Column As PGridColumn
 		Parent As Control Ptr
@@ -70,13 +36,19 @@ Namespace My.Sys.Forms
 		Declare Sub SelectItem
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
+		Declare Property Editable As Boolean
+		Declare Property Editable(Value As Boolean)
+		Declare Property ForeColor As Integer
+		Declare Property ForeColor(Value As Integer)
+		Declare Property BackColor As Integer
+		Declare Property BackColor(Value As Integer)
 		Declare Operator Cast As Any Ptr
 	End Type
 	
 	Private Type GridRow Extends My.Sys.Object
 	Private:
 		FText               As WString Ptr
-		FColumns            As WStringList
+		FCells              As WStringList
 		FHint               As WString Ptr
 		FImageIndex         As Integer
 		FSelectedImageIndex As Integer
@@ -87,8 +59,11 @@ Namespace My.Sys.Forms
 		FVisible            As Boolean
 		FState              As Integer
 		FIndent             As Integer
+		FEditable           As Boolean
+		FForeColor          As Integer
+		FBackColor          As Integer
 		#ifndef __USE_GTK__
-			Dim lvi             As LVITEM
+			Dim lvi         As LVITEM
 		#endif
 	Public:
 		#ifdef __USE_GTK__
@@ -99,8 +74,16 @@ Namespace My.Sys.Forms
 		Declare Sub SelectItem
 		Declare Function Index As Integer
 		Declare Function Item(ColumnIndex As Integer) As GridCell Ptr
-		Declare Property Text(iColumn As Integer) ByRef As WString
-		Declare Property Text(iColumn As Integer, ByRef Value As WString)
+		Declare Property Text(ColumnIndex As Integer) ByRef As WString
+		Declare Property Text(ColumnIndex As Integer, ByRef Value As WString)
+		Declare Property ForeColor As Integer
+		Declare Property ForeColor(Value As Integer)
+		Declare Property ForeColor(ColumnIndex As Integer) As Integer
+		Declare Property ForeColor(ColumnIndex As Integer, Value As Integer)
+		Declare Property BackColor As Integer
+		Declare Property BackColor(Value As Integer)
+		Declare Property BackColor(ColumnIndex As Integer) As Integer
+		Declare Property BackColor(ColumnIndex As Integer, Value As Integer)
 		Declare Property Hint ByRef As WString
 		Declare Property Hint(ByRef Value As WString)
 		Declare Property ImageIndex As Integer
@@ -121,6 +104,11 @@ Namespace My.Sys.Forms
 		Declare Property Indent(Value As Integer)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
+		Declare Property Editable As Boolean
+		Declare Property Editable(Value As Boolean)
+		Declare Property Editable(ColumnIndex As Integer) As Boolean
+		Declare Property Editable(ColumnIndex As Integer, Value As Boolean)
+		Declare Sub ColumnEvents(ColumnIndex As Integer, ColumnDelete As Boolean = False)
 		Declare Operator [](ColumnIndex As Integer) ByRef As GridCell
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -135,9 +123,11 @@ Namespace My.Sys.Forms
 		FHint           As WString Ptr
 		FImageIndex     As Integer
 		FWidth          As Integer
-		FFormat         As GridColumnFormat
+		FFormat         As ColumnFormat
 		FVisible        As Boolean
 		FEditable       As Boolean
+		FForeColor      As Integer
+		FBackColor      As Integer
 	Public:
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Column
@@ -156,10 +146,14 @@ Namespace My.Sys.Forms
 		Declare Property Visible(Value As Boolean)
 		Declare Property Editable As Boolean
 		Declare Property Editable(Value As Boolean)
+		Declare Property BackColor As Integer
+		Declare Property BackColor(Value As Integer)
+		Declare Property ForeColor As Integer
+		Declare Property ForeColor(Value As Integer)
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
-		Declare Property Format As GridColumnFormat
-		Declare Property Format(Value As GridColumnFormat)
+		Declare Property Format As ColumnFormat
+		Declare Property Format(Value As ColumnFormat)
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
@@ -179,14 +173,14 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
 		#endif
-		Parent   As Control Ptr
+		Parent           As Control Ptr
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
 		Declare Property Item(Index As Integer) As GridRow Ptr
 		Declare Property Item(Index As Integer, Value As GridRow Ptr)
-		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
-		Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As GridRow Ptr
-		Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As GridRow Ptr
+		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditableMode As Integer = -1, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
+		Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditableMode As Integer = -1, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
+		Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, InsertBefore As Boolean = True, RowEditableMode As Integer = -1, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
@@ -208,10 +202,10 @@ Namespace My.Sys.Forms
 		Parent   As Control Ptr
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
-		Declare Property Column(Index As Integer) As GridColumn Ptr
-		Declare Property Column(Index As Integer, Value As GridColumn Ptr)
-		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft, ColEditable As Boolean = False) As GridColumn Ptr
-		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As GridColumnFormat = gcfLeft)
+		Declare Property Item(Index As Integer) As GridColumn Ptr
+		Declare Property Item(Index As Integer, Value As GridColumn Ptr)
+		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = 100, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False, ColBackColor As Integer = -1, ColForeColor As Integer = -1) As GridColumn Ptr
+		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, InsertBefore As Boolean = True, ColEditable As Boolean = False, ColBackColor As Integer = -1, ColForeColor As Integer = -1)
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
 		Declare Sub Clear
@@ -229,7 +223,7 @@ Namespace My.Sys.Forms
 		FHoverTime           As Integer
 		FFullRowSelect       As Boolean
 		FSingleClickActivate As Boolean
-		FSortStyle           As GridSortStyle
+		FSortStyle           As SortStyle
 		FHoverSelection      As Boolean
 		FLVExStyle           As Integer
 		FRow                 As Integer
@@ -238,14 +232,32 @@ Namespace My.Sys.Forms
 		GridEditText         As TextBox
 		FSorting             As Boolean
 		FAllowEdit           As Boolean = True
-		FGridEditTextForeColor As Integer = clWhite
-		FGridEditTextBackColor As Integer = BGR(190, 255, 255) ' &H9AFA00'clWhite
+		FOwnerData           As Boolean = True
+		
+		'GRID PROPERTY
+		'FGridLineDrawMode        As Integer = 1
+		FGridColorLine           As Integer = -1 'BGR(166, 166, 166) 'clSilver
+		FGridColorLineHeader     As Integer = clWhite 'BGR(166, 166, 166)'clSilver
+		FGridColorSelected       As Integer = &HFFFFDE ' &HFFFFE6 '&HFFFFDE ' &HFEE8FFFF 'BGR(210, 238, 245)'BGR(178, 214, 255)
+		FGridColorHover          As Integer = BGR(110, 228, 255)
+		FGridColorBack           As Integer = clWhite
+		FGridColorFore           As Integer = clBlack
+		FGridEditColorBack       As Integer = BGR(24, 255, 255) ' &H9AFA00'clWhite
+		FGridEditColorFore       As Integer = clWhite ' &H9AFA00'clWhite
+		FGridLineWidth           As Integer = 1
+		
+		#ifdef __USE_WINAPI__
+			mGridLinePenMode         As Integer = PS_SOLID
+		#else
+			mGridLinePenMode         As Integer
+		#endif
 		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Sub EditControlShow(ByVal tRow As Integer, ByVal tCol As Integer)
+			Declare Sub DrawRect(tDc As HDC, R As Rect, FillColor As Integer = -1, tSelctionRow As Integer = -1, tSelctionCol As Integer = -1)
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
@@ -264,12 +276,12 @@ Namespace My.Sys.Forms
 		#endif
 	Public:
 		Declare Sub Init()
-		Rows         As GridRows
-		Columns         As GridColumns
-		Images          As ImageList Ptr
-		SelectedImages       As ImageList Ptr
-		SmallImages       As ImageList Ptr
-		StateImages       As ImageList Ptr
+		Rows                    As GridRows
+		Columns                 As GridColumns
+		Images                  As ImageList Ptr
+		SelectedImages          As ImageList Ptr
+		SmallImages             As ImageList Ptr
+		StateImages             As ImageList Ptr
 		GroupHeaderImages       As ImageList Ptr
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
@@ -277,7 +289,7 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
-		Declare Function Cell(RowIndex As Integer, ColumnIndex As Integer) As GridCell Ptr
+		Declare Function Cells(RowIndex As Integer, ColumnIndex As Integer) As GridCell Ptr
 		Declare Property AllowEdit As Boolean
 		Declare Property AllowEdit(Value As Boolean)
 		Declare Property AllowColumnReorder As Boolean
@@ -286,14 +298,16 @@ Namespace My.Sys.Forms
 		Declare Property ColumnHeaderHidden(Value As Boolean)
 		Declare Property FullRowSelect As Boolean
 		Declare Property FullRowSelect(Value As Boolean)
+		Declare Property OwnerData As Boolean
+		Declare Property OwnerData(Value As Boolean)
 		Declare Property HoverTime As Integer
 		Declare Property HoverTime(Value As Integer)
 		Declare Property GridLines As Boolean
 		Declare Property GridLines(Value As Boolean)
 		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
-		Declare Property Sort As GridSortStyle
-		Declare Property Sort(Value As GridSortStyle)
+		Declare Property Sort As SortStyle
+		Declare Property Sort(Value As SortStyle)
 		Declare Property SelectedRow As GridRow Ptr
 		Declare Property SelectedRow(Value As GridRow Ptr)
 		Declare Property SelectedRowIndex As Integer
@@ -353,7 +367,7 @@ End Namespace
 	'const LVS_NOCOLUMNHEADER = &h4000
 	'const LVS_NOSORTHEADER = &h8000
 	
-	Const LVS_EX_GRIDLINES = &h1
+	Const LVS_EX_GridLINES = &h1
 	Const LVS_EX_SUBITEMIMAGES = &h2
 	Const LVS_EX_CHECKBOXES = &h4
 	Const LVS_EX_TRACKSELECT = &h8
@@ -372,7 +386,7 @@ End Namespace
 	Const LVS_EX_DOUBLEBUFFER = &h10000
 	Const LVS_EX_HIDELABELS = &h20000
 	Const LVS_EX_SINGLEROW = &h40000
-	Const LVS_EX_SNAPTOGRID = &h80000
+	Const LVS_EX_SNAPTOGrid = &h80000
 	Const LVS_EX_SIMPLESELECT = &h100000
 	
 	#if _WIN32_WINNT = &h0602
@@ -391,3 +405,4 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Grid.bas"
 #endif
+

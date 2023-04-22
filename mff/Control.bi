@@ -46,11 +46,77 @@ Namespace My.Sys.Forms
 		Private Enum AlignmentConstants
 			taLeft, taCenter, taRight
 		End Enum
-	
+		
 		Private Enum CheckAlignmentConstants
 			chLeft, chRight
 		End Enum
-	
+		
+		Const LVCFMT_FILL = &h200000
+		
+		Private Enum SortStyle
+			ssNone
+			ssSortAscending
+			ssSortDescending
+		End Enum
+		
+		#ifdef __USE_WINAPI__
+			Private Enum ViewStyle
+				vsIcon = LV_VIEW_ICON
+				vsDetails = LV_VIEW_DETAILS
+				vsSmallIcon = LV_VIEW_SMALLICON
+				vsList = LV_VIEW_LIST
+				vsTile = LV_VIEW_TILE
+				vsMax = LV_VIEW_MAX
+			End Enum
+			
+			Private Enum ColumnFormat
+				cfLeft = LVCFMT_LEFT
+				cfRight = LVCFMT_RIGHT
+				cfCenter = LVCFMT_CENTER
+				cfJustifyMask = LVCFMT_JUSTIFYMASK
+				cfImage = LVCFMT_IMAGE
+				cfBitmapOnRight = LVCFMT_BITMAP_ON_RIGHT
+				cfColHasImages = LVCFMT_COL_HAS_IMAGES
+				'cfFixedWidth = LVCFMT_FIXED_WIDTH
+				'cfNoDpiScale = LVCFMT_NO_DPI_SCALE
+				'cfFixedRatio = LVCFMT_FIXED_RATIO
+				'cfLineBreak = LVCFMT_LINE_BREAK
+				cfFill = LVCFMT_FILL
+				'cfWrap = LVCFMT_WRAP
+				'cfNoTitle = LVCFMT_NO_TITLE
+				'cfSplitButton = LVCFMT_SPLITBUTTON
+				'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
+			End Enum
+		#else
+			Private Enum ViewStyle
+				vsIcon
+				vsDetails
+				vsSmallIcon
+				vsList
+				vsTile
+				vsMax
+			End Enum
+			
+			Private Enum ColumnFormat
+				cfLeft
+				cfRight
+				cfCenter
+				cfJustifyMask
+				cfImage
+				cfBitmapOnRight
+				cfColHasImages
+				'cfFixedWidth
+				'cfNoDpiScale
+				'cfFixedRatio
+				'cfLineBreak
+				cfFill
+				'cfWrap
+				'cfNoTitle
+				'cfSplitButton
+				'cfTilePlacementMask
+			End Enum
+		#endif
+		
 		Private Type SizeConstraints Extends My.Sys.Object
 			Declare Function ToString ByRef As WString
 			Left  As Integer
@@ -414,7 +480,7 @@ Namespace My.Sys.Forms
 	#endif
 	#ifdef __USE_JNI__
 		Dim Shared AppMainForm As Control Ptr
-	#EndIf
+	#endif
 End Namespace
 
 #ifdef __EXPORT_PROCS__
@@ -434,3 +500,4 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Control.bas"
 #endif
+

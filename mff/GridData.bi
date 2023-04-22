@@ -252,7 +252,7 @@ Namespace My.Sys.Forms
 		FControlType   As Integer = CT_TextBox
 		FDataType     As Integer = DT_String
 		FGridEditComboItem As WString Ptr
-		FSortOrder    As GridSortStyle
+		FSortOrder    As SortStyle
 	Public:
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Column
@@ -276,8 +276,8 @@ Namespace My.Sys.Forms
 		Declare Property Locked(Value As Boolean)
 		Declare Property ControlType As Integer
 		Declare Property ControlType(Value As Integer)
-		Declare Property SortOrder As GridSortStyle
-		Declare Property SortOrder(Value As GridSortStyle)
+		Declare Property SortOrder As SortStyle
+		Declare Property SortOrder(Value As SortStyle)
 		Declare Property GridEditComboItem ByRef As WString
 		Declare Property GridEditComboItem(ByRef Value As WString)
 		Declare Property DataType As Integer
@@ -308,8 +308,8 @@ Namespace My.Sys.Forms
 		Declare Property Count(Value As Integer)
 		Declare Property Column(Index As Integer) As GridDataColumn Ptr
 		Declare Property Column(Index As Integer, Value As GridDataColumn Ptr)
-		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As GridSortStyle = GridSortStyle.ssSortAscending) As GridDataColumn Ptr
-		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As GridSortStyle = GridSortStyle.ssSortAscending)
+		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As SortStyle = SortStyle.ssSortAscending) As GridDataColumn Ptr
+		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As SortStyle = SortStyle.ssSortAscending)
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FColumn As GridDataColumn Ptr) As Integer
 		Declare Sub Clear
