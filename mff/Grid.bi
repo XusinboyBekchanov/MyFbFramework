@@ -7,13 +7,6 @@
 #include once "WStringList.bi"
 #include once "TextBox.bi"
 
-Private Enum GridLines
-	GridLine_None
-	GridLine_Both
-	GridLine_Vertical
-	GridLine_Horizontal
-End Enum
-
 Namespace My.Sys.Forms
 	#define QGrid(__Ptr__) (*Cast(Grid Ptr,__Ptr__))
 	#define QGridRow(__Ptr__) (*Cast(GridRow Ptr, __Ptr__))

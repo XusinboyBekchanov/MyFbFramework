@@ -8,8 +8,7 @@
 #include once "ComboBoxEdit.bi"
 #include once "ListView.bi"
 #include once "ImageList.bi"
-#include once "Grid.bi"
- 
+
 #define CHRCheck WChr(30)
 #define CHRUnCheck WChr(31)
 #define BLANKROW 999999999
@@ -40,13 +39,6 @@ Private Enum GridControlTypeEnum
 	CT_TextBox = 9999
 End Enum
 
-Private Enum GridLinesEnum
-	GRIDLINE_None=0
-	GRIDLINE_Both=1
-	GRIDLINE_Vertical=2
-	GRIDLINE_Horizontal=3
-End Enum
-
 Private Enum FocusRectEnum
 	FocusRect_None = 0
 	FocusRect_Row = 1
@@ -54,67 +46,17 @@ Private Enum FocusRectEnum
 	FocusRect_Free = 3
 End Enum
 
-
-'Private Enum GridSortStyle
-'	ssNone
-'	ssSortAscending
-'	ssSortDescending
-'End Enum
-'
-'#ifdef __USE_GTK__
-'	Private Enum GridColumnFormat
-'		gcfLeft
-'		gcfRight
-'		gcfCenter
-'		gcfJustifyMask
-'		gcfImage
-'		gcfBitmapOnRight
-'		gcfColHasImages
-'		'cfFixedWidth
-'		'cfNoDpiScale
-'		'cfFixedRatio
-'		'cfLineBreak
-'		'cfWrap
-'		'cfNoTitle
-'		'cfSplitButton
-'		'cfTilePlacementMask
-'	End Enum
-'#else
-'	Private Enum GridColumnFormat
-'		gcfLeft = LVCFMT_LEFT
-'		gcfRight = LVCFMT_RIGHT
-'		gcfCenter = LVCFMT_CENTER
-'		gcfJustifyMask = LVCFMT_JUSTIFYMASK
-'		gcfImage = LVCFMT_IMAGE
-'		gcfBitmapOnRight = LVCFMT_BITMAP_ON_RIGHT
-'		gcfColHasImages = LVCFMT_COL_HAS_IMAGES
-'		'cfFixedWidth = LVCFMT_FIXED_WIDTH
-'		'cfNoDpiScale = LVCFMT_NO_DPI_SCALE
-'		'cfFixedRatio = LVCFMT_FIXED_RATIO
-'		'cfLineBreak = LVCFMT_LINE_BREAK
-'		'cfWrap = LVCFMT_WRAP
-'		'cfNoTitle = LVCFMT_NO_TITLE
-'		'cfSplitButton = LVCFMT_SPLITBUTTON
-'		'cfTilePlacementMask = LVCFMT_TILE_PLACEMENTMASK
-'	End Enum
-'#endif
-
-' Private Enum GridCellFormatEnum
-'   CFBackColor = 1
-'   CFForeColor = 4
-'   CFImage = 8
-'   CFFontName = 16
-'   CFFontBold = 32
-'   CFFontItalic = 64
-'   CFFontUnderline = 128
-'   CFHandPointer = 256
-'   CFAlignment = 512
-'End Enum
-
 Private Enum GridFocusRectModeEnum
 	GridFocus_None = 0
 	GridFocus_Row = 1
 	GridFocus_Col = 2
+End Enum
+
+Private Enum GridLines
+	GridLine_None
+	GridLine_Both
+	GridLine_Vertical
+	GridLine_Horizontal
 End Enum
 
 Namespace My.Sys.Forms
@@ -384,7 +326,7 @@ Namespace My.Sys.Forms
 		mColHover                 As Integer = 1
 		FItems                    As List
 		'GRID PROPER
-		mGridLineDrawMode        As Integer = 1
+		mGridLineDrawMode        As GridLines
 		mGridColorLine           As Integer = clSilver'BGR(166, 166, 166)'clSilver
 		mGridColorLineHeader     As Integer = clWhite'BGR(166, 166, 166)'clSilver
 		mGridColorSelected       As Integer = &HFFFFE6 '&HFFFFDE ' &HFEE8FFFF 'BGR(210, 238, 245)'BGR(178, 214, 255)
