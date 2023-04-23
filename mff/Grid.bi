@@ -212,7 +212,9 @@ Namespace My.Sys.Forms
 		FSorting            As Boolean
 		FAllowEdit          As Boolean = True
 		FOwnerData          As Boolean = True
-		FClientRect         As Rect
+		#ifdef __USE_WINAPI__
+			FClientRect         As Rect
+		#endif
 		'GRID PROPERTY
 		'FGridLineDrawMode       As Integer = 1
 		FGridColorLine          As Integer = -1 'BGR(166, 166, 166) 'clSilver

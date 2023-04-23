@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 		End If
 		If ColumnIndex < FCells.Count AndAlso ColumnIndex >= 0 Then FCells.Item(ColumnIndex) = Value
 		#ifdef __USE_GTK__
-			If Parent AndAlso 1GridGetModel(Parent->Handle) Then
+			If Parent AndAlso GridGetModel(Parent->Handle) Then
 				gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, ColumnIndex + 3, ToUtf8(Value), -1)
 			End If
 		#endif
@@ -992,7 +992,7 @@ Namespace My.Sys.Forms
 			Case "coloreditfore" : Return @FGridColorEditFore
 			Case "colorline" : Return @FGridColorLine
 			Case "hovertime": Return @FHoverTime
-			Case "Gridlines": Return @FGridLines
+			Case "gridlines": Return @FGridLines
 			Case "images": Return Images
 			Case "stateimages": Return StateImages
 			Case "smallimages": Return SmallImages
@@ -1019,11 +1019,11 @@ Namespace My.Sys.Forms
 				Case "fullrowselect": FullRowSelect = QBoolean(Value)
 					'Case "ownerdata": OwnerData = QBoolean(Value)
 				Case "colorselected" : FGridColorSelected = QInteger(Value)
-				Case "ColorEditBack" : FGridColorEditBack = QInteger(Value)
+				Case "coloreditback" : FGridColorEditBack = QInteger(Value)
 				Case "coloreditfore" : FGridColorEditFore = QInteger(Value)
 				Case "colorline" : FGridColorLine = QInteger(Value)
 				Case "hovertime": HoverTime = QInteger(Value)
-				Case "Gridlines": GridLines = QBoolean(Value)
+				Case "gridlines": GridLines = QBoolean(Value)
 				Case "images": Images = Cast(ImageList Ptr, Value)
 				Case "stateimages": StateImages = Cast(ImageList Ptr, Value)
 				Case "smallimages": SmallImages = Cast(ImageList Ptr, Value)
