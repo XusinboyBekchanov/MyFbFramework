@@ -550,6 +550,7 @@ Namespace My.Sys.Forms
 			PItem->Parent = Parent
 			If Index = -1  Then
 				FItems.Add PItem
+				If FCaption = "" Then Return PItem  'For fast add at the beginning while set RowsCount
 				i = FItems.Count - 1
 			Else
 				FItems.Insert i, PItem
@@ -1156,8 +1157,8 @@ Namespace My.Sys.Forms
 	Private Property Grid.RowsCount(Value As Integer)
 		If Handle Then
 			If Value >= Rows.Count Then
-				For i As Integer = Rows.Count To Value-1
-					Rows.Add Str(i)
+				For i As Integer = Rows.Count To Value - 1
+					Rows.Add
 				Next
 			Else
 				For i As Integer = Rows.Count - 1 To Value Step -1
