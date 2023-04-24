@@ -2,10 +2,10 @@
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#ifdef __FB_64BIT__
-				#cmdline "-gen gas64"
-			#endif
 			#cmdline "Form1.rc"
+		#endif
+		#ifdef __FB_64BIT__
+			#cmdline "-gen gas64"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -34,6 +34,8 @@
 		Declare Sub Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
 		Declare Static Sub _Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 		Declare Sub Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
+		Declare Static Sub _Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
+		Declare Sub Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 		Declare Constructor
 		
 		Dim As Grid Grid1
@@ -71,8 +73,10 @@
 			
 			For i As Integer = 0 To 3  '返回的代码: 3221225477 - 堆栈溢出 就是行不够
 				.Rows.Add Str(i + 1)
+				.Rows.Item(i)->State = 1
 			Next
 			Grid1.RowsCount = 50
+			
 			'Control's Name
 			Grid1[0][1].Text = "Row 1 Column 1"
 			Grid1[1][1].Text = "Row 2 Column 1"
@@ -95,6 +99,8 @@
 			.Cells(3, 3)->Text = "Row 4 Column 3"
 			.Cells(2, 3)->Editable = True
 			.Cells(2, 3)->BackColor = clGreen
+			.Cells(2, 2)->BackColor = clGreen
+			.Cells(2, 1)->BackColor = clGreen
 			.Rows[0][5].Text = "Row1Col5 AllowEdit"
 			.Rows[1][5].Text = "Row2Col5 AllowEdit"
 			.Rows[2][5].Text = "Row3Col5 AllowEdit"
@@ -156,6 +162,7 @@
 			.Designer = @This
 			.OnGetDispInfo = @_Grid1_GetDispInfo
 			.OnCacheHint = @_Grid1_CacheHint
+			.OnCellEdited = @_Grid1_CellEdited
 			.Parent = @This
 		End With
 		' Label1
@@ -201,6 +208,10 @@
 			.Parent = @This
 		End With
 	End Constructor
+	
+	Private Sub Form1Type._Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
+		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_CellEdited(Sender, RowIndex, ColumnIndex, NewText)
+	End Sub
 	
 	Private Sub Form1Type._Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_CacheHint(Sender, iFrom, iTo)
@@ -293,8 +304,7 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 	'For i As Integer = Grid1.Rows.Count - 1 To 0 Step -1  'Need at least one row for refresh the grid
 	'	Grid1.Rows.Remove(i)
 	'Next
-	Grid1.RowsCount = 2001
-	
+	Grid1.RowsCount = 20000
 	Grid1.SelectedRowIndex = 0 'Grid1.Rows.Count - 1
 	
 	' This is take too long. 花费太多时间赋值。建议使用CacheHint赋值
@@ -331,10 +341,16 @@ Private Sub Form1Type.Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As W
 	
 	Private Sub Form1Type.Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 		'upload the data to grid here also
-		Debug.Print " iFrom=" & iFrom  & " iTo=" & iTo
 		For iRow As Integer = iFrom To iTo
+			If Grid1.Rows.Item(iRow)->State = 1 Then Continue For
+			'Debug.Print " iFrom=" & iFrom  & " iTo=" & iTo & " State=" & Grid1.Rows.Item(iRow)->State
 			For iCol As Integer = 1 To Grid1.Columns.Count - 1
-				Grid1.Cells(iRow, iCol)->Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
+				Grid1.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
 			Next
+			Grid1.Rows.Item(iRow)->State = 1
 		Next
 	End Sub
+
+Private Sub Form1Type.Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
+	Debug.Print " RowIndex=" & RowIndex  & " Col=" & ColumnIndex & " Text=" & NewText
+End Sub

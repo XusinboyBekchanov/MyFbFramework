@@ -50,6 +50,9 @@ Namespace My.Sys.Forms
 		FSelectedImageKey  As WString Ptr
 		FSmallImageKey     As WString Ptr
 		FVisible           As Boolean
+		FEditable      As Boolean
+		FForeColor     As Integer
+		FBackColor     As Integer
 		FState             As Integer
 		FIndent            As Integer
 		#ifndef __USE_GTK__
@@ -66,10 +69,12 @@ Namespace My.Sys.Forms
 		Declare Function Item(ColumnIndex As Integer) As GridCell Ptr
 		Declare Property Text(ColumnIndex As Integer) ByRef As WString
 		Declare Property Text(ColumnIndex As Integer, ByRef Value As WString)
-		Declare Property ForeColor(ColumnIndex As Integer) As Integer
-		Declare Property ForeColor(ColumnIndex As Integer, Value As Integer)
-		Declare Property BackColor(ColumnIndex As Integer) As Integer
-		Declare Property BackColor(ColumnIndex As Integer, Value As Integer)
+		Declare Property Editable As Boolean
+		Declare Property Editable(Value As Boolean)
+		Declare Property ForeColor As Integer
+		Declare Property ForeColor(Value As Integer)
+		Declare Property BackColor As Integer
+		Declare Property BackColor(Value As Integer)
 		Declare Property Hint ByRef As WString
 		Declare Property Hint(ByRef Value As WString)
 		Declare Property ImageIndex As Integer
@@ -90,8 +95,6 @@ Namespace My.Sys.Forms
 		Declare Property Indent(Value As Integer)
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
-		Declare Property Editable(ColumnIndex As Integer) As Boolean
-		Declare Property Editable(ColumnIndex As Integer, Value As Boolean)
 		Declare Sub ColumnEvents(ColumnIndex As Integer, ColumnDelete As Boolean = False)
 		Declare Operator [](ColumnIndex As Integer) ByRef As GridCell
 		Declare Operator Cast As Any Ptr
