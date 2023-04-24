@@ -19,8 +19,8 @@ Namespace My.Sys.Forms
 	Private Type GridCell Extends My.Sys.Object
 	Private:
 		FEditable      As Boolean
-		FForeColor     As Integer
-		FBackColor     As Integer
+		FForeColor     As Integer = -1
+		FBackColor     As Integer = -1
 	Public:
 		Column As PGridColumn
 		Parent As Control Ptr
@@ -50,9 +50,9 @@ Namespace My.Sys.Forms
 		FSelectedImageKey  As WString Ptr
 		FSmallImageKey     As WString Ptr
 		FVisible           As Boolean
-		FEditable      As Boolean
-		FForeColor     As Integer
-		FBackColor     As Integer
+		FEditable          As Boolean
+		FForeColor         As Integer = -1
+		FBackColor         As Integer = -1
 		FState             As Integer
 		FIndent            As Integer
 		#ifndef __USE_GTK__
@@ -113,8 +113,8 @@ Namespace My.Sys.Forms
 		FFormat        As ColumnFormat
 		FVisible       As Boolean
 		FEditable      As Boolean
-		FForeColor     As Integer
-		FBackColor     As Integer
+		FForeColor     As Integer = -1
+		FBackColor     As Integer = -1
 	Public:
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Column
@@ -282,9 +282,9 @@ Namespace My.Sys.Forms
 		Declare Property ColumnHeaderHidden(Value As Boolean)
 		Declare Property FullRowSelect As Boolean
 		Declare Property FullRowSelect(Value As Boolean)
-		' Dynamically switching to and from the LVS_OWNERDATA style is not supported.
-		'Declare Property OwnerData As Boolean
-		'Declare Property OwnerData(Value As Boolean)
+		' Dynamically switching to and from the LVS_OWNERDATA style is not supported. the OnCacheHint is on if OwnerData is true
+		Declare Property OwnerData As Boolean
+		Declare Property OwnerData(Value As Boolean)
 		Declare Property RowsCount As Integer
 		Declare Property RowsCount(RowCount As Integer)
 		Declare Property ColorSelected As Integer
