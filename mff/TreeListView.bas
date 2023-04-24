@@ -37,6 +37,7 @@ Namespace My.Sys.Forms
 		#else
 			Var ItemIndex = This.GetItemIndex()
 			If ItemIndex <> -1 Then
+				LockWindowUpdate Parent->Handle
 				State = 1
 				Var nItem = ListView_GetItemCount(Parent->Handle)
 				Var i = ItemIndex + 1
@@ -52,6 +53,7 @@ Namespace My.Sys.Forms
 						Exit Do
 					End If
 				Loop
+				LockWindowUpdate 0
 			End If
 		#endif
 		FExpanded = False
