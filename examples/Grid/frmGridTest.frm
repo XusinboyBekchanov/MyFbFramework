@@ -58,17 +58,19 @@
 			.Text = "Grid1"
 			'.TabIndex = 0
 			.Hint = "Double Click or press space start edit, Enter Confirm input!"
+			.BackColor = clGreen
+			.ForeColor = clYellow
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Top = AnchorStyle.asAnchor
-			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 10, 30, 610, 230
-			.Columns.Add "NO.", , 30
-			.Columns.Add "Column 1", , 100, cfRight, , clRed, clBlue
+			.Columns.Add "NO.", , 30 , cfRight ', , clPurple, clBlue
+			.Columns.Add "Column 1", , 100, cfRight ', , clRed, clBlue
 			.Columns.Add "Column 2", , 100, cfRight, True, clYellow, clRed
-			.Columns.Add "Column 3", , 100, cfRight, , clBlue, clYellow
-			.Columns.Add "Column 4", , 100, cfRight, , clGreen, clBlue
-			.Columns.Add "Column 5", , 100, cfRight, True, clPurple, clGreen
+			.Columns.Add "Column 3", , 100, cfRight ', , clBlue, clYellow
+			.Columns.Add "Column 4", , 100, cfRight ', , clGreen, clBlue
+			.Columns.Add "Column 5", , 100, cfRight,  True, clPurple, clGreen
 			.Columns[1].Tag = @"0"
 			
 			For i As Integer = 0 To 3  '返回的代码: 3221225477 - 堆栈溢出 就是行不够
@@ -107,6 +109,9 @@
 			.Rows[3][5].Text = "Row4Col5 AllowEdit"
 			.Rows[3].Tag = @"3"
 			.SelectedRowIndex = 0
+			.OnGetDispInfo = @_Grid1_GetDispInfo
+			.OnCacheHint = @_Grid1_CacheHint
+			.OnCellEdited = @_Grid1_CellEdited
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -151,18 +156,6 @@
 			.SetBounds 420, 4, 65, 20
 			.Designer = @This
 			.OnClick = @_cmdColDele_Click
-			.Parent = @This
-		End With
-		' Grid1
-		With Grid1
-			.Name = "Grid1"
-			.Text = "Grid1"
-			.Anchor.Bottom = AnchorStyle.asAnchor
-			.SetBounds 10, 30, 610, 230
-			.Designer = @This
-			.OnGetDispInfo = @_Grid1_GetDispInfo
-			.OnCacheHint = @_Grid1_CacheHint
-			.OnCellEdited = @_Grid1_CellEdited
 			.Parent = @This
 		End With
 		' Label1
@@ -275,8 +268,7 @@ End Sub
 
 Private Sub Form1Type.cmdColInsert_Click(ByRef Sender As Control)
 	Dim As Integer Curr = Grid1.SelectedColumnIndex
-	'Print "CurrCol=" &  Curr
-	Grid1.Columns.Insert(Curr, "Column " & Curr, , 100, cfRight, , True, clBlue, clGreen)
+	Grid1.Columns.Insert(Curr, "Column " & Curr, , 100, cfRight, , True)
 	Grid1.Repaint
 End Sub
 
