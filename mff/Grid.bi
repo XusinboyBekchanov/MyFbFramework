@@ -335,7 +335,9 @@ Namespace My.Sys.Forms
 		OnEndScroll As Sub(ByRef Sender As Grid)
 		OnCellEdited As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 		OnCacheHint As Sub(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
-		OnGetDispInfo As Sub(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
+		#ifdef __USE_WINAPI__
+			OnGetDispInfo As Sub(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
+		#endif
 	End Type
 End Namespace
 

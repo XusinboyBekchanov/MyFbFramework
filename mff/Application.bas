@@ -824,7 +824,7 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 End Function
 
 Type TInputBox
-	#ifdef __FB_WIN32__
+	#ifdef __USE_WINAPI__
 		As MSG msg
 		As HWND hWnd, hwnd1, hwnd2, hwnd3
 		As WString * 1024 mess
@@ -874,7 +874,7 @@ End Type
 #endif
 
 Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "Enter text:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString Export
-	#ifdef __FB_WIN32__
+	#ifdef __USE_WINAPI__
 		Dim As HWND hwFocus = GetFocus()
 		Dim InputBox_ As TInputBox
 		InputBox_.dm(0).dmSize = SizeOf(DEVMODE)

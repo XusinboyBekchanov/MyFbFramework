@@ -503,8 +503,10 @@ Namespace My.Sys.Forms
 		Text         = ""
 		Hint         = ""
 		FEditable    = False
-		FBackColor   = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
-		FForeColor   = IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
+		#ifdef __USE_WINAPI__
+			FBackColor   = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
+			FForeColor   = IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
+		#endif
 		FImageIndex = -1
 	End Constructor
 	
@@ -597,7 +599,7 @@ Namespace My.Sys.Forms
 			End With
 			#ifdef __USE_GTK__
 				Cast(Grid Ptr, Parent)->Init
-				If iSortStyle <> SortStyle.ssNone OrElse Index <> -1 Then
+				If Index <> -1 Then 'iSortStyle <> SortStyle.ssNone OrElse 
 					gtk_list_store_insert(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, i)
 				Else
 					gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
@@ -1165,7 +1167,9 @@ Namespace My.Sys.Forms
 					Rows.Remove i
 				Next
 			End If
-			SendMessage(Handle, LVM_SETITEMCOUNT, Rows.Count, LVSICF_NOINVALIDATEALL)
+			#ifdef __USE_WINAPI__
+				SendMessage(Handle, LVM_SETITEMCOUNT, Rows.Count, LVSICF_NOINVALIDATEALL)
+			#endif
 		End If
 	End Property
 	
@@ -1491,7 +1495,7 @@ Namespace My.Sys.Forms
 						Dim As Integer tCol = lpdi->item.iSubItem
 						Dim As Integer tRow = lpdi->item.iItem
 						Dim As WString * 255 NewText
-						If FOwnerData AndAlso OnGetDispInfo Then OnGetDispInfo(This, NewText, tRow, tCol, lpdi->item.mask)
+						If CInt(FOwnerData) AndAlso OnGetDispInfo Then OnGetDispInfo(This, NewText, tRow, tCol, lpdi->item.mask)
 						If tRow >= 0 AndAlso tCol >= 0 AndAlso tRow < Rows.Count Then
 							'Select Case lpdi->item.mask
 							'Case LVIF_TEXT
@@ -1509,7 +1513,7 @@ Namespace My.Sys.Forms
 				Case LVN_ODCACHEHINT
 					Dim pCacheHint As NMLVCACHEHINT Ptr = Cast(NMLVCACHEHINT  Ptr, Message.lParam)
 					' Load the cache With the recommended range if OwnerData is true.
-					If FOwnerData AndAlso OnCacheHint Then OnCacheHint(This, pCacheHint->iFrom, pCacheHint->iTo)
+					If CInt(FOwnerData) AndAlso OnCacheHint Then OnCacheHint(This, pCacheHint->iFrom, pCacheHint->iTo)
 				Case LVN_ODFINDITEM
 					
 				Case LVN_ITEMACTIVATE
