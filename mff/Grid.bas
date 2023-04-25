@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 			FCells.Insert(ColumnIndex, "", Cell)
 		End If
 	End Sub
-	'
+	
 	Private Property GridRow.Text(ColumnIndex As Integer) ByRef As WString
 		If FCells.Count > ColumnIndex AndAlso ColumnIndex >= 0 Then
 			Return FCells.Item(ColumnIndex)
@@ -565,9 +565,6 @@ Namespace My.Sys.Forms
 						If Mid(FCaption, ii, tLen) = Chr(9) Then
 							n = n + 1
 							.Text(n - 1) = Mid(FCaption, p, ii - p)
-							.Item(n - 1)->Editable = IIf(RowEditableMode = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->Editable, IIf(RowEditableMode = 0, False, True))
-							.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
-							.Item(n - 1)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->ForeColor, ColorText)
 							p = ii + tLen
 							ii = p
 							Continue Do
@@ -576,35 +573,29 @@ Namespace My.Sys.Forms
 					Loop
 					n = n + 1
 					.Text(n - 1) = Mid(FCaption, p, ii - p)
-					.Item(n - 1)->Editable  = IIf(RowEditableMode = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->Editable, IIf(RowEditableMode = 0, False, True))
-					.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
-					.Item(n - 1)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->ForeColor, ColorText)
-					.Text(0)        = Str(i + 1)
+					'.Item(n - 1)->Editable  = IIf(RowEditableMode = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->Editable, IIf(RowEditableMode = 0, False, True))
+					'.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
+					'.Item(n - 1)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->ForeColor, ColorText)
 				Else
-					If Parent > 0 AndAlso Cast(Grid Ptr, Parent)->Columns.Count > 0 Then
-						For j As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
-							.Item(j)->Editable = IIf(RowEditableMode = -1, Cast(Grid Ptr, Parent)->Columns.Column(j)->Editable, IIf(RowEditableMode = 0, False, True))
-							.Item(j)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(j)->BackColor, ColorBK)
-							.Item(j)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(j)->ForeColor, ColorText)
-						Next
-					End If
 					.Text(0)    = FCaption
 				End If
-				' For entir row
-				.Editable       = IIf(RowEditableMode = 0, False, True)
-				.BackColor      = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->BackColor, ColorBK)
-				.ForeColor      = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->ForeColor, ColorText)
+				' For entir row： if the value is -1 then flowing the Column property
+				.Editable       = RowEditableMode
+				.BackColor      = ColorBK
+				.ForeColor      = ColorText
 				.State          = State
 				.Indent         = Indent
 			End With
 			#ifdef __USE_GTK__
-				Cast(Grid Ptr, Parent)->Init
-				If Index <> -1 Then 'iSortStyle <> SortStyle.ssNone OrElse 
+				Cast(Grid Ptr, Parent)->Clear
+				If Index <> -1 Then 'iSortStyle <> SortStyle.ssNone OrElse
 					gtk_list_store_insert(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, i)
 				Else
 					gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
 				End If
 				gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
+			#elseif defined(__USE_WINAPI__)
+				SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
 			#endif
 			Return PItem
 		End Function
@@ -759,11 +750,16 @@ Namespace My.Sys.Forms
 			.BackColor      = IIf(ColBackColor = -1, Cast(Grid Ptr, Parent)->BackColor, ColBackColor)
 			.ForeColor      = IIf(ColForeColor = -1, Cast(Grid Ptr, Parent)->ForeColor, ColForeColor)
 			If Parent > 0 Then
+				Dim As GridRow Ptr tGridRow
+				Dim As GridCell Ptr tGridCell
 				For j As Integer = 0 To Cast(Grid Ptr, Parent)->Rows.Count - 1
-					Cast(Grid Ptr, Parent)->Rows.Item(j)->ColumnEvents(Index)
-					Cast(Grid Ptr, Parent)->Rows.Item(j)->Item(Index)->Editable = ColEditable
-					Cast(Grid Ptr, Parent)->Rows.Item(j)->Item(Index)->BackColor = IIf(ColBackColor = -1, Cast(Grid Ptr, Parent)->BackColor, ColBackColor)
-					Cast(Grid Ptr, Parent)->Rows.Item(j)->Item(Index)->ForeColor = IIf(ColForeColor = -1, Cast(Grid Ptr, Parent)->ForeColor, ColForeColor)
+					tGridRow = Cast(Grid Ptr, Parent)->Rows.Item(j)
+					tGridRow->ColumnEvents(Index)
+					tGridRow->State = 0
+					tGridCell = tGridRow->Item(Index)
+					tGridCell->Editable = ColEditable
+					tGridCell->BackColor = IIf(ColBackColor = -1, Cast(Grid Ptr, Parent)->BackColor, ColBackColor)
+					tGridCell->ForeColor = IIf(ColForeColor = -1, Cast(Grid Ptr, Parent)->ForeColor, ColForeColor)
 				Next
 			End If
 		End With
@@ -829,9 +825,9 @@ Namespace My.Sys.Forms
 	
 	Private Sub GridColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, InsertBefore As Boolean = True, ColEditable As Boolean = False, ColBackColor As Integer = -1, ColForeColor As Integer = -1)
 		If Not InsertBefore Then
-			Index += 1 
+			Index += 1
 		ElseIf Index = 0 Then
-			 Exit Sub
+			Exit Sub
 		End If
 		If Index > FColumns.Count - 1 Then Add(FCaption, FImageIndex, iWidth, Format, ColEditable, ColBackColor, ColForeColor) : Exit Sub
 		Dim As GridColumn Ptr PColumn
@@ -849,11 +845,16 @@ Namespace My.Sys.Forms
 				.BackColor   = IIf(ColBackColor = -1, Cast(Grid Ptr, Parent)->BackColor, ColBackColor)
 				.ForeColor   = IIf(ColForeColor = -1, Cast(Grid Ptr, Parent)->ForeColor, ColForeColor)
 				If Parent > 0 Then
+					Dim As GridRow Ptr tGridRow
+					Dim As GridCell Ptr tGridCell
 					For j As Integer = 0 To Cast(Grid Ptr, Parent)->Rows.Count - 1
-						Cast(Grid Ptr, Parent)->Rows.Item(j)->ColumnEvents(Index)
-						Cast(Grid Ptr, Parent)->Rows.Item(j)->Item(Index)->Editable = ColEditable
-						Cast(Grid Ptr, Parent)->Rows.Item(j)->Item(Index)->BackColor = IIf(ColBackColor = -1, Cast(Grid Ptr, Parent)->BackColor, ColBackColor)
-						Cast(Grid Ptr, Parent)->Rows.Item(j)->Item(Index)->ForeColor = IIf(ColForeColor = -1, Cast(Grid Ptr, Parent)->ForeColor, ColForeColor)
+						tGridRow = Cast(Grid Ptr, Parent)->Rows.Item(j)
+						tGridRow->ColumnEvents(Index)
+						tGridRow->State = 0
+						tGridCell = tGridRow->Item(Index)
+						tGridCell->Editable = ColEditable
+						tGridCell->BackColor = IIf(ColBackColor = -1, Cast(Grid Ptr, Parent)->BackColor, ColBackColor)
+						tGridCell->ForeColor = IIf(ColForeColor = -1, Cast(Grid Ptr, Parent)->ForeColor, ColForeColor)
 					Next
 				End If
 			End With
@@ -997,7 +998,7 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	Private Sub Grid.Init()
+	Private Sub Grid.Clear()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
 				With This
@@ -1016,7 +1017,10 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			FCol = 1: FRow = 0
-			Columns.Clear
+			Rows.Clear
+			For i As Integer = Columns.Count - 1 To 1
+				Columns.Remove i
+			Next
 			GridEditText.Visible= False
 		#endif
 	End Sub
@@ -1340,7 +1344,7 @@ Namespace My.Sys.Forms
 			Dim As GdkEvent Ptr e = Message.Event
 			Select Case Message.Event->type
 			Case GDK_MAP
-				Init
+				Clear
 			Case GDK_BUTTON_RELEASE
 				If SelectedRowIndex <> -1 Then
 					If OnRowClick Then OnRowClick(This, SelectedRowIndex)
@@ -1490,30 +1494,34 @@ Namespace My.Sys.Forms
 					Dim As LPNMKEY lpnmk = Cast(LPNMKEY, Message.lParam)
 					If OnRowKeyDown Then OnRowKeyDown(This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
 				Case LVN_GETDISPINFO
-					Dim lpdi As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
-					If lpdi->item.iItem > 0 Then
-						Dim As Integer tCol = lpdi->item.iSubItem
-						Dim As Integer tRow = lpdi->item.iItem
-						Dim As WString * 255 NewText
-						If CInt(FOwnerData) AndAlso OnGetDispInfo Then OnGetDispInfo(This, NewText, tRow, tCol, lpdi->item.mask)
-						If tRow >= 0 AndAlso tCol >= 0 AndAlso tRow < Rows.Count Then
-							'Select Case lpdi->item.mask
-							'Case LVIF_TEXT
-							'	'lpdi->item.pszText = @NewText
-							'Case LVIF_IMAGE
-							'	'lpdi->item.iImage = Val(NewText)
-							'Case LVIF_INDENT
-							'	'lpdi->item.iIndent =  Val(NewText)
-							'Case LVIF_PARAM
-							'Case LVIF_STATE
-							'
-							'End Select
+					If FOwnerData Then
+						Dim lpdi As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
+						If lpdi->item.iItem > 0 Then
+							Dim As Integer tCol = lpdi->item.iSubItem
+							Dim As Integer tRow = lpdi->item.iItem
+							Dim As WString * 255 NewText
+							If OnGetDispInfo Then OnGetDispInfo(This, NewText, tRow, tCol, lpdi->item.mask)
+							If tRow >= 0 AndAlso tCol >= 0 AndAlso tRow < Rows.Count Then
+								'Select Case lpdi->item.mask
+								'Case LVIF_TEXT
+								'	'lpdi->item.pszText = @NewText
+								'Case LVIF_IMAGE
+								'	'lpdi->item.iImage = Val(NewText)
+								'Case LVIF_INDENT
+								'	'lpdi->item.iIndent =  Val(NewText)
+								'Case LVIF_PARAM
+								'Case LVIF_STATE
+								'
+								'End Select
+							End If
 						End If
 					End If
 				Case LVN_ODCACHEHINT
-					Dim pCacheHint As NMLVCACHEHINT Ptr = Cast(NMLVCACHEHINT  Ptr, Message.lParam)
-					' Load the cache With the recommended range if OwnerData is true.
-					If CInt(FOwnerData) AndAlso OnCacheHint Then OnCacheHint(This, pCacheHint->iFrom, pCacheHint->iTo)
+					If FOwnerData Then
+						Dim pCacheHint As NMLVCACHEHINT Ptr = Cast(NMLVCACHEHINT  Ptr, Message.lParam)
+						' Load the cache With the recommended range if OwnerData is true.
+						If OnCacheHint Then OnCacheHint(This, pCacheHint->iFrom, pCacheHint->iTo)
+					End If
 				Case LVN_ODFINDITEM
 					
 				Case LVN_ITEMACTIVATE
@@ -1550,9 +1558,10 @@ Namespace My.Sys.Forms
 						If FGridColorLine = -1 Then FGridColorLine= IIf(g_darkModeEnabled, darkHlBkColor, GetSysColor(COLOR_BTNFACE))
 						Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, FGridColorLine)
 						Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GridLinesPen)
-						Dim As Integer Widths, Heights, ScrollLeft, TextColor, WidthCol0
-						Dim As Integer iRowsCount = Rows.Count
-						Dim As Integer ColumnsCount = Columns.Count
+						Dim As Integer Widths, Heights, ScrollLeft, WidthCol0, TextColor, TextColorSave, TextColorCol, TextColorRow
+						Dim As Integer iRowsCount = Rows.Count, RowsCountPerPage = ListView_GetCountPerPage(FHandle)
+						Dim As Integer ColumnsCount = Columns.Count, RowsTopIndex = ListView_GetTopIndex(FHandle)
+						Dim As Boolean DrawingOrderVert = IIf(Rows.Item(0)->BackColor = -1, True, False)
 						Dim As SCROLLINFO sif
 						sif.cbSize = SizeOf(sif)
 						sif.fMask  = SIF_POS
@@ -1574,47 +1583,110 @@ Namespace My.Sys.Forms
 						Else
 							ListView_GetItemRect FHandle, 0, @Rc, LVIR_BOUNDS
 							FItemHeight = Rc.Bottom - Rc.Top
-							ListView_GetSubItemRect(Handle, SelectedItem, 1, LVIR_BOUNDS, @R)
+							ListView_GetSubItemRect(FHandle, SelectedItem, 1, LVIR_BOUNDS, @R)
 							WidthCol0 = R.Left - 2
 						End If
-						SelectedItem = ListView_GetTopIndex(Handle)
 						'Widths = 0
-						For i As Integer = 0 To ListView_GetCountPerPage(FHandle)
-							MoveToEx nmcd->hdc, 0, Heights, 0
-							LineTo nmcd->hdc, ScaleX(This.Width), Heights
-							Heights += FItemHeight
-							If SelectedItem < iRowsCount Then
-								For iCol As Integer = 0 To ColumnsCount - 1
-									ListView_GetSubItemRect(Handle, SelectedItem, iCol, LVIR_BOUNDS, @R)
-									If R.Right < 0 Then Continue For
-									If ScrollLeft + ScaleX(This.Width) < R.Left Then Exit For
-									Rc.Left = R.Left + 1 : Rc.Right = R.Right - 1 : Rc.Top = R.Top + 1 : Rc.Bottom = R.Bottom - 1
-									If SelectedItem < iRowsCount Then DrawRect(nmcd->hdc, R, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
-									'If iCol = FCol Then DrawFocusRect nmcd->hdc, @R 'draw focus rectangle
-									Rc.Left = R.Left + 2 : Rc.Right = R.Right - 2 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
-									Select Case Columns.Column(iCol)->Format
-									Case ColumnFormat.cfLeft: frmt = DT_LEFT
-									Case ColumnFormat.cfCenter: frmt = DT_CENTER
-									Case ColumnFormat.cfRight: frmt = DT_RIGHT
-									End Select
+						SelectedItem = RowsTopIndex
+						If DrawingOrderVert Then
+							For iCol As Integer = 0 To ColumnsCount - 1
+								SelectedItem = RowsTopIndex
+								ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
+								If R.Right < 0 Then Continue For
+								If ScrollLeft + ScaleX(This.Width) < R.Left Then Exit For
+								Select Case Columns.Column(iCol)->Format
+								Case ColumnFormat.cfLeft: frmt = DT_LEFT
+								Case ColumnFormat.cfCenter: frmt = DT_CENTER
+								Case ColumnFormat.cfRight: frmt = DT_RIGHT
+								End Select
+								For i As Integer = 0 To RowsCountPerPage
+									If iCol = 0 Then
+										MoveToEx nmcd->hdc, 0, Heights, 0
+										LineTo nmcd->hdc, ScaleX(This.Width), Heights
+									End If
+									Heights += FItemHeight
 									If SelectedItem < iRowsCount Then
-										TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
-										If TextColor = -1 Then TextColor = IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
-										If iCol = 0 Then 
+										ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
+										Rc.Left = R.Left + 1 : Rc.Right = R.Right - 1 : Rc.Top = R.Top + 1 : Rc.Bottom = R.Bottom - 1
+										If SelectedItem < iRowsCount Then DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
+										'If iCol = FCol Then DrawFocusRect nmcd->hdc, @R 'draw focus rectangle
+										Rc.Left = R.Left + 2 : Rc.Right = R.Right - 2 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
+										If iCol = 0 Then
 											Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
-											If WidthCol0 > 0 Then Rc.Right = WidthCol0 Else
+											If WidthCol0 > 0 Then Rc.Right = WidthCol0
 										End If
-										SetTextColor nmcd->hdc, TextColor
+										TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
+										If TextColor <>  TextColorSave  Then
+											If TextColor <> -1 Then
+												SetTextColor nmcd->hdc, TextColor
+											Else
+												If Columns.Column(iCol)->ForeColor = -1 Then
+													SetTextColor nmcd->hdc, This.ForeColor
+												Else
+													SetTextColor nmcd->hdc, Columns.Column(iCol)->ForeColor
+												End If
+											End If
+										End If
+										TextColorSave = TextColor
 										DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
 									End If
-									MoveToEx nmcd->hdc, R.Left, 0, 0
-									LineTo nmcd->hdc, R.Left, ScaleY(This.Height)
+									SelectedItem += 1
 								Next
-								MoveToEx nmcd->hdc, R.Right, 0, 0
-								LineTo nmcd->hdc, R.Right, ScaleY(This.Height)
-								SelectedItem += 1
-							End If
-						Next
+								'DrawVert
+								MoveToEx nmcd->hdc, R.Left, 0, 0
+								LineTo nmcd->hdc, R.Left, ScaleY(This.Height)
+							Next
+							'DrawVert
+							MoveToEx nmcd->hdc, R.Right, 0, 0
+							LineTo nmcd->hdc, R.Right, ScaleY(This.Height)
+						Else
+							For i As Integer = 0 To RowsCountPerPage
+								MoveToEx nmcd->hdc, 0, Heights, 0
+								LineTo nmcd->hdc, ScaleX(This.Width), Heights
+								Heights += FItemHeight
+								If SelectedItem < iRowsCount Then
+									For iCol As Integer = 0 To ColumnsCount - 1
+										ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
+										If R.Right < 0 Then Continue For
+										If ScrollLeft + ScaleX(This.Width) < R.Left Then Exit For
+										Rc.Left = R.Left + 1 : Rc.Right = R.Right - 1 : Rc.Top = R.Top + 1 : Rc.Bottom = R.Bottom - 1
+										If SelectedItem < iRowsCount Then DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
+										'If iCol = FCol Then DrawFocusRect nmcd->hdc, @R 'draw focus rectangle
+										Rc.Left = R.Left + 2 : Rc.Right = R.Right - 2 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
+										Select Case Columns.Column(iCol)->Format
+										Case ColumnFormat.cfLeft: frmt = DT_LEFT
+										Case ColumnFormat.cfCenter: frmt = DT_CENTER
+										Case ColumnFormat.cfRight: frmt = DT_RIGHT
+										End Select
+										If SelectedItem < iRowsCount Then
+											If iCol = 0 Then
+												Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
+												If WidthCol0 > 0 Then Rc.Right = WidthCol0
+											End If
+											TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
+											If TextColor <>  TextColorSave  Then
+												If TextColor <> -1 Then
+													SetTextColor nmcd->hdc, TextColor
+												Else
+													If Columns.Column(iCol)->ForeColor = -1 Then
+														SetTextColor nmcd->hdc, IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
+													Else
+														SetTextColor nmcd->hdc, TextColor
+													End If
+												End If
+											End If
+											TextColorSave = TextColor
+											DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+										End If
+										MoveToEx nmcd->hdc, R.Left, 0, 0
+										LineTo nmcd->hdc, R.Left, ScaleY(This.Height)
+									Next
+									MoveToEx nmcd->hdc, R.Right, 0, 0
+									LineTo nmcd->hdc, R.Right, ScaleY(This.Height)
+									SelectedItem += 1
+								End If
+							Next
+						End If
 						SelectObject(nmcd->hdc, PrevPen)
 						DeleteObject GridLinesPen
 						Message.Result = CDRF_SKIPPOSTPAINT Or CDRF_SKIPDEFAULT
@@ -1760,7 +1832,7 @@ Namespace My.Sys.Forms
 					If FillColor <> -1 Then
 						BCellBack = CreateSolidBrush(FillColor)
 					Else
-						BCellBack = CreateSolidBrush(IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW)))
+						BCellBack = CreateSolidBrush(This.BackColor)
 					End If
 				End If
 				FillColorSave = FillColor
@@ -1894,7 +1966,51 @@ Namespace My.Sys.Forms
 	Private Operator Grid.Cast As Control Ptr
 		Return @This
 	End Operator
+	Private Sub Grid.SaveToFile(ByRef FileName As WString)
+		Dim As Integer Fn
+		Fn = FreeFile_
+		If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then
+			Dim As WString Ptr tmpStr
+			WLet(tmpStr, Columns.Column(1)->Text)
+			For iCol As Integer = 2 To Columns.Count - 1
+				WAdd tmpStr, Chr(9) & Columns.Column(iCol)->Text
+			Next
+			Print #Fn, *tmpStr
+			For iRow As Integer = 0 To Rows.Count - 1
+				WLet(tmpStr, Rows.Item(iRow)->Text(1))
+				For iCol As Integer = 2 To Columns.Count - 1
+					WAdd tmpStr, Chr(9) & Rows.Item(iRow)->Text(iCol)
+				Next
+				Print #Fn, *tmpStr
+			Next
+			Deallocate_(tmpStr)
+		End If
+		CloseFile_(Fn)
+	End Sub
 	
+	Private Sub Grid.LoadFromFile(ByRef FileName As WString)
+		Dim As Integer Fn
+		Fn = FreeFile_
+		This.Clear
+		If Open(FileName For Input Encoding "utf-8" As #Fn) = 0 Then
+			Dim As WString * 4096 tmpStr
+			Dim As WString Ptr ColTitle(Any)
+			Dim As Integer iRowsCount
+			Line Input #Fn, tmpStr
+			Split(tmpStr, Chr(9), ColTitle())
+			OwnerData = False
+			For i As Integer = 0 To UBound(ColTitle)
+				Columns.Add *ColTitle(i)
+			Next
+			While Not EOF(Fn)
+				Line Input #Fn, tmpStr
+				iRowsCount += 1
+				'RowsCount = iRowsCount
+				Rows.Add tmpStr
+			Wend
+		End If
+		CloseFile_(Fn)
+	End Sub
 	Private Constructor Grid
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(3, G_TYPE_BOOLEAN, GDK_TYPE_PIXBUF, G_TYPE_STRING)

@@ -8,7 +8,7 @@
 #include once "TextBox.bi"
 
 Namespace My.Sys.Forms
-	#define QGrid(__Ptr__) (*Cast(Grid Ptr,__Ptr__))
+	#define QGrid(__Ptr__) (*Cast(Grid Ptr, __Ptr__))
 	#define QGridRow(__Ptr__) (*Cast(GridRow Ptr, __Ptr__))
 	#define QGridCell(__Ptr__) (*Cast(GridCell Ptr, __Ptr__))
 	#define QGridColumn(__Ptr__) (*Cast(GridColumn Ptr, __Ptr__))
@@ -259,7 +259,7 @@ Namespace My.Sys.Forms
 			headerTextColor As COLORREF
 		#endif
 	Public:
-		Declare Sub Init()
+		Declare Sub Clear()
 		Rows                   As GridRows
 		Columns                As GridColumns
 		Images                 As ImageList Ptr
@@ -322,6 +322,8 @@ Namespace My.Sys.Forms
 		Declare Property HoverSelection(Value As Boolean)
 		Declare Operator [](RowIndex As Integer) ByRef As GridRow
 		Declare Operator Cast As Control Ptr
+		Declare Sub SaveToFile(ByRef FileName As WString)
+		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Constructor
 		Declare Destructor
 		OnColumnClick As Sub(ByRef Sender As Grid, ByVal ColIndex As Integer)
