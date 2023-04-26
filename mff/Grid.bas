@@ -560,7 +560,7 @@ Namespace My.Sys.Forms
 			With *PItem
 				.ImageIndex     = FImageIndex
 				If InStr(FCaption, Chr(9)) > 0 Then
-					Dim As Integer ii = 1, n = 0 , tLen = Len(Chr(9)), ls = Len(FCaption), p = 1
+					Dim As Integer ii = 1, n = 1 , tLen = Len(Chr(9)), ls = Len(FCaption), p = 1
 					Do While ii <= ls
 						If Mid(FCaption, ii, tLen) = Chr(9) Then
 							n = n + 1
@@ -1599,6 +1599,7 @@ Namespace My.Sys.Forms
 								Case ColumnFormat.cfCenter: frmt = DT_CENTER
 								Case ColumnFormat.cfRight: frmt = DT_RIGHT
 								End Select
+								TextColorCol = Columns.Column(iCol)->ForeColor
 								For i As Integer = 0 To RowsCountPerPage
 									If iCol = 0 Then
 										MoveToEx nmcd->hdc, 0, Heights, 0
@@ -1616,18 +1617,8 @@ Namespace My.Sys.Forms
 											If WidthCol0 > 0 Then Rc.Right = WidthCol0
 										End If
 										TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
-										If TextColor <>  TextColorSave  Then
-											If TextColor <> -1 Then
-												SetTextColor nmcd->hdc, TextColor
-											Else
-												If Columns.Column(iCol)->ForeColor = -1 Then
-													SetTextColor nmcd->hdc, This.ForeColor
-												Else
-													SetTextColor nmcd->hdc, Columns.Column(iCol)->ForeColor
-												End If
-											End If
-										End If
-										TextColorSave = TextColor
+										TextColor = IIf(TextColor <> -1, TextColor, IIf(TextColorCol = -1, This.ForeColor, TextColorCol))
+										If TextColor <>  TextColorSave  Then SetTextColor nmcd->hdc, TextColor : TextColorSave = TextColor
 										DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
 									End If
 									SelectedItem += 1
@@ -1658,24 +1649,15 @@ Namespace My.Sys.Forms
 										Case ColumnFormat.cfCenter: frmt = DT_CENTER
 										Case ColumnFormat.cfRight: frmt = DT_RIGHT
 										End Select
+										TextColorCol = Columns.Column(iCol)->ForeColor
 										If SelectedItem < iRowsCount Then
 											If iCol = 0 Then
 												Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
 												If WidthCol0 > 0 Then Rc.Right = WidthCol0
 											End If
 											TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
-											If TextColor <>  TextColorSave  Then
-												If TextColor <> -1 Then
-													SetTextColor nmcd->hdc, TextColor
-												Else
-													If Columns.Column(iCol)->ForeColor = -1 Then
-														SetTextColor nmcd->hdc, IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
-													Else
-														SetTextColor nmcd->hdc, TextColor
-													End If
-												End If
-											End If
-											TextColorSave = TextColor
+											TextColor = IIf(TextColor <> -1, TextColor, IIf(TextColorCol = -1, This.ForeColor, TextColorCol))
+											If TextColor <>  TextColorSave  Then SetTextColor nmcd->hdc, TextColor : TextColorSave = TextColor
 											DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
 										End If
 										MoveToEx nmcd->hdc, R.Left, 0, 0
@@ -1820,22 +1802,16 @@ Namespace My.Sys.Forms
 			Static As Integer FillColorSave
 			If tSelctionRow = FRow  Then
 				If BSelction Then DeleteObject BSelction
-				If tSelctionCol = FCol Then
-					BSelction = CreateSolidBrush(FGridColorEditBack)
-				Else
-					BSelction = CreateSolidBrush(FGridColorSelected)
-				End If
+				BSelction = CreateSolidBrush(IIf(tSelctionCol = FCol, FGridColorEditBack, FGridColorSelected))
 				FillRect tDc, @R, BSelction
 			Else
-				If FillColor <> FillColorSave  Then
+				Dim As Integer TextColorBK, TextColorCol = Columns.Column(tSelctionCol)->BackColor
+				TextColorBK = IIf(FillColor <> -1, FillColor, IIf(TextColorCol = -1, This.BackColor, TextColorCol))
+				If TextColorBK  <> FillColorSave  Then
 					If BCellBack Then DeleteObject BCellBack
-					If FillColor <> -1 Then
-						BCellBack = CreateSolidBrush(FillColor)
-					Else
-						BCellBack = CreateSolidBrush(This.BackColor)
-					End If
+					BCellBack = CreateSolidBrush(TextColorBK)
+					FillColorSave = TextColorBK
 				End If
-				FillColorSave = FillColor
 				'DrawEdge tDc,@R,BDR_RAISEDINNER,BF_FLAT'BF_BOTTOM
 				'If FGridLineDrawMode = GridLineNone  Then  ' GRIDLINE_None Both GRIDLINE_Vertical GRIDLINE_Horizontal Then
 				'	DrawEdge tDc, @R, BDR_SUNKENOUTER, BF_FLAT
@@ -1907,8 +1883,6 @@ Namespace My.Sys.Forms
 							End If
 						Next j
 					Next i
-					.BackColor = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
-					.ForeColor = IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
 					.SelectedRowIndex = 0
 				End With
 			End If
@@ -2062,10 +2036,11 @@ Namespace My.Sys.Forms
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
-				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GridLINES Or LVS_EX_DOUBLEBUFFER
 				'Dynamically switching to and from the LVS_OWNERDATA style is not supported.
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS Or LVS_OWNERDATA
 				.DoubleBuffered = True
+				.BackColor = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
 				.ForeColor = IIf(g_darkModeEnabled, darkTextColor, Font.Color)
 				.RegisterClass "Grid", WC_LISTVIEW
 				WLet(FClassAncestor, WC_LISTVIEW)
