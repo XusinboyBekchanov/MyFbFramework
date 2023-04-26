@@ -13,6 +13,7 @@
 	#include once "mff/Grid.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Label.bi"
+	#include once "mff/CheckBox.bi"
 	Using My.Sys.Forms
 	/'test comment '/
 	Type Form1Type Extends Form
@@ -36,12 +37,21 @@
 		Declare Sub Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 		Declare Static Sub _Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 		Declare Sub Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
+		Declare Static Sub _cmdSaveToFile_Click(ByRef Sender As Control)
+		Declare Sub cmdSaveToFile_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdLoadFromFile_Click(ByRef Sender As Control)
+		Declare Sub cmdLoadFromFile_Click(ByRef Sender As Control)
+		Declare Static Sub _chkOwnerData_Click(ByRef Sender As CheckBox)
+		Declare Sub chkOwnerData_Click(ByRef Sender As CheckBox)
+		Declare Static Sub _chkDarkMode_Click(ByRef Sender As CheckBox)
+		Declare Sub chkDarkMode_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
 		Dim As Grid Grid1
-		Dim As CommandButton cmdRowInsert, cmdColInsert, cmdRowDele, cmdColDele, cmdColInsertAfter, cmdRowInsertAfter, cmdBigData
+		Dim As CommandButton cmdRowInsert, cmdColInsert, cmdRowDele, cmdColDele, cmdColInsertAfter, cmdRowInsertAfter, cmdBigData, cmdSaveToFile, cmdLoadFromFile
 		Dim As Label Label1
 		
+		Dim As CheckBox chkOwnerData, chkDarkMode
 	End Type
 	
 	Constructor Form1Type
@@ -58,13 +68,15 @@
 			.Text = "Grid1"
 			'.TabIndex = 0
 			.Hint = "Double Click or press space start edit, Enter Confirm input!"
-			.BackColor = clGreen
-			.ForeColor = clYellow
+			'.BackColor = clBlue
+			'.ForeColor = clWhite
+			'.BackColor = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
+			'.ForeColor = IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
-			.SetBounds 10, 30, 610, 230
+			.SetBounds 10, 52, 610, 210
 			.Columns.Add "NO.", , 30 , cfRight ', , clPurple, clBlue
 			.Columns.Add "Column 1", , 100, cfRight ', , clRed, clBlue
 			.Columns.Add "Column 2", , 100, cfRight, True, clYellow, clRed
@@ -74,10 +86,9 @@
 			.Columns[1].Tag = @"0"
 			
 			For i As Integer = 0 To 3  '返回的代码: 3221225477 - 堆栈溢出 就是行不够
-				.Rows.Add Str(i + 1)
+				.Rows.Add
 				.Rows.Item(i)->State = 1
 			Next
-			Grid1.RowsCount = 50
 			
 			'Control's Name
 			Grid1[0][1].Text = "Row 1 Column 1"
@@ -166,7 +177,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.BackColor = 65535
-			.SetBounds 520, 0, 100, 28
+			.SetBounds 550, 0, 70, 28
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -195,12 +206,73 @@
 			.Name = "cmdBigData"
 			.Text = "大数据"
 			.TabIndex = 9
-			.SetBounds 490, 0, 30, 20
+			.SetBounds 490, 0, 40, 20
 			.Designer = @This
 			.OnClick = @_cmdBigData_Click
 			.Parent = @This
 		End With
+		' cmdSaveToFile
+		With cmdSaveToFile
+			.Name = "cmdSaveToFile"
+			.Text = "Save To File"
+			.TabIndex = 10
+			.SetBounds 400, 27, 80, 20
+			.Designer = @This
+			.OnClick = @_cmdSaveToFile_Click
+			.Parent = @This
+		End With
+		' cmdLoadFromFile
+		With cmdLoadFromFile
+			.Name = "cmdLoadFromFile"
+			.Text = "Load From File"
+			.TabIndex = 11
+			.ControlIndex = 9
+			.SetBounds 480, 27, 70, 20
+			.Designer = @This
+			.OnClick = @_cmdLoadFromFile_Click
+			.Parent = @This
+		End With
+		' chkOwnerData
+		With chkOwnerData
+			.Name = "chkOwnerData"
+			.Text = "OwnerData"
+			.TabIndex = 12
+			.Caption = "OwnerData"
+			.SetBounds 10, 30, 70, 10
+			.Designer = @This
+			.OnClick = @_chkOwnerData_Click
+			.Parent = @This
+		End With
+		' chkDarkMode
+		With chkDarkMode
+			.Name = "chkDarkMode"
+			.Text = "DarkMode"
+			.TabIndex = 13
+			.ControlIndex = 11
+			.Checked = True
+			.Caption = "DarkMode"
+			.SetBounds 90, 30, 60, 10
+			.Designer = @This
+			.OnClick = @_chkDarkMode_Click
+			.Parent = @This
+		End With
 	End Constructor
+	
+	Private Sub Form1Type._chkDarkMode_Click(ByRef Sender As CheckBox)
+		(*Cast(Form1Type Ptr, Sender.Designer)).chkDarkMode_Click(Sender)
+	End Sub
+	
+	Private Sub Form1Type._chkOwnerData_Click(ByRef Sender As CheckBox)
+		(*Cast(Form1Type Ptr, Sender.Designer)).chkOwnerData_Click(Sender)
+	End Sub
+	
+	Private Sub Form1Type._cmdLoadFromFile_Click(ByRef Sender As Control)
+		(*Cast(Form1Type Ptr, Sender.Designer)).cmdLoadFromFile_Click(Sender)
+	End Sub
+	
+	Private Sub Form1Type._cmdSaveToFile_Click(ByRef Sender As Control)
+		(*Cast(Form1Type Ptr, Sender.Designer)).cmdSaveToFile_Click(Sender)
+	End Sub
 	
 	Private Sub Form1Type._Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_CellEdited(Sender, RowIndex, ColumnIndex, NewText)
@@ -293,24 +365,25 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 	Grid1.SetFocus
 	Dim As Double StartShow = Timer
 	Dim As WString * 255 RowStr
-	'For i As Integer = Grid1.Rows.Count - 1 To 0 Step -1  'Need at least one row for refresh the grid
-	'	Grid1.Rows.Remove(i)
-	'Next
-	Grid1.RowsCount = 20000
-	Grid1.SelectedRowIndex = 0 'Grid1.Rows.Count - 1
+	Grid1.OwnerData = chkOwnerData.Checked
 	
-	' This is take too long. 花费太多时间赋值。建议使用CacheHint赋值
-	'For iRow As Long = 0 To 20000
-	'	'If iRow = 100 Then Grid1.SetFocus: Grid1.Repaint: Grid1.SelectedRowIndex = 0
-	'	RowStr = Str(iRow + 1)
-	'	For iCol As Integer = 1 To Grid1.Columns.Count - 1
-	'		RowStr += Chr(9) + "行" + Str(iRow+1) + "列" + Str(iCol)
-	'	Next
-	'	'Add the Data
-	'	Grid1.Rows.Add RowStr, , , , , True
-	'	'Grid1.Rows.Add RowStr
-	'	If iRow Mod 10 = 0 Then App.DoEvents  'if rows.count=666666  :254.144s   1 Million: 364.829s    5 Million:512.616s
-	'Next
+	If Grid1.OwnerData Then
+		Grid1.RowsCount = 20000
+	Else
+		' This is take too long. 花费太多时间赋值。建议使用CacheHint赋值
+		For iRow As Long = 0 To 20000
+			RowStr = "行" + Str(iRow + 1) + "列1" 
+			Randomize
+			For iCol As Integer = 2 To Grid1.Columns.Count - 1
+				RowStr += Chr(9) + "行" + Str(Fix(Rnd * 10000000)) + "列" + Str(iCol)
+				'Grid1.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
+			Next
+			'Add the Data
+			Grid1.Rows.Add RowStr, , , , , True
+			If iRow Mod 15 = 0 Then App.DoEvents  'if rows.count=666666  :254.144s   1 Million: 364.829s    5 Million:512.616s
+		Next
+	End If
+	Grid1.SelectedRowIndex = 0 'Grid1.Rows.Count - 1
 	Debug.Print " Elasped time: " & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000) & "s. with Data " & (Grid1.Rows.Count - 1) * (Grid1.Columns.Count - 1)
 	'MsgBox " Elasped time: " & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000)  & "s. with Data " & (Grid1.Rows.Count - 1) * (Grid1.Columns.Count - 1)
 End Sub
@@ -328,21 +401,43 @@ Private Sub Form1Type.Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As W
 	Case LVIF_PARAM
 	Case LVIF_STATE
 	End Select
-		
-	End Sub
 	
-	Private Sub Form1Type.Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
-		'upload the data to grid here also
-		For iRow As Integer = iFrom To iTo
-			If Grid1.Rows.Item(iRow)->State = 1 Then Continue For
-			'Debug.Print " iFrom=" & iFrom  & " iTo=" & iTo & " State=" & Grid1.Rows.Item(iRow)->State
-			For iCol As Integer = 1 To Grid1.Columns.Count - 1
-				Grid1.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
-			Next
-			Grid1.Rows.Item(iRow)->State = 1
+End Sub
+
+Private Sub Form1Type.Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
+	'upload the data to grid here also
+	If Not Grid1.OwnerData Then Return
+	For iRow As Integer = iFrom To iTo
+		If Grid1.Rows.Item(iRow)->State = 1 Then Continue For
+		'Debug.Print " iFrom=" & iFrom  & " iTo=" & iTo & " State=" & Grid1.Rows.Item(iRow)->State
+		For iCol As Integer = 1 To Grid1.Columns.Count - 1
+			Grid1.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
 		Next
-	End Sub
+		Grid1.Rows.Item(iRow)->State = 1
+	Next
+End Sub
 
 Private Sub Form1Type.Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 	Debug.Print " RowIndex=" & RowIndex  & " Col=" & ColumnIndex & " Text=" & NewText
+End Sub
+
+Private Sub Form1Type.cmdSaveToFile_Click(ByRef Sender As Control)
+	Grid1.SaveToFile(ExePath & "\gridTest.csv")
+End Sub
+
+Private Sub Form1Type.cmdLoadFromFile_Click(ByRef Sender As Control)
+	Grid1.LoadFromFile(ExePath & "\gridTest.csv")
+End Sub
+
+Private Sub Form1Type.chkOwnerData_Click(ByRef Sender As CheckBox)
+	Grid1.OwnerData = chkOwnerData.Checked
+	If Grid1.OwnerData Then
+		For iRow As Long = 0 To Grid1.Rows.Count - 1
+			Grid1.Rows.Item(iRow)->State = 0
+		Next
+	End If
+End Sub
+
+Private Sub Form1Type.chkDarkMode_Click(ByRef Sender As CheckBox)
+	SetDarkMode(chkDarkMode.Checked, chkDarkMode.Checked)
 End Sub
