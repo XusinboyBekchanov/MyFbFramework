@@ -10,6 +10,7 @@
 '#  Created by Liu ZiQI (2019)                                                 #
 '###############################################################################
 'https://blog.csdn.net/mmmvp/article/details/365155
+
 #include once "Picture.bi"
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
@@ -88,7 +89,7 @@ Namespace My.Sys.Forms
 		If Value <> FStretchImage Then
 			FStretchImage = Value
 			#ifdef __FB_WIN32__
-				InvalidateRect(HANDLE, NULL, True)
+				InvalidateRect(Handle, NULL, True)
 			#endif
 		End If
 	End Property
@@ -233,7 +234,7 @@ Namespace My.Sys.Forms
 						End Select
 					End With
 					If OnPaint Then OnPaint(This, Canvas)
-					EndPaint HANDLE,@Ps
+					EndPaint Handle,@Ps
 					Message.Result = 0
 					Canvas.HandleSetted = False
 					Return
@@ -339,3 +340,4 @@ Namespace My.Sys.Forms
 		#endif
 	End Destructor
 End Namespace
+

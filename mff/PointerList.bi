@@ -33,7 +33,7 @@ Private Type PointerList Extends Object
         Declare Sub Clear
         Declare Function IndexOf(Item As Any Ptr) As Integer
         Declare Function IndexOfObject(Obj As Any Ptr) As Integer
-        Declare Function Contains(Item As Any Ptr) As Boolean
+        Declare Function Contains(Item As Any Ptr, ByRef Idx As Integer = -1) As Boolean
         Declare Function ContainsObject(Obj As Any Ptr) As Boolean
         Declare Operator Cast As Any Ptr
         Declare Constructor
@@ -123,8 +123,9 @@ Private Function PointerList.IndexOfObject(Obj As Any Ptr) As Integer
     Return -1
 End Function
 
-Private Function PointerList.Contains(_Item As Any Ptr) As Boolean
-    Return IndexOf(_Item) <> -1
+Private Function PointerList.Contains(_Item As Any Ptr, ByRef Idx As Integer = -1) As Boolean
+	Idx = IndexOf(_Item)
+    Return Idx <> -1
 End Function
 
 Private Function PointerList.ContainsObject(Obj As Any Ptr) As Boolean

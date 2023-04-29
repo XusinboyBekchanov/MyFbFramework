@@ -25,13 +25,13 @@
 		#define Application_GetControls_Off
 		'#define Application_Forms_Get_Off
 		'#define Application_Title_Get_Off
-		#define BitmapType_Height_Get_Off
+		'#define BitmapType_Height_Get_Off
 		#define BitmapType_Let_HBITMAP_Off
 		#define BitmapType_Let_HICON_Off
 		#define BitmapType_Let_WString_Off
-		#define BitmapType_LoadFromHICON_Off
+		'#define BitmapType_LoadFromHICON_Off
 		#define BitmapType_SaveToFile_Off
-		#define BitmapType_Width_Get_Off
+		'#define BitmapType_Width_Get_Off
 		#define Brush_Color_Get_Off
 		#define Canvas_DrawTransparent_Off
 		#define Canvas_Rectangle_Double_Double_Double_Double_Off
@@ -105,7 +105,7 @@
 		#define ImageList_Clear_Off
 		#define ImageList_GetBitmap_Integer_Off
 		#define ImageList_GetCursor_Integer_Off
-		#define ImageList_GetIcon_Integer_Off
+		'#define ImageList_GetIcon_Integer_Off
 		#define ImageList_GetMask_Integer_Off
 		'#define ImageList_IndexOf_Off
 		#define ImageList_Remove_Integer_Off
