@@ -1570,7 +1570,7 @@ Namespace My.Sys.Forms
 						Dim As Integer ColumnsCount = Columns.Count, RowsTopIndex = ListView_GetTopIndex(FHandle)
 						If RowsTopIndex < 0 Then RowsTopIndex = FRow
 						Dim As Integer SelectedItem = RowsTopIndex
-						Dim As Boolean DrawingOrderVert = IIf(Rows.Item(0)->BackColor = -1, True, False)
+						Dim As Boolean DrawingOrderVert = IIF(Rows.Count > 0 AndAlso Rows.Item(0)->BackColor = -1, True, False)
 						Dim As SCROLLINFO sif
 						sif.cbSize = SizeOf(sif)
 						sif.fMask  = SIF_POS
