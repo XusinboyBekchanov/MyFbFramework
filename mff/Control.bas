@@ -1188,6 +1188,9 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
+		#define GET_X_LPARAM(lp) CLng(CShort(LoWord(lp)))
+		#define GET_Y_LPARAM(lp) CLng(CShort(HiWord(lp)))
+		
 		Private Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
 			If OnMessage Then OnMessage(This, Message)
@@ -1590,7 +1593,7 @@ Namespace My.Sys.Forms
 						This.FMouseInClient = True
 						If OnMouseEnter Then OnMouseEnter(This)
 					End If
-					If OnMouseMove Then OnMouseMove(This, DownButton, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseMove Then OnMouseMove(This, DownButton, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 					If CInt(This.Tracked = False) AndAlso CInt((OnMouseLeave OrElse OnMouseHover OrElse OnMouseEnter)) Then
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
