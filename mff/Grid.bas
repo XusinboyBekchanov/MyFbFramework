@@ -1649,15 +1649,14 @@ Namespace My.Sys.Forms
 					Case CDDS_ITEMPREPAINT
 						
 					Case CDDS_POSTPAINT
-						If FGridColorLine = -1 Then FGridColorLine= IIf(g_darkModeEnabled, darkHlBkColor, GetSysColor(COLOR_BTNFACE))
-						Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, FGridColorLine)
+						Dim As HPEN GridLinesPen = CreatePen(PS_SOLID, 1, IIf(FGridColorLine = -1, IIf(g_darkModeEnabled, darkHlBkColor, GetSysColor(COLOR_BTNFACE)), FGridColorLine))
 						Dim As HPEN PrevPen = SelectObject(nmcd->hdc, GridLinesPen)
 						Dim As Integer frmt, Widths, Heights, ScrollLeft, WidthCol0, TextColor, TextColorSave, TextColorCol, TextColorRow
 						Dim As Integer iRowsCount = Rows.Count, RowsCountPerPage = ListView_GetCountPerPage(FHandle)
 						Dim As Integer ColumnsCount = Columns.Count, RowsTopIndex = ListView_GetTopIndex(FHandle)
 						If RowsTopIndex < 0 Then RowsTopIndex = FRow
 						Dim As Integer SelectedItem = RowsTopIndex
-						Dim As Boolean DrawingOrderVert = IIF(Rows.Count > 0 AndAlso Rows.Item(0)->BackColor = -1, True, False)
+						Dim As Boolean DrawingOrderVert = IIf(Rows.Count > 0 AndAlso Rows.Item(0)->BackColor = -1, True, False)
 						Dim As SCROLLINFO sif
 						sif.cbSize = SizeOf(sif)
 						sif.fMask  = SIF_POS
