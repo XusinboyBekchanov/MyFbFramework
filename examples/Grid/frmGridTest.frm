@@ -45,6 +45,8 @@
 		Declare Sub chkOwnerData_Click(ByRef Sender As CheckBox)
 		Declare Static Sub _chkDarkMode_Click(ByRef Sender As CheckBox)
 		Declare Sub chkDarkMode_Click(ByRef Sender As CheckBox)
+		Declare Static Sub _Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
+		Declare Sub Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
 		Declare Constructor
 		
 		Dim As Grid Grid1
@@ -124,6 +126,7 @@
 			.OnCacheHint = @_Grid1_CacheHint
 			.OnCellEdited = @_Grid1_CellEdited
 			.Designer = @This
+			.OnColumnClick = @_Grid1_ColumnClick
 			.Parent = @This
 		End With
 		' cmdRowInsert
@@ -257,6 +260,10 @@
 			.Parent = @This
 		End With
 	End Constructor
+	
+	Private Sub Form1Type._Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
+		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_ColumnClick(Sender, ColIndex)
+	End Sub
 	
 	Private Sub Form1Type._chkDarkMode_Click(ByRef Sender As CheckBox)
 		(*Cast(Form1Type Ptr, Sender.Designer)).chkDarkMode_Click(Sender)
@@ -440,4 +447,21 @@ End Sub
 
 Private Sub Form1Type.chkDarkMode_Click(ByRef Sender As CheckBox)
 	SetDarkMode(chkDarkMode.Checked, chkDarkMode.Checked)
+End Sub
+
+Dim Shared SortedColumn As Integer = -1
+Dim Shared SortedDirection As ListSortDirection
+
+Private Sub Form1Type.Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
+	If SortedColumn = ColIndex Then
+		If SortedDirection = ListSortDirection.sdAscending Then
+			SortedDirection = ListSortDirection.sdDescending
+		Else
+			SortedDirection = ListSortDirection.sdAscending
+		End If
+	Else
+		SortedDirection = ListSortDirection.sdAscending
+	End If
+	SortedColumn = ColIndex
+	Grid1.Rows.Sort SortedColumn, SortedDirection
 End Sub
