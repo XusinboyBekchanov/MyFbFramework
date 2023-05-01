@@ -167,6 +167,7 @@ Namespace My.Sys.Forms
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
+		Declare Sub Sort(ColumnIndex As Integer, Direction As ListSortDirection, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
 		Declare Operator [](Index As Integer) ByRef As GridRow
 		Declare Operator Cast As Any Ptr
 		Declare Constructor

@@ -59,6 +59,11 @@ Namespace My.Sys.Forms
 			ssSortDescending
 		End Enum
 		
+		Private Enum ListSortDirection
+			sdAscending
+			sdDescending
+		End Enum
+		
 		#ifdef __USE_WINAPI__
 			Private Enum ViewStyle
 				vsIcon = LV_VIEW_ICON

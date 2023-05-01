@@ -544,6 +544,93 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	Sub GridRows.Sort(ColumnIndex As Integer, Direction As ListSortDirection, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
+		Dim bStarted As Boolean
+		If iLeft = 0 AndAlso iRight = 0 Then
+			#ifdef __USE_WINAPI__
+				bStarted = True
+				Dim As HWND Header = ListView_GetHeader(Parent->Handle)
+				Dim As HDITEM hd
+				Var newflag = IIf(Direction = ListSortDirection.sdAscending, HDF_SORTUP, HDF_SORTDOWN)
+				hd.mask = HDI_FORMAT
+				For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
+					Header_GetItem(Header, ColumnIndex, @hd)
+					If i = ColumnIndex Then
+						If (hd.fmt And newflag) <> newflag Then
+							hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
+							hd.fmt = hd.fmt Or newflag
+							Header_SetItem(Header, ColumnIndex, @hd)
+						End If
+					Else
+						hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
+						Header_SetItem(Header, i, @hd)
+					End If
+				Next
+			#endif
+		End If
+		If FItems.Count <= 1 Then Return
+		If iRight = 0 Then iRight = FItems.Count - 1
+		If iLeft < 0 Then iLeft = 0
+		If (iRight <> 0 AndAlso (iLeft >= iRight)) Then Return
+		Dim As Integer i = iLeft, j = iRight
+		'QuickSort
+		Dim As WString Ptr iKey = @(Item(i)->Text(ColumnIndex))
+		If Direction = ListSortDirection.sdAscending Then
+			If MatchCase Then
+				While (i < FItems.Count And j >= 0 And i <= j)
+					While (*iKey < Item(j)->Text(ColumnIndex) AndAlso i < j)
+						j -= 1
+					Wend
+					If i <= j Then FItems.Exchange i, j: i += 1
+					While (*iKey >= Item(i)->Text(ColumnIndex) AndAlso i < j)
+						i += 1
+					Wend
+					If i <= j Then FItems.Exchange i, j:  j -= 1
+				Wend
+			Else
+				While (i < FItems.Count And j >= 0 And i <= j)
+					While (LCase(*iKey) < LCase(Item(j)->Text(ColumnIndex)) AndAlso i < j)
+						j -= 1
+					Wend
+					If i <= j Then FItems.Exchange i, j: i += 1
+					While (LCase(*iKey) >= LCase(Item(i)->Text(ColumnIndex)) AndAlso i < j)
+						i += 1
+					Wend
+					If i <= j Then FItems.Exchange i, j: j -= 1
+				Wend
+			End If
+		Else
+			If MatchCase Then
+				While (i < FItems.Count And j >= 0 And i <= j)
+					While (*iKey > Item(j)->Text(ColumnIndex) AndAlso i < j)
+						j -= 1
+					Wend
+					If i <= j Then FItems.Exchange i, j: i += 1
+					While (*iKey <= Item(i)->Text(ColumnIndex) AndAlso i < j)
+						i += 1
+					Wend
+					If i <= j Then FItems.Exchange i, j:  j -= 1
+				Wend
+			Else
+				While (i < FItems.Count And j >= 0 And i <= j)
+					While (LCase(*iKey) > LCase(Item(j)->Text(ColumnIndex)) AndAlso i < j)
+						j -= 1
+					Wend
+					If i <= j Then FItems.Exchange i, j: i += 1
+					While (LCase(*iKey) <= LCase(Item(i)->Text(ColumnIndex)) AndAlso i < j)
+						i += 1
+					Wend
+					If i <= j Then FItems.Exchange i, j: j -= 1
+				Wend
+			End If
+		End If
+		If j > iLeft Then This.Sort(ColumnIndex, Direction, MatchCase, iLeft, j)
+		If i < iRight Then This.Sort(ColumnIndex, Direction, MatchCase, i, iRight)
+		If bStarted Then
+			Parent->Repaint
+		End If
+	End Sub
+	
 	#ifndef GridRows_Add_Integer_Off
 		Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
 			If Parent <= 0 Then Return 0
