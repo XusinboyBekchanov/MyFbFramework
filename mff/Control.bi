@@ -20,6 +20,7 @@
 #ifdef __USE_WINAPI__
 	#include once "win/commctrl.bi"
 	#include once "win/shellapi.bi"
+	#include once "win/windowsx.bi"
 #endif
 #define WM_DPICHANGED       &h02E0
 

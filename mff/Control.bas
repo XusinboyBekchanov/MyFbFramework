@@ -1188,9 +1188,6 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		#define GET_X_LPARAM(lp) CLng(CShort(LoWord(lp)))
-		#define GET_Y_LPARAM(lp) CLng(CShort(HiWord(lp)))
-		
 		Private Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
 			If OnMessage Then OnMessage(This, Message)
@@ -1518,30 +1515,30 @@ Namespace My.Sys.Forms
 					SendMessage(FHandle, CM_CANCELMODE, 0, 0)
 				Case WM_LBUTTONDOWN
 					DownButton = 0
-					If OnMouseDown Then OnMouseDown(This, 0, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseDown Then OnMouseDown(This, 0, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 				Case WM_LBUTTONDBLCLK
 					If OnDblClick Then OnDblClick(This)
 				Case WM_LBUTTONUP
 					DownButton = -1
 					If OnClick Then OnClick(This)
-					If OnMouseUp Then OnMouseUp(This, 0, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseUp Then OnMouseUp(This, 0, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 				Case WM_MBUTTONDOWN
 					DownButton = 2
-					If OnMouseDown Then OnMouseDown(This, 2, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseDown Then OnMouseDown(This, 2, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 				Case WM_MBUTTONUP
 					DownButton = -1
-					If OnMouseUp Then OnMouseUp(This, 2, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseUp Then OnMouseUp(This, 2, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 				Case WM_RBUTTONDOWN
 					DownButton = 1
-					If OnMouseDown Then OnMouseDown(This, 1, UnScaleX(Message.lParamLo), UnScaleX(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseDown Then OnMouseDown(This, 1, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 				Case WM_RBUTTONUP
 					DownButton = -1
-					If OnMouseUp Then OnMouseUp(This, 1, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseUp Then OnMouseUp(This, 1, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 					If ContextMenu Then
 						If ContextMenu->Handle Then
 							Dim As ..Point P
-							P.X = Message.lParamLo
-							P.Y = Message.lParamHi
+							P.X = GET_X_LPARAM(Message.lParam)
+							P.Y = GET_Y_LPARAM(Message.lParam)
 							.ClientToScreen(This.Handle, @P)
 							ContextMenu->Popup(P.X, P.Y)
 						End If
@@ -1614,13 +1611,13 @@ Namespace My.Sys.Forms
 					#else
 						scrDirection = Sgn(Message.wParam)
 					#endif
-					If OnMouseWheel Then OnMouseWheel(This, scrDirection, UnScaleX(Message.lParamLo), UnScaleY(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseWheel Then OnMouseWheel(This, scrDirection, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 				Case WM_MOUSELEAVE
 					If OnMouseLeave Then OnMouseLeave(This)
 					This.FMouseInClient = False
 					This.Tracked = False
 				Case WM_MOUSEHOVER
-					If OnMouseHover Then OnMouseHover(This, DownButton, UnScaleX(Message.lParamLo), UnScaleX(Message.lParamHi), Message.wParam And &HFFFF)
+					If OnMouseHover Then OnMouseHover(This, DownButton, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 					This.Tracked = False
 				Case WM_DROPFILES
 					If OnDropFile Then
