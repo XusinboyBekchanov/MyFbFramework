@@ -236,38 +236,40 @@ Namespace My.Sys.Forms
 	
 	Private Property Form.StartPosition(Value As Integer)
 		FStartPosition = Value
-		#ifdef __USE_GTK__
-			If GTK_IS_WINDOW(widget) Then
-				Select Case FStartPosition
-				Case 0: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_NONE) ' Manual
-				Case 1, 4 ' CenterScreen, CenterParent
-					If FStartPosition = 4 AndAlso FParent Then ' CenterParent
-						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER_ON_PARENT)
-						With *Cast(Control Ptr, FParent)
-							gtk_window_move(GTK_WINDOW(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
-						End With
-					Else ' CenterScreen
-						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
-						#ifdef __USE_GTK4__
-							Dim As GdkRectangle workarea
-							gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-							gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
-						#else
-							gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
-						#endif
-					End If
-				Case 2: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
-				Case 3: 'gtk_window_set_default_size(gtk_window(widget), -1, -1) ' DefaultBounds
-					gtk_window_resize(GTK_WINDOW(widget), 1000, 600)
-				End Select
-			End If
-		#elseif defined(__USE_WINAPI__)
-			If FStartPosition = FormStartPosition.CenterParent Then 
-				CenterToParent 
-			ElseIf FStartPosition = FormStartPosition.CenterScreen Then 
-				CenterToScreen
-			End If
-		#endif
+		If Not FDesignMode Then
+			#ifdef __USE_GTK__
+				If GTK_IS_WINDOW(widget) Then
+					Select Case FStartPosition
+					Case 0: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_NONE) ' Manual
+					Case 1, 4 ' CenterScreen, CenterParent
+						If FStartPosition = 4 AndAlso FParent Then ' CenterParent
+							gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER_ON_PARENT)
+							With *Cast(Control Ptr, FParent)
+								gtk_window_move(GTK_WINDOW(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+							End With
+						Else ' CenterScreen
+							gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
+							#ifdef __USE_GTK4__
+								Dim As GdkRectangle workarea
+								gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
+								gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+							#else
+								gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+							#endif
+						End If
+					Case 2: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
+					Case 3: 'gtk_window_set_default_size(gtk_window(widget), -1, -1) ' DefaultBounds
+						gtk_window_resize(GTK_WINDOW(widget), 1000, 600)
+					End Select
+				End If
+			#elseif defined(__USE_WINAPI__)
+				If FStartPosition = FormStartPosition.CenterParent Then 
+					CenterToParent 
+				ElseIf FStartPosition = FormStartPosition.CenterScreen Then 
+					CenterToScreen
+				End If
+			#endif
+		End If
 	End Property
 	
 	Private Property Form.Opacity As Integer
