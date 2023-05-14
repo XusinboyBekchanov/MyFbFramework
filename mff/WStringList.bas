@@ -114,6 +114,13 @@ End Property
 	End Property
 #endif
 
+Private Operator WStringList.[](Index As Integer) ByRef As WString
+	If Index >= 0 And Index <= FCount - 1 Then
+		Return QWStringListItem(FItems.Items[Index]).Value
+	End If
+	Return ""
+End Operator
+
 Private Property WStringList.Item(Index As Integer) ByRef As WString
 	'If (Index > -1 And Index < FCount) AndAlso Items.Item(Index) > 0 Then Return *Cast(WString Ptr, Items.Item(Index)) Else Return ""
 	If Index >= 0 And Index <= FCount - 1 Then

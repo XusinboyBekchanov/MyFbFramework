@@ -54,6 +54,13 @@ End Property
 Private Property IntegerList.Count(Value As Integer)
 End Property
 
+Private Operator IntegerList.[](Index As Integer) As Integer
+	If Index >= 0 And Index <= Count -1 Then
+		Return QIntegerListItem(FItems.Items[Index]).Value
+	End If
+	Return 0
+End Operator
+
 Private Property IntegerList.Item(Index As Integer) As Integer
 	If Index >= 0 And Index <= Count -1 Then
 		Return QIntegerListItem(FItems.Items[Index]).Value

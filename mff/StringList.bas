@@ -97,6 +97,13 @@ Private Property StringList.Text(Value As String)
 	Next i
 End Property
 
+Private Operator StringList.[](Index As Integer) As String
+	If Index >= 0 And Index <= FCount - 1 Then
+		Return QStringListItem(FItems.Items[Index]).Value
+	End If
+	Return ""
+End Operator
+
 Private Property StringList.Item(Index As Integer) As String
 	If Index >= 0 And Index <= FCount - 1 Then
 		Return QStringListItem(FItems.Items[Index]).Value

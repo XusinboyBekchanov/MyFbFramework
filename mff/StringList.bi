@@ -64,6 +64,7 @@ Public:
 	Declare Sub LoadFromFile(ByRef File As WString)
 	Declare Operator Let(ByRef Value As String)
 	Declare Operator Cast As Any Ptr
+	Declare Operator [](Index As Integer) As String
 	Declare Constructor
 	Declare Destructor
 	OnAdd      As Sub(ByRef Sender As StringList, FItem As String, FObj As Any Ptr = 0)

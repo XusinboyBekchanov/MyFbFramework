@@ -440,6 +440,14 @@ End Sub
 		Return -1
 	End Function
 #endif
+Private Operator Dictionary.[](ByRef iKey As WString) ByRef As WString
+	Dim As Integer iIndex = IndexOfKey(iKey)
+	If iIndex >= 0 Then
+		Return QDictionaryItem(FItems.Items[iIndex]).Text
+	Else
+		Return ""
+	End If
+End Operator
 
 Private Function Dictionary.GetText(ByRef iKey As WString, ByVal MatchCase As Boolean = False) ByRef As WString
 	Dim As Integer iIndex = IndexOfKey(iKey, , MatchCase)

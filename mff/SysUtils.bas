@@ -449,6 +449,29 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 	Result(n - 1) = Mid(subject, p, i - p)
 End Sub
 
+Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True)
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1
+	If ls < 1 OrElse tLen < 1 Then
+		ReDim Result(0)
+		Exit Sub
+	End If
+	Do While i <= ls
+		If StartsWith(subject, Delimiter, i - 1) Then
+		'If Mid(subject, i, tLen) = Delimiter Then
+			n = n + 1
+			ReDim Preserve Result(n - 1)
+			Result(n - 1) = Mid(subject, p, i - p)
+			p = i + tLen
+			i = p
+			Continue Do
+		End If
+		i = i + 1
+	Loop
+	n = n + 1
+	ReDim Preserve Result(n - 1)
+	Result(n - 1) = Mid(subject, p, i - p)
+End Sub
+
 Private Sub Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True)
 	Dim As Long i = 1, n = 0, tLen = 0, ls = 0, p = 1, items = 20
 	tLen = Len(Delimiter): ls = Len(wszMainStr)
@@ -493,6 +516,14 @@ End Function
 
 Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
 	Dim As UString Result
+	For i As Integer = iStart To UBound(Subject) Step iStep
+		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
+	Next
+	Return Result
+End Function
+
+Private Function Join(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
+	Dim As String Result
 	For i As Integer = iStart To UBound(Subject) Step iStep
 		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
 	Next
