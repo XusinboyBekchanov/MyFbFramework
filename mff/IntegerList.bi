@@ -53,6 +53,7 @@ Public:
 	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
 	Declare Function Contains(FItem As Integer) As Boolean
 	Declare Operator Cast As Any Ptr
+	Declare Operator [](Index As Integer) As Integer
 	Declare Constructor
 	Declare Destructor
 End Type

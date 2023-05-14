@@ -75,6 +75,7 @@ Public:
 	Declare Sub LoadFromFile(ByRef FileName As WString)
 	Declare Operator Let(ByRef value As WString)
 	Declare Operator Cast As Any Ptr
+	Declare Operator [](ByRef iKey As WString) ByRef As WString
 	Declare Constructor
 	Declare Destructor
 	OnChange   As Sub(ByRef Sender As Dictionary)

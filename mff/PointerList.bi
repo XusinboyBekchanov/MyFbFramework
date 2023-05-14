@@ -36,6 +36,7 @@ Private Type PointerList Extends Object
         Declare Function Contains(Item As Any Ptr, ByRef Idx As Integer = -1) As Boolean
         Declare Function ContainsObject(Obj As Any Ptr) As Boolean
         Declare Operator Cast As Any Ptr
+        Declare Operator [](Index As Integer) As Any Ptr
         Declare Constructor
         Declare Destructor
 End Type
@@ -47,6 +48,13 @@ End Operator
 Private Function PointerList.Count As Integer
     Return FItems.Count
 End Function
+
+Private Operator PointerList.[](Index As Integer) As Any Ptr
+    If Index >= 0 And Index <= Count -1 Then
+       Return QPointerListItem(FItems.Items[Index]).Value
+    End If
+    Return 0
+End Operator
 
 Private Property PointerList.Item(Index As Integer) As Any Ptr
     If Index >= 0 And Index <= Count -1 Then
