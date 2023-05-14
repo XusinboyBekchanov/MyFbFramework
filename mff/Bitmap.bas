@@ -91,7 +91,7 @@ Namespace My.Sys.Drawing
 				Dim As BITMAP BMP
 				Dim As HDC MemDC
 				If Handle Then DeleteObject Handle
-				Handle = LoadImage(0, File, IMAGE_BITMAP, cxDesired, cyDesired, LR_LOADFROMFILE Or LR_LOADMAP3DCOLORS Or FLoadFlag(abs_(FTransparent)))
+				Handle = LoadImageW(0, File, IMAGE_BITMAP, cxDesired, cyDesired, LR_LOADFROMFILE Or LR_LOADMAP3DCOLORS Or FLoadFlag(abs_(FTransparent)))
 				If Handle = 0 Then Return False
 				GetObject(Handle,SizeOf(BMP),@BMP)
 				FWidth  = BMP.bmWidth
@@ -322,15 +322,15 @@ Namespace My.Sys.Drawing
 				ElseIf ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".ico") Then
 					LoadFromFile(ExePath & "./Resources/" & ResName & ".ico", cxDesired, cyDesired)
 				ElseIf FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
-					Handle = LoadImage(ModuleHandle, ResName, IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
+					Handle = LoadImageW(ModuleHandle_, ResName, IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
 				ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
 					Dim As HICON IcoHandle
-					IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_ICON, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+					IcoHandle = LoadImageW(ModuleHandle_, ResName, IMAGE_ICON, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
 					If IcoHandle = 0 Then Return False
 					LoadFromHICON(IcoHandle)
 				ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_CURSOR) Then
 					Dim As HICON IcoHandle
-					IcoHandle = LoadImage(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
+					IcoHandle = LoadImageW(ModuleHandle_, ResName, IMAGE_CURSOR, cxDesired, cyDesired, LR_COPYFROMRESOURCE)
 					LoadFromHICON(IcoHandle)
 				Else
 					Dim As HRSRC hPicture = FindResourceW(ModuleHandle_, ResName, "PNG")
@@ -394,7 +394,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			Dim As BITMAP BMP
 			Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
-			Handle = LoadImage(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
+			Handle = LoadImageW(ModuleHandle_, MAKEINTRESOURCE(ResID), IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
 			If Handle = 0 Then Return False
 			GetObject(Handle,SizeOf(BMP),@BMP)
 			FWidth  = BMP.bmWidth
