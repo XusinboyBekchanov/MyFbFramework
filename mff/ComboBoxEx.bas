@@ -783,7 +783,7 @@ Namespace My.Sys.Forms
 					g_buildNumber = g_buildNumber And &hF0000000
 				End If
 				Select Case g_buildNumber
-				Case 17763 /'1809'/, 18362 /'1903'/
+				Case 17763 /'1809'/, 18362 /'1903'/, 19045
 					Base.FStyle             = cbOwnerDrawFixed
 					Base.Base.Style       = WS_CHILD Or CBS_DROPDOWNLIST Or CBS_AUTOHSCROLL Or CBS_OWNERDRAWFIXED Or WS_VSCROLL
 				Case Else
