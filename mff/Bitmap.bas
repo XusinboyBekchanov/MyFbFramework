@@ -73,7 +73,7 @@ Namespace My.Sys.Drawing
 		FTransparent = Value
 	End Property
 	
-	Private Function BitmapType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+	Private Function BitmapType.LoadFromFile(ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
 		Free
 		#ifdef __USE_GTK__
 			Dim As GError Ptr gerr
@@ -110,9 +110,8 @@ Namespace My.Sys.Drawing
 				' // Get the image width and height
 				GdipGetImageWidth(pImage, @FWidth)
 				GdipGetImageHeight(pImage, @FHeight)
-				
 				' // Create bitmap from image
-				GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, 0)
+				GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
 				' // Free the image
 				If pImage Then GdipDisposeImage pImage
 				' // Shutdown Gdiplus
@@ -318,9 +317,9 @@ Namespace My.Sys.Drawing
 				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 				Dim As BITMAP BMP
 				If ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".png") Then
-					LoadFromFile(ExePath & "./Resources/" & ResName & ".png", cxDesired, cyDesired)
+					LoadFromFile(ExePath & "./Resources/" & ResName & ".png", cxDesired, cyDesired, iMaskColor)
 				ElseIf ModuleHandle = 0 AndAlso FileExists(ExePath & "./Resources/" & ResName & ".ico") Then
-					LoadFromFile(ExePath & "./Resources/" & ResName & ".ico", cxDesired, cyDesired)
+					LoadFromFile(ExePath & "./Resources/" & ResName & ".ico", cxDesired, cyDesired, iMaskColor)
 				ElseIf FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
 					Handle = LoadImageW(ModuleHandle_, ResName, IMAGE_BITMAP, cxDesired, cyDesired, LR_COPYFROMRESOURCE Or FLoadFlag(abs_(FTransparent)))
 				ElseIf FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
@@ -336,6 +335,7 @@ Namespace My.Sys.Drawing
 					Dim As HRSRC hPicture = FindResourceW(ModuleHandle_, ResName, "PNG")
 					If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_GROUP_ICON)
 					If hPicture = 0 Then hPicture = FindResourceW(ModuleHandle_, ResName, RT_RCDATA)
+					
 					Dim As HRSRC hPictureData
 					Dim As Unsigned Long dwSize = SizeofResource(ModuleHandle_, hPicture)
 					Dim As HGLOBAL hGlobal = NULL

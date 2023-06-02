@@ -203,45 +203,54 @@ Namespace My.Sys.Forms
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
 				End If
-			Case WM_PAINT
-				'If (Graphic.Bitmap.Handle <> 0) AndAlso (((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch) AndAlso FCenterImage) OrElse (FStretchImage = StretchMode.smStretchProportional)) Then
-				'	Dim As HDC Dc, memDC
-				'	Dim As PAINTSTRUCT Ps
-				'	Canvas.HandleSetted = True
-				'	Dc = BeginPaint(Handle, @Ps)
-				'	FillRect Dc, @Ps.rcPaint, Brush.Handle
-				'	Canvas.Handle = Dc
-				'	With Graphic.Bitmap
-				'		Select Case FStretchImage
-				'		Case StretchMode.smNone
-				'			Canvas.Draw 0, 0, .HANDLE
-				'		Case StretchMode.smStretch
-				'			Canvas.DrawStretch 0, 0, Me.ClientWidth, Me.ClientHeight, .Handle
-				'		Case StretchMode.smStretchProportional
-				'			If FCenterImage Then
-				'				If Me.ClientWidth - .Width < Me.ClientHeight - .Height Then
-				'					Canvas.DrawStretch 0, (Me.ClientHeight - .Height * Me.ClientWidth / .Width) / 2, Me.ClientWidth, .Height * Me.ClientWidth / .Width, .Handle
-				'				Else
-				'					Canvas.DrawStretch (Me.ClientWidth - .Width * Me.ClientHeight / .Height) / 2, 0, .Width * Me.ClientHeight / .Height, Me.ClientHeight, .Handle
-				'				End If
-				'			Else
-				'				If Me.ClientWidth - .Width < Me.ClientHeight - .Height Then
-				'					Canvas.DrawStretch 0, 0, Me.ClientWidth, .Height * Me.ClientWidth / .Width, .Handle
-				'				Else
-				'					Canvas.DrawStretch 0, 0, .Width * Me.ClientHeight / .Height, Me.ClientHeight, .Handle
-				'				End If
-				'			End If
-				'		End Select
-				'	End With
-				'	If OnPaint Then OnPaint(This, Canvas)
-				'	EndPaint Handle,@Ps
-				'	Message.Result = 0
-				'	Canvas.HandleSetted = False
-				'	Return
-				'Else
-				'	If OnPaint Then OnPaint(This, Canvas)
-				'End If
-			If OnPaint Then OnPaint(This, Canvas)
+			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND ', WM_SIZE
+	If (Graphic.Bitmap.Handle <> 0) AndAlso (((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch)) OrElse (FStretchImage = StretchMode.smStretchProportional)) Then
+					Dim As HDC Dc, memDC
+					Dim As PAINTSTRUCT Ps
+					Canvas.HandleSetted = True
+					Dc = BeginPaint(Handle, @Ps)
+					Canvas.Handle = Dc
+					Dim As Double imgWidth = Graphic.Bitmap.Width
+					Dim As Double imgHeight = Graphic.Bitmap.Height
+					With This
+						Select Case FStretchImage
+						Case StretchMode.smNone
+							Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
+						Case StretchMode.smStretch
+							Canvas.DrawAlpha 0, 0, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
+						Case StretchMode.smStretchProportional
+							If FCenterImage Then
+								If imgWidth - .Width < imgHeight - .Height Then
+									Canvas.DrawAlpha 0, ScaleX((imgHeight - .Height * imgWidth / .Width) / 2), ScaleX(imgWidth), ScaleY(.Height * imgWidth / .Width), Graphic.Bitmap
+								Else
+									Canvas.DrawAlpha ScaleX((imgWidth - .Width * imgHeight / .Height) / 2), 0, ScaleX(.Width * imgHeight / .Height), ScaleY(imgHeight), Graphic.Bitmap
+								End If
+							Else
+								If imgWidth - .Width < imgHeight - .Height Then
+									Canvas.DrawAlpha 0, 0, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
+								Else
+									Canvas.DrawAlpha 0, 0, ScaleX(.Width * imgHeight / .Height), ScaleY(imgHeight), Graphic.Bitmap
+								End If
+							End If
+						End Select
+					End With
+					If OnPaint Then OnPaint(This, Canvas)
+					EndPaint Handle,@Ps
+					Message.Result = 0
+					Canvas.HandleSetted = False
+					Return
+				Else
+					Dim As HDC Dc, memDC
+					Dim As PAINTSTRUCT Ps
+					Canvas.HandleSetted = True
+					Dc = BeginPaint(Handle, @Ps)
+					Canvas.Handle = Dc
+					If OnPaint Then OnPaint(This, Canvas)
+					EndPaint Handle, @Ps
+					Message.Result = 0
+					Canvas.HandleSetted = False
+					Return
+				End If
 			'Case WM_ERASEBKGND
 			'	Dim As ..Rect R
 			'	GetClientRect HANDLE, @R

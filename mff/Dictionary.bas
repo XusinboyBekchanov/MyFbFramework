@@ -467,6 +467,10 @@ Private Function Dictionary.GetObject(ByRef iKey As WString, ByVal MatchCase As 
 	End If
 End Function
 
+Private Function Dictionary.GetObject(Index As Integer) As Any Ptr
+	If Index >= 0 AndAlso Index <= Count - 1 Then Return QDictionaryItem(FItems.Items[Index]).Object Else Return 0
+End Function
+
 Private Function Dictionary.GetKey(ByRef wText As WString, ByVal MatchCase As Boolean = False) ByRef As WString
 	Dim As Integer iIndex = IndexOf(wText, MatchCase)
 	If iIndex >= 0 Then

@@ -181,13 +181,13 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef ImageList_Add_WString_Off
-		Private Sub ImageList.Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
+		Private Sub ImageList.Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0, iMaskColor As Integer = 255)
 			FNotChange = True
 			#ifdef __USE_GTK__
 				FNotAdd = True
 				Dim As My.Sys.Drawing.BitmapType Bitm
 				Bitm.LoadFromResourceName(ResName)
-				Items.Add Key, ResName
+				Items.Add Key, ResName, @Bitm
 				This.Add Bitm, Bitm, Key
 				FNotAdd = False
 			#elseif defined(__USE_WINAPI__)
@@ -195,31 +195,31 @@ Namespace My.Sys.Forms
 				FNotAdd = True
 				If FindResource(ModuleHandle_, ResName, RT_BITMAP) Then
 					Dim As My.Sys.Drawing.BitmapType Bitm
-					Bitm.LoadFromResourceName(ResName, ModuleHandle_)
-					Items.Add Key, ResName
+					Bitm.LoadFromResourceName(ResName, ModuleHandle_, , , iMaskColor)
+					Items.Add Key, ResName, @Bitm
 					This.Add Bitm, Bitm, Key
 				ElseIf FindResource(ModuleHandle_, ResName, "PNG") OrElse FindResource(ModuleHandle_, ResName, RT_RCDATA) Then
 					'AddPng ResName, Key, ModuleHandle_
 					Dim As My.Sys.Drawing.BitmapType Bitm
-					Bitm.LoadFromResourceName(ResName, ModuleHandle_, , , clWhite)
-					Items.Add Key, ResName
-					This.AddMasked Bitm, clWhite, Key
+					Bitm.LoadFromResourceName(ResName, ModuleHandle_, , , iMaskColor)
+					Items.Add Key, ResName, @Bitm
+					This.AddMasked Bitm, iMaskColor, Key
 				ElseIf FindResource(ModuleHandle_, ResName, RT_ICON) OrElse FindResource(ModuleHandle_, ResName, RT_GROUP_ICON) Then
 					Dim As My.Sys.Drawing.Icon Ico
 					Ico.LoadFromResourceName(ResName, ModuleHandle_)
-					Items.Add Key, ResName
+					Items.Add Key, ResName, @Ico
 					This.Add Ico, Key
 				ElseIf FindResource(ModuleHandle_, ResName, RT_CURSOR) OrElse FindResource(ModuleHandle_, ResName, RT_GROUP_CURSOR)  Then
 					Dim As My.Sys.Drawing.Cursor Cur
 					Cur.LoadFromResourceName(ResName, ModuleHandle_)
-					Items.Add Key, ResName
+					Items.Add Key, ResName, @Cur
 					This.Add Cur, Key
 				Else
 					Dim As My.Sys.Drawing.BitmapType Bitm
-					If Bitm.LoadFromResourceName(ResName, ModuleHandle) Then
-						Items.Add Key, ResName
+					If Bitm.LoadFromResourceName(ResName, ModuleHandle, , , iMaskColor) Then
+						Items.Add Key, ResName, @Bitm
 						If FImageWidth <> ScaleX(FImageWidth) Then
-							This.AddMasked Bitm, clBlack, Key
+							This.AddMasked Bitm, iMaskColor, Key
 						Else
 							ImageList_Add(Handle, Bitm.Handle, NULL)
 						End If
@@ -492,6 +492,7 @@ Namespace My.Sys.Forms
 	
 	Private Function ImageList.GetBitmap(ByRef Key As WString) As My.Sys.Drawing.BitmapType
 		Return GetBitmap(IndexOf(Key))
+		'Return *Cast(My.Sys.Drawing.BitmapType Ptr, Items.GetObject(Key))
 	End Function
 	
 	Private Function ImageList.GetMask(ByRef Key As WString) As My.Sys.Drawing.BitmapType

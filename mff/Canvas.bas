@@ -653,7 +653,7 @@ Namespace My.Sys.Drawing
 		Return 0
 	End Function
 	
-	Private Sub Canvas.DrawAlpha(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
+	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByRef Image As My.Sys.Drawing.BitmapType, iSourceAlpha As Integer = 255)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
 			Dim As HDC hMemDC = CreateCompatibleDC(Handle) ' Create Dc
@@ -665,11 +665,11 @@ Namespace My.Sys.Drawing
 			Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
 			bfn.BlendOp = AC_SRC_OVER
 			bfn.BlendFlags = 0
-			bfn.SourceConstantAlpha = 255
+			bfn.SourceConstantAlpha = iSourceAlpha
 			bfn.AlphaFormat = AC_SRC_ALPHA
-			
-			AlphaBlend(Handle, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
-	
+			If nWidth = -1 Then nWidth = Bitmap01.bmWidth
+			If nHeight = -1 Then nHeight = Bitmap01.bmHeight
+			AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
 			DeleteDC(hMemDC) ' Delete Dc
 		#endif
 		If Not HandleSetted Then ReleaseDevice

@@ -1213,7 +1213,7 @@ Namespace My.Sys.Forms
 					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
-					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, Graphic.Bitmap
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
 					If OnPaint Then OnPaint(This, Canvas)
 					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
@@ -1221,7 +1221,7 @@ Namespace My.Sys.Forms
 				Else
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
-					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, Graphic.Bitmap
+					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0,,, Graphic.Bitmap
 					If OnPaint Then OnPaint(This, Canvas)
 				End If
 				EndPaint Handle,@Ps

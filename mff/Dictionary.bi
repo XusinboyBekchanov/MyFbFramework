@@ -68,6 +68,7 @@ Public:
 	Declare Function GetKey(iObject As Any Ptr) ByRef As WString
 	Declare Function GetText(ByRef iKey As WString, ByVal MatchCase As Boolean = False) ByRef As WString
 	Declare Function GetObject(ByRef iKey As WString, ByVal MatchCase As Boolean = False) As Any Ptr
+	Declare Function GetObject(Index As Integer) As Any Ptr
 	Declare Function Contains(ByRef wText As WString, ByVal MatchCase As Boolean = False) As Boolean
 	Declare Function ContainsKey(ByRef iKey As WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Boolean
 	Declare Function ContainsObject(iObject As Any Ptr) As Boolean
