@@ -185,7 +185,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_SIZE
-				InvalidateRect(HANDLE,NULL,True)
+				Canvas.TransferDoubleBuffer(0, 0, Width, Height)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return
@@ -203,8 +203,8 @@ Namespace My.Sys.Forms
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
 				End If
-			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND ', WM_SIZE
-	If (Graphic.Bitmap.Handle <> 0) AndAlso (((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch)) OrElse (FStretchImage = StretchMode.smStretchProportional)) Then
+			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND
+				If (Graphic.Bitmap.Handle <> 0) AndAlso (((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch)) OrElse (FStretchImage = StretchMode.smStretchProportional)) Then
 					Dim As HDC Dc, memDC
 					Dim As PAINTSTRUCT Ps
 					Canvas.HandleSetted = True
