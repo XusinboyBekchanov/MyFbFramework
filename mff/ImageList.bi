@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 		Declare Property MaskColor(Value As Integer)
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
-		Declare Sub Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0)
+		Declare Sub Add(ByRef ResName As WString, ByRef Key As WString = "", ModuleHandle As Any Ptr = 0, iMaskColor As Integer = 255)
 		Declare Sub Add(Bmp As My.Sys.Drawing.BitmapType, Mask As My.Sys.Drawing.BitmapType, ByRef Key As WString = "")
 		Declare Sub Add(Icon As My.Sys.Drawing.Icon, ByRef Key As WString = "")
 		Declare Sub Add(Cursor As My.Sys.Drawing.Cursor, ByRef Key As WString = "")
