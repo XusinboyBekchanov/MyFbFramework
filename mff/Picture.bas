@@ -218,7 +218,7 @@ Namespace My.Sys.Forms
 							Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
 						Case StretchMode.smStretch
 							Canvas.DrawAlpha 0, 0, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
-						Case StretchMode.smStretchProportional
+						Case Else 'StretchMode.smStretchProportional
 							If FCenterImage Then
 								If imgWidth - .Width < imgHeight - .Height Then
 									Canvas.DrawAlpha 0, ScaleX((imgHeight - .Height * imgWidth / .Width) / 2), ScaleX(imgWidth), ScaleY(.Height * imgWidth / .Width), Graphic.Bitmap
@@ -245,6 +245,9 @@ Namespace My.Sys.Forms
 					Canvas.HandleSetted = True
 					Dc = BeginPaint(Handle, @Ps)
 					Canvas.Handle = Dc
+					Dim As ..Rect R
+					GetClientRect Handle, @R
+					FillRect Dc, @R, This.Brush.Handle
 					If OnPaint Then OnPaint(This, Canvas)
 					EndPaint Handle, @Ps
 					Message.Result = 0
