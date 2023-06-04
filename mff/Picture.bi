@@ -30,6 +30,7 @@ Namespace My.Sys.Forms
 		AStyle(24)        As Integer
 		FPictureStyle     As Integer
 		FRealSizeImage    As Boolean
+		FDownButton         As Boolean
 		FCenterImage      As Boolean
 		FStretchImage     As StretchMode
 		ARealSizeImage(2) As Integer

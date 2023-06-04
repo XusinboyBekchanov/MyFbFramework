@@ -186,6 +186,24 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_SIZE
 				Canvas.TransferDoubleBuffer(0, 0, Width, Height)
+			Case WM_MOUSEMOVE
+				If FDownButton = True Then
+					If This.Parent AndAlso This.Parent->ClassName= "Picture" Then
+						This.Visible= False 'TODO what's the best way to update the control with the right background
+						'This.Repaint
+						'Dim As My.Sys.Drawing.BitmapType Bitm
+						'Bitm.LoadFromScreen(Left, Top, Width, Height)
+						'Canvas.Draw(0, 0, Bitm) ', ScaleX(Left), ScaleY(Top))
+						'If (Graphic.Bitmap.Handle <> 0) Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
+						This.Visible= True 
+						'UpdateWindow(FHandle)
+					End If
+				End If
+			Case WM_LBUTTONUP
+				FDownButton = False
+			Case WM_LBUTTONDOWN
+				FDownButton = True
+				If Handle Then SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE) ' This.Left, This.Top, This.Width, This.Height, 0)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return

@@ -30,6 +30,7 @@ Namespace My.Sys.Forms
 		FBevelOuter  As Integer
 		FBorderWidth As Integer
 		FBevelWidth  As Integer
+		FDownButton As Boolean
 		#ifdef __USE_WINAPI__
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub WNDPROC(ByRef Message As Message)

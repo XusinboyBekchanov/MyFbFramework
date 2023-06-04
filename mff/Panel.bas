@@ -115,6 +115,18 @@ Namespace My.Sys.Forms
 	Private Sub Panel.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
+			Case WM_MOUSEMOVE
+				If FDownButton = True Then
+					This.Visible= False 'TODO what's the best way to update the control with the right background
+					'This.Repaint
+					This.Visible= True 
+					'UpdateWindow(Handle)
+				End If
+			Case WM_LBUTTONUP
+				FDownButton = False
+			Case WM_LBUTTONDOWN
+				FDownButton = True
+				If Handle Then SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
 '			Case WM_ERASEBKGND
 '				If OnPaint Then OnPaint(This, Canvas)
 			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND
@@ -148,7 +160,11 @@ Namespace My.Sys.Forms
 					Bmp   = CreateCompatibleBitmap(Dc, R.Right, R.Bottom)
 					SelectObject(memDC, Bmp)
 					'SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
-					If Graphic.Bitmap.Handle = 0 Then FillRect memDC, @R, This.Brush.Handle
+					If Graphic.Bitmap.Handle = 0 Then 
+						FillRect Dc, @R, This.Brush.Handle
+					Else
+						Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
+					End If
 					SetBkMode(memDC, TRANSPARENT)
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
@@ -186,7 +202,11 @@ Namespace My.Sys.Forms
 					DeleteDC(memDC)
 				Else
 					SetBkMode Dc, TRANSPARENT
-					If Graphic.Bitmap.Handle = 0 Then FillRect Dc, @R, This.Brush.Handle
+					If Graphic.Bitmap.Handle = 0 Then 
+						FillRect Dc, @R, This.Brush.Handle
+					Else
+						Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
+					End If
 					SetBkColor Dc, OPAQUE
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
