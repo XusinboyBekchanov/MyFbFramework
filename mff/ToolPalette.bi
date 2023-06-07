@@ -117,6 +117,7 @@ Namespace My.Sys.Forms
 		AState(6)       As Integer
 		AWrap(2)        As Integer
 		FButtons        As List
+		FButtonsCount   As Integer
 		FImagesList      As ImageList Ptr
 		FHotImagesList   As ImageList Ptr
 		FDisabledImagesList As ImageList Ptr
@@ -130,6 +131,12 @@ Namespace My.Sys.Forms
 		#endif
 	Public:
 		Groups          As ToolGroups
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Declare Property ImagesList As ImageList Ptr
 		Declare Property ImagesList(Value As ImageList Ptr)
 		Declare Property HotImagesList As ImageList Ptr

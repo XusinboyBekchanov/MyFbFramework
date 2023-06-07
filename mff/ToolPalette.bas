@@ -14,6 +14,59 @@
 #include once "ToolPalette.bi"
 
 Namespace My.Sys.Forms
+	#ifndef ReadProperty_Off
+		Private Function ToolPalette.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "autosize": Return @FAutosize
+			'Case "caption": Return FText.vptr
+			Case "flat": Return @FFlat
+			Case "list": Return @FList
+			Case "wrapable": Return @FWrapable
+			Case "transparency": Return @FTransparent
+			Case "disabledimageslist": Return DisabledImagesList
+			Case "hotimageslist": Return HotImagesList
+			Case "imageslist": Return ImagesList
+			Case "divider": Return @FDivider
+			Case "bitmapwidth": FBitmapWidth = This.BitmapWidth: Return @FBitmapWidth
+			Case "bitmapheight": FBitmapHeight = This.BitmapHeight: Return @FBitmapHeight
+			Case "buttonwidth": FButtonWidth = This.ButtonWidth: Return @FButtonWidth
+			Case "buttonheight": FButtonHeight = This.ButtonHeight: Return @FButtonHeight
+			Case "buttonscount": FButtonsCount = 0: Return @FButtonsCount
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function ToolPalette.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then
+				Select Case LCase(PropertyName)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			Else
+				Select Case LCase(PropertyName)
+				Case "autosize": This.AutoSize = QBoolean(Value)
+				Case "bitmapwidth": This.BitmapWidth = QInteger(Value)
+				Case "bitmapheight": This.BitmapHeight = QInteger(Value)
+				Case "buttonwidth": This.ButtonWidth = QInteger(Value)
+				Case "buttonheight": This.ButtonHeight = QInteger(Value)
+				'Case "caption": This.Caption = QWString(Value)
+				Case "flat": This.Flat = QBoolean(Value)
+				Case "list": This.List = QBoolean(Value)
+				Case "disabledimageslist": This.DisabledImagesList = Value
+				Case "hotimageslist": This.HotImagesList = Value
+				Case "imageslist": This.ImagesList = Value
+				Case "divider": This.Divider = QBoolean(Value)
+				Case "transparency": This.Transparency = QBoolean(Value)
+				Case "wrapable": This.Wrapable = QBoolean(Value)
+				Case Else: Return Base.WriteProperty(PropertyName, Value)
+				End Select
+			End If
+			Return True
+		End Function
+	#endif
+	
 	Private Constructor ToolGroup
 		#ifdef __USE_GTK__
 			Widget = gtk_tool_item_group_new("")
@@ -60,7 +113,7 @@ Namespace My.Sys.Forms
 	Private Property ToolGroup.Caption(ByRef Value As WString)
 		WLet(FCaption, Value)
 		#ifdef __USE_GTK__
-			gtk_tool_item_group_set_label(gtk_tool_item_group(widget), ToUTF8(Value))
+			gtk_tool_item_group_set_label(GTK_TOOL_ITEM_GROUP(Widget), ToUtf8(Value))
 		#endif
 	End Property
 	
@@ -79,7 +132,7 @@ Namespace My.Sys.Forms
 	Private Property ToolGroup.Expanded(Value As Boolean)
 		FExpanded = Value
 		#ifdef __USE_GTK__
-			gtk_tool_item_group_set_collapsed(gtk_tool_item_group(widget), Not Value)
+			gtk_tool_item_group_set_collapsed(GTK_TOOL_ITEM_GROUP(Widget), Not Value)
 		#else
 			If Ctrl Then
 				With QControl(Ctrl)
