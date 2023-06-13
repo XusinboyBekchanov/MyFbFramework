@@ -468,7 +468,7 @@ Namespace My.Sys.Forms
 				'gtk_statusbar_set_has_resize_grip(gtk_statusbar(widget), true)
 				.RegisterClass "StatusBar", @This
 				WLet(FSimpleText, "StatusBar")
-				context_id = gtk_statusbar_get_context_id(gtk_statusbar(widget), *FSimpleText)
+				context_id = gtk_statusbar_get_context_id(GTK_STATUSBAR(widget), *FSimpleText)
 				gtk_widget_show_all(widget)
 				'Var cont2 = gtk_statusbar_get_context_id(gtk_statusbar(widget), "statusbar 2")
 				'gtk_statusbar_push(gtk_statusbar(widget), cont2, *FSimpleText)
@@ -483,7 +483,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				.RegisterClass "StatusBar","msctls_StatusBar32"
 				'David Change
-				.Style        = WS_CHILD Or CCS_NOPARENTALIGN Or AStyle(Abs_(FSizeGrip)) Or WS_CLIPCHILDREN Or WS_CLIPSIBLINGS Or CCS_BOTTOM Or SBARS_TOOLTIPS
+				.Style        = WS_CHILD Or CCS_NOPARENTALIGN Or AStyle(abs_(FSizeGrip)) Or WS_CLIPCHILDREN Or WS_CLIPSIBLINGS Or CCS_BOTTOM Or SBARS_TOOLTIPS
 				.ExStyle      = 0
 				.BackColor        = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
@@ -505,7 +505,7 @@ Namespace My.Sys.Forms
 		For i As Integer = Count - 1 To 0 Step -1
 			If Panels[i]->FDynamic Then _Delete(Panels[i])
 		Next
-		_Deallocate(Panels 'CAllocate_(0))
+		_Deallocate(Panels) 'CAllocate_(0)
 		#ifndef __USE_GTK__
 			UnregisterClass "StatusBar",GetModuleHandle(NULL)
 		#endif
