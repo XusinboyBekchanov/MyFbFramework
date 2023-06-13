@@ -943,7 +943,7 @@ Namespace My.Sys.Forms
 			TempCol = .Values
 			
 			For i = 1 To 10
-				.Values = New DoubleList
+				.Values = _New(DoubleList)
 				For j = 0 To Values->Count - 1
 					Dif = Values->Item(j) - TempCol->Item(j)
 					.Values->Add TempCol->Item(j) + i * Dif / 10
@@ -951,7 +951,7 @@ Namespace My.Sys.Forms
 				Me.Refresh
 				pApp->DoEvents
 				Wait 1
-				Delete_(.Values)
+				_Delete(.Values)
 			Next
 			.Values = Values
 			Me.LabelsVisible = bVisible
@@ -4016,21 +4016,21 @@ ErrorHandler:
 		Me.AddItem "Adan", 20, clGreen
 		Me.AddItem "Pedro", 10, clBlue
 		
-		m_WStringList = New_(WStringList)
+		m_WStringList = _New(WStringList)
 		
 		m_WStringList->Add "2018"
 		m_WStringList->Add "2019"
 		m_WStringList->Add "2020"
 		Me.AddAxisItems m_WStringList
 		
-		m_DoubleList1 = New_(DoubleList)
+		m_DoubleList1 = _New(DoubleList)
 		With *m_DoubleList1
 			.Add 10
 			.Add 15
 			.Add 5
 		End With
 		This.AddSerie "Juan", clRed, m_DoubleList1
-		m_DoubleList2 = New_(DoubleList)
+		m_DoubleList2 = _New(DoubleList)
 		With *m_DoubleList2
 			.Add 8
 			.Add 4
@@ -4241,9 +4241,9 @@ ErrorHandler:
 				GdipDeletePath m_Item(i).hPath
 			#endif
 		Next
-		If m_WStringList <> 0 Then Delete_(m_WStringList)
-		If m_DoubleList1 <> 0 Then Delete_(m_DoubleList1)
-		If m_DoubleList2 <> 0 Then Delete_(m_DoubleList2)
+		If m_WStringList <> 0 Then _Delete(m_WStringList)
+		If m_DoubleList1 <> 0 Then _Delete(m_DoubleList1)
+		If m_DoubleList2 <> 0 Then _Delete(m_DoubleList2)
 		#ifndef __USE_GTK__
 			If gToken Then
 				GdiplusShutdown(gToken)

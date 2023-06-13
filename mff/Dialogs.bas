@@ -14,7 +14,7 @@
 
 Private Sub OpenFileOptions.Include(Value As Integer)
 	Count += 1
-	Options = Reallocate_(Options, Count*SizeOf(Integer))
+	Options = _Reallocate(Options, Count*SizeOf(Integer))
 	Options[Count-1] = Value
 End Sub
 
@@ -29,7 +29,7 @@ Private Sub OpenFileOptions.Exclude(Value As Integer)
 			Options[i] = Options[i + 1]
 		Next i
 	End If
-	Options = Reallocate_(Options,SizeOf(Integer) * Count)
+	Options = _Reallocate(Options,SizeOf(Integer) * Count)
 End Sub
 
 Private Operator OpenFileOptions.Cast As Integer
@@ -41,7 +41,7 @@ Private Operator OpenFileOptions.Cast As Integer
 End Operator
 
 Private Destructor OpenFileOptions
-	If Options Then Deallocate_(Options)
+	If Options Then _Deallocate(Options)
 End Destructor
 
 #ifndef ReadProperty_Off
@@ -116,7 +116,7 @@ Private Property OpenFileDialog.InitialDir ByRef As WString
 End Property
 
 Private Property OpenFileDialog.InitialDir(ByRef Value As WString)
-	FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
+	FInitialDir    = _Reallocate(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 	*FInitialDir = Value
 End Property
 
@@ -125,7 +125,7 @@ Private Property OpenFileDialog.Caption ByRef As WString
 End Property
 
 Private Property OpenFileDialog.Caption(ByRef Value As WString)
-	FCaption    = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
+	FCaption    = _Reallocate(FCaption, (Len(Value) + 1) * SizeOf(WString))
 	*FCaption = Value
 End Property
 
@@ -134,7 +134,7 @@ Private Property OpenFileDialog.DefaultExt ByRef As WString
 End Property
 
 Private Property OpenFileDialog.DefaultExt(ByRef Value As WString)
-	FDefaultExt    = Reallocate_(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
+	FDefaultExt    = _Reallocate(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
 	*FDefaultExt = Value
 End Property
 
@@ -159,7 +159,7 @@ Private Property OpenFileDialog.Filter ByRef As WString
 End Property
 
 Private Property OpenFileDialog.Filter(ByRef Value As WString)
-	FFilter    = Reallocate_(FFilter, (Len(Value) + 1) * SizeOf(WString))
+	FFilter    = _Reallocate(FFilter, (Len(Value) + 1) * SizeOf(WString))
 	*FFilter = Value
 End Property
 
@@ -367,12 +367,12 @@ Private Constructor OpenFileDialog
 End Constructor
 
 Private Destructor OpenFileDialog
-	If FInitialDir Then Deallocate_( FInitialDir)
-	If FCaption Then Deallocate_( FCaption)
-	If FDefaultExt Then Deallocate_( FDefaultExt)
-	If FFileName Then Deallocate_( FFileName)
-	If FFileTitle Then Deallocate_( FFileTitle)
-	If FFilter Then Deallocate_( FFilter)
+	If FInitialDir Then _Deallocate( FInitialDir)
+	If FCaption Then _Deallocate( FCaption)
+	If FDefaultExt Then _Deallocate( FDefaultExt)
+	If FFileName Then _Deallocate( FFileName)
+	If FFileTitle Then _Deallocate( FFileTitle)
+	If FFilter Then _Deallocate( FFilter)
 End Destructor
 
 #ifndef ReadProperty_Off
@@ -412,7 +412,7 @@ Private Property SaveFileDialog.InitialDir ByRef As WString
 End Property
 
 Private Property SaveFileDialog.InitialDir(ByRef Value As WString)
-	FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
+	FInitialDir    = _Reallocate(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 	*FInitialDir = Value
 End Property
 
@@ -421,7 +421,7 @@ Private Property SaveFileDialog.Caption ByRef As WString
 End Property
 
 Private Property SaveFileDialog.Caption(ByRef Value As WString)
-	FCaption    = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
+	FCaption    = _Reallocate(FCaption, (Len(Value) + 1) * SizeOf(WString))
 	*FCaption = Value
 End Property
 
@@ -430,7 +430,7 @@ Private Property SaveFileDialog.DefaultExt ByRef As WString
 End Property
 
 Private Property SaveFileDialog.DefaultExt(ByRef Value As WString)
-	FDefaultExt    = Reallocate_(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
+	FDefaultExt    = _Reallocate(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
 	*FDefaultExt = Value
 End Property
 
@@ -439,7 +439,7 @@ Private Property SaveFileDialog.FileName ByRef As WString
 End Property
 
 Private Property SaveFileDialog.FileName(ByRef Value As WString)
-	FFileName    = Reallocate_(FFileName, (Len(Value) + 1) * SizeOf(WString))
+	FFileName    = _Reallocate(FFileName, (Len(Value) + 1) * SizeOf(WString))
 	*FFileName = Value
 End Property
 
@@ -448,7 +448,7 @@ Private Property SaveFileDialog.Filter ByRef As WString
 End Property
 
 Private Property SaveFileDialog.Filter(ByRef Value As WString)
-	FFilter    = Reallocate_(FFilter, (Len(Value) + 1) * SizeOf(WString))
+	FFilter    = _Reallocate(FFilter, (Len(Value) + 1) * SizeOf(WString))
 	*FFilter = Value
 End Property
 
@@ -579,10 +579,10 @@ Private Function SaveFileDialog.Execute As Boolean
 			If (dwFlags And OFN_ALLOWMULTISELECT = OFN_ALLOWMULTISELECT) Then dwBufLen = 32768  ' // 64 Kb buffer
 		End If
 		If dwBufLen < 260 Then dwBufLen = 260
-		Dim cwsFile As WString Ptr = CAllocate_((Len(*FFileName & "|") + 1) * SizeOf(WString))
+		Dim cwsFile As WString Ptr = _CAllocate((Len(*FFileName & "|") + 1) * SizeOf(WString))
 		*cwsFile = *FFileName & "|"
 		Dim cbPos As Long = Len(*cwsFile) - 1
-		If Len(*cwsFile) < dwBufLen Then cwsFile = Reallocate_(cwsFile, (dwBufLen + 1) * SizeOf(WString)): *cwsFile += Space(dwBufLen - Len(*cwsFile))
+		If Len(*cwsFile) < dwBufLen Then cwsFile = _Reallocate(cwsFile, (dwBufLen + 1) * SizeOf(WString)): *cwsFile += Space(dwBufLen - Len(*cwsFile))
 		Dim dwFileStrSize As Integer = Len(*cwsFile)
 		pchar = cwsFile
 		pchar[cbPos] = 0
@@ -617,8 +617,8 @@ Private Function SaveFileDialog.Execute As Boolean
 		Else
 			bResult = False
 		End If
-		Deallocate_( cwsFile)
-		Deallocate_( wFilter)
+		_Deallocate( cwsFile)
+		_Deallocate( wFilter)
 	#endif
 	Return bResult
 End Function
@@ -651,11 +651,11 @@ Private Constructor SaveFileDialog
 End Constructor
 
 Private Destructor SaveFileDialog
-	If FInitialDir <> 0 Then Deallocate_( FInitialDir)
-	If FCaption <> 0 Then Deallocate_( FCaption)
-	If FDefaultExt <> 0 Then Deallocate_( FDefaultExt)
-	If FFileName <> 0 Then Deallocate_( FFileName)
-	If FFilter <> 0 Then Deallocate_( FFilter)
+	If FInitialDir <> 0 Then _Deallocate( FInitialDir)
+	If FCaption <> 0 Then _Deallocate( FCaption)
+	If FDefaultExt <> 0 Then _Deallocate( FDefaultExt)
+	If FFileName <> 0 Then _Deallocate( FFileName)
+	If FFilter <> 0 Then _Deallocate( FFilter)
 End Destructor
 
 #ifndef ReadProperty_Off
@@ -798,7 +798,7 @@ Private Property FolderBrowserDialog.Caption ByRef As WString
 End Property
 
 Private Property FolderBrowserDialog.Caption(ByRef Value As WString)
-	FCaption    = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
+	FCaption    = _Reallocate(FCaption, (Len(Value) + 1) * SizeOf(WString))
 	*FCaption = Value
 End Property
 
@@ -807,7 +807,7 @@ Private Property FolderBrowserDialog.Title ByRef As WString
 End Property
 
 Private Property FolderBrowserDialog.Title(ByRef Value As WString)
-	FTitle    = Reallocate_(FTitle, (Len(Value) + 1) * SizeOf(WString))
+	FTitle    = _Reallocate(FTitle, (Len(Value) + 1) * SizeOf(WString))
 	*FTitle = Value
 End Property
 
@@ -816,7 +816,7 @@ Private Property FolderBrowserDialog.InitialDir ByRef As WString
 End Property
 
 Private Property FolderBrowserDialog.InitialDir(ByRef Value As WString)
-	FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
+	FInitialDir    = _Reallocate(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 	*FInitialDir = Value
 End Property
 
@@ -825,7 +825,7 @@ Private Property FolderBrowserDialog.Directory ByRef As WString
 End Property
 
 Private Property FolderBrowserDialog.Directory(ByRef Value As WString)
-	FDirectory    = Reallocate_(FDirectory, (Len(Value) + 1) * SizeOf(WString))
+	FDirectory    = _Reallocate(FDirectory, (Len(Value) + 1) * SizeOf(WString))
 	*FDirectory = Value
 End Property
 
@@ -881,9 +881,9 @@ Private Function FolderBrowserDialog.Execute As Boolean
 	#else
 		Dim BI    As BROWSEINFO
 		Dim pidl  As Any Ptr
-		Dim sPath As WString Ptr = CAllocate_(MAX_PATH * SizeOf(WString))
-		Dim xPath As WString Ptr = CAllocate_(MAX_PATH * SizeOf(WString))
-		FDirectory = CAllocate_(MAX_PATH * SizeOf(WString))
+		Dim sPath As WString Ptr = _CAllocate(MAX_PATH * SizeOf(WString))
+		Dim xPath As WString Ptr = _CAllocate(MAX_PATH * SizeOf(WString))
+		FDirectory = _CAllocate(MAX_PATH * SizeOf(WString))
 		
 		*sPath = WString(MAX_PATH,0)
 		*xPath = WString(MAX_PATH,0)                             '
@@ -928,10 +928,10 @@ Private Constructor FolderBrowserDialog
 End Constructor
 
 Private Destructor FolderBrowserDialog
-	If FCaption <> 0 Then Deallocate_( FCaption)
-	If FTitle <> 0 Then Deallocate_( FTitle)
-	If FInitialDir <> 0 Then Deallocate_( FInitialDir)
-	If FDirectory <> 0 Then Deallocate_( FDirectory)
+	If FCaption <> 0 Then _Deallocate( FCaption)
+	If FTitle <> 0 Then _Deallocate( FTitle)
+	If FInitialDir <> 0 Then _Deallocate( FInitialDir)
+	If FDirectory <> 0 Then _Deallocate( FDirectory)
 End Destructor
 
 #ifndef ReadProperty_Off

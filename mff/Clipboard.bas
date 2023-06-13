@@ -111,7 +111,7 @@ Namespace My.Sys
 		#ifndef __USE_GTK__
 			Dim i As Integer, IFormat As UINT
 			i = GetClipboardFormatName(IFormat,s,255)
-			FFormat = Cast(WString Ptr, Reallocate_(FFormat, (i + 1) * SizeOf(WString)))
+			FFormat = Cast(WString Ptr, _Reallocate(FFormat, (i + 1) * SizeOf(WString)))
 			*FFormat = ..Left(s, i)
 		#endif
 		Return *FFormat
@@ -131,6 +131,6 @@ Namespace My.Sys
 	End Constructor
 	
 	Private Destructor ClipboardType
-		If FText Then Deallocate_( FText)
+		If FText Then _Deallocate( FText)
 	End Destructor
 End Namespace

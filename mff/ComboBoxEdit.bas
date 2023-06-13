@@ -693,14 +693,14 @@ Namespace My.Sys.Forms
 		For i = 0 To ItemCount -1
 			#ifndef __USE_GTK__
 				Dim TextLen As Integer = Perform(CB_GETLBTEXTLEN, i, 0)
-				s = CAllocate_((TextLen + 1) * SizeOf(WString))
+				s = _CAllocate((TextLen + 1) * SizeOf(WString))
 				*s = WSpace(TextLen)
 				Perform(CB_GETLBTEXT, i, CInt(s))
 				Print #F, *s
 			#endif
 		Next i
 		CloseFile_(F)
-		Deallocate_(s)
+		_Deallocate(s)
 	End Sub
 	
 	Private Sub ComboBoxEdit.LoadFromFile(ByRef FileName As WString)

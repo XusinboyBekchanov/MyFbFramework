@@ -481,7 +481,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Function ReBarBandCollection.Add(Value As Control Ptr, ByRef Caption As WString = "", ImageIndex As Integer = 0, Index As Integer = -1) As ReBarBand Ptr
-		Dim As ReBarBand Ptr pBand = New_(ReBarBand)
+		Dim As ReBarBand Ptr pBand = _New(ReBarBand)
 		pBand->Caption = Caption
 		pBand->Child = Value
 		pBand->ImageIndex = ImageIndex
@@ -541,7 +541,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, RB_DELETEBAND, Index, 0
 		#endif
-		Delete_(Cast(ReBarBand Ptr, FItems.Item(Index)))
+		_Delete(Cast(ReBarBand Ptr, FItems.Item(Index)))
 		FItems.Remove Index
 	End Sub
 	
@@ -550,7 +550,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, RB_DELETEBAND, Index, 0
 			#endif
-			Delete_(Cast(ReBarBand Ptr, FItems.Item(Index)))
+			_Delete(Cast(ReBarBand Ptr, FItems.Item(Index)))
 		Next Index
 		FItems.Clear
 	End Sub

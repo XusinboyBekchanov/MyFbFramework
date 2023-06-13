@@ -66,7 +66,7 @@ Namespace My.Sys.Forms
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
 			#endif
 			cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
-			Dim As Double Ptr dashed = Allocate(SizeOf(Double) * 2)
+			Dim As Double Ptr dashed = _Allocate(SizeOf(Double) * 2)
 			dashed[0] = 3.0
 			dashed[1] = 3.0
 			Dim As Integer len1 = SizeOf(dashed) / SizeOf(dashed[0])

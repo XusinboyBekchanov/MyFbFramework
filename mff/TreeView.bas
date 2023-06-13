@@ -353,7 +353,7 @@ Namespace My.Sys.Forms
 	
 	Private Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
 		Dim PNode As PTreeNode
-		PNode = New_( TreeNode)
+		PNode = _New( TreeNode)
 		PNode->FDynamic = True
 		Dim iIndex As Integer = -1
 		If Cast(TreeView Ptr, Parent)->Sorted Or bSorted Then
@@ -415,7 +415,7 @@ Namespace My.Sys.Forms
 	
 	Private Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
 		Dim PNode As PTreeNode
-		PNode = New_( TreeNode)
+		PNode = _New( TreeNode)
 		PNode->FDynamic = True
 		FNodes.Insert Index, PNode
 		With *PNode
@@ -478,7 +478,7 @@ Namespace My.Sys.Forms
 		'				TreeView_DeleteItem(Parent->Handle, Item(Index)->Handle)
 		'			End If
 		'		#endif
-		Delete_(Item(Index))
+		_Delete(Item(Index))
 		FNodes.Remove Index
 	End Sub
 	Private Sub TreeNodeCollection.EditLabel
@@ -536,7 +536,7 @@ Namespace My.Sys.Forms
 		'				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
 		'			#endif
 		For i As Integer = FNodes.Count - 1 To 0 Step -1
-			If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then Delete_( Cast(TreeNode Ptr, FNodes.Items[i]))
+			If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then _Delete( Cast(TreeNode Ptr, FNodes.Items[i]))
 		Next i
 		'		Else
 		'			For i As Integer = Count - 1 To 0 Step -1
@@ -862,7 +862,7 @@ Namespace My.Sys.Forms
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
 						If OnBeforeLabelEdit Then OnBeforeLabelEdit(This, *sn, *tmpStr, bCancel)
-						Deallocate_( tmpStr)
+						_Deallocate( tmpStr)
 						If bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ENDLABELEDIT
 						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, message.lparam)
@@ -870,7 +870,7 @@ Namespace My.Sys.Forms
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
 						If OnAfterLabelEdit Then OnAfterLabelEdit(This, *sn, *tmpStr, bCancel)
-						Deallocate_( tmpStr)
+						_Deallocate( tmpStr)
 						If Not bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ASYNCDRAW
 						'Case NM_KEYDOWN: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))

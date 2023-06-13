@@ -637,7 +637,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property MenuItem.Caption(ByRef value As WString)
-		FCaption = Reallocate_(FCaption, (Len(value) + 1) * SizeOf(WString))
+		FCaption = _Reallocate(FCaption, (Len(value) + 1) * SizeOf(WString))
 		*FCaption = value
 		#ifdef __USE_GTK__
 			If value <> "-" Then
@@ -833,7 +833,7 @@ Namespace My.Sys.Forms
 	Private Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
 		If IndexOf(value) = -1 Then
 			FCount += 1
-			FItems = Reallocate_(FItems, SizeOf(PMenuItem)*FCount)
+			FItems = _Reallocate(FItems, SizeOf(PMenuItem)*FCount)
 			If Index <> -1 Then
 				For i As Integer = FCount - 1 To Index + 1 Step -1
 					FItems[i] = FItems[i-1]
@@ -851,7 +851,7 @@ Namespace My.Sys.Forms
 			FItems[Index]            = value
 			#ifdef __USE_GTK__
 				If SubMenu = 0 Then
-					SubMenu = New_( PopupMenu)
+					SubMenu = _New( PopupMenu)
 					gtk_menu_item_set_submenu(GTK_MENU_ITEM(Widget), SubMenu->Handle)
 					gtk_widget_show(SubMenu->Handle)
 				End If
@@ -874,7 +874,7 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If SubMenu = 0 Then
-					SubMenu = New_( PopupMenu)
+					SubMenu = _New( PopupMenu)
 					SubMenu->ParentMenuItem = @This
 					Handle = SubMenu->Handle
 					Dim As MENUINFO mif
@@ -894,14 +894,14 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function MenuItem.Add(ByRef sCaption As WString) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption))
 		Value->FDynamic = True
 		Add(Value)
 		Return Value
 	End Function
 	
 	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImage.Handle     = iImage.Handle
 		Value->Name     = sKey
@@ -912,7 +912,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , eClick, Checkable))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImageIndex = iImageIndex
 		Value->Name     = sKey
@@ -923,7 +923,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, eClick, Checkable))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, sImageKey, eClick, Checkable))
 		Value->FDynamic = True
 		WLet(Value->FImageKey, sImageKey)
 		If Owner AndAlso Owner->ImagesList Then Value->FImageIndex = Owner->ImagesList->IndexOf(sImageKey)
@@ -958,7 +958,7 @@ Namespace My.Sys.Forms
 			If IndexOf(value) = -1 Then
 				If (Index>-1) And (Index<FCount) Then
 					FCount += 1
-					FItems = Reallocate_(FItems,SizeOf(PMenuItem)*FCount)
+					FItems = _Reallocate(FItems,SizeOf(PMenuItem)*FCount)
 					For i As Integer = Index+1 To FCount-1
 						FItems[i] = FItems[i-1]
 					Next i
@@ -1009,9 +1009,9 @@ Namespace My.Sys.Forms
 			Next i
 			FCount -= 1
 			If FCount = 0 Then
-				Deallocate_(FItems)
+				_Deallocate(FItems)
 			Else
-				FItems = Reallocate_(FItems,FCount*SizeOf(PMenuItem))
+				FItems = _Reallocate(FItems,FCount*SizeOf(PMenuItem))
 				For i As Integer = 0 To FCount - 1
 					FItems[i]->MenuIndex = i
 				Next i
@@ -1030,7 +1030,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub MenuItem.Clear
 		For i As Integer = Count - 1 To 0 Step -1
-			If FItems[i]->FDynamic Then Delete_(FItems[i])
+			If FItems[i]->FDynamic Then _Delete(FItems[i])
 			#ifdef __USE_WINAPI__
 				If Handle Then
 					RemoveMenu(Handle, i, MF_BYPOSITION)
@@ -1039,7 +1039,7 @@ Namespace My.Sys.Forms
 			'Remove FItems[i]
 			'FItems[i] = NULL
 		Next i
-		If FItems <> 0 Then Deallocate_(FItems)
+		If FItems <> 0 Then _Deallocate(FItems)
 		FItems = 0 'CAllocate_(0)
 		FCount = 0
 	End Sub
@@ -1178,7 +1178,7 @@ Namespace My.Sys.Forms
 		WDeAllocate(FAccelerator)
 		WDeAllocate(FName)
 		WDeAllocate(FImageKey)
-		If SubMenu Then Delete_(SubMenu)
+		If SubMenu Then _Delete(SubMenu)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
 				If GTK_IS_WIDGET(Widget) Then gtk_widget_destroy(Widget)
@@ -1387,7 +1387,7 @@ Namespace My.Sys.Forms
 		#endif
 		If IndexOf(value) = -1 Then
 			FCount          +=1
-			FItems           = Reallocate_(FItems, SizeOf(PMenuItem)*FCount)
+			FItems           = _Reallocate(FItems, SizeOf(PMenuItem)*FCount)
 			If Index <> -1 Then
 				For i As Integer = FCount - 1 To Index + 1 Step -1
 					FItems[i] = FItems[i-1]
@@ -1436,14 +1436,14 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function Menu.Add(ByRef sCaption As WString) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption))
 		Value->FDynamic = True
 		Add(Value)
 		Return Value
 	End Function
 	
 	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->Image     = iImage
 		Value->Name     = sKey
@@ -1454,7 +1454,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, , , Checkable))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->ImageIndex = iImageIndex
 		Value->Caption     = sCaption
@@ -1466,7 +1466,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Dim As MenuItem Ptr Value = New_( MenuItem(sCaption, sImageKey, , Checkable))
+		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, sImageKey, , Checkable))
 		Value->FDynamic = True
 		'WLet Value->FImageKey, sImageKey
 		If ImagesList Then Value->ImageIndex = ImagesList->IndexOf(sImageKey)
@@ -1507,7 +1507,7 @@ Namespace My.Sys.Forms
 		If IndexOf(value) = -1 Then
 			If (Index>-1) And (Index<FCount) Then
 				FCount +=1
-				FItems = Reallocate_(FItems,SizeOf(PMenuItem)*FCount)
+				FItems = _Reallocate(FItems,SizeOf(PMenuItem)*FCount)
 				For i As Integer = Index +1 To FCount-1
 					FItems[i] = FItems[i-1]
 				Next i
@@ -1550,7 +1550,7 @@ Namespace My.Sys.Forms
 				FItems[i-1] = FItem
 			Next i
 			FCount -= 1
-			FItems  = Reallocate_(FItems,FCount*SizeOf(PMenuItem))
+			FItems  = _Reallocate(FItems,FCount*SizeOf(PMenuItem))
 			For i As Integer = 0 To FCount-1
 				FItems[i]->MenuIndex = i
 			Next i
@@ -1616,9 +1616,9 @@ Namespace My.Sys.Forms
 	Private Sub Menu.Clear
 		If FItems Then
 			For i As Integer = FCount - 1 To 0 Step -1
-				If Item(i)->FDynamic Then Delete_(Item(i))
+				If Item(i)->FDynamic Then _Delete(Item(i))
 			Next i
-			If FItems <> 0 Then Delete_SquareBrackets( FItems)
+			If FItems <> 0 Then _DeleteSquareBrackets( FItems)
 			FItems = 0 'callocate_(0)
 		End If
 	End Sub

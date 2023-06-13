@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 					gtk_text_buffer_insert(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, ToUtf8(wsLine & Chr(13) & Chr(10)), -1)
 				End If
 			#elseif defined(__USE_WINAPI__)
-				Dim As WString Ptr sLine = CAllocate_(MaxLength * SizeOf(WString))
+				Dim As WString Ptr sLine = _CAllocate(MaxLength * SizeOf(WString))
 				If Index >= 0 Then
 					iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 					If iStart >= 0 Then
@@ -552,7 +552,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub TextBox.InputFilter(ByRef Value As WString)
-		FInputFilter = Reallocate_(FInputFilter, (Len(Value) + 1) * SizeOf(WString))
+		FInputFilter = _Reallocate(FInputFilter, (Len(Value) + 1) * SizeOf(WString))
 		*FInputFilter = Value
 	End Sub
 	
@@ -1050,10 +1050,10 @@ Namespace My.Sys.Forms
 				Dim As Integer LStart, LEnd
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 				If LEnd - LStart <= 0 Then
-					FSelText = Reallocate_(FSelText, SizeOf(WString))
+					FSelText = _Reallocate(FSelText, SizeOf(WString))
 					*FSelText = ""
 				Else
-					FSelText = Reallocate_(FSelText, (LEnd - LStart + 1 + 1) * SizeOf(WString))
+					FSelText = _Reallocate(FSelText, (LEnd - LStart + 1 + 1) * SizeOf(WString))
 					*FSelText = Mid(Text, LStart + 1, LEnd - LStart)
 				End If
 			End If
@@ -1062,7 +1062,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TextBox.SelText(ByRef Value As WString)
-		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
+		FSelText = _Reallocate(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
 		#ifdef __USE_GTK__
 			If GTK_IS_TEXT_VIEW(widget) Then
@@ -1529,8 +1529,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor TextBox
-		If FSelText <> 0 Then Deallocate_( FSelText)
-		If FLine <> 0 Then Deallocate_( FLine)
+		If FSelText <> 0 Then _Deallocate( FSelText)
+		If FLine <> 0 Then _Deallocate( FLine)
 		WDeAllocate(FMaskChar)
 	End Destructor
 End Namespace

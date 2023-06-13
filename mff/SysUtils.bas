@@ -95,8 +95,8 @@ Namespace ClassContainer
 	End Constructor
 	
 	Private Destructor ClassType
-		If FClassName Then Deallocate_((FClassName))
-		If FClassAncestor Then Deallocate_((FClassAncestor))
+		If FClassName Then _Deallocate((FClassName))
+		If FClassAncestor Then _Deallocate((FClassAncestor))
 	End Destructor
 	
 	Private Function FindClass(ByRef ClassName As WString) As Integer
@@ -511,7 +511,7 @@ Private Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Cons
 		WAdd TmpString, IIf(i = iStart, "", Delimiter) & *Subject(i)
 	Next
 	Function = *TmpString
-	Deallocate_(TmpString)
+	_Deallocate(TmpString)
 End Function
 
 Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString

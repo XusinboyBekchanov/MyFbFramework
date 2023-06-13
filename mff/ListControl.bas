@@ -594,14 +594,14 @@ Namespace My.Sys.Forms
 				Print #F, Items.Item(i)
 			#else
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
-				s = CAllocate_((Len(TextLen) + 1) * SizeOf(WString))
+				s = _CAllocate((Len(TextLen) + 1) * SizeOf(WString))
 				*s = Space(TextLen)
 				Perform(LB_GETTEXT, i, CInt(s))
 				Print #F, *s
 			#endif
 		Next i
 		CloseFile_(F)
-		Deallocate_(s)
+		_Deallocate(s)
 	End Sub
 	
 	Private Sub ListControl.LoadFromFile(ByRef FileName As WString)

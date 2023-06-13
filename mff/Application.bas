@@ -451,7 +451,7 @@ Namespace My
 				If AForm Then
 					With QApplication(Appl)
 						.FFormCount += 1
-						.FForms = Reallocate_(.FForms, SizeOf(My.Sys.Forms.Form Ptr) * .FFormCount)
+						.FForms = _Reallocate(.FForms, SizeOf(My.Sys.Forms.Form Ptr) * .FFormCount)
 						.FForms[.FFormCount - 1] = AForm
 					End With
 				End If
@@ -473,7 +473,7 @@ Namespace My
 			Dim As Integer i
 			For i = 0 To Control.ControlCount -1
 				FControlCount += 1
-				FControls = Reallocate_(FControls,SizeOf(My.Sys.Forms.Control Ptr)*FControlCount)
+				FControls = _Reallocate(FControls,SizeOf(My.Sys.Forms.Control Ptr)*FControlCount)
 				FControls[FControlCount -1] = Control.Controls[i]
 				EnumControls(*Control.Controls[i])
 			Next i
@@ -602,7 +602,7 @@ Namespace My
 		#ifdef __USE_WINAPI__
 			ret = GetFileVersionInfoSize(FFileName, @discard)
 			If ret <> 0 Then
-				This._vinfo = Allocate_(ret)
+				This._vinfo = _Allocate(ret)
 				If This._vinfo Then
 					If GetFileVersionInfo(FFileName, 0, ret, This._vinfo) Then
 						Dim As Unsigned Short Ptr ulTranslation
@@ -619,12 +619,12 @@ Namespace My
 	
 	Private Destructor Application
 		If pApp = @This Then pApp = 0
-		If FForms Then Deallocate_( FForms)
-		If FFileName Then Deallocate_( FFileName)
-		If FExeName Then Deallocate_( FExeName)
-		If FTitle Then Deallocate_( FTitle)
-		If FControls Then Deallocate_( FControls)
-		If This._vinfo <> 0 Then Deallocate_((This._vinfo)) : This._vinfo = 0
+		If FForms Then _Deallocate( FForms)
+		If FFileName Then _Deallocate( FFileName)
+		If FExeName Then _Deallocate( FExeName)
+		If FTitle Then _Deallocate( FTitle)
+		If FControls Then _Deallocate( FControls)
+		If This._vinfo <> 0 Then _Deallocate((This._vinfo)) : This._vinfo = 0
 	End Destructor
 End Namespace
 
@@ -984,7 +984,7 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 			
 		End If
 		
-		Dim As TInputBox Ptr tib = New TInputBox
+		Dim As TInputBox Ptr tib = _New(TInputBox)
 		
 		tib->dialog = dialog
 		
@@ -1006,7 +1006,7 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 			
 		End If
 		
-		Delete tib
+		_Delete(tib)
 		
 		gtk_widget_destroy(dialog)
 	#else
@@ -1111,7 +1111,7 @@ End Function
 		Fn = FreeFile_
 		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 		If Result = 0 Then
-			pBuff = Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
+			pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
 			If FileEncoding = FileEncodings.Utf8 Then
 				Buff =  Input(FileSize, #Fn)
 				UTFToWChar(1, StrPtr(Buff), *pBuff, @FileSize)

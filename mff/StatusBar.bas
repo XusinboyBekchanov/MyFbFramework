@@ -55,7 +55,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property StatusPanel.Caption(ByRef Value As WString)
-		FCaption = Reallocate_(FCaption, (Len(Value) + 1) * SizeOf(WString))
+		FCaption = _Reallocate(FCaption, (Len(Value) + 1) * SizeOf(WString))
 		*FCaption = Value
 		If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels
 	End Property
@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor StatusPanel
-		If FCaption Then Deallocate_( FCaption)
+		If FCaption Then _Deallocate( FCaption)
 	End Destructor
 	
 	#ifndef ReadProperty_Off
@@ -212,8 +212,8 @@ Namespace My.Sys.Forms
 	
 	Private Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
 		Count += 1
-		Panels = Reallocate_(Panels, SizeOf(StatusPanel Ptr) * Count)
-		Panels[Count -1] = New_( StatusPanel)
+		Panels = _Reallocate(Panels, SizeOf(StatusPanel Ptr) * Count)
+		Panels[Count -1] = _New( StatusPanel)
 		Panels[Count -1]->FDynamic = True
 		Panels[Count -1]->Index     = Count - 1
 		Panels[Count -1]->Width     = 50
@@ -227,7 +227,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub StatusBar.Add(stPanel As StatusPanel Ptr)
 		Count += 1
-		Panels = Reallocate_(Panels, SizeOf(StatusPanel Ptr) * Count)
+		Panels = _Reallocate(Panels, SizeOf(StatusPanel Ptr) * Count)
 		Panels[Count - 1] = stPanel
 		UpdatePanels
 	End Sub
@@ -239,7 +239,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_statusbar_remove(gtk_statusbar(widget), context_id, Panels[i]->message_id)
 			#endif
-			Temp = CAllocate_((Count - 1) * SizeOf(StatusPanel Ptr))
+			Temp = _CAllocate((Count - 1) * SizeOf(StatusPanel Ptr))
 			x = 0
 			For i = 0 To Count -1
 				If i <> Index Then
@@ -248,11 +248,11 @@ Namespace My.Sys.Forms
 				End If
 			Next i
 			Count -= 1
-			Panels = CAllocate_(Count*SizeOf(StatusPanel Ptr))
+			Panels = _CAllocate(Count*SizeOf(StatusPanel Ptr))
 			For i = 0 To Count -1
 				Panels[i] = Temp[i]
 			Next i
-			Deallocate_( Temp)
+			_Deallocate( Temp)
 		End If
 		UpdatePanels
 	End Sub
@@ -377,7 +377,7 @@ Namespace My.Sys.Forms
 	
 	Private Property StatusBar.SimpleText(ByRef Value As WString)
 		If SimplePanel Then
-			FSimpleText = Reallocate_(FSimpleText, (Len(Value) + 1) * SizeOf(WString))
+			FSimpleText = _Reallocate(FSimpleText, (Len(Value) + 1) * SizeOf(WString))
 			*FSimpleText = Value
 			Text = *FSimpleText
 			#ifndef __USE_GTK__
@@ -503,13 +503,13 @@ Namespace My.Sys.Forms
 	
 	Private Destructor StatusBar
 		For i As Integer = Count - 1 To 0 Step -1
-			If Panels[i]->FDynamic Then Delete_(Panels[i])
+			If Panels[i]->FDynamic Then _Delete(Panels[i])
 		Next
-		Deallocate_(Panels) 'CAllocate_(0)
+		_Deallocate(Panels 'CAllocate_(0))
 		#ifndef __USE_GTK__
 			UnregisterClass "StatusBar",GetModuleHandle(NULL)
 		#endif
-		If FSimpleText <> 0 Then Deallocate_( FSimpleText)
+		If FSimpleText <> 0 Then _Deallocate( FSimpleText)
 	End Destructor
 End Namespace
 

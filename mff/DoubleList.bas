@@ -82,7 +82,7 @@ End Property
 
 #ifndef DoubleList_Add_Off
 	Private Sub DoubleList.Add(FItem As Double, FObj As Any Ptr = 0)
-		Dim As DoubleListItem Ptr nItem = New_( DoubleListItem)
+		Dim As DoubleListItem Ptr nItem = _New( DoubleListItem)
 		With *nItem
 			.Value  = FItem
 			.Object = FObj
@@ -92,7 +92,7 @@ End Property
 #endif
 
 Private Sub DoubleList.Insert(Index As Integer, FItem As Double, FObj As Any Ptr = 0)
-	Dim As DoubleListItem Ptr nItem = New_( DoubleListItem)
+	Dim As DoubleListItem Ptr nItem = _New( DoubleListItem)
 	With *nItem
 		.Value  = FItem
 		.Object = FObj
@@ -108,7 +108,7 @@ End Sub
 
 Private Sub DoubleList.Remove(Index As Integer)
 	If Index = -1 Then Exit Sub
-	Delete_( Cast(DoubleListItem Ptr, FItems.Items[Index]))
+	_Delete( Cast(DoubleListItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
 End Sub
 
@@ -125,7 +125,7 @@ End Sub
 
 Private Sub DoubleList.Clear
 	For i As Integer = Count -1 To 0 Step -1
-		Delete_( Cast(DoubleListItem Ptr, FItems.Items[i]))
+		_Delete( Cast(DoubleListItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
 End Sub
@@ -156,6 +156,6 @@ End Constructor
 
 Private Destructor DoubleList
 	For i As Integer = Count -1 To 0 Step -1
-		Delete_( Cast(DoubleListItem Ptr, FItems.Items[i]))
+		_Delete( Cast(DoubleListItem Ptr, FItems.Items[i]))
 	Next i
 End Destructor

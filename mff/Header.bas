@@ -428,8 +428,8 @@ Namespace My.Sys.Forms
 	Private Sub Header.Init()
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
-				If ColumnTypes Then Delete_SquareBrackets(ColumnTypes)
-				ColumnTypes = New_(GType[FSections.Count + 1])
+				If ColumnTypes Then _DeleteSquareBrackets(ColumnTypes)
+				ColumnTypes = _New(GType[FSections.Count + 1])
 				For i As Integer = 0 To FSections.Count
 					ColumnTypes[i] = G_TYPE_STRING
 				Next i
@@ -556,7 +556,7 @@ Namespace My.Sys.Forms
 	
 	Private Function Header.AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
 		Dim As HeaderSection Ptr PSection
-		PSection = New_( HeaderSection)
+		PSection = _New( HeaderSection)
 		FSections.Add PSection
 		With *PSection
 			.HeaderControl = @This
@@ -668,7 +668,7 @@ Namespace My.Sys.Forms
 		'Arg = va_first()
 		Cva_Start(args, FCount)
 		For i As Integer = 0 To FCount - 1
-			PSection = New_( HeaderSection)
+			PSection = _New( HeaderSection)
 			With *PSection
 				.HeaderControl = @This
 				'.Caption       = *va_arg(Arg, WString Ptr)
@@ -788,7 +788,7 @@ Namespace My.Sys.Forms
 				widget = gtk_tree_view_new()
 				gtk_widget_set_can_focus(widget, False)
 				ListStore = gtk_list_store_new(1, G_TYPE_STRING)
-				ColumnTypes = New_(GType[1])
+				ColumnTypes = _New(GType[1])
 				ColumnTypes[0] = G_TYPE_STRING
 				g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@Header_Map), @This)
 				#ifdef __USE_GTK3__

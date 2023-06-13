@@ -94,7 +94,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QCheckedListBox(Sender.Child)
 					For i As Integer = 0 To .Items.Count -1
-						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+						Dim As WString Ptr s = _CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
 						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(s))
 					Next i
@@ -282,14 +282,14 @@ Namespace My.Sys.Forms
 				Print #F, Items.Item(i)
 			#else
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
-				s = CAllocate_((Len(TextLen) + 1) * SizeOf(WString))
+				s = _CAllocate((Len(TextLen) + 1) * SizeOf(WString))
 				*s = Space(TextLen)
 				Perform(LB_GETTEXT, i, CInt(s))
 				Print #F, *s
 			#endif
 		Next i
 		CloseFile_(F)
-		Deallocate_(s)
+		_Deallocate(s)
 	End Sub
 	
 	Private Sub CheckedListBox.LoadFromFile(ByRef FileName As WString)

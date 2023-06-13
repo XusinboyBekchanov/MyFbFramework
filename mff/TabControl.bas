@@ -910,12 +910,12 @@ Namespace My.Sys.Forms
 	
 	Private Function TabControl.AddTab(ByRef Caption As WString, aObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
 		FTabCount += 1
-		Dim tp As TabPage Ptr = New_( TabPage)
+		Dim tp As TabPage Ptr = _New( TabPage)
 		tp->FDynamic = True
 		tp->Caption = Caption
 		tp->Object = aObject
 		tp->ImageIndex = ImageIndex
-		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
+		Tabs = _Reallocate(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then
@@ -939,7 +939,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Dim As TCITEMW Ti
 				Dim As Integer LenSt = Len(Caption) + 1
-				Dim As WString Ptr St = CAllocate_(LenSt * Len(WString))
+				Dim As WString Ptr St = _CAllocate(LenSt * Len(WString))
 				St = @Caption
 				Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 				Ti.pszText    = St
@@ -972,7 +972,7 @@ Namespace My.Sys.Forms
 	Private Sub TabControl.AddTab(ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
-		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
+		Tabs = _Reallocate(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tp
 		If tp->Parent <> 0 AndAlso tp->Parent <> @This Then
 			Dim As Boolean bDynamic = tp->FDynamic
@@ -1076,7 +1076,7 @@ Namespace My.Sys.Forms
 			Prev = Tabs[Index]
 			Prev->Parent = 0
 			This.Remove(Tabs[Index])
-			If Prev->FDynamic Then Delete_(Prev)
+			If Prev->FDynamic Then _Delete(Prev)
 			For i = Index + 1 To FTabCount - 1
 				It = Tabs[i]
 				Tabs[i - 1] = It
@@ -1084,10 +1084,10 @@ Namespace My.Sys.Forms
 			Next i
 			FTabCount -= 1
 			If FTabCount = 0 Then
-				Deallocate_(Tabs)
+				_Deallocate(Tabs)
 				Tabs = 0
 			Else
-				Tabs = Reallocate_(Tabs, FTabCount * SizeOf(TabPage Ptr))
+				Tabs = _Reallocate(Tabs, FTabCount * SizeOf(TabPage Ptr))
 			End If
 			#ifdef __USE_GTK__
 				gtk_notebook_remove_page(GTK_NOTEBOOK(widget), Index)
@@ -1117,13 +1117,13 @@ Namespace My.Sys.Forms
 		#endif
 		If Index >= 0 And Index <= FTabCount -1 Then
 			FTabCount += 1
-			Tabs = Reallocate_(Tabs,FTabCount*SizeOf(TabPage Ptr))
+			Tabs = _Reallocate(Tabs,FTabCount*SizeOf(TabPage Ptr))
 			For i = Index To FTabCount -2
 				It = Tabs[i]
 				Tabs[i + 1] = It
 				SetTabPageIndex(It, i + 1)
 			Next i
-			Tabs[Index] = New_( TabPage)
+			Tabs[Index] = _New( TabPage)
 			Tabs[Index]->FDynamic = True
 			Tabs[Index]->Caption = Caption
 			Tabs[Index]->Object = AObject
@@ -1145,7 +1145,7 @@ Namespace My.Sys.Forms
 	Private Sub TabControl.InsertTab(Index As Integer, ByRef tp As TabPage Ptr)
 		FTabCount += 1
 		'tp->TabPageControl = @This
-		Tabs = Reallocate_(Tabs, SizeOf(TabPage Ptr) * FTabCount)
+		Tabs = _Reallocate(Tabs, SizeOf(TabPage Ptr) * FTabCount)
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then
@@ -1216,7 +1216,7 @@ Namespace My.Sys.Forms
 			Dim As TabPage Ptr tp = Cast(Any Ptr, g_object_get_data(G_OBJECT(page), "MFFControl"))
 			If tc->IndexOfTab(tp) = -1 Then
 				tc->FTabCount += 1
-				tc->Tabs = Reallocate_(tc->Tabs, tc->FTabCount * SizeOf(TabPage Ptr))
+				tc->Tabs = _Reallocate(tc->Tabs, tc->FTabCount * SizeOf(TabPage Ptr))
 				Dim As TabPage Ptr It
 				For i As Integer = page_num To tc->FTabCount - 2
 					It = tc->Tabs[i]
@@ -1237,10 +1237,10 @@ Namespace My.Sys.Forms
 				Next i
 				tc->FTabCount -= 1
 				If tc->FTabCount = 0 Then
-					Deallocate_(tc->Tabs)
+					_Deallocate(tc->Tabs)
 					tc->Tabs = 0
 				Else
-					tc->Tabs = Reallocate_(tc->Tabs, tc->FTabCount * SizeOf(TabPage Ptr))
+					tc->Tabs = _Reallocate(tc->Tabs, tc->FTabCount * SizeOf(TabPage Ptr))
 				End If
 				If tc->OnTabRemoved Then tc->OnTabRemoved(*tc, tp, page_num)
 			End If
@@ -1289,9 +1289,9 @@ Namespace My.Sys.Forms
 	Private Destructor TabControl
 		For i As Integer = 0 To FTabCount - 1
 			Tabs[i]->Parent = 0
-			If Tabs[i]->FDynamic Then Delete_(Tabs[i])
+			If Tabs[i]->FDynamic Then _Delete(Tabs[i])
 		Next
-		If Tabs <> 0 Then Deallocate_(Tabs)
+		If Tabs <> 0 Then _Deallocate(Tabs)
 		WDeAllocate(FGroupName)
 		'UnregisterClass "TabControl", GetModuleHandle(NULL)
 	End Destructor

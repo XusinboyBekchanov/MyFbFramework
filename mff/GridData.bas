@@ -559,9 +559,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor GridDataColumn
-		If FHint Then Deallocate FHint
-		If FText Then Deallocate FText
-		If FGridEditComboItem Then Deallocate FGridEditComboItem
+		If FHint Then _Deallocate(FHint)
+		If FText Then _Deallocate(FText)
+		If FGridEditComboItem Then _Deallocate(FGridEditComboItem)
 	End Destructor
 	
 	Private Property GridDataItems.Count As Integer
@@ -612,7 +612,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Function GridDataItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, tLocked As Boolean=False, Indent As Integer = 0) As GridDataItem Ptr
-		PItem = New GridDataItem
+		PItem = _New(GridDataItem)
 		FItems.Add PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
@@ -678,7 +678,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim As LVITEM lvi
 		#endif
-		PItem = New GridDataItem
+		PItem = _New(GridDataItem)
 		FItems.Insert Index, PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
@@ -780,7 +780,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Cast(GridData Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(GridData Ptr, Parent)->TreeStore)
 		#else
 			For i As Integer = FItems.Count - 1  To 1 Step -1 'if to 0 will be hanging
-				Delete Cast(GridDataItem Ptr, FItems.Items[i])
+				_Delete(Cast(GridDataItem Ptr, FItems.Items[i]))
 				FItems.Remove i
 			Next
 			Item(0)->Text(0)=Str(BLANKROW)
@@ -853,7 +853,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
 		#endif
-		PColumn = New GridDataColumn
+		PColumn = _New(GridDataColumn)
 		FColumns.Add PColumn
 		Index = FColumns.Count - 1
 		With *PColumn
@@ -871,8 +871,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent Then
 				With *Cast(GridData Ptr, Parent)
-					If .ColumnTypes Then Delete [] .ColumnTypes
-					.ColumnTypes = New GType[Index + 2]
+					If .ColumnTypes Then _DeleteSquareBrackets(.ColumnTypes)
+					.ColumnTypes = _New(GType[Index + 2])
 					For i As Integer = 0 To Index + 1
 						.ColumnTypes[i] = G_TYPE_STRING
 					Next i
@@ -936,7 +936,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
 		#endif
-		PColumn = New GridDataColumn
+		PColumn = _New(GridDataColumn)
 		FColumns.Insert Index, PColumn
 		With *PColumn
 			.ImageIndex     = FImageIndex
@@ -988,7 +988,7 @@ Namespace My.Sys.Forms
 				#ifndef __USE_GTK__
 					If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, i), 0
 				#endif
-				Delete Cast(GridDataColumn Ptr, FColumns.Items[i])
+				_Delete(Cast(GridDataColumn Ptr, FColumns.Items[i]))
 				FColumns.Remove i
 			Next
 			FColumns.Clear
@@ -1949,7 +1949,7 @@ Namespace My.Sys.Forms
 									Split(Columns.Column(mCol)->GridEditComboItem,Chr(9),tArray())
 									For ii As Integer =0 To UBound(tArray)
 										GridEditComboBox.AddItem *tArray(ii)
-										Deallocate tArray(ii)
+										_Deallocate(tArray(ii))
 									Next
 									Erase tArray
 								End If
@@ -2251,7 +2251,7 @@ Namespace My.Sys.Forms
 							GridEditComboBox.Clear
 							For ii As Integer =0 To UBound(tArray)
 								GridEditComboBox.AddItem *tArray(ii)
-								Deallocate tArray(ii)
+								_Deallocate(tArray(ii))
 							Next
 							Erase tArray
 						End If
@@ -2508,13 +2508,13 @@ Namespace My.Sys.Forms
 	
 	Private Sub GridData.CollapseAll
 		#ifdef __USE_GTK__
-			gtk_tree_view_collapse_all(gtk_tree_view(widget))
+			gtk_tree_view_collapse_all(GTK_TREE_VIEW(widget))
 		#endif
 	End Sub
 	
 	Private Sub GridData.ExpandAll
 		#ifdef __USE_GTK__
-			gtk_tree_view_expand_all(gtk_tree_view(widget))
+			gtk_tree_view_expand_all(GTK_TREE_VIEW(widget))
 		#endif
 	End Sub
 	
@@ -2522,18 +2522,18 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			TreeStore = gtk_tree_store_new(1, G_TYPE_STRING)
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
 			widget = gtk_tree_view_new()
-			gtk_container_add(gtk_container(scrolledwidget), widget)
+			gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
-			g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@GridData_Map), @This)
-			g_signal_connect(gtk_tree_view(widget), "row-activated", G_CALLBACK(@GridData_RowActivated), @This)
-			g_signal_connect(gtk_tree_view(widget), "test-expand-row", G_CALLBACK(@GridData_TestExpandRow), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "map", G_CALLBACK(@GridData_Map), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "row-activated", G_CALLBACK(@GridData_RowActivated), @This)
+			g_signal_connect(GTK_TREE_VIEW(widget), "test-expand-row", G_CALLBACK(@GridData_TestExpandRow), @This)
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@GridData_SelectionChanged), @This)
 			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), GTK_TREE_VIEW_GRID_LINES_BOTH)
-			ColumnTypes = New GType[1]
+			ColumnTypes = _New(GType[1])
 			ColumnTypes[0] = G_TYPE_STRING
 			This.RegisterClass "GridData", @This
 		#endif
@@ -2602,7 +2602,7 @@ Namespace My.Sys.Forms
 			If mFontHandleHeader Then DeleteObject(mFontHandleHeader)
 			If mFontHandleBodyUnderline Then DeleteObject(mFontHandleBodyUnderline)
 		#else
-			If ColumnTypes Then Delete [] ColumnTypes
+			If ColumnTypes Then _DeleteSquareBrackets(ColumnTypes)
 		#endif
 		WDeAllocate FClassName
 		WDeAllocate FClassAncestor

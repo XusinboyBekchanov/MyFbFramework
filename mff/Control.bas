@@ -187,10 +187,10 @@ Namespace My.Sys.Forms
 					If GTK_IS_ENTRY(widget) OrElse GTK_IS_TEXT_VIEW(widget) Then
 						#ifndef __USE_GTK3__
 							Dim As GtkTargetEntry mytargets
-							mytargets.target = Allocate_(SizeOf(gchar) * 14)
+							mytargets.target = _Allocate(SizeOf(gchar) * 14)
 							*mytargets.target = "text/uri-list"
 							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, @mytargets, 1, GDK_ACTION_COPY)
-							Deallocate_(mytargets.target)
+							_Deallocate(mytargets.target)
 						#else
 							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, gtk_target_entry_new("text/uri-list", 4, 0), 1, GDK_ACTION_COPY)
 						#endif
@@ -1177,7 +1177,7 @@ Namespace My.Sys.Forms
 		
 		#ifdef __USE_GTK__
 			Private Function Control.hover_cb(ByVal user_data As gpointer) As gboolean
-				Delete Cast(Boolean Ptr, user_data)
+				_Delete(Cast(Boolean Ptr, user_data))
 				If hover_timer_id Then
 					If user_data = MouseHoverMessage.pBoolean Then
 						Dim As Control Ptr Ctrl = MouseHoverMessage.Sender
@@ -1250,7 +1250,7 @@ Namespace My.Sys.Forms
 						If OnMouseMove Then OnMouseMove(This, DownButton, e->motion.x, e->motion.y, e->motion.state)
 						hover_timer_id = 0
 						If OnMouseHover Then
-							Dim As Boolean Ptr pBoolean = New Boolean
+							Dim As Boolean Ptr pBoolean = _New(Boolean)
 							MouseHoverMessage = Type(@This, e->motion.x, e->motion.y, e->motion.state, pBoolean, widget)
 							hover_timer_id = g_timeout_add(1000, Cast(GSourceFunc, @hover_cb), pBoolean)
 							Message.Result = True
@@ -2333,23 +2333,23 @@ Namespace My.Sys.Forms
 					Select Case Controls[i]->Align
 					Case 1'alLeft
 						LeftCount += 1
-						ListLeft = Reallocate_(ListLeft,SizeOf(Control Ptr)*LeftCount)
+						ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 						ListLeft[LeftCount - 1] = Controls[i]
 					Case 2'alRight
 						RightCount += 1
-						ListRight = Reallocate_(ListRight,SizeOf(Control Ptr)*RightCount)
+						ListRight = _Reallocate(ListRight,SizeOf(Control Ptr)*RightCount)
 						ListRight[RightCount - 1] = Controls[i]
 					Case 3'alTop
 						TopCount += 1
-						ListTop = Reallocate_(ListTop, SizeOf(Control Ptr)*TopCount)
+						ListTop = _Reallocate(ListTop, SizeOf(Control Ptr)*TopCount)
 						ListTop[TopCount - 1] = Controls[i]
 					Case 4'alBottom
 						BottomCount += 1
-						ListBottom = Reallocate_(ListBottom,SizeOf(Control Ptr)*BottomCount)
+						ListBottom = _Reallocate(ListBottom,SizeOf(Control Ptr)*BottomCount)
 						ListBottom[BottomCount - 1] = Controls[i]
 					Case 5'alClient
 						ClientCount += 1
-						ListClient = Reallocate_(ListClient,SizeOf(Control Ptr)*ClientCount)
+						ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
 						ListClient[ClientCount - 1] = Controls[i]
 					End Select
 					With *Controls[i]
@@ -2477,11 +2477,11 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 			'#EndIf
-			If ListLeft   Then Deallocate_( ListLeft)
-			If ListRight  Then Deallocate_( ListRight)
-			If ListTop    Then Deallocate_( ListTop)
-			If ListBottom Then Deallocate_( ListBottom)
-			If ListClient Then Deallocate_( ListClient)
+			If ListLeft   Then _Deallocate( ListLeft)
+			If ListRight  Then _Deallocate( ListRight)
+			If ListTop    Then _Deallocate( ListTop)
+			If ListBottom Then _Deallocate( ListBottom)
+			If ListClient Then _Deallocate( ListClient)
 			'This.UpdateUnLock
 		End Sub
 		
@@ -2609,7 +2609,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
 				FControlCount += 1
-				Controls = Reallocate_(Controls, SizeOf(Control Ptr)*FControlCount)
+				Controls = _Reallocate(Controls, SizeOf(Control Ptr)*FControlCount)
 				If Index = -1 Then
 					Controls[FControlCount - 1] = Ctrl
 				Else
@@ -2745,10 +2745,10 @@ Namespace My.Sys.Forms
 				Next i
 				FControlCount -= 1
 				If FControlCount = 0 Then
-					Deallocate_(Controls)
+					_Deallocate(Controls)
 					Controls = 0
 				Else
-					Controls = Reallocate_(Controls,FControlCount*SizeOf(Control Ptr))
+					Controls = _Reallocate(Controls,FControlCount*SizeOf(Control Ptr))
 				End If
 				'DeAllocate P
 			End If
@@ -2832,12 +2832,12 @@ Namespace My.Sys.Forms
 			#endif
 			FreeWnd
 			'If FText Then Deallocate FText
-			If FHint Then Deallocate_(FHint)
+			If FHint Then _Deallocate(FHint)
 			'			Dim As Integer i
 			'			For i = 0 To ControlCount -1
 			'			    If Controls[i] Then Controls[i]->Free
 			'			Next i
-			If Controls Then Deallocate_( Controls)
+			If Controls Then _Deallocate( Controls)
 			FPopupMenuItems.Clear
 		End Destructor
 	#endif

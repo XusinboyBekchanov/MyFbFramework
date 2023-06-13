@@ -435,11 +435,11 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ListViewItem
-		If FHint Then Deallocate_( FHint)
-		If FText Then Deallocate_( FText)
-		If FImageKey Then Deallocate_( FImageKey)
-		If FSelectedImageKey Then Deallocate_( FSelectedImageKey)
-		If FSmallImageKey Then Deallocate_( FSmallImageKey)
+		If FHint Then _Deallocate( FHint)
+		If FText Then _Deallocate( FText)
+		If FImageKey Then _Deallocate( FImageKey)
+		If FSelectedImageKey Then _Deallocate( FSelectedImageKey)
+		If FSmallImageKey Then _Deallocate( FSmallImageKey)
 	End Destructor
 	
 	Private Sub ListViewColumn.SelectItem
@@ -577,8 +577,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ListViewColumn
-		If FHint Then Deallocate_( FHint)
-		If FText Then Deallocate_( FText)
+		If FHint Then _Deallocate( FHint)
+		If FText Then _Deallocate( FText)
 	End Destructor
 	
 	Private Property ListViewItems.Count As Integer
@@ -610,7 +610,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Function ListViewItems.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1) As ListViewItem Ptr
-		PItem = New_( ListViewItem)
+		PItem = _New( ListViewItem)
 		Dim i As Integer = Index
 		Dim As SortStyle iSortStyle = Cast(ListView Ptr, Parent)->Sort
 		If iSortStyle <> SortStyle.ssNone Then
@@ -678,7 +678,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Dim As LVITEM lvi
 		#endif
-		PItem = New_( ListViewItem)
+		PItem = _New( ListViewItem)
 		FItems.Insert Index, PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
@@ -714,7 +714,7 @@ Namespace My.Sys.Forms
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
 		#endif
-		Delete_(Cast(ListViewItem Ptr, FItems.Items[Index]))
+		_Delete(Cast(ListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 	End Sub
 	
@@ -736,7 +736,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_SORTITEMS, 0, Cast(WPARAM, @ListViewCompareFunc)
-				'ListView_SortItems Parent->Handle, @CompareFunc, 0
+				'ListView_SortItems Parent->Handle, @ListViewCompareFunc, 0
 			End If
 		#endif
 	End Sub
@@ -765,7 +765,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
-			Delete_( Cast(ListViewItem Ptr, FItems.Items[i]))
+			_Delete( Cast(ListViewItem Ptr, FItems.Items[i]))
 		Next i
 		FItems.Clear
 	End Sub
@@ -835,7 +835,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
-		PColumn = New_( ListViewColumn)
+		PColumn = _New( ListViewColumn)
 		FColumns.Add PColumn
 		Index = FColumns.Count - 1
 		With *PColumn
@@ -916,7 +916,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
-		PColumn = New_( ListViewColumn)
+		PColumn = _New( ListViewColumn)
 		FColumns.Insert Index, PColumn
 		With *PColumn
 			.ImageIndex     = FImageIndex
@@ -958,7 +958,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ListViewColumns.Clear
 		For i As Integer = Count -1 To 0 Step -1
-			Delete_( @QListViewColumn(FColumns.Items[i]))
+			_Delete( @QListViewColumn(FColumns.Items[i]))
 			Remove i
 		Next i
 		FColumns.Clear
@@ -980,8 +980,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(TreeViewWidget)) = NULL Then
 				With This
-					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
-					.ColumnTypes = New_(GType[Columns.Count + 4])
+					If .ColumnTypes Then _DeleteSquareBrackets( .ColumnTypes)
+					.ColumnTypes = _New(GType[Columns.Count + 4])
 					.ColumnTypes[0] = G_TYPE_BOOLEAN
 					.ColumnTypes[1] = GDK_TYPE_PIXBUF
 					.ColumnTypes[2] = G_TYPE_STRING
@@ -1804,7 +1804,7 @@ Namespace My.Sys.Forms
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@ListView_SelectionChanged), @This)
 			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), GTK_TREE_VIEW_GRID_LINES_BOTH)
-			ColumnTypes = New_( GType[3])
+			ColumnTypes = _New( GType[3])
 			ColumnTypes[0] = G_TYPE_BOOLEAN
 			ColumnTypes[1] = GDK_TYPE_PIXBUF
 			ColumnTypes[2] = G_TYPE_STRING
@@ -1849,7 +1849,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			UnregisterClass "ListView",GetmoduleHandle(NULL)
 		#elseif defined(__USE_GTK__)
-			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
+			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 			#ifndef __FB_WIN32__
 				If gtk_is_widget(TreeViewWidget) AndAlso TreeViewWidget <> widget Then gtk_widget_destroy(TreeViewWidget)
 				If gtk_is_widget(IconViewWidget) AndAlso IconViewWidget <> widget Then gtk_widget_destroy(IconViewWidget)

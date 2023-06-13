@@ -3,7 +3,7 @@
 Private Constructor UString()
 	m_Length = 0
 	m_BytesCount = SizeOf(WString)
-	m_Data = CAllocate_(SizeOf(WString))
+	m_Data = _CAllocate(SizeOf(WString))
 	If m_Data <> 0 Then
 		m_Data[0] = 0
 	End If
@@ -12,7 +12,7 @@ End Constructor
 Private Constructor UString(ByRef Value As WString)
 	m_Length = Len(Value)
 	m_BytesCount = (m_Length + 1) * SizeOf(WString)
-	m_Data = CAllocate_(m_BytesCount)
+	m_Data = _CAllocate(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = Value
 	End If
@@ -21,7 +21,7 @@ End Constructor
 Private Constructor UString(ByRef Value As UString)
 	m_Length = Value.m_Length
 	m_BytesCount = Value.m_BytesCount
-	m_Data = CAllocate_(m_BytesCount)
+	m_Data = _CAllocate(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = *Value.m_Data
 	End If
@@ -29,7 +29,7 @@ End Constructor
 
 Private Destructor UString
 	If m_Data <> 0 Then
-		Deallocate_(m_Data)
+		_Deallocate(m_Data)
 	End If
 End Destructor
 
@@ -74,20 +74,20 @@ Private Function UString.TrimStart As UString
 End Function
 
 #if MEMCHECK
-	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)): Else: subject = CAllocate_((lLen + 1) * SizeOf(WString)): End If
-	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
-	#define WDeAllocate(subject) If subject <> 0 Then: Deallocate_(subject): End If: subject = 0
+	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)): Else: subject = _CAllocate((lLen + 1) * SizeOf(WString)): End If
+	#define WLet(subject, txt Scope): Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
 			#ifdef __USE_GTK__
-				subject = Reallocate_(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+				subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 			#else
-				Deallocate_(subject)
-				subject = CAllocate_((lLen + 1) * SizeOf(WString))
+				_Deallocate(subject)
+				subject = _CAllocate((lLen + 1) * SizeOf(WString))
 			#endif
 		Else
-			subject = CAllocate_((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+			subject = _CAllocate((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
 		End If
 	End Sub
 	
@@ -97,7 +97,7 @@ End Function
 	End Sub
 
 	Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
-		If subject <> 0 Then Deallocate_(subject)
+		If subject <> 0 Then _Deallocate(subject)
 		subject = 0
 	End Sub
 #endif
@@ -112,7 +112,7 @@ End Sub
 ' Using WLetEx if the length of target is longer than the length of source.
 Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
 	If ExistsSubjectInTxt Then
-		Dim As WString Ptr TempWStr = CAllocate_((Len(txt) + 1) * SizeOf(WString))
+		Dim As WString Ptr TempWStr = _CAllocate((Len(txt) + 1) * SizeOf(WString))
 		If TempWStr > 0 Then
 			*TempWStr = txt
 			WDeAllocate(subject)
@@ -173,9 +173,9 @@ Private Operator UString.Let(ByRef lhs As UString)
 	If @This <> @lhs Then
 		If lhs.m_Length > m_Length Then
 			If m_Data <> 0 Then
-				Deallocate_(m_Data)
+				_Deallocate(m_Data)
 			End If
-			m_Data = Allocate_(lhs.m_BytesCount)
+			m_Data = _Allocate(lhs.m_BytesCount)
 		End If
 		m_Length = lhs.m_Length
 		m_BytesCount = lhs.m_BytesCount

@@ -1,4 +1,4 @@
-'###############################################################################
+﻿'###############################################################################
 '#  ProgressBar.bi                                                             #
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #

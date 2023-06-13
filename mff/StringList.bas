@@ -129,7 +129,7 @@ Private Function StringList.Add(FItem As String, FObj As Any Ptr = 0) As Integer
 	If CBool(FCount > 0) AndAlso FSorted Then
 		Return This.Insert(-1, FItem, FObj)
 	Else
-		Dim As StringListItem Ptr nItem = New_(StringListItem)
+		Dim As StringListItem Ptr nItem = _New(StringListItem)
 		With *nItem
 			.Value  = FItem
 			.Object = FObj
@@ -175,7 +175,7 @@ Private Function StringList.Insert(Index As Integer, FItem As String, FObj As An
 		j = IIf(Index > 0, Index, FCount)
 		FSorted = False
 	End If
-	Dim As StringListItem Ptr nItem = New_(StringListItem)
+	Dim As StringListItem Ptr nItem = _New(StringListItem)
 	With *nItem
 		.Value  = FItem
 		.Object = FObj
@@ -193,7 +193,7 @@ End Sub
 
 Private Sub StringList.Remove(Index As Integer)
 	If FCount < 1 OrElse Index < 0 OrElse Index > FCount - 1 Then Exit Sub
-	Delete_(Cast(StringListItem Ptr, FItems.Items[Index]))
+	_Delete(Cast(StringListItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
 	FCount -= 1 ' FItems.Count
 	If OnRemove Then OnRemove(This, Index)
@@ -238,7 +238,7 @@ End Sub
 
 Private Sub StringList.Clear
 	For i As Integer = FCount - 1 To 0 Step -1
-		If FItems.Items[i] <> 0 Then Delete_(Cast(StringListItem Ptr, FItems.Items[i]))
+		If FItems.Items[i] <> 0 Then _Delete(Cast(StringListItem Ptr, FItems.Items[i]))
 	Next
 	FItems.Clear
 	FCount = 0

@@ -347,11 +347,11 @@ Private Constructor IniFile
 		Next i
 		WLet(FFile, Mid(Tx, 1, k - 1) + ".ini")
 	#else
-		WLet(FFile, "Config.ini") 'David Change for hanging in linux
+		WLet(FFile, "Config.ini" 'David Change for hanging in linux)
 	#endif
 End Constructor
 
 Private Destructor IniFile
-	If FFile Then Deallocate_( FFile)
+	If FFile Then _Deallocate( FFile)
 	FLines.Clear
 End Destructor

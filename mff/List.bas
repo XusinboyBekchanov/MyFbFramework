@@ -35,7 +35,7 @@ End Property
 #endif
 
 Private Sub List.Add(FItem As Any Ptr)
-	Items = Reallocate_(Items, (Count + 1) * SizeOf(Any Ptr))
+	Items = _Reallocate(Items, (Count + 1) * SizeOf(Any Ptr))
 	Items[Count] = FItem
 	Count += 1
 End Sub
@@ -45,7 +45,7 @@ Private Sub List.Insert(Index As Integer, FItem As Any Ptr)
 	Dim As Integer i
 	If Index >= 0 And Index <= Count -1 Then
 		Count += 1
-		Items = Reallocate_(Items, Count*SizeOf(Any Ptr))
+		Items = _Reallocate(Items, Count*SizeOf(Any Ptr))
 		For i = Count -1 To Index+1 Step -1
 			Items[i] = Items[i-1]
 		Next i
@@ -87,20 +87,20 @@ Private Sub List.Remove(Index As Integer)
 	If Count>0 AndAlso Index >= 0 AndAlso Index <= Count -1 Then
 		Count -= 1
 		If Count = 0 Then
-			Deallocate_(Items)
+			_Deallocate(Items)
 			Items = 0
 		Else
 			For i = Index To Count -1
 				Items[i] = Items[i+1]
 			Next i
-			Items = Reallocate_(Items,Count*SizeOf(Any Ptr))
+			Items = _Reallocate(Items,Count*SizeOf(Any Ptr))
 		End If
 	End If
 End Sub
 
 Private Sub List.Clear
 	Count = 0
-	If Items <> 0 Then Deallocate_(Items)
+	If Items <> 0 Then _Deallocate(Items)
 	Items = 0
 	Items = 0' CAllocate_(Count)
 End Sub
@@ -124,6 +124,6 @@ Private Constructor List
 End Constructor
 
 Private Destructor List
-	If Items <> 0 Then Deallocate_(Items)
+	If Items <> 0 Then _Deallocate(Items)
 	Items = 0
 End Destructor

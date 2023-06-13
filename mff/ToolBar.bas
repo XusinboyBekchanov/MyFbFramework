@@ -216,7 +216,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ToolButton.Hint(ByRef Value As WString)
-		FHint = Reallocate_(FHint, (Len(Value) + 1) * SizeOf(WString))
+		FHint = _Reallocate(FHint, (Len(Value) + 1) * SizeOf(WString))
 		*FHint = Value
 	End Property
 	
@@ -593,7 +593,7 @@ Namespace My.Sys.Forms
 	
 	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
-		PButton = New_( ToolButton)
+		PButton = _New( ToolButton)
 		PButton->FDynamic = True
 		FButtons.Add PButton
 		With *PButton
@@ -748,7 +748,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ToolButtons.Clear
 		For i As Integer = Count - 1 To 0 Step -1
-			If QToolButton(FButtons.Items[i]).FDynamic Then Delete_( @QToolButton(FButtons.Items[i]))
+			If QToolButton(FButtons.Items[i]).FDynamic Then _Delete( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
 	End Sub

@@ -52,7 +52,7 @@ Namespace My.Sys.Forms
 			Dim cc As Integer = Cast(Grid Ptr, Parent)->Columns.Count
 			If ic < cc Then
 				For i As Integer = ic To cc -1
-					Dim As GridCell Ptr Cell : Cell = New_(GridCell)
+					Dim As GridCell Ptr Cell : Cell = _New(GridCell)
 					Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(i)
 					Cell->Row = Cast(Grid Ptr, Parent)->Rows.Item(Index)
 					Cell->Parent = Parent
@@ -62,7 +62,7 @@ Namespace My.Sys.Forms
 			If ColumnIndex < FCells.Count AndAlso ColumnIndex >= 0 Then
 				Dim As GridCell Ptr Cell = FCells.Object(ColumnIndex)
 				If Cell = 0 Then
-					Cell = New_(GridCell)
+					Cell = _New(GridCell)
 					FCells.Object(ColumnIndex) = Cell
 					Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(ColumnIndex)
 					Cell->Row = Cast(Grid Ptr, Parent)->Rows.Item(Index)
@@ -111,7 +111,7 @@ Namespace My.Sys.Forms
 		If ColumnDelete AndAlso FCells.Count > 0 AndAlso FCells.Count > ColumnIndex AndAlso ColumnIndex >= 0 Then
 			FCells.Remove ColumnIndex
 		Else
-			Dim As GridCell Ptr Cell : Cell = New_(GridCell)
+			Dim As GridCell Ptr Cell : Cell = _New(GridCell)
 			Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(ColumnIndex)
 			Cell->Row = @This
 			Cell->Parent = Parent
@@ -142,7 +142,7 @@ Namespace My.Sys.Forms
 		Dim cc As Integer = Cast(Grid Ptr, Parent)->Columns.Count
 		If ic < cc Then
 			For i As Integer = ic To cc - 1
-				Dim As GridCell Ptr Cell : Cell = New_(GridCell)
+				Dim As GridCell Ptr Cell : Cell = _New(GridCell)
 				Cell->Column = Cast(Grid Ptr, Parent)->Columns.Column(i)
 				Cell->Row = @This
 				Cell->Parent = Parent
@@ -344,11 +344,11 @@ Namespace My.Sys.Forms
 	
 	Private Destructor GridRow
 		For i As Integer = 0 To FCells.Count - 1
-			If FCells.Object(i) <> 0 Then Delete_(Cast(GridCell Ptr, FCells.Object(i)))
+			If FCells.Object(i) <> 0 Then _Delete(Cast(GridCell Ptr, FCells.Object(i)))
 		Next
 		FCells.Clear
-		If FHint Then Deallocate_( FHint)
-		If FText Then Deallocate_( FText)
+		If FHint Then _Deallocate( FHint)
+		If FText Then _Deallocate( FText)
 	End Destructor
 	
 	Private Sub GridColumn.SelectItem
@@ -511,8 +511,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor GridColumn
-		If FHint Then Deallocate_( FHint)
-		If FText Then Deallocate_( FText)
+		If FHint Then _Deallocate( FHint)
+		If FText Then _Deallocate( FText)
 	End Destructor
 	
 	Private Property GridRows.Count As Integer
@@ -635,7 +635,7 @@ Namespace My.Sys.Forms
 		Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
 			If Parent <= 0 Then Return 0
 			Dim i As Integer = Index
-			PItem = New_(GridRow)
+			PItem = _New(GridRow)
 			PItem->Parent = Parent
 			If Index = -1  Then
 				FItems.Add PItem
@@ -702,7 +702,7 @@ Namespace My.Sys.Forms
 		If Not InsertBefore Then Index += 1
 		If Index > FItems.Count - 1 Then Return Add(FCaption, FImageIndex, State, Indent, Index, RowEditable, ColorBK, ColorText)
 		Dim As GridRow Ptr PItem, tGridRow, tGridRowD
-		PItem = New_(GridRow)
+		PItem = _New(GridRow)
 		FItems.Insert Index, PItem
 		With *PItem
 			.Parent         = Parent
@@ -760,7 +760,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
-			Delete_( @QGridRow(FItems.Items[i]))
+			_Delete( @QGridRow(FItems.Items[i]))
 		Next i
 		FItems.Clear
 	End Sub
@@ -832,7 +832,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
 		#endif
-		PColumn = New_(GridColumn)
+		PColumn = _New(GridColumn)
 		FColumns.Add PColumn
 		Index = FColumns.Count - 1
 		With *PColumn
@@ -928,7 +928,7 @@ Namespace My.Sys.Forms
 		Dim As GridColumn Ptr PColumn, tColumn
 		#ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
-			PColumn = New_(GridColumn)
+			PColumn = _New(GridColumn)
 			FColumns.Insert Index, PColumn
 			With *PColumn
 				.ImageIndex  = FImageIndex
@@ -994,7 +994,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub GridColumns.Clear
 		For i As Integer = Count -1 To 0 Step -1
-			Delete_( @QGridColumn(FColumns.Items[i]))
+			_Delete( @QGridColumn(FColumns.Items[i]))
 			FColumns.Remove i
 			#ifndef __USE_GTK__
 				If Parent AndAlso Parent->Handle Then
@@ -1099,8 +1099,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
 				With This
-					If .ColumnTypes Then Delete_SquareBrackets( .ColumnTypes)
-					.ColumnTypes = New_(GType[Columns.Count + 4])
+					If .ColumnTypes Then _DeleteSquareBrackets( .ColumnTypes)
+					.ColumnTypes = _New(GType[Columns.Count + 4])
 					.ColumnTypes[0] = G_TYPE_BOOLEAN
 					.ColumnTypes[1] = GDK_TYPE_PIXBUF
 					.ColumnTypes[2] = G_TYPE_STRING
@@ -2050,7 +2050,7 @@ Namespace My.Sys.Forms
 				Next
 				Print #Fn, *tmpStr
 			Next
-			Deallocate_(tmpStr)
+			_Deallocate(tmpStr)
 		End If
 		CloseFile_(Fn)
 	End Sub
@@ -2100,7 +2100,7 @@ Namespace My.Sys.Forms
 			g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@Grid_SelectionChanged), @This)
 			gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), GTK_TREE_VIEW_GRID_LINES_BOTH)
-			ColumnTypes = New_( GType[3])
+			ColumnTypes = _New( GType[3])
 			ColumnTypes[0] = G_TYPE_BOOLEAN
 			ColumnTypes[1] = GDK_TYPE_PIXBUF
 			ColumnTypes[2] = G_TYPE_STRING
@@ -2152,7 +2152,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			UnregisterClass "Grid", GetModuleHandle(NULL)
 		#else
-			If ColumnTypes Then Delete_SquareBrackets( ColumnTypes)
+			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 		#endif
 	End Destructor
 End Namespace

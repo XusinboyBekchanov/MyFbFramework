@@ -164,7 +164,7 @@ Namespace My.Sys.Forms
 				End If
 				doc->lpVtbl->Release(doc)
 			End If
-			Deallocate_(tText)
+			_Deallocate(tText)
 		#endif
 	End Function
 	

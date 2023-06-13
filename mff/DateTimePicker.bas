@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			If FDateFormat = DateTimePickerFormat.CustomFormat Then
 				#ifdef __USE_GTK__
-					WLet FFormat, Replace(Value, "'", """")
+					WLet(FFormat, Replace(Value, "'", """"))
 					SelectedDateTime = FSelectedDateTime
 				#else
 					DateTime_SetFormat(FHandle, FCustomFormat)
@@ -332,11 +332,11 @@ Namespace My.Sys.Forms
 		FDateFormat = Value
 		#ifdef __USE_GTK__
 			Select Case Value
-			Case DateTimePickerFormat.LongDate: WLet FFormat, "dd MMMM yyyy"
-			Case DateTimePickerFormat.ShortDate: WLet FFormat, "dd.MM.yyyy"
-			Case DateTimePickerFormat.ShortDateCentury: WLet FFormat, "dd.MM.yyyy"
-			Case DateTimePickerFormat.TimeFormat: WLet FFormat, "HH:mm:ss"
-			Case DateTimePickerFormat.CustomFormat: WLet FFormat, Replace(*FCustomFormat, "'", """")
+			Case DateTimePickerFormat.LongDate: WLet(FFormat, "dd MMMM yyyy")
+			Case DateTimePickerFormat.ShortDate: WLet(FFormat, "dd.MM.yyyy")
+			Case DateTimePickerFormat.ShortDateCentury: WLet(FFormat, "dd.MM.yyyy")
+			Case DateTimePickerFormat.TimeFormat: WLet(FFormat, "HH:mm:ss")
+			Case DateTimePickerFormat.CustomFormat: WLet(FFormat, Replace(*FCustomFormat, "'", """"))
 			End Select
 			SelectedDateTime = FSelectedDateTime
 		#else

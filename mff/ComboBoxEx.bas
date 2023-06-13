@@ -168,9 +168,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ComboBoxItem
-		If FHint Then Deallocate_( FHint)
-		If FText Then Deallocate_( FText)
-		If FImageKey Then Deallocate_( FImageKey)
+		If FHint Then _Deallocate( FHint)
+		If FText Then _Deallocate( FText)
+		If FImageKey Then _Deallocate( FImageKey)
 	End Destructor
 	
 	Private Property ComboBoxExItems.Count As Integer
@@ -189,7 +189,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Function ComboBoxExItems.Add(ByRef FText As WString = "", Obj As Any Ptr = 0, FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, FOverlayIndex As Integer = -1, FIndent As Integer = 0, Index As Integer = -1) As ComboBoxItem Ptr
-		PItem = New_( ComboBoxItem)
+		PItem = _New( ComboBoxItem)
 		Dim i As Integer
 		If Cast(ComboBoxEx Ptr, Parent)->Sort Then
 			For i = 0 To FItems.Count - 1
@@ -264,7 +264,7 @@ Namespace My.Sys.Forms
 				SendMessage Parent->Handle, CBEM_DELETEITEM, Index, 0
 			#endif
 		End If
-		Delete_( Cast(ComboBoxItem Ptr, FItems.Items[Index]))
+		_Delete( Cast(ComboBoxItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 	End Sub
 	
@@ -297,7 +297,7 @@ Namespace My.Sys.Forms
 			If Parent Then SendMessage Parent->Handle, CB_RESETCONTENT, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
-			Delete_( Cast(ComboBoxItem Ptr, FItems.Items[i]))
+			_Delete( Cast(ComboBoxItem Ptr, FItems.Items[i]))
 		Next i
 		FItems.Clear
 	End Sub

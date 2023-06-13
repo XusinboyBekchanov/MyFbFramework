@@ -34,27 +34,27 @@
 	#endif
 	
 	#if MEMCHECK = 0
-		#define Allocate_(bytes) Allocate(bytes)
-		#define CAllocate_(bytes) CAllocate(bytes)
-		#define Reallocate_(pt, bytes) Reallocate(pt, bytes)
-		#define Deallocate_(pt) Deallocate pt
-		#define New_(type_) New type_
-		#define Delete_(pt) Delete pt
-		#define Delete_SquareBrackets(pt) Delete[] pt
+		#define _Allocate(bytes) Allocate(bytes)
+		#define _CAllocate(bytes) CAllocate(bytes)
+		#define _Reallocate(pt, bytes) Reallocate(pt, bytes)
+		#define _Deallocate(pt) Deallocate pt
+		#define _New(type_) New type_
+		#define _Delete(pt) Delete pt
+		#define _DeleteSquareBrackets(pt) Delete[] pt
 	#else
 		#include once "crt.bi"
 		
-		#define Allocate_(bytes) fbmld_allocate(bytes, __FILE__, __FUNCTION__, __LINE__)
-		#define CAllocate_(bytes) fbmld_callocate(bytes, __FILE__, __FUNCTION__, __LINE__)
-		#define Reallocate_(pt, bytes) fbmld_reallocate(pt, bytes, __FILE__, __FUNCTION__, __LINE__, #pt)
-		#define Deallocate_(pt) fbmld_deallocate(pt, __FILE__, __FUNCTION__, __LINE__, #pt)
-		#macro New_(type_)
+		#define _Allocate(bytes) fbmld_allocate(bytes, __FILE__, __FUNCTION__, __LINE__)
+		#define _CAllocate(bytes) fbmld_callocate(bytes, __FILE__, __FUNCTION__, __LINE__)
+		#define _Reallocate(pt, bytes) fbmld_reallocate(pt, bytes, __FILE__, __FUNCTION__, __LINE__, #pt)
+		#define _Deallocate(pt) fbmld_deallocate(pt, __FILE__, __FUNCTION__, __LINE__, #pt)
+		#macro _New(type_)
 			Cast(Typeof(New type_), fbmemcheck_new(New type_, __FILE__, __FUNCTION__, __LINE__))
 		#endmacro
-		#macro Delete_(pt)
+		#macro _Delete(pt)
 			fbmemcheck_delete(pt, __FILE__, __FUNCTION__, __LINE__, #pt): Delete pt
 		#endmacro
-		#macro Delete_SquareBrackets(pt)
+		#macro _DeleteSquareBrackets(pt)
 			fbmemcheck_delete(pt, __FILE__, __FUNCTION__, __LINE__, #pt): Delete[] pt
 		#endmacro
 		
@@ -505,7 +505,7 @@
 				End If
 			Next
 			filenumberCounter += 1
-			filenumbers = Reallocate_(filenumbers, (filenumberCounter + 1) * SizeOf(Boolean))
+			filenumbers = _Reallocate(filenumbers, (filenumberCounter + 1) * SizeOf(Boolean))
 			filenumbers[filenumberCounter] = True
 			'?"FreeFile: ", filenumberCounter, file, funcname, linenum
 			Return filenumberCounter

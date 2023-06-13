@@ -102,7 +102,7 @@ Namespace My.Sys.Forms
 		#else
 			Dim txtrange As TEXTRANGE
 			If cpMax2 = -1 Then cpMax2 = This.GetTextLength
-			FTextRange = Cast(WString Ptr, Reallocate_(FTextRange, (cpMax - cpMin + 2) * SizeOf(WString)))
+			FTextRange = Cast(WString Ptr, _Reallocate(FTextRange, (cpMax - cpMin + 2) * SizeOf(WString)))
 			txtrange.chrg.cpMin = cpMin
 			txtrange.chrg.cpMax = cpMax
 			txtrange.lpstrText = FTextRange
@@ -875,7 +875,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
-			FFindText = Reallocate_(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
+			FFindText = _Reallocate(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
 			*FFindText = Value
 			ft.lpstrText = FFindText
 			ft.chrg.cpMin = 0
@@ -902,7 +902,7 @@ Namespace My.Sys.Forms
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			If Value <> "" Then
-				FFindText = Reallocate_(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
+				FFindText = _Reallocate(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
 				*FFindText = Value
 			End If
 			If FFindText = 0 Then Exit Function
@@ -935,7 +935,7 @@ Namespace My.Sys.Forms
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			If Value <> "" Then
-				FFindText = Reallocate_(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
+				FFindText = _Reallocate(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
 				*FFindText = Value
 			End If
 			If FFindText = 0 Then Exit Function
@@ -1030,10 +1030,10 @@ Namespace My.Sys.Forms
 				Dim charArr As CHARRANGE
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 				If LEnd - LStart <= 0 Then
-					FSelText = Reallocate_(FSelText, SizeOf(WString))
+					FSelText = _Reallocate(FSelText, SizeOf(WString))
 					*FSelText = ""
 				Else
-					FSelText = Reallocate_(FSelText, (LEnd - LStart + 1 + 1) * SizeOf(WString))
+					FSelText = _Reallocate(FSelText, (LEnd - LStart + 1 + 1) * SizeOf(WString))
 					*FSelText = String(LEnd - LStart + 1, 0)
 					SendMessage(FHandle, EM_GETSELTEXT, 0, Cast(LPARAM, FSelText))
 				End If
@@ -1043,7 +1043,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property RichTextBox.SelText(ByRef Value As WString)
-		FSelText = Reallocate_(FSelText, (Len(Value) + 1) * SizeOf(WString))
+		FSelText = _Reallocate(FSelText, (Len(Value) + 1) * SizeOf(WString))
 		*FSelText = Value
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter _start, _end

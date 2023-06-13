@@ -123,7 +123,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Animate.File(ByRef Value As WString)
-		FFile = Reallocate_(FFile, (Len(Value) + 1) * SizeOf(WString))
+		FFile = _Reallocate(FFile, (Len(Value) + 1) * SizeOf(WString))
 		*FFile = Value
 		#ifdef __USE_GTK__
 			pixbuf_animation = gdk_pixbuf_animation_new_from_file(ToUtf8(*FFile), NULL)
@@ -538,7 +538,7 @@ Namespace My.Sys.Forms
 								ReDim FFrameDelays(0 To FFrameCount - 1)
 								Dim As ULong iSize
 								GdipGetPropertyItemSize(gifImagePtr, PropertyTagFrameDelay, @iSize)
-								Dim As PropertyItem Ptr gifPropItem = Allocate(iSize * SizeOf(PropertyItem))
+								Dim As PropertyItem Ptr gifPropItem = _Allocate(iSize * SizeOf(PropertyItem))
 								GdipGetPropertyItem(gifImagePtr, PropertyTagFrameDelay, iSize, @gifPropItem[0])
 								
 								Select Case gifPropItem->type
@@ -569,7 +569,7 @@ Namespace My.Sys.Forms
 							#endif
 						ElseIf Perform(ACM_OPENW, 0, CInt(FFile)) <> 0 Then
 							FOpenMode= 2
-							Dim As Integer Ptr Buff = Allocate_(18*SizeOf(Integer))
+							Dim As Integer Ptr Buff = _Allocate(18*SizeOf(Integer))
 							Dim As Integer F = FreeFile_
 							Open *FFile For Binary Access Read As #F
 							Get #F, , *Buff, 18
@@ -633,12 +633,12 @@ Namespace My.Sys.Forms
 							Dim As Any Ptr PResource
 							Dim As UByte Ptr P
 							Dim As Integer Size
-							Dim As Integer Ptr Buff = Allocate_(18*SizeOf(Integer))
+							Dim As Integer Ptr Buff = _Allocate(18*SizeOf(Integer))
 							Resource  = FindResource(GetModuleHandle("Shell32"),MAKEINTRESOURCE(FCommonAvi),"AVI")
 							Global    = LoadResource(GetModuleHandle("Shell32"),Resource)
 							PResource = LockResource(Global)
 							Size = SizeofResource(GetModuleHandle("Shell32"), Resource)
-							P = Allocate_(Size)
+							P = _Allocate(Size)
 							P = PResource
 							FreeResource(Resource)
 							memcpy Buff, P, 18 * SizeOf(Integer)
@@ -847,7 +847,7 @@ Namespace My.Sys.Forms
 			#endif
 			If anim->FDesignMode Then
 				cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
-				Dim As Double Ptr dashed = Allocate(SizeOf(Double) * 2)
+				Dim As Double Ptr dashed = _Allocate(SizeOf(Double) * 2)
 				dashed[0] = 3.0
 				dashed[1] = 3.0
 				Dim As Integer len1 = SizeOf(dashed) / SizeOf(dashed[0])
@@ -995,7 +995,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor Animate
-		If FFile Then Deallocate_( FFile)
+		If FFile Then _Deallocate( FFile)
 		#ifndef __USE_GTK__
 			#ifdef MoviePlayOn
 				Stop

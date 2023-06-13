@@ -43,7 +43,7 @@ Private Constructor WStringListItem
 End Constructor
 
 Private Destructor WStringListItem
-	If FValue Then Deallocate_((FValue))
+	If FValue Then _Deallocate((FValue))
 	Object = 0
 End Destructor
 
@@ -160,7 +160,7 @@ End Property
 			'Items.Add iText
 			'Objects.Add FObj
 			'FCount = Items.Count
-			Dim As WStringListItem Ptr nItem = New_(WStringListItem)
+			Dim As WStringListItem Ptr nItem = _New(WStringListItem)
 			With *nItem
 				.Value  = iValue
 				.Object = FObj
@@ -213,7 +213,7 @@ Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As WStr
 	'Items.Insert j, iText
 	'Objects.Insert j, FObj
 	'FCount = Items.Count
-	Dim As WStringListItem Ptr nItem = New_( WStringListItem)
+	Dim As WStringListItem Ptr nItem = _New( WStringListItem)
 	With *nItem
 		.Value  = iValue
 		.Object = FObj
@@ -238,7 +238,7 @@ Private Sub WStringList.Remove(Index As Integer)
 	''If Objects.Item(Index) > 0 Then Delete Objects.Item(Index)
 	'Objects.Remove Index
 	'FCount = Items.Count
-	Delete_(Cast(WStringListItem Ptr, FItems.Items[Index]))
+	_Delete(Cast(WStringListItem Ptr, FItems.Items[Index]))
 	FItems.Remove Index
 	FCount -= 1 ' FItems.Count
 	If OnRemove Then OnRemove(This, Index)
@@ -303,7 +303,7 @@ End Sub
 Private Sub WStringList.Clear
 	For i As Integer = FCount - 1 To 0 Step -1
 		'WDeAllocate(Items.Item(i))
-		If FItems.Items[i] <> 0 Then Delete_(Cast(WStringListItem Ptr, FItems.Items[i]))
+		If FItems.Items[i] <> 0 Then _Delete(Cast(WStringListItem Ptr, FItems.Items[i]))
 	Next
 	'Items.Clear
 	'Objects.Clear

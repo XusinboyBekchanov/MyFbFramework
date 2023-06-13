@@ -93,7 +93,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property OpenFileControl.InitialDir(ByRef Value As WString)
-		FInitialDir    = Reallocate_(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
+		FInitialDir    = _Reallocate(FInitialDir, (Len(Value) + 1) * SizeOf(WString))
 		*FInitialDir = Value
 		#ifdef __USE_GTK__
 			If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
@@ -106,7 +106,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property OpenFileControl.DefaultExt(ByRef Value As WString)
-		FDefaultExt    = Reallocate_(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
+		FDefaultExt    = _Reallocate(FDefaultExt, (Len(Value) + 1) * SizeOf(WString))
 		*FDefaultExt = Value
 		#ifndef __USE_GTK__
 			SendMessage(FHandle, CDM_SETDEFEXT, 0, Cast(LPARAM, FDefaultExt))
@@ -173,7 +173,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property OpenFileControl.Filter(ByRef Value As WString)
-		FFilter    = Reallocate_(FFilter, (Len(Value) + 1) * SizeOf(WString))
+		FFilter    = _Reallocate(FFilter, (Len(Value) + 1) * SizeOf(WString))
 		*FFilter = Value
 		#ifdef __USE_GTK__
 			Dim As UString res()
@@ -691,11 +691,11 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor OpenFileControl
-		If FInitialDir Then Deallocate_( FInitialDir)
-		If FDefaultExt Then Deallocate_( FDefaultExt)
-		If FFileName Then Deallocate_( FFileName)
-		If FFileTitle Then Deallocate_( FFileTitle)
-		If FFilter Then Deallocate_( FFilter)
+		If FInitialDir Then _Deallocate( FInitialDir)
+		If FDefaultExt Then _Deallocate( FDefaultExt)
+		If FFileName Then _Deallocate( FFileName)
+		If FFileTitle Then _Deallocate( FFileTitle)
+		If FFilter Then _Deallocate( FFilter)
 		#ifndef __USE_GTK__
 			If FHandle Then SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(GetProp(FHandle, "@@@@Proc")))
 			SendMessage(FHandle, WM_SYSCOMMAND, SC_CLOSE, 0)
