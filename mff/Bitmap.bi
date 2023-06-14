@@ -75,6 +75,7 @@ Namespace My.Sys.Drawing
 		Declare Function SaveToFile(ByRef File As WString) As Boolean
 		#ifdef __USE_WINAPI__
 			Declare Function LoadFromHICON(IcoHandle As HICON) As Boolean
+			Declare Function LoadFromScreen(x As Double, y As Double, iWidth As Double, iHeight As Double, iHandle As HWND = 0) As Boolean
 		#endif
 		Declare Function LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
 		Declare Function LoadFromResourceID(ResID As Integer, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
