@@ -185,25 +185,25 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
 			Case WM_SIZE
-				Canvas.TransferDoubleBuffer(0, 0, Width, Height)
+				If Graphic.Bitmap.Handle = 0 Then
+					Canvas.TransferDoubleBuffer(0, 0, Width, Height)
+				Else
+					RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
+					If OnPaint Then OnPaint(This, Canvas)
+				End If 
 			Case WM_MOUSEMOVE
-				If FDownButton = True Then
-					If This.Parent AndAlso This.Parent->ClassName= "Picture" Then
-						This.Visible= False 'TODO what's the best way to update the control with the right background
-						'This.Repaint
-						'Dim As My.Sys.Drawing.BitmapType Bitm
-						'Bitm.LoadFromScreen(Left, Top, Width, Height)
-						'Canvas.Draw(0, 0, Bitm) ', ScaleX(Left), ScaleY(Top))
-						'If (Graphic.Bitmap.Handle <> 0) Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
-						This.Visible= True 
-						'UpdateWindow(FHandle)
-					End If
+				If FDownButton AndAlso Graphic.Bitmap.Handle <> 0 Then
+					RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 				End If
 			Case WM_LBUTTONUP
+				If FDownButton AndAlso Graphic.Bitmap.Handle <> 0 Then
+					This.Visible= False 
+					This.Visible= True 
+				End If
 				FDownButton = False
 			Case WM_LBUTTONDOWN
 				FDownButton = True
-				If Handle Then SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE) ' This.Left, This.Top, This.Width, This.Height, 0)
+				If Handle AndAlso Graphic.Bitmap.Handle <> 0 Then SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return

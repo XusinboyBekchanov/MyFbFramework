@@ -116,17 +116,16 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_MOUSEMOVE
-				If FDownButton = True Then
-					This.Visible= False 'TODO what's the best way to update the control with the right background
-					'This.Repaint
-					This.Visible= True 
-					'UpdateWindow(Handle)
-				End If
+				If FDownButton = True Then RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			Case WM_LBUTTONUP
+				If FDownButton AndAlso Graphic.Bitmap.Handle <> 0 Then
+					This.Visible= False 
+					This.Visible= True 
+				End If
 				FDownButton = False
 			Case WM_LBUTTONDOWN
 				FDownButton = True
-				If Handle Then SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
+				If Handle AndAlso Graphic.Bitmap.Handle <> 0 Then SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
 '			Case WM_ERASEBKGND
 '				If OnPaint Then OnPaint(This, Canvas)
 			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND

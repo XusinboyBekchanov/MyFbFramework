@@ -18,6 +18,9 @@ Namespace My.Sys.Forms
 	
 	Private Type NumericUpDown Extends Control
 	Private:
+		FText As WString * 100
+		FDecimalPlaces As Integer
+		FScaleFactor   As Integer = 1
 		#ifndef __USE_GTK__
 			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
 			Declare Static Sub WndProc(ByRef Message As Message)
@@ -33,14 +36,16 @@ Namespace My.Sys.Forms
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
-		Declare Property MinValue As Integer
-		Declare Property MinValue(Value As Integer)
-		Declare Property MaxValue As Integer
-		Declare Property MaxValue(Value As Integer)
-		Declare Property Increment As Integer
-		Declare Property Increment(Value As Integer)
-		Declare Property Position  As Integer
-		Declare Property Position(Value As Integer)
+		Declare Property MinValue As Double
+		Declare Property MinValue(Value As Double)
+		Declare Property MaxValue As Double
+		Declare Property MaxValue(Value As Double)
+		Declare Property Increment As Double
+		Declare Property Increment(Value As Double)
+		Declare Property DecimalPlaces As Integer
+		Declare Property DecimalPlaces(Value As Integer)
+		Declare Property Position  As Double
+		Declare Property Position(Value As Double)
 		Declare Property ArrowKeys As Boolean
 		Declare Property ArrowKeys(Value As Boolean)
 		Declare Property TabIndex As Integer

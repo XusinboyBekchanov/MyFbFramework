@@ -295,7 +295,50 @@ Namespace My.Sys.Drawing
 			End Function
 		#endif
 	#endif
-	
+
+	#ifdef __USE_WINAPI__
+	Private Function BitmapType.LoadFromScreen(x As Double, y As Double, iWidth As Double, iHeight As Double, iHandle As HWND = 0) As Boolean
+			Free
+			Dim As HWND desktop = IIf(iHandle = 0, GetDesktopWindow(), iHandle)
+			If (desktop = NULL) Then
+				Return False
+			End If
+			Dim As HDC screen_dev = GetDC(desktop)
+			If (screen_dev = NULL) Then
+				Return False
+			End If
+			' Create a compatible DC
+			Dim As HDC dst_hdc = CreateCompatibleDC(screen_dev)
+			If (dst_hdc = NULL) Then
+				ReleaseDC(desktop, screen_dev)
+				Return False
+			End If
+			
+			' Create a new bitmap of icon size
+			Dim As HBITMAP bmp = CreateCompatibleBitmap(screen_dev, iWidth, iHeight)
+			If (bmp = NULL) Then
+				DeleteDC(dst_hdc)
+				ReleaseDC(desktop, screen_dev)
+				Return False
+			End If
+			
+			'Select it into the compatible DC
+			Dim As HBITMAP old_dst_bmp = Cast(HBITMAP, SelectObject(dst_hdc, bmp))
+			If (old_dst_bmp = NULL) Then
+				DeleteObject(bmp)
+				Return False
+			End If
+			' Got the image into the compatible DC
+			BitBlt(dst_hdc, 0, 0, iWidth, iHeight, screen_dev, x, y, SRCCOPY)
+			' Restore settings
+			SelectObject(dst_hdc, old_dst_bmp)
+			Handle = bmp
+			DeleteDC(dst_hdc)
+			ReleaseDC(desktop, screen_dev)
+			Return True
+		End Function
+	#endif
+
 	#ifndef BitmapType_LoadFromResourceName_Off
 		Private Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
 			Free
