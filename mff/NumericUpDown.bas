@@ -55,51 +55,68 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	Private Property NumericUpDown.MinValue As Integer
-		Return UpDownControl.MinValue
+	Private Property NumericUpDown.MinValue As Double
+		If FDecimalPlaces > 0 Then Return UpDownControl.MinValue / FScaleFactor Else Return UpDownControl.MinValue
 	End Property
 	
-	Private Property NumericUpDown.MinValue(Value As Integer)
-		UpDownControl.MinValue = Value
+	Private Property NumericUpDown.MinValue(Value As Double)
+		UpDownControl.MinValue = IIf(FDecimalPlaces > 0,  Value * FScaleFactor, Value)
 	End Property
 	
-	Private Property NumericUpDown.MaxValue As Integer
-		Return UpDownControl.MaxValue
+	Private Property NumericUpDown.MaxValue As Double
+		If FDecimalPlaces > 0 Then Return UpDownControl.MaxValue / FScaleFactor Else Return UpDownControl.MaxValue
 	End Property
 	
-	Private Property NumericUpDown.MaxValue(Value As Integer)
-		UpDownControl.MaxValue = Value
+	Private Property NumericUpDown.MaxValue(Value As Double)
+		UpDownControl.MaxValue = IIf(FDecimalPlaces > 0,  Value * FScaleFactor, Value)
 	End Property
 	
-	Private Property NumericUpDown.Position As Integer
-		Return UpDownControl.Position
+	Private Property NumericUpDown.Position As Double
+		If FDecimalPlaces > 0 Then Return UpDownControl.Position / FScaleFactor Else Return UpDownControl.Position
 	End Property
 	
-	Private Property NumericUpDown.Position(Value As Integer)
-		UpDownControl.Position = Value
+	Private Property NumericUpDown.Position(Value As Double)
+		UpDownControl.Position = IIf(FDecimalPlaces > 0,  Value * FScaleFactor, Value)
 	End Property
 	
-	Private Property NumericUpDown.Increment As Integer
-		Return UpDownControl.Increment
+	Private Property NumericUpDown.Increment As Double
+		If FDecimalPlaces > 0 Then Return UpDownControl.Increment / FScaleFactor Else Return UpDownControl.Increment
 	End Property
 	
-	Private Property NumericUpDown.Increment(Value As Integer)
-		UpDownControl.Increment = Value
+	Private Property NumericUpDown.Increment(Value As Double)
+		UpDownControl.Increment = IIf(FDecimalPlaces > 0,  Value * FScaleFactor, Value)
 	End Property
 	
+	Private Property NumericUpDown.DecimalPlaces As Integer
+		Return FDecimalPlaces
+	End Property
+	
+	Private Property NumericUpDown.DecimalPlaces(Value As Integer)
+		FDecimalPlaces = Value
+		FScaleFactor = Val(Mid("1000000", 1, FDecimalPlaces + 1))
+		'If FDecimalPlaces > 1 Then UpDownControl.Increment = FScaleFactor / Val(Mid("1000000", 1, FDecimalPlaces))
+	End Property
 	Private Property NumericUpDown.Text ByRef As WString
 		#ifdef __USE_GTK__
 			Return UpDownControl.Text
 		#else
-			Return Base.Text
+			FText = IIf(FDecimalPlaces > 0,  WStr(Val(Base.Text) / FScaleFactor), Base.Text)
+			Return FText
 		#endif
 	End Property
 	
 	Private Property NumericUpDown.Text(ByRef Value As WString)
-		If UpDownControl.Text <> Value Then
-			UpDownControl.Text = Value
+		Dim As Integer DotPos = InStr(Value, ".")
+		If DotPos > 0 Then
+			FDecimalPlaces = Len(Value) - DotPos
+			FScaleFactor = Val(Mid("1000000", 1, FDecimalPlaces))
+		Else
+			FDecimalPlaces = 0: FScaleFactor = 1
 		End If
-		Base.Text = Value
+		If UpDownControl.Text <> Value Then
+			UpDownControl.Text = IIf(FDecimalPlaces > 0, WStr(Val(Value) * FScaleFactor), Value)
+		End If
+		Base.Text = IIf(FDecimalPlaces > 0, WStr(Val(Value) / FScaleFactor), Value)
 	End Property
 	
 	Private Property NumericUpDown.Thousands As Boolean
