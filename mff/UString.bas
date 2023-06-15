@@ -80,9 +80,9 @@ Private Function UString.TrimStart As UString
 End Function
 
 #if MEMCHECK
-	#define WReAllocate(subject, lLen) If subject <> 0 Then subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)) Else subject = _CAllocate((lLen + 1) * SizeOf(WString))
-	#define WLet(subject, txt)  If subject <> 0 Then subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(WString)) Else subject = _CAllocate((Len(txt) + 1) * SizeOf(WString)): *subject = txt 
-	#define WDeAllocate(subject) If subject <> 0 Then _Deallocate(subject) : subject = 0
+	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)): Else: subject = _CAllocate((lLen + 1) * SizeOf(WString)): End If
+	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
