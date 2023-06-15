@@ -43,8 +43,9 @@ Public:
 	Declare Property Length() As Integer
 	Declare Function vptr As WString Ptr
 	
-	Declare Function StartsWith(ByRef Value As UString) As Boolean
-	Declare Function EndsWith(ByRef Value As UString) As Boolean
+	Declare Function StartsWith(ByRef Value As WString) As Boolean
+	Declare Function EndsWith(ByRef Value As WString) As Boolean
+	Declare Function Contains(ByRef Value As WString) As Boolean
 	Declare Function TrimAll As UString
 	Declare Function TrimEnd As UString
 	Declare Function TrimStart As UString
