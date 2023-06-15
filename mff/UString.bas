@@ -33,24 +33,30 @@ Private Destructor UString
 	End If
 End Destructor
 
-Private Function UString.StartsWith(ByRef Value As UString) As Boolean
+Private Function UString.StartsWith(ByRef Value As WString) As Boolean
 	'Return Left(*m_Data, Value.m_Length) = * (Value.vptr)
-	If m_Length < Value.m_Length Then Return False
-	For i As Integer = 0 To Value.m_Length - 1
-		If (*m_Data)[i] <> (*Value.m_Data)[i] Then Return False
+	Dim As Integer vLen = Len(Value)
+	If m_Length < vLen Then Return False
+	For i As Integer = 0 To vLen - 1
+		If (*m_Data)[i] <> Value[i] Then Return False
 	Next
 	Return True
 End Function
 
-Private Function UString.EndsWith(ByRef Value As UString) As Boolean
+Private Function UString.EndsWith(ByRef Value As WString) As Boolean
 	'Return Right(*m_Data, Value.m_Length) = * (Value.vptr)
-	If m_Length < Value.m_Length Then Return False
-	Dim j As Integer = m_Length - Value.m_Length
-	For i As Integer = 0 To Value.m_Length - 1
-		If (*m_Data)[j] <> (*Value.m_Data)[i] Then Return False
+	Dim As Integer vLen = Len(Value)
+	If m_Length < vLen Then Return False
+	Dim j As Integer = m_Length - vLen
+	For i As Integer = 0 To vLen - 1
+		If (*m_Data)[j] <> Value[i] Then Return False
 		j += 1
 	Next
 	Return True
+End Function
+
+Private Function UString.Contains(ByRef Value As WString) As Boolean
+	Return InStr(*m_Data, Value) > 0
 End Function
 
 Private Function UString.ToLower As UString
@@ -74,9 +80,9 @@ Private Function UString.TrimStart As UString
 End Function
 
 #if MEMCHECK
-	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)): Else: subject = _CAllocate((lLen + 1) * SizeOf(WString)): End If
-	#define WLet(subject, txt Scope): Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
-	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+	#define WReAllocate(subject, lLen) If subject <> 0 Then subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)) Else subject = _CAllocate((lLen + 1) * SizeOf(WString))
+	#define WLet(subject, txt)  If subject <> 0 Then subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(WString)) Else subject = _CAllocate((Len(txt) + 1) * SizeOf(WString)): *subject = txt 
+	#define WDeAllocate(subject) If subject <> 0 Then _Deallocate(subject) : subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
