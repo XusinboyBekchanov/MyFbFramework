@@ -238,7 +238,7 @@ Namespace My.Sys.Forms
 						Return Perform(WM_GETTEXTLENGTH, 0, 0)
 					Else
 						Return Len(FText)
-					EndIf
+					End If
 				#else
 					Return Len(This.Text)
 				#endif
@@ -386,7 +386,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Property
-			
+		
 		#ifndef Text_Off
 			Private Property Control.Text ByRef As WString
 				#ifdef __USE_WINAPI__
@@ -1800,7 +1800,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr Ctrl
 				'Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
 				'If CtrlID = 0 Then
-					Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				'Else
 				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
 				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
@@ -1840,7 +1840,7 @@ Namespace My.Sys.Forms
 				Dim As Any Ptr Proc = @DefWindowProc
 				Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
 				'If CtrlID = 0 Then
-					Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				'Else
 				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
 				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
@@ -1873,7 +1873,7 @@ Namespace My.Sys.Forms
 				Dim Message As Message
 				'Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
 				'If CtrlID = 0 Then
-					Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
+				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 				'Else
 				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
 				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
@@ -2248,7 +2248,7 @@ Namespace My.Sys.Forms
 			MaxHeight = 0
 			For i As Integer = 0 To ControlCount - 1
 				With *Controls[i]
-					If .FVisible Then 
+					If .FVisible Then
 						If MaxWidth < .Left + .Width + .ExtraMargins.Right Then MaxWidth = .Left + .Width + .ExtraMargins.Right
 						If MaxHeight < .Top + .Height + .ExtraMargins.Bottom Then MaxHeight = .Top + .Height + .ExtraMargins.Bottom
 					End If
@@ -2506,8 +2506,13 @@ Namespace My.Sys.Forms
 				If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
-					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE
-					Update
+					If Parent->ClassName <> "Picture" AndAlso Parent->ClassName <> "Panel" Then
+						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE
+						Update
+					Else
+						ShowWindow(FHandle, SW_HIDE)
+						ShowWindow(FHandle, SW_SHOW)
+					End If
 				End If
 			#endif
 		End Sub

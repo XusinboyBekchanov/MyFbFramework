@@ -251,9 +251,11 @@ Namespace My.Sys.Drawing
 			FBmpHeight = ScaleY(This.Height)
 			CompatibleBmp = CreateCompatibleBitmap(DC, FBmpWidth, FBmpHeight)
 			SelectObject(memDC, CompatibleBmp)
+			BitBlt(memDC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), DC, 0, 0, SRCCOPY)
 			Handle = memDC
 			HandleSetted = True
 			FDoubleBuffer = True
+			CreateDoubleBuffered = True
 		#endif
 	End Sub
 	

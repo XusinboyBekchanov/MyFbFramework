@@ -27,17 +27,18 @@ Namespace My.Sys.Forms
 	
 	Private Type Picture Extends ContainerControl
 	Private:
-		AStyle(24)        As Integer
-		FPictureStyle     As Integer
-		FRealSizeImage    As Boolean
+		AStyle(24)             As Integer
+		FPictureStyle          As Integer
+		FRealSizeImage      As Boolean
 		FDownButton         As Boolean
-		FCenterImage      As Boolean
-		FStretchImage     As StretchMode
-		ARealSizeImage(2) As Integer
+		FMOUSEMOVE       As Boolean
+		FCenterImage        As Boolean
+		FStretchImage       As StretchMode
+		ARealSizeImage(2)   As Integer
 		ARealSizeControl(2) As Integer
-		ACenterImage(2)   As Integer
+		ACenterImage(2)     As Integer
 		#ifdef __USE_GTK__
-			ImageWidget As GtkWidget Ptr
+			ImageWidget        As GtkWidget Ptr
 		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
