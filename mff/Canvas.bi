@@ -122,7 +122,8 @@ Namespace My.Sys.Drawing
 			Dim As HBITMAP CompatibleBmp
 		#endif
 	Public:
-		HandleSetted As Boolean
+		HandleSetted         As Boolean
+		CreateDoubleBuffered As Boolean
 		#ifdef __USE_GTK__
 			Handle  As cairo_t Ptr
 			Dim As PangoLayout Ptr layout
