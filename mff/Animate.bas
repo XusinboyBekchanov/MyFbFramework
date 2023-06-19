@@ -221,6 +221,8 @@ Namespace My.Sys.Forms
 			#else
 				Return CBool(FFullScreenMode)
 			#endif
+		#else
+			Return CBool(FFullScreenMode)
 		#endif
 	End Property
 	
@@ -483,7 +485,7 @@ Namespace My.Sys.Forms
 		FOpenMode = 0: FRate= 1
 		If Trim(FileName) <> "" Then WLet(FFile, FileName)
 		#ifdef __USE_GTK__
-			If OnOpen Then OnOpen(This
+			If OnOpen Then OnOpen(This)
 			If pixbuf_animation <> 0 Then
 				FFrameWidth = gdk_pixbuf_animation_get_width(pixbuf_animation)
 				FFrameHeight = gdk_pixbuf_animation_get_height(pixbuf_animation)

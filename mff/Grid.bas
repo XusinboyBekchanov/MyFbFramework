@@ -2016,7 +2016,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub Grid.Grid_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = user_data
-			lv->Init
+			lv->Clear
 		End Sub
 		
 		Private Function Grid.Grid_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
