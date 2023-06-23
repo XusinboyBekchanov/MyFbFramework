@@ -61,8 +61,26 @@ Namespace My
 		SetDarkMode Value, False
 	End Property
 	
+	#ifndef APP_TITLE
+		#define APP_TITLE ""
+	#endif
+	#ifndef VER_MAJOR
+		#define VER_MAJOR "0"
+	#endif
+	#ifndef VER_MINOR
+		#define VER_MINOR "0"
+	#endif
+	#ifndef VER_PATCH
+		#define VER_PATCH "0"
+	#endif
+	
 	Private Function Application.Version As Const String
-		Return GetVerInfo("FileVersion")
+		#ifdef __FB_WIN32__
+			Return GetVerInfo("FileVersion")
+		#else
+			Dim As String Version_ = VER_MAJOR & "." & VER_MINOR & "." & VER_PATCH
+			Return Version_
+		#endif
 	End Function
 	
 	Private Property Application.Icon As My.Sys.Drawing.Icon
