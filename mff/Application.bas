@@ -676,17 +676,28 @@ Namespace Debug
 	#endif
 	
 	#ifndef Debug_Print_Off
-		Private Sub Print(ByRef MSG As WString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		Private Sub Print Overload(ByRef Msg As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+			Dim As WString Ptr tMsgPtr
+			WLet(tMsgPtr, Msg)
+			If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
+			If Msg2 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg2)
+			If Msg3 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg3)
+			If Msg4 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg4)
+			Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
+			_Deallocate(tMsgPtr)
+		End Sub
+		
+		Private Sub Print Overload(ByRef Msg As UString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 			If bWriteLog Then
 				Dim As Integer Result, Fn = FreeFile_
 				Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
 				If Result = 0 Then
-					.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & MSG & Space(20) 'cut some word if some unicode inside.
+					.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & Msg & Space(20) 'cut some word if some unicode inside.
 				End If
 				CloseFile_(Fn)
 			End If
-			If bPrintMsg Then .Print MSG
-			If bShowMsg Then MsgBox MSG, "Visual FB Editor"
+			If bPrintMsg Then .Print Msg
+			If bShowMsg Then MsgBox Msg, "Visual FB Editor"
 			If bPrintToDebugWindow Then
 				#ifdef __USE_WINAPI__
 					If IsWindow(DebugWindowHandle) Then
@@ -699,7 +710,7 @@ Namespace Debug
 							BringWindowToTop(TabPageHandle)
 						End If
 						Dim As WString Ptr SelText
-						WLet(SelText, MSG & Chr(13, 10))
+						WLet(SelText, Msg & Chr(13, 10))
 						SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
 						WDeAllocate(SelText)
 					End If
@@ -712,7 +723,7 @@ Namespace Debug
 							gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle))), Index)
 						End If
 						Dim As GtkTextIter _start, _end
-						gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), ToUtf8(MSG & Chr(13, 10)), -1)
+						gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), ToUtf8(Msg & Chr(13, 10)), -1)
 						gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), @_start, @_end)
 						Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), NULL, @_end, False)
 						gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(DebugWindowHandle), ptextmark, 0., False, 0., 0.)
