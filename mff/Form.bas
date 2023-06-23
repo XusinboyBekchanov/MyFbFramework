@@ -942,7 +942,7 @@ Namespace My.Sys.Forms
 							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
 						End If
 					End If
-					App.ActiveForm = @This
+					pApp->ActiveForm = @This
 					If OnActivate Then OnActivate(This)
 				Else
 					If OnDeActivate Then OnDeActivate(This)
