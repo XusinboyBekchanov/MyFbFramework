@@ -1591,6 +1591,7 @@ Namespace My.Sys.Forms
 				#else
 					gtk_widget_show_all(widget)
 					'ShowItems @This
+					FVisible = True 
 					HideItems @This
 				#endif
 				'Requests @This
