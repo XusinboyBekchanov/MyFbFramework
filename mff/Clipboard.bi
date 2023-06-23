@@ -40,7 +40,7 @@ Namespace My.Sys
 	End Type
 End Namespace
 
-Common Shared As My.Sys.ClipboardType Ptr pClipboard
+’Common Shared As My.Sys.ClipboardType Ptr pClipboard
 
 #ifndef __USE_MAKE__
 	#include once "Clipboard.bas"
