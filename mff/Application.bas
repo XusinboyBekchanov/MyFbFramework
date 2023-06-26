@@ -151,9 +151,9 @@ Namespace My
 		Dim As Integer L
 		#ifdef __USE_GTK__
 			Dim As ZString * 255 Tx
-			'L = readlink("/proc/self/exe", @Tx, 255 - 1)
-			Tx = Command(0)
-			L = Len(Tx)
+			L = readlink("/proc/self/exe", @Tx, 255 - 1)
+			'Tx = Command(0)
+			'L = Len(Tx)
 		#elseif defined(__USE_WINAPI__)
 			Dim As WString * 255 Tx
 			L = GetModuleFileName(GetModuleHandle(NULL), @Tx, 255 - 1)
