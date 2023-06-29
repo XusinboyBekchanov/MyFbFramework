@@ -114,29 +114,36 @@ Namespace My.Sys.Drawing
 		If ParentControl > 0 Then
 			#ifdef __USE_GTK__
 				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetBlue(FBackColor), GetGreen(FBackColor))
-				cairo_fill_preserve(Handle)
 			#elseif defined(__USE_WINAPI__)
 				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
-				Dim As ..Rect R
-				If x = x1 AndAlso y = y1 AndAlso x = y Then
-					R.Left = 0
-					R.Top = 0
-					R.Right = ScaleX(ParentControl->Width)
-					R.Bottom = ScaleY(ParentControl->Height)
-					'Remove Scale
-					imgScaleX = 1
-					imgScaleY = 1
-					imgOffsetX = 0
-					imgOffsetY = 0
-					FDrawWidth = 1
-					FScaleWidth = ScaleX(This.Width)
-					FScaleHeight =  ScaleY(This.Height)
-				Else
-					R.Left = ScaleX(x) * imgScaleX + imgOffsetX
-					R.Top = ScaleY(y) * imgScaleY + imgOffsetY
-					R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
-					R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
-				End If
+			#endif
+			Dim As Rect R
+			If x = x1 AndAlso y = y1 AndAlso x = y Then
+				R.Left = 0
+				R.Top = 0
+				R.Right = ScaleX(ParentControl->Width)
+				R.Bottom = ScaleY(ParentControl->Height)
+				'Remove Scale
+				imgScaleX = 1
+				imgScaleY = 1
+				imgOffsetX = 0
+				imgOffsetY = 0
+				FDrawWidth = 1
+				FScaleWidth = ScaleX(This.Width)
+				FScaleHeight =  ScaleY(This.Height)
+			Else
+				R.Left = ScaleX(x) * imgScaleX + imgOffsetX
+				R.Top = ScaleY(y) * imgScaleY + imgOffsetY
+				R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
+				R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
+			End If
+			#ifdef __USE_GTK__
+				.cairo_rectangle(Handle, R.Left - 0.5, R.Top - 0.5, R.Right - R.Left - 0.5, R.Bottom - R.Top - 0.5)
+				cairo_set_source_rgb(Handle, GetRedD(FBackColor), GetGreenD(FBackColor), GetBlueD(FBackColor))
+				cairo_fill_preserve(Handle)
+				cairo_set_source_rgb(Handle, GetRedD(FBackColor), GetGreenD(FBackColor), GetBlueD(FBackColor))
+				cairo_stroke(Handle)
+			#elseif defined(__USE_WINAPI__)
 				.FillRect Handle, Cast(..Rect Ptr, @R), B
 				TransferDoubleBuffer
 				DeleteObject B
