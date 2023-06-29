@@ -88,7 +88,7 @@ Namespace My.Sys.Forms
 	Private Property Picture.StretchImage(Value As StretchMode)
 		If Value <> FStretchImage Then
 			FStretchImage = Value
-			#ifdef __FB_WIN32__
+			#ifdef __USE_WINAPI__
 				InvalidateRect(Handle, NULL, True)
 			#endif
 		End If
