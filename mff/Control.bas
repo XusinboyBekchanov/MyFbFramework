@@ -2518,7 +2518,8 @@ Namespace My.Sys.Forms
 				If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
-					If Parent->ClassName <> "Picture" AndAlso Parent->ClassName <> "Panel" Then
+					'If Parent->ClassName <> "Picture" AndAlso Parent->ClassName <> "Panel" Then
+					If ClassName <> "Picture" AndAlso ClassName <> "Panel" Then
 						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 						Update
 					Else
