@@ -30,9 +30,9 @@ Namespace My.Sys.Forms
 		AStyle(24)             As Integer
 		FPictureStyle          As Integer
 		FRealSizeImage      As Boolean
-		FDownButton         As Boolean
-		FMOUSEMOVE       As Boolean
 		FCenterImage        As Boolean
+		FTransparent        As Boolean
+		FDownButton         As Integer
 		FStretchImage       As StretchMode
 		ARealSizeImage(2)   As Integer
 		ARealSizeControl(2) As Integer
@@ -68,6 +68,8 @@ Namespace My.Sys.Forms
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
+		Declare Property Transparent As Boolean
+		Declare Property Transparent(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
