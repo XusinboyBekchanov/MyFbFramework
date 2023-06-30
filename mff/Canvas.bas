@@ -419,8 +419,8 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_arc(Handle, (x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, (y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ((x1 - x) / 2) * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
-			'			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
-			'			cairo_stroke(cr)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.Ellipse Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
 		#endif
@@ -445,7 +445,7 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Circle(x As Double, y As Double, Radial As Double, FillColorBK As Integer = -1)
 		If Not HandleSetted Then GetDevice
 		'Special code for VB6
-		If FillColorBk = -1 Then FillColorBk = FBackColor
+		If FillColorBK = -1 Then FillColorBK = FBackColor
 		Dim As Integer OldFillColor = Brush.Color
 		Brush.Color = FillColorBK
 		#ifdef __USE_GTK__
@@ -523,6 +523,12 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
 			.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
+		#elseif defined(__USE_GTK__)
+			cairo_move_to Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5
+			cairo_arc(Handle, (x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, (y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ((x1 - x) / 2) * imgScaleX, 0, G_PI * 1)
+			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
