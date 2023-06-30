@@ -30,7 +30,8 @@ Namespace My.Sys.Forms
 		FBevelOuter  As Integer
 		FBorderWidth As Integer
 		FBevelWidth  As Integer
-		FDownButton As Boolean
+		FTransparent As Boolean
+		FDownButton  As Integer
 		#ifdef __USE_WINAPI__
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub WNDPROC(ByRef Message As Message)
@@ -66,6 +67,8 @@ Namespace My.Sys.Forms
 		Declare Virtual Property Text(ByRef Value As WString)
 		Declare Virtual Property Visible As Boolean
 		Declare Virtual Property Visible(Value As Boolean)
+		Declare Property Transparent As Boolean
+		Declare Property Transparent(Value As Boolean)
 		Declare Sub CreateWnd
 		Declare Operator Cast As Control Ptr
 		Declare Constructor

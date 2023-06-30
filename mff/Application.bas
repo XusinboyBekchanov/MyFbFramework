@@ -679,6 +679,17 @@ Namespace Debug
 	#endif
 	
 	#ifndef Debug_Print_Off
+		Private Sub Print Overload(ByVal Msg As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+			Dim As WString Ptr tMsgPtr
+			WLet(tMsgPtr, Str(Msg))
+			If Msg1 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg1)
+			If Msg2 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg2)
+			If Msg3 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg3)
+			If Msg4 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg4)
+			Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
+			_Deallocate(tMsgPtr)
+		End Sub
+		
 		Private Sub Print Overload(ByRef Msg As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 			Dim As WString Ptr tMsgPtr
 			WLet(tMsgPtr, Msg)
