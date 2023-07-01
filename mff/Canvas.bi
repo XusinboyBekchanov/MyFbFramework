@@ -139,7 +139,7 @@ Namespace My.Sys.Drawing
 		CopyMode    As CopyMode
 		Declare Sub GetDevice
 		Declare Sub ReleaseDevice
-		Declare Sub CreateDoubleBuffer
+		Declare Sub CreateDoubleBuffer(DrawGraphicBitmap As Boolean = True, CleanBK As Boolean = False)
 		Declare Sub TransferDoubleBuffer(ALeft As Long = 0, ATop As Long = 0, AWidth As Long = -1, AHeight As Long = -1)
 		Declare Sub DeleteDoubleBuffer
 		#ifndef ReadProperty_Off
@@ -188,10 +188,12 @@ Namespace My.Sys.Drawing
 		Declare Sub PolyBeizerTo(Points() As Point, Count As Long)
 		Declare Sub SetPixel(x As Double, y As Double, PixelColor As Integer)
 		Declare Function GetPixel(x As Double, y As Double) As Integer
+		Declare Function Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByRef ImageSource As My.Sys.Drawing.BitmapType) As Any Ptr
 		Declare Function Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSource As Any Ptr) As Any Ptr
 		Declare Sub TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		Declare Sub DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
 		Declare Sub DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
+		Declare Sub DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)
 		Declare Sub DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByRef Image As My.Sys.Drawing.BitmapType, iSourceAlpha As Integer = 255)
 		Declare Sub Draw(x As Double, y As Double, Image As Any Ptr)
 		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
