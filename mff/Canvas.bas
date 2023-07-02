@@ -131,14 +131,18 @@ Namespace My.Sys.Drawing
 				FDrawWidth = 1
 				FScaleWidth = ScaleX(This.Width)
 				FScaleHeight =  ScaleY(This.Height)
-				If memDC > 0 Then DeleteDoubleBuffer
-				.FillRect Handle, Cast(..Rect Ptr, @R), B
+				#ifdef __USE_WINAPI__
+					If memDC > 0 Then DeleteDoubleBuffer
+					.FillRect Handle, Cast(..Rect Ptr, @R), B
+				#endif
 			Else
 				R.Left = ScaleX(x) * imgScaleX + imgOffsetX
 				R.Top = ScaleY(y) * imgScaleY + imgOffsetY
 				R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
 				R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
-				.FillRect Handle, Cast(..Rect Ptr, @R), B
+				#ifdef __USE_WINAPI__
+					.FillRect Handle, Cast(..Rect Ptr, @R), B
+				#endif
 			End If
 			#ifdef __USE_GTK__
 				.cairo_rectangle(Handle, R.Left - 0.5, R.Top - 0.5, R.Right - R.Left - 0.5, R.Bottom - R.Top - 0.5)
