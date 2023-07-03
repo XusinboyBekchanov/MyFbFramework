@@ -942,7 +942,7 @@ Namespace My.Sys.Forms
 							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
 						End If
 					End If
-					App.ActiveForm = @This
+					pApp->ActiveForm = @This
 					If OnActivate Then OnActivate(This)
 				Else
 					If OnDeActivate Then OnDeActivate(This)
@@ -1591,6 +1591,7 @@ Namespace My.Sys.Forms
 				#else
 					gtk_widget_show_all(widget)
 					'ShowItems @This
+					FVisible = True 
 					HideItems @This
 				#endif
 				'Requests @This

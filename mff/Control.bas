@@ -1515,25 +1515,37 @@ Namespace My.Sys.Forms
 					SendMessage(FHandle, CM_CANCELMODE, 0, 0)
 				Case WM_LBUTTONDOWN
 					DownButton = 0
-					If OnMouseDown Then OnMouseDown(This, 0, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(This, 0, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_LBUTTONDBLCLK
 					If OnDblClick Then OnDblClick(This)
 				Case WM_LBUTTONUP
 					DownButton = -1
 					If OnClick Then OnClick(This)
-					If OnMouseUp Then OnMouseUp(This, 0, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(This, 0, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_MBUTTONDOWN
 					DownButton = 2
-					If OnMouseDown Then OnMouseDown(This, 2, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(This, 2, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_MBUTTONUP
 					DownButton = -1
-					If OnMouseUp Then OnMouseUp(This, 2, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(This, 2, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_RBUTTONDOWN
 					DownButton = 1
-					If OnMouseDown Then OnMouseDown(This, 1, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(This, 1, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_RBUTTONUP
 					DownButton = -1
-					If OnMouseUp Then OnMouseUp(This, 1, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(This, 1, MouseX, MouseY, Message.wParam And &HFFFF)
 					If ContextMenu Then
 						If ContextMenu->Handle Then
 							Dim As ..Point P
@@ -1964,7 +1976,7 @@ Namespace My.Sys.Forms
 			Private Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
 				If GTK_IS_LAYOUT(widget) OrElse GTK_IS_SCROLLED_WINDOW(widget) Then
-					Dim As Integer AllocatedWidth = allocation->Width, AllocatedHeight = allocation->height
+					Dim As Integer AllocatedWidth = allocation->width, AllocatedHeight = allocation->height
 					'					#ifdef __USE_GTK3__
 					'						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 					'					#else
@@ -2506,8 +2518,9 @@ Namespace My.Sys.Forms
 				If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
-					If Parent->ClassName <> "Picture" AndAlso Parent->ClassName <> "Panel" Then
-						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE
+					'If Parent->ClassName <> "Picture" AndAlso Parent->ClassName <> "Panel" Then
+					If ClassName <> "Picture" AndAlso ClassName <> "Panel" Then
+						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 						Update
 					Else
 						ShowWindow(FHandle, SW_HIDE)

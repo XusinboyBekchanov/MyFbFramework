@@ -27,9 +27,9 @@ Namespace My.Sys
 		Declare Sub SetAsText(ByRef Value As WString)
 		Declare Function GetAsText ByRef As WString
 		#ifndef __USE_GTK__
-			Declare Sub SetAsHandle(FFormat As Word, Value As HANDLE)
-			Declare Function GetAsHandle(FFormat As Word) As HANDLE
-			Declare Function HasFormat(FFormat As Word) As Boolean
+			Declare Sub SetAsHandle(FFormat As WORD, Value As HANDLE)
+			Declare Function GetAsHandle(FFormat As WORD) As HANDLE
+			Declare Function HasFormat(FFormat As WORD) As Boolean
 		#endif
 		Declare Property FormatCount As Integer
 		Declare Property FormatCount(Value As Integer)
@@ -40,7 +40,7 @@ Namespace My.Sys
 	End Type
 End Namespace
 
-Common Shared As My.Sys.ClipboardType Ptr pClipboard
+'Common Shared As My.Sys.ClipboardType Ptr pClipboard
 
 #ifndef __USE_MAKE__
 	#include once "Clipboard.bas"

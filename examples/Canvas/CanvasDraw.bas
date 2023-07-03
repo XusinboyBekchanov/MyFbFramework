@@ -232,7 +232,6 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	' Coordination  坐标系统
 	CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'Picture1.Visible = False
-	Picture1.Style = PictureStyle.ssOwnerDraw
 	With Picture1.Canvas
 		.CreateDoubleBuffer
 		'.Cls
@@ -307,7 +306,6 @@ Sub Taijitu(x As Integer, y As Integer, r As Integer)
 End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
-	Picture1.Style = PictureStyle.ssOwnerDraw
 	With Picture1.Canvas
 		.CreateDoubleBuffer
 		'.Cls
@@ -357,7 +355,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Chord(10, 60, 40, 80, 40, 60, 10, 70)
 		.Pie(20, 70, 40, 50, 60, 80, 40, 60)
 		
-		Dim As Point pt(4) = {(-60, + 20), (-90, + 110), (-10, 0), (-30, 70)}
+		Dim As My.Sys.Drawing.Point pt(4) = {(-60, + 20), (-90, + 110), (-10, 0), (-30, 70)}
 		'{{90, 130}, {60, 40}, {140, 150}, {160, 80}}
 		'//绘制椭圆、矩形
 		.Ellipse(pt(0).X, pt(0).Y, pt(1).X, pt(0).Y)
@@ -399,8 +397,8 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		
 		'Draw Image   绘制位图
 		'StretchDraw(10, 140, 180, 100, TEXT("chenggong.bmp"))
-		Taijitu(110, 110, 45)
-		Taijitu(500, 300, 138)
+		’Taijitu(110, 110, 45)
+		‘Taijitu(500, 300, 138)
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);

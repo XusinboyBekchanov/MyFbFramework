@@ -21,6 +21,7 @@ Namespace My.Sys.Forms
 			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 			Case "realsizeimage": Return @FRealSizeImage
 			Case "stretchimage": Return @FStretchImage
+			Case "transparent": Return @FTransparent
 			Case "style": Return @FPictureStyle
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -42,6 +43,7 @@ Namespace My.Sys.Forms
 				Case "stretchimage": This.StretchImage = *Cast(StretchMode Ptr, Value)
 				Case "graphic": This.Graphic = QWString(Value)
 				Case "realsizeimage": This.RealSizeImage = QBoolean(Value)
+				Case "transparent": This.Transparent = QBoolean(Value)
 				Case "style": This.Style = *Cast(PictureStyle Ptr, Value)
 				Case "tabindex": TabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -88,7 +90,7 @@ Namespace My.Sys.Forms
 	Private Property Picture.StretchImage(Value As StretchMode)
 		If Value <> FStretchImage Then
 			FStretchImage = Value
-			#ifdef __FB_WIN32__
+			#ifdef __USE_WINAPI__
 				InvalidateRect(Handle, NULL, True)
 			#endif
 		End If
@@ -170,11 +172,11 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Private Sub Picture.HandleIsAllocated(ByRef Sender As Control)
-			If Sender.Child Then
-				With QPicture(Sender.Child)
-					.Perform(STM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
-				End With
-			End If
+			'If Sender.Child Then
+			'	With QPicture(Sender.Child)
+			'		.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+			'	End With
+			'End If
 		End Sub
 		
 		Private Sub Picture.WndProc(ByRef Message As Message)
@@ -184,39 +186,25 @@ Namespace My.Sys.Forms
 	Private Sub Picture.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_SIZE
-				If Graphic.Bitmap.Handle = 0 Then
-					Canvas.TransferDoubleBuffer(0, 0, Width, Height)
-				Else
-					RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
-					If OnPaint Then OnPaint(This, Canvas)
-				End If 
-			Case WM_MOUSEMOVE
-				If FDownButton AndAlso Graphic.Bitmap.Handle <> 0 Then
-					RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
-				End If
 			Case WM_LBUTTONUP
-				If FDownButton AndAlso Graphic.Bitmap.Handle <> 0 Then
-					This.Visible= False 
-					This.Visible= True 
-				End If
-				FDownButton = False
-			Case WM_LBUTTONDOWN
-				FDownButton = True
-				If Handle AndAlso Graphic.Bitmap.Handle <> 0 Then SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
+				If FTransparent AndAlso CBool(FDownButton > 0) Then Repaint 'Updated the background image if Transparent=True after control movied
+				FDownButton = 0
+			Case WM_MOVE
+				If FTransparent AndAlso FDownButton > 0 AndAlso FDownButton Mod 5 = 0 Then Repaint ' reduce blinking
+				FDownButton += 1
 			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
 				If This.Parent Then This.Parent->ProcessMessage Message
 				If Message.Result <> 0 Then Return
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
-				SetBkMode Dc, TRANSPARENT
+				SetBkMode Dc, Transparent
 				SetTextColor Dc, This.Font.Color
 				SetBkColor Dc, This.BackColor
 				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
-					If onClick Then onClick(This)
+					If OnClick Then OnClick(This)
 				End If
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(This)
@@ -228,31 +216,45 @@ Namespace My.Sys.Forms
 					Canvas.HandleSetted = True
 					Dc = BeginPaint(Handle, @Ps)
 					Canvas.Handle = Dc
-					Dim As Double imgWidth = Graphic.Bitmap.Width
-					Dim As Double imgHeight = Graphic.Bitmap.Height
-					With This
-						Select Case FStretchImage
-						Case StretchMode.smNone
-							Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
-						Case StretchMode.smStretch
-							Canvas.DrawAlpha 0, 0, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
-						Case Else 'StretchMode.smStretchProportional
-							If FCenterImage Then
-								If imgWidth - .Width < imgHeight - .Height Then
-									Canvas.DrawAlpha 0, ScaleX((imgHeight - .Height * imgWidth / .Width) / 2), ScaleX(imgWidth), ScaleY(.Height * imgWidth / .Width), Graphic.Bitmap
+					If Canvas.CreateDoubleBuffered  Then
+						Canvas.TransferDoubleBuffer(0, 0, Width, Height)
+					Else
+						If (Not FTransparent) AndAlso BackColor <> -1 Then
+							Dim As ..Rect R
+							GetClientRect Handle, @R
+							FillRect Dc, @R, This.Brush.Handle
+						End If
+						'If Graphic.Bitmap.Handle <> 0 Then
+						'RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
+						With This
+							Select Case FStretchImage
+							Case StretchMode.smNone
+								Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
+							Case StretchMode.smStretch
+								Canvas.DrawAlpha 0, 0, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
+							Case Else 'StretchMode.smStretchProportional
+								Dim As Double imgWidth = Graphic.Bitmap.Width
+								Dim As Double imgHeight = Graphic.Bitmap.Height
+								Dim As Double PicBoxWidth = ScaleX(This.Width)
+								Dim As Double PicBoxHeight = ScaleY(This.Height)
+								Dim As Double img_ratio = imgWidth / imgHeight
+								Dim As Double PicBox_ratio =  This.Width / This.Height
+								If (PicBox_ratio >= img_ratio) Then
+									imgHeight = PicBoxHeight
+									imgWidth = imgHeight *img_ratio
 								Else
-									Canvas.DrawAlpha ScaleX((imgWidth - .Width * imgHeight / .Height) / 2), 0, ScaleX(.Width * imgHeight / .Height), ScaleY(imgHeight), Graphic.Bitmap
+									imgWidth = PicBoxWidth
+									imgHeight = imgWidth / img_ratio
 								End If
-							Else
-								If imgWidth - .Width < imgHeight - .Height Then
-									Canvas.DrawAlpha 0, 0, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
+								If FCenterImage Then
+									Canvas.DrawAlpha Max((PicBoxWidth - imgWidth) / 2, 0), Max((PicBoxHeight - imgHeight) / 2, 0), imgWidth, imgHeight, Graphic.Bitmap
 								Else
-									Canvas.DrawAlpha 0, 0, ScaleX(.Width * imgHeight / .Height), ScaleY(imgHeight), Graphic.Bitmap
+									Canvas.DrawAlpha 0, 0, imgWidth, imgHeight, Graphic.Bitmap
 								End If
-							End If
-						End Select
-					End With
-					If OnPaint Then OnPaint(This, Canvas)
+							End Select
+						End With
+					End If
+					If Message.lParam <> 128 AndAlso OnPaint Then OnPaint(This, Canvas)
 					EndPaint Handle,@Ps
 					Message.Result = 0
 					Canvas.HandleSetted = False
@@ -272,12 +274,12 @@ Namespace My.Sys.Forms
 					Canvas.HandleSetted = False
 					Return
 				End If
-			'Case WM_ERASEBKGND
-			'	Dim As ..Rect R
-			'	GetClientRect HANDLE, @R
-			'	FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
-			'	Message.Result = -1
-			'	Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
+				'Case WM_ERASEBKGND
+				'	Dim As ..Rect R
+				'	GetClientRect HANDLE, @R
+				'	FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
+				'	Message.Result = -1
+				'	Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As My.Sys.Drawing.Rect R
@@ -294,6 +296,13 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
+	Private Property Picture.Transparent As Boolean
+		Return FTransparent
+	End Property
+	
+	Private Property Picture.Transparent(Value As Boolean)
+		FTransparent = Value
+	End Property
 	
 	Private Operator Picture.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
@@ -346,16 +355,16 @@ Namespace My.Sys.Forms
 		Graphic.OnChange = @GraphicChange
 		FRealSizeImage   = False
 		FCenterImage = False
-		FPictureStyle = PictureStyle.ssText
+		FPictureStyle = PictureStyle.ssBitmap
 		With This
 			.Child       = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "Picture", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
-				Base.Style = WS_CHILD Or SS_NOTIFY Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize)) Or AStyle(abs_(FPictureStyle))
-				.BackColor       = GetSysColor(COLOR_BTNFACE)
-				FDefaultBackColor = .BackColor
+				Base.Style = WS_CHILD Or WS_EX_LAYERED Or SS_NOTIFY Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize)) Or AStyle(abs_(FPictureStyle))
+				BackColor       = GetSysColor(COLOR_BTNFACE)
+				FDefaultBackColor = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "Picture")

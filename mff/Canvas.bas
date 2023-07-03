@@ -114,31 +114,42 @@ Namespace My.Sys.Drawing
 		If ParentControl > 0 Then
 			#ifdef __USE_GTK__
 				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetBlue(FBackColor), GetGreen(FBackColor))
-				cairo_fill_preserve(Handle)
 			#elseif defined(__USE_WINAPI__)
 				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
-				Dim As ..Rect R
-				If x = x1 AndAlso y = y1 AndAlso x = y Then
-					R.Left = 0
-					R.Top = 0
-					R.Right = ScaleX(ParentControl->Width)
-					R.Bottom = ScaleY(ParentControl->Height)
-					'Remove Scale
-					imgScaleX = 1
-					imgScaleY = 1
-					imgOffsetX = 0
-					imgOffsetY = 0
-					FDrawWidth = 1
-					FScaleWidth = ScaleX(This.Width)
-					FScaleHeight =  ScaleY(This.Height)
-				Else
-					R.Left = ScaleX(x) * imgScaleX + imgOffsetX
-					R.Top = ScaleY(y) * imgScaleY + imgOffsetY
-					R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
-					R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
-				End If
+			#endif
+			Dim As Rect R
+			If x = x1 AndAlso y = y1 AndAlso x = y Then
+				R.Left = 0
+				R.Top = 0
+				R.Right = ScaleX(ParentControl->Width)
+				R.Bottom = ScaleY(ParentControl->Height)
+				'Remove Scale
+				imgScaleX = 1
+				imgScaleY = 1
+				imgOffsetX = 0
+				imgOffsetY = 0
+				FDrawWidth = 1
+				FScaleWidth = ScaleX(This.Width)
+				FScaleHeight =  ScaleY(This.Height)
+				#ifdef __USE_WINAPI__
+					If memDC > 0 Then DeleteDoubleBuffer
+					.FillRect Handle, Cast(..Rect Ptr, @R), B
+				#endif
+			Else
+				R.Left = ScaleX(x) * imgScaleX + imgOffsetX
+				R.Top = ScaleY(y) * imgScaleY + imgOffsetY
+				R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
+				R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
+				#ifdef __USE_WINAPI__
+					.FillRect Handle, Cast(..Rect Ptr, @R), B
+				#endif
+			End If
+			#ifdef __USE_GTK__
+				.cairo_rectangle(Handle, R.Left - 0.5, R.Top - 0.5, R.Right - R.Left - 0.5, R.Bottom - R.Top - 0.5)
+				cairo_set_source_rgb(Handle, GetRedD(FBackColor), GetGreenD(FBackColor), GetBlueD(FBackColor))
+				cairo_fill_preserve(Handle)
+			#elseif defined(__USE_WINAPI__)
 				.FillRect Handle, Cast(..Rect Ptr, @R), B
-				TransferDoubleBuffer
 				DeleteObject B
 			#endif
 		End If
@@ -172,7 +183,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetBlue(Value) / 255.0, GetGreen(Value) / 255.0)
-			.cairo_rectangle(Handle, xy.x, xy.y, 1, 1)
+			.cairo_rectangle(Handle, xy.X * imgScaleX + imgOffsetX - 0.5, xy.Y * imgScaleY + imgOffsetY - 0.5, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
@@ -232,7 +243,7 @@ Namespace My.Sys.Drawing
 				HandleSetted = False
 			#endif
 		#elseif defined(__USE_WINAPI__)
-			If FDoubleBuffer Then 
+			If FDoubleBuffer Then
 				DeleteDoubleBuffer
 				FDoubleBuffer = False
 			End If
@@ -241,17 +252,29 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
-	Private Sub Canvas.CreateDoubleBuffer
+	Private Sub Canvas.CreateDoubleBuffer(DrawGraphicBitmap As Boolean = True, CleanBK As Boolean = False)
 		#ifdef __USE_WINAPI__
 			If memDC > 0 Then DeleteDoubleBuffer
 			If Not HandleSetted Then GetDevice
 			DC = Handle
 			memDC = CreateCompatibleDC(DC)
-			FBmpWidth = ScaleX(This.Width)
-			FBmpHeight = ScaleY(This.Height)
+			FBmpWidth = ScaleX(ParentControl->Width)
+			FBmpHeight = ScaleY(ParentControl->Height)
 			CompatibleBmp = CreateCompatibleBitmap(DC, FBmpWidth, FBmpHeight)
 			SelectObject(memDC, CompatibleBmp)
-			BitBlt(memDC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), DC, 0, 0, SRCCOPY)
+			
+			If CleanBK = False Then
+				RedrawWindow(ParentControl->Handle, NULL, NULL, RDW_INVALIDATE Or RDW_ALLCHILDREN)
+				CreateDoubleBuffered = False
+				If DrawGraphicBitmap Then SendMessage(ParentControl->Handle, WM_PAINT, 0, 128)
+			Else
+				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
+				Dim As ..Rect Re
+				Re= Type<..Rect>(0, 0, FBmpWidth, FBmpHeight)
+				.FillRect Handle, @Re, B
+				DeleteObject B
+			End If
+			BitBlt(memDC, 0, 0, FBmpWidth, FBmpHeight, DC, 0, 0, SRCCOPY)
 			Handle = memDC
 			HandleSetted = True
 			FDoubleBuffer = True
@@ -280,6 +303,7 @@ Namespace My.Sys.Drawing
 			DeleteDC(memDC)
 			memDC = 0
 			FDoubleBuffer = False
+			CreateDoubleBuffered = False
 			If Not HandleSetted Then ReleaseDevice
 		#endif
 	End Sub
@@ -288,25 +312,25 @@ Namespace My.Sys.Drawing
 		If ParentControl Then
 			imgScaleX = Min(ParentControl->Width, ParentControl->Height) / (x1 - x)
 			imgScaleY = Min(ParentControl->Width, ParentControl->Height) / (y1 - y)
-			imgOffsetX = IIf(ParentControl->Width > ParentControl->Height, (ParentControl->Width - ParentControl->Height) / 2 - x * imgScaleX, -x * imgScaleX)
-			imgOffsetY = IIf(ParentControl->Height > ParentControl->Width, (ParentControl->Height - ParentControl->Width) / 2 - y * imgScaleY, -y * imgScaleY)
-			FScaleWidth = x1 - x
-			FScaleHeight = y1 - y
+			imgOffsetX = ScaleX(IIf(ParentControl->Width > ParentControl->Height, (ParentControl->Width - ParentControl->Height) / 2 - x * imgScaleX, -x * imgScaleX))
+			imgOffsetY = ScaleY(IIf(ParentControl->Height > ParentControl->Width, (ParentControl->Height - ParentControl->Width) / 2 - y * imgScaleY, -y * imgScaleY))
+			FScaleWidth = ScaleX(x1 - x)
+			FScaleHeight = ScaleY(y1 - y)
 		Else
 			imgScaleX = 1
 			imgScaleY = 1
 			imgOffsetX = 0
 			imgOffsetY = 0
 			FDrawWidth = 1
-			FScaleWidth = This.Width
-			FScaleHeight =  This.Height
+			FScaleWidth = ScaleX(This.Width)
+			FScaleHeight = ScaleY( This.Height)
 		End If
 	End Sub
 	
 	Private Sub Canvas.MoveTo(x As Double, y As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
-			cairo_move_to(Handle, x - 0.5, y - 0.5)
+			cairo_move_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 		#elseif defined(__USE_WINAPI__)
 			.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, 0
 		#endif
@@ -316,7 +340,8 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.LineTo(x As Double, y As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
-			cairo_line_to(Handle, x - 0.5, y - 0.5)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_line_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.LineTo Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY
@@ -338,21 +363,21 @@ Namespace My.Sys.Drawing
 				Rectangle(x, y, x1, y1)
 			End If
 		Else
+			Dim As Integer OldPenColor
+			If FillColorBk <> -1 Then
+				OldPenColor = Pen.Color
+				Pen.Color = FillColorBk
+			End If
 			#ifdef __USE_GTK__
+				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 				cairo_move_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 				cairo_line_to(Handle, x1 * imgScaleX + imgOffsetX - 0.5, y1 * imgScaleY + imgOffsetY - 0.5)
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
-				Dim As Integer OldPenColor
-				If FillColorBk <> -1 Then
-					OldPenColor = Pen.Color
-					Pen.Color = FillColorBk
-				End If
 				.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
 				.LineTo Handle, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
-				If FillColorBk <> -1 Then Pen.Color = OldPenColor
 			#endif
-			
+			If FillColorBk <> -1 Then Pen.Color = OldPenColor
 		End If
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -361,11 +386,11 @@ Namespace My.Sys.Drawing
 		Private Sub Canvas.Rectangle Overload(x As Double, y As Double, x1 As Double, y1 As Double)
 			If Not HandleSetted Then GetDevice
 			#ifdef __USE_GTK__
-				cairo_move_to (Handle, x - 0.5, y - 0.5)
-				cairo_line_to (Handle, x1 - 0.5, y - 0.5)
-				cairo_line_to (Handle, x1 - 0.5, y1 - 0.5)
-				cairo_line_to (Handle, x - 0.5, y1 - 0.5)
-				cairo_line_to (Handle, x - 0.5, y - 0.5)
+				cairo_move_to (Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
+				cairo_line_to (Handle, x1 * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
+				cairo_line_to (Handle, x1 * imgScaleX + imgOffsetX - 0.5, y1 * imgScaleY + imgOffsetY - 0.5)
+				cairo_line_to (Handle, x * imgScaleX + imgOffsetX - 0.5, y1 * imgScaleY + imgOffsetY - 0.5)
+				cairo_line_to (Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 				cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 				cairo_fill_preserve(Handle)
 				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
@@ -380,7 +405,7 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Rectangle(R As Rect)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
-			.cairo_rectangle(Handle, R.Left - 0.5, R.Top - 0.5, R.Right - R.Left - 0.5, R.Bottom - R.Top - 0.5)
+			.cairo_rectangle(Handle, R.Left * imgScaleX + imgOffsetX - 0.5, R.Top * imgScaleY + imgOffsetY - 0.5, (R.Right - R.Left) * imgScaleY - 0.5, (R.Bottom - R.Top) * imgScaleY - 0.5)
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
@@ -394,10 +419,12 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Ellipse Overload(x As Double, y As Double, x1 As Double, y1 As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
-			cairo_arc(Handle, x + (x1 - x) / 2 - 0.5, y + (y1 - y) / 2 - 0.5, (x1 - x) / 2, 0, 2 * G_PI)
+			cairo_move_to Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_arc(Handle, (x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, (y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ((x1 - x) / 2) * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
-			'			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
-			'			cairo_stroke(cr)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.Ellipse Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
 		#endif
@@ -407,8 +434,12 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Ellipse(R As Rect)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
-			cairo_arc(Handle, R.Left + (R.Right - R.Left) / 2 - 0.5, R.Top + (R.Bottom - R.Top) / 2 - 0.5, (R.Right - R.Left) / 2, 0, 2 * G_PI)
+			cairo_move_to Handle, R.Left * imgScaleX + imgOffsetX - 0.5, R.Top * imgScaleY + imgOffsetY - 0.5
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_arc(Handle, (R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX - 0.5, (R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY - 0.5, ((R.Right - R.Left) / 2) * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.Ellipse Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 		#endif
@@ -418,14 +449,16 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Circle(x As Double, y As Double, Radial As Double, FillColorBK As Integer = -1)
 		If Not HandleSetted Then GetDevice
 		'Special code for VB6
-		If FillColorBk = -1 Then FillColorBk = FBackColor
+		If FillColorBK = -1 Then FillColorBK = FBackColor
 		Dim As Integer OldFillColor = Brush.Color
 		Brush.Color = FillColorBK
 		#ifdef __USE_GTK__
-			cairo_arc(Handle, x , y, Radial, 0, 2 * G_PI)
+			cairo_move_to Handle, (x + Radial / 2) * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_arc(Handle, x * imgScaleX + imgOffsetX, y * imgScaleY + imgOffsetY, Radial / 2 * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
-			'			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
-			'			cairo_stroke(cr)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			.Ellipse Handle, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(x + Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y + Radial / 2) * imgScaleY + imgOffsetY
 		#endif
@@ -437,14 +470,15 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_GTK__
 			Var radius = x1 - x
-			cairo_move_to Handle, x - 0.5, y + nWidth / 2 - 0.5
-			cairo_arc (Handle, x + radius - 0.5, y + nWidth / 2 - 0.5, nWidth / 2, G_PI, -G_PI / 2)
-			cairo_line_to (Handle, x + nWidth - nWidth / 2 - 0.5, y - 0.5)
-			cairo_arc (Handle, x + nWidth - nWidth / 2 - 0.5, y + nWidth / 2 - 0.5, nWidth / 2, -G_PI / 2, 0)
-			cairo_line_to (Handle, x + nWidth - 0.5, y + nHeight - nWidth / 2 - 0.5)
-			cairo_arc (Handle, x + nWidth - nWidth / 2 - 0.5, y + nHeight - nWidth / 2 - 0.5, nWidth / 2, 0, G_PI / 2)
-			cairo_line_to (Handle, x + nWidth / 2 - 0.5, y + nHeight - 0.5)
-			cairo_arc (Handle, x + nWidth / 2 - 0.5, y + nHeight - nWidth / 2 - 0.5, nWidth / 2, G_PI / 2, G_PI)
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_move_to Handle, x * imgScaleX + imgOffsetX - 0.5, (y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5
+			cairo_arc (Handle, (x + radius) * imgScaleX + imgOffsetX - 0.5, (y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, (nWidth / 2) * imgScaleX, G_PI, -G_PI / 2)
+			cairo_line_to (Handle, (x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
+			cairo_arc (Handle, (x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, (y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, (nWidth / 2) * imgScaleX, -G_PI / 2, 0)
+			cairo_line_to (Handle, (x + nWidth) * imgScaleX + imgOffsetX - 0.5, (y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5)
+			cairo_arc (Handle, x + (nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, (y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, (nWidth / 2) * imgScaleX, 0, G_PI / 2)
+			cairo_line_to (Handle, (x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, (y + nHeight) * imgScaleY + imgOffsetY - 0.5)
+			cairo_arc (Handle, (x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, (y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, (nWidth / 2) * imgScaleX, G_PI / 2, G_PI)
 			cairo_close_path Handle
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
@@ -457,7 +491,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
 			Dim tPoints As Point Ptr
-			tPoints->x = Points->x * imgScaleX + imgOffsetX:  tPoints->y = Points->y * imgScaleX + imgOffsetX
+			tPoints->X = Points->X * imgScaleX + imgOffsetX:  tPoints->Y = Points->Y * imgScaleX + imgOffsetX
 			.Polygon Handle, Cast(..Point Ptr, tPoints), Count
 		#endif
 		If Not HandleSetted Then ReleaseDevice
@@ -493,6 +527,12 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
 			.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
+		#elseif defined(__USE_GTK__)
+			cairo_move_to Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5
+			cairo_arc(Handle, (x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, (y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ((x1 - x) / 2) * imgScaleX, 0, G_PI * 1)
+			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -599,7 +639,7 @@ Namespace My.Sys.Drawing
 			If BK <> -1 Then
 				iRed = Abs(GetRed(BK) / 255.0): iGreen = Abs(GetGreen(BK) / 255.0): iBlue = Abs(GetBlue(BK) / 255.0)
 				cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
-				.cairo_rectangle (Handle, x, y, extend2.width, extend2.height)
+				.cairo_rectangle (Handle, x * imgScaleX + imgOffsetX, y * imgScaleY + imgOffsetY, extend2.width, extend2.height)
 				cairo_fill (Handle)
 			End If
 			cairo_move_to(Handle, x * imgScaleX + imgOffsetX + 0.5, y * imgScaleY + imgOffsetY + extend2.height + 0.5)
@@ -619,6 +659,10 @@ Namespace My.Sys.Drawing
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
+	
+	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByRef ImageSource As My.Sys.Drawing.BitmapType) As Any Ptr
+		Return Get(x, y, nWidth , nHeight, ImageSource.Handle)
+	End Function
 	
 	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSource As Any Ptr) As Any Ptr
 		If Not HandleSetted Then GetDevice
@@ -656,13 +700,17 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByRef Image As My.Sys.Drawing.BitmapType, iSourceAlpha As Integer = 255)
+		DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
+	End Sub
+	
+	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
 			Dim As HDC hMemDC = CreateCompatibleDC(Handle) ' Create Dc
-			SelectObject(hMemDC, Image.Handle) ' Select BITMAP in New Dc
+			SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
 			
 			Dim As BITMAP Bitmap01
-			GetObject(Image.Handle, SizeOf(Bitmap01), @Bitmap01)
+			GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
 			
 			Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
 			bfn.BlendOp = AC_SRC_OVER
@@ -848,6 +896,7 @@ Namespace My.Sys.Drawing
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(FillColorBK), GetBlue(FillColorBK), GetGreen(FillColorBK))
+			.cairo_rectangle(Handle, R.Left * imgScaleX + imgOffsetX - 0.5, R.Top * imgScaleX + imgOffsetX - 0.5, R.Right - R.Left - 0.5, R.Bottom - R.Top - 0.5)
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
 			Static As HBRUSH B
@@ -885,7 +934,7 @@ Namespace My.Sys.Drawing
 			Dim As PangoFontDescription Ptr desc
 			desc = pango_font_description_from_string(Font.Name & " " & Font.Size)
 			pango_layout_set_font_description (layout, desc)
-			pango_layout_set_text(layout, ToUTF8(FText), Len(ToUTF8(FText)))
+			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef PANGO_VERSION
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -894,13 +943,13 @@ Namespace My.Sys.Drawing
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			pango_font_description_free (desc)
-			Function = extend.Width
+			Function = extend.width
 		#elseif defined(__USE_JNI__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__)
-			Dim Sz As ..SIZE
+			Dim Sz As ..Size
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
-			Function = UnScaleX(Sz.cX)
+			Function = UnScaleX(Sz.cx)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Function
@@ -912,16 +961,16 @@ Namespace My.Sys.Drawing
 			Dim As PangoFontDescription Ptr desc
 			desc = pango_font_description_from_string(Font.Name & " " & Font.Size)
 			pango_layout_set_font_description (layout, desc)
-			pango_layout_set_text(layout, ToUTF8(FText), Len(ToUTF8(FText)))
+			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
 			pango_cairo_update_layout(Handle, layout)
-			#ifdef pango_version
+			#ifdef PANGO_VERSION
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			pango_font_description_free (desc)
-			Function = extend.Height
+			Function = extend.height
 		#elseif defined(__USE_JNI__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__)
@@ -977,8 +1026,8 @@ Namespace My.Sys.Drawing
 		imgScaleX = 1
 		imgScaleY = 1
 		FDrawWidth = 1
-		FScaleWidth = This.Width
-		FScaleHeight =  This.Height
+		FScaleWidth = ScaleX(This.Width)
+		FScaleHeight = ScaleY(This.Height)
 	End Constructor
 	
 	Private Destructor Canvas

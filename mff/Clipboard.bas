@@ -12,7 +12,7 @@
 #include once "Clipboard.bi"
 
 Dim Shared As My.Sys.ClipboardType Clipboard
-pClipboard = @Clipboard
+'pClipboard = @Clipboard
 
 Namespace My.Sys
 	Private Sub ClipboardType.Open
