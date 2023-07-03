@@ -873,7 +873,7 @@ End Type
 	End Function
 #endif
 
-Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "Enter text:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString Export
+Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "Enter text:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString __EXPORT__
 	#ifdef __USE_WINAPI__
 		Dim As HWND hwFocus = GetFocus()
 		Dim InputBox_ As TInputBox
