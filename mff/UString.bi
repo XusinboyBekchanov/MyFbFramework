@@ -51,6 +51,7 @@ Public:
 	Declare Function TrimStart As UString
 	Declare Function ToLower As UString
 	Declare Function ToUpper As UString
+	Declare Function SubString(ByVal start As Integer, ByVal n As Integer, ByRef expression As Const String = "") As UString
 	
 	m_Length As Integer
 	m_BufferLen As Integer

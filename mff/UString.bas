@@ -68,17 +68,27 @@ Private Function UString.ToUpper As UString
 End Function
 
 Private Function UString.TrimAll As UString
-	Return Trim(*m_Data)
+	Return Trim(*m_Data, Any !"\t ")
 End Function
 
 Private Function UString.TrimEnd As UString
-	Return RTrim(*m_Data)
+	Return RTrim(*m_Data, Any !"\t ")
 End Function
 
 Private Function UString.TrimStart As UString
-	Return LTrim(*m_Data)
+	Return LTrim(*m_Data, Any !"\t ")
 End Function
 
+Private Function UString.SubString(ByVal start As Integer, ByVal n As Integer, ByRef expression As Const String = "") As UString
+	If expression = "" Then
+		Return Mid(*m_Data, start, n)
+	Else
+		Mid(*m_Data, start, n) = expression
+		m_Length = Len(*m_Data)
+		m_BytesCount = (m_Length + 1) * SizeOf(WString)
+		Return *m_Data
+	End If
+End Function
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)): Else: subject = _CAllocate((lLen + 1) * SizeOf(WString)): End If
 	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
