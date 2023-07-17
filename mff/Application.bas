@@ -1094,7 +1094,7 @@ End Function
 	End Function
 	
 	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
-		Dim As String Buff, EncodingStr, NewLineStr
+		Dim As String Buff, EncodingStr
 		Dim As Integer Result = -1, Fn, FileSize
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
@@ -1102,13 +1102,13 @@ End Function
 			FileSize = LOF(Fn) + 1
 			Buff = String(4, 0)
 			Get #Fn, , Buff
-			If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
+			If (Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0) OrElse (Buff[0] = 0 AndAlso Buff[1] = 0 AndAlso Buff[2] = &HFE AndAlso Buff[3] = &HFF) Then 'Little Endian , Big Endian
 				FileEncoding = FileEncodings.Utf32BOM
 				EncodingStr = "utf-32"
 				Buff = String(1024, 0)
 				Get #Fn, 0, Buff
 				'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
-			ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
+			ElseIf (Buff[0] = &HFF AndAlso Buff[1] = &HFE) OrElse (Buff[0] = &HFE AndAlso Buff[1] = &HFF) Then 'Little Endian
 				FileEncoding = FileEncodings.Utf16BOM
 				EncodingStr = "utf-16"
 				Buff = String(1024, 0)
@@ -1125,27 +1125,22 @@ End Function
 					FileEncoding = FileEncodings.Utf8
 					EncodingStr = "ascii"
 				Else
-					FileEncoding = FileEncodings.PlainText
+				FileEncoding = FileEncodings.PlainText
 					EncodingStr = "ascii"
 				End If
 			End If
-			'Debug.Print Str(Len(buffer))
 			If InStr(Buff, Chr(13, 10)) Then
 				NewLineType= NewLineTypes.WindowsCRLF
-				NewLineStr = Chr(10)
 			ElseIf InStr(Buff, Chr(10)) Then
 				NewLineType= NewLineTypes.LinuxLF
-				NewLineStr = Chr(10)
 			ElseIf InStr(Buff, Chr(13)) Then
 				NewLineType= NewLineTypes.MacOSCR
-				NewLineStr = Chr(13)
 			Else
 				NewLineType= NewLineTypes.WindowsCRLF
-				NewLineStr = Chr(10)
 			End If
 		Else
-			Debug.Print "Open file failure!" &  " " + "in function" + " LoadFromFile" + " " & FileName, True
 			CloseFile_(Fn)
+			Debug.Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Open file failure: " + FileName, True
 			Return ""
 		End If
 		CloseFile_(Fn)
@@ -1157,7 +1152,8 @@ End Function
 			pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
 			If FileEncoding = FileEncodings.Utf8 Then
 				Buff =  Input(FileSize, #Fn)
-				UTFToWChar(1, StrPtr(Buff), *pBuff, @FileSize)
+				WLet(pBuff, FromUtf8(StrPtr(Buff)))
+				NewLineType= NewLineTypes.LinuxLF
 			Else
 				*pBuff =  WInput(FileSize, #Fn)
 			End If

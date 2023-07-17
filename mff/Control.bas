@@ -631,6 +631,9 @@ Namespace My.Sys.Forms
 				FBackColorBlue = GetBlue(Value) / 255.0
 				Brush.Color = FBackColor
 				Canvas.BackColor = FBackColor
+				#ifdef __USE_WINAPI__
+					If ClassName = "RichTextBox" Then SendMessage(Handle, EM_SETBKGNDCOLOR, 0, FBackColor)
+				#endif
 				Invalidate
 			End Property
 			

@@ -287,7 +287,10 @@ Namespace My.Sys.Drawing
 			If AWidth = -1 Then AWidth = FBmpWidth Else AWidth = ScaleX(AWidth)
 			If AHeight = -1 Then AHeight = FBmpHeight Else AHeight = ScaleY(AHeight)
 			#ifdef __USE_WINAPI__
-				If memDC > 0 Then StretchBlt(DC, ScaleX(ALeft), ScaleY(ATop),  AWidth, AHeight, memDC, 0, 0, FBmpWidth, FBmpHeight, SRCCOPY)
+				If memDC > 0 Then 
+					SetStretchBltMode(DC, HALFTONE)
+					StretchBlt(DC, ScaleX(ALeft), ScaleY(ATop),  AWidth, AHeight, memDC, 0, 0, FBmpWidth, FBmpHeight, SRCCOPY)
+				End If
 			#endif
 		End Sub
 	#endif
@@ -719,6 +722,7 @@ Namespace My.Sys.Drawing
 			bfn.AlphaFormat = AC_SRC_ALPHA
 			If nWidth = -1 Then nWidth = Bitmap01.bmWidth
 			If nHeight = -1 Then nHeight = Bitmap01.bmHeight
+			SetStretchBltMode(Handle, HALFTONE)
 			AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
 			DeleteDC(hMemDC) ' Delete Dc
 		#endif
@@ -869,7 +873,8 @@ Namespace My.Sys.Drawing
 			MemDC = CreateCompatibleDC(Handle)
 			OldBitmap = SelectObject(MemDC, Cast(HBITMAP, Image))
 			GetObject(Cast(HBITMAP, Image), SizeOf(Bitmap01), @Bitmap01)
-			SetStretchBltMode(Handle, COLORONCOLOR)
+			SetStretchBltMode(Handle, HALFTONE)
+			'SetStretchBltMode(Handle, COLORONCOLOR)
 			StretchBlt(Handle, ScaleX(x), ScaleY(y), ScaleX(nWidth), ScaleX(nHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
