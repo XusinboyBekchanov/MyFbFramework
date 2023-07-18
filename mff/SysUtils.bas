@@ -148,7 +148,7 @@ End Namespace
 #ifndef __FB_LINUX__
 	#include once "PointerList.bi"
 	Dim Shared As PointerList Handles
-#endif
+#EndIf
 #ifdef __USE_JNI__
 	Handles.Add 0
 	
@@ -427,16 +427,20 @@ Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 End Function
 
 Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True)
-	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
 		Exit Sub
 	End If
+	ReDim Result(0 To items - 1)
 	Do While i <= ls
 		If StartsWith(subject, Delimiter, i - 1) Then
 		'If Mid(subject, i, tLen) = Delimiter Then
 			n = n + 1
-			ReDim Preserve Result(n - 1)
+			If (n >= items + 1 ) Then
+				items += 50
+				ReDim Preserve Result(0 To items - 1)
+			End If
 			Result(n - 1) = Mid(subject, p, i - p)
 			p = i + tLen
 			i = p
@@ -450,16 +454,20 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 End Sub
 
 Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True)
-	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
 		Exit Sub
 	End If
+	ReDim Result(0 To items - 1)
 	Do While i <= ls
 		If StartsWith(subject, Delimiter, i - 1) Then
 		'If Mid(subject, i, tLen) = Delimiter Then
 			n = n + 1
-			ReDim Preserve Result(n - 1)
+			If (n >= items + 1 ) Then
+				items += 50
+				ReDim Preserve Result(0 To items - 1)
+			End If
 			Result(n - 1) = Mid(subject, p, i - p)
 			p = i + tLen
 			i = p
@@ -472,36 +480,32 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 	Result(n - 1) = Mid(subject, p, i - p)
 End Sub
 
-Private Sub Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True)
-	Dim As Long i = 1, n = 0, tLen = 0, ls = 0, p = 1, items = 20
-	tLen = Len(Delimiter): ls = Len(wszMainStr)
+
+Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True)
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
 		Exit Sub
 	End If
 	ReDim Result(0 To items - 1)
-	Dim As Boolean  bMatched
 	Do While i <= ls
-		If MatchCase Then
-			bMatched = Mid(wszMainStr, i, tLen) = Delimiter
-		Else
-			bMatched =  LCase(Mid(wszMainStr, i, tLen)) = LCase(Delimiter)
-		End If
-		If bMatched Then
-			If (n >= items ) Then
-				items += 20
+		If StartsWith(subject, Delimiter, i - 1) Then
+		'If Mid(subject, i, tLen) = Delimiter Then
+			n = n + 1
+			If (n >= items + 1 ) Then
+				items += 50
 				ReDim Preserve Result(0 To items - 1)
 			End If
-			WLet(Result(n), Mid(wszMainStr, p, i - p))
-			n += 1
+			WLet(Result(n - 1), Mid(subject, p, i - p))
 			p = i + tLen
 			i = p
 			Continue Do
 		End If
-		i += 1
+		i = i + 1
 	Loop
-	ReDim Preserve Result(n)
-	WLet(Result(n), Mid(wszMainStr, p, i - p))
+	n = n + 1
+	ReDim Preserve Result(n - 1)
+	WLet(Result(n - 1), Mid(subject, p, i - p))
 End Sub
 
 Private Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
