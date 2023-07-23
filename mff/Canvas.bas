@@ -494,7 +494,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
 			Dim tPoints As Point Ptr
-			tPoints->X = Points->X * imgScaleX + imgOffsetX:  tPoints->Y = Points->Y * imgScaleX + imgOffsetX
+			tPoints->X = ScaleX(Points->X) * imgScaleX + imgOffsetX:  tPoints->Y = ScaleY(Points->Y) * imgScaleX + imgOffsetX
 			.Polygon Handle, Cast(..Point Ptr, tPoints), Count
 		#endif
 		If Not HandleSetted Then ReleaseDevice
@@ -561,7 +561,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			Dim tPoints(Count - 1) As Point
 			For i As Integer = 0 To Count - 1
-				tPoints(i).X = Points(i).X * imgScaleX + imgOffsetX : tPoints(i).Y = Points(i).Y * imgScaleY + imgOffsetY
+				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
 			Next
 			.Polyline Handle, Cast(..Point Ptr, @tPoints(0)), Count
 		#endif
@@ -573,7 +573,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			Dim tPoints(Count - 1) As Point
 			For i As Integer = 0 To Count - 1
-				tPoints(i).X = Points(i).X * imgScaleX + imgOffsetX : tPoints(i).Y = Points(i).Y * imgScaleY + imgOffsetY
+				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
 			Next
 			.PolylineTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
 		#endif
@@ -585,7 +585,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			Dim tPoints(Count - 1) As Point
 			For i As Integer = 0 To Count - 1
-				tPoints(i).X = Points(i).X * imgScaleX + imgOffsetX : tPoints(i).Y = Points(i).Y * imgScaleY + imgOffsetY
+				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
 			Next
 			.PolyBezier Handle, Cast(..Point Ptr, @tPoints(0)), Count
 		#endif
@@ -597,7 +597,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			Dim tPoints(Count - 1) As Point
 			For i As Integer = 0 To Count - 1
-				tPoints(i).X = Points(i).X * imgScaleX + imgOffsetX : tPoints(i).Y = Points(i).Y * imgScaleY + imgOffsetY
+				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
 			Next
 			.PolyBezierTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
 		#endif
