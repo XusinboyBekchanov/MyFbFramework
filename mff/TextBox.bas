@@ -1128,8 +1128,11 @@ Namespace My.Sys.Forms
 		Private Sub TextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTextBox(Sender.Child)
-					'If .MaxLength <> 0 Then
-					.Perform(EM_LIMITTEXT, -1, 0)
+					If .FMaxLength = 0 Then 
+						.Perform(EM_LIMITTEXT, -1, 0)
+					Else
+						.Perform(EM_LIMITTEXT, .FMaxLength, 0)
+					End If
 					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
 					If .FMasked Then .Masked = True
 					If .FSelStart <> 0 OrElse .FSelEnd <> 0 Then .SetSel .FSelStart, .FSelEnd
