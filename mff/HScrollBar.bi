@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnScroll As Sub(ByRef Sender As HScrollBar, ByRef NewPos As UInteger)
+		OnScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As HScrollBar, ByRef NewPos As UInteger)
 	End Type
 End Namespace
 

@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 			#ifndef __USE_GTK__
 				If Handle Then Perform(TBM_SETPOS, 1, APosition)
 			#endif
-			If OnChange Then OnChange(This,Position)
+			If OnChange Then OnChange(*Designer, This, Position)
 		End If
 	End Sub
 	
@@ -131,7 +131,7 @@ Namespace My.Sys.Forms
 	Private Property TrackBar.MaxValue(Value As Integer)
 		FMaxValue = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_range(gtk_range(widget), FMinValue, Value)
+			gtk_range_set_range(GTK_RANGE(widget), FMinValue, Value)
 			TickStyle = FTickStyle
 		#else
 			If Handle Then Perform(TBM_SETRANGEMAX, 1, Value)
@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TrackBar.Position As Integer
 		#ifdef __USE_GTK__
-			FPosition = gtk_range_get_value(gtk_range(widget))
+			FPosition = gtk_range_get_value(GTK_RANGE(widget))
 		#else
 			If Handle Then FPosition = Perform(TBM_GETPOS, 0, 0)
 		#endif
@@ -151,11 +151,11 @@ Namespace My.Sys.Forms
 	Private Property TrackBar.Position(Value As Integer)
 		FPosition = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_value(gtk_range(widget), CDbl(Value))
+			gtk_range_set_value(GTK_RANGE(widget), CDbl(Value))
 		#else
 			If Handle Then Perform(TBM_SETPOS, True, FPosition)
 		#endif
-		If OnChange Then OnChange(This, FPosition)
+		If OnChange Then OnChange(*Designer, This, FPosition)
 		'SetRanges(Value, FMinValue, FMaxValue)
 	End Property
 	
@@ -417,7 +417,7 @@ Namespace My.Sys.Forms
 					If (.FSelStart = 0) And (.FSelEnd = 0) Then
 						.Perform(TBM_CLEARSEL, 1, 0)
 					Else
-						.Perform(TBM_SETSEL, 1, MakeLong(.FSelStart, .FSelEnd))
+						.Perform(TBM_SETSEL, 1, MAKELONG(.FSelStart, .FSelEnd))
 					End If
 					.Perform(TBM_SETPOS, 1, .FPosition)
 					.Perform(TBM_SETTICFREQ, .FFrequency, 1)
@@ -434,10 +434,10 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case CM_HSCROLL
 				FPosition = Perform(TBM_GETPOS, 0, 0)
-				If OnChange Then OnChange(This, Position)
+				If OnChange Then OnChange(*Designer, This, Position)
 			Case CM_VSCROLL
 				FPosition = Perform(TBM_GETPOS, 0, 0)
-				If OnChange Then OnChange(This, Position)
+				If OnChange Then OnChange(*Designer, This, Position)
 			
 			End Select
 		#endif

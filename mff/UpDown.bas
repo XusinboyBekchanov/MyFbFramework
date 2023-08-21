@@ -316,7 +316,7 @@ Namespace My.Sys.Forms
 						MoveToEx Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2) + 2, Fix((iHeight - 3) / 2) + 1, 0
 						LineTo Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2) + 2, Fix((iHeight - 3) / 2) + 2
 					End If
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					EndPaint Handle, @Ps
 					Canvas.HandleSetted = False
 					Message.Result = -1
@@ -348,7 +348,7 @@ Namespace My.Sys.Forms
 				If NM->code = UDN_DELTAPOS Then
 					Dim As NM_UPDOWN Ptr NMUD
 					NMUD = Cast(NM_UPDOWN Ptr, Message.lParam)
-					If OnChanging Then OnChanging(This, NMUD->iPos, NMUD->iDelta)
+					If OnChanging Then OnChanging(*Designer, This, NMUD->iPos, NMUD->iDelta)
 					If FAssociate Then FAssociate->Text = WStr(NMUD->iPos)
 				End If
 			End Select

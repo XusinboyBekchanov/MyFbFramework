@@ -796,31 +796,31 @@ Namespace My.Sys.Forms
 					RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
 				End If
 			Case CM_NOTIFY
-				Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lparam)
+				Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, Message.lParam)
 				If tvp->itemNew.hItem <> 0 Then
 					Dim sn As TreeNode Ptr
 					Select Case tvp->hdr.code
 					Case NM_CLICK
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnNodeClick AndAlso sn Then OnNodeClick(This, *sn)
+						If OnNodeClick AndAlso sn Then OnNodeClick(*Designer, This, *sn)
 					Case NM_DBLCLK:
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnNodeDblClick AndAlso sn Then OnNodeDblClick(This, *sn)
-						If OnNodeActivate Then OnNodeActivate(This, *sn)
+						If OnNodeDblClick AndAlso sn Then OnNodeDblClick(*Designer, This, *sn)
+						If OnNodeActivate Then OnNodeActivate(*Designer, This, *sn)
 					Case NM_KILLFOCUS
 					Case NM_RCLICK
-						If OnMouseUp Then OnMouseUp(This, 1, Message.lParamLo, Message.lParamHi, Message.wParam And &HFFFF)
+						If OnMouseUp Then OnMouseUp(*Designer, This, 1, Message.lParamLo, Message.lParamHi, Message.wParam And &HFFFF)
 						If ContextMenu Then
 							If ContextMenu->Handle Then
 								Dim As ..Point P
 								GetCursorPos(@P)
-								ContextMenu->Popup(P.x, P.y)
+								ContextMenu->Popup(P.X, P.Y)
 							End If
 						End If
 					Case NM_RDBLCLK
 					Case NM_RETURN
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnNodeActivate AndAlso sn Then OnNodeActivate(This, *sn)
+						If OnNodeActivate AndAlso sn Then OnNodeActivate(*Designer, This, *sn)
 					Case NM_SETCURSOR
 					Case NM_SETFOCUS
 					Case TVN_KEYDOWN
@@ -829,11 +829,11 @@ Namespace My.Sys.Forms
 					Case TVN_SELCHANGING
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
-						If OnSelChanging AndAlso sn <> 0 Then OnSelChanging(This, *sn, bCancel)
+						If OnSelChanging AndAlso sn <> 0 Then OnSelChanging(*Designer, This, *sn, bCancel)
 						If bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_SELCHANGED
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
-						If OnSelChanged AndAlso sn <> 0 Then OnSelChanged(This, *sn)
+						If OnSelChanged AndAlso sn <> 0 Then OnSelChanged(*Designer, This, *sn)
 					Case TVN_GETDISPINFO
 					Case TVN_GETINFOTIP
 					Case TVN_SETDISPINFO
@@ -843,33 +843,33 @@ Namespace My.Sys.Forms
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
 						Select Case tvp->action
-						Case TVE_COLLAPSE: If OnNodeCollapsing AndAlso sn <> 0 Then OnNodeCollapsing(This, *sn, bCancel)
-						Case TVE_EXPAND: If OnNodeExpanding AndAlso sn <> 0 Then OnNodeExpanding(This, *sn, bCancel)
+						Case TVE_COLLAPSE: If OnNodeCollapsing AndAlso sn <> 0 Then OnNodeCollapsing(*Designer, This, *sn, bCancel)
+						Case TVE_EXPAND: If OnNodeExpanding AndAlso sn <> 0 Then OnNodeExpanding(*Designer, This, *sn, bCancel)
 						End Select
 						If bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ITEMEXPANDED
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Select Case tvp->action
-						Case TVE_COLLAPSE: If OnNodeCollapsed AndAlso sn <> 0 Then OnNodeCollapsed(This, *sn)
-						Case TVE_EXPAND: If OnNodeExpanded AndAlso sn <> 0 Then OnNodeExpanded(This, *sn)
+						Case TVE_COLLAPSE: If OnNodeCollapsed AndAlso sn <> 0 Then OnNodeCollapsed(*Designer, This, *sn)
+						Case TVE_EXPAND: If OnNodeExpanded AndAlso sn <> 0 Then OnNodeExpanded(*Designer, This, *sn)
 						End Select
 					Case TVN_BEGINDRAG
 					Case TVN_BEGINRDRAG
 					Case TVN_DELETEITEM
 					Case TVN_BEGINLABELEDIT
-						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, message.lparam)
+						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, Message.lParam)
 						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
-						If OnBeforeLabelEdit Then OnBeforeLabelEdit(This, *sn, *tmpStr, bCancel)
+						If OnBeforeLabelEdit Then OnBeforeLabelEdit(*Designer, This, *sn, *tmpStr, bCancel)
 						_Deallocate( tmpStr)
 						If bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ENDLABELEDIT
-						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, message.lparam)
+						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, Message.lParam)
 						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
-						If OnAfterLabelEdit Then OnAfterLabelEdit(This, *sn, *tmpStr, bCancel)
+						If OnAfterLabelEdit Then OnAfterLabelEdit(*Designer, This, *sn, *tmpStr, bCancel)
 						_Deallocate( tmpStr)
 						If Not bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ASYNCDRAW

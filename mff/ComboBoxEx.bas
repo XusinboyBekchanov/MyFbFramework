@@ -632,7 +632,7 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
-					OnDrawItem(This, lpdis->itemID, lpdis->itemState, *Cast(Rect Ptr, @lpdis->rcItem), lpdis->hDC)
+					OnDrawItem(*Designer, This, lpdis->itemID, lpdis->itemState, *Cast(Rect Ptr, @lpdis->rcItem), lpdis->hDC)
 				Else 'If Base.FStyle = cbOwnerDrawFixed Then
 					If lpdis->itemID = &HFFFFFFFF& Then
 						Exit Sub

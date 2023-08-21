@@ -34,8 +34,8 @@ Namespace My.Sys.Forms
 		Declare Property Item(Index As Integer) As ToolButton Ptr
 		Declare Property Item(ByRef Key As WString) As ToolButton Ptr
 		Declare Property Item(Index As Integer, Value As ToolButton Ptr)
-		Declare Function Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
-		Declare Function Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+		Declare Function Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+		Declare Function Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FButton As ToolButton Ptr) As Integer
 		Declare Function IndexOf(ByRef Key As WString) As Integer
@@ -168,7 +168,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnButtonClick As Sub(ByRef Sender As ToolPalette,ByRef Button As ToolButton)
+		OnButtonClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolPalette,ByRef Button As ToolButton)
 	End Type
 End Namespace
 

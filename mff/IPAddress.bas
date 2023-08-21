@@ -133,8 +133,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub IPAddress.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_BUTTON_PRESS
 				'Return
 			Case GDK_BUTTON_RELEASE
@@ -146,18 +146,18 @@ Namespace My.Sys.Forms
 			Case CM_COMMAND
 				Select Case Message.wParamHi
 				Case EN_CHANGE
-					If OnChange Then OnChange(This)
+					If OnChange Then OnChange(*Designer, This)
 				Case EN_KILLFOCUS
-					If OnLostFocus Then OnLostFocus(This)
+					If OnLostFocus Then OnLostFocus(*Designer, This)
 				Case EN_SETFOCUS
-					If OnGotFocus Then OnGotFocus(This)
+					If OnGotFocus Then OnGotFocus(*Designer, This)
 				End Select
 				Message.Result = 0
 			Case CM_NOTIFY
-				Dim lpnmipa As NMIPADDRESS Ptr = Cast(NMIPADDRESS Ptr, message.lparam)
+				Dim lpnmipa As NMIPADDRESS Ptr = Cast(NMIPADDRESS Ptr, Message.lParam)
 				Select Case lpnmipa->hdr.code
 				Case IPN_FIELDCHANGED
-					If OnFieldChanged Then OnFieldChanged(This, lpnmipa->iField, lpnmipa->iValue)
+					If OnFieldChanged Then OnFieldChanged(*Designer, This, lpnmipa->iField, lpnmipa->iValue)
 				End Select
 			End Select
 		#endif

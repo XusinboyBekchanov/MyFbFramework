@@ -137,8 +137,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As My.Sys.Object)
-		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Private Type ListViewColumn Extends My.Sys.Object
@@ -174,8 +174,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As My.Sys.Object)
-		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Private Type ListViewColumns
@@ -328,15 +328,15 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnItemActivate As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		OnItemClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		OnItemDblClick As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		OnItemKeyDown As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer, Key As Integer, Shift As Integer)
-		OnSelectedItemChanging As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer, ByRef Cancel As Boolean)
-		OnSelectedItemChanged As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		OnBeginScroll As Sub(ByRef Sender As ListView)
-		OnEndScroll As Sub(ByRef Sender As ListView)
-		OnCellEdited As Sub(ByRef Sender As ListView, ByVal ItemIndex As Integer, ByVal SubItemIndex As Integer, ByRef NewText As WString)
+		OnItemActivate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		OnItemClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		OnItemDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		OnItemKeyDown As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, Key As Integer, Shift As Integer)
+		OnSelectedItemChanging As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, ByRef Cancel As Boolean)
+		OnSelectedItemChanged As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		OnBeginScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView)
+		OnEndScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView)
+		OnCellEdited As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, ByVal SubItemIndex As Integer, ByRef NewText As WString)
 	End Type
 End Namespace
 

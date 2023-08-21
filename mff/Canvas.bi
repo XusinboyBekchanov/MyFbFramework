@@ -93,9 +93,9 @@ Namespace My.Sys.Drawing
 	Private Type Canvas Extends My.Sys.Object
 	Private:
 		ParentControl As My.Sys.ComponentModel.Component Ptr
-		Declare Static Sub Font_Create(ByRef Sender As Font)
-		Declare Static Sub Pen_Create(ByRef Sender As Pen)
-		Declare Static Sub Brush_Create(ByRef Sender As Brush)
+		Declare Static Sub Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Font)
+		Declare Static Sub Pen_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Pen)
+		Declare Static Sub Brush_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Brush)
 		iTemp           As Integer
 		FBackColor      As Integer 
 		FFillColor      As Integer 

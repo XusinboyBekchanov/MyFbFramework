@@ -492,7 +492,7 @@ Namespace My.Sys.Forms
 		Refresh
 	End Property
 	
-	Private Sub Chart.tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
+	Private Sub Chart.tmrMOUSEOVER_Timer_(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent)
 		(*Cast(Chart Ptr, Sender.Designer)).tmrMOUSEOVER_Timer(Sender)
 	End Sub
 	Private Sub Chart.tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
@@ -528,11 +528,11 @@ Namespace My.Sys.Forms
 		FForeColor = clBlack
 		m_LinesColor = &HF4F4F4
 		Select Case ChartStyle
-		Case CS_PIE To CS_DONUT
+		Case CS_Pie To CS_Donut
 			m_FillOpacity = 100
 			m_Border = True
 			m_LabelsFormats = "{P}%"
-		Case CS_AREA
+		Case CS_Area
 			m_FillOpacity = 50
 			m_Border = False
 			m_LabelsFormats = "{V}"
@@ -821,7 +821,7 @@ Namespace My.Sys.Forms
 			
 			If bResult Then
 				If i = HotItem Then
-					If OnItemClick Then OnItemClick(i)
+					If OnItemClick Then OnItemClick(*Designer, This, i)
 				End If
 				Exit Sub
 			End If
@@ -830,7 +830,7 @@ Namespace My.Sys.Forms
 	End Sub
 	Private Sub Chart.MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 		Select Case ChartStyle
-		Case CS_PIE To CS_DONUT
+		Case CS_Pie To CS_Donut
 			Dim i As Long
 			Dim bResult As Boolean 'BOOL
 			'RaiseEvent MouseMove(Button, Shift, X, Y)

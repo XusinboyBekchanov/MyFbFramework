@@ -202,7 +202,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			Case GDK_MOTION_NOTIFY
 			#else
-			Case wm_mousemove
+			Case WM_MOUSEMOVE
 			#endif
 			'        int wnd_x = g_OrigWndPos.x +
 			If down1 = 1 Then
@@ -232,7 +232,7 @@ Namespace My.Sys.Forms
 						End Select
 						xOrig = xCur
 						yOrig = yCur
-						If OnMoving Then OnMoving(This)
+						If OnMoving Then OnMoving(*Designer, This)
 						This.Parent->RequestAlign
 						#ifdef __USE_GTK__
 							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign 
@@ -328,7 +328,7 @@ Namespace My.Sys.Forms
 			'               End If
 			'               Parent->RequestAlign
 			'            End If
-			If OnMoved Then OnMoved(This)
+			If OnMoved Then OnMoved(*Designer, This)
 		End Select
 		Base.ProcessMessage(Message)
 	End Sub

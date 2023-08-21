@@ -405,7 +405,7 @@ Namespace My.Sys.Forms
 					End If
 				Next i
 				RequestAlign
-				If OnSelChange Then OnSelChange(This, Id)
+				If OnSelChange Then OnSelChange(*Designer, This, Id)
 			End If
 		#endif
 	End Property
@@ -787,7 +787,7 @@ Namespace My.Sys.Forms
 					Dc = BeginPaint(Handle, @Ps)
 					Canvas.HandleSetted = True
 					Canvas.Handle = Dc
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Dim As LOGFONT LogRec
 					Dim As HFONT OldFontHandle, NewFontHandle
@@ -954,7 +954,7 @@ Namespace My.Sys.Forms
 		#endif
 		This.Add(tp)
 		tp->Visible = FTabCount = 1
-		If OnTabAdded Then OnTabAdded(This, Tabs[FTabCount - 1], FTabCount - 1)
+		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[FTabCount - 1], FTabCount - 1)
 		Return Tabs[FTabCount - 1]
 	End Function
 	
@@ -1025,7 +1025,7 @@ Namespace My.Sys.Forms
 			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[FTabCount - 1])
-		If OnTabAdded Then OnTabAdded(This, Tabs[FTabCount - 1], FTabCount - 1)
+		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[FTabCount - 1], FTabCount - 1)
 		Tabs[FTabCount - 1]->SendToBack
 	End Sub
 	
@@ -1057,7 +1057,7 @@ Namespace My.Sys.Forms
 				SetTabPageIndex(tp, Index)
 			End If
 			SelectedTabIndex = Index
-			If OnTabReordered Then OnTabReordered(This, tp, Index)
+			If OnTabReordered Then OnTabReordered(*Designer, This, tp, Index)
 		End If
 	End Sub
 	
@@ -1100,7 +1100,7 @@ Namespace My.Sys.Forms
 				SelectedTabIndex = Index + 1
 			End If
 			If FTabCount = 0 Then SetMargins
-			If OnTabRemoved Then OnTabRemoved(This, Prev, Index)
+			If OnTabRemoved Then OnTabRemoved(*Designer, This, Prev, Index)
 		End If
 	End Sub
 	
@@ -1138,7 +1138,7 @@ Namespace My.Sys.Forms
 			#endif
 			SetMargins
 			This.Add(Tabs[Index])
-			If OnTabAdded Then OnTabAdded(This, Tabs[Index], Index)
+			If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[Index], Index)
 		End If
 	End Sub
 	
@@ -1187,7 +1187,7 @@ Namespace My.Sys.Forms
 			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[Index])
-		If OnTabAdded Then OnTabAdded(This, Tabs[Index], Index)
+		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[Index], Index)
 	End Sub
 	
 	Private Operator TabControl.Cast As Control Ptr

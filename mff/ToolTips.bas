@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 				Case TTN_LINKCLICK
 					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, Message.lParam)
 					Dim As LITEM item = pNMLink1->item
-					If OnLinkClicked Then OnLinkClicked(This, item.szUrl)
+					If OnLinkClicked Then OnLinkClicked(*Designer, This, item.szUrl)
 				End Select
 			Case WM_MOUSEMOVE
 				Message.Result = -1

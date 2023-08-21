@@ -40,7 +40,6 @@ Namespace My.Sys
 		#elseif defined(__USE_WINAPI__)
 			Accelerator        As HACCEL
 		#endif
-		Designer As Object Ptr
 		FTemp As WString Ptr
 		FClassName As WString Ptr
 		FDynamic As Boolean
@@ -51,6 +50,7 @@ Namespace My.Sys
 	Public:
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function ClassName ByRef As WString
+		Designer As Object Ptr
 		' Function to get any typename in the inheritance up hierarchy
 		' of the type of an instance (address: 'po') compatible with the built-in 'Object'
 		'
@@ -58,6 +58,7 @@ Namespace My.Sys
 		' ('baseIndex = -1' to get the base.typename of the instance, or "" if not existing)
 		' ('baseIndex = -2' to get the base.base.typename of the instance, or "" if not existing)
 		Declare Function FullTypeName(ByVal baseIndex As Integer = 0) As UString
+		Declare Function IsEmpty() As Boolean
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast ByRef As WString
 		#ifndef ReadProperty_Off
@@ -70,17 +71,17 @@ Namespace My.Sys
 		Declare Destructor
 	End Type
 	
-	Private Type NotifyEvent     As Sub(ByRef Sender As My.Sys.Object)
-'	Private Type CloseEvent      As Sub(ByRef Sender As My.Sys.Object, ByRef CloseAction As Integer)
-'	Private Type ScrollEvent     As Sub(ByRef Sender As My.Sys.Object, Code As Integer, ByRef ScrollPos As Integer)
-'	Private Type MouseDownEvent  As Sub(ByRef Sender As My.Sys.Object, MouseButton As Short, X As Integer, Y As Integer, Shift As Integer)
-'	Private Type MouseUpEvent    As Sub(ByRef Sender As My.Sys.Object, MouseButton As Short, X As Integer, Y As Integer, Shift As Integer)
-'	Private Type MouseMoveEvent  As Sub(ByRef Sender As My.Sys.Object, X As Integer, Y As Integer, Shift As Integer)
-'	Private Type MouseWheelEvent As Sub(ByRef Sender As My.Sys.Object, Direction As Short, X As Integer, Y As Integer, Shift As Integer)
-'	Private Type KeyPressEvent   As Sub(ByRef Sender As My.Sys.Object, Key As Integer)
-'	Private Type KeyDownEvent    As Sub(ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
-'	Private Type KeyUpEvent      As Sub(ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
-'	Private Type TimerEvent      As Sub(ByRef Sender As My.Sys.Object, TimerId As Integer, TimerProc As Any Ptr = 0)
+	Private Type NotifyEvent     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+'	Private Type CloseEvent      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, ByRef CloseAction As Integer)
+'	Private Type ScrollEvent     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, Code As Integer, ByRef ScrollPos As Integer)
+'	Private Type MouseDownEvent  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, MouseButton As Short, X As Integer, Y As Integer, Shift As Integer)
+'	Private Type MouseUpEvent    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, MouseButton As Short, X As Integer, Y As Integer, Shift As Integer)
+'	Private Type MouseMoveEvent  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, X As Integer, Y As Integer, Shift As Integer)
+'	Private Type MouseWheelEvent As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, Direction As Short, X As Integer, Y As Integer, Shift As Integer)
+'	Private Type KeyPressEvent   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, Key As Integer)
+'	Private Type KeyDownEvent    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
+'	Private Type KeyUpEvent      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, Key As Integer, Shift As Integer)
+'	Private Type TimerEvent      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object, TimerId As Integer, TimerProc As Any Ptr = 0)
 	
 End Namespace
 

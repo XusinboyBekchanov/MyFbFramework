@@ -86,7 +86,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChanging   As Sub(ByRef Sender As UpDown,Value As Integer,Direction As Integer)
+		OnChanging   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown,Value As Integer,Direction As Integer)
 	End Type
 End Namespace
 

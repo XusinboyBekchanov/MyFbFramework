@@ -36,7 +36,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnScroll As Sub(ByRef Sender As ScrollControl)
+		OnScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ScrollControl)
 	End Type
 End Namespace
 

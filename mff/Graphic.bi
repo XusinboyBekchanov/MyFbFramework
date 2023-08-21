@@ -25,9 +25,9 @@ Namespace My.Sys.Drawing
 	Private Type GraphicType Extends My.Sys.Object
 	Private:
 		FResName As UString
-		Declare Static Sub BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
-		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
-		Declare Static Sub CursorChanged(ByRef Sender As My.Sys.Drawing.Cursor)
+		Declare Static Sub BitmapChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.BitmapType)
+		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
+		Declare Static Sub CursorChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Cursor)
 	Public:
 		Ctrl      As My.Sys.Forms.Control Ptr
 		Bitmap    As My.Sys.Drawing.BitmapType
@@ -52,7 +52,7 @@ Namespace My.Sys.Drawing
 		Declare Operator Let(ByRef Value As My.Sys.Drawing.BitmapType)
 		Declare Operator Let(ByRef Value As My.Sys.Drawing.Icon)
 		Declare Operator Let(ByRef Value As My.Sys.Drawing.Cursor)
-		OnChange As Sub(ByRef Sender As GraphicType, Image As Any Ptr, ImageType As Integer)
+		OnChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GraphicType, Image As Any Ptr, ImageType As Integer)
 	End Type
 End Namespace
 

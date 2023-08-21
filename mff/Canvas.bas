@@ -990,7 +990,7 @@ Namespace My.Sys.Drawing
 		Return @This
 	End Operator
 	
-	Private Sub Canvas.Font_Create(ByRef Sender As My.Sys.Drawing.Font)
+	Private Sub Canvas.Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Font)
 		#ifdef __USE_WINAPI__
 			With *Cast(Canvas Ptr, Sender.Parent)
 				If .Handle Then SelectObject(.Handle, Sender.Handle)
@@ -998,7 +998,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
-	Private Sub Canvas.Pen_Create(ByRef Sender As My.Sys.Drawing.Pen)
+	Private Sub Canvas.Pen_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Pen)
 		#ifdef __USE_WINAPI__
 			With *Cast(Canvas Ptr, Sender.Parent)
 				If .Handle Then
@@ -1009,7 +1009,7 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
-	Private Sub Canvas.Brush_Create(ByRef Sender As My.Sys.Drawing.Brush)
+	Private Sub Canvas.Brush_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Brush)
 		#ifdef __USE_WINAPI__
 			With *Cast(Canvas Ptr, Sender.Parent)
 				If .Handle Then SelectObject(.Handle, Sender.Handle)

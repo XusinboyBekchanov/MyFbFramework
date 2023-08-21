@@ -139,7 +139,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Sub ImageBox.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub ImageBox.GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 				R = Cast(..Rect, diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDraw Then
-					OnDraw(This, *Cast(My.Sys.Drawing.Rect Ptr, @R), Dc)
+					OnDraw(*Designer, This, *Cast(My.Sys.Drawing.Rect Ptr, @R), Dc)
 				Else
 				End If
 			End Select

@@ -36,7 +36,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChange As Sub(ByRef Sender As HotKey)
+		OnChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As HotKey)
 	End Type
 End Namespace
 

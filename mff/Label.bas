@@ -196,7 +196,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Sub Label.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub Label.GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_WINAPI__
@@ -248,10 +248,10 @@ Namespace My.Sys.Forms
 				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
-					If OnClick Then OnClick(This)
+					If OnClick Then OnClick(*Designer, This)
 				End If
 				If Message.wParamHi = STN_DBLCLK Then
-					If OnDblClick Then OnDblClick(This)
+					If OnDblClick Then OnDblClick(*Designer, This)
 				End If
 			Case WM_SIZE
 				InvalidateRect(Handle,NULL,True)
@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 				R = Cast(..Rect, diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDraw Then
-					OnDraw(This, *Cast(Rect Ptr, @R), Dc)
+					OnDraw(*Designer, This, *Cast(Rect Ptr, @R), Dc)
 				Else
 				End If
 			End Select

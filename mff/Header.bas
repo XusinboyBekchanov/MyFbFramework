@@ -441,8 +441,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub Header.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_MAP
 				Init
 			End Select
@@ -460,35 +460,35 @@ Namespace My.Sys.Forms
 				MouseButton = HDN->iButton
 				Select Case HDN->hdr.code
 				Case HDN_BEGINTRACK
-					If OnBeginTrack Then OnBeginTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
+					If OnBeginTrack Then OnBeginTrack(*Designer, This, QHeaderSection(FSections.Items[ItemIndex]))
 				Case HDN_ENDTRACK
-					If OnEndTrack Then OnEndTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
+					If OnEndTrack Then OnEndTrack(*Designer, This, QHeaderSection(FSections.Items[ItemIndex]))
 				Case HDN_DIVIDERDBLCLICK
-					If OnDividerDblClick Then OnDividerDblClick(This, ItemIndex,MouseButton)
+					If OnDividerDblClick Then OnDividerDblClick(*Designer, This, ItemIndex, MouseButton)
 				Case HDN_ITEMCHANGED
 					Dim As HD_ITEM Ptr HI
-					HI = Cast(HD_ITEM Ptr,HDN->pItem)
+					HI = Cast(HD_ITEM Ptr,HDN->pitem)
 					QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
-					If OnChange Then OnChange(This,QHeaderSection(FSections.Items[ItemIndex]))
+					If OnChange Then OnChange(*Designer, This, QHeaderSection(FSections.Items[ItemIndex]))
 				Case HDN_ITEMCHANGING
 					Dim As HD_ITEM Ptr HI
-					HI = Cast(HD_ITEM Ptr,HDN->pItem)
+					HI = Cast(HD_ITEM Ptr,HDN->pitem)
 					Dim bCancel As Boolean
-					If OnChanging Then OnChanging(This, QHeaderSection(FSections.Items[ItemIndex]), bCancel)
+					If OnChanging Then OnChanging(*Designer, This, QHeaderSection(FSections.Items[ItemIndex]), bCancel)
 					If bCancel Then Message.Result = -1: Exit Sub Else QHeaderSection(FSections.Items[ItemIndex]).Width = HI->cxy
 				Case HDN_ITEMCLICK
-					If OnSectionClick Then OnSectionClick(This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton)
+					If OnSectionClick Then OnSectionClick(*Designer, This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton)
 				Case HDN_ITEMDBLCLICK
-					If OnSectionDblClick Then OnSectionDblClick(This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton)
+					If OnSectionDblClick Then OnSectionDblClick(*Designer, This, QHeaderSection(FSections.Items[ItemIndex]), ItemIndex, MouseButton)
 				Case HDN_TRACK
-					If OnTrack Then OnTrack(This, QHeaderSection(FSections.Items[ItemIndex]))
+					If OnTrack Then OnTrack(*Designer, This, QHeaderSection(FSections.Items[ItemIndex]))
 				End Select
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr Dis
 				Dis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				Dim As My.Sys.Drawing.Rect R = *Cast(My.Sys.Drawing.Rect Ptr, @Dis->rcItem)
-				Dim As Integer Index = Dis->ItemID, State = Dis->itemState
-				If OnDrawSection Then OnDrawSection(This, QHeaderSection(FSections.Items[Index]), R, State And ODS_SELECTED <> 0)
+				Dim As Integer Index = Dis->itemID, State = Dis->itemState
+				If OnDrawSection Then OnDrawSection(*Designer, This, QHeaderSection(FSections.Items[Index]), R, State And ODS_SELECTED <> 0)
 			Case WM_MENUSELECT
 				IsMenuItem = True
 			Case WM_COMMAND
@@ -501,7 +501,7 @@ Namespace My.Sys.Forms
 					Next i
 					For i As Integer = 0 To List.Count - 1
 						If QMenuItem(List.Items[i]).Command = Message.wParamLo Then
-							If QMenuItem(List.Items[i]).OnClick Then QMenuItem(List.Items[i]).OnClick(QMenuItem(List.Items[i]))
+							If QMenuItem(List.Items[i]).OnClick Then QMenuItem(List.Items[i]).OnClick(*QMenuItem(List.Items[i]).Designer, QMenuItem(List.Items[i]))
 							Exit For
 						End If
 					Next i

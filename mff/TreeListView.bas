@@ -1314,7 +1314,7 @@ Namespace My.Sys.Forms
 				If OnDrawItem Then
 					Canvas.HandleSetted = True
 					Canvas.Handle = lpdis->hDC
-					OnDrawItem(This, GetTreeListViewItem(lpdis->itemID), lpdis->itemState, lpdis->itemAction, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), Canvas)
+					OnDrawItem(*Designer, This, GetTreeListViewItem(lpdis->itemID), lpdis->itemState, lpdis->itemAction, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), Canvas)
 					Canvas.HandleSetted = False
 					Message.Result = True
 					Exit Sub
@@ -1324,7 +1324,7 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
 				ItemID = Cast(Integer, miStruct->itemID)
-				If OnMeasureItem Then OnMeasureItem(This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
+				If OnMeasureItem Then OnMeasureItem(*Designer, This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
 				Dim lvhti As LVHITTESTINFO
@@ -1341,7 +1341,7 @@ Namespace My.Sys.Forms
 							If tlvi->IsExpanded Then
 								tlvi->Collapse
 							Else
-								If OnItemExpanding Then OnItemExpanding(This, tlvi)
+								If OnItemExpanding Then OnItemExpanding(*Designer, This, tlvi)
 								tlvi->Expand
 							End If
 						End If
@@ -1365,7 +1365,7 @@ Namespace My.Sys.Forms
 							If tlvi->IsExpanded Then
 								tlvi->Nodes.Item(0)->SelectItem
 							Else
-								If OnItemExpanding Then OnItemExpanding(This, tlvi)
+								If OnItemExpanding Then OnItemExpanding(*Designer, This, tlvi)
 								tlvi->Expand
 							End If
 						End If
@@ -1374,11 +1374,11 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, Message.lParam)
 				Select Case lvp->hdr.code
-				Case NM_CLICK: If OnItemClick Then OnItemClick(This, GetTreeListViewItem(lvp->iItem))
-				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(This, GetTreeListViewItem(lvp->iItem))
+				Case NM_CLICK: If OnItemClick Then OnItemClick(*Designer, This, GetTreeListViewItem(lvp->iItem))
+				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(*Designer, This, GetTreeListViewItem(lvp->iItem))
 				Case NM_KEYDOWN:
 					Dim nmk As NMKEY Ptr = Cast(NMKEY Ptr, Message.lParam)
-					If OnItemKeyDown Then OnItemKeyDown(This, GetTreeListViewItem(lvp->iItem))
+					If OnItemKeyDown Then OnItemKeyDown(*Designer, This, GetTreeListViewItem(lvp->iItem))
 				Case NM_CUSTOMDRAW
 					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
@@ -1434,10 +1434,10 @@ Namespace My.Sys.Forms
 							Return
 						End Select
 					End If
-				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, GetTreeListViewItem(lvp->iItem))
-				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
-				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
-				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, GetTreeListViewItem(lvp->iItem))
+				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(*Designer, This, GetTreeListViewItem(lvp->iItem))
+				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(*Designer, This)
+				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(*Designer, This)
+				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, GetTreeListViewItem(lvp->iItem))
 				Case HDN_ITEMCHANGED:
 				Case LVN_BEGINLABELEDIT
 					If FPressedSubItem < Columns.Count AndAlso Not Columns.Column(FPressedSubItem)->Editable Then Message.Result = -1: Exit Sub
@@ -1455,14 +1455,14 @@ Namespace My.Sys.Forms
 						SetProp(txt.Handle, "@@@Left", Cast(..HANDLE, Cast(Integer, lpRect.Left)))
 						txt.Text = GetTreeListViewItem(lvp1->item.iItem)->Text(FPressedSubItem)
 					End If
-					If OnCellEditing Then OnCellEditing(This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, @txt, bCancel)
+					If OnCellEditing Then OnCellEditing(*Designer, This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, @txt, bCancel)
 					txt.Handle = 0
 					If bCancel Then Message.Result = -1: Exit Sub
 				Case LVN_ENDLABELEDIT
 					Dim lvp1 As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
 					If lvp1->item.pszText <> 0 Then
 						Dim bCancel As Boolean
-						If OnCellEdited Then OnCellEdited(This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, *lvp1->item.pszText, bCancel)
+						If OnCellEdited Then OnCellEdited(*Designer, This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, *lvp1->item.pszText, bCancel)
 						If bCancel Then
 							Message.Result = 0
 						Else

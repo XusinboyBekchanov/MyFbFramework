@@ -34,7 +34,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnLinkClicked As Sub(ByRef Sender As LinkLabel, ByVal ItemIndex As Integer, ByRef Link As WString, ByRef Action As Integer)
+		OnLinkClicked As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As LinkLabel, ByVal ItemIndex As Integer, ByRef Link As WString, ByRef Action As Integer)
 	End Type
 End Namespace
 

@@ -166,8 +166,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnHeightChange  As Sub(ByRef Sender As ReBar)
-		OnPopup         As Sub(ByRef Sender As ReBar, Index As Integer)
+		OnHeightChange  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ReBar)
+		OnPopup         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ReBar, Index As Integer)
 	End Type
 End Namespace
 

@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor(ByVal iImageWidth As Integer = 16, ByVal iImageHeight As Integer = 16)
 		Declare Destructor
-		OnChange As Sub(ByRef Sender As ImageList)
+		OnChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ImageList)
 	End Type
 End Namespace
 

@@ -971,24 +971,24 @@ Namespace My.Sys.Forms
 			Case CM_COMMAND
 				Select Case message.wParamHi
 				Case EN_SELCHANGE
-					If OnSelChange Then OnSelChange(This)
+					If OnSelChange Then OnSelChange(*Designer, This)
 					message.Result = 0
 				Case EN_REQUESTRESIZE
 					With Cast(REQRESIZE Ptr, message.lParam)->rc
-						If OnResize Then OnResize(This, .Right - .Left, .Bottom - .Top)
+						If OnResize Then OnResize(*Designer, This, .Right - .Left, .Bottom - .Top)
 					End With
 				Case EN_PROTECTED
 					Static As Boolean AllowChange  = 1
 					With Cast(ENPROTECTED Ptr, message.lParam)->chrg
 						If OnProtectChange Then
-							OnProtectChange(This, .cpMin, .cpMax, AllowChange)
+							OnProtectChange(*Designer, This, .cpMin, .cpMax, AllowChange)
 							If Not AllowChange Then message.Result = 1
 						End If
 					End With
 				End Select
 			Case WM_PASTE
 				Dim Action As Integer = 1
-				If OnPaste Then OnPaste(This, Action)
+				If OnPaste Then OnPaste(*Designer, This, Action)
 				Select Case Action
 				Case 0: message.Result = -1
 				Case 1: message.Result = 0

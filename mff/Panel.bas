@@ -190,7 +190,7 @@ Namespace My.Sys.Forms
 					Canvas.HandleSetted = True
 					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					Canvas.HandleSetted = False
 					BitBlt(Dc, 0, 0, R.Right, R.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 					End If
 					Canvas.Handle = Dc
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				End If
 				ReleaseDC Handle, Dc
 				Message.Result = 0
@@ -297,7 +297,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Sub Panel.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub Panel.GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__

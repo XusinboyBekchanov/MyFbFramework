@@ -115,9 +115,9 @@ Namespace My.Sys.Forms
 '						If bMeta Then KeyName = "Meta + " & KeyName
 '						If bSuper Then KeyName = "Super + " & KeyName
 '						If bHyper Then KeyName = "Hyper + " & KeyName
-						If WStr(*gtk_entry_get_text(gtk_entry(widget))) <> KeyName Then
-							gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
-							gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
+						If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
+							gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(KeyName))
+							gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
 							If OnChange Then OnChange(This)
 						End If
 						Message.Result = True
@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 					'End If
 				End Select
 			Case GDK_KEY_RELEASE
-				Dim As String KeyName = *gdk_keyval_name(e->Key.keyval)
+				Dim As String KeyName = *gdk_keyval_name(e->key.keyval)
 				Select Case KeyName
 				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
 					KeyName = ..Left(KeyName, Len(KeyName) - 2)
@@ -153,7 +153,7 @@ Namespace My.Sys.Forms
 			Case CM_COMMAND
 				Select Case Message.wParamHi
 				Case EN_CHANGE
-					If OnChange Then OnChange(This)
+					If OnChange Then OnChange(*Designer, This)
 				End Select
 			End Select
 		#endif

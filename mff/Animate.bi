@@ -12,13 +12,13 @@
 
 #include once "Control.bi"
 #ifdef GIFPlayOn
-	#Ifdef __FB_64BIT__
-		#Inclib "gdiplus"
-		#Include "win/gdiplus-c.bi"
-	#Else
-		#Include "win/gdiplus.bi"
+	#ifdef __FB_64BIT__
+		#inclib "gdiplus"
+		#include "win/gdiplus-c.bi"
+	#else
+		#include "win/gdiplus.bi"
 		Using Gdiplus
-	#Endif
+	#endif
 #endif
 #ifndef __USE_GTK__
 	#include once "win/dshow.bi"
@@ -177,11 +177,11 @@ Namespace My.Sys.Forms
 		Declare Sub Close
 		Declare Constructor
 		Declare Destructor
-		OnOpen  As Sub(ByRef Sender As Animate)
-		OnClose As Sub(ByRef Sender As Animate)
-		OnStart As Sub(ByRef Sender As Animate)
-		OnPause As Sub(ByRef Sender As Animate)
-		OnStop  As Sub(ByRef Sender As Animate)
+		OnOpen  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Animate)
+		OnClose As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Animate)
+		OnStart As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Animate)
+		OnPause As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Animate)
+		OnStop  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Animate)
 	End Type
 End Namespace
 

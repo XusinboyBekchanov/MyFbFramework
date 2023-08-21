@@ -183,16 +183,16 @@ End Property
 				SetWindowLongPtr GetParent(FWindow), DWLP_MSGRESULT, 1
 				Return 2
 			Case CDN_SELCHANGE
-				If OpenDial Then If OpenDial->OnSelectionChange Then OpenDial->OnSelectionChange(*OpenDial)
+				If OpenDial Then If OpenDial->OnSelectionChange Then OpenDial->OnSelectionChange(*OpenDial->Designer, *OpenDial)
 			Case CDN_FOLDERCHANGE
-				If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial)
+				If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial->Designer, *OpenDial)
 			Case CDN_TYPECHANGE
 				Dim As Integer Index
 				Index = Cast(OPENFILENAME Ptr, POF->lpOFN)->nFilterIndex
 				If OpenDial Then
 					OpenDial->FilterIndex = Index
 					If OpenDial->OnTypeChange Then
-						OpenDial->OnTypeChange(*OpenDial, Index)
+						OpenDial->OnTypeChange(*OpenDial->Designer, *OpenDial, Index)
 					End If
 				End If
 			Case CDN_INITDONE
@@ -469,16 +469,16 @@ End Property
 				SetWindowLongPtr GetParent(FWindow),DWLP_MSGRESULT,1
 				Exit Function
 			Case CDN_SELCHANGE
-				If SaveDial Then If SaveDial->OnSelectionChange Then SaveDial->OnSelectionChange(*Ctrl)
+				If SaveDial Then If SaveDial->OnSelectionChange Then SaveDial->OnSelectionChange(*Ctrl->Designer, *Ctrl)
 			Case CDN_FOLDERCHANGE
-				If SaveDial Then If SaveDial->OnFolderChange Then SaveDial->OnFolderChange(*Ctrl)
+				If SaveDial Then If SaveDial->OnFolderChange Then SaveDial->OnFolderChange(*Ctrl->Designer, *Ctrl)
 			Case CDN_TYPECHANGE
 				Dim As Integer Index
 				Index = Cast(OPENFILENAME Ptr, POF->lpOFN)->nFilterIndex
 				If SaveDial Then
 					SaveDial->FilterIndex = Index
 					If SaveDial->OnTypeChange Then
-						SaveDial->OnTypeChange(*Ctrl, Index)
+						SaveDial->OnTypeChange(*Ctrl->Designer, *Ctrl, Index)
 					End If
 				End If
 			Case CDN_INITDONE

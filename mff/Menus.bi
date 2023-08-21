@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 	
 	Private Type MenuItem Extends My.Sys.Object
 	Private:
-		Declare Static Sub BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
+		Declare Static Sub BitmapChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.BitmapType)
 		#ifdef __USE_WINAPI__
 			FInfo	    	As MENUITEMINFO
 		#endif
@@ -163,7 +163,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False)
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As MenuItem)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 	End Type
 	
 	Private Type Menu Extends Component
@@ -230,7 +230,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnActivate As Sub(ByRef Sender As Menu)
+		OnActivate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Menu)
 	End Type
 	
 	Private Type MainMenu Extends Menu
@@ -270,8 +270,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnPopup As Sub(ByRef Sender As PopupMenu)
-		OnDropDown As Sub(ByRef Sender As PopupMenu)
+		OnPopup As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As PopupMenu)
+		OnDropDown As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As PopupMenu)
 	End Type
 	
 	Declare Function GetAscKeyCode(HotKey As String) As Integer

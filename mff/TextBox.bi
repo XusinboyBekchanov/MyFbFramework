@@ -178,17 +178,17 @@ Namespace My.Sys.Forms
 		Declare Sub InputFilter( ByRef Value As WString) 'David Change
 		Declare Constructor
 		Declare Destructor
-		OnActivate  As Sub(ByRef Sender As TextBox)
-		OnChange    As Sub(ByRef Sender As TextBox)
-		OnGotFocus  As Sub(ByRef Sender As TextBox)
-		OnLostFocus As Sub(ByRef Sender As TextBox)
-		'OnHScroll  As Sub(ByRef Sender As TextBox)
-		'OnVScroll  As Sub(ByRef Sender As TextBox)
-		OnCut       As Sub(ByRef Sender As TextBox)
-		OnCopy      As Sub(ByRef Sender As TextBox)
-		OnPaste     As Sub(ByRef Sender As TextBox, ByRef Action As Integer)
+		OnActivate  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		OnChange    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		OnGotFocus  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		OnLostFocus As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		'OnHScroll  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		'OnVScroll  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		OnCut       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		OnCopy      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		OnPaste     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox, ByRef Action As Integer)
 		'Raises the Update event.
-		OnUpdate    As Sub(ByRef Sender As TextBox, ByRef NewText As WString)
+		OnUpdate    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox, ByRef NewText As WString)
 	End Type
 End Namespace
 

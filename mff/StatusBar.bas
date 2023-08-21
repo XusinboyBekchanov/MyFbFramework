@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 		Caption = Value
 	End Operator
 	
-	Private Sub StatusPanel.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+	Private Sub StatusPanel.IconChanged(ByRef Designer As My.Sys.Object,  ByRef Sender As My.Sys.Drawing.Icon)
 		With *Cast(StatusPanel Ptr, Sender.Graphic)
 			#ifdef __USE_GTK__
 			#else
@@ -444,7 +444,7 @@ Namespace My.Sys.Forms
 					Next i
 					SetBkMode(Dc, OPAQUE)
 					NewFontHandle = SelectObject(Dc, OldFontHandle)
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					EndPaint Handle, @Ps
 					Message.Result = 0
 					Canvas.HandleSetted = False

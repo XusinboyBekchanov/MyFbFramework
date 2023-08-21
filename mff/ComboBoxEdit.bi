@@ -113,19 +113,19 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnActivate          As Sub(ByRef Sender As ComboBoxEdit)
-		OnChange            As Sub(ByRef Sender As ComboBoxEdit)
-		OnDropDown          As Sub(ByRef Sender As ComboBoxEdit)
-		OnCloseUp           As Sub(ByRef Sender As ComboBoxEdit)
-		OnKeyPress          As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		OnKeyDown           As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		OnKeyUp             As Sub(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
+		OnActivate          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
+		OnChange            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
+		OnDropDown          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
+		OnCloseUp           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
+		OnKeyPress          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
+		OnKeyDown           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
+		OnKeyUp             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		#ifndef __USE_GTK__
-			OnMeasureItem       As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer, ByRef Height As UINT)
-			OnDrawItem          As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, ByRef R As Rect, DC As HDC = 0)
+			OnMeasureItem       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer, ByRef Height As UINT)
+			OnDrawItem          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, ByRef R As Rect, DC As HDC = 0)
 		#endif
-		OnSelected          As Sub(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		OnSelectCanceled    As Sub(ByRef Sender As ComboBoxEdit)
+		OnSelected          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		OnSelectCanceled    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
 	End Type
 	
 	#ifdef __USE_GTK__

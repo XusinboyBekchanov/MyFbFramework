@@ -507,11 +507,11 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If GTK_IS_TOGGLE_TOOL_BUTTON(Widget) Then
 						gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(Widget), Value)
-						If OnClick Then OnClick(This)
+						If OnClick Then OnClick(*Designer, This)
 					End If
 				#else
 					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MAKELONG(FChecked, 0))
-					If OnClick Then OnClick(This)
+					If OnClick Then OnClick(*Designer, This)
 				#endif
 			End With
 		End If
@@ -591,7 +591,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		PButton = _New( ToolButton)
 		PButton->FDynamic = True
@@ -599,49 +599,49 @@ Namespace My.Sys.Forms
 		With *PButton
 			.Style          = FStyle
 			#ifdef __USE_GTK__
-				If gtk_is_widget(.widget) Then gtk_widget_destroy(.Widget)
+				If GTK_IS_WIDGET(.Widget) Then gtk_widget_destroy(.Widget)
 				Select Case FStyle
 				Case tbsSeparator
-					.widget = gtk_widget(gtk_separator_tool_item_new())
+					.Widget = GTK_WIDGET(gtk_separator_tool_item_new())
 				Case Else
 					Select Case FStyle
 					Case tbsButton, tbsButton Or tbsAutosize
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsAutosize
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsCheck, tbsCheck Or tbsAutosize
-						.widget = gtk_widget(gtk_toggle_tool_button_new())
+						.Widget = GTK_WIDGET(gtk_toggle_tool_button_new())
 					Case tbsCheckGroup, tbsCheckGroup Or tbsAutosize
-						If FButtons.Count > 1 AndAlso gtk_is_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget) Then
-							.widget = gtk_widget(gtk_radio_tool_button_new_from_widget(gtk_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget)))
+						If FButtons.Count > 1 AndAlso GTK_IS_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget) Then
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new_from_widget(GTK_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget)))
 						Else
-							.widget = gtk_widget(gtk_radio_tool_button_new(NULL))
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new(NULL))
 						End If
 					Case tbsGroup, tbsGroup Or tbsAutosize
-						If FButtons.Count > 1 AndAlso gtk_is_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget) Then
-							.widget = gtk_widget(gtk_radio_tool_button_new_from_widget(gtk_radio_tool_button(QToolButton(FButtons.Item(FButtons.Count - 2)).widget)))
+						If FButtons.Count > 1 AndAlso GTK_IS_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget) Then
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new_from_widget(GTK_RADIO_TOOL_BUTTON(QToolButton(FButtons.Item(FButtons.Count - 2)).Widget)))
 						Else
-							.widget = gtk_widget(gtk_radio_tool_button_new(NULL))
+							.Widget = GTK_WIDGET(gtk_radio_tool_button_new(NULL))
 						End If
 					Case tbsDropDown, tbsDropDown Or tbsAutosize
-						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
+						.Widget = GTK_WIDGET(gtk_menu_tool_button_new(NULL, ToUtf8(FCaption)))
+						gtk_menu_tool_button_set_menu(GTK_MENU_TOOL_BUTTON(.Widget), .DropDownMenu.Handle)
 					Case tbsNoPrefix
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsShowText, tbsShowText Or tbsAutosize
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
-					Case tbsWholeDropdown, tbsWholeDropdown Or tbsAutoSize
-						.widget = gtk_widget(gtk_menu_tool_button_new(NULL, ToUTF8(FCaption)))
-						gtk_menu_tool_button_set_menu(gtk_menu_tool_button(.widget), .DropDownMenu.Handle)
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
+					Case tbsWholeDropdown, tbsWholeDropdown Or tbsAutosize
+						.Widget = GTK_WIDGET(gtk_menu_tool_button_new(NULL, ToUtf8(FCaption)))
+						gtk_menu_tool_button_set_menu(GTK_MENU_TOOL_BUTTON(.Widget), .DropDownMenu.Handle)
 					Case Else
-						.widget = gtk_widget(gtk_tool_button_new(NULL, ToUTF8(FCaption)))
+						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					End Select
-					If gtk_is_tool_button(.widget) Then gtk_tool_button_set_label(gtk_tool_button(.widget), TOUTF8(FHint))
-					gtk_tool_item_set_tooltip_text(gtk_tool_item(.widget), ToUTF8(FHint))
-					g_signal_connect(.widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
+					If GTK_IS_TOOL_BUTTON(.Widget) Then gtk_tool_button_set_label(GTK_TOOL_BUTTON(.Widget), ToUtf8(FHint))
+					gtk_tool_item_set_tooltip_text(GTK_TOOL_ITEM(.Widget), ToUtf8(FHint))
+					g_signal_connect(.Widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
 				End Select
 				
-				gtk_widget_show_all(.widget)
+				gtk_widget_show_all(.Widget)
 			#endif
 			.State        = FState
 			.ImageIndex     = FImageIndex
@@ -655,7 +655,7 @@ Namespace My.Sys.Forms
 		PButton->Ctrl = Parent
 		#ifdef __USE_GTK__
 			If Parent Then
-				gtk_toolbar_insert(gtk_toolbar(Parent->Handle), gtk_tool_item(PButton->widget), Index)
+				gtk_toolbar_insert(GTK_TOOLBAR(Parent->Handle), GTK_TOOL_ITEM(PButton->Widget), Index)
 			End If
 		#else
 			Dim As TBBUTTON TB
@@ -668,7 +668,7 @@ Namespace My.Sys.Forms
 			Else
 				TB.iString = 0
 			End If
-			TB.dwData = Cast(DWord_Ptr,@PButton->DropDownMenu)
+			TB.dwData = Cast(DWORD_PTR,@PButton->DropDownMenu)
 			If Parent Then
 				If Index <> -1 Then
 					SendMessage(Parent->Handle, TB_INSERTBUTTON, Index, CInt(@TB))
@@ -680,7 +680,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 	
-	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		If Parent AndAlso Cast(ToolBar Ptr, Parent)->ImagesList Then
 			With *Cast(ToolBar Ptr, Parent)->ImagesList
@@ -961,7 +961,7 @@ Namespace My.Sys.Forms
 				GetDropDownMenuItems
 				For i As Integer = 0 To FPopupMenuItems.Count -1
 					If QMenuItem(FPopupMenuItems.Items[i]).Command = Message.wParamLo Then
-						If QMenuItem(FPopupMenuItems.Items[i]).OnClick Then QMenuItem(FPopupMenuItems.Items[i]).OnClick(QMenuItem(FPopupMenuItems.Items[i]))
+						If QMenuItem(FPopupMenuItems.Items[i]).OnClick Then QMenuItem(FPopupMenuItems.Items[i]).OnClick(*QMenuItem(FPopupMenuItems.Items[i]).Designer, QMenuItem(FPopupMenuItems.Items[i]))
 						Exit For
 					End If
 				Next i
@@ -975,8 +975,8 @@ Namespace My.Sys.Forms
 				If Message.wParam <> 0 Then
 					Index = Perform(TB_COMMANDTOINDEX, Message.wParam, 0)
 					If Perform(TB_GETBUTTON, Index, CInt(@TB)) Then
-						If Buttons.Item(Index)->OnClick Then (Buttons.Item(Index))->OnClick(*Buttons.Item(Index))
-						If OnButtonClick Then OnButtonClick(This, *Buttons.Item(Index))
+						If Buttons.Item(Index)->OnClick Then (Buttons.Item(Index))->OnClick(*Buttons.Item(Index)->Designer, *Buttons.Item(Index))
+						If OnButtonClick Then OnButtonClick(*Designer, This, *Buttons.Item(Index))
 					End If
 				End If
 			Case CM_NOTIFY

@@ -92,7 +92,7 @@ Namespace My.Sys.Drawing
 		#endif
 		Declare Constructor
 		Declare Destructor
-		Changed As Sub(ByRef Sender As BitmapType)
+		Changed As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As BitmapType)
 	End Type
 End Namespace
 

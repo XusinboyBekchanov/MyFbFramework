@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-			Declare Static Function IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
@@ -50,8 +50,8 @@ Namespace My.Sys.Forms
 		Declare Sub Clear
 		Declare Constructor
 		Declare Destructor
-		OnChange        As Sub(ByRef Sender As IPAddress)
-		OnFieldChanged  As Sub(ByRef Sender As IPAddress, iField As Integer, iValue As Integer)
+		OnChange        As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As IPAddress)
+		OnFieldChanged  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As IPAddress, iField As Integer, iValue As Integer)
 	End Type
 End Namespace
 

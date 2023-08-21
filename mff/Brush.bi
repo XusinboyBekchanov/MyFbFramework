@@ -88,7 +88,7 @@ Namespace My.Sys.Drawing
 		Declare Property HatchStyle As HatchStyles
 		Declare Property HatchStyle(Value As HatchStyles)
 		Declare Operator Cast As Any Ptr
-		OnCreate As Sub(ByRef Sender As Brush)
+		OnCreate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Brush)
 		Declare Constructor
 		Declare Destructor
 	End Type

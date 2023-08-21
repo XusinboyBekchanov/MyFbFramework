@@ -1196,19 +1196,19 @@ Namespace My.Sys.Forms
 			Case CM_COMMAND
 				Select Case message.wParamHi
 				Case BN_CLICKED
-					If OnClick Then OnClick(This)
+					If OnClick Then OnClick(*Designer, This)
 				Case EN_CHANGE
-					If OnChange Then OnChange(This)
+					If OnChange Then OnChange(*Designer, This)
 				Case EN_UPDATE
-					If OnUpdate Then OnUpdate(This, This.Text)
+					If OnUpdate Then OnUpdate(*Designer, This, This.Text)
 				Case EN_KILLFOCUS
-					If OnLostFocus Then OnLostFocus(This)
+					If OnLostFocus Then OnLostFocus(*Designer, This)
 				Case EN_SETFOCUS
-					If OnGotFocus Then OnGotFocus(This)
+					If OnGotFocus Then OnGotFocus(*Designer, This)
 				Case EN_VSCROLL
-					If OnScroll Then OnScroll(This)
+					If OnScroll Then OnScroll(*Designer, This)
 				Case EN_HSCROLL
-					If OnScroll Then OnScroll(This)
+					If OnScroll Then OnScroll(*Designer, This)
 				End Select
 				message.Result = 0
 			Case WM_CHAR
@@ -1225,7 +1225,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				If message.wParam = VK_RETURN Then
-					If OnActivate Then OnActivate(This)
+					If OnActivate Then OnActivate(*Designer, This)
 				End If
 				If ParentHandle>0 Then
 					Select Case message.wParam
@@ -1247,12 +1247,12 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_CUT
-				If OnCut Then OnCut(This)
+				If OnCut Then OnCut(*Designer, This)
 			Case WM_COPY
-				If OnCopy Then OnCopy(This)
+				If OnCopy Then OnCopy(*Designer, This)
 			Case WM_PASTE
 				Dim Action As Integer = 1
-				If OnPaste Then OnPaste(This, Action)
+				If OnPaste Then OnPaste(*Designer, This, Action)
 				Select Case Action
 				Case 0: message.Result = -1
 				Case 1: message.Result = 0
@@ -1543,7 +1543,7 @@ End Namespace
 		Dim As Integer ID = CallIntMethod(This_, "android/view/View", "getId", "()I")
 		Dim As My.Sys.Forms.TextBox Ptr txt = Handles.Item(ID)
 		If txt Then
-			If txt->OnChange Then txt->OnChange(*txt)
+			If txt->OnChange Then txt->OnChange(*txt->Designer, *txt)
 		End If
 	End Sub
 #endif

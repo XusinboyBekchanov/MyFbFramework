@@ -14,7 +14,7 @@
 #define QStringList(__Ptr__) (*Cast(StringList Ptr,__Ptr__))
 #define QStringListItem(__Ptr__) (*Cast(StringListItem Ptr, __Ptr__))
 
-Private Type StringListItem Extends Object
+Private Type StringListItem
 Public:
 	Value As String
 	Object  As Any Ptr

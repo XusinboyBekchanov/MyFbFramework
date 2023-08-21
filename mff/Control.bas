@@ -1112,7 +1112,7 @@ Namespace My.Sys.Forms
 					This.RequestAlign
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
 					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
-					If OnCreate Then OnCreate(This)
+					If OnCreate Then OnCreate(*Designer, This)
 					If Not FEnabled Then Enabled = FEnabled
 					#ifdef __USE_WINAPI__
 						If FVisible Then If ClassName = "Form" Then This.Show Else ShowWindow(FHandle, SW_SHOWNORMAL)
@@ -1193,7 +1193,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean
-			If OnMessage Then OnMessage(This, Message)
+			If OnMessage Then OnMessage(*Designer, This, Message)
 			#ifdef __USE_GTK__
 				Dim As GdkEvent Ptr e = Message.Event
 				Select Case Message.Event->type
@@ -1399,7 +1399,7 @@ Namespace My.Sys.Forms
 						Dim As HDC DC = GetDC(FHandle)
 						Canvas.HandleSetted = True
 						Canvas.Handle = DC
-						OnPaint(This, Canvas)
+						OnPaint(*Designer, This, Canvas)
 						Canvas.HandleSetted = False
 						ReleaseDC FHandle, DC
 					End If
@@ -1411,13 +1411,13 @@ Namespace My.Sys.Forms
 					If Not Message.lParam = NULL Then
 						SendMessage Cast(HWND, Message.lParam), CM_HSCROLL, Cast(WPARAM, Message.wParam), Cast(LPARAM, Message.lParam)
 					Else
-						If OnScroll Then OnScroll(This)
+						If OnScroll Then OnScroll(*Designer, This)
 					End If
 				Case WM_VSCROLL
 					If Not Message.lParam = NULL Then
 						SendMessage Cast(HWND, Message.lParam), CM_VSCROLL, Cast(WPARAM, Message.wParam), Cast(LPARAM, Message.lParam)
 					Else
-						If OnScroll Then OnScroll(This)
+						If OnScroll Then OnScroll(*Designer, This)
 					End If
 				Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC, WM_CTLCOLORBTN
 					Dim As Control Ptr Child
@@ -1506,49 +1506,49 @@ Namespace My.Sys.Forms
 					If Controls Then
 						RequestAlign
 					End If
-					If OnResize Then OnResize(This, This.Width, This.Height)
+					If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				Case WM_WINDOWPOSCHANGING
 					If Constraints.Left <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->x  = ScaleX(Constraints.Left)
 					If Constraints.Top <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->y  = ScaleY(Constraints.Top)
 					If Constraints.Width <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->cx = ScaleX(Constraints.Width)
 					If Constraints.Height <> 0 Then Cast(WINDOWPOS Ptr, Message.lParam)->cy = ScaleY(Constraints.Height)
 				Case WM_WINDOWPOSCHANGED
-					If OnMove Then OnMove(This)
+					If OnMove Then OnMove(*Designer, This)
 				Case WM_CANCELMODE
 					SendMessage(FHandle, CM_CANCELMODE, 0, 0)
 				Case WM_LBUTTONDOWN
 					DownButton = 0
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
 					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(This, 0, MouseX, MouseY, Message.wParam And &HFFFF)
+					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(*Designer, This, 0, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_LBUTTONDBLCLK
-					If OnDblClick Then OnDblClick(This)
+					If OnDblClick Then OnDblClick(*Designer, This)
 				Case WM_LBUTTONUP
 					DownButton = -1
-					If OnClick Then OnClick(This)
+					If OnClick Then OnClick(*Designer, This)
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
 					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(This, 0, MouseX, MouseY, Message.wParam And &HFFFF)
+					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(*Designer, This, 0, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_MBUTTONDOWN
 					DownButton = 2
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
 					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(This, 2, MouseX, MouseY, Message.wParam And &HFFFF)
+					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(*Designer, This, 2, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_MBUTTONUP
 					DownButton = -1
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
 					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(This, 2, MouseX, MouseY, Message.wParam And &HFFFF)
+					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(*Designer, This, 2, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_RBUTTONDOWN
 					DownButton = 1
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
 					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(This, 1, MouseX, MouseY, Message.wParam And &HFFFF)
+					If OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseDown(*Designer, This, 1, MouseX, MouseY, Message.wParam And &HFFFF)
 				Case WM_RBUTTONUP
 					DownButton = -1
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
 					Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(This, 1, MouseX, MouseY, Message.wParam And &HFFFF)
+					If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(*Designer, This, 1, MouseX, MouseY, Message.wParam And &HFFFF)
 					If ContextMenu Then
 						If ContextMenu->Handle Then
 							Dim As ..Point P
@@ -1595,7 +1595,7 @@ Namespace My.Sys.Forms
 					For i As Integer = 0 To FPopupMenuItems.Count -1
 						mi = FPopupMenuItems.Items[i]
 						If mi->Command = Message.wParamLo Then
-							If mi->OnClick Then mi->OnClick(*mi)
+							If mi->OnClick Then mi->OnClick(*mi->Designer, *mi)
 							Exit For
 						End If
 					Next i
@@ -1603,9 +1603,9 @@ Namespace My.Sys.Forms
 				Case WM_MOUSEMOVE
 					If Not This.FMouseInClient Then
 						This.FMouseInClient = True
-						If OnMouseEnter Then OnMouseEnter(This)
+						If OnMouseEnter Then OnMouseEnter(*Designer, This)
 					End If
-					If OnMouseMove Then OnMouseMove(This, DownButton, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					If OnMouseMove Then OnMouseMove(*Designer, This, DownButton, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 					If CInt(This.Tracked = False) AndAlso CInt((OnMouseLeave OrElse OnMouseHover OrElse OnMouseEnter)) Then
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
@@ -1626,13 +1626,13 @@ Namespace My.Sys.Forms
 					#else
 						scrDirection = Sgn(Message.wParam)
 					#endif
-					If OnMouseWheel Then OnMouseWheel(This, scrDirection, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					If OnMouseWheel Then OnMouseWheel(*Designer, This, scrDirection, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 				Case WM_MOUSELEAVE
-					If OnMouseLeave Then OnMouseLeave(This)
+					If OnMouseLeave Then OnMouseLeave(*Designer, This)
 					This.FMouseInClient = False
 					This.Tracked = False
 				Case WM_MOUSEHOVER
-					If OnMouseHover Then OnMouseHover(This, DownButton, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					If OnMouseHover Then OnMouseHover(*Designer, This, DownButton, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 					This.Tracked = False
 				Case WM_DROPFILES
 					If OnDropFile Then
@@ -1644,14 +1644,14 @@ Namespace My.Sys.Forms
 							WReAllocate(filename, MAX_PATH)
 							length = DragQueryFile(iDrop, i, filename, MAX_PATH)
 							'*filename = Left(*filename, length)
-							If OnDropFile Then OnDropFile(This, *filename)
+							If OnDropFile Then OnDropFile(*Designer, This, *filename)
 						Next
 						DragFinish iDrop
 					End If
 				Case WM_CHAR
-					If OnKeyPress Then OnKeyPress(This, Message.wParam)
+					If OnKeyPress Then OnKeyPress(*Designer, This, Message.wParam)
 				Case WM_KEYDOWN
-					If OnKeyDown Then OnKeyDown(This, Message.wParam, Message.lParam And &HFFFF)
+					If OnKeyDown Then OnKeyDown(*Designer, This, Message.wParam, Message.lParam And &HFFFF)
 					If GetKeyState(VK_MENU) >= 0 Then
 						Select Case LoWord(Message.wParam)
 						Case VK_TAB
@@ -1664,23 +1664,23 @@ Namespace My.Sys.Forms
 						Case VK_RETURN
 							Dim frm As Control Ptr = GetForm
 							If frm AndAlso frm->FDefaultButton AndAlso frm->FDefaultButton->OnClick Then
-								frm->FDefaultButton->OnClick(*frm->FDefaultButton)
+								frm->FDefaultButton->OnClick(*frm->Designer, *frm->FDefaultButton)
 								Message.Result = -1:
 								Exit Sub
 							End If
 						Case VK_ESCAPE
 							Dim frm As Control Ptr = GetForm
 							If frm AndAlso frm->FCancelButton AndAlso frm->FCancelButton->OnClick Then
-								frm->FCancelButton->OnClick(*frm->FCancelButton)
+								frm->FCancelButton->OnClick(*frm->Designer, *frm->FCancelButton)
 								Message.Result = -1:
 								Exit Sub
 							End If
 						End Select
 					End If
 				Case WM_KEYUP
-					If OnKeyUp Then OnKeyUp(This, LoWord(Message.wParam), Message.lParam And &HFFFF)
+					If OnKeyUp Then OnKeyUp(*Designer, This, LoWord(Message.wParam), Message.lParam And &HFFFF)
 				Case WM_SETFOCUS
-					If OnGotFocus Then OnGotFocus(This)
+					If OnGotFocus Then OnGotFocus(*Designer, This)
 					If Not FDesignMode Then
 						Dim frm As Control Ptr = GetForm
 						If frm Then
@@ -1689,7 +1689,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				Case WM_KILLFOCUS
-					If OnLostFocus Then OnLostFocus(This)
+					If OnLostFocus Then OnLostFocus(*Designer, This)
 				Case WM_NOTIFY
 					Dim As LPNMHDR NM
 					Static As HWND FWindow
@@ -1720,7 +1720,7 @@ Namespace My.Sys.Forms
 				Case WM_DESTROY
 					If Brush.Handle = hbrBkgnd Then Brush.Handle = 0
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
-					If OnDestroy Then OnDestroy(This) Else Handle = 0
+					If OnDestroy Then OnDestroy(*Designer, This) Else Handle = 0
 				Case WM_NCDESTROY
 					Handle = 0
 				End Select
@@ -1747,7 +1747,7 @@ Namespace My.Sys.Forms
 					End If
 				Case WM_DESTROY
 					SetWindowLongPtr(FHandle, GWLP_USERDATA, 0)
-					If OnDestroy Then OnDestroy(This)
+					If OnDestroy Then OnDestroy(*Designer, This)
 					'Handle = 0
 				End Select
 			#endif
@@ -2869,7 +2869,7 @@ End Namespace
 		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
 		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
 		If Ctrl Then
-			If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl)
+			If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
 		End If
 	End Sub
 	
@@ -2880,7 +2880,7 @@ End Namespace
 			If Ctrl->Controls Then
 				Ctrl->RequestAlign
 			End If
-			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl, rRight - lLeft, bBottom - tTop)
+			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, rRight - lLeft, bBottom - tTop)
 		End If
 	End Sub
 #endif

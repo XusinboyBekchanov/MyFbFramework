@@ -100,8 +100,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As My.Sys.Object)
-		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Private Type GridColumn Extends My.Sys.Object
@@ -144,8 +144,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As My.Sys.Object)
-		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Private Type GridRows
@@ -326,19 +326,19 @@ Namespace My.Sys.Forms
 		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Constructor
 		Declare Destructor
-		OnColumnClick As Sub(ByRef Sender As Grid, ByVal ColIndex As Integer)
-		OnRowActivate As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
-		OnRowClick As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
-		OnRowDblClick As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
-		OnRowKeyDown As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer, Key As Integer, Shift As Integer)
-		OnSelectedRowChanging As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer, ByRef Cancel As Boolean)
-		OnSelectedRowChanged As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer)
-		OnBeginScroll As Sub(ByRef Sender As Grid)
-		OnEndScroll As Sub(ByRef Sender As Grid)
-		OnCellEdited As Sub(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
-		OnCacheHint As Sub(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
+		OnColumnClick           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal ColIndex As Integer)
+		OnRowActivate           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnRowClick              As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnRowDblClick           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnRowKeyDown            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, Key As Integer, Shift As Integer)
+		OnSelectedRowChanging   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, ByRef Cancel As Boolean)
+		OnSelectedRowChanged    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		OnBeginScroll           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid)
+		OnEndScroll             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid)
+		OnCellEdited            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
+		OnCacheHint             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 		#ifdef __USE_WINAPI__
-			OnGetDispInfo As Sub(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
+			OnGetDispInfo       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
 		#endif
 	End Type
 End Namespace

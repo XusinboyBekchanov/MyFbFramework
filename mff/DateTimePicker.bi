@@ -107,7 +107,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnDateTimeChanged As Sub(ByRef Sender As DateTimePicker)
+		OnDateTimeChanged As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As DateTimePicker)
 	End Type
 End Namespace
 

@@ -133,7 +133,7 @@ Namespace My.Sys.Drawing
 		Declare Operator Let(Value As Cursor)
 		Declare Constructor
 		Declare Destructor
-		Changed As Sub(ByRef Sender As Cursor)
+		Changed As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Cursor)
 	End Type
 End Namespace
 

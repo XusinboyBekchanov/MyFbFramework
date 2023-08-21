@@ -866,7 +866,7 @@ Namespace My.Sys.Forms
 				ptnmRebar = Cast(NMREBAR Ptr,  Message.lParam)
 				Select Case ptnmRebar->hdr.code
 				Case RBN_HEIGHTCHANGE
-					If OnHeightChange Then OnHeightChange(This)
+					If OnHeightChange Then OnHeightChange(*Designer, This)
 				Case NM_CUSTOMDRAW
 					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 						If Not FDarkMode Then

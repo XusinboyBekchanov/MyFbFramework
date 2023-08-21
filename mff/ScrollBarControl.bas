@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 		#else
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
 		#endif
-		If OnScroll Then OnScroll(This, FPosition)
+		If OnScroll Then OnScroll(*Designer, This, FPosition)
 	End Property
 	
 	Private Property ScrollBarControl.ArrowChangeSize As Integer
@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 				GetScrollInfo(FHandle, SB_CTL, @SIF)
 				If (Not SIF.nPos = OldPos) Then
 					If OnScroll Then
-						OnScroll(This, Cast(Integer, SIF.nPos))
+						OnScroll(*Designer, This, Cast(Integer, SIF.nPos))
 					End If
 				End If
 			End Select

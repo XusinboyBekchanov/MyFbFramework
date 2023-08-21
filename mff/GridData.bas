@@ -1889,8 +1889,8 @@ Namespace My.Sys.Forms
 				'      Case WM_RBUTTONDOWN
 			Case WM_LBUTTONDOWN
 				Dim lvhti As LVHITTESTINFO
-				lvhti.pt.x = Message.lParamLo
-				lvhti.pt.y = Message.lParamHi
+				lvhti.pt.X = Message.lParamLo
+				lvhti.pt.Y = Message.lParamHi
 				lvhti.iItem = FLvi.iItem  'Must Let Value
 				lvhti.iSubItem = FLvi.iSubItem 'Must Let Value
 				If (ListView_HitTest(Handle, @lvhti) <> -1) Then
@@ -1900,7 +1900,7 @@ Namespace My.Sys.Forms
 							If tlvi->IsExpanded Then
 								tlvi->Collapse
 							Else
-								If OnItemExpanding Then OnItemExpanding(This, tlvi)
+								If OnItemExpanding Then OnItemExpanding(*Designer, This, tlvi)
 								tlvi->Expand
 							End If
 						End If
@@ -1969,19 +1969,19 @@ Namespace My.Sys.Forms
 						End If
 						GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 					End If
-					If OnItemClick Then OnItemClick(This, lvp->iItem, lvp->iSubItem, nmcdhDC)
+					If OnItemClick Then OnItemClick(*Designer, This, lvp->iItem, lvp->iSubItem, nmcdhDC)
 					
 				Case NM_DBLCLK
 					'Print "NM_DBLCLK ", lvp->iItem, lvp->iSubItem
 					If mSorting=False Then
-						If OnItemDblClick Then OnItemDblClick(This, lvp->iItem, lvp->iSubItem, nmcdhDC)
+						If OnItemDblClick Then OnItemDblClick(*Designer, This, lvp->iItem, lvp->iSubItem, nmcdhDC)
 						EditControlShow(ComboColOld,lvp->iItem, lvp->iSubItem)
 					End If
 				Case NM_KEYDOWN
-					If OnItemKeyDown Then OnItemKeyDown(This, GetGridDataItem(lvp->iItem))
+					If OnItemKeyDown Then OnItemKeyDown(*Designer, This, GetGridDataItem(lvp->iItem))
 				Case LVN_ITEMACTIVATE
 					'Print "LVN_ITEMACTIVATE ", lvp->iItem, lvp->iSubItem
-					If OnItemActivate Then OnItemActivate(This, GetGridDataItem(lvp->iItem))
+					If OnItemActivate Then OnItemActivate(*Designer, This, GetGridDataItem(lvp->iItem))
 				Case LVN_COLUMNCLICK
 					'Print "LVN_COLUMNCLICK ************iItem,iSubItem ",lvp->iItem,lvp->iSubItem
 					'tRefresh=True
@@ -2001,10 +2001,10 @@ Namespace My.Sys.Forms
 					'RectCell.Top=0:RectCell.Left=0: RectCell.Right=This.Width: RectCell.Bottom=This.Height
 					InvalidateRect(Handle,NULL,False)
 					UpdateWindow Handle
-					If OnHeadClick Then OnHeadClick(This,lvp->iSubItem)
+					If OnHeadClick Then OnHeadClick(*Designer, This, lvp->iSubItem)
 					Message.Result =0'CDRF_SKIPDEFAULT
 				Case LVN_BEGINSCROLL 'Reach here '
-					If OnBeginScroll Then OnBeginScroll(This)
+					If OnBeginScroll Then OnBeginScroll(*Designer, This)
 				Case LVN_ENDSCROLL 'Reach here
 					'Print "CM_NOTIFY LVN_ENDSCROLL " 'BeginScroll LVN_ENDSCROLL
 					'                        Si.cbSize = SizeOf (Si)
@@ -2027,7 +2027,7 @@ Namespace My.Sys.Forms
 				Case LVN_ITEMCHANGED 'Hover not updated if message.Result  = 1 in   WM_NOTIFY
 					'Print "CM_NOTIFY LVN_ITEMCHANGED mRow, mCol, lplvcd->nmcd.dwItemSpec,hDC ",mRow, mCol,lplvcd->nmcd.dwItemSpec,lplvcd->nmcd.hDC
 					
-					If OnSelectedItemChanged Then OnSelectedItemChanged(This, lvp->iItem, lvp->iSubItem, nmcdhDC)
+					If OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, lvp->iItem, lvp->iSubItem, nmcdhDC)
 					'message.Result  =  CDRF_SKIPDEFAULT
 					'Case HDN_ITEMCHANGED 'Never reach here in Win OS
 					'case HDN_BEGINTRACK  'Never reach here in Win OS
@@ -2036,14 +2036,14 @@ Namespace My.Sys.Forms
 				'      Case WM_KEYDOWN
 				'PRINT  "WM_KEYDOWN",Message.wParam,Message.lParam
 			Case WM_KEYUP
-				Select Case message.wParam
+				Select Case Message.wParam
 				Case VK_DOWN,VK_UP,VK_HOME,VK_END,VK_NEXT,VK_PRIOR
 					Dim As Integer tItemSelel=ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 					If tItemSelel<>-1 Then
 						If tItemSelel <=mDrawRowStart Or tItemSelel >=mDrawRowStart + mCountPerPage Then mDrawRowStart=ListView_GetTopIndex(Handle)
-						If message.LParam=CT_TextBox Then GridEditText.Visible=False ' Force refesh windows
-						If message.LParam=CT_ComboBoxEdit Then GridEditComboBox.Visible =False
-						If message.LParam=CT_DateTimePicker Then GridEditDateTimePicker.Visible =False
+						If Message.lParam=CT_TextBox Then GridEditText.Visible=False ' Force refesh windows
+						If Message.lParam=CT_ComboBoxEdit Then GridEditComboBox.Visible =False
+						If Message.lParam=CT_DateTimePicker Then GridEditDateTimePicker.Visible =False
 						If mRow<>tItemSelel Then
 							mRow=tItemSelel
 							GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
@@ -2056,46 +2056,46 @@ Namespace My.Sys.Forms
 					If mCol<=0 Then
 						mCol=1
 					Else
-						message.Result=0'CDRF_SKIPDEFAULT
+						Message.Result=0'CDRF_SKIPDEFAULT
 					End If
-					message.Result= CDRF_SKIPDEFAULT
+					Message.Result= CDRF_SKIPDEFAULT
 					GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 				Case VK_RIGHT,VK_TAB
 					ListView_GetSubItemRect(Handle, mRow, mCol, LVIR_BOUNDS, @RectCell)
 					If RectCell.Right<This.Width Then
-						message.Result=  CDRF_SKIPDEFAULT
+						Message.Result=  CDRF_SKIPDEFAULT
 					End If
 					mCol+=1
 					If mCol>=Columns.Count-1 Then mCol=Columns.Count-1
-					If message.LParam=CT_TextBox Then
+					If Message.lParam=CT_TextBox Then
 						GridEditText.Visible=False ' Force refesh windows
 					End If
-					If message.LParam=CT_ComboBoxEdit Then GridEditComboBox.Visible =False
-					If message.LParam=CT_DateTimePicker Then GridEditDateTimePicker.Visible =False
+					If Message.lParam=CT_ComboBoxEdit Then GridEditComboBox.Visible =False
+					If Message.lParam=CT_DateTimePicker Then GridEditDateTimePicker.Visible =False
 					GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 				Case VK_RETURN
 					ListView_GetSubItemRect(Handle, mRow, mCol, LVIR_BOUNDS, @RectCell)
 					If RectCell.Right<This.Width Then
-						message.Result=  CDRF_SKIPDEFAULT
+						Message.Result=  CDRF_SKIPDEFAULT
 					End If
 					mCol+=1
 					If mCol>=Columns.Count-1 Then mCol=Columns.Count-1
-					message.Result=  CDRF_SKIPDEFAULT
+					Message.Result=  CDRF_SKIPDEFAULT
 					GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 					
 				Case VK_ESCAPE
-					If message.LParam=CT_TextBox Then
+					If Message.lParam=CT_TextBox Then
 						GridEditText.Visible=False ' Force refesh windows
 					End If
-					If message.LParam=CT_ComboBoxEdit Then GridEditComboBox.Visible =False
-					If message.LParam=CT_DateTimePicker Then GridEditDateTimePicker.Visible =False
+					If Message.lParam=CT_ComboBoxEdit Then GridEditComboBox.Visible =False
+					If Message.lParam=CT_DateTimePicker Then GridEditDateTimePicker.Visible =False
 					GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 				End Select
 				
 			Case WM_NOTIFY
 				'if tRefresh=true then print "lplvcd0->nmcd.hdr.code", lplvcd0->nmcd.hdr.code
-				lplvcd= Cast(NMLVCUSTOMDRAW Ptr, message.lParam)
-				Dim lvpHeader As NMHEADERA Ptr = Cast(NMHEADERA Ptr, message.lParam)
+				lplvcd= Cast(NMLVCUSTOMDRAW Ptr, Message.lParam)
+				Dim lvpHeader As NMHEADERA Ptr = Cast(NMHEADERA Ptr, Message.lParam)
 				Select Case lplvcd->nmcd.hdr.code'message.wParam
 				Case LVN_ODCACHEHINT
 					'Print "WM_NOTIFY LVN_ODCACHEHINT "
@@ -2107,7 +2107,7 @@ Namespace My.Sys.Forms
 					'GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 				Case HDN_ITEMCHANGED  'OK
 					'Print "WM_NOTIFY HDN_ITEMCHANGED",lplvcd->iSubItem,lvpHeader->iItem
-					If OnHeadColWidthAdjust Then OnHeadColWidthAdjust(This,lvpHeader->iItem)
+					If OnHeadColWidthAdjust Then OnHeadColWidthAdjust(*Designer, This, lvpHeader->iItem)
 				Case HDN_BEGINTRACK  'OK
 					GridEditText.Visible=False ' Force refesh windows
 					GridEditDateTimePicker.Visible =False
@@ -2116,7 +2116,7 @@ Namespace My.Sys.Forms
 				Case HDN_ENDTRACK    'OK
 					'Print "WM_NOTIFY HDN_ENDTRACK",lplvcd->iSubItem,lvpHeader->iItem
 					GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
-					If OnHeadColWidthAdjust Then OnHeadColWidthAdjust(This,lvpHeader->iItem)
+					If OnHeadColWidthAdjust Then OnHeadColWidthAdjust(*Designer, This, lvpHeader->iItem)
 				Case Else
 				End Select
 			Case CM_COMMAND

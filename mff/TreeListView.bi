@@ -115,8 +115,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As My.Sys.Object)
-		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Private Type TreeListViewColumn Extends My.Sys.Object
@@ -153,8 +153,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As My.Sys.Object)
-		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Private Type TreeListViewColumns
@@ -198,7 +198,7 @@ Namespace My.Sys.Forms
 			Dim As GtkCellRenderer Ptr rendertext
 			Declare Static Function TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 		#elseif defined(__USE_WINAPI__)
-			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
 			Declare Virtual Sub SetDark(Value As Boolean)
 			hHeader As HWND
@@ -248,18 +248,18 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnItemActivate As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-		OnItemClick As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-		OnItemDblClick As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-		OnItemKeyDown As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-		OnItemExpanding As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-		OnCellEditing As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
-		OnCellEdited As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
-		OnSelectedItemChanged As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-		OnBeginScroll As Sub(ByRef Sender As TreeListView)
-		OnEndScroll As Sub(ByRef Sender As TreeListView)
-		OnMeasureItem As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByRef ItemWidth As ULong, ByRef ItemHeight As ULong)
-		OnDrawItem As Sub(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
+		OnItemActivate        As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+		OnItemClick           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+		OnItemDblClick        As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+		OnItemKeyDown         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+		OnItemExpanding       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+		OnCellEditing         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
+		OnCellEdited          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
+		OnSelectedItemChanged As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+		OnBeginScroll         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView)
+		OnEndScroll           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView)
+		OnMeasureItem         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByRef ItemWidth As ULong, ByRef ItemHeight As ULong)
+		OnDrawItem            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
 	End Type
 End Namespace
 

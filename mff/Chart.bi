@@ -230,7 +230,7 @@ Namespace My.Sys.Forms
 		
 		Declare Sub Example()
 		Declare Sub InitProperties()
-		Declare Static Sub tmrMOUSEOVER_Timer_(ByRef Sender As TimerComponent)
+		Declare Static Sub tmrMOUSEOVER_Timer_(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent)
 		Declare Sub tmrMOUSEOVER_Timer(ByRef Sender As TimerComponent)
 		Declare Sub GetTextSize(ByRef text As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SizeF)
 		Declare Sub DrawText(ByRef text As WString, ByVal X As Long, ByVal Y As Long, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal ForeColor As Long, HAlign As TextAlignmentH = 0, VAlign As TextAlignmentV = 0, bWordWrap As Boolean = False, Angle As Single = 0)
@@ -342,7 +342,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnItemClick As Sub(Index As Long)
+		OnItemClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Chart, Index As Long)
 	End Type
 	
 	Declare Function Round(x As Double, Drob As Integer = 0) As Integer

@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Sub Picture.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub Picture.GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
@@ -204,10 +204,10 @@ Namespace My.Sys.Forms
 				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
-					If OnClick Then OnClick(This)
+					If OnClick Then OnClick(*Designer, This)
 				End If
 				If Message.wParamHi = STN_DBLCLK Then
-					If OnDblClick Then OnDblClick(This)
+					If OnDblClick Then OnDblClick(*Designer, This)
 				End If
 			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND
 				If (Graphic.Bitmap.Handle <> 0) AndAlso (((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch)) OrElse (FStretchImage = StretchMode.smStretchProportional)) Then
@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 							End Select
 						End With
 					End If
-					If Message.lParam <> 128 AndAlso OnPaint Then OnPaint(This, Canvas)
+					If Message.lParam <> 128 AndAlso OnPaint Then OnPaint(*Designer, This, Canvas)
 					EndPaint Handle,@Ps
 					Message.Result = 0
 					Canvas.HandleSetted = False
@@ -268,7 +268,7 @@ Namespace My.Sys.Forms
 					Dim As ..Rect R
 					GetClientRect Handle, @R
 					FillRect Dc, @R, This.Brush.Handle
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					EndPaint Handle, @Ps
 					Message.Result = 0
 					Canvas.HandleSetted = False
@@ -288,7 +288,7 @@ Namespace My.Sys.Forms
 				R = *Cast(My.Sys.Drawing.Rect Ptr, @diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDraw Then
-					OnDraw(This,R,Dc)
+					OnDraw(*Designer, This, R, Dc)
 				Else
 				End If
 			End Select

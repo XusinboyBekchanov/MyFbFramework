@@ -827,7 +827,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub MenuItem.Click
-		If OnClick Then OnClick(This)
+		If OnClick Then OnClick(*Designer, This)
 	End Sub
 	
 	Private Sub MenuItem.Add(ByRef value As PMenuItem, ByVal Index As Integer = -1)
@@ -1088,7 +1088,7 @@ Namespace My.Sys.Forms
 		Return @This
 	End Operator
 	
-	Private Sub MenuItem.BitmapChanged(ByRef Sender As My.Sys.Drawing.BitmapType)
+	Private Sub MenuItem.BitmapChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.BitmapType)
 		With *Cast(MenuItem Ptr, Sender.Graphic)
 			'.Caption = .Caption
 		End With

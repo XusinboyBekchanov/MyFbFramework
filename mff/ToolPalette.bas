@@ -173,7 +173,7 @@ Namespace My.Sys.Forms
 		'QToolButton(FButtons.Items[Index]) = Value
 	End Property
 	
-	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		PButton = _New( ToolButton)
 		PButton->FDynamic = True 
@@ -262,7 +262,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 	
-	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		#ifdef __USE_GTK__
 			PButton = Add(FStyle, -1, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
@@ -696,7 +696,7 @@ Namespace My.Sys.Forms
 				GetDropDownMenuItems
 				For i As Integer = 0 To FPopupMenuItems.Count -1
 					If QMenuItem(FPopupMenuItems.Items[i]).Command = Message.wParamLo Then
-						If QMenuItem(FPopupMenuItems.Items[i]).OnClick Then QMenuItem(FPopupMenuItems.Items[i]).OnClick(QMenuItem(FPopupMenuItems.Items[i]))
+						If QMenuItem(FPopupMenuItems.Items[i]).OnClick Then QMenuItem(FPopupMenuItems.Items[i]).OnClick(*QMenuItem(FPopupMenuItems.Items[i]).Designer, QMenuItem(FPopupMenuItems.Items[i]))
 						Exit For
 					End If
 				Next i
@@ -714,7 +714,7 @@ Namespace My.Sys.Forms
 							Groups.Item(gi)->Expanded = Not Groups.Item(gi)->Expanded
 						ElseIf bi > -1 AndAlso bi < Groups.Item(gi)->Buttons.Count Then
 							Dim As ToolButton Ptr but = Groups.Item(gi)->Buttons.Item(bi)
-							If but->OnClick Then but->OnClick(*but)
+							If but->OnClick Then but->OnClick(*but->Designer, *but)
 						End If
 					End If
 				End If

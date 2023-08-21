@@ -88,7 +88,7 @@ Namespace My.Sys.Drawing
 					End If
 				#endif
 			End If
-			If OnCreate Then OnCreate(This)
+			If OnCreate Then OnCreate(*Designer, This)
 		End If
 	End Sub
 	

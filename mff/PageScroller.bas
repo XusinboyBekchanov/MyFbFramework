@@ -216,7 +216,7 @@ Namespace My.Sys.Forms
 						NewPos = Max(0, NewPos - FArrowChangeSize)
 					End Select
 					nmgs->iScroll = FArrowChangeSize
-					If OnScroll Then OnScroll(This, NewPos)
+					If OnScroll Then OnScroll(*Designer, This, NewPos)
 				EndIf
 			End Select
 		#endif

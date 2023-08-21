@@ -52,7 +52,7 @@ Namespace My.Sys.Forms
 	Private Property LinkLabel.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			gtk_label_set_markup_with_mnemonic(gtk_label(widget), ToUtf8(Replace(Value, "&", "_")))
+			gtk_label_set_markup_with_mnemonic(GTK_LABEL(widget), ToUtf8(Replace(Value, "&", "_")))
 		#endif
 	End Property
 	
@@ -78,7 +78,7 @@ Namespace My.Sys.Forms
 					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, Message.lParam)
 					Dim As LITEM item = pNMLink1->item
 					Dim As Integer Action = 1
-					If OnLinkClicked Then OnLinkClicked(This, item.iLink, item.szUrl, Action)
+					If OnLinkClicked Then OnLinkClicked(*Designer, This, item.iLink, item.szUrl, Action)
 					If Action = 1 AndAlso item.szUrl <> "" Then
 						ShellExecute(NULL, "open", item.szUrl, NULL, NULL, SW_SHOW)
 					End If

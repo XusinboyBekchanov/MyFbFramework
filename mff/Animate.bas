@@ -423,9 +423,9 @@ Namespace My.Sys.Forms
 			Case CM_COMMAND
 				Select Case Message.wParamHi
 				Case ACN_START
-					If OnStart Then OnStart(This)
+					If OnStart Then OnStart(*Designer, This)
 				Case ACN_STOP
-					If OnStop Then OnStop(This)
+					If OnStop Then OnStop(*Designer, This)
 				End Select
 			Case WM_NCHITTEST
 				Message.Result = HTCLIENT
@@ -500,7 +500,7 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then
-				If OnOpen Then OnOpen(This)
+				If OnOpen Then OnOpen(*Designer, This)
 				If FPlay Then Stop
 				If CommonAvi = 0 Then
 					If *FFile <> "" Then
@@ -705,11 +705,11 @@ Namespace My.Sys.Forms
 				Else
 					FPlayTimePause += Timer - FPlayTimePauseStart
 				End If
-				If OnStart Then OnStart(This)
+				If OnStart Then OnStart(*Designer, This)
 				If FOpenMode= 3 Then
 					#ifdef MoviePlayOn
 						If PControl > 0 Then Error_HR(IMediaControl_Run(PControl), "Metod IMediaControl_Run")
-					#endIf
+					#endif
 				ElseIf FOpenMode < 3 Then
 					Print "FFrameCount=" & FFrameCount & " FStartFrame=" &  FStartFrame & " FStopFrame=" & FStopFrame & " FRepeat=" & FRepeat
 					If FStopFrame < 1 Then FStopFrame= FFrameCount
@@ -729,7 +729,7 @@ Namespace My.Sys.Forms
 			If FOpenMode Then
 				FPlayTimeStart = 0
 				FPlayTimePause = 0
-				If OnStop Then OnStop(This)
+				If OnStop Then OnStop(*Designer, This)
 				If FOpenMode= 4 Then
 					#ifdef GIFPlayOn
 						GdipDeleteGraphics(gifGdipCanvas)
@@ -773,12 +773,12 @@ Namespace My.Sys.Forms
 		FErrorInfo = ""
 		Rate = 1
 		#ifdef __USE_GTK__
-			If OnPause Then OnPause(This)
+			If OnPause Then OnPause(*Designer, This)
 			FPlay = False
 		#else
 			If Handle Then
 				FPlayTimePauseStart = Timer
-				If OnPause Then OnPause(This)
+				If OnPause Then OnPause(*Designer, This)
 				If FOpenMode= 3 Then
 					#ifdef MoviePlayOn
 						If PControl Then Error_HR(IMediaControl_Pause(PControl), "Metod IMediaControl_Pause")
@@ -793,14 +793,14 @@ Namespace My.Sys.Forms
 	Private Sub Animate.Close
 		FErrorInfo = ""
 		#ifdef __USE_GTK__
-			If OnClose Then OnClose(This)
+			If OnClose Then OnClose(*Designer, This)
 			FOpenMode= 0
 			FPlay = False
 		#else
 			If Handle Then
 				FPlayTimeStart = 0
 				FPlayTimePause = 0
-				If OnClose Then OnClose(This)
+				If OnClose Then OnClose(*Designer, This)
 				If FOpenMode= 4 Then
 					#ifdef GIFPlayOn
 						Stop

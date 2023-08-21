@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 	Private Property Form.ActiveControl(Value As Control Ptr)
 		FActiveControl = Value
 		If FActiveControl Then FActiveControl->SetFocus
-		If OnActiveControlChange Then OnActiveControlChange(This)
+		If OnActiveControlChange Then OnActiveControlChange(*Designer, This)
 	End Property
 	
 	Private Property Form.Owner As Form Ptr
@@ -712,7 +712,7 @@ Namespace My.Sys.Forms
 	Private Sub Form.ActiveControlChanged(ByRef Sender As Control)
 		If Sender.Child Then
 			With QForm(Sender.Child)
-				If .OnActiveControlChange Then .OnActiveControlChange(QForm(Sender.Child))
+				If .OnActiveControlChange Then .OnActiveControlChange(*QForm(Sender.Child).Designer, QForm(Sender.Child))
 			End With
 		End If
 	End Sub
@@ -1214,7 +1214,7 @@ Namespace My.Sys.Forms
 					FillRect memDC, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
@@ -1222,7 +1222,7 @@ Namespace My.Sys.Forms
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0,,, Graphic.Bitmap
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				End If
 				EndPaint Handle,@Ps
 				msg.Result = 0
@@ -1236,7 +1236,7 @@ Namespace My.Sys.Forms
 				If Not IsIconic(FHandle) Then
 					RequestAlign
 				End If
-				If OnResize Then OnResize(This, This.Width, This.Height)
+				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				'If FClient <> 0 Then
 				'	Dim As Rect rc2
 				'	GetClientRect FClient, @rc2
@@ -1248,7 +1248,7 @@ Namespace My.Sys.Forms
 				'End If
 			Case WM_CLOSE
 				If OnClose Then
-					OnClose(This, Action)
+					OnClose(*Designer, This, Action)
 				End If
 				Select Case Action
 				Case 0
@@ -1282,7 +1282,7 @@ Namespace My.Sys.Forms
 					mi = FMenuItems.Items[i]
 					With *mi
 						If .Command = msg.wParamLo Then
-							If .OnClick Then .OnClick(*mi)
+							If .OnClick Then .OnClick(*mi->Designer, *mi)
 							msg.Result = -2
 							msg.Msg = 0
 							Exit For
@@ -1299,10 +1299,10 @@ Namespace My.Sys.Forms
 			Case WM_MDIACTIVATE
 				If msg.lParam = msg.hWnd Then
 					pApp->ActiveMDIChild = @This
-					If OnActivate Then OnActivate(This)
+					If OnActivate Then OnActivate(*Designer, This)
 				End If
 				If msg.wParam = msg.hWnd Then
-					If OnDeActivate Then OnDeActivate(This)
+					If OnDeActivate Then OnDeActivate(*Designer, This)
 				End If
 			Case WM_ACTIVATE
 				xdpi = FDpiFormX
@@ -1310,16 +1310,16 @@ Namespace My.Sys.Forms
 				Select Case msg.wParamLo
 				Case WA_ACTIVE, WA_CLICKACTIVE
 					pApp->ActiveForm = @This
-					If OnActivate Then OnActivate(This)
+					If OnActivate Then OnActivate(*Designer, This)
 				Case WA_INACTIVE
-					If OnDeActivate Then OnDeActivate(This)
+					If OnDeActivate Then OnDeActivate(*Designer, This)
 				End Select
 			Case WM_ACTIVATEAPP
 				Select Case msg.wParam
 				Case 1
-					If OnActivateApp Then OnActivateApp(This)
+					If OnActivateApp Then OnActivateApp(*Designer, This)
 				Case 0
-					If OnDeActivateApp Then OnDeActivateApp(This)
+					If OnDeActivateApp Then OnDeActivateApp(*Designer, This)
 				End Select
 			Case WM_DESTROY
 				If Accelerator Then DestroyAcceleratorTable(Accelerator)
@@ -1612,7 +1612,7 @@ Namespace My.Sys.Forms
 			End If
 			SelectNextControl
 		#endif
-		If OnShow Then OnShow(This)
+		If OnShow Then OnShow(*Designer, This)
 	End Sub
 	
 	Private Sub Form.Show(ByRef OwnerForm As Form)
@@ -1702,14 +1702,14 @@ Namespace My.Sys.Forms
 				#else
 					If gtk_widget_get_visible(widget) Then
 				#endif
-					If OnHide Then OnHide(This)
+					If OnHide Then OnHide(*Designer, This)
 					gtk_widget_hide(widget)
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If IsWindowVisible(Handle) Then
-					If OnHide Then OnHide(This)
+					If OnHide Then OnHide(*Designer, This)
 					ShowWindow Handle, SW_HIDE
 				End If
 			End If
@@ -1829,7 +1829,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Private Sub Form.GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+	Private Sub Form.GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
@@ -1866,7 +1866,7 @@ Namespace My.Sys.Forms
 		Return @This
 	End Operator
 	
-	Private Sub Form.IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+	Private Sub Form.IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 		With *Cast(Form Ptr, Sender.Graphic)
 			#ifdef __USE_WINAPI__
 				SendMessage(.Handle, WM_SETICON, 1, CInt(.Icon.Handle))

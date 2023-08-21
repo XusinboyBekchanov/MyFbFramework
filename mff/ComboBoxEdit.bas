@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), Value)
 		#else
 			If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
-			If OnChange Then OnChange(This)
+			If OnChange Then OnChange(*Designer, This)
 		#endif
 	End Property
 	
@@ -591,16 +591,16 @@ Namespace My.Sys.Forms
 			Case CM_COMMAND
 				Select Case Message.wParamHi
 				Case CBN_SELCHANGE
-					If OnChange Then OnChange(This)
+					If OnChange Then OnChange(*Designer, This)
 				Case CBN_SELENDOK
-					If OnSelected Then OnSelected(This, ItemIndex)
+					If OnSelected Then OnSelected(*Designer, This, ItemIndex)
 				Case CBN_SELENDCANCEL
-					If OnSelectCanceled Then OnSelectCanceled(This)
+					If OnSelectCanceled Then OnSelectCanceled(*Designer, This)
 				Case CBN_EDITCHANGE
-					If OnChange Then OnChange(This)
+					If OnChange Then OnChange(*Designer, This)
 				Case CBN_EDITUPDATE
 				Case CBN_CLOSEUP
-					If OnCloseUp Then OnCloseUp(This)
+					If OnCloseUp Then OnCloseUp(*Designer, This)
 				Case CBN_DROPDOWN
 					If IntegralHeight = False Then
 						If Items.Count Then
@@ -610,9 +610,9 @@ Namespace My.Sys.Forms
 						End If
 						SetWindowPos(Handle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW Or SWP_SHOWWINDOW)
 					End If
-					If OnDropDown Then OnDropDown(This)
+					If OnDropDown Then OnDropDown(*Designer, This)
 				Case CBN_DBLCLK
-					If OnDblClick Then OnDblClick(This)
+					If OnDblClick Then OnDblClick(*Designer, This)
 				End Select
 			Case CM_MEASUREITEM
 				Dim As MEASUREITEMSTRUCT Ptr miStruct
@@ -620,7 +620,7 @@ Namespace My.Sys.Forms
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
 				ItemID = Cast(Integer,miStruct->itemID)
 				If OnMeasureItem Then
-					OnMeasureItem(This, ItemID,miStruct->itemHeight)
+					OnMeasureItem(*Designer, This, ItemID, miStruct->itemHeight)
 				Else
 					miStruct->itemHeight = ItemHeight
 				End If
@@ -637,7 +637,7 @@ Namespace My.Sys.Forms
 				If (diStruct->itemState And ODS_COMBOBOXEDIT) <> 0 Then State = State Or ODS_COMBOBOXEDIT
 				If (diStruct->itemState And ODS_DEFAULT) <> 0 Then State = State Or ODS_DEFAULT
 				If OnDrawItem Then
-					OnDrawItem(This, ItemID, State, *Cast(Rect Ptr, @R), Dc)
+					OnDrawItem(*Designer, This, ItemID, State, *Cast(Rect Ptr, @R), Dc)
 				Else
 					If (State And ODS_SELECTED) = ODS_SELECTED Then
 						Static As HBRUSH B
@@ -656,14 +656,14 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_CHAR
-				If OnKeyPress Then OnKeyPress(This, LoByte(Message.wParam), Message.wParam And &HFFFF)
+				If OnKeyPress Then OnKeyPress(*Designer, This, LoByte(Message.wParam), Message.wParam And &HFFFF)
 			Case WM_KEYDOWN
-				If OnKeyDown Then OnKeyDown(This, Message.wParam, Message.wParam And &HFFFF)
+				If OnKeyDown Then OnKeyDown(*Designer, This, Message.wParam, Message.wParam And &HFFFF)
 			Case WM_KEYUP
 				If Message.wParam = VK_RETURN Then
-					If OnActivate Then OnActivate(This)
+					If OnActivate Then OnActivate(*Designer, This)
 				End If
-				If OnKeyUp Then OnKeyUp(This, Message.wParam, Message.wParam And &HFFFF)
+				If OnKeyUp Then OnKeyUp(*Designer, This, Message.wParam, Message.wParam And &HFFFF)
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

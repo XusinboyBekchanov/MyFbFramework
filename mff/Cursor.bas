@@ -97,7 +97,7 @@ Namespace My.Sys.Drawing
 				DeleteObject(ICIF.hbmColor)
 				DeleteObject(ICIF.hbmMask)
 			#endif
-			If Changed Then Changed(This)
+			If Changed Then Changed(*Designer, This)
 			Return True
 		End Function
 	#endif
@@ -126,7 +126,7 @@ Namespace My.Sys.Drawing
 	'			?DeleteObject(ICIF.hbmColor)
 	'			?DeleteObject(ICIF.hbmMask)
 			#endif
-			If Changed Then Changed(This)
+			If Changed Then Changed(*Designer, This)
 			Return True
 		End Function
 	#endif
@@ -149,7 +149,7 @@ Namespace My.Sys.Drawing
 				DeleteObject(ICIF.hbmColor)
 				DeleteObject(ICIF.hbmMask)
 			#endif
-			If Changed Then Changed(This)
+			If Changed Then Changed(*Designer, This)
 			Return True
 		End Function
 	#endif
@@ -229,7 +229,7 @@ Namespace My.Sys.Drawing
 		Handle = Value.Handle
 		#ifdef __USE_WINAPI__
 			If Ctrl AndAlso Ctrl->Handle Then SendMessage(Ctrl->Handle, WM_SETCURSOR, Cast(WPARAM, Ctrl->Handle), Cast(LPARAM, 1))
-		#EndIf
+		#endif
 	End Operator
 	
 	Private Constructor Cursor
@@ -237,7 +237,7 @@ Namespace My.Sys.Drawing
 '		#ifndef __USE_GTK__
 '			Handle = LoadCursor(NULL,IDC_ARROW)
 '		#endif
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 	End Constructor
 	
 	Private Destructor Cursor

@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 		FEnabled As Boolean
 		FInterval As Integer
 		#ifndef __USE_GTK__
-			Declare Static Sub TimerProc(hwnd As hwnd, uMsg As UINT, idEvent As Integer, dwTime As DWORD)
+			Declare Static Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As Integer, dwTime As DWORD)
 		#endif
 	Public:
 		ID            As Integer
@@ -35,7 +35,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnTimer As Sub(ByRef Sender As TimerComponent)
+		OnTimer As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent)
 	End Type
 End Namespace
 

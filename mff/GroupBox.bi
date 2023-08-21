@@ -45,7 +45,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As GroupBox)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GroupBox)
 	End Type
 End Namespace
 

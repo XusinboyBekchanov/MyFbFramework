@@ -209,9 +209,9 @@ Namespace My.Sys.Forms
 	Private Property MonthCalendar.ShortDayNames(ByVal Value As Boolean)
 		If This.FHandle Then
 			#ifdef __USE_GTK__
-				FStyle = gtk_calendar_get_display_options(gtk_calendar(FHandle))
+				FStyle = gtk_calendar_get_display_options(GTK_CALENDAR(FHandle))
 				ChangeStyle GTK_CALENDAR_SHOW_DAY_NAMES, Value
-				gtk_calendar_set_display_options(gtk_calendar(FHandle), FStyle)
+				gtk_calendar_set_display_options(GTK_CALENDAR(FHandle), FStyle)
 			#elseif defined(__USE_WINAPI__)
 				#if _WIN32_WINNT >= &h0600
 					ChangeStyle MCS_SHORTDAYSOFWEEK, Value
@@ -239,13 +239,13 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_NOTIFY
-				Dim lpChange As NMSELCHANGE Ptr = Cast(NMSELCHANGE Ptr, message.lparam)
+				Dim lpChange As NMSELCHANGE Ptr = Cast(NMSELCHANGE Ptr, Message.lParam)
 				Select Case lpChange->nmhdr.code
 				Case MCN_SELECT
-					If OnClick Then OnClick(This)
-					If OnSelect Then OnSelect(This)
+					If OnClick Then OnClick(*Designer, This)
+					If OnSelect Then OnSelect(*Designer, This)
 				Case MCN_SELCHANGE
-					If OnSelectionChanged Then OnSelectionChanged(This)
+					If OnSelectionChanged Then OnSelectionChanged(*Designer, This)
 				End Select
 			End Select
 		#endif

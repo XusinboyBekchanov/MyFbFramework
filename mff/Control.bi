@@ -287,9 +287,9 @@ Namespace My.Sys.Forms
 				ToolTipHandle       As HWND
 			#endif
 			Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
-			Declare Virtual Sub ProcessMessageAfter(ByRef message As message)
+			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 		Public:
-			Declare Virtual Sub ProcessMessage(ByRef message As message)
+			Declare Virtual Sub ProcessMessage(ByRef message As Message)
 			'Canvas is all about drawing in a container (Windows, Linux).
 			Canvas        As My.Sys.Drawing.Canvas
 			'Activates the next control (Windows only).
@@ -437,49 +437,49 @@ Namespace My.Sys.Forms
 			Declare Constructor
 			Declare Destructor
 			'Occurs when the control is created (Windows, Linux).
-			OnCreate     As Sub(ByRef Sender As Control)
+			OnCreate     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control's handle is in the process of being destroyed (Windows, Linux).
-			OnDestroy    As Sub(ByRef Sender As Control)
+			OnDestroy    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the user drops a file on the window of an application that has registered itself as a recipient of dropped files (Windows, Linux).
-			OnDropFile   As Sub(ByRef Sender As Control, ByRef Filename As WString)
+			OnDropFile   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString)
 			'Occurs when the control is redrawn (Windows, Linux).
-			OnPaint      As Sub(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+			OnPaint      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 			'Occurs when the mouse pointer is moved over the control (Windows, Linux).
-			OnMouseMove  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			OnMouseMove  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer is over the control and a mouse button is pressed (Windows, Linux).
-			OnMouseDown  As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			OnMouseDown  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer is over the control and a mouse button is released (Windows, Linux).
-			OnMouseUp    As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			OnMouseUp    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse wheel moves while the control has focus (Windows, Linux).
-			OnMouseWheel As Sub(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+			OnMouseWheel As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer rests on the control (Windows only).
-			OnMouseHover As Sub(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+			OnMouseHover As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer enters the control (Windows, Linux).
-			OnMouseEnter As Sub(ByRef Sender As Control)
+			OnMouseEnter As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the mouse pointer leaves the control (Windows, Linux).
-			OnMouseLeave As Sub(ByRef Sender As Control)
+			OnMouseLeave As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is moved (Windows, Linux).
-			OnMove As Sub(ByRef Sender As Control)
+			OnMove       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is clicked (Windows, Linux).
-			OnClick      As Sub(ByRef Sender As Control)
+			OnClick      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is double-clicked (Windows, Linux).
-			OnDblClick   As Sub(ByRef Sender As Control)
+			OnDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux).
-			OnKeyPress   As Sub(ByRef Sender As Control, Key As Integer)
+			OnKeyPress   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 			'Occurs when a key is pressed while the control has focus (Windows, Linux).
-			OnKeyDown    As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
+			OnKeyDown    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 			'Occurs when a key is released while the control has focus (Windows, Linux).
-			OnKeyUp      As Sub(ByRef Sender As Control, Key As Integer, Shift As Integer)
+			OnKeyUp      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 			'Occurs when the window receives a message (Windows, Linux).
-			OnMessage    As Sub(ByRef Sender As Control, ByRef MSG As Message)
+			OnMessage    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message)
 			'Occurs when the control is resized (Windows, Linux).
-			OnResize     As Sub(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+			OnResize     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 			'Occurs when the scroll box has been moved by either a mouse or keyboard action (Windows only).
-			OnScroll     As Sub(ByRef Sender As Control)
+			OnScroll     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control receives focus (Windows, Linux).
-			OnGotFocus   As Sub(ByRef Sender As Control)
+			OnGotFocus   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control loses focus (Windows, Linux).
-			OnLostFocus  As Sub(ByRef Sender As Control)
+			OnLostFocus  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		End Type
 		
 		Dim Shared CreationControl As Control Ptr

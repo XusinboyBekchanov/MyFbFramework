@@ -12,7 +12,7 @@ Namespace My.Sys.Forms
 	Private Type RichTextBox Extends TextBox
 	Private:
 		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef message As message)
+			Declare Static Sub WndProc(ByRef message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Function StreamInProc(hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
 			Declare Static Function StreamOutProc (hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
@@ -117,8 +117,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnSelChange As Sub(ByRef Sender As RichTextBox)
-		OnProtectChange As Sub(ByRef Sender As RichTextBox, SelStart As Integer, SelEnd As Integer, ByRef AllowChange As Boolean)
+		OnSelChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RichTextBox)
+		OnProtectChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RichTextBox, SelStart As Integer, SelEnd As Integer, ByRef AllowChange As Boolean)
 	End Type
 End Namespace
 

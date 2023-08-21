@@ -525,23 +525,23 @@ Namespace My.Sys.Forms
 				POF = Cast(OFNOTIFY Ptr, lParam)
 				Select Case POF->hdr.code
 				Case CDN_FILEOK
-					If OpenDial Then If OpenDial->OnFileActivate Then OpenDial->OnFileActivate(*OpenDial)
+					If OpenDial Then If OpenDial->OnFileActivate Then OpenDial->OnFileActivate(*OpenDial->Designer, *OpenDial)
 					SetWindowLongPtr FWindow, DWLP_MSGRESULT, 1
 					Return 1
 				Case CDN_SELCHANGE
-					If OpenDial Then If OpenDial->OnSelectionChange Then OpenDial->OnSelectionChange(*OpenDial)
+					If OpenDial Then If OpenDial->OnSelectionChange Then OpenDial->OnSelectionChange(*OpenDial->Designer, *OpenDial)
 				Case CDN_FOLDERCHANGE
 					If g_darkModeSupported AndAlso g_darkModeEnabled Then
 						EnumChildWindows(OpenDial->Handle, Cast(WNDENUMPROC, @EnumListViewsProc), 0)
 					End If
-					If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial)
+					If OpenDial Then If OpenDial->OnFolderChange Then OpenDial->OnFolderChange(*OpenDial->Designer, *OpenDial)
 				Case CDN_TYPECHANGE
 					Dim As Integer Index
 					Index = (*Cast(OPENFILENAME Ptr, POF->lpOFN)).nFilterIndex
 					If OpenDial Then
 						OpenDial->FilterIndex = Index
 						If OpenDial->OnTypeChange Then
-							OpenDial->OnTypeChange(*OpenDial, Index)
+							OpenDial->OnTypeChange(*OpenDial->Designer, *OpenDial, Index)
 						End If
 					End If
 				Case CDN_INITDONE

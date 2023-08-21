@@ -149,7 +149,7 @@ Namespace My.Sys.Drawing
 			DeleteObject(ICIF.hbmColor)
 			DeleteObject(ICIF.hbmMask)
 		#endif
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 		Return True
 	End Function
 	
@@ -186,7 +186,7 @@ Namespace My.Sys.Drawing
 				DeleteObject(ICIF.hbmColor)
 				DeleteObject(ICIF.hbmMask)
 			#endif
-			If Changed Then Changed(This)
+			If Changed Then Changed(*Designer, This)
 			Return True
 		End Function
 	#endif
@@ -208,7 +208,7 @@ Namespace My.Sys.Drawing
 				DeleteObject(ICIF.hbmColor)
 				DeleteObject(ICIF.hbmMask)
 			#endif
-			If Changed Then Changed(This)
+			If Changed Then Changed(*Designer, This)
 			Return True
 		End Function
 	#endif

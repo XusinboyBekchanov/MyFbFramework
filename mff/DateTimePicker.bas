@@ -773,16 +773,16 @@ Namespace My.Sys.Forms
 		#else
 			Select Case Message.Msg
 			Case WM_KEYDOWN
-				PressedKey = LoWord(Message.WParam)
+				PressedKey = LoWord(Message.wParam)
 			Case WM_CHAR
-				PressedKey = Message.WParam
+				PressedKey = Message.wParam
 			Case WM_KEYUP
 				PressedKey = 0
 				'David Change
 				'bShift = GetKeyState(VK_SHIFT) And 8000
 				'bCtrl = GetKeyState(VK_CONTROL) And 8000
 				If ParentHandle>0 Then
-					Select Case message.wParam
+					Select Case Message.wParam
 					Case VK_RETURN, VK_ESCAPE,VK_LEFT,VK_RIGHT,VK_TAB 'VK_DOWN, VK_UP
 						PostMessage(ParentHandle, CM_COMMAND, Message.wParam, 9993)
 						'case VK_HOME,VK_END,VK_PRIOR,VK_NEXT,VK_INSERT,VK_DELETE,VK_BACK
@@ -791,13 +791,13 @@ Namespace My.Sys.Forms
 						'case else
 					End Select
 				End If
-				InvalidateRect(Handle,Null,False)
+				InvalidateRect(Handle,NULL,False)
 				UpdateWindow Handle
 			Case CM_NOTIFY 'WM_PAINT
-				Dim lpChange As NMDATETIMECHANGE Ptr = Cast(NMDATETIMECHANGE Ptr, message.lparam)
+				Dim lpChange As NMDATETIMECHANGE Ptr = Cast(NMDATETIMECHANGE Ptr, Message.lParam)
 				Select Case lpChange->nmhdr.code
 				Case DTN_DATETIMECHANGE
-					If OnDateTimeChanged Then OnDateTimeChanged(This)
+					If OnDateTimeChanged Then OnDateTimeChanged(*Designer, This)
 					If FAutoNextPart AndAlso PressedKey >= Asc("0") AndAlso PressedKey <= Asc("9") Then
 						Perform WM_KEYDOWN, VK_RIGHT, 0
 					End If

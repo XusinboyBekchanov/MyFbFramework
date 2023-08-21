@@ -1567,7 +1567,7 @@ Namespace My.Sys.Forms
 							GridEditText.Text = Rows.Item(FRow)->Text(FCol)
 							GridEditText.Visible= False
 							GridEditText.SetBounds UnScaleX(RectCell.Left), UnScaleY(RectCell.Top), UnScaleX(RectCell.Right - RectCell.Left) - 1, UnScaleY(RectCell.Bottom - RectCell.Top) - 1
-							If OnRowClick Then OnRowClick(This, lvp->iItem)
+							If OnRowClick Then OnRowClick(*Designer, This, lvp->iItem)
 						End If
 						Repaint
 					Else
@@ -1579,7 +1579,7 @@ Namespace My.Sys.Forms
 						FCol = lvp->iSubItem
 						FRow = lvp->iItem
 						If FRow >= 0 AndAlso FCol > 0 AndAlso FRow < Rows.Count Then
-							If OnRowDblClick Then OnRowDblClick(This, lvp->iItem)
+							If OnRowDblClick Then OnRowDblClick(*Designer, This, lvp->iItem)
 							EditControlShow(lvp->iItem, lvp->iSubItem)
 						End If
 					Else
@@ -1588,7 +1588,7 @@ Namespace My.Sys.Forms
 					End If
 				Case NM_KEYDOWN:
 					Dim As LPNMKEY lpnmk = Cast(LPNMKEY, Message.lParam)
-					If OnRowKeyDown Then OnRowKeyDown(This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
+					If OnRowKeyDown Then OnRowKeyDown(*Designer, This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
 				Case LVN_GETDISPINFO
 					If FOwnerData Then
 						Dim lpdi As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
@@ -1596,7 +1596,7 @@ Namespace My.Sys.Forms
 							Dim As Integer tCol = lpdi->item.iSubItem
 							Dim As Integer tRow = lpdi->item.iItem
 							Dim As WString * 255 NewText
-							If OnGetDispInfo Then OnGetDispInfo(This, NewText, tRow, tCol, lpdi->item.mask)
+							If OnGetDispInfo Then OnGetDispInfo(*Designer, This, NewText, tRow, tCol, lpdi->item.mask)
 							If tRow >= 0 AndAlso tCol >= 0 AndAlso tRow < Rows.Count Then
 								'Select Case lpdi->item.mask
 								'Case LVIF_TEXT
@@ -1616,26 +1616,26 @@ Namespace My.Sys.Forms
 					If FOwnerData Then
 						Dim pCacheHint As NMLVCACHEHINT Ptr = Cast(NMLVCACHEHINT  Ptr, Message.lParam)
 						' Load the cache With the recommended range if OwnerData is true.
-						If OnCacheHint Then OnCacheHint(This, pCacheHint->iFrom, pCacheHint->iTo)
+						If OnCacheHint Then OnCacheHint(*Designer, This, pCacheHint->iFrom, pCacheHint->iTo)
 					End If
 				Case LVN_ODFINDITEM
 					
 				Case LVN_ITEMACTIVATE
-					If lvp->iItem > 0 AndAlso OnRowActivate Then OnRowActivate(This, lvp->iItem)
+					If lvp->iItem > 0 AndAlso OnRowActivate Then OnRowActivate(*Designer, This, lvp->iItem)
 				Case LVN_BEGINSCROLL
 					GridEditText.Visible= False
-					If OnBeginScroll Then OnBeginScroll(This)
+					If OnBeginScroll Then OnBeginScroll(*Designer, This)
 				Case LVN_ENDSCROLL
-					If OnEndScroll Then OnEndScroll(This)
+					If OnEndScroll Then OnEndScroll(*Designer, This)
 				Case LVN_COLUMNCLICK
 					GridEditText.Visible= False
-					If lvp->iSubItem > 0 AndAlso OnColumnClick Then OnColumnClick(This, lvp->iSubItem)
+					If lvp->iSubItem > 0 AndAlso OnColumnClick Then OnColumnClick(*Designer, This, lvp->iSubItem)
 				Case LVN_ITEMCHANGING
 					GridEditText.Visible= False
 					Dim bCancel As Boolean
-					If lvp->iItem > 0 AndAlso OnSelectedRowChanging Then OnSelectedRowChanging(This, lvp->iItem, bCancel)
+					If lvp->iItem > 0 AndAlso OnSelectedRowChanging Then OnSelectedRowChanging(*Designer, This, lvp->iItem, bCancel)
 					If bCancel Then Message.Result = 0
-				Case LVN_ITEMCHANGED: If OnSelectedRowChanged Then OnSelectedRowChanged(This, lvp->iItem)
+				Case LVN_ITEMCHANGED: If OnSelectedRowChanged Then OnSelectedRowChanged(*Designer, This, lvp->iItem)
 				Case HDN_BEGINTRACK
 					GridEditText.Visible = False ' Force refesh windows
 				Case HDN_ITEMCHANGED
@@ -1822,7 +1822,7 @@ Namespace My.Sys.Forms
 					'If GridEditText.Multiline = False Then
 					Rows.Item(FRow)->Text(FCol) = GridEditText.Text
 					GridEditText.Visible= False ' Force refesh windows
-					If OnCellEdited Then OnCellEdited(This, FRow, FCol, GridEditText.Text)
+					If OnCellEdited Then OnCellEdited(*Designer, This, FRow, FCol, GridEditText.Text)
 					'End If
 					
 				End Select

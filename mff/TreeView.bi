@@ -106,8 +106,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick As Sub(ByRef Sender As My.Sys.Object)
-		OnDblClick As Sub(ByRef Sender As My.Sys.Object)
+		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
 	Private Type TreeView Extends Control
@@ -170,17 +170,17 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnNodeActivate As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnNodeClick As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnNodeDblClick As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnNodeCollapsing As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
-		OnNodeCollapsed As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnNodeExpanding As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
-		OnNodeExpanded As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnSelChanging As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
-		OnSelChanged As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		OnBeforeLabelEdit As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
-		OnAfterLabelEdit As Sub(ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
+		OnNodeActivate    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeClick       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeDblClick    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeCollapsing  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+		OnNodeCollapsed   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnNodeExpanding   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+		OnNodeExpanded    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnSelChanging     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+		OnSelChanged      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		OnBeforeLabelEdit As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
+		OnAfterLabelEdit  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
 	End Type
 End Namespace
 

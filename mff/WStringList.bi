@@ -15,7 +15,7 @@
 #define QWStringListItem(__Ptr__) (*Cast(WStringListItem Ptr,__Ptr__))
 #define QWStringList(__Ptr__) (*Cast(WStringList Ptr,__Ptr__))
 
-Private Type WStringListItem Extends Object
+Private Type WStringListItem
 Private:
 	FValue   As WString Ptr
 Public:

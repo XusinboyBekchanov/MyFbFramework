@@ -85,8 +85,8 @@ Namespace My.Sys.Forms
 		Declare Sub Update()
 		Declare Constructor
 		Declare Destructor
-		OnSelected   As Sub(ByRef Sender As TabPage)
-		OnDeSelected As Sub(ByRef Sender As TabPage)
+		OnSelected   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabPage)
+		OnDeSelected As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabPage)
 	End Type
 	
 	Private Type TabControl Extends ContainerControl
@@ -105,7 +105,7 @@ Namespace My.Sys.Forms
 		Declare Sub SetMargins()
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Function GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
 		#elseif defined(__USE_GTK__)
@@ -172,13 +172,13 @@ Namespace My.Sys.Forms
 		Declare Sub Clear
 		Declare Constructor
 		Declare Destructor
-		OnSelChange   As Sub(ByRef Sender As TabControl, NewIndex As Integer)
-		OnSelChanging As Sub(ByRef Sender As TabControl, NewIndex As Integer)
-		OnGotFocus   As Sub(ByRef Sender As TabControl)
-		OnLostFocus   As Sub(ByRef Sender As TabControl)
-		OnTabAdded As Sub(ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
-		OnTabRemoved As Sub(ByRef Sender As TabControl, Page As TabPage Ptr, FromIndex As Integer)
-		OnTabReordered As Sub(ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
+		OnSelChange    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, NewIndex As Integer)
+		OnSelChanging  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, NewIndex As Integer)
+		OnGotFocus     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl)
+		OnLostFocus    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl)
+		OnTabAdded     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
+		OnTabRemoved   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, FromIndex As Integer)
+		OnTabReordered As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
 	End Type
 End Namespace
 

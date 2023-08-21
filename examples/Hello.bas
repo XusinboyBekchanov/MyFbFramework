@@ -10,8 +10,8 @@ Using My.Sys.Forms
 
 Dim Shared frm As Form, cmd As CommandButton
 
-Sub cmd_Click(ByRef Sender As Control)
-   MsgBox "Hello"
+Sub cmd_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	MsgBox "Hello"
 End Sub
 
 cmd.Text = "Click me!"

@@ -113,14 +113,14 @@ Namespace My.Sys.Forms
 					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC,@Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				Else
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				End If
 				EndPaint Handle,@Ps
 				Message.Result = 0
@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 					If Si.nPos = 0 Then SetScrollsInfo
 					UpdateWindow (Message.hWnd)
 					
-					If OnScroll Then OnScroll(This)
+					If OnScroll Then OnScroll(*Designer, This)
 					
 				End If
 			Case WM_VSCROLL
@@ -197,7 +197,7 @@ Namespace My.Sys.Forms
 					If Si.nPos = 0 Then SetScrollsInfo
 					UpdateWindow (Message.hWnd)
 					
-					If OnScroll Then OnScroll(This)
+					If OnScroll Then OnScroll(*Designer, This)
 					
 				End If
 			Case WM_HSCROLL
@@ -234,7 +234,7 @@ Namespace My.Sys.Forms
 					If Si.nPos = 0 Then SetScrollsInfo
 					UpdateWindow (Message.hWnd)
 					
-					If OnScroll Then OnScroll(This)
+					If OnScroll Then OnScroll(*Designer, This)
 					
 				End If
 			Case WM_SIZE

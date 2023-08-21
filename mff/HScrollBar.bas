@@ -161,40 +161,40 @@ Namespace My.Sys.Forms
 				'            #ENDIF
 				Message.Result = 0
 			Case CM_CREATE
-				sif.cbSize = SizeOf(sif)
-				sif.fMask  = SIF_RANGE Or SIF_PAGE
-				sif.nMin   = FMin
-				sif.nMax   = FMax
-				sif.nPage  = FPageSize
-				SetScrollInfo(FHandle, SB_CTL, @sif, True)
+				SIF.cbSize = SizeOf(SIF)
+				SIF.fMask  = SIF_RANGE Or SIF_PAGE
+				SIF.nMin   = FMin
+				SIF.nMax   = FMax
+				SIF.nPage  = FPageSize
+				SetScrollInfo(FHandle, SB_CTL, @SIF, True)
 			Case CM_HSCROLL, CM_VSCROLL
 				Var lo = LoWord(Message.wParam)
-				sif.cbSize = SizeOf(sif)
-				sif.fMask  = SIF_ALL
-				GetScrollInfo (FHandle, SB_CTL, @sif)
-				OldPos = sif.nPos
+				SIF.cbSize = SizeOf(SIF)
+				SIF.fMask  = SIF_ALL
+				GetScrollInfo (FHandle, SB_CTL, @SIF)
+				OldPos = SIF.nPos
 				Select Case lo
 				Case SB_TOP, SB_LEFT
-					sif.nPos = sif.nMin
+					SIF.nPos = SIF.nMin
 				Case SB_BOTTOM, SB_RIGHT
-					sif.nPos = sif.nMax
+					SIF.nPos = SIF.nMax
 				Case SB_LINEUP, SB_LINELEFT
-					sif.nPos -= FArrowChangeSize
+					SIF.nPos -= FArrowChangeSize
 				Case SB_LINEDOWN, SB_LINERIGHT
-					sif.nPos += FArrowChangeSize
+					SIF.nPos += FArrowChangeSize
 				Case SB_PAGEUP, SB_PAGELEFT
-					sif.nPos -= sif.nPage
+					SIF.nPos -= SIF.nPage
 				Case SB_PAGEDOWN, SB_PAGERIGHT
-					sif.nPos += sif.nPage
+					SIF.nPos += SIF.nPage
 				Case SB_THUMBPOSITION, SB_THUMBTRACK
-					sif.nPos = sif.nTrackPos
+					SIF.nPos = SIF.nTrackPos
 				End Select
-				sif.fMask = SIF_POS
-				SetScrollInfo(FHandle, SB_CTL, @sif, True)
-				GetScrollInfo(FHandle, SB_CTL, @sif)
-				If (Not sif.nPos = OldPos) Then
+				SIF.fMask = SIF_POS
+				SetScrollInfo(FHandle, SB_CTL, @SIF, True)
+				GetScrollInfo(FHandle, SB_CTL, @SIF)
+				If (Not SIF.nPos = OldPos) Then
 					If OnScroll Then
-						OnScroll(This, Cast(UInteger, sif.nPos))
+						OnScroll(*Designer, This, Cast(UInteger, SIF.nPos))
 					End If
 				End If
 			End Select

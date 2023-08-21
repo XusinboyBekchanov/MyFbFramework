@@ -48,9 +48,9 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Property Align As SplitterAlignmentConstants
 		Declare Property Align(Value As SplitterAlignmentConstants)
-		OnPaint As Sub(ByRef Sender As Splitter)
-		OnMoving As Sub(ByRef Sender As Splitter)
-		OnMoved As Sub(ByRef Sender As Splitter)
+		OnPaint As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Splitter)
+		OnMoving As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Splitter)
+		OnMoved As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Splitter)
 		Declare Constructor
 		Declare Destructor
 	End Type

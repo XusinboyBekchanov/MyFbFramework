@@ -16,7 +16,7 @@
 #define QDictionaryItem(__Ptr__) (*Cast(DictionaryItem Ptr,__Ptr__))
 #define QDictionary(__Ptr__) (*Cast(Dictionary Ptr,__Ptr__))
 
-Private Type DictionaryItem 'Extends Object
+Private Type DictionaryItem
 Private:
 	FKey            As WString Ptr
 	FText           As WString Ptr
@@ -31,7 +31,7 @@ Public:
 	Declare Destructor
 End Type
 
-Private Type Dictionary 'Extends Object
+Private Type Dictionary
 Private:
 	FCount             As Integer
 	FText              As WString Ptr

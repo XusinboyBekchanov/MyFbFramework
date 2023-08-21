@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 				Canvas.HandleSetted = True
 				Dc = BeginPaint(Handle, @Ps)
 				FillRect Dc, @Ps.rcPaint, Brush.Handle
-				If OnPaint Then OnPaint(This, Canvas)
+				If OnPaint Then OnPaint(*Designer, This, Canvas)
 				EndPaint Handle, @Ps
 				Message.Result = 0
 				Canvas.HandleSetted = False

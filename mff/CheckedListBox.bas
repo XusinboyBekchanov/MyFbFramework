@@ -124,7 +124,7 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
-					OnDrawItem(This, lpdis->itemID, lpdis->itemState, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), lpdis->hDC)
+					OnDrawItem(*Designer, This, lpdis->itemID, lpdis->itemState, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), lpdis->hDC)
 				Else
 					If lpdis->itemID = &HFFFFFFFF& Then
 						Exit Sub
@@ -261,7 +261,7 @@ Namespace My.Sys.Forms
 '				End If
 			Case WM_CHAR
 				If Message.wParam = 32 Then Checked(ItemIndex) = Not Checked(ItemIndex): This.Repaint
-				If OnKeyPress Then OnKeyPress(This, LoByte(Message.wParam))
+				If OnKeyPress Then OnKeyPress(*Designer, This, LoByte(Message.wParam))
 '			Case WM_KEYDOWN
 '				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam And &HFFFF)
 '			Case WM_KEYUP

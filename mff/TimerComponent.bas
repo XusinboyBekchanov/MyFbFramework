@@ -46,7 +46,7 @@ Namespace My.Sys.Forms
 			With TimersList
 				If .Contains(idEvent) Then
 					Var tmr = Cast(TimerComponent Ptr, .Object(.IndexOf(idEvent)))
-					If tmr->OnTimer Then tmr->OnTimer(*tmr)
+					If tmr->OnTimer Then tmr->OnTimer(*tmr->Designer, *tmr)
 				End If
 			End With
 		End Sub

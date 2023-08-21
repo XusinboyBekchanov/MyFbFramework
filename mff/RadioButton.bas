@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 				SetBkMode Dc,OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
-					If OnClick Then OnClick(This)
+					If OnClick Then OnClick(*Designer, This)
 				End If
 			Case CM_NOTIFY
 				If (g_darkModeSupported AndAlso g_darkModeEnabled OrElse FForeColor <> 0) AndAlso Message.lParam <> 0 AndAlso Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW Then

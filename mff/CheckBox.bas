@@ -187,7 +187,7 @@ Namespace My.Sys.Forms
 					Else
 						Checked = 0
 					End If
-					If OnClick Then OnClick(This)
+					If OnClick Then OnClick(*Designer, This)
 				End If
 			Case WM_WINDOWPOSCHANGING
 				If FAutoSize Then

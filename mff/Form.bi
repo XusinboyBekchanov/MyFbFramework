@@ -106,8 +106,8 @@ Namespace My.Sys.Forms
 		Declare Sub GetMenuItems
 		Declare Sub ShowItems(Ctrl As Control Ptr)
 		Declare Sub HideItems(Ctrl As Control Ptr)
-		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
-		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 	Protected:
 		FControlBox     As Boolean
 		FKeyPreview     As Boolean
@@ -234,21 +234,21 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		'Occurs when the form is activated in code or by the user (Windows, Linux).
-		OnActivate              As Sub(ByRef Sender As Form)
+		OnActivate              As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs after a Application instance becomes active (Windows, Linux).
-		OnActivateApp           As Sub(ByRef Sender As Form)
+		OnActivateApp           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs when changes focus one of the controls on the form (Windows, Linux).
-		OnActiveControlChange   As Sub(ByRef Sender As Form)
+		OnActiveControlChange   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs when the form is closed (Windows, Linux).
-		OnClose                 As Sub(ByRef Sender As Form, ByRef Action As Integer)
+		OnClose                 As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 		'Occurs when the form loses focus and is no longer the active form (Windows, Linux).
-		OnDeActivate            As Sub(ByRef Sender As Form)
+		OnDeActivate            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs after a Application instance becomes deactive (Windows, Linux).
-		OnDeActivateApp         As Sub(ByRef Sender As Form)
+		OnDeActivateApp         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs when the Visible property value changes to false (Windows, Linux).
-		OnHide                  As Sub(ByRef Sender As Form)
+		OnHide                  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs when the Visible property value changes to true (Windows, Linux).
-		OnShow                  As Sub(ByRef Sender As Form)
+		OnShow                  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	End Type
 End Namespace
 

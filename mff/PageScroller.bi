@@ -74,7 +74,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnScroll As Sub(ByRef Sender As PageScroller, ByRef NewPos As Integer)
+		OnScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As PageScroller, ByRef NewPos As Integer)
 	End Type
 End Namespace
 

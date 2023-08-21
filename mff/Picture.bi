@@ -43,7 +43,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
-		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
@@ -73,10 +73,10 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick    As Sub(ByRef Sender As Picture)
-		OnDblClick As Sub(ByRef Sender As Picture)
+		OnClick    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Picture)
+		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Picture)
 		#ifndef __USE_GTK__
-			OnDraw As Sub(ByRef Sender As Picture, ByRef R As My.Sys.Drawing.Rect, DC As HDC)
+			OnDraw As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Picture, ByRef R As My.Sys.Drawing.Rect, DC As HDC)
 		#endif
 	End Type
 End Namespace

@@ -117,7 +117,7 @@ Namespace My.Sys.Drawing
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast ByRef As WString
 		Declare Operator Let(Value As Font)
-		OnCreate As Sub(ByRef Sender As Font)
+		OnCreate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Font)
 		Declare Constructor
 		Declare Destructor
 	End Type

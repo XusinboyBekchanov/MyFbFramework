@@ -100,7 +100,7 @@ Namespace My.Sys.Drawing
 		Declare Property Size As Integer
 		Declare Property Size(Value As Integer)
 		Declare Operator Cast As Any Ptr
-		OnCreate As Sub(ByRef Sender As Pen)
+		OnCreate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Pen)
 		Declare Constructor
 		Declare Destructor
 	End Type

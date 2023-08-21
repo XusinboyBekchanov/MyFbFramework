@@ -86,7 +86,7 @@ Namespace My.Sys.Drawing
 			#ifdef __USE_WINAPI__
 				If Handle Then DeleteObject Handle
 				Handle = CreatePen(FStyle, FSize, FColor)
-				If Handle Then If OnCreate Then OnCreate(This)
+				If Handle Then If OnCreate Then OnCreate(*Designer, This)
 			#endif
 		End Sub
 	#endif

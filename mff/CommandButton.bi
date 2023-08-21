@@ -30,15 +30,15 @@ Namespace My.Sys.Forms
 		AStyle(4)   As Integer
 		ADefault(2) As Integer
 		#ifndef __USE_GTK__
-			Declare Static Sub WndProc(ByRef message As message)
+			Declare Static Sub WndProc(ByRef message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#else
 			Declare Static Sub Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
 		#endif
-		Declare Static Sub GraphicChange(ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		Declare Function EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
 	Protected:
-		Declare Virtual Sub ProcessMessage(ByRef message As message)
+		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
 		Graphic     As My.Sys.Drawing.GraphicType
 		#ifndef ReadProperty_Off
@@ -63,7 +63,7 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		#ifdef __USE_WINAPI__
-			OnDraw  As Sub(ByRef Sender As CommandButton, ByRef R As Rect, DC As HDC = 0)
+			OnDraw  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CommandButton, ByRef R As Rect, DC As HDC = 0)
 		#endif
 	End Type
 End Namespace

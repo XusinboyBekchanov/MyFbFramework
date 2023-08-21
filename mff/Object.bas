@@ -10,7 +10,7 @@ Namespace My.Sys
 	#ifndef ReadProperty_Off
 		Private Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "classname": Return FClassName
+			Case "classname": If IsEmpty Then Return 0 Else Return FClassName
 			Case Else: Return 0
 			End Select
 			Return 0
@@ -37,6 +37,7 @@ Namespace My.Sys
 	End Operator
 	
 	Private Function Object.ClassName ByRef As WString
+		If IsEmpty Then Return WStr("")
 		If FClassName = 0 Or FClassName = 24 Then
 			Return WStr("")
 		Else
@@ -44,7 +45,12 @@ Namespace My.Sys
 		End If
 	End Function
 	
+	Private Function Object.IsEmpty As Boolean
+		Return @This = 0
+	End Function
+	
 	Private Function Object.FullTypeName(ByVal baseIndex As Integer = 0) As UString
+		If IsEmpty Then Return WStr("")
 		Dim As String s
 		Dim As ZString Ptr pz
 		Dim As Any Ptr p = CPtr(Any Ptr Ptr Ptr, @This)[0][-1]     ' Ptr to RTTI info
@@ -69,6 +75,7 @@ Namespace My.Sys
 	End Function
 	
 	Private Function Object.ToString ByRef As WString
+		If IsEmpty Then Return WStr("")
 		WLet(FTemp, "(" & This.ClassName & ")")
 		Return *FTemp
 	End Function

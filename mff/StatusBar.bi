@@ -47,7 +47,7 @@ Namespace My.Sys.Forms
 		FBevel      As BevelStyle
 		FWidth      As Integer
 		FRealWidth  As Integer
-		Declare Static Sub IconChanged(ByRef Sender As My.Sys.Drawing.Icon)
+		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr

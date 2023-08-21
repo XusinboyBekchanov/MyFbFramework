@@ -131,15 +131,15 @@ Public:
 	Declare Function Execute As Boolean
 	Declare Constructor
 	Declare Destructor
-	OnFolderChange    As Sub(ByRef Sender As OpenFileDialog)
-	OnSelectionChange As Sub(ByRef Sender As OpenFileDialog)
-	OnTypeChange      As Sub(ByRef Sender As OpenFileDialog, Index As Integer)
+	OnFolderChange    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileDialog)
+	OnSelectionChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileDialog)
+	OnTypeChange      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileDialog, Index As Integer)
 End Type
 
 Private Type SaveFileDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As wParam, lParam As lParam) As UInteger
+		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 	#endif
 	Control      As My.Sys.Forms.Control
 	FInitialDir   As WString Ptr
@@ -172,9 +172,9 @@ Public:
 	Declare Function Execute As Boolean
 	Declare Constructor
 	Declare Destructor
-	OnFolderChange    As Sub(ByRef Sender As My.Sys.Forms.Control)
-	OnSelectionChange As Sub(ByRef Sender As My.Sys.Forms.Control)
-	OnTypeChange      As Sub(ByRef Sender As My.Sys.Forms.Control, Index As Integer)
+	OnFolderChange    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Forms.Control)
+	OnSelectionChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Forms.Control)
+	OnTypeChange      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Forms.Control, Index As Integer)
 End Type
 
 Private Type FontDialog Extends Dialog

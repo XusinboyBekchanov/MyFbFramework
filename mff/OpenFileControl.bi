@@ -75,10 +75,10 @@ Namespace My.Sys.Forms
 		Declare Sub CreateWnd
 		Declare Constructor
 		Declare Destructor
-		OnFileActivate    As Sub(ByRef Sender As OpenFileControl)
-		OnFolderChange    As Sub(ByRef Sender As OpenFileControl)
-		OnSelectionChange As Sub(ByRef Sender As OpenFileControl)
-		OnTypeChange      As Sub(ByRef Sender As OpenFileControl, Index As Integer)
+		OnFileActivate    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileControl)
+		OnFolderChange    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileControl)
+		OnSelectionChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileControl)
+		OnTypeChange      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileControl, Index As Integer)
 	End Type
 End Namespace
 

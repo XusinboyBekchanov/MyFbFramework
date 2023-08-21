@@ -52,8 +52,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnSelect As Sub(ByRef Sender As MonthCalendar)
-		OnSelectionChanged As Sub(ByRef Sender As MonthCalendar)
+		OnSelect As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MonthCalendar)
+		OnSelectionChanged As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MonthCalendar)
 	End Type
 End Namespace
 

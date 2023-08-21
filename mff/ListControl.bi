@@ -115,10 +115,10 @@ Namespace My.Sys.Forms
 		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Constructor
 		Declare Destructor
-		OnChange      As Sub(ByRef Sender As ListControl)
+		OnChange      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl)
 		#ifndef __USE_GTK__
-			OnMeasureItem As Sub(ByRef Sender As ListControl, ItemIndex As Integer, ByRef Height As UInt)
-			OnDrawItem    As Sub(ByRef Sender As ListControl, ItemIndex As Integer, State As Integer, ByRef R As My.Sys.Drawing.Rect, DC As HDC = 0)
+			OnMeasureItem As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl, ItemIndex As Integer, ByRef Height As UINT)
+			OnDrawItem    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl, ItemIndex As Integer, State As Integer, ByRef R As My.Sys.Drawing.Rect, DC As HDC = 0)
 		#endif
 	End Type
 End Namespace

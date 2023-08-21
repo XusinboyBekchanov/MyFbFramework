@@ -529,9 +529,9 @@ Namespace My.Sys.Forms
 							SelItems = @AItems(0)
 						End If
 					End If
-					If OnChange Then OnChange(This)
+					If OnChange Then OnChange(*Designer, This)
 				Case LBN_DBLCLK
-					If OnDblClick Then OnDblClick(This)
+					If OnDblClick Then OnDblClick(*Designer, This)
 				End Select
 			Case CM_MEASUREITEM
 				Dim As MEASUREITEMSTRUCT Ptr miStruct
@@ -539,7 +539,7 @@ Namespace My.Sys.Forms
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr,Message.lParam)
 				ItemID = Cast(Integer,miStruct->itemID)
 				If OnMeasureItem Then
-					OnMeasureItem(This,ItemID,miStruct->itemHeight)
+					OnMeasureItem(*Designer, This, ItemID, miStruct->itemHeight)
 				Else
 					miStruct->itemHeight = ScaleY(SendMessage(FHandle, LB_GETITEMHEIGHT, 0, 0)) 'ScaleY(ItemHeight)
 				End If
@@ -554,7 +554,7 @@ Namespace My.Sys.Forms
 				R = Cast(..Rect, diStruct->rcItem)
 				Dc = diStruct->hDC
 				If OnDrawItem Then
-					OnDrawItem(This, ItemID, State, *Cast(My.Sys.Drawing.Rect Ptr, @R), Dc)
+					OnDrawItem(*Designer, This, ItemID, State, *Cast(My.Sys.Drawing.Rect Ptr, @R), Dc)
 				Else
 					If (State And ODS_SELECTED) = ODS_SELECTED Then
 						Static As HBRUSH B
@@ -574,11 +574,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case WM_CHAR
-				If OnKeyPress Then OnKeyPress(This, LoByte(Message.wParam))
+				If OnKeyPress Then OnKeyPress(*Designer, This, LoByte(Message.wParam))
 			Case WM_KEYDOWN
-				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam And &HFFFF)
+				If OnKeyDown Then OnKeyDown(*Designer, This, Message.wParam, Message.wParam And &HFFFF)
 			Case WM_KEYUP
-				If OnKeyUp Then OnKeyUp(This,Message.wParam,Message.wParam And &HFFFF)
+				If OnKeyUp Then OnKeyUp(*Designer, This, Message.wParam, Message.wParam And &HFFFF)
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

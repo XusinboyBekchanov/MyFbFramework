@@ -142,16 +142,16 @@ Namespace My.Sys.Forms
 		Declare Sub UpdateItems
 		Declare Constructor
 		Declare Destructor
-		OnSectionClick    As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
-		OnSectionDblClick As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
-		OnChange          As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
-		OnChanging        As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, ByRef Cancel As Boolean)
-		OnBeginTrack      As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
-		OnEndTrack        As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
-		OnTrack           As Sub(ByRef Sender As Header, ByRef Section As HeaderSection)
-		OnDividerDblClick As Sub(ByRef Sender As Header, Index As Integer, MouseButton As Integer)
+		OnSectionClick      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
+		OnSectionDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
+		OnChange            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnChanging          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, ByRef Cancel As Boolean)
+		OnBeginTrack        As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnEndTrack          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnTrack             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		OnDividerDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, Index As Integer, MouseButton As Integer)
 		#ifndef __USE_GTK__
-			OnDrawSection     As Sub(ByRef Sender As Header, ByRef Section As HeaderSection, R As My.Sys.Drawing.Rect, State As Integer)
+			OnDrawSection   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, R As My.Sys.Drawing.Rect, State As Integer)
 		#endif
 	End Type
 End Namespace

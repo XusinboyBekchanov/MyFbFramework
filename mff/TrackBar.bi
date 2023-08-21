@@ -97,7 +97,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnChange As Sub(ByRef Sender As TrackBar, Position As Integer)
+		OnChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer)
 	End Type
 End Namespace
 

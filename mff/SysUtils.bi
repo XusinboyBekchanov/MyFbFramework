@@ -25,7 +25,7 @@
 
 #ifdef __USE_WINAPI__
 	#define UNICODE
-	#include once "Windows.bi"
+	#include once "windows.bi"
 #endif
 
 #ifdef __USE_GTK__

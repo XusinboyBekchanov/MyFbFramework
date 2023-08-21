@@ -176,8 +176,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		'OnClick As Sub(BYREF Sender As My.Sys.Object)
-		'OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+		'OnClick As Sub(ByRef Designer As My.Sys.Object, BYREF Sender As My.Sys.Object)
+		'OnDblClick As Sub(ByRef Designer As My.Sys.Object, BYREF Sender As My.Sys.Object)
 	End Type
 
 	Private Type GridDataColumn Extends My.Sys.Object
@@ -233,8 +233,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
-		'OnClick As Sub(BYREF Sender As My.Sys.Object)
-		'OnDblClick As Sub(BYREF Sender As My.Sys.Object)
+		'OnClick As Sub(ByRef Designer As My.Sys.Object, BYREF Sender As My.Sys.Object)
+		'OnDblClick As Sub(ByRef Designer As My.Sys.Object, BYREF Sender As My.Sys.Object)
 	End Type
 
 	Private Type GridDataColumns
@@ -429,22 +429,22 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnHeadClick As Sub(ByRef Sender As GridData, ColIndex As Integer)
-		OnHeadColWidthAdjust As Sub(ByRef Sender As GridData, ColIndex As Integer)
-		OnItemActivate As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
+		OnHeadClick                 As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, ColIndex As Integer)
+		OnHeadColWidthAdjust        As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, ColIndex As Integer)
+		OnItemActivate              As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
 		#ifdef __USE_WINAPI__
-			OnItemClick As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer,tGridDCC As HDC)
-			OnItemDblClick As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+			OnItemClick             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+			OnItemDblClick          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
 		#endif
-		OnItemKeyDown As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
-		OnItemExpanding As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
-		OnCellEditing As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr, SubItemIndex As Integer, CellEditor As Control Ptr)
-		OnCellEdited As Sub(ByRef Sender As GridData, ByRef Item As GridDataItem Ptr, SubItemIndex As Integer, ByRef NewText As WString)
+		OnItemKeyDown               As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
+		OnItemExpanding             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, ByRef Item As GridDataItem Ptr)
+		OnCellEditing               As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, ByRef Item As GridDataItem Ptr, SubItemIndex As Integer, CellEditor As Control Ptr)
+		OnCellEdited                As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, ByRef Item As GridDataItem Ptr, SubItemIndex As Integer, ByRef NewText As WString)
 		#ifdef __USE_WINAPI__
-			OnSelectedItemChanged As Sub(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+			OnSelectedItemChanged   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
 		#endif
-		OnBeginScroll As Sub(ByRef Sender As GridData)
-		OnEndScroll As Sub(ByRef Sender As GridData)
+		OnBeginScroll               As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData)
+		OnEndScroll                 As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As GridData)
 	End Type
 
 End Namespace

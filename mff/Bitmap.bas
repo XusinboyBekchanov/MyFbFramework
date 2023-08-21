@@ -51,7 +51,7 @@ Namespace My.Sys.Drawing
 	
 	Private Property BitmapType.Width(Value As Integer)
 		FWidth = Value
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 	End Property
 	
 	#ifndef BitmapType_Height_Get_Off
@@ -62,7 +62,7 @@ Namespace My.Sys.Drawing
 	
 	Private Property BitmapType.Height(Value As Integer)
 		FHeight = Value
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 	End Property
 	
 	Private Property BitmapType.Transparency As Boolean
@@ -103,10 +103,10 @@ Namespace My.Sys.Drawing
 				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
 				StartupInput.GdiplusVersion = 1
 				GdiplusStartup(@token, @StartupInput, NULL)
-				If token = NULL Then If Changed Then Changed(This) End If: Return False
+				If token = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
 				' // Load the image from file
 				GdipLoadImageFromFile(File, @pImage)
-				If pImage = NULL Then If Changed Then Changed(This) End If: Return False
+				If pImage = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
 				' // Get the image width and height
 				GdipGetImageWidth(pImage, @FWidth)
 				GdipGetImageHeight(pImage, @FHeight)
@@ -118,7 +118,7 @@ Namespace My.Sys.Drawing
 				GdiplusShutdown token
 			End Select
 		#endif
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 		Return True
 	End Function
 	
@@ -425,7 +425,7 @@ Namespace My.Sys.Drawing
 				FWidth  = BMP.bmWidth
 				FHeight = BMP.bmHeight
 			#endif
-			If Changed Then Changed(This)
+			If Changed Then Changed(*Designer, This)
 			Return Handle <> 0
 		End Function
 	#endif
@@ -443,7 +443,7 @@ Namespace My.Sys.Drawing
 			FWidth  = BMP.bmWidth
 			FHeight = BMP.bmHeight
 		#endif
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 		Return True
 	End Function
 	
@@ -463,7 +463,7 @@ Namespace My.Sys.Drawing
 			SelectObject FDevice,Handle
 			FillRect(FDevice, @rc, Brush.Handle)
 		#endif
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 	End Sub
 	
 	Private Sub BitmapType.Clear
@@ -475,7 +475,7 @@ Namespace My.Sys.Drawing
 			rc.bottom = FHeight
 			FillRect FDevice, @rc, Brush.Handle
 		#endif
-		If Changed Then Changed(This)
+		If Changed Then Changed(*Designer, This)
 	End Sub
 	
 	Private Sub BitmapType.Free

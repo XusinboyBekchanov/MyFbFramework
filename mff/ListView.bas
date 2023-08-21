@@ -1473,11 +1473,11 @@ Namespace My.Sys.Forms
 			Case CM_NOTIFY
 				Dim lvp As NMLISTVIEW Ptr = Cast(NMLISTVIEW Ptr, Message.lParam)
 				Select Case lvp->hdr.code
-				Case NM_CLICK: If OnItemClick Then OnItemClick(This, lvp->iItem)
-				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(This, lvp->iItem)
+				Case NM_CLICK: If OnItemClick Then OnItemClick(*Designer, This, lvp->iItem)
+				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(*Designer, This, lvp->iItem)
 				Case NM_KEYDOWN: 
 					Dim As LPNMKEY lpnmk = Cast(LPNMKEY, Message.lParam)
-					If OnItemKeyDown Then OnItemKeyDown(This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
+					If OnItemKeyDown Then OnItemKeyDown(*Designer, This, lvp->iItem, lpnmk->nVKey, lpnmk->uFlags And &HFFFF)
 				Case NM_CUSTOMDRAW
 					If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso CBool(FView = ViewStyle.vsDetails) AndAlso FGridLines) Then
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
@@ -1507,12 +1507,12 @@ Namespace My.Sys.Forms
 							Dim As ..Rect R
 							GetWindowRect(hHeader, @R)
 							Heights = R.Bottom - R.Top - 1
-							Dim rc As ..RECT
+							Dim rc As ..Rect
 							If ListView_GetItemCount(FHandle) = 0 Then
 								If FItemHeight = 0 Then
 									Dim As LVITEM lvi
-									lvi.Mask = LVIF_PARAM
-									lvi.LParam = 0
+									lvi.mask = LVIF_PARAM
+									lvi.lParam = 0
 									ListView_InsertItem(FHandle, @lvi)
 									ListView_GetItemRect FHandle, 0, @rc, LVIR_BOUNDS
 									ListView_DeleteItem(FHandle, 0)
@@ -1533,18 +1533,18 @@ Namespace My.Sys.Forms
 							Return
 						End Select
 					End If
-				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(This, lvp->iItem)
-				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(This)
-				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(This)
+				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(*Designer, This, lvp->iItem)
+				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(*Designer, This)
+				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(*Designer, This)
 				Case LVN_ITEMCHANGING: 
 					Dim bCancel As Boolean
-					If OnSelectedItemChanging Then OnSelectedItemChanging(This, lvp->iItem, bCancel)
+					If OnSelectedItemChanging Then OnSelectedItemChanging(*Designer, This, lvp->iItem, bCancel)
 					If bCancel Then Message.Result = -1: Exit Sub 
-				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(This, lvp->iItem)
+				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, lvp->iItem)
 				Case HDN_ITEMCHANGED:
 				End Select
 			Case CM_COMMAND
-				Select Case message.Wparam
+				Select Case Message.wParam
 				Case LVN_ITEMACTIVATE
 				Case LVN_KEYDOWN
 				Case LVN_ITEMCHANGING

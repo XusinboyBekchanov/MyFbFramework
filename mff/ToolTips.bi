@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnLinkClicked As Sub(ByRef Sender As ToolTips, ByRef link As WString)
+		OnLinkClicked As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolTips, ByRef link As WString)
 	End Type
 End Namespace
 
