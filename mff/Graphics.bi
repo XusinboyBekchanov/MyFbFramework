@@ -215,6 +215,9 @@
 
 Declare Function ColorToRGB(FColor As Integer) As Integer
 Declare Function RGBAToBGR(FColor As UInteger) As Integer
+Declare Function IsDarkColor(lColor As Long) As Boolean
+Declare Function ShiftColor(clrFirst As Long, clrSecond As Long, lAlpha As Long) As Long
+Declare Function RGBtoARGB(RGBColor As ULong, Opacity As Long) As ULong
 Declare Function BGRToRGBA(FColor As UInteger) As UInteger
 Declare Function GetRed(FColor As Long) As Integer
 Declare Function GetGreen(FColor As Long) As Integer

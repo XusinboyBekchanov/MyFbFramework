@@ -33,6 +33,14 @@ Namespace My.Sys.Drawing
 	End Type
 	
 	#ifdef __USE_WINAPI__
+		Private Type GpLineGradientParameter
+			PointFrom  As GpPointF
+			PointTo    As GpPointF
+			ColorStart As Long
+			ColorEnd   As Long
+			WrapModes  As WrapMode
+		End Type
+		
 		Private Enum FillStyle
 			fsSurface = FLOODFILLSURFACE
 			fsBorder  = FLOODFILLBORDER
@@ -100,6 +108,10 @@ Namespace My.Sys.Drawing
 		FBackColor      As Integer 
 		FFillColor      As Integer 
 		FFillMode       As BrushFillMode
+		FHatchStyle     As HatchStyles
+		FFillStyles     As BrushStyles
+		FDrawColor      As Integer
+		FDrawStyle      As PenStyle
 		FDrawWidth      As Integer 
 		FScaleWidth     As Long 
 		FScaleHeight    As Long
@@ -110,6 +122,8 @@ Namespace My.Sys.Drawing
 		imgScaleY       As Double
 		imgOffsetX      As Double 
 		imgOffsetY      As Double
+		FMoveToX        As Double
+		FMoveToY        As Double
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
@@ -120,15 +134,31 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			Dim As HDC DC, memDC
 			Dim As HBITMAP CompatibleBmp
+		#ifdef __FB_64BIT__
+			Dim FGdipStartupInput As GdiplusStartupInput  'GDI+ startup info
+		#else
+			Dim FGdipStartupInput As Gdiplus.GdiplusStartupInput  'GDI+ startup info
 		#endif
+		
+	#endif
 	Public:
 		HandleSetted         As Boolean
 		CreateDoubleBuffered As Boolean
+		FillGradient As Boolean
+		FillOpacity As Long
+		BackColorOpacity As Long
 		#ifdef __USE_GTK__
 			Handle  As cairo_t Ptr
 			Dim As PangoLayout Ptr layout
 		#elseif defined(__USE_WINAPI__)
 			Handle  As HDC
+			GdipToken As ULONG_PTR
+			GdipGraphics As GpGraphics Ptr
+			GdipBrush As GpBrush Ptr
+			GdipPen As GpPen Ptr
+			GdipFont As GpFont Ptr
+			GpHatchStyles As GpHatchStyle = HatchStyleCross
+			GpLineGradientPara As GpLineGradientParameter
 		#elseif defined(__USE_JNI__)
 			Handle  As jobject
 		#endif
@@ -137,6 +167,7 @@ Namespace My.Sys.Drawing
 		Font        As My.Sys.Drawing.Font
 		Clip        As Boolean
 		CopyMode    As CopyMode
+		Declare Sub UsingGdip(Vaule As Boolean = True)
 		Declare Sub GetDevice
 		Declare Sub ReleaseDevice
 		Declare Sub CreateDoubleBuffer(DrawGraphicBitmap As Boolean = True, CleanBK As Boolean = False)
@@ -161,10 +192,18 @@ Namespace My.Sys.Drawing
 		Declare Property ScaleHeight As Integer
 		Declare Property DrawWidth As Integer
 		Declare Property DrawWidth(Value As Integer)
+		Declare Property DrawColor As Integer
+		Declare Property DrawColor(Value As Integer)
+		Declare Property DrawStyle As PenStyle
+		Declare Property DrawStyle(Value As PenStyle)
 		Declare Property FillColor As Integer
 		Declare Property FillColor(Value As Integer)
 		Declare Property FillMode As BrushFillMode
 		Declare Property FillMode(Value As BrushFillMode)
+		Declare Property HatchStyle As HatchStyles
+		Declare Property HatchStyle(Value As HatchStyles)
+		Declare Property FillStyles As BrushStyles
+		Declare Property FillStyles(Value As BrushStyles)
 		Declare Sub Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
 		Declare Sub MoveTo(x As Double,y As Double)
 		Declare Sub LineTo(x As Double,y As Double)
@@ -176,9 +215,9 @@ Namespace My.Sys.Drawing
 		Declare Sub Circle(x As Double, y As Double, Radial As Double, FillColorBK As Integer = -1)
 		Declare Sub RoundRect Overload(x As Double, y As Double, x1 As Double, y1 As Double, nWidth As Integer, nHeight As Integer)
 		Declare Sub RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
-		Declare Sub Polygon(Points As Point Ptr,Count As Long)
+		Declare Sub Polygon(Points() As Point, Count As Long)
 		Declare Sub Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
-		Declare Sub Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Double, yStart As Double, xEnd As Double, yEnd As Double)
+		Declare Sub Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Double, yStart As Double, xEnd As Double = 0, yEnd As Double = 0)
 		Declare Sub ArcTo(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		Declare Sub AngleArc(x As Double, y As Double, Radius As Double, StartAngle As Double, SweepAngle As Double)
 		Declare Sub Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)

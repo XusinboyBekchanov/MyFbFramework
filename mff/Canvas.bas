@@ -58,12 +58,19 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.FillColor(Value As Integer)
-		FFillColor = Value
-		#ifdef __USE_WINAPI__
-			SetBkColor Handle, FFillColor
-			'Brush.Color = FFillColor
-			'FloodFill(1, 1, FFillColor, FillStyle.fsSurface)
-		#endif
+		If FFillColor <> Value Then
+			FFillColor = Value
+			#ifdef __USE_WINAPI__
+				If FFillColor = -1 Then FFillColor = FBackColor
+				SetBkColor Handle, FFillColor
+				Brush.Color = FFillColor
+				If GdipToken <> NULL Then
+					If GdipBrush Then GdipDeleteBrush(GdipBrush)
+					GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
+				End If
+				'FloodFill(1, 1, FFillColor, FillStyle.fsSurface)
+			#endif
+		End If
 	End Property
 	
 	Private Property Canvas.FillMode As BrushFillMode
@@ -71,10 +78,58 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.FillMode(Value As BrushFillMode)
+		If FFillMode <> Value Then
 		FFillMode = Value
 		#ifdef __USE_WINAPI__
 			SetBkMode Handle, FFillMode
 		#endif
+		End If
+	End Property
+	
+	Private Property Canvas.HatchStyle As HatchStyles
+		Return FHatchStyle
+	End Property
+	
+	Private Property Canvas.HatchStyle(Value As HatchStyles)
+		If FHatchStyle <> Value Then
+			FHatchStyle = Value
+			#ifdef __USE_WINAPI__
+			 Brush.HatchStyle = Value
+			 If GdipToken <> NULL Then
+			 	If GdipBrush Then GdipDeleteBrush(GdipBrush)
+				GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
+			 End If
+			#endif
+		End If
+	End Property
+	
+	Private Property Canvas.FillStyles As BrushStyles
+		Return FFillStyles
+	End Property
+	
+	Private Property Canvas.FillStyles(Value As BrushStyles)
+		'https://learn.microsoft.com/zh-cn/windows/win32/gdiplus/-gdiplus-brushes-and-filled-shapes-about
+		'If FFillStyles <> Value Then
+			FFillStyles = Value
+			#ifdef __USE_WINAPI__
+				Brush.Style= Value
+				If GdipToken <> NULL Then
+					If GdipBrush Then GdipDeleteBrush(GdipBrush)
+					Select Case FFillStyles
+					Case BrushStyles.bsHatch
+						GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
+					Case BrushStyles.bsPattern
+						GdipCreateLineBrush(@GpLineGradientPara.PointFrom, @GpLineGradientPara.PointTo, RGBtoARGB(GpLineGradientPara.ColorStart, FillOpacity), RGBtoARGB(GpLineGradientPara.ColorEnd, FillOpacity),  GpLineGradientPara.WrapModes, Cast(GpLineGradient Ptr Ptr, @GdipBrush))
+						Print "GdipBrush=" & GdipBrush
+						'Case BrushStyles.bsClear
+						'	'ElseIf Value = BrushStyles.bsHatch Then
+						'	'GdipCreateHatchBrush(HatchStyle.
+					Case Else
+						GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
+					End Select
+				End If
+			#endif
+		'End If
 	End Property
 	
 	Private Property Canvas.Width As Integer
@@ -98,14 +153,73 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.DrawWidth As Integer
-		Return FDrawWidth
+		If GdipToken = NULL Then Return Pen.Size Else Return FDrawWidth
 	End Property
 	
 	Private Property Canvas.DrawWidth(Value As Integer)
 		#ifdef __USE_GTK__
 		#elseif defined(__USE_WINAPI__)
-			FDrawWidth = Value
-			Pen.Size = Value
+			If FDrawWidth <> Value Then
+				FDrawWidth = Value
+				Pen.Size = Value
+				If GdipToken <> NULL Then
+					If GdipPen Then GdipDeletePen(GdipPen)
+					GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
+					GdipSetPenEndCap GdipPen, 2
+				End If
+			End If
+		#endif
+	End Property
+	
+	Private Property Canvas.DrawColor As Integer
+		If GdipToken = NULL Then Return Pen.Color Else Return FDrawColor
+	End Property
+	
+	Private Property Canvas.DrawColor(Value As Integer)
+		#ifdef __USE_GTK__
+		#elseif defined(__USE_WINAPI__)
+			If FDrawColor <> Value Then
+				FDrawColor = Value
+				Pen.Color = Value
+				If GdipToken <> NULL Then
+					If GdipPen Then GdipDeletePen(GdipPen)
+					GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
+					GdipSetPenEndCap GdipPen, 2
+				End If
+			End If
+		#endif
+	End Property
+	
+	Private Property Canvas.DrawStyle As PenStyle
+		If GdipToken = NULL Then Return Pen.Style Else Return FDrawStyle
+	End Property
+	'https://learn.microsoft.com/zh-cn/windows/win32/api/gdipluspen/nf-gdipluspen-pen-setdashstyle
+	Private Property Canvas.DrawStyle(Value As PenStyle)
+		#ifdef __USE_GTK__
+		#elseif defined(__USE_WINAPI__)
+			If FDrawStyle <> Value Then
+				FDrawStyle = Value
+				Pen.Style = Value
+				If GdipToken <> NULL Then
+					If GdipPen Then GdipDeletePen(GdipPen)
+					GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
+					GdipSetPenEndCap GdipPen, 2
+					Dim As GpDashStyle tGpDashStyle
+					Select Case Value
+					Case PenStyle.psDash
+						tGpDashStyle = DashStyleDash
+					Case PenStyle.psDot
+						tGpDashStyle = DashStyleDot
+					Case PenStyle.psDashDot
+						tGpDashStyle = DashStyleDashDot
+					Case PenStyle.psDashDotDot
+						tGpDashStyle = DashStyleDashDotDot
+					Case Else
+						tGpDashStyle = DashStyleSolid
+					End Select
+					GdipSetPenDashStyle(GdipPen, tGpDashStyle)
+				End If
+			End If
 		#endif
 	End Property
 	
@@ -191,6 +305,44 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice
 	End Property
 	
+	Private Sub Canvas.UsingGdip(Vaule As Boolean = True)
+		#ifdef __USE_WINAPI__
+			If Vaule = True Then
+				If GdipToken <> NULL Then
+					If GdipPen Then GdipDeletePen(GdipPen)
+					If GdipBrush Then GdipDeleteBrush(GdipBrush)
+					If GdipToken Then GdiplusShutdown(GdipToken)
+				End If
+				FGdipStartupInput.GdiplusVersion = 1                    ' attempt to start GDI+
+				GdiplusStartup(@GdipToken, @FGdipStartupInput, NULL)
+				If GdipToken = NULL Then                         ' failed to start
+					Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GDIPlus failure! "
+				Else
+					DC = GetDC(ParentControl->Handle)
+					Handle = DC
+					If GdipCreateFromHDC(DC, @GdipGraphics) <> NULL Then
+						If GdipToken Then GdiplusShutdown(GdipToken)
+						GdipToken = NULL
+						Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! "
+					Else
+						GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
+						GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
+						GdipSetPenEndCap GdipPen, 2
+						GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
+						GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
+					End If
+				End If
+			Else
+				If GdipToken <> NULL Then
+					If GdipPen Then GdipDeletePen(GdipPen)
+					If GdipBrush Then GdipDeleteBrush(GdipBrush)
+					If GdipToken Then GdiplusShutdown(GdipToken)
+					GdipToken = NULL
+				End If
+			End If
+		#endif
+	End Sub
+
 	Private Sub Canvas.GetDevice
 		If Not HandleSetted Then
 			If ParentControl Then
@@ -276,6 +428,29 @@ Namespace My.Sys.Drawing
 			End If
 			BitBlt(memDC, 0, 0, FBmpWidth, FBmpHeight, DC, 0, 0, SRCCOPY)
 			Handle = memDC
+			If GdipToken <> NULL Then
+				If GdipPen Then GdipDeletePen(GdipPen)
+				If GdipBrush Then GdipDeleteBrush(GdipBrush)
+				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+				If GdipToken Then GdiplusShutdown(GdipToken)
+			End If
+			FGdipStartupInput.GdiplusVersion = 1                    ' attempt to start GDI+
+			GdiplusStartup(@GdipToken, @FGdipStartupInput, NULL)
+			If GdipToken = NULL Then                         ' failed to start
+				Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GDIPlus failure! "
+			Else
+				If GdipCreateFromHDC(memDC, @GdipGraphics) <> NULL Then
+					If GdipToken Then GdiplusShutdown(GdipToken)
+					GdipToken = NULL
+					Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! ", True
+				Else
+					GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
+					GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
+					GdipSetPenEndCap GdipPen, 2
+					GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
+					GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
+				End If
+			End If
 			HandleSetted = True
 			FDoubleBuffer = True
 			CreateDoubleBuffered = True
@@ -335,7 +510,11 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			cairo_move_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 		#elseif defined(__USE_WINAPI__)
-			.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, 0
+			If GdipToken = NULL Then
+				.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, 0
+			Else
+				FMoveToX = ScaleX(x) * imgScaleX + imgOffsetX : FMoveToY = ScaleY(y) * imgScaleY + imgOffsetY
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -347,7 +526,12 @@ Namespace My.Sys.Drawing
 			cairo_line_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.LineTo Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY
+			If GdipToken = NULL Then
+				.LineTo Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY
+			Else
+				GdipDrawLine GdipGraphics, GdipPen, FMoveToX, FMoveToY, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY
+			End If
+			
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -360,10 +544,18 @@ Namespace My.Sys.Drawing
 				If FillColorBk = -1 Then FillColorBk = FBackColor
 				Dim As Integer OldFillColor = Brush.Color
 				Brush.Color = FillColorBk
-				Rectangle(x, y, x1, y1)
+				If GdipToken = NULL Then
+					Rectangle(x, y, x1, y1)
+				Else
+					GdipFillRectangle(GdipGraphics, GdipBrush, x, y, x1, y1)
+				End If
 				Brush.Color = OldFillColor
 			Else
-				Rectangle(x, y, x1, y1)
+				If GdipToken = NULL Then
+					Rectangle(x, y, x1, y1)
+				Else
+					GdipDrawRectangle GdipGraphics, GdipPen, x, y, x1, y1
+				End If
 			End If
 		Else
 			Dim As Integer OldPenColor
@@ -377,8 +569,12 @@ Namespace My.Sys.Drawing
 				cairo_line_to(Handle, x1 * imgScaleX + imgOffsetX - 0.5, y1 * imgScaleY + imgOffsetY - 0.5)
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
-				.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
-				.LineTo Handle, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
+				If GdipToken = NULL Then
+					.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
+					.LineTo Handle, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
+				Else
+					GdipDrawLine GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
+				End If
 			#endif
 			If FillColorBk <> -1 Then Pen.Color = OldPenColor
 		End If
@@ -399,7 +595,12 @@ Namespace My.Sys.Drawing
 				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
-				.Rectangle Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX , ScaleY(y1) * imgScaleY + imgOffsetY
+				If GdipToken = NULL Then
+					.Rectangle Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX , ScaleY(y1) * imgScaleY + imgOffsetY
+				Else
+					If GdipBrush Then GdipFillRectangle(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX, ScaleY(y1 - y) * imgScaleY)
+					GdipDrawRectangle(GdipGraphics, GdipPen,  ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX, ScaleY(y1 - y) * imgScaleY)
+				End If
 			#endif
 			If Not HandleSetted Then ReleaseDevice
 		End Sub
@@ -414,7 +615,12 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.Rectangle Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
+			If GdipToken = NULL Then
+				.Rectangle Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
+			Else
+				If GdipBrush Then GdipFillRectangle(GdipGraphics, GdipBrush, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
+				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX , ScaleY(R.Bottom - R.Top) * imgScaleY)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -429,7 +635,12 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.Ellipse Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
+			If GdipToken = NULL Then
+				.Ellipse(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY)
+			Else
+				If GdipBrush Then GdipFillEllipse(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX((x1)) * imgScaleX, ScaleY((y1)) * imgScaleY)
+				GdipDrawEllipse(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX, ScaleY(y1) * imgScaleY)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -444,7 +655,12 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.Ellipse Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
+			If GdipToken = NULL Then
+				.Ellipse Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
+			Else
+				If GdipBrush Then GdipFillEllipse(GdipGraphics, GdipBrush, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
+				GdipDrawEllipse(GdipGraphics, GdipPen, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -463,7 +679,12 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.Ellipse Handle, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(x + Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y + Radial / 2) * imgScaleY + imgOffsetY
+			If GdipToken = NULL Then
+				.Ellipse Handle, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(x + Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y + Radial / 2) * imgScaleY + imgOffsetY
+			Else
+				If GdipBrush Then GdipFillEllipse(GdipGraphics, GdipBrush, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(Radial) * imgScaleX, ScaleY(Radial) * imgScaleY)
+				GdipDrawEllipse GdipGraphics, GdipPen, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(Radial) * imgScaleX, ScaleY(Radial) * imgScaleY
+			End If
 		#endif
 		Brush.Color = OldFillColor
 		If Not HandleSetted Then ReleaseDevice
@@ -485,17 +706,37 @@ Namespace My.Sys.Drawing
 			cairo_close_path Handle
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.RoundRect Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
+			If GdipToken = NULL Then
+				.RoundRect Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
+			Else
+				If GdipBrush Then GdipFillRectangle(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - y) * imgScaleY + imgOffsetY)
+				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - y) * imgScaleY + imgOffsetY) ', ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
+				'gdipPathNew
+				
+			End If
+			
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
 	
-	Private Sub Canvas.Polygon(Points As Point Ptr, Count As Long)
+	Private Sub Canvas.Polygon(Points() As Point, Count As Long)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			Dim tPoints As Point Ptr
-			tPoints->X = ScaleX(Points->X) * imgScaleX + imgOffsetX:  tPoints->Y = ScaleY(Points->Y) * imgScaleX + imgOffsetX
-			.Polygon Handle, Cast(..Point Ptr, tPoints), Count
+			If GdipToken = NULL Then
+				Dim tPoints(Count - 1) As Point
+				For i As Integer = 0 To Count - 1
+					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				.Polygon Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			Else
+				Dim tGpPoints(Count - 1) As GpPointF
+				For i As Integer = 0 To Count - 1
+					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				If GdipBrush Then GdipFillPolygon GdipGraphics, GdipBrush, @tGpPoints(0), Count, FillMode
+				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -505,7 +746,11 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
 		#elseif defined(__USE_WINAPI__)
-			.RoundRect Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY, ScaleX(nWidth * imgScaleX + imgOffsetX), ScaleY(nHeight) * imgScaleY + imgOffsetY
+			If GdipToken = NULL Then
+				.RoundRect Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
+			Else
+				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -513,7 +758,11 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
+			If GdipToken = NULL Then
+				.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
+			Else
+				.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -521,7 +770,12 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			.Pie(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY , ScaleX(nXRadial2) * imgScaleX , ScaleY(nYRadial2) * imgScaleY)
+			If GdipToken = NULL Then
+				.Pie(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX , ScaleY(nYRadial2) * imgScaleY)
+			Else
+				If GdipBrush Then GdipFillPie(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - x) * imgScaleY + imgOffsetY, nXRadial1, nYRadial1)
+				GdipDrawPie(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - x) * imgScaleY + imgOffsetY, nXRadial1, nYRadial1)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -529,7 +783,11 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Double, yStart As Double, xEnd As Double, yEnd As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
+			If GdipToken = NULL Then
+				.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
+			Else
+				.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
+			End If
 		#elseif defined(__USE_GTK__)
 			cairo_move_to Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5
 			cairo_arc(Handle, (x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, (y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ((x1 - x) / 2) * imgScaleX, 0, G_PI * 1)
@@ -543,7 +801,11 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.ArcTo(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
+			If GdipToken = NULL Then
+				.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
+			Else
+				.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -551,7 +813,11 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.AngleArc(x As Double, y As Double, Radius As Double, StartAngle As Double, SweepAngle As Double)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			.AngleArc Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, StartAngle, SweepAngle
+			If GdipToken = NULL Then
+				.AngleArc Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, StartAngle, SweepAngle
+			Else
+				GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, ScaleY(Radius) * imgScaleY, StartAngle, SweepAngle)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -559,11 +825,22 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Polyline(Points() As Point, Count As Long)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			Dim tPoints(Count - 1) As Point
-			For i As Integer = 0 To Count - 1
-				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
-			Next
-			.Polyline Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			If GdipToken = NULL Then
+				Dim tPoints(Count - 1) As Point
+				For i As Integer = 0 To Count - 1
+					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				.Polyline Handle, Cast(..Point Ptr, @tPoints(0)), Count
+				.ExtFloodFill Handle, (tPoints(0).X + tPoints(Count \ 2).X) / 2, (tPoints(0).Y + tPoints(Count \ 2).Y) / 2, FFillColor, FillStyle.fsSurface
+			Else
+				Dim tGpPoints(Count - 1) As GpPointF
+				For i As Integer = 0 To Count - 1
+					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				If GdipBrush Then GdipFillPolygon(GdipGraphics, GdipBrush, Cast(GpPointF Ptr, @tGpPoints(0)), Count, FillMode)
+				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -571,11 +848,21 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.PolylineTo(Points() As Point, Count As Long)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			Dim tPoints(Count - 1) As Point
-			For i As Integer = 0 To Count - 1
-				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
-			Next
-			.PolylineTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			If GdipToken = NULL Then
+				Dim tPoints(Count - 1) As Point
+				For i As Integer = 0 To Count - 1
+					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				.PolylineTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			Else
+				Dim tGpPoints(Count - 1) As GpPointF
+				For i As Integer = 0 To Count - 1
+					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				If GdipBrush Then GdipFillPolygon GdipGraphics, GdipBrush, Cast(GpPointF Ptr, @tGpPoints(0)), Count, FillMode
+				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -583,11 +870,21 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.PolyBeizer(Points() As Point, Count As Long)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			Dim tPoints(Count - 1) As Point
-			For i As Integer = 0 To Count - 1
-				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
-			Next
-			.PolyBezier Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			If GdipToken = NULL Then
+				Dim tPoints(Count - 1) As Point
+				For i As Integer = 0 To Count - 1
+					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				.PolyBezier Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			Else
+				Dim tGpPoints(Count - 1) As GpPointF
+				For i As Integer = 0 To Count - 1
+					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				If GdipBrush Then GdipFillClosedCurve(GdipGraphics, GdipBrush, Cast(GpPointF Ptr, @tGpPoints(0)), Count)
+				GdipDrawBeziers(GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -595,11 +892,21 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.PolyBeizerTo(Points() As Point, Count As Long)
 		If Not HandleSetted Then GetDevice
 		#ifdef __USE_WINAPI__
-			Dim tPoints(Count - 1) As Point
-			For i As Integer = 0 To Count - 1
-				tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
-			Next
-			.PolyBezierTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			If GdipToken = NULL Then
+				Dim tPoints(Count - 1) As Point
+				For i As Integer = 0 To Count - 1
+					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				.PolyBezierTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
+			Else
+				Dim tGpPoints(Count - 1) As GpPointF
+				For i As Integer = 0 To Count - 1
+					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+				Next
+				'GdipFillPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
+				GdipDrawBeziers GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -685,17 +992,21 @@ Namespace My.Sys.Drawing
 			Dim As HBITMAP     ImageDest
 			' // Initialize Gdiplus
 			Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
+			If GdipToken = NULL Then
 			StartupInput.GdiplusVersion = 1
 			GdiplusStartup(@token, @StartupInput, NULL)
 			If token = NULL Then Return False
+			End If
 			GdipCreateBitmapFromHBITMAP(ImageSource, NULL, Cast(GpBitmap Ptr Ptr, @pImage1))
 			GdipCloneBitmapArea (x, y, nWidth, nHeight, 0, Cast(GpBitmap Ptr , pImage1) , Cast(GpBitmap Ptr Ptr, @pImage2))
 			GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr , pImage2) , @ImageDest, 0)
 			' // Free the image
 			If pImage1 Then GdipDisposeImage pImage1
 			If pImage2 Then GdipDisposeImage pImage2
+			If GdipToken = NULL Then
 			' // Shutdown Gdiplus
 			GdiplusShutdown token
+			End If
 			Return ImageDest
 		#endif
 		If Not HandleSetted Then ReleaseDevice
@@ -1005,6 +1316,10 @@ Namespace My.Sys.Drawing
 					SelectObject(.Handle, Sender.Handle)
 					SetROP2 .Handle, Sender.Mode
 				End If
+				If .GdipToken <> NULL Then
+					If .GdipPen Then GdipDeletePen(.GdipPen)
+					GdipCreatePen1(RGBtoARGB(.Pen.Color, .BackColorOpacity), .FDrawWidth, &H2, @.GdipPen)
+				End If
 			End With
 		#endif
 	End Sub
@@ -1013,6 +1328,10 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			With *Cast(Canvas Ptr, Sender.Parent)
 				If .Handle Then SelectObject(.Handle, Sender.Handle)
+				If .GdipToken <> NULL Then
+					If .GdipBrush Then GdipDeleteBrush(.GdipBrush)
+					GdipCreateSolidFill(RGBtoARGB(.FFillColor, .FillOpacity), Cast(GpSolidFill Ptr Ptr, @.GdipBrush))
+				End If
 			End With
 		#endif
 	End Sub
@@ -1020,6 +1339,7 @@ Namespace My.Sys.Drawing
 	Private Constructor Canvas
 		Clip = False
 		WLet(FClassName, "Canvas")
+		GdipToken = NULL
 		Font.Parent = @This
 		Font.OnCreate = @Font_Create
 		Pen.Parent = @This
@@ -1033,12 +1353,21 @@ Namespace My.Sys.Drawing
 		FDrawWidth = 1
 		FScaleWidth = ScaleX(This.Width)
 		FScaleHeight = ScaleY(This.Height)
+		FillOpacity = 50
+		BackColorOpacity = 100
 	End Constructor
 	
 	Private Destructor Canvas
 		#ifdef __USE_WINAPI__
 			If memDC > 0 Then DeleteDoubleBuffer
 			If Handle Then ReleaseDevice
+			' // Shutdown Gdiplus
+			If GdipToken <> NULL Then
+				If GdipPen Then GdipDeletePen(GdipPen)
+				If GdipBrush Then GdipDeleteBrush(GdipBrush)
+				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+				If GdipToken Then GdiplusShutdown(GdipToken)
+			End If
 		#endif
 	End Destructor
 End Namespace
