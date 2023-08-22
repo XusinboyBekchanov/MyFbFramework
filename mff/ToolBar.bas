@@ -582,10 +582,10 @@ Namespace My.Sys.Forms
 		Private Sub ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
 			Dim As ToolButton Ptr tbut = user_data
 			If tbut Then
-				If tbut->OnClick Then tbut->OnClick(*tbut)
+				If tbut->OnClick Then tbut->OnClick(*tbut->Designer, *tbut)
 				If tbut->Ctrl AndAlso *tbut->Ctrl Is ToolBar Then
 					Dim As ToolBar Ptr tb = Cast(ToolBar Ptr, tbut->Ctrl)
-					If tb->OnButtonClick Then tb->OnButtonClick(*tb, *tbut)
+					If tb->OnButtonClick Then tb->OnButtonClick(*tb->Designer, *tb, *tbut)
 				End If
 			End If
 		End Sub

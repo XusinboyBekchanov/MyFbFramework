@@ -1207,7 +1207,7 @@ Namespace My.Sys.Forms
 			Dim As TabControl Ptr tc = user_data
 			If tc AndAlso tc->Tabs[page_num] Then
 				tc->Tabs[page_num]->RequestAlign
-				If tc->OnSelChange Then tc->OnSelChange(*tc, page_num)
+				If tc->OnSelChange Then tc->OnSelChange(*tc->Designer, *tc, page_num)
 			End If
 		End Sub
 		
@@ -1222,7 +1222,7 @@ Namespace My.Sys.Forms
 					It = tc->Tabs[i]
 					tc->Tabs[i + 1] = It
 				Next i
-				If tc->OnTabAdded Then tc->OnTabAdded(*tc, tp, page_num)
+				If tc->OnTabAdded Then tc->OnTabAdded(*tc->Designer, *tc, tp, page_num)
 			End If
 		End Sub
 		
@@ -1242,7 +1242,7 @@ Namespace My.Sys.Forms
 				Else
 					tc->Tabs = _Reallocate(tc->Tabs, tc->FTabCount * SizeOf(TabPage Ptr))
 				End If
-				If tc->OnTabRemoved Then tc->OnTabRemoved(*tc, tp, page_num)
+				If tc->OnTabRemoved Then tc->OnTabRemoved(*tc->Designer, *tc, tp, page_num)
 			End If
 		End Sub
 		

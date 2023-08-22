@@ -734,7 +734,7 @@ Namespace My.Sys.Forms
 			Select Case Message.Event->type
 			Case GDK_BUTTON_RELEASE
 				If SelectedNode <> 0 Then
-					If OnNodeClick Then OnNodeClick(This, *SelectedNode)
+					If OnNodeClick Then OnNodeClick(*Designer, This, *SelectedNode)
 				End If
 				#ifdef __USE_GTK3__
 				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
@@ -742,7 +742,7 @@ Namespace My.Sys.Forms
 				Case GDK_2BUTTON_PRESS
 				#endif
 				If SelectedNode <> 0 Then
-					If OnNodeDblClick Then OnNodeDblClick(This, *SelectedNode)
+					If OnNodeDblClick Then OnNodeDblClick(*Designer, This, *SelectedNode)
 				End If
 			End Select
 		#else
@@ -971,7 +971,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				model = gtk_tree_view_get_model(tree_view)
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If tv->OnNodeActivate Then tv->OnNodeActivate(*tv, *tv->Nodes.FindByIterUser_Data(iter.user_data))
+					If tv->OnNodeActivate Then tv->OnNodeActivate(*tv->Designer, *tv, *tv->Nodes.FindByIterUser_Data(iter.user_data))
 				End If
 			End If
 		End Sub
@@ -986,7 +986,7 @@ Namespace My.Sys.Forms
 						Dim As TreeNode Ptr SelNode = tv->Nodes.FindByIterUser_Data(iter.user_data)
 						If tv->PrevNode <> 0 AndAlso tv->PrevNode->IsDisposed = False AndAlso tv->PrevNode <> SelNode Then
 							Dim bCancel As Boolean
-							If tv->OnSelChanging Then tv->OnSelChanging(*tv, *tv->PrevNode, bCancel)
+							If tv->OnSelChanging Then tv->OnSelChanging(*tv->Designer, *tv, *tv->PrevNode, bCancel)
 							If bCancel Then
 								tv->SelectedNode = tv->PrevNode
 								Exit Sub
@@ -1006,7 +1006,7 @@ Namespace My.Sys.Forms
 						'								gtk_tree_store_set(tv->TreeStore, @SelNode->TreeIter, 0, ToUTF8(tv->SelectedImages->Items.Get(SelNode->SelectedImageIndex)), -1)
 						'							End If
 						'						End If
-						If tv->OnSelChanged Then tv->OnSelChanged(*tv, *SelNode)
+						If tv->OnSelChanged Then tv->OnSelChanged(*tv->Designer, *tv, *SelNode)
 						tv->PrevNode = SelNode
 					End If
 				End If
@@ -1030,12 +1030,12 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			Dim As GtkTreePath Ptr path
 			Dim As GtkTreeModel Ptr model
-			If Not gtk_tree_view_get_tooltip_context(gtk_tree_view(widget), @x, @y, keyboard_mode, @model, @path, @iter) Then
+			If Not gtk_tree_view_get_tooltip_context(GTK_TREE_VIEW(widget), @x, @y, keyboard_mode, @model, @path, @iter) Then
 				Return False
 			End If
-			Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.User_Data)
-			gtk_tooltip_set_text(tooltip, ToUTF8(tn->Hint))
-			gtk_tree_view_set_tooltip_row(gtk_tree_view(widget), tooltip, path)
+			Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.user_data)
+			gtk_tooltip_set_text(tooltip, ToUtf8(tn->Hint))
+			gtk_tree_view_set_tooltip_row(GTK_TREE_VIEW(widget), tooltip, path)
 			Return True
 		End Function
 		
@@ -1046,7 +1046,7 @@ Namespace My.Sys.Forms
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.user_data)
 				Dim As Boolean bCancel
-				If tv->OnBeforeLabelEdit Then tv->OnBeforeLabelEdit(*tv, *tn, tn->Text, bCancel)
+				If tv->OnBeforeLabelEdit Then tv->OnBeforeLabelEdit(*tv->Designer, *tv, *tn, tn->Text, bCancel)
 				If bCancel Then
 					gtk_cell_renderer_stop_editing(cell, True)
 				End If
@@ -1060,7 +1060,7 @@ Namespace My.Sys.Forms
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.user_data)
 				Dim As Boolean bCancel
-				If tv->OnAfterLabelEdit Then tv->OnAfterLabelEdit(*tv, *tn, *new_text, bCancel)
+				If tv->OnAfterLabelEdit Then tv->OnAfterLabelEdit(*tv->Designer, *tv, *tn, *new_text, bCancel)
 				If Not bCancel Then
 					gtk_tree_store_set(GTK_TREE_STORE(model), @iter, 1, ToUtf8(*new_text), -1)
 				End If
@@ -1071,7 +1071,7 @@ Namespace My.Sys.Forms
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
 				Dim bCancel As Boolean
-				If tv->OnNodeCollapsing Then tv->OnNodeCollapsing(*tv, *tv->Nodes.FindByIterUser_Data(iter->User_Data), bCancel)
+				If tv->OnNodeCollapsing Then tv->OnNodeCollapsing(*tv->Designer, *tv, *tv->Nodes.FindByIterUser_Data(iter->user_data), bCancel)
 				If bCancel Then Return True
 			End If
 			Return False
@@ -1081,7 +1081,7 @@ Namespace My.Sys.Forms
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
 				Dim bCancel As Boolean
-				If tv->OnNodeExpanding Then tv->OnNodeExpanding(*tv, *tv->Nodes.FindByIterUser_Data(iter->User_Data), bCancel)
+				If tv->OnNodeExpanding Then tv->OnNodeExpanding(*tv->Designer, *tv, *tv->Nodes.FindByIterUser_Data(iter->user_data), bCancel)
 				If bCancel Then Return True
 			End If
 			Return False
@@ -1090,7 +1090,7 @@ Namespace My.Sys.Forms
 		Private Function TreeView.RowCollapsed(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
-				If tv->OnNodeCollapsed Then tv->OnNodeCollapsed(*tv, *tv->Nodes.FindByIterUser_Data(iter->user_data))
+				If tv->OnNodeCollapsed Then tv->OnNodeCollapsed(*tv->Designer, *tv, *tv->Nodes.FindByIterUser_Data(iter->user_data))
 			End If
 			Return False
 		End Function
@@ -1098,7 +1098,7 @@ Namespace My.Sys.Forms
 		Private Function TreeView.RowExpanded(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			If tv Then
-				If tv->OnNodeExpanded Then tv->OnNodeExpanded(*tv, *tv->Nodes.FindByIterUser_Data(iter->user_data))
+				If tv->OnNodeExpanded Then tv->OnNodeExpanded(*tv->Designer, *tv, *tv->Nodes.FindByIterUser_Data(iter->user_data))
 			End If
 			Return False
 		End Function

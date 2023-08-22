@@ -199,7 +199,7 @@ Namespace My.Sys.Forms
 				End If
 			End Select
 		#endif
-		Base.ProcessMessage(message)
+		Base.ProcessMessage(Message)
 	End Sub
 	
 	Private Operator VScrollBar.Cast As Control Ptr
@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub VScrollBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 			Dim As VScrollBar Ptr scr = user_data
-			If scr->OnScroll Then scr->OnScroll(*scr, gtk_range_get_value(range))
+			If scr->OnScroll Then scr->OnScroll(*scr->Designer, *scr, gtk_range_get_value(range))
 		End Sub
 	#endif
 	

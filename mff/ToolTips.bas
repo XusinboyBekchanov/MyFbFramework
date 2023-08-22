@@ -59,7 +59,7 @@ Namespace My.Sys.Forms
 		Function ToolTips.ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As ToolTips Ptr tt = user_data
 			If tt <> 0 Then
-				If tt->OnLinkClicked Then tt->OnLinkClicked(*tt, *uri)
+				If tt->OnLinkClicked Then tt->OnLinkClicked(*tt->Designer, *tt, *uri)
 			End If
 			Return True
 		End Function

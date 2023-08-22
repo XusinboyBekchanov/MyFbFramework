@@ -174,13 +174,13 @@ Namespace My.Sys.Forms
 			If allocation->width <> ipa->AllocatedWidth OrElse allocation->height <> ipa->AllocatedHeight Then
 				ipa->AllocatedWidth = allocation->width
 				ipa->AllocatedHeight = allocation->height
-				If ipa->OnResize Then ipa->OnResize(*ipa, allocation->width, allocation->height)
+				If ipa->OnResize Then ipa->OnResize(*ipa->Designer, *ipa, allocation->width, allocation->height)
 			End If
 		End Sub
 		
 		Private Function IPAddress.Layout_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As IPAddress Ptr Ctrl = Cast(Any Ptr, data1)
-			If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
+			If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_EVENT_BOX(widget)) Then
 				Dim allocation As GtkAllocation
 				Dim bSizeChanged As Boolean
 				gtk_widget_get_allocation(widget, @allocation)
@@ -204,14 +204,14 @@ Namespace My.Sys.Forms
 				If Not Ctrl->bCreated Then
 					Ctrl->pdisplay = gtk_widget_get_display(widget)
 					#ifdef __USE_GTK3__
-						Ctrl->win = gtk_layout_get_bin_window(gtk_layout(widget))
+						Ctrl->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 					#endif
 					gdk_window_set_cursor(Ctrl->win, gdk_cursor_new_for_display(Ctrl->pdisplay, GDK_XTERM))
 				End If
-				sText = ToUTF8("55555.")
+				sText = ToUtf8("55555.")
 				pango_layout_set_text(Ctrl->layout, sText, Len(sText))
 				pango_cairo_update_layout(cr, Ctrl->layout)
-				#ifdef PANGO_VERSION
+				#ifdef pango_version
 					pl = pango_layout_get_line_readonly(Ctrl->layout, 0)
 				#else
 					pl = pango_layout_get_line(Ctrl->layout, 0)
@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 				sText = ToUTF8("5555")
 				pango_layout_set_text(Ctrl->layout, sText, Len(sText))
 				pango_cairo_update_layout(cr, Ctrl->layout)
-				#ifdef PANGO_VERSION
+				#ifdef pango_version
 					pl = pango_layout_get_line_readonly(Ctrl->layout, 0)
 				#else
 					pl = pango_layout_get_line(Ctrl->layout, 0)
@@ -233,7 +233,7 @@ Namespace My.Sys.Forms
 				sText = "."
 				pango_layout_set_text(Ctrl->layout, sText, Len(sText))
 				pango_cairo_update_layout(cr, Ctrl->layout)
-				#ifdef PANGO_VERSION
+				#ifdef pango_version
 					pl = pango_layout_get_line_readonly(Ctrl->layout, 0)
 				#else
 					pl = pango_layout_get_line(Ctrl->layout, 0)
@@ -245,8 +245,8 @@ Namespace My.Sys.Forms
 						gtk_widget_set_size_request(Ctrl->Layouts(i), Min(LayoutWidth, Max(0, allocation.width - (i * Offset + extend.width) - 1)), Min(EntryAllocation.height - 6, allocation.height - 2))
 					'End If
 					If Not Ctrl->bCreated Then
-						gtk_layout_move(gtk_layout(widget), Ctrl->Layouts(i), i * Offset + extend.width, 1)
-						gtk_layout_move(gtk_layout(Ctrl->Layouts(i)), Ctrl->Entries(i), (LayoutWidth - EntryAllocation.width) / 2, -3)
+						gtk_layout_move(GTK_LAYOUT(widget), Ctrl->Layouts(i), i * Offset + extend.width, 1)
+						gtk_layout_move(GTK_LAYOUT(Ctrl->Layouts(i)), Ctrl->Entries(i), (LayoutWidth - EntryAllocation.width) / 2, -3)
 					End If
 					If i > 0 Then
 						cairo_move_to(cr, i * Offset + extend.width - 2 * extend.width, (EntryAllocation.height - 6 - extend.height) / 2 + extend.height - 1)
@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 					End If
 				Next
 				Ctrl->bCreated = True
-				If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
+				If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl->Designer, *Ctrl, Ctrl->Canvas)
 				Ctrl->Canvas.HandleSetted = False
 			End If
 			Return False
@@ -368,7 +368,7 @@ Namespace My.Sys.Forms
 								Index = 2
 							End If
 							If Index < 3 Then
-								gtk_entry_set_text(gtk_entry(widget), *gtk_entry_get_text(gtk_entry(widget)) & *Event->key.string)
+								gtk_entry_set_text(GTK_ENTRY(widget), *gtk_entry_get_text(GTK_ENTRY(widget)) & *Event->key.string)
 								ipa->Position = -1
 								gtk_widget_grab_focus(ipa->Entries(Index + 1))
 								'gtk_editable_select_region(gtk_editable(widget), 0, 0)
@@ -402,12 +402,12 @@ Namespace My.Sys.Forms
 		Private Sub IPAddress.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As IPAddress Ptr ipa = user_data
 			Dim As Control Ptr btn = ipa->GetForm()->FDefaultButton
-			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
+			If btn AndAlso btn->OnClick Then btn->OnClick(*btn->Designer, *btn)
 		End Sub
 		
 		Private Sub IPAddress.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As IPAddress Ptr ipa = user_data
-			If ipa AndAlso ipa->OnChange Then ipa->OnChange(*ipa)
+			If ipa AndAlso ipa->OnChange Then ipa->OnChange(*ipa->Designer, *ipa)
 		End Sub
 		
 		Private Sub IPAddress.Entry_GrabFocus(widget As GtkWidget Ptr, user_data As Any Ptr)
@@ -423,9 +423,9 @@ Namespace My.Sys.Forms
 				ElseIf ipa->CurrentEntry = ipa->Entries(3) Then
 					Index = 3
 				End If
-				Dim As String sText = *gtk_entry_get_text(gtk_entry(ipa->CurrentEntry))
+				Dim As String sText = *gtk_entry_get_text(GTK_ENTRY(ipa->CurrentEntry))
 				If sText = "" Then Value = -1 Else Value = Val(sText)
-				If ipa->OnFieldChanged Then ipa->OnFieldChanged(*ipa, Index, Value)
+				If ipa->OnFieldChanged Then ipa->OnFieldChanged(*ipa->Designer, *ipa, Index, Value)
 			End If
 			ipa->CurrentEntry = widget
 			If ipa->Position <> -1 Then

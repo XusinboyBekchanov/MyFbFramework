@@ -524,13 +524,13 @@ Namespace My.Sys.Forms
 				Exit Sub
 			End If
 			If Ctrl Then
-				If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl)
+				If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
 			End If
 		End Sub
 		
 		Private Function MenuItem.MenuItemButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As MenuItem Ptr mi = user_data
-			If mi->OnClick Then mi->OnClick(*mi)
+			If mi->OnClick Then mi->OnClick(*mi->Designer, *mi)
 			Return False
 		End Function
 	#endif

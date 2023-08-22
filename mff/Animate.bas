@@ -485,7 +485,7 @@ Namespace My.Sys.Forms
 		FOpenMode = 0: FRate= 1
 		If Trim(FileName) <> "" Then WLet(FFile, FileName)
 		#ifdef __USE_GTK__
-			If OnOpen Then OnOpen(This)
+			If OnOpen Then OnOpen(*Designer, This)
 			If pixbuf_animation <> 0 Then
 				FFrameWidth = gdk_pixbuf_animation_get_width(pixbuf_animation)
 				FFrameHeight = gdk_pixbuf_animation_get_height(pixbuf_animation)
@@ -694,7 +694,7 @@ Namespace My.Sys.Forms
 				Dim As GTimeVal gTime
 				g_get_current_time(@gTime)
 				iter = gdk_pixbuf_animation_get_iter(pixbuf_animation, @gTime)
-				If OnStart Then OnStart(This)
+				If OnStart Then OnStart(*Designer, This)
 				FPlay = True
 				Timer_cb(@This)
 			End If
@@ -723,7 +723,7 @@ Namespace My.Sys.Forms
 	Private Sub Animate.Stop
 		FErrorInfo = ""
 		#ifdef __USE_GTK__
-			If OnStop Then OnStop(This)
+			If OnStop Then OnStop(*Designer, This)
 			FPlay = False
 		#else
 			If FOpenMode Then

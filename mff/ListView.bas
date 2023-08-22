@@ -806,7 +806,7 @@ Namespace My.Sys.Forms
 			If PColumn = 0 Then Exit Sub
 			Dim As ListView Ptr lv = Cast(ListView Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
-			If lv->OnCellEdited Then lv->OnCellEdited(*lv, Val(*path), PColumn->Index, *new_text)
+			If lv->OnCellEdited Then lv->OnCellEdited(*lv->Designer, *lv, Val(*path), PColumn->Index, *new_text)
 		End Sub
 	
 		Private Sub ListViewColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
@@ -1368,7 +1368,7 @@ Namespace My.Sys.Forms
 				Init
 			Case GDK_BUTTON_RELEASE
 				If SelectedItemIndex <> -1 Then
-					If OnItemClick Then OnItemClick(This, SelectedItemIndex)
+					If OnItemClick Then OnItemClick(*Designer, This, SelectedItemIndex)
 				End If
 			#ifdef __USE_GTK3__
 			Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
@@ -1376,11 +1376,11 @@ Namespace My.Sys.Forms
 			Case GDK_2BUTTON_PRESS
 			#endif
 				If SelectedItemIndex <> -1 Then
-					If OnItemDblClick Then OnItemDblClick(This, SelectedItemIndex)
+					If OnItemDblClick Then OnItemDblClick(*Designer, This, SelectedItemIndex)
 				End If
 			Case GDK_KEY_PRESS
 				If SelectedItemIndex <> -1 Then
-					If OnItemKeyDown Then OnItemKeyDown(This, SelectedItemIndex, Message.Event->key.keyval, Message.Event->key.state)
+					If OnItemKeyDown Then OnItemKeyDown(*Designer, This, SelectedItemIndex, Message.Event->key.keyval, Message.Event->key.state)
 				End If
 			End Select
 		#elseif defined(__USE_WINAPI__)
@@ -1672,7 +1672,7 @@ Namespace My.Sys.Forms
 								If .ListItems.Item(i)->Checked Then
 									.FHandle = TempHandle
 									Dim lvi As LVITEM
-									lvi.Mask = LVIF_STATE
+									lvi.mask = LVIF_STATE
 									lvi.iItem = i
 									lvi.stateMask = LVIS_CHECKEDMASK
 									lvi.state = LVIS_CHECKED
@@ -1681,7 +1681,7 @@ Namespace My.Sys.Forms
 								.FHandle = TempHandle
 							Else
 								.FHandle = TempHandle
-								lvi.Mask = LVIF_TEXT
+								lvi.mask = LVIF_TEXT
 								ListView_SetItem(.FHandle, @lvi)
 							End If
 						Next j
@@ -1704,7 +1704,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				model = gtk_tree_view_get_model(tree_view)
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnItemActivate Then lv->OnItemActivate(*lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
+					If lv->OnItemActivate Then lv->OnItemActivate(*lv->Designer, *lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
 				End If
 			End If
 		End Sub
@@ -1716,7 +1716,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				model = gtk_icon_view_get_model(icon_view)
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnItemActivate Then lv->OnItemActivate(*lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
+					If lv->OnItemActivate Then lv->OnItemActivate(*lv->Designer, *lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
 				End If
 			End If
 		End Sub
@@ -1730,13 +1730,13 @@ Namespace My.Sys.Forms
 					Dim As Integer SelectedIndex = Val(*gtk_tree_model_get_string_from_iter(model, @iter))
 					If lv->PrevIndex <> SelectedIndex AndAlso lv->PrevIndex <> -1 Then
 						Dim bCancel As Boolean
-						If lv->OnSelectedItemChanging Then lv->OnSelectedItemChanging(*lv, lv->PrevIndex, bCancel)
+						If lv->OnSelectedItemChanging Then lv->OnSelectedItemChanging(*lv->Designer, *lv, lv->PrevIndex, bCancel)
 						If bCancel Then
 							lv->SelectedItemIndex = lv->PrevIndex
 							Exit Sub
 						End If
 					End If
-					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, SelectedIndex)
+					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv->Designer, *lv, SelectedIndex)
 					lv->PrevIndex = SelectedIndex
 				End If
 			End If
@@ -1750,19 +1750,19 @@ Namespace My.Sys.Forms
 				Dim As GtkTreePath Ptr path
 				Dim SelectedIndex As Integer
 				If (list) Then
-					path = list->Data
+					path = list->data
 					SelectedIndex = gtk_tree_path_get_indices(path)[0]
 				End If
 				g_list_free_full(list, Cast(GDestroyNotify, @gtk_tree_path_free))
 				If lv->PrevIndex <> SelectedIndex AndAlso lv->PrevIndex <> -1 Then
 					Dim bCancel As Boolean
-					If lv->OnSelectedItemChanging Then lv->OnSelectedItemChanging(*lv, lv->PrevIndex, bCancel)
+					If lv->OnSelectedItemChanging Then lv->OnSelectedItemChanging(*lv->Designer, *lv, lv->PrevIndex, bCancel)
 					If bCancel Then
 						lv->SelectedItemIndex = lv->PrevIndex
 						Exit Sub
 					End If
 				End If
-				If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, SelectedIndex)
+				If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv->Designer, *lv, SelectedIndex)
 				lv->PrevIndex = SelectedIndex
 			End If
 		End Sub
@@ -1774,7 +1774,7 @@ Namespace My.Sys.Forms
 		
 		Private Function ListView.ListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
 			Dim As ListView Ptr lv = user_data
-			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
+			If lv->OnEndScroll Then lv->OnEndScroll(*lv->Designer, *lv)
 			Return True
 		End Function
 	#endif

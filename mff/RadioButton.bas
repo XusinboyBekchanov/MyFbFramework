@@ -251,7 +251,7 @@ Namespace My.Sys.Forms
 						
 						' adjust rectangle for text drawing
 						'pnm->rc.top += r.top - 2
-						pnm->rc.left += 3 + s.cx
+						pnm->rc.Left += 3 + s.cx
 						
 						SelectObject(pnm->hdc, Font.Handle)
 						If (uiItemState And CDIS_DISABLED) Then
@@ -259,12 +259,12 @@ Namespace My.Sys.Forms
 						End If
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
 						If (uiItemState And CDIS_FOCUS) Then
-							Dim Sz As ..SIZE
+							Dim Sz As ..Size
 							GetTextExtentPoint32(pnm->hdc, @This.Text, Len(This.Text), @Sz)
-							pnm->rc.left -= 1
-							pnm->rc.top = (pnm->rc.bottom - r.top - (s.cy + 2)) / 2
-							pnm->rc.right = pnm->rc.left + sz.cx + 2
-							pnm->rc.bottom = pnm->rc.top + s.cy + 2
+							pnm->rc.Left -= 1
+							pnm->rc.Top = (pnm->rc.Bottom - r.top - (s.cy + 2)) / 2
+							pnm->rc.Right = pnm->rc.Left + Sz.cx + 2
+							pnm->rc.Bottom = pnm->rc.Top + s.cy + 2
 							DrawFocusRect(pnm->hdc, @pnm->rc)
 						End If
 						CloseThemeData(hTheme)
@@ -284,7 +284,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub RadioButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As RadioButton Ptr but = user_data
-			If but->OnClick Then but->OnClick(*but)
+			If but->OnClick Then but->OnClick(*but->Designer, *but)
 		End Sub
 	#endif
 	

@@ -69,7 +69,7 @@ Namespace My.Sys.Forms
 				Message.Result = True
 				Return
 			Case GDK_KEY_PRESS
-				Dim As String KeyName = *gdk_keyval_name(e->Key.keyval)
+				Dim As String KeyName = *gdk_keyval_name(e->key.keyval)
 				Select Case KeyName
 				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
 					bKeyPressed = False
@@ -96,19 +96,19 @@ Namespace My.Sys.Forms
 					If bMeta Then KeyName = "Meta + " & KeyName
 					If bSuper Then KeyName = "Super + " & KeyName
 					If bHyper Then KeyName = "Hyper + " & KeyName
-					gtk_entry_set_text(gtk_entry(widget), ToUTF8(KeyName))
-					gtk_editable_set_position(gtk_editable(widget), Len(KeyName))
-					If OnChange Then OnChange(This)
+					gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(KeyName))
+					gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
+					If OnChange Then OnChange(*Designer, This)
 				Case Else
 					KeyName = UCase(KeyName)
 					'If KeyName <> "ISO_NEXT_GROUP" Then
 						bKeyPressed = True
-						If e->Key.state And GDK_Mod1_MASK Then KeyName = "Alt + " & KeyName
-						If e->Key.state And GDK_Shift_MASK Then KeyName = "Shift + " & KeyName
-						If e->Key.state And GDK_Control_MASK Then KeyName = "Ctrl + " & KeyName
-						If e->Key.state And GDK_Meta_MASK Then KeyName = "Meta + " & KeyName
-						If e->Key.state And GDK_Super_MASK Then KeyName = "Super + " & KeyName
-						If e->Key.state And GDK_Hyper_MASK Then KeyName = "Hyper + " & KeyName
+						If e->key.state And GDK_MOD1_MASK Then KeyName = "Alt + " & KeyName
+						If e->key.state And GDK_SHIFT_MASK Then KeyName = "Shift + " & KeyName
+						If e->key.state And GDK_CONTROL_MASK Then KeyName = "Ctrl + " & KeyName
+						If e->key.state And GDK_META_MASK Then KeyName = "Meta + " & KeyName
+						If e->key.state And GDK_SUPER_MASK Then KeyName = "Super + " & KeyName
+						If e->key.state And GDK_HYPER_MASK Then KeyName = "Hyper + " & KeyName
 '						If bAlt Then KeyName = "Alt + " & KeyName
 '						If bShift Then KeyName = "Shift + " & KeyName
 '						If bCtrl Then KeyName = "Ctrl + " & KeyName
@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 						If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
 							gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(KeyName))
 							gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
-							If OnChange Then OnChange(This)
+							If OnChange Then OnChange(*Designer, This)
 						End If
 						Message.Result = True
 						Return
@@ -143,7 +143,7 @@ Namespace My.Sys.Forms
 						If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
 							gtk_entry_set_text(GTK_ENTRY(widget), KeyName)
 							gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
-							If OnChange Then OnChange(This)
+							If OnChange Then OnChange(*Designer, This)
 						End If
 					End If
 				End Select
@@ -184,13 +184,13 @@ Namespace My.Sys.Forms
 			wHotKey = IIf(InStr(Value, "Ctrl") > 0, "Ctrl + ", "") & IIf(InStr(Value, "Shift") > 0, "Shift + ", "") & IIf(InStr(Value, "Alt") > 0, "Alt + ", "") & _
 			IIf(InStr(Value, "Meta") > 0, "Meta + ", "") & IIf(InStr(Value, "Super") > 0, "Super + ", "") & IIf(InStr(Value, "Hyper") > 0, "Hyper + ", "") & UCase(sKey)
 			If wHotKey = "" Then
-				gtk_entry_set_text(gtk_entry(widget), !"\0")
+				gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
 			Else
-				gtk_entry_set_text(gtk_entry(widget), ToUTF8(wHotKey))
+				gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(wHotKey))
 			End If
 		#else
 			Dim sKey As String = Value
-			Dim wHotKey As Word
+			Dim wHotKey As WORD
 			Var Pos1 = InStrRev(sKey, "+")
 			If Pos1 > 0 Then sKey = Mid(sKey, Pos1 + 1)
 			wHotKey = MAKEWORD(GetAscKeyCode(sKey), IIf(InStr(Value, "Ctrl") > 0, HOTKEYF_CONTROL, 0) Or IIf(InStr(Value, "Shift") > 0, HOTKEYF_SHIFT, 0) Or IIf(InStr(Value, "Alt") > 0, HOTKEYF_ALT, 0))
@@ -206,7 +206,7 @@ Namespace My.Sys.Forms
 		Private Sub HotKey.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As HotKey Ptr hk = user_data
 			Dim As Control Ptr btn = hk->GetForm()->FDefaultButton
-			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
+			If btn AndAlso btn->OnClick Then btn->OnClick(*btn->Designer, *btn)
 		End Sub
 	#endif
 	

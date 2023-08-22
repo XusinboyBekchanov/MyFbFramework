@@ -779,9 +779,9 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				Dim Cancel As Boolean
-				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data), PColumn->Index, *new_text, Cancel)
+				If lv->OnCellEdited Then lv->OnCellEdited(*lv->Designer, *lv, lv->Nodes.FindByIterUser_Data(iter.user_data), PColumn->Index, *new_text, Cancel)
 				If Not Cancel Then
-					lv->Nodes.FindByIterUser_Data(iter.User_Data)->Text(PColumn->Index) = *new_text
+					lv->Nodes.FindByIterUser_Data(iter.user_data)->Text(PColumn->Index) = *new_text
 					'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
 				End If
 			End If
@@ -798,7 +798,7 @@ Namespace My.Sys.Forms
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
 				Dim Cancel As Boolean
 				txt.Handle = Cast(GtkWidget Ptr, editable)
-				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data), PColumn->Index, @txt, Cancel)
+				If lv->OnCellEditing Then lv->OnCellEditing(*lv->Designer, *lv, lv->Nodes.FindByIterUser_Data(iter.user_data), PColumn->Index, @txt, Cancel)
 				txt.Handle = 0
 				If Cancel Then
 					gtk_cell_editable_editing_done(editable)
@@ -1621,7 +1621,7 @@ Namespace My.Sys.Forms
 				model = gtk_tree_view_get_model(tree_view)
 				
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnItemActivate Then lv->OnItemActivate(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data))
+					If lv->OnItemActivate Then lv->OnItemActivate(*lv->Designer, *lv, lv->Nodes.FindByIterUser_Data(iter.user_data))
 				End If
 			End If
 		End Sub
@@ -1632,7 +1632,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
-					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->Nodes.FindByIterUser_Data(iter.user_data))
+					If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv->Designer, *lv, lv->Nodes.FindByIterUser_Data(iter.user_data))
 				End If
 			End If
 		End Sub
@@ -1647,7 +1647,7 @@ Namespace My.Sys.Forms
 			If lv Then
 				Dim As GtkTreeModel Ptr model
 				model = gtk_tree_view_get_model(tree_view)
-				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv, lv->Nodes.FindByIterUser_Data(iter->user_data))
+				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv->Designer, *lv, lv->Nodes.FindByIterUser_Data(iter->user_data))
 			End If
 			Return False
 		End Function
@@ -1677,7 +1677,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub TreeListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As TreeListView Ptr lv = user_data
-			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
+			If lv->OnEndScroll Then lv->OnEndScroll(*lv->Designer, *lv)
 		End Sub
 	#endif
 	

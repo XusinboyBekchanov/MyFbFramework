@@ -217,7 +217,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub CommandButton.Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
 			Dim As CommandButton Ptr but = user_data
-			If but->OnClick Then but->OnClick(*but)
+			If but->OnClick Then but->OnClick(*but->Designer, *but)
 		End Sub
 	#endif
 	

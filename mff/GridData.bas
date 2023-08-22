@@ -827,7 +827,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->Handle))
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				If lv->OnCellEdited Then lv->OnCellEdited(*lv, lv->ListItems.FindByIterUser_Data(iter.user_data), PColumn->Index, *new_text)
+				If lv->OnCellEdited Then lv->OnCellEdited(*lv->Designer, *lv, lv->ListItems.FindByIterUser_Data(iter.user_data), PColumn->Index, *new_text)
 				'gtk_tree_store_set(lv->TreeStore, @iter, PColumn->Index + 1, ToUtf8(*new_text), -1)
 			End If
 		End Sub
@@ -841,7 +841,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeModel Ptr model = gtk_tree_view_get_model(GTK_TREE_VIEW(lv->Handle))
 			Dim As Control Ptr CellEditor
 			If gtk_tree_model_get_iter(model, @iter, gtk_tree_path_new_from_string(path)) Then
-				If lv->OnCellEditing Then lv->OnCellEditing(*lv, lv->ListItems.FindByIterUser_Data(iter.user_data), PColumn->Index, CellEditor)
+				If lv->OnCellEditing Then lv->OnCellEditing(*lv->Designer, *lv, lv->ListItems.FindByIterUser_Data(iter.user_data), PColumn->Index, CellEditor)
 				If CellEditor <> 0 Then editable = GTK_CELL_EDITABLE(CellEditor->Handle)
 			End If
 		End Sub
@@ -2470,7 +2470,7 @@ Namespace My.Sys.Forms
 				model = gtk_tree_view_get_model(tree_view)
 				
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnItemActivate Then lv->OnItemActivate(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data))
+					If lv->OnItemActivate Then lv->OnItemActivate(*lv->Designer, *lv, lv->ListItems.FindByIterUser_Data(iter.user_data))
 				End If
 			End If
 		End Sub
@@ -2482,7 +2482,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeModel Ptr model
 				If gtk_tree_selection_get_selected(selection, @model, @iter) Then
 					#if 0
-						If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->ListItems.FindByIterUser_Data(iter.User_Data))
+						If lv->OnSelectedItemChanged Then lv->OnSelectedItemChanged(*lv, lv->ListItems.FindByIterUser_Data(iter.user_data))
 					#endif
 				End If
 			End If
@@ -2498,7 +2498,7 @@ Namespace My.Sys.Forms
 			If lv Then
 				Dim As GtkTreeModel Ptr model
 				model = gtk_tree_view_get_model(tree_view)
-				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv, lv->ListItems.FindByIterUser_Data(iter->User_Data))
+				If lv->OnItemExpanding Then lv->OnItemExpanding(*lv->Designer, *lv, lv->ListItems.FindByIterUser_Data(iter->user_data))
 			End If
 			Return False
 		End Function

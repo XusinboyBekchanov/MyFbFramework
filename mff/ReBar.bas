@@ -1016,7 +1016,7 @@ Namespace My.Sys.Forms
 							FLeft += rb->Bands.Item(j)->Width
 							FWidth -= rb->Bands.Item(j)->Width
 						Next
-						FWidth = allocation->Width
+						FWidth = allocation->width
 						FLeft = 0
 						FTop += rb->Bands.Item(i)->Height
 						OldBandIndex = i + 1
@@ -1031,7 +1031,7 @@ Namespace My.Sys.Forms
 						If rb->Parent Then rb->Parent->RequestAlign
 					End If
 				End If
-				If rb->OnResize Then rb->OnResize(*rb, allocation->width, allocation->height)
+				If rb->OnResize Then rb->OnResize(*rb->Designer, *rb, allocation->width, allocation->height)
 			End If
 		End Sub
 		
@@ -1091,7 +1091,7 @@ Namespace My.Sys.Forms
 					Next
 				End With
 			Next
-			If rb->OnPaint Then rb->OnPaint(*rb, rb->Canvas)
+			If rb->OnPaint Then rb->OnPaint(*rb->Designer, *rb, rb->Canvas)
 			rb->Canvas.HandleSetted = False
 			Return False
 		End Function

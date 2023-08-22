@@ -244,7 +244,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub ScrollBarControl.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 			Dim As ScrollBarControl Ptr scr = user_data
-			If scr->OnScroll Then scr->OnScroll(*scr, gtk_range_get_value(range))
+			If scr->OnScroll Then scr->OnScroll(*scr->Designer, *scr, gtk_range_get_value(range))
 		End Sub
 	#endif
 	

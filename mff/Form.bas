@@ -881,7 +881,7 @@ Namespace My.Sys.Forms
 				pApp->FActivated = False
 			Else
 				Dim As Form Ptr frm = user_data
-				If frm->OnDeActivateApp Then frm->OnDeActivateApp(*frm)
+				If frm->OnDeActivateApp Then frm->OnDeActivateApp(*frm->Designer, *frm)
 			End If
 			Return False
 		End Function
@@ -905,7 +905,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Select Case msg.Event->type
 			Case GDK_DELETE
-				If OnClose Then OnClose(This, Action)
+				If OnClose Then OnClose(*Designer, This, Action)
 				Select Case Action
 				Case 0
 					msg.Result = -1
@@ -939,13 +939,13 @@ Namespace My.Sys.Forms
 					If OnActivateApp OrElse OnDeActivateApp Then
 						If pApp Then
 							pApp->FActivated = True
-							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(This)
+							If OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then OnActivateApp(*Designer, This)
 						End If
 					End If
 					pApp->ActiveForm = @This
-					If OnActivate Then OnActivate(This)
+					If OnActivate Then OnActivate(*Designer, This)
 				Else
-					If OnDeActivate Then OnDeActivate(This)
+					If OnDeActivate Then OnDeActivate(*Designer, This)
 					If OnActivateApp OrElse OnDeActivateApp Then
 						If pApp Then
 							pApp->FDeactivated = True
@@ -1472,7 +1472,7 @@ Namespace My.Sys.Forms
 			RequestAlign
 			If widget Then
 				If Not FCreated Then
-					If OnCreate Then OnCreate(This)
+					If OnCreate Then OnCreate(*Designer, This)
 					FCreated = True
 				End If
 				If Not FFormCreated Then
@@ -1746,7 +1746,7 @@ Namespace My.Sys.Forms
 			'	gtk_window_close(Gtk_Window(widget))
 			'#else
 			Dim As Integer Action = 1
-			If OnClose Then OnClose(This, Action)
+			If OnClose Then OnClose(*Designer, This, Action)
 			Select Case Action
 			Case 0
 			Case 1

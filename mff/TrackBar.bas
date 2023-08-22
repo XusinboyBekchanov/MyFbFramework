@@ -451,8 +451,8 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub TrackBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 			Dim As TrackBar Ptr trb = user_data
-			If trb->OnScroll Then trb->OnScroll(*trb)
-			If trb->OnChange Then trb->OnChange(*trb, gtk_range_get_value(range))
+			If trb->OnScroll Then trb->OnScroll(*trb->Designer, *trb)
+			If trb->OnChange Then trb->OnChange(*trb->Designer, *trb, gtk_range_get_value(range))
 		End Sub
 	#endif
 	

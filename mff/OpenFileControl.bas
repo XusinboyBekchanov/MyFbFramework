@@ -643,17 +643,17 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub OpenFileControl.FileChooser_CurrentFolderChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As OpenFileControl Ptr ofc = user_data
-			If ofc->OnFolderChange Then ofc->OnFolderChange(*ofc)
+			If ofc->OnFolderChange Then ofc->OnFolderChange(*ofc->Designer, *ofc)
 		End Sub
 		
 		Private Sub OpenFileControl.FileChooser_FileActivated(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As OpenFileControl Ptr ofc = user_data
-			If ofc->OnFileActivate Then ofc->OnFileActivate(*ofc)
+			If ofc->OnFileActivate Then ofc->OnFileActivate(*ofc->Designer, *ofc)
 		End Sub
 		
 		Private Sub OpenFileControl.FileChooser_SelectionChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As OpenFileControl Ptr ofc = user_data
-			If ofc->OnSelectionChange Then ofc->OnSelectionChange(*ofc)
+			If ofc->OnSelectionChange Then ofc->OnSelectionChange(*ofc->Designer, *ofc)
 		End Sub
 	#endif
 	

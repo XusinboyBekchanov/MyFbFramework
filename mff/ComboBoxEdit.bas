@@ -724,30 +724,30 @@ Namespace My.Sys.Forms
 		Private Sub ComboBoxEdit.ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			cbo->FSelected = False
-			If cbo->OnDropDown Then cbo->OnDropDown(*cbo)
+			If cbo->OnDropDown Then cbo->OnDropDown(*cbo->Designer, *cbo)
 		End Sub
 		
 		Private Function ComboBoxEdit.ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			If cbo->FSelected = False Then
-				If cbo->OnSelectCanceled Then cbo->OnSelectCanceled(*cbo)
+				If cbo->OnSelectCanceled Then cbo->OnSelectCanceled(*cbo->Designer, *cbo)
 			End If
-			If cbo->OnCloseUp Then cbo->OnCloseUp(*cbo)
+			If cbo->OnCloseUp Then cbo->OnCloseUp(*cbo->Designer, *cbo)
 			Return False
 		End Function
 		
 		Private Sub ComboBoxEdit.ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			cbo->FSelected = True
-			If cbo->OnSelected Then cbo->OnSelected(*cbo, cbo->ItemIndex)
-			If cbo->OnChange Then cbo->OnChange(*cbo)
+			If cbo->OnSelected Then cbo->OnSelected(*cbo->Designer, *cbo, cbo->ItemIndex)
+			If cbo->OnChange Then cbo->OnChange(*cbo->Designer, *cbo)
 		End Sub
 		
 		Private Sub ComboBoxEdit.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As ComboBoxEdit Ptr cbo = user_data
 			Dim As Control Ptr btn = cbo->GetForm()->FDefaultButton
-			If cbo->OnActivate Then cbo->OnActivate(*cbo)
-			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
+			If cbo->OnActivate Then cbo->OnActivate(*cbo->Designer, *cbo)
+			If btn AndAlso btn->OnClick Then btn->OnClick(*btn->Designer, *btn)
 		End Sub
 	#endif
 	

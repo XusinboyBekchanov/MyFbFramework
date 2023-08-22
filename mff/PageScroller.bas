@@ -89,16 +89,16 @@ Namespace My.Sys.Forms
 				Select Case This.Style
 				Case psHorizontal
 					FPosition = Min(ChildControl->Width - This.Width, FPosition)
-					gtk_layout_move(gtk_layout(FHandle), ChildControl->Handle, -FPosition, 0)
+					gtk_layout_move(GTK_LAYOUT(FHandle), ChildControl->Handle, -FPosition, 0)
 					If FPosition = 0 Then gtk_widget_hide(Layout1) Else gtk_widget_show(Layout2)
 					If FPosition = ChildControl->Width - This.Width OrElse ChildControl->Width = This.Width Then gtk_widget_hide(Layout2) Else gtk_widget_show(Layout1)
 				Case psVertical
 					FPosition = Min(ChildControl->Height - This.Height, FPosition)
-					gtk_layout_move(gtk_layout(FHandle), ChildControl->Handle, 0, -FPosition)
+					gtk_layout_move(GTK_LAYOUT(FHandle), ChildControl->Handle, 0, -FPosition)
 					If FPosition = 0 Then gtk_widget_hide(Layout1) Else gtk_widget_show(Layout2)
 					If FPosition = ChildControl->Height - This.Height OrElse ChildControl->Height = This.Height Then gtk_widget_hide(Layout2) Else gtk_widget_show(Layout1)
 				End Select
-				If OnScroll Then OnScroll(This, FPosition)
+				If OnScroll Then OnScroll(*Designer, This, FPosition)
 			End If
 		#else
 			If FHandle Then
@@ -230,19 +230,19 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub PageScroller.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As PageScroller Ptr psc = user_data
-			If allocation->Width <> psc->AllocatedWidth OrElse allocation->height <> psc->AllocatedHeight Then
-				psc->AllocatedWidth = allocation->Width
+			If allocation->width <> psc->AllocatedWidth OrElse allocation->height <> psc->AllocatedHeight Then
+				psc->AllocatedWidth = allocation->width
 				psc->AllocatedHeight = allocation->height
 				If widget = psc->Handle Then
 					Select Case psc->Style
 					Case psHorizontal
 						gtk_widget_set_size_request(psc->Layout1, 12, allocation->height)
 						gtk_widget_set_size_request(psc->Layout2, 12, allocation->height)
-						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->Layout2, allocation->Width - 12, 0)
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->Layout2, allocation->width - 12, 0)
 					Case psVertical
 						gtk_widget_set_size_request(psc->Layout1, allocation->width, 12)
 						gtk_widget_set_size_request(psc->Layout2, allocation->width, 12)
-						gtk_layout_move(gtk_layout(psc->Handle), psc->Layout2, 0, allocation->height - 12)
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->Layout2, 0, allocation->height - 12)
 					End Select
 					If psc->ChildControl AndAlso psc->ChildControl->Handle Then
 						Dim ChildAllocation As GtkAllocation
@@ -253,10 +253,10 @@ Namespace My.Sys.Forms
 						Case psVertical
 							gtk_widget_set_size_request(psc->ChildControl->Handle, allocation->width, ChildAllocation.height)
 						End Select
-						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, 0)
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->ChildControl->Handle, 0, 0)
 					End If
 				End If
-				If psc->OnResize Then psc->OnResize(*psc, allocation->width, allocation->height)
+				If psc->OnResize Then psc->OnResize(*psc->Designer, *psc, allocation->width, allocation->height)
 			End If
 		End Sub
 		
@@ -272,20 +272,20 @@ Namespace My.Sys.Forms
 					gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
 					If ChildAllocation.x < 0 Then
 						NewPosition = Min(0, ChildAllocation.x + psc->FArrowChangeSize)
-						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, NewPosition, 0)
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->ChildControl->Handle, NewPosition, 0)
 						If NewPosition = 0 Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout2)
 						psc->FPosition = Abs(NewPosition)
-						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc->Designer, *psc, psc->FPosition)
 					End If
 				Case psVertical
 					Dim ChildAllocation As GtkAllocation
 					gtk_widget_get_allocation(psc->ChildControl->Handle, @ChildAllocation)
 					If ChildAllocation.y < 0 Then
 						NewPosition = Min(0, ChildAllocation.y + psc->FArrowChangeSize)
-						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, Min(0, ChildAllocation.y + psc->FArrowChangeSize))
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->ChildControl->Handle, 0, Min(0, ChildAllocation.y + psc->FArrowChangeSize))
 						If NewPosition = 0 Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout2)
 						psc->FPosition = Abs(NewPosition)
-						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc->Designer, *psc, psc->FPosition)
 					End If
 				End Select
 			ElseIf widget = psc->Layout2 Then
@@ -296,10 +296,10 @@ Namespace My.Sys.Forms
 					gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
 					If ChildAllocation.x + ChildAllocation.width > LayoutAllocation.width Then
 						NewPosition = Max(LayoutAllocation.width - ChildAllocation.width, ChildAllocation.x - psc->FArrowChangeSize)
-						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, Max(LayoutAllocation.width - ChildAllocation.width, ChildAllocation.x - psc->FArrowChangeSize), 0)
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->ChildControl->Handle, Max(LayoutAllocation.width - ChildAllocation.width, ChildAllocation.x - psc->FArrowChangeSize), 0)
 						If NewPosition = LayoutAllocation.width - ChildAllocation.width Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout1)
 						psc->FPosition = Abs(NewPosition)
-						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc->Designer, *psc, psc->FPosition)
 					End If
 				Case psVertical
 					Dim As GtkAllocation ChildAllocation, LayoutAllocation
@@ -307,10 +307,10 @@ Namespace My.Sys.Forms
 					gtk_widget_get_allocation(psc->Handle, @LayoutAllocation)
 					If ChildAllocation.y + ChildAllocation.height > LayoutAllocation.height Then
 						NewPosition = Max(LayoutAllocation.height - ChildAllocation.height, ChildAllocation.y - psc->FArrowChangeSize)
-						gtk_layout_move(gtk_layout(psc->Handle), psc->ChildControl->Handle, 0, Max(LayoutAllocation.height - ChildAllocation.height, ChildAllocation.y - psc->FArrowChangeSize))
+						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->ChildControl->Handle, 0, Max(LayoutAllocation.height - ChildAllocation.height, ChildAllocation.y - psc->FArrowChangeSize))
 						If NewPosition = LayoutAllocation.height - ChildAllocation.height Then EndedLayout = widget: gtk_widget_queue_draw(widget): Else gtk_widget_show(psc->Layout1)
 						psc->FPosition = Abs(NewPosition)
-						If psc->OnScroll Then psc->OnScroll(*psc, psc->FPosition)
+						If psc->OnScroll Then psc->OnScroll(*psc->Designer, *psc, psc->FPosition)
 					End If
 				End Select
 			End If
@@ -427,7 +427,7 @@ Namespace My.Sys.Forms
 				End If
 				psc->Canvas.HandleSetted = True
 				psc->Canvas.Handle = cr
-				If psc->OnPaint Then psc->OnPaint(*psc, psc->Canvas)
+				If psc->OnPaint Then psc->OnPaint(*psc->Designer, *psc, psc->Canvas)
 				psc->Canvas.HandleSetted = False
 			End If
 			Return False

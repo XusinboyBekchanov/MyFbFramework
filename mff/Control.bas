@@ -1184,7 +1184,7 @@ Namespace My.Sys.Forms
 				If hover_timer_id Then
 					If user_data = MouseHoverMessage.pBoolean Then
 						Dim As Control Ptr Ctrl = MouseHoverMessage.Sender
-						If Ctrl->OnMouseHover Then Ctrl->OnMouseHover(*Ctrl, Ctrl->DownButton, MouseHoverMessage.X, MouseHoverMessage.Y, MouseHoverMessage.State)
+						If Ctrl->OnMouseHover Then Ctrl->OnMouseHover(*Ctrl->Designer, *Ctrl, Ctrl->DownButton, MouseHoverMessage.X, MouseHoverMessage.Y, MouseHoverMessage.State)
 					End If
 				End If
 				Return False
@@ -1203,26 +1203,26 @@ Namespace My.Sys.Forms
 					DownButton = e->button.button - 1
 					#ifdef __USE_GTK4__
 						If gtk_widget_get_window(widget) = e->motion.window Then
-							If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+							If OnMouseDown Then OnMouseDown(*Designer, This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#else
 						If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
-							If OnMouseDown Then OnMouseDown(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+							If OnMouseDown Then OnMouseDown(*Designer, This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#endif
 				Case GDK_BUTTON_RELEASE
 					'Message.Result = True
 					DownButton = -1
 					If GTK_IS_BUTTON(widget) = 0 Then
-						If OnClick Then OnClick(This)
+						If OnClick Then OnClick(*Designer, This)
 					End If
 					#ifdef __USE_GTK4__
 						If gtk_widget_get_window(widget) = e->motion.window Then
-							If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+							If OnMouseUp Then OnMouseUp(*Designer, This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#else
 						If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
-							If OnMouseUp Then OnMouseUp(This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
+							If OnMouseUp Then OnMouseUp(*Designer, This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
 						End If
 					#endif
 					If e->button.button = 3 AndAlso ContextMenu Then
@@ -1236,7 +1236,7 @@ Namespace My.Sys.Forms
 					#else
 					Case GDK_2BUTTON_PRESS
 					#endif
-					If OnDblClick Then OnDblClick(This)
+					If OnDblClick Then OnDblClick(*Designer, This)
 					Message.Result = True
 					#ifdef __USE_GTK3__
 					Case GDK_3BUTTON_PRESS, GDK_TRIPLE_BUTTON_PRESS
@@ -1250,7 +1250,7 @@ Namespace My.Sys.Forms
 					#else
 						If gtk_widget_get_window(widget) = e->motion.window OrElse (layoutwidget AndAlso gtk_layout_get_bin_window(GTK_LAYOUT(layoutwidget)) = e->motion.window) Then
 					#endif
-						If OnMouseMove Then OnMouseMove(This, DownButton, e->motion.x, e->motion.y, e->motion.state)
+						If OnMouseMove Then OnMouseMove(*Designer, This, DownButton, e->motion.x, e->motion.y, e->motion.state)
 						hover_timer_id = 0
 						If OnMouseHover Then
 							Dim As Boolean Ptr pBoolean = _New(Boolean)
@@ -1261,15 +1261,15 @@ Namespace My.Sys.Forms
 					End If
 				Case GDK_KEY_PRESS
 					'Message.Result = True
-					If OnKeyDown Then OnKeyDown(This, e->key.keyval, e->key.state)
-					If CInt(OnKeyPress) AndAlso CInt(Not Message.Result) Then OnKeyPress(This, Asc(*e->key.string))
+					If OnKeyDown Then OnKeyDown(*Designer, This, e->key.keyval, e->key.state)
+					If CInt(OnKeyPress) AndAlso CInt(Not Message.Result) Then OnKeyPress(*Designer, This, Asc(*e->key.string))
 				Case GDK_KEY_RELEASE
 					'Message.Result = True
-					If OnKeyUp Then OnKeyUp(This, e->key.keyval, e->key.state)
+					If OnKeyUp Then OnKeyUp(*Designer, This, e->key.keyval, e->key.state)
 				Case GDK_ENTER_NOTIFY
-					If OnMouseEnter Then OnMouseEnter(This)
+					If OnMouseEnter Then OnMouseEnter(*Designer, This)
 				Case GDK_LEAVE_NOTIFY
-					If OnMouseLeave Then OnMouseLeave(This)
+					If OnMouseLeave Then OnMouseLeave(*Designer, This)
 				Case GDK_CONFIGURE
 					'					If Constraints.Left <> 0 OrElse Constraints.Top <> 0 OrElse Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
 					'						g_signal_handlers_block_by_func(G_OBJECT(Message.widget), G_CALLBACK(@EventProc), @This)
@@ -1284,7 +1284,7 @@ Namespace My.Sys.Forms
 					'						If Constraints.Width <> 0 Then gtk_window_resize(gtk_window(widget), Constraints.Width, e->configure.height): Message.Result = True: Return
 					'						If Constraints.Height <> 0 Then gtk_window_resize(gtk_window(widget), e->configure.width, Constraints.Height): Message.Result = True: Return
 					'					End If
-					If OnMove Then OnMove(This)
+					If OnMove Then OnMove(*Designer, This)
 					'If OnResize Then OnResize(This)
 					'RequestAlign
 					'Requests @This
@@ -1308,7 +1308,7 @@ Namespace My.Sys.Forms
 					'Case GDK_PAD_GROUP_MODE
 				Case GDK_MAP
 					If Not FCreated Then
-						If OnCreate Then OnCreate(This)
+						If OnCreate Then OnCreate(*Designer, This)
 						FCreated = True
 					End If
 				Case GDK_UNMAP
@@ -1329,17 +1329,17 @@ Namespace My.Sys.Forms
 					'RequestAlign
 				Case GDK_SCROLL
 					#ifdef __USE_GTK3__
-						If OnMouseWheel Then OnMouseWheel(This, e->scroll.delta_x, e->scroll.x, e->scroll.y, e->scroll.state)
+						If OnMouseWheel Then OnMouseWheel(*Designer, This, e->scroll.delta_x, e->scroll.x, e->scroll.y, e->scroll.state)
 					#else
 						If e->scroll.direction = GDK_SCROLL_UP Then
-							If OnMouseWheel Then OnMouseWheel(This, -1, e->scroll.x, e->scroll.y, e->scroll.state)
+							If OnMouseWheel Then OnMouseWheel(*Designer, This, -1, e->scroll.x, e->scroll.y, e->scroll.state)
 						Else
-							If OnMouseWheel Then OnMouseWheel(This, 1, e->scroll.x, e->scroll.y, e->scroll.state)
+							If OnMouseWheel Then OnMouseWheel(*Designer, This, 1, e->scroll.x, e->scroll.y, e->scroll.state)
 						End If
 					#endif
 				Case GDK_FOCUS_CHANGE
 					If Cast(GdkEventFocus Ptr, e)->in Then
-						If OnGotFocus Then OnGotFocus(This)
+						If OnGotFocus Then OnGotFocus(*Designer, This)
 						If Not FDesignMode Then
 							Dim frm As Control Ptr = GetForm
 							If frm Then
@@ -1348,13 +1348,13 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					Else
-						If OnLostFocus Then OnLostFocus(This)
+						If OnLostFocus Then OnLostFocus(*Designer, This)
 					End If
 				Case GDK_DELETE
 				Case GDK_DESTROY
-					If OnDestroy Then OnDestroy(This)
+					If OnDestroy Then OnDestroy(*Designer, This)
 				Case GDK_EXPOSE
-					If OnPaint Then OnPaint(This, Canvas)
+					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				Case GDK_EVENT_LAST
 				End Select
 			#elseif defined(__USE_WINAPI__)
@@ -1995,7 +1995,7 @@ Namespace My.Sys.Forms
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
 						Ctrl->RequestAlign AllocatedWidth, AllocatedHeight, True
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl, AllocatedWidth, AllocatedHeight)
+						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, AllocatedWidth, AllocatedHeight)
 					End If
 				End If
 			End Sub
@@ -2023,7 +2023,7 @@ Namespace My.Sys.Forms
 						cairo_set_source_rgb(cr, Ctrl->FBackColorRed, Ctrl->FBackColorGreen, Ctrl->FBackColorBlue)
 						cairo_fill(cr)
 					End If
-					If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
+					If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl->Designer, *Ctrl, Ctrl->Canvas)
 					'					#ifdef __USE_GTK3__
 					'						Control_SizeAllocate(widget, @allocation, data1)
 					'					#endif
@@ -2031,7 +2031,7 @@ Namespace My.Sys.Forms
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
 						Ctrl->RequestAlign AllocatedWidth, AllocatedHeight, True
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl, AllocatedWidth, AllocatedHeight)
+						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, AllocatedWidth, AllocatedHeight)
 					End If
 					Ctrl->Canvas.HandleSetted = False
 				End If
@@ -2049,7 +2049,7 @@ Namespace My.Sys.Forms
 			
 			Private Function Control.Control_Scroll(self As GtkScrolledWindow Ptr, scroll As GtkScrollType Ptr, horizontal As Boolean, user_data As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = user_data
-				If Ctrl->OnScroll Then Ctrl->OnScroll(*Ctrl)
+				If Ctrl->OnScroll Then Ctrl->OnScroll(*Ctrl->Designer, *Ctrl)
 				Return False
 			End Function
 			
@@ -2065,7 +2065,7 @@ Namespace My.Sys.Forms
 						For i As Integer = 0 To UBound(res)
 							If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
 							If Trim(res(i)) <> "" Then
-								Ctrl->OnDropFile(*Ctrl, res(i))
+								Ctrl->OnDropFile(*Ctrl->Designer, *Ctrl, res(i))
 							End If
 						Next
 						'End If

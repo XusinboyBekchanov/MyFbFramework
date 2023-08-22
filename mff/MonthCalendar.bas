@@ -259,7 +259,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub MonthCalendar.Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
 			Dim As MonthCalendar Ptr cal = user_data
-			If cal->OnSelect Then cal->OnSelect(*cal)
+			If cal->OnSelect Then cal->OnSelect(*cal->Designer, *cal)
 		End Sub
 	#endif
 	

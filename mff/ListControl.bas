@@ -501,7 +501,7 @@ Namespace My.Sys.Forms
 		Private Sub ListControl.SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As ListControl Ptr lst = Cast(Any Ptr, user_data)
 			If lst Then
-				If lst->OnChange Then lst->OnChange(*lst)
+				If lst->OnChange Then lst->OnChange(*lst->Designer, *lst)
 			End If
 		End Sub
 	#endif

@@ -803,7 +803,7 @@ Namespace My.Sys.Forms
 			If PColumn = 0 Then Exit Sub
 			Dim As Grid Ptr lv = Cast(Grid Ptr, PColumn->Parent)
 			If lv = 0 Then Exit Sub
-			If lv->OnCellEdited Then lv->OnCellEdited(*lv, Val(*path), PColumn->Index, *new_text)
+			If lv->OnCellEdited Then lv->OnCellEdited(*lv->Designer, *lv, Val(*path), PColumn->Index, *new_text)
 		End Sub
 		
 		Private Sub GridColumns.Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
@@ -1442,7 +1442,7 @@ Namespace My.Sys.Forms
 				Clear
 			Case GDK_BUTTON_RELEASE
 				If SelectedRowIndex <> -1 Then
-					If OnRowClick Then OnRowClick(This, SelectedRowIndex)
+					If OnRowClick Then OnRowClick(*Designer, This, SelectedRowIndex)
 				End If
 				#ifdef __USE_GTK3__
 				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
@@ -1450,11 +1450,11 @@ Namespace My.Sys.Forms
 				Case GDK_2BUTTON_PRESS
 				#endif
 				If SelectedRowIndex <> -1 Then
-					If OnRowDblClick Then OnRowDblClick(This, SelectedRowIndex)
+					If OnRowDblClick Then OnRowDblClick(*Designer, This, SelectedRowIndex)
 				End If
 			Case GDK_KEY_PRESS
 				If SelectedRowIndex <> -1 Then
-					If OnRowKeyDown Then OnRowKeyDown(This, SelectedRowIndex, Message.Event->key.keyval, Message.Event->key.state)
+					If OnRowKeyDown Then OnRowKeyDown(*Designer, This, SelectedRowIndex, Message.Event->key.keyval, Message.Event->key.state)
 				End If
 			End Select
 		#else
@@ -1988,7 +1988,7 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeIter iter
 				model = gtk_tree_view_get_model(tree_view)
 				If gtk_tree_model_get_iter(model, @iter, path) Then
-					If lv->OnRowActivate Then lv->OnRowActivate(*lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
+					If lv->OnRowActivate Then lv->OnRowActivate(*lv->Designer, *lv, Val(*gtk_tree_model_get_string_from_iter(model, @iter)))
 				End If
 			End If
 		End Sub
@@ -2002,13 +2002,13 @@ Namespace My.Sys.Forms
 					Dim As Integer SelectedIndex = Val(*gtk_tree_model_get_string_from_iter(model, @iter))
 					If lv->PrevIndex <> SelectedIndex AndAlso lv->PrevIndex <> -1 Then
 						Dim bCancel As Boolean
-						If lv->OnSelectedRowChanging Then lv->OnSelectedRowChanging(*lv, lv->PrevIndex, bCancel)
+						If lv->OnSelectedRowChanging Then lv->OnSelectedRowChanging(*lv->Designer, *lv, lv->PrevIndex, bCancel)
 						If bCancel Then
 							lv->SelectedRowIndex = lv->PrevIndex
 							Exit Sub
 						End If
 					End If
-					If lv->OnSelectedRowChanged Then lv->OnSelectedRowChanged(*lv, SelectedIndex)
+					If lv->OnSelectedRowChanged Then lv->OnSelectedRowChanged(*lv->Designer, *lv, SelectedIndex)
 					lv->PrevIndex = SelectedIndex
 				End If
 			End If
@@ -2021,7 +2021,7 @@ Namespace My.Sys.Forms
 		
 		Private Function Grid.Grid_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr) As Boolean
 			Dim As Grid Ptr lv = user_data
-			If lv->OnEndScroll Then lv->OnEndScroll(*lv)
+			If lv->OnEndScroll Then lv->OnEndScroll(*lv->Designer, *lv)
 			Return True
 		End Function
 	#endif

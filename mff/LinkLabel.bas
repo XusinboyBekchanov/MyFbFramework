@@ -92,7 +92,7 @@ Namespace My.Sys.Forms
 		Private Function LinkLabel.ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As LinkLabel Ptr lab = user_data
 			Dim As Integer Action = 1
-			If lab->OnLinkClicked Then lab->OnLinkClicked(*lab, 0, *uri, Action)
+			If lab->OnLinkClicked Then lab->OnLinkClicked(*lab->Designer, *lab, 0, *uri, Action)
 			If Action = 1 AndAlso *uri <> "" Then
 				'ShellExecute(NULL, "open", uri, NULL, NULL, SW_SHOW)
 				Return False

@@ -1367,7 +1367,7 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub TextBox.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
-			If txt AndAlso txt->OnChange Then txt->OnChange(*txt)
+			If txt AndAlso txt->OnChange Then txt->OnChange(*txt->Designer, *txt)
 		End Sub
 		
 		Private Sub TextBox.TextBuffer_Changed(TextBuffer As GtkTextBuffer Ptr, user_data As Any Ptr)
@@ -1376,7 +1376,7 @@ Namespace My.Sys.Forms
 				If CInt(txt->FMaxLength > 0) AndAlso CInt(GTK_IS_TEXT_VIEW(txt->widget)) AndAlso CInt(Len(txt->Text) > txt->FMaxLength) Then
 					txt->Text = .Left(txt->Text, txt->FMaxLength)
 				Else
-					If txt->OnChange Then txt->OnChange(*txt)
+					If txt->OnChange Then txt->OnChange(*txt->Designer, *txt)
 				End If
 			End If
 		End Sub
@@ -1384,36 +1384,36 @@ Namespace My.Sys.Forms
 		Private Sub TextBox.Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			Dim As Control Ptr btn = txt->GetForm()->FDefaultButton
-			If txt->OnActivate Then txt->OnActivate(*txt)
-			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
+			If txt->OnActivate Then txt->OnActivate(*txt->Designer, *txt)
+			If btn AndAlso btn->OnClick Then btn->OnClick(*btn->Designer, *btn)
 		End Sub
 		
 		Private Function TextBox.Entry_FocusInEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
 			Dim As TextBox Ptr txt = user_data
-			If txt AndAlso txt->OnGotFocus Then txt->OnGotFocus(*txt)
+			If txt AndAlso txt->OnGotFocus Then txt->OnGotFocus(*txt->Designer, *txt)
 			Return False
 		End Function
 		
 		Private Function TextBox.Entry_FocusOutEvent(widget As GtkWidget Ptr, Event As GdkEventFocus Ptr, user_data As Any Ptr) As Boolean
 			Dim As TextBox Ptr txt = user_data
-			If txt AndAlso txt->OnLostFocus Then txt->OnLostFocus(*txt)
+			If txt AndAlso txt->OnLostFocus Then txt->OnLostFocus(*txt->Designer, *txt)
 			Return False
 		End Function
 		
 		Private Sub TextBox.Entry_CopyClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
-			If txt AndAlso txt->OnCopy Then txt->OnCopy(*txt)
+			If txt AndAlso txt->OnCopy Then txt->OnCopy(*txt->Designer, *txt)
 		End Sub
 		
 		Private Sub TextBox.Entry_CutClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
-			If txt AndAlso txt->OnCut Then txt->OnCut(*txt)
+			If txt AndAlso txt->OnCut Then txt->OnCut(*txt->Designer, *txt)
 		End Sub
 		
 		Private Sub TextBox.Entry_PasteClipboard(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
 			Dim Action As Integer = 1
-			If txt AndAlso txt->OnPaste Then txt->OnPaste(*txt, Action)
+			If txt AndAlso txt->OnPaste Then txt->OnPaste(*txt->Designer, *txt, Action)
 		End Sub
 		
 		Private Sub TextBox.TextView_SetScrollAdjustments(textview As GtkTextView Ptr, arg1 As GtkAdjustment Ptr, arg2 As GtkAdjustment Ptr, user_data As Any Ptr)
@@ -1424,12 +1424,12 @@ Namespace My.Sys.Forms
 		
 		Private Sub TextBox.Adjustment_ValueChanged(adjustment As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
-			If txt AndAlso txt->OnScroll Then txt->OnScroll(*txt)
+			If txt AndAlso txt->OnScroll Then txt->OnScroll(*txt->Designer, *txt)
 		End Sub
 		
 		Private Sub TextBox.Preedit_Changed(self As GtkWidget Ptr, preedit As gchar Ptr, user_data As Any Ptr)
 			Dim As TextBox Ptr txt = user_data
-			If txt AndAlso txt->OnUpdate Then txt->OnUpdate(*txt, WStr(*preedit))
+			If txt AndAlso txt->OnUpdate Then txt->OnUpdate(*txt->Designer, *txt, WStr(*preedit))
 		End Sub
 		
 		Private Sub TextBox.Entry_InsertText(self As GtkEditable Ptr, new_text As gchar Ptr, new_text_length As gint, position As gint Ptr, user_data As Any Ptr)

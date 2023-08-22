@@ -516,7 +516,7 @@ Namespace My.Sys.Forms
 		Private Sub Header.Column_Clicked(treeviewcolumn As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As HeaderSection Ptr hsec = user_data
 			Dim As Header Ptr hdr = hsec->HeaderControl
-			If hdr->OnSectionClick Then hdr->OnSectionClick(*hdr, *hsec, hdr->FSections.IndexOf(hsec), 0)
+			If hdr->OnSectionClick Then hdr->OnSectionClick(*hdr->Designer, *hdr, *hsec, hdr->FSections.IndexOf(hsec), 0)
 		End Sub
 		
 		Private Function Header.Column_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
@@ -525,14 +525,14 @@ Namespace My.Sys.Forms
 			Dim As Integer AllocatedWidth = gtk_tree_view_column_get_width(hsec->Handle)
 			If AllocatedWidth <> hsec->AllocatedWidth Then
 				Dim bCancel As Boolean
-				If hdr->OnChanging Then hdr->OnChanging(*hdr, *hsec, bCancel)
+				If hdr->OnChanging Then hdr->OnChanging(*hdr->Designer, *hdr, *hsec, bCancel)
 				If bCancel Then
 					gtk_tree_view_column_set_fixed_width(hsec->Handle, hsec->AllocatedWidth)
 					Return False
 				End If
 				hsec->AllocatedWidth = AllocatedWidth
-				If hdr->OnChange Then hdr->OnChange(*hdr, *hsec)
-				If hdr->OnTrack Then hdr->OnTrack(*hdr, *hsec)
+				If hdr->OnChange Then hdr->OnChange(*hdr->Designer, *hdr, *hsec)
+				If hdr->OnTrack Then hdr->OnTrack(*hdr->Designer, *hdr, *hsec)
 			End If
 			Return False
 		End Function
@@ -548,7 +548,7 @@ Namespace My.Sys.Forms
 			If Event->button.type = GDK_2BUTTON_PRESS Then
 				Dim As HeaderSection Ptr hsec = user_data
 				Dim As Header Ptr hdr = hsec->HeaderControl
-				If hdr->OnSectionDblClick Then hdr->OnSectionDblClick(*hdr, *hsec, hdr->FSections.IndexOf(hsec), Event->button.button - 1)
+				If hdr->OnSectionDblClick Then hdr->OnSectionDblClick(*hdr->Designer, *hdr, *hsec, hdr->FSections.IndexOf(hsec), Event->button.button - 1)
 			End If
 			Return False
 		End Function

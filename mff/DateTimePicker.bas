@@ -140,7 +140,7 @@ Namespace My.Sys.Forms
 				pst.wHour   = Hour(sTime)
 				pst.wMinute = Minute(sTime)
 				pst.wSecond = Second(sTime)
-				DateTime_SetSystemTime(FHandle, GDT_VALID, @pst)
+				DateTime_SetSystemtime(FHandle, GDT_VALID, @pst)
 			#endif
 		End If
 	End Property
@@ -149,7 +149,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			#ifndef __USE_GTK__
 				Dim As SYSTEMTIME pst
-				DateTime_GetSystemTime(FHandle, @pst)
+				DateTime_GetSystemtime(FHandle, @pst)
 				FSelectedDateTime = DateSerial(pst.wYear, pst.wMonth, pst.wDay) + TimeSerial(pst.wHour, pst.wMinute, pst.wSecond)
 			#endif
 		End If
@@ -160,8 +160,8 @@ Namespace My.Sys.Forms
 		FSelectedDateTime = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
-				gtk_entry_set_text(gtk_entry(widget), ToUTF8(Format(Value, *FFormat)))
-				If OnDateTimeChanged Then OnDateTimeChanged(This)
+				gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Format(Value, *FFormat)))
+				If OnDateTimeChanged Then OnDateTimeChanged(*Designer, This)
 			#else
 				Dim As SYSTEMTIME pst
 				pst.wYear  = Year(Value)
@@ -170,7 +170,7 @@ Namespace My.Sys.Forms
 				pst.wHour   = Hour(Value)
 				pst.wMinute = Minute(Value)
 				pst.wSecond = Second(Value)
-				DateTime_SetSystemTime(FHandle, GDT_VALID, @pst)
+				DateTime_SetSystemtime(FHandle, GDT_VALID, @pst)
 			#endif
 		End If
 	End Property
@@ -838,33 +838,33 @@ Namespace My.Sys.Forms
 				If dtp->ShowNone Then
 					Dim As GdkPixbuf Ptr EmptyPixbuf
 					#ifdef __USE_GTK3__
-						gtk_layout_move(gtk_layout(widget), dtp->CheckWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
+						gtk_layout_move(GTK_LAYOUT(widget), dtp->CheckWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
 						EmptyPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, allocation->height * 2, 16)
 					#else
-						gtk_layout_move(gtk_layout(widget), dtp->CheckLayoutWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
+						gtk_layout_move(GTK_LAYOUT(widget), dtp->CheckLayoutWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
 						EmptyPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, 1, 16)
 					#endif
 					gdk_pixbuf_fill(EmptyPixbuf, 0)
-					gtk_entry_set_icon_from_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, EmptyPixbuf)
+					gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, EmptyPixbuf)
 					g_object_unref(EmptyPixbuf)
-				ElseIf gtk_entry_get_icon_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY) <> 0 Then
-					gtk_entry_set_icon_from_pixbuf(gtk_entry(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, 0)
+				ElseIf gtk_entry_get_icon_pixbuf(GTK_ENTRY(dtp->Handle), GTK_ENTRY_ICON_PRIMARY) <> 0 Then
+					gtk_entry_set_icon_from_pixbuf(GTK_ENTRY(dtp->Handle), GTK_ENTRY_ICON_PRIMARY, 0)
 				End If
 				If TextAllocation.height > allocation->height Then
-					gtk_widget_set_size_request(Widget, allocation->width, TextAllocation.height)
+					gtk_widget_set_size_request(widget, allocation->width, TextAllocation.height)
 				End If
 				#ifdef __USE_GTK3__
-					gtk_layout_move(gtk_layout(widget), dtp->ButtonWidget, allocation->width - ButtonAllocation.width, 0)
+					gtk_layout_move(GTK_LAYOUT(widget), dtp->ButtonWidget, allocation->width - ButtonAllocation.width, 0)
 				#else
-					gtk_layout_move(gtk_layout(widget), dtp->ButtonLayoutWidget, allocation->width - allocation->height + 2, 2)
+					gtk_layout_move(GTK_LAYOUT(widget), dtp->ButtonLayoutWidget, allocation->width - allocation->height + 2, 2)
 				#endif
-				If dtp->OnResize Then dtp->OnResize(*dtp, allocation->width, allocation->height)
+				If dtp->OnResize Then dtp->OnResize(*dtp->Designer, *dtp, allocation->width, allocation->height)
 			End If
 		End Sub
 		
 		Private Function DateTimePicker.DateTimePicker_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
-			If Ctrl <> 0 AndAlso (gtk_is_layout(widget) OrElse gtk_is_event_box(widget)) Then
+			If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_EVENT_BOX(widget)) Then
 				Dim allocation As GtkAllocation
 				gtk_widget_get_allocation(widget, @allocation)
 				If allocation.width <> Ctrl->AllocatedWidth OrElse allocation.height <> Ctrl->AllocatedHeight Then
@@ -872,7 +872,7 @@ Namespace My.Sys.Forms
 				End If
 				Ctrl->Canvas.HandleSetted = True
 				Ctrl->Canvas.Handle = cr
-				If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl, Ctrl->Canvas)
+				If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl->Designer, *Ctrl, Ctrl->Canvas)
 				Ctrl->Canvas.HandleSetted = False
 			End If
 			Return False
@@ -889,7 +889,7 @@ Namespace My.Sys.Forms
 			Dim As DateTimePicker Ptr dtp = user_data
 			Dim As Control Ptr btn = dtp->GetForm()->FDefaultButton
 			'dtp->SelectedDateTime = dtp->SelectedDateTime
-			If btn AndAlso btn->OnClick Then btn->OnClick(*btn)
+			If btn AndAlso btn->OnClick Then btn->OnClick(*btn->Designer, *btn)
 		End Sub
 		
 		Private Function DateTimePicker.SpinButton_Input(spin_button As GtkSpinButton Ptr, new_value As Any Ptr, user_data As Any Ptr) As Integer

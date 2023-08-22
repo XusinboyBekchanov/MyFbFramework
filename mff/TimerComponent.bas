@@ -36,7 +36,7 @@ Namespace My.Sys.Forms
 			With TimersList
 				Dim As TimerComponent Ptr tmr = user_data
 				If tmr <> 0 Then
-					If tmr->OnTimer Then tmr->OnTimer(*tmr)
+					If tmr->OnTimer Then tmr->OnTimer(*tmr->Designer, *tmr)
 				End If
 				Return tmr->Enabled
 			End With
