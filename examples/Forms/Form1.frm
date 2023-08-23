@@ -20,11 +20,8 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub _MenuItem2_Click(ByRef Sender As MenuItem)
 		Declare Sub MenuItem2_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Click(ByRef Sender As Control)
 		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -43,7 +40,7 @@
 			.Menu = @MainMenu1
 			.FormStyle = FormStyles.fsNormal
 			'.WindowState = WindowStates.wsMaximized
-			.OnClick = @_Form_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
 			.SetBounds 0, 0, 350, 319
 		End With
 		' MainMenu1
@@ -65,7 +62,7 @@
 			.Name = "MenuItem2"
 			.Designer = @This
 			.Caption = "Open"
-			.OnClick = @_MenuItem2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @MenuItem2_Click)
 			.Parent = @MenuItem1
 		End With
 		' Panel1
@@ -85,23 +82,12 @@
 			.TabIndex = 1
 			.ControlIndex = 0
 			.SetBounds 100, 76, 144, 52
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Designer = @This
 			.Parent = @This
 		End With
 	End Constructor
 	
-	Private Sub Form1Type._Form_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._MenuItem2_Click(ByRef Sender As MenuItem)
-		(*Cast(Form1Type Ptr, Sender.Designer)).MenuItem2_Click(Sender)
-	End Sub
-	
-		Private Sub Form1Type._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
 	Dim Shared Form1 As Form1Type
 
 	#if _MAIN_FILE_ = __FILE__

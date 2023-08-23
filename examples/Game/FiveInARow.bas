@@ -51,9 +51,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 	
 	
 	Type frmWuziqiType Extends Form
-		Declare Static Sub cmdStart_Click_(ByRef Sender As Control)
 		Declare Sub cmdStart_Click(ByRef Sender As Control)
-		Declare Static Sub GameButton_Move_(ByRef Sender As Control)
 		Declare Sub GameButton_Move(ByRef Sender As Control)
 		Declare Sub InitPlayEnvironment()
 		Declare Sub CheckWhoWin(ByVal BlackOrWhite As Integer)
@@ -62,18 +60,12 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		Declare Sub DrawCompter(ByVal x As Integer, ByVal y As Integer)
 		
 		Declare Function WhoWin() As Integer
-		Declare Static Sub Form_Show_(ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
 		
-		Declare Static Sub Picture1_MouseDown_(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
 		Declare Sub Picture1_MouseDown(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
-		Declare Static Sub Picture1_MouseMove_(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
 		Declare Sub Picture1_MouseMove(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
-		Declare Static Sub Picture1_Click_(ByRef Sender As Picture)
 		Declare Sub Picture1_Click(ByRef Sender As Picture)
-		Declare Static Sub UpDown1_Changing_(ByRef Sender As UpDown,Value As Integer,Direction As Integer)
 		Declare Sub UpDown1_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
-		Declare Static Sub cmdChangBK_Click_(ByRef Sender As Control)
 		Declare Sub cmdChangBK_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -102,7 +94,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterScreen
 			'.Cursor = crWait
-			.OnShow = @Form_Show_
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Form_Show)
 			.Graphic.Icon.LoadFromResourceID(1, , 48, 48)
 			.BorderStyle = FormBorderStyle.FixedSingle
 			.SetBounds 0, 0, 811, 667
@@ -118,9 +110,9 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.ForeColor = 255
 			.SetBounds 6, 8, 625, 625
 			.Designer = @This
-			.OnMouseDown = @Picture1_MouseDown_
-			.OnMouseMove = @Picture1_MouseMove_
-			.OnClick = @Picture1_Click_
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Picture1_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Picture1_MouseMove)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Picture1_Click)
 			.Parent = @This
 		End With
 		
@@ -140,7 +132,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.TabIndex = 5
 			.SetBounds 13, 198, 135, 35
 			.Designer = @This
-			.OnClick = @cmdStart_Click_
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@cmdStart_Click)
 			.Parent = @GroupBox1
 		End With
 		' optComputer3
@@ -188,7 +180,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.TabIndex = 9
 			.SetBounds 120, 93, 17, 25
 			.Designer = @This
-			.OnChanging = @UpDown1_Changing_
+			.OnChanging = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@UpDown1_Changing)
 			.Parent = @GroupBox1
 		End With
 		' txtChessSize
@@ -285,7 +277,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.Caption = "..."
 			.SetBounds 120, 123, 27, 17
 			.Designer = @This
-			.OnClick = @cmdChangBK_Click_
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@cmdChangBK_Click)
 			.Parent = @GroupBox1
 		End With
 		
@@ -296,7 +288,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.Caption = "..."
 			.SetBounds 120, 141, 27, 17
 			.Designer = @This
-			.OnClick = @cmdChangBK_Click_
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@cmdChangBK_Click)
 			.Parent = @GroupBox1
 		End With
 		
@@ -309,41 +301,13 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		End With
 	End Constructor
 	
-	Private Sub frmWuziqiType.cmdChangBK_Click_(ByRef Sender As Control)
-		(*Cast(frmWuziqiType Ptr, Sender.Designer)).cmdChangBK_Click(Sender)
-	End Sub
-	
-	Private Sub frmWuziqiType.UpDown1_Changing_(ByRef Sender As UpDown,Value As Integer,Direction As Integer)
-		(*Cast(frmWuziqiType Ptr, Sender.Designer)).UpDown1_Changing(Sender, Value, Direction)
-	End Sub
-	
-	Private Sub frmWuziqiType.Picture1_Click_(ByRef Sender As Picture)
-		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Picture1_Click(Sender)
-	End Sub
-	
-	Private Sub frmWuziqiType.Picture1_MouseMove_(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Picture1_MouseMove(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmWuziqiType.Picture1_MouseDown_(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
-		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Picture1_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmWuziqiType.Form_Show_(ByRef Sender As Form)
-		(*Cast(frmWuziqiType Ptr, Sender.Designer)).Form_Show(Sender)
-	End Sub
-	
-	Private Sub frmWuziqiType.cmdStart_Click_(ByRef Sender As Control)
-		(*Cast(frmWuziqiType Ptr, Sender.Designer)).cmdStart_Click(Sender)
-	End Sub
-	
 	Dim Shared frmWuziqi As frmWuziqiType
 	
 	#ifndef _NOT_AUTORUN_FORMS_
 		#define _NOT_AUTORUN_FORMS_
-		
+		App.DarkMode = True
+		FfrmWuziqi.MainForm = True
 		frmWuziqi.Show
-		
 		App.Run
 	#endif
 '#End Region

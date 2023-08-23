@@ -17,35 +17,20 @@
 	Using My.Sys.Forms
 	/'test comment '/
 	Type Form1Type Extends Form
-		Declare Static Sub _cmdRowInsert_Click(ByRef Sender As Control)
 		Declare Sub cmdRowInsert_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdRowDele_Click(ByRef Sender As Control)
 		Declare Sub cmdRowDele_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdColInsert_Click(ByRef Sender As Control)
 		Declare Sub cmdColInsert_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdColDele_Click(ByRef Sender As Control)
 		Declare Sub cmdColDele_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdColInsertAf_Click(ByRef Sender As Control)
 		Declare Sub cmdColInsertAf_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdRowInsertAfter_Click(ByRef Sender As Control)
 		Declare Sub cmdRowInsertAfter_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdBigData_Click(ByRef Sender As Control)
 		Declare Sub cmdBigData_Click(ByRef Sender As Control)
-		Declare Static Sub _Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
 		Declare Sub Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
-		Declare Static Sub _Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 		Declare Sub Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
-		Declare Static Sub _Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 		Declare Sub Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
-		Declare Static Sub _cmdSaveToFile_Click(ByRef Sender As Control)
 		Declare Sub cmdSaveToFile_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdLoadFromFile_Click(ByRef Sender As Control)
 		Declare Sub cmdLoadFromFile_Click(ByRef Sender As Control)
-		Declare Static Sub _chkOwnerData_Click(ByRef Sender As CheckBox)
 		Declare Sub chkOwnerData_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _chkDarkMode_Click(ByRef Sender As CheckBox)
 		Declare Sub chkDarkMode_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
 		Declare Sub Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
 		Declare Constructor
 		
@@ -122,11 +107,11 @@
 			.Rows[3][5].Text = "Row4Col5 AllowEdit"
 			.Rows[3].Tag = @"3"
 			.SelectedRowIndex = 0
-			.OnGetDispInfo = @_Grid1_GetDispInfo
-			.OnCacheHint = @_Grid1_CacheHint
-			.OnCellEdited = @_Grid1_CellEdited
+			.OnGetDispInfo = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_GetDispInfo)
+			.OnCacheHint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_CacheHint)
+			.OnCellEdited = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_CellEdited)
 			.Designer = @This
-			.OnColumnClick = @_Grid1_ColumnClick
+			.OnColumnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_ColumnClick)
 			.Parent = @This
 		End With
 		' cmdRowInsert
@@ -136,7 +121,7 @@
 			.TabIndex = 0
 			.SetBounds 10, 4, 85, 20
 			.Designer = @This
-			.OnClick = @_cmdRowInsert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRowInsert_Click)
 			.Parent = @This
 		End With
 		' cmdColInsert
@@ -147,7 +132,7 @@
 			.ControlIndex = 1
 			.SetBounds 250, 4, 85, 20
 			.Designer = @This
-			.OnClick = @_cmdColInsert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdColInsert_Click)
 			.Parent = @This
 		End With
 		' cmdRowDele
@@ -158,7 +143,7 @@
 			.ControlIndex = 2
 			.SetBounds 180, 4, 65, 20
 			.Designer = @This
-			.OnClick = @_cmdRowDele_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRowDele_Click)
 			.Parent = @This
 		End With
 		' cmdColDele
@@ -169,7 +154,7 @@
 			.ControlIndex = 2
 			.SetBounds 420, 4, 65, 20
 			.Designer = @This
-			.OnClick = @_cmdColDele_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdColDele_Click)
 			.Parent = @This
 		End With
 		' Label1
@@ -191,7 +176,7 @@
 			.TabIndex = 7
 			.SetBounds 340, 4, 75, 20
 			.Designer = @This
-			.OnClick = @_cmdColInsertAf_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdColInsertAf_Click)
 			.Parent = @This
 		End With
 		' ="cmdRowInsertAfter
@@ -201,7 +186,7 @@
 			.TabIndex = 8
 			.SetBounds 100, 4, 75, 20
 			.Designer = @This
-			.OnClick = @_cmdRowInsertAfter_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRowInsertAfter_Click)
 			.Parent = @This
 		End With
 		' cmdBigData
@@ -211,7 +196,7 @@
 			.TabIndex = 9
 			.SetBounds 490, 0, 40, 20
 			.Designer = @This
-			.OnClick = @_cmdBigData_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBigData_Click)
 			.Parent = @This
 		End With
 		' cmdSaveToFile
@@ -221,7 +206,7 @@
 			.TabIndex = 10
 			.SetBounds 400, 27, 80, 20
 			.Designer = @This
-			.OnClick = @_cmdSaveToFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdSaveToFile_Click)
 			.Parent = @This
 		End With
 		' cmdLoadFromFile
@@ -232,7 +217,7 @@
 			.ControlIndex = 9
 			.SetBounds 480, 27, 70, 20
 			.Designer = @This
-			.OnClick = @_cmdLoadFromFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdLoadFromFile_Click)
 			.Parent = @This
 		End With
 		' chkOwnerData
@@ -243,7 +228,7 @@
 			.Caption = "OwnerData"
 			.SetBounds 10, 30, 70, 10
 			.Designer = @This
-			.OnClick = @_chkOwnerData_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkOwnerData_Click)
 			.Parent = @This
 		End With
 		' chkDarkMode
@@ -256,70 +241,10 @@
 			.Caption = "DarkMode"
 			.SetBounds 90, 30, 60, 10
 			.Designer = @This
-			.OnClick = @_chkDarkMode_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkDarkMode_Click)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub Form1Type._Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_ColumnClick(Sender, ColIndex)
-	End Sub
-	
-	Private Sub Form1Type._chkDarkMode_Click(ByRef Sender As CheckBox)
-		(*Cast(Form1Type Ptr, Sender.Designer)).chkDarkMode_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._chkOwnerData_Click(ByRef Sender As CheckBox)
-		(*Cast(Form1Type Ptr, Sender.Designer)).chkOwnerData_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdLoadFromFile_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdLoadFromFile_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdSaveToFile_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdSaveToFile_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_CellEdited(Sender, RowIndex, ColumnIndex, NewText)
-	End Sub
-	
-	Private Sub Form1Type._Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_CacheHint(Sender, iFrom, iTo)
-	End Sub
-	
-	Private Sub Form1Type._Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Grid1_GetDispInfo(Sender, NewText, RowIndex, ColumnIndex, iMask)
-	End Sub
-	
-	Private Sub Form1Type._cmdBigData_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdBigData_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdRowInsertAfter_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdRowInsertAfter_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdColInsertAf_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdColInsertAf_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdColDele_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdColDele_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdColInsert_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdColInsert_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdRowDele_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdRowDele_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdRowInsert_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdRowInsert_Click(Sender)
-	End Sub
 	
 	Dim Shared Form1 As Form1Type
 	

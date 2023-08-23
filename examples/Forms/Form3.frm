@@ -18,9 +18,7 @@
 	Using My.Sys.Forms
 	
 	Type Form3Type Extends Form
-		Declare Static Sub _Form_Click(ByRef Sender As Control)
 		Declare Sub Form_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -34,7 +32,7 @@
 			.Text = "Form3"
 			.FormStyle = FormStyles.fsNormal
 			.Designer = @This
-			.OnClick = @_Form_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
 			.SetBounds 0, 0, 350, 300
 		End With
 			' CommandButton1
@@ -45,18 +43,10 @@
 			.ControlIndex = 0
 			.SetBounds 110, 76, 144, 52
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub Form3Type._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(Form3Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
-	
-	Private Sub Form3Type._Form_Click(ByRef Sender As Control)
-		(*Cast(Form3Type Ptr, Sender.Designer)). Form_Click(Sender)
-	End Sub
 	
 	Dim Shared Form3 As Form3Type
 	#if _MAIN_FILE_ = __FILE__

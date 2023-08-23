@@ -18,7 +18,6 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -46,14 +45,10 @@
 			.TabIndex = 0
 			.SetBounds 80, 110, 140, 30
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @CommandButton1_Click)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub Form1Type._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
 	
 	Dim Shared Form1 As Form1Type
 	
