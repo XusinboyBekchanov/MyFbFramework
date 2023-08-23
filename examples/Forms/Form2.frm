@@ -18,9 +18,7 @@
 	Using My.Sys.Forms
 	
 	Type Form2Type Extends Form
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Click(ByRef Sender As Control)
 		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -34,7 +32,7 @@
 			.Text = "Form2"
 			.FormStyle = FormStyles.fsNormal
 			.Designer = @This
-			.OnClick = @_Form_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
 			.SetBounds 0, 0, 350, 300
 		End With
 		' CommandButton1
@@ -44,19 +42,11 @@
 			.TabIndex = 1
 			.ControlIndex = 0
 			.SetBounds 100, 76, 144, 52
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Designer = @This
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub Form2Type._Form_Click(ByRef Sender As Control)
-		(*Cast(Form2Type Ptr, Sender.Designer)).Form_Click(Sender)
-	End Sub
-	
-	Private Sub Form2Type._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(Form2Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
 	
 	Dim Shared Form2 As Form2Type
 	

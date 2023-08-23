@@ -146,45 +146,25 @@
 		"http://play.radiofoshan.com.cn/live/1400389414_B" _
 		}}
 		
-		Declare Static Sub _cboFileName_DblClick(ByRef Sender As Control)
 		Declare Sub cboFileName_DblClick(ByRef Sender As Control)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _cmdBtn_Click(ByRef Sender As Control)
 		Declare Sub cmdBtn_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _tbAudio_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbAudio_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _tbAudio_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbAudio_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _tbBalance_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbBalance_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _tbBalance_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbBalance_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _tbPosition_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbPosition_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Animate1_Message(ByRef Sender As Control, ByRef MSG As Message)
 		Declare Sub Animate1_Message(ByRef Sender As Control, ByRef MSG As Message)
-		Declare Static Sub _cboChanel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub cboChanel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _cmdBrowse_Click(ByRef Sender As Control)
 		Declare Sub cmdBrowse_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdFull_Click(ByRef Sender As Control)
 		Declare Sub cmdFull_Click(ByRef Sender As Control)
-		Declare Static Sub _chkLoop_Click(ByRef Sender As CheckBox)
 		Declare Sub chkLoop_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _cmdRate_Click(ByRef Sender As Control)
 		Declare Sub cmdRate_Click(ByRef Sender As Control)
-		Declare Static Sub _chkRatio_Click(ByRef Sender As CheckBox)
 		Declare Sub chkRatio_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
@@ -212,9 +192,9 @@
 				.Caption = "VisualFBEditor Animate Player(X32)"
 			#endif
 			.Designer = @This
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
-			.OnResize = @_Form_Resize
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Form_Close)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Form_Resize)
 			.StartPosition = FormStartPosition.CenterScreen
 			.BackColor = 8421376
 			.SetBounds 0, 0, 800, 480
@@ -234,7 +214,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 0, 25, 785, 375
-			.OnMessage = @_Animate1_Message
+			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Animate1_Message)
 			.SendToBack
 			.Designer = @This
 			.Parent = @This
@@ -271,7 +251,7 @@
 			.Caption = "Open"
 			.SetBounds 8, 2, 50, 20
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdPlay
@@ -283,7 +263,7 @@
 			.Enabled = False
 			.SetBounds 59, 2, 50, 20
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdClose
@@ -296,7 +276,7 @@
 			.Enabled = False
 			.SetBounds 110, 2, 50, 20
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdFull(0)
@@ -308,7 +288,7 @@
 			.Enabled = False
 			.SetBounds 170, 2, 20, 20
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cboChanel
@@ -320,7 +300,7 @@
 			.DropDownCount = 28
 			.SetBounds 250, 2, 160, 19
 			.Designer = @This
-			.OnSelected = @_cboChanel_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cboChanel_Selected)
 			.Parent = @PanelControl
 		End With
 		' cboFileName
@@ -339,7 +319,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 410, 2, 339, 20
 			.Designer = @This
-			.OnDblClick = @_cboFileName_DblClick
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cboFileName_DblClick)
 			.Parent = @PanelControl
 		End With
 		
@@ -374,8 +354,8 @@
 			.PageSize = 10
 			.SetBounds 0, 16, 110, 30
 			.Designer = @This
-			.OnChange = @_tbAudio_Change
-			.OnMouseUp = @_tbAudio_MouseUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_Change)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_MouseUp)
 			.Parent = @PanelPosition
 		End With
 		' lblBalance
@@ -406,8 +386,8 @@
 			.PageSize = 10
 			.SetBounds 110, 16, 110, 30
 			.Designer = @This
-			.OnChange = @_tbAudio_Change
-			.OnMouseUp = @_tbAudio_MouseUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_Change)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_MouseUp)
 			.Parent = @PanelPosition
 		End With
 		' lblPosition
@@ -454,9 +434,9 @@
 			.Anchor.Top = AnchorStyle.asNone
 			.SetBounds 270, 16, 488, 20
 			.Designer = @This
-			.OnChange = @_tbPosition_Change
-			.OnMouseDown = @_tbPosition_MouseDown
-			.OnMouseUp = @_tbPosition_MouseUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbPosition_Change)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbPosition_MouseDown)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbPosition_MouseUp)
 			.Parent = @PanelPosition
 		End With
 		' cmdRate(0)
@@ -466,7 +446,7 @@
 			.TabIndex = 20
 			.SetBounds 250, 18, 22, 16
 			.Designer = @This
-			.OnClick = @_cmdRate_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRate_Click)
 			.Parent = @PanelPosition
 		End With
 		
@@ -478,7 +458,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 760, 18, 22, 16
 			.Designer = @This
-			.OnClick = @_cmdRate_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRate_Click)
 			.Parent = @PanelPosition
 		End With
 		' OpenFileDialog1
@@ -494,7 +474,7 @@
 			.Interval = 20
 			.SetBounds 20, 0, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @TimerComponent1_Timer)
 			.Parent = @This
 		End With
 		' ImageList1
@@ -514,7 +494,7 @@
 			.Enabled = False
 			.SetBounds 460, 1, 40, 16
 			.Designer = @This
-			.OnClick = @_chkLoop_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkLoop_Click)
 			.Parent = @PanelPosition
 		End With
 		' cmdBrowse
@@ -528,7 +508,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 750, 2, 29, 20
 			.Designer = @This
-			.OnClick = @_cmdBrowse_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBrowse_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdFull(1)
@@ -541,7 +521,7 @@
 			.Caption = "1X"
 			.SetBounds 190, 2, 20, 20
 			.Designer = @This
-			.OnClick = @_cmdFull_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdFull_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdFull(2)
@@ -551,7 +531,7 @@
 			.TabIndex = 22
 			.ControlIndex = 4
 			.Enabled = False
-			.OnClick = @_cmdFull_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdFull_Click)
 			.Caption = "2X"
 			.SetBounds 210, 2, 20, 20
 			.Designer = @This
@@ -567,7 +547,7 @@
 			.Caption = "3X"
 			.SetBounds 230, 2, 20, 20
 			.Designer = @This
-			.OnClick = @_cmdFull_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdFull_Click)
 			.Parent = @PanelControl
 		End With
 		
@@ -581,82 +561,10 @@
 			.Enabled = False
 			.SetBounds 520, 1, 80, 16
 			.Designer = @This
-			.OnClick = @_chkRatio_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkRatio_Click)
 			.Parent = @PanelPosition
 		End With
 	End Constructor
-	
-	Private Sub frmAnimateType._chkRatio_Click(ByRef Sender As CheckBox)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).chkRatio_Click(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._chkLoop_Click(ByRef Sender As CheckBox)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).chkLoop_Click(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._cmdRate_Click(ByRef Sender As Control)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).cmdRate_Click(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._cmdFull_Click(ByRef Sender As Control)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).cmdFull_Click(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._cmdBrowse_Click(ByRef Sender As Control)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).cmdBrowse_Click(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._cboChanel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).cboChanel_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmAnimateType._Animate1_Message(ByRef Sender As Control, ByRef msg As Message)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).Animate1_Message(Sender, msg)
-	End Sub
-	
-	Private Sub frmAnimateType._tbPosition_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).tbPosition_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmAnimateType._tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).tbPosition_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmAnimateType._tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).tbPosition_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmAnimateType._tbAudio_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).tbAudio_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmAnimateType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._tbAudio_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).tbAudio_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmAnimateType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub frmAnimateType._cmdBtn_Click(ByRef Sender As Control)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).cmdBtn_Click(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmAnimateType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmAnimateType._cboFileName_DblClick(ByRef Sender As Control)
-		(*Cast(frmAnimateType Ptr, Sender.Designer)).cboFileName_DblClick(Sender)
-	End Sub
 	
 	Dim Shared frmAnimate As frmAnimateType
 	

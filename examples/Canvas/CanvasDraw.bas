@@ -26,63 +26,34 @@
 	Dim Shared As Integer cmdSelection
 	Dim Shared As Point Ms                  ' 记录鼠标按下时的坐标
 	Type Form1Type Extends Form
-		Declare Static Sub _cmdDrawButterfly_Click(ByRef Sender As Control)
 		Declare Sub cmdDrawButterfly_Click(ByRef Sender As Control)
-		Declare Static Sub _PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _cmdGDIDraw_Click(ByRef Sender As Control)
 		Declare Sub cmdGDIDraw_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdGDICls_Click(ByRef Sender As Control)
 		Declare Sub cmdGDICls_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton2_Click(ByRef Sender As Control)
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdGDIDraw1_Click(ByRef Sender As Control)
 		Declare Sub cmdGDIDraw1_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Click(ByRef Sender As Control)
 		Declare Sub Form_Click(ByRef Sender As Control)
-		Declare Static Sub _PictureBK_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub PictureBK_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _Panel1_Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Panel1_Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Panel1_Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Panel1_Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Panel1_Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Panel1_Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Panel1_Picture_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Panel1_Picture_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Panel1_Picture_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Panel1_Picture_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _Panel1_Picture_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Panel1_Picture_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Panel1_Picture_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Panel1_Picture_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Picture2_Picture_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Picture2_Picture_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _Picture2_Picture_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Picture2_Picture_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Picture2_Picture_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Picture2_Picture_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Picture2_Picture_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Picture2_Picture_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Picture2_Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Picture2_Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _Picture2_Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Picture2_Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Picture2_Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Picture2_Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Picture2_Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Picture2_Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Form_Show(ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub _PictureBK_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub PictureBK_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _PictureBK_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub PictureBK_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _PictureBK_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub PictureBK_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -101,10 +72,10 @@
 			.Name = "Form1"
 			.Text = "Form1"
 			.Designer = @This
-			.OnResize = @_Form_Resize
-			.OnClick = @_Form_Click
-			.OnShow = @_Form_Show
-			.OnCreate = @_Form_Create
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Resize
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create
 			.SetBounds 0, 0, 640, 520
 		End With
 		' cmdDrawButterfly
@@ -118,7 +89,7 @@
 			.Anchor.Right = AnchorStyle.asNone
 			.SetBounds 23, 360, 71, 30
 			.Designer = @This
-			.OnClick = @_cmdDrawButterfly_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdDrawButterfly_Click
 			.Parent = @This
 		End With
 		' PictureBK
@@ -138,11 +109,11 @@
 			'.Graphic.Bitmap.LoadFromFile(ExePath & "/Wheel.png")
 			.SetBounds 2, 56, 570, 300
 			.Designer = @This
-			.OnPaint = @_PictureBK_Paint
-			.OnResize = @_PictureBK_Resize
-			.OnMouseMove = @_PictureBK_MouseMove
-			.OnMouseDown = @_PictureBK_MouseDown
-			.OnMouseUp = @_PictureBK_MouseUp
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Paint
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Resize
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseMove
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseDown
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseUp
 			.Parent = @This
 		End With
 		' Text1(0)
@@ -245,7 +216,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.SetBounds 96, 361, 79, 30
 			.Designer = @This
-			.OnClick = @_cmdGDIDraw_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdGDIDraw_Click)
 			.Parent = @This
 		End With
 		' cmdGDICls
@@ -258,7 +229,7 @@
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 180, 362, 79, 30
 			.Designer = @This
-			.OnClick = @_cmdGDICls_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdGDICls_Click)
 			.Parent = @This
 		End With
 		' Panel1_Picture(0)
@@ -274,10 +245,10 @@
 			.Anchor.Left = AnchorStyle.asNone
 			.SetBounds 377, 114, 35, 35
 			.Designer = @This
-			.OnPaint = @_Panel1_Picture_Paint
-			.OnResize = @_Panel1_Picture_Resize
-			.OnMouseDown = @_Panel1_Picture_MouseDown
-			.OnMouseMove = @_Panel1_Picture_MouseMove
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Paint)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Resize)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseMove)
 			.Parent = @PictureBK
 		End With
 		' Panel1_Picture(1)
@@ -290,10 +261,10 @@
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 368, 164, 35, 35
-			.OnPaint = @_Panel1_Picture_Paint
-			.OnResize = @_Panel1_Picture_Resize
-			.OnMouseDown = @_Panel1_Picture_MouseDown
-			.OnMouseMove = @_Panel1_Picture_MouseMove
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Paint)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Resize)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseMove)
 			.Designer = @This
 			.Parent = @PictureBK
 		End With
@@ -311,10 +282,10 @@
 			.Anchor.Bottom = AnchorStyle.asNone
 			.SetBounds 367, 34, 35, 35
 			.Designer = @This
-			.OnResize = @_Picture2_Picture_Resize
-			.OnPaint = @_Picture2_Picture_Paint
-			.OnMouseMove = @_Picture2_Picture_MouseMove
-			.OnMouseDown = @_Picture2_Picture_MouseDown
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Paint)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseMove)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseDown)
 			.Parent = @PictureBK
 		End With
 		' Picture2_Picture(1)
@@ -329,10 +300,10 @@
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asNone
 			.SetBounds 227, 74, 35, 35
-			.OnResize = @_Picture2_Picture_Resize
-			.OnPaint = @_Picture2_Picture_Paint
-			.OnMouseMove = @_Picture2_Picture_MouseMove
-			.OnMouseDown = @_Picture2_Picture_MouseDown
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Paint)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseMove)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseDown)
 			.Designer = @This
 			.Parent = @PictureBK
 		End With
@@ -350,9 +321,9 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 54, 45, 45
 			.Designer = @This
-			.OnMouseDown = @_Panel1_Form_MouseDown
-			.OnMouseMove = @_Panel1_Form_MouseMove
-			.OnPaint = @_Panel1_Form_Paint
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseMove)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_Paint)
 			.Parent = @This
 		End With
 		' Picture2_Form(0)
@@ -368,10 +339,10 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 104, 45, 45
 			.Designer = @This
-			.OnResize = @_Picture2_Form_Resize
-			.OnPaint = @_Picture2_Form_Paint
-			.OnMouseDown = @_Picture2_Form_MouseDown
-			.OnMouseMove = @_Picture2_Form_MouseMove
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Paint)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseMove)
 			.Parent = @This
 		End With
 		' Picture2_Form(1)
@@ -384,10 +355,10 @@
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 204, 45, 45
-			.OnResize = @_Picture2_Form_Resize
-			.OnPaint = @_Picture2_Form_Paint
-			.OnMouseDown = @_Picture2_Form_MouseDown
-			.OnMouseMove = @_Picture2_Form_MouseMove
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Paint)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseMove)
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -401,9 +372,9 @@
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 154, 45, 45
-			.OnMouseDown = @_Panel1_Form_MouseDown
-			.OnMouseMove = @_Panel1_Form_MouseMove
-			.OnPaint = @_Panel1_Form_Paint
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseMove)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_Paint)
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -420,117 +391,6 @@
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub Form1Type._Form_Create(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub Form1Type._PictureBK_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).PictureBK_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._PictureBK_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).PictureBK_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._PictureBK_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).PictureBK_MouseMove(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Form_Show(ByRef Sender As Form)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Show(Sender)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Form_MouseMove(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Form_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Form_Paint(Sender, Canvas)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Form_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Picture_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Picture_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Picture_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Picture_MouseMove(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Picture_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Picture_Paint(Sender, Canvas)
-	End Sub
-	
-	Private Sub Form1Type._Picture2_Picture_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Picture2_Picture_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub Form1Type._Panel1_Picture_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Panel1_Picture_MouseMove(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Panel1_Picture_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Panel1_Picture_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Panel1_Picture_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Panel1_Picture_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub Form1Type._Panel1_Picture_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Panel1_Picture_Paint(Sender, Canvas)
-	End Sub
-	
-	Private Sub Form1Type._Panel1_Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Panel1_Form_Paint(Sender, Canvas)
-	End Sub
-	
-	Private Sub Form1Type._Panel1_Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Panel1_Form_MouseMove(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._Panel1_Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Panel1_Form_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub Form1Type._PictureBK_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).PictureBK_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub Form1Type._PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(Form1Type Ptr, Sender.Designer)).PictureBK_Paint(Sender, Canvas)
-	End Sub
-	Private Sub Form1Type._Form_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._CommandButton2_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton2_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdGDICls_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdGDICls_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._cmdGDIDraw_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdGDIDraw_Click(Sender)
-	End Sub
-	
-	Private Sub Form1Type._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub Form1Type._cmdDrawButterfly_Click(ByRef Sender As Control)
-		(*Cast(Form1Type Ptr, Sender.Designer)).cmdDrawButterfly_Click(Sender)
-	End Sub
 	
 	Dim Shared Form1 As Form1Type
 	
