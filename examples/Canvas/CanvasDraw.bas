@@ -72,10 +72,10 @@
 			.Name = "Form1"
 			.Text = "Form1"
 			.Designer = @This
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Resize
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click
-			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show
-			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Resize)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show)
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.SetBounds 0, 0, 640, 520
 		End With
 		' cmdDrawButterfly
@@ -89,7 +89,7 @@
 			.Anchor.Right = AnchorStyle.asNone
 			.SetBounds 23, 360, 71, 30
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdDrawButterfly_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdDrawButterfly_Click)
 			.Parent = @This
 		End With
 		' PictureBK
@@ -109,11 +109,11 @@
 			'.Graphic.Bitmap.LoadFromFile(ExePath & "/Wheel.png")
 			.SetBounds 2, 56, 570, 300
 			.Designer = @This
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Paint
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Resize
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseMove
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseDown
-			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseUp
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Paint)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Resize)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseMove)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseDown)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseUp)
 			.Parent = @This
 		End With
 		' Text1(0)
