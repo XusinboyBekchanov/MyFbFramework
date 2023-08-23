@@ -110,7 +110,7 @@
 			.Designer = @This
 			.Caption = !"&New\tCtrl+N"
 			.ImageKey = "New"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileOpen
@@ -119,7 +119,7 @@
 			.Designer = @This
 			.Caption = !"&Open\tCtrl+O"
 			.ImageKey = "Open"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar1
@@ -135,7 +135,7 @@
 			.Designer = @This
 			.Caption = !"Save\tCtrl+S"
 			.ImageKey = "Save"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileSaveAs
@@ -144,7 +144,7 @@
 			.Designer = @This
 			.Caption = "Save &As..."
 			.ImageKey = "SaveAs"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileSaveAll
@@ -153,7 +153,7 @@
 			.Designer = @This
 			.Caption = "Save A&ll"
 			.ImageKey = "SaveAll"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar2
@@ -168,7 +168,7 @@
 			.Name = "mnuFileProperties"
 			.Designer = @This
 			.Caption = "Propert&ies"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar3
@@ -183,7 +183,7 @@
 			.Name = "mnuFilePrintSetup"
 			.Designer = @This
 			.Caption = "Print Set&up..."
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFilePrintPreview
@@ -192,7 +192,7 @@
 			.Designer = @This
 			.Caption = "Print Pre&view"
 			.MenuIndex = 11
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFilePrint
@@ -200,7 +200,7 @@
 			.Name = "mnuFilePrint"
 			.Designer = @This
 			.Caption = !"&Print...\tCtrl+P"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar4
@@ -216,7 +216,7 @@
 			.Designer = @This
 			.Caption = "E&xit"
 			.ImageKey = "Exit"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuEdit
@@ -231,7 +231,7 @@
 			.Name = "mnuRedo"
 			.Designer = @This
 			.Caption = "&Redo"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuEdit_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditUndo
@@ -239,7 +239,7 @@
 			.Name = "mnuEditUndo"
 			.Designer = @This
 			.Caption = !"&Undo\tCtrl+Z"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuEdit_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditBar1
@@ -254,7 +254,7 @@
 			.Designer = @This
 			.Caption = !"Cu&t\tCtrl+X"
 			.ImageKey = "Cut"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuEdit_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuEdit_Click)
 			.Parent =  @mnuEdit
 		End With
 		' mnuEditCopy
@@ -263,7 +263,7 @@
 			.Designer = @This
 			.Caption = !"&Copy\tCtrl+C"
 			.ImageKey = "Copy"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuEdit_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditPaste
@@ -272,7 +272,7 @@
 			.Designer = @This
 			.Caption = !"&Paste\tCtrl+V"
 			.ImageKey = "Paste"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuEdit_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditDelete
@@ -280,7 +280,7 @@
 			.Name = "mnuEditDelete"
 			.Designer = @This
 			.Caption = !"Delete\tDel"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuEdit_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditBar2
@@ -295,7 +295,7 @@
 			.Name = "mnuEditSelectAll"
 			.Designer = @This
 			.Caption = "Select &All"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuEdit_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuView
@@ -309,7 +309,7 @@
 			.Name = "mnuViewToolbar"
 			.Caption = "&Toolbar"
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuView_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuView_Click)
 			.Checked = True
 			.Parent = @mnuView
 		End With
@@ -317,7 +317,7 @@
 			.Name = "mnuViewStatusBar"
 			.Caption = "Status &Bar"
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuView_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuView_Click)
 			.Checked = True
 			.Parent = @mnuView
 		End With
@@ -333,7 +333,7 @@
 			.Designer = @This
 			.Caption = "Dark Mode"
 			.Checked = False
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuView_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuView_Click)
 			.Parent = @mnuView
 		End With
 		
@@ -348,28 +348,28 @@
 			.Name = "mnuWindowTileHorizontal"
 			.Caption = "Tile &Horizontal"
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		With mnuWindowTileVertical
 			.Name = "mnuWindowTileVertical"
 			.Caption = "Tile &Vertical"
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		With mnuWindowCascade
 			.Name = "mnuWindowCascade"
 			.Caption = "&Cascade"
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		With mnuWindowArrangeIcons
 			.Name= "mnuWindowArrangeIcons"
 			.Caption = "&Arrange Icons"
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		' MenuItem3
@@ -384,7 +384,7 @@
 			.Name = "mnuWindowClose"
 			.Designer = @This
 			.Caption = "Close"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		' mnuWindowCloseAll
@@ -392,7 +392,7 @@
 			.Name = "mnuWindowCloseAll"
 			.Designer = @This
 			.Caption = "Close All"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		' mnuHelp
@@ -408,7 +408,7 @@
 			.Designer = @This
 			.Caption = "About"
 			.ImageKey = "About"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuHelp_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object), @mnuHelp_Click)
 			.Parent = @mnuHelp
 		End With
 		' StatusBar1
@@ -430,7 +430,7 @@
 			.DisabledImagesList = @ImageList1
 			.SetBounds 0, 0, 334, 26
 			.Designer = @This
-			.OnButtonClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @ToolBar1_ButtonClick)
+			.OnButtonClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton), @ToolBar1_ButtonClick)
 			.Parent = @This
 		End With
 		' tbFileNew
@@ -595,7 +595,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		mnuWindows(i)->Name = "mnuWindow" & i - 1
 		mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
 		mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
-		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 		mnuWindow.Add mnuWindows(i)
 	Next
 	
@@ -605,7 +605,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		mnuWindows(i) = New MenuItem
 		mnuWindows(i)->Name = "mnuWindowMore"
 		mnuWindows(i)->Caption = "More Windows..."
-		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @mnuWindow_Click)
+		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 		mnuWindow.Add mnuWindows(i)
 	End If
 End Sub
