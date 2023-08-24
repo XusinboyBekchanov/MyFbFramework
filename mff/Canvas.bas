@@ -153,7 +153,10 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.DrawWidth As Integer
-		If GdipToken = NULL Then Return Pen.Size Else Return FDrawWidth
+		#ifdef __USE_WINAPI__
+			If GdipToken <> NULL Then Return FDrawWidth
+		#endif
+		Return Pen.Size
 	End Property
 	
 	Private Property Canvas.DrawWidth(Value As Integer)
@@ -172,7 +175,10 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.DrawColor As Integer
-		If GdipToken = NULL Then Return Pen.Color Else Return FDrawColor
+		#ifdef __USE_WINAPI__
+			If GdipToken <> NULL Then Return FDrawColor
+		#endif
+		Return Pen.Color
 	End Property
 	
 	Private Property Canvas.DrawColor(Value As Integer)
@@ -191,7 +197,10 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.DrawStyle As PenStyle
-		If GdipToken = NULL Then Return Pen.Style Else Return FDrawStyle
+		#ifdef __USE_WINAPI__
+			If GdipToken <> NULL Then Return FDrawStyle
+		#endif
+		Return Pen.Style
 	End Property
 	'https://learn.microsoft.com/zh-cn/windows/win32/api/gdipluspen/nf-gdipluspen-pen-setdashstyle
 	Private Property Canvas.DrawStyle(Value As PenStyle)
@@ -544,18 +553,26 @@ Namespace My.Sys.Drawing
 				If FillColorBk = -1 Then FillColorBk = FBackColor
 				Dim As Integer OldFillColor = Brush.Color
 				Brush.Color = FillColorBk
-				If GdipToken = NULL Then
+				#ifdef __USE_WINAPI__
+					If GdipToken = NULL Then
+						Rectangle(x, y, x1, y1)
+					Else
+						GdipFillRectangle(GdipGraphics, GdipBrush, x, y, x1, y1)
+					End If
+				#else
 					Rectangle(x, y, x1, y1)
-				Else
-					GdipFillRectangle(GdipGraphics, GdipBrush, x, y, x1, y1)
-				End If
+				#endif
 				Brush.Color = OldFillColor
 			Else
-				If GdipToken = NULL Then
+				#ifdef __USE_WINAPI__
+					If GdipToken = NULL Then
+						Rectangle(x, y, x1, y1)
+					Else
+						GdipDrawRectangle GdipGraphics, GdipPen, x, y, x1, y1
+					End If
+				#else
 					Rectangle(x, y, x1, y1)
-				Else
-					GdipDrawRectangle GdipGraphics, GdipPen, x, y, x1, y1
-				End If
+				#endif
 			End If
 		Else
 			Dim As Integer OldPenColor
@@ -1339,7 +1356,9 @@ Namespace My.Sys.Drawing
 	Private Constructor Canvas
 		Clip = False
 		WLet(FClassName, "Canvas")
-		GdipToken = NULL
+		#ifdef __USE_WINAPI__
+			GdipToken = NULL
+		#endif
 		Font.Parent = @This
 		Font.OnCreate = @Font_Create
 		Pen.Parent = @This
