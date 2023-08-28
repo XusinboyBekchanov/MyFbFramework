@@ -60,8 +60,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub HotKey.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_BUTTON_PRESS
 				Message.Result = True
 				Return
@@ -96,7 +96,11 @@ Namespace My.Sys.Forms
 					If bMeta Then KeyName = "Meta + " & KeyName
 					If bSuper Then KeyName = "Super + " & KeyName
 					If bHyper Then KeyName = "Hyper + " & KeyName
-					gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(KeyName))
+					#ifdef __USE_GTK4__
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(KeyName), -1)
+					#else
+						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(KeyName))
+					#endif
 					gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
 					If OnChange Then OnChange(*Designer, This)
 				Case Else
@@ -115,8 +119,13 @@ Namespace My.Sys.Forms
 '						If bMeta Then KeyName = "Meta + " & KeyName
 '						If bSuper Then KeyName = "Super + " & KeyName
 '						If bHyper Then KeyName = "Hyper + " & KeyName
-						If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
-							gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(KeyName))
+						#ifdef __USE_GTK4__
+							If WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))) <> KeyName Then
+								gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(KeyName), -1)
+						#else
+							If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
+								gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(KeyName))
+						#endif
 							gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
 							If OnChange Then OnChange(*Designer, This)
 						End If
@@ -140,8 +149,13 @@ Namespace My.Sys.Forms
 					End Select
 					If Not bKeyPressed Then
 						KeyName = !"\0"
-						If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
-							gtk_entry_set_text(GTK_ENTRY(widget), KeyName)
+						#ifdef __USE_GTK4__
+							If WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))) <> KeyName Then
+								gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), KeyName, -1)
+						#else
+							If WStr(*gtk_entry_get_text(GTK_ENTRY(widget))) <> KeyName Then
+								gtk_entry_set_text(GTK_ENTRY(widget), KeyName)
+						#endif
 							gtk_editable_set_position(GTK_EDITABLE(widget), Len(KeyName))
 							If OnChange Then OnChange(*Designer, This)
 						End If
@@ -162,7 +176,11 @@ Namespace My.Sys.Forms
 	
 	Private Property HotKey.Text ByRef As WString
 		#ifdef __USE_GTK__
-			FText = Replace(WStr(*gtk_entry_get_text(GTK_ENTRY(widget))), " ", "")
+			#ifdef __USE_GTK4__
+				FText = Replace(WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))), " ", "")
+			#else
+				FText = Replace(WStr(*gtk_entry_get_text(GTK_ENTRY(widget))), " ", "")
+			#endif
 		#else
 			Dim wHotKey As WORD
 			wHotKey = SendMessage(Handle, HKM_GETHOTKEY, 0, 0)
@@ -184,9 +202,17 @@ Namespace My.Sys.Forms
 			wHotKey = IIf(InStr(Value, "Ctrl") > 0, "Ctrl + ", "") & IIf(InStr(Value, "Shift") > 0, "Shift + ", "") & IIf(InStr(Value, "Alt") > 0, "Alt + ", "") & _
 			IIf(InStr(Value, "Meta") > 0, "Meta + ", "") & IIf(InStr(Value, "Super") > 0, "Super + ", "") & IIf(InStr(Value, "Hyper") > 0, "Hyper + ", "") & UCase(sKey)
 			If wHotKey = "" Then
-				gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
+				#ifdef __USE_GTK4__
+					gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), !"\0", -1)
+				#else
+					gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
+				#endif
 			Else
-				gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(wHotKey))
+				#ifdef __USE_GTK4__
+					gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(wHotKey), -1)
+				#else
+					gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(wHotKey))
+				#endif
 			End If
 		#else
 			Dim sKey As String = Value

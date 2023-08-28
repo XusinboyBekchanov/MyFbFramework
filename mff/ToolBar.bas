@@ -546,7 +546,13 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				#ifndef __FB_WIN32__
-					If GTK_IS_WIDGET(Widget) Then gtk_widget_destroy(Widget)
+					If GTK_IS_WIDGET(Widget) Then 
+						#ifdef __USE_GTK4__
+							g_object_unref(Widget)
+						#else
+							gtk_widget_destroy(Widget)
+						#endif
+					End If
 				#endif
 			#endif
 		#else
@@ -599,7 +605,13 @@ Namespace My.Sys.Forms
 		With *PButton
 			.Style          = FStyle
 			#ifdef __USE_GTK__
-				If GTK_IS_WIDGET(.Widget) Then gtk_widget_destroy(.Widget)
+				If GTK_IS_WIDGET(.Widget) Then 
+					#ifdef __USE_GTK4__
+						g_object_unref(widget)
+					#else
+						gtk_widget_destroy(.Widget)
+					#endif
+				End If
 				Select Case FStyle
 				Case tbsSeparator
 					.Widget = GTK_WIDGET(gtk_separator_tool_item_new())

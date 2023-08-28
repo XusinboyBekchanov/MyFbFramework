@@ -1181,7 +1181,13 @@ Namespace My.Sys.Forms
 		If SubMenu Then _Delete(SubMenu)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
-				If GTK_IS_WIDGET(Widget) Then gtk_widget_destroy(Widget)
+				If GTK_IS_WIDGET(Widget) Then 
+					#ifdef __USE_GTK4__
+						g_object_unref(Widget)
+					#else
+						gtk_widget_destroy(Widget)
+					#endif
+				End If
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -1944,7 +1950,7 @@ Namespace My.Sys.Forms
 			If msg <> 0 Then
 				'gtk_widget_show(widget)
 				#ifdef __USE_GTK4__
-					gtk_menu_popup_at_pointer(GTK_MENU(widget), msg.Event)
+					'gtk_menu_popup_at_pointer(GTK_MENU(widget), msg.Event)
 				#else
 					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, msg->Event->button.button, msg->Event->button.time)
 				#endif

@@ -377,7 +377,11 @@ Namespace My.Sys.Forms
 	Private Destructor Picture
 		#ifdef __USE_GTK__
 			If GTK_IS_WIDGET(ImageWidget) Then
-				gtk_widget_destroy(ImageWidget)
+				#ifdef __USE_GTK4__
+					g_object_unref(widget)
+				#else
+					gtk_widget_destroy(ImageWidget)
+				#endif
 			End If
 		#endif
 	End Destructor

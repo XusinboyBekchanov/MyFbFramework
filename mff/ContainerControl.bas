@@ -59,7 +59,11 @@ Namespace My.Sys.Forms
 					box = widget
 				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
 					fixedwidget = gtk_fixed_new()
-					gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), fixedwidget)
+					#ifdef __USE_GTK4__
+						gtk_container_add(GTK_container(widget), fixedwidget)
+					#else
+						gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), fixedwidget)
+					#endif
 				Else
 					'box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
 					'gtk_container_add(GTK_CONTAINER(widget), box)

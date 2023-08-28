@@ -518,37 +518,65 @@ Namespace My.Sys.ComponentModel
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
 				If GTK_IS_WIDGET(widget) Then
-					#ifdef __USE_GTK3__
-						gtk_widget_destroy(widget)
+					#ifdef __USE_GTK4__
+						g_object_unref(widget)
 					#else
-						If GTK_IS_MENU_SHELL(widget) = 0 Then
+						#ifdef __USE_GTK3__
 							gtk_widget_destroy(widget)
-						End If
+						#else
+							If GTK_IS_MENU_SHELL(widget) = 0 Then
+								gtk_widget_destroy(widget)
+							End If
+						#endif
 					#endif
 					widget = 0
 				End If
 				If GTK_IS_WIDGET(overlaywidget) Then
-					gtk_widget_destroy(overlaywidget)
+					#ifdef __USE_GTK4__
+						g_object_unref(overlaywidget)
+					#else
+						gtk_widget_destroy(overlaywidget)
+					#endif
 					overlaywidget = 0
 				End If
 				If GTK_IS_WIDGET(scrolledwidget) Then
-					gtk_widget_destroy(scrolledwidget)
+					#ifdef __USE_GTK4__
+						g_object_unref(scrolledwidget)
+					#else
+						gtk_widget_destroy(scrolledwidget)
+					#endif
 					scrolledwidget = 0
 				End If
 				If GTK_IS_WIDGET(eventboxwidget) Then
-					gtk_widget_destroy(eventboxwidget)
+					#ifdef __USE_GTK4__
+						g_object_unref(eventboxwidget)
+					#else
+						gtk_widget_destroy(eventboxwidget)
+					#endif
 					eventboxwidget = 0
 				End If
 				If GTK_IS_WIDGET(fixedwidget) Then
-					gtk_widget_destroy(fixedwidget)
+					#ifdef __USE_GTK4__
+						g_object_unref(fixedwidget)
+					#else
+						gtk_widget_destroy(fixedwidget)
+					#endif
 					fixedwidget = 0
 				End If
 				If GTK_IS_WIDGET(layoutwidget) Then
-					gtk_widget_destroy(layoutwidget)
+					#ifdef __USE_GTK4__
+						g_object_unref(layoutwidget)
+					#else
+						gtk_widget_destroy(layoutwidget)
+					#endif
 					layoutwidget = 0
 				End If
 				If GTK_IS_WIDGET(box) Then
-					gtk_widget_destroy(box)
+					#ifdef __USE_GTK4__
+						g_object_unref(box)
+					#else
+						gtk_widget_destroy(box)
+					#endif
 					box = 0
 				End If
 			#endif

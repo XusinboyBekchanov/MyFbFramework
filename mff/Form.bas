@@ -597,10 +597,16 @@ Namespace My.Sys.Forms
 	Property Form.WindowState As Integer
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
-				If gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_ICONIFIED = GDK_WINDOW_STATE_ICONIFIED Then
-					FWindowState = WindowStates.wsMinimized
-				ElseIf gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_MAXIMIZED = GDK_WINDOW_STATE_MAXIMIZED Then
+				#ifdef __USE_GTK4__ 
+					If gtk_window_is_maximized(GTK_WINDOW(widget)) Then
+				#else
+					If gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_MAXIMIZED = GDK_WINDOW_STATE_MAXIMIZED Then
+				#endif
 					FWindowState = WindowStates.wsMaximized
+				#ifndef __USE_GTK4__
+					ElseIf gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_ICONIFIED = GDK_WINDOW_STATE_ICONIFIED Then
+						FWindowState = WindowStates.wsMinimized
+				#endif
 				Else
 					FWindowState = WindowStates.wsNormal
 				End If
@@ -1751,7 +1757,13 @@ Namespace My.Sys.Forms
 			Case 0
 			Case 1
 				If MainForm Then
-					If GTK_IS_WIDGET(widget) Then gtk_widget_destroy(widget)
+					If GTK_IS_WIDGET(widget) Then 
+						#ifdef __USE_GTK4__
+							g_object_unref(widget)
+						#else
+							gtk_widget_destroy(widget)
+						#endif
+					End If
 					gtk_main_quit()
 				Else
 					If GTK_IS_WINDOW(widget) Then

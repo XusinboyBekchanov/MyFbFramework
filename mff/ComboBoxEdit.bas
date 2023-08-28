@@ -163,7 +163,11 @@ Namespace My.Sys.Forms
 				If widget = Ctrlwidget Then Exit Property
 				If Ctrlwidget = DropDownWidget Then
 					widget = DropDownWidget
-					gtk_widget_hide(DropDownListWidget)
+					#ifdef __USE_GTK4__
+						gtk_widget_set_visible(DropDownListWidget, False)
+					#else
+						gtk_widget_hide(DropDownListWidget)
+					#endif
 					If gtk_widget_get_parent(DropDownListWidget) = eventboxwidget Then
 						g_object_ref(DropDownListWidget)
 						gtk_container_remove(GTK_CONTAINER(eventboxwidget), DropDownListWidget)
@@ -178,16 +182,28 @@ Namespace My.Sys.Forms
 						This.Clear
 						This.AddItem *FName: This.ItemIndex = 0
 					End If
-					gtk_widget_show(widget)
+					#ifdef __USE_GTK4__
+						gtk_widget_set_visible(widget, True)
+					#else
+						gtk_widget_show(widget)
+					#endif
 				Else
 					widget = DropDownListWidget
-					gtk_widget_hide(DropDownWidget)
+					#ifdef __USE_GTK4__
+						gtk_widget_set_visible(DropDownWidget, False)
+					#else
+						gtk_widget_hide(DropDownWidget)
+					#endif
 					If gtk_widget_get_parent(DropDownWidget) = eventboxwidget Then
 						g_object_ref(DropDownWidget)
 						gtk_container_remove(GTK_CONTAINER(eventboxwidget), DropDownWidget)
 					End If
 					gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
-					gtk_widget_show(widget)
+					#ifdef __USE_GTK4__
+						gtk_widget_set_visible(widget, True)
+					#else
+						gtk_widget_show(widget)
+					#endif
 				End If
 			#else
 				Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
@@ -812,16 +828,24 @@ Namespace My.Sys.Forms
 		WDeAllocate(FItemText)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
-				If gtk_is_widget(DropDownWidget) Then
-					gtk_widget_destroy(DropDownWidget)
+				If GTK_IS_WIDGET(DropDownWidget) Then
+					#ifdef __USE_GTK4__
+						g_object_unref(DropDownWidget)
+					#else
+						gtk_widget_destroy(DropDownWidget)
+					#endif
 					DropDownWidget = 0
 				End If
-				If gtk_is_widget(DropDownListWidget) Then
-					gtk_widget_destroy(DropDownListWidget)
+				If GTK_IS_WIDGET(DropDownListWidget) Then
+					#ifdef __USE_GTK4__
+						g_object_unref(DropDownListWidget)
+					#else
+						gtk_widget_destroy(DropDownListWidget)
+					#endif
 					DropDownListWidget = 0
 				End If
 			#endif
-			Widget = 0
+			widget = 0
 			'			If This.Parent AndAlso This.Parent->Widget Then
 			'				gtk_container_remove(gtk_container(This.Parent->Widget), gtk_widget(Widget))
 			'			End If

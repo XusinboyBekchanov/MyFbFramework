@@ -160,7 +160,11 @@ Namespace My.Sys.Forms
 		FSelectedDateTime = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
-				gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Format(Value, *FFormat)))
+				#ifdef __USE_GTK4__
+					gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Format(Value, *FFormat)))
+				#else
+					gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(Format(Value, *FFormat)), -1)
+				#endif
 				If OnDateTimeChanged Then OnDateTimeChanged(*Designer, This)
 			#else
 				Dim As SYSTEMTIME pst
@@ -177,7 +181,11 @@ Namespace My.Sys.Forms
 	
 	Private Property DateTimePicker.Text ByRef As WString
 		#ifdef __USE_GTK__
-			FText = WStr(*gtk_entry_get_text(gtk_entry(widget)))
+			#ifdef __USE_GTK4__
+				FText = WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
+			#else
+				FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
+			#endif
 			Return *FText.vptr
 		#else
 			Return Base.Text
@@ -753,7 +761,11 @@ Namespace My.Sys.Forms
 						If Not (StartsWith(LCase(FDateTimePart), "mmm") OrElse StartsWith(LCase(FDateTimePart), "ddd")) Then
 							Dim As UString txt = Text
 							Dim As String sp = " "
-							gtk_entry_set_text(gtk_entry(widget), ToUTF8(..Left(txt, SelStart) & String(SelEnd - SelStart - Len(PressedNumber), sp) & Right(PressedNumber, SelEnd - SelStart) & Mid(txt, SelEnd + 1)))
+							#ifdef __USE_GTK4__
+								gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(..Left(txt, SelStart) & String(SelEnd - SelStart - Len(PressedNumber), sp) & Right(PressedNumber, SelEnd - SelStart) & Mid(txt, SelEnd + 1)), -1)
+							#else
+								gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(..Left(txt, SelStart) & String(SelEnd - SelStart - Len(PressedNumber), sp) & Right(PressedNumber, SelEnd - SelStart) & Mid(txt, SelEnd + 1)))
+							#endif
 						End If
 						SelectRegion SelStart + 1
 						If Len(PressedNumber) = IIf(..Left(FDateTimePart, 1) = "y", 4, 2) Then
@@ -894,9 +906,9 @@ Namespace My.Sys.Forms
 		
 		Private Function DateTimePicker.SpinButton_Input(spin_button As GtkSpinButton Ptr, new_value As Any Ptr, user_data As Any Ptr) As Integer
 			Dim As DateTimePicker Ptr dtp = user_data
-			If gtk_spin_button_get_value(GTK_spin_button(spin_button)) > 20 Then
+			If gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_button)) > 20 Then
 				dtp->DatePartDown
-			ElseIf gtk_spin_button_get_value(GTK_spin_button(spin_button)) < 20 Then
+			ElseIf gtk_spin_button_get_value(GTK_SPIN_BUTTON(spin_button)) < 20 Then
 				dtp->DatePartUp
 			End If
 			Return True
@@ -904,13 +916,17 @@ Namespace My.Sys.Forms
 		
 		Private Function DateTimePicker.SpinButton_Output(spin_button As GtkSpinButton Ptr, user_data As Any Ptr) As Integer
 			Dim As DateTimePicker Ptr dtp = user_data
-			gtk_entry_set_text(GTK_ENTRY(spin_button), ToUTF8(Format(dtp->SelectedDateTime, *dtp->FFormat)))
+			#ifdef __USE_GTK4__
+				gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(spin_button)), ToUtf8(Format(dtp->SelectedDateTime, *dtp->FFormat)), -1)
+			#else
+				gtk_entry_set_text(GTK_ENTRY(spin_button), ToUtf8(Format(dtp->SelectedDateTime, *dtp->FFormat)))
+			#endif
 			Return True
 		End Function
 		
 		Private Sub DateTimePicker.CheckButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
-			gtk_widget_set_sensitive(dtp->Handle, gtk_toggle_button_get_active(gtk_toggle_button(widget)))
+			gtk_widget_set_sensitive(dtp->Handle, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
 		End Sub
 		
 		Private Sub DateTimePicker.Button_Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
@@ -922,7 +938,7 @@ Namespace My.Sys.Forms
 				gdk_window_get_origin(gtk_widget_get_window(dtp->Handle), @x, @y)
 				Dim As GtkAllocation CalendarAllocation
 				gtk_widget_get_allocation(dtp->CalendarWidget, @CalendarAllocation)
-				gtk_window_move(gtk_window(dtp->PopupWindow), x + IIf(dtp->CalendarRightAlign, dtp->Width - CalendarAllocation.width, 0), y + dtp->Height)
+				gtk_window_move(GTK_WINDOW(dtp->PopupWindow), x + IIf(dtp->CalendarRightAlign, dtp->Width - CalendarAllocation.width, 0), y + dtp->Height)
 				Dim SelDate As Long = dtp->SelectedDate
 				gtk_calendar_select_month(gtk_calendar(dtp->CalendarWidget), Month(SelDate) - 1, Year(SelDate))
 				gtk_calendar_select_day(gtk_calendar(dtp->CalendarWidget), Day(SelDate))

@@ -268,7 +268,11 @@ Private Function OpenFileDialog.Execute As Boolean
 			Wend
 			g_slist_free(l)
 		End If
-		gtk_widget_destroy( GTK_WIDGET(widget) )
+		#ifdef __USE_GTK4__
+			g_object_unref(widget)
+		#else
+			gtk_widget_destroy( GTK_WIDGET(widget) )
+		#endif
 	#else
 		Dim cwsFile As WString  * (MAX_PATH +1) * 100
 		Dim dwFlags As DWORD = Cast(Integer, Options)
@@ -561,7 +565,11 @@ Private Function SaveFileDialog.Execute As Boolean
 				FileName = *cwsFile
 			End If
 		End If
-		gtk_widget_destroy( GTK_WIDGET(widget) )
+		#ifdef __USE_GTK4__
+			g_object_unref(widget)
+		#else
+			gtk_widget_destroy( GTK_WIDGET(widget) )
+		#endif
 	#else
 		Dim dwFlags As DWORD = Cast(Integer, Options)
 		Dim dwBufLen As DWORD
@@ -721,7 +729,11 @@ Private Function FontDialog.Execute As Boolean
 				Font.Bold        = False
 			#endif
 		End If
-		gtk_widget_destroy( GTK_WIDGET(widget) )
+		#ifdef __USE_GTK4__
+			g_object_unref(widget)
+		#else
+			gtk_widget_destroy( GTK_WIDGET(widget) )
+		#endif
 		Return bResult
 	#else
 		Dim As CHOOSEFONT CF
@@ -876,7 +888,11 @@ Private Function FolderBrowserDialog.Execute As Boolean
 		If bResult Then
 			Directory = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
 		End If
-		gtk_widget_destroy( GTK_WIDGET(widget) )
+		#ifdef __USE_GTK4__
+			g_object_unref(widget)
+		#else
+			gtk_widget_destroy( GTK_WIDGET(widget) )
+		#endif
 		Return bResult
 	#else
 		Dim BI    As BROWSEINFO
@@ -1024,12 +1040,12 @@ Private Function ColorDialog.Execute As Boolean
 		Dim As Boolean bResult
 		Dim As GtkWindow Ptr win
 		If pApp->MainForm Then
-			win = Gtk_Window(pApp->MainForm->widget)
+			win = GTK_WINDOW(pApp->MainForm->widget)
 		End If
 		#ifdef __USE_GTK3__
-			widget = gtk_color_chooser_dialog_new (ToUTF8(*_Caption), win)
+			widget = gtk_color_chooser_dialog_new (ToUtf8(*_Caption), win)
 		#else
-			widget = gtk_color_selection_dialog_new(ToUTF8(*_Caption))
+			widget = gtk_color_selection_dialog_new(ToUtf8(*_Caption))
 		#endif
 		Dim As Integer res = gtk_dialog_run (GTK_DIALOG (widget))
 		bResult = res = GTK_RESPONSE_OK
@@ -1049,7 +1065,11 @@ Private Function ColorDialog.Execute As Boolean
 			Split(Mid(RGBString, 5, Len(RGBString) - 5), ",", res())
 			If UBound(res) >= 2 Then This.Color = BGR(Val(res(0)), Val(res(1)), Val(res(2)))
 		End If
-		gtk_widget_destroy( GTK_WIDGET(widget) )
+		#ifdef __USE_GTK4__
+			g_object_unref(widget)
+		#else
+			gtk_widget_destroy( GTK_WIDGET(widget) )
+		#endif
 		Return bResult
 	#else
 		Dim As CHOOSECOLOR CC

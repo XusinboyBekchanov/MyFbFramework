@@ -1829,7 +1829,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "ListView", WC_LISTVIEW
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
-				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GridLINES Or LVS_EX_DOUBLEBUFFER
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
 				WLet(FClassAncestor, WC_LISTVIEW)
 			#elseif defined(__USE_JNI__)
@@ -1847,12 +1847,24 @@ Namespace My.Sys.Forms
 			ListItems.Clear
 		#endif
 		#ifdef __USE_WINAPI__
-			UnregisterClass "ListView",GetmoduleHandle(NULL)
+			UnregisterClass "ListView",GetModuleHandle(NULL)
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 			#ifndef __FB_WIN32__
-				If gtk_is_widget(TreeViewWidget) AndAlso TreeViewWidget <> widget Then gtk_widget_destroy(TreeViewWidget)
-				If gtk_is_widget(IconViewWidget) AndAlso IconViewWidget <> widget Then gtk_widget_destroy(IconViewWidget)
+				If GTK_IS_WIDGET(TreeViewWidget) AndAlso TreeViewWidget <> widget Then 
+					#ifdef __USE_GTK4__
+						g_object_unref(widget)
+					#else
+						gtk_widget_destroy(TreeViewWidget)
+					#endif
+				End If
+				If GTK_IS_WIDGET(IconViewWidget) AndAlso IconViewWidget <> widget Then 
+					#ifdef __USE_GTK4__
+						g_object_unref(widget)
+					#else
+						gtk_widget_destroy(IconViewWidget)
+					#endif
+				End If
 			#endif
 		#endif
 	End Destructor

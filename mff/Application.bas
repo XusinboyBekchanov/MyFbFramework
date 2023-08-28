@@ -566,7 +566,7 @@ Namespace My
 				#endif
 			#endif
 			#ifdef __USE_GTK4__
-				gtk_init(, )
+				gtk_init()
 			#else
 				gtk_init(NULL, NULL)
 			#endif
@@ -751,6 +751,13 @@ Namespace Debug
 	#endif
 End Namespace
 
+#ifdef __USE_GTK4__
+	Dim Shared DialogResult As gint
+	Sub gtk_dialog_response_sub(dialog As GtkDialog Ptr, response_id As gint)
+		DialogResult = response_id
+	End Sub
+#endif
+
 Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
 	Dim As Integer Result = -1
 	Dim As WString Ptr FCaption
@@ -793,7 +800,7 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 		Case btOkCancel: ButtonsTypeIn = GTK_BUTTONS_OK_CANCEL
 		End Select
 		dialog = gtk_message_dialog_new (win, _
-		GTK_DIALOG_DESTROY_WITH_PARENT, _
+		GTK_DIALOG_DESTROY_WITH_PARENT Or GTK_DIALOG_MODAL, _
 		MsgTypeIn, _
 		IIf(ButtonsType = btYesNoCancel, btNone, ButtonsTypeIn), _
 		ToUtf8(MsgStr), _
@@ -818,14 +825,24 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 			#endif
 			gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_YES)
 		End If
-		Result = gtk_dialog_run (GTK_DIALOG (dialog))
+		#ifdef __USE_GTK4__
+			g_signal_connect_swapped (dialog, "response", G_CALLBACK(@gtk_dialog_response_sub), dialog)
+			gtk_widget_set_visible(dialog, True)
+			Result = DialogResult
+		#else
+			Result = gtk_dialog_run (GTK_DIALOG (dialog))
+		#endif
 		Select Case Result
 		Case GTK_RESPONSE_CANCEL: Result = mrCancel
 		Case GTK_RESPONSE_NO: Result = mrNo
 		Case GTK_RESPONSE_OK: Result = mrOK
 		Case GTK_RESPONSE_YES: Result = mrYes
 		End Select
-		gtk_widget_destroy (dialog)
+		#ifdef __USE_GTK4__
+			g_object_unref(dialog)
+		#else
+			gtk_widget_destroy(dialog)
+		#endif
 	#elseif defined(__USE_WINAPI__)
 		'		Wnd = GetActiveWindow()
 		'		If App.MainForm <> 0 Then
@@ -893,7 +910,11 @@ End Type
 		
 		Dim As TInputBox Ptr tib = data_
 		
-		tib->sText = *gtk_entry_get_text(Cast(Any Ptr,tib->entry))
+		#ifdef __USE_GTK4__
+			tib->sText = *gtk_entry_buffer_get_text(gtk_entry_get_buffer(Cast(Any Ptr, tib->entry)))
+		#else
+			tib->sText = *gtk_entry_get_text(Cast(Any Ptr, tib->entry))
+		#endif
 		
 		gtk_dialog_response(Cast(Any Ptr, tib->dialog) , GTK_RESPONSE_OK)
 		
@@ -905,7 +926,11 @@ End Type
 		
 		If tib->iFlag = 0 AndAlso Cast(GdkEventButton Ptr,gEvent)->type = GDK_BUTTON_PRESS Then
 			
-			gtk_entry_set_text(Cast(Any Ptr,tib->entry) , "")
+			#ifdef __USE_GTK4__
+				gtk_entry_buffer_set_text(gtk_entry_get_buffer(Cast(Any Ptr, tib->entry)), "", -1)
+			#else
+				gtk_entry_set_text(Cast(Any Ptr, tib->entry), "")
+			#endif
 			
 			tib->iFlag = 1
 			
@@ -964,7 +989,7 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 			End Select
 		Wend
 		SetFocus(hwFocus)
-	#elseif defined(__USE_GTK__)
+	#elseif defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
 		Dim As GtkWidget  Ptr dialog
 		
 		Dim As GtkWidget  Ptr label
@@ -1023,7 +1048,11 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		
 		If Len(sDefaultText) Then
 			
-			gtk_entry_set_text (Cast(Any Ptr,entry) , sDefaultText)
+			#ifdef __USE_GTK4__
+				gtk_entry_buffer_set_text (gtk_entry_get_buffer(Cast(Any Ptr, entry)), sDefaultText, -1)
+			#else
+				gtk_entry_set_text (Cast(Any Ptr, entry) , sDefaultText)
+			#endif
 			
 		End If
 		
@@ -1041,7 +1070,11 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 			
 		End If
 		
-		gtk_widget_show_all (dialog)
+		#ifdef __USE_GTK4
+			gtk_widget_set_visible(dialog, True)
+		#else
+			gtk_widget_show_all(dialog)
+		#endif
 		
 		If gtk_dialog_run (Cast(Any Ptr ,dialog)) = GTK_RESPONSE_OK Then
 			
@@ -1051,7 +1084,11 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		
 		_Delete(tib)
 		
-		gtk_widget_destroy(dialog)
+		#ifdef __USE_GTK4__
+			g_object_unref(dialog)
+		#else
+			gtk_widget_destroy(dialog)
+		#endif
 	#else
 		Function = ""
 	#endif

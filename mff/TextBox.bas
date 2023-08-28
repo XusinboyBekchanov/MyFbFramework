@@ -308,7 +308,11 @@ Namespace My.Sys.Forms
 					gtk_text_buffer_get_bounds(buffer, @_start, @_end)
 					FText = WStr(*gtk_text_buffer_get_text(buffer, @_start, @_end, True))
 				Else
-					FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
+					#ifdef __USE_GTK4__
+						FText = WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
+					#else
+						FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
+					#endif
 				EndIf
 			End If
 			Return *FText.vptr
@@ -344,9 +348,17 @@ Namespace My.Sys.Forms
 				End If
 			Else
 				If Value = "" Then
-					gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
+					#ifdef __USE_GTK4__
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), !"\0", -1)
+					#else
+						gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
+					#endif
 				Else
-					gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Value))
+					#ifdef __USE_GTK4__
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(Value), -1)
+					#else
+						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Value))
+					#endif
 				End If
 			EndIf
 		#elseif defined(__USE_JNI__)
@@ -887,7 +899,11 @@ Namespace My.Sys.Forms
 				If scrolledwidget Then g_object_set_data(G_OBJECT(scrolledwidget), "@@@Control2", @This)
 				If widget Then g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
 				SetBounds(FLeft, FTop, FWidth, FHeight)
-				gtk_text_buffer_set_text(buffer, *gtk_entry_get_text(GTK_ENTRY(WidgetEntry)), -1)
+				#ifdef __USE_GTK4__
+					gtk_text_buffer_set_text(buffer, *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(WidgetEntry))), -1)
+				#else
+					gtk_text_buffer_set_text(buffer, *gtk_entry_get_text(GTK_ENTRY(WidgetEntry)), -1)
+				#endif
 				gtk_widget_show_all(scrolledwidget)
 			Else
 				widget = WidgetEntry
@@ -895,7 +911,11 @@ Namespace My.Sys.Forms
 				SetBounds(FLeft, FTop, FWidth, FHeight)
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_get_bounds(buffer, @_start, @_end)
-				gtk_entry_set_text(GTK_ENTRY(widget), *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
+				#ifdef __USE_GTK4__
+					gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), *gtk_text_buffer_get_text(buffer, @_start, @_end, True), -1)
+				#else
+					gtk_entry_set_text(GTK_ENTRY(widget), *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
+				#endif
 				gtk_widget_show(WidgetEntry)
 				scrolledwidget = 0
 			End If

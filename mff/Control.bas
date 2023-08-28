@@ -825,7 +825,11 @@ Namespace My.Sys.Forms
 					'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
 					If scrolledwidget Then
 						If Value Then
-							gtk_widget_show_all(scrolledwidget)
+							#ifdef __USE_GTK4__
+								gtk_widget_set_visible(scrolledwidget, True)
+							#else
+								gtk_widget_show_all(scrolledwidget)
+							#endif
 							'gtk_widget_set_no_show_all(widget, Not Value)
 							If Value Then gtk_widget_queue_draw(scrolledwidget)
 						Else

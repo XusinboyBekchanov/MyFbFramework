@@ -52,7 +52,11 @@ Namespace My.Sys.Forms
 	Private Sub IPAddress.Clear
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To 3
-				gtk_entry_set_text(gtk_entry(Entries(i)), !"\0")
+				#ifdef __USE_GTK4__
+					gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(i))), !"\0", -1)
+				#else
+					gtk_entry_set_text(GTK_ENTRY(Entries(i)), !"\0")
+				#endif
 			Next
 		#else
 			SendMessage FHandle, IPM_CLEARADDRESS, 0, 0
@@ -61,9 +65,17 @@ Namespace My.Sys.Forms
 	
 	Private Property IPAddress.Text ByRef As WString
 		#ifdef __USE_GTK__
-			FText = Trim(WStr(*gtk_entry_get_text(gtk_entry(Entries(0)))))
+			#ifdef __USE_GTK4__
+				FText = Trim(WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(0))))))
+			#else
+				FText = Trim(WStr(*gtk_entry_get_text(GTK_ENTRY(Entries(0)))))
+			#endif
 			For i As Integer = 1 To 3
-				FText &= "." & Trim(Str(Val(*gtk_entry_get_text(gtk_entry(Entries(i))))))
+				#ifdef __USE_GTK4__
+					FText &= "." & Trim(Str(Val(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(i)))))))
+				#else
+					FText &= "." & Trim(Str(Val(*gtk_entry_get_text(GTK_ENTRY(Entries(i))))))
+				#endif
 			Next
 			Return *FText.vptr
 		#else
@@ -83,7 +95,11 @@ Namespace My.Sys.Forms
 					Addresses(i) = Max(0, Min(Val(res(i)), 255))
 				End If
 				#ifdef __USE_GTK__
-					gtk_entry_set_text(gtk_entry(Entries(i)), Trim(Str(Addresses(i))))
+					#ifdef __USE_GTK4__
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(i))), Trim(Str(Addresses(i))), -1)
+					#else
+						gtk_entry_set_text(GTK_ENTRY(Entries(i)), Trim(Str(Addresses(i))))
+					#endif
 				#endif
 			Next
 			#ifndef __USE_GTK__
@@ -277,12 +293,12 @@ Namespace My.Sys.Forms
 				gtk_widget_grab_focus(ipa->Entries(0))
 				Return True
 			Case GDK_KEY_End
-				ipa->Position = gtk_entry_get_text_length(gtk_entry(ipa->Entries(3)))
+				ipa->Position = gtk_entry_get_text_length(GTK_ENTRY(ipa->Entries(3)))
 				gtk_widget_grab_focus(ipa->Entries(3))
 				Return True
-			Case GDK_KEY_TAB, GDK_KEY_Return, GDK_KEY_KP_Enter, GDK_KEY_Delete
-			Case GDK_KEY_Backspace
-				Dim As Integer Pos1 = gtk_editable_get_position(gtk_editable(widget)), Index, Length
+			Case GDK_KEY_Tab, GDK_KEY_Return, GDK_KEY_KP_Enter, GDK_KEY_Delete
+			Case GDK_KEY_BACKSPACE
+				Dim As Integer Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget)), Index, Length
 				If Pos1 = 0 Then
 					If widget = ipa->Entries(1) Then
 						Index = 1
@@ -292,11 +308,19 @@ Namespace My.Sys.Forms
 						Index = 3
 					End If
 					If Index > 0 Then
-						Length = gtk_entry_get_text_length(gtk_entry(ipa->Entries(Index - 1)))
+						Length = gtk_entry_get_text_length(GTK_ENTRY(ipa->Entries(Index - 1)))
 						If Length = 1 Then
-							gtk_entry_set_text(gtk_entry(ipa->Entries(Index - 1)), !"\0")
+							#ifdef __USE_GTK4__
+								gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(ipa->Entries(Index - 1))), !"\0", -1)
+							#else
+								gtk_entry_set_text(GTK_ENTRY(ipa->Entries(Index - 1)), !"\0")
+							#endif
 						ElseIf Length > 1 Then
-							gtk_entry_set_text(gtk_entry(ipa->Entries(Index - 1)), ..Left(*gtk_entry_get_text(gtk_entry(ipa->Entries(Index - 1))), Length - 1))
+							#ifdef __USE_GTK4__
+								gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(ipa->Entries(Index - 1))), ..Left(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(ipa->Entries(Index - 1)))), Length - 1), -1)
+							#else
+								gtk_entry_set_text(GTK_ENTRY(ipa->Entries(Index - 1)), ..Left(*gtk_entry_get_text(GTK_ENTRY(ipa->Entries(Index - 1))), Length - 1))
+							#endif
 						End If
 						ipa->Position = Length
 						gtk_widget_grab_focus(ipa->Entries(Index - 1))
@@ -306,8 +330,8 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case GDK_KEY_Left
-				If Event->Key.state And GDK_Shift_MASK Then Return False
-				Dim As Integer Pos1 = gtk_editable_get_position(gtk_editable(widget)), Index, Length
+				If Event->key.state And GDK_SHIFT_MASK Then Return False
+				Dim As Integer Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget)), Index, Length
 				If widget = ipa->Entries(1) Then
 					Index = 1
 				ElseIf widget = ipa->Entries(2) Then
@@ -316,11 +340,11 @@ Namespace My.Sys.Forms
 					Index = 3
 				End If
 				If Index > 0 Then
-					If Event->Key.state And GDK_Control_MASK Then
+					If Event->key.state And GDK_CONTROL_MASK Then
 						ipa->Position = -1
 						gtk_widget_grab_focus(ipa->Entries(Index - 1))
 					ElseIf Pos1 = 0 Then
-						Length = gtk_entry_get_text_length(gtk_entry(ipa->Entries(Index - 1)))
+						Length = gtk_entry_get_text_length(GTK_ENTRY(ipa->Entries(Index - 1)))
 						ipa->Position = Length
 						gtk_widget_grab_focus(ipa->Entries(Index - 1))
 						'gtk_editable_select_region(gtk_editable(widget), Length, Length)
@@ -329,8 +353,8 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case GDK_KEY_Right
-				If Event->Key.state And GDK_Shift_MASK Then Return False
-				Dim As Integer Pos1 = gtk_editable_get_position(gtk_editable(widget)), Index = 3
+				If Event->key.state And GDK_SHIFT_MASK Then Return False
+				Dim As Integer Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget)), Index = 3
 				If widget = ipa->Entries(0) Then
 					Index = 0
 				ElseIf widget = ipa->Entries(1) Then
@@ -339,10 +363,10 @@ Namespace My.Sys.Forms
 					Index = 2
 				End If
 				If Index < 3 Then
-					If Event->Key.state And GDK_Control_MASK Then
+					If Event->key.state And GDK_CONTROL_MASK Then
 						ipa->Position = -1
 						gtk_widget_grab_focus(ipa->Entries(Index + 1))
-					ElseIf Pos1 = gtk_entry_get_text_length(gtk_entry(widget)) Then
+					ElseIf Pos1 = gtk_entry_get_text_length(GTK_ENTRY(widget)) Then
 						ipa->Position = 0
 						gtk_widget_grab_focus(ipa->Entries(Index + 1))
 						'gtk_editable_select_region(gtk_editable(widget), 0, 0)
@@ -353,11 +377,19 @@ Namespace My.Sys.Forms
 			Case Else
 				Select Case *Event->key.string
 				Case "0" To "9"
-					Dim As Integer Pos1 = gtk_editable_get_position(gtk_editable(widget)), Length = gtk_entry_get_text_length(gtk_entry(widget))
+					Dim As Integer Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget)), Length = gtk_entry_get_text_length(GTK_ENTRY(widget))
 					If Length = 2 Then
-						Dim EntryText As String = *gtk_entry_get_text(gtk_entry(widget))
+						#ifdef __USE_GTK4__
+							Dim EntryText As String = *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))
+						#else
+							Dim EntryText As String = *gtk_entry_get_text(GTK_ENTRY(widget))
+						#endif
 						If Val(..Left(EntryText, Pos1) & *Event->key.string & Mid(EntryText, Pos1 + 1)) > 255 Then
-							gtk_entry_set_text(gtk_entry(widget), "255")
+							#ifdef __USE_GTK4__
+								gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), "255", -1)
+							#else
+								gtk_entry_set_text(GTK_ENTRY(widget), "255")
+							#endif
 						ElseIf Pos1 = 2 Then
 							Dim As Integer Index = 3
 							If widget = ipa->Entries(0) Then
@@ -368,7 +400,11 @@ Namespace My.Sys.Forms
 								Index = 2
 							End If
 							If Index < 3 Then
-								gtk_entry_set_text(GTK_ENTRY(widget), *gtk_entry_get_text(GTK_ENTRY(widget)) & *Event->key.string)
+								#ifdef __USE_GTK4__
+									gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))) & *Event->key.string, -1)
+								#else
+									gtk_entry_set_text(GTK_ENTRY(widget), *gtk_entry_get_text(GTK_ENTRY(widget)) & *Event->key.string)
+								#endif
 								ipa->Position = -1
 								gtk_widget_grab_focus(ipa->Entries(Index + 1))
 								'gtk_editable_select_region(gtk_editable(widget), 0, 0)
@@ -423,13 +459,17 @@ Namespace My.Sys.Forms
 				ElseIf ipa->CurrentEntry = ipa->Entries(3) Then
 					Index = 3
 				End If
-				Dim As String sText = *gtk_entry_get_text(GTK_ENTRY(ipa->CurrentEntry))
+				#ifdef __USE_GTK4__
+					Dim As String sText = *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(ipa->CurrentEntry)))
+				#else
+					Dim As String sText = *gtk_entry_get_text(GTK_ENTRY(ipa->CurrentEntry))
+				#endif
 				If sText = "" Then Value = -1 Else Value = Val(sText)
 				If ipa->OnFieldChanged Then ipa->OnFieldChanged(*ipa->Designer, *ipa, Index, Value)
 			End If
 			ipa->CurrentEntry = widget
 			If ipa->Position <> -1 Then
-				gtk_editable_select_region(gtk_editable(widget), ipa->Position, ipa->Position)
+				gtk_editable_select_region(GTK_EDITABLE(widget), ipa->Position, ipa->Position)
 				ipa->Position = -1
 			End If
 		End Sub
