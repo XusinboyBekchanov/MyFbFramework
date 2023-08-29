@@ -61,6 +61,8 @@ Namespace My.Sys.Drawing
 			Handle       As jobject
 		#elseif defined(__USE_WINAPI__)
 			Handle       As HBITMAP
+		#else
+			Handle       As Any Ptr
 		#endif
 		Brush        As My.Sys.Drawing.Brush
 		Pen          As My.Sys.Drawing.Pen

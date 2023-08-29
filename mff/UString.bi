@@ -1,6 +1,6 @@
 ﻿#define UNICODE
 #include once "file.bi"
-#ifndef __USE_JNI__
+#if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	#undef FileExists
 	#ifdef __USE_GTK__
 		#ifdef __USE_GTK4__
@@ -81,7 +81,7 @@ Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 Declare Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
 
-#ifndef __USE_JNI__
+#if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean
 	Declare Function FileExists Overload(ByRef FileName As WString) As Boolean
 #endif

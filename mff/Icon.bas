@@ -18,7 +18,7 @@ Namespace My.Sys.Drawing
 			Select Case LCase(PropertyName)
 			#ifdef __USE_GTK__
 			Case "handle": Return Handle
-			#else
+			#elseif defined(__USE_WINAPI__)
 			Case "handle": Return @Handle
 			#endif
 			Case "height": Return @FHeight
@@ -251,6 +251,8 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			Private Operator Icon.Let(Value As HICON)
 				If Handle Then DestroyIcon(Handle)
+		#else
+			Private Operator Icon.Let(Value As Any Ptr)
 		#endif
 			Handle = Value
 		End Operator

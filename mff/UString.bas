@@ -428,7 +428,7 @@ Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As L
 	Return strn
 End Function
 
-#ifndef __USE_JNI__
+#if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Private Function FileExists (ByRef FileName As UString) As Boolean
 		#ifdef __USE_GTK__
 			If *FileName.vptr <> "" AndAlso g_file_test(ToUtf8(*FileName.vptr), G_FILE_TEST_EXISTS) Then

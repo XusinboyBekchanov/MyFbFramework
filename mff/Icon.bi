@@ -38,6 +38,8 @@ Namespace My.Sys.Drawing
 			Handle  As jobject
 		#elseif defined(__USE_WINAPI__)
 			Handle  As HICON
+		#else
+			Handle  As Any Ptr
 		#endif
 		Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
@@ -64,6 +66,8 @@ Namespace My.Sys.Drawing
 			Declare Operator Let(Value As GdkPixbuf Ptr)
 		#elseif defined(__USE_WINAPI__)
 			Declare Operator Let(Value As HICON)
+		#else
+			Declare Operator Let(Value As Any Ptr)
 		#endif
 		Declare Constructor
 		Declare Destructor

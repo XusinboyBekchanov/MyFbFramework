@@ -41,8 +41,10 @@ Namespace My.Sys.ComponentModel
 			overlaywidget   As GtkWidget Ptr
 		#elseif defined(__USE_JNI__)
 			FHandle         As jobject
-		#else
+		#elseif defined(__USE_WINAPI__)
 			FHandle         As HWND
+		#else
+			FHandle         As Any Ptr
 		#endif
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
@@ -64,12 +66,15 @@ Namespace My.Sys.ComponentModel
 			Declare Property Handle(Value As jobject)
 			Declare Property LayoutHandle As jobject
 			Declare Property LayoutHandle(Value As jobject)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			'Gets the window handle that the control is bound to.
 			Declare Property Handle As HWND
 			Declare Property Handle(Value As HWND)
 			Declare Property LayoutHandle As HWND
 			Declare Property LayoutHandle(Value As HWND)
+		#else
+			Handle As Any Ptr
+			LayoutHandle As Any Ptr
 		#endif
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -173,15 +178,15 @@ End Type
 
 Private Enum Keys
 	#ifdef __USE_GTK__
-		Key_Esc = GDK_KEY_ESCAPE
-		Key_Left = GDK_KEY_LEFT
-		Key_Right = GDK_KEY_RIGHT
-		Key_Up = GDK_KEY_UP
-		Key_Down = GDK_KEY_DOWN
-		Key_Home = GDK_KEY_HOME
-		Key_End = GDK_KEY_END
-		Key_Delete = GDK_KEY_DELETE
-		Key_Enter = GDK_KEY_RETURN
+		Key_Esc = GDK_KEY_Escape
+		Key_Left = GDK_KEY_Left
+		Key_Right = GDK_KEY_Right
+		Key_Up = GDK_KEY_Up
+		Key_Down = GDK_KEY_Down
+		Key_Home = GDK_KEY_Home
+		Key_End = GDK_KEY_End
+		Key_Delete = GDK_KEY_Delete
+		Key_Enter = GDK_KEY_Return
 		F1 = GDK_KEY_F1
 		F2 = GDK_KEY_F2
 		F3 = GDK_KEY_F3
@@ -196,7 +201,7 @@ Private Enum Keys
 		F12 = GDK_KEY_F12
 	#elseif defined(__USE_JNI__)
 		Key_Esc = 0
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Key_Esc = VK_ESCAPE
 		Key_Left = VK_LEFT
 		Key_Right = VK_RIGHT
@@ -218,6 +223,8 @@ Private Enum Keys
 		F10 = VK_F10
 		F11 = VK_F11
 		F12 = VK_F12
+	#else
+		Key_Esc = 0
 	#endif
 End Enum
 

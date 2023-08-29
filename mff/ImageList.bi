@@ -79,6 +79,8 @@ Namespace My.Sys.Forms
 			Handle      As jobject
 		#elseif defined(__USE_WINAPI__)
 			Handle      As HIMAGELIST
+		#else
+			Handle      As Any Ptr
 		#endif
 		InitialCount    As Integer
 		GrowCount       As Integer

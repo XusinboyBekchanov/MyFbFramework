@@ -813,7 +813,7 @@ Namespace My.Sys.Forms
 		If (index > -1) And (index  <FCount) Then
 			Return FItems[index]
 		End If
-		Return NULL
+		Return 0
 	End Property
 	
 	Private Property MenuItem.Item(index As Integer, value As PMenuItem)
@@ -900,7 +900,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImage.Handle     = iImage.Handle
@@ -911,7 +911,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , eClick, Checkable))
 		Value->FDynamic = True
 		Value->FImageIndex = iImageIndex
@@ -922,7 +922,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+	Private Function MenuItem.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, sImageKey, eClick, Checkable))
 		Value->FDynamic = True
 		WLet(Value->FImageKey, sImageKey)
@@ -1069,7 +1069,7 @@ Namespace My.Sys.Forms
 			FItem = Item(i)->Find(value)
 			If FItem Then If FItem->Command = value Then Return FItem
 		Next i
-		Return NULL
+		Return 0
 	End Function
 	
 	#ifndef MenuItem_Find_WString_Off
@@ -1080,7 +1080,7 @@ Namespace My.Sys.Forms
 				FItem = Item(i)->Find(value)
 				If FItem Then If FItem->Name = value Then Return FItem
 			Next i
-			Return NULL
+			Return 0
 		End Function
 	#endif
 	
@@ -1089,12 +1089,12 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Sub MenuItem.BitmapChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.BitmapType)
-		With *Cast(MenuItem Ptr, Sender.Graphic)
+		With *cast(MenuItem Ptr, Sender.Graphic)
 			'.Caption = .Caption
 		End With
 	End Sub
 	
-	Private Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False)
+	Private Constructor MenuItem(ByRef wCaption As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = 0, Checkable As Boolean = False)
 		FVisible    = True
 		FEnabled    = True
 		FChecked    = False
@@ -1358,7 +1358,7 @@ Namespace My.Sys.Forms
 				Return FItems[index]
 			End If
 		End If
-		Return NULL
+		Return 0
 	End Property
 	
 	#ifndef Menu_Item_Set_MenuItem_Off
@@ -1402,7 +1402,7 @@ Namespace My.Sys.Forms
 				Index = FCount - 1
 			End If
 			FItems[Index] = value
-			value->Parent    = NULL
+			value->Parent    = 0
 			value->MenuIndex = Index
 			'               #IfNDef __USE_GTK__
 			'				value->Menu      = Handle
@@ -1448,7 +1448,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->Image     = iImage
@@ -1459,7 +1459,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, , , Checkable))
 		Value->FDynamic = True
 		Value->ImageIndex = iImageIndex
@@ -1471,7 +1471,7 @@ Namespace My.Sys.Forms
 		Return Value
 	End Function
 	
-	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+	Private Function Menu.Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Dim As MenuItem Ptr Value = _New( MenuItem(sCaption, sImageKey, , Checkable))
 		Value->FDynamic = True
 		'WLet Value->FImageKey, sImageKey
@@ -1519,7 +1519,7 @@ Namespace My.Sys.Forms
 				Next i
 				FItems[Index]    = value
 				value->MenuIndex = Index
-				value->Parent    = NULL
+				value->Parent    = 0
 				#ifdef __USE_WINAPI__
 					value->Handle    = IIf(value->Handle, value->Handle, CreatePopupMenu)
 					'				value->Menu      = Handle
@@ -1589,7 +1589,7 @@ Namespace My.Sys.Forms
 			FItem = Item(i)->Find(value)
 			If FItem Then If FItem->Command = value Then Return FItem
 		Next i
-		Return NULL
+		Return 0
 	End Function
 	
 	Private Function Menu.Find(ByRef Value As WString) As MenuItem Ptr
@@ -1599,7 +1599,7 @@ Namespace My.Sys.Forms
 			FItem = Item(i)->Find(Value)
 			If FItem Then If FItem->Name = Value Then Return FItem
 		Next i
-		Return NULL
+		Return 0
 	End Function
 	
 	Private Sub Menu.ChangeIndex(Value As PMenuItem, Index As Integer)

@@ -57,7 +57,7 @@ End Function
 			
 			lShiftColor = RGB(clrFore(0), clrFore(1), clrFore(2))
 			lShiftColor = (Cast(ULong, 100 / 100 * 255) Shl 24) + (Cast(ULong, GetRed(lShiftColor)) Shl 16) + (Cast(ULong, GetGreen(lShiftColor)) Shl 8) + (Cast(ULong, GetBlue(lShiftColor)))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim clrFore(3)         As COLORREF
 			Dim clrBack(3)         As COLORREF
 			
@@ -77,7 +77,7 @@ End Function
 	
 	Private Function IsDarkColor(lColor As Long) As Boolean
 		Dim bBGRA(0 To 3) As Byte
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			OleTranslateColor lColor, 0, VarPtr(lColor)
 			CopyMemory(@bBGRA(0), @lColor, 4&)
 		#endif
@@ -86,14 +86,15 @@ End Function
 	End Function
 	
 
-PubLic Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
+Public Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 	#ifdef __USE_GTK__
 		Return ShiftColor(RGBColor, clWhite, Opacity / 100 * 255)
 		'Return ((Cast(ULong, Opacity / 100 * 255) Shl 24) + (Cast(ULong, Abs(GetRed(RGBColor))) Shl 16) + (Cast(ULong, Abs(GetGreen(RGBColor))) Shl 8) + (Cast(ULong, Abs(GetBlue(RGBColor)))))
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Return ((Cast(DWORD, Opacity / 100 * 255) Shl 24) + (Cast(DWORD, GetRed(RGBColor)) Shl 16) + (Cast(DWORD, GetGreen(RGBColor)) Shl 8) + Cast(DWORD, GetBlue(RGBColor)))
 	#endif
 	'Return Color_MakeARGB(Opacity / 100 * 255, GetRed(RGBColor), GetGreen(RGBColor), GetBlue(RGBColor))
+	Return 0
 End Function
 
 Private Function GetRed(FColor As Long) As Integer

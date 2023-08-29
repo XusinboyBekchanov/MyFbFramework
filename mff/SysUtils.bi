@@ -13,13 +13,15 @@
 	#ifndef __USE_JNI__
 		#define __USE_JNI__
 	#endif
-#elseif Not defined(__FB_WIN32__)
-	#ifndef __USE_GTK__
-		#define __USE_GTK__
-	#endif
-#elseif Not defined(__USE_GTK__)
-	#ifndef __USE_WINAPI__
-		#define __USE_WINAPI__
+#elseif Not defined(__USE_WASM__)
+	#if Not defined(__FB_WIN32__)
+		#ifndef __USE_GTK__
+			#define __USE_GTK__
+		#endif
+	#elseif Not defined(__USE_GTK__)
+		#ifndef __USE_WINAPI__
+			#define __USE_WINAPI__
+		#endif
 	#endif
 #endif
 
@@ -38,7 +40,10 @@
 	#include once "jni.bi"
 	#define Max(a, b) IIf((a) > (b), (a), (b))
 	#define Min(a, b) IIf((a) < (b), (a), (b))
-#else
+#elseif defined(__USE_WASM__)
+	#define Max(a, b) IIf((a) > (b), (a), (b))
+	#define Min(a, b) IIf((a) < (b), (a), (b))
+#elseif defined(__USE_WINAPI__)
 	#include once "win/wincrypt.bi"
 	#include once "Win/CommCtrl.bi"
 	#include once "Win/CommDlg.bi"

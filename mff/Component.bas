@@ -24,7 +24,7 @@ Namespace My.Sys.ComponentModel
 				Case "layoutwidget": Return layoutwidget
 				Case "overlaywidget": Return overlaywidget
 				Case "eventboxwidget": Return eventboxwidget
-				#else
+				#elseif defined(__USE_WINAPI__)
 				Case "handle": Return @FHandle
 				#endif
 			Case "left": FLeft = This.Left: Return @FLeft
@@ -64,7 +64,7 @@ Namespace My.Sys.ComponentModel
 					Case "eventboxwidget": This.eventboxwidget = Value
 					#elseif defined(__USE_JNI__)
 					Case "handle": This.Handle = *Cast(jobject Ptr, Value)
-					#else
+					#elseif defined(__USE_WINAPI__)
 					Case "handle": This.Handle = *Cast(HWND Ptr, Value)
 					#endif
 				Case "left": This.Left = QInteger(Value)

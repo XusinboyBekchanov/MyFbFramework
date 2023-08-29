@@ -86,6 +86,8 @@ Namespace My.Sys.Drawing
 			Handle As jobject
 		#elseif defined(__USE_WINAPI__)
 			Handle As HFONT
+		#else
+			Handle As Any Ptr
 		#endif
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr

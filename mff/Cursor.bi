@@ -105,6 +105,8 @@ Namespace My.Sys.Drawing
 			Handle		As HCURSOR
 		#elseif defined(__USE_JNI__)
 			Handle		As jobject
+		#else
+			Handle		As Any Ptr
 		#endif
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)

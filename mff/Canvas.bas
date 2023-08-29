@@ -957,7 +957,7 @@ Namespace My.Sys.Drawing
 			Dim As Double iRed, iGreen, iBlue
 			pango_layout_set_text(layout, ToUtf8(s), Len(ToUtf8(s)))
 			pango_cairo_update_layout(Handle, layout)
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
@@ -1269,7 +1269,7 @@ Namespace My.Sys.Drawing
 			pango_layout_set_font_description (layout, desc)
 			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
 			pango_cairo_update_layout(Handle, layout)
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
@@ -1277,7 +1277,7 @@ Namespace My.Sys.Drawing
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			pango_font_description_free (desc)
 			Function = extend.width
-		#elseif defined(__USE_JNI__)
+		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__)
 			Dim Sz As ..Size
@@ -1296,7 +1296,7 @@ Namespace My.Sys.Drawing
 			pango_layout_set_font_description (layout, desc)
 			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
 			pango_cairo_update_layout(Handle, layout)
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
@@ -1304,7 +1304,7 @@ Namespace My.Sys.Drawing
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			pango_font_description_free (desc)
 			Function = extend.height
-		#elseif defined(__USE_JNI__)
+		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__)
 			Dim Sz As ..Size

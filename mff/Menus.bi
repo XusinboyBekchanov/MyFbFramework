@@ -147,9 +147,9 @@ Namespace My.Sys.Forms
 		Declare Sub Click
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, ByRef iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Declare Sub Add(ByRef value As PMenuItem, Index As Integer = -1)
 		Declare Sub Add(value() As PMenuItem)
 		Declare Sub AddRange cdecl(CountArgs As Integer, ...)
@@ -161,7 +161,7 @@ Namespace My.Sys.Forms
 		Declare Function Find(value As Integer) As PMenuItem
 		Declare Function Find(ByRef value As WString) As PMenuItem
 		Declare Operator Cast As Any Ptr
-		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False)
+		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = 0, Checkable As Boolean = False)
 		Declare Destructor
 		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 	End Type
@@ -213,9 +213,9 @@ Namespace My.Sys.Forms
 		Declare Property Item(ByRef Key As WString) As PMenuItem
 		Declare Property Item(ByRef Key As WString, value As PMenuItem)
 		Declare Function Add(ByRef sCaption As WString) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
-		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = NULL, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, iImageIndex As Integer, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
+		Declare Function Add(ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As NotifyEvent = 0, Checkable As Boolean = False, Index As Integer = -1, bEnabled As Boolean = True) As MenuItem Ptr
 		Declare Sub Add(value As PMenuItem, Index As Integer = -1)
 		Declare Sub Add(value() As PMenuItem)
 		Declare Sub AddRange cdecl(CountArgs As Integer, ...)

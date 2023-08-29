@@ -1972,7 +1972,7 @@ Namespace My.Sys.Forms
 					End With
 				End If
 			#endif
-			Return NULL
+			Return 0
 		End Function
 		
 		Private Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)

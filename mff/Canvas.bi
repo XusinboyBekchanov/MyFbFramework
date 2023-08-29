@@ -161,6 +161,8 @@ Namespace My.Sys.Drawing
 			GpLineGradientPara As GpLineGradientParameter
 		#elseif defined(__USE_JNI__)
 			Handle  As jobject
+		#else
+			Handle  As Any Ptr
 		#endif
 		Pen         As My.Sys.Drawing.Pen
 		Brush       As My.Sys.Drawing.Brush

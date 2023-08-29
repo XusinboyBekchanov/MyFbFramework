@@ -162,6 +162,8 @@ Namespace My
 			L = GetModuleFileName(GetModuleHandle(NULL), @Tx, 255 - 1)
 		#elseif defined(__USE_JNI__)
 			Dim As WString * 255 Tx
+		#else
+			Dim As WString * 255 Tx
 		#endif
 		WLet(FFileName, .Left(Tx, L))
 		Return *FFileName
@@ -449,7 +451,7 @@ Namespace My
 				If UCase(Controls[i]->Name) = UCase(ControlName) Then Return Controls[i]
 			Next i
 		End If
-		Return NULL
+		Return 0
 	End Function
 	
 	Private Function Application.IndexOfForm(Form As My.Sys.Forms.Form Ptr) As Integer
@@ -586,7 +588,7 @@ Namespace My
 			'Wend
 		#elseif defined(__USE_JNI__)
 			
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Const ICC_ALL =  _
 			ICC_ANIMATE_CLASS      Or _
 			ICC_BAR_CLASSES        Or _
