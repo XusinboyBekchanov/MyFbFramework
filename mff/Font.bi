@@ -125,7 +125,7 @@ Namespace My.Sys.Drawing
 	End Type
 End Namespace
 
-Common Shared pDefaultFont As My.Sys.Drawing.Font Ptr
+Dim Shared pDefaultFont As My.Sys.Drawing.Font Ptr
 
 #ifndef __USE_MAKE__
 	#include once "Font.bas"

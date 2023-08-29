@@ -1,7 +1,7 @@
 #pragma once
 
-Common Shared As Boolean g_darkModeSupported
-Common Shared As Boolean g_darkModeEnabled
+Dim Shared As Boolean g_darkModeSupported
+Dim Shared As Boolean g_darkModeEnabled
 
 #ifdef __USE_WINAPI__
 	Declare Function ShouldAppsUseDarkMode() As BOOL

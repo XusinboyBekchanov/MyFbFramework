@@ -489,8 +489,8 @@
 		#define FreeFile_ FreeFile
 		#define CloseFile_(filenum) Close filenum
 	#else
-		Common Shared As Long filenumberCounter
-		Common Shared As Boolean Ptr filenumbers
+		Dim Shared As Long filenumberCounter
+		Dim Shared As Boolean Ptr filenumbers
 		#define FreeFile_ FreeFileNumber_(__FILE__, __FUNCTION__, __LINE__)
 		
 		Declare Function FreeFileNumber_(ByRef file As String, ByRef funcname As String, ByVal linenum As Integer) As Long
