@@ -329,6 +329,8 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "Static")
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/TextView")
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "label")
 			#endif
 			WLet(FClassName, "Label")
 			.Width       = 90

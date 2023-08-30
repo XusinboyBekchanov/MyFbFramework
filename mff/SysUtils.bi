@@ -13,6 +13,10 @@
 	#ifndef __USE_JNI__
 		#define __USE_JNI__
 	#endif
+#elseif defined(__FB_JS__)
+	#ifndef __USE_WASM__
+		#define __USE_WASM__
+	#endif
 #elseif Not defined(__USE_WASM__)
 	#if Not defined(__FB_WIN32__)
 		#ifndef __USE_GTK__
@@ -43,6 +47,7 @@
 #elseif defined(__USE_WASM__)
 	#define Max(a, b) IIf((a) > (b), (a), (b))
 	#define Min(a, b) IIf((a) < (b), (a), (b))
+	Declare Sub InsertHTML(Value As String)
 #elseif defined(__USE_WINAPI__)
 	#include once "win/wincrypt.bi"
 	#include once "Win/CommCtrl.bi"
