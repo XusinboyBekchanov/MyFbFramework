@@ -181,12 +181,6 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FParentWidget As GtkWidget Ptr
 				FClient As GtkWidget Ptr
-			#elseif defined(__USE_WINAPI__)
-				FParentHandle As HWND
-				FClient As HWND
-				As Integer FClientX, FClientY, FClientW, FClientH
-			#endif
-			#ifdef __USE_GTK__
 				AllocatedHeight As Integer
 				AllocatedWidth As Integer
 				Declare Static Sub Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
@@ -194,7 +188,12 @@ Namespace My.Sys.Forms
 				Declare Static Function Control_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 				Declare Static Sub DragDataReceived(self As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, x As gint, y As gint, Data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
 				Declare Static Function ConfigureEventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			#elseif defined(__USE_WASM__)
+				Declare Virtual Sub UpdateBody()
 			#elseif defined(__USE_WINAPI__)
+				FParentHandle As HWND
+				FClient As HWND
+				As Integer FClientX, FClientY, FClientW, FClientH
 				FToolInfo          As TOOLINFO
 				FDarkMode          As Boolean
 			#endif

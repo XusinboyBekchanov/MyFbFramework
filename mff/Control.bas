@@ -886,6 +886,10 @@ Namespace My.Sys.Forms
 				AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 				'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 			End Sub
+		#elseif defined(__USE_WASM__)
+			Private Virtual Sub Control.UpdateBody()
+				WLet(FBody, "<" & *FClassAncestor & ">" & *FText & "</" & *FClassAncestor & ">")
+			End Sub
 		#endif
 		
 		Private Sub Control.CreateWnd

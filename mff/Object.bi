@@ -46,6 +46,8 @@ Namespace My.Sys
 		#ifdef __USE_GTK__
 			FActivated As Boolean
 			FDeactivated As Boolean
+		#elseif defined(__USE_WASM__)
+			FBody As WString Ptr
 		#endif
 	Public:
 		Declare Virtual Function ToString ByRef As WString
