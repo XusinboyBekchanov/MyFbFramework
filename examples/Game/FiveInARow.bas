@@ -62,8 +62,8 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		Declare Function WhoWin() As Integer
 		Declare Sub Form_Show(ByRef Sender As Form)
 		
-		Declare Sub Picture1_MouseDown(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
-		Declare Sub Picture1_MouseMove(ByRef Sender As Control, MouseButton As Integer,x As Integer,y As Integer, Shift As Integer)
+		Declare Sub Picture1_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Sub Picture1_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Picture1_Click(ByRef Sender As Picture)
 		Declare Sub UpDown1_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
 		Declare Sub cmdChangBK_Click(ByRef Sender As Control)
@@ -94,7 +94,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterScreen
 			'.Cursor = crWait
-			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Form_Show)
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show)
 			.Graphic.Icon.LoadFromResourceID(1, , 48, 48)
 			.BorderStyle = FormBorderStyle.FixedSingle
 			.SetBounds 0, 0, 811, 667
@@ -110,9 +110,9 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.ForeColor = 255
 			.SetBounds 6, 8, 625, 625
 			.Designer = @This
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Picture1_MouseDown)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Picture1_MouseMove)
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@Picture1_Click)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture1_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture1_MouseMove)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture1_Click)
 			.Parent = @This
 		End With
 		
@@ -132,7 +132,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.TabIndex = 5
 			.SetBounds 13, 198, 135, 35
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@cmdStart_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdStart_Click)
 			.Parent = @GroupBox1
 		End With
 		' optComputer3
@@ -180,7 +180,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.TabIndex = 9
 			.SetBounds 120, 93, 17, 25
 			.Designer = @This
-			.OnChanging = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@UpDown1_Changing)
+			.OnChanging = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Value As Integer, Direction As Integer), @UpDown1_Changing)
 			.Parent = @GroupBox1
 		End With
 		' txtChessSize
@@ -277,7 +277,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.Caption = "..."
 			.SetBounds 120, 123, 27, 17
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@cmdChangBK_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdChangBK_Click)
 			.Parent = @GroupBox1
 		End With
 		
@@ -288,7 +288,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 			.Caption = "..."
 			.SetBounds 120, 141, 27, 17
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @@cmdChangBK_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdChangBK_Click)
 			.Parent = @GroupBox1
 		End With
 		
@@ -306,7 +306,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 	#ifndef _NOT_AUTORUN_FORMS_
 		#define _NOT_AUTORUN_FORMS_
 		App.DarkMode = True
-		FfrmWuziqi.MainForm = True
+		frmWuziqi.MainForm = True
 		frmWuziqi.Show
 		App.Run
 	#endif
@@ -417,7 +417,7 @@ Private Sub frmWuziqiType.InitPlayEnvironment()
 	''由于我们设定电脑先手，并下在了坐标ChessSize*ChessR / 2, 调用绘图函数绘制当前电脑先走的位置
 	If chkComputerFirst.Checked = True Then
 		zhX = ChessSize / 2 : zhY = ChessSize/ 2
-		ZhXOld = -2: ZhYOld = -2
+		zhXOld = -2: zhYOld = -2
 		DrawCompter((zhX + 1)*ChessR + ChessR / 2 , (zhY + 1)*ChessR + ChessR / 2 )
 		Table(zhX , zhY) = 1              '由于我们设定电脑先手，并下了ChessSize / 2，ChessSize / 2位所以将其值设为1
 		'由于电脑已下了ChessSize/ 2，ChessSize/ 2位所以我们需要重新设定玩家的获胜标志
@@ -427,7 +427,7 @@ Private Sub frmWuziqiType.InitPlayEnvironment()
 			End If
 		Next
 	Else
-		ZhXOld = -2: ZhYOld = -2
+		zhXOld = -2: zhYOld = -2
 	End If
 	
 	'******** 初始化获胜组合结束 ********
@@ -435,7 +435,7 @@ Private Sub frmWuziqiType.InitPlayEnvironment()
 End Sub
 
 Private Sub frmWuziqiType.Form_Show(ByRef Sender As Form)
-	Picture1.Style = 16
+	'Picture1.Style = 16
 	colorPerson = clWhite: ColorComputer = clBlack: ColorLastStep = clPurple: ColorChessBK = 8421376: ColorChessGrid = &HF00f0000
 	lblColorBK(0).BackColor = ColorChessBK
 	lblColorBK(1).BackColor = ColorChessGrid  

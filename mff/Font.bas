@@ -62,34 +62,40 @@ Namespace My.Sys.Drawing
 		If FSize = 0 Then
 			FSize = DefaultFont.Size
 		End If
-		#ifdef __USE_GTK__
-			If Handle Then pango_font_description_free (Handle)
-			Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
-		#elseif defined(__USE_WINAPI__)
-			If Handle Then DeleteObject(Handle)
-			Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation * FSize, FOrientation * FSize, FBolds(Min(1, _Abs(FBold))), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
-		#endif
-		If Handle Then
-			If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component Then
-				#ifdef __USE_GTK__
-					If QComponent(FParent).Handle Then
-						#ifndef __USE_GTK2__
-							#ifndef __USE_GTK4__
-								gtk_widget_override_font(QComponent(FParent).Handle, Handle)
-							#endif
-						#else
-							gtk_widget_modify_font(QComponent(FParent).Handle, Handle)
-						#endif
-					End If
-				#elseif defined(__USE_WINAPI__)
-					If QComponent(FParent).Handle Then
-						SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), True)
-						InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
-					End If
-				#endif
+		#ifdef __USE_WASM__
+			If QComponent(FParent).Handle Then
+				SetFont(QComponent(FParent).Handle, *FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize) & "px")
 			End If
-			If OnCreate Then OnCreate(*Designer, This)
-		End If
+		#else
+			#ifdef __USE_GTK__
+				If Handle Then pango_font_description_free (Handle)
+				Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
+			#elseif defined(__USE_WINAPI__)
+				If Handle Then DeleteObject(Handle)
+				Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation * FSize, FOrientation * FSize, FBolds(min(1, _Abs(FBold))), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
+			#endif
+			If Handle Then
+				If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component Then
+					#ifdef __USE_GTK__
+						If QComponent(FParent).Handle Then
+							#ifndef __USE_GTK2__
+								#ifndef __USE_GTK4__
+									gtk_widget_override_font(QComponent(FParent).Handle, Handle)
+								#endif
+							#else
+								gtk_widget_modify_font(QComponent(FParent).Handle, Handle)
+							#endif
+						End If
+					#elseif defined(__USE_WINAPI__)
+						If QComponent(FParent).Handle Then
+							SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), True)
+							InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
+						End If
+					#endif
+				End If
+				If OnCreate Then OnCreate(*Designer, This)
+			End If
+		#endif
 	End Sub
 	
 	Private Property Font.Parent As My.Sys.Object Ptr

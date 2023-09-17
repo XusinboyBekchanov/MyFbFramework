@@ -175,6 +175,7 @@ Namespace My.Sys.Forms
 			FAnchoredParentHeight As Integer
 		Protected:
 			FAutoSize As Boolean
+			FMainForm      As Boolean
 			FMouseInClient As Boolean
 			FOwner             As Control Ptr
 			FDisposed As Boolean
@@ -189,7 +190,9 @@ Namespace My.Sys.Forms
 				Declare Static Sub DragDataReceived(self As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, x As gint, y As gint, Data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
 				Declare Static Function ConfigureEventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			#elseif defined(__USE_WASM__)
-				Declare Virtual Sub UpdateBody()
+				FType As String
+				FElementStyle As String
+				Declare Virtual Function GetContent() As UString
 			#elseif defined(__USE_WINAPI__)
 				FParentHandle As HWND
 				FClient As HWND

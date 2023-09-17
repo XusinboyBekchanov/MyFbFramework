@@ -223,7 +223,7 @@ Private Function OpenFileDialog.Execute As Boolean
 	#ifdef __USE_GTK__
 		Dim As GtkWindow Ptr win
 		Dim As GtkFileFilter Ptr filefilter()
-		If pApp->MainForm Then
+		If pApp AndAlso pApp->MainForm Then
 			win = GTK_WINDOW(pApp->MainForm->widget)
 		End If
 		widget =  gtk_file_chooser_dialog_new(ToUtf8(*FCaption), _

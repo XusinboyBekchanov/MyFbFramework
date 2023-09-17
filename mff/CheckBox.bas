@@ -128,6 +128,8 @@ Namespace My.Sys.Forms
 				FChecked = Perform(BM_GETCHECK, 0, 0)
 			#elseif defined(__USE_JNI__)
 				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
+			#elseif defined(__USE_WASM__)
+				FChecked = GetChecked(Trim(Str(FHandle)) & "checkbox")
 			#endif
 		End If
 		Return FChecked
@@ -142,6 +144,8 @@ Namespace My.Sys.Forms
 				Perform(BM_SETCHECK, FChecked, 0)
 			#elseif defined(__USE_JNI__)
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
+			#elseif defined(__USE_WASM__)
+				SetChecked(Trim(Str(FHandle)) & "checkbox", Value)
 			#endif
 		End If
 	End Property
@@ -168,6 +172,12 @@ Namespace My.Sys.Forms
 			'            End If
 			'        End If
 		End Sub
+	#endif
+	
+	#ifdef __USE_WASM__
+		Private Function CheckBox.GetContent() As UString
+			Return "<input type=""checkbox"" id=""" & Trim(Str(@This)) & "checkbox""/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "checkbox"" id=""" & Trim(Str(@This)) & "label"">" & FText & "</label>"
+		End Function
 	#endif
 	
 	Private Sub CheckBox.ProcessMessage(ByRef Message As Message)
@@ -305,6 +315,10 @@ Namespace My.Sys.Forms
 				.ChildProc              = @WndProc
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/CheckBox")
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
+				FType = ""
+				FElementStyle = "overflow: hidden; display: flex; align-items: center"
 			#endif
 			WLet(FClassName, "CheckBox")
 			FTabIndex = -1

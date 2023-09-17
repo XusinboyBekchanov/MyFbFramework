@@ -424,42 +424,42 @@ Namespace My.Sys.Drawing
 			CompatibleBmp = CreateCompatibleBitmap(DC, FBmpWidth, FBmpHeight)
 			SelectObject(memDC, CompatibleBmp)
 			
-			If CleanBK = False Then
-				RedrawWindow(ParentControl->Handle, NULL, NULL, RDW_INVALIDATE Or RDW_ALLCHILDREN)
-				CreateDoubleBuffered = False
-				If DrawGraphicBitmap Then SendMessage(ParentControl->Handle, WM_PAINT, 0, 128)
-			Else
-				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
-				Dim As ..Rect Re
-				Re= Type<..Rect>(0, 0, FBmpWidth, FBmpHeight)
-				.FillRect Handle, @Re, B
-				DeleteObject B
-			End If
-			BitBlt(memDC, 0, 0, FBmpWidth, FBmpHeight, DC, 0, 0, SRCCOPY)
+			'If CleanBK = False Then
+			'	RedrawWindow(ParentControl->Handle, NULL, NULL, RDW_INVALIDATE Or RDW_ALLCHILDREN)
+			'	CreateDoubleBuffered = False
+			'	If DrawGraphicBitmap Then SendMessage(ParentControl->Handle, WM_PAINT, 0, 128)
+			'Else
+			'	Dim As HBRUSH B = CreateSolidBrush(FBackColor)
+			'	Dim As ..Rect Re
+			'	Re= Type<..Rect>(0, 0, FBmpWidth, FBmpHeight)
+			'	.FillRect Handle, @Re, B
+			'	DeleteObject B
+			'End If
+			'BitBlt(memDC, 0, 0, FBmpWidth, FBmpHeight, DC, 0, 0, SRCCOPY)
 			Handle = memDC
-			If GdipToken <> NULL Then
-				If GdipPen Then GdipDeletePen(GdipPen)
-				If GdipBrush Then GdipDeleteBrush(GdipBrush)
-				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
-				If GdipToken Then GdiplusShutdown(GdipToken)
-			End If
-			FGdipStartupInput.GdiplusVersion = 1                    ' attempt to start GDI+
-			GdiplusStartup(@GdipToken, @FGdipStartupInput, NULL)
-			If GdipToken = NULL Then                         ' failed to start
-				Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GDIPlus failure! "
-			Else
-				If GdipCreateFromHDC(memDC, @GdipGraphics) <> NULL Then
-					If GdipToken Then GdiplusShutdown(GdipToken)
-					GdipToken = NULL
-					Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! ", True
-				Else
-					GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
-					GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
-					GdipSetPenEndCap GdipPen, 2
-					GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
-					GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
-				End If
-			End If
+			'If GdipToken <> NULL Then
+			'	If GdipPen Then GdipDeletePen(GdipPen)
+			'	If GdipBrush Then GdipDeleteBrush(GdipBrush)
+			'	If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+			'	If GdipToken Then GdiplusShutdown(GdipToken)
+			'End If
+			'FGdipStartupInput.GdiplusVersion = 1                    ' attempt to start GDI+
+			'GdiplusStartup(@GdipToken, @FGdipStartupInput, NULL)
+			'If GdipToken = NULL Then                         ' failed to start
+			'	Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GDIPlus failure! "
+			'Else
+			'	If GdipCreateFromHDC(memDC, @GdipGraphics) <> NULL Then
+			'		If GdipToken Then GdiplusShutdown(GdipToken)
+			'		GdipToken = NULL
+			'		Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! ", True
+			'	Else
+			'		GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
+			'		GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
+			'		GdipSetPenEndCap GdipPen, 2
+			'		GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
+			'		GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
+			'	End If
+			'End If
 			HandleSetted = True
 			FDoubleBuffer = True
 			CreateDoubleBuffered = True
@@ -471,7 +471,7 @@ Namespace My.Sys.Drawing
 			If AWidth = -1 Then AWidth = FBmpWidth Else AWidth = ScaleX(AWidth)
 			If AHeight = -1 Then AHeight = FBmpHeight Else AHeight = ScaleY(AHeight)
 			#ifdef __USE_WINAPI__
-				If memDC > 0 Then 
+				If memDC > 0 Then
 					SetStretchBltMode(DC, HALFTONE)
 					StretchBlt(DC, ScaleX(ALeft), ScaleY(ATop),  AWidth, AHeight, memDC, 0, 0, FBmpWidth, FBmpHeight, SRCCOPY)
 				End If

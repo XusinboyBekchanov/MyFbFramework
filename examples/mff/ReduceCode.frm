@@ -48,7 +48,7 @@
 		'#define Component_Left_Set_Off
 		'#define Component_Top_Set_Off
 		#define Control_IndexOf_String_Off
-		#define Control_RecreateWnd_Off
+		'#define Control_RecreateWnd_Off
 		#define Control_ChangeControlIndex_Off
 		#define Control_ChangeStyle_Off
 		#define Control_ChangeTabStop_Off
@@ -76,7 +76,7 @@
 		#define DoubleList_Add_Off
 		#define DoubleList_Exchange_Off
 		#define DoubleList_IndexOf_Off
-		#define Font_Color_Set_Off
+		'#define Font_Color_Set_Off
 		#define Form_ShowModal_Off
 		#define GraphicType_LoadFromFile_Off
 		#define GraphicType_LoadFromResourceID_Off
@@ -84,14 +84,14 @@
 		#define Grid_ChangeLVExStyle_Off
 		#define Grid_SelectedColumn_Off
 		#define Grid_SelectedRow_Off
-		#define GridColumn_Format_Set_Off
-		#define GridColumn_ImageIndex_Set_Off
-		#define GridColumn_Width_Set_Off
+		'#define GridColumn_Format_Set_Off
+		'#define GridColumn_ImageIndex_Set_Off
+		'#define GridColumn_Width_Set_Off
 		#define GridRow_ImageKey_Set_Off
 		#define GridRow_ImageIndex_Set_Off
 		#define GridRow_Indent_Set_Off
-		#define GridRow_Item_Off
-		#define GridRow_State_Set_Off
+		'#define GridRow_Item_Off
+		'#define GridRow_State_Set_Off
 		#define GridRows_Add_Integer_Off
 		#define GridRows_CompareFunc_Off
 		#define Icon_Height_Get_Off
@@ -123,9 +123,9 @@
 		#define MenuItem_Image_Set_BitmapType_Off
 		#define MenuItem_ImageIndex_Set_Off
 		#define MenuItem_Name_Set_Off
-		#define Pen_Color_Get_Off
+		'#define Pen_Color_Get_Off
 		#define Pen_Color_Set_Off
-		#define Pen_Create_Off
+		'#define Pen_Create_Off
 		#define Pen_Size_Set_Off
 		'#define Replace_Off
 		#define SaveToFile_Off

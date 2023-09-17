@@ -62,7 +62,7 @@
 			.Name = "MenuItem2"
 			.Designer = @This
 			.Caption = "Open"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @MenuItem2_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuItem2_Click)
 			.Parent = @MenuItem1
 		End With
 		' Panel1

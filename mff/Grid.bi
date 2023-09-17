@@ -55,7 +55,7 @@ Namespace My.Sys.Forms
 		FBackColor         As Integer = -1
 		FState             As Integer
 		FIndent            As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim lvi        As LVITEM
 		#endif
 	Public:
@@ -221,15 +221,28 @@ Namespace My.Sys.Forms
 		#endif
 		'GRID PROPERTY
 		'FGridLineDrawMode       As Integer = 1
-		FGridColorLine          As Integer = -1 'BGR(166, 166, 166) 'clSilver
-		FGridColorLineHeader    As Integer = clWhite 'BGR(166, 166, 166)'clSilver
-		FGridColorSelected      As Integer = BGR(178, 225, 235) ' &HFFFFE6 '&HFFFFDE ' &HFEE8FFFF 'BGR(210, 238, 245)'BGR(178, 214, 255)
-		FGridColorHover         As Integer = BGR(110, 228, 255)
-		FGridColorBack          As Integer = clWhite
-		FGridColorFore          As Integer = clBlack
-		FGridColorEditBack      As Integer = BGR(24, 255, 255) ' &H9AFA00'clWhite
-		FGridColorEditFore      As Integer = clBlack ' &H9AFA00'clWhite
-		FGridLineWidth          As Integer = 1
+		
+		#ifdef __USE_WINAPI__
+			FGridColorLine          As Integer = -1 'BGR(166, 166, 166) 'clSilver
+			FGridColorLineHeader    As Integer = clWhite 'BGR(166, 166, 166)'clSilver
+			FGridColorSelected      As Integer = BGR(178, 225, 235) ' &HFFFFE6 '&HFFFFDE ' &HFEE8FFFF 'BGR(210, 238, 245)'BGR(178, 214, 255)
+			FGridColorHover         As Integer = BGR(110, 228, 255)
+			FGridColorBack          As Integer = clWhite
+			FGridColorFore          As Integer = clBlack
+			FGridColorEditBack      As Integer = clHighlight 'BGR(24, 255, 255) ' &H9AFA00'clWhite
+			FGridColorEditFore      As Integer = clHighlightText 'clBlack ' &H9AFA00'clWhite
+			FGridLineWidth          As Integer = 1
+		#else
+			FGridColorLine          As Integer
+			FGridColorLineHeader    As Integer
+			FGridColorSelected      As Integer
+			FGridColorHover         As Integer
+			FGridColorBack          As Integer
+			FGridColorFore          As Integer
+			FGridColorEditBack      As Integer
+			FGridColorEditFore      As Integer
+			FGridLineWidth          As Integer
+		#endif
 		
 		#ifdef __USE_WINAPI__
 			FGridLinePenMode        As Integer = PS_SOLID
@@ -237,9 +250,11 @@ Namespace My.Sys.Forms
 			FGridLinePenMode        As Integer
 		#endif
 		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
+		#ifndef __USE_GTK__
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Sub EditControlShow(ByVal tRow As Integer, ByVal tCol As Integer)
 			Declare Sub DrawRect(tDc As HDC, R As Rect, FillColor As Integer = -1, tSelctionRow As Integer = -1, tSelctionCol As Integer = -1)
@@ -258,6 +273,10 @@ Namespace My.Sys.Forms
 			Declare Virtual Sub SetDark(Value As Boolean)
 			hHeader As HWND
 			headerTextColor As COLORREF
+		#endif
+	Protected:
+		#ifdef __USE_WASM__
+			Declare Virtual Function GetContent() As UString
 		#endif
 	Public:
 		Declare Sub Clear()
@@ -344,7 +363,7 @@ Namespace My.Sys.Forms
 End Namespace
 
 'TODO:
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	'const LVS_ICON = &h0
 	'const LVS_REPORT = &h1
 	'const LVS_SMALLICON = &h2

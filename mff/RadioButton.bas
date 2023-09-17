@@ -130,6 +130,8 @@ Namespace My.Sys.Forms
 				FChecked = Perform(BM_GETCHECK, 0, 0)
 			#elseif defined(__USE_JNI__)
 				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
+			#elseif defined(__USE_WASM__)
+				FChecked = GetChecked(Trim(Str(FHandle)) & "radio")
 			#endif
 		End If
 		Return FChecked
@@ -155,6 +157,8 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_JNI__)
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
+			#elseif defined(__USE_WASM__)
+				SetChecked(Trim(Str(FHandle)) & "radio", Value)
 			#endif
 		End If
 	End Property
@@ -179,6 +183,12 @@ Namespace My.Sys.Forms
 				
 			End If
 		End Sub
+	#endif
+	
+	#ifdef __USE_WASM__
+		Private Function RadioButton.GetContent() As UString
+			Return "<input type=""radio"" id=""" & Trim(Str(@This)) & "radio"" name=""" & IIf(FParent, FParent->Name, "") & """ value=""" & *FName & """/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "radio"" id=""" & Trim(Str(@This)) & "label"">" & FText & "</label>"
+		End Function
 	#endif
 	
 	Private Sub RadioButton.ProcessMessage(ByRef Message As Message)
@@ -306,6 +316,10 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "Button")
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/RadioButton")
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
+				FType = ""
+				FElementStyle = "display: flex; align-items: center"
 			#endif
 			.OnHandleIsAllocated = @HandleIsAllocated
 			FTabIndex          = -1

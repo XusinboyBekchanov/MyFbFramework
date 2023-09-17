@@ -25,6 +25,9 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 	Protected:
+		#ifdef __USE_WASM__
+			Declare Virtual Function GetContent() As UString
+		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off

@@ -76,7 +76,7 @@ Namespace My.Sys.Forms
 	Private Property Picture.AutoSize(Value As Boolean)
 		If Value <> FAutoSize Then
 			Base.AutoSize = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 		End If
@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 	Private Property Picture.Style(Value As PictureStyle)
 		If Value <> FPictureStyle Then
 			FPictureStyle = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 		End If
@@ -117,7 +117,7 @@ Namespace My.Sys.Forms
 	Private Property Picture.RealSizeImage(Value As Boolean)
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
@@ -131,7 +131,7 @@ Namespace My.Sys.Forms
 	Private Property Picture.CenterImage(Value As Boolean)
 		If Value <> FCenterImage Then
 			FCenterImage = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
@@ -150,7 +150,7 @@ Namespace My.Sys.Forms
 							gtk_image_set_from_pixbuf(GTK_IMAGE(QPicture(.Ctrl->Child).ImageWidget), .Icon.Handle)
 						End Select
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					Select Case ImageType
 					Case 0
 						QPicture(.Ctrl->Child).Style = PictureStyle.ssBitmap
@@ -183,8 +183,14 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#ifdef __USE_WASM__
+		Private Function Picture.GetContent() As UString
+			Return ""
+		End Function
+	#endif
+	
 	Private Sub Picture.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_LBUTTONUP
 				If FTransparent AndAlso CBool(FDownButton > 0) Then Repaint 'Updated the background image if Transparent=True after control movied
@@ -314,7 +320,7 @@ Namespace My.Sys.Forms
 			widget = gtk_layout_new(NULL, NULL)
 			If GTK_IS_WIDGET(ImageWidget) Then gtk_layout_put(GTK_LAYOUT(widget), ImageWidget, 0, 0)
 			This.RegisterClass "Picture", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			'https://blog.csdn.net/mmmvp/article/details/365155
 			'常数     说明
 			AStyle(0)=0
@@ -358,7 +364,7 @@ Namespace My.Sys.Forms
 		FPictureStyle = PictureStyle.ssBitmap
 		With This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "Picture", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
@@ -366,9 +372,9 @@ Namespace My.Sys.Forms
 				BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
+				WLet(FClassAncestor, "Static")
 			#endif
 			WLet(FClassName, "Picture")
-			WLet(FClassAncestor, "Static")
 			FTabIndex          = -1
 			.Width       =80
 			.Height      = 60

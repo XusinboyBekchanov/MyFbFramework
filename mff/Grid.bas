@@ -34,7 +34,7 @@ Namespace My.Sys.Forms
 					gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim lvi As LVITEM
 				lvi.iItem = Index
@@ -208,7 +208,7 @@ Namespace My.Sys.Forms
 		Private Property GridRow.ImageIndex(Value As Integer)
 			If Value <> FImageIndex Then
 				FImageIndex = Value
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If Parent AndAlso Parent->Handle Then
 						lvi.mask = LVIF_IMAGE
 						lvi.iItem = Index
@@ -222,7 +222,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property GridRow.Indent As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				lvi.mask = LVIF_INDENT
 				lvi.iItem = Index
@@ -237,7 +237,7 @@ Namespace My.Sys.Forms
 	#ifndef GridRow_Indent_Set_Off
 		Private Property GridRow.Indent(Value As Integer)
 			FIndent = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					lvi.mask = LVIF_INDENT
 					lvi.iItem = Index
@@ -280,7 +280,7 @@ Namespace My.Sys.Forms
 						gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
 					End If
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent AndAlso Parent->Handle AndAlso Cast(Grid Ptr, Parent)->Images Then
 					FImageIndex = Cast(Grid Ptr, Parent)->Images->IndexOf(Value)
 					lvi.mask = LVIF_IMAGE
@@ -352,7 +352,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Private Sub GridColumn.SelectItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
 		#endif
 	End Sub
@@ -363,7 +363,7 @@ Namespace My.Sys.Forms
 	
 	Private Property GridColumn.Text(ByRef Value As WString)
 		WLet(FText, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = TVIF_TEXT
@@ -378,7 +378,7 @@ Namespace My.Sys.Forms
 	Private Property GridColumn.Width As Integer
 		#ifdef __USE_GTK__
 			If This.Column Then FWidth = gtk_tree_view_column_get_width(This.Column)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim lvc As LVCOLUMN
 			lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 			lvc.iSubItem = Index
@@ -398,7 +398,7 @@ Namespace My.Sys.Forms
 				#else
 					If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
 				#endif
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent AndAlso Parent->Handle Then
 					Dim lvc As LVCOLUMN
 					lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
@@ -416,7 +416,7 @@ Namespace My.Sys.Forms
 	#ifndef GridColumn_Format_Set_Off
 		Private Property GridColumn.Format(Value As ColumnFormat)
 			FFormat = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					Dim lvc As LVCOLUMN
 					lvc.mask = LVCF_FMT Or LVCF_SUBITEM
@@ -683,6 +683,12 @@ Namespace My.Sys.Forms
 				gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
 			#elseif defined(__USE_WINAPI__)
 				SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
+			#elseif defined(__USE_WASM__)
+				Dim As UString strRow = ""
+				For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
+					strRow &= "<td>" & ToUtf8(PItem->Text(i)) & !"</td>\r"
+				Next
+				AddRow(Parent->Handle, strRow)
 			#endif
 			Return PItem
 		End Function
@@ -715,7 +721,7 @@ Namespace My.Sys.Forms
 			.State          = State
 			.Indent         = Indent
 		End With
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent->Handle Then
 				SendMessage(Parent->Handle, LVM_SETITEMCOUNT, Cast(Grid Ptr, Parent)->Rows.Count, LVSICF_NOINVALIDATEALL)
 				Cast(Grid Ptr, Parent)->Repaint
@@ -740,7 +746,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_remove(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
@@ -756,7 +762,7 @@ Namespace My.Sys.Forms
 	Private Sub GridRows.Clear
 		#ifdef __USE_GTK__
 			If Parent AndAlso GTK_LIST_STORE(GridGetModel(Parent->Handle)) Then gtk_list_store_clear(GTK_LIST_STORE(GridGetModel(Parent->Handle)))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
@@ -829,7 +835,7 @@ Namespace My.Sys.Forms
 	Private Function GridColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = 100, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False, ColBackColor As Integer = -1, ColForeColor As Integer = -1) As GridColumn Ptr
 		Dim As GridColumn Ptr PColumn
 		Dim As Integer Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
 		PColumn = _New(GridColumn)
@@ -896,7 +902,7 @@ Namespace My.Sys.Forms
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
 				#endif
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvc.fmt       =  Format
 			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
@@ -907,13 +913,15 @@ Namespace My.Sys.Forms
 		#endif
 		If Parent Then
 			PColumn->Parent = Parent
-			#ifdef __USE_GTK__
-				
-			#else
-				If Parent->Handle Then
+			If Parent->Handle Then
+				#ifdef __USE_GTK__
+					
+				#elseif defined(__USE_WINAPI__)
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
-				End If
-			#endif
+				#elseif defined(__USE_WASM__)
+					AddColumn(Parent->Handle, ToUtf8(FCaption))
+				#endif
+			End If
 		End If
 		Return PColumn
 	End Function
@@ -926,7 +934,7 @@ Namespace My.Sys.Forms
 		End If
 		If Index > FColumns.Count - 1 Then Add(FCaption, FImageIndex, iWidth, Format, ColEditable, ColBackColor, ColForeColor) : Exit Sub
 		Dim As GridColumn Ptr PColumn, tColumn
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 			PColumn = _New(GridColumn)
 			FColumns.Insert Index, PColumn
@@ -978,7 +986,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub GridColumns.Remove(Index As Integer)
 		FColumns.Remove Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				For j As Integer = 0 To Cast(Grid Ptr, Parent)->Rows.Count - 1
 					Cast(Grid Ptr, Parent)->Rows.Item(j)->ColumnEvents(Index, True)
@@ -996,7 +1004,7 @@ Namespace My.Sys.Forms
 		For i As Integer = Count -1 To 0 Step -1
 			_Delete( @QGridColumn(FColumns.Items[i]))
 			FColumns.Remove i
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, i), 0
 				End If
@@ -1128,7 +1136,7 @@ Namespace My.Sys.Forms
 		FColumnHeaderHidden = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), Not Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle LVS_NOCOLUMNHEADER, Value
 		#endif
 	End Property
@@ -1139,7 +1147,7 @@ Namespace My.Sys.Forms
 	
 	#ifndef Grid_ChangeLVExStyle_Off
 		Private Sub Grid.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
 				If Value Then
 					If ((FLVExStyle And iStyle) <> iStyle) Then FLVExStyle = FLVExStyle Or iStyle
@@ -1164,7 +1172,7 @@ Namespace My.Sys.Forms
 			#else
 				
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_ONECLICKACTIVATE, Value
 		#endif
 	End Property
@@ -1178,7 +1186,7 @@ Namespace My.Sys.Forms
 		FHoverSelection = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_hover_selection(GTK_TREE_VIEW(widget), Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_TRACKSELECT, Value
 		#endif
 	End Property
@@ -1189,7 +1197,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Grid.HoverTime(Value As Integer)
 		FHoverTime = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(LVM_SETHOVERTIME, 0, Value)
 		#endif
 	End Property
@@ -1212,7 +1220,7 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To Columns.Count - 1
 				gtk_tree_view_column_set_reorderable(Columns.Column(i)->Column, Value)
 			Next
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_HEADERDRAGDROP, Value
 		#endif
 	End Property
@@ -1226,8 +1234,8 @@ Namespace My.Sys.Forms
 		FGridLines = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
-		#else
-			ChangeLVExStyle LVS_EX_GRIDLINES, Value
+		#elseif defined(__USE_WINAPI__)
+			ChangeLVExStyle LVS_EX_GridLINES, Value
 		#endif
 	End Property
 	
@@ -1238,7 +1246,7 @@ Namespace My.Sys.Forms
 	Private Property Grid.FullRowSelect(Value As Boolean)
 		If FFullRowSelect = Value Then Return
 		FFullRowSelect = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeLVExStyle LVS_EX_FULLROWSELECT, Value
 		#endif
 	End Property
@@ -1319,7 +1327,7 @@ Namespace My.Sys.Forms
 				'				If lvi <> 0 Then Return lvi->Index
 				Return i
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
@@ -1339,7 +1347,7 @@ Namespace My.Sys.Forms
 					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			End If
@@ -1352,7 +1360,7 @@ Namespace My.Sys.Forms
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
 				Return Rows.FindByIterUser_Data(iter.user_data)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Dim As Integer item = ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 				If item <> -1 Then Return Rows.Item(item)
@@ -1457,7 +1465,7 @@ Namespace My.Sys.Forms
 					If OnRowKeyDown Then OnRowKeyDown(*Designer, This, SelectedRowIndex, Message.Event->key.keyval, Message.Event->key.state)
 				End If
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Rect R, Rc, Rc_
 			Select Case Message.Msg
 			Case LVM_DELETECOLUMN
@@ -1704,7 +1712,14 @@ Namespace My.Sys.Forms
 									If SelectedItem < iRowsCount Then
 										ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
 										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth 
-										If SelectedItem < iRowsCount Then DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
+										If SelectedItem < iRowsCount Then 
+											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
+											If SelectedItem = FRow AndAlso iCol = FCol Then
+												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
+												SetTextColor nmcd->hdc, TextColorSave
+												DrawFocusRect nmcd->hdc, @Rc
+											End If
+										End If
 										'If iCol = FCol Then DrawFocusRect nmcd->hdc, @R 'draw focus rectangle
 										Rc.Left = R.Left + 3 : Rc.Right = R.Right - 3 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
 										If iCol = 0 Then
@@ -1713,6 +1728,7 @@ Namespace My.Sys.Forms
 										End If
 										TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
 										TextColor = IIf(TextColor <> -1, TextColor, IIf(TextColorCol = -1, This.ForeColor, TextColorCol))
+										If SelectedItem = FRow AndAlso iCol = FCol Then TextColor = FGridColorEditFore
 										If TextColor <>  TextColorSave  Then SetTextColor nmcd->hdc, TextColor : TextColorSave = TextColor
 										DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
 									End If
@@ -1734,7 +1750,14 @@ Namespace My.Sys.Forms
 										If R.Right < 0 Then Continue For
 										If ScrollLeft + ScaleX(This.Width) < R.Left Then Exit For
 										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth 
-										If SelectedItem < iRowsCount Then DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
+										If SelectedItem < iRowsCount Then 
+											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
+											If SelectedItem = FRow AndAlso iCol = FCol Then
+												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
+												SetTextColor nmcd->hdc, TextColorSave
+												DrawFocusRect nmcd->hdc, @Rc
+											End If
+										End If
 										'If iCol = FCol Then DrawFocusRect nmcd->hdc, @R 'draw focus rectangle
 										Rc.Left = R.Left + 3 : Rc.Right = R.Right - 3 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
 										Select Case Columns.Column(iCol)->Format
@@ -1750,6 +1773,7 @@ Namespace My.Sys.Forms
 											End If
 											TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
 											TextColor = IIf(TextColor <> -1, TextColor, IIf(TextColorCol = -1, This.ForeColor, TextColorCol))
+											If SelectedItem = FRow AndAlso iCol = FCol Then TextColor = FGridColorEditFore
 											If TextColor <>  TextColorSave  Then SetTextColor nmcd->hdc, TextColor : TextColorSave = TextColor
 											DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
 										End If
@@ -1865,6 +1889,95 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
+	#ifdef __USE_WASM__
+		Private Function Grid.GetContent() As UString
+			Return "<thead><tr></tr></thead><tbody></tbody>"
+		End Function
+	#endif
+	
+	#ifndef __USE_GTK__
+		Private Sub Grid.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QGrid(Sender.Child)
+					If .Images Then
+						.Images->ParentWindow = @Sender
+						#ifdef __USE_WINAPI__
+							If .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
+						#endif
+					End If
+					If .SelectedImages Then .SelectedImages->ParentWindow = @Sender
+					If .SmallImages Then .SmallImages->ParentWindow = @Sender
+					If .GroupHeaderImages Then .GroupHeaderImages->ParentWindow = @Sender
+					#ifdef __USE_WINAPI__
+						If .Images AndAlso .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
+						If .SelectedImages AndAlso .SelectedImages->Handle Then ListView_SetImageList(.FHandle, CInt(.SelectedImages->Handle), LVSIL_STATE)
+						If .SmallImages AndAlso .SmallImages->Handle Then ListView_SetImageList(.FHandle, CInt(.SmallImages->Handle), LVSIL_SMALL)
+						If .GroupHeaderImages AndAlso .GroupHeaderImages->Handle Then ListView_SetImageList(.FHandle, CInt(.GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
+						Dim lvStyle As Integer
+						lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
+						lvStyle = lvStyle Or .FLVExStyle
+						SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
+						.GridEditText.ParentHandle = .Handle
+					#endif
+					.GridEditText.Visible = False
+					For i As Integer = 0 To .Columns.Count - 1
+						#ifdef __USE_WINAPI__
+							Dim lvc As LVCOLUMN
+							lvc.mask            = LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+							lvc.fmt             = .Columns.Column(i)->Format
+							lvc.cx              = 0
+							lvc.pszText         = @.Columns.Column(i)->Text
+							lvc.cchTextMax      = Len(.Columns.Column(i)->Text)
+							lvc.iImage          = .Columns.Column(i)->ImageIndex
+							lvc.iSubItem        = i
+							Var iWidth = .Columns.Column(i)->Width
+							ListView_InsertColumn(.FHandle, i, @lvc)
+							ListView_SetColumnWidth(.FHandle, i, ScaleX(iWidth))
+						#elseif defined(__USE_WASM__)
+							AddColumn(.FHandle, ToUtf8(.Columns.Column(i)->Text))
+						#endif
+					Next i
+					Var TempHandle = .FHandle
+					For i As Integer = 0 To .Rows.Count - 1
+						#ifdef __USE_WASM__
+							Dim As UString strRow = ""
+						#endif
+						For j As Integer = 0 To .Columns.Count - 1
+							.FHandle = 0
+							#ifdef __USE_WINAPI__
+								Dim lvi As LVITEM
+								lvi.pszText         = @.Rows.Item(i)->Text(j)
+								lvi.cchTextMax      = Len(.Rows.Item(i)->Text(j))
+								lvi.iItem           = i
+								lvi.iSubItem        = j
+								If j = 0 Then
+									lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+									lvi.iImage          = .Rows.Item(i)->ImageIndex
+									lvi.state   = INDEXTOSTATEIMAGEMASK(.Rows.Item(i)->State)
+									lvi.stateMask = LVIS_STATEIMAGEMASK
+									lvi.iIndent   = .Rows.Item(i)->Indent
+									lvi.lParam   =  Cast(LPARAM, .Rows.Item(i))
+									.FHandle = TempHandle
+									ListView_InsertItem(.FHandle, @lvi)
+								Else
+									.FHandle = TempHandle
+									lvi.mask = LVIF_TEXT
+									ListView_SetItem(.FHandle, @lvi)
+								End If
+							#elseif defined(__USE_WASM__)
+								strRow &= "<td style=""border: 1px solid;"">" & ToUtf8(.Rows.Item(i)->Text(j)) & "</td>"
+							#endif
+						Next j
+						#ifdef __USE_WASM__
+							AddRow(TempHandle, strRow)
+						#endif
+					Next i
+					.SelectedRowIndex = 0
+				End With
+			End If
+		End Sub
+	#endif
+	
 	#ifdef __USE_WINAPI__
 		Private Sub Grid.EditControlShow(ByVal tRow As Integer, ByVal tCol As Integer)
 			If FAllowEdit = False OrElse CBool(tCol = 0) OrElse (IIf(Rows.Item(tRow)->Editable= False, Not Columns.Column(tCol)->Editable, Not Rows.Item(tRow)->Item(tCol)->Editable)) Then Exit Sub
@@ -1893,7 +2006,7 @@ Namespace My.Sys.Forms
 			Static As HBRUSH BSelction
 			Static As HBRUSH BCellBack
 			Static As Integer FillColorSave
-			If tSelctionRow = FRow  Then
+			If tSelctionRow = FRow AndAlso (FFullRowSelect OrElse (tSelctionCol = FCol)) Then
 				If BSelction Then DeleteObject BSelction
 				BSelction = CreateSolidBrush(IIf(tSelctionCol = FCol, FGridColorEditBack, FGridColorSelected))
 				FillRect tDc, @R, BSelction
@@ -1917,70 +2030,7 @@ Namespace My.Sys.Forms
 		End Sub
 		Private Sub Grid.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
-		
-		Private Sub Grid.HandleIsAllocated(ByRef Sender As Control)
-			If Sender.Child Then
-				With QGrid(Sender.Child)
-					If .Images Then
-						.Images->ParentWindow = @Sender
-						If .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
-					End If
-					If .SelectedImages Then .SelectedImages->ParentWindow = @Sender
-					If .SmallImages Then .SmallImages->ParentWindow = @Sender
-					If .GroupHeaderImages Then .GroupHeaderImages->ParentWindow = @Sender
-					If .Images AndAlso .Images->Handle Then ListView_SetImageList(.FHandle, CInt(.Images->Handle), LVSIL_NORMAL)
-					If .SelectedImages AndAlso .SelectedImages->Handle Then ListView_SetImageList(.FHandle, CInt(.SelectedImages->Handle), LVSIL_STATE)
-					If .SmallImages AndAlso .SmallImages->Handle Then ListView_SetImageList(.FHandle, CInt(.SmallImages->Handle), LVSIL_SMALL)
-					If .GroupHeaderImages AndAlso .GroupHeaderImages->Handle Then ListView_SetImageList(.FHandle, CInt(.GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
-					Dim lvStyle As Integer
-					lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-					lvStyle = lvStyle Or .FLVExStyle
-					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
-					.GridEditText.ParentHandle= .Handle
-					.GridEditText.Visible= False
-					For i As Integer = 0 To .Columns.Count -1
-						Dim lvc As LVCOLUMN
-						lvc.mask            = LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-						lvc.fmt             = .Columns.Column(i)->Format
-						lvc.cx              = 0
-						lvc.pszText         = @.Columns.Column(i)->Text
-						lvc.cchTextMax      = Len(.Columns.Column(i)->Text)
-						lvc.iImage          = .Columns.Column(i)->ImageIndex
-						lvc.iSubItem        = i
-						Var iWidth = .Columns.Column(i)->Width
-						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, ScaleX(iWidth))
-					Next i
-					Var TempHandle = .FHandle
-					For i As Integer = 0 To .Rows.Count - 1
-						For j As Integer = 0 To .Columns.Count - 1
-							.FHandle = 0
-							Dim lvi As LVITEM
-							lvi.pszText         = @.Rows.Item(i)->Text(j)
-							lvi.cchTextMax      = Len(.Rows.Item(i)->Text(j))
-							lvi.iItem           = i
-							lvi.iSubItem        = j
-							If j = 0 Then
-								lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
-								lvi.iImage          = .Rows.Item(i)->ImageIndex
-								lvi.state   = INDEXTOSTATEIMAGEMASK(.Rows.Item(i)->State)
-								lvi.stateMask = LVIS_STATEIMAGEMASK
-								lvi.iIndent   = .Rows.Item(i)->Indent
-								lvi.lParam   =  Cast(LPARAM, .Rows.Item(i))
-								.FHandle = TempHandle
-								ListView_InsertItem(.FHandle, @lvi)
-							Else
-								.FHandle = TempHandle
-								lvi.mask = LVIF_TEXT
-								ListView_SetItem(.FHandle, @lvi)
-							End If
-						Next j
-					Next i
-					.SelectedRowIndex = 0
-				End With
-			End If
-		End Sub
-	#else
+	#elseif defined(__USE_GTK__)
 		Private Sub Grid.Grid_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As Grid Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
@@ -2125,7 +2175,7 @@ Namespace My.Sys.Forms
 			.BringToFront
 		End With
 		With This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.ChildProc         = @WndProc
@@ -2138,6 +2188,10 @@ Namespace My.Sys.Forms
 				.ForeColor = IIf(g_darkModeEnabled, darkTextColor, Font.Color)
 				.RegisterClass "Grid", WC_LISTVIEW
 				WLet(FClassAncestor, WC_LISTVIEW)
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "table")
+				FElementStyle = "border-collapse: collapse;"
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Child             = @This
 			WLet(FClassName, "Grid")
@@ -2149,9 +2203,9 @@ Namespace My.Sys.Forms
 	Private Destructor Grid
 		Rows.Clear
 		Columns.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "Grid", GetModuleHandle(NULL)
-		#else
+		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 		#endif
 	End Destructor

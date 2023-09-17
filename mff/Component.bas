@@ -144,7 +144,7 @@ Namespace My.Sys.ComponentModel
 	Private Property Component.Name(ByRef Value As WString)
 		WLet(FName, Value)
 		#ifdef __USE_GTK__
-			If gtk_is_widget(widget) Then gtk_widget_set_name(widget, Value)
+			If GTK_IS_WIDGET(widget) Then gtk_widget_set_name(widget, Value)
 		#endif
 	End Property
 	
@@ -197,6 +197,22 @@ Namespace My.Sys.ComponentModel
 			Private Property Component.LayoutHandle(Value As HWND)
 				FHandle = Value
 			End Property
+		#elseif defined(__USE_WASM__)
+			Private Property Component.Handle As Any Ptr
+				Return FHandle
+			End Property
+			
+			Private Property Component.Handle(Value As Any Ptr)
+				FHandle = Value
+			End Property
+			
+			Private Property Component.LayoutHandle As Any Ptr
+				Return FHandle
+			End Property
+			
+			Private Property Component.LayoutHandle(Value As Any Ptr)
+				FHandle = Value
+			End Property
 		#endif
 	#endif
 	
@@ -238,7 +254,7 @@ Namespace My.Sys.ComponentModel
 				If widget Then
 					If GTK_IS_WIDGET(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
-						gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
+						gtk_window_resize(GTK_WINDOW(widget), max(0, iWidth), max(0, iHeight - 20))
 						'gtk_window_resize(GTK_WINDOW(widget), Max(1, iWidth), Max(1, iHeight))
 						'RequestAlign iWidth, iHeight
 					Else
@@ -258,7 +274,7 @@ Namespace My.Sys.ComponentModel
 						End If
 						'gtk_widget_set_size_allocation(widget, @allocation)
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
-						gtk_widget_set_size_request(CtrlWidget, Max(0, iWidth), Max(0, iHeight))
+						gtk_widget_set_size_request(CtrlWidget, max(0, iWidth), max(0, iHeight))
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 						'gtk_widget_queue_draw(widget)
@@ -379,10 +395,10 @@ Namespace My.Sys.ComponentModel
 				If FHandle Then
 					If FParent AndAlso UCase(FParent->ClassName) = "SYSTABCONTROL32" Or UCase(FParent->ClassName) = "TABCONTROL" Then
 					Else
-						Dim As Rect R
+						Dim As RECT R
 						GetWindowRect Handle,@R
 						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
-						FTop = UnScaleY(R.Top)
+						FTop = UnScaleY(R.top)
 						'If FParent Then FTop -= FParent->Margins.Top
 					End If
 				End If
@@ -464,7 +480,7 @@ Namespace My.Sys.ComponentModel
 	#ifndef Height_Off
 		Private Property Component.Height As Integer
 			#ifdef __USE_GTK__
-				If gtk_is_widget(widget) AndAlso gtk_widget_get_realized(widget) Then
+				If GTK_IS_WIDGET(widget) AndAlso gtk_widget_get_realized(widget) Then
 					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 					If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 						#ifndef __USE_GTK2__
@@ -482,10 +498,10 @@ Namespace My.Sys.ComponentModel
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
-					Dim As Rect R
+					Dim As RECT R
 					GetWindowRect Handle, @R
 					MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
-					FHeight = UnScaleY(R.Bottom - R.Top)
+					FHeight = UnScaleY(R.bottom - R.top)
 				End If
 			#elseif defined(__USE_JNI__)
 				If FHandle Then
@@ -503,7 +519,7 @@ Namespace My.Sys.ComponentModel
 		End Property
 		
 		Private Property Component.Height(Value As Integer)
-			FHeight = Max(FMinHeight, Value)
+			FHeight = max(FMinHeight, Value)
 			Move This.Left, This.Top, This.Width, FHeight
 		End Property
 	#endif
@@ -511,6 +527,10 @@ Namespace My.Sys.ComponentModel
 	Private Function Component.ToString ByRef As WString
 		Return This.Name
 	End Function
+	
+	'Constructor Component
+	'	
+	'End Constructor
 	
 	Destructor Component
 		WDeAllocate(FName)

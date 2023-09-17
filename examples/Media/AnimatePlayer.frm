@@ -13,7 +13,7 @@
 	#define MoviePlayOn
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#ifdef __FB_WIN32__
-			#Cmdline "AnimatePlayer.rc"
+			#cmdline "AnimatePlayer.rc"
 		#endif
 		#define __MAIN_FILE__ __FILE__
 	#endif
@@ -192,9 +192,9 @@
 				.Caption = "VisualFBEditor Animate Player(X32)"
 			#endif
 			.Designer = @This
-			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Form_Create)
-			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Form_Close)
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Form_Resize)
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.StartPosition = FormStartPosition.CenterScreen
 			.BackColor = 8421376
 			.SetBounds 0, 0, 800, 480
@@ -214,7 +214,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 0, 25, 785, 375
-			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Animate1_Message)
+			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef MSG As Message), @Animate1_Message)
 			.SendToBack
 			.Designer = @This
 			.Parent = @This
@@ -251,7 +251,7 @@
 			.Caption = "Open"
 			.SetBounds 8, 2, 50, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdPlay
@@ -263,7 +263,7 @@
 			.Enabled = False
 			.SetBounds 59, 2, 50, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdClose
@@ -276,7 +276,7 @@
 			.Enabled = False
 			.SetBounds 110, 2, 50, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdFull(0)
@@ -288,7 +288,7 @@
 			.Enabled = False
 			.SetBounds 170, 2, 20, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBtn_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @PanelControl
 		End With
 		' cboChanel
@@ -300,7 +300,7 @@
 			.DropDownCount = 28
 			.SetBounds 250, 2, 160, 19
 			.Designer = @This
-			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cboChanel_Selected)
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cboChanel_Selected)
 			.Parent = @PanelControl
 		End With
 		' cboFileName
@@ -319,7 +319,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 410, 2, 339, 20
 			.Designer = @This
-			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cboFileName_DblClick)
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cboFileName_DblClick)
 			.Parent = @PanelControl
 		End With
 		
@@ -354,8 +354,8 @@
 			.PageSize = 10
 			.SetBounds 0, 16, 110, 30
 			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_Change)
-			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_MouseUp)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbAudio_Change)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbAudio_MouseUp)
 			.Parent = @PanelPosition
 		End With
 		' lblBalance
@@ -386,8 +386,8 @@
 			.PageSize = 10
 			.SetBounds 110, 16, 110, 30
 			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_Change)
-			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbAudio_MouseUp)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbAudio_Change)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbAudio_MouseUp)
 			.Parent = @PanelPosition
 		End With
 		' lblPosition
@@ -434,9 +434,9 @@
 			.Anchor.Top = AnchorStyle.asNone
 			.SetBounds 270, 16, 488, 20
 			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbPosition_Change)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbPosition_MouseDown)
-			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @tbPosition_MouseUp)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbPosition_Change)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbPosition_MouseDown)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbPosition_MouseUp)
 			.Parent = @PanelPosition
 		End With
 		' cmdRate(0)
@@ -446,7 +446,7 @@
 			.TabIndex = 20
 			.SetBounds 250, 18, 22, 16
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRate_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRate_Click)
 			.Parent = @PanelPosition
 		End With
 		
@@ -458,7 +458,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 760, 18, 22, 16
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRate_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRate_Click)
 			.Parent = @PanelPosition
 		End With
 		' OpenFileDialog1
@@ -474,7 +474,7 @@
 			.Interval = 20
 			.SetBounds 20, 0, 16, 16
 			.Designer = @This
-			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @TimerComponent1_Timer)
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @This
 		End With
 		' ImageList1
@@ -494,7 +494,7 @@
 			.Enabled = False
 			.SetBounds 460, 1, 40, 16
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkLoop_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkLoop_Click)
 			.Parent = @PanelPosition
 		End With
 		' cmdBrowse
@@ -508,7 +508,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 750, 2, 29, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBrowse_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBrowse_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdFull(1)
@@ -521,7 +521,7 @@
 			.Caption = "1X"
 			.SetBounds 190, 2, 20, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdFull_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFull_Click)
 			.Parent = @PanelControl
 		End With
 		' cmdFull(2)
@@ -531,7 +531,7 @@
 			.TabIndex = 22
 			.ControlIndex = 4
 			.Enabled = False
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdFull_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFull_Click)
 			.Caption = "2X"
 			.SetBounds 210, 2, 20, 20
 			.Designer = @This
@@ -547,7 +547,7 @@
 			.Caption = "3X"
 			.SetBounds 230, 2, 20, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdFull_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFull_Click)
 			.Parent = @PanelControl
 		End With
 		
@@ -561,7 +561,7 @@
 			.Enabled = False
 			.SetBounds 520, 1, 80, 16
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkRatio_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkRatio_Click)
 			.Parent = @PanelPosition
 		End With
 	End Constructor

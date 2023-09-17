@@ -250,6 +250,9 @@ Namespace My.Sys.Forms
 				.RegisterClass "CommandButton", @This
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/Button")
+			#elseif defined(__USE_WASM__)
+				FElementStyle = "overflow: hidden;"
+				WLet(FClassAncestor, "button")
 			#endif
 			#ifdef __USE_WINAPI__
 				.ExStyle     = 0

@@ -442,7 +442,7 @@ Namespace My.Sys.Forms
 							GdipCreateFromHDC(Dc, @gifGdipCanvas)
 							GdipImageSelectActiveFrame(gifImagePtr, @FFrameList, FFrameIndex)
 							GdipDrawImageRect(gifGdipCanvas, gifImagePtr, FFrameLeft, FFrameTop, FFrameWidth, FFrameHeight) 'copy frame to GDI canvas
-							If OnPaint Then OnPaint(This, Canvas)
+							If OnPaint Then OnPaint(*Designer, This, Canvas)
 							EndPaint Handle, @Ps
 							DeleteDC(Dc)
 							'Message.Result = 0

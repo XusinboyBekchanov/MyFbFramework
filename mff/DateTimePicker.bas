@@ -58,11 +58,22 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					WLet(FFormat, Replace(Value, "'", """"))
 					SelectedDateTime = FSelectedDateTime
-				#else
+				#elseif defined(__USE_WINAPI__)
 					DateTime_SetFormat(FHandle, FCustomFormat)
 				#endif
 			End If
 		End If
+		#ifdef __USE_WASM__
+			If FDateFormat = DateTimePickerFormat.CustomFormat Then
+				If (InStr(*FCustomFormat, "d") > 0 OrElse InStr(*FCustomFormat, "M") > 0 OrElse InStr(*FCustomFormat, "y") > 0) AndAlso (InStr(*FCustomFormat, "h") > 0 OrElse InStr(*FCustomFormat, "m") > 0 OrElse InStr(*FCustomFormat, "s") > 0) Then
+					FType = "datetime-local"
+				ElseIf InStr(*FCustomFormat, "h") > 0 OrElse InStr(*FCustomFormat, "m") > 0 OrElse InStr(*FCustomFormat, "s") > 0 Then
+					FType = "time"
+				Else
+					FType = "date"
+				End If
+			End If
+		#endif
 	End Property
 	
 	Private Property DateTimePicker.AutoNextPart As Boolean
@@ -77,7 +88,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			#ifdef __USE_GTK__
 				FChecked = gtk_toggle_button_get_active(gtk_toggle_button(CheckWidget))
-			#else
+			#elseif defined(__USE_WINAPI__)
 				FChecked = DateTime_GetSystemTime(FHandle, 0)
 			#endif
 		End If
@@ -89,7 +100,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			#ifdef __USE_GTK__
 				gtk_toggle_button_set_active(gtk_toggle_button(CheckWidget), Value)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				' The incoming date string should be in the format YYYYMMDD
 				Dim As SYSTEMTIME pst
 				Dim As Double sDateTime = This.SelectedDateTime
@@ -112,7 +123,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			#ifdef __USE_GTK__
 				FSelectedDate = DateSerial(Year(FSelectedDateTime), Month(FSelectedDateTime), Day(FSelectedDateTime))
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
 				Dim As DWORD Result
 				Result = DateTime_GetSystemTime(FHandle, @pst)
@@ -120,6 +131,9 @@ Namespace My.Sys.Forms
 				If Result = GDT_NONE Then
 					
 				End If
+			#elseif defined(__USE_WASM__)
+				Dim As String SelectedText = Text
+				FSelectedDate = DateSerial(Val(.Left(SelectedText, 4)), Val(Mid(SelectedText, 6, 2)), Val(Mid(SelectedText, 9, 2)))
 			#endif
 		End If
 		Return FSelectedDate
@@ -130,7 +144,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			#ifdef __USE_GTK__
 				SelectedDateTime = Value + SelectedTime
-			#else
+			#elseif defined(__USE_WINAPI__)
 				' The incoming date string should be in the format YYYYMMDD
 				Dim As SYSTEMTIME pst
 				pst.wYear  = Year(Value)
@@ -141,16 +155,20 @@ Namespace My.Sys.Forms
 				pst.wMinute = Minute(sTime)
 				pst.wSecond = Second(sTime)
 				DateTime_SetSystemtime(FHandle, GDT_VALID, @pst)
+			#elseif defined(__USE_WASM__)
+				SetStringValue(FHandle, Format(Value + SelectedTime, "yyyy-MM-ddThh:mm:ss"))
 			#endif
 		End If
 	End Property
 	
 	Private Property DateTimePicker.SelectedDateTime As Double
 		If FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Dim As SYSTEMTIME pst
 				DateTime_GetSystemtime(FHandle, @pst)
 				FSelectedDateTime = DateSerial(pst.wYear, pst.wMonth, pst.wDay) + TimeSerial(pst.wHour, pst.wMinute, pst.wSecond)
+			#elseif defined(__USE_WASM__)
+				Dim As String SelectedText = Text
 			#endif
 		End If
 		Return FSelectedDateTime
@@ -166,7 +184,7 @@ Namespace My.Sys.Forms
 					gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(Format(Value, *FFormat)), -1)
 				#endif
 				If OnDateTimeChanged Then OnDateTimeChanged(*Designer, This)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
 				pst.wYear  = Year(Value)
 				pst.wMonth = Month(Value)
@@ -175,6 +193,8 @@ Namespace My.Sys.Forms
 				pst.wMinute = Minute(Value)
 				pst.wSecond = Second(Value)
 				DateTime_SetSystemtime(FHandle, GDT_VALID, @pst)
+			#elseif defined(__USE_WASM__)
+				SetStringValue(FHandle, Format(Value, "yyyy-MM-ddThh:mm:ss"))
 			#endif
 		End If
 	End Property
@@ -186,6 +206,11 @@ Namespace My.Sys.Forms
 			#else
 				FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
 			#endif
+			Return *FText.vptr
+		#elseif defined(__USE_WASM__)
+			Dim ptr_ As ZString Ptr = GetStringValue(@This)
+			FText = *ptr_
+			Free(ptr_)
 			Return *FText.vptr
 		#else
 			Return Base.Text
@@ -209,7 +234,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			#ifdef __USE_GTK__
 				FSelectedTime = TimeSerial(Hour(FSelectedDateTime), Minute(FSelectedDateTime), Second(FSelectedDateTime))
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
 				DateTime_GetSystemTime(FHandle, @pst)
 				FSelectedTime = TimeSerial(pst.wHour, pst.wMinute, pst.wSecond)
@@ -223,7 +248,7 @@ Namespace My.Sys.Forms
 		If FHandle Then
 			#ifdef __USE_GTK__
 				SelectedDateTime = SelectedDate + Value
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
 				Dim As Long lDate = This.SelectedDate
 				pst.wYear  = Year(lDate)
@@ -233,12 +258,14 @@ Namespace My.Sys.Forms
 				pst.wMinute = Minute(Value)
 				pst.wSecond = Second(Value)
 				DateTime_SetSystemTime(FHandle, GDT_VALID, @pst)
+			#elseif defined(__USE_WASM__)
+				SetStringValue(FHandle, Format(SelectedDate + Value, "yyyy-MM-ddThh:mm:ss"))
 			#endif
 		End If
 	End Property
 	
 	Private Property DateTimePicker.CalendarRightAlign As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FRightAlign = StyleExists(DTS_RIGHTALIGN)
 		#endif
 		Return FRightAlign
@@ -246,14 +273,14 @@ Namespace My.Sys.Forms
 	
 	Private Property DateTimePicker.CalendarRightAlign(Value As Boolean)
 		FRightAlign = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle DTS_RIGHTALIGN, Value
 		#endif
 		If FHandle Then RecreateWnd
 	End Property
 	
 	Private Property DateTimePicker.ShowUpDown As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FShowUpDown = StyleExists(DTS_UPDOWN)
 		#endif
 		Return FShowUpDown
@@ -281,14 +308,14 @@ Namespace My.Sys.Forms
 					gtk_widget_show(ButtonLayoutWidget)
 				#endif
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle DTS_UPDOWN, Value
 		#endif
 		If FHandle Then RecreateWnd
 	End Property
 	
 	Private Property DateTimePicker.ShowNone As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FShowNone = StyleExists(DTS_SHOWNONE)
 		#endif
 		Return FShowNone
@@ -310,7 +337,7 @@ Namespace My.Sys.Forms
 					gtk_widget_hide(CheckLayoutWidget)
 				#endif
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle DTS_SHOWNONE, Value
 		#endif
 		If FHandle Then RecreateWnd
@@ -318,7 +345,7 @@ Namespace My.Sys.Forms
 	
 	Private Property DateTimePicker.DateFormat As DateTimePickerFormat
 		If FHandle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Dim As DWORD dwStyle = GetWindowLong(FHandle, GWL_STYLE)
 				If (dwStyle And DTS_LONGDATEFORMAT) Then
 					FDateFormat = DateTimePickerFormat.LongDate
@@ -347,7 +374,7 @@ Namespace My.Sys.Forms
 			Case DateTimePickerFormat.CustomFormat: WLet(FFormat, Replace(*FCustomFormat, "'", """"))
 			End Select
 			SelectedDateTime = FSelectedDateTime
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle DTS_LONGDATEFORMAT, Value = DateTimePickerFormat.LongDate
 			ChangeStyle DTS_SHORTDATEFORMAT, Value = DateTimePickerFormat.ShortDate
 			ChangeStyle DTS_SHORTDATECENTURYFORMAT, Value =  DateTimePickerFormat.ShortDateCentury
@@ -359,6 +386,21 @@ Namespace My.Sys.Forms
 					DateTime_SetFormat(FHandle, FCustomFormat)
 				End If
 			End If
+		#elseif defined(__USE_WASM__)
+			Select Case Value
+			Case DateTimePickerFormat.LongDate: FType = "date": WLet(FFormat, "dd MMMM yyyy")
+			Case DateTimePickerFormat.ShortDate: FType = "date": WLet(FFormat, "dd.MM.yyyy")
+			Case DateTimePickerFormat.ShortDateCentury: FType = "date": WLet(FFormat, "dd.MM.yyyy")
+			Case DateTimePickerFormat.TimeFormat: FType = "time": WLet(FFormat, "HH:mm:ss")
+			Case DateTimePickerFormat.CustomFormat: WLet(FFormat, Replace(*FCustomFormat, "'", """"))
+				If (InStr(*FCustomFormat, "d") > 0 OrElse InStr(*FCustomFormat, "M") > 0 OrElse InStr(*FCustomFormat, "y") > 0) AndAlso (InStr(*FCustomFormat, "h") > 0 OrElse InStr(*FCustomFormat, "m") > 0 OrElse InStr(*FCustomFormat, "s") > 0) Then
+					FType = "datetime-local"
+				ElseIf InStr(*FCustomFormat, "h") > 0 OrElse InStr(*FCustomFormat, "m") > 0 OrElse InStr(*FCustomFormat, "s") > 0 Then
+					FType = "time"
+				Else
+					FType = "date"
+				End If
+			End Select
 		#endif
 	End Property
 	
@@ -378,7 +420,7 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub DateTimePicker.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QDateTimePicker(Sender.Child)
@@ -411,13 +453,20 @@ Namespace My.Sys.Forms
 				ShowUpDown = False
 				DateFormat = DateTimePickerFormat.ShortDate
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FTimePicker Then
-				This.Style  = WS_CHILD Or DTS_TIMEFOrMAT Or DTS_UPDOWN Or DTS_SHOWNONE ' NO repons
+				This.Style  = WS_CHILD Or DTS_TIMEFORMAT Or DTS_UPDOWN Or DTS_SHOWNONE ' NO repons
 			Else
 				This.Style  = WS_CHILD Or DTS_SHORTDATEFORMAT
 			End If
 			If FHandle Then RecreateWnd
+		#elseif defined(__USE_WASM__)
+			If FTimePicker Then
+				FType = "time"
+			Else
+				FType = "date"
+			End If
+			'If FHandle Then RecreateWnd
 		#endif
 	End Property
 	
@@ -782,7 +831,7 @@ Namespace My.Sys.Forms
 					Return
 				End Select
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case Message.Msg
 			Case WM_KEYDOWN
 				PressedKey = LoWord(Message.wParam)
@@ -1091,12 +1140,15 @@ Namespace My.Sys.Forms
 				gtk_spin_button_set_update_policy(gtk_spin_button(UpDownWidget), GTK_UPDATE_ALWAYS)
 				gtk_spin_button_set_wrap(gtk_spin_button(UpDownWidget), True)
 				Base.RegisterClass WStr("DateTimePicker"), @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Base.RegisterClass WStr("DateTimePicker"), WStr("SysDateTimePick32")
 				.ExStyle      = 0 'WS_EX_LEFT OR WS_EX_LTRREADING OR WS_EX_RIGHTSCROLLBAR OR WS_EX_CLIENTEDGE
 				.Style        = WS_CHILD Or DTS_SHORTDATEFORMAT
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "input")
+				FType = "date"
 			#endif
 			.SelectedDateTime = Now
 			.Width        = 175
@@ -1106,7 +1158,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor DateTimePicker
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "DateTimePicker",GetModuleHandle(NULL)
 		#endif
 	End Destructor

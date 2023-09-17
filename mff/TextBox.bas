@@ -331,6 +331,11 @@ Namespace My.Sys.Forms
 				FText.vptr[length] = 0
 			End If
 			Return *FText.vptr
+		#elseif defined(__USE_WASM__)
+			Dim ptr_ As ZString Ptr = GetStringValue(@This)
+			FText = *ptr_
+			Free(ptr_)
+			Return *FText.vptr
 		#else
 			Return Base.Text
 		#endif
@@ -364,6 +369,10 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
+			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				SetStringValue(@This, Value)
 			End If
 		#endif
 	End Property
@@ -1144,20 +1153,26 @@ Namespace My.Sys.Forms
 	#ifdef __USE_WINAPI__
 		Private Sub TextBox.WndProc(ByRef message As Message)
 		End Sub
-		
+	#endif
+	
+	#ifndef __USE_GTK__
 		Private Sub TextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTextBox(Sender.Child)
-					If .FMaxLength = 0 Then 
-						.Perform(EM_LIMITTEXT, -1, 0)
-					Else
-						.Perform(EM_LIMITTEXT, .FMaxLength, 0)
-					End If
-					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
-					If .FMasked Then .Masked = True
-					If .FSelStart <> 0 OrElse .FSelEnd <> 0 Then .SetSel .FSelStart, .FSelEnd
-					'.MaxLength = .MaxLength
-					'End If
+					#ifdef __USE_WASM__
+						If .OnChange Then SetChangeEvent(.FHandle)
+					#elseif defined(__USE_WINAPI__)
+						If .FMaxLength = 0 Then 
+							.Perform(EM_LIMITTEXT, -1, 0)
+						Else
+							.Perform(EM_LIMITTEXT, .FMaxLength, 0)
+						End If
+						If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
+						If .FMasked Then .Masked = True
+						If .FSelStart <> 0 OrElse .FSelEnd <> 0 Then .SetSel .FSelStart, .FSelEnd
+						'.MaxLength = .MaxLength
+						'End If
+					#endif
 				End With
 			End If
 		End Sub
@@ -1542,6 +1557,10 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "Edit")
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, Replace(__FB_QUOTE__(Package), "_", "/") & "/mffEditText")
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "input")
+				FType = "text"
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "TextBox")
 			.Child       = @This
@@ -1566,4 +1585,12 @@ End Namespace
 			If txt->OnChange Then txt->OnChange(*txt->Designer, *txt)
 		End If
 	End Sub
+#elseif defined(__USE_WASM__)
+	'Sub OnChange(Id As Integer) Export
+	'	If Id > 0 Then
+	'		Dim As My.Sys.Forms.TextBox Ptr txt = Cast(Any Ptr, Id)
+	'		If txt AndAlso txt->OnChange Then txt->OnClick(*txt->Designer, *txt)
+	'	End If
+	'End Sub
 #endif
+

@@ -113,6 +113,10 @@ Namespace My
 								Exit For
 							End If
 						Next i
+					#elseif defined(__USE_WASM__)
+						If MainForm Then
+							WLet(FTitle, MainForm->Text)
+						End If
 					#endif
 				End If
 			End If
@@ -152,7 +156,9 @@ Namespace My
 		#ifdef __USE_GTK__
 			Dim As ZString * 255 Tx
 			#ifndef __FB_WIN32__
-				L = readlink("/proc/self/exe", @Tx, 255 - 1)
+				Tx = Command(0)
+				L = Len(Tx)
+				'L = readlink("/proc/self/exe", @Tx, 255 - 1)
 			#else
 				Tx = Command(0)
 				L = Len(Tx)
@@ -784,7 +790,7 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 	#ifdef __USE_GTK__
 		Dim As GtkWidget Ptr dialog
 		Dim As GtkWindow Ptr win
-		If pApp->MainForm Then
+		If pApp AndAlso pApp->MainForm Then
 			win = GTK_WINDOW(pApp->MainForm->Handle)
 		End If
 		Select Case MsgType
@@ -874,6 +880,22 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 		Case IDRETRY: Result = mrRetry
 		Case IDYES: Result = mrYes
 		End Select
+	#elseif defined(__USE_WASM__)
+		Select Case MsgType
+		Case mtInfo: MsgTypeIn = 1
+		Case mtWarning: MsgTypeIn = 2
+		Case mtQuestion: MsgTypeIn = 3
+		Case mtError: MsgTypeIn = 4
+		Case mtOther: MsgTypeIn = 0
+		End Select
+		Select Case ButtonsType
+		Case btNone: ButtonsTypeIn = 0
+		Case btOK: ButtonsTypeIn = 1
+		Case btYesNo: ButtonsTypeIn = 0
+		Case btYesNoCancel: ButtonsTypeIn = 0
+		Case btOkCancel: ButtonsTypeIn = 2
+		End Select
+		MessageBox(MsgStr, *FCaption, 0, 0)
 	#endif
 	'Do
 	'    App.DoEvents

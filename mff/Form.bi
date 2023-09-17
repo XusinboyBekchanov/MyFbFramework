@@ -70,7 +70,6 @@ Namespace My.Sys.Forms
 	
 	Private Type Form Extends ContainerControl
 	Private:
-		FMainForm      As Boolean
 		InShowModal    As Boolean
 		FMainStyle(2)  As Integer
 		FMenuItems     As List
@@ -121,6 +120,8 @@ Namespace My.Sys.Forms
 			HeaderBarWidget As GtkWidget Ptr
 			Declare Property ParentWidget As GtkWidget Ptr
 			Declare Property ParentWidget(Value As GtkWidget Ptr)
+		#elseif defined(__USE_WASM__)
+			Declare Virtual Function GetContent() As UString
 		#endif
 	Public:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)

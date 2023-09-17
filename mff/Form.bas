@@ -164,6 +164,10 @@ Namespace My.Sys.Forms
 				BorderStyle = BorderStyle
 			End If
 		End Property
+	#elseif defined(__USE_WASM__)
+		Private Function Form.GetContent() As UString
+			Return ""
+		End Function
 	#endif
 	
 	Private Property Form.DefaultButton As Control Ptr
@@ -704,6 +708,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
+		#elseif defined(__USE_WASM__)
+			SetTitle(Value)
 		#endif
 	End Property
 	
@@ -795,92 +801,100 @@ Namespace My.Sys.Forms
 			End If
 			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, WPARAM, LPARAM)
 		End Function
-		
+	#endif
+	
+	#ifndef __USE_GTK__
 		Private Sub Form.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
-				Dim As HMENU NoNeedSysMenu
 				With QForm(Sender.Child)
-					'xdpi = 0: ydpi = 0 'For muilti screen and have diffrent values.
-					Dim hDC As HDC
-					hDC = GetDC(.HANDLE)
-					xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-					ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-					ReleaseDC(.HANDLE, hDC)
-					If xdpi = 0 Then xdpi = 1
-					If ydpi = 0 Then ydpi = 1
-					.FDpiFormX = xdpi : .FDpiFormY = ydpi
-					SetClassLong(.Handle,GCL_STYLE,.FClassStyle(.BorderStyle))
-					If .FBorderStyle = 2 Then
-						SetClassLongPtr(.Handle,GCLP_HICON,NULL)
-						SendMessage(.Handle, WM_SETICON, 1, NULL)
-						NoNeedSysMenu = GetSystemMenu(.Handle, False)
-						DeleteMenu(NoNeedSysMenu, SC_TASKLIST, MF_BYCOMMAND)
-						DeleteMenu(NoNeedSysMenu, 7, MF_BYPOSITION)
-						DeleteMenu(NoNeedSysMenu, 5, MF_BYPOSITION)
-						DeleteMenu(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND)
-						DeleteMenu(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND)
-						DeleteMenu(NoNeedSysMenu, SC_SIZE, MF_BYCOMMAND)
-						DeleteMenu(NoNeedSysMenu, SC_RESTORE, MF_BYCOMMAND)
-					Else
-						SendMessage(.Handle, WM_SETICON, 1, CInt(.Icon.Handle))
-						'GetSystemMenu(.Handle, True)
-						'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
-						'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
-					End If
-					If .Opacity <> 255 OrElse .Transparent Then SetLayeredWindowAttributes(.Handle, IIf(.TransparentColor = -1, .BackColor, .TransparentColor), .Opacity, IIf(.Transparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
-					.ChangeTabIndex -2
-					SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
-					If .Menu Then .Menu->ParentWindow = @Sender
-					Select Case .FFormStyle
-					Case fsMDIForm
-						Dim FClientStruct As CLIENTCREATESTRUCT
-						FClientStruct.hWindowMenu = 0 'GetSubMenu(GetMenu(.FHandle), WINDOWMENU)
-						FClientStruct.idFirstChild = &H00FF
-						.FClient = CreateWindowEx(0, "MDICLIENT", "", WS_CHILD Or WS_VISIBLE Or WS_VSCROLL Or WS_HSCROLL Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, 100, 100, .FHandle, Cast(HMENU, &hcac), Instance, @FClientStruct)
-						If GetWindowLongPtr(.FClient, GWLP_WNDPROC) <> @HookClientProc Then
-							SetProp(.FClient, "MFFControl", Sender.Child)
-							SetProp(.FClient, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(.FClient, GWLP_WNDPROC, CInt(@HookClientProc))))
+					#ifdef __USE_WASM__
+						If .OnShow Then SetLoadEvent(.FHandle)
+					#elseif defined(__USE_WINAPI__)
+						Dim As HMENU NoNeedSysMenu
+						'xdpi = 0: ydpi = 0 'For muilti screen and have diffrent values.
+						Dim hDC As HDC
+						hDC = GetDC(.Handle)
+						xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+						ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+						ReleaseDC(.Handle, hDC)
+						If xdpi = 0 Then xdpi = 1
+						If ydpi = 0 Then ydpi = 1
+						.FDpiFormX = xdpi : .FDpiFormY = ydpi
+						SetClassLong(.Handle,GCL_STYLE,.FClassStyle(.BorderStyle))
+						If .FBorderStyle = 2 Then
+							SetClassLongPtr(.Handle,GCLP_HICON,NULL)
+							SendMessage(.Handle, WM_SETICON, 1, NULL)
+							NoNeedSysMenu = GetSystemMenu(.Handle, False)
+							DeleteMenu(NoNeedSysMenu, SC_TASKLIST, MF_BYCOMMAND)
+							DeleteMenu(NoNeedSysMenu, 7, MF_BYPOSITION)
+							DeleteMenu(NoNeedSysMenu, 5, MF_BYPOSITION)
+							DeleteMenu(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND)
+							DeleteMenu(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND)
+							DeleteMenu(NoNeedSysMenu, SC_SIZE, MF_BYCOMMAND)
+							DeleteMenu(NoNeedSysMenu, SC_RESTORE, MF_BYCOMMAND)
+						Else
+							SendMessage(.Handle, WM_SETICON, 1, CInt(.Icon.Handle))
+							'GetSystemMenu(.Handle, True)
+							'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
+							'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 						End If
-						ShowWindow(.FClient, SW_SHOW)
-					Case fsMDIChild
-						If .FParent Then
-							If *(.FParent) Is Form Then
-								If Cast(Form Ptr, .FParent)->FFormStyle = fsMDIForm Then
-									SetParent(.FHandle, Cast(Form Ptr, .FParent)->FClient)
+						If .Opacity <> 255 OrElse .Transparent Then SetLayeredWindowAttributes(.Handle, IIf(.TransparentColor = -1, .BackColor, .TransparentColor), .Opacity, IIf(.Transparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
+						.ChangeTabIndex -2
+						SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
+						If .Menu Then .Menu->ParentWindow = @Sender
+						Select Case .FFormStyle
+						Case fsMDIForm
+							Dim FClientStruct As CLIENTCREATESTRUCT
+							FClientStruct.hWindowMenu = 0 'GetSubMenu(GetMenu(.FHandle), WINDOWMENU)
+							FClientStruct.idFirstChild = &H00FF
+							.FClient = CreateWindowEx(0, "MDICLIENT", "", WS_CHILD Or WS_VISIBLE Or WS_VSCROLL Or WS_HSCROLL Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, 100, 100, .FHandle, Cast(HMENU, &hcac), Instance, @FClientStruct)
+							If GetWindowLongPtr(.FClient, GWLP_WNDPROC) <> @HookClientProc Then
+								SetProp(.FClient, "MFFControl", Sender.Child)
+								SetProp(.FClient, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(.FClient, GWLP_WNDPROC, CInt(@HookClientProc))))
+							End If
+							ShowWindow(.FClient, SW_SHOW)
+						Case fsMDIChild
+							If .FParent Then
+								If *(.FParent) Is Form Then
+									If Cast(Form Ptr, .FParent)->FFormStyle = fsMDIForm Then
+										SetParent(.FHandle, Cast(Form Ptr, .FParent)->FClient)
+									End If
 								End If
 							End If
-						End If
-					End Select
-					'					.GetMenuItems
-					'					Dim As String mnuCaption, HotKey
-					'					Dim As Integer Pos1, CountOfHotKeys = 0
-					'					Dim As MenuItem Ptr mi
-					'					ReDim accl(1) As ACCEL
-					'					For i As Integer = 0 To .FMenuItems.Count - 1
-					'						mi = .FMenuItems.Items[i]
-					'						mnuCaption = mi->Caption
-					'						Pos1 = InStr(mnuCaption, !"\t")
-					'						If Pos1 > 0 Then
-					'							CountOfHotKeys = CountOfHotKeys + 1
-					'							HotKey = Mid(mnuCaption, Pos1 + 1)
-					'							ReDim Preserve accl(CountOfHotKeys - 1) As ACCEL
-					'							If InStr(HotKey, "Ctrl") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FCONTROL
-					'							If InStr(HotKey, "Shift") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FSHIFT
-					'							If InStr(HotKey, "Alt") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FALT
-					'							accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FVIRTKEY
-					'							Pos1 = InStrRev(HotKey, "+")
-					'							If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
-					'							accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
-					'							accl(CountOfHotKeys - 1).cmd = mi->Command
-					'						End If
-					'					Next i
-					'					If .Accelerator <> 0 Then DestroyAcceleratorTable(.Accelerator)
-					'					.Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
-					'					Erase accl
+						End Select
+						'					.GetMenuItems
+						'					Dim As String mnuCaption, HotKey
+						'					Dim As Integer Pos1, CountOfHotKeys = 0
+						'					Dim As MenuItem Ptr mi
+						'					ReDim accl(1) As ACCEL
+						'					For i As Integer = 0 To .FMenuItems.Count - 1
+						'						mi = .FMenuItems.Items[i]
+						'						mnuCaption = mi->Caption
+						'						Pos1 = InStr(mnuCaption, !"\t")
+						'						If Pos1 > 0 Then
+						'							CountOfHotKeys = CountOfHotKeys + 1
+						'							HotKey = Mid(mnuCaption, Pos1 + 1)
+						'							ReDim Preserve accl(CountOfHotKeys - 1) As ACCEL
+						'							If InStr(HotKey, "Ctrl") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FCONTROL
+						'							If InStr(HotKey, "Shift") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FSHIFT
+						'							If InStr(HotKey, "Alt") > 0 Then accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FALT
+						'							accl(CountOfHotKeys - 1).fVirt = accl(CountOfHotKeys - 1).fVirt Or FVIRTKEY
+						'							Pos1 = InStrRev(HotKey, "+")
+						'							If Pos1 > 0 Then HotKey = Mid(HotKey, Pos1 + 1)
+						'							accl(CountOfHotKeys - 1).key = GetAscKeyCode(HotKey)
+						'							accl(CountOfHotKeys - 1).cmd = mi->Command
+						'						End If
+						'					Next i
+						'					If .Accelerator <> 0 Then DestroyAcceleratorTable(.Accelerator)
+						'					.Accelerator = CreateAcceleratorTable(Cast(LPACCEL, @accl(0)), CountOfHotKeys)
+						'					Erase accl
+					#endif
 				End With
 			End If
 		End Sub
-	#elseif defined(__USE_GTK__)
+	#endif
+		
+	#if defined(__USE_GTK__)
 		Private Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
 			pApp->FDeactivated = False
 			If pApp->FActivated Then
@@ -1960,12 +1974,18 @@ Namespace My.Sys.Forms
 				.Width             = 350
 				.Height            = 300
 				WLet(FClassAncestor, "GtkWindow")
+			#elseif defined(__USE_WASM__)
+				.Width             = 350
+				.Height            = 300
+				WLet(FClassAncestor, "form")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.StartPosition = DefaultLocation
 		End With
 		If pApp->MainForm = 0 Then
 			pApp->MainForm = @This
 			FMainForm = True
+			
 		End If
 		#ifdef __AUTOMATE_CREATE_FORM__
 			CreateWnd
@@ -2035,4 +2055,129 @@ End Namespace
 			End If
 		End If
 	End Sub
+#elseif defined(__USE_WASM__)
+	Sub OnStart() Export
+		If pApp Then
+			If pApp->MainForm Then
+				pApp->MainForm->CreateWnd
+				pApp->MainForm->Text = pApp->MainForm->Text
+			End If
+		End If
+	End Sub
+	
+	Sub OnLoad(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso *Ctrl Is My.Sys.Forms.Form AndAlso Cast(My.Sys.Forms.Form Ptr, Ctrl)->OnShow Then Cast(My.Sys.Forms.Form Ptr, Ctrl)->OnShow(*Ctrl->Designer, *Cast(My.Sys.Forms.Form Ptr, Ctrl))
+		End If
+	End Sub
+	
+	Sub OnChange(Id As Integer) Export
+		If Id > 0 Then
+			'Dim As My.Sys.Forms.TextBox Ptr txt = Cast(Any Ptr, Id)
+			'If txt AndAlso txt->OnChange Then txt->OnClick(*txt->Designer, *txt)
+		End If
+	End Sub
+	
+	Sub OnClick(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnClick Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	Sub OnDblClick(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnDblClick Then Ctrl->OnDblClick(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	Sub OnGotFocus(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnGotFocus Then Ctrl->OnGotFocus(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	Sub OnLostFocus(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnLostFocus Then Ctrl->OnLostFocus(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	Sub OnKeyDown(Id As Integer, Key As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnKeyDown Then Ctrl->OnKeyDown(*Ctrl->Designer, *Ctrl, Key, Shift)
+		End If
+	End Sub
+	
+	Sub OnKeyPress(Id As Integer, Key As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnKeyPress Then Ctrl->OnKeyPress(*Ctrl->Designer, *Ctrl, Key)
+		End If
+	End Sub
+	
+	Sub OnKeyUp(Id As Integer, Key As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnKeyUp Then Ctrl->OnKeyUp(*Ctrl->Designer, *Ctrl, Key, Shift)
+		End If
+	End Sub
+	
+	Sub OnMouseDown(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnMouseDown Then Ctrl->OnMouseDown(*Ctrl->Designer, *Ctrl, MouseButton, x, y, Shift)
+		End If
+	End Sub
+	
+	Sub OnMouseMove(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnMouseMove Then Ctrl->OnMouseMove(*Ctrl->Designer, *Ctrl, MouseButton, x, y, Shift)
+		End If
+	End Sub
+	
+	Sub OnMouseUp(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnMouseUp Then Ctrl->OnMouseUp(*Ctrl->Designer, *Ctrl, MouseButton, x, y, Shift)
+		End If
+	End Sub
+	
+	Sub OnMouseEnter(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnMouseEnter Then Ctrl->OnMouseEnter(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	Sub OnMouseLeave(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnMouseLeave Then Ctrl->OnMouseLeave(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	Sub OnMouseWheel(Id As Integer, Direction As Integer, x As Integer, y As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnMouseWheel Then Ctrl->OnMouseWheel(*Ctrl->Designer, *Ctrl, Direction, x, y, Shift)
+		End If
+	End Sub
+	
+	Sub OnUnload(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnDestroy Then Ctrl->OnDestroy(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	#if __FB_GUI__ = 0
+		SetVisibleByStringId("termContainer", True)
+	#endif
 #endif

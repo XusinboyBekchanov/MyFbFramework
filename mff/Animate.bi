@@ -99,7 +99,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As WString) As Integer
-			#ifdef MoviePlayOn
+			#ifdef __USE_WINAPI__
 				As IGraphBuilder   Ptr pGraph
 				As IMediaControl   Ptr PControl
 				As IMediaEvent     Ptr pEvent
@@ -114,7 +114,6 @@ Namespace My.Sys.Forms
 		FOpenMode          As Integer
 		FPlay           As Boolean
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
-		Declare Sub GetAnimateInfo
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr

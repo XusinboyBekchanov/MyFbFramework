@@ -100,6 +100,12 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#ifdef __USE_WASM__
+		Private Function GroupBox.GetContent() As UString
+			Return "<legend id=""" & Trim(Str(@This)) & "legend"">" & FText & "</legend>"
+		End Function
+	#endif
+	
 	#ifdef __USE_WINAPI__
 		Private Sub GroupBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -111,7 +117,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub GroupBox.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
 			Case WM_PAINT
@@ -202,21 +208,23 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				widget = gtk_frame_new("")
 				.RegisterClass "GroupBox", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "GroupBox", "Button"
 				.ChildProc   = @WndProc
+				WLet(FClassAncestor, "Button")
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "fieldset")
 			#endif
 			WLet(FClassName, "GroupBox")
-			WLet(FClassAncestor, "Button")
 			FTabIndex          = -1
 			FTabStop           = True
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.ExStyle     = 0 'WS_EX_TRANSPARENT
 				.Style       = WS_CHILD Or WS_VISIBLE Or BS_GROUPBOX 'Or SS_NOPREFIX
 			#endif
 			#ifdef __USE_GTK__
 				.BackColor       = -1
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated    = @HandleIsAllocated

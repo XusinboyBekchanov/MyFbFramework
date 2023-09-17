@@ -14,33 +14,7 @@
 #include once "Object.bi"
 
 'Namespace My.Sys.Drawing
-#ifdef __USE_GTK__
-	#define clScrollBar           &H000000
-	#define clBackground          &H000000
-	#define clActiveCaption       &H000000
-	#define clInactiveCaption     &H000000
-	#define clMenu                &H000000
-	#define clWindow              &H000000
-	#define clWindowFrame         &H000000
-	#define clMenuText            &H000000
-	#define clWindowText          &H000000
-	#define clCaptionText         &H000000
-	#define clActiveBorder        &H000000
-	#define clInactiveBorder      &H000000
-	#define clAppWorkSpace        &H000000
-	#define clHighlight           &H00A5FF
-	#define clHighlightText       &HFFFFFF
-	#define clBtnFace             &H808080
-	#define clBtnShadow           &HC0C0C0
-	#define clGrayText            &H000000
-	#define clBtnText             &H000000
-	#define clInactiveCaptionText &H000000
-	#define clBtnHighlight        &H000000
-	#define cl3DDkShadow          &H000000
-	#define cl3DLight             &H000000
-	#define clInfoText            &H000000
-	#define clInfoBk              &H000000
-#else
+#ifdef __USE_WINAPI__
 	#define clScrollBar           GetSysColor(COLOR_SCROLLBAR)
 	#define clBackground          GetSysColor(COLOR_BACKGROUND)
 	#define clActiveCaption       GetSysColor(COLOR_ACTIVECAPTION)
@@ -66,6 +40,32 @@
 	#define cl3DLight             GetSysColor(COLOR_3DLIGHT)
 	#define clInfoText            GetSysColor(COLOR_INFOTEXT)
 	#define clInfoBk              GetSysColor(COLOR_INFOBK)
+#else
+	#define clScrollBar           &H000000
+	#define clBackground          &H000000
+	#define clActiveCaption       &H000000
+	#define clInactiveCaption     &H000000
+	#define clMenu                &H000000
+	#define clWindow              &H000000
+	#define clWindowFrame         &H000000
+	#define clMenuText            &H000000
+	#define clWindowText          &H000000
+	#define clCaptionText         &H000000
+	#define clActiveBorder        &H000000
+	#define clInactiveBorder      &H000000
+	#define clAppWorkSpace        &H000000
+	#define clHighlight           &H00A5FF
+	#define clHighlightText       &HFFFFFF
+	#define clBtnFace             &H808080
+	#define clBtnShadow           &HC0C0C0
+	#define clGrayText            &H000000
+	#define clBtnText             &H000000
+	#define clInactiveCaptionText &H000000
+	#define clBtnHighlight        &H000000
+	#define cl3DDkShadow          &H000000
+	#define cl3DLight             &H000000
+	#define clInfoText            &H000000
+	#define clInfoBk              &H000000
 #endif
 
 #define clAliceBlue                &HFFF8F0   '   RGB(240, 248, 255)   '爱丽丝蓝

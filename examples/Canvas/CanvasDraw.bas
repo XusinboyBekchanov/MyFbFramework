@@ -72,7 +72,7 @@
 			.Name = "Form1"
 			.Text = "Form1"
 			.Designer = @This
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Resize)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show)
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
@@ -109,11 +109,11 @@
 			'.Graphic.Bitmap.LoadFromFile(ExePath & "/Wheel.png")
 			.SetBounds 2, 56, 570, 300
 			.Designer = @This
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Paint)
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Resize)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseMove)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseDown)
-			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_MouseUp)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @PictureBK_Paint)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @PictureBK_Resize)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @PictureBK_MouseMove)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @PictureBK_MouseDown)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @PictureBK_MouseUp)
 			.Parent = @This
 		End With
 		' Text1(0)
@@ -245,10 +245,10 @@
 			.Anchor.Left = AnchorStyle.asNone
 			.SetBounds 377, 114, 35, 35
 			.Designer = @This
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Paint)
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Resize)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseDown)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseMove)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Picture_Paint)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Panel1_Picture_Resize)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Picture_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Picture_MouseMove)
 			.Parent = @PictureBK
 		End With
 		' Panel1_Picture(1)
@@ -261,10 +261,10 @@
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 368, 164, 35, 35
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Paint)
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_Resize)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseDown)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Picture_MouseMove)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Picture_Paint)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Panel1_Picture_Resize)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Picture_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Picture_MouseMove)
 			.Designer = @This
 			.Parent = @PictureBK
 		End With
@@ -282,10 +282,10 @@
 			.Anchor.Bottom = AnchorStyle.asNone
 			.SetBounds 367, 34, 35, 35
 			.Designer = @This
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Resize)
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Paint)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseMove)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseDown)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Picture2_Picture_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture2_Picture_Paint)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Picture_MouseMove)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Picture_MouseDown)
 			.Parent = @PictureBK
 		End With
 		' Picture2_Picture(1)
@@ -300,10 +300,10 @@
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asNone
 			.SetBounds 227, 74, 35, 35
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Resize)
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_Paint)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseMove)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Picture_MouseDown)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Picture2_Picture_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture2_Picture_Paint)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Picture_MouseMove)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Picture_MouseDown)
 			.Designer = @This
 			.Parent = @PictureBK
 		End With
@@ -321,9 +321,9 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 54, 45, 45
 			.Designer = @This
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseDown)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseMove)
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_Paint)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseMove)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Form_Paint)
 			.Parent = @This
 		End With
 		' Picture2_Form(0)
@@ -339,10 +339,10 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 104, 45, 45
 			.Designer = @This
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Resize)
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Paint)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseDown)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseMove)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Picture2_Form_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture2_Form_Paint)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Form_MouseMove)
 			.Parent = @This
 		End With
 		' Picture2_Form(1)
@@ -355,10 +355,10 @@
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 204, 45, 45
-			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Resize)
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_Paint)
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseDown)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture2_Form_MouseMove)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Picture2_Form_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture2_Form_Paint)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Form_MouseMove)
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -372,9 +372,9 @@
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 154, 45, 45
-			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseDown)
-			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_MouseMove)
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Panel1_Form_Paint)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseMove)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Form_Paint)
 			.Designer = @This
 			.Parent = @This
 		End With

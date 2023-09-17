@@ -45,7 +45,7 @@
 			.TabIndex = 0
 			.SetBounds 80, 110, 140, 30
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @CommandButton1_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @This
 		End With
 	End Constructor

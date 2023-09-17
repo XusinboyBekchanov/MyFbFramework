@@ -331,6 +331,7 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "android/widget/TextView")
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "label")
+				FElementStyle = "overflow: hidden;"
 			#endif
 			WLet(FClassName, "Label")
 			.Width       = 90

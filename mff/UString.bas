@@ -1,5 +1,11 @@
 ﻿#include once "UString.bi"
 
+#ifdef __USE_WASM__
+	#define GrowLength 2
+#else
+	#define GrowLength 1
+#endif
+
 Private Constructor UString()
 	m_Length = 0
 	m_BytesCount = SizeOf(WString)
@@ -11,7 +17,7 @@ End Constructor
 
 Private Constructor UString(ByRef Value As WString)
 	m_Length = Len(Value)
-	m_BytesCount = (m_Length + 1) * SizeOf(WString)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_Data = _CAllocate(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = Value
@@ -85,25 +91,25 @@ Private Function UString.SubString(ByVal start As Integer, ByVal n As Integer, B
 	Else
 		Mid(*m_Data, start, n) = expression
 		m_Length = Len(*m_Data)
-		m_BytesCount = (m_Length + 1) * SizeOf(WString)
+		m_BytesCount = (m_Length + 1) * SizeOf(WString) *  GrowLength
 		Return *m_Data
 	End If
 End Function
 #if MEMCHECK
-	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)): Else: subject = _CAllocate((lLen + 1) * SizeOf(WString)): End If
+	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength): Else: subject = _CAllocate((lLen + 1) * SizeOf(WString) * GrowLength): End If
 	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
 	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
 			#ifdef __USE_GTK__
-				subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+				subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength) 'Cast(WString Ptr, )
 			#else
 				_Deallocate(subject)
-				subject = _CAllocate((lLen + 1) * SizeOf(WString))
+				subject = _CAllocate((lLen + 1) * SizeOf(WString) * GrowLength)
 			#endif
 		Else
-			subject = _CAllocate((lLen + 1) * SizeOf(WString)) 'Cast(WString Ptr, )
+			subject = _CAllocate((lLen + 1) * SizeOf(WString) * GrowLength) 'Cast(WString Ptr, )
 		End If
 	End Sub
 	
@@ -128,7 +134,7 @@ End Sub
 ' Using WLetEx if the length of target is longer than the length of source.
 Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
 	If ExistsSubjectInTxt Then
-		Dim As WString Ptr TempWStr = _CAllocate((Len(txt) + 1) * SizeOf(WString))
+		Dim As WString Ptr TempWStr = _CAllocate((Len(txt) + 1) * SizeOf(WString) * GrowLength)
 		If TempWStr > 0 Then
 			*TempWStr = txt
 			WDeAllocate(subject)
@@ -155,7 +161,7 @@ End Sub
 
 Private Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then
-	m_BytesCount = (NewLength + 1) * SizeOf(WString)
+	m_BytesCount = (NewLength + 1) * SizeOf(WString) * GrowLength
 	If m_Length < NewLength Then
 		WReAllocate(m_Data, NewLength)
 	End If

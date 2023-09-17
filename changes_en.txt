@@ -1,3 +1,60 @@
+Version 1.3.5 (September 17, 2023)
+- Added: Web support
+- Added: Optional Drawing with GDI+ with Canvas
+- Added: ByRef Designer As My.Sys.Object parameter to all events
+- Fixed: TextBox MaxLength property
+- Added: SubString function to UString
+- Fixed: Returning values of Mouse events
+- Fixed: Compiling with GTK in Windows
+- Fixed: Canvas functions
+- Added: Canvas Cls method in Linux
+- Improved: Debug.Print function
+- Added: Contains function to UString
+- Added: LoadFromScreen function to Bitmap
+- Added: DecimalPlaces property to control NumericUpDown
+- Changed: FBMemCheck
+- Added: ReadProperty and WriteProperty functions to ToolPalette
+- Fixed: Redraw while move the control inside Container
+- Added: Operator [] to StringList, WStringlist, Dictionary
+- Fixed: Set StartPosition of Form on Design mode
+- Fixed: Compiling and Fixed: OnMouseDown, OnMouseUp, OnMouseWheel and OnMouseHover
+- Fixed: OnMouseMove event
+- Added: Sort method for Grid
+- Added: Idx parameter to PointerList Contains function
+- Added： DuplicateIndex parameter to Insert function of Grid control
+- Added: SaveToFile and LoadFromFile methods to Grid control
+- Fixed: Set the Default Color Of Cells
+- Added: CellEdited events to control Grid
+- Fixed: Collapsing TreeListView
+- Added: OwnerData Property to control Grid
+- Improved: Grid control
+- Added: StretchImage property to Picture control
+- Fixed: Update when label size changes.
+- Fixed: OpenFileControl
+- Fixed: OpenFileControl deleting
+- Fixed: Change image for Picture control
+- Fixed: Setting Style property of CommandButton
+- Fixed: Setting Style property of TrackBar control
+- Fixed: Setting an empty value to Bitmap property
+- Fixed: ReadProperty and WriteProperty function for Style property of CommandButton control
+- Fixed: ReadProperty and WriteProperty function for CenterImage, RealSizeImage and Style properties of Picture control
+- Added: onDestroy event to Android application
+- Fixed: Compiling for Android
+- Improved: Speed of Split function
+- Improved: Speed of StartsWith and EndsWith functions
+- Added: crDefault cursor definition
+- Added: Editable function for control Grid
+- Fixed: Compiling Panel without Form
+- Added: Animate function for playing all types of media.
+- Added: Reduce Code Example
+- Added: Examples of Forms
+- Fixed: Compiling examples with fbc 1.10.0
+- Added: Examples files: MDIForm, SDIForm, Canvas
+- Added: DarkMode property to Application
+- Fixed: Blink while resize control picture
+- Added: Stretch for Canvas image
+- Fixed: Compiling with fbc 1.10.0
+- Fixed: AutoSizing controls on Design mode
 Version 1.3.4 (March 05, 2023)
 - Added: Event Code message to Animation control
 - Added: Property FullScreenMode for control Animate

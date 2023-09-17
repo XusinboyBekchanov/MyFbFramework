@@ -43,7 +43,7 @@ Namespace My.Sys.ComponentModel
 			FHandle         As jobject
 		#elseif defined(__USE_WINAPI__)
 			FHandle         As HWND
-		#else
+		#elseif defined(__USE_WASM__)
 			FHandle         As Any Ptr
 		#endif
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
@@ -72,9 +72,12 @@ Namespace My.Sys.ComponentModel
 			Declare Property Handle(Value As HWND)
 			Declare Property LayoutHandle As HWND
 			Declare Property LayoutHandle(Value As HWND)
-		#else
-			Handle As Any Ptr
-			LayoutHandle As Any Ptr
+		#elseif defined(__USE_WASM__)
+			'Gets the window handle that the control is bound to.
+			Declare Property Handle As Any Ptr
+			Declare Property Handle(Value As Any Ptr)
+			Declare Property LayoutHandle As Any Ptr
+			Declare Property LayoutHandle(Value As Any Ptr)
 		#endif
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -113,6 +116,7 @@ Namespace My.Sys.ComponentModel
 		'Gets or sets the parent container of the control.
 		Declare Property Parent As Component Ptr 'ContainerControl
 		Declare Property Parent(Value As Component Ptr)
+		'Declare Constructor
 		Declare Destructor
 	End Type
 End Namespace

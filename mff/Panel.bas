@@ -114,6 +114,13 @@ Namespace My.Sys.Forms
 		Private Sub Panel.WNDPROC(ByRef Message As Message)
 		End Sub
 	#endif
+	
+	#ifdef __USE_WASM__
+		Private Function Panel.GetContent() As UString
+			Return ""
+		End Function
+	#endif
+	
 	Private Sub Panel.ProcessMessage(ByRef Message As Message)
 		
 		#ifdef __USE_WINAPI__
@@ -377,6 +384,8 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/AbsoluteLayout")
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
 			#endif
 			FTabIndex          = -1
 			WLet(FClassName, "Panel")

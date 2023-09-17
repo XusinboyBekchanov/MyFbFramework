@@ -128,7 +128,7 @@ Using My.Sys.Forms
 
 #ifdef __EXPORT_PROCS__
 	Dim Shared Objects As List
-	Common Shared Ctrl As Control Ptr
+	Dim Shared Ctrl As Control Ptr
 	Function CreateControl Alias "CreateControl" (ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Control Ptr) As Control Ptr Export
 		Ctrl = 0
 		Select Case LCase(ClassName)
@@ -198,7 +198,7 @@ Using My.Sys.Forms
 		Return Ctrl
 	End Function
 	
-	Common Shared Cpnt As Component Ptr
+	Dim Shared Cpnt As Component Ptr
 	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Component Ptr Export
 		Cpnt = 0
 		Select Case LCase(ClassName)
@@ -230,7 +230,7 @@ Using My.Sys.Forms
 		Return Cpnt
 	End Function
 	
-	Common Shared Obj As My.Sys.Object Ptr
+	Dim Shared Obj As My.Sys.Object Ptr
 	Function CreateObject Alias "CreateObject"(ByRef ClassName As String) As Object Ptr Export
 		Obj = 0
 		Select Case LCase(ClassName)
@@ -246,7 +246,7 @@ Using My.Sys.Forms
 		Return Obj
 	End Function
 	
-	Common Shared bNotRemoveObject As Boolean
+	Dim Shared bNotRemoveObject As Boolean
 	Function DeleteComponent Alias "DeleteComponent"(Ctrl As Any Ptr) As Boolean Export
 		If Ctrl = 0 Then Return False
 		Select Case LCase(Cast(Component Ptr, Ctrl)->ClassName)

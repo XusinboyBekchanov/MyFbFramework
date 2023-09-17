@@ -633,6 +633,12 @@ Namespace My.Sys.Forms
 				Canvas.BackColor = FBackColor
 				#ifdef __USE_WINAPI__
 					If ClassName = "RichTextBox" Then SendMessage(Handle, EM_SETBKGNDCOLOR, 0, FBackColor)
+				#elseif defined(__USE_WASM__)
+					If FHandle Then
+						SetBackColor(FHandle, Value)
+					Else
+						FElementStyle = FElementStyle & "background-color: rgb(" & GetRed(Value) & ", " & GetGreen(Value) & ", " & GetBlue(Value) & ");"
+					End If
 				#endif
 				Invalidate
 			End Property
@@ -648,6 +654,13 @@ Namespace My.Sys.Forms
 				FForeColorBlue = GetBlue(Value) / 255.0
 				Font.Color = FForeColor
 				Canvas.Font.Color = FForeColor
+				#ifdef __USE_WASM__
+					If FHandle Then
+						SetForeColor(FHandle, Value)
+					Else
+						FElementStyle = FElementStyle & "color: rgb(" & GetRed(Value) & ", " & GetGreen(Value) & ", " & GetBlue(Value) & ");"
+					End If
+				#endif
 				Invalidate
 			End Property
 		#endif
@@ -720,7 +733,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.ChangeTabIndex(Value As Integer)
 			FTabIndex = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FHandle = 0 Then Exit Sub
 			#endif
 			Dim As Control Ptr ParentCtrl = GetForm
@@ -853,6 +866,10 @@ Namespace My.Sys.Forms
 							ShowWindow(FHandle, SW_HIDE)
 						End If
 					End If
+				#elseif defined(__USE_WASM__)
+					If FHandle Then
+						SetVisible(FHandle, Value)
+					End If
 				#endif
 			End If
 		End Property
@@ -887,9 +904,9 @@ Namespace My.Sys.Forms
 				'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 			End Sub
 		#elseif defined(__USE_WASM__)
-			Private Virtual Sub Control.UpdateBody()
-				WLet(FBody, "<" & *FClassAncestor & ">" & *FText & "</" & *FClassAncestor & ">")
-			End Sub
+			Private Virtual Function Control.GetContent() As UString
+				Return FText
+			End Function
 		#endif
 		
 		Private Sub Control.CreateWnd
@@ -1028,8 +1045,35 @@ Namespace My.Sys.Forms
 					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, Instance)
 				End If
 				Text = FText
+			#elseif defined(__USE_WASM__)
+				Dim As String HClassName = *FClassAncestor
+				Dim As Any Ptr HParent
+				If HClassName = "" Then HClassName = "div"
+				If FParent Then HParent = FParent->Handle
+				FHandle = @This
+				Dim As String sLeft = IIf(FAlign = alRight, "", IIf(Anchor.Left <> asAnchor AndAlso Anchor.Right = asAnchor, "", nLeft & "px"))
+				Dim As String sTop = IIf(FAlign = alBottom, "", IIf(Anchor.Top <> asAnchor AndAlso Anchor.Bottom = asAnchor, "", nTop & "px"))
+				Dim As String sWidth = IIf(FAlign = alClient OrElse FAlign = alTop OrElse FAlign = alBottom, "100%", IIf(Anchor.Left = asAnchor AndAlso Anchor.Right = asAnchor, "", nWidth & "px"))
+				Dim As String sHeight = IIf(FAlign = alClient OrElse FAlign = alLeft OrElse FAlign = alRight, "100%", IIf(Anchor.Top = asAnchor AndAlso Anchor.Bottom = asAnchor, "", nHeight & "px"))
+				Dim As String sRight = IIf(FAlign = alRight, "0px", IIf(Anchor.Right = asAnchor AndAlso FParent <> 0, (FParent->Width - nLeft - nWidth) & "px", ""))
+				Dim As String sBottom = IIf(FAlign = alBottom, "0px", IIf(Anchor.Bottom = asAnchor AndAlso FParent <> 0, (FParent->Height - nTop - nHeight) & "px", ""))
+				CreateElement(IIf(FMainForm, "afterbegin", "beforeend"), HClassName, FType, FHandle, *FName, ToUtf8(GetContent), FElementStyle, IIf(FMainForm, "inline", "absolute"), sLeft, sTop, sWidth, sHeight, sRight, sBottom, HParent)
+				If OnClick Then SetClickEvent(FHandle)
+				If OnDblClick Then SetDblClickEvent(FHandle)
+				If OnGotFocus Then SetGotFocusEvent(FHandle)
+				If OnLostFocus Then SetLostFocusEvent(FHandle)
+				If OnKeyDown Then SetKeyDownEvent(FHandle)
+				If OnKeyPress Then SetKeyPressEvent(FHandle)
+				If OnKeyUp Then SetKeyUpEvent(FHandle)
+				If OnMouseEnter Then SetMouseEnterEvent(FHandle)
+				If OnMouseDown Then SetMouseDownEvent(FHandle)
+				If OnMouseMove Then SetMouseMoveEvent(FHandle)
+				If OnMouseUp Then SetMouseUpEvent(FHandle)
+				If OnMouseLeave Then SetMouseLeaveEvent(FHandle)
+				If OnMouseWheel Then SetMouseWheelEvent(FHandle)
+				If OnDestroy Then SetUnloadEvent(FHandle)
 			#endif
-			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 				If FHandle Then
 					#ifdef __USE_WINAPI__
 						If GetWindowLongPtr(FHandle, GWLP_USERDATA) = 0 Then
@@ -1102,6 +1146,12 @@ Namespace My.Sys.Forms
 					#ifdef __USE_WINAPI__
 						SendMessage FHandle, CM_CREATE, 0, 0
 						If ShowHint AndAlso Hint <> "" Then AllocateHint
+					#elseif defined(__USE_WASM__)
+						If This.Font.Name <> "" Then
+							SetFont(FHandle, Trim(IIf(Font.Bold, " bold", "") & IIf(Font.Italic, " italic", "") & " " & Str(Font.Size) & "px '" & Font.Name & "', serif"))
+						ElseIf This.Font.Size <> 0 Then
+							SetFont(FHandle, Str(Font.Size) & "px serif")
+						End If
 					#endif
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
@@ -1127,6 +1177,8 @@ Namespace My.Sys.Forms
 						Update
 					#elseif defined(__USE_JNI__)
 						If FVisible Then This.Show
+					#elseif defined(__USE_WASM__)
+						If FVisible Then This.Show
 					#endif
 				Else
 					'Print ClassName, GetErrorString(GetLastError, , True)
@@ -1137,7 +1189,7 @@ Namespace My.Sys.Forms
 		#ifndef Control_RecreateWnd_Off
 			Private Sub Control.RecreateWnd
 				Dim As Integer i
-				#ifndef __USE_GTK__
+				#if (Not defined(__USE_GTK__)) AndAlso (Not defined(__USE_WASM__))
 					If FHandle = 0 Then Exit Sub
 					'For i = 0 To ControlCount -1
 					'    Controls[i]->FreeWnd
