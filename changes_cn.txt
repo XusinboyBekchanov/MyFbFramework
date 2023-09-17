@@ -1,0 +1,667 @@
+版本 1.3.5（2023 年 9 月 17 日）
+- 新增：网页支持
+- 新增：使用GDI+和画布进行可选绘图
+- 添加了：ByRef 设计器作为 My.Sys.Object 参数到所有事件
+- 修复：文本框最大长度属性
+- 新增：子字符串函数
+- 修复：返回鼠标事件的值
+- 修复：在Windows中使用GTK编译
+- 修复：画布函数
+- 新增：Linux 中的 Canvas Cls 方法
+- 改进：调试.打印函数
+- 新增：包含 UString 函数
+- 新增：加载从屏幕截图到位图函数
+- 添加了：十进制位置属性来控制数字上下
+- 更改： FBMemCheck
+- 添加了：ReadProperty 和 WriteProperty 函数到工具面板
+- 修复：在容器内移动控件时重绘
+- 新增：运算符 [] 到字符串列表、WStringlist、字典
+- 修复：在设计模式下设置表单的起始位置
+- 修复：编译和修复：鼠标向下，鼠标向上，鼠标滚轮和鼠标悬停
+- 修复：鼠标移动事件
+- 新增：网格的排序方法
+- 新增：Idx参数到指针列表包含函数
+- 新增：重复索引参数到网格控件的插入功能
+- 新增：SaveToFile 和 LoadFromFile 方法到网格控制
+- 修复：设置单元格的默认颜色
+- 新增：单元格编辑事件以控制网格
+- 修复：折叠树列表视图
+- 新增：所有者数据属性以控制网格
+- 改进：网格控制
+- 新增：拉伸图像属性到图片控件
+- 修复：标签大小更改时更新。
+- 修复：打开文件控件
+- 修复：打开文件控件删除
+- 修复：更改图片控制的图像
+- 修复：设置命令按钮的样式属性
+- 修复：设置跟踪栏控件的样式属性
+- 修复：将空值设置为位图属性
+- 修复了命令按钮控件的样式属性的读取属性和写入属性函数
+- 修复：中心图像的读取属性和写入属性功能，RealSize图像和图片控件的样式属性
+- 添加了：在销毁事件到安卓应用程序
+- 修复：为安卓编译
+- 改进：拆分功能的速度
+- 改进了：开始和结束功能的速度
+- 新增：cr默认游标定义
+- 新增：控制网格的可编辑功能
+- 修复：没有表单的编译面板
+- 新增：动画功能，可播放所有类型的媒体。
+- 新增：减少代码示例
+- 新增：表单示例
+- 修复：使用 fbc 1.10.0 编译示例
+- 新增：示例文件：MDIForm、SDIForm、Canvas
+- 添加了：暗模式属性到应用程序
+- 修复：调整控制图片大小时闪烁的问题
+- 新增：画布图像的拉伸
+- 修复：使用 fbc 1.10.0 编译
+- 修复：设计模式下的自动调整大小控件
+
+Version 1.3.4 (March 05, 2023)
+- 添加：事件代码消息到动画控件
+- 新增：控制Animate的属性FullScreenMode
+- 新增：添加属性Volume、Balance、Position来控制Animate
+- 修复：在具有不同 DPI 的不同屏幕上显示表单
+- 修正：删除 ListViewItem
+- 改进：字符串列表
+- 新增：MyFbFramework CHM 文件
+- 新增：窗体的透明属性
+- 添加：IndexOf 和 Contains 函数的 ListItem 参数
+- 添加：KeyPreview 属性到 Form
+- 新增：Form 的 TransparentColor 属性
+- 固定：更新标签的图形
+- 添加：面板的图形属性
+- 添加：DrawAlpha 到 Canvas
+- 修正：位图
+- 修正：光标对象
+- 修复：TreeView 控件的 Clear 方法
+- 固定：Linux 上的 NumbericUpDown 和 UpDown 控件
+- 修正：控件在 Linux 上的可见属性，添加：Linux 上的 NumericUpDown 控件
+- 修正：高 DPI 上的 NumericUpDown
+- 修正：CheckedListBox 和 UpDown 在高 DPI 上
+- 修正：菜单项的 RadioItem 属性。
+- 修正：高 DPI 上的控制约束属性
+- 修正：更新用户控件
+- 修正：使用 fbc 1.10.0 编译
+- 固定：应用程序
+- 修正：PageScroller
+- 添加：CheckBox 的 AutoSize 属性
+- 新增：输入框
+- 修正：ListView 在使用 Index 键入时添加方法
+- 修正：文件号泄漏
+- 修正：标签消息
+- 修正：IniFile 加载方法
+- 新增：全类型名称导出功能
+- 修正：使用将所有模块传递给编译器选项进行编译
+- 补充：RedefineClassKeyword 宏
+- 修正：在 Linux 上将 TabPage 分离到另一个 TabControl
+- 修正：在 Linux 上编译
+- 添加：NumericUpDown 控件
+- 改进：UpDown 深色模式
+- 新增：UpDown 和 TabControl 的 UpDown 的深色模式
+- 修正：在移动到另一个 TabControl 时显示 TabPage 图标
+- 添加：TabControl 的 OnTabAdded、OnTabRemoved 和 OnTabReordered 事件
+- 添加：TabControl 的可分离属性
+- 添加：TabPage 的 IsSelected 函数
+- 修复：形成 ShowModal 方法
+- 修复：关闭模态表单时闪烁
+- 修复：ToolBar Enabled 属性
+- 修正：高 DPI 中的功能 Cls
+- 添加：Menu.Add 和 MenuItem.Add 函数的 bEnabled 参数
+- 修正：在 Android 上编译
+- Added: Off Defines for Application, Brush, Chart, CommandButton, Component, Control, DoubleList, Frid, Pen, TextBox, UString, StringParseCount and Match
+- Added: #define Application_Controls_Get_Off #define Application_ControlCount_Get_Off #define Application_Title_Get_Off 
+- 修复：在重新创建 TabControl 窗口时显示最后打开的 TabPage
+- 修正：检查单选按钮
+- 添加：ReadProperty_Off 和 WriteProperty_Off 检查 ReadProperty 和 WriteProperty 函数。
+- 添加：Debug.AssertError 和 Debug.AssertWarning
+
+版本 1.3.3（2022 年 9 月 23 日）
+- 修复：网页浏览器导航方法
+- 修复：使用 gtk2 编译
+- 新增：水平框和垂直框容器控件
+- 修复：在Linux上使用OpenFileDialog打开多个文件
+- 修复：Linux 上应用程序的 ActiveForm 属性
+- 修复：应用程序运行方法
+- 修复：重新创建打开文件控件
+- 新增：撤消、粘贴剪贴板、复制剪贴板、剪切剪贴板、选择所有方法组合框编辑和组合框Ex
+- 修复：所有控件的项目索引
+- 修复：Linux 上的 IDE 崩溃
+- 新增：能够通过“属性”窗口更改文件夹浏览器对话框、字体对话框和颜色对话框的属性
+- 新增：能够通过“属性”窗口更改 OpenFileDialog 和 SaveFileDialog 的属性
+- 改进：显示MDI子图标，并在高DPI中最小化，恢复和关闭按钮
+- 修复：菜单项的图像和图像键属性
+- 添加了：活动MDIChild属性到应用程序
+- 修复：在暗模式下显示MDI子图标和最小化，恢复，关闭按钮
+- 新增：__HIDE_NO_MAIN_FORM_ON_CLOSE__定义
+- 修复：富文本框文本RTF属性并添加到设计器
+- 修复：高 DPI 上工具栏的位图宽度、位图高度、按钮宽度和按钮高度属性
+- 修复：在MDI表单中设置颜色
+- 修复：显示，隐藏和创建工具提示的Wnd方法
+- 修复：启用和禁用顶部菜单元素时绘制顶部菜单的问题。
+- 修复：网页浏览器设计
+- 已更改：修改后的LGPL许可证
+- 添加了：控件重绘导出子控件、列表的更改索引方法、状态面板的更改面板索引属性、状态栏的更改面板索引方法、工具按钮的按钮索引属性、工具按钮的更改索引方法以及工具按钮的更改索引方法
+- 修复：上下控制
+- 添加了：容器控件的自动大小属性
+- 新增：具有中心图像属性的标签的垂直居中文本
+- 修复：MDI 客户端窗口的深色模式
+- 新增：列单击事件到网格
+- 添加了：文本框中的“仅数字”属性
+- 修复：设计模式下控件的允许放置属性
+- 修复：表单关闭错误
+- 修复：字典索引键功能
+- 改进：设置命令按钮的默认属性可设置或取消设置父窗体的默认按钮属性。
+- 修复：命令按钮默认属性
+- 修复：工具面板删除工具按钮
+- 改进：在复选框中绘制复选框
+- 添加了：对 MDI 子项的激活和取消激活事件
+- 修复：MDI子项上的选项卡
+- 添加了：将所选属性添加到列表视图项
+- 修复：高 DPI 上的 MDI 表单
+- 更新：Linux 中的 Canvas 函数用于缩放
+- 修复：崩溃图表控件
+- 改进：MDI表单
+- 修复：在 Linux 上将空标题设置为菜单项
+- 新增：更改索引程序以控制
+- 添加了：控件索引属性到控件
+- 添加了：父菜单项属性到门尼项
+- 修复：窗体窗口启动时的状态属性
+- 修复：关闭并显示MDI子项
+- 修复：在设计模式下显示 MDI 子窗体
+- 新增：鼠标滚轮滚动控制
+- 新增：Linux 上的滚动控制
+- 新增：滚动控件
+- 添加了：在工具提示中添加了链接单击事件
+- 修复：控件的按键事件以获取 Unicode 符号
+- 修复：组合框Ex文本限制
+- 修复：显示带有长文本的组合框项目的问题
+- 改进：组合盒事件
+- 修复：ComboBoxEx的OnDblClick事件
+- 改进：OnDblClick 事件触发器也在 ComboBoxEdit 和 ComboBoxEx 的 TextBox 中。
+- 添加了：ItemCount 函数和 Clear 方法到 ComboBoxEx（用于扩展基类的属性和方法）
+- 添加了：ComboBoxEx 的 AddItem、RemoveItem 和 InsertItem 方法、Item 和 ItemData 属性、IndexOf、Contains 和 IndexOfData 函数
+- 修复：在高 DPI 上显示工具面板图标
+- 修复：在安卓上编译
+- 新增：ByRef Idx 参数到 WStringList 包含函数
+- 修复：在函数 GetBody/SetBody of WebBrowser 中获取和设置内部和外部文本和 html 的问题
+- 新增：ItemText 参数到 WStringList 的 IndexOf 函数
+- 改进：控制请求对齐方法
+- 修复：显示组合框编辑
+- 修复：在黑暗模式下绘制组框
+- 修复：文件编号泄漏
+- 修复：控制边距属性
+- 新增：__USE_GTK4__定义
+- 修复：刷新组合框按索引更改项目后编辑项目
+- 修复：LoadFromFile和SaveToFile功能，CheckedListBox，ComboBoxEdit和ListControl
+- 新增：加载自文件和保存到文件函数
+- 修复：显示编辑控件工具提示
+- 修复：显示表单的工具提示
+- 改进：WLetEx功能
+- 新增：匹配全词可选参数到字典的索引函数
+- 改进：WStringList 排序添加
+- 添加了：MatchCase 和 MatchFullWords 属性到 WStringList
+- 新增：排序插入参数到WStringList添加函数
+- 改进：WStringList和字典函数的速度索引
+- 修复：高 DPI 上的文本框左右边距
+- 改进：从图像列表将图像设置为菜单
+- 修复：在高 DPI 下更改 IDE 宽度时挂起
+- 修复：高DPI上的工具栏
+- 修复：组合框Ex，选项卡控件和工具面板控件的高DPI
+- 修复：组合框在高 DPI 上编辑项目高度
+- 修复：高DPI上的图像列表
+- 新增：My.Sys.Registry 命名空间
+- 修复：工具按钮状态属性
+- 新增：调试清除功能
+- 已更改：调试打印到调试.打印
+- 新增：使用调试打印。打印到调试窗口
+- 新增：在构造函数中设置文本框的 SelStart 和 SelEnd 方法
+- 改进：字典索引键法
+- 修复：从UTF8函数
+- 修复：设计器上的标签页
+- 修复：弹出菜单父窗口属性（获取）
+- 新增：用于控制添加方法的索引参数
+- 新增：按键获取和设置菜单和菜单项项
+- 新增：选项卡控件删除选项卡由选项卡页面指针
+- 修复：移动时拆分器更新
+
+版本 1.3.2（2022 年 4 月 16 日）
+- 修复：无法注册类消息的问题
+- 修复：深色模式下的复选框字体
+- 新增：游戏五在ARow示例
+- 新增：在画布中导入获取功能，如freeBasic Graphics功能来抓取图像
+- 新增：DPI 更改处理
+- 改进：添加范围控制方法在 gcc 后端和 64 位中可用。
+- 修复：在窗口上重新排序标签页
+- 修复：网格数据编译
+- 添加了：要控制的位置和大小属性
+- 修复：在DoEvents功能中挂起的问题
+- 修复：从UTF8函数
+
+版本 1.3.1（2022 年 3 月 31 日）
+- 新增：将事件移动到拆分器
+- 添加了：序列计数和轴项目计数函数到图表控件
+- 修复：图表更新系列与动画
+- 修复：图表更新系列方法
+- 修复：控制父属性
+- 添加了：画布的填充颜色和填充模式属性
+- 已删除：图片画布字段，图片控件从基本类型获取画布字段
+- 修复：在画布上使用背景色绘图
+- 改进：画布线条功能
+- 修复：将圆形功能添加到画布
+- 修复：网页浏览器分段违规信号
+- 修复：编译网格数据控件
+- 新增：网格数据控制
+- 新增：Cls 方法的画布背景颜色属性
+- 添加了：图表控件的工具提示格式属性
+- 修复：标签位置和标签对齐属性图表控件
+- 添加了：标签格式属性到图表控件
+- 新增：网格控制的单元格功能
+- 添加了：标记属性到网格列
+- 新增：网格示例
+- 新增：网格单元到网格控制
+- 新增：蝴蝶画示例
+- 修复：你好示例编译
+- 新增：缩放和 Cls 功能到画布
+- 修复：在图表控件中显示双精度值
+- 修复：高DPI图表，网格，列表视图和树列表视图控件
+- 修复：没有数据的图表控件
+- 新增：缩放功能到窗口上的画布
+- 添加了：网格控件的选定列索引属性
+- 新增：用于网格控制的暗模式
+- 添加了：轴最大值和轴最小值属性到图表控件
+- 新增：CountOf 函数到 WStringList
+- 添加了：CreateDoubleBuffer，TransferDoubleBuffer和DeleteDoubleBuffer方法到画布
+- 改进了：画布 SetPixel 方法和更改：获取设备和发布设备方法可见性从私有：到公开：
+- 修复：设计模式下打开文件控件崩溃的问题
+
+版本 1.3.0（2022 年 3 月 18 日）
+- 改进：Linux 中的 ReBar 暗模式
+- 添加了：对象参数到字典索引键和包含键函数
+- 新增：工具提示的深色模式
+- 改进：暗模式
+- 新增：从暗模式更改为高亮模式
+- 新增：打开文件控制的暗模式
+- 修复：文本框暗模式
+- 更改：深色模式下的分组框和文本框边框颜色
+- 修复：菜单项.可见属性
+- 修复：使用__USE_GTK__编译
+- 修复：为安卓编译
+- 更改：暗模式 ReBar 控件以隐藏白线和工具栏控件以显示分隔符
+- 更改：编号从 _L_ 到 _L 宏
+- 修复：使用 CRLF 保存资源文件 （*.rc） 结束行的问题
+- 已修复：关闭 IDE 时显示错误消息
+- 改进：部分资源文件质量
+- 修复：组合框编辑和组合框Ex滚动条黑暗模式
+- 修复：暗模式的资源文件
+- 新增：InStrMatch函数
+- 修复：在深色模式下显示列表视图网格线
+- 更改：深色模式下的列表视图和树列表视图网格线颜色
+- 修复：状态栏擦除背景
+- 新增：进度条的暗模式
+- 新增：黑暗模式到菜单栏
+- 改进：选项卡控件和状态栏暗模式
+- 修复：64位上的暗模式
+- 修复：复选框和单选按钮前景色属性
+- 新增：暗模式
+- 修复：创建时启用控件功能
+- 修复：分组框中控件上的两次 OnClick 事件
+- 修复：设置跟踪栏位置属性
+- 修复：在设计模式下保存滚动条位置
+- 添加了：编辑标签属性到树列表视图
+- 修复：树列表视图列宽度属性
+- 更改：组件获取边界过程从整数 Ptr 更改为整数
+- 修复了：“组合框”样式属性和“选中列表框背景颜色”属性
+- 修复：组合框列表高度
+- 修复：选中列表框添加项方法
+- 修复：组合框Ex文本属性
+- 修复：组合框编辑上的更改事件
+- 修复：在 Windows 7 中将鼠标悬停在窗体上的按钮上时，关闭、最大化、最小化按钮闪烁。
+- 已更改：组件获取边界函数
+- 新增：标签页的可见属性
+- 已修复：在 Windows 7 中的表单激活事件中激活另一个表单。
+- 新增：调试打印功能保存调试日志
+- 新增：初始目录到文件夹浏览器对话框
+- 修复：Windows GTK 上的析构函数
+- 新增：复选框，单选按钮，安卓上的月历
+- 新增：表单，标签，面板，文本框，命令按钮控件在Android上
+- 添加了：左侧，顶部，宽度和高度属性到Android中的控件
+- 固定：__USE_GTK__、__USE_WINAPI__和__USE_JNI__定义
+- 新增：__USE_JNI__为安卓定义
+- 已更改：将属性类型从整数对齐到枚举
+- 修复：文本框加载文件和 GetSel 方法
+- 修复：组合框编辑文本属性
+- 修复：文本框 SelText 和控件可见属性
+- 添加了：父菜单项属性到弹出菜单
+- 新增：所有类型和程序的私人关键字
+- 修复：选项卡控件请求对齐（对于选项卡页面）
+- 修复：64 位上的矩形和点类型
+- 修复：在最小化状态下调整表单大小
+- 新增：Linux上的TextBox LeftMargin和RightMargin
+- 新增：文本框左边距和右边距属性
+- 添加了：OnDrawItem 和 OnMeasureItem 事件到树列表视图
+- 修复：位图和图标加载从资源名称函数
+- 修复：将系统颜色设置为富文本框
+- 新增：在 Linux 上的 RichTextBox 中添加图像功能
+- 新增：SelPrint功能到富文本框
+- 新增：添加图像函数到富文本框
+- 新增：AddImageFromFile function to RichTextBox on Windows
+- 新增：RichTextBox SelAlignment, SelBackColor, SelColor, SelBold, SelBullet, SelCharOffset, SelCharSet, SelFontName, SelFontSize, SelIndent, SelItalic, SelProtected, SelRightIndent, SelHangingIndent, SelTabCount, SelUnderline, SelStrikeout properties on Windows and Linux
+- 新增：RichTextBox Find, FindNext, FindPrev, GetTextRange functions on Linux
+- 新增：RichTextBox OnProtectChange event on Windows
+- 已修复：ToolBar and ReBar
+- 新增：ReBarBand
+- 改进：ReBar 移至容器控件
+- 新增：视窗上的重新栏杆
+- 修复：画布获取像素，文本宽度和文本高度函数
+- 新增：Linux 上的页面滚动器
+- 新增：视窗上的页面滚动器控件
+- 已删除：本机字体控件
+- 修复：Linux上的热键和表单设置文本属性
+- 修复：链接标签的文本属性
+- 添加了：主页，结束键，控制和移位掩码到Linux上的IPAddress控制
+- 修复：IPA地址控制文本属性
+- 新增：OnChange 和 OnFieldChanged 事件到 Linux 上的 IPAddress 控件
+- 新增：Linux 上的 IPAddress 控制
+- 新增：将事件更改为 IPA地址控制
+- 修复：Windows中的IPAddress问题
+- 新增：Linux 上的热键控制
+- 添加了：可调整大小的属性到标头控件和标头部分
+- 修复：Linux 上的标头控制高度
+- 添加了：OnChange，OnChange，OnTrack 和 OnSectionDblClick 事件到 Linux 上的标头控件
+- 新增：Linux 上的标头控制
+- 改进：填充了打开文件控件读写属性函数
+- 新增：打开文件控件
+- 新增：Linux 中的网格控制
+- 新增：月历
+- 修复：Linux 上的日期时间选取器文本属性
+- 修复：在 Linux 上的 DateTimePicker 日历中更改年份和月份。
+- 修复：gtk2中的日期时间选择器
+- 新增：Linux 中的 DateTimePicker
+- 添加了：ShowNone 属性到日期时间选取器
+- 改进：日期时间选择器
+- 修复：Linux 中的控制 SetBounds 方法
+- 修复：Linux 中组件的宽度和高度属性
+- 添加了：Linux 中的工具按钮宽度和高度属性
+- 修复：Linux GTK2 中的图表大小调整
+- 修复：在窗口中显示图表控件
+- 修复：菜单项选中属性
+- 改进：动画控制支持Windows中的所有媒体文件格式（包括.gif，.mp4等）
+- 新增：正在播放动画控制的功能
+- 新增：在Windows和Linux上设置动画控件的OnOpen事件
+- 添加了：OnStart、OnStop 和 OnClose 事件，以在 Linux 上对控制进行动画处理
+- 新增：Linux 中的动画控制
+- 改进：填充动画读取和写入属性函数
+- 修复：使用 FreeBasic 1.09 编译
+- 改进：树列表视图列表项属性和树列表视图项属性名称更改为名称节点
+- 修复：树视图上更改事件
+- 改进：窗口中的工具面板组折叠样式
+- 改进：填充树列表视图读写属性
+- 删除了：TreeListView 的 SmallImages、GroupHeaderImages 和 View 属性
+- 修复：在Windows的构造函数中创建树列表视图项
+- 修复：树节点图像索引属性
+- 修复：树节点选定图像索引属性
+- 新增：通过索引函数获取字典、OnItemDblClick、OnItemKeyDown 和 OnSelectedItem在 Linux 中将事件更改为列表视图
+- 添加了：Images、SelectedImages 和 EditLabels 属性到 Linux 中的 TreeView，将 DraggedNode 函数添加到 Linux 中的 TreeView，OnNodeClick，OnNodeDblClick，OnNodeCollapsing，OnNodeCollapsed，OnNodeExpanding，OnNodeExpanded，OnSelChange，OnBeforeLabelEdit 和 OnAfterLabelEdit 事件到 Linux 中的 TreeView
+- 添加了：在 Linux 中要控制的 IsChild 属性
+- 修复：树视图在窗体构造函数上添加节点
+- 新增：OnNodeCollapsesing、OnNodeCollapsed、OnBeforeLabel在Windows中将事件编辑为TreeView
+- 修复：形成显示事件
+- 新增：Linux 中的列表视图排序属性，修复：Linux 中的列表视图属性
+- 修复了：Linux 中的 TabPage ImageKey 属性、PopupMenu ParentWindow 属性和 ListView View 属性
+- 添加了：在 Linux 中将属性和 OnItemClick 事件添加到列表视图
+- 添加了：Linux 中的 ListView CheckBox 属性和 ListViewItem Checked 属性
+- 添加了：BorderStyle、AllowColumnReorder 和 GridLines 属性到 Linux 中的 ListView
+- 修复：进度条进程消息方法
+- 修复：Linux 中 ProgressBar 的 StepBy 和 StepIt 方法
+- 改进：填充进度条读写属性函数
+- 新增：跟踪栏清除刻度标记方法
+- 修复：ListView SelectedItemIndex 属性和 ListItems.Add 函数在 Linux 中
+- 新增：在 Linux 中将事件 OnScroll 和 OnChange 事件更改为 TrackBar
+- 修复：在 tmTickStyle 中 AddTickMark 在 Linux 中
+- 新增：在Linux中将tmManual TickStyle添加到TrackBar
+- 添加了：在Linux中将tmBosh风格的TickMark添加到TrackBar
+- 已删除：跟踪栏的勾号属性。
+- 添加了：最小值，最大值，位置，行大小，页面大小，拇指长度，频率，刻度样式和样式属性以及添加刻度标记方法到Linux中的跟踪栏
+- 改进：填充跟踪栏读写属性功能
+- 新增：Linux 中的 BGR 功能
+- 修复：Linux 中控件的背景色和前景色属性
+- 修复：滚动条控件设置最大值
+- 新增：在 Linux 中控制 BringToFront 和 SendToBack 方法
+- 改进：填充滚动条控件的读写属性函数
+- 修复：从属性网格设置分组框的文本属性
+- 新增：注册表功能
+- 修复了：TabIndex，TabStop和TabPage的文本属性
+- 修复：组合框和组合框的文本属性
+- 修复：Linux 中的表单约束属性
+- 修复：泄漏 GDI 对象
+- 新增：在 Linux 中控制控件的约束属性
+- 修复：获取分组框中包含的控件的顶部位置
+- 添加了：SelCount 和 SelItems 属性到 Linux 中的 ListControl
+- 修复：Linux中CheckedListBox的检查项
+- 修复：删除 GDI 对象
+- 修复：复选框中的多列
+- 更改：列表控件和选中列表框的列属性以命名多列
+- 修复：填充了复选框的读写属性函数
+- 修复：选中列表框绘制焦点
+- 新增：在窗口中选中列表框
+- 新增：Linux 中的复选框控件
+- 添加了：SelItems 和 SelCount 属性到 Windows 中的 ListControl
+- 改进：列表框添加项和插入项方法
+- 改进：列表框读写属性函数
+- 新增：在 Linux 中将属性排序到 ListControl
+- 新增：Linux 中的列表控制边框
+- 改进：组合框Ex读写属性函数
+- 已删除：ComboBoxEdit 中的 AddObject 和 InsertObject 方法
+- 新增：OnMouseEnter、OnMouseMove、OnMouseHover、OnMouseLeave 事件到 Linux 中的组合框
+- 修复：在 Linux 中控制显示提示属性
+- 新增：在 Linux 中对 ComboBox 和 ComboBoxEx 属性进行排序
+- 添加了：在 Linux 中将 OnSelectT取消的事件添加到组合框
+- 固定：网格控制
+- 修复：Linux 中的 TextBox LoadFromFile 方法的问题
+- 已更改：控制执行功能访问类型从“公共”更改为“受保护”
+- 改进：私有、受保护和公共功能和属性
+- 修复：在 Linux 中标记事件
+- 修复：GTK2 中的 OnDropFile 事件
+- 添加了：在 Linux 中要控制的 OnDropFile 事件
+- 添加了：OnActivate，OnActivateApp，OnDeactivate，OnDeactivate，OnDeactivateApp事件在Linux中形成;
+- 删除了：来自 Linux 表单的 OnFree、OnTimer 事件
+- 修复：组合框编辑项目高度属性
+- 修复：Gtk2中的文本框
+- 新增：列表控件选择全部子
+- 添加了：OnCopy，OnCut，OnPaste，OnScroll，OnUpdate事件和对齐，CaretPos，CharCase，Ctl3D，Lines，MaskChar，Masked，MaxLength，Modified，ScrollBars，SelEnd，SelLength，SelStart，SelText，TopLine，WantReturn，WantTab属性到Linux中的TextBox
+- 改进：图像框在设计模式下可见
+- 修复：控件的 TabStop 属性
+- 添加了：在 Linux 中控制 OnMouseHover 事件
+- 新增：Linux 中的列表视图悬停选择属性
+- 修复：Linux 中的 ImageBox OnClik 和 OnDblClick 事件
+- 修复：在设计器中选择图像框
+- 修复：设计模式下的文本框自动换行属性
+- 修复：图像框事件
+- 修复：Linux 中的位图和图形加载从资源 ID 函数
+- 添加了：在 Linux 中将 OnEndScroll 事件添加到 ListView 和 TreeListView
+- 修复：文本框剪切到剪贴板，复制到剪贴板，粘贴从剪贴板和选择全部属性
+- 修复：GTK2 中的表单隐藏属性（在 Linux 中）
+- 修复：控件的提示属性
+- 新增：在 Linux 中表单 OnHide 事件
+- 添加了：选中属性到列表视图项
+- 修复：文本框的滚动条和自动换行属性在设计模式下工作
+- 添加了：自动换行属性到标签
+- 改进了表单和控件帮助信息
+- 修复：调整大小
+- 修复：在设计模式下表单活动控件属性
+- 修复：列表视图的允许列重新排序、边框选择、复选框、标签提示属性
+- 修复：颜色对话框的颜色属性
+- 新增：OnMove 事件到控件
+- 修复：Linux 中的提示属性控件
+- 修复：Linux 中的表单窗口状态
+- 修复：图像框在选定图像上调整大小。
+- 添加了：允许列重新排序、边框选择、复选框、网格线、悬停时间、全行选择、标签提示属性到列表视图
+- 添加了：在控件中添加鼠标输入事件
+- 添加了：WordWraps 属性到 Linux 中的 TextBox
+- 改进：标签读写属性函数
+- 修复：鼠标悬停时选择列表视图行
+- 修复：Linux 中的表单起始位置属性
+- 修复：Linux中的TextBox GotFocus和LostFocus事件
+- 新增：允许放置属性进行控制
+- 修复：在 Linux 中打开并保存对话框标题、过滤器、过滤器索引、文件名和初始目录属性
+- 新增：Linux 中 MDIForm 和 MDIChild 的初始更改
+- 修复：Windows 中的 MDIForm 和 MDIChild 属性
+- 删除：来自 Control.SetMargins 和 Component.SetBounds 的 NoScale 参数
+- 新增：高 DPI 兼容性
+- 新增：Linux 中的文本框更改事件
+- 新增：最小额外到拆分器
+- 修复：更新拖动拆分器上的控件
+- 修复：拆分器拖动不大于父级
+- 新增：SplitterAlignmentConstants enum
+- 修复：在属性网格中设置文本框和富文本框的属性
+- 修复：Linux 中的列表控件添加项过程
+
+版本 1.2.9（2021 年 7 月 14 日）
+- 修复：在DPI集上显示窗口
+- 修复：群框中的复选框问题
+- 修复：复选框的默认检查属性
+
+版本 1.2.8（2021 年 5 月 16 日）
+- 修复：Linux 中的控制析构函数
+- 新增：Linux 中的单选按钮检查属性
+- 修复：Linux 中的工具栏按钮标题
+- 新增：状态栏读写属性函数
+- 修复：图标加载从文件
+- 新增：图片列表清除导出功能
+- 修复：使用蓝屏功能
+- 修复：状态栏创建崩溃
+- 修复：更改列表视图列文本
+- 新增：图像列表读取和写入属性函数
+- 新增：图像列表拉伸图像
+- 修复：图像列表添加从文件
+- 新增：词典的文本属性
+- 新增：画布绘制透明
+- 新增：顶部菜单分隔符
+- 添加了：读取属性和写入属性功能到工具栏
+- 添加了：已选择（索引）属性到列表控件
+- 修复：显示模态
+- 修复：删除组件
+- 新增：光标的位图功能
+- 修复：加载图标
+- 新增：表单显示正常，如果最小化
+- 新增：加载图标到菜单项图像
+- 修复：在Win64中编译而不发出警告
+- 修复：减少了 GDI 对象的数量
+- 新增：在设计器中使用图像文件
+- 修复：列表视图获取子项文本
+- 新增：排序到列表视图
+- 添加了：工具按钮单击事件到工具栏
+- 新增：从PNG文件加载
+- 添加了：控件的扩展边距属性
+- 添加了：WantTab 属性到文本框
+- 修复：分隔符菜单项标题
+- 修复：菜单项读写属性函数
+- 修复：表单写入属性函数
+- 修复：控制重绘功能
+- 修复：面板绘画事件
+- 修复：重新分配函数
+- 修复：画布功能
+- 添加了：字典项的对象属性
+- 新增：Linux 中的图表
+
+版本 1.2.7（2021 年 3 月 6 日）
+- 新增：__USE_WEBKITGTK__定义
+- 新增：图表控件
+- 新增：鼠标悬停事件控制
+- 修复：GTK窗口在窗口移动的问题
+- 新增：Linux 上的计时器组件
+- 修复：富文本框崩溃
+- 修复：设计模式下富文本框的只读属性
+- 改进：替换功能
+- 修复：GTK 严重警告消息
+- 修复：菜单项.清除
+- 添加了：要控制的 OnMessage 事件
+- 新增：设置列表视图.图像索引和图像键
+- 修复：在 Linux 上的设计器中未禁用组合框编辑
+- 修复：如果编辑器的路径是 Unicode 格式，则图标现在在 Linux 中可见
+- 修复：打开和关闭文件
+- 修复：组框油漆
+- 修复：字体大小
+- 修复：菜单项图标绘制无背景
+- 添加了：控件标签、文本框、复选框、单选按钮的对齐属性
+- 修复：设置焦点与 UI 状态
+- 新增：控件的选项卡索引
+- 修复：保存文件对话框中的类型更改
+
+版本 1.2.6（2020 年 12 月 14 日）
+- 新增：用户控件类型
+- 已更改：键存在函数为公共
+- 添加了：设计器属性到我的系统对象
+- 新增：将节点函数拖到树视图
+- 新增：FBMemCheck.bi 检查内存泄漏
+- 修复：内存泄漏
+- 修复：列表视图属性
+- 修复：保存文件对话框过滤器索引功能
+- 修复：控件的文本属性
+
+版本 1.2.5（2020年8月2日）
+- 添加了：激活应用程序和停用应用程序事件以形成
+- 新增：初始化文件中的键删除功能
+- 新增：树视图事件：OnSelChange、OnNodeExpanding、OnNodeExpanded
+- 新增：树节点.粗体属性
+- 修复：TreeNode.ImageKey 和 TreeNode.SelectedImageKey 属性
+- 修复：Windows经典主题中的选项卡控件
+- 修复：64 位 Windows 上的状态栏功能
+- 修复：打开文件对话框和保存文件对话框筛选器属性
+- 修复：启用菜单项上的已删除菜单更新
+- 修复：组合框编辑 Esc 和返回键事件
+- 修复：页面设置对话框和打印对话框执行崩溃的问题
+- 修复：热键文本属性
+- 修复：删除对象，清除列表等。
+- 修复：计时器组件开时器事件
+
+版本 1.2.4（2020 年 5 月 24 日）
+- 新增：画布示例（在Windows和Linux中）
+- 新增：画布支持（在 Linux 中）
+- 新增：对象类型中的全类型名称函数（感谢fxm）
+- 修复：ComboBoxEx 文本属性（在 Linux 中）
+- 修复：显示模态（在 gtk2 中）
+- 修复：在没有本机滚动功能的小部件中滚动（在 gtk2 中）
+- 修复：计时器组件属性（在读取属性和写入属性函数中）
+
+版本 1.2.3（2020 年 5 月 17 日）
+- 新增：美国
+- 新增：FontDialog（在Linux中）
+- 新增：ColorDialog（在Linux中）
+
+版本 1.2.2（2019 年 12 月 31 日）
+- 新增：选项卡控件中的可重新排序属性
+
+版本 1.2.1（2019 年 12 月 18 日）
+- 修复：支持视窗 7 的问题
+
+版本 1.2.0（2019 年 12 月 15 日）
+- 新增：图片
+- 新增：打印机
+- 新增：页面设置对话框
+- 新增：打印对话框
+
+版本 1.1.0（2019 年 4 月 23 日）
+- 新增：PNG 支持
+- 新增：树列表视图控件
+- 修复：设置控件的字体属性（在Linux中）
+
+
+版本 1.0.3.40（2019 年 2 月 24 日）
+- 新增：__EXPORT_PROCS__定义
+
+版本 1.0.2.1（2019 年 1 月 2 日）
+- 新增：GTK2 支持
+
+版本 1.0.2（2018 年 12 月 20 日）
+- 新增：跨平台功能
+- 新增：工具面板控件
+- 新增：图像框控件
+
+版本 1.0.1（2018 年 8 月 19 日）
+- 新增：颜色对话框
+- 修复：命令按钮点击事件。
+
+版本 1.0.0（2018 年 7 月 14 日）
+- 新增：图形用户界面元素
+- 新增：绘图类等。
