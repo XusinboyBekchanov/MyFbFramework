@@ -1977,7 +1977,7 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				.Width             = 350
 				.Height            = 300
-				WLet(FClassAncestor, "form")
+				WLet(FClassAncestor, "div")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.StartPosition = DefaultLocation
@@ -2058,7 +2058,7 @@ End Namespace
 #elseif defined(__USE_WASM__)
 	Sub OnStart() Export
 		If pApp Then
-			If pApp->MainForm Then
+			If pApp->MainForm AndAlso pApp->MainForm->Handle = 0 Then
 				pApp->MainForm->CreateWnd
 				pApp->MainForm->Text = pApp->MainForm->Text
 			End If
