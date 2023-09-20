@@ -593,7 +593,8 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
-					If Not FDarkMode Then
+					If Not FComboBoxDarkMode Then
+						FComboBoxDarkMode = True
 						SetDark True
 '						FDarkMode = True
 '						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
@@ -607,7 +608,8 @@ Namespace My.Sys.Forms
 '						SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
 					End If
 				Else
-					If FDarkMode Then
+					If FComboBoxDarkMode Then
+						FComboBoxDarkMode = False
 						SetDark False
 '						FDarkMode = False
 '						Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))

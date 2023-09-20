@@ -88,15 +88,18 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
-			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Virtual Sub SetDark(Value As Boolean)
+			FComboBoxDarkMode As Boolean
 		#endif
 	Protected:
 		Declare Sub UpdateListHeight
+		
 	Public:
 		#ifdef __USE_GTK__
 			ListStore As GtkListStore Ptr
+		#elseif defined(__USE_WINAPI__)
+			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
 		Items             As ComboBoxExItems
 		ImagesList         As ImageList Ptr
