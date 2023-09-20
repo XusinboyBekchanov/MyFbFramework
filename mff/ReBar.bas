@@ -869,8 +869,9 @@ Namespace My.Sys.Forms
 					If OnHeightChange Then OnHeightChange(*Designer, This)
 				Case NM_CUSTOMDRAW
 					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
-						If Not FDarkMode Then
+						If Not FReBarDarkMode Then
 							FDarkMode = True
+							FReBarDarkMode = True
 							'SetWindowTheme(FHandle, "DarkModeNavbar", nullptr)
 							Brush.Handle = hbrBkgnd
 							SendMessage(FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
@@ -911,8 +912,9 @@ Namespace My.Sys.Forms
 							Return
 						End Select
 					Else
-						If FDarkMode Then
+						If FReBarDarkMode Then
 							FDarkMode = False
+							FReBarDarkMode = False
 							If FBackColor = -1 Then
 								Brush.Handle = 0
 							Else

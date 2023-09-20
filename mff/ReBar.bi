@@ -135,6 +135,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
+		FReBarDarkMode As Boolean
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
