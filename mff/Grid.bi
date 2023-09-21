@@ -343,6 +343,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Sub SaveToFile(ByRef FileName As WString)
 		Declare Sub LoadFromFile(ByRef FileName As WString)
+		Declare Sub EnsureVisible(Index As Integer)
 		Declare Constructor
 		Declare Destructor
 		OnColumnClick           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal ColIndex As Integer)

@@ -136,14 +136,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex = -1 Then Exit Sub
-				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_SELECTED, LVIS_SELECTED)
-				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_FOCUSED, LVIS_FOCUSED)
-				'				Dim lvi As LVITEM
-				'				lvi.iItem = ItemIndex
-				'				lvi.iSubItem   = 0
-				'				lvi.state    = LVIS_SELECTED
-				'				lvi.statemask = LVNI_SELECTED
-				'				ListView_SetItem(Parent->Handle, @lvi)
+				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			End If
 		#endif
 	End Sub
@@ -1013,6 +1006,24 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
+		
+	Private Sub TreeListView.EnsureVisible(Index As Integer)
+		#ifdef __USE_GTK__
+			If GTK_IS_ICON_VIEW(widget) Then
+				gtk_icon_view_select_path(GTK_ICON_VIEW(widget), gtk_tree_path_new_from_string(Trim(Str(Index))))
+			Else
+				If TreeSelection Then
+					If Index > -1 AndAlso Index < ListItems.Count Then
+						Dim As GtkTreeIter iter
+						gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+						gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
+					End If
+				End If
+			End If
+		#elseif defined(__USE_WINAPI__)
+			ListView_EnsureVisible(FHandle, Index, True)
+		#endif
+	End Sub
 	
 	Private Property TreeListView.OwnerDraw As Boolean
 		Return FOwnerDraw
@@ -1112,14 +1123,8 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Handle Then
-				ListView_SetItemState(Handle, Value, LVIS_SELECTED, LVIS_SELECTED)
-				ListView_SetItemState(Handle, Value, LVIS_FOCUSED, LVIS_FOCUSED)
-				'				Dim lvi As LVITEM
-				'				lvi.iItem = Value
-				'				lvi.iSubItem   = 0
-				'				lvi.state    = LVIS_SELECTED
-				'				lvi.statemask = LVNI_SELECTED
-				'				ListView_SetItem(Handle, @lvi)
+				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
+				ListView_EnsureVisible(Handle, Value, True)
 			End If
 		#endif
 	End Property

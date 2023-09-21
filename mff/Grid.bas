@@ -1350,6 +1350,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
+				ListView_EnsureVisible(Handle, Value, True)
 			End If
 		#endif
 	End Property
@@ -1711,8 +1712,8 @@ Namespace My.Sys.Forms
 									Heights += FItemHeight
 									If SelectedItem < iRowsCount Then
 										ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
-										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth 
-										If SelectedItem < iRowsCount Then 
+										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth
+										If SelectedItem < iRowsCount Then
 											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
 											If SelectedItem = FRow AndAlso iCol = FCol Then
 												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
@@ -1749,8 +1750,8 @@ Namespace My.Sys.Forms
 										ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
 										If R.Right < 0 Then Continue For
 										If ScrollLeft + ScaleX(This.Width) < R.Left Then Exit For
-										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth 
-										If SelectedItem < iRowsCount Then 
+										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth
+										If SelectedItem < iRowsCount Then
 											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
 											If SelectedItem = FRow AndAlso iCol = FCol Then
 												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
@@ -2083,6 +2084,25 @@ Namespace My.Sys.Forms
 	Private Operator Grid.Cast As Control Ptr
 		Return @This
 	End Operator
+	
+	Private Sub Grid.EnsureVisible(Index As Integer)
+		#ifdef __USE_GTK__
+			If GTK_IS_ICON_VIEW(widget) Then
+				gtk_icon_view_select_path(GTK_ICON_VIEW(widget), gtk_tree_path_new_from_string(Trim(Str(Index))))
+			Else
+				If TreeSelection Then
+					If Index > -1 AndAlso Index < Rows.Count Then
+						Dim As GtkTreeIter iter
+						gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+						gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
+					End If
+				End If
+			End If
+		#elseif defined(__USE_WINAPI__)
+			ListView_EnsureVisible(FHandle, Index, True)
+		#endif
+	End Sub
+	
 	Private Sub Grid.SaveToFile(ByRef FileName As WString)
 		Dim As Integer Fn
 		Fn = FreeFile_

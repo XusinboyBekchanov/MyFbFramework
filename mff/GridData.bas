@@ -618,7 +618,7 @@ Namespace My.Sys.Forms
 			.ImageIndex     = FImageIndex
 			.Text(0)        = FCaption
 			.State        = State
-			.locked         = tLocked
+			.Locked         = tLocked
 			If ParentItem Then
 				.Indent        = ParentItem->Indent + 1
 			Else
@@ -626,7 +626,7 @@ Namespace My.Sys.Forms
 			End If
 			.Parent         = Parent
 			#ifndef __USE_GTK__
-				.Handle = Cast(LPARAM, PItem)
+				.HANDLE = Cast(LPARAM, PItem)
 			#endif
 			.Items.Parent         = Parent
 			.ParentItem        = ParentItem
@@ -702,15 +702,15 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			#else
 				If Parent AndAlso Parent->Handle Then
-					lvi.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 					lvi.pszText  = @FCaption
 					lvi.cchTextMax = Len(FCaption)
 					lvi.iItem = Index
 					lvi.iImage   = FImageIndex
-					lvi.State   = INDEXTOSTATEIMAGEMASK(State)
+					lvi.state   = INDEXTOSTATEIMAGEMASK(State)
 					lvi.stateMask = LVIS_STATEIMAGEMASK
 					lvi.iIndent   = .Indent
-					lvi.LParam = Cast(LPARAM, PItem)
+					lvi.lParam = Cast(LPARAM, PItem)
 					ListView_InsertItem(Parent->Handle, @lvi)
 				End If
 			#endif
@@ -951,8 +951,8 @@ Namespace My.Sys.Forms
 			.GridEditComboItem= tComboItem
 		End With
 		#ifndef __USE_GTK__
-			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvC.fmt       =  tFormat
+			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvc.fmt       =  tFormat
 			lvc.cx = IIf(iWidth < 0, 100, iWidth)
 			lvc.iImage    = PColumn->ImageIndex
 			lvc.iSubItem  = PColumn->Index
@@ -1033,6 +1033,24 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Private Sub GridData.EnsureVisible(Index As Integer)
+		#ifdef __USE_GTK__
+			If GTK_IS_ICON_VIEW(widget) Then
+				gtk_icon_view_select_path(GTK_ICON_VIEW(widget), gtk_tree_path_new_from_string(Trim(Str(Index))))
+			Else
+				If TreeSelection Then
+					If Index > -1 AndAlso Index < ListItems.Count Then
+						Dim As GtkTreeIter iter
+						gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+						gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
+					End If
+				End If
+			End If
+		#elseif defined(__USE_WINAPI__)
+			ListView_EnsureVisible(FHandle, Index, True)
+		#endif
+	End Sub
+	
 	Private Property GridData.ColumnHeaderHidden As Boolean
 		Return FColumnHeaderHidden
 	End Property
@@ -1098,12 +1116,12 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
-				Dim As GridDataItem Ptr lvi = ListItems.FindByIterUser_Data(iter.User_Data)
+				Dim As GridDataItem Ptr lvi = ListItems.FindByIterUser_Data(iter.user_data)
 				If lvi <> 0 Then Return lvi->Index
 			End If
 		#else
-			If HANDLE Then
-				Return ListView_GetNextItem(HANDLE, -1, LVNI_SELECTED)
+			If Handle Then
+				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
 		#endif
 		Return -1
@@ -1120,14 +1138,8 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#else
-			If Handle Then
-				Dim lvi As LVITEM
-				lvi.iItem = Value
-				lvi.iSubItem   = 0
-				lvi.state    = LVIS_SELECTED
-				lvi.stateMask = LVNI_SELECTED
-				ListView_SetItem(Handle, @lvi)
-			End If
+			ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
+			ListView_EnsureVisible(Handle, Value, True)
 		#endif
 	End Property
 	

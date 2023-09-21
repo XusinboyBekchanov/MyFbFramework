@@ -217,6 +217,7 @@ Namespace My.Sys.Forms
 			ColumnTypes As GType Ptr
 		#endif
 		Declare Sub Init()
+		Declare Sub EnsureVisible(Index As Integer)
 		Nodes           As TreeListViewItems
 		Columns         As TreeListViewColumns
 		Images          As ImageList Ptr
