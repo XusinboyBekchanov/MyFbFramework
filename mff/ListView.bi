@@ -280,6 +280,7 @@ Namespace My.Sys.Forms
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Sub Init()
+		Declare Sub EnsureVisible(Index As Integer)
 		ListItems         As ListViewItems
 		Columns         As ListViewColumns
 		Images          As ImageList Ptr

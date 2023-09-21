@@ -953,7 +953,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function ListViewColumns.IndexOf(ByRef FColumn As ListViewColumn Ptr) As Integer
-		Return FColumns.IndexOF(FColumn)
+		Return FColumns.IndexOf(FColumn)
 	End Function
 	
 	Private Sub ListViewColumns.Clear
@@ -998,6 +998,12 @@ Namespace My.Sys.Forms
 				End If
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(TreeViewWidget), True)
 			End If
+		#endif
+	End Sub
+	
+	Private Sub ListView.EnsureVisible(Index As Integer)
+		#ifdef __USE_WINAPI__
+			ListView_EnsureVisible(FHandle, Index, True)
 		#endif
 	End Sub
 	
