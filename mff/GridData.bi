@@ -385,6 +385,7 @@ Namespace My.Sys.Forms
 		GroupHeaderImages As ImageList Ptr
 
 		Declare Sub Init()
+		Declare Sub EnsureVisible(Index As Integer)
 		Declare Sub SetGridLines(tFocusRect As Integer=-1,tDrawMode As Integer=-1,tColorLine As Integer=-1,tColorLineHeader As Integer=-1,tColorEditBack As Integer=-1,tColorSelected As Integer=-1,tColorHover As Integer=-1,tWidth As Integer=-1,PenMode As Integer=-1)
 		Declare Sub SetFontHeader(tFontColor As Integer=-1,tFontColorBK As Integer=-1,tNameHeader As WString="",tSizeHeader As Integer=-1,tCharSetHeader As Integer=FontCharset.Default,tBoldsHeader As Boolean=False,tItalicHeader As Boolean=False,tUnderlineHeader As Boolean=False,tStrikeoutHeader As Boolean=False)
 		Declare Sub SetFont(tName As WString="",tSize As Integer=-1,tCharSet As Integer=FontCharset.Default,tBolds As Boolean=False,tItalic As Boolean=False,tUnderline As Boolean=False,tStrikeout As Boolean=False)
