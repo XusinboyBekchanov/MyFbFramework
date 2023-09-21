@@ -1002,7 +1002,19 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub ListView.EnsureVisible(Index As Integer)
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_GTK__
+			If GTK_IS_ICON_VIEW(widget) Then
+				gtk_icon_view_select_path(GTK_ICON_VIEW(widget), gtk_tree_path_new_from_string(Trim(Str(Index))))
+			Else
+				If TreeSelection Then
+					If Index > -1 AndAlso Index < ListItems.Count Then
+						Dim As GtkTreeIter iter
+						gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
+						gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
+					End If
+				End If
+			End If
+		#elseif defined(__USE_WINAPI__)
 			ListView_EnsureVisible(FHandle, Index, True)
 		#endif
 	End Sub
@@ -1041,7 +1053,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(TreeViewWidget), Value)
-				gtk_icon_view_set_activate_on_single_click(gtk_icon_view(IconViewWidget), Value)
+				gtk_icon_view_set_activate_on_single_click(GTK_ICON_VIEW(IconViewWidget), Value)
 			#else
 				
 			#endif
@@ -1057,7 +1069,7 @@ Namespace My.Sys.Forms
 	Private Property ListView.HoverSelection(Value As Boolean)
 		FHoverSelection = Value
 		#ifdef __USE_GTK__
-			gtk_tree_view_set_hover_selection(gtk_tree_view(TreeViewWidget), Value)
+			gtk_tree_view_set_hover_selection(GTK_TREE_VIEW(TreeViewWidget), Value)
 		#elseif defined(__USE_WINAPI__)
 			ChangeLVExStyle LVS_EX_TRACKSELECT, Value
 		#endif
@@ -1200,13 +1212,13 @@ Namespace My.Sys.Forms
 					gtk_widget_show(Widget)
 				End If
 				Select Case FView
-				Case vsIcon: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_VERTICAL): gtk_icon_view_set_columns(gtk_icon_view(widget), -1)
-				Case vsSmallIcon: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_HORIZONTAL): gtk_icon_view_set_columns(gtk_icon_view(widget), -1)
-				Case vsList, vsTile, vsMax: gtk_icon_view_set_item_orientation(gtk_icon_view(widget), GTK_ORIENTATION_HORIZONTAL): gtk_icon_view_set_columns(gtk_icon_view(widget), 1)
+				Case vsIcon: gtk_icon_view_set_item_orientation(GTK_ICON_VIEW(widget), GTK_ORIENTATION_VERTICAL): gtk_icon_view_set_columns(GTK_ICON_VIEW(widget), -1)
+				Case vsSmallIcon: gtk_icon_view_set_item_orientation(GTK_ICON_VIEW(widget), GTK_ORIENTATION_HORIZONTAL): gtk_icon_view_set_columns(GTK_ICON_VIEW(widget), -1)
+				Case vsList, vsTile, vsMax: gtk_icon_view_set_item_orientation(GTK_ICON_VIEW(widget), GTK_ORIENTATION_HORIZONTAL): gtk_icon_view_set_columns(GTK_ICON_VIEW(widget), 1)
 				End Select
 			End If
 		#elseif defined(__USE_WINAPI__)
-			If Handle Then Perform LVM_SETVIEW, Cast(wparam, Cast(dword, Value)), 0
+			If Handle Then Perform LVM_SETVIEW, Cast(WPARAM, Cast(DWORD, Value)), 0
 		#endif
 	End Property
 	
@@ -1290,6 +1302,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
+				ListView_EnsureVisible(Handle, Value, True)
 			End If
 		#endif
 	End Property
