@@ -574,7 +574,7 @@ Namespace My
 				#endif
 			#endif
 			#ifdef __USE_GTK4__
-				gtk_init()
+				gtk_init(,)
 			#else
 				gtk_init(NULL, NULL)
 			#endif

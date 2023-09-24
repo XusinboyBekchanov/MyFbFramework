@@ -151,7 +151,7 @@ Namespace My.Sys.Forms
 		End If
 		If ColumnIndex < FCells.Count AndAlso ColumnIndex >= 0 Then FCells.Item(ColumnIndex) = Value
 		#ifdef __USE_GTK__
-			If Parent AndAlso GridGetModel(Parent->Handle) Then
+			If Parent AndAlso Parent->Handle AndAlso GridGetModel(Parent->Handle) Then
 				gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, ColumnIndex + 3, ToUtf8(Value), -1)
 			End If
 		#endif
@@ -646,6 +646,8 @@ Namespace My.Sys.Forms
 			End If
 			With *PItem
 				.ImageIndex     = FImageIndex
+				Dim As GtkWidget Ptr ParentTemp = Parent->Handle
+				Parent->Handle = 0
 				If InStr(FCaption, Chr(9)) > 0 Then
 					Dim As Integer ii = 1, n = 1 , tLen = Len(Chr(9)), ls = Len(FCaption), p = 1
 					Do While ii <= ls
@@ -666,6 +668,7 @@ Namespace My.Sys.Forms
 				Else
 					.Text(0)    = FCaption
 				End If
+				Parent->Handle = ParentTemp
 				' For entir row： if the value is -1 or false then flowing the Column property
 				.Editable       = RowEditable
 				.BackColor      = ColorBK
@@ -713,6 +716,8 @@ Namespace My.Sys.Forms
 		With *PItem
 			.Parent         = Parent
 			.ImageIndex     = FImageIndex
+			Dim As GtkWidget Ptr ParentTemp = Parent->Handle
+			Parent->Handle = 0
 			.Text(0)        = FCaption
 			If DuplicateIndex >= 0 Then tGridRowD = Cast(Grid Ptr, Parent)->Rows.Item(DuplicateIndex)
 			.Editable = IIf(DuplicateIndex >= 0, tGridRowD->Editable, RowEditable)
@@ -720,8 +725,17 @@ Namespace My.Sys.Forms
 			.ForeColor = IIf(DuplicateIndex >= 0, tGridRowD->ForeColor, ColorText)
 			.State          = State
 			.Indent         = Indent
+			Parent->Handle = ParentTemp
 		End With
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_GTK__
+			Cast(Grid Ptr, Parent)->Clear
+			If Index <> -1 Then 'iSortStyle <> SortStyle.ssNone OrElse
+				gtk_list_store_insert(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, Index)
+			Else
+				gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
+			End If
+			gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(IIf(FCaption = "", !"\0", FCaption)), -1)
+		#elseif defined(__USE_WINAPI__)
 			If Parent->Handle Then
 				SendMessage(Parent->Handle, LVM_SETITEMCOUNT, Cast(Grid Ptr, Parent)->Rows.Count, LVSICF_NOINVALIDATEALL)
 				Cast(Grid Ptr, Parent)->Repaint
