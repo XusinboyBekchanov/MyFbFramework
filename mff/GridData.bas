@@ -719,6 +719,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub GridDataItems.Remove(Index As Integer)
+		If FItems.Count < 1 OrElse Index < 0 OrElse Index > FItems.Count - 1 Then Exit Sub
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_remove(Cast(GridData Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
