@@ -705,6 +705,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub ListViewItems.Remove(Index As Integer)
+		If Count < 1 OrElse Index < 0 OrElse Index > Count - 1 Then Exit Sub
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_remove(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @This.Item(Index)->TreeIter)

@@ -680,6 +680,7 @@ Namespace My.Sys.Forms
 		'				Delete_( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 		'			End If
 		'		#endif
+		If Count < 1 OrElse Index < 0 OrElse Index > Count - 1 Then Exit Sub
 		If Cast(TreeListViewItem Ptr, FItems.Items[Index])->FDynamic Then _Delete( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
 	End Sub
