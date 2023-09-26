@@ -8,6 +8,7 @@ tar xf FreeBASIC-1.10.0-ubuntu-22.04-x86_64.tar.xz
 cd FreeBASIC-1.10.0-ubuntu-22.04-x86_64
 ./install.sh -i
 
+cd ..
 cd MyFbFramework/mff
 fbc -b "mff.bi" -dll -x "../../libmff64_gtk3.so" -d __USE_GTK3__
 
