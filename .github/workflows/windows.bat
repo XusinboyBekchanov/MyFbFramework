@@ -8,7 +8,7 @@ PowerShell Expand-Archive -LiteralPath "7za920.zip" -DestinationPath ".\7z" -For
 
 curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Windows/FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z
 
-7z\7za.exe x "FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z" -o%~dp0
+7z\7za.exe x "FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z" -o.\
 
 cd MyFbFramework\mff
 
