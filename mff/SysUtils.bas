@@ -297,7 +297,7 @@ End Function
 	' Example: StringParseCount("one,two,three", ",")   -> 3
 	' ========================================================================================
 	Private Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WString = ",", MatchCase As Boolean = True) As Long
-		If MainStr = "" OrElse Delimiter = "" Then Return 0
+		If MainStr = "" OrElse Delimiter = "" Then Return 1
 		Dim nCount As Long = 1
 		Dim nPos As Long = 1
 		Do

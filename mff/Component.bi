@@ -191,6 +191,10 @@ Private Enum Keys
 		Key_End = GDK_KEY_End
 		Key_Delete = GDK_KEY_Delete
 		Key_Enter = GDK_KEY_Return
+		ShiftMask = GDK_SHIFT_MASK
+		LockMask = GDK_LOCK_MASK
+		CtrlMask = GDK_CONTROL_MASK
+		AltMask = GDK_MOD1_MASK
 		F1 = GDK_KEY_F1
 		F2 = GDK_KEY_F2
 		F3 = GDK_KEY_F3
@@ -215,6 +219,10 @@ Private Enum Keys
 		Key_End = VK_END
 		Key_Delete = VK_DELETE
 		Key_Enter = VK_RETURN
+		ShiftMask = 1 'VK_SHIFT
+		LockMask = 2 'VK_SCROLL
+		CtrlMask = 4 'VK_CONTROL
+		AltMask = 8 'VK_MENU
 		F1 = VK_F1
 		F2 = VK_F2
 		F3 = VK_F3

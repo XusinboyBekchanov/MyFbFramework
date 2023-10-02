@@ -1254,7 +1254,7 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Private Sub Control.ProcessMessage(ByRef Message As Message)
-			Static bShift As Boolean, bCtrl As Boolean
+			Static bShift As Boolean, bCtrl As Boolean, bAlt As Boolean
 			If OnMessage Then OnMessage(*Designer, This, Message)
 			#ifdef __USE_GTK__
 				Dim As GdkEvent Ptr e = Message.Event
@@ -1422,6 +1422,7 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WINAPI__)
 				bShift = GetKeyState(VK_SHIFT) And 8000
 				bCtrl = GetKeyState(VK_CONTROL) And 8000
+				bAlt = GetKeyState(VK_MENU) And 8000
 				Select Case Message.Msg
 				Case WM_NCHITTEST
 					If FDesignMode Then
@@ -1713,7 +1714,7 @@ Namespace My.Sys.Forms
 				Case WM_CHAR
 					If OnKeyPress Then OnKeyPress(*Designer, This, Message.wParam)
 				Case WM_KEYDOWN
-					If OnKeyDown Then OnKeyDown(*Designer, This, Message.wParam, Message.lParam And &HFFFF)
+					If OnKeyDown Then OnKeyDown(*Designer, This, Message.wParam, IIf(bShift, ShiftMask, 0) Or IIf(bCtrl, CtrlMask, 0) Or IIf(bAlt, AltMask, 0))
 					If GetKeyState(VK_MENU) >= 0 Then
 						Select Case LoWord(Message.wParam)
 						Case VK_TAB
@@ -1740,7 +1741,7 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 				Case WM_KEYUP
-					If OnKeyUp Then OnKeyUp(*Designer, This, LoWord(Message.wParam), Message.lParam And &HFFFF)
+					If OnKeyUp Then OnKeyUp(*Designer, This, LoWord(Message.wParam), IIf(bShift, ShiftMask, 0) Or IIf(bCtrl, CtrlMask, 0) Or IIf(bAlt, AltMask, 0))
 				Case WM_SETFOCUS
 					If OnGotFocus Then OnGotFocus(*Designer, This)
 					If Not FDesignMode Then
