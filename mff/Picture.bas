@@ -225,7 +225,7 @@ Namespace My.Sys.Forms
 					If Canvas.CreateDoubleBuffered  Then
 						Canvas.TransferDoubleBuffer(0, 0, Width, Height)
 					Else
-						If (Not FTransparent) AndAlso BackColor <> -1 Then
+						If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
 							Dim As ..Rect R
 							GetClientRect Handle, @R
 							FillRect Dc, @R, This.Brush.Handle

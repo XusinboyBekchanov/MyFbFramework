@@ -162,7 +162,7 @@ Namespace My.Sys.Forms
 					Bmp   = CreateCompatibleBitmap(Dc, R.Right, R.Bottom)
 					SelectObject(memDC, Bmp)
 					'SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
-					If (Not FTransparent) AndAlso BackColor <> -1 Then
+					If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
 						FillRect Dc, @R, This.Brush.Handle
 					Else
 						Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
@@ -204,7 +204,7 @@ Namespace My.Sys.Forms
 					DeleteDC(memDC)
 				Else
 					SetBkMode Dc, Transparent
-					If (Not FTransparent) AndAlso BackColor <> -1 Then
+					If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
 						FillRect Dc, @R, This.Brush.Handle
 					Else
 						Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
