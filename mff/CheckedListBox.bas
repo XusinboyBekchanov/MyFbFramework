@@ -40,8 +40,10 @@ Namespace My.Sys.Forms
 				If Items.Item(i) > FItem Then Exit For
 			Next
 			Items.Insert i, FItem, Obj
+			FNewIndex = i
 		Else
 			Items.Add(FItem, Obj)
+			FNewIndex = Items.Count - 1
 		End If
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
@@ -58,10 +60,11 @@ Namespace My.Sys.Forms
 			Exit Sub
 		End If
 		Items.Insert(FIndex, FItem, Obj)
+		FNewIndex = FIndex
 		#ifdef __USE_GTK__
 			Dim As GtkTreeIter iter
-			gtk_list_store_insert(ListStore, @Iter, FIndex)
-			gtk_list_store_set (ListStore, @Iter, 1, ToUtf8(FItem), -1)
+			gtk_list_store_insert(ListStore, @iter, FIndex)
+			gtk_list_store_set (ListStore, @iter, 1, ToUtf8(FItem), -1)
 		#else
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
 		#endif

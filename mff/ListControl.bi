@@ -39,6 +39,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 		#endif
 	Protected:
+		FNewIndex         As Integer
 		FStyle            As Integer
 		FSort             As Boolean
 		FSelCount         As Integer
@@ -108,6 +109,7 @@ Namespace My.Sys.Forms
 		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Function IndexOf(ByRef Item As WString) As Integer
 		Declare Function IndexOfData(Obj As Any Ptr) As Integer
+		Declare Function NewIndex As Integer
 		Declare Sub SelectAll
 		Declare Sub UnSelectAll
 		Declare Sub Clear

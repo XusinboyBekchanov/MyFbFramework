@@ -19,6 +19,7 @@ Namespace My.Sys.Forms
 			Case "dropdowncount": Return @FDropDownCount
 			Case "integralheight": Return @FIntegralHeight
 			Case "itemheight": Return @FItemHeight
+			Case "newindex": Return @FNewIndex
 			Case "selcolor": Return @FSelColor
 			Case "sort": Return @FSort
 			Case "style": Return @FStyle
@@ -45,6 +46,10 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 	#endif
+	
+	Private Function ComboBoxEdit.NewIndex As Integer
+		Return FNewIndex
+	End Function
 	
 	Private Sub ComboBoxEdit.Undo
 		#ifdef __USE_WINAPI__
@@ -379,8 +384,10 @@ Namespace My.Sys.Forms
 				If Items.Item(i) > FItem Then Exit For
 			Next
 			Items.Insert i, FItem
+			FNewIndex = i
 		Else
 			Items.Add(FItem)
+			FNewIndex = Items.Count - 1
 		End If
 		#ifdef __USE_GTK__
 			If widget Then
@@ -418,6 +425,7 @@ Namespace My.Sys.Forms
 			Exit Sub
 		End If
 		Items.Insert(FIndex, FItem)
+		FNewIndex = FIndex
 		#ifdef __USE_GTK__
 			gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(widget), FIndex, ToUtf8(FItem))
 		#else
@@ -441,7 +449,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Private Function ComboBoxEdit.SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Private Function ComboBoxEdit.SUBCLASSPROC(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As ComboBoxEdit Ptr Ctrl
 			Dim As Message Message
 			Ctrl = Cast(ComboBoxEdit Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))

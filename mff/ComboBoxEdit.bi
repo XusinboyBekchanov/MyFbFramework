@@ -44,6 +44,7 @@ Namespace My.Sys.Forms
 		FStyle            As Integer
 		FIntegralHeight   As Boolean
 		FItemIndex        As Integer
+		FNewIndex         As Integer
 		FSelected         As Boolean
 		Declare Virtual Sub UpdateListHeight
 		#ifndef __USE_GTK__
@@ -100,6 +101,7 @@ Namespace My.Sys.Forms
 		Declare Virtual Function IndexOf(ByRef Item As WString) As Integer
 		Declare Virtual Function Contains(ByRef Item As WString) As Boolean
 		Declare Virtual Function IndexOfData(pData As Any Ptr) As Integer
+		Declare Virtual Function NewIndex As Integer
 		Declare Virtual Sub Clear
 		Declare Virtual Sub ShowDropDown(Value As Boolean)
 		Declare Virtual Sub SaveToFile(ByRef FileName As WString)
