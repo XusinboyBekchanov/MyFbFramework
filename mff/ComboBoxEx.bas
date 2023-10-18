@@ -338,7 +338,8 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ComboBoxEx.AddItem(ByRef FItem As WString)
-		Items.Add FItem
+		Var ComboItem = Items.Add(FItem)
+		FNewIndex = ComboItem->Index
 	End Sub
 	
 	Private Sub ComboBoxEx.RemoveItem(Index As Integer)
@@ -347,6 +348,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ComboBoxEx.InsertItem(Index As Integer, ByRef FItem As WString)
 		Items.Add FItem, , , , , , Index
+		FNewIndex = Index
 	End Sub
 	
 	Private Function ComboBoxEx.IndexOf(ByRef FItem As WString) As Integer
