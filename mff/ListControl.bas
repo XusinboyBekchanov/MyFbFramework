@@ -430,7 +430,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_append (ListStore, @iter)
 			gtk_list_store_set(ListStore, @iter, 0, ToUtf8(FItem), -1)
 		#else
-			If Handle Then Perform(LB_ADDSTRING, 0, CInt(@FItem))
+			If Handle Then FNewIndex = Perform(LB_ADDSTRING, 0, CInt(@FItem))
 		#endif
 	End Sub
 	
@@ -457,7 +457,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_insert(ListStore, @iter, FIndex)
 			gtk_list_store_set (ListStore, @iter, 0, ToUtf8(FItem), -1)
 		#else
-			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
+			If Handle Then FNewIndex = Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
 		#endif
 	End Sub
 	

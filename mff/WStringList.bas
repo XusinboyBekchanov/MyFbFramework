@@ -204,7 +204,7 @@ Private Function WStringList.Insert(ByVal Index As Integer, ByRef iValue As WStr
 		End If
 		FSorted = True
 	Else
-		j = IIf(Index > 0, Index, FCount)
+		j = IIf(Index > -1, Index, FCount)
 		FSorted = False
 	End If
 	'?j, FCount, *Cast(WString Ptr, Items.Item(j - 1)), iValue, *Cast(WString Ptr, Items.Item(j))
