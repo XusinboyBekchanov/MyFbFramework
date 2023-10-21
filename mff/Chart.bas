@@ -552,7 +552,7 @@ Namespace My.Sys.Forms
 		m_VerticalLines = False
 		m_FillGradient = False
 		m_HorizontalLines = True
-		m_ChartStyle = CS_PIE
+		m_ChartStyle = CS_Pie
 		m_ChartOrientation = CO_Vertical
 		m_LegendAlign = LA_RIGHT
 		m_LegendVisible = True
@@ -861,15 +861,15 @@ Namespace My.Sys.Forms
 				HotItem = -1
 				Me.Refresh
 			End If
-		Case CS_AREA
+		Case CS_Area
 			Dim XX As Single, YY As Single, i As Long
 			If X > MarginLeft And Y > TopHeader And X < MarginLeft + mWidth And Y < TopHeader + mHeight Then
 				If SerieCount = 0 Then Exit Sub
 				XX = X - MarginLeft + PtDistance / 2
 				'YY = Y '- TopHeader
-				
-				If (XX \ PtDistance) <> mHotBar Then
-					mHotBar = (XX \ PtDistance)
+				'Aborting due to runtime error 11 ("floating point error" signal) 
+				If CInt(XX / PtDistance) <> mHotBar Then
+					mHotBar = CInt(XX / PtDistance)
 					Me.Refresh
 				End If
 				Exit Sub
@@ -1218,13 +1218,13 @@ Namespace My.Sys.Forms
 		Dim nVal As Single
 		Dim NumDecim As Single
 		Dim forLines As Single, toLines As Single
-		Dim AxisX As SIZEF
-		Dim AxisY As SIZEF
+		Dim AxisX As SizeF
+		Dim AxisY As SizeF
 		Dim PT16 As Single
 		Dim PT24 As Single
 		Dim ColRow As Integer
 		Dim LineSpace As Single
-		Dim TitleSize As SIZEF
+		Dim TitleSize As SizeF
 		Dim sDisplay As String
 		Dim SafePercent As Single
 		Dim Min As Single, Max As Single, LastAngle As Single, Angle As Single, Total  As Single
@@ -1252,14 +1252,14 @@ Namespace My.Sys.Forms
 		Dim LastPositive() As Long, LastNegative() As Long
 		
 		#ifndef __USE_GTK__
-			If GdipCreateFromHDC(hD, @hGraphics) Then Exit Sub
+			If GdipCreateFromHDC(hd, @hGraphics) Then Exit Sub
 			
 			GdipSetSmoothingMode(hGraphics, SmoothingModeAntiAlias)
 			GdipSetCompositingQuality(hGraphics, &H3) 'CompositingQualityGammaCorrected
 		#endif
 		
 		Select Case ChartStyle
-		Case CS_PIE To CS_DONUT
+		Case CS_Pie To CS_Donut
 			
 			PT16 = 16 * nScale
 			mPenWidth = 1 * nScale
@@ -1401,8 +1401,8 @@ Namespace My.Sys.Forms
 			If Min / 3 < DonutSize Then DonutSize = Min / 3
 			XX = MarginLeft + mWidth / 2 - Min / 2
 			YY = TopHeader + mHeight / 2 - Min / 2
-			m_CenterCircle.X = MarginLeft + mWidth / 2
-			m_CenterCircle.Y = TopHeader + mHeight / 2
+			m_CenterCircle.x = MarginLeft + mWidth / 2
+			m_CenterCircle.y = TopHeader + mHeight / 2
 			R1 = Min / 2
 			
 			'    If m_SeparatorLine Then
@@ -1434,7 +1434,7 @@ Namespace My.Sys.Forms
 					GdipCreatePath 0, @m_Item(i).hPath
 				#endif
 				
-				If m_ChartStyle = CS_DONUT Then
+				If m_ChartStyle = CS_Donut Then
 					#ifdef __USE_GTK__
 						cairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
 						cairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), LastAngle * (G_PI / 180) + Angle * (G_PI / 180))
@@ -1522,7 +1522,7 @@ Namespace My.Sys.Forms
 					Left_ = CX + (R1 * Cos((LastAngle) * PItoRAD))
 					Top_ = CY + (R1 * Sin((LastAngle) * PItoRAD))
 					
-					If m_ChartStyle = CS_DONUT Then
+					If m_ChartStyle = CS_Donut Then
 						CX = CX + (R2 * Cos((LastAngle) * PItoRAD))
 						CY = CY + (R2 * Sin((LastAngle) * PItoRAD))
 					Else
@@ -1795,7 +1795,7 @@ Namespace My.Sys.Forms
 					
 				Next
 			End If
-		Case CS_AREA
+		Case CS_Area
 			
 			Canvas.Font = This.Font
 			'PT16 = 16 * nScale
@@ -2066,12 +2066,12 @@ Namespace My.Sys.Forms
 					For j = 0 To m_Serie(i).Values->Count - 1
 						Value = m_Serie(i).Values->Item(j) ' + 1
 						With m_Serie(i).PT(j)
-							.X = MarginLeft + PtDistance * j
+							.x = MarginLeft + PtDistance * j
 							'.Y = TopHeader + mHeight - (m_Serie(i).Values(j + 1) * (Max * mHeight / toLines) / Max)
 							If Value >= 0 Then
-								.Y = ZeroPoint - (Value * (ZeroPoint - TopHeader) / toLines)
+								.y = ZeroPoint - (Value * (ZeroPoint - TopHeader) / toLines)
 							Else
-								.Y = ZeroPoint + (Value * (TopHeader + mHeight - ZeroPoint) / forLines)
+								.y = ZeroPoint + (Value * (TopHeader + mHeight - ZeroPoint) / forLines)
 							End If
 						End With
 					Next
@@ -2094,23 +2094,23 @@ Namespace My.Sys.Forms
 							If m_LinesCurve Then
 								#ifdef __USE_GTK__
 									'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-									cairo_line_to(cr, m_Serie(i).PT(0).X, m_Serie(i).PT(0).Y)
+									cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 									For l As Integer = 1 To UBound(m_Serie(i).PT)
 										Dim As Single Y
 										If l Mod 2 = 1 Then
-											If m_Serie(i).PT(l).Y > m_Serie(i).PT(l - 1).Y Then
-												Y = IIf(m_Serie(i).PT(l - 1).Y > m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+											If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+												Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 											Else
-												Y = IIf(m_Serie(i).PT(l - 1).Y < m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+												Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 											End If
 										ElseIf l Mod 2 = 0 Then
-											If m_Serie(i).PT(l).Y > m_Serie(i).PT(l - 1).Y Then
-												Y = IIf(m_Serie(i).PT(l - 1).Y < m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+											If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+												Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 											Else
-												Y = IIf(m_Serie(i).PT(l - 1).Y > m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+												Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 											End If
 										End If
-										cairo_curve_to cr, m_Serie(i).PT(l - 1).X, m_Serie(i).PT(l - 1).Y, (m_Serie(i).PT(l).X + m_Serie(i).PT(l - 1).X) / 2, Y, m_Serie(i).PT(l).X, m_Serie(i).PT(l).Y
+										cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 									Next
 								#else
 									GdipAddPathCurveI hPath, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
@@ -2118,9 +2118,9 @@ Namespace My.Sys.Forms
 							Else
 								#ifdef __USE_GTK__
 									'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-									cairo_line_to(cr, m_Serie(i).PT(0).X, m_Serie(i).PT(0).Y)
+									cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 									For l As Integer = 1 To UBound(m_Serie(i).PT)
-										cairo_line_to cr, m_Serie(i).PT(l).X, m_Serie(i).PT(l).Y
+										cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 									Next
 									'cairo_stroke(cr)
 								#else
@@ -2183,23 +2183,23 @@ Namespace My.Sys.Forms
 					#endif
 					If m_LinesCurve Then
 						#ifdef __USE_GTK__
-							cairo_move_to(cr, m_Serie(i).PT(0).X, m_Serie(i).PT(0).Y)
+							cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 							For l As Integer = 1 To UBound(m_Serie(i).PT)
 								Dim As Single Y
 								If l Mod 2 = 1 Then
-									If m_Serie(i).PT(l).Y > m_Serie(i).PT(l - 1).Y Then
-										Y = IIf(m_Serie(i).PT(l - 1).Y > m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+									If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+										Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 									Else
-										Y = IIf(m_Serie(i).PT(l - 1).Y < m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+										Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 									End If
 								ElseIf l Mod 2 = 0 Then
-									If m_Serie(i).PT(l).Y > m_Serie(i).PT(l - 1).Y Then
-										Y = IIf(m_Serie(i).PT(l - 1).Y < m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+									If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+										Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 									Else
-										Y = IIf(m_Serie(i).PT(l - 1).Y > m_Serie(i).PT(l).Y, m_Serie(i).PT(l - 1).Y, m_Serie(i).PT(l).Y)
+										Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
 									End If
 								End If
-								cairo_curve_to cr, m_Serie(i).PT(l - 1).X, m_Serie(i).PT(l - 1).Y, (m_Serie(i).PT(l).X + m_Serie(i).PT(l - 1).X) / 2, Y, m_Serie(i).PT(l).X, m_Serie(i).PT(l).Y
+								cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 							Next
 							cairo_stroke(cr)
 						#else
@@ -2207,9 +2207,9 @@ Namespace My.Sys.Forms
 						#endif
 					Else
 						#ifdef __USE_GTK__
-							cairo_move_to(cr, m_Serie(i).PT(0).X, m_Serie(i).PT(0).Y)
+							cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 							For l As Integer = 1 To UBound(m_Serie(i).PT)
-								cairo_line_to cr, m_Serie(i).PT(l).X, m_Serie(i).PT(l).Y
+								cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 							Next
 							cairo_stroke(cr)
 						#else
@@ -2358,11 +2358,11 @@ Namespace My.Sys.Forms
 							#ifdef __USE_GTK__
 								Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 50)
 								cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), 0.5)
-								cairo_arc(cr, m_Serie(i).PT(j).X - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, m_Serie(i).PT(j).Y - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, PTSZ * 4 / 2, 0, 2 * G_PI)
+								cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, PTSZ * 4 / 2, 0, 2 * G_PI)
 								cairo_fill(cr)
 							#else
 								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 50), Cast(GpSolidFill Ptr Ptr, @hBrush)
-								GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).X - PTSZ * 2, m_Serie(i).PT(j).Y - PTSZ * 2, PTSZ * 4, PTSZ * 4
+								GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ * 2, m_Serie(i).PT(j).y - PTSZ * 2, PTSZ * 4, PTSZ * 4
 								GdipDeleteBrush hBrush
 							#endif
 						End If
@@ -2370,11 +2370,11 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK__
 							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 							cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
-							cairo_arc(cr, m_Serie(i).PT(j).X - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).Y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
+							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
 							cairo_fill(cr)
 						#else
 							GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
-							GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).X - PTSZ, m_Serie(i).PT(j).Y - PTSZ, PTSZ * 2, PTSZ * 2
+							GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
 							
 							'RectangleI hGraphics, hBrush, This.ClientWidth - MarginRight + MaxAxisHeight / 3, TopHeader + MaxAxisHeight * i + MaxAxisHeight / 4, MaxAxisHeight / 2, MaxAxisHeight / 2
 							GdipDeleteBrush hBrush
@@ -2383,11 +2383,11 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK__
 							Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
 							cairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
-							cairo_arc(cr, m_Serie(i).PT(j).X - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).Y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
+							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
 							cairo_stroke(cr)
 						#else
 							GdipCreatePen1(RGBtoARGB(FBackColor, 100 - m_FillOpacity), mPenWidth, &H2, @hPen)
-							GdipDrawEllipseI hGraphics, hPen, m_Serie(i).PT(j).X - PTSZ, m_Serie(i).PT(j).Y - PTSZ, PTSZ * 2, PTSZ * 2
+							GdipDrawEllipseI hGraphics, hPen, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
 							GdipDeletePen hPen
 						#endif
 						
@@ -3609,7 +3609,7 @@ Namespace My.Sys.Forms
 		End If
 		
 		Select Case ChartStyle
-		Case CS_PIE To CS_AREA
+		Case CS_Pie To CS_Area
 			ShowToolTips
 		Case CS_GroupedColumn To CS_StackedBarsPercent
 			ShowToolTips BarWidth
@@ -3702,7 +3702,7 @@ ErrorHandler:
 				Dim hBrush As GpBrush Ptr
 			#endif
 			Dim TM As Single
-			Dim SZ As SIZEF
+			Dim SZ As SizeF
 			Dim Max As Single
 			Dim IndexMax As Long
 			
@@ -3735,9 +3735,9 @@ ErrorHandler:
 				GetTextSize sText, 0, 0, This.Font, False, SZ
 				
 				With RectF_
-					
-					.X = m_Serie(IndexMax).PT(mHotBar).X - SZ.Width / 2
-					.Y = m_Serie(IndexMax).PT(mHotBar).Y - SZ.Height - 10 * nScale - TM
+					If mHotBar > m_Serie(IndexMax).Values->Count - 1 Then mHotBar = m_Serie(IndexMax).Values->Count - 1
+					.X = m_Serie(IndexMax).PT(mHotBar).x - SZ.Width / 2
+					.Y = m_Serie(IndexMax).PT(mHotBar).y - SZ.Height - 10 * nScale - TM
 					.Width = SZ.Width + TM * 5
 					.Height = SZ.Height + TM * 2
 					
@@ -3814,7 +3814,7 @@ ErrorHandler:
 			Dim LW As Single
 			Dim lForeColor As Long
 			Dim TM As Single
-			Dim SZ As SIZEF
+			Dim SZ As SizeF
 			
 			If mHotBar > -1 Then
 				TM = ScaleY(Canvas.TextHeight("Aj")) / 4
@@ -3822,7 +3822,7 @@ ErrorHandler:
 				LW = m_LinesWidth * nScale
 				
 				For i = 0 To SerieCount - 1
-					For j = 0 To m_Serie(i).Values->Count
+					For j = 0 To m_Serie(i).Values->Count - 1
 						
 						Dim sText As String
 						If mHotSerie = i And mHotBar = j Then ' - 1
