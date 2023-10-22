@@ -2035,13 +2035,13 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
-			Base.Move IIf(Constraints.Left, Constraints.Left, cLeft), IIf(Constraints.Top, Constraints.Top, cTop), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
+			Base.Move IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Left, Constraints.Left, cLeft)), IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Top, Constraints.Top, cTop)), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
 		End Sub
 		
 		#ifdef __USE_GTK__
 			Private Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
-				If GTK_IS_LAYOUT(widget) OrElse GTK_IS_SCROLLED_WINDOW(widget) Then
+				If GTK_IS_LAYOUT(widget) OrElse GTK_IS_SCROLLED_WINDOW(widget) OrElse GTK_IS_BOX(widget) Then
 					Dim As Integer AllocatedWidth = allocation->width, AllocatedHeight = allocation->height
 					'					#ifdef __USE_GTK3__
 					'						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
@@ -2068,7 +2068,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK4__
 					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget)) Then
 				#else
-					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_EVENT_BOX(widget)) Then
+					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_BOX(widget) OrElse GTK_IS_EVENT_BOX(widget)) Then
 				#endif
 					Ctrl->Canvas.HandleSetted = True
 					Ctrl->Canvas.Handle = cr
@@ -2526,21 +2526,27 @@ Namespace My.Sys.Forms
 				Dim As Integer MaxWidth, MaxHeight
 				
 				GetMax MaxWidth, MaxHeight
+				
 				#ifdef __USE_GTK__
-					If Height <> MaxHeight Then '+ AllocatedHeight - iClientHeight Then
-						Height = MaxHeight ' + AllocatedHeight - iClientHeight
-						'This.AllocatedWidth = 0
-						'This.AllocatedHeight = 0
-						'This.Repaint
-						'If This.Parent Then
-						'	'This.Parent->RequestAlign , , True
-						'	This.Parent->AllocatedWidth = 0
-						'	This.Parent->AllocatedHeight = 0
-						'	'This.Parent->Repaint
-						'End If
+					If GTK_IS_BOX(widget) Then
+						If Height > MaxHeight + Height - iClientHeight OrElse Width > MaxWidth + Width - iClientWidth Then
+							If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
+								Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+							End If
+						End If
+					Else
+						If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth Then
+							If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
+								Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+							End If
+						End If
 					End If
 				#else
-					If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 Then Height = MaxHeight + Height - iClientHeight 'Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+					If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth Then
+						If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
+							Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+						End If
+					End If
 				#endif
 			End If
 			#ifdef __USE_GTK__

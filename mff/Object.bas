@@ -11,6 +11,7 @@ Namespace My.Sys
 		Private Function Object.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "classname": If IsEmpty Then Return 0 Else Return FClassName
+			Case "designer": If IsEmpty Then Return 0 Else Return Designer
 			Case Else: Return 0
 			End Select
 			Return 0
@@ -21,6 +22,7 @@ Namespace My.Sys
 		Private Function Object.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value <> 0 Then
 				Select Case LCase(PropertyName)
+				Case "designer": Designer = Value
 				Case Else: Return False
 				End Select
 			End If

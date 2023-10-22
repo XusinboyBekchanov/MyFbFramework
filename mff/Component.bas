@@ -327,46 +327,48 @@ Namespace My.Sys.ComponentModel
 	
 	#ifndef Left_Off
 		Private Property Component.Left As Integer
-			#ifdef __USE_GTK__
-				If GTK_IS_WINDOW(widget) Then
-					gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-					FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
-					FTop =  FTop / gtk_widget_get_scale_factor(widget)
-				Else
-					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
-					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
-						Dim allocation As GtkAllocation
-						gtk_widget_get_allocation(CtrlWidget, @allocation)
-						FLeft = allocation.x / gtk_widget_get_scale_factor(CtrlWidget)
-						'If FParent Then FLeft -= FParent->Margins.Left
-					End If
-				End If
-			#elseif defined(__USE_WINAPI__)
-				If FHandle Then
-					If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
+			If Not (FDesignMode AndAlso (Designer = @This)) Then
+				#ifdef __USE_GTK__
+					If GTK_IS_WINDOW(widget) Then
+						gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
+						FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
+						FTop =  FTop / gtk_widget_get_scale_factor(widget)
 					Else
-						Dim As RECT R
-						GetWindowRect Handle, @R
-						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
-						FLeft = UnScaleX(R.left)
-						'If FParent Then FLeft -= FParent->Margins.Left
+						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
+							Dim allocation As GtkAllocation
+							gtk_widget_get_allocation(CtrlWidget, @allocation)
+							FLeft = allocation.x / gtk_widget_get_scale_factor(CtrlWidget)
+							'If FParent Then FLeft -= FParent->Margins.Left
+						End If
 					End If
-				End If
-			#elseif defined(__USE_JNI__)
-				If ClassName = "Form" Then
-					FLeft = 0
-				Else
+				#elseif defined(__USE_WINAPI__)
 					If FHandle Then
-						Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
-						Dim As jmethodID getLayoutParamsMethod = (*env)->GetMethodID(env, class_view, "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
-						Dim As jobject MarginLayoutParams = (*env)->CallObjectMethod(env, FHandle, getLayoutParamsMethod)
-						Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
-						Dim As jfieldID xField = (*env)->GetFieldID(env, class_MarginLayoutParams, "x", "I")
-						FLeft = UnScaleX((*env)->GetIntField(env, MarginLayoutParams, xField))
-						'If FParent Then FLeft -= FParent->Margins.Left
+						If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
+						Else
+							Dim As RECT R
+							GetWindowRect Handle, @R
+							MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
+							FLeft = UnScaleX(R.left)
+							'If FParent Then FLeft -= FParent->Margins.Left
+						End If
 					End If
-				End If
-			#endif
+				#elseif defined(__USE_JNI__)
+					If ClassName = "Form" Then
+						FLeft = 0
+					Else
+						If FHandle Then
+							Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+							Dim As jmethodID getLayoutParamsMethod = (*env)->GetMethodID(env, class_view, "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
+							Dim As jobject MarginLayoutParams = (*env)->CallObjectMethod(env, FHandle, getLayoutParamsMethod)
+							Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
+							Dim As jfieldID xField = (*env)->GetFieldID(env, class_MarginLayoutParams, "x", "I")
+							FLeft = UnScaleX((*env)->GetIntField(env, MarginLayoutParams, xField))
+							'If FParent Then FLeft -= FParent->Margins.Left
+						End If
+					End If
+				#endif
+			End If
 			Return FLeft
 		End Property
 		
@@ -380,47 +382,49 @@ Namespace My.Sys.ComponentModel
 	
 	#ifndef Top_Off
 		Private Property Component.Top As Integer
-			#ifdef __USE_GTK__
-				Dim ControlChanged As Boolean
-				If GTK_IS_WINDOW(widget) Then
-					gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-					FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
-					FTop =  FTop / gtk_widget_get_scale_factor(widget)
-				Else
-					Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
-					If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
-						Dim allocation As GtkAllocation
-						gtk_widget_get_allocation(CtrlWidget, @allocation)
-						FTop = allocation.y / gtk_widget_get_scale_factor(CtrlWidget)
-						'If FParent Then FTop -= FParent->Margins.Top
-						ControlChanged = True
-					End If
-				End If
-				If CInt(ControlChanged) AndAlso CInt(Parent) AndAlso CInt(Parent->ClassName = "GroupBox") Then
-					FTop + = 20
-				End If
-			#elseif defined(__USE_WINAPI__)
-				If FHandle Then
-					If FParent AndAlso UCase(FParent->ClassName) = "SYSTABCONTROL32" Or UCase(FParent->ClassName) = "TABCONTROL" Then
+			If Not (FDesignMode AndAlso (Designer = @This)) Then
+				#ifdef __USE_GTK__
+					Dim ControlChanged As Boolean
+					If GTK_IS_WINDOW(widget) Then
+						gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
+						FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
+						FTop =  FTop / gtk_widget_get_scale_factor(widget)
 					Else
-						Dim As RECT R
-						GetWindowRect Handle,@R
-						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
-						FTop = UnScaleY(R.top)
-						'If FParent Then FTop -= FParent->Margins.Top
+						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
+							Dim allocation As GtkAllocation
+							gtk_widget_get_allocation(CtrlWidget, @allocation)
+							FTop = allocation.y / gtk_widget_get_scale_factor(CtrlWidget)
+							'If FParent Then FTop -= FParent->Margins.Top
+							ControlChanged = True
+						End If
 					End If
-				End If
-			#elseif defined(__USE_JNI__)
-				If ClassName = "Form" Then
-					FLeft = 0
-				Else
+					If CInt(ControlChanged) AndAlso CInt(Parent) AndAlso CInt(Parent->ClassName = "GroupBox") Then
+						FTop + = 20
+					End If
+				#elseif defined(__USE_WINAPI__)
 					If FHandle Then
-						Dim As jobject MarginLayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
-						FTop = UnScaleY(GetIntField(MarginLayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "y", "I"))
-						'If FParent Then FTop -= FParent->Margins.Top
+						If FParent AndAlso UCase(FParent->ClassName) = "SYSTABCONTROL32" Or UCase(FParent->ClassName) = "TABCONTROL" Then
+						Else
+							Dim As RECT R
+							GetWindowRect Handle,@R
+							MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
+							FTop = UnScaleY(R.top)
+							'If FParent Then FTop -= FParent->Margins.Top
+						End If
 					End If
-				End If
-			#endif
+				#elseif defined(__USE_JNI__)
+					If ClassName = "Form" Then
+						FLeft = 0
+					Else
+						If FHandle Then
+							Dim As jobject MarginLayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
+							FTop = UnScaleY(GetIntField(MarginLayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "y", "I"))
+							'If FParent Then FTop -= FParent->Margins.Top
+						End If
+					End If
+				#endif
+			End If
 			Return FTop
 		End Property
 		
