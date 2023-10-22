@@ -2327,8 +2327,13 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To ControlCount - 1
 				With *Controls[i]
 					If .FVisible Then
-						If MaxWidth < .Left + .Width + .ExtraMargins.Right Then MaxWidth = .Left + .Width + .ExtraMargins.Right
-						If MaxHeight < .Top + .Height + .ExtraMargins.Bottom Then MaxHeight = .Top + .Height + .ExtraMargins.Bottom
+						#ifdef __USE_GTK__
+							If MaxWidth < .Left + .Width + .ExtraMargins.Right Then MaxWidth = .Left + .Width + .ExtraMargins.Right
+							If MaxHeight < .Top + .Height + .ExtraMargins.Bottom Then MaxHeight = .Top + .Height + .ExtraMargins.Bottom
+						#else
+							If MaxWidth < .Left + .Width + .ExtraMargins.Right Then MaxWidth = .Left + .Width + .ExtraMargins.Right
+							If MaxHeight < .Top + .Height + .ExtraMargins.Bottom Then MaxHeight = .Top + .Height + .ExtraMargins.Bottom
+						#endif
 					End If
 				End With
 			Next
@@ -2528,19 +2533,24 @@ Namespace My.Sys.Forms
 				GetMax MaxWidth, MaxHeight
 				
 				#ifdef __USE_GTK__
-					If GTK_IS_BOX(widget) Then
-						If Height > MaxHeight + Height - iClientHeight OrElse Width > MaxWidth + Width - iClientWidth Then
-							If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
-								Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
-							End If
-						End If
-					Else
-						If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth Then
-							If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
-								Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
-							End If
+					If Height > MaxHeight + Height - iClientHeight Then
+						If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 Then
+							Height = MaxHeight + Height - iClientHeight
 						End If
 					End If
+					'If GTK_IS_BOX(widget) Then
+					'	If Height > MaxHeight + Height - iClientHeight OrElse Width > MaxWidth + Width - iClientWidth Then
+					'		If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
+					'			Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+					'		End If
+					'	End If
+					'Else
+					'	If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth Then
+					'		If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
+					'			Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+					'		End If
+					'	End If
+					'End If
 				#else
 					If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth Then
 						If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
