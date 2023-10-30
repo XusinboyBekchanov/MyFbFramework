@@ -421,10 +421,6 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 End Function
 
-Private Function iGet(Value As Any Ptr) As Integer
-	If Value = 0 Then Return 0 Else Return *Cast(Integer Ptr, Value)
-End Function
-
 Private Function ZGet(ByRef subject As ZString Ptr) As String
 	If subject = 0 Then Return ""
 	Return *subject
@@ -441,10 +437,6 @@ Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As L
 	Dim strn As UString = WString(StringLength, PadCharacter)
 	Mid(strn, StringLength - Len(MainStr) + 1, Len(MainStr)) = MainStr
 	Return strn
-End Function
-
-Private Function _Abs(Value As Boolean) As Integer
-	Return Abs(CInt(Value))
 End Function
 
 #ifndef StringParseCount_Off

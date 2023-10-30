@@ -88,6 +88,7 @@
 	#define Instance GetModuleHandle(NULL)
 #endif
 #include once "UString.bi"
+#include once "Integer.bi"
 
 #ifdef __EXPORT_PROCS__
 	#define PublicOrPrivate Public
