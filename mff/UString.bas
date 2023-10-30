@@ -421,6 +421,15 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 End Function
 
+Private Function iGet(Value As Any Ptr) As Integer
+	If Value = 0 Then Return 0 Else Return *Cast(Integer Ptr, Value)
+End Function
+
+Private Function ZGet(ByRef subject As ZString Ptr) As String
+	If subject = 0 Then Return ""
+	Return *subject
+End Function
+
 Private Function StrLSet(ByRef MainStr As Const WString, ByVal StringLength As Long, ByRef PadCharacter As Const WString = " ") As UString
 	Dim strn As UString = WString(StringLength, PadCharacter)
 	Mid(strn, 1, Len(MainStr)) = MainStr
@@ -433,6 +442,415 @@ Private Function StrRSet(ByRef MainStr As Const WString, ByVal StringLength As L
 	Mid(strn, StringLength - Len(MainStr) + 1, Len(MainStr)) = MainStr
 	Return strn
 End Function
+
+Private Function _Abs(Value As Boolean) As Integer
+	Return Abs(CInt(Value))
+End Function
+
+#ifndef StringParseCount_Off
+	' ========================================================================================
+	' * Returns the count of delimited fields from a string expression.
+	' If wszMainStr is empty (a null string) or contains no delimiter character(s), the string
+	' is considered to contain exactly one sub-field. In this case, AfxStrParseCount returns the value 0.
+	' Delimiter contains a string (one or more characters) that must be fully matched.
+	' Delimiters are case-sensitive.
+	' Example: StringParseCount("one,two,three", ",")   -> 3
+	' ========================================================================================
+	Private Function StringParseCount(ByRef MainStr As WString, ByRef Delimiter As Const WString = ",", MatchCase As Boolean = True) As Long
+		If MainStr = "" OrElse Delimiter = "" Then Return 1
+		Dim nCount As Long = 1
+		Dim nPos As Long = 1
+		Do
+			If MatchCase Then
+				nPos = InStr(nPos, MainStr, Delimiter)
+			Else
+				nPos = InStr(nPos, UCase(MainStr), UCase(Delimiter))
+			End If
+			If nPos = 0 Then Exit Do
+			nCount += 1
+			nPos += Len(Delimiter)
+		Loop
+		Return nCount
+	End Function
+	
+	Private Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
+		Return StringParseCount(subject, searchtext, MatchCase) - 1
+	End Function
+#endif
+
+'Function InStrPos(ByRef subject As WString, ByRef searchtext() AS Wstring, start As Integer = 1) As Integer
+'FOr i As Integer = 1 To Len(subject)
+'For j As Integer = 0 To Ubound(searchtext)
+'If Mid(subject, i, Len(searchtext(j)) = searchtext(j) Then Return i
+'Next j
+'Next
+'Return 0
+'End Function
+'
+'Function InStrRevPos(ByRef subject As WString, ByRef searchtext() AS Wstring, start As Integer = 1) As Integer
+'FOr i As Integer = Len(subject) To 1 Step -1
+'For j As Integer = 0 To Ubound(searchtext)
+'If Mid(subject, i, Len(searchtext(j)) = searchtext(j) Then Return i
+'Next j
+'Next
+'Return 0
+'End Function
+
+'Private Function Replace Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByRef wszReplaceWith As Const WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
+'	If wszMainStr = "" OrElse wszMatchStr = "" OrElse wszMatchStr = wszReplaceWith Then Return wszMainStr
+'	Dim As WString Ptr TempString
+'	WLet TempString, wszMainStr
+'	Dim nLenReplaceWith As Long = Len(wszReplaceWith)
+'	Dim nLen As Long = Len(wszMatchStr)
+'	If Start < 0 Then Start = nLen + Start + 1
+'	Dim As Long nPos = Start, C =0
+'	Do
+'		C += 1
+'		If MatchCase Then
+'			nPos = InStr(nPos, *TempString, wszMatchStr)
+'		Else
+'			nPos = InStr(nPos, UCase(*TempString), UCase(wszMatchStr))
+'		End If
+'		If nPos = 0 Then Exit Do
+'		WLet TempString, Mid(*TempString, 1, nPos - 1) + wszReplaceWith + Mid(*TempString, nPos + nLen)
+'		nPos += nLenReplaceWith
+'	Loop
+'	Count = C
+'	Function = *TempString
+'	Deallocate TempString
+'End Function
+'
+'' ========================================================================================
+'' * Within a specified string, replace all occurrences of any of the individual string
+'' specified in the wszMainStr string.
+'' Will skip the one which is one of the wszReplaceWith
+'' Example: ReplaceAny("abacadabra", "abc", "*")  ->  a*aa*aada*ara   ' -> *****d**r*
+'' Example: ReplaceAny("abacadabefra", "ab|bc|ef", "*")  ->  a*aa*aada*ara   ' ->
+'' ========================================================================================
+'Private Function Replace Overload(ByRef wszMainStr As WString, MatchedStr() As WString Ptr, ReplaceWith() As WString Ptr, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
+'	Dim As Long i = 1, nLen = Len(wszMainStr), nLen1 = UBound(MatchedStr), nLen2 = UBound(ReplaceWith), C = 0
+'	If nLen = 0 OrElse nLen1 = 0 OrElse nLen2 = 0  OrElse nLen2 <> nLen Then Return wszMainStr
+'	Dim As WString Ptr TempString
+'	Dim As String wszMatchStr, wszReplaceWith
+'	WLet TempString, wszMainStr
+'	nLen = nLen1
+'	For j As Integer = 0 To nLen
+'		wszReplaceWith = *ReplaceWith(j) : wszMatchStr = *MatchedStr(j)
+'		nLen1 = Len(wszMatchStr) : nLen2 = Len(wszReplaceWith)
+'		For x As Integer = 1 To nLen1
+'			'skip the one which is one of the wszReplaceWith
+'			If InStr(Start, wszReplaceWith, Mid(wszMatchStr, x, 1)) > 0 Then Continue For
+'			C += 1
+'			Do While i <= Len(*TempString)
+'				If MatchCase Then
+'					If Mid(wszMatchStr, x, 1) = Mid(*TempString, i, 1) Then
+'						'Mid(*TempString, i, 1) = wszReplaceWith
+'						WLet TempString, Mid(*TempString, 1, i - 1) + wszReplaceWith + Mid(*TempString, i + 1)
+'						i += nLen2
+'					End If
+'				Else
+'					If UCase(Mid(wszMatchStr, x, 1)) = UCase(Mid(*TempString, i, 1)) Then
+'						WLet TempString, Mid(*TempString, 1, i - 1) + wszReplaceWith + Mid(*TempString, i + 1)
+'						i += nLen2
+'					End If
+'				End If
+'				i +=1
+'			Loop
+'			i=1
+'		Next
+'	Next
+'	Count = C
+'	Function = *TempString
+'	Deallocate TempString
+'End Function
+
+Private Function StartsWith(ByRef a As Const WString, ByRef b As Const WString, Start As Integer = 0) As Boolean
+	'If a = "" OrElse b = "" Then Return False Else Return Left(a, Len(b)) = b
+	If Len(a) < Len(b) Then Return False
+	Dim j As Integer = Start
+	For i As Integer = 0 To Len(b) - 1
+		If a[j] <> b[i] Then Return False
+		j += 1
+	Next
+	Return True
+End Function
+
+Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
+	'If a = "" OrElse b = "" Then Return False Else Return Right(a, Len(b)) = b
+	If Len(a) < Len(b) Then Return False
+	Dim j As Integer = Len(a) - Len(b)
+	For i As Integer = 0 To Len(b) - 1
+		If a[j] <> b[i] Then Return False
+		j += 1
+	Next
+	Return True
+End Function
+
+Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True)
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
+	If ls < 1 OrElse tLen < 1 Then
+		ReDim Result(0)
+		Exit Sub
+	End If
+	ReDim Result(0 To items - 1)
+	Do While i <= ls
+		If StartsWith(subject, Delimiter, i - 1) Then
+		'If Mid(subject, i, tLen) = Delimiter Then
+			n = n + 1
+			If (n >= items + 1 ) Then
+				items += 50
+				ReDim Preserve Result(0 To items - 1)
+			End If
+			Result(n - 1) = Mid(subject, p, i - p)
+			p = i + tLen
+			i = p
+			Continue Do
+		End If
+		i = i + 1
+	Loop
+	n = n + 1
+	ReDim Preserve Result(n - 1)
+	Result(n - 1) = Mid(subject, p, i - p)
+End Sub
+
+Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True)
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
+	If ls < 1 OrElse tLen < 1 Then
+		ReDim Result(0)
+		Exit Sub
+	End If
+	ReDim Result(0 To items - 1)
+	Do While i <= ls
+		If StartsWith(subject, Delimiter, i - 1) Then
+		'If Mid(subject, i, tLen) = Delimiter Then
+			n = n + 1
+			If (n >= items + 1 ) Then
+				items += 50
+				ReDim Preserve Result(0 To items - 1)
+			End If
+			Result(n - 1) = Mid(subject, p, i - p)
+			p = i + tLen
+			i = p
+			Continue Do
+		End If
+		i = i + 1
+	Loop
+	n = n + 1
+	ReDim Preserve Result(n - 1)
+	Result(n - 1) = Mid(subject, p, i - p)
+End Sub
+
+
+Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True)
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
+	If ls < 1 OrElse tLen < 1 Then
+		ReDim Result(0)
+		Exit Sub
+	End If
+	ReDim Result(0 To items - 1)
+	Do While i <= ls
+		If StartsWith(subject, Delimiter, i - 1) Then
+		'If Mid(subject, i, tLen) = Delimiter Then
+			n = n + 1
+			If (n >= items + 1 ) Then
+				items += 50
+				ReDim Preserve Result(0 To items - 1)
+			End If
+			WLet(Result(n - 1), Mid(subject, p, i - p))
+			p = i + tLen
+			i = p
+			Continue Do
+		End If
+		i = i + 1
+	Loop
+	n = n + 1
+	ReDim Preserve Result(n - 1)
+	WLet(Result(n - 1), Mid(subject, p, i - p))
+End Sub
+
+Private Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
+	Dim As WString Ptr TmpString
+	WLet(TmpString, "")
+	For i As Integer = iStart To UBound(Subject) Step iStep
+		WAdd TmpString, IIf(i = iStart, "", Delimiter) & *Subject(i)
+	Next
+	Function = *TmpString
+	_Deallocate(TmpString)
+End Function
+
+Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
+	Dim As UString Result
+	For i As Integer = iStart To UBound(Subject) Step iStep
+		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
+	Next
+	Return Result
+End Function
+
+Private Function Join(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
+	Dim As String Result
+	For i As Integer = iStart To UBound(Subject) Step iStep
+		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
+	Next
+	Return Result
+End Function
+
+' ========================================================================================
+'  Parses a path/file name to extract component parts.
+'  This function evaluates a text path/file text name, and returns a requested part of the
+'  name. The functionality is strictly one of string parsing alone.
+'  wszOption is one of the following words which is used to specify the requested part:
+'  PATH
+'        Returns the path portion of the path/file Name. That is the text up to and
+'        including the last backslash (\) or colon (:).
+'  NAME
+'        Returns the name portion of the path/file Name. That is the text to the right
+'        of the last backslash (\) or colon (:), ending just before the last period (.).
+'  EXTN
+'        Returns the extension portion of the path/file name. That is the last
+'        period (.) in the string plus the text to the right of it.
+'  NAMEX
+'        Returns the name and the EXTN parts combined.
+'   Example: StringPathName("C:\VisualFBEditor\Poject.Bas")           ->C:\Visual Free Basic\
+'            StringPathName("C:\VisualFBEditor\Poject.Bas","NAME")    ->Poject
+'            StringPathName("C:\VisualFBEditor\Poject.Bas","NAMEEX")  ->Poject.Bas
+'            StringPathName("C:\VisualFBEditor\Poject.Bas","EXTN")     -> .Bas
+' ========================================================================================
+Private Function StringPathName(ByRef wszFileSpec As WString, ByRef wszOption As Const WString = "PATH") As UString
+	If Len(wszFileSpec) = 0 Then Return ""
+	Dim As UString Result
+	Select Case UCase(wszOption)
+	Case "PATH"
+		' // Returns the path portion of file spec
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, 1, nPos)
+		
+	Case "NAME"
+		' // Retrieve the full filename
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, nPos + 1)
+		' // Retrieve the filename
+		nPos = InStrRev(Result, ".")
+		If nPos Then Result = Mid(Result, 1, nPos - 1)
+	Case "NAMEEX"
+		' // Retrieve the name and extension combined
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, nPos + 1)
+		
+	Case "EXTN"
+		' // Retrieve the name and extension combined
+		Dim nPos As Long = InStrRev(wszFileSpec, Any ":/\")
+		If nPos Then Result = Mid(wszFileSpec, nPos + 1)
+		' // Retrieve the extension
+		nPos = InStrRev(Result, ".")
+		If nPos Then
+			Result = Mid(Result, nPos+1)
+		Else
+			Return ""
+		End If
+	End Select
+	Return Result
+End Function
+
+Private Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+	Dim As Long nLen = Len(wszMainStr), nPos =0
+	If (nStart = 0) OrElse (nStart > nLen) OrElse nLen =0 Then Return wszMainStr
+	If nStart < 0 Then nStart = nLen + nStart + 1
+	If MatchCase Then
+		nPos = InStr(nStart, wszMainStr, wszMatchStr)
+	Else
+		nPos = InStr(nStart, UCase(wszMainStr), UCase(wszMatchStr))
+	End If
+	If nPos Then
+		Return Mid(wszMainStr, nStart, nPos - nStart)
+	End If
+	'SubString after the wszMatchStr
+	If MatchCase Then
+		nPos = InStr(1, wszMainStr, wszMatchStr)
+	Else
+		nPos = InStr(1, UCase(wszMainStr), UCase(wszMatchStr))
+	End If
+	If nPos Then
+		Return Mid(wszMainStr,nPos + Len(wszMatchStr))
+	End If
+	Return Mid(wszMainStr, nStart)
+End Function
+
+Private Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+	Dim As Long nLen = Len(wszMainStr), nPos1, nPos2
+	If (nStart = 0) OrElse (nStart > nLen) Then Return wszMainStr
+	If nStart < 0 Then nStart = nLen + nStart + 1
+	If MatchCase Then
+		nPos1= InStr(nStart, wszMainStr, wszDelim1)
+	Else
+		nPos1= InStr(nStart, UCase(wszMainStr), UCase(wszDelim1))
+	End If
+	If nPos1 = 0 Then Return ""
+	nPos1 += Len(wszDelim1)
+	If MatchCase Then
+		nPos2 = InStr(nPos1, wszMainStr, wszDelim2)
+	Else
+		nPos2 = InStr(nPos1, UCase(wszMainStr), UCase(wszDelim2))
+	End If
+	If nPos2 = 0 Then Return ""
+	nLen = nPos2 - nPos1
+	Return Mid(wszMainStr, nPos1, nLen)
+End Function
+
+Private Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
+	Dim As Long PositionStart = 1, PositionEnd = 1, n = 0
+	If Len(wszMainStr) < Len(ParseStart + ParseEnd) OrElse ParseStart="" OrElse ParseEnd = "" Then Return -1
+	Do
+		If MatchCase Then
+			PositionStart = InStr(PositionEnd, wszMainStr, ParseStart)
+		Else
+			PositionStart = InStr(PositionEnd, UCase(wszMainStr), UCase(ParseStart))
+		End If
+		If PositionStart > 0 Then
+			PositionStart = PositionStart + Len(ParseStart)
+			If MatchCase Then
+				PositionEnd = InStr(PositionStart, wszMainStr, ParseEnd)
+			Else
+				PositionEnd = InStr(PositionStart, UCase(wszMainStr), UCase(ParseEnd))
+			End If
+			If PositionEnd > PositionStart Then
+				n = n + 1
+				ReDim Preserve Result(n - 1)
+				WLet(Result(n - 1), Mid(wszMainStr, PositionStart, PositionEnd - PositionStart))
+			End If
+		End If
+	Loop Until (PositionStart < 1 Or PositionEnd < 1)
+	Return n
+End Function
+
+#ifndef Match_Off
+	Private Function Match(ByRef subject As WString Ptr, ByRef pattern As WString Ptr) As Boolean
+		
+		#define CH_QUOTE 63 '' ASCII for ?
+		#define CH_MULT  42 '' ASCII for *
+		
+		If (*pattern)[0] = 0 Then 'AndAlso (*subject)[0] = 0 Then
+			Return True
+		End If
+		
+		If (*pattern)[0] = CH_QUOTE OrElse (*pattern)[0] = (*subject)[0] Then
+			Return Match(subject + 1, pattern + 1)
+		End If
+		
+		If (*pattern)[0] = CH_MULT Then
+			Return Match(subject, pattern + 1) OrElse Match(subject + 1, pattern)
+		End If
+		
+		Return False
+		
+	End Function
+
+	Private Function InStrMatch(ByRef subject As WString, ByRef pattern As WString, Start As Integer = 1) As Integer
+		For i As Integer = Start To Len(subject)
+			If Match(@subject + (i - 1), @pattern) Then Return i
+		Next
+		Return 0
+	End Function
+#endif
 
 #if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Private Function FileExists (ByRef FileName As UString) As Boolean
@@ -471,3 +889,4 @@ End Function
 		#endif
 	End Function
 #endif
+
