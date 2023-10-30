@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	#define QRadioButton(__Ptr__) (*Cast(RadioButton Ptr,__Ptr__))
 	
+	'Displays an option that can be turned on or off.
 	Private Type RadioButton Extends Control
 	Private:
 		FAlignment  As Integer

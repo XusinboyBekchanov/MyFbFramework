@@ -146,6 +146,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'A toolbar is a control that contains one or more buttons.
 	Private Type ToolBar Extends Control
 	Private:
 		FButtonWidth    As Integer

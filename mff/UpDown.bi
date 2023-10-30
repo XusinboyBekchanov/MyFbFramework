@@ -25,6 +25,7 @@ Namespace My.Sys.Forms
 		udRight,udLeft
 	End Enum
 	
+	'An up-down control is a pair of arrow buttons that the user can click to increment or decrement a value, such as a scroll position or a number displayed in a companion control (called a buddy window).
 	Private Type UpDown Extends Control
 	Private:
 	Protected:

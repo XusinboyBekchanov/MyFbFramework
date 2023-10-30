@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	#define QCheckBox(__Ptr__) (*Cast(CheckBox Ptr,__Ptr__))
 	
+	'Displays an V when selected; the V disappears when the CheckBox is cleared.
 	Private Type CheckBox Extends Control
 	Private:
 		FAlignment  As Integer

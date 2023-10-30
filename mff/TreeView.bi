@@ -110,6 +110,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
+	'Represents a control that displays hierarchical data in a tree structure that has items that can expand and collapse.
 	Private Type TreeView Extends Control
 	Private:
 		'FNodes        As List

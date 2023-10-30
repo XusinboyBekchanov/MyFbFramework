@@ -24,6 +24,7 @@ Namespace My.Sys.Forms
 		cbOwnerDrawVariable
 	End Enum
 	
+	'Combines the features of a [[TextBox]] and a [[ListControl]].
 	Private Type ComboBoxEdit Extends Control
 	Private:
 		FSort             As Boolean

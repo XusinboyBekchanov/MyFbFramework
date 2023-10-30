@@ -233,6 +233,7 @@ Namespace My.Sys.Forms
 		OnActivate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Menu)
 	End Type
 	
+	'Represents the menu structure of a form.
 	Private Type MainMenu Extends Menu
 	Private:
 	Protected:
@@ -251,6 +252,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'Represents a context menu.
 	Private Type PopupMenu Extends Menu
 	Private:
 	Protected:

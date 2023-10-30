@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QIPAddress(__Ptr__) (*Cast(IPAddress Ptr, __Ptr__))
 	
+	'An Internet Protocol (IP) address control allows the user to enter an IP address in an easily understood format.
 	Private Type IPAddress Extends Control
 	Private:
 	Protected:

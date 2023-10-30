@@ -32,6 +32,7 @@ Namespace My.Sys.Forms
 	
 	Private Type PTabControl As TabControl Ptr
 	
+	'Represents a single tab page in a TabControl.
 	Private Type TabPage Extends Panel
 	Protected:
 		FCaption    As WString Ptr
@@ -89,6 +90,7 @@ Namespace My.Sys.Forms
 		OnDeSelected As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabPage)
 	End Type
 	
+	'Represents a control that contains multiple items that share the same space on the screen.
 	Private Type TabControl Extends ContainerControl
 	Private:
 		FGroupName          As WString Ptr

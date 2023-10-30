@@ -9,22 +9,11 @@
 Namespace My.Sys.Forms
 	#define QPageScroller(__Ptr__) (*Cast(PageScroller Ptr, __Ptr__))
 	
-	#ifndef __USE_GTK__
-		Private Type NMPGSCROLL2 Field = 1
-		    As NMHDR hdr
-		    As Short fwKeys
-		    As ..Rect rcParent
-		    As Integer iDir
-		    As Integer iXpos
-		    As Integer iYpos
-		    As Integer iScroll
-		End Type
-	#endif
-	
 	Private Enum PageScrollerStyle
 		psHorizontal, psVertical
 	End Enum
 	
+	'The PageScroller control is used to scroll a panel along with the components placed on it.
 	Private Type PageScroller Extends ContainerControl
 	Private:
 		FArrowChangeSize    As Integer

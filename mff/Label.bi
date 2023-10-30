@@ -24,6 +24,7 @@ Namespace My.Sys.Forms
 		sbNone, sbSimple, sbSunken
 	End Enum
 	
+	'Displays text that a user can't change directly.
 	Private Type Label Extends Control
 	Private:
 		FBorder           As Integer

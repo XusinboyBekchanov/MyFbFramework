@@ -11,6 +11,7 @@
 '******************************************************************************
 #include once "Clipboard.bi"
 
+'Provides methods to place data on and retrieve data from the system Clipboard.
 Dim Shared As My.Sys.ClipboardType Clipboard
 'pClipboard = @Clipboard
 
@@ -36,7 +37,7 @@ Namespace My.Sys
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Private Function ClipboardType.HasFormat(FFormat As Word) As Boolean
+		Private Function ClipboardType.HasFormat(FFormat As WORD) As Boolean
 			Return IsClipboardFormatAvailable(FFormat)
 		End Function
 	#endif

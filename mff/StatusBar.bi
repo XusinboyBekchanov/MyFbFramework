@@ -83,6 +83,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'A status bar is a horizontal window at the bottom of a parent window in which an application can display various kinds of status information.
 	Private Type StatusBar Extends Control
 	Private:
 		FSimpleText   As WString Ptr

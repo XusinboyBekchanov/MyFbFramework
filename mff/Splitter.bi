@@ -24,6 +24,7 @@ Namespace My.Sys.Forms
 		alBottom
 	End Enum
 	
+	'Represents a splitter control that enables the user to resize docked controls.
 	Private Type Splitter Extends Control
 	Private:
 		FOldParentProc  As Any Ptr

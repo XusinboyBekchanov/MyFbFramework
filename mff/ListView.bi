@@ -231,6 +231,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'Represents a control that displays a list of data items.
 	Private Type ListView Extends Control
 	Private:
 		FAllowColumnReorder As Boolean

@@ -198,6 +198,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'Defines a flexible grid area that consists of columns and rows.
 	Private Type Grid Extends Control
 	Private:
 		FAllowColumnReorder As Boolean

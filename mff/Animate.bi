@@ -40,6 +40,7 @@ Namespace My.Sys.Forms
 		aviCopyFileEx   = 165
 	End Enum
 	
+	'An animate control is a window that displays an Audio-Video Interleaved (AVI) clip.
 	Private Type Animate Extends Control
 	Private:
 		FFrameCount     As Double

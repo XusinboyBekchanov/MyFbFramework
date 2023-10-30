@@ -1,5 +1,6 @@
 ﻿#include once "Dialogs.bi"
 
+'Represents the raw preview part of print previewing from an application.
 Private Type PrintPreviewDialog Extends Dialog
 Private:
 	xLeft As Integer        = -1                        ' Default to center

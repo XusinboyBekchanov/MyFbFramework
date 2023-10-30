@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	#define QHScrollBar(__Ptr__) (*Cast(HScrollBar Ptr,__Ptr__))
 	
+	'Provides a horizontal scroll bar for easy navigation through long lists of items.
 	Private Type HScrollBar Extends Control
 	Private:
 		FMin            As Integer

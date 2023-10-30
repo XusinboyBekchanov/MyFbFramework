@@ -93,6 +93,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'A tool palette with categories.
 	Private Type ToolPalette Extends Control
 	Private:
 		FBitmapWidth    As Integer

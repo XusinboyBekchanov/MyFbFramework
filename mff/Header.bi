@@ -68,6 +68,7 @@ Namespace My.Sys.Forms
 		hsNormal = 0, hsOwnerDraw
 	End Enum
 	
+	'A header control is a window that is usually positioned above columns of text or numbers.
 	Private Type Header Extends Control
 	Private:
 		FStyle            As HeaderStyle

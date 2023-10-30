@@ -20,6 +20,7 @@ Namespace My.Sys.Forms
 		pbHorizontal, pbVertical
 	End Enum
 	
+	'A progress bar is a window that an application can use to indicate the progress of a lengthy operation.
 	Private Type ProgressBar Extends Control
 	Private:
 		FMode32      As Boolean

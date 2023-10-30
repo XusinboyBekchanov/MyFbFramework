@@ -22,6 +22,7 @@ Namespace My.Sys.Forms
 		bvNone, bvLowered, bvRaised
 	End Enum
 	
+	'Used to group collections of controls.
 	Private Type Panel Extends ContainerControl
 	Private:
 		FTopColor    As Integer

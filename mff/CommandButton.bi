@@ -22,6 +22,7 @@ Private Enum ButtonStyle
 End Enum
 
 Namespace My.Sys.Forms
+	'Looks like a push button and is used to begin, interrupt, or end a process.
 	Private Type CommandButton Extends Control
 	Private:
 		FStyle      As ButtonStyle

@@ -30,6 +30,7 @@ Namespace My.Sys.Forms
 		smMultiExtended
 	End Enum
 	
+	'Displays a list of items from which the user can select one or more.
 	Private Type ListControl Extends Control
 	Private:
 		#ifndef __USE_GTK__

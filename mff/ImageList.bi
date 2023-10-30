@@ -51,6 +51,7 @@ Namespace My.Sys.Forms
 		End Enum
 	#endif
 	
+	'An image list is a collection of images of the same size, each of which can be referred to by its index.
 	Private Type ImageList Extends Component
 	Private:
 		FParentWindow   As Component Ptr

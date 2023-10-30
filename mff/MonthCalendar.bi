@@ -10,6 +10,7 @@
 Namespace My.Sys.Forms
 	#define QMonthCalendar(__Ptr__) (*Cast(MonthCalendar Ptr, __Ptr__))
 	
+	'Represents a Windows control that enables the user to select a date using a visual monthly calendar display.
 	Private Type MonthCalendar Extends Control
 	Private:
 		#ifdef __USE_WINAPI__

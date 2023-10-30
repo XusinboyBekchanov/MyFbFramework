@@ -20,6 +20,7 @@ Namespace My.Sys.Forms
 		ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
 	End Enum
 	
+	'Displays a graphic.
 	Private Type ImageBox Extends Control
 	Private:
 		FImageStyle       As Integer

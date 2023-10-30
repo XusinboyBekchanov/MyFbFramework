@@ -83,6 +83,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'ComboBoxEx controls are combo box controls that provide native support for item images.
 	Private Type ComboBoxEx Extends ComboBoxEdit
 	Private:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)

@@ -25,6 +25,7 @@ Namespace My.Sys.Forms
 		smNone, smStretch, smStretchProportional
 	End Enum
 	
+	'Displays a graphic from a bitmap, icon or metafile.
 	Private Type Picture Extends ContainerControl
 	Private:
 		AStyle(24)             As Integer

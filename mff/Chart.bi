@@ -35,15 +35,6 @@ Namespace My.Sys.Forms
 		cBottom
 	End Enum
 	
-	Private Enum GDIPLUS_FONTSTYLE
-		FontStyleRegular = 0
-		FontStyleBold = 1
-		FontStyleItalic = 2
-		FontStyleBoldItalic = 3
-		FontStyleUnderline = 4
-		FontStyleStrikeout = 8
-	End Enum
-	
 	Private Enum ChartStyles
 		CS_Pie
 		CS_Donut
@@ -104,34 +95,44 @@ Namespace My.Sys.Forms
 		End Type
 	#endif
 	
-	Private Type tItem
-		ItemName As UString
-		Value As Single
-		text As UString
-		TextWidth As Long
-		TextHeight As Long
-		ItemColor As Long
-		Special As Boolean
-		hPath As Any Ptr
-		LegendRect As RectL
-	End Type
-	
-	Private Type tSerie
-		SerieName As UString
-		TextWidth As Long
-		TextHeight As Long
-		SerieColor As Long
-		Values As DoubleList Ptr
-		PT(Any) As POINTL
-		Rects(Any) As RectL
-		LegendRect As RectL
-		CustomColors As IntegerList Ptr
-	End Type
-	
 	Private Const GDIP_OK As Long = &H0
 	
+	'The Chart control is a chart object that exposes events.
 	Private Type Chart Extends Control
-	Private:
+		Private:
+		Type tItem
+			ItemName As UString
+			Value As Single
+			text As UString
+			TextWidth As Long
+			TextHeight As Long
+			ItemColor As Long
+			Special As Boolean
+			hPath As Any Ptr
+			LegendRect As RectL
+		End Type
+		
+		Type tSerie
+			SerieName As UString
+			TextWidth As Long
+			TextHeight As Long
+			SerieColor As Long
+			Values As DoubleList Ptr
+			PT(Any) As POINTL
+			Rects(Any) As RectL
+			LegendRect As RectL
+			CustomColors As IntegerList Ptr
+		End Type
+		
+		Enum GDIPLUS_FONTSTYLE
+			FontStyleRegular = 0
+			FontStyleBold = 1
+			FontStyleItalic = 2
+			FontStyleBoldItalic = 3
+			FontStyleUnderline = 4
+			FontStyleStrikeout = 8
+		End Enum
+		
 		Dim nScale As Single
 		
 		Dim m_Title As UString

@@ -180,6 +180,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	'Combines the features of a [[TreeView]] and a [[ListView]].
 	Private Type TreeListView Extends Control
 	Private:
 		FColumnHeaderHidden As Boolean

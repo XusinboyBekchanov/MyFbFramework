@@ -107,6 +107,7 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Enum
 	
+	'Enables you to communicate with a system printer (initially the default printer).
 	Private Type Printer Extends Component
 	Private:
 		#ifndef __USE_GTK__

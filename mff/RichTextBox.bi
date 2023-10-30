@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QRichTextBox(__Ptr__) (*Cast(RichTextBox Ptr,__Ptr__))
 	
+	'The RichTextBox control enables you to display or edit flow content including paragraphs, images, tables, and more.
 	Private Type RichTextBox Extends TextBox
 	Private:
 		#ifndef __USE_GTK__

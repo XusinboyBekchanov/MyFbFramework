@@ -28,6 +28,7 @@ Namespace My.Sys.Forms
 		tsNone, tsAuto, tsManual
 	End Enum
 	
+	'A trackbar is a window that contains a slider (sometimes called a thumb) in a channel, and optional tick marks.
 	Private Type TrackBar Extends Control
 	Private:
 		FPosition         As Integer

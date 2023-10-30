@@ -24,6 +24,7 @@ Namespace My.Sys.Forms
 		None, Vertical, Horizontal, Both
 	End Enum
 	
+	'Displays information entered at design time by the user, or in code at run time.
 	Private Type TextBox Extends Control
 	Private:
 		#ifdef __USE_GTK__

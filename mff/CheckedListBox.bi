@@ -14,6 +14,7 @@
 Namespace My.Sys.Forms
 	#define QCheckedListBox(__Ptr__) (*Cast(CheckedListBox Ptr,__Ptr__))
 	
+	'Displays a ListBox in which a check box is displayed to the left of each item.
 	Private Type CheckedListBox Extends ListControl
 	Private:
 		#ifndef __USE_GTK__

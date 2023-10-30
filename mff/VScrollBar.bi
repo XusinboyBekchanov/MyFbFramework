@@ -16,6 +16,7 @@
 Namespace My.Sys.Forms
 	#define QVScrollBar(__Ptr__) (*Cast(VScrollBar Ptr,__Ptr__))
 	
+	'Provides a vertical scroll bar.
 	Private Type VScrollBar Extends Control
 	Private:
 		FMin            As Integer

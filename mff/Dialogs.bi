@@ -87,10 +87,11 @@ Public:
 	Declare Abstract Function Execute As Boolean
 End Type
 
+'Displays a standard dialog box that prompts the user to open a file.
 Private Type OpenFileDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As wParam, lParam As lParam) As UInteger
+		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 	#endif
 	Control     As My.Sys.Forms.Control
 	FInitialDir   As WString Ptr
@@ -136,6 +137,7 @@ Public:
 	OnTypeChange      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileDialog, Index As Integer)
 End Type
 
+'Prompts the user to select a location for saving a file.
 Private Type SaveFileDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
@@ -177,6 +179,7 @@ Public:
 	OnTypeChange      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Forms.Control, Index As Integer)
 End Type
 
+'Prompts the user to choose a font from among those installed on the local computer.
 Private Type FontDialog Extends Dialog
 	#ifndef ReadProperty_Off
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
@@ -192,10 +195,11 @@ Private Type FontDialog Extends Dialog
 	Declare Destructor
 End Type
 
+'Prompts the user to select a folder.
 Private Type FolderBrowserDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(hWnd As hWnd, uMsg As UINT, lParam As lParam, lpData As lParam) As Long
+		Declare Static Function Hook(hWnd As HWND, uMsg As UINT, lParam As LPARAM, lpData As LPARAM) As Long
 	#endif
 	Control     As My.Sys.Forms.Control
 	FCaption    As WString Ptr
@@ -223,6 +227,7 @@ Public:
 	Declare Destructor
 End Type
 
+'Represents a common dialog box that displays available colors along with controls that enable the user to define custom colors.
 Private Type ColorDialog Extends Dialog
 Private:
 	#ifndef __USE_GTK__
@@ -230,7 +235,7 @@ Private:
 	#endif
 	_Caption        As WString Ptr
 	#ifndef __USE_GTK__
-		Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As wParam,lParam As lParam) As UInteger
+		Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
 	#endif
 Public:
 	#ifndef ReadProperty_Off

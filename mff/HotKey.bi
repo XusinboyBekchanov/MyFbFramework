@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QHotKey(__Ptr__) (*Cast(HotKey Ptr, __Ptr__))
 	
+	'A hot key control is a window that enables the user to enter a combination of keystrokes to be used as a hot key.
 	Private Type HotKey Extends Control
 	Private:
 		#ifndef __USE_GTK__

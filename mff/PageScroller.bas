@@ -205,6 +205,15 @@ Namespace My.Sys.Forms
 						nmcal->iHeight = ChildControl->Height
 					EndIf
 				ElseIf nmhdr_->code = PGN_SCROLL Then
+					Type NMPGSCROLL2 Field = 1
+						As NMHDR hdr
+						As Short fwKeys
+						As ..Rect rcParent
+						As Integer iDir
+						As Integer iXpos
+						As Integer iYpos
+						As Integer iScroll
+					End Type
 					Dim As NMPGSCROLL2 Ptr nmgs = Cast(NMPGSCROLL2 Ptr, Message.lParam)
 					Dim As Integer NewPos = nmgs->iXpos + nmgs->iYpos
 					Select Case nmgs->iDir

@@ -20,6 +20,7 @@ Namespace My.Sys.Forms
 		sbHorizontal, sbVertical
 	End Enum
 	
+	'Provides a horizontal and a vertical scroll bar for easy navigation through long lists of items.
 	Private Type ScrollBarControl Extends Control
 	Private:
 		FStyle      	As ScrollBarControlStyle

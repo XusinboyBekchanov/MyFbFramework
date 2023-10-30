@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QLinkLabel(__Ptr__) (*Cast(LinkLabel Ptr, __Ptr__))
 	
+	'Represents a label control that can display hyperlinks.
 	Private Type LinkLabel Extends Control
 	Private:
 		#ifndef __USE_GTK__

@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 		CustomFormat
 	End Enum
 	
+	'Represents a Windows control that allows the user to select a date and a time and to display the date and time with a specified format.
 	Private Type DateTimePicker Extends Control
 	Private:
 		PressedKey          As Integer

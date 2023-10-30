@@ -36,6 +36,7 @@
 Namespace My.Sys.Forms
 	#define QWebBrowser(__Ptr__) (*Cast(WebBrowser Ptr, __Ptr__))
 	
+	'Enables the user to navigate Web pages inside your form.
 	Private Type WebBrowser Extends Control
 	Private:
 		#ifndef __USE_GTK__

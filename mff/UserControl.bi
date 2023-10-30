@@ -10,6 +10,7 @@
 Namespace My.Sys.Forms
 	#define QUserControl(__Ptr__) (*Cast(UserControl Ptr,__Ptr__))
 	
+	'Provides an empty control that can be used to create other controls. A Control authored in VisualFBEditor
 	Private Type UserControl Extends ContainerControl
 	Private:
 		#ifndef __USE_GTK__

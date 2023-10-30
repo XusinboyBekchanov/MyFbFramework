@@ -15,6 +15,7 @@
 #include once "Form.bi"
 #include once "DarkMode/DarkMode.bi"
 
+'Provides methods and properties to manage an application, such as methods to start and stop an application, to process messages, and properties to get information about an application.
 Dim Shared App As My.Application
 If pApp = 0 Then pApp = @App
 
@@ -658,8 +659,10 @@ Namespace My
 End Namespace
 
 #ifdef _DebugWindow_
+	'Gets a handle to the debug window when the application is launched from the IDE.
 	Dim Shared As Any Ptr DebugWindowHandle = Cast(Any Ptr, _DebugWindow_)
 #else
+	'Gets a handle to the debug window when the application is launched from the IDE.
 	Dim Shared As Any Ptr DebugWindowHandle
 #endif
 
