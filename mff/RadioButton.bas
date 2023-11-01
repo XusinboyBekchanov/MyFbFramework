@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 						
 						r.left = pnm->rc.left
 						r.top = pnm->rc.top ' + 2
-						r.right = pnm->rc.left + s.cx
+						r.right = pnm->rc.Left + s.cx
 						r.bottom = pnm->rc.Bottom ' r.top + s.cy
 						
 						DrawThemeBackground(hTheme, pnm->hdc, BP_RADIOBUTTON, stateID, @r, NULL)
@@ -292,7 +292,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Private Sub RadioButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
+		Private Sub RadioButton.RadioButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As RadioButton Ptr but = user_data
 			If but->OnClick Then but->OnClick(*but->Designer, *but)
 		End Sub

@@ -1619,7 +1619,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Private Sub TreeListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+		Private Sub TreeListView.TreeListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As TreeListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeModel Ptr model
@@ -1632,7 +1632,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Private Sub TreeListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		Private Sub TreeListView.TreeListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As TreeListView Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeIter iter
@@ -1643,7 +1643,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Private Sub TreeListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub TreeListView.TreeListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As TreeListView Ptr lv = user_data
 			lv->Init
 		End Sub
@@ -1681,7 +1681,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Private Sub TreeListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr)
+		Private Sub TreeListView.TreeListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As TreeListView Ptr lv = user_data
 			If lv->OnEndScroll Then lv->OnEndScroll(*lv->Designer, *lv)
 		End Sub

@@ -23,6 +23,8 @@ Namespace My.Sys.Forms
 		FChecked    As Boolean
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
+		#elseif defined(__USE_GTK__)
+			Declare Static Sub RadioButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 		#endif
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 	Protected:

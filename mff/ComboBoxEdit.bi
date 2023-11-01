@@ -130,14 +130,6 @@ Namespace My.Sys.Forms
 		OnSelected          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		OnSelectCanceled    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
 	End Type
-	
-	#ifdef __USE_GTK__
-		Declare Sub ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
-		
-		Declare Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
-		
-		Declare Sub ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
-	#endif
 End Namespace
 
 #ifndef __USE_MAKE__

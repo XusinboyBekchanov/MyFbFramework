@@ -255,6 +255,7 @@ Namespace My.Sys.Forms
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 		Declare Function GetMax() As Single
 		Declare Function GetMin() As Single
+		Declare Function RoundInteger(X As Double, Drob As Integer = 0) As Integer
 	Public:
 		Declare Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 		#ifndef ReadProperty_Off
@@ -345,8 +346,6 @@ Namespace My.Sys.Forms
 		Declare Destructor
 		OnItemClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Chart, Index As Long)
 	End Type
-	
-	Declare Function Round(x As Double, Drob As Integer = 0) As Integer
 End Namespace
 
 #ifndef __USE_MAKE__

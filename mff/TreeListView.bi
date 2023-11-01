@@ -198,6 +198,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkCellRenderer Ptr rendertext
 			Declare Static Function TreeListView_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Sub TreeListView_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Sub TreeListView_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+			Declare Static Sub TreeListView_Scroll(self As GtkAdjustment Ptr, user_data As Any Ptr)
+			Declare Static Sub TreeListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 		#elseif defined(__USE_WINAPI__)
 			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr

@@ -18,7 +18,9 @@ Namespace My.Sys.Forms
 	Private:
 		FEnabled As Boolean
 		FInterval As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Declare Static Function TimerProc(ByVal user_data As gpointer) As gboolean
+		#else
 			Declare Static Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As Integer, dwTime As DWORD)
 		#endif
 	Public:

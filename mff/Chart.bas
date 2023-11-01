@@ -1118,12 +1118,12 @@ Namespace My.Sys.Forms
 			Return ShiftColor(RGBColor, clWhite, Opacity / 100 * 255)
 			'Return ((Cast(ULong, Opacity / 100 * 255) Shl 24) + (Cast(ULong, Abs(GetRed(RGBColor))) Shl 16) + (Cast(ULong, Abs(GetGreen(RGBColor))) Shl 8) + (Cast(ULong, Abs(GetBlue(RGBColor)))))
 		#else
-			Return ((Cast(dword, Opacity / 100 * 255) Shl 24) + (Cast(dword, GetRed(RGBColor)) Shl 16) + (Cast(dword, GetGreen(RGBColor)) Shl 8) + Cast(dword, GetBlue(RGBColor)))
+			Return ((Cast(DWORD, Opacity / 100 * 255) Shl 24) + (Cast(DWORD, GetRed(RGBColor)) Shl 16) + (Cast(DWORD, GetGreen(RGBColor)) Shl 8) + Cast(DWORD, GetBlue(RGBColor)))
 		#endif
 		'Return Color_MakeARGB(Opacity / 100 * 255, GetRed(RGBColor), GetGreen(RGBColor), GetBlue(RGBColor))
 	End Function
 	
-	Private Function Round(X As Double, Drob As Integer = 0) As Integer
+	Private Function Chart.RoundInteger(X As Double, Drob As Integer = 0) As Integer
 		If Drob = 0 Then
 			Return CInt(X)
 		Else
@@ -1373,15 +1373,15 @@ Namespace My.Sys.Forms
 			'calculate max size of labels
 			For i = 0 To ItemsCount - 1
 				With m_Item(i)
-					Percent = Round(100 * .Value / Total, 1)
+					Percent = RoundInteger(100 * .Value / Total, 1)
 					If i < ItemsCount - 1 Then
 						SafePercent = SafePercent + Percent
 					Else
-						Percent = Round(100 - SafePercent, 1)
+						Percent = RoundInteger(100 - SafePercent, 1)
 					End If
 					.text = Replace(m_LabelsFormats, "{A}", .ItemName)
 					.text = Replace(.text, "{P}", WStr(Percent))
-					.text = Replace(.text, "{V}", WStr(Round(.Value, 1)))
+					.text = Replace(.text, "{V}", WStr(RoundInteger(.Value, 1)))
 					.text = Replace(.text, "{LF}", Chr(10))
 					
 					TextWidth = ScaleX(Canvas.TextWidth(.text)) * 1.3
