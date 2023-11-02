@@ -27,6 +27,9 @@ Namespace My.Sys.Forms
 	Private Type ToolGroupButtons Extends Object
 	Private:
 		FButtons As List
+		#ifdef __USE_GTK__
+			Declare Static Sub ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
+		#endif
 	Public:
 		Parent   As My.Sys.Object Ptr
 		Declare Property Count As Integer

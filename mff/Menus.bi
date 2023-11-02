@@ -174,6 +174,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			FInfo    As MENUINFO
 			FHandle  As HMENU
+			
 		#endif
 		FStyle   As Integer
 		FColor   As Integer
@@ -182,6 +183,7 @@ Namespace My.Sys.Forms
 		FParentMenuItem As MenuItem Ptr
 		FParentWindow As Component Ptr
 		FIncSubItems  As Integer
+		Declare Sub TraverseItems(Item As MenuItem)
 		Declare Sub GetMenuItems
 		Declare Virtual Sub ProcessMessage(ByRef mess As Message)
 	Public:

@@ -720,7 +720,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_WINAPI__
-		Private Function ListViewCompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
+		Private Function ListViewItems.ListViewCompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 			Dim As ListViewItem Ptr FirstItem = Cast(ListViewItem Ptr, lParam1), SecondItem = Cast(ListViewItem Ptr, lParam2)
 			If FirstItem <> 0 AndAlso SecondItem <> 0 Then
 				Select Case FirstItem->Text(0)

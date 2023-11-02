@@ -368,6 +368,9 @@ Namespace My.Sys.Forms
 	Protected:
 		#ifdef __USE_GTK__
 			Declare Static Function GridData_TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Sub GridData_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+			Declare Static Sub GridData_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+			Declare Static Sub GridData_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 		#else
 			Declare Function GetGridDataItem(Item As Integer) As GridDataItem Ptr
 		#endif

@@ -338,7 +338,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Private Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+		Private Function Splitter.OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Dim As Splitter Ptr spl = data1
 			If Not spl->bCursor Then
 				spl->bCursor = True
@@ -347,7 +347,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Private Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+		Private Function Splitter.OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			OnDraw(widget, cr, data1)
 			cairo_destroy(cr)

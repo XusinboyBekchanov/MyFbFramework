@@ -18,7 +18,9 @@ Private:
 	xWidth As Integer                                    ' Not used
 	xHeight As Integer                                   ' Not used
 	xPrinterName As String
-	
+	#ifdef __USE_WINAPI__
+		Declare Static Function PageHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	#endif
 Public:
 	Caption As String       = ""
 	

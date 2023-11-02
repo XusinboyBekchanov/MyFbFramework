@@ -585,7 +585,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifdef __USE_GTK__
-		Private Sub ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
+		Private Sub ToolButtons.ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
 			Dim As ToolButton Ptr tbut = user_data
 			If tbut Then
 				If tbut->OnClick Then tbut->OnClick(*tbut->Designer, *tbut)

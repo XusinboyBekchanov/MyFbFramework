@@ -18,7 +18,7 @@ Private Property PageSetupDialog.PrinterName(value As String): End Property     
 'Property PageSetupDialog.Top(value As Integer): xTop=value: End Property
 
 #ifndef __USE_GTK__
-	Private Function PageHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	Private Function PageSetupDialog.PageHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
 			Dim As PAGESETUPDLG Ptr lpPSD=Cast(PAGESETUPDLG Ptr,lParam)
 			Dim As PageSetupDialog Ptr lpPSDDlg=Cast(PageSetupDialog Ptr, lpPSD->lCustData)

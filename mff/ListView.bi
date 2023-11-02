@@ -207,6 +207,7 @@ Namespace My.Sys.Forms
 		PItem As ListViewItem Ptr
 		#ifdef __USE_WINAPI__
 			lvi As LVITEM
+			Declare Static Function ListViewCompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
 		#endif
 	Public:
 		#ifdef __USE_GTK__

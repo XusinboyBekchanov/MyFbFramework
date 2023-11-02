@@ -173,6 +173,19 @@ Namespace My.Sys.Forms
 		'QToolButton(FButtons.Items[Index]) = Value
 	End Property
 	
+	#ifdef __USE_GTK__
+		Private Sub ToolGroupButtons.ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
+			Dim As ToolButton Ptr tbut = user_data
+			If tbut Then
+				If tbut->OnClick Then tbut->OnClick(*tbut->Designer, *tbut)
+				If tbut->Ctrl AndAlso *tbut->Ctrl Is ToolBar Then
+					Dim As ToolBar Ptr tb = Cast(ToolBar Ptr, tbut->Ctrl)
+					If tb->OnButtonClick Then tb->OnButtonClick(*tb->Designer, *tb, *tbut)
+				End If
+			End If
+		End Sub
+	#endif
+	
 	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		PButton = _New( ToolButton)

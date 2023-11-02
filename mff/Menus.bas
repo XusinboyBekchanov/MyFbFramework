@@ -97,16 +97,16 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef TraverseItems_Off
-		Private Sub TraverseItems(Item As MenuItem)
+		Private Sub Menu.TraverseItems(MItem As MenuItem)
 			#ifdef __USE_WINAPI__
 				Dim As MENUITEMINFO mii
 				mii.cbSize = SizeOf(mii)
 				mii.fMask  = MIIM_TYPE
-				For i As Integer = 0 To Item.Count-1
-					GetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
+				For i As Integer = 0 To MItem.Count - 1
+					GetMenuItemInfo(MItem.Handle, MItem.Item(i)->MenuIndex, True, @mii)
 					mii.fType = IIf((mii.fType And MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
-					SetMenuItemInfo(Item.Handle,Item.Item(i)->MenuIndex,True,@mii)
-					TraverseItems(*Item.Item(i))
+					SetMenuItemInfo(MItem.Handle, MItem.Item(i)->MenuIndex, True, @mii)
+					TraverseItems(*MItem.Item(i))
 				Next i
 			#endif
 		End Sub

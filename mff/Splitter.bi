@@ -31,6 +31,9 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub ParentWndProc(ByRef Message As Message)
 			Declare Static Sub WndProc(ByRef Message As Message)
+		#else
+			Declare Static Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+			Declare Static Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 		#endif
 	Protected:
 		Declare Sub DrawTrackSplit(x As Integer, y As Integer)

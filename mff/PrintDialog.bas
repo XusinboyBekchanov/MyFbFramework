@@ -21,14 +21,14 @@ End Property
 
 #ifndef __USE_GTK__
 	' Currently, these two HookProcs are exactly the same code, but may change....
-	Private Function PrintHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	Private Function PrintDialog.PrintHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
 			Dim As PRINTDLG Ptr lpPRN=Cast(PRINTDLG Ptr,lParam)
 			Dim As PrintDialog Ptr lpPRNDlg=Cast(PrintDialog Ptr, lpPRN->lCustData)
 			Dim As Integer X, Y, W, H
 			X=lpPRNDlg->Left: Y=lpPRNDlg->Top
 			If (X<0) Or (Y<0) Then
-				Dim As RECT rct
+				Dim As Rect rct
 				GetWindowRect(hWnd, @rct)
 				If X<0 Then W=rct.Right-rct.Left: X=(GetSystemMetrics(SM_CXSCREEN) - W)\2
 				If Y<0 Then H=rct.Bottom-rct.Top: Y=(GetSystemMetrics(SM_CYSCREEN) - H)\2
@@ -39,14 +39,14 @@ End Property
 		End If
 		Return 0
 	End Function
-	Private Function SetUpHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	Private Function PrintDialog.SetUpHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
 			Dim As PRINTDLG Ptr lpPRN=Cast(PRINTDLG Ptr,lParam)
 			Dim As PrintDialog Ptr lpPRNDlg=Cast(PrintDialog Ptr, lpPRN->lCustData)
 			Dim As Integer X, Y, W, H
 			X=lpPRNDlg->Left: Y=lpPRNDlg->Top
 			If (X<0) Or (Y<0) Then
-				Dim As RECT rct
+				Dim As Rect rct
 				GetWindowRect(hWnd, @rct)
 				If X<0 Then W=rct.Right-rct.Left: X=(GetSystemMetrics(SM_CXSCREEN) - W)\2
 				If Y<0 Then H=rct.Bottom-rct.Top: Y=(GetSystemMetrics(SM_CYSCREEN) - H)\2
@@ -76,9 +76,9 @@ Private Function PrintDialog.Execute() As Boolean
 			If AllowToFile=False Then pd.Flags=pd.Flags Or PD_HIDEPRINTTOFILE
 			If AllowToNetwork=False Then pd.Flags=pd.Flags Or PD_NONETWORKBUTTON
 			If ShowHelpButton Then pd.Flags=pd.Flags Or PD_SHOWHELP
-			pd.nFromPage=Cast(word,FromPage): pd.nToPage=Cast(word,ToPage)
+			pd.nFromPage=Cast(WORD,FromPage): pd.nToPage=Cast(WORD,ToPage)
 		End If
-		If PrintDlg(@pd) Then
+		If PRINTDLG(@pd) Then
 			Dim As DEVNAMES Ptr dn
 			dn=GlobalLock(pd.hDevNames)
 			PrinterName=*Cast(ZString Ptr, Cast(Byte Ptr, dn) + dn->wDeviceOffset)

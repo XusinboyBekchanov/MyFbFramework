@@ -2475,7 +2475,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Private Sub GridData_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
+		Private Sub GridData.GridData_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Dim As GridData Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeModel Ptr model
@@ -2488,7 +2488,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Private Sub GridData_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		Private Sub GridData.GridData_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As GridData Ptr lv = Cast(Any Ptr, user_data)
 			If lv Then
 				Dim As GtkTreeIter iter
@@ -2501,7 +2501,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 		
-		Private Sub GridData_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+		Private Sub GridData.GridData_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Dim As GridData Ptr lv = user_data
 			lv->Init
 		End Sub
@@ -2588,7 +2588,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.RegisterClass "GridData", WC_LISTVIEW
-				.ChildProc         = @WNDPROC
+				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_OWNERDRAWFIXED 'Or LVS_SHOWSELALWAYS OR LVS_EDITLABELS OR LVS_EX_DOUBLEBUFFER
 				.DoubleBuffered = True
