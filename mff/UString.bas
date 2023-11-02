@@ -179,7 +179,7 @@ Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumByte
 	#ifdef __USE_WINAPI__
 		memcpy(m_Data + m_BufferLen, addrMemory, NumBytes)
 	#else
-		Fb_MemCopy(m_Data + m_BufferLen, addrMemory, NumBytes)
+		Fb_MemCopy(* (m_Data + m_BufferLen), addrMemory, NumBytes)
 	#endif
 	m_BufferLen += NumBytes
 	Return True

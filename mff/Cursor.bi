@@ -13,6 +13,7 @@
 
 #include once "Component.bi"
 
+Namespace Cursors
 #ifdef __USE_GTK__
 	#define crDefault     "default"
 	#define crArrow       "default"
@@ -78,6 +79,7 @@
 	#define crVSplit      LoadCursor(GetModuleHandle(NULL),"VSPLIT")
 	#define crNoDrop      LoadCursor(GetModuleHandle(NULL),"NODROP")
 #endif
+End Namespace
 
 Namespace My.Sys.Drawing
 	#define QCursor(__Ptr__) (*Cast(Cursor Ptr,__Ptr__))

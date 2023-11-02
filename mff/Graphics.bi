@@ -14,6 +14,7 @@
 #include once "Object.bi"
 
 'Namespace My.Sys.Drawing
+Namespace Colors
 #ifdef __USE_WINAPI__
 	#define clScrollBar           GetSysColor(COLOR_SCROLLBAR)
 	#define clBackground          GetSysColor(COLOR_BACKGROUND)
@@ -212,6 +213,7 @@
 #define clWhiteSmoke               &HF5F5F5   '   RGB(245, 245, 245)   '白烟
 #define clYellow                   &H00FFFF   '   RGB(255, 255, 0)   '纯黄
 #define clYellowGreen              &H32CD9A   '   RGB(154, 205, 50)   '黄绿色
+End Namespace
 
 Declare Function ColorToRGB(FColor As Integer) As Integer
 Declare Function RGBAToBGR(FColor As UInteger) As Integer

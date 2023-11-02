@@ -296,7 +296,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	#ifdef __USE_GTK__
-		Private Sub CheckBox_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
+		Private Sub CheckBox.CheckBox_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As CheckBox Ptr but = user_data
 			If but->OnClick Then but->OnClick(*but->Designer, *but)
 		End Sub
