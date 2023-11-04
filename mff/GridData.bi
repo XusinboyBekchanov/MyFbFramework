@@ -9,10 +9,6 @@
 #include once "ListView.bi"
 #include once "ImageList.bi"
 
-#define CHRCheck WChr(30)
-#define CHRUnCheck WChr(31)
-#define BLANKROW 999999999
-
 Private Enum GridDataTypeEnum
 	DT_Nothing=0
 	DT_Numeric = 1
@@ -279,6 +275,9 @@ Namespace My.Sys.Forms
 			mFontHandleBodyUnderline As HFONT 'For Link Text
 			mFontHandleHeader     As HFONT
 		#endif
+		#define CHRCheck WChr(30)
+		#define CHRUnCheck WChr(31)
+		#define BLANKROW 999999999
 
 		mFontHeight            As Integer = 6
 		mFontWidth             As Integer  =6

@@ -8,9 +8,6 @@
 '#   Copyright (c) Aloberoger                                                   #
 '################################################################################
 
-#ifndef CRLF
-	#define CRLF Chr(10,13)
-#endif
 #include once "Canvas.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/winspool.bi"
@@ -115,6 +112,9 @@ Namespace My.Sys.ComponentModel
 			m_hFont As HFONT             'handle of current font
 			hOrigFont As HFONT       'handle of original font
 			hDevMode As DEVMODE Ptr          'handle to DEVMODE structure
+		#endif
+		#ifndef CRLF
+			#define CRLF Chr(10, 13)
 		#endif
 		m_Name As String
 		m_PortName As String

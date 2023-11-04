@@ -262,25 +262,25 @@ Private Function Left Overload(ByRef subject As UString, ByVal n As Integer) As 
 End Function
 
 #ifndef Replace_Off
-	Private Function tallynumW Overload(ByRef somestring As WString, ByRef partstring As WString) As Integer
-		Dim As Integer i, j, ln, lnp, count, num
-		ln=Len(somestring):If ln=0 Then Return 0
-		lnp=Len(partstring):If lnp=0 Then Return 0
-		count=0
-		i=-1
-		Do
-			i+=1
-			If somestring[i] <> partstring[0] Then Continue Do
-			If somestring[i] = partstring[0] Then
-				For j=0 To lnp-1
-					If somestring[j+i]<>partstring[j] Then Continue Do
-				Next j
-			End If
-			count+=1
-			i=i+lnp-1
-		Loop Until i>=ln-1
-		Return count
-	End Function
+	'Private Function tallynumW Overload(ByRef somestring As WString, ByRef partstring As WString) As Integer
+	'	Dim As Integer i, j, ln, lnp, count, num
+	'	ln=Len(somestring):If ln=0 Then Return 0
+	'	lnp=Len(partstring):If lnp=0 Then Return 0
+	'	count=0
+	'	i=-1
+	'	Do
+	'		i+=1
+	'		If somestring[i] <> partstring[0] Then Continue Do
+	'		If somestring[i] = partstring[0] Then
+	'			For j=0 To lnp-1
+	'				If somestring[j+i]<>partstring[j] Then Continue Do
+	'			Next j
+	'		End If
+	'		count+=1
+	'		i=i+lnp-1
+	'	Loop Until i>=ln-1
+	'	Return count
+	'End Function
 	
 	Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
 		If Len(FindingText) = 0 Then Return Expression
@@ -292,7 +292,25 @@ End Function
 			WLet(original, LCase(Expression))
 			WLet(find, LCase(FindingText))
 		End If
-		Var t = tallynumW(*original, *find)                 'find occurencies of find
+		Dim As Integer i, j, ln, lnp, countof, num
+		ln = Len(*original): 'If ln = 0 Then Return 0
+		lnp = Len(*find): 'If lnp = 0 Then Return 0
+		countof = 0
+		If ln <> 0 AndAlso lnp <> 0 Then
+			i = -1
+			Do
+				i += 1
+				If (*original)[i] <> (*find)[0] Then Continue Do
+				If (*original)[i] = (*find)[0] Then
+					For j = 0 To lnp - 1
+						If (*original)[j + i] <> (*find)[j] Then Continue Do
+					Next j
+				End If
+				countof += 1
+				i = i + lnp - 1
+			Loop Until i >= ln - 1
+		End If
+		Var t = countof 'tallynumW(*original, *find)                 'find occurencies of find
 		If t = 0 Then Return Expression
 		Dim As Long found, n, staid, m, c
 		Var Lf = Len(FindingText), Lr = Len(ReplacingText), Lo = Len(Expression)
