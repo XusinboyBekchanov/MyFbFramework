@@ -4,29 +4,41 @@
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
 '#define __USE_GTK3__
-'#ifdef __FB_WIN32__
-'	#define Extension dll
-'	#define Library mff
-'#else
-'	#define Extension so
-'	#define Library libmff
-'#endif
-'#ifdef __FB_64BIT__
-'	#define Bit3264 64
-'#else
-'	#define Bit3264 32
-'#endif
-'#if defined(__USE_GTK__) OrElse Not defined(__FB_WIN32__)
-'	#ifdef __USE_GTK3__
-'		#define GTKVER "_gtk3"
-'	#else
-'		#define GTKVER "_gtk2"
-'	#endif
-'#else
-'	#define GTKVER ""
-'#endif
-'#cmdline __FB_QUOTE__(-x ../##Library##Bit3264##GTKVER.##Extension)
-'#cmdline "-x ../" & Prefix & "mff" & Bit3264 & GTKVER & "." & Extension
+#if defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
+	#ifdef __FB_64BIT__
+		#cmdline "-x ../mff64.dll"
+	#else
+		#cmdline "-x ../mff32.dll"
+	#endif
+#elseif defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+	#ifdef __FB_64BIT__
+		#ifdef __USE_GTK3__
+			#cmdline "-x ../mff64_gtk3.dll"
+		#else
+			#cmdline "-x ../mff64_gtk2.dll"
+		#endif
+	#else
+		#ifdef __USE_GTK3__
+			#cmdline "-x ../mff32_gtk3.dll"
+		#else
+			#cmdline "-x ../mff32_gtk2.dll"
+		#endif
+	#endif
+#else
+	#ifdef __FB_64BIT__
+		#ifdef __USE_GTK3__
+			#cmdline "-x ../libmff64_gtk3.so"
+		#else
+			#cmdline "-x ../libmff64_gtk2.so"
+		#endif
+	#else
+		#ifdef __USE_GTK3__
+			#cmdline "-x ../libmff32_gtk3.so"
+		#else
+			#cmdline "-x ../libmff32_gtk2.so"
+		#endif
+	#endif
+#endif
 
 #define __EXPORT_PROCS__
 #define MEMCHECK 0
