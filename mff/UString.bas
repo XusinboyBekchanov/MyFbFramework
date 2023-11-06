@@ -282,6 +282,54 @@ End Function
 	'	Return count
 	'End Function
 	
+	'Returns a string, which is a substring of a string expression beginning at the start position (defaults to 1), in which a specified substring has been replaced with another substring a specified number of times.
+	'
+	'Parameters
+	'   Expression
+	'       String expression containing substring to replace.
+	'   FindingText
+	'       Substring being searched for.
+	'   ReplacingText
+	'       Replacement substring.
+	'   Start
+	'       Start position for the substring of Expression to be searched and returned. If omitted, 1 is assumed.
+	'   Count
+	'       Number of substring substitutions to perform. If omitted, the default value is -1, which means, make all possible substitutions.
+	'   MatchCase
+	'       Boolean value indicating the kind of comparison to use when evaluating substrings.
+	'
+	'Return Value
+	'   '''Replace''' returns the following values:
+	'   {|
+	'   |'''If'''||'''Replace returns'''
+	'   |-
+	'   |''Expression'' is zero-length||Zero-length string ("")
+	'   |-
+	'   |''Expression'' is '''NULL'''||An error.
+	'   |-
+	'   |''FindingText'' is zero-length||Copy of ''Expression''.
+	'   |-
+	'   |''ReplacingText'' is zero-length||Copy of ''Expression'' with all occurrences of ''FindingText'' removed.
+	'   |-
+	'   |''Start'' > '''Len'''(''Expression'')||Zero-length string. String replacement begins at the position indicated by ''Start''.
+	'   |-
+	'   |''Count'' is 0||Copy of ''Expression''.
+	'   |}
+	'
+	'Remarks
+	'   The Return value of the '''Replace''' function is a string, with substitutions made, that begins at the position specified by ''Start'' and concludes at the End of the ''Expression'' string. It's not a copy of the original string from start to finish.
+	'
+	'Example
+	'   #include "mff/UString.bi"
+	'
+	'   Dim strFull As String = "My name is Adam"
+	'
+	'   Print Replace(strFull, "Adam", "Victor")
+	'
+	'   Sleep
+	'
+	'See also
+	'   Split
 	Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
 		If Len(FindingText) = 0 Then Return Expression
 		Dim As WString Ptr original, find
@@ -354,6 +402,32 @@ End Function
 	End Function
 #endif
 
+'Dereferences a WString pointer to <a href="https://www.freebasic.net/wiki/KeyPgWString">WString</a>.
+'
+'Parameters
+'   subject|Required. WString Pointer to dereference. If the value is NULL, zero-length string ("") is returned.
+'       WString Pointer to dereference. If the value is NULL, zero-length string ("") is returned.
+'
+'Example
+'#include "mff/UString.bi"
+'
+'Dim p As WString Ptr
+'
+'Print WGet(p)
+'
+'p = Allocate(SizeOf(WString) * 5)
+'
+'*p = "Good"
+'
+'Print WGet(p)
+'
+'Delete p
+'
+'Sleep
+'
+'See also
+'   iGet
+'   ZGet
 Private Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	If subject = 0 Then Return WStr("") Else Return *subject
 End Function
@@ -596,22 +670,22 @@ Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 	Return True
 End Function
 
-Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True)
-	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
+Private Sub Split Overload(ByRef Subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True)
+	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(Subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
 		Exit Sub
 	End If
 	ReDim Result(0 To items - 1)
 	Do While i <= ls
-		If StartsWith(subject, Delimiter, i - 1) Then
+		If StartsWith(Subject, Delimiter, i - 1) Then
 		'If Mid(subject, i, tLen) = Delimiter Then
 			n = n + 1
 			If (n >= items + 1 ) Then
 				items += 50
 				ReDim Preserve Result(0 To items - 1)
 			End If
-			Result(n - 1) = Mid(subject, p, i - p)
+			Result(n - 1) = Mid(Subject, p, i - p)
 			p = i + tLen
 			i = p
 			Continue Do
@@ -620,7 +694,7 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 	Loop
 	n = n + 1
 	ReDim Preserve Result(n - 1)
-	Result(n - 1) = Mid(subject, p, i - p)
+	Result(n - 1) = Mid(Subject, p, i - p)
 End Sub
 
 Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True)
@@ -650,7 +724,55 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 	Result(n - 1) = Mid(subject, p, i - p)
 End Sub
 
-
+'Returns a zero-based, one-dimensional array containing a specified number of substrings.
+'
+'Parameters
+'   Subject
+'       String expression containing substrings and delimiters. If expression is a zero-length string(""), Split returns an empty array, that is, an array with no elements and no data.
+'   Delimiter
+'       String character used to identify substring limits. If delimiter is a zero-length string, a single-element array containing the entire expression string is returned.
+'   Result
+'       Variable where the result is returned.
+'   MatchCase
+'       Boolean value indicating the kind of comparison to use when evaluating substrings.
+'   
+'Example
+'#include "mff/UString.bi"
+'
+'Dim strFull As String
+'Dim arrSplitStrings1() As String
+'Dim arrSplitStrings2() As String
+'Dim strSingleString1 As String
+'Dim strSingleString2 As String
+'Dim i As Long
+'
+'strFull = "Dow - Fonseca - Graham - Kopke - Noval - Offley - Sandeman - Taylor - Warre"    ' String that will be used. 
+'
+'Split(strFull, "-", arrSplitStrings1())     ' arrSplitStrings1 will be an array from 0 To 8. 
+'                                            ' arrSplitStrings1(0) = "Dow " and arrSplitStrings1(1) = " Fonesca ". 
+'                                            ' The delimiter did not include spaces, so the spaces in strFull will be included in the returned array values. 
+'
+'Split(strFull, " - ", arrSplitStrings2())   ' arrSplitStrings2 will be an array from 0 To 8. 
+'                                            ' arrSplitStrings2(0) = "Dow" and arrSplitStrings2(1) = "Fonesca". 
+'                                            ' The delimiter includes the spaces, so the spaces will not be included in the returned array values. 
+'
+''Multiple examples of how to return the value "Kopke" (array position 3). 
+'
+'strSingleString1 = arrSplitStrings2(3)      ' strSingleString1 = "Kopke". 
+'
+'For i = LBound(arrSplitStrings2, 1) To UBound(arrSplitStrings2, 1)
+'    If InStr(1, arrSplitStrings2(i), "Kopke") > 0 Then
+'        strSingleString2 = arrSplitStrings2(i)
+'        Print strSingleString2
+'        Exit For
+'    End If 
+'Next i
+'
+'Sleep
+'
+'See also
+'   Join
+'   Replace
 Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True)
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
@@ -696,6 +818,19 @@ Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iS
 	Return Result
 End Function
 
+'Returns a string created by joining a number of substrings contained in an array.
+'
+'Parameters
+'   Subject
+'       One-dimensional array containing substrings to be joined.
+'   Delimiter
+'       String character used to separate the substrings in the returned string.If delimiter is a zero-length string (""), all items in the list are concatenated with no delimiters.
+'   iStart
+'       Set from what position to install the separator
+'   iStep
+'       Determines with what step to combine
+'See also
+'   Split
 Private Function Join(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As String Result
 	For i As Integer = iStart To UBound(Subject) Step iStep

@@ -462,7 +462,7 @@ Namespace My.Sys.Forms
 			OnMouseLeave As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is moved (Windows, Linux).
 			OnMove       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control is clicked (Windows, Linux).
+			'Occurs when the control is clicked (Windows, Linux, Android, Web).
 			OnClick      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is double-clicked (Windows, Linux).
 			OnDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
