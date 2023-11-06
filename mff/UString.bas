@@ -405,7 +405,7 @@ End Function
 'Dereferences a WString pointer to <a href="https://www.freebasic.net/wiki/KeyPgWString">WString</a>.
 '
 'Parameters
-'   subject|Required. WString Pointer to dereference. If the value is NULL, zero-length string ("") is returned.
+'   subject
 '       WString Pointer to dereference. If the value is NULL, zero-length string ("") is returned.
 '
 'Example

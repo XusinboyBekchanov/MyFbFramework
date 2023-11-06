@@ -15,22 +15,22 @@
 	#ifndef MainHandle_Off
 		Private Function EnumThreadWindowsProc(FWindow As HWND, LData As LPARAM) As BOOL
 			Type WindowType
-				As HWND HANDLE
+				As HWND Handle
 			End Type
 			Dim As WindowType Ptr Wnd = Cast(WindowType Ptr, LData)
 			If (GetWindowLong(FWindow, GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then
-				Wnd->HANDLE = FWindow
+				Wnd->Handle = FWindow
 			End If
 			Return True
 		End Function
 		
 		Private Function MainHandle As HWND
 			Type WindowType
-				As HWND HANDLE
+				As HWND Handle
 			End Type
 			Dim As WindowType Wnd
 			EnumThreadWindows GetCurrentThreadId,Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@Wnd)
-			Return Wnd.HANDLE
+			Return Wnd.Handle
 		End Function
 	#endif
 #endif
