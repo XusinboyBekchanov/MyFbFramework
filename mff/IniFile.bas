@@ -1,7 +1,7 @@
 ﻿'###############################################################################
 '#  IniFile.bi                                                                 #
 '#  This file is part of MyFBFramework                                         #
-'#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
+'#  Authors: Xusinboy Bekchanov, Liu XiaLin                                    #
 '#  Based on:                                                                  #
 '#   TIniFile.bi                                                               #
 '#   FreeBasic Windows GUI ToolKit                                             #
@@ -12,35 +12,51 @@
 
 #include once "IniFile.bi"
 Private Property IniFile.File ByRef As WString
-	Return WGet(FFile)
+	Return *FFile
 End Property
 
 Private Property IniFile.File(ByRef Value As WString)
-	WLet(FFile, Value)
+	If *FFile <> Value AndAlso Value <> "" Then
+		WLet(FFile, Value)
+		Load(Value)
+	End If
 End Property
 
-Private Property IniFile.SectionCount As Integer
+Private Property IniFile.SaveSuspend As Boolean
+	Return FSaveSuspend
+End Property
+
+Private Property IniFile.SaveSuspend(Value As Boolean)
+	FSaveSuspend = Value
+End Property
+
+Private Function IniFile.SectionCount As Integer
 	FSectionCount = 0
 	Dim As WString Ptr s
 	For i As Integer = 0 To FLines.Count -1
-		s = @FLines.Item(i)
-		If s[0] <> "" Then If s[0] <> Asc(";") Then If s[0] = Asc("[") Then FSectionCount += 1
+		s = Cast(WString Ptr, FLines.Item(i))
+		If Trim(*s) = "" Then Continue For  'Not allowed empty
+		If (CharStart = "[" AndAlso Mid(Trim(*s), 1, 1) <> ";") Then
+			If Mid(Trim(*s), 1, 1) = CharStart AndAlso Right(Trim(*s), 1) = CharEnd Then FSectionCount += 1
+		ElseIf (CharStart = "<" AndAlso Mid(Trim(*s), 1, 1) = CharStart AndAlso Mid(Trim(*s), 1, 2) <> "<!" AndAlso Mid(Trim(*s), 1, 2) <> "<?") Then
+			If Right(Trim(*s), 1) = CharEnd AndAlso InStr(Trim(*s), "</") < 1 Then FSectionCount += 1
+		End If
 	Next i
 	Return FSectionCount
-End Property
-
-Private Property IniFile.SectionCount(Value As Integer)
-End Property
+End Function
 
 Private Function IniFile.SectionExists(ByRef Section As WString) As Integer
 	Dim As WString Ptr s
-	For i As Integer = 0 To FLines.Count -1
-		s = @FLines.Item(i)
-		If *s <> "" Then
-			If s[0] <> Asc(";") Then
-				If s[0] = Asc("[") Then
-					If UCase(Section) = UCase(Trim(Trim(*s,"["),"]")) Then Return i
-				End If
+	For i As Integer = 0 To FLines.Count - 1
+		s = Cast(WString Ptr, FLines.Item(i))
+		If Trim(*s) = "" Then Continue For  'Not allowed empty
+		If (CharStart = "[" AndAlso Mid(Trim(*s), 1, 1) <> ";") Then
+			If Mid(Trim(*s), 1, 1) = CharStart AndAlso Right(Trim(*s), 1) = CharEnd Then
+				If CharStart & UCase(Section) & CharEnd = UCase(Trim(*s)) Then Return i
+			End If
+		ElseIf (CharStart = "<" AndAlso Mid(Trim(*s), 1, 1) = CharStart AndAlso Mid(Trim(*s), 1, 2) <> "<!" AndAlso Mid(Trim(*s), 1, 2) <> "<?") Then
+			If Right(Trim(*s), 1) = CharEnd AndAlso InStr(Trim(*s), "</") < 1 Then
+				If CharStart & UCase(Section) & CharEnd = UCase(Trim(*s)) Then Return i
 			End If
 		End If
 	Next i
@@ -53,12 +69,13 @@ Private Function IniFile.KeyExists(ByRef Section As WString, ByRef Key As WStrin
 	x = SectionExists(Section)
 	If x <> -1 Then
 		For i As Integer = x + 1 To FLines.Count -1
-			s = @FLines.Item(i)
-			If *s <> "" Then
-				If s[0] <> Asc(";") Then
-					If s[0] = Asc("[") Then Return -1
-					If s[0] <> Asc("[") Then If UCase(Key) = UCase(Trim(Mid(*s, 1, InStr(*s, "=") - 1))) Then Return i
-				End If
+			s = Cast(WString Ptr, FLines.Item(i))
+			If Trim(*s) = "" Then Continue For  'Not allowed empty
+			If (CharStart = "[" AndAlso Mid(Trim(*s), 1, 1) <> ";") Then
+				If Mid(Trim(*s), 1, 1) = CharStart Then Return -1
+				If Mid(Trim(*s), 1, 1) <> CharStart Then If UCase(Key) = UCase(Trim(Mid(Trim(*s), 1, InStr(Trim(*s), "=") - 1))) Then Return i
+			ElseIf (CharStart = "<" AndAlso Mid(Trim(*s), 1, 1) = CharStart AndAlso Mid(Trim(*s), 1, 2) <> "<!") Then
+				If InStr(Trim(*s), "<" & Key & ">") AndAlso InStr(Trim(*s), "</" & Key & ">") Then Return i
 			End If
 		Next i
 	End If
@@ -71,202 +88,148 @@ Private Function IniFile.KeyRemove(ByRef Section As WString, ByRef Key As WStrin
 	x = SectionExists(Section)
 	If x <> -1 Then
 		For i As Integer = x + 1 To FLines.Count -1
-			s = @FLines.Item(i)
-			If *s <> "" Then
-				If s[0] <> Asc(";") Then
-					If s[0] = Asc("[") Then Return False
-					If s[0] <> Asc("[") AndAlso UCase(Key) = UCase(Trim(Mid(*s, 1, InStr(*s, "=") - 1))) Then
-						FLines.Remove i
-						Return True
-					End If
-				End If
+			s = Cast(WString Ptr, FLines.Item(i))
+			If Trim(*s) = "" Then Continue For  'Not allowed empty
+			If (CharStart = "[" AndAlso Mid(Trim(*s), 1, 1) <> ";") Then
+				If Mid(Trim(*s), 1, 1) = CharStart Then Return -1
+				If Mid(Trim(*s), 1, 1) <> CharStart Then If UCase(Key) = UCase(Trim(Mid(Trim(*s), 1, InStr(Trim(*s), "=") - 1))) Then FLines.Remove i : Return True
+			ElseIf (CharStart = "<" AndAlso Mid(Trim(*s), 1, 1) = CharStart AndAlso Mid(Trim(*s), 1, 2) <> "<!") Then
+				If InStr(Trim(*s), "<" & Key & ">") AndAlso InStr(Trim(*s), "</" & Key & ">") Then FLines.Remove i : Return True
 			End If
 		Next i
 	End If
 	Return False
 End Function
+
 Private Sub IniFile.Load(ByRef FileName As WString = "")
 	Dim Result As Integer = -1 'David Change
-	If FileName <> "" Then WLet(FFile, FileName)
+	If FileName <> "" AndAlso *FFile<> FileName Then WLet(FFile, FileName)
+	Dim As WString Ptr wData, LineBuff()
+	WLet(wData, LoadFromFile(*FFile, FFileEncoding, FNewLineType))
+	If Trim(*wData) = "" Then
+		Debug.Print __FUNCTION__ & "(Line " & __LINE__ & ")" & Chr(9) & "ERROR on reading file: " & *FFile, True
+		Exit Sub
+	End If
+	If Mid(Trim(LCase(*wData)), 1, 5) = "<?xml" Then CharStart = "<": CharEnd  = ">"
+	Dim As String NewLineStr
+	If FNewLineType = NewLineTypes.WindowsCRLF  Then
+		NewLineStr = Chr(13, 10)
+	ElseIf FNewLineType = NewLineTypes.LinuxLF Then
+		NewLineStr = Chr(10)
+	ElseIf FNewLineType = NewLineTypes.MacOSCR Then
+		NewLineStr =  Chr(13)
+	Else
+		NewLineStr = Chr(10)
+	End If
+	Split(*wData, NewLineStr, LineBuff())
 	FLines.Clear
-	Dim As Integer Fn = FreeFile_
-	'If Open(FileName For Input Encoding "utf-8" As #Fn) = 0 Then 'Line Input Not working fine in Ver 1.07 David Change
-	'If Open(File For Binary Access Read As #ff) = 0 Then 'Line Input working fine in this mode
-	Result = Open(*FFile For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(*FFile For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(*FFile For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(*FFile For Input As #Fn)
-	If Result = 0 Then
-		Dim Buff As WString * 1024 'David Change for V1.07 Line Input not working fine
-		While Not EOF(Fn)
-			Line Input #Fn, Buff
-			If Buff <> "" Then FLines.Add Buff
-		Wend
-	End If
-	CloseFile_(Fn)
+	For i As Integer = 0 To UBound(LineBuff)
+		FLines.Add LineBuff(i)
+	Next i
+	_Deallocate(wData)
 End Sub
 
-Private Sub IniFile.Update
+Private Sub IniFile.SaveFile(ByRef FileName As WString = "")
 	'If Open(File For Binary Access Write As #Fn) = 0 Then
-	Dim As Integer Fn = FreeFile_
-	If Open(*FFile For Output Encoding "utf-8" As #Fn) =0 Then
-		For i As Integer = 0 To FLines.Count -1
-			Print #Fn, FLines.Item(i)
-		Next i
-	End If
-	CloseFile_(Fn)
-End Sub
-
-Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
-	Dim As Integer SecIndex, KeyIndex
-	SecIndex = SectionExists(Section)
-	If SecIndex <> -1 Then
-		KeyIndex = KeyExists(Section,Key)
-		If KeyIndex <> -1 Then
-			FLines.Item(KeyIndex) = Key & "=" & Str(Value)
-			Update
-		Else
-			If SecIndex < FLines.Count -1 Then
-				Dim As Integer LastIndex
-				For i As Integer = SecIndex +1 To FLines.Count-1
-					Dim As WString Ptr s
-					s = @FLines.Item(i)
-					If *s <> "" Then
-						LastIndex = i
-						If s[0] = Asc("[") Then Exit For
-					End If
-				Next i
-				If LastIndex = FLines.Count -1 Then
-					FLines.Add Key & "=" & WStr(Value)
-					Update
-				Else
-					FLines.Insert LastIndex, Key & "=" & WStr(Value)
-				End If
-				Update
-			Else
-				FLines.Add Key & "=" & WStr(Value)
-				Update
-			End If
-		End If
+	Dim As WString Ptr wData
+	If FileName <> "" AndAlso *FFile <> FileName Then WLet(FFile, FileName)
+	Dim As String NewLineStr
+	If FNewLineType = NewLineTypes.WindowsCRLF  Then
+		NewLineStr = Chr(13, 10)
+	ElseIf FNewLineType = NewLineTypes.LinuxLF Then
+		NewLineStr = Chr(10)
+	ElseIf FNewLineType = NewLineTypes.MacOSCR Then
+		NewLineStr =  Chr(13)
 	Else
-		FLines.Add "[" & Section & "]"
-		FLines.Add Key & "=" & WStr(Value)
-		Update
+		NewLineStr = Chr(13, 10)
 	End If
-End Sub
-
-Private Sub IniFile.WriteFloat(ByRef Section As WString, ByRef Key As WString, Value As Double)
-	Dim As Integer SecIndex,KeyIndex
-	SecIndex = SectionExists(Section)
-	If SecIndex <> -1 Then
-		KeyIndex = KeyExists(Section,Key)
-		If KeyIndex <> -1 Then
-			FLines.Item(KeyIndex) = Key & "=" & WStr(Value)
-			Update
-		Else
-			If SecIndex < FLines.Count -1 Then
-				Dim As Integer LastIndex
-				For i As Integer = SecIndex +1 To FLines.Count-1
-					Dim As WString Ptr s
-					s = @FLines.Item(i)
-					If *s <> "" Then
-						LastIndex = i
-						If s[0] = Asc("[") Then Exit For
-					End If
-				Next i
-				If LastIndex = FLines.Count -1 Then
-					FLines.Add Key & "=" & WStr(Value)
-					Update
-				Else
-					FLines.Insert LastIndex,Key & "=" & WStr(Value)
-				End If
-				Update
-			Else
-				FLines.Add Key & "=" & WStr(Value)
-				Update
-			End If
-		End If
-	Else
-		FLines.Add "[" & Section & "]"
-		FLines.Add Key & "=" & WStr(Value)
-		Update
-	End If
-End Sub
-
-Private Sub IniFile.WriteBool(ByRef Section As WString, ByRef Key As WString, Value As Boolean)
-	Dim As Integer SecIndex, KeyIndex
-	SecIndex = SectionExists(Section)
-	If SecIndex <> -1 Then
-		KeyIndex = KeyExists(Section,Key)
-		If KeyIndex <> -1 Then
-			FLines.Item(KeyIndex) = Key & "=" & WStr(Value) & Chr(0)
-			Update
-		Else
-			If SecIndex < FLines.Count -1 Then
-				Dim As Integer LastIndex
-				For i As Integer = SecIndex +1 To FLines.Count-1
-					Dim As WString Ptr s
-					s = @FLines.Item(i)
-					If *s <> "" Then
-						LastIndex = i
-						If s[0] = Asc("[") Then Exit For
-					End If
-				Next i
-				If LastIndex = FLines.Count -1 Then
-					FLines.Add Key & "=" & WStr(Value)
-					Update
-				Else
-					FLines.Insert LastIndex,Key & "=" & WStr(Value)
-				End If
-				Update
-			Else
-				FLines.Add Key & "=" & WStr(Value)
-				Update
-			End If
-		End If
-	Else
-		FLines.Add "[" & Section & "]"
-		FLines.Add Key & "=" & WStr(Value)
-		Update
-	End If
+	WLet(wData, *Cast(WString Ptr, FLines.Item(0)))
+	For i As Integer = 1 To FLines.Count - 1
+		WAdd(wData, NewLineStr & *Cast(WString Ptr, FLines.Item(i)))
+	Next i
+	SaveToFile(*FFile, *wData, FFileEncoding, FNewLineType)
+	Deallocate wData
 End Sub
 
 Private Sub IniFile.WriteString(ByRef Section As WString, ByRef Key As WString, ByRef Value As WString)
 	Dim As Integer SecIndex, KeyIndex
+	Dim As WString Ptr s
 	SecIndex = SectionExists(Section)
 	If SecIndex <> -1 Then
-		KeyIndex = KeyExists(Section,Key)
+		KeyIndex = KeyExists(Section, Key)
 		If KeyIndex <> -1 Then
-			FLines.Item(KeyIndex) = Key + "=" + Value + WChr(0)
-			Update
+			s = Cast(WString Ptr, FLines.Item(KeyIndex))
+			If (CharStart = "[") Then
+				WLet(s, Key & "=" & Value)
+			Else
+				WLet(s, "<" & Key & ">" & Value & "</" & Key & ">")
+			End If
+			FLines.Item(KeyIndex) = s
+			If Not FSaveSuspend Then SaveFile
 		Else
 			If SecIndex < FLines.Count -1 Then
 				Dim As Integer LastIndex
-				For i As Integer = SecIndex +1 To FLines.Count-1
-					Dim As WString Ptr s
-					s = @FLines.Item(i)
-					If *s <> "" Then
-						LastIndex = i
-						If s[0] = Asc("[") Then Exit For
-					End If
+				For i As Integer = SecIndex + 1 To FLines.Count - 1
+					s = Cast(WString Ptr, FLines.Item(i))
+					If *s = "" Then Continue For
+					LastIndex = i
+					If Mid(Trim(*s), 1, 1) = CharStart Then Exit For
 				Next i
 				If LastIndex = FLines.Count -1 Then
-					FLines.Add Key + "=" + Value
-					Update
+					If (CharStart = "[") Then
+						s = 0 : WLet(s, Key & "=" & Value)
+					Else
+						s = 0 : WLet(s, "<" & Key & ">" & Value & "</" & Key & ">")
+					End If
+					FLines.Add s
 				Else
-					FLines.Insert LastIndex,Key & "=" & WStr(Value)
+					If (CharStart = "[") Then
+						s = 0 : WLet(s, Key & "=" & Value)
+					Else
+						s = 0 : WLet(s, "<" & Key & ">" & Value & "</" & Key & ">")
+					End If
+					FLines.Insert LastIndex, s
 				End If
-				Update
+				If Not FSaveSuspend Then SaveFile
 			Else
-				FLines.Add Key + "=" + Value
-				Update
+				If (CharStart = "[") Then
+					s = 0 : WLet(s, Key & "=" & Value)
+				Else
+					s = 0 : WLet(s, "<" & Key & ">" & Value & "</" & Key & ">")
+				End If
+				FLines.Add s
+				If Not FSaveSuspend Then SaveFile
 			End If
 		End If
 	Else
-		FLines.Add "[" & Section & "]"
-		FLines.Add Key + "=" + Value
-		Update
+		s = 0 : WLet(s, CharStart & Section & CharEnd)
+		FLines.Add s
+		If (CharStart = "[") Then
+			s = 0 : WLet(s, Key & "=" & Value)
+		Else
+			s = 0 : WLet(s, "<" & Key & ">" & Value & "</" & Key & ">")
+		End If
+		FLines.Add s
+		If (CharStart <> "[") Then
+			s = 0 : WLet(s, "</" & Section & ">")
+			FLines.Add s
+		End If
+		If Not FSaveSuspend Then SaveFile
 	End If
+End Sub
+
+
+Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
+	WriteString(Section, Key, WStr(Value))
+End Sub
+
+Private Sub IniFile.WriteFloat(ByRef Section As WString, ByRef Key As WString, Value As Double)
+	WriteString(Section, Key, WStr(Value))
+End Sub
+
+Private Sub IniFile.WriteBool(ByRef Section As WString, ByRef Key As WString, Value As Boolean)
+	Dim As String TrueStr = IIf(Value, "True", "False")
+	WriteString(Section, Key, WStr(TrueStr))
 End Sub
 
 Private Function IniFile.ReadInteger(ByRef Section As WString, ByRef Key As WString, Inplace As Integer = 0) As Integer
@@ -276,8 +239,14 @@ Private Function IniFile.ReadInteger(ByRef Section As WString, ByRef Key As WStr
 		Index = KeyExists(Section, Key)
 		If Index <> -1 Then
 			Dim Value As Integer
-			s = @FLines.Item(Index)
-			Return ValInt(Mid(*s, InStr(*s, "=") + 1, Len(*s)))
+			s = Cast(WString Ptr, FLines.Item(Index))
+			If (CharStart = "[") Then
+				Return ValInt(Mid(Trim(*s), InStr(Trim(*s), "=") + 1, Len(*s)))
+			Else
+				Dim As Integer PosStart = Len("<" & Key & ">") + 1
+				Dim As Integer PosEnd = InStr(PosStart, Trim(*s), "</")
+				If PosEnd > 0 Then Return ValInt(Mid(Trim(*s), PosStart, PosEnd - PosStart)) Else Return Inplace
+			End If
 		Else
 			Return Inplace
 		End If
@@ -292,8 +261,15 @@ Private Function IniFile.ReadFloat(ByRef Section As WString, ByRef Key As WStrin
 	If SectionExists(Section) <> -1 Then
 		Index = KeyExists(Section, Key)
 		If Index <> -1 Then
-			s = @FLines.Item(Index)
-			Return Val(Mid(*s, InStr(*s, "=") + 1, Len(*s)))
+			Dim Value As Integer
+			s = Cast(WString Ptr, FLines.Item(Index))
+			If (CharStart = "[") Then
+				If LCase(Mid(Trim(*s), InStr(Trim(*s), "=") + 1, Len(*s)))="true" Then Return True Else Return False
+			Else
+				Dim As Integer PosStart = Len("<" & Key & ">") + 1
+				Dim As Integer PosEnd = InStr(PosStart, Trim(*s), "</")
+				If PosEnd > 0 Then Return Val(Mid(Trim(*s), PosStart, PosEnd - PosStart)) Else Return Inplace
+			End If
 		Else
 			Return Inplace
 		End If
@@ -308,8 +284,15 @@ Private Function IniFile.ReadBool(ByRef Section As WString, ByRef Key As WString
 	If SectionExists(Section) <> -1 Then
 		Index = KeyExists(Section, Key)
 		If Index <> -1 Then
-			s = @FLines.Item(Index)
-			Return Cast(Boolean, Trim(Mid(*s, InStr(*s, "=") + 1, Len(*s))))
+			Dim Value As Integer
+			s = Cast(WString Ptr, FLines.Item(Index))
+			If (CharStart = "[") Then
+				If LCase(Mid(Trim(*s), InStr(Trim(*s), "=") + 1, Len(*s))) = "true" Then Return True Else Return False
+			Else
+				Dim As Integer PosStart = Len("<" & Key & ">") + 1
+				Dim As Integer PosEnd = InStr(PosStart, Trim(*s), "</")
+				If PosEnd > 0 AndAlso LCase(Mid(Trim(*s), PosStart, PosEnd - PosStart)) = "true" Then Return True Else Return False
+			End If
 		Else
 			Return Inplace
 		End If
@@ -320,10 +303,19 @@ End Function
 
 Private Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") As UString
 	Dim As Integer Index
+	Dim As WString Ptr s
 	If SectionExists(Section) <> -1 Then
 		Index = KeyExists(Section, Key)
 		If Index <> -1 Then
-			Return Mid(FLines.Item(Index), InStr(FLines.Item(Index), "=") + 1, Len(FLines.Item(Index)))
+			Dim Value As Integer
+			s = Cast(WString Ptr, FLines.Item(Index))
+			If (CharStart = "[") Then
+				Return Mid(Trim(*s), InStr(Trim(*s), "=") + 1, Len(*s))
+			Else
+				Dim As Integer PosStart = Len("<" & Key & ">") + 1
+				Dim As Integer PosEnd = InStr(PosStart, Trim(*s), "</")
+				If PosEnd > 0 Then Return Mid(Trim(*s), PosStart, PosEnd - PosStart) Else Return Inplace
+			End If
 		Else
 			Return Inplace
 		End If
@@ -336,22 +328,31 @@ Private Operator IniFile.Cast As Any Ptr
 	Return @This
 End Operator
 
-Private Constructor IniFile
-	Dim As WString * 255 Tx
-	Dim As Integer L, i, k
-	#ifndef __USE_GTK__
-		L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
-		Tx = Left(Tx, L)
-		For i = 0 To Len(Tx)
-			If Tx[i] = Asc(".") Then k = i +1
-		Next i
-		WLet(FFile, Mid(Tx, 1, k - 1) + ".ini")
-	#else
-		WLet(FFile, "Config.ini") 'David Change for hanging in linux
-	#endif
+Private Constructor IniFile(ByRef FileName As WString = "")
+	If Trim(FileName) = "" Then
+		Dim As WString * 255 Tx
+		Dim As Integer L, i, k
+		#ifndef __USE_GTK__
+			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
+			Tx = Left(Tx, L)
+			For i = 0 To Len(Tx)
+				If Tx[i] = Asc(".") Then k = i +1
+			Next i
+			WLet(FFile, Mid(Tx, 1, k - 1) + ".ini")
+		#else
+			WLet(FFile, "Config.ini")
+		#endif
+	Else
+		WLet(FFile, FileName)
+		Load(*FFile)
+	End If
 End Constructor
 
 Private Destructor IniFile
 	If FFile Then _Deallocate( FFile)
-	FLines.Clear
+	For i As Integer = FLines.Count - 1 To 0 Step -1
+		Deallocate FLines.Item(i)
+		FLines.Remove i
+	Next
+	
 End Destructor
