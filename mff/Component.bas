@@ -252,10 +252,12 @@ Namespace My.Sys.ComponentModel
 					Exit Sub
 				End If
 				If widget Then
-					iLeft = iLeft * gtk_widget_get_scale_factor(widget)
-					iTop = iTop * gtk_widget_get_scale_factor(widget)
-					iWidth = iWidth * gtk_widget_get_scale_factor(widget)
-					iHeight = iHeight * gtk_widget_get_scale_factor(widget)
+					#ifdef __USE_GTK3__
+						iLeft = iLeft * gtk_widget_get_scale_factor(widget)
+						iTop = iTop * gtk_widget_get_scale_factor(widget)
+						iWidth = iWidth * gtk_widget_get_scale_factor(widget)
+						iHeight = iHeight * gtk_widget_get_scale_factor(widget)
+					#endif
 					If GTK_IS_WIDGET(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
 						gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
@@ -331,14 +333,18 @@ Namespace My.Sys.ComponentModel
 				#ifdef __USE_GTK__
 					If GTK_IS_WINDOW(widget) Then
 						gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-						FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
-						FTop =  FTop / gtk_widget_get_scale_factor(widget)
+						#ifdef __USE_GTK3__
+							FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
+							FTop =  FTop / gtk_widget_get_scale_factor(widget)
+						#endif
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 							Dim allocation As GtkAllocation
 							gtk_widget_get_allocation(CtrlWidget, @allocation)
-							FLeft = allocation.x / gtk_widget_get_scale_factor(CtrlWidget)
+							#ifdef __USE_GTK3__
+								FLeft = allocation.x / gtk_widget_get_scale_factor(CtrlWidget)
+							#endif
 							'If FParent Then FLeft -= FParent->Margins.Left
 						End If
 					End If
@@ -387,14 +393,18 @@ Namespace My.Sys.ComponentModel
 					Dim ControlChanged As Boolean
 					If GTK_IS_WINDOW(widget) Then
 						gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-						FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
-						FTop =  FTop / gtk_widget_get_scale_factor(widget)
+						#ifdef __USE_GTK3__
+							FLeft =  FLeft / gtk_widget_get_scale_factor(widget)
+							FTop =  FTop / gtk_widget_get_scale_factor(widget)
+						#endif
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 							Dim allocation As GtkAllocation
 							gtk_widget_get_allocation(CtrlWidget, @allocation)
-							FTop = allocation.y / gtk_widget_get_scale_factor(CtrlWidget)
+							#ifdef __USE_GTK3__
+								FTop = allocation.y / gtk_widget_get_scale_factor(CtrlWidget)
+							#endif
 							'If FParent Then FTop -= FParent->Margins.Top
 							ControlChanged = True
 						End If
@@ -443,7 +453,9 @@ Namespace My.Sys.ComponentModel
 					If GTK_IS_WINDOW(widget) Then
 						Dim As gint iWidth, iHeight
 						gtk_window_get_size(GTK_WINDOW(widget), @iWidth, @iHeight)
-						FWidth = iWidth / gtk_widget_get_scale_factor(widget)
+						#ifdef __USE_GTK3__
+							FWidth = iWidth / gtk_widget_get_scale_factor(widget)
+						#endif
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 						If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
@@ -452,14 +464,18 @@ Namespace My.Sys.ComponentModel
 							#else
 								FWidth = widget->allocation.width
 							#endif
-							FWidth = FWidth / gtk_widget_get_scale_factor(widget)
+							#ifdef __USE_GTK3__
+								FWidth = FWidth / gtk_widget_get_scale_factor(widget)
+							#endif
 						ElseIf CtrlWidget Then
 							#ifndef __USE_GTK2__
 								If gtk_widget_get_allocated_width(CtrlWidget) > 1 Then FWidth = gtk_widget_get_allocated_width(CtrlWidget)
 							#else
 								If CtrlWidget->allocation.width > 1 Then FWidth = CtrlWidget->allocation.width
 							#endif
-							FWidth = FWidth / gtk_widget_get_scale_factor(CtrlWidget)
+							#ifdef __USE_GTK3__
+								FWidth = FWidth / gtk_widget_get_scale_factor(CtrlWidget)
+							#endif
 							'Dim As GtkAllocation alloc
 							'gtk_widget_get_allocation (widget, @alloc)
 							'FWidth = alloc.width
@@ -504,7 +520,9 @@ Namespace My.Sys.ComponentModel
 					If GTK_IS_WINDOW(widget) Then
 						Dim As gint iWidth, iHeight
 						gtk_window_get_size(GTK_WINDOW(widget), @iWidth, @iHeight)
-						FHeight = iHeight / gtk_widget_get_scale_factor(widget)
+						#ifdef __USE_GTK3__
+							FHeight = iHeight / gtk_widget_get_scale_factor(widget)
+						#endif
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 						If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
@@ -513,14 +531,18 @@ Namespace My.Sys.ComponentModel
 							#else
 								FHeight = widget->allocation.height
 							#endif
-							FHeight = FHeight / gtk_widget_get_scale_factor(widget)
+							#ifdef __USE_GTK3__
+								FHeight = FHeight / gtk_widget_get_scale_factor(widget)
+							#endif
 						ElseIf CtrlWidget Then
 							#ifndef __USE_GTK2__
 								If gtk_widget_get_allocated_height(CtrlWidget) > 1 Then FHeight = gtk_widget_get_allocated_height(CtrlWidget)
 							#else
 								If CtrlWidget->allocation.height > 1 Then FHeight = CtrlWidget->allocation.height
 							#endif
-							FHeight = FHeight / gtk_widget_get_scale_factor(CtrlWidget)
+							#ifdef __USE_GTK3__
+								FHeight = FHeight / gtk_widget_get_scale_factor(CtrlWidget)
+							#endif
 						End If
 					End If
 				End If

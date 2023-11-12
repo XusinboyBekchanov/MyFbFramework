@@ -494,7 +494,9 @@ Namespace My.Sys.Forms
 						#else
 							FClientWidth = layoutwidget->allocation.width
 						#endif
-						FClientWidth = FClientWidth / gtk_widget_get_scale_factor(layoutwidget)
+						#ifdef __USE_GTK3__
+							FClientWidth = FClientWidth / gtk_widget_get_scale_factor(layoutwidget)
+						#endif
 						'ElseIf fixedwidget Then
 						'	FClientWidth = gtk_widget_get_allocated_width(fixedwidget)
 						
@@ -552,7 +554,9 @@ Namespace My.Sys.Forms
 						#else
 							FClientHeight = layoutwidget->allocation.height
 						#endif
-						FClientHeight = FClientHeight / gtk_widget_get_scale_factor(layoutwidget)
+						#ifdef __USE_GTK3__
+							FClientHeight = FClientHeight / gtk_widget_get_scale_factor(layoutwidget)
+						#endif
 						'ElseIf fixedwidget Then
 						'	FClientHeight = gtk_widget_get_allocated_height(fixedwidget)
 						'	Dim As guint width_, height_
