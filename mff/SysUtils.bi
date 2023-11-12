@@ -29,7 +29,7 @@
 	#endif
 #endif
 
-#ifdef __USE_WINAPI__
+#if defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__)
 	#define UNICODE
 	#include once "windows.bi"
 #endif
