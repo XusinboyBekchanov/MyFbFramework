@@ -919,7 +919,7 @@ Namespace My.Sys.Forms
 				#else
 					gtk_layout_move(GTK_LAYOUT(widget), dtp->ButtonLayoutWidget, allocation->width - allocation->height + 2, 2)
 				#endif
-				If dtp->OnResize Then dtp->OnResize(*dtp->Designer, *dtp, allocation->width, allocation->height)
+				If dtp->OnResize Then dtp->OnResize(*dtp->Designer, *dtp, UnScaleX(allocation->width), UnScaleY(allocation->height))
 			End If
 		End Sub
 		

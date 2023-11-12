@@ -1276,7 +1276,7 @@ Namespace My.Sys.Drawing
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			pango_font_description_free (desc)
-			Function = extend.width
+			Function = UnScaleX(extend.width)
 		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__)

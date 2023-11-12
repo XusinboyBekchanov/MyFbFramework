@@ -179,20 +179,23 @@ End Namespace
 	End Function
 #else
 	Private Function ScaleX(ByVal cx As Single) As Single
-		#ifdef __USE_WINAPI__
-			If xdpi = 0 OrElse ydpi = 0 Then
+		If xdpi = 0 OrElse ydpi = 0 Then
+			#ifdef __USE_GTK__
+				Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+		    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+				xdpi = dpi / 96
+				ydpi = dpi / 96
+			#else
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
 				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
-				If xdpi = 0 Then xdpi = 1
-				If ydpi = 0 Then ydpi = 1
-			End If
-			Function = cx * xdpi
-		#else
-			Function = cx
-		#endif
+			#endif
+			If xdpi = 0 Then xdpi = 1
+			If ydpi = 0 Then ydpi = 1
+		End If
+		Function = cx * xdpi
 	End Function
 #endif
 ' =====================================================================================
@@ -205,20 +208,23 @@ End Namespace
 	End Function
 #else
 	Private Function UnScaleX(ByVal cx As Single) As Single
-		#ifdef __USE_WINAPI__
-			If xdpi = 0 OrElse ydpi = 0 Then
+		If xdpi = 0 OrElse ydpi = 0 Then
+			#ifdef __USE_GTK__
+				Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+		    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+				xdpi = dpi / 96
+				ydpi = dpi / 96
+			#else
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
 				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
-				If xdpi = 0 Then xdpi = 1
-				If ydpi = 0 Then ydpi = 1
-			End If
-			Function = cx / xdpi
-		#else
-			Function = cx
-		#endif
+			#endif
+			If xdpi = 0 Then xdpi = 1
+			If ydpi = 0 Then ydpi = 1
+		End If
+		Function = cx / xdpi
 	End Function
 #endif
 ' =====================================================================================
@@ -230,20 +236,23 @@ End Namespace
 	End Function
 #else
 	Private Function ScaleY(ByVal cy As Single) As Single
-		#ifdef __USE_WINAPI__
-			If xdpi = 0 OrElse ydpi = 0 Then
+		If xdpi = 0 OrElse ydpi = 0 Then
+			#ifdef __USE_GTK__
+				Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+		    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+				xdpi = dpi / 96
+				ydpi = dpi / 96
+			#else
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
 				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
-				If xdpi = 0 Then xdpi = 1
-				If ydpi = 0 Then ydpi = 1
-			End If
-			Function = cy * ydpi
-		#else
-			Function = cy
-		#endif
+			#endif
+			If xdpi = 0 Then xdpi = 1
+			If ydpi = 0 Then ydpi = 1
+		End If
+		Function = cy * ydpi
 	End Function
 #endif
 
@@ -257,20 +266,23 @@ End Namespace
 	End Function
 #else
 	Private Function UnScaleY(ByVal cy As Single) As Single
-		#ifdef __USE_WINAPI__
-			If xdpi = 0 OrElse ydpi = 0 Then
+		If xdpi = 0 OrElse ydpi = 0 Then
+			#ifdef __USE_GTK__
+				Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+		    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+				xdpi = dpi / 96
+				ydpi = dpi / 96
+			#elseif defined(__USE_WINAPI__)
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
 				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
 				ReleaseDC NULL, hDC
-				If xdpi = 0 Then xdpi = 1
-				If ydpi = 0 Then ydpi = 1
-			End If
-			Function = cy / ydpi
-		#else
-			Function = cy
-		#endif
+			#endif
+			If xdpi = 0 Then xdpi = 1
+			If ydpi = 0 Then ydpi = 1
+		End If
+		Function = cy / ydpi
 	End Function
 #endif
 

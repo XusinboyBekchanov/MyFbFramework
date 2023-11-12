@@ -74,14 +74,12 @@ Namespace My
 	#ifndef VER_PATCH
 		#define VER_PATCH "0"
 	#endif
+	#ifndef VER_BUILD
+		#define VER_BUILD "0"
+	#endif
 	
-	Private Function Application.Version As Const String
-		#ifdef __FB_WIN32__
-			Return GetVerInfo("FileVersion")
-		#else
-			Dim As String Version_ = VER_MAJOR & "." & VER_MINOR & "." & VER_PATCH
-			Return Version_
-		#endif
+	Private Function Application.Version As String
+		Return GetVerInfo("FileVersion")
 	End Function
 	
 	Private Property Application.Icon As My.Sys.Drawing.Icon
@@ -133,7 +131,7 @@ Namespace My
 		Dim As WString*255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
-		#ifdef __USE_WINAPI__
+		#ifdef __FB_WIN32__
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
 		#else
 			Tx = Command(0)
@@ -548,16 +546,22 @@ Namespace My
 	
 	#ifndef Application_GetVerInfo_Off
 		Private Function Application.GetVerInfo(ByRef InfoName As String) As String
-			Dim As ULong iret
-			If TranslationString = "" Then Return ""
-			Dim As WString Ptr value = 0
-			Dim As String FullInfoName = $"\StringFileInfo\" & TranslationString & "\" & InfoName
-			#ifdef __USE_WINAPI__
+			#ifdef __FB_WIN32__
+				Dim As ULong iret
+				If TranslationString = "" Then Return ""
+				Dim As WString Ptr value = 0
+				Dim As String FullInfoName = $"\StringFileInfo\" & TranslationString & "\" & InfoName
 				If VerQueryValue(_vinfo, FullInfoName, @value, @iret) Then
 					''~ value = cast( zstring ptr, vqinfo )
 				End If
+				Return WGet(value)
+			#else
+				If InfoName = "ProductVersion" Then
+					Return VER_MAJOR & "." & VER_MINOR & "." & VER_PATCH
+				ElseIf InfoName = "FileVersion" Then
+					Return VER_MAJOR & "." & VER_MINOR & "." & VER_PATCH & "." & VER_BUILD
+				End If
 			#endif
-			Return WGet(value)
 		End Function
 	#endif
 	
@@ -623,13 +627,11 @@ Namespace My
 			Instance = GetModuleHandle(NULL)
 		#endif
 		GetFonts
-		#ifdef __USE_WINAPI__
-			Dim As DWORD ret, discard
-		#endif
 		This.initialized = False
 		This._vinfo = 0
 		ExeName
-		#ifdef __USE_WINAPI__
+		#ifdef __FB_WIN32__
+			Dim As DWORD ret, discard
 			ret = GetFileVersionInfoSize(FFileName, @discard)
 			If ret <> 0 Then
 				This._vinfo = _Allocate(ret)

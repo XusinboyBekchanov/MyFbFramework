@@ -5,19 +5,6 @@
 '################################################################################
 
 #include once "SysUtils.bi"
-#ifdef __USE_GTK__
-	#ifdef __USE_GTK4__
-		#include once "cairo/cairo.bi"
-		#include once "gir_headers/Gir/PangoCairo-1.0.bi"
-		#include once "gir_headers/Gir/Gtk-4.0.bi"
-		#include once "gir_headers/Gir/_GObjectMacros-2.0.bi"
-	#else
-		#include once "gtk/gtk.bi"
-		#ifdef __USE_GTK3__
-			#include once "glib-object.bi"
-		#endif
-	#endif
-#endif
 
 #define QBoolean(__Ptr__) (*Cast(Boolean Ptr, __Ptr__))
 #define QInteger(__Ptr__) (*Cast(Integer Ptr, __Ptr__))

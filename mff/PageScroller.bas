@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 						gtk_layout_move(GTK_LAYOUT(psc->Handle), psc->ChildControl->Handle, 0, 0)
 					End If
 				End If
-				If psc->OnResize Then psc->OnResize(*psc->Designer, *psc, allocation->width, allocation->height)
+				If psc->OnResize Then psc->OnResize(*psc->Designer, *psc, UnScaleX(allocation->width), UnScaleY(allocation->height))
 			End If
 		End Sub
 		

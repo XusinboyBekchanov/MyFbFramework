@@ -494,9 +494,7 @@ Namespace My.Sys.Forms
 						#else
 							FClientWidth = layoutwidget->allocation.width
 						#endif
-						#ifdef __USE_GTK3__
-							FClientWidth = FClientWidth / gtk_widget_get_scale_factor(layoutwidget)
-						#endif
+						FClientWidth = UnScaleX(FClientWidth)
 						'ElseIf fixedwidget Then
 						'	FClientWidth = gtk_widget_get_allocated_width(fixedwidget)
 						
@@ -554,9 +552,7 @@ Namespace My.Sys.Forms
 						#else
 							FClientHeight = layoutwidget->allocation.height
 						#endif
-						#ifdef __USE_GTK3__
-							FClientHeight = FClientHeight / gtk_widget_get_scale_factor(layoutwidget)
-						#endif
+						FClientHeight = UnScaleY(FClientHeight)
 						'ElseIf fixedwidget Then
 						'	FClientHeight = gtk_widget_get_allocated_height(fixedwidget)
 						'	Dim As guint width_, height_
@@ -2061,8 +2057,8 @@ Namespace My.Sys.Forms
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
-						Ctrl->RequestAlign AllocatedWidth, AllocatedHeight, True
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, AllocatedWidth, AllocatedHeight)
+						Ctrl->RequestAlign UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight), True
+						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight))
 					End If
 				End If
 			End Sub
@@ -2097,8 +2093,8 @@ Namespace My.Sys.Forms
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
-						Ctrl->RequestAlign AllocatedWidth, AllocatedHeight, True
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, AllocatedWidth, AllocatedHeight)
+						Ctrl->RequestAlign UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight), True
+						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight))
 					End If
 					Ctrl->Canvas.HandleSetted = False
 				End If
@@ -2732,23 +2728,23 @@ Namespace My.Sys.Forms
 					If GTK_IS_WIDGET(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-							gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+							gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
 							bAdded = True
 						ElseIf fixedwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
 							bAdded = True
 						ElseIf GTK_IS_TEXT_VIEW(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-							gtk_text_view_add_child_in_window(GTK_TEXT_VIEW(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, Ctrl->FLeft, Ctrl->FTop - FrameTop)
+							gtk_text_view_add_child_in_window(GTK_TEXT_VIEW(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
 							bAdded = True
 						ElseIf GTK_IS_BOX(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							#ifdef __USE_GTK3__
-								gtk_widget_set_margin_left(Ctrlwidget, Ctrl->ExtraMargins.Left)
-								gtk_widget_set_margin_top(Ctrlwidget, Ctrl->ExtraMargins.Top)
-								gtk_widget_set_margin_right(Ctrlwidget, Ctrl->ExtraMargins.Right)
-								gtk_widget_set_margin_bottom(Ctrlwidget, Ctrl->ExtraMargins.Bottom)
+								gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Ctrl->ExtraMargins.Left))
+								gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Ctrl->ExtraMargins.Top))
+								gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Ctrl->ExtraMargins.Right))
+								gtk_widget_set_margin_bottom(Ctrlwidget, ScaleY(Ctrl->ExtraMargins.Bottom))
 							#endif
 							If Ctrl->Align = DockStyle.alRight OrElse Ctrl->Align = DockStyle.alBottom Then
 								#ifdef __USE_GTK4__

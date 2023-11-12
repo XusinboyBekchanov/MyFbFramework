@@ -249,16 +249,16 @@ Namespace My.Sys.Forms
 						If FStartPosition = 4 AndAlso FParent Then ' CenterParent
 							gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER_ON_PARENT)
 							With *Cast(Control Ptr, FParent)
-								gtk_window_move(GTK_WINDOW(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+								gtk_window_move(GTK_WINDOW(widget), ScaleX(.Left + (.Width - This.FWidth) \ 2), ScaleY(.Top + (.Height - This.FHeight) \ 2))
 							End With
 						Else ' CenterScreen
 							gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
 							#ifdef __USE_GTK4__
 								Dim As GdkRectangle workarea
 								gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-								gtk_window_move(GTK_WINDOW(widget), (workarea.width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+								gtk_window_move(GTK_WINDOW(widget), (workarea.width - ScaleX(This.FWidth)) \ 2, (workarea.height - ScaleY(This.FHeight)) \ 2)
 							#else
-								gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+								gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - ScaleX(This.FWidth)) \ 2, (gdk_screen_height() - ScaleY(This.FHeight)) \ 2)
 							#endif
 						End If
 					Case 2: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
@@ -1801,7 +1801,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If GTK_IS_WINDOW(widget) Then
 						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
-						gtk_window_move(GTK_WINDOW(widget), .Left + (.Width - This.FWidth) \ 2, .Top + (.Height - This.FHeight) \ 2)
+						gtk_window_move(GTK_WINDOW(widget), ScaleX(.Left + (.Width - This.FWidth) \ 2), ScaleY(.Top + (.Height - This.FHeight) \ 2))
 					End If
 				#else
 					This.Left = .Left + (.Width - This.Width) \ 2: This.Top  = .Top + (.Height - This.Height) \ 2
@@ -1817,9 +1817,9 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK4__
 					Dim As GdkRectangle workarea
 					gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-					gtk_window_move(GTK_WINDOW(widget), (workarea.Width - This.FWidth) \ 2, (workarea.height - This.FHeight) \ 2)
+					gtk_window_move(GTK_WINDOW(widget), (workarea.width - ScaleX(This.FWidth)) \ 2, (workarea.height - ScaleY(This.FHeight)) \ 2)
 				#else
-					gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - This.FWidth) \ 2, (gdk_screen_height() - This.FHeight) \ 2)
+					gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - ScaleX(This.FWidth)) \ 2, (gdk_screen_height() - ScaleY(This.FHeight)) \ 2)
 				#endif
 			End If
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS

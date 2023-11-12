@@ -975,7 +975,7 @@ Namespace My.Sys.Forms
 					message.Result = 0
 				Case EN_REQUESTRESIZE
 					With Cast(REQRESIZE Ptr, message.lParam)->rc
-						If OnResize Then OnResize(*Designer, This, .Right - .Left, .Bottom - .Top)
+						If OnResize Then OnResize(*Designer, This, UnScaleX(.Right - .Left), UnScaleY(.Bottom - .Top))
 					End With
 				Case EN_PROTECTED
 					Static As Boolean AllowChange  = 1

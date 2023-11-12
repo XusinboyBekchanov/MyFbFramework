@@ -1033,7 +1033,7 @@ Namespace My.Sys.Forms
 						If rb->Parent Then rb->Parent->RequestAlign
 					End If
 				End If
-				If rb->OnResize Then rb->OnResize(*rb->Designer, *rb, allocation->width, allocation->height)
+				If rb->OnResize Then rb->OnResize(*rb->Designer, *rb, UnScaleX(allocation->width), UnScaleY(allocation->height))
 			End If
 		End Sub
 		

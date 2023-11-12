@@ -374,9 +374,9 @@ Namespace My.Sys.Forms
 	Private Property ToolButton.Width As Integer
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				FButtonWidth = gtk_widget_get_allocated_width(Widget)
+				FButtonWidth = UnScaleX(gtk_widget_get_allocated_width(Widget))
 			#else
-				FButtonWidth = Widget->allocation.width
+				FButtonWidth = UnScaleX(Widget->allocation.width)
 			#endif
 		#else
 			Dim As Integer i
@@ -401,9 +401,9 @@ Namespace My.Sys.Forms
 	Private Property ToolButton.Height As Integer
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				FButtonHeight = gtk_widget_get_allocated_height(Widget)
+				FButtonHeight = UnScaleY(gtk_widget_get_allocated_height(Widget))
 			#else
-				FButtonHeight = Widget->allocation.height
+				FButtonHeight = UnScaleY(Widget->allocation.height)
 			#endif
 		#else
 			Dim As ..Rect R

@@ -152,7 +152,7 @@ Namespace My
 		Declare Property DarkMode(Value As Boolean)
 		Declare Property FileName ByRef As WString
 		Declare Property FileName(ByRef Value As WString)
-		Declare Function Version() As Const String
+		Declare Function Version() As String
 		Declare Function GetVerInfo(ByRef InfoName As String) As String
 		Declare Property Icon As My.Sys.Drawing.Icon
 		Declare Property Icon(Value As My.Sys.Drawing.Icon)
