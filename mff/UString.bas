@@ -997,6 +997,32 @@ End Function
 	End Function
 #endif
 
+#ifndef Choose_Off
+	Private Function Choose cdecl(Index As Integer, ...) As UString
+		Dim args As Cva_List
+		Cva_Start(args, Index)
+		For i As Integer = 1 To Index - 1
+			Dim As WString * 1 result = * (Cva_Arg(args, WString Ptr))
+		Next
+		Choose = * (Cva_Arg(args, WString Ptr))
+		Cva_End(args)
+	End Function
+#endif
+
+#ifndef Switch_Off
+	Private Function Switch cdecl(Condition As Boolean, ...) As UString
+		Dim args As Cva_List
+		Cva_Start(args, Condition)
+		Dim As Boolean bCondition = Condition
+		While bCondition = False
+			Dim As WString * 1 wResult = * (Cva_Arg(args, WString Ptr))
+			bCondition = Cva_Arg(args, Boolean)
+		Wend
+		Switch = * (Cva_Arg(args, WString Ptr))
+		Cva_End(args)
+	End Function
+#endif
+
 #if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Private Function FileExists (ByRef FileName As UString) As Boolean
 		#ifdef __USE_GTK__
