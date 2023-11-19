@@ -56,7 +56,6 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WEBVIEW2__
 				webviewWindow->lpVtbl->Navigate(webviewWindow, URL)
 			#else
-				g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
 				Dim vUrl As VARIANT: vUrl.vt = VT_BSTR : vUrl.bstrVal = SysAllocString(URL)
 				g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
 				VariantClear(@vUrl)
