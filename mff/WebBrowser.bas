@@ -53,9 +53,14 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUtf8(*URL))
 		#else
-			Dim vUrl As VARIANT: vUrl.vt = VT_BSTR : vUrl.bstrVal = SysAllocString(URL)
-			g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
-			VariantClear(@vUrl)
+			#ifdef __USE_WEBVIEW2__
+				webviewWindow->lpVtbl->Navigate(webviewWindow, URL)
+			#else
+				g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
+				Dim vUrl As VARIANT: vUrl.vt = VT_BSTR : vUrl.bstrVal = SysAllocString(URL)
+				g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
+				VariantClear(@vUrl)
+			#endif
 		#endif
 	End Sub
 	
@@ -65,7 +70,11 @@ Namespace My.Sys.Forms
 				webkit_web_view_go_forward(widget)
 			End If
 		#else
-			g_IWebBrowser->GoForward(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#ifdef __USE_WEBVIEW2__
+				webviewWindow->lpVtbl->GoForward(webviewWindow)
+			#else
+				g_IWebBrowser->GoForward(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#endif
 		#endif
 	End Sub
 	
@@ -75,7 +84,11 @@ Namespace My.Sys.Forms
 				webkit_web_view_go_forward(widget)
 			End If
 		#else
-			g_IWebBrowser->GoBack(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#ifdef __USE_WEBVIEW2__
+				webviewWindow->lpVtbl->GoBack(webviewWindow)
+			#else
+				g_IWebBrowser->GoBack(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#endif
 		#endif
 	End Sub
 	
@@ -83,7 +96,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			webkit_web_view_reload_bypass_cache(widget)
 		#else
-			g_IWebBrowser->Refresh(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#ifdef __USE_WEBVIEW2__
+				webviewWindow->lpVtbl->Reload(webviewWindow)
+			#else
+				g_IWebBrowser->Refresh(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#endif
 		#endif
 	End Sub
 	
@@ -93,7 +110,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			sRet = *webkit_web_view_get_uri(widget)
 		#else
-			g_IWebBrowser->get_LocationURL(Cast(IWebBrowser2 Ptr, pIWebBrowser), @buf)
+			#ifdef __USE_WEBVIEW2__
+				'webviewWindow->lpVtbl->Reload(webviewWindow)
+			#else
+				g_IWebBrowser->get_LocationURL(Cast(IWebBrowser2 Ptr, pIWebBrowser), @buf)
+			#endif
 		#endif
 		Return *buf
 	End Function
@@ -111,7 +132,11 @@ Namespace My.Sys.Forms
 			End If
 			'#endif
 		#else
-			g_IWebBrowser->get_Busy(Cast(IWebBrowser2 Ptr, pIWebBrowser), Cast(VARIANT_BOOL Ptr, @iState))
+			#ifdef __USE_WEBVIEW2__
+				'webviewWindow->lpVtbl->Reload(webviewWindow)
+			#else
+				g_IWebBrowser->get_Busy(Cast(IWebBrowser2 Ptr, pIWebBrowser), Cast(VARIANT_BOOL Ptr, @iState))
+			#endif
 		#endif
 		Return iState
 	End Function
@@ -120,7 +145,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			webkit_web_view_stop_loading(widget)
 		#else
-			g_IWebBrowser->Stop(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#ifdef __USE_WEBVIEW2__
+				webviewWindow->lpVtbl->Stop(webviewWindow)
+			#else
+				g_IWebBrowser->Stop(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			#endif
 		#endif
 	End Sub
 	
@@ -132,39 +161,46 @@ Namespace My.Sys.Forms
 					Return ""
 				Else
 					Return *bBuf
-				EndIf
+				End If
 			#else
 				Return ""
 			#endif
 		#else
-			Dim tText As WString Ptr
-			Dim As IHTMLDocument2 Ptr htmldoc2
-			Dim As IDispatch Ptr doc
-			g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
-			Function = ""
-			If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
-				If htmldoc2 Then
-					Dim As IHTMLElement Ptr BODY
-					htmldoc2->lpVtbl->get_body(htmldoc2, @BODY)
-					If BODY > 0 Then
-						Select Case flag
-						Case 0
-							BODY->lpVtbl->get_innerHTML(BODY, @tText)
-						Case 1
-							BODY->lpVtbl->get_outerHTML(BODY, @tText)
-						Case 2
-							BODY->lpVtbl->get_innerText(BODY, @tText)
-						Case 3
-							BODY->lpVtbl->get_outerText(BODY, @tText)
-						End Select
-						Function = *tText
-						BODY->lpVtbl->Release(BODY)
+			#ifdef __USE_WEBVIEW2__
+				Dim tText As WString Ptr
+				webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
+				Function = *tText
+				_Deallocate(tText)
+			#else
+				Dim tText As WString Ptr
+				Dim As IHTMLDocument2 Ptr htmldoc2
+				Dim As IDispatch Ptr doc
+				g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
+				Function = ""
+				If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
+					If htmldoc2 Then
+						Dim As IHTMLElement Ptr BODY
+						htmldoc2->lpVtbl->get_body(htmldoc2, @BODY)
+						If BODY > 0 Then
+							Select Case flag
+							Case 0
+								BODY->lpVtbl->get_innerHTML(BODY, @tText)
+							Case 1
+								BODY->lpVtbl->get_outerHTML(BODY, @tText)
+							Case 2
+								BODY->lpVtbl->get_innerText(BODY, @tText)
+							Case 3
+								BODY->lpVtbl->get_outerText(BODY, @tText)
+							End Select
+							Function = *tText
+							BODY->lpVtbl->Release(BODY)
+						End If
+						htmldoc2->lpVtbl->Release(htmldoc2)
 					End If
-					htmldoc2->lpVtbl->Release(htmldoc2)
+					doc->lpVtbl->Release(doc)
 				End If
-				doc->lpVtbl->Release(doc)
-			End If
-			_Deallocate(tText)
+				_Deallocate(tText)
+			#endif
 		#endif
 	End Function
 	
@@ -176,57 +212,285 @@ Namespace My.Sys.Forms
 			webkit_web_view_load_html_string(Cast(Any Ptr, widget), ToUtf8(tText))
 			'#endif
 		#else
-			Dim As IHTMLDocument2 Ptr htmldoc2
-			Dim As IDispatch Ptr doc
-			g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
-			If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
-				If htmldoc2 Then
-					Dim As IHTMLElement Ptr BODY
-					htmldoc2->lpVtbl->get_body(htmldoc2, @BODY)
-					If BODY > 0 Then
-						Select Case flag
-						Case 0
-							BODY->lpVtbl->put_innerHTML(BODY, @tText)
-						Case 1
-							BODY->lpVtbl->put_outerHTML(BODY, @tText)
-						Case 2
-							BODY->lpVtbl->put_innerText(BODY, @tText)
-						Case 3
-							BODY->lpVtbl->put_outerText(BODY, @tText)
-						End Select
-						BODY->lpVtbl->Release(BODY)
+			#ifdef __USE_WEBVIEW2__
+				'Dim tText As WString Ptr
+				'webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
+				'Function = *tText
+				'_Deallocate(tText)
+			#else
+				Dim As IHTMLDocument2 Ptr htmldoc2
+				Dim As IDispatch Ptr doc
+				g_IWebBrowser->get_Document(Cast(IWebBrowser2 Ptr, pIWebBrowser), @doc)
+				If doc > 0 AndAlso (doc->lpVtbl->QueryInterface(doc, @IID_IHTMLDocument2, Cast(PVOID Ptr, @htmldoc2)) = S_OK) Then
+					If htmldoc2 Then
+						Dim As IHTMLElement Ptr BODY
+						htmldoc2->lpVtbl->get_body(htmldoc2, @BODY)
+						If BODY > 0 Then
+							Select Case flag
+							Case 0
+								BODY->lpVtbl->put_innerHTML(BODY, @tText)
+							Case 1
+								BODY->lpVtbl->put_outerHTML(BODY, @tText)
+							Case 2
+								BODY->lpVtbl->put_innerText(BODY, @tText)
+							Case 3
+								BODY->lpVtbl->put_outerText(BODY, @tText)
+							End Select
+							BODY->lpVtbl->Release(BODY)
+						End If
+						htmldoc2->lpVtbl->Release(htmldoc2)
 					End If
-					htmldoc2->lpVtbl->Release(htmldoc2)
+					doc->lpVtbl->Release(doc)
 				End If
-				doc->lpVtbl->Release(doc)
-			End If
+			#endif
 		#endif
 	End Sub
 	
 	#ifndef __USE_GTK__
+		#ifdef __USE_WEBVIEW2__
+			Function WebBrowser.EnvironmentHandlerAddRef stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As UInteger
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->HandlerRefCount += 1
+					Return WebB->HandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.EnvironmentHandlerRelease stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As UInteger
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->HandlerRefCount -= 1
+					If (WebB->HandlerRefCount = 0) Then
+						If (WebB->completedHandler) Then
+							free(WebB->completedHandler->lpVtbl)
+							free(WebB->completedHandler)
+						End If
+						If (WebB->envHandler) Then
+							free(WebB->envHandler->lpVtbl)
+							free(WebB->envHandler)
+						End If
+					End If
+					Return WebB->HandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.EnvironmentHandlerQueryInterface stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					*ppvObject = This_
+					EnvironmentHandlerAddRef(This_)
+				End If
+				Return S_OK
+			End Function
+			
+			Function WebBrowser.EnvironmentHandlerInvoke stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr, errorCode As HRESULT, arg As ICoreWebView2Environment Ptr) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					If (Not WebB->bEnvCreated) Then
+						WebB->bEnvCreated = True
+						Dim As CHAR ch
+						WebB->completedHandler = malloc(SizeOf(ICoreWebView2CreateCoreWebView2ControllerCompletedHandler))
+						If (WebB->completedHandler = 0) Then
+							'printf(
+							'    "%s:%d: %s (0x%x).\n",
+							'    __FILE__,
+							'    __LINE__,
+							'    "Cannot allocate ICoreWebView2CreateCoreWebView2ControllerCompletedHandler",
+							'    GetLastError()
+							');
+							'ch = _getch();
+							Return GetLastError()
+						End If
+						Handles.Add WebB->completedHandler, WebB
+						WebB->completedHandler->lpVtbl = malloc(SizeOf(ICoreWebView2CreateCoreWebView2ControllerCompletedHandlerVtbl))
+						If (WebB->completedHandler->lpVtbl = 0) Then
+							'error_printf(
+							'    "%s:%d: %s (0x%x).\n",
+							'    __FILE__,
+							'    __LINE__,
+							'    "Cannot allocate ICoreWebView2CreateCoreWebView2ControllerCompletedHandlerVtbl",
+							'    GetLastError()
+							');
+							'ch = _getch();
+							Return GetLastError()
+						End If
+						WebB->completedHandler->lpVtbl->AddRef = @ControllerHandlerAddRef 
+						WebB->completedHandler->lpVtbl->Release = @ControllerHandlerRelease
+						WebB->completedHandler->lpVtbl->QueryInterface = @ControllerHandlerQueryInterface
+						WebB->completedHandler->lpVtbl->Invoke = @ControllerHandlerInvoke
+						
+						Dim As ICoreWebView2Environment Ptr env = arg
+						env->lpVtbl->CreateCoreWebView2Controller(env, WebB->FHandle, WebB->completedHandler)
+					End If
+				End If
+				Return S_OK
+			End Function
+			
+			Function WebBrowser.ControllerHandlerAddRef stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As UInteger
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->HandlerRefCount += 1
+					Return WebB->HandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.ControllerHandlerRelease stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As UInteger
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->HandlerRefCount -= 1
+					If (WebB->HandlerRefCount = 0) Then
+						If (WebB->completedHandler) Then
+							free(WebB->completedHandler->lpVtbl)
+							free(WebB->completedHandler)
+						End If
+						If (WebB->envHandler) Then
+							free(WebB->envHandler->lpVtbl)
+							free(WebB->envHandler)
+						End If
+					End If
+					Return WebB->HandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.ControllerHandlerQueryInterface stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					*ppvObject = This_
+					ControllerHandlerAddRef(This_)
+				End If
+				Return S_OK
+			End Function
+			
+			Function WebBrowser.ControllerHandlerInvoke stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr, result As HRESULT, createdController As ICoreWebView2Controller Ptr) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					If WebB->bEnvCreated Then
+						Dim As ICoreWebView2Controller Ptr controller = createdController
+						
+						If (controller <> NULL) Then
+							WebB->webviewController = controller
+							WebB->webviewController->lpVtbl->AddRef(WebB->webviewController)
+							WebB->webviewController->lpVtbl->get_CoreWebView2(WebB->webviewController, @WebB->webviewWindow)
+						End If
+						
+						Dim As ICoreWebView2Settings Ptr Settings
+						WebB->webviewWindow->lpVtbl->get_Settings(WebB->webviewWindow, @Settings)
+						Settings->lpVtbl->put_IsScriptEnabled(Settings, True)
+						Settings->lpVtbl->put_AreDefaultScriptDialogsEnabled(Settings, True)
+						Settings->lpVtbl->put_IsWebMessageEnabled(Settings, True)
+						Settings->lpVtbl->put_AreDevToolsEnabled(Settings, False)
+						Settings->lpVtbl->put_AreDefaultContextMenusEnabled(Settings, True)
+						Settings->lpVtbl->put_IsStatusBarEnabled(Settings, True)
+						
+						Dim As Rect bounds
+						GetClientRect(WebB->FHandle, @bounds)
+						WebB->webviewController->lpVtbl->put_Bounds(WebB->webviewController, bounds)
+						
+						'WebB->webviewWindow->lpVtbl->Navigate(WebB->webviewWindow, "https://google.com/")
+					End If
+				End If
+				Return S_OK
+			End Function
+		#endif
+		
 		Private Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender Then
 				With QWebBrowser(Sender.Child)
-					Dim i As Integer
-					Dim AtlAxWinInit As Function As Boolean
-					Dim AtlAxGetControl As Function(ByVal hWin As HWND, ByRef pp As Integer Ptr) As Integer
-					Dim iIUnknown As Integer
-					Dim pIUnknown As Integer Ptr = @iIUnknown
-					Dim IUnknown1 As IUnknownVtbl Ptr
-					If .hWebBrowser <> 0 Then
-						AtlAxGetControl = Cast(Any Ptr, GetProcAddress(.hWebBrowser, "AtlAxGetControl"))
-						If AtlAxGetControl <> 0 Then
-							AtlAxGetControl(.FHandle, pIUnknown)
-							If pIUnknown <> 0 AndAlso *pIUnknown <> 0 Then
-								IUnknown1 = Cast(IUnknownVtbl Ptr, *pIUnknown)
-								i = IUnknown1->AddRef(Cast(IUnknown Ptr, pIUnknown))
-								i = IUnknown1->QueryInterface(Cast(IUnknown Ptr, pIUnknown), @IID_IWebBrowser2, @.pIWebBrowser)
-								.g_IWebBrowser = Cast(IWebBrowser2Vtbl Ptr, *(.pIWebBrowser))
-								i = .g_IWebBrowser->AddRef(Cast(IWebBrowser2 Ptr, .pIWebBrowser))
-								i = IUnknown1->Release(Cast(IUnknown Ptr, pIUnknown))
+					#ifdef __USE_WEBVIEW2__
+						CoInitializeEx(0, COINIT_APARTMENTTHREADED)
+						Dim As HRESULT hr
+						
+						'If SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) = 0 Then
+						'    'error_printf(
+						'    '    "%s:%d: %s (0x%x).\n",
+						'    '    __FILE__,
+						'    '    __LINE__,
+						'    '    "SetProcessDpiAwarenessContext",
+						'    '    GetLastError()
+						'    ');
+						'    'ch = _getch();
+						'    Return GetLastError()
+						'End If
+						
+						hr = CoInitialize(NULL)
+						If FAILED(hr) Then
+							'error_printf(
+							'    "%s:%d: %s (0x%x).\n",
+							'    __FILE__,
+							'    __LINE__,
+							'    "CoInitialize",
+							'    hr
+							');
+							'ch = _getch();
+							Print hr
+							Return 'hr
+						End If
+						
+						.envHandler = malloc(SizeOf(ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler))
+						If .envHandler = 0 Then
+							'error_printf(
+							'    "%s:%d: %s (0x%x).\n",
+							'    __FILE__,
+							'    __LINE__,
+							'    "Cannot allocate ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler",
+							'    GetLastError()
+							');
+							'ch = _getch();
+							Print GetLastError()
+							Return 'GetLastError()
+						End If
+						Handles.Add .envHandler, @Sender
+						.envHandler->lpVtbl = malloc(SizeOf(ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandlerVtbl))
+						If .envHandler->lpVtbl = 0 Then
+							'error_printf(
+							'    "%s:%d: %s (0x%x).\n",
+							'    __FILE__,
+							'    __LINE__,
+							'    "Cannot allocate ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandlerVtbl",
+							'    GetLastError()
+							');
+							'ch = _getch();
+							Print GetLastError()
+							Return 'GetLastError()
+						End If
+						.envHandler->lpVtbl->AddRef = @EnvironmentHandlerAddRef
+						.envHandler->lpVtbl->Release = @EnvironmentHandlerRelease
+						.envHandler->lpVtbl->QueryInterface = @EnvironmentHandlerQueryInterface
+						.envHandler->lpVtbl->Invoke = @EnvironmentHandlerInvoke
+						
+						UpdateWindow(.FHandle)
+						
+						CreateCoreWebView2EnvironmentWithOptions(NULL, NULL, NULL, .envHandler)
+					#else
+						Dim i As Integer
+						Dim AtlAxWinInit As Function As Boolean
+						Dim AtlAxGetControl As Function(ByVal hWin As HWND, ByRef pp As Integer Ptr) As Integer
+						Dim iIUnknown As Integer
+						Dim pIUnknown As Integer Ptr = @iIUnknown
+						Dim IUnknown1 As IUnknownVtbl Ptr
+						If .hWebBrowser <> 0 Then
+							AtlAxGetControl = Cast(Any Ptr, GetProcAddress(.hWebBrowser, "AtlAxGetControl"))
+							If AtlAxGetControl <> 0 Then
+								AtlAxGetControl(.FHandle, pIUnknown)
+								If pIUnknown <> 0 AndAlso *pIUnknown <> 0 Then
+									IUnknown1 = Cast(IUnknownVtbl Ptr, *pIUnknown)
+									i = IUnknown1->AddRef(Cast(IUnknown Ptr, pIUnknown))
+									i = IUnknown1->QueryInterface(Cast(IUnknown Ptr, pIUnknown), @IID_IWebBrowser2, @.pIWebBrowser)
+									.g_IWebBrowser = Cast(IWebBrowser2Vtbl Ptr, *(.pIWebBrowser))
+									i = .g_IWebBrowser->AddRef(Cast(IWebBrowser2 Ptr, .pIWebBrowser))
+									i = IUnknown1->Release(Cast(IUnknown Ptr, pIUnknown))
+								End If
 							End If
 						End If
-					End If
+					#endif
 				End With
 			End If
 		End Sub
@@ -236,6 +500,16 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub WebBrowser.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_WEBVIEW2__
+			Select Case Message.Msg
+			Case WM_SIZE:
+				If (webviewController <> NULL) Then
+					Dim As Rect bounds
+					GetClientRect(FHandle, @bounds)
+					webviewController->lpVtbl->put_Bounds(webviewController, bounds)
+				End If
+			End Select
+		#endif
 		Base.ProcessMessage(Message)
 	End Sub
 	
@@ -258,17 +532,22 @@ Namespace My.Sys.Forms
 				#endif
 				webkit_web_view_load_uri(Cast(Any Ptr, widget), Cast(gchar Ptr, @"about:blank"))
 			#else
-				hWebBrowser = LoadLibrary("atl.dll")
-				If hWebBrowser Then
-					Dim AtlAxWinInit As Function As Boolean
-					AtlAxWinInit = Cast(Any Ptr, GetProcAddress(hWebBrowser, "AtlAxWinInit"))
-					If AtlAxWinInit Then
-						AtlAxWinInit()
-						.RegisterClass "WebBrowser", "AtlAxWin"
+				#ifdef __USE_WEBVIEW2__
+					.RegisterClass "WebBrowser"
+					.Style        = WS_CHILD
+				#else
+					hWebBrowser = LoadLibrary("atl.dll")
+					If hWebBrowser Then
+						Dim AtlAxWinInit As Function As Boolean
+						AtlAxWinInit = Cast(Any Ptr, GetProcAddress(hWebBrowser, "AtlAxWinInit"))
+						If AtlAxWinInit Then
+							AtlAxWinInit()
+							.RegisterClass "WebBrowser", "AtlAxWin"
+						End If
+						WLet(.FClassAncestor, "AtlAxWin")
 					End If
-					WLet(.FClassAncestor, "AtlAxWin")
-				End If
-				.Style        = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
+					.Style        = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
+				#endif
 				.ExStyle      = WS_EX_CLIENTEDGE
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated

@@ -2,7 +2,7 @@
 *.bak
 *.exe
 *_gtk*
-*.dll*
+*.dll
 *.so
 *.o
 MyFbFramework.wiki
