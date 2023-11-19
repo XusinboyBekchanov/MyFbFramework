@@ -330,7 +330,7 @@ End Function
 	'
 	'See also
 	'   Split
-	Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As UString
+	Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByVal Count As Integer = -1, MatchCase As Boolean = True, ByRef CountReplaced As Integer = 0) As UString
 		If Len(FindingText) = 0 Then Return Expression
 		Dim As WString Ptr original, find
 		If MatchCase Then
@@ -371,6 +371,7 @@ End Function
 			(*wres)[i] = Expression[i]
 		Next
 		Do
+			If c = Count Then Goto lbl
 			If (*original)[n] = (*find)[0] Then             'got a possible
 				For m = 0 To Lf - 1
 					If (*original)[n + m] <> (*find)[m] Then Goto lbl 'no
@@ -393,7 +394,7 @@ End Function
 			n += 1
 		Loop Until n >= Lo
 		(*wres)[staid] = 0
-		Count = c
+		CountReplaced = c
 		If Not MatchCase Then
 			WDeAllocate(original)
 			WDeAllocate(find)
