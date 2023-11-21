@@ -404,7 +404,7 @@ Namespace My.Sys.Forms
 							MoveWindow IntermediateD3DWindow, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
 						#endif
 						
-						WebB->webviewWindow->lpVtbl->Navigate(WebB->webviewWindow, "https://google.com/")
+						'WebB->webviewWindow->lpVtbl->Navigate(WebB->webviewWindow, "https://google.com/")
 					End If
 				End If
 				Return S_OK
