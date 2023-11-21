@@ -247,7 +247,7 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		#ifdef __USE_WEBVIEW2__
-			Function WebBrowser.EnvironmentHandlerAddRef stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As UInteger
+			Function WebBrowser.EnvironmentHandlerAddRef stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
 				If WebB Then
 					WebB->HandlerRefCount += 1
@@ -257,7 +257,7 @@ Namespace My.Sys.Forms
 				End If
 			End Function
 			
-			Function WebBrowser.EnvironmentHandlerRelease stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As UInteger
+			Function WebBrowser.EnvironmentHandlerRelease stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
 				If WebB Then
 					WebB->HandlerRefCount -= 1
@@ -329,7 +329,7 @@ Namespace My.Sys.Forms
 				Return S_OK
 			End Function
 			
-			Function WebBrowser.ControllerHandlerAddRef stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As UInteger
+			Function WebBrowser.ControllerHandlerAddRef stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As culong
 				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
 				If WebB Then
 					WebB->HandlerRefCount += 1
@@ -339,7 +339,7 @@ Namespace My.Sys.Forms
 				End If
 			End Function
 			
-			Function WebBrowser.ControllerHandlerRelease stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As UInteger
+			Function WebBrowser.ControllerHandlerRelease stdcall (This_ As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As culong
 				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
 				If WebB Then
 					WebB->HandlerRefCount -= 1
@@ -391,9 +391,20 @@ Namespace My.Sys.Forms
 						
 						Dim As Rect bounds
 						GetClientRect(WebB->FHandle, @bounds)
-						WebB->webviewController->lpVtbl->put_Bounds(WebB->webviewController, bounds)
+						#ifdef __FB_64BIT__
+							WebB->webviewController->lpVtbl->put_Bounds(WebB->webviewController, bounds)
+						#else
+							Dim Chrome_WidgetWin_0 As HWND = FindWindowEx(WebB->FHandle, 0, "Chrome_WidgetWin_0", 0)
+							Dim Chrome_WidgetWin_1 As HWND = FindWindowEx(Chrome_WidgetWin_0, 0, "Chrome_WidgetWin_1", 0)
+							Dim Chrome_RenderWidgetHostHWND As HWND = FindWindowEx(Chrome_WidgetWin_1, 0, "Chrome_RenderWidgetHostHWND", 0)
+							Dim IntermediateD3DWindow As HWND = FindWindowEx(Chrome_RenderWidgetHostHWND, 0, "Intermediate D3D Window", 0)
+							MoveWindow Chrome_WidgetWin_0, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+							MoveWindow Chrome_WidgetWin_1, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+							MoveWindow Chrome_RenderWidgetHostHWND, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+							MoveWindow IntermediateD3DWindow, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+						#endif
 						
-						'WebB->webviewWindow->lpVtbl->Navigate(WebB->webviewWindow, "https://google.com/")
+						WebB->webviewWindow->lpVtbl->Navigate(WebB->webviewWindow, "https://google.com/")
 					End If
 				End If
 				Return S_OK
@@ -505,7 +516,18 @@ Namespace My.Sys.Forms
 				If (webviewController <> NULL) Then
 					Dim As Rect bounds
 					GetClientRect(FHandle, @bounds)
-					webviewController->lpVtbl->put_Bounds(webviewController, bounds)
+					#ifdef __FB_64BIT__
+						webviewController->lpVtbl->put_Bounds(webviewController, bounds)
+					#else
+						Dim Chrome_WidgetWin_0 As HWND = FindWindowEx(FHandle, 0, "Chrome_WidgetWin_0", 0)
+						Dim Chrome_WidgetWin_1 As HWND = FindWindowEx(Chrome_WidgetWin_0, 0, "Chrome_WidgetWin_1", 0)
+						Dim Chrome_RenderWidgetHostHWND As HWND = FindWindowEx(Chrome_WidgetWin_1, 0, "Chrome_RenderWidgetHostHWND", 0)
+						Dim IntermediateD3DWindow As HWND = FindWindowEx(Chrome_RenderWidgetHostHWND, 0, "Intermediate D3D Window", 0)
+						MoveWindow Chrome_WidgetWin_0, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+						MoveWindow Chrome_WidgetWin_1, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+						MoveWindow Chrome_RenderWidgetHostHWND, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+						MoveWindow IntermediateD3DWindow, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+					#endif
 				End If
 			End Select
 		#endif
