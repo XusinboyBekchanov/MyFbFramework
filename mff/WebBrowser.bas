@@ -124,6 +124,7 @@ Namespace My.Sys.Forms
 		Dim As WString Ptr buf = sRet.vptr
 		#ifdef __USE_GTK__
 			sRet = *webkit_web_view_get_uri(widget)
+			Return *buf
 		#else
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
@@ -133,12 +134,13 @@ Namespace My.Sys.Forms
 					'_Deallocate(tText)
 				Else
 					Print "WebView2 window has not been created. Install the WebView2 runtime."
+					Function = ""
 				End If
 			#else
 				g_IWebBrowser->get_LocationURL(Cast(IWebBrowser2 Ptr, pIWebBrowser), @buf)
+				Return *buf
 			#endif
 		#endif
-		Return *buf
 	End Function
 	
 	Private Function WebBrowser.State() As Integer
@@ -197,6 +199,7 @@ Namespace My.Sys.Forms
 					'Dim tText As WString Ptr
 					'webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
 					'Function = *tText
+					Function = ""
 					'_Deallocate(tText)
 				Else
 					Print "WebView2 window has not been created. Install the WebView2 runtime."
