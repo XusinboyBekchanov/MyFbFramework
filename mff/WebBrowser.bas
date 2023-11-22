@@ -534,26 +534,28 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub WebBrowser.ProcessMessage(ByRef Message As Message)
-		#ifdef __USE_WEBVIEW2__
-			Select Case Message.Msg
-			Case WM_SIZE:
-				If (webviewController <> NULL) Then
-					Dim As Rect bounds
-					GetClientRect(FHandle, @bounds)
-					#ifdef __FB_64BIT__
-						webviewController->lpVtbl->put_Bounds(webviewController, bounds)
-					#else
-						Dim Chrome_WidgetWin_0 As HWND = FindWindowEx(FHandle, 0, "Chrome_WidgetWin_0", 0)
-						Dim Chrome_WidgetWin_1 As HWND = FindWindowEx(Chrome_WidgetWin_0, 0, "Chrome_WidgetWin_1", 0)
-						Dim Chrome_RenderWidgetHostHWND As HWND = FindWindowEx(Chrome_WidgetWin_1, 0, "Chrome_RenderWidgetHostHWND", 0)
-						Dim IntermediateD3DWindow As HWND = FindWindowEx(Chrome_RenderWidgetHostHWND, 0, "Intermediate D3D Window", 0)
-						MoveWindow Chrome_WidgetWin_0, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
-						MoveWindow Chrome_WidgetWin_1, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
-						MoveWindow Chrome_RenderWidgetHostHWND, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
-						MoveWindow IntermediateD3DWindow, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
-					#endif
-				End If
-			End Select
+		#ifdef __USE_WINAPI__
+			#ifdef __USE_WEBVIEW2__
+				Select Case Message.Msg
+				Case WM_SIZE:
+					If (webviewController <> NULL) Then
+						Dim As Rect bounds
+						GetClientRect(FHandle, @bounds)
+						#ifdef __FB_64BIT__
+							webviewController->lpVtbl->put_Bounds(webviewController, bounds)
+						#else
+							Dim Chrome_WidgetWin_0 As HWND = FindWindowEx(FHandle, 0, "Chrome_WidgetWin_0", 0)
+							Dim Chrome_WidgetWin_1 As HWND = FindWindowEx(Chrome_WidgetWin_0, 0, "Chrome_WidgetWin_1", 0)
+							Dim Chrome_RenderWidgetHostHWND As HWND = FindWindowEx(Chrome_WidgetWin_1, 0, "Chrome_RenderWidgetHostHWND", 0)
+							Dim IntermediateD3DWindow As HWND = FindWindowEx(Chrome_RenderWidgetHostHWND, 0, "Intermediate D3D Window", 0)
+							MoveWindow Chrome_WidgetWin_0, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+							MoveWindow Chrome_WidgetWin_1, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+							MoveWindow Chrome_RenderWidgetHostHWND, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+							MoveWindow IntermediateD3DWindow, bounds.Left, bounds.Top, bounds.Right, bounds.Bottom, True
+						#endif
+					End If
+				End Select
+			#endif
 		#endif
 		Base.ProcessMessage(Message)
 	End Sub
