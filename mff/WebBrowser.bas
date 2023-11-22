@@ -54,7 +54,11 @@ Namespace My.Sys.Forms
 			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUtf8(*URL))
 		#else
 			#ifdef __USE_WEBVIEW2__
-				webviewWindow->lpVtbl->Navigate(webviewWindow, URL)
+				If webviewWindow Then
+					webviewWindow->lpVtbl->Navigate(webviewWindow, URL)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				Dim vUrl As VARIANT: vUrl.vt = VT_BSTR : vUrl.bstrVal = SysAllocString(URL)
 				g_IWebBrowser->Navigate2(Cast(IWebBrowser2 Ptr, pIWebBrowser), @vUrl, NULL, NULL, NULL, NULL)
@@ -70,7 +74,11 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			#ifdef __USE_WEBVIEW2__
-				webviewWindow->lpVtbl->GoForward(webviewWindow)
+				If webviewWindow Then
+					webviewWindow->lpVtbl->GoForward(webviewWindow)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				g_IWebBrowser->GoForward(Cast(IWebBrowser2 Ptr, pIWebBrowser))
 			#endif
@@ -84,7 +92,11 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			#ifdef __USE_WEBVIEW2__
-				webviewWindow->lpVtbl->GoBack(webviewWindow)
+				If webviewWindow Then
+					webviewWindow->lpVtbl->GoBack(webviewWindow)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				g_IWebBrowser->GoBack(Cast(IWebBrowser2 Ptr, pIWebBrowser))
 			#endif
@@ -96,7 +108,11 @@ Namespace My.Sys.Forms
 			webkit_web_view_reload_bypass_cache(widget)
 		#else
 			#ifdef __USE_WEBVIEW2__
-				webviewWindow->lpVtbl->Reload(webviewWindow)
+				If webviewWindow Then
+					webviewWindow->lpVtbl->Reload(webviewWindow)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				g_IWebBrowser->Refresh(Cast(IWebBrowser2 Ptr, pIWebBrowser))
 			#endif
@@ -145,7 +161,11 @@ Namespace My.Sys.Forms
 			webkit_web_view_stop_loading(widget)
 		#else
 			#ifdef __USE_WEBVIEW2__
-				webviewWindow->lpVtbl->Stop(webviewWindow)
+				If webviewWindow Then
+					webviewWindow->lpVtbl->Stop(webviewWindow)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				g_IWebBrowser->Stop(Cast(IWebBrowser2 Ptr, pIWebBrowser))
 			#endif
@@ -166,10 +186,14 @@ Namespace My.Sys.Forms
 			#endif
 		#else
 			#ifdef __USE_WEBVIEW2__
-				Dim tText As WString Ptr
-				webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
-				Function = *tText
-				_Deallocate(tText)
+				If webviewWindow Then
+					Dim tText As WString Ptr
+					webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
+					Function = *tText
+					_Deallocate(tText)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				Dim tText As WString Ptr
 				Dim As IHTMLDocument2 Ptr htmldoc2
