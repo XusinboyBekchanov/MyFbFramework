@@ -126,7 +126,14 @@ Namespace My.Sys.Forms
 			sRet = *webkit_web_view_get_uri(widget)
 		#else
 			#ifdef __USE_WEBVIEW2__
-				'webviewWindow->lpVtbl->Reload(webviewWindow)
+				If webviewWindow Then
+					Dim tText As WString Ptr
+					webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
+					Function = *tText
+					'_Deallocate(tText)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				g_IWebBrowser->get_LocationURL(Cast(IWebBrowser2 Ptr, pIWebBrowser), @buf)
 			#endif
@@ -187,10 +194,10 @@ Namespace My.Sys.Forms
 		#else
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
-					Dim tText As WString Ptr
-					webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
-					Function = *tText
-					_Deallocate(tText)
+					'Dim tText As WString Ptr
+					'webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
+					'Function = *tText
+					'_Deallocate(tText)
 				Else
 					Print "WebView2 window has not been created. Install the WebView2 runtime."
 				End If
