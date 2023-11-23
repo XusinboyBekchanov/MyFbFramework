@@ -1,7 +1,7 @@
 ﻿'################################################################################
-'#  WebBrowser.bi                                                               #
+'#  WebBrowser.bas                                                              #
 '#  This file is part of MyFBFramework                                          #
-'#  Authors: Xusinboy Bekchanov (2018-2019)                                     #
+'#  Authors: Xusinboy Bekchanov (2018-2023)                                     #
 '################################################################################
 
 #include once "WebBrowser.bi"
@@ -512,7 +512,7 @@ Namespace My.Sys.Forms
 						
 						UpdateWindow(.FHandle)
 						
-						CreateCoreWebView2EnvironmentWithOptions(NULL, NULL, NULL, .envHandler)
+						CreateCoreWebView2Environment(.envHandler)
 					#else
 						Dim i As Integer
 						Dim AtlAxWinInit As Function As Boolean
