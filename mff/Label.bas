@@ -92,11 +92,7 @@ Namespace My.Sys.Forms
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
-		If FAutoSize Then
-			Dim Size As My.Sys.Drawing.Size
-			CalculateSize Size
-			SetBounds This.Left, This.Top, Size.Width, Size.Height
-		End If
+		SetAutoSize
 	End Property
 	
 	Private Property Label.Border As Integer
@@ -151,12 +147,22 @@ Namespace My.Sys.Forms
 					Dim Sz As ..Size
 					Dim As HDC Dc = GetDC(Handle)
 					If Dc > 0 Then
-						GetTextExtentPoint32(Dc, FText.vptr, Len(FText) + 1, @Sz)
+						Dim As .HANDLE PrevFont = SelectObject(Dc, Cast(HFONT, SendMessage(FHandle, WM_GETFONT, 0, 0)))
+						GetTextExtentPoint32(Dc, FText.vptr, Len(FText), @Sz)
 						Size.Width = Sz.cx
 						Size.Height = Max(6, Font.Size) / 72 * 96 + 6 ''中文字号VS英文字号(磅)VS像素值的对应关系：八号＝5磅(5pt) ==(5/72)*96=6.67 =6px
+						SelectObject(Dc, PrevFont)
 					End If
 				End If
 			#endif
+		End If
+	End Sub
+	
+	Private Sub Label.SetAutoSize
+		If FAutoSize Then
+			Dim Size As My.Sys.Drawing.Size
+			CalculateSize Size
+			SetBounds This.Left, This.Top, Size.Width, Size.Height
 		End If
 	End Sub
 	
@@ -218,11 +224,7 @@ Namespace My.Sys.Forms
 	Private Property Label.AutoSize(Value As Boolean)
 		If Value <> FAutoSize Then
 			FAutoSize = Value
-			If FAutoSize Then
-				Dim Size As My.Sys.Drawing.Size
-				CalculateSize Size
-				SetBounds This.Left, This.Top, Size.Width, Size.Height
-			End If
+			SetAutoSize
 		End If
 	End Property
 	
@@ -273,11 +275,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QLabel(Sender.Child)
 					.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
-					If .FAutoSize Then
-						Dim Size As My.Sys.Drawing.Size
-						.CalculateSize Size
-						.SetBounds .Left, .Top, Size.Width, Size.Height
-					End If
+					.SetAutoSize
 				End With
 			End If
 		End Sub

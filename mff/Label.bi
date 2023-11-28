@@ -48,6 +48,7 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Virtual Sub ChangeLabelStyle
 		Declare Virtual Sub CalculateSize(ByRef Size As My.Sys.Drawing.Size)
+		Declare Virtual Sub SetAutoSize
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Graphic            As My.Sys.Drawing.GraphicType
