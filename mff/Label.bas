@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 		Private Function Label.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
+			Case "autosize": Return @FAutoSize
 			Case "border": Return @FBorder
 			Case "canvas": Return @Canvas
 			Case "caption": Return Cast(Any Ptr, This.FText.vptr)
@@ -38,6 +39,7 @@ Namespace My.Sys.Forms
 		Private Function Label.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
 			Case "alignment": If Value <> 0 Then This.Alignment = *Cast(AlignmentConstants Ptr, Value)
+			Case "autosize": If Value <> 0 Then This.AutoSize = QBoolean(Value)
 			Case "border": If Value <> 0 Then This.Border = QInteger(Value)
 			Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
 			Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
@@ -90,7 +92,11 @@ Namespace My.Sys.Forms
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#endif
-		AutoSize= FAutoSize
+		If FAutoSize Then
+			Dim Size As My.Sys.Drawing.Size
+			CalculateSize Size
+			SetBounds This.Left, This.Top, Size.Width, Size.Height
+		End If
 	End Property
 	
 	Private Property Label.Border As Integer
@@ -129,6 +135,29 @@ Namespace My.Sys.Forms
 			#endif
 		End If
 		RecreateWnd
+	End Sub
+	
+	Private Sub Label.CalculateSize(ByRef Size As My.Sys.Drawing.Size)
+		Size.Width = This.Width
+		Size.Height = This.Height
+		If CBool(Font.Orientation = 0) AndAlso FAutoSize Then
+			#ifdef __USE_GTK__
+				Size.Width = Canvas.TextWidth(FText)
+				Size.Height = Canvas.TextHeight(FText)
+			#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+				
+			#elseif defined(__USE_WINAPI__)
+				If FHandle Then
+					Dim Sz As ..Size
+					Dim As HDC Dc = GetDC(Handle)
+					If Dc > 0 Then
+						GetTextExtentPoint32(Dc, FText.vptr, Len(FText) + 1, @Sz)
+						Size.Width = Sz.cx
+						Size.Height = Max(6, Font.Size) / 72 * 96 + 6 ''中文字号VS英文字号(磅)VS像素值的对应关系：八号＝5磅(5pt) ==(5/72)*96=6.67 =6px
+					End If
+				End If
+			#endif
+		End If
 	End Sub
 	
 	Private Property Label.Border(Value As Integer)
@@ -189,33 +218,10 @@ Namespace My.Sys.Forms
 	Private Property Label.AutoSize(Value As Boolean)
 		If Value <> FAutoSize Then
 			FAutoSize = Value
-			If CBool(Font.Orientation = 0) AndAlso FAutoSize AndAlso Not FWordWraps Then
-				#ifdef __USE_GTK__
-					Dim As PangoRectangle extend
-					Dim As PangoFontDescription Ptr desc
-					desc = pango_font_description_from_string(Font.Name & " " & Font.Size)
-					pango_layout_set_font_description (layout, desc)
-					pango_layout_set_text(layout,
-					 ToUtf8(FText), Len(ToUtf8(FText)))
-					pango_cairo_update_layout(Handle, layout)
-					#ifdef pango_version
-						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
-					#else
-						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
-					#endif
-					pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-					pango_font_description_free (desc)
-					SetBounds This.Left, This.Top, extend.width, extend.height
-				#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
-					
-				#elseif defined(__USE_WINAPI__)
-					Dim Sz As ..Size
-					Dim As HDC Dc = GetDC(Handle)
-					If Dc > 0 Then
-						GetTextExtentPoint32(Dc, FText.Vptr, Len(FText) + 1, @Sz)
-						SetBounds This.Left, This.Top, Sz.cx, Max(6, Font.Size) / 72 * 96 + 6 ''中文字号VS英文字号(磅)VS像素值的对应关系：八号＝5磅(5pt) ==(5/72)*96=6.67 =6px
-					End If
-				#endif
+			If FAutoSize Then
+				Dim Size As My.Sys.Drawing.Size
+				CalculateSize Size
+				SetBounds This.Left, This.Top, Size.Width, Size.Height
 			End If
 		End If
 	End Property
@@ -267,6 +273,11 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QLabel(Sender.Child)
 					.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+					If .FAutoSize Then
+						Dim Size As My.Sys.Drawing.Size
+						.CalculateSize Size
+						.SetBounds .Left, .Top, Size.Width, Size.Height
+					End If
 				End With
 			End If
 		End Sub
@@ -278,20 +289,26 @@ Namespace My.Sys.Forms
 	Private Sub Label.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			Case WM_PAINT, CM_CTLCOLOR
+			Case CM_CTLCOLOR
 				Static As HDC Dc
-				Dc = Cast(HDC, Message.wParam)
+				Dc = Cast(HDC,Message.wParam)
 				SetBkMode Dc, TRANSPARENT
-				SetBkMode Dc, OPAQUE
-				SetTextColor Dc, Font.Color
+				SetTextColor Dc,Font.Color
 				SetBkColor Dc, This.BackColor
-				
+				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(*Designer, This)
 				End If
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(*Designer, This)
+				End If
+			Case WM_WINDOWPOSCHANGING
+				If FAutoSize Then
+					Dim Size As My.Sys.Drawing.Size
+					CalculateSize Size
+					Cast(WINDOWPOS Ptr, Message.lParam)->cx = Size.Width
+					Cast(WINDOWPOS Ptr, Message.lParam)->cy = Size.Height
 				End If
 			Case WM_SIZE
 				InvalidateRect(Handle,NULL,True)
@@ -360,7 +377,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WINAPI__
 				.RegisterClass "Label", "Static"
 				.ChildProc        = @WndProc
-				Base.ExStyle      = WS_EX_TRANSPARENT
+				Base.ExStyle      = 0 'WS_EX_TRANSPARENT
 				ChangeLabelStyle
 				.BackColor        = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
