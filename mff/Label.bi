@@ -30,6 +30,7 @@ Namespace My.Sys.Forms
 		FBorder           As Integer
 		FStyle            As Integer
 		FAlignment        As Integer
+		FAutoSize         As Boolean
 		FRealSizeImage    As Boolean
 		FCenterImage      As Boolean
 		AStyle(6)         As Integer
@@ -73,6 +74,8 @@ Namespace My.Sys.Forms
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean
 		Declare Property CenterImage(Value As Boolean)
+		Declare Property AutoSize As Boolean
+		Declare Property AutoSize(Value As Boolean)
 		Declare Property WordWraps As Boolean
 		Declare Property WordWraps(Value As Boolean)
 		Declare Operator Cast As Control Ptr
