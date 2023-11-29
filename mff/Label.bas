@@ -97,7 +97,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Label.Text(ByRef Value As WString)
+		#ifdef __USE_WINAPI__
+			If FTransparent Then Visible = False
+		#endif
 		Base.Text = Value
+		#ifdef __USE_WINAPI__
+			If FTransparent Then Visible = True
+		#endif
 		#ifdef __USE_GTK__
 			gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
 		#elseif defined(__USE_JNI__)
