@@ -27,6 +27,7 @@ Namespace My.Sys.Forms
 			Case "style": Return @FStyle
 			Case "tabindex": Return @FTabIndex
 			Case "text": Return Cast(Any Ptr, This.FText.vptr)
+			Case "transparent": Return @FTransparent
 			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 			Case "wordwraps": Return @FWordWraps
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -47,6 +48,7 @@ Namespace My.Sys.Forms
 			Case "style": If Value <> 0 Then This.Style = QInteger(Value)
 			Case "tabindex": TabIndex = QInteger(Value)
 			Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
+			Case "transparent": If Value <> 0 Then This.Transparent = QBoolean(Value)
 			Case "graphic": This.Graphic = QWString(Value)
 			Case "wordwraps": This.WordWraps = QBoolean(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -77,6 +79,17 @@ Namespace My.Sys.Forms
 	
 	Private Property Label.TabStop(Value As Boolean)
 		ChangeTabStop Value
+	End Property
+	
+	Private Property Label.Transparent As Boolean
+		Return FTransparent
+	End Property
+	
+	Private Property Label.Transparent(Value As Boolean)
+		FTransparent = Value
+		#ifdef __USE_WINAPI__
+			ChangeExStyle WS_EX_TRANSPARENT, Value
+		#endif
 	End Property
 	
 	Private Property Label.Text ByRef As WString
@@ -290,10 +303,14 @@ Namespace My.Sys.Forms
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
-				SetBkMode Dc, TRANSPARENT
-				SetTextColor Dc,Font.Color
-				SetBkColor Dc, This.BackColor
-				SetBkMode Dc, OPAQUE
+				SetBkMode Dc, Transparent
+				SetTextColor Dc, Font.Color
+				If Not FTransparent Then
+					SetBkColor Dc, This.BackColor
+					SetBkMode Dc, OPAQUE
+				Else
+					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
+				End If
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(*Designer, This)

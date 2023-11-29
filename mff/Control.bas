@@ -1506,12 +1506,16 @@ Namespace My.Sys.Forms
 									Message.Result = Cast(LRESULT, .Brush.Handle)
 								End If
 							Else
-								SendMessage(CPtr(HWND, Message.lParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
+								Var Result = SendMessage(CPtr(HWND, Message.lParam), CM_CTLCOLOR, Message.wParam, Message.lParam)
 								'								If .Brush.Handle = hbrBkgnd Then
 								'									.Brush.Color = .FBackColor
 								'									SetWindowTheme(.FHandle, NULL, NULL)
 								'								End If
-								Message.Result = Cast(LRESULT, .Brush.Handle)
+								If Result <> 0 Then
+									Message.Result = Cast(LRESULT, Result)
+								Else
+									Message.Result = Cast(LRESULT, .Brush.Handle)
+								End If
 							End If
 							Return
 						End With

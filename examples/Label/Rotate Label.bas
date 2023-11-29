@@ -34,7 +34,7 @@
 			.BackColor = 32768
 			.Graphic.LoadFromFile(ExePath & "/../Resources/background.png")
 			.StartPosition = FormStartPosition.CenterScreen
-			.SetBounds -112, 0, 410, 605
+			.SetBounds 0, 0, 410, 605
 		End With
 		' Label1(2)
 		With Label1(2)
@@ -50,6 +50,7 @@
 			.Border = LabelBorder.sbNone
 			.ID = 2051
 			.WordWraps = True
+			.Transparent = true
 			.SetBounds 92, 206, 110, 80
 			.Designer = @This
 			.Parent = @This
@@ -66,7 +67,8 @@
 			.Font.Size = 14
 			.Font.Name = "Tahoma"
 			.Font.Orientation = 0 
-			.SetBounds 63, 16, 280, 70
+			.Transparent = true
+			.SetBounds 63, 16, 250, 25
 			.ID = 1099
 			.Alignment = AlignmentConstants.taLeft
 			.Anchor.Top = AnchorStyle.asAnchor
@@ -91,6 +93,7 @@
 			.Font.Name = "Tahoma"
 			.Font.Orientation = -90
 			.ID = 2048
+			.Transparent = true
 			.SetBounds 222, 56, 360, 310
 			.WordWraps = False
 			.Designer = @This
@@ -111,6 +114,7 @@
 			.Font.Name = "Tahoma"
 			.Font.Orientation = 90
 			.ID = 1280
+			.Transparent = true
 			.SetBounds 12, 60, 40, 160
 			.WordWraps = True
 			.Designer = @This
