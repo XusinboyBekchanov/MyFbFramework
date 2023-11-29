@@ -331,6 +331,9 @@ Namespace My.Sys.Forms
 					Cast(WINDOWPOS Ptr, Message.lParam)->cx = Size.Width
 					Cast(WINDOWPOS Ptr, Message.lParam)->cy = Size.Height
 				End If
+				If FTransparent Then
+					SetWindowPos FHandle, 0, 0, 0, 0, 0, SWP_NOZORDER Or SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOSENDCHANGING Or SWP_FRAMECHANGED
+				End If
 			Case WM_SIZE
 				InvalidateRect(Handle,NULL,True)
 			Case CM_DRAWITEM
