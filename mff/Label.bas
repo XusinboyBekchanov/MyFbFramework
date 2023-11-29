@@ -169,7 +169,7 @@ Namespace My.Sys.Forms
 						Dim As .HANDLE PrevFont = SelectObject(Dc, Cast(HFONT, SendMessage(FHandle, WM_GETFONT, 0, 0)))
 						GetTextExtentPoint32(Dc, FText.vptr, Len(FText), @Sz)
 						Size.Width = Sz.cx
-						Size.Height = Max(6, Font.Size) / 72 * 96 + 6 ''中文字号VS英文字号(磅)VS像素值的对应关系：八号＝5磅(5pt) ==(5/72)*96=6.67 =6px
+						Size.Height = Sz.cy
 						SelectObject(Dc, PrevFont)
 					End If
 				End If
