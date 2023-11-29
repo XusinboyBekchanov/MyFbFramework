@@ -105,8 +105,8 @@
 			.Transparent = True
 			.CenterImage = True
 			'.StretchImage= StretchMode.smStretchProportional
-			.StretchImage= StretchMode.smStretch
-			'.Graphic.Bitmap.LoadFromFile(ExePath & "/Wheel.png")
+			'.StretchImage= StretchMode.smStretch
+			'.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/Wheel.png")
 			.SetBounds 2, 56, 570, 300
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @PictureBK_Paint)
@@ -239,7 +239,7 @@
 			.TabIndex = 14
 			.BackColor = 33023
 			.Transparent = True
-			.Graphic.Bitmap.LoadFromFile(ExePath & "/wheel.png")
+			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asNone
@@ -275,7 +275,7 @@
 			.TabIndex = 15
 			.BackColor = 12615808
 			.Transparent = True
-			.Graphic.Bitmap.LoadFromFile(ExePath & "/wheel.png")
+			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchorProportional
 			.Anchor.Right = AnchorStyle.asNone
 			.Anchor.Left = AnchorStyle.asAnchorProportional
@@ -316,7 +316,7 @@
 			.ControlIndex = 0
 			.BackColor = 65280
 			.Transparent = True
-			.Graphic.Bitmap.LoadFromFile(ExePath & "/wheel.png")
+			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 54, 45, 45
@@ -334,7 +334,7 @@
 			.ControlIndex = 1
 			.BackColor = 32768
 			.Transparent = True
-			.Graphic.Bitmap.LoadFromFile(ExePath & "/wheel.png")
+			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 578, 104, 45, 45
@@ -721,7 +721,7 @@ End Sub
 
 Private Sub Form1Type.Form_Show(ByRef Sender As Form)
 	
-	PictureBK.Graphic.Bitmap.LoadFromFile("BackGround.png")
+	PictureBK.Graphic.Bitmap.LoadFromFile(ExePath &  "/../Resources/BackGround.png")
 End Sub
 
 Private Sub Form1Type.PictureBK_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
