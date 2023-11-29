@@ -1,0 +1,7 @@
+﻿..\Resources\Circle_Gray.gif
+..\Resources\Circle_Arrow.gif
+..\Resources\Circle_Green.gif
+..\Resources\Circle_Ball.gif
+..\Resources\horse.gif
+..\Resources\welcome2.gif
+

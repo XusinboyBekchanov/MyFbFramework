@@ -207,7 +207,7 @@
 			.Center = True
 			.Transparency = True
 			'.FILE = "D:\Faster (2010) 720p BluRay AC3 x264 - AdiT.mkv"
-			'.FILE = "Resources/horse.gif"
+			'.FILE = "ExePath & "/../Resources/horse.gif"
 			.BackColor = 16776960
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
@@ -306,7 +306,7 @@
 		' cboFileName
 		With cboFileName
 			.Name = "cboFileName"
-			.Text = "Resources\horse.gif"
+			.Text = "../Resources/horse.gif"
 			.Hint = "Double click to select a file from local disk."
 			.TabIndex = 12
 			.Style = cbDropDown
