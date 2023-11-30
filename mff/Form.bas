@@ -685,14 +685,17 @@ Namespace My.Sys.Forms
 	Private Property Form.HideCaption(Value As Boolean)
 		FHideCaption = Value
 		#ifdef __USE_WINAPI__
-			Dim style As Long = GetWindowLong(Handle, GWL_STYLE)
-			If FHideCaption Then
-				style = style Xor WS_CAPTION
-			Else
-				style = style Or WS_CAPTION
+			ChangeStyle WS_CAPTION, Not Value
+			If FHandle Then
+				Dim style As Long = GetWindowLong(Handle, GWL_STYLE)
+				If FHideCaption Then
+					style = style Xor WS_CAPTION
+				Else
+					style = style Or WS_CAPTION
+				End If
+				SetWindowLong(Handle, GWL_STYLE, style)
+				SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
 			End If
-			SetWindowLong(Handle, GWL_STYLE, style)
-			SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
 		#endif
 	End Property
 	
