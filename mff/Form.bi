@@ -174,9 +174,6 @@ Namespace My.Sys.Forms
 		'Returns/sets the caption of the control (Windows, Linux).
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
-		'Returns/sets the visible of the caption (Windows).
-		Declare Property HideCaption As Boolean
-		Declare Property HideCaption(Value As Boolean)
 		'Returns/sets the text contained in the control (Windows, Linux).
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
