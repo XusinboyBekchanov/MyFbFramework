@@ -2939,6 +2939,7 @@ Namespace My.Sys.Forms
 			FDefaultBackColor = FBackColor
 			FTabIndex = -2
 			FShowHint = True
+			FShowCaption = True
 			FVisible = True
 			FEnabled = True
 			Cursor.Ctrl = @This
