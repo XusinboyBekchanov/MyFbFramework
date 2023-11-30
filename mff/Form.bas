@@ -267,9 +267,9 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 			#elseif defined(__USE_WINAPI__)
-				If FStartPosition = FormStartPosition.CenterParent Then 
-					CenterToParent 
-				ElseIf FStartPosition = FormStartPosition.CenterScreen Then 
+				If FStartPosition = FormStartPosition.CenterParent Then
+					CenterToParent
+				ElseIf FStartPosition = FormStartPosition.CenterScreen Then
 					CenterToScreen
 				End If
 			#endif
@@ -601,16 +601,16 @@ Namespace My.Sys.Forms
 	Property Form.WindowState As Integer
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
-				#ifdef __USE_GTK4__ 
+				#ifdef __USE_GTK4__
 					If gtk_window_is_maximized(GTK_WINDOW(widget)) Then
 				#else
 					If gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_MAXIMIZED = GDK_WINDOW_STATE_MAXIMIZED Then
 				#endif
 					FWindowState = WindowStates.wsMaximized
-				#ifndef __USE_GTK4__
+					#ifndef __USE_GTK4__
 					ElseIf gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_ICONIFIED = GDK_WINDOW_STATE_ICONIFIED Then
 						FWindowState = WindowStates.wsMinimized
-				#endif
+					#endif
 				Else
 					FWindowState = WindowStates.wsNormal
 				End If
@@ -674,6 +674,22 @@ Namespace My.Sys.Forms
 	
 	Private Property Form.Caption(ByRef Value As WString)
 		Text = Value
+	End Property
+	
+	Private Property Form.HideCaption () As Boolean
+		Return FHideCaption
+	End Property
+	
+	Private Property Form.HideCaption(Value As Boolean)
+		FHideCaption = Value
+		Dim style As Long = GetWindowLong(Handle, GWL_STYLE)
+		If FHideCaption Then
+			style = style Xor WS_CAPTION
+		Else
+			style = style Or WS_CAPTION
+		End If
+		SetWindowLong(Handle, GWL_STYLE, style)
+		SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
 	End Property
 	
 	Private Property Form.Text ByRef As WString
@@ -893,7 +909,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 	#endif
-		
+	
 	#if defined(__USE_GTK__)
 		Private Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
 			pApp->FDeactivated = False
@@ -1004,7 +1020,7 @@ Namespace My.Sys.Forms
 				ReleaseDC(FHandle, hDC)
 				If xdpi = 0 Then xdpi = FDpiFormX
 				If ydpi = 0 Then ydpi = FDpiFormY
-				If Not IsIconic(FHandle) AndAlso (xdpi <> FDpiFormX OrElse ydpi <> FDpiFormY) Then 
+				If Not IsIconic(FHandle) AndAlso (xdpi <> FDpiFormX OrElse ydpi <> FDpiFormY) Then
 					FDpiFormX = xdpi
 					FDpiFormY = ydpi
 					RequestAlign
@@ -1203,26 +1219,26 @@ Namespace My.Sys.Forms
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
-'						FDarkMode = True
-'						RefreshTitleBarThemeColor(FHandle)
-'						If FDefaultBackColor = FBackColor Then
-'							Brush.Handle = hbrBkgnd
-'						End If
-'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						'						FDarkMode = True
+						'						RefreshTitleBarThemeColor(FHandle)
+						'						If FDefaultBackColor = FBackColor Then
+						'							Brush.Handle = hbrBkgnd
+						'						End If
+						'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				Else
 					If FDarkMode Then
 						SetDark False
-'						FDarkMode = False
-'						RefreshTitleBarThemeColor(FHandle)
-'						If FBackColor = -1 Then
-'							Brush.Handle = 0
-'						Else
-'							Brush.Color = FBackColor
-'						End If
-'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						'						FDarkMode = False
+						'						RefreshTitleBarThemeColor(FHandle)
+						'						If FBackColor = -1 Then
+						'							Brush.Handle = 0
+						'						Else
+						'							Brush.Color = FBackColor
+						'						End If
+						'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				End If
 				Dc = BeginPaint(Handle, @Ps)
@@ -1282,7 +1298,7 @@ Namespace My.Sys.Forms
 							For i As Integer = 0 To pApp->FormCount - 1
 								pApp->Forms[i]->Enabled = True
 							Next i
-						EndIf
+						End If
 						#ifdef __HIDE_NO_MAIN_FORM_ON_CLOSE__
 							ShowWindow Handle, SW_HIDE
 							msg.Result = -1
@@ -1513,23 +1529,23 @@ Namespace My.Sys.Forms
 						End If
 					End If
 					If GTK_IS_WINDOW(widget) Then
-'						Select Case FBorderStyle
-'						Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
-'							Dim As GdkGeometry hints
-'							hints.base_width = FWidth
-'							hints.base_height = FHeight
-'							hints.min_width = FWidth
-'							hints.min_height = FHeight
-'							hints.max_width = FWidth
-'							hints.max_height = FHeight
-'							hints.width_inc = 1
-'							hints.height_inc = 1
-'							#ifndef __USE_GTK4__
-'								gtk_window_set_geometry_hints(GTK_WINDOW(widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
-'							#endif
-'						Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
-'							
-'						End Select
+						'						Select Case FBorderStyle
+						'						Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
+						'							Dim As GdkGeometry hints
+						'							hints.base_width = FWidth
+						'							hints.base_height = FHeight
+						'							hints.min_width = FWidth
+						'							hints.min_height = FHeight
+						'							hints.max_width = FWidth
+						'							hints.max_height = FHeight
+						'							hints.width_inc = 1
+						'							hints.height_inc = 1
+						'							#ifndef __USE_GTK4__
+						'								gtk_window_set_geometry_hints(GTK_WINDOW(widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+						'							#endif
+						'						Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
+						'
+						'						End Select
 						If Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
 							Dim As GdkGeometry hints
 							#ifdef __USE_GTK4__
@@ -1611,7 +1627,7 @@ Namespace My.Sys.Forms
 				#else
 					gtk_widget_show_all(widget)
 					'ShowItems @This
-					FVisible = True 
+					FVisible = True
 					HideItems @This
 				#endif
 				'Requests @This
@@ -1771,7 +1787,7 @@ Namespace My.Sys.Forms
 			Case 0
 			Case 1
 				If MainForm Then
-					If GTK_IS_WIDGET(widget) Then 
+					If GTK_IS_WIDGET(widget) Then
 						#ifdef __USE_GTK4__
 							g_object_unref(widget)
 						#else
