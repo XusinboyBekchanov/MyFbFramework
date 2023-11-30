@@ -982,7 +982,7 @@ Namespace My.Sys.Drawing
 			SetBkMode Handle, TRANSPARENT
 			If FG = -1 Then SetTextColor(Handle, Font.Color) Else SetTextColor(Handle, FG)
 			If BK = -1 Then
-				Brush.Handle= GetStockObject(NULL_BRUSH)
+				Brush = GetStockObject(NULL_BRUSH)
 			Else
 				SetBkColor(Handle, BK)
 				SetBkMode(Handle, OPAQUE)
