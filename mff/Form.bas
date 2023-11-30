@@ -27,7 +27,6 @@ Namespace My.Sys.Forms
 			Case "borderstyle": Return @FBorderStyle
 			Case "cancelbutton": Return FCancelButton
 			Case "caption": Return This.FText.vptr
-			Case "hidecaption": Return @FHideCaption
 			Case "defaultbutton": Return FDefaultButton
 			Case "icon": Return @Icon
 			Case "controlbox": Return @FControlBox
@@ -68,7 +67,6 @@ Namespace My.Sys.Forms
 				Case "borderstyle": This.BorderStyle = QInteger(Value)
 				Case "cancelbutton": This.CancelButton = Cast(Control Ptr, Value)
 				Case "caption": This.Caption = QWString(Value)
-				Case "hidecaption": This.HideCaption = QBoolean(Value)
 				Case "defaultbutton": This.DefaultButton = Cast(Control Ptr, Value)
 				Case "formstyle": This.FormStyle = QInteger(Value)
 				Case "controlbox": This.ControlBox = QBoolean(Value)
@@ -269,9 +267,9 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 			#elseif defined(__USE_WINAPI__)
-				If FStartPosition = FormStartPosition.CenterParent Then
-					CenterToParent
-				ElseIf FStartPosition = FormStartPosition.CenterScreen Then
+				If FStartPosition = FormStartPosition.CenterParent Then 
+					CenterToParent 
+				ElseIf FStartPosition = FormStartPosition.CenterScreen Then 
 					CenterToScreen
 				End If
 			#endif
@@ -603,16 +601,16 @@ Namespace My.Sys.Forms
 	Property Form.WindowState As Integer
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
-				#ifdef __USE_GTK4__
+				#ifdef __USE_GTK4__ 
 					If gtk_window_is_maximized(GTK_WINDOW(widget)) Then
 				#else
 					If gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_MAXIMIZED = GDK_WINDOW_STATE_MAXIMIZED Then
 				#endif
 					FWindowState = WindowStates.wsMaximized
-					#ifndef __USE_GTK4__
+				#ifndef __USE_GTK4__
 					ElseIf gdk_window_get_state(gtk_widget_get_window(widget)) And GDK_WINDOW_STATE_ICONIFIED = GDK_WINDOW_STATE_ICONIFIED Then
 						FWindowState = WindowStates.wsMinimized
-					#endif
+				#endif
 				Else
 					FWindowState = WindowStates.wsNormal
 				End If
@@ -676,27 +674,6 @@ Namespace My.Sys.Forms
 	
 	Private Property Form.Caption(ByRef Value As WString)
 		Text = Value
-	End Property
-	
-	Private Property Form.HideCaption () As Boolean
-		Return FHideCaption
-	End Property
-	
-	Private Property Form.HideCaption(Value As Boolean)
-		FHideCaption = Value
-		#ifdef __USE_WINAPI__
-			ChangeStyle WS_CAPTION, Not Value
-			If FHandle Then
-				Dim style As Long = GetWindowLong(Handle, GWL_STYLE)
-				If FHideCaption Then
-					style = style Xor WS_CAPTION
-				Else
-					style = style Or WS_CAPTION
-				End If
-				SetWindowLong(Handle, GWL_STYLE, style)
-				SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
-			End If
-		#endif
 	End Property
 	
 	Private Property Form.Text ByRef As WString
@@ -916,7 +893,7 @@ Namespace My.Sys.Forms
 			End If
 		End Sub
 	#endif
-	
+		
 	#if defined(__USE_GTK__)
 		Private Function Form.deactivate_cb(ByVal user_data As gpointer) As gboolean
 			pApp->FDeactivated = False
@@ -1027,7 +1004,7 @@ Namespace My.Sys.Forms
 				ReleaseDC(FHandle, hDC)
 				If xdpi = 0 Then xdpi = FDpiFormX
 				If ydpi = 0 Then ydpi = FDpiFormY
-				If Not IsIconic(FHandle) AndAlso (xdpi <> FDpiFormX OrElse ydpi <> FDpiFormY) Then
+				If Not IsIconic(FHandle) AndAlso (xdpi <> FDpiFormX OrElse ydpi <> FDpiFormY) Then 
 					FDpiFormX = xdpi
 					FDpiFormY = ydpi
 					RequestAlign
@@ -1264,10 +1241,38 @@ Namespace My.Sys.Forms
 				Else
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
-					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0,,, Graphic.Bitmap
+					If Graphic.Bitmap.Handle <> 0 Then
+						With This
+							Select Case Graphic.StretchImage
+							Case StretchMode.smNone
+								Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, , , Graphic.Bitmap
+							Case StretchMode.smStretch
+								Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
+							Case Else 'StretchMode.smStretchProportional
+								Dim As Double imgWidth = Graphic.Bitmap.Width
+								Dim As Double imgHeight = Graphic.Bitmap.Height
+								Dim As Double PicBoxWidth = ScaleX(This.Width)
+								Dim As Double PicBoxHeight = ScaleY(This.Height)
+								Dim As Double img_ratio = imgWidth / imgHeight
+								Dim As Double PicBox_ratio =  This.Width / This.Height
+								If (PicBox_ratio >= img_ratio) Then
+									imgHeight = PicBoxHeight
+									imgWidth = imgHeight *img_ratio
+								Else
+									imgWidth = PicBoxWidth
+									imgHeight = imgWidth / img_ratio
+								End If
+								If Graphic.CenterImage Then
+									Canvas.DrawAlpha Max((PicBoxWidth - imgWidth) / 2, Graphic.StartX), Max((PicBoxHeight - imgHeight) / 2, Graphic.StartY), imgWidth, imgHeight, Graphic.Bitmap
+								Else
+									Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, imgWidth, imgHeight, Graphic.Bitmap
+								End If
+							End Select
+						End With
+					End If
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				End If
-				EndPaint Handle,@Ps
+				EndPaint Handle, @Ps
 				msg.Result = 0
 				Canvas.HandleSetted = False
 				Return
@@ -1634,7 +1639,7 @@ Namespace My.Sys.Forms
 				#else
 					gtk_widget_show_all(widget)
 					'ShowItems @This
-					FVisible = True
+					FVisible = True 
 					HideItems @This
 				#endif
 				'Requests @This
@@ -1794,7 +1799,7 @@ Namespace My.Sys.Forms
 			Case 0
 			Case 1
 				If MainForm Then
-					If GTK_IS_WIDGET(widget) Then
+					If GTK_IS_WIDGET(widget) Then 
 						#ifdef __USE_GTK4__
 							g_object_unref(widget)
 						#else

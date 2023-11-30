@@ -79,10 +79,10 @@ Namespace My.Sys.Drawing
 	
 	Private Property Canvas.FillMode(Value As BrushFillMode)
 		If FFillMode <> Value Then
-		FFillMode = Value
-		#ifdef __USE_WINAPI__
-			SetBkMode Handle, FFillMode
-		#endif
+			FFillMode = Value
+			#ifdef __USE_WINAPI__
+				SetBkMode Handle, FFillMode
+			#endif
 		End If
 	End Property
 	
@@ -94,11 +94,11 @@ Namespace My.Sys.Drawing
 		If FHatchStyle <> Value Then
 			FHatchStyle = Value
 			#ifdef __USE_WINAPI__
-			 Brush.HatchStyle = Value
-			 If GdipToken <> NULL Then
-			 	If GdipBrush Then GdipDeleteBrush(GdipBrush)
-				GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
-			 End If
+				Brush.HatchStyle = Value
+				If GdipToken <> NULL Then
+					If GdipBrush Then GdipDeleteBrush(GdipBrush)
+					GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
+				End If
 			#endif
 		End If
 	End Property
@@ -110,25 +110,25 @@ Namespace My.Sys.Drawing
 	Private Property Canvas.FillStyles(Value As BrushStyles)
 		'https://learn.microsoft.com/zh-cn/windows/win32/gdiplus/-gdiplus-brushes-and-filled-shapes-about
 		'If FFillStyles <> Value Then
-			FFillStyles = Value
-			#ifdef __USE_WINAPI__
-				Brush.Style= Value
-				If GdipToken <> NULL Then
-					If GdipBrush Then GdipDeleteBrush(GdipBrush)
-					Select Case FFillStyles
-					Case BrushStyles.bsHatch
-						GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
-					Case BrushStyles.bsPattern
-						GdipCreateLineBrush(@GpLineGradientPara.PointFrom, @GpLineGradientPara.PointTo, RGBtoARGB(GpLineGradientPara.ColorStart, FillOpacity), RGBtoARGB(GpLineGradientPara.ColorEnd, FillOpacity),  GpLineGradientPara.WrapModes, Cast(GpLineGradient Ptr Ptr, @GdipBrush))
-						Print "GdipBrush=" & GdipBrush
-						'Case BrushStyles.bsClear
-						'	'ElseIf Value = BrushStyles.bsHatch Then
-						'	'GdipCreateHatchBrush(HatchStyle.
-					Case Else
-						GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
-					End Select
-				End If
-			#endif
+		FFillStyles = Value
+		#ifdef __USE_WINAPI__
+			Brush.Style= Value
+			If GdipToken <> NULL Then
+				If GdipBrush Then GdipDeleteBrush(GdipBrush)
+				Select Case FFillStyles
+				Case BrushStyles.bsHatch
+					GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
+				Case BrushStyles.bsPattern
+					GdipCreateLineBrush(@GpLineGradientPara.PointFrom, @GpLineGradientPara.PointTo, RGBtoARGB(GpLineGradientPara.ColorStart, FillOpacity), RGBtoARGB(GpLineGradientPara.ColorEnd, FillOpacity),  GpLineGradientPara.WrapModes, Cast(GpLineGradient Ptr Ptr, @GdipBrush))
+					Print "GdipBrush=" & GdipBrush
+					'Case BrushStyles.bsClear
+					'	'ElseIf Value = BrushStyles.bsHatch Then
+					'	'GdipCreateHatchBrush(HatchStyle.
+				Case Else
+					GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
+				End Select
+			End If
+		#endif
 		'End If
 	End Property
 	
@@ -351,7 +351,7 @@ Namespace My.Sys.Drawing
 			End If
 		#endif
 	End Sub
-
+	
 	Private Sub Canvas.GetDevice
 		If Not HandleSetted Then
 			If ParentControl Then
@@ -979,10 +979,15 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 			pango_cairo_show_layout_line(Handle, pl)
 		#elseif defined(__USE_WINAPI__)
-			If BK = -1 Then SetBkMode(Handle, TRANSPARENT) Else SetBkColor(Handle, BK)
+			SetBkMode Handle, TRANSPARENT
 			If FG = -1 Then SetTextColor(Handle, Font.Color) Else SetTextColor(Handle, FG)
+			If BK = -1 Then
+				Brush.Handle= GetStockObject(NULL_BRUSH)
+			Else
+				SetBkColor(Handle, BK)
+				SetBkMode(Handle, OPAQUE)
+			End If
 			.TextOut(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, @s, Len(s))
-			If BK = -1 Then SetBkMode(Handle, OPAQUE)
 		#endif
 		If Not HandleSetted Then ReleaseDevice
 	End Sub
@@ -1010,9 +1015,9 @@ Namespace My.Sys.Drawing
 			' // Initialize Gdiplus
 			Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
 			If GdipToken = NULL Then
-			StartupInput.GdiplusVersion = 1
-			GdiplusStartup(@token, @StartupInput, NULL)
-			If token = NULL Then Return False
+				StartupInput.GdiplusVersion = 1
+				GdiplusStartup(@token, @StartupInput, NULL)
+				If token = NULL Then Return False
 			End If
 			GdipCreateBitmapFromHBITMAP(ImageSource, NULL, Cast(GpBitmap Ptr Ptr, @pImage1))
 			GdipCloneBitmapArea (x, y, nWidth, nHeight, 0, Cast(GpBitmap Ptr , pImage1) , Cast(GpBitmap Ptr Ptr, @pImage2))
@@ -1021,8 +1026,8 @@ Namespace My.Sys.Drawing
 			If pImage1 Then GdipDisposeImage pImage1
 			If pImage2 Then GdipDisposeImage pImage2
 			If GdipToken = NULL Then
-			' // Shutdown Gdiplus
-			GdiplusShutdown token
+				' // Shutdown Gdiplus
+				GdiplusShutdown token
 			End If
 			Return ImageDest
 		#endif
