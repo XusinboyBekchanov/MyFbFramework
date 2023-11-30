@@ -1284,6 +1284,7 @@ Namespace My.Sys.Forms
 				ydpi = FDpiFormY
 				If Not IsIconic(FHandle) Then
 					RequestAlign
+					If Graphic.Bitmap.Handle > 0 Then Repaint
 				End If
 				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				'If FClient <> 0 Then

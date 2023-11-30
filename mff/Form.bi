@@ -109,7 +109,6 @@ Namespace My.Sys.Forms
 		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 	Protected:
-		FHideCaption    As Boolean
 		FControlBox     As Boolean
 		FKeyPreview     As Boolean
 		FMinimizeBox    As Boolean
