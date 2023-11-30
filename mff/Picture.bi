@@ -20,11 +20,7 @@ Namespace My.Sys.Forms
 	Private Enum PictureStyle
 		ssText, ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
 	End Enum
-	
-	Private Enum StretchMode
-		smNone, smStretch, smStretchProportional
-	End Enum
-	
+
 	'Displays a graphic from a bitmap, icon or metafile.
 	Private Type Picture Extends ContainerControl
 	Private:
