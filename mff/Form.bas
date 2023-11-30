@@ -494,6 +494,7 @@ Namespace My.Sys.Forms
 				ChangeStyle WS_BORDER, True
 				ChangeExStyle WS_EX_DLGMODALFRAME, True
 			End Select
+			If Not FShowCaption Then ChangeStyle WS_CAPTION, False
 			If FHandle Then SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
 		#endif
 	End Property

@@ -69,6 +69,7 @@ Namespace My.Sys.Forms
 				Case "ischild": Return @FIsChild
 				Case "parent": Return FParent
 				Case "showhint": Return @FShowHint
+				Case "showcaption": Return @FShowCaption
 				Case "hint": Return FHint
 				Case "subclass": Return @SubClass
 				Case "tabstop": Return @FTabStop
@@ -126,6 +127,7 @@ Namespace My.Sys.Forms
 					Case "text": This.Text = QWString(Value)
 					Case "visible": This.Visible = QBoolean(Value)
 					Case "showhint": This.ShowHint = QBoolean(Value)
+					Case "showcaption": This.ShowCaption = QBoolean(Value)
 					Case "hint": This.Hint = QWString(Value)
 					Case "subclass": This.SubClass = QBoolean(Value)
 					Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -615,15 +617,11 @@ Namespace My.Sys.Forms
 					
 				#elseif defined(__USE_WINAPI__) 
 					If ClassName = "Form" AndAlso FHandle Then
-						ChangeStyle WS_CAPTION, Not Value
-						Dim iStyle As Long = GetWindowLong(FHandle, GWL_STYLE)
-						If Not Value Then
-							iStyle = iStyle Xor WS_CAPTION
-						Else
-							iStyle = iStyle Or WS_CAPTION
+						ChangeStyle WS_CAPTION, Value
+						If FHandle Then
+							SetWindowLong(FHandle, GWL_STYLE, FStyle)
+							SetWindowPos(FHandle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
 						End If
-						SetWindowLong(FHandle, GWL_STYLE, iStyle)
-						SetWindowPos(FHandle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
 					End If
 				#endif
 			End Property
