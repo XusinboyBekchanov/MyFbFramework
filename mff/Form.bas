@@ -1219,26 +1219,26 @@ Namespace My.Sys.Forms
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
-						'						FDarkMode = True
-						'						RefreshTitleBarThemeColor(FHandle)
-						'						If FDefaultBackColor = FBackColor Then
-						'							Brush.Handle = hbrBkgnd
-						'						End If
-						'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						'FDarkMode = True
+						'RefreshTitleBarThemeColor(FHandle)
+						'If FDefaultBackColor = FBackColor Then
+						'	Brush.Handle = hbrBkgnd
+						'End If
+						'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						'RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				Else
 					If FDarkMode Then
 						SetDark False
-						'						FDarkMode = False
-						'						RefreshTitleBarThemeColor(FHandle)
-						'						If FBackColor = -1 Then
-						'							Brush.Handle = 0
-						'						Else
-						'							Brush.Color = FBackColor
-						'						End If
-						'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						'						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						'FDarkMode = False
+						'RefreshTitleBarThemeColor(FHandle)
+						'If FBackColor = -1 Then
+						'	Brush.Handle = 0
+						'Else
+						'	Brush.Color = FBackColor
+						'End If
+						'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						'RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					End If
 				End If
 				Dc = BeginPaint(Handle, @Ps)
@@ -1529,23 +1529,23 @@ Namespace My.Sys.Forms
 						End If
 					End If
 					If GTK_IS_WINDOW(widget) Then
-						'						Select Case FBorderStyle
-						'						Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
-						'							Dim As GdkGeometry hints
-						'							hints.base_width = FWidth
-						'							hints.base_height = FHeight
-						'							hints.min_width = FWidth
-						'							hints.min_height = FHeight
-						'							hints.max_width = FWidth
-						'							hints.max_height = FHeight
-						'							hints.width_inc = 1
-						'							hints.height_inc = 1
-						'							#ifndef __USE_GTK4__
-						'								gtk_window_set_geometry_hints(GTK_WINDOW(widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
-						'							#endif
-						'						Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
+						'Select Case FBorderStyle
+						'Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
+						'	Dim As GdkGeometry hints
+						'	hints.base_width = FWidth
+						'	hints.base_height = FHeight
+						'	hints.min_width = FWidth
+						'	hints.min_height = FHeight
+						'	hints.max_width = FWidth
+						'	hints.max_height = FHeight
+						'	hints.width_inc = 1
+						'	hints.height_inc = 1
+						'	#ifndef __USE_GTK4__
+						'	gtk_window_set_geometry_hints(GTK_WINDOW(widget), NULL, @hints, GDK_HINT_RESIZE_INC Or GDK_HINT_MIN_SIZE Or GDK_HINT_MAX_SIZE Or GDK_HINT_BASE_SIZE)
+						'   #endif
+						'Case FormBorderStyle.SizableToolWindow, FormBorderStyle.Sizable
 						'
-						'						End Select
+						'End Select
 						If Constraints.Width <> 0 OrElse Constraints.Height <> 0 Then
 							Dim As GdkGeometry hints
 							#ifdef __USE_GTK4__
