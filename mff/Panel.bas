@@ -161,6 +161,8 @@ Namespace My.Sys.Forms
 					memDC = CreateCompatibleDC(Dc)
 					Bmp   = CreateCompatibleBitmap(Dc, R.Right, R.Bottom)
 					SelectObject(memDC, Bmp)
+					Canvas.Handle = memDC
+					Canvas.HandleSetted = True
 					'SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
 					If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
 						FillRect Dc, @R, This.Brush.Handle
@@ -194,15 +196,15 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
-					Canvas.HandleSetted = True
-					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
-					Canvas.HandleSetted = False
 					BitBlt(Dc, 0, 0, R.Right, R.Bottom, memDC, 0, 0, SRCCOPY)
+					Canvas.HandleSetted = False
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				Else
+					Canvas.Handle = Dc
+					Canvas.HandleSetted = True
 					SetBkMode Dc, Transparent
 					If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
 						FillRect Dc, @R, This.Brush.Handle
@@ -234,9 +236,9 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
-					Canvas.Handle = Dc
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					Canvas.HandleSetted = False
 				End If
 				ReleaseDC Handle, Dc
 				Message.Result = 0

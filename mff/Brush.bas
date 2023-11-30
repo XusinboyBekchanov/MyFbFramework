@@ -90,11 +90,18 @@ Namespace My.Sys.Drawing
 				LB.lbStyle = BS_HATCHED
 				LB.lbHatch = FHatchStyle
 			End Select
-			If Handle AndAlso Handle <> hbrBkgnd Then DeleteObject(Handle)
+			If (Handle <> 0) AndAlso (Handle <> hbrBkgnd) Then DeleteObject(Handle)
 			Handle = CreateBrushIndirect(@LB)
 			If Handle Then If OnCreate Then OnCreate(*Designer, This)
 		#endif
 	End Sub
+	
+	#ifdef __USE_WINAPI__
+		Private Operator Brush.Let(Value As HBRUSH)
+			If (Handle <> 0) AndAlso (Handle <> hbrBkgnd) Then DeleteObject(Handle)
+			Handle = Value
+		End Operator
+	#endif
 	
 	Private Operator Brush.Cast As Any Ptr
 		Return @This

@@ -88,6 +88,9 @@ Namespace My.Sys.Drawing
 		Declare Property HatchStyle As HatchStyles
 		Declare Property HatchStyle(Value As HatchStyles)
 		Declare Operator Cast As Any Ptr
+		#ifdef __USE_WINAPI__
+			Declare Operator Let(Value As HBRUSH)
+		#endif
 		OnCreate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Brush)
 		Declare Constructor
 		Declare Destructor
