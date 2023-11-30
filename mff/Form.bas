@@ -27,6 +27,7 @@ Namespace My.Sys.Forms
 			Case "borderstyle": Return @FBorderStyle
 			Case "cancelbutton": Return FCancelButton
 			Case "caption": Return This.FText.vptr
+			Case "hidecaption": Return @FHideCaption
 			Case "defaultbutton": Return FDefaultButton
 			Case "icon": Return @Icon
 			Case "controlbox": Return @FControlBox
@@ -67,6 +68,7 @@ Namespace My.Sys.Forms
 				Case "borderstyle": This.BorderStyle = QInteger(Value)
 				Case "cancelbutton": This.CancelButton = Cast(Control Ptr, Value)
 				Case "caption": This.Caption = QWString(Value)
+				Case "hidecaption": This.HideCaption = QBoolean(Value)
 				Case "defaultbutton": This.DefaultButton = Cast(Control Ptr, Value)
 				Case "formstyle": This.FormStyle = QInteger(Value)
 				Case "controlbox": This.ControlBox = QBoolean(Value)
@@ -682,14 +684,16 @@ Namespace My.Sys.Forms
 	
 	Private Property Form.HideCaption(Value As Boolean)
 		FHideCaption = Value
-		Dim style As Long = GetWindowLong(Handle, GWL_STYLE)
-		If FHideCaption Then
-			style = style Xor WS_CAPTION
-		Else
-			style = style Or WS_CAPTION
-		End If
-		SetWindowLong(Handle, GWL_STYLE, style)
-		SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
+		#ifdef __USE_WINAPI__
+			Dim style As Long = GetWindowLong(Handle, GWL_STYLE)
+			If FHideCaption Then
+				style = style Xor WS_CAPTION
+			Else
+				style = style Or WS_CAPTION
+			End If
+			SetWindowLong(Handle, GWL_STYLE, style)
+			SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
+		#endif
 	End Property
 	
 	Private Property Form.Text ByRef As WString
