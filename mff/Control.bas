@@ -159,6 +159,13 @@ Namespace My.Sys.Forms
 		'        FTop = Value.Y
 		'        If FHandle Then Move
 		'    End Property
+		Private Property Control.Current As My.Sys.Drawing.Point
+			Return FCurrent
+		End Property
+		
+		Private Property Control.Current(Value As My.Sys.Drawing.Point)
+			FCurrent = Value
+		End Property
 		
 		Private Property Control.Location As My.Sys.Drawing.Point
 			Return Type(This.Left, This.Top)
@@ -595,6 +602,31 @@ Namespace My.Sys.Forms
 				#endif
 				Return FClientHeight
 			End Function
+		#endif
+		
+		#ifndef ShowCaption_Off
+			Private Property Control.ShowCaption As Boolean
+				Return FShowCaption
+			End Property
+			
+			Private Property Control.ShowCaption(Value As Boolean)
+				FShowCaption = Value
+				#ifdef __USE_GTK__
+					
+				#elseif defined(__USE_WINAPI__) 
+					If ClassName = "Form" AndAlso FHandle Then
+						ChangeStyle WS_CAPTION, Not Value
+						Dim iStyle As Long = GetWindowLong(FHandle, GWL_STYLE)
+						If Not Value Then
+							iStyle = iStyle Xor WS_CAPTION
+						Else
+							iStyle = iStyle Or WS_CAPTION
+						End If
+						SetWindowLong(FHandle, GWL_STYLE, iStyle)
+						SetWindowPos(FHandle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
+					End If
+				#endif
+			End Property
 		#endif
 		
 		#ifndef ShowHint_Off
@@ -2907,6 +2939,7 @@ Namespace My.Sys.Forms
 			FDefaultBackColor = FBackColor
 			FTabIndex = -2
 			FShowHint = True
+			FShowCaption = True
 			FVisible = True
 			FEnabled = True
 			Cursor.Ctrl = @This

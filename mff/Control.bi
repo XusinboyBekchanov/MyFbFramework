@@ -65,6 +65,10 @@ Namespace My.Sys.Forms
 			sdDescending
 		End Enum
 		
+		Private Enum StretchMode
+			smNone, smStretch, smStretchProportional
+		End Enum
+		
 		#ifdef __USE_WINAPI__
 			Private Enum ViewStyle
 				vsIcon = LV_VIEW_ICON
@@ -209,10 +213,12 @@ Namespace My.Sys.Forms
 			FStyle             As Integer
 			FText              As UString
 			FHint              As WString Ptr
+			FShowCaption       As Boolean
 			FShowHint          As Boolean
 			FAlign             As DockStyle
 			FClientWidth       As Integer
 			FClientHeight      As Integer
+			FCurrent           As My.Sys.Drawing.Point
 			FDefaultBackColor  As Integer
 			FBackColor         As Integer
 			FBackColorRed      As Double
@@ -340,9 +346,15 @@ Namespace My.Sys.Forms
 			'Returns/sets the text displayed when the mouse is paused over the control (Windows, Linux).
 			Declare Property Hint ByRef As WString
 			Declare Property Hint(ByRef Value As WString)
+			'Returns/sets the value indicating show Caption. (Windows, Linux).
+			Declare Property ShowCaption As Boolean
+			Declare Property ShowCaption(Value As Boolean)
 			'Returns/sets the value indicating show hint (Windows, Linux).
 			Declare Property ShowHint As Boolean
 			Declare Property ShowHint(Value As Boolean)
+			'Returns/sets the coordinates of the upper-left corner of the text layout relative to the upper-left corner of its container.
+			Declare Property Current As My.Sys.Drawing.Point
+			Declare Property Current(Value As My.Sys.Drawing.Point)
 			'Returns/sets the coordinates of the upper-left corner of the control relative to the upper-left corner of its container.
 			Declare Property Location As My.Sys.Drawing.Point
 			Declare Property Location(Value As My.Sys.Drawing.Point)

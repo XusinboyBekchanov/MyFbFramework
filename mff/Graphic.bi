@@ -20,6 +20,10 @@ Namespace My.Sys.Drawing
 		Cursor = 0
 	End Enum
 	
+	Private Enum StretchMode
+		smNone, smStretch, smStretchProportional
+	End Enum
+	
 	#define QGraphic(__Ptr__) (*Cast(GraphicType Ptr,__Ptr__))
 	
 	Private Type GraphicType Extends My.Sys.Object
@@ -29,12 +33,16 @@ Namespace My.Sys.Drawing
 		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 		Declare Static Sub CursorChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Cursor)
 	Public:
-		Ctrl      As My.Sys.Forms.Control Ptr
-		Bitmap    As My.Sys.Drawing.BitmapType
-		Icon      As My.Sys.Drawing.Icon
-		Cursor    As My.Sys.Drawing.Cursor
-		Image     As Any Ptr
-		ImageType As ImageTypes
+		Ctrl         As My.Sys.Forms.Control Ptr
+		Bitmap       As My.Sys.Drawing.BitmapType
+		Icon         As My.Sys.Drawing.Icon
+		Cursor       As My.Sys.Drawing.Cursor
+		Image        As Any Ptr
+		ImageType    As ImageTypes
+		StretchImage As StretchMode
+		CenterImage  As Boolean
+		StartX       As Integer
+		StartY       As Integer
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
