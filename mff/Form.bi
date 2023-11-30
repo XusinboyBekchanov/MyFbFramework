@@ -109,6 +109,7 @@ Namespace My.Sys.Forms
 		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 	Protected:
+		FHideCaption    As Boolean
 		FControlBox     As Boolean
 		FKeyPreview     As Boolean
 		FMinimizeBox    As Boolean
@@ -173,6 +174,9 @@ Namespace My.Sys.Forms
 		'Returns/sets the caption of the control (Windows, Linux).
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
+		'Returns/sets the visible of the caption (Windows).
+		Declare Property HideCaption As Boolean
+		Declare Property HideCaption(Value As Boolean)
 		'Returns/sets the text contained in the control (Windows, Linux).
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
