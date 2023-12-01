@@ -393,8 +393,10 @@ Namespace My.Sys.Drawing
 					End If
 				#endif
 			End If
+			Handle = Handle_
+		Else
+			Handle_ = Handle
 		End If
-		Handle = Handle_
 		Return Handle_
 	End Function
 	
