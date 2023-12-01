@@ -233,7 +233,8 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Sub Canvas.Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		If ParentControl > 0 Then
 			#ifdef __USE_GTK__
 				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetBlue(FBackColor), GetGreen(FBackColor))
@@ -276,7 +277,7 @@ Namespace My.Sys.Drawing
 				DeleteObject B
 			#endif
 		End If
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	Private Property Canvas.Ctrl As My.Sys.ComponentModel.Component Ptr
 		Return ParentControl
@@ -293,17 +294,19 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.Pixel(xy As Point) As Integer
-		GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			Return .GetPixel(Handle, ScaleX(xy.X), ScaleY(xy.Y))
 		#else
 			Return 0
 		#endif
-		ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Property
 	
 	Private Property Canvas.Pixel(xy As Point, Value As Integer)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetBlue(Value) / 255.0, GetGreen(Value) / 255.0)
 			.cairo_rectangle(Handle, xy.X * imgScaleX + imgOffsetX - 0.5, xy.Y * imgScaleY + imgOffsetY - 0.5, 1, 1)
@@ -311,7 +314,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Property
 	
 	Private Sub Canvas.UsingGdip(Vaule As Boolean = True)
@@ -352,7 +355,8 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
-	Private Sub Canvas.GetDevice
+	Private Function Canvas.GetDevice As Any Ptr
+		Dim As Any Ptr Handle_
 		If Not HandleSetted Then
 			If ParentControl Then
 				#ifdef __USE_GTK__
@@ -367,9 +371,9 @@ Namespace My.Sys.Drawing
 									cairoRegion = cairo_region_create()
 									Dim As GdkDrawingContext Ptr drawingContext
 									drawingContext = gdk_window_begin_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), drawContext, cairoRegion)
-									Handle = gdk_drawing_context_get_cairo_context(drawingContext)
+									Handle_ = gdk_drawing_context_get_cairo_context(drawingContext)
 								#else
-									Handle = gdk_cairo_create(gtk_layout_get_bin_window(GTK_LAYOUT(ParentControl->layoutwidget)))
+									Handle_ = gdk_cairo_create(gtk_layout_get_bin_window(GTK_LAYOUT(ParentControl->layoutwidget)))
 								#endif
 								HandleSetted = True
 							End If
@@ -378,21 +382,25 @@ Namespace My.Sys.Drawing
 				#elseif defined(__USE_WINAPI__)
 					If ParentControl->Handle Then
 						If Clip Then
-							Handle = GetDCEx(ParentControl->Handle, 0, DCX_PARENTCLIP Or DCX_CACHE)
+							Handle_ = GetDCEx(ParentControl->Handle, 0, DCX_PARENTCLIP Or DCX_CACHE)
 						Else
-							Handle = GetDC(ParentControl->Handle)
+							Handle_ = GetDC(ParentControl->Handle)
 						End If
-						SelectObject(Handle, Font.Handle)
-						SelectObject(Handle, Pen.Handle)
-						SelectObject(Handle, Brush.Handle)
-						SetROP2 Handle, Pen.Mode
+						SelectObject(Handle_, Font.Handle)
+						SelectObject(Handle_, Pen.Handle)
+						SelectObject(Handle_, Brush.Handle)
+						SetROP2 Handle_, Pen.Mode
 					End If
 				#endif
 			End If
 		End If
-	End Sub
+		Handle = Handle_
+		Return Handle_
+	End Function
 	
-	Private Sub Canvas.ReleaseDevice
+	Private Sub Canvas.ReleaseDevice(Handle As Any Ptr = 0)
+		Dim As Any Ptr Handle_ = Handle
+		If Handle_ = 0 Then Handle_ = This.Handle
 		#ifdef __USE_GTK__
 			If layout Then g_object_unref(layout)
 			#ifdef __USE_GTK4__
@@ -400,7 +408,7 @@ Namespace My.Sys.Drawing
 				cairo_region_destroy(cairoRegion)
 			#else
 				If pcontext Then g_object_unref(pcontext)
-				If Handle AndAlso G_IS_OBJECT(Handle) Then cairo_destroy(Handle)
+				If Handle_ AndAlso G_IS_OBJECT(Handle_) Then cairo_destroy(Handle_)
 				HandleSetted = False
 			#endif
 		#elseif defined(__USE_WINAPI__)
@@ -409,7 +417,7 @@ Namespace My.Sys.Drawing
 				FDoubleBuffer = False
 			End If
 			If HandleSetted Then Exit Sub
-			If ParentControl Then If Handle Then ReleaseDC ParentControl->Handle, Handle
+			If ParentControl Then If Handle_ Then ReleaseDC ParentControl->Handle, Handle_
 		#endif
 	End Sub
 	
@@ -515,7 +523,8 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.MoveTo(x As Double, y As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			cairo_move_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 		#elseif defined(__USE_WINAPI__)
@@ -525,11 +534,12 @@ Namespace My.Sys.Drawing
 				FMoveToX = ScaleX(x) * imgScaleX + imgOffsetX : FMoveToY = ScaleY(y) * imgScaleY + imgOffsetY
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.LineTo(x As Double, y As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_line_to(Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
@@ -542,17 +552,20 @@ Namespace My.Sys.Drawing
 			End If
 			
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Line(x As Double, y As Double, x1 As Double, y1 As Double, FillColorBk As Integer = -1, BoxBF As String = "" )
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		If BoxBF <> "" Then
 			If BoxBF = "F" Then
 				'Special code for VB6
-				If FillColorBk = -1 Then FillColorBk = FBackColor
 				Dim As Integer OldFillColor = Brush.Color
-				Brush.Color = FillColorBk
+				If FillColorBk <> Brush.Color Then
+					If FillColorBk = -1 Then FillColorBk = FBackColor
+					Brush.Color = FillColorBk
+				End If
 				#ifdef __USE_WINAPI__
 					If GdipToken = NULL Then
 						Rectangle(x, y, x1, y1)
@@ -562,7 +575,9 @@ Namespace My.Sys.Drawing
 				#else
 					Rectangle(x, y, x1, y1)
 				#endif
-				Brush.Color = OldFillColor
+				If FillColorBk <> OldFillColor Then
+					Brush.Color = OldFillColor
+				End If
 			Else
 				#ifdef __USE_WINAPI__
 					If GdipToken = NULL Then
@@ -595,12 +610,13 @@ Namespace My.Sys.Drawing
 			#endif
 			If FillColorBk <> -1 Then Pen.Color = OldPenColor
 		End If
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	#ifndef Canvas_Rectangle_Double_Double_Double_Double_Off
 		Private Sub Canvas.Rectangle Overload(x As Double, y As Double, x1 As Double, y1 As Double)
-			If Not HandleSetted Then GetDevice
+			Dim As Any Ptr Handle_
+			If Not HandleSetted Then Handle_ = GetDevice
 			#ifdef __USE_GTK__
 				cairo_move_to (Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
 				cairo_line_to (Handle, x1 * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5)
@@ -619,12 +635,13 @@ Namespace My.Sys.Drawing
 					GdipDrawRectangle(GdipGraphics, GdipPen,  ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX, ScaleY(y1 - y) * imgScaleY)
 				End If
 			#endif
-			If Not HandleSetted Then ReleaseDevice
+			If Not HandleSetted Then ReleaseDevice Handle_
 		End Sub
 	#endif
 	
 	Private Sub Canvas.Rectangle(R As Rect)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			.cairo_rectangle(Handle, R.Left * imgScaleX + imgOffsetX - 0.5, R.Top * imgScaleY + imgOffsetY - 0.5, (R.Right - R.Left) * imgScaleY - 0.5, (R.Bottom - R.Top) * imgScaleY - 0.5)
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
@@ -639,11 +656,12 @@ Namespace My.Sys.Drawing
 				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX , ScaleY(R.Bottom - R.Top) * imgScaleY)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Ellipse Overload(x As Double, y As Double, x1 As Double, y1 As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			cairo_move_to Handle, x * imgScaleX + imgOffsetX - 0.5, y * imgScaleY + imgOffsetY - 0.5
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
@@ -659,11 +677,12 @@ Namespace My.Sys.Drawing
 				GdipDrawEllipse(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX, ScaleY(y1) * imgScaleY)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Ellipse(R As Rect)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			cairo_move_to Handle, R.Left * imgScaleX + imgOffsetX - 0.5, R.Top * imgScaleY + imgOffsetY - 0.5
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
@@ -679,11 +698,12 @@ Namespace My.Sys.Drawing
 				GdipDrawEllipse(GdipGraphics, GdipPen, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Circle(x As Double, y As Double, Radial As Double, FillColorBK As Integer = -1)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		'Special code for VB6
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		Dim As Integer OldFillColor = Brush.Color
@@ -704,11 +724,12 @@ Namespace My.Sys.Drawing
 			End If
 		#endif
 		Brush.Color = OldFillColor
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.RoundRect Overload(x As Double, y As Double, x1 As Double, y1 As Double, nWidth As Integer, nHeight As Integer)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Var radius = x1 - x
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
@@ -733,11 +754,12 @@ Namespace My.Sys.Drawing
 			End If
 			
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Polygon(Points() As Point, Count As Long)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				Dim tPoints(Count - 1) As Point
@@ -755,11 +777,12 @@ Namespace My.Sys.Drawing
 				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
 		#elseif defined(__USE_WINAPI__)
@@ -769,11 +792,12 @@ Namespace My.Sys.Drawing
 				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
@@ -781,11 +805,12 @@ Namespace My.Sys.Drawing
 				.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				.Pie(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX , ScaleY(nYRadial2) * imgScaleY)
@@ -794,11 +819,12 @@ Namespace My.Sys.Drawing
 				GdipDrawPie(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - x) * imgScaleY + imgOffsetY, nXRadial1, nYRadial1)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Double, yStart As Double, xEnd As Double, yEnd As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
@@ -812,11 +838,12 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.ArcTo(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
@@ -824,11 +851,12 @@ Namespace My.Sys.Drawing
 				.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.AngleArc(x As Double, y As Double, Radius As Double, StartAngle As Double, SweepAngle As Double)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				.AngleArc Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, StartAngle, SweepAngle
@@ -836,11 +864,12 @@ Namespace My.Sys.Drawing
 				GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, ScaleY(Radius) * imgScaleY, StartAngle, SweepAngle)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Polyline(Points() As Point, Count As Long)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				Dim tPoints(Count - 1) As Point
@@ -859,11 +888,12 @@ Namespace My.Sys.Drawing
 				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.PolylineTo(Points() As Point, Count As Long)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				Dim tPoints(Count - 1) As Point
@@ -881,11 +911,12 @@ Namespace My.Sys.Drawing
 				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.PolyBeizer(Points() As Point, Count As Long)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				Dim tPoints(Count - 1) As Point
@@ -903,11 +934,12 @@ Namespace My.Sys.Drawing
 				GdipDrawBeziers(GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count)
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.PolyBeizerTo(Points() As Point, Count As Long)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
 				Dim tPoints(Count - 1) As Point
@@ -925,11 +957,12 @@ Namespace My.Sys.Drawing
 				GdipDrawBeziers GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.SetPixel(x As Double, y As Double, PixelColor As Integer)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0)
 			.cairo_rectangle(Handle, x * imgScaleX + imgOffsetX, y * imgScaleY + imgOffsetY, 1, 1)
@@ -937,21 +970,23 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			.SetPixel Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, PixelColor
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Function Canvas.GetPixel(x As Double, y As Double) As Integer
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			Function = .GetPixel(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY)
 		#else
 			Function = 0
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Function
 	
 	Private Sub Canvas.TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend2
 			Dim As Double iRed, iGreen, iBlue
@@ -987,9 +1022,10 @@ Namespace My.Sys.Drawing
 				SetBkColor(Handle, BK)
 				SetBkMode(Handle, OPAQUE)
 			End If
+			
 			.TextOut(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, @s, Len(s))
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByRef ImageSource As My.Sys.Drawing.BitmapType) As Any Ptr
@@ -997,7 +1033,8 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSource As Any Ptr) As Any Ptr
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As GdkPixbuf Ptr ImageDest
 			If nWidth <> 0 AndAlso nHeight <> 0 Then
@@ -1031,7 +1068,7 @@ Namespace My.Sys.Drawing
 			End If
 			Return ImageDest
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 		Return 0
 	End Function
 	
@@ -1040,7 +1077,8 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			Dim As HDC hMemDC = CreateCompatibleDC(Handle) ' Create Dc
 			SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
@@ -1059,11 +1097,12 @@ Namespace My.Sys.Drawing
 			AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
 			DeleteDC(hMemDC) ' Delete Dc
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Draw(x As Double, y As Double, Image As Any Ptr)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			Dim As HDC MemDC
 			Dim As HBITMAP OldBitmap
@@ -1075,7 +1114,7 @@ Namespace My.Sys.Drawing
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
@@ -1083,16 +1122,18 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			DrawIconEx(Handle, x, y, Image.Handle, Image.Width, Image.Height, 0, 0, DI_NORMAL)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	#ifndef Canvas_DrawTransparent_Off
 		Private Sub Canvas.DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)
-			If Not HandleSetted Then GetDevice
+			Dim As Any Ptr Handle_
+			If Not HandleSetted Then Handle_ = GetDevice
 			#ifdef __USE_WINAPI__
 				Dim As BITMAP     bm
 				Dim As COLORREF   cColor
@@ -1189,7 +1230,7 @@ Namespace My.Sys.Drawing
 				DeleteDC(hdcSave)
 				DeleteDC(hdcTemp)
 			#endif
-			If Not HandleSetted Then ReleaseDevice
+			If Not HandleSetted Then ReleaseDevice Handle_
 		End Sub
 		
 		Private Sub Canvas.DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
@@ -1198,7 +1239,8 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Sub Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			Dim As HDC MemDC
 			Dim As HBITMAP OldBitmap
@@ -1212,25 +1254,28 @@ Namespace My.Sys.Drawing
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
-		If Not HandleSetted Then GetDevice
-		If Not HandleSetted Then ReleaseDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_WINAPI__
 			.ExtFloodFill Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, FillColorBK, FillStyleBK
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.FillRect(R As Rect, FillColorBK As Integer = -1)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_GTK__
 			cairo_set_source_rgb(Handle, GetRed(FillColorBK), GetBlue(FillColorBK), GetGreen(FillColorBK))
@@ -1250,11 +1295,12 @@ Namespace My.Sys.Drawing
 				.FillRect Handle, Cast(..Rect Ptr, @R), Brush.Handle
 			End If
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.DrawFocusRect(R As Rect)
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			R.Left = ScaleX(R.Left) * imgScaleX + imgOffsetX
 			R.Top = ScaleY(R.Top) * imgScaleY + imgOffsetY
@@ -1262,11 +1308,12 @@ Namespace My.Sys.Drawing
 			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 			.DrawFocusRect Handle, Cast(..Rect Ptr, @R)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Function Canvas.TextWidth(ByRef FText As WString) As Integer
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
 			Dim As PangoFontDescription Ptr desc
@@ -1289,11 +1336,12 @@ Namespace My.Sys.Drawing
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
 			Function = UnScaleX(Sz.cx)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Function
 	
 	Private Function Canvas.TextHeight(ByRef FText As WString) As Integer
-		If Not HandleSetted Then GetDevice
+		Dim As Any Ptr Handle_
+		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
 			Dim As PangoFontDescription Ptr desc
@@ -1316,7 +1364,7 @@ Namespace My.Sys.Drawing
 			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
 			Function = UnScaleY(Sz.cy)
 		#endif
-		If Not HandleSetted Then ReleaseDevice
+		If Not HandleSetted Then ReleaseDevice Handle_
 	End Function
 	
 	Private Operator Canvas.Cast As Any Ptr

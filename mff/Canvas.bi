@@ -169,9 +169,9 @@ Namespace My.Sys.Drawing
 		Font        As My.Sys.Drawing.Font
 		Clip        As Boolean
 		CopyMode    As CopyMode
-		Declare Sub UsingGdip(Vaule As Boolean = True)
-		Declare Sub GetDevice
-		Declare Sub ReleaseDevice
+		Declare Sub UsingGdip(Value As Boolean = True)
+		Declare Function GetDevice As Any Ptr
+		Declare Sub ReleaseDevice(Handle As Any Ptr = 0)
 		Declare Sub CreateDoubleBuffer(DrawGraphicBitmap As Boolean = True, CleanBK As Boolean = False)
 		Declare Sub TransferDoubleBuffer(ALeft As Long = 0, ATop As Long = 0, AWidth As Long = -1, AHeight As Long = -1)
 		Declare Sub DeleteDoubleBuffer
