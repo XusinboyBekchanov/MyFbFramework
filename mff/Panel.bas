@@ -165,7 +165,7 @@ Namespace My.Sys.Forms
 					Canvas.HandleSetted = True
 					'SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
 					If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
-						FillRect Dc, @R, This.Brush.Handle
+						FillRect memDC, @R, This.Brush.Handle
 					Else
 						If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
 					End If
