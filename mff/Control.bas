@@ -2635,13 +2635,13 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					'If Parent->ClassName <> "Picture" AndAlso Parent->ClassName <> "Panel" Then
-					If ClassName <> "Picture" AndAlso ClassName <> "Panel" Then
+					'If ClassName <> "Picture" AndAlso ClassName <> "Panel" Then
 						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 						Update
-					Else
-						ShowWindow(FHandle, SW_HIDE)
-						ShowWindow(FHandle, SW_SHOW)
-					End If
+					'Else
+					'	ShowWindow(FHandle, SW_HIDE)
+					'	ShowWindow(FHandle, SW_SHOW)
+					'End If
 				End If
 			#endif
 		End Sub
