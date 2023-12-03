@@ -35,22 +35,22 @@
 #endif
 
 #ifdef __USE_GTK__
-	#define FHandle Widget
-	#if defined(__USE_GTK3__) Or defined(__USE_GTK4__)
-	#elseif Not defined(__USE_GTK2__)
-		#define __USE_GTK2__
-	#endif
-	#ifdef __USE_GTK4__
-		#include once "cairo/cairo.bi"
-		#include once "gir_headers/Gir/PangoCairo-1.0.bi"
-		#include once "gir_headers/Gir/Gtk-4.0.bi"
-		#include once "gir_headers/Gir/_GObjectMacros-2.0.bi"
-	#else
-		#include once "gtk/gtk.bi"
-		#ifdef __USE_GTK3__
-			#include once "glib-object.bi"
-		#endif
-	#endif
+	'#define FHandle Widget
+	'#if defined(__USE_GTK3__) Or defined(__USE_GTK4__)
+	'#elseif Not defined(__USE_GTK2__)
+	'	#define __USE_GTK2__
+	'#endif
+	'#ifdef __USE_GTK4__
+	'	#include once "cairo/cairo.bi"
+	'	#include once "gir_headers/Gir/PangoCairo-1.0.bi"
+	'	#include once "gir_headers/Gir/Gtk-4.0.bi"
+	'	#include once "gir_headers/Gir/_GObjectMacros-2.0.bi"
+	'#else
+	'	#include once "gtk/gtk.bi"
+	'	#ifdef __USE_GTK3__
+	'		#include once "glib-object.bi"
+	'	#endif
+	'#endif
 #elseif defined(__USE_JNI__)
 	#include once "jni.bi"
 	#define Max(a, b) IIf((a) > (b), (a), (b))

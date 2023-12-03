@@ -133,15 +133,77 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.Width As Integer
-		If ParentControl Then
-			Return ParentControl->Width
-		End If
+		#ifdef __USE_WINAPI__
+			' Drawing area is a BITMAP
+			Scope
+				Dim As BITMAP header
+				ZeroMemory(@header, SizeOf(BITMAP))
+				
+				Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
+				GetObject(bmp, SizeOf(BITMAP), @header)
+				Dim As Integer width_ = header.bmWidth
+				If width_ > 1 Then
+					Return width_
+				End If
+			End Scope
+			
+			' Drawing area is a printer page
+			Return GetDeviceCaps(Handle, HORZRES)
+		#elseif defined(__USE_GTK__)
+			Dim As GtkRequisition minimum, requisition
+			If ParentControl Then
+				If ParentControl->layoutwidget Then
+					#ifndef __USE_GTK2__
+						Return UnScaleX(gtk_widget_get_allocated_width(ParentControl->layoutwidget))
+					#else
+						Return UnScaleX(ParentControl->layoutwidget->allocation.width)
+					#endif
+				Else
+					Return ParentControl->Width
+				End If
+			End If
+		#else
+			If ParentControl Then
+				Return ParentControl->Width
+			End If
+		#endif
 	End Property
 	
 	Private Property Canvas.Height As Integer
-		If ParentControl Then
-			Return ParentControl->Height
-		End If
+		#ifdef __USE_WINAPI__
+			' Drawing area is a BITMAP
+			Scope
+				Dim As BITMAP header
+				ZeroMemory(@header, SizeOf(BITMAP))
+				
+				Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
+				GetObject(bmp, SizeOf(BITMAP), @header)
+				Dim As Integer height_ = header.bmHeight
+				If height_ > 1 Then
+					Return height_
+				End If
+			End Scope
+			
+			' Drawing area is a printer page
+			Return GetDeviceCaps(Handle, VERTRES)
+		#elseif defined(__USE_GTK__)
+			Dim As GtkRequisition minimum, requisition
+			If ParentControl Then
+				If ParentControl->layoutwidget Then
+					#ifndef __USE_GTK2__
+						Return UnScaleY(gtk_widget_get_allocated_height(ParentControl->layoutwidget))
+					#else
+						Return UnScaleY(ParentControl->layoutwidget->allocation.height)
+					#endif
+				Else
+					Return ParentControl->Height
+				End If
+			End If
+		#else
+			If ParentControl Then
+				Return ParentControl->Height
+			End If
+		#endif
 	End Property
 	
 	Private Property Canvas.ScaleWidth As Integer
@@ -1318,9 +1380,6 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
-			Dim As PangoFontDescription Ptr desc
-			desc = pango_font_description_from_string(Font.Name & " " & Font.Size)
-			pango_layout_set_font_description (layout, desc)
 			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
@@ -1329,7 +1388,6 @@ Namespace My.Sys.Drawing
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-			pango_font_description_free (desc)
 			Function = UnScaleX(extend.width)
 		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
@@ -1346,9 +1404,6 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
-			Dim As PangoFontDescription Ptr desc
-			desc = pango_font_description_from_string(Font.Name & " " & Font.Size)
-			pango_layout_set_font_description (layout, desc)
 			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
@@ -1357,8 +1412,7 @@ Namespace My.Sys.Drawing
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-			pango_font_description_free (desc)
-			Function = extend.height
+			Function = UnScaleY(extend.height)
 		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__)
@@ -1374,11 +1428,13 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Sub Canvas.Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Font)
-		#ifdef __USE_WINAPI__
-			With *Cast(Canvas Ptr, Sender.Parent)
+		With *Cast(Canvas Ptr, Sender.Parent)
+			#ifdef __USE_WINAPI__
 				If .Handle Then SelectObject(.Handle, Sender.Handle)
-			End With
-		#endif
+			#elseif defined(__USE_GTK__)
+				pango_layout_set_font_description (.layout, Sender.Handle)
+			#endif
+		End With
 	End Sub
 	
 	Private Sub Canvas.Pen_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Pen)
