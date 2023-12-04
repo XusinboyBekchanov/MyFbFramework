@@ -133,77 +133,77 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.Width As Integer
-		#ifdef __USE_WINAPI__
-			' Drawing area is a BITMAP
-			Scope
-				Dim As BITMAP header
-				ZeroMemory(@header, SizeOf(BITMAP))
-				
-				Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
-				GetObject(bmp, SizeOf(BITMAP), @header)
-				Dim As Integer width_ = header.bmWidth
-				If width_ > 1 Then
-					Return width_
-				End If
-			End Scope
-			
-			' Drawing area is a printer page
-			Return GetDeviceCaps(Handle, HORZRES)
-		#elseif defined(__USE_GTK__)
-			Dim As GtkRequisition minimum, requisition
-			If ParentControl Then
-				If ParentControl->layoutwidget Then
-					#ifndef __USE_GTK2__
-						Return UnScaleX(gtk_widget_get_allocated_width(ParentControl->layoutwidget))
-					#else
-						Return UnScaleX(ParentControl->layoutwidget->allocation.width)
-					#endif
-				Else
-					Return ParentControl->Width
-				End If
-			End If
-		#else
+		'#ifdef __USE_WINAPI__
+		'	' Drawing area is a BITMAP
+		'	Scope
+		'		Dim As BITMAP header
+		'		ZeroMemory(@header, SizeOf(BITMAP))
+		'		
+		'		Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
+		'		GetObject(bmp, SizeOf(BITMAP), @header)
+		'		Dim As Integer width_ = header.bmWidth
+		'		If width_ > 1 Then
+		'			Return width_
+		'		End If
+		'	End Scope
+		'	
+		'	' Drawing area is a printer page
+		'	Return GetDeviceCaps(Handle, HORZRES)
+		'#elseif defined(__USE_GTK__)
+		'	Dim As GtkRequisition minimum, requisition
+		'	If ParentControl Then
+		'		If ParentControl->layoutwidget Then
+		'			#ifndef __USE_GTK2__
+		'				Return UnScaleX(gtk_widget_get_allocated_width(ParentControl->layoutwidget))
+		'			#else
+		'				Return UnScaleX(ParentControl->layoutwidget->allocation.width)
+		'			#endif
+		'		Else
+		'			Return ParentControl->Width
+		'		End If
+		'	End If
+		'#else
 			If ParentControl Then
 				Return ParentControl->Width
 			End If
-		#endif
+		'#endif
 	End Property
 	
 	Private Property Canvas.Height As Integer
-		#ifdef __USE_WINAPI__
-			' Drawing area is a BITMAP
-			Scope
-				Dim As BITMAP header
-				ZeroMemory(@header, SizeOf(BITMAP))
-				
-				Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
-				GetObject(bmp, SizeOf(BITMAP), @header)
-				Dim As Integer height_ = header.bmHeight
-				If height_ > 1 Then
-					Return height_
-				End If
-			End Scope
-			
-			' Drawing area is a printer page
-			Return GetDeviceCaps(Handle, VERTRES)
-		#elseif defined(__USE_GTK__)
-			Dim As GtkRequisition minimum, requisition
-			If ParentControl Then
-				If ParentControl->layoutwidget Then
-					#ifndef __USE_GTK2__
-						Return UnScaleY(gtk_widget_get_allocated_height(ParentControl->layoutwidget))
-					#else
-						Return UnScaleY(ParentControl->layoutwidget->allocation.height)
-					#endif
-				Else
-					Return ParentControl->Height
-				End If
-			End If
-		#else
+		'#ifdef __USE_WINAPI__
+		'	' Drawing area is a BITMAP
+		'	Scope
+		'		Dim As BITMAP header
+		'		ZeroMemory(@header, SizeOf(BITMAP))
+		'		
+		'		Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
+		'		GetObject(bmp, SizeOf(BITMAP), @header)
+		'		Dim As Integer height_ = header.bmHeight
+		'		If height_ > 1 Then
+		'			Return height_
+		'		End If
+		'	End Scope
+		'	
+		'	' Drawing area is a printer page
+		'	Return GetDeviceCaps(Handle, VERTRES)
+		'#elseif defined(__USE_GTK__)
+		'	Dim As GtkRequisition minimum, requisition
+		'	If ParentControl Then
+		'		If ParentControl->layoutwidget Then
+		'			#ifndef __USE_GTK2__
+		'				Return UnScaleY(gtk_widget_get_allocated_height(ParentControl->layoutwidget))
+		'			#else
+		'				Return UnScaleY(ParentControl->layoutwidget->allocation.height)
+		'			#endif
+		'		Else
+		'			Return ParentControl->Height
+		'		End If
+		'	End If
+		'#else
 			If ParentControl Then
 				Return ParentControl->Height
 			End If
-		#endif
+		'#endif
 	End Property
 	
 	Private Property Canvas.ScaleWidth As Integer
