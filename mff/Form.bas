@@ -1231,7 +1231,6 @@ Namespace My.Sys.Forms
 					memDC = CreateCompatibleDC(Dc)
 					Bmp   = CreateCompatibleBitmap(Dc, Ps.rcPaint.Right, Ps.rcPaint.Bottom)
 					SelectObject(memDC, Bmp)
-					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
 					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
