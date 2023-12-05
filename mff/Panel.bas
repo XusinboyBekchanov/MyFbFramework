@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 				End If
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
-					Bmp   = CreateCompatibleBitmap(Dc, R.Right, R.Bottom)
+					Bmp   = CreateCompatibleBitmap(Dc, R.Right - R.Left, R.Bottom - R.Top)
 					SelectObject(memDC, Bmp)
 					Canvas.Handle = memDC
 					Canvas.HandleSetted = True
