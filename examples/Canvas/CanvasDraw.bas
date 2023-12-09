@@ -23,8 +23,9 @@
 	Using My.Sys.Forms
 	Using My.Sys.Drawing
 	
-	Dim Shared As Integer cmdSelection
+	Dim Shared As Integer cmdSelection = 1
 	Dim Shared As Point Ms                  ' 记录鼠标按下时的坐标
+	Dim Shared As Boolean bUpdatePaint = True ' Fo take too long in Paint sub
 	Type Form1Type Extends Form
 		Declare Sub cmdDrawButterfly_Click(ByRef Sender As Control)
 		Declare Sub PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
@@ -58,7 +59,8 @@
 		Declare Constructor
 		
 		Dim As CommandButton cmdDrawButterfly, cmdGDIDraw, cmdGDICls
-		Dim As Picture PictureBK,  Picture2_Picture(2), Picture2_Form(1)
+		Dim As Picture PictureBK
+		Dim As Label Picture2_Picture(2), Picture2_Form(1)
 		
 		Dim As NumericUpDown Text1(1), Text2(1), Text3(1), Text4(1), Text5(1)
 		Dim As Panel  Panel1_Picture(2), Panel1_Form(1)
@@ -71,11 +73,16 @@
 		With This
 			.Name = "Form1"
 			.Text = "Form1"
+			.Graphic.LoadFromFile(ExePath & "/../Resources/background.png")
+			.Graphic.CenterImage= True
+			.Graphic.StretchImage= StretchMode.smStretchProportional
 			.Designer = @This
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show)
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.BackColor = 16711380
+			.DoubleBuffered = True
 			.SetBounds 0, 0, 640, 520
 		End With
 		' cmdDrawButterfly
@@ -97,17 +104,20 @@
 			.Name = "PictureBK"
 			.Text = "PictureBK"
 			.TabIndex = 1
+			.Graphic.LoadFromFile(ExePath & "/../Resources/background.png")
+			.Graphic.CenterImage= True
+			.Graphic.StretchImage= StretchMode.smStretchProportional
+			'.Graphic.ScaleFactor = 2
+			.CenterImage = True
+			.Font.Size= 48
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
-			.BackColor = 16764315
-			.Transparent = True
-			.CenterImage = True
-			'.StretchImage= StretchMode.smStretchProportional
-			'.StretchImage= StretchMode.smStretch
-			'.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/Wheel.png")
-			.SetBounds 2, 56, 570, 300
+			.BackColor = clBlue
+			.ForeColor = clRed
+			.DoubleBuffered = True
+			.SetBounds 0, 66, 440, 280
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @PictureBK_Paint)
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @PictureBK_Resize)
@@ -239,11 +249,12 @@
 			.TabIndex = 14
 			.BackColor = 33023
 			.Transparent = True
+			.DoubleBuffered = True
 			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asNone
-			.SetBounds 377, 114, 35, 35
+			.SetBounds 376, 97, 35, 35
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Picture_Paint)
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Panel1_Picture_Resize)
@@ -257,10 +268,12 @@
 			.Text = "Panel1_Picture(1)"
 			.TabIndex = 21
 			.BackColor = 33023
+			.Transparent = True
+			.DoubleBuffered = True
 			.ControlIndex = 0
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
-			.SetBounds 368, 164, 35, 35
+			.SetBounds 365, 171, 35, 35
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Picture_Paint)
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Panel1_Picture_Resize)
 			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Picture_MouseDown)
@@ -275,12 +288,13 @@
 			.TabIndex = 15
 			.BackColor = 12615808
 			.Transparent = True
+			.DoubleBuffered = True
 			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchorProportional
 			.Anchor.Right = AnchorStyle.asNone
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asNone
-			.SetBounds 367, 34, 35, 35
+			.SetBounds 361, 47, 35, 35
 			.Designer = @This
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Picture2_Picture_Resize)
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture2_Picture_Paint)
@@ -294,12 +308,14 @@
 			.Text = "Picture2_Picture(1)"
 			.TabIndex = 20
 			.BackColor = 12615808
+			.Transparent = True
+			.DoubleBuffered = True
 			.ControlIndex = 1
 			.Anchor.Top = AnchorStyle.asAnchorProportional
 			.Anchor.Right = AnchorStyle.asNone
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asNone
-			.SetBounds 227, 74, 35, 35
+			.SetBounds 7, 74, 35, 35
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Picture2_Picture_Resize)
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture2_Picture_Paint)
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Picture2_Picture_MouseMove)
@@ -316,10 +332,11 @@
 			.ControlIndex = 0
 			.BackColor = 65280
 			.Transparent = True
+			.DoubleBuffered = True
 			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
-			.SetBounds 578, 54, 45, 45
+			.SetBounds 542, 61, 45, 45
 			.Designer = @This
 			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseDown)
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseMove)
@@ -334,10 +351,11 @@
 			.ControlIndex = 1
 			.BackColor = 32768
 			.Transparent = True
+			.DoubleBuffered = True
 			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
-			.SetBounds 578, 104, 45, 45
+			.SetBounds 549, 112, 45, 45
 			.Designer = @This
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Picture2_Form_Resize)
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture2_Form_Paint)
@@ -351,6 +369,7 @@
 			.Text = "Picture2_Form(1)"
 			.TabIndex = 18
 			.BackColor = 32768
+			.Transparent = True
 			.ControlIndex = 15
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
@@ -368,10 +387,11 @@
 			.Text = "Panel1_Form(1)"
 			.TabIndex = 19
 			.BackColor = 65280
+			.Transparent = True
 			.ControlIndex = 14
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
-			.SetBounds 578, 154, 45, 45
+			.SetBounds 548, 238, 45, 45
 			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseDown)
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_Form_MouseMove)
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Form_Paint)
@@ -403,20 +423,22 @@
 '#End Region
 
 Private Sub Form1Type.cmdDrawButterfly_Click(ByRef Sender As Control)
+	If Not bUpdatePaint Then Exit Sub
 	Dim As Double A(1), B(1), C(1), D(1), E(1), X, Y
 	Dim T As Double = Timer
 	cmdSelection = 0
 	' Coordination  坐标系统
 	cmdDrawButterfly.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'PictureBK.Style = PictureStyle.ssOwnerDraw
-	Picture2_Picture(0).Visible= False
-	Panel1_Picture(0).Visible= False
-	Picture2_Picture(1).Visible= False
-	Panel1_Picture(1).Visible= False
+	'Picture2_Picture(0).Visible= False
+	'Panel1_Picture(0).Visible= False
+	'Picture2_Picture(1).Visible= False
+	'Panel1_Picture(1).Visible= False
 	PictureBK.Transparent = True
 	With PictureBK.Canvas
-		.UsingGdip(chkGDIPlus.Checked)
-		.CreateDoubleBuffer
+		'.HandleSetted=True
+		.UsingGdip = chkGDIPlus.Checked
+		'PictureBK.DoubleBuffered = Not chkGDIPlus.Checked
 		.Scale(-10, -10, 10, 10)
 		.DrawColor = clGreen
 		.DrawWidth = 2
@@ -458,37 +480,18 @@ Private Sub Form1Type.cmdDrawButterfly_Click(ByRef Sender As Control)
 			'.TextOut 20, 20, Str(i), clYellow, -1
 		Next
 		.TextOut - 9, -9, "Elapsed Time: " & Timer - T & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1
-		.TransferDoubleBuffer
+		
 	End With
-	Picture2_Picture(0).Visible= True
-	Panel1_Picture(0).Visible= True
-	Picture2_Picture(1).Visible= True
-	Panel1_Picture(1).Visible= True
-	Picture2_Picture(0).BringToFront
-	Panel1_Picture(0).BringToFront
-	Picture2_Picture(1).BringToFront
-	Panel1_Picture(1).BringToFront
-	PictureBK.SendToBack
+	bUpdatePaint = False
 	cmdDrawButterfly.Caption = "Start Draw" '"开始绘画"    '"Start Draw"
 End Sub
 
 Private Sub Form1Type.PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	'If cmdSelection = 1 Then cmdGDIDraw_Click(Sender) Else cmdDrawButterfly_Click(Sender)
+	If cmdSelection = 1 Then cmdGDIDraw_Click(Sender) Else cmdDrawButterfly_Click(Sender)
 End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	'cmdDrawButterfly_Click(Sender)
-	'Debug.Print "NewWidth=" & NewWidth & " NewHeight=" & NewHeight
-	PictureBK.Repaint
-	Picture2_Picture(0).Repaint
-	Panel1_Picture(0).Repaint
-	Picture2_Form(0).Repaint
-	Panel1_Form(0).Repaint
 	
-	Picture2_Picture(1).Repaint
-	Panel1_Picture(1).Repaint
-	Picture2_Form(1).Repaint
-	Panel1_Form(1).Repaint
 End Sub
 
 Sub Taijitu(x As Integer, y As Integer, r As Integer)
@@ -506,17 +509,12 @@ End Sub
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 	'https://learn.microsoft.com/zh-cn/windows/win32/gdiplus/-gdiplus-graphics-flat
 	cmdSelection = 1
-	Picture2_Picture(0).Visible= False
-	Panel1_Picture(0).Visible= False
-	Picture2_Picture(1).Visible= False
-	Panel1_Picture(1).Visible= False
+	bUpdatePaint = True
 	With PictureBK.Canvas
-		.UsingGdip(chkGDIPlus.Checked)
-		'.BackColor = PictureBK.BackColor
-		.FillColor = 16744448
-		.BackColor = 16764315
-		'.CreateDoubleBuffer(True, True)
+		.UsingGdip = chkGDIPlus.Checked
+		'.FillColor = 16744448
 		.Scale(-100, 100, 100, -100)
+		.BackColor = PictureBK.BackColor
 		.DrawColor = clBlueViolet
 		'.Pen.Mode= PenMode.pmNotXor
 		.DrawWidth = 2
@@ -621,16 +619,14 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
 		'.TransferDoubleBuffer
 	End With
-	Picture2_Picture(0).Visible= True
-	Panel1_Picture(0).Visible= True
-	Picture2_Picture(1).Visible= True
-	Panel1_Picture(1).Visible= True
+	
 End Sub
 
 Private Sub Form1Type.cmdGDICls_Click(ByRef Sender As Control)
+	bUpdatePaint = True
 	With PictureBK.Canvas
 		.Cls(50, -20, 60, -40)
-		Sleep(300)
+		Sleep(2000)
 		.Cls
 	End With
 End Sub
@@ -641,7 +637,7 @@ Private Sub Form1Type.Form_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub Form1Type.PictureBK_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	RedrawWindow Sender.Handle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+	
 End Sub
 
 Private Sub Form1Type.Panel1_Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -649,6 +645,9 @@ Private Sub Form1Type.Panel1_Form_MouseDown(ByRef Sender As Control, MouseButton
 	Ms.X = x
 	Ms.Y = y
 	txtControlName.Text = Sender.Name
+	Sender.BringToFront
+	'Debug.Print "打发的说法是隧道股份收购公司"
+	'fb_PrintString(0, "打发的说法是隧道股份收购公司", 1)
 End Sub
 
 Private Sub Form1Type.Panel1_Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -673,6 +672,7 @@ Private Sub Form1Type.Panel1_Picture_MouseDown(ByRef Sender As Control, MouseBut
 	Ms.X = x
 	Ms.Y = y
 	txtControlName.Text = Sender.Name
+	Sender.BringToFront
 End Sub
 
 Private Sub Form1Type.Panel1_Picture_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -698,6 +698,7 @@ Private Sub Form1Type.Picture2_Picture_MouseDown(ByRef Sender As Control, MouseB
 	Ms.X = x
 	Ms.Y = y
 	txtControlName.Text = Sender.Name
+	Sender.BringToFront
 End Sub
 Private Sub Form1Type.Picture2_Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
@@ -721,7 +722,7 @@ End Sub
 
 Private Sub Form1Type.Form_Show(ByRef Sender As Form)
 	
-	PictureBK.Graphic.Bitmap.LoadFromFile(ExePath &  "/../Resources/BackGround.png")
+	'PictureBK.Graphic.Bitmap.LoadFromFile(ExePath &  "/../Resources/BackGround.png")
 End Sub
 
 Private Sub Form1Type.PictureBK_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -737,8 +738,8 @@ End Sub
 Private Sub Form1Type.PictureBK_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	
 	Enum FillStyleMy
-			fsSurfaceMy     = FLOODFILLSURFACE
-			fsBorderMY      = FLOODFILLBORDER
+		fsSurfaceMy     = FLOODFILLSURFACE
+		fsBorderMY      = FLOODFILLBORDER
 	End Enum
 	
 	Type RectMy
@@ -748,11 +749,11 @@ Private Sub Form1Type.PictureBK_MouseUp(ByRef Sender As Control, MouseButton As 
 		BottomMy As Long
 	End Type
 	
-    Dim TempRect As RectMy
-    TempRect.LeftMy = 100
-    TempRect.RightMy = 200
-    TempRect.TopMy = FillStyleMy.fsBorderMY 
-    Debug.Print 9999, TempRect.LeftMy, TempRect.RightMy, TempRect.TopMy 
+	Dim TempRect As RectMy
+	TempRect.LeftMy = 100
+	TempRect.RightMy = 200
+	TempRect.TopMy = FillStyleMy.fsBorderMY
+	Debug.Print 9999, TempRect.LeftMy, TempRect.RightMy, TempRect.TopMy
 End Sub
 
 Private Sub Form1Type.Form_Create(ByRef Sender As Control)
