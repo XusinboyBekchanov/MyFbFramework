@@ -124,18 +124,22 @@ Namespace My.Sys.Forms
 	Private Sub Panel.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			Case WM_LBUTTONUP
-				'If FTransparent AndAlso CBool(FDownButton > 0) Then Repaint 'Updated the background image if Transparent=True after control movied
-				'FDownButton = 0
-			Case WM_MOVE
-				'If FTransparent AndAlso FDownButton > 0 AndAlso FDownButton Mod 5 = 0 Then Repaint ' reduce blinking
-				'FDownButton += 1
-			Case WM_PAINT, WM_ERASEBKGND
-				Dim As Integer W,H
+			Case CM_CTLCOLOR
+				Static As HDC Dc
+				Dc = Cast(HDC,Message.wParam)
+				SetBkMode Dc, Transparent
+				SetTextColor Dc, Font.Color
+				If Not FTransparent OrElse FDesignMode Then
+					SetBkColor Dc, FBackColor
+					SetBkMode Dc, OPAQUE
+				Else
+					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
+				End If
+			Case WM_PAINT ', WM_ERASEBKGND, WM_CREATE
 				Dim As HDC Dc, memDC
-				Dim As HBITMAP Bmp
-				Dim As ..Rect R, RFrame
 				Dim As PAINTSTRUCT Ps
+				Dim As HBITMAP Bmp
+				Dim As ..Rect R
 				GetClientRect Handle, @R
 				Dc = BeginPaint(Handle, @Ps)
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -161,32 +165,50 @@ Namespace My.Sys.Forms
 					memDC = CreateCompatibleDC(Dc)
 					Bmp   = CreateCompatibleBitmap(Dc, R.Right - R.Left, R.Bottom - R.Top)
 					SelectObject(memDC, Bmp)
+					FillRect memDC, @R, Brush.Handle
 					Canvas.Handle = memDC
-					Canvas.HandleSetted = True
-					'SendMessage(Handle, WM_ERASEBKGND, CInt(MemDC), CInt(MemDC))
-					If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
-						FillRect memDC, @R, This.Brush.Handle
-					Else
-						If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
-					End If
-					'SetBkMode(memDC, .Transparent)
-					'H = Canvas.TextHeight("Wg")
-					'W = Canvas.TextWidth(Text)
-					'SetBkColor(memDC, OPAQUE)
-					
-					'Canvas.TextOut((R.Right - W)/2,(R.Bottom - H)/2,Text,Font.Color,-1)
-					If Text <> "" Then 'David Change
-						'RFrame=R
-						''InflateRect(@RFrame, -1, -1)
-						'RFrame.Top=R.Top+H/2
-						'DoRect(RFrame,clScrollBar,clScrollBar)'cl3DDkShadow clBtnShadow
-						'Canvas.Pen.Color = This.BackColor
-						'Canvas.Pen.Size = 3
-						'Canvas.Line(8,RFrame.Top-1,w+10,RFrame.Top-1)
-						'Canvas.TextOut(10,0,Text,clWindowText,-1) 'David Change
-					Else
-						'Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
-					End If
+				Else
+					FillRect Dc, @R, Brush.Handle
+					Canvas.Handle = Dc
+				End If
+				Canvas.HandleSetted = True
+				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
+					With This
+						Select Case Graphic.StretchImage
+						Case StretchMode.smNone
+							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, , , Graphic.Bitmap
+						Case StretchMode.smStretch
+							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, ScaleX(.Width) * Graphic.ScaleFactor, ScaleY(.Height) * Graphic.ScaleFactor, Graphic.Bitmap
+						Case Else 'StretchMode.smStretchProportional
+							Dim As Double imgWidth = Graphic.Bitmap.Width
+							Dim As Double imgHeight = Graphic.Bitmap.Height
+							Dim As Double PicBoxWidth = ScaleX(This.Width) * Graphic.ScaleFactor
+							Dim As Double PicBoxHeight = ScaleY(This.Height) * Graphic.ScaleFactor
+							Dim As Double img_ratio = imgWidth / imgHeight
+							Dim As Double PicBox_ratio =  This.Width / This.Height
+							If (PicBox_ratio >= img_ratio) Then
+								imgHeight = PicBoxHeight
+								imgWidth = imgHeight *img_ratio
+							Else
+								imgWidth = PicBoxWidth
+								imgHeight = imgWidth / img_ratio
+							End If
+							If Graphic.CenterImage Then
+								Canvas.DrawAlpha Max((PicBoxWidth - imgWidth * Graphic.ScaleFactor) / 2, Graphic.StartX), Max((PicBoxHeight - imgHeight * Graphic.ScaleFactor) / 2, Graphic.StartY), imgWidth * Graphic.ScaleFactor, imgHeight * Graphic.ScaleFactor, Graphic.Bitmap
+							Else
+								Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, imgWidth, imgHeight, Graphic.Bitmap
+							End If
+						End Select
+					End With
+				End If
+				If ShowCaption Then  Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
+				If OnPaint Then OnPaint(*Designer, This, Canvas)
+				If DoubleBuffered Then
+					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
+					DeleteObject(Bmp)
+					DeleteDC(memDC)
+				End If
+				Canvas.HandleSetted = False
 					If FBevelInner <> bvNone Then
 						AdjustColors(FBevelInner)
 						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
@@ -196,55 +218,18 @@ Namespace My.Sys.Forms
 						AdjustColors(FBevelOuter)
 						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
-					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
-					If OnPaint Then OnPaint(*Designer, This, Canvas)
-					BitBlt(Dc, 0, 0, R.Right, R.Bottom, memDC, 0, 0, SRCCOPY)
-					Canvas.HandleSetted = False
-					DeleteObject(Bmp)
-					DeleteDC(memDC)
-				Else
-					Canvas.Handle = Dc
-					Canvas.HandleSetted = True
-					SetBkMode Dc, .TRANSPARENT
-					If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
-						FillRect Dc, @R, This.Brush.Handle
-					Else
-						If Graphic.Bitmap.Handle <> 0 Then
-							Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
-						End If
-					End If
-					SetBkColor Dc, OPAQUE
-					H = Canvas.TextHeight("Wg")
-					W = Canvas.TextWidth(Text)
-					'Canvas.TextOut((R.Right - W)/2,(R.Bottom - H)/2,Text,Font.Color,-1)
-					If Text<>"" Then 'David Change
-						'RFrame=R
-						'InflateRect(@RFrame, -1, -1)
-						'RFrame.Top=R.Top+H/2
-						'DoRect(RFrame,clScrollBar,clScrollBar)'cl3DDkShadow clBtnShadow
-						'Canvas.Pen.Color = This.BackColor
-						'Canvas.Pen.Size = 3
-						'Canvas.Line(8,RFrame.Top-1,w+10,RFrame.Top-1)
-						'Canvas.Pen.Size = 1
-						'Canvas.TextOut(10,0,Text,clWindowText,-1) 'David Change
-					Else
-						'Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
-					End If
-					If FBevelInner <> bvNone Then
-						AdjustColors(FBevelInner)
-						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
-					End If
-					If FBevelOuter <> bvNone Then
-						AdjustColors(FBevelOuter)
-						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
-					End If
-					If Graphic.Bitmap.Handle <> 0 Then Canvas.DrawAlpha 0, 0, ScaleX(Width), ScaleY(Height), Graphic.Bitmap
-					If OnPaint Then OnPaint(*Designer, This, Canvas)
-					Canvas.HandleSetted = False
-				End If
 				EndPaint Handle, @Ps
-				Message.Result = 0
-				Exit Sub
+			Case CM_COMMAND
+				If Message.wParamHi = STN_CLICKED Then
+					If OnClick Then OnClick(*Designer, This)
+				End If
+				If Message.wParamHi = STN_DBLCLK Then
+					If OnDblClick Then OnDblClick(*Designer, This)
+				End If
+			Case WM_SIZE
+				InvalidateRect(Handle, NULL, True)
+			Case CM_DRAWITEM
+				
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
@@ -395,6 +380,7 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "Panel")
 			.Width       = 121
 			.Height      = 41
+			.ShowCaption = False
 		End With
 	End Constructor
 	

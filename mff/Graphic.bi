@@ -41,6 +41,8 @@ Namespace My.Sys.Drawing
 		ImageType    As ImageTypes
 		StretchImage As StretchMode
 		CenterImage  As Boolean
+		Visible      As Boolean = True
+		ScaleFactor  As Double  = 1
 		StartX       As Integer
 		StartY       As Integer
 		#ifndef ReadProperty_Off
