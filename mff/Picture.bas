@@ -131,6 +131,7 @@ Namespace My.Sys.Forms
 	Private Property Picture.CenterImage(Value As Boolean)
 		If Value <> FCenterImage Then
 			FCenterImage = Value
+			Graphic.CenterImage = Value
 			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FPictureStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
@@ -192,22 +193,80 @@ Namespace My.Sys.Forms
 	Private Sub Picture.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			Case WM_LBUTTONUP
-				If FTransparent AndAlso CBool(FDownButton > 0) Then Repaint 'Updated the background image if Transparent=True after control movied
-				FDownButton = 0
-			Case WM_MOVE
-				If FTransparent AndAlso FDownButton > 0 AndAlso FDownButton Mod 5 = 0 Then Repaint ' reduce blinking
-				FDownButton += 1
-			Case WM_CTLCOLORSTATIC ', WM_CTLCOLORBTN
-				If This.Parent Then This.Parent->ProcessMessage Message
-				If Message.Result <> 0 Then Return
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC,Message.wParam)
 				SetBkMode Dc, Transparent
-				SetTextColor Dc, This.Font.Color
-				SetBkColor Dc, This.BackColor
-				SetBkMode Dc, OPAQUE
+				SetTextColor Dc, Font.Color
+				If Not FTransparent OrElse FDesignMode Then
+					SetBkColor Dc, FBackColor
+					SetBkMode Dc, OPAQUE
+				Else
+					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
+				End If
+			Case WM_PAINT ', WM_ERASEBKGND, WM_CREATE
+				Dim As HDC Dc, memDC
+				Dim As PAINTSTRUCT Ps
+				Dim As HBITMAP Bmp
+				Dim As ..Rect R
+				GetClientRect Handle, @R
+				Dc = BeginPaint(Handle, @Ps)
+				Canvas.HandleSetted = True
+				If DoubleBuffered Then
+					memDC = CreateCompatibleDC(Dc)
+					Bmp   = CreateCompatibleBitmap(Dc, R.Right - R.left, R.Bottom - R.Top)
+					SelectObject(memDC, Bmp)
+					FillRect memDC, @R, Brush.Handle
+					Canvas.Handle = memDC
+				Else
+					FillRect Dc, @R, Brush.Handle
+					Canvas.Handle = Dc
+				End If
+				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
+					'Print FBackColor
+					With This
+						Select Case Graphic.StretchImage
+						Case StretchMode.smNone
+							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, , , Graphic.Bitmap
+						Case StretchMode.smStretch
+							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, ScaleX(.Width) * Graphic.ScaleFactor, ScaleY(.Height) * Graphic.ScaleFactor, Graphic.Bitmap
+						Case Else 'StretchMode.smStretchProportional
+							Dim As Double imgWidth = Graphic.Bitmap.Width
+							Dim As Double imgHeight = Graphic.Bitmap.Height
+							Dim As Double PicBoxWidth = ScaleX(This.Width) * Graphic.ScaleFactor
+							Dim As Double PicBoxHeight = ScaleY(This.Height) * Graphic.ScaleFactor
+							Dim As Double img_ratio = imgWidth / imgHeight
+							Dim As Double PicBox_ratio =  This.Width / This.Height
+							If (PicBox_ratio >= img_ratio) Then
+								imgHeight = PicBoxHeight
+								imgWidth = imgHeight *img_ratio
+							Else
+								imgWidth = PicBoxWidth
+								imgHeight = imgWidth / img_ratio
+							End If
+							If Graphic.CenterImage Then
+								Canvas.DrawAlpha Max((PicBoxWidth - imgWidth * Graphic.ScaleFactor) / 2, Graphic.StartX), Max((PicBoxHeight - imgHeight * Graphic.ScaleFactor) / 2, Graphic.StartY), imgWidth * Graphic.ScaleFactor, imgHeight * Graphic.ScaleFactor, Graphic.Bitmap
+							Else
+								Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, imgWidth, imgHeight, Graphic.Bitmap
+							End If
+						End Select
+					End With
+				End If
+				If ShowCaption Then  Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
+				If Canvas.UsingGdip Then
+					'BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
+					'DeleteObject(Bmp)
+					'DeleteDC(memDC)
+				End If
+				If OnPaint Then OnPaint(*Designer, This, Canvas)
+				If DoubleBuffered Then 'AndAlso (Not Canvas.UsingGdip)
+					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
+					DeleteObject(Bmp)
+					DeleteDC(memDC)
+				End If
+				Canvas.HandleSetted = False
+				EndPaint Handle, @Ps
+				
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(*Designer, This)
@@ -215,88 +274,16 @@ Namespace My.Sys.Forms
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(*Designer, This)
 				End If
-			Case WM_PAINT, WM_CREATE, WM_ERASEBKGND
-				If (Graphic.Bitmap.Handle <> 0) AndAlso (((FStretchImage = StretchMode.smNone) AndAlso Not FCenterImage) OrElse ((FStretchImage = StretchMode.smStretch)) OrElse (FStretchImage = StretchMode.smStretchProportional)) Then
-					Dim As HDC Dc, memDC
-					Dim As PAINTSTRUCT Ps
-					Canvas.HandleSetted = True
-					Dc = BeginPaint(Handle, @Ps)
-					Canvas.Handle = Dc
-					If Canvas.CreateDoubleBuffered  Then
-						Canvas.TransferDoubleBuffer(0, 0, Width, Height)
-					Else
-						If CBool((Not FTransparent) AndAlso BackColor <> -1) OrElse FDesignMode Then
-							Dim As ..Rect R
-							GetClientRect Handle, @R
-							FillRect Dc, @R, This.Brush.Handle
-						End If
-						'If Graphic.Bitmap.Handle <> 0 Then
-						'RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
-						With This
-							Select Case FStretchImage
-							Case StretchMode.smNone
-								Canvas.DrawAlpha 0, 0, , , Graphic.Bitmap
-							Case StretchMode.smStretch
-								Canvas.DrawAlpha 0, 0, ScaleX(.Width), ScaleY(.Height), Graphic.Bitmap
-							Case Else 'StretchMode.smStretchProportional
-								Dim As Double imgWidth = Graphic.Bitmap.Width
-								Dim As Double imgHeight = Graphic.Bitmap.Height
-								Dim As Double PicBoxWidth = ScaleX(This.Width)
-								Dim As Double PicBoxHeight = ScaleY(This.Height)
-								Dim As Double img_ratio = imgWidth / imgHeight
-								Dim As Double PicBox_ratio =  This.Width / This.Height
-								If (PicBox_ratio >= img_ratio) Then
-									imgHeight = PicBoxHeight
-									imgWidth = imgHeight *img_ratio
-								Else
-									imgWidth = PicBoxWidth
-									imgHeight = imgWidth / img_ratio
-								End If
-								If FCenterImage Then
-									Canvas.DrawAlpha Max((PicBoxWidth - imgWidth) / 2, 0), Max((PicBoxHeight - imgHeight) / 2, 0), imgWidth, imgHeight, Graphic.Bitmap
-								Else
-									Canvas.DrawAlpha 0, 0, imgWidth, imgHeight, Graphic.Bitmap
-								End If
-							End Select
-						End With
-					End If
-					If Message.lParam <> 128 AndAlso OnPaint Then OnPaint(*Designer, This, Canvas)
-					EndPaint Handle,@Ps
-					Message.Result = 0
-					Canvas.HandleSetted = False
-					Return
-				Else
-					Dim As HDC Dc, memDC
-					Dim As PAINTSTRUCT Ps
-					Canvas.HandleSetted = True
-					Dc = BeginPaint(Handle, @Ps)
-					Canvas.Handle = Dc
-					Dim As ..Rect R
-					GetClientRect Handle, @R
-					FillRect Dc, @R, This.Brush.Handle
-					If OnPaint Then OnPaint(*Designer, This, Canvas)
-					EndPaint Handle, @Ps
-					Message.Result = 0
-					Canvas.HandleSetted = False
-					Return
-				End If
-				'Case WM_ERASEBKGND
-				'	Dim As ..Rect R
-				'	GetClientRect HANDLE, @R
-				'	FillRect Cast(HDC, Message.wParam), @R, Brush.Handle
-				'	Message.Result = -1
-				'	Canvas.TransferDoubleBuffer(0, 0, This.Width, This.Height)
+			Case WM_SIZE
+				InvalidateRect(Handle, NULL, True)
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
 				Dim As My.Sys.Drawing.Rect R
 				Dim As HDC Dc
-				diStruct = Cast(DRAWITEMSTRUCT Ptr,Message.lParam)
+				diStruct = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				R = *Cast(My.Sys.Drawing.Rect Ptr, @diStruct->rcItem)
 				Dc = diStruct->hDC
-				If OnDraw Then
-					OnDraw(*Designer, This, R, Dc)
-				Else
-				End If
+				If OnDraw Then OnDraw(*Designer, This, R, Dc)
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
@@ -308,6 +295,9 @@ Namespace My.Sys.Forms
 	
 	Private Property Picture.Transparent(Value As Boolean)
 		FTransparent = Value
+		#ifdef __USE_WINAPI__
+			ChangeExStyle WS_EX_TRANSPARENT, Value
+		#endif
 	End Property
 	
 	Private Operator Picture.Cast As Control Ptr
@@ -376,8 +366,9 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "Picture")
 			FTabIndex          = -1
-			.Width       =80
+			.Width       = 80
 			.Height      = 60
+			.ShowCaption = False
 		End With
 	End Constructor
 	Private Destructor Picture

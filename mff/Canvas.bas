@@ -133,77 +133,17 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.Width As Integer
-		'#ifdef __USE_WINAPI__
-		'	' Drawing area is a BITMAP
-		'	Scope
-		'		Dim As BITMAP header
-		'		ZeroMemory(@header, SizeOf(BITMAP))
-		'		
-		'		Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
-		'		GetObject(bmp, SizeOf(BITMAP), @header)
-		'		Dim As Integer width_ = header.bmWidth
-		'		If width_ > 1 Then
-		'			Return width_
-		'		End If
-		'	End Scope
-		'	
-		'	' Drawing area is a printer page
-		'	Return GetDeviceCaps(Handle, HORZRES)
-		'#elseif defined(__USE_GTK__)
-		'	Dim As GtkRequisition minimum, requisition
-		'	If ParentControl Then
-		'		If ParentControl->layoutwidget Then
-		'			#ifndef __USE_GTK2__
-		'				Return UnScaleX(gtk_widget_get_allocated_width(ParentControl->layoutwidget))
-		'			#else
-		'				Return UnScaleX(ParentControl->layoutwidget->allocation.width)
-		'			#endif
-		'		Else
-		'			Return ParentControl->Width
-		'		End If
-		'	End If
-		'#else
-			If ParentControl Then
-				Return ParentControl->Width
-			End If
-		'#endif
+		
+		If ParentControl Then
+			Return ParentControl->Width
+		End If
 	End Property
 	
 	Private Property Canvas.Height As Integer
-		'#ifdef __USE_WINAPI__
-		'	' Drawing area is a BITMAP
-		'	Scope
-		'		Dim As BITMAP header
-		'		ZeroMemory(@header, SizeOf(BITMAP))
-		'		
-		'		Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
-		'		GetObject(bmp, SizeOf(BITMAP), @header)
-		'		Dim As Integer height_ = header.bmHeight
-		'		If height_ > 1 Then
-		'			Return height_
-		'		End If
-		'	End Scope
-		'	
-		'	' Drawing area is a printer page
-		'	Return GetDeviceCaps(Handle, VERTRES)
-		'#elseif defined(__USE_GTK__)
-		'	Dim As GtkRequisition minimum, requisition
-		'	If ParentControl Then
-		'		If ParentControl->layoutwidget Then
-		'			#ifndef __USE_GTK2__
-		'				Return UnScaleY(gtk_widget_get_allocated_height(ParentControl->layoutwidget))
-		'			#else
-		'				Return UnScaleY(ParentControl->layoutwidget->allocation.height)
-		'			#endif
-		'		Else
-		'			Return ParentControl->Height
-		'		End If
-		'	End If
-		'#else
-			If ParentControl Then
-				Return ParentControl->Height
-			End If
-		'#endif
+		
+		If ParentControl Then
+			Return ParentControl->Height
+		End If
 	End Property
 	
 	Private Property Canvas.ScaleWidth As Integer
@@ -318,7 +258,6 @@ Namespace My.Sys.Drawing
 				FScaleWidth = ScaleX(This.Width)
 				FScaleHeight =  ScaleY(This.Height)
 				#ifdef __USE_WINAPI__
-					If memDC > 0 Then DeleteDoubleBuffer
 					.FillRect Handle, Cast(..Rect Ptr, @R), B
 				#endif
 			Else
@@ -379,7 +318,12 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Property
 	
-	Private Sub Canvas.UsingGdip(Vaule As Boolean = True)
+	Private Property Canvas.UsingGdip As Boolean
+		Return FUsingGdip
+	End Property
+	
+	Private Property Canvas.UsingGdip(Vaule As Boolean)
+		FUsingGdip = Vaule
 		#ifdef __USE_WINAPI__
 			If Vaule = True Then
 				If GdipToken <> NULL Then
@@ -392,9 +336,7 @@ Namespace My.Sys.Drawing
 				If GdipToken = NULL Then                         ' failed to start
 					Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GDIPlus failure! "
 				Else
-					DC = GetDC(ParentControl->Handle)
-					Handle = DC
-					If GdipCreateFromHDC(DC, @GdipGraphics) <> NULL Then
+					If GdipCreateFromHDC(Handle, @GdipGraphics) <> NULL Then
 						If GdipToken Then GdiplusShutdown(GdipToken)
 						GdipToken = NULL
 						Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! "
@@ -404,6 +346,11 @@ Namespace My.Sys.Drawing
 						GdipSetPenEndCap GdipPen, 2
 						GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
 						GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
+						'Draw the image of background
+						'Dim As GpImage Ptr pImage
+						'GdipCreateBitmapFromHBITMAP(ParentControl->gr, NULL, Cast(GpBitmap Ptr Ptr, @pImage))
+						'GdipDrawImageRectRect GdipGraphics, pImage, 0, 0, Width, Height, 0, 0, Width, Height, 2, NULL, NULL, NULL
+						'If pImage Then GdipDisposeImage pImage
 					End If
 				End If
 			Else
@@ -415,7 +362,7 @@ Namespace My.Sys.Drawing
 				End If
 			End If
 		#endif
-	End Sub
+	End Property
 	
 	Private Function Canvas.GetDevice As Any Ptr
 		Dim As Any Ptr Handle_
@@ -476,94 +423,15 @@ Namespace My.Sys.Drawing
 				HandleSetted = False
 			#endif
 		#elseif defined(__USE_WINAPI__)
-			If FDoubleBuffer Then
-				DeleteDoubleBuffer
-				FDoubleBuffer = False
-			End If
 			If HandleSetted Then Exit Sub
-			If ParentControl Then If Handle_ Then ReleaseDC ParentControl->Handle, Handle_
-		#endif
-	End Sub
-	
-	Private Sub Canvas.CreateDoubleBuffer(DrawGraphicBitmap As Boolean = True, CleanBK As Boolean = False)
-		#ifdef __USE_WINAPI__
-			If memDC > 0 Then DeleteDoubleBuffer
-			If Not HandleSetted Then GetDevice
-			DC = Handle
-			memDC = CreateCompatibleDC(DC)
-			FBmpWidth = ScaleX(ParentControl->Width)
-			FBmpHeight = ScaleY(ParentControl->Height)
-			CompatibleBmp = CreateCompatibleBitmap(DC, FBmpWidth, FBmpHeight)
-			SelectObject(memDC, CompatibleBmp)
-			
-			'If CleanBK = False Then
-			'	RedrawWindow(ParentControl->Handle, NULL, NULL, RDW_INVALIDATE Or RDW_ALLCHILDREN)
-			'	CreateDoubleBuffered = False
-			'	If DrawGraphicBitmap Then SendMessage(ParentControl->Handle, WM_PAINT, 0, 128)
-			'Else
-			'	Dim As HBRUSH B = CreateSolidBrush(FBackColor)
-			'	Dim As ..Rect Re
-			'	Re= Type<..Rect>(0, 0, FBmpWidth, FBmpHeight)
-			'	.FillRect Handle, @Re, B
-			'	DeleteObject B
-			'End If
-			'BitBlt(memDC, 0, 0, FBmpWidth, FBmpHeight, DC, 0, 0, SRCCOPY)
-			Handle = memDC
-			'If GdipToken <> NULL Then
-			'	If GdipPen Then GdipDeletePen(GdipPen)
-			'	If GdipBrush Then GdipDeleteBrush(GdipBrush)
-			'	If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
-			'	If GdipToken Then GdiplusShutdown(GdipToken)
-			'End If
-			'FGdipStartupInput.GdiplusVersion = 1                    ' attempt to start GDI+
-			'GdiplusStartup(@GdipToken, @FGdipStartupInput, NULL)
-			'If GdipToken = NULL Then                         ' failed to start
-			'	Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GDIPlus failure! "
-			'Else
-			'	If GdipCreateFromHDC(memDC, @GdipGraphics) <> NULL Then
-			'		If GdipToken Then GdiplusShutdown(GdipToken)
-			'		GdipToken = NULL
-			'		Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! ", True
-			'	Else
-			'		GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
-			'		GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
-			'		GdipSetPenEndCap GdipPen, 2
-			'		GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
-			'		GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
-			'	End If
-			'End If
-			HandleSetted = True
-			FDoubleBuffer = True
-			CreateDoubleBuffered = True
-		#endif
-	End Sub
-	
-	#ifndef Canvas_TransferDoubleBuffer_Off
-		Private Sub Canvas.TransferDoubleBuffer(ALeft As Long = 0, ATop As Long = 0, AWidth As Long = -1, AHeight As Long = -1)
-			If AWidth = -1 Then AWidth = FBmpWidth Else AWidth = ScaleX(AWidth)
-			If AHeight = -1 Then AHeight = FBmpHeight Else AHeight = ScaleY(AHeight)
-			#ifdef __USE_WINAPI__
-				If memDC > 0 Then
-					SetStretchBltMode(DC, HALFTONE)
-					StretchBlt(DC, ScaleX(ALeft), ScaleY(ATop),  AWidth, AHeight, memDC, 0, 0, FBmpWidth, FBmpHeight, SRCCOPY)
-				End If
-			#endif
-		End Sub
-	#endif
-	
-	Private Sub Canvas.DeleteDoubleBuffer
-		#ifdef __USE_WINAPI__
-			#ifdef __USE_WINAPI__
-				If memDC > 0 Then BitBlt(DC, 0, 0, ScaleX(This.Width), ScaleY(This.Height), memDC, 0, 0, SRCCOPY)
-			#endif
-			Handle = DC
-			HandleSetted = False
-			DeleteObject(CompatibleBmp)
-			DeleteDC(memDC)
-			memDC = 0
-			FDoubleBuffer = False
-			CreateDoubleBuffered = False
-			If Not HandleSetted Then ReleaseDevice
+			If ParentControl AndAlso Handle_ Then
+				'If ParentControl->DoubleBuffered Then
+				'	BitBlt(Handle_, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
+				'	DeleteObject(CompatibleBmp)
+				'	DeleteDC(memDC)
+				'End If
+				ReleaseDC ParentControl->Handle, Handle_
+			End If
 		#endif
 	End Sub
 	
@@ -1086,7 +954,6 @@ Namespace My.Sys.Drawing
 				SetBkColor(Handle, BK)
 				SetBkMode(Handle, OPAQUE)
 			End If
-			
 			.TextOut(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, @s, Len(s))
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
@@ -1144,22 +1011,30 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
-			Dim As HDC hMemDC = CreateCompatibleDC(Handle) ' Create Dc
-			SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
-			
-			Dim As BITMAP Bitmap01
-			GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
-			
-			Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
-			bfn.BlendOp = AC_SRC_OVER
-			bfn.BlendFlags = 0
-			bfn.SourceConstantAlpha = iSourceAlpha
-			bfn.AlphaFormat = AC_SRC_ALPHA
-			If nWidth = -1 Then nWidth = Bitmap01.bmWidth
-			If nHeight = -1 Then nHeight = Bitmap01.bmHeight
-			SetStretchBltMode(Handle, HALFTONE)
-			AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
-			DeleteDC(hMemDC) ' Delete Dc
+			If GdipToken = NULL Then
+				Dim As HDC hMemDC = CreateCompatibleDC(Handle) ' Create Dc
+				SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
+				Dim As BITMAP Bitmap01
+				GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
+				
+				Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
+				bfn.BlendOp = AC_SRC_OVER
+				bfn.BlendFlags = 0
+				bfn.SourceConstantAlpha = iSourceAlpha
+				bfn.AlphaFormat = AC_SRC_ALPHA
+				If nWidth = -1 Then nWidth = Bitmap01.bmWidth
+				If nHeight = -1 Then nHeight = Bitmap01.bmHeight
+				SetStretchBltMode(Handle, HALFTONE)
+				AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
+				DeleteDC(hMemDC) ' Delete Dc
+			Else
+				Dim As GpImage Ptr pImage
+				GdipCreateBitmapFromHBITMAP(Image, NULL, Cast(GpBitmap Ptr Ptr, @pImage))
+				If nWidth = -1 Then nWidth = Width
+				If nHeight = -1 Then nHeight = Height
+				GdipDrawImageRectRect GdipGraphics, pImage, x, y, nWidth, nHeight, 0, 0, nWidth, nHeight, 2, NULL, NULL, NULL
+				If pImage Then GdipDisposeImage pImage
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1353,10 +1228,18 @@ Namespace My.Sys.Drawing
 			R.Right = ScaleX(R.Right) * imgScaleX + imgOffsetX
 			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 			If FillColorBK <> -1 Then
-				B = CreateSolidBrush(FillColorBK)
-				.FillRect Handle, Cast(..Rect Ptr, @R), B
+				If GdipToken = NULL Then
+					B = CreateSolidBrush(FillColorBK)
+					.FillRect Handle, Cast(..Rect Ptr, @R), B
+				Else
+					GdipFillRectangle(GdipGraphics, GdipBrush, R.Left, R.Top, R.Right, R.Bottom)
+				End If
 			Else
-				.FillRect Handle, Cast(..Rect Ptr, @R), Brush.Handle
+				If GdipToken = NULL Then
+					.FillRect Handle, Cast(..Rect Ptr, @R), Brush.Handle
+				Else
+					GdipFillRectangle(GdipGraphics, GdipBrush, R.Left, R.Top, R.Right, R.Bottom)
+				End If
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
@@ -1489,7 +1372,6 @@ Namespace My.Sys.Drawing
 	
 	Private Destructor Canvas
 		#ifdef __USE_WINAPI__
-			If memDC > 0 Then DeleteDoubleBuffer
 			If Handle Then ReleaseDevice
 			' // Shutdown Gdiplus
 			If GdipToken <> NULL Then
