@@ -1283,8 +1283,7 @@ Namespace My.Sys.Forms
 				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
 					RequestAlign
-					'If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
-					InvalidateRect(Handle, NULL, True)
+					If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
 				End If
 			Case WM_CLOSE
 				If OnClose Then
