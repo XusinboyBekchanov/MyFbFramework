@@ -288,11 +288,7 @@ Namespace My.Sys.Forms
 			Return bChecked
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
-				lvi.mask = LVIF_STATE
-				lvi.iItem = Index
-				lvi.stateMask = LVIS_CHECKEDMASK
-				ListView_GetItem(Parent->Handle, @lvi)
-				FChecked = lvi.state = LVIS_CHECKED
+				FChecked = ListView_GetItemState(Parent->Handle, Index, LVIS_CHECKEDMASK) = LVIS_CHECKED
 			End If
 		#endif
 		Return FChecked
