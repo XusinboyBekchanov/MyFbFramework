@@ -68,7 +68,6 @@ Namespace My.Sys.Drawing
 					If GdipBrush Then GdipDeleteBrush(GdipBrush)
 					GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
 				End If
-				'FloodFill(1, 1, FFillColor, FillStyle.fsSurface)
 			#endif
 		End If
 	End Property
@@ -242,6 +241,12 @@ Namespace My.Sys.Drawing
 				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetBlue(FBackColor), GetGreen(FBackColor))
 			#elseif defined(__USE_WINAPI__)
 				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
+				If GdipToken = NULL Then
+					
+				Else
+					GdipGraphicsClear(GdipGraphics, &h00000000)
+					Return
+				End If
 			#endif
 			Dim As Rect R
 			If x = x1 AndAlso y = y1 AndAlso x = y Then
@@ -330,6 +335,7 @@ Namespace My.Sys.Drawing
 					If GdipPen Then GdipDeletePen(GdipPen)
 					If GdipBrush Then GdipDeleteBrush(GdipBrush)
 					If GdipToken Then GdiplusShutdown(GdipToken)
+					GdipToken = NULL
 				End If
 				FGdipStartupInput.GdiplusVersion = 1                    ' attempt to start GDI+
 				GdiplusStartup(@GdipToken, @FGdipStartupInput, NULL)
@@ -637,7 +643,7 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		'Special code for VB6
-		If FillColorBK = -1 Then FillColorBK = FBackColor
+		If FillColorBK = -1 Then FillColorBK = FFillColor
 		Dim As Integer OldFillColor = Brush.Color
 		Brush.Color = FillColorBK
 		#ifdef __USE_GTK__
@@ -677,7 +683,7 @@ Namespace My.Sys.Drawing
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If GdipToken = NULL Then
-				.RoundRect Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
+				.RoundRect Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX , ScaleY(nHeight) * imgScaleY
 			Else
 				If GdipBrush Then GdipFillRectangle(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - y) * imgScaleY + imgOffsetY)
 				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - y) * imgScaleY + imgOffsetY) ', ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
@@ -708,6 +714,8 @@ Namespace My.Sys.Drawing
 				If GdipBrush Then GdipFillPolygon GdipGraphics, GdipBrush, @tGpPoints(0), Count, FillMode
 				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			End If
+		#else
+			Print "The function is not ready in this OS."  & "   Canvas.Polygon(Points() As Point, Count As Long)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -715,15 +723,7 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#ifdef __USE_GTK__
-			This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
-		#elseif defined(__USE_WINAPI__)
-			If GdipToken = NULL Then
-				.RoundRect Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
-			Else
-				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
-			End If
-		#endif
+		This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
@@ -736,6 +736,8 @@ Namespace My.Sys.Drawing
 			Else
 				.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
 			End If
+		#else
+			Print "The function is not ready in this OS." & "  Canvas.Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double))"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -750,6 +752,8 @@ Namespace My.Sys.Drawing
 				If GdipBrush Then GdipFillPie(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - x) * imgScaleY + imgOffsetY, nXRadial1, nYRadial1)
 				GdipDrawPie(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - x) * imgScaleY + imgOffsetY, nXRadial1, nYRadial1)
 			End If
+		#else
+			Print "The function is not ready in this OS." & "  Canvas.Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -912,6 +916,7 @@ Namespace My.Sys.Drawing
 			Function = .GetPixel(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY)
 		#else
 			Function = 0
+			Print "The function is not ready in this OS."  & " Canvas.GetPixel(x As Double, y As Double) As Integer"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Function
@@ -1028,13 +1033,14 @@ Namespace My.Sys.Drawing
 				AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
 				DeleteDC(hMemDC) ' Delete Dc
 			Else
-				Dim As GpImage Ptr pImage
-				GdipCreateBitmapFromHBITMAP(Image, NULL, Cast(GpBitmap Ptr Ptr, @pImage))
+				GdipCreateBitmapFromHBITMAP(Image, NULL, Cast(GpBitmap Ptr Ptr, @GdipImage))
 				If nWidth = -1 Then nWidth = Width
 				If nHeight = -1 Then nHeight = Height
-				GdipDrawImageRectRect GdipGraphics, pImage, x, y, nWidth, nHeight, 0, 0, nWidth, nHeight, 2, NULL, NULL, NULL
-				If pImage Then GdipDisposeImage pImage
+				GdipDrawImageRectRect GdipGraphics, GdipImage, x, y, nWidth, nHeight, 0, 0, nWidth, nHeight, 2, NULL, NULL, NULL
+				If GdipImage Then GdipDisposeImage GdipImage
 			End If
+		#else
+			Print "The function is not ready in this OS."  & " DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1052,6 +1058,8 @@ Namespace My.Sys.Drawing
 			BitBlt(Handle, ScaleX(x), ScaleY(y), Bitmap01.bmWidth, Bitmap01.bmHeight, MemDC, 0, 0, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
+		#else
+			Print "The function is not ready in this OS."  & " Canvas.Draw(x As Double, y As Double, Image As Any Ptr)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1065,6 +1073,8 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			DrawIconEx(Handle, x, y, Image.Handle, Image.Width, Image.Height, 0, 0, DI_NORMAL)
+		#else
+			Print "The function is not ready in this OS."  & " Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1168,6 +1178,8 @@ Namespace My.Sys.Drawing
 				DeleteDC(hdcObject)
 				DeleteDC(hdcSave)
 				DeleteDC(hdcTemp)
+			#else
+				Print "The function is not ready in this OS."  & " DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)"
 			#endif
 			If Not HandleSetted Then ReleaseDevice Handle_
 		End Sub
@@ -1192,6 +1204,8 @@ Namespace My.Sys.Drawing
 			StretchBlt(Handle, ScaleX(x), ScaleY(y), ScaleX(nWidth), ScaleX(nHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
 			SelectObject(MemDC, OldBitmap)
 			DeleteDC(MemDC)
+		#else
+			Print "The function is not ready in this OS."  & " Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1208,6 +1222,8 @@ Namespace My.Sys.Drawing
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_WINAPI__
 			.ExtFloodFill Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, FillColorBK, FillStyleBK
+		#else
+			Print "The function is not ready in this OS."  & " Canvas.FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1254,6 +1270,8 @@ Namespace My.Sys.Drawing
 			R.Right = ScaleX(R.Right) * imgScaleX + imgOffsetX
 			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 			.DrawFocusRect Handle, Cast(..Rect Ptr, @R)
+		#else
+			Print "The function is not ready in this OS."  & " DrawFocusRect(R As Rect)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1375,6 +1393,7 @@ Namespace My.Sys.Drawing
 			If Handle Then ReleaseDevice
 			' // Shutdown Gdiplus
 			If GdipToken <> NULL Then
+				If GdipImage Then GdipDisposeImage GdipImage
 				If GdipPen Then GdipDeletePen(GdipPen)
 				If GdipBrush Then GdipDeleteBrush(GdipBrush)
 				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)

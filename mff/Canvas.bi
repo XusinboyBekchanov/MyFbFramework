@@ -151,6 +151,7 @@ Public:
 		Handle  As HDC
 		GdipToken As ULONG_PTR
 		GdipGraphics As GpGraphics Ptr
+		GdipImage As GpImage Ptr
 		GdipBrush As GpBrush Ptr
 		GdipPen As GpPen Ptr
 		GdipFont As GpFont Ptr
