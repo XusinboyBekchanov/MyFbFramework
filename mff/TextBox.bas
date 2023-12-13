@@ -23,6 +23,7 @@ Namespace My.Sys.Forms
 			Case "charcase": Return @FCharCase
 			Case "ctl3d": Return @FCtl3D
 			Case "hideselection": Return @FHideSelection
+			Case "leftmargin": Return @FLeftMargin
 			Case "maskchar": Return FMaskChar
 			Case "masked": Return @FMasked
 			Case "maxlength": Return @FMaxLength
@@ -31,6 +32,7 @@ Namespace My.Sys.Forms
 			Case "numbersonly": Return @FNumbersOnly
 			Case "oemconvert": Return @FOEMConvert
 			Case "readonly": Return @FReadOnly
+			Case "rightmargin": Return @FRightMargin
 			Case "scrollbars": Return @FScrollBars
 			Case "selstart": Return @FSelStart
 			Case "sellength": Return @FSelLength
@@ -61,6 +63,7 @@ Namespace My.Sys.Forms
 				Case "charcase": CharCase = *Cast(CharCases Ptr, Value)
 				Case "ctl3d": Ctl3D = QBoolean(Value)
 				Case "hideselection": HideSelection = QBoolean(Value)
+				Case "leftmargin": LeftMargin = QInteger(Value)
 				Case "maskchar": MaskChar = QWString(Value)
 				Case "masked": Masked = QBoolean(Value)
 				Case "maxlength": MaxLength = QInteger(Value)
@@ -69,6 +72,7 @@ Namespace My.Sys.Forms
 				Case "numbersonly": NumbersOnly = QBoolean(Value)
 				Case "oemconvert": OEMConvert = QBoolean(Value)
 				Case "readonly": ReadOnly = QBoolean(Value)
+				Case "rightmargin": RightMargin = QInteger(Value)
 				Case "scrollbars": ScrollBars = *Cast(ScrollBarsType Ptr, Value)
 				Case "selstart": SelStart = QInteger(Value)
 				Case "sellength": SelLength = QInteger(Value)
@@ -148,7 +152,7 @@ Namespace My.Sys.Forms
 	Private Property TextBox.LeftMargin() As Integer
 		#ifdef __USE_GTK__
 			If gtk_is_text_view(widget) Then
-				FLeftMargin = gtk_text_view_get_left_margin(gtk_text_view(widget))
+				FLeftMargin = gtk_text_view_get_left_margin(GTK_TEXT_VIEW(widget))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -162,20 +166,20 @@ Namespace My.Sys.Forms
 	Private Property TextBox.LeftMargin(Value As Integer)
 		FLeftMargin = Value
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				gtk_text_view_set_left_margin(gtk_text_view(widget), Value)
+			If GTK_IS_TEXT_VIEW(widget) Then
+				gtk_text_view_set_left_margin(GTK_TEXT_VIEW(widget), Value)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
-				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MakeWord(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
+				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKEWORD(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
 			End If
 		#endif
 	End Property
 	
 	Private Property TextBox.RightMargin() As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				FRightMargin = gtk_text_view_get_right_margin(gtk_text_view(widget))
+			If GTK_IS_TEXT_VIEW(widget) Then
+				FRightMargin = gtk_text_view_get_right_margin(GTK_TEXT_VIEW(widget))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -1170,6 +1174,12 @@ Namespace My.Sys.Forms
 						If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
 						If .FMasked Then .Masked = True
 						If .FSelStart <> 0 OrElse .FSelEnd <> 0 Then .SetSel .FSelStart, .FSelEnd
+						If .FLeftMargin <> 0 Then
+							PostMessage(.FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKEWORD(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
+						End If
+						If .FRightMargin <> 0 Then
+							PostMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKEWORD(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
+						End If
 						'.MaxLength = .MaxLength
 						'End If
 					#endif
