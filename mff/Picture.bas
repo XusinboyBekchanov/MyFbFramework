@@ -223,6 +223,7 @@ Namespace My.Sys.Forms
 					Canvas.Handle = Dc
 				End If
 				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
+					With This
 						Select Case Graphic.StretchImage
 						Case StretchMode.smNone
 							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, , , Graphic.Bitmap
