@@ -352,11 +352,7 @@ Namespace My.Sys.Drawing
 						GdipSetPenEndCap GdipPen, 2
 						GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
 						GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
-						'Draw the image of background
-						'Dim As GpImage Ptr pImage
-						'GdipCreateBitmapFromHBITMAP(ParentControl->gr, NULL, Cast(GpBitmap Ptr Ptr, @pImage))
-						'GdipDrawImageRectRect GdipGraphics, pImage, 0, 0, Width, Height, 0, 0, Width, Height, 2, NULL, NULL, NULL
-						'If pImage Then GdipDisposeImage pImage
+						GdipSetInterpolationMode(GdipGraphics, 7)
 					End If
 				End If
 			Else
@@ -685,10 +681,14 @@ Namespace My.Sys.Drawing
 			If GdipToken = NULL Then
 				.RoundRect Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX , ScaleY(nHeight) * imgScaleY
 			Else
-				If GdipBrush Then GdipFillRectangle(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - y) * imgScaleY + imgOffsetY)
-				GdipDrawRectangle(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - y) * imgScaleY + imgOffsetY) ', ScaleX(nWidth) * imgScaleX + imgOffsetX, ScaleY(nHeight) * imgScaleY + imgOffsetY
-				'gdipPathNew
-				
+				'Gdipmove_to Handle, x * imgScaleX + imgOffsetX - 0.5, (y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5
+				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, 180, 270)
+				GdipDrawLine(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY)
+				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, -90, 0)
+				GdipDrawLine(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY)
+				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x +  nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, 0, 90)
+				'GdipDrawLine(GdipGraphics, GdipPen, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight) * imgScaleY + imgOffsetY - 0.5)
+				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, 90, 180)
 			End If
 			
 		#endif
@@ -795,6 +795,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_WINAPI__
 			If GdipToken = NULL Then
+				.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
 				.AngleArc Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, StartAngle, SweepAngle
 			Else
 				GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, ScaleY(Radius) * imgScaleY, StartAngle, SweepAngle)
@@ -991,6 +992,8 @@ Namespace My.Sys.Drawing
 				StartupInput.GdiplusVersion = 1
 				GdiplusStartup(@token, @StartupInput, NULL)
 				If token = NULL Then Return False
+			Else
+				token = GdipToken
 			End If
 			GdipCreateBitmapFromHBITMAP(ImageSource, NULL, Cast(GpBitmap Ptr Ptr, @pImage1))
 			GdipCloneBitmapArea (x, y, nWidth, nHeight, 0, Cast(GpBitmap Ptr , pImage1) , Cast(GpBitmap Ptr Ptr, @pImage2))
@@ -1033,11 +1036,13 @@ Namespace My.Sys.Drawing
 				AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
 				DeleteDC(hMemDC) ' Delete Dc
 			Else
-				GdipCreateBitmapFromHBITMAP(Image, NULL, Cast(GpBitmap Ptr Ptr, @GdipImage))
 				If nWidth = -1 Then nWidth = Width
 				If nHeight = -1 Then nHeight = Height
-				GdipDrawImageRectRect GdipGraphics, GdipImage, x, y, nWidth, nHeight, 0, 0, nWidth, nHeight, 2, NULL, NULL, NULL
-				If GdipImage Then GdipDisposeImage GdipImage
+				Dim As GpImage Ptr pImage
+				'TODO can not draw the imange with Alpha
+				GdipCreateBitmapFromHBITMAP(Image, NULL, Cast(GpBitmap Ptr Ptr, @pImage))
+				GdipDrawImageRect GdipGraphics, pImage, x, y, nWidth, nHeight
+				If pImage Then GdipDisposeImage pImage
 			End If
 		#else
 			Print "The function is not ready in this OS."  & " DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)"
@@ -1377,7 +1382,6 @@ Namespace My.Sys.Drawing
 		Pen.OnCreate = @Pen_Create
 		Brush.Parent = @This
 		Brush.OnCreate = @Brush_Create
-		'Brush.Style = BrushStyles.bsClear
 		Brush.Style = BrushStyles.bsSolid
 		imgScaleX = 1
 		imgScaleY = 1
@@ -1393,7 +1397,6 @@ Namespace My.Sys.Drawing
 			If Handle Then ReleaseDevice
 			' // Shutdown Gdiplus
 			If GdipToken <> NULL Then
-				If GdipImage Then GdipDisposeImage GdipImage
 				If GdipPen Then GdipDeletePen(GdipPen)
 				If GdipBrush Then GdipDeleteBrush(GdipBrush)
 				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)

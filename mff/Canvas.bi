@@ -151,7 +151,6 @@ Public:
 		Handle  As HDC
 		GdipToken As ULONG_PTR
 		GdipGraphics As GpGraphics Ptr
-		GdipImage As GpImage Ptr
 		GdipBrush As GpBrush Ptr
 		GdipPen As GpPen Ptr
 		GdipFont As GpFont Ptr
@@ -207,12 +206,12 @@ Public:
 	Declare Sub LineTo(x As Double,y As Double)
 	Declare Sub Line(x As Double, y As Double, x1 As Double, y1 As Double, FillColorBK As Integer = -1, BF As String = "" )
 	Declare Sub Rectangle Overload(x As Double, y As Double, x1 As Double, y1 As Double)
-	Declare Sub Rectangle(R As RECT)
+	Declare Sub Rectangle(R As Rect)
 	Declare Sub Ellipse Overload(x As Double, y As Double, x1 As Double, y1 As Double)
-	Declare Sub Ellipse(R As RECT)
+	Declare Sub Ellipse(R As Rect)
 	Declare Sub Circle(x As Double, y As Double, Radial As Double, FillColorBK As Integer = -1)
 	Declare Sub RoundRect Overload(x As Double, y As Double, x1 As Double, y1 As Double, nWidth As Integer, nHeight As Integer)
-	Declare Sub RoundRect(R As RECT, nWidth As Integer, nHeight As Integer)
+	Declare Sub RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
 	Declare Sub Polygon(Points() As Point, Count As Long)
 	Declare Sub Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 	Declare Sub Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Double, yStart As Double, xEnd As Double = 0, yEnd As Double = 0)
