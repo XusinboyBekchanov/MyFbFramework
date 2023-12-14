@@ -123,7 +123,7 @@ Namespace My.Sys.Forms
 			Dim pt As ..Point, rc As ..Rect, t As Long, itd As Long
 			Select Case Message.Msg
 			Case CM_DRAWITEM
-				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString * 64
+				Dim lpdis As DRAWITEMSTRUCT Ptr, zTxt As WString Ptr
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
@@ -159,8 +159,10 @@ Namespace My.Sys.Forms
 							End If
 						End If
 						'DRAW TEXT
-						SendMessage Message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
-						TextOut lpdis->hDC, lpdis->rcItem.Left + ScaleX(18), lpdis->rcItem.Top + ScaleY(2), @zTxt, Len(zTxt)     'Draw text
+						WLet(zTxt, Item(lpdis->itemID))
+						'SendMessage Message.hWnd, LB_GETTEXT, lpdis->itemID, Cast(LPARAM, @zTxt)                  'Get text
+						TextOut lpdis->hDC, lpdis->rcItem.Left + ScaleX(18), lpdis->rcItem.Top + ScaleY(2), zTxt, Len(*zTxt)     'Draw text
+						WDeAllocate(zTxt)
 						'DRAW CHECKBOX
 						rc.Left   = lpdis->rcItem.Left + ScaleX(2): rc.Right = lpdis->rcItem.Left + ScaleX(15)               'Set cordinates
 						rc.Top    = lpdis->rcItem.Top + ScaleY(2)
