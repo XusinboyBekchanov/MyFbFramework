@@ -151,7 +151,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TextBox.LeftMargin() As Integer
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
+			If GTK_IS_TEXT_VIEW(widget) Then
 				FLeftMargin = gtk_text_view_get_left_margin(GTK_TEXT_VIEW(widget))
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -171,7 +171,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
-				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKEWORD(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
+				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKELPARAM(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
 			End If
 		#endif
 	End Property
@@ -198,7 +198,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
-				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKEWORD(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
+				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKELPARAM(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
 			End If
 		#endif
 	End Property
@@ -1175,10 +1175,10 @@ Namespace My.Sys.Forms
 						If .FMasked Then .Masked = True
 						If .FSelStart <> 0 OrElse .FSelEnd <> 0 Then .SetSel .FSelStart, .FSelEnd
 						If .FLeftMargin <> 0 Then
-							PostMessage(.FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKEWORD(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
+							SendMessage(.FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKELPARAM(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
 						End If
 						If .FRightMargin <> 0 Then
-							PostMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKEWORD(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
+							SendMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKELPARAM(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
 						End If
 						'.MaxLength = .MaxLength
 						'End If
