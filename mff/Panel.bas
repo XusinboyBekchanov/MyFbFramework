@@ -203,7 +203,7 @@ Namespace My.Sys.Forms
 				End If
 				If ShowCaption Then  Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
-				If DoubleBuffered Then
+				If DoubleBuffered AndAlso Not Canvas.UsingGdip Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)

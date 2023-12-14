@@ -223,7 +223,6 @@ Namespace My.Sys.Forms
 					Canvas.Handle = Dc
 				End If
 				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
-					'Print FBackColor
 					With This
 						Select Case Graphic.StretchImage
 						Case StretchMode.smNone
@@ -253,13 +252,8 @@ Namespace My.Sys.Forms
 					End With
 				End If
 				If ShowCaption Then  Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
-				If Canvas.UsingGdip Then
-					'BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
-					'DeleteObject(Bmp)
-					'DeleteDC(memDC)
-				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
-				If DoubleBuffered Then 'AndAlso (Not Canvas.UsingGdip)
+				If DoubleBuffered AndAlso Not Canvas.UsingGdip Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)

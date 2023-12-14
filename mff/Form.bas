@@ -1276,7 +1276,6 @@ Namespace My.Sys.Forms
 				End If
 				Canvas.HandleSetted = False
 				EndPaint Handle, @Ps
-				Return
 			Case WM_SIZE
 				xdpi = FDpiFormX
 				ydpi = FDpiFormY
