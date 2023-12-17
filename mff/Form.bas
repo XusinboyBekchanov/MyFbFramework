@@ -1741,6 +1741,11 @@ Namespace My.Sys.Forms
 					If gtk_widget_get_visible(widget) Then
 				#endif
 					If OnHide Then OnHide(*Designer, This)
+					If GTK_IS_WINDOW(widget) Then
+						If gtk_window_get_modal (GTK_WINDOW(widget)) Then
+							gtk_main_quit()
+						End If
+					End If
 					gtk_widget_hide(widget)
 				End If
 			End If

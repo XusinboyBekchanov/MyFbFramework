@@ -1338,7 +1338,7 @@ Namespace My.Sys.Drawing
 			#ifdef __USE_WINAPI__
 				If .Handle Then SelectObject(.Handle, Sender.Handle)
 			#elseif defined(__USE_GTK__)
-				pango_layout_set_font_description (.layout, Sender.Handle)
+				If .layout Then pango_layout_set_font_description (.layout, Sender.Handle)
 			#endif
 		End With
 	End Sub

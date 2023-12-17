@@ -86,8 +86,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnClick    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label)
-		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label)
+		'OnClick    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label)
+		'OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label)
 		#ifdef __USE_WINAPI__
 			OnDraw     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label, ByRef R As Rect, DC As HDC = 0)
 		#endif

@@ -320,8 +320,8 @@ Namespace My.Sys.ComponentModel
 		FTop    = ATop
 		FWidth  = AWidth
 		FHeight = AHeight
-		FWidth = max(FMinWidth, FWidth)
-		FHeight = max(FMinHeight, FHeight)
+		FWidth = Max(FMinWidth, FWidth)
+		FHeight = Max(FMinHeight, FHeight)
 		Move FLeft, FTop, FWidth, FHeight
 	End Sub
 	
@@ -330,9 +330,10 @@ Namespace My.Sys.ComponentModel
 			If Not (FDesignMode AndAlso (Designer = @This)) Then
 				#ifdef __USE_GTK__
 					If GTK_IS_WINDOW(widget) Then
-						gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-						FLeft = UnScaleX(FLeft)
-						FTop = UnScaleY(FTop)
+						Dim As gint iLeft, iTop
+						gtk_window_get_position(GTK_WINDOW(widget), @iLeft, @iTop)
+						FLeft = UnScaleX(iLeft)
+						FTop = UnScaleY(iTop)
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
@@ -386,9 +387,10 @@ Namespace My.Sys.ComponentModel
 				#ifdef __USE_GTK__
 					Dim ControlChanged As Boolean
 					If GTK_IS_WINDOW(widget) Then
-						gtk_window_get_position(GTK_WINDOW(widget), Cast(gint Ptr, @FLeft), Cast(gint Ptr, @FTop))
-						FLeft =  UnScaleX(FLeft)
-						FTop =  UnScaleY(FTop)
+						Dim As gint iLeft, iTop
+						gtk_window_get_position(GTK_WINDOW(widget), @iLeft, @iTop)
+						FLeft =  UnScaleX(iLeft)
+						FTop =  UnScaleY(iTop)
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
 						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then

@@ -576,7 +576,8 @@ Namespace My.Sys.Forms
 									Else
 										If PrevPart <> iCount - 1 Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 										PrevPart = iCount - 1
-										gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
+										Dim As gint iSelStart = SelStart, iSelEnd = SelEnd
+										gtk_editable_select_region(GTK_EDITABLE(widget), iSelStart, iSelEnd)
 										Exit Sub
 									End If
 								End If
@@ -592,14 +593,16 @@ Namespace My.Sys.Forms
 						If ToNext Then
 							If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 							PrevPart = iCount
-							gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
+							Dim As gint iSelStart = SelStart, iSelEnd = SelEnd
+							gtk_editable_select_region(GTK_EDITABLE(widget), iSelStart, iSelEnd)
 							Exit Sub
 						ElseIf Not ToEnd Then
 							If CharIndex <= iEnd Then
 								If Direction = 0 Then
 									If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 									PrevPart = iCount
-									gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
+									Dim As gint iSelStart = SelStart, iSelEnd = SelEnd
+									gtk_editable_select_region(GTK_EDITABLE(widget), iSelStart, iSelEnd)
 									Exit Sub
 								ElseIf Direction = 1 Then
 									ToNext = True
@@ -616,13 +619,15 @@ Namespace My.Sys.Forms
 			If ToEnd Then
 				If PrevPart <> iCount Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 				PrevPart = iCount
-				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
+				Dim As gint iSelStart = SelStart, iSelEnd = SelEnd
+				gtk_editable_select_region(GTK_EDITABLE(widget), iSelStart, iSelEnd)
 			Else
 				If PrevPart <> 1 Then SetDateTime(Val(PressedNumber), PrevDateTimePart, FDateTimePart)
 				PrevPart = 1
 				SelStart = FirstSelStart
 				SelEnd = FirstSelEnd
-				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @SelStart), *Cast(gint Ptr, @SelEnd))
+				Dim As gint iSelStart = SelStart, iSelEnd = SelEnd
+				gtk_editable_select_region(GTK_EDITABLE(widget), iSelStart, iSelEnd)
 			End If
 		End Sub
 		

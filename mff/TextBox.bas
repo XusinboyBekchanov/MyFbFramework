@@ -734,7 +734,10 @@ Namespace My.Sys.Forms
 					iSelStart = gtk_text_iter_get_offset(@_start)
 					iSelEnd = gtk_text_iter_get_offset(@_end)
 				Else
-					gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @iSelStart), Cast(gint Ptr, @iSelEnd))
+					Dim As gint gSelStart, gSelEnd
+					gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), @gSelStart, @gSelEnd)
+					iSelStart = gSelStart
+					iSelEnd = gSelEnd
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -758,7 +761,10 @@ Namespace My.Sys.Forms
 				iSelStartCol = StartCharIndex - gtk_text_iter_get_offset(@_startline)
 				iSelEndCol = EndCharIndex - gtk_text_iter_get_offset(@_endline)
 			Else
-				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @iSelStartCol), Cast(gint Ptr, @iSelEndCol))
+				Dim As gint gSelStartCol, gSelEndCol
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), @gSelStartCol, @gSelEndCol)
+				iSelStartCol = gSelStartCol
+				iSelEndCol = gSelEndCol
 				iSelStartRow = 0
 				iSelEndRow = 0
 			End If
@@ -783,7 +789,8 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_offset(buffer, @_end, iSelEnd)
 				gtk_text_buffer_select_range(buffer, @_start, @_end)
 			Else
-				gtk_editable_select_region(GTK_EDITABLE(widget), *Cast(gint Ptr, @iSelStart), *Cast(gint Ptr, @iSelEnd))
+				Dim As gint gSelStart = iSelStart, gSelEnd = iSelEnd
+				gtk_editable_select_region(GTK_EDITABLE(widget), gSelStart, gSelEnd)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -812,7 +819,8 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, gtk_text_iter_get_offset(@_endline) + iSelEndCol)
 				gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 			ElseIf iSelStartRow = 0 Then
-				gtk_editable_select_region(GTK_EDITABLE(widget), *Cast(gint Ptr, @iSelStartCol), *Cast(gint Ptr, @iSelEndCol))
+				Dim As gint gSelStartCol = iSelStartCol, gSelEndCol = iSelEndCol
+				gtk_editable_select_region(GTK_EDITABLE(widget), gSelStartCol, gSelEndCol)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -988,10 +996,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TextBox.SelLength As Integer
-		Dim As Integer LStart,LEnd
+		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
 			If GTK_IS_EDITABLE(widget) Then
-				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
+				Dim As gint gStart, gEnd
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), @gStart, @gEnd)
+				LStart = gStart
+				LEnd = gEnd
 			Else
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
@@ -1010,9 +1021,10 @@ Namespace My.Sys.Forms
 		FSelLength = Value
 		#ifdef __USE_GTK__
 			If GTK_IS_EDITABLE(widget) Then
-				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
-				FEnd = LStart + Value
-				gtk_editable_select_region(gtk_editable(widget), *Cast(gint Ptr, @LStart), *Cast(gint Ptr, @LEnd))
+				Dim As gint gStart, gEnd
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), @gStart, @gEnd)
+				gEnd = gStart + Value
+				gtk_editable_select_region(GTK_EDITABLE(widget), gStart, gEnd)
 			Else
 				Dim As GtkTextIter _start, _end, _endnew
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
@@ -1034,7 +1046,9 @@ Namespace My.Sys.Forms
 		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
 			If GTK_IS_EDITABLE(widget) Then
-				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
+				Dim As gint gStart, gEnd
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), @gStart, @gEnd)
+				LEnd = gEnd
 			Else
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
@@ -1052,8 +1066,10 @@ Namespace My.Sys.Forms
 		FSelEnd = Value
 		#ifdef __USE_GTK__
 			If GTK_IS_EDITABLE(widget) Then
-				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
-				gtk_editable_select_region(GTK_EDITABLE(widget), *Cast(gint Ptr, @LStart), *Cast(gint Ptr, @LEnd))
+				Dim As gint gStart, gEnd
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), @gStart, @gEnd)
+				gEnd = FSelEnd
+				gtk_editable_select_region(GTK_EDITABLE(widget), gStart, gEnd)
 			Else
 				Dim As GtkTextIter _start, _end, _endnew
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
@@ -1071,8 +1087,9 @@ Namespace My.Sys.Forms
 		Dim As Integer LStart, LEnd
 		#ifdef __USE_GTK__
 			If GTK_IS_EDITABLE(widget) Then
-				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), Cast(gint Ptr, @LStart), Cast(gint Ptr, @LEnd))
-				WLet(FSelText, WStr(*gtk_editable_get_chars(GTK_EDITABLE(widget), LStart, FSelEnd)))
+				Dim As gint gStart, gEnd
+				gtk_editable_get_selection_bounds(GTK_EDITABLE(widget), @gStart, @gEnd)
+				WLet(FSelText, WStr(*gtk_editable_get_chars(GTK_EDITABLE(widget), gStart, gEnd)))
 			Else
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)

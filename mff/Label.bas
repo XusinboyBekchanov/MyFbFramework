@@ -318,12 +318,12 @@ Namespace My.Sys.Forms
 					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 				End If
 			Case CM_COMMAND
-				If Message.wParamHi = STN_CLICKED Then
-					If OnClick Then OnClick(*Designer, This)
-				End If
-				If Message.wParamHi = STN_DBLCLK Then
-					If OnDblClick Then OnDblClick(*Designer, This)
-				End If
+				'If Message.wParamHi = STN_CLICKED Then
+				'	If OnClick Then OnClick(*Designer, This)
+				'End If
+				'If Message.wParamHi = STN_DBLCLK Then
+				'	If OnDblClick Then OnDblClick(*Designer, This)
+				'End If
 			Case WM_WINDOWPOSCHANGING
 				If FAutoSize Then
 					Dim Size As My.Sys.Drawing.Size

@@ -262,12 +262,12 @@ Namespace My.Sys.Forms
 				EndPaint Handle, @Ps
 				
 			Case CM_COMMAND
-				If Message.wParamHi = STN_CLICKED Then
-					If OnClick Then OnClick(*Designer, This)
-				End If
-				If Message.wParamHi = STN_DBLCLK Then
-					If OnDblClick Then OnDblClick(*Designer, This)
-				End If
+				'If Message.wParamHi = STN_CLICKED Then
+				'	If OnClick Then OnClick(*Designer, This)
+				'End If
+				'If Message.wParamHi = STN_DBLCLK Then
+				'	If OnDblClick Then OnDblClick(*Designer, This)
+				'End If
 			Case WM_SIZE
 				InvalidateRect(Handle, NULL, True)
 			Case CM_DRAWITEM
