@@ -183,6 +183,8 @@ Namespace My.Sys.Forms
 			FMouseInClient As Boolean
 			FOwner             As Control Ptr
 			FDisposed As Boolean
+			FHorizontalSpacing As Integer
+			FVerticalSpacing As Integer
 			#ifdef __USE_GTK__
 				FParentWidget As GtkWidget Ptr
 				FClient As GtkWidget Ptr

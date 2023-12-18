@@ -2531,7 +2531,7 @@ Namespace My.Sys.Forms
 				For i = 0 To TopCount -1
 					With *ListTop[i]
 						If .FVisible Then
-							tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
+							tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom + IIf(i = 0, 0, FVerticalSpacing)
 							#ifdef __USE_GTK__
 								If GTK_IS_BOX(.widget) Then
 									.RequestAlign rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height, True, bWithoutControl
@@ -2545,7 +2545,7 @@ Namespace My.Sys.Forms
 				For i = 0 To BottomCount -1
 					With *ListBottom[i]
 						If .FVisible Then
-							bTop -= .ExtraMargins.Top + .Height + .ExtraMargins.Bottom
+							bTop -= .ExtraMargins.Top + .Height + .ExtraMargins.Bottom - IIf(i = 0, 0, FVerticalSpacing)
 							#ifdef __USE_GTK__
 								If GTK_IS_BOX(.widget) Then
 									.RequestAlign rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height, True, bWithoutControl
@@ -2559,7 +2559,7 @@ Namespace My.Sys.Forms
 				For i = 0 To LeftCount -1
 					With *ListLeft[i]
 						If .FVisible Then
-							lLeft += .ExtraMargins.Left + .Width + .ExtraMargins.Right
+							lLeft += .ExtraMargins.Left + .Width + .ExtraMargins.Right + IIf(i = 0, 0, FHorizontalSpacing)
 							#ifdef __USE_GTK__
 								If GTK_IS_BOX(.widget) Then
 									.RequestAlign .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom, True, bWithoutControl
@@ -2573,7 +2573,7 @@ Namespace My.Sys.Forms
 				For i = 0 To RightCount -1
 					With *ListRight[i]
 						If .FVisible Then
-							rLeft -= .ExtraMargins.Left + .Width + .ExtraMargins.Right
+							rLeft -= .ExtraMargins.Left + .Width + .ExtraMargins.Right - IIf(i = 0, 0, FHorizontalSpacing)
 							#ifdef __USE_GTK__
 								If GTK_IS_BOX(.widget) Then
 									.RequestAlign .Width, bTop - tTop - .ExtraMargins.Top - .ExtraMargins.Bottom, True, bWithoutControl

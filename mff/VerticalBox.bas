@@ -10,6 +10,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function VerticalBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "spacing": Return @FVerticalSpacing
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -25,6 +26,7 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "spacing": Spacing = QInteger(Value)
 				Case "tabindex": TabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
@@ -32,6 +34,19 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 	#endif
+	
+	Private Property VerticalBox.Spacing As Integer
+		Return FVerticalSpacing
+	End Property
+	
+	Private Property VerticalBox.Spacing(Value As Integer)
+		FVerticalSpacing = Value
+		#ifdef __USE_GTK__
+			gtk_box_set_spacing(GTK_BOX(widget), FHorizontalSpacing)
+		#else
+			RequestAlign
+		#endif
+	End Property
 	
 	Private Property VerticalBox.TabIndex As Integer
 		Return FTabIndex
