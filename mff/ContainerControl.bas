@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
 					fixedwidget = gtk_fixed_new()
 					#ifdef __USE_GTK4__
-						gtk_container_add(GTK_container(widget), fixedwidget)
+						gtk_container_add(GTK_CONTAINER(widget), fixedwidget)
 					#else
 						gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), fixedwidget)
 					#endif

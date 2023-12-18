@@ -73,7 +73,7 @@ Namespace My.Sys.Drawing
 				Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
 			#elseif defined(__USE_WINAPI__)
 				If Handle Then DeleteObject(Handle)
-				Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation * 10, FOrientation * 10, FBolds(Min(1, _Abs(FBold))), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
+				Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation * 10, FOrientation * 10, FBolds(min(1, _Abs(FBold))), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
 			#endif
 			If Handle Then
 				If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component Then

@@ -141,8 +141,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub TextBox.ScrollToCaret()
 		#ifdef __USE_GTK__
-			If gtk_is_text_view(widget) Then
-				gtk_text_view_scroll_to_mark(gtk_text_view(widget), gtk_text_buffer_get_insert(gtk_text_view_get_buffer(gtk_text_view(widget))), 0.0, True, 0.5, 0.5)
+			If GTK_IS_TEXT_VIEW(widget) Then
+				gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), gtk_text_buffer_get_insert(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))), 0.0, True, 0.5, 0.5)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			Perform EM_SCROLLCARET, 0, 0

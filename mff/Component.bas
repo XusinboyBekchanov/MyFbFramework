@@ -258,7 +258,7 @@ Namespace My.Sys.ComponentModel
 					iHeight = ScaleY(iHeight)
 					If GTK_IS_WIDGET(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
-						gtk_window_resize(GTK_WINDOW(widget), max(0, iWidth), max(0, iHeight - 20))
+						gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
 						'gtk_window_resize(GTK_WINDOW(widget), Max(1, iWidth), Max(1, iHeight))
 						'RequestAlign iWidth, iHeight
 					Else
@@ -278,7 +278,7 @@ Namespace My.Sys.ComponentModel
 						End If
 						'gtk_widget_set_size_allocation(widget, @allocation)
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
-						gtk_widget_set_size_request(CtrlWidget, max(0, iWidth), max(0, iHeight))
+						gtk_widget_set_size_request(CtrlWidget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 						'gtk_widget_queue_draw(widget)
@@ -494,7 +494,7 @@ Namespace My.Sys.ComponentModel
 		End Property
 		
 		Private Property Component.Width(Value As Integer)
-			FWidth = max(FMinWidth, Value)
+			FWidth = Max(FMinWidth, Value)
 			Move This.Left, This.Top, FWidth, Height
 		End Property
 	#endif
@@ -506,7 +506,7 @@ Namespace My.Sys.ComponentModel
 					If GTK_IS_WINDOW(widget) Then
 						Dim As gint iWidth, iHeight
 						gtk_window_get_size(GTK_WINDOW(widget), @iWidth, @iHeight)
-						FHeight = UnScaleY(iHeight)
+						FHeight = UnScaleY(iHeight + 20)
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
 						If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
@@ -549,7 +549,7 @@ Namespace My.Sys.ComponentModel
 		End Property
 		
 		Private Property Component.Height(Value As Integer)
-			FHeight = max(FMinHeight, Value)
+			FHeight = Max(FMinHeight, Value)
 			Move This.Left, This.Top, This.Width, FHeight
 		End Property
 	#endif
