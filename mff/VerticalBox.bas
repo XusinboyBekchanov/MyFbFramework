@@ -42,7 +42,7 @@ Namespace My.Sys.Forms
 	Private Property VerticalBox.Spacing(Value As Integer)
 		FVerticalSpacing = Value
 		#ifdef __USE_GTK__
-			gtk_box_set_spacing(GTK_BOX(widget), FHorizontalSpacing)
+			gtk_box_set_spacing(GTK_BOX(widget), FVerticalSpacing)
 		#else
 			RequestAlign
 		#endif
