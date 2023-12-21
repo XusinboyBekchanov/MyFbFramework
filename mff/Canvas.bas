@@ -96,7 +96,7 @@ Namespace My.Sys.Drawing
 				Brush.HatchStyle = Value
 				If GdipToken <> NULL Then
 					If GdipBrush Then GdipDeleteBrush(GdipBrush)
-					GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
+					GdipCreateHatchBrush(GdipHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
 				End If
 			#endif
 		End If
@@ -116,7 +116,7 @@ Namespace My.Sys.Drawing
 				If GdipBrush Then GdipDeleteBrush(GdipBrush)
 				Select Case FFillStyles
 				Case BrushStyles.bsHatch
-					GdipCreateHatchBrush(GpHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
+					GdipCreateHatchBrush(GdipHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
 				Case BrushStyles.bsPattern
 					GdipCreateLineBrush(@GpLineGradientPara.PointFrom, @GpLineGradientPara.PointTo, RGBtoARGB(GpLineGradientPara.ColorStart, FillOpacity), RGBtoARGB(GpLineGradientPara.ColorEnd, FillOpacity),  GpLineGradientPara.WrapModes, Cast(GpLineGradient Ptr Ptr, @GdipBrush))
 					Print "GdipBrush=" & GdipBrush

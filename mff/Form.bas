@@ -1196,31 +1196,11 @@ Namespace My.Sys.Forms
 					msg.Result = True
 					Return
 				End If
-			Case WM_PAINT ', WM_ERASEBKGND, WM_CREATE
+			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					If Not FDarkMode Then
-						SetDark True
-						'FDarkMode = True
-						'RefreshTitleBarThemeColor(FHandle)
-						'If FDefaultBackColor = FBackColor Then
-						'	Brush.Handle = hbrBkgnd
-						'End If
-						'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						'RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
-					End If
+					If Not FDarkMode Then SetDark True
 				Else
-					If FDarkMode Then
-						SetDark False
-						'FDarkMode = False
-						'RefreshTitleBarThemeColor(FHandle)
-						'If FBackColor = -1 Then
-						'	Brush.Handle = 0
-						'Else
-						'	Brush.Color = FBackColor
-						'End If
-						'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						'RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
-					End If
+					If FDarkMode Then SetDark False
 				End If
 				Dim As HDC Dc, memDC
 				Dim As PAINTSTRUCT Ps
@@ -1245,14 +1225,14 @@ Namespace My.Sys.Forms
 						Case StretchMode.smNone
 							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, , , Graphic.Bitmap
 						Case StretchMode.smStretch
-							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, ScaleX(.Width) * Graphic.ScaleFactor, ScaleY(.Height) * Graphic.ScaleFactor, Graphic.Bitmap
+							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, ScaleX(.ClientWidth) * Graphic.ScaleFactor, ScaleY(.Height) * Graphic.ScaleFactor, Graphic.Bitmap
 						Case Else 'StretchMode.smStretchProportional
 							Dim As Double imgWidth = Graphic.Bitmap.Width
 							Dim As Double imgHeight = Graphic.Bitmap.Height
-							Dim As Double PicBoxWidth = ScaleX(This.Width) * Graphic.ScaleFactor
-							Dim As Double PicBoxHeight = ScaleY(This.Height) * Graphic.ScaleFactor
+							Dim As Double PicBoxWidth = ScaleX(This.ClientWidth) * Graphic.ScaleFactor
+							Dim As Double PicBoxHeight = ScaleY(This.ClientHeight) * Graphic.ScaleFactor
 							Dim As Double img_ratio = imgWidth / imgHeight
-							Dim As Double PicBox_ratio =  This.Width / This.Height
+							Dim As Double PicBox_ratio =  PicBoxWidth / PicBoxHeight
 							If (PicBox_ratio >= img_ratio) Then
 								imgHeight = PicBoxHeight
 								imgWidth = imgHeight *img_ratio

@@ -154,7 +154,7 @@ Public:
 		GdipBrush As GpBrush Ptr
 		GdipPen As GpPen Ptr
 		GdipFont As GpFont Ptr
-		GpHatchStyles As GpHatchStyle = HatchStyleCross
+		GdipHatchStyles As GpHatchStyle = HatchStyleCross
 		GpLineGradientPara As GpLineGradientParameter
 	#elseif defined(__USE_JNI__)
 		Handle  As jobject

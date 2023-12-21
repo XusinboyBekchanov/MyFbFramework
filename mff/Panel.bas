@@ -135,36 +135,27 @@ Namespace My.Sys.Forms
 				Else
 					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 				End If
-			Case WM_PAINT ', WM_ERASEBKGND, WM_CREATE
+			Case WM_PAINT 
 				Dim As HDC Dc, memDC
+				Dim As HBITMAP MemBmp
 				Dim As PAINTSTRUCT Ps
-				Dim As HBITMAP Bmp
 				Dim As ..Rect R
 				GetClientRect Handle, @R
 				Dc = BeginPaint(Handle, @Ps)
+				If Dc = 0 Then
+					EndPaint This.Handle, @Ps
+					Message.Result = 0
+					Return
+				End If
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					If Not FDarkMode Then
-						SetDark True
-						'FDarkMode = True
-						'Brush.Handle = hbrBkgnd
-						'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-					End If
+					If Not FDarkMode Then SetDark True
 				Else
-					If FDarkMode Then
-						SetDark False
-						'FDarkMode = False
-						'If FBackColor = -1 Then
-						'	Brush.Handle = 0
-						'Else
-						'	Brush.Color = FBackColor
-						'End If
-						'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-					End If
+					If FDarkMode Then SetDark False
 				End If
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
-					Bmp   = CreateCompatibleBitmap(Dc, R.Right - R.Left, R.Bottom - R.Top)
-					SelectObject(memDC, Bmp)
+					MemBmp   = CreateCompatibleBitmap(Dc, R.Right - R.Left, R.Bottom - R.Top)
+					SelectObject(memDC, MemBmp)
 					FillRect memDC, @R, Brush.Handle
 					Canvas.Handle = memDC
 				Else
@@ -182,10 +173,10 @@ Namespace My.Sys.Forms
 						Case Else 'StretchMode.smStretchProportional
 							Dim As Double imgWidth = Graphic.Bitmap.Width
 							Dim As Double imgHeight = Graphic.Bitmap.Height
-							Dim As Double PicBoxWidth = ScaleX(This.Width) * Graphic.ScaleFactor
-							Dim As Double PicBoxHeight = ScaleY(This.Height) * Graphic.ScaleFactor
+							Dim As Double PicBoxWidth = ScaleX(.Width) * Graphic.ScaleFactor
+							Dim As Double PicBoxHeight = ScaleY(.Height) * Graphic.ScaleFactor
 							Dim As Double img_ratio = imgWidth / imgHeight
-							Dim As Double PicBox_ratio =  This.Width / This.Height
+							Dim As Double PicBox_ratio =  PicBoxWidth / PicBoxHeight
 							If (PicBox_ratio >= img_ratio) Then
 								imgHeight = PicBoxHeight
 								imgWidth = imgHeight *img_ratio
@@ -203,9 +194,9 @@ Namespace My.Sys.Forms
 				End If
 				If ShowCaption Then  Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
-				If DoubleBuffered AndAlso Not Canvas.UsingGdip Then
+				If DoubleBuffered Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
-					DeleteObject(Bmp)
+					DeleteObject(MemBmp)
 					DeleteDC(memDC)
 				End If
 				Canvas.HandleSetted = False
@@ -219,6 +210,8 @@ Namespace My.Sys.Forms
 						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
 					End If
 				EndPaint Handle, @Ps
+				Message.Result = 0
+				Return
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(*Designer, This)
