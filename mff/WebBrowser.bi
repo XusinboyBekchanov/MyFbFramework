@@ -32,10 +32,13 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WEBVIEW2__
 				Dim As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr envHandler
 				Dim As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr completedHandler
+				Dim As ICoreWebView2ExecuteScriptCompletedHandler Ptr ExecuteScriptCompletedHandler
 				Dim As ICoreWebView2Controller Ptr webviewController = NULL
 				Dim As ICoreWebView2 Ptr webviewWindow = NULL
-				Dim As BOOL bEnvCreated = False
+				Dim As BOOL bEnvCreated = False, bExecuteScriptCompletedHandlerCreated = False
 				Dim As ULong HandlerRefCount = 0
+				Dim As WString Ptr ScriptResult
+				Dim As ULong ExecuteScriptCompletedHandlerRefCount = 0
 				Declare Static Function EnvironmentHandlerAddRef stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Declare Static Function EnvironmentHandlerRelease stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Declare Static Function EnvironmentHandlerQueryInterface stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
@@ -44,6 +47,10 @@ Namespace My.Sys.Forms
 				Declare Static Function ControllerHandlerRelease stdcall (This As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As culong
 				Declare Static Function ControllerHandlerQueryInterface stdcall (This As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
 				Declare Static Function ControllerHandlerInvoke stdcall (This As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr, result As HRESULT, createdController As ICoreWebView2Controller Ptr) As HRESULT
+				Declare Static Function ExecuteScriptCompletedHandlerAddRef stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr) As culong
+				Declare Static Function ExecuteScriptCompletedHandlerRelease stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr) As culong
+				Declare Static Function ExecuteScriptCompletedHandlerQueryInterface stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+				Declare Static Function ExecuteScriptCompletedHandlerInvoke stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr, errorCode As HRESULT, resultObjectAsJson As LPCWSTR) As HRESULT
 			#else
 				hWebBrowser As HINSTANCE
 				g_IWebBrowser As IWebBrowser2Vtbl Ptr
@@ -69,7 +76,7 @@ Namespace My.Sys.Forms
 		Declare Function GetURL() As UString
 		Declare Function State() As Integer
 		Declare Sub Stop()
-		Declare Function GetBody(ByVal flag As Long = 0) As String
+		Declare Function GetBody(ByVal flag As Long = 0) As UString
 		Declare Sub SetBody(ByRef tText As WString, ByVal flag As Long = 0)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor

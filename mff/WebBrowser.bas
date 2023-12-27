@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Function WebBrowser.GetBody(ByVal flag As Long = 0) As String
+	Private Function WebBrowser.GetBody(ByVal flag As Long = 0) As UString
 		#ifdef __USE_GTK__
 			#ifndef __USE_GTK3__
 				Dim As String Ptr bBuf = webkit_web_resource_get_data(webkit_web_view_get_main_resource(widget))
@@ -196,11 +196,25 @@ Namespace My.Sys.Forms
 		#else
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
-					'Dim tText As WString Ptr
-					'webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
-					'Function = *tText
-					Function = ""
-					'_Deallocate(tText)
+					Dim pJavaScript As WString Ptr
+					Select Case flag
+					Case 0
+						WLet(pJavaScript, "document.body.innerHTML")
+					Case 1
+						WLet(pJavaScript, "document.body.outerHTML")
+					Case 2
+						WLet(pJavaScript, "document.body.innerText")
+					Case 3
+						WLet(pJavaScript, "document.body.outerText")
+					End Select
+					WDeAllocate(ScriptResult)
+					ScriptResult = 0
+					webviewWindow->lpVtbl->ExecuteScript(webviewWindow, pJavaScript, ExecuteScriptCompletedHandler)
+					Do While ScriptResult = 0
+						App.DoEvents
+					Loop
+					_Deallocate(pJavaScript)
+					Return *ScriptResult
 				Else
 					Print "WebView2 window has not been created. Install the WebView2 runtime."
 				End If
@@ -443,6 +457,53 @@ Namespace My.Sys.Forms
 				End If
 				Return S_OK
 			End Function
+			
+			Function WebBrowser.ExecuteScriptCompletedHandlerAddRef stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr) As culong
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->ExecuteScriptCompletedHandlerRefCount += 1
+					Return WebB->ExecuteScriptCompletedHandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.ExecuteScriptCompletedHandlerRelease stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr) As culong
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->ExecuteScriptCompletedHandlerRefCount -= 1
+					If (WebB->ExecuteScriptCompletedHandlerRefCount = 0) Then
+						If (WebB->ExecuteScriptCompletedHandler) Then
+						'	free(WebB->ExecuteScriptCompletedHandler->lpVtbl)
+						'	free(WebB->ExecuteScriptCompletedHandler)
+						End If
+					End If
+					Return WebB->ExecuteScriptCompletedHandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.ExecuteScriptCompletedHandlerQueryInterface stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					*ppvObject = This_
+					ExecuteScriptCompletedHandlerAddRef(This_)
+				End If
+				Return S_OK
+			End Function
+			
+			Function WebBrowser.ExecuteScriptCompletedHandlerInvoke stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr, errorCode As HRESULT, resultObjectAsJson As LPCWSTR) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					'If (Not WebB->bExecuteScriptCompletedHandlerCreated) Then
+					If WebB->ScriptResult = 0 Then
+						WebB->bExecuteScriptCompletedHandlerCreated = True
+						WLet(WebB->ScriptResult, *Cast(WString Ptr, resultObjectAsJson))
+					End If
+				End If
+				Return S_OK
+			End Function
 		#endif
 		
 		Private Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
@@ -510,6 +571,38 @@ Namespace My.Sys.Forms
 						.envHandler->lpVtbl->QueryInterface = @EnvironmentHandlerQueryInterface
 						.envHandler->lpVtbl->Invoke = @EnvironmentHandlerInvoke
 						
+						.ExecuteScriptCompletedHandler = malloc(SizeOf(ICoreWebView2ExecuteScriptCompletedHandler))
+						If (.ExecuteScriptCompletedHandler = 0) Then
+							'printf(
+							'    "%s:%d: %s (0x%x).\n",
+							'    __FILE__,
+							'    __LINE__,
+							'    "Cannot allocate ICoreWebView2CreateCoreWebView2ControllerCompletedHandler",
+							'    GetLastError()
+							');
+							'ch = _getch();
+							Print GetLastError()
+							Return 'GetLastError()
+						End If
+						Handles.Add .ExecuteScriptCompletedHandler, @Sender
+						.ExecuteScriptCompletedHandler->lpVtbl = malloc(SizeOf(ICoreWebView2ExecuteScriptCompletedHandlerVtbl))
+						If (.ExecuteScriptCompletedHandler->lpVtbl = 0) Then
+							'error_printf(
+							'    "%s:%d: %s (0x%x).\n",
+							'    __FILE__,
+							'    __LINE__,
+							'    "Cannot allocate ICoreWebView2CreateCoreWebView2ControllerCompletedHandlerVtbl",
+							'    GetLastError()
+							');
+							'ch = _getch();
+							Print GetLastError()
+							Return 'GetLastError()
+						End If
+						.ExecuteScriptCompletedHandler->lpVtbl->AddRef = @ExecuteScriptCompletedHandlerAddRef
+						.ExecuteScriptCompletedHandler->lpVtbl->Release = @ExecuteScriptCompletedHandlerRelease
+						.ExecuteScriptCompletedHandler->lpVtbl->QueryInterface = @ExecuteScriptCompletedHandlerQueryInterface
+						.ExecuteScriptCompletedHandler->lpVtbl->Invoke = @ExecuteScriptCompletedHandlerInvoke
+					
 						UpdateWindow(.FHandle)
 						
 						CreateCoreWebView2Environment(.envHandler)
