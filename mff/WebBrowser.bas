@@ -260,10 +260,11 @@ Namespace My.Sys.Forms
 			'#endif
 		#else
 			#ifdef __USE_WEBVIEW2__
-				'Dim tText As WString Ptr
-				'webviewWindow->lpVtbl->get_Source(webviewWindow, @tText)
-				'Function = *tText
-				'_Deallocate(tText)
+				If webviewWindow Then
+					webviewWindow->lpVtbl->NavigateToString(webviewWindow, @tText)
+				Else
+					Print "WebView2 window has not been created. Install the WebView2 runtime."
+				End If
 			#else
 				Dim As IHTMLDocument2 Ptr htmldoc2
 				Dim As IDispatch Ptr doc
