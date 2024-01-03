@@ -16,44 +16,48 @@ Namespace My.Sys.ComponentModel
 	Private Function PrintDocumentPages.Add(Index As Integer = -1) As PrintDocumentPage Ptr
 		Dim As PrintDocumentPage Ptr NewPage = _New(PrintDocumentPage)
 		If Index > -1 Then
-			Base.Insert Index, NewPage
+			FItems.Insert Index, NewPage
 		Else
-			Base.Add NewPage
+			FItems.Add NewPage
 		End If
 		Return NewPage
 	End Function
 	
 	Private Sub PrintDocumentPages.Clear
 		For i As Integer = Count - 1 To 0 Step -1
-			_Delete(Cast(PrintDocumentPage Ptr, Base.Items[i]))
+			_Delete(Cast(PrintDocumentPage Ptr, FItems.Items[i]))
 		Next i
-		Base.Clear
+		FItems.Clear
 	End Sub
+	
+	Private Property PrintDocumentPages.Count As Integer
+		Return FItems.Count
+	End Property
 	
 	Private Function PrintDocumentPages.Contains(PageItem As PrintDocumentPage Ptr) As Boolean
 		Return IndexOf(PageItem) <> -1
 	End Function
 	
 	Private Function PrintDocumentPages.IndexOf(PageItem As PrintDocumentPage Ptr) As Integer
-		Return Base.IndexOf(PageItem)
+		Return FItems.IndexOf(PageItem)
 	End Function
 	
 	Private Function PrintDocumentPages.Insert(Index As Integer, PageItem As PrintDocumentPage Ptr) As PrintDocumentPage Ptr
-		Base.Insert(Index, PageItem)
+		FItems.Insert(Index, PageItem)
 		Return PageItem
 	End Function
 	
 	Private Property PrintDocumentPages.Item(Index As Integer) As PrintDocumentPage Ptr
-		Return Cast(PrintDocumentPage Ptr, Base.Item(Index))
+		Return Cast(PrintDocumentPage Ptr, FItems.Item(Index))
 	End Property
 	
 	Private Property PrintDocumentPages.Item(Index As Integer, Value As PrintDocumentPage Ptr)
-		Base.Item(Index) = Value
+		FItems.Item(Index) = Value
 	End Property
 	
 	Private Sub PrintDocumentPages.Remove(Index As Integer)
 		_Delete(Item(Index))
-		Base.Remove Index
+		FItems.Remove Index
 	End Sub
 	
 	Private Constructor PrintDocumentPages

@@ -16,11 +16,14 @@ Namespace My.Sys.ComponentModel
 		Declare Destructor
 	End Type
 	
-	Type PrintDocumentPages Extends List
+	Type PrintDocumentPages Extends Object
+	Private:
+		FItems As List
 	Public:
 		Declare Function Add(Index As Integer = -1) As PrintDocumentPage Ptr
 		Declare Sub Clear
 		Declare Function Contains(PageItem As PrintDocumentPage Ptr) As Boolean
+		Declare Property Count As Integer
 		Declare Function IndexOf(PageItem As PrintDocumentPage Ptr) As Integer
 		Declare Function Insert(Index As Integer, PageItem As PrintDocumentPage Ptr) As PrintDocumentPage Ptr
 		Declare Property Item(Index As Integer) As PrintDocumentPage Ptr
