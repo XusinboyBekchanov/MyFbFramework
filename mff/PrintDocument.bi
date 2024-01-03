@@ -31,7 +31,9 @@ Namespace My.Sys.ComponentModel
 	
 	Type PrintDocument Extends Component
 	Private:
-		Declare Sub Paint(hwnd As HWND, hdcDestination As HDC, ByVal PageNumber As Integer)
+		#ifdef __USE_WINAPI__
+			Declare Sub Paint(hwnd As HWND, hdcDestination As HDC, ByVal PageNumber As Integer)
+		#endif
 	Public:
 		DocumentName As UString
 		Pages As PrintDocumentPages
