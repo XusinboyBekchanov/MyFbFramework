@@ -7,6 +7,7 @@
 #include once "PrintPreviewControl.bi"
 #include once "ComboBoxEx.bi"
 #include once "TextBox.bi"
+#include once "PrintDialog.bi"
 
 Using My.Sys.Forms
 
@@ -36,6 +37,8 @@ Private:
 	Dim As PrintPreviewControl pnlPrintPreviewControl
 	Dim As ComboBoxEx cboOrientation, cboSize
 	Dim As TextBox txtPageNumber
+	Dim As PrintDialog pdPrint
+	
 Public:
 	Declare Property Caption ByRef As WString
 	Declare Property Caption(ByRef Value As WString)

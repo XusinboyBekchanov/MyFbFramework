@@ -95,7 +95,7 @@ Private Sub PrintPreviewDialog.Form_Show(ByRef Sender As Form)
 End Sub
 
 Private Sub PrintPreviewDialog.cmdPrint_Click(ByRef Sender As Control)
-	If pnlPrintPreviewControl.Document->PrinterSettings.ChoosePrinter <> "" Then
+	If pdPrint.Execute Then
 		pnlPrintPreviewControl.Document->Print
 	End If
 End Sub
