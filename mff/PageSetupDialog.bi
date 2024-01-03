@@ -9,6 +9,7 @@
 '################################################################################
 
 #include once "Dialogs.bi"
+#include once "Printer.bi"
 
 'Enables users to change page-related print settings, including margins and paper orientation.
 Private Type PageSetupDialog Extends Dialog
@@ -25,8 +26,10 @@ Public:
 	Caption As String       = ""
 	
 	Metric As Integer       = True                      ' mm (True) or inches?
+	Orientation As PrinterOrientation
 	PaperWidth As Single                                ' Converted to mm: ptPaperSize AS POINT (in 100ths of mm)
 	PaperHeight As Single
+	PaperSize As PrinterPaperSize
 	MinLeftMargin As Single                             '|
 	MinTopMargin As Single                              '| rtMinMargin AS RECT
 	MinRightMargin As Single                            '| Converted to mm

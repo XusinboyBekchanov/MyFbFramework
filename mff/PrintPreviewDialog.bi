@@ -1,35 +1,48 @@
 ﻿#include once "Dialogs.bi"
+#include once "Form.bi"
+#include once "HorizontalBox.bi"
+#include once "CommandButton.bi"
+#include once "TrackBar.bi"
+#include once "Label.bi"
+#include once "PrintPreviewControl.bi"
+#include once "ComboBoxEx.bi"
+#include once "TextBox.bi"
+
+Using My.Sys.Forms
 
 'Represents the raw preview part of print previewing from an application.
 Private Type PrintPreviewDialog Extends Dialog
 Private:
-	xLeft As Integer        = -1                        ' Default to center
-	xTop As Integer         = -1
-	xWidth As Integer                                    ' Not used
-	xHeight As Integer                                   ' Not used
+	Declare Sub lblMinus_Click(ByRef Sender As Control)
+	Declare Sub lblPlus_Click(ByRef Sender As Control)
+	Declare Sub lblPrevious_Click(ByRef Sender As Control)
+	Declare Sub lblNext_Click(ByRef Sender As Control)
+	Declare Sub trbPercent_Change(ByRef Sender As TrackBar, Position As Integer)
+	Declare Sub cboSize_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	Declare Sub cmdFitToWindow_Click(ByRef Sender As Control)
+	Declare Sub cboOrientation_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	Declare Sub Form_Show(ByRef Sender As Form)
+	Declare Sub cmdPrint_Click(ByRef Sender As Control)
+	Declare Sub txtPageNumber_Activate(ByRef Sender As TextBox)
+	Declare Sub pnlPrintPreviewControl_CurrentPageChanged(ByRef Sender As PrintPreviewControl)
+	Declare Sub pnlPrintPreviewControl_Zoom(ByRef Sender As PrintPreviewControl)
+	Declare Sub ChangePagesCount()
 	
+	Dim As Form frmDialog
+	Dim As HorizontalBox hbxCommands
+	Dim As CommandButton cmdPrint, cmdFitToWindow
+	Dim As TrackBar trbPercent
+	Dim As Label lblPercent, lblMinus, lblPlus, lblPrevious, lblNext, lblPagesCount
+	Dim As PrintPreviewControl pnlPrintPreviewControl
+	Dim As ComboBoxEx cboOrientation, cboSize
+	Dim As TextBox txtPageNumber
 Public:
-	Caption As String       = ""
-	
-	xSetupDialog As Integer = False                     ' SetupDialog or PrintDialog
-	PrinterName As String
-	AllowToFile As Integer      = True
-	AllowToNetwork As Integer   = True
-	ShowHelpButton As Integer   = False
-	HelpFile As String      = ""
-	FromPage As Integer     = 1
-	ToPage As Integer       = 3
-	
-	'Declare Property Left() As Integer
-	'Declare Property Left(value As Integer)
-	'Declare Property Top() As Integer
-	'Declare Property Top(value As Integer)
-	Declare Property SetupDialog() As Integer
-	Declare Property SetupDialog(value As Integer)
-	
+	Declare Property Caption ByRef As WString
+	Declare Property Caption(ByRef Value As WString)
+	Declare Property Document As PrintDocument Ptr
+	Declare Property Document(Value As PrintDocument Ptr)
 	Declare Function Execute() As Boolean
 	Declare Constructor
-	
 End Type
 
 #ifndef __USE_MAKE__

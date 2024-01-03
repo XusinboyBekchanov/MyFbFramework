@@ -132,16 +132,44 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.Width As Integer
-		
 		If ParentControl Then
 			Return ParentControl->Width
+		Else
+			#ifdef __USE_WINAPI__
+				Scope
+					Dim As BITMAP header
+					ZeroMemory(@header, SizeOf(BITMAP))
+					
+					Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
+					GetObject(bmp, SizeOf(BITMAP), @header)
+					Dim As Integer iWidth = header.bmWidth
+					If iWidth > 1 Then
+						Return iWidth
+					End If
+				End Scope
+				Return GetDeviceCaps(Handle, LOGPIXELSX)
+			#endif
 		End If
 	End Property
 	
 	Private Property Canvas.Height As Integer
-		
 		If ParentControl Then
 			Return ParentControl->Height
+		Else
+			#ifdef __USE_WINAPI__
+				Scope
+					Dim As BITMAP header
+					ZeroMemory(@header, SizeOf(BITMAP))
+					
+					Dim As HGDIOBJ bmp = GetCurrentObject(Handle, OBJ_BITMAP)
+					GetObject(bmp, SizeOf(BITMAP), @header)
+					Dim As Integer iHeight = header.bmHeight
+					If iHeight > 1 Then
+						Return iHeight
+					End If
+				End Scope
+				Return GetDeviceCaps(Handle, LOGPIXELSY)
+			#endif
 		End If
 	End Property
 	
