@@ -858,7 +858,7 @@ Namespace My.Sys.Forms
 		
 		Private Property Control.Visible() As Boolean
 			#ifdef __USE_WINAPI__
-				If FHandle Then FVisible = IsWindowVisible(FHandle)
+				If FHandle Then Return IsWindowVisible(FHandle)
 			#endif
 			Return FVisible
 		End Property
