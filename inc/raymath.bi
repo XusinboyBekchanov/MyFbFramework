@@ -2,255 +2,255 @@
 
 #include once "crt/math.bi"
 
-extern "C"
+Extern "C"
 
 #define RAYMATH_H
 
-const PI = 3.14159265358979323846
+Const PI = 3.14159265358979323846
 
-const EPSILON = 0.000001f
-const DEG2RAD = PI / 180.0f
-const RAD2DEG = 180.0f / PI
+Const EPSILON = 0.000001f
+Const DEG2RAD = PI / 180.0f
+Const RAD2DEG = 180.0f / PI
 #define MatrixToFloat(mat) MatrixToFloatV(mat).v
 #define Vector3ToFloat(vec) Vector3ToFloatV(vec).v
 
-type Vector2
-	x as single
-	y as single
-	declare constructor()
-	declare constructor(x as single, y as single)
-end type
+Type Vector2
+	x As Single
+	y As Single
+	Declare Constructor()
+	Declare Constructor(x As Single, y As Single)
+End Type
 
-constructor Vector2(x as single, y as single)
-	this.x = x
-	this.y = y
-end constructor
+Constructor Vector2(x As Single, y As Single)
+	This.x = x
+	This.y = y
+End Constructor
 	
-constructor Vector2()
-end constructor
+Constructor Vector2()
+End Constructor
 
 #define RL_VECTOR2_TYPE
 
-type Vector3
-	x as single
-	y as single
-	z as single
-	declare constructor()
-	declare constructor(x as single, y as single, z as single)
-end type
+Type Vector3
+	x As Single
+	y As Single
+	z As Single
+	Declare Constructor()
+	Declare Constructor(x As Single, y As Single, z As Single)
+End Type
 	
-constructor Vector3()
-end constructor
+Constructor Vector3()
+End Constructor
 
-constructor Vector3(x as single, y as single, z as single)
-	this.x = x
-	this.y = y
-    this.z = z
-end constructor
+Constructor Vector3(x As Single, y As Single, z As Single)
+	This.x = x
+	This.y = y
+    This.z = z
+End Constructor
 
 #define RL_VECTOR3_TYPE
 
-type Vector4
-	x as single
-	y as single
-	z as single
-	w as single
-	declare constructor()
-	declare constructor(x as single, y as single, z as single, w as single)
-end type
+Type Vector4
+	x As Single
+	y As Single
+	z As Single
+	w As Single
+	Declare Constructor()
+	Declare Constructor(x As Single, y As Single, z As Single, w As Single)
+End Type
 	
-constructor Vector4()
-end constructor
+Constructor Vector4()
+End Constructor
 
-constructor Vector4(x as single, y as single, z as single, w as single)
-	this.x = x
-	this.y = y
-	this.z = z
-	this.w = w
-end constructor
+Constructor Vector4(x As Single, y As Single, z As Single, w As Single)
+	This.x = x
+	This.y = y
+	This.z = z
+	This.w = w
+End Constructor
 
 #define RL_VECTOR4_TYPE
-type Quaternion as Vector4
+Type Quaternion As Vector4
 #define RL_QUATERNION_TYPE
 
-type Matrix
-	m0 as single
-	m4 as single
-	m8 as single
-	m12 as single
-	m1 as single
-	m5 as single
-	m9 as single
-	m13 as single
-	m2 as single
-	m6 as single
-	m10 as single
-	m14 as single
-	m3 as single
-	m7 as single
-	m11 as single
-	m15 as single
-end type
+Type Matrix
+	m0 As Single
+	m4 As Single
+	m8 As Single
+	m12 As Single
+	m1 As Single
+	m5 As Single
+	m9 As Single
+	m13 As Single
+	m2 As Single
+	m6 As Single
+	m10 As Single
+	m14 As Single
+	m3 As Single
+	m7 As Single
+	m11 As Single
+	m15 As Single
+End Type
 
 #define RL_MATRIX_TYPE
 
-type float3
-	v(0 to 2) as single
-end type
+Type float3
+	v(0 To 2) As Single
+End Type
 
-type float16
-	v(0 to 15) as single
-end type
+Type float16
+	v(0 To 15) As Single
+End Type
 
-#if (not defined(RAYMATH_HEADER_ONLY)) and defined(RAYLIB_H)
-	declare function Clamp(byval value as single, byval min as single, byval max as single) as single
-	declare function Lerp(byval start as single, byval end_ as single, byval amount as single) as single
-	declare function Normalize(byval value as single, byval start as single, byval end_ as single) as single
-	declare function Remap(byval value as single, byval inputStart as single, byval inputEnd as single, byval outputStart as single, byval outputEnd as single) as single
-	declare function Wrap(byval value as single, byval min as single, byval max as single) as single
-	declare function FloatEquals(byval x as single, byval y as single) as long
-	declare function Vector2Zero() as Vector2
-	declare function Vector2One() as Vector2
-	declare function Vector2Add(byval v1 as Vector2, byval v2 as Vector2) as Vector2
-	declare function Vector2AddValue(byval v as Vector2, byval add as single) as Vector2
-	declare function Vector2Subtract(byval v1 as Vector2, byval v2 as Vector2) as Vector2
-	declare function Vector2SubtractValue(byval v as Vector2, byval sub_ as single) as Vector2
-	declare function Vector2Length(byval v as Vector2) as single
-	declare function Vector2LengthSqr(byval v as Vector2) as single
-	declare function Vector2DotProduct(byval v1 as Vector2, byval v2 as Vector2) as single
-	declare function Vector2Distance(byval v1 as Vector2, byval v2 as Vector2) as single
-	declare function Vector2DistanceSqr(byval v1 as Vector2, byval v2 as Vector2) as single
-	declare function Vector2Angle(byval v1 as Vector2, byval v2 as Vector2) as single
-	declare function Vector2Scale(byval v as Vector2, byval scale as single) as Vector2
-	declare function Vector2Multiply(byval v1 as Vector2, byval v2 as Vector2) as Vector2
-	declare function Vector2Negate(byval v as Vector2) as Vector2
-	declare function Vector2Divide(byval v1 as Vector2, byval v2 as Vector2) as Vector2
-	declare function Vector2Normalize(byval v as Vector2) as Vector2
-	declare function Vector2Transform(byval v as Vector2, byval mat as Matrix) as Vector2
-	declare function Vector2Lerp(byval v1 as Vector2, byval v2 as Vector2, byval amount as single) as Vector2
-	declare function Vector2Reflect(byval v as Vector2, byval normal as Vector2) as Vector2
-	declare function Vector2Rotate(byval v as Vector2, byval angle as single) as Vector2
-	declare function Vector2MoveTowards(byval v as Vector2, byval target as Vector2, byval maxDistance as single) as Vector2
-	declare function Vector2Invert(byval v as Vector2) as Vector2
-	declare function Vector2Clamp(byval v as Vector2, byval min as Vector2, byval max as Vector2) as Vector2
-	declare function Vector2ClampValue(byval v as Vector2, byval min as single, byval max as single) as Vector2
-	declare function Vector2Equals(byval p as Vector2, byval q as Vector2) as long
-	declare function Vector3Zero() as Vector3
-	declare function Vector3One() as Vector3
-	declare function Vector3Add(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-	declare function Vector3AddValue(byval v as Vector3, byval add as single) as Vector3
-	declare function Vector3Subtract(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-	declare function Vector3SubtractValue(byval v as Vector3, byval sub_ as single) as Vector3
-	declare function Vector3Scale(byval v as Vector3, byval scalar as single) as Vector3
-	declare function Vector3Multiply(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-	declare function Vector3CrossProduct(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-	declare function Vector3Perpendicular(byval v as Vector3) as Vector3
-	declare function Vector3Length(byval v as const Vector3) as single
-	declare function Vector3LengthSqr(byval v as const Vector3) as single
-	declare function Vector3DotProduct(byval v1 as Vector3, byval v2 as Vector3) as single
-	declare function Vector3Distance(byval v1 as Vector3, byval v2 as Vector3) as single
-	declare function Vector3DistanceSqr(byval v1 as Vector3, byval v2 as Vector3) as single
-	declare function Vector3Angle(byval v1 as Vector3, byval v2 as Vector3) as single
-	declare function Vector3Negate(byval v as Vector3) as Vector3
-	declare function Vector3Divide(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-	declare function Vector3Normalize(byval v as Vector3) as Vector3
-	declare sub Vector3OrthoNormalize(byval v1 as Vector3 ptr, byval v2 as Vector3 ptr)
-	declare function Vector3Transform(byval v as Vector3, byval mat as Matrix) as Vector3
-	declare function Vector3RotateByQuaternion(byval v as Vector3, byval q as Quaternion) as Vector3
-	declare function Vector3RotateByAxisAngle(byval v as Vector3, byval axis as Vector3, byval angle as single) as Vector3
-	declare function Vector3Lerp(byval v1 as Vector3, byval v2 as Vector3, byval amount as single) as Vector3
-	declare function Vector3Reflect(byval v as Vector3, byval normal as Vector3) as Vector3
-	declare function Vector3Min(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-	declare function Vector3Max(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-	declare function Vector3Barycenter(byval p as Vector3, byval a as Vector3, byval b as Vector3, byval c as Vector3) as Vector3
-	declare function Vector3Unproject(byval source as Vector3, byval projection as Matrix, byval view_ as Matrix) as Vector3
-	declare function Vector3ToFloatV(byval v as Vector3) as float3
-	declare function Vector3Invert(byval v as Vector3) as Vector3
-	declare function Vector3Clamp(byval v as Vector3, byval min as Vector3, byval max as Vector3) as Vector3
-	declare function Vector3ClampValue(byval v as Vector3, byval min as single, byval max as single) as Vector3
-	declare function Vector3Equals(byval p as Vector3, byval q as Vector3) as long
-	declare function Vector3Refract(byval v as Vector3, byval n as Vector3, byval r as single) as Vector3
-	declare function MatrixDeterminant(byval mat as Matrix) as single
-	declare function MatrixTrace(byval mat as Matrix) as single
-	declare function MatrixTranspose(byval mat as Matrix) as Matrix
-	declare function MatrixInvert(byval mat as Matrix) as Matrix
-	declare function MatrixIdentity() as Matrix
-	declare function MatrixAdd(byval left_ as Matrix, byval right_ as Matrix) as Matrix
-	declare function MatrixSubtract(byval left_ as Matrix, byval right_ as Matrix) as Matrix
-	declare function MatrixMultiply(byval left_ as Matrix, byval right_ as Matrix) as Matrix
-	declare function MatrixTranslate(byval x as single, byval y as single, byval z as single) as Matrix
-	declare function MatrixRotate(byval axis as Vector3, byval angle as single) as Matrix
-	declare function MatrixRotateX(byval angle as single) as Matrix
-	declare function MatrixRotateY(byval angle as single) as Matrix
-	declare function MatrixRotateZ(byval angle as single) as Matrix
-	declare function MatrixRotateXYZ(byval angle as Vector3) as Matrix
-	declare function MatrixRotateZYX(byval angle as Vector3) as Matrix
-	declare function MatrixScale(byval x as single, byval y as single, byval z as single) as Matrix
-	declare function MatrixFrustum(byval left_ as double, byval right_ as double, byval bottom as double, byval top as double, byval near as double, byval far as double) as Matrix
-	declare function MatrixPerspective(byval fovy as double, byval aspect as double, byval near as double, byval far as double) as Matrix
-	declare function MatrixOrtho(byval left_ as double, byval right_ as double, byval bottom as double, byval top as double, byval near as double, byval far as double) as Matrix
-	declare function MatrixLookAt(byval eye as Vector3, byval target as Vector3, byval up as Vector3) as Matrix
-	declare function MatrixToFloatV(byval mat as Matrix) as float16
-	declare function QuaternionAdd(byval q1 as Quaternion, byval q2 as Quaternion) as Quaternion
-	declare function QuaternionAddValue(byval q as Quaternion, byval add as single) as Quaternion
-	declare function QuaternionSubtract(byval q1 as Quaternion, byval q2 as Quaternion) as Quaternion
-	declare function QuaternionSubtractValue(byval q as Quaternion, byval sub_ as single) as Quaternion
-	declare function QuaternionIdentity() as Quaternion
-	declare function QuaternionLength(byval q as Quaternion) as single
-	declare function QuaternionNormalize(byval q as Quaternion) as Quaternion
-	declare function QuaternionInvert(byval q as Quaternion) as Quaternion
-	declare function QuaternionMultiply(byval q1 as Quaternion, byval q2 as Quaternion) as Quaternion
-	declare function QuaternionScale(byval q as Quaternion, byval mul as single) as Quaternion
-	declare function QuaternionDivide(byval q1 as Quaternion, byval q2 as Quaternion) as Quaternion
-	declare function QuaternionLerp(byval q1 as Quaternion, byval q2 as Quaternion, byval amount as single) as Quaternion
-	declare function QuaternionNlerp(byval q1 as Quaternion, byval q2 as Quaternion, byval amount as single) as Quaternion
-	declare function QuaternionSlerp(byval q1 as Quaternion, byval q2 as Quaternion, byval amount as single) as Quaternion
-	declare function QuaternionFromVector3ToVector3(byval from as Vector3, byval to_ as Vector3) as Quaternion
-	declare function QuaternionFromMatrix(byval mat as Matrix) as Quaternion
-	declare function QuaternionToMatrix(byval q as Quaternion) as Matrix
-	declare function QuaternionFromAxisAngle(byval axis as Vector3, byval angle as single) as Quaternion
-	declare sub QuaternionToAxisAngle(byval q as Quaternion, byval outAxis as Vector3 ptr, byval outAngle as single ptr)
-	declare function QuaternionFromEuler(byval pitch as single, byval yaw as single, byval roll as single) as Quaternion
-	declare function QuaternionToEuler(byval q as Quaternion) as Vector3
-	declare function QuaternionTransform(byval q as Quaternion, byval mat as Matrix) as Quaternion
-	declare function QuaternionEquals(byval p as Quaternion, byval q as Quaternion) as long
+#if (Not defined(RAYMATH_HEADER_ONLY)) And defined(RAYLIB_H)
+	Declare Function Clamp(ByVal value As Single, ByVal iMin As Single, ByVal iMax As Single) As Single
+	Declare Function Lerp(ByVal start As Single, ByVal end_ As Single, ByVal amount As Single) As Single
+	Declare Function Normalize(ByVal value As Single, ByVal start As Single, ByVal end_ As Single) As Single
+	Declare Function Remap(ByVal value As Single, ByVal inputStart As Single, ByVal inputEnd As Single, ByVal outputStart As Single, ByVal outputEnd As Single) As Single
+	Declare Function Wrap(ByVal value As Single, ByVal iMin As Single, ByVal iMax As Single) As Single
+	Declare Function FloatEquals(ByVal x As Single, ByVal y As Single) As Long
+	Declare Function Vector2Zero() As Vector2
+	Declare Function Vector2One() As Vector2
+	Declare Function Vector2Add(ByVal v1 As Vector2, ByVal v2 As Vector2) As Vector2
+	Declare Function Vector2AddValue(ByVal v As Vector2, ByVal add As Single) As Vector2
+	Declare Function Vector2Subtract(ByVal v1 As Vector2, ByVal v2 As Vector2) As Vector2
+	Declare Function Vector2SubtractValue(ByVal v As Vector2, ByVal sub_ As Single) As Vector2
+	Declare Function Vector2Length(ByVal v As Vector2) As Single
+	Declare Function Vector2LengthSqr(ByVal v As Vector2) As Single
+	Declare Function Vector2DotProduct(ByVal v1 As Vector2, ByVal v2 As Vector2) As Single
+	Declare Function Vector2Distance(ByVal v1 As Vector2, ByVal v2 As Vector2) As Single
+	Declare Function Vector2DistanceSqr(ByVal v1 As Vector2, ByVal v2 As Vector2) As Single
+	Declare Function Vector2Angle(ByVal v1 As Vector2, ByVal v2 As Vector2) As Single
+	Declare Function Vector2Scale(ByVal v As Vector2, ByVal scale As Single) As Vector2
+	Declare Function Vector2Multiply(ByVal v1 As Vector2, ByVal v2 As Vector2) As Vector2
+	Declare Function Vector2Negate(ByVal v As Vector2) As Vector2
+	Declare Function Vector2Divide(ByVal v1 As Vector2, ByVal v2 As Vector2) As Vector2
+	Declare Function Vector2Normalize(ByVal v As Vector2) As Vector2
+	Declare Function Vector2Transform(ByVal v As Vector2, ByVal mat As Matrix) As Vector2
+	Declare Function Vector2Lerp(ByVal v1 As Vector2, ByVal v2 As Vector2, ByVal amount As Single) As Vector2
+	Declare Function Vector2Reflect(ByVal v As Vector2, ByVal normal As Vector2) As Vector2
+	Declare Function Vector2Rotate(ByVal v As Vector2, ByVal angle As Single) As Vector2
+	Declare Function Vector2MoveTowards(ByVal v As Vector2, ByVal target As Vector2, ByVal iMaxDistance As Single) As Vector2
+	Declare Function Vector2Invert(ByVal v As Vector2) As Vector2
+	Declare Function Vector2Clamp(ByVal v As Vector2, ByVal iMin As Vector2, ByVal iMax As Vector2) As Vector2
+	Declare Function Vector2ClampValue(ByVal v As Vector2, ByVal iMin As Single, ByVal iMax As Single) As Vector2
+	Declare Function Vector2Equals(ByVal p As Vector2, ByVal q As Vector2) As Long
+	Declare Function Vector3Zero() As Vector3
+	Declare Function Vector3One() As Vector3
+	Declare Function Vector3Add(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+	Declare Function Vector3AddValue(ByVal v As Vector3, ByVal add As Single) As Vector3
+	Declare Function Vector3Subtract(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+	Declare Function Vector3SubtractValue(ByVal v As Vector3, ByVal sub_ As Single) As Vector3
+	Declare Function Vector3Scale(ByVal v As Vector3, ByVal scalar As Single) As Vector3
+	Declare Function Vector3Multiply(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+	Declare Function Vector3CrossProduct(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+	Declare Function Vector3Perpendicular(ByVal v As Vector3) As Vector3
+	Declare Function Vector3Length(ByVal v As Const Vector3) As Single
+	Declare Function Vector3LengthSqr(ByVal v As Const Vector3) As Single
+	Declare Function Vector3DotProduct(ByVal v1 As Vector3, ByVal v2 As Vector3) As Single
+	Declare Function Vector3Distance(ByVal v1 As Vector3, ByVal v2 As Vector3) As Single
+	Declare Function Vector3DistanceSqr(ByVal v1 As Vector3, ByVal v2 As Vector3) As Single
+	Declare Function Vector3Angle(ByVal v1 As Vector3, ByVal v2 As Vector3) As Single
+	Declare Function Vector3Negate(ByVal v As Vector3) As Vector3
+	Declare Function Vector3Divide(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+	Declare Function Vector3Normalize(ByVal v As Vector3) As Vector3
+	Declare Sub Vector3OrthoNormalize(ByVal v1 As Vector3 Ptr, ByVal v2 As Vector3 Ptr)
+	Declare Function Vector3Transform(ByVal v As Vector3, ByVal mat As Matrix) As Vector3
+	Declare Function Vector3RotateByQuaternion(ByVal v As Vector3, ByVal q As Quaternion) As Vector3
+	Declare Function Vector3RotateByAxisAngle(ByVal v As Vector3, ByVal axis As Vector3, ByVal angle As Single) As Vector3
+	Declare Function Vector3Lerp(ByVal v1 As Vector3, ByVal v2 As Vector3, ByVal amount As Single) As Vector3
+	Declare Function Vector3Reflect(ByVal v As Vector3, ByVal normal As Vector3) As Vector3
+	Declare Function Vector3Min(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+	Declare Function Vector3Max(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+	Declare Function Vector3Barycenter(ByVal p As Vector3, ByVal a As Vector3, ByVal b As Vector3, ByVal c As Vector3) As Vector3
+	Declare Function Vector3Unproject(ByVal source As Vector3, ByVal projection As Matrix, ByVal view_ As Matrix) As Vector3
+	Declare Function Vector3ToFloatV(ByVal v As Vector3) As float3
+	Declare Function Vector3Invert(ByVal v As Vector3) As Vector3
+	Declare Function Vector3Clamp(ByVal v As Vector3, ByVal iMin As Vector3, ByVal iMax As Vector3) As Vector3
+	Declare Function Vector3ClampValue(ByVal v As Vector3, ByVal iMin As Single, ByVal iMax As Single) As Vector3
+	Declare Function Vector3Equals(ByVal p As Vector3, ByVal q As Vector3) As Long
+	Declare Function Vector3Refract(ByVal v As Vector3, ByVal n As Vector3, ByVal r As Single) As Vector3
+	Declare Function MatrixDeterminant(ByVal mat As Matrix) As Single
+	Declare Function MatrixTrace(ByVal mat As Matrix) As Single
+	Declare Function MatrixTranspose(ByVal mat As Matrix) As Matrix
+	Declare Function MatrixInvert(ByVal mat As Matrix) As Matrix
+	Declare Function MatrixIdentity() As Matrix
+	Declare Function MatrixAdd(ByVal left_ As Matrix, ByVal right_ As Matrix) As Matrix
+	Declare Function MatrixSubtract(ByVal left_ As Matrix, ByVal right_ As Matrix) As Matrix
+	Declare Function MatrixMultiply(ByVal left_ As Matrix, ByVal right_ As Matrix) As Matrix
+	Declare Function MatrixTranslate(ByVal x As Single, ByVal y As Single, ByVal z As Single) As Matrix
+	Declare Function MatrixRotate(ByVal axis As Vector3, ByVal angle As Single) As Matrix
+	Declare Function MatrixRotateX(ByVal angle As Single) As Matrix
+	Declare Function MatrixRotateY(ByVal angle As Single) As Matrix
+	Declare Function MatrixRotateZ(ByVal angle As Single) As Matrix
+	Declare Function MatrixRotateXYZ(ByVal angle As Vector3) As Matrix
+	Declare Function MatrixRotateZYX(ByVal angle As Vector3) As Matrix
+	Declare Function MatrixScale(ByVal x As Single, ByVal y As Single, ByVal z As Single) As Matrix
+	Declare Function MatrixFrustum(ByVal left_ As Double, ByVal right_ As Double, ByVal bottom As Double, ByVal top As Double, ByVal near As Double, ByVal far As Double) As Matrix
+	Declare Function MatrixPerspective(ByVal fovy As Double, ByVal aspect As Double, ByVal near As Double, ByVal far As Double) As Matrix
+	Declare Function MatrixOrtho(ByVal left_ As Double, ByVal right_ As Double, ByVal bottom As Double, ByVal top As Double, ByVal near As Double, ByVal far As Double) As Matrix
+	Declare Function MatrixLookAt(ByVal eye As Vector3, ByVal target As Vector3, ByVal up As Vector3) As Matrix
+	Declare Function MatrixToFloatV(ByVal mat As Matrix) As float16
+	Declare Function QuaternionAdd(ByVal q1 As Quaternion, ByVal q2 As Quaternion) As Quaternion
+	Declare Function QuaternionAddValue(ByVal q As Quaternion, ByVal add As Single) As Quaternion
+	Declare Function QuaternionSubtract(ByVal q1 As Quaternion, ByVal q2 As Quaternion) As Quaternion
+	Declare Function QuaternionSubtractValue(ByVal q As Quaternion, ByVal sub_ As Single) As Quaternion
+	Declare Function QuaternionIdentity() As Quaternion
+	Declare Function QuaternionLength(ByVal q As Quaternion) As Single
+	Declare Function QuaternionNormalize(ByVal q As Quaternion) As Quaternion
+	Declare Function QuaternionInvert(ByVal q As Quaternion) As Quaternion
+	Declare Function QuaternionMultiply(ByVal q1 As Quaternion, ByVal q2 As Quaternion) As Quaternion
+	Declare Function QuaternionScale(ByVal q As Quaternion, ByVal mul As Single) As Quaternion
+	Declare Function QuaternionDivide(ByVal q1 As Quaternion, ByVal q2 As Quaternion) As Quaternion
+	Declare Function QuaternionLerp(ByVal q1 As Quaternion, ByVal q2 As Quaternion, ByVal amount As Single) As Quaternion
+	Declare Function QuaternionNlerp(ByVal q1 As Quaternion, ByVal q2 As Quaternion, ByVal amount As Single) As Quaternion
+	Declare Function QuaternionSlerp(ByVal q1 As Quaternion, ByVal q2 As Quaternion, ByVal amount As Single) As Quaternion
+	Declare Function QuaternionFromVector3ToVector3(ByVal from As Vector3, ByVal to_ As Vector3) As Quaternion
+	Declare Function QuaternionFromMatrix(ByVal mat As Matrix) As Quaternion
+	Declare Function QuaternionToMatrix(ByVal q As Quaternion) As Matrix
+	Declare Function QuaternionFromAxisAngle(ByVal axis As Vector3, ByVal angle As Single) As Quaternion
+	Declare Sub QuaternionToAxisAngle(ByVal q As Quaternion, ByVal outAxis As Vector3 Ptr, ByVal outAngle As Single Ptr)
+	Declare Function QuaternionFromEuler(ByVal pitch As Single, ByVal yaw As Single, ByVal roll As Single) As Quaternion
+	Declare Function QuaternionToEuler(ByVal q As Quaternion) As Vector3
+	Declare Function QuaternionTransform(ByVal q As Quaternion, ByVal mat As Matrix) As Quaternion
+	Declare Function QuaternionEquals(ByVal p As Quaternion, ByVal q As Quaternion) As Long
 #else
-	private function Clamp(byval value as single, byval min as single, byval max as single) as single
-		dim result as single = iif(value < min, min, value)
-		if result > max then
-			result = max
+	Private Function Clamp(ByVal value As Single, ByVal iMin As Single, ByVal iMax As Single) As Single
+		Dim result As Single = IIf(value < iMin, iMin, value)
+		If result > iMax Then
+			result = iMax
 		end if
-		return result
-	end function
+		Return result
+	End Function
 
-	private function Lerp(byval start as single, byval end_ as single, byval amount as single) as single
-		dim result as single = start + (amount * (end_ - start))
-		return result
-	end function
+	Private Function Lerp(ByVal start As Single, ByVal end_ As Single, ByVal amount As Single) As Single
+		Dim result As Single = start + (amount * (end_ - start))
+		Return result
+	End Function
 
-	private function Normalize(byval value as single, byval start as single, byval end_ as single) as single
-		dim result as single = (value - start) / (end_ - start)
-		return result
-	end function
+	Private Function Normalize(ByVal value As Single, ByVal start As Single, ByVal end_ As Single) As Single
+		Dim result As Single = (value - start) / (end_ - start)
+		Return result
+	End Function
 
-	private function Remap(byval value as single, byval inputStart as single, byval inputEnd as single, byval outputStart as single, byval outputEnd as single) as single
-		dim result as single = (((value - inputStart) / (inputEnd - inputStart)) * (outputEnd - outputStart)) + outputStart
-		return result
-	end function
+	Private Function Remap(ByVal value As Single, ByVal inputStart As Single, ByVal inputEnd As Single, ByVal outputStart As Single, ByVal outputEnd As Single) As Single
+		Dim result As Single = (((value - inputStart) / (inputEnd - inputStart)) * (outputEnd - outputStart)) + outputStart
+		Return result
+	End Function
 
-	private function Wrap(byval value as single, byval min as single, byval max as single) as single
-		dim result as single = value - ((max - min) * floorf((value - min) / (max - min)))
-		return result
-	end function
+	Private Function Wrap(ByVal value As Single, ByVal iMin As Single, ByVal iMax As Single) As Single
+		Dim result As Single = value - ((iMax - iMin) * floorf((value - iMin) / (iMax - iMin)))
+		Return result
+	End Function
 
-	private function FloatEquals(byval x as single, byval y as single) as long
-		dim result as long = -(fabsf(x - y) <= (0.000001f * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y)))))
-		return result
-	end function
+	Private Function FloatEquals(ByVal x As Single, ByVal y As Single) As Long
+		Dim result As Long = -(fabsf(x - y) <= (0.000001f * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y)))))
+		Return result
+	End Function
 
-	private function Vector2Zero() as Vector2
-		dim result as Vector2 = Vector2(0.0f, 0.0f)
-		return result
+	Private Function Vector2Zero() As Vector2
+		Dim result As Vector2 = Vector2(0.0f, 0.0f)
+		Return result
 	end function
 
 	private function Vector2One() as Vector2
@@ -361,142 +361,142 @@ end type
 		dim dotProduct as single = (v.x * normal.x) + (v.y * normal.y)
 		result.x = v.x - ((2.0f * normal.x) * dotProduct)
 		result.y = v.y - ((2.0f * normal.y) * dotProduct)
-		return result
-	end function
+		Return result
+	End Function
 
-	private function Vector2Rotate(byval v as Vector2, byval angle as single) as Vector2
-		dim result as Vector2
-		dim cosres as single = cosf(angle)
-		dim sinres as single = sinf(angle)
+	Private Function Vector2Rotate(ByVal v As Vector2, ByVal angle As Single) As Vector2
+		Dim result As Vector2
+		Dim cosres As Single = cosf(angle)
+		Dim sinres As Single = sinf(angle)
 		result.x = (v.x * cosres) - (v.y * sinres)
 		result.y = (v.x * sinres) + (v.y * cosres)
-		return result
-	end function
+		Return result
+	End Function
 
-	private function Vector2MoveTowards(byval v as Vector2, byval target as Vector2, byval maxDistance as single) as Vector2
-		dim result as Vector2
-		dim dx as single = target.x - v.x
-		dim dy as single = target.y - v.y
-		dim value as single = (dx * dx) + (dy * dy)
-		if (value = 0) orelse ((maxDistance >= 0) andalso (value <= (maxDistance * maxDistance))) then
-			return target
-		end if
-		dim dist as single = sqrtf(value)
-		result.x = v.x + ((dx / dist) * maxDistance)
-		result.y = v.y + ((dy / dist) * maxDistance)
-		return result
-	end function
+	Private Function Vector2MoveTowards(ByVal v As Vector2, ByVal target As Vector2, ByVal MaxDistance As Single) As Vector2
+		Dim result As Vector2
+		Dim dx As Single = target.x - v.x
+		Dim dy As Single = target.y - v.y
+		Dim value As Single = (dx * dx) + (dy * dy)
+		If (value = 0) OrElse ((MaxDistance >= 0) AndAlso (value <= (MaxDistance * MaxDistance))) Then
+			Return target
+		End If
+		Dim dist As Single = sqrtf(value)
+		result.x = v.x + ((dx / dist) * MaxDistance)
+		result.y = v.y + ((dy / dist) * MaxDistance)
+		Return result
+	End Function
 
-	private function Vector2Invert(byval v as Vector2) as Vector2
-		dim result as Vector2 = Vector2(1.0f / v.x, 1.0f / v.y)
-		return result
-	end function
+	Private Function Vector2Invert(ByVal v As Vector2) As Vector2
+		Dim result As Vector2 = Vector2(1.0f / v.x, 1.0f / v.y)
+		Return result
+	End Function
 
-	private function Vector2Clamp(byval v as Vector2, byval min as Vector2, byval max as Vector2) as Vector2
-		dim result as Vector2
-		result.x = fminf(max.x, fmaxf(min.x, v.x))
-		result.y = fminf(max.y, fmaxf(min.y, v.y))
-		return result
-	end function
+	Private Function Vector2Clamp(ByVal v As Vector2, ByVal iMin As Vector2, ByVal iMax As Vector2) As Vector2
+		Dim result As Vector2
+		result.x = fminf(iMax.x, fmaxf(iMin.x, v.x))
+		result.y = fminf(iMax.y, fmaxf(iMin.y, v.y))
+		Return result
+	End Function
 
-	private function Vector2ClampValue(byval v as Vector2, byval min as single, byval max as single) as Vector2
-		dim result as Vector2 = v
-		dim length as single = (v.x * v.x) + (v.y * v.y)
-		if length > 0.0f then
+	Private Function Vector2ClampValue(ByVal v As Vector2, ByVal iMin As Single, ByVal iMax As Single) As Vector2
+		Dim result As Vector2 = v
+		Dim length As Single = (v.x * v.x) + (v.y * v.y)
+		If length > 0.0f Then
 			length = sqrtf(length)
-			if length < min then
-				dim scale as single = min / length
+			If length < iMin Then
+				Dim scale As Single = iMin / length
 				result.x = v.x * scale
 				result.y = v.y * scale
-			elseif length > max then
-				dim scale as single = max / length
+			ElseIf length > iMax Then
+				Dim scale As Single = iMax / length
 				result.x = v.x * scale
 				result.y = v.y * scale
-			end if
-		end if
-		return result
-	end function
+			End If
+		End If
+		Return result
+	End Function
 
-	private function Vector2Equals(byval p as Vector2, byval q as Vector2) as long
-		dim result as long = -((fabsf(p.x - q.x) <= (0.000001f * fmaxf(1.0f, fmaxf(fabsf(p.x), fabsf(q.x))))) andalso (fabsf(p.y - q.y) <= (0.000001f * fmaxf(1.0f, fmaxf(fabsf(p.y), fabsf(q.y))))))
-		return result
-	end function
+	Private Function Vector2Equals(ByVal p As Vector2, ByVal q As Vector2) As Long
+		Dim result As Long = -((fabsf(p.x - q.x) <= (0.000001f * fmaxf(1.0f, fmaxf(fabsf(p.x), fabsf(q.x))))) AndAlso (fabsf(p.y - q.y) <= (0.000001f * fmaxf(1.0f, fmaxf(fabsf(p.y), fabsf(q.y))))))
+		Return result
+	End Function
 
-	private function Vector3Zero() as Vector3
-		dim result as Vector3 = Vector3(0.0f, 0.0f, 0.0f)
-		return result
-	end function
+	Private Function Vector3Zero() As Vector3
+		Dim result As Vector3 = Vector3(0.0f, 0.0f, 0.0f)
+		Return result
+	End Function
 
-	private function Vector3One() as Vector3
-		dim result as Vector3 = Vector3(1.0f, 1.0f, 1.0f)
-		return result
-	end function
+	Private Function Vector3One() As Vector3
+		Dim result As Vector3 = Vector3(1.0f, 1.0f, 1.0f)
+		Return result
+	End Function
 
-	private function Vector3Add(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-		dim result as Vector3 = Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
-		return result
-	end function
+	Private Function Vector3Add(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+		Dim result As Vector3 = Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
+		Return result
+	End Function
 
 	private function Vector3AddValue(byval v as Vector3, byval add as single) as Vector3
 		dim result as Vector3 = Vector3(v.x + add, v.y + add, v.z + add)
 		return result
 	end function
 
-	private function Vector3Subtract(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-		dim result as Vector3 = Vector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
-		return result
-	end function
+	Private Function Vector3Subtract(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+		Dim result As Vector3 = Vector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
+		Return result
+	End Function
 
-	private function Vector3SubtractValue(byval v as Vector3, byval sub_ as single) as Vector3
-		dim result as Vector3 = Vector3(v.x - sub_, v.y - sub_, v.z - sub_)
-		return result
-	end function
+	Private Function Vector3SubtractValue(ByVal v As Vector3, ByVal sub_ As Single) As Vector3
+		Dim result As Vector3 = Vector3(v.x - sub_, v.y - sub_, v.z - sub_)
+		Return result
+	End Function
 
-	private function Vector3Scale(byval v as Vector3, byval scalar as single) as Vector3
-		dim result as Vector3 = Vector3(v.x * scalar, v.y * scalar, v.z * scalar)
-		return result
-	end function
+	Private Function Vector3Scale(ByVal v As Vector3, ByVal scalar As Single) As Vector3
+		Dim result As Vector3 = Vector3(v.x * scalar, v.y * scalar, v.z * scalar)
+		Return result
+	End Function
 
-	private function Vector3Multiply(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-		dim result as Vector3 = Vector3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z)
-		return result
-	end function
+	Private Function Vector3Multiply(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+		Dim result As Vector3 = Vector3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z)
+		Return result
+	End Function
 
-	private function Vector3CrossProduct(byval v1 as Vector3, byval v2 as Vector3) as Vector3
-		dim result as Vector3 = Vector3((v1.y * v2.z) - (v1.z * v2.y), (v1.z * v2.x) - (v1.x * v2.z), (v1.x * v2.y) - (v1.y * v2.x))
-		return result
-	end function
+	Private Function Vector3CrossProduct(ByVal v1 As Vector3, ByVal v2 As Vector3) As Vector3
+		Dim result As Vector3 = Vector3((v1.y * v2.z) - (v1.z * v2.y), (v1.z * v2.x) - (v1.x * v2.z), (v1.x * v2.y) - (v1.y * v2.x))
+		Return result
+	End Function
 
-	private function Vector3Perpendicular(byval v as Vector3) as Vector3
-		dim result as Vector3
-		dim min as single = csng(fabs(v.x))
-		dim cardinalAxis as Vector3 = Vector3(1.0f, 0.0f, 0.0f)
-		if fabsf(v.y) < min then
-			min = csng(fabs(v.y))
-			dim tmp as Vector3 = Vector3(0.0f, 1.0f, 0.0f)
+	Private Function Vector3Perpendicular(ByVal v As Vector3) As Vector3
+		Dim result As Vector3
+		Dim iMin As Single = CSng(fabs(v.x))
+		Dim cardinalAxis As Vector3 = Vector3(1.0f, 0.0f, 0.0f)
+		If fabsf(v.y) < iMin Then
+			iMin = CSng(fabs(v.y))
+			Dim tmp As Vector3 = Vector3(0.0f, 1.0f, 0.0f)
 			cardinalAxis = tmp
-		end if
-		if fabsf(v.z) < min then
-			dim tmp as Vector3 = Vector3(0.0f, 0.0f, 1.0f)
+		End If
+		If fabsf(v.z) < iMin Then
+			Dim tmp As Vector3 = Vector3(0.0f, 0.0f, 1.0f)
 			cardinalAxis = tmp
-		end if
+		End If
 		result.x = (v.y * cardinalAxis.z) - (v.z * cardinalAxis.y)
 		result.y = (v.z * cardinalAxis.x) - (v.x * cardinalAxis.z)
 		result.z = (v.x * cardinalAxis.y) - (v.y * cardinalAxis.x)
-		return result
-	end function
+		Return result
+	End Function
 
-	private function Vector3Length(byval v as const Vector3) as single
-		dim result as single = sqrtf(((v.x * v.x) + (v.y * v.y)) + (v.z * v.z))
-		return result
-	end function
+	Private Function Vector3Length(ByVal v As Const Vector3) As Single
+		Dim result As Single = sqrtf(((v.x * v.x) + (v.y * v.y)) + (v.z * v.z))
+		Return result
+	End Function
 
-	private function Vector3LengthSqr(byval v as const Vector3) as single
-		dim result as single = ((v.x * v.x) + (v.y * v.y)) + (v.z * v.z)
-		return result
-	end function
+	Private Function Vector3LengthSqr(ByVal v As Const Vector3) As Single
+		Dim result As Single = ((v.x * v.x) + (v.y * v.y)) + (v.z * v.z)
+		Return result
+	End Function
 
-	private function Vector3DotProduct(byval v1 as Vector3, byval v2 as Vector3) as single
+	Private Function Vector3DotProduct(ByVal v1 As Vector3, ByVal v2 As Vector3) As Single
 		dim result as single = ((v1.x * v2.x) + (v1.y * v2.y)) + (v1.z * v2.z)
 		return result
 	end function
@@ -710,51 +710,51 @@ end type
 		dim b07 as single = (a20 * a32) - (a22 * a30)
 		dim b08 as single = (a20 * a33) - (a23 * a30)
 		dim b09 as single = (a21 * a32) - (a22 * a31)
-		dim b10 as single = (a21 * a33) - (a23 * a31)
-		dim b11 as single = (a22 * a33) - (a23 * a32)
-		dim invDet as single = 1.0f / ((((((b00 * b11) - (b01 * b10)) + (b02 * b09)) + (b03 * b08)) - (b04 * b07)) + (b05 * b06))
-		dim matViewProjInv as Matrix = ((((a11 * b11) - (a12 * b10)) + (a13 * b09)) * invDet, ((((-a01) * b11) + (a02 * b10)) - (a03 * b09)) * invDet, (((a31 * b05) - (a32 * b04)) + (a33 * b03)) * invDet, ((((-a21) * b05) + (a22 * b04)) - (a23 * b03)) * invDet, ((((-a10) * b11) + (a12 * b08)) - (a13 * b07)) * invDet, (((a00 * b11) - (a02 * b08)) + (a03 * b07)) * invDet, ((((-a30) * b05) + (a32 * b02)) - (a33 * b01)) * invDet, (((a20 * b05) - (a22 * b02)) + (a23 * b01)) * invDet, (((a10 * b10) - (a11 * b08)) + (a13 * b06)) * invDet, ((((-a00) * b10) + (a01 * b08)) - (a03 * b06)) * invDet, (((a30 * b04) - (a31 * b02)) + (a33 * b00)) * invDet, ((((-a20) * b04) + (a21 * b02)) - (a23 * b00)) * invDet, ((((-a10) * b09) + (a11 * b07)) - (a12 * b06)) * invDet, (((a00 * b09) - (a01 * b07)) + (a02 * b06)) * invDet, ((((-a30) * b03) + (a31 * b01)) - (a32 * b00)) * invDet, (((a20 * b03) - (a21 * b01)) + (a22 * b00)) * invDet)
-		dim quat as Quaternion = Quaternion(source.x, source.y, source.z, 1.0f)
-		dim qtransformed as Quaternion = Quaternion((((matViewProjInv.m0 * quat.x) + (matViewProjInv.m4 * quat.y)) + (matViewProjInv.m8 * quat.z)) + (matViewProjInv.m12 * quat.w), (((matViewProjInv.m1 * quat.x) + (matViewProjInv.m5 * quat.y)) + (matViewProjInv.m9 * quat.z)) + (matViewProjInv.m13 * quat.w), (((matViewProjInv.m2 * quat.x) + (matViewProjInv.m6 * quat.y)) + (matViewProjInv.m10 * quat.z)) + (matViewProjInv.m14 * quat.w), (((matViewProjInv.m3 * quat.x) + (matViewProjInv.m7 * quat.y)) + (matViewProjInv.m11 * quat.z)) + (matViewProjInv.m15 * quat.w))
+		Dim b10 As Single = (a21 * a33) - (a23 * a31)
+		Dim b11 As Single = (a22 * a33) - (a23 * a32)
+		Dim invDet As Single = 1.0f / ((((((b00 * b11) - (b01 * b10)) + (b02 * b09)) + (b03 * b08)) - (b04 * b07)) + (b05 * b06))
+		Dim matViewProjInv As Matrix = ((((a11 * b11) - (a12 * b10)) + (a13 * b09)) * invDet, ((((-a01) * b11) + (a02 * b10)) - (a03 * b09)) * invDet, (((a31 * b05) - (a32 * b04)) + (a33 * b03)) * invDet, ((((-a21) * b05) + (a22 * b04)) - (a23 * b03)) * invDet, ((((-a10) * b11) + (a12 * b08)) - (a13 * b07)) * invDet, (((a00 * b11) - (a02 * b08)) + (a03 * b07)) * invDet, ((((-a30) * b05) + (a32 * b02)) - (a33 * b01)) * invDet, (((a20 * b05) - (a22 * b02)) + (a23 * b01)) * invDet, (((a10 * b10) - (a11 * b08)) + (a13 * b06)) * invDet, ((((-a00) * b10) + (a01 * b08)) - (a03 * b06)) * invDet, (((a30 * b04) - (a31 * b02)) + (a33 * b00)) * invDet, ((((-a20) * b04) + (a21 * b02)) - (a23 * b00)) * invDet, ((((-a10) * b09) + (a11 * b07)) - (a12 * b06)) * invDet, (((a00 * b09) - (a01 * b07)) + (a02 * b06)) * invDet, ((((-a30) * b03) + (a31 * b01)) - (a32 * b00)) * invDet, (((a20 * b03) - (a21 * b01)) + (a22 * b00)) * invDet)
+		Dim quat As Quaternion = Quaternion(source.x, source.y, source.z, 1.0f)
+		Dim qtransformed As Quaternion = Quaternion((((matViewProjInv.m0 * quat.x) + (matViewProjInv.m4 * quat.y)) + (matViewProjInv.m8 * quat.z)) + (matViewProjInv.m12 * quat.w), (((matViewProjInv.m1 * quat.x) + (matViewProjInv.m5 * quat.y)) + (matViewProjInv.m9 * quat.z)) + (matViewProjInv.m13 * quat.w), (((matViewProjInv.m2 * quat.x) + (matViewProjInv.m6 * quat.y)) + (matViewProjInv.m10 * quat.z)) + (matViewProjInv.m14 * quat.w), (((matViewProjInv.m3 * quat.x) + (matViewProjInv.m7 * quat.y)) + (matViewProjInv.m11 * quat.z)) + (matViewProjInv.m15 * quat.w))
 		result.x = qtransformed.x / qtransformed.w
 		result.y = qtransformed.y / qtransformed.w
 		result.z = qtransformed.z / qtransformed.w
-		return result
-	end function
+		Return result
+	End Function
 
-	private function Vector3ToFloatV(byval v as Vector3) as float3
-		dim buffer as float3
+	Private Function Vector3ToFloatV(ByVal v As Vector3) As float3
+		Dim buffer As float3
 		buffer.v(0) = v.x
 		buffer.v(1) = v.y
 		buffer.v(2) = v.z
-		return buffer
-	end function
+		Return buffer
+	End Function
 
-	private function Vector3Invert(byval v as Vector3) as Vector3
-		dim result as Vector3 = Vector3(1.0f / v.x, 1.0f / v.y, 1.0f / v.z)
-		return result
-	end function
+	Private Function Vector3Invert(ByVal v As Vector3) As Vector3
+		Dim result As Vector3 = Vector3(1.0f / v.x, 1.0f / v.y, 1.0f / v.z)
+		Return result
+	End Function
 
-	private function Vector3Clamp(byval v as Vector3, byval min as Vector3, byval max as Vector3) as Vector3
-		dim result as Vector3
-		result.x = fminf(max.x, fmaxf(min.x, v.x))
-		result.y = fminf(max.y, fmaxf(min.y, v.y))
-		result.z = fminf(max.z, fmaxf(min.z, v.z))
-		return result
-	end function
+	Private Function Vector3Clamp(ByVal v As Vector3, ByVal iMin As Vector3, ByVal iMax As Vector3) As Vector3
+		Dim result As Vector3
+		result.x = fminf(iMax.x, fmaxf(iMin.x, v.x))
+		result.y = fminf(iMax.y, fmaxf(iMin.y, v.y))
+		result.z = fminf(iMax.z, fmaxf(iMin.z, v.z))
+		Return result
+	End Function
 
-	private function Vector3ClampValue(byval v as Vector3, byval min as single, byval max as single) as Vector3
-		dim result as Vector3 = v
-		dim length as single = ((v.x * v.x) + (v.y * v.y)) + (v.z * v.z)
-		if length > 0.0f then
+	Private Function Vector3ClampValue(ByVal v As Vector3, ByVal iMin As Single, ByVal iMax As Single) As Vector3
+		Dim result As Vector3 = v
+		Dim length As Single = ((v.x * v.x) + (v.y * v.y)) + (v.z * v.z)
+		If length > 0.0f Then
 			length = sqrtf(length)
-			if length < min then
-				dim scale as single = min / length
+			If length < iMin Then
+				Dim scale As Single = iMin / length
 				result.x = v.x * scale
 				result.y = v.y * scale
 				result.z = v.z * scale
-			elseif length > max then
-				dim scale as single = max / length
+			ElseIf length > iMax Then
+				Dim scale As Single = iMax / length
 				result.x = v.x * scale
 				result.y = v.y * scale
 				result.z = v.z * scale
