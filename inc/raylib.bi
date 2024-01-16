@@ -28,9 +28,8 @@
     #inclib "winmm"
     #inclib "shell32"
 #endif
-
+Namespace RayLib
 Extern "C"
-
 #define RAYLIB_H
 Const RAYLIB_VERSION_MAJOR = 5
 Const RAYLIB_VERSION_MINOR = 1
@@ -814,20 +813,20 @@ Enum
 	CAMERA_ORBITAL
 	CAMERA_FIRST_PERSON
 	CAMERA_THIRD_PERSON
-end enum
+End Enum
 
-type CameraProjection as long
-enum
+Type CameraProjection As Long
+Enum
 	CAMERA_PERSPECTIVE = 0
 	CAMERA_ORTHOGRAPHIC
-end enum
+End Enum
 
-type NPatchLayout as long
-enum
+Type NPatchLayout As Long
+Enum
 	NPATCH_NINE_PATCH = 0
 	NPATCH_THREE_PATCH_VERTICAL
 	NPATCH_THREE_PATCH_HORIZONTAL
-end enum
+End Enum
 
 Type TraceLogCallback As Sub(ByVal logLevel As Long, ByVal text As Const ZString Ptr, ByVal args As va_list)
 Type LoadFileDataCallback As Function(ByVal fileName As Const ZString Ptr, ByVal bytesRead As ULong Ptr) As UByte Ptr
@@ -918,133 +917,133 @@ Declare Sub SetShaderValueV(ByVal shader As Shader, ByVal locIndex As Long, ByVa
 Declare Sub SetShaderValueMatrix(ByVal shader As Shader, ByVal locIndex As Long, ByVal mat As Matrix)
 Declare Sub SetShaderValueTexture(ByVal shader As Shader, ByVal locIndex As Long, ByVal texture As Texture2D)
 Declare Sub UnloadShader(ByVal shader As Shader)
-declare function GetMouseRay(byval mousePosition as Vector2, byval camera as Camera) as Ray
-declare function GetCameraMatrix(byval camera as Camera) as Matrix
-declare function GetCameraMatrix2D(byval camera as Camera2D) as Matrix
-declare function GetWorldToScreen(byval position as Vector3, byval camera as Camera) as Vector2
-declare function GetScreenToWorld2D(byval position as Vector2, byval camera as Camera2D) as Vector2
-declare function GetWorldToScreenEx(byval position as Vector3, byval camera as Camera, byval width_ as long, byval height_ as long) as Vector2
-declare function GetWorldToScreen2D(byval position as Vector2, byval camera as Camera2D) as Vector2
-declare sub SetTargetFPS(byval fps as long)
-declare function GetFPS() as long
-declare function GetFrameTime() as single
-declare function GetTime() as double
-declare function GetRandomValue(byval min as long, byval max as long) as long
-declare sub SetRandomSeed(byval seed as ulong)
-declare sub TakeScreenshot(byval fileName as const zstring ptr)
-declare sub SetConfigFlags(byval flags as ulong)
-declare sub TraceLog(byval logLevel as long, byval text as const zstring ptr, ...)
-declare sub SetTraceLogLevel(byval logLevel as long)
-declare function MemAlloc(byval size as long) as any ptr
-declare function MemRealloc(byval ptr as any ptr, byval size as long) as any ptr
-declare sub MemFree(byval ptr as any ptr)
-declare sub OpenURL(byval url as const zstring ptr)
-declare sub SetTraceLogCallback(byval callback as TraceLogCallback)
-declare sub SetLoadFileDataCallback(byval callback as LoadFileDataCallback)
-declare sub SetSaveFileDataCallback(byval callback as SaveFileDataCallback)
-declare sub SetLoadFileTextCallback(byval callback as LoadFileTextCallback)
-declare sub SetSaveFileTextCallback(byval callback as SaveFileTextCallback)
-declare function LoadFileData(byval fileName as const zstring ptr, byval bytesRead as ulong ptr) as ubyte ptr
-declare sub UnloadFileData(byval data_ as ubyte ptr)
-declare function SaveFileData(byval fileName as const zstring ptr, byval data_ as any ptr, byval bytesToWrite as ulong) as boolean
-declare function ExportDataAsCode(byval data_ as const zstring ptr, byval size as ulong, byval fileName as const zstring ptr) as boolean
-declare function LoadFileText(byval fileName as const zstring ptr) as zstring ptr
-declare sub UnloadFileText(byval text as zstring ptr)
-declare function SaveFileText(byval fileName as const zstring ptr, byval text as zstring ptr) as boolean
-declare function FileExists(byval fileName as const zstring ptr) as boolean
-declare function DirectoryExists(byval dirPath as const zstring ptr) as boolean
-declare function IsFileExtension(byval fileName as const zstring ptr, byval ext as const zstring ptr) as boolean
-declare function GetFileLength(byval fileName as const zstring ptr) as long
-declare function GetFileExtension(byval fileName as const zstring ptr) as const zstring ptr
-declare function GetFileName(byval filePath as const zstring ptr) as const zstring ptr
-declare function GetFileNameWithoutExt(byval filePath as const zstring ptr) as const zstring ptr
-declare function GetDirectoryPath(byval filePath as const zstring ptr) as const zstring ptr
-declare function GetPrevDirectoryPath(byval dirPath as const zstring ptr) as const zstring ptr
-declare function GetWorkingDirectory() as const zstring ptr
-declare function GetApplicationDirectory() as const zstring ptr
-declare function ChangeDirectory(byval dir as const zstring ptr) as boolean
-declare function IsPathFile(byval path as const zstring ptr) as boolean
-declare function LoadDirectoryFiles(byval dirPath as const zstring ptr) as FilePathList
-declare function LoadDirectoryFilesEx(byval basePath as const zstring ptr, byval filter as const zstring ptr, byval scanSubdirs as boolean) as FilePathList
-declare sub UnloadDirectoryFiles(byval files as FilePathList)
-declare function IsFileDropped() as boolean
-declare function LoadDroppedFiles() as FilePathList
-declare sub UnloadDroppedFiles(byval files as FilePathList)
-declare function GetFileModTime(byval fileName as const zstring ptr) as clong
-declare function CompressData(byval data_ as const ubyte ptr, byval dataSize as long, byval compDataSize as long ptr) as ubyte ptr
-declare function DecompressData(byval compData as const ubyte ptr, byval compDataSize as long, byval dataSize as long ptr) as ubyte ptr
-declare function EncodeDataBase64(byval data_ as const ubyte ptr, byval dataSize as long, byval outputSize as long ptr) as zstring ptr
-declare function DecodeDataBase64(byval data_ as const ubyte ptr, byval outputSize as long ptr) as ubyte ptr
-declare function IsKeyPressed(byval key as long) as boolean
-declare function IsKeyDown(byval key as long) as boolean
-declare function IsKeyReleased(byval key as long) as boolean
-declare function IsKeyUp(byval key as long) as boolean
-declare sub SetExitKey(byval key as long)
-declare function GetKeyPressed() as long
-declare function GetCharPressed() as long
-declare function IsGamepadAvailable(byval gamepad as long) as boolean
-declare function GetGamepadName(byval gamepad as long) as const zstring ptr
-declare function IsGamepadButtonPressed(byval gamepad as long, byval button as long) as boolean
-declare function IsGamepadButtonDown(byval gamepad as long, byval button as long) as boolean
-declare function IsGamepadButtonReleased(byval gamepad as long, byval button as long) as boolean
-declare function IsGamepadButtonUp(byval gamepad as long, byval button as long) as boolean
-declare function GetGamepadButtonPressed() as long
-declare function GetGamepadAxisCount(byval gamepad as long) as long
-declare function GetGamepadAxisMovement(byval gamepad as long, byval axis as long) as single
-declare function SetGamepadMappings(byval mappings as const zstring ptr) as long
-declare function IsMouseButtonPressed(byval button as long) as boolean
-declare function IsMouseButtonDown(byval button as long) as boolean
-declare function IsMouseButtonReleased(byval button as long) as boolean
-declare function IsMouseButtonUp(byval button as long) as boolean
-declare function GetMouseX() as long
-declare function GetMouseY() as long
-declare function GetMousePosition() as Vector2
-declare function GetMouseDelta() as Vector2
-declare sub SetMousePosition(byval x as long, byval y as long)
-declare sub SetMouseOffset(byval offsetX as long, byval offsetY as long)
-declare sub SetMouseScale(byval scaleX as single, byval scaleY as single)
-declare function GetMouseWheelMove() as single
-declare function GetMouseWheelMoveV() as Vector2
-declare sub SetMouseCursor(byval cursor as long)
-declare function GetTouchX() as long
-declare function GetTouchY() as long
-declare function GetTouchPosition(byval index as long) as Vector2
-declare function GetTouchPointId(byval index as long) as long
-declare function GetTouchPointCount() as long
-declare sub SetGesturesEnabled(byval flags as ulong)
-declare function IsGestureDetected(byval gesture as long) as boolean
-declare function GetGestureDetected() as long
-declare function GetGestureHoldDuration() as single
-declare function GetGestureDragVector() as Vector2
-declare function GetGestureDragAngle() as single
-declare function GetGesturePinchVector() as Vector2
-declare function GetGesturePinchAngle() as single
-declare sub UpdateCamera(byval camera as Camera ptr, byval mode as long)
-declare sub UpdateCameraPro(byval camera as Camera ptr, byval movement as Vector3, byval rotation as Vector3, byval zoom as single)
-declare sub SetShapesTexture(byval texture as Texture2D, byval source as Rectangle)
-declare sub DrawPixel(byval posX as long, byval posY as long, byval color as RLColor)
-declare sub DrawPixelV(byval position as Vector2, byval color as RLColor)
-declare sub DrawLine(byval startPosX as long, byval startPosY as long, byval endPosX as long, byval endPosY as long, byval color as RLColor)
-declare sub DrawLineV(byval startPos as Vector2, byval endPos as Vector2, byval color as RLColor)
-declare sub DrawLineEx(byval startPos as Vector2, byval endPos as Vector2, byval thick as single, byval color as RLColor)
-declare sub DrawLineBezier(byval startPos as Vector2, byval endPos as Vector2, byval thick as single, byval color as RLColor)
-declare sub DrawLineBezierQuad(byval startPos as Vector2, byval endPos as Vector2, byval controlPos as Vector2, byval thick as single, byval color as RLColor)
-declare sub DrawLineBezierCubic(byval startPos as Vector2, byval endPos as Vector2, byval startControlPos as Vector2, byval endControlPos as Vector2, byval thick as single, byval color as RLColor)
-declare sub DrawLineStrip(byval points as Vector2 ptr, byval pointCount as long, byval color as RLColor)
-declare sub DrawCircle(byval centerX as long, byval centerY as long, byval radius as single, byval color as RLColor)
-declare sub DrawCircleSector(byval center as Vector2, byval radius as single, byval startAngle as single, byval endAngle as single, byval segments as long, byval color as RLColor)
-declare sub DrawCircleSectorLines(byval center as Vector2, byval radius as single, byval startAngle as single, byval endAngle as single, byval segments as long, byval color as RLColor)
-declare sub DrawCircleGradient(byval centerX as long, byval centerY as long, byval radius as single, byval color1 as RLColor, byval color2 as RLColor)
-declare sub DrawCircleV(byval center as Vector2, byval radius as single, byval color as RLColor)
-declare sub DrawCircleLines(byval centerX as long, byval centerY as long, byval radius as single, byval color as RLColor)
-declare sub DrawEllipse(byval centerX as long, byval centerY as long, byval radiusH as single, byval radiusV as single, byval color as RLColor)
-declare sub DrawEllipseLines(byval centerX as long, byval centerY as long, byval radiusH as single, byval radiusV as single, byval color as RLColor)
-declare sub DrawRing(byval center as Vector2, byval innerRadius as single, byval outerRadius as single, byval startAngle as single, byval endAngle as single, byval segments as long, byval color as RLColor)
-declare sub DrawRingLines(byval center as Vector2, byval innerRadius as single, byval outerRadius as single, byval startAngle as single, byval endAngle as single, byval segments as long, byval color as RLColor)
-declare sub DrawRectangle(byval posX as long, byval posY as long, byval width_ as long, byval height_ as long, byval color as RLColor)
-declare sub DrawRectangleV(byval position as Vector2, byval size as Vector2, byval color as RLColor)
-declare sub DrawRectangleRec(byval rec as Rectangle, byval color as RLColor)
-declare sub DrawRectanglePro(byval rec as Rectangle, byval origin as Vector2, byval rotation as single, byval color as RLColor)
+Declare Function GetMouseRay(ByVal mousePosition As Vector2, ByVal camera As Camera) As Ray
+Declare Function GetCameraMatrix(ByVal camera As Camera) As Matrix
+Declare Function GetCameraMatrix2D(ByVal camera As Camera2D) As Matrix
+Declare Function GetWorldToScreen(ByVal position As Vector3, ByVal camera As Camera) As Vector2
+Declare Function GetScreenToWorld2D(ByVal position As Vector2, ByVal camera As Camera2D) As Vector2
+Declare Function GetWorldToScreenEx(ByVal position As Vector3, ByVal camera As Camera, ByVal width_ As Long, ByVal height_ As Long) As Vector2
+Declare Function GetWorldToScreen2D(ByVal position As Vector2, ByVal camera As Camera2D) As Vector2
+Declare Sub SetTargetFPS(ByVal fps As Long)
+Declare Function GetFPS() As Long
+Declare Function GetFrameTime() As Single
+Declare Function GetTime() As Double
+Declare Function GetRandomValue(ByVal min As Long, ByVal max As Long) As Long
+Declare Sub SetRandomSeed(ByVal seed As ULong)
+Declare Sub TakeScreenshot(ByVal fileName As Const ZString Ptr)
+Declare Sub SetConfigFlags(ByVal flags As ULong)
+Declare Sub TraceLog(ByVal logLevel As Long, ByVal text As Const ZString Ptr, ...)
+Declare Sub SetTraceLogLevel(ByVal logLevel As Long)
+Declare Function MemAlloc(ByVal size As Long) As Any Ptr
+Declare Function MemRealloc(ByVal ptr As Any ptr, ByVal size As Long) As Any ptr
+Declare Sub MemFree(ByVal ptr As Any ptr)
+Declare Sub OpenURL(ByVal url As Const ZString Ptr)
+Declare Sub SetTraceLogCallback(ByVal callback As TraceLogCallback)
+Declare Sub SetLoadFileDataCallback(ByVal callback As LoadFileDataCallback)
+Declare Sub SetSaveFileDataCallback(ByVal callback As SaveFileDataCallback)
+Declare Sub SetLoadFileTextCallback(ByVal callback As LoadFileTextCallback)
+Declare Sub SetSaveFileTextCallback(ByVal callback As SaveFileTextCallback)
+Declare Function LoadFileData(ByVal fileName As Const ZString Ptr, ByVal bytesRead As ULong Ptr) As UByte Ptr
+Declare Sub UnloadFileData(ByVal data_ As UByte Ptr)
+Declare Function SaveFileData(ByVal fileName As Const ZString Ptr, ByVal data_ As Any Ptr, ByVal bytesToWrite As ULong) As Boolean
+Declare Function ExportDataAsCode(ByVal data_ As Const ZString Ptr, ByVal size As ULong, ByVal fileName As Const ZString Ptr) As Boolean
+Declare Function LoadFileText(ByVal fileName As Const ZString Ptr) As ZString Ptr
+Declare Sub UnloadFileText(ByVal text As ZString Ptr)
+Declare Function SaveFileText(ByVal fileName As Const ZString Ptr, ByVal text As ZString Ptr) As Boolean
+Declare Function FileExists(ByVal fileName As Const ZString Ptr) As Boolean
+Declare Function DirectoryExists(ByVal dirPath As Const ZString Ptr) As Boolean
+Declare Function IsFileExtension(ByVal fileName As Const ZString Ptr, ByVal ext As Const ZString Ptr) As Boolean
+Declare Function GetFileLength(ByVal fileName As Const ZString Ptr) As Long
+Declare Function GetFileExtension(ByVal fileName As Const ZString Ptr) As Const ZString Ptr
+Declare Function GetFileName(ByVal filePath As Const ZString Ptr) As Const ZString Ptr
+Declare Function GetFileNameWithoutExt(ByVal filePath As Const ZString Ptr) As Const ZString Ptr
+Declare Function GetDirectoryPath(ByVal filePath As Const ZString Ptr) As Const ZString Ptr
+Declare Function GetPrevDirectoryPath(ByVal dirPath As Const ZString Ptr) As Const ZString Ptr
+Declare Function GetWorkingDirectory() As Const ZString Ptr
+Declare Function GetApplicationDirectory() As Const ZString Ptr
+Declare Function ChangeDirectory(ByVal dir As Const ZString Ptr) As Boolean
+Declare Function IsPathFile(ByVal path As Const ZString Ptr) As Boolean
+Declare Function LoadDirectoryFiles(ByVal dirPath As Const ZString Ptr) As FilePathList
+Declare Function LoadDirectoryFilesEx(ByVal basePath As Const ZString Ptr, ByVal filter As Const ZString Ptr, ByVal scanSubdirs As Boolean) As FilePathList
+Declare Sub UnloadDirectoryFiles(ByVal files As FilePathList)
+Declare Function IsFileDropped() As Boolean
+Declare Function LoadDroppedFiles() As FilePathList
+Declare Sub UnloadDroppedFiles(ByVal files As FilePathList)
+Declare Function GetFileModTime(ByVal fileName As Const ZString Ptr) As clong
+Declare Function CompressData(ByVal data_ As Const UByte Ptr, ByVal dataSize As Long, ByVal compDataSize As Long Ptr) As UByte Ptr
+Declare Function DecompressData(ByVal compData As Const UByte Ptr, ByVal compDataSize As Long, ByVal dataSize As Long Ptr) As UByte Ptr
+Declare Function EncodeDataBase64(ByVal data_ As Const UByte Ptr, ByVal dataSize As Long, ByVal outputSize As Long Ptr) As ZString Ptr
+Declare Function DecodeDataBase64(ByVal data_ As Const UByte Ptr, ByVal outputSize As Long Ptr) As UByte Ptr
+Declare Function IsKeyPressed(ByVal key As Long) As Boolean
+Declare Function IsKeyDown(ByVal key As Long) As Boolean
+Declare Function IsKeyReleased(ByVal key As Long) As Boolean
+Declare Function IsKeyUp(ByVal key As Long) As Boolean
+Declare Sub SetExitKey(ByVal key As Long)
+Declare Function GetKeyPressed() As Long
+Declare Function GetCharPressed() As Long
+Declare Function IsGamepadAvailable(ByVal gamepad As Long) As Boolean
+Declare Function GetGamepadName(ByVal gamepad As Long) As Const ZString Ptr
+Declare Function IsGamepadButtonPressed(ByVal gamepad As Long, ByVal button As Long) As Boolean
+Declare Function IsGamepadButtonDown(ByVal gamepad As Long, ByVal button As Long) As Boolean
+Declare Function IsGamepadButtonReleased(ByVal gamepad As Long, ByVal button As Long) As Boolean
+Declare Function IsGamepadButtonUp(ByVal gamepad As Long, ByVal button As Long) As Boolean
+Declare Function GetGamepadButtonPressed() As Long
+Declare Function GetGamepadAxisCount(ByVal gamepad As Long) As Long
+Declare Function GetGamepadAxisMovement(ByVal gamepad As Long, ByVal axis As Long) As Single
+Declare Function SetGamepadMappings(ByVal mappings As Const ZString Ptr) As Long
+Declare Function IsMouseButtonPressed(ByVal button As Long) As Boolean
+Declare Function IsMouseButtonDown(ByVal button As Long) As Boolean
+Declare Function IsMouseButtonReleased(ByVal button As Long) As Boolean
+Declare Function IsMouseButtonUp(ByVal button As Long) As Boolean
+Declare Function GetMouseX() As Long
+Declare Function GetMouseY() As Long
+Declare Function GetMousePosition() As Vector2
+Declare Function GetMouseDelta() As Vector2
+Declare Sub SetMousePosition(ByVal x As Long, ByVal y As Long)
+Declare Sub SetMouseOffset(ByVal offsetX As Long, ByVal offsetY As Long)
+Declare Sub SetMouseScale(ByVal scaleX As Single, ByVal scaleY As Single)
+Declare Function GetMouseWheelMove() As Single
+Declare Function GetMouseWheelMoveV() As Vector2
+Declare Sub SetMouseCursor(ByVal cursor As Long)
+Declare Function GetTouchX() As Long
+Declare Function GetTouchY() As Long
+Declare Function GetTouchPosition(ByVal index As Long) As Vector2
+Declare Function GetTouchPointId(ByVal index As Long) As Long
+Declare Function GetTouchPointCount() As Long
+Declare Sub SetGesturesEnabled(ByVal flags As ULong)
+Declare Function IsGestureDetected(ByVal gesture As Long) As Boolean
+Declare Function GetGestureDetected() As Long
+Declare Function GetGestureHoldDuration() As Single
+Declare Function GetGestureDragVector() As Vector2
+Declare Function GetGestureDragAngle() As Single
+Declare Function GetGesturePinchVector() As Vector2
+Declare Function GetGesturePinchAngle() As Single
+Declare Sub UpdateCamera(ByVal camera As Camera Ptr, ByVal mode As Long)
+Declare Sub UpdateCameraPro(ByVal camera As Camera Ptr, ByVal movement As Vector3, ByVal rotation As Vector3, ByVal zoom As Single)
+Declare Sub SetShapesTexture(ByVal texture As Texture2D, ByVal source As Rectangle)
+Declare Sub DrawPixel(ByVal posX As Long, ByVal posY As Long, ByVal color As RLColor)
+Declare Sub DrawPixelV(ByVal position As Vector2, ByVal color As RLColor)
+Declare Sub DrawLine(ByVal startPosX As Long, ByVal startPosY As Long, ByVal endPosX As Long, ByVal endPosY As Long, ByVal color As RLColor)
+Declare Sub DrawLineV(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal color As RLColor)
+Declare Sub DrawLineEx(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
+Declare Sub DrawLineBezier(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
+Declare Sub DrawLineBezierQuad(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal controlPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
+Declare Sub DrawLineBezierCubic(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal startControlPos As Vector2, ByVal endControlPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
+Declare Sub DrawLineStrip(ByVal points As Vector2 Ptr, ByVal pointCount As Long, ByVal color As RLColor)
+Declare Sub DrawCircle(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color As RLColor)
+Declare Sub DrawCircleSector(ByVal center As Vector2, ByVal radius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
+Declare Sub DrawCircleSectorLines(ByVal center As Vector2, ByVal radius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
+Declare Sub DrawCircleGradient(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color1 As RLColor, ByVal color2 As RLColor)
+Declare Sub DrawCircleV(ByVal center As Vector2, ByVal radius As Single, ByVal color As RLColor)
+Declare Sub DrawCircleLines(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color As RLColor)
+Declare Sub DrawEllipse(ByVal centerX As Long, ByVal centerY As Long, ByVal radiusH As Single, ByVal radiusV As Single, ByVal color As RLColor)
+Declare Sub DrawEllipseLines(ByVal centerX As Long, ByVal centerY As Long, ByVal radiusH As Single, ByVal radiusV As Single, ByVal color As RLColor)
+Declare Sub DrawRing(ByVal center As Vector2, ByVal innerRadius As Single, ByVal outerRadius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
+Declare Sub DrawRingLines(ByVal center As Vector2, ByVal innerRadius As Single, ByVal outerRadius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
+Declare Sub DrawRectangle(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As RLColor)
+Declare Sub DrawRectangleV(ByVal position As Vector2, ByVal size As Vector2, ByVal color As RLColor)
+Declare Sub DrawRectangleRec(ByVal rec As Rectangle, ByVal color As RLColor)
+Declare Sub DrawRectanglePro(ByVal rec As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal color As RLColor)
 Declare Sub DrawRectangleGradientV(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color1 As RLColor, ByVal color2 As RLColor)
 Declare Sub DrawRectangleGradientH(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color1 As RLColor, ByVal color2 As RLColor)
 Declare Sub DrawRectangleGradientEx(ByVal rec As Rectangle, ByVal col1 As RLColor, ByVal col2 As RLColor, ByVal col3 As RLColor, ByVal col4 As RLColor)
@@ -1069,7 +1068,7 @@ Declare Function CheckCollisionPointPoly(ByVal point As Vector2, ByVal points As
 Declare Function CheckCollisionLines(ByVal startPos1 As Vector2, ByVal endPos1 As Vector2, ByVal startPos2 As Vector2, ByVal endPos2 As Vector2, ByVal collisionPoint As Vector2 Ptr) As Boolean
 Declare Function CheckCollisionPointLine(ByVal point_ As Vector2, ByVal p1 As Vector2, ByVal p2 As Vector2, ByVal threshold As Long) As Boolean
 Declare Function GetCollisionRec(ByVal rec1 As Rectangle, ByVal rec2 As Rectangle) As Rectangle
-Declare Function LoadImage(ByVal fileName As Const ZString Ptr) As Image
+Declare Function RL_LoadImage(ByVal fileName As Const ZString Ptr) As Image
 Declare Function LoadImageSvg(ByVal fileName As Const ZString Ptr, ByVal width_ As Long, ByVal height_ As Long) As Image
 Declare Function LoadImageRaw(ByVal fileName As Const ZString Ptr, ByVal width_ As Long, ByVal height_ As Long, ByVal format_ As Long, ByVal headerSize As Long) As Image
 Declare Function LoadImageAnim(ByVal fileName As Const ZString Ptr, ByVal frames As Long Ptr) As Image
@@ -1084,275 +1083,276 @@ Declare Function GenImageColor(ByVal width_ As Long, ByVal height_ As Long, ByVa
 Declare Function GenImageGradientV(ByVal width_ As Long, ByVal height_ As Long, ByVal top As RLColor, ByVal bottom As RLColor) As Image
 Declare Function GenImageGradientH(ByVal width_ As Long, ByVal height_ As Long, ByVal left_ As RLColor, ByVal right_ As RLColor) As Image
 Declare Function GenImageGradientRadial(ByVal width_ As Long, ByVal height_ As Long, ByVal density As Single, ByVal inner As RLColor, ByVal outer As RLColor) As Image
-declare function GenImageChecked(byval width_ as long, byval height_ as long, byval checksX as long, byval checksY as long, byval col1 as RLColor, byval col2 as RLColor) as Image
-declare function GenImageWhiteNoise(byval width_ as long, byval height_ as long, byval factor as single) as Image
-declare function GenImagePerlinNoise(byval width_ as long, byval height_ as long, byval offsetX as long, byval offsetY as long, byval scale as single) as Image
-declare function GenImageCellular(byval width_ as long, byval height_ as long, byval tileSize as long) as Image
-declare function GenImageText(byval width_ as long, byval height_ as long, byval text_ as const zstring ptr) as Image
-declare function ImageCopy(byval image_ as Image) as Image
-declare function ImageFromImage(byval image_ as Image, byval rec as Rectangle) as Image
-declare function ImageText(byval text as const zstring ptr, byval fontSize as long, byval color as RLColor) as Image
-declare function ImageTextEx(byval font as Font, byval text as const zstring ptr, byval fontSize as single, byval spacing as single, byval tint as RLColor) as Image
-declare sub ImageFormat(byval image_ as Image ptr, byval newFormat as long)
-declare sub ImageToPOT(byval image_ as Image ptr, byval fill as RLColor)
-declare sub ImageCrop(byval image_ as Image ptr, byval crop as Rectangle)
-declare sub ImageAlphaCrop(byval image_ as Image ptr, byval threshold as single)
-declare sub ImageAlphaClear(byval image_ as Image ptr, byval color as RLColor, byval threshold as single)
-declare sub ImageAlphaMask(byval image_ as Image ptr, byval alphaMask as Image)
-declare sub ImageAlphaPremultiply(byval image_ as Image ptr)
-declare sub ImageBlurGaussian(byval image_ as Image ptr, byval blurSize as long)
-declare sub ImageResize(byval image_ as Image ptr, byval newWidth as long, byval newHeight as long)
-declare sub ImageResizeNN(byval image_ as Image ptr, byval newWidth as long, byval newHeight as long)
-declare sub ImageResizeCanvas(byval image_ as Image ptr, byval newWidth as long, byval newHeight as long, byval offsetX as long, byval offsetY as long, byval fill as RLColor)
-declare sub ImageMipmaps(byval image_ as Image ptr)
-declare sub ImageDither(byval image_ as Image ptr, byval rBpp as long, byval gBpp as long, byval bBpp as long, byval aBpp as long)
-declare sub ImageFlipVertical(byval image_ as Image ptr)
-declare sub ImageFlipHorizontal(byval image_ as Image ptr)
-declare sub ImageRotateCW(byval image_ as Image ptr)
-declare sub ImageRotateCCW(byval image_ as Image ptr)
-declare sub ImageColorTint(byval image_ as Image ptr, byval color as RLColor)
-declare sub ImageColorInvert(byval image_ as Image ptr)
-declare sub ImageColorGrayscale(byval image_ as Image ptr)
-declare sub ImageColorContrast(byval image_ as Image ptr, byval contrast as single)
-declare sub ImageColorBrightness(byval image_ as Image ptr, byval brightness as long)
-declare sub ImageColorReplace(byval image_ as Image ptr, byval color as RLColor, byval replace as RLColor)
-declare function LoadImageColors(byval image_ as Image) as RLColor ptr
-declare function LoadImagePalette(byval image_ as Image, byval maxPaletteSize as long, byval colorCount as long ptr) as RLColor ptr
-declare sub UnloadImageColors(byval colors as RLColor ptr)
-declare sub UnloadImagePalette(byval colors as RLColor ptr)
-declare function GetImageAlphaBorder(byval image_ as Image, byval threshold as single) as Rectangle
-declare function GetImageColor(byval image_ as Image, byval x as long, byval y as long) as RLColor
-declare sub ImageClearBackground(byval dst as Image ptr, byval color as RLColor)
-declare sub ImageDrawPixel(byval dst as Image ptr, byval posX as long, byval posY as long, byval color as RLColor)
-declare sub ImageDrawPixelV(byval dst as Image ptr, byval position as Vector2, byval color as RLColor)
-declare sub ImageDrawLine(byval dst as Image ptr, byval startPosX as long, byval startPosY as long, byval endPosX as long, byval endPosY as long, byval color as RLColor)
-declare sub ImageDrawLineV(byval dst as Image ptr, byval start as Vector2, byval end_ as Vector2, byval color as RLColor)
-declare sub ImageDrawCircle(byval dst as Image ptr, byval centerX as long, byval centerY as long, byval radius as long, byval color as RLColor)
-declare sub ImageDrawCircleV(byval dst as Image ptr, byval center as Vector2, byval radius as long, byval color as RLColor)
-declare sub ImageDrawCircleLines(byval dst as Image ptr, byval centerX as long, byval centerY as long, byval radius as long, byval color_ as RLColor)
-declare sub ImageDrawCircleLinesV(byval dst as Image ptr, byval center as Vector2, byval radius as long, byval color_ as RLColor)
-declare sub ImageDrawRectangle(byval dst as Image ptr, byval posX as long, byval posY as long, byval width_ as long, byval height_ as long, byval color as RLColor)
-declare sub ImageDrawRectangleV(byval dst as Image ptr, byval position as Vector2, byval size as Vector2, byval color as RLColor)
-declare sub ImageDrawRectangleRec(byval dst as Image ptr, byval rec as Rectangle, byval color as RLColor)
-declare sub ImageDrawRectangleLines(byval dst as Image ptr, byval rec as Rectangle, byval thick as long, byval color as RLColor)
-declare sub ImageDraw(byval dst as Image ptr, byval src as Image, byval srcRec as Rectangle, byval dstRec as Rectangle, byval tint as RLColor)
-declare sub ImageDrawText(byval dst as Image ptr, byval text as const zstring ptr, byval posX as long, byval posY as long, byval fontSize as long, byval color as RLColor)
-declare sub ImageDrawTextEx(byval dst as Image ptr, byval font as Font, byval text as const zstring ptr, byval position as Vector2, byval fontSize as single, byval spacing as single, byval tint as RLColor)
-declare function LoadTexture(byval fileName as const zstring ptr) as Texture2D
-declare function LoadTextureFromImage(byval image_ as Image) as Texture2D
-declare function LoadTextureCubemap(byval image_ as Image, byval layout as long) as TextureCubemap
-declare function LoadRenderTexture(byval width_ as long, byval height_ as long) as RenderTexture2D
-declare function IsTextureReady(byval texture as Texture2D) as byte
-declare sub UnloadTexture(byval texture as Texture2D)
-declare function IsRenderTextureReady(byval target as RenderTexture2D) as byte
-declare sub UnloadRenderTexture(byval target as RenderTexture2D)
-declare sub UpdateTexture(byval texture as Texture2D, byval pixels as const any ptr)
-declare sub UpdateTextureRec(byval texture as Texture2D, byval rec as Rectangle, byval pixels as const any ptr)
-declare sub GenTextureMipmaps(byval texture as Texture2D ptr)
-declare sub SetTextureFilter(byval texture as Texture2D, byval filter as long)
-declare sub SetTextureWrap(byval texture as Texture2D, byval wrap as long)
-declare sub DrawTexture(byval texture as Texture2D, byval posX as long, byval posY as long, byval tint as RLColor)
-declare sub DrawTextureV(byval texture as Texture2D, byval position as Vector2, byval tint as RLColor)
-declare sub DrawTextureEx(byval texture as Texture2D, byval position as Vector2, byval rotation as single, byval scale as single, byval tint as RLColor)
-declare sub DrawTextureRec(byval texture as Texture2D, byval source as Rectangle, byval position as Vector2, byval tint as RLColor)
-declare sub DrawTexturePro(byval texture as Texture2D, byval source as Rectangle, byval dest as Rectangle, byval origin as Vector2, byval rotation as single, byval tint as RLColor)
-declare sub DrawTextureNPatch(byval texture as Texture2D, byval nPatchInfo as NPatchInfo, byval dest as Rectangle, byval origin as Vector2, byval rotation as single, byval tint as RLColor)
-declare function Fade(byval color as RLColor, byval alpha_ as single) as RLColor
-declare function ColorToInt(byval color_ as RLColor) as long
-declare function ColorNormalize(byval color_ as RLColor) as Vector4
-declare function ColorFromNormalized(byval normalized as Vector4) as RLColor
-declare function ColorToHSV(byval color as RLColor) as Vector3
-declare function ColorFromHSV(byval hue as single, byval saturation as single, byval value as single) as RLColor
-declare function ColorTint(byval color_ as RLColor, byval tint as RLColor) as RLColor
-declare function ColorBrightness(byval color_ as RLColor, byval factor as single) as RLColor
-declare function ColorContrast(byval color_ as RLColor, byval contrast as single) as RLColor
-declare function ColorAlpha(byval color_ as RLColor, byval alpha_ as single) as RLColor
-declare function ColorAlphaBlend(byval dst as RLColor, byval src as RLColor, byval tint as RLColor) as RLColor
-declare function GetColor(byval hexValue as ulong) as RLColor
-declare function GetPixelColor(byval srcPtr as any ptr, byval format_ as long) as RLColor
-declare sub SetPixelColor(byval dstPtr as any ptr, byval color as RLColor, byval format_ as long)
-declare function GetPixelDataSize(byval width_ as long, byval height_ as long, byval format_ as long) as long
-declare function GetFontDefault() as Font
-declare function LoadFont(byval fileName as const zstring ptr) as Font
-declare function LoadFontEx(byval fileName as const zstring ptr, byval fontSize as long, byval fontChars as long ptr, byval glyphCount as long) as Font
-declare function LoadFontFromImage(byval image_ as Image, byval key as RLColor, byval firstChar as long) as Font
-declare function LoadFontFromMemory(byval fileType as const zstring ptr, byval fileData as const ubyte ptr, byval dataSize as long, byval fontSize as long, byval fontChars as long ptr, byval glyphCount as long) as Font
-declare function IsFontReady(byval font as Font) as byte
-declare function LoadFontData(byval fileData as const ubyte ptr, byval dataSize as long, byval fontSize as long, byval fontChars as long ptr, byval glyphCount as long, byval type as long) as GlyphInfo ptr
-declare function GenImageFontAtlas(byval chars as const GlyphInfo ptr, byval recs as Rectangle ptr ptr, byval glyphCount as long, byval fontSize as long, byval padding as long, byval packMethod as long) as Image
-declare sub UnloadFontData(byval chars as GlyphInfo ptr, byval glyphCount as long)
-declare sub UnloadFont(byval font as Font)
-declare function ExportFontAsCode(byval font as Font, byval fileName as const zstring ptr) as boolean
-declare sub DrawFPS(byval posX as long, byval posY as long)
-declare sub DrawText(byval text as const zstring ptr, byval posX as long, byval posY as long, byval fontSize as long, byval color as RLColor)
-declare sub DrawTextEx(byval font as Font, byval text as const zstring ptr, byval position as Vector2, byval fontSize as single, byval spacing as single, byval tint as RLColor)
-declare sub DrawTextPro(byval font as Font, byval text as const zstring ptr, byval position as Vector2, byval origin as Vector2, byval rotation as single, byval fontSize as single, byval spacing as single, byval tint as RLColor)
-declare sub DrawTextCodepoint(byval font as Font, byval codepoint as long, byval position as Vector2, byval fontSize as single, byval tint as RLColor)
-declare sub DrawTextCodepoints(byval font as Font, byval codepoints as const long ptr, byval count as long, byval position as Vector2, byval fontSize as single, byval spacing as single, byval tint as RLColor)
-declare function MeasureText(byval text as const zstring ptr, byval fontSize as long) as long
-declare function MeasureTextEx(byval font as Font, byval text as const zstring ptr, byval fontSize as single, byval spacing as single) as Vector2
-declare function GetGlyphIndex(byval font as Font, byval codepoint as long) as long
-declare function GetGlyphInfo(byval font as Font, byval codepoint as long) as GlyphInfo
-declare function GetGlyphAtlasRec(byval font as Font, byval codepoint as long) as Rectangle
-declare function LoadUTF8(byval codepoints as const long ptr, byval length_ as long) as zstring ptr
-declare sub UnloadUTF8(byval text as zstring ptr)
-declare function LoadCodepoints(byval text_ as const zstring ptr, byval count as long ptr) as long ptr
-declare sub UnloadCodepoints(byval codepoints as long ptr)
-declare function GetCodepoint(byval text as const zstring ptr, byval codepointSize as long ptr) as long
-declare function GetCodepointNext(byval text as const zstring ptr, byval codepointSize as long ptr) as long
-declare function GetCodepointPrevious(byval text as const zstring ptr, byval codepointSize as long ptr) as long
-declare function CodepointToUTF8(byval codepoint as long, byval utf8Size as long ptr) as const zstring ptr
-declare function TextCodepointsToUTF8(byval codepoints as const long ptr, byval length as long) as zstring ptr
-declare function TextCopy(byval dst as zstring ptr, byval src as const zstring ptr) as long
-declare function TextIsEqual(byval text1 as const zstring ptr, byval text2 as const zstring ptr) as boolean
-declare function TextLength(byval text as const zstring ptr) as ulong
-declare function TextFormat(byval text as const zstring ptr, ...) as const zstring ptr
-declare function TextSubtext(byval text as const zstring ptr, byval position as long, byval length as long) as const zstring ptr
-declare function TextReplace(byval text as zstring ptr, byval replace as const zstring ptr, byval by as const zstring ptr) as zstring ptr
-declare function TextInsert(byval text as const zstring ptr, byval insert as const zstring ptr, byval position as long) as zstring ptr
-declare function TextJoin(byval textList as const zstring ptr ptr, byval count as long, byval delimiter as const zstring ptr) as const zstring ptr
-declare function TextSplit(byval text as const zstring ptr, byval delimiter as byte, byval count as long ptr) as const zstring ptr ptr
-declare sub TextAppend(byval text as zstring ptr, byval append as const zstring ptr, byval position as long ptr)
-declare function TextFindIndex(byval text as const zstring ptr, byval find as const zstring ptr) as long
-declare function TextToUpper(byval text as const zstring ptr) as const zstring ptr
-declare function TextToLower(byval text as const zstring ptr) as const zstring ptr
-declare function TextToPascal(byval text as const zstring ptr) as const zstring ptr
-declare function TextToInteger(byval text as const zstring ptr) as long
-declare sub DrawLine3D(byval startPos as Vector3, byval endPos as Vector3, byval color as RLColor)
-declare sub DrawPoint3D(byval position as Vector3, byval color as RLColor)
-declare sub DrawCircle3D(byval center as Vector3, byval radius as single, byval rotationAxis as Vector3, byval rotationAngle as single, byval color as RLColor)
-declare sub DrawTriangle3D(byval v1 as Vector3, byval v2 as Vector3, byval v3 as Vector3, byval color as RLColor)
-declare sub DrawTriangleStrip3D(byval points as Vector3 ptr, byval pointCount as long, byval color as RLColor)
-declare sub DrawCube(byval position as Vector3, byval width_ as single, byval height_ as single, byval length as single, byval color as RLColor)
-declare sub DrawCubeV(byval position as Vector3, byval size as Vector3, byval color as RLColor)
-declare sub DrawCubeWires(byval position as Vector3, byval width_ as single, byval height_ as single, byval length as single, byval color as RLColor)
-declare sub DrawCubeWiresV(byval position as Vector3, byval size as Vector3, byval color as RLColor)
-declare sub DrawSphere(byval centerPos as Vector3, byval radius as single, byval color as RLColor)
-declare sub DrawSphereEx(byval centerPos as Vector3, byval radius as single, byval rings as long, byval slices as long, byval color as RLColor)
-declare sub DrawSphereWires(byval centerPos as Vector3, byval radius as single, byval rings as long, byval slices as long, byval color as RLColor)
-declare sub DrawCylinder(byval position as Vector3, byval radiusTop as single, byval radiusBottom as single, byval height_ as single, byval slices as long, byval color as RLColor)
-declare sub DrawCylinderEx(byval startPos as Vector3, byval endPos as Vector3, byval startRadius as single, byval endRadius as single, byval sides as long, byval color as RLColor)
-declare sub DrawCylinderWires(byval position as Vector3, byval radiusTop as single, byval radiusBottom as single, byval height_ as single, byval slices as long, byval color as RLColor)
-declare sub DrawCylinderWiresEx(byval startPos as Vector3, byval endPos as Vector3, byval startRadius as single, byval endRadius as single, byval sides as long, byval color as RLColor)
-declare sub DrawCapsule(byval startPos as Vector3, byval endPos as Vector3, byval radius as single, byval slices as long, byval rings as long, byval color_ as RLColor)
-declare sub DrawCapsuleWires(byval startPos as Vector3, byval endPos as Vector3, byval radius as single, byval slices as long, byval rings as long, byval color_ as RLColor)
-declare sub DrawPlane(byval centerPos as Vector3, byval size as Vector2, byval color as RLColor)
-declare sub DrawRay(byval ray as Ray, byval color as RLColor)
-declare sub DrawGrid(byval slices as long, byval spacing as single)
-declare function LoadModel(byval fileName as const zstring ptr) as Model
-declare function LoadModelFromMesh(byval mesh as Mesh) as Model
-declare function IsModelReady(byval model as Model) as byte
-declare sub UnloadModel(byval model as Model)
-declare function GetModelBoundingBox(byval model as Model) as BoundingBox
-declare sub DrawModel(byval model as Model, byval position as Vector3, byval scale as single, byval tint as RLColor)
-declare sub DrawModelEx(byval model as Model, byval position as Vector3, byval rotationAxis as Vector3, byval rotationAngle as single, byval scale as Vector3, byval tint as RLColor)
-declare sub DrawModelWires(byval model as Model, byval position as Vector3, byval scale as single, byval tint as RLColor)
-declare sub DrawModelWiresEx(byval model as Model, byval position as Vector3, byval rotationAxis as Vector3, byval rotationAngle as single, byval scale as Vector3, byval tint as RLColor)
-declare sub DrawBoundingBox(byval box as BoundingBox, byval color as RLColor)
-declare sub DrawBillboard(byval camera as Camera, byval texture as Texture2D, byval position as Vector3, byval size as single, byval tint as RLColor)
-declare sub DrawBillboardRec(byval camera as Camera, byval texture as Texture2D, byval source as Rectangle, byval position as Vector3, byval size as Vector2, byval tint as RLColor)
-declare sub DrawBillboardPro(byval camera as Camera, byval texture as Texture2D, byval source as Rectangle, byval position as Vector3, byval up as Vector3, byval size as Vector2, byval origin as Vector2, byval rotation as single, byval tint as RLColor)
-declare sub UploadMesh(byval mesh as Mesh ptr, byval dynamic as boolean)
-declare sub UpdateMeshBuffer(byval mesh as Mesh, byval index as long, byval data_ as const any ptr, byval dataSize as long, byval offset as long)
-declare sub UnloadMesh(byval mesh as Mesh)
-declare sub DrawMesh(byval mesh as Mesh, byval material as Material, byval transform as Matrix)
-declare sub DrawMeshInstanced(byval mesh as Mesh, byval material as Material, byval transforms as const Matrix ptr, byval instances as long)
-declare function ExportMesh(byval mesh as Mesh, byval fileName as const zstring ptr) as boolean
-declare function GetMeshBoundingBox(byval mesh as Mesh) as BoundingBox
-declare sub GenMeshTangents(byval mesh as Mesh ptr)
-declare function GenMeshPoly(byval sides as long, byval radius as single) as Mesh
-declare function GenMeshPlane(byval width_ as single, byval length as single, byval resX as long, byval resZ as long) as Mesh
-declare function GenMeshCube(byval width_ as single, byval height_ as single, byval length as single) as Mesh
-declare function GenMeshSphere(byval radius as single, byval rings as long, byval slices as long) as Mesh
-declare function GenMeshHemiSphere(byval radius as single, byval rings as long, byval slices as long) as Mesh
-declare function GenMeshCylinder(byval radius as single, byval height_ as single, byval slices as long) as Mesh
-declare function GenMeshCone(byval radius as single, byval height_ as single, byval slices as long) as Mesh
-declare function GenMeshTorus(byval radius as single, byval size as single, byval radSeg as long, byval sides as long) as Mesh
-declare function GenMeshKnot(byval radius as single, byval size as single, byval radSeg as long, byval sides as long) as Mesh
-declare function GenMeshHeightmap(byval heightmap as Image, byval size as Vector3) as Mesh
-declare function GenMeshCubicmap(byval cubicmap as Image, byval cubeSize as Vector3) as Mesh
-declare function LoadMaterials(byval fileName as const zstring ptr, byval materialCount as long ptr) as Material ptr
-declare function LoadMaterialDefault() as Material
-declare function IsMaterialReady(byval material as Material) as byte
-declare sub UnloadMaterial(byval material as Material)
-declare sub SetMaterialTexture(byval material as Material ptr, byval mapType as long, byval texture as Texture2D)
-declare sub SetModelMeshMaterial(byval model as Model ptr, byval meshId as long, byval materialId as long)
-declare function LoadModelAnimations(byval fileName as const zstring ptr, byval animCount as ulong ptr) as ModelAnimation ptr
-declare sub UpdateModelAnimation(byval model as Model, byval anim as ModelAnimation, byval frame as long)
-declare sub UnloadModelAnimation(byval anim as ModelAnimation)
-declare sub UnloadModelAnimations(byval animations as ModelAnimation ptr, byval count as ulong)
-declare function IsModelAnimationValid(byval model as Model, byval anim as ModelAnimation) as boolean
-declare function CheckCollisionSpheres(byval center1 as Vector3, byval radius1 as single, byval center2 as Vector3, byval radius2 as single) as boolean
-declare function CheckCollisionBoxes(byval box1 as BoundingBox, byval box2 as BoundingBox) as boolean
-declare function CheckCollisionBoxSphere(byval box as BoundingBox, byval center as Vector3, byval radius as single) as boolean
-declare function GetRayCollisionSphere(byval ray as Ray, byval center as Vector3, byval radius as single) as RayCollision
-declare function GetRayCollisionBox(byval ray as Ray, byval box as BoundingBox) as RayCollision
-declare function GetRayCollisionMesh(byval ray as Ray, byval mesh as Mesh, byval transform as Matrix) as RayCollision
-declare function GetRayCollisionTriangle(byval ray as Ray, byval p1 as Vector3, byval p2 as Vector3, byval p3 as Vector3) as RayCollision
-declare function GetRayCollisionQuad(byval ray as Ray, byval p1 as Vector3, byval p2 as Vector3, byval p3 as Vector3, byval p4 as Vector3) as RayCollision
-type AudioCallback as sub(byval bufferData as any ptr, byval frames as ulong)
-declare sub InitAudioDevice()
-declare sub CloseAudioDevice()
-declare function IsAudioDeviceReady() as boolean
-declare sub SetMasterVolume(byval volume as single)
-declare function LoadWave(byval fileName as const zstring ptr) as Wave
-declare function LoadWaveFromMemory(byval fileType as const zstring ptr, byval fileData as const ubyte ptr, byval dataSize as long) as Wave
-declare function IsWaveReady(byval wave as Wave) as byte
-declare function LoadSound(byval fileName as const zstring ptr) as Sound
-declare function LoadSoundFromWave(byval wave as Wave) as Sound
-declare function IsSoundReady(byval sound as Sound) as byte
-declare sub UpdateSound(byval sound as Sound, byval data_ as const any ptr, byval sampleCount as long)
-declare sub UnloadWave(byval wave as Wave)
-declare sub UnloadSound(byval sound as Sound)
-declare function ExportWave(byval wave as Wave, byval fileName as const zstring ptr) as boolean
-declare function ExportWaveAsCode(byval wave as Wave, byval fileName as const zstring ptr) as boolean
-declare sub PlaySound(byval sound as Sound)
-declare sub StopSound(byval sound as Sound)
-declare sub PauseSound(byval sound as Sound)
-declare sub ResumeSound(byval sound as Sound)
-declare function IsSoundPlaying(byval sound as Sound) as boolean
-declare sub SetSoundVolume(byval sound as Sound, byval volume as single)
-declare sub SetSoundPitch(byval sound as Sound, byval pitch as single)
-declare sub SetSoundPan(byval sound as Sound, byval pan as single)
-declare function WaveCopy(byval wave as Wave) as Wave
-declare sub WaveCrop(byval wave as Wave ptr, byval initSample as long, byval finalSample as long)
-declare sub WaveFormat(byval wave as Wave ptr, byval sampleRate as long, byval sampleSize as long, byval channels as long)
-declare function LoadWaveSamples(byval wave as Wave) as single ptr
-declare sub UnloadWaveSamples(byval samples as single ptr)
-declare function LoadMusicStream(byval fileName as const zstring ptr) as Music
-declare function LoadMusicStreamFromMemory(byval fileType as const zstring ptr, byval data_ as const ubyte ptr, byval dataSize as long) as Music
-declare function IsMusicReady(byval music as Music) as byte
-declare sub UnloadMusicStream(byval music as Music)
-declare sub PlayMusicStream(byval music as Music)
-declare function IsMusicStreamPlaying(byval music as Music) as boolean
-declare sub UpdateMusicStream(byval music as Music)
-declare sub StopMusicStream(byval music as Music)
-declare sub PauseMusicStream(byval music as Music)
-declare sub ResumeMusicStream(byval music as Music)
-declare sub SeekMusicStream(byval music as Music, byval position as single)
-declare sub SetMusicVolume(byval music as Music, byval volume as single)
-declare sub SetMusicPitch(byval music as Music, byval pitch as single)
-declare sub SetMusicPan(byval music as Music, byval pan as single)
-declare function GetMusicTimeLength(byval music as Music) as single
-declare function GetMusicTimePlayed(byval music as Music) as single
-declare function LoadAudioStream(byval sampleRate as ulong, byval sampleSize as ulong, byval channels as ulong) as AudioStream
-declare function IsAudioStreamReady(byval stream as AudioStream) as byte
-declare sub UnloadAudioStream(byval stream as AudioStream)
-declare sub UpdateAudioStream(byval stream as AudioStream, byval data_ as const any ptr, byval frameCount as long)
-declare function IsAudioStreamProcessed(byval stream as AudioStream) as boolean
-declare sub PlayAudioStream(byval stream as AudioStream)
-declare sub PauseAudioStream(byval stream as AudioStream)
-declare sub ResumeAudioStream(byval stream as AudioStream)
-declare function IsAudioStreamPlaying(byval stream as AudioStream) as boolean
-declare sub StopAudioStream(byval stream as AudioStream)
-declare sub SetAudioStreamVolume(byval stream as AudioStream, byval volume as single)
-declare sub SetAudioStreamPitch(byval stream as AudioStream, byval pitch as single)
-declare sub SetAudioStreamPan(byval stream as AudioStream, byval pan as single)
-declare sub SetAudioStreamBufferSizeDefault(byval size as long)
-declare sub SetAudioStreamCallback(byval stream as AudioStream, byval callback as AudioCallback)
-declare sub AttachAudioStreamProcessor(byval stream as AudioStream, byval processor as AudioCallback)
-declare sub DetachAudioStreamProcessor(byval stream as AudioStream, byval processor as AudioCallback)
-declare sub AttachAudioMixedProcessor(byval processor as AudioCallback)
-declare sub DetachAudioMixedProcessor(byval processor as AudioCallback)
+Declare Function GenImageChecked(ByVal width_ As Long, ByVal height_ As Long, ByVal checksX As Long, ByVal checksY As Long, ByVal col1 As RLColor, ByVal col2 As RLColor) As Image
+Declare Function GenImageWhiteNoise(ByVal width_ As Long, ByVal height_ As Long, ByVal factor As Single) As Image
+Declare Function GenImagePerlinNoise(ByVal width_ As Long, ByVal height_ As Long, ByVal offsetX As Long, ByVal offsetY As Long, ByVal scale As Single) As Image
+Declare Function GenImageCellular(ByVal width_ As Long, ByVal height_ As Long, ByVal tileSize As Long) As Image
+Declare Function GenImageText(ByVal width_ As Long, ByVal height_ As Long, ByVal text_ As Const ZString Ptr) As Image
+Declare Function ImageCopy(ByVal image_ As Image) As Image
+Declare Function ImageFromImage(ByVal image_ As Image, ByVal rec As Rectangle) As Image
+Declare Function ImageText(ByVal text As Const ZString Ptr, ByVal fontSize As Long, ByVal color As RLColor) As Image
+Declare Function ImageTextEx(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor) As Image
+Declare Sub ImageFormat(ByVal image_ As Image Ptr, ByVal newFormat As Long)
+Declare Sub ImageToPOT(ByVal image_ As Image Ptr, ByVal fill As RLColor)
+Declare Sub ImageCrop(ByVal image_ As Image Ptr, ByVal crop As Rectangle)
+Declare Sub ImageAlphaCrop(ByVal image_ As Image Ptr, ByVal threshold As Single)
+Declare Sub ImageAlphaClear(ByVal image_ As Image Ptr, ByVal color As RLColor, ByVal threshold As Single)
+Declare Sub ImageAlphaMask(ByVal image_ As Image Ptr, ByVal alphaMask As Image)
+Declare Sub ImageAlphaPremultiply(ByVal image_ As Image Ptr)
+Declare Sub ImageBlurGaussian(ByVal image_ As Image Ptr, ByVal blurSize As Long)
+Declare Sub ImageResize(ByVal image_ As Image Ptr, ByVal newWidth As Long, ByVal newHeight As Long)
+Declare Sub ImageResizeNN(ByVal image_ As Image Ptr, ByVal newWidth As Long, ByVal newHeight As Long)
+Declare Sub ImageResizeCanvas(ByVal image_ As Image Ptr, ByVal newWidth As Long, ByVal newHeight As Long, ByVal offsetX As Long, ByVal offsetY As Long, ByVal fill As RLColor)
+Declare Sub ImageMipmaps(ByVal image_ As Image Ptr)
+Declare Sub ImageDither(ByVal image_ As Image Ptr, ByVal rBpp As Long, ByVal gBpp As Long, ByVal bBpp As Long, ByVal aBpp As Long)
+Declare Sub ImageFlipVertical(ByVal image_ As Image Ptr)
+Declare Sub ImageFlipHorizontal(ByVal image_ As Image Ptr)
+Declare Sub ImageRotateCW(ByVal image_ As Image Ptr)
+Declare Sub ImageRotateCCW(ByVal image_ As Image Ptr)
+Declare Sub ImageColorTint(ByVal image_ As Image Ptr, ByVal color As RLColor)
+Declare Sub ImageColorInvert(ByVal image_ As Image Ptr)
+Declare Sub ImageColorGrayscale(ByVal image_ As Image Ptr)
+Declare Sub ImageColorContrast(ByVal image_ As Image Ptr, ByVal contrast As Single)
+Declare Sub ImageColorBrightness(ByVal image_ As Image Ptr, ByVal brightness As Long)
+Declare Sub ImageColorReplace(ByVal image_ As Image Ptr, ByVal color As RLColor, ByVal replace As RLColor)
+Declare Function LoadImageColors(ByVal image_ As Image) As RLColor Ptr
+Declare Function LoadImagePalette(ByVal image_ As Image, ByVal maxPaletteSize As Long, ByVal colorCount As Long Ptr) As RLColor Ptr
+Declare Sub UnloadImageColors(ByVal colors As RLColor Ptr)
+Declare Sub UnloadImagePalette(ByVal colors As RLColor Ptr)
+Declare Function GetImageAlphaBorder(ByVal image_ As Image, ByVal threshold As Single) As Rectangle
+Declare Function GetImageColor(ByVal image_ As Image, ByVal x As Long, ByVal y As Long) As RLColor
+Declare Sub ImageClearBackground(ByVal dst As Image Ptr, ByVal color As RLColor)
+Declare Sub ImageDrawPixel(ByVal dst As Image Ptr, ByVal posX As Long, ByVal posY As Long, ByVal color As RLColor)
+Declare Sub ImageDrawPixelV(ByVal dst As Image Ptr, ByVal position As Vector2, ByVal color As RLColor)
+Declare Sub ImageDrawLine(ByVal dst As Image Ptr, ByVal startPosX As Long, ByVal startPosY As Long, ByVal endPosX As Long, ByVal endPosY As Long, ByVal color As RLColor)
+Declare Sub ImageDrawLineV(ByVal dst As Image Ptr, ByVal start As Vector2, ByVal end_ As Vector2, ByVal color As RLColor)
+Declare Sub ImageDrawCircle(ByVal dst As Image Ptr, ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Long, ByVal color As RLColor)
+Declare Sub ImageDrawCircleV(ByVal dst As Image Ptr, ByVal center As Vector2, ByVal radius As Long, ByVal color As RLColor)
+Declare Sub ImageDrawCircleLines(ByVal dst As Image Ptr, ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Long, ByVal color_ As RLColor)
+Declare Sub ImageDrawCircleLinesV(ByVal dst As Image Ptr, ByVal center As Vector2, ByVal radius As Long, ByVal color_ As RLColor)
+Declare Sub ImageDrawRectangle(ByVal dst As Image Ptr, ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As RLColor)
+Declare Sub ImageDrawRectangleV(ByVal dst As Image Ptr, ByVal position As Vector2, ByVal size As Vector2, ByVal color As RLColor)
+Declare Sub ImageDrawRectangleRec(ByVal dst As Image Ptr, ByVal rec As Rectangle, ByVal color As RLColor)
+Declare Sub ImageDrawRectangleLines(ByVal dst As Image Ptr, ByVal rec As Rectangle, ByVal thick As Long, ByVal color As RLColor)
+Declare Sub ImageDraw(ByVal dst As Image Ptr, ByVal src As Image, ByVal srcRec As Rectangle, ByVal dstRec As Rectangle, ByVal tint As RLColor)
+Declare Sub ImageDrawText(ByVal dst As Image Ptr, ByVal text As Const ZString Ptr, ByVal posX As Long, ByVal posY As Long, ByVal fontSize As Long, ByVal color As RLColor)
+Declare Sub ImageDrawTextEx(ByVal dst As Image Ptr, ByVal font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
+Declare Function LoadTexture(ByVal fileName As Const ZString Ptr) As Texture2D
+Declare Function LoadTextureFromImage(ByVal image_ As Image) As Texture2D
+Declare Function LoadTextureCubemap(ByVal image_ As Image, ByVal layout As Long) As TextureCubemap
+Declare Function LoadRenderTexture(ByVal width_ As Long, ByVal height_ As Long) As RenderTexture2D
+Declare Function IsTextureReady(ByVal texture As Texture2D) As Byte
+Declare Sub UnloadTexture(ByVal texture As Texture2D)
+Declare Function IsRenderTextureReady(ByVal target As RenderTexture2D) As Byte
+Declare Sub UnloadRenderTexture(ByVal target As RenderTexture2D)
+Declare Sub UpdateTexture(ByVal texture As Texture2D, ByVal pixels As Const Any Ptr)
+Declare Sub UpdateTextureRec(ByVal texture As Texture2D, ByVal rec As Rectangle, ByVal pixels As Const Any Ptr)
+Declare Sub GenTextureMipmaps(ByVal texture As Texture2D Ptr)
+Declare Sub SetTextureFilter(ByVal texture As Texture2D, ByVal filter As Long)
+Declare Sub SetTextureWrap(ByVal texture As Texture2D, ByVal wrap As Long)
+Declare Sub DrawTexture(ByVal texture As Texture2D, ByVal posX As Long, ByVal posY As Long, ByVal tint As RLColor)
+Declare Sub DrawTextureV(ByVal texture As Texture2D, ByVal position As Vector2, ByVal tint As RLColor)
+Declare Sub DrawTextureEx(ByVal texture As Texture2D, ByVal position As Vector2, ByVal rotation As Single, ByVal scale As Single, ByVal tint As RLColor)
+Declare Sub DrawTextureRec(ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector2, ByVal tint As RLColor)
+Declare Sub DrawTexturePro(ByVal texture As Texture2D, ByVal source As Rectangle, ByVal dest As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As RLColor)
+Declare Sub DrawTextureNPatch(ByVal texture As Texture2D, ByVal nPatchInfo As NPatchInfo, ByVal dest As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As RLColor)
+Declare Function Fade(ByVal color As RLColor, ByVal alpha_ As Single) As RLColor
+Declare Function ColorToInt(ByVal color_ As RLColor) As Long
+Declare Function ColorNormalize(ByVal color_ As RLColor) As Vector4
+Declare Function ColorFromNormalized(ByVal normalized As Vector4) As RLColor
+Declare Function ColorToHSV(ByVal color As RLColor) As Vector3
+Declare Function ColorFromHSV(ByVal hue As Single, ByVal saturation As Single, ByVal value As Single) As RLColor
+Declare Function ColorTint(ByVal color_ As RLColor, ByVal tint As RLColor) As RLColor
+Declare Function ColorBrightness(ByVal color_ As RLColor, ByVal factor As Single) As RLColor
+Declare Function ColorContrast(ByVal color_ As RLColor, ByVal contrast As Single) As RLColor
+Declare Function ColorAlpha(ByVal color_ As RLColor, ByVal alpha_ As Single) As RLColor
+Declare Function ColorAlphaBlend(ByVal dst As RLColor, ByVal src As RLColor, ByVal tint As RLColor) As RLColor
+Declare Function GetColor(ByVal hexValue As ULong) As RLColor
+Declare Function GetPixelColor(ByVal srcPtr As Any Ptr, ByVal format_ As Long) As RLColor
+Declare Sub SetPixelColor(ByVal dstPtr As Any Ptr, ByVal color As RLColor, ByVal format_ As Long)
+Declare Function GetPixelDataSize(ByVal width_ As Long, ByVal height_ As Long, ByVal format_ As Long) As Long
+Declare Function GetFontDefault() As Font
+Declare Function LoadFont(ByVal fileName As Const ZString Ptr) As Font
+Declare Function LoadFontEx(ByVal fileName As Const ZString Ptr, ByVal fontSize As Long, ByVal fontChars As Long Ptr, ByVal glyphCount As Long) As Font
+Declare Function LoadFontFromImage(ByVal image_ As Image, ByVal key As RLColor, ByVal firstChar As Long) As Font
+Declare Function LoadFontFromMemory(ByVal fileType As Const ZString Ptr, ByVal fileData As Const UByte Ptr, ByVal dataSize As Long, ByVal fontSize As Long, ByVal fontChars As Long Ptr, ByVal glyphCount As Long) As Font
+Declare Function IsFontReady(ByVal font As Font) As Byte
+Declare Function LoadFontData(ByVal fileData As Const UByte Ptr, ByVal dataSize As Long, ByVal fontSize As Long, ByVal fontChars As Long Ptr, ByVal glyphCount As Long, ByVal type As Long) As GlyphInfo Ptr
+Declare Function GenImageFontAtlas(ByVal chars As Const GlyphInfo Ptr, ByVal recs As Rectangle Ptr Ptr, ByVal glyphCount As Long, ByVal fontSize As Long, ByVal padding As Long, ByVal packMethod As Long) As Image
+Declare Sub UnloadFontData(ByVal chars As GlyphInfo Ptr, ByVal glyphCount As Long)
+Declare Sub UnloadFont(ByVal font As Font)
+Declare Function ExportFontAsCode(ByVal font As Font, ByVal fileName As Const ZString Ptr) As Boolean
+Declare Sub DrawFPS(ByVal posX As Long, ByVal posY As Long)
+Declare Sub DrawText(ByVal text As Const ZString Ptr, ByVal posX As Long, ByVal posY As Long, ByVal fontSize As Long, ByVal color As RLColor)
+Declare Sub DrawTextEx(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
+Declare Sub DrawTextPro(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal origin As Vector2, ByVal rotation As Single, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
+Declare Sub DrawTextCodepoint(ByVal font As Font, ByVal codepoint As Long, ByVal position As Vector2, ByVal fontSize As Single, ByVal tint As RLColor)
+Declare Sub DrawTextCodepoints(ByVal font As Font, ByVal codepoints As Const Long Ptr, ByVal count As Long, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
+Declare Function MeasureText(ByVal text As Const ZString Ptr, ByVal fontSize As Long) As Long
+Declare Function MeasureTextEx(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal fontSize As Single, ByVal spacing As Single) As Vector2
+Declare Function GetGlyphIndex(ByVal font As Font, ByVal codepoint As Long) As Long
+Declare Function GetGlyphInfo(ByVal font As Font, ByVal codepoint As Long) As GlyphInfo
+Declare Function GetGlyphAtlasRec(ByVal font As Font, ByVal codepoint As Long) As Rectangle
+Declare Function LoadUTF8(ByVal codepoints As Const Long Ptr, ByVal length_ As Long) As ZString Ptr
+Declare Sub UnloadUTF8(ByVal text As ZString Ptr)
+Declare Function LoadCodepoints(ByVal text_ As Const ZString Ptr, ByVal count As Long Ptr) As Long Ptr
+Declare Sub UnloadCodepoints(ByVal codepoints As Long Ptr)
+Declare Function GetCodepoint(ByVal text As Const ZString Ptr, ByVal codepointSize As Long Ptr) As Long
+Declare Function GetCodepointNext(ByVal text As Const ZString Ptr, ByVal codepointSize As Long Ptr) As Long
+Declare Function GetCodepointPrevious(ByVal text As Const ZString Ptr, ByVal codepointSize As Long Ptr) As Long
+Declare Function CodepointToUTF8(ByVal codepoint As Long, ByVal utf8Size As Long Ptr) As Const ZString Ptr
+Declare Function TextCodepointsToUTF8(ByVal codepoints As Const Long Ptr, ByVal length As Long) As ZString Ptr
+Declare Function TextCopy(ByVal dst As ZString Ptr, ByVal src As Const ZString Ptr) As Long
+Declare Function TextIsEqual(ByVal text1 As Const ZString Ptr, ByVal text2 As Const ZString Ptr) As Boolean
+Declare Function TextLength(ByVal text As Const ZString Ptr) As ULong
+Declare Function TextFormat(ByVal text As Const ZString Ptr, ...) As Const ZString Ptr
+Declare Function TextSubtext(ByVal text As Const ZString Ptr, ByVal position As Long, ByVal length As Long) As Const ZString Ptr
+Declare Function TextReplace(ByVal text As ZString Ptr, ByVal replace As Const ZString Ptr, ByVal by As Const ZString Ptr) As ZString Ptr
+Declare Function TextInsert(ByVal text As Const ZString Ptr, ByVal insert As Const ZString Ptr, ByVal position As Long) As ZString Ptr
+Declare Function TextJoin(ByVal textList As Const ZString Ptr Ptr, ByVal count As Long, ByVal delimiter As Const ZString Ptr) As Const ZString Ptr
+Declare Function TextSplit(ByVal text As Const ZString Ptr, ByVal delimiter As Byte, ByVal count As Long Ptr) As Const ZString Ptr Ptr
+Declare Sub TextAppend(ByVal text As ZString Ptr, ByVal append As Const ZString Ptr, ByVal position As Long Ptr)
+Declare Function TextFindIndex(ByVal text As Const ZString Ptr, ByVal find As Const ZString Ptr) As Long
+Declare Function TextToUpper(ByVal text As Const ZString Ptr) As Const ZString Ptr
+Declare Function TextToLower(ByVal text As Const ZString Ptr) As Const ZString Ptr
+Declare Function TextToPascal(ByVal text As Const ZString Ptr) As Const ZString Ptr
+Declare Function TextToInteger(ByVal text As Const ZString Ptr) As Long
+Declare Sub DrawLine3D(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal color As RLColor)
+Declare Sub DrawPoint3D(ByVal position As Vector3, ByVal color As RLColor)
+Declare Sub DrawCircle3D(ByVal center As Vector3, ByVal radius As Single, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal color As RLColor)
+Declare Sub DrawTriangle3D(ByVal v1 As Vector3, ByVal v2 As Vector3, ByVal v3 As Vector3, ByVal color As RLColor)
+Declare Sub DrawTriangleStrip3D(ByVal points As Vector3 Ptr, ByVal pointCount As Long, ByVal color As RLColor)
+Declare Sub DrawCube(ByVal position As Vector3, ByVal width_ As Single, ByVal height_ As Single, ByVal length As Single, ByVal color As RLColor)
+Declare Sub DrawCubeV(ByVal position As Vector3, ByVal size As Vector3, ByVal color As RLColor)
+Declare Sub DrawCubeWires(ByVal position As Vector3, ByVal width_ As Single, ByVal height_ As Single, ByVal length As Single, ByVal color As RLColor)
+Declare Sub DrawCubeWiresV(ByVal position As Vector3, ByVal size As Vector3, ByVal color As RLColor)
+Declare Sub DrawSphere(ByVal centerPos As Vector3, ByVal radius As Single, ByVal color As RLColor)
+Declare Sub DrawSphereEx(ByVal centerPos As Vector3, ByVal radius As Single, ByVal rings As Long, ByVal slices As Long, ByVal color As RLColor)
+Declare Sub DrawSphereWires(ByVal centerPos As Vector3, ByVal radius As Single, ByVal rings As Long, ByVal slices As Long, ByVal color As RLColor)
+Declare Sub DrawCylinder(ByVal position As Vector3, ByVal radiusTop As Single, ByVal radiusBottom As Single, ByVal height_ As Single, ByVal slices As Long, ByVal color As RLColor)
+Declare Sub DrawCylinderEx(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal startRadius As Single, ByVal endRadius As Single, ByVal sides As Long, ByVal color As RLColor)
+Declare Sub DrawCylinderWires(ByVal position As Vector3, ByVal radiusTop As Single, ByVal radiusBottom As Single, ByVal height_ As Single, ByVal slices As Long, ByVal color As RLColor)
+Declare Sub DrawCylinderWiresEx(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal startRadius As Single, ByVal endRadius As Single, ByVal sides As Long, ByVal color As RLColor)
+Declare Sub DrawCapsule(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal radius As Single, ByVal slices As Long, ByVal rings As Long, ByVal color_ As RLColor)
+Declare Sub DrawCapsuleWires(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal radius As Single, ByVal slices As Long, ByVal rings As Long, ByVal color_ As RLColor)
+Declare Sub DrawPlane(ByVal centerPos As Vector3, ByVal size As Vector2, ByVal color As RLColor)
+Declare Sub DrawRay(ByVal ray As Ray, ByVal color As RLColor)
+Declare Sub DrawGrid(ByVal slices As Long, ByVal spacing As Single)
+Declare Function LoadModel(ByVal fileName As Const ZString Ptr) As Model
+Declare Function LoadModelFromMesh(ByVal mesh As Mesh) As Model
+Declare Function IsModelReady(ByVal model As Model) As Byte
+Declare Sub UnloadModel(ByVal model As Model)
+Declare Function GetModelBoundingBox(ByVal model As Model) As BoundingBox
+Declare Sub DrawModel(ByVal model As Model, ByVal position As Vector3, ByVal scale As Single, ByVal tint As RLColor)
+Declare Sub DrawModelEx(ByVal model As Model, ByVal position As Vector3, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal scale As Vector3, ByVal tint As RLColor)
+Declare Sub DrawModelWires(ByVal model As Model, ByVal position As Vector3, ByVal scale As Single, ByVal tint As RLColor)
+Declare Sub DrawModelWiresEx(ByVal model As Model, ByVal position As Vector3, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal scale As Vector3, ByVal tint As RLColor)
+Declare Sub DrawBoundingBox(ByVal box As BoundingBox, ByVal color As RLColor)
+Declare Sub DrawBillboard(ByVal camera As Camera, ByVal texture As Texture2D, ByVal position As Vector3, ByVal size As Single, ByVal tint As RLColor)
+Declare Sub DrawBillboardRec(ByVal camera As Camera, ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector3, ByVal size As Vector2, ByVal tint As RLColor)
+Declare Sub DrawBillboardPro(ByVal camera As Camera, ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector3, ByVal up As Vector3, ByVal size As Vector2, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As RLColor)
+Declare Sub UploadMesh(ByVal mesh As Mesh Ptr, ByVal dynamic As Boolean)
+Declare Sub UpdateMeshBuffer(ByVal mesh As Mesh, ByVal index As Long, ByVal data_ As Const Any Ptr, ByVal dataSize As Long, ByVal offset As Long)
+Declare Sub UnloadMesh(ByVal mesh As Mesh)
+Declare Sub DrawMesh(ByVal mesh As Mesh, ByVal material As Material, ByVal transform As Matrix)
+Declare Sub DrawMeshInstanced(ByVal mesh As Mesh, ByVal material As Material, ByVal transforms As Const Matrix Ptr, ByVal instances As Long)
+Declare Function ExportMesh(ByVal mesh As Mesh, ByVal fileName As Const ZString Ptr) As Boolean
+Declare Function GetMeshBoundingBox(ByVal mesh As Mesh) As BoundingBox
+Declare Sub GenMeshTangents(ByVal mesh As Mesh Ptr)
+Declare Function GenMeshPoly(ByVal sides As Long, ByVal radius As Single) As Mesh
+Declare Function GenMeshPlane(ByVal width_ As Single, ByVal length As Single, ByVal resX As Long, ByVal resZ As Long) As Mesh
+Declare Function GenMeshCube(ByVal width_ As Single, ByVal height_ As Single, ByVal length As Single) As Mesh
+Declare Function GenMeshSphere(ByVal radius As Single, ByVal rings As Long, ByVal slices As Long) As Mesh
+Declare Function GenMeshHemiSphere(ByVal radius As Single, ByVal rings As Long, ByVal slices As Long) As Mesh
+Declare Function GenMeshCylinder(ByVal radius As Single, ByVal height_ As Single, ByVal slices As Long) As Mesh
+Declare Function GenMeshCone(ByVal radius As Single, ByVal height_ As Single, ByVal slices As Long) As Mesh
+Declare Function GenMeshTorus(ByVal radius As Single, ByVal size As Single, ByVal radSeg As Long, ByVal sides As Long) As Mesh
+Declare Function GenMeshKnot(ByVal radius As Single, ByVal size As Single, ByVal radSeg As Long, ByVal sides As Long) As Mesh
+Declare Function GenMeshHeightmap(ByVal heightmap As Image, ByVal size As Vector3) As Mesh
+Declare Function GenMeshCubicmap(ByVal cubicmap As Image, ByVal cubeSize As Vector3) As Mesh
+Declare Function LoadMaterials(ByVal fileName As Const ZString Ptr, ByVal materialCount As Long Ptr) As Material Ptr
+Declare Function LoadMaterialDefault() As Material
+Declare Function IsMaterialReady(ByVal material As Material) As Byte
+Declare Sub UnloadMaterial(ByVal material As Material)
+Declare Sub SetMaterialTexture(ByVal material As Material Ptr, ByVal mapType As Long, ByVal texture As Texture2D)
+Declare Sub SetModelMeshMaterial(ByVal model As Model Ptr, ByVal meshId As Long, ByVal materialId As Long)
+Declare Function LoadModelAnimations(ByVal fileName As Const ZString Ptr, ByVal animCount As ULong Ptr) As ModelAnimation Ptr
+Declare Sub UpdateModelAnimation(ByVal model As Model, ByVal anim As ModelAnimation, ByVal frame As Long)
+Declare Sub UnloadModelAnimation(ByVal anim As ModelAnimation)
+Declare Sub UnloadModelAnimations(ByVal animations As ModelAnimation Ptr, ByVal count As ULong)
+Declare Function IsModelAnimationValid(ByVal model As Model, ByVal anim As ModelAnimation) As Boolean
+Declare Function CheckCollisionSpheres(ByVal center1 As Vector3, ByVal radius1 As Single, ByVal center2 As Vector3, ByVal radius2 As Single) As Boolean
+Declare Function CheckCollisionBoxes(ByVal box1 As BoundingBox, ByVal box2 As BoundingBox) As Boolean
+Declare Function CheckCollisionBoxSphere(ByVal box As BoundingBox, ByVal center As Vector3, ByVal radius As Single) As Boolean
+Declare Function GetRayCollisionSphere(ByVal ray As Ray, ByVal center As Vector3, ByVal radius As Single) As RayCollision
+Declare Function GetRayCollisionBox(ByVal ray As Ray, ByVal box As BoundingBox) As RayCollision
+Declare Function GetRayCollisionMesh(ByVal ray As Ray, ByVal mesh As Mesh, ByVal transform As Matrix) As RayCollision
+Declare Function GetRayCollisionTriangle(ByVal ray As Ray, ByVal p1 As Vector3, ByVal p2 As Vector3, ByVal p3 As Vector3) As RayCollision
+Declare Function GetRayCollisionQuad(ByVal ray As Ray, ByVal p1 As Vector3, ByVal p2 As Vector3, ByVal p3 As Vector3, ByVal p4 As Vector3) As RayCollision
+Type AudioCallback As Sub(ByVal bufferData As Any Ptr, ByVal frames As ULong)
+Declare Sub InitAudioDevice()
+Declare Sub CloseAudioDevice()
+Declare Function IsAudioDeviceReady() As Boolean
+Declare Sub SetMasterVolume(ByVal volume As Single)
+Declare Function LoadWave(ByVal fileName As Const ZString Ptr) As Wave
+Declare Function LoadWaveFromMemory(ByVal fileType As Const ZString Ptr, ByVal fileData As Const UByte Ptr, ByVal dataSize As Long) As Wave
+Declare Function IsWaveReady(ByVal wave As Wave) As Byte
+Declare Function LoadSound(ByVal fileName As Const ZString Ptr) As Sound
+Declare Function LoadSoundFromWave(ByVal wave As Wave) As Sound
+Declare Function IsSoundReady(ByVal sound As Sound) As Byte
+Declare Sub UpdateSound(ByVal sound As Sound, ByVal data_ As Const Any Ptr, ByVal sampleCount As Long)
+Declare Sub UnloadWave(ByVal wave As Wave)
+Declare Sub UnloadSound(ByVal sound As Sound)
+Declare Function ExportWave(ByVal wave As Wave, ByVal fileName As Const ZString Ptr) As Boolean
+Declare Function ExportWaveAsCode(ByVal wave As Wave, ByVal fileName As Const ZString Ptr) As Boolean
+Declare Sub PlaySound(ByVal sound As Sound)
+Declare Sub StopSound(ByVal sound As Sound)
+Declare Sub PauseSound(ByVal sound As Sound)
+Declare Sub ResumeSound(ByVal sound As Sound)
+Declare Function IsSoundPlaying(ByVal sound As Sound) As Boolean
+Declare Sub SetSoundVolume(ByVal sound As Sound, ByVal volume As Single)
+Declare Sub SetSoundPitch(ByVal sound As Sound, ByVal pitch As Single)
+Declare Sub SetSoundPan(ByVal sound As Sound, ByVal pan As Single)
+Declare Function WaveCopy(ByVal wave As Wave) As Wave
+Declare Sub WaveCrop(ByVal wave As Wave Ptr, ByVal initSample As Long, ByVal finalSample As Long)
+Declare Sub WaveFormat(ByVal wave As Wave Ptr, ByVal sampleRate As Long, ByVal sampleSize As Long, ByVal channels As Long)
+Declare Function LoadWaveSamples(ByVal wave As Wave) As Single Ptr
+Declare Sub UnloadWaveSamples(ByVal samples As Single Ptr)
+Declare Function LoadMusicStream(ByVal fileName As Const ZString Ptr) As Music
+Declare Function LoadMusicStreamFromMemory(ByVal fileType As Const ZString Ptr, ByVal data_ As Const UByte Ptr, ByVal dataSize As Long) As Music
+Declare Function IsMusicReady(ByVal music As Music) As Byte
+Declare Sub UnloadMusicStream(ByVal music As Music)
+Declare Sub PlayMusicStream(ByVal music As Music)
+Declare Function IsMusicStreamPlaying(ByVal music As Music) As Boolean
+Declare Sub UpdateMusicStream(ByVal music As Music)
+Declare Sub StopMusicStream(ByVal music As Music)
+Declare Sub PauseMusicStream(ByVal music As Music)
+Declare Sub ResumeMusicStream(ByVal music As Music)
+Declare Sub SeekMusicStream(ByVal music As Music, ByVal position As Single)
+Declare Sub SetMusicVolume(ByVal music As Music, ByVal volume As Single)
+Declare Sub SetMusicPitch(ByVal music As Music, ByVal pitch As Single)
+Declare Sub SetMusicPan(ByVal music As Music, ByVal pan As Single)
+Declare Function GetMusicTimeLength(ByVal music As Music) As Single
+Declare Function GetMusicTimePlayed(ByVal music As Music) As Single
+Declare Function LoadAudioStream(ByVal sampleRate As ULong, ByVal sampleSize As ULong, ByVal channels As ULong) As AudioStream
+Declare Function IsAudioStreamReady(ByVal stream As AudioStream) As Byte
+Declare Sub UnloadAudioStream(ByVal stream As AudioStream)
+Declare Sub UpdateAudioStream(ByVal stream As AudioStream, ByVal data_ As Const Any Ptr, ByVal frameCount As Long)
+Declare Function IsAudioStreamProcessed(ByVal stream As AudioStream) As Boolean
+Declare Sub PlayAudioStream(ByVal stream As AudioStream)
+Declare Sub PauseAudioStream(ByVal stream As AudioStream)
+Declare Sub ResumeAudioStream(ByVal stream As AudioStream)
+Declare Function IsAudioStreamPlaying(ByVal stream As AudioStream) As Boolean
+Declare Sub StopAudioStream(ByVal stream As AudioStream)
+Declare Sub SetAudioStreamVolume(ByVal stream As AudioStream, ByVal volume As Single)
+Declare Sub SetAudioStreamPitch(ByVal stream As AudioStream, ByVal pitch As Single)
+Declare Sub SetAudioStreamPan(ByVal stream As AudioStream, ByVal pan As Single)
+Declare Sub SetAudioStreamBufferSizeDefault(ByVal size As Long)
+Declare Sub SetAudioStreamCallback(ByVal stream As AudioStream, ByVal callback As AudioCallback)
+Declare Sub AttachAudioStreamProcessor(ByVal stream As AudioStream, ByVal processor As AudioCallback)
+Declare Sub DetachAudioStreamProcessor(ByVal stream As AudioStream, ByVal processor As AudioCallback)
+Declare Sub AttachAudioMixedProcessor(ByVal processor As AudioCallback)
+Declare Sub DetachAudioMixedProcessor(ByVal processor As AudioCallback)
 
-end extern
+End Extern
+End Namespace
