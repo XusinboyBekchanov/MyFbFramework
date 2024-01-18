@@ -1424,6 +1424,16 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case WM_RBUTTONDOWN
+				If ContextMenu Then
+					If ContextMenu->Handle Then
+						Dim As ..Point P
+						P.X = GET_X_LPARAM(Message.lParam)
+						P.Y = GET_Y_LPARAM(Message.lParam)
+						.ClientToScreen(This.Handle, @P)
+						ContextMenu->Popup(P.X, P.Y)
+					End If
+				End If
 			Case WM_DESTROY
 				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_NORMAL)
 				If StateImages Then ListView_SetImageList(FHandle, 0, LVSIL_STATE)
