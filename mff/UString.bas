@@ -99,6 +99,8 @@ End Function
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength): Else: subject = _CAllocate((lLen + 1) * SizeOf(WString) * GrowLength): End If
 	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
 	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+	#define ZLet(subject, txt) Scope: subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): *subject = txt1: End Scope
+	#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -111,6 +113,16 @@ End Function
 		Else
 			subject = _CAllocate((lLen + 1) * SizeOf(WString) * GrowLength) 'Cast(WString Ptr, )
 		End If
+	End Sub
+	
+	Private Sub ZLet(ByRef subject As ZString Ptr, ByRef txt As ZString)
+		subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString))
+		*subject = txt
+	End Sub
+	
+	Private Sub ZDeAllocate(ByRef subject As ZString Ptr)
+		If subject <> 0 Then Deallocate(subject)
+		subject = 0
 	End Sub
 	
 	Private Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)

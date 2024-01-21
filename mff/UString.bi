@@ -72,6 +72,8 @@ Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
 	Declare Sub WDeAllocate Overload(ByRef subject As WString Ptr)
+	Declare Sub ZLet(ByRef subject As ZString Ptr, ByRef txt As ZString)
+	Declare Sub ZDeAllocate(ByRef subject As ZString Ptr)
 #endif
 Declare Sub WDeAllocateEx Overload(subject() As WString Ptr)
 
