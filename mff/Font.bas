@@ -73,7 +73,7 @@ Namespace My.Sys.Drawing
 				Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
 			#elseif defined(__USE_WINAPI__)
 				If Handle Then DeleteObject(Handle)
-				Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation * 10, FOrientation * 10, FBolds(min(1, _Abs(FBold))), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
+				Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation * 10, FOrientation * 10, FBolds(Min(1, _Abs(FBold))), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
 			#endif
 			If Handle Then
 				If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component Then
@@ -244,6 +244,13 @@ Namespace My.Sys.Drawing
 		FCharSet  = FontCharset.Default
 		WLet(FName, DefaultFont.Name)
 		FSize     = DefaultFont.Size
+		#ifndef __FB_WIN32__
+			If *FName = "" Then WLet(FName, "Ubuntu")
+			If FSize = 0 Then FSize = 11
+		#else
+			If *FName = "" Then WLet(FName, "Tahoma")
+			If FSize = 0 Then FSize = 8
+		#endif
 		#ifdef __USE_WINAPI__
 			If xdpi = 0 OrElse ydpi = 0 Then
 				Dim As HDC Dc
