@@ -24,6 +24,8 @@ Namespace My.Sys.Forms
 				'Case "itemcount": Return @FItemCount
 			Case "itemheight": Return @FItemHeight
 			Case "itemindex": Return @FItemIndex
+			Case "horizontalscrollbar": Return @FHorizontalScrollBar
+			Case "verticalscrollbar": Return @FVerticalScrollBar
 			Case "newindex": Return @FNewIndex
 			Case "selectionmode": Return @FSelectionMode
 			Case "selcount": Return @FSelCount
@@ -45,6 +47,8 @@ Namespace My.Sys.Forms
 			Case "ctl3d": Ctl3D = QBoolean(Value)
 			Case "integralheight": IntegralHeight = QBoolean(Value)
 			Case "itemheight": ItemHeight = QInteger(Value)
+			Case "horizontalscrollbar": HorizontalScrollBar = QBoolean(Value)
+			Case "verticalscrollbar": HorizontalScrollBar = QBoolean(Value)
 			Case "selectionmode": SelectionMode = *Cast(SelectionModes Ptr, Value)
 			Case "sort": Sort = QBoolean(Value)
 			Case "style": Style = *Cast(ListControlStyle Ptr, Value)
@@ -59,6 +63,30 @@ Namespace My.Sys.Forms
 	Private Function ListControl.NewIndex As Integer
 		Return FNewIndex
 	End Function
+	
+	Private Property ListControl.HorizontalScrollBar As Boolean
+		Return FHorizontalScrollBar
+	End Property
+	
+	Private Property ListControl.HorizontalScrollBar(Value As Boolean)
+		FHorizontalScrollBar = Value
+		#ifdef __USE_GTK__
+		#else
+			ChangeStyle WS_HSCROLL, Value
+		#endif
+	End Property
+	
+	Private Property ListControl.VerticalScrollBar As Boolean
+		Return FVerticalScrollBar
+	End Property
+	
+	Private Property ListControl.VerticalScrollBar(Value As Boolean)
+		FVerticalScrollBar = Value
+		#ifdef __USE_GTK__
+		#else
+			ChangeStyle WS_VSCROLL, Value
+		#endif
+	End Property
 	
 	Private Property ListControl.Selected(Index As Integer) As Boolean
 		#ifdef __USE_GTK__
@@ -111,13 +139,13 @@ Namespace My.Sys.Forms
 		FSelectionMode = Value
 		#ifdef __USE_GTK__
 			Select Case FSelectionMode
-			Case 0: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_NONE)
-			Case 1: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_SINGLE)
-			Case 2: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_MULTIPLE)
+			Case 0: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), GTK_SELECTION_NONE)
+			Case 1: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), GTK_SELECTION_SINGLE)
+			Case 2: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), GTK_SELECTION_MULTIPLE)
 				#ifdef __USE_GTK3__
-				Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_MULTIPLE)
+				Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), GTK_SELECTION_MULTIPLE)
 				#else
-				Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(gtk_tree_view(widget)), GTK_SELECTION_EXTENDED)
+				Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), GTK_SELECTION_EXTENDED)
 				#endif
 			End Select
 		#else
@@ -659,6 +687,8 @@ Namespace My.Sys.Forms
 			FTabIndex          = -1
 			FTabStop           = True
 			FBorderStyle       = 1
+			FHorizontalScrollBar = True
+			FVerticalScrollBar  = True
 			'Items.Parent       = @This
 			
 			WLet(FClassName, "ListControl")

@@ -52,6 +52,8 @@ Namespace My.Sys.Forms
 		FExtendSelect     As Boolean
 		FMultiColumn      As Boolean
 		FIntegralHeight   As Boolean
+		FHorizontalScrollBar As Boolean
+		FVerticalScrollBar   As Boolean
 		FCtl3D            As Boolean
 		FSelectionMode    As SelectionModes
 		AItems(Any)       As Integer 
@@ -94,6 +96,10 @@ Namespace My.Sys.Forms
 		Declare Property SelectionMode(Value As SelectionModes)
 		Declare Property Sort As Boolean
 		Declare Property Sort(Value As Boolean)
+		Declare Property HorizontalScrollBar As Boolean
+		Declare Property HorizontalScrollBar(Value As Boolean)
+		Declare Property VerticalScrollBar As Boolean
+		Declare Property VerticalScrollBar(Value As Boolean)
 		Declare Property IntegralHeight As Boolean
 		Declare Property IntegralHeight(Value As Boolean)
 		Declare Property MultiColumn As Boolean
