@@ -184,12 +184,16 @@ Namespace My.Sys.Forms
 	Private Type TreeListView Extends Control
 	Private:
 		FColumnHeaderHidden As Boolean
+		FGridLines As Boolean
 		FEditLabels As Boolean
+		FMultiSelect As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
 		FOwnerDraw As Boolean
 		FPressedSubItem As Integer
+		FLVExStyle As Integer
 		FItemHeight As Integer
+		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
@@ -233,6 +237,10 @@ Namespace My.Sys.Forms
 		Declare Property ColumnHeaderHidden(Value As Boolean)
 		Declare Property EditLabels As Boolean
 		Declare Property EditLabels(Value As Boolean)
+		Declare Property GridLines As Boolean
+		Declare Property GridLines(Value As Boolean)
+		Declare Property MultiSelect As Boolean
+		Declare Property MultiSelect(Value As Boolean)
 		Declare Property OwnerDraw As Boolean
 		Declare Property OwnerDraw(Value As Boolean)
 		Declare Property ShowHint As Boolean

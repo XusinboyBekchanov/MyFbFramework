@@ -951,6 +951,8 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "columnheaderhidden": Return @FColumnHeaderHidden
 			Case "images": Return Images
+			Case "gridlines": Return @FGridLines
+			Case "multiselect": Return @FMultiSelect
 			Case "singleclickactivate": Return @FSingleClickActivate
 			Case "sort": Return @FSortStyle
 			Case "stateimages": Return StateImages
@@ -971,6 +973,8 @@ Namespace My.Sys.Forms
 				Select Case LCase(PropertyName)
 				Case "columnheaderhidden": This.ColumnHeaderHidden = QBoolean(Value)
 				Case "images": This.Images = Value
+				Case "gridlines": This.GridLines = QBoolean(Value)
+				Case "multiselect": This.MultiSelect = QBoolean(Value)
 				Case "singleclickactivate": This.SingleClickActivate = QBoolean(Value)
 				Case "sort": This.Sort = *Cast(SortStyle Ptr, Value)
 				Case "stateimages": This.StateImages = Value
@@ -1050,6 +1054,19 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property TreeListView.GridLines As Boolean
+		Return FGridLines
+	End Property
+	
+	Private Property TreeListView.GridLines(Value As Boolean)
+		FGridLines = Value
+		#ifdef __USE_GTK__
+			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
+		#elseif defined(__USE_WINAPI__)
+			ChangeLVExStyle LVS_EX_GridLINES, Value
+		#endif
+	End Property
+	
 	Private Property TreeListView.EditLabels As Boolean
 		Return FEditLabels
 	End Property
@@ -1064,6 +1081,29 @@ Namespace My.Sys.Forms
 			ChangeStyle LVS_EDITLABELS, Value
 		#endif
 	End Property
+	
+	Private Property TreeListView.MultiSelect As Boolean
+		Return FMultiSelect
+	End Property
+	
+	Private Property TreeListView.MultiSelect(Value As Boolean)
+		FMultiSelect = Value
+		#ifdef __USE_WINAPI__
+			ChangeStyle LVS_SINGLESEL, Not Value
+		#endif
+	End Property
+	
+	Private Sub TreeListView.ChangeLVExStyle(iStyle As Integer, Value As Boolean)
+		#ifdef __USE_WINAPI__
+			If FHandle Then FLVExStyle = SendMessage(FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
+			If Value Then
+				If ((FLVExStyle And iStyle) <> iStyle) Then FLVExStyle = FLVExStyle Or iStyle
+			ElseIf ((FLVExStyle And iStyle) = iStyle) Then
+				FLVExStyle = FLVExStyle And Not iStyle
+			End If
+			If FHandle Then SendMessage(FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal FLVExStyle)
+		#endif
+	End Sub
 	
 	Private Property TreeListView.SingleClickActivate As Boolean
 		Return FSingleClickActivate
@@ -1386,7 +1426,7 @@ Namespace My.Sys.Forms
 					Dim nmk As NMKEY Ptr = Cast(NMKEY Ptr, Message.lParam)
 					If OnItemKeyDown Then OnItemKeyDown(*Designer, This, GetTreeListViewItem(lvp->iItem))
 				Case NM_CUSTOMDRAW
-					If (g_darkModeSupported AndAlso g_darkModeEnabled) Then
+					If (g_darkModeSupported AndAlso g_darkModeEnabled) AndAlso FGridLines Then
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
 						Select Case nmcd->dwDrawStage
 						Case CDDS_PREPAINT
@@ -1571,7 +1611,7 @@ Namespace My.Sys.Forms
 					End If
 					Dim lvStyle As Integer
 					lvStyle = SendMessage(.FHandle, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-					lvStyle = lvStyle Or  LVS_EX_GRIDLINES Or LVS_EX_FULLROWSELECT Or LVS_EX_DOUBLEBUFFER
+					lvStyle = lvStyle Or .FLVExStyle
 					SendMessage(.FHandle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, ByVal lvStyle)
 					For i As Integer = 0 To .Columns.Count - 1
 						Dim lvc As LVCOLUMN
@@ -1716,7 +1756,9 @@ Namespace My.Sys.Forms
 		'Nodes.Clear
 		Nodes.Parent = @This
 		Columns.Parent = @This
+		DoubleBuffered = True
 		FEnabled = True
+		FGridLines = True
 		FVisible = True
 		FTabIndex          = -1
 		FTabStop = True
@@ -1728,6 +1770,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "TreeListView", WC_LISTVIEW
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GridLINES Or LVS_EX_DOUBLEBUFFER
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
 				WLet(FClassAncestor, WC_LISTVIEW)
 			#endif
