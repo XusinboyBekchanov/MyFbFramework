@@ -144,6 +144,8 @@ Namespace My.Sys.Forms
 		Declare Property Item(index As Integer, value As PMenuItem)
 		Declare Property Item(ByRef Key As WString) As PMenuItem
 		Declare Property Item(ByRef Key As WString, value As PMenuItem)
+		Declare Property ShortCut ByRef As WString
+		Declare Property ShortCut(ByRef value As WString)
 		Declare Sub Click
 		Declare Virtual Function ToString ByRef As WString
 		Declare Function Add(ByRef sCaption As WString) As MenuItem Ptr

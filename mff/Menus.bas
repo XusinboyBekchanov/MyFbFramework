@@ -46,6 +46,7 @@ Namespace My.Sys.Forms
 			Case "parentmenu": Return FOwner
 			Case "parentmenuitem": Return FParentMenuItem
 			Case "radioitem": Return @FRadioItem
+			Case "shortcut": Return FAccelerator
 			Case "tag": Return Tag
 			#ifdef __USE_GTK__
 				Case "widget": Return @Widget
@@ -83,6 +84,7 @@ Namespace My.Sys.Forms
 				Case "parent": This.Parent = Value
 				Case "parentmenu": This.ParentMenu = Value
 				Case "radioitem": This.RadioItem = QBoolean(Value)
+				Case "shortcut": This.ShortCut = QWString(Value)
 				Case "tag": This.Tag = Value
 				Case "visible": This.Visible = QBoolean(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -138,7 +140,7 @@ Namespace My.Sys.Forms
 			If *FCaption = "-" Then
 				WLet(pCaption, "|")
 			Else
-				WLet(pCaption, *FCaption)
+				WLet(pCaption, *FCaption & IIf(*FAccelerator = "", "", !"\t" & *FAccelerator))
 			End If
 			value.dwTypeData  = pCaption
 			value.cch         = Len(*pCaption)
@@ -627,7 +629,7 @@ Namespace My.Sys.Forms
 		If FParentMenuItem <> value Then
 			Dim As PMenuItem SaveParent = FParentMenuItem
 			FParentMenuItem = value
-			If SaveParent Then SaveParent->remove(@This)
+			If SaveParent Then SaveParent->Remove(@This)
 			If FParentMenuItem Then FParentMenuItem->Add(@This)
 		End If
 	End Property
@@ -683,6 +685,52 @@ Namespace My.Sys.Forms
 				WLet(pCaption, "|")
 			Else
 				WLet(pCaption, *FCaption)
+			End If
+			FInfo.dwTypeData = pCaption
+			FInfo.cch        = Len(*pCaption)
+			If ParentMenuItem Then
+				SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
+			ElseIf Owner AndAlso Owner->Handle Then
+				SetMenuItemInfo(Owner->Handle, MenuIndex, True, @FInfo)
+			End If
+			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
+				DrawMenuBar(Owner->ParentWindow->Handle)
+			End If
+			WDeAllocate(pCaption)
+		#endif
+	End Property
+	
+	Private Property MenuItem.ShortCut ByRef As WString
+		Return WGet(FAccelerator)
+	End Property
+	
+	Private Property MenuItem.ShortCut(ByRef value As WString)
+		FAccelerator = _Reallocate(FAccelerator, (Len(value) + 1) * SizeOf(WString))
+		*FAccelerator = value
+		#ifdef __USE_GTK__
+			If value <> "-" AndAlso *FAccelerator <> "" Then
+				Dim As String HotKey = *FAccelerator
+				HotKey = Replace(HotKey, "Ctrl+", "<Ctrl>")
+				HotKey = Replace(HotKey, "Alt+", "<Alt>")
+				HotKey = Replace(HotKey, "Shift+", "<Shift>")
+				gtk_accelerator_parse(ToUtf8(HotKey), @accelerator_key, @accelerator_mods)
+				#ifdef __USE_GTK3__
+					gtk_accel_label_set_accel(GTK_ACCEL_LABEL (Label), accelerator_key, accelerator_mods) 'accelerator_mods)
+				#else
+					If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Accelerator Then
+						gtk_widget_add_accelerator (Label, "activate", Owner->ParentWindow->Accelerator, accelerator_key, accelerator_mods, GTK_ACCEL_VISIBLE)
+					End If
+				#endif
+			End If
+		#elseif defined(__USE_WINAPI__)
+			FInfo.cbSize      = SizeOf(FInfo)
+			FInfo.fMask       = MIIM_STRING Or MIIM_FTYPE
+			FInfo.fType       = IIf(*FCaption = "-", MFT_SEPARATOR, MFT_STRING)
+			Dim As WString Ptr pCaption
+			If *FCaption = "-" Then
+				WLet(pCaption, "|")
+			Else
+				WLet(pCaption, *FCaption & IIf(*FAccelerator = "", "", !"\t" & *FAccelerator))
 			End If
 			FInfo.dwTypeData = pCaption
 			FInfo.cch        = Len(*pCaption)

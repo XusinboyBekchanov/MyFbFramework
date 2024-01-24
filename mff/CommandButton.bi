@@ -26,6 +26,7 @@ Namespace My.Sys.Forms
 	Private Type CommandButton Extends Control
 	Private:
 		FStyle      As ButtonStyle
+		FCancel     As Boolean
 		FDefault    As Boolean
 		FImageType  As Integer
 		AStyle(4)   As Integer
@@ -48,6 +49,8 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		Declare Property Cancel As Boolean
+		Declare Property Cancel(Value As Boolean)
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property TabIndex As Integer

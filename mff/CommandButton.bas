@@ -17,6 +17,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function CommandButton.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "cancel": Return Cast(Any Ptr, @FCancel)
 			Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 			Case "default": Return Cast(Any Ptr, @FDefault)
 			Case "style": Return @FStyle
@@ -32,6 +33,7 @@ Namespace My.Sys.Forms
 	#ifndef WriteProperty_Off
 		Private Function CommandButton.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
+			Case "cancel": If Value <> 0 Then This.Cancel = QBoolean(Value)
 			Case "caption": If Value <> 0 Then This.Text = QWString(Value)
 			Case "default": If Value <> 0 Then This.Default = QBoolean(Value)
 			Case "style": If Value <> 0 Then This.Style = *Cast(ButtonStyle Ptr, Value)
@@ -83,6 +85,24 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property CommandButton.Cancel As Boolean
+		Return FCancel
+	End Property
+	
+	Private Property CommandButton.Cancel(Value As Boolean)
+		If Value <> FCancel Then
+			FCancel = Value
+			Dim As Control Ptr frm = This.GetForm
+			If frm Then
+				If Value Then
+					frm->FCancelButton = @This
+				ElseIf frm->FCancelButton = @This Then
+					frm->FCancelButton = 0
+				End If
+			End If
+		End If
+	End Property
+	
 	Private Property CommandButton.Default As Boolean
 		#ifdef __USE_WINAPI__
 			If Handle Then
@@ -100,11 +120,15 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WINAPI__)
 				ChangeStyle BS_PUSHLIKE, False
 				ChangeStyle BS_DEFPUSHBUTTON, Value
-				Dim As Control Ptr frm = This.GetForm
-				If frm Then
-					frm->FDefaultButton = IIf(Value, @This, 0)
-				End If
 			#endif
+			Dim As Control Ptr frm = This.GetForm
+			If frm Then
+				If Value Then
+					frm->FDefaultButton = @This
+				ElseIf frm->FDefaultButton = @This Then
+					frm->FDefaultButton = 0
+				End If
+			End If
 		End If
 	End Property
 	
