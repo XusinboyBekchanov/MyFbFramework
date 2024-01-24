@@ -88,7 +88,26 @@ Namespace My.Sys.Forms
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
 			gtk_list_store_set(ListStore, @iter, 0, Value, -1)
 		#else
-			If Handle Then Perform(LB_SETITEMDATA, Index, abs_(Value))
+			If Handle Then 
+				Perform(LB_SETITEMDATA, Index, abs_(Value))
+				If Value AndAlso FRadioCheck Then
+					For i As Integer = 0 To Items.Count - 1
+						If i = Index Then Continue For
+						Perform(LB_SETITEMDATA, i, 0)
+					Next
+				End If
+			End If
+		#endif
+	End Property
+	
+	Private Property CheckedListBox.RadioCheck As Boolean
+		Return FRadioCheck
+	End Property
+	
+	Private Property CheckedListBox.RadioCheck(Value As Boolean)
+		FRadioCheck = Value
+		#ifdef __USE_GTK__
+			gtk_cell_renderer_toggle_set_radio(rendertoggle, Value)
 		#endif
 	End Property
 	
@@ -170,15 +189,15 @@ Namespace My.Sys.Forms
 						fTheme = OpenThemeData(FHandle, "BUTTON")
 						If fTheme Then
 							If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows Then
-								DrawThemeBackground(fTheme, lpdis->hDC, BP_CHECKBOX, CBS_CHECKEDNORMAL, @rc, 0)
+								DrawThemeBackground(fTheme, lpdis->hDC, IIf(FRadioCheck, BP_RADIOBUTTON, BP_CHECKBOX), CBS_CHECKEDNORMAL, @rc, 0)
 							Else
-								DrawThemeBackground(fTheme, lpdis->hDC, BP_CHECKBOX, CBS_UNCHECKEDNORMAL, @rc, 0)
+								DrawThemeBackground(fTheme, lpdis->hDC, IIf(FRadioCheck, BP_RADIOBUTTON, BP_CHECKBOX), CBS_UNCHECKEDNORMAL, @rc, 0)
 							End If
 						Else
 							If SendMessage(Message.hWnd, LB_GETITEMDATA, lpdis->itemID, 0) Then 'checked or not? itemdata knows Then
-								DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK Or DFCS_CHECKED
+								DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, IIf(FRadioCheck, DFCS_BUTTONRADIO, DFCS_BUTTONCHECK) Or DFCS_CHECKED
 							Else
-								DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, DFCS_BUTTONCHECK
+								DrawFrameControl lpdis->hDC, @rc, DFC_BUTTON, IIf(FRadioCheck, DFCS_BUTTONRADIO, DFCS_BUTTONCHECK)
 							End If
 						End If
 						CloseThemeData(fTheme)
@@ -195,8 +214,16 @@ Namespace My.Sys.Forms
 					SendMessage Message.hWnd, LB_GETITEMRECT, t, Cast(LPARAM, @rc)                            'get sel. item's rect
 					rc.Left   = rc.Left + 2 : rc.Right = rc.Left + ScaleX(15)                                      'checkbox cordinates
 					If PtInRect(@rc, pt) Then
-						itd = Not CBool(SendMessage(Message.hWnd, LB_GETITEMDATA, t, 0))                 'get toggled item data
-						SendMessage Message.hWnd, LB_SETITEMDATA, t, itd                            'set toggled item data
+						If FRadioCheck Then
+							SendMessage Message.hWnd, LB_SETITEMDATA, t, 1                            'set toggled item data
+							For i As Integer = 0 To Items.Count - 1
+								If i = t Then Continue For
+								SendMessage Message.hWnd, LB_SETITEMDATA, i, 0                      'set toggled item data
+							Next
+						Else
+							itd = Not CBool(SendMessage(Message.hWnd, LB_GETITEMDATA, t, 0))                 'get toggled item data
+							SendMessage Message.hWnd, LB_SETITEMDATA, t, itd                            'set toggled item data
+						End If
 						InvalidateRect Message.hWnd, @rc, 0 : UpdateWindow Message.hWnd                     'update sel. item only
 					End If
 				End If
@@ -265,7 +292,7 @@ Namespace My.Sys.Forms
 '					End If
 '				End If
 			Case WM_CHAR
-				If Message.wParam = 32 Then Checked(ItemIndex) = Not Checked(ItemIndex): This.Repaint
+				If Message.wParam = 32 Then Checked(ItemIndex) = FRadioCheck OrElse Not Checked(ItemIndex): This.Repaint
 				If OnKeyPress Then OnKeyPress(*Designer, This, LoByte(Message.wParam))
 '			Case WM_KEYDOWN
 '				If OnKeyDown Then OnKeyDown(This,Message.wParam,Message.wParam And &HFFFF)
@@ -336,7 +363,7 @@ Namespace My.Sys.Forms
 	Private Constructor CheckedListBox
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
-			Dim As GtkCellRenderer Ptr rendertoggle = gtk_cell_renderer_toggle_new()
+			rendertoggle = gtk_cell_renderer_toggle_new()
 			Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)

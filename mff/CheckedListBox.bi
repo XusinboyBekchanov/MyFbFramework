@@ -17,11 +17,14 @@ Namespace My.Sys.Forms
 	'Displays a ListBox in which a check box is displayed to the left of each item.
 	Private Type CheckedListBox Extends ListControl
 	Private:
+		FRadioCheck As Boolean
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			fTheme  As HTHEME
+		#else
+			As GtkCellRenderer Ptr rendertoggle
 		#endif
 	Protected:
 		#ifdef __USE_GTK__
@@ -36,6 +39,8 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Property Checked(Index As Integer) As Boolean
 		Declare Property Checked(Index As Integer, Value As Boolean)
+		Declare Property RadioCheck As Boolean
+		Declare Property RadioCheck(Value As Boolean)
 		Declare Sub AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
 		Declare Sub SaveToFile(ByRef FileName As WString)
