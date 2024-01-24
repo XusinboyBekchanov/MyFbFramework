@@ -173,6 +173,17 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QCommandButton(Sender.Child)
 					.Perform(BM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+					If .FDefault OrElse .FCancel Then
+						Dim As Control Ptr frm = .GetForm
+						If frm Then
+							If .FDefault Then
+								frm->FDefaultButton = @Sender
+							End If
+							If .FCancel Then
+								frm->FCancelButton = @Sender
+							End If
+						End If
+					End If
 				End With
 			End If
 		End Sub
