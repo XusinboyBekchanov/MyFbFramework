@@ -48,4 +48,4 @@ Wend
 
 UnloadMusicStream(fxMusic)
 CloseAudioDevice
-CloseWindow()
+CloseWindowRL()
