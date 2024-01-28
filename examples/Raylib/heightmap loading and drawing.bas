@@ -18,12 +18,12 @@ cam.projection = CAMERA_PERSPECTIVE
 
 Dim As Short heights(MAX_COLUMNS)
 Dim As Vector3 positions(MAX_COLUMNS)
-Dim As RLColor col(MAX_COLUMNS)
+Dim As ColorRL col(MAX_COLUMNS)
 
 For i As Integer = 0 To MAX_COLUMNS
 	heights(i) = GetRandomValue(1, 12)
 	positions(i) = Vector3(GetRandomValue(-15, 15), heights(i)/2.0, GetRandomValue(-15, 15))
-	col(i) = RLColor(GetRandomValue(20, 255), GetRandomValue(10, 55), 30, 255)
+	col(i) = ColorRL(GetRandomValue(20, 255), GetRandomValue(10, 55), 30, 255)
 Next i
 
 'SetCameraMode(cam, CAMERA_FIRST_PERSON)
@@ -63,4 +63,4 @@ While Not WindowShouldClose()
 	EndDrawing()
 Wend
 
-CloseWindow()
+CloseWindowRL()
