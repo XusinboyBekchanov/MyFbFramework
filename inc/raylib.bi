@@ -35,7 +35,9 @@ Const RAYLIB_VERSION_MAJOR = 5
 Const RAYLIB_VERSION_MINOR = 1
 Const RAYLIB_VERSION_PATCH = 0
 #define RAYLIB_VERSION "5.1"
-
+#ifndef NULL
+	#define NULL 0
+#endif
 #ifndef PI
 	Const PI = 3.14159265358979323846
 #endif
@@ -47,39 +49,39 @@ Const RAD2DEG = 180.0f / PI
 #define RL_REALLOC(ptr, sz) realloc(ptr, sz)
 #define RL_FREE(ptr) free(ptr)
 #define RL_COLOR_TYPE
-#define RL_RECTANGLE_TYPE
+#define RL_Rectangle_TYPE
 #define RL_VECTOR2_TYPE
 #define RL_VECTOR3_TYPE
 #define RL_VECTOR4_TYPE
 #define RL_QUATERNION_TYPE
 #define RL_MATRIX_TYPE
 
-#define LIGHTGRAY RLColor( 200, 200, 200, 255 )
-#define GRAY RLColor( 130, 130, 130, 255 )
-#define DARKGRAY RLColor( 80, 80, 80, 255 )
-#define YELLOW RLColor( 253, 249, 0, 255 )
-#define GOLD RLColor( 255, 203, 0, 255 )
-#define ORANGE RLColor( 255, 161, 0, 255 )
-#define PINK RLColor( 255, 109, 194, 255 )
-#define RED RLColor( 230, 41, 55, 255 )
-#define MAROON RLColor( 190, 33, 55, 255 )
-#define GREEN RLColor( 0, 228, 48, 255 )
-#define LIME RLColor( 0, 158, 47, 255 )
-#define DARKGREEN RLColor( 0, 117, 44, 255 )
-#define SKYBLUE RLColor( 102, 191, 255, 255 )
-#define BLUE RLColor( 0, 121, 241, 255 )
-#define DARKBLUE RLColor( 0, 82, 172, 255 )
-#define PURPLE RLColor( 200, 122, 255, 255 )
-#define VIOLET RLColor( 135, 60, 190, 255 )
-#define DARKPURPLE RLColor( 112, 31, 126, 255 )
-#define BEIGE RLColor( 211, 176, 131, 255 )
-#define BROWN RLColor( 127, 106, 79, 255 )
-#define DARKBROWN RLColor( 76, 63, 47, 255 )
-#define WHITE RLColor( 255, 255, 255, 255 )
-#define BLACK RLColor( 0, 0, 0, 255 )
-#define BLANK RLColor( 0, 0, 0, 0 )
-#define MAGENTA RLColor( 255, 0, 255, 255 )
-#define RAYWHITE RLColor( 245, 245, 245, 255 )
+#define LIGHTGRAY ColorRL( 200, 200, 200, 255 )
+#define GRAY ColorRL( 130, 130, 130, 255 )
+#define DARKGRAY ColorRL( 80, 80, 80, 255 )
+#define YELLOW ColorRL( 253, 249, 0, 255 )
+#define GOLD ColorRL( 255, 203, 0, 255 )
+#define ORANGE ColorRL( 255, 161, 0, 255 )
+#define PINK ColorRL( 255, 109, 194, 255 )
+#define RED ColorRL( 230, 41, 55, 255 )
+#define MAROON ColorRL( 190, 33, 55, 255 )
+#define GREEN ColorRL( 0, 228, 48, 255 )
+#define LIME ColorRL( 0, 158, 47, 255 )
+#define DARKGREEN ColorRL( 0, 117, 44, 255 )
+#define SKYBLUE ColorRL( 102, 191, 255, 255 )
+#define BLUE ColorRL( 0, 121, 241, 255 )
+#define DARKBLUE ColorRL( 0, 82, 172, 255 )
+#define PURPLE ColorRL( 200, 122, 255, 255 )
+#define VIOLET ColorRL( 135, 60, 190, 255 )
+#define DARKPURPLE ColorRL( 112, 31, 126, 255 )
+#define BEIGE ColorRL( 211, 176, 131, 255 )
+#define BROWN ColorRL( 127, 106, 79, 255 )
+#define DARKBROWN ColorRL( 76, 63, 47, 255 )
+#define WHITE ColorRL( 255, 255, 255, 255 )
+#define BLACK ColorRL( 0, 0, 0, 255 )
+#define BLANK ColorRL( 0, 0, 0, 0 )
+#define MAGENTA ColorRL( 255, 0, 255, 255 )
+#define RAYWHITE ColorRL( 245, 245, 245, 255 )
 
 #ifndef Vector2
 	Type Vector2
@@ -163,7 +165,7 @@ Const RAD2DEG = 180.0f / PI
 	End Type
 #endif
 
-Type RLColor
+Type ColorRL
 	r As UByte
 	g As UByte
 	b As UByte
@@ -172,14 +174,14 @@ Type RLColor
 	Declare Constructor(r As UByte, g As UByte, b As UByte, a As UByte)
 End Type
 
-Constructor RLColor(r As UByte, g As UByte, b As UByte, a As UByte)
+Constructor ColorRL(r As UByte, g As UByte, b As UByte, a As UByte)
 	This.r = r
 	This.g = g
 	This.b = b
 	This.a = a
 End Constructor
 
-Constructor RLColor()
+Constructor ColorRL()
 End Constructor
 
 Type Rectangle
@@ -321,7 +323,7 @@ End Type
 
 Type MaterialMap
 	texture As Texture2D
-	color As RLColor
+	color As ColorRL
 	value As Single
 End Type
 
@@ -836,6 +838,7 @@ Type SaveFileTextCallback As Function(ByVal fileName As Const ZString Ptr, ByVal
 
 Declare Sub InitWindow(ByVal width_ As Long, ByVal height_ As Long, ByVal title As Const ZString Ptr)
 Declare Function WindowShouldClose() As Boolean
+Declare Sub CloseWindowRL()
 Declare Sub CloseWindow()
 Declare Function IsWindowReady() As Boolean
 Declare Function IsWindowFullscreen() As Boolean
@@ -882,13 +885,14 @@ Declare Sub DisableEventWaiting()
 Declare Sub SwapScreenBuffer()
 Declare Sub PollInputEvents()
 Declare Sub WaitTime(ByVal seconds As Double)
+Declare Sub ShowCursorRL()
 Declare Sub ShowCursor()
 Declare Sub HideCursor()
 Declare Function IsCursorHidden() As Boolean
 Declare Sub EnableCursor()
 Declare Sub DisableCursor()
 Declare Function IsCursorOnScreen() As Boolean
-Declare Sub ClearBackground(ByVal color As RLColor)
+Declare Sub ClearBackground(ByVal color As ColorRL)
 Declare Sub BeginDrawing()
 Declare Sub EndDrawing()
 Declare Sub BeginMode2D(ByVal camera As Camera2D)
@@ -1021,43 +1025,43 @@ Declare Function GetGesturePinchAngle() As Single
 Declare Sub UpdateCamera(ByVal camera As Camera Ptr, ByVal mode As Long)
 Declare Sub UpdateCameraPro(ByVal camera As Camera Ptr, ByVal movement As Vector3, ByVal rotation As Vector3, ByVal zoom As Single)
 Declare Sub SetShapesTexture(ByVal texture As Texture2D, ByVal source As Rectangle)
-Declare Sub DrawPixel(ByVal posX As Long, ByVal posY As Long, ByVal color As RLColor)
-Declare Sub DrawPixelV(ByVal position As Vector2, ByVal color As RLColor)
-Declare Sub DrawLine(ByVal startPosX As Long, ByVal startPosY As Long, ByVal endPosX As Long, ByVal endPosY As Long, ByVal color As RLColor)
-Declare Sub DrawLineV(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal color As RLColor)
-Declare Sub DrawLineEx(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
-Declare Sub DrawLineBezier(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
-Declare Sub DrawLineBezierQuad(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal controlPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
-Declare Sub DrawLineBezierCubic(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal startControlPos As Vector2, ByVal endControlPos As Vector2, ByVal thick As Single, ByVal color As RLColor)
-Declare Sub DrawLineStrip(ByVal points As Vector2 Ptr, ByVal pointCount As Long, ByVal color As RLColor)
-Declare Sub DrawCircle(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color As RLColor)
-Declare Sub DrawCircleSector(ByVal center As Vector2, ByVal radius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
-Declare Sub DrawCircleSectorLines(ByVal center As Vector2, ByVal radius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
-Declare Sub DrawCircleGradient(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color1 As RLColor, ByVal color2 As RLColor)
-Declare Sub DrawCircleV(ByVal center As Vector2, ByVal radius As Single, ByVal color As RLColor)
-Declare Sub DrawCircleLines(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color As RLColor)
-Declare Sub DrawEllipse(ByVal centerX As Long, ByVal centerY As Long, ByVal radiusH As Single, ByVal radiusV As Single, ByVal color As RLColor)
-Declare Sub DrawEllipseLines(ByVal centerX As Long, ByVal centerY As Long, ByVal radiusH As Single, ByVal radiusV As Single, ByVal color As RLColor)
-Declare Sub DrawRing(ByVal center As Vector2, ByVal innerRadius As Single, ByVal outerRadius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
-Declare Sub DrawRingLines(ByVal center As Vector2, ByVal innerRadius As Single, ByVal outerRadius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As RLColor)
-Declare Sub DrawRectangle(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As RLColor)
-Declare Sub DrawRectangleV(ByVal position As Vector2, ByVal size As Vector2, ByVal color As RLColor)
-Declare Sub DrawRectangleRec(ByVal rec As Rectangle, ByVal color As RLColor)
-Declare Sub DrawRectanglePro(ByVal rec As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal color As RLColor)
-Declare Sub DrawRectangleGradientV(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color1 As RLColor, ByVal color2 As RLColor)
-Declare Sub DrawRectangleGradientH(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color1 As RLColor, ByVal color2 As RLColor)
-Declare Sub DrawRectangleGradientEx(ByVal rec As Rectangle, ByVal col1 As RLColor, ByVal col2 As RLColor, ByVal col3 As RLColor, ByVal col4 As RLColor)
-Declare Sub DrawRectangleLines(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As RLColor)
-Declare Sub DrawRectangleLinesEx(ByVal rec As Rectangle, ByVal lineThick As Single, ByVal color As RLColor)
-Declare Sub DrawRectangleRounded(ByVal rec As Rectangle, ByVal roundness As Single, ByVal segments As Long, ByVal color As RLColor)
-Declare Sub DrawRectangleRoundedLines(ByVal rec As Rectangle, ByVal roundness As Single, ByVal segments As Long, ByVal lineThick As Single, ByVal color As RLColor)
-Declare Sub DrawTriangle(ByVal v1 As Vector2, ByVal v2 As Vector2, ByVal v3 As Vector2, ByVal color As RLColor)
-Declare Sub DrawTriangleLines(ByVal v1 As Vector2, ByVal v2 As Vector2, ByVal v3 As Vector2, ByVal color As RLColor)
-Declare Sub DrawTriangleFan(ByVal points As Vector2 Ptr, ByVal pointCount As Long, ByVal color As RLColor)
-Declare Sub DrawTriangleStrip(ByVal points As Vector2 Ptr, ByVal pointCount As Long, ByVal color As RLColor)
-Declare Sub DrawPoly(ByVal center As Vector2, ByVal sides As Long, ByVal radius As Single, ByVal rotation As Single, ByVal color As RLColor)
-Declare Sub DrawPolyLines(ByVal center As Vector2, ByVal sides As Long, ByVal radius As Single, ByVal rotation As Single, ByVal color As RLColor)
-Declare Sub DrawPolyLinesEx(ByVal center As Vector2, ByVal sides As Long, ByVal radius As Single, ByVal rotation As Single, ByVal lineThick As Single, ByVal color As RLColor)
+Declare Sub DrawPixel(ByVal posX As Long, ByVal posY As Long, ByVal color As ColorRL)
+Declare Sub DrawPixelV(ByVal position As Vector2, ByVal color As ColorRL)
+Declare Sub DrawLine(ByVal startPosX As Long, ByVal startPosY As Long, ByVal endPosX As Long, ByVal endPosY As Long, ByVal color As ColorRL)
+Declare Sub DrawLineV(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal color As ColorRL)
+Declare Sub DrawLineEx(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal thick As Single, ByVal color As ColorRL)
+Declare Sub DrawLineBezier(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal thick As Single, ByVal color As ColorRL)
+Declare Sub DrawLineBezierQuad(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal controlPos As Vector2, ByVal thick As Single, ByVal color As ColorRL)
+Declare Sub DrawLineBezierCubic(ByVal startPos As Vector2, ByVal endPos As Vector2, ByVal startControlPos As Vector2, ByVal endControlPos As Vector2, ByVal thick As Single, ByVal color As ColorRL)
+Declare Sub DrawLineStrip(ByVal points As Vector2 Ptr, ByVal pointCount As Long, ByVal color As ColorRL)
+Declare Sub DrawCircle(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color As ColorRL)
+Declare Sub DrawCircleSector(ByVal center As Vector2, ByVal radius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As ColorRL)
+Declare Sub DrawCircleSectorLines(ByVal center As Vector2, ByVal radius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As ColorRL)
+Declare Sub DrawCircleGradient(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color1 As ColorRL, ByVal color2 As ColorRL)
+Declare Sub DrawCircleV(ByVal center As Vector2, ByVal radius As Single, ByVal color As ColorRL)
+Declare Sub DrawCircleLines(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Single, ByVal color As ColorRL)
+Declare Sub DrawEllipse(ByVal centerX As Long, ByVal centerY As Long, ByVal radiusH As Single, ByVal radiusV As Single, ByVal color As ColorRL)
+Declare Sub DrawEllipseLines(ByVal centerX As Long, ByVal centerY As Long, ByVal radiusH As Single, ByVal radiusV As Single, ByVal color As ColorRL)
+Declare Sub DrawRing(ByVal center As Vector2, ByVal innerRadius As Single, ByVal outerRadius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As ColorRL)
+Declare Sub DrawRingLines(ByVal center As Vector2, ByVal innerRadius As Single, ByVal outerRadius As Single, ByVal startAngle As Single, ByVal endAngle As Single, ByVal segments As Long, ByVal color As ColorRL)
+Declare Sub DrawRectangle(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As ColorRL)
+Declare Sub DrawRectangleV(ByVal position As Vector2, ByVal size As Vector2, ByVal color As ColorRL)
+Declare Sub DrawRectangleRec(ByVal rec As Rectangle, ByVal color As ColorRL)
+Declare Sub DrawRectanglePro(ByVal rec As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal color As ColorRL)
+Declare Sub DrawRectangleGradientV(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color1 As ColorRL, ByVal color2 As ColorRL)
+Declare Sub DrawRectangleGradientH(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color1 As ColorRL, ByVal color2 As ColorRL)
+Declare Sub DrawRectangleGradientEx(ByVal rec As Rectangle, ByVal col1 As ColorRL, ByVal col2 As ColorRL, ByVal col3 As ColorRL, ByVal col4 As ColorRL)
+Declare Sub DrawRectangleLines(ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As ColorRL)
+Declare Sub DrawRectangleLinesEx(ByVal rec As Rectangle, ByVal lineThick As Single, ByVal color As ColorRL)
+Declare Sub DrawRectangleRounded(ByVal rec As Rectangle, ByVal roundness As Single, ByVal segments As Long, ByVal color As ColorRL)
+Declare Sub DrawRectangleRoundedLines(ByVal rec As Rectangle, ByVal roundness As Single, ByVal segments As Long, ByVal lineThick As Single, ByVal color As ColorRL)
+Declare Sub DrawTriangle(ByVal v1 As Vector2, ByVal v2 As Vector2, ByVal v3 As Vector2, ByVal color As ColorRL)
+Declare Sub DrawTriangleLines(ByVal v1 As Vector2, ByVal v2 As Vector2, ByVal v3 As Vector2, ByVal color As ColorRL)
+Declare Sub DrawTriangleFan(ByVal points As Vector2 Ptr, ByVal pointCount As Long, ByVal color As ColorRL)
+Declare Sub DrawTriangleStrip(ByVal points As Vector2 Ptr, ByVal pointCount As Long, ByVal color As ColorRL)
+Declare Sub DrawPoly(ByVal center As Vector2, ByVal sides As Long, ByVal radius As Single, ByVal rotation As Single, ByVal color As ColorRL)
+Declare Sub DrawPolyLines(ByVal center As Vector2, ByVal sides As Long, ByVal radius As Single, ByVal rotation As Single, ByVal color As ColorRL)
+Declare Sub DrawPolyLinesEx(ByVal center As Vector2, ByVal sides As Long, ByVal radius As Single, ByVal rotation As Single, ByVal lineThick As Single, ByVal color As ColorRL)
 Declare Function CheckCollisionRecs(ByVal rec1 As Rectangle, ByVal rec2 As Rectangle) As Boolean
 Declare Function CheckCollisionCircles(ByVal center1 As Vector2, ByVal radius1 As Single, ByVal center2 As Vector2, ByVal radius2 As Single) As Boolean
 Declare Function CheckCollisionCircleRec(ByVal center As Vector2, ByVal radius As Single, ByVal rec As Rectangle) As Boolean
@@ -1079,64 +1083,64 @@ Declare Function IsImageReady(ByVal image_ As Image) As Byte
 Declare Sub UnloadImage(ByVal image_ As Image)
 Declare Function ExportImage(ByVal image_ As Image, ByVal fileName As Const ZString Ptr) As Boolean
 Declare Function ExportImageAsCode(ByVal image_ As Image, ByVal fileName As Const ZString Ptr) As Boolean
-Declare Function GenImageColor(ByVal width_ As Long, ByVal height_ As Long, ByVal color As RLColor) As Image
-Declare Function GenImageGradientV(ByVal width_ As Long, ByVal height_ As Long, ByVal top As RLColor, ByVal bottom As RLColor) As Image
-Declare Function GenImageGradientH(ByVal width_ As Long, ByVal height_ As Long, ByVal left_ As RLColor, ByVal right_ As RLColor) As Image
-Declare Function GenImageGradientRadial(ByVal width_ As Long, ByVal height_ As Long, ByVal density As Single, ByVal inner As RLColor, ByVal outer As RLColor) As Image
-Declare Function GenImageChecked(ByVal width_ As Long, ByVal height_ As Long, ByVal checksX As Long, ByVal checksY As Long, ByVal col1 As RLColor, ByVal col2 As RLColor) As Image
+Declare Function GenImageColor(ByVal width_ As Long, ByVal height_ As Long, ByVal color As ColorRL) As Image
+Declare Function GenImageGradientV(ByVal width_ As Long, ByVal height_ As Long, ByVal top As ColorRL, ByVal bottom As ColorRL) As Image
+Declare Function GenImageGradientH(ByVal width_ As Long, ByVal height_ As Long, ByVal left_ As ColorRL, ByVal right_ As ColorRL) As Image
+Declare Function GenImageGradientRadial(ByVal width_ As Long, ByVal height_ As Long, ByVal density As Single, ByVal inner As ColorRL, ByVal outer As ColorRL) As Image
+Declare Function GenImageChecked(ByVal width_ As Long, ByVal height_ As Long, ByVal checksX As Long, ByVal checksY As Long, ByVal col1 As ColorRL, ByVal col2 As ColorRL) As Image
 Declare Function GenImageWhiteNoise(ByVal width_ As Long, ByVal height_ As Long, ByVal factor As Single) As Image
 Declare Function GenImagePerlinNoise(ByVal width_ As Long, ByVal height_ As Long, ByVal offsetX As Long, ByVal offsetY As Long, ByVal scale As Single) As Image
 Declare Function GenImageCellular(ByVal width_ As Long, ByVal height_ As Long, ByVal tileSize As Long) As Image
 Declare Function GenImageText(ByVal width_ As Long, ByVal height_ As Long, ByVal text_ As Const ZString Ptr) As Image
 Declare Function ImageCopy(ByVal image_ As Image) As Image
 Declare Function ImageFromImage(ByVal image_ As Image, ByVal rec As Rectangle) As Image
-Declare Function ImageText(ByVal text As Const ZString Ptr, ByVal fontSize As Long, ByVal color As RLColor) As Image
-Declare Function ImageTextEx(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor) As Image
+Declare Function ImageText(ByVal text As Const ZString Ptr, ByVal fontSize As Long, ByVal color As ColorRL) As Image
+Declare Function ImageTextEx(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As ColorRL) As Image
 Declare Sub ImageFormat(ByVal image_ As Image Ptr, ByVal newFormat As Long)
-Declare Sub ImageToPOT(ByVal image_ As Image Ptr, ByVal fill As RLColor)
+Declare Sub ImageToPOT(ByVal image_ As Image Ptr, ByVal fill As ColorRL)
 Declare Sub ImageCrop(ByVal image_ As Image Ptr, ByVal crop As Rectangle)
 Declare Sub ImageAlphaCrop(ByVal image_ As Image Ptr, ByVal threshold As Single)
-Declare Sub ImageAlphaClear(ByVal image_ As Image Ptr, ByVal color As RLColor, ByVal threshold As Single)
+Declare Sub ImageAlphaClear(ByVal image_ As Image Ptr, ByVal color As ColorRL, ByVal threshold As Single)
 Declare Sub ImageAlphaMask(ByVal image_ As Image Ptr, ByVal alphaMask As Image)
 Declare Sub ImageAlphaPremultiply(ByVal image_ As Image Ptr)
 Declare Sub ImageBlurGaussian(ByVal image_ As Image Ptr, ByVal blurSize As Long)
 Declare Sub ImageResize(ByVal image_ As Image Ptr, ByVal newWidth As Long, ByVal newHeight As Long)
 Declare Sub ImageResizeNN(ByVal image_ As Image Ptr, ByVal newWidth As Long, ByVal newHeight As Long)
-Declare Sub ImageResizeCanvas(ByVal image_ As Image Ptr, ByVal newWidth As Long, ByVal newHeight As Long, ByVal offsetX As Long, ByVal offsetY As Long, ByVal fill As RLColor)
+Declare Sub ImageResizeCanvas(ByVal image_ As Image Ptr, ByVal newWidth As Long, ByVal newHeight As Long, ByVal offsetX As Long, ByVal offsetY As Long, ByVal fill As ColorRL)
 Declare Sub ImageMipmaps(ByVal image_ As Image Ptr)
 Declare Sub ImageDither(ByVal image_ As Image Ptr, ByVal rBpp As Long, ByVal gBpp As Long, ByVal bBpp As Long, ByVal aBpp As Long)
 Declare Sub ImageFlipVertical(ByVal image_ As Image Ptr)
 Declare Sub ImageFlipHorizontal(ByVal image_ As Image Ptr)
 Declare Sub ImageRotateCW(ByVal image_ As Image Ptr)
 Declare Sub ImageRotateCCW(ByVal image_ As Image Ptr)
-Declare Sub ImageColorTint(ByVal image_ As Image Ptr, ByVal color As RLColor)
+Declare Sub ImageColorTint(ByVal image_ As Image Ptr, ByVal color As ColorRL)
 Declare Sub ImageColorInvert(ByVal image_ As Image Ptr)
 Declare Sub ImageColorGrayscale(ByVal image_ As Image Ptr)
 Declare Sub ImageColorContrast(ByVal image_ As Image Ptr, ByVal contrast As Single)
 Declare Sub ImageColorBrightness(ByVal image_ As Image Ptr, ByVal brightness As Long)
-Declare Sub ImageColorReplace(ByVal image_ As Image Ptr, ByVal color As RLColor, ByVal replace As RLColor)
-Declare Function LoadImageColors(ByVal image_ As Image) As RLColor Ptr
-Declare Function LoadImagePalette(ByVal image_ As Image, ByVal maxPaletteSize As Long, ByVal colorCount As Long Ptr) As RLColor Ptr
-Declare Sub UnloadImageColors(ByVal colors As RLColor Ptr)
-Declare Sub UnloadImagePalette(ByVal colors As RLColor Ptr)
+Declare Sub ImageColorReplace(ByVal image_ As Image Ptr, ByVal color As ColorRL, ByVal replace As ColorRL)
+Declare Function LoadImageColors(ByVal image_ As Image) As ColorRL Ptr
+Declare Function LoadImagePalette(ByVal image_ As Image, ByVal maxPaletteSize As Long, ByVal colorCount As Long Ptr) As ColorRL Ptr
+Declare Sub UnloadImageColors(ByVal colors As ColorRL Ptr)
+Declare Sub UnloadImagePalette(ByVal colors As ColorRL Ptr)
 Declare Function GetImageAlphaBorder(ByVal image_ As Image, ByVal threshold As Single) As Rectangle
-Declare Function GetImageColor(ByVal image_ As Image, ByVal x As Long, ByVal y As Long) As RLColor
-Declare Sub ImageClearBackground(ByVal dst As Image Ptr, ByVal color As RLColor)
-Declare Sub ImageDrawPixel(ByVal dst As Image Ptr, ByVal posX As Long, ByVal posY As Long, ByVal color As RLColor)
-Declare Sub ImageDrawPixelV(ByVal dst As Image Ptr, ByVal position As Vector2, ByVal color As RLColor)
-Declare Sub ImageDrawLine(ByVal dst As Image Ptr, ByVal startPosX As Long, ByVal startPosY As Long, ByVal endPosX As Long, ByVal endPosY As Long, ByVal color As RLColor)
-Declare Sub ImageDrawLineV(ByVal dst As Image Ptr, ByVal start As Vector2, ByVal end_ As Vector2, ByVal color As RLColor)
-Declare Sub ImageDrawCircle(ByVal dst As Image Ptr, ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Long, ByVal color As RLColor)
-Declare Sub ImageDrawCircleV(ByVal dst As Image Ptr, ByVal center As Vector2, ByVal radius As Long, ByVal color As RLColor)
-Declare Sub ImageDrawCircleLines(ByVal dst As Image Ptr, ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Long, ByVal color_ As RLColor)
-Declare Sub ImageDrawCircleLinesV(ByVal dst As Image Ptr, ByVal center As Vector2, ByVal radius As Long, ByVal color_ As RLColor)
-Declare Sub ImageDrawRectangle(ByVal dst As Image Ptr, ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As RLColor)
-Declare Sub ImageDrawRectangleV(ByVal dst As Image Ptr, ByVal position As Vector2, ByVal size As Vector2, ByVal color As RLColor)
-Declare Sub ImageDrawRectangleRec(ByVal dst As Image Ptr, ByVal rec As Rectangle, ByVal color As RLColor)
-Declare Sub ImageDrawRectangleLines(ByVal dst As Image Ptr, ByVal rec As Rectangle, ByVal thick As Long, ByVal color As RLColor)
-Declare Sub ImageDraw(ByVal dst As Image Ptr, ByVal src As Image, ByVal srcRec As Rectangle, ByVal dstRec As Rectangle, ByVal tint As RLColor)
-Declare Sub ImageDrawText(ByVal dst As Image Ptr, ByVal text As Const ZString Ptr, ByVal posX As Long, ByVal posY As Long, ByVal fontSize As Long, ByVal color As RLColor)
-Declare Sub ImageDrawTextEx(ByVal dst As Image Ptr, ByVal font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
+Declare Function GetImageColor(ByVal image_ As Image, ByVal x As Long, ByVal y As Long) As ColorRL
+Declare Sub ImageClearBackground(ByVal dst As Image Ptr, ByVal color As ColorRL)
+Declare Sub ImageDrawPixel(ByVal dst As Image Ptr, ByVal posX As Long, ByVal posY As Long, ByVal color As ColorRL)
+Declare Sub ImageDrawPixelV(ByVal dst As Image Ptr, ByVal position As Vector2, ByVal color As ColorRL)
+Declare Sub ImageDrawLine(ByVal dst As Image Ptr, ByVal startPosX As Long, ByVal startPosY As Long, ByVal endPosX As Long, ByVal endPosY As Long, ByVal color As ColorRL)
+Declare Sub ImageDrawLineV(ByVal dst As Image Ptr, ByVal start As Vector2, ByVal end_ As Vector2, ByVal color As ColorRL)
+Declare Sub ImageDrawCircle(ByVal dst As Image Ptr, ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Long, ByVal color As ColorRL)
+Declare Sub ImageDrawCircleV(ByVal dst As Image Ptr, ByVal center As Vector2, ByVal radius As Long, ByVal color As ColorRL)
+Declare Sub ImageDrawCircleLines(ByVal dst As Image Ptr, ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Long, ByVal color_ As ColorRL)
+Declare Sub ImageDrawCircleLinesV(ByVal dst As Image Ptr, ByVal center As Vector2, ByVal radius As Long, ByVal color_ As ColorRL)
+Declare Sub ImageDrawRectangle(ByVal dst As Image Ptr, ByVal posX As Long, ByVal posY As Long, ByVal width_ As Long, ByVal height_ As Long, ByVal color As ColorRL)
+Declare Sub ImageDrawRectangleV(ByVal dst As Image Ptr, ByVal position As Vector2, ByVal size As Vector2, ByVal color As ColorRL)
+Declare Sub ImageDrawRectangleRec(ByVal dst As Image Ptr, ByVal rec As Rectangle, ByVal color As ColorRL)
+Declare Sub ImageDrawRectangleLines(ByVal dst As Image Ptr, ByVal rec As Rectangle, ByVal thick As Long, ByVal color As ColorRL)
+Declare Sub ImageDraw(ByVal dst As Image Ptr, ByVal src As Image, ByVal srcRec As Rectangle, ByVal dstRec As Rectangle, ByVal tint As ColorRL)
+Declare Sub ImageDrawText(ByVal dst As Image Ptr, ByVal text As Const ZString Ptr, ByVal posX As Long, ByVal posY As Long, ByVal fontSize As Long, ByVal color As ColorRL)
+Declare Sub ImageDrawTextEx(ByVal dst As Image Ptr, ByVal font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As ColorRL)
 Declare Function LoadTexture(ByVal fileName As Const ZString Ptr) As Texture2D
 Declare Function LoadTextureFromImage(ByVal image_ As Image) As Texture2D
 Declare Function LoadTextureCubemap(ByVal image_ As Image, ByVal layout As Long) As TextureCubemap
@@ -1150,44 +1154,44 @@ Declare Sub UpdateTextureRec(ByVal texture As Texture2D, ByVal rec As Rectangle,
 Declare Sub GenTextureMipmaps(ByVal texture As Texture2D Ptr)
 Declare Sub SetTextureFilter(ByVal texture As Texture2D, ByVal filter As Long)
 Declare Sub SetTextureWrap(ByVal texture As Texture2D, ByVal wrap As Long)
-Declare Sub DrawTexture(ByVal texture As Texture2D, ByVal posX As Long, ByVal posY As Long, ByVal tint As RLColor)
-Declare Sub DrawTextureV(ByVal texture As Texture2D, ByVal position As Vector2, ByVal tint As RLColor)
-Declare Sub DrawTextureEx(ByVal texture As Texture2D, ByVal position As Vector2, ByVal rotation As Single, ByVal scale As Single, ByVal tint As RLColor)
-Declare Sub DrawTextureRec(ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector2, ByVal tint As RLColor)
-Declare Sub DrawTexturePro(ByVal texture As Texture2D, ByVal source As Rectangle, ByVal dest As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As RLColor)
-Declare Sub DrawTextureNPatch(ByVal texture As Texture2D, ByVal nPatchInfo As NPatchInfo, ByVal dest As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As RLColor)
-Declare Function Fade(ByVal color As RLColor, ByVal alpha_ As Single) As RLColor
-Declare Function ColorToInt(ByVal color_ As RLColor) As Long
-Declare Function ColorNormalize(ByVal color_ As RLColor) As Vector4
-Declare Function ColorFromNormalized(ByVal normalized As Vector4) As RLColor
-Declare Function ColorToHSV(ByVal color As RLColor) As Vector3
-Declare Function ColorFromHSV(ByVal hue As Single, ByVal saturation As Single, ByVal value As Single) As RLColor
-Declare Function ColorTint(ByVal color_ As RLColor, ByVal tint As RLColor) As RLColor
-Declare Function ColorBrightness(ByVal color_ As RLColor, ByVal factor As Single) As RLColor
-Declare Function ColorContrast(ByVal color_ As RLColor, ByVal contrast As Single) As RLColor
-Declare Function ColorAlpha(ByVal color_ As RLColor, ByVal alpha_ As Single) As RLColor
-Declare Function ColorAlphaBlend(ByVal dst As RLColor, ByVal src As RLColor, ByVal tint As RLColor) As RLColor
-Declare Function GetColor(ByVal hexValue As ULong) As RLColor
-Declare Function GetPixelColor(ByVal srcPtr As Any Ptr, ByVal format_ As Long) As RLColor
-Declare Sub SetPixelColor(ByVal dstPtr As Any Ptr, ByVal color As RLColor, ByVal format_ As Long)
+Declare Sub DrawTexture(ByVal texture As Texture2D, ByVal posX As Long, ByVal posY As Long, ByVal tint As ColorRL)
+Declare Sub DrawTextureV(ByVal texture As Texture2D, ByVal position As Vector2, ByVal tint As ColorRL)
+Declare Sub DrawTextureEx(ByVal texture As Texture2D, ByVal position As Vector2, ByVal rotation As Single, ByVal scale As Single, ByVal tint As ColorRL)
+Declare Sub DrawTextureRec(ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector2, ByVal tint As ColorRL)
+Declare Sub DrawTexturePro(ByVal texture As Texture2D, ByVal source As Rectangle, ByVal dest As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As ColorRL)
+Declare Sub DrawTextureNPatch(ByVal texture As Texture2D, ByVal nPatchInfo As NPatchInfo, ByVal dest As Rectangle, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As ColorRL)
+Declare Function Fade(ByVal color As ColorRL, ByVal alpha_ As Single) As ColorRL
+Declare Function ColorToInt(ByVal color_ As ColorRL) As Long
+Declare Function ColorNormalize(ByVal color_ As ColorRL) As Vector4
+Declare Function ColorFromNormalized(ByVal normalized As Vector4) As ColorRL
+Declare Function ColorToHSV(ByVal color As ColorRL) As Vector3
+Declare Function ColorFromHSV(ByVal hue As Single, ByVal saturation As Single, ByVal value As Single) As ColorRL
+Declare Function ColorTint(ByVal color_ As ColorRL, ByVal tint As ColorRL) As ColorRL
+Declare Function ColorBrightness(ByVal color_ As ColorRL, ByVal factor As Single) As ColorRL
+Declare Function ColorContrast(ByVal color_ As ColorRL, ByVal contrast As Single) As ColorRL
+Declare Function ColorAlpha(ByVal color_ As ColorRL, ByVal alpha_ As Single) As ColorRL
+Declare Function ColorAlphaBlend(ByVal dst As ColorRL, ByVal src As ColorRL, ByVal tint As ColorRL) As ColorRL
+Declare Function GetColor(ByVal hexValue As ULong) As ColorRL
+Declare Function GetPixelColor(ByVal srcPtr As Any Ptr, ByVal format_ As Long) As ColorRL
+Declare Sub SetPixelColor(ByVal dstPtr As Any Ptr, ByVal color As ColorRL, ByVal format_ As Long)
 Declare Function GetPixelDataSize(ByVal width_ As Long, ByVal height_ As Long, ByVal format_ As Long) As Long
 Declare Function GetFontDefault() As Font
 Declare Function LoadFont(ByVal fileName As Const ZString Ptr) As Font
 Declare Function LoadFontEx(ByVal fileName As Const ZString Ptr, ByVal fontSize As Long, ByVal fontChars As Long Ptr, ByVal glyphCount As Long) As Font
-Declare Function LoadFontFromImage(ByVal image_ As Image, ByVal key As RLColor, ByVal firstChar As Long) As Font
+Declare Function LoadFontFromImage(ByVal image_ As Image, ByVal key As ColorRL, ByVal firstChar As Long) As Font
 Declare Function LoadFontFromMemory(ByVal fileType As Const ZString Ptr, ByVal fileData As Const UByte Ptr, ByVal dataSize As Long, ByVal fontSize As Long, ByVal fontChars As Long Ptr, ByVal glyphCount As Long) As Font
 Declare Function IsFontReady(ByVal font As Font) As Byte
 Declare Function LoadFontData(ByVal fileData As Const UByte Ptr, ByVal dataSize As Long, ByVal fontSize As Long, ByVal fontChars As Long Ptr, ByVal glyphCount As Long, ByVal type As Long) As GlyphInfo Ptr
 Declare Function GenImageFontAtlas(ByVal chars As Const GlyphInfo Ptr, ByVal recs As Rectangle Ptr Ptr, ByVal glyphCount As Long, ByVal fontSize As Long, ByVal padding As Long, ByVal packMethod As Long) As Image
 Declare Sub UnloadFontData(ByVal chars As GlyphInfo Ptr, ByVal glyphCount As Long)
-Declare Sub UnloadFont(ByVal font As Font)
+Declare Sub UnloadFont(ByVal Font As Font)
 Declare Function ExportFontAsCode(ByVal font As Font, ByVal fileName As Const ZString Ptr) As Boolean
 Declare Sub DrawFPS(ByVal posX As Long, ByVal posY As Long)
-Declare Sub DrawText(ByVal text As Const ZString Ptr, ByVal posX As Long, ByVal posY As Long, ByVal fontSize As Long, ByVal color As RLColor)
-Declare Sub DrawTextEx(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
-Declare Sub DrawTextPro(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal origin As Vector2, ByVal rotation As Single, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
-Declare Sub DrawTextCodepoint(ByVal font As Font, ByVal codepoint As Long, ByVal position As Vector2, ByVal fontSize As Single, ByVal tint As RLColor)
-Declare Sub DrawTextCodepoints(ByVal font As Font, ByVal codepoints As Const Long Ptr, ByVal count As Long, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As RLColor)
+Declare Sub DrawText(ByVal text As Const ZString Ptr, ByVal posX As Long, ByVal posY As Long, ByVal fontSize As Long, ByVal color As ColorRL)
+Declare Sub DrawTextEx(ByVal Font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As ColorRL)
+Declare Sub DrawTextPro(ByVal Font As Font, ByVal text As Const ZString Ptr, ByVal position As Vector2, ByVal origin As Vector2, ByVal rotation As Single, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As ColorRL)
+Declare Sub DrawTextCodepoint(ByVal Font As Font, ByVal codepoint As Long, ByVal position As Vector2, ByVal fontSize As Single, ByVal tint As ColorRL)
+Declare Sub DrawTextCodepoints(ByVal Font As Font, ByVal codepoints As Const Long Ptr, ByVal count As Long, ByVal position As Vector2, ByVal fontSize As Single, ByVal spacing As Single, ByVal tint As ColorRL)
 Declare Function MeasureText(ByVal text As Const ZString Ptr, ByVal fontSize As Long) As Long
 Declare Function MeasureTextEx(ByVal font As Font, ByVal text As Const ZString Ptr, ByVal fontSize As Single, ByVal spacing As Single) As Vector2
 Declare Function GetGlyphIndex(ByVal font As Font, ByVal codepoint As Long) As Long
@@ -1217,40 +1221,40 @@ Declare Function TextToUpper(ByVal text As Const ZString Ptr) As Const ZString P
 Declare Function TextToLower(ByVal text As Const ZString Ptr) As Const ZString Ptr
 Declare Function TextToPascal(ByVal text As Const ZString Ptr) As Const ZString Ptr
 Declare Function TextToInteger(ByVal text As Const ZString Ptr) As Long
-Declare Sub DrawLine3D(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal color As RLColor)
-Declare Sub DrawPoint3D(ByVal position As Vector3, ByVal color As RLColor)
-Declare Sub DrawCircle3D(ByVal center As Vector3, ByVal radius As Single, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal color As RLColor)
-Declare Sub DrawTriangle3D(ByVal v1 As Vector3, ByVal v2 As Vector3, ByVal v3 As Vector3, ByVal color As RLColor)
-Declare Sub DrawTriangleStrip3D(ByVal points As Vector3 Ptr, ByVal pointCount As Long, ByVal color As RLColor)
-Declare Sub DrawCube(ByVal position As Vector3, ByVal width_ As Single, ByVal height_ As Single, ByVal length As Single, ByVal color As RLColor)
-Declare Sub DrawCubeV(ByVal position As Vector3, ByVal size As Vector3, ByVal color As RLColor)
-Declare Sub DrawCubeWires(ByVal position As Vector3, ByVal width_ As Single, ByVal height_ As Single, ByVal length As Single, ByVal color As RLColor)
-Declare Sub DrawCubeWiresV(ByVal position As Vector3, ByVal size As Vector3, ByVal color As RLColor)
-Declare Sub DrawSphere(ByVal centerPos As Vector3, ByVal radius As Single, ByVal color As RLColor)
-Declare Sub DrawSphereEx(ByVal centerPos As Vector3, ByVal radius As Single, ByVal rings As Long, ByVal slices As Long, ByVal color As RLColor)
-Declare Sub DrawSphereWires(ByVal centerPos As Vector3, ByVal radius As Single, ByVal rings As Long, ByVal slices As Long, ByVal color As RLColor)
-Declare Sub DrawCylinder(ByVal position As Vector3, ByVal radiusTop As Single, ByVal radiusBottom As Single, ByVal height_ As Single, ByVal slices As Long, ByVal color As RLColor)
-Declare Sub DrawCylinderEx(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal startRadius As Single, ByVal endRadius As Single, ByVal sides As Long, ByVal color As RLColor)
-Declare Sub DrawCylinderWires(ByVal position As Vector3, ByVal radiusTop As Single, ByVal radiusBottom As Single, ByVal height_ As Single, ByVal slices As Long, ByVal color As RLColor)
-Declare Sub DrawCylinderWiresEx(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal startRadius As Single, ByVal endRadius As Single, ByVal sides As Long, ByVal color As RLColor)
-Declare Sub DrawCapsule(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal radius As Single, ByVal slices As Long, ByVal rings As Long, ByVal color_ As RLColor)
-Declare Sub DrawCapsuleWires(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal radius As Single, ByVal slices As Long, ByVal rings As Long, ByVal color_ As RLColor)
-Declare Sub DrawPlane(ByVal centerPos As Vector3, ByVal size As Vector2, ByVal color As RLColor)
-Declare Sub DrawRay(ByVal ray As Ray, ByVal color As RLColor)
+Declare Sub DrawLine3D(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal color As ColorRL)
+Declare Sub DrawPoint3D(ByVal position As Vector3, ByVal color As ColorRL)
+Declare Sub DrawCircle3D(ByVal center As Vector3, ByVal radius As Single, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal color As ColorRL)
+Declare Sub DrawTriangle3D(ByVal v1 As Vector3, ByVal v2 As Vector3, ByVal v3 As Vector3, ByVal color As ColorRL)
+Declare Sub DrawTriangleStrip3D(ByVal points As Vector3 Ptr, ByVal pointCount As Long, ByVal color As ColorRL)
+Declare Sub DrawCube(ByVal position As Vector3, ByVal width_ As Single, ByVal height_ As Single, ByVal length As Single, ByVal color As ColorRL)
+Declare Sub DrawCubeV(ByVal position As Vector3, ByVal size As Vector3, ByVal color As ColorRL)
+Declare Sub DrawCubeWires(ByVal position As Vector3, ByVal width_ As Single, ByVal height_ As Single, ByVal length As Single, ByVal color As ColorRL)
+Declare Sub DrawCubeWiresV(ByVal position As Vector3, ByVal size As Vector3, ByVal color As ColorRL)
+Declare Sub DrawSphere(ByVal centerPos As Vector3, ByVal radius As Single, ByVal color As ColorRL)
+Declare Sub DrawSphereEx(ByVal centerPos As Vector3, ByVal radius As Single, ByVal rings As Long, ByVal slices As Long, ByVal color As ColorRL)
+Declare Sub DrawSphereWires(ByVal centerPos As Vector3, ByVal radius As Single, ByVal rings As Long, ByVal slices As Long, ByVal color As ColorRL)
+Declare Sub DrawCylinder(ByVal position As Vector3, ByVal radiusTop As Single, ByVal radiusBottom As Single, ByVal height_ As Single, ByVal slices As Long, ByVal color As ColorRL)
+Declare Sub DrawCylinderEx(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal startRadius As Single, ByVal endRadius As Single, ByVal sides As Long, ByVal color As ColorRL)
+Declare Sub DrawCylinderWires(ByVal position As Vector3, ByVal radiusTop As Single, ByVal radiusBottom As Single, ByVal height_ As Single, ByVal slices As Long, ByVal color As ColorRL)
+Declare Sub DrawCylinderWiresEx(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal startRadius As Single, ByVal endRadius As Single, ByVal sides As Long, ByVal color As ColorRL)
+Declare Sub DrawCapsule(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal radius As Single, ByVal slices As Long, ByVal rings As Long, ByVal color_ As ColorRL)
+Declare Sub DrawCapsuleWires(ByVal startPos As Vector3, ByVal endPos As Vector3, ByVal radius As Single, ByVal slices As Long, ByVal rings As Long, ByVal color_ As ColorRL)
+Declare Sub DrawPlane(ByVal centerPos As Vector3, ByVal size As Vector2, ByVal color As ColorRL)
+Declare Sub DrawRay(ByVal ray As Ray, ByVal color As ColorRL)
 Declare Sub DrawGrid(ByVal slices As Long, ByVal spacing As Single)
 Declare Function LoadModel(ByVal fileName As Const ZString Ptr) As Model
 Declare Function LoadModelFromMesh(ByVal mesh As Mesh) As Model
 Declare Function IsModelReady(ByVal model As Model) As Byte
 Declare Sub UnloadModel(ByVal model As Model)
 Declare Function GetModelBoundingBox(ByVal model As Model) As BoundingBox
-Declare Sub DrawModel(ByVal model As Model, ByVal position As Vector3, ByVal scale As Single, ByVal tint As RLColor)
-Declare Sub DrawModelEx(ByVal model As Model, ByVal position As Vector3, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal scale As Vector3, ByVal tint As RLColor)
-Declare Sub DrawModelWires(ByVal model As Model, ByVal position As Vector3, ByVal scale As Single, ByVal tint As RLColor)
-Declare Sub DrawModelWiresEx(ByVal model As Model, ByVal position As Vector3, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal scale As Vector3, ByVal tint As RLColor)
-Declare Sub DrawBoundingBox(ByVal box As BoundingBox, ByVal color As RLColor)
-Declare Sub DrawBillboard(ByVal camera As Camera, ByVal texture As Texture2D, ByVal position As Vector3, ByVal size As Single, ByVal tint As RLColor)
-Declare Sub DrawBillboardRec(ByVal camera As Camera, ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector3, ByVal size As Vector2, ByVal tint As RLColor)
-Declare Sub DrawBillboardPro(ByVal camera As Camera, ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector3, ByVal up As Vector3, ByVal size As Vector2, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As RLColor)
+Declare Sub DrawModel(ByVal model As Model, ByVal position As Vector3, ByVal scale As Single, ByVal tint As ColorRL)
+Declare Sub DrawModelEx(ByVal model As Model, ByVal position As Vector3, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal scale As Vector3, ByVal tint As ColorRL)
+Declare Sub DrawModelWires(ByVal model As Model, ByVal position As Vector3, ByVal scale As Single, ByVal tint As ColorRL)
+Declare Sub DrawModelWiresEx(ByVal model As Model, ByVal position As Vector3, ByVal rotationAxis As Vector3, ByVal rotationAngle As Single, ByVal scale As Vector3, ByVal tint As ColorRL)
+Declare Sub DrawBoundingBox(ByVal box As BoundingBox, ByVal color As ColorRL)
+Declare Sub DrawBillboard(ByVal camera As Camera, ByVal texture As Texture2D, ByVal position As Vector3, ByVal size As Single, ByVal tint As ColorRL)
+Declare Sub DrawBillboardRec(ByVal camera As Camera, ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector3, ByVal size As Vector2, ByVal tint As ColorRL)
+Declare Sub DrawBillboardPro(ByVal camera As Camera, ByVal texture As Texture2D, ByVal source As Rectangle, ByVal position As Vector3, ByVal up As Vector3, ByVal size As Vector2, ByVal origin As Vector2, ByVal rotation As Single, ByVal tint As ColorRL)
 Declare Sub UploadMesh(ByVal mesh As Mesh Ptr, ByVal dynamic As Boolean)
 Declare Sub UpdateMeshBuffer(ByVal mesh As Mesh, ByVal index As Long, ByVal data_ As Const Any Ptr, ByVal dataSize As Long, ByVal offset As Long)
 Declare Sub UnloadMesh(ByVal mesh As Mesh)
