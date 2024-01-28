@@ -159,7 +159,7 @@ Declare Function GuiWindowBox(ByVal bounds As RayLib.Rectangle, ByVal title As C
 Declare Sub GuiGroupBox(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr)
 Declare Sub GuiLine(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr)
 Declare Sub GuiPanel(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr)
-Declare Function GuiScrollPanel(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr, ByVal content As RayLib.Rectangle, ByVal scroll As RayLib.Vector2 Ptr) As RayLib.Rectangle
+Declare Function GuiScrollPanel(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr, ByVal content As RayLib.Rectangle, ByVal scroll As Vector2 Ptr) As RayLib.Rectangle
 Declare Sub GuiLabel(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr)
 Declare Function GuiButton(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr) As Boolean
 Declare Function GuiLabelButton(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr) As Boolean
@@ -177,7 +177,7 @@ Declare Function GuiSliderBar(ByVal bounds As RayLib.Rectangle, ByVal textLeft A
 Declare Function GuiProgressBar(ByVal bounds As RayLib.Rectangle, ByVal textLeft As Const ZString Ptr, ByVal textRight As Const ZString Ptr, ByVal value As Single, ByVal minValue As Single, ByVal maxValue As Single) As Single
 Declare Sub GuiStatusBar(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr)
 Declare Sub GuiDummyRec(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr)
-Declare Function GuiGrid(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr, ByVal spacing As Single, ByVal subdivs As Long) As RayLib.Vector2
+Declare Function GuiGrid(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr, ByVal spacing As Single, ByVal subdivs As Long) As Vector2
 Declare Function GuiListView(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr, ByVal scrollIndex As Long Ptr, ByVal active As Long) As Long
 Declare Function GuiListViewEx(ByVal bounds As RayLib.Rectangle, ByVal text As Const ZString Ptr Ptr, ByVal count As Long, ByVal focus As Long Ptr, ByVal scrollIndex As Long Ptr, ByVal active As Long) As Long
 Declare Function GuiMessageBox(ByVal bounds As RayLib.Rectangle, ByVal title As Const ZString Ptr, ByVal message As Const ZString Ptr, ByVal buttons As Const ZString Ptr) As Long
