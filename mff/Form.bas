@@ -821,7 +821,7 @@ Namespace My.Sys.Forms
 						If xdpi = 0 Then xdpi = 1
 						If ydpi = 0 Then ydpi = 1
 						.FDpiFormX = xdpi : .FDpiFormY = ydpi
-						SetClassLong(.Handle,GCL_STYLE,.FClassStyle(.BorderStyle))
+						SetClassLong(.Handle, GCL_STYLE, .FClassStyle(.BorderStyle))
 						If .FBorderStyle = 2 Then
 							SetClassLongPtr(.Handle,GCLP_HICON,NULL)
 							SendMessage(.Handle, WM_SETICON, 1, NULL)
@@ -839,6 +839,7 @@ Namespace My.Sys.Forms
 							'EnableMenuItem(NoNeedSysMenu, SC_MINIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 							'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 						End If
+						If Not .FShowCaption Then .ShowCaption = False
 						If .Opacity <> 255 OrElse .Transparent Then SetLayeredWindowAttributes(.Handle, IIf(.TransparentColor = -1, .BackColor, .TransparentColor), .Opacity, IIf(.Transparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
 						.ChangeTabIndex -2
 						SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
