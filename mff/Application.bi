@@ -12,7 +12,9 @@
 '###############################################################################
 
 #include once "WStringList.bi"
+#include once "Dictionary.bi"
 #include once "Form.bi"
+Dim Shared As Dictionary mlKeys
 #ifdef __USE_GTK__
 	'#ifndef __FB_WIN32__
 	'	#include once "crt/linux/unistd.bi"
@@ -103,6 +105,8 @@ Namespace My
 	Private:
 		FDarkMode       As Boolean
 		FTitle          As WString Ptr
+		FCurLanguage    As WString Ptr
+		FCurLanguagePath  As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon
 		FExeName        As WString Ptr
 		FFileName       As WString Ptr
@@ -158,6 +162,10 @@ Namespace My
 		Declare Property Icon(Value As My.Sys.Drawing.Icon)
 		Declare Property Title ByRef As WString
 		Declare Property Title(ByRef Value As WString)
+		Declare Property CurLanguagePath ByRef As WString
+		Declare Property CurLanguagePath(ByRef Value As WString)
+		Declare Property CurLanguage ByRef As WString
+		Declare Property CurLanguage(ByRef Value As WString)
 		Declare Property ExeName ByRef As WString
 		Declare Property ExeName(ByRef Value As WString)
 		Declare Property MainForm As My.Sys.Forms.Form Ptr
@@ -201,6 +209,7 @@ Dim Shared pApp As My.Application Ptr 'Global for entire Application
 
 'Displays a message in a dialog box, waits for the user to click a button, and returns an Integer indicating which button the user clicked.
 Declare Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
+Declare Function ML(ByRef V As WString) ByRef As WString
 Declare Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
 Declare Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
 Declare Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean

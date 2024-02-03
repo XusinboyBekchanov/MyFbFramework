@@ -58,10 +58,11 @@
 		Declare Sub PictureBK_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Sub chkGDIPlus_Click(ByRef Sender As CheckBox)
+		Declare Sub PictureBK_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As CommandButton cmdDrawButterfly, cmdGDIDraw, cmdGDICls
-		Dim As Panel PictureBK
+		Dim As Picture PictureBK
 		Dim As Label Picture2_Picture(2), Picture2_Form(1)
 		
 		Dim As NumericUpDown Text1(1), Text2(1), Text3(1), Text4(1), Text5(1)
@@ -71,6 +72,8 @@
 	End Type
 	
 	Constructor Form1Type
+		App.CurLanguagePath = ExePath & "/Languages/"
+		App.CurLanguage= "chinese"
 		' Form1
 		With This
 			.Name = "Form1"
@@ -91,7 +94,7 @@
 		' cmdDrawButterfly
 		With cmdDrawButterfly
 			.Name = "cmdDrawButterfly"
-			.Text = "Start Draw"  '"开始绘画"
+			.Text = ML("Start Draw")  '"开始绘画"
 			.TabIndex = 1
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.Anchor.Top = AnchorStyle.asNone
@@ -114,7 +117,7 @@
 			.Graphic.StretchImage= StretchMode.smStretchProportional
 			'.Graphic.ScaleFactor = 2
 			.ForeColor = clRed
-			.BackColor = clBlue
+			.BackColor = 12615680
 			.Font.Size= 14
 			'.Canvas.Pen.Color = clRed
 			'.Canvas.BackColor = clBlue
@@ -123,9 +126,9 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
-			.BackColor = clBlue
+			.BackColor = 12615680
 			.ForeColor = clRed
-			'.DoubleBuffered = True
+			.DoubleBuffered = True
 			.Transparent = True
 			.SetBounds 50, 66, 440, 280
 			.Designer = @This
@@ -134,6 +137,7 @@
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @PictureBK_MouseMove)
 			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @PictureBK_MouseDown)
 			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @PictureBK_MouseUp)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PictureBK_Click)
 			.Parent = @This
 		End With
 		' Text1(0)
@@ -228,7 +232,7 @@
 		' cmdGDIDraw
 		With cmdGDIDraw
 			.Name = "cmdGDIDraw"
-			.Text = "Scale"
+			.Text = ML("Scale")
 			.TabIndex = 25
 			.Anchor.Top = AnchorStyle.asNone
 			.Anchor.Bottom = AnchorStyle.asAnchor
@@ -242,9 +246,8 @@
 		' cmdGDICls
 		With cmdGDICls
 			.Name = "cmdGDICls"
-			.Text = "Cls"
+			.Text = ML("Cls")
 			.TabIndex = 13
-			.Caption = "Cls"
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 180, 362, 79, 30
@@ -258,8 +261,8 @@
 			.Text = "Panel1"
 			.TabIndex = 14
 			.BackColor = 33023
-			.Transparent = True
-			'.DoubleBuffered = True
+			.Transparent = False
+			.DoubleBuffered = True
 			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
@@ -279,7 +282,7 @@
 			.TabIndex = 21
 			.BackColor = 33023
 			.Transparent = True
-			'.DoubleBuffered = True
+			.DoubleBuffered = True
 			.ControlIndex = 0
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
@@ -298,7 +301,7 @@
 			.TabIndex = 15
 			.BackColor = 12615808
 			.Transparent = True
-			'.DoubleBuffered = True
+			.DoubleBuffered = True
 			.Graphic.Bitmap.LoadFromFile(ExePath & "/../Resources/wheel.png")
 			.Anchor.Top = AnchorStyle.asAnchorProportional
 			.Anchor.Right = AnchorStyle.asNone
@@ -319,7 +322,7 @@
 			.TabIndex = 20
 			.BackColor = 12615808
 			.Transparent = True
-			'.DoubleBuffered = True
+			.DoubleBuffered = True
 			.ControlIndex = 1
 			.Anchor.Top = AnchorStyle.asAnchorProportional
 			.Anchor.Right = AnchorStyle.asNone
@@ -380,6 +383,7 @@
 			.TabIndex = 18
 			.BackColor = 32768
 			.Transparent = True
+			.DoubleBuffered = True
 			.ControlIndex = 15
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
@@ -411,7 +415,7 @@
 		' chkGDIPlus
 		With chkGDIPlus
 			.Name = "chkGDIPlus"
-			.Text = "Drawing with GDI+"
+			.Text = ML("Drawing with GDI+")
 			.TabIndex = 33
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
@@ -423,7 +427,7 @@
 		' chkTransparent
 		With chkTransparent
 			.Name = "chkTransparent"
-			.Text = "Transparent"
+			.Text = ML("Transparent")
 			.TabIndex = 34
 			.ControlIndex = 19
 			.Anchor.Left = AnchorStyle.asAnchor
@@ -436,7 +440,7 @@
 		' chkCenterImage
 		With chkCenterImage
 			.Name = "chkCenterImage"
-			.Text = "CenterImage"
+			.Text = ML("CenterImage")
 			.TabIndex = 35
 			.ControlIndex = 20
 			.Anchor.Left = AnchorStyle.asAnchor
@@ -449,7 +453,7 @@
 		' chkbackground
 		With chkbackground
 			.Name = "chkbackground"
-			.Text = "Background "
+			.Text = ML("Background")
 			.TabIndex = 36
 			.ControlIndex = 21
 			.Anchor.Left = AnchorStyle.asAnchor
@@ -462,7 +466,7 @@
 		' chkDoubleBuffered
 		With chkDoubleBuffered
 			.Name = "chkDoubleBuffered"
-			.Text = "DoubleBuffered"
+			.Text = ML("DoubleBuffered")
 			.TabIndex = 37
 			.ControlIndex = 22
 			.Anchor.Left = AnchorStyle.asAnchor
@@ -477,7 +481,7 @@
 	Dim Shared Form1 As Form1Type
 	
 	#ifndef _NOT_AUTORUN_FORMS_
-		'App.DarkMode= True
+		App.DarkMode= True
 		#define _NOT_AUTORUN_FORMS_
 		Form1.Show
 		App.Run
@@ -842,4 +846,8 @@ End Sub
 
 Private Sub Form1Type.chkGDIPlus_Click(ByRef Sender As CheckBox)
 	PictureBK.Canvas.Cls ' if switch must be use cls for init
+End Sub
+
+Private Sub Form1Type.PictureBK_Click(ByRef Sender As Control)
+	
 End Sub
