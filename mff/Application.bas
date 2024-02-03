@@ -98,6 +98,53 @@ Namespace My
 		#endif
 	End Property
 	
+	Private Property Application.CurLanguagePath ByRef As WString
+		If FCurLanguagePath = 0 Then WLet(FCurLanguagePath, ExePath & "/Settings/Languages/")
+			Return *FCurLanguagePath
+	End Property
+	
+	Private Property Application.CurLanguagePath(ByRef Value As WString)
+		WLet(FCurLanguagePath, Value)
+	End Property
+	
+	Private Property Application.CurLanguage ByRef As WString
+		If FCurLanguage = 0 Then WLet(FCurLanguage, "english")
+			Return *FCurLanguage
+	End Property
+	
+	Private Property Application.CurLanguage(ByRef Value As WString)
+		If LCase(Value) = "english" Then Return
+		mlKeys.Clear
+		Dim As Integer i, Pos1, Pos2
+		Dim As Integer Fn = FreeFile, Result
+		Dim As WString * 2048 Buff, tKey
+		Dim As Boolean StartGeneral = False
+		Dim As UString LanguageFile = *FCurLanguagePath & Value & ".lng"
+		Result = Open(LanguageFile For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(LanguageFile For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(LanguageFile For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(LanguageFile For Input As #Fn)
+		If Result = 0 Then
+			Do Until EOF(Fn)
+				Line Input #Fn, Buff
+				If LCase(Trim(Buff)) = "[general]" Then StartGeneral = True : Continue Do
+				Pos1 = InStr(Buff, "=")
+				If StartGeneral = True AndAlso Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
+					Pos2 = InStr(Pos1, Buff, "|")
+					tKey = Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ")
+					Var Pos3 = InStr(Buff, "~")
+					If Pos3 > 0 AndAlso Pos3 < Pos1 Then Buff = Replace(Buff, "~", "=")
+					If Trim(Mid(Buff, Pos1 + 1), Any !"\t ") <> "" Then mlKeys.Add Trim(Left(Buff, Pos1 - 1), Any !"\t "), Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				End If
+			Loop
+			mlKeys.SortKeys
+			Close(Fn)
+			WLet(FCurLanguage, Value)
+		Else
+			Print ML("Open file failure!") &  " " & ML("in function") & " Application.CurLanguage. File Name: " &  LanguageFile
+		End If
+	End Property
+	
 	#ifndef Application_Title_Get_Off
 		Private Property Application.Title ByRef As WString
 			If FTitle = 0 Then
@@ -626,6 +673,8 @@ Namespace My
 			'InitCommonControls
 			Instance = GetModuleHandle(NULL)
 		#endif
+		WLet(FCurLanguage, "english")
+		WLet(FCurLanguagePath, ExePath & "/Settings/Languages/")
 		GetFonts
 		This.initialized = False
 		This._vinfo = 0
@@ -656,6 +705,8 @@ Namespace My
 		If FExeName Then _Deallocate( FExeName)
 		If FTitle Then _Deallocate( FTitle)
 		If FControls Then _Deallocate( FControls)
+		If FCurLanguage Then _Deallocate( FCurLanguage)
+		If FCurLanguagePath Then _Deallocate( FCurLanguagePath)
 		If This._vinfo <> 0 Then _Deallocate((This._vinfo)) : This._vinfo = 0
 	End Destructor
 End Namespace
@@ -770,6 +821,17 @@ End Namespace
 		DialogResult = response_id
 	End Sub
 #endif
+
+Public Function ML(ByRef V As WString) ByRef As WString
+	If LCase(App.CurLanguage) = "english" Then Return V
+	Dim As Integer tIndex = mlKeys.IndexOfKey(V) ' For improve the speed
+	If tIndex >= 0 Then
+		Return mlKeys.Item(tIndex)->Text
+	Else
+		tIndex = mlKeys.IndexOfKey(Replace(V, "&", "")) '
+		If tIndex >= 0 Then Return mlKeys.Item(tIndex)->Text Else Return V
+	End If
+End Function
 
 Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
 	Dim As Integer Result = -1
