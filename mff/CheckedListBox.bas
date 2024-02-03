@@ -107,7 +107,7 @@ Namespace My.Sys.Forms
 	Private Property CheckedListBox.RadioCheck(Value As Boolean)
 		FRadioCheck = Value
 		#ifdef __USE_GTK__
-			gtk_cell_renderer_toggle_set_radio(rendertoggle, Cast(gboolean, Value))
+			gtk_cell_renderer_toggle_set_radio(GTK_CELL_RENDERER_TOGGLE(rendertoggle), Value)
 		#endif
 	End Property
 	
