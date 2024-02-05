@@ -176,10 +176,10 @@ Namespace My.Sys.Forms
 			
 			GetEnhMetaFileHeader(Document->Pages.Item(FCurrentPage - 1)->Handle, SizeOf(emh), @emh)
 			
-			rc.Left   = emh.rclFrame.left * MillimetersPerPixelsX
-			rc.Right  = rc.Left + (emh.rclFrame.right - emh.rclFrame.left) * MillimetersPerPixelsX
-			rc.Top    = emh.rclFrame.top * MillimetersPerPixelsX
-			rc.Bottom = rc.Top + (emh.rclFrame.bottom - emh.rclFrame.top) * MillimetersPerPixelsX
+			rc.Left   = emh.rclFrame.Left * MillimetersPerPixelsX
+			rc.Right  = rc.Left + (emh.rclFrame.Right - emh.rclFrame.Left) * MillimetersPerPixelsX
+			rc.Top    = emh.rclFrame.Top * MillimetersPerPixelsX
+			rc.Bottom = rc.Top + (emh.rclFrame.Bottom - emh.rclFrame.Top) * MillimetersPerPixelsX
 			
 			Dim As HDC hdcDesktop, memDC
 			Dim As HBITMAP Bmp, BmpOld
@@ -232,13 +232,14 @@ Namespace My.Sys.Forms
 				Dc = BeginPaint(Handle, @Ps)
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
-					Bmp   = CreateCompatibleBitmap(Dc,Ps.rcPaint.Right,Ps.rcPaint.Bottom)
-					SelectObject(memDC,Bmp)
+					Bmp   = CreateCompatibleBitmap(Dc, Ps.rcPaint.Right, Ps.rcPaint.Bottom)
+					SelectObject(memDC, Bmp)
 					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = memDC
 					PaintControl
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					If Focused Then DrawFocusRect memDC, @Ps.rcPaint
 					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
@@ -246,12 +247,17 @@ Namespace My.Sys.Forms
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Canvas.Handle = Dc
 					PaintControl
+					If Focused Then DrawFocusRect memDC, @Ps.rcPaint
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				End If
 				EndPaint Handle,@Ps
 				Message.Result = 0
 				Canvas.HandleSetted = False
 				Return
+			Case WM_SETFOCUS
+				Repaint
+			Case WM_KILLFOCUS
+				Repaint
 			Case WM_MOUSEWHEEL
 				#ifdef __FB_64BIT__
 					If Message.wParam < 4000000000 Then
@@ -280,7 +286,7 @@ Namespace My.Sys.Forms
 					End If
 				Else
 					Var scrStyle = IIf(bShifted, SB_HORZ, SB_VERT)
-					Var ArrowChangeSize = IIf(bShifted, FHorizontalArrowChangeSize, FVerticalArrowChangeSize)
+					Var ArrowChangeSize = IIf(bShifted, FHorizontalMouseWheelChangeSize, FVerticalMouseWheelChangeSize) * 3
 					Si.cbSize = SizeOf(Si)
 					Si.fMask  = SIF_ALL
 					GetScrollInfo (Message.hWnd, scrStyle, @Si)
@@ -397,6 +403,38 @@ Namespace My.Sys.Forms
 					Repaint
 					
 				End If
+			Case WM_GETDLGCODE: Message.Result = DLGC_HASSETSEL Or DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTMESSAGE
+			Case WM_LBUTTONDOWN
+				If Not Focused Then This.SetFocus
+			Case WM_KEYDOWN
+				Select Case Message.wParam
+				Case VK_LEFT: SendMessage Message.hWnd, WM_HSCROLL, SB_LINELEFT, 0
+				Case VK_RIGHT: SendMessage Message.hWnd, WM_HSCROLL, SB_LINERIGHT, 0
+				Case VK_UP: SendMessage Message.hWnd, WM_VSCROLL, SB_LINEUP, 0
+				Case VK_DOWN: SendMessage Message.hWnd, WM_VSCROLL, SB_LINEDOWN, 0
+				Case VK_PRIOR: If bShifted Then SendMessage Message.hWnd, WM_HSCROLL, SB_PAGELEFT, 0 Else SendMessage Message.hWnd, WM_VSCROLL, SB_PAGEUP, 0
+				Case VK_NEXT: If bShifted Then SendMessage Message.hWnd, WM_HSCROLL, SB_PAGERIGHT, 0 Else SendMessage Message.hWnd, WM_VSCROLL, SB_PAGEDOWN, 0
+				Case VK_HOME
+					If bCtrl Then
+						Dim As Integer OldCurrentPage = FCurrentPage
+						FCurrentPage = 1
+						If OldCurrentPage <> FCurrentPage Then
+							If OnCurrentPageChanged Then OnCurrentPageChanged(*Designer, This)
+							Repaint
+						End If
+					End If
+					If bShifted Then SendMessage Message.hWnd, WM_HSCROLL, SB_LEFT, 0 Else SendMessage Message.hWnd, WM_VSCROLL, SB_TOP, 0
+				Case VK_END
+					If bCtrl Then
+						Dim As Integer OldCurrentPage = FCurrentPage
+						FCurrentPage = Document->Pages.Count
+						If OldCurrentPage <> FCurrentPage Then
+							If OnCurrentPageChanged Then OnCurrentPageChanged(*Designer, This)
+							Repaint
+						End If
+					End If
+					If bShifted Then SendMessage Message.hWnd, WM_HSCROLL, SB_RIGHT, 0 Else SendMessage Message.hWnd, WM_VSCROLL, SB_BOTTOM, 0
+				End Select
 			Case WM_SIZE
 				SetScrollsInfo
 			End Select
@@ -428,13 +466,15 @@ Namespace My.Sys.Forms
 		'	This.PaperWidth = 8.5
 		'	This.PaperHeight = 11
 		'End If
+		FTabIndex = -1
+		FTabStop = True
 		With This
 			.Child      = @This
 			#ifndef __USE_GTK__
 				.RegisterClass "PrintPreviewControl"
 				.ChildProc   = @WNDPROC
 				.ExStyle     = 0
-				Base.Style       = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
+				Base.Style       = WS_CHILD Or WS_TABSTOP Or WS_VSCROLL Or WS_HSCROLL Or CS_DBLCLKS
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
@@ -443,6 +483,8 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "PrintPreviewControl")
 			FHorizontalArrowChangeSize = 10
 			FVerticalArrowChangeSize = 10
+			FHorizontalMouseWheelChangeSize = 30
+			FVerticalMouseWheelChangeSize = 30
 			FCurrentPage = 1
 			.Width      = 121
 			.Height     = 41

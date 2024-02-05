@@ -21,7 +21,7 @@ Private Sub PrintPreviewDialog.lblMinus_Click(ByRef Sender As Control)
 End Sub
 
 Private Function PrintPreviewDialog.Execute() As Boolean
-	frmDialog.ShowModal
+	frmDialog.ShowModal(*pApp->MainForm)
 	Return True
 End Function
 
@@ -174,7 +174,7 @@ Private Constructor PrintPreviewDialog
 		.Name = "cboOrientation"
 		.Text = "ComboBoxEx1"
 		.TabIndex = 8
-		.ControlIndex = 6
+		.ControlIndex = 2
 		.SetBounds 50, 0, 100, 22
 		.Designer = @This
 		.Parent = @hbxCommands
@@ -187,7 +187,7 @@ Private Constructor PrintPreviewDialog
 	With cboSize
 		.Name = "cboSize"
 		.Text = "ComboBoxEx1"
-		.TabIndex = 10
+		.TabIndex = 3
 		.ControlIndex = 1
 		.SetBounds 150, 0, 140, 22
 		.Designer = @This
@@ -208,7 +208,7 @@ Private Constructor PrintPreviewDialog
 	With lblPrevious
 		.Name = "lblPrevious"
 		.Text = "<"
-		.TabIndex = 6
+		.TabIndex = 4
 		.Caption = "<"
 		.CenterImage = True
 		.ID = 1012
@@ -222,7 +222,7 @@ Private Constructor PrintPreviewDialog
 	With txtPageNumber
 		.Name = "txtPageNumber"
 		.Text = "1"
-		.TabIndex = 6
+		.TabIndex = 5
 		.ID = 1012
 		.Alignment = AlignmentConstants.taCenter
 		.SetBounds 310, 0, 20, 22

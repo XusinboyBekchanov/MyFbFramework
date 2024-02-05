@@ -26,6 +26,8 @@ Namespace My.Sys.Forms
 		Dim As PrinterOrientation FOrientation
 		Dim As Integer FHorizontalArrowChangeSize
 		Dim As Integer FVerticalArrowChangeSize
+		Dim As Integer FHorizontalMouseWheelChangeSize
+		Dim As Integer FVerticalMouseWheelChangeSize
 		Declare Sub SetScrollsInfo
 		Declare Sub PaintControl
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
