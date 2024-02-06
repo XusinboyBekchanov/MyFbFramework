@@ -34,7 +34,7 @@ Namespace My.Sys.Forms
 			Case "minimizebox": Return @FMinimizeBox
 			Case "maximizebox": Return @FMaximizeBox
 			Case "formstyle": Return @FFormStyle
-			Case "menu": Return Menu
+			Case "menu": Return This.Menu
 			Case "mainform": Return @FMainForm
 			Case "modalresult": Return @ModalResult
 			Case "opacity": Return @FOpacity
@@ -218,8 +218,10 @@ Namespace My.Sys.Forms
 				#endif
 				If FMainForm Then
 					pApp->MainForm = @This
+					App.MainForm = @This
 				Else
 					pApp->MainForm = 0
+					App.MainForm = 0
 				End If
 			End If
 		End If

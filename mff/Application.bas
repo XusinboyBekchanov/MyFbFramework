@@ -99,11 +99,12 @@ Namespace My
 	End Property
 	
 	Private Property Application.CurLanguagePath ByRef As WString
-		If FCurLanguagePath = 0 Then WLet(FCurLanguagePath, ExePath & "/Settings/Languages/")
+		If FCurLanguagePath = 0 Then WLet(FCurLanguagePath, ExePath & "/Languages/")
 			Return *FCurLanguagePath
 	End Property
 	
 	Private Property Application.CurLanguagePath(ByRef Value As WString)
+		If *FCurLanguagePath = Value Then Return
 		WLet(FCurLanguagePath, Value)
 	End Property
 	
@@ -113,7 +114,7 @@ Namespace My
 	End Property
 	
 	Private Property Application.CurLanguage(ByRef Value As WString)
-		If LCase(Value) = "english" Then Return
+		If LCase(Value) = "english" OrElse LCase(Value) = LCase(*FCurLanguage) Then Return
 		mlKeys.Clear
 		Dim As Integer i, Pos1, Pos2
 		Dim As Integer Fn = FreeFile, Result
@@ -833,7 +834,7 @@ Public Function ML(ByRef V As WString) ByRef As WString
 	End If
 End Function
 
-Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
+Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult __EXPORT__
 	Dim As Integer Result = -1
 	Dim As WString Ptr FCaption
 	Dim As Integer MsgTypeIn, ButtonsTypeIn

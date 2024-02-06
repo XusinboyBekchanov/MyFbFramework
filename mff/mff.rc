@@ -45,7 +45,9 @@ PageSetupDialog PNG "../resources/PageSetupDialog.png"
 Picture PNG "../resources/Picture.png"
 PopUpMenu PNG "../resources/ContextMenu.png"
 PrintDialog PNG "../resources/PrintDialog.png"
+PrintPreviewControl PNG "../resources/PrintPreviewControl.png"
 PrintPreviewDialog PNG "../resources/PrintPreviewDialog.png"
+PrintDocument PNG "../resources/PrintDocument.png"
 Printer PNG "../resources/Printer.png"
 ProgressBar PNG "../resources/ProgressBar.png"
 RichTextBox PNG "../resources/RichTextBox.png"
@@ -74,8 +76,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,3,6,417
-#define VER_FILEVERSION_STR         "1.3.6.417\0"
+#define VER_FILEVERSION             1,3,6,446
+#define VER_FILEVERSION_STR         "1.3.6.446\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
