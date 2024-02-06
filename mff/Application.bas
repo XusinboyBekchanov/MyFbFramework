@@ -114,7 +114,7 @@ Namespace My
 	End Property
 	
 	Private Property Application.CurLanguage(ByRef Value As WString)
-		If LCase(Value) = "english" OrElse LCase(Value) = LCase(*FCurLanguage) Then Return
+		If LCase(Value) = "english" OrElse Value = "" OrElse LCase(Value) = LCase(*FCurLanguage) Then Return
 		mlKeys.Clear
 		Dim As Integer i, Pos1, Pos2
 		Dim As Integer Fn = FreeFile, Result
