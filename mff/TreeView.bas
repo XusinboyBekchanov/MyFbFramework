@@ -255,50 +255,60 @@ Namespace My.Sys.Forms
 			If Parent Then
 				With This
 					If Value Then
-						'Dim As Integer j
-						'For i As Integer = 0 To ParentNode->Nodes.Count - 1
-						'	If ParentNode->Nodes.Item(i)->Visible Then
-						'		j = j + 1
-						'	End If
-						'Next
-						'#ifdef __USE_GTK__
-						'	If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
-						'		If .ParentNode Then
-						'			gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, iIndex)
-						'		Else
-						'			gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, NULL, iIndex)
-						'		End If
-						'		gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
-						'		.ImageIndex = .ImageIndex
-						'	EndIf
-						'#else
-						'	Dim As TVINSERTSTRUCT tvis
-						'	If Parent AndAlso Parent->Handle Then
-						'		tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-						'		tvis.item.pszText              = @FText
-						'		tvis.item.cchTextMax           = Len(FText)
-						'		tvis.item.iImage             = FImageIndex
-						'		tvis.item.iSelectedImage     = FSelectedImageIndex
-						'		tvis.hInsertAfter            = IIf(Cast(TreeView Ptr, Parent)->Sorted Or bSorted, TVI_SORT, 0)
-						'		'tvis.hInsertAfter            = 0
-						'		If .ParentNode Then tvis.hParent               = .ParentNode->Handle
-						'		.Handle        = TreeView_InsertItem(Parent->Handle, @tvis)
-						'	End If
-						'#endif
+						Dim As Integer iIndex
+						Dim As TreeNodeCollection Ptr pNodes
+						If ParentNode <> 0 Then
+							pNodes = @(ParentNode->Nodes)
+						Else
+							pNodes = @(QTreeView(Parent).Nodes)
+						End If
+						#ifdef __USE_GTK__
+							For i As Integer = 0 To Index - 1
+								If pNodes->Item(i)->Visible Then
+									iIndex = iIndex + 1
+								End If
+							Next
+							If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+								If .ParentNode Then
+									gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, iIndex)
+								Else
+									gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, NULL, iIndex)
+								End If
+								gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
+								.ImageIndex = .ImageIndex
+							EndIf
+						#else
+							For i As Integer = 0 To Index - 1
+								If pNodes->Item(i)->Visible Then
+									iIndex = i + 1
+								End If
+							Next
+							Dim As TVINSERTSTRUCT tvis
+							If Parent AndAlso Parent->Handle Then
+								tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
+								tvis.item.pszText              = FText.vptr
+								tvis.item.cchTextMax           = Len(FText)
+								tvis.item.iImage             = FImageIndex
+								tvis.item.iSelectedImage     = FSelectedImageIndex
+								tvis.hInsertAfter            = IIf(iIndex = 0, TVI_FIRST, IIf(iIndex < 0, TVI_LAST, ParentNode->Nodes.Item(iIndex - 1)->Handle))
+								If .ParentNode Then tvis.hParent               = .ParentNode->Handle
+								.Handle        = TreeView_InsertItem(Parent->Handle, @tvis)
+							End If
+						#endif
 					Else
-						'#ifdef __USE_GTK__
-						'	If Parent AndAlso Parent->Handle Then
-						'		If GTK_IS_TREE_VIEW(Parent->Handle) Then
-						'			gtk_tree_store_remove(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @This.TreeIter)
-						'			This.TreeIter.user_data = 0
-						'		End If
-						'	End If
-						'#else
-						'	If Parent AndAlso Parent->Handle Then
-						'		TreeView_DeleteItem(Parent->Handle, This.Handle)
-						'		This.Handle = 0
-						'	End If
-						'#endif
+						#ifdef __USE_GTK__
+							If Parent AndAlso Parent->Handle Then
+								If GTK_IS_TREE_VIEW(Parent->Handle) Then
+									gtk_tree_store_remove(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @This.TreeIter)
+									This.TreeIter.user_data = 0
+								End If
+							End If
+						#else
+							If Parent AndAlso Parent->Handle Then
+								TreeView_DeleteItem(Parent->Handle, This.Handle)
+								This.Handle = 0
+							End If
+						#endif
 					End If
 				End With
 			End If
