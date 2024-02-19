@@ -71,7 +71,7 @@ Namespace My.Sys.Forms
 		#endif
 	Protected:
 		#ifndef __USE_GTK__
-			
+			Declare Sub DeleteItems(Node As TreeListViewItem Ptr)
 		#endif
 	Public:
 		#ifdef __USE_GTK__

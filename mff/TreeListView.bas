@@ -68,6 +68,7 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
+				If QTreeListView(Parent).OnItemExpanding Then QTreeListView(Parent).OnItemExpanding(* (QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
 				State = 2
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex <> -1 Then
@@ -301,18 +302,84 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
+	Private Sub TreeListViewItem.DeleteItems(Node As TreeListViewItem Ptr)
+		For i As Integer = Node->Nodes.Count - 1 To 0 Step -1
+			Var ItemIndex = Node->Nodes.Item(i)->GetItemIndex
+			?"""" & Node->Text(0) & """", """" & Node->Nodes.Item(i)->Text(0) & """", ItemIndex
+			If ItemIndex <> -1 Then ListView_DeleteItem(Node->Parent->Handle, ItemIndex)
+		Next
+	End Sub
+	
 	Private Property TreeListViewItem.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
-			#ifndef __USE_GTK__
-				If Parent AndAlso Parent->Handle Then
-					Var ItemIndex = GetItemIndex
-					If ItemIndex = -1 Then Exit Property
-					If Value = False Then
-						ListView_DeleteItem(Parent->Handle, ItemIndex)
-					End If
+			If Value Then
+				Dim As Integer iIndex
+				Dim As TreeListViewItems Ptr pNodes
+				If ParentItem <> 0 Then
+					pNodes = @(ParentItem->Nodes)
+				Else
+					pNodes = @(QTreeListView(Parent).Nodes)
 				End If
-			#endif
+				#ifdef __USE_GTK__
+					For i As Integer = 0 To Index - 1
+						If pNodes->Item(i)->Visible Then
+							iIndex = iIndex + 1
+						End If
+					Next
+					If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
+						Cast(TreeListView Ptr, Parent)->Init
+						If ParentItem <> 0 Then
+							gtk_tree_store_insert (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, @ParentItem->TreeIter, iIndex)
+						Else
+							gtk_tree_store_insert (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, NULL, iIndex)
+						End If
+						gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 1, ToUtf8(Text(0)), -1)
+					End If
+				#else
+					If CInt(Parent) AndAlso CInt(Parent->Handle) AndAlso CInt(CInt(ParentItem = 0) OrElse CInt(ParentItem->IsExpanded)) Then
+						Dim As TreeListViewItem Ptr LastItem
+						Dim As Integer ParentItemIndex
+						For i As Integer = 0 To Index - 1
+							If pNodes->Item(i)->Visible Then
+								LastItem = pNodes->Item(i)
+							End If
+						Next
+						If LastItem = 0 Then
+							If ParentItem Then 
+								iIndex = ParentItem->GetItemIndex + 1
+							End If
+						Else
+							iIndex = LastItem->GetItemIndex + LastItem->Nodes.Count + 1
+						End If
+						If ParentItem = 0 OrElse ParentItem->GetItemIndex <> -1 Then
+							lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+							lvi.pszText  = @(Text(0))
+							lvi.cchTextMax = Len(Text(0))
+							lvi.iItem = iIndex
+							lvi.iSubItem = 0
+							lvi.iImage   = FImageIndex
+							lvi.state   = INDEXTOSTATEIMAGEMASK(State)
+							lvi.stateMask = LVIS_STATEIMAGEMASK
+							lvi.iIndent   = Indent
+							lvi.lParam = Cast(LPARAM, @This)
+							ListView_InsertItem(Parent->Handle, @lvi)
+						End If
+					End If
+				#endif
+			Else
+				#ifdef __USE_GTK__
+					If Parent AndAlso Parent->Handle Then
+						gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.TreeIter)
+					End If
+				#else
+					If Parent AndAlso Parent->Handle Then
+						DeleteItems(@This)
+						Var ItemIndex = GetItemIndex
+						If ItemIndex <> -1 Then ListView_DeleteItem(Parent->Handle, ItemIndex)
+					End If
+				#endif
+			End If
 		End If
 	End Property
 	
@@ -896,8 +963,8 @@ Namespace My.Sys.Forms
 			.Format     = Format
 		End With
 		#ifndef __USE_GTK__
-			lvC.mask        =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvC.fmt         =  Format
+			lvc.mask        =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvc.fmt         =  Format
 			lvc.cx          = 0
 			lvc.iImage      = PColumn->ImageIndex
 			lvc.iSubItem    = PColumn->Index
@@ -1387,7 +1454,6 @@ Namespace My.Sys.Forms
 							If tlvi->IsExpanded Then
 								tlvi->Collapse
 							Else
-								If OnItemExpanding Then OnItemExpanding(*Designer, This, tlvi)
 								tlvi->Expand
 							End If
 						End If
@@ -1411,7 +1477,6 @@ Namespace My.Sys.Forms
 							If tlvi->IsExpanded Then
 								tlvi->Nodes.Item(0)->SelectItem
 							Else
-								If OnItemExpanding Then OnItemExpanding(*Designer, This, tlvi)
 								tlvi->Expand
 							End If
 						End If
