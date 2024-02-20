@@ -68,8 +68,8 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
-				If QTreeListView(Parent).OnItemExpanding Then QTreeListView(Parent).OnItemExpanding(* (QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
 				If Not FExpanded Then
+					If QTreeListView(Parent).OnItemExpanding Then QTreeListView(Parent).OnItemExpanding(* (QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
 					State = 2
 					Var ItemIndex = This.GetItemIndex
 					If ItemIndex <> -1 Then
@@ -311,6 +311,18 @@ Namespace My.Sys.Forms
 				If ItemIndex <> -1 Then ListView_DeleteItem(Node->Parent->Handle, ItemIndex)
 			Next
 		End Sub
+		
+		Private Function TreeListViewItem.GetVisibleItemsCount(Node As TreeListViewItem Ptr) As Integer
+			Dim As Integer iCount
+			If Node->IsExpanded Then
+				For i As Integer = 0 To Node->Nodes.Count - 1
+					If Node->Nodes.Item(i)->Visible Then
+						iCount += GetVisibleItemsCount(Node->Nodes.Item(i)) + 1
+					End If
+				Next
+			End If
+			Return iCount
+		End Function
 	#endif
 	
 	Private Sub TreeListViewItem.AddItems(Node As TreeListViewItem Ptr)
@@ -322,7 +334,7 @@ Namespace My.Sys.Forms
 			Else
 				pNodes = @(QTreeListView(Node->Parent).Nodes)
 			End If
-			If CInt(Node->Parent) AndAlso CInt(Node->Parent->Handle) AndAlso CInt(CInt(Node->ParentItem = 0) OrElse CInt(Node->ParentItem->IsExpanded)) Then
+			If CInt(Node->Parent) AndAlso CInt(Node->Parent->Handle) AndAlso (CInt(CInt(Node->ParentItem = 0) OrElse CInt(Node->ParentItem->IsExpanded))) Then
 				Dim As TreeListViewItem Ptr LastItem
 				Dim As Integer ParentItemIndex
 				For i As Integer = 0 To Node->Index - 1
@@ -331,25 +343,12 @@ Namespace My.Sys.Forms
 					End If
 				Next
 				If LastItem = 0 Then
-					If Node->ParentItem Then 
-						iIndex = Node->ParentItem->GetItemIndex + 1
-						'?Node->Text(0), Node->ParentItem->Text(0), iIndex, 1
-					Else
-						'?Node->Text(0), "", iIndex, 2
-					End If
+					If Node->ParentItem Then iIndex = Node->ParentItem->GetItemIndex + 1
 				Else
-					iIndex = LastItem->GetItemIndex + 1
-					If LastItem->IsExpanded Then
-						For i As Integer = 0 To LastItem->Nodes.Count - 1
-							If LastItem->Nodes.Item(i)->Visible Then
-								iIndex += 1
-							End If
-						Next
-					End If
-					'?Node->Text(0), iIndex, 3
+					iIndex = LastItem->GetItemIndex + GetVisibleItemsCount(LastItem) + 1
 				End If
-				If Node->ParentItem = 0 OrElse iIndex > 0 Then
-					'?Node->Text(0), iIndex
+				If Node->ParentItem = 0 OrElse Node->ParentItem->GetItemIndex <> -1 Then
+					Dim As LVITEM lvi
 					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 					lvi.pszText  = @(Node->Text(0))
 					lvi.cchTextMax = Len(Node->Text(0))
@@ -359,7 +358,7 @@ Namespace My.Sys.Forms
 					lvi.state   = INDEXTOSTATEIMAGEMASK(Node->State)
 					lvi.stateMask = LVIS_STATEIMAGEMASK
 					lvi.iIndent   = Node->Indent
-					lvi.lParam = Cast(LPARAM, @This)
+					lvi.lParam = Cast(LPARAM, Node)
 					ListView_InsertItem(Node->Parent->Handle, @lvi)
 					For j As Integer = 1 To Cast(TreeListView Ptr, Node->Parent)->Columns.Count - 1
 						Dim As LVITEM lvi1

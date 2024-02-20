@@ -72,6 +72,7 @@ Namespace My.Sys.Forms
 	Protected:
 		#ifndef __USE_GTK__
 			Declare Sub DeleteItems(Node As TreeListViewItem Ptr)
+			Declare Function GetVisibleItemsCount(Node As TreeListViewItem Ptr) As Integer
 		#endif
 		Declare Sub AddItems(Node As TreeListViewItem Ptr)
 	Public:
