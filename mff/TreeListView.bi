@@ -71,10 +71,10 @@ Namespace My.Sys.Forms
 		#endif
 	Protected:
 		#ifndef __USE_GTK__
-			Declare Sub DeleteItems(Node As TreeListViewItem Ptr)
-			Declare Function GetVisibleItemsCount(Node As TreeListViewItem Ptr) As Integer
+			Declare Static Sub DeleteItems(Node As TreeListViewItem Ptr)
+			Declare Static Function GetVisibleItemsCount(Node As TreeListViewItem Ptr) As Integer
 		#endif
-		Declare Sub AddItems(Node As TreeListViewItem Ptr)
+		Declare Static Sub AddItems(Node As TreeListViewItem Ptr)
 	Public:
 		#ifdef __USE_GTK__
 			TreeIter As GtkTreeIter

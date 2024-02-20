@@ -326,7 +326,35 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TreeListViewItem.AddItems(Node As TreeListViewItem Ptr)
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_GTK__
+			Dim As Integer iIndex
+			Dim As TreeListViewItems Ptr pNodes
+			If Node->ParentItem <> 0 Then
+				pNodes = @(Node->ParentItem->Nodes)
+			Else
+				pNodes = @(QTreeListView(Node->Parent).Nodes)
+			End If
+			For i As Integer = 0 To Node->Index - 1
+				If pNodes->Item(i)->Visible Then
+					iIndex = iIndex + 1
+				End If
+			Next
+			If Node->Parent AndAlso Cast(TreeListView Ptr, Node->Parent)->TreeStore Then
+				Cast(TreeListView Ptr, Node->Parent)->Init
+				If Node->ParentItem <> 0 Then
+					gtk_tree_store_insert (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, @(Node->ParentItem->TreeIter), iIndex)
+				Else
+					gtk_tree_store_insert (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, NULL, iIndex)
+				End If
+				gtk_tree_store_set (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, 1, ToUtf8(Node->Text(0)), -1)
+				For j As Integer = 1 To Cast(TreeListView Ptr, Node->Parent)->Columns.Count - 1
+					gtk_tree_store_set (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, j + 1, ToUtf8(Node->Text(j)), -1)
+				Next
+				For j As Integer = 0 To Node->Nodes.Count - 1
+					If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
+				Next
+			End If
+		#else
 			Dim As Integer iIndex
 			Dim As TreeListViewItems Ptr pNodes
 			If Node->ParentItem <> 0 Then
@@ -345,7 +373,7 @@ Namespace My.Sys.Forms
 				If LastItem = 0 Then
 					If Node->ParentItem Then iIndex = Node->ParentItem->GetItemIndex + 1
 				Else
-					iIndex = LastItem->GetItemIndex + GetVisibleItemsCount(LastItem) + 1
+					iIndex = LastItem->GetItemIndex + Node->GetVisibleItemsCount(LastItem) + 1
 				End If
 				If Node->ParentItem = 0 OrElse Node->ParentItem->GetItemIndex <> -1 Then
 					Dim As LVITEM lvi
@@ -354,7 +382,7 @@ Namespace My.Sys.Forms
 					lvi.cchTextMax = Len(Node->Text(0))
 					lvi.iItem = iIndex
 					lvi.iSubItem = 0
-					lvi.iImage   = FImageIndex
+					lvi.iImage   = Node->FImageIndex
 					lvi.state   = INDEXTOSTATEIMAGEMASK(Node->State)
 					lvi.stateMask = LVIS_STATEIMAGEMASK
 					lvi.iIndent   = Node->Indent
@@ -381,31 +409,7 @@ Namespace My.Sys.Forms
 		If Value <> FVisible Then
 			FVisible = Value
 			If Value Then
-				#ifdef __USE_GTK__
-					Dim As Integer iIndex
-					Dim As TreeListViewItems Ptr pNodes
-					If ParentItem <> 0 Then
-						pNodes = @(ParentItem->Nodes)
-					Else
-						pNodes = @(QTreeListView(Parent).Nodes)
-					End If
-					For i As Integer = 0 To Index - 1
-						If pNodes->Item(i)->Visible Then
-							iIndex = iIndex + 1
-						End If
-					Next
-					If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
-						Cast(TreeListView Ptr, Parent)->Init
-						If ParentItem <> 0 Then
-							gtk_tree_store_insert (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, @ParentItem->TreeIter, iIndex)
-						Else
-							gtk_tree_store_insert (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, NULL, iIndex)
-						End If
-						gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 1, ToUtf8(Text(0)), -1)
-					End If
-				#else
-					AddItems @This
-				#endif
+				AddItems @This
 			Else
 				#ifdef __USE_GTK__
 					If Parent AndAlso Parent->Handle Then
