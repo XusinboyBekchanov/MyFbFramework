@@ -97,8 +97,8 @@ Namespace My.Sys.Forms
 		Repaint
 	End Property
 	
-	#ifndef __USE_GTK__
-		Private Sub PrintPreviewControl.SetScrollsInfo
+	Private Sub PrintPreviewControl.SetScrollsInfo
+		#ifndef __USE_GTK__
 			Dim Si As SCROLLINFO
 			Dim As Integer MaxWidth, MaxHeight
 			
@@ -132,8 +132,10 @@ Namespace My.Sys.Forms
 			Si.nPos   = Min(Si.nPos, Si.nMax)
 			Si.nPage  = This.ClientHeight
 			SetScrollInfo(This.Handle, SB_VERT, @Si, True)
-		End Sub
-		
+		#endif
+	End Sub
+	
+	#ifndef __USE_GTK__
 		Private Sub PrintPreviewControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QPrintPreviewControl(Sender.Child)
