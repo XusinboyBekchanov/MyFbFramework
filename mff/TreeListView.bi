@@ -73,6 +73,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Sub DeleteItems(Node As TreeListViewItem Ptr)
 		#endif
+		Declare Sub AddItems(Node As TreeListViewItem Ptr)
 	Public:
 		#ifdef __USE_GTK__
 			TreeIter As GtkTreeIter

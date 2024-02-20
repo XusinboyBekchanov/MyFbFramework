@@ -69,35 +69,37 @@ Namespace My.Sys.Forms
 		#else
 			If Parent AndAlso Parent->Handle Then
 				If QTreeListView(Parent).OnItemExpanding Then QTreeListView(Parent).OnItemExpanding(* (QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
-				State = 2
-				Var ItemIndex = This.GetItemIndex
-				If ItemIndex <> -1 Then
-					For i As Integer = 0 To Nodes.Count - 1
-						lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
-						lvi.pszText  = @Nodes.Item(i)->Text(0)
-						lvi.cchTextMax = Len(Nodes.Item(i)->Text(0))
-						lvi.iItem = ItemIndex + i + 1
-						lvi.iImage   = Nodes.Item(i)->FImageIndex
-						If Nodes.Item(i)->Nodes.Count > 0 Then
-							lvi.state   = INDEXTOSTATEIMAGEMASK(1)
-							Nodes.Item(i)->FExpanded = False
-						Else
-							lvi.state   = 0
-						End If
-						lvi.stateMask = LVIS_STATEIMAGEMASK
-						lvi.iIndent   = Nodes.Item(i)->Indent
-						lvi.lParam = Cast(LPARAM, Nodes.Item(i))
-						ListView_InsertItem(Parent->Handle, @lvi)
-						For j As Integer = 1 To Cast(TreeListView Ptr, Parent)->Columns.Count - 1
-							Dim As LVITEM lvi1
-							lvi1.mask = LVIF_TEXT
-							lvi1.iItem = ItemIndex + i + 1
-							lvi1.iSubItem   = j
-							lvi1.pszText    = @Nodes.Item(i)->Text(j)
-							lvi1.cchTextMax = Len(Nodes.Item(i)->Text(j))
-							ListView_SetItem(Parent->Handle, @lvi1)
-						Next j
-					Next i
+				If Not FExpanded Then
+					State = 2
+					Var ItemIndex = This.GetItemIndex
+					If ItemIndex <> -1 Then
+						For i As Integer = 0 To Nodes.Count - 1
+							lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+							lvi.pszText  = @Nodes.Item(i)->Text(0)
+							lvi.cchTextMax = Len(Nodes.Item(i)->Text(0))
+							lvi.iItem = ItemIndex + i + 1
+							lvi.iImage   = Nodes.Item(i)->FImageIndex
+							If Nodes.Item(i)->Nodes.Count > 0 Then
+								lvi.state   = INDEXTOSTATEIMAGEMASK(1)
+								Nodes.Item(i)->FExpanded = False
+							Else
+								lvi.state   = 0
+							End If
+							lvi.stateMask = LVIS_STATEIMAGEMASK
+							lvi.iIndent   = Nodes.Item(i)->Indent
+							lvi.lParam = Cast(LPARAM, Nodes.Item(i))
+							ListView_InsertItem(Parent->Handle, @lvi)
+							For j As Integer = 1 To Cast(TreeListView Ptr, Parent)->Columns.Count - 1
+								Dim As LVITEM lvi1
+								lvi1.mask = LVIF_TEXT
+								lvi1.iItem = ItemIndex + i + 1
+								lvi1.iSubItem   = j
+								lvi1.pszText    = @Nodes.Item(i)->Text(j)
+								lvi1.cchTextMax = Len(Nodes.Item(i)->Text(j))
+								ListView_SetItem(Parent->Handle, @lvi1)
+							Next j
+						Next i
+					End If
 				End If
 			End If
 		#endif
@@ -302,26 +304,92 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
-	Private Sub TreeListViewItem.DeleteItems(Node As TreeListViewItem Ptr)
-		For i As Integer = Node->Nodes.Count - 1 To 0 Step -1
-			Var ItemIndex = Node->Nodes.Item(i)->GetItemIndex
-			?"""" & Node->Text(0) & """", """" & Node->Nodes.Item(i)->Text(0) & """", ItemIndex
-			If ItemIndex <> -1 Then ListView_DeleteItem(Node->Parent->Handle, ItemIndex)
-		Next
+	#ifndef __USE_GTK__
+		Private Sub TreeListViewItem.DeleteItems(Node As TreeListViewItem Ptr)
+			For i As Integer = Node->Nodes.Count - 1 To 0 Step -1
+				Var ItemIndex = Node->Nodes.Item(i)->GetItemIndex
+				If ItemIndex <> -1 Then ListView_DeleteItem(Node->Parent->Handle, ItemIndex)
+			Next
+		End Sub
+	#endif
+	
+	Private Sub TreeListViewItem.AddItems(Node As TreeListViewItem Ptr)
+		#ifdef __USE_WINAPI__
+			Dim As Integer iIndex
+			Dim As TreeListViewItems Ptr pNodes
+			If Node->ParentItem <> 0 Then
+				pNodes = @(Node->ParentItem->Nodes)
+			Else
+				pNodes = @(QTreeListView(Node->Parent).Nodes)
+			End If
+			If CInt(Node->Parent) AndAlso CInt(Node->Parent->Handle) AndAlso CInt(CInt(Node->ParentItem = 0) OrElse CInt(Node->ParentItem->IsExpanded)) Then
+				Dim As TreeListViewItem Ptr LastItem
+				Dim As Integer ParentItemIndex
+				For i As Integer = 0 To Node->Index - 1
+					If pNodes->Item(i)->Visible Then
+						LastItem = pNodes->Item(i)
+					End If
+				Next
+				If LastItem = 0 Then
+					If Node->ParentItem Then 
+						iIndex = Node->ParentItem->GetItemIndex + 1
+						'?Node->Text(0), Node->ParentItem->Text(0), iIndex, 1
+					Else
+						'?Node->Text(0), "", iIndex, 2
+					End If
+				Else
+					iIndex = LastItem->GetItemIndex + 1
+					If LastItem->IsExpanded Then
+						For i As Integer = 0 To LastItem->Nodes.Count - 1
+							If LastItem->Nodes.Item(i)->Visible Then
+								iIndex += 1
+							End If
+						Next
+					End If
+					'?Node->Text(0), iIndex, 3
+				End If
+				If Node->ParentItem = 0 OrElse iIndex > 0 Then
+					'?Node->Text(0), iIndex
+					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+					lvi.pszText  = @(Node->Text(0))
+					lvi.cchTextMax = Len(Node->Text(0))
+					lvi.iItem = iIndex
+					lvi.iSubItem = 0
+					lvi.iImage   = FImageIndex
+					lvi.state   = INDEXTOSTATEIMAGEMASK(Node->State)
+					lvi.stateMask = LVIS_STATEIMAGEMASK
+					lvi.iIndent   = Node->Indent
+					lvi.lParam = Cast(LPARAM, @This)
+					ListView_InsertItem(Node->Parent->Handle, @lvi)
+					For j As Integer = 1 To Cast(TreeListView Ptr, Node->Parent)->Columns.Count - 1
+						Dim As LVITEM lvi1
+						lvi1.mask = LVIF_TEXT
+						lvi1.iItem = iIndex
+						lvi1.iSubItem   = j
+						lvi1.pszText    = @(Node->Text(j))
+						lvi1.cchTextMax = Len(Node->Text(j))
+						ListView_SetItem(Node->Parent->Handle, @lvi1)
+					Next j
+					For j As Integer = 0 To Node->Nodes.Count - 1
+						If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
+					Next
+				End If
+			End If
+		#endif
 	End Sub
 	
 	Private Property TreeListViewItem.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
 			If Value Then
-				Dim As Integer iIndex
-				Dim As TreeListViewItems Ptr pNodes
-				If ParentItem <> 0 Then
-					pNodes = @(ParentItem->Nodes)
-				Else
-					pNodes = @(QTreeListView(Parent).Nodes)
-				End If
 				#ifdef __USE_GTK__
+					Dim As Integer iIndex
+					Dim As TreeListViewItems Ptr pNodes
+					If ParentItem <> 0 Then
+						pNodes = @(ParentItem->Nodes)
+					Else
+						pNodes = @(QTreeListView(Parent).Nodes)
+					End If
 					For i As Integer = 0 To Index - 1
 						If pNodes->Item(i)->Visible Then
 							iIndex = iIndex + 1
@@ -337,35 +405,7 @@ Namespace My.Sys.Forms
 						gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 1, ToUtf8(Text(0)), -1)
 					End If
 				#else
-					If CInt(Parent) AndAlso CInt(Parent->Handle) AndAlso CInt(CInt(ParentItem = 0) OrElse CInt(ParentItem->IsExpanded)) Then
-						Dim As TreeListViewItem Ptr LastItem
-						Dim As Integer ParentItemIndex
-						For i As Integer = 0 To Index - 1
-							If pNodes->Item(i)->Visible Then
-								LastItem = pNodes->Item(i)
-							End If
-						Next
-						If LastItem = 0 Then
-							If ParentItem Then 
-								iIndex = ParentItem->GetItemIndex + 1
-							End If
-						Else
-							iIndex = LastItem->GetItemIndex + LastItem->Nodes.Count + 1
-						End If
-						If ParentItem = 0 OrElse ParentItem->GetItemIndex <> -1 Then
-							lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
-							lvi.pszText  = @(Text(0))
-							lvi.cchTextMax = Len(Text(0))
-							lvi.iItem = iIndex
-							lvi.iSubItem = 0
-							lvi.iImage   = FImageIndex
-							lvi.state   = INDEXTOSTATEIMAGEMASK(State)
-							lvi.stateMask = LVIS_STATEIMAGEMASK
-							lvi.iIndent   = Indent
-							lvi.lParam = Cast(LPARAM, @This)
-							ListView_InsertItem(Parent->Handle, @lvi)
-						End If
-					End If
+					AddItems @This
 				#endif
 			Else
 				#ifdef __USE_GTK__
