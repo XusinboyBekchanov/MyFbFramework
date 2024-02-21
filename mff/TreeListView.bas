@@ -30,9 +30,11 @@ Namespace My.Sys.Forms
 	Private Sub TreeListViewItem.Collapse
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->Handle), TreePath)
-				gtk_tree_path_free(TreePath)
+				If Visible Then
+					Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
+					gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->Handle), TreePath)
+					gtk_tree_path_free(TreePath)
+				End If
 			End If
 		#else
 			Var ItemIndex = This.GetItemIndex()
@@ -62,9 +64,11 @@ Namespace My.Sys.Forms
 	Private Sub TreeListViewItem.Expand
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then
-				Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
-				gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->Handle), TreePath, False)
-				gtk_tree_path_free(TreePath)
+				If Visible Then
+					Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(Cast(TreeListView Ptr, Parent)->TreeStore), @TreeIter))
+					gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->Handle), TreePath, False)
+					gtk_tree_path_free(TreePath)
+				End If
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
@@ -327,32 +331,34 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeListViewItem.AddItems(Node As TreeListViewItem Ptr)
 		#ifdef __USE_GTK__
-			Dim As Integer iIndex
-			Dim As TreeListViewItems Ptr pNodes
-			If Node->ParentItem <> 0 Then
-				pNodes = @(Node->ParentItem->Nodes)
-			Else
-				pNodes = @(QTreeListView(Node->Parent).Nodes)
-			End If
-			For i As Integer = 0 To Node->Index - 1
-				If pNodes->Item(i)->Visible Then
-					iIndex = iIndex + 1
-				End If
-			Next
-			If Node->Parent AndAlso Cast(TreeListView Ptr, Node->Parent)->TreeStore Then
-				Cast(TreeListView Ptr, Node->Parent)->Init
+			If Node->ParentItem = 0 OrElse Node->ParentItem->Visible Then
+				Dim As Integer iIndex
+				Dim As TreeListViewItems Ptr pNodes
 				If Node->ParentItem <> 0 Then
-					gtk_tree_store_insert (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, @(Node->ParentItem->TreeIter), iIndex)
+					pNodes = @(Node->ParentItem->Nodes)
 				Else
-					gtk_tree_store_insert (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, NULL, iIndex)
+					pNodes = @(QTreeListView(Node->Parent).Nodes)
 				End If
-				gtk_tree_store_set (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, 1, ToUtf8(Node->Text(0)), -1)
-				For j As Integer = 1 To Cast(TreeListView Ptr, Node->Parent)->Columns.Count - 1
-					gtk_tree_store_set (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, j + 1, ToUtf8(Node->Text(j)), -1)
+				For i As Integer = 0 To Node->Index - 1
+					If pNodes->Item(i)->Visible Then
+						iIndex = iIndex + 1
+					End If
 				Next
-				For j As Integer = 0 To Node->Nodes.Count - 1
-					If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
-				Next
+				If Node->Parent AndAlso Cast(TreeListView Ptr, Node->Parent)->TreeStore Then
+					Cast(TreeListView Ptr, Node->Parent)->Init
+					If Node->ParentItem <> 0 Then
+						gtk_tree_store_insert (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, @(Node->ParentItem->TreeIter), iIndex)
+					Else
+						gtk_tree_store_insert (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, NULL, iIndex)
+					End If
+					gtk_tree_store_set (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, 1, ToUtf8(Node->Text(0)), -1)
+					For j As Integer = 1 To Cast(TreeListView Ptr, Node->Parent)->Columns.Count - 1
+						gtk_tree_store_set (Cast(TreeListView Ptr, Node->Parent)->TreeStore, @Node->TreeIter, j + 1, ToUtf8(Node->Text(j)), -1)
+					Next
+					For j As Integer = 0 To Node->Nodes.Count - 1
+						If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
+					Next
+				End If
 			End If
 		#else
 			Dim As Integer iIndex
