@@ -311,7 +311,7 @@ Private Sub Dictionary.LoadFromFile(ByRef filename As WString)
 					With *nItem
 						If Pos1 > 0 Then
 							.Key  = ..Left(Buff, Pos1 - 1)
-							.Text = Mid(Buff, Pos1 + 2)
+							.Text = Mid(Buff, Pos1 + 1)
 						Else
 							.Key  = Buff
 						End If
