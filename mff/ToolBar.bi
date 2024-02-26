@@ -31,6 +31,7 @@ Namespace My.Sys.Forms
 		tbsSeparator     = 1
 		tbsShowText      = 64
 		tbsWholeDropdown = 128
+		tbsCustom = 3
 	End Enum
 	
 	Private Enum ToolButtonState
@@ -47,6 +48,7 @@ Namespace My.Sys.Forms
 	Private Type ToolButton Extends My.Sys.Object
 	Private:
 		FCaption      As WString Ptr
+		FChild        As Control Ptr
 		FImageIndex   As Integer
 		FImageKey     As WString Ptr
 		FStyle        As Integer
@@ -85,6 +87,8 @@ Namespace My.Sys.Forms
 		Declare Property ButtonIndex(Value As Integer)
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
+		Declare Property Child As Control Ptr
+		Declare Property Child(Value As Control Ptr)
 		Declare Property Name ByRef As WString
 		Declare Property Name(ByRef Value As WString)
 		Declare Property Hint ByRef As WString

@@ -189,6 +189,31 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
+	Private Property ToolButton.Child As Control Ptr
+		Return FChild
+	End Property
+	
+	Private Property ToolButton.Child(Value As Control Ptr)
+		FChild = Value
+		#ifdef __USE_WINAPI__
+			If Ctrl Then
+				If Value->Parent <> Ctrl Then Value->Parent = Ctrl
+				If Ctrl->Handle AndAlso Value->Handle Then
+					Dim As Rect R
+					Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
+					MoveWindow Value->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+				End If 
+			End If
+		#elseif defined(__USE_GTK__)
+			If GTK_IS_EVENT_BOX(gtk_widget_get_parent(Value->Handle)) Then
+				gtk_container_add(GTK_CONTAINER(Widget), gtk_widget_get_parent(Value->Handle))
+			Else
+				gtk_container_add(GTK_CONTAINER(Widget), Value->Handle)
+			End If
+		#endif
+	End Property
+	
 	Private Property ToolButton.Name ByRef As WString
 		Return WGet(FName)
 	End Property
@@ -396,6 +421,17 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolButton.Width(Value As Integer)
 		FButtonWidth = Value
+		#ifdef __USE_WINAPI__
+			If Ctrl AndAlso Ctrl->Handle Then
+				Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+				Dim As TBBUTTONINFO tbbi
+				tbbi.cbSize = SizeOf(tbbi)
+				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
+				tbbi.cx = Value
+				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
+				If FChild Then FChild->Width = Value
+			End If
+		#endif
 	End Property
 	
 	Private Property ToolButton.Height As Integer
@@ -615,6 +651,8 @@ Namespace My.Sys.Forms
 				Select Case FStyle
 				Case tbsSeparator
 					.Widget = GTK_WIDGET(gtk_separator_tool_item_new())
+				Case tbsCustom
+					.Widget = GTK_WIDGET(gtk_tool_item_new())
 				Case Else
 					Select Case FStyle
 					Case tbsButton, tbsButton Or tbsAutosize
@@ -1090,9 +1128,14 @@ Namespace My.Sys.Forms
 							TB.iString   = 0
 						End If
 						TB.dwData    = Cast(DWORD_PTR, @.Buttons.Item(i)->DropDownMenu)
+						SendMessage(FHandle, TB_ADDBUTTONS, 1, CInt(@TB))
+						Var iWidth = .Buttons.Item(i)->Width
 						.FHandle = FHandle
-						.Perform(TB_ADDBUTTONS,1,CInt(@TB))
+						If iWidth <> 0 Then
+							.Buttons.Item(i)->Width = iWidth
+						End If
 						If Not .Buttons.Item(i)->Visible Then .Perform(TB_HIDEBUTTON, .Buttons.Item(i)->CommandID, MAKELONG(True, 0))
+						If .Buttons.Item(i)->Visible AndAlso .Buttons.Item(i)->Child <> 0 Then .Buttons.Item(i)->Child = .Buttons.Item(i)->Child
 					Next i
 					If .AutoSize Then .Perform(TB_AUTOSIZE,0,0)
 				#endif
