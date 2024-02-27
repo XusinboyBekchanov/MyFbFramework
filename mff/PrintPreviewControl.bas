@@ -10,7 +10,13 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function PrintPreviewControl.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "currentpage": Return @FCurrentPage
+			Case "document": Return Document
+			Case "orientation": Return @FOrientation
+			Case "pagelength": Return @FPageLength
+			Case "pagewidth": Return @FPageWidth
 			Case "tabindex": Return @FTabIndex
+			Case "zoom": Return @FZoom
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -20,7 +26,13 @@ Namespace My.Sys.Forms
 	#ifndef WriteProperty_Off
 		Private Function PrintPreviewControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
+			Case "currentpage": CurrentPage = QInteger(Value)
+			Case "document": Document = Value
+			Case "orientation": Orientation = *Cast(PrinterOrientation Ptr, Value)
+			Case "pagelength": PageLength = QInteger(Value)
+			Case "pagewidth": PageWidth = QInteger(Value)
 			Case "tabindex": TabIndex = QInteger(Value)
+			Case "zoom": Zoom = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True

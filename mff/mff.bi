@@ -94,6 +94,8 @@
 #include once "Pen.bi"
 #include once "Picture.bi"
 #include once "PrintDialog.bi"
+#include once "PrintDocument.bi"
+#include once "PrintPreviewControl.bi"
 #include once "PrintPreviewDialog.bi"
 #include once "Printer.bi"
 #include once "ProgressBar.bi"
@@ -172,6 +174,7 @@ Using My.Sys.Forms
 		Case "pagescroller": Ctrl = _New( PageScroller)
 		Case "panel": Ctrl = _New( Panel)
 		Case "picture": Ctrl = _New( Picture)
+		Case "printpreviewcontrol": Ctrl = _New(PrintPreviewControl)
 		Case "progressbar": Ctrl = _New( ProgressBar)
 		Case "radiobutton": Ctrl = _New( RadioButton)
 		Case "rebar": Ctrl = _New( ReBar)
@@ -227,6 +230,7 @@ Using My.Sys.Forms
 		Case "savefiledialog": Cpnt = _New( SaveFileDialog)
 		Case "pagesetupdialog": Cpnt = _New( PageSetupDialog)
 		Case "printdialog": Cpnt = _New( PrintDialog)
+		Case "printdocument": Cpnt = _New(PrintDocument)
 		Case "printpreviewdialog": Cpnt = _New( PrintPreviewDialog)
 		Case "printer": Cpnt = _New( Printer)
 		Case Else: Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
@@ -289,6 +293,8 @@ Using My.Sys.Forms
 		Case "pagescroller": _Delete( Cast(PageScroller Ptr, Ctrl))
 		Case "pagesetupdialog": _Delete( Cast(PageSetupDialog Ptr, Ctrl))
 		Case "printdialog": _Delete( Cast(PrintDialog Ptr, Ctrl))
+		Case "printdocument": _Delete( Cast(PrintDocument Ptr, Ctrl))
+		Case "printpreviewcontrol": _Delete( Cast(PrintPreviewControl Ptr, Ctrl))
 		Case "printpreviewdialog": _Delete( Cast(PrintPreviewDialog Ptr, Ctrl))
 		Case "printer": _Delete( Cast(Printer Ptr, Ctrl))
 		Case "openfilecontrol": _Delete( Cast(OpenFileControl Ptr, Ctrl))

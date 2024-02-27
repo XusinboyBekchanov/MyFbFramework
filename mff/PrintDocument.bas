@@ -1,6 +1,27 @@
 #include once "PrintDocument.bi"
 
 Namespace My.Sys.ComponentModel
+	#ifndef ReadProperty_Off
+		Private Function PrintDocument.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "documentname": Return DocumentName.vptr
+			Case "printersettings": Return @PrinterSettings
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function PrintDocument.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "documentname": DocumentName = QWString(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
+	
 	Private Constructor PrintDocumentPage
 		WLet(FClassName, "PrintDocumentPage")
 	End Constructor

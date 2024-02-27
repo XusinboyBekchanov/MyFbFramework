@@ -39,6 +39,12 @@ Namespace My.Sys.ComponentModel
 			Declare Sub Paint(hwnd As HWND, hdcDestination As HDC, ByVal PageNumber As Integer)
 		#endif
 	Public:
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		DocumentName As UString
 		Pages As PrintDocumentPages
 		PrinterSettings As Printer
