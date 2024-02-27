@@ -854,7 +854,7 @@ Namespace My.Sys.Forms
 	Private Property ToolBar.List(Value As Boolean)
 		FList = Value
 		#ifdef __USE_GTK__
-			gtk_toolbar_set_style(gtk_toolbar(widget), IIf(Value, GTK_TOOLBAR_BOTH_HORIZ, GTK_TOOLBAR_BOTH))
+			gtk_toolbar_set_style(GTK_TOOLBAR(widget), IIf(Value, GTK_TOOLBAR_BOTH_HORIZ, GTK_TOOLBAR_BOTH))
 		#else
 			ChangeStyle TBSTYLE_LIST, Value
 		#endif
@@ -1131,7 +1131,7 @@ Namespace My.Sys.Forms
 						SendMessage(FHandle, TB_ADDBUTTONS, 1, CInt(@TB))
 						Var iWidth = .Buttons.Item(i)->Width
 						.FHandle = FHandle
-						If iWidth <> 0 Then
+						If iWidth > 0 Then
 							.Buttons.Item(i)->Width = iWidth
 						End If
 						If Not .Buttons.Item(i)->Visible Then .Perform(TB_HIDEBUTTON, .Buttons.Item(i)->CommandID, MAKELONG(True, 0))
