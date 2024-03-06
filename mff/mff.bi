@@ -88,6 +88,7 @@
 #include once "NumericUpDown.bi"
 #include once "Object.bi"
 #include once "OpenFileControl.bi"
+#include once "PagePanel.bi"
 #include once "PageScroller.bi"
 #include once "PageSetupDialog.bi"
 #include once "Panel.bi"
@@ -171,6 +172,7 @@ Using My.Sys.Forms
 		Case "monthcalendar": Ctrl = _New( MonthCalendar)
 		Case "numericupdown": Ctrl = _New(NumericUpDown)
 		Case "openfilecontrol": Ctrl = _New( OpenFileControl)
+		Case "pagepanel": Ctrl = _New( PagePanel)
 		Case "pagescroller": Ctrl = _New( PageScroller)
 		Case "panel": Ctrl = _New( Panel)
 		Case "picture": Ctrl = _New( Picture)
@@ -290,6 +292,7 @@ Using My.Sys.Forms
 		Case "listview": _Delete( Cast(ListView Ptr, Ctrl))
 		Case "monthcalendar": _Delete( Cast(MonthCalendar Ptr, Ctrl))
 		Case "numericupdown": _Delete( Cast(NumericUpDown Ptr, Ctrl))
+		Case "pagepanel": _Delete( Cast(PagePanel Ptr, Ctrl))
 		Case "pagescroller": _Delete( Cast(PageScroller Ptr, Ctrl))
 		Case "pagesetupdialog": _Delete( Cast(PageSetupDialog Ptr, Ctrl))
 		Case "printdialog": _Delete( Cast(PrintDialog Ptr, Ctrl))

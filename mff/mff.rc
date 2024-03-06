@@ -39,6 +39,7 @@ NumericUpDown PNG "../resources/NumericUpDown.png"
 RadioButton PNG "../resources/RadioButton.png"
 OpenFileControl PNG "../resources/OpenFileControl.png"
 OpenFileDialog PNG "../resources/OpenFileDialog.png"
+PagePanel PNG "../resources/Panel.png"
 PageScroller PNG "../resources/PageScroller.png"
 Panel PNG "../resources/Panel.png"
 PageSetupDialog PNG "../resources/PageSetupDialog.png"
@@ -76,8 +77,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,3,6,446
-#define VER_FILEVERSION_STR         "1.3.6.446\0"
+#define VER_FILEVERSION             1,3,6,474
+#define VER_FILEVERSION_STR         "1.3.6.474\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

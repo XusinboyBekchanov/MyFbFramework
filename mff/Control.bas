@@ -1,5 +1,5 @@
 ﻿'###############################################################################
-'#  Control.bas                                                                 #
+'#  Control.bas                                                                #
 '#  This file is part of MyFBFramework                                         #
 '#  Authors: Nastase Eodor, Xusinboy Bekchanov, Liu XiaLin                     #
 '#  Based on:                                                                  #
@@ -2477,6 +2477,10 @@ Namespace My.Sys.Forms
 							LeftCount += 1
 							ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 							ListLeft[LeftCount - 1] = Controls[i]
+						ElseIf ClassName = "PagePanel" Then
+							ClientCount += 1
+							ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
+							ListClient[ClientCount - 1] = Controls[i]
 						End If
 					End Select
 					With *Controls[i]
