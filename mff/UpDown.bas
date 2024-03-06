@@ -18,8 +18,18 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function UpDown.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "alignment": Return @FAlignment
+			Case "arrowkeys": Return @FArrowKeys
 			Case "associate": Return FAssociate
+			Case "increment": Return @FIncrement
+			Case "maxvalue": Return @FMaxValue
+			Case "minvalue": Return @FMinValue
+			Case "position": Return @FPosition
+			Case "style": Return @FStyle
 			Case "tabindex": Return @FTabIndex
+			Case "text": Text: Return FText.vptr
+			Case "thousands": Return @FThousands
+			Case "wrap": Return @FWrap
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -34,8 +44,18 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "alignment": Alignment = *Cast(UpDownAlignment Ptr, Value)
+				Case "arrowkeys": ArrowKeys = QBoolean(Value)
 				Case "associate": Associate = Value
+				Case "increment": Increment = QInteger(Value)
+				Case "maxvalue": MaxValue = QInteger(Value)
+				Case "minvalue": MinValue = QInteger(Value)
+				Case "position": Position = QInteger(Value)
+				Case "style": Style = *Cast(UpDownOrientation Ptr, Value)
 				Case "tabindex": TabIndex = QInteger(Value)
+				Case "text": Text = QWString(Value)
+				Case "thousands": Thousands = QInteger(Value)
+				Case "wrap": Wrap = QBoolean(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
@@ -179,9 +199,28 @@ Namespace My.Sys.Forms
 				Temp = This.Width
 				This.Width = Height
 				Height = Temp
+			Else
+				Temp = This.Height
+				This.Height = Width
+				Width = Temp
 			End If
 			#ifndef __USE_GTK__
 				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
+				RecreateWnd
+			#endif
+		End If
+	End Property
+	
+	Private Property UpDown.Alignment As UpDownAlignment
+		Return FAlignment
+	End Property
+	
+	Private Property UpDown.Alignment(Value As UpDownAlignment)
+		If FAlignment <> Value Then
+			FAlignment = Value
+			#ifndef __USE_GTK__
+				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
+				RecreateWnd
 			#endif
 		End If
 	End Property
@@ -201,6 +240,17 @@ Namespace My.Sys.Forms
 			Else
 			End If
 		End If
+	End Property
+	
+	Private Property UpDown.ArrowKeys As Boolean
+		Return FArrowKeys
+	End Property
+	
+	Private Property UpDown.ArrowKeys(Value As Boolean)
+		FArrowKeys = Value
+		#ifdef __USE_WINAPI__
+			Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
+		#endif
 	End Property
 	
 	#ifndef __USE_GTK__

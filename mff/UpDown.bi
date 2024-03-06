@@ -60,6 +60,10 @@ Namespace My.Sys.Forms
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		Declare Property Alignment As UpDownAlignment
+		Declare Property Alignment(Value As UpDownAlignment)
+		Declare Property ArrowKeys As Boolean
+		Declare Property ArrowKeys(Value As Boolean)
 		Declare Property MinValue As Integer
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer
@@ -68,8 +72,6 @@ Namespace My.Sys.Forms
 		Declare Property Increment(Value As Integer)
 		Declare Property Position  As Integer
 		Declare Property Position(Value As Integer)
-		Declare Property ArrowKeys As Boolean
-		Declare Property ArrowKeys(Value As Boolean)
 		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
