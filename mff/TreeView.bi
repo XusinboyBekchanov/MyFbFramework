@@ -63,6 +63,8 @@ Namespace My.Sys.Forms
 		FIsDisposed         As Boolean
 		FChecked            As Boolean
 		FBold               As Boolean
+	Protected:
+		Declare Static Sub AddItems(Node As TreeNode Ptr)
 	Public:
 		Tag As Any Ptr
 		Parent   As Control Ptr

@@ -27,7 +27,7 @@ Namespace My.Sys.Forms
 				gtk_tree_path_free(TreePath)
 			End If
 		#else
-			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
+			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_COLLAPSE)
 		#endif
 	End Sub
 	
@@ -249,52 +249,62 @@ Namespace My.Sys.Forms
 		Return FVisible
 	End Property
 	
+	Private Sub TreeNode.AddItems(Node As TreeNode Ptr)
+		Dim As Integer iIndex
+		Dim As TreeNodeCollection Ptr pNodes
+		If Node->ParentNode <> 0 Then
+			pNodes = @(Node->ParentNode->Nodes)
+		Else
+			pNodes = @(QTreeView(Node->Parent).Nodes)
+		End If
+		#ifdef __USE_GTK__
+			For i As Integer = 0 To Node->Index - 1
+				If pNodes->Item(i)->Visible Then
+					iIndex = iIndex + 1
+				End If
+			Next
+			If Node->Parent AndAlso Node->Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Node->Parent->Handle)) Then
+				If Node->ParentNode Then
+					gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Node->Parent->Handle))), @Node->TreeIter, @Node->ParentNode->TreeIter, iIndex)
+				Else
+					gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Node->Parent->Handle))), @Node->TreeIter, NULL, iIndex)
+				End If
+				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Node->Parent->Handle))), @Node->TreeIter, 1, ToUtf8(Node->FText), -1)
+				Node->ImageIndex = Node->ImageIndex
+				For j As Integer = 0 To Node->Nodes.Count - 1
+					If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
+				Next
+			EndIf
+		#else
+			For i As Integer = 0 To Node->Index - 1
+				If pNodes->Item(i)->Visible Then
+					iIndex = i + 1
+				End If
+			Next
+			Dim As TVINSERTSTRUCT tvis
+			If Node->Parent AndAlso Node->Parent->Handle AndAlso (Node->ParentNode = 0 OrElse Node->ParentNode->Handle <> 0) Then
+				tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
+				tvis.item.pszText              = Node->FText.vptr
+				tvis.item.cchTextMax           = Len(Node->FText)
+				tvis.item.iImage             = Node->FImageIndex
+				tvis.item.iSelectedImage     = Node->FSelectedImageIndex
+				tvis.hInsertAfter            = IIf(iIndex = 0, TVI_FIRST, IIf(iIndex < 0, TVI_LAST, pNodes->Item(iIndex - 1)->Handle))
+				If Node->ParentNode Then tvis.hParent               = Node->ParentNode->Handle
+				Node->Handle        = TreeView_InsertItem(Node->Parent->Handle, @tvis)
+				For j As Integer = 0 To Node->Nodes.Count - 1
+					If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
+				Next
+			End If
+		#endif
+	End Sub
+	
 	Private Property TreeNode.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
 			If Parent Then
 				With This
 					If Value Then
-						Dim As Integer iIndex
-						Dim As TreeNodeCollection Ptr pNodes
-						If ParentNode <> 0 Then
-							pNodes = @(ParentNode->Nodes)
-						Else
-							pNodes = @(QTreeView(Parent).Nodes)
-						End If
-						#ifdef __USE_GTK__
-							For i As Integer = 0 To Index - 1
-								If pNodes->Item(i)->Visible Then
-									iIndex = iIndex + 1
-								End If
-							Next
-							If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
-								If .ParentNode Then
-									gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, iIndex)
-								Else
-									gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, NULL, iIndex)
-								End If
-								gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
-								.ImageIndex = .ImageIndex
-							EndIf
-						#else
-							For i As Integer = 0 To Index - 1
-								If pNodes->Item(i)->Visible Then
-									iIndex = i + 1
-								End If
-							Next
-							Dim As TVINSERTSTRUCT tvis
-							If Parent AndAlso Parent->Handle Then
-								tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-								tvis.item.pszText              = FText.vptr
-								tvis.item.cchTextMax           = Len(FText)
-								tvis.item.iImage             = FImageIndex
-								tvis.item.iSelectedImage     = FSelectedImageIndex
-								tvis.hInsertAfter            = IIf(iIndex = 0, TVI_FIRST, IIf(iIndex < 0, TVI_LAST, ParentNode->Nodes.Item(iIndex - 1)->Handle))
-								If .ParentNode Then tvis.hParent               = .ParentNode->Handle
-								.Handle        = TreeView_InsertItem(Parent->Handle, @tvis)
-							End If
-						#endif
+						AddItems @This
 					Else
 						#ifdef __USE_GTK__
 							If Parent AndAlso Parent->Handle Then
