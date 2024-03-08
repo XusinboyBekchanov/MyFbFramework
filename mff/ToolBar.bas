@@ -427,7 +427,7 @@ Namespace My.Sys.Forms
 				Dim As TBBUTTONINFO tbbi
 				tbbi.cbSize = SizeOf(tbbi)
 				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
-				tbbi.cx = Value
+				tbbi.cx = ScaleX(Value)
 				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
 				If FChild Then FChild->Width = Value
 			End If
