@@ -854,25 +854,27 @@ Namespace My.Sys.Forms
 				If CInt(FReorderable) AndAlso CInt(DownButton = 0) Then
 					Dim As ..Rect R1, R2, R3
 					If DownTab = 0 Then DownTab = SelectedTab
-					Dim As TabControl Ptr pTabControl = DownTab->Parent
-					Dim As ..Point pt = Type<..Point>(Message.lParamLo, Message.lParamHi)
-					ClientToScreen(pt)
-					pTabControl->ScreenToClient(pt)
-					Var SelTbIndex = DownTab->Index
-					pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex, CInt(@R1))
-					If pt.X < R1.Left AndAlso SelTbIndex > 0 Then
-						pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex - 1, CInt(@R2))
-						If pt.X < R2.Left + FMousePos - R1.Left Then
-							pTabControl->ReorderTab pTabControl->Tabs[SelTbIndex], SelTbIndex - 1
-							pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex - 1, CInt(@R3))
-							FMousePos = R3.Left + FMousePos - R1.Left
-						End If
-					ElseIf pt.X > R1.Right AndAlso SelTbIndex < pTabControl->TabCount - 1 Then
-						pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex + 1, CInt(@R2))
-						If pt.X > R2.Right - R2.Left + FMousePos - R1.Left Then
-							pTabControl->ReorderTab pTabControl->Tabs[SelTbIndex], SelTbIndex + 1
-							pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex + 1, CInt(@R3))
-							FMousePos = R3.Left + FMousePos - R1.Left
+					If DownTab <> 0 Then
+						Dim As TabControl Ptr pTabControl = DownTab->Parent
+						Dim As ..Point pt = Type<..Point>(Message.lParamLo, Message.lParamHi)
+						ClientToScreen(pt)
+						pTabControl->ScreenToClient(pt)
+						Var SelTbIndex = DownTab->Index
+						pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex, CInt(@R1))
+						If pt.X < R1.Left AndAlso SelTbIndex > 0 Then
+							pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex - 1, CInt(@R2))
+							If pt.X < R2.Left + FMousePos - R1.Left Then
+								pTabControl->ReorderTab pTabControl->Tabs[SelTbIndex], SelTbIndex - 1
+								pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex - 1, CInt(@R3))
+								FMousePos = R3.Left + FMousePos - R1.Left
+							End If
+						ElseIf pt.X > R1.Right AndAlso SelTbIndex < pTabControl->TabCount - 1 Then
+							pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex + 1, CInt(@R2))
+							If pt.X > R2.Right - R2.Left + FMousePos - R1.Left Then
+								pTabControl->ReorderTab pTabControl->Tabs[SelTbIndex], SelTbIndex + 1
+								pTabControl->Perform(TCM_GETITEMRECT, SelTbIndex + 1, CInt(@R3))
+								FMousePos = R3.Left + FMousePos - R1.Left
+							End If
 						End If
 					End If
 				End If
@@ -880,17 +882,19 @@ Namespace My.Sys.Forms
 					Dim As ..Rect R1, R2, R3
 					Dim As Control Ptr ParentForm = GetForm
 					If DownTab = 0 Then DownTab = SelectedTab
-					If ParentForm <> 0 AndAlso ParentForm->Handle Then
-						Dim As Point pt
-						GetCursorPos @pt
-						..ScreenToClient ParentForm->Handle, @pt
-						Dim As TabControl Ptr pTabControl = GetChildTabControl(ParentForm->Handle, pt.X, pt.Y)
-						If pTabControl <> 0 AndAlso pTabControl <> DownTab->Parent Then
-							DownTab->Parent->Perform(TCM_GETITEMRECT, DownTab->Index, CInt(@R1))
-							DownTab->Parent = pTabControl
-							DownTab->SelectTab
-							pTabControl->Perform(TCM_GETITEMRECT, DownTab->Index, CInt(@R3))
-							FMousePos = R3.Left + FMousePos - R1.Left
+					If DownTab <> 0 Then
+						If ParentForm <> 0 AndAlso ParentForm->Handle Then
+							Dim As Point pt
+							GetCursorPos @pt
+							..ScreenToClient ParentForm->Handle, @pt
+							Dim As TabControl Ptr pTabControl = GetChildTabControl(ParentForm->Handle, pt.X, pt.Y)
+							If pTabControl <> 0 AndAlso pTabControl <> DownTab->Parent Then
+								DownTab->Parent->Perform(TCM_GETITEMRECT, DownTab->Index, CInt(@R1))
+								DownTab->Parent = pTabControl
+								DownTab->SelectTab
+								pTabControl->Perform(TCM_GETITEMRECT, DownTab->Index, CInt(@R3))
+								FMousePos = R3.Left + FMousePos - R1.Left
+							End If
 						End If
 					End If
 				End If
