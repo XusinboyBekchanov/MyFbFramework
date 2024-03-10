@@ -834,20 +834,16 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub TreeListViewItems.Clear
-		'		If FParentItem = 0 Then
-		'			#ifdef __USE_GTK__
-		'				If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
-		'			#else
-		'				If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0
-		'			#endif
+		If FParentItem = 0 Then
+			#ifdef __USE_GTK__
+				If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
+			#else
+				If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
+			#endif
+		End If
 		For i As Integer = Count - 1 To 0 Step -1
 			If Cast(TreeListViewItem Ptr, FItems.Items[i])->FDynamic Then _Delete(Cast(TreeListViewItem Ptr, FItems.Items[i]))
 		Next i
-		'		Else
-		'			For i As Integer = Count - 1 To 0 Step -1
-		'				Remove i
-		'			Next i
-		'		End If
 		FItems.Clear
 		If ParentItem Then ParentItem->State = 0
 	End Sub
