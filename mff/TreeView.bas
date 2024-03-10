@@ -440,7 +440,7 @@ Namespace My.Sys.Forms
 			.Nodes.Parent         = Parent
 			.ParentNode        = Cast(TreeNode Ptr, ParentNode)
 			#ifdef __USE_GTK__
-				If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
+				If Parent AndAlso Parent->Handle AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) AndAlso (FParentNode = 0 OrElse FParentNode->TreeIter.user_data <> 0) Then
 					If .ParentNode Then
 						gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, @.ParentNode->TreeIter, iIndex)
 					Else
@@ -451,7 +451,7 @@ Namespace My.Sys.Forms
 				EndIf
 			#else
 				Dim As TVINSERTSTRUCT tvis
-				If Parent AndAlso Parent->Handle Then
+				If Parent AndAlso Parent->Handle AndAlso (FParentNode = 0 OrElse FParentNode->Handle <> 0) Then
 					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
 					tvis.item.pszText              = @FText
 					tvis.item.cchTextMax           = Len(FText)
