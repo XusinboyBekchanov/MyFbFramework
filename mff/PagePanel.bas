@@ -29,6 +29,7 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then MoveUpDownControl: This.Add @UpDownControl
 				Case "selectedpanel": SelectedPanel = Value
 				Case "selectedpanelindex": SelectedPanelIndex = QInteger(Value)
 				Case "tabindex": TabIndex = QInteger(Value)
@@ -39,6 +40,10 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 	#endif
+	
+	Private Sub PagePanel.MoveUpDownControl
+		UpDownControl.SetBounds (ClientWidth - UpDownControl.Width) / 2, ClientHeight - UpDownControl.Height, UpDownControl.Width, UpDownControl.Height
+	End Sub
 	
 	Private Property PagePanel.TabIndex As Integer
 		Return FTabIndex
@@ -165,6 +170,7 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_SIZE
 				InvalidateRect(Handle, NULL, True)
+				If FDesignMode Then MoveUpDownControl
 			Case CM_DRAWITEM
 				
 			End Select
@@ -240,6 +246,8 @@ Namespace My.Sys.Forms
 			.Canvas.Ctrl    = @This
 			.Graphic.Ctrl   = @This
 			.Graphic.OnChange = @GraphicChange
+			UpDownControl.Name = "PagePanel_UpDownControl"
+			UpDownControl.Width = 50
 			#ifdef __USE_WINAPI__
 				.RegisterClass "PagePanel"
 				.ChildProc   = @WNDPROC

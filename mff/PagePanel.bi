@@ -6,6 +6,7 @@
 
 #include once "ContainerControl.bi"
 #include once "Graphic.bi"
+#include once "NumericUpDown.bi"
 
 Namespace My.Sys.Forms
 	#define QPagePanel(__Ptr__) (*Cast(PagePanel Ptr, __Ptr__))
@@ -24,6 +25,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WASM__
 			Declare Virtual Function GetContent() As UString
 		#endif
+		UpDownControl As NumericUpDown
+		Declare Sub MoveUpDownControl
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off

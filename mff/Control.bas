@@ -2477,7 +2477,7 @@ Namespace My.Sys.Forms
 							LeftCount += 1
 							ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 							ListLeft[LeftCount - 1] = Controls[i]
-						ElseIf ClassName = "PagePanel" Then
+						ElseIf ClassName = "PagePanel" AndAlso Controls[i]->Name <> "PagePanel_UpDownControl" Then
 							ClientCount += 1
 							ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
 							ListClient[ClientCount - 1] = Controls[i]
