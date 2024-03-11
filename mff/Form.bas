@@ -1284,6 +1284,9 @@ Namespace My.Sys.Forms
 								pApp->Forms[i]->Enabled = True
 							Next i
 						End If
+						If FParent AndAlso FParent->Handle Then
+							SetWindowPos FParent->Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+						End If
 						#ifdef __HIDE_NO_MAIN_FORM_ON_CLOSE__
 							ShowWindow Handle, SW_HIDE
 							msg.Result = -1
