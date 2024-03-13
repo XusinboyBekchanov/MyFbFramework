@@ -24,6 +24,7 @@ Dim Shared As Dictionary mlKeys
 	#else
 		#include once "gmodule.bi"
 	#endif
+	#include once "crt/locale.bi"
 #elseif defined(__USE_WINAPI__)
 	#include once "win/winver.bi"
 #endif
