@@ -71,7 +71,7 @@ Namespace My
 				Dim As WString * LOCALE_NAME_MAX_LENGTH SysLanguage
 				GetLocaleInfo(GetUserDefaultUILanguage, LOCALE_SENGLANGUAGE, @SysLanguage, LOCALE_NAME_MAX_LENGTH)
 				Return SysLanguage
-			#elseif 
+			#elseif defined(__USE_GTK__)
 				Dim As String SysLanguage = *setlocale(LC_CTYPE, NULL)
 				Var Pos1 = InStr(SysLanguage, "_")
 				If Pos1 > 0 Then SysLanguage = Left(SysLanguage, Pos1 - 1))
@@ -82,7 +82,7 @@ Namespace My
 			#else
 				Return ""
 			#endif
-		End If
+		End Function
 		
 		Private Function Platform As Long
 			#ifdef __USE_GTK__
