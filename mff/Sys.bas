@@ -8,6 +8,8 @@
 #ifndef __USE_GTK__
 	#define UNICODE
 	#include once "windows.bi"
+#elseif defined(__USE_GTK__)
+	#include once "crt/locale.bi"
 #endif
 
 Namespace My
@@ -63,6 +65,24 @@ Namespace My
 				If dwVersion < &H80000000 Then Return HiWord(dwVersion)
 			#endif
 		End Function
+		
+		Private Function Language As String
+			#ifdef __USE_WINAPI__
+				Dim As WString * LOCALE_NAME_MAX_LENGTH SysLanguage
+				GetLocaleInfo(GetUserDefaultUILanguage, LOCALE_SENGLANGUAGE, @SysLanguage, LOCALE_NAME_MAX_LENGTH)
+				Return SysLanguage
+			#elseif 
+				Dim As String SysLanguage = *setlocale(LC_CTYPE, NULL)
+				Var Pos1 = InStr(SysLanguage, "_")
+				If Pos1 > 0 Then SysLanguage = Left(SysLanguage, Pos1 - 1))
+				If SysLanguage = "C" Then
+					SysLanguage = ""
+				End If
+				Return SysLanguage
+			#else
+				Return ""
+			#endif
+		End If
 		
 		Private Function Platform As Long
 			#ifdef __USE_GTK__

@@ -24,7 +24,6 @@ Dim Shared As Dictionary mlKeys
 	#else
 		#include once "gmodule.bi"
 	#endif
-	#include once "crt/locale.bi"
 #elseif defined(__USE_WINAPI__)
 	#include once "win/winver.bi"
 #endif
@@ -107,7 +106,8 @@ Namespace My
 		FDarkMode       As Boolean
 		FTitle          As WString Ptr
 		FCurLanguage    As WString Ptr
-		FCurLanguagePath  As WString Ptr
+		FCurLanguagePath As WString Ptr
+		FLanguage       As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon
 		FExeName        As WString Ptr
 		FFileName       As WString Ptr
@@ -140,14 +140,14 @@ Namespace My
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
-		Fonts           As WStringList
-		MouseX          As Integer
-		MouseY          As Integer
-		HelpFile        As String
+		Fonts               As WStringList
+		MouseX              As Integer
+		MouseY              As Integer
+		HelpFile            As String
 		#ifdef __USE_WINAPI__
-			Instance     As HINSTANCE
+			Instance        As HINSTANCE
 		#elseif defined(__USE_JNI__)
-			Instance     As jobject
+			Instance        As jobject
 		#endif
 		Declare Property ActiveForm As My.Sys.Forms.Form Ptr
 		Declare Property ActiveForm(Value As My.Sys.Forms.Form Ptr)
@@ -167,6 +167,8 @@ Namespace My
 		Declare Property CurLanguagePath(ByRef Value As WString)
 		Declare Property CurLanguage ByRef As WString
 		Declare Property CurLanguage(ByRef Value As WString)
+		Declare Property Language ByRef As WString
+		Declare Property Language(ByRef Value As WString)
 		Declare Property ExeName ByRef As WString
 		Declare Property ExeName(ByRef Value As WString)
 		Declare Property MainForm As My.Sys.Forms.Form Ptr

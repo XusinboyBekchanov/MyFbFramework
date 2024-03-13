@@ -110,23 +110,13 @@ Namespace My
 	
 	Private Property Application.CurLanguage ByRef As WString
 		If FCurLanguage = 0 Then 
-			#ifdef __USE_WINAPI__
-				WReAllocate(FCurLanguage, LOCALE_NAME_MAX_LENGTH)
-				GetLocaleInfo(GetUserDefaultUILanguage, LOCALE_SENGLANGUAGE, FCurLanguage, LOCALE_NAME_MAX_LENGTH)
-			#else
-				WLet(FCurLanguage, *setlocale(LC_CTYPE, NULL))
-				Var Pos1 = InStr(*FCurLanguage, "_")
-				If Pos1 > 0 Then WLet(*FCurLanguage, Left(*FCurLanguage, Pos1 - 1))
-				If *FCurLanguage = "C" Then
-					WLet(FCurLanguage, "english")
-				End If
-			#endif
+			WLet(FCurLanguage, *FLanguage)
 		End If
 		Return *FCurLanguage
 	End Property
 	
 	Private Property Application.CurLanguage(ByRef Value As WString)
-		If LCase(Value) = "english" OrElse Value = "" OrElse LCase(Value) = LCase(*FCurLanguage) Then Return
+		If LCase(Value) = LCase(*FLanguage) OrElse Value = "" OrElse LCase(Value) = LCase(*FCurLanguage) Then Return
 		mlKeys.Clear
 		Dim As Integer i, Pos1, Pos2
 		Dim As Integer Fn = FreeFile, Result
@@ -156,6 +146,14 @@ Namespace My
 		Else
 			Print ML("Open file failure!") &  " " & ML("in function") & " Application.CurLanguage. File Name: " &  LanguageFile
 		End If
+	End Property
+	
+	Private Property Application.Language ByRef As WString
+		Return WGet(FLanguage)
+	End Property
+	
+	Private Property Application.Language(ByRef Value As WString)
+		WLet(FLanguage, Value)
 	End Property
 	
 	#ifndef Application_Title_Get_Off
@@ -690,6 +688,7 @@ Namespace My
 		GetFonts
 		This.initialized = False
 		This._vinfo = 0
+		WLet(FLanguage, "")
 		ExeName
 		#ifdef __FB_WIN32__
 			Dim As DWORD ret, discard
@@ -701,12 +700,17 @@ Namespace My
 						Dim As Unsigned Short Ptr ulTranslation
 						Dim As ULong iret
 						If VerQueryValue(_vinfo, $"\VarFileInfo\Translation", @ulTranslation, @iret) Then
+							Dim As WString * LOCALE_NAME_MAX_LENGTH AppLanguage
+							GetLocaleInfo(ulTranslation[0], LOCALE_SENGLANGUAGE, @AppLanguage, LOCALE_NAME_MAX_LENGTH)
+							WLet(FLanguage, AppLanguage)
 							TranslationString = Hex(ulTranslation[0], 4) & Hex(ulTranslation[1], 4)
 						End If
 						This.initialized = True
 					End If
 				End If
 			End If
+		#else
+			WLet(FLanguage, "English")
 		#endif
 	End Constructor
 	
@@ -719,6 +723,7 @@ Namespace My
 		If FControls Then _Deallocate( FControls)
 		If FCurLanguage Then _Deallocate( FCurLanguage)
 		If FCurLanguagePath Then _Deallocate( FCurLanguagePath)
+		If FLanguage Then _Deallocate( FLanguage)
 		If This._vinfo <> 0 Then _Deallocate((This._vinfo)) : This._vinfo = 0
 	End Destructor
 End Namespace
@@ -835,7 +840,7 @@ End Namespace
 #endif
 
 Public Function ML(ByRef V As WString) ByRef As WString
-	If LCase(App.CurLanguage) = "english" Then Return V
+	If App.CurLanguage = App.Language Then Return V
 	Dim As Integer tIndex = mlKeys.IndexOfKey(V) ' For improve the speed
 	If tIndex >= 0 Then
 		Return mlKeys.Item(tIndex)->Text
