@@ -34,6 +34,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 
 '#Region "Form"
 	#include once "mff/Form.bi"
+	#include once "mff/sys.bi"
 	#include once "mff/Picture.bi"
 	#include once "mff/ImageBox.bi"
 	#include once "mff/Label.bi"
@@ -83,11 +84,16 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 	End Type
 	
 	Constructor frmWuziqiType
-		
+		#if _MAIN_FILE_ = __FILE__
+			With App
+				.CurLanguagePath = ExePath & "/"
+				.CurLanguage = My.Sys.Language
+			End With
+		#endif
 		' frmWuziqi
 		With This
 			.Name = "frmWuziqi"
-			.Text = "Wuziqi"  '"五子棋"
+			.Text = ML("Wuziqi")  '"五子棋"
 			.Designer = @This
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.MaximizeBox = False
@@ -119,7 +125,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		' GroupBox1
 		With GroupBox1
 			.Name = "GroupBox1"
-			.Text = "Setting" '"设置"
+			.Text = ML("Setting") '"设置"
 			.TabIndex = 3
 			.SetBounds 638, 13, 159, 242
 			.Designer = @This
@@ -128,7 +134,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		' cmdStart
 		With cmdStart
 			.Name = "cmdStart"
-			.Text = "Restart"  '"重新开始"
+			.Text = ML("Restart")  '"重新开始"
 			.TabIndex = 5
 			.SetBounds 13, 198, 135, 35
 			.Designer = @This
@@ -138,7 +144,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		' optComputer3
 		With optComputer(0)
 			.Name = "optComputer(0)"
-			.Text = "Man-Computer Playing"
+			.Text = ML("Man-Computer Playing")
 			.TabIndex = 5
 			.Checked = True
 			.SetBounds 16, 46, 129, 22
@@ -148,7 +154,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		' optComputer4
 		With optComputer(1)
 			.Name = "optComputer(1)"
-			.Text = "Man-Man Playing"
+			.Text = ML("Man-Man Playing")
 			.TabIndex = 6
 			.SetBounds 15, 23, 127, 24
 			.Designer = @This
@@ -167,7 +173,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		' Label2
 		With Label2
 			.Name = "Label2"
-			.Text = "Chess Board Size" '"棋盘大小:"
+			.Text = ML("Chess Board Size") '"棋盘大小:"
 			.TabIndex = 8
 			.SetBounds 19, 97, 67, 16
 			.Designer = @This
@@ -195,7 +201,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		' chkComputerFirst
 		With chkComputerFirst
 			.Name = "chkComputerFirst"
-			.Text = "Computer first" '"电脑先下"
+			.Text = ML("Computer first") '"电脑先下"
 			.TabIndex = 9
 			.Checked = True
 			.SetBounds 18, 74, 117, 16
@@ -232,7 +238,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		' lblChessText
 		With lblChessText(0)
 			.Name = "lblChessText(0)"
-			.Text = "Chess Background:"  '"Change Background" '"棋盘背景:"
+			.Text = ML("Chess Background:")  '"Change Background" '"棋盘背景:"
 			.TabIndex = 11
 			.SetBounds 20, 120, 70, 16
 			.Designer = @This
@@ -241,7 +247,7 @@ Dim Shared As Integer colorPerson, ColorComputer, ColorLastStep, ColorChessBK, C
 		
 		With lblChessText(1)
 			.Name = "lblChessText(1)"
-			.Text = "Grid Color:"  '"Grid Color" '"网格颜色:"
+			.Text = ML("Grid Color:")  '"Grid Color" '"网格颜色:"
 			.TabIndex = 11
 			.SetBounds 20, 141, 70, 16
 			.Designer = @This
@@ -356,7 +362,7 @@ Private Sub frmWuziqiType.InitPlayEnvironment()
 	PlayingFlag = True           '游戏有效
 	lblInfomation.visible = True       '游戏状态标签显示
 	lblInfomation.BackColor = frmWuziqi.BackColor
-	lblInfomation.text = "Player Turn......"   '"等待玩家落子......"
+	lblInfomation.text = ML("Player Turn......" )  '"等待玩家落子......"
 	Dim  As Integer i, j, m, n
 	
 	'桌面初始化
@@ -507,7 +513,7 @@ Sub frmWuziqiType.CheckWhoWin(ByVal BlackOrWhite As Integer)
 	If ComputerNormal = WinStepSum  - 1 Then
 		lblInfomation.visible = True
 		lblInfomation.BackColor = clBLue
-		lblInfomation.text = "Noone Win." '"和棋，请重新开始！"
+		lblInfomation.text = ML("Noone Win.") '"和棋，请重新开始！"
 		PlayingFlag = False
 		Exit Sub
 	End If
@@ -532,7 +538,7 @@ Sub frmWuziqiType.CheckWhoWin(ByVal BlackOrWhite As Integer)
 			If ca = 5 Then
 				lblInfomation.visible = True
 				lblInfomation.BackColor = clGreen
-				lblInfomation.text = "Computer win."  '"电脑获胜,请重新开始"
+				lblInfomation.text = ML("Computer win.")  '"电脑获胜,请重新开始"
 				PlayingFlag = False
 				Exit Sub
 			End If
@@ -556,7 +562,7 @@ Sub frmWuziqiType.CheckWhoWin(ByVal BlackOrWhite As Integer)
 			If pa = 5 Then
 				lblInfomation.visible = True
 				lblInfomation.BackColor = clRed
-				lblInfomation.text = "Player Win."  '"玩家获胜,请重新开始"
+				lblInfomation.text = ML("Player Win.")  '"玩家获胜,请重新开始"
 				PlayingFlag = False
 				Exit Sub
 			End If
@@ -804,7 +810,7 @@ Sub frmWuziqiType.DrawCompter(ByVal x As Integer, ByVal y As Integer)
 	tY =  Int(Y / ChessR)
 	lblInfomation.visible = True
 	lblInfomation.BackColor = frmWuziqi.BackColor
-	lblInfomation.text = "Player Turn......"  '"等待玩家落子......"
+	lblInfomation.text = ML("Player Turn......" ) '"等待玩家落子......"
 	If ZhXOld > -1 Then
 		Picture1.Canvas.Pen.Color = colorPerson
 		Picture1.Canvas.Brush.Color = colorPerson

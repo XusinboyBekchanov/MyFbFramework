@@ -9,6 +9,7 @@
 #endif
 '#Region "Form"
 	#include once "mff/Form.bi"
+	#include once "mff/sys.bi"
 	#include once "mff/Label.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Picture.bi"
@@ -72,8 +73,12 @@
 	End Type
 	
 	Constructor Form1Type
-		App.CurLanguagePath = ExePath & "/Languages/"
-		App.CurLanguage= "chinese"
+		#if _MAIN_FILE_ = __FILE__
+			With App
+				.CurLanguagePath = ExePath & "/"
+				.CurLanguage = My.Sys.Language
+			End With
+		#endif
 		' Form1
 		With This
 			.Name = "Form1"

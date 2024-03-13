@@ -684,7 +684,7 @@ Namespace My
 			'InitCommonControls
 			Instance = GetModuleHandle(NULL)
 		#endif
-		WLet(FCurLanguagePath, ExePath & "/Settings/Languages/")
+		WLet(FCurLanguagePath, ExePath & "/Languages/")
 		GetFonts
 		This.initialized = False
 		This._vinfo = 0

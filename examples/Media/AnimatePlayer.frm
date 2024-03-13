@@ -18,6 +18,7 @@
 		#define __MAIN_FILE__ __FILE__
 	#endif
 	#include once "mff/Form.bi"
+	#include once "mff/sys.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Panel.bi"
 	#include once "mff/ImageBox.bi"
@@ -51,6 +52,12 @@
 	End Function
 	
 	Type frmAnimateType Extends Form
+		#if _MAIN_FILE_ = __FILE__
+			With App
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
+			End With
+		#endif
 		Const WM_GRAPHNOTIFY   = WM_USER + 13
 		icons(44) As Integer = { _
 		0, 0, 0, 0, 0, 0, 0, 0, 0, _
@@ -185,11 +192,11 @@
 		' frmAnimate
 		With This
 			.Name = "frmAnimate"
-			.Text = "VisualFBEditor Animate Player"
+			.Text = ML("VisualFBEditor Animate Player")
 			#ifdef __FB_64BIT__
-				.Caption = "VisualFBEditor Animate Player(X64)"
+				.Caption = ML("VisualFBEditor Animate Player(X64)")
 			#else
-				.Caption = "VisualFBEditor Animate Player(X32)"
+				.Caption = ML("VisualFBEditor Animate Player(X32)")
 			#endif
 			.Designer = @This
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
@@ -246,9 +253,8 @@
 		' cmdOpen
 		With cmdOpen
 			.Name = "cmdOpen"
-			.Text = "Open"
+			.Text = ML("Open")
 			.TabIndex = 6
-			.Caption = "Open"
 			.SetBounds 8, 2, 50, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
@@ -257,9 +263,8 @@
 		' cmdPlay
 		With cmdPlay
 			.Name = "cmdPlay"
-			.Text = "Play"
+			.Text = ML("Play")
 			.TabIndex = 7
-			.Caption = "Play"
 			.Enabled = False
 			.SetBounds 59, 2, 50, 20
 			.Designer = @This
@@ -269,10 +274,9 @@
 		' cmdClose
 		With cmdClose
 			.Name = "cmdClose"
-			.Text = "CommandButton4"
+			.Text = ML("Close")
 			.TabIndex = 9
 			.ControlIndex = 4
-			.Caption = "Close"
 			.Enabled = False
 			.SetBounds 110, 2, 50, 20
 			.Designer = @This
@@ -282,9 +286,8 @@
 		' cmdFull(0)
 		With cmdFull(0)
 			.Name = "cmdFull(0)"
-			.Text = "Full"
+			.Text = ML("Full")
 			.TabIndex = 10
-			.Caption = "Full"
 			.Enabled = False
 			.SetBounds 170, 2, 20, 20
 			.Designer = @This
@@ -307,7 +310,7 @@
 		With cboFileName
 			.Name = "cboFileName"
 			.Text = "../Resources/horse.gif"
-			.Hint = "Double click to select a file from local disk."
+			.Hint = ML("Double click to select a file from local disk.")
 			.TabIndex = 12
 			.Style = cbDropDown
 			.Align = DockStyle.alNone
@@ -326,12 +329,11 @@
 		' lblVolume
 		With lblVolume
 			.Name = "lblVolume"
-			.Text = "Volume: "
+			.Text = ML("Volume:")
 			.TabIndex = 14
 			.Alignment = AlignmentConstants.taLeft
 			.Align = DockStyle.alNone
 			.ID = 1004
-			.Caption = "Volume: "
 			.Enabled = False
 			.SetBounds 10, 2, 110, 16
 			.Parent = @PanelPosition
@@ -361,10 +363,9 @@
 		' lblBalance
 		With lblBalance
 			.Name = "lblBalance"
-			.Text = "Balance: "
+			.Text = ML("Balance:")
 			.TabIndex = 16
 			.Alignment = AlignmentConstants.taLeft
-			.Caption = "Balance: "
 			.Enabled = False
 			.SetBounds 120, 2, 110, 16
 			.Parent = @PanelPosition
@@ -393,7 +394,7 @@
 		' lblPosition
 		With lblPosition
 			.Name = "lblPosition"
-			.Text = "Position: "
+			.Text = ML("Position:")
 			.TabIndex = 17
 			.Enabled = False
 			.Designer = @This
@@ -403,7 +404,7 @@
 		' lblLength
 		With lblLength
 			.Name = "lblLength"
-			.Text = "Length: "
+			.Text = ML("Length:")
 			.TabIndex = 18
 			.Enabled = False
 			.Designer = @This
@@ -487,9 +488,9 @@
 		' chkLoop
 		With chkLoop
 			.Name = "chkLoop"
-			.Text = "Loop"
+			.Text = ML("Loop")
 			.TabIndex = 19
-			.Caption = "Loop"
+			.Caption = ML("Loop")
 			.Checked = True
 			.Enabled = False
 			.SetBounds 460, 1, 40, 16
@@ -554,7 +555,7 @@
 		' chkRatio
 		With chkRatio
 			.Name = "chkRatio"
-			.Text = "Ratio Fixed"
+			.Text = ML("Ratio Fixed")
 			.TabIndex = 22
 			.ControlIndex = 9
 			.Checked = True
@@ -597,7 +598,7 @@ Private Sub frmAnimateType.Form_Create(ByRef Sender As Control)
 	For i = 0 To 35
 		cboChanel.Items.Add(urlsa(0, i), @icons(i), icons(i), icons(i), icons(i))
 	Next
-	cboChanel.Text = "Internet Radio"
+	cboChanel.Text = ML("Internet Radio")
 	If Dir(ExePath & "\PlayList.txt") <> "" Then
 		cboFileName.LoadFromFile(ExePath & "\PlayList.txt")
 		cboFileName.ItemIndex = cboFileName.ItemCount - 1
@@ -610,7 +611,7 @@ End Sub
 
 Private Sub frmAnimateType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	
-	This.Caption = Mid(This.Caption, 1, Len(" VisualFBEditor Animate Player(X64)")) & " - " & CLng(Animate1.FrameWidth) & "X" & (Animate1.FrameHeight)
+	This.Caption = Mid(This.Caption, 1, Len(ML("VisualFBEditor Animate Player(X64)")) + 1) & " - " & CLng(Animate1.FrameWidth) & "X" & (Animate1.FrameHeight)
 	
 End Sub
 
@@ -633,35 +634,35 @@ Private Sub frmAnimateType.cmdBtn_Click(ByRef Sender As Control)
 			tbPosition.MaxValue = CInt(Duration)
 			tbPosition.PageSize = CInt(Duration / 10)
 			tbPosition.Frequency = CInt(Duration / 10)
-			lblLength.Text = "Length: " & Sec2Time(Duration)
+			lblLength.Text = ML("Length:") & Sec2Time(Duration)
 			lblLength.Enabled = True
 			chkLoop.Enabled = True
 			chkRatio.Enabled = True
 			TimerComponent1.Enabled = True
 		Else
 			tbPosition.Enabled = False
-			lblLength.Text = "Length: NA"
+			lblLength.Text = ML("Length: NA")
 			lblLength.Enabled = False
 			chkLoop.Enabled = False
 			chkRatio.Enabled = False
 		End If
 		tbVolume.Position = Animate1.Volume
-		lblVolume.Text = "Volume: " & tbVolume.Position
+		lblVolume.Text = ML("Volume:") & tbVolume.Position
 		tbBalance.Position = Animate1.Balance
-		lblBalance.Text = "Balance: " & tbBalance.Position
+		lblBalance.Text = ML("Balance:") & tbBalance.Position
 		tbPosition.Position = 0
 		'Animate1.Play
-		cmdPlay.Text = "Pause"
+		cmdPlay.Text = ML("Pause")
 		b = True
 	Case "cmdPlay"
 		Select Case Sender.Text
 		Case "Play"
-			cmdPlay.Text = "Pause"
+			cmdPlay.Text = ML("Pause")
 			Animate1.Play
 			TimerComponent1.Enabled = True
 			b = True
 		Case "Pause"
-			cmdPlay.Text = "Play"
+			cmdPlay.Text = ML("Play")
 			Animate1.Pause
 			TimerComponent1.Enabled = False
 			b = True
@@ -696,10 +697,10 @@ Private Sub frmAnimateType.tbAudio_Change(ByRef Sender As TrackBar, Position As 
 	Select Case Sender.Name
 	Case "tbVolume"
 		Animate1.Volume= Position * 100
-		lblVolume.Text = "Volume: " & Position
+		lblVolume.Text = ML("Volume:") & Position
 	Case "tbBalance"
 		Animate1.Balance = Position * 100
-		lblBalance.Text = "Balance: " & Animate1.Balance/ 100
+		lblBalance.Text = ML("Balance:") & Animate1.Balance/ 100
 	End Select
 End Sub
 
@@ -716,7 +717,7 @@ End Sub
 
 Private Sub frmAnimateType.tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
 	If TimerComponent1.Enabled = True Then Exit Sub
-	lblPosition.Text = "Position: " & Sec2Time(Position)
+	lblPosition.Text = ML("Position:") & Sec2Time(Position)
 End Sub
 
 Private Sub frmAnimateType.tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -743,7 +744,7 @@ Private Sub frmAnimateType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 			End If
 		End If
 		tbPosition.Position = Animate1Position
-		lblPosition.Text = "Position: " & Sec2Time(Animate1Position) & "  Play Rate: " & Animate1.Rate
+		lblPosition.Text = ML("Position:") & Sec2Time(Animate1Position) & "  Play Rate: " & Animate1.Rate
 	End If
 End Sub
 
@@ -774,7 +775,7 @@ End Sub
 
 Private Sub frmAnimateType.cboChanel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	cboFileName.Text = urlsa(1, ItemIndex)
-	This.Caption = Mid(This.Caption, 1, Len(" VisualFBEditor Animate Player(X64)"))
+	This.Caption = Mid(This.Caption, 1, Len(ML("VisualFBEditor Animate Player(X64)")) + 1)
 End Sub
 
 Private Sub frmAnimateType.cmdBrowse_Click(ByRef Sender As Control)
@@ -784,7 +785,7 @@ Private Sub frmAnimateType.cmdBrowse_Click(ByRef Sender As Control)
 			cboFileName.AddItem OpenFileDialog1.FileName
 			cboFileName.SaveToFile(ExePath & "\PlayList.txt")
 		End If
-		This.Caption = Mid(This.Caption, 1, Len(" VisualFBEditor Animate Player(X64)"))
+		This.Caption = Mid(This.Caption, 1, Len(ML("VisualFBEditor Animate Player(X64)")) + 1)
 		cmdPlay.SetFocus
 	End If
 End Sub
@@ -794,7 +795,7 @@ Private Sub frmAnimateType.cmdFull_Click(ByRef Sender As Control)
 	If Index > 0 Then 'mVideoWidth, mVideoHeight
 		Animate1.AutoSize = True
 		Animate1.FrameWidth = Animate1.FrameWidthOriginal * Index : Animate1.FrameHeight = Animate1.FrameHeightOriginal * Index
-		This.Caption = Mid(This.Caption, 1, Len(" VisualFBEditor Animate Player(X64)")) & " - " & Animate1.FrameWidthOriginal * Index & "X" & Animate1.FrameHeightOriginal * Index
+		This.Caption = Mid(This.Caption, 1, Len(ML("VisualFBEditor Animate Player(X64)")))  & " - " & Animate1.FrameWidthOriginal * Index & "X" & Animate1.FrameHeightOriginal * Index
 	End If
 End Sub
 
