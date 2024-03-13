@@ -109,8 +109,20 @@ Namespace My
 	End Property
 	
 	Private Property Application.CurLanguage ByRef As WString
-		If FCurLanguage = 0 Then WLet(FCurLanguage, "english")
-			Return *FCurLanguage
+		If FCurLanguage = 0 Then 
+			#ifdef __USE_WINAPI__
+				WReAllocate(FCurLanguage, LOCALE_NAME_MAX_LENGTH)
+				GetLocaleInfo(GetUserDefaultUILanguage, LOCALE_SENGLANGUAGE, FCurLanguage, LOCALE_NAME_MAX_LENGTH)
+			#else
+				WLet(FCurLanguage, *setlocale(LC_CTYPE, NULL))
+				Var Pos1 = InStr(*FCurLanguage, "_")
+				If Pos1 > 0 Then WLet(*FCurLanguage, Left(*FCurLanguage, Pos1 - 1))
+				If *FCurLanguage = "C" Then
+					WLet(FCurLanguage, "english")
+				End If
+			#endif
+		End If
+		Return *FCurLanguage
 	End Property
 	
 	Private Property Application.CurLanguage(ByRef Value As WString)
@@ -674,7 +686,6 @@ Namespace My
 			'InitCommonControls
 			Instance = GetModuleHandle(NULL)
 		#endif
-		WLet(FCurLanguage, "english")
 		WLet(FCurLanguagePath, ExePath & "/Settings/Languages/")
 		GetFonts
 		This.initialized = False
