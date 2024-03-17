@@ -580,7 +580,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Form.Parent(value As Control Ptr)
 		#ifdef __USE_GTK__
-			If FormStyle = fsMDIChild Then
+			If FormStyle = fsMDIChild OrElse FParentWidget = 0 Then
 				Base.FParent = value
 			Else
 				Base.Parent = value
