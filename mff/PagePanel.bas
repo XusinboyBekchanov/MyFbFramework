@@ -253,7 +253,34 @@ Namespace My.Sys.Forms
 		If Value >= -1 AndAlso Value <= FControlCount - 1 Then
 			FSelectedPanelIndex = Value
 			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
-				gtk_stack_set_visible_child(GTK_STACK(widget), Controls[FSelectedPanelIndex]->widget)
+				Dim As Boolean bVisible
+				If FSelectedPanelIndex = -1 Then
+					bVisible = False
+				Else
+					bVisible = True
+					gtk_stack_set_visible_child(GTK_STACK(widget), Controls[FSelectedPanelIndex]->widget)
+				End If
+				For i As Integer = 0 To FControlCount - 1
+					If Controls[i] = @NumericUpDownControl Then Continue For
+					Controls[i]->Visible = bVisible
+					If FDesignMode Then 
+						If scrolledwidget Then
+							If bVisible Then
+								#ifdef __USE_GTK4__
+									gtk_widget_set_visible(scrolledwidget, True)
+								#else
+									gtk_widget_show_all(scrolledwidget)
+								#endif
+								If Value Then gtk_widget_queue_draw(scrolledwidget)
+							Else
+								gtk_widget_set_visible(scrolledwidget, bVisible)
+							End If
+						ElseIf widget Then
+							gtk_widget_set_visible(widget, bVisible)
+							If Value Then gtk_widget_queue_draw(widget)
+						End If
+					End If
+				Next
 			#else
 				Dim j As Integer = -1
 				For i As Integer = 0 To FControlCount - 1
