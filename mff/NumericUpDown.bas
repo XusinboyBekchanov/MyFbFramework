@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function NumericUpDown.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "style": Return @FStyle
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -32,6 +33,7 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "style": Style = *Cast(UpDownOrientation Ptr, Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
@@ -135,6 +137,29 @@ Namespace My.Sys.Forms
 		UpDownControl.Wrap = Value
 	End Property
 	
+	Private Property NumericUpDown.Style As UpDownOrientation
+		Return FStyle
+	End Property
+	
+	Private Property NumericUpDown.Style(Value As UpDownOrientation)
+		FStyle = Value
+		UpDownControl.Associate = 0
+		UpDownControl.Style = FStyle
+		UpDownControl.Associate = @This
+		#ifdef __USE_WINAPI__
+			MoveUpDownControl
+		#endif
+	End Property
+	
+	Private Property NumericUpDown.UpDownWidth As Integer
+		Return UpDownControl.Width
+	End Property
+	
+	Private Property NumericUpDown.UpDownWidth(Value As Integer)
+		UpDownControl.Width = Value
+		MoveUpDownControl
+	End Property
+	
 	Private Sub NumericUpDown.SelectAll
 		#ifdef __USE_GTK__
 			'If GTK_IS_EDITABLE(widget) Then
@@ -174,7 +199,8 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QNumericUpDown(Sender.Child)
 					MoveWindow .FHandle, ScaleX(.FLeft), ScaleY(.FTop), ScaleX(.FWidth), ScaleY(.FHeight), True
-					MoveWindow .UpDownControl.Handle, ScaleX(.Width - .UpDownControl.Width - 2) - 1, -1, ScaleX(.UpDownControl.Width), ScaleY(.Height) - 2, True
+					'MoveWindow .UpDownControl.Handle, ScaleX(.Width - .UpDownControl.Width - 2) - 1, -1, ScaleX(.UpDownControl.Width), ScaleY(.Height) - 2, True
+					.MoveUpDownControl
 					'SendMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN Or EC_LEFTMARGIN, MAKEWORD(ScaleX(0), ScaleX(.UpDownControl.Width)))
 					Dim h As HWND = .UpDownControl.Handle
 					If GetWindowLongPtr(h, GWLP_WNDPROC) <> @HookChildProc Then
@@ -187,14 +213,25 @@ Namespace My.Sys.Forms
 		
 		Private Sub NumericUpDown.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_GTK__)
+		Private Sub NumericUpDown.SpinButton_ValueChanged(self As GtkSpinButton Ptr, user_data As Any Ptr)
+			Dim As NumericUpDown Ptr nud = user_data
+			If nud->OnChange Then nud->OnChange(*nud->Designer, *nud)
+		End Sub
 	#endif
+	
+	Private Sub NumericUpDown.MoveUpDownControl
+		#ifdef __USE_WINAPI__
+			MoveWindow UpDownControl.Handle, Width - UpDownControl.Width - 3, -1, UpDownControl.Width, Height - 3, True
+		#endif
+	End Sub
 	
 	Private Sub NumericUpDown.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_SIZE
 				With This
-					MoveWindow .UpDownControl.Handle, .Width - .UpDownControl.Width - 3, -1, .UpDownControl.Width, .Height - 2, True
+					MoveUpDownControl
 				End With
 			Case WM_PAINT, WM_MOUSELEAVE, WM_MOUSEMOVE
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso (CBool(Message.Msg <> WM_MOUSEMOVE) OrElse (CBool(Message.Msg = WM_MOUSEMOVE) AndAlso FMouseInClient)) Then
@@ -228,6 +265,11 @@ Namespace My.Sys.Forms
 					Message.Result = 0
 					Return
 				End If
+			Case CM_COMMAND
+				Select Case Message.wParamHi
+				Case EN_CHANGE
+					If OnChange Then OnChange(*Designer, This)
+				End Select
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
@@ -240,6 +282,7 @@ Namespace My.Sys.Forms
 	Private Constructor NumericUpDown
 		#ifdef __USE_GTK__
 			widget = UpDownControl.Handle
+			g_signal_connect(widget, "value_changed", G_CALLBACK(@SpinButton_ValueChanged), @This)
 		#endif
 		With This
 			.Child             = @This
@@ -252,7 +295,7 @@ Namespace My.Sys.Forms
 				.ChildProc         = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ExStyle     = WS_EX_CLIENTEDGE
-				.Style       = WS_CHILD Or ES_AUTOHSCROLL Or WS_TABSTOP Or ES_NUMBER
+				Base.Style       = WS_CHILD Or ES_AUTOHSCROLL Or WS_TABSTOP Or ES_NUMBER
 				.Width       = 121
 				.Height      = ScaleY(Font.Size / 72 * 96 + 6) '21
 			#endif

@@ -1078,11 +1078,16 @@ Namespace My.Sys.Forms
 	
 	Private Sub MenuItem.Clear
 		For i As Integer = Count - 1 To 0 Step -1
-			If FItems[i]->FDynamic Then _Delete(FItems[i])
 			#ifdef __USE_WINAPI__
+				If FItems[i]->FDynamic Then _Delete(FItems[i])
 				If Handle Then
 					RemoveMenu(Handle, i, MF_BYPOSITION)
 				End If
+			#elseif defined(__USE_GTK__)
+				If SubMenu AndAlso SubMenu->Handle Then
+					gtk_container_remove(GTK_CONTAINER(SubMenu->Handle), FItems[i]->Widget)
+				End If
+				If FItems[i]->FDynamic Then _Delete(FItems[i])
 			#endif
 			'Remove FItems[i]
 			'FItems[i] = NULL
@@ -2002,6 +2007,8 @@ Namespace My.Sys.Forms
 				#else
 					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, msg->Event->button.button, msg->Event->button.time)
 				#endif
+			Else
+				gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, NULL, NULL)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FParentWindow AndAlso FParentWindow->Handle Then
@@ -2016,6 +2023,7 @@ Namespace My.Sys.Forms
 			I = Find(LoWord(message.wParam))
 		#endif
 		If I Then I->Click
+		
 	End Sub
 	
 	Private Operator PopupMenu.cast As Any Ptr

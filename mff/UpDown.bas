@@ -88,7 +88,13 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_range(GTK_SPIN_BUTTON(widget), FMinValue, FMaxValue)
 		#else
-			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MAKELONG(FMaxValue, FMinValue))
+			If Handle Then
+				If FMinValue < 0 OrElse FMaxValue < 0 Then
+					SendMessage(Handle, UDM_SETRANGE32, FMinValue, FMaxValue)
+				Else
+					SendMessage(Handle, UDM_SETRANGE, 0, MAKELPARAM(FMaxValue, FMinValue))
+				End If
+			End If
 		#endif
 	End Property
 	
@@ -101,7 +107,13 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_range(GTK_SPIN_BUTTON(widget), FMinValue, FMaxValue)
 		#else
-			If Handle Then SendMessage(Handle, UDM_SETRANGE, 0, MAKELONG(FMaxValue, FMinValue))
+			If Handle Then 
+				If FMinValue < 0 OrElse FMaxValue < 0 Then
+					SendMessage(Handle, UDM_SETRANGE32, FMinValue, FMaxValue)
+				Else
+					SendMessage(Handle, UDM_SETRANGE, 0, MAKELONG(FMaxValue, FMinValue))
+				End If
+			End If
 		#endif
 	End Property
 	
@@ -110,7 +122,8 @@ Namespace My.Sys.Forms
 			FPosition = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget))
 		#else
 			If Handle Then
-				FPosition = LoWord(SendMessage(Handle, UDM_GETPOS, 0, 0))
+				'FPosition = LoWord(SendMessage(Handle, UDM_GETPOS, 0, 0))
+				FPosition = SendMessage(Handle, UDM_GETPOS32, 0, 0)
 			End If
 		#endif
 		Return FPosition
@@ -122,7 +135,11 @@ Namespace My.Sys.Forms
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget), FPosition)
 		#else
 			If Handle Then
-				SendMessage(Handle, UDM_SETPOS, 0, MAKELONG(FPosition, 0))
+				If FPosition < 0 Then
+					SendMessage(Handle, UDM_SETPOS32, 0, FPosition)
+				Else
+					SendMessage(Handle, UDM_SETPOS, 0, MAKELONG(FPosition, 0))
+				End If
 				If FAssociate Then
 					FAssociate->Text = Str(Position)
 				End If
@@ -257,17 +274,26 @@ Namespace My.Sys.Forms
 		Private Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUpDown(Sender.Child)
-					SendMessage(.Handle, UDM_SETRANGE, 0, MAKELONG(.FMaxValue, .FMinValue))
-					SendMessage(.Handle, UDM_SETPOS, 0, MAKELONG(.FMinValue, 0))
+					If .FMinValue < 0 OrElse .FMaxValue < 0 Then
+						SendMessage(.Handle, UDM_SETRANGE32, .FMinValue, .FMaxValue)
+					Else
+						SendMessage(.Handle, UDM_SETRANGE, 0, MAKELPARAM(.FMaxValue, .FMinValue))
+					End If
+					If .FMinValue < 0 Then
+						SendMessage(.Handle, UDM_SETPOS32, 0, .FMinValue)
+					Else
+						SendMessage(.Handle, UDM_SETPOS, 0, MAKELONG(.FMinValue, 0))
+					End If
 					SendMessage(.Handle, UDM_GETACCEL, 1, CInt(@.FUDAccel(0)))
 					.FUDAccel(0).nInc = .FIncrement
 					SendMessage(.Handle, UDM_SETACCEL, 1, CInt(@.FUDAccel(0)))
 					.Position = .FPosition
-					If .FAssociate AndAlso UCase(.FAssociate->ClassName) = "TEXTBOX" Then
+					If .FAssociate AndAlso (UCase(.FAssociate->ClassName) = "TEXTBOX" OrElse UCase(.FAssociate->ClassName) = "NUMERICUPDOWN") Then
 						SendMessage(.Handle, UDM_SETBUDDY, CInt(.FAssociate->Handle), 0)
 						.FAssociate->Text = WStr(.Position)
 					Else
 					End If
+					.Width = .FWidth
 				End With
 			End If
 		End Sub
@@ -305,7 +331,7 @@ Namespace My.Sys.Forms
 						Else
 							Canvas.Brush.Color = BGR(51, 51, 51)
 						End If
-						Rectangle Dc, 1, 1, iWidth - 1, iHeight / 2
+						Rectangle Dc, 1, 1, iWidth, iHeight / 2 '- 1
 						If MouseIn AndAlso Y > iHeight / 2 Then
 							If DownButton = 1 Then
 								Canvas.Brush.Color = BGR(102, 102, 102)
@@ -315,7 +341,7 @@ Namespace My.Sys.Forms
 						Else
 							Canvas.Brush.Color = BGR(51, 51, 51)
 						End If
-						Rectangle Dc, 1, iHeight / 2, iWidth - 1, iHeight - 1
+						Rectangle Dc, 1, iHeight / 2, iWidth, iHeight - 1 '- 1
 						Canvas.Pen.Color = BGR(173, 173, 173)
 						MoveToEx Dc, Fix((iWidth - 3) / 2) + 1, 1 + Fix((iHeight / 2 - 4) / 2), 0
 						LineTo Dc, Fix((iWidth - 3) / 2) + 2, 1 + Fix((iHeight / 2 - 4) / 2)
@@ -340,7 +366,7 @@ Namespace My.Sys.Forms
 						Else
 							Canvas.Brush.Color = BGR(51, 51, 51)
 						End If
-						Rectangle Dc, 1, 1, iWidth / 2, iHeight - 1
+						Rectangle Dc, 1, 1, iWidth / 2, iHeight '- 1
 						If MouseIn AndAlso X > iWidth / 2 Then
 							If DownButton = 1 Then
 								Canvas.Brush.Color = BGR(102, 102, 102)
@@ -350,7 +376,7 @@ Namespace My.Sys.Forms
 						Else
 							Canvas.Brush.Color = BGR(51, 51, 51)
 						End If
-						Rectangle Dc, iWidth / 2, 1, iWidth - 1, iHeight - 1
+						Rectangle Dc, iWidth / 2, 1, iWidth - 1, iHeight '- 1
 						Canvas.Pen.Color = BGR(173, 173, 173)
 						MoveToEx Dc, 1 + Fix((iWidth / 2 - 4) / 2), Fix((iHeight - 3) / 2) + 1, 0
 						LineTo Dc, 1 + Fix((iWidth / 2 - 4) / 2), Fix((iHeight - 3) / 2) + 2
@@ -414,6 +440,7 @@ Namespace My.Sys.Forms
 		Dim As Boolean Result
 		#ifdef __USE_GTK__
 			widget = gtk_spin_button_new_with_range(0, 100, 1)
+			
 		#else
 			Dim As INITCOMMONCONTROLSEX ICC
 			ICC.dwSize = SizeOf(ICC)

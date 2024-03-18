@@ -1137,7 +1137,7 @@ Namespace My.Sys.Forms
 						If Not .Buttons.Item(i)->Visible Then .Perform(TB_HIDEBUTTON, .Buttons.Item(i)->CommandID, MAKELONG(True, 0))
 						If .Buttons.Item(i)->Visible AndAlso .Buttons.Item(i)->Child <> 0 Then .Buttons.Item(i)->Child = .Buttons.Item(i)->Child
 					Next i
-					If .AutoSize Then .Perform(TB_AUTOSIZE,0,0)
+					If .AutoSize Then .Perform(TB_AUTOSIZE, 0, 0)
 				#endif
 '				If .DesignMode Then
 '					.Buttons.Add

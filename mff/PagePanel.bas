@@ -29,7 +29,21 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
-				Case "designmode": DesignMode = QBoolean(Value): If FDesignMode Then MoveUpDownControl: This.Add @UpDownControl
+				Case "designmode": DesignMode = QBoolean(Value)
+					If FDesignMode Then 
+						#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+							gtk_widget_set_can_focus(UpDownButton.widget, False)
+							gtk_overlay_add_overlay(GTK_OVERLAY(overlaywidget), NumericUpDownControl.widget)
+							gtk_overlay_add_overlay(GTK_OVERLAY(overlaywidget), UpDownButton.widget)
+							g_signal_connect(overlaywidget, "get-child-position", G_CALLBACK(@Overlay_get_child_position), @This)
+						#else
+							'FDesignMode = False
+							'This.Add @StackPanel
+							This.Add @NumericUpDownControl
+							'FDesignMode = True
+							MoveNumericUpDownControl
+						#endif
+					End If
 				Case "selectedpanel": SelectedPanel = Value
 				Case "selectedpanelindex": SelectedPanelIndex = QInteger(Value)
 				Case "tabindex": TabIndex = QInteger(Value)
@@ -41,8 +55,11 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Sub PagePanel.MoveUpDownControl
-		UpDownControl.SetBounds (ClientWidth - UpDownControl.Width) / 2, ClientHeight - UpDownControl.Height, UpDownControl.Width, UpDownControl.Height
+	Private Sub PagePanel.MoveNumericUpDownControl
+		NumericUpDownControl.Width = 70
+		'NumericUpDownControl.ExtraMargins.Left = (ClientWidth - NumericUpDownControl.Width) / 2
+		'NumericUpDownControl.ExtraMargins.Right = NumericUpDownControl.ExtraMargins.Left
+		NumericUpDownControl.SetBounds (ClientWidth - NumericUpDownControl.Width) / 2, ClientHeight - NumericUpDownControl.Height, 70, NumericUpDownControl.Height
 	End Sub
 	
 	Private Property PagePanel.TabIndex As Integer
@@ -65,6 +82,11 @@ Namespace My.Sys.Forms
 		Private Sub PagePanel.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QPagePanel(Sender.Child)
+					.MoveNumericUpDownControl
+					.RequestAlign
+					#ifdef __USE_WINAPI__
+						If .FDesignMode Then .NumericUpDownControl.BringToFront
+					#endif
 				End With
 			End If
 		End Sub
@@ -76,6 +98,25 @@ Namespace My.Sys.Forms
 	#ifdef __USE_WASM__
 		Private Function PagePanel.GetContent() As UString
 			Return ""
+		End Function
+	#elseif defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+		Private Function PagePanel.Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
+			Dim As PagePanel Ptr pp = user_data
+			If GTK_IS_BUTTON(widget) Then
+				pp->UpDownButton.Width = 30
+				allocation->x = ScaleX((pp->ClientWidth - pp->NumericUpDownControl.Width) / 2 + pp->NumericUpDownControl.Width - 105)
+				allocation->y = ScaleY(pp->ClientHeight - 32)
+				allocation->width = ScaleX(35)
+				allocation->height = ScaleY(30)
+			Else
+				pp->NumericUpDownControl.Width = 150
+				pp->NumericUpDownControl.Height = 34
+				allocation->x = ScaleX((pp->ClientWidth - pp->NumericUpDownControl.Width) / 2)
+				allocation->y = ScaleY(pp->ClientHeight - pp->NumericUpDownControl.Height)
+				allocation->width = ScaleX(pp->NumericUpDownControl.Width)
+				allocation->height = ScaleY(pp->NumericUpDownControl.Height)
+			End If
+			Return True
 		End Function
 	#endif
 	
@@ -168,9 +209,23 @@ Namespace My.Sys.Forms
 				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(*Designer, This)
 				End If
+			Case WM_COMMAND
+				If IsWindow(Cast(HWND, Message.lParam)) Then
+				Else
+					Dim As MenuItem Ptr mi
+					For i As Integer = 0 To mnuShowPanel.Count - 1
+						mi = mnuShowPanel.Item(i)
+						If mi->Command = LoWord(Message.wParam) Then
+							If mi->OnClick Then mi->OnClick(This, *mi)
+							Exit For
+						End If
+					Next i
+				End If
 			Case WM_SIZE
 				InvalidateRect(Handle, NULL, True)
-				If FDesignMode Then MoveUpDownControl
+				If FDesignMode Then
+					MoveNumericUpDownControl
+				End If
 			Case CM_DRAWITEM
 				
 			End Select
@@ -194,14 +249,42 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property PagePanel.SelectedPanelIndex(Value As Integer)
-		If Value >= 0 AndAlso Value <= FControlCount - 1 Then
+		If Value >= -1 AndAlso Value <= FControlCount - 1 Then
 			FSelectedPanelIndex = Value
-			#ifdef __USE_WINAPI__
-				For i As Integer = 0 To FControlCount - 1
-					Controls[i]->Visible = i = FSelectedPanelIndex
-				Next
-			#elseif defined(__USE_GTK__)
+			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
 				gtk_stack_set_visible_child(GTK_STACK(widget), Controls[FSelectedPanelIndex]->widget)
+			#else
+				Dim j As Integer = -1
+				For i As Integer = 0 To FControlCount - 1
+					If Controls[i] = @NumericUpDownControl Then Continue For
+					j = j + 1
+					Dim As Boolean bVisible = (j = FSelectedPanelIndex)
+					Controls[i]->Visible = bVisible
+					#ifdef __USE_WINAPI__
+						If FDesignMode Then ShowWindow(Controls[i]->Handle, IIf(bVisible, SW_SHOW, SW_HIDE))
+						If bVisible Then
+							SetWindowPos FHandle, IIf(FDesignMode, NumericUpDownControl.Handle, HWND_TOP), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+						End If
+					#else
+						If FDesignMode Then 
+							If scrolledwidget Then
+								If bVisible Then
+									#ifdef __USE_GTK4__
+										gtk_widget_set_visible(scrolledwidget, True)
+									#else
+										gtk_widget_show_all(scrolledwidget)
+									#endif
+									If Value Then gtk_widget_queue_draw(scrolledwidget)
+								Else
+									gtk_widget_set_visible(scrolledwidget, bVisible)
+								End If
+							ElseIf widget Then
+								gtk_widget_set_visible(widget, bVisible)
+								If Value Then gtk_widget_queue_draw(widget)
+							End If
+						End If
+					#endif
+				Next
 			#endif
 		End If
 	End Property
@@ -217,6 +300,19 @@ Namespace My.Sys.Forms
 	Private Operator PagePanel.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
+	
+	Private Sub PagePanel.Add(Ctrl As Control Ptr, Index As Integer = -1)
+		Base.Add(Ctrl, Index)
+		If FDesignMode Then
+			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+				NumericUpDownControl.MaxValue = Max(-1, ControlCount - 1)
+			#else
+				NumericUpDownControl.MaxValue = Max(-1, ControlCount - 2)
+				UpDownControl.Enabled = NumericUpDownControl.MaxValue >= 0
+			#endif
+			NumericUpDownControl.Position = ControlCount - 1
+		End If
+	End Sub
 	
 	Private Sub PagePanel.CreateWnd
 		Base.CreateWnd
@@ -236,18 +332,76 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
+	Private Sub PagePanel.NumericUpDownControl_Change(ByRef Sender As NumericUpDown)
+		If OnSelChanging Then OnSelChanging(*Designer, This, Val(NumericUpDownControl.Text))
+		SelectedPanelIndex = Val(NumericUpDownControl.Text)
+		'NumericUpDownControl.BringToFront
+		If OnSelChange Then OnSelChange(*Designer, This, FSelectedPanelIndex)
+	End Sub
+	
+	#ifdef __USE_GTK__
+	Private Sub PagePanel.UpDownButton_Click(ByRef Sender As Control)
+	#else
+	Private Sub PagePanel.UpDownControl_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
+	#endif
+		Dim j As Integer = -1
+		mnuShowPanel.Clear
+		Var mnu = mnuShowPanel.Add(WStr(j) & ": " & Name, "", , Cast(NotifyEvent, @MenuItem_Click))
+		mnu->Designer = @This
+		For i As Integer = 0 To ControlCount - 1
+			If Controls[i] = @NumericUpDownControl Then Continue For
+			j = j + 1
+			Var mnu = mnuShowPanel.Add(WStr(j) & ": " & Controls[i]->Name, "", , Cast(NotifyEvent, @MenuItem_Click))
+			mnu->Designer = @This
+		Next
+		#ifdef __USE_GTK__
+			Dim p As Point = Type(UpDownButton.Left, UpDownButton.Top + UpDownButton.Height)
+		#else
+			Dim p As Point = Type(UpDownPanel.Left, UpDownPanel.Top + UpDownPanel.Height)
+		#endif
+		NumericUpDownControl.ClientToScreen p
+		mnuContext.Popup p.X, p.Y
+	End Sub
+	
+	Private Sub PagePanel.MenuItem_Click(ByRef Sender As MenuItem)
+		NumericUpDownControl.Position = mnuShowPanel.IndexOf(@Sender) - 1
+	End Sub
+	
 	Private Constructor PagePanel
 		With This
-			#ifdef __USE_GTK__
-				widget = gtk_stack_new()
-				.RegisterClass "PagePanel", @This
-			#endif
 			.Child          = @This
 			.Canvas.Ctrl    = @This
 			.Graphic.Ctrl   = @This
 			.Graphic.OnChange = @GraphicChange
-			UpDownControl.Name = "PagePanel_UpDownControl"
-			UpDownControl.Width = 50
+			NumericUpDownControl.Name = "PagePanel_NumericUpDownControl"
+			'NumericUpDownControl.Align = DockStyle.alBottom
+			#ifdef __USE_GTK__
+				NumericUpDownControl.Width = 100
+			#else
+				NumericUpDownControl.Width = 70
+			#endif
+			NumericUpDownControl.Style = udHorizontal
+			NumericUpDownControl.MinValue = -1
+			NumericUpDownControl.Position = -1
+			NumericUpDownControl.UpDownWidth = 28
+			NumericUpDownControl.Designer = @This
+			NumericUpDownControl.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As NumericUpDown), @NumericUpDownControl_Change)
+			#ifdef __USE_GTK__
+				UpDownButton.Caption = "V"
+				UpDownButton.Designer = @This
+				UpDownButton.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @UpDownButton_Click)
+			#else
+				UpDownPanel.SetBounds(NumericUpDownControl.Width - NumericUpDownControl.Height - NumericUpDownControl.UpDownWidth + 2, 0, NumericUpDownControl.Height - 4, NumericUpDownControl.Height)
+				UpDownPanel.Parent = @NumericUpDownControl
+				UpDownControl.SetBounds(-1, -NumericUpDownControl.Height + 3, UpDownPanel.Width + 2, NumericUpDownControl.Height * 2 - 6)
+				UpDownControl.Designer = @This
+				UpDownControl.OnChanging = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown, Value As Integer, Direction As Integer), @UpDownControl_Changing)
+				UpDownControl.Parent = @UpDownPanel
+				StackPanel.Align = DockStyle.alClient
+			#endif
+			mnuShowPanel.Caption = "Show Panel"
+			mnuContext.ParentWindow = @This
+			mnuContext.Add @mnuShowPanel
 			#ifdef __USE_WINAPI__
 				.RegisterClass "PagePanel"
 				.ChildProc   = @WNDPROC
@@ -260,12 +414,22 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "android/widget/AbsoluteLayout")
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
+			#elseif defined(__USE_GTK__)
+				#ifdef __USE_GTK3__
+					widget = gtk_stack_new()
+					overlaywidget = gtk_overlay_new()
+					gtk_container_add(GTK_CONTAINER(overlaywidget), widget)
+				#else
+					widget = gtk_layout_new(NULL, NULL)
+				#endif
+				.RegisterClass "PagePanel", @This
 			#endif
 			FTabIndex          = -1
 			WLet(FClassName, "PagePanel")
 			.Width       = 121
 			.Height      = 41
 			.ShowCaption = False
+			MoveNumericUpDownControl
 		End With
 	End Constructor
 	

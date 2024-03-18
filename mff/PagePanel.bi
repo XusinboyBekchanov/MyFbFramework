@@ -7,6 +7,8 @@
 #include once "ContainerControl.bi"
 #include once "Graphic.bi"
 #include once "NumericUpDown.bi"
+#include once "Panel.bi"
+#include once "CommandButton.bi"
 
 Namespace My.Sys.Forms
 	#define QPagePanel(__Ptr__) (*Cast(PagePanel Ptr, __Ptr__))
@@ -24,9 +26,24 @@ Namespace My.Sys.Forms
 	Protected:
 		#ifdef __USE_WASM__
 			Declare Virtual Function GetContent() As UString
+		#elseif defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+			Declare Static Function Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 		#endif
-		UpDownControl As NumericUpDown
-		Declare Sub MoveUpDownControl
+		NumericUpDownControl As NumericUpDown
+		#ifdef __USE_GTK__
+			UpDownButton As CommandButton
+			Declare Sub UpDownButton_Click(ByRef Sender As Control)
+		#else
+			UpDownControl As UpDown
+			UpDownPanel As Panel
+			StackPanel As Panel
+			Declare Sub UpDownControl_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
+		#endif
+		mnuContext As PopupMenu
+		mnuShowPanel As MenuItem
+		Declare Sub NumericUpDownControl_Change(ByRef Sender As NumericUpDown)
+		Declare Sub MenuItem_Click(ByRef Sender As MenuItem)
+		Declare Sub MoveNumericUpDownControl
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off
@@ -47,6 +64,7 @@ Namespace My.Sys.Forms
 		Declare Property TabStop(Value As Boolean)
 		Declare Property Transparent As Boolean
 		Declare Property Transparent(Value As Boolean)
+		Declare Sub Add(Ctrl As Control Ptr, Index As Integer = -1)
 		Declare Sub CreateWnd
 		Declare Operator Cast As Control Ptr
 		Declare Constructor

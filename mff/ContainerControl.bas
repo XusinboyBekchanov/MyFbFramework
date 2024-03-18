@@ -57,6 +57,9 @@ Namespace My.Sys.Forms
 					fixedwidget = widget
 				ElseIf GTK_IS_BOX(widget) = 1 Then
 					box = widget
+				#ifdef __USE_GTK3__
+				ElseIf GTK_IS_stack(widget) = 1 Then
+				#endif
 				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
 					fixedwidget = gtk_fixed_new()
 					#ifdef __USE_GTK4__

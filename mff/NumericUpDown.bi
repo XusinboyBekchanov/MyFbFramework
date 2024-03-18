@@ -18,16 +18,20 @@ Namespace My.Sys.Forms
 	
 	Private Type NumericUpDown Extends Control
 	Private:
+		FStyle        As UpDownOrientation
 		FText As WString * 100
 		FDecimalPlaces As Integer
 		FScaleFactor   As Integer = 1
 		#ifndef __USE_GTK__
-			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As wParam, lParam As lParam) As LRESULT
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#elseif defined(__USE_GTK__)
+			Declare Static Sub SpinButton_ValueChanged(self As GtkSpinButton Ptr, user_data As Any Ptr)
 		#endif
 	Protected:
 		As UpDown UpDownControl
+		Declare Sub MoveUpDownControl
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -58,10 +62,15 @@ Namespace My.Sys.Forms
 		Declare Property Thousands(Value As Boolean)
 		Declare Property Wrap As Boolean
 		Declare Property Wrap(Value As Boolean)
+		Declare Property Style As UpDownOrientation
+		Declare Property Style(Value As UpDownOrientation)
+		Declare Property UpDownWidth As Integer
+		Declare Property UpDownWidth(Value As Integer)
 		Declare Sub SelectAll
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
+		OnChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As NumericUpDown)
 	End Type
 End Namespace
 

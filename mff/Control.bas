@@ -2477,7 +2477,7 @@ Namespace My.Sys.Forms
 							LeftCount += 1
 							ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 							ListLeft[LeftCount - 1] = Controls[i]
-						ElseIf ClassName = "PagePanel" AndAlso Controls[i]->Name <> "PagePanel_UpDownControl" Then
+						ElseIf ClassName = "PagePanel" AndAlso Controls[i]->Name <> "PagePanel_NumericUpDownControl" Then
 							ClientCount += 1
 							ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
 							ListClient[ClientCount - 1] = Controls[i]
@@ -2647,15 +2647,17 @@ Namespace My.Sys.Forms
 			'This.UpdateUnLock
 		End Sub
 		
-		#ifdef __USE_WINAPI__
-			Private Sub Control.ClientToScreen(ByRef P As Point)
+		Private Sub Control.ClientToScreen(ByRef P As Point)
+			#ifdef __USE_WINAPI__
 				If FHandle Then .ClientToScreen FHandle, Cast(..Point Ptr, @P)
-			End Sub
+			#endif
+		End Sub
 			
-			Private Sub Control.ScreenToClient(ByRef P As Point)
+		Private Sub Control.ScreenToClient(ByRef P As Point)
+			#ifdef __USE_WINAPI__
 				If FHandle Then .ScreenToClient FHandle, Cast(..Point Ptr, @P)
-			End Sub
-		#endif
+			#endif
+		End Sub
 		
 		Private Sub Control.Invalidate
 			#ifdef __USE_WINAPI__
@@ -2765,9 +2767,6 @@ Namespace My.Sys.Forms
 		Private Sub Control.Add(Ctrl As Control Ptr, Index As Integer = -1)
 			'On Error Goto ErrorHandler
 			If Ctrl Then
-				If WGet(FClassName) = "Form1" Then
-					Ctrl = Ctrl
-				End If
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
 				FControlCount += 1
@@ -2787,7 +2786,7 @@ Namespace My.Sys.Forms
 					If widget AndAlso GTK_IS_FRAME(widget) Then FrameTop = 20
 					'End If
 					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->layoutwidget AndAlso gtk_widget_get_parent(Ctrl->layoutwidget) <> Ctrl->widget, Ctrl->layoutwidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget))))
-					If GTK_IS_WIDGET(Ctrlwidget) Then
+					If GTK_IS_WIDGET(Ctrlwidget) AndAlso Not GTK_IS_WINDOW(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_layout_put(GTK_LAYOUT(layoutwidget), Ctrlwidget, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
@@ -2796,6 +2795,11 @@ Namespace My.Sys.Forms
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
 							bAdded = True
+						#ifdef __USE_GTK3__
+						ElseIf GTK_IS_STACK(widget) Then
+							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+							gtk_container_add(GTK_CONTAINER(widget), Ctrlwidget)
+						#endif
 						ElseIf GTK_IS_TEXT_VIEW(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_text_view_add_child_in_window(GTK_TEXT_VIEW(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
