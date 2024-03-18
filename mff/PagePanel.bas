@@ -45,7 +45,12 @@ Namespace My.Sys.Forms
 						#endif
 					End If
 				Case "selectedpanel": SelectedPanel = Value
-				Case "selectedpanelindex": SelectedPanelIndex = QInteger(Value)
+				Case "selectedpanelindex": 
+					If FDesignMode Then
+						NumericUpDownControl.Position = QInteger(Value)
+					Else
+						SelectedPanelIndex = QInteger(Value)
+					End If
 				Case "tabindex": TabIndex = QInteger(Value)
 				Case "transparent": This.Transparent = QBoolean(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -335,12 +340,14 @@ Namespace My.Sys.Forms
 		If FDesignMode Then
 			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
 				NumericUpDownControl.MaxValue = Max(-1, ControlCount - 1)
+				NumericUpDownControl.Position = ControlCount - 1
 			#else
 				NumericUpDownControl.MaxValue = Max(-1, ControlCount - 2)
 				UpDownControl.Enabled = NumericUpDownControl.MaxValue >= 0
 				NeedBringToFront = True
+				NumericUpDownControl.ControlIndex = ControlCount - 1
+				NumericUpDownControl.Position = ControlCount - 2
 			#endif
-			NumericUpDownControl.Position = ControlCount - 1
 		End If
 	End Sub
 	
