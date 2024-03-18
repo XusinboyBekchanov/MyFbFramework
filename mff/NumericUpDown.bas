@@ -222,7 +222,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub NumericUpDown.MoveUpDownControl
 		#ifdef __USE_WINAPI__
-			MoveWindow UpDownControl.Handle, Width - UpDownControl.Width - 3, -1, UpDownControl.Width, Height - 3, True
+			MoveWindow UpDownControl.Handle, ScaleX(Width - UpDownControl.Width) - 3, -1, ScaleX(UpDownControl.Width), ScaleY(Height) - 3, True
 		#endif
 	End Sub
 	

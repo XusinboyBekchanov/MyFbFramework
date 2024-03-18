@@ -430,7 +430,7 @@ Namespace My.Sys.Forms
 			#else
 				UpDownPanel.SetBounds(NumericUpDownControl.Width - NumericUpDownControl.Height - NumericUpDownControl.UpDownWidth + 2, 0, NumericUpDownControl.Height - 4, NumericUpDownControl.Height)
 				UpDownPanel.Parent = @NumericUpDownControl
-				UpDownControl.SetBounds(-1, -NumericUpDownControl.Height + 3, UpDownPanel.Width + 2, NumericUpDownControl.Height * 2 - 6)
+				UpDownControl.SetBounds(UnScaleX(-1), -NumericUpDownControl.Height + 3, UpDownPanel.Width + 2, NumericUpDownControl.Height * 2 - 6)
 				UpDownControl.Designer = @This
 				UpDownControl.OnChanging = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown, Value As Integer, Direction As Integer), @UpDownControl_Changing)
 				UpDownControl.Parent = @UpDownPanel
