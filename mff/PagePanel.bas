@@ -84,6 +84,7 @@ Namespace My.Sys.Forms
 				With QPagePanel(Sender.Child)
 					.MoveNumericUpDownControl
 					.RequestAlign
+					.SelectedPanelIndex = .FSelectedPanelIndex
 					#ifdef __USE_WINAPI__
 						If .FDesignMode Then .NumericUpDownControl.BringToFront
 					#endif
