@@ -399,7 +399,6 @@ Namespace My.Sys.Forms
 				UpDownControl.Designer = @This
 				UpDownControl.OnChanging = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown, Value As Integer, Direction As Integer), @UpDownControl_Changing)
 				UpDownControl.Parent = @UpDownPanel
-				StackPanel.Align = DockStyle.alClient
 			#endif
 			mnuShowPanel.Caption = "Show Panel"
 			mnuContext.ParentWindow = @This

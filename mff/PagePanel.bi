@@ -36,7 +36,6 @@ Namespace My.Sys.Forms
 		#else
 			UpDownControl As UpDown
 			UpDownPanel As Panel
-			StackPanel As Panel
 			NeedBringToFront As Boolean
 			Declare Sub UpDownControl_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
 		#endif
