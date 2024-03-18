@@ -33,6 +33,7 @@ Namespace My.Sys.Forms
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
+		Declare Sub Add(Ctrl As Control Ptr, Index As Integer = -1)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

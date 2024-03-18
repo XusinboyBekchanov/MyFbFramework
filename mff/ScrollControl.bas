@@ -239,9 +239,20 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_SIZE
 				SetScrollsInfo
+			Case WM_NCHITTEST
+				If FDesignMode Then Exit Sub
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
+	End Sub
+	
+	Private Sub ScrollControl.Add(Ctrl As Control Ptr, Index As Integer = -1)
+		Base.Add(Ctrl, Index)
+		#ifdef __USE_WINAPI__
+			If FDesignMode Then
+				SetScrollsInfo
+			End If
+		#endif
 	End Sub
 	
 	Private Operator ScrollControl.Cast As Control Ptr
