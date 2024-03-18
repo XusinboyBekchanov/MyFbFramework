@@ -200,6 +200,7 @@ Namespace My.Sys.Forms
 				End If
 				Canvas.HandleSetted = False
 				EndPaint Handle, @Ps
+				If FDesignMode AndAlso NeedBringToFront Then NeedBringToFront = False: NumericUpDownControl.BringToFront
 				Message.Result = 0
 				Return
 			Case CM_COMMAND
@@ -309,6 +310,7 @@ Namespace My.Sys.Forms
 			#else
 				NumericUpDownControl.MaxValue = Max(-1, ControlCount - 2)
 				UpDownControl.Enabled = NumericUpDownControl.MaxValue >= 0
+				NeedBringToFront = True
 			#endif
 			NumericUpDownControl.Position = ControlCount - 1
 		End If

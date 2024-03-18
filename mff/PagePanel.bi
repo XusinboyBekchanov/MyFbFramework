@@ -37,6 +37,7 @@ Namespace My.Sys.Forms
 			UpDownControl As UpDown
 			UpDownPanel As Panel
 			StackPanel As Panel
+			NeedBringToFront As Boolean
 			Declare Sub UpDownControl_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
 		#endif
 		mnuContext As PopupMenu
