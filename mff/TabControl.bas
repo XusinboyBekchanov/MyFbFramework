@@ -856,7 +856,7 @@ Namespace My.Sys.Forms
 					If DownTab = 0 Then DownTab = SelectedTab
 					If DownTab <> 0 Then
 						Dim As TabControl Ptr pTabControl = DownTab->Parent
-						Dim As ..Point pt = Type<..Point>(Message.lParamLo, Message.lParamHi)
+						Dim As My.Sys.Drawing.Point pt = Type<My.Sys.Drawing.Point>(Message.lParamLo, Message.lParamHi)
 						ClientToScreen(pt)
 						pTabControl->ScreenToClient(pt)
 						Var SelTbIndex = DownTab->Index

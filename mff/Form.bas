@@ -1357,7 +1357,7 @@ Namespace My.Sys.Forms
 					'End If
 				End Select
 			Case CM_HELP
-				Dim As Point P
+				Dim As My.Sys.Drawing.Point P
 				Dim As HWND HControl
 				Dim As Control Ptr Ctrl
 				Dim As Integer ContextID,Id,i

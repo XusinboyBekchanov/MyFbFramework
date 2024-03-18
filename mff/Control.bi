@@ -413,9 +413,9 @@ Namespace My.Sys.Forms
 			'Destroys the specified window handle (Windows, Linux).
 			Declare Sub FreeWnd
 			'Converts the client-area coordinates of a specified point to screen coordinates (Windows only).
-			Declare Sub ClientToScreen(ByRef P As Point)
+			Declare Sub ClientToScreen(ByRef P As My.Sys.Drawing.Point)
 			'Converts the screen coordinates of a specified point on the screen to client coordinates (Windows only).
-			Declare Sub ScreenToClient(ByRef P As Point)
+			Declare Sub ScreenToClient(ByRef P As My.Sys.Drawing.Point)
 			'Invalidates the entire surface of the control and causes the control to be redrawn (Windows only).
 			Declare Sub Invalidate
 			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).

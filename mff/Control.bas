@@ -2647,13 +2647,13 @@ Namespace My.Sys.Forms
 			'This.UpdateUnLock
 		End Sub
 		
-		Private Sub Control.ClientToScreen(ByRef P As Point)
+		Private Sub Control.ClientToScreen(ByRef P As My.Sys.Drawing.Point)
 			#ifdef __USE_WINAPI__
 				If FHandle Then .ClientToScreen FHandle, Cast(..Point Ptr, @P)
 			#endif
 		End Sub
 			
-		Private Sub Control.ScreenToClient(ByRef P As Point)
+		Private Sub Control.ScreenToClient(ByRef P As My.Sys.Drawing.Point)
 			#ifdef __USE_WINAPI__
 				If FHandle Then .ScreenToClient FHandle, Cast(..Point Ptr, @P)
 			#endif

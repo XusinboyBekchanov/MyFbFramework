@@ -355,9 +355,9 @@ Namespace My.Sys.Forms
 			mnu->Designer = @This
 		Next
 		#ifdef __USE_GTK__
-			Dim p As Point = Type(UpDownButton.Left, UpDownButton.Top + UpDownButton.Height)
+			Dim p As My.Sys.Drawing.Point = Type(UpDownButton.Left, UpDownButton.Top + UpDownButton.Height)
 		#else
-			Dim p As Point = Type(UpDownPanel.Left, UpDownPanel.Top + UpDownPanel.Height)
+			Dim p As My.Sys.Drawing.Point = Type(UpDownPanel.Left, UpDownPanel.Top + UpDownPanel.Height)
 		#endif
 		NumericUpDownControl.ClientToScreen p
 		mnuContext.Popup p.X, p.Y
