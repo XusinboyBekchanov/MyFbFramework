@@ -368,7 +368,7 @@ Namespace My.Sys.Forms
 		If OnSelChange Then OnSelChange(*Designer, This, FSelectedPanelIndex)
 	End Sub
 	
-	#ifdef __USE_GTK__
+	#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
 	Private Sub PagePanel.UpDownButton_Click(ByRef Sender As Control)
 	#else
 	Private Sub PagePanel.UpDownControl_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
@@ -383,7 +383,7 @@ Namespace My.Sys.Forms
 			Var mnu = mnuShowPanel.Add(WStr(j) & ": " & Controls[i]->Name, "", , Cast(NotifyEvent, @MenuItem_Click))
 			mnu->Designer = @This
 		Next
-		#ifdef __USE_GTK__
+		#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
 			Dim p As My.Sys.Drawing.Point = Type(UpDownButton.Left, UpDownButton.Top + UpDownButton.Height)
 		#else
 			Dim p As My.Sys.Drawing.Point = Type(UpDownPanel.Left, UpDownPanel.Top + UpDownPanel.Height)
@@ -415,7 +415,7 @@ Namespace My.Sys.Forms
 			NumericUpDownControl.UpDownWidth = 28
 			NumericUpDownControl.Designer = @This
 			NumericUpDownControl.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As NumericUpDown), @NumericUpDownControl_Change)
-			#ifdef __USE_GTK__
+			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
 				UpDownButton.Caption = "V"
 				UpDownButton.Designer = @This
 				UpDownButton.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @UpDownButton_Click)

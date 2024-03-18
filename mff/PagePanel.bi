@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 			Declare Static Function Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 		#endif
 		NumericUpDownControl As NumericUpDown
-		#ifdef __USE_GTK__
+		#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
 			UpDownButton As CommandButton
 			Declare Sub UpDownButton_Click(ByRef Sender As Control)
 		#else
