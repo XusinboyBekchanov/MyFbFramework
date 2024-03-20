@@ -18,7 +18,18 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function NumericUpDown.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
+			Case "arrowkeys": FBooleanTemp = UpDownControl.ArrowKeys: Return @FBooleanTemp
+			Case "decimalplaces": Return @FDecimalPlaces
+			Case "increment": FDoubleTemp = UpDownControl.Increment: Return @FDoubleTemp
+			Case "maxvalue": FIntegerTemp = UpDownControl.MaxValue: Return @FIntegerTemp
+			Case "minvalue": FIntegerTemp = UpDownControl.MinValue: Return @FIntegerTemp
+			Case "position": FDoubleTemp = UpDownControl.Position: Return @FDoubleTemp
 			Case "style": Return @FStyle
+			Case "tabindex": Return @FTabIndex
+			Case "text": Text: Return @FText
+			Case "thousands": FBooleanTemp = UpDownControl.Thousands: Return @FBooleanTemp
+			Case "updownwidth": FIntegerTemp = UpDownControl.Width: Return @FIntegerTemp
+			Case "wrap": FBooleanTemp = UpDownControl.Wrap: Return @FBooleanTemp
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -33,7 +44,18 @@ Namespace My.Sys.Forms
 				End Select
 			Else
 				Select Case LCase(PropertyName)
+				Case "arrowkeys": ArrowKeys = QBoolean(Value)
+				Case "decimalplaces": DecimalPlaces = QInteger(Value)
+				Case "increment": Increment = QDouble(Value)
+				Case "maxvalue": MaxValue = QInteger(Value)
+				Case "minvalue": MinValue = QInteger(Value)
+				Case "position": Position  = QDouble(Value)
 				Case "style": Style = *Cast(UpDownOrientation Ptr, Value)
+				Case "tabindex": TabIndex = QInteger(Value)
+				Case "text": Text = QWString(Value)
+				Case "thousands": Thousands = QBoolean(Value)
+				Case "updownwidth": UpDownWidth = QInteger(Value)
+				Case "wrap": Wrap = QBoolean(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
@@ -100,11 +122,11 @@ Namespace My.Sys.Forms
 	End Property
 	Private Property NumericUpDown.Text ByRef As WString
 		#ifdef __USE_GTK__
-			Return UpDownControl.Text
+			FText = UpDownControl.Text
 		#else
 			FText = IIf(FDecimalPlaces > 0,  WStr(Val(Base.Text) / FScaleFactor), Base.Text)
-			Return FText
 		#endif
+		Return FText
 	End Property
 	
 	Private Property NumericUpDown.Text(ByRef Value As WString)
@@ -127,6 +149,14 @@ Namespace My.Sys.Forms
 	
 	Private Property NumericUpDown.Thousands(Value As Boolean)
 		UpDownControl.Thousands = Value
+	End Property
+	
+	Private Property NumericUpDown.ArrowKeys As Boolean
+		Return UpDownControl.ArrowKeys
+	End Property
+	
+	Private Property NumericUpDown.ArrowKeys(Value As Boolean)
+		UpDownControl.ArrowKeys = Value
 	End Property
 	
 	Private Property NumericUpDown.Wrap As Boolean
