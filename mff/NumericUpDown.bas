@@ -198,6 +198,7 @@ Namespace My.Sys.Forms
 		Private Sub NumericUpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QNumericUpDown(Sender.Child)
+					.FHandleIsAllocated = True
 					MoveWindow .FHandle, ScaleX(.FLeft), ScaleY(.FTop), ScaleX(.FWidth), ScaleY(.FHeight), True
 					'MoveWindow .UpDownControl.Handle, ScaleX(.Width - .UpDownControl.Width - 2) - 1, -1, ScaleX(.UpDownControl.Width), ScaleY(.Height) - 2, True
 					.MoveUpDownControl
@@ -222,6 +223,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub NumericUpDown.MoveUpDownControl
 		#ifdef __USE_WINAPI__
+			If Not FHandleIsAllocated Then Exit Sub
 			MoveWindow UpDownControl.Handle, ScaleX(Width - UpDownControl.Width) - 3, -1, ScaleX(UpDownControl.Width), ScaleY(Height) - 3, True
 		#endif
 	End Sub
@@ -270,6 +272,8 @@ Namespace My.Sys.Forms
 				Case EN_CHANGE
 					If OnChange Then OnChange(*Designer, This)
 				End Select
+			Case WM_DESTROY
+				FHandleIsAllocated = False
 			End Select
 		#endif
 		Base.ProcessMessage(Message)

@@ -22,6 +22,7 @@ Namespace My.Sys.Forms
 		FText As WString * 100
 		FDecimalPlaces As Integer
 		FScaleFactor   As Integer = 1
+		FHandleIsAllocated As Boolean
 		#ifndef __USE_GTK__
 			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Sub WndProc(ByRef Message As Message)
