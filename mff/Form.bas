@@ -166,7 +166,16 @@ Namespace My.Sys.Forms
 		End Property
 	#elseif defined(__USE_WASM__)
 		Private Function Form.GetContent() As UString
-			Return ""
+			If FFormStyle = fsMDIForm Then
+				Return "<div id=""" & Trim(Str(@This)) & "Client""></div>"
+			ElseIf Not FMainForm Then
+				Return "<div class=""flexpanel backgroundmenu unselectable basecolorblue"" id=""" & Trim(Str(@This)) & "Header"" style=""padding: 8px;>" & _
+				"<div class="""">" & FText & _
+				"<div class=""vetdialogbutton fa fa-remove"" id=""" & Trim(Str(@This)) & "CloseButton"" style=""width: 20px; position: absolute; right: 8px; opacity: 0.7;"">X</div>" & "</div>" & _
+				"</div>"
+			Else
+				Return ""
+			End If
 		End Function
 	#endif
 	
@@ -712,7 +721,9 @@ Namespace My.Sys.Forms
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#elseif defined(__USE_WASM__)
-			SetTitle(Value)
+			If FMainForm Then
+				SetTitle(Value)
+			End If
 		#endif
 	End Property
 	
@@ -1635,6 +1646,13 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			SelectNextControl
+		#elseif defined(__USE_WASM__)
+			If FHandle = 0 Then
+				If Not FMainForm Then
+					FClass = "vetdialog box dropshadow"
+				End If
+				CreateWnd
+			End If
 		#endif
 		If OnShow Then OnShow(*Designer, This)
 	End Sub
@@ -1801,6 +1819,26 @@ Namespace My.Sys.Forms
 			'#endif
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then SendMessage(Handle, WM_CLOSE, 0, 0)
+		#elseif defined(__USE_WASM__)
+			Dim As Integer Action = 1
+			If OnClose Then OnClose(*Designer, This, Action)
+			Select Case Action
+			Case 0
+			Case 1
+				If MainForm Then
+					End 0
+				Else
+					#ifdef __HIDE_NO_MAIN_FORM_ON_CLOSE__
+						SetVisible(FHandle, False)
+					#else
+						DeleteElement(FHandle)
+						FHandle = 0
+					#endif
+				End If
+			Case 2
+			Case 3
+				SetVisible(FHandle, False)
+			End Select
 		#endif
 	End Sub
 	
@@ -1876,7 +1914,7 @@ Namespace My.Sys.Forms
 							gtk_image_set_from_pixbuf(GTK_IMAGE(QForm(.Ctrl->Child).ImageWidget), .Icon.Handle)
 						End Select
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					'					Select Case ImageType
 					'					Case 0
 					'						QForm(.Ctrl->Child).ChangeStyle SS_BITMAP, True
@@ -1892,6 +1930,13 @@ Namespace My.Sys.Forms
 					'						QForm(.Ctrl->Child).Perform(BM_SETIMAGE, ImageType, CInt(0))
 					'					End Select
 					.Ctrl->Repaint
+				#elseif defined(__USE_WASM__)
+					Select Case ImageType
+					Case 0
+						.Ctrl->FElementStyle &= "background-image: url('" & .Bitmap.Handle & "');"
+					Case 1
+						.Ctrl->FElementStyle &= "background-image: url('" & .Icon.Handle & "');"
+					End Select
 				#endif
 			End If
 		End With
@@ -1988,6 +2033,7 @@ Namespace My.Sys.Forms
 				.Height            = 300
 				WLet(FClassAncestor, "div")
 				.OnHandleIsAllocated = @HandleIsAllocated
+				.BackColor       = clWhite
 			#endif
 			.StartPosition = DefaultLocation
 		End With
@@ -2092,6 +2138,31 @@ End Namespace
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
 			If Ctrl AndAlso Ctrl->OnClick Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	Sub OnClose(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Form Ptr frm = Cast(Any Ptr, Id)
+			Dim As Integer Action = 1
+			If frm AndAlso frm->OnClose Then frm->OnClose(*frm->Designer, *frm, Action)
+			Select Case Action
+			Case 0
+			Case 1
+				If frm->MainForm Then
+					End 0
+				Else
+					#ifdef __HIDE_NO_MAIN_FORM_ON_CLOSE__
+						SetVisible(frm->Handle, False)
+					#else
+						DeleteElement(frm->Handle)
+						frm->Handle = 0
+					#endif
+				End If
+			Case 2
+			Case 3
+				SetVisible(frm->Handle, False)
+			End Select
 		End If
 	End Sub
 	

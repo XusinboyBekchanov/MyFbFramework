@@ -183,7 +183,7 @@ function _SETUNLOADEVENT(Id) {
 	document.getElementById(Id).onunload = function(){_ONUNLOAD(this.id)};
 }
 
-function _CREATEELEMENT(AddPosition, ClassName, Type, Id, Name, Text, Style, PositionType, Left, Top, Width, Height, Right, Bottom, Parent) {
+function _CREATEELEMENT(AddPosition, ClassName, Class, Type, Id, Name, Text, Style, PositionType, Left, Top, Width, Height, Right, Bottom, Parent) {
 	var strAddPosition = UTF8ToString(HEAPU32[((AddPosition)>>2)]);
 	var strPositionType = UTF8ToString(HEAPU32[((PositionType)>>2)]);
 	var strStyle = UTF8ToString(HEAPU32[((Style)>>2)]);
@@ -194,6 +194,7 @@ function _CREATEELEMENT(AddPosition, ClassName, Type, Id, Name, Text, Style, Pos
 	var strRight = UTF8ToString(HEAPU32[((Right)>>2)]);
 	var strBottom = UTF8ToString(HEAPU32[((Bottom)>>2)]);
 	var strClassName = UTF8ToString(HEAPU32[((ClassName)>>2)]);
+	var strClass = UTF8ToString(HEAPU32[((Class)>>2)]);
 	var strType = UTF8ToString(HEAPU32[((Type)>>2)]);
 	var strName = UTF8ToString(HEAPU32[((Name)>>2)]);
 	var strText = UTF8ToString(HEAPU32[((Text)>>2)]);
@@ -210,6 +211,7 @@ function _CREATEELEMENT(AddPosition, ClassName, Type, Id, Name, Text, Style, Pos
 	}
 	newElement.id = Id;
 	newElement.name = strName;
+	newElement.className = strClass;
 	newElement.style = strStyle;
 	newElement.style.position = strPositionType;
 	newElement.style.left = strLeft;
@@ -226,6 +228,24 @@ function _CREATEELEMENT(AddPosition, ClassName, Type, Id, Name, Text, Style, Pos
 		var ParentElement = document.getElementById(Parent);
 		ParentElement.insertAdjacentElement(strAddPosition, newElement);
 	}
+	if(strClass == "vetdialog box dropshadow") {
+		dragElement(document.getElementById(Id + "Header"), newElement);
+		document.getElementById(Id + "CloseButton").onclick = function(){_ONCLOSE(Id)};
+	}
+}
+
+function _DELETEELEMENT(Id) {
+	if (Id) document.body.removeChild(document.getElementById(Id));
+}
+
+function _GETDOCUMENTWIDTH(Id) {
+	const width  = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+	return width;
+}
+
+function _GETDOCUMENTHEIGHT(Id) {
+	const height = window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+	return height;
 }
 
 var mymod = mymod || {};
@@ -269,12 +289,14 @@ mymod.dialog = (function() {
 		var titdv = document.createElement("div");
 		titdv.className += " flexpanel backgroundmenu unselectable basecolorblue"
 		setElmStyle(titdv,{padding:"8px"})
+		dragElement(titdv, box);
 		var tittxt = document.createElement("div");
 		tittxt.innerHTML = (title == "" || !title) ? "Title" : title;
 		tittxt.className += " "
 		titdv.appendChild(tittxt);
 		var titbut = document.createElement("div");
 		titbut.className += " vetdialogbutton fa fa-remove "
+		titbut.innerHTML = "X";
 		setElmStyle(titbut,{width:"20px",position:"absolute",right:"8px",opacity:"0.7"})
 		titbut.onclick = function(){if (mask) document.body.removeChild(mask);}
 		titdv.appendChild(titbut);
@@ -474,3 +496,33 @@ mymod.dialog = (function() {
 	return _exposed;
 	
 })(mymod.dialog || {});
+
+function dragElement(elmnt, frm) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  elmnt.onmousedown = dragMouseDown;
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    frm.style.top = (frm.offsetTop - pos2) + "px";
+    frm.style.left = (frm.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}

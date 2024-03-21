@@ -128,6 +128,8 @@ Namespace My.Sys.Drawing
 			FResName = ResName
 			#ifdef __USE_GTK__
 				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
+			#elseif defined(__USE_WASM__)
+				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
 			#elseif defined(__USE_WINAPI__)
 				If FindResource(ModuleHandle, ResName, RT_BITMAP) Then
 					Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
@@ -162,9 +164,17 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Operator GraphicType.Let(ByRef Value As WString)
-		If (Not LoadFromResourceID(Val(Value))) AndAlso (Not LoadFromResourceName(Value)) Then
-			LoadFromFile(Value)
-		End If
+		#ifdef __USE_WASM__
+			If InStr(Value, "/") > 0 OrElse InStr(Value, ".") > 0 Then
+				LoadFromFile(Value)
+			Else
+				LoadFromResourceName(Value)
+			End If
+		#else
+			If (Not LoadFromResourceID(Val(Value))) AndAlso (Not LoadFromResourceName(Value)) Then
+				LoadFromFile(Value)
+			End If
+		#endif
 	End Operator
 	
 	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.BitmapType)

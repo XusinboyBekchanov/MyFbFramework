@@ -1142,7 +1142,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Sub MenuItem.BitmapChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.BitmapType)
-		With *cast(MenuItem Ptr, Sender.Graphic)
+		With *Cast(MenuItem Ptr, Sender.Graphic)
 			'.Caption = .Caption
 		End With
 	End Sub
@@ -1211,7 +1211,11 @@ Namespace My.Sys.Forms
 		#else
 			FImage.Graphic = @This
 			FImage.Changed = @BitmapChanged
-			FImage.Handle = 0
+			#ifdef __USE_WASM__
+				FImage.Handle = ""
+			#else
+				FImage.Handle = 0
+			#endif
 		#endif
 		Caption = wCaption
 		FImageIndex = -1
@@ -2082,11 +2086,19 @@ End Namespace
 		Return PMenuItem->Add(sCaption, sImageKey, sKey, eClick, False, Index)
 	End Function
 	
+	Function MenuItemIndexOf Alias "MenuItemIndexOf" (PParentMenuItem As My.Sys.Forms.MenuItem Ptr, PMenuItem As My.Sys.Forms.MenuItem Ptr) As Integer Export
+		Return PParentMenuItem->IndexOf(PMenuItem)
+	End Function
+	
+	Function MenuItemIndexOfKey Alias "MenuItemIndexOfKey" (PParentMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef Key As WString) As Integer Export
+		Return PParentMenuItem->IndexOf(Key)
+	End Function
+	
 	Function MenuAdd Alias "MenuAdd"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenuItem->Add(sCaption, sImageKey, sKey, eClick, False, Index)
 	End Function
 	
-	Function MenuItemAddWithBitmapType Alias "MenuItemAddWithBitmapType"(PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType Ptr, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
+	Function MenuItemAddWithBitmapType Alias "MenuItemAddWithBitmapType" (PMenuItem As My.Sys.Forms.MenuItem Ptr, ByRef sCaption As WString, iImage As My.Sys.Drawing.BitmapType Ptr, sKey As String = "", eClick As Any Ptr = NULL, Index As Integer = -1) As My.Sys.Forms.MenuItem Ptr Export
 		Return PMenuItem->Add(sCaption, *iImage, sKey, eClick, False, Index)
 	End Function
 	

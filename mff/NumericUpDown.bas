@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 	Private Sub NumericUpDown.MoveUpDownControl
 		#ifdef __USE_WINAPI__
 			If Not FHandleIsAllocated Then Exit Sub
-			MoveWindow UpDownControl.Handle, ScaleX(Width - UpDownControl.Width) - 3, -1, ScaleX(UpDownControl.Width), ScaleY(Height) - 3, True
+			MoveWindow UpDownControl.Handle, ScaleX(Width - UpDownControl.Width) - 3, 0, ScaleX(UpDownControl.Width), ScaleY(Height) - 3, True
 		#endif
 	End Sub
 	

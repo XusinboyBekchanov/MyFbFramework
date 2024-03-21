@@ -203,7 +203,7 @@ End Namespace
 		    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
 				xdpi = dpi / 96
 				ydpi = dpi / 96
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
@@ -232,7 +232,7 @@ End Namespace
 		    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
 				xdpi = dpi / 96
 				ydpi = dpi / 96
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
@@ -260,7 +260,7 @@ End Namespace
 		    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
 				xdpi = dpi / 96
 				ydpi = dpi / 96
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim hDC As HDC
 				hDC = GetDC(NULL)
 				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96

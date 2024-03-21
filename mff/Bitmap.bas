@@ -84,6 +84,8 @@ Namespace My.Sys.Drawing
 				Handle = gdk_pixbuf_new_from_file_at_size(ToUtf8(File), cxDesired, cyDesired, @gerr)
 			End If
 			If Handle = 0 Then Return False
+		#elseif defined(__USE_WASM__)
+			Handle = File
 		#elseif defined(__USE_WINAPI__)
 			Dim As Integer Pos1 = InStrRev(File, ".")
 			Select Case LCase(Mid(File, Pos1 + 1))
@@ -356,6 +358,8 @@ Namespace My.Sys.Drawing
 					Handle = gdk_pixbuf_new_from_resource(ToUtf8(ResName), @gerr)
 				End If
 				If gerr Then Print gerr->code, *gerr->message
+			#elseif defined(__USE_WASM__)
+				Handle = "Resources/" & ResName & ".png"
 			#elseif defined(__USE_WINAPI__)
 				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 				Dim As BITMAP BMP
@@ -482,6 +486,8 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			If Handle Then DeleteObject Handle
 			Handle = 0
+		#elseif defined(__USE_WASM__)
+			Handle = ""
 		#endif
 		'If Changed Then Changed(This)
 	End Sub
@@ -496,6 +502,12 @@ Namespace My.Sys.Drawing
 			WLet(FResName, Value)
 			#ifdef __USE_GTK__
 				If StartsWith(Value, "/") Then
+					LoadFromFile(Value)
+				Else
+					LoadFromResourceName(Value)
+				End If
+			#elseif defined(__USE_WASM__)
+				If StartsWith(Value, "/") OrElse InStr(Value, ".") > 0 Then
 					LoadFromFile(Value)
 				Else
 					LoadFromResourceName(Value)

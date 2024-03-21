@@ -899,6 +899,9 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				#elseif defined(__USE_WASM__)
+					If FHandle = 0 And CInt(Value) Then
+						CreateWnd
+					End If
 					If FHandle Then
 						SetVisible(FHandle, Value)
 					End If
@@ -1083,13 +1086,26 @@ Namespace My.Sys.Forms
 				If HClassName = "" Then HClassName = "div"
 				If FParent Then HParent = FParent->Handle
 				FHandle = @This
+				Select Case FStartPosition
+				Case 0 ' Manual
+				Case 1, 4 ' CenterScreen, CenterParent
+					If FStartPosition = 4 AndAlso FParent Then ' CenterParent
+						With *Cast(Control Ptr, FParent)
+							nLeft = ScaleX(.Left) + (ScaleX(.Width) - nWidth) \ 2: nTop  = ScaleY(.Top) + (ScaleY(.Height) - nHeight) \ 2
+						End With
+					Else ' CenterScreen
+						nLeft = (GetDocumentWidth() - nWidth) \ 2: nTop  = (GetDocumentHeight() - nHeight) \ 2
+					End If
+				Case 2: nLeft = 10: nTop = 10 ' WindowsDefaultLocation
+				Case 3: nLeft = 10: nTop = 10: nWidth = 350: nHeight = 300 ' WindowsDefaultBounds
+				End Select
 				Dim As String sLeft = IIf(FAlign = alRight, "", IIf(Anchor.Left <> asAnchor AndAlso Anchor.Right = asAnchor, "", nLeft & "px"))
 				Dim As String sTop = IIf(FAlign = alBottom, "", IIf(Anchor.Top <> asAnchor AndAlso Anchor.Bottom = asAnchor, "", nTop & "px"))
 				Dim As String sWidth = IIf(FAlign = alClient OrElse FAlign = alTop OrElse FAlign = alBottom, "100%", IIf(Anchor.Left = asAnchor AndAlso Anchor.Right = asAnchor, "", nWidth & "px"))
 				Dim As String sHeight = IIf(FAlign = alClient OrElse FAlign = alLeft OrElse FAlign = alRight, "100%", IIf(Anchor.Top = asAnchor AndAlso Anchor.Bottom = asAnchor, "", nHeight & "px"))
 				Dim As String sRight = IIf(FAlign = alRight, "0px", IIf(Anchor.Right = asAnchor AndAlso FParent <> 0, (FParent->Width - nLeft - nWidth) & "px", ""))
 				Dim As String sBottom = IIf(FAlign = alBottom, "0px", IIf(Anchor.Bottom = asAnchor AndAlso FParent <> 0, (FParent->Height - nTop - nHeight) & "px", ""))
-				CreateElement(IIf(FMainForm, "afterbegin", "beforeend"), HClassName, FType, FHandle, *FName, ToUtf8(GetContent), FElementStyle, IIf(FMainForm, "inline", "absolute"), sLeft, sTop, sWidth, sHeight, sRight, sBottom, HParent)
+				CreateElement(IIf(FMainForm, "afterbegin", "beforeend"), HClassName, FClass, FType, FHandle, *FName, ToUtf8(GetContent), FElementStyle, IIf(FMainForm, "inline", "absolute"), sLeft, sTop, sWidth, sHeight, sRight, sBottom, HParent)
 				If OnClick Then SetClickEvent(FHandle)
 				If OnDblClick Then SetDblClickEvent(FHandle)
 				If OnGotFocus Then SetGotFocusEvent(FHandle)
@@ -2637,6 +2653,11 @@ Namespace My.Sys.Forms
 					FClientX = lLeft: FClientY = tTop: FClientW = Max(0, rLeft - lLeft): FClientH = Max(0, bTop - tTop)
 					MoveWindow FClient, ScaleX(FClientX), ScaleY(FClientY), ScaleX(FClientW), ScaleY(FClientH), True
 				End If
+			#elseif defined(__USE_WASM__)
+				'If FClient Then
+				'	FClientX = lLeft: FClientY = tTop: FClientW = Max(0, rLeft - lLeft): FClientH = Max(0, bTop - tTop)
+				'	MoveWindow FClient, ScaleX(FClientX), ScaleY(FClientY), ScaleX(FClientW), ScaleY(FClientH), True
+				'End If
 			#endif
 			'#EndIf
 			If ListLeft   Then _Deallocate( ListLeft)

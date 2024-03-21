@@ -331,7 +331,7 @@ Namespace My.Sys.Forms
 						Else
 							Canvas.Brush.Color = BGR(51, 51, 51)
 						End If
-						Rectangle Dc, 1, 1, iWidth, iHeight / 2 '- 1
+						Rectangle Dc, 1, 1, iWidth - 1, iHeight / 2 '- 1
 						If MouseIn AndAlso Y > iHeight / 2 Then
 							If DownButton = 1 Then
 								Canvas.Brush.Color = BGR(102, 102, 102)
@@ -341,7 +341,7 @@ Namespace My.Sys.Forms
 						Else
 							Canvas.Brush.Color = BGR(51, 51, 51)
 						End If
-						Rectangle Dc, 1, iHeight / 2, iWidth, iHeight - 1 '- 1
+						Rectangle Dc, 1, iHeight / 2, iWidth - 1, iHeight - 1 '- 1
 						Canvas.Pen.Color = BGR(173, 173, 173)
 						MoveToEx Dc, Fix((iWidth - 3) / 2) + 1, 1 + Fix((iHeight / 2 - 4) / 2), 0
 						LineTo Dc, Fix((iWidth - 3) / 2) + 2, 1 + Fix((iHeight / 2 - 4) / 2)

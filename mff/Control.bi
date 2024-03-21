@@ -198,6 +198,7 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				FType As String
 				FElementStyle As String
+				FClass As String
 				Declare Virtual Function GetContent() As UString
 			#elseif defined(__USE_WINAPI__)
 				FParentHandle As HWND

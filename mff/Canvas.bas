@@ -994,7 +994,11 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByRef ImageSource As My.Sys.Drawing.BitmapType) As Any Ptr
-		Return Get(x, y, nWidth , nHeight, ImageSource.Handle)
+		#ifdef __USE_WASM__
+			Return 0
+		#else
+			Return Get(x, y, nWidth , nHeight, ImageSource.Handle)
+		#endif
 	End Function
 	
 	Private Function Canvas.Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByVal ImageSource As Any Ptr) As Any Ptr
@@ -1040,7 +1044,9 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByRef Image As My.Sys.Drawing.BitmapType, iSourceAlpha As Integer = 255)
-		DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
+		#ifndef __USE_WASM__
+			DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
+		#endif
 	End Sub
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)
@@ -1098,7 +1104,9 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
-		This.Draw(x, y, Image.Handle)
+		#ifndef __USE_WASM__
+			This.Draw(x, y, Image.Handle)
+		#endif
 	End Sub
 	
 	Private Sub Canvas.Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)
@@ -1218,7 +1226,9 @@ Namespace My.Sys.Drawing
 		End Sub
 		
 		Private Sub Canvas.DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
-			DrawTransparent ScaleX(x), ScaleY(y), Image.Handle, cTransparentColor
+			#ifndef __USE_WASM__
+				DrawTransparent ScaleX(x), ScaleY(y), Image.Handle, cTransparentColor
+			#endif
 		End Sub
 	#endif
 	

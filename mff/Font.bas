@@ -244,12 +244,13 @@ Namespace My.Sys.Drawing
 		FCharSet  = FontCharset.Default
 		WLet(FName, DefaultFont.Name)
 		FSize     = DefaultFont.Size
-		#ifndef __FB_WIN32__
-			If *FName = "" Then WLet(FName, "Ubuntu")
-			If FSize = 0 Then FSize = 11
-		#else
+		#ifdef __FB_WIN32__
 			If *FName = "" Then WLet(FName, "Tahoma")
 			If FSize = 0 Then FSize = 8
+		#elseif defined(__USE_WASM__)
+		#else
+			If *FName = "" Then WLet(FName, "Ubuntu")
+			If FSize = 0 Then FSize = 11
 		#endif
 		#ifdef __USE_WINAPI__
 			If xdpi = 0 OrElse ydpi = 0 Then
@@ -276,11 +277,14 @@ Namespace My.Sys.Drawing
 		#endif
 	End Destructor
 	
-	#ifndef __FB_WIN32__
-		DefaultFont.Name = "Ubuntu"
-		DefaultFont.Size = 11
-	#else
+	#ifdef __FB_WIN32__
 		DefaultFont.Name = "Tahoma"
 		DefaultFont.Size = 8
+	#elseif defined(__USE_WASM__)
+		DefaultFont.Name = ""
+		DefaultFont.Size = 0
+	#else
+		DefaultFont.Name = "Ubuntu"
+		DefaultFont.Size = 11
 	#endif
 End Namespace
