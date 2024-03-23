@@ -175,7 +175,9 @@ Namespace My.Sys.Forms
 		Private Sub Picture.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QPicture(Sender.Child)
-					.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+					#ifdef __USE_WINAPI__
+						.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+					#endif
 				End With
 			End If
 		End Sub
