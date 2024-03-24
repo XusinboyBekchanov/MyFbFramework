@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WASM__)
 			Dim ptr_ As ZString Ptr = GetStringValue(@This)
 			FText = *ptr_
-			Free(ptr_)
+			FreePtr(ptr_)
 			Return *FText.vptr
 		#else
 			Return Base.Text

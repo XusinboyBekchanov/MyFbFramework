@@ -19,6 +19,26 @@ addListener('load', window, function(event) {
 	addOnPostRun(_ONSTART);
 });
 
+function _SENDHTTPREQUEST(url, method, data) {
+	var strUrl = UTF8ToString(HEAPU32[((url)>>2)]);
+	var strMethod = UTF8ToString(HEAPU32[((method)>>2)]);
+	var strData = UTF8ToString(HEAPU32[((data)>>2)]);
+	var ptr;
+	var xhr = new XMLHttpRequest();
+	xhr.open(strMethod, strUrl, false);
+	xhr.setRequestHeader('Content-Type', 'application/text');
+	xhr.send(strData);
+	var statusText
+	if (xhr.status >= 200 && xhr.status < 300) {
+		statusText = xhr.status + ":" + xhr.responseText;
+	} else {
+		statusText = xhr.status + ":" + xhr.statusText;
+		
+	};
+	var ptr = stringToNewUTF8(statusText);
+	return ptr;
+}
+
 function _MESSAGEBOX(Message, Caption, MessageType, ButtonsType) {
 	var msg = UTF8ToString(HEAPU32[((Message)>>2)]);
 	var ttl = UTF8ToString(HEAPU32[((Caption)>>2)]);
@@ -78,7 +98,7 @@ function _SETVISIBLE(Id, value) {
 	document.getElementById(Id).style.display = (value)? 'inline':'none';
 }
 
-function _FREE(ptr) {
+function _FREEPTR(ptr) {
 	_free(ptr);
 }
 

@@ -93,6 +93,7 @@
 	Declare Sub SetMouseLeaveEvent(Id As Any Ptr)
 	Declare Sub SetMouseWheelEvent(Id As Any Ptr)
 	Declare Sub SetUnloadEvent(Id As Any Ptr)
+	#define NULL 0
 #elseif defined(__USE_WINAPI__)
 	#include once "win/wincrypt.bi"
 	#include once "Win/CommCtrl.bi"
@@ -103,6 +104,9 @@
 #endif
 #include once "UString.bi"
 #include once "Integer.bi"
+#ifdef __USE_WASM__
+	Declare Function SendHTTPRequest(url As String, method As String, data As String) As ZString Ptr
+#endif
 
 #ifdef __EXPORT_PROCS__
 	#define PublicOrPrivate Public
