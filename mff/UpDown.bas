@@ -480,8 +480,8 @@ Namespace My.Sys.Forms
 				Base.Style             = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 				.DoubleBuffered = True
 				.OnHandleIsAllocated = @HandleIsAllocated
-				.Width             = GetSystemMetrics(SM_CXVSCROLL)
-				.Height            = GetSystemMetrics(SM_CYVSCROLL)
+				.Width             = UnScaleX(GetSystemMetrics(SM_CXVSCROLL))
+				.Height            = UnScaleY(GetSystemMetrics(SM_CYVSCROLL))
 				.Height            = .Height + (.Height \ 2)
 			#endif
 			WLet(FClassName, "UpDown")
