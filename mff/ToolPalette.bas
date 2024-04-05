@@ -416,7 +416,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function ToolGroups.IndexOf(ByRef FGroup As ToolGroup Ptr) As Integer
-		Return FGroups.IndexOF(FGroup)
+		Return FGroups.IndexOf(FGroup)
 	End Function
 	
 	Private Function ToolGroups.IndexOf(ByRef Key As WString) As Integer
@@ -491,11 +491,11 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			FAutosize = StyleExists(TBSTYLE_AUTOSIZE)
 		#endif
-		Return FAutoSize
+		Return FAutosize
 	End Property
 	
 	Private Property ToolPalette.AutoSize(Value As Boolean)
-		FAutoSize = Value
+		FAutosize = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_AUTOSIZE, Value
 			If FHandle Then If FAutosize Then Perform(TB_AUTOSIZE, 0, 0)
@@ -509,14 +509,14 @@ Namespace My.Sys.Forms
 	Private Property ToolPalette.Style(Value As Integer)
 		FStyle = Value
 		#ifdef __USE_GTK__
-			Dim As GtkToolBarStyle gStyle
+			Dim As GtkToolbarStyle gStyle
 			Select Case FStyle
 			Case 0: gStyle = GTK_TOOLBAR_ICONS
 			Case 1: gStyle = GTK_TOOLBAR_TEXT
 			Case 2: gStyle = GTK_TOOLBAR_BOTH
 			Case 3: gStyle = GTK_TOOLBAR_BOTH_HORIZ
 			End Select
-			gtk_tool_palette_set_style(gtk_tool_palette(widget), gStyle)
+			gtk_tool_palette_set_style(GTK_TOOL_PALETTE(widget), gStyle)
 			'For i As Integer = 0 To Groups.Count - 1
 			'	For j As Integer = 0 To Groups.Item(i)->Buttons.Count - 1
 			'		With *Groups.Item(i)->Buttons.Item(i)
@@ -524,8 +524,8 @@ Namespace My.Sys.Forms
 			'		End With
 			'	Next j
 			'Next i
-			If gtk_is_container(widget) Then gtk_widget_queue_resize(widget)
-			If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
+			If GTK_IS_CONTAINER(widget) Then gtk_widget_queue_resize(widget)
+			If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 		#else
 			For j As Integer = 0 To Groups.Count - 1
 				For i As Integer = 0 To Groups.Item(j)->Buttons.Count - 1
@@ -705,6 +705,52 @@ Namespace My.Sys.Forms
 					GetWindowRect Handle, @R
 					FHeight = R.Bottom - R.Top
 				End If
+			Case WM_LBUTTONDBLCLK
+				Var nIndex = SendMessage(FHandle, TB_GETHOTITEM, 0, 0)
+				If nIndex >= 0 Then
+					Dim As TBBUTTONINFO tbinfo
+					tbinfo.cbSize = SizeOf(TBBUTTONINFO)
+					tbinfo.dwMask = TBIF_COMMAND Or TBIF_BYINDEX
+					SendMessage(FHandle, TB_GETBUTTONINFO, nIndex, Cast(LPARAM, @tbinfo))
+					Dim As UINT nCommand = tbinfo.idCommand
+					Dim As Integer gi, bi
+					Dim As String comm = Trim(Str(nCommand))
+					gi = Val(..Left(comm, Len(comm) - 2)) - 1
+					bi = Val(Mid(comm, Len(comm) - 1)) - 1
+					If gi > -1 AndAlso gi < Groups.Count Then
+						If bi = -1 Then
+							'Groups.Item(gi)->Expanded = Not Groups.Item(gi)->Expanded
+						ElseIf bi > -1 AndAlso bi < Groups.Item(gi)->Buttons.Count Then
+							Dim As ToolButton Ptr but = Groups.Item(gi)->Buttons.Item(bi)
+							If OnButtonActivate Then OnButtonActivate(*Designer, This, *but)
+							Message.Result = -1
+						End If
+					End If
+				End If
+			Case WM_KEYDOWN
+				If Message.wParam = VK_RETURN Then
+					Var nIndex = SendMessage(FHandle, TB_GETHOTITEM, 0, 0)
+					If nIndex >= 0 Then
+						Dim As TBBUTTONINFO tbinfo
+						tbinfo.cbSize = SizeOf(TBBUTTONINFO)
+						tbinfo.dwMask = TBIF_COMMAND Or TBIF_BYINDEX
+						SendMessage(FHandle, TB_GETBUTTONINFO, nIndex, Cast(LPARAM, @tbinfo))
+						Dim As UINT nCommand = tbinfo.idCommand
+						Dim As Integer gi, bi
+						Dim As String comm = Trim(Str(nCommand))
+						gi = Val(..Left(comm, Len(comm) - 2)) - 1
+						bi = Val(Mid(comm, Len(comm) - 1)) - 1
+						If gi > -1 AndAlso gi < Groups.Count Then
+							If bi = -1 Then
+								Groups.Item(gi)->Expanded = Not Groups.Item(gi)->Expanded
+							ElseIf bi > -1 AndAlso bi < Groups.Item(gi)->Buttons.Count Then
+								Dim As ToolButton Ptr but = Groups.Item(gi)->Buttons.Item(bi)
+								but->Checked = True
+								If OnButtonActivate Then OnButtonActivate(*Designer, This, *but)
+							End If
+						End If
+					End If
+				End If
 			Case WM_COMMAND
 				GetDropDownMenuItems
 				For i As Integer = 0 To FPopupMenuItems.Count -1
@@ -728,6 +774,7 @@ Namespace My.Sys.Forms
 						ElseIf bi > -1 AndAlso bi < Groups.Item(gi)->Buttons.Count Then
 							Dim As ToolButton Ptr but = Groups.Item(gi)->Buttons.Item(bi)
 							If but->OnClick Then but->OnClick(*but->Designer, *but)
+							If OnButtonClick Then OnButtonClick(*Designer, This, *but)
 						End If
 					End If
 				End If
@@ -832,7 +879,7 @@ Namespace My.Sys.Forms
 							Else
 								TB.iString   = 0
 							End If
-							TB.dwData    = Cast(DWord_Ptr, @.Groups.Item(j)->Buttons.Item(i)->DropDownMenu)
+							TB.dwData    = Cast(DWORD_PTR, @.Groups.Item(j)->Buttons.Item(i)->DropDownMenu)
 							.FHandle = FHandle
 							.Perform(TB_ADDBUTTONS, 1, CInt(@TB))
 						Next i
@@ -852,10 +899,10 @@ Namespace My.Sys.Forms
 		With This
 			#ifdef __USE_GTK__
 				widget = gtk_tool_palette_new()
-				gtk_tool_palette_set_style(gtk_tool_palette(widget), GTK_TOOLBAR_BOTH_HORIZ)
+				gtk_tool_palette_set_style(GTK_TOOL_PALETTE(widget), GTK_TOOLBAR_BOTH_HORIZ)
 				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-				gtk_container_add(gtk_container(scrolledwidget), widget)
+				gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+				gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 				.RegisterClass "ToolPalette", @This
 			#else
 				AFlat(0)        = 0

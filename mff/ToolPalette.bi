@@ -172,7 +172,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		OnButtonClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolPalette,ByRef Button As ToolButton)
+		OnButtonActivate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolPalette, ByRef Button As ToolButton)
+		OnButtonClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolPalette, ByRef Button As ToolButton)
 	End Type
 End Namespace
 
