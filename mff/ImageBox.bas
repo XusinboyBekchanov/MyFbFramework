@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ImageBox.AutoSize(Value As Boolean)
 		FAutoSize = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 		#endif
 		RecreateWnd
@@ -104,7 +104,7 @@ Namespace My.Sys.Forms
 	Private Property ImageBox.Style(Value As ImageBoxStyle)
 		'If Value <> FImageStyle Then
 			FImageStyle = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize)) Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 	Private Property ImageBox.RealSizeImage(Value As Boolean)
 		If Value <> FRealSizeImage Then
 			FRealSizeImage = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize))  Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
 			#endif
 			RecreateWnd
@@ -132,8 +132,14 @@ Namespace My.Sys.Forms
 	Private Property ImageBox.CenterImage(Value As Boolean)
 		If Value <> FCenterImage Then
 			FCenterImage = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or AStyle(abs_(FImageStyle)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ARealSizeControl(abs_(FAutoSize))  Or ACenterImage(abs_(FCenterImage AndAlso Not FAutoSize))
+			#elseif defined(__USE_WASM__)
+				If Value Then 
+					FElementStyle = Replace(FElementStyle, "background-size: cover;", "background-position: center;")
+				Else
+					FElementStyle = Replace(FElementStyle, "background-position: center;", "background-size: cover;")
+				End If
 			#endif
 			RecreateWnd
 		End If
@@ -149,7 +155,7 @@ Namespace My.Sys.Forms
 					Case 1
 						gtk_image_set_from_pixbuf(GTK_IMAGE(.Ctrl->widget), .Icon.Handle)
 					End Select
-				#else
+				#elseif defined(__USE_WINAPI__)
 					Select Case ImageType
 					Case 0
 						QImageBox(.Ctrl->Child).Style = ImageBoxStyle.ssBitmap
@@ -164,6 +170,13 @@ Namespace My.Sys.Forms
 						QImageBox(.Ctrl->Child).Style = ImageBoxStyle.ssEmf
 						QImageBox(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(0))
 					End Select
+				#elseif defined(__USE_WASM__)
+					Select Case ImageType
+					Case 0
+						.Ctrl->FElementStyle &= "background-image: url('" & .Bitmap.Handle & "');background-repeat: no-repeat;" & IIf(Cast(ImageBox Ptr, .Ctrl)->FCenterImage, "background-position: center;", "background-size: cover;")
+					Case 1
+						.Ctrl->FElementStyle &= "background-image: url('" & .Icon.Handle & "');background-repeat: no-repeat;" & IIf(Cast(ImageBox Ptr, .Ctrl)->FCenterImage, "background-position: center;", "background-size: cover;")
+					End Select
 				#endif
 			End If
 		End With
@@ -173,7 +186,9 @@ Namespace My.Sys.Forms
 		Private Sub ImageBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QImageBox(Sender.Child)
-					.Perform(STM_SETIMAGE,.Graphic.ImageType,CInt(.Graphic.Image))
+					#ifdef __USE_WINAPI__
+						.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+					#endif
 				End With
 			End If
 		End Sub
@@ -181,9 +196,15 @@ Namespace My.Sys.Forms
 		Private Sub ImageBox.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
-		
+	
+	#ifdef __USE_WASM__
+		Private Function ImageBox.GetContent() As UString
+			Return ""
+		End Function
+	#endif
+	
 	Private Sub ImageBox.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_SIZE
 				InvalidateRect(Handle,NULL,True)
@@ -227,7 +248,7 @@ Namespace My.Sys.Forms
 			eventboxwidget = gtk_event_box_new()
 			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			This.RegisterClass "ImageBox", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			AStyle(0)        = SS_BITMAP
 			AStyle(1)        = SS_ICON
 			AStyle(2)        = SS_ICON
@@ -247,7 +268,8 @@ Namespace My.Sys.Forms
 		FCenterImage   = True
 		With This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			WLet(FClassName, "ImageBox")
+			#ifdef __USE_WINAPI__
 				.RegisterClass "ImageBox", "Static"
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
@@ -255,9 +277,8 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
+				WLet(FClassAncestor, "Static")
 			#endif
-			WLet(FClassName, "ImageBox")
-			WLet(FClassAncestor, "Static")
 			.Width       = 90
 			.Height      = 17
 		End With

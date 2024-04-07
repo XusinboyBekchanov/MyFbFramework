@@ -39,6 +39,9 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 	Protected:
+		#ifdef __USE_WASM__
+			Declare Virtual Function GetContent() As UString
+		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Graphic            As My.Sys.Drawing.GraphicType
@@ -61,7 +64,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			OnDraw     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ImageBox, ByRef R As My.Sys.Drawing.Rect, DC As HDC = 0)
 		#endif
 	End Type
