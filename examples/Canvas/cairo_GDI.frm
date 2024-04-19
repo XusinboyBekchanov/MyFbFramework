@@ -1,5 +1,5 @@
 ﻿'################################################################################
-'#  cairo_fbgfx.frm                                                              #
+'#  cairo_GDI.frm                                                              #
 '#  This file is an examples of MyFBFramework.                                  #
 '#  Authors: Xusinboy Bekchanov, Liu XiaLin                                     #
 '################################################################################
@@ -18,28 +18,13 @@
 	#include once "mff/Label.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/TrackBar.bi"
+	#include once "mff/TimerComponent.bi"
 	Using My.Sys.Forms
-	#define __fbgfx_bi__
-	#define __USE_CAIRO__
-	'This is where you define module-level Shared variables and Add include file.
-	'The "RenderProj" sub is the main rendering code subroutine.
-	'在这儿定义模块级别共享变量和添加引用。“RenderProj”过程是主要的渲染代码主过程。
-	Declare Sub RenderProj(Param As Any Ptr)
-	Dim Shared As Any Ptr HandleRender
-	'' include fbgfx.bi for some useful definitions
-	#include once "fbgfx.bi"
-	#include once "cairo/cairo.bi"
-	
-	'if drawing with RayLib
-	'#include once "inc/raymath.bi"
-	'#include once "inc/raylib.bi"
-	'Using RayLib
-	'
+	#include once "cairo/cairo-win32.bi"
 	
 	Dim Shared As cairo_surface_t Ptr cairoSurface
 	Dim Shared As cairo_t Ptr cairoCreate
-	Dim Shared As Any Ptr image
-	Dim Shared As Any Ptr pixels
+	
 	Dim Shared As Boolean Ending, Playing = True
 	' Adjust speed here
 	Dim Shared As Long speed = 160 ' Frames Per Second
@@ -64,25 +49,28 @@
 		Declare Sub cmdPause_Click(ByRef Sender As Control)
 		Declare Sub TrackBarFPS_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub PanelRender_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub TimerFPS_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
 		
 		Dim As Panel PanelRender
 		Dim As Label lblFPS, lblLanguage
 		Dim As CommandButton cmdPause, cmdPlay
 		Dim As TrackBar TrackBarFPS
+		Dim As TimerComponent TimerFPS
 	End Type
 	
 	Constructor Form1Type
 		#if _MAIN_FILE_ = __FILE__
 			With App
-				.CurLanguagePath = ExePath & "/"
+				.CurLanguagePath = ExePath & "/Languages/"
 				.CurLanguage = "Chinese (Simplified)" '.Language
 			End With
 		#endif
 		' Form1
 		With This
 			.Name = "Form1"
-			.Text = "VisualFBEditor-Cairo with fbgfx"
+			.Text = "VisualFBEditor-Cairo with GDI"
 			.Designer = @This
 			.StartPosition = FormStartPosition.CenterScreen
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
@@ -98,6 +86,7 @@
 			.Text = "PanelRender"
 			.TabIndex = 2
 			.BackColor = 8421376
+			.DoubleBuffered = True 
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asAnchor
@@ -105,6 +94,7 @@
 			.SetBounds 90, 10, 510, 400
 			.Designer = @This
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @PanelRender_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @PanelRender_Paint)
 			.Parent = @This
 		End With
 		' lblFPS
@@ -132,8 +122,8 @@
 			.Text = ML("Play")
 			.TabIndex = 3
 			.ControlIndex = 2
-			.Enabled = False 
 			.SetBounds 20, 100, 60, 20
+			.Enabled = False 
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdPlay_Click)
 			.Parent = @This
@@ -163,6 +153,16 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' TimerFPS
+		With TimerFPS
+			.Name = "TimerFPS"
+			.Interval = 50
+			.Enabled = True
+			.SetBounds 20, 170, 16, 16
+			.Designer = @This
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerFPS_Timer)
+			.Parent = @This
+		End With
 	End Constructor
 	
 	Dim Shared Form1 As Form1Type
@@ -171,9 +171,6 @@
 		App.DarkMode = False
 		Form1.MainForm = True
 		Form1.Show
-		' Put the Render code here
-		'ThreadcairoCreateeate_(@RenderProj, 0)
-		RenderProj(0)
 		App.Run
 	#endif
 '#End Region
@@ -191,97 +188,11 @@ End Function
 
 'the main rendering code.  渲染代码主过程。
 Sub RenderProj(Param As Any Ptr)
-	#ifdef __fbgfx_bi__
-		Do While Not Ending
-			If Not Playing  Then Exit Do
-			' Calculate acceleration
-			accel1 = -g / length * Sin(angle1)
-			accel2 = -g / length * Sin(angle2)
-			accel3 = -g / length * Sin(angle3)
-			accel4 = -g / length * Sin(angle4)
-			accel5 = -g / length * Sin(angle5)
-			accel6 = -g / length * Sin(angle6)
-			
-			' Update velocities
-			vel1 += accel1 * dt
-			vel2 += accel2 * dt
-			vel3 += accel3 * dt
-			vel4 += accel4 * dt
-			vel5 += accel5 * dt
-			vel6 += accel6 * dt
-			
-			' Update angles
-			angle1 += vel1 * dt
-			angle2 += vel2 * dt
-			angle3 += vel3 * dt
-			angle4 += vel4 * dt
-			angle5 += vel5 * dt
-			angle6 += vel6 * dt
-			
-			cairo_set_source_rgb(cairoCreate, 0, 0, 0)
-			cairo_paint(cairoCreate)
-			
-			' circle for pivot
-			cairo_arc(cairoCreate, 320, 320, 10, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 0, 1, 1) : cairo_fill(cairoCreate)
-			
-			' Draw sticks
-			cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle1), 320 + length * Cos(angle1)) : cairo_set_source_rgb(cairoCreate, 1, 0, 1) : cairo_stroke(cairoCreate)
-			cairo_arc(cairoCreate, 320 + length * Sin(angle1), 320 + length * Cos(angle1), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 0, 1) : cairo_fill(cairoCreate)
-			cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle2), 320 + length * Cos(angle2)) : cairo_set_source_rgb(cairoCreate, 0, 1, 0) : cairo_stroke(cairoCreate)
-			cairo_arc(cairoCreate, 320 + length * Sin(angle2), 320 + length * Cos(angle2), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 0, 1, 0) : cairo_fill(cairoCreate)
-			cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle3), 320 + length * Cos(angle3)) : cairo_set_source_rgb(cairoCreate, 1, 1, 0) : cairo_stroke(cairoCreate)
-			cairo_arc(cairoCreate, 320 + length * Sin(angle3), 320 + length * Cos(angle3), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 1, 0) : cairo_fill(cairoCreate)
-			cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle4), 320 + length * Cos(angle4)) : cairo_set_source_rgb(cairoCreate, 0, 1, 1) : cairo_stroke(cairoCreate)
-			cairo_arc(cairoCreate, 320 + length * Sin(angle4), 320 + length * Cos(angle4), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 0, 1, 1) : cairo_fill(cairoCreate)
-			cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle5), 320 + length * Cos(angle5)) : cairo_set_source_rgb(cairoCreate, 1, 0, 0) : cairo_stroke(cairoCreate)
-			cairo_arc(cairoCreate, 320 + length * Sin(angle5), 320 + length * Cos(angle5), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 0, 0) : cairo_fill(cairoCreate)
-			cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle6), 320 + length * Cos(angle6)) : cairo_set_source_rgb(cairoCreate, 1, 1, 1) : cairo_stroke(cairoCreate)
-			cairo_arc(cairoCreate, 320 + length * Sin(angle6), 320 + length * Cos(angle6), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 1, 1) : cairo_fill(cairoCreate)
-			
-			ScreenLock()
-			Put (0, 0), image, PSet
-			ScreenUnlock()
-			'speed = Form1.TrackBarFPS.Position
-			'Playing = Form1.cmdPlay.Enabled
-			Form1.lblFPS.Text = "FPS:" & speed
-			App.DoEvents
-			Ending = Len(Inkey) > 0
-			Sleep regulate(speed, fps), 1
-		Loop
-	#elseif defined(RAYLIB_H)
-		
-	#endif
+	
 End Sub
 
 Private Sub Form1Type.Form_Create(ByRef Sender As Control)
-	'Initialize the drawing engine in sub Form_Create or Form_Show. The official freeBasic drawing engine is fbgfx,
-	'and third-party drawing engines like RayLib are employed. It cannot be mixed simultaneously.
-	'在Form_Create或者Form_Show初始化绘图引擎。freeBasic官方绘图引擎是fbgfx，第三方绘图引擎如RayLib。不能同时混用。
-	#ifdef __fbgfx_bi__
-		Dim As Integer IMAGE_W = ScaleX(PanelRender.Width)
-		Dim As Integer IMAGE_H = ScaleY(PanelRender.Height)
-		ScreenRes IMAGE_W, IMAGE_H, 32
-		ScreenControl(2, Cast(Integer, HandleRender))
-		'Line (0, 0) - (Sender.Width, Sender.Height), RGB(192, 192, 192), BF
-		image = ImageCreate(IMAGE_W, IMAGE_H)
-		ImageInfo(image, IMAGE_W, IMAGE_H, , , pixels)
-		Dim As Long stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, IMAGE_W) ' https://www.freebasic.net/forum/viewtopic.php?p=215065#p215065
-		cairoSurface = cairo_image_surface_create_for_data(pixels, CAIRO_FORMAT_ARGB32, IMAGE_W, IMAGE_H, stride)
-		cairoCreate = cairo_create(cairoSurface)
-		' Adjust speed here
-		speed = 60 ' Frames Per Second
-		
-	#elseif defined(RAYLIB_H)
-		
-	#endif
 	
-	'Move the render windows to container PanelRender.
-	'将渲染绘画窗口移动到容器PanelRender。
-	If HandleRender > 0 Then
-		SetParent(HandleRender, PanelRender.Handle)
-		SetWindowLongW(HandleRender, GWL_STYLE, WS_VISIBLE)
-		MoveWindow(HandleRender, 0, 0, IMAGE_W, IMAGE_H, True)
-	End If
 End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
@@ -291,21 +202,11 @@ End Sub
 
 Private Sub Form1Type.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	Ending = True
-	#ifdef __fbgfx_bi__
-		cairo_destroy(cairoCreate)
-		cairo_surface_destroy(cairoSurface)
-		ImageDestroy image
-	#elseif defined(RAYLIB_H)
-		
-	#endif
+	
 End Sub
 
 Private Sub Form1Type.PanelRender_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	#if defined(__fbgfx_bi__)
-		
-	#elseif defined(RAYLIB_H)
-		MoveWindow(HandleRender, 0, 0, ScaleX(PanelRender.Width), ScaleY(PanelRender.Height), True)
-	#endif
+	
 End Sub
 
 Private Sub Form1Type.cmdPlay_Click(ByRef Sender As Control)
@@ -313,6 +214,7 @@ Private Sub Form1Type.cmdPlay_Click(ByRef Sender As Control)
 	cmdPlay.Enabled = Not Playing
 	cmdPause.Enabled = Playing
 	If Playing Then RenderProj(0)
+	TimerFPS.Enabled = Playing
 End Sub
 
 Private Sub Form1Type.cmdPause_Click(ByRef Sender As Control)
@@ -320,6 +222,7 @@ Private Sub Form1Type.cmdPause_Click(ByRef Sender As Control)
 	cmdPlay.Enabled = Not Playing
 	cmdPause.Enabled = Playing
 	If Playing Then RenderProj(0)
+	TimerFPS.Enabled = Playing
 End Sub
 
 Private Sub Form1Type.TrackBarFPS_Change(ByRef Sender As TrackBar, Position As Integer)
@@ -330,4 +233,64 @@ End Sub
 
 Private Sub Form1Type.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	
+End Sub
+
+Private Sub Form1Type.PanelRender_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	cairoSurface = cairo_win32_surface_create(Canvas.Handle)
+	cairoCreate = cairo_create(cairoSurface)
+
+		
+		cairo_set_source_rgb(cairoCreate, 0, 0, 0)
+		cairo_paint(cairoCreate)
+		
+		' circle for pivot
+		cairo_arc(cairoCreate, 320, 320, 10, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 0, 1, 1) : cairo_fill(cairoCreate)
+		
+		' Draw sticks
+		cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle1), 320 + length * Cos(angle1)) : cairo_set_source_rgb(cairoCreate, 1, 0, 1) : cairo_stroke(cairoCreate)
+		cairo_arc(cairoCreate, 320 + length * Sin(angle1), 320 + length * Cos(angle1), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 0, 1) : cairo_fill(cairoCreate)
+		cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle2), 320 + length * Cos(angle2)) : cairo_set_source_rgb(cairoCreate, 0, 1, 0) : cairo_stroke(cairoCreate)
+		cairo_arc(cairoCreate, 320 + length * Sin(angle2), 320 + length * Cos(angle2), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 0, 1, 0) : cairo_fill(cairoCreate)
+		cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle3), 320 + length * Cos(angle3)) : cairo_set_source_rgb(cairoCreate, 1, 1, 0) : cairo_stroke(cairoCreate)
+		cairo_arc(cairoCreate, 320 + length * Sin(angle3), 320 + length * Cos(angle3), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 1, 0) : cairo_fill(cairoCreate)
+		cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle4), 320 + length * Cos(angle4)) : cairo_set_source_rgb(cairoCreate, 0, 1, 1) : cairo_stroke(cairoCreate)
+		cairo_arc(cairoCreate, 320 + length * Sin(angle4), 320 + length * Cos(angle4), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 0, 1, 1) : cairo_fill(cairoCreate)
+		cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle5), 320 + length * Cos(angle5)) : cairo_set_source_rgb(cairoCreate, 1, 0, 0) : cairo_stroke(cairoCreate)
+		cairo_arc(cairoCreate, 320 + length * Sin(angle5), 320 + length * Cos(angle5), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 0, 0) : cairo_fill(cairoCreate)
+		cairo_move_to(cairoCreate, 320, 320) : cairo_line_to(cairoCreate, 320 + length * Sin(angle6), 320 + length * Cos(angle6)) : cairo_set_source_rgb(cairoCreate, 1, 1, 1) : cairo_stroke(cairoCreate)
+		cairo_arc(cairoCreate, 320 + length * Sin(angle6), 320 + length * Cos(angle6), 15, 0, 2 * PI) : cairo_set_source_rgb(cairoCreate, 1, 1, 1) : cairo_fill(cairoCreate)
+		Form1.lblFPS.Text = "FPS:" & speed
+		
+	cairo_destroy(cairoCreate)
+	cairo_surface_destroy(cairoSurface)
+End Sub
+
+Private Sub Form1Type.TimerFPS_Timer(ByRef Sender As TimerComponent)
+		' Calculate acceleration
+		accel1 = -g / length * Sin(angle1)
+		accel2 = -g / length * Sin(angle2)
+		accel3 = -g / length * Sin(angle3)
+		accel4 = -g / length * Sin(angle4)
+		accel5 = -g / length * Sin(angle5)
+		accel6 = -g / length * Sin(angle6)
+		
+		' Update velocities
+		vel1 += accel1 * dt
+		vel2 += accel2 * dt
+		vel3 += accel3 * dt
+		vel4 += accel4 * dt
+		vel5 += accel5 * dt
+		vel6 += accel6 * dt
+		
+		' Update angles
+		angle1 += vel1 * dt
+		angle2 += vel2 * dt
+		angle3 += vel3 * dt
+		angle4 += vel4 * dt
+		angle5 += vel5 * dt
+		angle6 += vel6 * dt
+		App.DoEvents
+		PanelRender.Repaint
+		Sleep regulate(speed, fps), 1
+		
 End Sub
