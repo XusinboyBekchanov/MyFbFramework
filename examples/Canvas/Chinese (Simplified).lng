@@ -7,3 +7,7 @@ Transparent=透明
 CenterImage=背景居住
 Background=背景
 DoubleBuffered=使用双缓存
+Play  =  开始
+Pause  =  暂停
+change the FPS = 改变FPS
+Language: = 语言：
