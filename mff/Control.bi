@@ -227,6 +227,7 @@ Namespace My.Sys.Forms
 			FBackColorRed      As Double
 			FBackColorGreen    As Double
 			FBackColorBlue     As Double
+			FDefaultForeColor  As Integer
 			FForeColor         As Integer
 			FForeColorRed      As Double
 			FForeColorGreen    As Double

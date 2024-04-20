@@ -1000,7 +1000,67 @@ Namespace My.Sys.Forms
 					message.wParam = CF_TEXT
 					message.lParam = Cast(LPARAM, @reps)
 				End Select
-				
+			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						SendMessage(FHandle, EM_SETBKGNDCOLOR, 0, darkBkColor)
+						Dim As CHARFORMAT2 Cf
+						Cf.cbSize = SizeOf(Cf)
+						Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
+						Cf.crTextColor = darkTextColor
+						Cf.crBackColor = darkBkColor
+						SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						SendMessage(FHandle, EM_SETBKGNDCOLOR, 0, FBackColor)
+						Dim As CHARFORMAT2 Cf
+						Cf.cbSize = SizeOf(Cf)
+						Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
+						Cf.crTextColor = FForeColor
+						Cf.crBackColor = FBackColor
+						SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+					End If
+				End If
+				Dim As Any Ptr cp = GetClassProc(message.hWnd)
+				If cp <> 0 Then
+					message.Result = CallWindowProc(cp, message.hWnd, message.Msg, message.wParam, message.lParam)
+				End If
+				Dim As HDC Dc
+				Dc = GetWindowDC(Handle)
+				Dim As Rect r = Type( 0 )
+				GetWindowRect(message.hWnd, @r)
+				r.Right -= r.Left
+				r.Bottom -= r.Top
+				r.Left = 0
+				r.Top = 0
+				Dim As HPEN NewPen
+				Dim As HPEN PrevPen
+				Dim As HBRUSH PrevBrush
+				NewPen = CreatePen(PS_SOLID, 1, BGR(130, 135, 144))
+				PrevPen = SelectObject(Dc, NewPen)
+				PrevBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
+				Rectangle Dc, r.Left, r.Top, r.Right, r.Bottom
+				DeleteObject NewPen
+				r.Right -= 1
+				r.Bottom -= 1
+				r.Left = 1
+				r.Top = 1
+				If FDarkMode Then
+					NewPen = CreatePen(PS_SOLID, 1, darkBkColor)
+				Else
+					NewPen = CreatePen(PS_SOLID, 1, FBackColor)
+				End If
+				SelectObject(Dc, NewPen)
+				Rectangle Dc, r.Left, r.Top, r.Right, r.Bottom
+				SelectObject(Dc, PrevPen)
+				SelectObject(Dc, PrevBrush)
+				ReleaseDC(FHandle, Dc)
+				DeleteObject NewPen
+				message.Result = 0
+				Return
 			End Select
 		#endif
 		Base.ProcessMessage(message)
@@ -1085,7 +1145,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Property RichTextBox.TextRTF As String
+	Private Property RichTextBox.TextRTF As UString
 		Dim As String s
 		#ifndef __USE_GTK__
 			If FHandle Then
@@ -1101,13 +1161,14 @@ Namespace My.Sys.Forms
 		Return s
 	End Property
 	
-	Private Property RichTextBox.TextRTF(Value As String)
+	Private Property RichTextBox.TextRTF(Value As UString)
 		#ifndef __USE_GTK__
 			If FHandle Then
+				Dim As String Buffer = ToUtf8(Value)
 				Dim bb As SETTEXTEX
-				bb.flags = ST_NEWCHARS
+				bb.flags = ST_DEFAULT
 				bb.codepage = CP_ACP
-				SendMessageA(FHandle, EM_SETTEXTEX, Cast(WPARAM, @bb), Cast(LPARAM, StrPtr(Value)))
+				SendMessage(FHandle, EM_SETTEXTEX, Cast(WPARAM, @bb), Cast(LPARAM, StrPtr(Buffer)))
 			End If
 		#endif
 	End Property
@@ -1396,6 +1457,15 @@ Namespace My.Sys.Forms
 					End If
 					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
 					.Perform(EM_SETEVENTMASK, 0, .Perform(EM_GETEVENTMASK, 0, 0) Or ENM_CHANGE Or ENM_SCROLL Or ENM_SELCHANGE Or ENM_CLIPFORMAT Or ENM_MOUSEEVENTS)
+					If .FBackColor <> .FDefaultBackColor OrElse .FForeColor <> .FDefaultForeColor Then
+						SendMessage(.FHandle, EM_SETBKGNDCOLOR, 0, .FBackColor)
+						Dim As CHARFORMAT2 Cf
+						Cf.cbSize = SizeOf(Cf)
+						Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
+						Cf.crTextColor = .FForeColor
+						Cf.crBackColor = .FBackColor
+						SendMessage(.FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+					End If
 				End With
 			End If
 		End Sub

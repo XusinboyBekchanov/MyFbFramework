@@ -97,8 +97,8 @@ Namespace My.Sys.Forms
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
-		Declare Property TextRTF As String
-		Declare Property TextRTF(Value As String)
+		Declare Property TextRTF As UString
+		Declare Property TextRTF(Value As UString)
 		Declare Property SelColor As Integer
 		Declare Property SelColor(Value As Integer)
 		Declare Property EditStyle As Boolean

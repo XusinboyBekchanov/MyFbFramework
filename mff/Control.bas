@@ -664,7 +664,14 @@ Namespace My.Sys.Forms
 				Brush.Color = FBackColor
 				Canvas.BackColor = FBackColor
 				#ifdef __USE_WINAPI__
-					If ClassName = "RichTextBox" Then SendMessage(Handle, EM_SETBKGNDCOLOR, 0, FBackColor)
+					If ClassName = "RichTextBox" Then 
+						SendMessage(Handle, EM_SETBKGNDCOLOR, 0, FBackColor)
+						Dim As CHARFORMAT2 Cf
+						Cf.cbSize = SizeOf(Cf)
+						Cf.dwMask = CFM_BACKCOLOR
+						Cf.crBackColor = FBackColor
+						SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+					End If
 				#elseif defined(__USE_WASM__)
 					If FHandle Then
 						SetBackColor(FHandle, Value)
@@ -686,7 +693,15 @@ Namespace My.Sys.Forms
 				FForeColorBlue = GetBlue(Value) / 255.0
 				Font.Color = FForeColor
 				Canvas.Font.Color = FForeColor
-				#ifdef __USE_WASM__
+				#ifdef __USE_WINAPI__
+					If ClassName = "RichTextBox" Then 
+						Dim As CHARFORMAT2 Cf
+						Cf.cbSize = SizeOf(Cf)
+						Cf.dwMask = CFM_COLOR
+						Cf.crTextColor = FForeColor
+						SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+					End If
+				#elseif defined(__USE_WASM__)
 					If FHandle Then
 						SetForeColor(FHandle, Value)
 					Else
@@ -2988,6 +3003,7 @@ Namespace My.Sys.Forms
 			FHeight = 0
 			FBackColor = -1
 			FDefaultBackColor = FBackColor
+			FDefaultForeColor = FForeColor
 			FTabIndex = -2
 			FShowHint = True
 			FShowCaption = True
