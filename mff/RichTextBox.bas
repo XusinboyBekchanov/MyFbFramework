@@ -1187,8 +1187,10 @@ Namespace My.Sys.Forms
 				Dim start_bold As Integer = -1
 				Dim start_italic As Integer = -1
 				Dim rtf_tag As String
+				Dim c As UString
+				Dim Buff As UString
 				For i As Integer = 1 To Len(Value)
-					Dim c As String = Mid(Value, i, 1)
+					c = Mid(Value, i, 1)
 					If CBool(c = "\") OrElse (CBool(c = " ") AndAlso in_tag) OrElse CBool(c = "}") Then
 						If in_tag Then
 							If rtf_tag = "b" Then
@@ -1196,9 +1198,13 @@ Namespace My.Sys.Forms
 							ElseIf rtf_tag = "i" Then
 								start_italic = count
 							ElseIf rtf_tag = "par" Then
-								gtk_text_buffer_insert(buffer, @iter, Chr(13, 10), 1)
+								gtk_text_buffer_insert(buffer, @iter, Chr(13, 10), 2)
 								count += 1
 							End If
+						End If
+						If Buff <> "" Then
+							gtk_text_buffer_insert(buffer, @iter, ToUtf8(Buff), -1)
+							Buff = ""
 						End If
 						If start_bold > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "b0")) OrElse CBool(c = "}")) Then
 							SetBoolProperty "weight", True, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL, start_bold, count
@@ -1218,7 +1224,7 @@ Namespace My.Sys.Forms
 						End If
 						rtf_tag += c
 					Else
-						gtk_text_buffer_insert(buffer, @iter, c, 1)
+						Buff += c
 						count += 1
 					End If
 				Next
