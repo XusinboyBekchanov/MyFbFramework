@@ -965,7 +965,7 @@ Namespace My.Sys.Forms
 			Dim As Long nWidth  = ScaleX(FWidth)
 			Dim As Long nHeight = ScaleY(FHeight)
 			#ifdef __USE_WINAPI__
-				If FHandle Then Exit Sub
+				If FHandle AndAlso IsWindow(FHandle) Then Exit Sub
 				Dim As HWND HParent
 				Dim As Integer ControlID = 0
 				If (Style And WS_CHILD) = WS_CHILD Then
