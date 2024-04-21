@@ -18,6 +18,7 @@ Namespace My.Sys.Forms
 			Declare Static Function StreamInProc(hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
 			Declare Static Function StreamOutProc (hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
 			Declare Static Function GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
+			Declare Virtual Sub SetDark(Value As Boolean)
 		#else
 			Declare Function GetStrProperty(sProperty As String) ByRef As WString
 			Declare Sub SetStrProperty(sProperty As String, ByRef Value As WString, WithoutPrevValue As Boolean = False)

@@ -1203,6 +1203,10 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
+		
+		Private Sub TextBox.SetDark(Value As Boolean)
+			Base.SetDark Value
+		End Sub
 	#endif
 	
 	Private Sub TextBox.ProcessMessage(ByRef message As Message)

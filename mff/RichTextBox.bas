@@ -1007,27 +1007,13 @@ Namespace My.Sys.Forms
 					message.lParam = Cast(LPARAM, @reps)
 				End Select
 			Case WM_PAINT
-				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						SendMessage(FHandle, EM_SETBKGNDCOLOR, 0, darkBkColor)
-						Dim As CHARFORMAT2 Cf
-						Cf.cbSize = SizeOf(Cf)
-						Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
-						Cf.crTextColor = darkTextColor
-						Cf.crBackColor = darkBkColor
-						SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+						SetDark True
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						SendMessage(FHandle, EM_SETBKGNDCOLOR, 0, FBackColor)
-						Dim As CHARFORMAT2 Cf
-						Cf.cbSize = SizeOf(Cf)
-						Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
-						Cf.crTextColor = FForeColor
-						Cf.crBackColor = FBackColor
-						SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+						SetDark False
 					End If
 				End If
 				Dim As Any Ptr cp = GetClassProc(message.hWnd)
@@ -1518,16 +1504,29 @@ Namespace My.Sys.Forms
 					End If
 					If .ReadOnly Then .Perform(EM_SETREADONLY, True, 0)
 					.Perform(EM_SETEVENTMASK, 0, .Perform(EM_GETEVENTMASK, 0, 0) Or ENM_CHANGE Or ENM_SCROLL Or ENM_SELCHANGE Or ENM_CLIPFORMAT Or ENM_MOUSEEVENTS)
-					If .FBackColor <> .FDefaultBackColor OrElse .FForeColor <> .FDefaultForeColor Then
-						SendMessage(.FHandle, EM_SETBKGNDCOLOR, 0, .FBackColor)
-						Dim As CHARFORMAT2 Cf
-						Cf.cbSize = SizeOf(Cf)
-						Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
-						Cf.crTextColor = .FForeColor
-						Cf.crBackColor = .FBackColor
-						SendMessage(.FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
-					End If
+					.SetDark .FDarkMode
 				End With
+			End If
+		End Sub
+		
+		Private Sub RichTextBox.SetDark(Value As Boolean)
+			Base.SetDark Value
+			If Value Then
+				SendMessage(FHandle, EM_SETBKGNDCOLOR, 0, darkBkColor)
+				Dim As CHARFORMAT2 Cf
+				Cf.cbSize = SizeOf(Cf)
+				Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
+				Cf.crTextColor = darkTextColor
+				Cf.crBackColor = darkBkColor
+				SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
+			Else
+				SendMessage(FHandle, EM_SETBKGNDCOLOR, 0, FBackColor)
+				Dim As CHARFORMAT2 Cf
+				Cf.cbSize = SizeOf(Cf)
+				Cf.dwMask = CFM_COLOR Or CFM_BACKCOLOR
+				Cf.crTextColor = FForeColor
+				Cf.crBackColor = FBackColor
+				SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
 			End If
 		End Sub
 	#endif

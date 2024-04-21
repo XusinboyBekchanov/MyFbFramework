@@ -83,9 +83,10 @@ Namespace My.Sys.Forms
 			WidgetTextView As GtkWidget Ptr
 			Declare Sub ChangeWidget()
 		#else
-			Declare Static Sub WndProc(ByRef message As message)
+			Declare Static Sub WndProc(ByRef message As Message)
+			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
-		Declare Virtual Sub ProcessMessage(ByRef message As message)
+		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
