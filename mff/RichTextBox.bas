@@ -1192,6 +1192,10 @@ Namespace My.Sys.Forms
 				For i As Integer = 1 To Len(Value)
 					c = Mid(Value, i, 1)
 					If CBool(c = "\") OrElse (CBool(c = " ") AndAlso in_tag) OrElse CBool(c = "}") Then
+						If Buff <> "" Then
+							gtk_text_buffer_insert(buffer, @iter, ToUtf8(Buff), -1)
+							Buff = ""
+						End If
 						If in_tag Then
 							If rtf_tag = "b" Then
 								start_bold = count
@@ -1201,10 +1205,6 @@ Namespace My.Sys.Forms
 								gtk_text_buffer_insert(buffer, @iter, Chr(13, 10), 2)
 								count += 1
 							End If
-						End If
-						If Buff <> "" Then
-							gtk_text_buffer_insert(buffer, @iter, ToUtf8(Buff), -1)
-							Buff = ""
 						End If
 						If start_bold > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "b0")) OrElse CBool(c = "}")) Then
 							SetBoolProperty "weight", True, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL, start_bold, count
