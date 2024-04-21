@@ -24,7 +24,7 @@ Namespace My.Sys.Forms
 			Declare Function GetIntProperty(sProperty As String) As Integer
 			Declare Sub SetIntProperty(sProperty As String, Value As Integer)
 			Declare Function GetBoolProperty(sProperty As String, NeedValue As Integer) As Boolean
-			Declare Sub SetBoolProperty(sProperty As String, Value As Boolean, TrueValue As Integer, FalseValue As Integer)
+			Declare Sub SetBoolProperty(sProperty As String, Value As Boolean, TrueValue As Integer, FalseValue As Integer, StartChar As Integer = -1, EndChar As Integer = -1)
 		#endif
 		FFindText           As WString Ptr
 		FTextRange          As WString Ptr
@@ -42,7 +42,7 @@ Namespace My.Sys.Forms
 		#endif
 		FEditStyle As Boolean
 		FZoom As Integer
-		Declare Virtual Sub ProcessMessage(ByRef message As message)
+		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr

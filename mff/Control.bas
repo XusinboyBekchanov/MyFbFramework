@@ -2834,6 +2834,12 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK3__
 						ElseIf GTK_IS_STACK(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+							#ifdef __USE_GTK3__
+								gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Margins.Left + Ctrl->ExtraMargins.Left))
+								gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Margins.Top + Ctrl->ExtraMargins.Top))
+								gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Margins.Right + Ctrl->ExtraMargins.Right))
+								gtk_widget_set_margin_bottom(Ctrlwidget, ScaleY(Margins.Bottom + Ctrl->ExtraMargins.Bottom))
+							#endif
 							gtk_container_add(GTK_CONTAINER(widget), Ctrlwidget)
 						#endif
 						ElseIf GTK_IS_TEXT_VIEW(widget) Then
@@ -2843,10 +2849,10 @@ Namespace My.Sys.Forms
 						ElseIf GTK_IS_BOX(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							#ifdef __USE_GTK3__
-								gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Ctrl->ExtraMargins.Left))
-								gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Ctrl->ExtraMargins.Top))
-								gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Ctrl->ExtraMargins.Right))
-								gtk_widget_set_margin_bottom(Ctrlwidget, ScaleY(Ctrl->ExtraMargins.Bottom))
+								gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Margins.Left + Ctrl->ExtraMargins.Left))
+								gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Margins.Top + Ctrl->ExtraMargins.Top))
+								gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Margins.Right + Ctrl->ExtraMargins.Right))
+								gtk_widget_set_margin_bottom(Ctrlwidget, ScaleY(Margins.Bottom + Ctrl->ExtraMargins.Bottom))
 							#endif
 							If Ctrl->Align = DockStyle.alRight OrElse Ctrl->Align = DockStyle.alBottom Then
 								#ifdef __USE_GTK4__
