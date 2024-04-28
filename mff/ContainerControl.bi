@@ -15,16 +15,21 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifdef __USE_GTK__
+			'Function registers a window class for subsequent use in calls to the create window (Windows, Linux)
 			Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 		#endif
 		#ifndef ReadProperty_Off
+			'Reads value from the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Writes value to the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Determines whether a control is automatically resized to display its entire contents (Windows, Linux).
 		Declare Virtual Property AutoSize As Boolean
 		Declare Virtual Property AutoSize(Value As Boolean)
+		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux, Web).
 		Declare Virtual Property Visible As Boolean
 		Declare Virtual Property Visible(Value As Boolean)
 		Declare Operator Cast As Control Ptr

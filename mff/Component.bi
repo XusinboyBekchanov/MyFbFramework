@@ -48,72 +48,74 @@ Namespace My.Sys.ComponentModel
 		#endif
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
-		'Stores any extra data needed for your program.
+		'Stores any extra data needed for your program (Windows, Linux, Android, Web).
 		Tag As Any Ptr
-		'Returns/sets the space between controls.
+		'Returns/sets the space between controls (Windows, Linux, Android, Web).
 		Margins             As MarginsType
-		'Returns/sets the extra space between controls.
+		'Returns/sets the extra space between controls (Windows, Linux, Android, Web).
 		ExtraMargins        As MarginsType
 		#ifdef __USE_GTK__
-			'Gets the window handle that the control is bound to.
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
 			Declare Property Handle As GtkWidget Ptr
 			Declare Property Handle(Value As GtkWidget Ptr)
 			Declare Property LayoutHandle As GtkWidget Ptr
 			Declare Property LayoutHandle(Value As GtkWidget Ptr)
 		#elseif defined(__USE_JNI__)
-			'Gets the window handle that the control is bound to.
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
 			Declare Property Handle As jobject
 			Declare Property Handle(Value As jobject)
 			Declare Property LayoutHandle As jobject
 			Declare Property LayoutHandle(Value As jobject)
 		#elseif defined(__USE_WINAPI__)
-			'Gets the window handle that the control is bound to.
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
 			Declare Property Handle As HWND
 			Declare Property Handle(Value As HWND)
 			Declare Property LayoutHandle As HWND
 			Declare Property LayoutHandle(Value As HWND)
 		#elseif defined(__USE_WASM__)
-			'Gets the window handle that the control is bound to.
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
 			Declare Property Handle As Any Ptr
 			Declare Property Handle(Value As Any Ptr)
 			Declare Property LayoutHandle As Any Ptr
 			Declare Property LayoutHandle(Value As Any Ptr)
 		#endif
 		#ifndef ReadProperty_Off
+			'Reads value from the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Writes value to the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
-		'Returns a string that represents the current object.
+		'Returns a string that represents the current object (Windows, Linux, Android, Web).
 		Declare Virtual Function ToString ByRef As WString
-		'Returns ancestor class of control.
+		'Returns ancestor class of control (Windows, Linux, Android, Web).
 		Declare Function ClassAncestor ByRef As WString
-		'Determines if the control is a top-level control.
+		'Determines if the control is a top-level control (Windows, Linux, Android, Web).
 		Declare Function GetTopLevel As Component Ptr
-		'Returns/sets the distance between the internal left edge of an object and the left edge of its container.
+		'Returns/sets the distance between the internal left edge of an object and the left edge of its container (Windows, Linux, Android, Web).
 		Declare Property Left As Integer
 		Declare Property Left(Value As Integer)
-		'Returns/sets the distance between the internal top edge of an object and the top edge of its container.
+		'Returns/sets the distance between the internal top edge of an object and the top edge of its container (Windows, Linux, Android, Web).
 		Declare Property Top As Integer
 		Declare Property Top(Value As Integer)
-		'Returns/sets the width of an object.
+		'Returns/sets the width of an object (Windows, Linux, Android, Web).
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
-		'Returns/sets the height of an object.
+		'Returns/sets the height of an object (Windows, Linux, Android, Web).
 		Declare Property Height As Integer
 		Declare Property Height(Value As Integer)
-		'Gets the bounds of the control to the specified location and size.
+		'Gets the bounds of the control to the specified location and size (Windows, Linux, Android, Web).
 		Declare Sub GetBounds(ByRef ALeft As Integer, ByRef ATop As Integer, ByRef AWidth As Integer, ByRef AHeight As Integer)
-		'Sets the bounds of the control to the specified location and size.
+		'Sets the bounds of the control to the specified location and size (Windows, Linux, Android, Web).
 		Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
-		'Gets a value that indicates whether the Component is currently in design mode.
+		'Gets a value that indicates whether the Component is currently in design mode (Windows, Linux, Android, Web).
 		Declare Virtual Property DesignMode As Boolean
 		Declare Virtual Property DesignMode(Value As Boolean)
-		'Returns the name used in code to identify an object.
+		'Returns the name used in code to identify an object (Windows, Linux, Android, Web).
 		Declare Property Name ByRef As WString
 		Declare Property Name(ByRef Value As WString)
-		'Gets or sets the parent container of the control.
+		'Gets or sets the parent container of the control (Windows, Linux, Android, Web).
 		Declare Property Parent As Component Ptr 'ContainerControl
 		Declare Property Parent(Value As Component Ptr)
 		'Declare Constructor

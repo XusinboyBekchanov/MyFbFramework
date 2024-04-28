@@ -37,8 +37,11 @@ Namespace My.Sys
 			FBody As WString Ptr
 		#endif
 	Public:
+		'Returns a string that represents the current object (Windows, Linux, Android, Web).
 		Declare Virtual Function ToString ByRef As WString
+		'Used to get correct class name of the object (Windows, Linux, Android, Web).
 		Declare Function ClassName ByRef As WString
+		'Returns/sets the object that enables you to access the design characteristics of a object (Windows, Linux, Android, Web).
 		Designer As Object Ptr
 		' Function to get any typename in the inheritance up hierarchy
 		' of the type of an instance (address: 'po') compatible with the built-in 'Object'
@@ -47,13 +50,16 @@ Namespace My.Sys
 		' ('baseIndex = -1' to get the base.typename of the instance, or "" if not existing)
 		' ('baseIndex = -2' to get the base.base.typename of the instance, or "" if not existing)
 		Declare Function FullTypeName(ByVal baseIndex As Integer = 0) As UString
+		'Returns a Boolean value indicating whether a object has been initialized (Windows, Linux, Android, Web).
 		Declare Function IsEmpty() As Boolean
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast ByRef As WString
 		#ifndef ReadProperty_Off
+			'Reads value from the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
-		#ifndef WriteProperty_Off		
+		#ifndef WriteProperty_Off
+			'Writes value to the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Constructor

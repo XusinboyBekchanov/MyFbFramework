@@ -546,6 +546,8 @@ Namespace My.Sys.Forms
 							FClientWidth = This.Width
 						End If
 					End If
+				#else
+					FClientWidth = This.Width
 				#endif
 				Return FClientWidth
 			End Function
@@ -601,6 +603,8 @@ Namespace My.Sys.Forms
 							FClientHeight = This.Height
 						End If
 					End If
+				#else
+					FClientWidth = This.Width
 				#endif
 				Return FClientHeight
 			End Function

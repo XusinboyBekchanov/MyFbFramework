@@ -128,16 +128,16 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		'Returns the icon displayed when a form is minimized at run time (Windows, Linux).
 		Icon          As My.Sys.Drawing.Icon
-		'Returns/sets a graphic to be displayed in a control (Windows, Linux).
+		'Returns/sets a graphic to be displayed in a control (Windows, Linux, Web).
 		Graphic As My.Sys.Drawing.GraphicType
 		'Returns/sets the dialog result for the form (Windows, Linux).
 		ModalResult   As Integer 'ModalResults
 		#ifndef ReadProperty_Off
-			'Reads value from the name of property (Windows, Linux).
+			'Reads value from the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
-			'Writes value to the name of property (Windows, Linux).
+			'Writes value to the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		'Returns/sets the active control on the container control (Windows, Linux).
@@ -158,7 +158,7 @@ Namespace My.Sys.Forms
 		'Returns/sets a value that indicates whether form is minimized, maximized, or normal (Windows, Linux).
 		Declare Property WindowState As Integer 'WindowStates
 		Declare Property WindowState(Value As Integer)
-		'Returns/sets whether keyboard events for an object are invoked before keyboard events for controls on that object.
+		'Returns/sets whether keyboard events for an object are invoked before keyboard events for controls on that object (Windows only).
 		Declare Property KeyPreview As Boolean
 		Declare Property KeyPreview(Value As Boolean)
 		'Returns/sets the starting position of the form at run time (Windows, Linux).
@@ -170,10 +170,10 @@ Namespace My.Sys.Forms
 		'Returns/sets the form that owns this form (Windows, Linux).
 		Declare Property Owner As Form Ptr
 		Declare Property Owner(Value As Form Ptr)
-		'Returns/sets the caption of the control (Windows, Linux).
+		'Returns/sets the caption of the control (Windows, Linux, Android, Web).
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
-		'Returns/sets the text contained in the control (Windows, Linux).
+		'Returns/sets the text contained in the control (Windows, Linux, Android, Web).
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		'Returns/sets the transparent used to display text and graphics in a form (Windows only).
@@ -191,7 +191,7 @@ Namespace My.Sys.Forms
 		'Determines whether a form has a Maximize button (Windows only)
 		Declare Property MaximizeBox As Boolean
 		Declare Property MaximizeBox(Value As Boolean)
-		'Gets or sets the main form for application. (Windows, Linux)
+		'Gets or sets the main form for application. (Windows, Linux, Android, Web)
 		Declare Property MainForm As Boolean
 		Declare Property MainForm(Value As Boolean)
 		'Gets or sets the MainMenu that is displayed in the form (Windows, Linux)
@@ -200,22 +200,22 @@ Namespace My.Sys.Forms
 		'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux).
 		Declare Property Enabled As Boolean
 		Declare Property Enabled(Value As Boolean)
-		'Returns/sets the parent container of the control (Windows, Linux).
+		'Returns/sets the parent container of the control (Windows, Linux, Android, Web).
 		Declare Property Parent As Control Ptr
 		Declare Property Parent(value As Control Ptr)
-		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux).
+		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux, Web).
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)
 		Declare Operator Cast As Control Ptr
-		'Brings the control to the front of the z-order (Windows only).
+		'Brings the control to the front of the z-order (Windows, Linux).
 		Declare Sub BringToFront
-		'Sends the control to the back of the z-order (Windows only).
+		'Sends the control to the back of the z-order (Windows, Linux).
 		Declare Sub SendToBack
 		'Invalidates the entire surface of the control and causes the control to be redrawn (Windows only).
 		Declare Sub Invalidate
-		'Displays the control to the user (Windows, Linux).
+		'Displays the control to the user (Windows, Linux, Android, Web).
 		Declare Sub Show
-		'Shows the form with the specified owner to the user (Windows, Linux).
+		'Shows the form with the specified owner to the user (Windows, Linux, Web).
 		Declare Sub Show(ByRef OwnerForm As Form)
 		'Shows the form as a modal dialog box (Windows, Linux).
 		Declare Function ShowModal As Integer

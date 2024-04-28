@@ -2103,7 +2103,9 @@ End Namespace
 			If env <> 0 Then
 				For i As Integer = 0 To Handles.Count - 1
 					If Handles.Item(i) <> 0 Then
-						Cast(My.Sys.Forms.Control Ptr, Handles.Item(i))->Handle = 0
+						Dim As Control Ptr Ctrl = Handles.Item(i)
+						If Ctrl->OnDestroy Then Ctrl->OnDestroy(* (Ctrl->Designer), *Ctrl)
+						Ctrl->Handle = 0
 					End If
 				Next
 				env = 0
