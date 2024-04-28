@@ -22,7 +22,6 @@ Namespace My.Sys.Forms
 	Protected:
 		Dim As Integer FHorizontalArrowChangeSize
 		Dim As Integer FVerticalArrowChangeSize
-		Declare Sub SetScrollsInfo
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off
@@ -36,6 +35,7 @@ Namespace My.Sys.Forms
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
 		Declare Sub Add(Ctrl As Control Ptr, Index As Integer = -1)
+		Declare Sub RecalculateScrollBars
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor

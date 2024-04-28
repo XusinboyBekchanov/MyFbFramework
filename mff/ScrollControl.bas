@@ -44,7 +44,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	#ifndef __USE_GTK__
-		Private Sub ScrollControl.SetScrollsInfo
+		Private Sub ScrollControl.RecalculateScrollBars
 			Dim Si As SCROLLINFO
 			Dim As Integer MaxWidth, MaxHeight
 			Dim As Integer iChangeHPos, iChangeVPos
@@ -91,7 +91,7 @@ Namespace My.Sys.Forms
 		Private Sub ScrollControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollControl(Sender.Child)
-					.SetScrollsInfo
+					.RecalculateScrollBars
 				End With
 			End If
 		End Sub
@@ -174,7 +174,7 @@ Namespace My.Sys.Forms
 					Else
 						ScrollWindow(Message.hWnd, 0, (ScrollPos - Si.nPos), NULL, NULL)
 					End If
-					If Si.nPos = 0 Then SetScrollsInfo
+					If Si.nPos = 0 Then RecalculateScrollBars
 					UpdateWindow (Message.hWnd)
 					
 					If OnScroll Then OnScroll(*Designer, This)
@@ -211,7 +211,7 @@ Namespace My.Sys.Forms
 				If Si.nPos <> ScrollPos Then
 					
 					ScrollWindow(Message.hWnd, 0, (ScrollPos - Si.nPos), NULL, NULL)
-					If Si.nPos = 0 Then SetScrollsInfo
+					If Si.nPos = 0 Then RecalculateScrollBars
 					UpdateWindow (Message.hWnd)
 					
 					If OnScroll Then OnScroll(*Designer, This)
@@ -248,14 +248,14 @@ Namespace My.Sys.Forms
 				If Si.nPos <> ScrollPos Then
 					
 					ScrollWindow (Message.hWnd, (ScrollPos - Si.nPos), 0, NULL, NULL)
-					If Si.nPos = 0 Then SetScrollsInfo
+					If Si.nPos = 0 Then RecalculateScrollBars
 					UpdateWindow (Message.hWnd)
 					
 					If OnScroll Then OnScroll(*Designer, This)
 					
 				End If
 			Case WM_SIZE
-				SetScrollsInfo
+				RecalculateScrollBars
 			Case WM_NCHITTEST
 				If FDesignMode Then Exit Sub
 			End Select
@@ -267,7 +267,7 @@ Namespace My.Sys.Forms
 		Base.Add(Ctrl, Index)
 		#ifdef __USE_WINAPI__
 			If FDesignMode Then
-				SetScrollsInfo
+				RecalculateScrollBars
 			End If
 		#endif
 	End Sub
