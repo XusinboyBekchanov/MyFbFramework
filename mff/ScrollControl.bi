@@ -11,6 +11,8 @@ Namespace My.Sys.Forms
 	
 	Private Type ScrollControl Extends ContainerControl
 	Private:
+		OldClientHeight As Integer
+		OldClientWidth As Integer
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
