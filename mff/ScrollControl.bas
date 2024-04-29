@@ -87,6 +87,7 @@ Namespace My.Sys.Forms
 				SiV.nPos -= iChangeVPos
 			End If
 			OldMaxHeight = SiV.nMax
+			
 			OldClientWidth = This.ClientWidth
 			OldClientHeight = This.ClientHeight
 			
@@ -306,7 +307,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "ScrollControl"
 				.ChildProc   = @WNDPROC
 				.ExStyle     = 0
-				Base.Style       = WS_CHILD Or WS_VSCROLL Or WS_HSCROLL
+				Base.Style       = WS_CHILD 'Or WS_VSCROLL Or WS_HSCROLL
 				.BackColor       = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
