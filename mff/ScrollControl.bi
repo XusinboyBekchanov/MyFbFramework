@@ -15,6 +15,7 @@ Namespace My.Sys.Forms
 		OldClientWidth As Integer
 		OldMaxHeight As Integer
 		OldMaxWidth As Integer
+		InRecalculate As Boolean
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)

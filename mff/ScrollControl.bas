@@ -45,6 +45,9 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Private Sub ScrollControl.RecalculateScrollBars
+			If InRecalculate Then Exit Sub
+			InRecalculate = True
+			
 			Dim As SCROLLINFO SiH, SiV
 			Dim As Integer MaxWidth, MaxHeight
 			Dim As Integer iChangeHPos, iChangeVPos
@@ -95,6 +98,8 @@ Namespace My.Sys.Forms
 				UpdateWindow(This.Handle)
 				If OnScroll Then OnScroll(*Designer, This)
 			End If
+			
+			InRecalculate = False
 		End Sub
 		
 		Private Sub ScrollControl.HandleIsAllocated(ByRef Sender As Control)
