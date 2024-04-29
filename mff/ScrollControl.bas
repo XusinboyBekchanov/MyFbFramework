@@ -60,13 +60,13 @@ Namespace My.Sys.Forms
 			SiH.cbSize = SizeOf(SiH)
 			SiH.fMask  = SIF_RANGE Or SIF_PAGE Or SIF_POS
 			SiH.nMin   = 0
-			SiH.nMax   = Max(MaxWidth + IIf(SiH.nPos = 0, 0, SiH.nPos + Max(0, This.ClientWidth - OldClientWidth)), IIf(SiH.nPos = 0, 0, This.ClientWidth)) - 1
-			SiH.nPage  = This.ClientWidth
+			SiH.nMax   = ScaleX(Max(MaxWidth + IIf(SiH.nPos = 0, 0, SiH.nPos + Max(0, This.ClientWidth - OldClientWidth)), IIf(SiH.nPos = 0, 0, This.ClientWidth))) - 1
+			SiH.nPage  = ScaleX(This.ClientWidth)
 			If OldMaxWidth > SiH.nMax AndAlso This.ClientWidth = OldClientWidth AndAlso SiH.nPos <> 0 Then
 				iChangeHPos = Min(OldMaxWidth - SiH.nMax, SiH.nPos)
 				SiH.nPos -= iChangeHPos
 			ElseIf This.ClientWidth > OldClientWidth AndAlso OldClientWidth <> 0 AndAlso SiH.nPos <> 0 Then
-				iChangeHPos = Min(This.ClientWidth - OldClientWidth, SiH.nPos)
+				iChangeHPos = Min(ScaleX(This.ClientWidth - OldClientWidth), SiH.nPos)
 				SiH.nPos -= iChangeHPos
 			End If
 			OldMaxWidth = SiH.nMax
@@ -77,13 +77,13 @@ Namespace My.Sys.Forms
 			SiV.cbSize = SizeOf(SiV)
 			SiV.fMask  = SIF_RANGE Or SIF_PAGE Or SIF_POS
 			SiV.nMin   = 0
-			SiV.nMax   = Max(MaxHeight + IIf(SiV.nPos = 0, 0, SiV.nPos + Max(0, This.ClientHeight - OldClientHeight)), IIf(SiV.nPos = 0, 0, This.ClientHeight)) - 1
-			SiV.nPage  = This.ClientHeight
+			SiV.nMax   = ScaleY(Max(MaxHeight + IIf(SiV.nPos = 0, 0, SiV.nPos + Max(0, This.ClientHeight - OldClientHeight)), IIf(SiV.nPos = 0, 0, This.ClientHeight))) - 1
+			SiV.nPage  = ScaleY(This.ClientHeight)
 			If OldMaxHeight > SiV.nMax AndAlso This.ClientHeight = OldClientHeight AndAlso SiV.nPos <> 0 Then
 				iChangeVPos = Min(OldMaxHeight - SiV.nMax, SiV.nPos)
 				SiV.nPos -= iChangeVPos
 			ElseIf This.ClientHeight > OldClientHeight AndAlso OldClientHeight <> 0 AndAlso SiV.nPos <> 0 Then
-				iChangeVPos = Min(This.ClientHeight - OldClientHeight, SiV.nPos)
+				iChangeVPos = Min(ScaleY(This.ClientHeight - OldClientHeight), SiV.nPos)
 				SiV.nPos -= iChangeVPos
 			End If
 			OldMaxHeight = SiV.nMax
