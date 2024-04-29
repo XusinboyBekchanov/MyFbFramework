@@ -45,41 +45,50 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Private Sub ScrollControl.RecalculateScrollBars
-			Dim Si As SCROLLINFO
+			Dim As SCROLLINFO SiH, SiV
 			Dim As Integer MaxWidth, MaxHeight
 			Dim As Integer iChangeHPos, iChangeVPos
 			
 			GetMax MaxWidth, MaxHeight
 			
-			Si.cbSize = SizeOf(Si)
-			Si.fMask  = SIF_ALL
-			GetScrollInfo (This.Handle, SB_HORZ, @Si)
-			Si.cbSize = SizeOf(Si)
-			Si.fMask  = SIF_RANGE Or SIF_PAGE Or SIF_POS
-			Si.nMin   = 0
-			Si.nMax   = Max(MaxWidth + IIf(Si.nPos = 0, 0, Si.nPos + Max(0, This.ClientWidth - OldClientWidth)), IIf(Si.nPos = 0, 0, This.ClientWidth)) - 1
-			Si.nPage  = This.ClientWidth
-			If This.ClientWidth > OldClientWidth AndAlso OldClientWidth <> 0 AndAlso Si.nPos <> 0 Then 
-				iChangeHPos = Min(This.ClientWidth - OldClientWidth, Si.nPos)
-				Si.nPos -= iChangeHPos
+			SiH.cbSize = SizeOf(SiH)
+			SiH.fMask  = SIF_ALL
+			GetScrollInfo (This.Handle, SB_HORZ, @SiH)
+			SiH.cbSize = SizeOf(SiH)
+			SiH.fMask  = SIF_RANGE Or SIF_PAGE Or SIF_POS
+			SiH.nMin   = 0
+			SiH.nMax   = Max(MaxWidth + IIf(SiH.nPos = 0, 0, SiH.nPos + Max(0, This.ClientWidth - OldClientWidth)), IIf(SiH.nPos = 0, 0, This.ClientWidth)) - 1
+			SiH.nPage  = This.ClientWidth
+			If OldMaxWidth > SiH.nMax AndAlso This.ClientWidth = OldClientWidth AndAlso SiH.nPos <> 0 Then
+				iChangeHPos = Min(OldMaxWidth - SiH.nMax, SiH.nPos)
+				SiH.nPos -= iChangeHPos
+			ElseIf This.ClientWidth > OldClientWidth AndAlso OldClientWidth <> 0 AndAlso SiH.nPos <> 0 Then
+				iChangeHPos = Min(This.ClientWidth - OldClientWidth, SiH.nPos)
+				SiH.nPos -= iChangeHPos
 			End If
-			SetScrollInfo(This.Handle, SB_HORZ, @Si, True)
-			OldClientWidth = This.ClientWidth
+			OldMaxWidth = SiH.nMax
 			
-			Si.cbSize = SizeOf(Si)
-			Si.fMask  = SIF_ALL
-			GetScrollInfo (This.Handle, SB_VERT, @Si)
-			Si.cbSize = SizeOf(Si)
-			Si.fMask  = SIF_RANGE Or SIF_PAGE Or SIF_POS
-			Si.nMin   = 0
-			Si.nMax   = Max(MaxHeight + IIf(Si.nPos = 0, 0, Si.nPos + Max(0, This.ClientHeight - OldClientHeight)), IIf(Si.nPos = 0, 0, This.ClientHeight)) - 1
-			Si.nPage  = This.ClientHeight
-			If This.ClientHeight > OldClientHeight AndAlso OldClientHeight <> 0 AndAlso Si.nPos <> 0 Then 
-				iChangeVPos = Min(This.ClientHeight - OldClientHeight, Si.nPos)
-				Si.nPos -= iChangeVPos
+			SiV.cbSize = SizeOf(SiV)
+			SiV.fMask  = SIF_ALL
+			GetScrollInfo (This.Handle, SB_VERT, @SiV)
+			SiV.cbSize = SizeOf(SiV)
+			SiV.fMask  = SIF_RANGE Or SIF_PAGE Or SIF_POS
+			SiV.nMin   = 0
+			SiV.nMax   = Max(MaxHeight + IIf(SiV.nPos = 0, 0, SiV.nPos + Max(0, This.ClientHeight - OldClientHeight)), IIf(SiV.nPos = 0, 0, This.ClientHeight)) - 1
+			SiV.nPage  = This.ClientHeight
+			If OldMaxHeight > SiV.nMax AndAlso This.ClientHeight = OldClientHeight AndAlso SiV.nPos <> 0 Then
+				iChangeVPos = Min(OldMaxHeight - SiV.nMax, SiV.nPos)
+				SiV.nPos -= iChangeVPos
+			ElseIf This.ClientHeight > OldClientHeight AndAlso OldClientHeight <> 0 AndAlso SiV.nPos <> 0 Then
+				iChangeVPos = Min(This.ClientHeight - OldClientHeight, SiV.nPos)
+				SiV.nPos -= iChangeVPos
 			End If
-			SetScrollInfo(This.Handle, SB_VERT, @Si, True)
+			OldMaxHeight = SiV.nMax
+			OldClientWidth = This.ClientWidth
 			OldClientHeight = This.ClientHeight
+			
+			SetScrollInfo(This.Handle, SB_HORZ, @SiH, True)
+			SetScrollInfo(This.Handle, SB_VERT, @SiV, True)
 			
 			If iChangeHPos <> 0 OrElse iChangeVPos <> 0 Then
 				ScrollWindow(This.Handle, iChangeHPos, iChangeVPos, NULL, NULL)
@@ -255,6 +264,8 @@ Namespace My.Sys.Forms
 					
 				End If
 			Case WM_SIZE
+				RecalculateScrollBars
+			Case WM_CTLCOLORSTATIC
 				RecalculateScrollBars
 			Case WM_NCHITTEST
 				If FDesignMode Then Exit Sub
