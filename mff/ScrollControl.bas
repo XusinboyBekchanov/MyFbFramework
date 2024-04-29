@@ -43,8 +43,8 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	#ifndef __USE_GTK__
-		Private Sub ScrollControl.RecalculateScrollBars
+	Private Sub ScrollControl.RecalculateScrollBars
+		#ifndef __USE_GTK__
 			If InRecalculate Then Exit Sub
 			InRecalculate = True
 			
@@ -101,8 +101,10 @@ Namespace My.Sys.Forms
 			End If
 			
 			InRecalculate = False
-		End Sub
-		
+		#endif
+	End Sub
+	
+	#ifndef __USE_GTK__
 		Private Sub ScrollControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollControl(Sender.Child)
