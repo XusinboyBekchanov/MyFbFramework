@@ -105,6 +105,7 @@
 #include once "RichTextBox.bi"
 #include once "ScrollBarControl.bi"
 #include once "ScrollControl.bi"
+#include once "SearchBar.bi"
 #include once "HScrollBar.bi"
 #include once "VScrollBar.bi"
 #include once "Splitter.bi"
@@ -185,6 +186,7 @@ Using My.Sys.Forms
 		Case "tabpage": Ctrl = _New( TabPage)
 		Case "scrollbarcontrol": Ctrl = _New( ScrollBarControl)
 		Case "scrollcontrol": Ctrl = _New(ScrollControl)
+		Case "searchbar": Ctrl = _New(SearchBar)
 		Case "hscrollbar": Ctrl = _New( HScrollBar)
 		Case "vscrollbar": Ctrl = _New( VScrollBar)
 		Case "splitter": Ctrl = _New( Splitter)
@@ -311,6 +313,7 @@ Using My.Sys.Forms
 		Case "tabpage": _Delete( Cast(TabPage Ptr, Ctrl))
 		Case "scrollbarcontrol": _Delete( Cast(ScrollBarControl Ptr, Ctrl))
 		Case "scrollcontrol": _Delete( Cast(ScrollControl Ptr, Ctrl))
+		Case "searchbar": _Delete( Cast(SearchBar Ptr, Ctrl))
 		Case "hscrollbar": _Delete( Cast(HScrollBar Ptr, Ctrl))
 		Case "vscrollbar": _Delete( Cast(VScrollBar Ptr, Ctrl))
 		Case "splitter": _Delete( Cast(Splitter Ptr, Ctrl))
