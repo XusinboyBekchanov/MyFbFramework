@@ -242,6 +242,7 @@ Namespace My.Sys.Drawing
 			If Handle Then DestroyIcon(Handle)
 		#endif
 		Handle = Value.Handle
+		If Changed Then Changed(*Designer, This)
 	End Operator
 	
 	#ifndef __USE_JNI__
@@ -255,6 +256,7 @@ Namespace My.Sys.Drawing
 			Private Operator Icon.Let(Value As Any Ptr)
 		#endif
 			Handle = Value
+			If Changed Then Changed(*Designer, This)
 		End Operator
 	#endif
 	
