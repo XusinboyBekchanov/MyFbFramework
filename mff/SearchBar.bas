@@ -56,8 +56,8 @@ Namespace My.Sys.Forms
 		Private Sub SearchBar.MoveIcons
 			Dim rcClient As Rect
 			GetClientRect(FHandle, @rcClient)
-			imgSearch.SetBounds 1, Fix(rcClient.Bottom - 16) / 2, 16, 17
-			imgClear.SetBounds rcClient.Right - 16, (rcClient.Bottom - 16) / 2, 16, 16
+			imgSearch.SetBounds 1, Fix(UnScaleY(rcClient.Bottom) - 16) / 2, 16, 17
+			imgClear.SetBounds UnScaleY(rcClient.Right) - 16, (UnScaleY(rcClient.Bottom) - 16) / 2, 16, 16
 		End Sub
 	#endif
 	
@@ -80,18 +80,18 @@ Namespace My.Sys.Forms
 			Dim As HBRUSH PrevBrush = SelectObject(Canvas.Handle, GetStockObject(NULL_BRUSH))
 			hPen = CreatePen(PS_SOLID, 2, BGR(61, 61, 118))
 			SelectObject(Canvas.Handle, hPen)
-			Ellipse(Canvas.Handle, 0, 1, 13, 14)
+			Ellipse(Canvas.Handle, 0, 1, ScaleX(13), ScaleY(14))
 			DeleteObject(hPen)
 			hPen = CreatePen(PS_SOLID, 1, BGR(89, 94, 95))
 			SelectObject(Canvas.Handle, hPen)
-			Ellipse(Canvas.Handle, 0, 1, 13, 14)
+			Ellipse(Canvas.Handle, 0, 1, ScaleX(13), ScaleY(14))
 			DeleteObject(hPen)
 			hPen = CreatePen(PS_SOLID, 2, BGR(89, 94, 95))
 			SelectObject(Canvas.Handle, hPen)
-			MoveToEx(Canvas.Handle, 10, 11, NULL)
-			LineTo(Canvas.Handle, 16, 17)
-			MoveToEx(Canvas.Handle, 10, 11, NULL)
-			LineTo(Canvas.Handle, 16, 17)
+			MoveToEx(Canvas.Handle, ScaleX(10), ScaleY(11), NULL)
+			LineTo(Canvas.Handle, ScaleX(16), ScaleY(17))
+			MoveToEx(Canvas.Handle, ScaleX(10), ScaleY(11), NULL)
+			LineTo(Canvas.Handle, ScaleX(16), ScaleY(17))
 			SelectObject(Canvas.Handle, PrevBrush)
 			DeleteObject(hPen)
 		End Sub
@@ -103,10 +103,10 @@ Namespace My.Sys.Forms
 			FillRect(Canvas.Handle, @R, Brush.Handle)
 			hPen = CreatePen(PS_SOLID, 2, BGR(89, 94, 95))
 			SelectObject(Canvas.Handle, hPen)
-			MoveToEx(Canvas.Handle, 4, 4, NULL)
-			LineTo(Canvas.Handle, 12, 12)
-			MoveToEx(Canvas.Handle, 12, 4, NULL)
-			LineTo(Canvas.Handle, 4, 12)
+			MoveToEx(Canvas.Handle, ScaleX(4), ScaleY(4), NULL)
+			LineTo(Canvas.Handle, ScaleX(12), ScaleY(12))
+			MoveToEx(Canvas.Handle, ScaleX(12), ScaleY(4), NULL)
+			LineTo(Canvas.Handle, ScaleX(4), ScaleY(12))
 			DeleteObject(hPen)
 		End Sub
 		
