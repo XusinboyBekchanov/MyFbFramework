@@ -4,6 +4,28 @@
 #endif
 
 Namespace My.Sys.Forms
+	#ifndef ReadProperty_Off
+		Private Function HTTPConnection.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "host": Return Cast(Any Ptr, StrPtr(This.Host))
+			Case "port": Return Cast(Any Ptr, @This.Port)
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function HTTPConnection.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "host": This.Host = *Cast(ZString Ptr, Value)
+			Case "port": This.Port = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
+	
 	Private Sub HTTPConnection.CallMethod(HTTPMethod As String, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
 		#ifdef __USE_WASM__
 			Dim ptr_ As ZString Ptr = SendHTTPRequest("http://" & Host & ":" & IIf(Port = 80, "", Trim(Str(Port))) & "/" & Request.ResourceAddress, HTTPMethod, Request.Body)

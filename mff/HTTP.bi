@@ -1,5 +1,7 @@
 #include once "Component.bi"
 
+Using My.Sys.ComponentModel
+
 Namespace My.Sys.Forms
 	Type HTTPRequest
 		Headers As String
@@ -14,8 +16,14 @@ Namespace My.Sys.Forms
 		Reason As String
 	End Type
 	
-	Type HTTPConnection Extends My.Sys.ComponentModel.Component
+	Type HTTPConnection Extends Component
 	Public:
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		As String Host = "127.0.0.1"
 		As Integer Port = 80
 		Declare Sub CallMethod(HTTPMethod As String, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)

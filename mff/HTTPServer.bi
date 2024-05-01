@@ -13,6 +13,8 @@
 	#include once "fbthread.bi"
 #endif
 
+Using My.Sys.ComponentModel
+
 Namespace My.Sys.Forms
 	Type HTTPServerRequest
 		Headers As String
@@ -40,7 +42,7 @@ Namespace My.Sys.Forms
 		server      As Any Ptr
 	End Type
 	
-	Type HTTPServer Extends My.Sys.ComponentModel.Component
+	Type HTTPServer Extends Component
 	Private:
 		#define BuffSize 16
 		#ifdef __USE_WINAPI__
@@ -59,6 +61,12 @@ Namespace My.Sys.Forms
 		Declare Static Sub Receive(ByVal client As CLIENT Ptr)
 		Declare Static Sub Accept(server As HTTPServer Ptr)
 	Public:
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		As String Address = "127.0.0.1"
 		As String HomeDir = "./"
 		As Integer Port = 80

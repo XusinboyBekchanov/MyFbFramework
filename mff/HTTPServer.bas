@@ -7,6 +7,32 @@
 #include once "HTTPServer.bi"
 
 Namespace My.Sys.Forms
+	#ifndef ReadProperty_Off
+		Private Function HTTPServer.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "address": Return Cast(Any Ptr, StrPtr(This.Address))
+			Case "homedir": Return Cast(Any Ptr, StrPtr(This.HomeDir))
+			Case "port": Return Cast(Any Ptr, @This.Port)
+			Case "onreceive": Return Cast(Any Ptr, This.OnReceive)
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function HTTPServer.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "address": This.Address = *Cast(ZString Ptr, Value)
+			Case "homedir": This.HomeDir = *Cast(ZString Ptr, Value)
+			Case "port": This.Port = QInteger(Value)
+			Case "onreceive": This.OnReceive = Value
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
+	
 	' multithreaded socket handling
 	Private Sub HTTPServer.Del(ByVal client As CLIENT Ptr)
 		#ifdef __USE_WINAPI__
