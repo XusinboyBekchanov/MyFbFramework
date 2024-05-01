@@ -22,14 +22,14 @@ Namespace My.Sys.Forms
 			hSession = InternetOpen("FreeBASIC HTTP", INTERNET_OPEN_TYPE_PRECONFIG, "", "", 0)
 			If hSession = 0 Then
 				Print "Failed to open Internet session"
-				Return ""
+				Return
 			End If
 			
 			hConnect = InternetOpenUrl(hSession, "http://" & Host & ":" & IIf(Port = 80, "", Trim(Str(Port))) & "/" & Request.ResourceAddress, "", 0, INTERNET_FLAG_RELOAD, 0)
 			If hConnect = 0 Then
 				Print "Failed to open URL"
 				InternetCloseHandle(hSession)
-				Return ""
+				Return
 			End If
 			
 			hRequest = HttpOpenRequest(hConnect, HTTPMethod, "/", "", "", 0, 0, 0)
@@ -37,15 +37,15 @@ Namespace My.Sys.Forms
 				Print "Failed to open request"
 				InternetCloseHandle(hConnect)
 				InternetCloseHandle(hSession)
-				Return 0
+				Return
 			End If
 			
-			If Not HttpSendRequest(hRequest, Request.Headers, Len(Request.Headers), Request.Body, Len(Request.Body)) Then
+			If Not HttpSendRequest(hRequest, Request.Headers, Len(Request.Headers), StrPtr(Request.Body), Len(Request.Body)) Then
 				Print "Failed to send request"
 				InternetCloseHandle(hRequest)
 				InternetCloseHandle(hConnect)
 				InternetCloseHandle(hSession)
-				Return 0
+				Return
 			End If
 			
 			Dim As Integer statusCode
@@ -57,7 +57,7 @@ Namespace My.Sys.Forms
 			If responseHeadersSize > 0 Then
 				Dim As String responseHeadersBytes(responseHeadersSize)
 				If HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF, @responseHeadersBytes(0), @responseHeadersSize, 0) Then
-					Responce.Headers = responseHeadersBytes
+					Responce.Headers = *Cast(ZString Ptr, @responseHeadersBytes(0))
 				End If
 			End If
 			
