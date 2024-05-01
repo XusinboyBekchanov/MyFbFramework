@@ -33,11 +33,13 @@ Namespace My.Sys.Forms
 	'Displays a list of items from which the user can select one or more.
 	Private Type ListControl Extends Control
 	Private:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-		#else
+		#elseif defined(__USE_GTK__)
 			Declare Static Sub SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
+		#elseif defined(__USE_WASM__)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 	Protected:
 		FNewIndex         As Integer
@@ -60,6 +62,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			ListStore As GtkListStore Ptr
 			TreeSelection As GtkTreeSelection Ptr
+		#elseif defined(__USE_WASM__)
+			Declare Virtual Function GetContent() As UString
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
@@ -125,7 +129,7 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		OnChange      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			OnMeasureItem As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl, ItemIndex As Integer, ByRef Height As UINT)
 			OnDrawItem    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl, ItemIndex As Integer, State As Integer, ByRef R As My.Sys.Drawing.Rect, DC As HDC = 0)
 		#endif

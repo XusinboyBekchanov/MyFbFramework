@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		FSort             As Boolean
 		FItemText         As WString Ptr
 		FItemHeight       As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FListHandle     As HWND
 			FEditHandle     As HWND
 			lpfnEditWndProc As Any Ptr
@@ -48,18 +48,22 @@ Namespace My.Sys.Forms
 		FNewIndex         As Integer
 		FSelected         As Boolean
 		Declare Virtual Sub UpdateListHeight
-		#ifndef __USE_GTK__
-			Declare Static Function WindowProc(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+		#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Function SUBCLASSPROC(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
+		#endif
+		#ifdef __USE_WINAPI__
+			Declare Static Function WindowProc(FWindow As HWND, msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function SubClassProc(FWindow As HWND, msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Virtual Sub SetDark(Value As Boolean)
-		#else
+		#elseif defined(__USE_GTK__)
 			Declare Static Sub ComboBoxEdit_Popup(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Declare Static Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Sub ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			DropDownWidget As GtkWidget Ptr
 			DropDownListWidget As GtkWidget Ptr
+		#elseif defined(__USE_WASM__)
+			Declare Virtual Function GetContent() As UString
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
@@ -123,7 +127,7 @@ Namespace My.Sys.Forms
 		OnKeyPress          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		OnKeyDown           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		OnKeyUp             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			OnMeasureItem       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer, ByRef Height As UINT)
 			OnDrawItem          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer, State As Integer, ByRef R As Rect, DC As HDC = 0)
 		#endif

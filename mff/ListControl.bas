@@ -70,8 +70,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListControl.HorizontalScrollBar(Value As Boolean)
 		FHorizontalScrollBar = Value
-		#ifdef __USE_GTK__
-		#else
+		#ifdef __USE_WINAPI__
 			ChangeStyle WS_HSCROLL, Value
 		#endif
 	End Property
@@ -82,8 +81,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListControl.VerticalScrollBar(Value As Boolean)
 		FVerticalScrollBar = Value
-		#ifdef __USE_GTK__
-		#else
+		#ifdef __USE_WINAPI__
 			ChangeStyle WS_VSCROLL, Value
 		#endif
 	End Property
@@ -94,8 +92,10 @@ Namespace My.Sys.Forms
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
 			Return gtk_tree_selection_iter_is_selected(TreeSelection, @iter)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Return Perform(LB_GETSEL, Index, 0)
+		#else
+			Return False
 		#endif
 	End Property
 	
@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 			Else
 				gtk_tree_selection_unselect_iter(TreeSelection, @iter)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_SETSEL, abs_(Value), Index)
 		#endif
 	End Property
@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 			If widget Then
 				gtk_tree_selection_select_all(TreeSelection)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_SETSEL, abs_(True), -1)
 		#endif
 	End Sub
@@ -126,7 +126,7 @@ Namespace My.Sys.Forms
 	Private Sub ListControl.UnSelectAll
 		#ifdef __USE_GTK__
 			gtk_tree_selection_unselect_all(TreeSelection)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_SETSEL, abs_(False), -1)
 		#endif
 	End Sub
@@ -148,7 +148,7 @@ Namespace My.Sys.Forms
 				Case 3: gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), GTK_SELECTION_EXTENDED)
 				#endif
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle LBS_NOSEL, False
 			ChangeStyle LBS_MULTIPLESEL, False
 			ChangeStyle LBS_EXTENDEDSEL, False
@@ -184,7 +184,7 @@ Namespace My.Sys.Forms
 	Private Property ListControl.MultiColumn(Value As Boolean)
 		If Value <> FMultiColumn Then
 			FMultiColumn = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle LBS_MULTICOLUMN, Value
 			#endif
 		End If
@@ -197,7 +197,7 @@ Namespace My.Sys.Forms
 	Private Property ListControl.IntegralHeight(Value As Boolean)
 		If Value <> FIntegralHeight Then
 			FIntegralHeight = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle LBS_NOINTEGRALHEIGHT, Not Value
 			#endif
 		End If
@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 	Private Property ListControl.Style(Value As ListControlStyle)
 		If Value <> FStyle Then
 			FStyle = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle LBS_OWNERDRAWFIXED, False
 				ChangeStyle LBS_OWNERDRAWVARIABLE, False
 				Select Case Value
@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 	Private Property ListControl.Ctl3D(Value As Boolean)
 		If Value <> FCtl3D Then
 			FCtl3D = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeExStyle WS_EX_CLIENTEDGE, Value
 			#endif
 		End If
@@ -248,7 +248,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListControl.ItemHeight As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				FItemHeight = UnScaleY(Perform(LB_GETITEMHEIGHT, 0, 0))
 			End If
@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ListControl.ItemHeight(Value As Integer)
 		FItemHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(ScaleY(FItemHeight), 0))
 		#endif
 	End Property
@@ -269,8 +269,8 @@ Namespace My.Sys.Forms
 	
 	Private Property ListControl.TopIndex(Value As Integer)
 		FTopIndex = Value
-		#ifndef __USE_GTK__
-			If Handle Then Perform(LB_SETTOPINDEX,FTopIndex,0)
+		#ifdef __USE_WINAPI__
+			If Handle Then Perform(LB_SETTOPINDEX, FTopIndex, 0)
 		#endif
 	End Property
 	
@@ -301,13 +301,17 @@ Namespace My.Sys.Forms
 					gtk_tree_path_free(path)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
 					FItemIndex = Perform(LB_GETCARETINDEX, 0, 0)
 				Else
 					FItemIndex = Perform(LB_GETCURSEL, 0, 0)
 				End If
+			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				FItemIndex = GetSelectedIndex(FHandle)
 			End If
 		#endif
 		Return FItemIndex
@@ -326,7 +330,7 @@ Namespace My.Sys.Forms
 					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(ListStore), @iter), NULL, False, 0, 0)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If SelectionMode = SelectionModes.smMultiSimple Or SelectionMode = SelectionModes.smMultiExtended Then
 					Perform(LB_SETCARETINDEX, FItemIndex, 0)
@@ -334,13 +338,17 @@ Namespace My.Sys.Forms
 					Perform(LB_SETCURSEL,FItemIndex,0)
 				End If
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				SetSelectedIndex(FHandle, Value)
+			End If
 		#endif
 	End Property
 	
 	Private Property ListControl.SelCount As Integer
 		#ifdef __USE_GTK__
 			FSelCount = gtk_tree_selection_count_selected_rows(TreeSelection)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			FSelCount = Perform(LB_GETSELCOUNT, 0, 0)
 		#endif
 		Return FSelCount
@@ -367,7 +375,7 @@ Namespace My.Sys.Forms
 			g_list_foreach(list, Cast(GFunc, @gtk_tree_path_free), NULL)
 			g_list_free(list)
 			Return @AItems(0)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			FSelCount = Perform(LB_GETSELCOUNT, 0, 0)
 			ReDim AItems(FSelCount)
 			Perform(LB_GETSELITEMS, FSelCount, CInt(@AItems(0)))
@@ -389,10 +397,10 @@ Namespace My.Sys.Forms
 	
 	Private Property ListControl.Text(ByRef Value As WString)
 		FText = Value
-		#ifdef __USE_GTK__
-			ItemIndex = Items.IndexOf(Value)
-		#else
+		#ifdef __USE_WINAPI__
 			If FHandle Then Perform(LB_SELECTSTRING, -1, CInt(FText))
+		#else
+			ItemIndex = Items.IndexOf(Value)
 		#endif
 	End Property
 	
@@ -403,7 +411,7 @@ Namespace My.Sys.Forms
 	Private Property ListControl.Sort(Value As Boolean)
 		If Value <> FSort Then
 			FSort = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle LBS_SORT, Value
 			#endif
 		End If
@@ -418,7 +426,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListControl.Item(FIndex As Integer) ByRef As WString
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Dim As Integer L
 				L = Perform(LB_GETTEXTLEN, FIndex, 0)
@@ -457,8 +465,12 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			gtk_list_store_append (ListStore, @iter)
 			gtk_list_store_set(ListStore, @iter, 0, ToUtf8(FItem), -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then FNewIndex = Perform(LB_ADDSTRING, 0, CInt(@FItem))
+		#elseif defined(__USE_WASM__)
+			If Handle Then 
+				AddSelectItem(FHandle, FItem)
+			End If
 		#endif
 	End Sub
 	
@@ -468,7 +480,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(FIndex)))
 			gtk_list_store_remove(ListStore, @iter)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_DELETESTRING, FIndex, 0)
 		#endif
 	End Sub
@@ -484,7 +496,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			gtk_list_store_insert(ListStore, @iter, FIndex)
 			gtk_list_store_set (ListStore, @iter, 0, ToUtf8(FItem), -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then FNewIndex = Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
 		#endif
 	End Sub
@@ -493,12 +505,12 @@ Namespace My.Sys.Forms
 		Items.Clear
 		#ifdef __USE_GTK__
 			gtk_list_store_clear(ListStore)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Perform(LB_RESETCONTENT,0,0)
 		#endif
 	End Sub
 	Private Function ListControl.IndexOf(ByRef FItem As WString) As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Return Perform(LB_FINDSTRING, -1, CInt(FItem))
 		#else
 			Return Items.IndexOf(FItem)
@@ -509,31 +521,37 @@ Namespace My.Sys.Forms
 		Return Items.IndexOfObject(Obj)
 	End Function
 	
-	#ifndef __USE_GTK__
+	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__)
 		Private Sub ListControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QListControl(Sender.Child)
-					For i As Integer = 0 To .Items.Count -1
-						'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
-						'						*s = .Items.Item(i)
-						.Perform(LB_ADDSTRING, 0, CInt(@.Items.Item(i)))
-					Next i
-					'.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(.ItemHeight, 0))
-					.MultiColumn = .MultiColumn
-					.ItemIndex = .ItemIndex
-					If .SelectionMode = SelectionModes.smMultiSimple Or .SelectionMode = SelectionModes.smMultiExtended Then
-						For i As Integer = 0 To .SelCount -1
-							.Perform(LB_SETSEL, 1, .SelItems[i])
+					#ifdef __USE_WINAPI__
+						For i As Integer = 0 To .Items.Count -1
+							'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+							'						*s = .Items.Item(i)
+							.Perform(LB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 						Next i
-					End If
-					.TopIndex = .FTopIndex
+						'.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(.ItemHeight, 0))
+						.MultiColumn = .MultiColumn
+						.ItemIndex = .ItemIndex
+						If .SelectionMode = SelectionModes.smMultiSimple Or .SelectionMode = SelectionModes.smMultiExtended Then
+							For i As Integer = 0 To .SelCount -1
+								.Perform(LB_SETSEL, 1, .SelItems[i])
+							Next i
+						End If
+						.TopIndex = .FTopIndex
+					#elseif defined(__USE_WASM__)
+						SetMultiple(.FHandle, True)
+					#endif
 				End With
 			End If
 		End Sub
 		
-		Private Sub ListControl.WndProc(ByRef Message As Message)
-		End Sub
-	#else
+		#ifdef __USE_WINAPI__
+			Private Sub ListControl.WndProc(ByRef Message As Message)
+			End Sub
+		#endif
+	#elseif defined(__USE_GTK__)
 		Private Sub ListControl.SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 			Dim As ListControl Ptr lst = Cast(Any Ptr, user_data)
 			If lst Then
@@ -542,8 +560,18 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#ifdef __USE_WASM__
+		Private Function ListControl.GetContent() As UString
+			Dim As UString FContent
+			For i As Integer = 0 To Items.Count - 1
+				FContent &= "<option value=""" & Str(i) & """>" & Items.Item(i) & "</option>"
+			Next
+			Return FContent
+		End Function
+	#endif
+	
 	Private Sub ListControl.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
@@ -628,7 +656,7 @@ Namespace My.Sys.Forms
 		For i = 0 To ItemCount - 1
 			#ifdef __USE_GTK__
 				Print #F, Items.Item(i)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
 				s = _CAllocate((Len(TextLen) + 1) * SizeOf(WString))
 				*s = Space(TextLen)
@@ -650,7 +678,7 @@ Namespace My.Sys.Forms
 			Line Input #F, s
 			#ifdef __USE_GTK__
 				AddItem s
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Perform(LB_ADDSTRING, 0, CInt(@s))
 			#endif
 		Wend
@@ -693,7 +721,7 @@ Namespace My.Sys.Forms
 			
 			WLet(FClassName, "ListControl")
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "ListControl", "ListBox"
 				WLet(FClassAncestor, "ListBox")
 				.ChildProc   = @WndProc
@@ -702,9 +730,12 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "select")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width       = 121
-			.Height      = ScaleY(Font.Size /72*96+6)
+			.Height      = ScaleY(Font.Size / 72 * 96 + 6)
 		End With
 	End Constructor
 	

@@ -116,12 +116,12 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxEdit.ShowDropDown(Value As Boolean)
 		#ifdef __USE_GTK__
 			gtk_combo_box_popup(GTK_COMBO_BOX(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Perform CB_SHOWDROPDOWN, Value, 0
 		#endif
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function ComboBoxEdit.WindowProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Select Case Msg
 			Case WM_NCCREATE
@@ -142,7 +142,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ComboBoxEdit.RegisterClass
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Control.RegisterClass "ComboBoxEdit", "ComboBox", @WindowProc
 		#endif
 	End Sub
@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 						gtk_widget_show(widget)
 					#endif
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
 			#endif
 		End If
@@ -230,13 +230,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEdit.IntegralHeight(Value As Boolean)
 		FIntegralHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
 		#endif
 	End Property
 	
 	Private Property ComboBoxEdit.ItemCount As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Return Perform(CB_GETCOUNT,0,0)
 			End If
@@ -248,7 +248,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ComboBoxEdit.ItemHeight As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				If Style <> cbOwnerDrawVariable  Then
 					FItemHeight = UnScaleY(Perform(CB_GETITEMHEIGHT, 0, 0))
@@ -260,7 +260,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEdit.ItemHeight(Value As Integer)
 		FItemHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				If Style <> cbOwnerDrawVariable  Then
 					Perform(CB_SETITEMHEIGHT, 0, ScaleY(FItemHeight))
@@ -272,8 +272,10 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxEdit.ItemIndex As Integer
 		#ifdef __USE_GTK__
 			If widget Then FItemIndex = gtk_combo_box_get_active (GTK_COMBO_BOX(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then FItemIndex = Perform(CB_GETCURSEL, 0, 0)
+		#elseif defined(__USE_WASM__)
+			If FHandle Then FItemIndex = GetSelectedIndex(FHandle)
 		#endif
 		Return FItemIndex
 	End Property
@@ -282,9 +284,14 @@ Namespace My.Sys.Forms
 		FItemIndex = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
 			If OnChange Then OnChange(*Designer, This)
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				SetSelectedIndex(FHandle, Value)
+				If OnChange Then OnChange(*Designer, This)
+			End If
 		#endif
 	End Property
 	
@@ -309,12 +316,14 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), IndexOf(Value))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FStyle > 1 Then
 				If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
 			Else
 				If FHandle Then Perform(WM_SETTEXT, -1, CInt(FText.vptr))
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetSelectedIndex(FHandle, IndexOf(Value))
 		#endif
 	End Property
 	
@@ -327,7 +336,7 @@ Namespace My.Sys.Forms
 			FSort = Value
 			#ifdef __USE_GTK__
 				
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeStyle CBS_SORT, Value
 				'Base.Style = WS_CHILD OR WS_VSCROLL OR CBS_HASSTRINGS OR CBS_AUTOHSCROLL OR AStyle(Abs_(FStyle)) OR ASortStyle(Abs_(FSort)) OR AIntegralHeight(Abs_(FIntegralHeight))
 			#endif
@@ -344,7 +353,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEdit.Item(FIndex As Integer) ByRef As WString
 		Dim As Integer L
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				L = Perform(CB_GETLBTEXTLEN, FIndex, 0)
 				WReAllocate(FItemText, L)
@@ -368,7 +377,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ComboBoxEdit.UpdateListHeight
 		If Style <> cbSimple Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Dim As ..Rect R
 				GetWindowRect Handle, @R
 				MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
@@ -397,7 +406,7 @@ Namespace My.Sys.Forms
 					gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(widget), ToUtf8(FItem))
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Perform(CB_ADDSTRING, 0, CInt(@FItem))
 				UpdateListHeight
@@ -411,7 +420,7 @@ Namespace My.Sys.Forms
 			If widget Then
 				gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(widget), FIndex)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Perform(CB_DELETESTRING, FIndex, 0)
 				UpdateListHeight
@@ -428,7 +437,7 @@ Namespace My.Sys.Forms
 		FNewIndex = FIndex
 		#ifdef __USE_GTK__
 			gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(widget), FIndex, ToUtf8(FItem))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Perform(CB_INSERTSTRING, FIndex, CInt(@FItem))
 				UpdateListHeight
@@ -448,7 +457,7 @@ Namespace My.Sys.Forms
 		Return Items.IndexOfObject(pData)
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function ComboBoxEdit.SUBCLASSPROC(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As ComboBoxEdit Ptr Ctrl
 			Dim As Message Message
@@ -473,34 +482,38 @@ Namespace My.Sys.Forms
 			End If
 			Return Message.Result
 		End Function
-		
+	#endif
+	
+	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__)
 		Private Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
-					.GetChilds
-					If .Style <> cbOwnerDrawVariable AndAlso .FItemHeight <> 0 Then
-						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.FItemHeight))
-					End If
-					.UpdateListHeight
-					Dim As Integer i
-					For i = 0 To .Items.Count - 1
-'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
-'						*s = .Items.Item(i)
-						.Perform(CB_ADDSTRING, 0, CInt(@.Items.Item(i)))
-					Next i
-					.ItemIndex = .FItemIndex
-					.Text = .FText
-					If .FEditHandle <> 0 Then
-						SetWindowLongPtr(.FEditHandle, GWLP_USERDATA, CInt(.Child))
-						.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SUBCLASSPROC)))
-					End If
+					#ifdef __USE_WINAPI__
+						.GetChilds
+						If .Style <> cbOwnerDrawVariable AndAlso .FItemHeight <> 0 Then
+							.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.FItemHeight))
+						End If
+						.UpdateListHeight
+						Dim As Integer i
+						For i = 0 To .Items.Count - 1
+	'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+	'						*s = .Items.Item(i)
+							.Perform(CB_ADDSTRING, 0, CInt(@.Items.Item(i)))
+						Next i
+						.ItemIndex = .FItemIndex
+						.Text = .FText
+						If .FEditHandle <> 0 Then
+							SetWindowLongPtr(.FEditHandle, GWLP_USERDATA, CInt(.Child))
+							.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SUBCLASSPROC)))
+						End If
+					#endif
 				End With
 			End If
 		End Sub
 	#endif
 	
 	Private Sub ComboBoxEdit.GetChilds
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As HWND Child
 			FEditHandle = 0
 			FListHandle = 0
@@ -555,8 +568,18 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#ifdef __USE_WASM__
+		Private Function ComboBoxEdit.GetContent() As UString
+			Dim As UString FContent
+			For i As Integer = 0 To Items.Count - 1
+				FContent &= "<option value=""" & Str(i) & """>" & Items.Item(i) & "</option>"
+			Next
+			Return FContent
+		End Function
+	#endif
+	
 	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_NCCREATE
 				
@@ -704,7 +727,7 @@ Namespace My.Sys.Forms
 				store = GTK_LIST_STORE (gtk_combo_box_get_model (GTK_COMBO_BOX (widget)))
 				gtk_list_store_clear (store)
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Perform(CB_RESETCONTENT, 0, 0)
 		#endif
 	End Sub
@@ -715,7 +738,7 @@ Namespace My.Sys.Forms
 		F = FreeFile_
 		Open File For Output Encoding "utf-8" As #F
 		For i = 0 To ItemCount -1
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Dim TextLen As Integer = Perform(CB_GETLBTEXTLEN, i, 0)
 				s = _CAllocate((TextLen + 1) * SizeOf(WString))
 				*s = WSpace(TextLen)
@@ -787,8 +810,8 @@ Namespace My.Sys.Forms
 			g_signal_connect(widget, "popup", G_CALLBACK(@ComboBoxEdit_Popup), @This)
 			g_signal_connect(widget, "popdown", G_CALLBACK(@ComboBoxEdit_Popdown), @This)
 			Base.RegisterClass "ComboBoxEdit", @This
-		#else
-			ASortStyle(Abs_(True))   = CBS_SORT
+		#elseif defined(__USE_WINAPI__)
+			ASortStyle(abs_(True))   = CBS_SORT
 			AStyle(0)          = CBS_SIMPLE
 			AStyle(1)          = CBS_DROPDOWN
 			AStyle(2)          = CBS_DROPDOWNLIST
@@ -812,12 +835,15 @@ Namespace My.Sys.Forms
 			'ComboBoxEdit.RegisterClass
 			WLet(FClassName, "ComboBoxEdit")
 			WLet(FClassAncestor, "ComboBox")
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.RegisterClass "ComboBoxEdit", "ComboBox"
 				.ExStyle       = 0
 				Base.Style     = WS_CHILD Or WS_VSCROLL Or WS_TABSTOP Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
 				.BackColor         = GetSysColor(COLOR_WINDOW)
 				FDefaultBackColor = .BackColor
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "select")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width          = 121
@@ -857,7 +883,7 @@ Namespace My.Sys.Forms
 			'			If This.Parent AndAlso This.Parent->Widget Then
 			'				gtk_container_remove(gtk_container(This.Parent->Widget), gtk_widget(Widget))
 			'			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			UnregisterClass "ComboBoxEdit", GetModuleHandle(NULL)
 		#endif
 	End Destructor
