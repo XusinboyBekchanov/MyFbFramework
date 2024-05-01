@@ -78,15 +78,27 @@ Namespace My.Sys.Forms
 			GetClientRect Sender.Handle, @R
 			FillRect(Canvas.Handle, @R, Brush.Handle)
 			Dim As HBRUSH PrevBrush = SelectObject(Canvas.Handle, GetStockObject(NULL_BRUSH))
-			hPen = CreatePen(PS_SOLID, 2, BGR(61, 61, 118))
+			If FDarkMode Then
+				hPen = CreatePen(PS_SOLID, 2, BGR(61, 61, 118))
+			Else
+				hPen = CreatePen(PS_SOLID, 2, BGR(171, 171, 227))
+			End If
 			SelectObject(Canvas.Handle, hPen)
 			Ellipse(Canvas.Handle, 0, 1, ScaleX(13), ScaleY(14))
 			DeleteObject(hPen)
-			hPen = CreatePen(PS_SOLID, 1, BGR(89, 94, 95))
+			If FDarkMode Then
+				hPen = CreatePen(PS_SOLID, 1, BGR(89, 94, 95))
+			Else
+				hPen = CreatePen(PS_SOLID, 1, BGR(95, 95, 95))
+			End If
 			SelectObject(Canvas.Handle, hPen)
 			Ellipse(Canvas.Handle, 0, 1, ScaleX(13), ScaleY(14))
 			DeleteObject(hPen)
-			hPen = CreatePen(PS_SOLID, 2, BGR(89, 94, 95))
+			If FDarkMode Then
+				hPen = CreatePen(PS_SOLID, 2, BGR(89, 94, 95))
+			Else
+				hPen = CreatePen(PS_SOLID, 2, BGR(95, 95, 95))
+			End If
 			SelectObject(Canvas.Handle, hPen)
 			MoveToEx(Canvas.Handle, ScaleX(10), ScaleY(11), NULL)
 			LineTo(Canvas.Handle, ScaleX(16), ScaleY(17))
@@ -101,7 +113,11 @@ Namespace My.Sys.Forms
 			Dim As ..Rect R
 			GetClientRect Sender.Handle, @R
 			FillRect(Canvas.Handle, @R, Brush.Handle)
-			hPen = CreatePen(PS_SOLID, 2, BGR(89, 94, 95))
+			If FDarkMode Then
+				hPen = CreatePen(PS_SOLID, 2, BGR(89, 94, 95))
+			Else
+				hPen = CreatePen(PS_SOLID, 2, BGR(95, 95, 95))
+			End If
 			SelectObject(Canvas.Handle, hPen)
 			MoveToEx(Canvas.Handle, ScaleX(4), ScaleY(4), NULL)
 			LineTo(Canvas.Handle, ScaleX(12), ScaleY(12))
