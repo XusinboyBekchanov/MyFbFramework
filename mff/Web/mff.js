@@ -84,6 +84,14 @@ function _ADDROW(Id, Text) {
 	el.insertAdjacentElement("beforeend", newElement);
 }
 
+function _ADDSELECTITEM(Id, Text) {
+	var strId = UTF8ToString(HEAPU32[((Id)>>2)]);
+	var strText = UTF8ToString(HEAPU32[((Text)>>2)]);
+	var newElement = document.createElement("option");
+	newElement.innerHTML = strText;
+	document.getElementById(strId).insertAdjacentElement("beforeend", newElement);
+}
+
 function _SETTITLE(value) {
 	var str = UTF8ToString(HEAPU32[((value)>>2)]);
 	document.title = str;
@@ -107,6 +115,14 @@ function _GETSTRINGVALUE(Id) {
 	return ptr;
 }
 
+function _GETSELECTEDINDEX(Id) {
+	return document.getElementById(Id).selectedIndex;
+}
+
+function _SETSELECTEDINDEX(Id, Value) {
+	document.getElementById(Id).selectedIndex = Value;
+}
+
 function _SETSTRINGVALUE(Id, Value) {
 	var ptr = HEAPU32[((Value)>>2)];
 	document.getElementById(Id).value = UTF8ToString(ptr);
@@ -123,6 +139,14 @@ function _SETFORECOLOR(Id, Value) {
 function _SETFONT(Id, Value) {
 	var str = UTF8ToString(HEAPU32[((Value)>>2)]);
 	document.getElementById(Id).style.font = str;
+}
+
+function _SETMULTIPLE(Id, Value) {
+	document.getElementById(Id).multiple = Value;
+}
+
+function _SETSIZE(Id, Value) {
+	document.getElementById(Id).size = Value;
 }
 
 function _GETCHECKED(Id) {

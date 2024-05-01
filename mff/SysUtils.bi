@@ -60,6 +60,7 @@
 	#define Min(a, b) IIf((a) < (b), (a), (b))
 	Declare Sub AddColumn(Id As Any Ptr, Caption As String)
 	Declare Sub AddRow(Id As Any Ptr, Text As String)
+	Declare Sub AddSelectItem(Id As Any Ptr, Text As String)
 	Declare Function GetDocumentWidth() As Integer
 	Declare Function GetDocumentHeight() As Integer
 	Declare Sub InsertHTML(Value As String)
@@ -67,6 +68,10 @@
 	Declare Sub FreePtr(Ptr As Any Ptr)
 	Declare Sub SetVisibleByStringId(Id As String, Value As Boolean)
 	Declare Sub SetVisible(Id As Any Ptr, Value As Boolean)
+	Declare Sub SetMultiple(Id As Any Ptr, Value As Boolean)
+	Declare Sub SetSize(Id As Any Ptr, Value As Integer)
+	Declare Function GetSelectedIndex(Id As Any Ptr) As Integer
+	Declare Sub SetSelectedIndex(Id As Any Ptr, Value As Integer)
 	Declare Sub CreateElement(AddPosition As String, ClassName As String, Class As String, Type As String, Id As Any Ptr, Name As String, Text As String, Style As String, PositionType As String, Left As String, Top As String, Width As String, Height As String, Right As String, Bottom As String, Parent As Any Ptr)
 	Declare Sub DeleteElement(Id As Any Ptr)
 	Declare Function GetStringValue(Id As Any Ptr) As ZString Ptr
