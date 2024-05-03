@@ -18,7 +18,7 @@ type SampleBuffer
   declare constructor(byval nSamples as integer,byref pSamples as any ptr)
   declare constructor(byref filePath as string)
   declare function getHandle() as integer
-  declare function Create(byval nSamples as integer,byref pSamples as any ptr) as boolean
+ Declare Function Create(ByVal nSamples As Integer, ByRef pSamples As Any Ptr) As Boolean
   declare function Load(byref filePath as string) as boolean
   declare function Destroy() as boolean
   declare function Length() as double
@@ -225,40 +225,21 @@ function SoundBuffer.Playposition as single
 end function
 
 type SoundDevice
-  declare constructor(byval nRate        as integer=44100, _
-                      byval nChannels    as integer=    2, _
-                      byval nBuffers     as integer=    3, _
-                      byval nFrames      as integer= 2048, _
-                      byval nPlugIndex   as integer=    0, _
-                      byval nDeviceIndex as integer=    0)
-  declare function Init(byval nRate        as integer=44100, _
-                        byval nChannels    as integer=    2, _
-                        byval nBuffers     as integer=    3, _
-                        byval nFrames      as integer= 2048, _
-                        byval nPlugIndex   as integer=    0, _
-                        byval nDeviceIndex as integer=    0) as boolean
-  declare property Volume as single
+		Declare Constructor(ByVal nRate As Integer = 44100, ByVal nChannels As Integer = 2, ByVal nBuffers As Integer = 3, ByVal nFrames As Integer = 2048, ByVal nPlugIndex   As Integer = 0, ByVal nDeviceIndex As Integer = 0)
+		Declare Function Init(ByVal nRate As Integer = 44100, ByVal nChannels As Integer = 2, ByVal nBuffers As Integer = 3, ByVal nFrames As Integer = 2048, ByVal nPlugIndex As Integer = 0, ByVal nDeviceIndex As Integer = 0) As Boolean
+		Declare Property Volume As Single
   declare property Volume(byval newVolume as single)
   private:
   as boolean IsInit
 end type
 constructor SoundDevice(byval nRate        as integer, _
-                        byval nChannels    as integer, _
-                        byval nBuffers     as integer, _
-                        byval nFrames      as integer, _
-                        byval nPlugIndex   as integer, _
-                        byval nDeviceIndex as integer)
-  
-  IsInit = this.Init(nRate, nChannels, nBuffers, nFrames, nPlugIndex, nDeviceIndex)
-end constructor
-function SoundDevice.Init(byval nRate        as integer, _
-                          byval nChannels    as integer, _
-                          byval nBuffers     as integer, _
-                          byval nFrames      as integer, _
-                          byval nPlugIndex   as integer, _
-                          byval nDeviceIndex as integer) as boolean
-  IsInit = FBS_Init(nRate, nChannels, nBuffers, nFrames, nPlugIndex, nDeviceIndex)
-  return IsInit
+	Constructor SoundDevice(ByVal nRate As Integer, ByVal nChannels As Integer, ByVal nBuffers As Integer, ByVal nFrames As Integer, ByVal nPlugIndex As Integer, ByVal nDeviceIndex As Integer)
+		Dim As Boolean IsInit = This.Init(nRate, nChannels, nBuffers, nFrames, nPlugIndex, nDeviceIndex)
+	End Constructor
+	
+	Function SoundDevice.Init(ByVal nRate As Integer, ByVal nChannels As Integer, ByVal nBuffers As Integer, ByVal nFrames As Integer, ByVal nPlugIndex   As Integer, ByVal nDeviceIndex As Integer) As Boolean
+		Dim As Boolean IsInit = FBS_Init(nRate, nChannels, nBuffers, nFrames, nPlugIndex, nDeviceIndex)
+		Return IsInit
 end function
 property SoundDevice.Volume as single
   dim as single value
