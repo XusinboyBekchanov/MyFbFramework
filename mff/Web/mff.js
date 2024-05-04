@@ -12,12 +12,23 @@
     }
 }
 
-
 // The event emitter will be emitted when page is loaded
 addListener('load', window, function(event) {
 	//_ONLOAD();
 	addOnPostRun(_ONSTART);
 });
+
+function toggleNode(event) {
+  var parent = event.target.parentElement;
+    var childNodes = parent.querySelector('ul');
+    if (childNodes.style.display === 'none') {
+      childNodes.style.display = 'block';
+      event.target.textContent = '▼';
+    } else {
+      childNodes.style.display = 'none';
+      event.target.textContent = '►';
+    }
+}
 
 function _SENDHTTPREQUEST(url, method, data) {
 	var strUrl = UTF8ToString(HEAPU32[((url)>>2)]);
