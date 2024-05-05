@@ -13,6 +13,7 @@
 
 #include once "ContainerControl.bi"
 #include once "Graphic.bi"
+#include once "Sys.bi"
 
 Namespace My.Sys.Forms
 	#define QForm(__Ptr__) (*Cast(Form Ptr,__Ptr__))
