@@ -39,7 +39,7 @@ Namespace My.Sys.Forms
 		Declare Function ContainsKey(ByRef Key As WString) As Boolean
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As PTreeNode
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Function FindByHandle(hti As HTREEITEM) As PTreeNode
 		#endif
 		Declare Sub Clear
@@ -71,7 +71,7 @@ Namespace My.Sys.Forms
 		Nodes As TreeNodeCollection
 		#ifdef __USE_GTK__
 			TreeIter As GtkTreeIter
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Handle As HTREEITEM
 		#endif
 		Declare Sub SelectItem
@@ -135,12 +135,15 @@ Namespace My.Sys.Forms
 			Declare Static Function TestExpandRow(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function RowCollapsed(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function RowExpanded(tree_view As GtkTreeView Ptr, iter As GtkTreeIter Ptr, path As GtkTreePath Ptr, user_data As Any Ptr) As Boolean
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Sub SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			Declare Sub CreateNodes(PNode As TreeNode Ptr)
+		#elseif defined(__USE_WASM__)
+			Declare Virtual Function GetContent() As UString
+			Declare Function CreateNodes(PNodes As TreeNode Ptr) As UString
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
@@ -206,7 +209,7 @@ End Namespace
 'const TVS_NOHSCROLL = &h8000
 'const TVS_EX_NOSINGLECOLLAPSE = &h1
 '
-#ifndef __USE_GTK__ '_WIN32_WINNT = &h0602
+#ifdef __USE_WINAPI__ '_WIN32_WINNT = &h0602
 	Const TVS_EX_MULTISELECT = &h2
 	Const TVS_EX_DOUBLEBUFFER = &h4
 	Const TVS_EX_NOINDENTSTATE = &h8

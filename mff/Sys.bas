@@ -24,7 +24,7 @@ Namespace My
 		
 		Private Function Version As Long
 			#ifdef __USE_GTK__
-				
+				Return 0
 			#else
 				' ========================================================================================
 				' Returns the Windows version
@@ -55,7 +55,7 @@ Namespace My
 		
 		Private Function Build As Long
 			#ifdef __USE_GTK__
-				
+				Return 0
 			#else
 				' ========================================================================================
 				' Returns the Windows build
@@ -72,9 +72,9 @@ Namespace My
 				GetLocaleInfo(GetUserDefaultUILanguage, LOCALE_SENGLANGUAGE, @SysLanguage, LOCALE_NAME_MAX_LENGTH)
 				Return SysLanguage
 			#elseif defined(__USE_GTK__)
-				Dim As String SysLanguage = *setlocale(LC_CTYPE, NULL)
+				Dim As String SysLanguage = *setlocale(LC_CTYPE, "")
 				Var Pos1 = InStr(SysLanguage, "_")
-				If Pos1 > 0 Then SysLanguage = Left(SysLanguage, Pos1 - 1))
+				If Pos1 > 0 Then SysLanguage = Left(SysLanguage, Pos1 - 1)
 				If SysLanguage = "C" Then
 					SysLanguage = ""
 				End If
@@ -86,7 +86,7 @@ Namespace My
 		
 		Private Function Platform As Long
 			#ifdef __USE_GTK__
-				
+				Return 0
 			#else
 				' ========================================================================================
 				' Returns the Windows platform

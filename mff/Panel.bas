@@ -192,7 +192,10 @@ Namespace My.Sys.Forms
 						End Select
 					End With
 				End If
-				If ShowCaption Then  Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
+				If ShowCaption Then
+					SelectObject(Canvas.Handle, Canvas.Font.Handle)
+					Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
+				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
 				If DoubleBuffered Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)

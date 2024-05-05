@@ -14,7 +14,7 @@ Namespace My.Sys.Forms
 	Private Sub TreeNode.SelectItem
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, Handle, TVGN_CARET)
 		#endif
 	End Sub
@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_COLLAPSE)
 		#endif
 	End Sub
@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->Handle), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
 		#endif
 	End Sub
@@ -51,26 +51,28 @@ Namespace My.Sys.Forms
 				gtk_tree_path_free(TreePath)
 				Return bResult
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then Return TreeView_GetItemState(Parent->Handle, Handle, TVIS_EXPANDED)
 		#endif
+		Return False
 	End Function
 	
 	Private Property TreeNode.Bold As Boolean
 		#ifdef __USE_GTK__
-			Return  FBold
-		#else
+			Return FBold
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				FBold = TreeView_GetItemState(Parent->Handle, Handle, TVIS_BOLD)
 				Return FBold
 			End If
 		#endif
+		Return FBold
 	End Property
 	
 	Private Property TreeNode.Bold(Value As Boolean)
 		FBold = Value
 		#ifdef __USE_GTK__
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				TreeView_SetItemState(Parent->Handle, Handle, IIf(Value, TVIS_BOLD, 0), TVIS_BOLD)
 			End If
@@ -101,7 +103,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 1, ToUtf8(Value), -1)
 			EndIf
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim tvi As TVITEM
 				'tvi.mask = TVIF_HANDLE
@@ -157,7 +159,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
 			EndIf
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Value <> FImageIndex Then
 				If Parent AndAlso Parent->Handle Then
 					Dim tvi As TVITEM
@@ -183,7 +185,7 @@ Namespace My.Sys.Forms
 					If gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 						gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
 					EndIf
-				#else
+				#elseif defined(__USE_WINAPI__)
 					Dim tvi As TVITEM
 					tvi.mask = TVIF_IMAGE
 					tvi.hItem = Handle
@@ -203,9 +205,9 @@ Namespace My.Sys.Forms
 		If Parent AndAlso Parent->Handle Then
 			#ifdef __USE_GTK__
 				If CInt(Cast(TreeView Ptr, Parent)->SelectedImages) AndAlso CInt(Cast(TreeView Ptr, Parent)->SelectedNode = @This) AndAlso CInt(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))) Then
-					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUTF8(Cast(TreeView Ptr, Parent)->SelectedImages->Items.Get(FSelectedImageIndex)), -1)
+					gtk_tree_store_set(gtk_tree_store(gtk_tree_view_get_model(gtk_tree_view(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->SelectedImages->Items.Get(FSelectedImageIndex)), -1)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim tvi As TVITEM
 				tvi.mask = TVIF_SELECTEDIMAGE
 				tvi.hItem = Handle
@@ -235,7 +237,7 @@ Namespace My.Sys.Forms
 				If CInt(Cast(TreeView Ptr, Parent)->SelectedNode = @This) AndAlso CInt(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))) Then
 					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->SelectedImages->Items.Get(FSelectedImageIndex)), -1)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim tvi As TVITEM
 				tvi.mask = TVIF_SELECTEDIMAGE
 				tvi.hItem = Handle
@@ -275,7 +277,7 @@ Namespace My.Sys.Forms
 					If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
 				Next
 			EndIf
-		#else
+		#elseif defined(__USE_WINAPI__)
 			For i As Integer = 0 To Node->Index - 1
 				If pNodes->Item(i)->Visible Then
 					iIndex = i + 1
@@ -313,7 +315,7 @@ Namespace My.Sys.Forms
 									This.TreeIter.user_data = 0
 								End If
 							End If
-						#else
+						#elseif defined(__USE_WINAPI__)
 							If Parent AndAlso Parent->Handle Then
 								TreeView_DeleteItem(Parent->Handle, This.Handle)
 								This.Handle = 0
@@ -356,7 +358,7 @@ Namespace My.Sys.Forms
 					This.TreeIter.user_data = 0
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				TreeView_DeleteItem(Parent->Handle, This.Handle)
 				This.Handle = 0
@@ -386,7 +388,7 @@ Namespace My.Sys.Forms
 			Next i
 			Return 0
 		End Function
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Private Function TreeNodeCollection.FindByHandle(hti As HTREEITEM) As TreeNode Ptr
 			If ParentNode AndAlso ParentNode->Handle = hti Then Return ParentNode
 			For i As Integer = 0 To Count - 1
@@ -449,7 +451,7 @@ Namespace My.Sys.Forms
 					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
 					.ImageIndex = .ImageIndex
 				EndIf
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As TVINSERTSTRUCT tvis
 				If Parent AndAlso Parent->Handle AndAlso (FParentNode = 0 OrElse FParentNode->Handle <> 0) Then
 					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
@@ -501,7 +503,7 @@ Namespace My.Sys.Forms
 					End If
 					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
 				EndIf
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As TVINSERTSTRUCT tvis
 				If Parent->Handle Then
 					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
@@ -548,7 +550,7 @@ Namespace My.Sys.Forms
 	End Sub
 	Private Sub TreeNodeCollection.EditLabel
 		#ifdef __USE_GTK__
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle AndAlso FParentNode->Handle Then
 				'TreeView_EditLabel(Parent->Handle, FParentNode->Handle)
 			End If
@@ -667,7 +669,7 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TreeView.SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			Dim hChildNode As HTREEITEM
 			Do While hNode
@@ -682,7 +684,7 @@ Namespace My.Sys.Forms
 	Private Sub TreeView.CollapseAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_collapse_all(gtk_tree_view(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendToAllChildItems(TreeView_GetRoot(Handle), TVE_COLLAPSE)
 		#endif
 	End Sub
@@ -690,7 +692,7 @@ Namespace My.Sys.Forms
 	Private Sub TreeView.ExpandAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_expand_all(gtk_tree_view(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendToAllChildItems(TreeView_GetRoot(Handle), TVM_EXPAND)
 		#endif
 	End Sub
@@ -701,7 +703,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeView.HideSelection(Value As Boolean)
 		FHideSelection = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TVS_SHOWSELALWAYS, Not Value
 		#endif
 	End Property
@@ -719,7 +721,7 @@ Namespace My.Sys.Forms
 			g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 			g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
 			g_value_unset(@bValue)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle TVS_EDITLABELS, Value
 		#endif
 	End Property
@@ -730,9 +732,9 @@ Namespace My.Sys.Forms
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
 				Return Nodes.FindByIterUser_Data(iter.user_data)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
-				Dim As HTREEItem hti = TreeView_GetNextItem(Handle, NULL, TVGN_CARET)
+				Dim As HTREEITEM hti = TreeView_GetNextItem(Handle, NULL, TVGN_CARET)
 				Return Nodes.FindByHandle(hti)
 			End If
 		#endif
@@ -742,7 +744,7 @@ Namespace My.Sys.Forms
 	Private Property TreeView.SelectedNode(Value As TreeNode Ptr)
 		#ifdef __USE_GTK__
 			If TreeSelection Then gtk_tree_selection_select_iter(TreeSelection, @Value->TreeIter)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then TreeView_Select(Handle, Value->Handle, TVGN_CARET)
 		#endif
 	End Property
@@ -756,9 +758,9 @@ Namespace My.Sys.Forms
 			If path <> 0 AndAlso gtk_tree_model_get_iter(gtk_tree_model(TreeStore), @iter, path) Then
 				Return Nodes.FindByIterUser_Data(iter.User_Data)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
-				Dim As HTREEItem hti = TreeView_GetNextItem(Handle, NULL, TVGN_DROPHILITE)
+				Dim As HTREEITEM hti = TreeView_GetNextItem(Handle, NULL, TVGN_DROPHILITE)
 				Return Nodes.FindByHandle(hti)
 			End If
 		#endif
@@ -788,9 +790,36 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TreeView.WndProc(ByRef Message As Message)
 		End Sub
+	#endif
+	
+	#ifdef __USE_WASM__
+		Private Function TreeView.CreateNodes(PNode As TreeNode Ptr) As UString
+			If PNode->Nodes.Count = 0 Then Return ""
+			Dim As UString FContent
+			FContent = "<ul style=""display: none;"">"
+			For i As Integer = 0 To PNode->Nodes.Count - 1
+				FContent &= "<li style=""list-style-type: none;"">" & !"\r\n"
+				FContent &= "<span style=""cursor: pointer; display: inline-block; width: 16px"" onclick=""toggleNode(event)"">" & IIf(PNode->Nodes.Item(i)->Nodes.Count = 0, " ", "►") & "</span>" & !"\r\n"
+				FContent &= PNode->Nodes.Item(i)->Text & !"\r\n" & CreateNodes(PNode->Nodes.Item(i))
+				FContent &= "</li>"
+			Next
+			FContent &= "</ul>"
+			Return FContent
+		End Function
+		
+		Private Function TreeView.GetContent() As UString
+			Dim As UString FContent
+			For i As Integer = 0 To Nodes.Count - 1
+				FContent &= "<li>" & !"\r\n"
+				FContent &= "<span style=""cursor: pointer; display: inline-block; width: 16px"" onclick=""toggleNode(event)"">" & IIf(Nodes.Item(i)->Nodes.Count = 0, " ", "►") & "</span>" & !"\r\n"
+				FContent &= Nodes.Item(i)->Text & !"\r\n" & CreateNodes(Nodes.Item(i))
+				FContent &= "</li>"
+			Next
+			Return FContent
+		End Function
 	#endif
 	
 	Private Sub TreeView.ProcessMessage(ByRef Message As Message)
@@ -810,7 +839,7 @@ Namespace My.Sys.Forms
 					If OnNodeDblClick Then OnNodeDblClick(*Designer, This, *SelectedNode)
 				End If
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
@@ -967,7 +996,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TreeView.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
@@ -1212,7 +1241,7 @@ Namespace My.Sys.Forms
 				g_signal_connect(GTK_TREE_VIEW(widget), "row-collapsed", G_CALLBACK(@RowCollapsed), @This)
 				g_signal_connect(GTK_TREE_VIEW(widget), "row-expanded", G_CALLBACK(@RowExpanded), @This)
 				This.RegisterClass "TreeView", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.RegisterClass "TreeView", WC_TREEVIEW
@@ -1223,6 +1252,9 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_WINDOW) 'David Change
 				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
+			#elseif defined(__USE_WASM__)
+				FElementStyle = "overflow: auto; border: 1px solid rgb(192, 192, 192); padding: 10px;"
+				WLet(FClassAncestor, "ul")
 			#endif
 			BorderStyle = BorderStyles.bsClient
 			WLet(FClassName, "TreeView")
@@ -1237,7 +1269,7 @@ Namespace My.Sys.Forms
 		Nodes.Clear
 		#ifdef __USE_GTK__
 			
-		#else
+		#elseif defined(__USE_WINAPI__)
 			UnregisterClass "TreeView", GetModuleHandle(NULL)
 		#endif
 	End Destructor
