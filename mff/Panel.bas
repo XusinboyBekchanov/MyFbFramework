@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 					End With
 				End If
 				If ShowCaption Then
-					Canvas.Font.Size = Canvas.Font.Size
+					SelectObject(Canvas.Handle, Canvas.Font.Handle)
 					Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
 				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
