@@ -67,20 +67,20 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 	End Property
 	
-	Private Property Panel.BevelInner As Integer
+	Private Property Panel.BevelInner As Bevel
 		Return FBevelInner
 	End Property
 	
-	Private Property Panel.BevelInner(Value As Integer)
+	Private Property Panel.BevelInner(Value As Bevel)
 		FBevelInner = Value
 		Invalidate
 	End Property
 	
-	Private Property Panel.BevelOuter As Integer
+	Private Property Panel.BevelOuter As Bevel
 		Return FBevelOuter
 	End Property
 	
-	Private Property Panel.BevelOuter(Value As Integer)
+	Private Property Panel.BevelOuter(Value As Bevel)
 		FBevelOuter = Value
 		Invalidate
 	End Property
@@ -135,7 +135,7 @@ Namespace My.Sys.Forms
 				Else
 					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 				End If
-			Case WM_PAINT 
+			Case WM_PAINT
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP MemBmp
 				Dim As PAINTSTRUCT Ps
@@ -194,7 +194,7 @@ Namespace My.Sys.Forms
 				End If
 				If ShowCaption Then
 					SelectObject(Canvas.Handle, Canvas.Font.Handle)
-					Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
+					Canvas.TextOut(Current.X, Current.Y, FText, Canvas.Font.Color, FBackColor)
 				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
 				If DoubleBuffered Then
@@ -203,15 +203,15 @@ Namespace My.Sys.Forms
 					DeleteDC(memDC)
 				End If
 				Canvas.HandleSetted = False
-					If FBevelInner <> bvNone Then
-						AdjustColors(FBevelInner)
-						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
-					End If
-					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
-					If FBevelOuter <> bvNone Then
-						AdjustColors(FBevelOuter)
-						Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
-					End If
+				If FBevelInner <> bvNone Then
+					AdjustColors(FBevelInner)
+					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
+				End If
+				Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
+				If FBevelOuter <> bvNone Then
+					AdjustColors(FBevelOuter)
+					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
+				End If
 				EndPaint Handle, @Ps
 				Message.Result = 0
 				Return
@@ -233,10 +233,17 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WINAPI__
 		Private Sub Panel.AdjustColors(FBevel As Integer)
-			FTopColor = GetSysColor(COLOR_BTNHIGHLIGHT)
-			If FBevel = bvLowered Then FTopColor = GetSysColor(COLOR_BTNSHADOW)
-			FBottomColor = GetSysColor(COLOR_BTNSHADOW)
-			If FBevel = bvLowered Then FBottomColor = GetSysColor(COLOR_BTNHIGHLIGHT)
+			If g_darkModeSupported AndAlso g_darkModeEnabled Then
+				FTopColor = 12632256 'Could be changed
+				If FBevel = bvLowered Then FTopColor = 8421504 'Could be changed
+				FBottomColor = 8421504 'Could be changed
+				If FBevel = bvLowered Then FBottomColor = 8421504 'Could be changed
+			Else
+				FTopColor = GetSysColor(COLOR_BTNHIGHLIGHT)
+				If FBevel = bvLowered Then FTopColor = GetSysColor(COLOR_BTNSHADOW)
+				FBottomColor = GetSysColor(COLOR_BTNSHADOW)
+				If FBevel = bvLowered Then FBottomColor = GetSysColor(COLOR_BTNHIGHLIGHT)
+			End If
 		End Sub
 		
 		Private Sub Panel.DoRect(R As My.Sys.Drawing.Rect, tTopColor As Integer = GetSysColor(COLOR_BTNSHADOW), tBottomColor As Integer = GetSysColor(COLOR_BTNSHADOW))

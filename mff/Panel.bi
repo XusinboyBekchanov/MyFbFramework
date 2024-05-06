@@ -27,8 +27,8 @@ Namespace My.Sys.Forms
 	Private:
 		FTopColor    As Integer
 		FBottomColor As Integer
-		FBevelInner  As Integer
-		FBevelOuter  As Integer
+		FBevelInner  As Bevel
+		FBevelOuter  As Bevel
 		FBorderWidth As Integer
 		FBevelWidth  As Integer
 		FTransparent As Boolean
@@ -55,10 +55,10 @@ Namespace My.Sys.Forms
 		#endif
 		'Returns/sets a graphic to be displayed in a control (Windows, Linux).
 		Graphic As My.Sys.Drawing.GraphicType
-		Declare Property BevelInner As Integer
-		Declare Property BevelInner(Value As Integer)
-		Declare Property BevelOuter As Integer
-		Declare Property BevelOuter(Value As Integer)
+		Declare Property BevelInner As Bevel
+		Declare Property BevelInner(Value As Bevel)
+		Declare Property BevelOuter As Bevel
+		Declare Property BevelOuter(Value As Bevel)
 		Declare Property BevelWidth As Integer
 		Declare Property BevelWidth(Value As Integer)
 		Declare Property BorderWidth As Integer
