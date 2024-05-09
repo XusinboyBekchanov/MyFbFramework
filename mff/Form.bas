@@ -811,6 +811,8 @@ Namespace My.Sys.Forms
 					lpwp->y = ScaleY(frm->FClientY)
 					lpwp->cx = ScaleX(frm->FClientW)
 					lpwp->cy = ScaleY(frm->FClientH)
+				Case WM_PAINT
+					SendMessage frm->Handle, uMsg, WPARAM, LPARAM
 				End Select
 			End If
 			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, WPARAM, LPARAM)
@@ -927,7 +929,11 @@ Namespace My.Sys.Forms
 			Base.SetDark Value
 			RefreshTitleBarThemeColor(FHandle)
 			If FClient Then
-				SetWindowTheme(FClient, "DarkMode_Explorer", nullptr)
+				If Value Then
+					SetWindowTheme(FClient, "DarkMode_Explorer", nullptr)
+				Else
+					SetWindowTheme(FClient, NULL, NULL)
+				End If
 				AllowDarkModeForWindow(FClient, g_darkModeEnabled)
 				SendMessageW(FClient, WM_THEMECHANGED, 0, 0)
 			End If
