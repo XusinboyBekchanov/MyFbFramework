@@ -74,7 +74,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
 				Dim As REBARBANDINFO rbBand
-				Dim As ..RECT rct
+				Dim As ..Rect rct
 				rbBand.fMask = RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
 				rbBand.hwndChild = Value->Handle                                        ' (RBBIM_CHILD flag)
 				GetWindowRect(Value->Handle, @rct)
@@ -139,7 +139,7 @@ Namespace My.Sys.Forms
 					rbBand.cbSize = SizeOf(REBARBANDINFO)
 					rbBand.fMask Or = RBBIM_IMAGE
 					rbBand.iImage = FImageIndex
-					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(lParam, @rbBand))
+					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
 				End If
 			End If
 		#endif
@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ReBarBand.Left As Integer
 		#ifndef __USE_GTK__
-			Dim rc As My.Sys.Drawing.RECT
+			Dim rc As My.Sys.Drawing.Rect
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
 				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
 				FLeft = rc.Left
@@ -208,7 +208,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ReBarBand.Top As Integer
 		#ifndef __USE_GTK__
-			Dim rc As My.Sys.Drawing.RECT
+			Dim rc As My.Sys.Drawing.Rect
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
 				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
 				FLeft = rc.Top
@@ -223,7 +223,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ReBarBand.Height As Integer
 		#ifdef __USE_WINAPI__
-			Dim rc As My.Sys.Drawing.RECT
+			Dim rc As My.Sys.Drawing.Rect
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
 				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
 				FHeight = rc.Bottom - rc.Top
@@ -248,7 +248,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ReBarBand.Width As Integer
 		#ifdef __USE_WINAPI__
-			Dim rc As My.Sys.Drawing.RECT
+			Dim rc As My.Sys.Drawing.Rect
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then 
 				SendMessage(Parent->Handle, RB_GETRECT, Index, Cast(LPARAM, @rc))
 				FWidth = rc.Right - rc.Left
@@ -393,7 +393,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then
 				Dim As REBARBANDINFO rbBand
-				Dim As ..RECT rct
+				Dim As ..Rect rct
 				rbBand.cbSize = SizeOf(REBARBANDINFO)
 				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
 				If (FImageIndex > -1) AndAlso Parent->ImageList AndAlso (Parent->ImageList->Count > 0) Then
@@ -668,7 +668,7 @@ Namespace My.Sys.Forms
 					'End If
 					.UpdateReBar()
 					For i As Integer = 0 To .Bands.Count - 1
-						.Bands.Item(i)->Child = .Bands.Item(i)->Child
+						'.Bands.Item(i)->Child = .Bands.Item(i)->Child
 						.Bands.Item(i)->Update True
 					Next
 				End With
@@ -785,16 +785,18 @@ Namespace My.Sys.Forms
 		#else
 			Select Case Message.Msg
 			Case WM_DPICHANGED
-				Brush.Handle = hbrBkgnd
-				SendMessage(FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
-				SendMessage(FHandle, RB_SETBKCOLOR, 0, Cast(LPARAM, darkBkColor))
-				Dim As COLORSCHEME csch
-				csch.dwSize = SizeOf(COLORSCHEME)
-				csch.clrBtnShadow = darkBkColor
-				csch.clrBtnHighlight = darkHlBkColor
-				SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
-				SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-				Repaint
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+					Brush.Handle = hbrBkgnd
+					SendMessage(FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
+					SendMessage(FHandle, RB_SETBKCOLOR, 0, Cast(LPARAM, darkBkColor))
+					Dim As COLORSCHEME csch
+					csch.dwSize = SizeOf(COLORSCHEME)
+					csch.clrBtnShadow = darkBkColor
+					csch.clrBtnHighlight = darkHlBkColor
+					SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
+					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+					Repaint
+				End If
 			Case WM_ERASEBKGND
 				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
 				'	Message.Result = -1
