@@ -1028,6 +1028,10 @@ Namespace My.Sys.Forms
 				'	'FDpiFormY = ydpi
 				'	RequestAlign
 				'End If
+				LockWindowUpdate(FHandle)
+				Base.ProcessMessage(msg)
+				LockWindowUpdate(0)
+				Return
 			Case WM_UAHDRAWMENU
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As UAHMENU Ptr pUDM = Cast(UAHMENU Ptr, msg.lParam)
