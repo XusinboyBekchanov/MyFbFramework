@@ -477,22 +477,26 @@ Namespace My.Sys.Forms
 	
 	Private Property ListViewColumn.Width(Value As Integer)
 		FWidth = Value
+		Update
+	End Property
+	
+	Private Sub ListViewColumn.Update
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
+				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, FWidth))
 			#else
-				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
+				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, FWidth))
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 				lvc.iSubItem = Index
-				lvc.cx = ScaleX(Value)
+				lvc.cx = ScaleX(FWidth)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
 		#endif
-	End Property
+	End Sub
 	
 	Private Property ListViewColumn.Format As ColumnFormat
 		Return FFormat
@@ -1424,6 +1428,17 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case WM_DPICHANGED
+				FItemHeight = 0
+				Base.ProcessMessage(Message)
+				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
+				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
+				For i As Integer = 0 To Columns.Count - 1
+					Columns.Column(i)->xdpi = xdpi
+					Columns.Column(i)->ydpi = ydpi
+					Columns.Column(i)->Update
+				Next
+				Return
 			Case WM_RBUTTONDOWN
 				If ContextMenu Then
 					If ContextMenu->Handle Then

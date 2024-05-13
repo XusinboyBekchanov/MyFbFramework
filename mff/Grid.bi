@@ -141,6 +141,7 @@ Namespace My.Sys.Forms
 		Declare Property Width(Value As Integer)
 		Declare Property Format As ColumnFormat
 		Declare Property Format(Value As ColumnFormat)
+		Declare Sub Update()
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor

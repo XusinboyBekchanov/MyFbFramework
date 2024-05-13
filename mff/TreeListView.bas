@@ -500,7 +500,7 @@ Namespace My.Sys.Forms
 			lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 			lvc.iSubItem = Index
 			If Parent AndAlso Parent->Handle AndAlso ListView_GetColumn(Parent->Handle, Index, @lvc) Then
-				FWidth = Parent->UnScaleX(lvc.cx)
+				FWidth = UnScaleX(lvc.cx)
 			End If
 		#endif
 		Return FWidth
@@ -508,22 +508,26 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListViewColumn.Width(Value As Integer)
 		FWidth = Value
+		Update
+	End Property
+	
+	Private Sub TreeListViewColumn.Update
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
-				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
+				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, FWidth))
 			#else
-				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
+				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, FWidth))
 			#endif
 		#else
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 				lvc.iSubItem = Index
-				lvc.cx = Parent->ScaleX(Value)
+				lvc.cx = ScaleX(FWidth)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
 		#endif
-	End Property
+	End Sub
 	
 	Private Property TreeListViewColumn.Format As ColumnFormat
 		Return FFormat
@@ -1412,7 +1416,9 @@ Namespace My.Sys.Forms
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
 				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
 				For i As Integer = 0 To Columns.Count - 1
-					Columns.Column(i)->Width = Columns.Column(i)->Width
+					Columns.Column(i)->xdpi = xdpi
+					Columns.Column(i)->ydpi = ydpi
+					Columns.Column(i)->Update
 				Next
 				Return
 			Case WM_DESTROY
