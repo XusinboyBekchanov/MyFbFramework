@@ -430,7 +430,12 @@ Namespace My.Sys.Forms
 				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
 				tbbi.cx = ScaleX(Value)
 				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
-				If FChild Then FChild->Width = Value
+				If FChild Then 
+					FChild->Width = Value
+					Dim As Rect R
+					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
+					MoveWindow FChild->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+				End If
 			End If
 		#endif
 	End Property
@@ -442,9 +447,14 @@ Namespace My.Sys.Forms
 				Dim As TBBUTTONINFO tbbi
 				tbbi.cbSize = SizeOf(tbbi)
 				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
-				tbbi.cx = ScaleX(FWidth)
+				tbbi.cx = ScaleX(FButtonWidth)
 				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
-				If FChild Then FChild->Width = FWidth
+				If FChild Then
+					FChild->Width = FButtonWidth
+					Dim As Rect R
+					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
+					MoveWindow FChild->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+				End If
 			End If
 		#endif
 	End Sub
