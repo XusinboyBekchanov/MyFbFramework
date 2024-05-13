@@ -862,20 +862,20 @@ Namespace My.Sys.Forms
 					If Cast(ListView Ptr, Parent)->CheckBoxes Then
 						Dim As GtkCellRenderer Ptr rendertoggle = gtk_cell_renderer_toggle_new()
 						gtk_tree_view_column_pack_start(PColumn->Column, rendertoggle, False)
-						gtk_tree_view_column_add_attribute(PColumn->Column, rendertoggle, ToUTF8("active"), 0)
+						gtk_tree_view_column_add_attribute(PColumn->Column, rendertoggle, ToUtf8("active"), 0)
 						'gtk_cell_renderer_toggle_set_activatable(gtk_cell_renderer_toggle(rendertoggle), True)
-						g_signal_connect(rendertoggle, "toggled", G_CALLBACK(@check), Parent)
+						g_signal_connect(rendertoggle, "toggled", G_CALLBACK(@Check), Parent)
 					End If
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
-					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 2)
+					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUtf8("icon_name"), 2)
 				End If
 				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				gtk_tree_view_column_pack_start(PColumn->Column, rendertext, True)
-				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUTF8("text"), Index + 3)
+				gtk_tree_view_column_add_attribute(PColumn->Column, rendertext, ToUtf8("text"), Index + 3)
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
-				gtk_tree_view_column_set_title(PColumn->Column, ToUTF8(FCaption))
-				If gtk_is_tree_view(Parent->Handle) Then
+				gtk_tree_view_column_set_title(PColumn->Column, ToUtf8(FCaption))
+				If GTK_IS_TREE_VIEW(Parent->Handle) Then
 					gtk_tree_view_append_column(GTK_TREE_VIEW(Parent->Handle), PColumn->Column)
 				Else
 					gtk_tree_view_append_column(GTK_TREE_VIEW(g_object_get_data(G_OBJECT(Parent->Handle), "@@@TreeView")), PColumn->Column)
@@ -887,9 +887,9 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 		#elseif defined(__USE_WINAPI__)
-			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
-			lvC.fmt       =  Format
-			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
+			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
+			lvc.fmt       =  Format
+			lvc.cx		  = Parent->ScaleX(IIf(iWidth = -1, 50, iWidth))
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
 			lvc.pszText  = @FCaption
@@ -1673,7 +1673,7 @@ Namespace My.Sys.Forms
 						lvc.iImage          = .Columns.Column(i)->ImageIndex
 						lvc.iSubItem        = i
 						.FHandle            = 0
-						lvc.cx              = ScaleX(.Columns.Column(i)->Width)
+						lvc.cx              = .ScaleX(.Columns.Column(i)->Width)
 						.FHandle            = TempHandle
 						ListView_InsertColumn(.FHandle, i, @lvc)
 					Next i

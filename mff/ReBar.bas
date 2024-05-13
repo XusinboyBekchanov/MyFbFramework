@@ -491,12 +491,12 @@ Namespace My.Sys.Forms
 		pBand->Parent = Parent
 		#ifdef __USE_GTK__
 			If *pBand->Child Is ToolBar Then
-				gtk_toolbar_set_show_arrow(gtk_toolbar(pBand->Child->Handle), False)
+				gtk_toolbar_set_show_arrow(GTK_TOOLBAR(pBand->Child->Handle), False)
 			End If
 		#else
 			If Parent AndAlso Parent->Handle Then
 				Dim As REBARBANDINFO rbBand
-				Dim As ..RECT rct
+				Dim As ..Rect rct
 				
 				rbBand.cbSize = SizeOf(REBARBANDINFO)
 				rbBand.fMask = RBBIM_STYLE Or RBBIM_CHILD Or RBBIM_CHILDSIZE Or RBBIM_SIZE Or RBBIM_IDEALSIZE
@@ -510,8 +510,8 @@ Namespace My.Sys.Forms
 				End If
 				rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS 'Or RBBS_USECHEVRON          ' (RBBIM_STYLE flag)
 				
-				rbBand.hwndChild = value->Handle                                       ' (RBBIM_CHILD flag)
-				GetWindowRect(value->Handle, @rct)
+				rbBand.hwndChild = Value->Handle                                       ' (RBBIM_CHILD flag)
+				GetWindowRect(Value->Handle, @rct)
 				rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
 				rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
 				rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
@@ -519,7 +519,7 @@ Namespace My.Sys.Forms
 				pBand->MinWidth = rbBand.cxMinChild
 				pBand->MinHeight = rbBand.cyMinChild
 				pBand->Width = rbBand.cx
-				SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(lParam, @rbBand))
+				SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(LPARAM, @rbBand))
 			End If
 		#endif
 		FItems.Add pBand
@@ -797,6 +797,11 @@ Namespace My.Sys.Forms
 					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 					Repaint
 				End If
+				Base.ProcessMessage(Message)
+				'For i As Integer = 0 To Bands.Count - 1
+				'	Bands.Item(i)->Child = Bands.Item(i)->Child
+				'Next
+				Return
 			Case WM_ERASEBKGND
 				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
 				'	Message.Result = -1
@@ -945,8 +950,8 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub ReBar.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As ReBar Ptr rb = user_data
-			If allocation->Width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
-				rb->AllocatedWidth = allocation->Width
+			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
+				rb->AllocatedWidth = allocation->width
 				rb->AllocatedHeight = allocation->height
 				Dim ChildAllocation As GtkAllocation
 				Dim ChildWidget As GtkWidget Ptr
@@ -1011,7 +1016,7 @@ Namespace My.Sys.Forms
 								If j = i Then
 									.Width = FWidth
 								Else
-									.Width = Max(.MinWidth, Min(.RequestedWidth, FWidth - FMinWidths))
+									.Width = Max(.MinWidth, min(.RequestedWidth, FWidth - FMinWidths))
 								End If
 								.Height = RowHeight
 								rb->bWithoutUpdate = False
@@ -1035,7 +1040,7 @@ Namespace My.Sys.Forms
 						If rb->Parent Then rb->Parent->RequestAlign
 					End If
 				End If
-				If rb->OnResize Then rb->OnResize(*rb->Designer, *rb, UnScaleX(allocation->width), UnScaleY(allocation->height))
+				If rb->OnResize Then rb->OnResize(*rb->Designer, *rb, rb->UnScaleX(allocation->width), rb->UnScaleY(allocation->height))
 			End If
 		End Sub
 		

@@ -504,7 +504,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QComboBoxEx(Sender.Child)
 					If .Style <> cbOwnerDrawVariable AndAlso .ItemHeight <> 0 Then
-						.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.ItemHeight))
+						.Perform(CB_SETITEMHEIGHT, 0, .ScaleY(.ItemHeight))
 					End If
 					.UpdateListHeight
 					If .ImagesList Then

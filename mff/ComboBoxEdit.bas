@@ -458,7 +458,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifdef __USE_WINAPI__
-		Private Function ComboBoxEdit.SUBCLASSPROC(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Private Function ComboBoxEdit.SubClassProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As ComboBoxEdit Ptr Ctrl
 			Dim As Message Message
 			Ctrl = Cast(ComboBoxEdit Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
@@ -491,7 +491,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_WINAPI__
 						.GetChilds
 						If .Style <> cbOwnerDrawVariable AndAlso .FItemHeight <> 0 Then
-							.Perform(CB_SETITEMHEIGHT, 0, ScaleY(.FItemHeight))
+							.Perform(CB_SETITEMHEIGHT, 0, .ScaleY(.FItemHeight))
 						End If
 						.UpdateListHeight
 						Dim As Integer i
@@ -504,7 +504,7 @@ Namespace My.Sys.Forms
 						.Text = .FText
 						If .FEditHandle <> 0 Then
 							SetWindowLongPtr(.FEditHandle, GWLP_USERDATA, CInt(.Child))
-							.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SUBCLASSPROC)))
+							.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SubClassProc)))
 						End If
 					#endif
 				End With

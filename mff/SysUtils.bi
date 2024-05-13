@@ -183,20 +183,6 @@ Const HELP_SETPOPUP_POS = &Hd
 	Dim Shared env         As JNIEnv Ptr
 	Dim Shared Instance As jobject
 #endif
-Dim Shared xdpi         As Double
-Dim Shared ydpi         As Double
-
-#ifdef __USE_JNI__
-	Declare Function ScaleX(ByVal cx As Single) As Integer
-	Declare Function ScaleY(ByVal cy As Single) As Integer
-	Declare Function UnScaleX(ByVal cx As Single) As Integer
-	Declare Function UnScaleY(ByVal cy As Single) As Integer
-#else
-	Declare Function ScaleX(ByVal cx As Single) As Single
-	Declare Function ScaleY(ByVal cy As Single) As Single
-	Declare Function UnScaleX(ByVal cx As Single) As Single
-	Declare Function UnScaleY(ByVal cy As Single) As Single
-#endif
 
 Namespace ClassContainer
 	Private Type ClassType

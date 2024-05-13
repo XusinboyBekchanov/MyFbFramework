@@ -227,14 +227,16 @@ Namespace My.Sys.Drawing
 	Private Operator Font.Let(Value As Font)
 		With Value
 			WLet(FName, .Name)
-			FBold      = .Bold
-			FItalic    = .Italic
-			FUnderline = .Underline
-			FStrikeOut = .StrikeOut
-			FSize      = .Size
-			FColor     = .Color
-			FCharSet   = .CharSet
+			FBold       = .Bold
+			FItalic     = .Italic
+			FUnderline  = .Underline
+			FStrikeOut  = .StrikeOut
+			FSize       = .Size
+			FColor      = .Color
+			FCharSet    = .CharSet
 			FOrientation = .Orientation
+			xdpi        = .xdpi
+			ydpi        = .ydpi
 		End With
 		Create
 	End Operator

@@ -178,7 +178,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
-	Private Type ListViewColumns
+	Private Type ListViewColumns Extends My.Sys.Object
 	Private:
 		FColumns As List
 		#ifdef __USE_GTK__

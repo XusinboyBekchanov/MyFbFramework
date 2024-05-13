@@ -82,6 +82,130 @@ Namespace My.Sys
 		Return *FTemp
 	End Function
 	
+	' =====================================================================================
+	' Scale the location point X per DPI
+	' =====================================================================================
+	#ifdef __USE_JNI__
+		Private Function Object.ScaleX(ByVal cx As Single) As Integer
+			Function = cx * xdpi
+		End Function
+	#else
+		Private Function Object.ScaleX(ByVal cx As Single) As Single
+			If xdpi = 0 OrElse ydpi = 0 Then
+				#ifdef __USE_GTK__
+					Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+			    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+					xdpi = dpi / 96
+					ydpi = dpi / 96
+				#elseif defined(__USE_WINAPI__)
+					Dim hDC As HDC
+					hDC = GetDC(NULL)
+					xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+					ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+					ReleaseDC NULL, hDC
+				#endif
+				If xdpi = 0 Then xdpi = 1
+				If ydpi = 0 Then ydpi = 1
+				oldxdpi = xdpi
+				oldydpi = ydpi
+			End If
+			Function = cx * xdpi
+		End Function
+	#endif
+	' =====================================================================================
+	' Scale the location point X per DPI
+	' =====================================================================================
+	#ifdef __USE_JNI__
+		Private Function Object.UnScaleX(ByVal cx As Single) As Integer
+			If xdpi = 0 Then xdpi = 1
+			Function = cx / xdpi
+		End Function
+	#else
+		Private Function Object.UnScaleX(ByVal cx As Single) As Single
+			If xdpi = 0 OrElse ydpi = 0 Then
+				#ifdef __USE_GTK__
+					Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+			    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+					xdpi = dpi / 96
+					ydpi = dpi / 96
+				#elseif defined(__USE_WINAPI__)
+					Dim hDC As HDC
+					hDC = GetDC(NULL)
+					xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+					ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+					ReleaseDC NULL, hDC
+				#endif
+				If xdpi = 0 Then xdpi = 1
+				If ydpi = 0 Then ydpi = 1
+				oldxdpi = xdpi
+				oldydpi = ydpi
+			End If
+			Function = cx / xdpi
+		End Function
+	#endif
+	' =====================================================================================
+	' Scale the location point Y per DPI
+	' =====================================================================================
+	#ifdef __USE_JNI__
+		Private Function Object.ScaleY(ByVal cy As Single) As Integer
+			Function = cy * ydpi
+		End Function
+	#else
+		Private Function Object.ScaleY(ByVal cy As Single) As Single
+			If xdpi = 0 OrElse ydpi = 0 Then
+				#ifdef __USE_GTK__
+					Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+			    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+					xdpi = dpi / 96
+					ydpi = dpi / 96
+				#elseif defined(__USE_WINAPI__)
+					Dim hDC As HDC
+					hDC = GetDC(NULL)
+					xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+					ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+					ReleaseDC NULL, hDC
+				#endif
+				If xdpi = 0 Then xdpi = 1
+				If ydpi = 0 Then ydpi = 1
+				oldxdpi = xdpi
+				oldydpi = ydpi
+			End If
+			Function = cy * ydpi
+		End Function
+	#endif
+	
+	' =====================================================================================
+	' Scale the location point Y per DPI
+	' =====================================================================================
+	#ifdef __USE_JNI__
+		Private Function Object.UnScaleY(ByVal cy As Single) As Integer
+			If ydpi = 0 Then ydpi = 1
+			Function = cy / ydpi
+		End Function
+	#else
+		Private Function Object.UnScaleY(ByVal cy As Single) As Single
+			If xdpi = 0 OrElse ydpi = 0 Then
+				#ifdef __USE_GTK__
+					Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+			    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+					xdpi = dpi / 96
+					ydpi = dpi / 96
+				#elseif defined(__USE_WINAPI__)
+					Dim hDC As HDC
+					hDC = GetDC(NULL)
+					xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+					ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+					ReleaseDC NULL, hDC
+				#endif
+				If xdpi = 0 Then xdpi = 1
+				If ydpi = 0 Then ydpi = 1
+				oldxdpi = xdpi
+				oldydpi = ydpi
+			End If
+			Function = cy / ydpi
+		End Function
+	#endif
+
 	Private Constructor Object
 		FTemp = 0
 		FClassName = 0 'CAllocate(0)

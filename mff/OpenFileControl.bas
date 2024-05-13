@@ -288,7 +288,7 @@ Namespace My.Sys.Forms
 				If OpenDial Then
 					If Not OpenDial->FFirstShowed Then
 						OpenDial->FFirstShowed = True
-						MoveWindow hDlg, ScaleX(OpenDial->FLeft), ScaleY(OpenDial->FTop), ScaleX(OpenDial->FWidth), ScaleY(OpenDial->FHeight), True
+						MoveWindow hDlg, OpenDial->ScaleX(OpenDial->FLeft), OpenDial->ScaleY(OpenDial->FTop), OpenDial->ScaleX(OpenDial->FWidth), OpenDial->ScaleY(OpenDial->FHeight), True
 					End If
 					If g_darkModeEnabled Then
 						If Not OpenDial->FDarkMode Then
@@ -310,10 +310,10 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_WINDOWPOSCHANGING
 				If OpenDial Then
-					If OpenDial->Constraints.Left <> 0 Then Cast(WINDOWPOS Ptr, lParam)->x  = ScaleX(OpenDial->Constraints.Left)
-					If OpenDial->Constraints.Top <> 0 Then Cast(WINDOWPOS Ptr, lParam)->y  = ScaleY(OpenDial->Constraints.Top)
-					If OpenDial->Constraints.Width <> 0 Then Cast(WINDOWPOS Ptr, lParam)->cx = ScaleX(OpenDial->Constraints.Width)
-					If OpenDial->Constraints.Height <> 0 Then Cast(WINDOWPOS Ptr, lParam)->cy = ScaleY(OpenDial->Constraints.Height)
+					If OpenDial->Constraints.Left <> 0 Then Cast(WINDOWPOS Ptr, lParam)->x  = OpenDial->ScaleX(OpenDial->Constraints.Left)
+					If OpenDial->Constraints.Top <> 0 Then Cast(WINDOWPOS Ptr, lParam)->y  = OpenDial->ScaleY(OpenDial->Constraints.Top)
+					If OpenDial->Constraints.Width <> 0 Then Cast(WINDOWPOS Ptr, lParam)->cx = OpenDial->ScaleX(OpenDial->Constraints.Width)
+					If OpenDial->Constraints.Height <> 0 Then Cast(WINDOWPOS Ptr, lParam)->cy = OpenDial->ScaleY(OpenDial->Constraints.Height)
 				End If
 			Case WM_CHILDACTIVATE
 				If OpenDial Then

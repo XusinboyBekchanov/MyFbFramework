@@ -500,7 +500,7 @@ Namespace My.Sys.Forms
 			lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 			lvc.iSubItem = Index
 			If Parent AndAlso Parent->Handle AndAlso ListView_GetColumn(Parent->Handle, Index, @lvc) Then
-				FWidth = UnScaleX(lvc.cx)
+				FWidth = Parent->UnScaleX(lvc.cx)
 			End If
 		#endif
 		Return FWidth
@@ -519,7 +519,7 @@ Namespace My.Sys.Forms
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 				lvc.iSubItem = Index
-				lvc.cx = ScaleX(Value)
+				lvc.cx = Parent->ScaleX(Value)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
 		#endif
@@ -956,7 +956,7 @@ Namespace My.Sys.Forms
 				If Index = 0 Then
 					Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 					gtk_tree_view_column_pack_start(PColumn->Column, renderpixbuf, False)
-					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUTF8("icon_name"), 0)
+					gtk_tree_view_column_add_attribute(PColumn->Column, renderpixbuf, ToUtf8("icon_name"), 0)
 				End If
 				g_signal_connect(G_OBJECT(PColumn->rendertext), "edited", G_CALLBACK (@Cell_Edited), PColumn)
 				g_signal_connect(G_OBJECT(PColumn->rendertext), "editing-started", G_CALLBACK (@Cell_Editing), PColumn)
@@ -1406,6 +1406,13 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case WM_DPICHANGED
+				FItemHeight = 0
+				Base.ProcessMessage(Message)
+				For i As Integer = 0 To Columns.Count - 1
+					Columns.Column(i)->Width = Columns.Column(i)->Width
+				Next
+				Return
 			Case WM_DESTROY
 				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_NORMAL)
 				If StateImages Then ListView_SetImageList(FHandle, 0, LVSIL_STATE)
@@ -1482,6 +1489,9 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
 				ItemID = Cast(Integer, miStruct->itemID)
+				If FOwnerDraw Then
+					miStruct->itemHeight = ScaleY(17)
+				End If
 				If OnMeasureItem Then OnMeasureItem(*Designer, This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
@@ -1734,7 +1744,7 @@ Namespace My.Sys.Forms
 						lvc.iSubItem         = i
 						Var iWidth = .Columns.Column(i)->Width
 						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, ScaleX(iWidth))
+						ListView_SetColumnWidth(.FHandle, i, .ScaleX(iWidth))
 					Next i
 					For i As Integer = 0 To .Nodes.Count -1
 						Dim lvi As LVITEM

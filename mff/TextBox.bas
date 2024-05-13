@@ -1192,10 +1192,10 @@ Namespace My.Sys.Forms
 						If .FMasked Then .Masked = True
 						If .FSelStart <> 0 OrElse .FSelEnd <> 0 Then .SetSel .FSelStart, .FSelEnd
 						If .FLeftMargin <> 0 Then
-							SendMessage(.FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKELPARAM(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
+							SendMessage(.FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKELPARAM(.ScaleX(.FLeftMargin), .ScaleX(.FRightMargin)))
 						End If
 						If .FRightMargin <> 0 Then
-							SendMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKELPARAM(ScaleX(.FLeftMargin), ScaleX(.FRightMargin)))
+							SendMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKELPARAM(.ScaleX(.FLeftMargin), .ScaleX(.FRightMargin)))
 						End If
 						'.MaxLength = .MaxLength
 						'End If

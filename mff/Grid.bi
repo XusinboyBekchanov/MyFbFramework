@@ -174,7 +174,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	Private Type GridColumns
+	Private Type GridColumns Extends My.Sys.Object
 	Private:
 		FColumns As List
 		#ifdef __USE_GTK__

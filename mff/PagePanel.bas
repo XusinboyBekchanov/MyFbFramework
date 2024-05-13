@@ -110,17 +110,17 @@ Namespace My.Sys.Forms
 			Dim As PagePanel Ptr pp = user_data
 			If GTK_IS_BUTTON(widget) Then
 				pp->UpDownButton.Width = 30
-				allocation->x = ScaleX((pp->ClientWidth - pp->NumericUpDownControl.Width) / 2 + pp->NumericUpDownControl.Width - 105)
-				allocation->y = ScaleY(pp->ClientHeight - 32)
-				allocation->width = ScaleX(35)
-				allocation->height = ScaleY(30)
+				allocation->x = pp->ScaleX((pp->ClientWidth - pp->NumericUpDownControl.Width) / 2 + pp->NumericUpDownControl.Width - 105)
+				allocation->y = pp->ScaleY(pp->ClientHeight - 32)
+				allocation->width = pp->ScaleX(35)
+				allocation->height = pp->ScaleY(30)
 			Else
 				pp->NumericUpDownControl.Width = 150
 				pp->NumericUpDownControl.Height = 34
-				allocation->x = ScaleX((pp->ClientWidth - pp->NumericUpDownControl.Width) / 2)
-				allocation->y = ScaleY(pp->ClientHeight - pp->NumericUpDownControl.Height)
-				allocation->width = ScaleX(pp->NumericUpDownControl.Width)
-				allocation->height = ScaleY(pp->NumericUpDownControl.Height)
+				allocation->x = pp->ScaleX((pp->ClientWidth - pp->NumericUpDownControl.Width) / 2)
+				allocation->y = pp->ScaleY(pp->ClientHeight - pp->NumericUpDownControl.Height)
+				allocation->width = pp->ScaleX(pp->NumericUpDownControl.Width)
+				allocation->height = pp->ScaleY(pp->NumericUpDownControl.Height)
 			End If
 			Return True
 		End Function

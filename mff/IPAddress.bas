@@ -190,7 +190,7 @@ Namespace My.Sys.Forms
 			If allocation->width <> ipa->AllocatedWidth OrElse allocation->height <> ipa->AllocatedHeight Then
 				ipa->AllocatedWidth = allocation->width
 				ipa->AllocatedHeight = allocation->height
-				If ipa->OnResize Then ipa->OnResize(*ipa->Designer, *ipa, UnScaleX(allocation->width), UnScaleY(allocation->height))
+				If ipa->OnResize Then ipa->OnResize(*ipa->Designer, *ipa, ipa->UnScaleX(allocation->width), ipa->UnScaleY(allocation->height))
 			End If
 		End Sub
 		

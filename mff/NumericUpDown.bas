@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QNumericUpDown(Sender.Child)
 					.FHandleIsAllocated = True
-					MoveWindow .FHandle, ScaleX(.FLeft), ScaleY(.FTop), ScaleX(.FWidth), ScaleY(.FHeight), True
+					MoveWindow .FHandle, .ScaleX(.FLeft), .ScaleY(.FTop), .ScaleX(.FWidth), .ScaleY(.FHeight), True
 					'MoveWindow .UpDownControl.Handle, ScaleX(.Width - .UpDownControl.Width - 2) - 1, -1, ScaleX(.UpDownControl.Width), ScaleY(.Height) - 2, True
 					.MoveUpDownControl
 					'SendMessage(.FHandle, EM_SETMARGINS, EC_RIGHTMARGIN Or EC_LEFTMARGIN, MAKEWORD(ScaleX(0), ScaleX(.UpDownControl.Width)))

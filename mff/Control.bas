@@ -964,6 +964,14 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Private Sub Control.CreateWnd
+			If FParent Then 
+				xdpi = FParent->xdpi
+				ydpi = FParent->ydpi
+				Font.xdpi = FParent->xdpi
+				Font.ydpi = FParent->ydpi
+				Canvas.xdpi = FParent->xdpi
+				Canvas.ydpi = FParent->ydpi
+			End If
 			Dim As Long nLeft   = ScaleX(FLeft)
 			Dim As Long nTop    = ScaleY(FTop)
 			Dim As Long nWidth  = ScaleX(FWidth)
@@ -1615,15 +1623,28 @@ Namespace My.Sys.Forms
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
 				Case WM_DPICHANGED
+					Canvas.xdpi = xdpi
+					Canvas.ydpi = ydpi
+					Font.xdpi = xdpi
+					Font.ydpi = ydpi
+					Font.Size = Font.Size
+					If oldxdpi = 0 OrElse oldydpi = 0 Then
+						oldxdpi = 1 OrElse oldydpi = 1
+					End If
+					If FParent = 0 OrElse FParent->ClassName <> "ReBar" Then
+						If FHandle = GetCapture Then
+							SetBounds Left, Top, FWidth, FHeight
+						Else
+							SetBounds FLeft, FTop, FWidth, FHeight
+						End If
+					End If
+					oldxdpi = xdpi
+					oldydpi = ydpi
 					For i As Integer = 0 To ControlCount - 1
+						Controls[i]->xdpi = xdpi
+						Controls[i]->ydpi = ydpi
 						Controls[i]->Perform(WM_DPICHANGED, Message.wParam, 0)
 					Next
-					'If rc = 0 Then
-					'	Move This.Left * (xdpi / oldxdpi), This.Top * (ydpi / oldydpi), This.Width * (xdpi / oldxdpi), This.Height * (ydpi / oldydpi)
-					'Else
-					'	Move UnScaleX(rc->Left), UnScaleY(rc->Top), UnScaleX(rc->Right - rc->Left), UnScaleY(rc->Bottom - rc->Top)
-					'End If
-					'Font.Size = Font.Size
 					Message.Result = 0
 					Return
 				Case WM_THEMECHANGED
@@ -1697,7 +1718,7 @@ Namespace My.Sys.Forms
 					Case ODT_MENU
 						'miStruct->itemWidth = miStruct->itemWidth + 8
 						'If miStruct->itemHeight < 18 Then miStruct->itemHeight = 18
-					Case ODT_LISTBOX, ODT_COMBOBOX
+					Case ODT_LISTBOX, ODT_COMBOBOX, ODT_BUTTON, ODT_HEADER, ODT_LISTVIEW, ODT_STATIC, ODT_TAB
 						Dim As Control Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(GetDlgItem(FHandle, Message.wParam), GWLP_USERDATA))
 						If Ctrl = 0 Then
 							If Message.wParam - 1000 < Handles.Count Then
@@ -2126,8 +2147,8 @@ Namespace My.Sys.Forms
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
-						Ctrl->RequestAlign UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight), True
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight))
+						Ctrl->RequestAlign Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight), True
+						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight))
 					End If
 				End If
 			End Sub
@@ -2162,8 +2183,8 @@ Namespace My.Sys.Forms
 					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
 						Ctrl->AllocatedWidth = AllocatedWidth
 						Ctrl->AllocatedHeight = AllocatedHeight
-						Ctrl->RequestAlign UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight), True
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, UnScaleX(AllocatedWidth), UnScaleY(AllocatedHeight))
+						Ctrl->RequestAlign Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight), True
+						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight))
 					End If
 					Ctrl->Canvas.HandleSetted = False
 				End If

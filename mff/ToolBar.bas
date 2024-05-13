@@ -202,7 +202,8 @@ Namespace My.Sys.Forms
 					Dim As Rect R
 					Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
-					MoveWindow Value->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+					'MoveWindow Value->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+					Value->SetBounds UnScaleX(R.Left), UnScaleY(R.Top), UnScaleX(R.Right - R.Left), UnScaleY(R.Bottom - R.Top)
 				End If 
 			End If
 		#elseif defined(__USE_GTK__)
@@ -1007,6 +1008,14 @@ Namespace My.Sys.Forms
 					GetWindowRect Handle, @R
 					FHeight = R.Bottom - R.Top
 				End If
+			Case WM_DPICHANGED
+				Base.ProcessMessage(Message)
+				Perform(TB_SETBUTTONSIZE, 0, MAKELONG(ScaleX(FButtonWidth), ScaleY(FButtonHeight)))
+				Perform(TB_SETBITMAPSIZE, 0, MAKELONG(ScaleX(FBitmapWidth), ScaleY(FBitmapHeight)))
+				For i As Integer = 0 To Buttons.Count - 1
+					If Buttons.Item(i)->Child Then Buttons.Item(i)->Child = Buttons.Item(i)->Child
+				Next
+				Return
 			Case WM_COMMAND
 				GetDropDownMenuItems
 				For i As Integer = 0 To FPopupMenuItems.Count -1
@@ -1108,8 +1117,8 @@ Namespace My.Sys.Forms
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
 					.Perform(TB_BUTTONSTRUCTSIZE, SizeOf(TBBUTTON), 0)
 					.Perform(TB_SETEXTENDEDSTYLE, 0, .Perform(TB_GETEXTENDEDSTYLE, 0, 0) Or TBSTYLE_EX_DRAWDDARROWS)
-					.Perform(TB_SETBUTTONSIZE, 0, MAKELONG(ScaleX(.FButtonWidth), ScaleY(.FButtonHeight)))
-					If ScaleX(.FBitmapWidth) <> 16 AndAlso ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MAKELONG(ScaleX(.FBitmapWidth), ScaleY(.FBitmapHeight)))
+					.Perform(TB_SETBUTTONSIZE, 0, MAKELONG(.ScaleX(.FButtonWidth), .ScaleY(.FButtonHeight)))
+					If .ScaleX(.FBitmapWidth) <> 16 AndAlso .ScaleY(.FBitmapHeight) <> 16 Then .Perform(TB_SETBITMAPSIZE, 0, MAKELONG(.ScaleX(.FBitmapWidth), .ScaleY(.FBitmapHeight)))
 					Var FHandle = .FHandle
 					For i As Integer = 0 To .Buttons.Count - 1
 						.FHandle = 0

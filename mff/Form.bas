@@ -89,6 +89,8 @@ Namespace My.Sys.Forms
 				Case "startposition": This.StartPosition = QInteger(Value)
 				Case "visible": This.Visible = QBoolean(Value)
 				Case "graphic": This.Graphic = QWString(Value)
+				Case "xdpi": This.xdpi = QDouble(Value)
+				Case "ydpi": This.ydpi = QDouble(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
@@ -807,10 +809,10 @@ Namespace My.Sys.Forms
 				Select Case uMsg
 				Case WM_WINDOWPOSCHANGING
 					Dim As WINDOWPOS Ptr lpwp = Cast(WINDOWPOS Ptr, LPARAM)
-					lpwp->x = ScaleX(frm->FClientX)
-					lpwp->y = ScaleY(frm->FClientY)
-					lpwp->cx = ScaleX(frm->FClientW)
-					lpwp->cy = ScaleY(frm->FClientH)
+					lpwp->x = frm->ScaleX(frm->FClientX)
+					lpwp->y = frm->ScaleY(frm->FClientY)
+					lpwp->cx = frm->ScaleX(frm->FClientW)
+					lpwp->cy = frm->ScaleY(frm->FClientH)
 				Case WM_PAINT
 					SendMessage frm->Handle, uMsg, WPARAM, LPARAM
 				End Select
@@ -828,14 +830,14 @@ Namespace My.Sys.Forms
 					#elseif defined(__USE_WINAPI__)
 						Dim As HMENU NoNeedSysMenu
 						'xdpi = 0: ydpi = 0 'For muilti screen and have diffrent values.
-						Dim hDC As HDC
-						hDC = GetDC(.Handle)
-						xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-						ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-						ReleaseDC(.Handle, hDC)
-						If xdpi = 0 Then xdpi = 1
-						If ydpi = 0 Then ydpi = 1
-						.FDpiFormX = xdpi : .FDpiFormY = ydpi
+						'Dim hDC As HDC
+						'hDC = GetDC(.Handle)
+						'.xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+						'.ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
+						'ReleaseDC(.Handle, hDC)
+						'If .xdpi = 0 Then .xdpi = 1
+						'If .ydpi = 0 Then .ydpi = 1
+						'.FDpiFormX = xdpi : .FDpiFormY = ydpi
 						SetClassLong(.Handle, GCL_STYLE, .FClassStyle(.BorderStyle))
 						If .FBorderStyle = 2 Then
 							SetClassLongPtr(.Handle,GCLP_HICON,NULL)
@@ -1017,19 +1019,15 @@ Namespace My.Sys.Forms
 					UpdateWindow(msg.hWnd)
 				End If
 			Case WM_DPICHANGED
-				'Print "DPICHANGED Forms xdpi=" & xdpi & "ydpi=" & ydpi
-				Dim hDC As HDC
-				hDC = GetDC(FHandle)
-				xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-				ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-				ReleaseDC(FHandle, hDC)
-				If xdpi = 0 Then xdpi = FDpiFormX
-				If ydpi = 0 Then ydpi = FDpiFormY
-				If Not IsIconic(FHandle) AndAlso (xdpi <> FDpiFormX OrElse ydpi <> FDpiFormY) Then
-					FDpiFormX = xdpi
-					FDpiFormY = ydpi
-					RequestAlign
-				End If
+				xdpi = msg.wParamLo / 96
+				ydpi = msg.wParamHi / 96
+				If xdpi = 0 Then xdpi = 1 'FDpiFormX
+				If ydpi = 0 Then ydpi = 1 'FDpiFormY
+				'If Not IsIconic(FHandle) Then 'AndAlso (xdpi <> FDpiFormX OrElse ydpi <> FDpiFormY) Then
+				'	'FDpiFormX = xdpi
+				'	'FDpiFormY = ydpi
+				'	RequestAlign
+				'End If
 			Case WM_UAHDRAWMENU
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As UAHMENU Ptr pUDM = Cast(UAHMENU Ptr, msg.lParam)
@@ -1277,8 +1275,8 @@ Namespace My.Sys.Forms
 				Canvas.HandleSetted = False
 				EndPaint Handle, @Ps
 			Case WM_SIZE
-				xdpi = FDpiFormX
-				ydpi = FDpiFormY
+				'xdpi = FDpiFormX
+				'ydpi = FDpiFormY
 				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
 					RequestAlign
@@ -1346,8 +1344,8 @@ Namespace My.Sys.Forms
 					If OnDeActivate Then OnDeActivate(*Designer, This)
 				End If
 			Case WM_ACTIVATE
-				xdpi = FDpiFormX
-				ydpi = FDpiFormY
+				'xdpi = FDpiFormX
+				'ydpi = FDpiFormY
 				Select Case msg.wParamLo
 				Case WA_ACTIVE, WA_CLICKACTIVE
 					pApp->ActiveForm = @This
@@ -1857,8 +1855,7 @@ Namespace My.Sys.Forms
 						gtk_window_move(GTK_WINDOW(widget), ScaleX(.Left + (.Width - This.FWidth) \ 2), ScaleY(.Top + (.Height - This.FHeight) \ 2))
 					End If
 				#else
-					This.Left = .Left + (.Width - This.Width) \ 2: This.Top  = .Top + (.Height - This.Height) \ 2
-					This.Move This.Left, This.Top, This.Width, This.Height
+					This.Move .Left + (.Width - This.Width) \ 2, .Top + (.Height - This.Height) \ 2, This.Width, This.Height
 				#endif
 			End With
 		End If

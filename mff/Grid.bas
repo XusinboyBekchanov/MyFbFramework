@@ -1956,7 +1956,7 @@ Namespace My.Sys.Forms
 							lvc.iSubItem        = i
 							Var iWidth = .Columns.Column(i)->Width
 							ListView_InsertColumn(.FHandle, i, @lvc)
-							ListView_SetColumnWidth(.FHandle, i, ScaleX(iWidth))
+							ListView_SetColumnWidth(.FHandle, i, .ScaleX(iWidth))
 						#elseif defined(__USE_WASM__)
 							AddColumn(.FHandle, ToUtf8(.Columns.Column(i)->Text))
 						#endif

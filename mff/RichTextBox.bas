@@ -1006,6 +1006,16 @@ Namespace My.Sys.Forms
 					message.wParam = CF_TEXT
 					message.lParam = Cast(LPARAM, @reps)
 				End Select
+			Case WM_DPICHANGED
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					If FDarkMode Then
+						SetDark True
+					End If
+				Else
+					If Not FDarkMode Then
+						SetDark False
+					End If
+				End If
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
