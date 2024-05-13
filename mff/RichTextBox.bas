@@ -1007,6 +1007,7 @@ Namespace My.Sys.Forms
 					message.lParam = Cast(LPARAM, @reps)
 				End Select
 			Case WM_DPICHANGED
+				Base.ProcessMessage message
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If FDarkMode Then
 						SetDark True
@@ -1016,6 +1017,7 @@ Namespace My.Sys.Forms
 						SetDark False
 					End If
 				End If
+				Return
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then

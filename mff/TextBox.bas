@@ -1252,6 +1252,15 @@ Namespace My.Sys.Forms
 					message.Result = 0
 					Return
 				End If
+			Case WM_DPICHANGED
+				Base.ProcessMessage message
+				If FLeftMargin <> 0 Then
+					SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKELPARAM(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
+				End If
+				If FRightMargin <> 0 Then
+					SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKELPARAM(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
+				End If
+				Return
 			Case CM_CTLCOLOR
 				Static As HDC Dc
 				Dc = Cast(HDC, message.wParam)

@@ -1409,6 +1409,8 @@ Namespace My.Sys.Forms
 			Case WM_DPICHANGED
 				FItemHeight = 0
 				Base.ProcessMessage(Message)
+				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
+				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
 				For i As Integer = 0 To Columns.Count - 1
 					Columns.Column(i)->Width = Columns.Column(i)->Width
 				Next

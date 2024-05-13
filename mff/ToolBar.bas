@@ -444,6 +444,13 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			If Ctrl AndAlso Ctrl->Handle Then
 				Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+				If *FCaption <> "" Then
+					Dim As TBBUTTON TB
+					SendMessage(Ctrl->Handle, TB_GETBUTTON, i, CInt(@TB))
+					TB.iString = CInt(FCaption)
+					SendMessage(Ctrl->Handle, TB_INSERTBUTTON, i, CInt(@TB))
+					SendMessage(Ctrl->Handle, TB_DELETEBUTTON, i + 1, 0)
+				End If
 				Dim As TBBUTTONINFO tbbi
 				tbbi.cbSize = SizeOf(tbbi)
 				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
@@ -1038,12 +1045,12 @@ Namespace My.Sys.Forms
 				If ImagesList Then ImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If HotImagesList Then HotImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If DisabledImagesList Then DisabledImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
-				Dim As Integer Temp
 				For i As Integer = 0 To Buttons.Count - 1
 					Buttons.Item(i)->xdpi = xdpi
 					Buttons.Item(i)->ydpi = ydpi
 					Buttons.Item(i)->Update
 				Next
+				SetBounds FLeft, FTop, FWidth, FHeight
 				Return
 			Case WM_COMMAND
 				GetDropDownMenuItems

@@ -695,6 +695,22 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case WM_DPICHANGED
+				Base.ProcessMessage(Message)
+				Perform(TB_SETBITMAPSIZE, 0, MAKELONG(ScaleX(FBitmapWidth), ScaleY(FBitmapHeight)))
+				If ImagesList Then ImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				If HotImagesList Then HotImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				If DisabledImagesList Then DisabledImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				For i As Integer = 0 To Groups.Count - 1
+					For j As Integer = 0 To Groups.Item(i)->Buttons.Count - 1
+						Groups.Item(i)->Buttons.Item(j)->xdpi = xdpi
+						Groups.Item(i)->Buttons.Item(j)->ydpi = ydpi
+						Groups.Item(i)->Buttons.Item(j)->Update
+						Groups.Item(i)->Buttons.Item(j)->Caption = Groups.Item(i)->Buttons.Item(j)->Caption
+					Next
+				Next
+				SetBounds FLeft, FTop, FWidth, FHeight
+				Return
 			Case WM_DESTROY
 				If ImagesList Then Perform(TB_SETIMAGELIST, 0, 0)
 				If HotImagesList Then Perform(TB_SETHOTIMAGELIST, 0, 0)
