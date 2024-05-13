@@ -430,9 +430,9 @@ Namespace My.Sys.Forms
 					End If
 				'End If
 				rbBand.cxMinChild = FMinWidth                                   ' Minimum width of band (RBBIM_CHILDSIZE flag)
-				rbBand.cyMinChild = FMinHeight                                  ' Minimum height of band (RBBIM_CHILDSIZE flag)
+				rbBand.cyMinChild = FMinHeight + 2                              ' Minimum height of band (RBBIM_CHILDSIZE flag)
 				rbBand.cx = FWidth                                              ' Length of the band (RBBIM_SIZE flag)
-				rbBand.cyChild = FHeight                                        ' Height of the band (RBBIM_SIZE flag)
+				rbBand.cyChild = FHeight + 2                                    ' Height of the band (RBBIM_SIZE flag)
 				rbBand.cxIdeal = FIdealWidth
 				If Create Then
 					SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(LPARAM, @rbBand))
@@ -810,7 +810,7 @@ Namespace My.Sys.Forms
 					'Bands.Item(i)->Child = Bands.Item(i)->Child
 					Bands.Item(i)->Update
 				Next
-				SetBounds FLeft, FTop, FWidth, 24
+				SetBounds FLeft, FTop, FWidth, FHeight
 				Return
 			Case WM_ERASEBKGND
 				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
