@@ -408,30 +408,38 @@ Namespace My.Sys.Forms
 				If FChild Then
 					rbBand.hwndChild = FChild->Handle                           ' (RBBIM_CHILD flag)
 				End If
-				If Create Then
+				'If Create Then
 					GetWindowRect(FChild->Handle, @rct)
 					FMinWidth = rct.Right - rct.Left
 					FMinHeight = rct.Bottom - rct.Top
 					FWidth = rct.Right - rct.Left
+					FHeight = rct.Bottom - rct.Top
 					If *FChild Is ToolBar Then
 						Dim As ..Size sz
 						SendMessage FChild->Handle, TB_GETIDEALSIZE, False, Cast(LPARAM, @sz)
 						FIdealWidth = sz.cx
 						FMinWidth = sz.cx
 						FWidth = sz.cx
+						sz.cx = 10000
+						sz.cy = FHeight
+						SendMessage FChild->Handle, TB_GETIDEALSIZE, 1, Cast(LPARAM, @sz)
+						FMinHeight = sz.cy
+						FHeight = sz.cy
 					Else
 						FIdealWidth = rct.Right - rct.Left
 					End If
-				End If
+				'End If
 				rbBand.cxMinChild = FMinWidth                                   ' Minimum width of band (RBBIM_CHILDSIZE flag)
 				rbBand.cyMinChild = FMinHeight                                  ' Minimum height of band (RBBIM_CHILDSIZE flag)
 				rbBand.cx = FWidth                                              ' Length of the band (RBBIM_SIZE flag)
+				rbBand.cyChild = FHeight                                        ' Height of the band (RBBIM_SIZE flag)
 				rbBand.cxIdeal = FIdealWidth
 				If Create Then
 					SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(LPARAM, @rbBand))
 					Maximize
 				Else
 					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
+					Maximize
 				End If
 			End If
 		#endif
@@ -798,9 +806,11 @@ Namespace My.Sys.Forms
 					Repaint
 				End If
 				Base.ProcessMessage(Message)
-				'For i As Integer = 0 To Bands.Count - 1
-				'	Bands.Item(i)->Child = Bands.Item(i)->Child
-				'Next
+				For i As Integer = 0 To Bands.Count - 1
+					'Bands.Item(i)->Child = Bands.Item(i)->Child
+					Bands.Item(i)->Update
+				Next
+				SetBounds FLeft, FTop, FWidth, 24
 				Return
 			Case WM_ERASEBKGND
 				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -1120,7 +1130,7 @@ Namespace My.Sys.Forms
 			Dim ticc As INITCOMMONCONTROLSEX     ' specifies common control classes to register
 			ticc.dwSize = SizeOf(ticc)
 			ticc.dwICC  = ICC_COOL_CLASSES Or ICC_BAR_CLASSES
-			InitCommonControlsEx @ticc
+			INITCOMMONCONTROLSEX @ticc
 		#endif
 		Bands.Parent = @This
 		With This

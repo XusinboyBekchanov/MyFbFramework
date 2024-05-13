@@ -121,6 +121,7 @@ Namespace My.Sys.Forms
 		Declare Property Checked(Value As Boolean)
 		Declare Property Enabled As Boolean
 		Declare Property Enabled(Value As Boolean)
+		Declare Sub Update()
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor

@@ -202,8 +202,8 @@ Namespace My.Sys.Forms
 					Dim As Rect R
 					Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
-					'MoveWindow Value->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
-					Value->SetBounds UnScaleX(R.Left), UnScaleY(R.Top), UnScaleX(R.Right - R.Left), UnScaleY(R.Bottom - R.Top)
+					MoveWindow Value->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+					'Value->SetBounds UnScaleX(R.Left), UnScaleY(R.Top), UnScaleX(R.Right - R.Left), UnScaleY(R.Bottom - R.Top)
 				End If 
 			End If
 		#elseif defined(__USE_GTK__)
@@ -434,6 +434,20 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Property
+	
+	Private Sub ToolButton.Update()
+		#ifdef __USE_WINAPI__
+			If Ctrl AndAlso Ctrl->Handle Then
+				Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+				Dim As TBBUTTONINFO tbbi
+				tbbi.cbSize = SizeOf(tbbi)
+				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
+				tbbi.cx = ScaleX(FWidth)
+				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
+				If FChild Then FChild->Width = FWidth
+			End If
+		#endif
+	End Sub
 	
 	Private Property ToolButton.Height As Integer
 		#ifdef __USE_GTK__
@@ -1010,10 +1024,15 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_DPICHANGED
 				Base.ProcessMessage(Message)
-				Perform(TB_SETBUTTONSIZE, 0, MAKELONG(ScaleX(FButtonWidth), ScaleY(FButtonHeight)))
 				Perform(TB_SETBITMAPSIZE, 0, MAKELONG(ScaleX(FBitmapWidth), ScaleY(FBitmapHeight)))
+				If ImagesList Then ImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				If HotImagesList Then HotImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				If DisabledImagesList Then DisabledImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				Dim As Integer Temp
 				For i As Integer = 0 To Buttons.Count - 1
-					If Buttons.Item(i)->Child Then Buttons.Item(i)->Child = Buttons.Item(i)->Child
+					Buttons.Item(i)->xdpi = xdpi
+					Buttons.Item(i)->ydpi = ydpi
+					Buttons.Item(i)->Update
 				Next
 				Return
 			Case WM_COMMAND

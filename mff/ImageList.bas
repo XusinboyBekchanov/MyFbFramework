@@ -70,11 +70,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ImageList.ImageWidth(Value As Integer)
-		FImageWidth = Value
-		#ifdef __USE_WINAPI__
-			ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
-		#endif
-		NotifyWindow
+		If FImageWidth <> Value Then
+			FImageWidth = Value
+			#ifdef __USE_WINAPI__
+				ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
+			#endif
+			NotifyWindow
+		End If
 	End Property
 	
 	Private Property ImageList.ImageHeight As Integer
@@ -88,6 +90,30 @@ Namespace My.Sys.Forms
 		#endif
 		NotifyWindow
 	End Property
+
+	Private Sub ImageList.SetImageSize(imgWidth As Integer, imgHeight As Integer, imgxdpi As Integer = 1, imgydpi As Integer = 1)
+		If FImageWidth <> imgWidth OrElse FImageHeight <> imgHeight OrElse xdpi <> imgxdpi OrElse ydpi <> imgydpi Then
+			FImageWidth = imgWidth
+			FImageHeight = imgHeight
+			xdpi = imgxdpi
+			ydpi = imgydpi
+			#ifdef __USE_WINAPI__
+				If FList.Count <> Items.Count Then
+					For i As Integer = 0 To FList.Count - 1
+						DestroyIcon FList.Item(i)
+					Next i
+					FList.Clear
+					For i As Integer = 0 To Items.Count - 1
+						FList.Add ImageList_GetIcon(Handle, i, DrawingStyle Or ImageType)
+					Next i
+				End If
+				ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
+				For i As Integer = 0 To Items.Count - 1
+					ImageList_AddIcon(Handle, FList.Item(i))
+				Next i
+			#endif
+		End If
+	End Sub
 	
 	Private Property ImageList.BackColor As Integer
 		#ifdef __USE_WINAPI__
@@ -571,6 +597,10 @@ Namespace My.Sys.Forms
 	Private Destructor ImageList
 		#ifdef __USE_WINAPI__
 			If Handle Then ImageList_Destroy Handle
+			For i As Integer = 0 To FList.Count - 1
+				DestroyIcon FList.Item(i)
+			Next i
+			FList.Clear
 		#endif
 	End Destructor
 End Namespace
