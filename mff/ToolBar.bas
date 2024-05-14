@@ -1045,6 +1045,7 @@ Namespace My.Sys.Forms
 				If ImagesList Then ImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If HotImagesList Then HotImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If DisabledImagesList Then DisabledImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				If ImagesList AndAlso ImagesList->Handle Then SendMessage(FHandle, TB_SETIMAGELIST, 0, CInt(ImagesList->Handle))
 				For i As Integer = 0 To Buttons.Count - 1
 					Buttons.Item(i)->xdpi = xdpi
 					Buttons.Item(i)->ydpi = ydpi

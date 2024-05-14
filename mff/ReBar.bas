@@ -803,7 +803,7 @@ Namespace My.Sys.Forms
 					csch.clrBtnHighlight = darkHlBkColor
 					SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
 					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-					Repaint
+					'Repaint
 				End If
 				Base.ProcessMessage(Message)
 				For i As Integer = 0 To Bands.Count - 1
@@ -813,10 +813,9 @@ Namespace My.Sys.Forms
 				SetBounds FLeft, FTop, FWidth, FHeight
 				Return
 			Case WM_ERASEBKGND
-				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
-				'	Message.Result = -1
-				'	Exit Sub
-				'End If
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					
+				End If
 			Case WM_PAINT
 				'If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 				'	If Not FDarkMode Then

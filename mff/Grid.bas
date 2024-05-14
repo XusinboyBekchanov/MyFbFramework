@@ -1510,6 +1510,7 @@ Namespace My.Sys.Forms
 				Base.ProcessMessage(Message)
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
 				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
+				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_SMALL)
 				For i As Integer = 0 To Columns.Count - 1
 					Columns.Column(i)->xdpi = xdpi
 					Columns.Column(i)->ydpi = ydpi

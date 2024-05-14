@@ -452,6 +452,7 @@ Private Function GetMessageName(Message As Integer) As String
 	Case 673: Return "WM_MOUSEHOVER"
 	Case 674: Return "WM_NCMOUSELEAVE"
 	Case 675: Return "WM_MOUSELEAVE"
+	Case 736: Return "WM_DPICHANGED"
 	Case 768: Return "WM_CUT"
 	Case 769: Return "WM_COPY"
 	Case 770: Return "WM_PASTE"

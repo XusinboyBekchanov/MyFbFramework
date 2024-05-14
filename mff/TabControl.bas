@@ -740,6 +740,9 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End Select
+			Case WM_DPICHANGED
+				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
+				If Images AndAlso Images->Handle Then Perform(TCM_SETIMAGELIST, 0, CInt(Images->Handle))
 			Case CM_DRAWITEM
 				If FTabPosition = tpLeft Or FTabPosition = tpRight Then
 					Dim As LOGFONT LogRec

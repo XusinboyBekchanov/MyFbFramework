@@ -1415,6 +1415,7 @@ Namespace My.Sys.Forms
 				Base.ProcessMessage(Message)
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
 				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
+				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_SMALL)
 				For i As Integer = 0 To Columns.Count - 1
 					Columns.Column(i)->xdpi = xdpi
 					Columns.Column(i)->ydpi = ydpi
@@ -1497,9 +1498,7 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
 				ItemID = Cast(Integer, miStruct->itemID)
-				If FOwnerDraw Then
-					miStruct->itemHeight = ScaleY(17)
-				End If
+				If FOwnerDraw Then miStruct->itemHeight = ScaleY(17)
 				If OnMeasureItem Then OnMeasureItem(*Designer, This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
