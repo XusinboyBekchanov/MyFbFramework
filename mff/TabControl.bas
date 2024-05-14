@@ -817,7 +817,7 @@ Namespace My.Sys.Forms
 								ImageList_Draw(Images->Handle, IIf(Tabs[i]->ImageKey <> "", Images->IndexOf(Tabs[i]->ImageKey), Tabs[i]->ImageIndex), Dc, R.Left + ScaleX(4), R.Top + 2, ILD_TRANSPARENT)
 								.TextOut(Dc, R.Left + ScaleX(10) + ScaleX(Images->ImageWidth), R.Top + ScaleY(3), Tabs[i]->Caption, Len(Tabs[i]->Caption))
 							Else
-								.TextOut(Dc, R.Left + ScaleX(10), R.Top + ScaleY(3), Tabs[i]->Caption, Len(Tabs[i]->Caption))
+								.TextOut(Dc, R.Left + ScaleX(5), R.Top + ScaleY(3), Tabs[i]->Caption, Len(Tabs[i]->Caption))
 							End If
 						End If
 					Next i
@@ -843,6 +843,11 @@ Namespace My.Sys.Forms
 						End If
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						Repaint
+						'If Images Then
+						'	Images->SetImageSize Images->ImageWidth, Images->ImageHeight, 0, 0
+						'	Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, xdpi
+						'	If Images->Handle Then Perform(TCM_SETIMAGELIST, 0, CInt(Images->Handle))
+						'End If
 					End If
 				End If
 			Case WM_LBUTTONDOWN
