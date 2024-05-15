@@ -1631,11 +1631,16 @@ Namespace My.Sys.Forms
 					If oldxdpi = 0 OrElse oldydpi = 0 Then
 						oldxdpi = 1 OrElse oldydpi = 1
 					End If
-					If FParent = 0 OrElse FParent->ClassName <> "ReBar" Then
-						If FHandle = GetCapture Then
-							SetBounds Left, Top, FWidth, FHeight
-						Else
-							SetBounds FLeft, FTop, FWidth, FHeight
+					If Message.lParam <> 0 Then
+						Dim As .Rect Ptr rct = Cast(Any Ptr, Message.lParam)
+						MoveWindow FHandle, rct->Left, rct->Top, rct->Right - rct->Left, rct->Bottom - rct->Top, True
+					Else
+						If FParent = 0 OrElse FParent->ClassName <> "ReBar" Then
+							If FHandle = GetCapture Then
+								SetBounds Left, Top, FWidth, FHeight
+							Else
+								SetBounds FLeft, FTop, FWidth, FHeight
+							End If
 						End If
 					End If
 					oldxdpi = xdpi
