@@ -988,6 +988,7 @@ Namespace My.Sys.Drawing
 				SetBkColor(Handle, BK)
 				SetBkMode(Handle, OPAQUE)
 			End If
+			SelectObject(Handle, Font.Handle)
 			.TextOut(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, @s, Len(s))
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
