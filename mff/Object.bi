@@ -30,10 +30,10 @@ Namespace My.Sys
 		FTemp As WString Ptr
 		FClassName As WString Ptr
 		FDynamic As Boolean
-		xdpi As Double
-		ydpi As Double
-		oldxdpi As Double
-		oldydpi As Double
+		xdpi As Single
+		ydpi As Single
+		oldxdpi As Single
+		oldydpi As Single
 		#ifdef __USE_GTK__
 			FActivated As Boolean
 			FDeactivated As Boolean
