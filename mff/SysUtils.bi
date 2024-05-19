@@ -35,6 +35,7 @@
 #endif
 
 #ifdef __USE_GTK__
+	#define __USE_CAIRO__
 	'#define FHandle Widget
 	'#if defined(__USE_GTK3__) Or defined(__USE_GTK4__)
 	'#elseif Not defined(__USE_GTK2__)

@@ -129,7 +129,6 @@ Namespace My.Sys.Forms
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps
-				Canvas.HandleSetted = True
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
@@ -146,19 +145,20 @@ Namespace My.Sys.Forms
 					SelectObject(memDC,Bmp)
 					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC,@Ps.rcPaint, Brush.Handle
-					Canvas.Handle = memDC
+					Canvas.SetHandle memDC
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					Canvas.UnSetHandle
 					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				Else
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					Canvas.UnSetHandle
 				End If
 				EndPaint Handle,@Ps
 				Message.Result = 0
-				Canvas.HandleSetted = False
 				Return
 			Case WM_MOUSEWHEEL
 				#ifdef __FB_64BIT__
@@ -177,7 +177,7 @@ Namespace My.Sys.Forms
 				GetScrollInfo (Message.hWnd, scrStyle, @Si)
 				ScrollPos = Si.nPos
 				If scrDirection = -1 Then
-					Si.nPos = Min(Si.nPos + ArrowChangeSize, Si.nMax)
+					Si.nPos = min(Si.nPos + ArrowChangeSize, Si.nMax)
 				Else
 					Si.nPos = Max(Si.nPos - ArrowChangeSize, Si.nMin)
 				End If

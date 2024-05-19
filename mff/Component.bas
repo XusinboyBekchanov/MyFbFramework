@@ -289,7 +289,7 @@ Namespace My.Sys.ComponentModel
 					End If
 				EndIf
 			#elseif defined(__USE_WINAPI__)
-				If FHandle Then 
+				If FHandle Then
 					MoveWindow FHandle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight), True
 				End If
 			#elseif defined(__USE_JNI__)

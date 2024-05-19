@@ -25,13 +25,13 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				Dim As HDC Dc
 				Dim As PAINTSTRUCT Ps
-				Canvas.HandleSetted = True
 				Dc = BeginPaint(Handle, @Ps)
+				Canvas.SetHandle Dc
 				FillRect Dc, @Ps.rcPaint, Brush.Handle
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
+				Canvas.UnSetHandle
 				EndPaint Handle, @Ps
 				Message.Result = 0
-				Canvas.HandleSetted = False
 				Return
 			End Select
 		#endif

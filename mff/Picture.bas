@@ -223,18 +223,16 @@ Namespace My.Sys.Forms
 				Else
 					If FDarkMode Then SetDark False
 				End If
-				Canvas.HandleSetted = True
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
 					MemBmp   = CreateCompatibleBitmap(Dc, R.Right - R.Left, R.Bottom - R.Top)
 					SelectObject(memDC, MemBmp)
 					FillRect memDC, @R, Brush.Handle
-					Canvas.Handle = memDC
+					Canvas.SetHandle memDC
 				Else
 					FillRect Dc, @R, Brush.Handle
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 				End If
-				
 				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
 					With This
 						Select Case Graphic.StretchImage
@@ -265,16 +263,15 @@ Namespace My.Sys.Forms
 					End With
 				End If
 				If ShowCaption Then
-					SelectObject(Canvas.Handle, Canvas.Font.Handle)
 					Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
 				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
+				Canvas.UnSetHandle
 				If DoubleBuffered Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
 					DeleteObject(MemBmp)
 					DeleteDC(memDC)
 				End If
-				Canvas.HandleSetted = False
 				EndPaint Handle, @Ps
 				Message.Result = 0
 				Return

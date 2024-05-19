@@ -166,7 +166,7 @@ Namespace My.Sys.Forms
 			Dim As Double MillimetersPerPixelsX, MillimetersPerPixelsY
 			Dim As Rect rc
 			
-			FCurrentPage = Max(1, Min(FCurrentPage, Document->Pages.Count))
+			FCurrentPage = Max(1, min(FCurrentPage, Document->Pages.Count))
 			
 			Dim Si As SCROLLINFO
 			Dim As Integer HScrollPos, VScrollPos
@@ -233,7 +233,6 @@ Namespace My.Sys.Forms
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps
-				Canvas.HandleSetted = True
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
@@ -250,23 +249,24 @@ Namespace My.Sys.Forms
 					SelectObject(memDC, Bmp)
 					SendMessage(Handle, WM_ERASEBKGND, CInt(memDC), CInt(memDC))
 					FillRect memDC, @Ps.rcPaint, Brush.Handle
-					Canvas.Handle = memDC
+					Canvas.SetHandle memDC
 					PaintControl
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					Canvas.UnSetHandle
 					If Focused Then DrawFocusRect memDC, @Ps.rcPaint
 					BitBlt(Dc, 0, 0, Ps.rcPaint.Right, Ps.rcPaint.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				Else
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 					PaintControl
+					Canvas.UnSetHandle
 					If Focused Then DrawFocusRect memDC, @Ps.rcPaint
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				End If
 				EndPaint Handle,@Ps
 				Message.Result = 0
-				Canvas.HandleSetted = False
 				Return
 			Case WM_SETFOCUS
 				Repaint
@@ -286,7 +286,7 @@ Namespace My.Sys.Forms
 				Dim As Integer iHeight = iPageHeight * FZoom / 100 + 20
 				If bCtrl Then
 					Dim As Integer OldZoom = FZoom
-					FZoom = Min(500, Max(10, FZoom + scrDirection))
+					FZoom = min(500, Max(10, FZoom + scrDirection))
 					If OldZoom <> FZoom Then
 						If OnZoom Then OnZoom(*Designer, This)
 						Repaint

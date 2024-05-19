@@ -149,11 +149,11 @@ Namespace My.Sys.ComponentModel
 			HasMorePages = False
 			Dim As PrintDocumentPage Ptr NewPage = Pages.Add
 			NewPage->Canvas.HandleSetted = True
-			#ifdef __USE_WINAPI__
+			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				NewPage->Canvas.Handle = CreateEnhMetaFile(NULL, NULL, NULL, NULL)
 			#endif
 			If OnPrintPage Then OnPrintPage(This, NewPage->Canvas, HasMorePages)
-			#ifdef __USE_WINAPI__
+			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				NewPage->Handle = CloseEnhMetaFile(NewPage->Canvas.Handle)
 			#endif
 			NewPage->Canvas.Handle = 0

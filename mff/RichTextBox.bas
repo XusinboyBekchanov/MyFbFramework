@@ -1430,9 +1430,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function RichTextBox.SelPrint(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
-		#ifdef __USE_GTK__
-			Return False
-		#else
+		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			Dim di As DOCINFO, sz As WString * 64 = This.Name
 			di.cbSize = SizeOf(DOCINFO)
 			di.lpszDocName = VarPtr(sz)
@@ -1498,6 +1496,8 @@ Namespace My.Sys.Forms
 			End If
 			
 			Return fSuccess
+		#else
+			Return False
 		#endif
 	End Function
 	

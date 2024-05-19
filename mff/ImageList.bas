@@ -534,7 +534,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub ImageList.Draw(Index As Integer, ByRef Canvas As My.Sys.Drawing.Canvas, X As Integer, Y As Integer, iWidth As Integer = -1, iHeight As Integer = -1, FG As Integer = -1, BK As Integer = -1)
-		#ifdef __USE_WINAPI__
+		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If iWidth = -1 Then
 				ImageList_Draw(Handle, Index, Canvas.Handle, X, Y, DrawingStyle Or ImageType)
 			Else

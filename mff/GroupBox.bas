@@ -149,10 +149,9 @@ Namespace My.Sys.Forms
 				Dim As HBITMAP Bmp
 				Dim As ..Rect R
 				Dim As PAINTSTRUCT Ps
-				This.Canvas.HandleSetted = True
 				Dc = BeginPaint(Handle, @Ps)
 				FillRect Dc, @Ps.rcPaint, This.Brush.Handle
-				This.Canvas.Handle = Dc
+				This.Canvas.SetHandle Dc
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As LRESULT state = SendMessage(FHandle, BM_GETSTATE, 0, 0)
 					Dim As Integer stateID
@@ -167,15 +166,16 @@ Namespace My.Sys.Forms
 					Dim As HFONT OldFontHandle, NewFontHandle
 					OldFontHandle = SelectObject(Dc, This.Font.Handle)
 					TextOut(Dc, 6, 0, @This.Text, Len(This.Text))
+					This.Canvas.UnSetHandle
 					NewFontHandle = SelectObject(Dc, OldFontHandle)
 					SelectObject(Dc, PrevPen)
 					SelectObject(Dc, PrevBrush)
 					EndPaint Handle, @Ps
 					DeleteObject NewPen
 					Message.Result = 0
-					This.Canvas.HandleSetted = False
 					Return
 				Else
+					This.Canvas.UnSetHandle
 					EndPaint Handle, @Ps
 					'ReleaseDC Handle, Dc
 					RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)

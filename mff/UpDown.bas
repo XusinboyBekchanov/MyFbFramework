@@ -314,9 +314,8 @@ Namespace My.Sys.Forms
 					Dim As PAINTSTRUCT Ps
 					Dim As ..Rect R
 					Dim As Integer iWidth = ScaleX(Width), iHeight = ScaleY(Height)
-					Canvas.HandleSetted = True
 					Dc = BeginPaint(Handle, @Ps)
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 					Canvas.Pen.Color = BGR(56, 56, 56)
 					Canvas.Brush.Color = BGR(51, 51, 51)
 					Rectangle Dc, 0, 0, iWidth, iHeight
@@ -393,8 +392,8 @@ Namespace My.Sys.Forms
 						LineTo Dc, 1 + Fix(iWidth / 2 + (iWidth / 2 - 4) / 2) + 2, Fix((iHeight - 3) / 2) + 2
 					End If
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					Canvas.UnSetHandle
 					EndPaint Handle, @Ps
-					Canvas.HandleSetted = False
 					Message.Result = -1
 					Return
 				Else

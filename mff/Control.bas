@@ -1533,10 +1533,9 @@ Namespace My.Sys.Forms
 					End If
 					If OnPaint Then
 						Dim As HDC DC = GetDC(FHandle)
-						Canvas.HandleSetted = True
-						Canvas.Handle = DC
+						Canvas.SetHandle DC
 						OnPaint(*Designer, This, Canvas)
-						Canvas.HandleSetted = False
+						Canvas.UnSetHandle
 						ReleaseDC FHandle, DC
 					End If
 				Case WM_SETCURSOR

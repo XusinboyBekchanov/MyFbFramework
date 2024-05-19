@@ -519,19 +519,22 @@ Namespace My.Sys.ComponentModel
 		#ifndef __USE_GTK__
 			Dim hPrinter As HWND, dwNeeded As Long, n As Long
 			Dim tm As TEXTMETRIC, sz As WString*128
-			Dim pDevMode As DEVMODE Ptr
+			Dim pDevMode As LPVOID
 			GetProfileString "WINDOWS", "DEVICE", "", sz, 127
-			sz = Trim(PARSE(sz, ",", 1)): printerName = sz
+			sz = Trim(Parse(sz, ",", 1)): printerName = sz
 			OpenPrinter(sz, @hPrinter, NULL) 'to obtain hPrinter
 			dwNeeded = DocumentProperties(0, hPrinter, sz, NULL, NULL, 0)
 			hDevMode = Cast(DEVMODE Ptr,GlobalAlloc( GHND_, dwNeeded))
-			pDevMode = GlobalLock(Cast(HGLOBAL,hDevMode))
+			pDevMode = GlobalLock(Cast(HGLOBAL, hDevMode))
 			DocumentProperties 0, hPrinter, @sz,  pDevMode, NULL,  DM_OUT_BUFFER
 			m_hdc = CreateDC("WINSPOOL", sz, NULL, pDevMode)
 			
-			Canvas.Handle=m_hdc
+			Canvas.SetHandle m_hdc
 			
 			GlobalUnlock pDevMode
+			GlobalFree(hDevMode)
+			
+			ClosePrinter hPrinter
 			'canvas.Font.parent=hPrinter
 			
 			
@@ -565,7 +568,7 @@ Namespace My.Sys.ComponentModel
 			n = tm.tmHeight + tm.tmExternalLeading
 			charHt = n
 			hDevMode = pd.hDevMode
-			Canvas.Handle=m_hdc
+			Canvas.SetHandle m_hdc
 			'canvas.Font.parent=hPrinter
 		#endif
 		Return printerName
@@ -1612,7 +1615,7 @@ Namespace My.Sys.ComponentModel
 		#ifndef __USE_GTK__
 			Dim buffer As ZString * MAX_PATH
 			GetProfileString "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
-			Function = PARSE (buffer, 2)
+			Function = Parse (buffer, 2)
 		#else
 			Function = ""
 		#endif
@@ -1623,7 +1626,7 @@ Namespace My.Sys.ComponentModel
 		#ifndef __USE_GTK__
 			Dim buffer As ZString * MAX_PATH
 			GetProfileString "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
-			Function = PARSE (buffer, 1)
+			Function = Parse (buffer, 1)
 		#else
 			Function = ""
 		#endif
@@ -1634,7 +1637,7 @@ Namespace My.Sys.ComponentModel
 		#ifndef __USE_GTK__
 			Dim buffer As ZString * MAX_PATH
 			GetProfileString  "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
-			Function = PARSE (buffer, 3)
+			Function = Parse (buffer, 3)
 		#else
 			Function = ""
 		#endif
@@ -1649,7 +1652,7 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Sub
 	
-	Private Constructor printer
+	Private Constructor Printer
 		Canvas.Ctrl = @This
 		WLet(FClassName, "Printer")
 	End Constructor

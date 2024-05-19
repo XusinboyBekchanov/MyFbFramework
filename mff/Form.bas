@@ -1230,16 +1230,15 @@ Namespace My.Sys.Forms
 				GetClientRect Handle, @R
 				Dim As HBITMAP Bmp
 				Dc = BeginPaint(Handle, @Ps)
-				Canvas.HandleSetted = True
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
 					Bmp   = CreateCompatibleBitmap(Dc, R.Right - R.left, R.Bottom - R.Top) 
 					SelectObject(memDC, Bmp)
 					FillRect memDC, @R, Brush.Handle
-					Canvas.Handle = memDC
+					Canvas.SetHandle memDC
 				Else
 					FillRect Dc, @R, Brush.Handle
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 				End If
 				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
 					With This
@@ -1271,12 +1270,12 @@ Namespace My.Sys.Forms
 					End With
 				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
+				Canvas.UnSetHandle
 				If DoubleBuffered Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				End If
-				Canvas.HandleSetted = False
 				EndPaint Handle, @Ps
 			Case WM_SIZE
 				'xdpi = FDpiFormX

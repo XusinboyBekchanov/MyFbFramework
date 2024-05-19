@@ -426,10 +426,9 @@ Namespace My.Sys.Forms
 					Dim As HBITMAP Bmp
 					Dim As PAINTSTRUCT Ps
 					Dim As ..Rect R
-					Canvas.HandleSetted = True
 					Dc = BeginPaint(Handle, @Ps)
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 					Dim As HFONT OldFontHandle, NewFontHandle
 					OldFontHandle = SelectObject(Dc, Font.Handle)
 					SetTextColor(Dc, darkTextColor)
@@ -445,9 +444,9 @@ Namespace My.Sys.Forms
 					SetBkMode(Dc, OPAQUE)
 					NewFontHandle = SelectObject(Dc, OldFontHandle)
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					Canvas.UnSetHandle
 					EndPaint Handle, @Ps
 					Message.Result = 0
-					Canvas.HandleSetted = False
 					Return
 				End If
 			Case Else

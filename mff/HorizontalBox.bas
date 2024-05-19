@@ -111,10 +111,9 @@ Namespace My.Sys.Forms
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
 					SetBkColor(memDC, OPAQUE)
-					Canvas.HandleSetted = True
-					Canvas.Handle = memDC
+					Canvas.SetHandle memDC
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
-					Canvas.HandleSetted = False
+					Canvas.UnSetHandle
 					BitBlt(Dc, 0, 0, R.Right, R.Bottom, memDC, 0, 0, SRCCOPY)
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
@@ -124,8 +123,9 @@ Namespace My.Sys.Forms
 					SetBkColor Dc, OPAQUE
 					H = Canvas.TextHeight("Wg")
 					W = Canvas.TextWidth(Text)
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
+					Canvas.UnSetHandle
 				End If
 				ReleaseDC Handle, Dc
 				Message.Result = 0

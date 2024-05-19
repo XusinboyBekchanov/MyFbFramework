@@ -1486,10 +1486,9 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID, State
 				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
 				If OnDrawItem Then
-					Canvas.HandleSetted = True
-					Canvas.Handle = lpdis->hDC
+					Canvas.SetHandle lpdis->hDC
 					OnDrawItem(*Designer, This, GetTreeListViewItem(lpdis->itemID), lpdis->itemState, lpdis->itemAction, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), Canvas)
-					Canvas.HandleSetted = False
+					Canvas.UnSetHandle
 					Message.Result = True
 					Exit Sub
 				End If

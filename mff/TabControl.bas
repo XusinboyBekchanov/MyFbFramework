@@ -788,8 +788,7 @@ Namespace My.Sys.Forms
 					Dim As HBITMAP Bmp
 					Dim As PAINTSTRUCT Ps
 					Dc = BeginPaint(Handle, @Ps)
-					Canvas.HandleSetted = True
-					Canvas.Handle = Dc
+					Canvas.SetHandle Dc
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Dim As LOGFONT LogRec
@@ -826,9 +825,9 @@ Namespace My.Sys.Forms
 					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
 						DeleteObject(NewFontHandle)
 					End If
+					Canvas.UnSetHandle
 					EndPaint Handle, @Ps
 					Message.Result = 0
-					Canvas.HandleSetted = False
 					Return
 				Else
 					If FDarkMode Then
