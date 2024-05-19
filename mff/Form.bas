@@ -89,8 +89,8 @@ Namespace My.Sys.Forms
 				Case "startposition": This.StartPosition = QInteger(Value)
 				Case "visible": This.Visible = QBoolean(Value)
 				Case "graphic": This.Graphic = QWString(Value)
-				Case "xdpi": This.xdpi = QDouble(Value)
-				Case "ydpi": This.ydpi = QDouble(Value)
+				Case "xdpi": This.xdpi = QSingle(Value)
+				Case "ydpi": This.ydpi = QSingle(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
