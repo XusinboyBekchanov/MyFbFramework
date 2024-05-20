@@ -841,7 +841,7 @@ Namespace My.Sys.Forms
 			End Select
 		#elseif defined(__USE_WINAPI__)
 			Select Case Message.Msg
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				Message.Result = 0
 			Case WM_DESTROY
 				If Images Then TreeView_SetImageList(FHandle, 0, TVSIL_NORMAL)

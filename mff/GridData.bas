@@ -1851,7 +1851,7 @@ Namespace My.Sys.Forms
 				
 			Case CM_CREATE
 				GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 				'message.Result = -1' CDRF_SKIPDEFAULT 'CDRF_SKIPDEFAULT=4  This is very important for custmor draw Will infect the other window showing if have Value
 				' case WM_ICONERASEBKGND

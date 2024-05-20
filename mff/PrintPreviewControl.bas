@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 			bShifted = GetKeyState(VK_SHIFT) And 8000
 			bCtrl = GetKeyState(VK_CONTROL) And 8000
 			Select Case Message.Msg
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps

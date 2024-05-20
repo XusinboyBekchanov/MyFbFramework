@@ -22,7 +22,7 @@ Namespace My.Sys.Forms
 	Private Sub UserControl.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				Dim As HDC Dc
 				Dim As PAINTSTRUCT Ps
 				Dc = BeginPaint(Handle, @Ps)

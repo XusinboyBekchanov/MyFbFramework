@@ -119,7 +119,8 @@ Namespace My.Sys.Forms
 	Private Sub GroupBox.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_ERASEBKGND
+			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						SetDark True

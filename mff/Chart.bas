@@ -4068,18 +4068,18 @@ ErrorHandler:
 		Static DownButton As Integer = -1
 		Dim As Integer HitResult
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			Dim As GdkEvent Ptr e = Message.event
+			Select Case Message.event->type
 			Case GDK_BUTTON_PRESS: DownButton = e->button.button - 1
 			Case GDK_BUTTON_RELEASE: MouseUp e->button.button - 1, e->button.state, e->button.x, e->button.y: DownButton = -1
 			Case GDK_MOTION_NOTIFY: MouseMove(DownButton, e->Motion.state, e->Motion.x, e->Motion.y)
 			End Select
 		#else
 			Select Case Message.Msg
-			'Case WM_ERASEBKGND
-			'	Message.Result = 0
-			'	Exit Sub
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_ERASEBKGND
+				Message.Result = 0
+				Exit Sub
+			Case WM_PAINT
 				Dim ps As PAINTSTRUCT
 				Dim Dc As HDC
 				'Dim As HDC bufDC

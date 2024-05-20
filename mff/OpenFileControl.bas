@@ -284,7 +284,7 @@ Namespace My.Sys.Forms
 		Function OpenFileControl.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As OpenFileControl Ptr OpenDial = Cast(OpenFileControl Ptr, GetWindowLongPtr(hDlg, GWLP_USERDATA))
 			Select Case uMsg
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				If OpenDial Then
 					If Not OpenDial->FFirstShowed Then
 						OpenDial->FFirstShowed = True

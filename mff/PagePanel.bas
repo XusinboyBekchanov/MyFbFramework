@@ -140,7 +140,7 @@ Namespace My.Sys.Forms
 				Else
 					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 				End If
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT 
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP MemBmp
 				Dim As PAINTSTRUCT Ps

@@ -409,7 +409,7 @@ Namespace My.Sys.Forms
 					Message.Result = -1
 					Exit Sub
 				End If
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						FDarkMode = True

@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 				With This
 					MoveUpDownControl
 				End With
-			Case WM_PAINT, WM_ERASEBKGND, WM_MOUSELEAVE, WM_MOUSEMOVE
+			Case WM_PAINT, WM_MOUSELEAVE, WM_MOUSEMOVE
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso (CBool(Message.Msg <> WM_MOUSEMOVE) OrElse (CBool(Message.Msg = WM_MOUSEMOVE) AndAlso FMouseInClient)) Then
 					If Not FDarkMode Then
 						FDarkMode = True

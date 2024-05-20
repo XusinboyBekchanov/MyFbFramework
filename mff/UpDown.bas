@@ -307,7 +307,7 @@ Namespace My.Sys.Forms
 			Static As Integer DownButton, X, Y
 			Static As Boolean MouseIn
 			Select Case Message.Msg
-				Case WM_PAINT, WM_ERASEBKGND
+				Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As HDC Dc, memDC
 					Dim As HBITMAP Bmp

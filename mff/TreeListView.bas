@@ -1387,7 +1387,7 @@ Namespace My.Sys.Forms
 			End Select
 		#else
 			Select Case Message.Msg
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						SetDark True
