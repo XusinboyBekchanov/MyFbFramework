@@ -1220,7 +1220,7 @@ Namespace My.Sys.Forms
 			End Select
 		#elseif defined(__USE_WINAPI__)
 			Select Case message.Msg
-			Case WM_PAINT, WM_MOUSELEAVE, WM_MOUSEMOVE
+			Case WM_PAINT, WM_ERASEBKGND, WM_MOUSELEAVE, WM_MOUSEMOVE
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso (CBool(message.Msg <> WM_MOUSEMOVE) OrElse (CBool(message.Msg = WM_MOUSEMOVE) AndAlso FMouseInClient)) Then
 					If Not FDarkMode Then
 						FDarkMode = True

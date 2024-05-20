@@ -188,7 +188,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Static As Integer OldPos
 			Select Case Message.Msg
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				'			#IF DEFINED(APPLICATION)
 				'			If UCase(Application.OSVersion) = "WINDOWS XP" Then
 				'			   Hint = This.Hint 'XP ?!

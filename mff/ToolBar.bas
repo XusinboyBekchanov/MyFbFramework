@@ -1022,7 +1022,7 @@ Namespace My.Sys.Forms
 	Private Sub ToolBar.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True

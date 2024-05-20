@@ -813,7 +813,7 @@ Namespace My.Sys.Forms
 					lpwp->y = frm->ScaleY(frm->FClientY)
 					lpwp->cx = frm->ScaleX(frm->FClientW)
 					lpwp->cy = frm->ScaleY(frm->FClientH)
-				Case WM_PAINT
+				Case WM_PAINT, WM_ERASEBKGND
 					SendMessage frm->Handle, uMsg, WPARAM, LPARAM
 				End Select
 			End If
@@ -939,7 +939,6 @@ Namespace My.Sys.Forms
 				AllowDarkModeForWindow(FClient, g_darkModeEnabled)
 				SendMessageW(FClient, WM_THEMECHANGED, 0, 0)
 			End If
-			RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 		End Sub
 	#endif
 	
@@ -1218,7 +1217,7 @@ Namespace My.Sys.Forms
 					msg.Result = True
 					Return
 				End If
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then SetDark True
 				Else

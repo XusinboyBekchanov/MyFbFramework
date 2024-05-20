@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 			Dim As Integer MaxWidth, MaxHeight, ScrollPos
 			bShifted = GetKeyState(VK_SHIFT) And 8000
 			Select Case Message.Msg
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP Bmp
 				Dim As PAINTSTRUCT Ps

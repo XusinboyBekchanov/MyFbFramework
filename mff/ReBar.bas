@@ -816,7 +816,7 @@ Namespace My.Sys.Forms
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					
 				End If
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				'If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 				'	If Not FDarkMode Then
 				'		If Not FDarkMode Then

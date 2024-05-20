@@ -187,7 +187,7 @@ Namespace My.Sys.Forms
 	Private Sub PageScroller.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				Dim As HDC Dc
 				Dim As PAINTSTRUCT Ps
 				Dc = BeginPaint(FHandle, @Ps)

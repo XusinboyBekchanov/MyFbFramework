@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 	Private Sub CommandButton.ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_WINAPI__
 			Select Case msg.Msg
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 '				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 '					SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
 '					.Brush.Handle = hbrBkgnd

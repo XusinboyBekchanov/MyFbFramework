@@ -585,7 +585,7 @@ Namespace My.Sys.Forms
 				
 			Case WM_CREATE
 				
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True

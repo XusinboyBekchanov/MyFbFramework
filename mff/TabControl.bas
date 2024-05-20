@@ -83,12 +83,12 @@ Namespace My.Sys.Forms
 					If IsAppThemed() Then
 						GetClientRect(Cast(HWND, msg.lParam), @rct)
 						DrawThemeParentBackground(Cast(HWND, msg.lParam), Cast(HDC, msg.wParam), @rct)
-						SetBkMode(Cast(HDC, msg.wParam), TRANSPARENT)
+						SetBkMode(Cast(HDC, msg.wParam), Transparent)
 						msg.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 						Return
 					End If
 				End If
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				If UseVisualStyleBackColor AndAlso CBool(Not (g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor)) Then
 					If FDarkMode AndAlso msg.hWnd = FHandle Then
 						FDarkMode = False
@@ -773,7 +773,7 @@ Namespace My.Sys.Forms
 					Message.Result = -1
 					Exit Sub
 				End If
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						FDarkMode = True

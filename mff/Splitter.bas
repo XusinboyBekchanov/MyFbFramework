@@ -115,14 +115,14 @@ Namespace My.Sys.Forms
 				Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager(display)
 				Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer(device_manager)
 			#endif
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->Type
 		#else
 			Static As ..Point g_OrigCursorPos, g_CurCursorPos
 			Select Case Message.Msg
 			Case WM_SETCURSOR
-				If CInt(Cursor.Handle <> 0) AndAlso CInt(Not FDesignMode) Then Message.Result = Cast(LResult, SetCursor(Cursor.Handle)): Return
-			Case WM_PAINT
+				If CInt(Cursor.Handle <> 0) AndAlso CInt(Not FDesignMode) Then Message.Result = Cast(LRESULT, SetCursor(Cursor.Handle)): Return
+			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True

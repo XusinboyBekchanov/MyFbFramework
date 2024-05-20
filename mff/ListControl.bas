@@ -573,7 +573,7 @@ Namespace My.Sys.Forms
 	Private Sub ListControl.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				Message.Result = 0
 			Case CM_CTLCOLOR
 				Static As HDC Dc

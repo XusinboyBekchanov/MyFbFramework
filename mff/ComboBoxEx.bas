@@ -593,7 +593,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim pt As ..Point, rc As ..Rect, t As Long, itd As Long
 			Select Case Message.Msg
-			Case WM_PAINT
+			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FComboBoxDarkMode Then
 						FComboBoxDarkMode = True
