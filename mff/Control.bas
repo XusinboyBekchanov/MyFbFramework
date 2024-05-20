@@ -1503,7 +1503,7 @@ Namespace My.Sys.Forms
 							Message.Result = HTTRANSPARENT
 						End If
 					End If
-				Case WM_PAINT ', WM_NCPAINT
+				Case WM_PAINT, WM_ERASEBKGND ', WM_NCPAINT
 					If g_darkModeSupported AndAlso g_darkModeEnabled Then
 						If Not FDarkMode Then
 							SetDark True
