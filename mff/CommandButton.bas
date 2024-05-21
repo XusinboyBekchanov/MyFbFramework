@@ -210,14 +210,25 @@ Namespace My.Sys.Forms
 	Private Sub CommandButton.ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_WINAPI__
 			Select Case msg.Msg
+			Case WM_ERASEBKGND
+				Dim As HDC Dc
+				Dim As PAINTSTRUCT Ps
+				Dim As ..Rect R
+				GetClientRect FHandle, @R
+				Dc = BeginPaint(FHandle, @Ps)
+				FillRect Dc, @R, Brush.Handle
+				EndPaint FHandle, @Ps
+				InvalidateRect(msg.hWnd, NULL, True)
+				msg.Result = 0
+				Return
 			Case WM_PAINT
-'				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-'					SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
-'					.Brush.Handle = hbrBkgnd
-'					SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-'				End If
-				'        Case BM_CLICK
-				'            If OnClick Then OnClick(This)
+				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
+				'	SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+				'	.Brush.Handle = hbrBkgnd
+				'	SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+				'End If
+			'Case BM_CLICK
+				'If OnClick Then OnClick(This)
 			Case CM_COMMAND
 				'If Message.wParamHi = BN_CLICKED Then
 				'    If OnClick Then OnClick(This)
