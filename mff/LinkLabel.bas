@@ -82,8 +82,7 @@ Namespace My.Sys.Forms
 					Dc = BeginPaint(FHandle, @Ps)
 					FillRect Dc, @R, Brush.Handle
 					EndPaint FHandle, @Ps
-					Width = Width + 1
-					Width = Width - 1
+					Repaint
 					Message.Result = -1
 					Return
 				End If
