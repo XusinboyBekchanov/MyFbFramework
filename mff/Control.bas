@@ -1503,7 +1503,22 @@ Namespace My.Sys.Forms
 							Message.Result = HTTRANSPARENT
 						End If
 					End If
-				Case WM_PAINT, WM_ERASEBKGND ', WM_NCPAINT
+				Case WM_ERASEBKGND
+					If Not FCreated Then
+						FCreated = True
+						Dim As HDC Dc
+						Dim As PAINTSTRUCT Ps
+						Dim As ..Rect R
+						GetClientRect Message.hWnd, @R
+						Dc = BeginPaint(Message.hWnd, @Ps)
+						FillRect Dc, @R, Brush.Handle
+						EndPaint Message.hWnd, @Ps
+						RedrawWindow Message.hWnd, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						UpdateWindow Message.hWnd
+						Message.Result = 0
+						Return
+					End If
+				Case WM_PAINT ', WM_ERASEBKGND ', WM_NCPAINT
 					If g_darkModeSupported AndAlso g_darkModeEnabled Then
 						If Not FDarkMode Then
 							SetDark True
