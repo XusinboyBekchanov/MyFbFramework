@@ -566,24 +566,28 @@ Namespace My.Sys.Forms
 				cbINFO.cbSize = SizeOf(COMBOBOXINFO)
 				GetComboBoxInfo(cmbHandle, @cbINFO)
 				Dim As HWND lstHandle = cbINFO.hwndList
+				Dim As HWND txtHandle = FindWindowEx(cmbHandle, 0, "Edit", 0)
 				SetWindowTheme(cmbHandle, "DarkMode_CFD", nullptr)
 				SetWindowTheme(lstHandle, "DarkMode_Explorer", nullptr)
+				If txtHandle Then SetWindowTheme(txtHandle, "DarkMode_Explorer", nullptr)
 				Brush.Handle = hbrBkgnd
-				'SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+				SendMessageW(cmbHandle, WM_PRINTCLIENT, 0, 0)
 			Else
 				Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
 				Dim As COMBOBOXINFO cbINFO
 				cbINFO.cbSize = SizeOf(COMBOBOXINFO)
 				GetComboBoxInfo(cmbHandle, @cbINFO)
 				Dim As HWND lstHandle = cbINFO.hwndList
+				Dim As HWND txtHandle = FindWindowEx(cmbHandle, 0, "Edit", 0)
 				SetWindowTheme(cmbHandle, NULL, NULL)
 				SetWindowTheme(lstHandle, NULL, NULL)
+				If txtHandle Then SetWindowTheme(txtHandle, NULL, NULL)
 				If FBackColor = -1 Then
 					Brush.Handle = 0
 				Else
 					Brush.Color = FBackColor
 				End If
-				'SendMessageW(cmbHandle, WM_THEMECHANGED, 0, 0)
+				SendMessageW(cmbHandle, WM_PRINTCLIENT, 0, 0)
 			End If
 			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
 		End Sub
