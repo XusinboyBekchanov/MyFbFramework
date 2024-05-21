@@ -939,9 +939,10 @@ Namespace My.Sys.Forms
 				AllowDarkModeForWindow(FClient, g_darkModeEnabled)
 				SendMessageW(FClient, WM_THEMECHANGED, 0, 0)
 			End If
-			RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
-			Width = Width + 1
-			Width = Width - 1
+			SendMessage FHandle, WM_NCACTIVATE, False, 0
+			SendMessage FHandle, WM_NCACTIVATE, True, 0
+			SendMessage FHandle, WM_THEMECHANGED, 0, 0
+			Repaint
 		End Sub
 	#endif
 	
