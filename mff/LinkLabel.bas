@@ -72,6 +72,21 @@ Namespace My.Sys.Forms
 	Private Sub LinkLabel.ProcessMessage(ByRef Message As Message)
 		#ifndef __USE_GTK__
 			Select Case Message.Msg
+			Case WM_ERASEBKGND 'WM_PAINT, WM_ERASEBKGND
+				If Not FCreated Then
+					FCreated = True
+					Dim As HDC Dc
+					Dim As PAINTSTRUCT Ps
+					Dim As ..Rect R
+					GetClientRect FHandle, @R
+					Dc = BeginPaint(FHandle, @Ps)
+					FillRect Dc, @R, Brush.Handle
+					EndPaint FHandle, @Ps
+					Width = Width + 1
+					Width = Width - 1
+					Message.Result = -1
+					Return
+				End If
 			Case CM_NOTIFY
 				Select Case Cast(LPNMHDR, Message.lParam)->code
 				Case NM_CLICK, NM_RETURN
