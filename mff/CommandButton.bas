@@ -210,21 +210,6 @@ Namespace My.Sys.Forms
 	Private Sub CommandButton.ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_WINAPI__
 			Select Case msg.Msg
-			'Case WM_ERASEBKGND
-			'	If Not FCreated Then
-			'		FCreated = True
-			'		Dim As HDC Dc
-			'		Dim As PAINTSTRUCT Ps
-			'		Dim As ..Rect R
-			'		GetClientRect FHandle, @R
-			'		Dc = BeginPaint(FHandle, @Ps)
-			'		FillRect Dc, @R, Brush.Handle
-			'		EndPaint FHandle, @Ps
-			'		'InvalidateRect(msg.hWnd, NULL, True)
-			'		Repaint
-			'		msg.Result = 0
-			'		Return
-			'	End If
 			Case WM_PAINT
 				'If g_darkModeSupported AndAlso g_darkModeEnabled Then
 				'	SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)

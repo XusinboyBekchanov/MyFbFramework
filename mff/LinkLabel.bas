@@ -75,14 +75,7 @@ Namespace My.Sys.Forms
 			Case WM_ERASEBKGND 'WM_PAINT, WM_ERASEBKGND
 				If Not FCreated Then
 					FCreated = True
-					Dim As HDC Dc
-					Dim As PAINTSTRUCT Ps
-					Dim As ..Rect R
-					GetClientRect FHandle, @R
-					Dc = BeginPaint(FHandle, @Ps)
-					FillRect Dc, @R, Brush.Handle
-					EndPaint FHandle, @Ps
-					Repaint
+					UpdateWindow Message.hWnd
 					Message.Result = -1
 					Return
 				End If
