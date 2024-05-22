@@ -265,7 +265,7 @@ Namespace My.Sys.ComponentModel
 						'gdk_window_move(gtk_widget_get_window (widget), iLeft, iTop)
 						'gdk_window_resize(gtk_widget_get_window (widget), Max(1, iWidth), Max(1, iHeight))
 						'If Parent AndAlso Parent->fixedwidget Then gtk_fixed_move(gtk_fixed(Parent->fixedwidget), widget, iLeft, iTop)
-						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+						Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))))
 						If Parent Then
 							If Parent->layoutwidget AndAlso GTK_IS_LAYOUT(gtk_widget_get_parent(CtrlWidget)) Then
 								'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
@@ -335,7 +335,7 @@ Namespace My.Sys.ComponentModel
 						FLeft = UnScaleX(iLeft)
 						FTop = UnScaleY(iTop)
 					Else
-						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+						Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))))
 						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 							Dim allocation As GtkAllocation
 							gtk_widget_get_allocation(CtrlWidget, @allocation)
@@ -392,7 +392,7 @@ Namespace My.Sys.ComponentModel
 						FLeft =  UnScaleX(iLeft)
 						FTop =  UnScaleY(iTop)
 					Else
-						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+						Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))))
 						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 							Dim allocation As GtkAllocation
 							gtk_widget_get_allocation(CtrlWidget, @allocation)
@@ -447,7 +447,7 @@ Namespace My.Sys.ComponentModel
 						gtk_window_get_size(GTK_WINDOW(widget), @iWidth, @iHeight)
 						FWidth = UnScaleX(iWidth)
 					Else
-						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
+						Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget)))
 						If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 							#ifndef __USE_GTK2__
 								FWidth = gtk_widget_get_allocated_width(widget)
@@ -508,7 +508,7 @@ Namespace My.Sys.ComponentModel
 						gtk_window_get_size(GTK_WINDOW(widget), @iWidth, @iHeight)
 						FHeight = UnScaleY(iHeight + 20)
 					Else
-						Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget))
+						Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, widget)))
 						If layoutwidget AndAlso gtk_widget_is_toplevel(widget) Then
 							#ifndef __USE_GTK2__
 								FHeight = gtk_widget_get_allocated_height(widget)
@@ -628,6 +628,14 @@ Namespace My.Sys.ComponentModel
 						gtk_widget_destroy(box)
 					#endif
 					box = 0
+				End If
+				If GTK_IS_WIDGET(containerwidget) Then
+					#ifdef __USE_GTK4__
+						g_object_unref(containerwidget)
+					#else
+						gtk_widget_destroy(containerwidget)
+					#endif
+					containerwidget = 0
 				End If
 			#endif
 		#elseif defined(__USE_WINAPI__)

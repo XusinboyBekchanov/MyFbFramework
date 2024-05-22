@@ -1485,6 +1485,7 @@ Namespace My.Sys.Forms
 				If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
 				If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
 				If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
+				If Ctrl->containerwidget Then gtk_widget_show(Ctrl->containerwidget)
 				#ifdef __USE_GTK4__
 					If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
 				#else
@@ -1504,6 +1505,7 @@ Namespace My.Sys.Forms
 				If Ctrl->scrolledwidget Then gtk_widget_hide(Ctrl->scrolledwidget)
 				If Ctrl->eventboxwidget Then gtk_widget_hide(Ctrl->eventboxwidget)
 				If Ctrl->layoutwidget Then gtk_widget_hide(Ctrl->layoutwidget)
+				If Ctrl->containerwidget Then gtk_widget_hide(Ctrl->containerwidget)
 				If Ctrl->widget Then gtk_widget_hide(Ctrl->widget)
 			End If
 			For i As Integer = 0 To Ctrl->ControlCount - 1

@@ -336,7 +336,7 @@ Namespace My.Sys.Forms
 		#ifndef IsChild_Off
 			Private Property Control.IsChild As Boolean
 				#ifdef __USE_GTK__
-					FIsChild = gtk_widget_get_parent(IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget))) <> 0
+					FIsChild = gtk_widget_get_parent(IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(eventboxwidget, eventboxwidget, widget)))) <> 0
 				#elseif defined(__USE_WINAPI__)
 					FIsChild = StyleExists(WS_CHILD)
 				#endif
@@ -349,10 +349,10 @@ Namespace My.Sys.Forms
 					If FIsChild <> Value Then
 						If Value Then
 							If Parent AndAlso Parent->layoutwidget Then
-								gtk_layout_put(GTK_LAYOUT(Parent->layoutwidget), IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))), FLeft, FTop)
+								gtk_layout_put(GTK_LAYOUT(Parent->layoutwidget), IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(layoutwidget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))), FLeft, FTop)
 							End If
 						Else
-							Dim As GtkWidget Ptr CtrlWidget = IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget))))
+							Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))))
 							g_object_ref(G_OBJECT(CtrlWidget))
 							gtk_widget_unparent(CtrlWidget)
 						End If
@@ -887,7 +887,19 @@ Namespace My.Sys.Forms
 			If (Not FDesignMode) OrElse Value Then
 				#ifdef __USE_GTK__
 					'If Not gtk_widget_is_toplevel(widget) Then gtk_widget_set_child_visible(widget, Value)
-					If scrolledwidget Then
+					If containerwidget Then
+						If Value Then
+							#ifdef __USE_GTK4__
+								gtk_widget_set_visible(containerwidget, True)
+							#else
+								gtk_widget_show_all(containerwidget)
+							#endif
+							'gtk_widget_set_no_show_all(widget, Not Value)
+							If Value Then gtk_widget_queue_draw(containerwidget)
+						Else
+							gtk_widget_set_visible(containerwidget, Value)
+						End If
+					ElseIf scrolledwidget Then
 						If Value Then
 							#ifdef __USE_GTK4__
 								gtk_widget_set_visible(scrolledwidget, True)
@@ -2782,7 +2794,7 @@ Namespace My.Sys.Forms
 					Dim As Integer iLeft = This.Left, iTop = This.Top
 					Dim As GtkWidget Ptr CtrlWidget = widget
 					Select Case gtk_widget_get_parent(CtrlWidget)
-					Case scrolledwidget, overlaywidget, layoutwidget, eventboxwidget
+					Case containerwidget, scrolledwidget, overlaywidget, layoutwidget, eventboxwidget
 						CtrlWidget = gtk_widget_get_parent(CtrlWidget)
 					End Select
 					g_object_ref(CtrlWidget)
@@ -2803,7 +2815,7 @@ Namespace My.Sys.Forms
 						If widget <> This.Parent->Controls[i]->widget Then
 							CtrlWidget = This.Parent->Controls[i]->widget
 							Select Case gtk_widget_get_parent(CtrlWidget)
-							Case This.Parent->Controls[i]->scrolledwidget, This.Parent->Controls[i]->overlaywidget, This.Parent->Controls[i]->layoutwidget AndAlso gtk_widget_get_parent(This.Parent->Controls[i]->layoutwidget) <> This.Parent->Controls[i]->widget, This.Parent->Controls[i]->eventboxwidget
+							Case This.Parent->Controls[i]->containerwidget, This.Parent->Controls[i]->scrolledwidget, This.Parent->Controls[i]->overlaywidget, This.Parent->Controls[i]->layoutwidget AndAlso gtk_widget_get_parent(This.Parent->Controls[i]->layoutwidget) <> This.Parent->Controls[i]->widget, This.Parent->Controls[i]->eventboxwidget
 								CtrlWidget = gtk_widget_get_parent(CtrlWidget)
 							End Select
 							iLeft = This.Parent->Controls[i]->Left
@@ -2857,7 +2869,7 @@ Namespace My.Sys.Forms
 					'If Not FDesignMode Then
 					If widget AndAlso GTK_IS_FRAME(widget) Then FrameTop = 20
 					'End If
-					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->layoutwidget AndAlso gtk_widget_get_parent(Ctrl->layoutwidget) <> Ctrl->widget, Ctrl->layoutwidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget))))
+					Dim As GtkWidget Ptr Ctrlwidget = IIf(Ctrl->containerwidget, Ctrl->containerwidget, IIf(Ctrl->scrolledwidget, Ctrl->scrolledwidget, IIf(Ctrl->overlaywidget, Ctrl->overlaywidget, IIf(Ctrl->layoutwidget AndAlso gtk_widget_get_parent(Ctrl->layoutwidget) <> Ctrl->widget, Ctrl->layoutwidget, IIf(Ctrl->eventboxwidget, Ctrl->eventboxwidget, Ctrl->widget)))))
 					If GTK_IS_WIDGET(Ctrlwidget) AndAlso Not GTK_IS_WINDOW(Ctrlwidget) Then
 						If layoutwidget Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
@@ -2917,12 +2929,14 @@ Namespace My.Sys.Forms
 					If Ctrl->overlaywidget Then g_object_set_data(G_OBJECT(Ctrl->overlaywidget), "@@@Control2", Ctrl)
 					If Ctrl->widget Then g_object_set_data(G_OBJECT(Ctrl->widget), "@@@Control2", Ctrl)
 					If Ctrl->layoutwidget Then g_object_set_data(G_OBJECT(Ctrl->layoutwidget), "@@@Control2", Ctrl)
+					If Ctrl->containerwidget Then g_object_set_data(G_OBJECT(Ctrl->containerwidget), "@@@Control2", Ctrl)
 					If CInt(bAdded) AndAlso CInt(CInt(Ctrl->FVisible) OrElse CInt(GTK_IS_NOTEBOOK(gtk_widget_get_parent(Ctrl->widget)))) Then
 						If Ctrl->eventboxwidget Then gtk_widget_show(Ctrl->eventboxwidget)
 						If Ctrl->scrolledwidget Then gtk_widget_show(Ctrl->scrolledwidget)
 						If Ctrl->overlaywidget Then gtk_widget_show(Ctrl->overlaywidget)
 						If Ctrl->widget Then gtk_widget_show(Ctrl->widget)
 						If Ctrl->layoutwidget Then gtk_widget_show(Ctrl->layoutwidget)
+						If Ctrl->containerwidget Then gtk_widget_show(Ctrl->containerwidget)
 					End If
 					Ctrl->FAnchoredParentWidth = This.FWidth
 					Ctrl->FAnchoredParentHeight = This.FHeight

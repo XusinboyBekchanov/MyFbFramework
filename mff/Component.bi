@@ -39,6 +39,7 @@ Namespace My.Sys.ComponentModel
 			scrolledwidget	As GtkWidget Ptr
 			eventboxwidget  As GtkWidget Ptr
 			overlaywidget   As GtkWidget Ptr
+			containerwidget As GtkWidget Ptr
 		#elseif defined(__USE_JNI__)
 			FHandle         As jobject
 		#elseif defined(__USE_WINAPI__)

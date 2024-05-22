@@ -27,6 +27,7 @@ Namespace My.Sys.Forms
 	'Displays information entered at design time by the user, or in code at run time.
 	Private Type TextBox Extends Control
 	Private:
+	Protected:
 		#ifdef __USE_GTK__
 			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
 			Declare Static Sub Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
@@ -43,7 +44,6 @@ Namespace My.Sys.Forms
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
-	Protected:
 		FTopLine          As Integer
 		FSelStart         As Integer
 		FSelLength        As Integer
