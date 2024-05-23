@@ -60,6 +60,7 @@ Namespace My.Sys.Forms
 		FHeight       As Integer
 		FVisible      As Boolean
 		FEnabled      As Boolean
+		FExpand       As Boolean
 		FChecked      As Boolean
 		FCommandID    As Integer
 		FButtonIndex  As Integer
@@ -121,6 +122,8 @@ Namespace My.Sys.Forms
 		Declare Property Checked(Value As Boolean)
 		Declare Property Enabled As Boolean
 		Declare Property Enabled(Value As Boolean)
+		Declare Property Expand As Boolean
+		Declare Property Expand(Value As Boolean)
 		Declare Sub Update()
 		Declare Operator Cast As Any Ptr
 		Declare Constructor

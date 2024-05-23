@@ -1,5 +1,5 @@
 '################################################################################
-'#  SearchBar.bi                                                                #
+'#  SearchBox.bi                                                                #
 '#  This file is part of MyFBFramework                                          #
 '#  Authors: Xusinboy Bekchanov (2024)                                          #
 '################################################################################
@@ -8,10 +8,10 @@
 #include once "Panel.bi"
 
 Namespace My.Sys.Forms
-	#define QSearchBar(__Ptr__) (*Cast(SearchBar Ptr, __Ptr__))
+	#define QSearchBox(__Ptr__) (*Cast(SearchBox Ptr, __Ptr__))
 	
 	'The SearchBar is a control made to have a search entry.
-	Private Type SearchBar Extends TextBox
+	Private Type SearchBox Extends TextBox
 	Private:
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef message As Message)
@@ -43,5 +43,5 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifndef __USE_MAKE__
-	#include once "SearchBar.bas"
+	#include once "SearchBox.bas"
 #endif

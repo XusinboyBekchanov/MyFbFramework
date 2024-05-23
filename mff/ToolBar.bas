@@ -550,6 +550,17 @@ Namespace My.Sys.Forms
 		'End If
 	End Property
 	
+	Private Property ToolButton.Expand As Boolean
+		Return FExpand
+	End Property
+	
+	Private Property ToolButton.Expand(Value As Boolean)
+		FExpand = Value
+		#ifdef __USE_GTK__
+			gtk_tool_item_set_expand(GTK_TOOL_ITEM(Widget), FEnabled)
+		#endif
+	End Property
+	
 	Private Property ToolButton.Checked As Boolean
 		If Ctrl Then
 			With QControl(Ctrl)
@@ -1034,10 +1045,26 @@ Namespace My.Sys.Forms
 				End If
 				Message.Result = 0
 			Case WM_SIZE
+				Dim As ..Rect R
+				GetWindowRect Handle, @R
 				If AutoSize Then
-					Dim As ..Rect R
-					GetWindowRect Handle, @R
 					FHeight = R.Bottom - R.Top
+				End If
+				Dim As Integer ExpandCount, ButtonsWidth, SpaceWidth
+				For i As Integer = 0 To Buttons.Count - 1
+					If Buttons.Item(i)->Expand Then
+						ExpandCount += 1
+					Else
+						ButtonsWidth += Buttons.Item(i)->Width
+					End If
+				Next
+				If ExpandCount > 0 Then
+					SpaceWidth = UnScaleX(R.Right - R.Left) - ButtonsWidth
+					For i As Integer = 0 To Buttons.Count - 1
+						If Buttons.Item(i)->Expand Then
+							Buttons.Item(i)->Width = SpaceWidth / ExpandCount
+						End If
+					Next
 				End If
 			Case WM_DPICHANGED
 				Base.ProcessMessage(Message)

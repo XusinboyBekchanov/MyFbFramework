@@ -1,14 +1,14 @@
 '################################################################################
-'#  SearchBar.bas                                                               #
+'#  SearchBox.bas                                                               #
 '#  This file is part of MyFBFramework                                          #
 '#  Authors: Xusinboy Bekchanov (2024)                                          #
 '################################################################################
 
-#include once "SearchBar.bi"
+#include once "SearchBox.bi"
 
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
-		Private Function SearchBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Private Function SearchBox.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -18,7 +18,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifndef WriteProperty_Off
-		Private Function SearchBar.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		Private Function SearchBox.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			If Value = 0 Then
 				Select Case LCase(PropertyName)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -33,27 +33,27 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Property SearchBar.TabIndex As Integer
+	Private Property SearchBox.TabIndex As Integer
 		Return FTabIndex
 	End Property
 	
-	Private Property SearchBar.TabIndex(Value As Integer)
+	Private Property SearchBox.TabIndex(Value As Integer)
 		ChangeTabIndex Value
 	End Property
 	
-	Private Property SearchBar.TabStop As Boolean
+	Private Property SearchBox.TabStop As Boolean
 		Return FTabStop
 	End Property
 	
-	Private Property SearchBar.TabStop(Value As Boolean)
+	Private Property SearchBox.TabStop(Value As Boolean)
 		ChangeTabStop Value
 	End Property
 	
 	#ifdef __USE_WINAPI__
-		Private Sub SearchBar.WndProc(ByRef message As Message)
+		Private Sub SearchBox.WndProc(ByRef message As Message)
 		End Sub
 		
-		Private Sub SearchBar.MoveIcons
+		Private Sub SearchBox.MoveIcons
 			Dim rcClient As Rect
 			GetClientRect(FHandle, @rcClient)
 			imgSearch.SetBounds 1, Fix(UnScaleY(rcClient.Bottom) - 16) / 2, 16, 17
@@ -61,18 +61,23 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Sub SearchBar.ProcessMessage(ByRef message As Message)
+	Private Sub SearchBox.ProcessMessage(ByRef message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case message.Msg
 			Case WM_SIZE
 				MoveIcons
+			Case CM_COMMAND
+				Select Case message.wParamHi
+				Case EN_CHANGE
+					imgClear.Visible = Text <> ""
+				End Select
 			End Select
 		#endif
 		Base.ProcessMessage(message)
 	End Sub
 	
 	#ifdef __USE_WINAPI__
-		Sub SearchBar.imgSearch_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Sub SearchBox.imgSearch_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 			Dim hPen As HPEN
 			Dim As ..Rect R
 			GetClientRect Sender.Handle, @R
@@ -108,7 +113,7 @@ Namespace My.Sys.Forms
 			DeleteObject(hPen)
 		End Sub
 		
-		Sub SearchBar.imgClear_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Sub SearchBox.imgClear_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 			Dim hPen As HPEN
 			Dim As ..Rect R
 			GetClientRect Sender.Handle, @R
@@ -126,13 +131,13 @@ Namespace My.Sys.Forms
 			DeleteObject(hPen)
 		End Sub
 		
-		Sub SearchBar.imgClear_Click(ByRef Sender As Control)
+		Sub SearchBox.imgClear_Click(ByRef Sender As Control)
 			Text = ""
 		End Sub
 		
-		Private Sub SearchBar.HandleIsAllocated(ByRef Sender As Control)
+		Private Sub SearchBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
-				With QSearchBar(Sender.Child)
+				With QSearchBox(Sender.Child)
 					#ifdef __USE_WASM__
 						If .OnChange Then SetChangeEvent(.FHandle)
 					#elseif defined(__USE_WINAPI__)
@@ -157,14 +162,14 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Operator SearchBar.Cast As Control Ptr
+	Private Operator SearchBox.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
 	
-	Private Constructor SearchBar
+	Private Constructor SearchBox
 		With This
 			#ifdef __USE_GTK__
-				WidgetEntry = gtk_entry_new()
+				WidgetEntry = gtk_search_entry_new()
 				WidgetTextView = gtk_text_view_new()
 				gtk_entry_set_activates_default(GTK_ENTRY(WidgetEntry), True)
 				gtk_entry_set_width_chars(GTK_ENTRY(WidgetEntry), 0)
@@ -196,15 +201,12 @@ Namespace My.Sys.Forms
 				gtk_container_add(GTK_CONTAINER(WidgetScrolledWindow), WidgetTextView)
 				scrolledwidget = WidgetScrolledWindow
 				widget = WidgetTextView
-				This.RegisterClass "SearchBar", @This
+				This.RegisterClass "SearchBox", @This
 				scrolledwidget = 0
 				widget = WidgetEntry
-				This.RegisterClass "SearchBar", @This
-				containerwidget = gtk_search_bar_new()
-				gtk_search_bar_connect_entry(GTK_SEARCH_BAR(containerwidget), GTK_ENTRY(widget))
-    			gtk_container_add(GTK_CONTAINER(containerwidget), widget)
+				This.RegisterClass "SearchBox", @This
 			#else
-				RegisterClass "SearchBar", "Edit"
+				RegisterClass "SearchBox", "Edit"
 				OnHandleIsAllocated = @HandleIsAllocated
 				ChildProc = @WndProc
 				WLet(FClassAncestor, "Edit")
@@ -218,19 +220,20 @@ Namespace My.Sys.Forms
 				imgClear.Designer = @This
 				imgClear.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @imgClear_Paint)
 				imgClear.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @imgClear_Click)
+				imgClear.Visible = False
 				imgClear.Parent = @This
 			#endif
 			FHideSelection    = False
 			FTabIndex          = -1
 			FTabStop           = True
-			WLet(FClassName, "SearchBar")
+			WLet(FClassName, "SearchBox")
 			Child       = @This
 			Width       = 121
 			Height      = ScaleY(Font.Size / 72 * 96 + 6) '21
 		End With
 	End Constructor
 	
-	Private Destructor SearchBar
+	Private Destructor SearchBox
 		#ifdef __USE_WINAPI__
 			DestroyWindow FHandle
 		#endif
