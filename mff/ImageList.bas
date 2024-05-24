@@ -91,7 +91,7 @@ Namespace My.Sys.Forms
 		NotifyWindow
 	End Property
 
-	Private Sub ImageList.SetImageSize(imgWidth As Integer, imgHeight As Integer, imgxdpi As Integer = 1, imgydpi As Integer = 1)
+	Private Sub ImageList.SetImageSize(imgWidth As Integer, imgHeight As Integer, imgxdpi As Single = 1, imgydpi As Single = 1)
 		If FImageWidth <> imgWidth OrElse FImageHeight <> imgHeight OrElse xdpi <> imgxdpi OrElse ydpi <> imgydpi Then
 			FImageWidth = imgWidth
 			FImageHeight = imgHeight

@@ -130,7 +130,7 @@ Namespace My.Sys.Forms
 		Declare Function GetCursor(ByRef Key As WString) As My.Sys.Drawing.Cursor
 		Declare Function IndexOf(ByRef Key As WString) As Integer
 		Declare Sub Draw(Index As Integer, ByRef Canvas As My.Sys.Drawing.Canvas, X As Integer, Y As Integer, iWidth As Integer = -1, iHeight As Integer = -1, FG As Integer = -1, BK As Integer = -1)
-		Declare Sub SetImageSize(imgWidth As Integer, imgHeight As Integer, imgxdpi As Integer = 1, imgydpi As Integer = 1)
+		Declare Sub SetImageSize(imgWidth As Integer, imgHeight As Integer, imgxdpi As Single = 1, imgydpi As Single = 1)
 		Declare Sub Clear
 		Declare Operator Cast As Any Ptr
 		Declare Constructor(ByVal iImageWidth As Integer = 16, ByVal iImageHeight As Integer = 16)
