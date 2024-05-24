@@ -1127,7 +1127,7 @@ Namespace My.Sys.Forms
 							Message.Result = CDRF_NOTIFYPOSTPAINT
 							Return
 						Case CDDS_POSTPAINT
-							Dim As HPEN SeparatorPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
+							Dim As HPEN SeparatorPen = CreatePen(PS_SOLID, 1, BGR(48, 48, 48)) 'darkHlBkColor)
 							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, SeparatorPen)
 							Dim rc As My.Sys.Drawing.Rect
 							For i As Integer = 0 To Buttons.Count - 1
