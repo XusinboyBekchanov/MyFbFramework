@@ -448,6 +448,12 @@ Namespace My.Sys.Forms
 			SetStrProperty "foreground", "#" & Hex(RGBAToBGR(Value), 6), True
 		#else
 			If FHandle Then
+				'Dim As CHARFORMAT2 Cf
+				'Cf.cbSize = SizeOf(Cf)
+				'Cf.dwMask = CFM_COLOR
+				'Cf.crTextColor = RGBAToBGR(Value)
+				'SendMessage(FHandle, EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
+				'Cf.cbSize = SizeOf(Cf)
 				Cf.dwMask = CFM_COLOR
 				Cf.dwEffects = 0
 				Cf.crTextColor = RGBAToBGR(Value)
@@ -1168,7 +1174,12 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.TextRTF(Value As UString)
 		#ifdef __USE_WINAPI__
 			If FHandle Then
-				Dim As String Buffer = ToUtf8(Value)
+				Dim As String Buffer
+				If StartsWith(Value, "{\rtf") OrElse StartsWith(Value, "{\urtf") Then
+					Buffer = ToUtf8(Value)
+				Else
+					Buffer = "{\urtf1" & ToUtf8(Value) & "}"
+				End If
 				Dim bb As SETTEXTEX
 				bb.flags = ST_DEFAULT
 				bb.codepage = CP_ACP

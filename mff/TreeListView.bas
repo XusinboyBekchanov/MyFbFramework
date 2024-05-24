@@ -1497,7 +1497,7 @@ Namespace My.Sys.Forms
 				Dim As Integer ItemID
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
 				ItemID = Cast(Integer, miStruct->itemID)
-				If FOwnerDraw Then miStruct->itemHeight = ScaleY(17)
+				'If FOwnerDraw Then miStruct->itemHeight = ScaleY(17)
 				If OnMeasureItem Then OnMeasureItem(*Designer, This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
