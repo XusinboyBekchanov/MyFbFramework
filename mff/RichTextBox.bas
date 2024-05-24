@@ -419,12 +419,14 @@ Namespace My.Sys.Forms
 	
 	Private Property RichTextBox.SelBackColor(Value As Integer)
 		#ifdef __USE_GTK__
-			SetStrProperty "background", "#" & Hex(RGBAToBGR(Value), 6), True
+			'SetStrProperty "background", "#" & Hex(RGBAToBGR(Value), 6), True
+			SetStrProperty "background", "#" & Hex(Value, 6), True
 		#else
 			If FHandle Then
 				Cf2.dwMask = CFM_BACKCOLOR
 				Cf2.dwEffects = 0
-				Cf2.crBackColor = RGBAToBGR(Value)
+				'Cf2.crBackColor = RGBAToBGR(Value)
+				Cf2.crBackColor = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf2))
 			End If
 		#endif
@@ -445,7 +447,8 @@ Namespace My.Sys.Forms
 	
 	Private Property RichTextBox.SelColor(Value As Integer)
 		#ifdef __USE_GTK__
-			SetStrProperty "foreground", "#" & Hex(RGBAToBGR(Value), 6), True
+			'SetStrProperty "foreground", "#" & Hex(RGBAToBGR(Value), 6), True
+			SetStrProperty "foreground", "#" & Hex(Value, 6), True
 		#else
 			If FHandle Then
 				'Dim As CHARFORMAT2 Cf
@@ -456,7 +459,8 @@ Namespace My.Sys.Forms
 				'Cf.cbSize = SizeOf(Cf)
 				Cf.dwMask = CFM_COLOR
 				Cf.dwEffects = 0
-				Cf.crTextColor = RGBAToBGR(Value)
+				'Cf.crTextColor = RGBAToBGR(Value)
+				Cf.crTextColor = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
 		#endif
