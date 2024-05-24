@@ -979,7 +979,7 @@ Namespace My.Sys.Drawing
 				DeviceContextHandle = CanvasHandle
 			#else
 				Handle = CanvasHandle
-				SelectObject(Handle, Font.Handle)
+				'SelectObject(Handle, Font.Handle)
 			#endif
 			HandleSetted = True
 		End Sub
