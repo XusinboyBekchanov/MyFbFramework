@@ -840,7 +840,7 @@ Namespace My.Sys.Forms
 	Private Sub TreeListViewItems.Clear
 		If FParentItem = 0 Then
 			#ifdef __USE_GTK__
-				If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
+				'If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
 			#else
 				If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 			#endif
