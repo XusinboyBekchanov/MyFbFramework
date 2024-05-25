@@ -1181,8 +1181,10 @@ Namespace My.Sys.Forms
 				Dim As String Buffer
 				If StartsWith(Value, "{\rtf") Then
 					Buffer = Value
-				Else
+				ElseIf StartsWith(Value, "{\urtf") Then
 					Buffer = ToUtf8(Value)
+				Else
+					Buffer = "{\urtf1" & ToUtf8(Value) & "}"
 				End If
 				Dim bb As SETTEXTEX
 				bb.flags = ST_DEFAULT
