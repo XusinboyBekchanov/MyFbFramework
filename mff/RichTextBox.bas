@@ -1179,10 +1179,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Dim As String Buffer
-				If StartsWith(Value, "{\rtf") OrElse StartsWith(Value, "{\urtf") Then
-					Buffer = ToUtf8(Value)
+				If StartsWith(Value, "{\rtf") Then
+					Buffer = Value
 				Else
-					Buffer = "{\urtf1" & ToUtf8(Value) & "}"
+					Buffer = ToUtf8(Value)
 				End If
 				Dim bb As SETTEXTEX
 				bb.flags = ST_DEFAULT
