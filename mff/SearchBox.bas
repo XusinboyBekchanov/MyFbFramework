@@ -169,7 +169,11 @@ Namespace My.Sys.Forms
 	Private Constructor SearchBox
 		With This
 			#ifdef __USE_GTK__
-				WidgetEntry = gtk_search_entry_new()
+				#ifdef __USE_GTK2__
+					WidgetEntry = gtk_entry_new()
+				#else
+					WidgetEntry = gtk_search_entry_new()
+				#endif
 				WidgetTextView = gtk_text_view_new()
 				gtk_entry_set_activates_default(GTK_ENTRY(WidgetEntry), True)
 				gtk_entry_set_width_chars(GTK_ENTRY(WidgetEntry), 0)
