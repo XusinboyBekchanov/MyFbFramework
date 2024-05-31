@@ -284,7 +284,7 @@ Private Sub Dictionary.SaveToFile(ByRef FileName As WString)
 	'If Open(FileName For Binary Access Write As #F) = 0 Then
 	If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then 'David Change
 		For i As Integer = 0 To FItems.Count - 1
-			Print #Fn, Item(i)->Key & Chr(9) & " " & Item(i)->Text 'David Change
+			Print #Fn, Item(i)->Key & Chr(9) & Item(i)->Text 'David Change
 		Next
 	End If
 	CloseFile_(Fn)
