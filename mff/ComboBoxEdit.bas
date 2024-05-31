@@ -178,7 +178,7 @@ Namespace My.Sys.Forms
 						gtk_container_remove(GTK_CONTAINER(eventboxwidget), DropDownListWidget)
 					End If
 					gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
-					If widget Then 
+					If widget Then
 						g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
 						g_object_set_data(G_OBJECT(gtk_bin_get_child(GTK_BIN(DropDownWidget))), "@@@Control2", @This)
 					End If
@@ -306,7 +306,11 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FText = WStr(*gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))
 			#else
-				Base.Text
+				If This.ItemIndex > -1 Then
+					FText = This.Item(This.ItemIndex)
+				Else
+					FText = Base.Text
+				End If
 			#endif
 		End If
 		Return *FText.vptr
@@ -496,8 +500,8 @@ Namespace My.Sys.Forms
 						.UpdateListHeight
 						Dim As Integer i
 						For i = 0 To .Items.Count - 1
-	'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
-	'						*s = .Items.Item(i)
+							'						Dim As WString Ptr s = CAllocate_((Len(.Items.Item(i)) + 1) * SizeOf(WString))
+							'						*s = .Items.Item(i)
 							.Perform(CB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 						Next i
 						.ItemIndex = .FItemIndex
@@ -589,40 +593,40 @@ Namespace My.Sys.Forms
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
-'						FDarkMode = True
-'						SetWindowTheme(FHandle, "DarkMode_CFD", nullptr)
-'						Brush.Handle = hbrBkgnd
-'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-'						Dim As COMBOBOXINFO cbi
-'						cbi.cbSize = SizeOf(COMBOBOXINFO)
-'						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
-'						If result Then
-'							If cbi.hwndList Then
-'								'dark scrollbar for listbox of combobox
-'								SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr)
-'							End If
-'						End If
+						'						FDarkMode = True
+						'						SetWindowTheme(FHandle, "DarkMode_CFD", nullptr)
+						'						Brush.Handle = hbrBkgnd
+						'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						'						Dim As COMBOBOXINFO cbi
+						'						cbi.cbSize = SizeOf(COMBOBOXINFO)
+						'						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
+						'						If result Then
+						'							If cbi.hwndList Then
+						'								'dark scrollbar for listbox of combobox
+						'								SetWindowTheme(cbi.hwndList, "DarkMode_Explorer", nullptr)
+						'							End If
+						'						End If
 					End If
 				Else
 					If FDarkMode Then
 						SetDark False
-'						FDarkMode = False
-'						SetWindowTheme(FHandle, NULL, NULL)
-'						If FBackColor = -1 Then
-'							Brush.Handle = 0
-'						Else
-'							Brush.Color = FBackColor
-'						End If
-'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-'						Dim As COMBOBOXINFO cbi
-'						cbi.cbSize = SizeOf(COMBOBOXINFO)
-'						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
-'						If result Then
-'							If cbi.hwndList Then
-'								'dark scrollbar for listbox of combobox
-'								SetWindowTheme(cbi.hwndList, NULL, NULL)
-'							End If
-'						End If
+						'						FDarkMode = False
+						'						SetWindowTheme(FHandle, NULL, NULL)
+						'						If FBackColor = -1 Then
+						'							Brush.Handle = 0
+						'						Else
+						'							Brush.Color = FBackColor
+						'						End If
+						'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						'						Dim As COMBOBOXINFO cbi
+						'						cbi.cbSize = SizeOf(COMBOBOXINFO)
+						'						Dim As BOOL result = GetComboBoxInfo(FHandle, @cbi)
+						'						If result Then
+						'							If cbi.hwndList Then
+						'								'dark scrollbar for listbox of combobox
+						'								SetWindowTheme(cbi.hwndList, NULL, NULL)
+						'							End If
+						'						End If
 					End If
 				End If
 				Message.Result = 0
