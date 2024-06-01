@@ -309,11 +309,11 @@ Namespace My.Sys.Forms
 				If This.ItemIndex > -1 Then
 					FText = This.Item(This.ItemIndex)
 				Else
-					FText = Base.Text
+					Base.Text
 				End If
 			#endif
 		End If
-		Return *FText.vptr
+		Return WGet(FText.vptr)
 	End Property
 	
 	Private Property ComboBoxEdit.Text(ByRef Value As WString)
