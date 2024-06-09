@@ -132,7 +132,7 @@ Namespace My
 				Line Input #Fn, Buff
 				If LCase(Trim(Buff)) = "[general]" Then StartGeneral = True : Continue Do
 				Pos1 = InStr(Buff, "=")
-				If StartGeneral = True AndAlso Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
+				If StartGeneral AndAlso Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
 					Pos2 = InStr(Pos1, Buff, "|")
 					tKey = Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ")
 					Var Pos3 = InStr(Buff, "~")
@@ -186,10 +186,10 @@ Namespace My
 	End Property
 	
 	Private Property Application.ExeName ByRef As WString
-		Dim As WString*255 Tx
+		Dim As WString * 255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
-		#ifdef __FB_WIN32__
+		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
 		#else
 			Tx = Command(0)
@@ -604,7 +604,7 @@ Namespace My
 	
 	#ifndef Application_GetVerInfo_Off
 		Private Function Application.GetVerInfo(ByRef InfoName As String) As String
-			#ifdef __FB_WIN32__
+			#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 				Dim As ULong iret
 				If TranslationString = "" Then Return ""
 				Dim As WString Ptr value = 0
@@ -637,7 +637,7 @@ Namespace My
 				#endif
 			#endif
 			#ifdef __USE_GTK4__
-				gtk_init(,)
+				gtk_init_check()
 			#else
 				gtk_init(NULL, NULL)
 			#endif
@@ -690,7 +690,7 @@ Namespace My
 		This._vinfo = 0
 		WLet(FLanguage, "")
 		ExeName
-		#ifdef __FB_WIN32__
+		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			Dim As DWORD ret, discard
 			ret = GetFileVersionInfoSize(FFileName, @discard)
 			If ret <> 0 Then

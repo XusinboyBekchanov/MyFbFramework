@@ -2012,7 +2012,10 @@ Namespace My.Sys.Forms
 					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, msg->Event->button.button, msg->Event->button.time)
 				#endif
 			Else
-				gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, NULL, NULL)
+				#ifdef __USE_GTK4__
+				#else
+					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, NULL, NULL)
+				#endif
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FParentWindow AndAlso FParentWindow->Handle Then
