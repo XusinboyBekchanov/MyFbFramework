@@ -30,8 +30,6 @@ Namespace My.Sys
 		FTemp As WString Ptr
 		FClassName As WString Ptr
 		FDynamic As Boolean
-		xdpi As Single
-		ydpi As Single
 		oldxdpi As Single
 		oldydpi As Single
 		#ifdef __USE_GTK__
@@ -41,6 +39,8 @@ Namespace My.Sys
 			FBody As WString Ptr
 		#endif
 	Public:
+		xdpi As Single
+		ydpi As Single
 		'Returns a string that represents the current object (Windows, Linux, Android, Web).
 		Declare Virtual Function ToString ByRef As WString
 		'Used to get correct class name of the object (Windows, Linux, Android, Web).

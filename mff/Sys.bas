@@ -5,7 +5,7 @@
 '#  Windows version functions based on WinFBX/Afx/AfxWin.inc                   #
 '###############################################################################
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#define UNICODE
 	#include once "windows.bi"
 #elseif defined(__USE_GTK__)
@@ -17,15 +17,15 @@ Namespace My
 		Private Function Name As String
 			#ifdef __USE_GTK__
 				Return "Linux"
+			#elseif defined(__USE_JNI__)
+				Return "Android"
 			#else
 				Return "Windows"
 			#endif
 		End Function
 		
 		Private Function Version As Long
-			#ifdef __USE_GTK__
-				Return 0
-			#else
+			#ifdef __USE_WINAPI__
 				' ========================================================================================
 				' Returns the Windows version
 				' Platform 1:
@@ -50,19 +50,21 @@ Namespace My
 				nMajorVer = LoByte(LoWord(dwVersion))
 				nMinorVer = HiByte(LoWord(dwVersion))
 				Return (nMajorVer + nMinorVer / 100) * 100
+			#else
+				Return 0
 			#endif
 		End Function
 		
 		Private Function Build As Long
-			#ifdef __USE_GTK__
-				Return 0
-			#else
+			#ifdef __USE_WINAPI__
 				' ========================================================================================
 				' Returns the Windows build
 				' ========================================================================================
 				Dim dwVersion As DWORD
 				dwVersion = GetVersion
 				If dwVersion < &H80000000 Then Return HiWord(dwVersion)
+			#else
+				Return 0
 			#endif
 		End Function
 		
@@ -85,9 +87,7 @@ Namespace My
 		End Function
 		
 		Private Function Platform As Long
-			#ifdef __USE_GTK__
-				Return 0
-			#else
+			#ifdef __USE_WINAPI__
 				' ========================================================================================
 				' Returns the Windows platform
 				'   1 Windows 95/98/ME
@@ -96,6 +96,8 @@ Namespace My
 				Dim dwVersion As DWORD
 				dwVersion = GetVersion
 				Return IIf(dwVersion < &H80000000, 2, 1)
+			#else
+				Return 0
 			#endif
 		End Function
 	End Namespace

@@ -2088,9 +2088,9 @@ End Namespace
 				Dim As jclass displaymetricsClass = (*env)->FindClass(env, "android/util/DisplayMetrics")
 				Dim As jfieldID xdpiField = (*env)->GetFieldID(env, displaymetricsClass, "xdpi", "F")
 				Dim As jfieldID ydpiField = (*env)->GetFieldID(env, displaymetricsClass, "ydpi", "F")
-				xdpi = (*env)->GetFloatField(env, displaymetrics, xdpiField) / 100
-				ydpi = (*env)->GetFloatField(env, displaymetrics, ydpiField) / 100
 				If pApp->MainForm Then
+					pApp->MainForm->xdpi = (*env)->GetFloatField(env, displaymetrics, xdpiField) / 100
+					pApp->MainForm->ydpi = (*env)->GetFloatField(env, displaymetrics, ydpiField) / 100
 					pApp->MainForm->Handle = This_
 					'				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
 					'				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
@@ -2114,7 +2114,7 @@ End Namespace
 			If env <> 0 Then
 				For i As Integer = 0 To Handles.Count - 1
 					If Handles.Item(i) <> 0 Then
-						Dim As Control Ptr Ctrl = Handles.Item(i)
+						Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(i)
 						If Ctrl->OnDestroy Then Ctrl->OnDestroy(* (Ctrl->Designer), *Ctrl)
 						Ctrl->Handle = 0
 					End If

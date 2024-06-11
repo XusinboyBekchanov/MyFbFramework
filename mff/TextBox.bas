@@ -1174,6 +1174,10 @@ Namespace My.Sys.Forms
 	#ifdef __USE_WINAPI__
 		Private Sub TextBox.WndProc(ByRef message As Message)
 		End Sub
+		
+		Private Sub TextBox.SetDark(Value As Boolean)
+			Base.SetDark Value
+		End Sub
 	#endif
 	
 	#ifndef __USE_GTK__
@@ -1202,10 +1206,6 @@ Namespace My.Sys.Forms
 					#endif
 				End With
 			End If
-		End Sub
-		
-		Private Sub TextBox.SetDark(Value As Boolean)
-			Base.SetDark Value
 		End Sub
 	#endif
 	
