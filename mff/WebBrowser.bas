@@ -251,6 +251,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
+	Private Function WebBrowser.ExecuteScript(ByRef JavaScript As WString, bWait As Boolean = False) ByRef As WString
+		#ifdef __USE_WEBVIEW2__
+			If webviewWindow Then
+				WDeAllocate(ScriptResult)
+				ScriptResult = 0
+				webviewWindow->lpVtbl->ExecuteScript(webviewWindow, @JavaScript, ExecuteScriptCompletedHandler)
+				If bWait Then
+					Do While ScriptResult = 0
+						App.DoEvents
+					Loop
+				End If
+				Return *ScriptResult
+			End If
+		#endif
+	End Function
+	
 	Private Sub WebBrowser.SetBody(ByRef tText As WString, ByVal flag As Long = 0)
 		#ifdef __USE_GTK__
 			'#ifdef __USE_GTK3__

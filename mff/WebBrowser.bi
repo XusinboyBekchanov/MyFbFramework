@@ -37,7 +37,6 @@ Namespace My.Sys.Forms
 				Dim As ICoreWebView2 Ptr webviewWindow = NULL
 				Dim As BOOL bEnvCreated = False, bExecuteScriptCompletedHandlerCreated = False
 				Dim As ULong HandlerRefCount = 0
-				Dim As WString Ptr ScriptResult
 				Dim As ULong ExecuteScriptCompletedHandlerRefCount = 0
 				Declare Static Function EnvironmentHandlerAddRef stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Declare Static Function EnvironmentHandlerRelease stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
@@ -59,6 +58,7 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		Dim As WString Ptr ScriptResult
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
@@ -72,6 +72,7 @@ Namespace My.Sys.Forms
 		Declare Sub Navigate(ByVal URL As WString Ptr)
 		Declare Sub GoForward()
 		Declare Sub GoBack()
+		Declare Function ExecuteScript(ByRef JavaScript As WString, bWait As Boolean = False) ByRef As WString
 		Declare Sub Refresh()
 		Declare Function GetURL() As UString
 		Declare Function State() As Integer
