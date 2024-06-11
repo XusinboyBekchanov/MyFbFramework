@@ -262,9 +262,9 @@ Namespace My.Sys.Forms
 						App.DoEvents
 					Loop
 				End If
-				Return *ScriptResult
 			End If
 		#endif
+		Return *ScriptResult
 	End Function
 	
 	Private Sub WebBrowser.SetBody(ByRef tText As WString, ByVal flag As Long = 0)
