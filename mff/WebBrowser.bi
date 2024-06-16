@@ -20,6 +20,18 @@ Namespace My.Sys.Forms
 	#ifdef __USE_WEBVIEW2__
 		Dim Shared Handles As PointerList
 	#endif
+	Type NewWindowRequestedEventArgs
+		#ifdef __USE_WEBVIEW2__
+			Handle As ICoreWebView2NewWindowRequestedEventArgs Ptr
+		#else
+			Handle As Any Ptr
+		#endif
+		Declare Property Handled As Boolean
+		Declare Property Handled(Value As Boolean)
+		Declare Function GetIsUserInitiated() As Boolean
+		Declare Function GetURL() ByRef As WString
+	End Type
+	
 	'Enables the user to navigate Web pages inside your form.
 	Private Type WebBrowser Extends Control
 	Private:
@@ -33,11 +45,13 @@ Namespace My.Sys.Forms
 				Dim As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr envHandler
 				Dim As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr completedHandler
 				Dim As ICoreWebView2ExecuteScriptCompletedHandler Ptr ExecuteScriptCompletedHandler
+				Dim As ICoreWebView2NewWindowRequestedEventHandler Ptr NewWindowRequestedEventHandler
 				Dim As ICoreWebView2Controller Ptr webviewController = NULL
 				Dim As ICoreWebView2 Ptr webviewWindow = NULL
 				Dim As BOOL bEnvCreated = False, bExecuteScriptCompletedHandlerCreated = False
 				Dim As ULong HandlerRefCount = 0
 				Dim As ULong ExecuteScriptCompletedHandlerRefCount = 0
+				Dim As ULong NewWindowRequestedEventHandlerRefCount = 0
 				Declare Static Function EnvironmentHandlerAddRef stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Declare Static Function EnvironmentHandlerRelease stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Declare Static Function EnvironmentHandlerQueryInterface stdcall (This As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
@@ -50,6 +64,10 @@ Namespace My.Sys.Forms
 				Declare Static Function ExecuteScriptCompletedHandlerRelease stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr) As culong
 				Declare Static Function ExecuteScriptCompletedHandlerQueryInterface stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
 				Declare Static Function ExecuteScriptCompletedHandlerInvoke stdcall (This_ As ICoreWebView2ExecuteScriptCompletedHandler Ptr, errorCode As HRESULT, resultObjectAsJson As LPCWSTR) As HRESULT
+				Declare Static Function NewWindowRequestedEventHandlerAddRef stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr) As culong
+				Declare Static Function NewWindowRequestedEventHandlerRelease stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr) As culong
+				Declare Static Function NewWindowRequestedEventHandlerQueryInterface stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+				Declare Static Function NewWindowRequestedEventHandlerInvoke stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr, sender As ICoreWebView2 Ptr, args As ICoreWebView2NewWindowRequestedEventArgs Ptr) As HRESULT
 			#else
 				hWebBrowser As HINSTANCE
 				g_IWebBrowser As IWebBrowser2Vtbl Ptr
@@ -82,6 +100,7 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
+		OnNewWindowRequested As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As WebBrowser, ByRef e As NewWindowRequestedEventArgs)
 	End Type
 End Namespace
 

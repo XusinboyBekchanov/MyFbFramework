@@ -356,7 +356,7 @@ Namespace My.Sys.Forms
 				If WebB Then
 					If (Not WebB->bEnvCreated) Then
 						WebB->bEnvCreated = True
-						Dim As CHAR ch
+						Dim As char ch
 						WebB->completedHandler = malloc(SizeOf(ICoreWebView2CreateCoreWebView2ControllerCompletedHandler))
 						If (WebB->completedHandler = 0) Then
 							'printf(
@@ -454,6 +454,9 @@ Namespace My.Sys.Forms
 						Settings->lpVtbl->put_AreDefaultContextMenusEnabled(Settings, True)
 						Settings->lpVtbl->put_IsStatusBarEnabled(Settings, True)
 						
+						Dim As EventRegistrationToken token
+						WebB->webviewWindow->lpVtbl->add_NewWindowRequested(WebB->webviewWindow, WebB->NewWindowRequestedEventHandler, @token)
+						
 						Dim As Rect bounds
 						GetClientRect(WebB->FHandle, @bounds)
 						#ifdef __FB_64BIT__
@@ -521,7 +524,89 @@ Namespace My.Sys.Forms
 				End If
 				Return S_OK
 			End Function
+			
+			Function WebBrowser.NewWindowRequestedEventHandlerAddRef stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr) As culong
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->NewWindowRequestedEventHandlerRefCount += 1
+					Return WebB->NewWindowRequestedEventHandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.NewWindowRequestedEventHandlerRelease stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr) As culong
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					WebB->NewWindowRequestedEventHandlerRefCount -= 1
+					If (WebB->NewWindowRequestedEventHandlerRefCount = 0) Then
+						If (WebB->NewWindowRequestedEventHandler) Then
+						'	free(WebB->ExecuteScriptCompletedHandler->lpVtbl)
+						'	free(WebB->ExecuteScriptCompletedHandler)
+						End If
+					End If
+					Return WebB->NewWindowRequestedEventHandlerRefCount
+				Else
+					Return 0
+				End If
+			End Function
+			
+			Function WebBrowser.NewWindowRequestedEventHandlerQueryInterface stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					*ppvObject = This_
+					NewWindowRequestedEventHandlerAddRef(This_)
+				End If
+				Return S_OK
+			End Function
+			
+			Function WebBrowser.NewWindowRequestedEventHandlerInvoke stdcall (This_ As ICoreWebView2NewWindowRequestedEventHandler Ptr, sender As ICoreWebView2 Ptr, args As ICoreWebView2NewWindowRequestedEventArgs Ptr) As HRESULT
+				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
+				If WebB Then
+					Dim As NewWindowRequestedEventArgs e
+					e.Handle = args
+					If WebB->OnNewWindowRequested Then WebB->OnNewWindowRequested(* (WebB->Designer), *WebB, e)
+				End If
+				Return S_OK
+			End Function
 		#endif
+		
+		Private Property NewWindowRequestedEventArgs.Handled() As Boolean
+			#ifdef __USE_WEBVIEW2__
+				Dim bHandled As BOOL
+				Handle->lpVtbl->get_Handled(Handle, @bHandled)
+				Return bHandled
+			#else
+				Return False
+			#endif
+		End Property
+		
+		Private Property NewWindowRequestedEventArgs.Handled(Value As Boolean)
+			#ifdef __USE_WEBVIEW2__
+				Dim bHandled As BOOL = True
+				Handle->lpVtbl->put_Handled(Handle, bHandled)
+			#endif
+		End Property
+		
+		Private Function NewWindowRequestedEventArgs.GetIsUserInitiated() As Boolean
+			#ifdef __USE_WEBVIEW2__
+				Dim bIsUserInitiated As BOOL
+				Handle->lpVtbl->get_IsUserInitiated(Handle, @bIsUserInitiated)
+				Return bIsUserInitiated
+			#else
+				Return False
+			#endif
+		End Function
+		
+		Private Function NewWindowRequestedEventArgs.GetURL() ByRef As WString
+			#ifdef __USE_WEBVIEW2__
+				Dim As WString Ptr pURL
+				Handle->lpVtbl->get_Uri(Handle, @pURL)
+				Return *pURL
+			#else
+				Return ""
+			#endif
+		End Function
 		
 		Private Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender Then
@@ -619,6 +704,22 @@ Namespace My.Sys.Forms
 						.ExecuteScriptCompletedHandler->lpVtbl->Release = @ExecuteScriptCompletedHandlerRelease
 						.ExecuteScriptCompletedHandler->lpVtbl->QueryInterface = @ExecuteScriptCompletedHandlerQueryInterface
 						.ExecuteScriptCompletedHandler->lpVtbl->Invoke = @ExecuteScriptCompletedHandlerInvoke
+						
+						.NewWindowRequestedEventHandler = malloc(SizeOf(ICoreWebView2NewWindowRequestedEventHandler))
+						If (.NewWindowRequestedEventHandler = 0) Then
+							Print GetLastError()
+							Return
+						End If
+						Handles.Add .NewWindowRequestedEventHandler, @Sender
+						.NewWindowRequestedEventHandler->lpVtbl = malloc(SizeOf(ICoreWebView2NewWindowRequestedEventHandlerVtbl))
+						If (.NewWindowRequestedEventHandler->lpVtbl = 0) Then
+							Print GetLastError()
+							Return
+						End If
+						.NewWindowRequestedEventHandler->lpVtbl->AddRef = @NewWindowRequestedEventHandlerAddRef
+						.NewWindowRequestedEventHandler->lpVtbl->Release = @NewWindowRequestedEventHandlerRelease
+						.NewWindowRequestedEventHandler->lpVtbl->QueryInterface = @NewWindowRequestedEventHandlerQueryInterface
+						.NewWindowRequestedEventHandler->lpVtbl->Invoke = @NewWindowRequestedEventHandlerInvoke
 					
 						UpdateWindow(.FHandle)
 						
