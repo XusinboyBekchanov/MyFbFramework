@@ -623,6 +623,12 @@ Namespace My
 		End Function
 	#endif
 	
+	#ifdef __USE_GTK4__
+		#define generic_gtk_init() gtk_init()
+	#else
+		#define generic_gtk_init() gtk_init(0, 0)
+	#endif
+
 	Private Constructor Application
 		If pApp = 0 Then pApp = @This
 		#ifdef __USE_GTK__
@@ -636,11 +642,7 @@ Namespace My
 					gdk_threads_init()
 				#endif
 			#endif
-			#ifdef __USE_GTK4__
-				gtk_init_check()
-			#else
-				gtk_init(NULL, NULL)
-			#endif
+			generic_gtk_init()
 			
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(ExePath & "/resources"))
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(ExePath & "/Resources"))
