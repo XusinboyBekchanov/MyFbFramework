@@ -683,7 +683,7 @@ Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 	Return True
 End Function
 
-Private Sub Split Overload(ByRef Subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True)
+Private Function Split Overload(ByRef Subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True) As Long
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(Subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
@@ -708,9 +708,10 @@ Private Sub Split Overload(ByRef Subject As WString, ByRef Delimiter As Const WS
 	n = n + 1
 	ReDim Preserve Result(n - 1)
 	Result(n - 1) = Mid(Subject, p, i - p)
-End Sub
+	Return n
+End Function
 
-Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True)
+Private Function Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True) As Long
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
@@ -735,7 +736,8 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 	n = n + 1
 	ReDim Preserve Result(n - 1)
 	Result(n - 1) = Mid(subject, p, i - p)
-End Sub
+	Return n
+End Function
 
 'Returns a zero-based, one-dimensional array containing a specified number of substrings.
 '
@@ -786,7 +788,7 @@ End Sub
 'See also
 '   Join
 '   Replace
-Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True)
+Private Function Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
@@ -811,7 +813,8 @@ Private Sub Split Overload(ByRef subject As WString, ByRef Delimiter As Const WS
 	n = n + 1
 	ReDim Preserve Result(n - 1)
 	WLet(Result(n - 1), Mid(subject, p, i - p))
-End Sub
+	Return n
+End Function
 
 Private Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As WString Ptr TmpString
