@@ -252,6 +252,8 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function WebBrowser.ExecuteScript(ByRef JavaScript As WString, bWait As Boolean = False) ByRef As WString
+		If Trim(JavaScript) = "" Then Return ""
+		WLet(ScriptResult,"")
 		#ifdef __USE_WEBVIEW2__
 			If webviewWindow Then
 				WDeAllocate(ScriptResult)
@@ -447,13 +449,12 @@ Namespace My.Sys.Forms
 						
 						Dim As ICoreWebView2Settings Ptr Settings
 						WebB->webviewWindow->lpVtbl->get_Settings(WebB->webviewWindow, @Settings)
-						Settings->lpVtbl->put_IsScriptEnabled(Settings, True)
-						Settings->lpVtbl->put_AreDefaultScriptDialogsEnabled(Settings, True)
-						Settings->lpVtbl->put_IsWebMessageEnabled(Settings, True)
-						Settings->lpVtbl->put_AreDevToolsEnabled(Settings, False)
-						Settings->lpVtbl->put_AreDefaultContextMenusEnabled(Settings, True)
-						Settings->lpVtbl->put_IsStatusBarEnabled(Settings, True)
-						
+						Settings->lpVtbl->put_IsScriptEnabled(Settings, ByVal 1)
+						Settings->lpVtbl->put_AreDefaultScriptDialogsEnabled(Settings, ByVal 1)
+						Settings->lpVtbl->put_IsWebMessageEnabled(Settings, ByVal 1)
+						Settings->lpVtbl->put_AreDevToolsEnabled(Settings, ByVal 0)
+						Settings->lpVtbl->put_AreDefaultContextMenusEnabled(Settings, ByVal 1)
+						Settings->lpVtbl->put_IsStatusBarEnabled(Settings, ByVal 1)
 						Dim As EventRegistrationToken token
 						WebB->webviewWindow->lpVtbl->add_NewWindowRequested(WebB->webviewWindow, WebB->NewWindowRequestedEventHandler, @token)
 						
