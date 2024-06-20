@@ -687,7 +687,7 @@ Private Function Split Overload(ByRef Subject As WString, ByRef Delimiter As Con
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(Subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
-		Exit Sub
+		Return 0
 	End If
 	ReDim Result(0 To items - 1)
 	Do While i <= ls
@@ -715,7 +715,7 @@ Private Function Split Overload(ByRef subject As WString, ByRef Delimiter As Con
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
-		Exit Sub
+		Return 0
 	End If
 	ReDim Result(0 To items - 1)
 	Do While i <= ls
@@ -792,7 +792,7 @@ Private Function Split Overload(ByRef subject As WString, ByRef Delimiter As Con
 	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
 	If ls < 1 OrElse tLen < 1 Then
 		ReDim Result(0)
-		Exit Sub
+		Return 0
 	End If
 	ReDim Result(0 To items - 1)
 	Do While i <= ls
