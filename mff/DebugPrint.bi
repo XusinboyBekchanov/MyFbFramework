@@ -285,10 +285,11 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 				Dim As Integer iMsg = InputBox_.msg.message
 				If (iMsg = WM_LBUTTONDOWN) OrElse (iMsg = WM_KEYUP AndAlso (InputBox_.msg.wParam = 32 OrElse InputBox_.msg.wParam = 13)) Then
 					SendMessage(InputBox_.hwnd1,WM_GETTEXT,1024,Cast(LPARAM ,@InputBox_.mess))
-					Dim As UString sRet = InputBox_.mess
-					Function = sRet
+					Static As WString Ptr sRet
+					WLet(sRet, InputBox_.mess)
+					Function = *sRet
 					DestroyWindow(InputBox_.hWnd)
-					InputBox_.flag=0
+					InputBox_.flag = 0
 					SetFocus(hwFocus)
 					Exit Function
 				End If
