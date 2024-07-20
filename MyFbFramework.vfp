@@ -204,6 +204,7 @@ File=mff/WStringList.bas
 File=changes_en.txt
 File=COPYING.LGPL.txt
 File=COPYING.modifiedLGPL.txt
+File=mff/MyFbFramework.vfp
 File=README.md
 File=README_CN.md
 File=mff/DarkMode/Themes.txt
