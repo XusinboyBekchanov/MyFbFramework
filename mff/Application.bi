@@ -14,8 +14,6 @@
 #include once "WStringList.bi"
 #include once "Dictionary.bi"
 #include once "Form.bi"
-#include once "DebugPrint.bi"
-
 Dim Shared As Dictionary mlKeys
 #ifdef __USE_GTK__
 	'#ifndef __FB_WIN32__
@@ -55,6 +53,46 @@ Dim Shared As Dictionary mlKeys
 '#DEFINE crVSplit      LoadCursor(GetModuleHandle(NULL),"VSPLIT")
 '#DEFINE crNoDrop      LoadCursor(GetModuleHandle(NULL),"NODROP")
 '
+Private Enum MessageType
+	mtInfo
+	mtWarning
+	mtQuestion
+	mtError
+	mtOther
+End Enum
+
+Private Enum ButtonsTypes
+	btNone
+	btOK
+	btYesNo
+	btYesNoCancel
+	btOkCancel
+End Enum
+
+Private Enum MessageResult
+	mrAbort
+	mrCancel
+	mrIgnore
+	mrNo
+	mrOK
+	mrRetry
+	mrYes
+End Enum
+
+Enum FileEncodings
+	PlainText
+	Utf8
+	Utf8BOM
+	Utf16BOM
+	Utf32BOM
+End Enum
+
+Enum NewLineTypes
+	WindowsCRLF
+	LinuxLF
+	MacOSCR
+End Enum
+
 Private Enum ShutdownMode
 	smAfterMainFormCloses
 	smAfterAllFormsCloses
@@ -172,8 +210,19 @@ End Namespace
 
 Dim Shared pApp As My.Application Ptr 'Global for entire Application
 
+'Displays a message in a dialog box, waits for the user to click a button, and returns an Integer indicating which button the user clicked.
+Declare Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
 Declare Function ML(ByRef V As WString) ByRef As WString
+Declare Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
+Declare Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
+Declare Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
 
+Namespace Debug
+	Declare Sub Clear
+	Declare Sub Print Overload(ByRef Msg As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByVal Msg As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByRef Msg As UString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+End Namespace
 Declare Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr
 Declare Function ApplicationFileName Alias "ApplicationFileName"(App As My.Application Ptr) ByRef As WString
 
