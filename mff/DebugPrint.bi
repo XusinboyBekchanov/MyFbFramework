@@ -51,6 +51,40 @@ Declare Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
 Declare Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
 Declare Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
 Declare Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "Enter text:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) ByRef As WString
+Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
+	Dim As Integer Result = -1
+	Dim As WString Ptr FCaption = CAllocate((Len(Caption) + 1) * SizeOf(WString))
+	Dim As WString Ptr FMsgStr = CAllocate((Len(MsgStr) + 1) * SizeOf(WString))
+	*FCaption = Caption
+	*FMsgStr = MsgStr
+	Dim As Integer MsgTypeIn, ButtonsTypeIn
+	Dim As Long Wnd
+	Select Case MsgType
+	Case mtInfo: MsgTypeIn = MB_ICONINFORMATION
+	Case mtWarning: MsgTypeIn = MB_ICONEXCLAMATION
+	Case mtQuestion: MsgTypeIn = MB_ICONQUESTION
+	Case mtError: MsgTypeIn = MB_ICONERROR
+	Case mtOther: MsgTypeIn = 0
+	End Select
+	Select Case ButtonsType
+	Case btNone: ButtonsTypeIn = 0
+	Case btOK: ButtonsTypeIn = MB_OK
+	Case btYesNo: ButtonsTypeIn = MB_YESNO
+	Case btYesNoCancel: ButtonsTypeIn = MB_YESNOCANCEL
+	Case btOkCancel: ButtonsTypeIn = MB_OKCANCEL
+	End Select
+	Result = MessageBox(0, *FMsgStr, *FCaption, MsgTypeIn Or ButtonsTypeIn Or MB_TOPMOST Or MB_TASKMODAL)
+	Select Case Result
+	Case IDABORT: Result = mrAbort
+	Case IDCANCEL: Result = mrCancel
+	Case IDIGNORE: Result = mrIgnore
+	Case IDNO: Result = mrNo
+	Case IDOK: Result = mrOK
+	Case IDRETRY: Result = mrRetry
+	Case IDYES: Result = mrYes
+	End Select
+	Return Result
+End Function
 
 #ifdef _DebugWindow_
 	'Gets a handle to the debug window when the application is launched from the IDE.
@@ -163,146 +197,6 @@ End Namespace
 		DialogResult = response_id
 	End Sub
 #endif
-
-Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
-	Dim As Integer Result = -1
-	Dim As WString Ptr FCaption
-	Dim As Integer MsgTypeIn, ButtonsTypeIn
-	WLet(FCaption, Caption)
-	If *FCaption = "" Then WLet(FCaption, "VisualFBEditor")
-	'    For i As Integer = 0 To App.FormCount -1
-	'        If GetActiveWindow = App.Forms[i]->Handle Then ActiveForm = App.Forms[i]
-	'        If App.Forms[i]->Handle Then App.Forms[i]->Enabled = False
-	'    Next i
-	#ifdef __USE_WINAPI__
-		Dim As HWND Wnd
-	#endif
-	'    If ActiveForm Then
-	'       If ActiveForm->Handle Then
-	'          Wnd = ActiveForm->Handle
-	'       Else
-	'          Wnd = MainHandle
-	'       End If
-	'    End If
-	#ifdef __USE_GTK__
-		Dim As GtkWidget Ptr dialog
-		Dim As GtkWindow Ptr win
-		If pApp AndAlso pApp->MainForm Then
-			win = GTK_WINDOW(pApp->MainForm->Handle)
-		End If
-		Select Case MsgType
-		Case mtInfo: MsgTypeIn = GTK_MESSAGE_INFO
-		Case mtWarning: MsgTypeIn = GTK_MESSAGE_WARNING
-		Case mtQuestion: MsgTypeIn = GTK_MESSAGE_QUESTION
-		Case mtError: MsgTypeIn = GTK_MESSAGE_ERROR
-		Case mtOther: MsgTypeIn = GTK_MESSAGE_OTHER
-		End Select
-		Select Case ButtonsType
-		Case btNone: ButtonsTypeIn = GTK_BUTTONS_NONE
-		Case btOK: ButtonsTypeIn = GTK_BUTTONS_OK
-		Case btYesNo: ButtonsTypeIn = GTK_BUTTONS_YES_NO
-		Case btYesNoCancel: ButtonsTypeIn = GTK_BUTTONS_YES_NO
-		Case btOkCancel: ButtonsTypeIn = GTK_BUTTONS_OK_CANCEL
-		End Select
-		dialog = gtk_message_dialog_new (win, _
-		GTK_DIALOG_DESTROY_WITH_PARENT Or GTK_DIALOG_MODAL, _
-		MsgTypeIn, _
-		IIf(ButtonsType = btYesNoCancel, btNone, ButtonsTypeIn), _
-		ToUtf8(MsgStr), _
-		NULL)
-		gtk_window_set_transient_for(GTK_WINDOW(dialog), win)
-		gtk_window_set_title(GTK_WINDOW(dialog), ToUtf8(*FCaption))
-		If ButtonsType = btYesNoCancel Then
-			#ifdef __USE_GTK4__
-				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-cancel", GTK_RESPONSE_CANCEL)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-no", GTK_RESPONSE_NO)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-yes", GTK_RESPONSE_YES)
-			#else
-				#ifndef __USE_GTK2__
-					gtk_dialog_add_button(GTK_DIALOG(dialog), ToUtf8(*Cast(WString Ptr, GTK_STOCK_CANCEL)), GTK_RESPONSE_CANCEL)
-					gtk_dialog_add_button(GTK_DIALOG(dialog), ToUtf8(*Cast(WString Ptr, GTK_STOCK_NO)), GTK_RESPONSE_NO)
-					gtk_dialog_add_button(GTK_DIALOG(dialog), ToUtf8(*Cast(WString Ptr, GTK_STOCK_YES)), GTK_RESPONSE_YES)
-				#else
-					gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL)
-					gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_NO, GTK_RESPONSE_NO)
-					gtk_dialog_add_button(GTK_DIALOG(dialog), GTK_STOCK_YES, GTK_RESPONSE_YES)
-				#endif
-			#endif
-			gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_YES)
-		End If
-		#ifdef __USE_GTK4__
-			g_signal_connect_swapped (dialog, "response", G_CALLBACK(@gtk_dialog_response_sub), dialog)
-			gtk_widget_set_visible(dialog, True)
-			Result = DialogResult
-		#else
-			Result = gtk_dialog_run (GTK_DIALOG (dialog))
-		#endif
-		Select Case Result
-		Case GTK_RESPONSE_CANCEL: Result = mrCancel
-		Case GTK_RESPONSE_NO: Result = mrNo
-		Case GTK_RESPONSE_OK: Result = mrOK
-		Case GTK_RESPONSE_YES: Result = mrYes
-		End Select
-		#ifdef __USE_GTK4__
-			g_object_unref(dialog)
-		#else
-			gtk_widget_destroy(dialog)
-		#endif
-	#elseif defined(__USE_WINAPI__)
-		'		Wnd = GetActiveWindow()
-		'		If App.MainForm <> 0 Then
-		'			Wnd = App.MainForm->Handle
-		'		End If
-		Select Case MsgType
-		Case mtInfo: MsgTypeIn = MB_ICONINFORMATION
-		Case mtWarning: MsgTypeIn = MB_ICONEXCLAMATION
-		Case mtQuestion: MsgTypeIn = MB_ICONQUESTION
-		Case mtError: MsgTypeIn = MB_ICONERROR
-		Case mtOther: MsgTypeIn = 0
-		End Select
-		Select Case ButtonsType
-		Case btNone: ButtonsTypeIn = 0
-		Case btOK: ButtonsTypeIn = MB_OK
-		Case btYesNo: ButtonsTypeIn = MB_YESNO
-		Case btYesNoCancel: ButtonsTypeIn = MB_YESNOCANCEL
-		Case btOkCancel: ButtonsTypeIn = MB_OKCANCEL
-		End Select
-		Result = MessageBox(0, @MsgStr, FCaption, MsgTypeIn Or ButtonsTypeIn Or MB_TOPMOST Or MB_TASKMODAL)
-		Select Case Result
-		Case IDABORT: Result = mrAbort
-		Case IDCANCEL: Result = mrCancel
-		Case IDIGNORE: Result = mrIgnore
-		Case IDNO: Result = mrNo
-		Case IDOK: Result = mrOK
-		Case IDRETRY: Result = mrRetry
-		Case IDYES: Result = mrYes
-		End Select
-	#elseif defined(__USE_WASM__)
-		Select Case MsgType
-		Case mtInfo: MsgTypeIn = 1
-		Case mtWarning: MsgTypeIn = 2
-		Case mtQuestion: MsgTypeIn = 3
-		Case mtError: MsgTypeIn = 4
-		Case mtOther: MsgTypeIn = 0
-		End Select
-		Select Case ButtonsType
-		Case btNone: ButtonsTypeIn = 0
-		Case btOK: ButtonsTypeIn = 1
-		Case btYesNo: ButtonsTypeIn = 0
-		Case btYesNoCancel: ButtonsTypeIn = 0
-		Case btOkCancel: ButtonsTypeIn = 2
-		End Select
-		MessageBox(MsgStr, *FCaption, 0, 0)
-	#endif
-	'Do
-	'    App.DoEvents
-	'Loop Until Result <> -1
-	'    For i As Integer = 0 To App.FormCount -1
-	'        If App.Forms[i]->Handle Then App.Forms[i]->Enabled = True
-	'    Next i
-	WDeAllocate(FCaption)
-	Return Result
-End Function
 
 Type TInputBox
 	#ifdef __USE_WINAPI__
