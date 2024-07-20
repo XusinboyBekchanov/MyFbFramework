@@ -119,8 +119,8 @@ Namespace My.Sys.Forms
 	Private Sub GroupBox.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			Case WM_ERASEBKGND
-			Case WM_PAINT
+			'Case WM_ERASEBKGND
+			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						SetDark True
@@ -150,7 +150,11 @@ Namespace My.Sys.Forms
 				Dim As ..Rect R
 				Dim As PAINTSTRUCT Ps
 				Dc = BeginPaint(Handle, @Ps)
-				FillRect Dc, @Ps.rcPaint, This.Brush.Handle
+				EndPaint Handle, @Ps
+				Dc = GetDC(FHandle)
+				GetClientRect(FHandle, @R)
+				'FillRect Dc, @Ps.rcPaint, This.Brush.Handle
+				FillRect Dc, @R, This.Brush.Handle
 				This.Canvas.SetHandle Dc
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As LRESULT state = SendMessage(FHandle, BM_GETSTATE, 0, 0)
@@ -170,14 +174,15 @@ Namespace My.Sys.Forms
 					NewFontHandle = SelectObject(Dc, OldFontHandle)
 					SelectObject(Dc, PrevPen)
 					SelectObject(Dc, PrevBrush)
-					EndPaint Handle, @Ps
+					'EndPaint Handle, @Ps
+					ReleaseDC FHandle, Dc
 					DeleteObject NewPen
 					Message.Result = 0
 					Return
 				Else
 					This.Canvas.UnSetHandle
-					EndPaint Handle, @Ps
-					'ReleaseDC Handle, Dc
+					'EndPaint Handle, @Ps
+					ReleaseDC Handle, Dc
 					RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 				End If
 			Case WM_COMMAND
