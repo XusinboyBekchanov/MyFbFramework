@@ -1,10 +1,14 @@
 ﻿'################################################################################
-'#  Console.bi
+'#  NoInterface.bi
 '#  This file is part of MyFBFramework                                          #
 '#  Authors: Xusinboy Bekchanov, Liu XiaLin                                     #
 '#   Version: 1.0.0                                                             #
 '################################################################################
-#include once "UString.bi"
+'Avoid using another Msgbox in SimpleVariantPlus.bi  
+'Function MsgBox cdecl Overload (ByVal Msg As LPCWSTR, ByVal Flags As Long = MB_ICONINFORMATION) As Long'
+
+#define APP_TITLE "Visual FB Editor"
+#include once "mff/UString.bi"
 Private Enum MessageType
 	mtInfo
 	mtWarning
@@ -56,7 +60,7 @@ Namespace Debug
 		
 		Private Sub _Assert(ByRef sFile As WString, iLine As Integer, ByRef sFunction As WString, ByRef sExpression As WString, expression As Boolean, iType As Integer)
 			#ifdef __FB_DEBUG__
-				If Not expression Then ..Print sFile & "(" & Str(iLine) & "): assertion failed at " & sFunction & ": " & sExpression
+				If Not expression Then .Print sFile & "(" & Str(iLine) & "): assertion failed at " & sFunction & ": " & sExpression
 				If iType = 0 Then End
 			#endif
 		End Sub
@@ -104,7 +108,7 @@ Namespace Debug
 				Close #Fn
 			End If
 			If bPrintMsg Then .Print Msg
-			If bShowMsg Then MsgBox Msg, "Visual FB Editor"
+			If bShowMsg Then MsgBox Msg, APP_TITLE
 			If bPrintToDebugWindow Then
 				#ifdef __USE_WINAPI__
 					If IsWindow(DebugWindowHandle) Then
