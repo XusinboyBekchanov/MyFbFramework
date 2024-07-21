@@ -1,4 +1,4 @@
-'SimpleVariantPlus.bi: a "lean and mean" (not library-dependent) LateBound-Helper-Module for FreeBasic
+﻿'SimpleVariantPlus.bi: a "lean and mean" (not library-dependent) LateBound-Helper-Module for FreeBasic
 'Author:      Olaf Schmidt (June 2016)
 'Updated by Xusinboy Bekchanov to support 64-bit (August 2020)
 'The Vartype-Letters, as used for the ByName...-Methods are as follows:
@@ -79,7 +79,6 @@ End Function
 'the usual Instantiation-Helper for COM-Objects which are known in the Win-Registry (e.g. CreateObject("Scripting.Dictionary")
 Function CreateObject(ByVal ProgID As LPCOLESTR) As tagVARIANT
 	If Not Done Then Done = True: CoInitializeEx(0, 2): DyLibLoad("shell32.dll"): DyLibLoad("comctl32.dll")
-	
 	COMErr.Number = 0
 	Dim CLSID As CLSID, RetVal As tagVARIANT
 	If HandleCOMErr(CLSIDFromProgID(ProgID, @CLSID), "CLSIDFromProgID") Then Return RetVal
@@ -89,7 +88,7 @@ Function CreateObject(ByVal ProgID As LPCOLESTR) As tagVARIANT
 End Function
 
 'but here's a helper-function to create COM-Objects regfree, in case the user provided a *.manifest-File (and placed it beside the COM-Dll-File)
-Function CreateObjectRegFree(ProgID As WString Ptr, ManifestFileName As WString Ptr) As tagVARIANT
+Function CreateObjectRegFree Overload(ProgID As WString Ptr, ManifestFileName As WString Ptr) As tagVARIANT
 	Static ACW As ACTCTXW
 	ACW.cbSize = Len(ACW)
 	ACW.lpSource = ManifestFileName
@@ -120,6 +119,88 @@ Function CreateObjectRegFree(ProgID As WString Ptr, ManifestFileName As WString 
 	
 	ReleaseActCtx hActCtx
 End Function
+' Note: Do not use DyLibFree to unload the library once you have got a valid reference to an interface or your application will GPF.
+'注意:一旦您获得了对接口的有效引用,请不要使用 DyLibFree 卸载库,否则您的应用程序将 GPF.
+Function CreateObjectRegFree Overload(ByRef wszLibName As Const WString, ByRef rclsid As Const CLSID, ByRef riid As Const IID, ByRef wszLicKey As WString = "") As Any Ptr
+	Dim hr As Long, hLib As HMODULE, pDisp As Any Ptr
+	Dim pIClassFactory As IClassFactory Ptr, pIClassFactory2 As IClassFactory2 Ptr
+	'Dim RetVal As tagVARIANT
+	COMErr.Number = 0 ': RetVal.vt = VT_DISPATCH
+	' See if the library is already loaded in the address space
+	hLib = GetModuleHandleW(wszLibName)
+	' If it is not loaded, load it
+	If hLib = NULL Then hLib = LoadLibraryW(wszLibName)
+	'If it fails, abort
+	If hLib = NULL Then
+		COMErr.Number = &H80020009
+		COMErr.Description = IIf(Dir(wszLibName) = "", "File not exist! " & Chr(13, 10), "Couldn't Load Library: ") & wszLibName
+		If ShowCOMErrors Then MsgBox COMErr.Description
+		Exit Function
+	End If
+	
+	' Retrieve the address of the exported function DllGetClassObject
+	Dim pfnDllGetClassObject As Function (ByVal rclsid As Const IID Const Ptr, ByVal riid As Const IID Const Ptr, ByVal ppv As LPVOID Ptr) As HRESULT
+	pfnDllGetClassObject = Cast(Any Ptr, GetProcAddress(hLib, "DllGetClassObject"))
+	If pfnDllGetClassObject = NULL Then
+		COMErr.Number = &H80020009
+		COMErr.Description = "Couldn't GetProcAddress 'DllGetClassObject' from library: " & wszLibName
+		If ShowCOMErrors Then MsgBox COMErr.Description
+		Exit Function
+	End If
+	
+	If Len(wszLicKey) = 0 Then
+		' Request a reference to the IClassFactory interface
+		hr = pfnDllGetClassObject(@rclsid, @IID_IClassFactory, @pIClassFactory)
+		If hr <> S_OK Then
+			COMErr.Number = &H80020009
+			COMErr.Description = "Couldn't Get IClassFactory from library: " & wszLibName
+			If ShowCOMErrors Then MsgBox COMErr.Description
+			Exit Function
+		End If
+		' Create an instance of the server or control
+		hr = pIClassFactory->lpVtbl->CreateInstance(pIClassFactory, NULL, @riid, @pDisp)
+		If hr <> S_OK Then
+			pIClassFactory->lpVtbl->Release(pIClassFactory)
+			COMErr.Number = &H80020009
+			COMErr.Description = "Couldn't create an instance of the server or control from library: " & wszLibName
+			If ShowCOMErrors Then MsgBox COMErr.Description
+			Exit Function
+		End If
+	Else
+		' Request a reference to the IClassFactory2 interface
+		hr = pfnDllGetClassObject(@rclsid, @IID_IClassFactory, @pIClassFactory2)
+		If hr <> S_OK Then
+			COMErr.Number = &H80020009
+			COMErr.Description =  "Couldn't Get IClassFactory2 from library: " & wszLibName
+			If ShowCOMErrors Then MsgBox COMErr.Description
+			Exit Function
+		End If
+		' Create a licensed instance of the server or control
+		hr = pIClassFactory2->lpVtbl->CreateInstanceLic(pIClassFactory2, NULL, NULL, @riid, @wszLicKey, @pDisp)
+		If hr <> S_OK Then
+			pIClassFactory2->lpVtbl->Release(pIClassFactory2)
+			COMErr.Number = &H80020009
+			COMErr.Description = "Couldn't create an instance of the server or control from library: " & wszLibName & Chr(13, 10) & " wszLicKey = " & wszLicKey
+			If ShowCOMErrors Then MsgBox COMErr.Description
+			Exit Function
+		End If
+	End If
+	If pIClassFactory Then pIClassFactory->lpVtbl->Release(pIClassFactory)
+	If pIClassFactory2 Then pIClassFactory2->lpVtbl->Release(pIClassFactory2)
+	'RetVal.pdispVal = pDisp
+	Return pDisp
+	'Return RetVal
+End Function
+
+Function ComSafeRelease (ByVal riid As Const IID Const Ptr, ByRef pv As Any Ptr) As ULong
+	If pv = NULL Then Return 0
+	'If IsEqualIID(riid, @IID_IDispatch) Then
+	'	Function = Cast(IDispatch Ptr, pv)->Release(pv)
+	'Else
+		Function = Cast(IUnknown Ptr, pv)->lpVtbl->Release(pv)
+	'End If
+	pv = NULL
+End Function
 
 Function BSTR2S cdecl (ByVal BS As Const BSTR, ByVal CodePage As UINT = DefaultCodePage_StringConv) As String
 	Dim BytesNeeded As UINT, S As String
@@ -136,13 +217,16 @@ Function S2BSTR cdecl (S As Const String, ByVal CodePage As UINT = DefaultCodePa
 	Return BS
 End Function
 
-Function BSTR2W(ByVal BS As Const BSTR) As WString Ptr 'the caller is responsible for freeing the returned WString per DeAllocate
+'the caller is responsible for freeing the returned WString per DeAllocate
+Function BSTR2W(ByVal BS As Const BSTR) As WString Ptr
 	Dim W As WString Ptr
 	W = CAllocate(SysStringByteLen(BS) + 2)
 	If BS Then memcpy W, BS, SysStringByteLen(BS)
 	Return W
 End Function
-Function W2BSTR(ByVal W As Const WString Ptr) As BSTR 'the caller is responsible for freeing the returned BSTR per SysFreeString
+
+'the caller is responsible for freeing the returned BSTR per SysFreeString
+Function W2BSTR(ByVal W As Const WString Ptr) As BSTR
 	Return SysAllocString(W)
 End Function
 

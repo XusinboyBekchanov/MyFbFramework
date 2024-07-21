@@ -1,9 +1,13 @@
 ﻿'################################################################################
-'#  Console.bi
+'#  NoInterface.bi
 '#  This file is part of MyFBFramework                                          #
 '#  Authors: Xusinboy Bekchanov, Liu XiaLin                                     #
 '#   Version: 1.0.0                                                             #
 '################################################################################
+'Avoid using another Msgbox in SimpleVariantPlus.bi
+'Function MsgBox cdecl Overload (ByVal Msg As LPCWSTR, ByVal Flags As Long = MB_ICONINFORMATION) As Long'
+
+#define APP_TITLE "Visual FB Editor"
 #include once "UString.bi"
 Private Enum MessageType
 	mtInfo
@@ -49,6 +53,8 @@ Namespace Debug
 	Declare Sub Print Overload(ByRef Msg As WString, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 	Declare Sub Print Overload(ByVal MSG As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 	Declare Sub Print Overload(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByRef MSG As String, ByRef Msg1 As Const String = "", ByRef Msg2 As Const String = "", ByRef Msg3 As Const String = "", ByRef Msg4 As Const String = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByRef MSG As ZString, ByRef Msg1 As Const ZString = "", ByRef Msg2 As Const ZString = "", ByRef Msg3 As Const ZString = "", ByRef Msg4 As Const ZString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 	
 	#ifndef Debug_Assert_Off
 		#define AssertError(expression) _Assert(__FILE__, __LINE__, __FUNCTION__, __FB_QUOTE__(expression), expression, 0)
@@ -56,7 +62,7 @@ Namespace Debug
 		
 		Private Sub _Assert(ByRef sFile As WString, iLine As Integer, ByRef sFunction As WString, ByRef sExpression As WString, expression As Boolean, iType As Integer)
 			#ifdef __FB_DEBUG__
-				If Not expression Then ..Print sFile & "(" & Str(iLine) & "): assertion failed at " & sFunction & ": " & sExpression
+				If Not expression Then .Print sFile & "(" & Str(iLine) & "): assertion failed at " & sFunction & ": " & sExpression
 				If iType = 0 Then End
 			#endif
 		End Sub
@@ -72,75 +78,97 @@ Namespace Debug
 		End Sub
 	#endif
 	
-		Private Sub Print Overload(ByVal MSG As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-			Dim As WString Ptr tMsgPtr
-			WLet(tMsgPtr, Str(MSG))
-			If Msg1 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg1)
-			If Msg2 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg2)
-			If Msg3 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg3)
-			If Msg4 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg4)
-			Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
-			Deallocate(tMsgPtr)
-		End Sub
-		
-		Private Sub Print Overload(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-			Dim As WString Ptr tMsgPtr
-			WLet(tMsgPtr, MSG)
-			If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
-			If Msg2 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg2)
-			If Msg3 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg3)
-			If Msg4 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg4)
-			Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
-			Deallocate(tMsgPtr)
-		End Sub
-		
-		Private Sub Print Overload(ByRef Msg As WString, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-			If bWriteLog Then
-				Dim As Integer Result, Fn = FreeFile
-				Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
-				If Result = 0 Then
-					.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & Msg & Space(20) 'cut some word if some unicode inside.
+	Private Sub Print Overload(ByVal MSG As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		Dim As WString Ptr tMsgPtr
+		WLet(tMsgPtr, Str(MSG))
+		If Msg1 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg1)
+		If Msg2 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg2)
+		If Msg3 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg3)
+		If Msg4 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg4)
+		Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
+		Deallocate(tMsgPtr)
+	End Sub
+	
+	Private Sub Print Overload(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		Dim As WString Ptr tMsgPtr
+		WLet(tMsgPtr, MSG)
+		If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
+		If Msg2 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg2)
+		If Msg3 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg3)
+		If Msg4 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg4)
+		Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
+		Deallocate(tMsgPtr)
+	End Sub
+	
+	Private Sub Print Overload(ByRef MSG As String, ByRef Msg1 As Const String = "", ByRef Msg2 As Const String = "", ByRef Msg3 As Const String = "", ByRef Msg4 As Const String = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		Dim As WString Ptr tMsgPtr
+		WLet(tMsgPtr, MSG)
+		If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
+		If Msg2 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg2)
+		If Msg3 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg3)
+		If Msg4 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg4)
+		Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
+		Deallocate(tMsgPtr)
+	End Sub
+	
+	Private Sub Print Overload(ByRef MSG As ZString, ByRef Msg1 As Const ZString = "", ByRef Msg2 As Const ZString = "", ByRef Msg3 As Const ZString = "", ByRef Msg4 As Const ZString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		Dim As WString Ptr tMsgPtr
+		WLet(tMsgPtr, MSG)
+		If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
+		If Msg2 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg2)
+		If Msg3 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg3)
+		If Msg4 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg4)
+		Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
+		Deallocate(tMsgPtr)
+	End Sub
+	
+	Private Sub Print Overload(ByRef Msg As WString, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		If bWriteLog Then
+			Dim As Integer Result, Fn = FreeFile
+			Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
+			If Result = 0 Then
+				.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & Msg & Space(20) 'cut some word if some unicode inside.
+			End If
+			Close #Fn
+		End If
+		If bPrintMsg Then .Print Msg
+		If bShowMsg Then MsgBox Msg, APP_TITLE
+		If bPrintToDebugWindow Then
+			#ifdef __USE_WINAPI__
+				If IsWindow(DebugWindowHandle) Then
+					Dim As HWND TabPageHandle = GetParent(DebugWindowHandle)
+					Dim As HWND TabControlHandle = GetParent(TabPageHandle)
+					Dim As Integer Index = Cast(Integer, GetProp(TabPageHandle, "@@@Index"))
+					If SendMessage(TabControlHandle, TCM_GETCURSEL, 0, 0) <> Index Then
+						SendMessage(TabControlHandle, TCM_SETCURSEL, Index, 0)
+						ShowWindow(TabPageHandle, SW_SHOW)
+						BringWindowToTop(TabPageHandle)
+					End If
+					Dim As WString Ptr SelText
+					WLet(SelText, Msg & Chr(13, 10))
+					SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
+					WDeAllocate(SelText)
 				End If
-				Close #Fn
-			End If
-			If bPrintMsg Then .Print Msg
-			If bShowMsg Then MsgBox Msg, "Visual FB Editor"
-			If bPrintToDebugWindow Then
-				#ifdef __USE_WINAPI__
-					If IsWindow(DebugWindowHandle) Then
-						Dim As HWND TabPageHandle = GetParent(DebugWindowHandle)
-						Dim As HWND TabControlHandle = GetParent(TabPageHandle)
-						Dim As Integer Index = Cast(Integer, GetProp(TabPageHandle, "@@@Index"))
-						If SendMessage(TabControlHandle, TCM_GETCURSEL, 0, 0) <> Index Then
-							SendMessage(TabControlHandle, TCM_SETCURSEL, Index, 0)
-							ShowWindow(TabPageHandle, SW_SHOW)
-							BringWindowToTop(TabPageHandle)
-						End If
-						Dim As WString Ptr SelText
-						WLet(SelText, Msg & Chr(13, 10))
-						SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
-						WDeAllocate(SelText)
+			#elseif defined(__USE_GTK__)
+				If GTK_IS_TEXT_VIEW(DebugWindowHandle) Then
+					Dim As GtkWidget Ptr TabPageHandle = gtk_widget_get_parent(DebugWindowHandle)
+					Dim As GtkWidget Ptr TabControlHandle = gtk_widget_get_parent(TabPageHandle)
+					Dim As Integer Index = gtk_notebook_page_num(GTK_NOTEBOOK(TabControlHandle), TabPageHandle)
+					If gtk_notebook_get_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle)))) <> Index Then
+						gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle))), Index)
 					End If
-				#elseif defined(__USE_GTK__)
-					If GTK_IS_TEXT_VIEW(DebugWindowHandle) Then
-						Dim As GtkWidget Ptr TabPageHandle = gtk_widget_get_parent(DebugWindowHandle)
-						Dim As GtkWidget Ptr TabControlHandle = gtk_widget_get_parent(TabPageHandle)
-						Dim As Integer Index = gtk_notebook_page_num(GTK_NOTEBOOK(TabControlHandle), TabPageHandle)
-						If gtk_notebook_get_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle)))) <> Index Then
-							gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_widget_get_parent(gtk_widget_get_parent(DebugWindowHandle))), Index)
-						End If
-						Dim As GtkTextIter _start, _end
-						gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), ToUtf8(Msg & Chr(13, 10)), -1)
-						gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), @_start, @_end)
-						Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), NULL, @_end, False)
-						gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(DebugWindowHandle), ptextmark, 0., False, 0., 0.)
-						While gtk_events_pending()
-							gtk_main_iteration()
-						Wend
-					End If
-				#endif
-			End If
-		End Sub
+					Dim As GtkTextIter _start, _end
+					gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), ToUtf8(Msg & Chr(13, 10)), -1)
+					gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), @_start, @_end)
+					Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(DebugWindowHandle)), NULL, @_end, False)
+					gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(DebugWindowHandle), ptextmark, 0., False, 0., 0.)
+					While gtk_events_pending()
+						gtk_main_iteration()
+					Wend
+				End If
+			#endif
+		End If
+	End Sub
 End Namespace
 
 Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
@@ -177,41 +205,42 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 	End Select
 	Return Result
 End Function
-	Private Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
-		Dim As Boolean IsUTF8 = True
-		Dim As Integer iStart = 0, iEnd = Len(SourceStr)
-		While (iStart < iEnd)
-			If SourceStr[iStart] < &H80 Then
-				'(10000000): 值小于&H80的为ASCII字符
-				iStart += 1
-			ElseIf (SourceStr[iStart] < &HC0) Then
-				'(11000000): 值介于&H80与&HC0之间的为无效UTF-8字符
-				IsUTF8 = False
-				Exit While
-			ElseIf (SourceStr[iStart] < &HE0) Then
-				'(11100000): 此范围内为2字节UTF-8字符
-				If iStart >= iEnd - 1 Then Exit While
-				If ((SourceStr[iStart + 1] And &HC0) <> &H80) Then
-					IsUTF8 = False
-					Exit While
-				End If
-				iStart += 2
-			ElseIf (SourceStr[iStart] < (&HF0)) Then
-				'(11110000): 此范围内为3字节UTF-8字符
-				If iStart >= iEnd - 2 Then Exit While
-				If ((SourceStr[iStart + 1] And &HC0) <> &H80) Or ((SourceStr[iStart + 2] And &HC0) <> &H80) Then
-					IsUTF8 = False
-					Exit While
-				End If
-				iStart += 3
-			Else
+
+Private Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
+	Dim As Boolean IsUTF8 = True
+	Dim As Integer iStart = 0, iEnd = Len(SourceStr)
+	While (iStart < iEnd)
+		If SourceStr[iStart] < &H80 Then
+			'(10000000): 值小于&H80的为ASCII字符
+			iStart += 1
+		ElseIf (SourceStr[iStart] < &HC0) Then
+			'(11000000): 值介于&H80与&HC0之间的为无效UTF-8字符
+			IsUTF8 = False
+			Exit While
+		ElseIf (SourceStr[iStart] < &HE0) Then
+			'(11100000): 此范围内为2字节UTF-8字符
+			If iStart >= iEnd - 1 Then Exit While
+			If ((SourceStr[iStart + 1] And &HC0) <> &H80) Then
 				IsUTF8 = False
 				Exit While
 			End If
-		Wend
-		Return IsUTF8
-	End Function
-	
+			iStart += 2
+		ElseIf (SourceStr[iStart] < (&HF0)) Then
+			'(11110000): 此范围内为3字节UTF-8字符
+			If iStart >= iEnd - 2 Then Exit While
+			If ((SourceStr[iStart + 1] And &HC0) <> &H80) Or ((SourceStr[iStart + 2] And &HC0) <> &H80) Then
+				IsUTF8 = False
+				Exit While
+			End If
+			iStart += 3
+		Else
+			IsUTF8 = False
+			Exit While
+		End If
+	Wend
+	Return IsUTF8
+End Function
+
 #ifndef LoadFromFile_Off
 	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
 		Dim As String Buff, EncodingStr
@@ -245,7 +274,7 @@ End Function
 					FileEncoding = FileEncodings.Utf8
 					EncodingStr = "ascii"
 				Else
-				FileEncoding = FileEncodings.PlainText
+					FileEncoding = FileEncodings.PlainText
 					EncodingStr = "ascii"
 				End If
 			End If
