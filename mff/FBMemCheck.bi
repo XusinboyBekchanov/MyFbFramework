@@ -36,6 +36,7 @@
 	#if MEMCHECK = 0
 		#define _Allocate(bytes) Allocate(bytes)
 		#define _CAllocate(bytes) CAllocate(bytes)
+		#define _CAllocateWithSize(num_elements, size) CAllocate(num_elements, size)
 		#define _Reallocate(pt, bytes) Reallocate(pt, bytes)
 		#define _Deallocate(pt) Deallocate pt
 		#define _New(type_) New type_
@@ -46,6 +47,7 @@
 		
 		#define _Allocate(bytes) fbmld_allocate(bytes, __FILE__, __FUNCTION__, __LINE__)
 		#define _CAllocate(bytes) fbmld_callocate(bytes, __FILE__, __FUNCTION__, __LINE__)
+		#define _CAllocateWithSize(num_elements, size) fbmld_callocate(num_elements * size, __FILE__, __FUNCTION__, __LINE__)
 		#define _Reallocate(pt, bytes) fbmld_reallocate(pt, bytes, __FILE__, __FUNCTION__, __LINE__, #pt)
 		#define _Deallocate(pt) fbmld_deallocate(pt, __FILE__, __FUNCTION__, __LINE__, #pt)
 		#macro _New(type_)
