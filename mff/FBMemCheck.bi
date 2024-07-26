@@ -47,7 +47,7 @@
 		
 		#define _Allocate(bytes) fbmld_allocate(bytes, __FILE__, __FUNCTION__, __LINE__)
 		#define _CAllocate(bytes) fbmld_callocate(bytes, __FILE__, __FUNCTION__, __LINE__)
-		#define _CAllocateWithSize(num_elements, size) fbmld_callocate(num_elements * size, __FILE__, __FUNCTION__, __LINE__)
+		#define _CAllocateWithSize(num_elements, size) fbmld_callocatewithsize(num_elements, size, __FILE__, __FUNCTION__, __LINE__)
 		#define _Reallocate(pt, bytes) fbmld_reallocate(pt, bytes, __FILE__, __FUNCTION__, __LINE__, #pt)
 		#define _Deallocate(pt) fbmld_deallocate(pt, __FILE__, __FUNCTION__, __LINE__, #pt)
 		#macro _New(type_)
@@ -352,6 +352,24 @@
 			Else
 				ret =  CAllocate(bytes) 'calloc(1, bytes)
 				fbmld_insert(@fbmld_tree, ret, bytes, file, funcname, linenum)
+			End If
+			
+			fbmld_mutexunlock()
+			
+			Return ret
+		End Function
+
+		Private Function fbmld_callocatewithsize(ByVal num_elements As UInteger, ByVal bytes As UInteger, ByRef file As String, ByRef funcname As String, ByVal linenum As Integer) As Any Ptr
+			Dim ret As Any Ptr = Any
+			
+			fbmld_mutexlock()
+			
+			If bytes = 0 Then
+				fbmld_print("warning: callocate(0) called at " & file & " in " & funcname & ":" & linenum & "; returning NULL")
+				ret = 0
+			Else
+				ret =  CAllocate(num_elements, bytes) 'calloc(1, bytes)
+				fbmld_insert(@fbmld_tree, ret, num_elements * bytes, file, funcname, linenum)
 			End If
 			
 			fbmld_mutexunlock()
