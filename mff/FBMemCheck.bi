@@ -359,12 +359,12 @@
 			Return ret
 		End Function
 
-		Private Function fbmld_callocatewithsize(ByVal num_elements As UInteger, ByVal bytes As UInteger, ByRef file As String, ByRef funcname As String, ByVal linenum As Integer) As Any Ptr
+		Private Function fbmld_callocatewithsize(ByVal num_elements As UInteger, ByVal bytes As UInteger = 1, ByRef file As String, ByRef funcname As String, ByVal linenum As Integer) As Any Ptr
 			Dim ret As Any Ptr = Any
 			
 			fbmld_mutexlock()
 			
-			If bytes = 0 Then
+			If num_elements * bytes = 0 Then
 				fbmld_print("warning: callocate(0) called at " & file & " in " & funcname & ":" & linenum & "; returning NULL")
 				ret = 0
 			Else
