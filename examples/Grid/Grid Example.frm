@@ -202,7 +202,7 @@
 		' cmdBigData
 		With cmdBigData
 			.Name = "cmdBigData"
-			.Text = "大数据"
+			.Text = "BigData"
 			.TabIndex = 9
 			.SetBounds 490, 0, 40, 20
 			.Designer = @This
@@ -320,8 +320,17 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 				RowStr += Chr(9) + "行" + Str(Fix(Rnd * 10000000)) + "列" + Str(iCol)
 				'Grid1.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
 			Next
-			'Add the Data
-			Grid1.Rows.Add RowStr, , , , , True
+			'Add the Data ;  Gradient Color
+			If iRow Mod 2 = 0 Then
+				Grid1.Rows.Add RowStr, , , , , True, clGray, clRed
+			ElseIf iRow Mod 3 = 0 Then
+				Grid1.Rows.Add RowStr, , , , , True, clBlueViolet, clRed
+			ElseIf iRow Mod 4 = 0 Then
+				Grid1.Rows.Add RowStr, , , , , True, clYellowGreen, clWhiteSmoke
+			Else
+				Grid1.Rows.Add RowStr, , , , , True
+			End If
+			
 			If iRow Mod 15 = 0 Then App.DoEvents  'if rows.count=666666  :254.144s   1 Million: 364.829s    5 Million:512.616s
 		Next
 	End If
@@ -386,19 +395,16 @@ Private Sub Form1Type.chkDarkMode_Click(ByRef Sender As CheckBox)
 	SetDarkMode(chkDarkMode.Checked, chkDarkMode.Checked)
 End Sub
 
-Dim Shared SortedColumn As Integer = -1
-Dim Shared SortedDirection As ListSortDirection
-
 Private Sub Form1Type.Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
-	If SortedColumn = ColIndex Then
-		If SortedDirection = ListSortDirection.sdAscending Then
-			SortedDirection = ListSortDirection.sdDescending
+	If Grid1.SortIndex = ColIndex Then
+		If Grid1.SortOrder = ListSortDirection.sdAscending Then
+			Grid1.SortOrder = ListSortDirection.sdDescending
 		Else
-			SortedDirection = ListSortDirection.sdAscending
+			Grid1.SortOrder = ListSortDirection.sdAscending
 		End If
 	Else
-		SortedDirection = ListSortDirection.sdAscending
+		Grid1.SortOrder = ListSortDirection.sdAscending
 	End If
-	SortedColumn = ColIndex
-	Grid1.Rows.Sort SortedColumn, SortedDirection
+	Grid1.Rows.Sort Grid1.SortIndex, Grid1.SortOrder
 End Sub
+

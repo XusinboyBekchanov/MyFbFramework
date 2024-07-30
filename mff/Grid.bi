@@ -209,6 +209,7 @@ Namespace My.Sys.Forms
 		FFullRowSelect      As Boolean
 		FSingleClickActivate As Boolean
 		FSortIndex          As Integer
+		FSortOrder               As ListSortDirection
 		FHoverSelection     As Boolean
 		FLVExStyle          As Integer
 		FRow                As Integer
@@ -227,7 +228,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			FGridColorLine          As Integer = -1 'BGR(166, 166, 166) 'clSilver
 			FGridColorLineHeader    As Integer = clWhite 'BGR(166, 166, 166)'clSilver
-			FGridColorSelected      As Integer = BGR(178, 225, 235) ' &HFFFFE6 '&HFFFFDE ' &HFEE8FFFF 'BGR(210, 238, 245)'BGR(178, 214, 255)
+			FGridColorSelected      As Integer = BGR(68, 155, 235) ' &HFFFFE6 '&HFFFFDE ' &HFEE8FFFF 'BGR(210, 238, 245)'BGR(178, 214, 255)
 			FGridColorHover         As Integer = BGR(110, 228, 255)
 			FGridColorBack          As Integer = clWhite
 			FGridColorFore          As Integer = clBlack
@@ -324,6 +325,8 @@ Namespace My.Sys.Forms
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property SortIndex As Integer
 		Declare Property SortIndex(Value As Integer)
+		Declare Property SortOrder As ListSortDirection
+		Declare Property SortOrder(Value As ListSortDirection)
 		Declare Property SelectedRow As GridRow Ptr
 		Declare Property SelectedRow(Value As GridRow Ptr)
 		Declare Property SelectedRowIndex As Integer
