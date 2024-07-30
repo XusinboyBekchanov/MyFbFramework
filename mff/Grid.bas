@@ -185,11 +185,9 @@ Namespace My.Sys.Forms
 		Return FState
 	End Property
 	
-	#ifndef GridRow_State_Set_Off
 		Private Property GridRow.State(Value As Integer)
 			FState = Value
 		End Property
-	#endif
 	
 	Private Property GridRow.Hint ByRef As WString
 		Return WGet(FHint)
@@ -552,11 +550,16 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Sub GridRows.Sort(ColumnIndex As Integer, Direction As ListSortDirection, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
+		If Cast(Grid Ptr, Parent)->OwnerData Then Exit Sub
 		Dim bStarted As Boolean
+		Cast(Grid Ptr, Parent)->SortIndex = ColumnIndex
+		Cast(Grid Ptr, Parent)->SortOrder = Direction
 		If iLeft = 0 AndAlso iRight = 0 Then
 			#ifdef __USE_WINAPI__
 				bStarted = True
-				Dim As HWND Header = ListView_GetHeader(Parent->Handle)
+				'BUG: ListView_GetHeader() has a "hwnd" macro parameter, but also wants to use the HWND type in the macro body.
+				'Dim As HWND Header = ListView_GetHeader(Parent->Handle)
+				Dim As HWND Header = Cast(HWND, SendMessageW(Parent->Handle, LVM_GETHEADER, 0, 0))
 				Dim As HDITEM hd
 				Var newflag = IIf(Direction = ListSortDirection.sdAscending, HDF_SORTUP, HDF_SORTDOWN)
 				hd.mask = HDI_FORMAT
@@ -663,6 +666,8 @@ Namespace My.Sys.Forms
 						If Mid(FCaption, ii, tLen) = Chr(9) Then
 							n = n + 1
 							.Text(n - 1) = Mid(FCaption, p, ii - p)
+							.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
+							.Item(n - 1)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->ForeColor, ColorText)
 							p = ii + tLen
 							ii = p
 							Continue Do
@@ -672,8 +677,8 @@ Namespace My.Sys.Forms
 					n = n + 1
 					.Text(n - 1) = Mid(FCaption, p, ii - p)
 					'.Item(n - 1)->Editable  = IIf(RowEditableMode = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->Editable, IIf(RowEditableMode = 0, False, True))
-					'.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
-					'.Item(n - 1)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->ForeColor, ColorText)
+					.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
+					.Item(n - 1)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->ForeColor, ColorText)
 				Else
 					.Text(0)    = FCaption
 				End If
@@ -1445,6 +1450,26 @@ Namespace My.Sys.Forms
 		'#endif
 	End Property
 	
+	Private Property Grid.SortOrder As ListSortDirection
+		Return FSortOrder
+	End Property
+	
+	Private Property Grid.SortOrder(Value As ListSortDirection)
+		FSortOrder = Value
+		'#ifndef __USE_GTK__
+		'	Select Case FSortStyle
+		'	Case SortStyle.ssNone
+		'		ChangeStyle LVS_SORTASCENDING, False
+		'		ChangeStyle LVS_SORTDESCENDING, False
+		'	Case SortStyle.ssSortAscending
+		'		ChangeStyle LVS_SORTDESCENDING, False
+		'		ChangeStyle LVS_SORTASCENDING, True
+		'	Case SortStyle.ssSortDescending
+		'		ChangeStyle LVS_SORTASCENDING, False
+		'		ChangeStyle LVS_SORTDESCENDING, True
+		'	End Select
+		'#endif
+	End Property
 	Private Property Grid.ShowHint As Boolean
 		Return FShowHint
 	End Property
@@ -1545,26 +1570,45 @@ Namespace My.Sys.Forms
 				Case VK_DOWN
 					FRow += 1
 					If FRow > Rows.Count - 1 Then FRow = Rows.Count - 1
+					GridEditText.Visible= False
 					Repaint
 				Case VK_UP
 					FRow -= 1
 					If FRow < 0 Then FRow = 0
+					GridEditText.Visible= False
 					Repaint
 				Case VK_HOME, VK_END, VK_NEXT, VK_PRIOR
 					Dim As Integer tItemSelel = ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 					If tItemSelel <> -1 Then GridEditText.Visible= False
+					GridEditText.Visible= False
 					Repaint
 				Case VK_SPACE
 					If FSorting = False Then EditControlShow(FRow, FCol)
 				Case VK_LEFT
-					FCol -= 1
-					If FCol < 0 Then FCol = Columns.Count - 1
-					Repaint
-				Case VK_RIGHT, VK_RETURN
-					FCol += 1
-					If FCol > Columns.Count - 1 Then FCol = 1
+					Dim As Integer i, flag
+					For i = FCol To 1 Step -1
+						If Columns.Column(i - 1)->Width > 1 Then FCol = i - 1 : flag = 1 : Exit For
+					Next
+					If i < 1 AndAlso flag = 0 Then
+						For i = Columns.Count - 1 To 0 Step -1
+							If Columns.Column(i)->Width > 1 Then FCol = i : Exit For
+						Next
+					End If
 					GridEditText.Visible= False
 					Repaint
+				Case VK_RIGHT, VK_RETURN
+					Dim As Integer i, flag
+					For i = FCol To Columns.Count - 2
+						If Columns.Column(i + 1)->Width > 1 Then FCol = i + 1 :  flag = 1 :  Exit For
+					Next
+					If i > Columns.Count - 2 AndAlso flag = 0 Then
+						For i = 0 To Columns.Count - 1
+							If Columns.Column(i)->Width > 1 Then FCol = i : Exit For
+						Next
+					End If
+					GridEditText.Visible= False
+					Repaint
+					
 				Case VK_ESCAPE
 					GridEditText.Visible= False
 					Repaint
