@@ -1661,13 +1661,15 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					End If
-					oldxdpi = xdpi
-					oldydpi = ydpi
-					For i As Integer = 0 To ControlCount - 1
-						Controls[i]->xdpi = xdpi
-						Controls[i]->ydpi = ydpi
-						Controls[i]->Perform(WM_DPICHANGED, Message.wParam, 0)
-					Next
+					If oldxdpi <> xdpi OrElse oldydpi <> ydpi Then
+						oldxdpi = xdpi
+						oldydpi = ydpi
+						For i As Integer = 0 To ControlCount - 1
+							Controls[i]->xdpi = xdpi
+							Controls[i]->ydpi = ydpi
+							Controls[i]->Perform(WM_DPICHANGED, Message.wParam, 0)
+						Next
+					End If
 					Message.Result = 0
 					Return
 				Case WM_THEMECHANGED
