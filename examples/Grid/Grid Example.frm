@@ -312,9 +312,17 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 	If Grid1.OwnerData Then
 		Grid1.RowsCount = 20000
 	Else
-		' This is take too long. 花费太多时间赋值。建议使用CacheHint赋值
+			' This is take too long. 花费太多时间赋值。建议使用CacheHint赋值
+		Grid1.Clear
+		Grid1.Columns.Add "NO.", , 30 , cfRight ', , clPurple, clBlue
+		Grid1.Columns.Add "Column 1", , 100, cfRight ', , clRed, clBlue
+		Grid1.Columns.Add "Column 2", , 100, cfRight, True ', clYellow, clRed
+		Grid1.Columns.Add "Column 3", , 100, cfRight ', , clBlue, clYellow
+		Grid1.Columns.Add "Column 4", , 100, cfRight ', , clGreen, clBlue
+		Grid1.Columns.Add "Column 5", , 100, cfRight,  True ', clPurple, clGreen
+		Grid1.Columns[1].Tag = @"0"
 		For iRow As Long = 0 To 20000
-			RowStr = "行" + Str(iRow + 1) + "列1" 
+			RowStr = "行" + Str(iRow + 1) + "列1"
 			Randomize
 			For iCol As Integer = 2 To Grid1.Columns.Count - 1
 				RowStr += Chr(9) + "行" + Str(Fix(Rnd * 10000000)) + "列" + Str(iCol)
@@ -322,16 +330,17 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 			Next
 			'Add the Data ;  Gradient Color
 			If iRow Mod 2 = 0 Then
-				Grid1.Rows.Add RowStr, , , , , True, clGray, clRed
+				Grid1.Rows.Add RowStr, , , , , True, 8421504, clWhiteSmoke
 			ElseIf iRow Mod 3 = 0 Then
-				Grid1.Rows.Add RowStr, , , , , True, clBlueViolet, clRed
+				Grid1.Rows.Add RowStr, , , , , True, 10395294, clWhite
 			ElseIf iRow Mod 4 = 0 Then
-				Grid1.Rows.Add RowStr, , , , , True, clYellowGreen, clWhiteSmoke
+				Grid1.Rows.Add RowStr, , , , , True, 14808000, clWhiteSmoke
 			Else
 				Grid1.Rows.Add RowStr, , , , , True
 			End If
 			
 			If iRow Mod 15 = 0 Then App.DoEvents  'if rows.count=666666  :254.144s   1 Million: 364.829s    5 Million:512.616s
+		Next
 		Next
 	End If
 	Grid1.SelectedRowIndex = 0 'Grid1.Rows.Count - 1
