@@ -104,6 +104,31 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Enum
 	
+	Type PaperSize Extends Object
+		Height As Integer
+		Kind As PrinterPaperSize
+		PaperName As UString
+		RawKind As Integer
+		Width As Integer
+	End Type
+	
+	Type PaperSizeCollection Extends Object
+	Private:
+		FItems As List
+	Public:
+		Declare Function Add(Index As Integer = -1) As PaperSize Ptr
+		Declare Sub Clear
+		Declare Function Contains(PaperSizeItem As PaperSize Ptr) As Boolean
+		Declare Property Count As Integer
+		Declare Function IndexOf(PaperSizeItem As PaperSize Ptr) As Integer
+		Declare Function Insert(Index As Integer, PaperSizeItem As PaperSize Ptr) As PaperSize Ptr
+		Declare Property Item(Index As Integer) As PaperSize Ptr
+		Declare Property Item(Index As Integer, Value As PaperSize Ptr)
+		Declare Sub Remove(Index As Integer)
+		Declare Constructor
+		Declare Destructor
+	End Type
+	
 	'Enables you to communicate with a system printer (initially the default printer).
 	Private Type Printer Extends Component
 	Private:
@@ -150,7 +175,9 @@ Namespace My.Sys.ComponentModel
 		Declare Function SetPrinterOrientation (ByVal PrinterName As String, ByVal nOrientation As Long) As Long
 		Declare Function GetPrinterOrientation (ByVal PrinterName As String) As Long
 		Declare Function PrinterPaperNames (ByVal PrinterName As String) As String
-		Declare Function GetPrinterPaperSizes (ByVal PrinterName As String) As String
+		Declare Sub GetPrinterPaperSizes(ByVal PrinterName As String)
+		Declare Function GetPrinterPaperSizesAsString(ByVal PrinterName As String) As String
+		Declare Function GetPrinterPaperSize (ByVal PrinterName As String) As Long
 		Declare Function SetPrinterPaperSize (ByVal PrinterName As String, ByVal nSize As Long) As Long
 		Declare Function GetPrinterPort (ByVal PrinterName As String) As String
 		Declare Function GetPrinterFromPort (ByVal PortName As String) As String
@@ -180,7 +207,14 @@ Namespace My.Sys.ComponentModel
 		Declare Sub ShowPrinterProperties()
 		Declare Sub UpdateMargeins()
 	Public:
+		#ifndef ReadProperty_Off
+			Declare Function ReadProperty(PropertyName As String) As Any Ptr
+		#endif
+		#ifndef WriteProperty_Off
+			Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		#endif
 		Canvas As My.Sys.Drawing.Canvas
+		PaperSizes As PaperSizeCollection
 		Declare Sub reportError( ByVal n As Long)
 		Declare Property Name(vData As String)
 		Declare Property Name() As String

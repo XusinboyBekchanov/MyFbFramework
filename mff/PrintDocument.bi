@@ -50,7 +50,7 @@ Namespace My.Sys.ComponentModel
 		PrinterSettings As Printer
 		Declare Sub Print
 		Declare Sub Repaint
-		OnPrintPage As Sub(ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
+		OnPrintPage As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
 		Declare Constructor
 		Declare Destructor
 	End Type

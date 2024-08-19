@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 		#endif
 	Protected:
 		FZoom As Integer
-		Dim As Integer FPageWidth, FPageLength
+		Dim As Integer FPageWidth, FPageLength, FPageSize
 		Dim As Integer FCurrentPage
 		Dim As PrinterOrientation FOrientation
 		Dim As Integer FHorizontalArrowChangeSize
@@ -52,6 +52,8 @@ Namespace My.Sys.Forms
 		Declare Property PageLength(Value As Integer)
 		Declare Property PageWidth As Integer
 		Declare Property PageWidth(Value As Integer)
+		Declare Property PageSize As Integer
+		Declare Property PageSize(Value As Integer)
 		Declare Property Zoom As Integer
 		Declare Property Zoom(Value As Integer)
 		Declare Operator Cast As Control Ptr

@@ -61,7 +61,7 @@ Namespace My.Sys.Forms
 	
 	Private Property PrintPreviewControl.Orientation(Value As PrinterOrientation)
 		FOrientation = Value
-		Document->PrinterSettings.Orientation = FOrientation
+		Document->PrinterSettings.Orientation = Value
 		Document->Repaint
 		SetScrollsInfo
 		Repaint
@@ -84,6 +84,18 @@ Namespace My.Sys.Forms
 	
 	Private Property PrintPreviewControl.PageWidth(Value As Integer)
 		FPageWidth = Value
+		Document->Repaint
+		SetScrollsInfo
+		Repaint
+	End Property
+	
+	Private Property PrintPreviewControl.PageSize As Integer
+		Return FPageSize
+	End Property
+	
+	Private Property PrintPreviewControl.PageSize(Value As Integer)
+		FPageSize = Value
+		Document->PrinterSettings.PageSize = Value
 		Document->Repaint
 		SetScrollsInfo
 		Repaint
@@ -166,7 +178,7 @@ Namespace My.Sys.Forms
 			Dim As Double MillimetersPerPixelsX, MillimetersPerPixelsY
 			Dim As Rect rc
 			
-			FCurrentPage = Max(1, min(FCurrentPage, Document->Pages.Count))
+			FCurrentPage = Max(1, Min(FCurrentPage, Document->Pages.Count))
 			
 			Dim Si As SCROLLINFO
 			Dim As Integer HScrollPos, VScrollPos
@@ -286,7 +298,7 @@ Namespace My.Sys.Forms
 				Dim As Integer iHeight = iPageHeight * FZoom / 100 + 20
 				If bCtrl Then
 					Dim As Integer OldZoom = FZoom
-					FZoom = min(500, Max(10, FZoom + scrDirection))
+					FZoom = Min(500, Max(10, FZoom + scrDirection))
 					If OldZoom <> FZoom Then
 						If OnZoom Then OnZoom(*Designer, This)
 						Repaint
@@ -469,6 +481,7 @@ Namespace My.Sys.Forms
 		#endif
 		FTabIndex       = -1
 		Canvas.Ctrl = @This
+		DefaultDocument.Name = "DefaultDocument"
 		Document = @DefaultDocument
 		FOrientation = PrinterOrientation.poPortait
 		'Dim As UString DefaultPrinter = Document.PrinterSettings.GetDefaultPrinterDriver

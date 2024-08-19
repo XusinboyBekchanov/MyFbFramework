@@ -40,6 +40,12 @@ Private:
 	Dim As PrintDialog pdPrint
 	
 Public:
+	#ifndef ReadProperty_Off
+		Declare Function ReadProperty(PropertyName As String) As Any Ptr
+	#endif
+	#ifndef WriteProperty_Off
+		Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+	#endif
 	Declare Property Caption ByRef As WString
 	Declare Property Caption(ByRef Value As WString)
 	Declare Property Document As PrintDocument Ptr

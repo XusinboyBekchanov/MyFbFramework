@@ -1683,216 +1683,218 @@ ENUM
   GTK_WINDOW_TOPLEVEL = 0
   GTK_WINDOW_POPUP = 1
 END ENUM
-TYPE AS LONG GtkWrapMode
-ENUM
+Type As Long GtkWrapMode
+Enum
   GTK_WRAP_NONE = 0
   GTK_WRAP_CHAR = 1
   GTK_WRAP_WORD = 2
   GTK_WRAP_WORD_CHAR = 3
-END ENUM
-EXTERN "C" LIB "gtk-4"
+End Enum
+Extern "C" Lib "gtk-4"
 ' P_X
 
-TYPE GtkRcPropertyParser AS FUNCTION CDECL(BYVAL AS const GParamSpec PTR, BYVAL AS const GString PTR, BYVAL AS GValue PTR) AS gboolean
-TYPE GtkTickCallback AS FUNCTION CDECL(BYVAL AS GtkWidget PTR, BYVAL AS GdkFrameClock PTR, BYVAL AS gpointer) AS gboolean
-TYPE GtkBuilderConnectFunc AS SUB CDECL(BYVAL AS GtkBuilder PTR, BYVAL AS GObject PTR, BYVAL AS const gchar PTR, BYVAL AS const gchar PTR, BYVAL AS GObject PTR, BYVAL AS GConnectFlags, BYVAL AS gpointer)
-TYPE _GtkAccessible
-  AS AtkObject parent
-  AS GtkAccessiblePrivate PTR priv
-END TYPE
-DECLARE FUNCTION gtk_accessible_get_type() AS GType
-#DEFINE GTK_TYPE_ACCESSIBLE (gtk_accessible_get_type())
-#DEFINE GTK_ACCESSIBLE(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GTK_TYPE_ACCESSIBLE, GtkAccessible))
-#DEFINE GTK_ACCESSIBLE_CLASS(obj) (G_TYPE_CHECK_CLASS_CAST((obj), GTK_TYPE_ACCESSIBLE, GtkAccessibleClass))
-#DEFINE GTK_IS_ACCESSIBLE(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GTK_TYPE_ACCESSIBLE))
-#DEFINE GTK_IS_CLASS_ACCESSIBLE(obj) (G_TYPE_CHECK_CLASS_TYPE((obj), GTK_TYPE_ACCESSIBLE))
-#DEFINE GTK_ACCESSIBLE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS((obj), GTK_TYPE_ACCESSIBLE, GtkAccessibleClass))
-DECLARE FUNCTION gtk_accessible_get_widget(BYVAL AS GtkAccessible PTR) AS GtkWidget PTR
-DECLARE SUB gtk_accessible_set_widget(BYVAL AS GtkAccessible PTR, BYVAL AS GtkWidget PTR)
-TYPE _GtkAccessibleClass
-  AS AtkObjectClass parent_class
-  widget_set AS SUB CDECL(BYVAL AS GtkAccessible PTR)
-  widget_unset AS SUB CDECL(BYVAL AS GtkAccessible PTR)
-  _gtk_reserved3 AS SUB CDECL()
-  _gtk_reserved4 AS SUB CDECL()
-END TYPE
-TYPE _GtkWidget
-  AS GInitiallyUnowned parent_instance
-  AS GtkWidgetPrivate PTR priv
-END TYPE
-DECLARE FUNCTION gtk_widget_get_type() AS GType
-#DEFINE GTK_TYPE_WIDGET (gtk_widget_get_type())
-#DEFINE GTK_WIDGET(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GTK_TYPE_WIDGET, GtkWidget))
-#DEFINE GTK_WIDGET_CLASS(obj) (G_TYPE_CHECK_CLASS_CAST((obj), GTK_TYPE_WIDGET, GtkWidgetClass))
-#DEFINE GTK_IS_WIDGET(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GTK_TYPE_WIDGET))
-#DEFINE GTK_IS_CLASS_WIDGET(obj) (G_TYPE_CHECK_CLASS_TYPE((obj), GTK_TYPE_WIDGET))
-#DEFINE GTK_WIDGET_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS((obj), GTK_TYPE_WIDGET, GtkWidgetClass))
-DECLARE FUNCTION gtk_widget_new(BYVAL AS GType, BYVAL AS const gchar PTR, ...) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_default_direction() AS GtkTextDirection
-DECLARE SUB gtk_widget_set_default_direction(BYVAL AS GtkTextDirection)
-DECLARE FUNCTION gtk_widget_activate(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE SUB gtk_widget_add_accelerator(BYVAL AS GtkWidget PTR, BYVAL AS const gchar PTR, BYVAL AS GtkAccelGroup PTR, BYVAL AS guint, BYVAL AS GdkModifierType, BYVAL AS GtkAccelFlags)
-DECLARE SUB gtk_widget_add_mnemonic_label(BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_widget_add_tick_callback(BYVAL AS GtkWidget PTR, BYVAL AS GtkTickCallback, BYVAL AS gpointer, BYVAL AS GDestroyNotify) AS guint
-DECLARE FUNCTION gtk_widget_can_activate_accel(BYVAL AS GtkWidget PTR, BYVAL AS guint) AS gboolean
-DECLARE FUNCTION gtk_widget_child_focus(BYVAL AS GtkWidget PTR, BYVAL AS GtkDirectionType) AS gboolean
-DECLARE SUB gtk_widget_child_notify(BYVAL AS GtkWidget PTR, BYVAL AS const gchar PTR)
-DECLARE FUNCTION gtk_widget_compute_expand(BYVAL AS GtkWidget PTR, BYVAL AS GtkOrientation) AS gboolean
-DECLARE FUNCTION gtk_widget_create_pango_context(BYVAL AS GtkWidget PTR) AS PangoContext PTR
-DECLARE FUNCTION gtk_widget_create_pango_layout(BYVAL AS GtkWidget PTR, BYVAL AS const gchar PTR) AS PangoLayout PTR
-DECLARE SUB gtk_widget_destroy(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_destroyed(BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR PTR)
-DECLARE FUNCTION gtk_widget_device_is_shadowed(BYVAL AS GtkWidget PTR, BYVAL AS GdkDevice PTR) AS gboolean
-DECLARE FUNCTION gtk_drag_begin_with_coordinates(BYVAL AS GtkWidget PTR, BYVAL AS GtkTargetList PTR, BYVAL AS GdkDragAction, BYVAL AS gint, BYVAL AS GdkEvent PTR, BYVAL AS gint, BYVAL AS gint) AS GdkDragContext PTR
-DECLARE FUNCTION gtk_drag_check_threshold(BYVAL AS GtkWidget PTR, BYVAL AS gint, BYVAL AS gint, BYVAL AS gint, BYVAL AS gint) AS gboolean
-DECLARE SUB gtk_drag_dest_add_image_targets(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_drag_dest_add_text_targets(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_drag_dest_add_uri_targets(BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_drag_dest_find_target(BYVAL AS GtkWidget PTR, BYVAL AS GdkDragContext PTR, BYVAL AS GtkTargetList PTR) AS any ptr /'GdkAtom'/
-DECLARE FUNCTION gtk_drag_dest_get_target_list(BYVAL AS GtkWidget PTR) AS GtkTargetList PTR
-DECLARE FUNCTION gtk_drag_dest_get_track_motion(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE SUB gtk_drag_dest_set(BYVAL AS GtkWidget PTR, BYVAL AS GtkDestDefaults, BYVAL AS GtkTargetEntry PTR, BYVAL AS gint, BYVAL AS GdkDragAction)
-DECLARE SUB gtk_drag_dest_set_target_list(BYVAL AS GtkWidget PTR, BYVAL AS GtkTargetList PTR)
-DECLARE SUB gtk_drag_dest_set_track_motion(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
-DECLARE SUB gtk_drag_dest_unset(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_drag_get_data(BYVAL AS GtkWidget PTR, BYVAL AS GdkDragContext PTR, BYVAL AS any ptr /'GdkAtom'/, BYVAL AS guint32)
-DECLARE SUB gtk_drag_highlight(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_drag_source_add_image_targets(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_drag_source_add_text_targets(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_drag_source_add_uri_targets(BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_drag_source_get_target_list(BYVAL AS GtkWidget PTR) AS GtkTargetList PTR
-DECLARE SUB gtk_drag_source_set(BYVAL AS GtkWidget PTR, BYVAL AS GdkModifierType, BYVAL AS GtkTargetEntry PTR, BYVAL AS gint, BYVAL AS GdkDragAction)
-DECLARE SUB gtk_drag_source_set_icon_gicon(BYVAL AS GtkWidget PTR, BYVAL AS GIcon PTR)
-DECLARE SUB gtk_drag_source_set_icon_name(BYVAL AS GtkWidget PTR, BYVAL AS const gchar PTR)
-DECLARE SUB gtk_drag_source_set_icon_pixbuf(BYVAL AS GtkWidget PTR, BYVAL AS GdkPixbuf PTR)
-DECLARE SUB gtk_drag_source_set_target_list(BYVAL AS GtkWidget PTR, BYVAL AS GtkTargetList PTR)
-DECLARE SUB gtk_drag_source_unset(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_drag_unhighlight(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_draw(BYVAL AS GtkWidget PTR, BYVAL AS cairo_t PTR)
-DECLARE SUB gtk_widget_error_bell(BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_widget_event(BYVAL AS GtkWidget PTR, BYVAL AS const GdkEvent PTR) AS gboolean
-DECLARE SUB gtk_widget_freeze_child_notify(BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_widget_get_accessible(BYVAL AS GtkWidget PTR) AS AtkObject PTR
-DECLARE FUNCTION gtk_widget_get_action_group(BYVAL AS GtkWidget PTR, BYVAL AS const gchar PTR) AS GActionGroup PTR
-DECLARE FUNCTION gtk_widget_get_allocated_baseline(BYVAL AS GtkWidget PTR) AS gint /'int'/
-DECLARE FUNCTION gtk_widget_get_allocated_height(BYVAL AS GtkWidget PTR) AS gint /'int'/
-DECLARE SUB gtk_widget_get_allocated_size(BYVAL AS GtkWidget PTR, BYVAL AS GtkAllocation PTR, BYVAL AS gint /'int'/ PTR)
-DECLARE FUNCTION gtk_widget_get_allocated_width(BYVAL AS GtkWidget PTR) AS gint /'int'/
-DECLARE SUB gtk_widget_get_allocation(BYVAL AS GtkWidget PTR, BYVAL AS GtkAllocation PTR)
-DECLARE FUNCTION gtk_widget_get_ancestor(BYVAL AS GtkWidget PTR, BYVAL AS GType) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_can_default(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_can_focus(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_child_visible(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE SUB gtk_widget_get_clip(BYVAL AS GtkWidget PTR, BYVAL AS GtkAllocation PTR)
-DECLARE FUNCTION gtk_widget_get_clipboard(BYVAL AS GtkWidget PTR, BYVAL AS any ptr /'GdkAtom'/) AS GtkClipboard PTR
-DECLARE FUNCTION gtk_widget_get_device_enabled(BYVAL AS GtkWidget PTR, BYVAL AS GdkDevice PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_direction(BYVAL AS GtkWidget PTR) AS GtkTextDirection
-DECLARE FUNCTION gtk_widget_get_display(BYVAL AS GtkWidget PTR) AS GdkDisplay PTR
-DECLARE FUNCTION gtk_widget_get_first_child(BYVAL AS GtkWidget PTR) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_focus_on_click(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_font_map(BYVAL AS GtkWidget PTR) AS PangoFontMap PTR
-DECLARE FUNCTION gtk_widget_get_font_options(BYVAL AS GtkWidget PTR) AS const cairo_font_options_t PTR
-DECLARE FUNCTION gtk_widget_get_frame_clock(BYVAL AS GtkWidget PTR) AS GdkFrameClock PTR
-DECLARE FUNCTION gtk_widget_get_halign(BYVAL AS GtkWidget PTR) AS GtkAlign
-DECLARE FUNCTION gtk_widget_get_has_tooltip(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_has_window(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_hexpand(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_hexpand_set(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_last_child(BYVAL AS GtkWidget PTR) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_mapped(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_margin_bottom(BYVAL AS GtkWidget PTR) AS gint
-DECLARE FUNCTION gtk_widget_get_margin_end(BYVAL AS GtkWidget PTR) AS gint
-DECLARE FUNCTION gtk_widget_get_margin_start(BYVAL AS GtkWidget PTR) AS gint
-DECLARE FUNCTION gtk_widget_get_margin_top(BYVAL AS GtkWidget PTR) AS gint
-DECLARE FUNCTION gtk_widget_get_modifier_mask(BYVAL AS GtkWidget PTR, BYVAL AS GdkModifierIntent) AS GdkModifierType
-DECLARE FUNCTION gtk_widget_get_name(BYVAL AS GtkWidget PTR) AS const gchar PTR
-DECLARE FUNCTION gtk_widget_get_next_sibling(BYVAL AS GtkWidget PTR) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_opacity(BYVAL AS GtkWidget PTR) AS double
-DECLARE FUNCTION gtk_widget_get_pango_context(BYVAL AS GtkWidget PTR) AS PangoContext PTR
-DECLARE FUNCTION gtk_widget_get_parent(BYVAL AS GtkWidget PTR) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_parent_window(BYVAL AS GtkWidget PTR) AS GdkWindow PTR
-DECLARE FUNCTION gtk_widget_get_path(BYVAL AS GtkWidget PTR) AS GtkWidgetPath PTR
-DECLARE SUB gtk_widget_get_preferred_size(BYVAL AS GtkWidget PTR, BYVAL AS GtkRequisition PTR, BYVAL AS GtkRequisition PTR)
-DECLARE FUNCTION gtk_widget_get_prev_sibling(BYVAL AS GtkWidget PTR) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_realized(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_receives_default(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_request_mode(BYVAL AS GtkWidget PTR) AS GtkSizeRequestMode
-DECLARE FUNCTION gtk_widget_get_scale_factor(BYVAL AS GtkWidget PTR) AS gint
-DECLARE FUNCTION gtk_widget_get_screen(BYVAL AS GtkWidget PTR) AS GdkScreen PTR
-DECLARE FUNCTION gtk_widget_get_sensitive(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_settings(BYVAL AS GtkWidget PTR) AS GtkSettings PTR
-DECLARE SUB gtk_widget_get_size_request(BYVAL AS GtkWidget PTR, BYVAL AS gint PTR, BYVAL AS gint PTR)
-DECLARE FUNCTION gtk_widget_get_state_flags(BYVAL AS GtkWidget PTR) AS GtkStateFlags
-DECLARE FUNCTION gtk_widget_get_style_context(BYVAL AS GtkWidget PTR) AS GtkStyleContext PTR
-DECLARE FUNCTION gtk_widget_get_support_multidevice(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_template_child(BYVAL AS GtkWidget PTR, BYVAL AS GType, BYVAL AS const gchar PTR) AS GObject PTR
-DECLARE FUNCTION gtk_widget_get_tooltip_markup(BYVAL AS GtkWidget PTR) AS gchar PTR
-DECLARE FUNCTION gtk_widget_get_tooltip_text(BYVAL AS GtkWidget PTR) AS gchar PTR
-DECLARE FUNCTION gtk_widget_get_tooltip_window(BYVAL AS GtkWidget PTR) AS GtkWindow PTR
-DECLARE FUNCTION gtk_widget_get_toplevel(BYVAL AS GtkWidget PTR) AS GtkWidget PTR
-DECLARE FUNCTION gtk_widget_get_valign(BYVAL AS GtkWidget PTR) AS GtkAlign
-DECLARE FUNCTION gtk_widget_get_vexpand(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_vexpand_set(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_visible(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_get_window(BYVAL AS GtkWidget PTR) AS GdkWindow PTR
-DECLARE SUB gtk_grab_add(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_grab_default(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_grab_focus(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_grab_remove(BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_widget_has_default(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_has_focus(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_has_grab(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_has_screen(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_has_visible_focus(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE SUB gtk_widget_hide(BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_widget_hide_on_delete(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_in_destruction(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE SUB gtk_widget_init_template(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_input_shape_combine_region(BYVAL AS GtkWidget PTR, BYVAL AS cairo_region_t PTR)
-DECLARE SUB gtk_widget_insert_action_group(BYVAL AS GtkWidget PTR, BYVAL AS const gchar PTR, BYVAL AS GActionGroup PTR)
-DECLARE SUB gtk_widget_insert_after(BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_insert_before(BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_widget_intersect(BYVAL AS GtkWidget PTR, BYVAL AS const GdkRectangle PTR, BYVAL AS GdkRectangle PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_is_ancestor(BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_is_drawable(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_is_focus(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_is_sensitive(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_is_toplevel(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_is_visible(BYVAL AS GtkWidget PTR) AS gboolean
-DECLARE FUNCTION gtk_widget_keynav_failed(BYVAL AS GtkWidget PTR, BYVAL AS GtkDirectionType) AS gboolean
-DECLARE FUNCTION gtk_widget_list_accel_closures(BYVAL AS GtkWidget PTR) AS GList PTR
-DECLARE FUNCTION gtk_widget_list_action_prefixes(BYVAL AS GtkWidget PTR) AS const gchar PTR PTR
-DECLARE FUNCTION gtk_widget_list_mnemonic_labels(BYVAL AS GtkWidget PTR) AS GList PTR
-DECLARE SUB gtk_widget_map(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_measure(BYVAL AS GtkWidget PTR, BYVAL AS GtkOrientation, BYVAL AS gint /'int'/, BYVAL AS gint /'int'/ PTR, BYVAL AS gint /'int'/ PTR, BYVAL AS gint /'int'/ PTR, BYVAL AS gint /'int'/ PTR)
-DECLARE FUNCTION gtk_widget_mnemonic_activate(BYVAL AS GtkWidget PTR, BYVAL AS gboolean) AS gboolean
-DECLARE SUB gtk_widget_queue_allocate(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_queue_compute_expand(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_queue_draw(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_queue_draw_area(BYVAL AS GtkWidget PTR, BYVAL AS gint, BYVAL AS gint, BYVAL AS gint, BYVAL AS gint)
-DECLARE SUB gtk_widget_queue_draw_region(BYVAL AS GtkWidget PTR, BYVAL AS const cairo_region_t PTR)
-DECLARE SUB gtk_widget_queue_resize(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_queue_resize_no_redraw(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_realize(BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_register_window(BYVAL AS GtkWidget PTR, BYVAL AS GdkWindow PTR)
-DECLARE FUNCTION gtk_widget_remove_accelerator(BYVAL AS GtkWidget PTR, BYVAL AS GtkAccelGroup PTR, BYVAL AS guint, BYVAL AS GdkModifierType) AS gboolean
-DECLARE SUB gtk_widget_remove_mnemonic_label(BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_remove_tick_callback(BYVAL AS GtkWidget PTR, BYVAL AS guint)
-DECLARE SUB gtk_widget_reset_style(BYVAL AS GtkWidget PTR)
-DECLARE FUNCTION gtk_widget_send_focus_change(BYVAL AS GtkWidget PTR, BYVAL AS GdkEvent PTR) AS gboolean
-DECLARE SUB gtk_widget_set_accel_path(BYVAL AS GtkWidget PTR, BYVAL AS const gchar PTR, BYVAL AS GtkAccelGroup PTR)
-DECLARE SUB gtk_widget_set_can_default(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
-DECLARE SUB gtk_widget_set_can_focus(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
-DECLARE SUB gtk_widget_set_child_visible(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
-DECLARE SUB gtk_widget_set_device_enabled(BYVAL AS GtkWidget PTR, BYVAL AS GdkDevice PTR, BYVAL AS gboolean)
-DECLARE SUB gtk_widget_set_direction(BYVAL AS GtkWidget PTR, BYVAL AS GtkTextDirection)
-DECLARE SUB gtk_widget_set_focus_child(BYVAL AS GtkWidget PTR, BYVAL AS GtkWidget PTR)
-DECLARE SUB gtk_widget_set_focus_on_click(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
-DECLARE SUB gtk_widget_set_font_map(BYVAL AS GtkWidget PTR, BYVAL AS PangoFontMap PTR)
-DECLARE SUB gtk_widget_set_font_options(BYVAL AS GtkWidget PTR, BYVAL AS const cairo_font_options_t PTR)
-DECLARE SUB gtk_widget_set_halign(BYVAL AS GtkWidget PTR, BYVAL AS GtkAlign)
-DECLARE SUB gtk_widget_set_has_tooltip(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
-DECLARE SUB gtk_widget_set_has_window(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
+Type GtkRcPropertyParser As Function cdecl(ByVal As Const GParamSpec Ptr, ByVal As Const GString Ptr, ByVal As GValue Ptr) As gboolean
+Type GtkTickCallback As Function cdecl(ByVal As GtkWidget Ptr, ByVal As GdkFrameClock Ptr, ByVal As gpointer) As gboolean
+Type GtkBuilderConnectFunc As Sub cdecl(ByVal As GtkBuilder Ptr, ByVal As GObject Ptr, ByVal As Const gchar Ptr, ByVal As Const gchar Ptr, ByVal As GObject Ptr, ByVal As GConnectFlags, ByVal As gpointer)
+Type _GtkAccessible
+  As AtkObject parent
+  As GtkAccessiblePrivate Ptr priv
+End Type
+Declare Function gtk_accessible_get_type() As GType
+#define GTK_TYPE_ACCESSIBLE (gtk_accessible_get_type())
+#define GTK_ACCESSIBLE(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GTK_TYPE_ACCESSIBLE, GtkAccessible))
+#define GTK_ACCESSIBLE_CLASS(obj) (G_TYPE_CHECK_CLASS_CAST((obj), GTK_TYPE_ACCESSIBLE, GtkAccessibleClass))
+#define GTK_IS_ACCESSIBLE(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GTK_TYPE_ACCESSIBLE))
+#define GTK_IS_CLASS_ACCESSIBLE(obj) (G_TYPE_CHECK_CLASS_TYPE((obj), GTK_TYPE_ACCESSIBLE))
+#define GTK_ACCESSIBLE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS((obj), GTK_TYPE_ACCESSIBLE, GtkAccessibleClass))
+Declare Function gtk_accessible_get_widget(ByVal As GtkAccessible Ptr) As GtkWidget Ptr
+Declare Sub gtk_accessible_set_widget(ByVal As GtkAccessible Ptr, ByVal As GtkWidget Ptr)
+Type _GtkAccessibleClass
+  As AtkObjectClass parent_class
+  widget_set As Sub cdecl(ByVal As GtkAccessible Ptr)
+  widget_unset As Sub cdecl(ByVal As GtkAccessible Ptr)
+  _gtk_reserved3 As Sub cdecl()
+  _gtk_reserved4 As Sub cdecl()
+End Type
+Type _GtkWidget
+  As GInitiallyUnowned parent_instance
+  As GtkWidgetPrivate Ptr priv
+End Type
+Type GtkRoot As GtkWindow
+Declare Function gtk_widget_get_root(ByVal widget As GtkWidget Ptr) As GtkRoot Ptr
+Declare Function gtk_widget_get_type() As GType
+#define GTK_TYPE_WIDGET (gtk_widget_get_type())
+#define GTK_WIDGET(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GTK_TYPE_WIDGET, GtkWidget))
+#define GTK_WIDGET_CLASS(obj) (G_TYPE_CHECK_CLASS_CAST((obj), GTK_TYPE_WIDGET, GtkWidgetClass))
+#define GTK_IS_WIDGET(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GTK_TYPE_WIDGET))
+#define GTK_IS_CLASS_WIDGET(obj) (G_TYPE_CHECK_CLASS_TYPE((obj), GTK_TYPE_WIDGET))
+#define GTK_WIDGET_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS((obj), GTK_TYPE_WIDGET, GtkWidgetClass))
+Declare Function gtk_widget_new(ByVal As GType, ByVal As Const gchar Ptr, ...) As GtkWidget Ptr
+Declare Function gtk_widget_get_default_direction() As GtkTextDirection
+Declare Sub gtk_widget_set_default_direction(ByVal As GtkTextDirection)
+Declare Function gtk_widget_activate(ByVal As GtkWidget Ptr) As gboolean
+Declare Sub gtk_widget_add_accelerator(ByVal As GtkWidget Ptr, ByVal As Const gchar Ptr, ByVal As GtkAccelGroup Ptr, ByVal As guint, ByVal As GdkModifierType, ByVal As GtkAccelFlags)
+Declare Sub gtk_widget_add_mnemonic_label(ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr)
+Declare Function gtk_widget_add_tick_callback(ByVal As GtkWidget Ptr, ByVal As GtkTickCallback, ByVal As gpointer, ByVal As GDestroyNotify) As guint
+Declare Function gtk_widget_can_activate_accel(ByVal As GtkWidget Ptr, ByVal As guint) As gboolean
+Declare Function gtk_widget_child_focus(ByVal As GtkWidget Ptr, ByVal As GtkDirectionType) As gboolean
+Declare Sub gtk_widget_child_notify(ByVal As GtkWidget Ptr, ByVal As Const gchar Ptr)
+Declare Function gtk_widget_compute_expand(ByVal As GtkWidget Ptr, ByVal As GtkOrientation) As gboolean
+Declare Function gtk_widget_create_pango_context(ByVal As GtkWidget Ptr) As PangoContext Ptr
+Declare Function gtk_widget_create_pango_layout(ByVal As GtkWidget Ptr, ByVal As Const gchar Ptr) As PangoLayout Ptr
+Declare Sub gtk_widget_destroy(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_destroyed(ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr Ptr)
+Declare Function gtk_widget_device_is_shadowed(ByVal As GtkWidget Ptr, ByVal As GdkDevice Ptr) As gboolean
+Declare Function gtk_drag_begin_with_coordinates(ByVal As GtkWidget Ptr, ByVal As GtkTargetList Ptr, ByVal As GdkDragAction, ByVal As gint, ByVal As GdkEvent Ptr, ByVal As gint, ByVal As gint) As GdkDragContext Ptr
+Declare Function gtk_drag_check_threshold(ByVal As GtkWidget Ptr, ByVal As gint, ByVal As gint, ByVal As gint, ByVal As gint) As gboolean
+Declare Sub gtk_drag_dest_add_image_targets(ByVal As GtkWidget Ptr)
+Declare Sub gtk_drag_dest_add_text_targets(ByVal As GtkWidget Ptr)
+Declare Sub gtk_drag_dest_add_uri_targets(ByVal As GtkWidget Ptr)
+Declare Function gtk_drag_dest_find_target(ByVal As GtkWidget Ptr, ByVal As GdkDragContext Ptr, ByVal As GtkTargetList Ptr) As Any Ptr /'GdkAtom'/
+Declare Function gtk_drag_dest_get_target_list(ByVal As GtkWidget Ptr) As GtkTargetList Ptr
+Declare Function gtk_drag_dest_get_track_motion(ByVal As GtkWidget Ptr) As gboolean
+Declare Sub gtk_drag_dest_set(ByVal As GtkWidget Ptr, ByVal As GtkDestDefaults, ByVal As GtkTargetEntry Ptr, ByVal As gint, ByVal As GdkDragAction)
+Declare Sub gtk_drag_dest_set_target_list(ByVal As GtkWidget Ptr, ByVal As GtkTargetList Ptr)
+Declare Sub gtk_drag_dest_set_track_motion(ByVal As GtkWidget Ptr, ByVal As gboolean)
+Declare Sub gtk_drag_dest_unset(ByVal As GtkWidget Ptr)
+Declare Sub gtk_drag_get_data(ByVal As GtkWidget Ptr, ByVal As GdkDragContext Ptr, ByVal As Any Ptr /'GdkAtom'/, ByVal As guint32)
+Declare Sub gtk_drag_highlight(ByVal As GtkWidget Ptr)
+Declare Sub gtk_drag_source_add_image_targets(ByVal As GtkWidget Ptr)
+Declare Sub gtk_drag_source_add_text_targets(ByVal As GtkWidget Ptr)
+Declare Sub gtk_drag_source_add_uri_targets(ByVal As GtkWidget Ptr)
+Declare Function gtk_drag_source_get_target_list(ByVal As GtkWidget Ptr) As GtkTargetList Ptr
+Declare Sub gtk_drag_source_set(ByVal As GtkWidget Ptr, ByVal As GdkModifierType, ByVal As GtkTargetEntry Ptr, ByVal As gint, ByVal As GdkDragAction)
+Declare Sub gtk_drag_source_set_icon_gicon(ByVal As GtkWidget Ptr, ByVal As GIcon Ptr)
+Declare Sub gtk_drag_source_set_icon_name(ByVal As GtkWidget Ptr, ByVal As Const gchar Ptr)
+Declare Sub gtk_drag_source_set_icon_pixbuf(ByVal As GtkWidget Ptr, ByVal As GdkPixbuf Ptr)
+Declare Sub gtk_drag_source_set_target_list(ByVal As GtkWidget Ptr, ByVal As GtkTargetList Ptr)
+Declare Sub gtk_drag_source_unset(ByVal As GtkWidget Ptr)
+Declare Sub gtk_drag_unhighlight(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_draw(ByVal As GtkWidget Ptr, ByVal As cairo_t Ptr)
+Declare Sub gtk_widget_error_bell(ByVal As GtkWidget Ptr)
+Declare Function gtk_widget_event(ByVal As GtkWidget Ptr, ByVal As Const GdkEvent Ptr) As gboolean
+Declare Sub gtk_widget_freeze_child_notify(ByVal As GtkWidget Ptr)
+Declare Function gtk_widget_get_accessible(ByVal As GtkWidget Ptr) As AtkObject Ptr
+Declare Function gtk_widget_get_action_group(ByVal As GtkWidget Ptr, ByVal As Const gchar Ptr) As GActionGroup Ptr
+Declare Function gtk_widget_get_allocated_baseline(ByVal As GtkWidget Ptr) As gint /'int'/
+Declare Function gtk_widget_get_allocated_height(ByVal As GtkWidget Ptr) As gint /'int'/
+Declare Sub gtk_widget_get_allocated_size(ByVal As GtkWidget Ptr, ByVal As GtkAllocation Ptr, ByVal As gint /'int'/ Ptr)
+Declare Function gtk_widget_get_allocated_width(ByVal As GtkWidget Ptr) As gint /'int'/
+Declare Sub gtk_widget_get_allocation(ByVal As GtkWidget Ptr, ByVal As GtkAllocation Ptr)
+Declare Function gtk_widget_get_ancestor(ByVal As GtkWidget Ptr, ByVal As GType) As GtkWidget Ptr
+Declare Function gtk_widget_get_can_default(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_can_focus(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_child_visible(ByVal As GtkWidget Ptr) As gboolean
+Declare Sub gtk_widget_get_clip(ByVal As GtkWidget Ptr, ByVal As GtkAllocation Ptr)
+Declare Function gtk_widget_get_clipboard(ByVal As GtkWidget Ptr, ByVal As Any Ptr /'GdkAtom'/) As GtkClipboard Ptr
+Declare Function gtk_widget_get_device_enabled(ByVal As GtkWidget Ptr, ByVal As GdkDevice Ptr) As gboolean
+Declare Function gtk_widget_get_direction(ByVal As GtkWidget Ptr) As GtkTextDirection
+Declare Function gtk_widget_get_display(ByVal As GtkWidget Ptr) As GdkDisplay Ptr
+Declare Function gtk_widget_get_first_child(ByVal As GtkWidget Ptr) As GtkWidget Ptr
+Declare Function gtk_widget_get_focus_on_click(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_font_map(ByVal As GtkWidget Ptr) As PangoFontMap Ptr
+Declare Function gtk_widget_get_font_options(ByVal As GtkWidget Ptr) As Const cairo_font_options_t Ptr
+Declare Function gtk_widget_get_frame_clock(ByVal As GtkWidget Ptr) As GdkFrameClock Ptr
+Declare Function gtk_widget_get_halign(ByVal As GtkWidget Ptr) As GtkAlign
+Declare Function gtk_widget_get_has_tooltip(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_has_window(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_hexpand(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_hexpand_set(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_last_child(ByVal As GtkWidget Ptr) As GtkWidget Ptr
+Declare Function gtk_widget_get_mapped(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_margin_bottom(ByVal As GtkWidget Ptr) As gint
+Declare Function gtk_widget_get_margin_end(ByVal As GtkWidget Ptr) As gint
+Declare Function gtk_widget_get_margin_start(ByVal As GtkWidget Ptr) As gint
+Declare Function gtk_widget_get_margin_top(ByVal As GtkWidget Ptr) As gint
+Declare Function gtk_widget_get_modifier_mask(ByVal As GtkWidget Ptr, ByVal As GdkModifierIntent) As GdkModifierType
+Declare Function gtk_widget_get_name(ByVal As GtkWidget Ptr) As Const gchar Ptr
+Declare Function gtk_widget_get_next_sibling(ByVal As GtkWidget Ptr) As GtkWidget Ptr
+Declare Function gtk_widget_get_opacity(ByVal As GtkWidget Ptr) As Double
+Declare Function gtk_widget_get_pango_context(ByVal As GtkWidget Ptr) As PangoContext Ptr
+Declare Function gtk_widget_get_parent(ByVal As GtkWidget Ptr) As GtkWidget Ptr
+Declare Function gtk_widget_get_parent_window(ByVal As GtkWidget Ptr) As GdkWindow Ptr
+Declare Function gtk_widget_get_path(ByVal As GtkWidget Ptr) As GtkWidgetPath Ptr
+Declare Sub gtk_widget_get_preferred_size(ByVal As GtkWidget Ptr, ByVal As GtkRequisition Ptr, ByVal As GtkRequisition Ptr)
+Declare Function gtk_widget_get_prev_sibling(ByVal As GtkWidget Ptr) As GtkWidget Ptr
+Declare Function gtk_widget_get_realized(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_receives_default(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_request_mode(ByVal As GtkWidget Ptr) As GtkSizeRequestMode
+Declare Function gtk_widget_get_scale_factor(ByVal As GtkWidget Ptr) As gint
+Declare Function gtk_widget_get_screen(ByVal As GtkWidget Ptr) As GdkScreen Ptr
+Declare Function gtk_widget_get_sensitive(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_settings(ByVal As GtkWidget Ptr) As GtkSettings Ptr
+Declare Sub gtk_widget_get_size_request(ByVal As GtkWidget Ptr, ByVal As gint Ptr, ByVal As gint Ptr)
+Declare Function gtk_widget_get_state_flags(ByVal As GtkWidget Ptr) As GtkStateFlags
+Declare Function gtk_widget_get_style_context(ByVal As GtkWidget Ptr) As GtkStyleContext Ptr
+Declare Function gtk_widget_get_support_multidevice(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_template_child(ByVal As GtkWidget Ptr, ByVal As GType, ByVal As Const gchar Ptr) As GObject Ptr
+Declare Function gtk_widget_get_tooltip_markup(ByVal As GtkWidget Ptr) As gchar Ptr
+Declare Function gtk_widget_get_tooltip_text(ByVal As GtkWidget Ptr) As gchar Ptr
+Declare Function gtk_widget_get_tooltip_window(ByVal As GtkWidget Ptr) As GtkWindow Ptr
+Declare Function gtk_widget_get_toplevel(ByVal As GtkWidget Ptr) As GtkWidget Ptr
+Declare Function gtk_widget_get_valign(ByVal As GtkWidget Ptr) As GtkAlign
+Declare Function gtk_widget_get_vexpand(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_vexpand_set(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_visible(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_get_window(ByVal As GtkWidget Ptr) As GdkWindow Ptr
+Declare Sub gtk_grab_add(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_grab_default(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_grab_focus(ByVal As GtkWidget Ptr)
+Declare Sub gtk_grab_remove(ByVal As GtkWidget Ptr)
+Declare Function gtk_widget_has_default(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_has_focus(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_has_grab(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_has_screen(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_has_visible_focus(ByVal As GtkWidget Ptr) As gboolean
+Declare Sub gtk_widget_hide(ByVal As GtkWidget Ptr)
+Declare Function gtk_widget_hide_on_delete(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_in_destruction(ByVal As GtkWidget Ptr) As gboolean
+Declare Sub gtk_widget_init_template(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_input_shape_combine_region(ByVal As GtkWidget Ptr, ByVal As cairo_region_t Ptr)
+Declare Sub gtk_widget_insert_action_group(ByVal As GtkWidget Ptr, ByVal As Const gchar Ptr, ByVal As GActionGroup Ptr)
+Declare Sub gtk_widget_insert_after(ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_insert_before(ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr)
+Declare Function gtk_widget_intersect(ByVal As GtkWidget Ptr, ByVal As Const GdkRectangle Ptr, ByVal As GdkRectangle Ptr) As gboolean
+Declare Function gtk_widget_is_ancestor(ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_is_drawable(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_is_focus(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_is_sensitive(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_is_toplevel(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_is_visible(ByVal As GtkWidget Ptr) As gboolean
+Declare Function gtk_widget_keynav_failed(ByVal As GtkWidget Ptr, ByVal As GtkDirectionType) As gboolean
+Declare Function gtk_widget_list_accel_closures(ByVal As GtkWidget Ptr) As GList Ptr
+Declare Function gtk_widget_list_action_prefixes(ByVal As GtkWidget Ptr) As Const gchar Ptr Ptr
+Declare Function gtk_widget_list_mnemonic_labels(ByVal As GtkWidget Ptr) As GList Ptr
+Declare Sub gtk_widget_map(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_measure(ByVal As GtkWidget Ptr, ByVal As GtkOrientation, ByVal As gint /'int'/, ByVal As gint /'int'/ Ptr, ByVal As gint /'int'/ Ptr, ByVal As gint /'int'/ Ptr, ByVal As gint /'int'/ Ptr)
+Declare Function gtk_widget_mnemonic_activate(ByVal As GtkWidget Ptr, ByVal As gboolean) As gboolean
+Declare Sub gtk_widget_queue_allocate(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_queue_compute_expand(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_queue_draw(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_queue_draw_area(ByVal As GtkWidget Ptr, ByVal As gint, ByVal As gint, ByVal As gint, ByVal As gint)
+Declare Sub gtk_widget_queue_draw_region(ByVal As GtkWidget Ptr, ByVal As Const cairo_region_t Ptr)
+Declare Sub gtk_widget_queue_resize(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_queue_resize_no_redraw(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_realize(ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_register_window(ByVal As GtkWidget Ptr, ByVal As GdkWindow Ptr)
+Declare Function gtk_widget_remove_accelerator(ByVal As GtkWidget Ptr, ByVal As GtkAccelGroup Ptr, ByVal As guint, ByVal As GdkModifierType) As gboolean
+Declare Sub gtk_widget_remove_mnemonic_label(ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_remove_tick_callback(ByVal As GtkWidget Ptr, ByVal As guint)
+Declare Sub gtk_widget_reset_style(ByVal As GtkWidget Ptr)
+Declare Function gtk_widget_send_focus_change(ByVal As GtkWidget Ptr, ByVal As GdkEvent Ptr) As gboolean
+Declare Sub gtk_widget_set_accel_path(ByVal As GtkWidget Ptr, ByVal As Const gchar Ptr, ByVal As GtkAccelGroup Ptr)
+Declare Sub gtk_widget_set_can_default(ByVal As GtkWidget Ptr, ByVal As gboolean)
+Declare Sub gtk_widget_set_can_focus(ByVal As GtkWidget Ptr, ByVal As gboolean)
+Declare Sub gtk_widget_set_child_visible(ByVal As GtkWidget Ptr, ByVal As gboolean)
+Declare Sub gtk_widget_set_device_enabled(ByVal As GtkWidget Ptr, ByVal As GdkDevice Ptr, ByVal As gboolean)
+Declare Sub gtk_widget_set_direction(ByVal As GtkWidget Ptr, ByVal As GtkTextDirection)
+Declare Sub gtk_widget_set_focus_child(ByVal As GtkWidget Ptr, ByVal As GtkWidget Ptr)
+Declare Sub gtk_widget_set_focus_on_click(ByVal As GtkWidget Ptr, ByVal As gboolean)
+Declare Sub gtk_widget_set_font_map(ByVal As GtkWidget Ptr, ByVal As PangoFontMap Ptr)
+Declare Sub gtk_widget_set_font_options(ByVal As GtkWidget Ptr, ByVal As Const cairo_font_options_t Ptr)
+Declare Sub gtk_widget_set_halign(ByVal As GtkWidget Ptr, ByVal As GtkAlign)
+Declare Sub gtk_widget_set_has_tooltip(ByVal As GtkWidget Ptr, ByVal As gboolean)
+Declare Sub gtk_widget_set_has_window(ByVal As GtkWidget Ptr, ByVal As gboolean)
 DECLARE SUB gtk_widget_set_hexpand(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
 DECLARE SUB gtk_widget_set_hexpand_set(BYVAL AS GtkWidget PTR, BYVAL AS gboolean)
 DECLARE SUB gtk_widget_set_margin_bottom(BYVAL AS GtkWidget PTR, BYVAL AS gint)

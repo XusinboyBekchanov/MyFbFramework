@@ -842,7 +842,7 @@ Namespace My.Sys.Forms
 		
 		Private Function Animate.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Animate Ptr anim = data1
-			#ifdef __USE_GTK3__
+			#if defined(__USE_GTK3__) OrElse defined(__USE_GTK4__)
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 			#else
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
@@ -884,9 +884,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function Animate.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-			DesignDraw(widget, cr, data1)
-			cairo_destroy(cr)
+			#ifndef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+				DesignDraw(widget, cr, data1)
+				cairo_destroy(cr)
+			#endif
 			Return False
 		End Function
 		
@@ -894,8 +896,10 @@ Namespace My.Sys.Forms
 			Dim As Animate Ptr anim = userdata
 			/' To check If the display supports Alpha channels, Get the colormap '/
 			Dim As GdkScreen Ptr pScreen = gtk_widget_get_screen(widget)
-			#ifdef __USE_GTK3__
+			#if defined(__USE_GTK3__)
 				Dim As GdkVisual Ptr VisualOrColormap = gdk_screen_get_rgba_visual(pScreen)
+			#elseif defined(__USE_GTK4__)
+				Dim As GdkVisual Ptr VisualOrColormap = gdk_display_get_rgba_visual(pScreen)
 			#else
 				Dim As GdkColormap Ptr VisualOrColormap = gdk_screen_get_rgba_colormap(pScreen)
 			#endif

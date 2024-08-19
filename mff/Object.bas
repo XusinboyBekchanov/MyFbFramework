@@ -93,10 +93,41 @@ Namespace My.Sys
 		Private Function Object.ScaleX(ByVal cx As Single) As Single
 			If xdpi = 0 OrElse ydpi = 0 Then
 				#ifdef __USE_GTK__
-					Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
-			    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
-					xdpi = dpi / 96
-					ydpi = dpi / 96
+					#ifdef __USE_GTK4__
+						If widget Then
+							gtk_widget_realize(widget)
+							gtk_widget_map(widget)
+							Dim As GtkRoot Ptr root = gtk_widget_get_root(widget)
+							If root <> 0 Then
+								If GTK_IS_WINDOW(root) Then
+									Dim As GdkSurface Ptr surface = gtk_native_get_surface(GTK_NATIVE(root))
+									If surface <> 0 Then
+										Dim As gint surface_x, surface_y
+										gdk_surface_get_origin(surface, @surface_x, @surface_y)
+										Dim As GdkDisplay Ptr display = gdk_surface_get_display(surface)
+    									If display <> 0 Then
+											Dim As GdkRectangle allocation
+											gdk_window_get_origin(gtk_widget_get_window(GTK_WIDGET(root)), @allocation.x, @allocation.y)
+											Dim As GdkMonitor Ptr monitor = gdk_display_get_monitor_at_point(display, global_x, global_y)
+											If monitor = 0 Then
+												Dim As GdkRectangle geometry
+												gdk_monitor_get_geometry(monitor, @geometry)
+												Dim As gint width_mm = gdk_monitor_get_width_mm(monitor)
+												Dim As gint height_mm = gdk_monitor_get_height_mm(monitor)
+												xdpi = CDbl(geometry.width) * 25.4 / CDbl(width_mm)
+												ydpi = CDbl(geometry.height) * 25.4 / CDbl(height_mm)
+											End If
+    									End If
+									End If
+								End If
+							End If
+						End If
+					#else
+						Dim As GdkScreen Ptr Screen1 = gdk_screen_get_default()
+				    	Dim As gdouble dpi = gdk_screen_get_resolution(Screen1)
+						xdpi = dpi / 96
+						ydpi = dpi / 96
+					#endif
 				#elseif defined(__USE_WINAPI__)
 					Dim hDC As HDC
 					hDC = GetDC(NULL)

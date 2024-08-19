@@ -33,7 +33,6 @@ Namespace My.Sys.ComponentModel
 		FParent             As Component Ptr
 		FTempString         As String
 		#ifdef __USE_GTK__
-			widget 			As GtkWidget Ptr
 			box 			As GtkWidget Ptr
 			fixedwidget		As GtkWidget Ptr
 			scrolledwidget	As GtkWidget Ptr

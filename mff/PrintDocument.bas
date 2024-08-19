@@ -104,10 +104,10 @@ Namespace My.Sys.ComponentModel
 			
 			GetEnhMetaFileHeader(Pages.Item(PageNumber)->Handle, SizeOf(emh), @emh)
 			
-			rc.Left   = emh.rclFrame.left * MillimetersPerPixelsX
-			rc.Right  = rc.Left + (emh.rclFrame.right - emh.rclFrame.left) * MillimetersPerPixelsX
-			rc.Top    = emh.rclFrame.top * MillimetersPerPixelsX
-			rc.Bottom = rc.Top + (emh.rclFrame.bottom - emh.rclFrame.top) * MillimetersPerPixelsX
+			rc.Left   = emh.rclFrame.Left * MillimetersPerPixelsX
+			rc.Right  = rc.Left + (emh.rclFrame.Right - emh.rclFrame.Left) * MillimetersPerPixelsX
+			rc.Top    = emh.rclFrame.Top * MillimetersPerPixelsX
+			rc.Bottom = rc.Top + (emh.rclFrame.Bottom - emh.rclFrame.Top) * MillimetersPerPixelsX
 			
 			PlayEnhMetaFile(hdcDestination, Pages.Item(PageNumber)->Handle, @rc )
 			
@@ -152,7 +152,7 @@ Namespace My.Sys.ComponentModel
 			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				NewPage->Canvas.Handle = CreateEnhMetaFile(NULL, NULL, NULL, NULL)
 			#endif
-			If OnPrintPage Then OnPrintPage(This, NewPage->Canvas, HasMorePages)
+			If OnPrintPage Then OnPrintPage(*Designer, This, NewPage->Canvas, HasMorePages)
 			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				NewPage->Handle = CloseEnhMetaFile(NewPage->Canvas.Handle)
 			#endif

@@ -11,6 +11,81 @@
 #include once "Printer.bi"
 
 Namespace My.Sys.ComponentModel
+	#ifndef ReadProperty_Off
+		Private Function Printer.ReadProperty(PropertyName As String) As Any Ptr
+			Select Case LCase(PropertyName)
+			Case "Name": Return @m_Name
+			Case Else: Return Base.ReadProperty(PropertyName)
+			End Select
+			Return 0
+		End Function
+	#endif
+	
+	#ifndef WriteProperty_Off
+		Private Function Printer.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "Name": Name = QString(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
+	
+	Private Function PaperSizeCollection.Add(Index As Integer = -1) As PaperSize Ptr
+		Dim As PaperSize Ptr NewPaperSize = _New(PaperSize)
+		If Index > -1 Then
+			FItems.Insert Index, NewPaperSize
+		Else
+			FItems.Add NewPaperSize
+		End If
+		Return NewPaperSize
+	End Function
+	
+	Private Sub PaperSizeCollection.Clear
+		For i As Integer = Count - 1 To 0 Step -1
+			_Delete(Cast(PaperSize Ptr, FItems.Items[i]))
+		Next i
+		FItems.Clear
+	End Sub
+	
+	Private Property PaperSizeCollection.Count As Integer
+		Return FItems.Count
+	End Property
+	
+	Private Function PaperSizeCollection.Contains(PaperSizeItem As PaperSize Ptr) As Boolean
+		Return IndexOf(PaperSizeItem) <> -1
+	End Function
+	
+	Private Function PaperSizeCollection.IndexOf(PaperSizeItem As PaperSize Ptr) As Integer
+		Return FItems.IndexOf(PaperSizeItem)
+	End Function
+	
+	Private Function PaperSizeCollection.Insert(Index As Integer, PageItem As PaperSize Ptr) As PaperSize Ptr
+		FItems.Insert(Index, PageItem)
+		Return PageItem
+	End Function
+	
+	Private Property PaperSizeCollection.Item(Index As Integer) As PaperSize Ptr
+		Return Cast(PaperSize Ptr, FItems.Item(Index))
+	End Property
+	
+	Private Property PaperSizeCollection.Item(Index As Integer, Value As PaperSize Ptr)
+		FItems.Item(Index) = Value
+	End Property
+	
+	Private Sub PaperSizeCollection.Remove(Index As Integer)
+		_Delete(Item(Index))
+		FItems.Remove Index
+	End Sub
+	
+	Private Constructor PaperSizeCollection
+		This.Clear
+	End Constructor
+	
+	Private Destructor PaperSizeCollection
+		This.Clear
+	End Destructor
+	
 	Private Function  Printer.Parse(source As String, index As Integer, delimiter As String = ",") As String
 		Dim As Long i,s,c,l
 		s=1
@@ -121,7 +196,7 @@ Namespace My.Sys.ComponentModel
 				pDevMode= GlobalAlloc(GMEM_FIXED,dwNeeded)
 				' // Retrieve the printer configuration data
 				nRet = DocumentProperties (NULL, hPrinter,   PrinterName,   pDevMode  , ByVal NULL, DM_OUT_BUFFER)
-				IF nRet <> IDOK THEN
+				If nRet <> IDOK Then
 					ClosePrinter(hPrinter)
 					Exit Function
 				End If
@@ -182,85 +257,59 @@ Namespace My.Sys.ComponentModel
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
 			Dim pd As PRINTER_DEFAULTS
-			Dim bufferPrn As String
-			Dim bufferDoc As String
 			Dim dwNeeded As DWORD
-			Dim nRet As Long
 			
 			If nOrientation <> DMORIENT_PORTRAIT And nOrientation <> DMORIENT_LANDSCAPE Then Exit Function
 			
 			' // Start by opening the printer
+			pd.pDatatype = 0
+			pd.pDevMode = 0
 			pd.DesiredAccess = PRINTER_ALL_ACCESS
+			
 			If OpenPrinter ( PrinterName, @hPrinter, @pd) = 0 Then Exit Function
 			
-			' // The first GetPrinter tells you how big the buffer should be in
-			' // order to hold all of PRINTER_INFO_2. Note that this should fail with
-			' // ERROR_INSUFFICIENT_BUFFER.  If GetPrinter fails for any other reason
-			' // or dwNeeded isn't set for some reason, then there is a problem...
-			nRet = GetPrinter (hPrinter, 2, ByVal NULL, 0, @dwNeeded)
-			If nRet = 0 And GetLastError <> ERROR_INSUFFICIENT_BUFFER Then
-				ClosePrinter(hPrinter)
-				Exit Function
-			End If
-			' // Allocate enough space for PRINTER_INFO_2...
-			bufferPrn = Space(dwNeeded)
-			' // The second GetPrinter fills in all the current settings, so all you
-			' // need to do is modify what you're interested in...
-			nRet = GetPrinter (hPrinter, 2,   StrPtr(bufferPrn), dwNeeded, @dwNeeded)
-			If nRet = 0 Then
-				ClosePrinter(hPrinter)
-				Exit Function
+			' Получаем размер структуры DEVMODE
+			dwNeeded = DocumentProperties(NULL, hPrinter, NULL, NULL, NULL, 0)
+			If dwNeeded = 0 Then Return False
+			
+			' Выделяем память для структуры DEVMODE
+			pDevMode = Allocate(dwNeeded)
+			If pDevMode = NULL Then Return False
+			
+			' Заполняем структуру DEVMODE текущими настройками
+			If DocumentProperties(NULL, hPrinter, NULL, pDevMode, NULL, DM_OUT_BUFFER) <> IDOK Then
+				Deallocate(pDevMode)
+				Return False
 			End If
 			
-			' // If GetPrinter didn't fill in the DEVMODE, try to get it by calling
-			' // DocumentProperties...
-			pi2 = Cast(PRINTER_INFO_2 Ptr,StrPtr(bufferPrn))
-			If pi2->pDevMode = NULL Then
-				' // Allocate a buffer of the correct size
-				dwNeeded = DocumentProperties (NULL, hPrinter,   PrinterName, ByVal NULL, ByVal NULL, 0)
-				bufferDoc = Space(dwNeeded)
-				pDevMode= GlobalAlloc(GMEM_FIXED,dwNeeded)
-				' // Retrieve the printer configuration data
-				nRet = DocumentProperties (NULL, hPrinter,   PrinterName,   pDevMode  , ByVal NULL, DM_OUT_BUFFER)
-				If nRet <> IDOK Then
-					ClosePrinter(hPrinter)
-					Exit Function
+			' Устанавливаем новую ориентацию
+			pDevMode->dmOrientation = nOrientation
+			pDevMode->dmFields = DM_ORIENTATION ' Устанавливаем флаг, что изменяется ориентация
+			
+			' Применяем изменения
+			If DocumentProperties(NULL, hPrinter, NULL, pDevMode, pDevMode, DM_IN_BUFFER Or DM_OUT_BUFFER) <> IDOK Then
+				Deallocate(pDevMode)
+				Return False
+			End If
+			
+			' Устанавливаем принтер с новыми параметрами
+			If GetPrinter(hPrinter, 2, NULL, 0, @dwNeeded) = 0 AndAlso GetLastError() = ERROR_INSUFFICIENT_BUFFER Then
+				pi2 = Allocate(dwNeeded)
+				If pi2 <> NULL Then
+					If GetPrinter(hPrinter, 2, Cast(LPBYTE, pi2), dwNeeded, @dwNeeded) <> 0 Then
+						pi2->pDevMode = pDevMode
+						SetPrinter(hPrinter, 2, Cast(LPBYTE, pi2), 0)
+					End If
+					Deallocate(pi2)
 				End If
-				' // Cast it to a DEVMODE structure
-				' pDevMode =  StrPtr(bufferDoc)
-				pi2->pDevMode = pDevMode
 			End If
 			
-			' // Driver is reporting that it doesn't support this change...
-			If (pi2->pDevMode->dmFields And DM_ORIENTATION) = 0 Then
-				ClosePrinter(hPrinter)
-				Exit Function
-			End If
+			' Освобождаем память
+			Deallocate(pDevMode)
 			
-			' // Specify exactly what we are attempting to change...
-			pi2->pDevMode->dmFields = DM_ORIENTATION
-			pi2->pDevMode->dmOrientation = nOrientation
-			
-			' // Do not attempt to set security descriptor...
-			pi2->pSecurityDescriptor = NULL
-			
-			' // Make sure the driver-dependent part of devmode is updated...
-			nRet = DocumentProperties (NULL, hPrinter,   PrinterName, _
-			ByVal pi2->pDevMode, ByVal pi2->pDevMode, _
-			DM_IN_BUFFER Or DM_OUT_BUFFER)
-			
-			If nRet <> IDOK Then
-				ClosePrinter(hPrinter)
-				Exit Function
-			End If
-			
-			
-			' // Finished with the printer
 			ClosePrinter(hPrinter)
 		#endif
-		
-		Function  = True
-		
+		Return True
 	End Function
 	' ========================================================================================
 	' Returns the printer orientation.
@@ -272,13 +321,18 @@ Namespace My.Sys.ComponentModel
 		#ifndef __USE_GTK__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
-			Dim pi2 As PRINTER_INFO_2 Ptr
+			Dim pOldDevMode As DEVMODE Ptr
+			Dim iOrientation As Integer
+			'Dim pi2 As PRINTER_INFO_2 Ptr
 			Dim bufferDoc As String
 			Dim dwNeeded As DWORD
 			Dim nRet As Long
+			Dim pd As PRINTER_DEFAULTS
+			pd.pDatatype = NULL
+			pd.pDevMode = NULL
+			pd.DesiredAccess = PRINTER_ALL_ACCESS
 			
-			' // Start by opening the printer
-			If OpenPrinter (PrinterName, Cast(LPHANDLE,@hPrinter), ByVal NULL) = 0 Then Exit Function
+			If OpenPrinter (PrinterName, Cast(LPHANDLE, @hPrinter), ByVal NULL) = 0 Then Exit Function
 			' // Allocate a buffer of the correct size
 			dwNeeded = DocumentProperties (NULL, hPrinter,PrinterName, ByVal NULL, ByVal NULL, 0)
 			bufferDoc = Space(dwNeeded)
@@ -301,8 +355,10 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Function
 	
+	
 	Private Property Printer.Name(vData As String)
-		m_Name=vData
+		m_Name= vData
+		GetPrinterPaperSizes(m_Name)
 	End Property
 	
 	Private Property Printer.Name As String
@@ -329,7 +385,8 @@ Namespace My.Sys.ComponentModel
 	
 	
 	Private Property Printer.PageSize(vData As Integer)
-		m_PageSize=vData
+		m_PageSize = vData
+		SetPrinterPaperSize printerName, vData
 	End Property
 	
 	Private Property Printer.PageSize As Integer
@@ -663,14 +720,14 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Function
 	
-	Private Property Printer.duplexMode() As PrinterDuplexMode
+	Private Property Printer.DuplexMode() As PrinterDuplexMode
 		#ifndef __USE_GTK__
-			m_duplex=GetPrinterDuplex (printerName)
+			m_Duplex=GetPrinterDuplex (printerName)
 		#endif
-		Return m_duplex
+		Return m_Duplex
 	End Property
 	
-	Private Property Printer.duplexMode(n As PrinterDuplexMode)   'n = 1 Simplex  'n = 2 Horizontal  'n = 3 Vertical
+	Private Property Printer.DuplexMode(n As PrinterDuplexMode)   'n = 1 Simplex  'n = 2 Horizontal  'n = 3 Vertical
 		#ifndef __USE_GTK__
 			Dim pDevMode As DEVMODE Ptr
 			If hDevMode = 0 Or n = 0 Then Exit Property
@@ -806,7 +863,7 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Sub
 	
-	Private Function printer.PrinterPaperNames (ByVal PrinterName As String) As String
+	Private Function Printer.PrinterPaperNames (ByVal PrinterName As String) As String
 		Dim Names As String
 		#ifndef __USE_GTK__
 			Dim i As Long
@@ -831,7 +888,7 @@ Namespace My.Sys.ComponentModel
 	' Each entry if formated as "<width> x <height>" and separated by a carriage return and a
 	' line feed characters.
 	' ========================================================================================
-	Private Function printer.GetPrinterPaperSizes (ByVal PrinterName As String) As String
+	Private Function Printer.GetPrinterPaperSizesAsString(ByVal PrinterName As String) As String
 		Dim i As Long, r As Long, Sizes As String
 		#ifndef __USE_GTK__
 			r = DeviceCapabilities (PrinterName, ByVal NULL, DC_PAPERSIZE, ByVal NULL, ByVal NULL)
@@ -840,16 +897,67 @@ Namespace My.Sys.ComponentModel
 			r = DeviceCapabilities (PrinterName, ByVal NULL, DC_PAPERSIZE, Cast( LPTSTR,@pSizes(0)), ByVal NULL)
 			If r < 1 Then Exit Function
 			For i = 0 To r - 1
-				Sizes += WStr(pSizes(i).x) & " x " & WStr(pSizes(i).y)
+				Sizes += WStr(pSizes(i).X) & " x " & WStr(pSizes(i).Y)
 				If i < r - 1 Then Sizes += CRLF
 			Next
 		#endif
 		Function = Sizes
 	End Function
 	
+	Sub Printer.GetPrinterPaperSizes(ByVal printerName As String)
+		Dim paperCount As Integer
+		Dim paperIDs As Integer Ptr
+		Dim paperNames As WString Ptr
+		Dim paperWidth As Integer
+		Dim paperHeight As Integer
+		Dim i As Integer
+		
+		#ifdef __USE_WINAPI__
+			' Получаем количество поддерживаемых размеров бумаги
+			paperCount = DeviceCapabilities(printerName, NULL, DC_PAPERS, NULL, NULL)
+			
+			If paperCount <= 0 Then
+				Print "Не удалось получить размеры бумаги."
+				Exit Sub
+			End If
+			
+			' Получаем названия размеров бумаги
+			paperNames = Allocate(Len(WString) * CInt(64) * paperCount) ' 64 символа на название
+			If paperNames = NULL Then
+				Print "Ошибка выделения памяти для названий бумаги."
+				Deallocate(paperIDs)
+				Exit Sub
+			End If
+			
+			' Получаем список размеров бумаги
+			ReDim paperKinds(paperCount - 1) As Short
+    		DeviceCapabilities(printerName, NULL, DC_PAPERS, Cast(LPWSTR, @paperKinds(0)), NULL)
+			
+			DeviceCapabilities(printerName, NULL, DC_PAPERNAMES, Cast(LPWSTR, paperNames), NULL)
+			
+			ReDim pSizes(paperCount - 1) As ..Point
+			DeviceCapabilities (printerName, ByVal NULL, DC_PAPERSIZE, Cast(LPWSTR, @pSizes(0)), ByVal NULL)
+			
+			PaperSizes.Clear
+			Dim pPaperSize As PaperSize Ptr
+			
+			' Печатаем список размеров бумаги
+			For i = 0 To paperCount - 1
+				pPaperSize = PaperSizes.Add
+				pPaperSize->Kind = paperKinds(i)
+				pPaperSize->RawKind = paperKinds(i)
+				pPaperSize->PaperName = *Cast(WString Ptr, Cast(Integer, paperNames) + i * 64 * 2)
+				pPaperSize->Width = pSizes(i).x ' " десятых миллиметра"
+				pPaperSize->Height = pSizes(i).y ' " десятых миллиметра"
+			Next
+			
+			' Освобождаем выделенную память
+			Deallocate(paperIDs)
+			Deallocate(paperNames)
+		#endif
+	End Sub
 	
-	
-	Private Function printer.GetPrinterPort (ByVal PrinterName As String) As String ' Returns the port name for a given printer name.
+	Private Function Printer.GetPrinterPort (ByVal PrinterName As String) As String ' Returns the port name for a given printer name.
 		Dim i As Long, Level As Long, cbNeeded As Long, cbReturned As Long
 		#ifndef __USE_GTK__
 			Dim   Pi5( ) As PRINTER_INFO_5
@@ -879,7 +987,7 @@ Namespace My.Sys.ComponentModel
 	' - DMRES_MEDIUM = Medium
 	' - DMRES_HIGH   = High
 	' ========================================================================================
-	Private Function printer.GetPrinterQualityMode (ByVal PrinterName As String) As PrinterQuality
+	Private Function Printer.GetPrinterQualityMode (ByVal PrinterName As String) As PrinterQuality
 		#ifndef __USE_GTK__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
@@ -1315,7 +1423,7 @@ Namespace My.Sys.ComponentModel
 			
 			' // Specify exactly what we are attempting to change...
 			pi2->pDevMode->dmPaperSize = nSize
-			
+			pi2->pDevMode->dmFields = DM_PAPERSIZE
 			' // Do not attempt to set security descriptor...
 			pi2->pSecurityDescriptor = NULL
 			
@@ -1431,7 +1539,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	
-	Private Function printer.GetPrinterDriverVersion (ByVal PrinterName As String) As Long  ' Returns the version number of the printer driver.
+	Private Function Printer.GetPrinterDriverVersion (ByVal PrinterName As String) As Long  ' Returns the version number of the printer driver.
 		#ifndef __USE_GTK__
 			Function = DeviceCapabilities (PrinterName, ByVal NULL, DC_DRIVER, ByVal NULL, ByVal NULL)
 		#else
@@ -1651,6 +1759,7 @@ Namespace My.Sys.ComponentModel
 			ClosePrinter hPrinter
 		#endif
 	End Sub
+	
 	
 	Private Constructor Printer
 		Canvas.Ctrl = @This

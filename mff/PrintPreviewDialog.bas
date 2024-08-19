@@ -1,5 +1,27 @@
 ﻿#include once "PrintPreviewDialog.bi"
 
+#ifndef ReadProperty_Off
+	Private Function PrintPreviewDialog.ReadProperty(PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "caption": Return @frmDialog.Caption
+		Case "document": Return Document
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+#endif
+
+#ifndef WriteProperty_Off
+	Private Function PrintPreviewDialog.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
+		Select Case LCase(PropertyName)
+		Case "caption": Caption = QWString(Value)
+		Case "document": Document = Value
+		Case Else: Return Base.WriteProperty(PropertyName, Value)
+		End Select
+		Return True
+	End Function
+#endif
+
 Private Property PrintPreviewDialog.Caption ByRef As WString
 	Return frmDialog.Caption
 End Property
@@ -40,30 +62,9 @@ End Sub
 
 Private Sub PrintPreviewDialog.cboSize_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	With pnlPrintPreviewControl
-		Select Case ItemIndex
-		Case 0
-			.PageLength = 11890
-			.PageWidth = 8410
-		Case 1
-			.PageLength = 8410
-			.PageWidth = 5940
-		Case 2
-			.PageLength = 5940
-			.PageWidth = 4200
-		Case 3
-			.PageLength = 4200
-			.PageWidth = 2970
-		Case 4
-			.PageLength = 2970
-			.PageWidth = 2100
-		Case 5
-			.PageLength = 2100
-			.PageWidth = 1480
-		Case 6
-			.PageLength = 1480
-			.PageWidth = 1050
-		End Select
-		'pnlPrintPreviewControl.Repaint
+		.PageSize = Cast(PaperSize Ptr, cboSize.ItemData(ItemIndex))->RawKind
+		.PageLength = Cast(PaperSize Ptr, cboSize.ItemData(ItemIndex))->Height
+		.PageWidth = Cast(PaperSize Ptr, cboSize.ItemData(ItemIndex))->Width
 	End With
 	ChangePagesCount
 End Sub
@@ -192,17 +193,14 @@ Private Constructor PrintPreviewDialog
 		.SetBounds 150, 0, 140, 22
 		.Designer = @This
 		.Parent = @hbxCommands
-		.AddItem "A0 (841 x 1189 mm)"
-		.AddItem "A1 (594 x 841 mm)"
-		.AddItem "A2 (420 x 594 mm)"
-		.AddItem "A3 (297 x 420 mm)"
-		.AddItem "A4 (210 x 297 mm)"
-		.AddItem "A5 (148 x 210 mm)"
-		.AddItem "A6 (105 x 148 mm)"
+		Dim As PaperSize Ptr pPaperSize
+		For i As Integer = 0 To pnlPrintPreviewControl.Document->PrinterSettings.PaperSizes.Count - 1
+			pPaperSize = pnlPrintPreviewControl.Document->PrinterSettings.PaperSizes.Item(i)
+			.AddItem pPaperSize->PaperName
+			.ItemData(i) = pPaperSize
+		Next
 		.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cboSize_Selected)
-		.ItemIndex = 4
-		pnlPrintPreviewControl.PageWidth = 2100
-		pnlPrintPreviewControl.PageLength = 2970
+		.ItemIndex = 0
 	End With
 	' lblPrevious
 	With lblPrevious
