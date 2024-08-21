@@ -1098,8 +1098,8 @@ Namespace My.Sys.Forms
 					'						FHandle = Cast(HWND, SendMessage(HParent, WM_MDICREATE, 0, Cast(LPARAM, @mdicreate)))
 					'					Else
 					FHandle = CreateWindowExW(dExStyle, _
-					FClassName, _
-					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, FText.vptr), _
+					IIf(InStr(*FClassAncestor, "AtlAxWin"), FClassAncestor, FClassName), _
+					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, IIf(InStr(*FClassAncestor, "AtlAxWin"), FProgID, FText.vptr)), _
 					dStyle, _
 					nLeft, _
 					nTop, _
@@ -3094,6 +3094,7 @@ Namespace My.Sys.Forms
 			#endif
 			FreeWnd
 			'If FText Then Deallocate FText
+			If FProgID Then _Deallocate(FProgID)
 			If FHint Then _Deallocate(FHint)
 			'			Dim As Integer i
 			'			For i = 0 To ControlCount -1

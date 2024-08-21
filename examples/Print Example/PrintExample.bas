@@ -59,7 +59,7 @@
 		' Form1
 		With This
 			.Name = "Form1"
-			.Text = "Form1"
+			.Text = ML("Print Preview Dialog")
 			.Designer = @This
 			.SetBounds 0, 0, 930, 500
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
@@ -100,9 +100,8 @@
 		' cmdPrint
 		With cmdPrint
 			.Name = "cmdPrint"
-			.Text = "Print"
+			.Text = ML("Print")
 			.TabIndex = 1
-			.Caption = "Print"
 			.SetBounds 0, 0, 50, 22
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdPrint_Click)
@@ -111,9 +110,8 @@
 		' PrintPreviewDialog1
 		With cmdShowPrintPreviewDialog
 			.Name = "cmdShowPrintPreviewDialog"
-			.Text = "Show Print Preview Dialog"
+			.Text = ML("Show Print Preview Dialog")
 			.TabIndex = 1
-			.Caption = "Show Print Preview Dialog"
 			.ControlIndex = 12
 			.SetBounds 30, 120, 140, 22
 			.Designer = @This
@@ -148,8 +146,8 @@
 			.SetBounds 190, 0, 100, 22
 			.Designer = @This
 			.Parent = @hbxCommands
-			.AddItem "Portrait"
-			.AddItem "Landscape"
+			.AddItem ML("Portrait")
+			.AddItem ML("Landscape")
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cboOrientation_Selected)
 			.ItemIndex = 0
 		End With
@@ -229,10 +227,9 @@
 		' cmdFitToWindow
 		With cmdFitToWindow
 			.Name = "cmdFitToWindow"
-			.Text = "Fit to Window"
+			.Text = ML("Fit to Window")
 			.TabIndex = 10
 			.ControlIndex = 5
-			.Caption = "Fit to Window"
 			.Align = DockStyle.alRight
 			.SetBounds 10, 0, 80, 22
 			.Designer = @This
@@ -398,6 +395,13 @@ Private Sub Form1Type.PrintPreviewControl1_Zoom(ByRef Sender As PrintPreviewCont
 End Sub
 
 Private Sub Form1Type.PrintDocument1_PrintPage(ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
-	Canvas.TextOut 100, 100, "Hello World!"
+	Canvas.Font.Size= 8
+	Canvas.TextOut 100, 100, "Hello World!", clBlue, clYellow
+	Canvas.Font.Size= 12
+	Canvas.TextOut 100, 150, "Hello World!", clGreen, clRed
+	Canvas.Font.Size= 16
+	Canvas.TextOut 100, 200, "Hello World!", clRed, clGreen
+	Canvas.Font.Size= 22
+	Canvas.TextOut 100, 300, "Hello World!", clPink, clYellowGreen
 End Sub
 
