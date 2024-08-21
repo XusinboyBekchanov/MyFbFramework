@@ -341,7 +341,6 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 			
 			If iRow Mod 15 = 0 Then App.DoEvents  'if rows.count=666666  :254.144s   1 Million: 364.829s    5 Million:512.616s
 		Next
-		Next
 	End If
 	Grid1.SelectedRowIndex = 0 'Grid1.Rows.Count - 1
 	Debug.Print " Elasped time: " & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000) & "s. with Data " & (Grid1.Rows.Count - 1) * (Grid1.Columns.Count - 1)
@@ -416,4 +415,5 @@ Private Sub Form1Type.Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As 
 	End If
 	Grid1.Rows.Sort Grid1.SortIndex, Grid1.SortOrder
 End Sub
+
 
