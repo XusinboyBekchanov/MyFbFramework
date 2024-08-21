@@ -216,6 +216,7 @@ Namespace My.Sys.Forms
 			FStyle             As Integer
 			FText              As UString
 			FHint              As WString Ptr
+			FProgID             As WString Ptr
 			FShowCaption       As Boolean
 			FShowHint          As Boolean
 			FAlign             As DockStyle
