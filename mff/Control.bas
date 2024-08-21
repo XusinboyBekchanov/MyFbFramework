@@ -1098,8 +1098,8 @@ Namespace My.Sys.Forms
 					'						FHandle = Cast(HWND, SendMessage(HParent, WM_MDICREATE, 0, Cast(LPARAM, @mdicreate)))
 					'					Else
 					FHandle = CreateWindowExW(dExStyle, _
-					IIf(CInt(*FClassAncestor = "AtlAxWin"), FClassAncestor, FClassName), _
-					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, IIf(CInt(*FClassAncestor = "AtlAxWin"), FProgID, FText.vptr)), _
+					IIf(InStr(*FClassAncestor, "AtlAxWin"), FClassAncestor, FClassName), _
+					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, IIf(InStr(*FClassAncestor, "AtlAxWin"), FProgID, FText.vptr)), _
 					dStyle, _
 					nLeft, _
 					nTop, _
