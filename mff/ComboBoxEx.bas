@@ -598,6 +598,8 @@ Namespace My.Sys.Forms
 			Dim pt As ..Point, rc As ..Rect, t As Long, itd As Long
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
+				Dim As HWND cmbHandle = Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0))
+				SendMessageW(cmbHandle, WM_PRINTCLIENT, 0, 0)
 				UpdateWindow Message.hWnd
 				Message.Result = 0
 				Return
