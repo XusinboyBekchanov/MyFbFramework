@@ -1440,13 +1440,12 @@ Namespace My.Sys.Forms
 					Columns.Column(i)->Update
 				Next
 				Return
-			Case WM_RBUTTONDOWN
+			Case WM_CONTEXTMENU
 				If ContextMenu Then
 					If ContextMenu->Handle Then
 						Dim As ..Point P
 						P.X = GET_X_LPARAM(Message.lParam)
 						P.Y = GET_Y_LPARAM(Message.lParam)
-						.ClientToScreen(This.Handle, @P)
 						ContextMenu->Popup(P.X, P.Y)
 					End If
 				End If
