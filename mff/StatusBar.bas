@@ -237,7 +237,7 @@ Namespace My.Sys.Forms
 		Dim As Integer i, x = 0
 		If Index >= 0 And Index <= Count - 1 Then
 			#ifdef __USE_GTK__
-				gtk_statusbar_remove(gtk_statusbar(widget), context_id, Panels[i]->message_id)
+				gtk_statusbar_remove(GTK_STATUSBAR(widget), context_id, Panels[i]->message_id)
 			#endif
 			Temp = _CAllocate((Count - 1) * SizeOf(StatusPanel Ptr))
 			x = 0
@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 		Next i
 		Count = 0
 		#ifdef __USE_GTK__
-			gtk_statusbar_remove_all(gtk_statusbar(widget), context_id)
+			gtk_statusbar_remove_all(GTK_STATUSBAR(widget), context_id)
 		#else
 			SetWindowText Handle, ""
 		#endif
@@ -349,7 +349,7 @@ Namespace My.Sys.Forms
 		If Value <> FSizeGrip Then
 			FSizeGrip = Value
 			#ifndef __USE_GTK__
-				Style  = WS_CHILD Or CCS_NOPARENTALIGN Or AStyle(Abs_(FSizeGrip))
+				Style  = WS_CHILD Or CCS_NOPARENTALIGN Or AStyle(abs_(FSizeGrip))
 			#endif
 			RecreateWnd
 		End If
@@ -449,6 +449,19 @@ Namespace My.Sys.Forms
 					Message.Result = 0
 					Return
 				End If
+			Case CM_NOTIFY
+				Dim lvp As NMMOUSE Ptr = Cast(NMMOUSE Ptr, Message.lParam)
+				Dim As StatusPanel Ptr stPanel
+				If lvp->dwItemSpec >= 0 AndAlso lvp->dwItemSpec < Count Then
+					stPanel = Panels[lvp->dwItemSpec]
+				End If
+				Select Case lvp->hdr.code
+				Case NM_CLICK: If OnPanelClick Then OnPanelClick(*Designer, This, *stPanel, 0, lvp->pt.X, lvp->pt.Y)
+				Case NM_DBLCLK: If OnPanelDblClick Then OnPanelDblClick(*Designer, This, *stPanel, 0, lvp->pt.X, lvp->pt.Y)
+				Case NM_RCLICK: If OnPanelClick Then OnPanelClick(*Designer, This, *stPanel, 1, lvp->pt.X, lvp->pt.Y)
+				Case NM_RDBLCLK: If OnPanelDblClick Then OnPanelDblClick(*Designer, This, *stPanel, 1, lvp->pt.X, lvp->pt.Y)
+				Case SBN_SIMPLEMODECHANGE:
+				End Select
 			Case Else
 			End Select
 			Base.ProcessMessage(Message)

@@ -127,6 +127,8 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
+		OnPanelClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As StatusBar, ByRef stPanel As StatusPanel, MouseButton As Integer, x As Integer, y As Integer)
+		OnPanelDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As StatusBar, ByRef stPanel As StatusPanel, MouseButton As Integer, x As Integer, y As Integer)
 	End Type
 End Namespace
 
