@@ -549,7 +549,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub GridRows.Sort(ColumnIndex As Integer, Direction As ListSortDirection, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
+	Sub GridRows.Sort(ColumnIndex As Integer = 0, Direction As SortStyle = SortStyle.ssSortAscending, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
 		If Cast(Grid Ptr, Parent)->OwnerData Then Exit Sub
 		Dim bStarted As Boolean
 		Cast(Grid Ptr, Parent)->SortIndex = ColumnIndex
@@ -561,7 +561,7 @@ Namespace My.Sys.Forms
 				'Dim As HWND Header = ListView_GetHeader(Parent->Handle)
 				Dim As HWND Header = Cast(HWND, SendMessageW(Parent->Handle, LVM_GETHEADER, 0, 0))
 				Dim As HDITEM hd
-				Var newflag = IIf(Direction = ListSortDirection.sdAscending, HDF_SORTUP, HDF_SORTDOWN)
+				Var newflag = IIf(Direction = SortStyle.ssSortAscending, HDF_SORTUP, HDF_SORTDOWN)
 				hd.mask = HDI_FORMAT
 				For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
 					Header_GetItem(Header, ColumnIndex, @hd)
@@ -585,7 +585,7 @@ Namespace My.Sys.Forms
 		Dim As Integer i = iLeft, j = iRight
 		'QuickSort
 		Dim As WString Ptr iKey = @(Item(i)->Text(ColumnIndex))
-		If Direction = ListSortDirection.sdAscending Then
+		If Direction = SortStyle.ssSortAscending Then
 			If MatchCase Then
 				While (i < FItems.Count And j >= 0 And i <= j)
 					While (*iKey < Item(j)->Text(ColumnIndex) AndAlso i < j)
@@ -1450,11 +1450,11 @@ Namespace My.Sys.Forms
 		'#endif
 	End Property
 	
-	Private Property Grid.SortOrder As ListSortDirection
+	Private Property Grid.SortOrder As SortStyle
 		Return FSortOrder
 	End Property
 	
-	Private Property Grid.SortOrder(Value As ListSortDirection)
+	Private Property Grid.SortOrder(Value As SortStyle)
 		FSortOrder = Value
 		'#ifndef __USE_GTK__
 		'	Select Case FSortStyle

@@ -60,10 +60,14 @@ Namespace My.Sys.Forms
 			ssSortDescending
 		End Enum
 		
-		Private Enum ListSortDirection
-			sdAscending
-			sdDescending
-		End Enum
+		Private Type CompareParaType
+			Parent        As Any Ptr
+			SortIndex     As Integer
+			SortOrder     As SortStyle
+			SortOrderLast As SortStyle
+			SortAsNumber  As Boolean
+			MatchCase     As Boolean
+		End Type
 		
 		Private Enum StretchMode
 			smNone, smStretch, smStretchProportional

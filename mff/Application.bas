@@ -727,6 +727,11 @@ Namespace My
 		If FCurLanguagePath Then _Deallocate( FCurLanguagePath)
 		If FLanguage Then _Deallocate( FLanguage)
 		If This._vinfo <> 0 Then _Deallocate((This._vinfo)) : This._vinfo = 0
+		#ifdef __USE_WINAPI__
+			DeleteObject hbrBkgnd
+			DeleteObject hbrHlBkgnd
+			DeleteObject hbrBkgndMenu
+		#endif
 	End Destructor
 End Namespace
 
