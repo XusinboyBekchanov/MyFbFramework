@@ -168,7 +168,7 @@ Namespace My.Sys.Forms
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
-		Declare Sub Sort(ColumnIndex As Integer, Direction As ListSortDirection, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
+		Declare Sub Sort(ColumnIndex As Integer = 0, Direction As SortStyle = SortStyle.ssSortAscending, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
 		Declare Operator [](Index As Integer) ByRef As GridRow
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 		FFullRowSelect      As Boolean
 		FSingleClickActivate As Boolean
 		FSortIndex          As Integer
-		FSortOrder               As ListSortDirection
+		FSortOrder          As SortStyle
 		FHoverSelection     As Boolean
 		FLVExStyle          As Integer
 		FRow                As Integer
@@ -325,8 +325,8 @@ Namespace My.Sys.Forms
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property SortIndex As Integer
 		Declare Property SortIndex(Value As Integer)
-		Declare Property SortOrder As ListSortDirection
-		Declare Property SortOrder(Value As ListSortDirection)
+		Declare Property SortOrder As SortStyle
+		Declare Property SortOrder(Value As SortStyle)
 		Declare Property SelectedRow As GridRow Ptr
 		Declare Property SelectedRow(Value As GridRow Ptr)
 		Declare Property SelectedRowIndex As Integer
