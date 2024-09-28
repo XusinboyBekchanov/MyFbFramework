@@ -508,7 +508,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	'#endif
 End Function
 
-Private Function FromUtf8(pZString As ZString Ptr) As WString Ptr
+Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'	#ifdef __USE_GTK__
 	'		Return g_locale_from_utf8(*pZString, Len(*pZString), 0, 0, 0)
 	'	#else
@@ -518,13 +518,12 @@ Private Function FromUtf8(pZString As ZString Ptr) As WString Ptr
 	'UTF-32 little-endian: FF FE 00 00
 	'UTF-32 big-endian: 00 00 FE FF
 	Dim m_BufferLen As Integer = Len(*pZString)
-	If m_BufferLen = 0 Then Return 0
-	Dim As WString Ptr buffer
+	If m_BufferLen = 0 Then Return ""
+	Static As WString Ptr buffer
 	WDeAllocate(buffer)
 	WReAllocate(buffer, m_BufferLen)
 	*buffer = String(m_BufferLen, 0)
-	Function = UTFToWChar(1, pZString, buffer, @m_BufferLen)
-	WDeAllocate(buffer)
+	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
 End Function
 
 Private Function ZGet(ByRef subject As ZString Ptr) As String
