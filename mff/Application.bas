@@ -1304,7 +1304,7 @@ End Function
 			pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
 			If FileEncoding = FileEncodings.Utf8 Then
 				Buff =  Input(FileSize, #Fn)
-				pBuff = FromUtf8(StrPtr(Buff))
+				WLet(pBuff, FromUtf8(StrPtr(Buff)))
 				NewLineType= NewLineTypes.LinuxLF
 			Else
 				*pBuff =  WInput(FileSize, #Fn)
