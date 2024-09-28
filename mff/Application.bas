@@ -727,6 +727,9 @@ Namespace My
 		If FCurLanguagePath Then _Deallocate( FCurLanguagePath)
 		If FLanguage Then _Deallocate( FLanguage)
 		If This._vinfo <> 0 Then _Deallocate((This._vinfo)) : This._vinfo = 0
+		DeleteObject hbrBkgnd
+		DeleteObject hbrHlBkgnd
+		DeleteObject hbrBkgndMenu
 	End Destructor
 End Namespace
 
@@ -1299,7 +1302,7 @@ End Function
 			pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
 			If FileEncoding = FileEncodings.Utf8 Then
 				Buff =  Input(FileSize, #Fn)
-				WLet(pBuff, FromUtf8(StrPtr(Buff)))
+				pBuff = FromUtf8(StrPtr(Buff))
 				NewLineType= NewLineTypes.LinuxLF
 			Else
 				*pBuff =  WInput(FileSize, #Fn)

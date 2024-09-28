@@ -181,6 +181,7 @@ Namespace My.Sys.Drawing
 				Put #F,,BM
 				Put #F,,PixelData()
 				CloseFile_(F)
+				Erase PixelData
 			#endif
 			Return True
 		End Function

@@ -673,6 +673,7 @@ Private Function ConsoleType.ReverseTextColor(ByVal pRow As Integer, ByVal pCol 
 		Next
 	End If
 	WriteBufferAttribute pRow, pCol, attr(), c
+	Erase attr
 	Return c
 End Function
 

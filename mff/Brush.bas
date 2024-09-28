@@ -14,12 +14,13 @@
 
 #ifdef __USE_WINAPI__
 	' ugly colors for illustration purposes
-	g_brItemBackground = CreateSolidBrush(RGB(&hC0, &hC0, &hFF))
-	g_brItemBackgroundHot = CreateSolidBrush(RGB(&hD0, &hD0, &hFF))
-	g_brItemBackgroundSelected = CreateSolidBrush(RGB(&hE0, &hE0, &hFF))
+	g_brItemBackground = CreateSolidBrush(BGR(&hC0, &hC0, &hFF))
+	g_brItemBackgroundHot = CreateSolidBrush(BGR(&hD0, &hD0, &hFF))
+	g_brItemBackgroundSelected = CreateSolidBrush(BGR(&hE0, &hE0, &hFF))
 	g_menuTheme = 0
 	hbrBkgnd = CreateSolidBrush(darkBkColor)
 	hbrHlBkgnd = CreateSolidBrush(darkHlBkColor)
+	hbrBkgndMenu = CreateSolidBrush(darkBkColorMenu)
 #endif
 
 Namespace My.Sys.Drawing
