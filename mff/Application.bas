@@ -1320,8 +1320,15 @@ End Function
 		Dim As Integer Fn = FreeFile_
 		Dim As Integer Result
 		Dim As String FileEncodingText, NewLine
+		
 		If FileEncoding = FileEncodings.Utf8 Then
-			FileEncodingText = "ascii"
+			#ifdef __USE_WINAPI__
+				FileEncodingText = "ascii"
+				FileEncoding = FileEncodings.Utf8
+			#else
+				FileEncodingText = "ascii"
+				FileEncoding = FileEncodings.PlainText
+			#endif
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
 			FileEncodingText = "utf-8"
 		ElseIf FileEncoding = FileEncodings.Utf16BOM Then
