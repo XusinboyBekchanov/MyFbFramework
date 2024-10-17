@@ -843,6 +843,14 @@ Namespace My.Sys.Forms
 			Select Case Message.Msg
 			Case WM_PAINT
 				Message.Result = 0
+			Case WM_DPICHANGED
+				Base.ProcessMessage(Message)
+				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
+				If SelectedImages Then SelectedImages->SetImageSize SelectedImages->ImageWidth, SelectedImages->ImageHeight, xdpi, ydpi
+				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_NORMAL)
+				If SelectedImages AndAlso SelectedImages->Handle Then ListView_SetImageList(FHandle, CInt(SelectedImages->Handle), TVSIL_STATE)
+				RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
+				Return
 			Case WM_DESTROY
 				If Images Then TreeView_SetImageList(FHandle, 0, TVSIL_NORMAL)
 				If SelectedImages Then TreeView_SetImageList(FHandle, 0, TVSIL_STATE)

@@ -1072,19 +1072,22 @@ Namespace My.Sys.Forms
 				If ImagesList Then ImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If HotImagesList Then HotImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If DisabledImagesList Then DisabledImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
+				If ImagesList AndAlso ImagesList->Handle Then Perform(TB_SETIMAGELIST, 0, CInt(ImagesList->Handle))
+				If HotImagesList AndAlso HotImagesList->Handle Then Perform(TB_SETHOTIMAGELIST, 0, CInt(HotImagesList->Handle))
+				If DisabledImagesList AndAlso DisabledImagesList->Handle Then Perform(TB_SETDISABLEDIMAGELIST, 0, CInt(DisabledImagesList->Handle))
 				If ImagesList AndAlso ImagesList->Handle Then SendMessage(FHandle, TB_SETIMAGELIST, 0, CInt(ImagesList->Handle))
 				For i As Integer = 0 To Buttons.Count - 1
 					Buttons.Item(i)->xdpi = xdpi
 					Buttons.Item(i)->ydpi = ydpi
 					Buttons.Item(i)->Update
 				Next
-				Dim As ..Size sz
-				SendMessage FHandle, TB_GETIDEALSIZE, False, Cast(LPARAM, @sz)
-				sz.cx = 10000
-				sz.cy = ScaleY(FHeight)
-				SendMessage FHandle, TB_GETIDEALSIZE, 1, Cast(LPARAM, @sz)
-				SetBounds FLeft, FTop, FWidth, UnScaleY(sz.cy)
-				If Parent Then Parent->RequestAlign
+				'Dim As ..Size sz
+				'SendMessage FHandle, TB_GETIDEALSIZE, False, Cast(LPARAM, @sz)
+				'sz.cx = 10000
+				'sz.cy = ScaleY(FHeight)
+				'SendMessage FHandle, TB_GETIDEALSIZE, 1, Cast(LPARAM, @sz)
+				'SetBounds FLeft, FTop, FWidth, UnScaleY(sz.cy)
+				'If Parent Then Parent->RequestAlign
 				Return
 			Case WM_COMMAND
 				GetDropDownMenuItems
