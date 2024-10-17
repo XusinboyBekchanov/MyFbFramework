@@ -158,12 +158,12 @@ Namespace My.Sys.Forms
 	Private Property ListViewItem.Text(iSubItem As Integer) ByRef As WString
 		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
-				WReAllocate(FText, 255)
+				WReAllocate(FText, 1024)
 				lvi.mask = LVIF_TEXT
 				lvi.iItem = Index
 				lvi.iSubItem   = iSubItem
 				lvi.pszText    = FText
-				lvi.cchTextMax = 255
+				lvi.cchTextMax = 1024
 				ListView_GetItem(Parent->Handle, @lvi)
 				FSubItems.Item(iSubItem) = *FText
 				Return FSubItems.Item(iSubItem)
@@ -382,8 +382,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				Dim As GError Ptr gerr
+				Dim As Integer iSize = IIf(Cast(ListView Ptr, Parent)->Images, Max(Cast(ListView Ptr, Parent)->Images->ImageWidth, Cast(ListView Ptr, Parent)->Images->ImageHeight), 16)
 				If Value <> "" Then
-					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
 					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
 				End If
 			End If
@@ -590,13 +591,14 @@ Namespace My.Sys.Forms
 	
 	Private Property ListViewItems.Item(Index As Integer) As ListViewItem Ptr
 		If Index >= 0 AndAlso Index < FItems.Count Then
-			Return FItems.Items[Index] 'QListViewItem(FItems.Items[Index])
+			Return FItems.Items[Index]
 		End If
+		Return 0
 	End Property
 	
 	Private Property ListViewItems.Item(Index As Integer, Value As ListViewItem Ptr)
 		If Index >= 0 AndAlso Index < FItems.Count Then
-			FItems.Items[Index] = Value  'David Change
+			FItems.Items[Index] = Value
 		End If
 	End Property
 	
@@ -845,9 +847,10 @@ Namespace My.Sys.Forms
 			.Index = Index
 			.Width     = iWidth
 			.Format = Format
+			
 		End With
-		#ifdef __USE_GTK__
 			If Parent Then
+			#ifdef __USE_GTK__
 				PColumn->Column = gtk_tree_view_column_new()
 				gtk_tree_view_column_set_reorderable(PColumn->Column, Cast(ListView Ptr, Parent)->AllowColumnReorder)
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
@@ -889,7 +892,7 @@ Namespace My.Sys.Forms
 				#else
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
 				#endif
-			End If
+				
 		#elseif defined(__USE_WINAPI__)
 			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvc.fmt       =  Format
@@ -899,7 +902,6 @@ Namespace My.Sys.Forms
 			lvc.pszText  = @FCaption
 			lvc.cchTextMax = Len(FCaption)
 		#endif
-		If Parent Then
 			PColumn->Parent = Parent
 			#ifdef __USE_GTK__
 				
@@ -929,7 +931,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  Format
-			lvc.cx=0
+			lvc.cx        =  0
 			lvc.iImage   = PColumn->ImageIndex
 			lvc.iSubItem = PColumn->Index
 			lvc.pszText  = @FCaption
@@ -961,6 +963,11 @@ Namespace My.Sys.Forms
 		For i As Integer = Count -1 To 0 Step -1
 			_Delete( @QListViewColumn(FColumns.Items[i]))
 			Remove i
+			#ifdef __USE_WINAPI__
+				If Parent AndAlso Parent->Handle Then
+					SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, i), 0
+				End If
+			#endif
 		Next i
 		FColumns.Clear
 	End Sub
@@ -1432,8 +1439,15 @@ Namespace My.Sys.Forms
 				FItemHeight = 0
 				Base.ProcessMessage(Message)
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
+				If SmallImages Then SmallImages->SetImageSize SmallImages->ImageWidth, SmallImages->ImageHeight, xdpi, ydpi
 				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
-				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_SMALL)
+				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
+				If GroupHeaderImages Then GroupHeaderImages->SetImageSize GroupHeaderImages->ImageWidth, GroupHeaderImages->ImageHeight, xdpi, ydpi
+				
+				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_NORMAL)
+				If SmallImages AndAlso SmallImages->Handle Then ListView_SetImageList(FHandle, CInt(SmallImages->Handle), LVSIL_SMALL)
+				If StateImages AndAlso StateImages->Handle Then ListView_SetImageList(FHandle, CInt(StateImages->Handle), LVSIL_STATE)
+				If GroupHeaderImages AndAlso GroupHeaderImages->Handle Then ListView_SetImageList(FHandle, CInt(GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
 				For i As Integer = 0 To Columns.Count - 1
 					Columns.Column(i)->xdpi = xdpi
 					Columns.Column(i)->ydpi = ydpi
