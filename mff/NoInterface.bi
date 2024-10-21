@@ -308,7 +308,7 @@ End Function
 			End If
 		End If
 		CloseFile_(Fn)
-		Return *pBuff
+		If pBuff > 0 Then Return *pBuff Else Return ""
 	End Function
 #endif
 

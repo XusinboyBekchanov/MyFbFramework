@@ -115,7 +115,7 @@ Namespace My.Sys
 			FFormat = Cast(WString Ptr, _Reallocate(FFormat, (i + 1) * SizeOf(WString)))
 			*FFormat = ..Left(s, i)
 		#endif
-		Return *FFormat
+		If FFormat > 0 Then Return *FFormat Else Return ""
 	End Property
 	
 	Private Property ClipboardType.Format(ByRef Value As WString)

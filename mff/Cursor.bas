@@ -187,7 +187,7 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Function Cursor.ToString() ByRef As WString
-		Return *FResName
+		If FResName > 0 Then Return *FResName Else Return ""
 	End Function
 	
 	#ifdef __USE_WINAPI__

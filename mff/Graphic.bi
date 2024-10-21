@@ -28,7 +28,7 @@ Namespace My.Sys.Drawing
 	
 	Private Type GraphicType Extends My.Sys.Object
 	Private:
-		FResName As UString
+		FResName As WString Ptr
 		Declare Static Sub BitmapChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.BitmapType)
 		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 		Declare Static Sub CursorChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Cursor)

@@ -686,6 +686,6 @@ End Sub
 	End Sub
 	
 	Function IsComponent Alias "IsComponent"(Obj As My.Sys.Object Ptr) As Boolean Export
-		Return *Obj Is My.Sys.ComponentModel.Component
+		If Obj > 0  Then Return *Obj Is My.Sys.ComponentModel.Component Else Return  False
 	End Function
 #endif
