@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property StatusPanel.Caption ByRef As WString
-		Return *FCaption
+		If FCaption > 0 Then Return *FCaption Else Return ""
 	End Property
 	
 	Private Property StatusPanel.Caption(ByRef Value As WString)
@@ -61,7 +61,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property StatusPanel.Name ByRef As WString
-		Return *FName
+		If FName > 0 Then Return *FName Else Return ""
 	End Property
 	
 	Private Property StatusPanel.Name(ByRef Value As WString)
@@ -372,7 +372,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property StatusBar.SimpleText ByRef As WString
-		Return *FSimpleText
+		If FSimpleText > 0 Then Return *FSimpleText Else Return ""
 	End Property
 	
 	Private Property StatusBar.SimpleText(ByRef Value As WString)

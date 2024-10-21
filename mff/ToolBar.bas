@@ -605,8 +605,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor ToolButton
-		FHint = 0 'CAllocate_(0)
-		FCaption = 0 'CAllocate_(0)
+		WLet(FName, "")
+		WLet(FImageKey, "")
 		WLet(FClassName, "ToolButton")
 		#ifdef __USE_GTK__
 			Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8("")))
@@ -615,9 +615,9 @@ Namespace My.Sys.Forms
 		FEnabled    = 1
 		FVisible    = 1
 		FState      = tstEnabled
-		Caption    = ""
-		Hint       = ""
-		FShowHint   = 0
+		WLet(FCaption, "")
+		WLet(FHint, "")
+		FShowHint   = False
 		FImageIndex = -1
 	End Constructor
 	

@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 			txtrange.lpstrText = FTextRange
 			SendMessage(FHandle, EM_GETTEXTRANGE, 0, CInt(@txtrange))
 		#endif
-		Return *FTextRange
+		If FTextRange> 0 Then Return *FTextRange Else Return ""
 	End Function
 	
 	Private Property RichTextBox.SelAlignment As AlignmentConstants
@@ -529,7 +529,7 @@ Namespace My.Sys.Forms
 				list = g_slist_next(list)
 			Wend
 			g_slist_free(list)
-			Return *FSelWStrVal
+			If FSelWStrVal > 0 Then Return *FSelWStrVal Else Return ""
 		End Function
 		
 		Private Sub RichTextBox.SetStrProperty(sProperty As String, ByRef Value As WString, WithoutPrevValue As Boolean = False)
@@ -1113,7 +1113,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#endif
-		Return *FSelText
+		If FSelText > 0 Then Return *FSelText Else Return ""
 	End Property
 	
 	Private Property RichTextBox.SelText(ByRef Value As WString)

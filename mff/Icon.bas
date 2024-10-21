@@ -55,7 +55,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Function Icon.ToString() ByRef As WString
-		Return *FResName
+		If FResName > 0 Then Return *FResName Else Return ""
 	End Function
 	
 	#ifndef Icon_Width_Get_Off

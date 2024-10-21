@@ -731,6 +731,9 @@ Namespace My
 			DeleteObject hbrBkgnd
 			DeleteObject hbrHlBkgnd
 			DeleteObject hbrBkgndMenu
+			DeleteObject g_brItemBackground
+			DeleteObject g_brItemBackgroundHot
+			DeleteObject g_brItemBackgroundSelected
 		#endif
 	End Destructor
 End Namespace
@@ -1245,7 +1248,7 @@ End Function
 		Return IsUTF8
 	End Function
 	
-	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) ByRef As WString
+	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As WString Ptr
 		Dim As String Buff, EncodingStr
 		Dim As Integer Result = -1, Fn, FileSize
 		'check the Newlinetype again for missing Cr in AsicII file
@@ -1293,11 +1296,11 @@ End Function
 		Else
 			CloseFile_(Fn)
 			Debug.Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Open file failure: " + FileName, True
-			Return ""
+			Return 0
 		End If
 		CloseFile_(Fn)
 		
-		Static As WString Ptr pBuff
+		Dim As WString Ptr pBuff = 0
 		Fn = FreeFile_
 		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 		If Result = 0 Then
@@ -1311,7 +1314,7 @@ End Function
 			End If
 		End If
 		CloseFile_(Fn)
-		Return *pBuff
+		Return pBuff
 	End Function
 #endif
 

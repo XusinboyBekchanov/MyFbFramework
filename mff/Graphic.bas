@@ -103,16 +103,16 @@ Namespace My.Sys.Drawing
 			#ifdef __USE_GTK__
 				Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 			#elseif defined(__USE_WINAPI__)
-				FResName = Str(ResID)
-				If FindResource(ModuleHandle, FResName, RT_BITMAP) Then
+				WLet(FResName, Str(ResID))
+				If FindResource(ModuleHandle, *FResName, RT_BITMAP) Then
 					Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
-				ElseIf FindResource(ModuleHandle, FResName, "PNG") Then
+				ElseIf FindResource(ModuleHandle, *FResName, "PNG") Then
 					Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
-				ElseIf FindResource(ModuleHandle, FResName, RT_ICON) Then
+				ElseIf FindResource(ModuleHandle, *FResName, RT_ICON) Then
 					Return Icon.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
-				ElseIf FindResource(ModuleHandle, FResName, RT_CURSOR) Then
+				ElseIf FindResource(ModuleHandle, *FResName, RT_CURSOR) Then
 					Return Cursor.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
-				ElseIf FindResource(ModuleHandle, FResName, RT_RCDATA) Then
+				ElseIf FindResource(ModuleHandle, *FResName, RT_RCDATA) Then
 					Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
 				Else
 					Return Bitmap.LoadFromResourceID(ResID, ModuleHandle, cxDesired, cyDesired)
@@ -125,7 +125,7 @@ Namespace My.Sys.Drawing
 	
 	#ifndef GraphicType_LoadFromResourceName_Off
 		Private Function GraphicType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-			FResName = ResName
+			WLet(FResName, ResName)
 			#ifdef __USE_GTK__
 				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
 			#elseif defined(__USE_WASM__)
@@ -190,7 +190,7 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Function GraphicType.ToString() ByRef As WString
-		Return *FResName.vptr
+		If FResName > 0 Then Return *FResName Else Return ""
 	End Function
 	
 	Private Constructor GraphicType
@@ -204,6 +204,8 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor GraphicType
+		If FClassName Then _Deallocate(FClassName)
+		If FResName Then _Deallocate(FResName)
 	End Destructor
 End Namespace
 

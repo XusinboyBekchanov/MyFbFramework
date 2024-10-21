@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property TabControl.GroupName ByRef As WString
-		Return *FGroupName
+		If FGroupName > 0 Then Return *FGroupName Else Return ""
 	End Property
 	
 	Private Property TabControl.GroupName(ByRef Value As WString)
@@ -241,7 +241,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TabPage.ImageKey ByRef As WString
-		Return *FImageKey
+		If FImageKey > 0 Then Return *FImageKey Else Return ""
 	End Property
 	
 	Private Property TabPage.ImageKey(ByRef Value As WString)

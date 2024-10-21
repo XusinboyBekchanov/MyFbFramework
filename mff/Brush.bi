@@ -17,8 +17,8 @@
 	Dim Shared As COLORREF darkBkColorMenu = BGR(41, 41, 41) 
 	Dim Shared As COLORREF darkBkColorGreen = BGR(55, 166, 96)
 	Dim Shared As COLORREF darkBkColorBlue = BGR(89, 143, 236)
-	Dim Shared As COLORREF darkBkColor = &h383838
-	Dim Shared As COLORREF darkBkColorDark = BGR(31, 31, 31)
+	Dim Shared As COLORREF darkBkColor = &H303030
+	Dim Shared As COLORREF darkBkColorDark = &H414141
 	Dim Shared As COLORREF darkHlBkColor = &h626262
 	Dim Shared As COLORREF darkTextColor = BGR(255, 255, 255) 
 	
@@ -33,9 +33,9 @@
 	Dim Shared As Integer darkBkColorMenu = BGR(41, 41, 41)
 	Dim Shared As Integer darkBkColorGreen = BGR(55, 166, 96)
 	Dim Shared As Integer darkBkColorBlue = BGR(89, 143, 236)
-	Dim Shared As Integer darkBkColor = BGR(38, 38, 38)
-	Dim Shared As Integer darkBkColorDark = BGR(31, 31, 31)
-	Dim Shared As Integer darkHlBkColor = BGR(62, 62, 62) 
+	Dim Shared As Integer darkBkColor = &H303030
+	Dim Shared As Integer darkBkColorDark =&H414141
+	Dim Shared As Integer darkHlBkColor = &H626262
 	Dim Shared As Integer darkTextColor = BGR(255, 255, 255) 
 #endif
 
