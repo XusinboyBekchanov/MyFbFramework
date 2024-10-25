@@ -204,7 +204,6 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor GraphicType
-		If FClassName Then _Deallocate(FClassName)
 		If FResName Then _Deallocate(FResName)
 	End Destructor
 End Namespace
