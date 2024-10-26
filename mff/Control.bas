@@ -435,7 +435,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef Hint_Off
 			Private Property Control.Hint ByRef As WString
-				Return WGet(FHint)
+				If FHint > 0 Then Return *FHint Else Return ""
 			End Property
 			
 			Private Property Control.Hint(ByRef Value As WString)
@@ -3068,7 +3068,6 @@ Namespace My.Sys.Forms
 			FVisible = True
 			FEnabled = True
 			Cursor.Ctrl = @This
-			'FHint = CAllocate(0)
 		End Constructor
 		
 		Private Destructor Control

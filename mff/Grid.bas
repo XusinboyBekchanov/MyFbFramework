@@ -330,8 +330,6 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor GridRow
-		FHint               = 0 'CAllocate_(0)
-		FText               = 0 'CAllocate_(0)
 		FVisible            = 1
 		Text(0)             = ""
 		Hint                = ""
@@ -356,7 +354,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Property GridColumn.Text ByRef As WString
-		Return WGet(FText)
+		If FText > 0 Then Return *FText Else Return ""
 	End Property
 	
 	Private Property GridColumn.Text(ByRef Value As WString)
@@ -502,8 +500,6 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor GridColumn
-		FHint = 0
-		FText = 0
 		FVisible     = 1
 		Text         = ""
 		Hint         = ""

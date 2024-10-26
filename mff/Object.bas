@@ -39,9 +39,9 @@ Namespace My.Sys
 	End Operator
 	
 	Private Function Object.ClassName ByRef As WString
-		If IsEmpty Then Return WStr("")
-		If FClassName = 0 Or FClassName = 24 Then
-			Return WStr("")
+		If IsEmpty Then Return ""
+		If FClassName = 0 OrElse FClassName = 24 Then
+			Return ""
 		Else
 			Return *FClassName
 		End If
@@ -237,16 +237,12 @@ Namespace My.Sys
 		End Function
 	#endif
 
-	Private Constructor Object
-		FTemp = 0
-		FClassName = 0 'CAllocate(0)
-		'FClassAncestor = CAllocate(0)
-		'FName = CAllocate(0)
-	End Constructor
-	
 	Destructor Object
-		WDeAllocate(FTemp)
-		WDeAllocate(FClassName)
+		If FTemp Then _Deallocate(FTemp)
+		If FClassName Then _Deallocate(FClassName)
+		#ifdef __USE_WASM__
+			If FBody Then _Deallocate(FBody)
+		#endif
 	End Destructor
 End Namespace
 

@@ -89,7 +89,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End If
-		Return WGet(FInitialDir)
+		If FInitialDir > 0 Then Return *FInitialDir Else Return ""
 	End Property
 	
 	Private Property OpenFileControl.InitialDir(ByRef Value As WString)
@@ -102,7 +102,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property OpenFileControl.DefaultExt ByRef As WString
-		Return WGet(FDefaultExt)
+		If FDefaultExt > 0 Then Return *FDefaultExt Else Return ""
 	End Property
 	
 	Private Property OpenFileControl.DefaultExt(ByRef Value As WString)
@@ -128,7 +128,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End If
-		Return WGet(FFileName)
+		If FFileName > 0 Then Return *FFileName Else Return ""
 	End Property
 	
 	Private Property OpenFileControl.FileName(ByRef Value As WString)
@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End If
-		Return WGet(FFileTitle)
+		If FFileTitle > 0 Then Return *FFileTitle Else Return ""
 	End Property
 	
 	Private Property OpenFileControl.FileTitle(ByRef Value As WString)
@@ -169,7 +169,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property OpenFileControl.Filter ByRef As WString
-		Return WGet(FFilter)
+		If FFilter > 0 Then Return *FFilter Else Return ""
 	End Property
 	
 	Private Property OpenFileControl.Filter(ByRef Value As WString)
@@ -658,11 +658,6 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Constructor OpenFileControl
-		'FInitialDir       = CAllocate(0)
-		'FCaption          = CAllocate(0)
-		'FDefaultExt       = CAllocate(0)
-		'FFileName         = CAllocate(0)
-		'FFilter           = CAllocate(0)
 		#ifdef __USE_GTK__
 			widget =  gtk_file_chooser_widget_new (GTK_FILE_CHOOSER_ACTION_OPEN)
 			g_signal_connect(widget, "current-folder-changed", G_CALLBACK(@FileChooser_CurrentFolderChanged), @This)
@@ -686,16 +681,17 @@ Namespace My.Sys.Forms
 		FTabIndex          = -1
 		FTabStop           = True
 		WLet(FClassName, "OpenFileControl")
+		WLet(FFilter, "")
 		FilterIndex       = 1
 		'Control.Child     = @This
 	End Constructor
 	
 	Private Destructor OpenFileControl
-		If FInitialDir Then _Deallocate( FInitialDir)
-		If FDefaultExt Then _Deallocate( FDefaultExt)
-		If FFileName Then _Deallocate( FFileName)
-		If FFileTitle Then _Deallocate( FFileTitle)
-		If FFilter Then _Deallocate( FFilter)
+		If FInitialDir Then _Deallocate(FInitialDir)
+		If FDefaultExt Then _Deallocate(FDefaultExt)
+		If FFileName Then _Deallocate(FFileName)
+		If FFileTitle Then _Deallocate(FFileTitle)
+		If FFilter Then _Deallocate(FFilter)
 		#ifndef __USE_GTK__
 			If FHandle Then SetWindowLongPtr(FHandle, GWLP_WNDPROC, CInt(GetProp(FHandle, "@@@@Proc")))
 			SendMessage(FHandle, WM_SYSCOMMAND, SC_CLOSE, 0)

@@ -154,7 +154,7 @@ Namespace My.Sys.Forms
 					Dim As TCITEM Ti
 					Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 					This.Parent->Perform(TCM_GETITEM, Index, CInt(@Ti))
-					Ti.cchTextMax = Len(WGet(FCaption)) + 1
+					Ti.cchTextMax = Len(*FCaption) + 1
 					Ti.pszText = FCaption
 					If FObject Then Ti.lParam = Cast(LPARAM, FObject)
 					If Cast(TabControl Ptr, This.Parent)->Images AndAlso FImageKey <> 0 Then
@@ -191,7 +191,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TabPage.Text ByRef As WString
-		Return WGet(FCaption)
+		Return *FCaption
 	End Property
 	
 	Private Property TabPage.Text(ByRef Value As WString)
@@ -295,13 +295,14 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor TabPage
-		'Caption = ""
 		FObject    = 0
 		FImageIndex        = 0
 		'Anchor.Left = asAnchor
 		'Anchor.Top = asAnchor
 		'Anchor.Right = asAnchor
 		'Anchor.Bottom = asAnchor
+		Caption = " "
+		Text    = " "
 		WLet(FClassName, "TabPage")
 		WLet(FClassAncestor, "Panel")
 		Child = @This
@@ -317,8 +318,8 @@ Namespace My.Sys.Forms
 	
 	Private Destructor TabPage
 		'If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
-		WDeAllocate(FCaption)
-		WDeAllocate(FImageKey)
+		If FCaption Then _Deallocate(FCaption)
+		If FImageKey Then _Deallocate(FImageKey)
 	End Destructor
 	
 	#ifndef ReadProperty_Off
@@ -1302,8 +1303,8 @@ Namespace My.Sys.Forms
 			Tabs[i]->Parent = 0
 			If Tabs[i]->FDynamic Then _Delete(Tabs[i])
 		Next
-		If Tabs <> 0 Then _Deallocate(Tabs)
-		WDeAllocate(FGroupName)
+		If Tabs <> 0 Then _Delete(Tabs)
+		If FGroupName Then _Deallocate(FGroupName)
 		'UnregisterClass "TabControl", GetModuleHandle(NULL)
 	End Destructor
 	

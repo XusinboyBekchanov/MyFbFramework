@@ -121,7 +121,7 @@ Private Property OpenFileDialog.InitialDir(ByRef Value As WString)
 End Property
 
 Private Property OpenFileDialog.Caption ByRef As WString
-	Return WGet(FCaption)
+	If FCaption > 0 Then Return *FCaption Else Return ""
 End Property
 
 Private Property OpenFileDialog.Caption(ByRef Value As WString)
@@ -130,7 +130,7 @@ Private Property OpenFileDialog.Caption(ByRef Value As WString)
 End Property
 
 Private Property OpenFileDialog.DefaultExt ByRef As WString
-	Return WGet(FDefaultExt)
+	If FDefaultExt > 0 Then Return *FDefaultExt Else Return ""
 End Property
 
 Private Property OpenFileDialog.DefaultExt(ByRef Value As WString)
@@ -139,7 +139,7 @@ Private Property OpenFileDialog.DefaultExt(ByRef Value As WString)
 End Property
 
 Private Property OpenFileDialog.FileName ByRef As WString
-	Return WGet(FFileName)
+	If FFileName > 0 Then Return *FFileName Else Return ""
 End Property
 
 Private Property OpenFileDialog.FileName(ByRef Value As WString)
@@ -147,7 +147,7 @@ Private Property OpenFileDialog.FileName(ByRef Value As WString)
 End Property
 
 Private Property OpenFileDialog.FileTitle ByRef As WString
-	Return WGet(FFileTitle)
+	If FFileTitle > 0 Then Return *FFileTitle Else Return ""
 End Property
 
 Private Property OpenFileDialog.FileTitle(ByRef Value As WString)
@@ -155,7 +155,7 @@ Private Property OpenFileDialog.FileTitle(ByRef Value As WString)
 End Property
 
 Private Property OpenFileDialog.Filter ByRef As WString
-	Return WGet(FFilter)
+	If FFilter > 0 Then Return *FFilter Else Return ""
 End Property
 
 Private Property OpenFileDialog.Filter(ByRef Value As WString)
@@ -349,11 +349,6 @@ Private Function OpenFileDialog.Execute As Boolean
 End Function
 
 Private Constructor OpenFileDialog
-	'FInitialDir       = CAllocate(0)
-	'FCaption          = CAllocate(0)
-	'FDefaultExt       = CAllocate(0)
-	'FFileName         = CAllocate(0)
-	'FFilter           = CAllocate(0)
 	#ifdef __USE_GTK__
 		
 	#else
@@ -363,7 +358,9 @@ Private Constructor OpenFileDialog
 		'Options.Include OFN_HIDEREADONLY
 		'Options.Include OFN_ENABLEHOOK
 	#endif
-	Caption           = "Open ..."
+	WLet(FCaption, "Open ...")
+	WLet(FFilter, "")
+	WLet(FFileName, "")
 	FilterIndex       = 1
 	Center            = True
 	'Control.Child     = @This
@@ -371,12 +368,12 @@ Private Constructor OpenFileDialog
 End Constructor
 
 Private Destructor OpenFileDialog
-	If FInitialDir Then _Deallocate( FInitialDir)
+	If FInitialDir Then _Deallocate(FInitialDir)
 	If FCaption Then _Deallocate( FCaption)
 	If FDefaultExt Then _Deallocate( FDefaultExt)
 	If FFileName Then _Deallocate( FFileName)
 	If FFileTitle Then _Deallocate( FFileTitle)
-	If FFilter Then _Deallocate( FFilter)
+	If FFilter Then _Deallocate(FFilter)
 End Destructor
 
 #ifndef ReadProperty_Off
@@ -412,7 +409,7 @@ End Destructor
 #endif
 
 Private Property SaveFileDialog.InitialDir ByRef As WString
-	Return WGet(FInitialDir)
+	If FInitialDir > 0 Then Return *FInitialDir Else Return ""
 End Property
 
 Private Property SaveFileDialog.InitialDir(ByRef Value As WString)
@@ -421,7 +418,7 @@ Private Property SaveFileDialog.InitialDir(ByRef Value As WString)
 End Property
 
 Private Property SaveFileDialog.Caption ByRef As WString
-	Return WGet(FCaption)
+	If FCaption > 0 Then Return *FCaption Else Return ""
 End Property
 
 Private Property SaveFileDialog.Caption(ByRef Value As WString)
@@ -430,7 +427,7 @@ Private Property SaveFileDialog.Caption(ByRef Value As WString)
 End Property
 
 Private Property SaveFileDialog.DefaultExt ByRef As WString
-	Return WGet(FDefaultExt)
+	If FDefaultExt > 0 Then Return *FDefaultExt Else Return ""
 End Property
 
 Private Property SaveFileDialog.DefaultExt(ByRef Value As WString)
@@ -439,7 +436,7 @@ Private Property SaveFileDialog.DefaultExt(ByRef Value As WString)
 End Property
 
 Private Property SaveFileDialog.FileName ByRef As WString
-	Return WGet(FFileName)
+	If FFileName > 0 Then Return *FFileName Else Return ""
 End Property
 
 Private Property SaveFileDialog.FileName(ByRef Value As WString)
@@ -448,7 +445,7 @@ Private Property SaveFileDialog.FileName(ByRef Value As WString)
 End Property
 
 Private Property SaveFileDialog.Filter ByRef As WString
-	Return WGet(FFilter)
+	If FFilter > 0 Then Return *FFilter Else Return ""
 End Property
 
 Private Property SaveFileDialog.Filter(ByRef Value As WString)
@@ -535,7 +532,7 @@ Private Function SaveFileDialog.Execute As Boolean
 			Next
 			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
 		End If
-		If WGet(FFileName) <> "" Then
+		If *FFileName <> "" Then
 			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
 		End If
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
@@ -587,7 +584,7 @@ Private Function SaveFileDialog.Execute As Boolean
 			If (dwFlags And OFN_ALLOWMULTISELECT = OFN_ALLOWMULTISELECT) Then dwBufLen = 32768  ' // 64 Kb buffer
 		End If
 		If dwBufLen < 260 Then dwBufLen = 260
-		Dim cwsFile As WString Ptr = _CAllocate((Len(*FFileName & "|") + 1) * SizeOf(WString))
+		Dim cwsFile As WString Ptr = _Allocate((Len(*FFileName & "|") + 1) * SizeOf(WString))
 		*cwsFile = *FFileName & "|"
 		Dim cbPos As Long = Len(*cwsFile) - 1
 		If Len(*cwsFile) < dwBufLen Then cwsFile = _Reallocate(cwsFile, (dwBufLen + 1) * SizeOf(WString)): *cwsFile += Space(dwBufLen - Len(*cwsFile))
@@ -640,12 +637,9 @@ Private Property SaveFileDialog.Color(Value As Integer)
 End Property
 
 Private Constructor SaveFileDialog
-	FInitialDir   = 0 'CAllocate_(0)
-	FCaption      = 0 'CAllocate_(0)
-	FDefaultExt   = 0 'CAllocate_(0)
-	FFileName     = 0 'CAllocate_(0)
-	FFilter       = 0 'CAllocate_(0)
-	Caption       = "Save As"
+	WLet(FCaption, "Save As")
+	WLet(FFilter, "")
+	WLet(FFileName, "")
 	FilterIndex   = 1
 	WLet(FClassName, "SaveFileDialog")
 	Center        = True
@@ -806,7 +800,7 @@ End Destructor
 #endif
 
 Private Property FolderBrowserDialog.Caption ByRef As WString
-	Return WGet(FCaption)
+	If FCaption > 0 Then Return *FCaption Else Return ""
 End Property
 
 Private Property FolderBrowserDialog.Caption(ByRef Value As WString)
@@ -815,7 +809,7 @@ Private Property FolderBrowserDialog.Caption(ByRef Value As WString)
 End Property
 
 Private Property FolderBrowserDialog.Title ByRef As WString
-	Return WGet(FTitle)
+	If FTitle > 0 Then Return *FTitle Else Return ""
 End Property
 
 Private Property FolderBrowserDialog.Title(ByRef Value As WString)
@@ -824,7 +818,7 @@ Private Property FolderBrowserDialog.Title(ByRef Value As WString)
 End Property
 
 Private Property FolderBrowserDialog.InitialDir ByRef As WString
-	Return WGet(FInitialDir)
+	If FInitialDir > 0 Then Return *FInitialDir Else Return ""
 End Property
 
 Private Property FolderBrowserDialog.InitialDir(ByRef Value As WString)
@@ -833,7 +827,7 @@ Private Property FolderBrowserDialog.InitialDir(ByRef Value As WString)
 End Property
 
 Private Property FolderBrowserDialog.Directory ByRef As WString
-	Return WGet(FDirectory)
+	If FDirectory > 0 Then Return *FDirectory Else Return ""
 End Property
 
 Private Property FolderBrowserDialog.Directory(ByRef Value As WString)
@@ -934,8 +928,6 @@ Private Function FolderBrowserDialog.Execute As Boolean
 End Function
 
 Private Constructor FolderBrowserDialog
-	FCaption = 0 'CAllocate_(0)
-	FTitle = 0 'CAllocate_(0)
 	WLet(FClassName, "FolderBrowserDialog")
 	FInitialDir = 0 'CAllocate_(0)
 	FDirectory = 0 'CAllocate_(0)
@@ -1028,7 +1020,7 @@ End Destructor
 #endif
 
 Private Property ColorDialog.Caption ByRef As WString
-	Return WGet(_Caption)
+	Return *_Caption
 End Property
 
 Private Property ColorDialog.Caption(ByRef Value As WString)
@@ -1100,7 +1092,7 @@ Private Operator ColorDialog.Cast As Any Ptr
 End Operator
 
 Private Constructor ColorDialog
-	Caption = "Choose Color..."
+	WLet(_Caption, "Choose Color...")
 	WLet(FClassName, "ColorDialog")
 	#ifndef __USE_GTK__
 		BackColor = GetSysColor(COLOR_BTNFACE)
@@ -1108,6 +1100,6 @@ Private Constructor ColorDialog
 End Constructor
 
 Private Destructor ColorDialog
-	WDeAllocate(_Caption)
+	_Deallocate(_Caption)
 End Destructor
 

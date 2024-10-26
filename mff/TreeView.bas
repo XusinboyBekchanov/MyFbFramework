@@ -94,15 +94,15 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Property TreeNode.Text ByRef As WString
-		Return *FText.vptr
+		If FText > 0 Then Return *FText Else Return ""
 	End Property
 	
 	Private Property TreeNode.Text(ByRef Value As WString)
-		FText = Value
+		WLet(FText, Value)
 		#ifdef __USE_GTK__
 			If Parent AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 1, ToUtf8(Value), -1)
-			EndIf
+			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim tvi As TVITEM
@@ -110,8 +110,8 @@ Namespace My.Sys.Forms
 				'TreeView_GetItem(Parent->Handle, @tvi)
 				tvi.mask = TVIF_TEXT
 				tvi.hItem = Handle
-				tvi.pszText = FText.vptr
-				tvi.cchTextMax = Len(FText)
+				tvi.pszText = FText
+				tvi.cchTextMax = Len(*FText) + 1
 				TreeView_SetItem(Parent->Handle, @tvi)
 			End If
 		#endif
@@ -134,7 +134,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNode.Hint ByRef As WString
-		Return WGet(FHint)
+		If FHint > 0 Then Return *FHint Else Return ""
 	End Property
 	
 	Private Property TreeNode.Hint(ByRef Value As WString)
@@ -142,7 +142,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNode.Name ByRef As WString
-		Return WGet(FName)
+		If FName > 0 Then Return *FName Else Return ""
 	End Property
 	
 	Private Property TreeNode.Name(ByRef Value As WString)
@@ -158,7 +158,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
-			EndIf
+			End If
 		#elseif defined(__USE_WINAPI__)
 			If Value <> FImageIndex Then
 				If Parent AndAlso Parent->Handle Then
@@ -173,18 +173,18 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNode.ImageKey ByRef As WString
-		Return WGet(FImageKey)
+		If FImageKey > 0 Then Return *FImageKey Else Return ""
 	End Property
 	
 	Private Property TreeNode.ImageKey(ByRef Value As WString)
-		If Value <> *FImageKey Then
+		If FImageKey > 0 AndAlso Value <> *FImageKey Then
 			WLet(FImageKey, Value)
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->Images Then
 				FImageIndex = Cast(TreeView Ptr, Parent)->Images->IndexOf(*FImageKey)
 				#ifdef __USE_GTK__
 					If gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 						gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
-					EndIf
+				End If
 				#elseif defined(__USE_WINAPI__)
 					Dim tvi As TVITEM
 					tvi.mask = TVIF_IMAGE
@@ -226,7 +226,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNode.SelectedImageKey ByRef As WString
-		Return WGet(FSelectedImageKey)
+		If FSelectedImageKey > 0 Then Return *FSelectedImageKey Else Return ""
 	End Property
 	
 	Private Property TreeNode.SelectedImageKey(ByRef Value As WString)
@@ -271,12 +271,12 @@ Namespace My.Sys.Forms
 				Else
 					gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Node->Parent->Handle))), @Node->TreeIter, NULL, iIndex)
 				End If
-				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Node->Parent->Handle))), @Node->TreeIter, 1, ToUtf8(Node->FText), -1)
+				gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Node->Parent->Handle))), @Node->TreeIter, 1, ToUtf8(WGet(Node->FText)), -1)
 				Node->ImageIndex = Node->ImageIndex
 				For j As Integer = 0 To Node->Nodes.Count - 1
 					If Node->Nodes.Item(j)->Visible Then AddItems Node->Nodes.Item(j)
 				Next
-			EndIf
+			End If
 		#elseif defined(__USE_WINAPI__)
 			For i As Integer = 0 To Node->Index - 1
 				If pNodes->Item(i)->Visible Then
@@ -286,8 +286,8 @@ Namespace My.Sys.Forms
 			Dim As TVINSERTSTRUCT tvis
 			If Node->Parent AndAlso Node->Parent->Handle AndAlso (Node->ParentNode = 0 OrElse Node->ParentNode->Handle <> 0) Then
 				tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-				tvis.item.pszText              = Node->FText.vptr
-				tvis.item.cchTextMax           = Len(Node->FText)
+				tvis.item.pszText              = Node->FText
+				tvis.item.cchTextMax           = Len(WGet(Node->FText)) + 1
 				tvis.item.iImage             = Node->FImageIndex
 				tvis.item.iSelectedImage     = Node->FSelectedImageIndex
 				tvis.hInsertAfter            = IIf(iIndex = 0, TVI_FIRST, IIf(iIndex < 0, TVI_LAST, pNodes->Item(iIndex - 1)->Handle))
@@ -335,11 +335,8 @@ Namespace My.Sys.Forms
 		Nodes.Clear
 		Nodes.Parent = Parent
 		Nodes.ParentNode = @This
-		FHint = 0' CAllocate_(0)
-		FText = "" 'CAllocate(0)
+		Text = ""
 		FVisible    = 1
-		Text    = ""
-		Hint       = ""
 		FImageIndex = -1
 		FSelectedImageIndex = -1
 	End Constructor
@@ -364,11 +361,11 @@ Namespace My.Sys.Forms
 				This.Handle = 0
 			End If
 		#endif
-		WDeAllocate(FHint)
-		WDeAllocate(FName)
-		'WDeAllocate FText
-		WDeAllocate(FImageKey)
-		WDeAllocate(FSelectedImageKey)
+		If FHint Then _Deallocate(FHint)
+		If FName Then _Deallocate(FName)
+		If FText Then _Deallocate(FText)
+		If FSelectedImageKey Then _Deallocate(FSelectedImageKey)
+		If FImageKey Then _Deallocate(FImageKey)
 	End Destructor
 	
 	Private Constructor TreeNodeCollection
@@ -418,14 +415,14 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
+	Private Function TreeNodeCollection.Add(ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", iImageIndex As Integer = -1, iSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
 		Dim PNode As PTreeNode
 		PNode = _New( TreeNode)
 		PNode->FDynamic = True
 		Dim iIndex As Integer = -1
 		If Cast(TreeView Ptr, Parent)->Sorted Or bSorted Then
 			For i As Integer = 0 To FNodes.Count - 1
-				If LCase(Item(i)->Text) > LCase(FText) Then
+				If LCase(Item(i)->Text) > LCase(iText) Then
 					iIndex = i
 					Exit For
 				End If
@@ -433,11 +430,11 @@ Namespace My.Sys.Forms
 		End If
 		If iIndex = -1 Then FNodes.Add PNode Else FNodes.Insert iIndex, PNode
 		With *PNode
-			.Text         = FText
-			.Name         = FKey
-			.ImageIndex     = FImageIndex
-			.SelectedImageIndex     = FSelectedImageIndex
-			.Hint           = FHint
+			.Text         = iText
+			.Name         = iKey
+			.ImageIndex     = iImageIndex
+			.SelectedImageIndex     = iSelectedImageIndex
+			.Hint           = iHint
 			.Parent         = Parent
 			.Nodes.Parent         = Parent
 			.ParentNode        = Cast(TreeNode Ptr, ParentNode)
@@ -448,17 +445,17 @@ Namespace My.Sys.Forms
 					Else
 						gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, NULL, iIndex)
 					End If
-					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
+					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(iText), -1)
 					.ImageIndex = .ImageIndex
-				EndIf
+				End If
 			#elseif defined(__USE_WINAPI__)
 				Dim As TVINSERTSTRUCT tvis
 				If Parent AndAlso Parent->Handle AndAlso (FParentNode = 0 OrElse FParentNode->Handle <> 0) Then
 					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @FText
-					tvis.item.cchTextMax           = Len(FText)
-					tvis.item.iImage             = FImageIndex
-					tvis.item.iSelectedImage     = FSelectedImageIndex
+					tvis.item.pszText              = @iText
+					tvis.item.cchTextMax           = Len(iText)+1
+					tvis.item.iImage             = iImageIndex
+					tvis.item.iSelectedImage     = iSelectedImageIndex
 					tvis.hInsertAfter            = IIf(Cast(TreeView Ptr, Parent)->Sorted Or bSorted, TVI_SORT, 0)
 					'tvis.hInsertAfter            = 0
 					If .ParentNode Then tvis.hParent               = .ParentNode->Handle
@@ -469,28 +466,28 @@ Namespace My.Sys.Forms
 		Return PNode
 	End Function
 	
-	Private Function TreeNodeCollection.Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString, bSorted As Boolean = False) As TreeNode Ptr
+	Private Function TreeNodeCollection.Add(ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", ByRef iImageKey As WString, ByRef iSelectedImageKey As WString, bSorted As Boolean = False) As PTreeNode
 		Dim As TreeNode Ptr PNode
 		If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
-			PNode = This.Add(FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey), bSorted)
+			PNode = This.Add(iText, iKey, iHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(iImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(iSelectedImageKey), bSorted)
 		Else
-			PNode = This.Add(FText, FKey, FHint, -1, -1, bSorted)
+			PNode = This.Add(iText, iKey, iHint, -1, -1, bSorted)
 		End If
-		If PNode Then PNode->ImageKey         = FImageKey: PNode->SelectedImageKey         = FSelectedImageKey
+		If PNode Then PNode->ImageKey = iImageKey: PNode->SelectedImageKey = iSelectedImageKey
 		Return PNode
 	End Function
 	
-	Private Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
+	Private Function TreeNodeCollection.Insert(Index As Integer, ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", iImageIndex As Integer = -1, iSelectedImageIndex As Integer = -1) As PTreeNode
 		Dim PNode As PTreeNode
 		PNode = _New( TreeNode)
 		PNode->FDynamic = True
 		FNodes.Insert Index, PNode
 		With *PNode
-			.Text         = FText
-			.Name         = FKey
-			.ImageIndex     = FImageIndex
-			.SelectedImageIndex     = FSelectedImageIndex
-			.Hint           = FHint
+			.Text         = iText
+			.Name         = iKey
+			.ImageIndex     = iImageIndex
+			.SelectedImageIndex     = iSelectedImageIndex
+			.Hint           = iHint
 			.Parent         = Parent
 			.Nodes.Parent         = Parent
 			.ParentNode        = ParentNode
@@ -501,16 +498,16 @@ Namespace My.Sys.Forms
 					Else
 						gtk_tree_store_insert(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, NULL, Index)
 					End If
-					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(FText), -1)
-				EndIf
+					gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @.TreeIter, 1, ToUtf8(iText), -1)
+				End If
 			#elseif defined(__USE_WINAPI__)
 				Dim As TVINSERTSTRUCT tvis
 				If Parent->Handle Then
 					tvis.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE
-					tvis.item.pszText              = @FText
-					tvis.item.cchTextMax           = Len(FText)
-					tvis.item.iImage             = FImageIndex
-					tvis.item.iSelectedImage     = FSelectedImageIndex
+					tvis.item.pszText              = @iText
+					tvis.item.cchTextMax           = Len(iText) + 1
+					tvis.item.iImage             = iImageIndex
+					tvis.item.iSelectedImage     = iSelectedImageIndex
 					tvis.hInsertAfter            = IIf(Index = 0, TVI_FIRST, IIf(Index < 0, TVI_LAST, Item(Index - 1)->Handle))
 					If ParentNode Then
 						tvis.hParent               = ParentNode->Handle
@@ -524,14 +521,14 @@ Namespace My.Sys.Forms
 		Return PNode
 	End Function
 	
-	Private Function TreeNodeCollection.Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString) As TreeNode Ptr
+	Private Function TreeNodeCollection.Insert(Index As Integer, ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", ByRef iImageKey As WString, ByRef iSelectedImageKey As WString) As PTreeNode
 		Dim PNode As PTreeNode
 		If Parent AndAlso Cast(TreeView Ptr, Parent)->Images AndAlso Cast(TreeView Ptr, Parent)->SelectedImages Then
-			PNode = This.Insert(Index, FText, FKey, FHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(FImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(FSelectedImageKey))
+			PNode = This.Insert(Index, iText, iKey, iHint, Cast(TreeView Ptr, Parent)->Images->IndexOf(iImageKey), Cast(TreeView Ptr, Parent)->SelectedImages->IndexOf(iSelectedImageKey))
 		Else
-			PNode = This.Insert(Index, FText, FKey, FHint, -1, -1)
+			PNode = This.Insert(Index, iText, iKey, iHint, -1, -1)
 		End If
-		If PNode Then PNode->ImageKey         = FImageKey: PNode->SelectedImageKey         = FSelectedImageKey
+		If PNode Then PNode->ImageKey         = iImageKey: PNode->SelectedImageKey         = iSelectedImageKey
 		Return PNode
 	End Function
 	

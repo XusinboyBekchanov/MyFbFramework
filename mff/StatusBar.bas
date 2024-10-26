@@ -182,6 +182,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor StatusPanel
 		If FCaption Then _Deallocate( FCaption)
+		If FName Then _Deallocate(FName)
 	End Destructor
 	
 	#ifndef ReadProperty_Off
@@ -474,7 +475,6 @@ Namespace My.Sys.Forms
 	
 	Private Constructor StatusBar
 		With This
-			FSimpleText = 0' CAllocate_(0)
 			#ifdef __USE_GTK__
 				widget = gtk_statusbar_new
 				'gtk_statusbar_set_has_resize_grip(gtk_statusbar(widget), true)

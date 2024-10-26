@@ -558,7 +558,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor BitmapType
-		WDeAllocate(FResName)
+		If FResName Then _Deallocate(FResName)
 		Free
 		#ifdef __USE_GTK__
 			If Handle Then g_object_unref(Handle)

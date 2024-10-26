@@ -102,7 +102,7 @@ Namespace My.Sys.Forms
 		#else
 			Dim txtrange As TEXTRANGE
 			If cpMax2 = -1 Then cpMax2 = This.GetTextLength
-			FTextRange = Cast(WString Ptr, _Reallocate(FTextRange, (cpMax - cpMin + 2) * SizeOf(WString)))
+			FTextRange = _Reallocate(FTextRange, (cpMax - cpMin + 2) * SizeOf(WString))
 			txtrange.chrg.cpMin = cpMin
 			txtrange.chrg.cpMax = cpMax
 			txtrange.lpstrText = FTextRange
@@ -921,7 +921,7 @@ Namespace My.Sys.Forms
 				FFindText = _Reallocate(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
 				*FFindText = Value
 			End If
-			If FFindText = 0 Then Exit Function
+			If FFindText = 0 Then Return False
 			Perform(EM_EXGETSEL, 0, Cast(LPARAM, @ft.chrg))
 			ft.lpstrText = FFindText
 			If ft.chrg.cpMin <> ft.chrg.cpMax Then
@@ -954,7 +954,7 @@ Namespace My.Sys.Forms
 				FFindText = _Reallocate(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
 				*FFindText = Value
 			End If
-			If FFindText = 0 Then Exit Function
+			If FFindText = 0 Then Return False
 			Perform(EM_EXGETSEL, 0, Cast(LPARAM, @ft.chrg))
 			ft.lpstrText = FFindText
 			ft.chrg.cpMax = 0
@@ -1591,9 +1591,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor RichTextBox
-		WDeAllocate(FFindText)
-		WDeAllocate(FTextRange)
-		WDeAllocate(FSelWStrVal)
+		If FFindText Then _Deallocate(FFindText)
+		If FTextRange Then _Deallocate(FTextRange)
+		If FSelWStrVal Then _Deallocate(FSelWStrVal)
 		#ifndef __USE_GTK__
 			DestroyWindow FHandle
 			FreeLibrary(hRichTextBox)
