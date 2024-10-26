@@ -177,7 +177,6 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNode.ImageKey(ByRef Value As WString)
-		If FImageKey > 0 AndAlso Value <> *FImageKey Then
 			WLet(FImageKey, Value)
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->Images Then
 				FImageIndex = Cast(TreeView Ptr, Parent)->Images->IndexOf(*FImageKey)
@@ -193,7 +192,6 @@ Namespace My.Sys.Forms
 					TreeView_SetItem(Parent->Handle, @tvi)
 				#endif
 			End If
-		End If
 	End Property
 	
 	Private Property TreeNode.SelectedImageIndex As Integer
