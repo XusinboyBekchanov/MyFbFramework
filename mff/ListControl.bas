@@ -740,6 +740,6 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ListControl
-		'If Items Then DeAllocate Items
+		If Items Then Items.Clear
 	End Destructor
 End Namespace

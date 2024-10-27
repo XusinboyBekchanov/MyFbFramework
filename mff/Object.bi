@@ -79,7 +79,6 @@ Namespace My.Sys
 			Declare Function UnScaleX(ByVal cx As Single) As Single
 			Declare Function UnScaleY(ByVal cy As Single) As Single
 		#endif
-		Declare Constructor
 		Declare Destructor
 	End Type
 	

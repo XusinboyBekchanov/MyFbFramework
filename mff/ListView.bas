@@ -377,28 +377,28 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListViewItem.ImageKey(ByRef Value As WString)
-		'If Value <> *FImageKey Then
-		WLet(FImageKey, Value)
-		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Handle Then
-				Dim As GError Ptr gerr
-				Dim As Integer iSize = IIf(Cast(ListView Ptr, Parent)->Images, Max(Cast(ListView Ptr, Parent)->Images->ImageWidth, Cast(ListView Ptr, Parent)->Images->ImageHeight), 16)
-				If Value <> "" Then
-					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-					gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+		If FImageKey = 0 OrElse Value <> *FImageKey Then
+			WLet(FImageKey, Value)
+			#ifdef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					Dim As GError Ptr gerr
+					Dim As Integer iSize = IIf(Cast(ListView Ptr, Parent)->Images, Max(Cast(ListView Ptr, Parent)->Images->ImageWidth, Cast(ListView Ptr, Parent)->Images->ImageHeight), 16)
+					If Value <> "" Then
+						gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+						gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+					End If
 				End If
-			End If
-		#elseif defined(__USE_WINAPI__)
-			If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
-				FImageIndex = Cast(ListView Ptr, Parent)->Images->IndexOf(Value)
-				lvi.mask = LVIF_IMAGE
-				lvi.iItem = Index
-				lvi.iSubItem   = 0
-				lvi.iImage     = FImageIndex
-				ListView_SetItem(Parent->Handle, @lvi)
-			End If
-		#endif
-		'End If
+			#elseif defined(__USE_WINAPI__)
+				If Parent AndAlso Parent->Handle AndAlso Cast(ListView Ptr, Parent)->Images Then
+					FImageIndex = Cast(ListView Ptr, Parent)->Images->IndexOf(Value)
+					lvi.mask = LVIF_IMAGE
+					lvi.iItem = Index
+					lvi.iSubItem   = 0
+					lvi.iImage     = FImageIndex
+					ListView_SetItem(Parent->Handle, @lvi)
+				End If
+			#endif
+		End If
 	End Property
 	
 	Private Property ListViewItem.SelectedImageKey ByRef As WString
@@ -406,14 +406,14 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ListViewItem.SelectedImageKey(ByRef Value As WString)
-		'If Value <> *FSelectedImageKey Then
-		WLet(FSelectedImageKey, Value)
-		If Parent Then
-			With QControl(Parent)
-				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-			End With
+		If FSelectedImageKey = 0 OrElse Value <> *FSelectedImageKey Then
+			WLet(FSelectedImageKey, Value)
+			If Parent Then
+				With QControl(Parent)
+					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
+				End With
+			End If
 		End If
-		'End If
 	End Property
 	
 	Private Operator ListViewItem.Cast As Any Ptr

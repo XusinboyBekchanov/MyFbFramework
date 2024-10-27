@@ -126,7 +126,7 @@ Namespace My.Sys.ComponentModel
 	#endif
 	
 	Private Function Component.ClassAncestor ByRef As WString
-		Return WGet(FClassAncestor)
+		Return *FClassAncestor
 	End Function
 	
 	Private Property Component.DesignMode As Boolean
@@ -138,7 +138,7 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	Private Property Component.Name ByRef As WString
-		Return WGet(FName)
+		If FName> 0 Then Return *FName Else Return ""
 	End Property
 	
 	Private Property Component.Name(ByRef Value As WString)
@@ -558,13 +558,9 @@ Namespace My.Sys.ComponentModel
 		Return This.Name
 	End Function
 	
-	'Constructor Component
-	'	
-	'End Constructor
-	
 	Destructor Component
-		WDeAllocate(FName)
-		WDeAllocate(FClassAncestor)
+		If FName Then _Deallocate(FName)
+		If FClassAncestor Then _Deallocate(FClassAncestor)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
 				If GTK_IS_WIDGET(widget) Then

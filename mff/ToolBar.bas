@@ -166,7 +166,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolButton.Caption(ByRef Value As WString)
 		Dim As Integer i
-		If Value <> *FCaption Then
+		If  FCaption = 0 OrElse Value <> *FCaption Then
 			WLet(FCaption, Value)
 			#ifdef __USE_GTK__
 				gtk_tool_button_set_label(GTK_TOOL_BUTTON(Widget), ToUtf8(Value))

@@ -277,6 +277,7 @@ Namespace My.Sys.Forms
 					End If
 					SendMessage(FHandle, EM_SETSEL, iStart, iStart)
 					SendMessage(FHandle, EM_REPLACESEL, 0, CInt(sLine))
+					_Deallocate(sLine)
 				End If
 			#endif
 		End Sub
@@ -519,7 +520,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TextBox.MaskChar ByRef As WString
-		Return WGet(FMaskChar)
+		If FMaskChar > 0 Then Return *FMaskChar Else Return ""
 	End Property
 	
 	Private Property TextBox.MaskChar(ByRef Value As WString)
@@ -1520,7 +1521,6 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Constructor TextBox
-		'FSelText = CAllocate(0)
 		#ifdef __USE_GTK__
 			WidgetEntry = gtk_entry_new()
 			WidgetTextView = gtk_text_view_new()
@@ -1577,6 +1577,7 @@ Namespace My.Sys.Forms
 		FHideSelection    = 1
 		FCtl3D            = True
 		WLet(FMaskChar, "")
+		FText = ""
 		#ifdef __USE_WINAPI__
 			FMaxLength          = 64000
 		#endif
@@ -1611,9 +1612,10 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor TextBox
-		If FSelText <> 0 Then _Deallocate( FSelText)
-		If FLine <> 0 Then _Deallocate( FLine)
-		WDeAllocate(FMaskChar)
+		If FSelText <> 0 Then _Deallocate(FSelText)
+		If FLine <> 0 Then _Deallocate(FLine)
+		If FMaskChar <> 0 Then _Deallocate(FMaskChar)
+		FText = ""
 	End Destructor
 End Namespace
 

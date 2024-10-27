@@ -104,14 +104,10 @@ Namespace My
 	End Property
 	
 	Private Property Application.CurLanguagePath(ByRef Value As WString)
-		If *FCurLanguagePath = Value Then Return
 		WLet(FCurLanguagePath, Value)
 	End Property
 	
 	Private Property Application.CurLanguage ByRef As WString
-		If FCurLanguage = 0 Then 
-			WLet(FCurLanguage, *FLanguage)
-		End If
 		Return *FCurLanguage
 	End Property
 	
@@ -547,7 +543,6 @@ Namespace My
 	#endif
 	
 	Private Sub Application.GetForms
-		'FForms = 0 'CAllocate_(0)
 		FFormCount = 0
 		#ifdef __USE_WINAPI__
 			EnumThreadWindows GetCurrentThreadId, Cast(WNDENUMPROC,@EnumThreadWindowsProc),Cast(LPARAM,@This)
@@ -567,9 +562,8 @@ Namespace My
 		
 		Private Sub Application.GetControls
 			Dim As Integer i
-			'FControls = 0 ' CAllocate_(0)
 			FControlCount = 0
-			For i = 0 To FormCount -1
+			For i = 0 To FormCount - 1
 				EnumControls(*Forms[i])
 			Next i
 		End Sub
@@ -687,10 +681,11 @@ Namespace My
 			Instance = GetModuleHandle(NULL)
 		#endif
 		WLet(FCurLanguagePath, ExePath & "/Languages/")
+		WLet(FLanguage, "English")
+		WLet(FCurLanguage, "English")
 		GetFonts
 		This.initialized = False
 		This._vinfo = 0
-		WLet(FLanguage, "")
 		ExeName
 		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			Dim As DWORD ret, discard
@@ -711,8 +706,6 @@ Namespace My
 					End If
 				End If
 			End If
-		#else
-			WLet(FLanguage, "English")
 		#endif
 	End Constructor
 	

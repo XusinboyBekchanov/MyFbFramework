@@ -23,10 +23,10 @@ Namespace My.Sys.Forms
 		Declare Property Count(Value As Integer)
 		Declare Property Item(Index As Integer) As PTreeNode
 		Declare Property Item(Index As Integer, Value As PTreeNode)
-		Declare Function Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
-		Declare Function Add(ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString, bSorted As Boolean = False) As PTreeNode
-		Declare Function Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", FImageIndex As Integer = -1, FSelectedImageIndex As Integer = -1) As PTreeNode
-		Declare Function Insert(Index As Integer, ByRef FText As WString = "", ByRef FKey As WString = "", ByRef FHint As WString = "", ByRef FImageKey As WString, ByRef FSelectedImageKey As WString) As PTreeNode
+		Declare Function Add(ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", iImageIndex As Integer = -1, iSelectedImageIndex As Integer = -1, bSorted As Boolean = False) As PTreeNode
+		Declare Function Add(ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", ByRef iImageKey As WString, ByRef iSelectedImageKey As WString, bSorted As Boolean = False) As PTreeNode
+		Declare Function Insert(Index As Integer, ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", iImageIndex As Integer = -1, iSelectedImageIndex As Integer = -1) As PTreeNode
+		Declare Function Insert(Index As Integer, ByRef iText As WString = "", ByRef iKey As WString = "", ByRef iHint As WString = "", ByRef iImageKey As WString, ByRef iSelectedImageKey As WString) As PTreeNode
 		Declare Property ParentNode As PTreeNode
 		Declare Property ParentNode(Value As PTreeNode)
 		Declare Sub Remove(Index As Integer)
@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 	Private Type TreeNode Extends My.Sys.Object
 	Private:
 		FName               As WString Ptr
-		FText               As UString
+		FText               As WString Ptr
 		FHint               As WString Ptr
 		FImageIndex         As Integer
 		FImageKey           As WString Ptr

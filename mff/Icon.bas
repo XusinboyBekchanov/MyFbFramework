@@ -45,7 +45,7 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Property Icon.ResName ByRef As WString
-		Return WGet(FResName)
+		If FResName > 0 Then Return *FResName Else Return ""
 	End Property
 	
 	#ifndef Icon_ResName_Set_Off
@@ -265,7 +265,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Icon
-		WDeAllocate(FResName)
+		If FResName Then _Deallocate(FResName)
 		#ifdef __USE_GTK__
 			If Handle Then g_object_unref(Handle)
 		#elseif defined(__USE_WINAPI__)

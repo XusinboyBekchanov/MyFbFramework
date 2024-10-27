@@ -83,7 +83,7 @@ End Function
 
 Namespace ClassContainer
 	Private Property ClassType.ClassName ByRef As WString
-		Return WGet(FClassName)
+		If FClassName > 0 Then Return *FClassName Else Return ""
 	End Property
 	
 	Private Property ClassType.ClassName(ByRef Value As WString)
@@ -91,7 +91,7 @@ Namespace ClassContainer
 	End Property
 	
 	Private Property ClassType.ClassAncestor ByRef As WString
-		Return WGet(FClassAncestor)
+		If FClassAncestor > 0 Then Return *FClassAncestor Else Return ""
 	End Property
 	
 	Private Property ClassType.ClassAncestor(ByRef Value As WString)
@@ -99,13 +99,12 @@ Namespace ClassContainer
 	End Property
 	
 	Private Constructor ClassType
-		'FClassName = CAllocate(0)
-		'FClassAncestor = CAllocate(0)
+		
 	End Constructor
 	
 	Private Destructor ClassType
-		If FClassName Then _Deallocate((FClassName))
-		If FClassAncestor Then _Deallocate((FClassAncestor))
+		If FClassName Then _Deallocate(FClassName)
+		If FClassAncestor Then _Deallocate(FClassAncestor)
 	End Destructor
 	
 	Private Function FindClass(ByRef ClassName As WString) As Integer
