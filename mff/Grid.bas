@@ -268,35 +268,36 @@ Namespace My.Sys.Forms
 	
 	#ifndef GridRow_ImageKey_Set_Off
 		Private Property GridRow.ImageKey(ByRef Value As WString)
-			If Value = *FImageKey Then Return
-			WLet(FImageKey, Value)
-			#ifdef __USE_GTK__
-				If Parent AndAlso Parent->Handle Then
-					Dim As GError Ptr gerr
-					If Value <> "" Then
-						gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-						gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+			If FImageKey = 0 OrElse Value <> *FImageKey Then
+				WLet(FImageKey, Value)
+				#ifdef __USE_GTK__
+					If Parent AndAlso Parent->Handle Then
+						Dim As GError Ptr gerr
+						If Value <> "" Then
+							gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), 16, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
+							gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+						End If
 					End If
-				End If
-			#elseif defined(__USE_WINAPI__)
-				If Parent AndAlso Parent->Handle AndAlso Cast(Grid Ptr, Parent)->Images Then
-					FImageIndex = Cast(Grid Ptr, Parent)->Images->IndexOf(Value)
-					lvi.mask = LVIF_IMAGE
-					lvi.iItem = Index
-					lvi.iSubItem   = 0
-					lvi.iImage     = FImageIndex
-					ListView_SetItem(Parent->Handle, @lvi)
-				End If
-			#endif
+				#elseif defined(__USE_WINAPI__)
+					If Parent AndAlso Parent->Handle AndAlso Cast(Grid Ptr, Parent)->Images Then
+						FImageIndex = Cast(Grid Ptr, Parent)->Images->IndexOf(Value)
+						lvi.mask = LVIF_IMAGE
+						lvi.iItem = Index
+						lvi.iSubItem   = 0
+						lvi.iImage     = FImageIndex
+						ListView_SetItem(Parent->Handle, @lvi)
+					End If
+				#endif
+			End If
 		End Property
 	#endif
 	
 	Private Property GridRow.SelectedImageKey ByRef As WString
-		Return WGet(FImageKey)
+		If FImageKey > 0 Then Return *FImageKey Else Return ""
 	End Property
 	
 	Private Property GridRow.SelectedImageKey(ByRef Value As WString)
-		If Value <> *FSelectedImageKey Then
+		If FSelectedImageKey = 0 OrElse Value <> *FSelectedImageKey Then
 			WLet(FSelectedImageKey, Value)
 			If Parent Then
 				With QControl(Parent)

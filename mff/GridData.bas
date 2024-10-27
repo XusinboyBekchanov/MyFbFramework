@@ -302,39 +302,39 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property GridDataItem.ImageKey ByRef As WString
-		Return WGet(FImageKey)
+		If FImageKey > 0 Then Return *FImageKey Else Return ""
 	End Property
 	
 	Private Property GridDataItem.ImageKey(ByRef Value As WString)
-		'If Value <> *FImageKey Then
-		WLet(FImageKey, Value)
-		#ifdef __USE_GTK__
-			If Parent AndAlso Parent->Handle Then
-				gtk_tree_store_set (Cast(GridData Ptr, Parent)->TreeStore, @TreeIter, 0, ToUtf8(Value), -1)
-			End If
-		#else
+		If FImageKey = 0 OrElse Value <> *FImageKey Then
+			WLet(FImageKey, Value)
+			#ifdef __USE_GTK__
+				If Parent AndAlso Parent->Handle Then
+					gtk_tree_store_set (Cast(GridData Ptr, Parent)->TreeStore, @TreeIter, 0, ToUtf8(Value), -1)
+				End If
+			#else
+				If Parent Then
+					With QControl(Parent)
+						'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
+					End With
+				End If
+			#endif
+		End If
+	End Property
+	
+	Private Property GridDataItem.SelectedImageKey ByRef As WString
+		If FSelectedImageKey > 0 Then Return *FSelectedImageKey Else Return ""
+	End Property
+	
+	Private Property GridDataItem.SelectedImageKey(ByRef Value As WString)
+		If FSelectedImageKey = 0 OrElse Value <> *FSelectedImageKey Then
+			WLet(FSelectedImageKey, Value)
 			If Parent Then
 				With QControl(Parent)
 					'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
 				End With
 			End If
-		#endif
-		'End If
-	End Property
-	
-	Private Property GridDataItem.SelectedImageKey ByRef As WString
-		Return WGet(FImageKey)
-	End Property
-	
-	Private Property GridDataItem.SelectedImageKey(ByRef Value As WString)
-		'If Value <> *FSelectedImageKey Then
-		WLet(FSelectedImageKey, Value)
-		If Parent Then
-			With QControl(Parent)
-				'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
-			End With
 		End If
-		'End If
 	End Property
 	
 	Private Property GridDataItem.Visible(Value As Boolean)

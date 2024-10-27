@@ -84,7 +84,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property HeaderSection.ImageKey(ByRef Value As WString)
-		If Value <> *FImageKey Then
+		If FImageKey = 0 OrElse Value <> *FImageKey Then
 			WLet(FImageKey, Value)
 			If HeaderControl AndAlso HeaderControl->Images Then FImageIndex = HeaderControl->Images->IndexOf(*FImageKey)
 			QHeader(HeaderControl).UpdateItems

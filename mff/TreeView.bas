@@ -177,13 +177,14 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeNode.ImageKey(ByRef Value As WString)
+		If FImageKey = 0 OrElse Value <> *FImageKey Then
 			WLet(FImageKey, Value)
 			If Parent AndAlso Parent->Handle AndAlso Cast(TreeView Ptr, Parent)->Images Then
 				FImageIndex = Cast(TreeView Ptr, Parent)->Images->IndexOf(*FImageKey)
 				#ifdef __USE_GTK__
 					If gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle)) Then
 						gtk_tree_store_set(GTK_TREE_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(Parent->Handle))), @TreeIter, 0, ToUtf8(Cast(TreeView Ptr, Parent)->Images->Items.Get(FImageIndex)), -1)
-				End If
+					End If
 				#elseif defined(__USE_WINAPI__)
 					Dim tvi As TVITEM
 					tvi.mask = TVIF_IMAGE
@@ -192,6 +193,7 @@ Namespace My.Sys.Forms
 					TreeView_SetItem(Parent->Handle, @tvi)
 				#endif
 			End If
+		End If
 	End Property
 	
 	Private Property TreeNode.SelectedImageIndex As Integer
