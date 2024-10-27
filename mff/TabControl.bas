@@ -1303,7 +1303,7 @@ Namespace My.Sys.Forms
 			Tabs[i]->Parent = 0
 			If Tabs[i]->FDynamic Then _Delete(Tabs[i])
 		Next
-		If Tabs <> 0 Then _Delete(Tabs)
+		If Tabs <> 0 Then _Deallocate(Tabs)
 		If FGroupName Then _Deallocate(FGroupName)
 		'UnregisterClass "TabControl", GetModuleHandle(NULL)
 	End Destructor
