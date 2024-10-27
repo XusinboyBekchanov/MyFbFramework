@@ -27,6 +27,11 @@ Dim Shared As Dictionary mlKeys
 #elseif defined(__USE_WINAPI__)
 	#include once "win/winver.bi"
 #endif
+#ifdef __USE_GTK4__
+	#define generic_gtk_init() gtk_init()
+#else
+	#define generic_gtk_init() gtk_init(0, 0)
+#endif
 #ifndef APP_TITLE
 	#define APP_TITLE ""
 #endif

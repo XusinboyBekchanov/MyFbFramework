@@ -617,12 +617,6 @@ Namespace My
 		End Function
 	#endif
 	
-	#ifdef __USE_GTK4__
-		#define generic_gtk_init() gtk_init()
-	#else
-		#define generic_gtk_init() gtk_init(0, 0)
-	#endif
-
 	Private Constructor Application
 		If pApp = 0 Then pApp = @This
 		#ifdef __USE_GTK__
