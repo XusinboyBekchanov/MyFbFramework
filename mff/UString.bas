@@ -517,13 +517,13 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'UTF-16 big-endian: FE FF
 	'UTF-32 little-endian: FF FE 00 00
 	'UTF-32 big-endian: 00 00 FE FF
-	Dim m_BufferLen As Integer = Len(*pZString)
+	Dim m_BufferLen As Integer = IIf(pZString <> 0, Len(*pZString) + 1, 0)
 	If m_BufferLen = 0 Then Return ""
-	Static As WString Ptr buffer
-	WDeAllocate(buffer)
+	Dim As WString Ptr buffer
 	WReAllocate(buffer, m_BufferLen)
 	*buffer = String(m_BufferLen, 0)
-	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
+	Function = WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
+	_Deallocate(buffer)
 End Function
 
 Private Function ZGet(ByRef subject As ZString Ptr) As String
