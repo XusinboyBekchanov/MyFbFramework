@@ -1435,12 +1435,31 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = 0
+			Case CM_DRAWITEM
+				Dim lpdis As DRAWITEMSTRUCT Ptr
+				Dim As Integer ItemID, State
+				lpdis = Cast(DRAWITEMSTRUCT Ptr, Message.lParam)
+				If OnDrawItem Then
+					Canvas.SetHandle lpdis->hDC
+					OnDrawItem(*Designer, This, lpdis->itemID, lpdis->itemState, lpdis->itemAction, *Cast(My.Sys.Drawing.Rect Ptr, @lpdis->rcItem), Canvas)
+					Canvas.UnSetHandle
+					Message.Result = True
+					Exit Sub
+				End If
+			Case CM_MEASUREITEM
+				Dim As MEASUREITEMSTRUCT Ptr miStruct
+				Dim As Integer ItemID
+				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
+				ItemID = Cast(Integer, miStruct->itemID)
+				'If FOwnerDraw Then miStruct->itemHeight = ScaleY(17)
+				If StateImages Then
+					miStruct->itemHeight = ScaleY(StateImages->ImageHeight) + 1
+				End If
+				If OnMeasureItem Then OnMeasureItem(*Designer, This, ItemID, miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_DPICHANGED
-				FItemHeight = 0
 				Base.ProcessMessage(Message)
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
 				If SmallImages Then SmallImages->SetImageSize SmallImages->ImageWidth, SmallImages->ImageHeight, xdpi, ydpi
-				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
 				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
 				If GroupHeaderImages Then GroupHeaderImages->SetImageSize GroupHeaderImages->ImageWidth, GroupHeaderImages->ImageHeight, xdpi, ydpi
 				
@@ -1448,6 +1467,15 @@ Namespace My.Sys.Forms
 				If SmallImages AndAlso SmallImages->Handle Then ListView_SetImageList(FHandle, CInt(SmallImages->Handle), LVSIL_SMALL)
 				If StateImages AndAlso StateImages->Handle Then ListView_SetImageList(FHandle, CInt(StateImages->Handle), LVSIL_STATE)
 				If GroupHeaderImages AndAlso GroupHeaderImages->Handle Then ListView_SetImageList(FHandle, CInt(GroupHeaderImages->Handle), LVSIL_GROUPHEADER)
+				FItemHeight = 0
+				Dim As ..Rect rc
+				GetWindowRect(FHandle, @rc)
+				Dim As WINDOWPOS wp
+				wp.hwnd = FHandle
+				wp.cx = rc.Right
+				wp.cy = rc.Bottom
+				wp.flags = SWP_NOACTIVATE Or SWP_NOMOVE Or SWP_NOOWNERZORDER Or SWP_NOZORDER
+				SendMessage(FHandle, WM_WINDOWPOSCHANGED, 0, Cast(LPARAM, @wp))
 				For i As Integer = 0 To Columns.Count - 1
 					Columns.Column(i)->xdpi = xdpi
 					Columns.Column(i)->ydpi = ydpi
@@ -1717,7 +1745,7 @@ Namespace My.Sys.Forms
 							If j = 0 Then
 								lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 								lvi.iImage          = .ListItems.Item(i)->ImageIndex
-								lvi.State   = INDEXTOSTATEIMAGEMASK(.ListItems.Item(i)->State)
+								lvi.state   = INDEXTOSTATEIMAGEMASK(.ListItems.Item(i)->State)
 								lvi.stateMask = LVIS_STATEIMAGEMASK
 								lvi.iIndent   = .ListItems.Item(i)->Indent
 								lvi.lParam   =  Cast(LPARAM, .ListItems.Item(i))

@@ -341,6 +341,8 @@ Namespace My.Sys.Forms
 		OnBeginScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView)
 		OnEndScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView)
 		OnCellEdited As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, ByVal SubItemIndex As Integer, ByRef NewText As WString)
+		OnMeasureItem As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, ByRef ItemWidth As ULong, ByRef ItemHeight As ULong)
+		OnDrawItem As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
 	End Type
 End Namespace
 
