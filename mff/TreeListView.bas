@@ -1411,12 +1411,20 @@ Namespace My.Sys.Forms
 				End If
 				Message.Result = 0
 			Case WM_DPICHANGED
-				FItemHeight = 0
 				Base.ProcessMessage(Message)
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
 				If StateImages Then StateImages->SetImageSize StateImages->ImageWidth, StateImages->ImageHeight, xdpi, ydpi
-				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_NORMAL)
+				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_SMALL)
 				If StateImages AndAlso StateImages->Handle Then ListView_SetImageList(FHandle, CInt(StateImages->Handle), LVSIL_STATE)
+				FItemHeight = 0
+				Dim As ..Rect rc
+				GetWindowRect(FHandle, @rc)
+				Dim As WINDOWPOS wp
+				wp.hwnd = FHandle
+				wp.cx = rc.Right
+				wp.cy = rc.Bottom
+				wp.flags = SWP_NOACTIVATE Or SWP_NOMOVE Or SWP_NOOWNERZORDER Or SWP_NOZORDER
+				SendMessage(FHandle, WM_WINDOWPOSCHANGED, 0, Cast(LPARAM, @wp))
 				For i As Integer = 0 To Columns.Count - 1
 					Columns.Column(i)->xdpi = xdpi
 					Columns.Column(i)->ydpi = ydpi
@@ -1424,7 +1432,7 @@ Namespace My.Sys.Forms
 				Next
 				Return
 			Case WM_DESTROY
-				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_NORMAL)
+				If Images Then ListView_SetImageList(FHandle, 0, LVSIL_SMALL)
 				If StateImages Then ListView_SetImageList(FHandle, 0, LVSIL_STATE)
 			Case WM_NOTIFY
 				If (Cast(LPNMHDR, Message.lParam)->code = NM_CUSTOMDRAW) Then
@@ -1499,6 +1507,10 @@ Namespace My.Sys.Forms
 				miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
 				ItemID = Cast(Integer, miStruct->itemID)
 				'If FOwnerDraw Then miStruct->itemHeight = ScaleY(17)
+				If StateImages Then
+					miStruct->itemHeight = ScaleY(StateImages->ImageHeight) + 1
+					FItemHeight = 0
+				End If
 				If OnMeasureItem Then OnMeasureItem(*Designer, This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
 			Case WM_LBUTTONDOWN
