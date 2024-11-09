@@ -1031,9 +1031,11 @@ Namespace My.Sys.Forms
 				'	'FDpiFormY = ydpi
 				'	RequestAlign
 				'End If
+				FDPIChanging = True
 				LockWindowUpdate(FHandle)
 				Base.ProcessMessage(msg)
 				LockWindowUpdate(0)
+				FDPIChanging = False
 				Return
 			Case WM_UAHDRAWMENU
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -1285,9 +1287,9 @@ Namespace My.Sys.Forms
 				'ydpi = FDpiFormY
 				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
-					UpdateLock
+					If Not FDPIChanging Then UpdateLock
 					RequestAlign
-					UpdateUnLock
+					If Not FDPIChanging Then UpdateUnLock
 					If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
 				End If
 			Case WM_CLOSE

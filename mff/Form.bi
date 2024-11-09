@@ -85,6 +85,7 @@ Namespace My.Sys.Forms
 		FClassStyle(6) As Integer
 		FWindowState   As Integer
 		FFormCreated   As Boolean
+		FDPIChanging   As Boolean
 		FOnCreate      As Sub(ByRef Sender As Form)
 		Declare Static Sub ActiveControlChanged(ByRef Sender As Control)
 		#ifdef __USE_GTK__
