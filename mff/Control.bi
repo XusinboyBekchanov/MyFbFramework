@@ -22,7 +22,10 @@
 	#include once "win/shellapi.bi"
 	#include once "win/windowsx.bi"
 #endif
-#define WM_DPICHANGED       &h02E0
+#define WM_DPICHANGED               &h02E0
+#define WM_DPICHANGED_BEFOREPARENT  &h02E2
+#define WM_DPICHANGED_AFTERPARENT   &h02E3
+#define WM_GETDPISCALEDSIZE         &h02E4
 
 Using My.Sys.ComponentModel
 

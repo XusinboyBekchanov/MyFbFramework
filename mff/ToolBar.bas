@@ -1081,13 +1081,13 @@ Namespace My.Sys.Forms
 					Buttons.Item(i)->ydpi = ydpi
 					Buttons.Item(i)->Update
 				Next
-				'Dim As ..Size sz
-				'SendMessage FHandle, TB_GETIDEALSIZE, False, Cast(LPARAM, @sz)
-				'sz.cx = 10000
-				'sz.cy = ScaleY(FHeight)
-				'SendMessage FHandle, TB_GETIDEALSIZE, 1, Cast(LPARAM, @sz)
-				'SetBounds FLeft, FTop, FWidth, UnScaleY(sz.cy)
-				'If Parent Then Parent->RequestAlign
+				Dim As ..Size sz
+				SendMessage FHandle, TB_GETIDEALSIZE, False, Cast(LPARAM, @sz)
+				sz.cx = 10000
+				sz.cy = ScaleY(FHeight)
+				SendMessage FHandle, TB_GETIDEALSIZE, 1, Cast(LPARAM, @sz)
+				SetBounds FLeft, FTop, FWidth, UnScaleY(sz.cy)
+				If Parent Then Parent->RequestAlign
 				Return
 			Case WM_COMMAND
 				GetDropDownMenuItems
