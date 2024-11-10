@@ -792,7 +792,7 @@ Namespace My.Sys.Forms
 			End Select
 		#else
 			Select Case Message.Msg
-			Case WM_DPICHANGED
+			Case WM_WINDOWPOSCHANGING
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					Brush.Handle = hbrBkgnd
 					SendMessage(FHandle, RB_SETTEXTCOLOR, 0, Cast(LPARAM, darkTextColor))
@@ -803,8 +803,9 @@ Namespace My.Sys.Forms
 					csch.clrBtnHighlight = darkHlBkColor
 					SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
 					SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-					'Repaint
+					Repaint
 				End If
+			Case WM_DPICHANGED
 				Base.ProcessMessage(Message)
 				For i As Integer = 0 To Bands.Count - 1
 					'Bands.Item(i)->Child = Bands.Item(i)->Child

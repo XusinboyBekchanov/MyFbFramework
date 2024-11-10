@@ -1037,6 +1037,16 @@ Namespace My.Sys.Forms
 				LockWindowUpdate(0)
 				FDPIChanging = False
 				Return
+			Case WM_SIZE
+				'xdpi = FDpiFormX
+				'ydpi = FDpiFormY
+				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
+				If Not IsIconic(FHandle) Then
+					If Not FDPIChanging Then UpdateLock
+					RequestAlign
+					If Not FDPIChanging Then UpdateUnLock
+					If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
+				End If
 			Case WM_UAHDRAWMENU
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					Dim As UAHMENU Ptr pUDM = Cast(UAHMENU Ptr, msg.lParam)
@@ -1282,16 +1292,6 @@ Namespace My.Sys.Forms
 					DeleteDC(memDC)
 				End If
 				EndPaint Handle, @Ps
-			Case WM_SIZE
-				'xdpi = FDpiFormX
-				'ydpi = FDpiFormY
-				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
-				If Not IsIconic(FHandle) Then
-					If Not FDPIChanging Then UpdateLock
-					RequestAlign
-					If Not FDPIChanging Then UpdateUnLock
-					If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
-				End If
 			Case WM_CLOSE
 				If OnClose Then
 					OnClose(*Designer, This, Action)
