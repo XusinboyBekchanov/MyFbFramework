@@ -1195,6 +1195,8 @@ Namespace My.Sys.Forms
 					Var FHandle = .FHandle
 					For i As Integer = 0 To .Buttons.Count - 1
 						.FHandle = 0
+						.Buttons.Item(i)->xdpi = .xdpi
+						.Buttons.Item(i)->ydpi = .ydpi
 						Dim As TBBUTTON TB
 						'Dim As WString Ptr s = .Buttons.Button(i)->Caption
 						TB.fsState   = .Buttons.Item(i)->State
