@@ -84,11 +84,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ImageList.ImageHeight(Value As Integer)
-		FImageHeight = Value
-		#ifdef __USE_WINAPI__
-			ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
-		#endif
-		NotifyWindow
+		If FImageHeight <> Value Then
+			FImageHeight = Value
+			#ifdef __USE_WINAPI__
+				ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
+			#endif
+			NotifyWindow
+		End If
 	End Property
 
 	Private Sub ImageList.SetImageSize(imgWidth As Integer, imgHeight As Integer, imgxdpi As Single = 1, imgydpi As Single = 1)
@@ -170,7 +172,7 @@ Namespace My.Sys.Forms
 	Private Sub ImageList.Create
 		#ifdef __USE_WINAPI__
 			If Handle Then ImageList_Destroy Handle
-			Handle = ImageList_Create(FImageWidth, FImageHeight, ILC_MASK Or ILC_COLOR32, InitialCount, GrowCount)
+			Handle = ImageList_Create(ScaleX(FImageWidth), ScaleY(FImageHeight), ILC_MASK Or ILC_COLOR32, InitialCount, GrowCount)
 		#endif
 	End Sub
 	
@@ -589,7 +591,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Handle = gtk_icon_theme_new()
 		#elseif defined(__USE_WINAPI__)
-			Handle = ImageList_Create(ScaleX(FImageWidth), ScaleY(FImageHeight), ILC_COLOR32, InitialCount, GrowCount) 'ILC_MASK Or
+			Handle = ImageList_Create(ScaleX(FImageWidth), ScaleY(FImageHeight), ILC_MASK Or ILC_COLOR32, InitialCount, GrowCount) 'ILC_MASK Or
 			'Create
 		#endif
 	End Constructor
