@@ -844,8 +844,8 @@ Namespace My.Sys.Forms
 				Base.ProcessMessage(Message)
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
 				If SelectedImages Then SelectedImages->SetImageSize SelectedImages->ImageWidth, SelectedImages->ImageHeight, xdpi, ydpi
-				If Images AndAlso Images->Handle Then ListView_SetImageList(FHandle, CInt(Images->Handle), LVSIL_NORMAL)
-				If SelectedImages AndAlso SelectedImages->Handle Then ListView_SetImageList(FHandle, CInt(SelectedImages->Handle), TVSIL_STATE)
+				If Images AndAlso Images->Handle Then TreeView_SetImageList(FHandle, CInt(Images->Handle), TVSIL_NORMAL)
+				If SelectedImages AndAlso SelectedImages->Handle Then TreeView_SetImageList(FHandle, CInt(SelectedImages->Handle), TVSIL_STATE)
 				RedrawWindow(Message.hWnd, nullptr, nullptr, RDW_FRAME Or RDW_INVALIDATE)
 				Return
 			Case WM_DESTROY

@@ -98,17 +98,17 @@ Namespace My.Sys.Forms
 			xdpi = imgxdpi
 			ydpi = imgydpi
 			#ifdef __USE_WINAPI__
-				If FList.Count <> Items.Count Then
+				If FList.Count <> ImageList_GetImageCount(Handle) Then
 					For i As Integer = 0 To FList.Count - 1
 						DestroyIcon FList.Item(i)
 					Next i
 					FList.Clear
-					For i As Integer = 0 To Items.Count - 1
+					For i As Integer = 0 To ImageList_GetImageCount(Handle) - 1
 						FList.Add ImageList_GetIcon(Handle, i, DrawingStyle Or ImageType)
 					Next i
 				End If
 				ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
-				For i As Integer = 0 To Items.Count - 1
+				For i As Integer = 0 To FList.Count - 1
 					ImageList_AddIcon(Handle, FList.Item(i))
 				Next i
 			#endif
