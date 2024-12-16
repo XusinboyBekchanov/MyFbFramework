@@ -39,7 +39,7 @@
 	Dim Shared As cairo_surface_t Ptr cairoSurface
 	Dim Shared As cairo_t Ptr cairoCreate
 	Dim Shared As Any Ptr image
-	Dim Shared As Any Ptr pixels
+	Dim Shared As Any Ptr imgPixels
 	Dim Shared As Boolean Ending, Playing = True
 	' Adjust speed here
 	Dim Shared As Long speed = 160 ' Frames Per Second
@@ -264,9 +264,9 @@ Private Sub Form1Type.Form_Create(ByRef Sender As Control)
 		ScreenControl(2, Cast(Integer, HandleRender))
 		'Line (0, 0) - (Sender.Width, Sender.Height), RGB(192, 192, 192), BF
 		image = ImageCreate(IMAGE_W, IMAGE_H)
-		ImageInfo(image, IMAGE_W, IMAGE_H, , , pixels)
-		Dim As Long stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, IMAGE_W) ' https://www.freebasic.net/forum/viewtopic.php?p=215065#p215065
-		cairoSurface = cairo_image_surface_create_for_data(pixels, CAIRO_FORMAT_ARGB32, IMAGE_W, IMAGE_H, stride)
+		Dim As Long imgWidth, imgHeight, imgBytes, imgPitch																								 
+		ImageInfo(image, imgWidth, imgHeight, imgBytes, imgPitch, imgPixels)
+		cairoSurface = cairo_image_surface_create_for_data(imgPixels, CAIRO_FORMAT_ARGB32, IMAGE_W, IMAGE_H, imgPitch)
 		cairoCreate = cairo_create(cairoSurface)
 		' Adjust speed here
 		speed = 60 ' Frames Per Second
