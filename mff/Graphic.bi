@@ -15,7 +15,7 @@
 
 Namespace My.Sys.Drawing
 	Private Enum ImageTypes
-		BITMAP = 0
+		Bitmap = 0
 		Icon = 0
 		Cursor = 0
 	End Enum

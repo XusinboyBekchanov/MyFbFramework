@@ -22,6 +22,12 @@ Namespace My.Sys.Drawing
 			Case "cursor": Return @Cursor
 			Case "image": Return Image
 			Case "imagetype": Return @ImageType
+			Case "stretchimage": Return @StretchImage
+			Case "centerimage": Return @CenterImage
+			Case "visible": Return @Visible
+			Case "scalefactor": Return @ScaleFactor
+			Case "startx": Return @StartX
+			Case "starty": Return @StartY
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -35,6 +41,14 @@ Namespace My.Sys.Drawing
 				Case "bitmap": This.Bitmap = QWString(Value)
 				Case "icon": This.Icon = QWString(Value)
 				Case "cursor": This.Cursor = QWString(Value)
+				Case "image": This.Image = Value
+				Case "imagetype": This.ImageType = *Cast(ImageTypes Ptr, Value)
+				Case "stretchimage": This.StretchImage = *Cast(StretchMode Ptr, Value)
+				Case "centerimage": This.CenterImage = QBoolean(Value)
+				Case "visible": This.Visible = QBoolean(Value)
+				Case "scalefactor": This.ScaleFactor = QDouble(Value)
+				Case "startx": This.StartX = QInteger(Value)
+				Case "starty": This.StartY = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
 				End Select
 			End If
