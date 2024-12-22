@@ -1824,6 +1824,7 @@ Namespace My.Sys.Forms
 							'*filename = Left(*filename, length)
 							If OnDropFile Then OnDropFile(*Designer, This, *filename)
 						Next
+						_Deallocate( filename)
 						DragFinish iDrop
 					End If
 				Case WM_CHAR

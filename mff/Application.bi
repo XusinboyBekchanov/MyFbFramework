@@ -115,6 +115,7 @@ Namespace My
 		FLanguage       As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon
 		FExeName        As WString Ptr
+		FPath        As WString Ptr
 		FFileName       As WString Ptr
 		FHintColor      As Integer
 		FHintPause      As Integer
@@ -221,6 +222,7 @@ Declare Function ML(ByRef V As WString) ByRef As WString
 Declare Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
 Declare Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As WString Ptr
 Declare Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
+Declare Function ByteToString(ByVal Src As UByte Ptr, ByVal Size As Long) As String
 
 Namespace Debug
 	Declare Sub Clear

@@ -100,7 +100,7 @@ Namespace My
 	
 	Private Property Application.CurLanguagePath ByRef As WString
 		If FCurLanguagePath = 0 Then WLet(FCurLanguagePath, ExePath & "/Languages/")
-			Return *FCurLanguagePath
+		Return *FCurLanguagePath
 	End Property
 	
 	Private Property Application.CurLanguagePath(ByRef Value As WString)
@@ -191,14 +191,13 @@ Namespace My
 			Else
 				Return False
 			End If
+		#else	
+			Return False
 		#endif
 	End Function
 	
 	Private Function Application.Path ByRef As WString
-		Return ExePath + "/"
-	End Function
-	
-	Private Function Application.ExeName ByRef As WString
+		If FPath > 0 Then Return *FFPath
 		Dim As WString * 255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
@@ -209,36 +208,59 @@ Namespace My
 			L = Len(Tx)
 		#endif
 		s = .Left(Tx, L)
-		For i = 0 To Len(s)
-			If s[i] = Asc("\") Then k = i
-		Next i
+		'For i = 0 To Len(s)
+		'	If s[i] = Asc("\") Then k = i
+		'Next i
+		k = InStrRev(s, Any ":/\")
 		En = Mid(s, k + 2, Len(s))
 		WLet(FFileName, s)
+		WLet(FPath, Left(s, k))
+		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
+		Return *FPath
+	End Function
+	
+	Private Function Application.ExeName ByRef As WString
+		If FExeName > 0 Then Return *FExeName
+		Dim As WString * 255 Tx
+		Dim As WString*225 s, En
+		Dim As Integer L, i, k
+		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
+			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
+		#else
+			Tx = Command(0)
+			L = Len(Tx)
+		#endif
+		s = .Left(Tx, L)
+		'For i = 0 To Len(s)
+		'	If s[i] = Asc("\") Then k = i
+		'Next i
+		k = InStrRev(s, Any ":/\")
+		En = Mid(s, k + 2, Len(s))
+		WLet(FFileName, s)
+		WLet(FPath, Left(s, k))
 		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
 		Return *FExeName
 	End Function
 	
 	Private Function Application.FileName ByRef As WString
-		Dim As Integer L
-		#ifdef __USE_GTK__
-			Dim As ZString * 255 Tx
-			#ifndef __FB_WIN32__
-				Tx = Command(0)
-				L = Len(Tx)
-				'L = readlink("/proc/self/exe", @Tx, 255 - 1)
-			#else
-				Tx = Command(0)
-				L = Len(Tx)
-			#endif
-		#elseif defined(__USE_WINAPI__)
-			Dim As WString * 255 Tx
-			L = GetModuleFileName(GetModuleHandle(NULL), @Tx, 255 - 1)
-		#elseif defined(__USE_JNI__)
-			Dim As WString * 255 Tx
+		Dim As WString * 255 Tx
+		Dim As WString*225 s, En
+		Dim As Integer L, i, k
+		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
+			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
 		#else
-			Dim As WString * 255 Tx
+			Tx = Command(0)
+			L = Len(Tx)
 		#endif
-		WLet(FFileName, .Left(Tx, L))
+		s = .Left(Tx, L)
+		'For i = 0 To Len(s)
+		'	If s[i] = Asc("\") Then k = i
+		'Next i
+		k = InStrRev(s, Any ":/\")
+		En = Mid(s, k + 2, Len(s))
+		WLet(FFileName, s)
+		WLet(FPath, Left(s, k))
+		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
 		Return *FFileName
 	End Function
 	
@@ -722,6 +744,7 @@ Namespace My
 		If FForms Then _Deallocate( FForms)
 		If FFileName Then _Deallocate( FFileName)
 		If FExeName Then _Deallocate( FExeName)
+		If FPath Then _Deallocate( FPath)
 		If FTitle Then _Deallocate( FTitle)
 		If FControls Then _Deallocate( FControls)
 		If FCurLanguage Then _Deallocate( FCurLanguage)
@@ -1281,7 +1304,7 @@ End Function
 					FileEncoding = FileEncodings.Utf8
 					EncodingStr = "ascii"
 				Else
-				FileEncoding = FileEncodings.PlainText
+					FileEncoding = FileEncodings.PlainText
 					EncodingStr = "ascii"
 				End If
 			End If
@@ -1379,18 +1402,11 @@ End Function
 	End Function
 #endif
 
-'Function ByteToString Overload(ByVal Src As UByte Ptr, ByVal Size As Long) As String
-'	Dim As String Dest = String(Size, 0)
-'    Fb_MemCopy(Dest[0], Src[0], Size)
-'    Return Dest
-'End Function
-'
-'Function ByteToString Overload(Src() As UByte) As String
-'	Dim As Long Size= UBound(Src) - LBound(Src) + 1
-'	Dim As String Dest = String(Size, 0)
-'    Fb_MemCopy(Dest[0], @Src[0], Size)
-'    Return Dest
-'End Function
+Function ByteToString(ByVal Src As UByte Ptr, ByVal Size As Long) As String
+	Dim As String Dest = String(Size, 0)
+    Fb_MemCopy(Dest[0], Src[0], Size)
+    Return Dest
+End Function
 
 #ifdef __EXPORT_PROCS__
 	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
