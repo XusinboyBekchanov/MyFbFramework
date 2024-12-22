@@ -197,7 +197,7 @@ Namespace My
 	End Function
 	
 	Private Function Application.Path ByRef As WString
-		If FPath > 0 Then Return *FFPath
+		If FPath > 0 Then Return *FPath
 		Dim As WString * 255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
@@ -1408,6 +1408,12 @@ Function ByteToString(ByVal Src As UByte Ptr, ByVal Size As Long) As String
     Return Dest
 End Function
 
+'Function ByteToString Overload(Src() As UByte) As String
+'	Dim As Long Size= UBound(Src) - LBound(Src) + 1
+'	Dim As String Dest = String(Size, 0)
+'    Fb_MemCopy(Dest[0], @Src(0), Size)
+'    Return Dest
+'End Function
 #ifdef __EXPORT_PROCS__
 	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
 		Return App->MainForm
