@@ -181,7 +181,24 @@ Namespace My
 		WLet(FTitle, Value)
 	End Property
 	
-	Private Property Application.ExeName ByRef As WString
+	Private Function Application.PrevInstance As Boolean
+		#if defined(__FB_WIN32__)
+			Dim m_hMutex As HANDLE = CreateMutex(NULL, True, ExeName)
+			If GetLastError = ERROR_ALREADY_EXISTS Then
+				CloseHandle(m_hMutex)
+				Debug.Print ML("There is an instance of this program already running!")
+				Return True
+			Else
+				Return False
+			End If
+		#endif
+	End Function
+	
+	Private Function Application.Path ByRef As WString
+		Return ExePath + "/"
+	End Function
+	
+	Private Function Application.ExeName ByRef As WString
 		Dim As WString * 255 Tx
 		Dim As WString*225 s, En
 		Dim As Integer L, i, k
@@ -199,12 +216,9 @@ Namespace My
 		WLet(FFileName, s)
 		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
 		Return *FExeName
-	End Property
+	End Function
 	
-	Private Property Application.ExeName(ByRef Value As WString)
-	End Property
-	
-	Private Property Application.FileName ByRef As WString
+	Private Function Application.FileName ByRef As WString
 		Dim As Integer L
 		#ifdef __USE_GTK__
 			Dim As ZString * 255 Tx
@@ -226,7 +240,7 @@ Namespace My
 		#endif
 		WLet(FFileName, .Left(Tx, L))
 		Return *FFileName
-	End Property
+	End Function
 	
 	Private Property Application.ActiveForm As My.Sys.Forms.Form Ptr
 		Return FActiveForm
@@ -1291,12 +1305,12 @@ End Function
 		Fn = FreeFile_
 		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 		If Result = 0 Then
-			pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
 			If FileEncoding = FileEncodings.Utf8 Then
 				Buff =  Input(FileSize, #Fn)
 				WLet(pBuff, FromUtf8(StrPtr(Buff)))
 				NewLineType= NewLineTypes.LinuxLF
 			Else
+				pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
 				*pBuff =  WInput(FileSize, #Fn)
 			End If
 		End If
@@ -1364,6 +1378,19 @@ End Function
 		Return True
 	End Function
 #endif
+
+'Function ByteToString Overload(ByVal Src As UByte Ptr, ByVal Size As Long) As String
+'	Dim As String Dest = String(Size, 0)
+'    Fb_MemCopy(Dest[0], Src[0], Size)
+'    Return Dest
+'End Function
+'
+'Function ByteToString Overload(Src() As UByte) As String
+'	Dim As Long Size= UBound(Src) - LBound(Src) + 1
+'	Dim As String Dest = String(Size, 0)
+'    Fb_MemCopy(Dest[0], @Src[0], Size)
+'    Return Dest
+'End Function
 
 #ifdef __EXPORT_PROCS__
 	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__

@@ -160,8 +160,7 @@ Namespace My
 		Declare Property ActiveMDIChild(Value As My.Sys.Forms.Form Ptr)
 		Declare Property DarkMode As Boolean
 		Declare Property DarkMode(Value As Boolean)
-		Declare Property FileName ByRef As WString
-		Declare Property FileName(ByRef Value As WString)
+		Declare Function FileName ByRef As WString
 		Declare Function Version() As String
 		Declare Function GetVerInfo(ByRef InfoName As String) As String
 		Declare Property Icon As My.Sys.Drawing.Icon
@@ -174,8 +173,9 @@ Namespace My
 		Declare Property CurLanguage(ByRef Value As WString)
 		Declare Property Language ByRef As WString
 		Declare Property Language(ByRef Value As WString)
-		Declare Property ExeName ByRef As WString
-		Declare Property ExeName(ByRef Value As WString)
+		Declare Function PrevInstance As Boolean
+		Declare Function Path ByRef As WString
+		Declare Function ExeName ByRef As WString
 		Declare Property MainForm As My.Sys.Forms.Form Ptr
 		Declare Property MainForm(Value As My.Sys.Forms.Form Ptr)
 '		Declare Property HintColor As Integer
