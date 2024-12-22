@@ -917,7 +917,7 @@ Namespace My.Sys.Forms
 						If Value Then gtk_widget_queue_draw(widget)
 					End If
 				#elseif defined(__USE_WINAPI__)
-					If FHandle = 0 And CInt(Value) Then
+					If Value AndAlso CBool((FHandle = 0) OrElse Not IsWindow(FHandle)) Then
 						CreateWnd
 					End If
 					'If FParent Then FParent->RequestAlign
