@@ -115,6 +115,7 @@ Namespace My
 		FLanguage       As WString Ptr
 		FIcon           As My.Sys.Drawing.Icon
 		FExeName        As WString Ptr
+		FPath        As WString Ptr
 		FFileName       As WString Ptr
 		FHintColor      As Integer
 		FHintPause      As Integer
@@ -160,8 +161,7 @@ Namespace My
 		Declare Property ActiveMDIChild(Value As My.Sys.Forms.Form Ptr)
 		Declare Property DarkMode As Boolean
 		Declare Property DarkMode(Value As Boolean)
-		Declare Property FileName ByRef As WString
-		Declare Property FileName(ByRef Value As WString)
+		Declare Function FileName ByRef As WString
 		Declare Function Version() As String
 		Declare Function GetVerInfo(ByRef InfoName As String) As String
 		Declare Property Icon As My.Sys.Drawing.Icon
@@ -174,8 +174,9 @@ Namespace My
 		Declare Property CurLanguage(ByRef Value As WString)
 		Declare Property Language ByRef As WString
 		Declare Property Language(ByRef Value As WString)
-		Declare Property ExeName ByRef As WString
-		Declare Property ExeName(ByRef Value As WString)
+		Declare Function PrevInstance As Boolean
+		Declare Function Path ByRef As WString
+		Declare Function ExeName ByRef As WString
 		Declare Property MainForm As My.Sys.Forms.Form Ptr
 		Declare Property MainForm(Value As My.Sys.Forms.Form Ptr)
 '		Declare Property HintColor As Integer
@@ -221,6 +222,7 @@ Declare Function ML(ByRef V As WString) ByRef As WString
 Declare Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
 Declare Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As WString Ptr
 Declare Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
+Declare Function ByteToString(ByVal Src As UByte Ptr, ByVal Size As Long) As String
 
 Namespace Debug
 	Declare Sub Clear

@@ -1789,7 +1789,7 @@ Namespace My.Sys.Forms
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
 						event_.dwFlags = TME_LEAVE Or TME_HOVER
 						event_.hwndTrack = FHandle
-						'event_.dwHoverTime = 10
+						event_.dwHoverTime = 1000 'milliseconds
 						TRACKMOUSEEVENT(@event_)
 						This.Tracked = True
 					End If
@@ -1824,6 +1824,7 @@ Namespace My.Sys.Forms
 							'*filename = Left(*filename, length)
 							If OnDropFile Then OnDropFile(*Designer, This, *filename)
 						Next
+						_Deallocate( filename)
 						DragFinish iDrop
 					End If
 				Case WM_CHAR
