@@ -339,9 +339,11 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor NumericUpDown
+		#ifdef __USE_GTK__
 		If GTK_IS_WIDGET(widget) Then
 			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@SpinButton_ValueChanged), @This)
 		End If
 		widget = 0
+		#endif
 	End Destructor
 End Namespace
