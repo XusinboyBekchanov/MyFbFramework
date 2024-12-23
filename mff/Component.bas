@@ -563,21 +563,30 @@ Namespace My.Sys.ComponentModel
 		If FClassAncestor Then _Deallocate(FClassAncestor)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
-				If GTK_IS_WIDGET(widget) Then
+				If widget <> 0 AndAlso GTK_IS_WIDGET(widget) Then
+					Dim As GtkWidget Ptr TempWidget = widget
+					widget = 0
 					#ifdef __USE_GTK4__
-						g_object_unref(widget)
+						g_object_unref(TempWidget)
 					#else
 						#ifdef __USE_GTK3__
-							gtk_widget_destroy(widget)
+							gtk_widget_destroy(TempWidget)
 						#else
-							If GTK_IS_MENU_SHELL(widget) = 0 Then
-								gtk_widget_destroy(widget)
+							If GTK_IS_MENU_SHELL(TempWidget) = 0 Then
+								gtk_widget_destroy(TempWidget)
 							End If
 						#endif
 					#endif
+					If TempWidget = overlaywidget Then overlaywidget = 0
+					If TempWidget = scrolledwidget Then scrolledwidget = 0
+					If TempWidget = eventboxwidget Then eventboxwidget = 0
+					If TempWidget = fixedwidget Then fixedwidget = 0
+					If TempWidget = layoutwidget Then layoutwidget = 0
+					If TempWidget = box Then box = 0
+					If TempWidget = containerwidget Then containerwidget = 0
 					widget = 0
 				End If
-				If GTK_IS_WIDGET(overlaywidget) Then
+				If overlaywidget <> 0 AndAlso GTK_IS_WIDGET(overlaywidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(overlaywidget)
 					#else
@@ -585,7 +594,7 @@ Namespace My.Sys.ComponentModel
 					#endif
 					overlaywidget = 0
 				End If
-				If GTK_IS_WIDGET(scrolledwidget) Then
+				If scrolledwidget <> 0 AndAlso GTK_IS_WIDGET(scrolledwidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(scrolledwidget)
 					#else
@@ -593,7 +602,7 @@ Namespace My.Sys.ComponentModel
 					#endif
 					scrolledwidget = 0
 				End If
-				If GTK_IS_WIDGET(eventboxwidget) Then
+				If eventboxwidget <> 0 AndAlso GTK_IS_WIDGET(eventboxwidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(eventboxwidget)
 					#else
@@ -601,7 +610,7 @@ Namespace My.Sys.ComponentModel
 					#endif
 					eventboxwidget = 0
 				End If
-				If GTK_IS_WIDGET(fixedwidget) Then
+				If fixedwidget <> 0 AndAlso GTK_IS_WIDGET(fixedwidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(fixedwidget)
 					#else
@@ -609,7 +618,7 @@ Namespace My.Sys.ComponentModel
 					#endif
 					fixedwidget = 0
 				End If
-				If GTK_IS_WIDGET(layoutwidget) Then
+				If layoutwidget <> 0 AndAlso GTK_IS_WIDGET(layoutwidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(layoutwidget)
 					#else
@@ -617,7 +626,7 @@ Namespace My.Sys.ComponentModel
 					#endif
 					layoutwidget = 0
 				End If
-				If GTK_IS_WIDGET(box) Then
+				If box <> 0 AndAlso GTK_IS_WIDGET(box) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(box)
 					#else
@@ -625,7 +634,7 @@ Namespace My.Sys.ComponentModel
 					#endif
 					box = 0
 				End If
-				If GTK_IS_WIDGET(containerwidget) Then
+				If containerwidget <> 0 AndAlso GTK_IS_WIDGET(containerwidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(containerwidget)
 					#else

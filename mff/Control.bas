@@ -3074,7 +3074,7 @@ Namespace My.Sys.Forms
 		Private Destructor Control
 			#ifndef __FB_WIN32__
 				#ifdef __USE_GTK__
-					If GTK_IS_WIDGET(layoutwidget) Then
+					If layoutwidget <> 0 AndAlso GTK_IS_WIDGET(layoutwidget) Then
 						#ifdef __USE_GTK3__
 							g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)
 						#else
@@ -3082,12 +3082,12 @@ Namespace My.Sys.Forms
 							g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_SizeAllocate), @This)
 						#endif
 					End If
-					If GTK_IS_WIDGET(widget) Then
+					If widget <> 0 AndAlso GTK_IS_WIDGET(widget) Then
 						g_signal_handlers_disconnect_by_func(IIf(eventboxwidget, eventboxwidget, widget), G_CALLBACK(@EventProc), @This)
 						g_signal_handlers_disconnect_by_func(IIf(eventboxwidget, eventboxwidget, widget), G_CALLBACK(@EventAfterProc), @This)
 						g_signal_handlers_disconnect_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), @This)
 					End If
-					If GTK_IS_WIDGET(scrolledwidget) Then
+					If scrolledwidget <> 0 AndAlso GTK_IS_WIDGET(scrolledwidget) Then
 						g_signal_handlers_disconnect_by_func(scrolledwidget, G_CALLBACK(@Control_Scroll), @This)
 					End If
 				#endif

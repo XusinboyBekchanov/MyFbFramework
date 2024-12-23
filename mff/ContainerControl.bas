@@ -58,7 +58,7 @@ Namespace My.Sys.Forms
 				ElseIf GTK_IS_BOX(widget) = 1 Then
 					box = widget
 				#ifdef __USE_GTK3__
-				ElseIf GTK_IS_stack(widget) = 1 Then
+				ElseIf GTK_IS_STACK(widget) = 1 Then
 				#endif
 				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
 					fixedwidget = gtk_fixed_new()
@@ -121,6 +121,27 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ContainerControl
+		#ifdef __USE_GTK__
+			If CInt(widget) AndAlso CInt(GTK_IS_NOTEBOOK(widget) <> 1) Then
+				If GTK_IS_WIDGET(widget) AndAlso gtk_widget_is_toplevel(widget) Then
+					box = 0
+					layoutwidget = 0
+				ElseIf GTK_IS_LAYOUT(widget) = 1 Then
+					layoutwidget = 0
+				ElseIf GTK_IS_FIXED(widget) = 1 Then
+					fixedwidget = 0
+				ElseIf GTK_IS_BOX(widget) = 1 Then
+					box = 0
+				#ifdef __USE_GTK3__
+				ElseIf GTK_IS_STACK(widget) = 1 Then
+				#endif
+				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
+					fixedwidget = 0
+				Else
+					layoutwidget = 0
+				End If
+			End If
+		#endif
 	End Destructor
 End Namespace
 
