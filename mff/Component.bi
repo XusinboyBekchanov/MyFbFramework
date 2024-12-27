@@ -46,6 +46,7 @@ Namespace My.Sys.ComponentModel
 		#elseif defined(__USE_WASM__)
 			FHandle         As Any Ptr
 		#endif
+		Declare Sub FreeWidget()
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
 		'Stores any extra data needed for your program (Windows, Linux, Android, Web).

@@ -457,6 +457,7 @@ Namespace My.Sys.Drawing
 			#else
 				If pcontext Then g_object_unref(pcontext)
 				If Handle_ AndAlso G_IS_OBJECT(Handle_) Then cairo_destroy(Handle_)
+				This.Handle = 0
 				HandleSetted = False
 			#endif
 		#elseif defined(__USE_CAIRO__)

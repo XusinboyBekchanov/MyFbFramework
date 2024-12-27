@@ -1294,12 +1294,10 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.FreeWnd
 			#ifdef __USE_GTK__
-				'				If gtk_is_widget(Widget) Then
-				'					gtk_widget_destroy(Widget)
-				'				End If
-				'				If gtk_is_widget(ScrolledWidget) Then
-				'					gtk_widget_destroy(ScrolledWidget)
-				'				End If
+				FreeWidget()
+				'For i As Integer = 0 To ControlCount - 1
+				'	Controls[i]->FreeWnd
+				'Next
 			#elseif defined(__USE_WINAPI__)
 				If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
 				If FHandle Then
@@ -1500,6 +1498,7 @@ Namespace My.Sys.Forms
 				Case GDK_DELETE
 				Case GDK_DESTROY
 					If OnDestroy Then OnDestroy(*Designer, This)
+					widget = 0
 				Case GDK_EXPOSE
 					If OnPaint Then OnPaint(*Designer, This, Canvas)
 				Case GDK_EVENT_LAST
@@ -2212,6 +2211,7 @@ Namespace My.Sys.Forms
 						Ctrl->RequestAlign Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight), True
 						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight))
 					End If
+					Ctrl->Canvas.Handle = 0
 					Ctrl->Canvas.HandleSetted = False
 				End If
 				Return False
@@ -2350,6 +2350,7 @@ Namespace My.Sys.Forms
 					If GTK_IS_SCROLLED_WINDOW(widget) Then
 						g_signal_connect(widget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
 					End If
+					'g_signal_connect(widget, "destroy", G_CALLBACK(Control_Destroy), @widget)
 				End If
 				#ifndef __USE_GTK4__
 					If eventboxwidget Then
@@ -3101,6 +3102,7 @@ Namespace My.Sys.Forms
 			'			    If Controls[i] Then Controls[i]->Free
 			'			Next i
 			If Controls Then _Deallocate( Controls)
+			FControlCount = 0
 			FPopupMenuItems.Clear
 		End Destructor
 	#endif

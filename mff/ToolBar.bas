@@ -625,7 +625,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				#ifndef __FB_WIN32__
-					If GTK_IS_WIDGET(Widget) Then 
+					If Widget <> 0 AndAlso GTK_IS_WIDGET(Widget) Then 
 						#ifdef __USE_GTK4__
 							g_object_unref(Widget)
 						#else
@@ -674,6 +674,22 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		End Sub
+		
+		Private Sub on_menu_position(ByVal menu_ As GtkMenu Ptr, ByVal x As gint Ptr, ByVal y As gint Ptr, ByVal push_in As gboolean Ptr, ByVal user_data As gpointer)
+			Dim As GtkWidget Ptr button = GTK_WIDGET(user_data)
+			Dim As GdkWindow Ptr Window1 = gtk_widget_get_window(gtk_widget_get_parent(button))
+			Dim As GtkAllocation allocation
+			Dim As gint bx, by
+			gtk_widget_get_allocation(button, @allocation)
+			gdk_window_get_origin(Window1, @bx, @by)
+			*x = bx + allocation.x
+			*y = by + allocation.y + allocation.height
+			*push_in = False
+		End Sub
+
+		Private Sub on_popup_menu(button As GtkWidget Ptr, Menu_ As GtkMenu Ptr)
+			gtk_menu_popup(Menu_, NULL, NULL, Cast(GtkMenuPositionFunc, @on_menu_position), button, 1, gtk_get_current_event_time())
+		End Sub
 	#endif
 	
 	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
@@ -719,6 +735,7 @@ Namespace My.Sys.Forms
 					Case tbsDropDown, tbsDropDown Or tbsAutosize
 						.Widget = GTK_WIDGET(gtk_menu_tool_button_new(NULL, ToUtf8(FCaption)))
 						gtk_menu_tool_button_set_menu(GTK_MENU_TOOL_BUTTON(.Widget), .DropDownMenu.Handle)
+						gtk_tool_item_set_is_important(GTK_TOOL_ITEM(.Widget), True)
 					Case tbsNoPrefix
 						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					Case tbsShowText, tbsShowText Or tbsAutosize
@@ -726,10 +743,12 @@ Namespace My.Sys.Forms
 					Case tbsWholeDropdown, tbsWholeDropdown Or tbsAutosize
 						.Widget = GTK_WIDGET(gtk_menu_tool_button_new(NULL, ToUtf8(FCaption)))
 						gtk_menu_tool_button_set_menu(GTK_MENU_TOOL_BUTTON(.Widget), .DropDownMenu.Handle)
+						g_signal_connect(.Widget, "clicked", G_CALLBACK(@on_popup_menu), .DropDownMenu.Handle)
+						gtk_tool_item_set_is_important(GTK_TOOL_ITEM(.Widget), True)
 					Case Else
 						.Widget = GTK_WIDGET(gtk_tool_button_new(NULL, ToUtf8(FCaption)))
 					End Select
-					If GTK_IS_TOOL_BUTTON(.Widget) Then gtk_tool_button_set_label(GTK_TOOL_BUTTON(.Widget), ToUtf8(FHint))
+					If GTK_IS_TOOL_BUTTON(.Widget) Then gtk_tool_button_set_label(GTK_TOOL_BUTTON(.Widget), ToUtf8(FCaption))
 					gtk_tool_item_set_tooltip_text(GTK_TOOL_ITEM(.Widget), ToUtf8(FHint))
 					g_signal_connect(.Widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
 				End Select
@@ -860,13 +879,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.AutoSize As Boolean
 		#ifndef __USE_GTK__
-			FAutoSize = StyleExists(TBSTYLE_AUTOSIZE)
+			FAutosize = StyleExists(TBSTYLE_AUTOSIZE)
 		#endif
-		Return FAutoSize
+		Return FAutosize
 	End Property
 	
 	Private Property ToolBar.AutoSize(Value As Boolean)
-		FAutoSize = Value
+		FAutosize = Value
 		#ifndef __USE_GTK__
 			ChangeStyle TBSTYLE_AUTOSIZE, Value
 			If FHandle Then If FAutosize Then Perform(TB_AUTOSIZE, 0, 0)

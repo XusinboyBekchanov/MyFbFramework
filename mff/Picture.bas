@@ -376,7 +376,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If GTK_IS_WIDGET(ImageWidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(widget)
+					g_object_unref(ImageWidget)
 				#else
 					gtk_widget_destroy(ImageWidget)
 				#endif
