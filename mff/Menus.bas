@@ -1085,7 +1085,7 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_GTK__)
 				If SubMenu AndAlso SubMenu->Handle Then
-					gtk_container_remove(GTK_CONTAINER(SubMenu->Handle), FItems[i]->Widget)
+					If GTK_IS_CONTAINER(SubMenu->Handle) Then gtk_container_remove(GTK_CONTAINER(SubMenu->Handle), FItems[i]->Widget)
 					FItems[i]->Widget = 0
 				End If
 				If FItems[i]->FDynamic Then _Delete(FItems[i])
