@@ -199,7 +199,7 @@ Namespace My
 	Private Function Application.Path ByRef As WString
 		If FPath > 0 Then Return *FPath
 		Dim As WString * 255 Tx
-		Dim As WString*225 s, En
+		Dim As WString * 225 s, En
 		Dim As Integer L, i, k
 		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
@@ -212,9 +212,9 @@ Namespace My
 		'	If s[i] = Asc("\") Then k = i
 		'Next i
 		k = InStrRev(s, Any ":/\")
-		En = Mid(s, k + 2, Len(s))
+		En = Mid(s, k + 1, Len(s))
 		WLet(FFileName, s)
-		WLet(FPath, Left(s, k))
+		WLet(FPath, Left(s, k - 1))
 		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
 		Return *FPath
 	End Function
@@ -222,7 +222,7 @@ Namespace My
 	Private Function Application.ExeName ByRef As WString
 		If FExeName > 0 Then Return *FExeName
 		Dim As WString * 255 Tx
-		Dim As WString*225 s, En
+		Dim As WString * 225 s, En
 		Dim As Integer L, i, k
 		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
@@ -235,16 +235,16 @@ Namespace My
 		'	If s[i] = Asc("\") Then k = i
 		'Next i
 		k = InStrRev(s, Any ":/\")
-		En = Mid(s, k + 2, Len(s))
+		En = Mid(s, k + 1, Len(s))
 		WLet(FFileName, s)
-		WLet(FPath, Left(s, k))
+		WLet(FPath, Left(s, k - 1))
 		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
 		Return *FExeName
 	End Function
 	
 	Private Function Application.FileName ByRef As WString
 		Dim As WString * 255 Tx
-		Dim As WString*225 s, En
+		Dim As WString * 225 s, En
 		Dim As Integer L, i, k
 		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
@@ -257,9 +257,9 @@ Namespace My
 		'	If s[i] = Asc("\") Then k = i
 		'Next i
 		k = InStrRev(s, Any ":/\")
-		En = Mid(s, k + 2, Len(s))
+		En = Mid(s, k + 1, Len(s))
 		WLet(FFileName, s)
-		WLet(FPath, Left(s, k))
+		WLet(FPath, Left(s, k - 1))
 		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
 		Return *FFileName
 	End Function
