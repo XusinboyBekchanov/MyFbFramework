@@ -1298,11 +1298,13 @@ Namespace My.Sys.Forms
 			.Child             = @This
 			WLet(FClassName, "ToolBar")
 			WLet(FClassAncestor, "ToolBarWindow32")
-			.Width             = 121
-			#ifdef __USE_GTK__
-				.Height            = 30
-			#else
-				.Height            = 26
+			#ifndef __USE_GTK2__
+				.Width             = 121
+				#ifdef __USE_GTK__
+					.Height            = 30
+				#else
+					.Height            = 26
+				#endif
 			#endif
 			'.Font              = @Font
 			'.Cursor            = @Cursor

@@ -1,6 +1,3 @@
-*.7z
-*.bak
-*.exe
 *_gtk*
 *.o
 MyFbFramework.wiki

@@ -960,6 +960,11 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub ReBar.Layout_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As ReBar Ptr rb = user_data
+			#ifdef __USE_GTK2__
+				If allocation->width <= 100 Then
+					Return
+				End If
+			#endif
 			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
 				rb->AllocatedWidth = allocation->width
 				rb->AllocatedHeight = allocation->height
@@ -970,11 +975,11 @@ Namespace My.Sys.Forms
 					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
 					If rb->Bands.Item(i)->MinWidth = 0 OrElse rb->Bands.Item(i)->MinHeight = 0 Then
 						rb->bWithoutUpdate = True
-						rb->Bands.Item(i)->MinWidth = ChildAllocation.Width + 11
+						rb->Bands.Item(i)->MinWidth = ChildAllocation.width + 11
 						rb->Bands.Item(i)->MinHeight = ChildAllocation.height + 2
-						rb->Bands.Item(i)->IdealWidth = ChildAllocation.Width + 11
-						rb->Bands.Item(i)->RequestedWidth = ChildAllocation.Width + 11
-						rb->Bands.Item(i)->Width = ChildAllocation.Width + 11
+						rb->Bands.Item(i)->IdealWidth = ChildAllocation.width + 11
+						rb->Bands.Item(i)->RequestedWidth = ChildAllocation.width + 11
+						rb->Bands.Item(i)->Width = ChildAllocation.width + 11
 						rb->Bands.Item(i)->Height = ChildAllocation.height + 2
 						If *rb->Bands.Item(i)->Child Is ToolBar Then
 							gtk_toolbar_set_show_arrow(GTK_TOOLBAR(rb->Bands.Item(i)->Child->Handle), True)
@@ -983,7 +988,7 @@ Namespace My.Sys.Forms
 					End If
 				Next
 				Dim As Boolean bNextNewLine
-				Dim As Integer FLeft, FTop, FWidth = allocation->Width, FHeight, OldBandIndex, RowHeight, FMinWidths
+				Dim As Integer FLeft, FTop, FWidth = allocation->width, FHeight, OldBandIndex, RowHeight, FMinWidths
 				rb->FRowCount = 0
 				For i As Integer = 0 To rb->Bands.Count - 1
 					If Not rb->Bands.Item(i)->Visible Then Continue For
@@ -1009,7 +1014,7 @@ Namespace My.Sys.Forms
 					End If
 					FWidth -= rb->Bands.Item(i)->MinWidth
 					If bNextNewLine Then
-						FWidth = allocation->Width
+						FWidth = allocation->width
 						FLeft = 0
 						For j As Integer = OldBandIndex To i
 							If Not rb->Bands.Item(j)->Visible Then Continue For
@@ -1026,7 +1031,7 @@ Namespace My.Sys.Forms
 								If j = i Then
 									.Width = FWidth
 								Else
-									.Width = Max(.MinWidth, min(.RequestedWidth, FWidth - FMinWidths))
+									.Width = Max(.MinWidth, Min(.RequestedWidth, FWidth - FMinWidths))
 								End If
 								.Height = RowHeight
 								rb->bWithoutUpdate = False
@@ -1047,7 +1052,7 @@ Namespace My.Sys.Forms
 					rb->AllocatedHeight = FHeight
 					rb->Height = FHeight
 					If FHeight <> 1 Then
-						If rb->Parent Then rb->Parent->RequestAlign
+						If rb->Parent Then rb->Parent->RequestAlign , , True, rb
 					End If
 				End If
 				If rb->OnResize Then rb->OnResize(*rb->Designer, *rb, rb->UnScaleX(allocation->width), rb->UnScaleY(allocation->height))
@@ -1070,7 +1075,7 @@ Namespace My.Sys.Forms
 				rb->gdkCursorWEResize = gdk_cursor_new_from_name(rb->pdisplay, crSizeWE)
 				rb->gdkCursorColResize = gdk_cursor_new_from_name(rb->pdisplay, "col-resize")
 				#ifdef __USE_GTK3__
-					rb->win = gtk_layout_get_bin_window(gtk_layout(widget))
+					rb->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 				#endif
 			End If
 			For i As Integer = 0 To rb->Bands.Count - 1
@@ -1111,6 +1116,7 @@ Namespace My.Sys.Forms
 				End With
 			Next
 			If rb->OnPaint Then rb->OnPaint(*rb->Designer, *rb, rb->Canvas)
+			rb->Canvas.Handle = 0
 			rb->Canvas.HandleSetted = False
 			Return False
 		End Function

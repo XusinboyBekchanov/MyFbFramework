@@ -84,6 +84,8 @@ Namespace My.Sys.Drawing
 				Handle = gdk_pixbuf_new_from_file_at_size(ToUtf8(File), cxDesired, cyDesired, @gerr)
 			End If
 			If Handle = 0 Then Return False
+			FWidth  = gdk_pixbuf_get_width(Handle)
+			FHeight = gdk_pixbuf_get_height(Handle)
 		#elseif defined(__USE_WASM__)
 			Handle = File
 		#elseif defined(__USE_WINAPI__)
@@ -347,14 +349,14 @@ Namespace My.Sys.Drawing
 			Free
 			#ifdef __USE_GTK__
 				Dim As GError Ptr gerr
-				If FileExists("./Resources/" & ResName & ".png") Then
-					Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".png"), @gerr)
-				ElseIf FileExists("./resources/" & ResName & ".png") Then
-					Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".png"), @gerr)
-				ElseIf FileExists("./Resources/" & ResName & ".ico") Then
-					Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".ico"), @gerr)
-				ElseIf FileExists("./resources/" & ResName & ".ico") Then
-					Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".ico"), @gerr)
+				If FileExists(ExePath & "/./Resources/" & ResName & ".png") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./Resources/" & ResName & ".png"), @gerr)
+				ElseIf FileExists(ExePath & "/./resources/" & ResName & ".png") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./resources/" & ResName & ".png"), @gerr)
+				ElseIf FileExists(ExePath & "/./Resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./Resources/" & ResName & ".ico"), @gerr)
+				ElseIf FileExists(ExePath & "/./resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./resources/" & ResName & ".ico"), @gerr)
 				Else
 					Handle = gdk_pixbuf_new_from_resource(ToUtf8(ResName), @gerr)
 				End If

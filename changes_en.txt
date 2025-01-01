@@ -1,3 +1,164 @@
+Version 1.3.6 (January 1, 2025)
+- Fixed: ExeName function of Application
+- Added： Thread.bi and DynamicArrayList.bi
+- Improved: tbsWholeDropdown ToolButton
+- Added: PrevInstance and Path function to Application
+- Filled: ReadProperty and WriteProperty functions of GraphicType
+- Fixed: Distance between pointer and icon when TreeView moves from High DPI to Low DPI
+- Improved: ImageList on High DPI
+- Fixed: TreeView on High DPI
+- Improved: ToolBar on DPI changing
+- Fixed: DPI on create ToolBar buttons
+- Improved: ReBar on DPI changing
+- Improved: Form size changing
+- Fixed: Row height of TreeListView on DPI changing
+- Added: OnMeasureItem and OnDrawItem events to ListView
+- Fixed: Image missing after DPI changed
+- Replaced: ListSortDirection Enum to SortStyle in Grid
+- Added: OnPanelClick And OnPanelDblClick events to StatusBar, Added: StatusBar Example
+- Added: RayLib Example
+- Improved: Print components
+- Added: Gradient color for Grid
+- Added： SortOrder property to Grid control
+- Added: _CAllocateWithSize definition to FBMemCheck
+- Added： Console Example
+- Added： Console.bi
+- Added： CreateObjectRegFree function
+- Improved: GroupBox on Dark Mode
+- Added: NoInterface.bi
+- Updated: Change the Split sub to a function.
+- Added: OnNewWindowRequested event to WebBrowser
+- Added: ExecuteScript function to WebBrowser
+- Fixed: Compiling Android Project
+- Fixed: Form with GTK4 in Windows
+- Fixed: __USE_CAIRO__ in High DPI
+- Fixed: ImageList in High DPI
+- Fixed: TextRTF property of RichTextBox
+- Renamed: SearchBar to SearchBox
+- Added: Expand property to ToolButton
+- Improved: SearchBar in Linux
+- Imrpoved: Dark mode for all controls
+- Improved: ComboBoxEx in Dark mode
+- Fixed: Changing Form title bar to Dark mode, Fixed: Blinking when opening Form
+- Added: __USE_CAIRO__ definition
+- Improved: TabControl in High DPI
+- Improved: ListView, TreeListView and Grid in High DPI
+- Fixed: ToolButton Width in High DPI
+- Fixed: Icon Size in High DPI
+- Fixed: MDIForm on Light mode
+- Fixed: ReBar in Light mode
+- Added: Default color of BevelOuter, BevelInner in Darkmode
+- Fixed: Update Font property in Canvas.TextOut
+- Fixed: My.Sys.Language function in Linux
+- Fixed: Showing Panel Caption with Font size
+- Added: TreeView on Web
+- Added: ListControl and ComboBox on Web
+- Added: ReadProperty and WriteProperty functions to HTTPConnection and HTTPServer
+- Fixed: HTTPConnection
+- Improved: SearchBar in Light mode
+- Added: FBSound example
+- Fixed: SearchBar in High DPI
+- Added: HorizontalBox, ScrollControl Example
+- Added: WinHTTP example
+- Added: Curl examples
+- Added: SearchBar
+- Fixed: ScrollControl in High DPI
+- Improved: ScrollControl
+- Added: RecalculateScrollBars method to ScrollControl
+- Added: Descriptions for Object, Component, Control, CommandButton, ContainerControl and Form
+- Fixed: ScrollControl
+- Fixed: RichTextBox dark mode
+- Improved: TextRTF property of RichTextBox
+- Added: TextRTF property to RichTextBox on Linux.
+- Improved: RichTextBox in Dark Mode
+- Added： Using Cairo with GDI
+- Added: Cairo Example
+- Added: Animate, Chart, Grid, GridData, ListView, PageScroller, ReBar, TimerComponent, WebBrowser Examples
+- Added: ImageBox on Web
+- Added: OnButtonActivate event to ToolPalette
+- Fixed: UpDown control on High DPI
+- Added: HTTPConnection CallMethod on Windows.
+- Added: HTTP and HTTPServer classes
+- Improved: Form on Web
+- Improved: NumericUpDown control
+- Fixed: NumericUpDown in High DPI
+- Improved: ScrollControl on Design mode
+- Fixed: Compiling PagePanel with gtk2
+- Fixed: SelectedPanelIndex property of PagePanel on Linux
+- Improved: PagePanel
+- Fixed: Parent property of Form in Linux
+- Added: Language property to Application
+- Added: Language function to Sys namespace
+- Improved: CurLanguage property of Application takes the system language by default
+- Added: NumericUpDown control to PagePanel on Design mode
+- Fixed: Focusing Forms after close child form
+- Improved: Clear method of TreeListViewItems
+- Fixed: Visible property and Collapse method of TreeView
+- Added: PagePanel control
+- Added: Alignment and ArrowKeys property to UpDown control
+- Fixed: ToolButton Width property
+- Added: PrintDocument and PrintPreviewControl properties
+- Added: Child property to ToolButton
+- Fixed: Properties of SearchBar in Linux
+- Added: Visible property to TreeListViewItem
+- Added: Visible property to TreeNode
+- Fixed: Export of MsgBox function
+- Improved: PrintPreviewControl and PrintPreviewDialog
+- Added: Support for multiple languages
+- Fixed: Form ShowCaption property
+- Added: HorizontalScrollBar and VerticalScrollBar properties to ListControl
+- Added: RadioCheck property to CheckedListBox
+- Added: GridLines and MultiSelect properties to TreeListView
+- Added: Cancel property to CommandButton
+- Added: ShortCut property to MenuItem
+- Added： ZLet and ZDeAllocate sub
+- Fixed: Visible property of Control
+- Added: PrintDocument, PrintPreviewControl
+- Fixed: PrintPreviewDialog
+- Added: Orientation and PaperSize properties to PageSetupDialog
+- Added: SetBody method to WebBrowser in WebView2 mode
+- Added: GetBody function to WebBrowser in WebView2 mode
+- Improved: Canvas Drawing
+- Added: Spacing property to HorizontalBox and VerticalBox
+- Fixed: TextBox RightMargin property
+- Fixed: CheckedListBox painting
+- Fixed: Get Checked property of ListView item
+- Fixed: Error message when drawing with GDI+
+- Fixed: Control Repaint method
+- Fixed: Memory Leaks of Canvas
+- Added: ShowCaption property to Control
+- Added: StretchMode to show image in a Form body
+- Added: Current.X, Current.Y for layout of the Caption of Controls
+- Added: Transparent Property to Label Control
+- Added: Examples for Label control
+- Improved: AutoSize property of Label Control
+- Added: AutoSize property for Label control
+- Added: GetUrl method for WebBrowser (WebView2)
+- Fixed: WebBrowser's crash when WebView2 runtime is not installed.
+- Fixed: Running WebBrowser with WebView2 in 32-bit
+- Added: __USE_WEBVIEW2__ define for WebBrowser control
+- Improved: Replace function
+- Added: Choose and Switch functions
+- Added: High DPI when compiling with GTK
+- Fixed: Compiling with GTK2
+- Added: Wiki comments to functions
+- Added: Comments to Classes
+- Fixed: Changing Left and Top property of Designer Form and UserControl on Design mode
+- Fixed: Floating point error in Chart control
+- Fixed: AddItem method of ListControl
+- Added: NewIndex property to CheckedListBox, ComboBoxEdit, ComboBoxEx and ListControl
+- Fixed: Disabled the Transparent property in Design Mode.
+- Added: ShiftMask, AltMask, CtrlMask
+- Added: DPI (scale factor) support in Linux
+- Added: workflows
+- Fixed: Fixed: GridData in Linux
+- Fixed: Compiling on Linux
+- Added: EnsureVisible method to TreeListView , Grid, Griddata
+- Added: EnsureVisible method to ListView on Linux
+- Added: EnsureVisible method to ListView
+- Fixed: Changing ComboBoxEx to Dark Mode
+- Fixed: ReBar updating on change to Dark Mode
+- Fixed: Form and TextBox in Web
 Version 1.3.5 (September 17, 2023)
 - Added: Web support
 - Added: Optional Drawing with GDI+ with Canvas

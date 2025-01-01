@@ -28,6 +28,7 @@
 		Declare Sub cmdNext_Click(ByRef Sender As Control)
 		Declare Static Sub cmdGo_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdGo_Click(ByRef Sender As Control)
+		Declare Sub WebBrowser1_NewWindowRequested(ByRef Sender As WebBrowser, ByRef e As NewWindowRequestedEventArgs)
 		Declare Constructor
 		
 		Dim As WebBrowser WebBrowser1
@@ -54,6 +55,8 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
+			.Designer = @This
+			.OnNewWindowRequested = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As WebBrowser, ByRef e As NewWindowRequestedEventArgs), @WebBrowser1_NewWindowRequested)
 			.Parent = @This
 		End With
 		' cmdPrev
@@ -136,4 +139,8 @@ Private Sub Form1.cmdGo_Click(ByRef Sender As Control)
 		End If
 	#endif
 	WebBrowser1.Navigate txtAddress.Text
+End Sub
+
+Private Sub Form1.WebBrowser1_NewWindowRequested(ByRef Sender As WebBrowser, ByRef e As NewWindowRequestedEventArgs)
+	MsgBox e.GetURL
 End Sub

@@ -132,18 +132,21 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK3__
 						gtk_label_set_xalign(GTK_LABEL (widget), 0.0)
 					#else
+						gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_LEFT)
 						gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)
 					#endif
 				Case AlignmentConstants.taCenter
 					#ifdef __USE_GTK3__
 						gtk_label_set_xalign(GTK_LABEL (widget), 0.5)
 					#else
+						gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_CENTER)
 						gtk_misc_set_alignment(GTK_MISC(widget), 0.5, 0)
 					#endif
 				Case AlignmentConstants.taRight
 					#ifdef __USE_GTK3__
 						gtk_label_set_xalign(GTK_LABEL (widget), 1.0)
 					#else
+						gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_RIGHT)
 						gtk_misc_set_alignment(GTK_MISC(widget), 1, 0)
 					#endif
 				End Select

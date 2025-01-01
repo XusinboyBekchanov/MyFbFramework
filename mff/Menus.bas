@@ -658,7 +658,7 @@ Namespace My.Sys.Forms
 							gtk_accel_label_set_accel(GTK_ACCEL_LABEL (Label), accelerator_key, accelerator_mods) 'accelerator_mods)
 						#else
 							If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Accelerator Then
-								gtk_widget_add_accelerator (Label, "activate", Owner->ParentWindow->Accelerator, accelerator_key, accelerator_mods, GTK_ACCEL_VISIBLE)
+								gtk_widget_add_accelerator (Widget, "activate", Owner->ParentWindow->Accelerator, accelerator_key, accelerator_mods, GTK_ACCEL_VISIBLE)
 							End If
 						#endif
 						'If Owner Then

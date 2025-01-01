@@ -163,10 +163,10 @@ Namespace My.Sys.Drawing
 		Private Function Icon.LoadFromResourceName(ByRef ResourceName As WString, ModuleHandle As Any Ptr = 0, cx As Integer = 0, cy As Integer = 0) As Boolean
 			#ifdef __USE_GTK__
 				Dim As GError Ptr gerr
-				If FileExists("./Resources/" & ResName & ".ico") Then
-					Handle = gdk_pixbuf_new_from_file(ToUtf8("./Resources/" & ResName & ".ico"), @gerr)
-				ElseIf FileExists("./resources/" & ResName & ".ico") Then
-					Handle = gdk_pixbuf_new_from_file(ToUtf8("./resources/" & ResName & ".ico"), @gerr)
+				If FileExists(ExePath & "/./Resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./Resources/" & ResName & ".ico"), @gerr)
+				ElseIf FileExists(ExePath & "/./resources/" & ResName & ".ico") Then
+					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./resources/" & ResName & ".ico"), @gerr)
 				Else
 					Handle = gdk_pixbuf_new_from_resource(ToUtf8(ResName), @gerr)
 				End If

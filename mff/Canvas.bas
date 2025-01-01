@@ -1134,6 +1134,49 @@ Namespace My.Sys.Drawing
 				GdipDrawImageRect GdipGraphics, pImage, x, y, nWidth, nHeight
 				If pImage Then GdipDisposeImage pImage
 			End If
+		#elseif defined(__USE_GTK__)
+			Dim As cairo_surface_t Ptr image_surface
+			#ifdef __USE_GTK3__
+				image_surface = gdk_cairo_surface_create_from_pixbuf(Image, 1, NULL)
+			#else
+				Dim As Integer image_width = gdk_pixbuf_get_width(Image)
+				Dim As Integer image_height = gdk_pixbuf_get_height(Image)
+				Dim As Integer stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, image_width)
+				
+				image_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, image_width, image_height)
+				If cairo_surface_status(image_surface) <> CAIRO_STATUS_SUCCESS Then
+					Return
+				End If
+				
+				Dim As UByte Ptr cairo_data = cairo_image_surface_get_data(image_surface)
+				Dim As Const UByte Ptr pixbuf_data = gdk_pixbuf_get_pixels(Image)
+				Dim As Integer pixbuf_rowstride = gdk_pixbuf_get_rowstride(Image)
+				Dim As Integer n_channels = gdk_pixbuf_get_n_channels(Image)
+				
+				For y As Integer = 0 To image_height - 1
+					Dim As UByte Ptr cairo_row = cairo_data + y * stride
+					Dim As Const UByte Ptr pixbuf_row = pixbuf_data + y * pixbuf_rowstride
+					
+					For x As Integer = 0 To image_width - 1
+						Dim As UByte r, g, b, a
+						
+						r = pixbuf_row[x * n_channels]
+						g = pixbuf_row[x * n_channels + 1]
+						b = pixbuf_row[x * n_channels + 2]
+						a = IIf(n_channels = 4, pixbuf_row[x * n_channels + 3], 255)
+						
+						cairo_row[x * 4] = b
+						cairo_row[x * 4 + 1] = g
+						cairo_row[x * 4 + 2] = r
+						cairo_row[x * 4 + 3] = a
+					Next
+				Next
+				
+				cairo_surface_mark_dirty(image_surface)
+			#endif
+			cairo_set_source_surface(Handle, image_surface, x, y)
+			cairo_paint(Handle)
+			cairo_surface_destroy(image_surface)
 		#else
 			Print "The function is not ready in this OS."  & " DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)"
 		#endif

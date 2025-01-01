@@ -2308,8 +2308,8 @@ Namespace My.Sys.Forms
 						GDK_BUTTON_RELEASE_MASK Or _
 						GDK_POINTER_MOTION_MASK Or _
 						GDK_POINTER_MOTION_HINT_MASK)
-						'Result = g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
-						'Result = g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
+						'Result = g_signal_connect(layoutwidget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
+						'Result = g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 						#ifdef __USE_GTK3__
 							g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
 							'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
@@ -2618,7 +2618,11 @@ Namespace My.Sys.Forms
 				For i = 0 To TopCount -1
 					With *ListTop[i]
 						If .FVisible Then
-							tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom + IIf(i = 0, 0, FVerticalSpacing)
+							#ifdef __USE_GTK__
+								tTop += .ExtraMargins.Top + IIf(bWithoutControl = ListTop[i], .FHeight, .Height) + .ExtraMargins.Bottom + IIf(i = 0, 0, FVerticalSpacing)
+							#else
+								tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom + IIf(i = 0, 0, FVerticalSpacing)
+							#endif
 							#ifdef __USE_GTK__
 								If GTK_IS_BOX(.widget) Then
 									.RequestAlign rLeft - lLeft - .ExtraMargins.Left - .ExtraMargins.Right, .Height, True, bWithoutControl

@@ -372,11 +372,11 @@ Namespace My.Sys.Forms
 	Private Property Chart.ChartStyle(ByVal New_Value As ChartStyles)
 		m_ChartStyle = New_Value
 		Select Case m_ChartStyle
-		Case CS_PIE To CS_DONUT
+		Case CS_Pie To CS_Donut
 			m_FillOpacity = 100
 			m_Border = True
 			m_LabelsFormats = "{P}%"
-		Case CS_AREA
+		Case CS_Area
 			m_FillOpacity = 50
 			m_Border = False
 			m_LabelsFormats = "{V}"
@@ -566,7 +566,7 @@ Namespace My.Sys.Forms
 		m_BorderRound = 0
 	End Sub
 	
-	Private Sub Chart.GetTextSize(ByRef text_ As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SIZEF)
+	Private Sub Chart.GetTextSize(ByRef text_ As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SizeF)
 		#ifdef __USE_GTK__
 			Dim As PangoFontDescription Ptr desc
 		#else
@@ -608,7 +608,7 @@ Namespace My.Sys.Forms
 		
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2
-			pango_layout_set_text(layout, ToUTF8(text_), Len(ToUTF8(text_)))
+			pango_layout_set_text(layout, ToUtf8(text_), Len(ToUtf8(text_)))
 			pango_cairo_update_layout(cr, layout)
 			pango_layout_get_pixel_extents(layout, @extend, @extend2)
 '			#ifdef PANGO_VERSION
@@ -695,11 +695,11 @@ Namespace My.Sys.Forms
 		If oFont.Bold Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleBold
 		If oFont.Italic Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleItalic
 		If oFont.Underline Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleUnderline
-		If oFont.Strikeout Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleStrikeout
+		If oFont.StrikeOut Then lFontStyle = lFontStyle Or GDIPLUS_FONTSTYLE.FontStyleStrikeout
 		
 		#ifndef __USE_GTK__
 			'hDC = GetDC(0&)
-			lFontSize = MulDiv(oFont.Size, GetDeviceCaps(hD, LOGPIXELSY), 72)
+			lFontSize = MulDiv(oFont.Size, GetDeviceCaps(hd, LOGPIXELSY), 72)
 			'ReleaseDC 0&, hDC
 		#endif
 		
@@ -708,7 +708,7 @@ Namespace My.Sys.Forms
 		
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend1, extend
-			pango_layout_set_text(layout, ToUTF8(Text), Len(ToUTF8(Text)))
+			pango_layout_set_text(layout, ToUtf8(text), Len(ToUtf8(text)))
 			pango_cairo_update_layout(cr, layout)
 			'pango_layout_get_pixel_extents(layout, @extend1, @extend)
 			#ifdef PANGO_VERSION
@@ -3630,7 +3630,7 @@ ErrorHandler:
 	'*3
 	Private Sub Chart.ShowToolTips(BarWidth As Single = 0)
 		Select Case ChartStyle
-		Case CS_PIE To CS_DONUT
+		Case CS_Pie To CS_Donut
 			Dim i As Long, j As Long
 			Dim sDisplay As String
 			Dim bBold As Boolean
@@ -3640,7 +3640,7 @@ ErrorHandler:
 			Dim sText As String
 			Dim TM As Single
 			Dim PT As POINTF
-			Dim SZ As SIZEF
+			Dim SZ As SizeF
 			
 			If HotItem > -1 Then
 				lForeColor = RGBtoARGB(FForeColor, 100)
@@ -3659,13 +3659,13 @@ ErrorHandler:
 							pData = @path->data[i]
 							i += path->data[i].header.length
 						Wend
-						PT.X = pData[1].point.X
-						PT.Y = pData[1].point.Y
+						PT.x = pData[1].point.x
+						PT.y = pData[1].point.y
 					#else
 						GdipGetPathLastPoint m_Item(HotItem).hPath, Cast(GpPointF Ptr, @PT)
 					#endif
-					.X = PT.X
-					.Y = PT.Y
+					.X = PT.x
+					.Y = PT.y
 					.Width = SZ.Width + TM * 2
 					.Height = SZ.Height + TM * 2
 					
@@ -4122,9 +4122,9 @@ ErrorHandler:
 		Private Function Chart.OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Dim As Chart Ptr chrt = Cast(Any Ptr, data1)
 			chrt->Canvas.HandleSetted = True
+			chrt->Canvas.Handle = cr
 			If chrt->cr = 0 Then
 				chrt->cr = cr
-				chrt->Canvas.Handle = cr
 				chrt->Canvas.Font.Name = chrt->Font.Name
 				chrt->Canvas.Font.Size = chrt->Font.Size
 				chrt->Canvas.layout = chrt->layout
@@ -4147,11 +4147,13 @@ ErrorHandler:
 				End With
 			End If
 			#ifdef __USE_GTK3__
+				chrt->cr = cr
 			#else
 				chrt->cr = cr
 			#endif
 			chrt->Draw
-			
+			chrt->Canvas.Handle = 0
+			chrt->Canvas.HandleSetted = False
 			Return False
 		End Function
 		
