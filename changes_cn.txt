@@ -1,3 +1,122 @@
+版本 1.3.6（2025 年 1 月 1 日）
+- 修复：应用程序的 ExeName 函数
+- 新增：Thread.bi 和 DynamicArrayList.bi
+- 改进：tbsWholeDropdown ToolButton
+- 新增：PrevInstance 和 Path 函数到应用程序
+- 填充：GraphicType 的 ReadProperty 和 WriteProperty 函数
+- 已修复：当 TreeView 从高 DPI 移动到低 DPI 时，指针和图标之间的距离
+- 改进：高 DPI 上的 ImageList
+- 修复：高 DPI 上的 TreeView
+- 改进：DPI 更改上的 ToolBar
+- 修复：创建 ToolBar 按钮上的 DPI
+- 改进：更改 DPI 上的 ReBar
+- 改进：表单大小更改
+- 修复：DPI 更改时 TreeListView 的行高
+- 向 ListView 添加了 OnMeasureItem 和 OnDrawItem 事件
+- 修复：更改 DPI 后图像丢失
+- 替换：ListSortDirection 枚举到 Grid 中的 SortStyle
+- 向 StatusBar 添加了 OnPanelClick 和 OnPanelDblClick 事件，添加了：StatusBar 示例
+- 新增：RayLib 示例
+- 改进：打印组件
+- 新增：网格的渐变颜色
+- 添加了：Grid 控件的 SortOrder 属性
+- 添加：_CAllocateWithSize 定义到 FBMemCheck
+- 新增：控制台示例
+- 新增： Console.bi
+- 新增 CreateObjectRegFree 函数
+- 改进：深色模式下的 GroupBox
+- 新增： NoInterface.bi
+- 已更新：将 Split sub 更改为函数。
+- 向 WebBrowser 添加了 OnNewWindowRequested 事件
+- 新增：ExecuteScript 函数到 WebBrowser
+- 修复：编译 Android 项目
+- 修复：Windows 中使用 GTK4 的表单
+- 修复：高 DPI __USE_CAIRO__
+- 修复：高 DPI 中的 ImageList
+- 修复：RichTextBox 的 TextRTF 属性
+- 重命名：SearchBar 为 SearchBox
+- 新增：将属性扩展为 ToolButton
+- 改进：Linux 中的 SearchBar
+- Imrpoved：所有控件的暗模式
+- 改进：深色模式下的 ComboBoxEx
+- 修复：将表单标题栏更改为深色模式，修复：打开表单时闪烁
+- 新增：__USE_CAIRO__定义
+- 改进：高 DPI 中的 TabControl
+- 改进：高 DPI 中的 ListView、TreeListView 和 Grid
+- 修复：高 DPI 中的 ToolButton 宽度
+- 修复：高 DPI 中的图标大小
+- 修复：Light 模式下的 MDIForm
+- 修复：Light 模式下的 ReBar
+- 添加：暗模式下 BevelOuter 的默认颜色、BevelInner
+- 已修复：更新 Canvas.TextOut 中的 Font 属性
+- 修复：Linux 中的 My.Sys.Language 函数
+- 修复：显示具有字体大小的面板标题
+- 新增：Web 上的 TreeView
+- 添加了：Web 上的 ListControl 和 ComboBox
+- 添加了：ReadProperty 和 WriteProperty 函数到 HTTPConnection 和 HTTPServer
+- 修复：HTTPConnection
+- 改进：浅色模式下的 SearchBar
+- 新增：FBSound 示例
+- 修复：高 DPI 中的 SearchBar
+- 新增：HorizontalBox、ScrollControl 示例
+- 新增：WinHTTP 示例
+- 新增：Curl 示例
+- 新增：SearchBar
+- 修复：高 DPI 中的 ScrollControl
+- 改进：ScrollControl
+- 添加了：ScrollControl 的 RecalculateScrollBars 方法
+- 添加了：对象、组件、控件、CommandButton、ContainerControl 和表单的描述
+- 修复：ScrollControl
+- 修复：RichTextBox 暗模式
+- 改进：RichTextBox 的 TextRTF 属性
+- 在 Linux 上，向 RichTextBox 添加了 TextRTF 属性。
+- 改进：深色模式下的 RichTextBox
+- 新增：将 Cairo 与 GDI 结合使用
+- 新增：开罗示例
+- 添加了：Animate、Chart、Grid、GridData、ListView、PageScroller、ReBar、TimerComponent、WebBrowser 示例
+- 新增：Web 上的 ImageBox
+- 已添加：OnButtonActivate 事件到 ToolPalette
+- 修复：高 DPI 上的 UpDown 控制
+- 添加了：Windows 上的 HTTPConnection CallMethod。
+- 新增：HTTP 和 HTTPServer 类
+- 改进：Web 上的表单
+- 改进：NumericUpDown 控件
+- 修复：高 DPI 中的 NumericUpDown
+- 改进：设计模式下的 ScrollControl
+- 修复：使用 gtk2 编译 PagePanel
+- 已修复：Linux 上 PagePanel 的 SelectedPanelIndex 属性
+- 改进：PagePanel
+- 已修复：Linux 中 Form 的 parent 属性
+- 添加了：Application 的 Language 属性
+- 新增：Sys 命名空间的语言函数
+- 改进：Application 的 CurLanguage 属性默认采用系统语言
+- 添加：在设计模式下将 NumericUpDown 控件添加到 PagePanel
+- 修复：在关闭子表单之后聚焦表单
+- 改进：Clear TreeListViewItems 的方法
+- 修复：TreeView 的 Visible 属性和 Collapse 方法
+- 新增：PagePanel 控件
+- 添加了：UpDown 控件的 Alignment 和 ArrowKeys 属性
+- 修复：ToolButton Width 属性
+- 添加了：PrintDocument 和 PrintPreviewControl 属性
+- 添加了：ToolButton 的 Child 属性
+- 修复：Linux 中 SearchBar 的属性
+- 添加了：TreeListViewItem 的 Visible 属性
+- 新增：TreeNode 的 Visible 属性
+- 修复：导出 MsgBox 函数的问题
+- 改进：PrintPreviewControl 和 PrintPreviewDialog
+- 新增：支持多种语言
+- 修复：表单 ShowCaption 属性
+- 向 ListControl 添加了 HorizontalScrollBar 和 VerticalScrollBar 属性
+- 添加了：RadioCheck 属性到 CheckedListBox
+- 添加了：GridLines 和 MultiSelect 属性到 TreeListView
+- 添加：CommandButton 的 Cancel 属性
+- 添加了：MenuItem 的 ShortCut 属性
+- 新增：ZLet 和 ZDeAllocate sub
+- 修复：Control 的 Visible 属性
+- 新增：PrintDocument、PrintPreviewControl
+- 修复：PrintPreviewDialog
+- 添加了：Orientation 和 PaperSize 属性到 PageSet
+
 版本 1.3.5（2023 年 9 月 17 日）
 - 新增：网页支持
 - 新增：使用GDI+和画布进行可选绘图
