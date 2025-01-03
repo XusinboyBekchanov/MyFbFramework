@@ -97,10 +97,10 @@ Private Function UString.SubString(ByVal start As Integer, ByVal n As Integer, B
 End Function
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength): Else: subject = _Allocate((lLen + 1) * SizeOf(WString) * GrowLength): End If
-	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
-	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
-	#define ZLet(subject, txt) Scope: subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): *subject = txt1: End Scope
-	#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+#define ZLet(subject, txt) Scope: subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): *subject = txt1: End Scope
+#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -129,7 +129,7 @@ End Function
 		WReAllocate(subject, Len(txt))
 		*subject = txt
 	End Sub
-
+	
 	Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
 		If subject <> 0 Then _Deallocate(subject)
 		subject = 0
@@ -672,6 +672,7 @@ Private Function StartsWith(ByRef a As Const WString, ByRef b As Const WString, 
 	Return True
 End Function
 
+
 Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
 	'If a = "" OrElse b = "" Then Return False Else Return Right(a, Len(b)) = b
 	If Len(a) < Len(b) Then Return False
@@ -683,64 +684,8 @@ Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 	Return True
 End Function
 
-Private Function Split Overload(ByRef Subject As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True) As Long
-	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(Subject), p = 1, items = 50
-	If ls < 1 OrElse tLen < 1 Then
-		ReDim Result(0)
-		Return 0
-	End If
-	ReDim Result(0 To items - 1)
-	Do While i <= ls
-		If StartsWith(Subject, Delimiter, i - 1) Then
-		'If Mid(subject, i, tLen) = Delimiter Then
-			n = n + 1
-			If (n >= items + 1 ) Then
-				items += 50
-				ReDim Preserve Result(0 To items - 1)
-			End If
-			Result(n - 1) = Mid(Subject, p, i - p)
-			p = i + tLen
-			i = p
-			Continue Do
-		End If
-		i = i + 1
-	Loop
-	n = n + 1
-	ReDim Preserve Result(n - 1)
-	Result(n - 1) = Mid(Subject, p, i - p)
-	Return n
-End Function
-
-Private Function Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True) As Long
-	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
-	If ls < 1 OrElse tLen < 1 Then
-		ReDim Result(0)
-		Return 0
-	End If
-	ReDim Result(0 To items - 1)
-	Do While i <= ls
-		If StartsWith(subject, Delimiter, i - 1) Then
-		'If Mid(subject, i, tLen) = Delimiter Then
-			n = n + 1
-			If (n >= items + 1 ) Then
-				items += 50
-				ReDim Preserve Result(0 To items - 1)
-			End If
-			Result(n - 1) = Mid(subject, p, i - p)
-			p = i + tLen
-			i = p
-			Continue Do
-		End If
-		i = i + 1
-	Loop
-	n = n + 1
-	ReDim Preserve Result(n - 1)
-	Result(n - 1) = Mid(subject, p, i - p)
-	Return n
-End Function
-
+'https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672
 'Returns a zero-based, one-dimensional array containing a specified number of substrings.
-'
 'Parameters
 '   Subject
 '       String expression containing substrings and delimiters. If expression is a zero-length string(""), Split returns an empty array, that is, an array with no elements and no data.
@@ -750,73 +695,223 @@ End Function
 '       Variable where the result is returned.
 '   MatchCase
 '       Boolean value indicating the kind of comparison to use when evaluating substrings.
-'   
-'Example
-'#include "mff/UString.bi"
-'
-'Dim strFull As String
-'Dim arrSplitStrings1() As String
-'Dim arrSplitStrings2() As String
-'Dim strSingleString1 As String
-'Dim strSingleString2 As String
-'Dim i As Long
-'
-'strFull = "Dow - Fonseca - Graham - Kopke - Noval - Offley - Sandeman - Taylor - Warre"    ' String that will be used. 
-'
-'Split(strFull, "-", arrSplitStrings1())     ' arrSplitStrings1 will be an array from 0 To 8. 
-'                                            ' arrSplitStrings1(0) = "Dow " and arrSplitStrings1(1) = " Fonesca ". 
-'                                            ' The delimiter did not include spaces, so the spaces in strFull will be included in the returned array values. 
-'
-'Split(strFull, " - ", arrSplitStrings2())   ' arrSplitStrings2 will be an array from 0 To 8. 
-'                                            ' arrSplitStrings2(0) = "Dow" and arrSplitStrings2(1) = "Fonesca". 
-'                                            ' The delimiter includes the spaces, so the spaces will not be included in the returned array values. 
-'
-''Multiple examples of how to return the value "Kopke" (array position 3). 
-'
-'strSingleString1 = arrSplitStrings2(3)      ' strSingleString1 = "Kopke". 
-'
-'For i = LBound(arrSplitStrings2, 1) To UBound(arrSplitStrings2, 1)
-'    If InStr(1, arrSplitStrings2(i), "Kopke") > 0 Then
-'        strSingleString2 = arrSplitStrings2(i)
-'        Print strSingleString2
-'        Exit For
-'    End If 
-'Next i
-'
-'Sleep
-'
-'See also
-'   Join
-'   Replace
-Private Function Split Overload(ByRef subject As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
-	Dim As Long i = 1, n = 0, tLen = Len(Delimiter), ls = Len(subject), p = 1, items = 50
-	If ls < 1 OrElse tLen < 1 Then
-		ReDim Result(0)
-		Return 0
-	End If
-	ReDim Result(0 To items - 1)
-	Do While i <= ls
-		If StartsWith(subject, Delimiter, i - 1) Then
-		'If Mid(subject, i, tLen) = Delimiter Then
-			n = n + 1
-			If (n >= items + 1 ) Then
-				items += 50
-				ReDim Preserve Result(0 To items - 1)
-			End If
-			WLet(Result(n - 1), Mid(subject, p, i - p))
-			p = i + tLen
-			i = p
-			Continue Do
+'    skipEmptyElement
+'     Boolean value indicating the kind of skip Empty Element.
+Private Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As Const String, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+	Dim As String Subject = wszMainStr
+	Dim As Any Ptr P1 = CPtr(Any Ptr Ptr, @Subject)[0]
+	Dim As Integer L1 = CPtr(Integer Ptr, @Subject)[1]
+	Dim As Integer L2 = CPtr(Integer Ptr, @Delimiter)[1]
+	Dim As Integer i = UBound(Result) + 1
+	Dim As Integer N, N0 = 1
+	
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	Do
+		If MatchCase Then
+			N = InStr(N0, Subject, Delimiter)
+		Else
+			N = InStr(N0, LCase(Subject), LCase(Delimiter))
 		End If
-		i = i + 1
+		If N > 0 Then
+			If (Not skipEmptyElement) OrElse (N - N0) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = N - N0
+				Result(i) = Subject
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+				i += 1
+			End If
+			N0 = N + L2
+		Else
+			If (Not skipEmptyElement) OrElse (L1 - N0 + 1) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = L1 - N0 + 1
+				Result(i) = Subject
+				i += 1
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+			Else
+				i -= 1
+			End If
+			ReDim Preserve Result(LBound(Result) To i)
+			Exit Do
+		End If
 	Loop
-	n = n + 1
-	ReDim Preserve Result(n - 1)
-	WLet(Result(n - 1), Mid(subject, p, i - p))
-	Return n
+	Return i
 End Function
 
-Private Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
+Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+	Dim As String Subject = wszMainStr
+	Dim As String Delimiter0 = Delimiter
+	Dim As Any Ptr P1 = CPtr(Any Ptr Ptr, @Subject)[0]
+	Dim As Integer L1 = CPtr(Integer Ptr, @Subject)[1]
+	Dim As Integer L2 = CPtr(Integer Ptr, @Delimiter0)[1]
+	Dim As Integer i = UBound(Result) + 1
+	Dim As Integer N, N0 = 1
+	
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	Do
+		If MatchCase Then
+			N = InStr(N0, Subject, Delimiter0)
+		Else
+			N = InStr(N0, LCase(Subject), LCase(Delimiter0))
+		End If
+		If N > 0 Then
+			If (Not skipEmptyElement) OrElse (N - N0) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = N - N0
+				Result(i) = Subject
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+				i += 1
+			End If
+			N0 = N + L2
+		Else
+			If (Not skipEmptyElement) OrElse (L1 - N0 + 1) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = L1 - N0 + 1
+				Result(i) = Subject
+				i += 1
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+			Else
+				i -= 1
+			End If
+			ReDim Preserve Result(LBound(Result) To i)
+			Exit Do
+		End If
+	Loop
+	Return i
+End Function
+
+Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+	Dim As String Subject = wszMainStr
+	Dim As String Delimiter0 = Delimiter
+	Dim As Any Ptr P1 = CPtr(Any Ptr Ptr, @Subject)[0]
+	Dim As Integer L1 = CPtr(Integer Ptr, @Subject)[1]
+	Dim As Integer L2 = CPtr(Integer Ptr, @Delimiter0)[1]
+	Dim As Integer i = UBound(Result) + 1
+	Dim As Integer N, N0 = 1
+	
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	Do
+		If MatchCase Then
+			N = InStr(N0, Subject, Delimiter0)
+		Else
+			N = InStr(N0, LCase(Subject), LCase(Delimiter0))
+		End If
+		If N > 0 Then
+			If (Not skipEmptyElement) OrElse (N - N0) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = N - N0
+				Result(i) = Subject
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+				i += 1
+			End If
+			N0 = N + L2
+		Else
+			If (Not skipEmptyElement) OrElse (L1 - N0 + 1) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = L1 - N0 + 1
+				Result(i) = Subject
+				i += 1
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+			Else
+				i -= 1
+			End If
+			ReDim Preserve Result(LBound(Result) To i)
+			Exit Do
+		End If
+	Loop
+	Return i
+End Function
+
+Private Function Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+	'Used code
+	
+	'Dim As Long n = 0, p = 1, items = 50, K
+	'Dim As Long tLen = Len(Delimiter)
+	'Dim As Long ls = Len(subject)
+	'Dim As Boolean tFlag
+	'If ls < 1 OrElse tLen < 1 Then
+	'	ReDim Result(0)
+	'	Return 0
+	'End If
+	'ReDim Result(0 To items - 1)
+	'For i As Long = 0 To ls - 1
+	'	tFlag = False
+	'	For K = 0 To tLen - 1
+	'		If subject[i + K] <> Delimiter[K] Then tFlag = True : Exit For
+	'	Next
+	'	If tFlag Then Continue For
+	'	i += 1
+	'	'If Mid(subject, i, tLen) = Delimiter Then
+	'	n += 1
+	'	If n >= items Then
+	'		items *= 2
+	'		ReDim Preserve Result(0 To items - 1)
+	'	End If
+	'	WLet(Result(n - 1),  Mid(subject, p, i - p))
+	'	p = i + tLen
+	'	i = p
+	'Next
+	'If p <= ls+1 Then
+	'	n += 1
+	'	ReDim Preserve Result(n - 1)
+	'	WLet(Result(n - 1),  Mid(subject, p, ls - p + 1))
+	'End If
+	'Return n
+	Dim As String TmpStr, Subject = wszMainStr
+	Dim As String Delimiter0 = Delimiter
+	Dim As Any Ptr P1 = CPtr(Any Ptr Ptr, @Subject)[0]
+	Dim As Integer L1 = CPtr(Integer Ptr, @Subject)[1]
+	Dim As Integer L2 = CPtr(Integer Ptr, @Delimiter0)[1]
+	Dim As Integer i = UBound(Result) + 1
+	Dim As Integer N, N0 = 1
+	
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	Do
+		If MatchCase Then
+			N = InStr(N0, Subject, Delimiter0)
+		Else
+			N = InStr(N0, LCase(Subject), LCase(Delimiter0))
+		End If
+		If N > 0 Then
+			If (Not skipEmptyElement) OrElse (N - N0) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = N - N0
+				TmpStr = Subject
+				WLet(Result(i), TmpStr)
+				'WLet(Result(i), subject)
+				'Print subject
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+				i += 1
+			End If
+			N0 = N + L2
+		Else
+			If (Not skipEmptyElement) OrElse (L1 - N0 + 1) > 0 Then
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1 + N0 - 1
+				CPtr(Integer Ptr, @Subject)[1] = L1 - N0 + 1
+				TmpStr = Subject
+				WLet(Result(i), TmpStr)
+				'Print subject
+				i += 1
+				CPtr(Any Ptr Ptr, @Subject)[0] = P1
+				CPtr(Integer Ptr, @Subject)[1] = L1
+			Else
+				i -= 1
+			End If
+			ReDim Preserve Result(LBound(Result) To i)
+			Exit Do
+		End If
+	Loop
+	Return i
+End Function
+
+Private Function Join(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As WString Ptr TmpString
 	WLet(TmpString, "")
 	For i As Integer = iStart To UBound(Subject) Step iStep
@@ -847,7 +942,7 @@ End Function
 '       Determines with what step to combine
 'See also
 '   Split
-Private Function Join(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
+Private Function Join Overload(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As String Result
 	For i As Integer = iStart To UBound(Subject) Step iStep
 		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
@@ -984,7 +1079,7 @@ Private Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStar
 End Function
 
 #ifndef Match_Off
-	Private Function Match(ByRef subject As WString Ptr, ByRef pattern As WString Ptr) As Boolean
+	Private Function Match(ByRef Subject As WString Ptr, ByRef Pattern As WString Ptr) As Boolean
 		
 		#define CH_QUOTE 63 '' ASCII for ?
 		#define CH_MULT  42 '' ASCII for *
@@ -993,18 +1088,18 @@ End Function
 			Return True
 		End If
 		
-		If (*pattern)[0] = CH_QUOTE OrElse (*pattern)[0] = (*subject)[0] Then
-			Return Match(subject + 1, pattern + 1)
+		If (*pattern)[0] = CH_QUOTE OrElse (*pattern)[0] = (*Subject)[0] Then
+			Return Match(Subject + 1, pattern + 1)
 		End If
 		
 		If (*pattern)[0] = CH_MULT Then
-			Return Match(subject, pattern + 1) OrElse Match(subject + 1, pattern)
+			Return Match(Subject, pattern + 1) OrElse Match(Subject + 1, pattern)
 		End If
 		
 		Return False
 		
 	End Function
-
+	
 	Private Function InStrMatch(ByRef subject As WString, ByRef pattern As WString, Start As Integer = 1) As Integer
 		For i As Integer = Start To Len(subject)
 			If Match(@subject + (i - 1), @pattern) Then Return i
