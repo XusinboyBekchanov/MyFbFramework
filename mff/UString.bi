@@ -86,13 +86,12 @@ Declare Function ZGet(ByRef subject As ZString Ptr) As String
 Declare Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
 'Declare Function Replace Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByRef wszReplaceWith As Const WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
 'Declare Function Replace Overload(ByRef wszMainStr As WString, MatchedStr() As WString Ptr, ReplaceWith() As WString Ptr, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
-Declare Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As Const String, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
-Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
-Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
-Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+Declare Function Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True) As Long
+Declare Function Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True) As Long
+Declare Function Split Overload(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
 Declare Function Join Overload(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
-Declare Function Join(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
-Declare Function Join(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
+Declare Function Join Overload(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
+Declare Function Join Overload(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
 Declare Function StartsWith(ByRef a As Const WString, ByRef b As Const WString, Start As Integer = 0) As Boolean
 Declare Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
 Declare Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString

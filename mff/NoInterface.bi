@@ -50,11 +50,11 @@ Enum NewLineTypes
 End Enum
 Declare Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
 Namespace Debug
-	Declare Sub Print Overload(ByRef Msg As String, bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-	Declare Sub Print(ByVal MSG As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-	Declare Sub Print(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-	Declare Sub Print(ByRef MSG As String, ByRef Msg1 As Const String = "", ByRef Msg2 As Const String = "", ByRef Msg3 As Const String = "", ByRef Msg4 As Const String = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
-	Declare Sub Print(ByRef MSG As ZString, ByRef Msg1 As Const ZString = "", ByRef Msg2 As Const ZString = "", ByRef Msg3 As Const ZString = "", ByRef Msg4 As Const ZString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByRef Msg As WString, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByVal MSG As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByRef MSG As String, ByRef Msg1 As Const String = "", ByRef Msg2 As Const String = "", ByRef Msg3 As Const String = "", ByRef Msg4 As Const String = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Declare Sub Print Overload(ByRef MSG As ZString, ByRef Msg1 As Const ZString = "", ByRef Msg2 As Const ZString = "", ByRef Msg3 As Const ZString = "", ByRef Msg4 As Const ZString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 	
 	#ifndef Debug_Assert_Off
 		#define AssertError(expression) _Assert(__FILE__, __LINE__, __FUNCTION__, __FB_QUOTE__(expression), expression, 0)
@@ -78,7 +78,7 @@ Namespace Debug
 		End Sub
 	#endif
 	
-	Private Sub Print (ByVal MSG As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Private Sub Print Overload(ByVal MSG As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 		Dim As WString Ptr tMsgPtr
 		WLet(tMsgPtr, Str(MSG))
 		If Msg1 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg1)
@@ -89,7 +89,7 @@ Namespace Debug
 		Deallocate(tMsgPtr)
 	End Sub
 	
-	Private Sub Print(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Private Sub Print Overload(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 		Dim As WString Ptr tMsgPtr
 		WLet(tMsgPtr, MSG)
 		If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
@@ -100,7 +100,7 @@ Namespace Debug
 		Deallocate(tMsgPtr)
 	End Sub
 	
-	Private Sub Print(ByRef MSG As String, ByRef Msg1 As Const String = "", ByRef Msg2 As Const String = "", ByRef Msg3 As Const String = "", ByRef Msg4 As Const String = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Private Sub Print Overload(ByRef MSG As String, ByRef Msg1 As Const String = "", ByRef Msg2 As Const String = "", ByRef Msg3 As Const String = "", ByRef Msg4 As Const String = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 		Dim As WString Ptr tMsgPtr
 		WLet(tMsgPtr, MSG)
 		If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
@@ -111,7 +111,7 @@ Namespace Debug
 		Deallocate(tMsgPtr)
 	End Sub
 	
-	Private Sub Print(ByRef MSG As ZString, ByRef Msg1 As Const ZString = "", ByRef Msg2 As Const ZString = "", ByRef Msg3 As Const ZString = "", ByRef Msg4 As Const ZString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Private Sub Print Overload(ByRef MSG As ZString, ByRef Msg1 As Const ZString = "", ByRef Msg2 As Const ZString = "", ByRef Msg3 As Const ZString = "", ByRef Msg4 As Const ZString = "", bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 		Dim As WString Ptr tMsgPtr
 		WLet(tMsgPtr, MSG)
 		If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
@@ -122,7 +122,7 @@ Namespace Debug
 		Deallocate(tMsgPtr)
 	End Sub
 	
-	Private Sub Print Overload(ByRef Msg As String, bWriteLog As Boolean = False, bPrintMsg As Boolean = True, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+	Private Sub Print Overload(ByRef Msg As WString, bWriteLog As Boolean = True, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 		If bWriteLog Then
 			Dim As Integer Result, Fn = FreeFile
 			Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
@@ -301,7 +301,8 @@ End Function
 			pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
 			If FileEncoding = FileEncodings.Utf8 Then
 				Buff =  Input(FileSize, #Fn)
-				*pBuff = FromUtf8(StrPtr(Buff))
+				WLet(pBuff, FromUtf8(StrPtr(Buff)))
+				NewLineType= NewLineTypes.LinuxLF
 			Else
 				*pBuff =  WInput(FileSize, #Fn)
 			End If
@@ -363,4 +364,3 @@ End Function
 		Return True
 	End Function
 #endif
-
