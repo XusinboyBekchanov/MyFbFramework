@@ -18,16 +18,19 @@
 Namespace My.Sys.Forms
 	/' Global '/
 	Private Sub AllocateCommand(value As PMenuItem)
-		Handles.Add value
-		value->Command =  1000 + Handles.Count - 1
-		'Static As Integer uniqueId
-		'If uniqueId = 0 Then uniqueId = 999
-		'If value Then
-		'	If (value->Command <= 0) Then
-		'		value->Command = uniqueId + 1
-		'		uniqueId = value->Command
-		'	End If
-		'End If
+		#ifndef __FB_LINUX__
+			Handles.Add value
+			value->Command =  1000 + Handles.Count - 1
+		#else
+			Static As Integer uniqueId
+			If uniqueId = 0 Then uniqueId = 999
+			If value Then
+				If (value->Command <= 0) Then
+					value->Command = uniqueId + 1
+					uniqueId = value->Command
+				End If
+			End If
+		#endif
 	End Sub
 	
 	#ifndef ReadProperty_Off
