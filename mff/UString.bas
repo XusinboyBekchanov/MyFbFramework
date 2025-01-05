@@ -740,77 +740,77 @@ Private Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As C
 End Function
 
 Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
-	'The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
-	Dim As Integer L1 = Len(wszMainStr)
-    Dim As Integer L2 = Len(Delimiter)
-    If L1 < 1 OrElse L2 < 1 Then
-		ReDim Result(0)
-		Return 0
-	End If
-    Dim As Integer i = UBound(Result) + 1
-    Dim As Integer L, n, n0 = 1
-    Dim As WString Ptr p, p1 = @wszMainStr
-    ReDim Result(LBound(Result) To i + L1 / L2)
-    Do
-        n = InStr(n0, wszMainStr, Delimiter)
-        If n > 0 Then
-            If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
-                p = p1 + n0 - 1
-                L = n - n0
-                Dim As WString * 1 w
-                Swap w[0], (*p)[L] 
-                Result(i) = * (p)
-                Swap w[0], (*p)[L] 
-                i += 1
-            End If
-            n0 = n + L2
-        Else
-            If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
-                p = p1 + n0 - 1
-                L = L1 - n0 + 1
-                Result(i) = * (p)
-            Else
-                i -= 1
-            End If
-            ReDim Preserve Result(LBound(Result) To i)
-            Exit Do
-        End If
-    Loop
-    Return i + 1
-	' Old version
-	'Dim As Long n = 0, p = 1, items = 50, i = 1
-	'Dim As Long tLen = Len(Delimiter)
-	'Dim As Long ls = Len(wszMainStr)
-	'Dim As Boolean tFlag
-	'If ls < 1 OrElse tLen < 1 Then
+	''The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
+	'Dim As Integer L1 = Len(wszMainStr)
+ '   Dim As Integer L2 = Len(Delimiter)
+ '   If L1 < 1 OrElse L2 < 1 Then
 	'	ReDim Result(0)
 	'	Return 0
 	'End If
-	'ReDim Result(0 To items - 1)
-	'Do While i <= ls
-	'	If MatchCase Then tFlag = StartsWith(wszMainStr, Delimiter, i - 1) Else tFlag = StartsWith(LCase(wszMainStr), LCase(Delimiter), i - 1) 
-	'	If tFlag Then
-	'		'If Mid(subject, i, tLen) = Delimiter Then
-	'		If (Not skipEmptyElement) OrElse i - p > 0 Then
-	'			n = n + 1
-	'			If (n >= items + 1 ) Then
-	'				items += 50
-	'				ReDim Preserve Result(0 To items - 1)
-	'			End If
-	'			Result(n - 1) = Mid(wszMainStr, p, i - p)
-	'		End If
-	'		p = i + tLen
-	'		i = p
-	'		Continue Do
-	'	End If
-	'	i = i + 1
-	'Loop
-	'If (Not skipEmptyElement) OrElse ls - p + 1 > 0 Then
-	'	n += 1
-	'	ReDim Preserve Result(n - 1)
-	'	Result(n - 1) = Mid(wszMainStr, p, ls - p + 1)
-	'End If
-	'Return n
+ '   Dim As Integer i = UBound(Result) + 1
+ '   Dim As Integer L, n, n0 = 1
+ '   Dim As WString Ptr p, p1 = @wszMainStr
+ '   ReDim Result(LBound(Result) To i + L1 / L2)
+ '   Do
+ '       n = InStr(n0, wszMainStr, Delimiter)
+ '       If n > 0 Then
+ '           If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+ '               p = p1 + n0 - 1
+ '               L = n - n0
+ '               Dim As WString * 1 w
+ '               Swap w[0], (*p)[L] 
+ '               Result(i) = * (p)
+ '               Swap w[0], (*p)[L] 
+ '               i += 1
+ '           End If
+ '           n0 = n + L2
+ '       Else
+ '           If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+ '               p = p1 + n0 - 1
+ '               L = L1 - n0 + 1
+ '               Result(i) = * (p)
+ '           Else
+ '               i -= 1
+ '           End If
+ '           ReDim Preserve Result(LBound(Result) To i)
+ '           Exit Do
+ '       End If
+ '   Loop
+ '   Return i + 1
+	' Old version
+	Dim As Long n = 0, p = 1, items = 50, i = 1
+	Dim As Long tLen = Len(Delimiter)
+	Dim As Long ls = Len(wszMainStr)
+	Dim As Boolean tFlag
+	If ls < 1 OrElse tLen < 1 Then
+		ReDim Result(0)
+		Return 0
+	End If
+	ReDim Result(0 To items - 1)
+	Do While i <= ls
+		If MatchCase Then tFlag = StartsWith(wszMainStr, Delimiter, i - 1) Else tFlag = StartsWith(LCase(wszMainStr), LCase(Delimiter), i - 1) 
+		If tFlag Then
+			'If Mid(subject, i, tLen) = Delimiter Then
+			If (Not skipEmptyElement) OrElse i - p > 0 Then
+				n = n + 1
+				If (n >= items + 1 ) Then
+					items += 50
+					ReDim Preserve Result(0 To items - 1)
+				End If
+				Result(n - 1) = Mid(wszMainStr, p, i - p)
+			End If
+			p = i + tLen
+			i = p
+			Continue Do
+		End If
+		i = i + 1
+	Loop
+	If (Not skipEmptyElement) OrElse ls - p + 1 > 0 Then
+		n += 1
+		ReDim Preserve Result(n - 1)
+		Result(n - 1) = Mid(wszMainStr, p, ls - p + 1)
+	End If
+	Return n
 	
 End Function
 
