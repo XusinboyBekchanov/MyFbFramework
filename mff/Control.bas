@@ -1777,6 +1777,43 @@ Namespace My.Sys.Forms
 						End If
 					Next i
 					SendMessage(Cast(HWND, Message.lParam), CM_COMMAND, Message.wParam, Message.lParam)
+				Case WM_SYSCOMMAND
+					If Message.wParam = SC_KEYMENU Then
+						Dim As Control Ptr frm = GetForm
+						If frm <> 0 Then
+							With *frm
+								.GetControls
+								Dim As Control Ptr Ctrl
+								Dim As String Key = "&" & LCase(Chr(Message.lParam))
+								For i As Integer = 0 To .FControls.Count - 1
+									Ctrl = .FControls.Item(i)
+									If InStr(LCase(Ctrl->Text), Key) > 0 Then
+										Select Case Ctrl->ClassName
+										Case "CommandButton"
+											If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+											Message.Result = -2
+											Message.Msg = 0
+										Case "CheckBox", "RadioButton"
+											SendMessage(Ctrl->Handle, CM_COMMAND, MAKEWPARAM(Ctrl->ID, BN_CLICKED), Cast(LPARAM, Ctrl->Handle))
+											Message.Result = -2
+											Message.Msg = 0
+										Case "GroupBox"
+											.FActiveControl = Ctrl
+											Ctrl->SelectNextControl
+											Message.Result = -2
+											Message.Msg = 0
+										Case "Label"
+											.FActiveControl = Ctrl
+											Ctrl->SelectNextControl
+											Message.Result = -2
+											Message.Msg = 0
+										End Select
+										Exit For
+									End If
+								Next
+							End With
+						End If
+					End If
 				Case WM_MOUSEMOVE
 					If Not This.FMouseInClient Then
 						This.FMouseInClient = True
@@ -2123,7 +2160,7 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr Ctrl
 				If ParentCtrl Then
 					With ParentCtrl->FTabIndexList
-						Dim As Integer Idx = .IndexOfObject(FActiveControl)
+						Dim As Integer Idx = .IndexOfObject(ParentCtrl->FActiveControl)
 						If Prev Then
 							For i As Integer = Idx - 1 To 0 Step -1
 								Ctrl = .Object(i)

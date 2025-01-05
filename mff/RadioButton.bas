@@ -203,6 +203,7 @@ Namespace My.Sys.Forms
 				SetBkMode Dc,OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
+					Checked = True
 					If OnClick Then OnClick(*Designer, This)
 				End If
 			Case CM_NOTIFY
