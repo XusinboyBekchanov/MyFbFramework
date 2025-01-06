@@ -1031,33 +1031,38 @@ Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByV
 End Function
 
 Function Join(Subject() As UString, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
-	Dim As Integer Size
-	Dim As Integer Lj = Max(LBound(Subject), 0)
-	Dim As Integer Uj = UBound(Subject)
-	Dim As Integer ls = Len(Delimiter)
-	
-	For i As Integer = Lj To Uj - 1
-		If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then Size += Len(Subject(i)) + ls
-	Next i
-	If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then Size += Len(Subject(Uj))
-	
-	Dim As String so = String(Size, Chr(0))
-	Dim As Integer n
-	For i As Integer = Lj To Uj - 1 Step iStep
-		If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then
-			Fb_MemCopy(so[n], Subject(i)[0], Len(Subject(i)))
-			n+= Len(Subject(i))
-			Fb_MemCopy(so[n], Delimiter[0], ls)
-			n+= ls
-		End If
-	Next i
-	If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then
-		Fb_MemCopy(so[n], Subject(Uj)[0], Len(Subject(Uj)))
-	Else
-		so[Size - 1] = 0
-		CPtr(Integer Ptr, @so)[1] = Size - 1
-	End If
-	Return so
+	Dim As UString Result
+	For i As Integer = iStart To UBound(Subject) Step iStep
+		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
+	Next
+	Return Result
+	'Dim As Integer Size
+	'Dim As Integer Lj = Max(LBound(Subject), 0)
+	'Dim As Integer Uj = UBound(Subject)
+	'Dim As Integer ls = Len(Delimiter)
+	'
+	'For i As Integer = Lj To Uj - 1
+	'	If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then Size += Len(Subject(i)) + ls
+	'Next i
+	'If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then Size += Len(Subject(Uj))
+	'
+	'Dim As String so = String(Size, Chr(0))
+	'Dim As Integer n
+	'For i As Integer = Lj To Uj - 1 Step iStep
+	'	If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then
+	'		Fb_MemCopy(so[n], Subject(i)[0], Len(Subject(i)))
+	'		n+= Len(Subject(i))
+	'		Fb_MemCopy(so[n], Delimiter[0], ls)
+	'		n+= ls
+	'	End If
+	'Next i
+	'If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then
+	'	Fb_MemCopy(so[n], Subject(Uj)[0], Len(Subject(Uj)))
+	'Else
+	'	so[Size - 1] = 0
+	'	CPtr(Integer Ptr, @so)[1] = Size - 1
+	'End If
+	'Return so
 End Function
 
 Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
