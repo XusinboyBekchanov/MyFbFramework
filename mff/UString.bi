@@ -90,9 +90,12 @@ Declare Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As C
 Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
 Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
 Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
-Declare Function Join Overload(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
-Declare Function Join(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
-Declare Function Join(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
+Declare Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZString, Result() As ZString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+Declare Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
+Declare Function Join(Subject() As UString, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
+Declare Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
+Declare Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As ZString Ptr
+
 Declare Function StartsWith(ByRef a As Const WString, ByRef b As Const WString, Start As Integer = 0) As Boolean
 Declare Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
 Declare Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString

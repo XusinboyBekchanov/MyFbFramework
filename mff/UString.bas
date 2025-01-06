@@ -702,10 +702,10 @@ Private Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As C
 	Dim As Any Ptr P1 = CPtr(Any Ptr Ptr, @wszMainStr)[0]
 	Dim As Integer L1 = CPtr(Integer Ptr, @wszMainStr)[1]
 	Dim As Integer L2 = CPtr(Integer Ptr, @Delimiter)[1]
-	Dim As Integer i = UBound(Result) + 1
+	Dim As Integer i = 0 'UBound(Result) + 1
 	Dim As Integer N, N0 = 1
 	
-	ReDim Result(LBound(Result) To i + L1 / L2)
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
 	Do
 		If MatchCase Then
 			N = InStr(N0, wszMainStr, Delimiter)
@@ -740,43 +740,43 @@ Private Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As C
 End Function
 
 Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As UString, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
-	'The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
+	''The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
 	Dim As Integer L1 = Len(wszMainStr)
-    Dim As Integer L2 = Len(Delimiter)
-    If L1 < 1 OrElse L2 < 1 Then
+	   Dim As Integer L2 = Len(Delimiter)
+	   If L1 < 1 OrElse L2 < 1 Then
 		ReDim Result(0)
 		Return 0
-    End If
-    Dim As Integer i = 0 'UBound(Result) + 1
-    Dim As Integer L, n, n0 = 1
-    Dim As WString Ptr p, p1 = @wszMainStr
-    ReDim Result(LBound(Result) To i + L1 / L2)
-    Do
-        n = InStr(n0, wszMainStr, Delimiter)
-        If n > 0 Then
-            If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
-                p = p1 + n0 - 1
-                L = n - n0
-                Dim As WString * 1 w
-                Swap w[0], (*p)[L] 
-                Result(i) = * (p)
-                Swap w[0], (*p)[L] 
-                i += 1
-            End If
-            n0 = n + L2
-        Else
-            If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
-                p = p1 + n0 - 1
-                L = L1 - n0 + 1
-                Result(i) = * (p)
-            Else
-                i -= 1
-            End If
-            ReDim Preserve Result(LBound(Result) To i)
-            Exit Do
-        End If
-    Loop
-    Return i + 1
+	End If
+	   Dim As Integer i = 0'UBound(Result) + 1
+	   Dim As Integer L, n, n0 = 1
+	   Dim As WString Ptr p, p1 = @wszMainStr
+	   ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	   Do
+	       If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
+	       If n > 0 Then
+	           If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+	               p = p1 + n0 - 1
+	               L = n - n0
+	               Dim As WString * 1 w
+	               Swap w[0], (*p)[L]
+	               Result(i) = * (p)
+	               Swap w[0], (*p)[L]
+	               i += 1
+	           End If
+	           n0 = n + L2
+	       Else
+	           If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+	               p = p1 + n0 - 1
+	               L = L1 - n0 + 1
+	               Result(i) = * (p)
+	           Else
+	               i -= 1
+	           End If
+	           ReDim Preserve Result(LBound(Result) To i)
+	           Exit Do
+	       End If
+	   Loop
+	   Return i + 1
 	'' Old version
 	'Dim As Long n = 0, p = 1, items = 50, i = 1
 	'Dim As Long tLen = Len(Delimiter)
@@ -788,7 +788,7 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 	'End If
 	'ReDim Result(0 To items - 1)
 	'Do While i <= ls
-	'	If MatchCase Then tFlag = StartsWith(wszMainStr, Delimiter, i - 1) Else tFlag = StartsWith(LCase(wszMainStr), LCase(Delimiter), i - 1) 
+	'	If MatchCase Then tFlag = StartsWith(wszMainStr, Delimiter, i - 1) Else tFlag = StartsWith(LCase(wszMainStr), LCase(Delimiter), i - 1)
 	'	If tFlag Then
 	'		'If Mid(subject, i, tLen) = Delimiter Then
 	'		If (Not skipEmptyElement) OrElse i - p > 0 Then
@@ -817,84 +817,84 @@ End Function
 Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
 	'The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
 	Dim As Integer L1 = Len(wszMainStr)
-    Dim As Integer L2 = Len(Delimiter)
-    If L1 < 1 OrElse L2 < 1 Then
+	Dim As Integer L2 = Len(Delimiter)
+	If L1 < 1 OrElse L2 < 1 Then
 		ReDim Result(0)
 		Return 0
 	End If
-    Dim As Integer i = UBound(Result) + 1
-    Dim As Integer L, n, n0 = 1
-    Dim As WString Ptr p, p1 = @wszMainStr
-    ReDim Result(LBound(Result) To i + L1 / L2)
-    Do
-        n = InStr(n0, wszMainStr, Delimiter)
-        If n > 0 Then
-            If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
-                p = p1 + n0 - 1
-                L = n - n0
-                Dim As WString * 1 w
-                Swap w[0], (*p)[L] 
-                Result(i) = * (p)
-                Swap w[0], (*p)[L] 
-                i += 1
-            End If
-            n0 = n + L2
-        Else
-            If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
-                p = p1 + n0 - 1
-                L = L1 - n0 + 1
-                Result(i) = * (p)
-            Else
-                i -= 1
-            End If
-            ReDim Preserve Result(LBound(Result) To i)
-            Exit Do
-        End If
-    Loop
-    Return i + 1
+	Dim As Integer i = 0 'UBound(Result) + 1
+	Dim As Integer L, n, n0 = 1
+	Dim As WString Ptr p, p1 = @wszMainStr
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	Do
+		If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
+		If n > 0 Then
+			If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+				p = p1 + n0 - 1
+				L = n - n0
+				Dim As WString * 1 w
+				Swap w[0], (*p)[L]
+				Result(i) = * (p)
+				Swap w[0], (*p)[L]
+				i += 1
+			End If
+			n0 = n + L2
+		Else
+			If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+				p = p1 + n0 - 1
+				L = L1 - n0 + 1
+				Result(i) = * (p)
+			Else
+				i -= 1
+			End If
+			ReDim Preserve Result(LBound(Result) To i)
+			Exit Do
+		End If
+	Loop
+	Return i + 1
 End Function
 
 Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
-		'The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
+	'The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
 	Dim As Integer L1 = Len(wszMainStr)
-    Dim As Integer L2 = Len(Delimiter)
-    If L1 < 1 OrElse L2 < 1 Then
+	Dim As Integer L2 = Len(Delimiter)
+	If L1 < 1 OrElse L2 < 1 Then
 		ReDim Result(0)
 		Return 0
 	End If
-    Dim As Integer i = UBound(Result) + 1
-    Dim As Integer L, n, n0 = 1
-    Dim As WString Ptr p, p1 = @wszMainStr
-    ReDim Result(LBound(Result) To i + L1 / L2)
-    Do
-        n = InStr(n0, wszMainStr, Delimiter)
-        If n > 0 Then
-            If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
-                p = p1 + n0 - 1
-                L = n - n0
-                Dim As WString * 1 w
-                Result(i) = CAllocate((L + 1) * SizeOf(WString))
-                Swap w[0], (*p)[L] 
-                *Result(i) = *(p)
-                Swap w[0], (*p)[L] 
-                i += 1
-            End If
-            n0 = n + L2
-        Else
-            If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
-                p = p1 + n0 - 1
-                L = L1 - n0 + 1
-                Result(i) = CAllocate((L + 1) * SizeOf(WString))
-                *Result(i) = * (p)
-            Else
-                i -= 1
-            End If
-            ReDim Preserve Result(LBound(Result) To i)
-            Exit Do
-        End If
-    Loop
-    Return i + 1
-    
+	Dim As Integer i = 0 'UBound(Result) + 1
+	Dim As Integer L, n, n0 = 1
+	Dim As WString Ptr p, p1 = @wszMainStr
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	Do
+		If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
+		If n > 0 Then
+			If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+				p = p1 + n0 - 1
+				L = n - n0
+				Dim As WString * 1 w
+				Result(i) = CAllocate((L + 1) * SizeOf(WString))
+				Swap w[0], (*p)[L]
+				*Result(i) = *(p)
+				Swap w[0], (*p)[L]
+				i += 1
+			End If
+			n0 = n + L2
+		Else
+			If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+				p = p1 + n0 - 1
+				L = L1 - n0 + 1
+				Result(i) = CAllocate((L + 1) * SizeOf(WString))
+				*Result(i) = * (p)
+			Else
+				i -= 1
+			End If
+			ReDim Preserve Result(LBound(Result) To i)
+			Exit Do
+		End If
+	Loop
+	Return i + 1
+	
 	' Old version
 	'Dim As Long n = 0, p = 1, items = 50, i = 1
 	'Dim As Long tLen = Len(Delimiter)
@@ -906,7 +906,7 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 	'End If
 	'ReDim Result(0 To items - 1)
 	'Do While i <= ls
-	'	If MatchCase Then tFlag = StartsWith(wszMainStr, Delimiter, i - 1) Else tFlag = StartsWith(LCase(wszMainStr), LCase(Delimiter), i - 1) 
+	'	If MatchCase Then tFlag = StartsWith(wszMainStr, Delimiter, i - 1) Else tFlag = StartsWith(LCase(wszMainStr), LCase(Delimiter), i - 1)
 	'	If tFlag Then
 	'		'If Mid(subject, i, tLen) = Delimiter Then
 	'		If (Not skipEmptyElement) OrElse i - p > 0 Then
@@ -938,22 +938,47 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 	'Return n
 End Function
 
-Private Function Join(Subject() As WString Ptr, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
-	Dim As WString Ptr TmpString
-	WLet(TmpString, "")
-	For i As Integer = iStart To UBound(Subject) Step iStep
-		WAdd TmpString, IIf(i = iStart, "", Delimiter) & *Subject(i)
-	Next
-	Function = *TmpString
-	_Deallocate(TmpString)
-End Function
-
-Private Function Join(Subject() As UString, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As UString
-	Dim As UString Result
-	For i As Integer = iStart To UBound(Subject) Step iStep
-		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
-	Next
-	Return Result
+Private Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZString, Result() As ZString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+	'The following code from FXM, (https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672)
+	Dim As Integer L1 = Len(wszMainStr)
+	Dim As Integer L2 = Len(Delimiter)
+	If L1 < 1 OrElse L2 < 1 Then
+		ReDim Result(0)
+		Return 0
+	End If
+	Dim As Integer i = 0 'UBound(Result) + 1
+	Dim As Integer L, n, n0 = 1
+	Dim As ZString Ptr p, p1 = @wszMainStr
+	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	Do
+		If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
+		If n > 0 Then
+			If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+				p = p1 + n0 - 1
+				L = n - n0
+				Dim As ZString * 1 w
+				Result(i) = CAllocate((L + 1) * SizeOf(ZString))
+				Swap w[0], (*p)[L]
+				*Result(i) = *(p)
+				Swap w[0], (*p)[L]
+				i += 1
+			End If
+			n0 = n + L2
+		Else
+			If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+				p = p1 + n0 - 1
+				L = L1 - n0 + 1
+				Result(i) = CAllocate((L + 1) * SizeOf(ZString))
+				*Result(i) = * (p)
+			Else
+				i -= 1
+			End If
+			ReDim Preserve Result(LBound(Result) To i)
+			Exit Do
+		End If
+	Loop
+	Return i + 1
+	
 End Function
 
 'Returns a string created by joining a number of substrings contained in an array.
@@ -969,12 +994,136 @@ End Function
 '       Determines with what step to combine
 'See also
 '   Split
-Private Function Join Overload(Subject() As String, ByRef Delimiter As Const WString, iStart As Integer = 0, iStep As Integer = 1) As String
-	Dim As String Result
-	For i As Integer = iStart To UBound(Subject) Step iStep
-		Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
-	Next
-	Return Result
+Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
+	Dim As Integer Size
+	Dim As Integer Lj = Max(LBound(Subject), 0)
+	Dim As Integer Uj = UBound(Subject)
+	Dim As Integer ls = Len(Delimiter)
+	
+	For i As Integer = Lj To Uj - 1
+		If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then Size += Len(Subject(i)) + ls
+	Next i
+	If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then Size += Len(Subject(Uj))
+	
+	Dim As String so = String(Size, Chr(0))
+	Dim As Integer n
+	For i As Integer = Lj To Uj - 1 Step iStep
+		If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then
+			Fb_MemCopy(so[n], Subject(i)[0], Len(Subject(i)))
+			n += Len(Subject(i))
+			Fb_MemCopy(so[n], Delimiter[0], ls)
+			n+= ls
+		End If
+	Next i
+	If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then
+		Fb_MemCopy(so[n], Subject(Uj)[0], Len(Subject(Uj)))
+	Else
+		so[Size - 1] = 0
+		CPtr(Integer Ptr, @so)[1] = Size - 1
+	End If
+	Return so
+	
+	'Old Code
+	'For i As Integer = iStart To UBound(Subject) Step iStep
+	'	Result &= IIf(i = iStart, "", Delimiter) & Subject(i)
+	'Next
+	'Return Result
+End Function
+
+Function Join(Subject() As UString, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
+	Dim As Integer Size
+	Dim As Integer Lj = Max(LBound(Subject), 0)
+	Dim As Integer Uj = UBound(Subject)
+	Dim As Integer ls = Len(Delimiter)
+	
+	For i As Integer = Lj To Uj - 1
+		If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then Size += Len(Subject(i)) + ls
+	Next i
+	If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then Size += Len(Subject(Uj))
+	
+	Dim As String so = String(Size, Chr(0))
+	Dim As Integer n
+	For i As Integer = Lj To Uj - 1 Step iStep
+		If skipEmptyElement = False OrElse Len(Subject(i)) <> 0 Then
+			Fb_MemCopy(so[n], Subject(i)[0], Len(Subject(i)))
+			n+= Len(Subject(i))
+			Fb_MemCopy(so[n], Delimiter[0], ls)
+			n+= ls
+		End If
+	Next i
+	If skipEmptyElement = False OrElse Len(Subject(Uj)) <> 0 Then
+		Fb_MemCopy(so[n], Subject(Uj)[0], Len(Subject(Uj)))
+	Else
+		so[Size - 1] = 0
+		CPtr(Integer Ptr, @so)[1] = Size - 1
+	End If
+	Return so
+End Function
+
+Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
+	Dim As Integer size
+	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
+	Dim As Integer uj = UBound(SubjectPtr)
+	Dim As Integer ls = Len(Delimiter)
+	
+	For i As Integer = lj To uj - 1 Step iStep
+		If skipEmptyElement = False OrElse Len(*SubjectPtr(i)) <> 0 Then size += Len(*SubjectPtr(i)) + ls
+	Next i
+	If skipEmptyElement = False OrElse Len(*SubjectPtr(uj)) <> 0 Then size += Len(SubjectPtr(uj))
+	
+	Dim As WString Ptr ResultPtr = CAllocate((size + 1) * SizeOf(WString))
+	Dim As Integer n
+	For i As Integer = lj To uj - 1 Step iStep
+		If skipEmptyElement = False OrElse Len(*SubjectPtr(i)) <> 0 Then
+			Fb_MemCopy((*ResultPtr)[n], (*SubjectPtr(i))[0], Len(*SubjectPtr(i)) * SizeOf(WString))
+			n+= Len(*SubjectPtr(i))
+			Fb_MemCopy((*ResultPtr)[n], Delimiter[0], ls * SizeOf(WString))
+			n+= ls
+		End If
+	Next i
+	If skipEmptyElement = False OrElse Len(*SubjectPtr(uj)) <> 0 Then
+		Fb_MemCopy((*ResultPtr)[n], (*SubjectPtr(uj))[0], Len(*SubjectPtr(uj)) * SizeOf(WString))
+	Else
+		(*ResultPtr)[size - 1] = 0
+	End If
+	Return ResultPtr
+	
+	'Old Code
+	'Dim As WString Ptr TmpString
+	'WLet(TmpString, "")
+	'For i As Integer = iStart To UBound(Subject) Step iStep
+	'	WAdd TmpString, IIf(i = iStart, "", Delimiter) & *Subject(i)
+	'Next
+	'Return TmpString
+End Function
+
+Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As ZString Ptr
+	Dim As Integer size
+	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
+	Dim As Integer uj = UBound(SubjectPtr)
+	Dim As Integer ls = Len(Delimiter)
+	
+	For i As Integer = lj To uj - 1 Step iStep
+		If skipEmptyElement = False OrElse Len(*SubjectPtr(i)) <> 0 Then size += Len(*SubjectPtr(i)) + ls
+	Next i
+	If skipEmptyElement = False OrElse Len(*SubjectPtr(uj)) <> 0 Then size += Len(SubjectPtr(uj))
+	
+	Dim As ZString Ptr ResultPtr = CAllocate((size + 1) * SizeOf(WString))
+	Dim As Integer n
+	For i As Integer = lj To uj - 1 Step iStep
+		If skipEmptyElement = False OrElse Len(*SubjectPtr(i)) <> 0 Then
+			Fb_MemCopy((*ResultPtr)[n], (*SubjectPtr(i))[0], Len(*SubjectPtr(i)) * SizeOf(WString))
+			n+= Len(*SubjectPtr(i))
+			Fb_MemCopy((*ResultPtr)[n], Delimiter[0], ls * SizeOf(WString))
+			n+= ls
+		End If
+	Next i
+	If skipEmptyElement = False OrElse Len(*SubjectPtr(uj)) <> 0 Then
+		Fb_MemCopy((*ResultPtr)[n], (*SubjectPtr(uj))[0], Len(*SubjectPtr(uj)) * SizeOf(WString))
+	Else
+		(*ResultPtr)[size - 1] = 0
+	End If
+	Return ResultPtr
 End Function
 
 ' ========================================================================================

@@ -1,11 +1,74 @@
 ﻿#include "mff/NoInterface.bi"
 'SetConsoleOutputCP(65001)
 'SetConsoleOutputCP(936)
-Dim As Long i, n = 10000
+Dim ArrUString() As UString
+Dim ArrString() As String
+Dim ArrWStringPtr() As WString Ptr
+Dim nLen As Integer
+
+Dim As Long i, n = 2000
 Dim As String  TestString
 Dim As UString TestUString
-Dim As WString * 150960 TestWString
+Dim As WString * 400960 TestWString
+
 Dim As ULong t
+
+Function JoinOld Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
+	
+	Dim As String Result = Subject(iStart)
+	Dim As Integer n
+	For i As Integer = iStart + 1 To UBound(Subject) Step iStep
+		Result &= Delimiter
+		Result &= Subject(i)
+	Next
+	Return Result
+End Function
+
+Function JoinOld Overload(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
+	Dim As WString Ptr TmpString
+	WLet(TmpString, *SubjectPtr(iStart))
+	For i As Integer = iStart + 1 To UBound(SubjectPtr) Step iStep
+		WAdd TmpString, Delimiter & *SubjectPtr(i)
+	Next
+	Return TmpString
+End Function
+
+Private Function SplitOld Overload(ByRef wszMainStr As String, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+	Dim As Long n = 0, p = 1, items = 50, i = 1
+	Dim As Long tLen = Len(Delimiter)
+	Dim As Long ls = Len(wszMainStr)
+	Dim As Boolean tFlag
+	If ls < 1 OrElse tLen < 1 Then
+		ReDim Result(0)
+		Return 0
+	End If
+	ReDim Result(0 To items - 1)
+	Do While i <= ls
+		If MatchCase Then tFlag = StartsWith(wszMainStr, Delimiter, i - 1) Else tFlag = StartsWith(LCase(wszMainStr), LCase(Delimiter), i - 1)
+		If tFlag Then
+			'If Mid(subject, i, tLen) = Delimiter Then
+			If (Not skipEmptyElement) OrElse i - p > 0 Then
+				n = n + 1
+				If (n >= items + 1 ) Then
+					items += 50
+					ReDim Preserve Result(0 To items - 1)
+				End If
+				Result(n - 1) = Mid(wszMainStr, p, i - p)
+			End If
+			p = i + tLen
+			i = p
+			Continue Do
+		End If
+		i = i + 1
+	Loop
+	If (Not skipEmptyElement) OrElse ls - p + 1 > 0 Then
+		n += 1
+		ReDim Preserve Result(n - 1)
+		Result(n - 1) = Mid(wszMainStr, p, ls - p + 1)
+	End If
+	Return n
+	
+End Function
 
 Private Function SplitOld(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
 	Dim As Long n = 0, p = 1, items = 50, i = 1
@@ -27,7 +90,7 @@ Private Function SplitOld(ByRef wszMainStr As WString, ByRef Delimiter As Const 
 					items += 50
 					ReDim Preserve Result(0 To items - 1)
 				End If
-				wLet(Result(n - 1), Mid(wszMainStr, p, i - p))
+				WLet(Result(n - 1), Mid(wszMainStr, p, i - p))
 			End If
 			p = i + tLen
 			i = p
@@ -38,12 +101,11 @@ Private Function SplitOld(ByRef wszMainStr As WString, ByRef Delimiter As Const 
 	If (Not skipEmptyElement) OrElse ls - p + 1 > 0 Then
 		n += 1
 		ReDim Preserve Result(n - 1)
-		wLet(Result(n - 1), Mid(wszMainStr, p, ls - p + 1))
+		WLet(Result(n - 1), Mid(wszMainStr, p, ls - p + 1))
 	End If
 	Return n
 	
 End Function
-
 
 Debug.Print "The Count of element n=" & n
 Debug.Print "Testing String Build.........................Testing String Build"
@@ -101,7 +163,7 @@ Dim As WString * 100 Delimiter = Chr(9) + "一二三"
 TestString = ""
 t = GetTickCount()
 For i = 0 To n - 1
-	TestString &= "明天你好abcde" + Delimiter
+	TestString &= "你好abcde" + Delimiter
 Next
 t = GetTickCount() - t
 Debug.Print "s &= abcde String ", Str(t), Str(Len(TestString))
@@ -109,198 +171,153 @@ Debug.Print "s &= abcde String ", Str(t), Str(Len(TestString))
 TestWString = ""
 t = GetTickCount()
 For i = 0 To n - 1
-	TestWString &= "明天你好abcde" + Delimiter
+	TestWString &= "你好abcde" + Delimiter
 Next
 t = GetTickCount() - t
 Debug.Print "s &= abcde WString",  Str(t), Str(Len(TestWString))
 
 
+
+Debug.Print " "
+ReDim ArrString(0)
 Debug.Print "Split Testing  ==========================❶❷❸㊊㊋㊌㊍㊎=   Split Testing  "
-Dim ArrStr(Any) As String
-Dim nLen As Integer
-t = GetTickCount()
-'nLen = SplitStringVFBE(TestString, Delimiter, ArrStr())
-nLen = Split(TestString, Delimiter, ArrStr())
-t = GetTickCount() - t
-Debug.Print "Source type: String     Array type: String        nLen=" & nLen, "   Old Split Function Time " & t
-For n As Integer = 0 To min(10, UBound(ArrStr))
-	Debug.Print n & " " & ArrStr(n)
+nLen = Split(TestString, Delimiter, ArrString())
+Debug.Print "Source type: String     Array type: String     nLen=" & nLen
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & ArrString(n)
 Next
-Erase ArrStr
-Debug.Print " "
+Erase ArrString
 
-t = GetTickCount()
-nLen = Split(TestString, Delimiter, ArrStr())
-t = GetTickCount() - t
-Debug.Print "Source type: String     Array type: String        nLen=" & nLen, " FXM's Split Function Time " & t
-For n As Integer = 0 To min(10, UBound(ArrStr))
-	Debug.Print n & " " & ArrStr(n)
+Debug.Print " "
+ReDim ArrString(0)
+nLen = Split(TestString, Delimiter, ArrString(), , True)
+Debug.Print "Source type: String     Array type: String     nLen=" & nLen
+Debug.Print "Skip empty element"
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & ArrString(n)
 Next
-Erase ArrStr
-Debug.Print " "
+Erase ArrString
 
-Dim Arr(Any) As WString Ptr
-t = GetTickCount()
-nLen = SplitOld(TestWString, Delimiter, Arr())
-t = GetTickCount() - t
-Debug.Print "Source type: WString     Array type: WString Ptr  nLen=" & nLen, "   Old Split Function Time " & t
-For n As Integer = 0 To min(10, UBound(Arr))
-	Debug.Print n & " " & *Arr(n)
-	Deallocate Arr(n)
+Debug.Print " "
+ReDim ArrString(0)
+nLen = Split(TestString, Delimiter, ArrString())
+Debug.Print "Source type: Wstring     Array type: String      nLen=" & nLen
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & ArrString(n)
 Next
-Erase Arr
-Debug.Print " "
+Erase ArrString
 
-Dim ArrUString(Any) As UString
-t = GetTickCount()
+Debug.Print " "
+ReDim ArrString(0)
+nLen = Split(TestWString, Delimiter, ArrString(), , True)
+Debug.Print "Source type: Wstring     Array type: String      nLen=" & nLen
+Debug.Print "Skip empty element"
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & ArrString(n)
+Next
+Erase ArrString
+
+Debug.Print " "
+ReDim ArrWStringPtr(0)
+nLen = Split(TestWString, Delimiter, ArrWStringPtr())
+Debug.Print "Source type: Wstring     Array type: WString Ptr  nLen=" & nLen
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & *ArrWStringPtr(n)
+	Deallocate ArrWStringPtr(n)
+Next
+Erase ArrWStringPtr
+
+Debug.Print " "
+ReDim ArrUString(0)
 nLen = Split(TestWString, Delimiter, ArrUString())
-t = GetTickCount() - t
-TestWString = ""
-Debug.Print "Source type: WString     Array type:      UString  nLen=" & nLen, " FXM's Split Function Time " & t
-For n As Integer = 0 To min(10, UBound(ArrUString))
+Debug.Print "Source type: Wstring     Array type: UString      nLen=" & nLen
+For n As Integer = 0 To min(5, nLen - 1)
 	Debug.Print n & " " & ArrUString(n)
 Next
 Erase ArrUString
 
 Debug.Print " "
-Debug.Print "Split Testing  ==========================❶❷❸㊊㊋㊌㊍㊎=   Split Testing  "
-Scope
-	Dim As String Delimiter = Chr(9) + "一二三"
-	'Dim As String TestStr = "abc" & Chr(0) + "一二三" & Chr(0) & "123" & Chr(0) + "ERT"
-	Dim As String TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter ' + "ERT"
-	'Dim As String TestStr = "abc" + Delimiter + "0fgh0" + Delimiter +Delimiter + "1234" + Delimiter + "ERT"
-	Dim Arr() As String
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr())
-	TestStr = ""
-	Debug.Print "Source type: String     Array type: String     nLen=" & nLen
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & Arr(n)
-	Next
-End Scope
+Debug.Print " "
+Debug.Print "Split Function Time  ==========================❶❷❸㊊㊋㊌㊍㊎=   Split Function Time  "
+Debug.Print " "
+ReDim ArrString(0)
+t = GetTickCount()
+nLen = SplitOld(TestString, Delimiter, ArrString())
+t = GetTickCount() - t
+Debug.Print "Source type: String     Array type: String        nLen=" & nLen, "   Old Split Function Time " & t
+For n As Integer = 0 To min(5, nLen)
+	Debug.Print n & " " & ArrString(n)
+Next
+Erase ArrString
 
 Debug.Print " "
-Scope
-	Dim As String Delimiter = Chr(9) + "一二三"
-	'Dim As String TestStr = "abc" & Chr(0) + "一二三" & Chr(0) & "123" & Chr(0) + "ERT"
-	Dim As String TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter ' + "ERT"
-	'Dim As String TestStr = "abc" + Delimiter + "0fgh0" + Delimiter +Delimiter + "1234" + Delimiter + "ERT"
-	Dim Arr() As String
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr(), , True)
-	TestStr = ""
-	Debug.Print "Source type: String     Array type: String     nLen=" & nLen
-	Debug.Print "Skip empty element"
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & Arr(n)
-	Next
-End Scope
+ReDim ArrString(0)
+t = GetTickCount()
+nLen = Split(TestString, Delimiter, ArrString())
+t = GetTickCount() - t
+Debug.Print "Source type: String     Array type: String        nLen=" & nLen, " FXM's Split Function Time " & t
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & ArrString(n)
+Next
 
 Debug.Print " "
-Scope
-	Dim As WString * 100 Delimiter = Chr(9) + "一二三"
-	Dim As WString * 200 TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter
-	
-	Dim Arr(Any) As String
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr())
-	TestStr = ""
-	Debug.Print "Source type: Wstring     Array type: String      nLen=" & nLen
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & Arr(n)
-		'Deallocate a(n)
-	Next
-	'Erase a
-End Scope
+ReDim ArrWStringPtr(0)
+t = GetTickCount()
+nLen = SplitOld(TestWString, Delimiter, ArrWStringPtr())
+t = GetTickCount() - t
+Debug.Print "Source type: WString     Array type: WString Ptr  nLen=" & nLen, "   Old Split Function Time " & t
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & *ArrWStringPtr(n)
+	Deallocate ArrWStringPtr(n)
+Next
+Erase ArrWStringPtr
 
 Debug.Print " "
-Scope
-	Dim As WString * 100 Delimiter = Chr(9) + "一二三"
-	Dim As WString * 200 TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter
-	
-	Dim Arr(Any) As String
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr(), , True)
-	TestStr = ""
-	Debug.Print "Source type: Wstring     Array type: String      nLen=" & nLen
-	Debug.Print "Skip empty element"
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & Arr(n)
-		'Deallocate a(n)
-	Next
-	'Erase a
-End Scope
+ReDim ArrWStringPtr(0)
+t = GetTickCount()
+nLen = Split(TestWString, Delimiter, ArrWStringPtr())
+t = GetTickCount() - t
+Debug.Print "Source type: WString     Array type:      UString  nLen=" & nLen, " FXM's Split Function Time " & t
+For n As Integer = 0 To min(5, nLen - 1)
+	Debug.Print n & " " & *ArrWStringPtr(n)
+Next
+
 
 Debug.Print " "
-Scope
-	Dim As WString * 100 Delimiter = Chr(9) + " 一二三 "
-	Dim As WString * 200 TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter
-	
-	Dim Arr(Any) As WString Ptr
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr())
-	TestStr = ""
-	Debug.Print "Source type: Wstring     Array type: WString Ptr  nLen=" & nLen
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & *Arr(n)
-		Deallocate Arr(n)
-	Next
-	Erase Arr
-End Scope
+Debug.Print "Join Testing  ==========================❶❷❸㊊㊋㊌㊍㊎=   Join Testing  "
+Debug.Print " "
+t = GetTickCount()
+TestString = JoinOld(ArrString(), Delimiter)
+t = GetTickCount() - t
+Debug.Print "Source type: String     Array type: String" , "      Old Join Function Time " & t
 
 Debug.Print " "
-Scope
-	Dim As WString * 100 Delimiter = Chr(9) + "一二三"
-	Dim As WString * 200 TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter
-	
-	Dim Arr(Any) As WString Ptr
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr(), , True)
-	TestStr = ""
-	Debug.Print "Source type: Wstring     Array type: WString Ptr  nLen=" & nLen
-	Debug.Print "Skip empty element"
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & *Arr(n)
-		Deallocate Arr(n)
-	Next
-	Erase Arr
-End Scope
+t = GetTickCount()
+TestString = Join(ArrString(), Delimiter)
+t = GetTickCount() - t
+Debug.Print "Source type: String     Array type: String" , "      FXM Join Function Time " & t
 
 Debug.Print " "
-Scope
-	Dim As WString * 200 Delimiter = Chr(9) + "一二三"
-	Dim As WString * 200 TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter
-	
-	Dim Arr(Any) As UString
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr())
-	TestStr = ""
-	Debug.Print "Source type: Wstring     Array type: UString      nLen=" & nLen
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & Arr(n)
-		'Deallocate a(n)
-	Next
-	'Erase a
-End Scope
-
+t = GetTickCount()
+Dim As WString Ptr ResultWStringPtr = JoinOld(ArrWStringPtr(), Delimiter)
+t = GetTickCount() - t
+Debug.Print "Source type: WString     Array type: WString Ptr" , "      Old Join Function Time " & t
+Deallocate ResultWStringPtr
 Debug.Print " "
-Scope
-	Dim As WString * 200 Delimiter = Chr(9) '+ "一二三"
-	Dim As WString * 200 TestStr = Delimiter + "abc" + Delimiter + "一二三" + Delimiter + Delimiter + Delimiter + "123" + Delimiter
-	
-	Dim Arr(Any) As UString
-	Dim nLen As Integer
-	nLen = Split(TestStr, Delimiter, Arr(), , True)
-	TestStr = ""
-	Debug.Print "Source type: Wstring     Array type: UString      nLen=" & nLen
-	Debug.Print "Skip empty element"
-	For n As Integer = 0 To nLen - 1
-		Debug.Print n & " " & Arr(n)
-		'Deallocate a(n)
-	Next
-	'Erase a
-End Scope
+t = GetTickCount()
+Dim As WString Ptr ResultWStringPtr1 = Join(ArrWStringPtr(), Delimiter)
+t = GetTickCount() - t
+Debug.Print "Source type: WString     Array type: WString Ptr" , "      FXM Join Function Time " & t
+Deallocate ResultWStringPtr1
 
+Debug.Print " Press any key for continue"
+
+'free the array
+Erase ArrString
+For n As Integer = 0 To min(5, nLen - 1)
+	Deallocate ArrWStringPtr(n)
+Next
+Erase ArrWStringPtr
 Sleep(80000)
 End
 
