@@ -358,7 +358,7 @@ Namespace My.Sys.Forms
 				If WebB Then
 					If (Not WebB->bEnvCreated) Then
 						WebB->bEnvCreated = True
-						Dim As char ch
+						Dim As CHAR ch
 						WebB->completedHandler = malloc(SizeOf(ICoreWebView2CreateCoreWebView2ControllerCompletedHandler))
 						If (WebB->completedHandler = 0) Then
 							'printf(
@@ -830,11 +830,11 @@ Namespace My.Sys.Forms
 	Private Destructor WebBrowser
 		#ifndef __USE_GTK__
 			'This.Stop()
-			'DestroyWindow FHandle
+			If g_IWebBrowser Then g_IWebBrowser->Quit(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+			DestroyWindow FHandle
 			FHandle = 0
-			'FreeLibrary(hWebBrowser)
-			
-			'UnregisterClass "WebBrowser", GetModuleHandle(NULL)
+			FreeLibrary(hWebBrowser)
+			UnregisterClass "WebBrowser", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace
