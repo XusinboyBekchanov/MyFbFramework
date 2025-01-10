@@ -830,11 +830,13 @@ Namespace My.Sys.Forms
 	Private Destructor WebBrowser
 		#ifndef __USE_GTK__
 			'This.Stop()
-			If g_IWebBrowser Then g_IWebBrowser->Quit(Cast(IWebBrowser2 Ptr, pIWebBrowser))
-			DestroyWindow FHandle
-			FHandle = 0
-			FreeLibrary(hWebBrowser)
-			UnregisterClass "WebBrowser", GetModuleHandle(NULL)
+			#ifndef __USE_WEBVIEW2__
+				If g_IWebBrowser Then g_IWebBrowser->Quit(Cast(IWebBrowser2 Ptr, pIWebBrowser))
+				DestroyWindow FHandle
+				FHandle = 0
+				FreeLibrary(hWebBrowser)
+				'UnregisterClass "WebBrowser", GetModuleHandle(NULL)
+			#endif
 		#endif
 	End Destructor
 End Namespace
