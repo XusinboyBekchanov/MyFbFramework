@@ -112,7 +112,7 @@ Private Property OpenFileDialog.MultiSelect(Value As Boolean)
 End Property
 
 Private Property OpenFileDialog.InitialDir ByRef As WString
-	Return WGet(FInitialDir)
+	If FInitialDir > 0 Then Return *FInitialDir Else Return ""
 End Property
 
 Private Property OpenFileDialog.InitialDir(ByRef Value As WString)
@@ -929,10 +929,9 @@ End Function
 
 Private Constructor FolderBrowserDialog
 	WLet(FClassName, "FolderBrowserDialog")
-	FInitialDir = 0 'CAllocate_(0)
-	FDirectory = 0 'CAllocate_(0)
 	'Control.Child = @This
-	Title = "Please select a Folder :"
+	WLet(FTitle, "Please select a Folder:")
+	WLet(FCaption, *FTitle)
 End Constructor
 
 Private Destructor FolderBrowserDialog
@@ -1067,7 +1066,7 @@ Private Function ColorDialog.Execute As Boolean
 		Dim As CHOOSECOLOR CC
 		CC.lStructSize  = SizeOf(CC)
 		CC.lpCustColors = @Colors(0)
-		CC.hwndOwner    = IIf(Parent,Parent->Handle, 0)
+		CC.hwndOwner    = MainHandle 'IIf(Parent,Parent->Handle, 0)
 		CC.rgbResult    = This.Color
 		CC.Flags        = CC_RGBINIT
 		CC.Flags        = CC.Flags Or CC_ENABLEHOOK
