@@ -39,6 +39,7 @@ Namespace My.Sys.Forms
 			Case "modalresult": Return @ModalResult
 			Case "opacity": Return @FOpacity
 			Case "owner": Return FOwner
+			Case "showintaskbar": Return @FShowInTaskbar
 			Case "transparent": Return @FTransparent
 			Case "transparentcolor": Return @FTransparentColor
 			Case "windowstate": Return @FWindowState
@@ -82,6 +83,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 					Case "parentwidget": This.ParentWidget = Value
 					#endif
+				Case "showintaskbar": This.ShowInTaskbar = QBoolean(Value)
 				Case "text": This.Text = QWString(Value)
 				Case "transparent": This.Transparent = QBoolean(Value)
 				Case "transparentcolor": This.TransparentColor = QInteger(Value)
@@ -386,6 +388,8 @@ Namespace My.Sys.Forms
 				hints.base_height = FHeight
 				hints.min_width = FWidth
 				hints.min_height = FHeight
+				hints.max_width = FWidth
+				hints.max_height = FHeight
 				hints.width_inc = 1
 				hints.height_inc = 1
 				If GTK_IS_WINDOW(widget) Then
@@ -609,6 +613,31 @@ Namespace My.Sys.Forms
 					End If
 				#endif
 			End If
+		End If
+	End Property
+	
+	Private Property Form.ShowInTaskbar As Boolean
+		Return FShowInTaskbar
+	End Property
+	
+	Private Property Form.ShowInTaskbar(Value As Boolean)
+		If FShowInTaskbar <> Value Then
+			FShowInTaskbar = Value
+			#ifdef __USE_WINAPI__
+				Dim As ITaskbarList Ptr pTaskbarList
+				If SUCCEEDED(CoInitialize(NULL)) Then
+					If SUCCEEDED(CoCreateInstance(@CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, @IID_ITaskbarList, Cast(LPVOID, @pTaskbarList))) Then
+						pTaskbarList->lpVtbl->HrInit(pTaskbarList)
+						If Value Then
+							pTaskbarList->lpVtbl->DeleteTab(pTaskbarList, FHandle)
+						Else
+							pTaskbarList->lpVtbl->AddTab(pTaskbarList, FHandle)
+						End If
+						pTaskbarList->lpVtbl->Release(pTaskbarList)
+					End If
+					CoUninitialize()
+				End If
+			#endif
 		End If
 	End Property
 	
@@ -857,8 +886,9 @@ Namespace My.Sys.Forms
 							'EnableMenuItem(NoNeedSysMenu, SC_MAXIMIZE, MF_BYCOMMAND Or MF_GRAYED)
 						End If
 						If Not .FShowCaption Then .ShowCaption = False
+						If Not .FShowInTaskbar Then .ShowInTaskbar = False
 						If .Opacity <> 255 OrElse .Transparent Then SetLayeredWindowAttributes(.Handle, IIf(.TransparentColor = -1, .BackColor, .TransparentColor), .Opacity, IIf(.Transparent, LWA_COLORKEY, 0) Or LWA_ALPHA)
-						.ChangeTabIndex -2
+						.ChangeTabIndex - 2
 						SendMessage(.Handle, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), NULL)
 						If .Menu Then .Menu->ParentWindow = @Sender
 						Select Case .FFormStyle
@@ -2012,6 +2042,7 @@ Namespace My.Sys.Forms
 		FControlBox = True
 		FMinimizeBox = True
 		FMaximizeBox = True
+		FShowInTaskbar = True
 		FOpacity = 255
 		FTransparentColor = -1
 		Canvas.Ctrl    = @This
