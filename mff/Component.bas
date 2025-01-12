@@ -105,6 +105,7 @@ Namespace My.Sys.ComponentModel
 		Private Property Component.Parent(Value As Component Ptr)
 			If FParent <> Value Then
 				FParent = Value
+				Value->FComponents.Add @This
 				#ifdef __USE_GTK__
 					If FDesignMode AndAlso widget <> 0 AndAlso GTK_IS_WIDGET(widget) AndAlso Value <> 0 AndAlso Value->layoutwidget <> 0 Then
 						If gtk_widget_get_parent(widget) <> Value->layoutwidget Then

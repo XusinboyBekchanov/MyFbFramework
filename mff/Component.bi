@@ -31,6 +31,7 @@ Namespace My.Sys.ComponentModel
 		FMinWidth           As Integer
 		FMinHeight          As Integer
 		FParent             As Component Ptr
+		FComponents         As List
 		FTempString         As String
 		#ifdef __USE_GTK__
 			box 			As GtkWidget Ptr

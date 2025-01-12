@@ -619,7 +619,7 @@ Namespace My.Sys.Forms
 				FShowCaption = Value
 				#ifdef __USE_GTK__
 					
-				#elseif defined(__USE_WINAPI__) 
+				#elseif defined(__USE_WINAPI__)
 					If ClassName = "Form" AndAlso FHandle Then
 						ChangeStyle WS_CAPTION, Value
 						If FHandle Then
@@ -668,7 +668,7 @@ Namespace My.Sys.Forms
 				Brush.Color = FBackColor
 				Canvas.BackColor = FBackColor
 				#ifdef __USE_WINAPI__
-					If ClassName = "RichTextBox" Then 
+					If ClassName = "RichTextBox" Then
 						SendMessage(Handle, EM_SETBKGNDCOLOR, 0, FBackColor)
 						Dim As CHARFORMAT2 Cf
 						Cf.cbSize = SizeOf(Cf)
@@ -698,7 +698,7 @@ Namespace My.Sys.Forms
 				Font.Color = FForeColor
 				Canvas.Font.Color = FForeColor
 				#ifdef __USE_WINAPI__
-					If ClassName = "RichTextBox" Then 
+					If ClassName = "RichTextBox" Then
 						Dim As CHARFORMAT2 Cf
 						Cf.cbSize = SizeOf(Cf)
 						Cf.dwMask = CFM_COLOR
@@ -976,7 +976,7 @@ Namespace My.Sys.Forms
 		#endif
 		
 		Private Sub Control.CreateWnd
-			If FParent Then 
+			If FParent Then
 				xdpi = FParent->xdpi
 				ydpi = FParent->ydpi
 				Font.xdpi = FParent->xdpi
@@ -1256,6 +1256,15 @@ Namespace My.Sys.Forms
 					Next i
 					This.RequestAlign
 					If This.ContextMenu Then This.ContextMenu->ParentWindow = @This
+					For i = 0 To This.FComponents.Count - 1
+						If *Cast(My.Sys.Object Ptr, This.FComponents.Item(i)) Is NotifyIcon Then
+							With *Cast(NotifyIcon Ptr, This.FComponents.Item(i))
+								If .Visible Then
+									.Visible = True
+								End If
+							End With
+						End If
+					Next i
 					If OnHandleIsAllocated Then OnHandleIsAllocated(This)
 					If OnCreate Then OnCreate(*Designer, This)
 					If Not FEnabled Then Enabled = FEnabled
@@ -1693,6 +1702,59 @@ Namespace My.Sys.Forms
 					If OnMove Then OnMove(*Designer, This)
 				Case WM_CANCELMODE
 					SendMessage(FHandle, CM_CANCELMODE, 0, 0)
+				Case WM_SHELLNOTIFY
+					FLastNotifyIcon = Cast(NotifyIcon Ptr, Message.wParam)
+					Select Case Message.lParam
+					Case WM_RBUTTONDOWN
+						If FLastNotifyIcon->ContextMenu Then
+							Dim As ..Point pt
+							GetCursorPos(@pt)
+							SetForegroundWindow(FHandle)
+							FLastNotifyIcon->ContextMenu->ParentWindow = @This
+							FLastNotifyIcon->ContextMenu->Popup pt.x, pt.y, @Message
+							'TrackPopupMenuEx (ni->ContextMenu->Handle, TPM_LEFTALIGN Or TPM_RIGHTBUTTON, pt.x, pt.y, FHandle, NULL)
+							PostMessage(FHandle, WM_NULL, 0, 0)
+						End If
+						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 1, MouseX, MouseY, Message.wParam And &HFFFF)
+					Case WM_RBUTTONUP
+						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 1, MouseX, MouseY, Message.wParam And &HFFFF)
+					Case WM_LBUTTONDOWN
+						If FLastNotifyIcon->OnClick Then FLastNotifyIcon->OnClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+						If FLastNotifyIcon->OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseDown(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 0, MouseX, MouseY, Message.wParam And &HFFFF)
+					Case WM_LBUTTONUP
+						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 0, MouseX, MouseY, Message.wParam And &HFFFF)
+					Case WM_MBUTTONDOWN
+						If FLastNotifyIcon->OnClick Then FLastNotifyIcon->OnClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+						If FLastNotifyIcon->OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseDown(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 2, MouseX, MouseY, Message.wParam And &HFFFF)
+					Case WM_MBUTTONUP
+						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 2, MouseX, MouseY, Message.wParam And &HFFFF)
+					Case WM_MOUSEMOVE
+						If FLastNotifyIcon->OnMouseMove Then FLastNotifyIcon->OnMouseMove(*Designer, *FLastNotifyIcon, 0, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					Case WM_LBUTTONDBLCLK
+						If FLastNotifyIcon->OnDblClick Then FLastNotifyIcon->OnDblClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+					Case NIN_BALLOONUSERCLICK
+						If FLastNotifyIcon->OnBalloonTipClicked Then FLastNotifyIcon->OnBalloonTipClicked(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+					Case NIN_BALLOONSHOW
+						If FLastNotifyIcon->OnBalloonTipShown Then FLastNotifyIcon->OnBalloonTipShown(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+					Case NIN_BALLOONHIDE
+						If FLastNotifyIcon->OnBalloonTipClosed Then FLastNotifyIcon->OnBalloonTipClosed(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+					Case NIN_BALLOONTIMEOUT
+						If FLastNotifyIcon->OnBalloonTipClosed Then FLastNotifyIcon->OnBalloonTipClosed(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+					Case NIN_KEYSELECT
+					Case NIN_SELECT
+					End Select
 				Case WM_LBUTTONDOWN
 					DownButton = 0
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
@@ -1981,6 +2043,11 @@ Namespace My.Sys.Forms
 			If ContextMenu Then
 				For i As Integer = 0 To ContextMenu->Count - 1
 					EnumPopupMenuItems *ContextMenu->Item(i)
+				Next i
+			End If
+			If FLastNotifyIcon AndAlso FLastNotifyIcon->ContextMenu Then
+				For i As Integer = 0 To FLastNotifyIcon->ContextMenu->Count - 1
+					EnumPopupMenuItems *FLastNotifyIcon->ContextMenu->Item(i)
 				Next i
 			End If
 		End Sub
@@ -2781,7 +2848,7 @@ Namespace My.Sys.Forms
 				If FHandle Then .ClientToScreen FHandle, Cast(..Point Ptr, @P)
 			#endif
 		End Sub
-			
+		
 		Private Sub Control.ScreenToClient(ByRef P As My.Sys.Drawing.Point)
 			#ifdef __USE_WINAPI__
 				If FHandle Then .ScreenToClient FHandle, Cast(..Point Ptr, @P)
@@ -2924,17 +2991,17 @@ Namespace My.Sys.Forms
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
 							bAdded = True
-						#ifdef __USE_GTK3__
-						ElseIf GTK_IS_STACK(widget) Then
-							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							#ifdef __USE_GTK3__
-								gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Margins.Left + Ctrl->ExtraMargins.Left))
-								gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Margins.Top + Ctrl->ExtraMargins.Top))
-								gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Margins.Right + Ctrl->ExtraMargins.Right))
-								gtk_widget_set_margin_bottom(Ctrlwidget, ScaleY(Margins.Bottom + Ctrl->ExtraMargins.Bottom))
+							ElseIf GTK_IS_STACK(widget) Then
+								If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
+								#ifdef __USE_GTK3__
+									gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Margins.Left + Ctrl->ExtraMargins.Left))
+									gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Margins.Top + Ctrl->ExtraMargins.Top))
+									gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Margins.Right + Ctrl->ExtraMargins.Right))
+									gtk_widget_set_margin_bottom(Ctrlwidget, ScaleY(Margins.Bottom + Ctrl->ExtraMargins.Bottom))
+								#endif
+								gtk_container_add(GTK_CONTAINER(widget), Ctrlwidget)
 							#endif
-							gtk_container_add(GTK_CONTAINER(widget), Ctrlwidget)
-						#endif
 						ElseIf GTK_IS_TEXT_VIEW(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_text_view_add_child_in_window(GTK_TEXT_VIEW(widget), Ctrlwidget, GTK_TEXT_WINDOW_WIDGET, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))

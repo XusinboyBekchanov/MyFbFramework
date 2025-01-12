@@ -87,6 +87,7 @@
 #include once "ListView.bi"
 #include once "Menus.bi"
 #include once "MonthCalendar.bi"
+#include once "NotifyIcon.bi"
 #include once "NumericUpDown.bi"
 #include once "Object.bi"
 #include once "OpenFileControl.bi"
@@ -230,6 +231,7 @@ Using My.Sys.Forms
 		Case "timercomponent": Cpnt = _New( TimerComponent)
 		Case "tooltips": Cpnt = _New( ToolTips)
 		Case "mainmenu": Cpnt = _New( MainMenu)
+		Case "notifyicon": Cpnt = _New(NotifyIcon)
 		Case "popupmenu": Cpnt = _New( PopupMenu)
 		Case "colordialog": Cpnt = _New( ColorDialog)
 		Case "folderbrowserdialog": Cpnt = _New( FolderBrowserDialog)
@@ -299,6 +301,7 @@ Using My.Sys.Forms
 		Case "listcontrol": _Delete( Cast(ListControl Ptr, Ctrl))
 		Case "listview": _Delete( Cast(ListView Ptr, Ctrl))
 		Case "monthcalendar": _Delete( Cast(MonthCalendar Ptr, Ctrl))
+		Case "notifyicon": _Delete( Cast(NotifyIcon Ptr, Ctrl))
 		Case "numericupdown": _Delete( Cast(NumericUpDown Ptr, Ctrl))
 		Case "pagepanel": _Delete( Cast(PagePanel Ptr, Ctrl))
 		Case "pagescroller": _Delete( Cast(PageScroller Ptr, Ctrl))
