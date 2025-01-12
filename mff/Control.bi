@@ -16,6 +16,7 @@
 #include once "Graphics.bi"
 #include once "Canvas.bi"
 #include once "IntegerList.bi"
+#include once "NotifyIcon.bi"
 #include once "DarkMode/DarkMode.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/commctrl.bi"
@@ -192,6 +193,7 @@ Namespace My.Sys.Forms
 			FDisposed As Boolean
 			FHorizontalSpacing As Integer
 			FVerticalSpacing As Integer
+			FLastNotifyIcon As NotifyIcon Ptr
 			#ifdef __USE_GTK__
 				FParentWidget As GtkWidget Ptr
 				FClient As GtkWidget Ptr

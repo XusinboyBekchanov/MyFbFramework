@@ -5,6 +5,7 @@
 '###############################################################################
 
 #include once "Object.bi"
+#include once "List.bi"
 
 Namespace My.Sys.ComponentModel
 	#define QComponent(__Ptr__) (*Cast(Component Ptr, __Ptr__))
@@ -31,6 +32,7 @@ Namespace My.Sys.ComponentModel
 		FMinWidth           As Integer
 		FMinHeight          As Integer
 		FParent             As Component Ptr
+		FComponents         As List
 		FTempString         As String
 		#ifdef __USE_GTK__
 			box 			As GtkWidget Ptr

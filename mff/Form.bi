@@ -86,6 +86,7 @@ Namespace My.Sys.Forms
 		FWindowState   As Integer
 		FFormCreated   As Boolean
 		FDPIChanging   As Boolean
+		FShowInTaskbar As Boolean
 		FOnCreate      As Sub(ByRef Sender As Form)
 		Declare Static Sub ActiveControlChanged(ByRef Sender As Control)
 		#ifdef __USE_GTK__
@@ -202,7 +203,10 @@ Namespace My.Sys.Forms
 		Declare Property Enabled(Value As Boolean)
 		'Returns/sets the parent container of the control (Windows, Linux, Android, Web).
 		Declare Property Parent As Control Ptr
-		Declare Property Parent(value As Control Ptr)
+		Declare Property Parent(Value As Control Ptr)
+		'Returns/sets Gets or sets a value indicating whether the form is displayed in the taskbar (Windows only).
+		Declare Property ShowInTaskbar As Boolean
+		Declare Property ShowInTaskbar(Value As Boolean)
 		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux, Web).
 		Declare Property Visible As Boolean
 		Declare Property Visible(Value As Boolean)

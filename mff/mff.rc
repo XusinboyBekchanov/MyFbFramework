@@ -37,6 +37,7 @@ MaskedEdit PNG "../resources/MaskedEdit.png"
 MainMenu PNG "../resources/MainMenu.png"
 MonthCalendar PNG "../resources/MonthCalendar.png"
 NativeFontControl PNG "../resources/FontDialog.png"
+NotifyIcon PNG "../resources/NotifyIcon.png"
 NumericUpDown PNG "../resources/NumericUpDown.png"
 RadioButton PNG "../resources/RadioButton.png"
 OpenFileControl PNG "../resources/OpenFileControl.png"
@@ -80,8 +81,8 @@ WebBrowser PNG "../resources/WebBrowser.png"
 
 #define VER_FILEDESCRIPTION_STR     "My FreeBasic Framework\0"
 
-#define VER_FILEVERSION             1,3,6,525
-#define VER_FILEVERSION_STR         "1.3.6.525\0"
+#define VER_FILEVERSION             1,3,6,561
+#define VER_FILEVERSION_STR         "1.3.6.561\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
