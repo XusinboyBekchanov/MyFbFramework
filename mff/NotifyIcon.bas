@@ -15,11 +15,11 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "balloontipicon": Return @BalloonTipIcon
 			Case "balloontipicontype": Return @FBalloonTipIconType
-			Case "balloontiptext": Return @FNotifyIconData.szInfo
-			Case "balloontiptitle": Return @FNotifyIconData.szInfoTitle
+			Case "balloontiptext": Return FBalloonTipText.vptr
+			Case "balloontiptitle": Return FBalloonTipTitle.vptr
 			Case "contextmenu": Return ContextMenu
 			Case "icon": Return @Icon
-			Case "text": Return @FNotifyIconData.szTip
+			Case "text": Return FText.vptr
 			Case "visible": Return @FVisible
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -77,42 +77,33 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property NotifyIcon.BalloonTipText ByRef As WString
-		#ifdef __USE_WINAPI__
-			Return FNotifyIconData.szInfo
-		#else
-			Return ""
-		#endif
+		Return *FBalloonTipText.vptr
 	End Property
 	
 	Private Property NotifyIcon.BalloonTipText(ByRef Value As WString)
+		FBalloonTipText = Value
 		#ifdef __USE_WINAPI__
 			FNotifyIconData.szInfo = Value
 		#endif
 	End Property
 	
 	Private Property NotifyIcon.BalloonTipTitle ByRef As WString
-		#ifdef __USE_WINAPI__
-			Return FNotifyIconData.szInfoTitle
-		#else
-			Return ""
-		#endif
+		Return *FBalloonTipTitle.vptr
 	End Property
 	
 	Private Property NotifyIcon.BalloonTipTitle(ByRef Value As WString)
+		FBalloonTipTitle = Value
 		#ifdef __USE_WINAPI__
 			FNotifyIconData.szInfoTitle = Value
 		#endif
 	End Property
 	
 	Private Property NotifyIcon.Text ByRef As WString
-		#ifdef __USE_WINAPI__
-			Return FNotifyIconData.szTip
-		#else
-			Return ""
-		#endif
+		Return *FText.vptr
 	End Property
 	
 	Private Property NotifyIcon.Text(ByRef Value As WString)
+		FText = Value
 		#ifdef __USE_WINAPI__
 			FNotifyIconData.szTip = Value
 		#endif
@@ -157,40 +148,48 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub NotifyIcon.ShowBalloonTip(timeout As Integer)
-		FNotifyIconData.uFlags = NIF_INFO
-		FNotifyIconData.uTimeout = timeout
-		
-		Shell_NotifyIcon(NIM_MODIFY, Cast(PNOTIFYICONDATA, @FNotifyIconData))
+		#ifdef __USE_WINAPI__
+			FNotifyIconData.uFlags = NIF_INFO
+			FNotifyIconData.uTimeout = timeout
+			
+			Shell_NotifyIcon(NIM_MODIFY, Cast(PNOTIFYICONDATA, @FNotifyIconData))
+		#endif
 	End Sub
 	
 	Private Sub NotifyIcon.ShowBalloonTip(timeout As Integer, ByRef tipTitle As WString, ByRef tipText As WString, tipIconType As ToolTipIconType, tipIcon As My.Sys.Drawing.Icon Ptr = 0)
-		FNotifyIconData.uFlags = NIF_INFO
-		FNotifyIconData.szInfoTitle = tipTitle
-		FNotifyIconData.szInfo = tipText
-		FNotifyIconData.uTimeout = timeout
-		ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_NONE, False
-		ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_INFO, False
-		ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_WARNING, False
-		ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_ERROR, False
-		ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_USER, False
-		Select Case tipIconType
-		Case ToolTipIconType.None: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_NONE, True
-		Case ToolTipIconType.Info: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_INFO, True
-		Case ToolTipIconType.Warning: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_WARNING, True
-		Case ToolTipIconType.Error: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_ERROR, True
-		Case ToolTipIconType.User: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_USER, True
-		End Select
-		If tipIcon Then FNotifyIconData.hBalloonIcon = tipIcon->Handle
-		
-		Shell_NotifyIcon(NIM_MODIFY, Cast(PNOTIFYICONDATA, @FNotifyIconData))
+		#ifdef __USE_WINAPI__
+			FNotifyIconData.uFlags = NIF_INFO
+			FNotifyIconData.szInfoTitle = tipTitle
+			FNotifyIconData.szInfo = tipText
+			FNotifyIconData.uTimeout = timeout
+			ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_NONE, False
+			ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_INFO, False
+			ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_WARNING, False
+			ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_ERROR, False
+			ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_USER, False
+			Select Case tipIconType
+			Case ToolTipIconType.None: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_NONE, True
+			Case ToolTipIconType.Info: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_INFO, True
+			Case ToolTipIconType.Warning: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_WARNING, True
+			Case ToolTipIconType.Error: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_ERROR, True
+			Case ToolTipIconType.User: ChangeStyle FNotifyIconData.dwInfoFlags, NIIF_USER, True
+			End Select
+			If tipIcon Then FNotifyIconData.hBalloonIcon = tipIcon->Handle
+			
+			Shell_NotifyIcon(NIM_MODIFY, Cast(PNOTIFYICONDATA, @FNotifyIconData))
+		#endif
 	End Sub
 	
 	Function NotifyIcon.IsWindowsVistaOrHigher() As Boolean
-		Dim As OSVERSIONINFOEX osvi
-		osvi.dwOSVersionInfoSize = SizeOf(OSVERSIONINFOEX)
-		
-		If GetVersionEx(Cast(OSVERSIONINFO Ptr, @osvi)) = 0 Then Return False
-		Return (osvi.dwMajorVersion > 6) Or (osvi.dwMajorVersion = 6 And osvi.dwMinorVersion >= 0)
+		#ifdef __USE_WINAPI__
+			Dim As OSVERSIONINFOEX osvi
+			osvi.dwOSVersionInfoSize = SizeOf(OSVERSIONINFOEX)
+			
+			If GetVersionEx(Cast(OSVERSIONINFO Ptr, @osvi)) = 0 Then Return False
+			Return (osvi.dwMajorVersion > 6) Or (osvi.dwMajorVersion = 6 And osvi.dwMinorVersion >= 0)
+		#else
+			Return False
+		#endif
 	End Function
 	
 	Private Constructor NotifyIcon

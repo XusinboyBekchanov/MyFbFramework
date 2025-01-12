@@ -5,6 +5,7 @@
 '###############################################################################
 
 #include once "Object.bi"
+#include once "List.bi"
 
 Namespace My.Sys.ComponentModel
 	#define QComponent(__Ptr__) (*Cast(Component Ptr, __Ptr__))

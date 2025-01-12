@@ -18,60 +18,67 @@ Namespace My.Sys.Forms
 		User = 4 'A user icon.
 	End Enum
 	
-	#ifdef __FB_64BIT__
-		Type NOTIFYICONDATANEW
-			cbSize As DWORD
-			hWnd As HWND
-			uID As UINT
-			uFlags As UINT
-			uCallbackMessage As UINT
-			hIcon As HICON
-			szTip As WString * 128
-			dwState As DWORD
-			dwStateMask As DWORD
-			szInfo As WString * 256
-			
-			Union
-				uTimeout As UINT
-				uVersion As UINT
-			End Union
-			
-			szInfoTitle As WString * 64
-			dwInfoFlags As DWORD
-			guidItem As GUID
-			
-			hBalloonIcon As HICON
-		End Type
-	#else
-		Type NOTIFYICONDATANEW Field = 1
-			cbSize As DWORD
-			hWnd As HWND
-			uID As UINT
-			uFlags As UINT
-			uCallbackMessage As UINT
-			hIcon As HICON
-			szTip As WString * 128
-			dwState As DWORD
-			dwStateMask As DWORD
-			szInfo As WString * 256
-			
-			Union field = 1
-				uTimeout As UINT
-				uVersion As UINT
-			End Union
-			
-			szInfoTitle As WString * 64
-			dwInfoFlags As DWORD
-			guidItem As GUID
-			
-			hBalloonIcon As HICON
-		End Type
+	#ifdef __USE_WINAPI__
+		#ifdef __FB_64BIT__
+			Type NOTIFYICONDATANEW
+				cbSize As DWORD
+				hWnd As HWND
+				uID As UINT
+				uFlags As UINT
+				uCallbackMessage As UINT
+				hIcon As HICON
+				szTip As WString * 128
+				dwState As DWORD
+				dwStateMask As DWORD
+				szInfo As WString * 256
+				
+				Union
+					uTimeout As UINT
+					uVersion As UINT
+				End Union
+				
+				szInfoTitle As WString * 64
+				dwInfoFlags As DWORD
+				guidItem As GUID
+				
+				hBalloonIcon As HICON
+			End Type
+		#else
+			Type NOTIFYICONDATANEW Field = 1
+				cbSize As DWORD
+				hWnd As HWND
+				uID As UINT
+				uFlags As UINT
+				uCallbackMessage As UINT
+				hIcon As HICON
+				szTip As WString * 128
+				dwState As DWORD
+				dwStateMask As DWORD
+				szInfo As WString * 256
+				
+				Union field = 1
+					uTimeout As UINT
+					uVersion As UINT
+				End Union
+				
+				szInfoTitle As WString * 64
+				dwInfoFlags As DWORD
+				guidItem As GUID
+				
+				hBalloonIcon As HICON
+			End Type
+		#endif
 	#endif
 	
 	Private Type NotifyIcon Extends My.Sys.ComponentModel.Component
 	Private:
-		FNotifyIconData As NOTIFYICONDATANEW
+		#ifdef __USE_WINAPI__
+			FNotifyIconData As NOTIFYICONDATANEW
+		#endif
 		FBalloonTipIconType As ToolTipIconType
+		FBalloonTipText As UString
+		FBalloonTipTitle As UString
+		FText As UString
 		FVisible As Boolean
 		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 		Declare Static Sub BalloonTipIconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
