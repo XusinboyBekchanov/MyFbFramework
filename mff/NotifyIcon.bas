@@ -218,6 +218,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor NotifyIcon
-		If FVisible Then Shell_NotifyIcon(NIM_DELETE, Cast(PNOTIFYICONDATA, @FNotifyIconData))
+		#ifdef __USE_WINAPI__
+			If FVisible Then Shell_NotifyIcon(NIM_DELETE, Cast(PNOTIFYICONDATA, @FNotifyIconData))
+		#endif
 	End Destructor
 End Namespace
