@@ -1703,58 +1703,64 @@ Namespace My.Sys.Forms
 				Case WM_CANCELMODE
 					SendMessage(FHandle, CM_CANCELMODE, 0, 0)
 				Case WM_SHELLNOTIFY
-					FLastNotifyIcon = Cast(NotifyIcon Ptr, Message.wParam)
-					Select Case Message.lParam
-					Case WM_RBUTTONDOWN
-						If FLastNotifyIcon->ContextMenu Then
-							Dim As ..Point pt
-							GetCursorPos(@pt)
-							SetForegroundWindow(FHandle)
-							FLastNotifyIcon->ContextMenu->ParentWindow = @This
-							FLastNotifyIcon->ContextMenu->Popup pt.x, pt.y, @Message
-							'TrackPopupMenuEx (ni->ContextMenu->Handle, TPM_LEFTALIGN Or TPM_RIGHTBUTTON, pt.x, pt.y, FHandle, NULL)
-							PostMessage(FHandle, WM_NULL, 0, 0)
-						End If
-						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
-						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 1, MouseX, MouseY, Message.wParam And &HFFFF)
-					Case WM_RBUTTONUP
-						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
-						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 1, MouseX, MouseY, Message.wParam And &HFFFF)
-					Case WM_LBUTTONDOWN
-						If FLastNotifyIcon->OnClick Then FLastNotifyIcon->OnClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
-						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
-						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-						If FLastNotifyIcon->OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseDown(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 0, MouseX, MouseY, Message.wParam And &HFFFF)
-					Case WM_LBUTTONUP
-						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
-						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 0, MouseX, MouseY, Message.wParam And &HFFFF)
-					Case WM_MBUTTONDOWN
-						If FLastNotifyIcon->OnClick Then FLastNotifyIcon->OnClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
-						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
-						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-						If FLastNotifyIcon->OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseDown(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 2, MouseX, MouseY, Message.wParam And &HFFFF)
-					Case WM_MBUTTONUP
-						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
-						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
-						If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 2, MouseX, MouseY, Message.wParam And &HFFFF)
-					Case WM_MOUSEMOVE
-						If FLastNotifyIcon->OnMouseMove Then FLastNotifyIcon->OnMouseMove(*Designer, *FLastNotifyIcon, 0, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
-					Case WM_LBUTTONDBLCLK
-						If FLastNotifyIcon->OnDblClick Then FLastNotifyIcon->OnDblClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
-					Case NIN_BALLOONUSERCLICK
-						If FLastNotifyIcon->OnBalloonTipClicked Then FLastNotifyIcon->OnBalloonTipClicked(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
-					Case NIN_BALLOONSHOW
-						If FLastNotifyIcon->OnBalloonTipShown Then FLastNotifyIcon->OnBalloonTipShown(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
-					Case NIN_BALLOONHIDE
-						If FLastNotifyIcon->OnBalloonTipClosed Then FLastNotifyIcon->OnBalloonTipClosed(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
-					Case NIN_BALLOONTIMEOUT
-						If FLastNotifyIcon->OnBalloonTipClosed Then FLastNotifyIcon->OnBalloonTipClosed(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
-					Case NIN_KEYSELECT
-					Case NIN_SELECT
-					End Select
+					If Message.wParam >= 1000 AndAlso Message.wParam - 1000 < Handles.Count Then
+						FLastNotifyIcon = Handles.Item(Message.wParam - 1000)
+					Else
+						FLastNotifyIcon = 0
+					End If
+					If FLastNotifyIcon Then
+						Select Case Message.lParam
+						Case WM_RBUTTONDOWN
+							If FLastNotifyIcon->ContextMenu Then
+								Dim As ..Point pt
+								GetCursorPos(@pt)
+								SetForegroundWindow(FHandle)
+								FLastNotifyIcon->ContextMenu->ParentWindow = @This
+								FLastNotifyIcon->ContextMenu->Popup pt.x, pt.y, @Message
+								'TrackPopupMenuEx (ni->ContextMenu->Handle, TPM_LEFTALIGN Or TPM_RIGHTBUTTON, pt.x, pt.y, FHandle, NULL)
+								PostMessage(FHandle, WM_NULL, 0, 0)
+							End If
+							Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+							Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+							If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 1, MouseX, MouseY, Message.wParam And &HFFFF)
+						Case WM_RBUTTONUP
+							Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+							Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+							If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 1, MouseX, MouseY, Message.wParam And &HFFFF)
+						Case WM_LBUTTONDOWN
+							If FLastNotifyIcon->OnClick Then FLastNotifyIcon->OnClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+							Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+							Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+							If FLastNotifyIcon->OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseDown(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 0, MouseX, MouseY, Message.wParam And &HFFFF)
+						Case WM_LBUTTONUP
+							Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+							Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+							If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 0, MouseX, MouseY, Message.wParam And &HFFFF)
+						Case WM_MBUTTONDOWN
+							If FLastNotifyIcon->OnClick Then FLastNotifyIcon->OnClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+							Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+							Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+							If FLastNotifyIcon->OnMouseDown AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseDown(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 2, MouseX, MouseY, Message.wParam And &HFFFF)
+						Case WM_MBUTTONUP
+							Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))
+							Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(Message.lParam))
+							If FLastNotifyIcon->OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then FLastNotifyIcon->OnMouseUp(*FLastNotifyIcon->Designer, *FLastNotifyIcon, 2, MouseX, MouseY, Message.wParam And &HFFFF)
+						Case WM_MOUSEMOVE
+							If FLastNotifyIcon->OnMouseMove Then FLastNotifyIcon->OnMouseMove(*Designer, *FLastNotifyIcon, 0, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+						Case WM_LBUTTONDBLCLK
+							If FLastNotifyIcon->OnDblClick Then FLastNotifyIcon->OnDblClick(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+						Case NIN_BALLOONUSERCLICK
+							If FLastNotifyIcon->OnBalloonTipClicked Then FLastNotifyIcon->OnBalloonTipClicked(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+						Case NIN_BALLOONSHOW
+							If FLastNotifyIcon->OnBalloonTipShown Then FLastNotifyIcon->OnBalloonTipShown(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+						Case NIN_BALLOONHIDE
+							If FLastNotifyIcon->OnBalloonTipClosed Then FLastNotifyIcon->OnBalloonTipClosed(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+						Case NIN_BALLOONTIMEOUT
+							If FLastNotifyIcon->OnBalloonTipClosed Then FLastNotifyIcon->OnBalloonTipClosed(*FLastNotifyIcon->Designer, *FLastNotifyIcon)
+						Case NIN_KEYSELECT
+						Case NIN_SELECT
+						End Select
+					End If
 				Case WM_LBUTTONDOWN
 					DownButton = 0
 					Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(Message.lParam))

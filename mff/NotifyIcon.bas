@@ -1,5 +1,5 @@
-'################################################################################
-'#  NotifyIcon.bas                                                               #
+﻿'################################################################################
+'#  NotifyIcon.bas                                                              #
 '#  This file is part of MyFBFramework                                          #
 '#  Authors: Xusinboy Bekchanov (2025)                                          #
 '################################################################################
@@ -207,7 +207,8 @@ Namespace My.Sys.Forms
 				Else
 					.cbSize = SizeOf (NOTIFYICONDATA)
 				End If
-				.uID = CUInt(@This)
+				Handles.Add @This
+				.uID  = 1000 + Handles.Count - 1
 				.uFlags = NIF_ICON Or NIF_TIP Or NIF_MESSAGE
 				.uCallbackMessage = WM_SHELLNOTIFY
 				.szTip = ""
@@ -217,6 +218,6 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor NotifyIcon
-		
+		If FVisible Then Shell_NotifyIcon(NIM_DELETE, Cast(PNOTIFYICONDATA, @FNotifyIconData))
 	End Destructor
 End Namespace
