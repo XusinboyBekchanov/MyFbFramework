@@ -1,4 +1,4 @@
-﻿'################################################################################
+'################################################################################
 '#  NotifyIcon.bi                                                               #
 '#  This file is part of MyFBFramework                                          #
 '#  Authors: Xusinboy Bekchanov (2025)                                          #
@@ -74,6 +74,7 @@ Namespace My.Sys.Forms
 	Private:
 		#ifdef __USE_WINAPI__
 			FNotifyIconData As NOTIFYICONDATANEW
+			Declare Sub ChangeStyle(ByRef Style As DWORD, iStyle As Integer, Value As Boolean)
 		#endif
 		FBalloonTipIconType As ToolTipIconType
 		FBalloonTipText As UString
@@ -83,7 +84,6 @@ Namespace My.Sys.Forms
 		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 		Declare Static Sub BalloonTipIconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 		Declare Function IsWindowsVistaOrHigher() As Boolean
-		Declare Sub ChangeStyle(ByRef Style As Integer, iStyle As Integer, Value As Boolean)
 	Public:
 		#ifndef ReadProperty_Off
 			'Reads value from the name of property (Windows, Linux, Android, Web).
