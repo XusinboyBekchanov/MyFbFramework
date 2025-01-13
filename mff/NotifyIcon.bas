@@ -1,4 +1,4 @@
-﻿'################################################################################
+'################################################################################
 '#  NotifyIcon.bas                                                               #
 '#  This file is part of MyFBFramework                                          #
 '#  Authors: Xusinboy Bekchanov (2025)                                          #
@@ -50,13 +50,15 @@ Namespace My.Sys.Forms
 		Return FBalloonTipIconType
 	End Property
 	
-	Private Sub NotifyIcon.ChangeStyle(ByRef Style As Integer, iStyle As Integer, Value As Boolean)
-		If Value Then
-			If ((Style And iStyle) <> iStyle) Then Style = Style Or iStyle
-		ElseIf ((Style And iStyle) = iStyle) Then
-			Style = Style And Not iStyle
-		End If
-	End Sub
+	#ifdef __USE_WINAPI__
+		Private Sub NotifyIcon.ChangeStyle(ByRef Style As DWORD, iStyle As Integer, Value As Boolean)
+			If Value Then
+				If ((Style And iStyle) <> iStyle) Then Style = Style Or iStyle
+			ElseIf ((Style And iStyle) = iStyle) Then
+				Style = Style And Not iStyle
+			End If
+		End Sub
+	#endif
 	
 	Private Property NotifyIcon.BalloonTipIconType(Value As ToolTipIconType)
 		FBalloonTipIconType = Value
