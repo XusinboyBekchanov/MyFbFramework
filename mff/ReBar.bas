@@ -661,7 +661,7 @@ Namespace My.Sys.Forms
 		Private Sub ReBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QReBar(Sender.Child)
-					'If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor Then
 						'SetWindowTheme(.FHandle, "DarkModeNavbar", nullptr)
 						.Brush.Handle = hbrBkgnd
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
@@ -673,7 +673,7 @@ Namespace My.Sys.Forms
 						csch.clrBtnHighlight = darkHlBkColor
 						SendMessage(.FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
 						.FDarkMode = True
-					'End If
+					End If
 					.UpdateReBar()
 					For i As Integer = 0 To .Bands.Count - 1
 						'.Bands.Item(i)->Child = .Bands.Item(i)->Child
