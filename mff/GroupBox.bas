@@ -119,7 +119,6 @@ Namespace My.Sys.Forms
 	Private Sub GroupBox.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
-			'Case WM_ERASEBKGND
 			Case WM_PAINT, WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
@@ -164,7 +163,7 @@ Namespace My.Sys.Forms
 					Dim As HPEN NewPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
 					Dim As HPEN PrevPen = SelectObject(Dc, NewPen)
 					Dim As HPEN PrevBrush = SelectObject(Dc, hbrBkgnd)
-					Rectangle Dc, 0, ScaleY(This.Canvas.TextHeight("A") / 2), ScaleX(This.Width), ScaleY(This.Height) - 1
+					Rectangle Dc, 0, ScaleY(This.Canvas.TextHeight("A") / 2), ScaleX(This.Width) - 1, ScaleY(This.Height) - 1
 					SetTextColor(Dc, darkTextColor)
 					SetBkColor(Dc, darkBkColor)
 					Dim As HFONT OldFontHandle, NewFontHandle
@@ -187,13 +186,13 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_COMMAND
 				'CallWindowProc(@SuperWndProc, GetParent(Handle), Message.Msg, Message.wParam, Message.lParam)
-				'			Case CM_CTLCOLOR
-				'				Static As HDC Dc
-				'				Dc = Cast(HDC, Message.wParam)
-				'				SetBKMode Dc, TRANSPARENT
-				'				SetTextColor Dc, This.Font.Color
-				'				SetBKColor Dc, This.BackColor
-				'				SetBKMode Dc, OPAQUE
+			Case CM_CTLCOLOR
+				Static As HDC Dc
+				Dc = Cast(HDC, Message.wParam)
+				SetBkMode Dc, TRANSPARENT
+				SetTextColor Dc, This.Font.Color
+				SetBkColor Dc, This.BackColor
+				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				'				If Message.wParamHi = BN_CLICKED Then
 				'					If OnClick Then OnClick(This)
