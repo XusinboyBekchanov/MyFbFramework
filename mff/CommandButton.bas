@@ -222,6 +222,27 @@ Namespace My.Sys.Forms
 				'If Message.wParamHi = BN_CLICKED Then
 				'    If OnClick Then OnClick(This)
 				'End If
+			Case CM_NOTIFY
+				If FDefaultForeColor <> FForeColor Then
+					Dim As NMHDR Ptr nmhdr_ = Cast(NMHDR Ptr, msg.lParam)
+					Select Case nmhdr_->code
+					Case NM_CUSTOMDRAW
+						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, msg.lParam)
+						Select Case nmcd->dwDrawStage
+						Case CDDS_PREPAINT
+							If GetFocus() = nmcd->hdr.hwndFrom Then
+								Dim innerRect As Rect
+								innerRect = nmcd->rc
+								InflateRect(@innerRect, -3, -3)
+								DrawFocusRect(nmcd->hdc, @innerRect)
+							End If
+							SetBkMode nmcd->hdc, TRANSPARENT
+							SetTextColor nmcd->hdc, FForeColor
+							DrawText nmcd->hdc, FText.vptr, -1, @nmcd->rc, DT_CENTER Or DT_VCENTER Or DT_SINGLELINE
+							msg.Result = CDRF_SKIPDEFAULT
+						End Select
+					End Select
+				End If
 			Case WM_GETDLGCODE: msg.Result = DLGC_BUTTON Or DLGC_WANTTAB Or IIf(FDefault, DLGC_DEFPUSHBUTTON, 0)
 			Case CM_DRAWITEM
 				Dim As DRAWITEMSTRUCT Ptr diStruct
