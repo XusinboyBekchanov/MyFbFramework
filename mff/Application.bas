@@ -185,21 +185,22 @@ Namespace My
 		#if defined(__FB_WIN32__)
 			Dim m_hMutex As HANDLE = CreateMutex(NULL, True, ExeName)
 			If GetLastError = ERROR_ALREADY_EXISTS Then
+				'ReleaseMutex m_hMutex
 				CloseHandle(m_hMutex)
 				Debug.Print ML("There is an instance of this program already running!")
 				Return True
 			Else
 				Return False
 			End If
-		#else	
+		#else
 			Return False
 		#endif
 	End Function
 	
 	Private Function Application.Path ByRef As WString
 		If FPath > 0 Then Return *FPath
-		Dim As WString * 255 Tx
-		Dim As WString * 225 s, En
+		Dim As WString * 256 Tx
+		Dim As WString * 256 s, En
 		Dim As Integer L, i, k
 		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
@@ -208,21 +209,25 @@ Namespace My
 			L = Len(Tx)
 		#endif
 		s = .Left(Tx, L)
-		'For i = 0 To Len(s)
-		'	If s[i] = Asc("\") Then k = i
-		'Next i
-		k = InStrRev(s, Any ":/\")
-		En = Mid(s, k + 1, Len(s))
 		WLet(FFileName, s)
-		WLet(FPath, Left(s, k - 1))
-		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
+		k = InStrRev(s, Any ":/\")
+		If k < 1 Then
+			k = 0
+			WLet(FPath, "")
+		Else
+			WLet(FPath, Left(s, k - 1))
+		End If
+		En = Mid(s, k + 1, Len(s))
+		k = InStr(En, ".") - 1
+		If k < 1 Then k = Len(En)
+		WLet(FExeName, Mid(En, 1, k))
 		Return *FPath
 	End Function
 	
 	Private Function Application.ExeName ByRef As WString
 		If FExeName > 0 Then Return *FExeName
-		Dim As WString * 255 Tx
-		Dim As WString * 225 s, En
+		Dim As WString * 256 Tx
+		Dim As WString * 256 s, En
 		Dim As Integer L, i, k
 		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
@@ -231,20 +236,24 @@ Namespace My
 			L = Len(Tx)
 		#endif
 		s = .Left(Tx, L)
-		'For i = 0 To Len(s)
-		'	If s[i] = Asc("\") Then k = i
-		'Next i
-		k = InStrRev(s, Any ":/\")
-		En = Mid(s, k + 1, Len(s))
 		WLet(FFileName, s)
-		WLet(FPath, Left(s, k - 1))
-		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
+		k = InStrRev(s, Any ":/\")
+		If k < 1 Then
+			k = 0
+			WLet(FPath, "")
+		Else
+			WLet(FPath, Left(s, k - 1))
+		End If
+		En = Mid(s, k + 1, Len(s))
+		k = InStr(En, ".") - 1
+		If k < 1 Then k = Len(En)
+		WLet(FExeName, Mid(En, 1, k))
 		Return *FExeName
 	End Function
 	
 	Private Function Application.FileName ByRef As WString
-		Dim As WString * 255 Tx
-		Dim As WString * 225 s, En
+		Dim As WString * 256 Tx
+		Dim As WString * 256 s, En
 		Dim As Integer L, i, k
 		#if defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__)
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
@@ -253,14 +262,18 @@ Namespace My
 			L = Len(Tx)
 		#endif
 		s = .Left(Tx, L)
-		'For i = 0 To Len(s)
-		'	If s[i] = Asc("\") Then k = i
-		'Next i
-		k = InStrRev(s, Any ":/\")
-		En = Mid(s, k + 1, Len(s))
 		WLet(FFileName, s)
-		WLet(FPath, Left(s, k - 1))
-		WLet(FExeName, Mid(En, 1, InStr(En, ".") - 1))
+		k = InStrRev(s, Any ":/\")
+		If k < 1 Then
+			k = 0
+			WLet(FPath, "")
+		Else
+			WLet(FPath, Left(s, k - 1))
+		End If
+		En = Mid(s, k + 1, Len(s))
+		k = InStr(En, ".") - 1
+		If k < 1 Then k = Len(En)
+		WLet(FExeName, Mid(En, 1, k))
 		Return *FFileName
 	End Function
 	
@@ -1237,48 +1250,63 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 End Function
 
 #ifndef LoadFromFile_Off
-	Private Function CheckUTF8NoBOM(ByRef SourceStr As String) As Boolean
-		Dim As Boolean IsUTF8 = True
-		Dim As Integer iStart = 0, iEnd = Len(SourceStr)
-		While (iStart < iEnd)
-			If SourceStr[iStart] < &H80 Then
-				'(10000000): 值小于&H80的为ASCII字符
-				iStart += 1
-			ElseIf (SourceStr[iStart] < &HC0) Then
-				'(11000000): 值介于&H80与&HC0之间的为无效UTF-8字符
-				IsUTF8 = False
-				Exit While
-			ElseIf (SourceStr[iStart] < &HE0) Then
-				'(11100000): 此范围内为2字节UTF-8字符
-				If iStart >= iEnd - 1 Then Exit While
-				If ((SourceStr[iStart + 1] And &HC0) <> &H80) Then
-					IsUTF8 = False
-					Exit While
-				End If
-				iStart += 2
-			ElseIf (SourceStr[iStart] < (&HF0)) Then
-				'(11110000): 此范围内为3字节UTF-8字符
-				If iStart >= iEnd - 2 Then Exit While
-				If ((SourceStr[iStart + 1] And &HC0) <> &H80) Or ((SourceStr[iStart + 2] And &HC0) <> &H80) Then
-					IsUTF8 = False
-					Exit While
-				End If
-				iStart += 3
-			Else
-				IsUTF8 = False
-				Exit While
-			End If
-		Wend
-		Return IsUTF8
+	Private Function CheckUTF8NoBOM(ByRef SourceStr As String, ByVal SampleSize As Long = 0) As Boolean
+		
+		Dim As Integer byte_class_table(0 To 255) = { _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, _
+		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, _
+		2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, _
+		3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3, _
+		3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3, _
+		4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5, _
+		5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5, _
+		6,7,7,7,7,7,7,7,7,7,7,7,7,8,7,7, _
+		9,10,10,10,11,4,4,4,4,4,4,4,4,4,4,4 _
+		}
+		
+		Dim As Integer state_table(0 To 107) = { _
+		0, 8, 8, 8, 8, 8, 8, 8, 8, _
+		8, 0, 1, 8, 1, 2, 8, 2, 8, _
+		8, 0, 1, 8, 1, 2, 2, 8, 8, _
+		8, 0, 1, 1, 8, 2, 2, 8, 8, _
+		8, 8, 8, 8, 8, 8, 8, 8, 8, _
+		1, 8, 8, 8, 8, 8, 8, 8, 8, _
+		3, 8, 8, 8, 8, 8, 8, 8, 8, _
+		2, 8, 8, 8, 8, 8, 8, 8, 8, _
+		4, 8, 8, 8, 8, 8, 8, 8, 8, _
+		6, 8, 8, 8, 8, 8, 8, 8, 8, _
+		5, 8, 8, 8, 8, 8, 8, 8, 8, _
+		7, 8, 8, 8, 8, 8, 8, 8, 8 _
+		}
+		Dim As Integer Offset, iEnd = IIf(SampleSize= 0, Len(SourceStr) - 1, SampleSize)
+		If iEnd < 2 Then Return False
+		Dim As Boolean  bHasUnicode
+		Dim As Integer current = 0
+		For i As Integer  = 0 To iEnd
+			If Not bHasUnicode AndAlso CBool(SourceStr[i] < 0 OrElse SourceStr[i] > 126) Then bHasUnicode = True
+			Offset = byte_class_table(SourceStr[i])
+			current = state_table(Offset * 9 + current)
+			If current = 8 Then Exit For
+		Next
+		Return IIf(current = 0, IIf(bHasUnicode, True, False), False)
+		
 	End Function
 	
 	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As WString Ptr
 		Dim As String Buff, EncodingStr
-		Dim As Integer Result = -1, Fn, FileSize
+		Dim As Integer Result = -1, Fn, FileSize, MaxSize
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
 		If Open(FileName For Binary Access Read As #Fn) = 0 Then
 			FileSize = LOF(Fn) + 1
+			MaxSize = IIf(FileSize > 65536, 65536, FileSize)
 			Buff = String(4, 0)
 			Get #Fn, , Buff
 			If (Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0) OrElse (Buff[0] = 0 AndAlso Buff[1] = 0 AndAlso Buff[2] = &HFE AndAlso Buff[3] = &HFF) Then 'Little Endian , Big Endian
@@ -1298,9 +1326,9 @@ End Function
 				Buff = String(1024, 0)
 				Get #Fn, 0, Buff
 			Else
-				Buff = String(FileSize, 0)
+				Buff = String(MaxSize, 0)
 				Get #Fn, 0, Buff
-				If (CheckUTF8NoBOM(Buff)) Then
+				If (CheckUTF8NoBOM(Buff, MaxSize)) Then
 					FileEncoding = FileEncodings.Utf8
 					EncodingStr = "ascii"
 				Else
@@ -1349,13 +1377,7 @@ End Function
 		Dim As String FileEncodingText, NewLine
 		
 		If FileEncoding = FileEncodings.Utf8 Then
-			#ifdef __USE_WINAPI__
-				FileEncodingText = "ascii"
-				FileEncoding = FileEncodings.Utf8
-			#else
-				FileEncodingText = "ascii"
-				FileEncoding = FileEncodings.PlainText
-			#endif
+			FileEncodingText = "ascii"
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
 			FileEncodingText = "utf-8"
 		ElseIf FileEncoding = FileEncodings.Utf16BOM Then
@@ -1404,8 +1426,8 @@ End Function
 
 Function ByteToString(ByVal Src As UByte Ptr, ByVal Size As Long) As String
 	Dim As String Dest = String(Size, 0)
-    Fb_MemCopy(Dest[0], Src[0], Size)
-    Return Dest
+	Fb_MemCopy(Dest[0], Src[0], Size)
+	Return Dest
 End Function
 
 'Function ByteToString Overload(Src() As UByte) As String
