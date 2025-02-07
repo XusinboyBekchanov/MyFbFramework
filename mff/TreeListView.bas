@@ -13,6 +13,7 @@
 Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Private Function TreeListViewItem.GetItemIndex() As Integer
+			If FParentItem <> 0 AndAlso Not FParentItem->FExpanded Then Return -1
 			Var nItem = ListView_GetItemCount(Parent->Handle)
 			For i As Integer = 0 To nItem - 1
 				lvi.mask = LVIF_PARAM
