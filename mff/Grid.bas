@@ -696,7 +696,12 @@ Namespace My.Sys.Forms
 				Else
 					gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
 				End If
-				gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(FCaption), -1)
+				gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(PItem->Text(0)), -1)
+				If InStr(FCaption, Chr(9)) > 0 Then
+					For j As Integer = 1 To n - 1
+						gtk_tree_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, j + 1, ToUtf8(PItem->Text(j)), -1)
+					Next j
+				End If
 			#elseif defined(__USE_WINAPI__)
 				SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
 			#elseif defined(__USE_WASM__)

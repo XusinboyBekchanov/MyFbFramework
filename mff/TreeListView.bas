@@ -14,6 +14,7 @@ Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Private Function TreeListViewItem.GetItemIndex() As Integer
 			If FParentItem <> 0 AndAlso Not FParentItem->FExpanded Then Return -1
+			If Handle = 0 Then Return -1
 			Var nItem = ListView_GetItemCount(Parent->Handle)
 			For i As Integer = 0 To nItem - 1
 				lvi.mask = LVIF_PARAM
@@ -678,7 +679,17 @@ Namespace My.Sys.Forms
 		FItems.Add PItem
 		With *PItem
 			.ImageIndex     = FImageIndex
-			.Text(0)        = FCaption
+			Var MinColumnsCount = 0
+			If InStr(FCaption, Chr(9)) > 0 Then
+				Dim As UString Captions(Any)
+				Split(FCaption, Chr(9), Captions())
+				MinColumnsCount = Min(UBound(Captions), Cast(TreeListView Ptr, Parent)->Columns.Count - 1)
+				For j As Integer = 0 To MinColumnsCount
+					.Text(j)        = Captions(j)
+				Next
+			Else
+				.Text(0)        = FCaption
+			End If
 			.State        = State
 			If ParentItem Then
 				.Indent        = ParentItem->Indent + 1
@@ -686,9 +697,6 @@ Namespace My.Sys.Forms
 				.Indent        = 0
 			End If
 			.Parent         = Parent
-			#ifndef __USE_GTK__
-				.Handle = Cast(LPARAM, PItem)
-			#endif
 			.Nodes.Parent         = Parent
 			.ParentItem        = ParentItem
 			If FItems.Count = 1 AndAlso ParentItem Then
@@ -702,15 +710,21 @@ Namespace My.Sys.Forms
 					Else
 						gtk_tree_store_append (Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, NULL)
 					End If
-					gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
+					gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, 1, ToUtf8(.Text(0)), -1)
+					For j As Integer = 1 To MinColumnsCount
+						gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, j + 1, ToUtf8(.Text(j)), -1)
+					Next j
 				End If
-				PItem->Text(0) = FCaption
+				PItem->Text(0) = .Text(0)
 			#else
 				If CInt(Parent) AndAlso CInt(Parent->Handle) AndAlso CInt(CInt(ParentItem = 0) OrElse CInt(ParentItem->IsExpanded)) Then
+					Var i = FItems.Count - 1
 					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
-					lvi.pszText  = @FCaption
-					lvi.cchTextMax = Len(FCaption)
-					lvi.iItem = FItems.Count - 1
+					lvi.pszText  = @.Text(0)
+					lvi.cchTextMax = Len(.Text(0))
+					'lvi.pszText  = @FCaption
+					'lvi.cchTextMax = Len(FCaption)
+					lvi.iItem = i
 					lvi.iSubItem = 0
 					lvi.iImage   = FImageIndex
 					lvi.state   = INDEXTOSTATEIMAGEMASK(State)
@@ -718,7 +732,17 @@ Namespace My.Sys.Forms
 					lvi.iIndent   = .Indent
 					lvi.lParam = Cast(LPARAM, PItem)
 					ListView_InsertItem(Parent->Handle, @lvi)
+					For j As Integer = 1 To MinColumnsCount
+						Dim As LVITEM lvi1
+						lvi1.mask = LVIF_TEXT
+						lvi1.iItem = i
+						lvi1.iSubItem   = j
+						lvi1.pszText    = @.Text(j)
+						lvi1.cchTextMax = Len(.Text(j))
+						ListView_SetItem(Parent->Handle, @lvi1)
+					Next j
 				End If
+				.Handle = Cast(LPARAM, PItem)
 			#endif
 		End With
 		Return PItem
