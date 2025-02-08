@@ -242,6 +242,7 @@ Namespace My.Sys.Forms
 			FForeColorRed      As Double
 			FForeColorGreen    As Double
 			FForeColorBlue     As Double
+			FHoverTime         As Integer
 			FStoredFont        As My.Sys.Drawing.Font
 			FMenu              As MainMenu Ptr
 			FContextMenu       As PopupMenu Ptr
@@ -382,6 +383,9 @@ Namespace My.Sys.Forms
 			'Returns/sets the foreground color used to display text and graphics in an object (Windows, Web).
 			Declare Property ForeColor As Integer
 			Declare Property ForeColor(Value As Integer)
+			'Determines the time interval, after which the element, over which the mouse cursor hovers, is highlighted (Windows, Linux).
+			Declare Property HoverTime As Integer
+			Declare Property HoverTime(Value As Integer)
 			'Returns/sets the parent container of the control (Windows, Linux, Android, Web).
 			Declare Property Parent As Control Ptr
 			Declare Property Parent(Value As Control Ptr)

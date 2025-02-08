@@ -71,6 +71,7 @@ Namespace My.Sys.Forms
 				Case "showhint": Return @FShowHint
 				Case "showcaption": Return @FShowCaption
 				Case "hint": Return FHint
+				Case "hovertime": Return @FHoverTime
 				Case "subclass": Return @SubClass
 				Case "tabstop": Return @FTabStop
 				Case "text": Return FText.vptr
@@ -109,6 +110,7 @@ Namespace My.Sys.Forms
 					Case "enabled": This.Enabled = QBoolean(Value)
 					Case "grouped": This.Grouped = QBoolean(Value)
 					Case "helpcontext": This.HelpContext = QInteger(Value)
+					Case "hovertime": This.HoverTime = QInteger(Value)
 					Case "font": This.Font = *Cast(My.Sys.Drawing.Font Ptr, Value)
 					Case "id": This.ID = QInteger(Value)
 					Case "ischild": This.IsChild = QInteger(Value)
@@ -175,6 +177,14 @@ Namespace My.Sys.Forms
 		
 		Private Property Control.Location(Value As My.Sys.Drawing.Point)
 			This.SetBounds Value.X, Value.Y, This.Width, This.Height
+		End Property
+		
+		Private Property Control.HoverTime As Integer
+			Return FHoverTime
+		End Property
+		
+		Private Property Control.HoverTime(Value As Integer)
+			FHoverTime = Value
 		End Property
 		
 		Private Property Control.Size As My.Sys.Drawing.Size
@@ -1409,7 +1419,7 @@ Namespace My.Sys.Forms
 						If OnMouseHover Then
 							Dim As Boolean Ptr pBoolean = _New(Boolean)
 							MouseHoverMessage = Type(@This, e->motion.x, e->motion.y, e->motion.state, pBoolean, widget)
-							hover_timer_id = g_timeout_add(1000, Cast(GSourceFunc, @hover_cb), pBoolean)
+							hover_timer_id = g_timeout_add(IIf(FHoverTime = 0, 400, FHoverTime), Cast(GSourceFunc, @hover_cb), pBoolean)
 							Message.Result = True
 						End If
 					End If
@@ -1893,7 +1903,7 @@ Namespace My.Sys.Forms
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
 						event_.dwFlags = TME_LEAVE Or TME_HOVER
 						event_.hwndTrack = FHandle
-						event_.dwHoverTime = 1000 'milliseconds
+						event_.dwHoverTime = FHoverTime 'milliseconds
 						TRACKMOUSEEVENT(@event_)
 						This.Tracked = True
 					End If
