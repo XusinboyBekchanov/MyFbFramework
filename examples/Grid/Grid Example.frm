@@ -405,13 +405,13 @@ End Sub
 
 Private Sub Form1Type.Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
 	If Grid1.SortIndex = ColIndex Then
-		If Grid1.SortOrder = ListSortDirection.sdAscending Then
-			Grid1.SortOrder = ListSortDirection.sdDescending
+		If Grid1.SortOrder  = SortStyle.ssSortAscending Then
+			Grid1.SortOrder = SortStyle.ssSortDescending
 		Else
-			Grid1.SortOrder = ListSortDirection.sdAscending
+			Grid1.SortOrder = SortStyle.ssSortAscending
 		End If
 	Else
-		Grid1.SortOrder = ListSortDirection.sdAscending
+		Grid1.SortOrder = SortStyle.ssSortAscending
 	End If
 	Grid1.Rows.Sort Grid1.SortIndex, Grid1.SortOrder
 End Sub
