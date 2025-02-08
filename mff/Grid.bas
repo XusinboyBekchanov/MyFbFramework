@@ -641,7 +641,7 @@ Namespace My.Sys.Forms
 	#ifndef GridRows_Add_Integer_Off
 		Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
 			If Parent <= 0 Then Return 0
-			Dim i As Integer = Index
+			Dim As Integer i = Index, n = 1
 			PItem = _New(GridRow)
 			PItem->Parent = Parent
 			If Index = -1  Then
@@ -658,7 +658,7 @@ Namespace My.Sys.Forms
 					Parent->Handle = 0
 				#endif
 				If InStr(FCaption, Chr(9)) > 0 Then
-					Dim As Integer ii = 1, n = 1 , tLen = Len(Chr(9)), ls = Len(FCaption), p = 1
+					Dim As Integer ii = 1, tLen = Len(Chr(9)), ls = Len(FCaption), p = 1
 					Do While ii <= ls
 						If Mid(FCaption, ii, tLen) = Chr(9) Then
 							n = n + 1
@@ -699,7 +699,7 @@ Namespace My.Sys.Forms
 				gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(PItem->Text(0)), -1)
 				If InStr(FCaption, Chr(9)) > 0 Then
 					For j As Integer = 1 To n - 1
-						gtk_tree_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, j + 1, ToUtf8(PItem->Text(j)), -1)
+						gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, j + 1, ToUtf8(PItem->Text(j)), -1)
 					Next j
 				End If
 			#elseif defined(__USE_WINAPI__)
