@@ -678,9 +678,24 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeListViewItems.Count(Value As Integer)
-		#ifdef __USE_WINAPI__
-			SendMessage(Parent->Handle, LVM_SETITEMCOUNT, Value, LVSICF_NOINVALIDATEALL)
-		#endif
+		If Parent Then
+			With *Cast(TreeListView Ptr, Parent)
+				If Value >= .Nodes.Count Then
+					For i As Integer = .Nodes.Count To Value - 1
+						.Nodes.Add
+					Next
+				Else
+					For i As Integer = .Nodes.Count - 1 To Value Step -1
+						.Nodes.Remove i
+					Next
+				End If
+			End With
+			If Parent->Handle Then
+				#ifdef __USE_WINAPI__
+					SendMessage(Parent->Handle, LVM_SETITEMCOUNT, Value, LVSICF_NOINVALIDATEALL)
+				#endif
+			End If
+		End If
 	End Property
 	
 	Private Property TreeListViewItems.Item(Index As Integer) As TreeListViewItem Ptr
