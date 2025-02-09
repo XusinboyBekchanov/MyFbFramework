@@ -73,6 +73,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub DeleteItems(Node As TreeListViewItem Ptr)
 			Declare Static Function GetVisibleItemsCount(Node As TreeListViewItem Ptr) As Integer
+			Declare Static Function GetTreeListViewItemIndex(Node As TreeListViewItem Ptr, iItem As TreeListViewItem Ptr, ByRef iCount As Integer) As Integer
 		#endif
 		Declare Static Sub AddItems(Node As TreeListViewItem Ptr)
 	Public:
@@ -196,6 +197,7 @@ Namespace My.Sys.Forms
 		FPressedSubItem As Integer
 		FLVExStyle As Integer
 		FItemHeight As Integer
+		FOwnerData As Boolean
 		Declare Sub ChangeLVExStyle(iStyle As Integer, Value As Boolean)
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
@@ -211,6 +213,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub TreeListView_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
 		#elseif defined(__USE_WINAPI__)
 			Declare Static Function EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function GetTreeListViewItemByIndex(Node As TreeListViewItem Ptr, Item As Integer, ByRef iCount As Integer) As TreeListViewItem Ptr
 			Declare Function GetTreeListViewItem(Item As Integer) As TreeListViewItem Ptr
 			Declare Virtual Sub SetDark(Value As Boolean)
 			hHeader As HWND
@@ -230,6 +233,7 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Sub Init()
 		Declare Sub EnsureVisible(Index As Integer)
+		Declare Function GetItemByVisibleIndex(Item As Integer) As TreeListViewItem Ptr
 		Nodes           As TreeListViewItems
 		Columns         As TreeListViewColumns
 		Images          As ImageList Ptr
@@ -244,6 +248,8 @@ Namespace My.Sys.Forms
 		Declare Property GridLines(Value As Boolean)
 		Declare Property MultiSelect As Boolean
 		Declare Property MultiSelect(Value As Boolean)
+		Declare Property OwnerData As Boolean
+		Declare Property OwnerData(Value As Boolean)
 		Declare Property OwnerDraw As Boolean
 		Declare Property OwnerDraw(Value As Boolean)
 		Declare Property ShowHint As Boolean
@@ -277,6 +283,8 @@ Namespace My.Sys.Forms
 		OnEndScroll           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView)
 		OnMeasureItem         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByRef ItemWidth As ULong, ByRef ItemHeight As ULong)
 		OnDrawItem            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
+		OnCacheHint           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByVal iFrom As Integer, ByVal iTo As Integer)
+		OnGetDisplayInfo      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As ULong)
 	End Type
 End Namespace
 

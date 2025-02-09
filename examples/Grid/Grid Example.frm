@@ -310,7 +310,7 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 	Grid1.OwnerData = chkOwnerData.Checked
 	
 	If Grid1.OwnerData Then
-		Grid1.RowsCount = 20000
+		Grid1.Rows.Count = 20000
 	Else
 			' This is take too long. 花费太多时间赋值。建议使用CacheHint赋值
 		Grid1.Clear

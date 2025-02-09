@@ -522,6 +522,24 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property GridRows.Count(Value As Integer)
+		If Parent Then
+			With *Cast(Grid Ptr, Parent)
+				If Value >= .Rows.Count Then
+					For i As Integer = .Rows.Count To Value - 1
+						.Rows.Add
+					Next
+				Else
+					For i As Integer = .Rows.Count - 1 To Value Step -1
+						.Rows.Remove i
+					Next
+				End If
+			End With
+			If Parent->Handle Then
+				#ifdef __USE_WINAPI__
+					SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
+				#endif
+			End If
+		End If
 	End Property
 	
 	Private Property GridRows.Item(Index As Integer) As GridRow Ptr
@@ -1272,7 +1290,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
 		#elseif defined(__USE_WINAPI__)
-			ChangeLVExStyle LVS_EX_GridLINES, Value
+			ChangeLVExStyle LVS_EX_GRIDLINES, Value
 		#endif
 	End Property
 	
@@ -1294,27 +1312,6 @@ Namespace My.Sys.Forms
 	
 	Private Property Grid.OwnerData(Value As Boolean)
 		FOwnerData = Value
-	End Property
-	
-	Private Property Grid.RowsCount As Integer
-		Return Rows.Count
-	End Property
-	
-	Private Property Grid.RowsCount(Value As Integer)
-		If Handle Then
-			If Value >= Rows.Count Then
-				For i As Integer = Rows.Count To Value - 1
-					Rows.Add
-				Next
-			Else
-				For i As Integer = Rows.Count - 1 To Value Step -1
-					Rows.Remove i
-				Next
-			End If
-			#ifdef __USE_WINAPI__
-				SendMessage(Handle, LVM_SETITEMCOUNT, Rows.Count, LVSICF_NOINVALIDATEALL)
-			#endif
-		End If
 	End Property
 	
 	Private Property Grid.ColorSelected As Integer
@@ -2288,7 +2285,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
-				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GridLINES Or LVS_EX_DOUBLEBUFFER
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
 				'Dynamically switching to and from the LVS_OWNERDATA style is not supported.
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS Or LVS_OWNERDATA
 				.DoubleBuffered = True

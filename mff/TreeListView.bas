@@ -12,19 +12,45 @@
 
 Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
+		Private Function TreeListViewItem.GetTreeListViewItemIndex(Node As TreeListViewItem Ptr, iItem As TreeListViewItem Ptr, ByRef iCount As Integer) As Integer
+			Dim As Integer Result
+			If Not Node->IsExpanded Then Return -1
+			For i As Integer = 0 To Node->Nodes.Count - 1
+				If Not Node->Nodes.Item(i)->Visible Then Continue For
+				iCount += 1
+				If iItem = Node->Nodes.Item(i) Then Return iCount
+				Result = GetTreeListViewItemIndex(Node->Nodes.Item(i), iItem, iCount)
+				If Result > -1 Then Return Result
+			Next
+			Return -1
+		End Function
+		
 		Private Function TreeListViewItem.GetItemIndex() As Integer
 			If FParentItem <> 0 AndAlso Not FParentItem->FExpanded Then Return -1
-			If Handle = 0 Then Return -1
-			Var nItem = ListView_GetItemCount(Parent->Handle)
-			For i As Integer = 0 To nItem - 1
-				lvi.mask = LVIF_PARAM
-				lvi.iItem = i
-				lvi.iSubItem   = 0
-				ListView_GetItem(Parent->Handle, @lvi)
-				If lvi.lParam = Cast(LPARAM, @This) Then
-					Return i
-				End If
-			Next i
+			If Parent = 0 OrElse Handle = 0 Then Return -1
+			If Cast(TreeListView Ptr, Parent)->OwnerData Then
+				With *Cast(TreeListView Ptr, Parent)
+					Dim As Integer iCount = -1, Result
+					For i As Integer = 0 To .Nodes.Count - 1
+						If Not .Nodes.Item(i)->Visible Then Continue For
+						iCount += 1
+						If .Nodes.Item(i) = @This Then Return iCount
+						Result = GetTreeListViewItemIndex(.Nodes.Item(i), @This, iCount)
+						If Result > -1 Then Return Result
+					Next
+				End With
+			Else
+				Var nItem = ListView_GetItemCount(Parent->Handle)
+				For i As Integer = 0 To nItem - 1
+					lvi.mask = LVIF_PARAM
+					lvi.iItem = i
+					lvi.iSubItem   = 0
+					ListView_GetItem(Parent->Handle, @lvi)
+					If lvi.lParam = Cast(LPARAM, @This) Then
+						Return i
+					End If
+				Next i
+			End If
 			Return -1
 		End Function
 	#endif
@@ -39,25 +65,46 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#else
-			Var ItemIndex = This.GetItemIndex()
-			If ItemIndex <> -1 Then
-				LockWindowUpdate Parent->Handle
-				State = 1
-				Var nItem = ListView_GetItemCount(Parent->Handle)
-				Var i = ItemIndex + 1
-				Do While i < nItem
-					lvi.mask = LVIF_INDENT
-					lvi.iItem = i
-					lvi.iSubItem   = 0
-					ListView_GetItem(Parent->Handle, @lvi)
-					If lvi.iIndent > FIndent Then
-						ListView_DeleteItem(Parent->Handle, i)
-						nItem -= 1
-					ElseIf lvi.iIndent <= FIndent Then
-						Exit Do
+			If Parent AndAlso Parent->Handle Then
+				Var ItemIndex = This.GetItemIndex()
+				If ItemIndex <> -1 Then
+					LockWindowUpdate Parent->Handle
+					State = 1
+					Var nItem = ListView_GetItemCount(Parent->Handle)
+					Var i = ItemIndex + 1
+					If Cast(TreeListView Ptr, Parent)->OwnerData Then
+						Dim As TreeListViewItem Ptr tlvi
+						Dim As IntegerList iList
+						Do While i < nItem
+							tlvi = Cast(TreeListView Ptr, Parent)->GetItemByVisibleIndex(i)
+							If tlvi > 0 Then
+								If tlvi->Indent > FIndent Then
+									iList.Add i
+								ElseIf tlvi->Indent <= FIndent Then
+									Exit Do
+								End If
+							End If
+							i += 1
+						Loop
+						For i = iList.Count - 1 To 0 Step -1
+							ListView_DeleteItem(Parent->Handle, iList.Item(i))
+						Next
+					Else
+						Do While i < nItem
+							lvi.mask = LVIF_INDENT
+							lvi.iItem = i
+							lvi.iSubItem   = 0
+							ListView_GetItem(Parent->Handle, @lvi)
+							If lvi.iIndent > FIndent Then
+								ListView_DeleteItem(Parent->Handle, i)
+								nItem -= 1
+							ElseIf lvi.iIndent <= FIndent Then
+								Exit Do
+							End If
+						Loop
 					End If
-				Loop
-				LockWindowUpdate 0
+					LockWindowUpdate 0
+				End If
 			End If
 		#endif
 		FExpanded = False
@@ -631,6 +678,9 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TreeListViewItems.Count(Value As Integer)
+		#ifdef __USE_WINAPI__
+			SendMessage(Parent->Handle, LVM_SETITEMCOUNT, Value, LVSICF_NOINVALIDATEALL)
+		#endif
 	End Property
 	
 	Private Property TreeListViewItems.Item(Index As Integer) As TreeListViewItem Ptr
@@ -717,30 +767,34 @@ Namespace My.Sys.Forms
 				End If
 				PItem->Text(0) = .Text(0)
 			#else
-				If CInt(Parent) AndAlso CInt(Parent->Handle) AndAlso CInt(CInt(ParentItem = 0) OrElse CInt(ParentItem->IsExpanded)) Then
-					Var i = FItems.Count - 1
-					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
-					lvi.pszText  = @.Text(0)
-					lvi.cchTextMax = Len(.Text(0))
-					'lvi.pszText  = @FCaption
-					'lvi.cchTextMax = Len(FCaption)
-					lvi.iItem = i
-					lvi.iSubItem = 0
-					lvi.iImage   = FImageIndex
-					lvi.state   = INDEXTOSTATEIMAGEMASK(State)
-					lvi.stateMask = LVIS_STATEIMAGEMASK
-					lvi.iIndent   = .Indent
-					lvi.lParam = Cast(LPARAM, PItem)
-					ListView_InsertItem(Parent->Handle, @lvi)
-					For j As Integer = 1 To MinColumnsCount
-						Dim As LVITEM lvi1
-						lvi1.mask = LVIF_TEXT
-						lvi1.iItem = i
-						lvi1.iSubItem   = j
-						lvi1.pszText    = @.Text(j)
-						lvi1.cchTextMax = Len(.Text(j))
-						ListView_SetItem(Parent->Handle, @lvi1)
-					Next j
+				If CInt(Parent) AndAlso CInt(Parent->Handle) Then
+					If Cast(TreeListView Ptr, Parent)->OwnerData Then
+						'SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
+					ElseIf CInt(ParentItem = 0) OrElse CInt(ParentItem->IsExpanded) Then
+						Var i = FItems.Count - 1
+						lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
+						lvi.pszText  = @.Text(0)
+						lvi.cchTextMax = Len(.Text(0))
+						'lvi.pszText  = @FCaption
+						'lvi.cchTextMax = Len(FCaption)
+						lvi.iItem = i
+						lvi.iSubItem = 0
+						lvi.iImage   = FImageIndex
+						lvi.state   = INDEXTOSTATEIMAGEMASK(State)
+						lvi.stateMask = LVIS_STATEIMAGEMASK
+						lvi.iIndent   = .Indent
+						lvi.lParam = Cast(LPARAM, PItem)
+						ListView_InsertItem(Parent->Handle, @lvi)
+						For j As Integer = 1 To MinColumnsCount
+							Dim As LVITEM lvi1
+							lvi1.mask = LVIF_TEXT
+							lvi1.iItem = i
+							lvi1.iSubItem   = j
+							lvi1.pszText    = @.Text(j)
+							lvi1.cchTextMax = Len(.Text(j))
+							ListView_SetItem(Parent->Handle, @lvi1)
+						Next j
+					End If
 				End If
 				.Handle = Cast(LPARAM, PItem)
 			#endif
@@ -1171,6 +1225,17 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Private Property TreeListView.OwnerData As Boolean
+		Return FOwnerData
+	End Property
+	
+	Private Property TreeListView.OwnerData(Value As Boolean)
+		FOwnerData = Value
+		#ifndef __USE_GTK__
+			ChangeStyle LVS_OWNERDATA, Value
+		#endif
+	End Property
+	
 	Private Property TreeListView.OwnerDraw As Boolean
 		Return FOwnerDraw
 	End Property
@@ -1204,7 +1269,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
 		#elseif defined(__USE_WINAPI__)
-			ChangeLVExStyle LVS_EX_GridLINES, Value
+			ChangeLVExStyle LVS_EX_GRIDLINES, Value
 		#endif
 	End Property
 	
@@ -1326,12 +1391,39 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Private Function TreeListView.GetTreeListViewItem(iItem As Integer) As TreeListViewItem Ptr
+			If FOwnerData Then Return GetItemByVisibleIndex(iItem)
 			Dim lvi As LVITEM
 			lvi.mask = LVIF_PARAM
 			lvi.iItem = iItem
 			If ListView_GetItem(Handle, @lvi) Then
 				Return Cast(TreeListViewItem Ptr, lvi.lParam)
 			End If
+			Return 0
+		End Function
+		
+		Private Function TreeListView.GetTreeListViewItemByIndex(Node As TreeListViewItem Ptr, iItem As Integer, ByRef iCount As Integer) As TreeListViewItem Ptr
+			Dim As TreeListViewItem Ptr Result
+			If Not Node->IsExpanded Then Return 0
+			For i As Integer = 0 To Node->Nodes.Count - 1
+				If Not Node->Nodes.Item(i)->Visible Then Continue For
+				iCount += 1
+				If iItem = iCount Then Return Node->Nodes.Item(i)
+				Result = GetTreeListViewItemByIndex(Node->Nodes.Item(i), iItem, iCount)
+				If Result > 0 Then Return Result
+			Next
+			Return 0
+		End Function
+		
+		Private Function TreeListView.GetItemByVisibleIndex(iItem As Integer) As TreeListViewItem Ptr
+			Dim As Integer iCount = -1
+			Dim As TreeListViewItem Ptr Result
+			For i As Integer = 0 To Nodes.Count - 1
+				If Not Nodes.Item(i)->Visible Then Continue For
+				iCount += 1
+				If iItem = iCount Then Return Nodes.Item(i)
+				Result = GetTreeListViewItemByIndex(Nodes.Item(i), iItem, iCount)
+				If Result > 0 Then Return Result
+			Next
 			Return 0
 		End Function
 	#endif
@@ -1555,6 +1647,7 @@ Namespace My.Sys.Forms
 							Else
 								tlvi->Expand
 							End If
+							If FOwnerData Then Repaint
 						End If
 					End If
 				End If
@@ -1568,6 +1661,7 @@ Namespace My.Sys.Forms
 					Case VK_LEFT, VK_BACK
 						If tlvi->IsExpanded Then
 							tlvi->Collapse
+							If FOwnerData Then Repaint
 						ElseIf tlvi->ParentItem Then
 							tlvi->ParentItem->SelectItem
 						End If
@@ -1577,6 +1671,7 @@ Namespace My.Sys.Forms
 								tlvi->Nodes.Item(0)->SelectItem
 							Else
 								tlvi->Expand
+								If FOwnerData Then Repaint
 							End If
 						End If
 					End Select
@@ -1685,6 +1780,48 @@ Namespace My.Sys.Forms
 							Exit Sub
 						End If
 					End If
+				Case LVN_SETDISPINFO
+					If FOwnerData Then
+						Dim lpdi As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
+					End If
+				Case LVN_GETDISPINFO
+					If FOwnerData Then
+						Dim lpdi As NMLVDISPINFO Ptr = Cast(NMLVDISPINFO Ptr, Message.lParam)
+						If lpdi->item.iItem >= 0 Then
+							Dim As Integer tCol = lpdi->item.iSubItem
+							Dim As Integer tRow = lpdi->item.iItem
+							If OnGetDisplayInfo Then 
+								Dim As WString * 255 NewText
+								OnGetDisplayInfo(*Designer, This, NewText, tRow, tCol, lpdi->item.mask)
+							Else
+								Dim As TreeListViewItem Ptr Result = GetItemByVisibleIndex(tRow)
+								If Result > 0 Then
+									'Select Case lpdi->item.mask
+									'Case LVIF_TEXT
+										lpdi->item.pszText = @Result->Text(tCol)
+										lpdi->item.cchTextMax = Len(Result->Text(tCol))
+									'Case LVIF_IMAGE
+										lpdi->item.iImage = Result->ImageIndex
+									'Case LVIF_INDENT
+										lpdi->item.iIndent = Result->Indent
+									'Case LVIF_PARAM
+										lpdi->item.lParam = Result->Handle
+									'Case LVIF_STATE
+										lpdi->item.state = INDEXTOSTATEIMAGEMASK(Result->State)
+										lpdi->item.stateMask = LVIS_STATEIMAGEMASK
+									'End Select
+								End If
+							End If
+						End If
+					End If
+				Case LVN_ODCACHEHINT
+					If FOwnerData Then
+						Dim pCacheHint As NMLVCACHEHINT Ptr = Cast(NMLVCACHEHINT  Ptr, Message.lParam)
+						If OnCacheHint Then OnCacheHint(*Designer, This, pCacheHint->iFrom, pCacheHint->iTo)
+					End If
+				Case LVN_ODFINDITEM
+				Case LVN_ODSTATECHANGED
+					
 				End Select
 			Case WM_NOTIFY
 				Select Case Message.wParam
@@ -1934,7 +2071,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "TreeListView", WC_LISTVIEW
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
-				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GridLINES Or LVS_EX_DOUBLEBUFFER
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
 				WLet(FClassAncestor, WC_LISTVIEW)
 			#endif

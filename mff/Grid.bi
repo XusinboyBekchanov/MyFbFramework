@@ -307,8 +307,6 @@ Namespace My.Sys.Forms
 		Declare Property FullRowSelect(Value As Boolean)
 		Declare Property OwnerData As Boolean
 		Declare Property OwnerData(Value As Boolean)
-		Declare Property RowsCount As Integer
-		Declare Property RowsCount(RowCount As Integer)
 		Declare Property ColorSelected As Integer
 		Declare Property ColorSelected(Value As Integer)
 		Declare Property ColorEditBack As Integer
@@ -362,9 +360,7 @@ Namespace My.Sys.Forms
 		OnEndScroll             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid)
 		OnCellEdited            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 		OnCacheHint             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
-		#ifdef __USE_WINAPI__
-			OnGetDispInfo       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
-		#endif
+		OnGetDispInfo           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As ULong)
 	End Type
 End Namespace
 
