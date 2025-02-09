@@ -1651,7 +1651,8 @@ Namespace My.Sys.Forms
 				lvhti.pt.Y = Message.lParamHi
 				If (ListView_HitTest(Handle, @lvhti) <> -1) Then
 					Var tlvi = GetTreeListViewItem(lvhti.iItem)
-					If tlvi AndAlso tlvi->Nodes.Count > 0 Then
+					'If tlvi AndAlso tlvi->Nodes.Count > 0 Then
+					If tlvi AndAlso tlvi->State > 0 Then
 						Dim As ..Rect lpRect
 						Dim As Integer sX16 = ScaleX(16)
 						ListView_GetSubItemRect(FHandle, lvhti.iItem, 0, LVIR_BOUNDS, @lpRect)
@@ -1681,9 +1682,10 @@ Namespace My.Sys.Forms
 							tlvi->ParentItem->SelectItem
 						End If
 					Case VK_RIGHT
-						If tlvi->Nodes.Count > 0 Then
+						'If tlvi->Nodes.Count > 0 Then
+						If tlvi->State > 0 Then
 							If tlvi->IsExpanded Then
-								tlvi->Nodes.Item(0)->SelectItem
+								If tlvi->Nodes.Count > 0 Then tlvi->Nodes.Item(0)->SelectItem
 							Else
 								tlvi->Expand
 								If FOwnerData Then Repaint
