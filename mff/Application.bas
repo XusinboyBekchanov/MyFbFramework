@@ -1288,47 +1288,45 @@ End Function
 		Dim As Integer Offset, iEnd = IIf(SampleSize= 0, Len(SourceStr) - 1, SampleSize)
 		If iEnd < 2 Then Return False
 		Dim As Boolean  bHasUnicode
-		Dim As Integer current = 0
+		Dim As UInteger UnicodeCP, current = 0
 		For i As Integer  = 0 To iEnd
 			If Not bHasUnicode AndAlso CBool(SourceStr[i] < 0 OrElse SourceStr[i] > 126) Then bHasUnicode = True
 			Offset = byte_class_table(SourceStr[i])
 			current = state_table(Offset * 9 + current)
 			If current = 8 Then Exit For
+			'If current <> 0 AndAlso i < iEnd - 1 AndAlso (SourceStr[i] And &h80) = &h80 Then ' 非ASCII字符 Then
+			'	UnicodeCP = ((SourceStr[i] And &h0F) Shl 12) Or ((SourceStr[i + 1] And &H3F) Shl 6) Or ((SourceStr[i + 2] And &H3F))
+			'	Print "UnicodeCP=" & UnicodeCP & " Hex=" & Hex(UnicodeCP)
+			'	If (UnicodeCP < CUInt(&HE0)) OrElse (UnicodeCP > CUInt(&HEF)) Then current = 0 : i += 3
+			'End If
 		Next
 		Return IIf(current = 0, IIf(bHasUnicode, True, False), False)
 		
 	End Function
 	
-	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As WString Ptr
-		Dim As String Buff, EncodingStr
-		Dim As Integer Result = -1, Fn, FileSize, MaxSize
-		'check the Newlinetype again for missing Cr in AsicII file
+	
+	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As String
+		Dim As String Buff, EncodingStr, NewLineStr
+		Dim As Integer Result = -1, Fn, FileSize, MaxChars
+		Dim As Boolean FileLoaded
 		Fn = FreeFile_
 		If Open(FileName For Binary Access Read As #Fn) = 0 Then
 			FileSize = LOF(Fn) + 1
-			MaxSize = IIf(FileSize > 65536, 65536, FileSize)
-			Buff = String(4, 0)
+			FileLoaded = IIf(FileSize > 65536, False, True)
+			MaxChars = IIf(FileSize > 65536, 65536, FileSize)
+			Buff = String(MaxChars, 0)
 			Get #Fn, , Buff
 			If (Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0) OrElse (Buff[0] = 0 AndAlso Buff[1] = 0 AndAlso Buff[2] = &HFE AndAlso Buff[3] = &HFF) Then 'Little Endian , Big Endian
 				FileEncoding = FileEncodings.Utf32BOM
 				EncodingStr = "utf-32"
-				Buff = String(1024, 0)
-				Get #Fn, 0, Buff
-				'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
 			ElseIf (Buff[0] = &HFF AndAlso Buff[1] = &HFE) OrElse (Buff[0] = &HFE AndAlso Buff[1] = &HFF) Then 'Little Endian
 				FileEncoding = FileEncodings.Utf16BOM
 				EncodingStr = "utf-16"
-				Buff = String(1024, 0)
-				Get #Fn, 0, Buff
 			ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
 				FileEncoding = FileEncodings.Utf8BOM
 				EncodingStr = "utf-8"
-				Buff = String(1024, 0)
-				Get #Fn, 0, Buff
 			Else
-				Buff = String(MaxSize, 0)
-				Get #Fn, 0, Buff
-				If (CheckUTF8NoBOM(Buff, MaxSize)) Then
+				If (CheckUTF8NoBOM(Buff)) Then
 					FileEncoding = FileEncodings.Utf8
 					EncodingStr = "ascii"
 				Else
@@ -1336,46 +1334,70 @@ End Function
 					EncodingStr = "ascii"
 				End If
 			End If
-			If InStr(Buff, Chr(13, 10)) Then
-				NewLineType= NewLineTypes.WindowsCRLF
-			ElseIf InStr(Buff, Chr(10)) Then
-				NewLineType= NewLineTypes.LinuxLF
-			ElseIf InStr(Buff, Chr(13)) Then
-				NewLineType= NewLineTypes.MacOSCR
+			NewLineStr = Chr(13, 10)
+			NewLineType= NewLineTypes.WindowsCRLF
+			For i As Integer = 0 To MaxChars
+				Select Case Buff[i]
+				Case 13
+					If i < MaxChars AndAlso Buff[i + 1] = 10  Then
+						NewLineType= NewLineTypes.WindowsCRLF
+						NewLineStr = Chr(13, 10)
+					Else
+						NewLineType= NewLineTypes.MacOSCR
+						NewLineStr = Chr(13)
+					End If
+					Exit For
+				Case 10
+					If i = 0 OrElse Buff[i - 1] <> 13 Then
+						NewLineType= NewLineTypes.LinuxLF
+						NewLineStr = Chr(10)
+					End If
+					Exit For
+				End Select
+			Next
+			CloseFile_(Fn)
+		Else
+			CloseFile_(Fn)
+			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + ML("Open file failure!") + FileName, True
+			Return ""
+		End If
+		Fn = FreeFile_
+		If FileEncoding = FileEncodings.Utf8 Then
+			If FileLoaded Then
+				Result = 0
 			Else
-				NewLineType= NewLineTypes.WindowsCRLF
+				Result = Open(FileName For Binary Access Read As #Fn)
+			End If
+		Else
+			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
+		End If
+		If Result = 0 Then
+			If FileEncoding = FileEncodings.Utf8 Then
+				If FileLoaded Then
+					Function = FromUtf8(StrPtr(Buff))
+				Else
+					Buff = String(FileSize, 0)
+					Get #Fn, , Buff
+					CloseFile_(Fn)
+					Return FromUtf8(StrPtr(Buff))
+				End If
+			Else
+				Function = WInput(FileSize, #Fn)
+				CloseFile_(Fn)
 			End If
 		Else
 			CloseFile_(Fn)
-			Debug.Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Open file failure: " + FileName, True
-			Return 0
+			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + ML("Open file failure!") + FileName, True
+			Return ""
 		End If
-		CloseFile_(Fn)
-		
-		Dim As WString Ptr pBuff = 0
-		Fn = FreeFile_
-		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
-		If Result = 0 Then
-			If FileEncoding = FileEncodings.Utf8 Then
-				Buff =  Input(FileSize, #Fn)
-				WLet(pBuff, FromUtf8(StrPtr(Buff)))
-				NewLineType= NewLineTypes.LinuxLF
-			Else
-				pBuff = _Reallocate(pBuff, (FileSize + 1) * SizeOf(WString))
-				*pBuff =  WInput(FileSize, #Fn)
-			End If
-		End If
-		CloseFile_(Fn)
-		Return pBuff
 	End Function
 #endif
 
 #ifndef SaveToFile_Off
 	Private Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
 		Dim As Integer Fn = FreeFile_
-		Dim As Integer Result
-		Dim As String FileEncodingText, NewLine
-		
+		Dim As Integer Result, MaxChars = Len(wData) - 1
+		Dim As String FileEncodingText, NewLineStr, OldLineStr
 		If FileEncoding = FileEncodings.Utf8 Then
 			FileEncodingText = "ascii"
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
@@ -1387,40 +1409,56 @@ End Function
 		Else
 			FileEncodingText = "ascii"
 		End If
-		If NewLineType = NewLineTypes.LinuxLF Then
-			NewLine = Chr(10)
-		ElseIf NewLineType = NewLineTypes.MacOSCR Then
-			NewLine = Chr(13)
-		Else
-			NewLine = "" ' Chr(13, 10) No neeed replace
-		End If
-		If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
-			If FileEncoding = FileEncodings.Utf8 Then
-				If NewLine <> "" Then
-					Print #Fn, ToUtf8(Replace(wData, Chr(13, 10), NewLine)); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
+		OldLineStr = Chr(13, 10)
+		For i As Integer = 0 To MaxChars
+			Select Case wData[i]
+			Case 13
+				If i < MaxChars AndAlso wData[i + 1] = 10  Then
+					OldLineStr = Chr(13, 10)
 				Else
-					Print #Fn, ToUtf8(wData); 'Automaticaly add a Cr LF to the ends of file for each time without ";"
+					OldLineStr = Chr(13)
 				End If
-				
-			ElseIf FileEncoding = FileEncodings.PlainText Then
-				If NewLine <> "" Then
-					Print #Fn, Str(Replace(wData, Chr(13, 10), NewLine));
+				Exit For
+			Case 10
+				If i = 0 OrElse wData[i - 1] <> 13 Then
+					OldLineStr = Chr(10)
+				End If
+				Exit For
+			End Select
+		Next
+		If NewLineType = NewLineTypes.LinuxLF Then
+			NewLineStr = Chr(10)
+		ElseIf NewLineType = NewLineTypes.MacOSCR Then
+			NewLineStr = Chr(13)
+		Else
+			NewLineStr = Chr(13, 10)
+		End If
+		If FileEncoding = FileEncodings.Utf8 Then
+			Result = Open(FileName For Binary Access Write As #Fn)
+		Else
+			Result = Open(FileName For Output Encoding FileEncodingText As #Fn)
+		End If
+		If  Result = 0 Then
+			If FileEncoding = FileEncodings.Utf8 Then
+				If NewLineStr <> OldLineStr Then
+					Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))
 				Else
-					Print #Fn, Str(wData);
+					Put #Fn, , ToUtf8(wData) 'Automaticaly add a Cr LF to the ends of file for each time without ";"
 				End If
 			Else
-				If NewLine <> "" Then
-					Print #Fn, Replace(wData, Chr(13, 10), NewLine);
+				If NewLineStr <> OldLineStr Then
+					Print #Fn, Replace(wData, OldLineStr, NewLineStr);  'Automaticaly add a Cr LF to the ends of file for each time without ";"
 				Else
 					Print #Fn, wData;
 				End If
 			End If
+			CloseFile_(Fn)
+			Return True
 		Else
-			Debug.Print "Save file failure! "  & FileName, True
+			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + ML("Save file failure!") + FileName, True
+			CloseFile_(Fn)
 			Return False
 		End If
-		CloseFile_(Fn)
-		Return True
 	End Function
 #endif
 
