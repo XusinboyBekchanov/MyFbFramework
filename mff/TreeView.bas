@@ -897,7 +897,7 @@ Namespace My.Sys.Forms
 				End If
 			Case CM_NOTIFY
 				Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, Message.lParam)
-				If tvp->itemNew.hItem <> 0 Then
+				'If tvp->itemNew.hItem <> 0 Then
 					Dim sn As TreeNode Ptr
 					Select Case tvp->hdr.code
 					Case NM_CLICK
@@ -975,7 +975,7 @@ Namespace My.Sys.Forms
 					Case TVN_ASYNCDRAW
 						'Case NM_KEYDOWN: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))
 					End Select
-				End If
+				'End If
 				
 			Case CM_COMMAND
 				
