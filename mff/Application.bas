@@ -1304,8 +1304,7 @@ End Function
 		
 	End Function
 	
-	
-	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As String
+	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByVal nCodePage As Integer = -1) As WString Ptr
 		Dim As String Buff, EncodingStr, NewLineStr
 		Dim As Integer Result = -1, Fn, FileSize, MaxChars
 		Dim As Boolean FileLoaded
@@ -1358,11 +1357,11 @@ End Function
 			CloseFile_(Fn)
 		Else
 			CloseFile_(Fn)
-			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + ML("Open file failure!") + FileName, True
-			Return ""
+			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + "Open file failure: " + FileName, True
+			Return 0
 		End If
 		Fn = FreeFile_
-		If FileEncoding = FileEncodings.Utf8 Then
+		If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
 			If FileLoaded Then
 				Result = 0
 			Else
@@ -1372,29 +1371,47 @@ End Function
 			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 		End If
 		If Result = 0 Then
-			If FileEncoding = FileEncodings.Utf8 Then
+			If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
 				If FileLoaded Then
-					Function = FromUtf8(StrPtr(Buff))
+					#ifdef __USE_GTK__
+						Return FromUtf8(StrPtr(Buff))
+					#else
+						Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
+						Dim As Integer m_BufferLen = MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, NULL, 0) - 1
+						Dim As WString Ptr pBuff = CAllocate(m_BufferLen * 2 + 2)
+						MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, pBuff, m_BufferLen)
+						Return pBuff
+					#endif
 				Else
 					Buff = String(FileSize, 0)
 					Get #Fn, , Buff
 					CloseFile_(Fn)
-					Return FromUtf8(StrPtr(Buff))
+					#ifdef __USE_GTK__
+						Return FromUtf8(StrPtr(Buff))
+					#else
+						Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
+						Dim As Integer m_BufferLen = MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, NULL, 0) - 1
+						Dim As WString Ptr pBuff = CAllocate(m_BufferLen * 2 + 2)
+						MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, pBuff, m_BufferLen)
+						Return pBuff
+					#endif
 				End If
 			Else
-				Function = WInput(FileSize, #Fn)
+				Dim As WString Ptr pBuff
+				WLet(pBuff, WInput(FileSize, #Fn))
 				CloseFile_(Fn)
+				Return pBuff
 			End If
 		Else
 			CloseFile_(Fn)
-			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + ML("Open file failure!") + FileName, True
-			Return ""
+			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + "Open file failure: " + FileName, True
+			Return 0
 		End If
 	End Function
 #endif
 
 #ifndef SaveToFile_Off
-	Private Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF) As Boolean
+	Private Function SaveToFile(ByRef FileName As WString, ByRef wData As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByVal nCodePage As Integer = -1) As Boolean
 		Dim As Integer Fn = FreeFile_
 		Dim As Integer Result, MaxChars = Len(wData) - 1
 		Dim As String FileEncodingText, NewLineStr, OldLineStr
@@ -1433,18 +1450,39 @@ End Function
 		Else
 			NewLineStr = Chr(13, 10)
 		End If
-		If FileEncoding = FileEncodings.Utf8 Then
+		If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
 			Result = Open(FileName For Binary Access Write As #Fn)
 		Else
 			Result = Open(FileName For Output Encoding FileEncodingText As #Fn)
 		End If
 		If  Result = 0 Then
-			If FileEncoding = FileEncodings.Utf8 Then
-				If NewLineStr <> OldLineStr Then
-					Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))
-				Else
-					Put #Fn, , ToUtf8(wData) 'Automaticaly add a Cr LF to the ends of file for each time without ";"
-				End If
+			If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
+				#ifdef __USE_GTK__
+					If NewLineStr <> OldLineStr Then
+						Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))
+					Else
+						Put #Fn, , ToUtf8(wData)
+					End If
+				#else
+					Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
+					If NewLineStr <> OldLineStr AndAlso NewLineStr <> Chr(13, 10) Then
+						wData = Replace(wData, OldLineStr, NewLineStr)
+					End If
+					Dim As Integer m_BufferLen = WideCharToMultiByte(CodePage, 0, StrPtr(wData), -1, NULL, 0, NULL, NULL) - 1
+					Dim As ZString Ptr pBuff = CAllocate(m_BufferLen * 2 + 2)
+					WideCharToMultiByte(CodePage, 0, StrPtr(wData), m_BufferLen, pBuff, m_BufferLen, NULL, NULL)
+					Put #Fn, , *pBuff
+					Deallocate(pBuff)
+				#endif
+			'ElseIf FileEncoding = FileEncodings.PlainText Then
+			'	'To prevent right truncation due to the differing lengths of String and WString. This is ANSI only
+			'	Dim As String bufferOut
+			'	If NewLineStr <> OldLineStr Then
+			'		bufferOut = Replace(wData, OldLineStr, NewLineStr);  'Automaticaly add a Cr LF to the ends of file for each time without ";"
+			'	Else
+			'		bufferOut = wData
+			'	End If
+			'	Print #Fn, bufferOut;
 			Else
 				If NewLineStr <> OldLineStr Then
 					Print #Fn, Replace(wData, OldLineStr, NewLineStr);  'Automaticaly add a Cr LF to the ends of file for each time without ";"
@@ -1455,7 +1493,7 @@ End Function
 			CloseFile_(Fn)
 			Return True
 		Else
-			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + ML("Save file failure!") + FileName, True
+			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + "Save file failure: " + FileName, True
 			CloseFile_(Fn)
 			Return False
 		End If
