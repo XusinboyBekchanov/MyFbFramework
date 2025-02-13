@@ -508,7 +508,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	'#endif
 End Function
 
-Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
+Private Function FromUtf8(pZString As ZString Ptr) As WString Ptr
 	'	#ifdef __USE_GTK__
 	'		Return g_locale_from_utf8(*pZString, Len(*pZString), 0, 0, 0)
 	'	#else
@@ -518,12 +518,11 @@ Private Function FromUtf8(pZString As ZString Ptr) ByRef As WString
 	'UTF-32 little-endian: FF FE 00 00
 	'UTF-32 big-endian: 00 00 FE FF
 	Dim m_BufferLen As Integer = IIf(pZString <> 0, Len(*pZString) + 1, 0)
-	If m_BufferLen = 0 Then Return ""
+	If m_BufferLen = 0 Then Return 0
 	Dim As WString Ptr buffer
 	WReAllocate(buffer, m_BufferLen)
 	*buffer = String(m_BufferLen, 0)
-	Function = WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
-	_Deallocate(buffer)
+	Return UTFToWChar(1, pZString, buffer, @m_BufferLen)
 End Function
 
 Private Function ZGet(ByRef subject As ZString Ptr) As String
@@ -704,8 +703,11 @@ Private Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As C
 	Dim As Integer L2 = CPtr(Integer Ptr, @Delimiter)[1]
 	Dim As Integer i = 0 'UBound(Result) + 1
 	Dim As Integer N, N0 = 1
-	
-	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	If L1 < 1 OrElse L2 < 1 Then
+		ReDim Result(0)
+		Return 0
+	End If
+	ReDim Preserve Result(0 To i + L1 / L2) 'LBound(Result)
 	Do
 		If MatchCase Then
 			N = InStr(N0, wszMainStr, Delimiter)
@@ -732,7 +734,7 @@ Private Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As C
 			Else
 				i -= 1
 			End If
-			ReDim Preserve Result(LBound(Result) To i)
+			ReDim Preserve Result(0 To i)  'LBound(Result)
 			Exit Do
 		End If
 	Loop
@@ -750,11 +752,11 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 	Dim As Integer i = 0'UBound(Result) + 1
 	Dim As Integer L, n, n0 = 1
 	Dim As WString Ptr p, p1 = @wszMainStr
-	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	ReDim Preserve Result(0 To i + L1 / L2) 'LBound(Result)
 	Do
 		If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
 		If n > 0 Then
-			If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+			If (Not skipEmptyElement) OrElse (n - n0) > 0 Then
 				p = p1 + n0 - 1
 				L = n - n0
 				Dim As WString * 1 w
@@ -765,14 +767,14 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 			End If
 			n0 = n + L2
 		Else
-			If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+			If (Not skipEmptyElement) OrElse (L1 - n0 + 1) > 0 Then
 				p = p1 + n0 - 1
 				L = L1 - n0 + 1
 				Result(i) = * (p)
 			Else
 				i -= 1
 			End If
-			ReDim Preserve Result(LBound(Result) To i)
+			ReDim Preserve Result(0 To i) 'LBound(Result)
 			Exit Do
 		End If
 	Loop
@@ -825,11 +827,11 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 	Dim As Integer i = 0 'UBound(Result) + 1
 	Dim As Integer L, n, n0 = 1
 	Dim As WString Ptr p, p1 = @wszMainStr
-	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	ReDim Preserve Result(0 To i + L1 / L2) 'LBound(Result)
 	Do
 		If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
 		If n > 0 Then
-			If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+			If (Not skipEmptyElement) OrElse (n - n0) > 0 Then
 				p = p1 + n0 - 1
 				L = n - n0
 				Dim As WString * 1 w
@@ -840,14 +842,14 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 			End If
 			n0 = n + L2
 		Else
-			If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+			If (Not skipEmptyElement) OrElse (L1 - n0 + 1) > 0 Then
 				p = p1 + n0 - 1
 				L = L1 - n0 + 1
 				Result(i) = * (p)
 			Else
 				i -= 1
 			End If
-			ReDim Preserve Result(LBound(Result) To i)
+			ReDim Preserve Result(0 To i) 'LBound(Result)
 			Exit Do
 		End If
 	Loop
@@ -865,11 +867,11 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 	Dim As Integer i = 0 'UBound(Result) + 1
 	Dim As Integer L, n, n0 = 1
 	Dim As WString Ptr p, p1 = @wszMainStr
-	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	ReDim Preserve Result(0 To i + L1 / L2) 'LBound(Result)
 	Do
 		If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
 		If n > 0 Then
-			If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+			If (Not skipEmptyElement) OrElse (n - n0) > 0 Then
 				p = p1 + n0 - 1
 				L = n - n0
 				Dim As WString * 1 w
@@ -881,7 +883,7 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 			End If
 			n0 = n + L2
 		Else
-			If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+			If (Not skipEmptyElement) OrElse (L1 - n0 + 1) > 0 Then
 				p = p1 + n0 - 1
 				L = L1 - n0 + 1
 				Result(i) = CAllocate((L + 1) * SizeOf(WString))
@@ -889,7 +891,7 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 			Else
 				i -= 1
 			End If
-			ReDim Preserve Result(LBound(Result) To i)
+			ReDim Preserve Result(0 To i) 'LBound(Result)
 			Exit Do
 		End If
 	Loop
@@ -949,11 +951,11 @@ Private Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZSt
 	Dim As Integer i = 0 'UBound(Result) + 1
 	Dim As Integer L, n, n0 = 1
 	Dim As ZString Ptr p, p1 = @wszMainStr
-	ReDim Preserve Result(LBound(Result) To i + L1 / L2)
+	ReDim Preserve Result(0 To i + L1 / L2) 'LBound(Result)
 	Do
 		If MatchCase Then n = InStr(n0, wszMainStr, Delimiter) Else n = InStr(n0, LCase(wszMainStr), LCase(Delimiter))
 		If n > 0 Then
-			If (skipEmptyElement = 0) OrElse (n - n0) > 0 Then
+			If (Not skipEmptyElement) OrElse (n - n0) > 0 Then
 				p = p1 + n0 - 1
 				L = n - n0
 				Dim As ZString * 1 w
@@ -965,7 +967,7 @@ Private Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZSt
 			End If
 			n0 = n + L2
 		Else
-			If (skipEmptyElement = 0) OrElse (L1 - n0 + 1) > 0 Then
+			If (Not skipEmptyElement) OrElse (L1 - n0 + 1) > 0 Then
 				p = p1 + n0 - 1
 				L = L1 - n0 + 1
 				Result(i) = CAllocate((L + 1) * SizeOf(ZString))
@@ -973,7 +975,7 @@ Private Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZSt
 			Else
 				i -= 1
 			End If
-			ReDim Preserve Result(LBound(Result) To i)
+			ReDim Preserve Result(0 To i) 'LBound(Result)
 			Exit Do
 		End If
 	Loop
@@ -1353,4 +1355,3 @@ End Function
 		#endif
 	End Function
 #endif
-
