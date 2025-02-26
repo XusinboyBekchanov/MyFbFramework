@@ -20,6 +20,7 @@
 #include once "windows.bi"
 #include once "win/ole2.bi"
 #include once "crt/string.bi"
+#include once "win/ocidl.bi"
 
 #ifdef __FB_WIN32__ 'this is necessary, because FB maps the original FB-Long-Def to Boolean somehow (remove when Fix is available in the Compiler)
 	#undef  Long
@@ -432,17 +433,17 @@ Enum vbVarType
 End Enum
 #define Set
 #define Nothing 0
-'One of the MFF mark
-#ifndef APP_TITLE
-	'finally a MsgBox-OverLoad, which accepts a Object_Com_ as the Msg-Parameter
-	Function MsgBox cdecl (ByVal MSG As Object_Com_, ByVal Flags As Long = MB_ICONINFORMATION) As Long
-		If MSG.V.vt = vbString Then
-			Return MessageBoxW(GetActiveWindow, MSG.V.bstrVal, AppName, Flags)
-		Else
-			Dim VV As tagVARIANT
-			HandleCOMErr VariantChangeTypeEx(@VV, @MSG.V, DefaultLocale_VariantConv, VARIANT_NOVALUEPROP Or VARIANT_ALPHABOOL, vbString), "SimpleVariant.MsgBox"
-			Function = MessageBoxW(GetActiveWindow, VV.bstrVal, AppName, Flags)
-			VariantClear @VV
-		End If
-	End Function
-#endif
+''One of the MFF mark
+'#ifndef APP_TITLE
+'	'finally a MsgBox-OverLoad, which accepts a Object_Com_ as the Msg-Parameter
+'	Function MsgBox cdecl (ByVal MSG As Object_Com_, ByVal Flags As Long = MB_ICONINFORMATION) As Long
+'		If MSG.V.vt = vbString Then
+'			Return MessageBoxW(GetActiveWindow, MSG.V.bstrVal, AppName, Flags)
+'		Else
+'			Dim VV As tagVARIANT
+'			HandleCOMErr VariantChangeTypeEx(@VV, @MSG.V, DefaultLocale_VariantConv, VARIANT_NOVALUEPROP Or VARIANT_ALPHABOOL, vbString), "SimpleVariant.MsgBox"
+'			Function = MessageBoxW(GetActiveWindow, VV.bstrVal, AppName, Flags)
+'			VariantClear @VV
+'		End If
+'	End Function
+'#endif
