@@ -19,6 +19,8 @@ Private:
 	FLines        As WStringList
 	FSectionCount As Integer
 	Declare Sub Update
+	FFileEncoding As FileEncodings = FileEncodings.Utf8BOM
+	FNewLineType  As NewLineTypes = NewLineTypes.WindowsCRLF
 Public:
 	Declare Function SectionExists(ByRef Section As WString) As Integer
 	Declare Function KeyExists(ByRef Section As WString, ByRef Key As WString) As Integer

@@ -1357,54 +1357,54 @@ End Function
 			CloseFile_(Fn)
 		Else
 			CloseFile_(Fn)
-			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + "Open file failure: " + FileName, True
+			Debug.Print ML("in function") + " " +  __FUNCTION__ + " " +  ML("in Line") + " " + Str( __LINE__) + Chr(9) + "Open file failure: " + FileName, True
 			Return 0
 		End If
-		Fn = FreeFile_
 		If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
 			If FileLoaded Then
 				Result = 0
 			Else
+				Fn = FreeFile_
 				Result = Open(FileName For Binary Access Read As #Fn)
 			End If
 		Else
+			Fn = FreeFile_
 			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 		End If
 		If Result = 0 Then
+			Dim As WString Ptr pBuff
 			If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
-				If FileLoaded Then
-					#ifdef __USE_GTK__
-						Return FromUtf8(StrPtr(Buff))
-					#else
-						Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-						Dim As Integer m_BufferLen = MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, NULL, 0) - 1
-						Dim As WString Ptr pBuff = CAllocate(m_BufferLen * 2 + 2)
-						MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, pBuff, m_BufferLen)
-						Return pBuff
-					#endif
-				Else
+				If Not FileLoaded Then
 					Buff = String(FileSize, 0)
 					Get #Fn, , Buff
 					CloseFile_(Fn)
-					#ifdef __USE_GTK__
-						Return FromUtf8(StrPtr(Buff))
-					#else
-						Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-						Dim As Integer m_BufferLen = MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, NULL, 0) - 1
-						Dim As WString Ptr pBuff = CAllocate(m_BufferLen * 2 + 2)
-						MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, pBuff, m_BufferLen)
-						Return pBuff
-					#endif
 				End If
+				If Trim(Buff) = "" Then Return 0
+				#ifdef __USE_WINAPI__
+					If FileEncoding = FileEncodings.PlainText Then
+						Dim CodePage As Integer = IIf(nCodePage = -1, GetACP(), nCodePage) 
+						If CodePage= 936 AndAlso nCodePage = -1 Then CodePage = 54936 'The default value is set to Chinese character GB18030 (ANSI and GB2312 compatible).
+						FileSize = MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, NULL, 0) - 1
+						pBuff = CAllocate(FileSize * 2 + 2)
+						MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, pBuff, FileSize)
+					Else
+						WReAllocate(pBuff, FileSize)
+						*pBuff = String(FileSize, 0)
+						pBuff = UTFToWChar(1, StrPtr(Buff), pBuff, @FileSize)
+					End If
+				#else
+					WReAllocate(pBuff, FileSize)
+					*pBuff = String(FileSize, 0)
+					pBuff = UTFToWChar(1, StrPtr(Buff), pBuff, @FileSize)
+				#endif
 			Else
-				Dim As WString Ptr pBuff
 				WLet(pBuff, WInput(FileSize, #Fn))
 				CloseFile_(Fn)
-				Return pBuff
 			End If
+			Return pBuff
 		Else
 			CloseFile_(Fn)
-			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + "Open file failure: " + FileName, True
+			Debug.Print ML("in function") + " " +  __FUNCTION__ + " " +  ML("in Line") + " " + Str( __LINE__) + Chr(9) +  "Open file failure: " + FileName, True
 			Return 0
 		End If
 	End Function
@@ -1456,16 +1456,17 @@ End Function
 			Result = Open(FileName For Output Encoding FileEncodingText As #Fn)
 		End If
 		If  Result = 0 Then
-			If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
-				#ifdef __USE_GTK__
-					If NewLineStr <> OldLineStr Then
+			If FileEncoding = FileEncodings.Utf8 Then
+				If NewLineStr <> OldLineStr Then
 						Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))
 					Else
 						Put #Fn, , ToUtf8(wData)
 					End If
-				#else
+			ElseIf FileEncoding = FileEncodings.PlainText Then
+				#ifdef __USE_WINAPI__
 					Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-					If NewLineStr <> OldLineStr AndAlso NewLineStr <> Chr(13, 10) Then
+					If CodePage= 936 AndAlso nCodePage = -1 Then CodePage = 54936 'The default value is set to Chinese character GB18030 (ANSI and GB2312 compatible).
+					If NewLineStr <> OldLineStr Then
 						wData = Replace(wData, OldLineStr, NewLineStr)
 					End If
 					Dim As Integer m_BufferLen = WideCharToMultiByte(CodePage, 0, StrPtr(wData), -1, NULL, 0, NULL, NULL) - 1
@@ -1473,16 +1474,13 @@ End Function
 					WideCharToMultiByte(CodePage, 0, StrPtr(wData), m_BufferLen, pBuff, m_BufferLen, NULL, NULL)
 					Put #Fn, , *pBuff
 					Deallocate(pBuff)
+				#else
+					If NewLineStr <> OldLineStr Then
+						Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))
+					Else
+						Put #Fn, , ToUtf8(wData)
+					End If
 				#endif
-			'ElseIf FileEncoding = FileEncodings.PlainText Then
-			'	'To prevent right truncation due to the differing lengths of String and WString. This is ANSI only
-			'	Dim As String bufferOut
-			'	If NewLineStr <> OldLineStr Then
-			'		bufferOut = Replace(wData, OldLineStr, NewLineStr);  'Automaticaly add a Cr LF to the ends of file for each time without ";"
-			'	Else
-			'		bufferOut = wData
-			'	End If
-			'	Print #Fn, bufferOut;
 			Else
 				If NewLineStr <> OldLineStr Then
 					Print #Fn, Replace(wData, OldLineStr, NewLineStr);  'Automaticaly add a Cr LF to the ends of file for each time without ";"
@@ -1493,12 +1491,13 @@ End Function
 			CloseFile_(Fn)
 			Return True
 		Else
-			Debug.Print Date + " " + Time + Chr(9) + __FUNCTION__ +  " Line: " + Str( __LINE__) + Chr(9) + "Save file failure: " + FileName, True
+			Debug.Print ML("in function") + " " +  __FUNCTION__ + " " +  ML("in Line") + " " + Str( __LINE__) + Chr(9) +  "Save file failure: " + FileName, True
 			CloseFile_(Fn)
 			Return False
 		End If
 	End Function
 #endif
+
 
 Function ByteToString(ByVal Src As UByte Ptr, ByVal Size As Long) As String
 	Dim As String Dest = String(Size, 0)
@@ -1512,6 +1511,7 @@ End Function
 '    Fb_MemCopy(Dest[0], @Src(0), Size)
 '    Return Dest
 'End Function
+
 #ifdef __EXPORT_PROCS__
 	Function ApplicationMainForm Alias "ApplicationMainForm" (App As My.Application Ptr) As My.Sys.Forms.Control Ptr __EXPORT__
 		Return App->MainForm
