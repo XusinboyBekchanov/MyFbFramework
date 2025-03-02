@@ -20,7 +20,8 @@ Namespace My.Sys.Forms
 		sbHorizontal, sbVertical
 	End Enum
 	
-	'Provides a horizontal and a vertical scroll bar for easy navigation through long lists of items.
+	'`ScrollBarControl` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`ScrollBarControl` - Provides a horizontal and a vertical scroll bar for easy navigation through long lists of items.
 	Private Type ScrollBarControl Extends Control
 	Private:
 		FStyle      	As ScrollBarControlStyle
@@ -41,30 +42,41 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off
+			'Loads properties from persistence stream
 			Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves properties to persistence stream
 			Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property Style As ScrollBarControlStyle
+		'Visual style (Flat/Classic/Modern)
 		Declare Property Style(Value As ScrollBarControlStyle)
 		Declare Property MinValue As Integer
+		'Minimum position value of the scroll range
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer
+		'Maximum position value of the scroll range
 		Declare Property MaxValue(Value As Integer)
 		Declare Property ArrowChangeSize As Integer
+		'Gets/sets the step value when clicking scroll arrows (default 1)
 		Declare Property ArrowChangeSize(Value As Integer)
 		Declare Property PageSize As Integer
+		'Size of the visible portion (affects scroll thumb length)
 		Declare Property PageSize(Value As Integer)
 		Declare Property Position As Integer
+		'Current scroll position within MinValue-MaxValue
 		Declare Property Position(Value As Integer)
 		Declare Property TabIndex As Integer
+		'Controls focus order in tab sequence
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Determines if control accepts focus via Tab key
 		Declare Property TabStop(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
+		'Raised when scroll position changes
 		OnScroll As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ScrollBarControl, ByRef NewPos As Integer)
 	End Type
 End Namespace

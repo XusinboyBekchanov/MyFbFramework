@@ -68,7 +68,8 @@ Namespace My.Sys.Forms
 		hsNormal = 0, hsOwnerDraw
 	End Enum
 	
-	'A header control is a window that is usually positioned above columns of text or numbers.
+	'`Header` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`Header` - A header control is a window that is usually positioned above columns of text or numbers.
 	Private Type Header Extends Control
 	Private:
 		FStyle            As HeaderStyle
@@ -107,51 +108,84 @@ Namespace My.Sys.Forms
 		Declare Sub Init()
 	Public:
 		#ifndef ReadProperty_Off
+			'Loads persisted section configuration
 			Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves section configuration
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Image list resource for section graphics
 		Images            As ImageList Ptr
 		Declare Property Style As HeaderStyle
+		'Visual appearance (Flat/Button-style)
 		Declare Property Style(Value As HeaderStyle)
 		Declare Property HotTrack As Boolean
+		'Highlights sections on mouse hover
 		Declare Property HotTrack(Value As Boolean)
 		Declare Property FullDrag As Boolean
+		'Enables live dragging visual feedback
 		Declare Property FullDrag(Value As Boolean)
 		Declare Property DragReorder As Boolean
+		'Enables drag-and-drop section reordering
 		Declare Property DragReorder(Value As Boolean)
 		Declare Property Resizable As Boolean
+		'Allows user column resizing
 		Declare Property Resizable(Value As Boolean)
 		Declare Property SectionCount As Integer
+		'Total number of header sections
 		Declare Property SectionCount(Value As Integer)
+		'Access individual section properties by index
 		Declare Property Section(Index As Integer) As HeaderSection Ptr
+		'Access individual section properties by index
 		Declare Property Section(Index As Integer, Value As HeaderSection Ptr)
+		'Text labels collection for header sections
 		Declare Property Captions(Index As Integer) ByRef As WString
+		'Text labels collection for header sections
 		Declare Property Captions(Index As Integer, ByRef Value As WString)
+		'Width values for each section
 		Declare Property Widths(Index As Integer) As Integer
+		'Width values for each section
 		Declare Property Widths(Index As Integer, Value As Integer)
+		'Text alignment for each section (Left/Center/Right)
 		Declare Property Alignments(Index As Integer) As Integer
+		'Text alignment for each section (Left/Center/Right)
 		Declare Property Alignments(Index As Integer, Value As Integer)
+		'Image list indices for section icons
 		Declare Property ImageIndexes(Index As Integer) As Integer
+		'Image list indices for section icons
 		Declare Property ImageIndexes(Index As Integer, Value As Integer)
 		Declare Operator Cast As Control Ptr
+		'Appends new header section
 		Declare Function AddSection(ByRef FCaption As WString = "", FImageIndex As Integer = -1, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
+		'Appends new header section
 		Declare Function AddSection(ByRef FCaption As WString = "", ByRef FImageKey As WString, FWidth As Integer = -1, FAlignment As Integer = 0, bResizable As Boolean = True) As HeaderSection Ptr
+		'Adds multiple sections at once
 		Declare Sub AddSections cdecl(FCount As Integer, ...)
+		'Deletes specified section
 		Declare Sub RemoveSection(Index As Integer)
+		'Refreshes header display
 		Declare Sub UpdateItems
 		Declare Constructor
 		Declare Destructor
+		'Section header click detection
 		OnSectionClick      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
+		'Section header double-click detection
 		OnSectionDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, Index As Integer, MouseButton As Integer)
+		'Triggered after section modification completes
 		OnChange            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		'Triggered before section changes occur
 		OnChanging          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, ByRef Cancel As Boolean)
+		'Raised when user starts resizing a section
 		OnBeginTrack        As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		'Raised after section resizing completes
 		OnEndTrack          As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		'Continuous tracking during resizing
 		OnTrack             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection)
+		'Double-click detection on section divider
 		OnDividerDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, Index As Integer, MouseButton As Integer)
 		#ifndef __USE_GTK__
+			'Custom section painting event
 			OnDrawSection   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Header, ByRef Section As HeaderSection, R As My.Sys.Drawing.Rect, State As Integer)
 		#endif
 	End Type

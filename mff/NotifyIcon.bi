@@ -44,27 +44,44 @@ Namespace My.Sys.Forms
 				hBalloonIcon As HICON
 			End Type
 		#else
+			'`NOTIFYICONDATANEW` - Encapsulates extended system tray icon configuration and notification data for Windows Shell integration.
 			Type NOTIFYICONDATANEW Field = 1
+				'Structure size in bytes (auto-calculated)
 				cbSize As DWORD
+				'Owner window handle
 				hWnd As HWND
+				'Application-defined tray icon ID
 				uID As UINT
+				'Field validity flags (NIF_*)
 				uFlags As UINT
+				'Custom message ID for notifications
 				uCallbackMessage As UINT
+				'Tray icon image handle
 				hIcon As HICON
+				'Tooltip text (max 128 chars)
 				szTip As WString * 128
+				'Icon state flags (NIS_*)
 				dwState As DWORD
+				'Mask for valid state flags
 				dwStateMask As DWORD
+				'Balloon notification message text
 				szInfo As WString * 256
 				
 				Union field = 1
+					'Balloon timeout in milliseconds
 					uTimeout As UINT
+					'Shell notification version (NOTIFYICON_VERSION_*)
 					uVersion As UINT
 				End Union
 				
+				'Balloon notification title
 				szInfoTitle As WString * 64
+				'Balloon icon type flags (NIIF_*)
 				dwInfoFlags As DWORD
+				'Globally unique icon identifier
 				guidItem As GUID
 				
+				'Custom balloon icon handle
 				hBalloonIcon As HICON
 			End Type
 		#endif

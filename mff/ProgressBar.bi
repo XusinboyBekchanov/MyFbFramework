@@ -20,7 +20,8 @@ Namespace My.Sys.Forms
 		pbHorizontal, pbVertical
 	End Enum
 	
-	'A progress bar is a window that an application can use to indicate the progress of a lengthy operation.
+	'`ProgressBar` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`ProgressBar` - A progress bar is a window that an application can use to indicate the progress of a lengthy operation.
 	Private Type ProgressBar Extends Control
 	Private:
 		FMode32      As Boolean
@@ -50,29 +51,42 @@ Namespace My.Sys.Forms
 		#endif
 	Public:
 		#ifndef ReadProperty_Off
+			'Loads configuration from persistence stream
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves configuration to persistence stream
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property MinValue As Integer
+		'Minimum value of progress range
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer
+		'Maximum value of progress range
 		Declare Property MaxValue(Value As Integer)
 		Declare Property Position As Integer
+		'Current progress value between Min-Max
 		Declare Property Position(Value As Integer)
 		Declare Property StepValue As Integer
+		'Increment value for StepIt method
 		Declare Property StepValue(Value As Integer)
 		Declare Property Smooth As Boolean
+		'Enables smooth gradual filling
 		Declare Property Smooth(Value As Boolean)
 		Declare Property Marquee As Boolean
+		'Enables indefinite progress animation mode
 		Declare Property Marquee(Value As Boolean)
 		Declare Property Orientation As ProgressBarOrientation
+		'Display direction (Vertical/Horizontal)
 		Declare Property Orientation(Value As ProgressBarOrientation)
 		Declare Operator Cast As Control Ptr
+		'Starts marquee animation with specified speed
 		Declare Sub SetMarquee(MarqueeOn As Boolean, Interval As Integer)
+		'Terminates marquee animation
 		Declare Sub StopMarquee
+		'Advances position by StepValue
 		Declare Sub StepIt
+		'Advances position by custom delta
 		Declare Sub StepBy(Delta As Integer)
 		Declare Constructor
 		Declare Destructor

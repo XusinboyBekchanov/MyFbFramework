@@ -14,7 +14,8 @@
 Namespace My.Sys.Forms
 	#define QCheckedListBox(__Ptr__) (*Cast(CheckedListBox Ptr,__Ptr__))
 	
-	'Displays a ListBox in which a check box is displayed to the left of each item.
+	'`CheckedListBox` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`CheckedListBox` - Displays a ListBox in which a check box is displayed to the left of each item.
 	Private Type CheckedListBox Extends ListControl
 	Private:
 		FRadioCheck As Boolean
@@ -32,18 +33,27 @@ Namespace My.Sys.Forms
 		#endif
 	Public:
 		#ifndef ReadProperty_Off
+			'Loads persisted check states
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Persists check states to storage
 			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Gets/Sets checked state of specific item
 		Declare Property Checked(Index As Integer) As Boolean
+		'Gets/Sets checked state of specific item
 		Declare Property Checked(Index As Integer, Value As Boolean)
 		Declare Property RadioCheck As Boolean
+		'Uses radio buttons instead of checkboxes
 		Declare Property RadioCheck(Value As Boolean)
+		'Adds new item with check state
 		Declare Sub AddItem(ByRef FItem As WString, Obj As Any Ptr = 0)
+		'Inserts checked item at position
 		Declare Sub InsertItem(FIndex As Integer, ByRef FItem As WString, Obj As Any Ptr = 0)
+		'Saves items with check states to file
 		Declare Sub SaveToFile(ByRef FileName As WString)
+		'Loads items with check states from file
 		Declare Sub LoadFromFile(ByRef FileName As WString)
 		Declare Constructor
 		Declare Destructor

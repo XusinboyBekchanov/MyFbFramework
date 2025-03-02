@@ -24,7 +24,8 @@ Namespace My.Sys.Forms
 		sbNone, sbSimple, sbSunken
 	End Enum
 	
-	'Displays text that a user can't change directly.
+	'`Label` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`Label` - Displays text that a user can't change directly.
 	Private Type Label Extends Control
 	Private:
 		FBorder           As Integer
@@ -52,36 +53,51 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub SetAutoSize
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		'Image/icon displayed alongside text
 		Graphic            As My.Sys.Drawing.GraphicType
 		#ifndef ReadProperty_Off
+			'Loads properties from persistence stream
 			Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves properties to persistence stream
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property Alignment As AlignmentConstants
+		'Sets text alignment (Left/Center/Right)
 		Declare Property Alignment(Value As AlignmentConstants)
 		Declare Property AutoSize As Boolean
+		'Automatically adjusts width/height to fit content
 		Declare Property AutoSize(Value As Boolean)
 		Declare Property Border As Integer 'LabelBorder
+		'Controls border style (None/Single/Double)
 		Declare Property Border(Value As Integer)
 		Declare Property Caption ByRef As WString
+		'Legacy text property (use Text instead)
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property CenterImage As Boolean
+		'Centers graphic content within label area
 		Declare Property CenterImage(Value As Boolean)
 		Declare Property RealSizeImage As Boolean
+		'Displays images at original pixel dimensions
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property Style As Integer 'LabelStyle
+		'Visual style (Flat/3D/RaisedBorder)
 		Declare Property Style(Value As Integer)
 		Declare Property TabIndex As Integer
+		'Position in tab navigation order
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Enables/disables focus via Tab key (default False)
 		Declare Property TabStop(Value As Boolean)
 		Declare Property Text ByRef As WString
+		'Primary display content string
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Transparent As Boolean
+		'Makes background inherit parent's color
 		Declare Property Transparent(Value As Boolean)
 		Declare Property WordWraps As Boolean
+		'Enables automatic text line wrapping
 		Declare Property WordWraps(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor

@@ -112,7 +112,8 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
-	'Represents a control that displays hierarchical data in a tree structure that has items that can expand and collapse.
+	'`TreeView` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`TreeView` - Represents a control that displays hierarchical data in a tree structure that has items that can expand and collapse.
 	Private Type TreeView Extends Control
 	Private:
 		'FNodes        As List
@@ -148,44 +149,70 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off
+			'Loads persisted tree structure
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves tree configuration
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Image list for normal node icons
 		Images          As ImageList Ptr
+		'Image list for selected node icons
 		SelectedImages  As ImageList Ptr
+		'Root node collection of the tree
 		Nodes           As TreeNodeCollection
 		Declare Property TabIndex As Integer
+		'Tab navigation order index
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Enables Tab key navigation
 		Declare Property TabStop(Value As Boolean)
+		'Collapses all expanded nodes
 		Declare Sub CollapseAll
+		'Expands all collapsible nodes
 		Declare Sub ExpandAll
 		Declare Property EditLabels As Boolean
+		'Enables in-place editing of node text
 		Declare Property EditLabels(Value As Boolean)
 		Declare Property HideSelection As Boolean
+		'Hides selection highlight when control loses focus
 		Declare Property HideSelection(Value As Boolean)
 		Declare Property Sorted As Boolean
+		'Auto-sorts sibling nodes alphabetically
 		Declare Property Sorted(Value As Boolean)
 		Declare Property ShowHint As Boolean
+		'Displays tooltips for truncated node text
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property SelectedNode As TreeNode Ptr
+		'Currently highlighted tree node
 		Declare Property SelectedNode(Value As TreeNode Ptr)
+		'Returns node being dragged during OLE operations
 		Declare Function DraggedNode As TreeNode Ptr
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
+		'Raised when node is activated via keyboard
 		OnNodeActivate    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		'Triggered on mouse click node selection
 		OnNodeClick       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		'Double-click node detection
 		OnNodeDblClick    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		'Before node collapse occurs
 		OnNodeCollapsing  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+		'After node collapse completes
 		OnNodeCollapsed   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		'Before node expansion occurs
 		OnNodeExpanding   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+		'After node expansion completes
 		OnNodeExpanded    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		'Before selection changes
 		OnSelChanging     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+		'After selection changes
 		OnSelChanged      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
+		'Triggered before node text editing begins
 		OnBeforeLabelEdit As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
+		'Raised after node text editing completes
 		OnAfterLabelEdit  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
 	End Type
 End Namespace
