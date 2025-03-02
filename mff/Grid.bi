@@ -104,6 +104,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
+	'`GridColumn` - Defines the visual and behavioral properties of a column within a grid control.
 	Private Type GridColumn Extends My.Sys.Object
 	Private:
 		FText          As WString Ptr
@@ -119,33 +120,49 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTreeViewColumn Ptr Column
 		#endif
+		'Ordinal position within parent grid columns
 		Index As Integer
+		'Reference to containing grid control
 		Parent As Control Ptr
+		'User-defined object storage
 		Tag As Any Ptr
+		'Programmatically selects all cells in column
 		Declare Sub SelectItem
 		Declare Property Text ByRef As WString
+		'Column header display text
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Hint ByRef As WString
+		'Tooltip text displayed on column header hover
 		Declare Property Hint(ByRef Value As WString)
 		Declare Property ImageIndex As Integer
+		'Index of associated icon in parent's ImageList
 		Declare Property ImageIndex(Value As Integer)
 		Declare Property Visible As Boolean
+		'Controls column visibility
 		Declare Property Visible(Value As Boolean)
 		Declare Property Editable As Boolean
+		'Enables in-cell editing for this column
 		Declare Property Editable(Value As Boolean)
 		Declare Property BackColor As Integer
+		'Background color for column cells
 		Declare Property BackColor(Value As Integer)
 		Declare Property ForeColor As Integer
+		'Text color for column content
 		Declare Property ForeColor(Value As Integer)
 		Declare Property Width As Integer
+		'Column display width in pixels
 		Declare Property Width(Value As Integer)
 		Declare Property Format As ColumnFormat
+		'Data formatting string (e.g., currency/datetime patterns)
 		Declare Property Format(Value As ColumnFormat)
+		'Refreshes column display properties
 		Declare Sub Update()
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
 		Declare Destructor
+		'Triggered when column header is clicked
 		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+		'Raised on column header double-click
 		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
@@ -157,6 +174,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
 		#endif
+		'Reference to containing grid control
 		Parent          As Control Ptr
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
@@ -166,6 +184,7 @@ Namespace My.Sys.Forms
 		Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
 		Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, InsertBefore As Boolean = True, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, DuplicateIndex As Integer = -1) As GridRow Ptr
 		Declare Sub Remove(Index As Integer)
+		'Ordinal position within parent grid columns
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
 		Declare Sub Sort(ColumnIndex As Integer = 0, Direction As SortStyle = SortStyle.ssSortAscending, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
@@ -183,6 +202,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub Check(cell As GtkCellRendererToggle Ptr, path As gchar Ptr, user_data As Any Ptr)
 		#endif
 	Public:
+		'Reference to containing grid control
 		Parent  As Control Ptr
 		Declare Property Count As Integer
 		Declare Property Count(Value As Integer)
@@ -191,6 +211,7 @@ Namespace My.Sys.Forms
 		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = 100, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False, ColBackColor As Integer = -1, ColForeColor As Integer = -1) As GridColumn Ptr
 		Declare Sub Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, InsertBefore As Boolean = True, ColEditable As Boolean = False, ColBackColor As Integer = -1, ColForeColor As Integer = -1, DuplicateIndex As Integer = -1)
 		Declare Sub Remove(Index As Integer)
+		'Ordinal position within parent grid columns
 		Declare Function IndexOf(ByRef FColumn As GridColumn Ptr) As Integer
 		Declare Sub Clear
 		Declare Operator [](Index As Integer) ByRef As GridColumn
@@ -199,7 +220,9 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	'Defines a flexible grid area that consists of columns and rows.
+	'`Grid` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`Grid` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`Grid` - Defines a flexible grid area that consists of columns and rows.
 	Private Type Grid Extends Control
 	Private:
 		FAllowColumnReorder As Boolean
@@ -282,84 +305,131 @@ Namespace My.Sys.Forms
 			Declare Virtual Function GetContent() As UString
 		#endif
 	Public:
+		'Removes all rows and columns.
 		Declare Sub Clear()
+		'Collection of data rows.
 		Rows                   As GridRows
+		'Collection of column definitions.
 		Columns                As GridColumns
+		'Primary image list for row icons.
 		Images                 As ImageList Ptr
+		'Image list for selected state icons.
 		SelectedImages         As ImageList Ptr
+		'Image list for small-sized icons.
 		SmallImages            As ImageList Ptr
+		'Image list for row state indicators.
 		StateImages            As ImageList Ptr
+		'Image list for group headers.
 		GroupHeaderImages      As ImageList Ptr
 		#ifndef ReadProperty_Off
+			'Loads persisted properties.
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Persists properties to storage.
 			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Access cell content by row/column.
 		Declare Function Cells(RowIndex As Integer, ColumnIndex As Integer) As GridCell Ptr
 		Declare Property AllowEdit As Boolean
+		'Allows in-cell content editing.
 		Declare Property AllowEdit(Value As Boolean)
 		Declare Property AllowColumnReorder As Boolean
+		'Enables drag-and-drop column reordering.
 		Declare Property AllowColumnReorder(Value As Boolean)
 		Declare Property ColumnHeaderHidden As Boolean
+		'Hides column headers when enabled.
 		Declare Property ColumnHeaderHidden(Value As Boolean)
 		Declare Property FullRowSelect As Boolean
+		'Selects entire row on click.
 		Declare Property FullRowSelect(Value As Boolean)
 		Declare Property OwnerData As Boolean
+		'Enables virtual data population mode.
 		Declare Property OwnerData(Value As Boolean)
 		Declare Property ColorSelected As Integer
+		'Highlight color for selected rows/cells.
 		Declare Property ColorSelected(Value As Integer)
 		Declare Property ColorEditBack As Integer
+		'Background color for edit mode cells.
 		Declare Property ColorEditBack(Value As Integer)
 		Declare Property ColorEditFore As Integer
+		'Text color for edit mode cells.
 		Declare Property ColorEditFore(Value As Integer)
 		Declare Property ColorLine As Integer
+		'Color of grid separator lines.
 		Declare Property ColorLine(Value As Integer)
 		Declare Property HoverTime As Integer
+		'Hover detection delay (ms).
 		Declare Property HoverTime(Value As Integer)
 		Declare Property GridLines As Boolean
+		'Toggles row/column separator lines.
 		Declare Property GridLines(Value As Boolean)
 		Declare Property ShowHint As Boolean
+		'Controls tooltip visibility.
 		Declare Property ShowHint(Value As Boolean)
 		Declare Property SortIndex As Integer
+		'Index of sorted column.
 		Declare Property SortIndex(Value As Integer)
 		Declare Property SortOrder As SortStyle
+		'Sort direction (Ascending/Descending).
 		Declare Property SortOrder(Value As SortStyle)
 		Declare Property SelectedRow As GridRow Ptr
+		'Currently highlighted row object.
 		Declare Property SelectedRow(Value As GridRow Ptr)
 		Declare Property SelectedRowIndex As Integer
+		'Index of selected row (-1 if none).
 		Declare Property SelectedRowIndex(Value As Integer)
 		Declare Property SelectedColumn As GridColumn Ptr
+		'Currently focused column object.
 		Declare Property SelectedColumn(Value As GridColumn Ptr)
 		Declare Property SelectedColumnIndex As Integer
+		'Index of selected column (-1 if none).
 		Declare Property SelectedColumnIndex(Value As Integer)
 		Declare Property SingleClickActivate As Boolean
+		'Activates rows with single click.
 		Declare Property SingleClickActivate(Value As Boolean)
 		Declare Property TabIndex As Integer
+		'Tab navigation order index.
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Enables Tab key navigation.
 		Declare Property TabStop(Value As Boolean)
 		'Gets or sets a value indicating whether an row is automatically selected when the mouse pointer remains over the item for a few seconds.
 		Declare Property HoverSelection As Boolean
 		Declare Property HoverSelection(Value As Boolean)
 		Declare Operator [](RowIndex As Integer) ByRef As GridRow
 		Declare Operator Cast As Control Ptr
+		'Saves grid data to file.
 		Declare Sub SaveToFile(ByRef FileName As WString)
+		'Loads grid data from file.
 		Declare Sub LoadFromFile(ByRef FileName As WString)
+		'Scrolls to make cell visible.
 		Declare Sub EnsureVisible(Index As Integer)
 		Declare Constructor
 		Declare Destructor
+		'Raised on column header click.
 		OnColumnClick           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal ColIndex As Integer)
+		'Triggered on row activation.
 		OnRowActivate           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		'Raised on row click.
 		OnRowClick              As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		'Raised on row double-click.
 		OnRowDblClick           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		'Keyboard input on focused row.
 		OnRowKeyDown            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, Key As Integer, Shift As Integer)
+		'Raised before selection changes.
 		OnSelectedRowChanging   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, ByRef Cancel As Boolean)
+		'Raised after selection changes.
 		OnSelectedRowChanged    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
+		'Raised when scrolling starts.
 		OnBeginScroll           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid)
+		'Raised when scrolling completes.
 		OnEndScroll             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid)
+		'Triggered after cell edit completion.
 		OnCellEdited            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
+		'Virtual mode data prefetch notification.
 		OnCacheHint             As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
+		'Virtual mode data request event.
 		OnGetDispInfo           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As ULong)
 	End Type
 End Namespace

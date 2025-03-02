@@ -28,7 +28,8 @@ Namespace My.Sys.Forms
 		tsNone, tsAuto, tsManual
 	End Enum
 	
-	'A trackbar is a window that contains a slider (sometimes called a thumb) in a channel, and optional tick marks.
+	'`TrackBar` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`TrackBar` - A trackbar is a window that contains a slider (sometimes called a thumb) in a channel, and optional tick marks.
 	Private Type TrackBar Extends Control
 	Private:
 		FPosition         As Integer
@@ -58,46 +59,66 @@ Namespace My.Sys.Forms
 		Declare Sub SetRanges(APosition As Integer, AMin As Integer, AMax As Integer)
 	Public:
 		#ifndef ReadProperty_Off
+			'Deserializes properties from stream
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Serializes properties to stream
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property MinValue As Integer
+		'Gets/sets the minimum range value
 		Declare Property MinValue(Value As Integer)
 		Declare Property MaxValue As Integer
+		'Gets/sets the maximum range value
 		Declare Property MaxValue(Value As Integer)
 		Declare Property Position  As Integer
+		'Gets/sets the current slider position
 		Declare Property Position(Value As Integer)
 		Declare Property LineSize  As Integer
+		'Gets/sets the step value for arrow key navigation
 		Declare Property LineSize(Value As Integer)
 		Declare Property PageSize  As Integer
+		'Gets/sets the scroll page size (thumb drag distance)
 		Declare Property PageSize(Value As Integer)
 		Declare Property Frequency As Integer
+		'Sets the interval between regular tick marks
 		Declare Property Frequency(Value As Integer)
 		Declare Property TabIndex As Integer
+		'Gets/sets tab navigation order
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Determines if control accepts focus via Tab key
 		Declare Property TabStop(Value As Boolean)
 		Declare Property ThumbLength  As Integer
+		'Gets/sets the length of the slider thumb
 		Declare Property ThumbLength(Value As Integer)
 		Declare Property SelStart  As Integer
+		'Gets/sets the start position of a selection range
 		Declare Property SelStart(Value As Integer)
 		Declare Property SelEnd As Integer
+		'Gets/sets the end position of a selection range
 		Declare Property SelEnd(Value As Integer)
 		Declare Property SliderVisible As Boolean
+		'Controls visibility of the slider thumb
 		Declare Property SliderVisible(Value As Boolean)
 		Declare Property TickStyle As TickStyles
+		'Configures tick display mode (None/Auto/Manual)
 		Declare Property TickStyle(Value As TickStyles)
 		Declare Property TickMark As TickMarks
+		'Sets tick mark position (Top/Bottom/Left/Right)
 		Declare Property TickMark(Value As TickMarks)
 		Declare Property Style As TrackBarOrientation
+		'Sets orientation (Horizontal/Vertical)
 		Declare Property Style(Value As TrackBarOrientation) ' TrackBarOrientation
+		'Adds a custom tick mark at specified position
 		Declare Sub AddTickMark(Value As Integer)
+		'Removes all custom tick marks
 		Declare Sub ClearTickMarks
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
+		'Triggered when slider position changes
 		OnChange As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer)
 	End Type
 End Namespace

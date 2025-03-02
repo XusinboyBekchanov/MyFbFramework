@@ -24,7 +24,8 @@ Namespace My.Sys.Forms
 		alBottom
 	End Enum
 	
-	'Represents a splitter control that enables the user to resize docked controls.
+	'`Splitter` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`Splitter` - Represents a splitter control that enables the user to resize docked controls.
 	Private Type Splitter Extends Control
 	Private:
 		FOldParentProc  As Any Ptr
@@ -40,20 +41,27 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off
+			'Deserializes properties from persistence stream
 			Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Serializes properties to persistence stream
 			Declare Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		#ifdef __USE_GTK__
 			Dim As Boolean bCursor
 		#endif
+		'Sets minimum space required on both sides of the splitter
 		MinExtra As Integer
 		Declare Operator Cast As Control Ptr
 		Declare Property Align As SplitterAlignmentConstants
+		'Determines splitter orientation and docking behavior (Left/Right/Top/Bottom)
 		Declare Property Align(Value As SplitterAlignmentConstants)
+		'Allows custom splitter appearance rendering
 		OnPaint As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Splitter)
+		'Raised during active resizing operations
 		OnMoving As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Splitter)
+		'Triggered after splitter completes resizing
 		OnMoved As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Splitter)
 		Declare Constructor
 		Declare Destructor

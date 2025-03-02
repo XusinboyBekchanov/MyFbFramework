@@ -166,8 +166,8 @@ End Sub
 		Else
 			WLet(TempWStr, WGet(subject) & txt)
 		End If
-		WLet(subject, *TempWStr)
-		WDeAllocate(TempWStr)
+		WDeAllocate(subject)
+		subject = TempWStr
 	End Sub
 #endif
 
@@ -294,7 +294,7 @@ End Function
 	'	Return count
 	'End Function
 	
-	'Returns a string, which is a substring of a string expression beginning at the start position (defaults to 1), in which a specified substring has been replaced with another substring a specified number of times.
+	
 	'
 	'Parameters
 	'   Expression
@@ -309,39 +309,8 @@ End Function
 	'       Number of substring substitutions to perform. If omitted, the default value is -1, which means, make all possible substitutions.
 	'   MatchCase
 	'       Boolean value indicating the kind of comparison to use when evaluating substrings.
-	'
-	'Return Value
-	'   '''Replace''' returns the following values:
-	'   {|
-	'   |'''If'''||'''Replace returns'''
-	'   |-
-	'   |''Expression'' is zero-length||Zero-length string ("")
-	'   |-
-	'   |''Expression'' is '''NULL'''||An error.
-	'   |-
-	'   |''FindingText'' is zero-length||Copy of ''Expression''.
-	'   |-
-	'   |''ReplacingText'' is zero-length||Copy of ''Expression'' with all occurrences of ''FindingText'' removed.
-	'   |-
-	'   |''Start'' > '''Len'''(''Expression'')||Zero-length string. String replacement begins at the position indicated by ''Start''.
-	'   |-
-	'   |''Count'' is 0||Copy of ''Expression''.
-	'   |}
-	'
-	'Remarks
-	'   The Return value of the '''Replace''' function is a string, with substitutions made, that begins at the position specified by ''Start'' and concludes at the End of the ''Expression'' string. It's not a copy of the original string from start to finish.
-	'
-	'Example
-	'   #include "mff/UString.bi"
-	'
-	'   Dim strFull As String = "My name is Adam"
-	'
-	'   Print Replace(strFull, "Adam", "Victor")
-	'
-	'   Sleep
-	'
-	'See also
-	'   Split
+	
+	'Returns a string, which is a substring of a string expression beginning at the start position (defaults to 1), in which a specified substring has been replaced with another substring a specified number of times.
 	Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByVal Count As Integer = -1, MatchCase As Boolean = True, ByRef CountReplaced As Integer = 0) As UString
 		If Len(FindingText) = 0 Then Return Expression
 		Dim As WString Ptr original, find
@@ -508,7 +477,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	'#endif
 End Function
 
-Private Function FromUtf8(pZString As ZString Ptr) As UString
+Private Function FromUtf8(pZString As ZString Ptr) As WString Ptr
 	'	#ifdef __USE_GTK__
 	'		Return g_locale_from_utf8(*pZString, Len(*pZString), 0, 0, 0)
 	'	#else
@@ -517,13 +486,141 @@ Private Function FromUtf8(pZString As ZString Ptr) As UString
 	'UTF-16 big-endian: FE FF
 	'UTF-32 little-endian: FF FE 00 00
 	'UTF-32 big-endian: 00 00 FE FF
-	Dim m_BufferLen As Integer = IIf(pZString <> 0, Len(*pZString) + 1, 0)
-	If m_BufferLen = 0 Then Return ""
-	Dim As UString res
-	res.Resize m_BufferLen
-	Dim As WString Ptr buffer = res.vptr
+ 	Dim m_BufferLen As Integer = IIf(pZString <> 0, Len(*pZString) + 1, 0)
+	If m_BufferLen = 0 Then Return 0
+	Dim As WString Ptr buffer
+	WReAllocate(buffer, m_BufferLen)
 	*buffer = String(m_BufferLen, 0)
-	Return WGet(UTFToWChar(1, pZString, buffer, @m_BufferLen))
+	Return UTFToWChar(1, pZString, buffer, @m_BufferLen)
+End Function
+
+Function FromHexStrUnicode(ByRef HexString As WString) As String
+	If InStr(HexString, "\u") < 1 OrElse HexString = "" Then Return HexString
+	Dim As WString Ptr Result
+	Dim As Integer codePoint, iStart, iLen = Len(HexString)
+	iStart = InStr(HexString, "!")
+	If iStart > 0 Then WLet(Result, Mid(HexString, 1, iStart - 1) & Chr(34)) Else iStart = 0
+	For i As Integer = iStart To iLen - 1
+		If HexString[i] = 92 AndAlso HexString[i + 1] = 117 AndAlso ((HexString[i + 3] > 47 AndAlso HexString[i + 3] < 58) OrElse (HexString[i + 3] > 64 AndAlso HexString[i + 3] < 91)) Then 'Asc("u")
+			codePoint = Val("&h" & Chr(HexString[2 + i]) & Chr(HexString[3 + i]) & Chr(HexString[4 + i]) & Chr(HexString[5 + i]))
+			If codePoint < 32 Then  codePoint = 32
+			WAdd(Result, WChr(codePoint))
+			i += 5
+		Else
+			If i > iStart Then WAdd(Result, WChr(HexString[i]))
+		End If
+	Next
+	Function = *Result
+	Deallocate Result
+End Function
+
+Function ToHexStrUnicode(ByRef iString As WString) As String
+	If Len(iString) = 0 Then Return ""
+	Dim rr As String = "!"""
+	Dim As Integer iStart = 0, i
+	'Skip it if the first letter is chr(34)
+	iStart = InStr(iString, Chr(34))
+	If iStart > 0 Then rr = Mid(iString, 1, iStart - 1) & "!""" Else iStart = 0
+	For i = iStart To Len(iString) - 1
+		rr &= "\u" & Hex(iString[i], 4)
+		If iString[i + 1] = 34 Then
+			i += 1
+			rr &= Mid(iString, i + 1)
+			Return rr
+		End If
+	Next
+	rr &= """" & Mid(iString, i + 1)
+	Return rr
+End Function
+
+Function FromHexStrUTF8(ByRef HexString As WString) As String
+	If HexString = "" Then Return ""
+	Dim As Integer IPos2, iPos1, iPos = InStr(HexString, "CH_"), iLen = Len(HexString)
+	If iPos < 1 OrElse iLen < 6 OrElse iPos > iLen - 4 Then Return HexString
+	If HexString[iPos + 2] = 95 OrElse HexString[iPos + 3] = 95 Then Return HexString
+	iPos1 = InStr(iPos + 4, HexString, "_")
+	If iPos1 < 1 Then Return HexString
+	IPos2 = InStr(iPos + 1, HexString, Any ".# ->=+-*/\()[]{},?'""^&!$@")
+	'Print "IPos2 < iPos1", IPos2, iPos1, iPos
+	If IPos2 > 0 AndAlso IPos2 < iPos1 Then Return HexString
+	Dim As Integer codePoint, iStart, byteCount
+	Dim As ZString Ptr ResultUTF8Ptr = Allocate((iLen * 2 + 1) * SizeOf(ZString))
+	Dim As WString Ptr Result
+	Dim As Boolean bFlag
+	For i As Integer = 0 To iLen - 1
+		If HexString[i] < 32 Then HexString[i] = 32
+		If bFlag = False AndAlso HexString[i] = 67 AndAlso HexString[i + 1] = 72 AndAlso HexString[i + 2] = 95 AndAlso InStr(i + 3, HexString, "_") > 0 AndAlso HexString[i + 4] < 127 AndAlso HexString[i + 4] > 47 Then
+			WAdd(Result, "_L_")
+			i += 2
+			bFlag = True
+			byteCount = 0
+			Continue For
+		End If
+		If bFlag Then
+			If HexString[i] = 95 Then 'Asc("_") Then
+				ResultUTF8Ptr[byteCount] = 0
+				ResultUTF8Ptr[byteCount + 1] = 0
+				WAdd(Result, FromUtf8(ResultUTF8Ptr) & "_")
+				i -= 1
+				bFlag = False
+			End If
+			ResultUTF8Ptr[byteCount] = Val("&h" + Chr(HexString[i]) & Chr(HexString[i + 1]))
+			byteCount += 1
+			i += 1
+		Else
+			WAdd(Result, WChr(HexString[i]))
+		End If
+		If HexString[i] = 0 Then Exit For
+	Next
+	Deallocate ResultUTF8Ptr
+	Function = *Result
+	Deallocate Result
+End Function
+
+Function ToHexStrUTF8(ByRef iString As WString) As String
+	If iString = "" Then Return ""
+	Dim As Integer IPos2, iPos1, iPos = InStr(iString, "_L_"), iLen = Len(iString)
+	If iPos < 1 OrElse iPos > iLen - 4 Then Return iString
+	If iString[iPos + 2] = 95 OrElse iString[iPos + 3] = 95 Then Return iString
+	iPos1 = InStr(iPos + 4, iString, "_")
+	If iPos1 < 1 Then Return iString
+	IPos2 = InStr(iPos + 1, iString, Any ".# ->=+-*/\()[]{},?'""^&!$@")
+	If IPos2 > 0 AndAlso IPos2 < iPos1 Then Return iString
+	
+	Dim As WString Ptr ResultUTF8Ptr, Result
+	Dim As String ResultUTF8 = ""
+	Dim As Integer iStart, byteCount
+	Dim As Boolean bFlag
+	For i As Integer = 0 To iLen
+		If bFlag = False AndAlso i < iLen - 3 AndAlso iString[i] = 67 AndAlso iString[i + 1] = 72 AndAlso iString[i + 2] = 95 AndAlso InStr(i + 3, iString, "_") > 0 AndAlso iString[i + 4] > 64 Then
+			WAdd(Result, "CH_")
+			WLet(ResultUTF8Ptr, String(iLen * 3, 0))
+			i += 2
+			bFlag = True
+			byteCount = 0
+			Continue For
+		End If
+		If bFlag Then
+			If iString[i] = 95 Then 'Asc("_") Then
+				ResultUTF8Ptr[byteCount] = 0
+				ResultUTF8 = ToUtf8(*ResultUTF8Ptr)
+				For j As Integer = 0 To Len(ResultUTF8) - 1
+					WAdd(Result, Hex(iString[j], 3))
+				Next
+				WAdd(Result, "_")
+				i -= 1
+				bFlag = False
+			End If
+			ResultUTF8Ptr[byteCount] = WChr(iString[i])
+			byteCount += 1
+		Else
+			WAdd(Result, WChr(iString[i]))
+		End If
+		If iString[i] = 0 Then Exit For
+	Next
+	Deallocate ResultUTF8Ptr
+	Function = *Result
+	Deallocate Result
 End Function
 
 Private Function ZGet(ByRef subject As ZString Ptr) As String
@@ -999,7 +1096,7 @@ End Function
 '   Split
 Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As Integer Size
-	Dim As Integer Lj = Max(LBound(Subject), 0)
+	Dim As Integer Lj = max(LBound(Subject), 0)
 	Dim As Integer Uj = UBound(Subject)
 	Dim As Integer ls = Len(Delimiter)
 	
@@ -1070,7 +1167,7 @@ End Function
 
 Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
 	Dim As Integer size
-	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
+	Dim As Integer lj = max(LBound(SubjectPtr), 0)
 	Dim As Integer uj = UBound(SubjectPtr)
 	Dim As Integer ls = Len(Delimiter)
 	
@@ -1107,7 +1204,7 @@ End Function
 
 Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As ZString Ptr
 	Dim As Integer size
-	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
+	Dim As Integer lj = max(LBound(SubjectPtr), 0)
 	Dim As Integer uj = UBound(SubjectPtr)
 	Dim As Integer ls = Len(Delimiter)
 	
@@ -1268,16 +1365,16 @@ End Function
 		#define CH_QUOTE 63 '' ASCII for ?
 		#define CH_MULT  42 '' ASCII for *
 		
-		If (*pattern)[0] = 0 Then 'AndAlso (*subject)[0] = 0 Then
+		If (*Pattern)[0] = 0 Then 'AndAlso (*subject)[0] = 0 Then
 			Return True
 		End If
 		
-		If (*pattern)[0] = CH_QUOTE OrElse (*pattern)[0] = (*Subject)[0] Then
-			Return Match(Subject + 1, pattern + 1)
+		If (*Pattern)[0] = CH_QUOTE OrElse (*Pattern)[0] = (*Subject)[0] Then
+			Return Match(Subject + 1, Pattern + 1)
 		End If
 		
-		If (*pattern)[0] = CH_MULT Then
-			Return Match(Subject, pattern + 1) OrElse Match(Subject + 1, pattern)
+		If (*Pattern)[0] = CH_MULT Then
+			Return Match(Subject, Pattern + 1) OrElse Match(Subject + 1, Pattern)
 		End If
 		
 		Return False
