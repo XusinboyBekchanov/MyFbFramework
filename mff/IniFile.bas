@@ -85,36 +85,56 @@ Private Function IniFile.KeyRemove(ByRef Section As WString, ByRef Key As WStrin
 	End If
 	Return False
 End Function
+
 Private Sub IniFile.Load(ByRef FileName As WString = "")
 	Dim Result As Integer = -1 'David Change
 	If FileName <> "" Then WLet(FFile, FileName)
-	FLines.Clear
-	Dim As Integer Fn = FreeFile_
-	'If Open(FileName For Input Encoding "utf-8" As #Fn) = 0 Then 'Line Input Not working fine in Ver 1.07 David Change
-	'If Open(File For Binary Access Read As #ff) = 0 Then 'Line Input working fine in this mode
-	Result = Open(*FFile For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(*FFile For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(*FFile For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(*FFile For Input As #Fn)
-	If Result = 0 Then
-		Dim Buff As WString * 1024 'David Change for V1.07 Line Input not working fine
-		While Not EOF(Fn)
-			Line Input #Fn, Buff
-			If Buff <> "" Then FLines.Add Buff
-		Wend
+	Dim As WString Ptr wData, LineBuff()
+	wData = LoadFromFile(*FFile, FFileEncoding, FNewLineType)
+	If Trim(*wData) = "" Then
+		Debug.Print ML("in function") + " " +  __FUNCTION__ + " " +  ML("in Line") + " " + Str( __LINE__) + Chr(9) + ML("Open file failure!") + Chr(9) + *FFile, True
+		Exit Sub
 	End If
-	CloseFile_(Fn)
+	Dim As String NewLineStr = Chr(13, 10)
+	If FNewLineType = NewLineTypes.WindowsCRLF  Then
+		NewLineStr = Chr(13, 10)
+	ElseIf FNewLineType = NewLineTypes.LinuxLF Then
+		NewLineStr = Chr(10)
+	ElseIf FNewLineType = NewLineTypes.MacOSCR Then
+		NewLineStr =  Chr(13)
+	Else
+		NewLineStr = Chr(13, 10)
+	End If
+	Split(*wData, NewLineStr, LineBuff())
+	FLines.Clear
+	For i As Integer = 0 To UBound(LineBuff)
+		FLines.Add *LineBuff(i)
+		_Deallocate(LineBuff(i))
+	Next i
+	Erase LineBuff
+	_Deallocate(wData)
 End Sub
 
 Private Sub IniFile.Update
-	'If Open(File For Binary Access Write As #Fn) = 0 Then
-	Dim As Integer Fn = FreeFile_
-	If Open(*FFile For Output Encoding "utf-8" As #Fn) =0 Then
-		For i As Integer = 0 To FLines.Count -1
-			Print #Fn, FLines.Item(i)
-		Next i
+	Dim As WString Ptr wData
+	Dim As String NewLineStr
+	If FNewLineType = NewLineTypes.WindowsCRLF  Then
+		NewLineStr = Chr(13, 10)
+	ElseIf FNewLineType = NewLineTypes.LinuxLF Then
+		NewLineStr = Chr(10)
+	ElseIf FNewLineType = NewLineTypes.MacOSCR Then
+		NewLineStr =  Chr(13)
+	Else
+		NewLineStr = Chr(13, 10)
 	End If
-	CloseFile_(Fn)
+	WLet(wData, FLines.Item(0)) 
+	For i As Integer = 1 To FLines.Count - 1
+		WAdd(wData, NewLineStr & FLines.Item(i))
+	Next i
+	If Not SaveToFile(*FFile, *wData, FFileEncoding, FNewLineType) Then 
+		Debug.Print ML("in function") + " " +  __FUNCTION__ + " " +  ML("in Line") + " " + Str( __LINE__) + Chr(9) + ML("Save file failure!") + Chr(9) +  *FFile, True
+	End If
+	_Deallocate(wData)
 End Sub
 
 Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
