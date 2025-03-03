@@ -32,7 +32,7 @@ Namespace My.Sys.Forms
 	
 	Private Type PTabControl As TabControl Ptr
 	
-	'Represents a single tab page in a TabControl.
+	'`TabPage` - Represents a single tab page in a TabControl.
 	Private Type TabPage Extends Panel
 	Protected:
 		FCaption    As WString Ptr
@@ -44,36 +44,49 @@ Namespace My.Sys.Forms
 		#endif
 	Public:
 		#ifndef ReadProperty_Off
+			'Reads a property value from a stream
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Writes a property value to a stream
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Processes Windows messages for the control
 		Declare Virtual Sub ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_GTK__
 			_Box			As GtkWidget Ptr
 			_Icon			As GtkWidget Ptr
 			_Label			As GtkWidget Ptr
 		#else
+			'Checks if the window handle has been created
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
+		'Determines if the control uses visual style colors for background
 		UseVisualStyleBackColor As Boolean
 		Declare Property Index As Integer
 		Declare Property Caption ByRef As WString
+		'Gets or sets the text displayed in the tab page's header
 		Declare Property Caption(ByRef Value As WString)
 		Declare Property TabIndex As Integer
+		'Gets/sets the tab order of the control within its container
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Indicates whether users can tab to this control
 		Declare Property TabStop(Value As Boolean)
 		Declare Property Text ByRef As WString
+		'Gets or sets the text associated with the tab page
 		Declare Property Text(ByRef Value As WString)
 		Declare Property Object As Any Ptr
+		'Gets/sets user-defined data associated with the tab page
 		Declare Property Object(Value As Any Ptr)
 		Declare Property ImageIndex As Integer
+		'Gets/sets the index of the image shown in the tab header
 		Declare Property ImageIndex(Value As Integer)
 		Declare Property ImageKey ByRef As WString
+		'Gets/sets the key of the image shown in the tab header
 		Declare Property ImageKey(ByRef Value As WString)
 		Declare Property Parent As PTabControl
+		'Gets the parent TabControl containing this tab page
 		Declare Property Parent(Value As PTabControl)
 		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux).
 		Declare Virtual Property Visible As Boolean
@@ -81,12 +94,17 @@ Namespace My.Sys.Forms
 		Declare Operator Let(ByRef Value As WString)
 		Declare Operator Cast As Control Ptr
 		Declare Operator Cast As Any Ptr
+		'Determines if this tab page is currently selected
 		Declare Function IsSelected() As Boolean
+		'Makes this tab page the active/selected tab
 		Declare Sub SelectTab()
+		'Forces the control to redraw invalid regions
 		Declare Sub Update()
 		Declare Constructor
 		Declare Destructor
+		'Triggered when the tab page becomes selected
 		OnSelected   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabPage)
+		'Triggered when the tab page loses selection
 		OnDeSelected As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabPage)
 	End Type
 	
@@ -108,6 +126,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			'Checks if the window handle has been created
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Function GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
 		#elseif defined(__USE_GTK__)
@@ -121,14 +140,17 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			UpDownControl As UpDown
 		#endif
+		'Processes Windows messages for the control
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		Images        As ImageList Ptr
 		Tabs          As TabPage Ptr Ptr
 		#ifndef ReadProperty_Off
+			'Reads a property value from a stream
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Writes a property value to a stream
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property GroupName ByRef As WString
@@ -136,8 +158,10 @@ Namespace My.Sys.Forms
 		Declare Property SelectedTabIndex As Integer
 		Declare Property SelectedTabIndex(Value As Integer)
 		Declare Property TabIndex As Integer
+		'Gets/sets the tab order of the control within its container
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Indicates whether users can tab to this control
 		Declare Property TabStop(Value As Boolean)
 		Declare Property TabCount As Integer
 		Declare Property TabCount(Value As Integer)
@@ -162,6 +186,7 @@ Namespace My.Sys.Forms
 		Declare Function ItemWidth(Index As Integer) As Integer
 		Declare Function ItemHeight(Index As Integer) As Integer
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
+		'Gets the zero-based index of the tab page in its parent TabControl
 		Declare Function IndexOfTab(Value As TabPage Ptr) As Integer
 		Declare Function AddTab(ByRef Caption As WString, AObject As Any Ptr = 0, ImageIndex As Integer = -1) As TabPage Ptr
 		Declare Function AddTab(ByRef Caption As WString, AObject As Any Ptr = 0, ByRef ImageKey As WString) As TabPage Ptr

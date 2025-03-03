@@ -18,7 +18,8 @@ Namespace My.Sys.Forms
 		CustomFormat
 	End Enum
 	
-	'Represents a Windows control that allows the user to select a date and a time and to display the date and time with a specified format.
+	'`DateTimePicker` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`DateTimePicker` - Represents a Windows control that allows the user to select a date and a time and to display the date and time with a specified format.
 	Private Type DateTimePicker Extends Control
 	Private:
 		PressedKey          As Integer
@@ -72,42 +73,59 @@ Namespace My.Sys.Forms
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
 		#ifndef ReadProperty_Off
+			'Loads configuration from persistence stream
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves configuration to persistence stream
 			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property AutoNextPart As Boolean
+		'Automatically advances focus between date/time segments
 		Declare Property AutoNextPart(Value As Boolean)
 		Declare Property Checked As Boolean
+		'Indicates if a valid value is selected
 		Declare Property Checked(Value As Boolean)
 		Declare Property SelectedDate As Long
+		'Date-only portion of selection
 		Declare Property SelectedDate(Value As Long)
 		Declare Property SelectedDateTime As Double
+		'Complete DateTime value including time
 		Declare Property SelectedDateTime(Value As Double)
 		Declare Property SelectedTime As Double
+		'Time-only portion of selection
 		Declare Property SelectedTime(Value As Double)
 		Declare Property CalendarRightAlign As Boolean
+		'Aligns dropdown calendar to the right edge
 		Declare Property CalendarRightAlign(Value As Boolean)
 		Declare Property DateFormat As DateTimePickerFormat
+		'Predefined format options (Short/Long)
 		Declare Property DateFormat(ByVal Value As DateTimePickerFormat)
 		Declare Property CustomFormat ByRef As WString
+		'Custom datetime format string (e.g., "yyyy-MM-dd HH:mm")
 		Declare Property CustomFormat(ByRef Value As WString)
 		Declare Property ShowNone As Boolean
+		'Displays "None" checkbox for nullable values
 		Declare Property ShowNone(Value As Boolean)
 		Declare Property ShowUpDown As Boolean
+		'Uses spin buttons instead of dropdown
 		Declare Property ShowUpDown(Value As Boolean)
 		Declare Property TabIndex As Integer
+		'Position in tab navigation order
 		Declare Property TabIndex(Value As Integer)
 		Declare Property TabStop As Boolean
+		'Enables focus via Tab key
 		Declare Property TabStop(Value As Boolean)
 		Declare Property Text ByRef As WString
+		'Formatted display string
 		Declare Property Text(ByRef Value As WString)
 		Declare Property TimePicker As Boolean
+		'Enables time selection component
 		Declare Property TimePicker(Value As Boolean)
 		Declare Operator Cast As My.Sys.Forms.Control Ptr
 		Declare Constructor
 		Declare Destructor
+		'Triggered when date/time value changes
 		OnDateTimeChanged As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As DateTimePicker)
 	End Type
 End Namespace

@@ -465,12 +465,12 @@ Namespace My.Sys.Forms
 		Return FSortOrder
 	End Property
 	
-	Private Property GridDataColumn.MuiltLine As Boolean
-		Return FMuiltLine
+	Private Property GridDataColumn.MultiLine As Boolean
+		Return FMultiLine
 	End Property
 	
-	Private Property GridDataColumn.MuiltLine(Value As Boolean)
-		FMuiltLine = Value
+	Private Property GridDataColumn.MultiLine(Value As Boolean)
+		FMultiLine = Value
 	End Property
 	
 	Private Property GridDataColumn.Format As ColumnFormat
@@ -1764,8 +1764,8 @@ Namespace My.Sys.Forms
 						uFOrmat=IIf(InStr(*sText,WChr(10)),DT_WORDBREAK Or DT_EDITCONTROL,DT_SINGLELINE)
 						GridEditText.ScrollBars = IIf(InStr(*sText,WChr(10)),ScrollBarsType.Both,ScrollBarsType.None)
 					End Select
-					'Force to change to MuiltLine
-					If Columns.Column(iCol)->MuiltLine = True Then uFOrmat = DT_WORDBREAK Or DT_EDITCONTROL
+					'Force to change to MultiLine
+					If Columns.Column(iCol)->MultiLine = True Then uFOrmat = DT_WORDBREAK Or DT_EDITCONTROL
 					If Len(*sText)>0 Then
 						'InflateRect(@RectCell, -4, -4)
 						'https://www.cnblogs.com/lingyun1120/archive/2011/11/14/2248072.html
@@ -2623,4 +2623,3 @@ Namespace My.Sys.Forms
 		WDeAllocate mFNameHeader
 	End Destructor
 End Namespace
-

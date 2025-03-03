@@ -97,7 +97,8 @@ Namespace My.Sys.Forms
 	
 	Private Const GDIP_OK As Long = &H0
 	
-	'The Chart control is a chart object that exposes events.
+	'`Chart` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`Chart` - The Chart control is a chart object that exposes events.
 	Private Type Chart Extends Control
 		Private:
 		Type tItem
@@ -106,7 +107,9 @@ Namespace My.Sys.Forms
 			text As UString
 			TextWidth As Long
 			TextHeight As Long
+			'Default color for data elements.
 			ItemColor As Long
+			'Special effects (Glow/Shadow/etc) flag.
 			Special As Boolean
 			hPath As Any Ptr
 			LegendRect As RectL
@@ -265,79 +268,148 @@ Namespace My.Sys.Forms
 			Declare Virtual Function WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Sub GetCenterPie(X As Single, Y As Single)
+		'Maximum value of primary axis scale.
 		Declare Property AxisMax() As Single
+		'Maximum value of primary axis scale.
 		Declare Property AxisMax(Value As Single)
+		'Minimum value of primary axis scale.
 		Declare Property AxisMin() As Single
+		'Minimum value of primary axis scale.
 		Declare Property AxisMin(Value As Single)
+		'Total data points in current series.
 		Declare Property Count() As Long
+		'Special effects (Glow/Shadow/etc) flag.
 		Declare Property Special(Index As Long, Value As Boolean)
+		'Special effects (Glow/Shadow/etc) flag.
 		Declare Property Special(Index As Long) As Boolean
+		'Default color for data elements.
 		Declare Property ItemColor(Index As Long, Value As ULong)
+		'Default color for data elements.
 		Declare Property ItemColor(Index As Long) As ULong
+		'Color of chart grid/axis lines.
 		Declare Property LinesColor() As ULong
+		'Color of chart grid/axis lines.
 		Declare Property LinesColor(ByVal New_Value As ULong)
+		'Enables curved line charts.
 		Declare Property LinesCurve() As Boolean
+		'Enables curved line charts.
 		Declare Property LinesCurve(ByVal New_Value As Boolean)
+		'Thickness of chart lines in pixels.
 		Declare Property LinesWidth() As Long
+		'Thickness of chart lines in pixels.
 		Declare Property LinesWidth(ByVal New_Value As Long)
+		'Toggles vertical grid lines.
 		Declare Property VerticalLines() As Boolean
+		'Toggles vertical grid lines.
 		Declare Property VerticalLines(ByVal New_Value As Boolean)
 		Declare Sub Clear()
+		'Appends data point to current series.
 		Declare Sub AddItem(ByRef ItemName As WString, Value As Single, ItemColor As Long, Special As Boolean = False)
+		'Adds a new data series to chart.
 		Declare Sub AddSerie(ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr, cCustomColors As IntegerList Ptr = 0)
+		'Adds category labels to axis.
 		Declare Sub AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
 		Declare Sub UpdateSerie(ByVal Index As Integer, ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr)
 		Declare Function SeriesCount As Long
+		'Returns number of axis label
 		Declare Function AxisItemsCount As Long
 		Declare Function SumSerieValues(Index As Long, bPositives As Boolean = False) As Single
 		Declare Sub Wait(Interval As Integer)
+		'Main chart title text.
 		Declare Property Title() ByRef As WString
+		'Main chart title text.
 		Declare Property Title(ByRef New_Value As WString)
+		'Font for chart title.
 		Declare Property TitleFont() ByRef As My.Sys.Drawing.Font
+		'Font for chart title.
 		Declare Property TitleFont(ByRef New_Value As My.Sys.Drawing.Font)
+		'Color of title text.
 		Declare Property TitleForeColor() As ULong
+		'Color of title text.
 		Declare Property TitleForeColor(ByVal New_Value As ULong)
+		'Transparency level (0-255) for background.
 		Declare Property BackColorOpacity() As Long
+		'Transparency level (0-255) for background.
 		Declare Property BackColorOpacity(ByVal New_Value As Long)
+		'Transparency level (0-255) for chart fills.
 		Declare Property FillOpacity() As Long
+		'Transparency level (0-255) for chart fills.
 		Declare Property FillOpacity(ByVal New_Value As Long)
+		'Enables chart border display.
 		Declare Property Border() As Boolean
+		'Enables chart border display.
 		Declare Property Border(ByVal New_Value As Boolean)
+		'Border corner rounding radius.
 		Declare Property BorderRound() As Long
+		'Border corner rounding radius.
 		Declare Property BorderRound(ByVal New_Value As Long)
+		'Color of chart border.
 		Declare Property BorderColor() As ULong
+		'Color of chart border.
 		Declare Property BorderColor(ByVal New_Value As ULong)
+		'Text alignment of data labels.
 		Declare Property LabelsAlignment() As LabelsAlignments
+		'Text alignment of data labels.
 		Declare Property LabelsAlignment(ByVal New_Value As LabelsAlignments)
+		'Format string for value labels.
 		Declare Property LabelsFormat() ByRef As WString
+		'Format string for value labels.
 		Declare Property LabelsFormat(ByRef New_Value As WString)
+		'Collection of custom label formats.
 		Declare Property LabelsFormats() ByRef As WString
+		'Collection of custom label formats.
 		Declare Property LabelsFormats(ByRef New_Value As WString)
+		'Placement of data labels (Inside/Outside).
 		Declare Property LabelsPosition() As LabelsPositions
+		'Placement of data labels (Inside/Outside).
 		Declare Property LabelsPosition(ByVal New_Value As LabelsPositions)
+		'Toggles data label visibility.
 		Declare Property LabelsVisible() As Boolean
+		'Toggles data label visibility.
 		Declare Property LabelsVisible(ByVal New_Value As Boolean)
+		'Enables gradient fill effects.
 		Declare Property FillGradient() As Boolean
+		'Enables gradient fill effects.
 		Declare Property FillGradient(ByVal New_Value As Boolean)
+		'Chart type (Bar/Line/Pie/Area/etc).
 		Declare Property ChartStyle() As ChartStyles
+		'Chart type (Bar/Line/Pie/Area/etc).
 		Declare Property ChartStyle(ByVal New_Value As ChartStyles)
+		'Display orientation (Vertical/Horizontal).
 		Declare Property ChartOrientation() As ChartOrientations
+		'Display orientation (Vertical/Horizontal).
 		Declare Property ChartOrientation(ByVal New_Value As ChartOrientations)
+		'Position of legend (Top/Bottom/Left/Right).
 		Declare Property LegendAlign() As LegendAligns
+		'Position of legend (Top/Bottom/Left/Right).
 		Declare Property LegendAlign(ByVal New_Value As LegendAligns)
+		'Toggles legend display.
 		Declare Property LegendVisible() As Boolean
+		'Toggles legend display.
 		Declare Property LegendVisible(ByVal New_Value As Boolean)
+		'Width of the hollow center in donut charts.
 		Declare Property DonutWidth() As Single
+		'Width of the hollow center in donut charts.
 		Declare Property DonutWidth(ByVal New_Value As Single)
+		'Enables category separator lines.
 		Declare Property SeparatorLine() As Boolean
+		'Enables category separator lines.
 		Declare Property SeparatorLine(ByVal New_Value As Boolean)
+		'Thickness of separator lines.
 		Declare Property SeparatorLineWidth() As Single
+		'Thickness of separator lines.
 		Declare Property SeparatorLineWidth(ByVal New_Value As Single)
+		'Color of separator lines.
 		Declare Property SeparatorLineColor() As ULong
+		'Color of separator lines.
 		Declare Property SeparatorLineColor(ByVal New_Value As ULong)
+		'3D rotation angle for pie charts.
 		Declare Property Rotation() As Long
+		'3D rotation angle for pie charts.
 		Declare Property Rotation(ByVal New_Value As Long)
+		'Format string for hover tooltips.
 		Declare Property ToolTipsFormat() ByRef As WString
+		'Format string for hover tooltips.
 		Declare Property ToolTipsFormat(ByRef New_Value As WString)
 		Declare Function GetWindowsDPI() As Double
 		Declare Sub Refresh()

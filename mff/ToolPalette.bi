@@ -96,7 +96,8 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	'A tool palette with categories.
+	'`ToolPalette` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`ToolPalette` - A tool palette with categories.
 	Private Type ToolPalette Extends Control
 	Private:
 		FBitmapWidth    As Integer
@@ -134,45 +135,64 @@ Namespace My.Sys.Forms
 			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
 	Public:
+		'Collection of tool category groups
 		Groups          As ToolGroups
 		#ifndef ReadProperty_Off
+			'Loads properties from stream
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves properties to stream
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property ImagesList As ImageList Ptr
+		'Default ImageList for tool button images
 		Declare Property ImagesList(Value As ImageList Ptr)
 		Declare Property HotImagesList As ImageList Ptr
+		'ImageList for hover state tool images
 		Declare Property HotImagesList(Value As ImageList Ptr)
 		Declare Property DisabledImagesList As ImageList Ptr
+		'ImageList for disabled state tool images
 		Declare Property DisabledImagesList(Value As ImageList Ptr)
 		Declare Property AutoSize As Boolean
+		'Automatically adjusts size to fit contained groups
 		Declare Property AutoSize(Value As Boolean)
 		Declare Property Flat As Boolean
+		'Enables flat borderless appearance
 		Declare Property Flat(Value As Boolean)
 		Declare Property List As Boolean
+		'Displays text labels alongside images
 		Declare Property List(Value As Boolean)
 		Declare Property Wrapable As Boolean
+		'Enables multi-line tool group layouts
 		Declare Property Wrapable(Value As Boolean)
 		Declare Property Transparency As Boolean
+		'Opacity level (0=transparent, 255=opaque)
 		Declare Property Transparency(Value As Boolean)
 		Declare Property Divider As Boolean
+		'Shows/hides category separator lines
 		Declare Property Divider(Value As Boolean)
 		Declare Property Style As Integer
+		'Visual style (Office/Classic/Modern)
 		Declare Property Style(Value As Integer)
 		Declare Property BitmapWidth As Integer
+		'Width of tool button images in pixels
 		Declare Property BitmapWidth(Value As Integer)
 		Declare Property BitmapHeight As Integer
+		'Height of tool button images in pixels
 		Declare Property BitmapHeight(Value As Integer)
 		Declare Property ButtonWidth As Integer
+		'Width of individual tool buttons
 		Declare Property ButtonWidth(Value As Integer)
 		Declare Property ButtonHeight As Integer
+		'Height of individual tool buttons
 		Declare Property ButtonHeight(Value As Integer)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
+		'Triggered when tool becomes active (selected)
 		OnButtonActivate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolPalette, ByRef Button As ToolButton)
+		'Fired when tool button is pressed
 		OnButtonClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolPalette, ByRef Button As ToolButton)
 	End Type
 End Namespace

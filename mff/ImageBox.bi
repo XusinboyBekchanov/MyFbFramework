@@ -20,7 +20,8 @@ Namespace My.Sys.Forms
 		ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
 	End Enum
 	
-	'Displays a graphic.
+	'`ImageBox` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`ImageBox` - Displays a graphic.
 	Private Type ImageBox Extends Control
 	Private:
 		FImageStyle       As Integer
@@ -44,27 +45,36 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		'Underlying image data object (Bitmap/Icon)
 		Graphic            As My.Sys.Drawing.GraphicType
 		#ifndef ReadProperty_Off
+			'Loads image from persistence stream
 			Declare Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
+			'Saves image to persistence stream
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property AutoSize As Boolean
+		'Adjusts control size to match image dimensions
 		Declare Property AutoSize(Value As Boolean)
 		Declare Property DesignMode As Boolean
+		'Indicates if used in design interface
 		Declare Property DesignMode(Value As Boolean)
 		Declare Property Style As ImageBoxStyle
+		'Display mode (Stretch/Tile/Zoom/Center)
 		Declare Property Style(Value As ImageBoxStyle)
 		Declare Property RealSizeImage As Boolean
+		'Displays image at native resolution without scaling
 		Declare Property RealSizeImage(Value As Boolean)
 		Declare Property CenterImage As Boolean
+		'Centers image within the control area
 		Declare Property CenterImage(Value As Boolean)
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
 		#ifdef __USE_WINAPI__
+			'Triggered during image rendering
 			OnDraw     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ImageBox, ByRef R As My.Sys.Drawing.Rect, DC As HDC = 0)
 		#endif
 	End Type

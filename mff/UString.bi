@@ -76,11 +76,15 @@ Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	Declare Sub ZDeAllocate(ByRef subject As ZString Ptr)
 #endif
 Declare Sub WDeAllocateEx Overload(subject() As WString Ptr)
-
+'Using WLetEx if the length of target is longer than the length of source.
 Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
 Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 Declare Function ToUtf8(ByRef nWString As WString) As String
-Declare Function FromUtf8(pZString As ZString Ptr) As UString
+Declare Function FromUtf8(pZString As ZString Ptr) As WString Ptr
+Declare Function FromHexStrUTF8(ByRef HexString As WString) As String
+Declare Function ToHexStrUTF8(ByRef iString As WString) As String
+Declare Function FromHexStrUnicode(ByRef HexString As WString) As String
+Declare Function ToHexStrUnicode(ByRef iString As WString) As String
 Declare Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByVal Count As Integer = -1, MatchCase As Boolean = True, ByRef CountReplaced As Integer = 0) As UString
 Declare Function ZGet(ByRef subject As ZString Ptr) As String
 Declare Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
