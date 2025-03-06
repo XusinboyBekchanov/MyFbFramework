@@ -11,9 +11,9 @@ Using My.Sys.Forms
 
 '#Region "Form"
     Type Form1 Extends Form
-    	Declare Static Sub CommandButton1_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-    	Declare Static Sub TimerComponent1_Timer(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent)
-    	Declare Static Sub cmdEndTimer_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+    	Declare Sub cmdStartTimer_Click(ByRef Sender As Control)
+    	Declare Sub cmdEndTimer_Click(ByRef Sender As Control)
+    	Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
     	Declare Constructor
         
     	Dim As CommandButton cmdStartTimer, cmdEndTimer
@@ -31,16 +31,18 @@ Using My.Sys.Forms
     	With cmdStartTimer
     		.Name = "cmdStartTimer"
     		.Text = "Start timer"
-    		.SetBounds 72, 136, 72, 48
-    		.OnClick = @CommandButton1_Click
+    		.SetBounds 80, 140, 72, 48
+    		.Designer = @This
+    		.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdStartTimer_Click)
     		.Parent = @This
     	End With
     	' TimerComponent1
     	With TimerComponent1
     		.Name = "TimerComponent1"
-    		.SetBounds 64, 100, 16, 16
-    		.OnTimer = @TimerComponent1_Timer
+    		.SetBounds 48, 62, 16, 16
     		.Interval = 10
+    		.Designer = @This
+    		.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
     		.Parent = @This
     	End With
     	' cmdEndTimer
@@ -48,7 +50,8 @@ Using My.Sys.Forms
     		.Name = "cmdEndTimer"
     		.Text = "End timer"
     		.SetBounds 160, 136, 72, 48
-    		.OnClick = @cmdEndTimer_Click
+    		.Designer = @This
+    		.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdEndTimer_Click)
     		.Parent = @This
     	End With
     End Constructor
@@ -56,22 +59,20 @@ Using My.Sys.Forms
     Dim Shared fForm1 As Form1
     
     #ifndef _NOT_AUTORUN_FORMS_
-        fForm1.Show
-        
+    	App.DarkMode= True 
+        fForm1.Show        
         App.Run
     #endif
 '#End Region
 
-
-Private Sub Form1.CommandButton1_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+Private Sub Form1.cmdStartTimer_Click(ByRef Sender As Control)
 	fForm1.TimerComponent1.Enabled = True
 End Sub
 
-Private Sub Form1.TimerComponent1_Timer(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent)
-	?1
+Private Sub Form1.cmdEndTimer_Click(ByRef Sender As Control)
+	fForm1.TimerComponent1.Enabled = False
 End Sub
 
-
-Private Sub Form1.cmdEndTimer_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-	fForm1.TimerComponent1.Enabled = False
+Private Sub Form1.TimerComponent1_Timer(ByRef Sender As TimerComponent)
+	?1
 End Sub

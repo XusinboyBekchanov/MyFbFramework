@@ -9,9 +9,7 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub PageScroller1_Scroll_(ByRef Designer As My.Sys.Object, ByRef Sender As PageScroller, ByRef NewPos As Integer)
 		Declare Sub PageScroller1_Scroll(ByRef Sender As PageScroller, ByRef NewPos As Integer)
 		Declare Constructor
 		
@@ -31,11 +29,11 @@
 			.Name = "PageScroller1"
 			.Text = "PageScroller1"
 			.TabIndex = 0
-			'.Style = PageScrollerStyle.psHorizontal
+			.Style = PageScrollerStyle.psHorizontal
 			.Align = DockStyle.alClient
-			.SetBounds 0, 0, 334, 261
+			.SetBounds 0, 0, 333, 253
 			.Designer = @This
-			.OnScroll = @PageScroller1_Scroll_
+			.OnScroll = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As PageScroller, ByRef NewPos As Integer), @PageScroller1_Scroll)
 			.Parent = @This
 		End With
 		' CommandButton1
@@ -43,9 +41,9 @@
 			.Name = "CommandButton1"
 			.Text = "CommandButton1"
 			.TabIndex = 1
-			.SetBounds 0, 0, 400, 120
+			.SetBounds 7, 81, 291, 57
 			.Designer = @This
-			.OnClick = @CommandButton1_Click_
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @PageScroller1
 		End With
 	End Constructor
@@ -61,16 +59,11 @@
 	#endif
 '#End Region
 
-Private Sub Form1Type.CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-	(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-End Sub
+
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	?1
 End Sub
 
-Private Sub Form1Type.PageScroller1_Scroll_(ByRef Designer As My.Sys.Object, ByRef Sender As PageScroller, ByRef NewPos As Integer)
-	(*Cast(Form1Type Ptr, Sender.Designer)).PageScroller1_Scroll(Sender, NewPos)
-End Sub
 Private Sub Form1Type.PageScroller1_Scroll(ByRef Sender As PageScroller, ByRef NewPos As Integer)
 	?NewPos
 End Sub
