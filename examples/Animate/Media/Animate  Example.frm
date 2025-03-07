@@ -1,5 +1,5 @@
 ﻿'################################################################################
-'#  AnimatePlayer.frm                                                           #
+'#  Animate  Example.frm                                                           #
 '#  This file is an examples of MyFBFramework                                   #
 '#  Authors: Xusinboy Bekchanov, Liu XiaLin                                     #
 '################################################################################
