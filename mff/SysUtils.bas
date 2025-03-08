@@ -153,7 +153,7 @@ Namespace ClassContainer
 	#endif
 End Namespace
 
-#ifndef __FB_LINUX__
+#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 	#include once "PointerList.bi"
 	Dim Shared As PointerList Handles
 #endif

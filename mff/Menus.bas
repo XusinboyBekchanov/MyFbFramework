@@ -18,7 +18,7 @@
 Namespace My.Sys.Forms
 	/' Global '/
 	Private Sub AllocateCommand(value As PMenuItem)
-		#ifndef __FB_LINUX__
+		#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 			Handles.Add value
 			value->Command =  1000 + Handles.Count - 1
 		#else
