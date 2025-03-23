@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub HTTPConnection.CallMethod(HTTPMethod As String, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
 		#ifdef __USE_WASM__
-			Dim ptr_ As ZString Ptr = SendHTTPRequest("http://" & Host & ":" & IIf(Port = 80, "", Trim(Str(Port))) & "/" & Request.ResourceAddress, HTTPMethod, Request.Body)
+			Dim ptr_ As ZString Ptr = SendHTTPRequest("http" & IIf(Port = 80, "", "s") & "://" & Host & ":" & IIf(Port = 80 OrElse Port = 443, "", Trim(Str(Port))) & "/" & Request.ResourceAddress, HTTPMethod, Request.Body)
 			Var Pos1 = InStr(*ptr_, ":")
 			If Pos1 > 0 Then
 				Responce.StatusCode = Val(.Left(*ptr_, Pos1 - 1))
@@ -39,22 +39,24 @@ Namespace My.Sys.Forms
 			FreePtr(ptr_)
 		#elseif defined(__USE_WINAPI__)
 			Dim As HINTERNET hSession, hConnect, hRequest
+			Dim As Boolean hSendRequest
 			Dim As String result
 			
-			hSession = InternetOpen("FreeBASIC HTTP", INTERNET_OPEN_TYPE_PRECONFIG, "", "", 0)
+			hSession = InternetOpen("FreeBASIC HTTP", INTERNET_OPEN_TYPE_DIRECT, "", "", 0)
 			If hSession = 0 Then
 				Print "Failed to open Internet session"
 				Return
 			End If
 			
-			hConnect = InternetOpenUrl(hSession, "http://" & Host & ":" & IIf(Port = 80, "", Trim(Str(Port))) & "/" & Request.ResourceAddress, "", 0, INTERNET_FLAG_RELOAD, 0)
+			'hConnect = InternetOpenUrl(hSession, "http" & IIf(Port = 80, "", "s") & "://" & Host & IIf(Port = 80 OrElse Port = 443, "", ":" & Trim(Str(Port))), "", 0, INTERNET_FLAG_RELOAD, 0)
+			hConnect = InternetConnect(hSession, Host, IIf(Port = 80, INTERNET_DEFAULT_HTTP_PORT, INTERNET_DEFAULT_HTTPS_PORT), NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0)
 			If hConnect = 0 Then
 				Print "Failed to open URL"
 				InternetCloseHandle(hSession)
 				Return
 			End If
 			
-			hRequest = HttpOpenRequest(hConnect, HTTPMethod, "/", "", "", 0, 0, 0)
+			hRequest = HttpOpenRequest(hConnect, HTTPMethod, "/" & Request.ResourceAddress, NULL, NULL, NULL, IIf(Port = 80, INTERNET_FLAG_RELOAD, INTERNET_FLAG_SECURE Or INTERNET_FLAG_RELOAD), 0)
 			If hRequest = 0 Then
 				Print "Failed to open request"
 				InternetCloseHandle(hConnect)
@@ -62,7 +64,8 @@ Namespace My.Sys.Forms
 				Return
 			End If
 			
-			If Not HttpSendRequest(hRequest, Request.Headers, Len(Request.Headers), StrPtr(Request.Body), Len(Request.Body)) Then
+			hSendRequest = HttpSendRequest(hRequest, Request.Headers, Len(Request.Headers), Cast(LPVOID, StrPtr(Request.Body)), Len(Request.Body))
+			If hSendRequest = False Then
 				Print "Failed to send request"
 				InternetCloseHandle(hRequest)
 				InternetCloseHandle(hConnect)
@@ -73,26 +76,29 @@ Namespace My.Sys.Forms
 			Dim As Integer statusCode
 			Dim As DWORD statusCodeSize = Len(statusCode)
 			HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE Or HTTP_QUERY_FLAG_NUMBER, @statusCode, @statusCodeSize, 0)
+			Responce.StatusCode = statusCode
 			
 			Dim As DWORD responseHeadersSize = 0
 			HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF, 0, @responseHeadersSize, 0)
 			If responseHeadersSize > 0 Then
-				Dim As String responseHeadersBytes(responseHeadersSize)
-				If HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF, @responseHeadersBytes(0), @responseHeadersSize, 0) Then
-					Responce.Headers = *Cast(ZString Ptr, @responseHeadersBytes(0))
-				End If
+				'Dim As ZString * 4096 responseHeadersBytes
+				'If HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF, @responseHeadersBytes, SizeOf(responseHeadersBytes), 0) Then
+				'	Responce.Headers = responseHeadersBytes
+				'End If
 			End If
 			
 			Do
-				Dim As String buffer
+				Dim As ZString * 4096 buffer
 				Dim As DWORD bytesRead
-				If InternetReadFile(hRequest, @buffer, Len(buffer), @bytesRead) = 0 Then
+				If InternetReadFile(hRequest, @buffer, SizeOf(buffer), @bytesRead) = 0 Then
 					Print "Failed to read data"
 					Exit Do
 				End If
 				If bytesRead = 0 Then Exit Do ' Конец файла
 				Responce.Body += buffer
 			Loop
+			
+			If OnReceive Then OnReceive(*Designer, This, Request, Responce)
 			
 			InternetCloseHandle(hRequest)
 			InternetCloseHandle(hConnect)
