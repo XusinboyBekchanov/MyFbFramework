@@ -131,7 +131,14 @@ Namespace My.Sys.Forms
 		#else
 			If FHandle Then
 				Pf.dwMask = PFM_ALIGNMENT
-				Pf.wAlignment = Value + 1
+				Select Case Value
+				Case AlignmentConstants.taLeft
+					Pf.wAlignment = PFA_LEFT
+				Case AlignmentConstants.taCenter
+					Pf.wAlignment = PFA_CENTER
+				Case AlignmentConstants.taRight
+					Pf.wAlignment = PFA_RIGHT
+				End Select
 				Perform(EM_SETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 			End If
 		#endif
@@ -1152,7 +1159,7 @@ Namespace My.Sys.Forms
 		Private Function RichTextBox.GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
 			Dim ptxt As UString Ptr = Cast(UString Ptr, dwCookie)
 			If ptxt Then
-				ptxt->AppendBuffer(pbBuff, cb)
+				*ptxt = *ptxt & *Cast(ZString Ptr, pbBuff)
 				*pcb = cb
 			End If
 			Return 0
@@ -1160,7 +1167,6 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property RichTextBox.TextRTF As UString
-		Dim As String s
 		#ifndef __USE_GTK__
 			If FHandle Then
 				FTextRTF = ""
@@ -1168,11 +1174,9 @@ Namespace My.Sys.Forms
 				editstream.dwCookie = Cast(DWORD_PTR, @FTextRTF)
 				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @GetTextCallback)
 				SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
-				s = Space(FTextRTF.Length)
-				If Len(s) Then CopyMemory(StrPtr(s), FTextRTF.vptr, FTextRTF.Length)
 			End If
 		#endif
-		Return s
+		Return FTextRTF
 	End Property
 	
 	Private Property RichTextBox.TextRTF(Value As UString)

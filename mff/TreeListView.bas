@@ -899,17 +899,16 @@ Namespace My.Sys.Forms
 		FItems.Remove Index
 	End Sub
 	
-	#ifndef __USE_GTK__
-		'		Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
-		'			Return 0
-		'		End Function
+	#ifdef __USE_WINAPI__
+		Function CompareFunc(ByVal lParam1 As LPARAM, ByVal lParam2 As LPARAM, ByVal lParamSort As LPARAM) As Long
+			Return 0
+		End Function
 	#endif
 	
 	Private Sub TreeListViewItems.Sort
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				'Parent->Perform LVM_SORTITEMS, 0, @CompareFunc
-				'ListView_SortItems
 			End If
 		#endif
 	End Sub
@@ -1164,7 +1163,7 @@ Namespace My.Sys.Forms
 			Case "gridlines": Return @FGridLines
 			Case "multiselect": Return @FMultiSelect
 			Case "singleclickactivate": Return @FSingleClickActivate
-			Case "sort": Return @FSortStyle
+			Case "sortorder": Return @FSortStyle
 			Case "stateimages": Return StateImages
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -1186,7 +1185,7 @@ Namespace My.Sys.Forms
 				Case "gridlines": This.GridLines = QBoolean(Value)
 				Case "multiselect": This.MultiSelect = QBoolean(Value)
 				Case "singleclickactivate": This.SingleClickActivate = QBoolean(Value)
-				Case "sort": This.Sort = *Cast(SortStyle Ptr, Value)
+				Case "sortorder": This.SortOrder = *Cast(SortStyle Ptr, Value)
 				Case "stateimages": This.StateImages = Value
 				Case "tabindex": This.TabIndex = QInteger(Value)
 				Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -1443,11 +1442,19 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Property TreeListView.Sort As SortStyle
+	Private Property TreeListView.SortColumn As TreeListViewColumn Ptr
+		Return FSortColumn
+	End Property
+	
+	Private Property TreeListView.SortColumn(Value As TreeListViewColumn Ptr)
+		FSortColumn = Value
+	End Property
+	
+	Private Property TreeListView.SortOrder As SortStyle
 		Return FSortStyle
 	End Property
 	
-	Private Property TreeListView.Sort(Value As SortStyle)
+	Private Property TreeListView.SortOrder(Value As SortStyle)
 		FSortStyle = Value
 		#ifndef __USE_GTK__
 			Select Case FSortStyle
@@ -1463,6 +1470,10 @@ Namespace My.Sys.Forms
 			End Select
 		#endif
 	End Property
+	
+	Private Sub TreeListView.Sort
+		
+	End Sub
 	
 	Private Property TreeListView.SelectedColumn(Value As TreeListViewColumn Ptr)
 		#ifndef __USE_GTK__

@@ -260,6 +260,7 @@ Namespace My.Sys.Forms
 		FMultiSelect As Boolean
 		FSingleClickActivate As Boolean
 		FSortStyle As SortStyle
+		FSortColumn As TreeListViewColumn Ptr
 		FOwnerDraw As Boolean
 		FPressedSubItem As Integer
 		FLVExStyle As Integer
@@ -321,48 +322,51 @@ Namespace My.Sys.Forms
 		Declare Sub CollapseAll
 		'Expands all collapsible nodes.
 		Declare Sub ExpandAll
-		Declare Property ColumnHeaderHidden As Boolean
 		'Hides column headers when enabled.
+		Declare Property ColumnHeaderHidden As Boolean
 		Declare Property ColumnHeaderHidden(Value As Boolean)
-		Declare Property EditLabels As Boolean
 		'Enables in-place item text editing.
+		Declare Property EditLabels As Boolean
 		Declare Property EditLabels(Value As Boolean)
-		Declare Property GridLines As Boolean
 		'Displays row/column separator lines.
+		Declare Property GridLines As Boolean
 		Declare Property GridLines(Value As Boolean)
-		Declare Property MultiSelect As Boolean
 		'Allows multiple node selection.
+		Declare Property MultiSelect As Boolean
 		Declare Property MultiSelect(Value As Boolean)
-		Declare Property OwnerData As Boolean
 		'Enables virtual mode data population.
+		Declare Property OwnerData As Boolean
 		Declare Property OwnerData(Value As Boolean)
-		Declare Property OwnerDraw As Boolean
 		'Enables custom node rendering.
+		Declare Property OwnerDraw As Boolean
 		Declare Property OwnerDraw(Value As Boolean)
-		Declare Property ShowHint As Boolean
 		'Controls tooltip visibility.
+		Declare Property ShowHint As Boolean
 		Declare Property ShowHint(Value As Boolean)
-		Declare Property Sort As SortStyle
 		'Enables automatic column sorting.
-		Declare Property Sort(Value As SortStyle)
-		Declare Property SelectedItem As TreeListViewItem Ptr
+		Declare Property SortOrder As SortStyle
+		Declare Property SortOrder(Value As SortStyle)
+		Declare Property SortColumn As TreeListViewColumn Ptr
+		Declare Property SortColumn(Value As TreeListViewColumn Ptr)
 		'Currently highlighted tree node.
+		Declare Property SelectedItem As TreeListViewItem Ptr
 		Declare Property SelectedItem(Value As TreeListViewItem Ptr)
-		Declare Property SelectedItemIndex As Integer
 		'Index of selected node (-1 if none).
+		Declare Property SelectedItemIndex As Integer
 		Declare Property SelectedItemIndex(Value As Integer)
-		Declare Property SelectedColumn As TreeListViewColumn Ptr
 		'Currently focused column index.
+		Declare Property SelectedColumn As TreeListViewColumn Ptr
 		Declare Property SelectedColumn(Value As TreeListViewColumn Ptr)
-		Declare Property SingleClickActivate As Boolean
 		'Activates nodes with single click.
+		Declare Property SingleClickActivate As Boolean
 		Declare Property SingleClickActivate(Value As Boolean)
-		Declare Property TabIndex As Integer
 		'Tab navigation order index.
+		Declare Property TabIndex As Integer
 		Declare Property TabIndex(Value As Integer)
-		Declare Property TabStop As Boolean
 		'Enables Tab key navigation.
+		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
+		Declare Sub Sort
 		Declare Operator Cast As Control Ptr
 		Declare Constructor
 		Declare Destructor
