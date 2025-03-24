@@ -95,11 +95,9 @@ Namespace My.Sys.Forms
 					Exit Do
 				End If
 				If bytesRead = 0 Then Exit Do ' Конец файла
+				If OnReceive Then OnReceive(*Designer, This, Request, buffer)
 				Responce.Body += buffer
 			Loop
-			
-			If OnReceive Then OnReceive(*Designer, This, Request, Responce)
-			
 			InternetCloseHandle(hRequest)
 			InternetCloseHandle(hConnect)
 			InternetCloseHandle(hSession)
