@@ -231,12 +231,16 @@ Namespace My.Sys.Forms
 		Declare Sub SelectAll
 		'Scrolls view to caret position.
 		Declare Sub ScrollToCaret
+		'Scrolls view to end line.
+		Declare Sub ScrollToEnd
+		'Scrolls view to line position.
+		Declare Sub ScrollToLine(LineNumber As Integer)
 		'Loads text content from file.
 		Declare Sub LoadFromFile(ByRef File As WString)
 		'Saves text content to file.
 		Declare Sub SaveToFile(ByRef File As WString)
 		'Applies input restriction filter.
-		Declare Sub InputFilter( ByRef Value As WString) 'David Change
+		Declare Sub InputFilter(ByRef Value As WString) 'David Change
 		Declare Constructor
 		Declare Destructor
 		'Raised when control becomes active.

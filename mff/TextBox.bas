@@ -19,7 +19,7 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
 			Case "borderstyle": Return @FBorderStyle
-			'Case "caretpos": Return @CaretPos
+				'Case "caretpos": Return @CaretPos
 			Case "charcase": Return @FCharCase
 			Case "ctl3d": Return @FCtl3D
 			Case "hideselection": Return @FHideSelection
@@ -100,14 +100,14 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Select Case Value
 				Case taLeft:
-					gtk_entry_set_alignment(gtk_entry(WidgetEntry), 0.0)
-					gtk_text_view_set_justification(gtk_text_view(WidgetTextView), GTK_JUSTIFY_LEFT)
-				Case taCenter: 
-					gtk_entry_set_alignment(gtk_entry(WidgetEntry), 0.5)
-					gtk_text_view_set_justification(gtk_text_view(WidgetTextView), GTK_JUSTIFY_CENTER)
+					gtk_entry_set_alignment(GTK_ENTRY(WidgetEntry), 0.0)
+					gtk_text_view_set_justification(GTK_TEXT_VIEW(WidgetTextView), GTK_JUSTIFY_LEFT)
+				Case taCenter:
+					gtk_entry_set_alignment(GTK_ENTRY(WidgetEntry), 0.5)
+					gtk_text_view_set_justification(GTK_TEXT_VIEW(WidgetTextView), GTK_JUSTIFY_CENTER)
 				Case taRight:
-					gtk_entry_set_alignment(gtk_entry(WidgetEntry), 1.0)
-					gtk_text_view_set_justification(gtk_text_view(WidgetTextView), GTK_JUSTIFY_RIGHT)
+					gtk_entry_set_alignment(GTK_ENTRY(WidgetEntry), 1.0)
+					gtk_text_view_set_justification(GTK_TEXT_VIEW(WidgetTextView), GTK_JUSTIFY_RIGHT)
 				End Select
 			#elseif defined(__USE_WINAPI__)
 				ChangeStyle ES_LEFT, False
@@ -146,6 +146,36 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			Perform EM_SCROLLCARET, 0, 0
+		#endif
+	End Sub
+	
+	Private Sub TextBox.ScrollToEnd()
+		#ifdef __USE_GTK__
+			If GTK_IS_TEXT_VIEW(widget) Then
+				Dim As GtkTextIter iter
+				gtk_text_buffer_get_end_iter(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @iter)
+				gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(widget), @iter, 0.0, False, 0.0, 0.0)
+			End If
+		#elseif defined(__USE_WINAPI__)
+			Dim totalLines As Integer
+			Dim firstVisible As Integer
+			Dim visibleLines As Integer
+			totalLines = SendMessage(FHandle, EM_GETLINECOUNT, 0, 0)
+			firstVisible = SendMessage(FHandle, EM_GETFIRSTVISIBLELINE, 0, 0)
+			visibleLines = totalLines - firstVisible
+			SendMessage(FHandle, EM_LINESCROLL, 0, totalLines - firstVisible - visibleLines + 1)
+		#endif
+	End Sub
+	
+	Private Sub TextBox.ScrollToLine(LineNumber As Integer)
+		#ifdef __USE_GTK__
+			If GTK_IS_TEXT_VIEW(widget) Then
+				Dim As GtkTextIter iter
+				gtk_text_buffer_get_iter_at_line(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @iter, LineNumber)
+				gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(widget), @iter, 0.0, False, 0.0, 0.0)
+			End If
+		#elseif defined(__USE_WINAPI__)
+			Perform EM_LINESCROLL, 0, LineNumber
 		#endif
 	End Sub
 	
@@ -318,7 +348,7 @@ Namespace My.Sys.Forms
 					#else
 						FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
 					#endif
-				EndIf
+				End If
 			End If
 			Return *FText.vptr
 		#elseif defined(__USE_JNI__)
@@ -331,7 +361,7 @@ Namespace My.Sys.Forms
 				FText = ""
 				FText.Resize length
 				For i As Integer = 0 To length - 1
-				    FText.vptr[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
+					FText.vptr[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
 				Next
 				FText.vptr[length] = 0
 			End If
@@ -370,7 +400,7 @@ Namespace My.Sys.Forms
 						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Value))
 					#endif
 				End If
-			EndIf
+			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
@@ -605,7 +635,7 @@ Namespace My.Sys.Forms
 					Else
 						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(FText))
 					End If
-				EndIf
+				End If
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then SetWindowText(FHandle, FText.vptr)
 			#endif
@@ -905,7 +935,7 @@ Namespace My.Sys.Forms
 	Private Property TextBox.WordWraps As Boolean
 		Return FWordWraps
 	End Property
-
+	
 	#ifdef __USE_GTK__
 		Private Sub TextBox.ChangeWidget()
 			Dim As GtkWidget Ptr Ctrlwidget = IIf(CInt(FMultiline) Or CInt(FWordWraps) Or CInt(FScrollBars), WidgetTextView, WidgetEntry)
@@ -1039,7 +1069,7 @@ Namespace My.Sys.Forms
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 			FEnd = LStart + Value
 			SendMessage(Handle, EM_SETSEL, LStart, FEnd)
-			SendMessage(Handle, EM_SCROLLCARET, 0,0)
+			'SendMessage(Handle, EM_SCROLLCARET, 0,0)
 		#endif
 	End Property
 	
@@ -1080,7 +1110,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 			SendMessage(Handle, EM_SETSEL, LStart, FSelEnd)
-			SendMessage(Handle, EM_SCROLLCARET, 0,0)
+			'SendMessage(Handle, EM_SCROLLCARET, 0,0)
 		#endif
 	End Property
 	
@@ -1125,7 +1155,7 @@ Namespace My.Sys.Forms
 			Else
 				Dim As gint Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget))
 				gtk_editable_insert_text(GTK_EDITABLE(widget), ToUtf8(*FSelText), -1, @Pos1)
-			EndIf
+			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(FHandle, EM_REPLACESEL, 0, CInt(FSelText))
 		#endif
@@ -1188,7 +1218,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_WASM__
 						If .OnChange Then SetChangeEvent(.FHandle)
 					#elseif defined(__USE_WINAPI__)
-						If .FMaxLength = 0 Then 
+						If .FMaxLength = 0 Then
 							.Perform(EM_LIMITTEXT, -1, 0)
 						Else
 							.Perform(EM_LIMITTEXT, .FMaxLength, 0)
@@ -1216,7 +1246,7 @@ Namespace My.Sys.Forms
 			Select Case message.Event->type
 			Case GDK_KEY_PRESS
 				If FWantReturn = False AndAlso Asc(*e->key.string) = 13 Then
-					message.Result = True 
+					message.Result = True
 				End If
 			End Select
 		#elseif defined(__USE_WINAPI__)
@@ -1378,22 +1408,22 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-'	Sub TextBox.Delete
-'		#ifdef __USE_GTK__
-'			If gtk_is_editable(widget) Then
-'				If gtk_editable_get_selection_bounds(gtk_editable(widget), 0, 0) Then
-'					gtk_editable_delete_selection(gtk_editable(widget))
-'				Else
-'					Dim As Integer pos1 = gtk_editable_get_position(gtk_editable(widget))
-'					gtk_editable_delete_text(gtk_editable(widget), pos1, pos1 + 1)
-'				End If
-'			Else
-'				
-'			End If
-'		#else
-'			If FHandle Then Perform(WM_KEYDOWN, WM_DELETE, 0)
-'		#endif
-'	End Sub
+	'	Sub TextBox.Delete
+	'		#ifdef __USE_GTK__
+	'			If gtk_is_editable(widget) Then
+	'				If gtk_editable_get_selection_bounds(gtk_editable(widget), 0, 0) Then
+	'					gtk_editable_delete_selection(gtk_editable(widget))
+	'				Else
+	'					Dim As Integer pos1 = gtk_editable_get_position(gtk_editable(widget))
+	'					gtk_editable_delete_text(gtk_editable(widget), pos1, pos1 + 1)
+	'				End If
+	'			Else
+	'
+	'			End If
+	'		#else
+	'			If FHandle Then Perform(WM_KEYDOWN, WM_DELETE, 0)
+	'		#endif
+	'	End Sub
 	
 	Private Sub TextBox.CopyToClipboard
 		#ifdef __USE_GTK__
