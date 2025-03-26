@@ -26,6 +26,7 @@ Namespace My.Sys.Forms
 		#endif
 		As String Host = "127.0.0.1"
 		As Integer Port = 80
+		As Integer Timeout = 3000
 		Declare Sub CallMethod(HTTPMethod As String, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
 		Declare Constructor
 		Declare Destructor
