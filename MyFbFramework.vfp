@@ -1,5 +1,6 @@
 ﻿File=mff/Animate.bi
 File=mff/Application.bi
+File=mff/FileListBox.bi
 File=mff/Bitmap.bi
 File=mff/Brush.bi
 File=mff/Canvas.bi

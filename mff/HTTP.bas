@@ -9,7 +9,8 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "host": Return Cast(Any Ptr, StrPtr(This.Host))
 			Case "port": Return Cast(Any Ptr, @This.Port)
-			Case "timeout" : Return Cast(Any Ptr, @This.timeout)
+			Case "timeout" : Return Cast(Any Ptr, @This.Timeout)
+			Case "abort" : Return @FAbort
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -21,14 +22,23 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "host": This.Host = *Cast(ZString Ptr, Value)
 			Case "port": This.Port = QInteger(Value)
-			Case "timeout" : This.Port = QInteger(Value)
+			Case "timeout" : This.Timeout = QInteger(Value)
+			Case "abort" : This.Abort = QBoolean(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
 		End Function
 	#endif
+		Private Property HTTPConnection.Abort As Boolean
+		Return FAbort
+	End Property
+	
+	Private Property HTTPConnection.Abort(Value As Boolean)
+		FAbort = Value
+	End Property
 	
 	Private Sub HTTPConnection.CallMethod(HTTPMethod As String, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
+		FAbort = False
 		#ifdef __USE_WASM__
 			Dim ptr_ As ZString Ptr = SendHTTPRequest("http" & IIf(Port = 80, "", "s") & "://" & Host & ":" & IIf(Port = 80 OrElse Port = 443, "", Trim(Str(Port))) & "/" & Request.ResourceAddress, HTTPMethod, Request.Body)
 			Var Pos1 = InStr(*ptr_, ":")
@@ -94,15 +104,24 @@ Namespace My.Sys.Forms
 				'	Responce.Headers = responseHeadersBytes
 				'End If
 			End If
-			Dim As String buffer = String(8192, 0) ' 增大缓冲区
-			Dim As DWORD bytesRead
+			'更安全的缓冲区处理
+			Dim As DWORD bytesRead, dwBufferSize = 8192
+			Dim As Long bResult
+			Dim As DWORD dwBytesRead
+			Dim As ZString Ptr BufferPtr = Allocate(dwBufferSize)
 			Do
-				buffer = String(8192, 0)
-				If InternetReadFile(hRequest, StrPtr(buffer), Len(buffer), @bytesRead) = 0 Then Exit Do
-				buffer = ..Left(buffer, bytesRead)
-				Responce.Body &= buffer
-				If OnReceive Then OnReceive(*Designer, This, Request, buffer)
-			Loop While bytesRead > 0
+				bResult = InternetReadFile(hRequest, BufferPtr, dwBufferSize-1, @bytesRead)
+				If bResult AndAlso bytesRead > 0 Then
+					(*BufferPtr)[bytesRead] = 0 ' 添加 null 终止符
+					'If InStr(*BufferPtr, "??????") Then FAbort = True  ' mnove to APP to force to end， OpenRouter 强制结束
+				Else
+					FAbort = True
+					(*BufferPtr)[0] = 0
+				End If
+				Responce.Body &= *BufferPtr
+				If OnReceive Then OnReceive(*Designer, This, Request, *BufferPtr)
+			Loop While FAbort = False
+			Deallocate BufferPtr
 			InternetCloseHandle(hRequest)
 			InternetCloseHandle(hConnect)
 			InternetCloseHandle(hSession)
