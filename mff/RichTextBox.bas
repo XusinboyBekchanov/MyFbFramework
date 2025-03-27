@@ -338,7 +338,7 @@ Namespace My.Sys.Forms
 			g_object_unref(TextTag)
 		#else
 			If FHandle Then
-				pf.dwMask = PFM_TABSTOPS
+				Pf.dwMask = PFM_TABSTOPS
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 				Pf.cTabCount = Value
 				Perform(EM_SETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -667,7 +667,11 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				Cf.dwMask = CFM_BOLD
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
-				Cf.dwEffects = Cf.dwEffects Or CFE_BOLD
+				If Value Then
+					Cf.dwEffects = Cf.dwEffects Or CFE_BOLD
+				Else
+					Cf.dwEffects = Cf.dwEffects And Not CFE_BOLD
+				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
 		#endif
@@ -693,7 +697,11 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				Cf.dwMask = CFM_ITALIC
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
-				Cf.dwEffects = Cf.dwEffects Or CFE_ITALIC
+				If Value Then
+					Cf.dwEffects = Cf.dwEffects Or CFE_ITALIC
+				Else
+					Cf.dwEffects = Cf.dwEffects And Not CFE_ITALIC
+				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
 		#endif
@@ -719,7 +727,11 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				Cf.dwMask = CFM_UNDERLINE
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
-				Cf.dwEffects = Cf.dwEffects Or CFE_UNDERLINE
+				If Value Then
+					Cf.dwEffects = Cf.dwEffects Or CFE_UNDERLINE
+				Else
+					Cf.dwEffects = Cf.dwEffects And Not CFE_UNDERLINE
+				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
 		#endif
@@ -745,7 +757,11 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				Cf.dwMask = CFM_STRIKEOUT
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
-				Cf.dwEffects = Cf.dwEffects Or CFE_STRIKEOUT
+				If Value Then
+					Cf.dwEffects = Cf.dwEffects Or CFE_STRIKEOUT
+				Else
+					Cf.dwEffects = Cf.dwEffects And Not CFE_STRIKEOUT
+				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
 		#endif
@@ -771,7 +787,11 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				Cf.dwMask = CFM_PROTECTED
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
-				Cf.dwEffects = Cf.dwEffects Or CFE_PROTECTED
+				If Value Then
+					Cf.dwEffects = Cf.dwEffects Or CFE_PROTECTED
+				Else
+					Cf.dwEffects = Cf.dwEffects And Not CFE_PROTECTED
+				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
 		#endif
