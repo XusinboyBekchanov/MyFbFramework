@@ -17,6 +17,9 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Type HTTPConnection Extends Component
+		
+	Private:
+		FAbort As Boolean
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -24,9 +27,14 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Get or set request cancellation.
+		Declare Property Abort As Boolean
+		Declare Property Abort(Value As Boolean)
+		
 		As String Host = "127.0.0.1"
 		As Integer Port = 80
 		As Integer Timeout = 3000
+		'Get response content and HTTP status code.
 		Declare Sub CallMethod(HTTPMethod As String, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
 		Declare Constructor
 		Declare Destructor
