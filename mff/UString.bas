@@ -477,7 +477,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 		Dim As Integer iLen = WideCharToMultiByte(CP_UTF8, 0, @nWString, m_BufferLen, StrPtr(ansiStr), Len(ansiStr), NULL, NULL)
 		If iLen Then Return Left(ansiStr, iLen) Else Return ""
 	#else
-		Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen, StrPtr(ansiStr), @i1))
+		Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1)))
 	#endif
 End Function
 
