@@ -1,4 +1,9 @@
-﻿#include once "mff/NoInterface.bi"
+﻿'################################################################################
+'#  FileListBox.bi                                                              #
+'#  This file is part of MyFBFramework                                          #
+'#  Authors: Xusinboy Bekchanov(2018-2019)  Liu XiaLin                          #
+'################################################################################
+#include once "mff/WStringList.bi"
 #include once "dir.bi"
 ' 常量定义
 Const FILE_ATTRIBUTES = fbReadOnly Or fbHidden Or fbSystem Or fbArchive
