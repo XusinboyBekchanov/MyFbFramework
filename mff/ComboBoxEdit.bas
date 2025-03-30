@@ -324,6 +324,7 @@ Namespace My.Sys.Forms
 			If FStyle > 1 Then
 				If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
 			Else
+				'If FHandle Then SetWindowText(FHandle, FText)
 				If FHandle Then Perform(WM_SETTEXT, -1, CInt(FText.vptr))
 			End If
 		#elseif defined(__USE_WASM__)
@@ -504,7 +505,7 @@ Namespace My.Sys.Forms
 							'						*s = .Items.Item(i)
 							.Perform(CB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 						Next i
-						.ItemIndex = .FItemIndex
+						If .FItemIndex <> -1 Then .ItemIndex = .FItemIndex
 						.Text = .FText
 						If .FEditHandle <> 0 Then
 							SetWindowLongPtr(.FEditHandle, GWLP_USERDATA, CInt(.Child))
@@ -808,8 +809,8 @@ Namespace My.Sys.Forms
 			DropDownListWidget = gtk_combo_box_text_new()
 			widget = DropDownListWidget
 			eventboxwidget = gtk_event_box_new()
-			gtk_container_add(gtk_container(eventboxwidget), widget)
-			g_signal_connect(gtk_bin_get_child(gtk_bin(DropDownWidget)), "activate", G_CALLBACK(@Entry_Activate), @This)
+			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
+			g_signal_connect(gtk_bin_get_child(GTK_BIN(DropDownWidget)), "activate", G_CALLBACK(@Entry_Activate), @This)
 			g_signal_connect(widget, "changed", G_CALLBACK(@ComboBoxEdit_Changed), @This)
 			g_signal_connect(widget, "popup", G_CALLBACK(@ComboBoxEdit_Popup), @This)
 			g_signal_connect(widget, "popdown", G_CALLBACK(@ComboBoxEdit_Popdown), @This)
