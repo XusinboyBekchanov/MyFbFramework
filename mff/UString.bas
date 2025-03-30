@@ -473,8 +473,12 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	Dim As Integer m_BufferLen = Len(nWString)
 	Dim i1 As ULong = m_BufferLen * 5 + 1                   'if all unicode chars use 5 bytes in utf8
 	Dim As String ansiStr = String(i1, 0)
-	Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1)))
-	'#endif
+	#ifdef __USE_WINAPI__
+		Dim As Integer iLen = WideCharToMultiByte(CP_UTF8, 0, @nWString, m_BufferLen, StrPtr(ansiStr), Len(ansiStr), NULL, NULL)
+		If iLen Then Return Left(ansiStr, iLen) Else Return ""
+	#else
+		Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen, StrPtr(ansiStr), @i1))
+	#endif
 End Function
 
 Private Function FromUtf8(pZString As ZString Ptr) As WString Ptr
@@ -486,7 +490,7 @@ Private Function FromUtf8(pZString As ZString Ptr) As WString Ptr
 	'UTF-16 big-endian: FE FF
 	'UTF-32 little-endian: FF FE 00 00
 	'UTF-32 big-endian: 00 00 FE FF
- 	Dim m_BufferLen As Integer = IIf(pZString <> 0, Len(*pZString) + 1, 0)
+	Dim m_BufferLen As Integer = IIf(pZString <> 0, Len(*pZString) + 1, 0)
 	If m_BufferLen = 0 Then Return 0
 	Dim As WString Ptr buffer
 	WReAllocate(buffer, m_BufferLen)

@@ -1,14 +1,11 @@
 ﻿#include once "mff/NoInterface.bi"
-#include once "mff/WstringList.bi"
 #include once "dir.bi"
-#include once "vbcompat.bi"  ' 用于多线程支持
-#include once "fbthread.bi"  ' 添加线程支持
-
 ' 常量定义
 Const FILE_ATTRIBUTES = fbReadOnly Or fbHidden Or fbSystem Or fbArchive
 Const DIR_ATTRIBUTES = FILE_ATTRIBUTES Or fbDirectory
 Const PATH_SEPARATOR = "/"  ' 统一使用正斜杠
 
+'display a list of files from a specified directory, optionally filtered by file type (extension).
 Type FileListBox
 Private:
 	m_path As String
