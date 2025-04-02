@@ -1358,6 +1358,24 @@ Private Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStar
 	Return n
 End Function
 
+Private Function FormatFileName(ByRef originalName As WString) As String
+    Const ILLEGAL_CHARS As String = "\/:*?""<>|"
+    Dim As WString * 1024 Result = originalName
+    Dim As Integer i, posi
+    For i = 1 To Len(ILLEGAL_CHARS)
+        Dim As String badChar = Mid(ILLEGAL_CHARS, i, 1)
+        posi = InStr(Result, badChar)
+        While posi > 0
+            Result = Left(Result, posi - 1) + Mid(Result, posi + 1)
+            posi = InStr(Result, badChar)
+        Wend
+    Next i
+    Result = Trim(Result)
+    If Result = "" Then Result = "unNamed"
+    Return Result
+End Function
+
+
 #ifndef Match_Off
 	Private Function Match(ByRef Subject As WString Ptr, ByRef Pattern As WString Ptr) As Boolean
 		
