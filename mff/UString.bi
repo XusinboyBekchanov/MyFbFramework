@@ -105,7 +105,9 @@ Declare Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 Declare Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 Declare Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 Declare Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
-
+Declare Function FormatFileName(ByRef originalName As WString) As String
+	
+End Function
 #if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean
 	Declare Function FileExists Overload(ByRef FileName As WString) As Boolean
