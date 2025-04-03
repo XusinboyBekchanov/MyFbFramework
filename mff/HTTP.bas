@@ -54,7 +54,7 @@ Namespace My.Sys.Forms
 			Dim As Boolean hSendRequest
 			Dim As String result
 			
-			hSession = InternetOpen("FreeBASIC HTTP", INTERNET_OPEN_TYPE_DIRECT, "", "", 0)
+			hSession = InternetOpen("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36", INTERNET_OPEN_TYPE_DIRECT, "", "", 0)
 			If hSession = 0 Then
 				Print "Failed to open Internet session"
 				Return
@@ -112,8 +112,7 @@ Namespace My.Sys.Forms
 			Do
 				bResult = InternetReadFile(hRequest, BufferPtr, dwBufferSize-1, @bytesRead)
 				If bResult AndAlso bytesRead > 0 Then
-					(*BufferPtr)[bytesRead] = 0 ' 添加 null 终止符
-					'If InStr(*BufferPtr, "??????") Then FAbort = True  ' mnove to APP to force to end， OpenRouter 强制结束
+					(*BufferPtr)[bytesRead] = 0 
 				Else
 					FAbort = True
 					(*BufferPtr)[0] = 0
@@ -122,6 +121,7 @@ Namespace My.Sys.Forms
 				If OnReceive Then OnReceive(*Designer, This, Request, *BufferPtr)
 			Loop While FAbort = False
 			Deallocate BufferPtr
+			If OnComplete Then OnComplete(*Designer, This, Request)
 			InternetCloseHandle(hRequest)
 			InternetCloseHandle(hConnect)
 			InternetCloseHandle(hSession)
