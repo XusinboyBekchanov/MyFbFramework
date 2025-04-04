@@ -853,7 +853,22 @@ Namespace Debug
 						End If
 						Dim As WString Ptr SelText
 						WLet(SelText, Msg & Chr(13, 10))
-						SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
+						Dim As Integer AddingTextLength = Len(*SelText)
+						Dim As Integer TextLength = SendMessage(DebugWindowHandle, WM_GETTEXTLENGTH, 0, 0)
+						If TextLength + AddingTextLength > 64000 Then
+							Dim As WString Ptr Text
+							WReAllocate(Text, TextLength)
+							GetWindowText(DebugWindowHandle, Text, TextLength + 1)
+							Dim As Integer LineFromCharIndex = SendMessage(DebugWindowHandle, EM_LINEFROMCHAR, AddingTextLength, 0)
+							Dim As Integer CharIndexFromLine = SendMessage(DebugWindowHandle, EM_LINEINDEX, LineFromCharIndex + 1, 0)
+							?CharIndexFromLine
+							WAdd(Text, Mid(*Text, CharIndexFromLine) & *SelText)
+							SetWindowText(DebugWindowHandle, Text)
+							?*Text
+							WDeAllocate(Text)
+						Else
+							SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))
+						End If
 						WDeAllocate(SelText)
 					End If
 				#elseif defined(__USE_GTK__)
