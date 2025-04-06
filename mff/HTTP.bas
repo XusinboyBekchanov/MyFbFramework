@@ -56,7 +56,10 @@ Namespace My.Sys.Forms
 			
 			hSession = InternetOpen("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36", INTERNET_OPEN_TYPE_DIRECT, "", "", 0)
 			If hSession = 0 Then
-				Print "Failed to open Internet session"
+				Responce.StatusCode= 405
+				Responce.Body = "ERROR: Failed to open Internet session"
+				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
+				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				Return
 			End If
 			'CONNECT_TIMEOUT
@@ -69,14 +72,20 @@ Namespace My.Sys.Forms
 			'hConnect = InternetOpenUrl(hSession, "http" & IIf(Port = 80, "", "s") & "://" & Host & IIf(Port = 80 OrElse Port = 443, "", ":" & Trim(Str(Port))), "", 0, INTERNET_FLAG_RELOAD, 0)
 			hConnect = InternetConnect(hSession, Host, IIf(Port = 80, INTERNET_DEFAULT_HTTP_PORT, INTERNET_DEFAULT_HTTPS_PORT), NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0)
 			If hConnect = 0 Then
-				Print "Failed to open URL"
+				Responce.StatusCode= 406
+				Responce.Body = "ERROR: Failed to open URL"
+				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
+				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				InternetCloseHandle(hSession)
 				Return
 			End If
 			
 			hRequest = HttpOpenRequest(hConnect, HTTPMethod, "/" & Request.ResourceAddress, NULL, NULL, NULL, IIf(Port = 80, INTERNET_FLAG_RELOAD, INTERNET_FLAG_SECURE Or INTERNET_FLAG_RELOAD), 0)
 			If hRequest = 0 Then
-				Print "Failed to open request"
+				Responce.StatusCode= 407
+				Responce.Body = "ERROR: Failed to open request"
+				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
+				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				InternetCloseHandle(hConnect)
 				InternetCloseHandle(hSession)
 				Return
@@ -84,7 +93,10 @@ Namespace My.Sys.Forms
 			
 			hSendRequest = HttpSendRequest(hRequest, Request.Headers, Len(Request.Headers), Cast(LPVOID, StrPtr(Request.Body)), Len(Request.Body))
 			If hSendRequest = False Then
-				Print "Failed to send request"
+				Responce.StatusCode= 408
+				Responce.Body = "ERROR: Failed to send request"
+				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
+				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				InternetCloseHandle(hRequest)
 				InternetCloseHandle(hConnect)
 				InternetCloseHandle(hSession)
@@ -92,7 +104,7 @@ Namespace My.Sys.Forms
 			End If
 			
 			Dim As Integer statusCode
-			Dim As DWORD statusCodeSize = Len(statusCode)
+			Dim As DWORD statusCodeSize = SizeOf(statusCode)
 			HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE Or HTTP_QUERY_FLAG_NUMBER, @statusCode, @statusCodeSize, 0)
 			Responce.StatusCode = statusCode
 			
@@ -104,13 +116,14 @@ Namespace My.Sys.Forms
 				'	Responce.Headers = responseHeadersBytes
 				'End If
 			End If
+			
 			'更安全的缓冲区处理
 			Dim As DWORD bytesRead, dwBufferSize = 8192
 			Dim As Long bResult
 			Dim As DWORD dwBytesRead
 			Dim As ZString Ptr BufferPtr = Allocate(dwBufferSize)
 			Do
-				bResult = InternetReadFile(hRequest, BufferPtr, dwBufferSize-1, @bytesRead)
+				bResult = InternetReadFile(hRequest, BufferPtr, dwBufferSize, @bytesRead)
 				If bResult AndAlso bytesRead > 0 Then
 					(*BufferPtr)[bytesRead] = 0 
 				Else
@@ -121,7 +134,7 @@ Namespace My.Sys.Forms
 				If OnReceive Then OnReceive(*Designer, This, Request, *BufferPtr)
 			Loop While FAbort = False
 			Deallocate BufferPtr
-			If OnComplete Then OnComplete(*Designer, This, Request)
+			If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 			InternetCloseHandle(hRequest)
 			InternetCloseHandle(hConnect)
 			InternetCloseHandle(hSession)

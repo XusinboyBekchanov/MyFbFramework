@@ -39,7 +39,7 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		OnReceive  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
-		OnComplete As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest)
+		OnComplete As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
 	End Type
 End Namespace
 
