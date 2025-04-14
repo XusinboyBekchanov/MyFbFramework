@@ -29,7 +29,7 @@ Namespace My.Sys.Forms
 			Return True
 		End Function
 	#endif
-		Private Property HTTPConnection.Abort As Boolean
+	Private Property HTTPConnection.Abort As Boolean
 		Return FAbort
 	End Property
 	
@@ -57,7 +57,7 @@ Namespace My.Sys.Forms
 			hSession = InternetOpen("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36", INTERNET_OPEN_TYPE_DIRECT, "", "", 0)
 			If hSession = 0 Then
 				Responce.StatusCode= 405
-				Responce.Body = "ERROR: Failed to open Internet session"
+				Responce.Body = "{""Error"":{""Message"":""FAILED To Open Internet session"",""code"":405}}"
 				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
 				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				Return
@@ -73,17 +73,17 @@ Namespace My.Sys.Forms
 			hConnect = InternetConnect(hSession, Host, IIf(Port = 80, INTERNET_DEFAULT_HTTP_PORT, INTERNET_DEFAULT_HTTPS_PORT), NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0)
 			If hConnect = 0 Then
 				Responce.StatusCode= 406
-				Responce.Body = "ERROR: Failed to open URL"
+				Responce.Body = "{""error"":{""message"":""Failed to open URL"",""code"":406}}"
 				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
 				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				InternetCloseHandle(hSession)
 				Return
 			End If
 			
-			hRequest = HttpOpenRequest(hConnect, HTTPMethod, "/" & Request.ResourceAddress, NULL, NULL, NULL, IIf(Port = 80, INTERNET_FLAG_RELOAD, INTERNET_FLAG_SECURE Or INTERNET_FLAG_RELOAD), 0)
+			hRequest = HttpOpenRequest(hConnect, HTTPMethod, "/" & Request.ResourceAddress, NULL, NULL, NULL, IIf(Port = 80, INTERNET_FLAG_RELOAD Or INTERNET_FLAG_NO_CACHE_WRITE, INTERNET_FLAG_SECURE Or INTERNET_FLAG_RELOAD Or INTERNET_FLAG_NO_CACHE_WRITE), 0)
 			If hRequest = 0 Then
 				Responce.StatusCode= 407
-				Responce.Body = "ERROR: Failed to open request"
+				Responce.Body = "{""error"":{""message"":""Failed to open request"",""code"":407}}"
 				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
 				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				InternetCloseHandle(hConnect)
@@ -91,10 +91,18 @@ Namespace My.Sys.Forms
 				Return
 			End If
 			
-			hSendRequest = HttpSendRequest(hRequest, Request.Headers, Len(Request.Headers), Cast(LPVOID, StrPtr(Request.Body)), Len(Request.Body))
-			If hSendRequest = False Then
+			' Send request with retry logic
+			Dim retryCount As Integer = 0
+			Do While retryCount < 3
+				hSendRequest = HttpSendRequest(hRequest, Request.Headers, Len(Request.Headers), Cast(LPVOID, StrPtr(Request.Body)), Len(Request.Body))
+				If hSendRequest Then Exit Do
+				retryCount += 1
+				Sleep(1000)
+			Loop
+			
+			If retryCount >= 3 Then
 				Responce.StatusCode= 408
-				Responce.Body = "ERROR: Failed to send request"
+				Responce.Body = "{""error"":{""message"":""Failed to send request after 3 attempts (Error: " &  GetLastError() & ")"", ""code"": 408}}"
 				If OnReceive Then OnReceive(*Designer, This, Request, Responce.Body)
 				If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 				InternetCloseHandle(hRequest)
@@ -122,16 +130,18 @@ Namespace My.Sys.Forms
 			Dim As Long bResult
 			Dim As DWORD dwBytesRead
 			Dim As ZString Ptr BufferPtr = Allocate(dwBufferSize)
+			Dim As String szBuffer
 			Do
 				bResult = InternetReadFile(hRequest, BufferPtr, dwBufferSize, @bytesRead)
 				If bResult AndAlso bytesRead > 0 Then
-					(*BufferPtr)[bytesRead] = 0 
+					szBuffer = String(bytesRead + 1, 0)
+					memcpy(StrPtr(szBuffer), BufferPtr, bytesRead)
 				Else
 					FAbort = True
-					(*BufferPtr)[0] = 0
+					szBuffer = ""
 				End If
-				Responce.Body &= *BufferPtr
-				If OnReceive Then OnReceive(*Designer, This, Request, *BufferPtr)
+				Responce.Body &= szBuffer '*BufferPtr
+				If OnReceive Then OnReceive(*Designer, This, Request, szBuffer)
 			Loop While FAbort = False
 			Deallocate BufferPtr
 			If OnComplete Then OnComplete(*Designer, This, Request, Responce)
