@@ -134,7 +134,7 @@ Namespace My.Sys.Forms
 			Do
 				bResult = InternetReadFile(hRequest, BufferPtr, dwBufferSize, @bytesRead)
 				If bResult AndAlso bytesRead > 0 Then
-					szBuffer = String(bytesRead + 1, 0)
+					szBuffer = String(bytesRead, 0)
 					memcpy(StrPtr(szBuffer), BufferPtr, bytesRead)
 				Else
 					FAbort = True
