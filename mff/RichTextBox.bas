@@ -1054,6 +1054,7 @@ Namespace My.Sys.Forms
 						SetDark False
 					End If
 				End If
+				If ReadOnly Then TextRTF = FTextRTF
 				Return
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -1200,6 +1201,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property RichTextBox.TextRTF(Value As UString)
+		FTextRTF = Value
 		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Dim As String Buffer
