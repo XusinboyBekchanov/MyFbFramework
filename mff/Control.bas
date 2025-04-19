@@ -1534,7 +1534,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				Case WM_ERASEBKGND
-					If Not FCreated Then
+					If ClassName <> "ListControl" AndAlso Not FCreated Then
 						FCreated = True
 						UpdateWindow Message.hWnd
 						Message.Result = 0
