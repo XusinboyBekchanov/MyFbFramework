@@ -861,10 +861,8 @@ Namespace Debug
 							GetWindowText(DebugWindowHandle, Text, TextLength + 1)
 							Dim As Integer LineFromCharIndex = SendMessage(DebugWindowHandle, EM_LINEFROMCHAR, AddingTextLength, 0)
 							Dim As Integer CharIndexFromLine = SendMessage(DebugWindowHandle, EM_LINEINDEX, LineFromCharIndex + 1, 0)
-							?CharIndexFromLine
 							WAdd(Text, Mid(*Text, CharIndexFromLine) & *SelText)
 							SetWindowText(DebugWindowHandle, Text)
-							?*Text
 							WDeAllocate(Text)
 						Else
 							SendMessage(DebugWindowHandle, EM_REPLACESEL, 0, CInt(SelText))

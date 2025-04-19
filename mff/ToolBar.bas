@@ -1309,6 +1309,8 @@ Namespace My.Sys.Forms
 			'.Font              = @Font
 			'.Cursor            = @Cursor
 		End With
+		'Dim As GtkSettings Ptr settings = gtk_settings_get_default()
+		'g_object_set(settings, "gtk-icon-sizes", "gtk-toolbar=24,24", NULL)
 	End Constructor
 	
 	Private Destructor ToolBar
