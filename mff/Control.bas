@@ -1073,8 +1073,8 @@ Namespace My.Sys.Forms
 					Dim As Integer AControlParent(2) => {0, WS_EX_CONTROLPARENT}
 					Dim As Integer ATabStop(2) = {0, WS_TABSTOP}, AGrouped(2) = {0, WS_GROUP}
 					If ClassName = "WebBrowser" Then
-						'Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
-						'ExStyle = 0
+						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE
+						ExStyle = 0
 						'					ElseIf ClassName = "IPAddress" Then
 						'						Text = ""
 						'						Style = WS_TABSTOP Or WS_CHILD Or WS_VISIBLE Or WS_OVERLAPPED
