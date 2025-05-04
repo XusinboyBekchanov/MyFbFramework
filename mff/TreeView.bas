@@ -545,11 +545,11 @@ Namespace My.Sys.Forms
 		_Delete(Item(Index))
 		FNodes.Remove Index
 	End Sub
-	Private Sub TreeNodeCollection.EditLabel
+	Private Sub TreeNode.EditLabel
 		#ifdef __USE_GTK__
 		#elseif defined(__USE_WINAPI__)
-			If Parent AndAlso Parent->Handle AndAlso FParentNode->Handle Then
-				'TreeView_EditLabel(Parent->Handle, FParentNode->Handle)
+			If Parent AndAlso Parent->Handle AndAlso Handle Then
+				TreeView_EditLabel(Parent->Handle, Handle)
 			End If
 		#endif
 	End Sub
@@ -680,7 +680,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeView.CollapseAll
 		#ifdef __USE_GTK__
-			gtk_tree_view_collapse_all(gtk_tree_view(widget))
+			gtk_tree_view_collapse_all(GTK_TREE_VIEW(widget))
 		#elseif defined(__USE_WINAPI__)
 			SendToAllChildItems(TreeView_GetRoot(Handle), TVE_COLLAPSE)
 		#endif
@@ -688,7 +688,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeView.ExpandAll
 		#ifdef __USE_GTK__
-			gtk_tree_view_expand_all(gtk_tree_view(widget))
+			gtk_tree_view_expand_all(GTK_TREE_VIEW(widget))
 		#elseif defined(__USE_WINAPI__)
 			SendToAllChildItems(TreeView_GetRoot(Handle), TVM_EXPAND)
 		#endif
@@ -749,7 +749,7 @@ Namespace My.Sys.Forms
 	Private Function TreeView.DraggedNode As TreeNode Ptr
 		#ifdef __USE_GTK__
 			Dim As GtkTreePath Ptr path
-			Dim As GtkTreeVIewDropPosition Pos1
+			Dim As GtkTreeViewDropPosition Pos1
 			Dim As GtkTreeIter iter
 			gtk_tree_view_get_drag_dest_row(gtk_tree_view(widget), @path, @Pos1)
 			If path <> 0 AndAlso gtk_tree_model_get_iter(gtk_tree_model(TreeStore), @iter, path) Then

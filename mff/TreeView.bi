@@ -30,7 +30,6 @@ Namespace My.Sys.Forms
 		Declare Property ParentNode As PTreeNode
 		Declare Property ParentNode(Value As PTreeNode)
 		Declare Sub Remove(Index As Integer)
-		Declare Sub EditLabel
 		Declare Function IndexOf(ByRef FNode As PTreeNode) As Integer
 		Declare Function IndexOf(ByRef Text As WString) As Integer
 		Declare Function IndexOfKey(ByRef Key As WString) As Integer
@@ -77,6 +76,7 @@ Namespace My.Sys.Forms
 		Declare Sub SelectItem
 		Declare Sub Collapse
 		Declare Sub Expand
+		Declare Sub EditLabel
 		Declare Function IsExpanded As Boolean
 		Declare Property Bold As Boolean
 		Declare Property Bold(Value As Boolean)

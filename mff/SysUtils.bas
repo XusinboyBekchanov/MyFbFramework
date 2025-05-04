@@ -54,31 +54,29 @@
 #endif
 
 Private Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
-	
 	#ifdef UNICODE
 		Dim ErrorString         As WString Ptr
 	#else
 		Dim ErrorString         As ZString Ptr
 	#endif
-	Dim sError              As String
 	
-	If Code = 0 AndAlso WithCode Then Return "e: " & Str(Code)
-	
-	#ifdef __USE_WINAPI__
-		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM Or FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, Code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), ErrorString, MaxLen, NULL)
-		If (ErrorString <> 0) Then
-			If WithCode Then
-				Return Str(Code) & " - " & *ErrorString
-			Else
-				Return *ErrorString
+	If Code = 0 AndAlso WithCode Then 
+		GetErrorString = "e: " & Str(Code)
+	Else
+		#ifdef __USE_WINAPI__
+			FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER Or FORMAT_MESSAGE_FROM_SYSTEM Or FORMAT_MESSAGE_IGNORE_INSERTS, NULL, Code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), Cast(LPWSTR, @ErrorString), 0, NULL)
+			If (ErrorString <> 0) Then
+				If WithCode Then
+					GetErrorString = WStr(Code) & " - " & *ErrorString
+				Else
+					GetErrorString = *ErrorString
+				End If
+				LocalFree(ErrorString)
+			ElseIf WithCode Then
+				GetErrorString = "e: " & WStr(Code)
 			End If
-			LocalFree(ErrorString)
-		ElseIf WithCode Then
-			Return "e: " & Str(Code)
-		End If
-	#endif
-	Return sError
-	
+		#endif
+	End If
 End Function
 
 Namespace ClassContainer
