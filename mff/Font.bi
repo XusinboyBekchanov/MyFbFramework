@@ -73,7 +73,9 @@ Namespace My.Sys.Drawing
 		FUnderline As Boolean
 		FStrikeOut As Boolean
 		FSize      As Integer
+		FDefaultSize As Boolean = True
 		FName      As WString Ptr
+		FDefaultName As Boolean = True
 		FColor     As Integer
 		FCharSet   As Integer
 		FParent    As My.Sys.Object Ptr

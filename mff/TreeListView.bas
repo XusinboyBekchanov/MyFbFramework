@@ -1651,7 +1651,7 @@ Namespace My.Sys.Forms
 				ItemID = Cast(Integer, miStruct->itemID)
 				'If FOwnerDraw Then miStruct->itemHeight = ScaleY(17)
 				If StateImages Then
-					miStruct->itemHeight = ScaleY(StateImages->ImageHeight) + 1
+					miStruct->itemHeight = ScaleY(Max(StateImages->ImageHeight, Max(8, Font.Size) / 72 * 96 + 5)) + 1
 					FItemHeight = 0
 				End If
 				If OnMeasureItem Then OnMeasureItem(*Designer, This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)

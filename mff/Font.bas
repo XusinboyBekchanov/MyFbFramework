@@ -105,6 +105,8 @@ Namespace My.Sys.Drawing
 	
 	Private Property Font.Parent(Value As My.Sys.Object Ptr)
 		FParent = Value
+		If FDefaultName AndAlso *FName <> DefaultFont.Name Then WLet(FName, DefaultFont.Name)
+		If FDefaultSize AndAlso FSize <> DefaultFont.Size Then FSize = DefaultFont.Size
 		#ifdef __USE_GTK__
 			If *FParent Is My.Sys.ComponentModel.Component Then
 				#ifndef __USE_GTK2__
@@ -133,6 +135,7 @@ Namespace My.Sys.Drawing
 	
 	Private Property Font.Name(ByRef Value As WString)
 		WLet(FName, Value)
+		FDefaultName = False
 		Create
 	End Property
 	
@@ -162,6 +165,7 @@ Namespace My.Sys.Drawing
 	
 	Private Property Font.Size(Value As Integer)
 		FSize = Value
+		FDefaultSize = False
 		Create
 	End Property
 	
