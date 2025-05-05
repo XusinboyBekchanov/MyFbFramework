@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor StatusPanel
-		If FCaption Then _Deallocate( FCaption)
+		If FCaption Then _Deallocate(FCaption)
 		If FName Then _Deallocate(FName)
 	End Destructor
 	
@@ -211,16 +211,16 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Function StatusBar.Add(ByRef wText As WString) As StatusPanel Ptr
+	Private Function StatusBar.Add(ByRef wText As WString, ByVal iWidth As Integer = 50, ByVal iAlignment As Integer = 0) As StatusPanel Ptr
 		Count += 1
 		Panels = _Reallocate(Panels, SizeOf(StatusPanel Ptr) * Count)
-		Panels[Count -1] = _New( StatusPanel)
-		Panels[Count -1]->FDynamic = True
-		Panels[Count -1]->Index     = Count - 1
-		Panels[Count -1]->Width     = 50
-		Panels[Count -1]->Caption   = wText
-		Panels[Count -1]->Alignment = 0
-		Panels[Count -1]->Bevel     = pbLowered
+		Panels[Count - 1]            = _New( StatusPanel)
+		Panels[Count - 1]->FDynamic  = True
+		Panels[Count - 1]->Index     = Count - 1
+		Panels[Count - 1]->Width     = iWidth
+		Panels[Count - 1]->Caption   = wText
+		Panels[Count - 1]->Alignment = iAlignment
+		Panels[Count - 1]->Bevel     = BevelStyle.pbLowered
 		Panels[Count - 1]->StatusBarControl = @This
 		UpdatePanels
 		Return Panels[Count - 1]
@@ -506,11 +506,12 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
 			#endif
-			#ifdef __USE_GTK3__
-				.Height       = 35
-			#else
-				.Height       = 21
-			#endif
+			'#ifdef __USE_GTK3__
+			'	.Height       = 35
+			'#else
+			'	.Height       = 21
+			'#endif
+			.Height = ScaleY(Font.Size / 72 * 96 + 6)
 			.Width        = 175
 			.Child        = @This
 		End With

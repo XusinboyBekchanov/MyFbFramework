@@ -145,7 +145,7 @@ Namespace My.Sys.Forms
 		'Controls visibility of the resize grip in bottom-right corner
 		Declare Property SizeGrip(Value As Boolean)
 		'Appends a new status panel to the bar
-		Declare Function Add(ByRef wText As WString) As StatusPanel Ptr
+		Declare Function Add(ByRef wText As WString, ByVal iWidth As Integer = 50, ByVal iAlignment As Integer = 0) As StatusPanel Ptr
 		'Appends a new status panel to the bar
 		Declare Sub Add(stPanel As StatusPanel Ptr)
 		'Deletes a specific status panel
