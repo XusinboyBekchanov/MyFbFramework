@@ -312,7 +312,7 @@ End Function
 	
 	'Returns a string, which is a substring of a string expression beginning at the start position (defaults to 1), in which a specified substring has been replaced with another substring a specified number of times.
 	Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByVal Count As Integer = -1, MatchCase As Boolean = True, ByRef CountReplaced As Integer = 0) As UString
-		If Len(FindingText) = 0 Then Return Expression
+		If Len(FindingText) = 0 Then CountReplaced = 0:Return Expression
 		Dim As WString Ptr original, find
 		If MatchCase Then
 			original = @Expression
@@ -340,7 +340,7 @@ End Function
 			Loop Until i >= ln - 1
 		End If
 		Var t = countof 'tallynumW(*original, *find)                 'find occurencies of find
-		If t = 0 Then Return Expression
+		If t = 0 Then CountReplaced = 0: Return Expression
 		Dim As Long found, n, staid, m, c
 		Var Lf = Len(FindingText) * GrowLength, Lr = Len(ReplacingText) * GrowLength, Lo = Len(Expression) * GrowLength
 		t = Len(Expression) * GrowLength - t * Lf + t * Lr               'length of output string
