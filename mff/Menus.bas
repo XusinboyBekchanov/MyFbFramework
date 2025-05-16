@@ -1253,9 +1253,10 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		#elseif defined(__USE_WINAPI__)
-			If FHandle Then
-				DestroyMenu(FHandle)
-				FHandle = 0
+			If ParentMenuItem Then
+				RemoveMenu(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION)
+			ElseIf Owner AndAlso Owner->Handle Then
+				RemoveMenu(Owner->Handle, MenuIndex, MF_BYPOSITION)
 			End If
 		#endif
 	End Destructor
