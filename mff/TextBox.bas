@@ -1344,14 +1344,14 @@ Namespace My.Sys.Forms
 					End Select
 				End If
 			Case WM_SETFOCUS
-				'David Change
-				If Handle Then
-					If This.SelText Then
-						SendMessage Handle, EM_SETSEL, 0, -1
-					Else
-						SendMessage Handle, EM_SETSEL, -1, 0
-					End If
-				End If
+				''David Change
+				'If Handle Then
+				'	If This.SelText Then
+				'		SendMessage Handle, EM_SETSEL, 0, -1
+				'	Else
+				'		SendMessage Handle, EM_SETSEL, -1, 0
+				'	End If
+				'End If
 			Case WM_CUT
 				If OnCut Then OnCut(*Designer, This)
 			Case WM_COPY
