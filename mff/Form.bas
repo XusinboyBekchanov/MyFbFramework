@@ -1236,7 +1236,13 @@ Namespace My.Sys.Forms
 				End If
 			Case WM_NCPAINT, WM_NCACTIVATE
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					DefWindowProc(msg.hWnd, msg.Msg, msg.wParam, msg.lParam)
+					If FormStyle = FormStyles.fsMDIChild Then
+						DefMDIChildProc(msg.hWnd, msg.Msg, msg.wParam, msg.lParam)
+					ElseIf FormStyle = FormStyles.fsMDIForm Then
+						DefFrameProc(msg.hWnd, FClient, msg.Msg, msg.wParam, msg.lParam)
+					Else
+						DefWindowProc(msg.hWnd, msg.Msg, msg.wParam, msg.lParam)
+					End If
 					Dim As MENUBARINFO mbi = Type( SizeOf(mbi) )
 					If (GetMenuBarInfo(msg.hWnd, OBJID_MENU, 0, @mbi) = 0) Then
 						msg.Result = True
