@@ -287,7 +287,7 @@ Namespace My.Sys.Forms
 				If i = 0 Then
 					FWidth(i) = ScaleX(Panels[i]->Width)
 				Else
-					FWidth(i) = ScaleX(Panels[i]->Width) + FWidth(i -1)
+					FWidth(i) = ScaleX(Panels[i]->Width) + FWidth(i - 1)
 				End If
 			Next i
 			FWidth(Count - 1) = -1
@@ -308,7 +308,7 @@ Namespace My.Sys.Forms
 					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LPARAM, CInt(s)))
 					Perform(SB_SETICON, i, Cast(LPARAM, CInt(Panels[i]->Icon.Handle)))
 				#endif
-				WLet(ss, *ss & IIf(i = 0, "", !"\t") & Panels[i]->Caption)
+				WAdd(ss, IIf(i = 0, "", !"\t") & Panels[i]->Caption)
 			Next i
 		End If
 		#ifdef __USE_GTK__

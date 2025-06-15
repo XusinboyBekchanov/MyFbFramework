@@ -589,8 +589,10 @@ Namespace My.Sys.Forms
 						If OnClick Then OnClick(*Designer, This)
 					End If
 				#else
-					SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MAKELONG(FChecked, 0))
-					If OnClick Then OnClick(*Designer, This)
+					If .Handle Then
+						SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MAKELONG(FChecked, 0))
+						If OnClick Then OnClick(*Designer, This)
+					End If
 				#endif
 			End With
 		End If

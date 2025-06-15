@@ -487,7 +487,9 @@ Namespace My.Sys.Forms
 				'Case WM_LBUTTONDBLCLK
 				'	If cbo->OnDblClick Then cbo->OnDblClick(*cbo)
 				'End Select
-				If Message.Result = -1 Then
+				If Message.Handled Then
+					Return Message.Result
+				ElseIf Message.Result = -1 Then
 					Return Message.Result
 				ElseIf Message.Result = -2 Then
 					uMsg = Message.Msg

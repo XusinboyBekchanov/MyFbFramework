@@ -144,6 +144,7 @@ Private Type Message
 		lParamHi As Integer
 		Captured As Any Ptr
 	#endif
+	Handled As Boolean
 End Type
 
 #ifdef __USE_GTK__

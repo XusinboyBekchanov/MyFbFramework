@@ -212,7 +212,9 @@ Namespace My.Sys.Forms
 				Dim Message As Message
 				Message = Type(nud, hDlg, uMsg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				nud->UpDownControl.ProcessMessage(Message)
-				If Message.Result = -1 Then
+				If Message.Handled Then
+					Return Message.Result
+				ElseIf Message.Result = -1 Then
 					Return Message.Result
 				ElseIf Message.Result = -2 Then
 					uMsg = Message.Msg

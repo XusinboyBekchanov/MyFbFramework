@@ -83,7 +83,7 @@ Namespace My.Sys.Forms
 					If IsAppThemed() Then
 						GetClientRect(Cast(HWND, msg.lParam), @rct)
 						DrawThemeParentBackground(Cast(HWND, msg.lParam), Cast(HDC, msg.wParam), @rct)
-						SetBkMode(Cast(HDC, msg.wParam), TRANSPARENT)
+						SetBkMode(Cast(HDC, msg.wParam), Transparent)
 						msg.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 						Return
 					End If
@@ -712,7 +712,9 @@ Namespace My.Sys.Forms
 				Dim Message As Message
 				Message = Type(tc, hDlg, uMsg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
 				tc->UpDownControl.ProcessMessage(Message)
-				If Message.Result = -1 Then
+				If Message.Handled Then
+					Return Message.Result
+				ElseIf Message.Result = -1 Then
 					Return Message.Result
 				ElseIf Message.Result = -2 Then
 					uMsg = Message.Msg

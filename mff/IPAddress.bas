@@ -127,7 +127,9 @@ Namespace My.Sys.Forms
 				With *Ctrl
 					If Ctrl->ClassName <> "" Then
 						.ProcessMessage(Message)
-						If Message.Result = -1 Then
+						If Message.Handled Then
+							Return Message.Result
+						ElseIf Message.Result = -1 Then
 							Return Message.Result
 						ElseIf Message.Result = -2 Then
 							Msg = Message.Msg

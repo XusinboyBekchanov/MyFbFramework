@@ -1570,9 +1570,14 @@ Namespace My.Sys.Forms
 					End If
 					If OnPaint Then
 						Dim As HDC DC = GetDC(FHandle)
+						'Dim ps As PAINTSTRUCT
+						'Dim DC As HDC = BeginPaint(FHandle, @ps)
 						Canvas.SetHandle DC
 						OnPaint(*Designer, This, Canvas)
 						Canvas.UnSetHandle
+						'EndPaint(FHandle, @ps)
+						'Message.Result = 0
+						'Message.Handled = True
 						ReleaseDC FHandle, DC
 					End If
 				Case WM_SETCURSOR
@@ -2123,7 +2128,9 @@ Namespace My.Sys.Forms
 					'?Ctrl
 					If Ctrl->ClassName <> "" Then
 						Ctrl->ProcessMessage(Message)
-						If Message.Result = -1 Then
+						If Message.Handled Then
+							Return Message.Result
+						ElseIf Message.Result = -1 Then
 							Return Message.Result
 						ElseIf Message.Result = -2 Then
 							Msg = Message.Msg
@@ -2163,7 +2170,9 @@ Namespace My.Sys.Forms
 				If Ctrl Then
 					Proc = Ctrl->PrevProc
 					Ctrl->ProcessMessage(Message)
-					If Message.Result = -1 Then
+					If Message.Handled Then
+						Return Message.Result
+					ElseIf Message.Result = -1 Then
 						Return Message.Result
 					ElseIf Message.Result = -2 Then
 						Msg = Message.Msg
@@ -2197,7 +2206,9 @@ Namespace My.Sys.Forms
 					With *Ctrl
 						If Ctrl->ClassName <> "" Then
 							.ProcessMessage(Message)
-							If Message.Result = -1 Then
+							If Message.Handled Then
+								Return Message.Result
+							ElseIf Message.Result = -1 Then
 								Return Message.Result
 							ElseIf Message.Result = -2 Then
 								Msg = Message.Msg
