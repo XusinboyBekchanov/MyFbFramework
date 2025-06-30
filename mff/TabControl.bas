@@ -1043,7 +1043,7 @@ Namespace My.Sys.Forms
 		Tabs[FTabCount - 1]->SendToBack
 	End Sub
 	
-	Private Sub TabControl.ReorderTab(ByVal tp As TabPage Ptr, Index As Integer)
+	Private Sub TabControl.ReorderTab(ByVal tp As TabPage Ptr, Index As Integer, bNoActivate As Boolean = False)
 		Dim As Integer i
 		Dim As TabPage Ptr It
 		If Index >= 0 And Index <= FTabCount -1 Then
@@ -1070,7 +1070,7 @@ Namespace My.Sys.Forms
 				Tabs[Index]->Update
 				SetTabPageIndex(tp, Index)
 			End If
-			SelectedTabIndex = Index
+			If Not bNoActivate Then SelectedTabIndex = Index
 			If OnTabReordered Then OnTabReordered(*Designer, This, tp, Index)
 		End If
 	End Sub
