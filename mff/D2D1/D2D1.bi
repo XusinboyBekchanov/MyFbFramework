@@ -2243,13 +2243,13 @@ ByVal pAdapter As IDXGIAdapter Ptr, _                      ' IDXGIAdapter*
 ByVal DriverType As D3D_DRIVER_TYPE, _                   ' D3D_DRIVER_TYPE
 ByVal Software As HMODULE, _                      ' HMODULE (0)
 ByVal Flags As UINT, _                        
-ByVal pFeatureLevels As Const D3D_FEATURE_LEVEL, _  
+ByVal pFeatureLevels As Const D3D_FEATURE_LEVEL Ptr, _  
 ByVal FeatureLevels As UINT, _                
 ByVal SDKVersion As UINT, _                   
 ByVal ppDevice As ID3D11Device Ptr Ptr, _                  
-ByVal pFeatureLevelOut As D3D_FEATURE_LEVEL, _
+ByVal pFeatureLevelOut As D3D_FEATURE_LEVEL Ptr, _
 ByVal ppImmediateContext As ID3D11DeviceContext Ptr Ptr _         
-) As Long
+) As HRESULT
 
 Type DWriteCreateFactoryType As Function( _
 ByVal factoryType As DWRITE_FACTORY_TYPE, _
