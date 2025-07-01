@@ -1048,7 +1048,7 @@ Namespace My.Sys.Forms
 		Dim As TabPage Ptr It
 		If Index >= 0 And Index <= FTabCount -1 Then
 			If Index < tp->Index Then
-				For i = Index To tp->Index - 1
+				For i = tp->Index - 1 To Index Step -1
 					It = Tabs[i]
 					Tabs[i + 1] = It
 					If i = Index Then
