@@ -290,38 +290,34 @@ Private Sub Dictionary.SaveToFile(ByRef FileName As WString)
 	CloseFile_(Fn)
 End Sub
 
-Private Sub Dictionary.LoadFromFile(ByRef filename As WString)
-	Dim As Integer Fn = FreeFile_, Result = -1, Pos1 = -1
-	Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
-	'If Open(FileName For Binary Access Read As #Fn) = 0 Then
-	Result = Open(filename For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(filename For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(filename For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(filename For Input As #Fn)
-	If Result = 0 Then  'David Change
-		'Dim FText As WString Ptr
-		'WReallocate FText, LOF(F) + 1
+Private Sub Dictionary.LoadFromFile(ByRef Filename As WString)
+	Dim As Integer Fn = FreeFile_, Result = -1, Pos1 = -1, FileSize
+	Dim As Boolean IsTextStr
+	Dim As WString Ptr pBuff
+	Result = Open(Filename For Input Encoding "utf-8" As #Fn)
+	If Result = 0 Then
 		This.Clear
-		While Not EOF(Fn)
-			Line Input #Fn, Buff
-			If Trim(Buff, Any !"\t ")<>"" Then  'David Change
-				Pos1=InStr(Buff, Chr(9))
-				If Pos1 > 0 Then
-					Dim As DictionaryItem Ptr nItem = _New(DictionaryItem)
-					With *nItem
-						If Pos1 > 0 Then
-							.Key  = ..Left(Buff, Pos1 - 1)
-							.Text = Mid(Buff, Pos1 + 1)
-						Else
-							.Key  = Buff
-						End If
-					End With
-					FItems.Add nItem
-				End If
-			End If
-		Wend
+		FileSize = LOF(Fn) + 1
+		WLet(pBuff, WInput(FileSize, #Fn))
 	End If
 	CloseFile_(Fn)
+	If pBuff > 0 AndAlso Trim(*pBuff, "") <> "" Then
+		Dim As WString Ptr res(Any)
+		Split(*pBuff, Chr(9), res())
+		If UBound(res) < 1 Then Exit Sub
+		Dim As DictionaryItem Ptr nItem = _New(DictionaryItem)
+		For j As Integer = 0 To UBound(res) - 1 Step 2
+			With *nItem
+				.Key  = *res(j)
+				.Text = *res(j + 1)
+			End With
+			FItems.Add nItem
+			Deallocate res(j)
+			Deallocate res(j + 1)
+		Next
+		Erase res
+	End If
+	WDeAllocate(pBuff)
 	If OnChange Then OnChange(This)
 End Sub
 
@@ -562,4 +558,3 @@ Private Destructor Dictionary
 	End If
 	If FText Then _Deallocate(FText)
 End Destructor
-
