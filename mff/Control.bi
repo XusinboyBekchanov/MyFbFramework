@@ -21,7 +21,11 @@
 #ifdef __USE_WINAPI__
 	#include once "win/commctrl.bi"
 	#include once "win/shellapi.bi"
+	#include once "win/shlobj.bi"
 	#include once "win/windowsx.bi"
+	#include once "CDropTarget/CDropTarget.bi"
+	#include once "CDropSource/CDropSource.bi"
+	#include once "CDataObject/CDataObject.bi"
 #endif
 #define WM_DPICHANGED               &h02E0
 #define WM_DPICHANGED_BEFOREPARENT  &h02E2
@@ -73,6 +77,55 @@ Namespace My.Sys.Forms
 			MatchCase     As Boolean
 		End Type
 		
+		Enum DataFormats
+			dfText = 1
+			dfBitmap = 2
+			dfMetaFilePict = 3
+			dfSylk = 4
+			dfDif = 5
+			dfTIFF = 6
+			dfOEMText = 7
+			dfDIB = 8
+			dfPalette = 9
+			dfPenData = 10
+			dfRIFF = 11
+			dfWave = 12
+			dfUnicodeText = 13
+			dfENHMetaFile = 14
+			dfHDrop = 15
+			dfLocale = 16
+			dfDIBV5 = 17
+			dfMax = 18
+		End Enum
+		
+		Enum DragDropEffects
+			deScroll = -2147483648
+			deAll = -2147483648
+			deNone = 0
+			deCopy = 1
+			deMove = 2
+			deLink = 4
+		End Enum
+		
+		Enum DragAction
+			daContinue = 0
+			daDrop = 1
+			daCancel = 2
+		End Enum
+		
+		Type DataObject
+			#ifdef __USE_WINAPI__
+				Dim As IDataObject Ptr pDataObject
+			#else
+				Dim As Any Ptr pDataObject
+			#endif
+			Declare Function GetDataPresent(DataType As DataFormats) As Boolean
+			Declare Function GetData(DataType As DataFormats) As Any Ptr
+			Declare Sub GetFileDropList(filePaths() As UString)
+			Declare Sub SetData(DataType As DataFormats, pData As Any Ptr, Bytes As Integer = 0)
+			Declare Sub SetFileDropList(filePaths() As UString)
+		End Type
+	
 		Private Enum StretchMode
 			smNone, smStretch, smStretchProportional
 		End Enum
@@ -215,6 +268,8 @@ Namespace My.Sys.Forms
 				As Integer FClientX, FClientY, FClientW, FClientH
 				FToolInfo          As TOOLINFO
 				FDarkMode          As Boolean
+				FDropTarget        As CDropTarget
+				FDropSource        As CDropSource
 			#endif
 			FBorderStyle       As Integer
 			FExStyle           As Integer
@@ -414,6 +469,8 @@ Namespace My.Sys.Forms
 			Declare Function GetTextLength() As Integer
 			'Retrieves the form that the control is on (Windows, Linux, Android, Web).
 			Declare Function GetForm() As Control Ptr
+			'Begins a drag operation (Windows only)
+			Declare Function DoDragDrop(ByRef DataObject As DataObject, AllowedEffects As DragDropEffects) As DragDropEffects
 			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in (Windows, Linux, Android, Web).
 			Declare Function TopLevelControl() As Control Ptr
 			'Returns a value indicating whether the control has input focus (Windows, Linux).
@@ -471,10 +528,22 @@ Namespace My.Sys.Forms
 			OnCreate     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control's handle is in the process of being destroyed (Windows, Linux, Android, Web).
 			OnDestroy    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+			'Occurs when a drag-and-drop operation is completed (Windows only).
+			OnDragDrop   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
+			'Occurs when an object is dragged into the control's bounds (Windows only).
+			OnDragEnter  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
+			'Occurs when an object is dragged out of the control's bounds (Windows only).
+			OnDragLeave  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+			'Occurs when an object is dragged while the mouse pointer is within the control's bounds (Windows only).
+			OnDragOver   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
 			'Occurs when the user drops a file on the window of an application that has registered itself as a recipient of dropped files (Windows, Linux).
 			OnDropFile   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString)
+			'Occurs during a drag operation (Windows only).
+			OnGiveFeedback As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Effect As DragDropEffects, UseDefaultCursors As Boolean)
 			'Occurs when the control is redrawn (Windows, Linux).
 			OnPaint      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+			'Occurs during a drag-and-drop operation and enables the drag source to determine whether the drag-and-drop operation should be canceled (Windows only).
+			OnQueryContinueDrag As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Action As DragAction, EscapePressed As Boolean, KeyState As ULong)
 			'Occurs when the mouse pointer is moved over the control (Windows, Linux, Web).
 			OnMouseMove  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer is over the control and a mouse button is pressed (Windows, Linux, Web).
@@ -519,6 +588,11 @@ Namespace My.Sys.Forms
 		Dim Shared AppMainForm As Control Ptr
 	#endif
 End Namespace
+
+#ifdef __USE_WINAPI__
+	#include once "CDropTarget/CDropTarget.bas"
+	#include once "CDropSource/CDropSource.bas"
+#endif
 
 #ifdef __EXPORT_PROCS__
 	Declare Sub RemoveControl Alias "RemoveControl"(Parent As My.Sys.Forms.Control Ptr, Ctrl As My.Sys.Forms.Control Ptr)

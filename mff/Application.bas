@@ -722,6 +722,7 @@ Namespace My
 			INITCOMMONCONTROLSEX(@ccx)
 			'InitCommonControls
 			Instance = GetModuleHandle(NULL)
+			OleInitialize(NULL)
 		#endif
 		WLet(FCurLanguagePath, ExePath & "/Languages/")
 		WLet(FLanguage, "English")
@@ -771,6 +772,7 @@ Namespace My
 			DeleteObject g_brItemBackground
 			DeleteObject g_brItemBackgroundHot
 			DeleteObject g_brItemBackgroundSelected
+			OleUninitialize()
 		#endif
 	End Destructor
 End Namespace

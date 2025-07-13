@@ -228,7 +228,11 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				ChangeExStyle WS_EX_ACCEPTFILES, Value
-				If FHandle AndAlso CInt(Not FDesignMode) Then RecreateWnd
+				If FHandle AndAlso CInt(Not FDesignMode) Then 
+					RecreateWnd
+					FDropTarget.m_hWnd = FHandle
+					FDropTarget.AllowDrop Value
+				End If
 			#endif
 		End Property
 		
@@ -1281,6 +1285,10 @@ Namespace My.Sys.Forms
 					#ifdef __USE_WINAPI__
 						If FVisible Then If ClassName = "Form" Then This.Show Else ShowWindow(FHandle, SW_SHOWNORMAL)
 						Update
+						If FAllowDrop Then
+							FDropTarget.m_hWnd = FHandle
+							FDropTarget.AllowDrop True
+						End If
 					#elseif defined(__USE_JNI__)
 						If FVisible Then This.Show
 					#elseif defined(__USE_WASM__)
@@ -1902,7 +1910,7 @@ Namespace My.Sys.Forms
 						This.FMouseInClient = True
 						If OnMouseEnter Then OnMouseEnter(*Designer, This)
 					End If
-					If OnMouseMove Then OnMouseMove(*Designer, This, DownButton, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+					If OnMouseMove Then OnMouseMove(*Designer, This, IIf(Message.wParam And MK_LBUTTON, 0, IIf(Message.wParam And MK_RBUTTON, 1, IIf(Message.wParam And MK_MBUTTON, 2, -1))), UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
 					If CInt(This.Tracked = False) AndAlso CInt((OnMouseLeave OrElse OnMouseHover OrElse OnMouseEnter)) Then
 						Dim As TRACKMOUSEEVENT event_
 						event_.cbSize = SizeOf(TRACKMOUSEEVENT)
@@ -3188,6 +3196,15 @@ Namespace My.Sys.Forms
 			End If
 		End Operator
 		
+		Private Function Control.DoDragDrop(ByRef DataObject As DataObject, AllowedEffects As DragDropEffects) As DragDropEffects
+			#ifdef __USE_WINAPI__
+				Dim dropEff As DWORD
+				.DoDragDrop DataObject.pDataObject, Cast(LPDROPSOURCE, @FDropSource), AllowedEffects, @dropEff
+				Return dropEff
+			#endif
+			Return 0
+		End Function
+		
 		Private Constructor Control
 			WLet(FClassName, "Control")
 			WLet(FClassAncestor, "")
@@ -3205,6 +3222,10 @@ Namespace My.Sys.Forms
 			FVisible = True
 			FEnabled = True
 			Cursor.Ctrl = @This
+			#ifdef __USE_WINAPI__
+				FDropTarget.Ctrl = @This
+				FDropSource.Ctrl = @This
+			#endif
 		End Constructor
 		
 		Private Destructor Control
@@ -3227,6 +3248,8 @@ Namespace My.Sys.Forms
 						g_signal_handlers_disconnect_by_func(scrolledwidget, G_CALLBACK(@Control_Scroll), @This)
 					End If
 				#endif
+			#else
+				FDropTarget.AllowDrop False
 			#endif
 			FreeWnd
 			'If FText Then Deallocate FText

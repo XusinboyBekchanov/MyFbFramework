@@ -193,14 +193,17 @@ Namespace My.Sys.Drawing
 	
 	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.BitmapType)
 		Bitmap.Handle = Value.Handle
+		BitmapChanged *This.Designer, Bitmap
 	End Operator
 	
 	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Icon)
 		Icon.Handle = Value.Handle
+		IconChanged *This.Designer, Icon
 	End Operator
 	
 	Private Operator GraphicType.Let(ByRef Value As My.Sys.Drawing.Cursor)
 		Cursor.Handle = Value.Handle
+		CursorChanged *This.Designer, Cursor
 	End Operator
 	
 	Private Function GraphicType.ToString() ByRef As WString
