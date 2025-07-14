@@ -31,6 +31,7 @@ Namespace My.Sys.Forms
 				Select Case FTempString
 				Case "align": Return @FAlign
 				Case "allowdrop": Return @FAllowDrop
+				Case "allowdropfiles": Return @FAllowDropFiles
 				Case "anchor": Return @Anchor
 				Case "anchor.left": Return @Anchor.Left
 				Case "anchor.right": Return @Anchor.Right
@@ -93,6 +94,7 @@ Namespace My.Sys.Forms
 					Select Case LCase(PropertyName)
 					Case "align": This.Align = *Cast(DockStyle Ptr, Value)
 					Case "allowdrop": This.AllowDrop = QBoolean(Value)
+					Case "allowdropfiles": This.AllowDropFiles = QBoolean(Value)
 					Case "anchor.left": This.Anchor.Left = QInteger(Value)
 					Case "anchor.right": This.Anchor.Right = QInteger(Value)
 					Case "anchor.top": This.Anchor.Top = QInteger(Value)
@@ -227,11 +229,48 @@ Namespace My.Sys.Forms
 					gtk_drag_dest_unset(widget)
 				End If
 			#elseif defined(__USE_WINAPI__)
+				If FHandle AndAlso CInt(Not FDesignMode) Then 
+					FDropTarget.m_hWnd = FHandle
+					FDropTarget.AllowDrop Value
+				End If
+			#endif
+		End Property
+		
+		Private Property Control.AllowDropFiles As Boolean
+			Return FAllowDropFiles
+		End Property
+		
+		Private Property Control.AllowDropFiles(Value As Boolean)
+			FAllowDropFiles = Value
+			#ifdef __USE_GTK__
+				If Value Then
+					If GTK_IS_ENTRY(widget) OrElse GTK_IS_TEXT_VIEW(widget) Then
+						#ifndef __USE_GTK3__
+							Dim As GtkTargetEntry mytargets
+							mytargets.target = _Allocate(SizeOf(gchar) * 14)
+							*mytargets.target = "text/uri-list"
+							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, @mytargets, 1, GDK_ACTION_COPY)
+							_Deallocate(mytargets.target)
+						#else
+							gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_HIGHLIGHT, gtk_target_entry_new("text/uri-list", 4, 0), 1, GDK_ACTION_COPY)
+						#endif
+						'gtk_drag_dest_add_text_targets(widget)
+					Else
+						Dim As GtkTargetEntry target_table(0)
+						target_table(0).target = Cast(gchar Ptr, @"text/uri-list")
+						target_table(0).flags = 4
+						target_table(0).info  = 0
+						gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_ALL, @target_table(0), 1, GDK_ACTION_COPY)
+						gtk_drag_dest_add_text_targets(widget)
+					End If
+					g_signal_connect(widget, "drag-data-received", G_CALLBACK(@DragDataReceived), @This)
+				Else
+					gtk_drag_dest_unset(widget)
+				End If
+			#elseif defined(__USE_WINAPI__)
 				ChangeExStyle WS_EX_ACCEPTFILES, Value
 				If FHandle AndAlso CInt(Not FDesignMode) Then 
 					RecreateWnd
-					FDropTarget.m_hWnd = FHandle
-					FDropTarget.AllowDrop Value
 				End If
 			#endif
 		End Property

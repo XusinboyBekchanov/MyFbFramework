@@ -274,6 +274,7 @@ Namespace My.Sys.Forms
 			FBorderStyle       As Integer
 			FExStyle           As Integer
 			FAllowDrop         As Boolean
+			FAllowDropFiles    As Boolean
 			FControlIndex      As Integer
 			FControlParent     As Integer
 			FStartPosition     As Integer
@@ -399,6 +400,9 @@ Namespace My.Sys.Forms
 			'Gets or sets a value indicating whether the control can accept data that the user drags onto it (Windows, Linux).
 			Declare Property AllowDrop As Boolean
 			Declare Property AllowDrop(Value As Boolean)
+			'Gets or sets a value indicating whether the control can accept files that the user drags onto it (Windows, Linux).
+			Declare Property AllowDropFiles As Boolean
+			Declare Property AllowDropFiles(Value As Boolean)
 			'Gets or sets the programmatic identifier assigned to the control (Windows, Android).
 			Declare Property ID As Integer
 			Declare Property ID(Value As Integer)
