@@ -186,7 +186,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolGroupButtons.Add(FStyle As ToolButtonStyle = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		PButton = _New( ToolButton)
 		PButton->FDynamic = True 
@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 	
-	Private Function ToolGroupButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolGroupButtons.Add(FStyle As ToolButtonStyle = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		#ifdef __USE_GTK__
 			PButton = Add(FStyle, -1, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
@@ -535,7 +535,7 @@ Namespace My.Sys.Forms
 						End If
 						If Value = 0 Then
 							.Caption = ""
-							.Style = tbsCheckGroup Or tbsAutosize
+							.Style = Cast(ToolButtonStyle, tbsCheckGroup Or tbsAutosize)
 						Else
 							.Caption = .Name
 							.Style = tbsCheckGroup

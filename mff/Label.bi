@@ -69,9 +69,9 @@ Namespace My.Sys.Forms
 		Declare Property AutoSize As Boolean
 		'Automatically adjusts width/height to fit content
 		Declare Property AutoSize(Value As Boolean)
-		Declare Property Border As Integer 'LabelBorder
+		Declare Property Border As LabelBorder
 		'Controls border style (None/Single/Double)
-		Declare Property Border(Value As Integer)
+		Declare Property Border(Value As LabelBorder)
 		Declare Property Caption ByRef As WString
 		'Legacy text property (use Text instead)
 		Declare Property Caption(ByRef Value As WString)
@@ -81,9 +81,9 @@ Namespace My.Sys.Forms
 		Declare Property RealSizeImage As Boolean
 		'Displays images at original pixel dimensions
 		Declare Property RealSizeImage(Value As Boolean)
-		Declare Property Style As Integer 'LabelStyle
+		Declare Property Style As LabelStyle
 		'Visual style (Flat/3D/RaisedBorder)
-		Declare Property Style(Value As Integer)
+		Declare Property Style(Value As LabelStyle)
 		Declare Property TabIndex As Integer
 		'Position in tab navigation order
 		Declare Property TabIndex(Value As Integer)
@@ -113,3 +113,4 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Label.bas"
 #endif
+

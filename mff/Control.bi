@@ -206,10 +206,10 @@ Namespace My.Sys.Forms
 		
 		Private Type AnchorType Extends My.Sys.Object
 			Declare Function ToString ByRef As WString
-			Left         As Integer 'AnchorStyle
-			Top          As Integer 'AnchorStyle
-			Right        As Integer 'AnchorStyle
-			Bottom       As Integer 'AnchorStyle
+			Left         As AnchorStyle
+			Top          As AnchorStyle
+			Right        As AnchorStyle
+			Bottom       As AnchorStyle
 		End Type
 		
 		Private Type ControlCollection Extends My.Sys.Object
@@ -407,8 +407,8 @@ Namespace My.Sys.Forms
 			Declare Property ID As Integer
 			Declare Property ID(Value As Integer)
 			'Returns/sets the border style for an object (Windows, Linux).
-			Declare Property BorderStyle As Integer 'BorderStyles
-			Declare Property BorderStyle(Value As Integer)
+			Declare Property BorderStyle As BorderStyles
+			Declare Property BorderStyle(Value As BorderStyles)
 			'Returns/sets the PopupMenu associated with this control (Windows, Linux).
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)

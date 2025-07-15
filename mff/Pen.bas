@@ -30,8 +30,8 @@ Namespace My.Sys.Drawing
 		Private Function Pen.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
 			Case "color": This.Color = QInteger(Value)
-			Case "style": This.Style = QInteger(Value)
-			Case "mode": This.Mode = QInteger(Value)
+			Case "style": This.Style = *Cast(PenStyle Ptr, Value)
+			Case "mode": This.Mode = *Cast(PenMode Ptr, Value)
 			Case "size": This.Size = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
@@ -52,20 +52,20 @@ Namespace My.Sys.Drawing
 		End Property
 	#endif
 	
-	Private Property Pen.Style As Integer
+	Private Property Pen.Style As PenStyle
 		Return FStyle
 	End Property
 	
-	Private Property Pen.Style(Value As Integer)
+	Private Property Pen.Style(Value As PenStyle)
 		FStyle = Value
 		Create
 	End Property
 	
-	Private Property Pen.Mode As Integer
+	Private Property Pen.Mode As PenMode
 		Return FMode
 	End Property
 	
-	Private Property Pen.Mode(Value As Integer)
+	Private Property Pen.Mode(Value As PenMode)
 		FMode = Value
 		Create
 	End Property

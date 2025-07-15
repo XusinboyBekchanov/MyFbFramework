@@ -35,14 +35,15 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	Private Enum ToolButtonState
-		tstIndeterminate	= 16
-		tstEnabled			= 4
-		tstHidden			= 8
-		tstEllipses			= 64
-		tstChecked			= 1
-		tstPressed			= 2
-		tstMarked			= 128
-		tstWrap				= 32
+		tstNone             = 0
+		tstIndeterminate    = 16
+		tstEnabled          = 4
+		tstHidden           = 8
+		tstEllipses         = 64
+		tstChecked          = 1
+		tstPressed          = 2
+		tstMarked           = 128
+		tstWrap             = 32
 	End Enum
 	
 	'`ToolButton` - Represents a button item in a toolbar, supporting icons, text, dropdown menus, and state management.
@@ -118,12 +119,12 @@ Namespace My.Sys.Forms
 		Declare Property Parent As Control Ptr
 		'Containing toolbar reference
 		Declare Property Parent(Value As Control Ptr)
-		Declare Property Style As Integer 'ToolButtonStyle
+		Declare Property Style As ToolButtonStyle
 		'Display mode (Button/DropDown/Separator)
-		Declare Property Style(Value As Integer)
-		Declare Property State As Integer 'ToolButtonState
+		Declare Property Style(Value As ToolButtonStyle)
+		Declare Property State As ToolButtonState
 		'Current visual state (Normal/Hot/Pressed/Disabled)
-		Declare Property State(Value As Integer)
+		Declare Property State(Value As ToolButtonState)
 		Declare Property CommandID As Integer
 		'Unique identifier for command routing
 		Declare Property CommandID(Value As Integer)
@@ -175,8 +176,8 @@ Namespace My.Sys.Forms
 		Declare Property Item(ByRef Key As WString) As ToolButton Ptr
 		Declare Property Item(Index As Integer, Value As ToolButton Ptr)
 		Declare Function Add(Value As ToolButton Ptr, Index As Integer = -1) As ToolButton Ptr
-		Declare Function Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
-		Declare Function Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+		Declare Function Add(FStyle As ToolButtonStyle = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = tstEnabled) As ToolButton Ptr
+		Declare Function Add(FStyle As ToolButtonStyle = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = tstEnabled) As ToolButton Ptr
 		Declare Sub Remove(Index As Integer)
 		Declare Function IndexOf(ByRef FButton As ToolButton Ptr) As Integer
 		Declare Function IndexOf(ByRef Key As WString) As Integer
@@ -287,9 +288,9 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifdef __EXPORT_PROCS__
-	Declare Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
+	Declare Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex" (tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
 	
-	Declare Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
+	Declare Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
 	
 	Declare Sub ToolBarRemoveButton Alias "ToolBarRemoveButton"(tb As My.Sys.Forms.ToolBar Ptr, Index As Integer)
 	

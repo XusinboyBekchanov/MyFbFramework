@@ -41,11 +41,11 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "alignment": If Value <> 0 Then This.Alignment = *Cast(AlignmentConstants Ptr, Value)
 			Case "autosize": If Value <> 0 Then This.AutoSize = QBoolean(Value)
-			Case "border": If Value <> 0 Then This.Border = QInteger(Value)
+			Case "border": If Value <> 0 Then This.Border = *Cast(LabelBorder Ptr, Value)
 			Case "caption": If Value <> 0 Then This.Caption = *Cast(WString Ptr, Value)
 			Case "centerimage": If Value <> 0 Then This.CenterImage = QBoolean(Value)
 			Case "realsizeimage": If Value <> 0 Then This.RealSizeImage = QBoolean(Value)
-			Case "style": If Value <> 0 Then This.Style = QInteger(Value)
+			Case "style": If Value <> 0 Then This.Style = *Cast(LabelStyle Ptr, Value)
 			Case "tabindex": TabIndex = QInteger(Value)
 			Case "text": If Value <> 0 Then This.Text = *Cast(WString Ptr, Value)
 			Case "transparent": If Value <> 0 Then This.Transparent = QBoolean(Value)
@@ -114,7 +114,7 @@ Namespace My.Sys.Forms
 		SetAutoSize
 	End Property
 	
-	Private Property Label.Border As Integer
+	Private Property Label.Border As LabelBorder
 		Return FBorder
 	End Property
 	
@@ -188,18 +188,18 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Private Property Label.Border(Value As Integer)
+	Private Property Label.Border(Value As LabelBorder)
 		If Value <> FBorder Then
 			FBorder = Value
 			ChangeLabelStyle
 		End If
 	End Property
 	
-	Private Property Label.Style As Integer
+	Private Property Label.Style As LabelStyle
 		Return FStyle
 	End Property
 	
-	Private Property Label.Style(Value As Integer)
+	Private Property Label.Style(Value As LabelStyle)
 		If Value <> FStyle Then
 			FStyle = Value
 			ChangeLabelStyle

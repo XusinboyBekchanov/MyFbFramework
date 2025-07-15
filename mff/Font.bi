@@ -122,9 +122,9 @@ Namespace My.Sys.Drawing
 		Declare Property Orientation As Integer
 		'Text rotation angle in tenths of degrees
 		Declare Property Orientation(Value As Integer)
-		Declare Property CharSet As Integer 'FontCharset
+		Declare Property CharSet As FontCharset
 		'Character set encoding (ANSI/Unicode/Symbol)
-		Declare Property CharSet(Value As Integer)
+		Declare Property CharSet(Value As FontCharset)
 		Declare Property Bold As Boolean
 		'Determines if the font uses bold weight
 		Declare Property Bold(Value As Boolean)

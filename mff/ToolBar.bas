@@ -64,8 +64,8 @@ Namespace My.Sys.Forms
 				Case "top": This.Top = QInteger(Value)
 				Case "name": This.Name = QWString(Value)
 				Case "showhint": This.ShowHint = QBoolean(Value)
-				Case "state": This.State = QInteger(Value)
-				Case "style": This.Style = QInteger(Value)
+				Case "state": This.State = *Cast(ToolButtonState Ptr, Value)
+				Case "style": This.Style = *Cast(ToolButtonStyle Ptr, Value)
 				Case "tag": This.Tag = Value
 				Case "parent": This.Parent = Value
 				Case "visible": This.Visible = QBoolean(Value)
@@ -286,11 +286,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Private Property ToolButton.Style As Integer
+	Private Property ToolButton.Style As ToolButtonStyle
 		Return FStyle
 	End Property
 	
-	Private Property ToolButton.Style(Value As Integer)
+	Private Property ToolButton.Style(Value As ToolButtonStyle)
 		If Value <> FStyle Then
 			FStyle = Value
 			#ifndef __USE_GTK__
@@ -307,7 +307,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Private Property ToolButton.State As Integer
+	Private Property ToolButton.State As ToolButtonState
 		#ifndef __USE_GTK__
 			If Ctrl AndAlso Ctrl->Handle Then
 				Dim As TBBUTTONINFO info
@@ -321,7 +321,7 @@ Namespace My.Sys.Forms
 		Return FState
 	End Property
 	
-	Private Property ToolButton.State(Value As Integer)
+	Private Property ToolButton.State(Value As ToolButtonState)
 		If Value <> FState Then
 			FState = Value
 			#ifndef __USE_GTK__
@@ -694,7 +694,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolButtons.Add(FStyle As ToolButtonStyle = tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		PButton = _New( ToolButton)
 		PButton->FDynamic = True
@@ -794,7 +794,7 @@ Namespace My.Sys.Forms
 		Return PButton
 	End Function
 	
-	Private Function ToolButtons.Add(FStyle As Integer = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = tstEnabled) As ToolButton Ptr
+	Private Function ToolButtons.Add(FStyle As ToolButtonStyle = tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As NotifyEvent = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = tstEnabled) As ToolButton Ptr
 		Dim As ToolButton Ptr PButton
 		If Parent AndAlso Cast(ToolBar Ptr, Parent)->ImagesList Then
 			With *Cast(ToolBar Ptr, Parent)->ImagesList
@@ -1324,11 +1324,11 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifdef __EXPORT_PROCS__
-	Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
+	Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex" (tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
 		Return tb->Buttons.Add(FStyle, FImageIndex, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
 	End Function
 	
-	Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As Integer = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As Integer = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
+	Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
 		Return tb->Buttons.Add(FStyle, ImageKey, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
 	End Function
 	

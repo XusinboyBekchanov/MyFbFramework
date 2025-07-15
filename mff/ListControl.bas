@@ -42,7 +42,7 @@ Namespace My.Sys.Forms
 	#ifndef WriteProperty_Off
 		Private Function ListControl.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
-			Case "borderstyle": BorderStyle = QInteger(Value)
+			Case "borderstyle": BorderStyle = *Cast(BorderStyles Ptr, Value)
 			Case "multicolumn": MultiColumn = QBoolean(Value)
 			Case "ctl3d": Ctl3D = QBoolean(Value)
 			Case "integralheight": IntegralHeight = QBoolean(Value)

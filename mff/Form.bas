@@ -65,11 +65,11 @@ Namespace My.Sys.Forms
 			Else
 				Select Case LCase(PropertyName)
 				Case "activecontrol": This.ActiveControl = Cast(Control Ptr, Value)
-				Case "borderstyle": This.BorderStyle = QInteger(Value)
+				Case "borderstyle": This.BorderStyle = *Cast(FormBorderStyle Ptr, Value)
 				Case "cancelbutton": This.CancelButton = Cast(Control Ptr, Value)
 				Case "caption": This.Caption = QWString(Value)
 				Case "defaultbutton": This.DefaultButton = Cast(Control Ptr, Value)
-				Case "formstyle": This.FormStyle = QInteger(Value)
+				Case "formstyle": This.FormStyle = *Cast(FormStyles Ptr, Value)
 				Case "controlbox": This.ControlBox = QBoolean(Value)
 				Case "keypreview": This.KeyPreview = QBoolean(Value)
 				Case "minimizebox": This.MinimizeBox = QBoolean(Value)
@@ -87,8 +87,8 @@ Namespace My.Sys.Forms
 				Case "text": This.Text = QWString(Value)
 				Case "transparent": This.Transparent = QBoolean(Value)
 				Case "transparentcolor": This.TransparentColor = QInteger(Value)
-				Case "windowstate": This.WindowState = QInteger(Value)
-				Case "startposition": This.StartPosition = QInteger(Value)
+				Case "windowstate": This.WindowState = *Cast(WindowStates Ptr, Value)
+				Case "startposition": This.StartPosition = *Cast(FormStartPosition Ptr, Value)
 				Case "visible": This.Visible = QBoolean(Value)
 				Case "graphic": This.Graphic = QWString(Value)
 				Case "xdpi": This.xdpi = QSingle(Value)
@@ -249,11 +249,11 @@ Namespace My.Sys.Forms
 		If FMenu Then FMenu->ParentWindow = @This
 	End Property
 	
-	Private Property Form.StartPosition As Integer
+	Private Property Form.StartPosition As FormStartPosition
 		Return FStartPosition
 	End Property
 	
-	Private Property Form.StartPosition(Value As Integer)
+	Private Property Form.StartPosition(Value As FormStartPosition)
 		FStartPosition = Value
 		If Not FDesignMode Then
 			#ifdef __USE_GTK__
@@ -374,11 +374,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Private Property Form.BorderStyle As Integer
+	Private Property Form.BorderStyle As FormBorderStyle
 		Return FBorderStyle
 	End Property
 	
-	Private Property Form.BorderStyle(Value As Integer)
+	Private Property Form.BorderStyle(Value As FormBorderStyle)
 		FBorderStyle = Value
 		#ifdef __USE_GTK__
 			Select Case Value
@@ -516,7 +516,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	Private Property Form.FormStyle As Integer
+	Private Property Form.FormStyle As FormStyles
 		Return FFormStyle
 	End Property
 	
@@ -545,7 +545,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Property Form.FormStyle(Value As Integer)
+	Private Property Form.FormStyle(Value As FormStyles)
 		If Value = FFormStyle Then Exit Property
 		FFormStyle = Value
 		Select Case FFormStyle
@@ -641,7 +641,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	Property Form.WindowState As Integer
+	Property Form.WindowState As WindowStates
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
 				#ifdef __USE_GTK4__
@@ -672,7 +672,7 @@ Namespace My.Sys.Forms
 		Return FWindowState
 	End Property
 	
-	Private Property Form.WindowState(Value As Integer)
+	Private Property Form.WindowState(Value As WindowStates)
 		FWindowState = Value
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
@@ -1564,7 +1564,7 @@ Namespace My.Sys.Forms
 				End If
 				If Not FFormCreated Then
 					FFormCreated = True
-					If FStartPosition <> 0 Then StartPosition = FStartPosition
+					If FStartPosition <> 0 Then StartPosition = Cast(FormStartPosition, FStartPosition)
 					If Icon.ResName <> "" Then
 						If GTK_IS_WINDOW(widget) Then
 							Dim As GList Ptr list1 = NULL

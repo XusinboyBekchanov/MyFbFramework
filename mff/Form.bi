@@ -132,7 +132,7 @@ Namespace My.Sys.Forms
 		'Returns/sets a graphic to be displayed in a control (Windows, Linux, Web).
 		Graphic As My.Sys.Drawing.GraphicType
 		'Returns/sets the dialog result for the form (Windows, Linux).
-		ModalResult   As Integer 'ModalResults
+		ModalResult   As ModalResults
 		#ifndef ReadProperty_Off
 			'Reads value from the name of property (Windows, Linux, Android, Web).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -151,20 +151,20 @@ Namespace My.Sys.Forms
 		Declare Property CancelButton As Control Ptr 'CommandButton
 		Declare Property CancelButton(Value As Control Ptr)
 		'Returns/sets the border style of the form (Windows, Linux).
-		Declare Property BorderStyle As Integer 'FormBorderStyle
-		Declare Property BorderStyle(Value As Integer)
+		Declare Property BorderStyle As FormBorderStyle
+		Declare Property BorderStyle(Value As FormBorderStyle)
 		'Determines the form's style (Windows, Linux).
-		Declare Property FormStyle As Integer 'FormStyles
-		Declare Property FormStyle(Value As Integer)
+		Declare Property FormStyle As FormStyles
+		Declare Property FormStyle(Value As FormStyles)
 		'Returns/sets a value that indicates whether form is minimized, maximized, or normal (Windows, Linux).
-		Declare Property WindowState As Integer 'WindowStates
-		Declare Property WindowState(Value As Integer)
+		Declare Property WindowState As WindowStates
+		Declare Property WindowState(Value As WindowStates)
 		'Returns/sets whether keyboard events for an object are invoked before keyboard events for controls on that object (Windows only).
 		Declare Property KeyPreview As Boolean
 		Declare Property KeyPreview(Value As Boolean)
 		'Returns/sets the starting position of the form at run time (Windows, Linux).
-		Declare Property StartPosition As Integer 'FormStartPosition
-		Declare Property StartPosition(Value As Integer)
+		Declare Property StartPosition As FormStartPosition
+		Declare Property StartPosition(Value As FormStartPosition)
 		'Returns/sets the opacity level of the form (Windows, Linux).
 		Declare Property Opacity As Integer
 		Declare Property Opacity(Value As Integer)

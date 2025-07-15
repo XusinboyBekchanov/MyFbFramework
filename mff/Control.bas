@@ -101,7 +101,7 @@ Namespace My.Sys.Forms
 					Case "anchor.bottom": This.Anchor.Bottom = QInteger(Value)
 					Case "cursor": This.Cursor = QWString(Value)
 					Case "doublebuffered": This.DoubleBuffered = QBoolean(Value)
-					Case "borderstyle": This.BorderStyle = QInteger(Value)
+					Case "borderstyle": This.BorderStyle = *Cast(BorderStyles Ptr, Value)
 					Case "backcolor": This.BackColor = QInteger(Value)
 					Case "constraints.left": This.Constraints.Left = QInteger(Value)
 					Case "constraints.top": This.Constraints.Top = QInteger(Value)
@@ -328,11 +328,11 @@ Namespace My.Sys.Forms
 		#endif
 		
 		#ifndef BorderStyle_Off
-			Private Property Control.BorderStyle As Integer
+			Private Property Control.BorderStyle As BorderStyles
 				Return FBorderStyle
 			End Property
 			
-			Private Property Control.BorderStyle(Value As Integer)
+			Private Property Control.BorderStyle(Value As BorderStyles)
 				FBorderStyle = Value
 				#ifdef __USE_GTK__
 					If scrolledwidget Then

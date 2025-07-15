@@ -93,10 +93,10 @@ Namespace My.Sys.Drawing
 		#endif
 		Declare Property Color As ULong
 		Declare Property Color(Value As ULong)
-		Declare Property Style As Integer 'PenStyle
-		Declare Property Style(Value As Integer)
-		Declare Property Mode As Integer 'PenMode
-		Declare Property Mode(Value As Integer)
+		Declare Property Style As PenStyle
+		Declare Property Style(Value As PenStyle)
+		Declare Property Mode As PenMode
+		Declare Property Mode(Value As PenMode)
 		Declare Property Size As Integer
 		Declare Property Size(Value As Integer)
 		Declare Operator Cast As Any Ptr

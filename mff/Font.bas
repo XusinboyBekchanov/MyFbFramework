@@ -43,7 +43,7 @@ Namespace My.Sys.Drawing
 				Case "name": This.Name = QWString(Value)
 				Case "color": This.Color = QInteger(Value)
 				Case "size": This.Size = QInteger(Value)
-				Case "charset": This.CharSet = QInteger(Value)
+				Case "charset": This.CharSet = *Cast(FontCharset Ptr, Value)
 				Case "bold": This.Bold = QBoolean(Value)
 				Case "italic": This.Italic = QBoolean(Value)
 				Case "underline": This.Underline = QBoolean(Value)
@@ -150,11 +150,11 @@ Namespace My.Sys.Drawing
 		End Property
 	#endif
 	
-	Private Property Font.CharSet As Integer
+	Private Property Font.CharSet As FontCharset
 		Return FCharSet
 	End Property
 	
-	Private Property Font.CharSet(Value As Integer)
+	Private Property Font.CharSet(Value As FontCharset)
 		FCharSet = Value
 		Create
 	End Property
