@@ -34,6 +34,7 @@ Namespace My.Sys.Forms
 		FSelWStrVal         As WString Ptr
 		FSelIntVal          As Integer
 		FSelBoolVal         As Integer
+		m_bMenuOpen         As Boolean
 	Protected:
 		#ifndef __USE_GTK__
 			hRichTextBox    As HINSTANCE

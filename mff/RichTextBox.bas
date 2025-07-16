@@ -1056,6 +1056,27 @@ Namespace My.Sys.Forms
 				End If
 				If ReadOnly Then TextRTF = FTextRTF
 				Return
+			Case WM_SETCURSOR
+				If m_bMenuOpen Then
+					message.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_ARROW)))
+				End If
+			Case WM_RBUTTONUP
+				If ContextMenu Then
+					If ContextMenu->Handle Then
+						DownButton = -1
+						Dim As Integer MouseX = UnScaleX(GET_X_LPARAM(message.lParam))
+						Dim As Integer MouseY = UnScaleY(GET_Y_LPARAM(message.lParam))
+						If OnMouseUp AndAlso MouseX < 32000 AndAlso MouseY < 32000 AndAlso MouseX > -32000 AndAlso MouseY > -32000 Then OnMouseUp(*Designer, This, 1, MouseX, MouseY, message.wParam And &HFFFF)
+						Dim As ..Point P
+						P.X = GET_X_LPARAM(message.lParam)
+						P.Y = GET_Y_LPARAM(message.lParam)
+						.ClientToScreen(FHandle, @P)
+						m_bMenuOpen = True
+						ContextMenu->Popup(P.X, P.Y)
+						m_bMenuOpen = False
+						Return
+					End If
+				End If
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
@@ -1626,3 +1647,4 @@ Namespace My.Sys.Forms
 		#endif
 	End Destructor
 End Namespace
+
