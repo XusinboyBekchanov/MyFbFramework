@@ -378,14 +378,16 @@ Namespace My.Sys.Forms
 	Private Sub ReBarBand.Maximize()
 		#ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				SendMessage Parent->Handle, RB_MAXIMIZEBAND, Index, 1
+				SendMessage Parent->Handle, RB_MAXIMIZEBAND, Index, 0
 			End If
 		#endif
 	End Sub
 	
 	Private Sub ReBarBand.Minimize()
 		#ifndef __USE_GTK__
-			SendMessage Parent->Handle, RB_MINIMIZEBAND, Index, 0
+			If Parent AndAlso Parent->Handle Then
+				SendMessage Parent->Handle, RB_MINIMIZEBAND, Index, 0
+			End If
 		#endif
 	End Sub
 	
@@ -435,11 +437,12 @@ Namespace My.Sys.Forms
 				rbBand.cyChild = FHeight + 2                                    ' Height of the band (RBBIM_SIZE flag)
 				rbBand.cxIdeal = FIdealWidth
 				If Create Then
-					SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(LPARAM, @rbBand))
-					Maximize
+					'SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(LPARAM, @rbBand))
+					SendMessage(Parent->Handle, RB_INSERTBAND, -1, Cast(LPARAM, @rbBand))
+					If Not FBreak Then Maximize
 				Else
 					SendMessage(Parent->Handle, RB_SETBANDINFO, Index, Cast(LPARAM, @rbBand))
-					Maximize
+					If Not FBreak Then Maximize
 				End If
 			End If
 		#endif
@@ -519,14 +522,29 @@ Namespace My.Sys.Forms
 				rbBand.fStyle = RBBS_CHILDEDGE Or RBBS_GRIPPERALWAYS 'Or RBBS_USECHEVRON          ' (RBBIM_STYLE flag)
 				
 				rbBand.hwndChild = Value->Handle                                       ' (RBBIM_CHILD flag)
-				GetWindowRect(Value->Handle, @rct)
-				rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
-				rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
-				rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
-				rbBand.cxIdeal = rct.Right - rct.Left
-				pBand->MinWidth = rbBand.cxMinChild
-				pBand->MinHeight = rbBand.cyMinChild
-				pBand->Width = rbBand.cx
+				If rbBand.hwndChild Then
+					GetWindowRect(Value->Handle, @rct)
+					rbBand.cxMinChild = rct.Right - rct.Left                        ' Minimum width of band (RBBIM_CHILDSIZE flag)
+					rbBand.cyMinChild = rct.Bottom - rct.Top                        ' Minimum height of band (RBBIM_CHILDSIZE flag)
+					rbBand.cx = rct.Right - rct.Left                                ' Length of the band (RBBIM_SIZE flag)
+					If *Value Is ToolBar Then
+						Dim As ..Size sz
+						SendMessage Value->Handle, TB_GETIDEALSIZE, False, Cast(LPARAM, @sz)
+						rbBand.cxIdeal = sz.cx
+						rbBand.cxMinChild = sz.cx
+						rbBand.cx = sz.cx
+						sz.cx = 10000
+						sz.cy = rbBand.cyChild
+						SendMessage Value->Handle, TB_GETIDEALSIZE, 1, Cast(LPARAM, @sz)
+						rbBand.cyMinChild = sz.cy
+						rbBand.cyChild = sz.cy
+					Else
+						rbBand.cxIdeal = rct.Right - rct.Left
+					End If
+					pBand->MinWidth = rbBand.cxMinChild
+					pBand->MinHeight = rbBand.cyMinChild
+					pBand->Width = rbBand.cx
+				End If
 				SendMessage(Parent->Handle, RB_INSERTBAND, Index, Cast(LPARAM, @rbBand))
 			End If
 		#endif
