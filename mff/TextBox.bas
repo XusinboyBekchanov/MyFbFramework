@@ -975,6 +975,8 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property TextBox.WordWraps(Value As Boolean)
+		Dim As Integer s, e
+		GetSel(s, e)
 		FWordWraps = Value
 		#ifdef __USE_GTK__
 			ChangeWidget
@@ -991,6 +993,9 @@ Namespace My.Sys.Forms
 			End If
 			RecreateWnd
 		#endif
+		ScrollBars = IIf(Value, ScrollBarsType.Vertical, ScrollBarsType.Both)
+		SetSel(s, e)
+		ScrollToCaret()
 	End Property
 	
 	Private Property TextBox.SelStart As Integer
