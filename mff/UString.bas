@@ -97,9 +97,9 @@ Private Function UString.SubString(ByVal start As Integer, ByVal n As Integer, B
 End Function
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength): Else: subject = _Allocate((lLen + 1) * SizeOf(WString) * GrowLength): End If
-#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+#define WLet(subject, txt) Scope: If subject <> 0 AndAlso *subject = txt Then Return : subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(WString) * GrowLength) : If subject Then *subject = txt : End Scope
 #define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
-#define ZLet(subject, txt) Scope: subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): *subject = txt1: End Scope
+#define ZLet(subject, txt) Scope: subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): If subject Then *subject = txt1: End Scope
 #define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
@@ -116,8 +116,9 @@ End Function
 	End Sub
 	
 	Private Sub ZLet(ByRef subject As ZString Ptr, ByRef txt As ZString)
-		subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString))
-		*subject = txt
+		If subject <> 0 AndAlso *subject = txt Then Return
+		subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString) * GrowLength)
+		If subject Then *subject = txt
 	End Sub
 	
 	Private Sub ZDeAllocate(ByRef subject As ZString Ptr)
@@ -126,8 +127,9 @@ End Function
 	End Sub
 	
 	Private Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
-		WReAllocate(subject, Len(txt))
-		*subject = txt
+		If subject <> 0 AndAlso *subject = txt Then Return
+		subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(WString) * GrowLength)
+		If subject Then *subject = txt
 	End Sub
 	
 	Private Sub WDeAllocate Overload(ByRef subject As WString Ptr)
@@ -138,23 +140,25 @@ End Function
 
 Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
 	For i As Integer = 0 To UBound(subject)
-		'If subject(i) <> 0 Then Deallocate(subject(i))
+		If subject(i) <> 0 Then _Deallocate(subject(i))
 		subject(i) = 0
 	Next
 End Sub
 
-' Using WLetEx if the length of target is longer than the length of source.
-Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ExistsSubjectInTxt As Boolean = True)
-	If ExistsSubjectInTxt Then
+'Allow subject to point to the same content as txt (default: True).
+Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, AllowSelfReference As Boolean = True)
+	If subject <> 0 AndAlso *subject = txt Then Return
+	If subject = 0 OrElse AllowSelfReference Then
+		If subject <> 0 Then WDeAllocate(subject)
 		Dim As WString Ptr TempWStr = _Allocate((Len(txt) + 1) * SizeOf(WString) * GrowLength)
-		If TempWStr > 0 Then
+		If TempWStr Then
 			*TempWStr = txt
 			WDeAllocate(subject)
 			subject = TempWStr
 		End If
 	Else
 		WReAllocate(subject, Len(txt))
-		*subject = txt
+		If subject Then *subject = txt
 	End If
 End Sub
 
@@ -167,8 +171,20 @@ End Sub
 			WLet(TempWStr, WGet(subject) & txt)
 		End If
 		WDeAllocate(subject)
-		subject = TempWStr
+		If TempWStr Then subject = TempWStr
 	End Sub
+	
+	Private Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
+		Dim TempWStr As ZString Ptr
+		If AddBefore Then
+			ZLet(TempWStr, txt & ZGet(subject))
+		Else
+			ZLet(TempWStr, ZGet(subject) & txt)
+		End If
+		Deallocate(subject)
+		If TempWStr Then subject = TempWStr
+	End Sub
+	
 #endif
 
 Private Sub UString.Resize(NewLength As Integer)
@@ -1359,20 +1375,20 @@ Private Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStar
 End Function
 
 Private Function FormatFileName(ByRef originalName As WString) As String
-    Const ILLEGAL_CHARS As String = "\/:*?""<>|"
-    Dim As WString * 1024 Result = originalName
-    Dim As Integer i, posi
-    For i = 1 To Len(ILLEGAL_CHARS)
-        Dim As String badChar = Mid(ILLEGAL_CHARS, i, 1)
-        posi = InStr(Result, badChar)
-        While posi > 0
-            Result = Left(Result, posi - 1) + Mid(Result, posi + 1)
-            posi = InStr(Result, badChar)
-        Wend
-    Next i
-    Result = Trim(Result)
-    If Result = "" Then Result = "unNamed"
-    Return Result
+	Const ILLEGAL_CHARS As String = "\/:*?""<>|"
+	Dim As WString * 1024 Result = originalName
+	Dim As Integer i, posi
+	For i = 1 To Len(ILLEGAL_CHARS)
+		Dim As String badChar = Mid(ILLEGAL_CHARS, i, 1)
+		posi = InStr(Result, badChar)
+		While posi > 0
+			Result = Left(Result, posi - 1) + Mid(Result, posi + 1)
+			posi = InStr(Result, badChar)
+		Wend
+	Next i
+	Result = Trim(Result)
+	If Result = "" Then Result = "unNamed"
+	Return Result
 End Function
 
 
