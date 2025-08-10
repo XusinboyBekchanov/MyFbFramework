@@ -213,7 +213,8 @@ Namespace My.Sys.Forms
 		AState(6)       As Integer
 		AWrap(2)        As Integer
 		FButtons        As List
-		FButtonsCount As Integer
+		FButtonsCount   As Integer
+		bDropdownIndex  As Integer = -1
 		Declare Static Sub WndProc(ByRef Message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)

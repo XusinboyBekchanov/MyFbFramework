@@ -1145,7 +1145,9 @@ Namespace My.Sys.Forms
 						MapWindowPoints(Tbn->hdr.hwndFrom, 0, Cast(..Point Ptr, @R), 2)
 						i = SendMessage(Tbn->hdr.hwndFrom, TB_COMMANDTOINDEX, Tbn->iItem, 0)
 						If SendMessage(Tbn->hdr.hwndFrom, TB_GETBUTTON, i, CInt(@TB)) Then
+							bDropdownIndex = i
 							TrackPopupMenu(Buttons.Item(i)->DropDownMenu.Handle, 0, R.Left, R.Bottom, 0, Tbn->hdr.hwndFrom, NULL)
+							bDropdownIndex = -1
 						End If
 					End If
 				Case NM_CUSTOMDRAW
@@ -1157,20 +1159,56 @@ Namespace My.Sys.Forms
 							Message.Result = CDRF_NOTIFYPOSTPAINT
 							Return
 						Case CDDS_POSTPAINT
-							Dim As HPEN SeparatorPen = CreatePen(PS_SOLID, 1, BGR(48, 48, 48)) 'darkHlBkColor)
+							Dim As HPEN SeparatorPen = CreatePen(PS_SOLID, 1, darkHlBkColor) 'BGR(48, 48, 48))
+							Dim As HPEN DropDownPen = CreatePen(PS_SOLID, 1, BGR(215, 215, 215))
+							Dim As HPEN HotItemPen = CreatePen(PS_SOLID, 1, IIf(bDropdownIndex = -1, BGR(33, 33, 33), BGR(13, 13, 13)))
 							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, SeparatorPen)
-							Dim rc As My.Sys.Drawing.Rect
+							Dim As HBRUSH HotItemBrush = CreateSolidBrush(IIf(bDropdownIndex = -1, BGR(67, 67, 67), BGR(33, 33, 33)))
+							Dim As HBRUSH PrevBrush = SelectObject(nmcd->hdc, HotItemBrush)
+							Dim As Integer iHotItem, iLeft, iTop, iWidth, iDropDownWidth, iDropDownHeight
+							Dim As ..Rect rc, rcOffset
+							iHotItem = SendMessage(FHandle, TB_GETHOTITEM, 0, 0)
 							For i As Integer = 0 To Buttons.Count - 1
 								If Buttons.Item(i)->Style = ToolButtonStyle.tbsSeparator Then
 									SendMessage(FHandle, TB_GETITEMRECT, i, Cast(LPARAM, @rc))
+									FillRect nmcd->hdc, @rc, hbrBkgnd
 									If rc.Left <> 0 Then
-										MoveToEx nmcd->hdc, rc.Left + 3, 2, 0
-										LineTo nmcd->hdc, rc.Left + 3, rc.Bottom - rc.Top - 3
+										SelectObject(nmcd->hdc, SeparatorPen)
+										MoveToEx nmcd->hdc, rc.Left + ScaleX(3), ScaleY(2), 0
+										LineTo nmcd->hdc, rc.Left + ScaleX(3), rc.Bottom - rc.Top - ScaleY(3)
 									End If
+								ElseIf Buttons.Item(i)->Style = ToolButtonStyle.tbsDropDown Then
+									SendMessage(FHandle, TB_GETITEMRECT, i, Cast(LPARAM, @rc))
+									rcOffset.Right = rc.Right
+									rcOffset.Top = rc.Top
+									rcOffset.Left = rc.Right - ScaleX(16)
+									rcOffset.Bottom = rc.Bottom
+									FillRect nmcd->hdc, @rcOffset, hbrBkgnd
+									If i = iHotItem OrElse i = bDropdownIndex Then
+										rcOffset.Left = rc.Right - ScaleX(16)
+										rcOffset.Bottom = rc.Bottom - ScaleY(1)
+										SelectObject(nmcd->hdc, HotItemPen)
+										Rectangle nmcd->hdc, rcOffset.Left, rcOffset.Top, rcOffset.Right, rcOffset.Bottom
+									End If
+									SelectObject(nmcd->hdc, DropDownPen)
+									iWidth = ScaleX(15)
+									iDropDownWidth = ScaleX(7)
+									If iDropDownWidth Mod 2 = 0 Then iDropDownWidth += 1
+									iDropDownHeight = Fix(iDropDownWidth / 2) + 1
+									iLeft = rc.Right - iWidth + Fix((iWidth - iDropDownWidth) / 2)
+									iTop = rc.Top + Fix((rc.Bottom - rc.Top - iDropDownHeight) / 2)
+									For j As Integer = 0 To iDropDownHeight - 1
+										MoveToEx nmcd->hdc, iLeft + j, iTop + j, 0
+										LineTo nmcd->hdc, iLeft + iDropDownWidth - j, iTop + j
+									Next j
 								End If
 							Next i
 							SelectObject(nmcd->hdc, PrevPen)
+							SelectObject(nmcd->hdc, PrevBrush)
 							DeleteObject SeparatorPen
+							DeleteObject DropDownPen
+							DeleteObject HotItemPen
+							DeleteObject HotItemBrush
 							Message.Result = CDRF_DODEFAULT
 							Return
 						End Select
