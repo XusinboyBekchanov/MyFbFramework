@@ -224,7 +224,7 @@ Namespace My.Sys.Forms
 			FTabStop           = True
 			#ifdef __USE_WINAPI__
 				.ExStyle     = 0 'WS_EX_TRANSPARENT
-				.Style       = WS_CHILD Or WS_VISIBLE Or BS_GROUPBOX 'Or SS_NOPREFIX
+				.Style       = WS_CHILD Or BS_GROUPBOX 'Or SS_NOPREFIX
 			#endif
 			#ifdef __USE_GTK__
 				.BackColor       = -1
