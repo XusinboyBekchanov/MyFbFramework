@@ -61,6 +61,7 @@ Namespace My.Sys.Drawing
 			Handle       As jobject
 		#elseif defined(__USE_WINAPI__)
 			Handle       As HBITMAP
+			pImage As GpImage Ptr
 		#elseif defined(__USE_WASM__)
 			Handle       As UString
 		#else
