@@ -1076,14 +1076,15 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByRef Image As My.Sys.Drawing.BitmapType, iSourceAlpha As Integer = 255)
-		#ifndef __USE_WASM__
+		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If Image.pImage = NULL OrElse UsingGdip = False Then
 				DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
 			Else
-				#ifdef (__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 					DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
-				#endif
+				DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
 			EndIf
+		#elseif Not defined(__USE_WASM__)
+			DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
 		#endif
 	End Sub
 	
