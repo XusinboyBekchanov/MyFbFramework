@@ -28,6 +28,7 @@
 	Dim Shared As Integer cmdSelection = 1
 	Dim Shared As Point Ms                  ' 记录鼠标按下时的坐标
 	Dim Shared As Boolean bUpdatePaint = True ' Fo take too long in Paint sub
+	Dim Shared As My.Sys.Drawing.BitmapType BoardBitm
 	Type Form1Type Extends Form
 		Declare Sub cmdDrawButterfly_Click(ByRef Sender As Control)
 		Declare Sub PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
@@ -93,7 +94,7 @@
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.BackColor = 16711380
 			.DoubleBuffered = True
-			.Transparent = False 
+			.Transparent = False
 			.SetBounds 0, 0, 640, 520
 		End With
 		' cmdDrawButterfly
@@ -562,38 +563,12 @@ End Sub
 Private Sub Form1Type.PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	Dim T As Double = Timer
 	PictureBK.Graphic.Visible = chkbackground.Checked
-	PictureBK.Graphic.CenterImage = chkCenterImage.Checked 
-	PictureBK.Transparent = chkTransparent.Checked 
+	PictureBK.Graphic.CenterImage = chkCenterImage.Checked
+	PictureBK.Transparent = chkTransparent.Checked
 	PictureBK.DoubleBuffered = chkDoubleBuffered.Checked
 	Canvas.UsingGdip = chkGDIPlus.Checked
-	If cmdSelection = 1 Then cmdGDIDraw_Click(Sender) Else cmdDrawButterfly_Click(Sender)
-	'chkGDIPlus.Checked = PictureBK.Canvas.UsingGdip
-	'	'.FillColor = 16744448
-	'	.UsingGdip = chkGDIPlus.Checked
-	Me.Caption = "Drawing With GdipToken="  & PictureBK.Canvas.GdipToken & "  Elapsed Time: " & Format(Timer - T, "0.0000") & "s"
-End Sub
-
-Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	
-End Sub
-
-Sub Taijitu(x As Integer, y As Integer, r As Integer)
-	'With PictureBK.Canvas
-	'	.Circle x, y, 2 * r, 0, , , , F
-	'	.Line x, y - 2 * r, x, y + 2 * r, 7, B
-	'	.Paint x - r, y, 15, 7
-	'	.Circle x, y - r, r - 1, 15, , , , F
-	'	.Circle x, y + r, r - 1,  0, , , , F
-	'	.Circle x, y - r, r / 3,  0, , , , F
-	'	.Circle x, y + r, r / 3, 15, , , , F
-	'End With
-End Sub
-'https://learn.microsoft.com/zh-cn/windows/win32/gdiplus/-gdiplus-graphics-flat
-
-Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
-	cmdSelection = 1
-	bUpdatePaint = True
-	With PictureBK.Canvas
+	Canvas.FillColor = 16744448
+	With Canvas
 		.Scale(-100, 100, 100, -100)
 		.BackColor = PictureBK.BackColor
 		.DrawColor = clRed ' Will lost the background if not set the value first
@@ -650,7 +625,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Arc(30, 50, 70, 80, 70, 60, 30, 60)
 		.Chord(10, 60, 40, 80, 40, 60, 80, 70)
 		.Pie(0, 0, 40, 50, 60, 80, 40, 60)
-		
+		.DrawAlpha(20, 30, 100, 100, BoardBitm)
 		Dim As My.Sys.Drawing.Point pt(4) = {(-60, + 20), (-60, 0), (-90, 0), (-90, + 20), (-60, + 20)}
 		'{{90, 130}, {60, 40}, {140, 150}, {160, 80}}
 		'//绘制椭圆、矩形
@@ -705,7 +680,14 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
 		'.TransferDoubleBuffer
 	End With
+	If cmdSelection = 1 Then cmdGDIDraw_Click(Sender) Else cmdDrawButterfly_Click(Sender)
+	Me.Caption = "Drawing With GdipToken="  & PictureBK.Canvas.GdipToken & "  Elapsed Time: " & Format(Timer - T, "0.0000") & "s"
 End Sub
+
+Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	
+End Sub
+'https://learn.microsoft.com/zh-cn/windows/win32/gdiplus/-gdiplus-graphics-flat
 
 Private Sub Form1Type.cmdGDICls_Click(ByRef Sender As Control)
 	bUpdatePaint = True
@@ -804,7 +786,8 @@ Private Sub Form1Type.Picture2_Form_MouseMove(ByRef Sender As Control, MouseButt
 End Sub
 
 Private Sub Form1Type.Form_Show(ByRef Sender As Form)
-	'chkGDIPlus.Checked = True 
+	BoardBitm.LoadFromFile(ExePath & "/../Resources/Wheel.png")
+	'chkGDIPlus.Checked = True
 	'With PictureBK.Canvas
 	'	'.FillColor = 16744448
 	'	.UsingGdip = chkGDIPlus.Checked
@@ -851,8 +834,25 @@ End Sub
 
 Private Sub Form1Type.chkGDIPlus_Click(ByRef Sender As CheckBox)
 	PictureBK.Canvas.Cls ' if switch must be use cls for init
+	PictureBK.Invalidate
 End Sub
 
 Private Sub Form1Type.PictureBK_Click(ByRef Sender As Control)
-	
+	'TODO This is not working for GDIPlus for it is not the same GdipGraphics
+	PictureBK.Canvas.DrawAlpha(-20, -50, BoardBitm.Width, BoardBitm.Height, BoardBitm)
+End Sub
+
+Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
+	Dim As Integer x = -140
+	Dim As Integer y = -40
+	Dim As Integer r =  30
+		With PictureBK.Canvas
+		.Circle x, y, 2 * r
+		.Line x, y - 2 * r, x, y + 2 * r, 7, "B"
+		'.Paint x - r, y, 15, 7
+		.Circle x, y - r / 2, r - 1, clWhite
+		.Circle x, y + r / 2, r - 1, clBlack
+		.Circle x, y - r / 2, r / 3, clBlack
+		.Circle x, y + r / 2, r / 3, clWhite
+	End With
 End Sub
