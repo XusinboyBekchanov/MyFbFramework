@@ -1076,6 +1076,8 @@ Namespace My.Sys.Drawing
 	End Function
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByRef Image As My.Sys.Drawing.BitmapType, iSourceAlpha As Integer = 255)
+		If nWidth = -1 Then nWidth = ScaleX(Image.Width)
+				If nHeight = -1 Then nHeight = ScaleY(Image.Width)
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If Image.pImage = NULL OrElse UsingGdip = False Then
 				DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
