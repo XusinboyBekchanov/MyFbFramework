@@ -1080,8 +1080,10 @@ Namespace My.Sys.Drawing
 			If Image.pImage = NULL OrElse UsingGdip = False Then
 				DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
 			Else
-				DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
-			End If
+				#ifdef (__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+					DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
+				#endif
+			EndIf
 		#endif
 	End Sub
 	
