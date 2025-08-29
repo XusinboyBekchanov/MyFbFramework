@@ -101,7 +101,7 @@ Namespace My.Sys.Drawing
 				FWidth  = BMP.bmWidth
 				FHeight = BMP.bmHeight
 			Case Else
-				Dim pImage As GpImage Ptr
+				'Dim pImage As GpImage Ptr
 				If Handle Then DeleteObject Handle: Handle = 0
 				' // Initialize Gdiplus
 				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
@@ -117,7 +117,7 @@ Namespace My.Sys.Drawing
 				' // Create bitmap from image
 				GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
 				' // Free the image
-				If pImage Then GdipDisposeImage pImage
+				'If pImage Then GdipDisposeImage pImage
 				' // Shutdown Gdiplus
 				GdiplusShutdown token
 			End Select
@@ -300,9 +300,9 @@ Namespace My.Sys.Drawing
 			End Function
 		#endif
 	#endif
-
+	
 	#ifdef __USE_WINAPI__
-	Private Function BitmapType.LoadFromScreen(x As Double, y As Double, iWidth As Double, iHeight As Double, iHandle As HWND = 0) As Boolean
+		Private Function BitmapType.LoadFromScreen(x As Double, y As Double, iWidth As Double, iHeight As Double, iHandle As HWND = 0) As Boolean
 			Free
 			Dim As HWND desktop = IIf(iHandle = 0, GetDesktopWindow(), iHandle)
 			If (desktop = NULL) Then
@@ -331,6 +331,7 @@ Namespace My.Sys.Drawing
 			Dim As HBITMAP old_dst_bmp = Cast(HBITMAP, SelectObject(dst_hdc, bmp))
 			If (old_dst_bmp = NULL) Then
 				DeleteObject(bmp)
+				ReleaseDC(desktop, screen_dev)
 				Return False
 			End If
 			' Got the image into the compatible DC
@@ -343,7 +344,7 @@ Namespace My.Sys.Drawing
 			Return True
 		End Function
 	#endif
-
+	
 	#ifndef BitmapType_LoadFromResourceName_Off
 		Private Function BitmapType.LoadFromResourceName(ResName As String, ModuleHandle As Any Ptr = 0, cxDesired As Integer = 0, cyDesired As Integer = 0, iMaskColor As Integer = 0) As Boolean
 			Free
@@ -410,14 +411,14 @@ Namespace My.Sys.Drawing
 					If SUCCEEDED(CreateStreamOnHGlobal(hGlobal, False, @pngstream)) Then
 						If pngstream Then
 							'Dim As gdiplus.Color clr
-							Dim pImage As GpImage Ptr ', hImage As HICON
+							'Dim pImage As GpImage Ptr ', hImage As HICON . Save it for GDIPlus
 							' Create a bitmap from the data contained in the stream
 							GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
 							' Create icon from image
 							GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
 							
-							' Free the image
-							If pImage Then GdipDisposeImage pImage
+							' Free the image. Save it for GDIPlus
+							'If pImage Then GdipDisposeImage pImage
 							pngstream->lpVtbl->Release(pngstream)
 						End If
 					End If
@@ -461,14 +462,29 @@ Namespace My.Sys.Drawing
 			If Handle Then DeleteObject Handle
 			Dc = GetDC(0)
 			FDevice = CreateCompatibleDC(Dc)
-			ReleaseDC 0,Dc
+			
 			rc.left = 0
 			rc.top = 0
 			rc.right = FWidth
 			rc.bottom = FHeight
-			Handle = CreateCompatibleBitmap(FDevice,FWidth,FHeight)
-			SelectObject FDevice,Handle
-			FillRect(FDevice, @rc, Brush.Handle)
+			'Handle = CreateCompatibleBitmap(FDevice,FWidth,FHeight)
+			' 创建32位位图 (支持alpha通道)
+			Dim As BITMAPINFO bmi
+			With bmi.bmiHeader
+				.biSize = SizeOf(BITMAPINFOHEADER)
+				.biWidth = Width
+				.biHeight = -Height ' 负值表示从上到下的位图
+				.biPlanes = 1
+				.biBitCount = 32
+				.biCompression = BI_RGB
+				.biSizeImage = 0
+			End With
+			
+			Dim As PVOID pvBits
+			Handle = CreateDIBSection(Dc, @bmi, DIB_RGB_COLORS, @pvBits, NULL, 0)
+			SelectObject FDevice, Handle
+			'FillRect(FDevice, @rc, Brush.Handle)
+			ReleaseDC 0, Dc
 		#endif
 		If Changed Then Changed(*Designer, This)
 	End Sub
@@ -550,6 +566,7 @@ Namespace My.Sys.Drawing
 	Private Constructor BitmapType
 		WLet(FClassName, "BitmapType")
 		#ifdef __USE_WINAPI__
+			pImage = NULL
 			FLoadFlag(0) = 0
 			FLoadFlag(1) = LR_LOADTRANSPARENT
 		#endif
@@ -562,6 +579,18 @@ Namespace My.Sys.Drawing
 	Private Destructor BitmapType
 		If FResName Then _Deallocate(FResName)
 		Free
+		#ifdef __USE_WINAPI__
+			If pImage <> NULL Then
+				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
+				StartupInput.GdiplusVersion = 1
+				GdiplusStartup(@token, @StartupInput, NULL)
+				If token = NULL Then
+					GdipDisposeImage pImage
+					' // Shutdown Gdiplus
+					GdiplusShutdown token
+				End If
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			If Handle Then g_object_unref(Handle)
 		#elseif defined(__USE_WINAPI__)

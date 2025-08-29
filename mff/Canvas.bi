@@ -174,8 +174,7 @@ Namespace My.Sys.Drawing
 		Font        As My.Sys.Drawing.Font
 		Clip        As Boolean
 		CopyMode    As CopyMode
-		Declare Property UsingGdip As Boolean
-		Declare Property UsingGdip(Value As Boolean)
+		UsingGdip As Boolean
 		Declare Function GetDevice As Any Ptr
 		Declare Sub ReleaseDevice(Handle As Any Ptr = 0)
 		#ifndef ReadProperty_Off
