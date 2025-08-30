@@ -948,7 +948,6 @@ Namespace My.Sys.Drawing
 				Handle = cairo_create(cairoSurface)
 				DeviceContextHandle = CanvasHandle
 			#else
-				If Handle = CanvasHandle AndAlso GdipGraphics Then HandleSetted = True : Return
 				Handle = CanvasHandle
 				'SelectObject(Handle, Font.Handle)
 				If UsingGdip Then
@@ -1077,7 +1076,7 @@ Namespace My.Sys.Drawing
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByRef Image As My.Sys.Drawing.BitmapType, iSourceAlpha As Integer = 255)
 		If nWidth = -1 Then nWidth = ScaleX(Image.Width)
-				If nHeight = -1 Then nHeight = ScaleY(Image.Width)
+		If nHeight = -1 Then nHeight = ScaleY(Image.Height)
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If Image.pImage = NULL OrElse UsingGdip = False Then
 				DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
