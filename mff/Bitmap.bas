@@ -109,6 +109,7 @@ Namespace My.Sys.Drawing
 				GdiplusStartup(@token, @StartupInput, NULL)
 				If token = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
 				' // Load the image from file
+				If pImage Then GdipDisposeImage pImage
 				GdipLoadImageFromFile(File, @pImage)
 				If pImage = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
 				' // Get the image width and height
@@ -505,6 +506,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_WINAPI__
 			If Handle Then DeleteObject Handle
 			Handle = 0
+			
 		#elseif defined(__USE_WASM__)
 			Handle = ""
 		#endif

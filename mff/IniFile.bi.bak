@@ -40,7 +40,7 @@ Public:
 	Declare Function ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") As UString
 	Declare Function KeyRemove(ByRef Section As WString, ByRef Key As WString) As Boolean
 	Declare Operator Cast As Any Ptr
-	Declare Constructor(ByRef filename As WString = "")
+	Declare Constructor
 	Declare Destructor
 End Type
 
