@@ -15,6 +15,11 @@
 	#include once "cairo/cairo-win32.bi"
 	#define G_PI 3.141593
 #endif
+#ifdef __USE_WINAPI__
+	#include once "D2D1/D2D1.bi"
+	#include once "crt/limits.bi"
+#endif
+
 Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__) (*Cast(Canvas Ptr, __Ptr__))
 	
@@ -128,6 +133,7 @@ Namespace My.Sys.Drawing
 		imgOffsetY      As Double
 		FMoveToX        As Double
 		FMoveToY        As Double
+		FUseDirect2D    As Boolean
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
@@ -144,6 +150,15 @@ Namespace My.Sys.Drawing
 			#else
 				Dim FGdipStartupInput As Gdiplus.GdiplusStartupInput  'GDI+ startup info
 			#endif
+			Dim PrevWidth As Integer = 0
+			Dim PrevHeight As Integer = 0
+			Dim pRenderTarget As ID2D1DeviceContext Ptr = 0
+			Dim pTargetBitmap As ID2D1Bitmap1 Ptr = 0
+			Dim pSwapChain As IDXGISwapChain1 Ptr = 0
+			Dim pSurface As IDXGISurface Ptr = 0
+			Dim pTexture As ID3D11Texture2D Ptr = 0
+			Dim pFormat As IDWriteTextFormat Ptr = 0
+			Declare Sub ReleaseDirect2D
 		#endif
 	Public:
 		HandleSetted As Boolean
@@ -208,6 +223,8 @@ Namespace My.Sys.Drawing
 		Declare Property HatchStyle(Value As HatchStyles)
 		Declare Property FillStyles As BrushStyles
 		Declare Property FillStyles(Value As BrushStyles)
+		Declare Property UseDirect2D As Boolean
+		Declare Property UseDirect2D(Value As Boolean)
 		Declare Sub Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
 		Declare Sub MoveTo(x As Double,y As Double)
 		Declare Sub LineTo(x As Double,y As Double)
@@ -268,3 +285,4 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Canvas.bas"
 #endif
+

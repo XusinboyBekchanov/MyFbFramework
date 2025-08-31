@@ -27,6 +27,7 @@ Namespace My.Sys.Drawing
 				#endif
 			Case "height": iTemp = This.Height: Return @iTemp
 			Case "width": iTemp = This.Width: Return @iTemp
+			Case "usedirect2d": Return @FUseDirect2D
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -38,6 +39,7 @@ Namespace My.Sys.Drawing
 			Select Case LCase(PropertyName)
 			Case "clip": This.Clip = QBoolean(Value)
 			Case "copymode": This.CopyMode = QInteger(Value)
+			Case "usedirect2d": UseDirect2D = QBoolean(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
@@ -383,26 +385,30 @@ Namespace My.Sys.Drawing
 					End If
 				#elseif defined(__USE_WINAPI__)
 					If ParentControl->Handle Then
-						If Clip Then
-							Handle_ = GetDCEx(ParentControl->Handle, 0, DCX_PARENTCLIP Or DCX_CACHE)
+						If pRenderTarget Then
+							pRenderTarget->lpVtbl->BeginDraw(pRenderTarget)
 						Else
-							Handle_ = GetDC(ParentControl->Handle)
-						End If
-						SelectObject(Handle_, Font.Handle)
-						SelectObject(Handle_, Pen.Handle)
-						SelectObject(Handle_, Brush.Handle)
-						SetROP2 Handle_, Pen.Mode
-						If UsingGdip Then
-							If GdipGraphics Then Return GdipGraphics 'GdipDeleteGraphics(GdipGraphics)
-							GdipCreateFromHDC(Handle, @GdipGraphics)
-							If  GdipGraphics = NULL Then
-								Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! "
+							If Clip Then
+								Handle_ = GetDCEx(ParentControl->Handle, 0, DCX_PARENTCLIP Or DCX_CACHE)
 							Else
-								GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
-								GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
-								GdipSetInterpolationMode(GdipGraphics, 7)
+								Handle_ = GetDC(ParentControl->Handle)
 							End If
-							Handle_ = GdipGraphics
+							SelectObject(Handle_, Font.Handle)
+							SelectObject(Handle_, Pen.Handle)
+							SelectObject(Handle_, Brush.Handle)
+							SetROP2 Handle_, Pen.Mode
+							If UsingGdip Then
+								If GdipGraphics Then Return GdipGraphics 'GdipDeleteGraphics(GdipGraphics)
+								GdipCreateFromHDC(Handle, @GdipGraphics)
+								If  GdipGraphics = NULL Then
+									Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! "
+								Else
+									GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
+									GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
+									GdipSetInterpolationMode(GdipGraphics, 7)
+								End If
+								Handle_ = GdipGraphics
+							End If
 						End If
 					End If
 				#endif
@@ -445,7 +451,17 @@ Namespace My.Sys.Drawing
 				'	DeleteObject(CompatibleBmp)
 				'	DeleteDC(memDC)
 				'End If
-				ReleaseDC ParentControl->Handle, Handle_
+				If pRenderTarget Then
+					pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
+					Dim pp As DXGI_PRESENT_PARAMETERS
+					pp.DirtyRectsCount = 0
+					pp.pDirtyRects = 0
+					pp.pScrollRect = 0
+					pp.pScrollOffset = 0
+					pSwapChain->lpVtbl->Present1(pSwapChain, 1, 0, @pp)
+				Else
+					ReleaseDC ParentControl->Handle, Handle_
+				End If
 			End If
 		#endif
 	End Sub
@@ -960,6 +976,54 @@ Namespace My.Sys.Drawing
 						GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
 						GdipSetInterpolationMode(GdipGraphics, 7)
 					End If
+				ElseIf FUseDirect2D Then
+					If ParentControl <> 0 AndAlso ParentControl->Handle <> 0 AndAlso (ParentControl->Width <> PrevWidth OrElse ParentControl->Height <> PrevHeight) Then
+						ReleaseDirect2D
+						
+						Var hr = pD2D1Device->lpVtbl->CreateDeviceContext(pD2D1Device, D2D1_DEVICE_CONTEXT_OPTIONS_NONE, @pRenderTarget)
+						If hr = 0 Then
+							pRenderTarget->lpVtbl->SetUnitMode(pRenderTarget, D2D1_UNIT_MODE_PIXELS)
+							
+							Dim As DXGI_SWAP_CHAIN_DESC1 swapChainDesc
+							swapChainDesc.Width = 0                           ' use automatic sizing
+							swapChainDesc.Height = 0
+							swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM ' This Is the most Common swapchain Format
+							swapChainDesc.Stereo = False
+							swapChainDesc.SampleDesc.Count = 1                 ' don't use multi-sampling
+							swapChainDesc.SampleDesc.Quality = 0
+							swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT
+							swapChainDesc.BufferCount = 2                     ' use Double buffering To enable Flip
+							swapChainDesc.Scaling = DXGI_SCALING_NONE
+							swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL ' all apps must use This SwapEffect
+							swapChainDesc.Flags = 0
+							
+							Var hr = pDXGIFactory2->lpVtbl->CreateSwapChainForHwnd(pDXGIFactory2, Cast(IUnknown Ptr, pD3D11Device), ParentControl->Handle, @swapChainDesc, 0, 0, @pSwapChain)
+							
+							hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_ID3D11Texture2D, @pTexture)
+							hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_IDXGISurface, @pSurface)
+							
+							Dim bmpProps As D2D1_BITMAP_PROPERTIES1
+							
+							With bmpProps
+								.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET Or D2D1_BITMAP_OPTIONS_CANNOT_DRAW
+								.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
+								.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE
+								.dpiX = 96
+								.dpiY = 96
+								.colorContext = 0
+							End With
+							
+							pRenderTarget->lpVtbl->CreateBitmapFromDxgiSurface(pRenderTarget, pSurface, @bmpProps, @pTargetBitmap)
+							
+							pRenderTarget->lpVtbl->SetTarget(pRenderTarget, pTargetBitmap)
+							
+							pRenderTarget->lpVtbl->SetAntialiasMode(pRenderTarget, D2D1_ANTIALIAS_MODE_ALIASED)
+							CreateTextFormat(pDWriteFactory, Font.Name, 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"en-us", @pFormat)
+						End If
+					End If
+					If pRenderTarget Then
+						pRenderTarget->lpVtbl->BeginDraw(pRenderTarget)
+					End If
 				End If
 			#endif
 			HandleSetted = True
@@ -976,6 +1040,35 @@ Namespace My.Sys.Drawing
 		End Sub
 	#endif
 	
+	Private Property Canvas.UseDirect2D As Boolean
+		Return FUseDirect2D
+	End Property
+	
+	#ifdef __USE_WINAPI__
+		Private Sub Canvas.ReleaseDirect2D
+			If pRenderTarget Then
+				pRenderTarget->lpVtbl->SetTarget(pRenderTarget, 0)
+				pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
+			End If
+			If pFormat Then pFormat->lpVtbl->Release(pFormat): pFormat = 0
+			If pTargetBitmap Then pTargetBitmap->lpVtbl->Release(pTargetBitmap): pTargetBitmap = 0
+			If pTexture Then pTexture->lpVtbl->Release(pTexture): pTexture = 0
+			If pSurface Then pSurface->lpVtbl->Release(pSurface): pSurface = 0
+			If pSwapChain Then pSwapChain->lpVtbl->Release(pSwapChain): pSwapChain = 0
+		End Sub
+	#endif
+	
+	Private Property Canvas.UseDirect2D(Value As Boolean)
+		FUseDirect2D = Value
+		#ifdef __USE_WINAPI__
+			If Value Then
+				If hD2D1 = 0 Then LoadD2D1
+			ElseIf pRenderTarget <> 0 Then
+				ReleaseDirect2D
+			End If
+		#endif
+	End Property
+	
 	Private Sub Canvas.UnSetHandle()
 		#if defined(__USE_CAIRO__) AndAlso Not defined(__USE_GTK__)
 			cairo_destroy(Handle)
@@ -983,6 +1076,15 @@ Namespace My.Sys.Drawing
 			Handle = 0
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+			If pRenderTarget Then
+				pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
+				Dim pp As DXGI_PRESENT_PARAMETERS
+				pp.DirtyRectsCount = 0
+				pp.pDirtyRects = 0
+				pp.pScrollRect = 0
+				pp.pScrollOffset = 0
+				pSwapChain->lpVtbl->Present1(pSwapChain, 1, 0, @pp)
+			End If
 			Handle = 0
 		#endif
 		HandleSetted = False
@@ -1018,16 +1120,46 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 			pango_cairo_show_layout_line(Handle, pl)
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			SetBkMode Handle, TRANSPARENT
-			If FG = -1 Then SetTextColor(Handle, Font.Color) Else SetTextColor(Handle, FG)
-			If BK = -1 Then
-				Brush = GetStockObject(NULL_BRUSH)
+			If pRenderTarget <> 0 Then
+				Dim pBrushForeground As ID2D1Brush Ptr = 0
+				Dim pBrushBackground As ID2D1Brush Ptr = 0
+				Dim As Double iRed, iGreen, iBlue
+				If FG = -1 Then
+					iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
+				Else
+					iRed = Abs(GetRed(FG) / 255.0): iGreen = Abs(GetGreen(FG) / 255.0): iBlue = Abs(GetBlue(FG) / 255.0)
+				End If
+				pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushForeground)
+				Dim pLayout As IDWriteTextLayout Ptr = 0
+				Dim Metrics As DWRITE_TEXT_METRICS
+				CreateTextLayout(pDWriteFactory, @s, Len(s), pFormat, FLT_MAX, FLT_MAX, @pLayout)
+				If pLayout <> 0 Then
+					pLayout->lpVtbl->GetMetrics(pLayout, @Metrics)
+					Dim sz As ..Size
+					sz.cx = Metrics.widthIncludingTrailingWhitespace
+					sz.cy = Metrics.height + 1
+					If BK <> -1 Then
+						iRed = Abs(GetRed(BK) / 255.0): iGreen = Abs(GetGreen(BK) / 255.0): iBlue = Abs(GetBlue(BK) / 255.0)
+						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushBackground)
+						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - sz.cy)), pBrushBackground)
+					End If
+					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - sz.cy)), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
+					pLayout->lpVtbl->Release(pLayout): pLayout = 0
+				End If
+				If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
+				If pBrushBackground Then pBrushBackground->lpVtbl->Release(pBrushBackground)
 			Else
-				SetBkColor(Handle, BK)
-				SetBkMode(Handle, OPAQUE)
+				SetBkMode Handle, TRANSPARENT
+				If FG = -1 Then SetTextColor(Handle, Font.Color) Else SetTextColor(Handle, FG)
+				If BK = -1 Then
+					Brush = GetStockObject(NULL_BRUSH)
+				Else
+					SetBkColor(Handle, BK)
+					SetBkMode(Handle, OPAQUE)
+				End If
+				SelectObject(Handle, Font.Handle)
+				.TextOut(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, @s, Len(s))
 			End If
-			SelectObject(Handle, Font.Handle)
-			.TextOut(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, @s, Len(s))
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -1526,6 +1658,8 @@ Namespace My.Sys.Drawing
 				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
 				If GdipToken Then GdiplusShutdown(GdipToken)
 			End If
+			ReleaseDirect2D
 		#endif
 	End Destructor
 End Namespace
+
