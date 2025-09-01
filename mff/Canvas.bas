@@ -345,7 +345,11 @@ Namespace My.Sys.Drawing
 			.cairo_rectangle(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX - 0.5, ScaleY(xy.Y) * imgScaleY + imgOffsetY - 0.5, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
-			.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY), pForegroundBrush, 1)
+			Else
+				.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
+			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Property
@@ -508,10 +512,12 @@ Namespace My.Sys.Drawing
 			cairo_line_to(Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawLine(pRenderTarget, Type<D2D1_POINT_2F>(FMoveToX, FMoveToY), Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY), pForegroundBrush, 1)
+			ElseIf Not UsingGdip Then
 				.LineTo Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY
 			Else
-				GdipDrawLine GdipGraphics, GdipPen, FMoveToX, FMoveToY, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY
+				GdipDrawLine GdipGraphics, GdipPen, FMoveToX, FMoveToY, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY
 			End If
 			
 		#endif
@@ -726,7 +732,10 @@ Namespace My.Sys.Drawing
 			cairo_close_path Handle
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRoundedRectangle(pRenderTarget, @Type<D2D1_ROUNDED_RECT>(Type<D2D1_RECT_F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY), ScaleX(nWidth) * imgScaleX / 2, ScaleY(nHeight) * imgScaleY / 2), pBackgroundBrush)
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRoundedRectangle(pRenderTarget, @Type<D2D1_ROUNDED_RECT>(Type<D2D1_RECT_F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY), ScaleX(nWidth) * imgScaleX / 2, ScaleY(nHeight) * imgScaleY / 2), pForegroundBrush, 1)
+			ElseIf Not UsingGdip Then
 				.RoundRect Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX , ScaleY(nHeight) * imgScaleY
 			Else
 				'Gdipmove_to Handle, x * imgScaleX + imgOffsetX - 0.5, (y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5
@@ -747,7 +756,21 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				'Dim pGeometry As ID2D1PathGeometry Ptr
+				'If pFactory->lpVtbl->CreatePathGeometry(pFactory, @pGeometry) = 0 Then
+				'    Dim pSink As ID2D1GeometrySink Ptr
+				'    If pGeometry->lpVtbl->Open(pGeometry, @pSink) = 0 Then
+				'        pSink->lpVtbl->BeginFigure(pSink, points(0), D2D1_FIGURE_BEGIN_FILLED)
+				'        pSink->lpVtbl->AddLines(pSink, @points(1), 3)
+				'        pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
+				'        pSink->lpVtbl->Close(pSink)
+				'        pSink->lpVtbl->Release(pSink)
+				'    End If
+				'    pRT->lpVtbl->FillGeometry(pRT, pGeometry, brush, NULL)
+				'    pGeometry->lpVtbl->Release(pGeometry)
+				'End If
+			ElseIf Not UsingGdip Then
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
 					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
