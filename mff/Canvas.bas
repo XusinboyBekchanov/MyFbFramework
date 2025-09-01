@@ -385,7 +385,7 @@ Namespace My.Sys.Drawing
 					End If
 				#elseif defined(__USE_WINAPI__)
 					If ParentControl->Handle Then
-						If pRenderTarget Then
+						If pRenderTarget <> 0 Then
 							pRenderTarget->lpVtbl->BeginDraw(pRenderTarget)
 						Else
 							If Clip Then
@@ -451,7 +451,7 @@ Namespace My.Sys.Drawing
 				'	DeleteObject(CompatibleBmp)
 				'	DeleteDC(memDC)
 				'End If
-				If pRenderTarget Then
+				If pRenderTarget <> 0 Then
 					pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
 					Dim pp As DXGI_PRESENT_PARAMETERS
 					pp.DirtyRectsCount = 0
@@ -530,7 +530,9 @@ Namespace My.Sys.Drawing
 					Brush.Color = FillColorBk
 				End If
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-					If Not UsingGdip Then
+					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+						If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x, y, x1, y1), pBackgroundBrush)
+					ElseIf Not UsingGdip Then
 						Rectangle(x, y, x1, y1)
 					Else
 						GdipFillRectangle(GdipGraphics, GdipBrush, x, y, x1, y1)
@@ -543,7 +545,9 @@ Namespace My.Sys.Drawing
 				End If
 			Else
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-					If Not UsingGdip Then
+					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+						If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x, y, x1, y1), pForegroundBrush, 1)
+					ElseIf Not UsingGdip Then
 						Rectangle(x, y, x1, y1)
 					Else
 						GdipDrawRectangle GdipGraphics, GdipPen, x, y, x1, y1
@@ -564,7 +568,9 @@ Namespace My.Sys.Drawing
 				cairo_line_to(Handle, ScaleX(x1) * imgScaleX + imgOffsetX - 0.5, ScaleY(y1) * imgScaleY + imgOffsetY - 0.5)
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
-				If Not UsingGdip Then
+				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+					If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawLine(pRenderTarget, Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY), Type<D2D1_POINT_2F>(ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY), pForegroundBrush, 1)
+				ElseIf Not UsingGdip Then
 					.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
 					.LineTo Handle, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY
 				Else
@@ -591,7 +597,9 @@ Namespace My.Sys.Drawing
 				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
-				If Not UsingGdip Then
+				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+					If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX , ScaleY(y1) * imgScaleY + imgOffsetY), pForegroundBrush, 1)
+				ElseIf Not UsingGdip Then
 					.Rectangle Handle, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX , ScaleY(y1) * imgScaleY + imgOffsetY
 				Else
 					If GdipBrush Then GdipFillRectangle(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX, ScaleY(y1 - y) * imgScaleY)
@@ -612,7 +620,9 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY), pForegroundBrush, 1)
+			ElseIf Not UsingGdip Then
 				.Rectangle Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 			Else
 				If GdipBrush Then GdipFillRectangle(GdipGraphics, GdipBrush, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
@@ -633,7 +643,10 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x + (x1 - x) / 2) * imgScaleX + imgOffsetX, ScaleY(y + (y1 - y) / 2) * imgScaleY + imgOffsetY), ScaleX((x1 - x) / 2) * imgScaleX + imgOffsetX, ScaleY((y1 - y) / 2) * imgScaleY + imgOffsetY), pBackgroundBrush)
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x + (x1 - x) / 2) * imgScaleX + imgOffsetX, ScaleY(y + (y1 - y) / 2) * imgScaleY + imgOffsetY), ScaleX((x1 - x) / 2) * imgScaleX + imgOffsetX, ScaleY((y1 - y) / 2) * imgScaleY + imgOffsetY), pForegroundBrush, 1, NULL)
+			ElseIf Not UsingGdip Then
 				.Ellipse(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY)
 			Else
 				If GdipBrush Then GdipFillEllipse(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX((x1)) * imgScaleX, ScaleY((y1)) * imgScaleY)
@@ -654,7 +667,10 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), ScaleX((R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY((R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), pBackgroundBrush)
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), ScaleX((R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY((R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), pForegroundBrush, 1, NULL)
+			ElseIf Not UsingGdip Then
 				.Ellipse Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 			Else
 				If GdipBrush Then GdipFillEllipse(GdipGraphics, GdipBrush, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
@@ -679,7 +695,10 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY), ScaleX(Radial) * imgScaleX + imgOffsetX, ScaleY(Radial) * imgScaleY + imgOffsetY), pBackgroundBrush)
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY), ScaleX(Radial) * imgScaleX + imgOffsetX, ScaleY(Radial) * imgScaleY + imgOffsetY), pForegroundBrush, 1, NULL)
+			ElseIf Not UsingGdip Then
 				.Ellipse Handle, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(x + Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y + Radial / 2) * imgScaleY + imgOffsetY
 			Else
 				If GdipBrush Then GdipFillEllipse(GdipGraphics, GdipBrush, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(Radial) * imgScaleX, ScaleY(Radial) * imgScaleY)
@@ -966,17 +985,7 @@ Namespace My.Sys.Drawing
 			#else
 				Handle = CanvasHandle
 				'SelectObject(Handle, Font.Handle)
-				If UsingGdip Then
-					If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
-					GdipCreateFromHDC(Handle, @GdipGraphics)
-					If  GdipGraphics = NULL Then
-						Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! "
-					Else
-						GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
-						GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
-						GdipSetInterpolationMode(GdipGraphics, 7)
-					End If
-				ElseIf FUseDirect2D Then
+				If FUseDirect2D AndAlso g_Direct2DEnabled Then
 					If ParentControl <> 0 AndAlso ParentControl->Handle <> 0 AndAlso (ParentControl->Width <> PrevWidth OrElse ParentControl->Height <> PrevHeight) Then
 						ReleaseDirect2D
 						
@@ -1021,8 +1030,18 @@ Namespace My.Sys.Drawing
 							CreateTextFormat(pDWriteFactory, Font.Name, 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"en-us", @pFormat)
 						End If
 					End If
-					If pRenderTarget Then
+					If pRenderTarget <> 0 Then
 						pRenderTarget->lpVtbl->BeginDraw(pRenderTarget)
+					End If
+				ElseIf UsingGdip Then
+					If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+					GdipCreateFromHDC(Handle, @GdipGraphics)
+					If  GdipGraphics = NULL Then
+						Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & "Initial GdipGraphics failure! "
+					Else
+						GdipSetSmoothingMode(GdipGraphics, SmoothingModeAntiAlias)
+						GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
+						GdipSetInterpolationMode(GdipGraphics, 7)
 					End If
 				End If
 			#endif
@@ -1046,7 +1065,7 @@ Namespace My.Sys.Drawing
 	
 	#ifdef __USE_WINAPI__
 		Private Sub Canvas.ReleaseDirect2D
-			If pRenderTarget Then
+			If pRenderTarget <> 0 Then
 				pRenderTarget->lpVtbl->SetTarget(pRenderTarget, 0)
 				pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
 			End If
@@ -1076,7 +1095,7 @@ Namespace My.Sys.Drawing
 			Handle = 0
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
-			If pRenderTarget Then
+			If pRenderTarget <> 0 Then
 				pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
 				Dim pp As DXGI_PRESENT_PARAMETERS
 				pp.DirtyRectsCount = 0
@@ -1123,13 +1142,22 @@ Namespace My.Sys.Drawing
 			If pRenderTarget <> 0 Then
 				Dim pBrushForeground As ID2D1Brush Ptr = 0
 				Dim pBrushBackground As ID2D1Brush Ptr = 0
+				Dim bBrushForeground As Boolean
+				Dim bBrushBackground As Boolean
 				Dim As Double iRed, iGreen, iBlue
 				If FG = -1 Then
-					iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
+					If pForegroundBrush <> 0 Then
+						pBrushForeground = pForegroundBrush
+					Else
+						iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
+						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushForeground)
+						bBrushForeground = True
+					End If
 				Else
 					iRed = Abs(GetRed(FG) / 255.0): iGreen = Abs(GetGreen(FG) / 255.0): iBlue = Abs(GetBlue(FG) / 255.0)
+					pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushForeground)
+					bBrushForeground = True
 				End If
-				pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushForeground)
 				Dim pLayout As IDWriteTextLayout Ptr = 0
 				Dim Metrics As DWRITE_TEXT_METRICS
 				CreateTextLayout(pDWriteFactory, @s, Len(s), pFormat, FLT_MAX, FLT_MAX, @pLayout)
@@ -1142,12 +1170,13 @@ Namespace My.Sys.Drawing
 						iRed = Abs(GetRed(BK) / 255.0): iGreen = Abs(GetGreen(BK) / 255.0): iBlue = Abs(GetBlue(BK) / 255.0)
 						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushBackground)
 						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - sz.cy)), pBrushBackground)
+						bBrushBackground = True
 					End If
 					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - sz.cy)), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
 					pLayout->lpVtbl->Release(pLayout): pLayout = 0
 				End If
-				If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
-				If pBrushBackground Then pBrushBackground->lpVtbl->Release(pBrushBackground)
+				If bBrushForeground AndAlso pBrushForeground <> 0 Then pBrushForeground->lpVtbl->Release(pBrushForeground)
+				If bBrushBackground AndAlso pBrushBackground <> 0 Then pBrushBackground->lpVtbl->Release(pBrushBackground)
 			Else
 				SetBkMode Handle, TRANSPARENT
 				If FG = -1 Then SetTextColor(Handle, Font.Color) Else SetTextColor(Handle, FG)
@@ -1589,6 +1618,10 @@ Namespace My.Sys.Drawing
 		With *Cast(Canvas Ptr, Sender.Parent)
 			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				If .Handle Then SelectObject(.Handle, Sender.Handle)
+				If .FUseDirect2D AndAlso .pRenderTarget <> 0 Then
+					If .pFormat Then .pFormat->lpVtbl->Release(.pFormat): .pFormat = 0
+					CreateTextFormat(pDWriteFactory, Sender.Name, 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Sender.Size * .ydpi / 72 * 96, @"en-us", @.pFormat)
+				End If
 			#elseif defined(__USE_GTK__)
 				If .layout Then pango_layout_set_font_description (.layout, Sender.Handle)
 			#endif
@@ -1598,13 +1631,20 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Pen_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Pen)
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			With *Cast(Canvas Ptr, Sender.Parent)
-				If .Handle Then
-					SelectObject(.Handle, Sender.Handle)
-					SetROP2 .Handle, Sender.Mode
-				End If
-				If .UsingGdip = True Then
-					If .GdipPen Then GdipDeletePen(.GdipPen)
-					GdipCreatePen1(RGBtoARGB(.Pen.Color, .BackColorOpacity), .FDrawWidth, &H2, @.GdipPen)
+				If .FUseDirect2D AndAlso .pRenderTarget <> 0 Then
+					If .pForegroundBrush Then .pForegroundBrush->lpVtbl->Release(.pForegroundBrush): .pForegroundBrush = 0
+					Dim As Double iRed, iGreen, iBlue
+					iRed = Abs(GetRed(Sender.Color) / 255.0): iGreen = Abs(GetGreen(Sender.Color) / 255.0): iBlue = Abs(GetBlue(Sender.Color) / 255.0)
+					.pRenderTarget->lpVtbl->CreateSolidColorBrush(.pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @.pForegroundBrush)
+				Else
+					If .Handle Then
+						SelectObject(.Handle, Sender.Handle)
+						SetROP2 .Handle, Sender.Mode
+					End If
+					If .UsingGdip = True Then
+						If .GdipPen Then GdipDeletePen(.GdipPen)
+						GdipCreatePen1(RGBtoARGB(.Pen.Color, .BackColorOpacity), .FDrawWidth, &H2, @.GdipPen)
+					End If
 				End If
 			End With
 		#endif
@@ -1613,10 +1653,17 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Brush_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Brush)
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			With *Cast(Canvas Ptr, Sender.Parent)
-				If .Handle Then SelectObject(.Handle, Sender.Handle)
-				If .UsingGdip = True Then
-					If .GdipBrush Then GdipDeleteBrush(.GdipBrush)
-					GdipCreateSolidFill(RGBtoARGB(.FFillColor, .FillOpacity), Cast(GpSolidFill Ptr Ptr, @.GdipBrush))
+				If .FUseDirect2D AndAlso .pRenderTarget <> 0 Then
+					If .pBackgroundBrush Then .pBackgroundBrush->lpVtbl->Release(.pBackgroundBrush): .pBackgroundBrush = 0
+					Dim As Double iRed, iGreen, iBlue
+					iRed = Abs(GetRed(Sender.Color) / 255.0): iGreen = Abs(GetGreen(Sender.Color) / 255.0): iBlue = Abs(GetBlue(Sender.Color) / 255.0)
+					.pRenderTarget->lpVtbl->CreateSolidColorBrush(.pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @.pBackgroundBrush)
+				Else
+					If .Handle Then SelectObject(.Handle, Sender.Handle)
+					If .UsingGdip = True Then
+						If .GdipBrush Then GdipDeleteBrush(.GdipBrush)
+						GdipCreateSolidFill(RGBtoARGB(.FFillColor, .FillOpacity), Cast(GpSolidFill Ptr Ptr, @.GdipBrush))
+					End If
 				End If
 			End With
 		#endif
