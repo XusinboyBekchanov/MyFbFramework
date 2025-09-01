@@ -158,6 +158,8 @@ Namespace My.Sys.Drawing
 			Dim pSurface As IDXGISurface Ptr = 0
 			Dim pTexture As ID3D11Texture2D Ptr = 0
 			Dim pFormat As IDWriteTextFormat Ptr = 0
+			Dim pForegroundBrush As ID2D1Brush Ptr = 0
+			Dim pBackgroundBrush As ID2D1Brush Ptr = 0
 			Declare Sub ReleaseDirect2D
 		#endif
 	Public:
