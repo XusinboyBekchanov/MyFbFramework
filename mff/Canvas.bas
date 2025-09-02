@@ -674,8 +674,8 @@ Namespace My.Sys.Drawing
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), ScaleX((R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY((R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), pBackgroundBrush)
-				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), ScaleX((R.Right - R.Left) / 2) * imgScaleX + imgOffsetX, ScaleY((R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY), pForegroundBrush, 1, NULL)
+				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY - 0.5), ScaleX((R.Right - R.Left) / 2) * imgScaleX, ScaleY((R.Bottom - R.Top) / 2) * imgScaleY), pBackgroundBrush)
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY - 0.5), ScaleX((R.Right - R.Left) / 2) * imgScaleX, ScaleY((R.Bottom - R.Top) / 2) * imgScaleY), pForegroundBrush, 1, NULL)
 			ElseIf Not UsingGdip Then
 				.Ellipse Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right) * imgScaleX + imgOffsetX, ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 			Else
@@ -702,8 +702,8 @@ Namespace My.Sys.Drawing
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY), ScaleX(Radial) * imgScaleX + imgOffsetX, ScaleY(Radial) * imgScaleY + imgOffsetY), pBackgroundBrush)
-				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY), ScaleX(Radial) * imgScaleX + imgOffsetX, ScaleY(Radial) * imgScaleY + imgOffsetY), pForegroundBrush, 1, NULL)
+				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5), ScaleX(Radial) * imgScaleX, ScaleY(Radial) * imgScaleY), pBackgroundBrush)
+				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5), ScaleX(Radial) * imgScaleX, ScaleY(Radial) * imgScaleY), pForegroundBrush, 1, NULL)
 			ElseIf Not UsingGdip Then
 				.Ellipse Handle, ScaleX(x - Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y - Radial / 2) * imgScaleY + imgOffsetY, ScaleX(x + Radial / 2) * imgScaleX + imgOffsetX, ScaleY(y + Radial / 2) * imgScaleY + imgOffsetY
 			Else
@@ -1195,7 +1195,7 @@ Namespace My.Sys.Drawing
 						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - sz.cy)), pBrushBackground)
 						bBrushBackground = True
 					End If
-					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - sz.cy)), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
+					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX + 0.5 , ScaleY(y) * imgScaleY + imgOffsetY), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
 					pLayout->lpVtbl->Release(pLayout): pLayout = 0
 				End If
 				If bBrushForeground AndAlso pBrushForeground <> 0 Then pBrushForeground->lpVtbl->Release(pBrushForeground)
@@ -1266,7 +1266,7 @@ Namespace My.Sys.Drawing
 				DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
 			Else
 				DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
-			EndIf
+			End If
 		#elseif Not defined(__USE_WASM__)
 			DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
 		#endif

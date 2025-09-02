@@ -1072,10 +1072,10 @@ Namespace My.Sys.Forms
 				'ydpi = FDpiFormY
 				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
-					If Not FDPIChanging Then UpdateLock
-					RequestAlign
-					If Not FDPIChanging Then UpdateUnLock
-					If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
+					'If Not FDPIChanging Then UpdateLock
+					'RequestAlign
+					'If Not FDPIChanging Then UpdateUnLock
+					'If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
 				End If
 			Case WM_UAHDRAWMENU
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -1279,30 +1279,30 @@ Namespace My.Sys.Forms
 				Dim As PAINTSTRUCT Ps
 				Dim As ..Rect R
 				GetClientRect Handle, @R
-				Dim As HBITMAP Bmp
+				Dim As HBITMAP Bmp, hOldBmp
 				Dc = BeginPaint(Handle, @Ps)
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
-					Bmp   = CreateCompatibleBitmap(Dc, R.Right - R.left, R.Bottom - R.Top) 
-					SelectObject(memDC, Bmp)
+					Bmp   = CreateCompatibleBitmap(Dc, R.Right - R.left, R.Bottom - R.Top)
+					hOldBmp = SelectObject(memDC, Bmp)
 					FillRect memDC, @R, Brush.Handle
 					Canvas.SetHandle memDC
 				Else
 					FillRect Dc, @R, Brush.Handle
 					Canvas.SetHandle Dc
 				End If
-				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
-					With This
+				With Graphic
+					If .Visible AndAlso .Bitmap.Handle > 0 Then
 						Select Case Graphic.StretchImage
 						Case StretchMode.smNone
-							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, , , Graphic.Bitmap
+							Canvas.DrawAlpha .StartX, .StartY, , , .Bitmap
 						Case StretchMode.smStretch
-							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, ScaleX(.ClientWidth) * Graphic.ScaleFactor, ScaleY(.Height) * Graphic.ScaleFactor, Graphic.Bitmap
+							Canvas.DrawAlpha .StartX, .StartY, ScaleX(This.Width) * .ScaleFactor, ScaleY(This.Height) * .ScaleFactor, .Bitmap
 						Case Else 'StretchMode.smStretchProportional
-							Dim As Double imgWidth = Graphic.Bitmap.Width
-							Dim As Double imgHeight = Graphic.Bitmap.Height
-							Dim As Double PicBoxWidth = ScaleX(This.ClientWidth) * Graphic.ScaleFactor
-							Dim As Double PicBoxHeight = ScaleY(This.ClientHeight) * Graphic.ScaleFactor
+							Dim As Double imgWidth = .Bitmap.Width
+							Dim As Double imgHeight = .Bitmap.Height
+							Dim As Double PicBoxWidth = ScaleX(This.Width) * .ScaleFactor
+							Dim As Double PicBoxHeight = ScaleY(This.Height) * .ScaleFactor
 							Dim As Double img_ratio = imgWidth / imgHeight
 							Dim As Double PicBox_ratio =  PicBoxWidth / PicBoxHeight
 							If (PicBox_ratio >= img_ratio) Then
@@ -1312,18 +1312,19 @@ Namespace My.Sys.Forms
 								imgWidth = PicBoxWidth
 								imgHeight = imgWidth / img_ratio
 							End If
-							If Graphic.CenterImage Then
-								Canvas.DrawAlpha Max((PicBoxWidth - imgWidth * Graphic.ScaleFactor) / 2, Graphic.StartX), Max((PicBoxHeight - imgHeight * Graphic.ScaleFactor) / 2, Graphic.StartY), imgWidth * Graphic.ScaleFactor, imgHeight * Graphic.ScaleFactor, Graphic.Bitmap
+							If .CenterImage Then
+								Canvas.DrawAlpha Max((PicBoxWidth - imgWidth * .ScaleFactor) / 2, .StartX), Max((PicBoxHeight - imgHeight * .ScaleFactor) / 2, Graphic.StartY), imgWidth * Graphic.ScaleFactor, imgHeight * .ScaleFactor, .Bitmap
 							Else
-								Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, imgWidth, imgHeight, Graphic.Bitmap
+								Canvas.DrawAlpha .StartX, .StartY, imgWidth, imgHeight, .Bitmap
 							End If
 						End Select
-					End With
-				End If
+					End If
+				End With
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
 				Canvas.UnSetHandle
 				If DoubleBuffered Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
+					SelectObject memDC, hOldBmp
 					DeleteObject(Bmp)
 					DeleteDC(memDC)
 				End If

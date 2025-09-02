@@ -2929,9 +2929,15 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
-		Private Sub Control.Invalidate
+		Private Sub Control.Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
 			#ifdef __USE_WINAPI__
-				If FHandle Then InvalidateRect FHandle, 0, True
+				If FHandle Then 
+					If iRect = 0 Then 
+						InvalidateRect(FHandle, 0, bErase)
+					Else
+						InvalidateRect(FHandle, Cast(Rect Ptr, iRect), bErase)
+					End If
+				End If
 			#endif
 		End Sub
 		

@@ -494,8 +494,8 @@ Namespace My.Sys.Forms
 			Declare Sub ClientToScreen(ByRef P As My.Sys.Drawing.Point)
 			'Converts the screen coordinates of a specified point on the screen to client coordinates (Windows only).
 			Declare Sub ScreenToClient(ByRef P As My.Sys.Drawing.Point)
-			'Invalidates the entire surface of the control and causes the control to be redrawn (Windows only).
-			Declare Sub Invalidate
+			'Invalidates the rect surface of the control and causes the control to be redrawn (Windows only).
+			Declare Sub Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
 			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).
 			Declare Sub Repaint
 			'Causes the control to redraw the invalidated regions within its client area (Windows, Linux).
@@ -615,4 +615,3 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Control.bas"
 #endif
-

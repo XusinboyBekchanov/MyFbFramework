@@ -327,6 +327,8 @@ Namespace My.Sys.Forms
 				'If FHandle Then SetWindowText(FHandle, FText)
 				If FHandle Then Perform(WM_SETTEXT, -1, CInt(FText.vptr))
 			End If
+			Dim As Integer Index = IndexOf(Value)
+			If Index >= 0 Then ItemIndex = Index
 		#elseif defined(__USE_WASM__)
 			If FHandle Then SetSelectedIndex(FHandle, IndexOf(Value))
 		#endif

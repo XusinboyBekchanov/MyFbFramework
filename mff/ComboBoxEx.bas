@@ -457,6 +457,8 @@ Namespace My.Sys.Forms
 				Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
 			End Select
 			'If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+			Dim As Integer Index = IndexOf(Value)
+			If Index >= 0 Then ItemIndex = Index
 		#elseif defined(__USE_GTK__)
 			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), This.IndexOf(Value))
 		#endif
