@@ -2929,13 +2929,13 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
-		Private Sub Control.Invalidate(ByVal lpRect As Rect Ptr = 0, ByVal bErase As Boolean = True)
+		Private Sub Control.Invalidate(ByVal iRect As My.Sys.Drawing.Rect Ptr = 0, ByVal bErase As Boolean = True)
 			#ifdef __USE_WINAPI__
 				If FHandle Then 
-					If lpRect = 0 Then 
+					If iRect = 0 Then 
 						InvalidateRect(FHandle, 0, bErase)
 					Else
-						InvalidateRect(FHandle, lpRect, bErase)
+						InvalidateRect(FHandle, iRect, bErase)
 					End If
 				End If
 			#endif
