@@ -495,7 +495,7 @@ Namespace My.Sys.Forms
 			'Converts the screen coordinates of a specified point on the screen to client coordinates (Windows only).
 			Declare Sub ScreenToClient(ByRef P As My.Sys.Drawing.Point)
 			'Invalidates the rect surface of the control and causes the control to be redrawn (Windows only).
-			Declare Sub Invalidate(ByVal iRect As Rect Ptr = 0, ByVal bErase As Boolean = True)
+			Declare Sub Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
 			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).
 			Declare Sub Repaint
 			'Causes the control to redraw the invalidated regions within its client area (Windows, Linux).
