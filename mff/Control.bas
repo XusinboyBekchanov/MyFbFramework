@@ -2929,7 +2929,7 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
-		Private Sub Control.Invalidate(ByVal iRect As My.Sys.Drawing.Rect Ptr = 0, ByVal bErase As Boolean = True)
+		Private Sub Control.Invalidate(ByVal iRect As Rect Ptr = 0, ByVal bErase As Boolean = True)
 			#ifdef __USE_WINAPI__
 				If FHandle Then 
 					If iRect = 0 Then 
