@@ -930,6 +930,87 @@ Type ID2D1StrokeStyle
 	lpVtbl As Any Ptr
 End Type
 
+Type D2D1_BEZIER_SEGMENT
+    point1 As D2D1_POINT_2F
+    point2 As D2D1_POINT_2F
+    point3 As D2D1_POINT_2F
+End Type
+
+Type D2D1_QUADRATIC_BEZIER_SEGMENT
+    point1 As D2D1_POINT_2F
+    point2 As D2D1_POINT_2F
+End Type
+
+Type D2D1_ARC_SEGMENT
+    point As D2D1_POINT_2F
+    size As D2D1_SIZE_F
+    rotationAngle As Single
+    sweepDirection As D2D1_SWEEP_DIRECTION
+    arcSize As D2D1_ARC_SIZE
+End Type
+
+Type ID2D1GeometrySinkVtbl
+    ' IUnknown
+    QueryInterface As Function(This As Any Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+    AddRef As Function(This As Any Ptr) As ULong
+    Release As Function(This As Any Ptr) As ULong
+
+    ' ID2D1SimplifiedGeometrySink
+    SetFillMode As Sub(This As Any Ptr, fillMode As D2D1_FILL_MODE)
+    SetSegmentFlags As Sub(This As Any Ptr, vertexFlags As D2D1_PATH_SEGMENT)
+    BeginFigure As Sub(This As Any Ptr, startPoint As D2D1_POINT_2F, figureBegin As D2D1_FIGURE_BEGIN)
+    AddLines As Sub(This As Any Ptr, points As Const D2D1_POINT_2F Ptr, pointsCount As UInteger)
+    AddBeziers As Sub(This As Any Ptr, beziers As Const D2D1_BEZIER_SEGMENT Ptr, beziersCount As UInteger)
+    EndFigure As Sub(This As Any Ptr, figureEnd As D2D1_FIGURE_END)
+    Close As Function(This As Any Ptr) As HRESULT
+
+    ' ID2D1GeometrySink
+    AddLine As Sub(This As Any Ptr, point As D2D1_POINT_2F)
+    AddBezier As Sub(This As Any Ptr, bezier As Const D2D1_BEZIER_SEGMENT Ptr)
+    AddQuadraticBezier As Sub(This As Any Ptr, bezier As Const D2D1_QUADRATIC_BEZIER_SEGMENT Ptr)
+    AddQuadraticBeziers As Sub(This As Any Ptr, beziers As Const D2D1_QUADRATIC_BEZIER_SEGMENT Ptr, beziersCount As UInteger)
+    AddArc As Sub(This As Any Ptr, arc As Const D2D1_ARC_SEGMENT Ptr)
+End Type
+
+Type ID2D1GeometrySink
+    lpVtbl As ID2D1GeometrySinkVtbl Ptr
+End Type
+
+Type ID2D1PathGeometryVtbl
+    ' IUnknown
+    QueryInterface As Function(This As Any Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+    AddRef As Function(This As Any Ptr) As ULong
+    Release As Function(This As Any Ptr) As ULong
+
+    ' ID2D1Resource
+    GetFactory As Sub(This As Any Ptr, ppFactory As Any Ptr Ptr)
+
+    ' ID2D1Geometry
+    GetBounds As Function(This As Any Ptr, worldTransform As Const Any Ptr, bounds As Any Ptr) As HRESULT
+    GetWidenedBounds As Function(This As Any Ptr, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, bounds As Any Ptr) As HRESULT
+    StrokeContainsPoint As Function(This As Any Ptr, point As D2D1_POINT_2F, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, contains As Integer Ptr) As HRESULT
+    FillContainsPoint As Function(This As Any Ptr, point As D2D1_POINT_2F, worldTransform As Const Any Ptr, flatteningTolerance As Single, contains As Integer Ptr) As HRESULT
+    CompareWithGeometry As Function(This As Any Ptr, inputGeometry As Any Ptr, inputTransform As Const Any Ptr, relation As Long Ptr) As HRESULT
+    Simplify As Function(This As Any Ptr, simplificationOption As Long, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+    Tessellate As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, tessellationSink As Any Ptr) As HRESULT
+    CombineWithGeometry As Function(This As Any Ptr, inputGeometry As Any Ptr, combineMode As Long, inputTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+    Outline As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+    ComputeArea As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, area As Single Ptr) As HRESULT
+    ComputeLength As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, length As Single Ptr) As HRESULT
+    ComputePointAtLength As Function(This As Any Ptr, length As Single, worldTransform As Const Any Ptr, flatteningTolerance As Single, point As D2D1_POINT_2F Ptr, unitTangentVector As D2D1_POINT_2F Ptr) As HRESULT
+    Widen As Function(This As Any Ptr, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+
+    ' ID2D1PathGeometry
+    Open As Function(This As Any Ptr, ppSink As ID2D1GeometrySink Ptr Ptr) As HRESULT
+    Stream As Function(This As Any Ptr, geometrySink As Any Ptr) As HRESULT
+    GetSegmentCount As Function(This As Any Ptr, count As UInteger Ptr) As HRESULT
+    GetFigureCount As Function(This As Any Ptr, count As UInteger Ptr) As HRESULT
+End Type
+
+Type ID2D1PathGeometry
+    lpVtbl As ID2D1PathGeometryVtbl Ptr
+End Type
+
 Type D2D1_TAG As UINT64
 
 Type ID2D1RenderTargetVtbl
@@ -1005,8 +1086,15 @@ Type IWICBitmapSource
 	lpVtbl As Any Ptr
 End Type
 
+Type ID2D1BitmapVtbl
+	' IUnknown
+	QueryInterface           As Function(this As Any Ptr, riid As Const GUID Ptr, ppv As Any Ptr Ptr) As HRESULT
+	AddRef                   As Function(this As Any Ptr) As HRESULT
+	Release                  As Function(this As Any Ptr) As HRESULT
+End Type
+
 Type ID2D1Bitmap
-	lpVtbl As Any Ptr
+	lpVtbl As ID2D1BitmapVtbl Ptr
 End Type
 
 Type ID2D1Layer
@@ -1235,7 +1323,7 @@ Type ID2D1DeviceContextVtbl
 	IsSupported              As Function(this As Any Ptr, renderTargetProperties As Const D2D1_RENDER_TARGET_PROPERTIES Ptr) As BOOL
 
     ' ID2D1DeviceContext
-    CreateBitmap1 As Function(This As Any Ptr, size As Const D2D1_SIZE_U Ptr, sourceData As Any Ptr, pitch As ULong, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
+    CreateBitmap1 As Function(This As Any Ptr, size As Const D2D1_SIZE_U, sourceData As Any Ptr, pitch As ULong, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
     CreateBitmapFromWicBitmap1 As Function(This As Any Ptr, wicBitmapSource As Any Ptr, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
     CreateColorContext As Function(This As Any Ptr, space As Long, profile As Const UByte Ptr, profileSize As ULong, ppColorContext As Any Ptr Ptr) As HRESULT
     CreateColorContextFromFilename As Function(This As Any Ptr, filename As WString Ptr, ppColorContext As Any Ptr Ptr) As HRESULT
@@ -1281,6 +1369,58 @@ Enum
     D2D1_DEVICE_CONTEXT_OPTIONS_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
+Const WICBitmapUseAlpha = &H00000001
+
+#define IID_IWICFormatConverter GUID(0x00000301, 0xa8f2, 0x4877, {0xba,0x0a,0xfd,0x2b,0x66,0x45,0xfb,0x94})
+
+' --- WICBitmapDitherType ---
+Const WICBitmapDitherTypeNone          = 0
+Const WICBitmapDitherTypeSolid         = 1
+Const WICBitmapDitherTypeOrdered4x4    = 2
+Const WICBitmapDitherTypeOrdered8x8    = 3
+Const WICBitmapDitherTypeOrdered16x16  = 4
+Const WICBitmapDitherTypeSpiral4x4     = 5
+Const WICBitmapDitherTypeSpiral8x8     = 6
+Const WICBitmapDitherTypeDualSpiral4x4 = 7
+Const WICBitmapDitherTypeDualSpiral8x8 = 8
+Const WICBitmapDitherTypeErrorDiffusion= 9
+
+' --- WICBitmapPaletteType ---
+Const WICBitmapPaletteTypeCustom           = 0
+Const WICBitmapPaletteTypeMedianCut        = 1
+Const WICBitmapPaletteTypeFixedBW          = 2
+Const WICBitmapPaletteTypeFixedHalftone8   = 3
+Const WICBitmapPaletteTypeFixedHalftone27  = 4
+Const WICBitmapPaletteTypeFixedHalftone64  = 5
+Const WICBitmapPaletteTypeFixedHalftone125 = 6
+Const WICBitmapPaletteTypeFixedHalftone216 = 7
+Const WICBitmapPaletteTypeFixedWebPalette  = WICBitmapPaletteTypeFixedHalftone216
+Const WICBitmapPaletteTypeFixedHalftone252 = 8
+Const WICBitmapPaletteTypeFixedHalftone256 = 9
+Const WICBitmapPaletteTypeFixedGray4       = 10
+Const WICBitmapPaletteTypeFixedGray16      = 11
+Const WICBitmapPaletteTypeFixedGray256     = 12
+
+Type IWICFormatConverterVtbl
+    ' IUnknown
+    QueryInterface As Function(this As Any Ptr, riid As Const IID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+    AddRef          As Function(this As Any Ptr) As ULong
+    Release         As Function(this As Any Ptr) As ULong
+    ' IWICBitmapSource
+    GetSize         As Function(this As Any Ptr, puiWidth As UINT Ptr, puiHeight As UINT Ptr) As HRESULT
+    GetPixelFormat  As Function(this As Any Ptr, pPixelFormat As GUID Ptr) As HRESULT
+    GetResolution   As Function(this As Any Ptr, pDpiX As Double Ptr, pDpiY As Double Ptr) As HRESULT
+    CopyPalette     As Function(this As Any Ptr, pIPalette As Any Ptr) As HRESULT
+    CopyPixels      As Function(this As Any Ptr, prc As Const Any Ptr, cbStride As UINT, cbBufferSize As UINT, pbBuffer As Byte Ptr) As HRESULT
+    ' IWICFormatConverter
+    Initialize      As Function(this As Any Ptr, pISource As Any Ptr, dstFormat As Const GUID Ptr, dither As Integer, alpha As Single, pPalette As Any Ptr, paletteType As Integer) As HRESULT
+    CanConvert      As Function(this As Any Ptr, srcPixelFormat As Const GUID Ptr, dstPixelFormat As Const GUID Ptr, pfCanConvert As BOOL Ptr) As HRESULT
+End Type
+
+Type IWICFormatConverter
+    lpVtbl As IWICFormatConverterVtbl Ptr
+End Type
+
 Type IWICImagingFactoryVtbl
 	' IUnknown
 	QueryInterface          As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
@@ -1288,12 +1428,31 @@ Type IWICImagingFactoryVtbl
 	Release                 As Function(ByVal This As Any Ptr) As ULong
 
 	' IWICImagingFactory методлари (асосийлар)
-	CreateDecoderFromFilename  As Function(ByVal This As Any Ptr, ByVal wzFilename As LPCWSTR, ByVal pguidVendor As GUID Ptr, ByVal dwDesiredAccess As ULong, ByVal metadataOptions As ULong, ByVal ppIDecoder As Any Ptr Ptr) As HRESULT
-	CreateFormatConverter      As Function(ByVal This As Any Ptr, ByVal ppIFormatConverter As Any Ptr Ptr) As HRESULT
-	CreateBitmapFromHBITMAP    As Function(ByVal This As Any Ptr, ByVal hBitmap As HBITMAP, ByVal hPalette As HPALETTE, ByVal options As ULong, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
-	CreateBitmapScaler         As Function(ByVal This As Any Ptr, ByVal ppIBitmapScaler As Any Ptr Ptr) As HRESULT
-	CreateBitmapFromSource     As Function(ByVal This As Any Ptr, ByVal pIBitmapSource As Any Ptr, ByVal options As ULong, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
-	CreateBitmap               As Function(ByVal This As Any Ptr, ByVal uiWidth As ULong, ByVal uiHeight As ULong, ByVal pixelFormat As REFGUID, ByVal option As ULong, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
+	CreateDecoderFromFilename As Function(ByVal This As Any Ptr, ByVal wzFilename As LPCWSTR, ByVal pguidVendor As Const GUID Ptr, ByVal dwDesiredAccess As DWORD, ByVal metadataOptions As DWORD, ByVal ppIDecoder As Any Ptr Ptr) As HRESULT
+	CreateDecoderFromStream As Function(ByVal This As Any Ptr, ByVal pIStream As Any Ptr, ByVal pguidVendor As Const GUID Ptr, ByVal metadataOptions As DWORD, ByVal ppIDecoder As Any Ptr Ptr) As HRESULT
+	CreateDecoderFromFileHandle As Function(ByVal This As Any Ptr, ByVal hFile As HANDLE, ByVal pguidVendor As Const GUID Ptr, ByVal metadataOptions As DWORD, ByVal ppIDecoder As Any Ptr Ptr) As HRESULT
+	CreateComponentInfo As Function(ByVal This As Any Ptr, ByVal clsidComponent As Const GUID Ptr, ByVal ppIComponentInfo As Any Ptr Ptr) As HRESULT
+	CreateDecoder As Function(ByVal This As Any Ptr, ByVal guidContainerFormat As Const GUID Ptr, ByVal pguidVendor As Const GUID Ptr, ByVal ppIDecoder As Any Ptr Ptr) As HRESULT
+	CreateEncoder As Function(ByVal This As Any Ptr, ByVal guidContainerFormat As Const GUID Ptr, ByVal pguidVendor As Const GUID Ptr, ByVal ppIEncoder As Any Ptr Ptr) As HRESULT
+	CreatePalette As Function(ByVal This As Any Ptr, ByVal ppIPalette As Any Ptr Ptr) As HRESULT
+	CreateFormatConverter As Function(ByVal This As Any Ptr, ByVal ppIFormatConverter As Any Ptr Ptr) As HRESULT
+	CreateBitmapScaler As Function(ByVal This As Any Ptr, ByVal ppIBitmapScaler As Any Ptr Ptr) As HRESULT
+	CreateBitmapClipper As Function(ByVal This As Any Ptr, ByVal ppIBitmapClipper As Any Ptr Ptr) As HRESULT
+	CreateBitmapFlipRotator As Function(ByVal This As Any Ptr, ByVal ppIBitmapFlipRotator As Any Ptr Ptr) As HRESULT
+	CreateStream As Function(ByVal This As Any Ptr, ByVal ppIWICStream As Any Ptr Ptr) As HRESULT
+	CreateColorContext As Function(ByVal This As Any Ptr, ByVal ppIWICColorContext As Any Ptr Ptr) As HRESULT
+	CreateColorTransformer As Function(ByVal This As Any Ptr, ByVal ppIWICColorTransform As Any Ptr Ptr) As HRESULT
+	CreateBitmap As Function(ByVal This As Any Ptr, ByVal uiWidth As UINT, ByVal uiHeight As UINT, ByVal pixelFormat As Const GUID Ptr, ByVal option As DWORD, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
+	CreateBitmapFromSource As Function(ByVal This As Any Ptr, ByVal pIBitmapSource As Any Ptr, ByVal option As DWORD, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
+	CreateBitmapFromSourceRect As Function(ByVal This As Any Ptr, ByVal pIBitmapSource As Any Ptr, ByVal x As UINT, ByVal y As UINT, ByVal width As UINT, ByVal height As UINT, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
+	CreateBitmapFromMemory As Function(ByVal This As Any Ptr, ByVal uiWidth As UINT, ByVal uiHeight As UINT, ByVal pixelFormat As Const GUID Ptr, ByVal cbStride As UINT, ByVal cbBufferSize As UINT, ByVal pbBuffer As Byte Ptr, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
+	CreateBitmapFromHBITMAP As Function(ByVal This As Any Ptr, ByVal hBitmap As HBITMAP, ByVal hPalette As HPALETTE, ByVal option As DWORD, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
+	CreateBitmapFromHICON As Function(ByVal This As Any Ptr, ByVal hIcon As HICON, ByVal ppIBitmap As Any Ptr Ptr) As HRESULT
+	CreateComponentEnumerator As Function(ByVal This As Any Ptr, ByVal componentTypes As DWORD, ByVal options As DWORD, ByVal ppIEnumUnknown As Any Ptr Ptr) As HRESULT
+	CreateFastMetadataEncoderFromDecoder As Function(ByVal This As Any Ptr, ByVal pIDecoder As Any Ptr, ByVal ppIFastEncoder As Any Ptr Ptr) As HRESULT
+	CreateFastMetadataEncoderFromFrameDecode As Function(ByVal This As Any Ptr, ByVal pIFrameDecode As Any Ptr, ByVal ppIFastEncoder As Any Ptr Ptr) As HRESULT
+	CreateQueryWriter As Function(ByVal This As Any Ptr, ByVal guidMetadataFormat As Const GUID Ptr, ByVal pguidVendor As Const GUID Ptr, ByVal ppIQueryWriter As Any Ptr Ptr) As HRESULT
+	CreateQueryWriterFromReader As Function(ByVal This As Any Ptr, ByVal pIQueryReader As Any Ptr, ByVal pguidVendor As Const GUID Ptr, ByVal ppIQueryWriter As Any Ptr Ptr) As HRESULT
 End Type
 
 Type IWICImagingFactory
@@ -1337,7 +1496,7 @@ Type ID2D1PrintControlVtbl
 
     ' ID2D1PrintControl
     AddPage As Function( _
-        ByVal this As Any Ptr, _
+        ByVal This As Any Ptr, _
         ByVal commandList As Any Ptr, _        ' ID2D1CommandList*
         ByVal pageSize As Const D2D1_SIZE_F Ptr, _
         ByVal printTicketStream As Any Ptr, _   ' IStream*
@@ -1692,6 +1851,19 @@ End Type
 
 Type ID2D1Bitmap1_
     lpVtbl As ID2D1Bitmap1Vtbl Ptr
+End Type
+
+Type IWICBitmap As IWICBitmap_
+
+Type IWICBitmapVtbl
+    ' IUnknown
+    QueryInterface As Function(ByVal This As IWICBitmap Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+    AddRef As Function(ByVal This As IWICBitmap Ptr) As ULong
+    Release As Function(ByVal This As IWICBitmap Ptr) As ULong
+End Type
+
+Type IWICBitmap_
+    lpVtbl As IWICBitmapVtbl Ptr
 End Type
 
 Type IDXGIAdapter

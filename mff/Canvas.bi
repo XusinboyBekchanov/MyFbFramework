@@ -173,6 +173,7 @@ Namespace My.Sys.Drawing
 				Dim As PangoLayout Ptr layout
 			#endif
 		#elseif defined(__USE_WINAPI__)
+			Declare Function CreateD2DBitmapFromHBITMAP(ByVal pRT As ID2D1DeviceContext Ptr, ByVal hBmp As HBITMAP, ByRef pOut As ID2D1Bitmap Ptr) As HRESULT
 			Handle  As HDC
 			GdipToken As ULONG_PTR
 			GdipGraphics As GpGraphics Ptr

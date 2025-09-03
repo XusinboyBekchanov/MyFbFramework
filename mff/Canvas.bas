@@ -265,10 +265,16 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		If ParentControl > 0 Then
 			#ifdef __USE_CAIRO__
-				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetBlue(FBackColor), GetGreen(FBackColor))
+				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetGreen(FBackColor), GetBlue(FBackColor))
 			#elseif defined(__USE_WINAPI__)
 				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
-				If Not UsingGdip Then
+				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+					Dim As D2D1_COLOR_F Color1
+					Color1.r = GetRed(FBackColor)
+					Color1.g = GetGreen(FBackColor)
+					Color1.b = GetBlue(FBackColor)
+					pRenderTarget->lpVtbl->Clear(pRenderTarget, @Color1) ' Белый фон
+				ElseIf Not UsingGdip Then
 					
 				Else
 					GdipGraphicsClear(GdipGraphics, &h00000000)
@@ -290,7 +296,10 @@ Namespace My.Sys.Drawing
 				FScaleWidth = ScaleX(This.Width)
 				FScaleHeight =  ScaleY(This.Height)
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-					.FillRect Handle, Cast(..Rect Ptr, @R), B
+					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+					Else
+						.FillRect Handle, Cast(..Rect Ptr, @R), B
+					End If
 				#endif
 			Else
 				R.Left = ScaleX(x) * imgScaleX + imgOffsetX
@@ -298,7 +307,10 @@ Namespace My.Sys.Drawing
 				R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
 				R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-					.FillRect Handle, Cast(..Rect Ptr, @R), B
+					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+					Else
+						.FillRect Handle, Cast(..Rect Ptr, @R), B
+					End If
 				#endif
 			End If
 			#ifdef __USE_CAIRO__
@@ -306,7 +318,10 @@ Namespace My.Sys.Drawing
 				cairo_set_source_rgb(Handle, GetRedD(FBackColor), GetGreenD(FBackColor), GetBlueD(FBackColor))
 				cairo_fill_preserve(Handle)
 			#elseif defined(__USE_WINAPI__)
-				.FillRect Handle, Cast(..Rect Ptr, @R), B
+				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				Else
+					.FillRect Handle, Cast(..Rect Ptr, @R), B
+				End If
 				DeleteObject B
 			#endif
 		End If
@@ -1272,11 +1287,84 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
+	Function GuidFrom(ByRef s As WString) As GUID
+		Dim g As GUID
+		CLSIDFromString(@s, @g)
+		Return g
+	End Function
+	
+	Private Function Canvas.CreateD2DBitmapFromHBITMAP(ByVal pRT As ID2D1DeviceContext Ptr, ByVal hBmp As HBITMAP, ByRef pOut As ID2D1Bitmap Ptr) As HRESULT
+		Dim hr As HRESULT = E_FAIL
+		pOut = 0
+		
+		Dim clsidFactory As CLSID = GuidFrom("{CACAF262-9370-4615-A13B-9F5539DA4C0A}") ' CLSID_WICImagingFactory
+		Dim iidFactory   As IID   = GuidFrom("{EC5EC8A9-C395-4314-9C77-54D7A935FF70}") ' IID_IWICImagingFactory
+		
+		Dim pWic As IWICImagingFactory Ptr = 0
+		hr = CoCreateInstance(@clsidFactory, 0, CLSCTX_INPROC_SERVER, @iidFactory, @pWic)
+		If hr <> S_OK Or pWic = 0 Then Return hr
+		
+		Dim pWicBitmap As IWICBitmap Ptr = 0
+		hr = pWic->lpVtbl->CreateBitmapFromHBITMAP(pWic, hBmp, 0, WICBitmapUseAlpha, @pWicBitmap)
+		If hr <> S_OK Then
+		pWic->lpVtbl->Release(pWic) : Return hr
+		End If
+		
+		Dim pConv As IWICFormatConverter Ptr = 0
+		hr = pWic->lpVtbl->CreateFormatConverter(pWic, @pConv)
+		If hr <> S_OK Then
+		pWicBitmap->lpVtbl = pWicBitmap->lpVtbl ' silence warnings
+		pWicBitmap->lpVtbl->Release(pWicBitmap)
+		pWic->lpVtbl->Release(pWic)
+		Return hr
+		End If
+		
+		Dim fmtPBGRA As GUID = GuidFrom("{6FDDC324-4E03-4BFE-B185-3D77768DC910}") ' GUID_WICPixelFormat32bppPBGRA
+		
+		hr = pConv->lpVtbl->Initialize(pConv, Cast(IWICBitmapSource Ptr, pWicBitmap), @fmtPBGRA, WICBitmapDitherTypeNone, 0, 0, WICBitmapPaletteTypeCustom)
+		
+		pWicBitmap->lpVtbl->Release(pWicBitmap)
+		If hr <> S_OK Then
+		pConv->lpVtbl->Release(pConv)
+		pWic->lpVtbl->Release(pWic)
+		Return hr
+		End If
+		
+		Dim props As D2D1_BITMAP_PROPERTIES
+		props.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
+		props.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED
+		props.dpiX = 96.0 : props.dpiY = 96.0
+		
+		hr = pRT->lpVtbl->CreateBitmapFromWicBitmap(pRT, Cast(IWICBitmapSource Ptr, pConv), @props, @pOut)
+		
+		pConv->lpVtbl->Release(pConv)
+		pWic->lpVtbl->Release(pWic)
+		
+		Return hr
+	End Function
+	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			If Not UsingGdip Then
+			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				Dim bmp As ID2D1Bitmap Ptr
+				If CreateD2DBitmapFromHBITMAP(pRenderTarget, Image, bmp) = 0 Then
+					
+					Dim As BITMAP Bitmap01
+					GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
+					
+					Dim destRect As D2D1_RECT_F
+					destRect.left   = x
+					destRect.top    = y
+					destRect.right  = x + IIf(nWidth = -1, Bitmap01.bmWidth, nWidth) 'nWidth
+					destRect.bottom = y + IIf(nHeight = -1, Bitmap01.bmHeight, nHeight) 'nHeight
+					
+					pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, CSng(iSourceAlpha) / 255.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
+					
+					bmp->lpVtbl->Release(bmp)
+				End If
+			ElseIf Not UsingGdip Then
 				Dim As HDC hMemDC = CreateCompatibleDC(Handle) ' Create Dc
 				SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
 				Dim As BITMAP Bitmap01
