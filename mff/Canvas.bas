@@ -772,19 +772,31 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'Dim pGeometry As ID2D1PathGeometry Ptr
-				'If pFactory->lpVtbl->CreatePathGeometry(pFactory, @pGeometry) = 0 Then
-				'    Dim pSink As ID2D1GeometrySink Ptr
-				'    If pGeometry->lpVtbl->Open(pGeometry, @pSink) = 0 Then
-				'        pSink->lpVtbl->BeginFigure(pSink, points(0), D2D1_FIGURE_BEGIN_FILLED)
-				'        pSink->lpVtbl->AddLines(pSink, @points(1), 3)
-				'        pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
-				'        pSink->lpVtbl->Close(pSink)
-				'        pSink->lpVtbl->Release(pSink)
-				'    End If
-				'    pRT->lpVtbl->FillGeometry(pRT, pGeometry, brush, NULL)
-				'    pGeometry->lpVtbl->Release(pGeometry)
-				'End If
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim pD2DPoints As D2D1_POINT_2F Ptr
+						Dim BeginD2DPoint As D2D1_POINT_2F
+						BeginD2DPoint.x = Points(0).X
+						BeginD2DPoint.y = Points(0).Y
+						pD2DPoints = CAllocate((UBound(Points) + 1) * SizeOf(D2D1_POINT_2F))
+						For i As Integer = 0 To UBound(Points)
+							pD2DPoints[i].x = Points(i).X
+							pD2DPoints[i].y = Points(i).Y
+						Next
+						pSink->lpVtbl->BeginFigure(pSink, BeginD2DPoint, D2D1_FIGURE_BEGIN_FILLED)
+						If UBound(Points) >= 1 Then
+							pSink->lpVtbl->AddLines(pSink, pD2DPoints, UBound(Points) + 1)
+						End If
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						Deallocate(pD2DPoints)
+					End If
+					pRenderTarget->lpVtbl->FillGeometry(pRenderTarget, pGeometry, Brush, NULL)
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
 			ElseIf Not UsingGdip Then
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
