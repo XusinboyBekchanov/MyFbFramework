@@ -1287,61 +1287,63 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 	
-	Function GuidFrom(ByRef s As WString) As GUID
-		Dim g As GUID
-		CLSIDFromString(@s, @g)
-		Return g
-	End Function
-	
-	Private Function Canvas.CreateD2DBitmapFromHBITMAP(ByVal pRT As ID2D1DeviceContext Ptr, ByVal hBmp As HBITMAP, ByRef pOut As ID2D1Bitmap Ptr) As HRESULT
-		Dim hr As HRESULT = E_FAIL
-		pOut = 0
+	#ifdef __USE_WINAPI__
+		Function GuidFrom(ByRef s As WString) As GUID
+			Dim g As GUID
+			CLSIDFromString(@s, @g)
+			Return g
+		End Function
 		
-		Dim clsidFactory As CLSID = GuidFrom("{CACAF262-9370-4615-A13B-9F5539DA4C0A}") ' CLSID_WICImagingFactory
-		Dim iidFactory   As IID   = GuidFrom("{EC5EC8A9-C395-4314-9C77-54D7A935FF70}") ' IID_IWICImagingFactory
-		
-		Dim pWic As IWICImagingFactory Ptr = 0
-		hr = CoCreateInstance(@clsidFactory, 0, CLSCTX_INPROC_SERVER, @iidFactory, @pWic)
-		If hr <> S_OK Or pWic = 0 Then Return hr
-		
-		Dim pWicBitmap As IWICBitmap Ptr = 0
-		hr = pWic->lpVtbl->CreateBitmapFromHBITMAP(pWic, hBmp, 0, WICBitmapUseAlpha, @pWicBitmap)
-		If hr <> S_OK Then
-		pWic->lpVtbl->Release(pWic) : Return hr
-		End If
-		
-		Dim pConv As IWICFormatConverter Ptr = 0
-		hr = pWic->lpVtbl->CreateFormatConverter(pWic, @pConv)
-		If hr <> S_OK Then
-		pWicBitmap->lpVtbl = pWicBitmap->lpVtbl ' silence warnings
-		pWicBitmap->lpVtbl->Release(pWicBitmap)
-		pWic->lpVtbl->Release(pWic)
-		Return hr
-		End If
-		
-		Dim fmtPBGRA As GUID = GuidFrom("{6FDDC324-4E03-4BFE-B185-3D77768DC910}") ' GUID_WICPixelFormat32bppPBGRA
-		
-		hr = pConv->lpVtbl->Initialize(pConv, Cast(IWICBitmapSource Ptr, pWicBitmap), @fmtPBGRA, WICBitmapDitherTypeNone, 0, 0, WICBitmapPaletteTypeCustom)
-		
-		pWicBitmap->lpVtbl->Release(pWicBitmap)
-		If hr <> S_OK Then
-		pConv->lpVtbl->Release(pConv)
-		pWic->lpVtbl->Release(pWic)
-		Return hr
-		End If
-		
-		Dim props As D2D1_BITMAP_PROPERTIES
-		props.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
-		props.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED
-		props.dpiX = 96.0 : props.dpiY = 96.0
-		
-		hr = pRT->lpVtbl->CreateBitmapFromWicBitmap(pRT, Cast(IWICBitmapSource Ptr, pConv), @props, @pOut)
-		
-		pConv->lpVtbl->Release(pConv)
-		pWic->lpVtbl->Release(pWic)
-		
-		Return hr
-	End Function
+		Private Function Canvas.CreateD2DBitmapFromHBITMAP(ByVal pRT As ID2D1DeviceContext Ptr, ByVal hBmp As HBITMAP, ByRef pOut As ID2D1Bitmap Ptr) As HRESULT
+			Dim hr As HRESULT = E_FAIL
+			pOut = 0
+			
+			Dim clsidFactory As CLSID = GuidFrom("{CACAF262-9370-4615-A13B-9F5539DA4C0A}") ' CLSID_WICImagingFactory
+			Dim iidFactory   As IID   = GuidFrom("{EC5EC8A9-C395-4314-9C77-54D7A935FF70}") ' IID_IWICImagingFactory
+			
+			Dim pWic As IWICImagingFactory Ptr = 0
+			hr = CoCreateInstance(@clsidFactory, 0, CLSCTX_INPROC_SERVER, @iidFactory, @pWic)
+			If hr <> S_OK Or pWic = 0 Then Return hr
+			
+			Dim pWicBitmap As IWICBitmap Ptr = 0
+			hr = pWic->lpVtbl->CreateBitmapFromHBITMAP(pWic, hBmp, 0, WICBitmapUseAlpha, @pWicBitmap)
+			If hr <> S_OK Then
+			pWic->lpVtbl->Release(pWic) : Return hr
+			End If
+			
+			Dim pConv As IWICFormatConverter Ptr = 0
+			hr = pWic->lpVtbl->CreateFormatConverter(pWic, @pConv)
+			If hr <> S_OK Then
+			pWicBitmap->lpVtbl = pWicBitmap->lpVtbl ' silence warnings
+			pWicBitmap->lpVtbl->Release(pWicBitmap)
+			pWic->lpVtbl->Release(pWic)
+			Return hr
+			End If
+			
+			Dim fmtPBGRA As GUID = GuidFrom("{6FDDC324-4E03-4BFE-B185-3D77768DC910}") ' GUID_WICPixelFormat32bppPBGRA
+			
+			hr = pConv->lpVtbl->Initialize(pConv, Cast(IWICBitmapSource Ptr, pWicBitmap), @fmtPBGRA, WICBitmapDitherTypeNone, 0, 0, WICBitmapPaletteTypeCustom)
+			
+			pWicBitmap->lpVtbl->Release(pWicBitmap)
+			If hr <> S_OK Then
+			pConv->lpVtbl->Release(pConv)
+			pWic->lpVtbl->Release(pWic)
+			Return hr
+			End If
+			
+			Dim props As D2D1_BITMAP_PROPERTIES
+			props.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
+			props.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED
+			props.dpiX = 96.0 : props.dpiY = 96.0
+			
+			hr = pRT->lpVtbl->CreateBitmapFromWicBitmap(pRT, Cast(IWICBitmapSource Ptr, pConv), @props, @pOut)
+			
+			pConv->lpVtbl->Release(pConv)
+			pWic->lpVtbl->Release(pWic)
+			
+			Return hr
+		End Function
+	#endif
 	
 	Private Sub Canvas.DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)
 		Dim As Any Ptr Handle_
