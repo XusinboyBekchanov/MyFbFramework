@@ -234,7 +234,11 @@ Namespace My.Sys.Forms
 					ElseIf Request.HTTPMethod = "POST" Then
 						FileLength = Len(Responce.Body)
 					End If
-					stReponseHeader = "HTTP/1.1 " & Trim(Str(Responce.StatusCode)) & " " & Responce.Reason & IIf(Responce.Headers = "", "", stNL & Responce.Headers) & stNL & stNL
+					If Responce.Headers = "" Then
+						stReponseHeader = "HTTP/1.1 " & Trim(Str(Responce.StatusCode)) & " " & Responce.Reason & stNL & stNL
+					Else
+						stReponseHeader = "HTTP/1.1 " & Trim(Str(Responce.StatusCode)) & " " & Responce.Reason & stNL & Responce.Headers & stNL & stNL
+					End If
 					'copy response header to sendbuffer
 					Dim HeaderLength As Integer
 					HeaderLength = Len(stReponseHeader)
