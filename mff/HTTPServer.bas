@@ -1,4 +1,4 @@
-' courtesy https://www.freebasic.net/forum/viewtopic.php?t=4199&hilit=Simple+Web+Server
+﻿' courtesy https://www.freebasic.net/forum/viewtopic.php?t=4199&hilit=Simple+Web+Server
 ' Simple Web Server, (c) Anselme Dewavrin 2006 - dewavrin@yahoo.com
 ' Feel free to use it, provided you mention my name.
 ' based on the example provided with freebasic tweaked by thrive4 march 2024.
@@ -114,7 +114,7 @@ Namespace My.Sys.Forms
 				End If
 				
 				' accumulate received data
-				ReceivedBuffer = Reallocate(ReceivedBuffer, bytes + ReceivedLen)
+				ReceivedBuffer = _Reallocate(ReceivedBuffer, bytes + ReceivedLen)
 				Dim i As Integer
 				For i = 0 To bytes - 1
 					ReceivedBuffer[ReceivedLen + i] = PacketBuffer(i)
@@ -167,7 +167,7 @@ Namespace My.Sys.Forms
 					
 					' get rid of received data
 					ReceivedLen = 0
-					Deallocate(ReceivedBuffer)
+					_Deallocate((ReceivedBuffer))
 					
 					' prepare response
 					Dim As HTTPServerResponce Responce
@@ -306,7 +306,7 @@ Namespace My.Sys.Forms
 				MutexLock(server->globmutex)
 				
 				' allocate node
-				client1 = Allocate(Len(CLIENT))
+				client1 = _Allocate(Len(CLIENT))
 				
 				' add to head of list
 				client1->next_ = server->clientlisthead

@@ -273,12 +273,12 @@ Namespace My.Sys.ComponentModel
 			If dwNeeded = 0 Then Return False
 			
 			' Выделяем память для структуры DEVMODE
-			pDevMode = Allocate(dwNeeded)
+			pDevMode = _Allocate(dwNeeded)
 			If pDevMode = NULL Then Return False
 			
 			' Заполняем структуру DEVMODE текущими настройками
 			If DocumentProperties(NULL, hPrinter, NULL, pDevMode, NULL, DM_OUT_BUFFER) <> IDOK Then
-				Deallocate(pDevMode)
+				_Deallocate((pDevMode))
 				Return False
 			End If
 			
@@ -288,24 +288,24 @@ Namespace My.Sys.ComponentModel
 			
 			' Применяем изменения
 			If DocumentProperties(NULL, hPrinter, NULL, pDevMode, pDevMode, DM_IN_BUFFER Or DM_OUT_BUFFER) <> IDOK Then
-				Deallocate(pDevMode)
+				_Deallocate((pDevMode))
 				Return False
 			End If
 			
 			' Устанавливаем принтер с новыми параметрами
 			If GetPrinter(hPrinter, 2, NULL, 0, @dwNeeded) = 0 AndAlso GetLastError() = ERROR_INSUFFICIENT_BUFFER Then
-				pi2 = Allocate(dwNeeded)
+				pi2 = _Allocate(dwNeeded)
 				If pi2 <> NULL Then
 					If GetPrinter(hPrinter, 2, Cast(LPBYTE, pi2), dwNeeded, @dwNeeded) <> 0 Then
 						pi2->pDevMode = pDevMode
 						SetPrinter(hPrinter, 2, Cast(LPBYTE, pi2), 0)
 					End If
-					Deallocate(pi2)
+					_Deallocate((pi2))
 				End If
 			End If
 			
 			' Освобождаем память
-			Deallocate(pDevMode)
+			_Deallocate((pDevMode))
 			
 			ClosePrinter(hPrinter)
 		#endif
@@ -922,10 +922,10 @@ Namespace My.Sys.ComponentModel
 			End If
 			
 			' Получаем названия размеров бумаги
-			paperNames = Allocate(Len(WString) * CInt(64) * paperCount) ' 64 символа на название
+			paperNames = _Allocate(Len(WString) * CInt(64) * paperCount) ' 64 символа на название
 			If paperNames = NULL Then
 				Print "Ошибка выделения памяти для названий бумаги."
-				Deallocate(paperIDs)
+				'_Deallocate((paperIDs))
 				Exit Sub
 			End If
 			
@@ -952,8 +952,8 @@ Namespace My.Sys.ComponentModel
 			Next
 			
 			' Освобождаем выделенную память
-			Deallocate(paperIDs)
-			Deallocate(paperNames)
+			'_Deallocate((paperIDs))
+			_Deallocate((paperNames))
 		#endif
 	End Sub
 	

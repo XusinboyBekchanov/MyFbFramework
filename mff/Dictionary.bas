@@ -312,8 +312,8 @@ Private Sub Dictionary.LoadFromFile(ByRef Filename As WString)
 				.Text = *res(j + 1)
 			End With
 			FItems.Add nItem
-			Deallocate res(j)
-			Deallocate res(j + 1)
+			_Deallocate(res(j))
+			_Deallocate(res(j + 1))
 		Next
 		Erase res
 	End If

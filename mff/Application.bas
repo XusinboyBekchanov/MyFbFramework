@@ -1388,7 +1388,7 @@ End Function
 			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 		End If
 		If Result = 0 Then
-			Dim As WString Ptr pBuff
+			Dim As WString Ptr pBuff = 0
 			If FileEncoding = FileEncodings.Utf8 OrElse FileEncoding = FileEncodings.PlainText Then
 				If Not FileLoaded Then
 					Buff = String(FileSize, 0)
@@ -1401,17 +1401,17 @@ End Function
 						Dim CodePage As Integer = IIf(nCodePage = -1, GetACP(), nCodePage) 
 						If CodePage= 936 AndAlso nCodePage = -1 Then CodePage = 54936 'The default value is set to Chinese character GB18030 (ANSI and GB2312 compatible).
 						FileSize = MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, NULL, 0) - 1
-						pBuff = CAllocate(FileSize * 2 + 2)
+						pBuff = _CAllocate(FileSize * 2 + 2)
 						MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, pBuff, FileSize)
 					Else
 						WReAllocate(pBuff, FileSize)
 						*pBuff = String(FileSize, 0)
-						pBuff = UTFToWChar(1, StrPtr(Buff), pBuff, @FileSize)
+						UTFToWChar(1, StrPtr(Buff), pBuff, @FileSize)
 					End If
 				#else
 					WReAllocate(pBuff, FileSize)
 					*pBuff = String(FileSize, 0)
-					pBuff = UTFToWChar(1, StrPtr(Buff), pBuff, @FileSize)
+					UTFToWChar(1, StrPtr(Buff), pBuff, @FileSize)
 				#endif
 			Else
 				WLet(pBuff, WInput(FileSize, #Fn))
@@ -1486,10 +1486,10 @@ End Function
 						wData = Replace(wData, OldLineStr, NewLineStr)
 					End If
 					Dim As Integer m_BufferLen = WideCharToMultiByte(CodePage, 0, StrPtr(wData), -1, NULL, 0, NULL, NULL) - 1
-					Dim As ZString Ptr pBuff = CAllocate(m_BufferLen * 2 + 2)
+					Dim As ZString Ptr pBuff = _CAllocate(m_BufferLen * 2 + 2)
 					WideCharToMultiByte(CodePage, 0, StrPtr(wData), m_BufferLen, pBuff, m_BufferLen, NULL, NULL)
 					Put #Fn, , *pBuff
-					Deallocate(pBuff)
+					_Deallocate((pBuff))
 				#else
 					If NewLineStr <> OldLineStr Then
 						Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))

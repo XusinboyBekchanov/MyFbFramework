@@ -28,9 +28,9 @@ Namespace My.Sys.Forms
 					Dim As Any Ptr Result
 					Dim As PVOID data_ = GlobalLock(stgmed.hGlobal)
 					If DataType = DataFormats.dfText Then
-						ZLet(Result, *Cast(ZString Ptr, data_))
+						ZLet(Cast(ZString Ptr, Result), *Cast(ZString Ptr, data_))
 					ElseIf DataType = DataFormats.dfUnicodeText Then
-						WLet(Result, *Cast(WString Ptr, data_))
+						WLet(Cast(WString Ptr, Result), *Cast(WString Ptr, data_))
 					ElseIf DataType = DataFormats.dfBitmap Then
 						Result = New My.Sys.Drawing.BitmapType
 						Cast(My.Sys.Drawing.BitmapType Ptr, Result)->Handle = CopyImage(stgmed.hBitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION)

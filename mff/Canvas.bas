@@ -780,7 +780,7 @@ Namespace My.Sys.Drawing
 						Dim BeginD2DPoint As D2D1_POINT_2F
 						BeginD2DPoint.x = Points(0).X
 						BeginD2DPoint.y = Points(0).Y
-						pD2DPoints = CAllocate((UBound(Points) + 1) * SizeOf(D2D1_POINT_2F))
+						pD2DPoints = _CAllocate((UBound(Points) + 1) * SizeOf(D2D1_POINT_2F))
 						For i As Integer = 0 To UBound(Points)
 							pD2DPoints[i].x = Points(i).X
 							pD2DPoints[i].y = Points(i).Y
@@ -792,7 +792,7 @@ Namespace My.Sys.Drawing
 						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
 						pSink->lpVtbl->Close(pSink)
 						pSink->lpVtbl->Release(pSink)
-						Deallocate(pD2DPoints)
+						_Deallocate((pD2DPoints))
 					End If
 					pRenderTarget->lpVtbl->FillGeometry(pRenderTarget, pGeometry, Brush, NULL)
 					pGeometry->lpVtbl->Release(pGeometry)

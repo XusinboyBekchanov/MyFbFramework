@@ -97,10 +97,10 @@ Private Function UString.SubString(ByVal start As Integer, ByVal n As Integer, B
 End Function
 #if MEMCHECK
 	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength): Else: subject = _Allocate((lLen + 1) * SizeOf(WString) * GrowLength): End If
-#define WLet(subject, txt) Scope: If subject <> 0 AndAlso *subject = txt Then Return : subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(WString) * GrowLength) : If subject Then *subject = txt : End Scope
-#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
-#define ZLet(subject, txt) Scope: subject = Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): If subject Then *subject = txt1: End Scope
-#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+	#define ZLet(subject, txt) Scope: Dim As String txt1 = txt: subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): If subject Then: *subject = txt1: End If: End Scope
+	#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -122,7 +122,7 @@ End Function
 	End Sub
 	
 	Private Sub ZDeAllocate(ByRef subject As ZString Ptr)
-		If subject <> 0 Then Deallocate(subject)
+		If subject <> 0 Then _Deallocate((subject))
 		subject = 0
 	End Sub
 	
@@ -181,7 +181,7 @@ End Sub
 		Else
 			ZLet(TempWStr, ZGet(subject) & txt)
 		End If
-		Deallocate(subject)
+		_Deallocate((subject))
 		If TempWStr Then subject = TempWStr
 	End Sub
 	
@@ -526,7 +526,7 @@ Function FromHexStrUnicode(ByRef HexString As WString) As String
 		End If
 	Next
 	Function = *Result
-	Deallocate Result
+	_Deallocate(Result)
 End Function
 
 Function ToHexStrUnicode(ByRef iString As WString) As String
@@ -559,7 +559,7 @@ Function FromHexStrUTF8(ByRef HexString As WString) As String
 	'Print "IPos2 < iPos1", IPos2, iPos1, iPos
 	If IPos2 > 0 AndAlso IPos2 < iPos1 Then Return HexString
 	Dim As Integer codePoint, iStart, byteCount
-	Dim As ZString Ptr ResultUTF8Ptr = Allocate((iLen * 2 + 1) * SizeOf(ZString))
+	Dim As ZString Ptr ResultUTF8Ptr = _Allocate((iLen * 2 + 1) * SizeOf(ZString))
 	Dim As WString Ptr Result
 	Dim As Boolean bFlag
 	For i As Integer = 0 To iLen - 1
@@ -587,9 +587,9 @@ Function FromHexStrUTF8(ByRef HexString As WString) As String
 		End If
 		If HexString[i] = 0 Then Exit For
 	Next
-	Deallocate ResultUTF8Ptr
+	_Deallocate(ResultUTF8Ptr)
 	Function = *Result
-	Deallocate Result
+	_Deallocate(Result)
 End Function
 
 Function ToHexStrUTF8(ByRef iString As WString) As String
@@ -633,9 +633,9 @@ Function ToHexStrUTF8(ByRef iString As WString) As String
 		End If
 		If iString[i] = 0 Then Exit For
 	Next
-	Deallocate ResultUTF8Ptr
+	_Deallocate(ResultUTF8Ptr)
 	Function = *Result
-	Deallocate Result
+	_Deallocate(Result)
 End Function
 
 Private Function ZGet(ByRef subject As ZString Ptr) As String
@@ -862,7 +862,7 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 		ReDim Result(0)
 		Return 0
 	End If
-	Dim As Integer i = 0'UBound(Result) + 1
+	Dim As Integer i = 0 'UBound(Result) + 1
 	Dim As Integer L, n, n0 = 1
 	Dim As WString Ptr p, p1 = @wszMainStr
 	ReDim Preserve Result(0 To i + L1 / L2) 'LBound(Result)
@@ -975,7 +975,9 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 	Dim As Integer L2 = Len(Delimiter)
 	If L1 < 1 OrElse L2 < 1 Then
 		ReDim Result(0)
-		Return 0
+		Result(0) = _CAllocate(2 * SizeOf(WString))
+		*Result(0) = ""
+		Return 1
 	End If
 	Dim As Integer i = 0 'UBound(Result) + 1
 	Dim As Integer L, n, n0 = 1
@@ -988,7 +990,7 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 				p = p1 + n0 - 1
 				L = n - n0
 				Dim As WString * 1 w
-				Result(i) = CAllocate((L + 1) * SizeOf(WString))
+				Result(i) = _CAllocate((L + 1) * SizeOf(WString))
 				Swap w[0], (*p)[L]
 				*Result(i) = *(p)
 				Swap w[0], (*p)[L]
@@ -999,7 +1001,7 @@ Private Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 			If (Not skipEmptyElement) OrElse (L1 - n0 + 1) > 0 Then
 				p = p1 + n0 - 1
 				L = L1 - n0 + 1
-				Result(i) = CAllocate((L + 1) * SizeOf(WString))
+				Result(i) = _CAllocate((L + 1) * SizeOf(WString))
 				*Result(i) = * (p)
 			Else
 				i -= 1
@@ -1072,7 +1074,7 @@ Private Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZSt
 				p = p1 + n0 - 1
 				L = n - n0
 				Dim As ZString * 1 w
-				Result(i) = CAllocate((L + 1) * SizeOf(ZString))
+				Result(i) = _CAllocate((L + 1) * SizeOf(ZString))
 				Swap w[0], (*p)[L]
 				*Result(i) = *(p)
 				Swap w[0], (*p)[L]
@@ -1083,7 +1085,7 @@ Private Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZSt
 			If (Not skipEmptyElement) OrElse (L1 - n0 + 1) > 0 Then
 				p = p1 + n0 - 1
 				L = L1 - n0 + 1
-				Result(i) = CAllocate((L + 1) * SizeOf(ZString))
+				Result(i) = _CAllocate((L + 1) * SizeOf(ZString))
 				*Result(i) = * (p)
 			Else
 				i -= 1
@@ -1111,7 +1113,7 @@ End Function
 '   Split
 Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As Integer Size
-	Dim As Integer Lj = max(LBound(Subject), 0)
+	Dim As Integer Lj = Max(LBound(Subject), 0)
 	Dim As Integer Uj = UBound(Subject)
 	Dim As Integer ls = Len(Delimiter)
 	
@@ -1191,7 +1193,7 @@ Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByV
 	Next i
 	If skipEmptyElement = False OrElse Len(*SubjectPtr(uj)) <> 0 Then size += Len(*SubjectPtr(uj))
 	
-	Dim As WString Ptr ResultPtr = CAllocate((size + 1) * SizeOf(WString))
+	Dim As WString Ptr ResultPtr = _CAllocate((size + 1) * SizeOf(WString))
 	Dim As Integer n
 	For i As Integer = lj To uj - 1 Step iStep
 		If skipEmptyElement = False OrElse Len(*SubjectPtr(i)) <> 0 Then
@@ -1228,7 +1230,7 @@ Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByV
 	Next i
 	If skipEmptyElement = False OrElse Len(*SubjectPtr(uj)) <> 0 Then size += Len(*SubjectPtr(uj))
 	
-	Dim As ZString Ptr ResultPtr = CAllocate((size + 1) * SizeOf(ZString))
+	Dim As ZString Ptr ResultPtr = _CAllocate((size + 1) * SizeOf(ZString))
 	Dim As Integer n
 	For i As Integer = lj To uj - 1 Step iStep
 		If skipEmptyElement = False OrElse Len(*SubjectPtr(i)) <> 0 Then
@@ -1486,3 +1488,4 @@ End Function
 		#endif
 	End Function
 #endif
+

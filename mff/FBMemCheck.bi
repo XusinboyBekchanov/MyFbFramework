@@ -121,8 +121,8 @@
 			node->funcname = funcname
 			node->linenum = linenum
 			node->value = value
-			node->left = NULL
-			node->right = NULL
+			node->Left = NULL
+			node->Right = NULL
 			
 			Function = node
 			
@@ -150,22 +150,22 @@
 			Dim As Any Ptr a = pt, b = Any
 			
 			Asm
-				mov eax, dword Ptr [a]
+				mov eax, dword ptr [a]
 				bswap eax
-				mov dword Ptr [a], eax
+				mov dword ptr [a], eax
 			End Asm
 			
 			While *node <> NULL
 				b = (*node)->pt
 				Asm
-					mov eax, dword Ptr [b]
+					mov eax, dword ptr [b]
 					bswap eax
-					mov dword Ptr [b], eax
+					mov dword ptr [b], eax
 				End Asm
 				If a < b Then
-					node = @(*node)->left
+					node = @(*node)->Left
 				ElseIf a > b Then
-					node = @(*node)->right
+					node = @(*node)->Right
 				Else
 					Exit While
 				End If
@@ -216,16 +216,16 @@
 			Dim As fbmld_t Ptr old_node = *node
 			Dim As fbmld_t Ptr Ptr pred
 			
-			If (*node)->left = NULL Then
-				*node = (*node)->right
+			If (*node)->Left = NULL Then
+				*node = (*node)->Right
 				free_node( old_node )
-			ElseIf (*node)->right = NULL Then
-				*node = (*node)->left
+			ElseIf (*node)->Right = NULL Then
+				*node = (*node)->Left
 				free_node( old_node )
 			Else
-				pred = @(*node)->left
-				While (*pred)->right <> NULL
-					pred = @(*pred)->right
+				pred = @(*node)->Left
+				While (*pred)->Right <> NULL
+					pred = @(*pred)->Right
 				Wend
 				fbmld_swap( node, pred )
 				fbmld_delete( pred )
@@ -253,8 +253,8 @@
 			)
 			
 			If *node <> NULL Then
-				fbmld_tree_clean( @((*node)->left) )
-				fbmld_tree_clean( @((*node)->right) )
+				fbmld_tree_clean( @((*node)->Left) )
+				fbmld_tree_clean( @((*node)->Right) )
 				If FuncName_ = "" OrElse FuncName_ = (*node)->funcname Then
 					'fbmld_print( "error: " & (*node)->bytes & " bytes allocated/created at " & (*node)->file & "(" & (*node)->funcname & "): " & (*node)->linenum & " [&H" & Hex( (*node)->pt, 8 ) & "][" & (*node)->pt & "] not deallocated/deleted" & IIf((*node)->funcname = "WREALLOCATE" OrElse (*node)->funcname = "WLET" OrElse (*node)->funcname = "USTRING.constructor" OrElse (*node)->funcname = "USTRING.operator.let" OrElse (*node)->funcname = "WSTRINGLIST.ADD" OrElse (*node)->funcname = "WSTRINGLIST.INSERT" OrElse (*node)->funcname = "USTRING.RESIZE", ". Value: """ & *Cast(WString Ptr, (*node)->pt) & """", ""))
 					fbmld_print( "error: " & (*node)->bytes & " bytes allocated/created at " & (*node)->file & "(" & (*node)->funcname & "): " & (*node)->linenum & " [&H" & Hex( (*node)->pt, 8 ) & "][" & (*node)->pt & "] not deallocated/deleted" & ". Value: """ & *Cast(WString Ptr, (*node)->pt) & """")
@@ -402,8 +402,9 @@
 				ret = NULL
 			ElseIf bytes = 0 Then
 				fbmld_print("warning: reallocate(" & varname & " [&H" & Hex(pt, 8) & "] , 0) called at " & file & " in " & funcname & ":" & linenum & "; deallocating")
-				If *node <> NULL Then 
-					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+				If *node <> NULL Then
+					'fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, bytes, file, funcname, linenum, (*node)->value)
 					fbmld_delete(node)
 				End If
 				Deallocate pt 'free(pt)
@@ -426,10 +427,11 @@
 					(*node)->linenum = linenum
 				Else
 					(*node)->value = value
-					'			If (*node)->linenum = 378 Then
-					'				?"deleting r", (*node)->pt
-					'			End If
-					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+					'If (*node)->linenum = 21 AndAlso InStr((*node)->file, "UString.bas") > 0 Then
+					'	?"deleting r", (*node)->pt, (*node)->file
+					'End If
+					'fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, bytes, file, funcname, linenum, (*node)->value)
 					fbmld_delete(node)
 					fbmld_insert(@fbmld_tree, ret, bytes, file, funcname, linenum)
 				End If
@@ -461,10 +463,8 @@
 					If funcname = "WDEALLOCATE" Then
 						(*node)->value = *Cast(WString Ptr, (*node)->pt)
 					End If
-					'			If (*node)->linenum = 378 Then
-					'				?"deleting d", (*node)->pt
-					'			End If
-					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+					'fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, file, funcname, linenum, (*node)->value)
 					fbmld_delete(node)
 					Deallocate pt 'free(pt)
 				End If
@@ -486,7 +486,8 @@
 				If *node = NULL Then
 					fbmld_print("error: invalid delete(" & varname & " [&H" & Hex(pt, 8) & "] ) at " & file & " in " & funcname & ":" & linenum)
 				Else
-					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+					'fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, (*node)->file, (*node)->funcname, (*node)->linenum, (*node)->value)
+					fbmld_insert(@fbmld_deleted_tree, (*node)->pt, (*node)->bytes, file, funcname, linenum, (*node)->value)
 					fbmld_delete(node)
 				End If
 			End If

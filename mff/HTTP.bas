@@ -129,7 +129,7 @@ Namespace My.Sys.Forms
 			Dim As DWORD bytesRead, dwBufferSize = 8192
 			Dim As Long bResult
 			Dim As DWORD dwBytesRead
-			Dim As ZString Ptr BufferPtr = Allocate(dwBufferSize)
+			Dim As ZString Ptr BufferPtr = _Allocate(dwBufferSize)
 			Dim As String szBuffer
 			Do
 				bResult = InternetReadFile(hRequest, BufferPtr, dwBufferSize, @bytesRead)
@@ -143,7 +143,7 @@ Namespace My.Sys.Forms
 				Responce.Body &= szBuffer '*BufferPtr
 				If OnReceive Then OnReceive(*Designer, This, Request, szBuffer)
 			Loop While FAbort = False
-			Deallocate BufferPtr
+			_Deallocate(BufferPtr)
 			If OnComplete Then OnComplete(*Designer, This, Request, Responce)
 			InternetCloseHandle(hRequest)
 			InternetCloseHandle(hConnect)
