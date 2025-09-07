@@ -2538,7 +2538,7 @@ Function LoadD2D1 As Long
 		'Print "VendorId: "; Hex(adapterDesc.VendorId)
 		
 		hr = dxgiAdapter->lpVtbl->GetParent(dxgiAdapter, @IID_IDXGIFactory2, Cast(Any Ptr Ptr, @pDXGIFactory2))
-		
+		If hr <> 0 Then Return UnloadD2D1
 		CreateHwndRenderTarget = Cast(fnCreateHwndRenderTarget, COM_METHOD(pD2D1Factory1, 14))
 		CreateTextFormat = Cast(fnCreateTextFormat, COM_METHOD(pDWriteFactory, 15))
 		CreateTextLayout = Cast(fnCreateTextLayout, COM_METHOD(pDWriteFactory, 18))
