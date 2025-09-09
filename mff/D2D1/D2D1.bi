@@ -1,13 +1,69 @@
 ﻿#include once "win/ole2.bi"
 
-Type DWRITE_FACTORY_TYPE As Long
-Enum
+Type D2D1_POINT_2F
+	x As Single
+	y As Single
+End Type
+
+Type D2D1_COLOR_F
+	r As Single
+	g As Single
+	b As Single
+	a As Single
+End Type
+
+Type D2D1_RECT_F
+	left As FLOAT
+	top As FLOAT
+	right As FLOAT
+	bottom As FLOAT
+End Type
+
+Type D2D1_SIZE_U
+	Width As ULong
+	height As ULong
+End Type
+
+Type D2D1_SIZE_F
+	Width As Single
+	height As Single
+End Type
+
+Type D2D1_PIXEL_FORMAT
+	format     As ULong
+	alphaMode  As ULong
+End Type
+
+Type D2D1_MATRIX_3X2_F
+	m11 As Single : m12 As Single
+	m21 As Single : m22 As Single
+	dx  As Single : dy  As Single
+End Type
+
+Type D2D1_POINT_2U
+	x As ULong
+	y As ULong
+End Type
+
+Type D2D1_RECT_U
+	left   As ULong
+	top    As ULong
+	right  As ULong
+	bottom As ULong
+End Type
+
+Enum D2D1_UNIT_MODE
+	D2D1_UNIT_MODE_DIPS = 0
+	D2D1_UNIT_MODE_PIXELS = 1
+	D2D1_UNIT_MODE_FORCE_DWORD = &hffffffff
+End Enum
+
+Enum DWRITE_FACTORY_TYPE
 	DWRITE_FACTORY_TYPE_SHARED = 0
 	DWRITE_FACTORY_TYPE_ISOLATED = 1
 End Enum
 
-Type DWRITE_FONT_FILE_TYPE As Long
-Enum
+Enum DWRITE_FONT_FILE_TYPE
 	DWRITE_FONT_FILE_TYPE_UNKNOWN = 0
 	DWRITE_FONT_FILE_TYPE_CFF = 1
 	DWRITE_FONT_FILE_TYPE_TRUETYPE = 2
@@ -19,8 +75,7 @@ Enum
 	DWRITE_FONT_FILE_TYPE_TRUETYPE_COLLECTION = DWRITE_FONT_FILE_TYPE_OPENTYPE_COLLECTION
 End Enum
 
-Type DWRITE_FONT_FACE_TYPE As Long
-Enum
+Enum DWRITE_FONT_FACE_TYPE
 	DWRITE_FONT_FACE_TYPE_CFF = 0
 	DWRITE_FONT_FACE_TYPE_TRUETYPE = 1
 	DWRITE_FONT_FACE_TYPE_OPENTYPE_COLLECTION = 2
@@ -32,8 +87,7 @@ Enum
 	DWRITE_FONT_FACE_TYPE_TRUETYPE_COLLECTION = DWRITE_FONT_FACE_TYPE_OPENTYPE_COLLECTION
 End Enum
 
-Type DWRITE_FONT_WEIGHT As Long
-Enum
+Enum DWRITE_FONT_WEIGHT
 	DWRITE_FONT_WEIGHT_THIN = 100
 	DWRITE_FONT_WEIGHT_EXTRA_LIGHT = 200
 	DWRITE_FONT_WEIGHT_ULTRA_LIGHT = 200
@@ -53,8 +107,7 @@ Enum
 	DWRITE_FONT_WEIGHT_ULTRA_BLACK = 950
 End Enum
 
-Type DWRITE_FONT_STRETCH As Long
-Enum
+Enum DWRITE_FONT_STRETCH
 	DWRITE_FONT_STRETCH_UNDEFINED = 0
 	DWRITE_FONT_STRETCH_ULTRA_CONDENSED = 1
 	DWRITE_FONT_STRETCH_EXTRA_CONDENSED = 2
@@ -68,15 +121,13 @@ Enum
 	DWRITE_FONT_STRETCH_ULTRA_EXPANDED = 9
 End Enum
 
-Type DWRITE_FONT_STYLE As Long
-Enum
+Enum DWRITE_FONT_STYLE
 	DWRITE_FONT_STYLE_NORMAL = 0
 	DWRITE_FONT_STYLE_OBLIQUE = 1
 	DWRITE_FONT_STYLE_ITALIC = 2
 End Enum
 
-Type DWRITE_INFORMATIONAL_STRING_ID As Long
-Enum
+Enum DWRITE_INFORMATIONAL_STRING_ID
 	DWRITE_INFORMATIONAL_STRING_NONE = 0
 	DWRITE_INFORMATIONAL_STRING_COPYRIGHT_NOTICE = 1
 	DWRITE_INFORMATIONAL_STRING_VERSION_STRINGS = 2
@@ -104,23 +155,19 @@ Enum
 	DWRITE_INFORMATIONAL_STRING_WWS_FAMILY_NAME = DWRITE_INFORMATIONAL_STRING_WEIGHT_STRETCH_STYLE_FAMILY_NAME
 End Enum
 
-Type DWRITE_FONT_SIMULATIONS As Long
-Enum
+Enum DWRITE_FONT_SIMULATIONS
 	DWRITE_FONT_SIMULATIONS_NONE = 0
 	DWRITE_FONT_SIMULATIONS_BOLD = 1
 	DWRITE_FONT_SIMULATIONS_OBLIQUE = 2
 End Enum
 
-
-Type DWRITE_PIXEL_GEOMETRY As Long
-Enum
+Enum DWRITE_PIXEL_GEOMETRY
 	DWRITE_PIXEL_GEOMETRY_FLAT = 0
 	DWRITE_PIXEL_GEOMETRY_RGB = 1
 	DWRITE_PIXEL_GEOMETRY_BGR = 2
 End Enum
 
-Type DWRITE_RENDERING_MODE As Long
-Enum
+Enum DWRITE_RENDERING_MODE
 	DWRITE_RENDERING_MODE_DEFAULT = 0
 	DWRITE_RENDERING_MODE_ALIASED = 1
 	DWRITE_RENDERING_MODE_GDI_CLASSIC = 2
@@ -134,23 +181,20 @@ Enum
 	DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC = DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC
 End Enum
 
-Type DWRITE_TEXT_ALIGNMENT As Long
-Enum
+Enum DWRITE_TEXT_ALIGNMENT
 	DWRITE_TEXT_ALIGNMENT_LEADING = 0
 	DWRITE_TEXT_ALIGNMENT_TRAILING = 1
 	DWRITE_TEXT_ALIGNMENT_CENTER = 2
 	DWRITE_TEXT_ALIGNMENT_JUSTIFIED = 3
 End Enum
 
-Type DWRITE_PARAGRAPH_ALIGNMENT As Long
-Enum
+Enum DWRITE_PARAGRAPH_ALIGNMENT
 	DWRITE_PARAGRAPH_ALIGNMENT_NEAR = 0
 	DWRITE_PARAGRAPH_ALIGNMENT_FAR = 1
 	DWRITE_PARAGRAPH_ALIGNMENT_CENTER = 2
 End Enum
 
-Type DWRITE_WORD_WRAPPING As Long
-Enum
+Enum DWRITE_WORD_WRAPPING
 	DWRITE_WORD_WRAPPING_WRAP = 0
 	DWRITE_WORD_WRAPPING_NO_WRAP = 1
 	DWRITE_WORD_WRAPPING_EMERGENCY_BREAK = 2
@@ -158,53 +202,46 @@ Enum
 	DWRITE_WORD_WRAPPING_CHARACTER = 4
 End Enum
 
-Type DWRITE_READING_DIRECTION As Long
-Enum
+Enum DWRITE_READING_DIRECTION
 	DWRITE_READING_DIRECTION_LEFT_TO_RIGHT = 0
 	DWRITE_READING_DIRECTION_RIGHT_TO_LEFT = 1
 	DWRITE_READING_DIRECTION_TOP_TO_BOTTOM = 2
 	DWRITE_READING_DIRECTION_BOTTOM_TO_TOP = 3
 End Enum
 
-Type DWRITE_FLOW_DIRECTION As Long
-Enum
+Enum DWRITE_FLOW_DIRECTION
 	DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM = 0
 	DWRITE_FLOW_DIRECTION_BOTTOM_TO_TOP = 1
 	DWRITE_FLOW_DIRECTION_LEFT_TO_RIGHT = 2
 	DWRITE_FLOW_DIRECTION_RIGHT_TO_LEFT = 3
 End Enum
 
-Type DWRITE_TRIMMING_GRANULARITY As Long
-Enum
+Enum DWRITE_TRIMMING_GRANULARITY
 	DWRITE_TRIMMING_GRANULARITY_NONE = 0
 	DWRITE_TRIMMING_GRANULARITY_CHARACTER = 1
 	DWRITE_TRIMMING_GRANULARITY_WORD = 2
 End Enum
 
-Type DWRITE_BREAK_CONDITION As Long
-Enum
+Enum DWRITE_BREAK_CONDITION
 	DWRITE_BREAK_CONDITION_NEUTRAL = 0
 	DWRITE_BREAK_CONDITION_CAN_BREAK = 1
 	DWRITE_BREAK_CONDITION_MAY_NOT_BREAK = 2
 	DWRITE_BREAK_CONDITION_MUST_BREAK = 3
 End Enum
 
-Type DWRITE_LINE_SPACING_METHOD As Long
-Enum
+Enum DWRITE_LINE_SPACING_METHOD
 	DWRITE_LINE_SPACING_METHOD_DEFAULT = 0
 	DWRITE_LINE_SPACING_METHOD_UNIFORM = 1
 	DWRITE_LINE_SPACING_METHOD_PROPORTIONAL = 2
 End Enum
 
-Type DWRITE_MEASURING_MODE As Long
-Enum
-    DWRITE_MEASURING_MODE_NATURAL = 0
-    DWRITE_MEASURING_MODE_GDI_CLASSIC = 1
-    DWRITE_MEASURING_MODE_GDI_NATURAL = 2
+Enum DWRITE_MEASURING_MODE
+	DWRITE_MEASURING_MODE_NATURAL = 0
+	DWRITE_MEASURING_MODE_GDI_CLASSIC = 1
+	DWRITE_MEASURING_MODE_GDI_NATURAL = 2
 End Enum
 
-Type DWRITE_FONT_FEATURE_TAG As Long
-Enum
+Enum DWRITE_FONT_FEATURE_TAG
 	DWRITE_FONT_FEATURE_TAG_ALTERNATIVE_FRACTIONS = &h63726661
 	DWRITE_FONT_FEATURE_TAG_PETITE_CAPITALS_FROM_CAPITALS = &h63703263
 	DWRITE_FONT_FEATURE_TAG_SMALL_CAPITALS_FROM_CAPITALS = &h63733263
@@ -288,14 +325,12 @@ Enum
 	DWRITE_FONT_FEATURE_TAG_SLASHED_ZERO = &h6f72657a
 End Enum
 
-Type DWRITE_SCRIPT_SHAPES As Long
-Enum
+Enum DWRITE_SCRIPT_SHAPES
 	DWRITE_SCRIPT_SHAPES_DEFAULT = 0
 	DWRITE_SCRIPT_SHAPES_NO_VISUAL = 1
 End Enum
 
-Type DWRITE_NUMBER_SUBSTITUTION_METHOD As Long
-Enum
+Enum DWRITE_NUMBER_SUBSTITUTION_METHOD
 	DWRITE_NUMBER_SUBSTITUTION_METHOD_FROM_CULTURE = 0
 	DWRITE_NUMBER_SUBSTITUTION_METHOD_CONTEXTUAL = 1
 	DWRITE_NUMBER_SUBSTITUTION_METHOD_NONE = 2
@@ -303,16 +338,14 @@ Enum
 	DWRITE_NUMBER_SUBSTITUTION_METHOD_TRADITIONAL = 4
 End Enum
 
-Type DWRITE_TEXTURE_TYPE As Long
-Enum
+Enum DWRITE_TEXTURE_TYPE
 	DWRITE_TEXTURE_ALIASED_1x1 = 0
 	DWRITE_TEXTURE_CLEARTYPE_3x1 = 1
 End Enum
 
 #define COM_METHOD(p, i) Cast(Any Ptr Ptr, Cast(Any Ptr Ptr, p)[0])[i]
 
-Type D3D10_FEATURE_LEVEL1 As Long
-Enum
+Enum D3D10_FEATURE_LEVEL1
 	D3D10_FEATURE_LEVEL_10_0   = &ha000
 	D3D10_FEATURE_LEVEL_10_1   = &ha100
 	D3D10_FEATURE_LEVEL_9_1    = &h9100
@@ -320,8 +353,7 @@ Enum
 	D3D10_FEATURE_LEVEL_9_3    = &h9300
 End Enum
 
-Type DXGI_FORMAT As Long
-Enum
+Enum DXGI_FORMAT
 	DXGI_FORMAT_UNKNOWN                      = 0
 	DXGI_FORMAT_R32G32B32A32_TYPELESS        = 1
 	DXGI_FORMAT_R32G32B32A32_FLOAT           = 2
@@ -425,234 +457,274 @@ Enum
 	DXGI_FORMAT_FORCE_UINT                   = &hffffffff
 End Enum
 
-Type D2D1_ALPHA_MODE As Long
-Enum
+Enum D2D1_ALPHA_MODE
 	D2D1_ALPHA_MODE_UNKNOWN         = 0
 	D2D1_ALPHA_MODE_PREMULTIPLIED   = 1
 	D2D1_ALPHA_MODE_STRAIGHT        = 2
 	D2D1_ALPHA_MODE_IGNORE          = 3
 End Enum
 
-Type D2D1_ANTIALIAS_MODE As Long
-Enum
-	D2D1_ANTIALIAS_MODE_PER_PRIMITIVE   = 0
-	D2D1_ANTIALIAS_MODE_ALIASED         = 1
+' 枚举定义
+Enum D2D1_ANTIALIAS_MODE
+	D2D1_ANTIALIAS_MODE_PER_PRIMITIVE = 0
+	D2D1_ANTIALIAS_MODE_ALIASED = 1
+	D2D1_ANTIALIAS_MODE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_ARC_SIZE As Long
-Enum
-	D2D1_ARC_SIZE_SMALL   = 0
-	D2D1_ARC_SIZE_LARGE   = 1
+Enum D2D1_ARC_SIZE
+	D2D1_ARC_SIZE_SMALL = 0
+	D2D1_ARC_SIZE_LARGE = 1
+	D2D1_ARC_SIZE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Enum
-	D2D1_INTERPOLATION_MODE_DEFINITION_NEAREST_NEIGHBOR    = 0
-	D2D1_INTERPOLATION_MODE_DEFINITION_LINEAR              = 1
-	D2D1_INTERPOLATION_MODE_DEFINITION_CUBIC               = 2
-	D2D1_INTERPOLATION_MODE_DEFINITION_MULTI_SAMPLE_LINEAR = 3
-	D2D1_INTERPOLATION_MODE_DEFINITION_ANISOTROPIC         = 4
-	D2D1_INTERPOLATION_MODE_DEFINITION_HIGH_QUALITY_CUBIC  = 5
-	D2D1_INTERPOLATION_MODE_DEFINITION_FANT                = 6
-	D2D1_INTERPOLATION_MODE_DEFINITION_MIPMAP_LINEAR       = 7
+Enum D2D1_BITMAP_INTERPOLATION_MODE
+	D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR = 0
+	D2D1_BITMAP_INTERPOLATION_MODE_LINEAR = 1
+	D2D1_BITMAP_INTERPOLATION_MODE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_BITMAP_INTERPOLATION_MODE As Long
-Enum
-	D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR   = 0
-	D2D1_BITMAP_INTERPOLATION_MODE_LINEAR             = 1
+Enum D2D1_CAP_STYLE
+	D2D1_CAP_STYLE_FLAT = 0
+	D2D1_CAP_STYLE_SQUARE = 1
+	D2D1_CAP_STYLE_ROUND = 2
+	D2D1_CAP_STYLE_TRIANGLE = 3
+	D2D1_CAP_STYLE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_CAP_STYLE As Long
-Enum
-	D2D1_CAP_STYLE_FLAT       = 0
-	D2D1_CAP_STYLE_SQUARE     = 1
-	D2D1_CAP_STYLE_ROUND      = 2
-	D2D1_CAP_STYLE_TRIANGLE   = 3
+Enum D2D1_COMBINE_MODE
+	D2D1_COMBINE_MODE_UNION = 0
+	D2D1_COMBINE_MODE_INTERSECT = 1
+	D2D1_COMBINE_MODE_XOR = 2
+	D2D1_COMBINE_MODE_EXCLUDE = 3
+	D2D1_COMBINE_MODE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_COMBINE_MODE As Long
-Enum
-	D2D1_COMBINE_MODE_UNION       = 0
-	D2D1_COMBINE_MODE_INTERSECT   = 1
-	D2D1_COMBINE_MODE_XOR         = 2
-	D2D1_COMBINE_MODE_EXCLUDE     = 3
+Enum D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS
+	D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_NONE = &H00000000
+	D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_GDI_COMPATIBLE = &H00000001
+	D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS As Long
-Enum
-	D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_NONE             = &h00000000
-	D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_GDI_COMPATIBLE   = &h00000001
+Enum D2D1_DASH_STYLE
+	D2D1_DASH_STYLE_SOLID = 0
+	D2D1_DASH_STYLE_DASH = 1
+	D2D1_DASH_STYLE_DOT = 2
+	D2D1_DASH_STYLE_DASH_DOT = 3
+	D2D1_DASH_STYLE_DASH_DOT_DOT = 4
+	D2D1_DASH_STYLE_CUSTOM = 5
+	D2D1_DASH_STYLE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_DASH_STYLE As Long
-Enum
-	D2D1_DASH_STYLE_SOLID          = 0
-	D2D1_DASH_STYLE_DASH           = 1
-	D2D1_DASH_STYLE_DOT            = 2
-	D2D1_DASH_STYLE_DASH_DOT       = 3
-	D2D1_DASH_STYLE_DASH_DOT_DOT   = 4
-	D2D1_DASH_STYLE_CUSTOM         = 5
+Enum D2D1_DC_INITIALIZE_MODE
+	D2D1_DC_INITIALIZE_MODE_COPY = 0
+	D2D1_DC_INITIALIZE_MODE_CLEAR = 1
+	D2D1_DC_INITIALIZE_MODE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_DC_INITIALIZE_MODE As Long
-Enum
-	D2D1_DC_INITIALIZE_MODE_COPY    = 0
-	D2D1_DC_INITIALIZE_MODE_CLEAR   = 1
+Enum D2D1_DEBUG_LEVEL
+	D2D1_DEBUG_LEVEL_NONE = 0
+	D2D1_DEBUG_LEVEL_ERROR = 1
+	D2D1_DEBUG_LEVEL_WARNING = 2
+	D2D1_DEBUG_LEVEL_INFORMATION = 3
+	D2D1_DEBUG_LEVEL_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_DEBUG_LEVEL As Long
-Enum
-	D2D1_DEBUG_LEVEL_NONE          = 0
-	D2D1_DEBUG_LEVEL_ERROR         = 1
-	D2D1_DEBUG_LEVEL_WARNING       = 2
-	D2D1_DEBUG_LEVEL_INFORMATION   = 3
+Enum D2D1_DRAW_TEXT_OPTIONS
+	D2D1_DRAW_TEXT_OPTIONS_NO_SNAP = &H00000001
+	D2D1_DRAW_TEXT_OPTIONS_CLIP = &H00000002
+	D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT = &H00000004
+	D2D1_DRAW_TEXT_OPTIONS_DISABLE_COLOR_BITMAP_SNAPPING = &H00000008
+	D2D1_DRAW_TEXT_OPTIONS_NONE = &H00000000
+	D2D1_DRAW_TEXT_OPTIONS_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_DRAW_TEXT_OPTIONS As Long
-Enum
-	D2D1_DRAW_TEXT_OPTIONS_NO_SNAP   = &h00000001
-	D2D1_DRAW_TEXT_OPTIONS_CLIP      = &h00000002
-	D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT = &h00000004
-	D2D1_DRAW_TEXT_OPTIONS_NONE      = &h00000000
-	D2D1_DRAW_TEXT_OPTIONS_FORCE_DWORD = &hffffffff
+Enum D2D1_EXTEND_MODE
+	D2D1_EXTEND_MODE_CLAMP = 0
+	D2D1_EXTEND_MODE_WRAP = 1
+	D2D1_EXTEND_MODE_MIRROR = 2
+	D2D1_EXTEND_MODE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_EXTEND_MODE As Long
-Enum
-	D2D1_EXTEND_MODE_CLAMP    = 0
-	D2D1_EXTEND_MODE_WRAP     = 1
-	D2D1_EXTEND_MODE_MIRROR   = 2
+Enum D2D1_FACTORY_TYPE
+	D2D1_FACTORY_TYPE_SINGLE_THREADED = 0
+	D2D1_FACTORY_TYPE_MULTI_THREADED = 1
+	D2D1_FACTORY_TYPE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_FACTORY_TYPE As Long
-Enum
-	D2D1_FACTORY_TYPE_SINGLE_THREADED   = 0
-	D2D1_FACTORY_TYPE_MULTI_THREADED    = 1
+Enum D2D1_FEATURE_LEVEL
+	D2D1_FEATURE_LEVEL_DEFAULT = 0
+	D2D1_FEATURE_LEVEL_9 = D3D10_FEATURE_LEVEL_9_1
+	D2D1_FEATURE_LEVEL_10 = D3D10_FEATURE_LEVEL_10_0
+	D2D1_FEATURE_LEVEL_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_FEATURE_LEVEL As Long
-Enum
-	D2D1_FEATURE_LEVEL_DEFAULT   = 0
-	D2D1_FEATURE_LEVEL_9         = D3D10_FEATURE_LEVEL_9_1
-	D2D1_FEATURE_LEVEL_10        = D3D10_FEATURE_LEVEL_10_0
+Enum D2D1_FIGURE_BEGIN
+	D2D1_FIGURE_BEGIN_FILLED = 0
+	D2D1_FIGURE_BEGIN_HOLLOW = 1
+	D2D1_FIGURE_BEGIN_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D3D10_FEATURE_LEVEL1 As Long
-Enum
-	D3D10_FEATURE_LEVEL_10_0   = &ha000
-	D3D10_FEATURE_LEVEL_10_1   = &ha100
-	D3D10_FEATURE_LEVEL_9_1    = &h9100
-	D3D10_FEATURE_LEVEL_9_2    = &h9200
-	D3D10_FEATURE_LEVEL_9_3    = &h9300
+Enum D2D1_FIGURE_END
+	D2D1_FIGURE_END_OPEN = 0
+	D2D1_FIGURE_END_CLOSED = 1
+	D2D1_FIGURE_END_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_FIGURE_BEGIN As Long
-Enum
-	D2D1_FIGURE_BEGIN_FILLED   = 0
-	D2D1_FIGURE_BEGIN_HOLLOW   = 1
+Enum D2D1_FILL_MODE
+	D2D1_FILL_MODE_ALTERNATE = 0
+	D2D1_FILL_MODE_WINDING = 1
+	D2D1_FILL_MODE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_FIGURE_END As Long
-Enum
-	D2D1_FIGURE_END_OPEN     = 0
-	D2D1_FIGURE_END_CLOSED   = 1
+Enum D2D1_GAMMA
+	D2D1_GAMMA_2_2 = 0
+	D2D1_GAMMA_1_0 = 1
+	D2D1_GAMMA_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_FILL_MODE As Long
-Enum
-	D2D1_FILL_MODE_ALTERNATE   = 0
-	D2D1_FILL_MODE_WINDING     = 1
+Enum D2D1_GEOMETRY_RELATION
+	D2D1_GEOMETRY_RELATION_UNKNOWN = 0
+	D2D1_GEOMETRY_RELATION_DISJOINT = 1
+	D2D1_GEOMETRY_RELATION_IS_CONTAINED = 2
+	D2D1_GEOMETRY_RELATION_CONTAINS = 3
+	D2D1_GEOMETRY_RELATION_OVERLAP = 4
+	D2D1_GEOMETRY_RELATION_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_GAMMA As Long
-Enum
-	D2D1_GAMMA_2_2   = 0
-	D2D1_GAMMA_1_0   = 1
+Enum D2D1_GEOMETRY_SIMPLIFICATION_OPTION
+	D2D1_GEOMETRY_SIMPLIFICATION_OPTION_CUBICS_AND_LINES = 0
+	D2D1_GEOMETRY_SIMPLIFICATION_OPTION_LINES = 1
+	D2D1_GEOMETRY_SIMPLIFICATION_OPTION_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_GEOMETRY_RELATION As Long
-Enum
-	D2D1_GEOMETRY_RELATION_UNKNOWN        = 0
-	D2D1_GEOMETRY_RELATION_DISJOINT       = 1
-	D2D1_GEOMETRY_RELATION_IS_CONTAINED   = 2
-	D2D1_GEOMETRY_RELATION_CONTAINS       = 3
-	D2D1_GEOMETRY_RELATION_OVERLAP        = 4
+Enum D2D1_LAYER_OPTIONS
+	D2D1_LAYER_OPTIONS_NONE = &H00000000
+	D2D1_LAYER_OPTIONS_INITIALIZE_FOR_CLEARTYPE = &H00000001
+	D2D1_LAYER_OPTIONS_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_GEOMETRY_SIMPLIFICATION_OPTION As Long
-Enum
-	D2D1_GEOMETRY_SIMPLIFICATION_OPTION_CUBICS_AND_LINES   = 0
-	D2D1_GEOMETRY_SIMPLIFICATION_OPTION_LINES              = 1
+Enum D2D1_LINE_JOIN
+	D2D1_LINE_JOIN_MITER = 0
+	D2D1_LINE_JOIN_BEVEL = 1
+	D2D1_LINE_JOIN_ROUND = 2
+	D2D1_LINE_JOIN_MITER_OR_BEVEL = 3
+	D2D1_LINE_JOIN_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_LAYER_OPTIONS As Long
-Enum
-	D2D1_LAYER_OPTIONS_NONE                       = &h00000000
-	D2D1_LAYER_OPTIONS_INITIALIZE_FOR_CLEARTYPE   = &h00000001
-End Enum ' D2D1_LAYER_OPTIONS;
-
-Type D2D1_LINE_JOIN As Long
-Enum
-	D2D1_LINE_JOIN_MITER            = 0
-	D2D1_LINE_JOIN_BEVEL            = 1
-	D2D1_LINE_JOIN_ROUND            = 2
-	D2D1_LINE_JOIN_MITER_OR_BEVEL   = 3
+Enum D2D1_OPACITY_MASK_CONTENT
+	D2D1_OPACITY_MASK_CONTENT_GRAPHICS = 0
+	D2D1_OPACITY_MASK_CONTENT_TEXT_NATURAL = 1
+	D2D1_OPACITY_MASK_CONTENT_TEXT_GDI_COMPATIBLE = 2
+	D2D1_OPACITY_MASK_CONTENT_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_OPACITY_MASK_CONTENT As Long
-Enum
-	D2D1_OPACITY_MASK_CONTENT_GRAPHICS              = 0
-	D2D1_OPACITY_MASK_CONTENT_TEXT_NATURAL          = 1
-	D2D1_OPACITY_MASK_CONTENT_TEXT_GDI_COMPATIBLE   = 2
+Enum D2D1_PATH_SEGMENT
+	D2D1_PATH_SEGMENT_NONE = &H00000000
+	D2D1_PATH_SEGMENT_FORCE_UNSTROKED = &H00000001
+	D2D1_PATH_SEGMENT_FORCE_ROUND_LINE_JOIN = &H00000002
+	D2D1_PATH_SEGMENT_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_PATH_SEGMENT As Long
-Enum
-	D2D1_PATH_SEGMENT_NONE                    = &h00000000
-	D2D1_PATH_SEGMENT_FORCE_UNSTROKED         = &h00000001
-	D2D1_PATH_SEGMENT_FORCE_ROUND_LINE_JOIN   = &h00000002
-End Enum ' D2D1_PATH_SEGMENT;
-
-Type D2D1_PRESENT_OPTIONS As Long
-Enum
-	D2D1_PRESENT_OPTIONS_NONE              = &h00000000
-	D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS   = &h00000001
-	D2D1_PRESENT_OPTIONS_IMMEDIATELY       = &h00000002
+Enum D2D1_PRESENT_OPTIONS
+	D2D1_PRESENT_OPTIONS_NONE = &H00000000
+	D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS = &H00000001
+	D2D1_PRESENT_OPTIONS_IMMEDIATELY = &H00000002
+	D2D1_PRESENT_OPTIONS_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_RENDER_TARGET_TYPE As Long
-Enum
-	D2D1_RENDER_TARGET_TYPE_DEFAULT     = 0
-	D2D1_RENDER_TARGET_TYPE_SOFTWARE    = 1
-	D2D1_RENDER_TARGET_TYPE_HARDWARE    = 2
+Enum D2D1_RENDER_TARGET_TYPE
+	D2D1_RENDER_TARGET_TYPE_DEFAULT = 0
+	D2D1_RENDER_TARGET_TYPE_SOFTWARE = 1
+	D2D1_RENDER_TARGET_TYPE_HARDWARE = 2
+	D2D1_RENDER_TARGET_TYPE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_RENDER_TARGET_USAGE As Long
-Enum
-	D2D1_RENDER_TARGET_USAGE_NONE                    = &h00000000
-	D2D1_RENDER_TARGET_USAGE_FORCE_BITMAP_REMOTING   = &h00000001
-	D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE          = &h00000002
+Enum D2D1_RENDER_TARGET_USAGE
+	D2D1_RENDER_TARGET_USAGE_NONE = &H00000000
+	D2D1_RENDER_TARGET_USAGE_FORCE_BITMAP_REMOTING = &H00000001
+	D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE = &H00000002
+	D2D1_RENDER_TARGET_USAGE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_SWEEP_DIRECTION As Long
-Enum
-	D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE   = 0
-	D2D1_SWEEP_DIRECTION_CLOCKWISE           = 1
+Enum D2D1_SWEEP_DIRECTION
+	D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE = 0
+	D2D1_SWEEP_DIRECTION_CLOCKWISE = 1
+	D2D1_SWEEP_DIRECTION_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_TEXT_ANTIALIAS_MODE As Long
-Enum
-	D2D1_TEXT_ANTIALIAS_MODE_DEFAULT     = 0
-	D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE   = 1
-	D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE   = 2
-	D2D1_TEXT_ANTIALIAS_MODE_ALIASED     = 3
+Enum D2D1_TEXT_ANTIALIAS_MODE
+	D2D1_TEXT_ANTIALIAS_MODE_DEFAULT = 0
+	D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE = 1
+	D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE = 2
+	D2D1_TEXT_ANTIALIAS_MODE_ALIASED = 3
+	D2D1_TEXT_ANTIALIAS_MODE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
-Type D2D1_WINDOW_STATE As Long
-Enum
-	D2D1_WINDOW_STATE_NONE       = &h0000000
-	D2D1_WINDOW_STATE_OCCLUDED   = &h0000001
+Enum D2D1_WINDOW_STATE
+	D2D1_WINDOW_STATE_NONE = &H00000000
+	D2D1_WINDOW_STATE_OCCLUDED = &H00000001
+	D2D1_WINDOW_STATE_FORCE_DWORD = &HFFFFFFFF
 End Enum
+
+' COM 接口定义 定义GUID常量
+Extern IID_ID2D1Bitmap As GUID
+Extern IID_ID2D1BitmapBrush As GUID
+Extern IID_ID2D1BitmapRenderTarget As GUID
+Extern IID_ID2D1Brush As GUID
+Extern IID_ID2D1DCRenderTarget As GUID
+Extern IID_ID2D1DrawingStateBlock As GUID
+Extern IID_ID2D1EllipseGeometry As GUID
+Extern IID_ID2D1Factory As GUID
+Extern IID_ID2D1GdiInteropRenderTarget As GUID
+Extern IID_ID2D1Geometry As GUID
+Extern IID_ID2D1GeometryGroup As GUID
+Extern IID_ID2D1GeometrySink As GUID
+Extern IID_ID2D1GradientStopCollection As GUID
+Extern IID_ID2D1HwndRenderTarget As GUID
+Extern IID_ID2D1Layer As GUID
+Extern IID_ID2D1LinearGradientBrush As GUID
+Extern IID_ID2D1Mesh As GUID
+Extern IID_ID2D1PathGeometry As GUID
+Extern IID_ID2D1RadialGradientBrush As GUID
+Extern IID_ID2D1RectangleGeometry As GUID
+Extern IID_ID2D1RenderTarget As GUID
+Extern IID_ID2D1Resource As GUID
+Extern IID_ID2D1RoundedRectangleGeometry As GUID
+Extern IID_ID2D1SimplifiedGeometrySink As GUID
+Extern IID_ID2D1SolidColorBrush As GUID
+Extern IID_ID2D1StrokeStyle As GUID
+Extern IID_ID2D1TessellationSink As GUID
+Extern IID_ID2D1TransformedGeometry As GUID
+
+Type ID2D1Image As ID2D1Image_
+Type ID2D1Bitmap As ID2D1Bitmap_
+Type ID2D1BitmapBrush As ID2D1BitmapBrush_
+Type ID2D1BitmapRenderTarget As ID2D1BitmapRenderTarget_
+Type ID2D1Brush As ID2D1Brush_
+Type ID2D1DCRenderTarget As ID2D1DCRenderTarget_
+Type ID2D1DrawingStateBlock As ID2D1DrawingStateBlock_
+Type ID2D1EllipseGeometry As ID2D1EllipseGeometry_
+Type ID2D1Factory As ID2D1Factory_
+Type ID2D1GdiInteropRenderTarget As ID2D1GdiInteropRenderTarget_
+Type ID2D1Geometry As ID2D1Geometry_
+Type ID2D1GeometryGroup As ID2D1GeometryGroup_
+Type ID2D1GeometrySink As ID2D1GeometrySink_
+Type ID2D1GradientStopCollection As ID2D1GradientStopCollection_
+Type ID2D1HwndRenderTarget As ID2D1HwndRenderTarget_
+Type ID2D1Layer As ID2D1Layer_
+Type ID2D1LinearGradientBrush As ID2D1LinearGradientBrush_
+Type ID2D1Mesh As ID2D1Mesh_
+Type ID2D1PathGeometry As ID2D1PathGeometry_
+Type ID2D1RadialGradientBrush As ID2D1RadialGradientBrush_
+Type ID2D1RectangleGeometry As ID2D1RectangleGeometry_
+Type ID2D1RenderTarget As ID2D1RenderTarget_
+Type ID2D1Resource As ID2D1Resource_
+Type ID2D1RoundedRectangleGeometry As ID2D1RoundedRectangleGeometry_
+Type ID2D1SimplifiedGeometrySink As ID2D1SimplifiedGeometrySink_
+Type ID2D1SolidColorBrush As ID2D1SolidColorBrush_
+Type ID2D1StrokeStyle As ID2D1StrokeStyle_
+Type ID2D1TessellationSink As ID2D1TessellationSink_
+Type ID2D1TransformedGeometry As ID2D1TransformedGeometry_
 
 Type DWRITE_TEXT_METRICS
 	left As FLOAT
@@ -678,94 +750,90 @@ Type IDWriteTextFormat
 End Type
 
 Type IDWriteTextLayoutVtbl
-    ' IUnknown
-    QueryInterface As Function(This As Any Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(This As Any Ptr) As ULong
-    Release As Function(This As Any Ptr) As ULong
-
-    ' IDWriteTextFormat (наследуется)
-    SetTextAlignment As Function(This As Any Ptr, textAlignment As Long) As HRESULT
-    SetParagraphAlignment As Function(This As Any Ptr, paragraphAlignment As Long) As HRESULT
-    SetWordWrapping As Function(This As Any Ptr, wordWrapping As Long) As HRESULT
-    SetReadingDirection As Function(This As Any Ptr, readingDirection As Long) As HRESULT
-    SetFlowDirection As Function(This As Any Ptr, flowDirection As Long) As HRESULT
-    SetIncrementalTabStop As Function(This As Any Ptr, incrementalTabStop As Single) As HRESULT
-    SetTrimming As Function(This As Any Ptr, trimmingOptions As Any Ptr, trimmingSign As Any Ptr) As HRESULT
-    SetLineSpacing As Function(This As Any Ptr, lineSpacingMethod As Long, lineSpacing As Single, baseline As Single) As HRESULT
-    GetTextAlignment As Function(This As Any Ptr) As Long
-    GetParagraphAlignment As Function(This As Any Ptr) As Long
-    GetWordWrapping As Function(This As Any Ptr) As Long
-    GetReadingDirection As Function(This As Any Ptr) As Long
-    GetFlowDirection As Function(This As Any Ptr) As Long
-    GetIncrementalTabStop As Function(This As Any Ptr) As Single
-    GetTrimming As Function(This As Any Ptr, trimmingOptions As Any Ptr, trimmingSign As Any Ptr) As HRESULT
-    GetLineSpacing As Function(This As Any Ptr, lineSpacingMethod As Long Ptr, lineSpacing As Single Ptr, baseline As Single Ptr) As HRESULT
-    GetFontCollection As Function(This As Any Ptr, fontCollection As Any Ptr Ptr) As HRESULT
-    GetFontFamilyNameLength As Function(This As Any Ptr) As UInteger
-    GetFontFamilyName As Function(This As Any Ptr, fontFamilyName As WString Ptr, nameSize As UInteger) As HRESULT
-    GetFontWeight As Function(This As Any Ptr) As Long
-    GetFontStyle As Function(This As Any Ptr) As Long
-    GetFontStretch As Function(This As Any Ptr) As Long
-    GetFontSize As Function(This As Any Ptr) As Single
-    GetLocaleNameLength As Function(This As Any Ptr) As UInteger
-    GetLocaleName As Function(This As Any Ptr, localeName As WString Ptr, nameSize As UInteger) As HRESULT
-
-    ' IDWriteTextLayout
-    SetMaxWidth As Function(This As Any Ptr, maxWidth As Single) As HRESULT
-    SetMaxHeight As Function(This As Any Ptr, maxHeight As Single) As HRESULT
-    SetFontCollection_ As Function(This As Any Ptr, fontCollection As Any Ptr, textRange As Any Ptr) As HRESULT
-    SetFontFamilyName_ As Function(This As Any Ptr, fontFamilyName As WString Ptr, textRange As Any Ptr) As HRESULT
-    SetFontWeight_ As Function(This As Any Ptr, fontWeight As Long, textRange As Any Ptr) As HRESULT
-    SetFontStyle_ As Function(This As Any Ptr, fontStyle As Long, textRange As Any Ptr) As HRESULT
-    SetFontStretch_ As Function(This As Any Ptr, fontStretch As Long, textRange As Any Ptr) As HRESULT
-    SetFontSize_ As Function(This As Any Ptr, fontSize As Single, textRange As Any Ptr) As HRESULT
-    SetUnderline As Function(This As Any Ptr, hasUnderline As Long, textRange As Any Ptr) As HRESULT
-    SetStrikethrough As Function(This As Any Ptr, hasStrikethrough As Long, textRange As Any Ptr) As HRESULT
-    SetDrawingEffect As Function(This As Any Ptr, drawingEffect As Any Ptr, textRange As Any Ptr) As HRESULT
-    SetInlineObject As Function(This As Any Ptr, inlineObject As Any Ptr, textRange As Any Ptr) As HRESULT
-    SetTypography As Function(This As Any Ptr, typography As Any Ptr, textRange As Any Ptr) As HRESULT
-    SetLocaleName_ As Function(This As Any Ptr, localeName As WString Ptr, textRange As Any Ptr) As HRESULT
-    GetMaxWidth As Function(This As Any Ptr) As Single
-    GetMaxHeight As Function(This As Any Ptr) As Single
-    GetFontCollection_ As Function(This As Any Ptr, currentPosition As UInteger, fontCollection As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
-    GetFontFamilyNameLength_ As Function(This As Any Ptr, currentPosition As UInteger, nameLength As UInteger Ptr, textRange As Any Ptr) As HRESULT
-    GetFontFamilyName_ As Function(This As Any Ptr, currentPosition As UInteger, fontFamilyName As WString Ptr, nameSize As UInteger, textRange As Any Ptr) As HRESULT
-    GetFontWeight_ As Function(This As Any Ptr, currentPosition As UInteger, fontWeight As Long Ptr, textRange As Any Ptr) As HRESULT
-    GetFontStyle_ As Function(This As Any Ptr, currentPosition As UInteger, fontStyle As Long Ptr, textRange As Any Ptr) As HRESULT
-    GetFontStretch_ As Function(This As Any Ptr, currentPosition As UInteger, fontStretch As Long Ptr, textRange As Any Ptr) As HRESULT
-    GetFontSize_ As Function(This As Any Ptr, currentPosition As UInteger, fontSize As Single Ptr, textRange As Any Ptr) As HRESULT
-    GetUnderline As Function(This As Any Ptr, currentPosition As UInteger, hasUnderline As Long Ptr, textRange As Any Ptr) As HRESULT
-    GetStrikethrough As Function(This As Any Ptr, currentPosition As UInteger, hasStrikethrough As Long Ptr, textRange As Any Ptr) As HRESULT
-    GetDrawingEffect As Function(This As Any Ptr, currentPosition As UInteger, drawingEffect As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
-    GetInlineObject As Function(This As Any Ptr, currentPosition As UInteger, inlineObject As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
-    GetTypography As Function(This As Any Ptr, currentPosition As UInteger, typography As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
-    GetLocaleNameLength_ As Function(This As Any Ptr, currentPosition As UInteger, nameLength As UInteger Ptr, textRange As Any Ptr) As HRESULT
-    GetLocaleName_ As Function(This As Any Ptr, currentPosition As UInteger, localeName As WString Ptr, nameSize As UInteger, textRange As Any Ptr) As HRESULT
-    Draw As Function(This As Any Ptr, clientDrawingContext As Any Ptr, renderer As Any Ptr, originX As Single, originY As Single) As HRESULT
-    GetLineMetrics As Function(This As Any Ptr, lineMetrics As Any Ptr, maxLineCount As UInteger, actualLineCount As UInteger Ptr) As HRESULT
-    GetMetrics As Function(This As Any Ptr, textMetrics As Any Ptr) As HRESULT
-    GetOverhangMetrics As Function(This As Any Ptr, overhangs As Any Ptr) As HRESULT
-    GetClusterMetrics As Function(This As Any Ptr, clusterMetrics As Any Ptr, maxClusterCount As UInteger, actualClusterCount As UInteger Ptr) As HRESULT
-    DetermineMinWidth As Function(This As Any Ptr, minWidth As Single Ptr) As HRESULT
-    HitTestPoint As Function(This As Any Ptr, pointX As Single, pointY As Single, isTrailingHit As Long Ptr, isInside As Long Ptr, hitTestMetrics As Any Ptr) As HRESULT
-    HitTestTextPosition As Function(This As Any Ptr, textPosition As UInteger, isTrailingHit As Long, pointX As Single Ptr, pointY As Single Ptr, hitTestMetrics As Any Ptr) As HRESULT
-    HitTestTextRange As Function(This As Any Ptr, textPosition As UInteger, textLength As UInteger, originX As Single, originY As Single, hitTestMetrics As Any Ptr, maxHitTestMetricsCount As UInteger, actualHitTestMetricsCount As UInteger Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(This As Any Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As Any Ptr) As ULong
+	Release As Function(This As Any Ptr) As ULong
+	
+	' IDWriteTextFormat (наследуется)
+	SetTextAlignment As Function(This As Any Ptr, textAlignment As Long) As HRESULT
+	SetParagraphAlignment As Function(This As Any Ptr, paragraphAlignment As Long) As HRESULT
+	SetWordWrapping As Function(This As Any Ptr, wordWrapping As Long) As HRESULT
+	SetReadingDirection As Function(This As Any Ptr, readingDirection As Long) As HRESULT
+	SetFlowDirection As Function(This As Any Ptr, flowDirection As Long) As HRESULT
+	SetIncrementalTabStop As Function(This As Any Ptr, incrementalTabStop As Single) As HRESULT
+	SetTrimming As Function(This As Any Ptr, trimmingOptions As Any Ptr, trimmingSign As Any Ptr) As HRESULT
+	SetLineSpacing As Function(This As Any Ptr, lineSpacingMethod As Long, lineSpacing As Single, baseline As Single) As HRESULT
+	GetTextAlignment As Function(This As Any Ptr) As Long
+	GetParagraphAlignment As Function(This As Any Ptr) As Long
+	GetWordWrapping As Function(This As Any Ptr) As Long
+	GetReadingDirection As Function(This As Any Ptr) As Long
+	GetFlowDirection As Function(This As Any Ptr) As Long
+	GetIncrementalTabStop As Function(This As Any Ptr) As Single
+	GetTrimming As Function(This As Any Ptr, trimmingOptions As Any Ptr, trimmingSign As Any Ptr) As HRESULT
+	GetLineSpacing As Function(This As Any Ptr, lineSpacingMethod As Long Ptr, lineSpacing As Single Ptr, baseline As Single Ptr) As HRESULT
+	GetFontCollection As Function(This As Any Ptr, fontCollection As Any Ptr Ptr) As HRESULT
+	GetFontFamilyNameLength As Function(This As Any Ptr) As UInteger
+	GetFontFamilyName As Function(This As Any Ptr, fontFamilyName As WString Ptr, nameSize As UInteger) As HRESULT
+	GetFontWeight As Function(This As Any Ptr) As Long
+	GetFontStyle As Function(This As Any Ptr) As Long
+	GetFontStretch As Function(This As Any Ptr) As Long
+	GetFontSize As Function(This As Any Ptr) As Single
+	GetLocaleNameLength As Function(This As Any Ptr) As UInteger
+	GetLocaleName As Function(This As Any Ptr, localeName As WString Ptr, nameSize As UInteger) As HRESULT
+	
+	' IDWriteTextLayout
+	SetMaxWidth As Function(This As Any Ptr, maxWidth As Single) As HRESULT
+	SetMaxHeight As Function(This As Any Ptr, maxHeight As Single) As HRESULT
+	SetFontCollection_ As Function(This As Any Ptr, fontCollection As Any Ptr, textRange As Any Ptr) As HRESULT
+	SetFontFamilyName_ As Function(This As Any Ptr, fontFamilyName As WString Ptr, textRange As Any Ptr) As HRESULT
+	SetFontWeight_ As Function(This As Any Ptr, fontWeight As Long, textRange As Any Ptr) As HRESULT
+	SetFontStyle_ As Function(This As Any Ptr, fontStyle As Long, textRange As Any Ptr) As HRESULT
+	SetFontStretch_ As Function(This As Any Ptr, fontStretch As Long, textRange As Any Ptr) As HRESULT
+	SetFontSize_ As Function(This As Any Ptr, fontSize As Single, textRange As Any Ptr) As HRESULT
+	SetUnderline As Function(This As Any Ptr, hasUnderline As Long, textRange As Any Ptr) As HRESULT
+	SetStrikethrough As Function(This As Any Ptr, hasStrikethrough As Long, textRange As Any Ptr) As HRESULT
+	SetDrawingEffect As Function(This As Any Ptr, drawingEffect As Any Ptr, textRange As Any Ptr) As HRESULT
+	SetInlineObject As Function(This As Any Ptr, inlineObject As Any Ptr, textRange As Any Ptr) As HRESULT
+	SetTypography As Function(This As Any Ptr, typography As Any Ptr, textRange As Any Ptr) As HRESULT
+	SetLocaleName_ As Function(This As Any Ptr, localeName As WString Ptr, textRange As Any Ptr) As HRESULT
+	GetMaxWidth As Function(This As Any Ptr) As Single
+	GetMaxHeight As Function(This As Any Ptr) As Single
+	GetFontCollection_ As Function(This As Any Ptr, currentPosition As UInteger, fontCollection As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
+	GetFontFamilyNameLength_ As Function(This As Any Ptr, currentPosition As UInteger, nameLength As UInteger Ptr, textRange As Any Ptr) As HRESULT
+	GetFontFamilyName_ As Function(This As Any Ptr, currentPosition As UInteger, fontFamilyName As WString Ptr, nameSize As UInteger, textRange As Any Ptr) As HRESULT
+	GetFontWeight_ As Function(This As Any Ptr, currentPosition As UInteger, fontWeight As Long Ptr, textRange As Any Ptr) As HRESULT
+	GetFontStyle_ As Function(This As Any Ptr, currentPosition As UInteger, fontStyle As Long Ptr, textRange As Any Ptr) As HRESULT
+	GetFontStretch_ As Function(This As Any Ptr, currentPosition As UInteger, fontStretch As Long Ptr, textRange As Any Ptr) As HRESULT
+	GetFontSize_ As Function(This As Any Ptr, currentPosition As UInteger, fontSize As Single Ptr, textRange As Any Ptr) As HRESULT
+	GetUnderline As Function(This As Any Ptr, currentPosition As UInteger, hasUnderline As Long Ptr, textRange As Any Ptr) As HRESULT
+	GetStrikethrough As Function(This As Any Ptr, currentPosition As UInteger, hasStrikethrough As Long Ptr, textRange As Any Ptr) As HRESULT
+	GetDrawingEffect As Function(This As Any Ptr, currentPosition As UInteger, drawingEffect As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
+	GetInlineObject As Function(This As Any Ptr, currentPosition As UInteger, inlineObject As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
+	GetTypography As Function(This As Any Ptr, currentPosition As UInteger, typography As Any Ptr Ptr, textRange As Any Ptr) As HRESULT
+	GetLocaleNameLength_ As Function(This As Any Ptr, currentPosition As UInteger, nameLength As UInteger Ptr, textRange As Any Ptr) As HRESULT
+	GetLocaleName_ As Function(This As Any Ptr, currentPosition As UInteger, localeName As WString Ptr, nameSize As UInteger, textRange As Any Ptr) As HRESULT
+	Draw As Function(This As Any Ptr, clientDrawingContext As Any Ptr, renderer As Any Ptr, originX As Single, originY As Single) As HRESULT
+	GetLineMetrics As Function(This As Any Ptr, lineMetrics As Any Ptr, maxLineCount As UInteger, actualLineCount As UInteger Ptr) As HRESULT
+	GetMetrics As Function(This As Any Ptr, textMetrics As Any Ptr) As HRESULT
+	GetOverhangMetrics As Function(This As Any Ptr, overhangs As Any Ptr) As HRESULT
+	GetClusterMetrics As Function(This As Any Ptr, clusterMetrics As Any Ptr, maxClusterCount As UInteger, actualClusterCount As UInteger Ptr) As HRESULT
+	DetermineMinWidth As Function(This As Any Ptr, minWidth As Single Ptr) As HRESULT
+	HitTestPoint As Function(This As Any Ptr, pointX As Single, pointY As Single, isTrailingHit As Long Ptr, isInside As Long Ptr, hitTestMetrics As Any Ptr) As HRESULT
+	HitTestTextPosition As Function(This As Any Ptr, textPosition As UInteger, isTrailingHit As Long, pointX As Single Ptr, pointY As Single Ptr, hitTestMetrics As Any Ptr) As HRESULT
+	HitTestTextRange As Function(This As Any Ptr, textPosition As UInteger, textLength As UInteger, originX As Single, originY As Single, hitTestMetrics As Any Ptr, maxHitTestMetricsCount As UInteger, actualHitTestMetricsCount As UInteger Ptr) As HRESULT
 End Type
 
 Type IDWriteTextLayout
 	lpVtbl As IDWriteTextLayoutVtbl Ptr
 End Type
 
-Type IDWriteFontCollection
+Type IDWriteFontCollection_
 	lpVtbl As Any Ptr
 End Type
 
 Type D2D1_FACTORY_OPTIONS
-    debugLevel As Long
-End Type
-
-Type ID2D1Factory
-	lpVtbl As Any Ptr
+	debugLevel As Long
 End Type
 
 Type ID2D1SolidColorBrushVtbl
@@ -775,54 +843,15 @@ Type ID2D1SolidColorBrushVtbl
 	Release                  As Function(this As Any Ptr) As HRESULT
 End Type
 
-Type ID2D1SolidColorBrush
+Type ID2D1SolidColorBrush_
 	lpVtbl As ID2D1SolidColorBrushVtbl Ptr
 End Type
 
-Type D2D1_POINT_2F
-	x As Single
-	y As Single
-End Type
-
-Type D2D1_RECT_F
-	left As FLOAT
-	top As FLOAT
-	right As FLOAT
-	bottom As FLOAT
-End Type
-
-Type D2D1_SIZE_U
-	Width As ULong
-	height As ULong
-End Type
-
-Type D2D1_SIZE_F
-	Width As Single
-	height As Single
-End Type
-
-Type D2D1_PIXEL_FORMAT
-	format     As ULong
-	alphaMode  As ULong
-End Type
-
-Type D2D1_MATRIX_3X2_F
-	m11 As Single : m12 As Single
-	m21 As Single : m22 As Single
-	dx  As Single : dy  As Single
-End Type
-
-Enum D2D1_UNIT_MODE
-    D2D1_UNIT_MODE_DIPS = 0
-    D2D1_UNIT_MODE_PIXELS = 1
-    D2D1_UNIT_MODE_FORCE_DWORD = &hffffffff
-End Enum
-
 Function D2D1Matrix3x2F_Identity() As D2D1_MATRIX_3X2_F
-    Return Type<D2D1_MATRIX_3X2_F>( _
-        1.0f, 0.0f, _
-        0.0f, 1.0f, _
-        0.0f, 0.0f)
+	Return Type<D2D1_MATRIX_3X2_F>( _
+	1.0f, 0.0f, _
+	0.0f, 1.0f, _
+	0.0f, 0.0f)
 End Function
 
 Type D2D1_BRUSH_PROPERTIES
@@ -852,13 +881,6 @@ Type D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES
 	gradientOriginOffset As D2D1_POINT_2F
 	radiusX As Single
 	radiusY As Single
-End Type
-
-Type D2D1_COLOR_F
-	r As Single
-	g As Single
-	b As Single
-	a As Single
 End Type
 
 Type D2D1_GRADIENT_STOP
@@ -915,100 +937,209 @@ Type D2D1_RENDER_TARGET_PROPERTIES
 	minLevel As D2D1_FEATURE_LEVEL
 End Type
 
-Type ID2D1BrushVtbl
-	' IUnknown
-	QueryInterface           As Function(this As Any Ptr, riid As Const GUID Ptr, ppv As Any Ptr Ptr) As HRESULT
-	AddRef                   As Function(this As Any Ptr) As HRESULT
-	Release                  As Function(this As Any Ptr) As HRESULT
-End Type
-
-Type ID2D1Brush
-	lpVtbl As ID2D1BrushVtbl Ptr
-End Type
-
-Type ID2D1StrokeStyle
-	lpVtbl As Any Ptr
-End Type
-
 Type D2D1_BEZIER_SEGMENT
-    point1 As D2D1_POINT_2F
-    point2 As D2D1_POINT_2F
-    point3 As D2D1_POINT_2F
+	point1 As D2D1_POINT_2F
+	point2 As D2D1_POINT_2F
+	point3 As D2D1_POINT_2F
 End Type
 
 Type D2D1_QUADRATIC_BEZIER_SEGMENT
-    point1 As D2D1_POINT_2F
-    point2 As D2D1_POINT_2F
+	point1 As D2D1_POINT_2F
+	point2 As D2D1_POINT_2F
 End Type
 
 Type D2D1_ARC_SEGMENT
-    point As D2D1_POINT_2F
-    size As D2D1_SIZE_F
-    rotationAngle As Single
-    sweepDirection As D2D1_SWEEP_DIRECTION
-    arcSize As D2D1_ARC_SIZE
+	point As D2D1_POINT_2F
+	size As D2D1_SIZE_F
+	rotationAngle As Single
+	sweepDirection As D2D1_SWEEP_DIRECTION
+	arcSize As D2D1_ARC_SIZE
 End Type
+
+' ID2D1Resource 接口 (IID_ID2D1Resource, &H2cd90691, &H12e2, &H11dc, &H9f, &Hed, &H00, &H11, &H43, &Ha0, &H55, &Hf9)
+Type ID2D1ResourceVtbl
+	QueryInterface As Function(This As ID2D1Resource Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As ID2D1Resource Ptr) As ULong
+	Release As Function(This As ID2D1Resource Ptr) As ULong
+	GetFactory As Function(ByVal This As ID2D1Resource Ptr, ByVal factory As ID2D1Factory Ptr Ptr) As HRESULT
+End Type
+
+Type ID2D1Resource_
+	lpVtbl As ID2D1ResourceVtbl Ptr
+End Type
+
+#define ID2D1Resource_QueryInterface(this, A, B) (this)->lpVtbl->Base.QueryInterface(CPtr(IUnknown Ptr, (this)), A, B)
+#define ID2D1Resource_AddRef(This) (This)->lpVtbl->Base.AddRef(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Resource_Release(This) (This)->lpVtbl->Base.Release(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Resource_GetFactory(this, A) (this)->lpVtbl->GetFactory(this, A)
+
+' ID2D1Brush 接口 (IID_ID2D1Brush, &H2cd906a8, &H12e2, &H11dc, &H9f, &Hed, &H00, &H11, &H43, &Ha0, &H55, &Hf9)
+Type ID2D1BrushVtbl
+	QueryInterface As Function(This As ID2D1Brush Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As ID2D1Brush Ptr) As ULong
+	Release As Function(This As ID2D1Brush Ptr) As ULong
+	SetOpacity As Sub(ByVal This As ID2D1Brush Ptr, ByVal opacity As Single)
+	SetTransform As Sub(ByVal This As ID2D1Brush Ptr, ByVal transform As D2D1_MATRIX_3X2_F Ptr)
+	GetOpacity As Function(ByVal This As ID2D1Brush Ptr) As Single
+	GetTransform As Sub(ByVal This As ID2D1Brush Ptr, ByVal transform As D2D1_MATRIX_3X2_F Ptr)
+End Type
+
+Type ID2D1Brush_
+	lpVtbl As ID2D1BrushVtbl Ptr
+End Type
+
+#define ID2D1Brush_QueryInterface(This, A, B) (This)->lpVtbl->QueryInterface(CPtr(IUnknown Ptr, (This)), A, B)
+#define ID2D1Brush_AddRef(This) (This)->lpVtbl->AddRef(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Brush_Release(This) (This)->lpVtbl->Release(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Brush_GetFactory(This, A) (This)->lpVtbl->GetFactory(CPtr(ID2D1Resource Ptr, (This)), A)
+#define ID2D1Brush_SetOpacity(This, A) (This)->lpVtbl->SetOpacity(This, A)
+#define ID2D1Brush_SetTransform(This, A) (This)->lpVtbl->SetTransform(This, A)
+#define ID2D1Brush_GetOpacity(This) (This)->lpVtbl->GetOpacity(This)
+#define ID2D1Brush_GetTransform(this, A) (this)->lpVtbl->GetTransform(this, A)
+
+' ID2D1Image 接口 (IID_ID2D1Image, &H65019f75, &H8da2, &H497c, &Hb3, &H2c, &Hdf, &Ha3, &H4e, &H48, &Hed, &He6)
+Type ID2D1ImageVtbl
+	QueryInterface As Function(This As ID2D1Image Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As ID2D1Image Ptr) As ULong
+	Release As Function(This As ID2D1Image Ptr) As ULong
+End Type
+
+Type ID2D1Image_
+	lpVtbl As ID2D1ImageVtbl Ptr
+End Type
+
+#define ID2D1Image_QueryInterface(this, A, B) (this)->lpVtbl->QueryInterface(CPtr(IUnkwnown Ptr, (this)), A, B)
+#define ID2D1Image_AddRef(This) (This)->lpVtbl->AddRef(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Image_Release(This) (This)->lpVtbl->Release(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Image_GetFactory(this, A) (this)->lpVtbl->GetFactory(CPtr(ID2D1Resource Ptr, (this)), A)
+
+' ID2D1Bitmap 接口 (IID_ID2D1Bitmap, &Ha2296057, &Hea42, &H4099, &H98, &H3b, &H53, &H9f, &Hb6, &H50, &H54, &H26)
+Type ID2D1BitmapVtbl
+	QueryInterface As Function(This As ID2D1Bitmap Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As ID2D1Bitmap Ptr) As ULong
+	Release As Function(This As ID2D1Bitmap Ptr) As ULong
+	GetSize As Function(ByVal This As ID2D1Bitmap Ptr) As D2D1_SIZE_F
+	GetPixelSize As Function(ByVal This As ID2D1Bitmap Ptr) As D2D1_SIZE_U
+	GetPixelFormat As Function(ByVal This As ID2D1Bitmap Ptr) As D2D1_PIXEL_FORMAT
+	GetDpi As Sub(ByVal This As ID2D1Bitmap Ptr, ByVal dpiX As Single Ptr, ByVal dpiY As Single Ptr)
+	CopyFromBitmap As Function(ByVal This As ID2D1Bitmap Ptr, ByVal destPoint As D2D1_POINT_2U Ptr, ByVal bitmap As ID2D1Bitmap Ptr, ByVal srcRect As D2D1_RECT_U Ptr) As HRESULT
+	CopyFromRenderTarget As Function(ByVal This As ID2D1Bitmap Ptr, ByVal destPoint As D2D1_POINT_2U Ptr, ByVal renderTarget As ID2D1RenderTarget Ptr, ByVal srcRect As D2D1_RECT_U Ptr) As HRESULT
+	CopyFromMemory As Function(ByVal This As ID2D1Bitmap Ptr, ByVal dstRect As D2D1_RECT_U Ptr, ByVal srcData As Any Ptr, ByVal pitch As UINT32) As HRESULT
+End Type
+
+Type ID2D1Bitmap_
+	lpVtbl As ID2D1BitmapVtbl Ptr
+End Type
+
+#define ID2D1Bitmap_QueryInterface(this, A, B) (this)->lpVtbl->Base.Base.Base.QueryInterface(CPtr(IUnkwnown Ptr, (this)), A, B)
+#define ID2D1Bitmap_AddRef(This) (This)->lpVtbl->Base.Base.Base.AddRef(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Bitmap_Release(This) (This)->lpVtbl->Base.Base.Base.Release(CPtr(IUnknown Ptr, (This)))
+#define ID2D1Bitmap_GetFactory(This, A) (This)->lpVtbl->Base.Base.GetFactory(CPtr(ID2D1Resource Ptr, (This)), A)
+#define ID2D1Bitmap_GetSize(This) (This)->lpVtbl->GetSize(This)
+#define ID2D1Bitmap_GetPixelSize(This) (This)->lpVtbl->GetPixelSize(This)
+#define ID2D1Bitmap_GetPixelFormat(This) (This)->lpVtbl->GetPixelFormat(This)
+#define ID2D1Bitmap_GetDpi(This, A, B) (This)->lpVtbl->GetDpi(This, A, B)
+#define ID2D1Bitmap_CopyFromBitmap(This, A, B, C) (This)->lpVtbl->CopyFromBitmap(This, A, B, C)
+#define ID2D1Bitmap_CopyFromRenderTarget(This, A, B, C) (This)->lpVtbl->CopyFromRenderTarget(This, A, B, C)
+#define ID2D1Bitmap_CopyFromMemory(this, A, B, C) (this)->lpVtbl->CopyFromMemory(this, A, B, C)
+
+' ID2D1BitmapBrush 接口 (IID_ID2D1BitmapBrush, &H2cd906aa, &H12e2, &H11dc, &H9f, &Hed, &H00, &H11, &H43, &Ha0, &H55, &Hf9)
+Type ID2D1BitmapBrushVtbl
+	QueryInterface As Function(This As ID2D1BitmapBrush Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As ID2D1BitmapBrush Ptr) As ULong
+	Release As Function(This As ID2D1BitmapBrush Ptr) As ULong
+	
+	SetExtendModeX As Sub(ByVal This As ID2D1BitmapBrush Ptr, ByVal extendModeX As D2D1_EXTEND_MODE)
+	SetExtendModeY As Sub(ByVal This As ID2D1BitmapBrush Ptr, ByVal extendModeY As D2D1_EXTEND_MODE)
+	SetInterpolationMode As Sub(ByVal This As ID2D1BitmapBrush Ptr, ByVal interpolationMode As D2D1_BITMAP_INTERPOLATION_MODE)
+	SetBitmap As Sub(ByVal This As ID2D1BitmapBrush Ptr, ByVal bitmap As ID2D1Bitmap Ptr)
+	GetExtendModeX As Function(ByVal This As ID2D1BitmapBrush Ptr) As D2D1_EXTEND_MODE
+	GetExtendModeY As Function(ByVal This As ID2D1BitmapBrush Ptr) As D2D1_EXTEND_MODE
+	GetInterpolationMode As Function(ByVal This As ID2D1BitmapBrush Ptr) As D2D1_BITMAP_INTERPOLATION_MODE
+	GetBitmap As Sub(ByVal This As ID2D1BitmapBrush Ptr, ByVal bitmap As ID2D1Bitmap Ptr Ptr)
+End Type
+
+Type ID2D1BitmapBrush_
+	lpVtbl As ID2D1BitmapBrushVtbl Ptr
+End Type
+
+#define ID2D1BitmapBrush_QueryInterface(this, A, B) (this)->lpVtbl->Base.Base.Base.QueryInterface(CPtr(IUnkwnown Ptr, (this)), A, B)
+#define ID2D1BitmapBrush_AddRef(This) (This)->lpVtbl->Base.Base.Base.AddRef(CPtr(IUnknown Ptr, (This)))
+#define ID2D1BitmapBrush_Release(This) (This)->lpVtbl->Base.Base.Base.Release(CPtr(IUnknown Ptr, (This)))
+#define ID2D1BitmapBrush_GetFactory(This, A) (This)->lpVtbl->Base.Base.GetFactory(CPtr(ID2D1Resource Ptr, (This)), A)
+#define ID2D1BitmapBrush_SetOpacity(This, A) (This)->lpVtbl->Base.SetOpacity(CPtr(ID2D1Brush Ptr, (This)), A)
+#define ID2D1BitmapBrush_SetTransform(This, A) (This)->lpVtbl->Base.SetTransform(CPtr(ID2D1Brush Ptr, (This)), A)
+#define ID2D1BitmapBrush_GetOpacity(This) (This)->lpVtbl->Base.GetOpacity(CPtr(ID2D1Brush Ptr, (This)))
+#define ID2D1BitmapBrush_GetTransform(This, A) (This)->lpVtbl->Base.GetTransform(CPtr(ID2D1Brush Ptr, (This)), A)
+#define ID2D1BitmapBrush_SetExtendModeX(This, A) (This)->lpVtbl->SetExtendModeX(This, A)
+#define ID2D1BitmapBrush_SetExtendModeY(This, A) (This)->lpVtbl->SetExtendModeY(This, A)
+#define ID2D1BitmapBrush_SetInterpolationMode(This, A) (This)->lpVtbl->SetInterpolationMode(This, A)
+#define ID2D1BitmapBrush_SetBitmap(This, A) (This)->lpVtbl->SetBitmap(This, A)
+#define ID2D1BitmapBrush_GetExtendModeX(This) (This)->lpVtbl->GetExtendModeX(This)
+#define ID2D1BitmapBrush_GetExtendModeY(This) (This)->lpVtbl->GetExtendModeY(This)
+#define ID2D1BitmapBrush_GetInterpolationMode(This) (This)->lpVtbl->GetInterpolationMode(This)
+#define ID2D1BitmapBrush_GetBitmap(this, A) (this)->lpVtbl->GetBitmap(this, A)
 
 Type ID2D1GeometrySinkVtbl
-    ' IUnknown
-    QueryInterface As Function(This As Any Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(This As Any Ptr) As ULong
-    Release As Function(This As Any Ptr) As ULong
-
-    ' ID2D1SimplifiedGeometrySink
-    SetFillMode As Sub(This As Any Ptr, fillMode As D2D1_FILL_MODE)
-    SetSegmentFlags As Sub(This As Any Ptr, vertexFlags As D2D1_PATH_SEGMENT)
-    BeginFigure As Sub(This As Any Ptr, startPoint As D2D1_POINT_2F, figureBegin As D2D1_FIGURE_BEGIN)
-    AddLines As Sub(This As Any Ptr, points As Const D2D1_POINT_2F Ptr, pointsCount As UInteger)
-    AddBeziers As Sub(This As Any Ptr, beziers As Const D2D1_BEZIER_SEGMENT Ptr, beziersCount As UInteger)
-    EndFigure As Sub(This As Any Ptr, figureEnd As D2D1_FIGURE_END)
-    Close As Function(This As Any Ptr) As HRESULT
-
-    ' ID2D1GeometrySink
-    AddLine As Sub(This As Any Ptr, point As D2D1_POINT_2F)
-    AddBezier As Sub(This As Any Ptr, bezier As Const D2D1_BEZIER_SEGMENT Ptr)
-    AddQuadraticBezier As Sub(This As Any Ptr, bezier As Const D2D1_QUADRATIC_BEZIER_SEGMENT Ptr)
-    AddQuadraticBeziers As Sub(This As Any Ptr, beziers As Const D2D1_QUADRATIC_BEZIER_SEGMENT Ptr, beziersCount As UInteger)
-    AddArc As Sub(This As Any Ptr, arc As Const D2D1_ARC_SEGMENT Ptr)
+	' IUnknown
+	QueryInterface As Function(This As ID2D1GeometrySink Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As ID2D1GeometrySink Ptr) As ULong
+	Release As Function(This As ID2D1GeometrySink Ptr) As ULong
+	
+	' ID2D1SimplifiedGeometrySink
+	SetFillMode As Sub(This As ID2D1GeometrySink Ptr, fillMode As D2D1_FILL_MODE)
+	SetSegmentFlags As Sub(This As ID2D1GeometrySink Ptr, vertexFlags As D2D1_PATH_SEGMENT)
+	BeginFigure As Sub(This As ID2D1GeometrySink Ptr, startPoint As D2D1_POINT_2F, figureBegin As D2D1_FIGURE_BEGIN)
+	AddLines As Sub(This As ID2D1GeometrySink Ptr, points As Const D2D1_POINT_2F Ptr, pointsCount As UInteger)
+	AddBeziers As Sub(This As ID2D1GeometrySink Ptr, beziers As Const D2D1_BEZIER_SEGMENT Ptr, beziersCount As UInteger)
+	EndFigure As Sub(This As ID2D1GeometrySink Ptr, figureEnd As D2D1_FIGURE_END)
+	Close As Function(This As ID2D1GeometrySink Ptr) As HRESULT
+	
+	' ID2D1GeometrySink
+	AddLine As Sub(This As ID2D1GeometrySink Ptr, point As D2D1_POINT_2F)
+	AddBezier As Sub(This As ID2D1GeometrySink Ptr, bezier As Const D2D1_BEZIER_SEGMENT Ptr)
+	AddQuadraticBezier As Sub(This As ID2D1GeometrySink Ptr, bezier As Const D2D1_QUADRATIC_BEZIER_SEGMENT Ptr)
+	AddQuadraticBeziers As Sub(This As ID2D1GeometrySink Ptr, beziers As Const D2D1_QUADRATIC_BEZIER_SEGMENT Ptr, beziersCount As UInteger)
+	AddArc As Sub(This As ID2D1GeometrySink Ptr, arc As Const D2D1_ARC_SEGMENT Ptr)
 End Type
 
-Type ID2D1GeometrySink
-    lpVtbl As ID2D1GeometrySinkVtbl Ptr
+Type ID2D1GeometrySink_
+	lpVtbl As ID2D1GeometrySinkVtbl Ptr
 End Type
 
 Type ID2D1PathGeometryVtbl
-    ' IUnknown
-    QueryInterface As Function(This As Any Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(This As Any Ptr) As ULong
-    Release As Function(This As Any Ptr) As ULong
-
-    ' ID2D1Resource
-    GetFactory As Sub(This As Any Ptr, ppFactory As Any Ptr Ptr)
-
-    ' ID2D1Geometry
-    GetBounds As Function(This As Any Ptr, worldTransform As Const Any Ptr, bounds As Any Ptr) As HRESULT
-    GetWidenedBounds As Function(This As Any Ptr, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, bounds As Any Ptr) As HRESULT
-    StrokeContainsPoint As Function(This As Any Ptr, point As D2D1_POINT_2F, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, contains As Integer Ptr) As HRESULT
-    FillContainsPoint As Function(This As Any Ptr, point As D2D1_POINT_2F, worldTransform As Const Any Ptr, flatteningTolerance As Single, contains As Integer Ptr) As HRESULT
-    CompareWithGeometry As Function(This As Any Ptr, inputGeometry As Any Ptr, inputTransform As Const Any Ptr, relation As Long Ptr) As HRESULT
-    Simplify As Function(This As Any Ptr, simplificationOption As Long, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
-    Tessellate As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, tessellationSink As Any Ptr) As HRESULT
-    CombineWithGeometry As Function(This As Any Ptr, inputGeometry As Any Ptr, combineMode As Long, inputTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
-    Outline As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
-    ComputeArea As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, area As Single Ptr) As HRESULT
-    ComputeLength As Function(This As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, length As Single Ptr) As HRESULT
-    ComputePointAtLength As Function(This As Any Ptr, length As Single, worldTransform As Const Any Ptr, flatteningTolerance As Single, point As D2D1_POINT_2F Ptr, unitTangentVector As D2D1_POINT_2F Ptr) As HRESULT
-    Widen As Function(This As Any Ptr, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
-
-    ' ID2D1PathGeometry
-    Open As Function(This As Any Ptr, ppSink As ID2D1GeometrySink Ptr Ptr) As HRESULT
-    Stream As Function(This As Any Ptr, geometrySink As Any Ptr) As HRESULT
-    GetSegmentCount As Function(This As Any Ptr, count As UInteger Ptr) As HRESULT
-    GetFigureCount As Function(This As Any Ptr, count As UInteger Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(This As ID2D1PathGeometry Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As ID2D1PathGeometry Ptr) As ULong
+	Release As Function(This As ID2D1PathGeometry Ptr) As ULong
+	
+	' ID2D1Resource
+	GetFactory As Sub(This As ID2D1PathGeometry Ptr, ppFactory As Any Ptr Ptr)
+	
+	' ID2D1Geometry
+	GetBounds As Function(This As ID2D1PathGeometry Ptr, worldTransform As Const Any Ptr, bounds As Any Ptr) As HRESULT
+	GetWidenedBounds As Function(This As ID2D1PathGeometry Ptr, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, bounds As Any Ptr) As HRESULT
+	StrokeContainsPoint As Function(This As ID2D1PathGeometry Ptr, point As D2D1_POINT_2F, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, contains As Integer Ptr) As HRESULT
+	FillContainsPoint As Function(This As ID2D1PathGeometry Ptr, point As D2D1_POINT_2F, worldTransform As Const Any Ptr, flatteningTolerance As Single, contains As Integer Ptr) As HRESULT
+	CompareWithGeometry As Function(This As ID2D1PathGeometry Ptr, inputGeometry As Any Ptr, inputTransform As Const Any Ptr, relation As Long Ptr) As HRESULT
+	Simplify As Function(This As ID2D1PathGeometry Ptr, simplificationOption As Long, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+	Tessellate As Function(This As ID2D1PathGeometry Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, tessellationSink As Any Ptr) As HRESULT
+	CombineWithGeometry As Function(This As ID2D1PathGeometry Ptr, inputGeometry As Any Ptr, combineMode As Long, inputTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+	Outline As Function(This As ID2D1PathGeometry Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+	ComputeArea As Function(This As ID2D1PathGeometry Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, area As Single Ptr) As HRESULT
+	ComputeLength As Function(This As ID2D1PathGeometry Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, length As Single Ptr) As HRESULT
+	ComputePointAtLength As Function(This As ID2D1PathGeometry Ptr, length As Single, worldTransform As Const Any Ptr, flatteningTolerance As Single, point As D2D1_POINT_2F Ptr, unitTangentVector As D2D1_POINT_2F Ptr) As HRESULT
+	Widen As Function(This As ID2D1PathGeometry Ptr, strokeWidth As Single, strokeStyle As Any Ptr, worldTransform As Const Any Ptr, flatteningTolerance As Single, geometrySink As Any Ptr) As HRESULT
+	
+	' ID2D1PathGeometry
+	Open As Function(This As ID2D1PathGeometry Ptr, ppSink As ID2D1GeometrySink Ptr Ptr) As HRESULT
+	Stream As Function(This As ID2D1PathGeometry Ptr, geometrySink As Any Ptr) As HRESULT
+	GetSegmentCount As Function(This As ID2D1PathGeometry Ptr, count As UInteger Ptr) As HRESULT
+	GetFigureCount As Function(This As ID2D1PathGeometry Ptr, count As UInteger Ptr) As HRESULT
 End Type
 
-Type ID2D1PathGeometry
-    lpVtbl As ID2D1PathGeometryVtbl Ptr
+Type ID2D1PathGeometry_
+	lpVtbl As ID2D1PathGeometryVtbl Ptr
 End Type
 
 Type D2D1_TAG As UINT64
@@ -1078,7 +1209,7 @@ Type ID2D1RenderTargetVtbl
 	IsSupported              As Function(this As Any Ptr, renderTargetProperties As Const D2D1_RENDER_TARGET_PROPERTIES Ptr) As BOOL
 End Type
 
-Type ID2D1RenderTarget
+Type ID2D1RenderTarget_
 	lpVtbl As ID2D1RenderTargetVtbl Ptr
 End Type
 
@@ -1086,58 +1217,7 @@ Type IWICBitmapSource
 	lpVtbl As Any Ptr
 End Type
 
-Type ID2D1BitmapVtbl
-	' IUnknown
-	QueryInterface           As Function(this As Any Ptr, riid As Const GUID Ptr, ppv As Any Ptr Ptr) As HRESULT
-	AddRef                   As Function(this As Any Ptr) As HRESULT
-	Release                  As Function(this As Any Ptr) As HRESULT
-End Type
-
-Type ID2D1Bitmap
-	lpVtbl As ID2D1BitmapVtbl Ptr
-End Type
-
-Type ID2D1Layer
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1Geometry
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1Mesh
-	lpVtbl As Any Ptr
-End Type
-
 Type IDWriteRenderingParams
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1BitmapBrush
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1GradientStopCollection
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1LinearGradientBrush
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1RadialGradientBrush
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1BitmapRenderTarget
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1DrawingStateBlock
-	lpVtbl As Any Ptr
-End Type
-
-Type ID2D1Image
 	lpVtbl As Any Ptr
 End Type
 
@@ -1149,11 +1229,10 @@ Type D2D1_BITMAP_BRUSH_PROPERTIES1
 	lpVtbl As Any Ptr
 End Type
 
-Type D2D1_COLOR_SPACE As Long
-Enum
-    D2D1_COLOR_SPACE_CUSTOM = 0
-    D2D1_COLOR_SPACE_SRGB = 1
-    D2D1_COLOR_SPACE_SCRGB = 2
+Enum D2D1_COLOR_SPACE
+	D2D1_COLOR_SPACE_CUSTOM = 0
+	D2D1_COLOR_SPACE_SRGB = 1
+	D2D1_COLOR_SPACE_SCRGB = 2
 End Enum
 
 Type ID2D1CommandList
@@ -1164,39 +1243,36 @@ Type ID2D1GradientStopCollection1
 	lpVtbl As Any Ptr
 End Type
 
-Type D2D1_BUFFER_PRECISION As Long
-Enum
-    D2D1_BUFFER_PRECISION_UNKNOWN        = 0
-    D2D1_BUFFER_PRECISION_8BPC_UNORM     = 1
-    D2D1_BUFFER_PRECISION_8BPC_UNORM_SRGB = 2
-    D2D1_BUFFER_PRECISION_16BPC_UNORM    = 3
-    D2D1_BUFFER_PRECISION_16BPC_FLOAT    = 4
-    D2D1_BUFFER_PRECISION_32BPC_FLOAT    = 5
+Enum D2D1_BUFFER_PRECISION
+	D2D1_BUFFER_PRECISION_UNKNOWN        = 0
+	D2D1_BUFFER_PRECISION_8BPC_UNORM     = 1
+	D2D1_BUFFER_PRECISION_8BPC_UNORM_SRGB = 2
+	D2D1_BUFFER_PRECISION_16BPC_UNORM    = 3
+	D2D1_BUFFER_PRECISION_16BPC_FLOAT    = 4
+	D2D1_BUFFER_PRECISION_32BPC_FLOAT    = 5
 End Enum
 
 Type D2D1_RENDERING_CONTROLS
 	lpVtbl As Any Ptr
 End Type
 
-Type D2D1_COLOR_INTERPOLATION_MODE As Long
-Enum
-    D2D1_COLOR_INTERPOLATION_MODE_STRAIGHT = 0
-    D2D1_COLOR_INTERPOLATION_MODE_PREMULTIPLIED = 1
+Enum D2D1_COLOR_INTERPOLATION_MODE
+	D2D1_COLOR_INTERPOLATION_MODE_STRAIGHT = 0
+	D2D1_COLOR_INTERPOLATION_MODE_PREMULTIPLIED = 1
 End Enum
 
-Type D2D1_PRIMITIVE_BLEND As Long
-Enum
-    D2D1_PRIMITIVE_BLEND_SOURCE_OVER = 0
-    D2D1_PRIMITIVE_BLEND_SOURCE_IN = 1
-    D2D1_PRIMITIVE_BLEND_SOURCE_OUT = 2
-    D2D1_PRIMITIVE_BLEND_SOURCE_ATOP = 3
-    D2D1_PRIMITIVE_BLEND_DESTINATION_OVER = 4
-    D2D1_PRIMITIVE_BLEND_DESTINATION_IN = 5
-    D2D1_PRIMITIVE_BLEND_DESTINATION_OUT = 6
-    D2D1_PRIMITIVE_BLEND_DESTINATION_ATOP = 7
-    D2D1_PRIMITIVE_BLEND_XOR = 8
-    D2D1_PRIMITIVE_BLEND_COPY = 9
-    D2D1_PRIMITIVE_BLEND_PLUS = 10
+Enum D2D1_PRIMITIVE_BLEND
+	D2D1_PRIMITIVE_BLEND_SOURCE_OVER = 0
+	D2D1_PRIMITIVE_BLEND_SOURCE_IN = 1
+	D2D1_PRIMITIVE_BLEND_SOURCE_OUT = 2
+	D2D1_PRIMITIVE_BLEND_SOURCE_ATOP = 3
+	D2D1_PRIMITIVE_BLEND_DESTINATION_OVER = 4
+	D2D1_PRIMITIVE_BLEND_DESTINATION_IN = 5
+	D2D1_PRIMITIVE_BLEND_DESTINATION_OUT = 6
+	D2D1_PRIMITIVE_BLEND_DESTINATION_ATOP = 7
+	D2D1_PRIMITIVE_BLEND_XOR = 8
+	D2D1_PRIMITIVE_BLEND_COPY = 9
+	D2D1_PRIMITIVE_BLEND_PLUS = 10
 End Enum
 
 Type ID2D1ImageBrush
@@ -1210,65 +1286,64 @@ End Type
 Type ID2D1ColorContext As ID2D1ColorContext_
 
 Type ID2D1ColorContextVtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal This As ID2D1ColorContext Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(ByVal This As ID2D1ColorContext Ptr) As ULong
-    Release As Function(ByVal This As ID2D1ColorContext Ptr) As ULong
-
-    ' ID2D1Resource
-    GetFactory As Sub(ByVal This As ID2D1ColorContext Ptr, ByVal ppFactory As Any Ptr Ptr)
-
-    ' ID2D1ColorContext
-    GetColorSpace As Function(ByVal This As ID2D1ColorContext Ptr) As D2D1_COLOR_SPACE
-    GetProfileSize As Function(ByVal This As ID2D1ColorContext Ptr) As ULong
-    GetProfile As Function(ByVal This As ID2D1ColorContext Ptr, ByVal profileBuffer As UByte Ptr, ByVal profileSize As ULong) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal This As ID2D1ColorContext Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(ByVal This As ID2D1ColorContext Ptr) As ULong
+	Release As Function(ByVal This As ID2D1ColorContext Ptr) As ULong
+	
+	' ID2D1Resource
+	GetFactory As Sub(ByVal This As ID2D1ColorContext Ptr, ByVal ppFactory As Any Ptr Ptr)
+	
+	' ID2D1ColorContext
+	GetColorSpace As Function(ByVal This As ID2D1ColorContext Ptr) As D2D1_COLOR_SPACE
+	GetProfileSize As Function(ByVal This As ID2D1ColorContext Ptr) As ULong
+	GetProfile As Function(ByVal This As ID2D1ColorContext Ptr, ByVal profileBuffer As UByte Ptr, ByVal profileSize As ULong) As HRESULT
 End Type
 
 Type ID2D1ColorContext_
-    lpVtbl As ID2D1ColorContextVtbl Ptr
+	lpVtbl As ID2D1ColorContextVtbl Ptr
 End Type
 
-Type D2D1_BITMAP_OPTIONS As Long
-Enum
-    D2D1_BITMAP_OPTIONS_NONE              = &h0
-    D2D1_BITMAP_OPTIONS_TARGET            = &h1
-    D2D1_BITMAP_OPTIONS_CANNOT_DRAW       = &h2
-    D2D1_BITMAP_OPTIONS_CPU_READ          = &h4
-    D2D1_BITMAP_OPTIONS_GPU_READ          = &h8
-    D2D1_BITMAP_OPTIONS_FORCE_DWORD       = &hFFFFFFFF
+Enum D2D1_BITMAP_OPTIONS
+	D2D1_BITMAP_OPTIONS_NONE              = &h0
+	D2D1_BITMAP_OPTIONS_TARGET            = &h1
+	D2D1_BITMAP_OPTIONS_CANNOT_DRAW       = &h2
+	D2D1_BITMAP_OPTIONS_CPU_READ          = &h4
+	D2D1_BITMAP_OPTIONS_GPU_READ          = &h8
+	D2D1_BITMAP_OPTIONS_FORCE_DWORD       = &hFFFFFFFF
 End Enum
 
 Type D2D1_BITMAP_PROPERTIES1
-    pixelFormat As D2D1_PIXEL_FORMAT
-    dpiX As Single
-    dpiY As Single
-    bitmapOptions As D2D1_BITMAP_OPTIONS
-    colorContext As ID2D1ColorContext Ptr
+	pixelFormat As D2D1_PIXEL_FORMAT
+	dpiX As Single
+	dpiY As Single
+	bitmapOptions As D2D1_BITMAP_OPTIONS
+	colorContext As ID2D1ColorContext Ptr
 End Type
 
 Type DWRITE_GLYPH_RUN_DESCRIPTION
-    localeName As WString Ptr
-    string As WString Ptr
-    stringLength As ULong
-    clusterMap As UShort Ptr
-    textPosition As ULong
+	localeName As WString Ptr
+	string As WString Ptr
+	stringLength As ULong
+	clusterMap As UShort Ptr
+	textPosition As ULong
 End Type
 
-Type ID2D1Device_ As ID2D1Device
+Type ID2D1Device As ID2D1Device_
 
 Type ID2D1DeviceContext As ID2D1DeviceContext_
 
 Type ID2D1DeviceContextVtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef         As Function(ByVal This As Any Ptr) As ULong
-    Release        As Function(ByVal This As Any Ptr) As ULong
-
-    ' ID2D1Resource
-    GetFactory     As Sub(ByVal This As Any Ptr, ByVal factory As ID2D1Factory Ptr Ptr)
-
-    ' ID2D1RenderTarget
-    CreateBitmap             As Function(this As Any Ptr, size As D2D1_SIZE_U, srcData As Any Ptr, pitch As UINT32, bitmapProperties As Const D2D1_BITMAP_PROPERTIES Ptr, bitmap As Any Ptr Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef         As Function(ByVal This As Any Ptr) As ULong
+	Release        As Function(ByVal This As Any Ptr) As ULong
+	
+	' ID2D1Resource
+	GetFactory     As Sub(ByVal This As Any Ptr, ByVal factory As ID2D1Factory Ptr Ptr)
+	
+	' ID2D1RenderTarget
+	CreateBitmap             As Function(this As Any Ptr, size As D2D1_SIZE_U, srcData As Any Ptr, pitch As UINT32, bitmapProperties As Const D2D1_BITMAP_PROPERTIES Ptr, bitmap As Any Ptr Ptr) As HRESULT
 	CreateBitmapFromWicBitmap As Function(this As Any Ptr, wicBitmapSource As Any Ptr, bitmapProperties As Const D2D1_BITMAP_PROPERTIES Ptr, bitmap As Any Ptr Ptr) As HRESULT
 	CreateSharedBitmap       As Function(this As Any Ptr, riid As Const GUID Ptr, data As Any Ptr, bitmapProperties As Const D2D1_BITMAP_PROPERTIES Ptr, bitmap As Any Ptr Ptr) As HRESULT
 	CreateBitmapBrush        As Function(this As Any Ptr, bitmap As Any Ptr, brushProperties As Const D2D1_BITMAP_BRUSH_PROPERTIES Ptr, brushProps As Const D2D1_BRUSH_PROPERTIES Ptr, brush As Any Ptr Ptr) As HRESULT
@@ -1321,52 +1396,51 @@ Type ID2D1DeviceContextVtbl
 	GetPixelSize             As Function(this As Any Ptr) As D2D1_SIZE_U
 	GetMaximumBitmapSize     As Function(this As Any Ptr) As UINT32
 	IsSupported              As Function(this As Any Ptr, renderTargetProperties As Const D2D1_RENDER_TARGET_PROPERTIES Ptr) As BOOL
-
-    ' ID2D1DeviceContext
-    CreateBitmap1 As Function(This As Any Ptr, size As Const D2D1_SIZE_U, sourceData As Any Ptr, pitch As ULong, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
-    CreateBitmapFromWicBitmap1 As Function(This As Any Ptr, wicBitmapSource As Any Ptr, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
-    CreateColorContext As Function(This As Any Ptr, space As Long, profile As Const UByte Ptr, profileSize As ULong, ppColorContext As Any Ptr Ptr) As HRESULT
-    CreateColorContextFromFilename As Function(This As Any Ptr, filename As WString Ptr, ppColorContext As Any Ptr Ptr) As HRESULT
-    CreateColorContextFromWicColorContext As Function(This As Any Ptr, wicContext As Any Ptr, ppColorContext As Any Ptr Ptr) As HRESULT
-    CreateBitmapFromDxgiSurface As Function(This As Any Ptr, surface As Any Ptr, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
-    CreateEffect As Function(This As Any Ptr, effectId As Const GUID Ptr, ppEffect As Any Ptr Ptr) As HRESULT
-    CreateGradientStopCollection1 As Function(This As Any Ptr, gradientStops As Const D2D1_GRADIENT_STOP Ptr, gradientStopsCount As ULong, preInterpolationSpace As Long, postInterpolationSpace As Long, bufferPrecision As Long, extendMode As Long, colorInterpolationMode As Long, ppGradientStopCollection1 As Any Ptr Ptr) As HRESULT
-    CreateImageBrush As Function(This As Any Ptr, image As Any Ptr, imageBrushProperties As Const D2D1_IMAGE_BRUSH_PROPERTIES Ptr, brushProperties As Const D2D1_BRUSH_PROPERTIES Ptr, ppImageBrush As Any Ptr Ptr) As HRESULT
-    CreateBitmapBrush1 As Function(This As Any Ptr, bitmap As Any Ptr, bitmapBrushProperties As Const D2D1_BITMAP_BRUSH_PROPERTIES1 Ptr, brushProperties As Const D2D1_BRUSH_PROPERTIES Ptr, ppBitmapBrush As Any Ptr Ptr) As HRESULT
-    CreateCommandList As Function(This As Any Ptr, ppCommandList As Any Ptr Ptr) As HRESULT
-    IsDxgiFormatSupported As Function(This As Any Ptr, format As DXGI_FORMAT) As BOOL
-    IsBufferPrecisionSupported As Function(This As Any Ptr, bufferPrecision As Long) As BOOL
-    GetImageLocalBounds As Function(This As Any Ptr, image As Any Ptr, localBounds As D2D1_RECT_F Ptr) As HRESULT
-    GetImageWorldBounds As Function(This As Any Ptr, image As Any Ptr, worldBounds As D2D1_RECT_F Ptr) As HRESULT
-    GetGlyphRunWorldBounds As Function(This As Any Ptr, baselineOrigin As Const D2D1_POINT_2F Ptr, glyphRun As Const DWRITE_GLYPH_RUN Ptr, measuringMode As Long, bounds As D2D1_RECT_F Ptr) As HRESULT
-    GetDevice As Function(This As Any Ptr, device As Any Ptr Ptr) As Sub
-    SetTarget As Sub(This As Any Ptr, image As Any Ptr)
-    GetTarget As Function(This As Any Ptr) As Any Ptr
-    SetRenderingControls As Sub(This As Any Ptr, renderingControls As Const D2D1_RENDERING_CONTROLS Ptr)
-    GetRenderingControls As Sub(This As Any Ptr, renderingControls As D2D1_RENDERING_CONTROLS Ptr)
-    SetPrimitiveBlend As Sub(This As Any Ptr, blend As Long)
-    GetPrimitiveBlend As Function(This As Any Ptr) As Long
-    SetUnitMode As Sub(This As Any Ptr, unitMode As Long)
-    GetUnitMode As Function(This As Any Ptr) As Long
-    DrawGlyphRun1 As Sub(This As Any Ptr, baselineOrigin As Const D2D1_POINT_2F Ptr, glyphRun As Const DWRITE_GLYPH_RUN Ptr, glyphRunDescription As Const DWRITE_GLYPH_RUN_DESCRIPTION Ptr, foregroundBrush As Any Ptr, measuringMode As Long)
-    DrawImage As Sub(This As Any Ptr, image As Any Ptr, targetOffset As Const D2D1_POINT_2F Ptr, imageRectangle As Const D2D1_RECT_F Ptr, interpolationMode As Long, compositeMode As Long)
-    DrawGdiMetafile As Sub(This As Any Ptr, metafile As Any Ptr, targetOffset As Const D2D1_POINT_2F Ptr)
-    DrawGdiMetafile2 As Sub(This As Any Ptr, metafile As Any Ptr, targetOffset As Const D2D1_POINT_2F Ptr, sourceRectangle As Const D2D1_RECT_F Ptr)
-    SetTarget1 As Sub(This As Any Ptr, image As Any Ptr)
-    GetTarget1 As Function(This As Any Ptr) As Any Ptr
-    SetTextAntialiasMode1 As Sub(This As Any Ptr, mode As Long)
-    GetTextAntialiasMode1 As Function(This As Any Ptr) As Long
+	
+	' ID2D1DeviceContext
+	CreateBitmap1 As Function(This As Any Ptr, size As Const D2D1_SIZE_U, sourceData As Any Ptr, pitch As ULong, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
+	CreateBitmapFromWicBitmap1 As Function(This As Any Ptr, wicBitmapSource As Any Ptr, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
+	CreateColorContext As Function(This As Any Ptr, space As Long, profile As Const UByte Ptr, profileSize As ULong, ppColorContext As Any Ptr Ptr) As HRESULT
+	CreateColorContextFromFilename As Function(This As Any Ptr, filename As WString Ptr, ppColorContext As Any Ptr Ptr) As HRESULT
+	CreateColorContextFromWicColorContext As Function(This As Any Ptr, wicContext As Any Ptr, ppColorContext As Any Ptr Ptr) As HRESULT
+	CreateBitmapFromDxgiSurface As Function(This As Any Ptr, surface As Any Ptr, bitmapProperties As Const D2D1_BITMAP_PROPERTIES1 Ptr, ppBitmap As Any Ptr Ptr) As HRESULT
+	CreateEffect As Function(This As Any Ptr, effectId As Const GUID Ptr, ppEffect As Any Ptr Ptr) As HRESULT
+	CreateGradientStopCollection1 As Function(This As Any Ptr, gradientStops As Const D2D1_GRADIENT_STOP Ptr, gradientStopsCount As ULong, preInterpolationSpace As Long, postInterpolationSpace As Long, bufferPrecision As Long, extendMode As Long, colorInterpolationMode As Long, ppGradientStopCollection1 As Any Ptr Ptr) As HRESULT
+	CreateImageBrush As Function(This As Any Ptr, image As Any Ptr, imageBrushProperties As Const D2D1_IMAGE_BRUSH_PROPERTIES Ptr, brushProperties As Const D2D1_BRUSH_PROPERTIES Ptr, ppImageBrush As Any Ptr Ptr) As HRESULT
+	CreateBitmapBrush1 As Function(This As Any Ptr, bitmap As Any Ptr, bitmapBrushProperties As Const D2D1_BITMAP_BRUSH_PROPERTIES1 Ptr, brushProperties As Const D2D1_BRUSH_PROPERTIES Ptr, ppBitmapBrush As Any Ptr Ptr) As HRESULT
+	CreateCommandList As Function(This As Any Ptr, ppCommandList As Any Ptr Ptr) As HRESULT
+	IsDxgiFormatSupported As Function(This As Any Ptr, format As DXGI_FORMAT) As BOOL
+	IsBufferPrecisionSupported As Function(This As Any Ptr, bufferPrecision As Long) As BOOL
+	GetImageLocalBounds As Function(This As Any Ptr, image As Any Ptr, localBounds As D2D1_RECT_F Ptr) As HRESULT
+	GetImageWorldBounds As Function(This As Any Ptr, image As Any Ptr, worldBounds As D2D1_RECT_F Ptr) As HRESULT
+	GetGlyphRunWorldBounds As Function(This As Any Ptr, baselineOrigin As Const D2D1_POINT_2F Ptr, glyphRun As Const DWRITE_GLYPH_RUN Ptr, measuringMode As Long, bounds As D2D1_RECT_F Ptr) As HRESULT
+	GetDevice As Function(This As Any Ptr, device As Any Ptr Ptr) As Sub
+	SetTarget As Sub(This As Any Ptr, image As Any Ptr)
+	GetTarget As Function(This As Any Ptr) As Any Ptr
+	SetRenderingControls As Sub(This As Any Ptr, renderingControls As Const D2D1_RENDERING_CONTROLS Ptr)
+	GetRenderingControls As Sub(This As Any Ptr, renderingControls As D2D1_RENDERING_CONTROLS Ptr)
+	SetPrimitiveBlend As Sub(This As Any Ptr, blend As Long)
+	GetPrimitiveBlend As Function(This As Any Ptr) As Long
+	SetUnitMode As Sub(This As Any Ptr, unitMode As Long)
+	GetUnitMode As Function(This As Any Ptr) As Long
+	DrawGlyphRun1 As Sub(This As Any Ptr, baselineOrigin As Const D2D1_POINT_2F Ptr, glyphRun As Const DWRITE_GLYPH_RUN Ptr, glyphRunDescription As Const DWRITE_GLYPH_RUN_DESCRIPTION Ptr, foregroundBrush As Any Ptr, measuringMode As Long)
+	DrawImage As Sub(This As Any Ptr, image As Any Ptr, targetOffset As Const D2D1_POINT_2F Ptr, imageRectangle As Const D2D1_RECT_F Ptr, interpolationMode As Long, compositeMode As Long)
+	DrawGdiMetafile As Sub(This As Any Ptr, metafile As Any Ptr, targetOffset As Const D2D1_POINT_2F Ptr)
+	DrawGdiMetafile2 As Sub(This As Any Ptr, metafile As Any Ptr, targetOffset As Const D2D1_POINT_2F Ptr, sourceRectangle As Const D2D1_RECT_F Ptr)
+	SetTarget1 As Sub(This As Any Ptr, image As Any Ptr)
+	GetTarget1 As Function(This As Any Ptr) As Any Ptr
+	SetTextAntialiasMode1 As Sub(This As Any Ptr, mode As Long)
+	GetTextAntialiasMode1 As Function(This As Any Ptr) As Long
 End Type
 
 Type ID2D1DeviceContext_
 	lpVtbl As ID2D1DeviceContextVtbl Ptr
 End Type
 
-Type D2D1_DEVICE_CONTEXT_OPTIONS As Long
-Enum
-    D2D1_DEVICE_CONTEXT_OPTIONS_NONE = 0
-    D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS = 1
-    D2D1_DEVICE_CONTEXT_OPTIONS_FORCE_DWORD = &HFFFFFFFF
+Enum D2D1_DEVICE_CONTEXT_OPTIONS
+	D2D1_DEVICE_CONTEXT_OPTIONS_NONE = 0
+	D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS = 1
+	D2D1_DEVICE_CONTEXT_OPTIONS_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
 Const WICBitmapUseAlpha = &H00000001
@@ -1402,23 +1476,23 @@ Const WICBitmapPaletteTypeFixedGray16      = 11
 Const WICBitmapPaletteTypeFixedGray256     = 12
 
 Type IWICFormatConverterVtbl
-    ' IUnknown
-    QueryInterface As Function(this As Any Ptr, riid As Const IID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef          As Function(this As Any Ptr) As ULong
-    Release         As Function(this As Any Ptr) As ULong
-    ' IWICBitmapSource
-    GetSize         As Function(this As Any Ptr, puiWidth As UINT Ptr, puiHeight As UINT Ptr) As HRESULT
-    GetPixelFormat  As Function(this As Any Ptr, pPixelFormat As GUID Ptr) As HRESULT
-    GetResolution   As Function(this As Any Ptr, pDpiX As Double Ptr, pDpiY As Double Ptr) As HRESULT
-    CopyPalette     As Function(this As Any Ptr, pIPalette As Any Ptr) As HRESULT
-    CopyPixels      As Function(this As Any Ptr, prc As Const Any Ptr, cbStride As UINT, cbBufferSize As UINT, pbBuffer As Byte Ptr) As HRESULT
-    ' IWICFormatConverter
-    Initialize      As Function(this As Any Ptr, pISource As Any Ptr, dstFormat As Const GUID Ptr, dither As Integer, alpha As Single, pPalette As Any Ptr, paletteType As Integer) As HRESULT
-    CanConvert      As Function(this As Any Ptr, srcPixelFormat As Const GUID Ptr, dstPixelFormat As Const GUID Ptr, pfCanConvert As BOOL Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(this As Any Ptr, riid As Const IID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef          As Function(this As Any Ptr) As ULong
+	Release         As Function(this As Any Ptr) As ULong
+	' IWICBitmapSource
+	GetSize         As Function(this As Any Ptr, puiWidth As UINT Ptr, puiHeight As UINT Ptr) As HRESULT
+	GetPixelFormat  As Function(this As Any Ptr, pPixelFormat As GUID Ptr) As HRESULT
+	GetResolution   As Function(this As Any Ptr, pDpiX As Double Ptr, pDpiY As Double Ptr) As HRESULT
+	CopyPalette     As Function(this As Any Ptr, pIPalette As Any Ptr) As HRESULT
+	CopyPixels      As Function(this As Any Ptr, prc As Const Any Ptr, cbStride As UINT, cbBufferSize As UINT, pbBuffer As Byte Ptr) As HRESULT
+	' IWICFormatConverter
+	Initialize      As Function(this As Any Ptr, pISource As Any Ptr, dstFormat As Const GUID Ptr, dither As Integer, alpha As Single, pPalette As Any Ptr, paletteType As Integer) As HRESULT
+	CanConvert      As Function(this As Any Ptr, srcPixelFormat As Const GUID Ptr, dstPixelFormat As Const GUID Ptr, pfCanConvert As BOOL Ptr) As HRESULT
 End Type
 
 Type IWICFormatConverter
-    lpVtbl As IWICFormatConverterVtbl Ptr
+	lpVtbl As IWICFormatConverterVtbl Ptr
 End Type
 
 Type IWICImagingFactoryVtbl
@@ -1426,7 +1500,7 @@ Type IWICImagingFactoryVtbl
 	QueryInterface          As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
 	AddRef                  As Function(ByVal This As Any Ptr) As ULong
 	Release                 As Function(ByVal This As Any Ptr) As ULong
-
+	
 	' IWICImagingFactory методлари (асосийлар)
 	CreateDecoderFromFilename As Function(ByVal This As Any Ptr, ByVal wzFilename As LPCWSTR, ByVal pguidVendor As Const GUID Ptr, ByVal dwDesiredAccess As DWORD, ByVal metadataOptions As DWORD, ByVal ppIDecoder As Any Ptr Ptr) As HRESULT
 	CreateDecoderFromStream As Function(ByVal This As Any Ptr, ByVal pIStream As Any Ptr, ByVal pguidVendor As Const GUID Ptr, ByVal metadataOptions As DWORD, ByVal ppIDecoder As Any Ptr Ptr) As HRESULT
@@ -1460,54 +1534,53 @@ Type IWICImagingFactory
 End Type
 
 Type IPrintDocumentPackageTargetVtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef         As Function(ByVal this As Any Ptr) As ULong
-    Release        As Function(ByVal this As Any Ptr) As ULong
-
-    ' IPrintDocumentPackageTarget
-    GetPackageTargetTypes As Function(ByVal this As Any Ptr, ByRef targetCount As ULong, ByRef targetTypes As GUID Ptr) As HRESULT
-    GetPackageTarget      As Function(ByVal this As Any Ptr, ByVal guidTargetType As Const GUID Ptr, ByRef ppPackageTarget As Any Ptr) As HRESULT
-    Cancel                As Function(ByVal this As Any Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef         As Function(ByVal this As Any Ptr) As ULong
+	Release        As Function(ByVal this As Any Ptr) As ULong
+	
+	' IPrintDocumentPackageTarget
+	GetPackageTargetTypes As Function(ByVal this As Any Ptr, ByRef targetCount As ULong, ByRef targetTypes As GUID Ptr) As HRESULT
+	GetPackageTarget      As Function(ByVal this As Any Ptr, ByVal guidTargetType As Const GUID Ptr, ByRef ppPackageTarget As Any Ptr) As HRESULT
+	Cancel                As Function(ByVal this As Any Ptr) As HRESULT
 End Type
 
 Type IPrintDocumentPackageTarget
-    lpVtbl As IPrintDocumentPackageTargetVtbl Ptr
+	lpVtbl As IPrintDocumentPackageTargetVtbl Ptr
 End Type
 
-Type D2D1_PRINT_FONT_SUBSET_MODE As Long
-Enum
-    D2D1_PRINT_FONT_SUBSET_MODE_DEFAULT = 0
-    D2D1_PRINT_FONT_SUBSET_MODE_EACHPAGE = 1
-    D2D1_PRINT_FONT_SUBSET_MODE_NONE = 2
+Enum D2D1_PRINT_FONT_SUBSET_MODE
+	D2D1_PRINT_FONT_SUBSET_MODE_DEFAULT = 0
+	D2D1_PRINT_FONT_SUBSET_MODE_EACHPAGE = 1
+	D2D1_PRINT_FONT_SUBSET_MODE_NONE = 2
 End Enum
 
 Type D2D1_PRINT_CONTROL_PROPERTIES
-    fontSubset As D2D1_PRINT_FONT_SUBSET_MODE
-    rasterDPI  As FLOAT
-    colorSpace As D2D1_COLOR_SPACE
+	fontSubset As D2D1_PRINT_FONT_SUBSET_MODE
+	rasterDPI  As FLOAT
+	colorSpace As D2D1_COLOR_SPACE
 End Type
 
 Type ID2D1PrintControlVtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef         As Function(ByVal this As Any Ptr) As ULong
-    Release        As Function(ByVal this As Any Ptr) As ULong
-
-    ' ID2D1PrintControl
-    AddPage As Function( _
-        ByVal This As Any Ptr, _
-        ByVal commandList As Any Ptr, _        ' ID2D1CommandList*
-        ByVal pageSize As Const D2D1_SIZE_F Ptr, _
-        ByVal printTicketStream As Any Ptr, _   ' IStream*
-        ByRef tag1 As D2D1_TAG, _
-        ByRef tag2 As D2D1_TAG) As HRESULT
-
-    Close As Function(ByVal this As Any Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef         As Function(ByVal this As Any Ptr) As ULong
+	Release        As Function(ByVal this As Any Ptr) As ULong
+	
+	' ID2D1PrintControl
+	AddPage As Function( _
+	ByVal This As Any Ptr, _
+	ByVal commandList As Any Ptr, _        ' ID2D1CommandList*
+	ByVal pageSize As Const D2D1_SIZE_F Ptr, _
+	ByVal printTicketStream As Any Ptr, _   ' IStream*
+	ByRef tag1 As D2D1_TAG, _
+	ByRef tag2 As D2D1_TAG) As HRESULT
+	
+	Close As Function(ByVal this As Any Ptr) As HRESULT
 End Type
 
 Type ID2D1PrintControl
-    lpVtbl As ID2D1PrintControlVtbl Ptr
+	lpVtbl As ID2D1PrintControlVtbl Ptr
 End Type
 
 Type ID2D1DeviceVtbl
@@ -1515,10 +1588,10 @@ Type ID2D1DeviceVtbl
 	QueryInterface             As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
 	AddRef                     As Function(ByVal This As Any Ptr) As ULong
 	Release                    As Function(ByVal This As Any Ptr) As ULong
-
+	
 	' ID2D1Resource
 	GetFactory                 As Sub(ByVal This As Any Ptr, ByVal factory As ID2D1Factory Ptr Ptr)
-
+	
 	' ID2D1Device
 	CreateDeviceContext        As Function(ByVal This As Any Ptr, ByVal options As D2D1_DEVICE_CONTEXT_OPTIONS, ByVal deviceContext As ID2D1DeviceContext Ptr Ptr) As HRESULT
 	CreatePrintControl         As Function(ByVal This As Any Ptr, ByVal wicFactory As IWICImagingFactory Ptr, ByVal documentTarget As IPrintDocumentPackageTarget Ptr, ByVal printControlProperties As D2D1_PRINT_CONTROL_PROPERTIES Ptr, ByVal printControl As ID2D1PrintControl Ptr Ptr) As HRESULT
@@ -1527,7 +1600,7 @@ Type ID2D1DeviceVtbl
 	ClearResources             As Sub(ByVal This As Any Ptr, ByVal millisecondsSinceUse As ULong)
 End Type
 
-Type ID2D1Device
+Type ID2D1Device_
 	lpVtbl As ID2D1DeviceVtbl Ptr
 End Type
 
@@ -1537,250 +1610,229 @@ Dim Shared IID_ID2D1Factory1 As GUID = Type(&hbb12d362, &hdaee, &h4b9a, {&haa, &
 
 
 Type D2D1_STROKE_STYLE_PROPERTIES
-    startCap       As D2D1_CAP_STYLE
-    endCap         As D2D1_CAP_STYLE
-    dashCap        As D2D1_CAP_STYLE
-    lineJoin       As D2D1_LINE_JOIN
-    miterLimit     As FLOAT
-    dashStyle      As D2D1_DASH_STYLE
-    dashOffset     As FLOAT
+	startCap       As D2D1_CAP_STYLE
+	endCap         As D2D1_CAP_STYLE
+	dashCap        As D2D1_CAP_STYLE
+	lineJoin       As D2D1_LINE_JOIN
+	miterLimit     As FLOAT
+	dashStyle      As D2D1_DASH_STYLE
+	dashOffset     As FLOAT
 End Type
 
-Type D2D1_STROKE_TRANSFORM_TYPE As Long
-Enum
-    D2D1_STROKE_TRANSFORM_TYPE_NORMAL = 0
-    D2D1_STROKE_TRANSFORM_TYPE_FIXED = 1
-    D2D1_STROKE_TRANSFORM_TYPE_HAIRLINE = 2
-    D2D1_STROKE_TRANSFORM_TYPE_FORCE_DWORD = &HFFFFFFFF
+Enum D2D1_STROKE_TRANSFORM_TYPE
+	D2D1_STROKE_TRANSFORM_TYPE_NORMAL = 0
+	D2D1_STROKE_TRANSFORM_TYPE_FIXED = 1
+	D2D1_STROKE_TRANSFORM_TYPE_HAIRLINE = 2
+	D2D1_STROKE_TRANSFORM_TYPE_FORCE_DWORD = &HFFFFFFFF
 End Enum
 
 Type D2D1_STROKE_STYLE_PROPERTIES1
-    startCap       As D2D1_CAP_STYLE
-    endCap         As D2D1_CAP_STYLE
-    dashCap        As D2D1_CAP_STYLE
-    lineJoin       As D2D1_LINE_JOIN
-    miterLimit     As FLOAT
-    dashStyle      As D2D1_DASH_STYLE
-    dashOffset     As FLOAT
-    transformType  As D2D1_STROKE_TRANSFORM_TYPE
+	startCap       As D2D1_CAP_STYLE
+	endCap         As D2D1_CAP_STYLE
+	dashCap        As D2D1_CAP_STYLE
+	lineJoin       As D2D1_LINE_JOIN
+	miterLimit     As FLOAT
+	dashStyle      As D2D1_DASH_STYLE
+	dashOffset     As FLOAT
+	transformType  As D2D1_STROKE_TRANSFORM_TYPE
 End Type
 
 Type D2D1_DRAWING_STATE_DESCRIPTION1
-    antialiasMode        As D2D1_ANTIALIAS_MODE
-    textAntialiasMode    As D2D1_TEXT_ANTIALIAS_MODE
-    tag1                 As D2D1_TAG
-    tag2                 As D2D1_TAG
-    transform            As D2D1_MATRIX_3X2_F
-    primitiveBlend       As D2D1_PRIMITIVE_BLEND
-    unitMode             As D2D1_UNIT_MODE
+	antialiasMode        As D2D1_ANTIALIAS_MODE
+	textAntialiasMode    As D2D1_TEXT_ANTIALIAS_MODE
+	tag1                 As D2D1_TAG
+	tag2                 As D2D1_TAG
+	transform            As D2D1_MATRIX_3X2_F
+	primitiveBlend       As D2D1_PRIMITIVE_BLEND
+	unitMode             As D2D1_UNIT_MODE
 End Type
 
 Type DXGI_SAMPLE_DESC
-    Count As ULong
-    Quality As ULong
+	Count As ULong
+	Quality As ULong
 End Type
 
 Type DXGI_SURFACE_DESC
-    Width As ULong
-    Height As ULong
-    Format As DXGI_FORMAT
-    SampleDesc As DXGI_SAMPLE_DESC
+	Width As ULong
+	Height As ULong
+	Format As DXGI_FORMAT
+	SampleDesc As DXGI_SAMPLE_DESC
 End Type
 
-Type DXGI_RESIDENCY As Long
-Enum
-    DXGI_RESIDENCY_FULLY_RESIDENT = 1
-    DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY = 2
-    DXGI_RESIDENCY_EVICTED_TO_DISK = 3
+Enum DXGI_RESIDENCY
+	DXGI_RESIDENCY_FULLY_RESIDENT = 1
+	DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY = 2
+	DXGI_RESIDENCY_EVICTED_TO_DISK = 3
 End Enum
 
 Type DXGI_MAPPED_RECT
-    Pitch As Long
-    pBits As UByte Ptr
+	Pitch As Long
+	pBits As UByte Ptr
 End Type
 
 Type DXGI_RATIONAL
-    Numerator   As ULong
-    Denominator As ULong
+	Numerator   As ULong
+	Denominator As ULong
 End Type
 
-Type DXGI_MODE_SCANLINE_ORDER As Long
-Enum
-    DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED = 0
-    DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE = 1
-    DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST = 2
-    DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST = 3
+Enum DXGI_MODE_SCANLINE_ORDER
+	DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED = 0
+	DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE = 1
+	DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST = 2
+	DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST = 3
 End Enum
 
-Type DXGI_MODE_SCALING As Long
-Enum
-    DXGI_MODE_SCALING_UNSPECIFIED = 0
-    DXGI_MODE_SCALING_CENTERED     = 1
-    DXGI_MODE_SCALING_STRETCHED    = 2
+Enum DXGI_MODE_SCALING
+	DXGI_MODE_SCALING_UNSPECIFIED = 0
+	DXGI_MODE_SCALING_CENTERED     = 1
+	DXGI_MODE_SCALING_STRETCHED    = 2
 End Enum
 
 Type DXGI_MODE_DESC
-    Width As ULong
-    Height As ULong
-    RefreshRate As DXGI_RATIONAL
-    Format As DXGI_FORMAT
-    ScanlineOrdering As DXGI_MODE_SCANLINE_ORDER
-    Scaling As DXGI_MODE_SCALING
-End Type
-
-Type D2D1_POINT_2U
-    x As ULong
-    y As ULong
-End Type
-
-Type D2D1_RECT_U
-    left   As ULong
-    top    As ULong
-    right  As ULong
-    bottom As ULong
+	Width As ULong
+	Height As ULong
+	RefreshRate As DXGI_RATIONAL
+	Format As DXGI_FORMAT
+	ScanlineOrdering As DXGI_MODE_SCANLINE_ORDER
+	Scaling As DXGI_MODE_SCALING
 End Type
 
 Enum D2D1_MAP_OPTIONS
-    D2D1_MAP_OPTIONS_NONE        = 0
-    D2D1_MAP_OPTIONS_READ        = 1
-    D2D1_MAP_OPTIONS_WRITE       = 2
-    D2D1_MAP_OPTIONS_DISCARD     = 4
+	D2D1_MAP_OPTIONS_NONE        = 0
+	D2D1_MAP_OPTIONS_READ        = 1
+	D2D1_MAP_OPTIONS_WRITE       = 2
+	D2D1_MAP_OPTIONS_DISCARD     = 4
 End Enum
 
 Type D2D1_MAPPED_RECT
-    bits  As UByte Ptr
-    pitch As ULong
+	bits  As UByte Ptr
+	pitch As ULong
 End Type
 
-Type DXGI_USAGE As Long
-Enum
-    DXGI_USAGE_SHADER_INPUT         = &h00000010
-    DXGI_USAGE_RENDER_TARGET_OUTPUT = &h00000020
-    DXGI_USAGE_BACK_BUFFER          = &h00000040
-    DXGI_USAGE_DISCARD_ON_PRESENT   = &h00000080
-    DXGI_USAGE_UNORDERED_ACCESS     = &h00000100
+Enum DXGI_USAGE
+	DXGI_USAGE_SHADER_INPUT         = &h00000010
+	DXGI_USAGE_RENDER_TARGET_OUTPUT = &h00000020
+	DXGI_USAGE_BACK_BUFFER          = &h00000040
+	DXGI_USAGE_DISCARD_ON_PRESENT   = &h00000080
+	DXGI_USAGE_UNORDERED_ACCESS     = &h00000100
 End Enum
 
-Type DXGI_SWAP_EFFECT As Long
-Enum
-    DXGI_SWAP_EFFECT_DISCARD         = 0
-    DXGI_SWAP_EFFECT_SEQUENTIAL      = 1
-    DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL = 3
-    DXGI_SWAP_EFFECT_FLIP_DISCARD    = 4
+Enum DXGI_SWAP_EFFECT
+	DXGI_SWAP_EFFECT_DISCARD         = 0
+	DXGI_SWAP_EFFECT_SEQUENTIAL      = 1
+	DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL = 3
+	DXGI_SWAP_EFFECT_FLIP_DISCARD    = 4
 End Enum
 
 Type DXGI_SWAP_CHAIN_DESC
-    BufferDesc As DXGI_MODE_DESC
-    SampleDesc As DXGI_SAMPLE_DESC
-    BufferUsage As ULong
-    BufferCount As ULong
-    OutputWindow As HWND
-    Windowed As BOOL
-    SwapEffect As DXGI_SWAP_EFFECT
-    Flags As ULong
+	BufferDesc As DXGI_MODE_DESC
+	SampleDesc As DXGI_SAMPLE_DESC
+	BufferUsage As ULong
+	BufferCount As ULong
+	OutputWindow As HWND
+	Windowed As BOOL
+	SwapEffect As DXGI_SWAP_EFFECT
+	Flags As ULong
 End Type
 
-Type DXGI_SCALING As Long
-Enum
-  DXGI_SCALING_STRETCH = 0
-  DXGI_SCALING_NONE = 1
-  DXGI_SCALING_ASPECT_RATIO_STRETCH = 2
+Enum DXGI_SCALING
+	DXGI_SCALING_STRETCH = 0
+	DXGI_SCALING_NONE = 1
+	DXGI_SCALING_ASPECT_RATIO_STRETCH = 2
 End Enum
 
-Type DXGI_ALPHA_MODE As Long
-Enum
-  DXGI_ALPHA_MODE_UNSPECIFIED     = 0
-  DXGI_ALPHA_MODE_PREMULTIPLIED   = 1
-  DXGI_ALPHA_MODE_STRAIGHT        = 2
-  DXGI_ALPHA_MODE_IGNORE          = 3
-  DXGI_ALPHA_MODE_FORCE_DWORD     = &hFFFFFFFF
+Enum DXGI_ALPHA_MODE
+	DXGI_ALPHA_MODE_UNSPECIFIED     = 0
+	DXGI_ALPHA_MODE_PREMULTIPLIED   = 1
+	DXGI_ALPHA_MODE_STRAIGHT        = 2
+	DXGI_ALPHA_MODE_IGNORE          = 3
+	DXGI_ALPHA_MODE_FORCE_DWORD     = &hFFFFFFFF
 End Enum
 
 Type DXGI_SWAP_CHAIN_DESC1
-  Width As UINT
-  Height As UINT
-  Format As DXGI_FORMAT
-  Stereo As BOOL
-  SampleDesc As DXGI_SAMPLE_DESC
-  BufferUsage As DXGI_USAGE
-  BufferCount As UINT
-  Scaling As DXGI_SCALING
-  SwapEffect As DXGI_SWAP_EFFECT
-  AlphaMode As DXGI_ALPHA_MODE
-  Flags As UInteger
+	Width As UINT
+	Height As UINT
+	Format As DXGI_FORMAT
+	Stereo As BOOL
+	SampleDesc As DXGI_SAMPLE_DESC
+	BufferUsage As DXGI_USAGE
+	BufferCount As UINT
+	Scaling As DXGI_SCALING
+	SwapEffect As DXGI_SWAP_EFFECT
+	AlphaMode As DXGI_ALPHA_MODE
+	Flags As UInteger
 End Type
 
 Type IDXGISurfaceVtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef         As Function(ByVal this As Any Ptr) As ULong
-    Release        As Function(ByVal this As Any Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData           As Function(ByVal this As Any Ptr, ByVal guid As Const guid Ptr, ByVal dataSize As ULong, ByVal pData As Any Ptr) As HRESULT
-    SetPrivateDataInterface  As Function(ByVal this As Any Ptr, ByVal guid As Const guid Ptr, ByVal pUnknown As Any Ptr) As HRESULT
-    GetPrivateData           As Function(ByVal this As Any Ptr, ByVal guid As Const guid Ptr, ByRef dataSize As ULong, ByVal pData As Any Ptr) As HRESULT
-    GetParent                As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppParent As Any Ptr Ptr) As HRESULT
-    GetDevice                As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppDevice As Any Ptr Ptr) As HRESULT
-
-    ' IDXGISurface
-    GetDesc                  As Function(ByVal this As Any Ptr, ByVal pDesc As DXGI_SURFACE_DESC Ptr) As HRESULT
-    Map                      As Function(ByVal this As Any Ptr, ByVal pLockedRect As DXGI_MAPPED_RECT Ptr, ByVal MapFlags As ULong) As HRESULT
-    Unmap                    As Function(ByVal this As Any Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef         As Function(ByVal this As Any Ptr) As ULong
+	Release        As Function(ByVal this As Any Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData           As Function(ByVal this As Any Ptr, ByVal guid As Const guid Ptr, ByVal dataSize As ULong, ByVal pData As Any Ptr) As HRESULT
+	SetPrivateDataInterface  As Function(ByVal this As Any Ptr, ByVal guid As Const guid Ptr, ByVal pUnknown As Any Ptr) As HRESULT
+	GetPrivateData           As Function(ByVal this As Any Ptr, ByVal guid As Const guid Ptr, ByRef dataSize As ULong, ByVal pData As Any Ptr) As HRESULT
+	GetParent                As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppParent As Any Ptr Ptr) As HRESULT
+	GetDevice                As Function(ByVal this As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppDevice As Any Ptr Ptr) As HRESULT
+	
+	' IDXGISurface
+	GetDesc                  As Function(ByVal this As Any Ptr, ByVal pDesc As DXGI_SURFACE_DESC Ptr) As HRESULT
+	Map                      As Function(ByVal this As Any Ptr, ByVal pLockedRect As DXGI_MAPPED_RECT Ptr, ByVal MapFlags As ULong) As HRESULT
+	Unmap                    As Function(ByVal this As Any Ptr) As HRESULT
 End Type
 
 Type IDXGISurface
-    lpVtbl As IDXGISurfaceVtbl Ptr
+	lpVtbl As IDXGISurfaceVtbl Ptr
 End Type
 
-Type D3D11_RESOURCE_DIMENSION As Long
-Enum
-    D3D11_RESOURCE_DIMENSION_UNKNOWN    = 0
-    D3D11_RESOURCE_DIMENSION_BUFFER     = 1
-    D3D11_RESOURCE_DIMENSION_TEXTURE1D  = 2
-    D3D11_RESOURCE_DIMENSION_TEXTURE2D  = 3
-    D3D11_RESOURCE_DIMENSION_TEXTURE3D  = 4
+Enum D3D11_RESOURCE_DIMENSION
+	D3D11_RESOURCE_DIMENSION_UNKNOWN    = 0
+	D3D11_RESOURCE_DIMENSION_BUFFER     = 1
+	D3D11_RESOURCE_DIMENSION_TEXTURE1D  = 2
+	D3D11_RESOURCE_DIMENSION_TEXTURE2D  = 3
+	D3D11_RESOURCE_DIMENSION_TEXTURE3D  = 4
 End Enum
 
 Type D3D11_TEXTURE2D_DESC
-    Width              As ULong
-    Height             As ULong
-    MipLevels          As ULong
-    ArraySize          As ULong
-    Format             As ULong            ' DXGI_FORMAT
-    SampleDesc_Count   As ULong
-    SampleDesc_Quality As ULong
-    Usage              As ULong            ' D3D11_USAGE
-    BindFlags          As ULong
-    CPUAccessFlags     As ULong
-    MiscFlags          As ULong
+	Width              As ULong
+	Height             As ULong
+	MipLevels          As ULong
+	ArraySize          As ULong
+	Format             As ULong            ' DXGI_FORMAT
+	SampleDesc_Count   As ULong
+	SampleDesc_Quality As ULong
+	Usage              As ULong            ' D3D11_USAGE
+	BindFlags          As ULong
+	CPUAccessFlags     As ULong
+	MiscFlags          As ULong
 End Type
 
 Dim Shared IID_ID3D11Texture2D As GUID = Type(&h6F15AAF2, &hD208, &h4E89, {&h9A, &hB4, &h48, &h95, &h85, &h37, &hCD, &h3E})
 
 Type ID3D11Texture2DVtbl
-    ' IUnknown
-    QueryInterface     As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef             As Function(ByVal This As Any Ptr) As ULong
-    Release            As Function(ByVal This As Any Ptr) As ULong
-
-    ' ID3D11DeviceChild
-    GetDevice          As Sub(ByVal This As Any Ptr, ByVal ppDevice As Any Ptr Ptr)
-    GetPrivateData     As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pDataSize As ULong Ptr, ByVal pData As Any Ptr) As HRESULT
-    SetPrivateData     As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal DataSize As ULong, ByVal pData As Any Ptr) As HRESULT
-    SetPrivateDataInterface As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pData As Any Ptr) As HRESULT
-
-    ' ID3D11Resource
-    GetType_           As Sub(ByVal This As Any Ptr, ByVal pResourceDimension As D3D11_RESOURCE_DIMENSION)
-    SetEvictionPriority As Sub(ByVal This As Any Ptr, ByVal EvictionPriority As ULong)
-    GetEvictionPriority As Function(ByVal This As Any Ptr) As ULong
-
-    ' ID3D11Texture2D
-    GetDesc            As Sub(ByVal This As Any Ptr, ByVal pDesc As D3D11_TEXTURE2D_DESC Ptr)
+	' IUnknown
+	QueryInterface     As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef             As Function(ByVal This As Any Ptr) As ULong
+	Release            As Function(ByVal This As Any Ptr) As ULong
+	
+	' ID3D11DeviceChild
+	GetDevice          As Sub(ByVal This As Any Ptr, ByVal ppDevice As Any Ptr Ptr)
+	GetPrivateData     As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pDataSize As ULong Ptr, ByVal pData As Any Ptr) As HRESULT
+	SetPrivateData     As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal DataSize As ULong, ByVal pData As Any Ptr) As HRESULT
+	SetPrivateDataInterface As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pData As Any Ptr) As HRESULT
+	
+	' ID3D11Resource
+	GetType_           As Sub(ByVal This As Any Ptr, ByVal pResourceDimension As D3D11_RESOURCE_DIMENSION)
+	SetEvictionPriority As Sub(ByVal This As Any Ptr, ByVal EvictionPriority As ULong)
+	GetEvictionPriority As Function(ByVal This As Any Ptr) As ULong
+	
+	' ID3D11Texture2D
+	GetDesc            As Sub(ByVal This As Any Ptr, ByVal pDesc As D3D11_TEXTURE2D_DESC Ptr)
 End Type
 
 Type ID3D11Texture2D
-    lpVtbl As ID3D11Texture2DVtbl Ptr
+	lpVtbl As ID3D11Texture2DVtbl Ptr
 End Type
 
 'Dim Shared IID_IDXGISurface As GUID = Type(&hCB1193DB, &h6C49, &h4D86, {&hBF, &h47, &h9E, &h23, &hBB, &hD2, &h60, &hEC})
@@ -1790,84 +1842,84 @@ Dim Shared IID_IDXGISurface As GUID = Type(&hcafcb56c, &h6ac3, &h4889, {&hbf, &h
 Dim Shared IID_IDXGISurface1 As GUID = Type(&h4AE63092, &h6327, &h4C1B, {&h80, &hAE, &hBF, &hE1, &h2E, &hA3, &h2B, &h86})
 
 Type DXGI_ADAPTER_DESC
-    Description     As WString * 128
-    VendorId        As ULong
-    DeviceId        As ULong
-    SubSysId        As ULong
-    Revision        As ULong
-    DedicatedVideoMemory As ULONGLONG
-    DedicatedSystemMemory As ULONGLONG
-    SharedSystemMemory    As ULONGLONG
-    AdapterLuid      As LUID
+	Description     As WString * 128
+	VendorId        As ULong
+	DeviceId        As ULong
+	SubSysId        As ULong
+	Revision        As ULong
+	DedicatedVideoMemory As ULONGLONG
+	DedicatedSystemMemory As ULONGLONG
+	SharedSystemMemory    As ULONGLONG
+	AdapterLuid      As LUID
 End Type
 
 Type IDXGIAdapterVtbl
-    ' IUnknown
-    QueryInterface     As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef             As Function(ByVal This As Any Ptr) As ULong
-    Release            As Function(ByVal This As Any Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData     As Function(ByVal This As Any Ptr, ByVal Name As Const GUID Ptr, ByVal DataSize As UInteger, ByVal pData As Const Any Ptr) As HRESULT
-    SetPrivateDataInterface As Function(ByVal This As Any Ptr, ByVal Name As Const GUID Ptr, ByVal pUnknown As Any Ptr) As HRESULT
-    GetPrivateData     As Function(ByVal This As Any Ptr, ByVal Name As Const GUID Ptr, ByVal pDataSize As UInteger Ptr, ByVal pData As Any Ptr) As HRESULT
-    GetParent          As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppParent As Any Ptr Ptr) As HRESULT
-
-    ' IDXGIAdapter
-    EnumOutputs        As Function(ByVal This As Any Ptr, ByVal Output As UInteger, ByVal ppOutput As Any Ptr Ptr) As HRESULT
-    GetDesc            As Function(ByVal This As Any Ptr, ByVal pDesc As DXGI_ADAPTER_DESC Ptr) As HRESULT
-    CheckInterfaceSupport As Function(ByVal This As Any Ptr, ByVal InterfaceName As Const GUID Ptr, ByVal pUMDVersion As LARGE_INTEGER Ptr) As HRESULT
+	' IUnknown
+	QueryInterface     As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef             As Function(ByVal This As Any Ptr) As ULong
+	Release            As Function(ByVal This As Any Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData     As Function(ByVal This As Any Ptr, ByVal Name As Const GUID Ptr, ByVal DataSize As UInteger, ByVal pData As Const Any Ptr) As HRESULT
+	SetPrivateDataInterface As Function(ByVal This As Any Ptr, ByVal Name As Const GUID Ptr, ByVal pUnknown As Any Ptr) As HRESULT
+	GetPrivateData     As Function(ByVal This As Any Ptr, ByVal Name As Const GUID Ptr, ByVal pDataSize As UInteger Ptr, ByVal pData As Any Ptr) As HRESULT
+	GetParent          As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppParent As Any Ptr Ptr) As HRESULT
+	
+	' IDXGIAdapter
+	EnumOutputs        As Function(ByVal This As Any Ptr, ByVal Output As UInteger, ByVal ppOutput As Any Ptr Ptr) As HRESULT
+	GetDesc            As Function(ByVal This As Any Ptr, ByVal pDesc As DXGI_ADAPTER_DESC Ptr) As HRESULT
+	CheckInterfaceSupport As Function(ByVal This As Any Ptr, ByVal InterfaceName As Const GUID Ptr, ByVal pUMDVersion As LARGE_INTEGER Ptr) As HRESULT
 End Type
 
 Type ID2D1Bitmap1 As ID2D1Bitmap1_
 
 Type ID2D1Bitmap1Vtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(ByVal This As ID2D1Bitmap1 Ptr) As ULong
-    Release As Function(ByVal This As ID2D1Bitmap1 Ptr) As ULong
-
-    ' ID2D1Resource
-    GetFactory As Sub(ByVal This As ID2D1Bitmap1 Ptr, ByVal ppFactory As Any Ptr Ptr)
-
-    ' ID2D1Image (пустой)
-
-    ' ID2D1Bitmap
-    GetSize As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_SIZE_F
-    GetPixelSize As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_SIZE_U
-    GetPixelFormat As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_PIXEL_FORMAT
-    GetDpi As Sub(ByVal This As ID2D1Bitmap1 Ptr, ByVal dpiX As Single Ptr, ByVal dpiY As Single Ptr)
-    CopyFromBitmap As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal destPoint As Const D2D1_POINT_2U Ptr, ByVal srcBitmap As ID2D1Bitmap Ptr, ByVal srcRect As Const D2D1_RECT_U Ptr) As HRESULT
-    CopyFromRenderTarget As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal destPoint As Const D2D1_POINT_2U Ptr, ByVal srcRenderTarget As ID2D1RenderTarget Ptr, ByVal srcRect As Const D2D1_RECT_U Ptr) As HRESULT
-    CopyFromMemory As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal dstRect As Const D2D1_RECT_U Ptr, ByVal srcData As Any Ptr, ByVal pitch As ULong) As HRESULT
-
-    ' ID2D1Bitmap1
-    GetColorContext As Sub(ByVal This As ID2D1Bitmap1 Ptr, ByVal colorContext As ID2D1ColorContext Ptr Ptr)
-    GetOptions As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_BITMAP_OPTIONS
-    GetSurface As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal dxgiSurface As IDXGISurface Ptr Ptr) As HRESULT
-    Map As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal options As D2D1_MAP_OPTIONS, ByVal mappedRect As D2D1_MAPPED_RECT Ptr) As HRESULT
-    Unmap As Function(ByVal This As ID2D1Bitmap1 Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(ByVal This As ID2D1Bitmap1 Ptr) As ULong
+	Release As Function(ByVal This As ID2D1Bitmap1 Ptr) As ULong
+	
+	' ID2D1Resource
+	GetFactory As Sub(ByVal This As ID2D1Bitmap1 Ptr, ByVal ppFactory As Any Ptr Ptr)
+	
+	' ID2D1Image (пустой)
+	
+	' ID2D1Bitmap
+	GetSize As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_SIZE_F
+	GetPixelSize As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_SIZE_U
+	GetPixelFormat As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_PIXEL_FORMAT
+	GetDpi As Sub(ByVal This As ID2D1Bitmap1 Ptr, ByVal dpiX As Single Ptr, ByVal dpiY As Single Ptr)
+	CopyFromBitmap As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal destPoint As Const D2D1_POINT_2U Ptr, ByVal srcBitmap As ID2D1Bitmap Ptr, ByVal srcRect As Const D2D1_RECT_U Ptr) As HRESULT
+	CopyFromRenderTarget As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal destPoint As Const D2D1_POINT_2U Ptr, ByVal srcRenderTarget As ID2D1RenderTarget Ptr, ByVal srcRect As Const D2D1_RECT_U Ptr) As HRESULT
+	CopyFromMemory As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal dstRect As Const D2D1_RECT_U Ptr, ByVal srcData As Any Ptr, ByVal pitch As ULong) As HRESULT
+	
+	' ID2D1Bitmap1
+	GetColorContext As Sub(ByVal This As ID2D1Bitmap1 Ptr, ByVal colorContext As ID2D1ColorContext Ptr Ptr)
+	GetOptions As Function(ByVal This As ID2D1Bitmap1 Ptr) As D2D1_BITMAP_OPTIONS
+	GetSurface As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal dxgiSurface As IDXGISurface Ptr Ptr) As HRESULT
+	Map As Function(ByVal This As ID2D1Bitmap1 Ptr, ByVal options As D2D1_MAP_OPTIONS, ByVal mappedRect As D2D1_MAPPED_RECT Ptr) As HRESULT
+	Unmap As Function(ByVal This As ID2D1Bitmap1 Ptr) As HRESULT
 End Type
 
 Type ID2D1Bitmap1_
-    lpVtbl As ID2D1Bitmap1Vtbl Ptr
+	lpVtbl As ID2D1Bitmap1Vtbl Ptr
 End Type
 
 Type IWICBitmap As IWICBitmap_
 
 Type IWICBitmapVtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal This As IWICBitmap Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(ByVal This As IWICBitmap Ptr) As ULong
-    Release As Function(ByVal This As IWICBitmap Ptr) As ULong
+	' IUnknown
+	QueryInterface As Function(ByVal This As IWICBitmap Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(ByVal This As IWICBitmap Ptr) As ULong
+	Release As Function(ByVal This As IWICBitmap Ptr) As ULong
 End Type
 
 Type IWICBitmap_
-    lpVtbl As IWICBitmapVtbl Ptr
+	lpVtbl As IWICBitmapVtbl Ptr
 End Type
 
 Type IDXGIAdapter
-    lpVtbl As IDXGIAdapterVtbl Ptr
+	lpVtbl As IDXGIAdapterVtbl Ptr
 End Type
 
 Type IDXGIDeviceVtbl
@@ -1875,13 +1927,13 @@ Type IDXGIDeviceVtbl
 	QueryInterface     As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
 	AddRef             As Function(ByVal This As Any Ptr) As ULong
 	Release            As Function(ByVal This As Any Ptr) As ULong
-
+	
 	' IDXGIObject
 	SetPrivateData     As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal DataSize As ULong, ByVal pData As Any Ptr) As HRESULT
 	SetPrivateDataInterface As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal pUnknown As IUnknown Ptr) As HRESULT
 	GetPrivateData     As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByRef pDataSize As ULong, ByVal pData As Any Ptr) As HRESULT
 	GetParent          As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppParent As Any Ptr Ptr) As HRESULT
-
+	
 	' IDXGIDevice
 	GetAdapter                  As Function(ByVal This As Any Ptr, ByVal ppAdapter As IDXGIAdapter Ptr Ptr) As HRESULT
 	CreateSurface               As Function(ByVal This As Any Ptr, ByVal pDesc As DXGI_SURFACE_DESC Ptr, ByVal SurfaceCount As ULong, ByVal Usage As ULong, ByVal pSharedResource As Any Ptr, ByVal ppSurface As IDXGISurface Ptr Ptr) As HRESULT
@@ -1896,113 +1948,112 @@ End Type
 
 Dim Shared IID_IDXGIDevice As GUID = Type(&h54ec77fa, &h1377, &h44e6, {&h8c, &h32, &h88, &hfd, &h5f, &h44, &hc8, &h4c})
 
-Type DXGI_MODE_ROTATION As Long
-Enum
-    DXGI_MODE_ROTATION_UNSPECIFIED = 0   ' Не указано (используется по умолчанию)
-    DXGI_MODE_ROTATION_IDENTITY    = 1   ' 0° — нормальное положение
-    DXGI_MODE_ROTATION_ROTATE90    = 2   ' 90° по часовой стрелке
-    DXGI_MODE_ROTATION_ROTATE180   = 3   ' 180° (перевёрнуто)
-    DXGI_MODE_ROTATION_ROTATE270   = 4   ' 270° (90° против часовой стрелки)
+Enum DXGI_MODE_ROTATION
+	DXGI_MODE_ROTATION_UNSPECIFIED = 0   ' Не указано (используется по умолчанию)
+	DXGI_MODE_ROTATION_IDENTITY    = 1   ' 0° — нормальное положение
+	DXGI_MODE_ROTATION_ROTATE90    = 2   ' 90° по часовой стрелке
+	DXGI_MODE_ROTATION_ROTATE180   = 3   ' 180° (перевёрнуто)
+	DXGI_MODE_ROTATION_ROTATE270   = 4   ' 270° (90° против часовой стрелки)
 End Enum
 
 Type DXGI_OUTPUT_DESC
-    DeviceName As WCHAR Ptr
-    DesktopCoordinates As RECT
-    AttachedToDesktop As BOOL
-    Rotation As DXGI_MODE_ROTATION
-    Monitor As HMONITOR
+	DeviceName As WCHAR Ptr
+	DesktopCoordinates As RECT
+	AttachedToDesktop As BOOL
+	Rotation As DXGI_MODE_ROTATION
+	Monitor As HMONITOR
 End Type
 
 Type DXGI_RGB
-    Red   As Single
-    Green As Single
-    Blue  As Single
+	Red   As Single
+	Green As Single
+	Blue  As Single
 End Type
 
 Type DXGI_GAMMA_CONTROL_CAPABILITIES
-    ScaleAndOffsetSupported As BOOL
-    MaxConvertedValue       As Single
-    MinConvertedValue       As Single
-    NumGammaControlPoints   As ULong
-    ControlPointPositions   As Single Ptr
+	ScaleAndOffsetSupported As BOOL
+	MaxConvertedValue       As Single
+	MinConvertedValue       As Single
+	NumGammaControlPoints   As ULong
+	ControlPointPositions   As Single Ptr
 End Type
 
 Type DXGI_GAMMA_CONTROL
-    Scale   As DXGI_RGB                  ' Масштаб по каждому каналу (умножение)
-    Offset  As DXGI_RGB                  ' Смещение по каждому каналу (прибавление)
-    GammaCurve(0 To 1024) As DXGI_RGB   ' Контрольные точки гамма-кривой (обычно 1025 точек)
+	Scale   As DXGI_RGB                  ' Масштаб по каждому каналу (умножение)
+	Offset  As DXGI_RGB                  ' Смещение по каждому каналу (прибавление)
+	GammaCurve(0 To 1024) As DXGI_RGB   ' Контрольные точки гамма-кривой (обычно 1025 точек)
 End Type
 
 Type DXGI_FRAME_STATISTICS
-    PresentCount      As ULong
-    PresentRefreshCount As ULong
-    SyncRefreshCount  As ULong
-    SyncQPCTime       As LARGE_INTEGER
-    SyncGPUTime       As LARGE_INTEGER
+	PresentCount      As ULong
+	PresentRefreshCount As ULong
+	SyncRefreshCount  As ULong
+	SyncQPCTime       As LARGE_INTEGER
+	SyncGPUTime       As LARGE_INTEGER
 End Type
 
 Type IDXGIOutput As IDXGIOutput_
-	
+
 Type IDXGIOutputVtbl
-    ' IUnknown
-    QueryInterface As Function(This As IDXGIOutput Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(This As IDXGIOutput Ptr) As ULong
-    Release As Function(This As IDXGIOutput Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData As Function(This As IDXGIOutput Ptr, name As Const GUID Ptr, dataSize As ULong, data As Any Ptr) As HRESULT
-    SetPrivateDataInterface As Function(This As IDXGIOutput Ptr, name As Const GUID Ptr, pUnknown As IUnknown Ptr) As HRESULT
-    GetPrivateData As Function(This As IDXGIOutput Ptr, name As Const GUID Ptr, pDataSize As ULong Ptr, data As Any Ptr) As HRESULT
-    GetParent As Function(This As IDXGIOutput Ptr, riid As Const GUID Ptr, ppParent As Any Ptr Ptr) As HRESULT
-
-    ' IDXGIOutput
-    GetDesc As Function(This As IDXGIOutput Ptr, desc As DXGI_OUTPUT_DESC Ptr) As HRESULT
-    GetDisplayModeList As Function(This As IDXGIOutput Ptr, format As DXGI_FORMAT, flags As ULong, numModes As ULong Ptr, desc As DXGI_MODE_DESC Ptr) As HRESULT
-    FindClosestMatchingMode As Function(This As IDXGIOutput Ptr, modeToMatch As Const DXGI_MODE_DESC Ptr, closestMatch As DXGI_MODE_DESC Ptr, concernedDevice As IUnknown Ptr) As HRESULT
-    WaitForVBlank As Function(This As IDXGIOutput Ptr) As HRESULT
-    TakeOwnership As Function(This As IDXGIOutput Ptr, device As IUnknown Ptr, exclusive As BOOL) As HRESULT
-    ReleaseOwnership As Sub(This As IDXGIOutput Ptr)
-    GetGammaControlCapabilities As Function(This As IDXGIOutput Ptr, caps As DXGI_GAMMA_CONTROL_CAPABILITIES Ptr) As HRESULT
-    SetGammaControl As Function(This As IDXGIOutput Ptr, gammaControl As Const DXGI_GAMMA_CONTROL Ptr) As HRESULT
-    GetGammaControl As Function(This As IDXGIOutput Ptr, gammaControl As DXGI_GAMMA_CONTROL Ptr) As HRESULT
-    SetDisplaySurface As Function(This As IDXGIOutput Ptr, scanoutSurface As IDXGISurface Ptr) As HRESULT
-    GetDisplaySurfaceData As Function(This As IDXGIOutput Ptr, destination As IDXGISurface Ptr) As HRESULT
-    GetFrameStatistics As Function(This As IDXGIOutput Ptr, stats As DXGI_FRAME_STATISTICS Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(This As IDXGIOutput Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As IDXGIOutput Ptr) As ULong
+	Release As Function(This As IDXGIOutput Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData As Function(This As IDXGIOutput Ptr, name As Const GUID Ptr, dataSize As ULong, data As Any Ptr) As HRESULT
+	SetPrivateDataInterface As Function(This As IDXGIOutput Ptr, name As Const GUID Ptr, pUnknown As IUnknown Ptr) As HRESULT
+	GetPrivateData As Function(This As IDXGIOutput Ptr, name As Const GUID Ptr, pDataSize As ULong Ptr, data As Any Ptr) As HRESULT
+	GetParent As Function(This As IDXGIOutput Ptr, riid As Const GUID Ptr, ppParent As Any Ptr Ptr) As HRESULT
+	
+	' IDXGIOutput
+	GetDesc As Function(This As IDXGIOutput Ptr, desc As DXGI_OUTPUT_DESC Ptr) As HRESULT
+	GetDisplayModeList As Function(This As IDXGIOutput Ptr, format As DXGI_FORMAT, flags As ULong, numModes As ULong Ptr, desc As DXGI_MODE_DESC Ptr) As HRESULT
+	FindClosestMatchingMode As Function(This As IDXGIOutput Ptr, modeToMatch As Const DXGI_MODE_DESC Ptr, closestMatch As DXGI_MODE_DESC Ptr, concernedDevice As IUnknown Ptr) As HRESULT
+	WaitForVBlank As Function(This As IDXGIOutput Ptr) As HRESULT
+	TakeOwnership As Function(This As IDXGIOutput Ptr, device As IUnknown Ptr, exclusive As BOOL) As HRESULT
+	ReleaseOwnership As Sub(This As IDXGIOutput Ptr)
+	GetGammaControlCapabilities As Function(This As IDXGIOutput Ptr, caps As DXGI_GAMMA_CONTROL_CAPABILITIES Ptr) As HRESULT
+	SetGammaControl As Function(This As IDXGIOutput Ptr, gammaControl As Const DXGI_GAMMA_CONTROL Ptr) As HRESULT
+	GetGammaControl As Function(This As IDXGIOutput Ptr, gammaControl As DXGI_GAMMA_CONTROL Ptr) As HRESULT
+	SetDisplaySurface As Function(This As IDXGIOutput Ptr, scanoutSurface As IDXGISurface Ptr) As HRESULT
+	GetDisplaySurfaceData As Function(This As IDXGIOutput Ptr, destination As IDXGISurface Ptr) As HRESULT
+	GetFrameStatistics As Function(This As IDXGIOutput Ptr, stats As DXGI_FRAME_STATISTICS Ptr) As HRESULT
 End Type
 
 Type IDXGIOutput_
-    lpVtbl As IDXGIOutputVtbl Ptr
+	lpVtbl As IDXGIOutputVtbl Ptr
 End Type
 
 Type IDXGISwapChain As IDXGISwapChain_
 
 Type IDXGISwapChainVtbl
-    ' IUnknown
-    QueryInterface As Function(This As IDXGISwapChain Ptr, riid As Const GUID Ptr, ppv As Any Ptr Ptr) As HRESULT
-    AddRef As Function(This As IDXGISwapChain Ptr) As ULong
-    Release As Function(This As IDXGISwapChain Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData As Function(This As IDXGISwapChain Ptr, name As Const GUID Ptr, size As ULong, data As Any Ptr) As HRESULT
-    SetPrivateDataInterface As Function(This As IDXGISwapChain Ptr, name As Const GUID Ptr, pUnknown As IUnknown Ptr) As HRESULT
-    GetPrivateData As Function(This As IDXGISwapChain Ptr, name As Const GUID Ptr, pSize As ULong Ptr, data As Any Ptr) As HRESULT
-    GetParent As Function(This As IDXGISwapChain Ptr, riid As Const GUID Ptr, ppParent As Any Ptr Ptr) As HRESULT
-
-    ' IDXGISwapChain
-    Present As Function(This As IDXGISwapChain Ptr, syncInterval As ULong, flags As ULong) As HRESULT
-    GetBuffer As Function(This As IDXGISwapChain Ptr, bufferIndex As UINT, riid As Const GUID Ptr, surface As IDXGISurface Ptr Ptr) As HRESULT
-    SetFullscreenState As Function(This As IDXGISwapChain Ptr, fullscreen As BOOL, target As IDXGIOutput Ptr) As HRESULT
-    GetFullscreenState As Function(This As IDXGISwapChain Ptr, fullscreen As BOOL Ptr, target As IDXGIOutput Ptr Ptr) As HRESULT
-    GetDesc As Function(This As IDXGISwapChain Ptr, desc As DXGI_SWAP_CHAIN_DESC Ptr) As HRESULT
-    ResizeBuffers As Function(This As IDXGISwapChain Ptr, bufferCount As ULong, width As ULong, height As ULong, format As DXGI_FORMAT, flags As ULong) As HRESULT
-    ResizeTarget As Function(This As IDXGISwapChain Ptr, pNewTargetParameters As Const DXGI_MODE_DESC Ptr) As HRESULT
-    GetContainingOutput As Function(This As IDXGISwapChain Ptr, ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
-    GetFrameStatistics As Function(This As IDXGISwapChain Ptr, stats As DXGI_FRAME_STATISTICS Ptr) As HRESULT
-    GetLastPresentCount As Function(This As IDXGISwapChain Ptr, pLastPresentCount As ULong Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(This As IDXGISwapChain Ptr, riid As Const GUID Ptr, ppv As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As IDXGISwapChain Ptr) As ULong
+	Release As Function(This As IDXGISwapChain Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData As Function(This As IDXGISwapChain Ptr, name As Const GUID Ptr, size As ULong, data As Any Ptr) As HRESULT
+	SetPrivateDataInterface As Function(This As IDXGISwapChain Ptr, name As Const GUID Ptr, pUnknown As IUnknown Ptr) As HRESULT
+	GetPrivateData As Function(This As IDXGISwapChain Ptr, name As Const GUID Ptr, pSize As ULong Ptr, data As Any Ptr) As HRESULT
+	GetParent As Function(This As IDXGISwapChain Ptr, riid As Const GUID Ptr, ppParent As Any Ptr Ptr) As HRESULT
+	
+	' IDXGISwapChain
+	Present As Function(This As IDXGISwapChain Ptr, syncInterval As ULong, flags As ULong) As HRESULT
+	GetBuffer As Function(This As IDXGISwapChain Ptr, bufferIndex As UINT, riid As Const GUID Ptr, surface As IDXGISurface Ptr Ptr) As HRESULT
+	SetFullscreenState As Function(This As IDXGISwapChain Ptr, fullscreen As BOOL, target As IDXGIOutput Ptr) As HRESULT
+	GetFullscreenState As Function(This As IDXGISwapChain Ptr, fullscreen As BOOL Ptr, target As IDXGIOutput Ptr Ptr) As HRESULT
+	GetDesc As Function(This As IDXGISwapChain Ptr, desc As DXGI_SWAP_CHAIN_DESC Ptr) As HRESULT
+	ResizeBuffers As Function(This As IDXGISwapChain Ptr, bufferCount As ULong, width As ULong, height As ULong, format As DXGI_FORMAT, flags As ULong) As HRESULT
+	ResizeTarget As Function(This As IDXGISwapChain Ptr, pNewTargetParameters As Const DXGI_MODE_DESC Ptr) As HRESULT
+	GetContainingOutput As Function(This As IDXGISwapChain Ptr, ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
+	GetFrameStatistics As Function(This As IDXGISwapChain Ptr, stats As DXGI_FRAME_STATISTICS Ptr) As HRESULT
+	GetLastPresentCount As Function(This As IDXGISwapChain Ptr, pLastPresentCount As ULong Ptr) As HRESULT
 End Type
 
 Type IDXGISwapChain_
-    lpVtbl As IDXGISwapChainVtbl Ptr
+	lpVtbl As IDXGISwapChainVtbl Ptr
 End Type
 
 Dim Shared IID_IDXGIFactory As GUID = Type(&h7B7166EC, &h21C7, &h44AE, {&hB2, &h1A, &hC9, &hAE, &h32, &h1A, &hE3, &h69})
@@ -2010,62 +2061,90 @@ Dim Shared IID_IDXGIFactory As GUID = Type(&h7B7166EC, &h21C7, &h44AE, {&hB2, &h
 Type IDXGIFactory As IDXGIFactory_
 
 Type IDXGIFactoryVtbl
-    ' IUnknown
-    QueryInterface As Function(This As IDXGIFactory Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef As Function(This As IDXGIFactory Ptr) As ULong
-    Release As Function(This As IDXGIFactory Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData As Function(This As IDXGIFactory Ptr, name As Const GUID Ptr, dataSize As ULong, data As Any Ptr) As HRESULT
-    SetPrivateDataInterface As Function(This As IDXGIFactory Ptr, name As Const GUID Ptr, unknown As IUnknown Ptr) As HRESULT
-    GetPrivateData As Function(This As IDXGIFactory Ptr, name As Const GUID Ptr, dataSize As ULong Ptr, data As Any Ptr) As HRESULT
-    GetParent As Function(This As IDXGIFactory Ptr, riid As Const GUID Ptr, parent As Any Ptr Ptr) As HRESULT
-
-    ' IDXGIFactory
-    EnumAdapters As Function(This As IDXGIFactory Ptr, adapterIndex As ULong, adapter As IDXGIAdapter Ptr Ptr) As HRESULT
-    MakeWindowAssociation As Function(This As IDXGIFactory Ptr, windowHandle As HWND, flags As ULong) As HRESULT
-    GetWindowAssociation As Function(This As IDXGIFactory Ptr, windowHandle As HWND Ptr) As HRESULT
-    CreateSwapChain As Function(ByVal This As IDXGIFactory Ptr, ByVal device As IUnknown Ptr, ByVal desc As Const DXGI_SWAP_CHAIN_DESC Ptr, ByVal swapChain As IDXGISwapChain Ptr Ptr) As HRESULT
-    CreateSoftwareAdapter As Function(This As IDXGIFactory Ptr, moduleHandle As HMODULE, adapter As IDXGIAdapter Ptr Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(This As IDXGIFactory Ptr, riid As Const GUID Ptr, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef As Function(This As IDXGIFactory Ptr) As ULong
+	Release As Function(This As IDXGIFactory Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData As Function(This As IDXGIFactory Ptr, name As Const GUID Ptr, dataSize As ULong, data As Any Ptr) As HRESULT
+	SetPrivateDataInterface As Function(This As IDXGIFactory Ptr, name As Const GUID Ptr, unknown As IUnknown Ptr) As HRESULT
+	GetPrivateData As Function(This As IDXGIFactory Ptr, name As Const GUID Ptr, dataSize As ULong Ptr, data As Any Ptr) As HRESULT
+	GetParent As Function(This As IDXGIFactory Ptr, riid As Const GUID Ptr, parent As Any Ptr Ptr) As HRESULT
+	
+	' IDXGIFactory
+	EnumAdapters As Function(This As IDXGIFactory Ptr, adapterIndex As ULong, adapter As IDXGIAdapter Ptr Ptr) As HRESULT
+	MakeWindowAssociation As Function(This As IDXGIFactory Ptr, windowHandle As HWND, flags As ULong) As HRESULT
+	GetWindowAssociation As Function(This As IDXGIFactory Ptr, windowHandle As HWND Ptr) As HRESULT
+	CreateSwapChain As Function(ByVal This As IDXGIFactory Ptr, ByVal device As IUnknown Ptr, ByVal desc As Const DXGI_SWAP_CHAIN_DESC Ptr, ByVal swapChain As IDXGISwapChain Ptr Ptr) As HRESULT
+	CreateSoftwareAdapter As Function(This As IDXGIFactory Ptr, moduleHandle As HMODULE, adapter As IDXGIAdapter Ptr Ptr) As HRESULT
 End Type
 
 Type IDXGIFactory_
-    lpVtbl As IDXGIFactoryVtbl Ptr
+	lpVtbl As IDXGIFactoryVtbl Ptr
+End Type
+
+Type ID2D1FactoryVtbl
+	' IUnknown
+	QueryInterface             As Function(ByVal This As Any Ptr, ByRef riid As GUID, ByRef ppv As Any Ptr) As Long
+	AddRef                    As Function(ByVal This As Any Ptr) As ULong
+	Release                   As Function(ByVal This As Any Ptr) As ULong
+	
+	' ID2D1Factory
+	ReloadSystemMetrics       As Function(ByVal This As Any Ptr) As Long
+	GetDesktopDpi             As Sub(ByVal This As Any Ptr, ByRef dpiX As Single, ByRef dpiY As Single)
+	CreateRectangleGeometry   As Function(ByVal This As Any Ptr, ByRef rect As D2D1_RECT_F, ByRef ppGeometry As Any Ptr) As Long
+	CreateRoundedRectangleGeometry As Function(ByVal This As Any Ptr, ByRef roundedRect As D2D1_ROUNDED_RECT, ByRef ppGeometry As Any Ptr) As Long
+	CreateEllipseGeometry     As Function(ByVal This As Any Ptr, ByRef ellipse As D2D1_ELLIPSE, ByRef ppGeometry As Any Ptr) As Long
+	CreateGeometryGroup       As Function(ByVal This As Any Ptr, ByVal fillMode As D2D1_FILL_MODE, ByRef ppGeometries As Any Ptr Ptr, ByVal geometryCount As ULong, ByRef ppGeometryGroup As Any Ptr) As Long
+	CreateTransformedGeometry As Function(ByVal This As Any Ptr, ByVal pSourceGeometry As Any Ptr, ByRef transform As D2D1_MATRIX_3X2_F, ByRef ppGeometry As Any Ptr) As Long
+	CreatePathGeometry        As Function(ByVal This As Any Ptr, ByRef ppPathGeometry As Any Ptr) As Long
+	CreateStrokeStyle         As Function(ByVal This As Any Ptr, ByRef strokeStyleProperties As D2D1_STROKE_STYLE_PROPERTIES, ByRef dashes As Single, ByVal dashesCount As ULong, ByRef ppStrokeStyle As Any Ptr) As Long
+	CreateDrawingStateBlock   As Function(ByVal This As Any Ptr, ByVal drawingStateDescription As Any Ptr, ByVal textRenderingParams As Any Ptr, ByRef ppDrawingStateBlock As Any Ptr) As Long
+	CreateWicBitmapRenderTarget As Function(ByVal This As Any Ptr, ByVal target As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	CreateHwndRenderTarget    As Function(ByVal This As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef hwndRenderTargetProperties As D2D1_HWND_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	CreateDxgiSurfaceRenderTarget As Function(ByVal This As Any Ptr, ByVal surface As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	CreateDCRenderTarget      As Function(ByVal This As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	
+End Type
+
+Type ID2D1Factory_
+	lpVtbl As ID2D1FactoryVtbl Ptr
 End Type
 
 Type ID2D1Factory1Vtbl
-    ' IUnknown
-    QueryInterface             As Function(ByVal This As Any Ptr, ByRef riid As GUID, ByRef ppv As Any Ptr) As Long
-    AddRef                    As Function(ByVal This As Any Ptr) As ULong
-    Release                   As Function(ByVal This As Any Ptr) As ULong
-
-    ' ID2D1Factory
-    ReloadSystemMetrics       As Function(ByVal This As Any Ptr) As Long
-    GetDesktopDpi             As Sub(ByVal This As Any Ptr, ByRef dpiX As Single, ByRef dpiY As Single)
-    CreateRectangleGeometry   As Function(ByVal This As Any Ptr, ByRef rect As D2D1_RECT_F, ByRef ppGeometry As Any Ptr) As Long
-    CreateRoundedRectangleGeometry As Function(ByVal This As Any Ptr, ByRef roundedRect As D2D1_ROUNDED_RECT, ByRef ppGeometry As Any Ptr) As Long
-    CreateEllipseGeometry     As Function(ByVal This As Any Ptr, ByRef ellipse As D2D1_ELLIPSE, ByRef ppGeometry As Any Ptr) As Long
-    CreateGeometryGroup       As Function(ByVal This As Any Ptr, ByVal fillMode As D2D1_FILL_MODE, ByRef ppGeometries As Any Ptr Ptr, ByVal geometryCount As ULong, ByRef ppGeometryGroup As Any Ptr) As Long
-    CreateTransformedGeometry As Function(ByVal This As Any Ptr, ByVal pSourceGeometry As Any Ptr, ByRef transform As D2D1_MATRIX_3X2_F, ByRef ppGeometry As Any Ptr) As Long
-    CreatePathGeometry        As Function(ByVal This As Any Ptr, ByRef ppPathGeometry As Any Ptr) As Long
-    CreateStrokeStyle         As Function(ByVal This As Any Ptr, ByRef strokeStyleProperties As D2D1_STROKE_STYLE_PROPERTIES, ByRef dashes As Single, ByVal dashesCount As ULong, ByRef ppStrokeStyle As Any Ptr) As Long
-    CreateDrawingStateBlock   As Function(ByVal This As Any Ptr, ByVal drawingStateDescription As Any Ptr, ByVal textRenderingParams As Any Ptr, ByRef ppDrawingStateBlock As Any Ptr) As Long
-    CreateWicBitmapRenderTarget As Function(ByVal This As Any Ptr, ByVal target As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
-    CreateHwndRenderTarget    As Function(ByVal This As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef hwndRenderTargetProperties As D2D1_HWND_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
-    CreateDxgiSurfaceRenderTarget As Function(ByVal This As Any Ptr, ByVal surface As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
-    CreateDCRenderTarget      As Function(ByVal This As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
-
-    ' ID2D1Factory1
-    CreateDevice          As Function(ByVal This As Any Ptr, ByVal dxgiDevice As IDXGIDevice Ptr, ByVal d2dDevice As ID2D1Device Ptr Ptr) As HRESULT
-    CreateStrokeStyle1    As Function(ByVal This As Any Ptr, ByVal strokeStyleProperties As Const D2D1_STROKE_STYLE_PROPERTIES1 Ptr, ByVal dashes As Single Ptr, ByVal dashesCount As UInteger, ByVal strokeStyle As Any Ptr Ptr) As HRESULT
-    CreatePathGeometry1   As Function(ByVal This As Any Ptr, ByVal pathGeometry As Any Ptr Ptr) As HRESULT
-    CreateDrawingStateBlock1 As Function(ByVal This As Any Ptr, ByVal drawingStateDescription As Const D2D1_DRAWING_STATE_DESCRIPTION1 Ptr, ByVal textRenderingParams As Any Ptr, ByVal drawingStateBlock As Any Ptr Ptr) As HRESULT
-    CreateGdiMetafile     As Function(ByVal This As Any Ptr, ByVal metafileStream As Any Ptr, ByVal metafile As Any Ptr Ptr) As HRESULT
-    RegisterEffectFromStream As Function(ByVal This As Any Ptr, ByVal classId As Const GUID Ptr, ByVal propertyXml As Any Ptr, ByVal propertyXmlSize As ULong, ByVal bindings As Any Ptr, ByVal bindingsCount As ULong, ByVal effectFactory As Any Ptr) As HRESULT
-    RegisterEffectFromString As Function(ByVal This As Any Ptr, ByVal classId As Const GUID Ptr, ByVal propertyXml As WString Ptr, ByVal bindings As Any Ptr, ByVal bindingsCount As ULong, ByVal effectFactory As Any Ptr) As HRESULT
-    UnregisterEffect      As Function(ByVal This As Any Ptr, ByVal classId As Const GUID Ptr) As HRESULT
-    GetRegisteredEffects  As Function(ByVal This As Any Ptr, ByVal effects As GUID Ptr, ByVal effectsCount As ULong, ByVal effectsReturned As ULong Ptr, ByVal effectsRegistered As ULong Ptr) As HRESULT
-    GetEffectProperties   As Function(ByVal This As Any Ptr, ByVal effectId As Const GUID Ptr, ByVal properties As Any Ptr Ptr) As HRESULT
+	' IUnknown
+	QueryInterface             As Function(ByVal This As Any Ptr, ByRef riid As GUID, ByRef ppv As Any Ptr) As Long
+	AddRef                    As Function(ByVal This As Any Ptr) As ULong
+	Release                   As Function(ByVal This As Any Ptr) As ULong
+	
+	' ID2D1Factory
+	ReloadSystemMetrics       As Function(ByVal This As Any Ptr) As Long
+	GetDesktopDpi             As Sub(ByVal This As Any Ptr, ByRef dpiX As Single, ByRef dpiY As Single)
+	CreateRectangleGeometry   As Function(ByVal This As Any Ptr, ByRef rect As D2D1_RECT_F, ByRef ppGeometry As Any Ptr) As Long
+	CreateRoundedRectangleGeometry As Function(ByVal This As Any Ptr, ByRef roundedRect As D2D1_ROUNDED_RECT, ByRef ppGeometry As Any Ptr) As Long
+	CreateEllipseGeometry     As Function(ByVal This As Any Ptr, ByRef ellipse As D2D1_ELLIPSE, ByRef ppGeometry As Any Ptr) As Long
+	CreateGeometryGroup       As Function(ByVal This As Any Ptr, ByVal fillMode As D2D1_FILL_MODE, ByRef ppGeometries As Any Ptr Ptr, ByVal geometryCount As ULong, ByRef ppGeometryGroup As Any Ptr) As Long
+	CreateTransformedGeometry As Function(ByVal This As Any Ptr, ByVal pSourceGeometry As Any Ptr, ByRef transform As D2D1_MATRIX_3X2_F, ByRef ppGeometry As Any Ptr) As Long
+	CreatePathGeometry        As Function(ByVal This As Any Ptr, ByRef ppPathGeometry As Any Ptr) As Long
+	CreateStrokeStyle         As Function(ByVal This As Any Ptr, ByRef strokeStyleProperties As D2D1_STROKE_STYLE_PROPERTIES, ByRef dashes As Single, ByVal dashesCount As ULong, ByRef ppStrokeStyle As Any Ptr) As Long
+	CreateDrawingStateBlock   As Function(ByVal This As Any Ptr, ByVal drawingStateDescription As Any Ptr, ByVal textRenderingParams As Any Ptr, ByRef ppDrawingStateBlock As Any Ptr) As Long
+	CreateWicBitmapRenderTarget As Function(ByVal This As Any Ptr, ByVal target As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	CreateHwndRenderTarget    As Function(ByVal This As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef hwndRenderTargetProperties As D2D1_HWND_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	CreateDxgiSurfaceRenderTarget As Function(ByVal This As Any Ptr, ByVal surface As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	CreateDCRenderTarget      As Function(ByVal This As Any Ptr, ByRef renderTargetProperties As D2D1_RENDER_TARGET_PROPERTIES, ByRef ppRenderTarget As Any Ptr) As Long
+	
+	' ID2D1Factory1
+	CreateDevice          As Function(ByVal This As Any Ptr, ByVal dxgiDevice As IDXGIDevice Ptr, ByVal d2dDevice As ID2D1Device Ptr Ptr) As HRESULT
+	CreateStrokeStyle1    As Function(ByVal This As Any Ptr, ByVal strokeStyleProperties As Const D2D1_STROKE_STYLE_PROPERTIES1 Ptr, ByVal dashes As Single Ptr, ByVal dashesCount As UInteger, ByVal strokeStyle As Any Ptr Ptr) As HRESULT
+	CreatePathGeometry1   As Function(ByVal This As Any Ptr, ByVal pathGeometry As Any Ptr Ptr) As HRESULT
+	CreateDrawingStateBlock1 As Function(ByVal This As Any Ptr, ByVal drawingStateDescription As Const D2D1_DRAWING_STATE_DESCRIPTION1 Ptr, ByVal textRenderingParams As Any Ptr, ByVal drawingStateBlock As Any Ptr Ptr) As HRESULT
+	CreateGdiMetafile     As Function(ByVal This As Any Ptr, ByVal metafileStream As Any Ptr, ByVal metafile As Any Ptr Ptr) As HRESULT
+	RegisterEffectFromStream As Function(ByVal This As Any Ptr, ByVal classId As Const GUID Ptr, ByVal propertyXml As Any Ptr, ByVal propertyXmlSize As ULong, ByVal bindings As Any Ptr, ByVal bindingsCount As ULong, ByVal effectFactory As Any Ptr) As HRESULT
+	RegisterEffectFromString As Function(ByVal This As Any Ptr, ByVal classId As Const GUID Ptr, ByVal propertyXml As WString Ptr, ByVal bindings As Any Ptr, ByVal bindingsCount As ULong, ByVal effectFactory As Any Ptr) As HRESULT
+	UnregisterEffect      As Function(ByVal This As Any Ptr, ByVal classId As Const GUID Ptr) As HRESULT
+	GetRegisteredEffects  As Function(ByVal This As Any Ptr, ByVal effects As GUID Ptr, ByVal effectsCount As ULong, ByVal effectsReturned As ULong Ptr, ByVal effectsRegistered As ULong Ptr) As HRESULT
+	GetEffectProperties   As Function(ByVal This As Any Ptr, ByVal effectId As Const GUID Ptr, ByVal properties As Any Ptr Ptr) As HRESULT
 End Type
 
 Type ID2D1Factory1
@@ -2073,322 +2152,306 @@ Type ID2D1Factory1
 End Type
 
 Type IDWriteFactoryVtbl
-    ' IUnknown
-    QueryInterface                      As Function(ByVal This As Any Ptr, ByRef riid As GUID, ByRef ppvObject As Any Ptr) As Long
-    AddRef                              As Function(ByVal This As Any Ptr) As ULong
-    Release                             As Function(ByVal This As Any Ptr) As ULong
-
-    ' IDWriteFactory
-    GetSystemFontCollection             As Function(ByVal This As Any Ptr, ByRef fontCollection As Any Ptr, ByVal checkForUpdates As Long) As Long
-    CreateCustomFontCollection          As Function(ByVal This As Any Ptr, ByVal loader As Any Ptr, ByVal collectionKey As Any Ptr, ByVal keySize As ULong, ByRef fontCollection As Any Ptr) As Long
-    RegisterFontCollectionLoader        As Function(ByVal This As Any Ptr, ByVal fontCollectionLoader As Any Ptr) As Long
-    UnregisterFontCollectionLoader      As Function(ByVal This As Any Ptr, ByVal fontCollectionLoader As Any Ptr) As Long
-    CreateFontFileReference             As Function(ByVal This As Any Ptr, ByVal filePath As WString Ptr, ByVal lastWriteTime As Any Ptr, ByRef fontFile As Any Ptr) As Long
-    CreateCustomFontFileReference       As Function(ByVal This As Any Ptr, ByVal fontFileReferenceKey As Any Ptr, ByVal keySize As ULong, ByVal fontFileLoader As Any Ptr, ByRef fontFile As Any Ptr) As Long
-    CreateFontFace                      As Function(ByVal This As Any Ptr, ByVal faceType As ULong, ByVal fontFiles As Any Ptr Ptr, ByVal fileCount As ULong, ByVal faceIndex As ULong, ByVal simulationFlags As ULong, ByRef fontFace As Any Ptr) As Long
-    CreateRenderingParams               As Function(ByVal This As Any Ptr, ByRef renderingParams As Any Ptr) As Long
-    CreateMonitorRenderingParams        As Function(ByVal This As Any Ptr, ByVal monitor As Any Ptr, ByRef renderingParams As Any Ptr) As Long
-    CreateCustomRenderingParams         As Function(ByVal This As Any Ptr, ByVal gamma As Single, ByVal enhancedContrast As Single, ByVal clearTypeLevel As Single, ByVal pixelGeometry As ULong, ByVal renderingMode As ULong, ByRef renderingParams As Any Ptr) As Long
-    RegisterFontFileLoader              As Function(ByVal This As Any Ptr, ByVal fontFileLoader As Any Ptr) As Long
-    UnregisterFontFileLoader            As Function(ByVal This As Any Ptr, ByVal fontFileLoader As Any Ptr) As Long
-    CreateTextFormat                    As Function(ByVal This As Any Ptr, ByVal fontFamilyName As WString Ptr, ByVal fontCollection As Any Ptr, ByVal fontWeight As ULong, ByVal fontStyle As ULong, ByVal fontStretch As ULong, ByVal fontSize As Single, ByVal localeName As WString Ptr, ByRef textFormat As Any Ptr) As Long
-    CreateTypography                    As Function(ByVal This As Any Ptr, ByRef typography As Any Ptr) As Long
-    GetGdiInterop                       As Function(ByVal This As Any Ptr, ByRef gdiInterop As Any Ptr) As Long
-    CreateTextLayout                    As Function(ByVal This As Any Ptr, ByVal text As WString Ptr, ByVal textLength As ULong, ByVal textFormat As Any Ptr, ByVal maxWidth As Single, ByVal maxHeight As Single, ByRef textLayout As Any Ptr) As Long
-    CreateGdiCompatibleTextLayout       As Function(ByVal This As Any Ptr, ByVal text As WString Ptr, ByVal textLength As ULong, ByVal textFormat As Any Ptr, ByVal layoutWidth As Single, ByVal layoutHeight As Single, ByVal pixelsPerDip As Single, ByVal transform As Any Ptr, ByVal useGdiNatural As Long, ByRef textLayout As Any Ptr) As Long
-    CreateEllipsisTrimmingSign          As Function(ByVal This As Any Ptr, ByVal textFormat As Any Ptr, ByVal textLayout As Any Ptr, ByRef trimmingSign As Any Ptr) As Long
-    CreateTextAnalyzer                 As Function(ByVal This As Any Ptr, ByRef textAnalyzer As Any Ptr) As Long
-    CreateNumberSubstitution           As Function(ByVal This As Any Ptr, ByVal substitutionMethod As ULong, ByVal localeName As WString Ptr, ByVal ignoreUserOverrides As Long, ByRef numberSubstitution As Any Ptr) As Long
-    CreateGlyphRunAnalysis             As Function(ByVal This As Any Ptr, ByVal glyphRun As Any Ptr, ByVal pixelsPerDip As Single, ByVal transform As Any Ptr, ByVal renderingMode As ULong, ByVal measuringMode As ULong, ByVal baselineX As Single, ByVal baselineY As Single, ByRef glyphRunAnalysis As Any Ptr) As Long
+	' IUnknown
+	QueryInterface                      As Function(ByVal This As Any Ptr, ByRef riid As GUID, ByRef ppvObject As Any Ptr) As Long
+	AddRef                              As Function(ByVal This As Any Ptr) As ULong
+	Release                             As Function(ByVal This As Any Ptr) As ULong
+	
+	' IDWriteFactory
+	GetSystemFontCollection             As Function(ByVal This As Any Ptr, ByRef fontCollection As Any Ptr, ByVal checkForUpdates As Long) As Long
+	CreateCustomFontCollection          As Function(ByVal This As Any Ptr, ByVal loader As Any Ptr, ByVal collectionKey As Any Ptr, ByVal keySize As ULong, ByRef fontCollection As Any Ptr) As Long
+	RegisterFontCollectionLoader        As Function(ByVal This As Any Ptr, ByVal fontCollectionLoader As Any Ptr) As Long
+	UnregisterFontCollectionLoader      As Function(ByVal This As Any Ptr, ByVal fontCollectionLoader As Any Ptr) As Long
+	CreateFontFileReference             As Function(ByVal This As Any Ptr, ByVal filePath As WString Ptr, ByVal lastWriteTime As Any Ptr, ByRef fontFile As Any Ptr) As Long
+	CreateCustomFontFileReference       As Function(ByVal This As Any Ptr, ByVal fontFileReferenceKey As Any Ptr, ByVal keySize As ULong, ByVal fontFileLoader As Any Ptr, ByRef fontFile As Any Ptr) As Long
+	CreateFontFace                      As Function(ByVal This As Any Ptr, ByVal faceType As ULong, ByVal fontFiles As Any Ptr Ptr, ByVal fileCount As ULong, ByVal faceIndex As ULong, ByVal simulationFlags As ULong, ByRef fontFace As Any Ptr) As Long
+	CreateRenderingParams               As Function(ByVal This As Any Ptr, ByRef renderingParams As Any Ptr) As Long
+	CreateMonitorRenderingParams        As Function(ByVal This As Any Ptr, ByVal monitor As Any Ptr, ByRef renderingParams As Any Ptr) As Long
+	CreateCustomRenderingParams         As Function(ByVal This As Any Ptr, ByVal gamma As Single, ByVal enhancedContrast As Single, ByVal clearTypeLevel As Single, ByVal pixelGeometry As ULong, ByVal renderingMode As ULong, ByRef renderingParams As Any Ptr) As Long
+	RegisterFontFileLoader              As Function(ByVal This As Any Ptr, ByVal fontFileLoader As Any Ptr) As Long
+	UnregisterFontFileLoader            As Function(ByVal This As Any Ptr, ByVal fontFileLoader As Any Ptr) As Long
+	CreateTextFormat                    As Function(ByVal This As Any Ptr, ByVal fontFamilyName As WString Ptr, ByVal fontCollection As Any Ptr, ByVal fontWeight As ULong, ByVal fontStyle As ULong, ByVal fontStretch As ULong, ByVal fontSize As Single, ByVal localeName As WString Ptr, ByRef textFormat As Any Ptr) As Long
+	CreateTypography                    As Function(ByVal This As Any Ptr, ByRef typography As Any Ptr) As Long
+	GetGdiInterop                       As Function(ByVal This As Any Ptr, ByRef gdiInterop As Any Ptr) As Long
+	CreateTextLayout                    As Function(ByVal This As Any Ptr, ByVal text As WString Ptr, ByVal textLength As ULong, ByVal textFormat As Any Ptr, ByVal maxWidth As Single, ByVal maxHeight As Single, ByRef textLayout As Any Ptr) As Long
+	CreateGdiCompatibleTextLayout       As Function(ByVal This As Any Ptr, ByVal text As WString Ptr, ByVal textLength As ULong, ByVal textFormat As Any Ptr, ByVal layoutWidth As Single, ByVal layoutHeight As Single, ByVal pixelsPerDip As Single, ByVal transform As Any Ptr, ByVal useGdiNatural As Long, ByRef textLayout As Any Ptr) As Long
+	CreateEllipsisTrimmingSign          As Function(ByVal This As Any Ptr, ByVal textFormat As Any Ptr, ByVal textLayout As Any Ptr, ByRef trimmingSign As Any Ptr) As Long
+	CreateTextAnalyzer                 As Function(ByVal This As Any Ptr, ByRef textAnalyzer As Any Ptr) As Long
+	CreateNumberSubstitution           As Function(ByVal This As Any Ptr, ByVal substitutionMethod As ULong, ByVal localeName As WString Ptr, ByVal ignoreUserOverrides As Long, ByRef numberSubstitution As Any Ptr) As Long
+	CreateGlyphRunAnalysis             As Function(ByVal This As Any Ptr, ByVal glyphRun As Any Ptr, ByVal pixelsPerDip As Single, ByVal transform As Any Ptr, ByVal renderingMode As ULong, ByVal measuringMode As ULong, ByVal baselineX As Single, ByVal baselineY As Single, ByRef glyphRunAnalysis As Any Ptr) As Long
 End Type
 
 Type IDWriteFactory
-    lpVtbl As IDWriteFactoryVtbl Ptr
+	lpVtbl As IDWriteFactoryVtbl Ptr
 End Type
 
-Type fnCreateTextLayout As Function( _
-ByVal This As IDWriteFactory Ptr, _
-ByVal text As LPCWSTR, _
-ByVal textLength As UINT32, _
-ByVal fformat As IDWriteTextFormat Ptr, _
-ByVal maxWidth As Single, _
-ByVal maxHeight As Single, _
-ByVal textLayout As IDWriteTextLayout Ptr Ptr _
-) As HRESULT
+Type fnCreateTextLayout As Function(ByVal This As IDWriteFactory Ptr, ByVal text As LPCWSTR, ByVal textLength As UINT32, ByVal fformat As IDWriteTextFormat Ptr, ByVal maxWidth As Single, ByVal maxHeight As Single, ByVal textLayout As IDWriteTextLayout Ptr Ptr) As HRESULT
 
 Dim Shared CreateTextLayout As fnCreateTextLayout
 
-Type D2D1CreateFactoryType As Function( _
-ByVal factoryType As Long, _
-ByVal riid As Const GUID Ptr, _
-ByVal pFactoryOptions As Any Ptr, _
-ByVal ppIFactory As Any Ptr Ptr _
-) As Long
+Type D2D1CreateFactoryType As Function(ByVal factoryType As Long, ByVal riid As Const GUID Ptr, ByVal pFactoryOptions As Any Ptr, ByVal ppIFactory As Any Ptr Ptr) As Long
 
-Type D3D_FEATURE_LEVEL As Long
-Enum
-    D3D_FEATURE_LEVEL_9_1  = &h9100
-    D3D_FEATURE_LEVEL_9_2  = &h9200
-    D3D_FEATURE_LEVEL_9_3  = &h9300
-    D3D_FEATURE_LEVEL_10_0 = &ha000
-    D3D_FEATURE_LEVEL_10_1 = &ha100
-    D3D_FEATURE_LEVEL_11_0 = &hb000
-    D3D_FEATURE_LEVEL_11_1 = &hb100
-    D3D_FEATURE_LEVEL_12_0 = &hc000
-    D3D_FEATURE_LEVEL_12_1 = &hc100
+Enum D3D_FEATURE_LEVEL
+	D3D_FEATURE_LEVEL_9_1  = &h9100
+	D3D_FEATURE_LEVEL_9_2  = &h9200
+	D3D_FEATURE_LEVEL_9_3  = &h9300
+	D3D_FEATURE_LEVEL_10_0 = &ha000
+	D3D_FEATURE_LEVEL_10_1 = &ha100
+	D3D_FEATURE_LEVEL_11_0 = &hb000
+	D3D_FEATURE_LEVEL_11_1 = &hb100
+	D3D_FEATURE_LEVEL_12_0 = &hc000
+	D3D_FEATURE_LEVEL_12_1 = &hc100
 End Enum
 
-Type D3D_DRIVER_TYPE As Long
-Enum
-    D3D_DRIVER_TYPE_UNKNOWN           = 0
-    D3D_DRIVER_TYPE_HARDWARE          = 1
-    D3D_DRIVER_TYPE_REFERENCE         = 2
-    D3D_DRIVER_TYPE_NULL              = 3
-    D3D_DRIVER_TYPE_SOFTWARE          = 4
-    D3D_DRIVER_TYPE_WARP              = 5
+Enum D3D_DRIVER_TYPE
+	D3D_DRIVER_TYPE_UNKNOWN           = 0
+	D3D_DRIVER_TYPE_HARDWARE          = 1
+	D3D_DRIVER_TYPE_REFERENCE         = 2
+	D3D_DRIVER_TYPE_NULL              = 3
+	D3D_DRIVER_TYPE_SOFTWARE          = 4
+	D3D_DRIVER_TYPE_WARP              = 5
 End Enum
 
 Type ID3D11DeviceVtbl
-    ' IUnknown
-    QueryInterface              As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef                      As Function(ByVal This As Any Ptr) As ULong
-    Release                     As Function(ByVal This As Any Ptr) As ULong
-
-    ' ID3D11Device
-    CreateBuffer                As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppBuffer As Any Ptr Ptr) As HRESULT
-    CreateTexture1D             As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppTexture1D As Any Ptr Ptr) As HRESULT
-    CreateTexture2D             As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppTexture2D As Any Ptr Ptr) As HRESULT
-    CreateTexture3D             As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppTexture3D As Any Ptr Ptr) As HRESULT
-    CreateShaderResourceView    As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppSRView As Any Ptr Ptr) As HRESULT
-    CreateUnorderedAccessView   As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppUAView As Any Ptr Ptr) As HRESULT
-    CreateRenderTargetView      As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppRTView As Any Ptr Ptr) As HRESULT
-    CreateDepthStencilView      As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppDSView As Any Ptr Ptr) As HRESULT
-    CreateInputLayout           As Function(ByVal This As Any Ptr, ByVal pInputElementDescs As Any Ptr, ByVal NumElements As UInteger, ByVal pShaderBytecodeWithInputSignature As Any Ptr, ByVal BytecodeLength As UInteger, ByVal ppInputLayout As Any Ptr Ptr) As HRESULT
-    CreateVertexShader          As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppVertexShader As Any Ptr Ptr) As HRESULT
-    CreateGeometryShader        As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppGeometryShader As Any Ptr Ptr) As HRESULT
-    CreatePixelShader           As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppPixelShader As Any Ptr Ptr) As HRESULT
-    CreateHullShader            As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppHullShader As Any Ptr Ptr) As HRESULT
-    CreateDomainShader          As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppDomainShader As Any Ptr Ptr) As HRESULT
-    CreateComputeShader         As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppComputeShader As Any Ptr Ptr) As HRESULT
-    CreateClassLinkage          As Function(ByVal This As Any Ptr, ByVal ppLinkage As Any Ptr Ptr) As HRESULT
-    CreateBlendState            As Function(ByVal This As Any Ptr, ByVal pBlendStateDesc As Any Ptr, ByVal ppBlendState As Any Ptr Ptr) As HRESULT
-    CreateDepthStencilState     As Function(ByVal This As Any Ptr, ByVal pDepthStencilDesc As Any Ptr, ByVal ppDepthStencilState As Any Ptr Ptr) As HRESULT
-    CreateRasterizerState       As Function(ByVal This As Any Ptr, ByVal pRasterizerDesc As Any Ptr, ByVal ppRasterizerState As Any Ptr Ptr) As HRESULT
-    CreateSamplerState          As Function(ByVal This As Any Ptr, ByVal pSamplerDesc As Any Ptr, ByVal ppSamplerState As Any Ptr Ptr) As HRESULT
-    CreateQuery                 As Function(ByVal This As Any Ptr, ByVal pQueryDesc As Any Ptr, ByVal ppQuery As Any Ptr Ptr) As HRESULT
-    CreatePredicate             As Function(ByVal This As Any Ptr, ByVal pPredicateDesc As Any Ptr, ByVal ppPredicate As Any Ptr Ptr) As HRESULT
-    CreateCounter               As Function(ByVal This As Any Ptr, ByVal pCounterDesc As Any Ptr, ByVal ppCounter As Any Ptr Ptr) As HRESULT
-    CreateDeferredContext       As Function(ByVal This As Any Ptr, ByVal ContextFlags As UInteger, ByVal ppDeferredContext As Any Ptr Ptr) As HRESULT
-    OpenSharedResource          As Function(ByVal This As Any Ptr, ByVal hResource As HANDLE, ByVal riid As Const GUID Ptr, ByVal ppResource As Any Ptr Ptr) As HRESULT
-    CheckFormatSupport          As Function(ByVal This As Any Ptr, ByVal Format As UInteger, ByVal pFormatSupport As UInteger Ptr) As HRESULT
-    CheckMultisampleQualityLevels As Function(ByVal This As Any Ptr, ByVal Format As UInteger, ByVal SampleCount As UInteger, ByVal pNumQualityLevels As UInteger Ptr) As HRESULT
-    CheckCounterInfo            As Sub     (ByVal This As Any Ptr, ByVal pCounterInfo As Any Ptr)
-    CheckCounter                As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pType As Any Ptr, ByVal pActiveCounters As UInteger Ptr, ByVal szName As ZString Ptr, ByVal pNameLength As UInteger Ptr, ByVal szUnits As ZString Ptr, ByVal pUnitsLength As UInteger Ptr, ByVal szDesc As ZString Ptr, ByVal pDescLength As UInteger Ptr) As HRESULT
-    CheckFeatureSupport         As Function(ByVal This As Any Ptr, ByVal Feature As UInteger, ByVal pFeatureSupportData As Any Ptr, ByVal FeatureSupportDataSize As UInteger) As HRESULT
-    GetPrivateData              As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pDataSize As UInteger Ptr, ByVal pData As Any Ptr) As HRESULT
-    SetPrivateData              As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal DataSize As UInteger, ByVal pData As Const Any Ptr) As HRESULT
-    SetPrivateDataInterface     As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pData As Any Ptr) As HRESULT
-    GetFeatureLevel             As Function(ByVal This As Any Ptr) As UInteger
-    GetCreationFlags            As Function(ByVal This As Any Ptr) As UInteger
-    GetDeviceRemovedReason      As Function(ByVal This As Any Ptr) As HRESULT
-    GetImmediateContext         As Sub     (ByVal This As Any Ptr, ByVal ppImmediateContext As Any Ptr Ptr)
-    SetExceptionMode            As Function(ByVal This As Any Ptr, ByVal RaiseFlags As UInteger) As HRESULT
-    GetExceptionMode            As Function(ByVal This As Any Ptr) As UInteger
+	' IUnknown
+	QueryInterface              As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef                      As Function(ByVal This As Any Ptr) As ULong
+	Release                     As Function(ByVal This As Any Ptr) As ULong
+	
+	' ID3D11Device
+	CreateBuffer                As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppBuffer As Any Ptr Ptr) As HRESULT
+	CreateTexture1D             As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppTexture1D As Any Ptr Ptr) As HRESULT
+	CreateTexture2D             As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppTexture2D As Any Ptr Ptr) As HRESULT
+	CreateTexture3D             As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pInitialData As Any Ptr, ByVal ppTexture3D As Any Ptr Ptr) As HRESULT
+	CreateShaderResourceView    As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppSRView As Any Ptr Ptr) As HRESULT
+	CreateUnorderedAccessView   As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppUAView As Any Ptr Ptr) As HRESULT
+	CreateRenderTargetView      As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppRTView As Any Ptr Ptr) As HRESULT
+	CreateDepthStencilView      As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal pDesc As Any Ptr, ByVal ppDSView As Any Ptr Ptr) As HRESULT
+	CreateInputLayout           As Function(ByVal This As Any Ptr, ByVal pInputElementDescs As Any Ptr, ByVal NumElements As UInteger, ByVal pShaderBytecodeWithInputSignature As Any Ptr, ByVal BytecodeLength As UInteger, ByVal ppInputLayout As Any Ptr Ptr) As HRESULT
+	CreateVertexShader          As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppVertexShader As Any Ptr Ptr) As HRESULT
+	CreateGeometryShader        As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppGeometryShader As Any Ptr Ptr) As HRESULT
+	CreatePixelShader           As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppPixelShader As Any Ptr Ptr) As HRESULT
+	CreateHullShader            As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppHullShader As Any Ptr Ptr) As HRESULT
+	CreateDomainShader          As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppDomainShader As Any Ptr Ptr) As HRESULT
+	CreateComputeShader         As Function(ByVal This As Any Ptr, ByVal pShaderBytecode As Any Ptr, ByVal BytecodeLength As UInteger, ByVal pClassLinkage As Any Ptr, ByVal ppComputeShader As Any Ptr Ptr) As HRESULT
+	CreateClassLinkage          As Function(ByVal This As Any Ptr, ByVal ppLinkage As Any Ptr Ptr) As HRESULT
+	CreateBlendState            As Function(ByVal This As Any Ptr, ByVal pBlendStateDesc As Any Ptr, ByVal ppBlendState As Any Ptr Ptr) As HRESULT
+	CreateDepthStencilState     As Function(ByVal This As Any Ptr, ByVal pDepthStencilDesc As Any Ptr, ByVal ppDepthStencilState As Any Ptr Ptr) As HRESULT
+	CreateRasterizerState       As Function(ByVal This As Any Ptr, ByVal pRasterizerDesc As Any Ptr, ByVal ppRasterizerState As Any Ptr Ptr) As HRESULT
+	CreateSamplerState          As Function(ByVal This As Any Ptr, ByVal pSamplerDesc As Any Ptr, ByVal ppSamplerState As Any Ptr Ptr) As HRESULT
+	CreateQuery                 As Function(ByVal This As Any Ptr, ByVal pQueryDesc As Any Ptr, ByVal ppQuery As Any Ptr Ptr) As HRESULT
+	CreatePredicate             As Function(ByVal This As Any Ptr, ByVal pPredicateDesc As Any Ptr, ByVal ppPredicate As Any Ptr Ptr) As HRESULT
+	CreateCounter               As Function(ByVal This As Any Ptr, ByVal pCounterDesc As Any Ptr, ByVal ppCounter As Any Ptr Ptr) As HRESULT
+	CreateDeferredContext       As Function(ByVal This As Any Ptr, ByVal ContextFlags As UInteger, ByVal ppDeferredContext As Any Ptr Ptr) As HRESULT
+	OpenSharedResource          As Function(ByVal This As Any Ptr, ByVal hResource As HANDLE, ByVal riid As Const GUID Ptr, ByVal ppResource As Any Ptr Ptr) As HRESULT
+	CheckFormatSupport          As Function(ByVal This As Any Ptr, ByVal Format As UInteger, ByVal pFormatSupport As UInteger Ptr) As HRESULT
+	CheckMultisampleQualityLevels As Function(ByVal This As Any Ptr, ByVal Format As UInteger, ByVal SampleCount As UInteger, ByVal pNumQualityLevels As UInteger Ptr) As HRESULT
+	CheckCounterInfo            As Sub     (ByVal This As Any Ptr, ByVal pCounterInfo As Any Ptr)
+	CheckCounter                As Function(ByVal This As Any Ptr, ByVal pDesc As Any Ptr, ByVal pType As Any Ptr, ByVal pActiveCounters As UInteger Ptr, ByVal szName As ZString Ptr, ByVal pNameLength As UInteger Ptr, ByVal szUnits As ZString Ptr, ByVal pUnitsLength As UInteger Ptr, ByVal szDesc As ZString Ptr, ByVal pDescLength As UInteger Ptr) As HRESULT
+	CheckFeatureSupport         As Function(ByVal This As Any Ptr, ByVal Feature As UInteger, ByVal pFeatureSupportData As Any Ptr, ByVal FeatureSupportDataSize As UInteger) As HRESULT
+	GetPrivateData              As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pDataSize As UInteger Ptr, ByVal pData As Any Ptr) As HRESULT
+	SetPrivateData              As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal DataSize As UInteger, ByVal pData As Const Any Ptr) As HRESULT
+	SetPrivateDataInterface     As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pData As Any Ptr) As HRESULT
+	GetFeatureLevel             As Function(ByVal This As Any Ptr) As UInteger
+	GetCreationFlags            As Function(ByVal This As Any Ptr) As UInteger
+	GetDeviceRemovedReason      As Function(ByVal This As Any Ptr) As HRESULT
+	GetImmediateContext         As Sub     (ByVal This As Any Ptr, ByVal ppImmediateContext As Any Ptr Ptr)
+	SetExceptionMode            As Function(ByVal This As Any Ptr, ByVal RaiseFlags As UInteger) As HRESULT
+	GetExceptionMode            As Function(ByVal This As Any Ptr) As UInteger
 End Type
 
 Type ID3D11Device
-    lpVtbl As ID3D11DeviceVtbl Ptr
+	lpVtbl As ID3D11DeviceVtbl Ptr
 End Type
 
 Type ID3D11DeviceContextVtbl
-    ' IUnknown
-    QueryInterface           As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef                   As Function(ByVal This As Any Ptr) As ULong
-    Release                  As Function(ByVal This As Any Ptr) As ULong
-
-    ' ID3D11DeviceChild
-    GetDevice                As Sub(ByVal This As Any Ptr, ByVal ppDevice As Any Ptr Ptr)
-    GetPrivateData           As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pDataSize As UInteger Ptr, ByVal pData As Any Ptr) As HRESULT
-    SetPrivateData           As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal DataSize As UInteger, ByVal pData As Const Any Ptr) As HRESULT
-    SetPrivateDataInterface  As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pData As Any Ptr) As HRESULT
-
-    ' ID3D11DeviceContext
-    VSSetConstantBuffers     As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
-    PSSetShaderResources     As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
-    PSSetShader              As Sub(ByVal This As Any Ptr, ByVal pPixelShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
-    PSSetSamplers            As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
-    VSSetShader              As Sub(ByVal This As Any Ptr, ByVal pVertexShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
-    DrawIndexed              As Sub(ByVal This As Any Ptr, ByVal IndexCount As UInteger, ByVal StartIndexLocation As UInteger, ByVal BaseVertexLocation As Integer)
-    Draw                     As Sub(ByVal This As Any Ptr, ByVal VertexCount As UInteger, ByVal StartVertexLocation As UInteger)
-    Map                      As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal Subresource As UInteger, ByVal MapType As UInteger, ByVal MapFlags As UInteger, ByVal pMappedResource As Any Ptr) As HRESULT
-    Unmap                    As Sub(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal Subresource As UInteger)
-    OMSetRenderTargets       As Sub(ByVal This As Any Ptr, ByVal NumViews As UInteger, ByVal ppRenderTargetViews As Any Ptr Ptr, ByVal pDepthStencilView As Any Ptr)
-    ClearRenderTargetView    As Sub(ByVal This As Any Ptr, ByVal pRenderTargetView As Any Ptr, ByVal ColorRGBA As Single Ptr)
-    IASetInputLayout         As Sub(ByVal This As Any Ptr, ByVal pInputLayout As Any Ptr)
-    IASetVertexBuffers       As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppVertexBuffers As Any Ptr Ptr, ByVal pStrides As UInteger Ptr, ByVal pOffsets As UInteger Ptr)
-    IASetIndexBuffer         As Sub(ByVal This As Any Ptr, ByVal pIndexBuffer As Any Ptr, ByVal Format As UInteger, ByVal Offset As UInteger)
-    IASetPrimitiveTopology   As Sub(ByVal This As Any Ptr, ByVal Topology As UInteger)
-    RSSetViewports           As Sub(ByVal This As Any Ptr, ByVal NumViewports As UInteger, ByVal pViewports As Any Ptr)
-    RSSetScissorRects        As Sub(ByVal This As Any Ptr, ByVal NumRects As UInteger, ByVal pRects As Any Ptr)
-    OMSetBlendState          As Sub(ByVal This As Any Ptr, ByVal pBlendState As Any Ptr, ByVal BlendFactor As Single Ptr, ByVal SampleMask As UInteger)
-    OMSetDepthStencilState   As Sub(ByVal This As Any Ptr, ByVal pDepthStencilState As Any Ptr, ByVal StencilRef As UInteger)
-    SOSetTargets             As Sub(ByVal This As Any Ptr, ByVal NumBuffers As UInteger, ByVal ppSOTargets As Any Ptr Ptr, ByVal pOffsets As UInteger Ptr)
-    DrawAuto                 As Sub(ByVal This As Any Ptr)
-    DrawIndexedInstanced     As Sub(ByVal This As Any Ptr, ByVal IndexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartIndexLocation As UInteger, ByVal BaseVertexLocation As Integer, ByVal StartInstanceLocation As UInteger)
-    DrawInstanced            As Sub(ByVal This As Any Ptr, ByVal VertexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartVertexLocation As UInteger, ByVal StartInstanceLocation As UInteger)
+	' IUnknown
+	QueryInterface           As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef                   As Function(ByVal This As Any Ptr) As ULong
+	Release                  As Function(ByVal This As Any Ptr) As ULong
+	
+	' ID3D11DeviceChild
+	GetDevice                As Sub(ByVal This As Any Ptr, ByVal ppDevice As Any Ptr Ptr)
+	GetPrivateData           As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pDataSize As UInteger Ptr, ByVal pData As Any Ptr) As HRESULT
+	SetPrivateData           As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal DataSize As UInteger, ByVal pData As Const Any Ptr) As HRESULT
+	SetPrivateDataInterface  As Function(ByVal This As Any Ptr, ByVal guid As Const guid Ptr, ByVal pData As Any Ptr) As HRESULT
+	
+	' ID3D11DeviceContext
+	VSSetConstantBuffers     As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+	PSSetShaderResources     As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+	PSSetShader              As Sub(ByVal This As Any Ptr, ByVal pPixelShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
+	PSSetSamplers            As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+	VSSetShader              As Sub(ByVal This As Any Ptr, ByVal pVertexShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
+	DrawIndexed              As Sub(ByVal This As Any Ptr, ByVal IndexCount As UInteger, ByVal StartIndexLocation As UInteger, ByVal BaseVertexLocation As Integer)
+	Draw                     As Sub(ByVal This As Any Ptr, ByVal VertexCount As UInteger, ByVal StartVertexLocation As UInteger)
+	Map                      As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal Subresource As UInteger, ByVal MapType As UInteger, ByVal MapFlags As UInteger, ByVal pMappedResource As Any Ptr) As HRESULT
+	Unmap                    As Sub(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal Subresource As UInteger)
+	OMSetRenderTargets       As Sub(ByVal This As Any Ptr, ByVal NumViews As UInteger, ByVal ppRenderTargetViews As Any Ptr Ptr, ByVal pDepthStencilView As Any Ptr)
+	ClearRenderTargetView    As Sub(ByVal This As Any Ptr, ByVal pRenderTargetView As Any Ptr, ByVal ColorRGBA As Single Ptr)
+	IASetInputLayout         As Sub(ByVal This As Any Ptr, ByVal pInputLayout As Any Ptr)
+	IASetVertexBuffers       As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppVertexBuffers As Any Ptr Ptr, ByVal pStrides As UInteger Ptr, ByVal pOffsets As UInteger Ptr)
+	IASetIndexBuffer         As Sub(ByVal This As Any Ptr, ByVal pIndexBuffer As Any Ptr, ByVal Format As UInteger, ByVal Offset As UInteger)
+	IASetPrimitiveTopology   As Sub(ByVal This As Any Ptr, ByVal Topology As UInteger)
+	RSSetViewports           As Sub(ByVal This As Any Ptr, ByVal NumViewports As UInteger, ByVal pViewports As Any Ptr)
+	RSSetScissorRects        As Sub(ByVal This As Any Ptr, ByVal NumRects As UInteger, ByVal pRects As Any Ptr)
+	OMSetBlendState          As Sub(ByVal This As Any Ptr, ByVal pBlendState As Any Ptr, ByVal BlendFactor As Single Ptr, ByVal SampleMask As UInteger)
+	OMSetDepthStencilState   As Sub(ByVal This As Any Ptr, ByVal pDepthStencilState As Any Ptr, ByVal StencilRef As UInteger)
+	SOSetTargets             As Sub(ByVal This As Any Ptr, ByVal NumBuffers As UInteger, ByVal ppSOTargets As Any Ptr Ptr, ByVal pOffsets As UInteger Ptr)
+	DrawAuto                 As Sub(ByVal This As Any Ptr)
+	DrawIndexedInstanced     As Sub(ByVal This As Any Ptr, ByVal IndexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartIndexLocation As UInteger, ByVal BaseVertexLocation As Integer, ByVal StartInstanceLocation As UInteger)
+	DrawInstanced            As Sub(ByVal This As Any Ptr, ByVal VertexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartVertexLocation As UInteger, ByVal StartInstanceLocation As UInteger)
 End Type
 
 Type ID3D11DeviceContext
-    lpVtbl As ID3D11DeviceContextVtbl Ptr
+	lpVtbl As ID3D11DeviceContextVtbl Ptr
 End Type
 
 Dim Shared IID_IDXGIFactory2 As GUID = (&h50C83A1C, &hE072, &h4C48, {&h87, &hB0, &h36, &h30, &hFA, &h36, &hA6, &hD0})
 
 Type DXGI_SWAP_CHAIN_FULLSCREEN_DESC
-    RefreshRate       As DXGI_RATIONAL
-    ScanlineOrdering  As DXGI_MODE_SCANLINE_ORDER
-    Scaling           As DXGI_MODE_SCALING
-    Windowed          As BOOL
+	RefreshRate       As DXGI_RATIONAL
+	ScanlineOrdering  As DXGI_MODE_SCANLINE_ORDER
+	Scaling           As DXGI_MODE_SCALING
+	Windowed          As BOOL
 End Type
 
 Type DXGI_ADAPTER_DESC1
-    Description(127) As WCHAR       ' WCHAR[128] = 256 bytes
-    VendorId As UInteger
-    DeviceId As UInteger
-    SubSysId As UInteger
-    Revision As UInteger
-    DedicatedVideoMemory As ULongInt
-    DedicatedSystemMemory As ULongInt
-    SharedSystemMemory As ULongInt
-    AdapterLuid As LUID
-    Flags As UInteger
+	Description(127) As WCHAR       ' WCHAR[128] = 256 bytes
+	VendorId As UInteger
+	DeviceId As UInteger
+	SubSysId As UInteger
+	Revision As UInteger
+	DedicatedVideoMemory As ULongInt
+	DedicatedSystemMemory As ULongInt
+	SharedSystemMemory As ULongInt
+	AdapterLuid As LUID
+	Flags As UInteger
 End Type
 
 Type IDXGIAdapter1Vtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef         As Function(ByVal This As Any Ptr) As ULong
-    Release        As Function(ByVal This As Any Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData          As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
-    SetPrivateDataInterface As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal pUnknown As IUnknown Ptr) As HRESULT
-    GetPrivateData          As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByRef DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
-    GetParent               As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppParent As Any Ptr Ptr) As HRESULT
-
-    ' IDXGIAdapter
-    EnumOutputs             As Function(ByVal This As Any Ptr, ByVal Output As UINT, ByVal ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
-    GetDesc                 As Function(ByVal This As Any Ptr, ByRef pDesc As DXGI_ADAPTER_DESC) As HRESULT
-    CheckInterfaceSupport   As Function(ByVal This As Any Ptr, ByVal InterfaceName As REFGUID, ByRef pUMDVersion As LARGE_INTEGER) As HRESULT
-
-    ' IDXGIAdapter1
-    GetDesc1                As Function(ByVal This As Any Ptr, ByRef pDesc As DXGI_ADAPTER_DESC1) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef         As Function(ByVal This As Any Ptr) As ULong
+	Release        As Function(ByVal This As Any Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData          As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
+	SetPrivateDataInterface As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal pUnknown As IUnknown Ptr) As HRESULT
+	GetPrivateData          As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByRef DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
+	GetParent               As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppParent As Any Ptr Ptr) As HRESULT
+	
+	' IDXGIAdapter
+	EnumOutputs             As Function(ByVal This As Any Ptr, ByVal Output As UINT, ByVal ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
+	GetDesc                 As Function(ByVal This As Any Ptr, ByRef pDesc As DXGI_ADAPTER_DESC) As HRESULT
+	CheckInterfaceSupport   As Function(ByVal This As Any Ptr, ByVal InterfaceName As REFGUID, ByRef pUMDVersion As LARGE_INTEGER) As HRESULT
+	
+	' IDXGIAdapter1
+	GetDesc1                As Function(ByVal This As Any Ptr, ByRef pDesc As DXGI_ADAPTER_DESC1) As HRESULT
 End Type
 
 Type IDXGIAdapter1
-    lpVtbl As IDXGIAdapter1Vtbl Ptr
+	lpVtbl As IDXGIAdapter1Vtbl Ptr
 End Type
 
 Type DXGI_RECT
-    left   As Long
-    top    As Long
-    right  As Long
-    bottom As Long
+	left   As Long
+	top    As Long
+	right  As Long
+	bottom As Long
 End Type
 
 Type DXGI_PRESENT_PARAMETERS
-    DirtyRectsCount As UInteger
-    pDirtyRects     As RECT Ptr          ' RECT is already defined in Windows headers
-    pScrollRect     As DXGI_RECT Ptr
-    pScrollOffset   As Point Ptr
+	DirtyRectsCount As UInteger
+	pDirtyRects     As RECT Ptr          ' RECT is already defined in Windows headers
+	pScrollRect     As DXGI_RECT Ptr
+	pScrollOffset   As Point Ptr
 End Type
 
 Type IDXGISwapChain1Vtbl
-    ' IUnknown
-    QueryInterface  As Function(This As Any Ptr, riid As REFIID, ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef          As Function(This As Any Ptr) As ULong
-    Release         As Function(This As Any Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData           As Function(This As Any Ptr, Name As REFGUID, DataSize As UINT, pData As Any Ptr) As HRESULT
-    SetPrivateDataInterface  As Function(This As Any Ptr, Name As REFGUID, pUnknown As IUnknown Ptr) As HRESULT
-    GetPrivateData           As Function(This As Any Ptr, Name As REFGUID, ByRef DataSize As UINT, pData As Any Ptr) As HRESULT
-    GetParent                As Function(This As Any Ptr, riid As REFIID, ppParent As Any Ptr Ptr) As HRESULT
-
-    ' IDXGIDeviceSubObject
-    GetDevice                As Function(This As Any Ptr, riid As REFIID, ppDevice As Any Ptr Ptr) As HRESULT
-
-    ' IDXGISwapChain
-    Present                  As Function(This As Any Ptr, SyncInterval As UINT, Flags As UINT) As HRESULT
-    GetBuffer                As Function(This As Any Ptr, Buffer As UINT, riid As REFIID, ppSurface As Any Ptr Ptr) As HRESULT
-    SetFullscreenState       As Function(This As Any Ptr, Fullscreen As BOOL, pTarget As IDXGIOutput Ptr) As HRESULT
-    GetFullscreenState       As Function(This As Any Ptr, ByRef Fullscreen As BOOL, ppTarget As IDXGIOutput Ptr Ptr) As HRESULT
-    GetDesc                  As Function(This As Any Ptr, pDesc As DXGI_SWAP_CHAIN_DESC Ptr) As HRESULT
-    ResizeBuffers            As Function(This As Any Ptr, BufferCount As UINT, Width As UINT, Height As UINT, NewFormat As DXGI_FORMAT, SwapChainFlags As UINT) As HRESULT
-    ResizeTarget             As Function(This As Any Ptr, pNewTargetParameters As DXGI_MODE_DESC Ptr) As HRESULT
-    GetContainingOutput      As Function(This As Any Ptr, ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
-    GetFrameStatistics       As Function(This As Any Ptr, pStats As DXGI_FRAME_STATISTICS Ptr) As HRESULT
-    GetLastPresentCount      As Function(This As Any Ptr, pLastPresentCount As UINT Ptr) As HRESULT
-
-    ' IDXGISwapChain1
-    GetDesc1                 As Function(This As Any Ptr, pDesc As DXGI_SWAP_CHAIN_DESC1 Ptr) As HRESULT
-    GetFullscreenDesc        As Function(This As Any Ptr, pDesc As DXGI_SWAP_CHAIN_FULLSCREEN_DESC Ptr) As HRESULT
-    GetHwnd                  As Function(This As Any Ptr, phwnd As HWND Ptr) As HRESULT
-    GetCoreWindow            As Function(This As Any Ptr, riid As REFIID, ppUnk As Any Ptr Ptr) As HRESULT
-    Present1                 As Function(This As Any Ptr, SyncInterval As UINT, PresentFlags As UINT, pPresentParameters As DXGI_PRESENT_PARAMETERS Ptr) As HRESULT
-    IsTemporaryMonoSupported As Function(This As Any Ptr) As BOOL
-    GetRestrictToOutput      As Function(This As Any Ptr, ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
-    SetBackgroundColor       As Function(This As Any Ptr, pColor As D2D1_COLOR_F Ptr) As HRESULT
-    GetBackgroundColor       As Function(This As Any Ptr, pColor As D2D1_COLOR_F Ptr) As HRESULT
-    SetRotation              As Function(This As Any Ptr, Rotation As DXGI_MODE_ROTATION) As HRESULT
-    GetRotation              As Function(This As Any Ptr, pRotation As DXGI_MODE_ROTATION Ptr) As HRESULT
+	' IUnknown
+	QueryInterface  As Function(This As Any Ptr, riid As REFIID, ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef          As Function(This As Any Ptr) As ULong
+	Release         As Function(This As Any Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData           As Function(This As Any Ptr, Name As REFGUID, DataSize As UINT, pData As Any Ptr) As HRESULT
+	SetPrivateDataInterface  As Function(This As Any Ptr, Name As REFGUID, pUnknown As IUnknown Ptr) As HRESULT
+	GetPrivateData           As Function(This As Any Ptr, Name As REFGUID, ByRef DataSize As UINT, pData As Any Ptr) As HRESULT
+	GetParent                As Function(This As Any Ptr, riid As REFIID, ppParent As Any Ptr Ptr) As HRESULT
+	
+	' IDXGIDeviceSubObject
+	GetDevice                As Function(This As Any Ptr, riid As REFIID, ppDevice As Any Ptr Ptr) As HRESULT
+	
+	' IDXGISwapChain
+	Present                  As Function(This As Any Ptr, SyncInterval As UINT, Flags As UINT) As HRESULT
+	GetBuffer                As Function(This As Any Ptr, Buffer As UINT, riid As REFIID, ppSurface As Any Ptr Ptr) As HRESULT
+	SetFullscreenState       As Function(This As Any Ptr, Fullscreen As BOOL, pTarget As IDXGIOutput Ptr) As HRESULT
+	GetFullscreenState       As Function(This As Any Ptr, ByRef Fullscreen As BOOL, ppTarget As IDXGIOutput Ptr Ptr) As HRESULT
+	GetDesc                  As Function(This As Any Ptr, pDesc As DXGI_SWAP_CHAIN_DESC Ptr) As HRESULT
+	ResizeBuffers            As Function(This As Any Ptr, BufferCount As UINT, Width As UINT, Height As UINT, NewFormat As DXGI_FORMAT, SwapChainFlags As UINT) As HRESULT
+	ResizeTarget             As Function(This As Any Ptr, pNewTargetParameters As DXGI_MODE_DESC Ptr) As HRESULT
+	GetContainingOutput      As Function(This As Any Ptr, ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
+	GetFrameStatistics       As Function(This As Any Ptr, pStats As DXGI_FRAME_STATISTICS Ptr) As HRESULT
+	GetLastPresentCount      As Function(This As Any Ptr, pLastPresentCount As UINT Ptr) As HRESULT
+	
+	' IDXGISwapChain1
+	GetDesc1                 As Function(This As Any Ptr, pDesc As DXGI_SWAP_CHAIN_DESC1 Ptr) As HRESULT
+	GetFullscreenDesc        As Function(This As Any Ptr, pDesc As DXGI_SWAP_CHAIN_FULLSCREEN_DESC Ptr) As HRESULT
+	GetHwnd                  As Function(This As Any Ptr, phwnd As HWND Ptr) As HRESULT
+	GetCoreWindow            As Function(This As Any Ptr, riid As REFIID, ppUnk As Any Ptr Ptr) As HRESULT
+	Present1                 As Function(This As Any Ptr, SyncInterval As UINT, PresentFlags As UINT, pPresentParameters As DXGI_PRESENT_PARAMETERS Ptr) As HRESULT
+	IsTemporaryMonoSupported As Function(This As Any Ptr) As BOOL
+	GetRestrictToOutput      As Function(This As Any Ptr, ppOutput As IDXGIOutput Ptr Ptr) As HRESULT
+	SetBackgroundColor       As Function(This As Any Ptr, pColor As D2D1_COLOR_F Ptr) As HRESULT
+	GetBackgroundColor       As Function(This As Any Ptr, pColor As D2D1_COLOR_F Ptr) As HRESULT
+	SetRotation              As Function(This As Any Ptr, Rotation As DXGI_MODE_ROTATION) As HRESULT
+	GetRotation              As Function(This As Any Ptr, pRotation As DXGI_MODE_ROTATION Ptr) As HRESULT
 End Type
 
 Type IDXGISwapChain1
-    lpVtbl As IDXGISwapChain1Vtbl Ptr
+	lpVtbl As IDXGISwapChain1Vtbl Ptr
 End Type
 
 Type IDXGIFactory2 As IDXGIFactory2_
-
 Type IDXGIFactory2Vtbl
-    ' IUnknown
-    QueryInterface As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
-    AddRef         As Function(ByVal This As Any Ptr) As ULong
-    Release        As Function(ByVal This As Any Ptr) As ULong
-
-    ' IDXGIObject
-    SetPrivateData           As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
-    SetPrivateDataInterface  As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal pUnknown As IUnknown Ptr) As HRESULT
-    GetPrivateData           As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByRef DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
-    GetParent                As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppParent As Any Ptr Ptr) As HRESULT
-
-    ' IDXGIFactory
-    EnumAdapters             As Function(ByVal This As Any Ptr, ByVal Adapter As UINT, ByVal ppAdapter As IDXGIAdapter Ptr Ptr) As HRESULT
-    MakeWindowAssociation    As Function(ByVal This As Any Ptr, ByVal WindowHandle As HWND, ByVal Flags As UINT) As HRESULT
-    GetWindowAssociation     As Function(ByVal This As Any Ptr, ByRef pWindowHandle As HWND) As HRESULT
-    CreateSwapChain          As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByRef pDesc As DXGI_SWAP_CHAIN_DESC, ByRef ppSwapChain As IDXGISwapChain Ptr) As HRESULT
-    CreateSoftwareAdapter    As Function(ByVal This As Any Ptr, ByVal ModuleHandle As HMODULE, ByVal ppAdapter As IDXGIAdapter Ptr Ptr) As HRESULT
-
-    ' IDXGIFactory1
-    EnumAdapters1            As Function(ByVal This As Any Ptr, ByVal Adapter As UINT, ByVal ppAdapter As IDXGIAdapter1 Ptr Ptr) As HRESULT
-    IsCurrent                As Function(ByVal This As Any Ptr) As BOOL
-
-    ' IDXGIFactory2
-    IsWindowedStereoEnabled  As Function(ByVal This As Any Ptr) As BOOL
-    CreateSwapChainForHwnd   As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByVal hWnd As HWND, pDesc As DXGI_SWAP_CHAIN_DESC1 Ptr, pFullscreenDesc As DXGI_SWAP_CHAIN_FULLSCREEN_DESC Ptr, ByVal pRestrictToOutput As IDXGIOutput Ptr, ByVal ppSwapChain As IDXGISwapChain1 Ptr Ptr) As HRESULT
-    CreateSwapChainForCoreWindow As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByVal pWindow As IUnknown Ptr, ByRef pDesc As DXGI_SWAP_CHAIN_DESC1, ByVal pRestrictToOutput As IDXGIOutput Ptr, ByVal ppSwapChain As IDXGISwapChain1 Ptr Ptr) As HRESULT
-    GetSharedResourceAdapterLuid As Function(ByVal This As Any Ptr, ByVal hResource As HANDLE, ByRef pLuid As LUID) As HRESULT
-    RegisterStereoStatusWindow   As Function(ByVal This As Any Ptr, ByVal WindowHandle As HWND, ByVal wMsg As UINT, ByRef pdwCookie As DWORD) As HRESULT
-    RegisterStereoStatusEvent    As Function(ByVal This As Any Ptr, ByVal hEvent As HANDLE, ByRef pdwCookie As DWORD) As HRESULT
-    UnregisterStereoStatus       As Sub(ByVal This As Any Ptr, ByVal dwCookie As DWORD)
-    RegisterOcclusionStatusWindow As Function(ByVal This As Any Ptr, ByVal WindowHandle As HWND, ByVal wMsg As UINT, ByRef pdwCookie As DWORD) As HRESULT
-    RegisterOcclusionStatusEvent As Function(ByVal This As Any Ptr, ByVal hEvent As HANDLE, ByRef pdwCookie As DWORD) As HRESULT
-    UnregisterOcclusionStatus    As Sub(ByVal This As Any Ptr, ByVal dwCookie As DWORD)
-    CreateSwapChainForComposition As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByRef pDesc As DXGI_SWAP_CHAIN_DESC1, ByVal pRestrictToOutput As IDXGIOutput Ptr, ByVal ppSwapChain As IDXGISwapChain1 Ptr Ptr) As HRESULT
+	' IUnknown
+	QueryInterface As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+	AddRef         As Function(ByVal This As Any Ptr) As ULong
+	Release        As Function(ByVal This As Any Ptr) As ULong
+	
+	' IDXGIObject
+	SetPrivateData           As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
+	SetPrivateDataInterface  As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByVal pUnknown As IUnknown Ptr) As HRESULT
+	GetPrivateData           As Function(ByVal This As Any Ptr, ByVal Name As REFGUID, ByRef DataSize As UINT, ByVal pData As Any Ptr) As HRESULT
+	GetParent                As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppParent As Any Ptr Ptr) As HRESULT
+	
+	' IDXGIFactory
+	EnumAdapters             As Function(ByVal This As Any Ptr, ByVal Adapter As UINT, ByVal ppAdapter As IDXGIAdapter Ptr Ptr) As HRESULT
+	MakeWindowAssociation    As Function(ByVal This As Any Ptr, ByVal WindowHandle As HWND, ByVal Flags As UINT) As HRESULT
+	GetWindowAssociation     As Function(ByVal This As Any Ptr, ByRef pWindowHandle As HWND) As HRESULT
+	CreateSwapChain          As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByRef pDesc As DXGI_SWAP_CHAIN_DESC, ByRef ppSwapChain As IDXGISwapChain Ptr) As HRESULT
+	CreateSoftwareAdapter    As Function(ByVal This As Any Ptr, ByVal ModuleHandle As HMODULE, ByVal ppAdapter As IDXGIAdapter Ptr Ptr) As HRESULT
+	
+	' IDXGIFactory1
+	EnumAdapters1            As Function(ByVal This As Any Ptr, ByVal Adapter As UINT, ByVal ppAdapter As IDXGIAdapter1 Ptr Ptr) As HRESULT
+	IsCurrent                As Function(ByVal This As Any Ptr) As BOOL
+	
+	' IDXGIFactory2
+	IsWindowedStereoEnabled  As Function(ByVal This As Any Ptr) As BOOL
+	CreateSwapChainForHwnd   As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByVal hWnd As HWND, pDesc As DXGI_SWAP_CHAIN_DESC1 Ptr, pFullscreenDesc As DXGI_SWAP_CHAIN_FULLSCREEN_DESC Ptr, ByVal pRestrictToOutput As IDXGIOutput Ptr, ByVal ppSwapChain As IDXGISwapChain1 Ptr Ptr) As HRESULT
+	CreateSwapChainForCoreWindow As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByVal pWindow As IUnknown Ptr, ByRef pDesc As DXGI_SWAP_CHAIN_DESC1, ByVal pRestrictToOutput As IDXGIOutput Ptr, ByVal ppSwapChain As IDXGISwapChain1 Ptr Ptr) As HRESULT
+	GetSharedResourceAdapterLuid As Function(ByVal This As Any Ptr, ByVal hResource As HANDLE, ByRef pLuid As LUID) As HRESULT
+	RegisterStereoStatusWindow   As Function(ByVal This As Any Ptr, ByVal WindowHandle As HWND, ByVal wMsg As UINT, ByRef pdwCookie As DWORD) As HRESULT
+	RegisterStereoStatusEvent    As Function(ByVal This As Any Ptr, ByVal hEvent As HANDLE, ByRef pdwCookie As DWORD) As HRESULT
+	UnregisterStereoStatus       As Sub(ByVal This As Any Ptr, ByVal dwCookie As DWORD)
+	RegisterOcclusionStatusWindow As Function(ByVal This As Any Ptr, ByVal WindowHandle As HWND, ByVal wMsg As UINT, ByRef pdwCookie As DWORD) As HRESULT
+	RegisterOcclusionStatusEvent As Function(ByVal This As Any Ptr, ByVal hEvent As HANDLE, ByRef pdwCookie As DWORD) As HRESULT
+	UnregisterOcclusionStatus    As Sub(ByVal This As Any Ptr, ByVal dwCookie As DWORD)
+	CreateSwapChainForComposition As Function(ByVal This As Any Ptr, ByVal pDevice As IUnknown Ptr, ByRef pDesc As DXGI_SWAP_CHAIN_DESC1, ByVal pRestrictToOutput As IDXGIOutput Ptr, ByVal ppSwapChain As IDXGISwapChain1 Ptr Ptr) As HRESULT
 End Type
 
 Type IDXGIFactory2_
-    lpVtbl As IDXGIFactory2Vtbl Ptr
+	lpVtbl As IDXGIFactory2Vtbl Ptr
 End Type
 
 Dim Shared pD3D11DeviceContext As ID3D11DeviceContext Ptr
@@ -2396,17 +2459,16 @@ Dim Shared pD3D11DeviceContext As ID3D11DeviceContext Ptr
 Const D3D10_SDK_VERSION = 29
 Const D3D11_SDK_VERSION = 7
 
-Type D3D11_CREATE_DEVICE_FLAG As Long
-Enum
-    D3D11_CREATE_DEVICE_SINGLETHREADED = &h1,
-    D3D11_CREATE_DEVICE_DEBUG = &h2,
-    D3D11_CREATE_DEVICE_SWITCH_TO_REF = &h4,
-    D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS = &h8,
-    D3D11_CREATE_DEVICE_BGRA_SUPPORT = &h20,
-    D3D11_CREATE_DEVICE_DEBUGGABLE = &h40,
-    D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY = &h80,
-    D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT = &h100,
-    D3D11_CREATE_DEVICE_VIDEO_SUPPORT = &h800
+Enum D3D11_CREATE_DEVICE_FLAG
+	D3D11_CREATE_DEVICE_SINGLETHREADED = &h1,
+	D3D11_CREATE_DEVICE_DEBUG = &h2,
+	D3D11_CREATE_DEVICE_SWITCH_TO_REF = &h4,
+	D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS = &h8,
+	D3D11_CREATE_DEVICE_BGRA_SUPPORT = &h20,
+	D3D11_CREATE_DEVICE_DEBUGGABLE = &h40,
+	D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY = &h80,
+	D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT = &h100,
+	D3D11_CREATE_DEVICE_VIDEO_SUPPORT = &h800
 End Enum
 
 Type D3D11CreateDeviceType As Function _
@@ -2414,13 +2476,13 @@ Type D3D11CreateDeviceType As Function _
 ByVal pAdapter As IDXGIAdapter Ptr, _                      ' IDXGIAdapter*
 ByVal DriverType As D3D_DRIVER_TYPE, _                   ' D3D_DRIVER_TYPE
 ByVal Software As HMODULE, _                      ' HMODULE (0)
-ByVal Flags As UINT, _                        
-ByVal pFeatureLevels As Const D3D_FEATURE_LEVEL Ptr, _  
-ByVal FeatureLevels As UINT, _                
-ByVal SDKVersion As UINT, _                   
-ByVal ppDevice As ID3D11Device Ptr Ptr, _                  
+ByVal Flags As UINT, _
+ByVal pFeatureLevels As Const D3D_FEATURE_LEVEL Ptr, _
+ByVal FeatureLevels As UINT, _
+ByVal SDKVersion As UINT, _
+ByVal ppDevice As ID3D11Device Ptr Ptr, _
 ByVal pFeatureLevelOut As D3D_FEATURE_LEVEL Ptr, _
-ByVal ppImmediateContext As ID3D11DeviceContext Ptr Ptr _         
+ByVal ppImmediateContext As ID3D11DeviceContext Ptr Ptr _
 ) As HRESULT
 
 Type DWriteCreateFactoryType As Function( _
