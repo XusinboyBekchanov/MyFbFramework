@@ -118,7 +118,7 @@ Namespace My.Sys.Drawing
 				' // Create bitmap from image
 				GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
 				' // Free the image
-				'If pImage Then GdipDisposeImage pImage
+				If pImage Then GdipDisposeImage pImage
 				' // Shutdown Gdiplus
 				GdiplusShutdown token
 			End Select
@@ -283,7 +283,7 @@ Namespace My.Sys.Drawing
 				End With                                    ' create GDI+ image & prepare to transfer bits
 				If GdipCreateBitmapFromScan0(This.Width, Height, 0&, gBMP.PixelFormat, ByVal 0&, @pvConvertHICONtoHImageEx) = 0& Then
 					If GdipBitmapLockBits(pvConvertHICONtoHImageEx, @r, ImageLockModeWrite Or ImageLockModeUserInputBuf, gBMP.PixelFormat, @gBMP) Then
-						If GdipBitmapLockBits(pvConvertHICONtoHImageEx, @r, ImageLockModeWrite Or ImageLockModeUserInputBuf, gBMP.PixelFormat, @gBMP) Then gBMP.Scan0 = 0&
+						If GdipBitmapLockBits(pvConvertHICONtoHImageEx, @r, ImageLockModeWrite Or ImageLockModeUserInputBuf, gBMP.PixelFormat, @gBMP) Then gBMP.Scan0 = 0
 					End If
 					If gBMP.Scan0 Then
 						GdipBitmapUnlockBits pvConvertHICONtoHImageEx, @gBMP
@@ -295,6 +295,7 @@ Namespace My.Sys.Drawing
 				If pvConvertHICONtoHImageEx = 0& Then GdipCreateBitmapFromHICON IcoHandle, @pvConvertHICONtoHImageEx
 				' Create icon from image
 				GdipCreateHBITMAPFromBitmap(pvConvertHICONtoHImageEx, @Handle, 0)
+				'GdipDisposeImage Cast(GpImage Ptr, pvConvertHICONtoHImageEx): pvConvertHICONtoHImageEx = 0
 				' Shutdown Gdiplus
 				GdiplusShutdown token
 				Return Handle <> 0
@@ -417,9 +418,8 @@ Namespace My.Sys.Drawing
 							GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
 							' Create icon from image
 							GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
-							
 							' Free the image. Save it for GDIPlus
-							'If pImage Then GdipDisposeImage pImage
+							If pImage Then GdipDisposeImage pImage
 							pngstream->lpVtbl->Release(pngstream)
 						End If
 					End If

@@ -449,7 +449,7 @@ Namespace My.Sys.Drawing
 									GdipSetCompositingQuality(GdipGraphics, &H3) 'CompositingQualityGammaCorrected
 									GdipSetInterpolationMode(GdipGraphics, 7)
 								End If
-								Handle_ = GdipGraphics
+								'Handle_ = GdipGraphics
 							End If
 						End If
 					End If
@@ -1926,3 +1926,4 @@ Namespace My.Sys.Drawing
 		#endif
 	End Destructor
 End Namespace
+
