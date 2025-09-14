@@ -21,6 +21,7 @@
 	#include once "mff/RichTextBox.bi"
 	#include once "mff/CheckBox.bi"
 	#include once "string.bi"
+	#include once "mff/RadioButton.bi"
 	
 	Using My.Sys.Forms
 	Using My.Sys.Drawing
@@ -59,8 +60,10 @@
 		Declare Sub PictureBK_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub PictureBK_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Sub chkGDIPlus_Click(ByRef Sender As CheckBox)
+		Declare Sub RadioGDI_Click(ByRef Sender As CheckBox)
 		Declare Sub PictureBK_Click(ByRef Sender As Control)
+		Declare Sub RadioGDIPlus_Click(ByRef Sender As RadioButton)
+		Declare Sub RadioD2D1_Click(ByRef Sender As RadioButton)
 		Declare Constructor
 		
 		Dim As CommandButton cmdDrawButterfly, cmdGDIDraw, cmdGDICls
@@ -70,7 +73,8 @@
 		Dim As NumericUpDown Text1(1), Text2(1), Text3(1), Text4(1), Text5(1)
 		Dim As Panel  Panel1_Picture(2), Panel1_Form(1)
 		Dim As RichTextBox txtControlName
-		Dim As CheckBox chkGDIPlus, chkTransparent, chkCenterImage, chkbackground, chkDoubleBuffered
+		Dim As CheckBox chkTransparent, chkCenterImage, chkbackground, chkDoubleBuffered
+		Dim As RadioButton RadioGDIPlus, RadioD2D1, RadioGDI
 	End Type
 	
 	Constructor Form1Type
@@ -122,8 +126,8 @@
 			.Graphic.CenterImage= True
 			.Graphic.StretchImage= StretchMode.smStretchProportional
 			'.Graphic.ScaleFactor = 2
-			.ForeColor = clRed
-			.BackColor = 12615680
+			.Canvas.UseDirect2D = True
+			'.fill
 			.Font.Size= 14
 			'.Canvas.Pen.Color = clRed
 			'.Canvas.BackColor = clBlue
@@ -418,16 +422,17 @@
 			.Designer = @This
 			.Parent = @This
 		End With
-		' chkGDIPlus
-		With chkGDIPlus
-			.Name = "chkGDIPlus"
-			.Text = ML("Drawing with GDI+")
+		' RadioGDI
+		With RadioGDI
+			.Name = "RadioGDI"
+			.Text = ML("Drawing with GDI")
 			.TabIndex = 33
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 260, 370, 120, 20
+			.Checked = True 
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkGDIPlus_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @RadioGDI_Click)
 			.Parent = @This
 		End With
 		' chkTransparent
@@ -439,7 +444,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.Checked = True
-			.SetBounds 390, 370, 70, 20
+			.SetBounds 430, 400, 70, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -452,7 +457,7 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.Checked = True
-			.SetBounds 470, 370, 70, 20
+			.SetBounds 520, 400, 100, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -482,6 +487,31 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' RadioGDIPlus
+		With RadioGDIPlus
+			.Name = "RadioGDIPlus"
+			.Text = "Drawing with GDI+"
+			.TabIndex = 38
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.SetBounds 400, 370, 90, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @RadioGDIPlus_Click)
+			.Parent = @This
+		End With
+		' RadioD2D1
+		With RadioD2D1
+			.Name = "RadioD2D1"
+			.Text = "Direct2D "
+			.TabIndex = 39
+			.ControlIndex = 24
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.SetBounds 500, 370, 90, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @RadioD2D1_Click)
+			.Parent = @This
+		End With
 	End Constructor
 	
 	Dim Shared Form1 As Form1Type
@@ -499,6 +529,7 @@ Private Sub Form1Type.cmdDrawButterfly_Click(ByRef Sender As Control)
 	Dim T As Double = Timer
 	Dim As Double A(1), B(1), C(1), D(1), E(1), X, Y
 	cmdSelection = 0
+	
 	' Coordination  坐标系统
 	cmdDrawButterfly.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'PictureBK.Style = PictureStyle.ssOwnerDraw
@@ -507,7 +538,7 @@ Private Sub Form1Type.cmdDrawButterfly_Click(ByRef Sender As Control)
 	'Picture2_Picture(1).Visible= False
 	'Panel1_Picture(1).Visible= False
 	With PictureBK.Canvas
-		'PictureBK.DoubleBuffered = Not chkGDIPlus.Checked
+		.UseDirect2D = RadioGDI.Checked
 		.Scale(-10, -10, 10, 10)
 		.BackColor = PictureBK.BackColor
 		.DrawColor = clRed ' Will lost the background if not set the value first
@@ -566,20 +597,21 @@ Private Sub Form1Type.PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As M
 	PictureBK.Graphic.CenterImage = chkCenterImage.Checked
 	PictureBK.Transparent = chkTransparent.Checked
 	PictureBK.DoubleBuffered = chkDoubleBuffered.Checked
-	Canvas.UsingGdip = chkGDIPlus.Checked
+	Canvas.UseDirect2D = RadioD2D1.Checked
+	Canvas.UsingGdip = RadioGDIPlus.Checked
 	Canvas.FillColor = 16744448
 	With Canvas
 		.Scale(-100, 100, 100, -100)
 		.BackColor = PictureBK.BackColor
 		.DrawColor = clRed ' Will lost the background if not set the value first
-		'.Pen.Mode = PenMode.pmNotXor
-		'.Pen.Color = clRed
-		'.Font.Size= 14
+		.Pen.Mode = PenMode.pmNotXor
+		.Pen.Color = clRed
+		.Font.Size= 14
 		.DrawWidth = 2
-		'.FillStyles = BrushStyles.bsSolid
+		.FillStyles = BrushStyles.bsSolid
 		.FillStyles = BrushStyles.bsClear ' Will lost the background if not set the value first
-		'.FillMode = BrushFillMode.bmOpaque
-		'.DrawStyle = PenStyle.psSolid
+		.FillMode = BrushFillMode.bmOpaque
+		.DrawStyle = PenStyle.psSolid
 		.DrawColor = clYellow
 		.Line (-100, 0, 100, 0) '画X轴
 		.Line (0, 100, 0, -100) '画Y轴
@@ -630,21 +662,24 @@ Private Sub Form1Type.PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As M
 		'{{90, 130}, {60, 40}, {140, 150}, {160, 80}}
 		'//绘制椭圆、矩形
 		.Ellipse(pt(0).X, pt(0).Y, pt(1).X, pt(1).Y)
-		'.Rectangle(pt(2).X, pt(2).Y, pt(3).X, pt(3).Y)
+		.Rectangle(pt(2).X, pt(2).Y, pt(3).X, pt(3).Y)
 		.RoundRect(30, 10, 60, 30, 25, 25)
+		'标出贝塞尔曲线的四个锚点
+		.Circle(pt(0).X, pt(0).Y, 4)
+		.Circle(pt(1).X, pt(1).Y, 4)
+		.Circle(pt(2).X, pt(2).Y, 4)
+		.Circle(pt(3).X, pt(3).Y, 4)
+		
 		'绘制贝塞尔曲线
 		.DrawColor = clRed
 		.FillColor = clYellow
 		.DrawWidth = 2  'DrawWidth
 		.FillStyles = BrushStyles.bsHatch
 		.HatchStyle = HatchStyles.hsDiagonal
-		.DrawColor = clGreenYellow
-		.Polyline(pt(), 5)
-		'标出贝塞尔曲线的四个锚点
-		.Circle(pt(0).X, pt(0).Y, 4)
-		.Circle(pt(1).X, pt(1).Y, 4)
-		.Circle(pt(2).X, pt(2).Y, 4)
-		.Circle(pt(3).X, pt(3).Y, 4)
+		.DrawColor = clRed
+		'.Polyline(pt(), 5)
+		Dim As My.Sys.Drawing.Point ptPoly(4) = {(-40, 0), (-60, 10), (-70, 10), (-20, + 45), (-30, + 60)}
+		.Polygon(ptPoly(), 5)
 		
 		'绘制圆
 		.Circle(50, 60, 20, clYellow)
@@ -680,6 +715,18 @@ Private Sub Form1Type.PictureBK_Paint(ByRef Sender As Control, ByRef Canvas As M
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
 		'.TransferDoubleBuffer
 	End With
+	
+	'创建包含圆弧的多边形 > BeginFigure(startPoint, D2D1_FIGURE_BEGIN_FILLED)
+	' 添加直线段
+	'Dim lines(1) As D2D1_POINT_2F lines(0).x = 100 : lines(0).y = 100(1).x = 200 : lines(1).y = 100 > AddLines(@lines(0), 2)
+	' 添加圆弧段
+	'Dim arc As D2D1_ARC_SEGMENT.point.x = 200 : arc.point.Y = 200.size.Width = 50 : arc.size.Height = 50.rotationAngle = 0.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE.arcSize = D2D1_ARC_SIZE_SMALL>AddArc(@arc)
+	' 添加贝塞尔曲线段
+	'Dim bezier As D2D1_BEZIER_SEGMENT.point1.x = 200 : bezier.point1.y = 250.point2.x = 150 : bezier.point2.y = 300.point3.x = 100 : bezier.point3.y = 250>AddBeziers(@bezier, 1)
+	' 闭合图形 >EndFigure(D2D1_FIGURE_END_CLOSED)>Close()
+	
+	
+	
 	If cmdSelection = 1 Then cmdGDIDraw_Click(Sender) Else cmdDrawButterfly_Click(Sender)
 	Me.Caption = "Drawing With GdipToken="  & PictureBK.Canvas.GdipToken & "  Elapsed Time: " & Format(Timer - T, "0.0000") & "s"
 End Sub
@@ -787,11 +834,12 @@ End Sub
 
 Private Sub Form1Type.Form_Show(ByRef Sender As Form)
 	BoardBitm.LoadFromFile(ExePath & "/../Resources/Wheel.png")
-	'chkGDIPlus.Checked = True
-	'With PictureBK.Canvas
-	'	'.FillColor = 16744448
-	'	.UsingGdip = chkGDIPlus.Checked
-	'End With
+	'RadioGDI.Checked = True
+	With PictureBK.Canvas
+		'	'.FillColor = 16744448
+		'.UsingGdip = RadioGDI.Checked
+		.UseDirect2D = RadioGDI.Checked
+	End With
 End Sub
 
 Private Sub Form1Type.PictureBK_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -832,7 +880,7 @@ Private Sub Form1Type.Form_Create(ByRef Sender As Control)
 	'This.Graphic.Bitmap.LoadFromScreen(R.Left, R.Top, R.Right, R.Bottom)
 End Sub
 
-Private Sub Form1Type.chkGDIPlus_Click(ByRef Sender As CheckBox)
+Private Sub Form1Type.RadioGDI_Click(ByRef Sender As CheckBox)
 	PictureBK.Canvas.Cls ' if switch must be use cls for init
 	PictureBK.Invalidate
 End Sub
@@ -843,16 +891,26 @@ Private Sub Form1Type.PictureBK_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
-	Dim As Integer x = -140
-	Dim As Integer y = -40
-	Dim As Integer r =  30
-		With PictureBK.Canvas
-		.Circle x, y, 2 * r
-		.Line x, y - 2 * r, x, y + 2 * r, 7, "B"
-		'.Paint x - r, y, 15, 7
-		.Circle x, y - r / 2, r - 1, clWhite
-		.Circle x, y + r / 2, r - 1, clBlack
-		.Circle x, y - r / 2, r / 3, clBlack
-		.Circle x, y + r / 2, r / 3, clWhite
-	End With
+	'Dim As Integer x = -140
+	'Dim As Integer y = -40
+	'Dim As Integer r =  30
+	'	With PictureBK.Canvas
+	'	.Circle x, y, 2 * r
+	'	.Line x, y - 2 * r, x, y + 2 * r, 7, "B"
+	'	'.Paint x - r, y, 15, 7
+	'	.Circle x, y - r / 2, r - 1, clWhite
+	'	.Circle x, y + r / 2, r - 1, clBlack
+	'	.Circle x, y - r / 2, r / 3, clBlack
+	'	.Circle x, y + r / 2, r / 3, clWhite
+	'End With
+End Sub
+
+Private Sub Form1Type.RadioGDIPlus_Click(ByRef Sender As RadioButton)
+	PictureBK.Canvas.Cls ' if switch must be use cls for init
+	PictureBK.Invalidate
+End Sub
+
+Private Sub Form1Type.RadioD2D1_Click(ByRef Sender As RadioButton)
+	PictureBK.Canvas.Cls ' if switch must be use cls for init
+	PictureBK.Invalidate
 End Sub
