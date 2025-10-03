@@ -830,6 +830,7 @@ Namespace My.Sys.Forms
 					Bands.Item(i)->Update
 				Next
 				SetBounds FLeft, FTop, FWidth, FHeight
+				If This.Parent Then This.Parent->RequestAlign , , , @This
 				Return
 			Case WM_ERASEBKGND
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
