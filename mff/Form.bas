@@ -1064,6 +1064,7 @@ Namespace My.Sys.Forms
 				FDPIChanging = True
 				LockWindowUpdate(FHandle)
 				Base.ProcessMessage(msg)
+				If Not IsIconic(FHandle) Then RequestAlign
 				LockWindowUpdate(0)
 				FDPIChanging = False
 				Return
