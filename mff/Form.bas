@@ -1073,7 +1073,7 @@ Namespace My.Sys.Forms
 				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
 					'If Not FDPIChanging Then UpdateLock
-					'RequestAlign
+					RequestAlign
 					'If Not FDPIChanging Then UpdateUnLock
 					'If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then Repaint
 				End If
