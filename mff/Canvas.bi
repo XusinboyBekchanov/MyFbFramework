@@ -34,6 +34,11 @@ Namespace My.Sys.Drawing
 		X As Long
 		Y As Long
 	End Type
+
+	Private Type PointF
+		X As Single
+		Y As Single
+	End Type
 	
 	Private Type Size
 		Width As Long

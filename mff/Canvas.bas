@@ -424,6 +424,9 @@ Namespace My.Sys.Drawing
 						End If
 						cairoSurface = cairo_win32_surface_create(DeviceContextHandle)
 						Handle_ = cairo_create(cairoSurface)
+						cairo_set_antialias(cairoSurface, CAIRO_ANTIALIAS_BEST)
+						cairo_set_line_cap(cairoSurface, CAIRO_LINE_CAP_ROUND)
+						cairo_set_line_join(cairoSurface, CAIRO_LINE_JOIN_ROUND) 
 					End If
 				#elseif defined(__USE_WINAPI__)
 					If ParentControl->Handle Then
@@ -1129,33 +1132,41 @@ Namespace My.Sys.Drawing
 							swapChainDesc.Flags = 0
 							
 							Var hr = pDXGIFactory2->lpVtbl->CreateSwapChainForHwnd(pDXGIFactory2, Cast(IUnknown Ptr, pD3D11Device), ParentControl->Handle, @swapChainDesc, 0, 0, @pSwapChain)
-							If hr <> 0 OrElse pSwapChain=0 Then
+							If hr <> 0 OrElse pSwapChain = 0 Then
 								Print __FUNCTION__ & " Line:" & __LINE__ & ". Please install KB2670838 - Platform Update for Windows 7 "
 								ReleaseDirect2D
 								pRenderTarget = 0
-								FUseDirect2D = False : UsingGdip = True
+								FUseDirect2D = False : UsingGdip = False
+								HandleSetted = True
+								Return
 							Else
 								hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_ID3D11Texture2D, @pTexture)
 								hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_IDXGISurface, @pSurface)
 							End If
-							
-							Dim bmpProps As D2D1_BITMAP_PROPERTIES1
-							
-							With bmpProps
-								.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET Or D2D1_BITMAP_OPTIONS_CANNOT_DRAW
-								.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
-								.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE
-								.dpiX = 96
-								.dpiY = 96
-								.colorContext = 0
-							End With
-							
-							pRenderTarget->lpVtbl->CreateBitmapFromDxgiSurface(pRenderTarget, pSurface, @bmpProps, @pTargetBitmap)
-							
-							pRenderTarget->lpVtbl->SetTarget(pRenderTarget, pTargetBitmap)
-							pRenderTarget->lpVtbl->SetTextAntialiasMode(pRenderTarget, D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE)
-							pRenderTarget->lpVtbl->SetAntialiasMode(pRenderTarget, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)
-							CreateTextFormat(pDWriteFactory, Font.Name, 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"en-us", @pFormat)
+							'If pTexture = 0 OrElse pSurface = 0 Then
+							If pSurface = 0 Then
+								Print __FUNCTION__ & " Line:" & __LINE__ & ". ERROR in function GetBuffer. pSurface = " &  pSurface & " pTexture = " & pTexture
+								ReleaseDirect2D
+								pRenderTarget = 0
+								FUseDirect2D = False : UsingGdip = False
+								HandleSetted = True
+								Return
+							Else
+								Dim bmpProps As D2D1_BITMAP_PROPERTIES1
+								With bmpProps
+									.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET Or D2D1_BITMAP_OPTIONS_CANNOT_DRAW
+									.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
+									.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE
+									.dpiX = 96
+									.dpiY = 96
+									.colorContext = 0
+								End With
+								pRenderTarget->lpVtbl->CreateBitmapFromDxgiSurface(pRenderTarget, pSurface, @bmpProps, @pTargetBitmap)
+								pRenderTarget->lpVtbl->SetTarget(pRenderTarget, pTargetBitmap)
+								pRenderTarget->lpVtbl->SetTextAntialiasMode(pRenderTarget, D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE)
+								pRenderTarget->lpVtbl->SetAntialiasMode(pRenderTarget, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)
+								CreateTextFormat(pDWriteFactory, Font.Name, 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"en-us", @pFormat)
+							End If
 						End If
 					End If
 					If pRenderTarget <> 0 Then

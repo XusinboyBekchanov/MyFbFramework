@@ -117,8 +117,8 @@ Namespace My.Sys.Drawing
 				GdipGetImageHeight(pImage, @FHeight)
 				' // Create bitmap from image
 				GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
-				' // Free the image
-				If pImage Then GdipDisposeImage pImage
+				' // Free the image Save the Ptr and send the ptr to canvas later
+				'If pImage Then GdipDisposeImage pImage
 				' // Shutdown Gdiplus
 				GdiplusShutdown token
 			End Select
@@ -419,7 +419,7 @@ Namespace My.Sys.Drawing
 							' Create icon from image
 							GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
 							' Free the image. Save it for GDIPlus
-							If pImage Then GdipDisposeImage pImage
+							'If pImage Then GdipDisposeImage pImage
 							pngstream->lpVtbl->Release(pngstream)
 						End If
 					End If
@@ -504,6 +504,8 @@ Namespace My.Sys.Drawing
 	
 	Private Sub BitmapType.Free
 		#ifdef __USE_WINAPI__
+			If pImage Then GdipDisposeImage pImage
+			pImage= 0
 			If Handle Then DeleteObject Handle
 			Handle = 0
 			
