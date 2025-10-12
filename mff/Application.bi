@@ -137,6 +137,7 @@ Namespace My
 		Declare Sub GetFonts
 		Declare Sub GetForms
 		As Byte initialized
+		Dim m_hMutex As HANDLE
 		As Any Ptr _vinfo
 		As String TranslationString
 	Public:

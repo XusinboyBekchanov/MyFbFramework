@@ -109,7 +109,7 @@ Namespace My.Sys.Drawing
 				GdiplusStartup(@token, @StartupInput, NULL)
 				If token = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
 				' // Load the image from file
-				If pImage Then GdipDisposeImage pImage
+				If pImage Then GdipDisposeImage pImage: pImage = 0
 				GdipLoadImageFromFile(File, @pImage)
 				If pImage = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
 				' // Get the image width and height
@@ -295,7 +295,7 @@ Namespace My.Sys.Drawing
 				If pvConvertHICONtoHImageEx = 0& Then GdipCreateBitmapFromHICON IcoHandle, @pvConvertHICONtoHImageEx
 				' Create icon from image
 				GdipCreateHBITMAPFromBitmap(pvConvertHICONtoHImageEx, @Handle, 0)
-				'GdipDisposeImage Cast(GpImage Ptr, pvConvertHICONtoHImageEx): pvConvertHICONtoHImageEx = 0
+				GdipDisposeImage Cast(GpImage Ptr, pvConvertHICONtoHImageEx): pvConvertHICONtoHImageEx = 0
 				' Shutdown Gdiplus
 				GdiplusShutdown token
 				Return Handle <> 0
@@ -415,6 +415,7 @@ Namespace My.Sys.Drawing
 							'Dim As gdiplus.Color clr
 							'Dim pImage As GpImage Ptr ', hImage As HICON . Save it for GDIPlus
 							' Create a bitmap from the data contained in the stream
+							If pImage Then GdipDisposeImage pImage: pImage = 0
 							GdipCreateBitmapFromStream(pngstream, Cast(GpBitmap Ptr Ptr, @pImage))
 							' Create icon from image
 							GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
@@ -588,8 +589,9 @@ Namespace My.Sys.Drawing
 				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
 				StartupInput.GdiplusVersion = 1
 				GdiplusStartup(@token, @StartupInput, NULL)
+				If pImage Then GdipDisposeImage pImage: pImage = 0
 				If token = NULL Then
-					GdipDisposeImage pImage
+					'GdipDisposeImage pImage
 					' // Shutdown Gdiplus
 					GdiplusShutdown token
 				End If

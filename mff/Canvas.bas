@@ -1927,12 +1927,10 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then ReleaseDevice
 			' // Shutdown Gdiplus
-			If UsingGdip Then
-				If GdipPen Then GdipDeletePen(GdipPen)
-				If GdipBrush Then GdipDeleteBrush(GdipBrush)
-				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
-				If GdipToken Then GdiplusShutdown(GdipToken)
-			End If
+			If GdipPen Then GdipDeletePen(GdipPen)
+			If GdipBrush Then GdipDeleteBrush(GdipBrush)
+			If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+			If GdipToken Then GdiplusShutdown GdipToken
 			ReleaseDirect2D
 		#endif
 	End Destructor

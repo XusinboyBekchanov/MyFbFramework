@@ -2035,7 +2035,7 @@ End Type
 
 Type ID2D1Factory1Vtbl
     ' IUnknown
-    QueryInterface             As Function(ByVal This As Any Ptr, ByRef riid As GUID, ByRef ppv As Any Ptr) As Long
+    QueryInterface            As Function(ByVal This As Any Ptr, ByVal riid As Const GUID Ptr, ByVal ppvObject As Any Ptr Ptr) As HRESULT
     AddRef                    As Function(ByVal This As Any Ptr) As ULong
     Release                   As Function(ByVal This As Any Ptr) As ULong
 
@@ -2121,9 +2121,14 @@ Dim Shared CreateTextLayout As fnCreateTextLayout
 Type D2D1CreateFactoryType As Function( _
 ByVal factoryType As Long, _
 ByVal riid As Const GUID Ptr, _
-ByVal pFactoryOptions As Any Ptr, _
+ByVal pFactoryOptions As D2D1_FACTORY_OPTIONS Ptr, _
 ByVal ppIFactory As Any Ptr Ptr _
 ) As Long
+
+Type D2D1GetDebugInterfaceType As Function( _
+ByVal riid As REFIID, _
+    ByVal ppv As Any Ptr Ptr _
+) As HRESULT
 
 Type D3D_FEATURE_LEVEL As Long
 Enum
@@ -2222,20 +2227,105 @@ Type ID3D11DeviceContextVtbl
     Draw                     As Sub(ByVal This As Any Ptr, ByVal VertexCount As UInteger, ByVal StartVertexLocation As UInteger)
     Map                      As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal Subresource As UInteger, ByVal MapType As UInteger, ByVal MapFlags As UInteger, ByVal pMappedResource As Any Ptr) As HRESULT
     Unmap                    As Sub(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal Subresource As UInteger)
-    OMSetRenderTargets       As Sub(ByVal This As Any Ptr, ByVal NumViews As UInteger, ByVal ppRenderTargetViews As Any Ptr Ptr, ByVal pDepthStencilView As Any Ptr)
-    ClearRenderTargetView    As Sub(ByVal This As Any Ptr, ByVal pRenderTargetView As Any Ptr, ByVal ColorRGBA As Single Ptr)
-    IASetInputLayout         As Sub(ByVal This As Any Ptr, ByVal pInputLayout As Any Ptr)
-    IASetVertexBuffers       As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppVertexBuffers As Any Ptr Ptr, ByVal pStrides As UInteger Ptr, ByVal pOffsets As UInteger Ptr)
-    IASetIndexBuffer         As Sub(ByVal This As Any Ptr, ByVal pIndexBuffer As Any Ptr, ByVal Format As UInteger, ByVal Offset As UInteger)
-    IASetPrimitiveTopology   As Sub(ByVal This As Any Ptr, ByVal Topology As UInteger)
-    RSSetViewports           As Sub(ByVal This As Any Ptr, ByVal NumViewports As UInteger, ByVal pViewports As Any Ptr)
-    RSSetScissorRects        As Sub(ByVal This As Any Ptr, ByVal NumRects As UInteger, ByVal pRects As Any Ptr)
-    OMSetBlendState          As Sub(ByVal This As Any Ptr, ByVal pBlendState As Any Ptr, ByVal BlendFactor As Single Ptr, ByVal SampleMask As UInteger)
-    OMSetDepthStencilState   As Sub(ByVal This As Any Ptr, ByVal pDepthStencilState As Any Ptr, ByVal StencilRef As UInteger)
-    SOSetTargets             As Sub(ByVal This As Any Ptr, ByVal NumBuffers As UInteger, ByVal ppSOTargets As Any Ptr Ptr, ByVal pOffsets As UInteger Ptr)
-    DrawAuto                 As Sub(ByVal This As Any Ptr)
-    DrawIndexedInstanced     As Sub(ByVal This As Any Ptr, ByVal IndexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartIndexLocation As UInteger, ByVal BaseVertexLocation As Integer, ByVal StartInstanceLocation As UInteger)
-    DrawInstanced            As Sub(ByVal This As Any Ptr, ByVal VertexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartVertexLocation As UInteger, ByVal StartInstanceLocation As UInteger)
+    PSSetConstantBuffers         As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    IASetInputLayout             As Sub(ByVal This As Any Ptr, ByVal pInputLayout As Any Ptr)
+    IASetVertexBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppVertexBuffers As Any Ptr Ptr, ByVal pStrides As UInteger Ptr, ByVal pOffsets As UInteger Ptr)
+    IASetIndexBuffer             As Sub(ByVal This As Any Ptr, ByVal pIndexBuffer As Any Ptr, ByVal Format As UInteger, ByVal Offset As UInteger)
+    DrawIndexedInstanced         As Sub(ByVal This As Any Ptr, ByVal IndexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartIndexLocation As UInteger, ByVal BaseVertexLocation As Integer, ByVal StartInstanceLocation As UInteger)
+    DrawInstanced                As Sub(ByVal This As Any Ptr, ByVal VertexCountPerInstance As UInteger, ByVal InstanceCount As UInteger, ByVal StartVertexLocation As UInteger, ByVal StartInstanceLocation As UInteger)
+    GSSetConstantBuffers         As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    GSSetShader                  As Sub(ByVal This As Any Ptr, ByVal pShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
+    IASetPrimitiveTopology       As Sub(ByVal This As Any Ptr, ByVal Topology As UInteger)
+    VSSetShaderResources         As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    VSSetSamplers                As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    Begin_                      As Sub(ByVal This As Any Ptr, ByVal pAsync As Any Ptr)
+    End_                        As Sub(ByVal This As Any Ptr, ByVal pAsync As Any Ptr)
+    GetData                     As Function(ByVal This As Any Ptr, ByVal pAsync As Any Ptr, ByVal pData As Any Ptr, ByVal DataSize As UInteger, ByVal GetDataFlags As UInteger) As HRESULT
+    SetPredication               As Sub(ByVal This As Any Ptr, ByVal pPredicate As Any Ptr, ByVal PredicateValue As BOOL)
+    GSSetShaderResources         As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    GSSetSamplers                As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    OMSetRenderTargets           As Sub(ByVal This As Any Ptr, ByVal NumViews As UInteger, ByVal ppRenderTargetViews As Any Ptr Ptr, ByVal pDepthStencilView As Any Ptr)
+    OMSetRenderTargetsAndUnorderedAccessViews As Sub(ByVal This As Any Ptr, ByVal NumRTVs As UInteger, ByVal ppRTVs As Any Ptr Ptr, ByVal pDSV As Any Ptr, ByVal UAVStartSlot As UInteger, ByVal NumUAVs As UInteger, ByVal ppUAVs As Any Ptr Ptr, ByVal pUAVInitialCounts As UInteger Ptr)
+    OMSetBlendState              As Sub(ByVal This As Any Ptr, ByVal pBlendState As Any Ptr, ByVal BlendFactor As Single Ptr, ByVal SampleMask As UInteger)
+    OMSetDepthStencilState       As Sub(ByVal This As Any Ptr, ByVal pDepthStencilState As Any Ptr, ByVal StencilRef As UInteger)
+    SOSetTargets                 As Sub(ByVal This As Any Ptr, ByVal NumBuffers As UInteger, ByVal ppSOTargets As Any Ptr Ptr, ByVal pOffsets As UInteger Ptr)
+    DrawAuto                     As Sub(ByVal This As Any Ptr)
+    DrawIndexedInstancedIndirect As Sub(ByVal This As Any Ptr, ByVal pBufferForArgs As Any Ptr, ByVal AlignedByteOffsetForArgs As UInteger)
+    DrawInstancedIndirect         As Sub(ByVal This As Any Ptr, ByVal pBufferForArgs As Any Ptr, ByVal AlignedByteOffsetForArgs As UInteger)
+    Dispatch                      As Sub(ByVal This As Any Ptr, ByVal ThreadGroupCountX As UInteger, ByVal ThreadGroupCountY As UInteger, ByVal ThreadGroupCountZ As UInteger)
+    DispatchIndirect               As Sub(ByVal This As Any Ptr, ByVal pBufferForArgs As Any Ptr, ByVal AlignedByteOffsetForArgs As UInteger)
+    RSSetState                      As Sub(ByVal This As Any Ptr, ByVal pRasterizerState As Any Ptr)
+    RSSetViewports                  As Sub(ByVal This As Any Ptr, ByVal NumViewports As UInteger, ByVal pViewports As Any Ptr)
+    RSSetScissorRects               As Sub(ByVal This As Any Ptr, ByVal NumRects As UInteger, ByVal pRects As Any Ptr)
+    CopySubresourceRegion          As Sub(ByVal This As Any Ptr, ByVal pDstResource As Any Ptr, ByVal DstSubresource As UInteger, ByVal DstX As UInteger, ByVal DstY As UInteger, ByVal DstZ As UInteger, ByVal pSrcResource As Any Ptr, ByVal SrcSubresource As UInteger, ByVal pSrcBox As Any Ptr)
+    CopyResource                   As Sub(ByVal This As Any Ptr, ByVal pDstResource As Any Ptr, ByVal pSrcResource As Any Ptr)
+    UpdateSubresource              As Sub(ByVal This As Any Ptr, ByVal pDstResource As Any Ptr, ByVal DstSubresource As UInteger, ByVal pDstBox As Any Ptr, ByVal pSrcData As Any Ptr, ByVal SrcRowPitch As UInteger, ByVal SrcDepthPitch As UInteger)
+    CopyStructureCount             As Sub(ByVal This As Any Ptr, ByVal pDstBuffer As Any Ptr, ByVal DstAlignedByteOffset As UInteger, ByVal pSrcView As Any Ptr)
+    ClearRenderTargetView          As Sub(ByVal This As Any Ptr, ByVal pRenderTargetView As Any Ptr, ByVal ColorRGBA As Single Ptr)
+    ClearUnorderedAccessViewUint   As Sub(ByVal This As Any Ptr, ByVal pUnorderedAccessView As Any Ptr, ByVal Values As UInteger Ptr)
+    ClearUnorderedAccessViewFloat  As Sub(ByVal This As Any Ptr, ByVal pUnorderedAccessView As Any Ptr, ByVal Values As Single Ptr)
+    ClearDepthStencilView          As Sub(ByVal This As Any Ptr, ByVal pDepthStencilView As Any Ptr, ByVal ClearFlags As UInteger, ByVal Depth As Single, ByVal Stencil As UByte)
+    GenerateMips                   As Sub(ByVal This As Any Ptr, ByVal pShaderResourceView As Any Ptr)
+    SetResourceMinLOD              As Sub(ByVal This As Any Ptr, ByVal pResource As Any Ptr, ByVal MinLOD As Single)
+    GetResourceMinLOD              As Function(ByVal This As Any Ptr, ByVal pResource As Any Ptr) As Single
+    ResolveSubresource             As Sub(ByVal This As Any Ptr, ByVal pDstResource As Any Ptr, ByVal DstSubresource As UInteger, ByVal pSrcResource As Any Ptr, ByVal SrcSubresource As UInteger, ByVal Format As UInteger)
+    ExecuteCommandList             As Sub(ByVal This As Any Ptr, ByVal pCommandList As Any Ptr, ByVal RestoreContextState As BOOL)
+    HSSetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    HSSetShader                    As Sub(ByVal This As Any Ptr, ByVal pHullShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
+    HSSetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    HSSetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    DSSetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    DSSetShader                    As Sub(ByVal This As Any Ptr, ByVal pDomainShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
+    DSSetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    DSSetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    CSSetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    CSSetUnorderedAccessViews      As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumUAVs As UInteger, ByVal ppUnorderedAccessViews As Any Ptr Ptr, ByVal pUAVInitialCounts As UInteger Ptr)
+    CSSetShader                    As Sub(ByVal This As Any Ptr, ByVal pComputeShader As Any Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal NumClassInstances As UInteger)
+    CSSetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    CSSetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    VSGetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    PSGetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    PSGetShader                    As Sub(ByVal This As Any Ptr, ByVal ppPixelShader As Any Ptr Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal pNumClassInstances As UInteger Ptr)
+    PSGetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    VSGetShader                    As Sub(ByVal This As Any Ptr, ByVal ppVertexShader As Any Ptr Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal pNumClassInstances As UInteger Ptr)
+    PSGetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    IAGetInputLayout               As Sub(ByVal This As Any Ptr, ByVal ppInputLayout As Any Ptr Ptr)
+    IAGetVertexBuffers             As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppVertexBuffers As Any Ptr Ptr, ByVal pStrides As UInteger Ptr, ByVal pOffsets As UInteger Ptr)
+    IAGetIndexBuffer               As Sub(ByVal This As Any Ptr, ByVal ppIndexBuffer As Any Ptr Ptr, ByVal pFormat As UInteger Ptr, ByVal pOffset As UInteger Ptr)
+    GSGetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    GSGetShader                    As Sub(ByVal This As Any Ptr, ByVal ppGeometryShader As Any Ptr Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal pNumClassInstances As UInteger Ptr)
+    IAGetPrimitiveTopology         As Sub(ByVal This As Any Ptr, ByVal pTopology As UInteger Ptr)
+    VSGetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    VSGetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    GetPredication                 As Sub(ByVal This As Any Ptr, ByVal ppPredicate As Any Ptr Ptr, ByVal pPredicateValue As BOOL Ptr)
+    GSGetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    GSGetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    OMGetRenderTargets             As Sub(ByVal This As Any Ptr, ByVal NumViews As UInteger, ByVal ppRenderTargetViews As Any Ptr Ptr, ByVal ppDepthStencilView As Any Ptr Ptr)
+    OMGetRenderTargetsAndUnorderedAccessViews As Sub(ByVal This As Any Ptr, ByVal NumRTVs As UInteger, ByVal ppRTVs As Any Ptr Ptr, ByVal ppDSV As Any Ptr Ptr, ByVal UAVStartSlot As UInteger, ByVal NumUAVs As UInteger, ByVal ppUAVs As Any Ptr Ptr)
+    OMGetBlendState                As Sub(ByVal This As Any Ptr, ByVal ppBlendState As Any Ptr Ptr, ByVal BlendFactor As Single Ptr, ByVal pSampleMask As UInteger Ptr)
+    OMGetDepthStencilState         As Sub(ByVal This As Any Ptr, ByVal ppDepthStencilState As Any Ptr Ptr, ByVal pStencilRef As UInteger Ptr)
+    SOGetTargets                   As Sub(ByVal This As Any Ptr, ByVal NumBuffers As UInteger, ByVal ppSOTargets As Any Ptr Ptr)
+    RSGetState                     As Sub(ByVal This As Any Ptr, ByVal ppRasterizerState As Any Ptr Ptr)
+    RSGetViewports                 As Sub(ByVal This As Any Ptr, ByVal pNumViewports As UInteger Ptr, ByVal pViewports As Any Ptr)
+    RSGetScissorRects              As Sub(ByVal This As Any Ptr, ByVal pNumRects As UInteger Ptr, ByVal pRects As Any Ptr)
+    HSGetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    HSGetShader                    As Sub(ByVal This As Any Ptr, ByVal ppHullShader As Any Ptr Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal pNumClassInstances As UInteger Ptr)
+    HSGetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    HSGetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    DSGetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    DSGetShader                    As Sub(ByVal This As Any Ptr, ByVal ppDomainShader As Any Ptr Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal pNumClassInstances As UInteger Ptr)
+    DSGetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    DSGetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    CSGetShaderResources           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumViews As UInteger, ByVal ppShaderResourceViews As Any Ptr Ptr)
+    CSGetUnorderedAccessViews      As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumUAVs As UInteger, ByVal ppUnorderedAccessViews As Any Ptr Ptr)
+    CSGetShader                    As Sub(ByVal This As Any Ptr, ByVal ppComputeShader As Any Ptr Ptr, ByVal ppClassInstances As Any Ptr Ptr, ByVal pNumClassInstances As UInteger Ptr)
+    CSGetSamplers                  As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumSamplers As UInteger, ByVal ppSamplers As Any Ptr Ptr)
+    CSGetConstantBuffers           As Sub(ByVal This As Any Ptr, ByVal StartSlot As UInteger, ByVal NumBuffers As UInteger, ByVal ppConstantBuffers As Any Ptr Ptr)
+    ClearState                     As Sub(ByVal This As Any Ptr)
+    Flush                          As Sub(ByVal This As Any Ptr)
+    GetType_                       As Sub(ByVal This As Any Ptr, ByVal pType As UInteger Ptr)
+    GetContextFlags                As Sub(ByVal This As Any Ptr, ByVal pFlags As UInteger Ptr)
+    FinishCommandList              As Function(ByVal This As Any Ptr, ByVal RestoreDeferredContextState As BOOL, ByVal ppCommandList As Any Ptr Ptr) As HRESULT
 End Type
 
 Type ID3D11DeviceContext
@@ -2466,19 +2556,115 @@ Dim Shared As IDXGIFactory2 Ptr pDXGIFactory2 = 0
 Dim Shared As ID2D1Factory Ptr pD2D1Factory = 0
 Dim Shared As ID2D1Factory1 Ptr pD2D1Factory1 = 0
 Dim Shared As IDWriteFactory Ptr pDWriteFactory = 0
+Dim Shared As IDXGIAdapter Ptr pDXGIAdapter = 0
+Dim Shared As IDXGIDevice Ptr pDXGIDevice = 0
 Dim Shared As Boolean g_Direct2DEnabled
+
+Type D3D11_DEBUG_FEATURE As Long
+Enum
+    D3D11_DEBUG_FEATURE_FLUSH_PER_RENDER_OP = &h1
+    D3D11_DEBUG_FEATURE_FINISH_PER_RENDER_OP = &h2
+    D3D11_DEBUG_FEATURE_PRESENT_PER_RENDER_OP = &h4
+    D3D11_DEBUG_FEATURE_ALWAYS_DISCARD = &h8
+    D3D11_DEBUG_FEATURE_NEVER_DISCARD = &h10
+    D3D11_DEBUG_FEATURE_AVOID_BEHAVIOR_CHANGING_DEBUG_AIDS = &h20
+End Enum
+
+Type ID3D11DebugVtbl
+    ' IUnknown
+    QueryInterface As Function(ByVal This As Any Ptr, ByRef riid As GUID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+    AddRef As Function(ByVal This As Any Ptr) As ULong
+    Release As Function(ByVal This As Any Ptr) As ULong
+
+    ' ID3D11Debug
+    SetFeatureMask As Function(ByVal This As Any Ptr, ByVal Mask As D3D11_DEBUG_FEATURE) As HRESULT
+    GetFeatureMask As Function(ByVal This As Any Ptr, ByVal pMask As ULong Ptr) As HRESULT
+    SetPresentPerRenderOpDelay As Function(ByVal This As Any Ptr, ByVal Milliseconds As ULong) As HRESULT
+    GetPresentPerRenderOpDelay As Function(ByVal This As Any Ptr, ByVal pMilliseconds As ULong Ptr) As HRESULT
+    SetSwapChain As Function(ByVal This As Any Ptr, ByVal pSwapChain As Any Ptr) As HRESULT
+    GetSwapChain As Function(ByVal This As Any Ptr, ByVal ppSwapChain As Any Ptr Ptr) As HRESULT
+    ValidateContext As Function(ByVal This As Any Ptr, ByVal pContext As Any Ptr) As HRESULT
+    ReportLiveDeviceObjects As Function(ByVal This As Any Ptr, ByVal Flags As ULong) As HRESULT
+    ValidateContextForDispatch As Function(ByVal This As Any Ptr, ByVal pContext As Any Ptr) As HRESULT
+End Type
+
+Type ID3D11Debug
+    lpVtbl As ID3D11DebugVtbl Ptr
+End Type
+
+Dim Shared IID_ID3D11Debug As GUID = ( _
+    &h79CF2233, &h7536, &h4948, { &h9D, &h36, &h1E, &h46, &h92, &hDC, &h57, &h60 } )
+
+Const D3D11_RLO_SUMMARY = 0
+Const D3D11_RLO_DETAIL = 1
+
+Dim Shared IID_ID2D1Debug1 As GUID = ( _
+    &H429A1A06, &H0DDB, &H4C9C, {&H9A, &H3E, &H0C, &H0A, &H6B, &H56, &HA3, &HE0} )
+
+Type ID2D1Debug1Vtbl
+    ' IUnknown
+    QueryInterface As Function(ByVal This As Any Ptr, ByVal riid As REFIID, ByVal ppvObject As Any Ptr Ptr) As HRESULT
+    AddRef As Function(ByVal This As Any Ptr) As ULong
+    Release As Function(ByVal This As Any Ptr) As ULong
+
+    ' ID2D1Debug
+    EnableDebugLayer As Sub(ByVal This As Any Ptr)
+
+    ' ID2D1Debug1
+    ReportLiveObjects As Function(ByVal This As Any Ptr, ByVal level As D2D1_DEBUG_LEVEL) As HRESULT
+End Type
+
+Type ID2D1Debug1
+    lpVtbl As ID2D1Debug1Vtbl Ptr
+End Type
 
 Function UnloadD2D1 As Long
 	#ifdef __USE_WINAPI__
+		Dim pDebug As ID3D11Debug Ptr
+		Dim pDebugD2D1 As ID2D1Debug1 Ptr
+		' Проверяем, что pD3D11Device существует
 		If pDWriteFactory Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pDWriteFactory, 2))(pDWriteFactory): pDWriteFactory = 0
-		If pD2D1Factory Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pD2D1Factory, 2))(pD2D1Factory): pD2D1Factory = 0
-		If pD2D1Factory1 Then pD2D1Factory1->lpVtbl->Release(pD2D1Factory1): pD2D1Factory1 = 0
+		If pDXGIAdapter <> 0 Then pDXGIAdapter->lpVtbl->Release(pDXGIAdapter): pDXGIAdapter = 0
+		If pDXGIDevice <> 0 Then pDXGIDevice->lpVtbl->Release(pDXGIDevice): pDXGIDevice = 0
+    	If pD3D11DeviceContext Then
+			pD3D11DeviceContext->lpVtbl->OMSetRenderTargets(pD3D11DeviceContext, 0, 0, 0)
+			pD3D11DeviceContext->lpVtbl->ClearState(pD3D11DeviceContext)
+			pD3D11DeviceContext->lpVtbl->Flush(pD3D11DeviceContext)
+			pD3D11DeviceContext->lpVtbl->Release(pD3D11DeviceContext)
+			pD3D11DeviceContext = 0
+		End If
+		If pD3D11Device Then
+			If SUCCEEDED(pD3D11Device->lpVtbl->QueryInterface(pD3D11Device, @IID_ID3D11Debug, @pDebug)) Then
+		        
+			End If
+			pD3D11Device->lpVtbl->Release(pD3D11Device): pD3D11Device = 0
+		End If
 		If pD2D1Device Then pD2D1Device->lpVtbl->Release(pD2D1Device): pD2D1Device = 0
-		If pD3D11Device Then pD3D11Device->lpVtbl->Release(pD3D11Device): pD3D11Device = 0
-		If pD3D11DeviceContext Then pD3D11DeviceContext->lpVtbl->Release(pD3D11DeviceContext): pD3D11DeviceContext = 0
+		If pD2D1Factory Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pD2D1Factory, 2))(pD2D1Factory): pD2D1Factory = 0
+		If pD2D1Factory1 Then
+			'Dim D2D1GetDebugInterface As D2D1GetDebugInterfaceType
+			'D2D1GetDebugInterface = Cast(D2D1CreateFactoryType, DyLibSymbol(hD2D1, "D2D1GetDebugInterface"))
+			'If D2D1GetDebugInterface <> 0 Then
+			'	Var hr = D2D1GetDebugInterface(@IID_ID2D1Debug1, @pDebugD2D1)
+			'	If hr = 0 Then
+			'		pDebugD2D1->lpVtbl->ReportLiveObjects(pDebug, D2D1_DEBUG_LEVEL_INFORMATION)
+			'		pDebugD2D1->lpVtbl->Release(pDebug)
+			'	End If
+			'End If
+			pD2D1Factory1->lpVtbl->Release(pD2D1Factory1): pD2D1Factory1 = 0
+		End If
+		If pDXGIFactory2 Then pDXGIFactory2->lpVtbl->Release(pDXGIFactory2): pDXGIFactory2 = 0
 		If hD2D1 Then DyLibFree(hD2D1): hD2D1 = 0
 		If hD3D11 Then DyLibFree(hD3D11): hD3D11 = 0
 		If hDWrite Then DyLibFree(hDWrite): hDWrite = 0
+		If pDebug <> 0 Then
+			' 0 = D3D11_RLO_SUMMARY (короткий отчёт)
+	        ' 1 = D3D11_RLO_DETAIL  (подробный отчёт с именами)
+	        OutputDebugString("===== D3D11 ReportLiveObjects START =====" & Chr(13,10))
+	        pDebug->lpVtbl->ReportLiveDeviceObjects(pDebug, D3D11_RLO_DETAIL Or D3D11_RLO_SUMMARY)
+	        OutputDebugString("===== D3D11 ReportLiveObjects END =====" & Chr(13,10))
+	        pDebug->lpVtbl->Release(pDebug)
+	    End If
 		'CoUninitialize()
 	#endif
 	Return 0
@@ -2495,7 +2681,10 @@ Function LoadD2D1 As Long
 		CreateD2D1Factory = Cast(D2D1CreateFactoryType, DyLibSymbol(hD2D1, "D2D1CreateFactory"))
 		If CreateD2D1Factory = 0 Then Return UnloadD2D1
 		
-		Dim hr As Long = CreateD2D1Factory(D2D1_FACTORY_TYPE_SINGLE_THREADED, @IID_ID2D1Factory1, 0, @pD2D1Factory1)
+		Dim opts As D2D1_FACTORY_OPTIONS
+		opts.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION
+		
+		Dim hr As Long = CreateD2D1Factory(D2D1_FACTORY_TYPE_SINGLE_THREADED, @IID_ID2D1Factory1, @opts, @pD2D1Factory1)
 		If hr <> 0 Then Return UnloadD2D1
 		
 		hDWrite = DyLibLoad("dwrite.dll")
@@ -2516,11 +2705,11 @@ Function LoadD2D1 As Long
 		If D3D11CreateDevice = 0 Then Return UnloadD2D1
 		
 		Dim pDXGI As Any Ptr = 0
+		' Or D3D11_CREATE_DEVICE_DEBUG
 		hr = D3D11CreateDevice(0, D3D_DRIVER_TYPE_HARDWARE, 0, D3D11_CREATE_DEVICE_BGRA_SUPPORT, 0, 0, D3D11_SDK_VERSION, @pD3D11Device, 0, @pD3D11DeviceContext)
 		
 		If hr <> 0 Then Return UnloadD2D1
 		
-		Dim pDXGIDevice As IDXGIDevice Ptr
 		hr = pD3D11Device->lpVtbl->QueryInterface(pD3D11Device, @IID_IDXGIDevice, @pDXGIDevice)
 		If hr <> 0 Then Return UnloadD2D1
 		
@@ -2529,15 +2718,14 @@ Function LoadD2D1 As Long
 		hr = pD2D1Factory1->lpVtbl->CreateDevice(pD2D1Factory1, pDXGIDevice, @pD2D1Device)
 		If hr <> 0 Then Return UnloadD2D1
 		
-		Dim dxgiAdapter As IDXGIAdapter Ptr
-		pDXGIDevice->lpVtbl->GetAdapter(pDXGIDevice, @dxgiAdapter)
+		pDXGIDevice->lpVtbl->GetAdapter(pDXGIDevice, @pDXGIAdapter)
 		
 		'Dim As DXGI_ADAPTER_DESC adapterDesc
 		'pAdapter->lpVtbl->GetDesc(pAdapter,  @adapterDesc)
 		'Print "GPU: "; adapterDesc.Description
 		'Print "VendorId: "; Hex(adapterDesc.VendorId)
 		
-		hr = dxgiAdapter->lpVtbl->GetParent(dxgiAdapter, @IID_IDXGIFactory2, Cast(Any Ptr Ptr, @pDXGIFactory2))
+		hr = pDXGIAdapter->lpVtbl->GetParent(pDXGIAdapter, @IID_IDXGIFactory2, Cast(Any Ptr Ptr, @pDXGIFactory2))
 		If hr <> 0 Then Return UnloadD2D1
 		CreateHwndRenderTarget = Cast(fnCreateHwndRenderTarget, COM_METHOD(pD2D1Factory1, 14))
 		CreateTextFormat = Cast(fnCreateTextFormat, COM_METHOD(pDWriteFactory, 15))

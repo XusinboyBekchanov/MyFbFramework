@@ -183,7 +183,7 @@ Namespace My
 	
 	Private Function Application.PrevInstance As Boolean
 		#if defined(__FB_WIN32__)
-			Dim m_hMutex As HANDLE = CreateMutex(NULL, True, ExeName)
+			m_hMutex = CreateMutex(NULL, True, ExeName)
 			If GetLastError = ERROR_ALREADY_EXISTS Then
 				'ReleaseMutex m_hMutex
 				CloseHandle(m_hMutex)
@@ -766,6 +766,10 @@ Namespace My
 		If FLanguage Then _Deallocate( FLanguage)
 		If This._vinfo <> 0 Then _Deallocate((This._vinfo)) : This._vinfo = 0
 		#ifdef __USE_WINAPI__
+			If m_hMutex <> NULL Then
+				ReleaseMutex(m_hMutex)
+				CloseHandle(m_hMutex)
+			End If
 			DeleteObject hbrBkgnd
 			DeleteObject hbrHlBkgnd
 			DeleteObject hbrBkgndMenu
@@ -1398,7 +1402,7 @@ End Function
 				If Trim(Buff) = "" Then Return 0
 				#ifdef __USE_WINAPI__
 					If FileEncoding = FileEncodings.PlainText Then
-						Dim CodePage As Integer = IIf(nCodePage = -1, GetACP(), nCodePage) 
+						Dim CodePage As Integer = IIf(nCodePage = -1, GetACP(), nCodePage)
 						If CodePage= 936 AndAlso nCodePage = -1 Then CodePage = 54936 'The default value is set to Chinese character GB18030 (ANSI and GB2312 compatible).
 						FileSize = MultiByteToWideChar(CodePage, 0, StrPtr(Buff), -1, NULL, 0) - 1
 						pBuff = _CAllocate(FileSize * 2 + 2)
@@ -1474,10 +1478,10 @@ End Function
 		If  Result = 0 Then
 			If FileEncoding = FileEncodings.Utf8 Then
 				If NewLineStr <> OldLineStr Then
-						Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))
-					Else
-						Put #Fn, , ToUtf8(wData)
-					End If
+					Put #Fn, , ToUtf8(Replace(wData, OldLineStr, NewLineStr))
+				Else
+					Put #Fn, , ToUtf8(wData)
+				End If
 			ElseIf FileEncoding = FileEncodings.PlainText Then
 				#ifdef __USE_WINAPI__
 					Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
