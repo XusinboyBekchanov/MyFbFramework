@@ -185,9 +185,9 @@ Namespace My.Sys.Forms
 		Return FState
 	End Property
 	
-		Private Property GridRow.State(Value As Integer)
-			FState = Value
-		End Property
+	Private Property GridRow.State(Value As Integer)
+		FState = Value
+	End Property
 	
 	Private Property GridRow.Hint ByRef As WString
 		Return WGet(FHint)
@@ -657,9 +657,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef GridRows_Add_Integer_Off
-		Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
+		Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, ByRef DelimiterChr As String = "", ByVal IsLastItem As Boolean = True) As GridRow Ptr
 			If Parent <= 0 Then Return 0
-			Dim As Integer i = Index, n = 1
+			Dim As Integer i = Index, FixCols = 1
+			If Parent <> 0 Then FixCols = IIf(Cast(Grid Ptr, Parent)->FixCols, 1, 0)
 			PItem = _New(GridRow)
 			PItem->Parent = Parent
 			If Index = -1  Then
@@ -675,10 +676,19 @@ Namespace My.Sys.Forms
 					Dim As GtkWidget Ptr ParentTemp = Parent->Handle
 					Parent->Handle = 0
 				#endif
-				If InStr(FCaption, Chr(9)) > 0 Then
-					Dim As Integer ii = 1, tLen = Len(Chr(9)), ls = Len(FCaption), p = 1
+				'Only compare the string of the first row
+				If DelimiterChr = "" Then
+					If InStr(FCaption, Chr(9)) Then
+						DelimiterChr =  Chr(9)
+					Else
+						DelimiterChr = IIf(InStr(FCaption, "|"), "|", IIf(InStr(FCaption, ","), ",", ";"))
+					End If
+				End If
+				'If FixCols > 0 Then .Text(0)    = Str(FItems.Count) Else .Text(0)    = "**" & Str(FItems.Count)
+				If InStr(FCaption, DelimiterChr) > 0 Then
+					Dim As Integer ii = 1, tLen = Len(DelimiterChr), ls = Len(FCaption), p = 1, n = FixCols
 					Do While ii <= ls
-						If Mid(FCaption, ii, tLen) = Chr(9) Then
+						If Mid(FCaption, ii, tLen) = DelimiterChr Then
 							n = n + 1
 							.Text(n - 1) = Mid(FCaption, p, ii - p)
 							.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
@@ -695,7 +705,7 @@ Namespace My.Sys.Forms
 					.Item(n - 1)->BackColor = IIf(ColorBK = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->BackColor, ColorBK)
 					.Item(n - 1)->ForeColor = IIf(ColorText = -1, Cast(Grid Ptr, Parent)->Columns.Column(n - 1)->ForeColor, ColorText)
 				Else
-					.Text(0)    = FCaption
+					.Text(FixCols)    = FCaption
 				End If
 				#ifdef __USE_GTK__
 					Parent->Handle = ParentTemp
@@ -721,7 +731,7 @@ Namespace My.Sys.Forms
 					Next j
 				End If
 			#elseif defined(__USE_WINAPI__)
-				SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
+				If Parent->Handle> 0 AndAlso IsLastItem Then SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
 			#elseif defined(__USE_WASM__)
 				Dim As UString strRow = ""
 				For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
@@ -733,22 +743,24 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Private Function GridRows.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
+	Private Function GridRows.Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, ByRef DelimiterChr As String = "", ByVal IsLastItem As Boolean = True) As GridRow Ptr
 		If Parent AndAlso Cast(Grid Ptr, Parent)->Images Then
-			PItem = Add(FCaption, Cast(Grid Ptr, Parent)->Images->IndexOf(FImageKey), State, Indent, Index, RowEditable, ColorBK, ColorText)
+			PItem = Add(FCaption, Cast(Grid Ptr, Parent)->Images->IndexOf(FImageKey), State, Indent, Index, RowEditable, ColorBK, ColorText, DelimiterChr, IsLastItem)
 		Else
-			PItem = Add(FCaption, -1, State, Indent, Index, RowEditable, ColorBK, ColorText)
+			PItem = Add(FCaption, -1, State, Indent, Index, RowEditable, ColorBK, ColorText, DelimiterChr, IsLastItem)
 		End If
 		If PItem Then PItem->ImageKey = FImageKey
 		Return PItem
 	End Function
 	
-	Private Function GridRows.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, InsertBefore As Boolean = True, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, DuplicateIndex As Integer = -1) As GridRow Ptr
+	Private Function GridRows.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, InsertBefore As Boolean = True, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, DuplicateIndex As Integer = -1, ByRef DelimiterChr As String = "", ByVal IsLastItem As Boolean = True) As GridRow Ptr
 		If Not InsertBefore Then Index += 1
-		If Index > FItems.Count - 1 Then Return Add(FCaption, FImageIndex, State, Indent, Index, RowEditable, ColorBK, ColorText)
+		If Index > FItems.Count - 1 Then Return Add(FCaption, FImageIndex, State, Indent, Index, RowEditable, ColorBK, ColorText, DelimiterChr, IsLastItem)
 		Dim As GridRow Ptr PItem, tGridRow, tGridRowD
 		PItem = _New(GridRow)
 		FItems.Insert Index, PItem
+		Dim As Integer FixCols = 1
+		If Parent <> 0 Then FixCols = IIf(Cast(Grid Ptr, Parent)->FixCols, 1, 0)
 		With *PItem
 			.Parent         = Parent
 			.ImageIndex     = FImageIndex
@@ -756,7 +768,7 @@ Namespace My.Sys.Forms
 				Dim As GtkWidget Ptr ParentTemp = Parent->Handle
 				Parent->Handle = 0
 			#endif
-			.Text(0)        = FCaption
+			.Text(FixCols)        = FCaption
 			If DuplicateIndex >= 0 Then tGridRowD = Cast(Grid Ptr, Parent)->Rows.Item(DuplicateIndex)
 			.Editable = IIf(DuplicateIndex >= 0, tGridRowD->Editable, RowEditable)
 			.BackColor = IIf(DuplicateIndex >= 0, tGridRowD->BackColor, ColorBK)
@@ -1159,6 +1171,16 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub Grid.Clear()
+		If LBound(DataArrayPtr) <= UBound(DataArrayPtr) Then
+			Dim As Integer LboundData = LBound(DataArrayPtr, 2)
+			Dim As Integer UboundData = UBound(DataArrayPtr, 2)
+			For i As Integer = LBound(DataArrayPtr, 1) To UBound(DataArrayPtr, 1)
+				For j As Integer = LboundData To UboundData
+					Deallocate DataArrayPtr(i, j)
+				Next
+			Next
+		End If
+		Erase DataArrayPtr
 		#ifdef __USE_GTK__
 			If gtk_tree_view_get_model(GTK_TREE_VIEW(widget)) = NULL Then
 				With This
@@ -1264,6 +1286,15 @@ Namespace My.Sys.Forms
 	Private Property Grid.AllowEdit(Value As Boolean)
 		FAllowEdit = Value
 	End Property
+	
+	Private Property Grid.FixCols As Integer
+		Return FFixCols
+	End Property
+	
+	Private Property Grid.FixCols(Value As Integer)
+		FFixCols = IIf(Value > 0, 1, 0)
+	End Property
+	
 	Private Property Grid.AllowColumnReorder As Boolean
 		Return FAllowColumnReorder
 	End Property
@@ -1433,7 +1464,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Grid.SortIndex(Value As Integer)
-		FSortIndex = Value
+		FSortIndex = Value+ FFixCols
 		'#ifndef __USE_GTK__
 		'	Select Case FSortStyle
 		'	Case SortStyle.ssNone
@@ -1655,10 +1686,14 @@ Namespace My.Sys.Forms
 					If lvp->iItem >= 0 Then
 						FCol = lvp->iSubItem
 						FRow = lvp->iItem
-						If FRow >= 0 AndAlso FCol > 0 AndAlso FRow < Rows.Count Then
+						If FRow >= 0 AndAlso FCol >= 0 AndAlso FRow < Rows.Count Then
 							Dim As Rect RectCell
 							ListView_GetSubItemRect(Handle, FRow, FCol, LVIR_BOUNDS, @RectCell)
-							GridEditText.Text = Rows.Item(FRow)->Text(FCol)
+							If UBound(DataArrayPtr, 1) > 0 Then
+								GridEditText.Text = WGet(DataArrayPtr(FRow, FCol - FFixCols))
+							Else
+								GridEditText.Text = Rows.Item(FRow)->Text(FCol)
+							End If
 							GridEditText.Visible= False
 							GridEditText.SetBounds UnScaleX(RectCell.Left), UnScaleY(RectCell.Top), UnScaleX(RectCell.Right - RectCell.Left) - 1, UnScaleY(RectCell.Bottom - RectCell.Top) - 1
 							If OnRowClick Then OnRowClick(*Designer, This, lvp->iItem)
@@ -1672,7 +1707,7 @@ Namespace My.Sys.Forms
 					If FSorting = False AndAlso lvp->iItem >= 0 Then
 						FCol = lvp->iSubItem
 						FRow = lvp->iItem
-						If FRow >= 0 AndAlso FCol > 0 AndAlso FRow < Rows.Count Then
+						If FRow >= 0 AndAlso FCol >= 0 AndAlso FRow < Rows.Count Then
 							If OnRowDblClick Then OnRowDblClick(*Designer, This, lvp->iItem)
 							EditControlShow(lvp->iItem, lvp->iSubItem)
 						End If
@@ -1707,9 +1742,20 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				Case LVN_ODCACHEHINT
-					If FOwnerData Then
-						Dim pCacheHint As NMLVCACHEHINT Ptr = Cast(NMLVCACHEHINT  Ptr, Message.lParam)
-						' Load the cache With the recommended range if OwnerData is true.
+					Dim pCacheHint As NMLVCACHEHINT Ptr = Cast(NMLVCACHEHINT  Ptr, Message.lParam)
+					Dim As Long UboundDataRow = UBound(DataArrayPtr, 1)
+					If CBool(UboundDataRow > 1) Then
+						Dim As Long LboundData = LBound(DataArrayPtr, 2)
+						Dim As Long UboundDataCol = Min(UBound(DataArrayPtr, 2), Columns.Count - 1)
+						For iRow As Long = pCacheHint->iFrom To pCacheHint->iTo
+							If Rows.Item(iRow)->State = 1 Then Continue For
+							If FFixCols > 0 Then Rows.Item(iRow)->Item(0)->Text = Str(iRow + 1)
+							For iCol As Integer = 0 To UboundDataCol
+								Rows.Item(iRow)->Item(iCol + FFixCols)->Text =  WGet(DataArrayPtr(iRow, iCol))
+							Next
+							Rows.Item(iRow)->State = 1
+						Next
+					Else
 						If OnCacheHint Then OnCacheHint(*Designer, This, pCacheHint->iFrom, pCacheHint->iTo)
 					End If
 				Case LVN_ODFINDITEM
@@ -1723,7 +1769,7 @@ Namespace My.Sys.Forms
 					If OnEndScroll Then OnEndScroll(*Designer, This)
 				Case LVN_COLUMNCLICK
 					GridEditText.Visible= False
-					If lvp->iSubItem > 0 AndAlso OnColumnClick Then OnColumnClick(*Designer, This, lvp->iSubItem)
+					If lvp->iSubItem >= 0 AndAlso OnColumnClick Then OnColumnClick(*Designer, This, lvp->iSubItem)
 				Case LVN_ITEMCHANGING
 					GridEditText.Visible= False
 					Dim bCancel As Boolean
@@ -1751,6 +1797,7 @@ Namespace My.Sys.Forms
 						If RowsTopIndex < 0 Then RowsTopIndex = FRow
 						Dim As Integer SelectedItem = RowsTopIndex
 						Dim As Boolean DrawingOrderVert = IIf(Rows.Count > 0 AndAlso Rows.Item(0)->BackColor = -1, True, False)
+						Dim As Boolean UsingDataArrayPtr = IIf(UBound(DataArrayPtr, 1) > 0, True, False)
 						Dim As SCROLLINFO sif
 						sif.cbSize = SizeOf(sif)
 						sif.fMask  = SIF_POS
@@ -1809,14 +1856,26 @@ Namespace My.Sys.Forms
 										'If iCol = FCol Then DrawFocusRect nmcd->hdc, @R 'draw focus rectangle
 										Rc.Left = R.Left + 3 : Rc.Right = R.Right - 3 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
 										If iCol = 0 Then
-											Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
+											If FFixCols > 0 Then
+												Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
+											Else
+												If UsingDataArrayPtr Then Rows.Item(SelectedItem)->Text(iCol) =  WGet(DataArrayPtr(SelectedItem, 0))
+											End If
 											If WidthCol0 > 0 Then Rc.Right = WidthCol0
 										End If
 										TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
 										TextColor = IIf(TextColor <> -1, TextColor, IIf(TextColorCol = -1, This.ForeColor, TextColorCol))
 										If SelectedItem = FRow AndAlso iCol = FCol Then TextColor = FGridColorEditFore
 										If TextColor <>  TextColorSave  Then SetTextColor nmcd->hdc, TextColor : TextColorSave = TextColor
-										DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+										If UsingDataArrayPtr Then
+											If FFixCols > 0 AndAlso iCol = 0 Then
+												DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+											Else
+												DrawText nmcd->hdc, DataArrayPtr(SelectedItem, iCol - FFixCols), Len(WGet(DataArrayPtr(SelectedItem, iCol - FFixCols))), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+											End If
+										Else
+											DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+										End If
 									End If
 									SelectedItem += 1
 								Next
@@ -1854,14 +1913,26 @@ Namespace My.Sys.Forms
 										TextColorCol = Columns.Column(iCol)->ForeColor
 										If SelectedItem < iRowsCount Then
 											If iCol = 0 Then
-												Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
+												If FFixCols > 0 Then
+													Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
+												Else
+													If UsingDataArrayPtr Then Rows.Item(SelectedItem)->Text(iCol) =  WGet(DataArrayPtr(SelectedItem, 0))
+												End If
 												If WidthCol0 > 0 Then Rc.Right = WidthCol0
 											End If
 											TextColor = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
 											TextColor = IIf(TextColor <> -1, TextColor, IIf(TextColorCol = -1, This.ForeColor, TextColorCol))
 											If SelectedItem = FRow AndAlso iCol = FCol Then TextColor = FGridColorEditFore
 											If TextColor <>  TextColorSave  Then SetTextColor nmcd->hdc, TextColor : TextColorSave = TextColor
-											DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+											If UsingDataArrayPtr Then
+												If FFixCols > 0 AndAlso iCol = 0 Then
+													DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+												Else
+													DrawText nmcd->hdc, DataArrayPtr(SelectedItem, iCol - FFixCols), Len(WGet(DataArrayPtr(SelectedItem, iCol - FFixCols))), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+												End If
+											Else
+												DrawText nmcd->hdc, @Rows.Item(SelectedItem)->Text(iCol), Len(Rows.Item(SelectedItem)->Text(iCol)), @Rc, DT_END_ELLIPSIS Or frmt 'Draw text
+											End If
 										End If
 										MoveToEx nmcd->hdc, R.Left, 0, 0
 										LineTo nmcd->hdc, R.Left, ScaleY(This.Height)
@@ -1930,7 +2001,11 @@ Namespace My.Sys.Forms
 				Case VK_RETURN, VK_TAB
 					' "Now you can input RETURN Keycode"
 					'If GridEditText.Multiline = False Then
-					Rows.Item(FRow)->Text(FCol) = GridEditText.Text
+					If UBound(DataArrayPtr, 1) > 0 Then
+						WLet(DataArrayPtr(FRow, FCol - FFixCols), GridEditText.Text)
+					Else
+						Rows.Item(FRow)->Text(FCol) = GridEditText.Text
+					End If
 					GridEditText.Visible= False ' Force refesh windows
 					If OnCellEdited Then OnCellEdited(*Designer, This, FRow, FCol, GridEditText.Text)
 					'End If
@@ -2188,52 +2263,127 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Private Sub Grid.SaveToFile(ByRef FileName As WString)
+	Private Function Grid.SaveToFile(ByRef FileName As WString, ByRef DelimiterChr As String = Chr(9)) As Boolean
 		Dim As Integer Fn
 		Fn = FreeFile_
 		If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then
 			Dim As WString Ptr tmpStr
-			WLet(tmpStr, Columns.Column(1)->Text)
-			For iCol As Integer = 2 To Columns.Count - 1
-				WAdd tmpStr, Chr(9) & Columns.Column(iCol)->Text
+			WLet(tmpStr, Columns.Column(FFixCols)->Text)
+			For iCol As Integer = FFixCols + 1 To Columns.Count - 1
+				WAdd tmpStr, DelimiterChr & Columns.Column(iCol)->Text
 			Next
 			Print #Fn, *tmpStr
 			For iRow As Integer = 0 To Rows.Count - 1
-				WLet(tmpStr, Rows.Item(iRow)->Text(1))
-				For iCol As Integer = 2 To Columns.Count - 1
-					WAdd tmpStr, Chr(9) & Rows.Item(iRow)->Text(iCol)
+				WLet(tmpStr, Rows.Item(iRow)->Text(FFixCols))
+				For iCol As Integer = FFixCols + 1 To Columns.Count - 1
+					WAdd tmpStr, DelimiterChr & Rows.Item(iRow)->Text(iCol)
 				Next
 				Print #Fn, *tmpStr
 			Next
 			_Deallocate(tmpStr)
+		Else
+			Debug.Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & ML("Open file failure!") & " " & FileName, True
+			CloseFile_(Fn)
+			Return False
 		End If
 		CloseFile_(Fn)
-	End Sub
-	
-	Private Sub Grid.LoadFromFile(ByRef FileName As WString)
-		Dim As Integer Fn
+		Return True
+	End Function
+	'
+	Private Function Grid.LoadFromFile(ByRef FileName As WString, ByRef DelimiterChr As String = "", ByVal HasTitle As Boolean = True, ByVal ReadToArrary As Boolean = True) As Integer
+		Dim As Integer Fn, iRowsCount, Result, ArrayUbound, items = 100
 		Fn = FreeFile_
-		This.Clear
-		If Open(FileName For Input Encoding "utf-8" As #Fn) = 0 Then
-			Dim As WString * 4096 tmpStr
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+		If Result = 0 Then
+			Dim As WString * 2048 tmpStr
 			Dim As WString Ptr ColTitle(Any)
-			Dim As Integer iRowsCount
+			Dim As Integer iPos
+			If ReadToArrary AndAlso LBound(DataArrayPtr) <= UBound(DataArrayPtr) Then
+				Dim As Integer LboundData = LBound(DataArrayPtr, 2)
+				Dim As Integer UboundData = UBound(DataArrayPtr, 2)
+				For i As Integer = LBound(DataArrayPtr, 1) To UBound(DataArrayPtr, 1)
+					For j As Integer = LboundData To UboundData
+						Deallocate DataArrayPtr(i, j)
+					Next
+				Next
+				ReDim DataArrayPtr(0, 0)
+			End If
 			Line Input #Fn, tmpStr
-			Split(tmpStr, Chr(9), ColTitle())
-			OwnerData = False
-			Columns.Add "NO.", , 30 , cfRight
-			For i As Integer = 0 To UBound(ColTitle)
-				Columns.Add *ColTitle(i)
-			Next
+			If DelimiterChr = "" Then
+				If InStr(tmpStr, Chr(9)) Then
+					DelimiterChr =  Chr(9)
+				Else
+					DelimiterChr = IIf(InStr(tmpStr, "|"), "|", IIf(InStr(tmpStr, ","), ",", ";"))
+				End If
+			End If
+			If HasTitle Then
+				Columns.Clear
+				Rows.Clear
+				Split(tmpStr, DelimiterChr, ColTitle())
+				ArrayUbound = UBound(ColTitle) + FFixCols
+				If FFixCols > 0 Then Columns.Add "NO.", , 30 , cfRight
+				For i As Integer = 0 To UBound(ColTitle)
+					Columns.Add *ColTitle(i)
+					Deallocate ColTitle(i) : ColTitle(i) = 0
+				Next
+				Erase ColTitle
+				If ReadToArrary Then ReDim DataArrayPtr(0 To items, 0 To ArrayUbound)
+			Else
+				iRowsCount += 1
+				If ReadToArrary Then
+					Split(tmpStr, DelimiterChr, ColTitle())
+					ArrayUbound = UBound(ColTitle) + FFixCols
+					ReDim DataArrayPtr(0 To items, 0 To ArrayUbound)
+					For i As Integer = 0 To ArrayUbound
+						DataArrayPtr(iRowsCount - 1, i) = ColTitle(i)
+					Next
+					Erase ColTitle
+				Else
+					Rows.Add tmpStr, , , , , , , ,  DelimiterChr, False
+				End If
+			End If
+			Dim As Long ii = 1, n = 0, tLen = Len(DelimiterChr), ls, p = 1
+			
 			While Not EOF(Fn)
 				Line Input #Fn, tmpStr
+				ii = 1: n = 0: ls = Len(tmpStr): p = 1
 				iRowsCount += 1
-				'RowsCount = iRowsCount
-				Rows.Add tmpStr
+				If ReadToArrary Then
+					If (iRowsCount >= items ) Then
+						items += 100
+						ReDim Preserve DataArrayPtr(0 To items, 0 To ArrayUbound)
+					End If
+					Do While ii <= ls
+						If Mid(tmpStr, ii, tLen) = DelimiterChr Then
+							If n > ArrayUbound Then Exit Do
+							n = n + 1
+							WLet(DataArrayPtr(iRowsCount - 1, n - 1), Mid(tmpStr, p, ii - p))
+							p = ii + tLen
+							ii = p
+							Continue Do
+						End If
+						ii = ii + 1
+					Loop
+					n = n + 1
+					'Debug.Print " iRowsCount=" & iRowsCount & " n=" & n
+					WLet(DataArrayPtr(iRowsCount - 1, n - 1), Mid(tmpStr, p, ii - p))
+				Else
+					Rows.Add tmpStr, , , , , , , , DelimiterChr, False
+				End If
 			Wend
+			Rows.Count = iRowsCount   'This is the same as is LastItem parameter of ListItems.Add function
+			If ReadToArrary Then ReDim Preserve DataArrayPtr(0 To iRowsCount - 1, 0 To ArrayUbound)
+		Else
+			Debug.Print Date & " " & Time & " " & Chr(9) & __FUNCTION__ & " " & Chr(9) & ML("Open file failure!") & " " & FileName, True
+			CloseFile_(Fn)
+			Return 0
 		End If
 		CloseFile_(Fn)
-	End Sub
+		Return iRowsCount
+	End Function
 	Private Constructor Grid
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(3, G_TYPE_BOOLEAN, GDK_TYPE_PIXBUF, G_TYPE_STRING)

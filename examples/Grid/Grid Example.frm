@@ -24,7 +24,7 @@
 		Declare Sub cmdColDele_Click(ByRef Sender As Control)
 		Declare Sub cmdColInsertAf_Click(ByRef Sender As Control)
 		Declare Sub cmdRowInsertAfter_Click(ByRef Sender As Control)
-		Declare Sub cmdBigData_Click(ByRef Sender As Control)
+		Declare Sub cmdLargeData_Click(ByRef Sender As Control)
 		#ifdef __USE_WINAPI__
 			Declare Sub Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
 		#endif
@@ -35,16 +35,25 @@
 		Declare Sub chkOwnerData_Click(ByRef Sender As CheckBox)
 		Declare Sub chkDarkMode_Click(ByRef Sender As CheckBox)
 		Declare Sub Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As Integer)
+		Declare Sub chkFixCols_Click(ByRef Sender As CheckBox)
+		Declare Sub chkDataArrayPtr_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
 		Dim As Grid Grid1
-		Dim As CommandButton cmdRowInsert, cmdColInsert, cmdRowDele, cmdColDele, cmdColInsertAfter, cmdRowInsertAfter, cmdBigData, cmdSaveToFile, cmdLoadFromFile
+		Dim As CommandButton cmdRowInsert, cmdColInsert, cmdRowDele, cmdColDele, cmdColInsertAfter, cmdRowInsertAfter, cmdLargeData, cmdSaveToFile, cmdLoadFromFile
 		Dim As Label Label1
 		
-		Dim As CheckBox chkOwnerData, chkDarkMode
+		Dim As CheckBox chkOwnerData, chkDarkMode, chkFixCols, chkDataArrayPtr
 	End Type
-	
+	DefaultFont.Size= 10
+	DefaultFont.Name= "Arial"
 	Constructor Form1Type
+		#if _MAIN_FILE_ = __FILE__
+			With App
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
+			End With
+		#endif
 		' Form1
 		With This
 			.Name = "Form1"
@@ -55,9 +64,9 @@
 		' Grid1
 		With Grid1
 			.Name = "Grid1"
-			.Text = "Grid1"
+			.Text = ML("Grid1")
 			'.TabIndex = 0
-			.Hint = "Double Click or press space start edit, Enter Confirm input!"
+			.Hint = ML("Double Click or press space start edit, Enter Confirm input!")
 			'.BackColor = clBlue
 			'.ForeColor = clWhite
 			'.BackColor = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
@@ -66,13 +75,14 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
+			.OwnerData = True
 			.SetBounds 10, 52, 610, 210
 			.Columns.Add "NO.", , 30 , cfRight ', , clPurple, clBlue
-			.Columns.Add "Column 1", , 100, cfRight ', , clRed, clBlue
-			.Columns.Add "Column 2", , 100, cfRight, True, clYellow, clRed
-			.Columns.Add "Column 3", , 100, cfRight ', , clBlue, clYellow
-			.Columns.Add "Column 4", , 100, cfRight ', , clGreen, clBlue
-			.Columns.Add "Column 5", , 100, cfRight,  True, clPurple, clGreen
+			.Columns.Add ML("Column") & " 1", , 100, cfRight ', , clRed, clBlue
+			.Columns.Add ML("Column") & " 2", , 100, cfRight, True, clYellow, clRed
+			.Columns.Add ML("Column") & " 3", , 100, cfRight ', , clBlue, clYellow
+			.Columns.Add ML("Column") & " 4", , 100, cfRight ', , clGreen, clBlue
+			.Columns.Add ML("Column") & " 5", , 100, cfRight,  True, clPurple, clGreen
 			.Columns[1].Tag = @"0"
 			
 			For i As Integer = 0 To 3  '返回的代码: 3221225477 - 堆栈溢出 就是行不够
@@ -81,33 +91,33 @@
 			Next
 			
 			'Control's Name
-			Grid1[0][1].Text = "Row 1 Column 1"
-			Grid1[1][1].Text = "Row 2 Column 1"
-			Grid1[2][1].Text = "Row 3 Column 1"
-			Grid1[3][1].Text = "Row 4 Column 1"
+			Grid1[0][1].Text = ML("Row") & " 1 " & ML("Column") & " 1"
+			Grid1[1][1].Text = ML("Row") & " 2 " & ML("Column") & " 1"
+			Grid1[2][1].Text = ML("Row") & " 3 " & ML("Column") & " 1"
+			Grid1[3][1].Text = ML("Row") & " 4 " & ML("Column") & " 1"
 			Grid1[0][1].Editable = True
 			
 			'Like Array
-			.Rows[0][2].Text = "Row1ColC2 AllowEdit"
-			.Rows[1][2].Text = "Row2ColC2 AllowEdit"
-			.Rows[2][2].Text = "Row3ColC2 AllowEdit"
-			.Rows[3][2].Text = "Row4ColC2 AllowEdit"
+			.Rows[0][2].Text = ML("Row") & " 1 " & ML("Column") & " 2 " & ML("AllowEdit")
+			.Rows[1][2].Text = ML("Row") & " 2 " & ML("Column") & " 2 " & ML("AllowEdit")
+			.Rows[2][2].Text = ML("Row") & " 3 " & ML("Column") & " 2 " & ML("AllowEdit")
+			.Rows[3][2].Text = ML("Row") & " 4 " & ML("Column") & " 2 " & ML("AllowEdit")
 			For i As Integer = 0 To 3
 				.Rows[i][2].Editable = True
 			Next
 			'Cell Like Excel
-			.Cells(0, 3)->Text = "Row 1 Column 3"
-			.Cells(1, 3)->Text = "Row 2 Column 3"
-			.Cells(2, 3)->Text = "Row 3 Column 3"
-			.Cells(3, 3)->Text = "Row 4 Column 3"
+			.Cells(0, 3)->Text = ML("Row") & " 1 " & ML("Column") & " 3"
+			.Cells(1, 3)->Text = ML("Row") & " 2 " & ML("Column") & " 3"
+			.Cells(2, 3)->Text = ML("Row") & " 3 " & ML("Column") & " 3"
+			.Cells(3, 3)->Text = ML("Row") & " 4 " & ML("Column") & " 3"
 			.Cells(2, 3)->Editable = True
 			.Cells(2, 3)->BackColor = clGreen
 			.Cells(2, 2)->BackColor = clGreen
 			.Cells(2, 1)->BackColor = clGreen
-			.Rows[0][5].Text = "Row1Col5 AllowEdit"
-			.Rows[1][5].Text = "Row2Col5 AllowEdit"
-			.Rows[2][5].Text = "Row3Col5 AllowEdit"
-			.Rows[3][5].Text = "Row4Col5 AllowEdit"
+			.Rows[0][5].Text = ML("Row") & " 1 " & ML("Column") & " 5 " & ML("AllowEdit")
+			.Rows[1][5].Text = ML("Row") & " 2 " & ML("Column") & " 5 " & ML("AllowEdit")
+			.Rows[2][5].Text = ML("Row") & " 3 " & ML("Column") & " 5 " & ML("AllowEdit")
+			.Rows[3][5].Text = ML("Row") & " 4 " & ML("Column") & " 5 " & ML("AllowEdit")
 			.Rows[3].Tag = @"3"
 			.SelectedRowIndex = 0
 			#ifdef __USE_WINAPI__
@@ -122,7 +132,7 @@
 		' cmdRowInsert
 		With cmdRowInsert
 			.Name = "cmdRowInsert"
-			.Text = "Insert Row before"
+			.Text = ML("Insert Row before")
 			.TabIndex = 0
 			.SetBounds 10, 4, 85, 20
 			.Designer = @This
@@ -132,7 +142,7 @@
 		' cmdColInsert
 		With cmdColInsert
 			.Name = "cmdColInsert"
-			.Text = "Insert Col before"
+			.Text = ML("Insert Col before")
 			.TabIndex = 2
 			.ControlIndex = 1
 			.SetBounds 250, 4, 85, 20
@@ -143,10 +153,10 @@
 		' cmdRowDele
 		With cmdRowDele
 			.Name = "cmdRowDele"
-			.Text = "Dele one Row"
+			.Text = ML("Dele one Row")
 			.TabIndex = 3
 			.ControlIndex = 2
-			.SetBounds 180, 4, 65, 20
+			.SetBounds 180, 4, 75, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRowDele_Click)
 			.Parent = @This
@@ -159,10 +169,10 @@
 		' cmdColDele
 		With cmdColDele
 			.Name = "cmdColDele"
-			.Text = "Dele one Col"
+			.Text = ML("Dele one Col")
 			.TabIndex = 4
 			.ControlIndex = 2
-			.SetBounds 420, 4, 65, 20
+			.SetBounds 420, 4, 75, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdColDele_Click)
 			.Parent = @This
@@ -170,7 +180,7 @@
 		' Label1
 		With Label1
 			.Name = "Label1"
-			.Text = "Double Click or press space start edit, Enter Confirm input!"
+			.Text = ML("Double Click or press space start edit, Enter Confirm input!")
 			.TabIndex = 6
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
@@ -182,7 +192,7 @@
 		' ="cmdColInsertAf
 		With cmdColInsertAfter
 			.Name = "cmdColInsertAfter"
-			.Text = "Insert Col after"
+			.Text = ML("Insert Col after")
 			.TabIndex = 7
 			.SetBounds 340, 4, 75, 20
 			.Designer = @This
@@ -192,29 +202,29 @@
 		' ="cmdRowInsertAfter
 		With cmdRowInsertAfter
 			.Name = "cmdRowInsertAfter"
-			.Text = "Insert Row After"
+			.Text = ML("Insert Row After")
 			.TabIndex = 8
 			.SetBounds 100, 4, 75, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRowInsertAfter_Click)
 			.Parent = @This
 		End With
-		' cmdBigData
-		With cmdBigData
-			.Name = "cmdBigData"
-			.Text = "BigData"
+		' cmdLargeData
+		With cmdLargeData
+			.Name = "cmdLargeData"
+			.Text = ML("Large Data")
 			.TabIndex = 9
-			.SetBounds 490, 0, 40, 20
+			.SetBounds 490, 4, 60, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBigData_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdLargeData_Click)
 			.Parent = @This
 		End With
 		' cmdSaveToFile
 		With cmdSaveToFile
 			.Name = "cmdSaveToFile"
-			.Text = "Save To File"
+			.Text = ML("Save To File")
 			.TabIndex = 10
-			.SetBounds 400, 27, 80, 20
+			.SetBounds 440, 27, 80, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdSaveToFile_Click)
 			.Parent = @This
@@ -222,10 +232,10 @@
 		' cmdLoadFromFile
 		With cmdLoadFromFile
 			.Name = "cmdLoadFromFile"
-			.Text = "Load From File"
+			.Text = ML("Load From File")
 			.TabIndex = 11
 			.ControlIndex = 9
-			.SetBounds 480, 27, 70, 20
+			.SetBounds 530, 27, 80, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdLoadFromFile_Click)
 			.Parent = @This
@@ -233,10 +243,9 @@
 		' chkOwnerData
 		With chkOwnerData
 			.Name = "chkOwnerData"
-			.Text = "OwnerData"
+			.Text = ML("OwnerData")
 			.TabIndex = 12
-			.Caption = "OwnerData"
-			.SetBounds 10, 30, 70, 10
+			.SetBounds 20, 27, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkOwnerData_Click)
 			.Parent = @This
@@ -244,14 +253,37 @@
 		' chkDarkMode
 		With chkDarkMode
 			.Name = "chkDarkMode"
-			.Text = "DarkMode"
+			.Text = ML("DarkMode")
 			.TabIndex = 13
 			.ControlIndex = 11
 			.Checked = True
-			.Caption = "DarkMode"
-			.SetBounds 90, 30, 60, 10
+			.SetBounds 100, 27, 60, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkDarkMode_Click)
+			.Parent = @This
+		End With
+		' chkFixCols
+		With chkFixCols
+			.Name = "chkFixCols"
+			.Text = ML("Col 1 is the row index")
+			.TabIndex = 14
+			.Checked = True
+			.ControlIndex = 12
+			.SetBounds 170, 27, 120, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkFixCols_Click)
+			.Parent = @This
+		End With
+		' chkDataArrayPtr
+		With chkDataArrayPtr
+			.Name = "chkDataArrayPtr"
+			.Text = ML("Using DataArrayPtr(,)")
+			.TabIndex = 15
+			.Checked = False
+			.ControlIndex = 12
+			.SetBounds 300, 27, 130, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkDataArrayPtr_Click)
 			.Parent = @This
 		End With
 	End Constructor
@@ -268,21 +300,19 @@
 
 Private Sub Form1Type.cmdRowInsert_Click(ByRef Sender As Control)
 	Dim As Integer Curr = Grid1.SelectedRowIndex
-	'Print "CurrRow=" &  Curr
 	Grid1.Rows.Insert(Curr, Str(Curr), , , , True)
 	Grid1.Repaint
 End Sub
 
 Private Sub Form1Type.cmdRowDele_Click(ByRef Sender As Control)
 	Dim As Integer Curr = Grid1.SelectedRowIndex
-	'Print "CurrRow=" &  Curr
 	Grid1.Rows.Remove(Curr)
 	Grid1.Repaint
 End Sub
 
 Private Sub Form1Type.cmdColInsert_Click(ByRef Sender As Control)
 	Dim As Integer Curr = Grid1.SelectedColumnIndex
-	Grid1.Columns.Insert(Curr, "Column " & Curr, , 100, cfRight, , True)
+	Grid1.Columns.Insert(Curr, ML("Column") & " "  & Curr, , 100, cfRight, , True)
 	Grid1.Repaint
 End Sub
 
@@ -294,7 +324,7 @@ End Sub
 
 Private Sub Form1Type.cmdColInsertAf_Click(ByRef Sender As Control)
 	Dim As Integer Curr = Grid1.SelectedColumnIndex
-	Grid1.Columns.Insert(Curr, "Column " & Curr, , 100, cfRight, False, True, clYellow, clRed)
+	Grid1.Columns.Insert(Curr, ML("Column") & " "  & Curr, , 100, cfRight, False, True, clYellow, clRed)
 End Sub
 
 Private Sub Form1Type.cmdRowInsertAfter_Click(ByRef Sender As Control)
@@ -303,48 +333,60 @@ Private Sub Form1Type.cmdRowInsertAfter_Click(ByRef Sender As Control)
 	Grid1.Repaint
 End Sub
 
-Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
-	Grid1.SetFocus
+Private Sub Form1Type.cmdLargeData_Click(ByRef Sender As Control)
+	
 	Dim As Double StartShow = Timer
 	Dim As WString * 255 RowStr
-	Grid1.OwnerData = chkOwnerData.Checked
-	
-	If Grid1.OwnerData Then
-		Grid1.Rows.Count = 20000
-	Else
-			' This is take too long. 花费太多时间赋值。建议使用CacheHint赋值
-		Grid1.Clear
-		Grid1.Columns.Add "NO.", , 30 , cfRight ', , clPurple, clBlue
-		Grid1.Columns.Add "Column 1", , 100, cfRight ', , clRed, clBlue
-		Grid1.Columns.Add "Column 2", , 100, cfRight, True ', clYellow, clRed
-		Grid1.Columns.Add "Column 3", , 100, cfRight ', , clBlue, clYellow
-		Grid1.Columns.Add "Column 4", , 100, cfRight ', , clGreen, clBlue
-		Grid1.Columns.Add "Column 5", , 100, cfRight,  True ', clPurple, clGreen
-		Grid1.Columns[1].Tag = @"0"
-		For iRow As Long = 0 To 20000
-			RowStr = "行" + Str(iRow + 1) + "列1"
-			Randomize
-			For iCol As Integer = 2 To Grid1.Columns.Count - 1
-				RowStr += Chr(9) + "行" + Str(Fix(Rnd * 10000000)) + "列" + Str(iCol)
-				'Grid1.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
+    Dim As Integer  MAX_ROW = 20000
+	With Grid1
+		'chkOwnerData.Checked = Not chkDataArrayPtr.Checked
+		.Clear
+		.OwnerData = chkOwnerData.Checked
+		.FixCols = IIf(chkFixCols.Checked, 1, 0)
+		
+		If .FixCols <> 0 Then .Columns.Add "NO.", , 30 , cfRight , , clPurple, clBlue
+		.Columns.Add ML("Column") & " 0" , , 100, cfRight , , clRed, clBlue
+		.Columns.Add ML("Column") & " 1", , 100, cfRight, True , clYellow, clRed
+		.Columns.Add ML("Column") & " 2", , 100, cfRight , , clBlue, clYellow
+		.Columns.Add ML("Column") & " 3", , 100, cfRight ', , clGreen, clBlue
+		.Columns.Add ML("Column") & " 4", , 100, cfRight,  True , clPurple, clGreen
+		.Columns[1].Tag = @"0"
+		.SetFocus
+		If .OwnerData Then 
+			.Rows.Count = MAX_ROW
+		End If
+		If chkDataArrayPtr.Checked Then
+			.Rows.Count = MAX_ROW
+			ReDim .DataArrayPtr(MAX_ROW, .Columns.Count - .FixCols - 1)
+			For iRow As Long = 0 To UBound(.DataArrayPtr, 1)
+				For iCol As Integer = 0 To .Columns.Count - .FixCols -  1
+					WLet(.DataArrayPtr(iRow, iCol), ML("Array") + ML("Row") + Str(iRow + 1) + ML("Col") + Str(iCol))
+				Next
 			Next
-			'Add the Data ;  Gradient Color
-			If iRow Mod 2 = 0 Then
-				Grid1.Rows.Add RowStr, , , , , True, 8421504, clWhiteSmoke
-			ElseIf iRow Mod 3 = 0 Then
-				Grid1.Rows.Add RowStr, , , , , True, 10395294, clWhite
-			ElseIf iRow Mod 4 = 0 Then
-				Grid1.Rows.Add RowStr, , , , , True, 14808000, clWhiteSmoke
-			Else
-				Grid1.Rows.Add RowStr, , , , , True
-			End If
-			
-			If iRow Mod 15 = 0 Then App.DoEvents  'if rows.count=666666  :254.144s   1 Million: 364.829s    5 Million:512.616s
-		Next
-	End If
-	Grid1.SelectedRowIndex = 0 'Grid1.Rows.Count - 1
-	Debug.Print " Elasped time: " & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000) & "s. with Data " & (Grid1.Rows.Count - 1) * (Grid1.Columns.Count - 1)
-	'MsgBox " Elasped time: " & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000)  & "s. with Data " & (Grid1.Rows.Count - 1) * (Grid1.Columns.Count - 1)
+		ElseIf Not .OwnerData Then
+			For iRow As Long = 0 To MAX_ROW
+				RowStr = ML("Grid") + ML("Row") + Str(iRow + 1) + ML("Col0")
+				Randomize
+				For iCol As Integer = 1 To .Columns.Count - .FixCols - 1
+					RowStr += Chr(9) + ML("Grid") + ML("Row")  + Str(Fix(Rnd * 10000000)) + ML("Col") + Str(iCol)
+					'.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)  ' Slowly in this ways
+				Next
+				'Add the Data ;  Gradient Color
+				If iRow Mod 2 = 0 Then
+					.Rows.Add RowStr, , , , , True, 8421504, clWhiteSmoke  '快速将数据添加到一行
+				ElseIf iRow Mod 3 = 0 Then
+					.Rows.Add RowStr, , , , , True, 10395294, clWhite      'Fast add the data to a row
+				ElseIf iRow Mod 4 = 0 Then
+					.Rows.Add RowStr, , , , , True, 14808000, clWhiteSmoke  'Fast add the data to a row
+				Else
+					.Rows.Add RowStr, , , , , True
+				End If
+				If iRow Mod 15 = 0 Then App.DoEvents  'if rows.count=666666  :254.144s   1 Million: 364.829s    5 Million:512.616s
+			Next
+		End If 
+		.SelectedRowIndex = 0 '.Rows.Count - 1
+		Debug.Print __FUNCTION__ & ": " & ML("Elasped time:") & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000) & ML("s. Total Rows/Cols:") & " " & (.Rows.Count - 1) & " / " & (.Columns.Count - 1)
+	End With
 End Sub
 
 #ifdef __USE_WINAPI__
@@ -367,19 +409,23 @@ End Sub
 
 Private Sub Form1Type.Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 	'upload the data to grid here also
-	If Not Grid1.OwnerData Then Return
-	For iRow As Integer = iFrom To iTo
-		If Grid1.Rows.Item(iRow)->State = 1 Then Continue For
-		'Debug.Print " iFrom=" & iFrom  & " iTo=" & iTo & " State=" & Grid1.Rows.Item(iRow)->State
-		For iCol As Integer = 1 To Grid1.Columns.Count - 1
-			Grid1.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)
+	With Grid1
+		If Not .OwnerData Then Return
+		.FixCols = IIf(chkFixCols.Checked, 1, 0)
+		For iRow As Integer = iFrom To iTo
+			'Debug.Print " iFrom=" & iFrom  & " iTo=" & iTo & " State=" & .Rows.Item(iRow)->State
+			If .FixCols <> 0 Then .Rows[iRow][0].Text = Str(iRow + 1) Else .Rows[iRow][0].Text = ML("User") + ML("Row") + Str(iRow + 1) +  ML("Col")
+			If .Rows.Item(iRow)->State = 1 Then Continue For
+			For iCol As Integer = 1 To .Columns.Count - 1
+				.Rows[iRow][iCol].Text =  ML("User") + ML("Row") + Str(iRow + 1) +  ML("Col") + Str(iCol)
+			Next
+			.Rows.Item(iRow)->State = 1
 		Next
-		Grid1.Rows.Item(iRow)->State = 1
-	Next
+	End With
 End Sub
 
 Private Sub Form1Type.Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
-	Debug.Print " RowIndex=" & RowIndex  & " Col=" & ColumnIndex & " Text=" & NewText
+	'Debug.Print " RowIndex=" & RowIndex  & " Col=" & ColumnIndex & " Text=" & NewText
 End Sub
 
 Private Sub Form1Type.cmdSaveToFile_Click(ByRef Sender As Control)
@@ -387,16 +433,17 @@ Private Sub Form1Type.cmdSaveToFile_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub Form1Type.cmdLoadFromFile_Click(ByRef Sender As Control)
-	Grid1.LoadFromFile(ExePath & "\gridTest.csv")
+	Dim As Double StartShow = Timer
+	chkOwnerData.Checked = False
+	Grid1.OwnerData = chkOwnerData.Checked
+	Grid1.FixCols = chkFixCols.Checked
+	Grid1.LoadFromFile(ExePath & "\gridTest.csv", , , chkDataArrayPtr.Checked)
+	Debug.Print  ML("Elasped time:") & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000) & " s"
 End Sub
 
 Private Sub Form1Type.chkOwnerData_Click(ByRef Sender As CheckBox)
-	Grid1.OwnerData = chkOwnerData.Checked
-	If Grid1.OwnerData Then
-		For iRow As Long = 0 To Grid1.Rows.Count - 1
-			Grid1.Rows.Item(iRow)->State = 0
-		Next
-	End If
+	'Grid1.Clear
+	cmdLargeData_Click(Sender)
 End Sub
 
 Private Sub Form1Type.chkDarkMode_Click(ByRef Sender As CheckBox)
@@ -416,4 +463,10 @@ Private Sub Form1Type.Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As 
 	Grid1.Rows.Sort Grid1.SortIndex, Grid1.SortOrder
 End Sub
 
+Private Sub Form1Type.chkFixCols_Click(ByRef Sender As CheckBox)
+	cmdLargeData_Click(Sender)
+End Sub
 
+Private Sub Form1Type.chkDataArrayPtr_Click(ByRef Sender As CheckBox)
+	cmdLargeData_Click(Sender)
+End Sub
