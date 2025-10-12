@@ -329,11 +329,13 @@ Namespace My.Sys.Forms
 									DeleteDC(dst_hdc)
 									ReleaseDC(desktop, screen_dev)
 								End If
+								
 							End If
 						End If
 					End If
 				End If
 				ImageList_AddMasked(Handle, HBitm, iMaskColor)
+				DeleteObject(HBitm)
 			Else
 				ImageList_AddMasked(Handle, Bmp.Handle, iMaskColor)
 			End If

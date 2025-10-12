@@ -170,34 +170,35 @@ Namespace My.Sys.ComponentModel
 		Declare Function StrReverse(S As String) As String
 		Declare Sub      OrientPrint(n As Long)
 		
-		Declare Function SetPrinterOrientation2 (ByVal PrinterName As String, ByVal nOrientation As Long) As Long
+		Declare Function SetPrinterOrientation2 (ByRef PrinterName As WString, ByVal nOrientation As Long) As Long
 		
-		Declare Function SetPrinterOrientation (ByVal PrinterName As String, ByVal nOrientation As Long) As Long
-		Declare Function GetPrinterOrientation (ByVal PrinterName As String) As Long
-		Declare Function PrinterPaperNames (ByVal PrinterName As String) As String
-		Declare Sub GetPrinterPaperSizes(ByVal PrinterName As String)
-		Declare Function GetPrinterPaperSizesAsString(ByVal PrinterName As String) As String
-		Declare Function GetPrinterPaperSize (ByVal PrinterName As String) As Long
-		Declare Function SetPrinterPaperSize (ByVal PrinterName As String, ByVal nSize As Long) As Long
-		Declare Function GetPrinterPort (ByVal PrinterName As String) As String
-		Declare Function GetPrinterFromPort (ByVal PortName As String) As String
-		Declare Function GetPrinterQualityMode (ByVal PrinterName As String) As PrinterQuality
-		Declare Function SetPrinterQuality (ByVal PrinterName As String, ByVal nMode As PrinterQuality) As Long
-		Declare Function GetPrinterScale (ByVal PrinterName As String) As Long
-		Declare Function GetPrinterScalingFactorX (ByVal PrinterName As String) As Long
-		Declare Function GetPrinterScalingFactorY (ByVal PrinterName As String) As Long
-		Declare Function SetPrinterColorMode (ByVal PrinterName As String, ByVal nMode As Long) As Long
-		Declare Function SetPrinterCopies (ByVal PrinterName As String, ByVal nCopies As Long) As Long
-		Declare Function SetPrinterDuplexMode (ByVal PrinterName As String, ByVal nDuplexMode As Long) As Long
-		Declare Function GetPrinterDuplex (ByVal PrinterName As String) As Long
+		Declare Function SetPrinterOrientation (ByRef PrinterName As WString, ByVal nOrientation As Long) As Long
+		Declare Function GetPrinterOrientation (ByRef PrinterName As WString) As Long
+		Declare Function GetPrinterNeededSize(ByRef PrinterName As WString) As Long
+		Declare Function PrinterPaperNames (ByRef PrinterName As WString) As String
+		Declare Sub GetPrinterPaperSizes(ByRef PrinterName As WString)
+		Declare Function GetPrinterPaperSizesAsString(ByRef PrinterName As WString) As String
+		Declare Function GetPrinterPaperSize (ByRef PrinterName As WString) As Long
+		Declare Function SetPrinterPaperSize (ByRef PrinterName As WString, ByVal nSize As Long) As Long
+		Declare Function GetPrinterPort (ByRef PrinterName As WString) As String
+		Declare Function GetPrinterFromPort (ByRef PortName As WString) As String
+		Declare Function GetPrinterQualityMode (ByRef PrinterName As WString) As PrinterQuality
+		Declare Function SetPrinterQuality (ByRef PrinterName As WString, ByVal nMode As PrinterQuality) As Long
+		Declare Function GetPrinterScale (ByRef PrinterName As WString) As Long
+		Declare Function GetPrinterScalingFactorX (ByRef PrinterName As WString) As Long
+		Declare Function GetPrinterScalingFactorY (ByRef PrinterName As WString) As Long
+		Declare Function SetPrinterColorMode (ByRef PrinterName As WString, ByVal nMode As Long) As Long
+		Declare Function SetPrinterCopies (ByRef PrinterName As WString, ByVal nCopies As Long) As Long
+		Declare Function SetPrinterDuplexMode (ByRef PrinterName As WString, ByVal nDuplexMode As Long) As Long
+		Declare Function GetPrinterDuplex (ByRef PrinterName As WString) As Long
 		
 		
-		Declare Function GetPrinterDriverVersion (ByVal PrinterName As String) As Long
-		Declare Function GetPrinterHorizontalResolution (ByVal PrinterName As String) As Long ' printableWidth
-		Declare Function GetPrinterVerticalResolution (ByVal PrinterName As String) As Long
-		Declare Function GetPrinterMaxCopies (ByVal PrinterName As String) As Long
-		Declare Function GetPrinterMaxPaperHeight (ByVal PrinterName As String) As Long
-		Declare Function GetPrinterMaxPaperWidth (ByVal PrinterName As String) As Long
+		Declare Function GetPrinterDriverVersion (ByRef PrinterName As WString) As Long
+		Declare Function GetPrinterHorizontalResolution (ByRef PrinterName As WString) As Long ' printableWidth
+		Declare Function GetPrinterVerticalResolution (ByRef PrinterName As WString) As Long
+		Declare Function GetPrinterMaxCopies (ByRef PrinterName As WString) As Long
+		Declare Function GetPrinterMaxPaperHeight (ByRef PrinterName As WString) As Long
+		Declare Function GetPrinterMaxPaperWidth (ByRef PrinterName As WString) As Long
 		Declare Function EnumPrinterPorts () As String
 		Declare Function EnumPrinters_ () As String
 		' Declare FUNCTION  DefaultPrinter () AS String
@@ -283,7 +284,7 @@ Namespace My.Sys.ComponentModel
 		'Declare Operator Cast() As TCONTROL Ptr
 		'Declare Constructor
 	End Type
-	
+	Dim Shared As WStringList PrinterSizesList
 End Namespace
 
 #ifndef __USE_MAKE__

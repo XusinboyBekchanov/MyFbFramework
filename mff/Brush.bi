@@ -79,11 +79,11 @@ Namespace My.Sys.Drawing
 		FColor       As Integer
 		FStyle       As BrushStyles
 		FHatchStyle  As HatchStyles
+		#ifdef __USE_WINAPI__
+			FHandle      As HBRUSH
+		#endif
 		Declare Sub Create
 	Public:
-		#ifdef __USE_WINAPI__
-			Handle       As HBRUSH
-		#endif
 		Parent As My.Sys.Object Ptr
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -100,6 +100,8 @@ Namespace My.Sys.Drawing
 		Declare Operator Cast As Any Ptr
 		#ifdef __USE_WINAPI__
 			Declare Operator Let(Value As HBRUSH)
+			Declare Property Handle As HBRUSH
+			Declare Property Handle(Value As HBRUSH)
 		#endif
 		OnCreate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Brush)
 		Declare Constructor
