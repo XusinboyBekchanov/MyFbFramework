@@ -347,6 +347,8 @@ Namespace My.Sys.ComponentModel
 			PrinterSizesList.Add PrinterName, Cast(Any Ptr, CInt(dwNeeded))
 			
 			Return dwNeeded
+		#else
+			Return 0
 		#endif
 	End Function
 	
