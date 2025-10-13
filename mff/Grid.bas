@@ -725,8 +725,8 @@ Namespace My.Sys.Forms
 					gtk_list_store_append(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter)
 				End If
 				gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, 3, ToUtf8(PItem->Text(0)), -1)
-				If InStr(FCaption, Chr(9)) > 0 Then
-					For j As Integer = 1 To n - 1
+				If InStr(FCaption, DelimiterChr) > 0 Then
+					For j As Integer = 1 To Cast(Grid Ptr, Parent)->Columns.Count - 1
 						gtk_list_store_set (GTK_LIST_STORE(GridGetModel(Parent->Handle)), @PItem->TreeIter, j + 1, ToUtf8(PItem->Text(j)), -1)
 					Next j
 				End If
