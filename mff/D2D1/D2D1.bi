@@ -2684,7 +2684,8 @@ Function LoadD2D1 As Long
 		Dim opts As D2D1_FACTORY_OPTIONS
 		opts.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION
 		
-		Dim hr As Long = CreateD2D1Factory(D2D1_FACTORY_TYPE_SINGLE_THREADED, @IID_ID2D1Factory1, @opts, @pD2D1Factory1)
+		'Dim hr As Long = CreateD2D1Factory(D2D1_FACTORY_TYPE_SINGLE_THREADED, @IID_ID2D1Factory1, @opts, @pD2D1Factory1)
+		Dim hr As Long = CreateD2D1Factory(D2D1_FACTORY_TYPE_SINGLE_THREADED, @IID_ID2D1Factory1, 0, @pD2D1Factory1)
 		If hr <> 0 Then Return UnloadD2D1
 		
 		hDWrite = DyLibLoad("dwrite.dll")
