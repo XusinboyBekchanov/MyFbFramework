@@ -180,9 +180,9 @@ Namespace My.Sys.Forms
 		Declare Property Count(Value As Integer)
 		Declare Property Item(Index As Integer) As GridRow Ptr
 		Declare Property Item(Index As Integer, Value As GridRow Ptr)
-		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
-		Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1) As GridRow Ptr
-		Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, InsertBefore As Boolean = True, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, DuplicateIndex As Integer = -1) As GridRow Ptr
+		Declare Function Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, ByRef DelimiterChr As String = "", ByVal IsLastItem As Boolean = True) As GridRow Ptr
+		Declare Function Add(ByRef FCaption As WString = "", ByRef FImageKey As WString, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, ByRef DelimiterChr As String = "", ByVal IsLastItem As Boolean = True) As GridRow Ptr
+		Declare Function Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, InsertBefore As Boolean = True, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, DuplicateIndex As Integer = -1, ByRef DelimiterChr As String = "", ByVal IsLastItem As Boolean = True) As GridRow Ptr
 		Declare Sub Remove(Index As Integer)
 		'Ordinal position within parent grid columns
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
@@ -230,6 +230,7 @@ Namespace My.Sys.Forms
 		FGridLines          As Boolean
 		FHoverTime          As Integer
 		FFullRowSelect      As Boolean
+		FFixCols            As Integer
 		FSingleClickActivate As Boolean
 		FSortIndex          As Integer
 		FSortOrder          As SortStyle
@@ -321,6 +322,8 @@ Namespace My.Sys.Forms
 		StateImages            As ImageList Ptr
 		'Image list for group headers.
 		GroupHeaderImages      As ImageList Ptr
+		'Pointer to underlying data structure.
+		DataArrayPtr(Any, Any)  As WString Ptr
 		#ifndef ReadProperty_Off
 			'Loads persisted properties.
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
@@ -337,6 +340,9 @@ Namespace My.Sys.Forms
 		Declare Property AllowColumnReorder As Boolean
 		'Enables drag-and-drop column reordering.
 		Declare Property AllowColumnReorder(Value As Boolean)
+		Declare Property FixCols As Integer
+		'The first column is fixed as the row index.
+		Declare Property FixCols(Value As Integer)
 		Declare Property ColumnHeaderHidden As Boolean
 		'Hides column headers when enabled.
 		Declare Property ColumnHeaderHidden(Value As Boolean)
@@ -400,9 +406,9 @@ Namespace My.Sys.Forms
 		Declare Operator [](RowIndex As Integer) ByRef As GridRow
 		Declare Operator Cast As Control Ptr
 		'Saves grid data to file.
-		Declare Sub SaveToFile(ByRef FileName As WString)
+		Declare Function SaveToFile(ByRef FileName As WString, ByRef DelimiterChr As String = Chr(9)) As Boolean
 		'Loads grid data from file.
-		Declare Sub LoadFromFile(ByRef FileName As WString)
+		Declare Function LoadFromFile(ByRef FileName As WString, ByRef DelimiterChr As String = "", ByVal HasTitle As Boolean = True, ByVal ReadToArrary As Boolean = True) As Integer
 		'Scrolls to make cell visible.
 		Declare Sub EnsureVisible(Index As Integer)
 		Declare Constructor

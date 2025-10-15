@@ -1,0 +1,26 @@
+﻿chinese
+[General]
+AllowEdit  =  允许编辑
+Array  =  数组
+Col  =  列
+Col 1 is the row index  =  列1是索引行
+Column  =  列
+DarkMode  =  暗黑模式
+Dele one Col  =  删除整列
+Dele one Row  =  删除整行
+Double Click or press space start edit, Enter Confirm input!  =  双击或按空格开始编辑，输入回车确认输入！
+Elasped time:  =  消耗时间：
+Grid  =  表格
+Grid1  =  表格1
+Insert Col after  =  在后插入列
+Insert Col before  =  在前插入列
+Insert Row After  =  在后插入行
+Insert Row before  =  在前插入行
+Large Data  =  大数据
+Load From File  =  从文件加载
+OwnerData  =  用户数据
+Row  =  行
+Save To File  =  保存到文件
+s. Total Rows/Cols: = 秒, 共有数据 行/列
+User  =  用户
+Using DataArrayPtr(,)  =  使用二维数组
