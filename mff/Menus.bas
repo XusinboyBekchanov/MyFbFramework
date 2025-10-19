@@ -110,9 +110,9 @@ Namespace My.Sys.Forms
 				mii.cbSize = SizeOf(mii)
 				mii.fMask  = MIIM_TYPE
 				For i As Integer = 0 To MItem.Count - 1
-					GetMenuItemInfo(MItem.Handle, MItem.Item(i)->MenuIndex, True, @mii)
+					GetMenuItemInfo(MItem.Handle, MItem.Item(i)->VisibleMenuIndex, True, @mii)
 					mii.fType = IIf((mii.fType And MFT_SEPARATOR),MFT_SEPARATOR,MFT_OWNERDRAW)
-					SetMenuItemInfo(MItem.Handle, MItem.Item(i)->MenuIndex, True, @mii)
+					SetMenuItemInfo(MItem.Handle, MItem.Item(i)->VisibleMenuIndex, True, @mii)
 					TraverseItems(*MItem.Item(i))
 				Next i
 			#endif
@@ -153,9 +153,9 @@ Namespace My.Sys.Forms
 		
 		Private Sub MenuItem.SetItemInfo(ByRef value As MENUITEMINFO)
 			If ParentMenuItem AndAlso ParentMenuItem->Handle Then
-				SetMenuItemInfo(ParentMenuItem->Handle, FMenuIndex, True, @value)
+				SetMenuItemInfo(ParentMenuItem->Handle, VisibleMenuIndex, True, @value)
 			ElseIf This.Owner AndAlso This.Owner->Handle Then
-				SetMenuItemInfo(This.Owner->Handle, FMenuIndex, True, @value)
+				SetMenuItemInfo(This.Owner->Handle, VisibleMenuIndex, True, @value)
 			End If
 		End Sub
 	#endif
@@ -189,6 +189,27 @@ Namespace My.Sys.Forms
 			FOwner->ChangeIndex @This, FMenuIndex
 		End If
 	End Property
+	
+	Private Function MenuItem.VisibleMenuIndex() As Integer
+		Dim iIndex As Integer
+		If FParentMenuItem Then
+			For i As Integer = 0 To FParentMenuItem->Count - 1
+				If FParentMenuItem->Item(i) = @This Then Return iIndex
+				If FParentMenuItem->Item(i)->Visible Then
+					iIndex += 1
+				End If
+			Next
+			Return -1
+		ElseIf FOwner Then
+			For i As Integer = 0 To FOwner->Count - 1
+				If FOwner->Item(i) = @This Then Return iIndex
+				If FOwner->Item(i)->Visible Then
+					iIndex += 1
+				End If
+			Next
+			Return -1
+		End If
+	End Function
 	
 	Private Property MenuItem.Name ByRef As WString
 		Return WGet(FName)
@@ -694,9 +715,9 @@ Namespace My.Sys.Forms
 			FInfo.dwTypeData = pCaption
 			FInfo.cch        = Len(*pCaption)
 			If ParentMenuItem Then
-				SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
+				SetMenuItemInfo(ParentMenuItem->Handle, VisibleMenuIndex, True, @FInfo)
 			ElseIf Owner AndAlso Owner->Handle Then
-				SetMenuItemInfo(Owner->Handle, MenuIndex, True, @FInfo)
+				SetMenuItemInfo(Owner->Handle, VisibleMenuIndex, True, @FInfo)
 			End If
 			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
 				DrawMenuBar(Owner->ParentWindow->Handle)
@@ -740,9 +761,9 @@ Namespace My.Sys.Forms
 			FInfo.dwTypeData = pCaption
 			FInfo.cch        = Len(*pCaption)
 			If ParentMenuItem Then
-				SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
+				SetMenuItemInfo(ParentMenuItem->Handle, VisibleMenuIndex, True, @FInfo)
 			ElseIf Owner AndAlso Owner->Handle Then
-				SetMenuItemInfo(Owner->Handle, MenuIndex, True, @FInfo)
+				SetMenuItemInfo(Owner->Handle, VisibleMenuIndex, True, @FInfo)
 			End If
 			If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
 				DrawMenuBar(Owner->ParentWindow->Handle)
@@ -768,13 +789,13 @@ Namespace My.Sys.Forms
 				If Handle Then
 					CheckMenuItem(ParentMenuItem->Handle, CInt(Handle), MF_POPUP Or FCheck(FChecked))
 				Else
-					CheckMenuItem(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION Or FCheck(FChecked))
+					CheckMenuItem(ParentMenuItem->Handle, VisibleMenuIndex, MF_BYPOSITION Or FCheck(FChecked))
 				End If
 			ElseIf Owner AndAlso Owner->Handle Then
 				If Handle Then
 					CheckMenuItem(Owner->Handle, CInt(Handle), MF_POPUP Or FCheck(FChecked))
 				Else
-					CheckMenuItem(Owner->Handle, MenuIndex, MF_BYPOSITION Or FCheck(FChecked))
+					CheckMenuItem(Owner->Handle, VisibleMenuIndex, MF_BYPOSITION Or FCheck(FChecked))
 				End If
 			End If
 		#endif
@@ -789,11 +810,11 @@ Namespace My.Sys.Forms
 		Dim As Integer First,Last
 		If ParentMenuItem OrElse ParentMenu Then
 			If ParentMenuItem Then
-				First = ParentMenuItem->Item(0)->MenuIndex
-				Last  = ParentMenuItem->Item(ParentMenuItem->Count - 1)->MenuIndex
+				First = ParentMenuItem->Item(0)->VisibleMenuIndex
+				Last  = ParentMenuItem->Item(ParentMenuItem->Count - 1)->VisibleMenuIndex
 			Else
-				First = ParentMenu->Item(0)->MenuIndex
-				Last  = ParentMenu->Item(ParentMenu->Count - 1)->MenuIndex
+				First = ParentMenu->Item(0)->VisibleMenuIndex
+				Last  = ParentMenu->Item(ParentMenu->Count - 1)->VisibleMenuIndex
 			End If
 			#ifdef __USE_GTK__
 				If GTK_IS_CHECK_MENU_ITEM(Widget) Then
@@ -801,7 +822,7 @@ Namespace My.Sys.Forms
 					gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
 				End If
 			#elseif defined(__USE_WINAPI__)
-				CheckMenuRadioItem(ParentMenu->Handle, First, Last, MenuIndex, MF_BYPOSITION)
+				CheckMenuRadioItem(ParentMenu->Handle, First, Last, VisibleMenuIndex, MF_BYPOSITION)
 			#endif
 		End If
 	End Property
@@ -817,9 +838,9 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			Dim As Integer FEnable(0 To 1) => {MF_DISABLED Or MF_GRAYED, MF_ENABLED}
 			If ParentMenuItem Then
-				EnableMenuItem(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION Or FEnable(abs_(FEnabled)))
+				EnableMenuItem(ParentMenuItem->Handle, VisibleMenuIndex, MF_BYPOSITION Or FEnable(abs_(FEnabled)))
 			ElseIf Owner AndAlso Owner->Handle Then
-				EnableMenuItem(Owner->Handle, MenuIndex, MF_BYPOSITION Or FEnable(abs_(FEnabled)))
+				EnableMenuItem(Owner->Handle, VisibleMenuIndex, MF_BYPOSITION Or FEnable(abs_(FEnabled)))
 			End If
 			If ParentMenuItem = 0 AndAlso Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Handle Then
 				DrawMenuBar(Owner->ParentWindow->Handle)
@@ -839,16 +860,16 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If FVisible = False Then
 				If ParentMenuItem Then
-					RemoveMenu(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION)
+					RemoveMenu(ParentMenuItem->Handle, VisibleMenuIndex, MF_BYPOSITION)
 				ElseIf Owner AndAlso Owner->Handle Then
-					RemoveMenu(Owner->Handle, MenuIndex, MF_BYPOSITION)
+					RemoveMenu(Owner->Handle, VisibleMenuIndex, MF_BYPOSITION)
 				End If
 			Else
 				SetInfo(FInfo)
 				If ParentMenuItem Then
-					InsertMenuItem(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
+					InsertMenuItem(ParentMenuItem->Handle, VisibleMenuIndex, True, @FInfo)
 				ElseIf Owner AndAlso Owner->Handle Then
-					InsertMenuItem(Owner->Handle, MenuIndex, True, @FInfo)
+					InsertMenuItem(Owner->Handle, VisibleMenuIndex, True, @FInfo)
 				End If
 				'SetItemInfo(FInfo)
 			End If
@@ -1034,7 +1055,7 @@ Namespace My.Sys.Forms
 								.SetMenuInfo(Handle,@mif)
 								SetInfo(FInfo)
 								If ParentMenuItem Then
-									SetMenuItemInfo(ParentMenuItem->Handle, MenuIndex, True, @FInfo)
+									SetMenuItemInfo(ParentMenuItem->Handle, VisibleMenuIndex, True, @FInfo)
 								End If
 							End If
 						#endif
@@ -1254,9 +1275,9 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			If ParentMenuItem Then
-				RemoveMenu(ParentMenuItem->Handle, MenuIndex, MF_BYPOSITION)
+				RemoveMenu(ParentMenuItem->Handle, VisibleMenuIndex, MF_BYPOSITION)
 			ElseIf Owner AndAlso Owner->Handle Then
-				RemoveMenu(Owner->Handle, MenuIndex, MF_BYPOSITION)
+				RemoveMenu(Owner->Handle, VisibleMenuIndex, MF_BYPOSITION)
 			End If
 		#endif
 	End Destructor

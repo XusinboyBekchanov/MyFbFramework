@@ -211,6 +211,7 @@ Namespace My.Sys.Forms
 		Declare Function Find(value As Integer) As PMenuItem
 		'Searches items by name/command
 		Declare Function Find(ByRef value As WString) As PMenuItem
+		Declare Function VisibleMenuIndex() As Integer
 		Declare Operator Cast As Any Ptr
 		Declare Constructor(ByRef Label As WString = "", ByRef wImageKey As WString = "", eClick As NotifyEvent = 0, Checkable As Boolean = False)
 		Declare Destructor

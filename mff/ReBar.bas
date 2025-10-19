@@ -917,6 +917,7 @@ Namespace My.Sys.Forms
 							csch.clrBtnHighlight = darkHlBkColor
 							SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
 							SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+							If This.Parent Then This.Parent->RequestAlign , , , @This
 							Repaint
 						End If
 						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
@@ -963,6 +964,7 @@ Namespace My.Sys.Forms
 							csch.clrBtnHighlight = FBackColor
 							SendMessage(FHandle, RB_SETCOLORSCHEME, 0, Cast(LPARAM, @csch))
 							SetWindowTheme(FHandle, NULL, NULL)
+							If This.Parent Then This.Parent->RequestAlign , , , @This
 						End If
 					End If
 				End Select
