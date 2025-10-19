@@ -828,6 +828,7 @@ Namespace My.Sys.Forms
 				For i As Integer = 0 To Bands.Count - 1
 					'Bands.Item(i)->Child = Bands.Item(i)->Child
 					Bands.Item(i)->Update
+					Bands.Item(i)->Visible = Bands.Item(i)->Visible
 				Next
 				SetBounds FLeft, FTop, FWidth, FHeight
 				Return
