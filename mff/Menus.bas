@@ -1077,9 +1077,11 @@ Namespace My.Sys.Forms
 		Dim As PMenuItem FItem
 		Index = IndexOf(value)
 		If Index <> -1  Then
-			If FHandle Then
-				RemoveMenu(FHandle, value->VisibleMenuIndex, MF_BYPOSITION)
-			End If
+			#ifdef __USE_WINAPI__
+				If FHandle Then
+					RemoveMenu(FHandle, value->VisibleMenuIndex, MF_BYPOSITION)
+				End If
+			#endif
 			For i = Index+1 To FCount-1
 				FItem = FItems[i]
 				FItems[i-1] = FItem
