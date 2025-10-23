@@ -1077,6 +1077,9 @@ Namespace My.Sys.Forms
 		Dim As PMenuItem FItem
 		Index = IndexOf(value)
 		If Index <> -1  Then
+			If FHandle Then
+				RemoveMenu(FHandle, value->VisibleMenuIndex, MF_BYPOSITION)
+			End If
 			For i = Index+1 To FCount-1
 				FItem = FItems[i]
 				FItems[i-1] = FItem
@@ -1093,10 +1096,6 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If Widget Then
 					'gtk_container_remove(gtk_container(widget), value->widget)
-				End If
-			#elseif defined(__USE_WINAPI__)
-				If Handle Then
-					RemoveMenu(Handle, Index, MF_BYPOSITION)
 				End If
 			#endif
 		End If
@@ -1636,6 +1635,11 @@ Namespace My.Sys.Forms
 		Dim As PMenuItem FItem
 		Index = IndexOf(value)
 		If Index <> -1  Then
+			#if defined(__USE_WINAPI__)
+				If FHandle Then
+					RemoveMenu(FHandle, value->VisibleMenuIndex, MF_BYPOSITION)
+				End If
+			#endif
 			For i = Index+1 To FCount-1
 				FItem      = FItems[i]
 				FItems[i-1] = FItem
