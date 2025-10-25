@@ -45,6 +45,8 @@ Namespace My.Sys.Forms
 		#endif
 		FEditStyle As Boolean
 		FZoom As Integer
+		FZoomLP As Integer
+		FZoomWP As Integer
 		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:
 		#ifndef ReadProperty_Off

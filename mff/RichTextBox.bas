@@ -854,16 +854,14 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Property RichTextBox.Zoom As Integer
-		Dim As Integer wp, lp
-		Var Result = FZoom
 		#ifndef __USE_GTK__
 			If Handle Then
-				Result = 100
-				Perform(EM_GETZOOM, CInt(@wp), CInt(@lp))
-				If (lp > 0) Then Result = MulDiv(100, wp, lp)
+				FZoom = 100
+				Perform(EM_GETZOOM, CInt(@FZoomwp), CInt(@FZoomLP))
+				If (FZoomLP > 0) Then FZoom = MulDiv(100, FZoomwp, FZoomLP)
 			End If
 		#endif
-		Return Result
+		Return FZoom
 	End Property
 	
 	Private Property RichTextBox.Zoom(Value As Integer)
@@ -1236,7 +1234,9 @@ Namespace My.Sys.Forms
 				Dim bb As SETTEXTEX
 				bb.flags = ST_DEFAULT
 				bb.codepage = CP_ACP
-				SendMessage(FHandle, EM_SETTEXTEX, Cast(WPARAM, @bb), Cast(LPARAM, StrPtr(Buffer)))
+				Perform(EM_GETZOOM, CInt(@FZoomwp), CInt(@FZoomLP))
+				Perform(EM_SETTEXTEX, Cast(WPARAM, @bb), Cast(LPARAM, StrPtr(Buffer)))
+				Perform(EM_SETZOOM, FZoomWP, FZoomLP)
 			End If
 		#elseif defined(__USE_GTK__)
 			If StartsWith(Value, "{\rtf") OrElse StartsWith(Value, "{\urtf") Then
@@ -1571,7 +1571,10 @@ Namespace My.Sys.Forms
 				With QRichTextBox(Sender.Child)
 					If .MaxLength <> 0 Then
 						.MaxLength = .MaxLength
+					Else
+						.Perform(EM_EXLIMITTEXT, 0, 0)
 					End If
+					
 					If .EditStyle Then
 						.EditStyle = .EditStyle
 					End If
@@ -1647,4 +1650,3 @@ Namespace My.Sys.Forms
 		#endif
 	End Destructor
 End Namespace
-
