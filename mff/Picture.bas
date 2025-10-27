@@ -206,9 +206,9 @@ Namespace My.Sys.Forms
 				Else
 					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 				End If
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				Dim As HDC Dc, memDC
-				Dim As HBITMAP MemBmp
+				Dim As HBITMAP MemBmp, hOldBmp
 				Dim As PAINTSTRUCT Ps
 				Dim As ..Rect R
 				GetClientRect Handle, @R
@@ -226,25 +226,25 @@ Namespace My.Sys.Forms
 				If DoubleBuffered Then
 					memDC = CreateCompatibleDC(Dc)
 					MemBmp   = CreateCompatibleBitmap(Dc, R.Right - R.Left, R.Bottom - R.Top)
-					SelectObject(memDC, MemBmp)
+					hOldBmp = SelectObject(memDC, MemBmp)
 					FillRect memDC, @R, Brush.Handle
 					Canvas.SetHandle memDC
 				Else
 					FillRect Dc, @R, Brush.Handle
 					Canvas.SetHandle Dc
 				End If
-				If Graphic.Visible AndAlso Graphic.Bitmap.Handle > 0 Then
-					With This
+				With Graphic
+					If .Visible AndAlso .Bitmap.Handle > 0 Then
 						Select Case Graphic.StretchImage
 						Case StretchMode.smNone
-							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, , , Graphic.Bitmap
+							Canvas.DrawAlpha .StartX, .StartY, , , .Bitmap
 						Case StretchMode.smStretch
-							Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, ScaleX(.Width) * Graphic.ScaleFactor, ScaleY(.Height) * Graphic.ScaleFactor, Graphic.Bitmap
+							Canvas.DrawAlpha .StartX, .StartY, ScaleX(This.Width) * .ScaleFactor, ScaleY(This.Height) * .ScaleFactor, .Bitmap
 						Case Else 'StretchMode.smStretchProportional
-							Dim As Double imgWidth = Graphic.Bitmap.Width
-							Dim As Double imgHeight = Graphic.Bitmap.Height
-							Dim As Double PicBoxWidth = ScaleX(.Width) * Graphic.ScaleFactor
-							Dim As Double PicBoxHeight = ScaleY(.Height) * Graphic.ScaleFactor
+							Dim As Double imgWidth = .Bitmap.Width
+							Dim As Double imgHeight = .Bitmap.Height
+							Dim As Double PicBoxWidth = ScaleX(This.Width) * .ScaleFactor
+							Dim As Double PicBoxHeight = ScaleY(This.Height) * .ScaleFactor
 							Dim As Double img_ratio = imgWidth / imgHeight
 							Dim As Double PicBox_ratio =  PicBoxWidth / PicBoxHeight
 							If (PicBox_ratio >= img_ratio) Then
@@ -254,14 +254,14 @@ Namespace My.Sys.Forms
 								imgWidth = PicBoxWidth
 								imgHeight = imgWidth / img_ratio
 							End If
-							If Graphic.CenterImage Then
-								Canvas.DrawAlpha Max((PicBoxWidth - imgWidth * Graphic.ScaleFactor) / 2, Graphic.StartX), Max((PicBoxHeight - imgHeight * Graphic.ScaleFactor) / 2, Graphic.StartY), imgWidth * Graphic.ScaleFactor, imgHeight * Graphic.ScaleFactor, Graphic.Bitmap
+							If .CenterImage Then
+								Canvas.DrawAlpha Max((PicBoxWidth - imgWidth * .ScaleFactor) / 2, .StartX), Max((PicBoxHeight - imgHeight * .ScaleFactor) / 2, Graphic.StartY), imgWidth * Graphic.ScaleFactor, imgHeight * .ScaleFactor, .Bitmap
 							Else
-								Canvas.DrawAlpha Graphic.StartX, Graphic.StartY, imgWidth, imgHeight, Graphic.Bitmap
+								Canvas.DrawAlpha .StartX, .StartY, imgWidth, imgHeight, .Bitmap
 							End If
 						End Select
-					End With
-				End If
+					End If
+				End With
 				If ShowCaption Then
 					Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
 				End If
@@ -269,6 +269,7 @@ Namespace My.Sys.Forms
 				Canvas.UnSetHandle
 				If DoubleBuffered Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
+					SelectObject memDC, hOldBmp
 					DeleteObject(MemBmp)
 					DeleteDC(memDC)
 				End If
