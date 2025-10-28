@@ -135,7 +135,7 @@ Namespace My.Sys.Forms
 				Else
 					Message.Result = Cast(LRESULT, GetStockObject(NULL_BRUSH))
 				End If
-			Case WM_PAINT, WM_ERASEBKGND
+			Case WM_PAINT
 				Dim As HDC Dc, memDC
 				Dim As HBITMAP MemBmp, hOldBmp
 				Dim As PAINTSTRUCT Ps
@@ -162,7 +162,6 @@ Namespace My.Sys.Forms
 					FillRect Dc, @R, Brush.Handle
 					Canvas.SetHandle Dc
 				End If
-				Canvas.HandleSetted = True
 				With Graphic
 					If .Visible AndAlso .Bitmap.Handle > 0 Then
 						Select Case Graphic.StretchImage
