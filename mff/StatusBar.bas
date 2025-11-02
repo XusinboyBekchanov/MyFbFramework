@@ -312,7 +312,11 @@ Namespace My.Sys.Forms
 			Next i
 		End If
 		#ifdef __USE_GTK__
-			gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, ToUtf8(*ss))
+			If *ss = "" Then
+				gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, !"\0")
+			Else
+				gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, ToUtf8(*ss))
+			End If
 		#endif
 		Invalidate
 		WDeAllocate(s)

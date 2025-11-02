@@ -182,7 +182,7 @@ Namespace My
 	End Property
 	
 	Private Function Application.PrevInstance As Boolean
-		#if defined(__FB_WIN32__)
+		#ifdef __USE_WINAPI__
 			m_hMutex = CreateMutex(NULL, True, ExeName)
 			If GetLastError = ERROR_ALREADY_EXISTS Then
 				'ReleaseMutex m_hMutex
