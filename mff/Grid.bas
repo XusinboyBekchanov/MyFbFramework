@@ -1416,6 +1416,8 @@ Namespace My.Sys.Forms
 			If Handle Then
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 				ListView_EnsureVisible(Handle, Value, True)
+				FRow = Value
+				FCol = 0
 			End If
 		#endif
 	End Property
@@ -1775,7 +1777,8 @@ Namespace My.Sys.Forms
 					Dim bCancel As Boolean
 					If lvp->iItem > 0 AndAlso OnSelectedRowChanging Then OnSelectedRowChanging(*Designer, This, lvp->iItem, bCancel)
 					If bCancel Then Message.Result = 0
-				Case LVN_ITEMCHANGED: If OnSelectedRowChanged Then OnSelectedRowChanged(*Designer, This, lvp->iItem)
+				Case LVN_ITEMCHANGED: If ((lvp->uNewState And LVIS_SELECTED) <> 0) AndAlso ( (lvp->uOldState And LVIS_SELECTED) = 0) AndAlso OnSelectedRowChanged Then OnSelectedRowChanged(*Designer, This, lvp->iItem)
+				'If ( (lvp->uNewState And LVIS_FOCUSED) = 0) And ( (lvp->uOldState And LVIS_FOCUSED) <> 0) Then ' 判断某项失去焦点
 				Case HDN_BEGINTRACK
 					GridEditText.Visible = False ' Force refesh windows
 				Case HDN_ITEMCHANGED

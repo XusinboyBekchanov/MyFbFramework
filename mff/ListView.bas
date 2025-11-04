@@ -1616,14 +1616,21 @@ Namespace My.Sys.Forms
 							Return
 						End Select
 					End If
-				Case LVN_ITEMACTIVATE: If OnItemActivate Then OnItemActivate(*Designer, This, lvp->iItem)
+				Case LVN_ITEMACTIVATE: If lvp->iItem >= 0 AndAlso OnItemActivate Then OnItemActivate(*Designer, This, lvp->iItem)
 				Case LVN_BEGINSCROLL: If OnBeginScroll Then OnBeginScroll(*Designer, This)
 				Case LVN_ENDSCROLL: If OnEndScroll Then OnEndScroll(*Designer, This)
-				Case LVN_ITEMCHANGING: 
+				Case LVN_ITEMCHANGING:
 					Dim bCancel As Boolean
-					If OnSelectedItemChanging Then OnSelectedItemChanging(*Designer, This, lvp->iItem, bCancel)
-					If bCancel Then Message.Result = -1: Exit Sub 
-				Case LVN_ITEMCHANGED: If OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, lvp->iItem)
+					If lvp->iItem >= 0 AndAlso OnSelectedItemChanging Then OnSelectedItemChanging(*Designer, This, lvp->iItem, bCancel)
+					If bCancel Then Message.Result = -1: Exit Sub
+				Case LVN_ITEMCHANGED: If ((lvp->uNewState And LVIS_SELECTED) <> 0) AndAlso ( (lvp->uOldState And LVIS_SELECTED) = 0) AndAlso OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, lvp->iItem)
+					'If ((lvp->uNewState And LVIS_SELECTED) <> 0) And ( (lvp->uOldState And LVIS_SELECTED) = 0) Then
+					'' 判断某项被选中
+					'End If
+					'If ( (lvp->uNewState And LVIS_FOCUSED) = 0) And ( (lvp->uOldState And LVIS_FOCUSED) <> 0) Then
+					'' 判断某项失去焦点
+					'End If
+					
 				Case HDN_ITEMCHANGED:
 				End Select
 			Case CM_COMMAND
