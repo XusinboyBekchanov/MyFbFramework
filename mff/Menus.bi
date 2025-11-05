@@ -76,7 +76,7 @@ Namespace My.Sys.Forms
 	Protected:
 		#ifdef __USE_WINAPI__
 			FHandle		    As HMENU
-			'FMenu  		As HMENU
+			'FMenu  	    As HMENU
 		#endif
 		FName			    As WString Ptr
 		FOwner			    As PMenu
@@ -228,7 +228,6 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			FInfo    As MENUINFO
 			FHandle  As HMENU
-			
 		#endif
 		FStyle   As Integer
 		FColor   As Integer
@@ -241,6 +240,9 @@ Namespace My.Sys.Forms
 		Declare Sub GetMenuItems
 		Declare Virtual Sub ProcessMessage(ByRef mess As Message)
 	Public:
+		#ifdef __USE_GTK__
+			Widget As GtkWidget Ptr
+		#endif
 		#ifndef ReadProperty_Off
 			'Loads menu structure from stream
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -261,6 +263,10 @@ Namespace My.Sys.Forms
 			Declare Property Handle As HMENU
 			'Native OS menu handle (HMENU)
 			Declare Property Handle(value As HMENU)
+		#else
+			Declare Property Handle As GtkWidget Ptr
+			'Native OS menu handle (HMENU)
+			Declare Property Handle(value As GtkWidget Ptr)
 		#endif
 		Declare Property Style As Integer
 		'Visual theme (Classic/Flat/Modern)
