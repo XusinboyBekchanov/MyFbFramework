@@ -360,7 +360,7 @@ Namespace My.Sys.Drawing
 					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./Resources/" & ResName & ".ico"), @gerr)
 				ElseIf FileExists(ExePath & "/./resources/" & ResName & ".ico") Then
 					Handle = gdk_pixbuf_new_from_file(ToUtf8(ExePath & "/./resources/" & ResName & ".ico"), @gerr)
-				Else
+				ElseIf ResName <> "" Then
 					Handle = gdk_pixbuf_new_from_resource(ToUtf8(ResName), @gerr)
 				End If
 				If gerr Then Print gerr->code, *gerr->message
