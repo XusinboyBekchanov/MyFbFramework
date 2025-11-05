@@ -21,6 +21,8 @@ Namespace My.Sys.Forms
 	Private Type CheckBox Extends Control
 	Private:
 		FAlignment  As Integer
+		FActiveColor As Integer
+		FCheckColor  As Integer
 		FChecked    As Boolean
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
@@ -51,6 +53,12 @@ Namespace My.Sys.Forms
 		Declare Property Caption ByRef As WString
 		'Display text shown next to checkbox
 		Declare Property Caption(ByRef Value As WString)
+		Declare Property ActiveColor As Integer
+		'Changes the background color of the checkbox
+		Declare Property ActiveColor(Value As Integer)
+		Declare Property CheckColor As Integer
+		'Changes the color of the checkmark (tick).
+		Declare Property CheckColor(Value As Integer)
 		Declare Property TabIndex As Integer
 		'Position in tab navigation order
 		Declare Property TabIndex(Value As Integer)

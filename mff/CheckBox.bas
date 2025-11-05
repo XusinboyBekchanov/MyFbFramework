@@ -87,6 +87,22 @@ Namespace My.Sys.Forms
 		Text = Value
 	End Property
 	
+	Private Property CheckBox.ActiveColor As Integer
+		Return FActiveColor
+	End Property
+	
+	Private Property CheckBox.ActiveColor(Value As Integer)
+		FActiveColor = Value
+	End Property
+	
+	Private Property CheckBox.CheckColor As Integer
+		Return FCheckColor
+	End Property
+	
+	Private Property CheckBox.CheckColor(Value As Integer)
+		FCheckColor =Value
+	End Property
+	
 	Private Property CheckBox.TabIndex As Integer
 		Return FTabIndex
 	End Property
@@ -125,7 +141,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
 			#elseif defined(__USE_WINAPI__)
-				FChecked = Perform(BM_GETCHECK, 0, 0)
+				FChecked = (Perform(BM_GETCHECK, 0, 0) = BST_CHECKED)
 			#elseif defined(__USE_JNI__)
 				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
 			#elseif defined(__USE_WASM__)
@@ -136,12 +152,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property CheckBox.Checked(Value As Boolean)
+		If FChecked = Value Then Exit Property
 		FChecked = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
 			#elseif defined(__USE_WINAPI__)
-				Perform(BM_SETCHECK, FChecked, 0)
+				Perform(BM_SETCHECK, IIf(Value, BST_CHECKED, BST_UNCHECKED), 0)
 			#elseif defined(__USE_JNI__)
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
 			#elseif defined(__USE_WASM__)
@@ -192,11 +209,7 @@ Namespace My.Sys.Forms
 				SetBkMode Dc, OPAQUE
 			Case CM_COMMAND
 				If Message.wParamHi = BN_CLICKED Then
-					If Checked = 0 Then
-						Checked = 1
-					Else
-						Checked = 0
-					End If
+					Checked = Not Checked
 					If OnClick Then OnClick(*Designer, This)
 				End If
 			Case WM_WINDOWPOSCHANGING
@@ -232,12 +245,15 @@ Namespace My.Sys.Forms
 						Dim As LRESULT state = SendMessage(pnm->hdr.hwndFrom, BM_GETSTATE, 0, 0)
 						
 						Dim As Integer stateID ' parameter for DrawThemeBackground
-						
+						Dim As Long tCheckColor = FCheckColor
+						Dim As Long tActiveColor = FActiveColor
 						Dim As UINT uiItemState = pnm->uItemState
 						Dim As BOOL bChecked = This.Checked
 						
 						If (uiItemState And CDIS_DISABLED) Then
 							stateID = IIf(bChecked, CBS_CHECKEDDISABLED, CBS_UNCHECKEDDISABLED)
+							tActiveColor = FadeToGray(FActiveColor, 0.6)
+							tCheckColor = FadeToGray(FCheckColor, 0.6)
 						ElseIf (uiItemState And CDIS_SELECTED) Then
 							stateID = IIf(bChecked, CBS_CHECKEDPRESSED, CBS_UNCHECKEDPRESSED)
 						Else
@@ -271,13 +287,38 @@ Namespace My.Sys.Forms
 						Dim As HFONT OldFontHandle, NewFontHandle
 						OldFontHandle = SelectObject(pnm->hdc, This.Font.Handle)
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
+						
+						Dim As Integer CheckTop =  (pnm->rc.Bottom - pnm->rc.Top) / 2 - ScaleY(6)
+						Dim As HBRUSH hBrush = CreateSolidBrush(tActiveColor)
+						Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tActiveColor)
+						
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						Rectangle(pnm->hdc, ScaleX(1), CheckTop, ScaleX(13), CheckTop + ScaleY(12))
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
+						hBrush = CreateSolidBrush(tCheckColor)
+						hPen = CreatePen(PS_SOLID, 1, tCheckColor)
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						If (stateID = CBS_CHECKEDHOT OrElse stateID = CBS_CHECKEDNORMAL) Then
+							'Rectangle(pnm->hdc, ScaleX(2), CheckTop + ScaleY(5), ScaleX(5), CheckTop + ScaleY(8))
+							'Rectangle(pnm->hdc, ScaleX(12), CheckTop + ScaleY(1), ScaleX(5), CheckTop + ScaleY(8))
+							MoveToEx(pnm->hdc, ScaleX(2), CheckTop + ScaleY(5), NULL)
+							LineTo(pnm->hdc, ScaleX( 5), CheckTop + ScaleY(8))
+							LineTo(pnm->hdc, ScaleX( 12), CheckTop + ScaleY(1))
+						End If
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
+						
 						If (uiItemState And CDIS_FOCUS) Then
 							Dim Sz As ..Size
 							GetTextExtentPoint32(pnm->hdc, @This.Text, Len(This.Text), @Sz)
 							pnm->rc.Left -= 1
-							pnm->rc.Top = (pnm->rc.Bottom - r.Top - (s.cy + 2)) / 2
+							'pnm->rc.Top = (pnm->rc.Bottom - r.Top - (s.cy + 2)) / 2
+							pnm->rc.Top = (r.Bottom - r.Top) / 2 - Sz.cy / 2 - 1
 							pnm->rc.Right = pnm->rc.Left + Sz.cx + 2
-							pnm->rc.Bottom = pnm->rc.Top + s.cy + 2
+							pnm->rc.Bottom = (r.Bottom - r.Top) / 2 + Sz.cy / 2 + 1
 							DrawFocusRect(pnm->hdc, @pnm->rc)
 						End If
 						NewFontHandle = SelectObject(pnm->hdc, OldFontHandle)
@@ -332,6 +373,8 @@ Namespace My.Sys.Forms
 			.OnHandleIsAllocated    = @HandleIsAllocated
 			.Width                  = 90
 			.Height                 = 17
+			FActiveColor            = clGreen
+			FCheckColor             = clBlack
 			.FTabIndex              = -1
 			.FTabStop               = True
 		End With

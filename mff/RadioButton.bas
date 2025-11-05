@@ -64,6 +64,22 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
+	Private Property RadioButton.ActiveColor As Integer
+		Return FActiveColor
+	End Property
+	
+	Private Property RadioButton.ActiveColor(Value As Integer)
+		FActiveColor = Value
+	End Property
+	
+	Private Property RadioButton.CheckColor As Integer
+		Return FCheckColor
+	End Property
+	
+	Private Property RadioButton.CheckColor(Value As Integer)
+		FCheckColor =Value
+	End Property
+	
 	Private Property RadioButton.TabIndex As Integer
 		Return FTabIndex
 	End Property
@@ -127,7 +143,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
 			#elseif defined(__USE_WINAPI__)
-				FChecked = Perform(BM_GETCHECK, 0, 0)
+				FChecked = (Perform(BM_GETCHECK, 0, 0) = BST_CHECKED)
 			#elseif defined(__USE_JNI__)
 				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
 			#elseif defined(__USE_WASM__)
@@ -143,7 +159,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
 			#elseif defined(__USE_WINAPI__)
-				Perform(BM_SETCHECK, FChecked, 0)
+				FChecked = (Perform(BM_GETCHECK, 0, 0) = BST_CHECKED)
 				If FChecked Then
 					If FParent Then
 						For i As Integer = 0 To This.Parent->ControlCount - 1
@@ -230,12 +246,15 @@ Namespace My.Sys.Forms
 						Dim As LRESULT state = SendMessage(pnm->hdr.hwndFrom, BM_GETSTATE, 0, 0)
 						
 						Dim As Integer stateID ' parameter for DrawThemeBackground
-						
+						Dim As Long tCheckColor = FCheckColor
+						Dim As Long tActiveColor = FActiveColor
 						Dim As UINT uiItemState = pnm->uItemState
-						Dim As bool bChecked = This.Checked
+						Dim As BOOL bChecked = This.Checked
 						
 						If (uiItemState And CDIS_DISABLED) Then
 							stateID = IIf(bChecked, RBS_CHECKEDDISABLED, RBS_UNCHECKEDDISABLED)
+							tActiveColor = FadeToGray(FActiveColor, 0.6)
+							tCheckColor = FadeToGray(FCheckColor, 0.6)
 						ElseIf (uiItemState And CDIS_SELECTED) Then
 							stateID = IIf(bChecked, RBS_CHECKEDPRESSED, RBS_UNCHECKEDPRESSED)
 						Else
@@ -246,15 +265,15 @@ Namespace My.Sys.Forms
 							End If
 						End If
 						
-						Dim As ..RECT r
-						Dim As ..SIZE s
+						Dim As ..Rect r
+						Dim As ..Size s
 						
 						' Get check box dimensions so we can calculate
 						' rectangle dimensions For text
 						GetThemePartSize(hTheme, pnm->hdc, BP_RADIOBUTTON, stateID, NULL, TS_TRUE, @s)
 						
-						r.left = pnm->rc.left
-						r.top = pnm->rc.top ' + 2
+						r.left = pnm->rc.Left
+						r.top = pnm->rc.Top ' + 2
 						r.right = pnm->rc.Left + s.cx
 						r.bottom = pnm->rc.Bottom ' r.top + s.cy
 						
@@ -269,13 +288,31 @@ Namespace My.Sys.Forms
 							SetTextColor(pnm->hdc, darkHlBkColor)
 						End If
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
+						Dim As Integer CheckTop =  (pnm->rc.Bottom - pnm->rc.Top) / 2 - ScaleY(6)
+						Dim As HBRUSH hBrush = CreateSolidBrush(tActiveColor)
+						Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tActiveColor)
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						Ellipse(pnm->hdc, ScaleX(0), CheckTop - 1, ScaleX(13), CheckTop + ScaleY(12))
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
+						hBrush = CreateSolidBrush(tCheckColor)
+						hPen = CreatePen(PS_SOLID, 1, tCheckColor)
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						If stateID = RBS_CHECKEDHOT OrElse stateID = RBS_CHECKEDNORMAL OrElse stateID = RBS_CHECKEDPRESSED Then
+							Ellipse(pnm->hdc, ScaleX(3), CheckTop + 2, ScaleX(10), CheckTop + ScaleY(9))
+						End If
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
+						
 						If (uiItemState And CDIS_FOCUS) Then
 							Dim Sz As ..Size
 							GetTextExtentPoint32(pnm->hdc, @This.Text, Len(This.Text), @Sz)
 							pnm->rc.Left -= 1
-							pnm->rc.Top = (pnm->rc.Bottom - r.top - (s.cy + 2)) / 2
+							pnm->rc.Top = (r.Bottom - r.Top) / 2 - Sz.cy / 2 - 1
 							pnm->rc.Right = pnm->rc.Left + Sz.cx + 2
-							pnm->rc.Bottom = pnm->rc.Top + s.cy + 2
+							pnm->rc.Bottom = (r.Bottom - r.Top) / 2 + Sz.cy / 2 + 1
 							DrawFocusRect(pnm->hdc, @pnm->rc)
 						End If
 						CloseThemeData(hTheme)
@@ -323,11 +360,13 @@ Namespace My.Sys.Forms
 				FElementStyle = "display: flex; align-items: center"
 			#endif
 			.OnHandleIsAllocated = @HandleIsAllocated
+			FActiveColor       = clGreen
+			FCheckColor        = clBlack
 			FTabIndex          = -1
-			FTabStop = True
+			FTabStop           = True
 			WLet(FClassName, "RadioButton")
-			.Width       = 90
-			.Height      = 17
+			.Width             = 90
+			.Height            = 17
 		End With
 	End Constructor
 	

@@ -45,46 +45,67 @@ Private Function BGRToRGBA(FColor As UInteger) As UInteger
 	#endif
 End Function
 
-	Private Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
-		Dim lShiftColor As Long
-		#ifdef __USE_GTK__
-			Dim clrFore(3)         As ULong = {GetRed(clrFirst), GetGreen(clrFirst), GetBlue(clrFirst)}
-			Dim clrBack(3)         As ULong = {GetRed(clrSecond), GetGreen(clrSecond), GetBlue(clrSecond)}
-			
-			clrFore(0) = (clrFore(0) * lAlpha + clrBack(0) * (255 - lAlpha)) / 255
-			clrFore(1) = (clrFore(1) * lAlpha + clrBack(1) * (255 - lAlpha)) / 255
-			clrFore(2) = (clrFore(2) * lAlpha + clrBack(2) * (255 - lAlpha)) / 255
-			
-			lShiftColor = RGB(clrFore(0), clrFore(1), clrFore(2))
-			lShiftColor = (Cast(ULong, 100 / 100 * 255) Shl 24) + (Cast(ULong, GetRed(lShiftColor)) Shl 16) + (Cast(ULong, GetGreen(lShiftColor)) Shl 8) + (Cast(ULong, GetBlue(lShiftColor)))
-		#elseif defined(__USE_WINAPI__)
-			Dim clrFore(3)         As COLORREF
-			Dim clrBack(3)         As COLORREF
-			
-			OleTranslateColor clrFirst, 0, VarPtr(clrFore(0))
-			OleTranslateColor clrSecond, 0, VarPtr(clrBack(0))
-			
-			clrFore(0) = (clrFore(0) * lAlpha + clrBack(0) * (255 - lAlpha)) / 255
-			clrFore(1) = (clrFore(1) * lAlpha + clrBack(1) * (255 - lAlpha)) / 255
-			clrFore(2) = (clrFore(2) * lAlpha + clrBack(2) * (255 - lAlpha)) / 255
-			
-			memcpy @lShiftColor, VarPtr(clrFore(0)), 4
-		#endif
+Private Function ShiftColor(ByVal clrFirst As Long, ByVal clrSecond As Long, ByVal lAlpha As Long) As Long
+	Dim lShiftColor As Long
+	#ifdef __USE_GTK__
+		Dim clrFore(3)         As ULong = {GetRed(clrFirst), GetGreen(clrFirst), GetBlue(clrFirst)}
+		Dim clrBack(3)         As ULong = {GetRed(clrSecond), GetGreen(clrSecond), GetBlue(clrSecond)}
 		
-		Return lShiftColor
+		clrFore(0) = (clrFore(0) * lAlpha + clrBack(0) * (255 - lAlpha)) / 255
+		clrFore(1) = (clrFore(1) * lAlpha + clrBack(1) * (255 - lAlpha)) / 255
+		clrFore(2) = (clrFore(2) * lAlpha + clrBack(2) * (255 - lAlpha)) / 255
 		
-	End Function
+		lShiftColor = RGB(clrFore(0), clrFore(1), clrFore(2))
+		lShiftColor = (Cast(ULong, 100 / 100 * 255) Shl 24) + (Cast(ULong, GetRed(lShiftColor)) Shl 16) + (Cast(ULong, GetGreen(lShiftColor)) Shl 8) + (Cast(ULong, GetBlue(lShiftColor)))
+	#elseif defined(__USE_WINAPI__)
+		Dim clrFore(3)         As COLORREF
+		Dim clrBack(3)         As COLORREF
+		
+		OleTranslateColor clrFirst, 0, VarPtr(clrFore(0))
+		OleTranslateColor clrSecond, 0, VarPtr(clrBack(0))
+		
+		clrFore(0) = (clrFore(0) * lAlpha + clrBack(0) * (255 - lAlpha)) / 255
+		clrFore(1) = (clrFore(1) * lAlpha + clrBack(1) * (255 - lAlpha)) / 255
+		clrFore(2) = (clrFore(2) * lAlpha + clrBack(2) * (255 - lAlpha)) / 255
+		
+		memcpy @lShiftColor, VarPtr(clrFore(0)), 4
+	#endif
 	
-	Private Function IsDarkColor(lColor As Long) As Boolean
-		Dim bBGRA(0 To 3) As Byte
-		#ifdef __USE_WINAPI__
-			OleTranslateColor lColor, 0, VarPtr(lColor)
-			CopyMemory(@bBGRA(0), @lColor, 4&)
-		#endif
-		
-		IsDarkColor = ((CLng(bBGRA(0)) + (CLng(bBGRA(1) * 3)) + CLng(bBGRA(2))) / 2) < 382
-	End Function
+	Return lShiftColor
 	
+End Function
+
+Private Function FadeToGray(ByVal MainColor As Long, ByVal Brightness As Double, ByVal GrayLevel As Integer = 192) As Long
+	Dim As Integer r = MainColor And &hFF
+	Dim As Integer g = (MainColor Shr 8) And &hFF
+	Dim As Integer b = (MainColor Shr 16) And &hFF
+	
+	If Brightness < 0 Then Brightness = 0
+	If Brightness > 1 Then Brightness = 1
+	If GrayLevel < 0 Then GrayLevel = 0
+	If GrayLevel > 255 Then GrayLevel = 255
+	
+	
+	Dim As Integer nr = Int(r * (1 - Brightness) + GrayLevel * Brightness + 0.5)
+	Dim As Integer ng = Int(g * (1 - Brightness) + GrayLevel * Brightness + 0.5)
+	Dim As Integer nb = Int(b * (1 - Brightness) + GrayLevel * Brightness + 0.5)
+	If nr < 0 Then nr = 0 Else If nr > 255 Then nr = 255
+	If ng < 0 Then ng = 0 Else If ng > 255 Then ng = 255
+	If nb < 0 Then nb = 0 Else If nb > 255 Then nb = 255
+	
+	Return (nb Shl 16) Or (ng Shl 8) Or nr
+End Function
+
+Private Function IsDarkColor(lColor As Long) As Boolean
+	Dim bBGRA(0 To 3) As Byte
+	#ifdef __USE_WINAPI__
+		OleTranslateColor lColor, 0, VarPtr(lColor)
+		CopyMemory(@bBGRA(0), @lColor, 4&)
+	#endif
+	
+	IsDarkColor = ((CLng(bBGRA(0)) + (CLng(bBGRA(1) * 3)) + CLng(bBGRA(2))) / 2) < 382
+End Function
+
 
 Public Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 	#ifdef __USE_GTK__
