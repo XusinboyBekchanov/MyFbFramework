@@ -373,7 +373,7 @@ Namespace My.Sys.Forms
 			.OnHandleIsAllocated    = @HandleIsAllocated
 			.Width                  = 90
 			.Height                 = 17
-			FActiveColor            = clGreen
+			FActiveColor            = clWhiteSmoke
 			FCheckColor             = clBlack
 			.FTabIndex              = -1
 			.FTabStop               = True

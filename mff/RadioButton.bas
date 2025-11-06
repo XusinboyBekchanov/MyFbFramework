@@ -360,7 +360,7 @@ Namespace My.Sys.Forms
 				FElementStyle = "display: flex; align-items: center"
 			#endif
 			.OnHandleIsAllocated = @HandleIsAllocated
-			FActiveColor       = clGreen
+			FActiveColor       = clWhiteSmoke
 			FCheckColor        = clBlack
 			FTabIndex          = -1
 			FTabStop           = True
