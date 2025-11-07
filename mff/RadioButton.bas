@@ -300,14 +300,14 @@ Namespace My.Sys.Forms
 						End If
 						If tCheckColor <> -1  Then
 							Dim As HBRUSH hBrush = CreateSolidBrush(tCheckColor)
-							Dim As HPEN HPEN CreatePen(PS_SOLID, 1, tCheckColor)
-							SelectObject(pnm->hdc, HPEN)
+							Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tCheckColor)
+							SelectObject(pnm->hdc, hPen)
 							SelectObject(pnm->hdc, hBrush)
 							If stateID = RBS_CHECKEDHOT OrElse stateID = RBS_CHECKEDNORMAL OrElse stateID = RBS_CHECKEDPRESSED Then
 								Ellipse(pnm->hdc, ScaleX(3), CheckTop + ScaleX(2), ScaleX(10), CheckTop + ScaleY(9))
 							End If
 							DeleteObject(hBrush)
-							DeleteObject(HPEN)
+							DeleteObject(hPen)
 						End If
 						If (uiItemState And CDIS_FOCUS) Then
 							Dim Sz As ..Size
