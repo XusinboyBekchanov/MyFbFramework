@@ -289,26 +289,23 @@ Namespace My.Sys.Forms
 						End If
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
 						Dim As Integer CheckTop =  (pnm->rc.Bottom - pnm->rc.Top) / 2 - ScaleY(6)
-						If tActiveColor <> -1  Then
-							Dim As HBRUSH hBrush = CreateSolidBrush(tActiveColor)
-							Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tActiveColor)
-							SelectObject(pnm->hdc, hPen)
-							SelectObject(pnm->hdc, hBrush)
-							Ellipse(pnm->hdc, ScaleX(0), CheckTop - ScaleX(1), ScaleX(13), CheckTop + ScaleY(12))
-							DeleteObject(hBrush)
-							DeleteObject(hPen)
+						Dim As HBRUSH hBrush = CreateSolidBrush(tActiveColor)
+						Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tActiveColor)
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						Ellipse(pnm->hdc, ScaleX(0), CheckTop - 1, ScaleX(13), CheckTop + ScaleY(12))
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
+						hBrush = CreateSolidBrush(tCheckColor)
+						hPen = CreatePen(PS_SOLID, 1, tCheckColor)
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						If stateID = RBS_CHECKEDHOT OrElse stateID = RBS_CHECKEDNORMAL OrElse stateID = RBS_CHECKEDPRESSED Then
+							Ellipse(pnm->hdc, ScaleX(3), CheckTop + 2, ScaleX(10), CheckTop + ScaleY(9))
 						End If
-						If tCheckColor <> -1  Then
-							Dim As HBRUSH hBrush = CreateSolidBrush(tCheckColor)
-							Dim As HPEN HPEN CreatePen(PS_SOLID, 1, tCheckColor)
-							SelectObject(pnm->hdc, HPEN)
-							SelectObject(pnm->hdc, hBrush)
-							If stateID = RBS_CHECKEDHOT OrElse stateID = RBS_CHECKEDNORMAL OrElse stateID = RBS_CHECKEDPRESSED Then
-								Ellipse(pnm->hdc, ScaleX(3), CheckTop + ScaleX(2), ScaleX(10), CheckTop + ScaleY(9))
-							End If
-							DeleteObject(hBrush)
-							DeleteObject(HPEN)
-						End If
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
+						
 						If (uiItemState And CDIS_FOCUS) Then
 							Dim Sz As ..Size
 							GetTextExtentPoint32(pnm->hdc, @This.Text, Len(This.Text), @Sz)
@@ -363,8 +360,8 @@ Namespace My.Sys.Forms
 				FElementStyle = "display: flex; align-items: center"
 			#endif
 			.OnHandleIsAllocated = @HandleIsAllocated
-			FActiveColor       = -1
-			FCheckColor        = -1
+			FActiveColor       = clWhiteSmoke
+			FCheckColor        = clBlack
 			FTabIndex          = -1
 			FTabStop           = True
 			WLet(FClassName, "RadioButton")

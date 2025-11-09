@@ -289,31 +289,27 @@ Namespace My.Sys.Forms
 						DrawText(pnm->hdc, This.Text, -1, @pnm->rc, DT_SINGLELINE Or DT_VCENTER)
 						
 						Dim As Integer CheckTop =  (pnm->rc.Bottom - pnm->rc.Top) / 2 - ScaleY(6)
-						If tActiveColor <> -1 Then
-							Dim As HBRUSH hBrush = CreateSolidBrush(tActiveColor)
-							Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tActiveColor)
-							
-							SelectObject(pnm->hdc, hPen)
-							SelectObject(pnm->hdc, hBrush)
-							Rectangle(pnm->hdc, ScaleX(1), CheckTop, ScaleX(13), CheckTop + ScaleY(12))
-							DeleteObject(hBrush)
-							DeleteObject(hPen)
+						Dim As HBRUSH hBrush = CreateSolidBrush(tActiveColor)
+						Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tActiveColor)
+						
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						Rectangle(pnm->hdc, ScaleX(1), CheckTop, ScaleX(13), CheckTop + ScaleY(12))
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
+						hBrush = CreateSolidBrush(tCheckColor)
+						hPen = CreatePen(PS_SOLID, 1, tCheckColor)
+						SelectObject(pnm->hdc, hPen)
+						SelectObject(pnm->hdc, hBrush)
+						If (stateID = CBS_CHECKEDHOT OrElse stateID = CBS_CHECKEDNORMAL) Then
+							'Rectangle(pnm->hdc, ScaleX(2), CheckTop + ScaleY(5), ScaleX(5), CheckTop + ScaleY(8))
+							'Rectangle(pnm->hdc, ScaleX(12), CheckTop + ScaleY(1), ScaleX(5), CheckTop + ScaleY(8))
+							MoveToEx(pnm->hdc, ScaleX(2), CheckTop + ScaleY(5), NULL)
+							LineTo(pnm->hdc, ScaleX( 5), CheckTop + ScaleY(8))
+							LineTo(pnm->hdc, ScaleX( 12), CheckTop + ScaleY(1))
 						End If
-						If tCheckColor <> -1  Then
-							Dim As HBRUSH hBrush = CreateSolidBrush(tCheckColor)
-							Dim As HPEN hPen = CreatePen(PS_SOLID, 1, tCheckColor)
-							SelectObject(pnm->hdc, hPen)
-							SelectObject(pnm->hdc, hBrush)
-							If (stateID = CBS_CHECKEDHOT OrElse stateID = CBS_CHECKEDNORMAL) Then
-								'Rectangle(pnm->hdc, ScaleX(2), CheckTop + ScaleY(5), ScaleX(5), CheckTop + ScaleY(8))
-								'Rectangle(pnm->hdc, ScaleX(12), CheckTop + ScaleY(1), ScaleX(5), CheckTop + ScaleY(8))
-								MoveToEx(pnm->hdc, ScaleX(2), CheckTop + ScaleY(5), NULL)
-								LineTo(pnm->hdc, ScaleX(5), CheckTop + ScaleY(8))
-								LineTo(pnm->hdc, ScaleX(12), CheckTop + ScaleY(1))
-							End If
-							DeleteObject(hBrush)
-							DeleteObject(hPen)
-						End If
+						DeleteObject(hBrush)
+						DeleteObject(hPen)
 						
 						If (uiItemState And CDIS_FOCUS) Then
 							Dim Sz As ..Size
@@ -377,8 +373,8 @@ Namespace My.Sys.Forms
 			.OnHandleIsAllocated    = @HandleIsAllocated
 			.Width                  = 90
 			.Height                 = 17
-			FActiveColor            = -1
-			FCheckColor             = -1
+			FActiveColor            = clWhiteSmoke
+			FCheckColor             = clBlack
 			.FTabIndex              = -1
 			.FTabStop               = True
 		End With
