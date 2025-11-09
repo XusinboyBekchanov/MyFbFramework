@@ -1012,18 +1012,19 @@ Namespace My.Sys.Forms
 				Dim As Integer FLeft, FTop, FWidth = allocation->width, FHeight, OldBandIndex, RowHeight, FMinWidths
 				rb->FRowCount = 0
 				For i As Integer = 0 To rb->Bands.Count - 1
-					If Not rb->Bands.Item(i)->Visible Then Continue For
-'					ChildWidget = rb->Bands.Item(i)->Child->Handle
-'					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
-					If RowHeight < rb->Bands.Item(i)->MinHeight Then RowHeight = rb->Bands.Item(i)->MinHeight
-					If FLeft = 0 Then
-						rb->FRowCount += 1
-						FHeight += RowHeight
+					If rb->Bands.Item(i)->Visible Then
+	'					ChildWidget = rb->Bands.Item(i)->Child->Handle
+	'					gtk_widget_get_allocation(rb->Bands.Item(i)->Child->Handle, @ChildAllocation)
+						If RowHeight < rb->Bands.Item(i)->MinHeight Then RowHeight = rb->Bands.Item(i)->MinHeight
+						If FLeft = 0 Then
+							rb->FRowCount += 1
+							FHeight += RowHeight
+						End If
+						rb->Bands.Item(i)->Left = FLeft
+						rb->Bands.Item(i)->Top = FTop
+						'rb->Bands.Item(i)->Width = rb->Bands.Item(i)->MinWidth
+						rb->Bands.Item(i)->Height = RowHeight
 					End If
-					rb->Bands.Item(i)->Left = FLeft
-					rb->Bands.Item(i)->Top = FTop
-					'rb->Bands.Item(i)->Width = rb->Bands.Item(i)->MinWidth
-					rb->Bands.Item(i)->Height = RowHeight
 					bNextNewLine = False
 					If i = rb->Bands.Count - 1 OrElse (i < rb->Bands.Count - 1 AndAlso (rb->Bands.Item(i + 1)->MinWidth + 11 > FWidth - rb->Bands.Item(i)->MinWidth OrElse rb->Bands.Item(i + 1)->Break)) Then
 						'ChildAllocation.width = FWidth - 11
