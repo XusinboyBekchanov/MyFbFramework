@@ -1389,7 +1389,7 @@ Namespace My.Sys.Drawing
 			If CBool(Image.pImage = NULL) OrElse UsingGdip = False OrElse UseDirect2D = True Then
 				DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
 			Else
-				DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
+				If Image.pImage <> NULL Then DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
 			End If
 		#elseif Not defined(__USE_WASM__)
 			DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
