@@ -218,7 +218,6 @@ End Namespace
 Declare Function ColorToRGB(FColor As Integer) As Integer
 Declare Function RGBAToBGR(FColor As UInteger) As Integer
 Declare Function IsDarkColor(lColor As Long) As Boolean
-Declare Function FadeToGray(ByVal MainColor As Long, ByVal Brightness As Double, ByVal GrayLevel As Integer = 192) As Long
 Declare Function ShiftColor(clrFirst As Long, clrSecond As Long, lAlpha As Long) As Long
 Declare Function RGBtoARGB(RGBColor As ULong, Opacity As Long) As ULong
 Declare Function BGRToRGBA(FColor As UInteger) As UInteger

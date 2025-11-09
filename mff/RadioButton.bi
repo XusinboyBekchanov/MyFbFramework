@@ -20,10 +20,8 @@ Namespace My.Sys.Forms
 	'`RadioButton` - Displays an option that can be turned on or off.
 	Private Type RadioButton Extends Control
 	Private:
-		FAlignment   As Integer
-		FActiveColor As Integer
-		FCheckColor  As Integer
-		FChecked     As Boolean
+		FAlignment  As Integer
+		FChecked    As Boolean
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 		#elseif defined(__USE_GTK__)
@@ -53,12 +51,6 @@ Namespace My.Sys.Forms
 		Declare Property Parent As Control Ptr
 		'Reference to containing control
 		Declare Property Parent(Value As Control Ptr)
-		Declare Property ActiveColor As Integer
-		'Changes the background color of the checkbox
-		Declare Property ActiveColor(Value As Integer)
-		Declare Property CheckColor As Integer
-		'Changes the color of the checkmark (tick).
-		Declare Property CheckColor(Value As Integer)
 		Declare Property TabIndex As Integer
 		'Controls focus order in tab sequence
 		Declare Property TabIndex(Value As Integer)
