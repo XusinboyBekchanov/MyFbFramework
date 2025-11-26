@@ -858,15 +858,6 @@ Namespace My.Sys.Forms
 						If .OnShow Then SetLoadEvent(.FHandle)
 					#elseif defined(__USE_WINAPI__)
 						Dim As HMENU NoNeedSysMenu
-						'xdpi = 0: ydpi = 0 'For muilti screen and have diffrent values.
-						'Dim hDC As HDC
-						'hDC = GetDC(.Handle)
-						'.xdpi = GetDeviceCaps(hDC, LOGPIXELSX) / 96
-						'.ydpi = GetDeviceCaps(hDC, LOGPIXELSY) / 96
-						'ReleaseDC(.Handle, hDC)
-						'If .xdpi = 0 Then .xdpi = 1
-						'If .ydpi = 0 Then .ydpi = 1
-						'.FDpiFormX = xdpi : .FDpiFormY = ydpi
 						SetClassLong(.Handle, GCL_STYLE, .FClassStyle(.BorderStyle))
 						If .FBorderStyle = 2 Then
 							SetClassLongPtr(.Handle,GCLP_HICON,NULL)
@@ -2041,6 +2032,8 @@ Namespace My.Sys.Forms
 			FCmdShow(1) = SW_SHOWNORMAL
 			FCmdShow(2) = SW_SHOWMAXIMIZED
 			FCmdShow(3) = SW_SHOWMINIMIZED
+			xdpi = 0
+			ydpi = 0
 			This.RegisterClass "Form"
 		#endif
 		Text = "Form"
