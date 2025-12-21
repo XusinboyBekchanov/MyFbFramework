@@ -548,7 +548,7 @@ Namespace My.Sys.Forms
 		Private Sub MenuItem.MenuItemActivate(m_item As GtkMenuItem Ptr, user_data As Any Ptr)
 			Dim As MenuItem Ptr Ctrl = user_data
 			If Ctrl->FMenuItemChecked Then
-				Ctrl->FMenuItemChecked = False 
+				Ctrl->FMenuItemChecked = False
 				Exit Sub
 			End If
 			If Ctrl Then
@@ -777,13 +777,14 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property MenuItem.Checked(value As Boolean)
-		FChecked = value
 		#ifdef __USE_GTK__
+			FChecked = value
 			If GTK_IS_CHECK_MENU_ITEM(Widget) Then
 				FMenuItemChecked = True
 				gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
 			End If
 		#elseif defined(__USE_WINAPI__)
+			FChecked = value
 			Dim As Integer FCheck(-1 To 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
 			If ParentMenuItem AndAlso ParentMenuItem->Handle Then
 				If Handle Then
@@ -1204,9 +1205,9 @@ Namespace My.Sys.Forms
 					'					gtk_misc_set_alignment (GTK_MISC (icon), 0.0, 0.0)
 					'				#endif
 				End If
-				gtk_image_set_pixel_size(GTK_IMAGE(Icon), 16)
 				#ifdef __USE_GTK2__
 					Widget = gtk_image_menu_item_new_with_mnemonic(ToUtf8(wCaption))
+					gtk_image_set_pixel_size(GTK_IMAGE(Icon), ScaleX(16))
 					gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(Widget), Icon)
 					gtk_image_menu_item_set_always_show_image(GTK_IMAGE_MENU_ITEM(Widget), wImageKey <> "")
 					Label = gtk_bin_get_child (GTK_BIN (Widget))
@@ -1217,6 +1218,7 @@ Namespace My.Sys.Forms
 						Box = gtk_hbox_new(False, 1)
 					#endif
 					Widget = gtk_menu_item_new()
+					gtk_image_set_pixel_size(GTK_IMAGE(Icon), ScaleX(16))
 					Label = gtk_accel_label_new (ToUtf8(wCaption & "   "))
 					gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (Label), Widget)
 					#ifdef __USE_GTK4__

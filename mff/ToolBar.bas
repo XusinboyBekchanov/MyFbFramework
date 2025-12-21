@@ -278,7 +278,18 @@ Namespace My.Sys.Forms
 	Private Property ToolButton.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
-			If GTK_IS_TOOL_BUTTON(Widget) Then gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(Widget), Value)
+			If GTK_IS_TOOL_BUTTON(Widget) Then
+				Dim As GtkWidget Ptr Icon
+				If Value = "" Then
+					Icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
+				Else
+					Icon = gtk_image_new_from_icon_name(ToUtf8(Value), GTK_ICON_SIZE_MENU)
+				End If
+				Dim As Integer BitmapSize = 16
+				If Ctrl AndAlso Ctrl->ClassName = "ToolBar" Then BitmapSize = QToolBar(Ctrl).BitmapWidth
+				gtk_image_set_pixel_size(GTK_IMAGE(Icon), ScaleX(BitmapSize))
+				gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(Widget), Icon)
+			End If
 		#else
 			If Ctrl AndAlso QToolBar(Ctrl).ImagesList Then
 				ImageIndex = Cast(ToolBar Ptr, Ctrl)->ImagesList->IndexOf(Value)
@@ -1298,6 +1309,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				widget = gtk_toolbar_new()
 				gtk_toolbar_set_style(GTK_TOOLBAR(widget), GTK_TOOLBAR_BOTH_HORIZ)
+				'gtk_toolbar_set_icon_size(GTK_TOOLBAR(widget), GTK_ICON_SIZE_LARGE_TOOLBAR)
 				.RegisterClass "ToolBar", @This
 			#else
 				AFlat(0)        = 0
