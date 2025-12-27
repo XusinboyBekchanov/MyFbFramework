@@ -384,8 +384,13 @@ Namespace My.Sys.Forms
 					Dim As GError Ptr gerr
 					Dim As Integer iSize = IIf(Cast(ListView Ptr, Parent)->Images, Max(Cast(ListView Ptr, Parent)->Images->ImageWidth, Cast(ListView Ptr, Parent)->Images->ImageHeight), 16)
 					If Value <> "" Then
-						gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr), -1)
-						gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+						Dim As GdkPixbuf Ptr pixbuf = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr)
+						If pixbuf = 0 Then
+							Print "Icon '" & Value & "' not found"
+						Else
+							gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, pixbuf, -1)
+							gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+						End If
 					End If
 				End If
 			#elseif defined(__USE_WINAPI__)

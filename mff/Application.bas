@@ -845,7 +845,11 @@ Namespace Debug
 				End If
 				CloseFile_(Fn)
 			End If
-			If bPrintMsg Then .Print Msg
+			#ifdef __USE_GTK__
+				If bPrintMsg OrElse bPrintToDebugWindow Then .Print Msg
+			#else
+				If bPrintMsg Then .Print Msg
+			#endif
 			If bShowMsg Then MsgBox Msg, "Visual FB Editor"
 			If bPrintToDebugWindow Then
 				#ifdef __USE_WINAPI__
@@ -877,7 +881,7 @@ Namespace Debug
 						WDeAllocate(SelText)
 					End If
 				#elseif defined(__USE_GTK__)
-					If GTK_IS_TEXT_VIEW(DebugWindowHandle) Then
+					If 1 = 0 AndAlso GTK_IS_TEXT_VIEW(DebugWindowHandle) Then
 						Dim As GtkWidget Ptr TabPageHandle = gtk_widget_get_parent(DebugWindowHandle)
 						Dim As GtkWidget Ptr TabControlHandle = gtk_widget_get_parent(TabPageHandle)
 						Dim As Integer Index = gtk_notebook_page_num(GTK_NOTEBOOK(TabControlHandle), TabPageHandle)
