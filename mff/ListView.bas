@@ -384,12 +384,23 @@ Namespace My.Sys.Forms
 					Dim As GError Ptr gerr
 					Dim As Integer iSize = IIf(Cast(ListView Ptr, Parent)->Images, Max(Cast(ListView Ptr, Parent)->Images->ImageWidth, Cast(ListView Ptr, Parent)->Images->ImageHeight), 16)
 					If Value <> "" Then
-						Dim As GdkPixbuf Ptr pixbuf = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN, @gerr)
-						If pixbuf = 0 Then
-							Print "Icon '" & Value & "' not found"
+						Dim As GtkIconTheme Ptr theme = gtk_icon_theme_get_default()
+						If theme Then
+							Dim As GtkIconInfo Ptr info = gtk_icon_theme_lookup_icon(theme, ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN)
+							If info Then
+						 		Dim As GdkPixbuf Ptr pixbuf = gtk_icon_info_load_icon(info, @gerr)
+						 		If pixbuf Then
+						 			gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, pixbuf, -1)
+						 			gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+						 			g_object_unref(pixbuf)
+						 		Else
+						 			Print "Icon '" & Value & "' not found"
+						 		End If
+							Else
+								Print "Icon '" & Value & "' not found"
+							End If
 						Else
-							gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 1, pixbuf, -1)
-							gtk_list_store_set(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)), @TreeIter, 2, ToUtf8(Value), -1)
+							Print "Default icon theme not found"
 						End If
 					End If
 				End If
