@@ -725,9 +725,13 @@ Namespace My
 			OleInitialize(NULL)
 			hLibUser32 = DyLibLoad("user32.dll")
 			If hLibUser32 <> 0 Then
-				GetPointerInfo = DyLibSymbol(hLibUser32, "GetPointerInfo")
-				GetGestureInfo = DyLibSymbol(hLibUser32, "GetGestureInfo")
-				CloseGestureInfoHandle = DyLibSymbol(hLibUser32, "CloseGestureInfoHandle")
+				#if Not _WIN32_WINNT >= &h0602
+					GetPointerInfo = DyLibSymbol(hLibUser32, "GetPointerInfo")
+				#endif
+				#if Not _WIN32_WINNT >= &h0601
+					GetGestureInfo = DyLibSymbol(hLibUser32, "GetGestureInfo")
+					CloseGestureInfoHandle = DyLibSymbol(hLibUser32, "CloseGestureInfoHandle")
+				#endif
 			End If
 		#endif
 		WLet(FCurLanguagePath, ExePath & "/Languages/")

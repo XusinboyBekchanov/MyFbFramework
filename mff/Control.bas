@@ -1926,9 +1926,11 @@ Namespace My.Sys.Forms
 					If OnPointerDown = 0 AndAlso OnPointerUpdate = 0 AndAlso OnPointerUp = 0 Then
 						Return
 					End If
-					If GetPointerInfo = 0 Then
-						Return
-					End If
+					#if Not _WIN32_WINNT >= &h0602
+						If GetPointerInfo = 0 Then
+							Return
+						End If
+					#endif
 					Dim info As POINTER_INFO
 					GetPointerInfo(Message.wParamLo, @info)
 					Dim e As PointerEventArgs
@@ -1977,9 +1979,11 @@ Namespace My.Sys.Forms
 					If OnGesture = 0 Then
 						Return
 					End If
-					If GetGestureInfo = 0 OrElse CloseGestureInfoHandle = 0 Then
-						Return
-					End If
+					#if Not _WIN32_WINNT >= &h0601
+						If GetGestureInfo = 0 OrElse CloseGestureInfoHandle = 0 Then
+							Return
+						End If
+					#endif
 					Dim As GESTUREINFO gi
 					gi.cbSize = SizeOf(GESTUREINFO)
 					GetGestureInfo(Cast(HGESTUREINFO, Message.lParam), @gi)
