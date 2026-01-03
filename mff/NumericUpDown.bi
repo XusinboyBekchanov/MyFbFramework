@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 	#define QNumericUpDown(__Ptr__) (*Cast(NumericUpDown Ptr, __Ptr__))
 	
 	'`NumericUpDown` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`NumericUpDown` - Allows numeric input via textbox with increment/decrement buttons and value constraints.
+	'`NumericUpDown` - Allows numeric input via textbox with increment/decrement buttons and value constraints (Windows, Linux).
 	Private Type NumericUpDown Extends Control
 	Private:
 		FStyle        As UpDownOrientation

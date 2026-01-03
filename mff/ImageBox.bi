@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`ImageBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ImageBox` - Displays a graphic.
+	'`ImageBox` - Displays a graphic (Windows, Linux).
 	Private Type ImageBox Extends Control
 	Private:
 		FImageStyle       As Integer

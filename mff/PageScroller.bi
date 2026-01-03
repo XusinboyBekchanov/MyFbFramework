@@ -13,7 +13,7 @@ Namespace My.Sys.Forms
 		psHorizontal, psVertical
 	End Enum
 	
-	'The PageScroller control is used to scroll a panel along with the components placed on it.
+	'The PageScroller control is used to scroll a panel along with the components placed on it (Windows, Linux).
 	Private Type PageScroller Extends ContainerControl
 	Private:
 		FArrowChangeSize    As Integer

@@ -23,7 +23,7 @@ Private Sub List.EnsureCapacity(NewSize As Integer)
 		m_Capacity = NewCapacity
 	End If
 End Sub
-Private Property List.Count() As Integer
+Private Property List.Count As Integer
 	Return m_Count
 End Property
 

@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 
-	'`GridDataItem` - Represents a single item in a hierarchical grid control with tree-like structure and image support.
+	'`GridDataItem` - Represents a single item in a hierarchical grid control with tree-like structure and image support (Windows, Linux).
 	Private Type GridDataItem Extends My.Sys.Object
 	Private:
 		FText               As WString Ptr

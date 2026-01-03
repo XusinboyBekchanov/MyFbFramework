@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 	'        cbeOwnerDrawVariable
 	'    End Enum
 	
-	'`ComboBoxItem` - Represents a single item in a combo box control with support for hierarchical display and multiple icon states.
+	'`ComboBoxItem` - Represents a single item in a combo box control with support for hierarchical display and multiple icon states (Windows, Linux).
 	Private Type ComboBoxItem Extends My.Sys.Object
 	Private:
 		FText            As WString Ptr

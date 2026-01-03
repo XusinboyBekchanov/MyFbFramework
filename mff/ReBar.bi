@@ -154,7 +154,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	'A Rebar control acts as a container for child windows. It can contain one or more bands, and each band can have any combination of a gripper bar, a bitmap, a text label, and one child window.
+	'A Rebar control acts as a container for child windows. It can contain one or more bands, and each band can have any combination of a gripper bar, a bitmap, a text label, and one child window (Windows, Linux).
 	Private Type ReBar Extends ContainerControl
 	Private:
 		FAutoSize As Boolean

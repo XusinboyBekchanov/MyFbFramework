@@ -18,6 +18,7 @@ Namespace My.Sys.ComponentModel
 		Bottom       As Integer
 	End Type
 	
+	'Provides the base class for the components (Windows, Linux, Android, Web).
 	Private Type Component Extends My.Sys.Object
 	Protected:
 		FClassAncestor      As WString Ptr

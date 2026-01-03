@@ -15,7 +15,7 @@ Namespace My.Sys.Forms
 	#define QCheckedListBox(__Ptr__) (*Cast(CheckedListBox Ptr,__Ptr__))
 	
 	'`CheckedListBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`CheckedListBox` - Displays a ListBox in which a check box is displayed to the left of each item.
+	'`CheckedListBox` - Displays a ListBox in which a check box is displayed to the left of each item (Windows, Linux).
 	Private Type CheckedListBox Extends ListControl
 	Private:
 		FRadioCheck As Boolean

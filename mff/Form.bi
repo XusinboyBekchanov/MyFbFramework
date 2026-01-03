@@ -69,7 +69,7 @@ Namespace My.Sys.Forms
 		wsMinimized
 	End Enum
 	
-	'A window or dialog box that makes up part of an application's user interface.
+	'A window or dialog box that makes up part of an application's user interface (Windows, Linux, Android, Web).
 	Private Type Form Extends ContainerControl
 	Private:
 		InShowModal    As Boolean

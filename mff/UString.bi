@@ -21,6 +21,7 @@
 
 Private Type UStr As UString
 
+'Represents unicode text (Windows, Linux, Android, Web).
 Private Type UString Extends WString
 Public:
 	Declare Constructor()

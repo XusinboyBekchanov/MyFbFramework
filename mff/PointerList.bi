@@ -14,6 +14,7 @@ Private Type PointerListItem Extends Object
     Object As Any Ptr
 End Type
 
+'Represents a list of pointers that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web).
 Private Type PointerList Extends Object
     Private:
         FCount   As Integer

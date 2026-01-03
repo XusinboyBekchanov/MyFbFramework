@@ -17,7 +17,7 @@
 
 Namespace My.Sys.Forms
 	'`OpenFileControl` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`OpenFileControl` - Embeds a file selection interface directly within forms, supporting multi-select and dynamic filtering.
+	'`OpenFileControl` - Embeds a file selection interface directly within forms, supporting multi-select and dynamic filtering (Windows, Linux).
 	Private Type OpenFileControl Extends Control
 	Private:
 		#ifdef __USE_GTK__

@@ -74,6 +74,7 @@ Namespace My.Sys.Drawing
 		End Enum
 	#endif
 	
+	'Defines objects used to fill the interiors of graphical shapes such as rectangles, ellipses, pies, polygons, and paths (Windows only).
 	Private Type Brush Extends My.Sys.Object
 	Private:
 		FColor       As Integer

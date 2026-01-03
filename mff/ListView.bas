@@ -1279,7 +1279,7 @@ Namespace My.Sys.Forms
 			If GTK_IS_ICON_VIEW(widget) Then
 				Dim As GList Ptr list = gtk_icon_view_get_selected_items(GTK_ICON_VIEW(widget))
 				Dim As GtkTreePath Ptr path
-				Dim i As Integer
+				Dim i As Integer = -1
 				If (list) Then
 					path = list->data
 					i = gtk_tree_path_get_indices(path)[0]

@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 	#define QVScrollBar(__Ptr__) (*Cast(VScrollBar Ptr,__Ptr__))
 	
 	'`VScrollBar` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`VScrollBar` - Provides a vertical scroll bar.
+	'`VScrollBar` - Provides a vertical scroll bar (Windows, Linux).
 	Private Type VScrollBar Extends Control
 	Private:
 		FMin            As Integer

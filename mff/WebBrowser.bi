@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`WebBrowser` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`WebBrowser` - Enables the user to navigate Web pages inside your form.
+	'`WebBrowser` - Enables the user to navigate Web pages inside your form (Windows, Linux).
 	Private Type WebBrowser Extends Control
 	Private:
 		#ifndef __USE_GTK__

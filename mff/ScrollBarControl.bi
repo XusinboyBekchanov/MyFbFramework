@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`ScrollBarControl` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ScrollBarControl` - Provides a horizontal and a vertical scroll bar for easy navigation through long lists of items.
+	'`ScrollBarControl` - Provides a horizontal and a vertical scroll bar for easy navigation through long lists of items (Windows, Linux).
 	Private Type ScrollBarControl Extends Control
 	Private:
 		FStyle      	As ScrollBarControlStyle

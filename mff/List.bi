@@ -19,6 +19,7 @@
 
 #define QList(__Ptr__) (*Cast(List Ptr,__Ptr__))
 
+'Represents a list of objects that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web).
 Private Type List
 Private:
 	m_Count As Integer = 0

@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 	#define QRadioButton(__Ptr__) (*Cast(RadioButton Ptr,__Ptr__))
 	
 	'`RadioButton` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`RadioButton` - Displays an option that can be turned on or off.
+	'`RadioButton` - Displays an option that can be turned on or off (Windows, Linux, Android, Web).
 	Private Type RadioButton Extends Control
 	Private:
 		FAlignment  As Integer

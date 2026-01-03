@@ -65,7 +65,7 @@ Namespace My.Sys.Drawing
 	#define QFont(__Ptr__) (*Cast(Font Ptr,__Ptr__))
 	
 	'`Font` is a Control within the MyFbFramework, part of the freeBasic framework.MyFbFramework.
-	'`Font` - Defines text formatting attributes including typeface, size, and style characteristics.
+	'`Font` - Defines text formatting attributes including typeface, size, and style characteristics (Windows, Linux, Web).
 	Private Type Font Extends My.Sys.Object
 	Private:
 		FBold      As Boolean

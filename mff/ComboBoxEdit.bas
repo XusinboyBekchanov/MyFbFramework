@@ -319,7 +319,18 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxEdit.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), IndexOf(Value))
+			If widget Then
+				If widget = DropDownWidget Then
+					Dim As GtkEntry Ptr entry = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(widget)))
+					If Value = "" Then
+						gtk_entry_set_text(entry, !"\0")
+					Else
+						gtk_entry_set_text(entry, ToUtf8(Value))
+					End If
+				Else
+					gtk_combo_box_set_active (GTK_COMBO_BOX(widget), IndexOf(Value))
+				End If
+			End If
 		#elseif defined(__USE_WINAPI__)
 			If FStyle > 1 Then
 				If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
@@ -378,8 +389,10 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEdit.Item(FIndex As Integer, ByRef FItem As WString)
 		'Items.Item(FIndex) = FItem  'not refresh
+		Dim As Integer CurrentIndex = ItemIndex
 		RemoveItem(FIndex)
 		InsertItem(FIndex, FItem)
+		If CurrentIndex = FIndex Then ItemIndex = CurrentIndex
 	End Property
 	
 	Private Sub ComboBoxEdit.UpdateListHeight
@@ -805,6 +818,11 @@ Namespace My.Sys.Forms
 			If cbo->OnActivate Then cbo->OnActivate(*cbo->Designer, *cbo)
 			If btn AndAlso btn->OnClick Then btn->OnClick(*btn->Designer, *btn)
 		End Sub
+		
+		Private Sub ComboBoxEdit.Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
+			Dim As ComboBoxEdit Ptr cbo = user_data
+			If cbo->OnChange Then cbo->OnChange(*cbo->Designer, *cbo)
+		End Sub
 	#endif
 	
 	Private Constructor ComboBoxEdit
@@ -815,9 +833,10 @@ Namespace My.Sys.Forms
 			eventboxwidget = gtk_event_box_new()
 			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			g_signal_connect(gtk_bin_get_child(GTK_BIN(DropDownWidget)), "activate", G_CALLBACK(@Entry_Activate), @This)
-			g_signal_connect(widget, "changed", G_CALLBACK(@ComboBoxEdit_Changed), @This)
-			g_signal_connect(widget, "popup", G_CALLBACK(@ComboBoxEdit_Popup), @This)
-			g_signal_connect(widget, "popdown", G_CALLBACK(@ComboBoxEdit_Popdown), @This)
+			g_signal_connect(gtk_bin_get_child(GTK_BIN(DropDownWidget)), "changed", G_CALLBACK(@Entry_Changed), @This)
+			g_signal_connect(GTK_COMBO_BOX(widget), "changed", G_CALLBACK(@ComboBoxEdit_Changed), @This)
+			g_signal_connect(GTK_COMBO_BOX(widget), "popup", G_CALLBACK(@ComboBoxEdit_Popup), @This)
+			g_signal_connect(GTK_COMBO_BOX(widget), "popdown", G_CALLBACK(@ComboBoxEdit_Popdown), @This)
 			Base.RegisterClass "ComboBoxEdit", @This
 		#elseif defined(__USE_WINAPI__)
 			ASortStyle(abs_(True))   = CBS_SORT

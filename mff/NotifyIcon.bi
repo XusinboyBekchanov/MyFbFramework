@@ -87,6 +87,7 @@ Namespace My.Sys.Forms
 		#endif
 	#endif
 	
+	'Specifies a component that creates an icon in the notification area (Windows only).
 	Private Type NotifyIcon Extends My.Sys.ComponentModel.Component
 	Private:
 		#ifdef __USE_WINAPI__

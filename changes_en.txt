@@ -1,3 +1,106 @@
+Version 1.3.7 (January 3, 2026)
+- Fixed: OnActivate event of TextBox.
+- Added: HTTPConnection in Linux
+- Added: OnPointerDown, OnPointerUpdate, OnPointerUp, OnGesture events to Control.
+- Fixed: Set Text property of ComboBoxEdit on cbDropDown style
+- Fixed: Error in setting a missing icon to a ListView row.
+- Fixed: Icon size on High DPI in Linux
+- Fixed: DPI not initialized correctly on different screens.
+- Fixed: Crash when change the BitmapType handle
+- Changed: Default value of CheckColor and ActiveColor
+- Added: ActiveColor and CheckColor to control CheckBox and RadioButton
+- Fixed: Menu in Design mode
+- Fixed: OnSelectedRowChanged return the selected item only
+- Improved: Paint event
+- Fixed: RichTextBox Zoom resets after RTF update.
+- Fixed: Removing MenuItem
+- Added: VisibleMenuIndex to MenuItem
+- Fixed: Change Dark Mode with ReBar
+- Fixed: Language File of Grid
+- Added: Property FixCols and binding DataArrayPtr(Any, Any) to Grid
+- Fixed: Compiling in Linux
+- Fixed: Memory Leaks
+- Added: Mongoose-Embedded Network Library
+- Fixed: Use GDIP when D2D1 is unsupported in Windows 7.
+- Fixed: Memory leaks
+- Fixed: Standardized Canvas backend
+- Fixed: D2D1 not working in Windows 7
+- Fixed: HTTPServer
+- Fixed: Memory leaks
+- Added: Polygon to Canvas on UseDirect2D
+- Added: DrawAlpha method for Canvas on UseDirect2D
+- Fixed: D2D1 Ellipse functions
+- Fixed: compile Rect error in Linux
+- Fixed: Improve the speed of Form_Size
+- Improved: Canvas
+- Added: UseDirect2D property to Canvas
+- Added: SoundPlayer Control
+- Fixed: Canvas cannot draw alpha images in GDI+ mode.
+- Fixed: GroupBox Visible Property
+- Fixed: Dropdown style ToolButton in Dark mode
+- Added: Memory check for function WLet and WLetEx
+- Fixed: Update Property TextBox.WordWraps(Value As Boolean)
+- Fixed: Showing Cursor on opening ContextMenu of RichTextBox
+- Improved: Controls: Enums without comments
+- Added: Updated more function for SystemInformation.bas
+- Changed: AllowDrop (files) property of Control to AllowDropFiles
+- Added: DoDragDrop method and OnDragDrop, OnDragEnter, OnDragLeave, OnDragOver, OnGiveFeedback, OnQueryContinueDrag events to Control
+- Fixed: Support CRLF strings in Dictionary's LoadFromFile function.
+- Fixed: ReorderTab method of TabControl
+- Added: bNoActivate parameter to ReorderTab method of TabControl
+- Fixed: Activating MDI Child
+- Fixed: Deleting MenuItem
+- Fixed: TextBox getting focus
+- Fixed: CountReplaced parameter of Replace function
+- Improved: StatusBarʼs Add method.
+- Added: TreeNode.EditLabel method
+- Fixed: DefaultFont
+- Fixed: IDE crashes when dragging WebBrowser onto form in Windows 32-bit.
+- Fixed: Initial painting of ListControl in Dark mode
+- Fixed: RichTextBox highlight missing after DPI change.
+- Added: Send Error message after 3 attempts
+- Added: Error message return in HTTP
+- Improved: Debug.Print function: Now if the length of the new text is more than 64,000 characters, the beginning lines are removed from the Immediate Window.
+- Added: OnComplete event for HTTP.
+- Added: Function FormatFileName.
+- Fixed: Warning on compiling.
+- Fixed: ComboBoxEdit.
+- Fixed: Question mark in function ToUTF8.
+- Fixed: RichTextBox SelBold, SelItalic, SelUnderline, SelStrikeout, SelProtected methods.
+- Added: FileListBox.
+- Added: Get or set request cancellation for HTTP.
+- Added: ScrollToEnd and ScrollToLine methods to TextBox and RichTextBox.
+- Added: Timeout for HTTP.
+- Added: Stream Support for HTTP.
+- Improved: HTTPConnection.
+- Improved: RichTextBox.
+- Fixed: Standartized example file names.
+- Added: Add comment to all controls.
+- Added: UTF-8 without BOM support for Ini File.
+- Added: Pipe.bi
+- Fixed: OnNodeActivate and OnNodeDblClick events of TreeView.
+- Fixed: FromUTF8 function.
+- Added code page support to functions SaveToFile and LoadFromFile.
+- Improved UTF-8 BOM-less support.
+- Fixed: Drawing panels of StatusBar in Dark mode
+- Added: OwnerData property, OnCacheHint and OnGetDisplayInfo events to TreeListView
+- Removed: RowsCount property from Grid
+- Added: HoverTime property to Control
+- Improved: Add TreeListViewItem method of TreeListView.
+- Improved: CheckUTF8NoBOM Function.
+- Improved: List.
+- Improved: CommandButton ForeColor now supports visual styles.
+- Fixed: BackColor Of Captions in Windows 7.
+- Fixed: NotifyIcon when compiling with fbc 1.20 64-bit
+- Fixed: ColorDialog is not appearing as a Modal
+- Fixed: Compiling NotifyIcon in Linux
+- Added: ShowInTaskbar property to Form
+- Added: NotifyIcon example
+- Added: NotifyIcon component
+- Fixed: Deleting WebBrowser from Designer
+- Fixed: Mnemonic keys
+- Added: Skip empty element to Split Function.
+- Improved: Split function speed
 Version 1.3.6 (January 1, 2025)
 - Fixed: ExeName function of Application
 - Added： Thread.bi and DynamicArrayList.bi

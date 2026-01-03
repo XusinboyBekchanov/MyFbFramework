@@ -30,6 +30,7 @@ Public:
 	Declare Destructor
 End Type
 
+'Represents a list of integers that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web).
 Private Type IntegerList Extends Object
 Private:
 	FCount   As Integer

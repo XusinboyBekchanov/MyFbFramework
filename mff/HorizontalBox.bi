@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QHorizontalBox(__Ptr__) (*Cast(HorizontalBox Ptr,__Ptr__))
 	
+	'The Horizontal Box lays out its child controls horizontally and will not wrap onto a new line in any circumstances (Windows, Linux, Android)
 	Private Type HorizontalBox Extends ContainerControl
 	Private:
 		#ifdef __USE_WINAPI__

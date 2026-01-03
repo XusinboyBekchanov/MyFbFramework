@@ -73,6 +73,7 @@ Namespace My.Sys.Drawing
 		End Enum
 	#endif
 	
+	'Defines an object used to draw lines and curves (Windows only).
 	Private Type Pen Extends My.Sys.Object
 	Private:
 		FColor  As Integer

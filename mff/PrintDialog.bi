@@ -10,7 +10,7 @@
 
 #include once "Dialogs.bi"
 
-'Lets users select a printer and choose which sections of the document to print from an application.
+'Lets users select a printer and choose which sections of the document to print from an application (Windows only).
 Private Type PrintDialog Extends Dialog
 Private:
 	xLeft As Integer        = -1                        ' Default to center

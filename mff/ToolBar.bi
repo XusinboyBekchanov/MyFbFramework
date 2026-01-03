@@ -46,7 +46,7 @@ Namespace My.Sys.Forms
 		tstWrap             = 32
 	End Enum
 	
-	'`ToolButton` - Represents a button item in a toolbar, supporting icons, text, dropdown menus, and state management.
+	'`ToolButton` - Represents a button item in a toolbar, supporting icons, text, dropdown menus, and state management (Windows, Linux).
 	Private Type ToolButton Extends My.Sys.Object
 	Private:
 		FCaption      As WString Ptr
@@ -189,7 +189,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`ToolBar` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ToolBar` - A toolbar is a control that contains one or more buttons.
+	'`ToolBar` - A toolbar is a control that contains one or more buttons (Windows, Linux).
 	Private Type ToolBar Extends Control
 	Private:
 		FButtonWidth    As Integer

@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	#define QHotKey(__Ptr__) (*Cast(HotKey Ptr, __Ptr__))
 	
 	'`HotKey` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`HotKey` - A hot key control is a window that enables the user to enter a combination of keystrokes to be used as a hot key.
+	'`HotKey` - A hot key control is a window that enables the user to enter a combination of keystrokes to be used as a hot key (Windows, Linux).
 	Private Type HotKey Extends Control
 	Private:
 		#ifndef __USE_GTK__

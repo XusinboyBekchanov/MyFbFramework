@@ -31,6 +31,7 @@ Public:
 	Declare Destructor
 End Type
 
+'Represents a collection of keys and values (Windows, Linux, Android, Web).
 Private Type Dictionary
 Private:
 	FCount             As Integer

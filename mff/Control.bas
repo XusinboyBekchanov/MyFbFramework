@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 					gtk_drag_dest_unset(widget)
 				End If
 			#elseif defined(__USE_WINAPI__)
-				If FHandle AndAlso CInt(Not FDesignMode) Then 
+				If FHandle AndAlso CInt(Not FDesignMode) Then
 					FDropTarget.m_hWnd = FHandle
 					FDropTarget.AllowDrop Value
 				End If
@@ -269,7 +269,7 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				ChangeExStyle WS_EX_ACCEPTFILES, Value
-				If FHandle AndAlso CInt(Not FDesignMode) Then 
+				If FHandle AndAlso CInt(Not FDesignMode) Then
 					RecreateWnd
 				End If
 			#endif
@@ -1438,7 +1438,7 @@ Namespace My.Sys.Forms
 					#endif
 					If e->button.button = 3 AndAlso ContextMenu Then
 						Message.Result = True
-						If ContextMenu->widget Then
+						If ContextMenu->Widget Then
 							ContextMenu->Popup(e->button.x, e->button.y, @Message)
 						End If
 					End If
@@ -1507,20 +1507,76 @@ Namespace My.Sys.Forms
 				Case GDK_DROP_START
 				Case GDK_DROP_FINISHED
 					#ifdef __USE_GTK3__
-					Case GDK_TOUCH_BEGIN
-					Case GDK_TOUCH_UPDATE
-					Case GDK_TOUCH_END
-					Case GDK_TOUCH_CANCEL
+					Case GDK_TOUCH_BEGIN, GDK_TOUCH_UPDATE, GDK_TOUCH_END, GDK_TOUCH_CANCEL
+						Dim pe As PointerEventArgs
+						pe.id = Cast(Integer, Message.Event->touch.sequence)
+						pe.x = Message.Event->touch.x
+						pe.y = Message.Event->touch.y
+						pe.buttons = 1
+						pe.primary = 1
+						pe.modifiers = Message.Event->touch.state
+						pe.pointerType = ptTouch
+						Select Case Message.Event->type
+						Case GDK_TOUCH_BEGIN
+							pe.phase = PointerPhase.ppBegin
+							If OnPointerDown Then OnPointerDown(*Designer, This, pe)
+						Case GDK_TOUCH_UPDATE
+							pe.phase = PointerPhase.ppMove
+							If OnPointerUpdate Then OnPointerUpdate(*Designer, This, pe)
+						Case GDK_TOUCH_END, GDK_TOUCH_CANCEL
+							pe.phase = PointerPhase.ppEnd
+							If OnPointerUp Then OnPointerUp(*Designer, This, pe)
+						End Select
 					#endif
-					'Case GDK_PAD_BUTTON_PRESS
-					'Case GDK_PAD_BUTTON_RELEASE
-					'Case GDK_PAD_RING
-					'Case GDK_PAD_STRIP
-					'Case GDK_PAD_GROUP_MODE
+					#ifdef __USE_GTK4__
+					Case GDK_TOUCHPAD_SWIPE
+					Case GDK_TOUCHPAD_PINCH
+					Case GDK_PAD_BUTTON_PRESS
+					Case GDK_PAD_BUTTON_RELEASE
+					Case GDK_PAD_RING
+					Case GDK_PAD_STRIP
+					Case GDK_PAD_GROUP_MODE
+					#endif
 				Case GDK_MAP
 					If Not FCreated Then
 						If OnCreate Then OnCreate(*Designer, This)
 						FCreated = True
+						#ifndef __USE_GTK2__
+							If OnGesture Then
+								GestureDrag = gtk_gesture_drag_new(widget)
+								g_signal_connect(GestureDrag, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GestureDrag, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GestureDrag, "end", G_CALLBACK(@GestureEnd), @This)
+								GestureLongPress = gtk_gesture_long_press_new(widget)
+								g_signal_connect(GestureLongPress, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GestureLongPress, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GestureLongPress, "end", G_CALLBACK(@GestureEnd), @This)
+								GestureMultiPress = gtk_gesture_multi_press_new(widget)
+								g_signal_connect(GestureMultiPress, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GestureMultiPress, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GestureMultiPress, "end", G_CALLBACK(@GestureEnd), @This)
+								GesturePanHorizontal = gtk_gesture_pan_new(widget, GTK_ORIENTATION_HORIZONTAL)
+								g_signal_connect(GesturePanHorizontal, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GesturePanHorizontal, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GesturePanHorizontal, "end", G_CALLBACK(@GestureEnd), @This)
+								GesturePanVertical = gtk_gesture_pan_new(widget, GTK_ORIENTATION_VERTICAL)
+								g_signal_connect(GesturePanVertical, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GesturePanVertical, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GesturePanVertical, "end", G_CALLBACK(@GestureEnd), @This)
+								GestureRotate = gtk_gesture_rotate_new(widget)
+								g_signal_connect(GestureRotate, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GestureRotate, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GestureRotate, "end", G_CALLBACK(@GestureEnd), @This)
+								GestureSwipe = gtk_gesture_swipe_new(widget)
+								g_signal_connect(GestureSwipe, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GestureSwipe, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GestureSwipe, "end", G_CALLBACK(@GestureEnd), @This)
+								GestureZoom = gtk_gesture_zoom_new(widget)
+								g_signal_connect(GestureZoom, "begin", G_CALLBACK(@GestureBegin), @This)
+								g_signal_connect(GestureZoom, "update", G_CALLBACK(@GestureUpdate), @This)
+								g_signal_connect(GestureZoom, "end", G_CALLBACK(@GestureEnd), @This)
+							End If
+						#endif
 					End If
 				Case GDK_UNMAP
 				Case GDK_VISIBILITY_NOTIFY
@@ -1865,6 +1921,97 @@ Namespace My.Sys.Forms
 							ContextMenu->Popup(P.X, P.Y)
 						End If
 					End If
+				'Case WM_TOUCH
+				'Case WM_POINTERDOWN, WM_POINTERUPDATE, WM_POINTERUP
+				'	If OnPointerDown = 0 AndAlso OnPointerUpdate = 0 AndAlso OnPointerUp = 0 Then
+				'		Return
+				'	End If
+				'	If GetPointerInfo = 0 Then
+				'		Return
+				'	End If
+				'	Dim info As POINTER_INFO
+				'	GetPointerInfo(Message.wParamLo, @info)
+				'	Dim e As PointerEventArgs
+				'	e.id = info.pointerId
+				'	e.x = info.ptPixelLocation.X
+				'	e.y = info.ptPixelLocation.Y
+				'	Select Case info.pointerType
+				'	Case PT_MOUSE:      e.pointerType = ptMouse
+				'	Case PT_TOUCH:      e.pointerType = ptTouch
+				'	Case PT_PEN:        e.pointerType = ptPen
+				'	Case PT_POINTER:    e.pointerType = ptUnknown
+				'	End Select
+				'	e.buttons = 0
+				'	Select Case info.pointerType
+				'	Case PT_MOUSE
+				'		If info.pointerFlags And POINTER_FLAG_FIRSTBUTTON Then e.buttons = e.buttons Or 1
+				'		If info.pointerFlags And POINTER_FLAG_SECONDBUTTON Then e.buttons = e.buttons Or 2
+				'		If info.pointerFlags And POINTER_FLAG_THIRDBUTTON Then e.buttons = e.buttons Or 4
+				'	Case PT_TOUCH
+				'		e.buttons = 1 ' палец = одна кнопка
+				'	Case PT_PEN
+				'		e.buttons = 1 ' перо = основная кнопка
+				'	End Select
+				'	e.modifiers = Message.wParam And &HFFFF
+				'	e.primary = IIf(info.pointerFlags And POINTER_FLAG_PRIMARY, 1, 0)
+				'	Select Case Message.Msg
+				'	Case WM_POINTERDOWN
+				'		e.phase = PointerPhase.ppBegin
+				'		If OnPointerDown Then OnPointerDown(*Designer, This, e)
+				'	Case WM_POINTERUPDATE
+				'		If info.pointerFlags And POINTER_FLAG_INCONTACT Then
+				'			e.phase = PointerPhase.ppMove
+				'		Else
+				'			e.phase = PointerPhase.ppHover
+				'		End If
+				'		If OnPointerUpdate Then OnPointerUpdate(*Designer, This, e)
+				'	Case WM_POINTERUP
+				'		e.phase = PointerPhase.ppEnd
+				'		If OnPointerUp Then OnPointerUp(*Designer, This, e)
+				'	End Select
+				'	If e.handled Then
+				'		Message.Result = 0
+				'	End If
+				'Case WM_GESTURE
+				'	If OnGesture = 0 Then
+				'		Return
+				'	End If
+				'	If GetGestureInfo = 0 OrElse CloseGestureInfoHandle = 0 Then
+				'		Return
+				'	End If
+				'	Dim As GESTUREINFO gi
+				'	gi.cbSize = SizeOf(GESTUREINFO)
+				'	GetGestureInfo(Cast(HGESTUREINFO, Message.lParam), @gi)
+				'	Dim e As GestureEventArgs
+				'	If (gi.dwFlags And GF_BEGIN) = GF_BEGIN Then
+				'		e.phase = GesturePhase.gpBegin
+				'	ElseIf (gi.dwFlags And GF_INERTIA) = GF_INERTIA Then
+				'		e.phase = GesturePhase.gpUpdate
+				'	ElseIf(gi.dwFlags And GF_END) = GF_END Then
+				'		e.phase = GesturePhase.gpEnd
+				'	Else
+				'		e.phase = GesturePhase.gpUpdate
+				'	End If
+				'	e.x = gi.ptsLocation.x
+				'	e.y = gi.ptsLocation.y
+				'	e.dx = LoWord(gi.ullArguments)
+				'	e.dy = HiWord(gi.ullArguments)
+				'	e.scale = gi.ullArguments / 100.0
+				'	e.rotation = gi.ullArguments / 100.0
+				'	Select Case gi.dwID
+				'	Case GID_BEGIN:
+				'	Case GID_END:
+				'	Case GID_ZOOM: e.gestureType = GestureType.gtZoom
+				'	Case GID_PAN: e.gestureType = GestureType.gtPan
+				'	Case GID_ROTATE: e.gestureType = GestureType.gtRotate
+				'	Case GID_TWOFINGERTAP: e.gestureType = GestureType.gtTwoFingerTap
+				'	Case GID_PRESSANDTAP: e.gestureType = GestureType.gtPressAndTap
+				'	End Select
+				'	CloseGestureInfoHandle(Cast(HGESTUREINFO, Message.lParam))
+				'	If e.handled Then
+				'		Message.Result = 0
+				'	End If
+				'Case WM_GESTURENOTIFY
 				Case WM_MEASUREITEM
 					Dim As MEASUREITEMSTRUCT Ptr miStruct
 					miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
@@ -2410,6 +2557,59 @@ Namespace My.Sys.Forms
 				Return False
 			End Function
 			
+			#ifndef __USE_GTK2__
+				Private Sub Control.Gesture(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, phase As GesturePhase, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					Dim As GestureEventArgs e
+					e.phase = phase
+					If GTK_IS_GESTURE_DRAG(self) Then
+						e.gestureType = GestureType.gtPan
+						Dim As gdouble dx, dy
+						gtk_gesture_drag_get_offset(GTK_GESTURE_DRAG(self), @dx, @dy)
+						e.dx = dx
+						e.dy = dy
+					ElseIf GTK_IS_GESTURE_LONG_PRESS(self) Then
+						e.gestureType = GestureType.gtLongPress
+					ElseIf GTK_IS_GESTURE_MULTI_PRESS(self) Then
+						e.gestureType = GestureType.gtTwoFingerTap
+					ElseIf GTK_IS_GESTURE_PAN(self) Then
+						e.gestureType = GestureType.gtDirectionalPan
+						Select Case gtk_gesture_pan_get_orientation(GTK_GESTURE_PAN(self))
+						Case GTK_ORIENTATION_HORIZONTAL: e.orientation = Orientation.orHorizontal
+						Case GTK_ORIENTATION_VERTICAL: e.orientation = Orientation.orHorizontal
+						End Select
+					ElseIf GTK_IS_GESTURE_ROTATE(self) Then
+						e.gestureType = GestureType.gtRotate
+						e.scale = gtk_gesture_rotate_get_angle_delta(GTK_GESTURE_ROTATE(self))
+					ElseIf GTK_IS_GESTURE_SWIPE(self) Then
+						e.gestureType = GestureType.gtSwipe
+					ElseIf GTK_IS_GESTURE_ZOOM(self) Then
+						e.gestureType = GestureType.gtZoom
+						e.scale = gtk_gesture_zoom_get_scale_delta(GTK_GESTURE_ZOOM(self))
+					End If
+					Dim As gdouble x, y
+					gtk_gesture_get_point(self, sequence, @x, @y)
+					e.x = x
+					e.y = y
+					If Ctrl->OnGesture Then Ctrl->OnGesture(*Ctrl->Designer, *Ctrl, e)
+					If e.handled Then
+						gtk_gesture_set_state(self, GTK_EVENT_SEQUENCE_CLAIMED)
+					End If
+				End Sub
+				
+				Private Sub Control.GestureBegin(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, user_data As Any Ptr)
+					Gesture(self, sequence, GesturePhase.gpBegin, user_data)
+				End Sub
+				
+				Private Sub Control.GestureUpdate(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, user_data As Any Ptr)
+					Gesture(self, sequence, GesturePhase.gpUpdate, user_data)
+				End Sub
+				
+				Private Sub Control.GestureEnd(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, user_data As Any Ptr)
+					Gesture(self, sequence, GesturePhase.gpEnd, user_data)
+				End Sub
+			#endif
+			
 			Private Sub Control.DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, selection_data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = user_data
 				If info = 0 Then
@@ -2865,7 +3065,7 @@ Namespace My.Sys.Forms
 					End With
 				Next i
 			End If
-			If FAutoSize Then
+			If FAutoSize AndAlso ControlCount <> 0 Then
 				Dim As Integer MaxWidth, MaxHeight
 				
 				GetMax MaxWidth, MaxHeight
@@ -2873,20 +3073,26 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If GTK_IS_BOX(widget) Then
 						If Height > MaxHeight + Height - iClientHeight Then
-							If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 Then
+							If MaxHeight + Height - iClientHeight <> 0 Then
 								Height = MaxHeight + Height - iClientHeight
+							End If
+						End If
+					ElseIf GTK_IS_WINDOW(widget) Then
+						If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth  Then
+							If MaxHeight + Height - iClientHeight <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
+								Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
 							End If
 						End If
 					Else
 						If Height <> MaxHeight + Height - iClientHeight Then
-							If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 Then
+							If MaxHeight + Height - iClientHeight <> 0 Then
 								Height = MaxHeight + Height - iClientHeight
 							End If
 						End If
 					End If
 				#else
-					If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth Then
-						If MaxHeight + Height - iClientHeight <> 0 AndAlso ControlCount <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
+					If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth  Then
+						If MaxHeight + Height - iClientHeight <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
 							Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
 						End If
 					End If
@@ -2931,8 +3137,8 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
 			#ifdef __USE_WINAPI__
-				If FHandle Then 
-					If iRect = 0 Then 
+				If FHandle Then
+					If iRect = 0 Then
 						InvalidateRect(FHandle, 0, bErase)
 					Else
 						InvalidateRect(FHandle, Cast(Rect Ptr, iRect), bErase)

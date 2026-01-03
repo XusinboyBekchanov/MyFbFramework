@@ -12,7 +12,7 @@ Namespace My.Sys.Forms
 	#define QPrintPreviewControl(__Ptr__) (*Cast(PrintPreviewControl Ptr, __Ptr__))
 	
 	'`PrintPreviewControl` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`PrintPreviewControl` - Displays document pages with zoom/scroll capabilities and print layout visualization.
+	'`PrintPreviewControl` - Displays document pages with zoom/scroll capabilities and print layout visualization (Windows only).
 	Private Type PrintPreviewControl Extends Control
 	Private:
 		#ifndef __USE_GTK__

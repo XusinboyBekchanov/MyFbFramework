@@ -18,6 +18,7 @@
 #define QObject(__Ptr__) (*Cast(My.Sys.Object Ptr, __Ptr__))
 	
 Namespace My.Sys
+	'Supports all classes in the MyFbFramework class hierarchy and provides low-level services to derived classes (Windows, Linux, Android, Web).
 	Private Type Object Extends Object
 	Protected:
 		#ifdef __USE_GTK__

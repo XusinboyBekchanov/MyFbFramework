@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 		End Enum
 	#endif
 	
-	'`StatusPanel` - Represents an individual panel within a StatusBar control for displaying status information.
+	'`StatusPanel` - Represents an individual panel within a StatusBar control for displaying status information (Windows, Linux).
 	Private Type StatusPanel Extends My.Sys.Object
 	Private:
 		FAlignment  As Integer

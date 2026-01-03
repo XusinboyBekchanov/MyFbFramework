@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QToolTips(__Ptr__) (*Cast(ToolTips Ptr, __Ptr__))
 	
+	'Represents a small rectangular pop-up window that displays a brief description of a control's purpose when the user rests the pointer on the control (Windows, Linux).
 	Private Type ToolTips Extends Control
 	Private:
 		#ifndef __USE_GTK__

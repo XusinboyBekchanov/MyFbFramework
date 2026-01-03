@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`TextBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`TextBox` - Displays information entered at design time by the user, or in code at run time.
+	'`TextBox` - Displays information entered at design time by the user, or in code at run time (Windows, Linux, Android, Web).
 	Private Type TextBox Extends Control
 	Private:
 	Protected:

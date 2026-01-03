@@ -19,7 +19,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`DateTimePicker` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`DateTimePicker` - Represents a Windows control that allows the user to select a date and a time and to display the date and time with a specified format.
+	'`DateTimePicker` - Represents a Windows control that allows the user to select a date and a time and to display the date and time with a specified format (Windows, Linux, Web).
 	Private Type DateTimePicker Extends Control
 	Private:
 		PressedKey          As Integer

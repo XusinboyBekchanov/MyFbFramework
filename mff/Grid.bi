@@ -221,8 +221,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`Grid` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Grid` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Grid` - Defines a flexible grid area that consists of columns and rows.
+	'`Grid` - Defines a flexible grid area that consists of columns and rows (Windows, Linux, Web).
 	Private Type Grid Extends Control
 	Private:
 		FAllowColumnReorder As Boolean

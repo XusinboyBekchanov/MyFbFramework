@@ -36,6 +36,7 @@
 Namespace My.Sys.Drawing
 	#define QBitmapType(__Ptr__) (*Cast(BitmapType Ptr,__Ptr__))
 	
+	'Is an object used to work with images defined by pixel data (Windows, Linux, Web).
 	Private Type BitmapType Extends My.Sys.Object
 	Private:
 		FWidth       As ULong

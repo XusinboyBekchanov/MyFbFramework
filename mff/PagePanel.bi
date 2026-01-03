@@ -13,7 +13,7 @@
 Namespace My.Sys.Forms
 	#define QPagePanel(__Ptr__) (*Cast(PagePanel Ptr, __Ptr__))
 	
-	'Used to group collections of controls.
+	'Used to group collections of controls (Windows, Linux, Android, Web).
 	Private Type PagePanel Extends ContainerControl
 	Private:
 		#ifdef __USE_WINAPI__

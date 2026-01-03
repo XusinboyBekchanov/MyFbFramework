@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	#define QIPAddress(__Ptr__) (*Cast(IPAddress Ptr, __Ptr__))
 	
 	'`IPAddress` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`IPAddress` - An Internet Protocol (IP) address control allows the user to enter an IP address in an easily understood format.
+	'`IPAddress` - An Internet Protocol (IP) address control allows the user to enter an IP address in an easily understood format (Windows, Linux).
 	Private Type IPAddress Extends Control
 	Private:
 	Protected:

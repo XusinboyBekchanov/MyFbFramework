@@ -26,6 +26,7 @@ Namespace My.Sys.Drawing
 	
 	#define QGraphic(__Ptr__) (*Cast(GraphicType Ptr,__Ptr__))
 	
+	'A class that provides functionality for the Bitmap, Icon and Cursor descended classes (Windows, Linux, Web).
 	Private Type GraphicType Extends My.Sys.Object
 	Private:
 		FResName As WString Ptr

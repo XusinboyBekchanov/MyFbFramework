@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`UpDown` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`UpDown` - An up-down control is a pair of arrow buttons that the user can click to increment or decrement a value, such as a scroll position or a number displayed in a companion control (called a buddy window).
+	'`UpDown` - An up-down control is a pair of arrow buttons that the user can click to increment or decrement a value, such as a scroll position or a number displayed in a companion control (called a buddy window) (Windows, Linux).
 	Private Type UpDown Extends Control
 	Private:
 	Protected:

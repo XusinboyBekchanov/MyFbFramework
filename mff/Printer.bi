@@ -129,7 +129,7 @@ Namespace My.Sys.ComponentModel
 		Declare Destructor
 	End Type
 	
-	'Enables you to communicate with a system printer (initially the default printer).
+	'Enables you to communicate with a system printer (initially the default printer) (Windows only).
 	Private Type Printer Extends Component
 	Private:
 		#ifndef __USE_GTK__

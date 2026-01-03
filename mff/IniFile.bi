@@ -13,6 +13,7 @@
 #include once "StringList.bi"
 #define QIniFile(__Ptr__) (*Cast(IniFile Ptr,__Ptr__))
 
+'Class for working with ini files (Windows, Linux).
 Private Type IniFile
 Private:
 	FFile As WString Ptr

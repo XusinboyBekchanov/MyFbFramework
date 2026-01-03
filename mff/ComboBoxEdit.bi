@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`ComboBoxEdit` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ComboBoxEdit` - Combines the features of a [[TextBox]] and a [[ListControl]].
+	'`ComboBoxEdit` - Combines the features of a [[TextBox]] and a [[ListControl]] (Windows, Linux, Web).
 	Private Type ComboBoxEdit Extends Control
 	Private:
 		FSort             As Boolean
@@ -61,6 +61,7 @@ Namespace My.Sys.Forms
 			Declare Static Function ComboBoxEdit_Popdown(widget As GtkComboBox Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Sub ComboBoxEdit_Changed(widget As GtkComboBox Ptr, user_data As Any Ptr)
 			Declare Static Sub Entry_Activate(entry As GtkEntry Ptr, user_data As Any Ptr)
+			Declare Static Sub Entry_Changed(entry As GtkEntry Ptr, user_data As Any Ptr)
 			DropDownWidget As GtkWidget Ptr
 			DropDownListWidget As GtkWidget Ptr
 		#elseif defined(__USE_WASM__)

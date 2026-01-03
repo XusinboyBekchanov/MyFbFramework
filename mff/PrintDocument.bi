@@ -33,6 +33,7 @@ Namespace My.Sys.ComponentModel
 		Declare Destructor
 	End Type
 	
+	'Defines a reusable object that sends output to a printer (Windows only).
 	Type PrintDocument Extends Component
 	Private:
 		#ifdef __USE_WINAPI__

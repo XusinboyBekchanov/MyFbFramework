@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 	#define QHScrollBar(__Ptr__) (*Cast(HScrollBar Ptr,__Ptr__))
 	
 	'`HScrollBar` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`HScrollBar` - Provides a horizontal scroll bar for easy navigation through long lists of items.
+	'`HScrollBar` - Provides a horizontal scroll bar for easy navigation through long lists of items (Windows, Linux).
 	Private Type HScrollBar Extends Control
 	Private:
 		FMin            As Integer

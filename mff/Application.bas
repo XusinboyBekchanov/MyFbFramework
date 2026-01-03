@@ -723,6 +723,12 @@ Namespace My
 			'InitCommonControls
 			Instance = GetModuleHandle(NULL)
 			OleInitialize(NULL)
+			hLibUser32 = DyLibLoad("user32.dll")
+			If hLibUser32 <> 0 Then
+				GetPointerInfo = DyLibSymbol(hLibUser32, "GetPointerInfo")
+				GetGestureInfo = DyLibSymbol(hLibUser32, "GetGestureInfo")
+				CloseGestureInfoHandle = DyLibSymbol(hLibUser32, "CloseGestureInfoHandle")
+			End If
 		#endif
 		WLet(FCurLanguagePath, ExePath & "/Languages/")
 		WLet(FLanguage, "English")
@@ -770,6 +776,7 @@ Namespace My
 				ReleaseMutex(m_hMutex)
 				CloseHandle(m_hMutex)
 			End If
+			If hLibUser32 <> 0 Then DyLibFree(hLibUser32)
 			DeleteObject hbrBkgnd
 			DeleteObject hbrHlBkgnd
 			DeleteObject hbrBkgndMenu

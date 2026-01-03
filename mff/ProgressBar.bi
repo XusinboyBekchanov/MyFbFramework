@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`ProgressBar` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ProgressBar` - A progress bar is a window that an application can use to indicate the progress of a lengthy operation.
+	'`ProgressBar` - A progress bar is a window that an application can use to indicate the progress of a lengthy operation (Windows, Linux).
 	Private Type ProgressBar Extends Control
 	Private:
 		FMode32      As Boolean

@@ -10,7 +10,7 @@ Const FILE_ATTRIBUTES = fbReadOnly Or fbHidden Or fbSystem Or fbArchive
 Const DIR_ATTRIBUTES = FILE_ATTRIBUTES Or fbDirectory
 Const PATH_SEPARATOR = "/"  ' 统一使用正斜杠
 
-'display a list of files from a specified directory, optionally filtered by file type (extension).
+'Display a list of files from a specified directory, optionally filtered by file type (extension).
 Type FileListBox
 Private:
 	m_path As String

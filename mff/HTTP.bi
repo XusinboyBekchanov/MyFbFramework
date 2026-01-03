@@ -16,6 +16,7 @@ Namespace My.Sys.Forms
 		Reason As String
 	End Type
 	
+	'Provides a class for sending HTTP requests and receiving HTTP responses from a resource identified by a URI (Windows, Linux, Web).
 	Type HTTPConnection Extends Component
 		
 	Private:

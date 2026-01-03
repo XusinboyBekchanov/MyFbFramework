@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`ListControl` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ListControl` - Displays a list of items from which the user can select one or more.
+	'`ListControl` - Displays a list of items from which the user can select one or more (Windows, Linux, Web).
 	Private Type ListControl Extends Control
 	Private:
 		#ifdef __USE_WINAPI__

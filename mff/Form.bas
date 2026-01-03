@@ -1565,8 +1565,12 @@ Namespace My.Sys.Forms
 							If Icon.ResName <> "" Then
 								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUtf8(Icon.ResName), 16, 16, @gerr)
 								If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
+								g_error_free(gerr)
+								gerr = 0
 								gtkicon = gdk_pixbuf_new_from_file_at_size(ToUtf8(Icon.ResName), 48, 48, @gerr)
 								If gtkicon <> 0 Then list1 = g_list_append(list1, gtkicon)
+								g_error_free(gerr)
+								gerr = 0
 								gtk_window_set_icon_list(GTK_WINDOW(widget), list1)
 							End If
 						End If

@@ -106,6 +106,7 @@ End Enum
 Namespace My
 	#define QApplication(__Ptr__) (*Cast(Application Ptr,__Ptr__))
 	
+	'Provides methods and properties to manage an application, such as methods to start and stop an application, and properties to get information about an application. (Windows, Linux, Web, Android)
 	Private Type Application Extends My.Sys.Object
 	Private:
 		FDarkMode       As Boolean
@@ -139,6 +140,7 @@ Namespace My
 		As Byte initialized
 		#ifdef __USE_WINAPI__
 			Dim m_hMutex As HANDLE
+			Dim As Any Ptr hLibUser32
 		#endif
 		As Any Ptr _vinfo
 		As String TranslationString

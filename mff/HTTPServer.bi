@@ -42,6 +42,7 @@ Namespace My.Sys.Forms
 		server      As Any Ptr
 	End Type
 	
+	'This class implements a simple HTTP server (Windows only).
 	Type HTTPServer Extends Component
 	Private:
 		#define BuffSize 16

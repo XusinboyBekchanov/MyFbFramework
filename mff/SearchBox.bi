@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
 	#define QSearchBox(__Ptr__) (*Cast(SearchBox Ptr, __Ptr__))
 	
 	'`SearchBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`SearchBox` - The SearchBar is a control made to have a search entry.
+	'`SearchBox` - The SearchBar is a control made to have a search entry (Windows, Linux).
 	Private Type SearchBox Extends TextBox
 	Private:
 		#ifdef __USE_WINAPI__

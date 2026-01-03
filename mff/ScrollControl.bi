@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QScrollControl(__Ptr__) (*Cast(ScrollControl Ptr, __Ptr__))
 	
+	'Defines a class that support auto-scrolling behavior (Windows, Linux).
 	Private Type ScrollControl Extends ContainerControl
 	Private:
 		OldClientHeight As Integer

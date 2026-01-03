@@ -11,7 +11,7 @@
 #include once "Dialogs.bi"
 #include once "Printer.bi"
 
-'Enables users to change page-related print settings, including margins and paper orientation.
+'Enables users to change page-related print settings, including margins and paper orientation (Windows only).
 Private Type PageSetupDialog Extends Dialog
 Private:
 	xLeft As Integer        = -1                        ' Default to center

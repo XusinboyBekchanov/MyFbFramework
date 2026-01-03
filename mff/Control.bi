@@ -26,11 +26,132 @@
 	#include once "CDropTarget/CDropTarget.bi"
 	#include once "CDropSource/CDropSource.bi"
 	#include once "CDataObject/CDataObject.bi"
+	Const WM_DPICHANGED = &h02E0
+	Const WM_DPICHANGED_BEFOREPARENT = &h02E2
+	Const WM_DPICHANGED_AFTERPARENT = &h02E3
+	Const WM_GETDPISCALEDSIZE = &h02E4
+	Const WM_TOUCH = &h0240
+	Const WM_POINTERDEVICECHANGE = &h238
+	Const WM_POINTERDEVICEINRANGE = &h239
+	Const WM_POINTERDEVICEOUTOFRANGE = &h23a
+	Const WM_NCPOINTERUPDATE = &h0241
+	Const WM_NCPOINTERDOWN = &h0242
+	Const WM_NCPOINTERUP = &h0243
+	Const WM_POINTERUPDATE = &h0245
+	Const WM_POINTERDOWN = &h0246
+	Const WM_POINTERUP = &h0247
+	Const WM_POINTERENTER = &h0249
+	Const WM_POINTERLEAVE = &h024a
+	Const WM_POINTERACTIVATE = &h024b
+	Const WM_POINTERCAPTURECHANGED = &h024c
+	Const WM_TOUCHHITTESTING = &h024d
+	Const WM_POINTERWHEEL = &h024e
+	Const WM_POINTERHWHEEL = &h024f
+	Const WM_GESTURE = &h0119
+	Const WM_GESTURENOTIFY = &h011A
+	Const POINTER_FLAG_NONE = &h00000000
+	Const POINTER_FLAG_NEW = &h00000001
+	Const POINTER_FLAG_INRANGE = &h00000002
+	Const POINTER_FLAG_INCONTACT = &h00000004
+	Const POINTER_FLAG_FIRSTBUTTON = &h00000010
+	Const POINTER_FLAG_SECONDBUTTON = &h00000020
+	Const POINTER_FLAG_THIRDBUTTON = &h00000040
+	Const POINTER_FLAG_FOURTHBUTTON = &h00000080
+	Const POINTER_FLAG_FIFTHBUTTON = &h00000100
+	Const POINTER_FLAG_PRIMARY = &h00002000
+	Const POINTER_FLAG_CONFIDENCE = &h00004000
+	Const POINTER_FLAG_CANCELED = &h00008000
+	Const POINTER_FLAG_DOWN = &h00010000
+	Const POINTER_FLAG_UPDATE = &h00020000
+	Const POINTER_FLAG_UP = &h00040000
+	Const POINTER_FLAG_WHEEL = &h00080000
+	Const POINTER_FLAG_HWHEEL = &h00100000
+	Const POINTER_FLAG_CAPTURECHANGED = &h00200000
+	Const POINTER_MOD_SHIFT = &h0004
+	Const POINTER_MOD_CTRL = &h0008
+	
+	Type POINTER_FLAGS As UINT32
+	Type TOUCH_FLAGS As UINT32
+	Type TOUCH_MASK As UINT32
+	Type PEN_FLAGS As UINT32
+	Type PEN_MASK As UINT32
+		
+	Type POINTER_INPUT_TYPE As Long
+	Enum
+		PT_POINTER = &h00000001
+		PT_TOUCH = &h00000002
+		PT_PEN = &h00000003
+		PT_MOUSE = &h00000004
+	End Enum
+	
+	Type POINTER_BUTTON_CHANGE_TYPE As Long
+	Enum
+		POINTER_CHANGE_NONE
+		POINTER_CHANGE_FIRSTBUTTON_DOWN
+		POINTER_CHANGE_FIRSTBUTTON_UP
+		POINTER_CHANGE_SECONDBUTTON_DOWN
+		POINTER_CHANGE_SECONDBUTTON_UP
+		POINTER_CHANGE_THIRDBUTTON_DOWN
+		POINTER_CHANGE_THIRDBUTTON_UP
+		POINTER_CHANGE_FOURTHBUTTON_DOWN
+		POINTER_CHANGE_FOURTHBUTTON_UP
+		POINTER_CHANGE_FIFTHBUTTON_DOWN
+		POINTER_CHANGE_FIFTHBUTTON_UP
+	End Enum
+		
+	Type POINTER_INFO
+		pointerType As POINTER_INPUT_TYPE
+		pointerId As UINT32
+		frameId As UINT32
+		pointerFlags As POINTER_FLAGS
+		sourceDevice As HANDLE
+		hwndTarget As HWND
+		ptPixelLocation As Point
+		ptHimetricLocation As Point
+		ptPixelLocationRaw As Point
+		ptHimetricLocationRaw As Point
+		dwTime As DWORD
+		historyCount As UINT32
+		InputData As INT32
+		dwKeyStates As DWORD
+		PerformanceCount As UINT64
+		ButtonChangeType As POINTER_BUTTON_CHANGE_TYPE
+	End Type
+	
+	Type HGESTUREINFO__
+		unused As Long
+	End Type
+	
+	Type HGESTUREINFO As HGESTUREINFO__ Ptr
+	
+	Type tagGESTUREINFO
+		cbSize As UINT
+		dwFlags As DWORD
+		dwID As DWORD
+		hwndTarget As HWND
+		ptsLocation As POINTS
+		dwInstanceID As DWORD
+		dwSequenceID As DWORD
+		ullArguments As ULONGLONG
+		cbExtraArgs As UINT
+	End Type
+	
+	Type GESTUREINFO As tagGESTUREINFO
+	Type PGESTUREINFO As tagGESTUREINFO Ptr
+	Type PCGESTUREINFO As Const GESTUREINFO Ptr
+	
+	Const GF_BEGIN = &h00000001
+	Const GF_INERTIA = &h00000002
+	Const GF_END = &h00000004
+	Const GID_BEGIN = 1
+	Const GID_END = 2
+	Const GID_ZOOM = 3
+	Const GID_PAN = 4
+	Const GID_ROTATE = 5
+	Const GID_TWOFINGERTAP = 6
+	Const GID_PRESSANDTAP = 7
+	Const GID_ROLLOVER = GID_PRESSANDTAP
 #endif
-#define WM_DPICHANGED               &h02E0
-#define WM_DPICHANGED_BEFOREPARENT  &h02E2
-#define WM_DPICHANGED_AFTERPARENT   &h02E3
-#define WM_GETDPISCALEDSIZE         &h02E4
 
 Using My.Sys.ComponentModel
 
@@ -113,6 +234,64 @@ Namespace My.Sys.Forms
 			daCancel = 2
 		End Enum
 		
+		Enum PointerType
+			ptMouse,
+			ptTouch,
+			ptPen
+			ptUnknown
+		End Enum
+		
+		Enum PointerPhase
+			ppBegin,
+			ppMove,
+			ppHover,
+			ppEnd
+		End Enum
+		
+		Type PointerEventArgs
+			pointerType As PointerType
+			phase       As PointerPhase
+			id          As Integer      ' 0 = mouse, >0 = touch
+			x           As Double
+			y           As Double
+			buttons     As UInteger
+			modifiers   As UInteger
+			primary     As Integer
+			handled     As Boolean
+		End Type
+		
+		Enum GestureType
+			gtDirectionalPan
+			gtPan
+			gtPressAndTap
+			gtRotate
+			gtTwoFingerTap
+			gtLongPress
+			gtSwipe
+			gtZoom
+		End Enum
+		
+		Enum GesturePhase
+			gpBegin,
+			gpUpdate,
+			gpEnd
+		End Enum
+		
+		Enum Orientation
+			orHorizontal, orVertical
+		End Enum
+		
+		Type GestureEventArgs
+			As GestureType gestureType
+			As GesturePhase phase
+			As Orientation orientation
+			As Double x, y
+			As Double dx, dy
+			As Double scale
+			As Double rotation
+			As Boolean handled
+		End Type
+
 		Type DataObject
 			#ifdef __USE_WINAPI__
 				Dim As IDataObject Ptr pDataObject
@@ -125,7 +304,7 @@ Namespace My.Sys.Forms
 			Declare Sub SetData(DataType As DataFormats, pData As Any Ptr, Bytes As Integer = 0)
 			Declare Sub SetFileDropList(filePaths() As UString)
 		End Type
-	
+		
 		Private Enum StretchMode
 			smNone, smStretch, smStretchProportional
 		End Enum
@@ -229,6 +408,7 @@ Namespace My.Sys.Forms
 			Dim Shared hover_timer_id As UInteger
 		#endif
 		
+		'Defines the base class for controls, which are components with visual representation (Windows, Linux, Android, Web)
 		Private Type Control Extends Component
 		Private:
 			Tracked As Boolean
@@ -252,6 +432,20 @@ Namespace My.Sys.Forms
 				FClient As GtkWidget Ptr
 				AllocatedHeight As Integer
 				AllocatedWidth As Integer
+				#ifndef __USE_GTK2__
+					GestureDrag As GtkGesture Ptr
+					GestureLongPress As GtkGesture Ptr
+					GestureMultiPress As GtkGesture Ptr
+					GesturePanHorizontal As GtkGesture Ptr
+					GesturePanVertical As GtkGesture Ptr
+					GestureRotate As GtkGesture Ptr
+					GestureSwipe As GtkGesture Ptr
+					GestureZoom As GtkGesture Ptr
+					Declare Static Sub Gesture(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, phase As GesturePhase, user_data As Any Ptr)
+					Declare Static Sub GestureBegin(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, user_data As Any Ptr)
+					Declare Static Sub GestureUpdate(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, user_data As Any Ptr)
+					Declare Static Sub GestureEnd(self As GtkGesture Ptr, sequence As GdkEventSequence Ptr, user_data As Any Ptr)
+				#endif
 				Declare Static Sub Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Declare Static Function Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Declare Static Function Control_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
@@ -528,8 +722,12 @@ Namespace My.Sys.Forms
 			Declare Operator Let(ByRef Value As Control Ptr)
 			Declare Constructor
 			Declare Destructor
+			'Occurs when the control is clicked (Windows, Linux, Android, Web).
+			OnClick      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is created (Windows, Linux, Android, Web).
 			OnCreate     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+			'Occurs when the control is double-clicked (Windows, Linux, Web).
+			OnDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control's handle is in the process of being destroyed (Windows, Linux, Android, Web).
 			OnDestroy    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when a drag-and-drop operation is completed (Windows only).
@@ -542,12 +740,22 @@ Namespace My.Sys.Forms
 			OnDragOver   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
 			'Occurs when the user drops a file on the window of an application that has registered itself as a recipient of dropped files (Windows, Linux).
 			OnDropFile   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString)
+			'Occurs when a gesture is detected on the control (e.g., pan, zoom, rotate, two-finger tap).
+			OnGesture    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef e As GestureEventArgs)
 			'Occurs during a drag operation (Windows only).
 			OnGiveFeedback As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Effect As DragDropEffects, UseDefaultCursors As Boolean)
-			'Occurs when the control is redrawn (Windows, Linux).
-			OnPaint      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-			'Occurs during a drag-and-drop operation and enables the drag source to determine whether the drag-and-drop operation should be canceled (Windows only).
-			OnQueryContinueDrag As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Action As DragAction, EscapePressed As Boolean, KeyState As ULong)
+			'Occurs when the control receives focus (Windows, Linux, Web).
+			OnGotFocus   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux, Web).
+			OnKeyPress   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
+			'Occurs when a key is pressed while the control has focus (Windows, Linux, Web).
+			OnKeyDown    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
+			'Occurs when a key is released while the control has focus (Windows, Linux, Web).
+			OnKeyUp      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
+			'Occurs when the control loses focus (Windows, Linux, Web).
+			OnLostFocus  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+			'Occurs when the window receives a message (Windows, Linux).
+			OnMessage    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message)
 			'Occurs when the mouse pointer is moved over the control (Windows, Linux, Web).
 			OnMouseMove  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer is over the control and a mouse button is pressed (Windows, Linux, Web).
@@ -564,26 +772,20 @@ Namespace My.Sys.Forms
 			OnMouseLeave As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is moved (Windows, Linux).
 			OnMove       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control is clicked (Windows, Linux, Android, Web).
-			OnClick      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control is double-clicked (Windows, Linux, Web).
-			OnDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux, Web).
-			OnKeyPress   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
-			'Occurs when a key is pressed while the control has focus (Windows, Linux, Web).
-			OnKeyDown    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
-			'Occurs when a key is released while the control has focus (Windows, Linux, Web).
-			OnKeyUp      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
-			'Occurs when the window receives a message (Windows, Linux).
-			OnMessage    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message)
+			'Occurs when the control is redrawn (Windows, Linux).
+			OnPaint      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+			' Occurs when a pointer (mouse, touch, or pen) is pressed down on the control.
+			OnPointerDown As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef e As PointerEventArgs)
+			' Occurs when a pointer moves while pressed or in contact with the control.
+			OnPointerUpdate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef e As PointerEventArgs)
+			' Occurs when a pointer is released or contact ends on the control.
+			OnPointerUp As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef e As PointerEventArgs)
+			'Occurs during a drag-and-drop operation and enables the drag source to determine whether the drag-and-drop operation should be canceled (Windows only).
+			OnQueryContinueDrag As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Action As DragAction, EscapePressed As Boolean, KeyState As ULong)
 			'Occurs when the control is resized (Windows, Linux, Android).
 			OnResize     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 			'Occurs when the scroll box has been moved by either a mouse or keyboard action (Windows, Linux).
 			OnScroll     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control receives focus (Windows, Linux, Web).
-			OnGotFocus   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control loses focus (Windows, Linux, Web).
-			OnLostFocus  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		End Type
 		
 		Dim Shared CreationControl As Control Ptr
@@ -596,6 +798,9 @@ End Namespace
 #ifdef __USE_WINAPI__
 	#include once "CDropTarget/CDropTarget.bas"
 	#include once "CDropSource/CDropSource.bas"
+	Dim Shared GetPointerInfo As Function(ByVal pointerId As UINT32, ByVal pointerInfo As POINTER_INFO Ptr) As WINBOOL
+	Dim Shared GetGestureInfo As Function(ByVal HGESTUREINFO As HGESTUREINFO, ByVal PGESTUREINFO As PGESTUREINFO) As WINBOOL
+	Dim Shared CloseGestureInfoHandle As Function(ByVal HGESTUREINFO As HGESTUREINFO) As WINBOOL
 #endif
 
 #ifdef __EXPORT_PROCS__

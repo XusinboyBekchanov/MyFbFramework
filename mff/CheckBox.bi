@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 	#define QCheckBox(__Ptr__) (*Cast(CheckBox Ptr,__Ptr__))
 	
 	'`CheckBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`CheckBox` - Displays an V when selected; the V disappears when the CheckBox is cleared.
+	'`CheckBox` - Displays an V when selected; the V disappears when the CheckBox is cleared (Windows, Linux, Android, Web).
 	Private Type CheckBox Extends Control
 	Private:
 		FAlignment  As Integer

@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`Label` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Label` - Displays text that a user can't change directly.
+	'`Label` - Displays text that a user can't change directly (Windows, Linux, Android, Web).
 	Private Type Label Extends Control
 	Private:
 		FBorder           As Integer

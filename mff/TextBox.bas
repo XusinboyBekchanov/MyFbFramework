@@ -945,6 +945,7 @@ Namespace My.Sys.Forms
 				widget = WidgetTextView
 				scrolledwidget = WidgetScrolledWindow
 				gtk_widget_hide(WidgetEntry)
+				gtk_widget_set_no_show_all(WidgetEntry, True)
 				If CInt(gtk_widget_get_parent(scrolledwidget) = 0) AndAlso CInt(This.Parent) AndAlso CInt(This.Parent->layoutwidget) Then
 					gtk_layout_put(GTK_LAYOUT(This.Parent->layoutwidget), scrolledwidget, FLeft, FTop)
 				End If
@@ -960,6 +961,7 @@ Namespace My.Sys.Forms
 			Else
 				widget = WidgetEntry
 				gtk_widget_hide(scrolledwidget)
+				gtk_widget_set_no_show_all(scrolledwidget, True)
 				SetBounds(FLeft, FTop, FWidth, FHeight)
 				Dim As GtkTextIter _start, _end
 				gtk_text_buffer_get_bounds(buffer, @_start, @_end)
@@ -1021,7 +1023,11 @@ Namespace My.Sys.Forms
 				gtk_editable_set_position(GTK_EDITABLE(widget), Value)
 			Else
 				Dim As GtkTextIter _start
-				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, Value)
+				Dim As Integer Value_ = Value
+				Dim length As Integer = gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)))
+				If Value_ < 0 Then Value_ = 0
+				If Value_ > length Then Value_ = length
+				gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, Value_)
 				gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_start)
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -1251,6 +1257,7 @@ Namespace My.Sys.Forms
 			Select Case message.Event->type
 			Case GDK_KEY_PRESS
 				If FWantReturn = False AndAlso Asc(*e->key.string) = 13 Then
+					If OnActivate Then OnActivate(*Designer, This)
 					message.Result = True
 				End If
 			End Select
@@ -1573,7 +1580,7 @@ Namespace My.Sys.Forms
 			g_signal_connect(GTK_WIDGET(WidgetTextView), "paste-clipboard", G_CALLBACK(@Entry_PasteClipboard), @This)
 			#ifdef __USE_GTK3__
 				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
-				g_signal_connect(gtk_scrollable_get_vadjustment(gtk_scrollable(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
+				g_signal_connect(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(WidgetTextView)), "value-changed", G_CALLBACK(@Adjustment_ValueChanged), @This)
 			#else
 				g_signal_connect(GTK_WIDGET(WidgetTextView), "set-scroll-adjustments", G_CALLBACK(@TextView_SetScrollAdjustments), @This)
 			#endif

@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	#define QRichTextBox(__Ptr__) (*Cast(RichTextBox Ptr,__Ptr__))
 	
 	'`RichTextBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`RichTextBox` - The RichTextBox control enables you to display or edit flow content including paragraphs, images, tables, and more.
+	'`RichTextBox` - The RichTextBox control enables you to display or edit flow content including paragraphs, images, tables, and more (Windows, Linux).
 	Private Type RichTextBox Extends TextBox
 	Private:
 		#ifndef __USE_GTK__

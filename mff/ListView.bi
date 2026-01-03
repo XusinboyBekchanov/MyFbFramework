@@ -253,8 +253,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`ListView` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ListView` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ListView` - Represents a control that displays a list of data items.
+	'`ListView` - Represents a control that displays a list of data items (Windows, Linux, Android).
 	Private Type ListView Extends Control
 	Private:
 		FAllowColumnReorder As Boolean

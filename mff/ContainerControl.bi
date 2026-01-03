@@ -9,6 +9,7 @@
 Namespace My.Sys.Forms
 	#define QContainerControl(__Ptr__) (*Cast(ContainerControl Ptr,__Ptr__))
 	
+	'Provides the base class for the containers (Windows, Linux, Android, Web).
 	Private Type ContainerControl Extends Control
 	Private:
 	Protected:

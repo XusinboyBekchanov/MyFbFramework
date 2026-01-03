@@ -148,6 +148,58 @@ Namespace My.Sys.Forms
 			InternetCloseHandle(hRequest)
 			InternetCloseHandle(hConnect)
 			InternetCloseHandle(hSession)
+		#elseif defined(__USE_GTK__)
+			Dim out As GOutputStream Ptr
+			Dim inp As GInputStream Ptr
+			Dim client As GSocketClient Ptr = g_socket_client_new()
+			g_socket_client_set_family(client, G_SOCKET_FAMILY_IPV4)
+			Dim As GError Ptr error_ = NULL
+			Dim socket As GSocketConnection Ptr = g_socket_client_connect_to_host(client, Host, Port, 0, @error_)
+			If socket = 0 Then
+				Print "Error: " & *error_->message
+				g_error_free(error_)
+				Return
+			End If
+			Dim tls_conn As GIOStream Ptr
+			If Port = 443 Then
+				tls_conn = g_tls_client_connection_new(Cast(GIOStream Ptr, socket), 0, @error_)
+				If tls_conn = 0 Then
+					Print "Error: " & *error_->message
+					g_error_free(error_)
+					Return
+				End If
+				g_tls_client_connection_set_server_identity(G_TLS_CLIENT_CONNECTION(tls_conn), G_SOCKET_CONNECTABLE(g_network_address_new(Host, Port)))
+				out = g_io_stream_get_output_stream(tls_conn)
+				inp = g_io_stream_get_input_stream(tls_conn)
+			Else
+				out = g_io_stream_get_output_stream(G_IO_STREAM(socket))
+				inp = g_io_stream_get_input_stream(G_IO_STREAM(socket))
+			End If
+			
+			Dim body As String = Request.Body
+			Dim strrequest As String
+			strrequest = UCase(HTTPMethod) & " /" & Request.ResourceAddress & " HTTP/1.1" & Chr(13) & Chr(10)
+			strrequest += "Host: " & Host & Chr(13) & Chr(10)
+			strrequest += Request.Headers
+			strrequest += "Content-Length: " & Str(Len(body)) & Chr(13) & Chr(10)
+			strrequest += "Connection: close" & Chr(13) & Chr(10) & Chr(13) & Chr(10)
+			strrequest += body
+			
+			Dim bytes_written As Long = g_output_stream_write(out, StrPtr(strrequest), Len(strrequest), 0, 0)
+			
+			Dim buffer As ZString * 1024
+			Dim bytes_read As Long
+			Do
+				bytes_read = g_input_stream_read(inp, @buffer, 1024, 0, 0)
+				If bytes_read > 0 Then
+					Responce.Body &= bytes_read
+					If OnReceive Then OnReceive(*Designer, This, Request, buffer)
+				End If
+			Loop Until bytes_read <= 0
+			
+			g_object_unref(tls_conn)
+			g_object_unref(socket)
+			g_object_unref(client)
 		#endif
 	End Sub
 	

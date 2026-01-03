@@ -11,7 +11,7 @@
 
 Using My.Sys.Forms
 
-'Represents the raw preview part of print previewing from an application.
+'Represents the raw preview part of print previewing from an application (Windows only).
 Private Type PrintPreviewDialog Extends Dialog
 Private:
 	Declare Sub lblMinus_Click(ByRef Sender As Control)
