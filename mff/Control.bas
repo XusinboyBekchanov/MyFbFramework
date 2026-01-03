@@ -1922,96 +1922,97 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				'Case WM_TOUCH
-				'Case WM_POINTERDOWN, WM_POINTERUPDATE, WM_POINTERUP
-				'	If OnPointerDown = 0 AndAlso OnPointerUpdate = 0 AndAlso OnPointerUp = 0 Then
-				'		Return
-				'	End If
-				'	If GetPointerInfo = 0 Then
-				'		Return
-				'	End If
-				'	Dim info As POINTER_INFO
-				'	GetPointerInfo(Message.wParamLo, @info)
-				'	Dim e As PointerEventArgs
-				'	e.id = info.pointerId
-				'	e.x = info.ptPixelLocation.X
-				'	e.y = info.ptPixelLocation.Y
-				'	Select Case info.pointerType
-				'	Case PT_MOUSE:      e.pointerType = ptMouse
-				'	Case PT_TOUCH:      e.pointerType = ptTouch
-				'	Case PT_PEN:        e.pointerType = ptPen
-				'	Case PT_POINTER:    e.pointerType = ptUnknown
-				'	End Select
-				'	e.buttons = 0
-				'	Select Case info.pointerType
-				'	Case PT_MOUSE
-				'		If info.pointerFlags And POINTER_FLAG_FIRSTBUTTON Then e.buttons = e.buttons Or 1
-				'		If info.pointerFlags And POINTER_FLAG_SECONDBUTTON Then e.buttons = e.buttons Or 2
-				'		If info.pointerFlags And POINTER_FLAG_THIRDBUTTON Then e.buttons = e.buttons Or 4
-				'	Case PT_TOUCH
-				'		e.buttons = 1 ' палец = одна кнопка
-				'	Case PT_PEN
-				'		e.buttons = 1 ' перо = основная кнопка
-				'	End Select
-				'	e.modifiers = Message.wParam And &HFFFF
-				'	e.primary = IIf(info.pointerFlags And POINTER_FLAG_PRIMARY, 1, 0)
-				'	Select Case Message.Msg
-				'	Case WM_POINTERDOWN
-				'		e.phase = PointerPhase.ppBegin
-				'		If OnPointerDown Then OnPointerDown(*Designer, This, e)
-				'	Case WM_POINTERUPDATE
-				'		If info.pointerFlags And POINTER_FLAG_INCONTACT Then
-				'			e.phase = PointerPhase.ppMove
-				'		Else
-				'			e.phase = PointerPhase.ppHover
-				'		End If
-				'		If OnPointerUpdate Then OnPointerUpdate(*Designer, This, e)
-				'	Case WM_POINTERUP
-				'		e.phase = PointerPhase.ppEnd
-				'		If OnPointerUp Then OnPointerUp(*Designer, This, e)
-				'	End Select
-				'	If e.handled Then
-				'		Message.Result = 0
-				'	End If
-				'Case WM_GESTURE
-				'	If OnGesture = 0 Then
-				'		Return
-				'	End If
-				'	If GetGestureInfo = 0 OrElse CloseGestureInfoHandle = 0 Then
-				'		Return
-				'	End If
-				'	Dim As GESTUREINFO gi
-				'	gi.cbSize = SizeOf(GESTUREINFO)
-				'	GetGestureInfo(Cast(HGESTUREINFO, Message.lParam), @gi)
-				'	Dim e As GestureEventArgs
-				'	If (gi.dwFlags And GF_BEGIN) = GF_BEGIN Then
-				'		e.phase = GesturePhase.gpBegin
-				'	ElseIf (gi.dwFlags And GF_INERTIA) = GF_INERTIA Then
-				'		e.phase = GesturePhase.gpUpdate
-				'	ElseIf(gi.dwFlags And GF_END) = GF_END Then
-				'		e.phase = GesturePhase.gpEnd
-				'	Else
-				'		e.phase = GesturePhase.gpUpdate
-				'	End If
-				'	e.x = gi.ptsLocation.x
-				'	e.y = gi.ptsLocation.y
-				'	e.dx = LoWord(gi.ullArguments)
-				'	e.dy = HiWord(gi.ullArguments)
-				'	e.scale = gi.ullArguments / 100.0
-				'	e.rotation = gi.ullArguments / 100.0
-				'	Select Case gi.dwID
-				'	Case GID_BEGIN:
-				'	Case GID_END:
-				'	Case GID_ZOOM: e.gestureType = GestureType.gtZoom
-				'	Case GID_PAN: e.gestureType = GestureType.gtPan
-				'	Case GID_ROTATE: e.gestureType = GestureType.gtRotate
-				'	Case GID_TWOFINGERTAP: e.gestureType = GestureType.gtTwoFingerTap
-				'	Case GID_PRESSANDTAP: e.gestureType = GestureType.gtPressAndTap
-				'	End Select
-				'	CloseGestureInfoHandle(Cast(HGESTUREINFO, Message.lParam))
-				'	If e.handled Then
-				'		Message.Result = 0
-				'	End If
-				'Case WM_GESTURENOTIFY
+				Case WM_POINTERDOWN, WM_POINTERUPDATE, WM_POINTERUP
+					If OnPointerDown = 0 AndAlso OnPointerUpdate = 0 AndAlso OnPointerUp = 0 Then
+						Return
+					End If
+					If GetPointerInfo = 0 Then
+						Return
+					End If
+					Dim info As POINTER_INFO
+					GetPointerInfo(Message.wParamLo, @info)
+					Dim e As PointerEventArgs
+					e.id = info.pointerId
+					e.x = info.ptPixelLocation.X
+					e.y = info.ptPixelLocation.Y
+					Select Case info.pointerType
+					Case PT_MOUSE:      e.pointerType = ptMouse
+					Case PT_TOUCH:      e.pointerType = ptTouch
+					Case PT_PEN:        e.pointerType = ptPen
+					Case PT_POINTER:    e.pointerType = ptUnknown
+					End Select
+					e.buttons = 0
+					Select Case info.pointerType
+					Case PT_MOUSE
+						If info.pointerFlags And POINTER_FLAG_FIRSTBUTTON Then e.buttons = e.buttons Or 1
+						If info.pointerFlags And POINTER_FLAG_SECONDBUTTON Then e.buttons = e.buttons Or 2
+						If info.pointerFlags And POINTER_FLAG_THIRDBUTTON Then e.buttons = e.buttons Or 4
+					Case PT_TOUCH
+						e.buttons = 1 ' палец = одна кнопка
+					Case PT_PEN
+						e.buttons = 1 ' перо = основная кнопка
+					End Select
+					e.modifiers = Message.wParam And &HFFFF
+					e.primary = IIf(info.pointerFlags And POINTER_FLAG_PRIMARY, 1, 0)
+					Select Case Message.Msg
+					Case WM_POINTERDOWN
+						e.phase = PointerPhase.ppBegin
+						If OnPointerDown Then OnPointerDown(*Designer, This, e)
+					Case WM_POINTERUPDATE
+						If info.pointerFlags And POINTER_FLAG_INCONTACT Then
+							e.phase = PointerPhase.ppMove
+						Else
+							e.phase = PointerPhase.ppHover
+						End If
+						If OnPointerUpdate Then OnPointerUpdate(*Designer, This, e)
+					Case WM_POINTERUP
+						e.phase = PointerPhase.ppEnd
+						If OnPointerUp Then OnPointerUp(*Designer, This, e)
+					End Select
+					If e.handled Then
+						Message.Result = 0
+					End If
+				Case WM_GESTURENOTIFY
+				Case WM_GESTURE
+					If OnGesture = 0 Then
+						Return
+					End If
+					If GetGestureInfo = 0 OrElse CloseGestureInfoHandle = 0 Then
+						Return
+					End If
+					Dim As GESTUREINFO gi
+					gi.cbSize = SizeOf(GESTUREINFO)
+					GetGestureInfo(Cast(HGESTUREINFO, Message.lParam), @gi)
+					Dim e As GestureEventArgs
+					If (gi.dwFlags And GF_BEGIN) = GF_BEGIN Then
+						e.phase = GesturePhase.gpBegin
+					ElseIf (gi.dwFlags And GF_INERTIA) = GF_INERTIA Then
+						e.phase = GesturePhase.gpUpdate
+					ElseIf(gi.dwFlags And GF_END) = GF_END Then
+						e.phase = GesturePhase.gpEnd
+					Else
+						e.phase = GesturePhase.gpUpdate
+					End If
+					e.x = gi.ptsLocation.x
+					e.y = gi.ptsLocation.y
+					e.dx = LoWord(gi.ullArguments)
+					e.dy = HiWord(gi.ullArguments)
+					e.scale = gi.ullArguments / 100.0
+					e.rotation = gi.ullArguments / 100.0
+					Select Case gi.dwID
+					Case GID_BEGIN:
+					Case GID_END:
+					Case GID_ZOOM: e.gestureType = GestureType.gtZoom
+					Case GID_PAN: e.gestureType = GestureType.gtPan
+					Case GID_ROTATE: e.gestureType = GestureType.gtRotate
+					Case GID_TWOFINGERTAP: e.gestureType = GestureType.gtTwoFingerTap
+					Case GID_PRESSANDTAP: e.gestureType = GestureType.gtPressAndTap
+					End Select
+					CloseGestureInfoHandle(Cast(HGESTUREINFO, Message.lParam))
+					If OnGesture Then OnGesture(*Designer, This, e)
+					If e.handled Then
+						Message.Result = 0
+					End If
 				Case WM_MEASUREITEM
 					Dim As MEASUREITEMSTRUCT Ptr miStruct
 					miStruct = Cast(MEASUREITEMSTRUCT Ptr, Message.lParam)
