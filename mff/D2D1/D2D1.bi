@@ -2670,9 +2670,40 @@ Function UnloadD2D1 As Long
 	Return 0
 End Function
 
+#ifdef __USE_WINAPI__
+	Function IsWindows7OrLower() As Boolean
+		Dim ver As RTL_OSVERSIONINFOW
+		ver.dwOSVersionInfoSize = Len(ver)
+		
+		Dim RtlGetVersion As Function(ByRef lpVersionInformation As RTL_OSVERSIONINFOW) As Long
+		Var hntdll = DyLibLoad("ntdll.dll")
+		If hntdll = 0 Then
+			Return False
+		End If
+		
+		RtlGetVersion = DyLibSymbol(hntdll, "RtlGetVersion")
+		If RtlGetVersion = 0 Then
+			Return False
+		End If
+		
+		If RtlGetVersion(ver) <> 0 Then
+			Return False
+		End If
+		
+		If ver.dwMajorVersion < 6 Then
+			Return True      ' Windows XP and lower
+		ElseIf ver.dwMajorVersion = 6 And ver.dwMinorVersion <= 1 Then
+			Return True      ' Windows Vista or Windows 7
+		End If
+		Return False         ' Windows 8 and upper
+	End Function
+#endif
+
 Function LoadD2D1 As Long
 	#ifdef __USE_WINAPI__
 		'CoInitializeEx(0, 0)
+		
+		If IsWindows7OrLower Then Return 0
 		
 		hD2D1 = DyLibLoad("d2d1.dll")
 		If hD2D1 = 0 Then Return UnloadD2D1
