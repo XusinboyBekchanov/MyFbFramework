@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 		Declare Sub AddTab(ByRef tTab As TabPage Ptr)
 		Declare Sub DeleteTab(Index As Integer)
 		Declare Sub DeleteTab(Value As TabPage Ptr)
-		Declare Sub InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)
+		Declare Function InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0) As TabPage Ptr
 		Declare Sub InsertTab(Index As Integer, ByRef tTab As TabPage Ptr)
 		Declare Sub ReorderTab(ByVal tp As TabPage Ptr, Index As Integer, bNoActivate As Boolean = False)
 		Declare Sub Clear

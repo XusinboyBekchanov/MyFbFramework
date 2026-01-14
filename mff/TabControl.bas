@@ -1122,39 +1122,48 @@ Namespace My.Sys.Forms
 		DeleteTab IndexOfTab(Value)
 	End Sub
 	
-	Private Sub TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0)
+	Private Function TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0) As TabPage Ptr
 		Dim As Integer i
 		Dim As TabPage Ptr It
 		#ifndef __USE_GTK__
 			Dim As TCITEM Ti
 			Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 		#endif
-		If Index >= 0 And Index <= FTabCount -1 Then
+		Dim As Integer iIndex = Index
+		If iIndex < 0 Then
+			iIndex = 0
+		ElseIf iIndex > FTabCount Then
+			iIndex = FTabCount
+		End If
+		'If Index >= 0 And Index <= FTabCount -1 Then
 			FTabCount += 1
 			Tabs = _Reallocate(Tabs,FTabCount*SizeOf(TabPage Ptr))
-			For i = Index To FTabCount -2
+			For i = iIndex To FTabCount - 2
 				It = Tabs[i]
 				Tabs[i + 1] = It
 				SetTabPageIndex(It, i + 1)
 			Next i
-			Tabs[Index] = _New( TabPage)
-			Tabs[Index]->FDynamic = True
-			Tabs[Index]->Caption = Caption
-			Tabs[Index]->Object = AObject
+			Tabs[iIndex] = _New( TabPage)
+			Tabs[iIndex]->FDynamic = True
+			Tabs[iIndex]->Caption = Caption
+			Tabs[iIndex]->Object = AObject
 			'Tabs[Index]->TabPageControl = @This
 			#ifndef __USE_GTK__
-				Ti.pszText    = @(Tabs[Index]->Caption)
-				Ti.cchTextMax = Len(Tabs[Index]->Caption) + 1
-				If Tabs[Index]->Object Then Ti.lParam = Cast(LPARAM, Tabs[Index]->Object)
-				Perform(TCM_INSERTITEM, Index, CInt(@Ti))
-				SetTabPageIndex(Tabs[Index], Index)
+				Ti.pszText    = @(Tabs[iIndex]->Caption)
+				Ti.cchTextMax = Len(Tabs[iIndex]->Caption) + 1
+				If Tabs[iIndex]->Object Then Ti.lParam = Cast(LPARAM, Tabs[iIndex]->Object)
+				Perform(TCM_INSERTITEM, iIndex, CInt(@Ti))
+				SetTabPageIndex(Tabs[iIndex], iIndex)
 				Ti.lParam = 0
 			#endif
 			SetMargins
-			This.Add(Tabs[Index])
-			If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[Index], Index)
-		End If
-	End Sub
+			This.Add(Tabs[iIndex])
+			Tabs[iIndex]->Visible = FTabCount = 1
+			If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[iIndex], iIndex)
+			Return Tabs[iIndex]
+		'End If
+		'Return 0
+	End Function
 	
 	Private Sub TabControl.InsertTab(Index As Integer, ByRef tp As TabPage Ptr)
 		FTabCount += 1

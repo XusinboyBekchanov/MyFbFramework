@@ -1060,6 +1060,30 @@ Namespace My.Sys.Forms
 			End If
 			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
 		End Sub
+		
+		Private Sub ToolBar.SetButtonSizes()
+			Dim As ..Rect R
+			GetWindowRect Handle, @R
+			If AutoSize Then
+				FHeight = R.Bottom - R.Top
+			End If
+			Dim As Integer ExpandCount, ButtonsWidth, SpaceWidth
+			For i As Integer = 0 To Buttons.Count - 1
+				If Buttons.Item(i)->Expand Then
+					ExpandCount += 1
+				Else
+					ButtonsWidth += Buttons.Item(i)->Width
+				End If
+			Next
+			If ExpandCount > 0 Then
+				SpaceWidth = UnScaleX(R.Right - R.Left) - ButtonsWidth
+				For i As Integer = 0 To Buttons.Count - 1
+					If Buttons.Item(i)->Expand Then
+						Buttons.Item(i)->Width = SpaceWidth / ExpandCount
+					End If
+				Next
+			End If
+		End Sub
 	#endif
 	
 	Private Sub ToolBar.ProcessMessage(ByRef Message As Message)
@@ -1077,27 +1101,7 @@ Namespace My.Sys.Forms
 				End If
 				Message.Result = 0
 			Case WM_SIZE
-				Dim As ..Rect R
-				GetWindowRect Handle, @R
-				If AutoSize Then
-					FHeight = R.Bottom - R.Top
-				End If
-				Dim As Integer ExpandCount, ButtonsWidth, SpaceWidth
-				For i As Integer = 0 To Buttons.Count - 1
-					If Buttons.Item(i)->Expand Then
-						ExpandCount += 1
-					Else
-						ButtonsWidth += Buttons.Item(i)->Width
-					End If
-				Next
-				If ExpandCount > 0 Then
-					SpaceWidth = UnScaleX(R.Right - R.Left) - ButtonsWidth
-					For i As Integer = 0 To Buttons.Count - 1
-						If Buttons.Item(i)->Expand Then
-							Buttons.Item(i)->Width = SpaceWidth / ExpandCount
-						End If
-					Next
-				End If
+				SetButtonSizes()
 			Case WM_DPICHANGED
 				Base.ProcessMessage(Message)
 				Perform(TB_SETBITMAPSIZE, 0, MAKELONG(ScaleX(FBitmapWidth), ScaleY(FBitmapHeight)))
@@ -1292,6 +1296,7 @@ Namespace My.Sys.Forms
 						If .Buttons.Item(i)->Visible AndAlso .Buttons.Item(i)->Child <> 0 Then .Buttons.Item(i)->Child = .Buttons.Item(i)->Child
 					Next i
 					If .AutoSize Then .Perform(TB_AUTOSIZE, 0, 0)
+					.SetButtonSizes()
 				#endif
 '				If .DesignMode Then
 '					.Buttons.Add

@@ -222,6 +222,7 @@ Namespace My.Sys.Forms
 		Declare Sub GetDropDownMenuItems
 		#ifdef __USE_WINAPI__
 			Declare Virtual Sub SetDark(Value As Boolean)
+			Declare Sub SetButtonSizes()
 		#endif
 	Public:
 		#ifndef ReadProperty_Off
