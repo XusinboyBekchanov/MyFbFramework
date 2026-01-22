@@ -1162,7 +1162,7 @@ Namespace My.Sys.Forms
 					gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
 					'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
 					gtk_widget_show_all(tp->_Box)
-					gtk_notebook_append_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box)
+					gtk_notebook_insert_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box, iIndex)
 					gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
 					gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 					'gtk_notebook_append_page(gtk_notebook(widget), tp->widget, gtk_label_new(ToUTF8(Caption)))
