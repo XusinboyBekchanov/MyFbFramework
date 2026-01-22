@@ -416,10 +416,11 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEx.Text ByRef As WString
 		If This.FStyle >= cbDropDownList Then
-			If This.ItemIndex = -1 Then
+			Var iItem = This.Items.Item(This.ItemIndex)
+			If iItem = 0 Then
 				FText = ""
 			Else
-				FText = This.Items.Item(This.ItemIndex)->Text
+				FText = iItem->Text
 			End If
 		Else
 			#ifdef __USE_WINAPI__

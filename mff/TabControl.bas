@@ -1124,7 +1124,7 @@ Namespace My.Sys.Forms
 	
 	Private Function TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0) As TabPage Ptr
 		Dim As Integer i
-		Dim As TabPage Ptr It
+		Dim As TabPage Ptr It, tp
 		#ifndef __USE_GTK__
 			Dim As TCITEM Ti
 			Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
@@ -1143,23 +1143,42 @@ Namespace My.Sys.Forms
 				Tabs[i + 1] = It
 				SetTabPageIndex(It, i + 1)
 			Next i
-			Tabs[iIndex] = _New( TabPage)
-			Tabs[iIndex]->FDynamic = True
-			Tabs[iIndex]->Caption = Caption
-			Tabs[iIndex]->Object = AObject
-			'Tabs[Index]->TabPageControl = @This
-			#ifndef __USE_GTK__
-				Ti.pszText    = @(Tabs[iIndex]->Caption)
-				Ti.cchTextMax = Len(Tabs[iIndex]->Caption) + 1
-				If Tabs[iIndex]->Object Then Ti.lParam = Cast(LPARAM, Tabs[iIndex]->Object)
+			tp = _New( TabPage)
+			Tabs[iIndex] = tp
+			tp->FDynamic = True
+			tp->Caption = Caption
+			tp->Object = AObject
+			'tp->TabPageControl = @This
+			#ifdef __USE_GTK__
+				If widget Then
+					#ifdef __USE_GTK3__
+						tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					#else
+						tp->_Box = gtk_hbox_new(False, 1)
+					#endif
+					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+					gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
+					tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
+					gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
+					'gtk_box_pack_end (GTK_BOX (tp->_box), tp->_label, TRUE, TRUE, 0)
+					gtk_widget_show_all(tp->_Box)
+					gtk_notebook_append_page(GTK_NOTEBOOK(widget), tp->widget, tp->_Box)
+					gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(widget), tp->widget, FReorderable)
+					gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
+					'gtk_notebook_append_page(gtk_notebook(widget), tp->widget, gtk_label_new(ToUTF8(Caption)))
+				End If
+			#else
+				Ti.pszText    = @(tp->Caption)
+				Ti.cchTextMax = Len(tp->Caption) + 1
+				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Perform(TCM_INSERTITEM, iIndex, CInt(@Ti))
-				SetTabPageIndex(Tabs[iIndex], iIndex)
+				SetTabPageIndex(tp, iIndex)
 				Ti.lParam = 0
 			#endif
 			SetMargins
-			This.Add(Tabs[iIndex])
-			Tabs[iIndex]->Visible = FTabCount = 1
-			If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[iIndex], iIndex)
+			This.Add(tp)
+			tp->Visible = FTabCount = 1
+			If OnTabAdded Then OnTabAdded(*Designer, This, tp, iIndex)
 			Return Tabs[iIndex]
 		'End If
 		'Return 0
