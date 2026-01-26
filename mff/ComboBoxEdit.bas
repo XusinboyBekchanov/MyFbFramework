@@ -877,7 +877,7 @@ Namespace My.Sys.Forms
 			.Width          = 121
 			#ifdef __USE_GTK__
 				#ifndef __USE_GTK3__
-					.FMinHeight     = 28
+					.FMinHeight     = 33
 				#endif
 				.Height        = 20
 			#else

@@ -755,6 +755,8 @@ Namespace My.Sys.Forms
 			OnGiveFeedback As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Effect As DragDropEffects, UseDefaultCursors As Boolean)
 			'Occurs when the control receives focus (Windows, Linux, Web).
 			OnGotFocus   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+			'Occurs when the Visible property value changes to false (Windows, Linux).
+			OnHide       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux, Web).
 			OnKeyPress   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 			'Occurs when a key is pressed while the control has focus (Windows, Linux, Web).
@@ -795,6 +797,8 @@ Namespace My.Sys.Forms
 			OnResize     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 			'Occurs when the scroll box has been moved by either a mouse or keyboard action (Windows, Linux).
 			OnScroll     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+			'Occurs when the Visible property value changes to true (Windows, Linux).
+			OnShow       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		End Type
 		
 		Dim Shared CreationControl As Control Ptr

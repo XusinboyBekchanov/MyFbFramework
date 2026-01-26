@@ -233,6 +233,9 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "SearchBox")
 			Child       = @This
 			Width       = 121
+			#ifdef __USE_GTK2__
+				.FMinHeight = 33
+			#endif
 			Height      = ScaleY(Font.Size / 72 * 96 + 6) '21
 		End With
 	End Constructor

@@ -1578,7 +1578,9 @@ Namespace My.Sys.Forms
 							End If
 						#endif
 					End If
+					If OnShow Then OnShow(*Designer, This)
 				Case GDK_UNMAP
+					If OnHide Then OnHide(*Designer, This)
 				Case GDK_VISIBILITY_NOTIFY
 				Case GDK_PROPERTY_NOTIFY
 				Case GDK_SELECTION_CLEAR
@@ -1635,6 +1637,12 @@ Namespace My.Sys.Forms
 						If ClassName <> "Form" AndAlso ClassName <> "GroupBox" Then
 							Message.Result = HTTRANSPARENT
 						End If
+					End If
+				Case WM_SHOWWINDOW
+					If Message.wParam Then
+						If OnShow Then OnShow(*Designer, This)
+					Else
+						If OnHide Then OnHide(*Designer, This)
 					End If
 				Case WM_ERASEBKGND
 					If ClassName <> "ListControl" AndAlso Not FCreated Then
@@ -3080,18 +3088,27 @@ Namespace My.Sys.Forms
 						If Height > MaxHeight + Height - iClientHeight Then
 							If MaxHeight + Height - iClientHeight <> 0 Then
 								Height = MaxHeight + Height - iClientHeight
+								#ifndef __USE_GTK2__
+									If Parent Then Parent->RequestAlign
+								#endif
 							End If
 						End If
 					ElseIf GTK_IS_WINDOW(widget) Then
 						If Height <> MaxHeight + Height - iClientHeight OrElse Width <> MaxWidth + Width - iClientWidth  Then
 							If MaxHeight + Height - iClientHeight <> 0 AndAlso MaxWidth + Width - iClientWidth <> 0 Then
 								Move FLeft, FTop, MaxWidth + Width - iClientWidth, MaxHeight + Height - iClientHeight
+								#ifndef __USE_GTK2__
+									If Parent Then Parent->RequestAlign
+								#endif
 							End If
 						End If
 					Else
 						If Height <> MaxHeight + Height - iClientHeight Then
 							If MaxHeight + Height - iClientHeight <> 0 Then
 								Height = MaxHeight + Height - iClientHeight
+								#ifndef __USE_GTK2__
+									If Parent Then Parent->RequestAlign
+								#endif
 							End If
 						End If
 					End If
