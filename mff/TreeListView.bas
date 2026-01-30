@@ -1953,7 +1953,7 @@ Namespace My.Sys.Forms
 						lvc.iSubItem         = i
 						Var iWidth = .Columns.Column(i)->Width
 						ListView_InsertColumn(.FHandle, i, @lvc)
-						ListView_SetColumnWidth(.FHandle, i, .ScaleX(iWidth))
+						If iWidth >= 0 Then ListView_SetColumnWidth(.FHandle, i, .ScaleX(iWidth))
 					Next i
 					For i As Integer = 0 To .Nodes.Count -1
 						Dim lvi As LVITEM
