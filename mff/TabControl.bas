@@ -747,7 +747,11 @@ Namespace My.Sys.Forms
 				If Images Then Images->SetImageSize Images->ImageWidth, Images->ImageHeight, xdpi, ydpi
 				If Images AndAlso Images->Handle Then Perform(TCM_SETIMAGELIST, 0, CInt(Images->Handle))
 			Case CM_DRAWITEM
-				If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					Message.Result = -1
+					Exit Sub
+				End If
+				If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then
 					Dim As LOGFONT LogRec
 					Dim As HFONT OldFontHandle, NewFontHandle
 					Dim hdc As HDC
@@ -776,7 +780,7 @@ Namespace My.Sys.Forms
 					Message.Result = -1
 					Exit Sub
 				End If
-			Case WM_PAINT
+			Case WM_PAINT, WM_NCPAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
 					If Not FDarkMode Then
 						FDarkMode = True
@@ -796,7 +800,7 @@ Namespace My.Sys.Forms
 					FillRect Dc, @Ps.rcPaint, Brush.Handle
 					Dim As LOGFONT LogRec
 					Dim As HFONT OldFontHandle, NewFontHandle
-					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+					If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then
 						GetObject Font.Handle, SizeOf(LogRec), @LogRec
 						LogRec.lfEscapement = 90 * 10
 						NewFontHandle = CreateFontIndirect(@LogRec)
@@ -812,7 +816,7 @@ Namespace My.Sys.Forms
 						If i = SelectedTabIndex Then
 							FillRect(Dc, @R, hbrHlBkgnd)
 						End If
-						If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+						If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then
 							.TextOut(Dc, IIf(FTabPosition = tpLeft, ScaleX(2), ScaleX(This.Width - ItemWidth(i))), ScaleY(ItemTop(i) + ItemHeight(i) - 5), Tabs[i]->Caption, Len(Tabs[i]->Caption))
 						Else
 							If Images Then
@@ -825,7 +829,7 @@ Namespace My.Sys.Forms
 					Next i
 					SetBkMode(Dc, OPAQUE)
 					NewFontHandle = SelectObject(Dc, OldFontHandle)
-					If FTabPosition = tpLeft Or FTabPosition = tpRight Then
+					If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then
 						DeleteObject(NewFontHandle)
 					End If
 					Canvas.UnSetHandle
