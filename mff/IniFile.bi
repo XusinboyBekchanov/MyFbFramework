@@ -31,7 +31,7 @@ Public:
 	Declare Property SectionCount As Integer
 	Declare Property SectionCount(Value As Integer)
 	Declare Sub Load(ByRef FileName As WString = "")
-	Declare Sub WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
+	Declare Sub WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer, InHexValue As Boolean = False)
 	Declare Sub WriteFloat(ByRef Section As WString, ByRef Key As WString, Value As Double)
 	Declare Sub WriteBool(ByRef Section As WString, ByRef Key As WString, Value As Boolean)
 	Declare Sub WriteString(ByRef Section As WString, ByRef Key As WString, ByRef Value As WString)

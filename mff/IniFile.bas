@@ -137,13 +137,19 @@ Private Sub IniFile.Update
 	_Deallocate(wData)
 End Sub
 
-Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer)
+Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString, Value As Integer, InHexValue As Boolean = False)
 	Dim As Integer SecIndex, KeyIndex
+	Dim As String StrValue
+	If InHexValue AndAlso Value >= 0 Then
+		StrValue = "&H" & Hex(Value, 6)
+	Else
+		StrValue = Str(Value)
+	End If
 	SecIndex = SectionExists(Section)
 	If SecIndex <> -1 Then
 		KeyIndex = KeyExists(Section,Key)
 		If KeyIndex <> -1 Then
-			FLines.Item(KeyIndex) = Key & "=" & Str(Value)
+			FLines.Item(KeyIndex) = Key & "=" & StrValue
 			Update
 		Else
 			If SecIndex < FLines.Count -1 Then
@@ -160,17 +166,17 @@ Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString,
 					FLines.Add Key & "=" & WStr(Value)
 					Update
 				Else
-					FLines.Insert LastIndex, Key & "=" & WStr(Value)
+					FLines.Insert LastIndex, Key & "=" & StrValue
 				End If
 				Update
 			Else
-				FLines.Add Key & "=" & WStr(Value)
+				FLines.Add Key & "=" & StrValue
 				Update
 			End If
 		End If
 	Else
 		FLines.Add "[" & Section & "]"
-		FLines.Add Key & "=" & WStr(Value)
+		FLines.Add Key & "=" & StrValue
 		Update
 	End If
 End Sub
