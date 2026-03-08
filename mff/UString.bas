@@ -101,6 +101,7 @@ End Function
 	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 	#define ZLet(subject, txt) Scope: Dim As String txt1 = txt: subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): If subject Then: *subject = txt1: End If: End Scope
 	#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+	#define WAdd(subject, txt) Scope: Dim TempWStr As WString Ptr: WLet(TempWStr, WGet(subject) & txt): If TempWStr Then: If subject <> TempWStr Then: WDeAllocate(subject): End If: subject = TempWStr: End If: End Scope
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -136,6 +137,34 @@ End Function
 		If subject <> 0 Then _Deallocate(subject)
 		subject = 0
 	End Sub
+	
+	#ifndef WAdd_Off
+		Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
+			Dim TempWStr As WString Ptr
+			If AddBefore Then
+				WLet(TempWStr, txt & WGet(subject))
+			Else
+				WLet(TempWStr, WGet(subject) & txt)
+			End If
+			If TempWStr Then 
+				If subject <> TempWStr Then WDeAllocate(subject)
+				subject = TempWStr
+			End If
+		End Sub
+		
+		Private Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
+			Dim TempWStr As ZString Ptr
+			If AddBefore Then
+				ZLet(TempWStr, txt & ZGet(subject))
+			Else
+				ZLet(TempWStr, ZGet(subject) & txt)
+			End If
+			If TempWStr Then 
+				If subject <> TempWStr Then _Deallocate((subject))
+				subject = TempWStr
+			End If
+		End Sub
+	#endif
 #endif
 
 Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
@@ -161,31 +190,6 @@ Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, AllowSelf
 		If subject Then *subject = txt
 	End If
 End Sub
-
-#ifndef WAdd_Off
-	Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
-		Dim TempWStr As WString Ptr
-		If AddBefore Then
-			WLet(TempWStr, txt & WGet(subject))
-		Else
-			WLet(TempWStr, WGet(subject) & txt)
-		End If
-		WDeAllocate(subject)
-		If TempWStr Then subject = TempWStr
-	End Sub
-	
-	Private Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
-		Dim TempWStr As ZString Ptr
-		If AddBefore Then
-			ZLet(TempWStr, txt & ZGet(subject))
-		Else
-			ZLet(TempWStr, ZGet(subject) & txt)
-		End If
-		_Deallocate((subject))
-		If TempWStr Then subject = TempWStr
-	End Sub
-	
-#endif
 
 Private Sub UString.Resize(NewLength As Integer)
 	'If NewLength > m_Length Then

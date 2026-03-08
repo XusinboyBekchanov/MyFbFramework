@@ -521,7 +521,7 @@ End Function
 				FItems.Add nItem
 				WLet(FText, "")
 			Else
-				WAdd FText, WChr(value[i])
+				WAdd(FText, WChr(value[i]))
 			End If
 		Next i
 		If OnChange Then OnChange(This)

@@ -92,9 +92,9 @@ Private Property WStringList.Text ByRef As WString
 	For i As Integer = 0 To FCount -1
 		If i <> FCount -1 Then
 			'WAdd FText, *Cast(WString Ptr, Items.Item(i)) + Chr(13) + Chr(10)
-			WAdd FText, Item(i) + Chr(13) + Chr(10)
+			WAdd(FText, Item(i) + Chr(13) + Chr(10))
 		Else
-			WAdd FText, Item(i)
+			WAdd(FText, Item(i))
 		End If
 	Next i
 	Return *FText
@@ -105,7 +105,7 @@ End Property
 		WLet(FText, "")
 		This.Clear
 		For i As Integer = 0 To Len(Value)
-			WAdd FText, WChr(Value[i])
+			WAdd(FText, WChr(Value[i]))
 			If Value[i] = 10 Or Value[i] = 0 Then
 				This.Add Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13))
 				WLet(FText, "")

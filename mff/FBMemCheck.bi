@@ -410,7 +410,7 @@
 				Deallocate pt 'free(pt)
 				ret = NULL
 			Else
-				If funcname = "WREALLOCATE" OrElse funcname = "WLET" Then
+				If funcname = "WREALLOCATE" OrElse funcname = "WLET" OrElse funcname = "WADD" Then
 					value = *Cast(WString Ptr, pt)
 				End If
 				

@@ -75,12 +75,12 @@ Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	Declare Sub WDeAllocate Overload(ByRef subject As WString Ptr)
 	Declare Sub ZLet(ByRef subject As ZString Ptr, ByRef txt As ZString)
 	Declare Sub ZDeAllocate(ByRef subject As ZString Ptr)
+	Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
+	Declare Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
 #endif
 Declare Sub WDeAllocateEx Overload(subject() As WString Ptr)
 'Allow subject to point to the same content as txt (default: True).
 Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, AllowSelfReference As Boolean = True)
-Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
-Declare Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
 Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) As WString Ptr
 Declare Function FromHexStrUTF8(ByRef HexString As WString) As String
