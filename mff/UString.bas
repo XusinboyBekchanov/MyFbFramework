@@ -102,6 +102,7 @@ End Function
 	#define ZLet(subject, txt) Scope: Dim As String txt1 = txt: subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): If subject Then: *subject = txt1: End If: End Scope
 	#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
 	#define WAdd(subject, txt) Scope: Dim TempWStr As WString Ptr: WLet(TempWStr, WGet(subject) & txt): If TempWStr Then: If subject <> TempWStr Then: WDeAllocate(subject): End If: subject = TempWStr: End If: End Scope
+	#define ZAdd(subject, txt) Scope: Dim TempZStr As WString Ptr: WLet(TempZStr, WGet(subject) & txt): If TempZStr Then: If subject <> TempZStr Then: WDeAllocate(subject): End If: subject = TempZStr: End If: End Scope
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -153,15 +154,15 @@ End Function
 		End Sub
 		
 		Private Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
-			Dim TempWStr As ZString Ptr
+			Dim TempZStr As ZString Ptr
 			If AddBefore Then
-				ZLet(TempWStr, txt & ZGet(subject))
+				ZLet(TempZStr, txt & ZGet(subject))
 			Else
-				ZLet(TempWStr, ZGet(subject) & txt)
+				ZLet(TempZStr, ZGet(subject) & txt)
 			End If
-			If TempWStr Then 
-				If subject <> TempWStr Then _Deallocate((subject))
-				subject = TempWStr
+			If TempZStr Then 
+				If subject <> TempZStr Then _Deallocate((subject))
+				subject = TempZStr
 			End If
 		End Sub
 	#endif
