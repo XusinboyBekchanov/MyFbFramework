@@ -1234,7 +1234,7 @@ Namespace My.Sys.Forms
 				Dim bb As SETTEXTEX
 				bb.flags = ST_DEFAULT
 				bb.codepage = CP_ACP
-				Perform(EM_GETZOOM, CInt(@FZoomwp), CInt(@FZoomLP))
+				Perform(EM_GETZOOM, CInt(@FZoomWP), CInt(@FZoomLP))
 				Perform(EM_SETTEXTEX, Cast(WPARAM, @bb), Cast(LPARAM, StrPtr(Buffer)))
 				Perform(EM_SETZOOM, FZoomWP, FZoomLP)
 			End If
@@ -1572,7 +1572,7 @@ Namespace My.Sys.Forms
 					If .MaxLength <> 0 Then
 						.MaxLength = .MaxLength
 					Else
-						.Perform(EM_EXLIMITTEXT, 0, 0)
+						.Perform(EM_EXLIMITTEXT, 0, -1)
 					End If
 					
 					If .EditStyle Then
