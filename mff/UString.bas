@@ -141,33 +141,66 @@ End Function
 	
 	#ifndef WAdd_Off
 		Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
-			Dim TempWStr As WString Ptr
-			If AddBefore Then
-				WLet(TempWStr, txt & WGet(subject))
+			Dim As Long ls = Len(txt)
+			If ls = 0 Then Return 'subject
+			Dim As Long oldLen = 0
+			If subject <> 0 Then oldLen = Len(*subject)
+			Dim As WString Ptr ResultPtr
+			Dim As Long newLen = oldLen + ls
+			If AddBefore AndAlso subject <> 0 Then
+				ResultPtr = _Allocate((newLen + 1) * SizeOf(WString) * GrowLength)
+				If ResultPtr = 0 Then Print "Memory was not allocated: " & txt : Return
+				Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString) * GrowLength)
+				If oldLen > 0 Then Fb_MemCopy((*ResultPtr)[ls], (*subject)[0], oldLen * SizeOf(WString) * GrowLength)
+				(*ResultPtr)[newLen] = 0
+				If subject <> 0 AndAlso subject <> ResultPtr Then _Deallocate(subject)
 			Else
-				WLet(TempWStr, WGet(subject) & txt)
+				If subject <> 0 Then
+					ResultPtr = _Reallocate(subject, (newLen + 1) * SizeOf(WString) * GrowLength)
+					If ResultPtr = 0 Then Print "Memory was not allocated: " & txt : Return
+					Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls * SizeOf(WString) * GrowLength)
+					(*ResultPtr)[newLen] = 0
+				Else
+					ResultPtr = _Allocate((ls + 1) * SizeOf(WString) * GrowLength)
+					If ResultPtr = 0 Then Print "Memory was not allocated: " & txt : Return
+					Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString) * GrowLength)
+					(*ResultPtr)[ls] = 0
+				End If
 			End If
-			If TempWStr Then 
-				If subject <> TempWStr Then WDeAllocate(subject)
-				subject = TempWStr
-			End If
+			subject = ResultPtr
 		End Sub
 		
 		Private Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
-			Dim TempZStr As ZString Ptr
-			If AddBefore Then
-				ZLet(TempZStr, txt & ZGet(subject))
+			Dim As Long ls = Len(txt)
+			If ls = 0 Then Return
+			Dim As Long oldLen = 0
+			If subject <> 0 Then oldLen = Len(*subject)
+			Dim As ZString Ptr ResultPtr
+			Dim As Long newLen = oldLen + ls
+			If AddBefore AndAlso subject <> 0 Then
+				ResultPtr = _Allocate((newLen + 1) * SizeOf(ZString) * GrowLength)
+				If ResultPtr = 0 Then Print "Memory was not allocated: " & txt : Return
+				Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(ZString))
+				If oldLen > 0 Then Fb_MemCopy((*ResultPtr)[ls], (*subject)[0], oldLen * SizeOf(ZString) * GrowLength)
+				(*ResultPtr)[newLen] = 0
+				If subject <> 0 AndAlso subject <> ResultPtr Then _Deallocate(subject)				
 			Else
-				ZLet(TempZStr, ZGet(subject) & txt)
+				If subject <> 0 Then
+					ResultPtr = _Reallocate(subject, (newLen + 1) * SizeOf(ZString) * GrowLength)
+					If ResultPtr = 0 Then Print "Memory was not allocated: " & txt : Return
+					Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls * SizeOf(WString) * GrowLength)
+					(*ResultPtr)[newLen] = 0
+				Else
+					ResultPtr = _Allocate((ls + 1) * SizeOf(ZString) * GrowLength)
+					If ResultPtr = 0 Then Print "Memory was not allocated: " & txt : Return
+					Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(ZString) * GrowLength)
+					(*ResultPtr)[ls] = 0
+				End If
 			End If
-			If TempZStr Then 
-				If subject <> TempZStr Then _Deallocate((subject))
-				subject = TempZStr
-			End If
+			subject = ResultPtr
 		End Sub
 	#endif
 #endif
-
 Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
 	For i As Integer = 0 To UBound(subject)
 		If subject(i) <> 0 Then _Deallocate(subject(i))
