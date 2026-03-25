@@ -59,6 +59,10 @@ Public:
 	m_BytesCount As Integer
 	
 	m_Data As WString Ptr
+	
+	m_Owner As Any Ptr
+	
+	OnChange As Sub(ByRef Sender As UString)
 Protected:
 	
 End Type

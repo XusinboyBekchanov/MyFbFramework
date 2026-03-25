@@ -288,6 +288,7 @@ Private Operator UString.Let(ByRef lhs As UString)
 		
 		If m_Data <> 0 Then
 			*m_Data = *lhs.m_Data
+			If OnChange Then OnChange(This)
 		End If
 	End If
 End Operator
@@ -297,6 +298,7 @@ Private Operator UString.Let(ByRef lhs As WString)
 	If m_Data <> 0 Then
 		*m_Data = lhs
 		m_BufferLen = Len(lhs) * 2
+		If OnChange Then OnChange(This)
 	End If
 End Operator
 
@@ -305,6 +307,7 @@ Private Operator UString.Let(ByRef Value As Const ZString)
 	If m_Data <> 0 Then
 		*m_Data = Value
 		m_BufferLen = Len(Value) * 2
+		If OnChange Then OnChange(This)
 	End If
 End Operator
 
@@ -1239,7 +1242,7 @@ End Function
 
 Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
 	Dim As Integer size
-	Dim As Integer lj = max(LBound(SubjectPtr), 0)
+	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
 	Dim As Integer uj = UBound(SubjectPtr)
 	Dim As Integer ls = Len(Delimiter)
 	
@@ -1276,7 +1279,7 @@ End Function
 
 Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As ZString Ptr
 	Dim As Integer size
-	Dim As Integer lj = max(LBound(SubjectPtr), 0)
+	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
 	Dim As Integer uj = UBound(SubjectPtr)
 	Dim As Integer ls = Len(Delimiter)
 	

@@ -412,6 +412,98 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	Private Property TextBox.Text_ ByRef As UString
+		#ifdef __USE_GTK__
+			If GTK_IS_WIDGET(widget) Then
+				If GTK_IS_TEXT_VIEW(widget) Then
+					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
+					Dim As GtkTextIter _start, _end
+					gtk_text_buffer_get_bounds(buffer, @_start, @_end)
+					FText = WStr(*gtk_text_buffer_get_text(buffer, @_start, @_end, True))
+				Else
+					#ifdef __USE_GTK4__
+						FText = WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
+					#else
+						FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
+					#endif
+				End If
+			End If
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
+			Return FText_
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				Dim As jobject CharSequence = CallObjectMethod(FHandle, "android/widget/EditText", "getText", "()Ljava/lang/CharSequence;")
+				Dim As jclass cCharSequence = (*env)->FindClass(env, "java/lang/CharSequence")
+				Dim As jmethodID mLength = (*env)->GetMethodID(env, cCharSequence, "length", "()I")
+				Dim As jmethodID mCharAt = (*env)->GetMethodID(env, cCharSequence, "charAt", "(I)C")
+				Dim As Integer length = (*env)->CallIntMethod(env, CharSequence, mLength)
+				FText = ""
+				FText.Resize length
+				For i As Integer = 0 To length - 1
+					FText.vptr[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
+				Next
+				FText.vptr[length] = 0
+			End If
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
+			Return FText_
+		#elseif defined(__USE_WASM__)
+			Dim ptr_ As ZString Ptr = GetStringValue(@This)
+			FText = *ptr_
+			FreePtr(ptr_)
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
+			Return FText_
+		#else
+			Base.Text
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
+			Return FText_
+		#endif
+	End Property
+	
+	Private Sub TextBox.OnTextChanged(ByRef Sender As UString)
+		Dim As Control Ptr Owner = Cast(Control Ptr, Sender.m_Owner)
+		Owner->Text = Sender
+		#ifdef __USE_GTK__
+			If GTK_IS_TEXT_VIEW(widget) Then
+				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
+				If Sender = "" Then
+					gtk_text_buffer_set_text(buffer, !"\0", -1)
+				Else
+					gtk_text_buffer_set_text(buffer, ToUtf8(Sender), -1)
+				End If
+			Else
+				If Sender = "" Then
+					#ifdef __USE_GTK4__
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), !"\0", -1)
+					#else
+						gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
+					#endif
+				Else
+					#ifdef __USE_GTK4__
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(Sender), -1)
+					#else
+						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Sender))
+					#endif
+				End If
+			End If
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(Sender)))
+			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				SetStringValue(@This, Sender)
+			End If
+		#endif
+	End Sub
+	
+	Private Property TextBox.Text_(ByRef Value As UString)
+		FText_ = Value
+	End Property
+	
 	Private Function TextBox.GetTextLength() As Integer
 		#ifdef __USE_GTK__
 			If FMultiline Then
@@ -1619,7 +1711,9 @@ Namespace My.Sys.Forms
 		FHideSelection    = 1
 		FCtl3D            = True
 		WLet(FMaskChar, "")
-		FText = ""
+		FText_ = ""
+		FText_.m_Owner = @This
+		FText_.OnChange = @OnTextChanged
 		#ifdef __USE_WINAPI__
 			FMaxLength          = 64000
 		#endif
