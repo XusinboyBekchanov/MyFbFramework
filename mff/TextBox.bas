@@ -467,8 +467,8 @@ Namespace My.Sys.Forms
 		Dim As Control Ptr Owner = Cast(Control Ptr, Sender.m_Owner)
 		Owner->Text = Sender
 		#ifdef __USE_GTK__
-			If GTK_IS_TEXT_VIEW(widget) Then
-				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
+			If GTK_IS_TEXT_VIEW(Owner->widget) Then
+				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Owner->widget))
 				If Sender = "" Then
 					gtk_text_buffer_set_text(buffer, !"\0", -1)
 				Else
@@ -477,25 +477,25 @@ Namespace My.Sys.Forms
 			Else
 				If Sender = "" Then
 					#ifdef __USE_GTK4__
-						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), !"\0", -1)
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(Owner->widget)), !"\0", -1)
 					#else
-						gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
+						gtk_entry_set_text(GTK_ENTRY(Owner->widget), !"\0")
 					#endif
 				Else
 					#ifdef __USE_GTK4__
-						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(Sender), -1)
+						gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(Owner->widget)), ToUtf8(Sender), -1)
 					#else
-						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(Sender))
+						gtk_entry_set_text(GTK_ENTRY(Owner->widget), ToUtf8(Sender))
 					#endif
 				End If
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(Sender)))
+				(*env)->CallVoidMethod(env, Owner->FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(Sender)))
 			End If
 		#elseif defined(__USE_WASM__)
 			If FHandle Then
-				SetStringValue(@This, Sender)
+				SetStringValue(Owner, Sender)
 			End If
 		#endif
 	End Sub
