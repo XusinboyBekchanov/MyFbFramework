@@ -18,7 +18,6 @@
 #endif
 #include once "utf_conv.bi"
 #include once "FBMemCheck.bi"
-
 Private Type UStr As UString
 
 'Represents unicode text (Windows, Linux, Android, Web).
@@ -26,6 +25,8 @@ Private Type UString Extends WString
 Public:
 	Declare Constructor()
 	Declare Constructor(ByRef Value As WString)
+	Declare Constructor(ByRef Value As ZString)
+	Declare Constructor(ByRef Value As String)
 	Declare Constructor(ByRef Value As UString)
 	
 	Declare Destructor()
@@ -36,6 +37,7 @@ Public:
 	
 	Declare Operator Let(ByRef Value As WString)
 	Declare Operator Let(ByRef Value As UString)
+	Declare Operator Let(ByRef Value As String)
 	Declare Operator Let(ByRef Value As Const ZString)
 	
 	Declare Operator Cast() ByRef As WString
@@ -52,16 +54,16 @@ Public:
 	Declare Function TrimStart As UString
 	Declare Function ToLower As UString
 	Declare Function ToUpper As UString
-	Declare Function SubString(ByVal start As Integer, ByVal n As Integer, ByRef expression As Const String = "") As UString
+	'When expression Is empty, uses FreeBASIC's native Mid function,extracts a portion of the string,
+	'In-place replacement: When expression is provided, replaces the specified SubString range With the New larger text
+	'Example: Dim As UString testStr = "Hello World" : Dim As UString result = testStr.SubString(7, 5, "FreeBasic") (Expected: 'Hello FreeBasic')
+	Declare Function SubString(ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "") As UString
 	
 	m_Length As Integer
 	m_BufferLen As Integer
 	m_BytesCount As Integer
-	
 	m_Data As WString Ptr
-	
 	m_Owner As Any Ptr
-	
 	OnChange As Sub(ByRef Sender As UString)
 Protected:
 	
@@ -70,21 +72,23 @@ End Type
 Declare Function WStrPtr(ByRef Value As UString) As WString Ptr
 Declare Operator & (ByRef LeftText As UString, ByRef RightText As UString) As UString
 Declare Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
+Declare Function Right Overload(ByRef subject As UString, ByVal n As Integer) As UString
 Declare Function Val Overload(ByRef subject As UString) As Double
 Declare Operator Len(ByRef lhs As UString) As Integer
 Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 #if MEMCHECK = 0
 	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
+	Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ByVal tmpPara As Boolean = False)
+	Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 	Declare Sub WDeAllocate Overload(ByRef subject As WString Ptr)
 	Declare Sub ZLet(ByRef subject As ZString Ptr, ByRef txt As ZString)
 	Declare Sub ZDeAllocate(ByRef subject As ZString Ptr)
-	Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False)
 	Declare Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False)
+	Declare Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmpPara As Boolean = False)
 #endif
 Declare Sub WDeAllocateEx Overload(subject() As WString Ptr)
-'Allow subject to point to the same content as txt (default: True).
-Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, AllowSelfReference As Boolean = True)
+
 Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) As WString Ptr
 Declare Function FromHexStrUTF8(ByRef HexString As WString) As String
@@ -102,7 +106,7 @@ Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WSt
 Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
 Declare Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZString, Result() As ZString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
 Declare Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
-Declare Function Join(Subject() As UString, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
+Declare Function Join(Subject() As UString, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As UString
 Declare Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
 Declare Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As ZString Ptr
 
@@ -111,6 +115,10 @@ Declare Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 Declare Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 Declare Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 Declare Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
+'When expression Is empty, uses FreeBASIC's native Mid function,extracts a portion of the string,
+'In-place replacement: When expression is provided, replaces the specified SubString range With the New larger text
+'Example: Dim As WString * 20 mainStr = "Hello World" : Dim As WString * 100 result = SubString(mainStr, 7, 5, "FreeBasic" )(Expected: 'Hello FreeBasic')
+Declare Function SubString(ByRef wszMainStr As WString, ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "" ) As UString
 Declare Function FormatFileName(ByRef originalName As WString) As String
 #if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean

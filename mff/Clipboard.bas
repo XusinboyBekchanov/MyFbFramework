@@ -44,43 +44,48 @@ Namespace My.Sys
 	
 	Private Sub ClipboardType.SetAsText(ByRef Value As WString)
 		#ifdef __USE_GTK__
-			gtk_clipboard_set_text(FClipBoard, ToUTF8(Value), -1)
+			gtk_clipboard_set_text(FClipboard, ToUtf8(Value), -1)
 		#else
 			Dim pchData As WString Ptr
 			Dim hClipboardData As HGLOBAL
 			Dim sz As Integer
 			This.Open
 			This.Clear
-			sz = (Len(value) + 1) * SizeOf(WString)
+			sz = (Len(Value) + 1) * SizeOf(WString)
 			hClipboardData = GlobalAlloc(NULL, sz)
-			pchData = Cast(WString Ptr, GlobalLock(hClipboardData))
-			memcpy(pchData, @Value, sz)
-			SetClipboardData(CF_UNICODETEXT, hClipboardData)
-			GlobalUnlock(hClipboardData)
+			If hClipboardData Then
+				pchData = Cast(WString Ptr, GlobalLock(hClipboardData))
+				If pchData Then
+					memcpy(pchData, @Value, sz)
+					GlobalUnlock(hClipboardData)
+				End If
+				SetClipboardData(CF_UNICODETEXT, hClipboardData)
+			End If
 			This.Close
 		#endif
 	End Sub
 	
 	Private Function ClipboardType.GetAsText ByRef As WString
 		#ifdef __USE_GTK__
-			WLet(FText, *gtk_clipboard_wait_for_text(FClipBoard))
+			WLet(FText, *gtk_clipboard_wait_for_text(FClipboard))
 		#else
 			Dim hClipboardData As HANDLE
 			This.Open
 			hClipboardData = GetClipboardData(CF_UNICODETEXT)
 			If hClipboardData <> 0 Then
-				WLet(FText, *CPtr(WString Ptr, GlobalLock(hClipboardData)))
+				Dim pText As WString Ptr = Cptr(WString Ptr, GlobalLock(hClipboardData))
+				WLet(FText, IIf(pText, *pText, "" ))
 				GlobalUnlock(hClipboardData)
 			Else
 				WLet(FText, "")
 			End If
 			This.Close
 		#endif
-		Return *FText
+		If FText Then Return *FText Else Return ""
 	End Function
 	
 	#ifndef __USE_GTK__
-		Private Sub ClipboardType.SetAsHandle(FFormat As Word, Value As HANDLE)
+		Private Sub ClipboardType.SetAsHandle(FFormat As WORD, Value As HANDLE)
 			This.Open
 			This.Clear
 			SetClipboardData(FFormat, Value)
@@ -89,7 +94,7 @@ Namespace My.Sys
 	#endif
 	
 	#ifndef __USE_GTK__
-		Private Function ClipboardType.GetAsHandle(FFormat As Word) As HANDLE
+		Private Function ClipboardType.GetAsHandle(FFormat As WORD) As HANDLE
 			This.Open
 			Function = GetClipboardData(FFormat)
 			This.Close
@@ -111,9 +116,11 @@ Namespace My.Sys
 		Dim s As String = Space(255)
 		#ifndef __USE_GTK__
 			Dim i As Integer, IFormat As UINT
-			i = GetClipboardFormatName(IFormat,s,255)
-			FFormat = Cast(WString Ptr, _Reallocate(FFormat, (i + 1) * SizeOf(WString)))
-			*FFormat = ..Left(s, i)
+			i = GetClipboardFormatName(IFormat, s, 255)
+			If i > 0 Then
+				FFormat = Cast(WString Ptr, _Reallocate(FFormat, (i + 1) * SizeOf(WString)))
+				*FFormat = ..Left(s, i)
+			End If
 		#endif
 		If FFormat > 0 Then Return *FFormat Else Return ""
 	End Property
@@ -127,7 +134,7 @@ Namespace My.Sys
 	
 	Private Constructor ClipboardType
 		#ifdef __USE_GTK__
-			FClipBoard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)
+			FClipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)
 		#endif
 	End Constructor
 	
