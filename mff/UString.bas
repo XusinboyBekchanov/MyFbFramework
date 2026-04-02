@@ -172,15 +172,13 @@ Private Function UString.SubString(ByVal start As Integer, ByVal n As Integer, B
 End Function
 
 #if MEMCHECK
-	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength): Else: subject = Allocate((lLen + 1) * SizeOf(WString) * GrowLength): End Function
-#define WLet(subject, txt) Scope::Dim As Long ls = Len(txt)::Dim As WString Ptr ResultPtr ::If subject <> 0 Then :::ResultPtr = _Reallocate(subject, (ls + 1) * SizeOf(WString) * GrowLength) ::Else ::ResultPtr = _CAllocate((ls + 1) * SizeOf(WString) * GrowLength) ::#endif:If ResultPtr = 0 Then :::Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." ::Else :::*ResultPtr = txt ::subject = ResultPtr ::End If ::End Scope
-#define WLetEx(subject, txt) Scope : Dim As Long ls = Len(txt) : Dim As WString Ptr ResultPtr = _CAllocate((ls + 1) * SizeOf(WString) * GrowLength) : If ResultPtr = 0 Then : Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Else : *ResultPtr = txt : If subject <> 0 AndAlso subject <> ResultPtr Then  : Deallocate(subject) : End If : subject = ResultPtr : End If : End Scope
-#define WDeAllocate(subject) If subject <> 0 Then: Deallocate(subject): End If: subject = 0
-#define WAdd(subject, txt) Scope : Dim As Long ls = Len(txt) : Dim As WString Ptr ResultPtr : If subject <> 0 Then : ResultPtr = _Reallocate(subject, (ls + Len(*subject) + 1) * SizeOf(WString) * GrowLength) : Else : ResultPtr = _CAllocate((ls + 1) * SizeOf(WString) * GrowLength) : End If : If ResultPtr = 0 Then : Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Else : If subject <> 0 Then : *ResultPtr = *subject & txt : If subject <> ResultPtr Then : Deallocate(subject) : End If : Else : *ResultPtr = txt : End If : subject = ResultPtr : End If : End Scope
-#define ZLet(subject, txt) Scope: Dim As Long ls = Len(txt): Dim As ZString Ptr ResultPtr : If subject <> 0 Then  : ResultPtr = _Reallocate(subject, (ls + 1) * SizeOf(ZString) * GrowLength) : Else : ResultPtr = _CAllocate((ls + 1) * SizeOf(ZString) * GrowLength) : End If : If ResultPtr = 0 Then  : Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Else  : *ResultPtr = txt : subject = ResultPtr : End If : End Scope
-#define ZLetEx(subject, txt) Scope : Dim As Long ls = Len(txt) : Dim As ZString Ptr ResultPtr = _CAllocate((ls + 1) * SizeOf(ZString) * GrowLength) : If ResultPtr = 0 Then : Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Else : *ResultPtr = txt : If subject <> 0 AndAlso subject <> ResultPtr Then  : Deallocate(subject) : End If : subject = ResultPtr : End If : End Scope
-#define ZDeAllocate(subject) If subject <> 0 Then: Deallocate(subject): End If: subject = 0
-#define ZAdd(subject, txt) Scope : Dim As Long ls = Len(txt) : Dim As ZString Ptr ResultPtr : If subject <> 0 Then : ResultPtr = _Reallocate(subject, (ls + Len(*subject) + 1) * SizeOf(ZString) * GrowLength) : Else : ResultPtr = _CAllocate((ls + 1) * SizeOf(ZString) * GrowLength) : End If : If ResultPtr = 0 Then : Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Else : If subject <> 0 Then : *ResultPtr = *subject & txt : If subject <> ResultPtr Then : Deallocate(subject) : End If : Else : *ResultPtr = txt : End If : subject = ResultPtr : End If : End Scope
+	#define WReAllocate(subject, lLen) If subject <> 0 Then: subject = _Reallocate(subject, (lLen + 1) * SizeOf(WString) * GrowLength): Else: subject = _Allocate((lLen + 1) * SizeOf(WString) * GrowLength): End If
+	#define WLet(subject, txt) Scope: Dim As UString txt1 = txt: WReAllocate(subject, Len(txt1)): *subject = txt1: End Scope
+	#define WDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+	#define ZLet(subject, txt) Scope: Dim As String txt1 = txt: subject = _Reallocate(subject, (Len(txt) + 1) * SizeOf(ZString)): If subject Then: *subject = txt1: End If: End Scope
+	#define ZDeAllocate(subject) If subject <> 0 Then: _Deallocate(subject): End If: subject = 0
+	#define WAdd(subject, txt) Scope: Dim TempWStr As WString Ptr: WLet(TempWStr, WGet(subject) & txt): If TempWStr Then: If subject <> TempWStr Then: WDeAllocate(subject): End If: subject = TempWStr: End If: End Scope
+	#define ZAdd(subject, txt) Scope: Dim TempZStr As WString Ptr: WLet(TempZStr, WGet(subject) & txt): If TempZStr Then: If subject <> TempZStr Then: WDeAllocate(subject): End If: subject = TempZStr: End If: End Scope
 #else
 	Private Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 		If subject <> 0 Then
@@ -227,32 +225,6 @@ End Function
 		End If
 		Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString) * GrowLength)
 		(*ResultPtr)[ls] = 0
-		subject = ResultPtr
-	End Sub
-	
-	'Allow subject to point to the same content as txt (default: True).
-	'Example： WLetEx（tmpPtr, Mid(*tmpPtr,1,3) & Right(*tmpPtr,1)
-	Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ByVal tmpPara As Boolean = False)
-		Dim As Long ls = Len(txt)
-		Dim As WString Ptr ResultPtr
-		ResultPtr = _Allocate((ls + 1) * SizeOf(WString) * GrowLength)
-		If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & txt : Return
-		Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString) * GrowLength)
-		(*ResultPtr)[ls] = 0
-		If subject <> 0 AndAlso subject <> ResultPtr Then Deallocate(subject)
-		subject = ResultPtr
-	End Sub
-	
-	'Allow subject to point to the same content as txt (default: True).
-	'Example： ZLetEx（tmpPtr, Mid(*tmpPtr,1,3) & Right(*tmpPtr,1)
-	Private Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmpPara As Boolean = False)
-		Dim As Long ls = Len(txt)
-		Dim As ZString Ptr ResultPtr
-		ResultPtr = _Allocate((ls + 1) * SizeOf(ZString) * GrowLength)
-		If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & txt : Return
-		Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(ZString) * GrowLength)
-		(*ResultPtr)[ls] = 0
-		If subject <> 0 AndAlso subject <> ResultPtr Then Deallocate(subject)
 		subject = ResultPtr
 	End Sub
 	
@@ -323,6 +295,33 @@ End Function
 		End Sub
 	#endif
 #endif
+
+'Allow subject to point to the same content as txt (default: True).
+'Example： WLetEx（tmpPtr, Mid(*tmpPtr,1,3) & Right(*tmpPtr,1)
+Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ByVal tmpPara As Boolean = False)
+	Dim As Long ls = Len(txt)
+	Dim As WString Ptr ResultPtr
+	ResultPtr = _Allocate((ls + 1) * SizeOf(WString) * GrowLength)
+	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & txt : Return
+	Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString) * GrowLength)
+	(*ResultPtr)[ls] = 0
+	If subject <> 0 AndAlso subject <> ResultPtr Then Deallocate(subject)
+	subject = ResultPtr
+End Sub
+
+'Allow subject to point to the same content as txt (default: True).
+'Example： ZLetEx（tmpPtr, Mid(*tmpPtr,1,3) & Right(*tmpPtr,1)
+Private Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmpPara As Boolean = False)
+	Dim As Long ls = Len(txt)
+	Dim As ZString Ptr ResultPtr
+	ResultPtr = _Allocate((ls + 1) * SizeOf(ZString) * GrowLength)
+	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & txt : Return
+	Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(ZString) * GrowLength)
+	(*ResultPtr)[ls] = 0
+	If subject <> 0 AndAlso subject <> ResultPtr Then Deallocate(subject)
+	subject = ResultPtr
+End Sub
+
 Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
 	For i As Integer = 0 To UBound(subject)
 		If subject(i) <> 0 Then _Deallocate(subject(i))
