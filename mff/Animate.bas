@@ -505,7 +505,7 @@ Namespace My.Sys.Forms
 				If CommonAvi = 0 Then
 					If *FFile <> "" Then
 						If StartsWith(*FFile, "./") OrElse StartsWith(*FFile, ".\") Then
-							WLetEx FFile, ExePath & Mid(*FFile, 2), True
+							WLetEx(FFile, ExePath & Mid(*FFile, 2))
 						End If
 						#ifdef GIFPlayOn
 							gifInterval = -1
