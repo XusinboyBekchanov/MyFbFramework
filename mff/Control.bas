@@ -3120,6 +3120,13 @@ Namespace My.Sys.Forms
 					End If
 				#endif
 			End If
+			#ifdef __USE_GTK2__
+				If GTK_IS_SCROLLED_WINDOW(widget) = 1 AndAlso layoutwidget <> 0 Then
+					Dim As Integer MaxWidth, MaxHeight
+					GetMax MaxWidth, MaxHeight
+					gtk_widget_set_size_request(layoutwidget, MaxWidth, MaxHeight)
+				End If
+			#endif
 			#ifdef __USE_GTK__
 				If FClient Then
 					gtk_layout_move(GTK_LAYOUT(layoutwidget), FClient, lLeft, tTop)
