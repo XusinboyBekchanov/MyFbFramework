@@ -14,7 +14,7 @@
 
 'WStringListItem
 Private Property WStringListItem.Value ByRef As WString
-	Return WGet(FValue)
+	If FValue Then Return *FValue Else Return ""
 End Property
 
 Private Property WStringListItem.Value(ByRef V As WString)
@@ -38,7 +38,7 @@ Private Operator WStringListItem.Let(ByRef V As WString)
 End Operator
 
 Private Constructor WStringListItem
-	Value = ""
+	WLet(FValue, "")
 	Object = 0
 End Constructor
 
@@ -97,7 +97,7 @@ Private Property WStringList.Text ByRef As WString
 			WAdd(FText, Item(i))
 		End If
 	Next i
-	Return *FText
+	If FText Then Return *FText Else Return ""
 End Property
 
 #ifndef WStringList_Text_Set_Off
@@ -451,5 +451,6 @@ End Constructor
 Private Destructor WStringList
 	This.Clear
 	FCount = 0
+	If FText Then Deallocate((FText))
 End Destructor
 

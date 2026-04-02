@@ -460,6 +460,7 @@ Namespace My.Sys.Forms
 					End If
 				#endif
 				Return WGet(FText.vptr)
+				If FText.vptr = 0 Then Return "" Else Return *FText.vptr
 			End Property
 			
 			Private Property Control.Text(ByRef Value As WString)
@@ -488,7 +489,7 @@ Namespace My.Sys.Forms
 		
 		#ifndef Hint_Off
 			Private Property Control.Hint ByRef As WString
-				If FHint > 0 Then Return *FHint Else Return ""
+				If FHint = 0 Then Return "" Else Return *FHint
 			End Property
 			
 			Private Property Control.Hint(ByRef Value As WString)
