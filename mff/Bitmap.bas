@@ -590,18 +590,12 @@ Namespace My.Sys.Drawing
 				StartupInput.GdiplusVersion = 1
 				GdiplusStartup(@token, @StartupInput, NULL)
 				If pImage Then GdipDisposeImage pImage: pImage = 0
-				If token = NULL Then
-					'GdipDisposeImage pImage
-					' // Shutdown Gdiplus
-					GdiplusShutdown token
-				End If
+				If token Then GdiplusShutdown token
+				If FDevice Then DeleteObject FDevice
+				If Handle Then DeleteObject Handle
 			End If
-		#endif
-		#ifdef __USE_GTK__
+		#elseif defined( __USE_GTK__)
 			If Handle Then g_object_unref(Handle)
-		#elseif defined(__USE_WINAPI__)
-			If FDevice Then DeleteObject FDevice
-			If Handle Then DeleteObject Handle
 		#endif
 	End Destructor
 End Namespace
