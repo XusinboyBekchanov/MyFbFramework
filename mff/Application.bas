@@ -874,7 +874,7 @@ Namespace Debug
 							BringWindowToTop(TabPageHandle)
 						End If
 						Dim As WString Ptr SelText
-						WLet(SelText, Msg & Chr(13, 10))
+						WLet(SelText, Msg & Chr(13) & Chr(10))
 						Dim As Integer AddingTextLength = Len(*SelText)
 						Dim As Integer TextLength = SendMessage(DebugWindowHandle, WM_GETTEXTLENGTH, 0, 0)
 						If TextLength + AddingTextLength > 64000 Then

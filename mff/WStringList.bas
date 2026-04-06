@@ -123,14 +123,14 @@ End Operator
 
 Private Property WStringList.Item(Index As Integer) ByRef As WString
 	'If (Index > -1 And Index < FCount) AndAlso Items.Item(Index) > 0 Then Return *Cast(WString Ptr, Items.Item(Index)) Else Return ""
-	If Index >= 0 And Index <= FCount - 1 Then
+	If Index >= 0 AndAlso Index <= FCount - 1 AndAlso FItems.Items[Index] <> 0 Then
 		Return QWStringListItem(FItems.Items[Index]).Value
 	End If
 	Return ""
 End Property
 
 Private Property WStringList.Item(Index As Integer, iValue As WString)
-	If Index > -1 And Index < FCount Then
+	If Index > -1 And Index < FCount AndAlso FItems.Items[Index] <> 0 Then
 		'WDeAllocate(Items.Item(Index))
 		'Dim As WString Ptr iText = CAllocate_((Len(iValue) + 1) * SizeOf(WString))
 		'*iText = iValue
@@ -245,15 +245,17 @@ Private Sub WStringList.Remove(Index As Integer)
 End Sub
 
 #ifndef WStringList_Sort_Off
-	Private Sub WStringList.Sort(iLeft As Integer = 0, iRight As Integer = 0)
+	Private Sub WStringList.Sort(ByVal bMatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
 		If FCount <= 1 Then Return
+		FMatchCase = bMatchCase
 		If iRight = 0 Then iRight = FCount - 1
 		If iLeft < 0 Then iLeft = 0
 		If (iRight <> 0 AndAlso (iLeft >= iRight)) Then Return
 		Dim As Integer i = iLeft, j = iRight
 		'QuickSort
 		Dim As WString Ptr iKey = @(Item(i))
-		If MatchCase Then
+		If iKey = 0 Then Return
+		If bMatchCase Then
 			While (i < FCount And j >= 0 And i <= j) '/*控制在当组内寻找一遍
 				While (*iKey < Item(j) AndAlso i < j)
 					j -= 1
@@ -278,22 +280,8 @@ End Sub
 		End If
 		'Items.Item(i) = iKey  'NOT OK /*当在当组内找完一遍以后就把中间数key回归*/
 		'Objects.Item(i) = iObj
-		If j > iLeft Then This.Sort(iLeft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
-		If i < iRight Then This.Sort(i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
-		
-		'	'bubbleSort , Add flag for fast quit if it is sorted already
-		'	Dim As Boolean flag
-		'	For i = 0 To FCount - 1
-		'		flag = False
-		'		For j = 0 To FCount - i - 2
-		'			If MatchCase Then
-		'				If *Cast(WString Ptr, Items.Item(j)) > *Cast(WString Ptr, Items.Item(j + 1)) Then Exchange j , j + 1 : flag = True
-		'			Else
-		'				If (LCase(*Cast(WString Ptr, Items.Item(j))) > LCase(*Cast(WString Ptr, Items.Item(j + 1)))) Then Exchange j, j + 1 : flag = True
-		'			End If
-		'		Next
-		'		If flag = False Then Return
-		'	Next
+		If j > iLeft Then This.Sort(bMatchCase, iLeft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
+		If i < iRight Then This.Sort(bMatchCase, i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
 		
 		FSorted = True
 		If OnChange Then OnChange(This)

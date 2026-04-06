@@ -3,10 +3,10 @@
 '#  Authors: FXM                                                                #
 '#  Based on: the code posted on the freeBasic forum(www.freebasic.net/forum/   #
 '#  See also：                                                                  #
-'#   https://www.freebasic.net/forum/viewtopic.php?t=32759                      #
+'#   https://www.freebasic.net/forum/viewtopic.php?p=304699#p304699             #
 '#                                                                              #
 '################################################################################
-' DynamicArrayList.bi - 28 Dec 2024
+' DynamicArrayList.bi - 13 Jan 2025
 
 #if __FB_VERSION__ < "1.10"
 Type DoublyLinkedNode
@@ -44,26 +44,26 @@ Type DynamicArrayList
         End Type
         #endif
         Declare Function SearchNthPositionNode(ByVal posNodeIndex As Integer) As DoublyLinkedNode Ptr
-        Declare Sub SearchOffsetRecentPositionNode(ByVal posNodeIndex As Integer, ByRef recentNodePtr As DoublyLinkedNode Ptr, ByRef n As Integer)
+        Declare Sub SearchOffsetRecentPositionNode(ByVal posNodeIndex As Integer, Byref recentNodePtr As DoublyLinkedNode Ptr, Byref n As Integer)
         Declare Function TraverseNodes(ByVal nodePtr As DoublyLinkedNode Ptr, ByVal n As Integer) As DoublyLinkedNode Ptr
-        Dim As DoublyLinkedNode dummyNode           '' dummy node
-        Dim As Integer nbrUserNode                  '' number of user node
-        Dim As Integer recent1NodeIndex             '' recent #1 node index (position)
-        Dim As DoublyLinkedNode Ptr recent1NodePtr  '' recent #1 node pointer
-        Dim As Integer recent2NodeIndex             '' recent #2 node index (position)
-        Dim As DoublyLinkedNode Ptr recent2NodePtr  '' recent #2 node pointer
-        Dim As DoublyLinkedNode Ptr preAllocPtr     '' pre-allocation pointer
-        Dim As Integer nbrPreAllocDone              '' number of pre-allocation done
-        Dim As Integer preAllocNbr                  '' pre-allocation number
-        Dim As Integer nbrPreAllocUsed              '' number of pre-allocation used
-        Declare Sub _Thread()                       '' looping thread
-        Dim As Any Ptr _pt                          '' pointer to looping thread
-        Dim As Any Ptr _mutex                       '' mutex for start function in thread
-        Dim As Integer _flag                        '' flag for end function in thread
-        Dim As Byte _end                            '' end thread looping
-        Dim As DoublyLinkedNode Ptr _nodePtrT       '' function parameter 1 in thread
-        Dim As Integer _nT                          '' function parameter 2 in thread
-        Dim As DoublyLinkedNode Ptr _returnT        '' return from function in thread
+        Dim As DoublyLinkedNode dummyNode                               '' dummy node
+        Dim As Integer nbrUserNode                                      '' number of user node
+        Dim As Integer recent1NodeIndex                                 '' recent #1 node index (position)
+        Dim As DoublyLinkedNode Ptr recent1NodePtr                      '' recent #1 node pointer
+        Dim As Integer recent2NodeIndex                                 '' recent #2 node index (position)
+        Dim As DoublyLinkedNode Ptr recent2NodePtr                      '' recent #2 node pointer
+        Dim As DoublyLinkedNode Ptr preAllocPtr                         '' pre-allocation pointer
+        Dim As Integer nbrPreAllocDone                                  '' number of pre-allocation done
+        Dim As Integer preAllocNbr                                      '' pre-allocation number
+        Dim As Integer nbrPreAllocUsed                                  '' number of pre-allocation used
+        Declare Static Sub _Thread(ByVal pdal As DynamicArrayList Ptr)  '' looping thread
+        Dim As Any Ptr _pt                                              '' pointer to looping thread
+        Dim As Any Ptr _mutex                                           '' mutex for start function in thread
+        Dim As Integer _flag                                            '' flag for end function in thread
+        Dim As Byte _end                                                '' end thread looping
+        Dim As DoublyLinkedNode Ptr _nodePtrT                           '' function parameter 1 in thread
+        Dim As Integer _nT                                              '' function parameter 2 in thread
+        Dim As DoublyLinkedNode Ptr _returnT                            '' return from function in thread
 End Type
 
 Function DynamicArrayList.InsertInNthPosition(ByVal p As Any Ptr, ByVal n As Integer) As Any Ptr
@@ -99,7 +99,7 @@ Function DynamicArrayList.InsertInNthPosition(ByVal p As Any Ptr, ByVal n As Int
     If (posNodeIndex > This.recent1NodeIndex) And (This.recent1NodeIndex > This.nbrUserNode Shr 2) Then
         This.recent2NodeIndex = posNodeIndex
         This.recent2NodePtr = newNodePtr
-    ElseIf posNodeIndex < This.recent2NodeIndex Then
+    Elseif posNodeIndex < This.recent2NodeIndex Then
         This.recent1NodeIndex = posNodeIndex
         This.recent1NodePtr = newNodePtr
         This.recent2NodeIndex += 1  ' recent #2 node position shifted by the insertion
@@ -127,7 +127,7 @@ Function DynamicArrayList.SuppressTheNthPosition(ByVal n As Integer) As Any Ptr
         If (posNodeIndex > This.recent1NodeIndex) And (This.recent1NodeIndex > This.nbrUserNode Shr 2) Then
             This.recent2NodeIndex = posNodeIndex
             This.recent2NodePtr = searchNodePtr->nextNodePtr
-        ElseIf posNodeIndex < This.recent2NodeIndex Then
+        Elseif posNodeIndex < This.recent2NodeIndex Then
             This.recent1NodeIndex = posNodeIndex
             This.recent1NodePtr = searchNodePtr->nextNodePtr
             This.recent2NodeIndex -= 1  ' recent #2 node position shifted by the suppression
@@ -144,7 +144,7 @@ Function DynamicArrayList.SuppressTheNthPosition(ByVal n As Integer) As Any Ptr
     End If
     ' Saves user pointer of the node
     Dim As Any Ptr searchUserPtr = searchNodePtr->userPtr
-    If (This.nbrPreAllocDone = 0) OrElse ((searchNodePtr < @This.preAllocPtr[0]) Or (searchNodePtr > @This.preAllocPtr[This.nbrPreAllocDone - 1])) Then
+    If (This.nbrPreallocDone = 0) Orelse ((searchNodePtr < @This.preAllocPtr[0]) Or (searchNodePtr > @This.preAllocPtr[This.nbrPreAllocDone - 1])) Then
         ' Deallocates memory for the node
         Deallocate(searchNodePtr)
     Else
@@ -174,7 +174,7 @@ Function DynamicArrayList.ReturnFromNthPosition(ByVal n As Integer) As Any Ptr
     If (posNodeIndex > This.recent1NodeIndex) And (This.recent1NodeIndex > This.nbrUserNode Shr 2) Then
         This.recent2NodeIndex = posNodeIndex
         This.recent2NodePtr = searchNodePtr
-    ElseIf posNodeIndex < This.recent2NodeIndex Then
+    Elseif posNodeIndex < This.recent2NodeIndex Then
         This.recent1NodeIndex = posNodeIndex
         This.recent1NodePtr = searchNodePtr
     Else
@@ -199,7 +199,7 @@ Function DynamicArrayList.UpdateTheNthPosition(ByVal p As Any Ptr, ByVal n As In
     If (posNodeIndex > This.recent1NodeIndex) And (This.recent1NodeIndex > This.nbrUserNode Shr 2) Then
         This.recent2NodeIndex = posNodeIndex
         This.recent2NodePtr = searchNodePtr
-    ElseIf posNodeIndex < This.recent2NodeIndex Then
+    Elseif posNodeIndex < This.recent2NodeIndex Then
         This.recent1NodeIndex = posNodeIndex
         This.recent1NodePtr = searchNodePtr
     Else
@@ -242,8 +242,14 @@ Function DynamicArrayList.SwapNthPthPosition(ByVal n1 As Integer, ByVal n2 As In
         This._flag = 0            '' reset flag
         searchNodePtr1 = This._returnT
     Else
+        ' lunches at first the shorter search and optimizes the second
         searchNodePtr1 = This.TraverseNodes(searchNodePtr1, offset1)
-        searchNodePtr2 = This.TraverseNodes(searchNodePtr2, offset2)
+        Dim As Integer Offset = posNodeIndex2 - posNodeIndex1
+        If Abs(offset) < Abs(offset2) Then
+            searchNodePtr2 = This.TraverseNodes(searchNodePtr1, offset)
+        Else
+            searchNodePtr2 = This.TraverseNodes(searchNodePtr2, offset2)
+        End If
     End If
     ' swaps the 2 user pointers
     Swap searchNodePtr1->userPtr, searchNodePtr2->userPtr
@@ -270,18 +276,18 @@ Function DynamicArrayList.ShiftTheNthPosition(ByVal n As Integer, ByVal offset A
     ' Tests index and offset validity
     If (posNodeIndex < 1) Or (posNodeIndex > This.nbrUserNode) Or (posNodeIndex + offset < 1) Or (posNodeIndex + offset > This.nbrUserNode) Or (offset = 0) Then Return 0
     ' search for the 2 user nodes
-    Dim As DoublyLinkedNode Ptr nodePtr1
-    Dim As DoublyLinkedNode Ptr nodePtr2
     Dim As DoublyLinkedNode Ptr searchNodePtr1
     Dim As Integer offset1
     This.SearchOffsetRecentPositionNode(posNodeIndex, searchNodePtr1, offset1)
     Dim As DoublyLinkedNode Ptr searchNodePtr2
     Dim As Integer offset2
     This.SearchOffsetRecentPositionNode(posNodeIndex + offset, searchNodePtr2, offset2)
-    ' lunches the shorter search from the threading loop if its offset is greater than a threshold (in absolute value)
+    Dim As DoublyLinkedNode Ptr nodePtr1
+    Dim As DoublyLinkedNode Ptr nodePtr2
+    ' lunches the shorter search from the threading loop if the two offsets are greater than a threshold (in absolute value)
     ' offset threshold corresponding to the thread synchronization latency
     If (Abs(offset1) > 500) And (Abs(offset2) > 500) Then
-        If Abs(offset2) > Abs(offset1) Then
+        If Abs(offset2) > Abs(Offset1) Then
             This._nodePtrT = searchNodePtr1
             This._nT = offset1
             MutexUnlock(This._mutex)  '' unlock mutex for child thread
@@ -301,8 +307,22 @@ Function DynamicArrayList.ShiftTheNthPosition(ByVal n As Integer, ByVal offset A
             nodePtr2 = This._returnT
         End If
     Else
-        nodePtr1 = This.TraverseNodes(searchNodePtr1, offset1)
-        nodePtr2 = This.TraverseNodes(searchNodePtr2, offset2)
+        ' lunches at first the shorter search and optimizes the second
+        If Abs(Offset1) < Abs(Offset2) Then
+            nodePtr1 = This.TraverseNodes(searchNodePtr1, offset1)
+            If Abs(offset) < Abs(offset2) Then
+                nodePtr2 = This.TraverseNodes(nodePtr1, offset)
+            Else
+                nodePtr2 = This.TraverseNodes(searchNodePtr2, offset2)
+            End If
+        Else
+            nodePtr2 = This.TraverseNodes(searchNodePtr2, offset2)
+            If Abs(offset) < Abs(offset1) Then
+                nodePtr1 = This.TraverseNodes(nodePtr2, -offset)
+            Else
+                nodePtr1 = This.TraverseNodes(searchNodePtr1, offset1)
+            End If
+        Endif
     End If
     ' Uninserts the node
     nodePtr1->prevNodePtr->nextNodePtr = nodePtr1->nextNodePtr
@@ -354,7 +374,7 @@ Function DynamicArrayList.ReturnArrayFromPosition(array() As Any Ptr) As Integer
     If This.nbrUserNode = 0 Then Return 0
     Dim As DoublyLinkedNode Ptr nodePtr = @This.dummyNode
     ' sizes the passed array
-    ReDim array(1 To This.nbrUserNode)
+    Redim array(1 To This.nbrUserNode)
     ' fills in the array with the user pointers
     For I As Integer = 1 To This.nbrUserNode
         nodePtr = nodePtr->nextNodePtr
@@ -368,7 +388,7 @@ Function DynamicArrayList.LoadArrayIntoPosition(array() As Any Ptr) As Integer
     
     If This.nbrUserNode > 0 Then Return 0
     Dim As DoublyLinkedNode Ptr nodePtr = @This.dummyNode
-    For I As Integer = LBound(array) To UBound(array)
+    For I As Integer = Lbound(array) To Ubound(array)
         Dim As DoublyLinkedNode Ptr newNodePtr
         If This.preAllocNbr = This.nbrPreAllocDone Then
             ' Allocates memory for new node
@@ -491,7 +511,7 @@ Function DynamicArrayList.SearchNthPositionNode(ByVal posNodeIndex As Integer) A
     Return This.TraverseNodes(nodePtr, n)
 End Function
 
-Sub DynamicArrayList.SearchOffsetRecentPositionNode(ByVal posNodeIndex As Integer, ByRef recentNodePtr As DoublyLinkedNode Ptr, ByRef n As Integer)
+Sub DynamicArrayList.SearchOffsetRecentPositionNode(ByVal posNodeIndex As Integer, Byref recentNodePtr As DoublyLinkedNode Ptr, Byref n As Integer)
     ' The node (among these 3) memorized closest to the targeted position
     ' is chosen as starting point of the iteration (forward or backward) through the nodes
     ' (3 * 2 = 6 cases)
@@ -562,7 +582,7 @@ Function DynamicArrayList.TraverseNodes(ByVal nodePtr As DoublyLinkedNode Ptr, B
             Case Else : nodePtr = nodePtr->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP->NP
             End Select
         Next I
-    ElseIf n < 0 Then
+    Elseif n < 0 Then
         ' backward iteration
         #define PP prevNodePtr
         For I As Integer = n To 0 Step +25
@@ -610,14 +630,14 @@ Constructor DynamicArrayList()
     ' Initializes the threading loop
     This._mutex = MutexCreate()                                              '' create mutex
     MutexLock(This._mutex)                                                   '' lock mutex
-    This._pt= ThreadCreate(CPtr(Any Ptr, @DynamicArrayList._Thread), @This)  '' launch child thread
+    This._pt= ThreadCreate(Cptr(Any Ptr, @DynamicArrayList._Thread), @This)  '' launch child thread
 End Constructor
 
 Constructor DynamicArrayList(ByVal nbrPreAlloc As Integer)
     Constructor()
     If nbrPreAlloc > 0 Then
         ' Pre-allocates memory for nbrPreAlloc nodes
-        This.preAllocPtr = Allocate(nbrPreAlloc * SizeOf(DoublyLinkedNode))
+        This.preAllocPtr = Allocate(nbrPreAlloc * Sizeof(DoublyLinkedNode))
         If This.preAllocPtr > 0 Then This.nbrPreAllocDone = nbrPreAlloc
     End If
 End Constructor
@@ -630,13 +650,13 @@ Property DynamicArrayList.NumberOfPreAllocAvailable() As Integer
     Return This.nbrPreAllocDone - This.preAllocNbr
 End Property
 
-Sub DynamicArrayList._Thread()
+Sub DynamicArrayList._Thread(ByVal pdal As DynamicArrayList Ptr)
     '  Threading loop
     Do
-        MutexLock(This._mutex)          '' wait for mutex unlock from main thread
-        If This._end = 1 Then Exit Sub  '' exit the threading loop
-        This._returnT = This.TraverseNodes(This._nodePtrT, This._nT)
-        This._flag = 1                  '' set flag for main thread
+        MutexLock(pdal->_mutex)          '' wait for mutex unlock from main thread
+        If pdal->_end = 1 Then Exit Sub  '' exit the threading loop
+        pdal->_returnT = pdal->TraverseNodes(pdal->_nodePtrT, pdal->_nT)
+        pdal->_flag = 1                  '' set flag for main thread
     Loop
 End Sub
 
@@ -649,7 +669,7 @@ Destructor DynamicArrayList()
         This.nbrPreAllocDone = 0
     End If
     ' Ends the threading loop
-    This._end = 1              '' set _end for chimld thread
+    This._end = 1              '' set _end for child thread
     MutexUnlock(This._mutex)   '' unlock mutex for child thread
     ThreadWait(This._pt)       '' wait for child thread end
     MutexDestroy(This._mutex)  '' destroy mutex
