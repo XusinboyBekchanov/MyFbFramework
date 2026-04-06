@@ -88,7 +88,6 @@ Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 	Declare Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmpPara As Boolean = False)
 #endif
 Declare Sub WDeAllocateEx Overload(subject() As WString Ptr)
-
 Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) As WString Ptr
 Declare Function FromHexStrUTF8(ByRef HexString As WString) As String

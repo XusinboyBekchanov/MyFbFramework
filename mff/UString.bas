@@ -328,7 +328,12 @@ Private Sub WDeAllocate Overload(subject() As WString Ptr)
 		subject(i) = 0
 	Next
 End Sub
-
+Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
+	For i As Integer = 0 To UBound(subject)
+		If subject(i) <> 0 Then _Deallocate(subject(i))
+		subject(i) = 0
+	Next
+End Sub
 Private Sub UString.Resize(NewLength As Integer)
 	m_BytesCount = (NewLength + 1) * SizeOf(WString) * GrowLength
 	If m_Length < NewLength Then
