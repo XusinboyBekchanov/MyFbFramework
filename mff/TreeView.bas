@@ -959,18 +959,18 @@ Namespace My.Sys.Forms
 					Case TVN_BEGINLABELEDIT
 						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, Message.lParam)
 						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
+						If tmpStr = 0 Then Return
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
 						If OnBeforeLabelEdit Then OnBeforeLabelEdit(*Designer, This, *sn, *tmpStr, bCancel)
-						'_Deallocate( tmpStr)
 						If bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ENDLABELEDIT
 						Dim tvpA As NMTVDISPINFOA Ptr = Cast(NMTVDISPINFOA Ptr, Message.lParam)
 						Dim As WString Ptr tmpStr = Cast(WString Ptr, tvpA->item.pszText)
+						If tmpStr = 0 Then Return
 						sn = Nodes.FindByHandle(tvp->itemNew.hItem): If sn = 0 Then sn = SelectedNode
 						Dim bCancel As Boolean
 						If OnAfterLabelEdit Then OnAfterLabelEdit(*Designer, This, *sn, *tmpStr, bCancel)
-						'_Deallocate( tmpStr)
 						If Not bCancel Then Message.Result = -1: Exit Sub
 					Case TVN_ASYNCDRAW
 						'Case NM_KEYDOWN: If OnItemDblClick Then OnItemDblClick(This, *ListItems.Item(lvp->iItem))

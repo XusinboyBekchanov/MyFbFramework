@@ -86,6 +86,7 @@ End Property
 #ifndef Dictionary_Add_Off
 	Private Sub Dictionary.Add(ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
 		Dim As DictionaryItem Ptr nItem = _New(DictionaryItem)
+		If nItem = 0 Then Return
 		With *nItem
 			.Key  = iKey
 			.Text = wText
@@ -103,6 +104,7 @@ Private Sub Dictionary.Set(ByRef iKey As WString, ByRef wText As WString = "", i
 	If Index = -1 Then
 		This.Add iKey, wText, iObject
 	Else
+		If FItems.Items[Index] = 0 Then Return
 		Cast(DictionaryItem Ptr, FItems.Items[Index])->Text = wText
 		Cast(DictionaryItem Ptr, FItems.Items[Index])->Object = iObject
 	End If
@@ -111,7 +113,7 @@ End Sub
 
 Private Function Dictionary.Get(ByRef iKey As WString, ByRef DefaultText As WString = "") ByRef As WString
 	Dim As Integer Index = IndexOfKey(iKey)
-	If Index >= 0 And Index <= Count - 1 Then
+	If Index >= 0 And Index <= Count - 1 AndAlso FItems.Items[Index] <> 0 Then
 		Return Cast(DictionaryItem Ptr, FItems.Items[Index])->Text
 	Else
 		Return DefaultText
@@ -128,6 +130,7 @@ End Function
 
 Private Sub Dictionary.Insert(Index As Integer, ByRef iKey As WString = "", ByRef wText As WString = "", iObject As Any Ptr = 0)
 	Dim As DictionaryItem Ptr nItem = _New(DictionaryItem)
+	If nItem = 0 Then Return
 	With *nItem
 		.Key  = iKey
 		.Text = wText
@@ -153,13 +156,12 @@ Private Sub Dictionary.Remove(Index As Integer)
 End Sub
 
 #ifndef Dictionary_Sort_Off
-	Private Sub Dictionary.Sort(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
+	Private Sub Dictionary.Sort(bMatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
 		If FItems.Count <= 1 Then Return
 		'Dim As Boolean flag
 		Sorted = True
 		SortKeysed  = False
-		FSortMatchCase = MatchCase
-		
+		FSortMatchCase = bMatchCase
 		If iRight = 0 Then iRight = FItems.Count - 1
 		If ileft < 0 Then ileft = 0
 		If (iRight <> 0 AndAlso (ileft >= iRight)) Then Return
@@ -167,7 +169,8 @@ End Sub
 		
 		'QuickSort
 		Dim As DictionaryItem Ptr iKey = Item(i)
-		If MatchCase Then
+		If iKey = 0 Then Return
+		If bMatchCase Then
 			While (i <= j) '/*控制在当组内寻找一遍
 				While (iKey->Text < Item(j)->Text AndAlso i < j)
 					j -= 1
@@ -190,23 +193,8 @@ End Sub
 				If i <= j Then Exchange i, j:  j -= 1
 			Wend
 		End If
-		If j  > ileft Then This.Sort(MatchCase, ileft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
-		If i  < iRight Then This.Sort(MatchCase, i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
-		
-		'	'bubbleSort , Add flag for fast quit if it is sorted already
-		'	Dim As Boolean flag
-		'	For i = 0 To FCount - 1
-		'		flag = False
-		'		For j = 0 To FCount - i - 2
-		'			If MatchCase Then
-		'				If Item(j)->Text > Item(j+1)->Text Then Exchange j , j + 1 : flag = True
-		'			Else
-		'				If (LCase(Item(j)->Text) > LCase(Item(j+1)->Text)) Then Exchange j, j + 1 : flag = True
-		'			End If
-		'		Next
-		'		If flag = False Then Return
-		'	Next
-		
+		If j  > ileft Then This.Sort(bMatchCase, ileft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
+		If i  < iRight Then This.Sort(bMatchCase, i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
 		If OnChange Then OnChange(This)
 	End Sub
 #endif
@@ -225,6 +213,7 @@ End Sub
 		
 		'QuickSort
 		Dim As DictionaryItem Ptr iKey = Item(i)
+		If iKey = 0 Then Return
 		If MatchCase Then
 			While (i <= j) '/*控制在当组内寻找一遍
 				While (iKey->Key < Item(j)->Key AndAlso i < j)
@@ -284,6 +273,7 @@ Private Sub Dictionary.SaveToFile(ByRef FileName As WString)
 	'If Open(FileName For Binary Access Write As #F) = 0 Then
 	If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then 'David Change
 		For i As Integer = 0 To FItems.Count - 1
+			If Item(i) = 0 Then Continue For
 			Print #Fn, Replace(Item(i)->Key, Chr(9), "    ") & Chr(9) & Replace(Item(i)->Text, Chr(9), "    ")
 		Next
 	End If
@@ -306,6 +296,7 @@ Private Sub Dictionary.LoadFromFile(ByRef Filename As WString)
 		Split(*pBuff, Chr(9), res())
 		If UBound(res) < 1 Then Exit Sub
 		Dim As DictionaryItem Ptr nItem = _New(DictionaryItem)
+		If nItem=0 Then Return
 		For j As Integer = 0 To UBound(res) - 1 Step 2
 			With *nItem
 				.Key  = *res(j)
@@ -510,6 +501,7 @@ End Function
 				WLetEx(FText, Trim(Mid(*FText, 1, Len(*FText)), Any WChr(13) & WChr(10)))
 				Pos1 = InStr(*FText, WChr(9) & " ")
 				Dim As DictionaryItem Ptr nItem = _New(DictionaryItem)
+				If nItem = 0 Then Return
 				With *nItem
 					If Pos1 > 0 Then
 						.Key  = ..Left(*FText, Pos1 - 1)

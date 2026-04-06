@@ -322,7 +322,7 @@ Private Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmp
 	subject = ResultPtr
 End Sub
 
-Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
+Private Sub WDeAllocate Overload(subject() As WString Ptr)
 	For i As Integer = 0 To UBound(subject)
 		If subject(i) <> 0 Then _Deallocate(subject(i))
 		subject(i) = 0
