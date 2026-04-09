@@ -23,7 +23,8 @@ Private Constructor UString(ByRef Value As WString)
 	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_Data = _Allocate(m_BytesCount)
 	If m_Data <> 0 Then
-		Fb_MemCopy((*m_Data)[0], Value[0], m_Length * SizeOf(WString) * GrowLength)
+		*m_Data = Value
+		'Fb_MemCopy((*m_Data)[0], Value[0], m_Length * SizeOf(WString) * GrowLength)
 		(*m_Data)[m_Length] = 0
 	Else
 		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." 
@@ -33,11 +34,12 @@ End Constructor
 'NO Any use?
 Private Constructor UString(ByRef Value As String)
 	m_Length = Len(Value)
-	m_BytesCount = (m_Length + 1) * SizeOf(String) * GrowLength
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_BufferLen = m_Length * 2
 	m_Data = _CAllocate(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = Value
+		(*m_Data)[m_Length] = 0
 	Else
 		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated."
 	End If
@@ -45,10 +47,11 @@ End Constructor
 
 Private Constructor UString(ByRef Value As ZString)
 	m_Length = Len(Value)
-	m_BytesCount = (m_Length + 1) * SizeOf(ZString) * GrowLength
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_Data = _Allocate(m_BytesCount)
 	If m_Data <> 0 Then
-		Fb_MemCopy((*m_Data)[0], Value[0], m_Length * SizeOf(ZString) * GrowLength)
+		*m_Data = Value
+		'Fb_MemCopy((*m_Data)[0], Value[0], m_Length * SizeOf(ZString) * GrowLength)
 		(*m_Data)[m_Length] = 0
 	Else
 		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated."
@@ -60,7 +63,8 @@ Private Constructor UString(ByRef Value As UString)
 	m_BytesCount = Value.m_BytesCount
 	m_Data = _Allocate(m_BytesCount)
 	If m_Data <> 0 Then
-		Fb_MemCopy((*m_Data)[0], (* (Value.m_Data))[0], m_Length * SizeOf(WString) * GrowLength)
+		*m_Data = * (Value.m_Data)
+		'Fb_MemCopy((*m_Data)[0], (* (Value.m_Data))[0], m_Length * SizeOf(WString) * GrowLength)
 		(*m_Data)[m_Length] = 0
 		m_BufferLen = Value.m_BufferLen
 	Else
@@ -322,12 +326,12 @@ Private Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmp
 	subject = ResultPtr
 End Sub
 
-Private Sub WDeAllocate Overload(subject() As WString Ptr)
-	For i As Integer = 0 To UBound(subject)
-		If subject(i) <> 0 Then _Deallocate(subject(i))
-		subject(i) = 0
-	Next
-End Sub
+'Private Sub WDeAllocate Overload(subject() As WString Ptr)
+'	For i As Integer = 0 To UBound(subject)
+'		If subject(i) <> 0 Then _Deallocate(subject(i))
+'		subject(i) = 0
+'	Next
+'End Sub
 Private Sub WDeAllocateEx Overload(subject() As WString Ptr)
 	For i As Integer = 0 To UBound(subject)
 		If subject(i) <> 0 Then _Deallocate(subject(i))
@@ -368,7 +372,8 @@ Private Operator UString.Let(ByRef lhs As UString)
 		m_BufferLen = lhs.m_BufferLen
 		Dim As WString Ptr ResultPtr = _Allocate(m_BytesCount)
 		If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
-		Fb_MemCopy((*ResultPtr)[0], (*lhs.m_Data)[0], m_Length * SizeOf(WString) * GrowLength)
+		*ResultPtr = *lhs.m_Data
+		'Fb_MemCopy((*ResultPtr)[0], (*lhs.m_Data)[0], m_Length * SizeOf(WString) * GrowLength)
 		(*ResultPtr)[m_Length] = 0
 		If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
 		m_Data = ResultPtr
@@ -382,7 +387,8 @@ Private Operator UString.Let(ByRef lhs As WString)
 	m_BufferLen = m_Length * 2
 	Dim As WString Ptr ResultPtr = _Allocate(m_BytesCount)
 	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
-	Fb_MemCopy((*ResultPtr)[0], lhs[0], m_Length * SizeOf(WString) * GrowLength)
+	*ResultPtr = lhs
+	'Fb_MemCopy((*ResultPtr)[0], lhs[0], m_Length * SizeOf(WString) * GrowLength)
 	(*ResultPtr)[m_Length] = 0
 	If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
 	m_Data = ResultPtr
@@ -395,7 +401,8 @@ Private Operator UString.Let(ByRef lhs As Const ZString)
 	m_BufferLen = m_Length * 2
 	Dim As WString Ptr ResultPtr = _Allocate(m_BytesCount)
 	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
-	Fb_MemCopy((*ResultPtr)[0], lhs[0], m_Length * SizeOf(ZString) * GrowLength)
+	*ResultPtr = lhs
+	'Fb_MemCopy((*ResultPtr)[0], lhs[0], m_Length * SizeOf(ZString) * GrowLength)
 	(*ResultPtr)[m_Length] = 0
 	If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
 	m_Data = ResultPtr
@@ -409,6 +416,7 @@ Private Operator UString.Let(ByRef lhs As String)
 	m_Data = _CAllocate(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = lhs
+		(*m_Data)[m_Length] = 0
 		If OnChange Then OnChange(This)
 	End If
 End Operator
@@ -430,15 +438,15 @@ Private Function UString.vptr As WString Ptr
 End Function
 
 Private Function Val Overload(ByRef subject As UString) As Double
-	Return Val(*(subject.vptr))
+	Return Val(* (subject.m_Data))
 End Function
 
 Private Operator Len(ByRef lhs As UString) As Integer
-	Return Len(*lhs.vptr)
+	Return Len(*lhs.m_Data)
 End Operator
 
 Private Function WStrPtr(ByRef Value As UString) As WString Ptr
-	Return Value.vptr
+	Return Value.m_Data
 End Function
 
 Private Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
@@ -447,44 +455,44 @@ Private Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
 	Dim As Long Len_Rhs = Len(rhs)
 	Result.Resize(Len_Lhs + Len_Rhs)
 	If Result.m_Data <> 0 Then
-		Fb_MemCopy((* (Result.m_Data))[0], (* (lhs.m_Data))[0], Len_Lhs * SizeOf(WString) * GrowLength)
-		Fb_MemCopy((* (Result.m_Data))[Len_Lhs], (* (rhs.m_Data))[0], Len_Rhs * SizeOf(WString) * GrowLength)
+		'Fb_MemCopy((* (Result.m_Data))[0], (* (lhs.m_Data))[0], Len_Lhs * SizeOf(WString) * GrowLength)
+		'Fb_MemCopy((* (Result.m_Data))[Len_Lhs], (* (rhs.m_Data))[0], Len_Rhs * SizeOf(WString) * GrowLength)
+		*Result.m_Data = * (lhs.m_Data) & * (rhs.m_Data)
 		(*Result.m_Data)[Result.m_Length] = 0
-		'Result.m_Data = * (lhs.vptr) & * (rhs.vptr)
 	End If
 	Return Result
 End Operator
 
 Private Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
-	'Return Left(*(subject.vptr), n)
-	Dim As UString Result
-	If n <= 0 Then Return Result
-	If n > subject.m_Length Then n = subject.m_Length
-	Result.Resize(n)
-	If Result.m_Data <> 0 Then
-		Fb_MemCopy((* (Result.m_Data))[0], (* (subject.m_Data))[0], n * SizeOf(WString) * GrowLength)
-		(*Result.m_Data)[n] = 0
-		'Result.m_Data = * (lhs.vptr) & * (rhs.vptr)
-	End If
-	Return Result
+	Return Left(* (subject.m_Data), n)
+	'Dim As UString Result
+	'If n <= 0 Then Return Result
+	'If n > subject.m_Length Then n = subject.m_Length
+	'Result.Resize(n)
+	'If Result.m_Data <> 0 Then
+	'	'Fb_MemCopy((* (Result.m_Data))[0], (* (subject.m_Data))[0], n * SizeOf(WString) * GrowLength)
+	'	'(*Result.m_Data)[n] = 0
+	'	Result.m_Data = * (lhs.vptr) & * (rhs.vptr)
+	'End If
+	'Return Result
 End Function
 
 Private Function Right Overload(ByRef subject As UString, ByVal n As Integer) As UString
-	'Return Right(*(subject.vptr), n)
-	Dim As UString Result
-	If n <= 0 Then Return Result
-	If n > subject.m_Length Then n = subject.m_Length
-	Dim As Long Lens = subject.m_Length - n
-	If Lens < 0 Then
-		Lens = 0
-		n = subject.m_Length
-	End If
-	Result.Resize(n)
-	If Result.m_Data <> 0 Then
-		Fb_MemCopy((* (Result.m_Data))[0], (* (subject.m_Data))[Lens], n * SizeOf(WString) * GrowLength)
-		(*Result.m_Data)[n] = 0
-	End If
-	Return Result
+	Return Right(* (subject.m_Data), n)
+	'Dim As UString Result
+	'If n <= 0 Then Return Result
+	'If n > subject.m_Length Then n = subject.m_Length
+	'Dim As Long Lens = subject.m_Length - n
+	'If Lens < 0 Then
+	'	Lens = 0
+	'	n = subject.m_Length
+	'End If
+	'Result.Resize(n)
+	'If Result.m_Data <> 0 Then
+	'	Fb_MemCopy((* (Result.m_Data))[0], (* (subject.m_Data))[Lens], n * SizeOf(WString) * GrowLength)
+	'	(*Result.m_Data)[n] = 0
+	'End If
+	'Return Result
 End Function
 
 #ifndef Replace_Off
