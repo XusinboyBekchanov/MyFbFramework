@@ -55,49 +55,47 @@ Private Property DoubleList.Count(Value As Integer)
 End Property
 
 Private Property DoubleList.Item(Index As Integer) As Double
-	If Index >= 0 And Index <= Count -1 Then
-		Return QDoubleListItem(FItems.Items[Index]).Value
-	End If
-	Return 0
+	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
+	If FItemsItemsIndex <> 0 Then Return QDoubleListItem(FItemsItemsIndex).Value Else Return 0
 End Property
 
 Private Property DoubleList.Item(Index As Integer, FItem As Double)
-	If Index >= 0 And Index <= Count -1 Then
-		QDoubleListItem(FItems.Items[Index]).Value = FItem
-	End If
+	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
+	If FItemsItemsIndex <> 0 Then QDoubleListItem(FItemsItemsIndex).Value = FItem
 End Property
 
 Private Property DoubleList.Object(Index As Integer) As Any Ptr
-	If Index >= 0 And Index <= Count -1 Then
-		Return QDoubleListItem(FItems.Items[Index]).Object
-	End If
-	Return 0
+	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
+	If FItemsItemsIndex <> 0 Then Return QDoubleListItem(FItemsItemsIndex).Object Else Return 0
 End Property
 
 Private Property DoubleList.Object(Index As Integer, FObj As Any Ptr)
-	If Index >= 0 And Index <= Count -1 Then
-		QDoubleListItem(FItems.Items[Index]).Object = FObj
-	End If
+	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
+	If FItemsItemsIndex <> 0 Then QDoubleListItem(FItemsItemsIndex).Object = FObj
 End Property
 
 #ifndef DoubleList_Add_Off
 	Private Sub DoubleList.Add(FItem As Double, FObj As Any Ptr = 0)
 		Dim As DoubleListItem Ptr nItem = _New( DoubleListItem)
+		If nItem = 0 Then Return
 		With *nItem
 			.Value  = FItem
 			.Object = FObj
 		End With
 		FItems.Add nItem
+		FCount += 1
 	End Sub
 #endif
 
 Private Sub DoubleList.Insert(Index As Integer, FItem As Double, FObj As Any Ptr = 0)
 	Dim As DoubleListItem Ptr nItem = _New( DoubleListItem)
+	If nItem = 0 Then Return
 	With *nItem
 		.Value  = FItem
 		.Object = FObj
 	End With
 	FItems.Insert Index, nItem
+	FCount += 1
 End Sub
 
 #ifndef DoubleList_Exchange_Off
@@ -107,24 +105,27 @@ End Sub
 #endif
 
 Private Sub DoubleList.Remove(Index As Integer)
-	If Index = -1 Then Exit Sub
-	_Delete( Cast(DoubleListItem Ptr, FItems.Items[Index]))
-	FItems.Remove Index
+	If Index < 0 OrElse Index >= FCount Then Exit Sub
+	_Delete( Cast(DoubleListItem Ptr, FItems.Item(Index)))
+	FItems.Remove Index  'Maybe not remove success
+	FCount = FItems.Count
 End Sub
 
 Private Sub DoubleList.Sort
 	Dim As Integer i,j
-	For i = 1 To Count -1
-		For j = Count -1 To i Step -1
+	For i = 1 To FCount - 1
+		For j = FCount - 1 To i Step -1
 			If (Item(j) < Item(j - 1)) Then
 				Exchange j - 1, j
 			End If
 		Next
 	Next
+	FSorted = True
 End Sub
 
 Private Sub DoubleList.Clear
-	For i As Integer = Count -1 To 0 Step -1
+	If FCount < 1 Then Return
+	For i As Integer = FCount - 1 To 0 Step -1
 		_Delete( Cast(DoubleListItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
@@ -133,7 +134,7 @@ End Sub
 #ifndef DoubleList_IndexOf_Off
 	Private Function DoubleList.IndexOf(FItem As Double) As Integer
 		For i As Integer = 0 To Count -1
-			If QDoubleListItem(FItems.Items[i]).Value = FItem Then Return i
+			If Item(i) = FItem Then Return i
 		Next i
 		Return -1
 	End Function
@@ -141,7 +142,7 @@ End Sub
 
 Private Function DoubleList.IndexOfObject(FObj As Any Ptr) As Integer
 	For i As Integer = 0 To Count -1
-		If QDoubleListItem(FItems.Items[i]).Object = FObj Then Return i
+		If Object(i) = FObj Then Return i
 	Next i
 	Return -1
 End Function
@@ -151,11 +152,9 @@ Private Function DoubleList.Contains(FItem As Double) As Boolean
 End Function
 
 Private Constructor DoubleList
-	FItems.Clear
+	
 End Constructor
 
 Private Destructor DoubleList
-	For i As Integer = Count -1 To 0 Step -1
-		_Delete( Cast(DoubleListItem Ptr, FItems.Items[i]))
-	Next i
+	This.Clear
 End Destructor

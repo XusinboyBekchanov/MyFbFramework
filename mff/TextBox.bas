@@ -1715,7 +1715,7 @@ Namespace My.Sys.Forms
 		FText_.m_Owner = @This
 		FText_.OnChange = @OnTextChanged
 		#ifdef __USE_WINAPI__
-			FMaxLength          = 64000
+			'FMaxLength          = 64000
 		#endif
 		FEnabled = True
 		FTabIndex          = -1

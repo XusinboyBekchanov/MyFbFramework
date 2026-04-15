@@ -9,7 +9,7 @@
 Namespace My.Sys.ComponentModel
 	Private Function MarginsType.ToString ByRef As WString
 		WLet(FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom)
-		Return *FTemp
+		If FTemp <> 0 Then Return *FTemp Else Return ""
 	End Function
 	
 	#ifndef ReadProperty_Off
@@ -127,7 +127,7 @@ Namespace My.Sys.ComponentModel
 	#endif
 	
 	Private Function Component.ClassAncestor ByRef As WString
-		Return *FClassAncestor
+		If FClassAncestor Then Return *FClassAncestor Else Return ""
 	End Function
 	
 	Private Property Component.DesignMode As Boolean

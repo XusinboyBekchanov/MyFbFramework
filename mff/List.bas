@@ -19,8 +19,11 @@ Private Sub List.EnsureCapacity(NewSize As Integer)
 	If NewSize > m_Capacity Then
 		Dim As Integer NewCapacity = IIf(m_Capacity = 0, 4, m_Capacity * 2)
 		If NewCapacity < NewSize Then NewCapacity = NewSize
-		Items = _Reallocate(Items, NewCapacity * SizeOf(Any Ptr))
-		m_Capacity = NewCapacity
+		Dim As Any Ptr Ptr ItemsNew = _Reallocate(Items, NewCapacity * SizeOf(Any Ptr))
+		If ItemsNew <> 0 Then 
+			Items = ItemsNew
+			m_Capacity = NewCapacity
+		End If
 	End If
 End Sub
 Private Property List.Count As Integer
@@ -34,17 +37,20 @@ End Operator
 Private Property List.Item(Index As Integer) As Any Ptr
 	If Index >= 0 AndAlso Index < m_Count Then
 		Return Items[Index]
+	Else
+		Print __FUNCTION__ & ", Out of Index boundary. Index = " & Index & " of " & m_Count 
+		Return 0
 	End If
-	Return 0
+	
 End Property
 
-#ifndef List_Item_Set_Off
-	Private Property List.Item(Index As Integer, FItem As Any Ptr)
-		If Index >= 0 AndAlso Index < m_Count Then
-			Items[Index] = FItem
-		End If
-	End Property
-#endif
+Private Property List.Item(Index As Integer, FItem As Any Ptr)
+	If Index >= 0 AndAlso Index < m_Count Then
+		Items[Index] = FItem
+	Else
+		Print __FUNCTION__ & ", Out of Index boundary. Index = " & Index & " of " & m_Count 
+	End If
+End Property
 
 Private Sub List.Add(FItem As Any Ptr)
 	EnsureCapacity(m_Count + 1)
@@ -53,7 +59,7 @@ Private Sub List.Add(FItem As Any Ptr)
 End Sub
 
 Private Sub List.Insert(Index As Integer, FItem As Any Ptr)
-	If Index < 0 Or Index > m_Count Then Index = m_Count
+	If Index < 0 Or Index >= m_Count Then Index = m_Count
 	EnsureCapacity(m_Count + 1)
 	If Index < m_Count Then
 		Fb_MemMove(Items[Index + 1], Items[Index], (m_Count - Index) * SizeOf(Any Ptr))
@@ -82,7 +88,6 @@ End Sub
 
 Private Sub List.Remove(Index As Integer)
 	If Index < 0 OrElse Index >= m_Count Then Exit Sub
-	
 	m_Count -= 1
 	If Index < m_Count Then
 		Fb_MemMove(Items[Index], Items[Index + 1], (m_Count - Index) * SizeOf(Any Ptr))
@@ -96,6 +101,7 @@ Private Sub List.Remove(Index As Integer)
 End Sub
 
 Private Sub List.Clear
+	If m_Count = 0 Then Return
 	m_Count = 0
 	m_Capacity = 0
 	If Items Then _Deallocate(Items)
@@ -120,8 +126,5 @@ Private Constructor List
 End Constructor
 
 Private Destructor List
-	m_Count = 0
-	m_Capacity = 0
-	If Items Then _Deallocate(Items)
-	Items = 0
+	Clear
 End Destructor
