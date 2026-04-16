@@ -129,6 +129,7 @@ Private Sub DoubleList.Clear
 		_Delete( Cast(DoubleListItem Ptr, FItems.Items[i]))
 	Next i
 	FItems.Clear
+	FCount = 0
 End Sub
 
 #ifndef DoubleList_IndexOf_Off

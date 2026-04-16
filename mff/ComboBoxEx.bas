@@ -158,10 +158,8 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor ComboBoxItem
-		FHint = 0 'CAllocate_(0)
-		FText = 0 'CAllocate_(0)
-		Text    = ""
-		Hint       = ""
+		WLet(FHint, "")
+		WLet(FText, "")
 		FImageIndex = -1
 		FSelectedImageIndex = -1
 		FOverlayIndex = -1

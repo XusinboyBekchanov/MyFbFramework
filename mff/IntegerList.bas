@@ -123,8 +123,8 @@ End Sub
 Private Sub IntegerList.Remove(Index As Integer)
 	If Index < 0 OrElse Index >= FCount Then Exit Sub
 	_Delete( Cast(IntegerListItem Ptr, FItems.Items[Index]))
-	FItems.Remove Index
-	FCount -= 1
+	FItems.Remove Index 'Maybe not remove success
+	FCount = FItems.Count
 End Sub
 
 Private Sub IntegerList.Sort

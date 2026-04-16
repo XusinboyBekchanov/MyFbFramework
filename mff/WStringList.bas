@@ -115,7 +115,7 @@ End Property
 #endif
 
 Private Operator WStringList.[](Index As Integer) ByRef As WString
-	Dim As Any Ptr FItemsItemsIndex = FItems.Items[Index]
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
 	If FItemsItemsIndex <> 0 Then
 		Return QWStringListItem(FItemsItemsIndex).Value
 	Else
@@ -124,7 +124,7 @@ Private Operator WStringList.[](Index As Integer) ByRef As WString
 End Operator
 
 Private Property WStringList.Item(Index As Integer) ByRef As WString
-	Dim As Any Ptr FItemsItemsIndex = FItems.Items[Index]
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
 	If FItemsItemsIndex <> 0 Then
 		Return QWStringListItem(FItemsItemsIndex).Value
 	Else
@@ -133,17 +133,12 @@ Private Property WStringList.Item(Index As Integer) ByRef As WString
 End Property
 
 Private Property WStringList.Item(Index As Integer, iValue As WString)
-	If Index > -1 And Index < FCount AndAlso FItems.Items[Index] <> 0 Then
-		'WDeAllocate(Items.Item(Index))
-		'Dim As WString Ptr iText = CAllocate_((Len(iValue) + 1) * SizeOf(WString))
-		'*iText = iValue
-		'Items.Item(Index) = iText
-		QWStringListItem(FItems.Items[Index]).Value = iValue
-	End If
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
+	If FItemsItemsIndex <> 0 Then QWStringListItem(FItemsItemsIndex).Value = iValue
 End Property
 
 Private Property WStringList.Object(Index As Integer) As Any Ptr
-	Dim As Any Ptr FItemsItemsIndex = FItems.Items[Index]
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
 	If FItemsItemsIndex <> 0 Then
 		Return QWStringListItem(FItemsItemsIndex).Object
 	Else
@@ -152,7 +147,7 @@ Private Property WStringList.Object(Index As Integer) As Any Ptr
 End Property
 
 Private Property WStringList.Object(Index As Integer, FObj As Any Ptr)
-	Dim As Any Ptr FItemsItemsIndex = FItems.Items[Index]
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
 	If FItemsItemsIndex <> 0 Then QWStringListItem(FItemsItemsIndex).Object = FObj
 End Property
 
@@ -247,8 +242,8 @@ Private Sub WStringList.Remove(Index As Integer)
 	'Objects.Remove Index
 	'FCount = Items.Count
 	_Delete(Cast(WStringListItem Ptr, FItems.Items[Index]))
-	FItems.Remove Index
-	FCount -= 1 ' FItems.Count
+	FItems.Remove Index 'Maybe not remove success
+	FCount = FItems.Count
 	If OnRemove Then OnRemove(This, Index)
 End Sub
 #ifndef WStringList_Sort_Off
