@@ -33,12 +33,11 @@ End Constructor
 'NO Any use?
 Private Constructor UString(ByRef Value As String)
 	m_Length = Len(Value)
-	m_BytesCount = (m_Length + 1) * SizeOf(String) * GrowLength
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_BufferLen = m_Length * 2
 	m_Data = _CAllocate(m_BytesCount)
 	If m_Data <> 0 Then
 		*m_Data = Value
-		'(*m_Data)[m_Length] = 0
 	Else
 		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated."
 	End If
@@ -46,11 +45,11 @@ End Constructor
 
 Private Constructor UString(ByRef Value As ZString)
 	m_Length = Len(Value)
-	m_BytesCount = (m_Length + 1) * SizeOf(ZString) * GrowLength
-	m_Data = _Allocate(m_BytesCount)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	m_BufferLen = m_Length * 2
+	m_Data = _CAllocate(m_BytesCount)
 	If m_Data <> 0 Then
-		Fb_MemCopy((*m_Data)[0], Value[0], m_Length * SizeOf(ZString) * GrowLength)
-		(*m_Data)[m_Length] = 0
+		*m_Data = Value
 	Else
 		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated."
 	End If
@@ -404,12 +403,11 @@ End Operator
 
 Private Operator UString.Let(ByRef lhs As Const ZString)
 	m_Length = Len(lhs)
-	m_BytesCount = (m_Length + 1) * SizeOf(ZString) * GrowLength
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_BufferLen = m_Length * 2
-	Dim As WString Ptr ResultPtr = _Allocate(m_BytesCount)
+	Dim As WString Ptr ResultPtr = _CAllocate(m_BytesCount)
 	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
-	Fb_MemCopy((*ResultPtr)[0], lhs[0], m_Length * SizeOf(ZString) * GrowLength)
-	(*ResultPtr)[m_Length] = 0
+	*ResultPtr = lhs
 	If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
 	m_Data = ResultPtr
 	If OnChange Then OnChange(This)
@@ -417,14 +415,14 @@ End Operator
 '
 Private Operator UString.Let(ByRef lhs As String)
 	m_Length = Len(lhs)
-	m_BytesCount = (m_Length + 1) * SizeOf(String) * GrowLength
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_BufferLen = m_Length * 2
-	m_Data = _CAllocate(m_BytesCount)
-	If m_Data <> 0 Then
-		*m_Data = lhs
-		'(*m_Data)[m_Length] = 0
-		If OnChange Then OnChange(This)
-	End If
+	Dim As WString Ptr ResultPtr = _CAllocate(m_BytesCount)
+	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
+	*ResultPtr = lhs
+	If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
+	m_Data = ResultPtr
+	If OnChange Then OnChange(This)
 End Operator
 
 Private Property UString.Length() As Integer
