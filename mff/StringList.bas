@@ -194,8 +194,8 @@ End Sub
 Private Sub StringList.Remove(Index As Integer)
 	If FCount < 1 OrElse Index < 0 OrElse Index > FCount - 1 Then Exit Sub
 	_Delete(Cast(StringListItem Ptr, FItems.Items[Index]))
-	FItems.Remove Index
-	FCount -= 1 ' FItems.Count
+	FItems.Remove Index 'Maybe not remove success
+	FCount = FItems.Count
 	If OnRemove Then OnRemove(This, Index)
 End Sub
 
@@ -237,6 +237,7 @@ Private Sub StringList.Sort(iLeft As Integer = 0, iRight As Integer = 0)
 End Sub
 
 Private Sub StringList.Clear
+	If FCount = 0 Then Return
 	For i As Integer = FCount - 1 To 0 Step -1
 		If FItems.Items[i] <> 0 Then _Delete(Cast(StringListItem Ptr, FItems.Items[i]))
 	Next

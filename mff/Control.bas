@@ -459,7 +459,6 @@ Namespace My.Sys.Forms
 						GetWindowText(FHandle, FText.vptr, L + 1)
 					End If
 				#endif
-				Return WGet(FText.vptr)
 				If FText.vptr = 0 Then Return "" Else Return *FText.vptr
 			End Property
 			
@@ -494,6 +493,7 @@ Namespace My.Sys.Forms
 			
 			Private Property Control.Hint(ByRef Value As WString)
 				WLet(FHint, Value)
+				If FHint = 0 Then Return
 				#ifdef __USE_GTK__
 					If FShowHint Then
 						If widget Then gtk_widget_set_tooltip_text(widget, ToUtf8(Value))

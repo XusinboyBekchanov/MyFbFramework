@@ -333,13 +333,15 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FStyle > 1 Then
-				If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+				If FHandle Then Perform(CB_SELECTSTRING, -1, Cast(LPARAM, FText.vptr))
 			Else
 				'If FHandle Then SetWindowText(FHandle, FText)
-				If FHandle Then Perform(WM_SETTEXT, -1, CInt(FText.vptr))
+				If FHandle Then Perform(WM_SETTEXT, 0, Cast(LPARAM, FText.vptr))
 			End If
-			Dim As Integer Index = IndexOf(Value)
-			If Index >= 0 Then ItemIndex = Index
+			If Items.Count > 0 Then
+				Dim As Integer Index = IndexOf(Value)
+				If Index >= 0 Then ItemIndex = Index
+			End If
 		#elseif defined(__USE_WASM__)
 			If FHandle Then SetSelectedIndex(FHandle, IndexOf(Value))
 		#endif
@@ -375,16 +377,14 @@ Namespace My.Sys.Forms
 			If Handle Then
 				L = Perform(CB_GETLBTEXTLEN, FIndex, 0)
 				WReAllocate(FItemText, L)
-				Perform(CB_GETLBTEXT, FIndex, CInt(FItemText))
-				Return *FItemText
+				Perform(CB_GETLBTEXT, FIndex, Cast(LPARAM, FItemText))
 			Else
 				WLet(FItemText, Items.Item(FIndex))
-				Return *FItemText
 			End If
 		#else
 			WLet(FItemText, Items.Item(FIndex))
-			Return *FItemText
 		#endif
+		If FItemText = 0 Then Return "" Else Return *FItemText
 	End Property
 	
 	Private Property ComboBoxEdit.Item(FIndex As Integer, ByRef FItem As WString)

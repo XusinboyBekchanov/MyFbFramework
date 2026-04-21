@@ -35,6 +35,7 @@ Private Type DoubleList Extends Object
 Private:
 	FCount   As Integer
 	FItems   As List
+	FSorted As Boolean
 Public:
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
