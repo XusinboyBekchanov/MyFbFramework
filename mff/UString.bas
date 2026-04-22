@@ -41,6 +41,9 @@ Private Constructor UString(ByRef Value As String)
 	Else
 		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated."
 	End If
+	m_Length = Len(*m_Data)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	m_BufferLen = m_Length * 2
 End Constructor
 
 Private Constructor UString(ByRef Value As ZString)
@@ -53,6 +56,9 @@ Private Constructor UString(ByRef Value As ZString)
 	Else
 		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated."
 	End If
+	m_Length = Len(*m_Data)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	m_BufferLen = m_Length * 2
 End Constructor
 
 Private Constructor UString(ByRef Value As UString)
@@ -408,6 +414,9 @@ Private Operator UString.Let(ByRef lhs As Const ZString)
 	Dim As WString Ptr ResultPtr = _CAllocate(m_BytesCount)
 	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
 	*ResultPtr = lhs
+	m_Length = Len(*ResultPtr)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	m_BufferLen = m_Length * 2
 	If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
 	m_Data = ResultPtr
 	If OnChange Then OnChange(This)
@@ -420,6 +429,9 @@ Private Operator UString.Let(ByRef lhs As String)
 	Dim As WString Ptr ResultPtr = _CAllocate(m_BytesCount)
 	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
 	*ResultPtr = lhs
+	m_Length = Len(*ResultPtr)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	m_BufferLen = m_Length * 2
 	If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
 	m_Data = ResultPtr
 	If OnChange Then OnChange(This)
