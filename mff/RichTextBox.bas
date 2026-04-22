@@ -151,14 +151,14 @@ Namespace My.Sys.Forms
 			Dim As Boolean bBullet
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 			While(list)
-				Dim As GtkTextTag Ptr TextTag = list->data
-				Dim intval1 As gint, intval2 As gint, ptab_array As PangoTabArray Ptr
-				g_object_get(TextTag, "indent", @intval1, "left-margin", @intval2, "tabs", @ptab_array, NULL)
-				If intval1 <> -14 AndAlso intval2 = -14 AndAlso ptab_array <> 0 Then bBullet = True
-				list = g_slist_next(list)
-			Wend
-			g_slist_free(list)
-			Return bBullet
+			Dim As GtkTextTag Ptr TextTag = list->data
+			Dim intval1 As gint, intval2 As gint, ptab_array As PangoTabArray Ptr
+			g_object_get(TextTag, "indent", @intval1, "left-margin", @intval2, "tabs", @ptab_array, NULL)
+			If intval1 <> -14 AndAlso intval2 = -14 AndAlso ptab_array <> 0 Then bBullet = True
+			list = g_slist_next(list)
+		Wend
+		g_slist_free(list)
+		Return bBullet
 		#else
 			If FHandle Then
 				Pf.dwMask = PFM_NUMBERING
@@ -294,16 +294,16 @@ Namespace My.Sys.Forms
 			Dim As PangoTabArray Ptr ptab_array
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 			While(list)
-				Dim As GtkTextTag Ptr TextTag = list->data
-				list = g_slist_next(list)
-				g_object_get(TextTag, "tabs", @ptab_array, NULL)
-				If ptab_array <> 0 Then Exit While
-			Wend
-			g_slist_free(list)
-			If ptab_array = 0 Then Return 0
-			Dim As Integer sTabCount = pango_tab_array_get_size(ptab_array)
-			pango_tab_array_free(ptab_array)
-			Return sTabCount
+			Dim As GtkTextTag Ptr TextTag = list->data
+			list = g_slist_next(list)
+			g_object_get(TextTag, "tabs", @ptab_array, NULL)
+			If ptab_array <> 0 Then Exit While
+		Wend
+		g_slist_free(list)
+		If ptab_array = 0 Then Return 0
+		Dim As Integer sTabCount = pango_tab_array_get_size(ptab_array)
+		pango_tab_array_free(ptab_array)
+		Return sTabCount
 		#else
 			If FHandle Then
 				Pf.dwMask = PFM_TABSTOPS
@@ -321,21 +321,21 @@ Namespace My.Sys.Forms
 			Dim As PangoTabArray Ptr ptab_array
 			Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 			While(list)
-				Dim As GtkTextTag Ptr TextTag = list->data
-				list = g_slist_next(list)
-				g_object_get(TextTag, "tabs", @ptab_array, NULL)
-				If ptab_array <> 0 Then Exit While
-			Wend
-			g_slist_free(list)
-			If ptab_array = 0 Then
-				ptab_array = pango_tab_array_new(Value, True)
-			Else
-				pango_tab_array_resize(ptab_array, Value)
-			End If
-			Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
-			g_object_set(TextTag, "tabs", ptab_array, NULL)
-			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), TextTag, @FStart, @FEnd)
-			g_object_unref(TextTag)
+			Dim As GtkTextTag Ptr TextTag = list->data
+			list = g_slist_next(list)
+			g_object_get(TextTag, "tabs", @ptab_array, NULL)
+			If ptab_array <> 0 Then Exit While
+		Wend
+		g_slist_free(List)
+		If ptab_array = 0 Then
+			ptab_array = pango_tab_array_new(Value, True)
+		Else
+			pango_tab_array_resize(ptab_array, Value)
+		End If
+		Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
+		g_object_set(TextTag, "tabs", ptab_array, NULL)
+		gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), TextTag, @FStart, @FEnd)
+		g_object_unref(TextTag)
 		#else
 			If FHandle Then
 				Pf.dwMask = PFM_TABSTOPS
@@ -354,17 +354,17 @@ Namespace My.Sys.Forms
 				Dim As PangoTabArray Ptr ptab_array
 				Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 				While(list)
-					Dim As GtkTextTag Ptr TextTag = list->data
-					list = g_slist_next(list)
-					g_object_get(TextTag, "tabs", @ptab_array, NULL)
-					If ptab_array <> 0 Then Exit While
-				Wend
-				g_slist_free(list)
-				If ptab_array = 0 Then Return 0
-				Dim As gint Value
-				pango_tab_array_get_tab(ptab_array, sElement, PANGO_TAB_LEFT, @Value)
-				Return Value
-			End If
+				Dim As GtkTextTag Ptr TextTag = list->data
+				list = g_slist_next(list)
+				g_object_get(TextTag, "tabs", @ptab_array, NULL)
+				If ptab_array <> 0 Then Exit While
+			Wend
+			g_slist_free(list)
+			If ptab_array = 0 Then Return 0
+			Dim As gint Value
+			pango_tab_array_get_tab(ptab_array, sElement, PANGO_TAB_LEFT, @Value)
+			Return Value
+		End If
 		#else
 			If FHandle Then
 				If sElement >= 0 AndAlso sElement <= 31 Then
@@ -385,20 +385,20 @@ Namespace My.Sys.Forms
 				Dim As PangoTabArray Ptr ptab_array
 				Dim As GSList Ptr list = gtk_text_iter_get_tags(@FStart)
 				While(list)
-					Dim As GtkTextTag Ptr TextTag = list->data
-					list = g_slist_next(list)
-					g_object_get(TextTag, "tabs", @ptab_array, NULL)
-					If ptab_array <> 0 Then Exit While
-				Wend
-				g_slist_free(list)
-				If ptab_array = 0 Then ptab_array = pango_tab_array_new(sElement + 1, True)
-				pango_tab_array_set_tab(ptab_array, sElement, PANGO_TAB_LEFT, Value)
-				gtk_text_view_set_tabs(GTK_TEXT_VIEW(widget), ptab_array)
-				Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
-				g_object_set(TextTag, "tabs", ptab_array, NULL)
-				gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), TextTag, @FStart, @FEnd)
-				g_object_unref(TextTag)
-			End If
+				Dim As GtkTextTag Ptr TextTag = list->data
+				list = g_slist_next(list)
+				g_object_get(TextTag, "tabs", @ptab_array, NULL)
+				If ptab_array <> 0 Then Exit While
+			Wend
+			g_slist_free(list)
+			If ptab_array = 0 Then ptab_array = pango_tab_array_new(sElement + 1, True)
+			pango_tab_array_set_tab(ptab_array, sElement, PANGO_TAB_LEFT, Value)
+			gtk_text_view_set_tabs(GTK_TEXT_VIEW(widget), ptab_array)
+			Dim As GtkTextTag Ptr TextTag = gtk_text_tag_new("Tabs")
+			g_object_set(TextTag, "tabs", ptab_array, NULL)
+			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), TextTag, @FStart, @FEnd)
+			g_object_unref(TextTag)
+		End If
 		#else
 			If FHandle Then
 				If sElement >= 0 AndAlso sElement <= 31 Then
@@ -1619,15 +1619,26 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				widget = gtk_text_view_new()
 			#else
-				hRichTextBox = LoadLibrary("RICHED20.DLL")
+				Dim hRichEditCls As String
+				hRichTextBox = LoadLibrary("msftedit.dll")
+				If hRichTextBox = NULL Then
+					hRichTextBox = LoadLibrary("riched20.dll")
+					If hRichTextBox = NULL Then
+					Else
+						hRichEditCls = "RichEdit20W"
+					End If
+				Else
+					hRichEditCls = "RICHEDIT50W"
+				End If
+				
 				Pf.cbSize = SizeOf(Pf)
 				Pf2.cbSize = SizeOf(Pf2)
 				Cf.cbSize = SizeOf(Cf)
 				Cf2.cbSize = SizeOf(Cf2)
-				.RegisterClass "RichTextBox", "RichEdit20W"
+				.RegisterClass "RichTextBox", hRichEditCls
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ChildProc		= @WndProc
-				WLet(.FClassAncestor, "RichEdit20W")
+				WLet(.FClassAncestor, hRichEditCls)
 			#endif
 			.FHideSelection    = False
 			FTabIndex          = -1
