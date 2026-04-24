@@ -292,7 +292,7 @@ Namespace My.Sys.Forms
 					gtk_text_buffer_insert(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_startline, ToUtf8(wsLine & Chr(13) & Chr(10)), -1)
 				End If
 			#elseif defined(__USE_WINAPI__)
-				Dim As WString Ptr sLine = _CAllocate(MaxLength * SizeOf(WString))
+				Dim As WString Ptr sLine = _CAllocate((Len(wsLine) + 4) * SizeOf(WString))
 				If Index >= 0 Then
 					iStart = SendMessage(FHandle, EM_LINEINDEX, Index, 0)
 					If iStart >= 0 Then
@@ -306,7 +306,7 @@ Namespace My.Sys.Forms
 						*sLine = WChr(13) & WChr(10) + wsLine
 					End If
 					SendMessage(FHandle, EM_SETSEL, iStart, iStart)
-					SendMessage(FHandle, EM_REPLACESEL, 0, CInt(sLine))
+					SendMessage(FHandle, EM_REPLACESEL, 0, Cast(LPARAM, sLine))
 					_Deallocate(sLine)
 				End If
 			#endif
