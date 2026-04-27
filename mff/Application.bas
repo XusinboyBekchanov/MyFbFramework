@@ -850,9 +850,9 @@ Namespace Debug
 		Private Sub Print Overload(ByRef Msg As UString, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 			If bWriteLog Then
 				Dim As Integer Result, Fn = FreeFile_
-				Result = Open(ExePath & "/DebugInfo.log" For Append As #Fn) 'Encoding "utf-8" Can not be using in the same mode
+				Result = Open(ExePath & "/DebugInfo.log" For Append Encoding "utf-8" As #Fn) 
 				If Result = 0 Then
-					.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & Msg & Space(20) 'cut some word if some unicode inside.
+					.Print #Fn, __DATE_ISO__ & " " & Time & Chr(9) & Msg
 				End If
 				CloseFile_(Fn)
 			End If
