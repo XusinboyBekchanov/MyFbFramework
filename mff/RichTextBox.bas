@@ -1244,7 +1244,7 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_set_text(buffer, !"\0", -1)
 				gtk_text_buffer_get_end_iter(buffer, @iter)
 				Dim in_tag As Boolean = False
-				Dim count As Integer = 0, LenValue = Len(Value), Capacity
+				Dim As Integer count = 0, LenValue = Len(Value), Capacity
 				Dim start_bold As Integer = -1
 				Dim start_italic As Integer = -1
 				Dim rtf_tag As String
@@ -1254,7 +1254,7 @@ Namespace My.Sys.Forms
 				For i As Integer = 0 To LenValue - 1
 					c = Value[i]
 					If CBool(c = 92) OrElse (CBool(c = 32) AndAlso in_tag) OrElse CBool(c = 125) Then  '"\" " "  "}"
-						If Buff <> "" AndAlso BuffPtr <> 0 Then
+						If BuffPtr <> 0 AndAlso *BuffPtr <> "" Then
 							gtk_text_buffer_insert(buffer, @iter, ToUtf8(*BuffPtr), -1)
 							WLet(BuffPtr, "")
 							Capacity = 0
