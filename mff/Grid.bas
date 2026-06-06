@@ -648,10 +648,12 @@ Namespace My.Sys.Forms
 		
 	End Function
 	
-	Sub GridRows.Sort(iDataPtr() As WString Ptr, ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
+	Sub GridRows.SortArray(iDataPtr() As WString Ptr, ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
+		Dim pGrid As Grid Ptr = Cast(Grid Ptr, Parent)
+		If pGrid = 0 Then Return
 		Dim As Long iDataCount = UBound(iDataPtr, 1) + 1
 		If iDataCount <= 1 Then
-			Print Date & " " & Time & " " & Chr(9) & " " & __FUNCTION__ & " Line：" & __LINE__ & Chr(9) & "No data in the control!", True
+			Print Date & " " & Time & " " & Chr(9) & " " & __FUNCTION__ & " Line：" & __LINE__ & Chr(9) & "No data in the control!"
 			Exit Sub
 		End If
 		#ifdef __USE_WINAPI__
@@ -659,13 +661,13 @@ Namespace My.Sys.Forms
 			Dim As HDITEM hd
 			Var newflag = IIf(bSortOrder = SortStyle.ssSortAscending, HDF_SORTUP, HDF_SORTDOWN)
 			hd.mask = HDI_FORMAT
-			For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
+			For i As Integer = 0 To pGrid->Columns.Count - 1
 				Header_GetItem(Header, ColIndex, @hd)
 				If i = ColIndex Then
 					If (hd.fmt And newflag) <> newflag Then
 						hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
 						hd.fmt = hd.fmt Or newflag
-						Header_SetItem(Header, ColIndex, @hd)
+						Header_SetItem(Header, i, @hd)
 					End If
 				Else
 					hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
@@ -677,17 +679,20 @@ Namespace My.Sys.Forms
 		Dim As Integer iDirection = IIf(bSortOrder = SortStyle.ssSortAscending, 1, -1)
 		Dim As Long iLBound = LBound(iDataPtr, 1)
 		Dim As Long iUBound = iDataCount - 1
+		Dim As Long ArrayLBound = LBound(iDataPtr, 2)
+		Dim As Long ArrayUBound = UBound(iDataPtr, 2)
+		Dim As Long  ArraryCol = ColIndex - IIf(pGrid->FixCols, 1, 0)
 		If iUBound <= iLBound Then Return
-		If ColIndex > iUBound OrElse ColIndex < iLBound Then
+		If ArraryCol > iUBound OrElse ArraryCol < iLBound Then
 			Print Date & " " & Time & " " & Chr(9) & __FUNCTION__ & " " & Chr(9) & ML("The sort index is out of array data dimensions range!"), True
 			Return
 		End If
-		Dim As WString Ptr iExchange(iLBound To iUBound)
-		Cast(Grid Ptr, Parent)->SortComparePara.Parent = Parent
-		Cast(Grid Ptr, Parent)->SortComparePara.SortIndex = ColIndex
-		Cast(Grid Ptr, Parent)->SortComparePara.SortOrder = bSortOrder
-		Cast(Grid Ptr, Parent)->SortComparePara.SortNatural = bNaturalSort
-		Cast(Grid Ptr, Parent)->SortComparePara.MatchCase = bMatchCase
+		Dim As WString Ptr iExchange(ArrayLBound To ArrayUBound)
+		pGrid->SortComparePara.Parent = Parent
+		pGrid->SortComparePara.SortIndex = ArraryCol
+		pGrid->SortComparePara.SortOrder = bSortOrder
+		pGrid->SortComparePara.SortNatural = bNaturalSort
+		pGrid->SortComparePara.MatchCase = bMatchCase
 		Type SortStackItem
 			iLow As Long
 			iHigh As Long
@@ -706,17 +711,16 @@ Namespace My.Sys.Forms
 			Dim As Long sPivotMid = (iLow + iHigh) \ 2
 			Do
 				' iDirection 乘数直接控制比较逻辑，无需重写两套排序代码
-				While iL <= iHigh AndAlso CompareStrings(*iDataPtr(iL, ColIndex), *iDataPtr(sPivotMid, ColIndex), bMatchCase, bNaturalSort, iDirection) < 0
+				While iL <= iHigh AndAlso CompareStrings(*iDataPtr(iL, ArraryCol), *iDataPtr(sPivotMid, ArraryCol), bMatchCase, bNaturalSort, iDirection) < 0
 					iL += 1
 				Wend
-				While iR >= iLow AndAlso CompareStrings(*iDataPtr(iR, ColIndex), *iDataPtr(sPivotMid, ColIndex), bMatchCase, bNaturalSort, iDirection) > 0
+				While iR >= iLow AndAlso CompareStrings(*iDataPtr(iR, ArraryCol), *iDataPtr(sPivotMid, ArraryCol), bMatchCase, bNaturalSort, iDirection) > 0
 					iR -= 1
 				Wend
-				
 				If iL <= iR Then
-					For k As Long = iLBound To iUBound : iExchange(k) = iDataPtr(iL, k) : Next
-					For k As Long = iLBound To iUBound : iDataPtr(iL, k) = iDataPtr(iR, k) : Next
-					For k As Long = iLBound To iUBound : iDataPtr(iR, k) = iExchange(k) : Next
+					For k As Long = ArrayLBound To ArrayUBound : iExchange(k) = iDataPtr(iL, k) : Next
+					For k As Long = ArrayLBound To ArrayUBound : iDataPtr(iL, k) = iDataPtr(iR, k) : Next
+					For k As Long = ArrayLBound To ArrayUBound : iDataPtr(iR, k) = iExchange(k) : Next
 					iL += 1
 					iR -= 1
 				End If
@@ -754,17 +758,23 @@ Namespace My.Sys.Forms
 		Dim As Long j
 		For i = iLBound + 1 To iUBound
 			j = i
-			While j > iLBound AndAlso CompareStrings(*iDataPtr(j - 1, ColIndex), *iDataPtr(j, ColIndex), bMatchCase, bNaturalSort) * iDirection > 0
-				FItems.Exchange j - 1, j
-				For k As Long = iLBound To iUBound : iExchange(k) = iDataPtr(j - 1, k) : Next
-				For k As Long = iLBound To iUBound : iDataPtr(j - 1, k) = iDataPtr(j, k) : Next
-				For k As Long = iLBound To iUBound : iDataPtr(j, k) = iExchange(k) : Next
+			While j > iLBound AndAlso CompareStrings(*iDataPtr(j - 1, ArraryCol), *iDataPtr(j, ArraryCol), bMatchCase, bNaturalSort) * iDirection > 0
+				For k As Long = ArrayLBound To ArrayUBound : iExchange(k) = iDataPtr(j - 1, k) : Next
+				For k As Long = ArrayLBound To ArrayUBound : iDataPtr(j - 1, k) = iDataPtr(j, k) : Next
+				For k As Long = ArrayLBound To ArrayUBound : iDataPtr(j, k) = iExchange(k) : Next
 				j -= 1
 			Wend
 		Next i
 	End Sub
 	
 	Sub GridRows.Sort(ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
+		Dim pGrid As Grid Ptr = Cast(Grid Ptr, Parent)
+		Print "pGrid=" & pGrid
+		If pGrid = 0 Then Return
+		If UBound(pGrid->DataArrayPtr, 1) > 0 Then
+			SortArray(pGrid->DataArrayPtr(), ColIndex, bSortOrder, bNaturalSort, bMatchCase)
+			Return
+		End If
 		Dim As Long iDataCount = FItems.Count
 		If iDataCount <= 1 Then
 			Print Date & " " & Time & " " & Chr(9) & " " & __FUNCTION__ & " Line：" & __LINE__ & Chr(9) & "No data in the control!", True
@@ -775,13 +785,13 @@ Namespace My.Sys.Forms
 			Dim As HDITEM hd
 			Var newflag = IIf(bSortOrder = SortStyle.ssSortAscending, HDF_SORTUP, HDF_SORTDOWN)
 			hd.mask = HDI_FORMAT
-			For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
+			For i As Integer = 0 To pGrid->Columns.Count - 1
 				Header_GetItem(Header, ColIndex, @hd)
 				If i = ColIndex Then
 					If (hd.fmt And newflag) <> newflag Then
 						hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
 						hd.fmt = hd.fmt Or newflag
-						Header_SetItem(Header, ColIndex, @hd)
+						Header_SetItem(Header, i, @hd)
 					End If
 				Else
 					hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
@@ -794,11 +804,11 @@ Namespace My.Sys.Forms
 		Dim As Long iLBound = 0
 		Dim As Long iUBound = iDataCount - 1
 		If iUBound <= iLBound Then Return
-		Cast(Grid Ptr, Parent)->SortComparePara.Parent = Parent
-		Cast(Grid Ptr, Parent)->SortComparePara.SortIndex = ColIndex
-		Cast(Grid Ptr, Parent)->SortComparePara.SortOrder = bSortOrder
-		Cast(Grid Ptr, Parent)->SortComparePara.SortNatural = bNaturalSort
-		Cast(Grid Ptr, Parent)->SortComparePara.MatchCase = bMatchCase
+		pGrid->SortComparePara.Parent = Parent
+		pGrid->SortComparePara.SortIndex = ColIndex
+		pGrid->SortComparePara.SortOrder = bSortOrder
+		pGrid->SortComparePara.SortNatural = bNaturalSort
+		pGrid->SortComparePara.MatchCase = bMatchCase
 		Type SortStackItem
 			iLow As Long
 			iHigh As Long
@@ -869,7 +879,7 @@ Namespace My.Sys.Forms
 				j -= 1
 			Wend
 		Next i
-		If Parent <> 0 Then Cast(Grid Ptr, Parent)->Repaint
+		pGrid->Repaint
 	End Sub
 	
 	#ifndef GridRows_Add_Integer_Off
@@ -1064,7 +1074,6 @@ Namespace My.Sys.Forms
 	
 	Private Constructor GridRows
 		This.Clear
-		
 	End Constructor
 	
 	Private Destructor GridRows
@@ -1503,12 +1512,18 @@ Namespace My.Sys.Forms
 		FAllowEdit = Value
 	End Property
 	
-	Private Property Grid.FixCols As Integer
-		Return FFixCols
+	Private Property Grid.FixCols As Boolean
+		Return IIf(FFixCols = 0, False, True)
 	End Property
 	
-	Private Property Grid.FixCols(Value As Integer)
-		FFixCols = IIf(Value > 0, 1, 0)
+	Private Property Grid.FixCols(Value As Boolean)
+		FFixCols = IIf(Value, 1, 0)
+		'If FFixCols = 1 Then
+		'	For i As Integer = 1 To Rows.Count - 1
+		'		Rows.Item(i)->Item(0)->BackColor = -1 'This.BackColor
+		'		Rows.Item(i)->Item(0)->ForeColor = -1 'This.ForeColor
+		'	Next
+		'End If
 	End Property
 	
 	Private Property Grid.AllowColumnReorder As Boolean
@@ -1537,7 +1552,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
 		#elseif defined(__USE_WINAPI__)
-			ChangeLVExStyle LVS_EX_GRIDLINES, Value
+			ChangeLVExStyle LVS_EX_GridLINES, Value
 		#endif
 	End Property
 	
@@ -1682,28 +1697,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Grid.SortIndex(Value As Integer)
-		FSortIndex = Value+ FFixCols
-		'#ifndef __USE_GTK__
-		'	Select Case FSortStyle
-		'	Case SortStyle.ssNone
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'	Case SortStyle.ssSortAscending
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'		ChangeStyle LVS_SORTASCENDING, True
-		'	Case SortStyle.ssSortDescending
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, True
-		'	End Select
-		'#endif
-	End Property
-
-	Private Property Grid.SortType As CompareType
-		Return FSortType
+		FSortIndex = Value
 	End Property
 	
-	Private Property Grid.SortType(Value As CompareType)
-		FSortType = Value
+	Private Property Grid.SortNatural As Boolean
+		Return FSortNatural
+	End Property
+	
+	Private Property Grid.SortNatural(Value As Boolean)
+		FSortNatural = Value
 	End Property
 	Private Property Grid.SortOrder As SortStyle
 		Return FSortOrder
@@ -1711,19 +1713,6 @@ Namespace My.Sys.Forms
 	
 	Private Property Grid.SortOrder(Value As SortStyle)
 		FSortOrder = Value
-		'#ifndef __USE_GTK__
-		'	Select Case FSortStyle
-		'	Case SortStyle.ssNone
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'	Case SortStyle.ssSortAscending
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'		ChangeStyle LVS_SORTASCENDING, True
-		'	Case SortStyle.ssSortDescending
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, True
-		'	End Select
-		'#endif
 	End Property
 	Private Property Grid.ShowHint As Boolean
 		Return FShowHint
@@ -1975,8 +1964,8 @@ Namespace My.Sys.Forms
 						For iRow As Long = pCacheHint->iFrom To pCacheHint->iTo
 							If Rows.Item(iRow)->State = 1 Then Continue For
 							If FFixCols > 0 Then Rows.Item(iRow)->Item(0)->Text = Str(iRow + 1)
-							For iCol As Integer = 0 To UboundDataCol
-								Rows.Item(iRow)->Item(iCol + FFixCols)->Text =  WGet(DataArrayPtr(iRow, iCol))
+							For iCol As Integer = FFixCols To UboundDataCol
+								Rows.Item(iRow)->Item(iCol)->Text =  WGet(DataArrayPtr(iRow, iCol - FFixCols))
 							Next
 							Rows.Item(iRow)->State = 1
 						Next
@@ -2072,6 +2061,7 @@ Namespace My.Sys.Forms
 										ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
 										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth
 										If SelectedItem < iRowsCount Then
+											If FFixCols > 0 AndAlso iCol = 0 Then Rows.Item(SelectedItem)->Item(iCol)->BackColor = This.BackColor
 											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
 											If SelectedItem = FRow AndAlso iCol = FCol Then
 												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
@@ -2083,6 +2073,7 @@ Namespace My.Sys.Forms
 										Rc.Left = R.Left + 3 : Rc.Right = R.Right - 3 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
 										If iCol = 0 Then
 											If FFixCols > 0 Then
+												Rows.Item(SelectedItem)->Item(iCol)->ForeColor = This.ForeColor
 												Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
 											Else
 												If UsingDataArrayPtr Then Rows.Item(SelectedItem)->Text(iCol) =  WGet(DataArrayPtr(SelectedItem, 0))
@@ -2122,6 +2113,7 @@ Namespace My.Sys.Forms
 										If ScrollLeft + ScaleX(This.Width) < R.Left Then Exit For
 										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth
 										If SelectedItem < iRowsCount Then
+											If FFixCols > 0 AndAlso iCol = 0 Then Rows.Item(SelectedItem)->Item(iCol)->BackColor = This.BackColor
 											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
 											If SelectedItem = FRow AndAlso iCol = FCol Then
 												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
@@ -2140,6 +2132,7 @@ Namespace My.Sys.Forms
 										If SelectedItem < iRowsCount Then
 											If iCol = 0 Then
 												If FFixCols > 0 Then
+													Rows.Item(SelectedItem)->Item(iCol)->ForeColor = This.ForeColor
 													Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
 												Else
 													If UsingDataArrayPtr Then Rows.Item(SelectedItem)->Text(iCol) =  WGet(DataArrayPtr(SelectedItem, 0))
@@ -2500,15 +2493,28 @@ Namespace My.Sys.Forms
 				WAdd(tmpStr, DelimiterChr & Columns.Column(iCol)->Text, , Capacity)
 			Next
 			Print #Fn, *tmpStr
-			For iRow As Integer = 0 To Rows.Count - 1
-				WLet(tmpStr, Rows.Item(iRow)->Text(FFixCols))
-				Capacity = 0
-				For iCol As Integer = FFixCols + 1 To Columns.Count - 1
-					WAdd(tmpStr, DelimiterChr & Rows.Item(iRow)->Text(iCol), , Capacity)
+			If LBound(DataArrayPtr) <= UBound(DataArrayPtr) Then
+				Dim As Integer LboundData = LBound(DataArrayPtr, 2)
+				Dim As Integer UboundData = UBound(DataArrayPtr, 2)
+				For i As Integer = LBound(DataArrayPtr, 1) To UBound(DataArrayPtr, 1)
+					Capacity = 0
+					WLet(tmpStr, WGet(DataArrayPtr(i, 0)))
+					For j As Integer = LboundData + 1 To UboundData
+						WAdd(tmpStr, DelimiterChr & WGet(DataArrayPtr(i, j)), , Capacity)
+					Next
+					Print #Fn, *tmpStr
 				Next
-				Print #Fn, *tmpStr
-			Next
-			_Deallocate(tmpStr)
+			Else
+				For iRow As Integer = 0 To Rows.Count - 1
+					Capacity = 0
+					WLet(tmpStr, Rows.Item(iRow)->Text(FFixCols))
+					For iCol As Integer = FFixCols + 1 To Columns.Count - 1
+						WAdd(tmpStr, DelimiterChr & Rows.Item(iRow)->Text(iCol), , Capacity)
+					Next
+					Print #Fn, *tmpStr
+				Next
+			End If
+			_Deallocate(tmpStr) : tmpStr = 0
 		Else
 			Debug.Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & ML("Open file failure!") & " " & FileName, True
 			CloseFile_(Fn)
@@ -2554,7 +2560,7 @@ Namespace My.Sys.Forms
 				Columns.Clear
 				Rows.Clear
 				Split(tmpStr, DelimiterChr, ColTitle())
-				ArrayUbound = UBound(ColTitle) + FFixCols
+				ArrayUbound = UBound(ColTitle)
 				If FFixCols > 0 Then Columns.Add "NO.", , 30 , cfRight
 				If UBound(ColTitle) > UBound(ColWidthStr) Then
 					ReDim Preserve ColWidthStr(UBound(ColTitle))
@@ -2571,7 +2577,7 @@ Namespace My.Sys.Forms
 				iRowsCount += 1
 				If ReadToArrary Then
 					Split(tmpStr, DelimiterChr, ColTitle())
-					ArrayUbound = UBound(ColTitle) + FFixCols
+					ArrayUbound = UBound(ColTitle)
 					ReDim DataArrayPtr(0 To items, 0 To ArrayUbound)
 					For i As Integer = 0 To ArrayUbound
 						DataArrayPtr(iRowsCount - 1, i) = ColTitle(i)
@@ -2670,7 +2676,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
-				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GridLINES Or LVS_EX_DOUBLEBUFFER
 				'Dynamically switching to and from the LVS_OWNERDATA style is not supported.
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS Or LVS_OWNERDATA
 				.DoubleBuffered = True

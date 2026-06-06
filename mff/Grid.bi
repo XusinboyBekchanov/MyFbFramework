@@ -171,6 +171,7 @@ Namespace My.Sys.Forms
 		FItems As List
 		PItem As GridRow Ptr
 		Declare Function CompareStrings(ByRef s1 As WString, ByRef s2 As WString, ByVal bMatchCase As Boolean = True, ByVal bNaturalSort As Boolean = False, ByVal iDirection As Long = 1) As Integer
+		Declare Sub SortArray(iDataPtr() As WString Ptr, ByVal ColIndex As Integer = 0, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
 	Public:
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
@@ -188,8 +189,7 @@ Namespace My.Sys.Forms
 		'Ordinal position within parent grid columns
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
-		Declare Sub Sort Overload(ByVal ColIndex As Integer = 0, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
-		Declare Sub Sort Overload(iDataPtr() As WString Ptr, ByVal ColIndex As Integer = 0, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
+		Declare Sub Sort(ByVal ColIndex As Integer = 0, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
 		Declare Operator [](Index As Integer) ByRef As GridRow
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -232,7 +232,7 @@ Namespace My.Sys.Forms
 		FGridLines           As Boolean
 		FHoverTime           As Integer
 		FFullRowSelect       As Boolean
-		FFixCols             As Integer
+		FFixCols             As Integer = 1
 		FSingleClickActivate As Boolean
 		FSortIndex           As Integer
 		FSortOrder           As SortStyle
@@ -345,9 +345,9 @@ Namespace My.Sys.Forms
 		Declare Property AllowColumnReorder As Boolean
 		'Enables drag-and-drop column reordering.
 		Declare Property AllowColumnReorder(Value As Boolean)
-		Declare Property FixCols As Integer
+		Declare Property FixCols As Boolean
 		'The first column is fixed as the row index.
-		Declare Property FixCols(Value As Integer)
+		Declare Property FixCols(Value As Boolean)
 		Declare Property ColumnHeaderHidden As Boolean
 		'Hides column headers when enabled.
 		Declare Property ColumnHeaderHidden(Value As Boolean)

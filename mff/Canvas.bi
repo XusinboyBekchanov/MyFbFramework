@@ -16,7 +16,7 @@
 	#define G_PI 3.141593
 #endif
 #ifdef __USE_WINAPI__
-	#include once "D2D1/D2D1.bi"
+	#include once "D2D1/D2D1_MFF.bi"
 	#include once "crt/limits.bi"
 #endif
 
@@ -294,4 +294,3 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Canvas.bas"
 #endif
-
