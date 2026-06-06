@@ -1204,7 +1204,7 @@ Namespace My.Sys.Drawing
 		Dim As Single r = ScaleX(Radius) * imgScaleX ' 假设各向同性缩放
 		
 		#ifdef __USE_CAIRO__
-			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color),BlueD(Pen.Color))
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			' Cairo的角度是弧度，且Y轴向下为正，因此负的sweepAngle对应GDI的正sweepAngle
 			cairo_arc(Handle, cx, cy, r, -StartAngle * G_PI / 180.0, -(StartAngle + SweepAngle) * G_PI / 180.0)
 			cairo_stroke(Handle)
@@ -1362,22 +1362,22 @@ Namespace My.Sys.Drawing
 					End If
 					pGeometry->lpVtbl->Release(pGeometry)
 				End If
-				FMoveToX = ScaleX(Points(Count - 1).X) * imgScaleX + imgOffsetX
-				FMoveToY = ScaleY(Points(Count - 1).Y) * imgScaleY + imgOffsetY
+				FMoveToX = ScaleX(Points(Count - 1).x) * imgScaleX + imgOffsetX
+				FMoveToY = ScaleY(Points(Count - 1).y) * imgScaleY + imgOffsetY
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				' 修复：PolylineTo应闭合，需加入起点(FMoveToX, FMoveToY)
 				Dim tGpPoints(Count) As GpPointF ' 多一个起点
 				tGpPoints(0).X = FMoveToX: tGpPoints(0).Y = FMoveToY
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i+1).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i+1).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i+1).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i+1).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				GdipDrawLines GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count + 1
 				FMoveToX = tGpPoints(Count).X: FMoveToY = tGpPoints(Count).Y
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X)*imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y)*imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x)*imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y)*imgScaleY + imgOffsetY
 				Next
 				.PolylineTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -1391,16 +1391,16 @@ Namespace My.Sys.Drawing
 		
 		#ifdef __USE_CAIRO__
 			If Count < 4 Then Return
-			cairo_move_to(Handle, ScaleX(Points(0).X)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).Y)  imgScaleY + imgY - 0.5)
+			cairo_move_to(Handle, ScaleX(Points(0).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).y)  imgScaleY + imgOffsetY - 0.5)
 			Dim i As Integer = 1
 			While i + 2 <= Count - 1
 				cairo_curve_to(Handle, _
-				ScaleX(Points(i).X)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y)  imgScaleY + imgOffsetY - 0.5, _
-				ScaleX(Points(i+1).X)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i+1).Y)  imgScaleY + imgOffsetY - 0.5, _
-				ScaleX(Points(i+2).X)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i+2).Y)  imgScaleY + imgOffsetY - 0.5)
+				ScaleX(Points(i).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).y)  imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i+1).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i+1).y)  imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i+2).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i+2).y)  imgScaleY + imgOffsetY - 0.5)
 				i += 3
 			Wend
-			cairo_set_source_rgb, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1409,7 +1409,7 @@ Namespace My.Sys.Drawing
 					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
 					Dim pSink As ID2D1GeometrySink Ptr
 					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
-						Dim pBegin As D2D1_POINT_2F = Type<D2D1_POINT_2F>(ScaleX(Points(0).X)*imgScaleX + imgOffsetX, ScaleY(Points(0).Y)*imgScaleY + imgOffsetY)
+						Dim pBegin As D2D1_POINT_2F = Type<D2D1_POINT_2F>(ScaleX(Points(0).x)*imgScaleX + imgOffsetX, ScaleY(Points(0).y)*imgScaleY + imgOffsetY)
 						pSink->lpVtbl->BeginFigure(pSink, pBegin, D2D1_FIGURE_BEGIN_HOLLOW)
 						Dim i As Integer = 1
 						While i + 2 <= Count - 1
@@ -1456,15 +1456,15 @@ Namespace My.Sys.Drawing
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				'GdipFillPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 				GdipDrawBeziers GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.PolyBezierTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -1479,7 +1479,7 @@ Namespace My.Sys.Drawing
 		Dim As Single py = ScaleY(y) * imgScaleY + imgOffsetY
 		#ifdef __USE_CAIRO__
 			' 修复：RGB顺序和数值(0-1)
-			cairo_set_source_rgb(Handle, GetRed(PixelColor / 255.0, GetGreen(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0)
+			cairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0)
 			cairo_rectangle(Handle, px, py, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
@@ -1986,7 +1986,7 @@ Namespace My.Sys.Drawing
 			cairo_save(Handle)
 			cairo_translate(Handle, x, y)
 			If draw_width <> img_w OrElse draw_height <> img_h Then
-				cairo_scale(Handle, draw_width / img_w, Draw / img_h)
+				cairo_scale(Handle, draw_width / img_w, draw_height / img_h)
 			End If
 			cairo_set_source_surface(Handle, image_surface, 0, 0)
 			cairo_paint_with_alpha(Handle, CSng(iSourceAlpha) / 255.0)
@@ -2510,7 +2510,7 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Canvas
-		#ifdef __USE_CAIRO__
+		#ifdef __USE_CAIRO__  AndAlso Not defined(__USE_GTK__)
 			If Handle Then ReleaseDevice
 			If cairoSurface <> 0 Then cairo_surface_destroy(cairoSurface)
 		#elseif defined(__USE_WINAPI__)
