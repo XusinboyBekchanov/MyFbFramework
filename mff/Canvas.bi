@@ -14,7 +14,7 @@
 #if defined(__USE_CAIRO__) AndAlso Not defined(__USE_GTK__)
 	#include once "cairo/cairo-win32.bi"
 	#define G_PI 3.141593
-#else
+#elseif Not defined(__USE_GTK__)
 	#define G_PI 3.1415926
 #endif
 #ifdef __USE_WINAPI__

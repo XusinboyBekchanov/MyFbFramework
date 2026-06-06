@@ -96,7 +96,7 @@ Namespace My.Sys.Drawing
 			#elseif defined(__USE_CAIRO__)
 				' 补齐 Cairo 的 FillMode 支持 (交替填充与环绕填充)
 				If Handle <> 0 Then
-					If FFillMode = BrushFillMode.Alternate Then
+					If FFillMode = BrushFillMode.bmOpaque Then
 						cairo_set_fill_rule(Handle, CAIRO_FILL_RULE_EVEN_ODD)
 					Else
 						cairo_set_fill_rule(Handle, CAIRO_FILL_RULE_WINDING)
@@ -355,12 +355,12 @@ Namespace My.Sys.Drawing
 					'Return
 				End If
 			#endif
-			Dim As Rect R
+			Dim As RECT R
 			If x = x1 AndAlso y = y1 AndAlso x = y Then
-				R.Left = 0
-				R.Top = 0
-				R.Right = ScaleX(ParentControl->Width)
-				R.Bottom = ScaleY(ParentControl->Height)
+				R.left = 0
+				R.top = 0
+				R.right = ScaleX(ParentControl->Width)
+				R.bottom = ScaleY(ParentControl->Height)
 				'Remove Scale
 				imgScaleX = 1
 				imgScaleY = 1
@@ -372,18 +372,18 @@ Namespace My.Sys.Drawing
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					Else
-						.FillRect Handle, Cast(..Rect Ptr, @R), B
+						.FillRect Handle, Cast(..RECT Ptr, @R), B
 					End If
 				#endif
 			Else
-				R.Left = ScaleX(x) * imgScaleX + imgOffsetX
-				R.Top = ScaleY(y) * imgScaleY + imgOffsetY
-				R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
-				R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
+				R.left = ScaleX(x) * imgScaleX + imgOffsetX
+				R.top = ScaleY(y) * imgScaleY + imgOffsetY
+				R.right = ScaleX(x1) * imgScaleX + imgOffsetX
+				R.bottom = ScaleY(y1) * imgScaleY + imgOffsetY
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					Else
-						.FillRect Handle, Cast(..Rect Ptr, @R), B
+						.FillRect Handle, Cast(..RECT Ptr, @R), B
 					End If
 				#endif
 			End If
@@ -394,7 +394,7 @@ Namespace My.Sys.Drawing
 			#elseif defined(__USE_WINAPI__)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Else
-					.FillRect Handle, Cast(..Rect Ptr, @R), B
+					.FillRect Handle, Cast(..RECT Ptr, @R), B
 				End If
 				DeleteObject B
 			#endif
@@ -419,12 +419,12 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			Return .GetPixel(Handle, ScaleX(xy.X), ScaleY(xy.Y))
+			Return .GetPixel(Handle, ScaleX(xy.x), ScaleY(xy.y))
 		#elseif defined(__USE_CAIRO__)
 			' Cairo 无法直接从绘制上下文获取像素，但可以利用其背后的 Win32 DC
-			If DeviceContextHandle Then
-				Return .GetPixel(DeviceContextHandle, ScaleX(xy.X), ScaleY(xy.Y))
-			End If
+			'If DeviceContextHandle Then
+			'	Return .GetPixel(DeviceContextHandle, ScaleX(xy.x), ScaleY(xy.y))
+			'End If
 			Return 0
 		#else
 			Return 0
@@ -437,13 +437,13 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_CAIRO__
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetBlue(Value) / 255.0, GetGreen(Value) / 255.0)
-			.cairo_rectangle(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX - 0.5, ScaleY(xy.Y) * imgScaleY + imgOffsetY - 0.5, 1, 1)
+			.cairo_rectangle(Handle, ScaleX(xy.x) * imgScaleX + imgOffsetX - 0.5, ScaleY(xy.y) * imgScaleY + imgOffsetY - 0.5, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				'If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY), pForegroundBrush, 1)
 			Else
-				.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
+				.SetPixel(Handle, ScaleX(xy.x) * imgScaleX + imgOffsetX, ScaleY(xy.y) * imgScaleY + imgOffsetY, Value)
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
@@ -902,15 +902,15 @@ Namespace My.Sys.Drawing
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				If GdipBrush Then GdipFillPolygon GdipGraphics, GdipBrush, @tGpPoints(0), Count, FillMode
 				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.Polygon Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -920,10 +920,10 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
+	Private Sub Canvas.RoundRect(R As RECT, nWidth As Integer, nHeight As Integer)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
+		This.RoundRect R.left, R.top, R.right, R.bottom, nWidth, nHeight
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
@@ -952,7 +952,7 @@ Namespace My.Sys.Drawing
 			cairo_close_path(Handle) ' 闭合弦
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_fill_preserve(Handle)
-			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen), GetBlueD(Pen.Color))
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1026,7 +1026,8 @@ Namespace My.Sys.Drawing
 			cairo_close_path(Handle) ' 闭合回圆心
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_fill_preserve(Handle)
-			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color            cairo_stroke(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
