@@ -66,18 +66,18 @@ Namespace My.Sys.Forms
 	Private Property IPAddress.Text ByRef As WString
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK4__
-				FText = Trim(WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(0))))))
+				WLet(FText, Trim(WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(0)))))))
 			#else
-				FText = Trim(WStr(*gtk_entry_get_text(GTK_ENTRY(Entries(0)))))
+				WLet(FText, Trim(WStr(*gtk_entry_get_text(GTK_ENTRY(Entries(0))))))
 			#endif
 			For i As Integer = 1 To 3
 				#ifdef __USE_GTK4__
-					FText &= "." & Trim(Str(Val(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(i)))))))
+					WAdd(FText, "." & Trim(Str(Val(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(i))))))))
 				#else
-					FText &= "." & Trim(Str(Val(*gtk_entry_get_text(GTK_ENTRY(Entries(i))))))
+					WAdd(FText, "." & Trim(Str(Val(*gtk_entry_get_text(GTK_ENTRY(Entries(i)))))))
 				#endif
 			Next
-			Return *FText.vptr
+			If FText = 0 Then Return "" Else Return *FText
 		#else
 			Return Base.Text
 		#endif

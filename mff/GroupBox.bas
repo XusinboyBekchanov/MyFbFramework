@@ -67,8 +67,8 @@ Namespace My.Sys.Forms
 	
 	Private Property GroupBox.Text ByRef As WString
 		#ifdef __USE_GTK__
-			FText = WStr(gtk_frame_get_label(GTK_FRAME(widget)))
-			Return *FText.vptr
+			WLet(FText, WStr(gtk_frame_get_label(GTK_FRAME(widget))))
+			If FText = 0 Then Return "" Else Return *FText
 		#else
 			Return Base.Text
 		#endif

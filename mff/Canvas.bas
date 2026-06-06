@@ -388,7 +388,7 @@ Namespace My.Sys.Drawing
 				#endif
 			End If
 			#ifdef __USE_CAIRO__
-				.cairo_rectangle(Handle, ScaleX(R.Left) - 0.5, ScaleY(R.Top) - 0.5, ScaleX(R.Right - R.Left) - 0.5, ScaleY(R.Bottom - R.Top) - 0.5)
+				.cairo_rectangle(Handle, ScaleX(R.left) - 0.5, ScaleY(R.top) - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5)
 				cairo_set_source_rgb(Handle, GetRedD(FBackColor), GetGreenD(FBackColor), GetBlueD(FBackColor))
 				cairo_fill_preserve(Handle)
 			#elseif defined(__USE_WINAPI__)
@@ -1256,9 +1256,9 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_CAIRO__
-			cairo_move_to(Handle, ScaleX(Points(0).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY - 0.5)
+			cairo_move_to(Handle, ScaleX(Points(0).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).y) * imgScaleY + imgOffsetY - 0.5)
 			For i As Integer = 1 To Count - 1
-				cairo_line_to(Handle, ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5)
+				cairo_line_to(Handle, ScaleX(Points(i).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).y) * imgScaleY + imgOffsetY - 0.5)
 			Next
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle) ' 折线不闭合不填充
@@ -1294,7 +1294,7 @@ Namespace My.Sys.Drawing
 						pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
 						'pSink->lpVtbl->SetSegmentFlags(pSink, D2D1_PATH_SEGMENT_FORCE_UNSTROKED)'该段线段在描边时不会被绘制，但在填充区域时仍会被考虑。这通常用于创建“不可见”的线段来定义填充区域的边界，但描边时不画线。
 						For i As Integer = 0 To Count - 1
-							pD2DPoints(i) = Type<D2D1_POINT_2F>(ScaleX(Points(i).X) * imgScaleX + imgOffsetX, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY)
+							pD2DPoints(i) = Type<D2D1_POINT_2F>(ScaleX(Points(i).x) * imgScaleX + imgOffsetX, ScaleY(Points(i).y) * imgScaleY + imgOffsetY)
 							'Dim seg As D2D1_LINE_SEGMENT
 							'seg.point = pD2DPoints(i)
 							'pSink->lpVtbl->AddLine(pSink, seg.point)
@@ -1311,14 +1311,14 @@ Namespace My.Sys.Drawing
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				GdipDrawLines GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.Polyline Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -1333,14 +1333,14 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_CAIRO__
 			cairo_move_to(Handle, FMoveToX, FMoveToY)
 			For i As Integer = 0 To Count - 1
-				Dim As Double px = ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5
-				Dim As Double py = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5
+				Dim As Double px = ScaleX(Points(i).x) * imgScaleX + imgOffsetX - 0.5
+				Dim As Double py = ScaleY(Points(i).y) * imgScaleY + imgOffsetY - 0.5
 				cairo_line_to(Handle, px, py)
 			Next
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_stroke(Handle)
-			FMoveToX = ScaleX(Points(Count-1).X) * imgScaleX + imgOffsetX - 0.5
-			FMoveToY = ScaleY(Points(Count - 1).Y) * imgScaleY + imgOffsetY - 0.5
+			FMoveToX = ScaleX(Points(Count-1).x) * imgScaleX + imgOffsetX - 0.5
+			FMoveToY = ScaleY(Points(Count - 1).y) * imgScaleY + imgOffsetY - 0.5
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1350,7 +1350,7 @@ Namespace My.Sys.Drawing
 						Dim pD2DPoints As D2D1_POINT_2F Ptr
 						pD2DPoints = CAllocate(Count * SizeOf(D2D1_POINT_2F))
 						For i As Integer = 0 To Count - 1
-							pD2DPoints[i] = Type<D2D1_POINT_2F>(ScaleX(Points(i).X)*imgScaleX + imgOffsetX, ScaleY(Points(i).Y)*imgScaleY + imgOffsetY)
+							pD2DPoints[i] = Type<D2D1_POINT_2F>(ScaleX(Points(i).x)*imgScaleX + imgOffsetX, ScaleY(Points(i).y)*imgScaleY + imgOffsetY)
 						Next
 						pSink->lpVtbl->BeginFigure(pSink, Type<D2D1_POINT_2F>(FMoveToX, FMoveToY), D2D1_FIGURE_BEGIN_HOLLOW)
 						pSink->lpVtbl->AddLines(pSink, pD2DPoints, Count)
@@ -1389,15 +1389,15 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		
-		#ifdef __USE_CAIRO__
+		#ifdef __USE_CAIRO__ 
 			If Count < 4 Then Return
-			cairo_move_to(Handle, ScaleX(Points(0).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).y)  imgScaleY + imgOffsetY - 0.5)
+			cairo_move_to(Handle, ScaleX(Points(0).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).y) * imgScaleY + imgOffsetY - 0.5)
 			Dim i As Integer = 1
 			While i + 2 <= Count - 1
 				cairo_curve_to(Handle, _
-				ScaleX(Points(i).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).y)  imgScaleY + imgOffsetY - 0.5, _
-				ScaleX(Points(i+1).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i+1).y)  imgScaleY + imgOffsetY - 0.5, _
-				ScaleX(Points(i+2).x)  imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i+2).y)  imgScaleY + imgOffsetY - 0.5)
+				ScaleX(Points(i).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).y) * imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 1).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 1).y) * imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 2).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 2).y) * imgScaleY + imgOffsetY - 0.5)
 				i += 3
 			Wend
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
@@ -1414,9 +1414,9 @@ Namespace My.Sys.Drawing
 						Dim i As Integer = 1
 						While i + 2 <= Count - 1
 							Dim bezSeg As D2D1_BEZIER_SEGMENT
-							bezSeg.point1 = Type<D2D1_POINT_2F>(ScaleX(Points(i).X)*imgScaleX + imgOffsetX, ScaleY(Points(i).Y)*imgScaleY + imgOffsetY)
-							bezSeg.point2 = Type<D2D1_POINT_2F>(ScaleX(Points(i + 1).X)*imgScaleX + imgOffsetX, ScaleY(Points(i + 1).Y)*imgScaleY + imgOffsetY)
-							bezSeg.point3 = Type<D2D1_POINT_2F>(ScaleX(Points(i + 2).X)*imgScaleX + imgOffsetX, ScaleY(Points(i + 2).Y)*imgScaleY + imgOffsetY)
+							bezSeg.point1 = Type<D2D1_POINT_2F>(ScaleX(Points(i).x)*imgScaleX + imgOffsetX, ScaleY(Points(i).y)*imgScaleY + imgOffsetY)
+							bezSeg.point2 = Type<D2D1_POINT_2F>(ScaleX(Points(i + 1).x)*imgScaleX + imgOffsetX, ScaleY(Points(i + 1).y)*imgScaleY + imgOffsetY)
+							bezSeg.point3 = Type<D2D1_POINT_2F>(ScaleX(Points(i + 2).x)*imgScaleX + imgOffsetX, ScaleY(Points(i + 2).y)*imgScaleY + imgOffsetY)
 							pSink->lpVtbl->AddBezier(pSink, @bezSeg)
 							i += 3
 						Wend
@@ -1431,15 +1431,15 @@ Namespace My.Sys.Drawing
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				If GdipBrush Then GdipFillClosedCurve(GdipGraphics, GdipBrush, Cast(GpPointF Ptr, @tGpPoints(0)), Count)
 				GdipDrawBeziers(GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count)
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.PolyBezier Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -1733,7 +1733,7 @@ Namespace My.Sys.Drawing
 				CreateTextLayout(pDWriteFactory, @s, Len(s), pFormat, FLT_MAX, FLT_MAX, @pLayout)
 				If pLayout <> 0 Then
 					pLayout->lpVtbl->GetMetrics(pLayout, @Metrics)
-					Dim sz As ..Size
+					Dim sz As ..SIZE
 					sz.cx = Metrics.widthIncludingTrailingWhitespace
 					sz.cy = Metrics.height + 1
 					If BK <> -1 Then
@@ -2299,7 +2299,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
+	Private Sub Canvas.CopyRect(Dest As RECT, Canvas As Canvas, Source As RECT)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		If Not HandleSetted Then ReleaseDevice Handle_
@@ -2317,52 +2317,52 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.FillRect(R As Rect, FillColorBK As Integer = -1)
+	Private Sub Canvas.FillRect(R As RECT, FillColorBK As Integer = -1)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_CAIRO__
 			cairo_set_source_rgb(Handle, GetRed(FillColorBK), GetBlue(FillColorBK), GetGreen(FillColorBK))
-			cairo_rectangle(Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.Right - R.Left) - 0.5, ScaleY(R.Bottom - R.Top) - 0.5)
+			cairo_rectangle(Handle, ScaleX(R.left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5)
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
 			Static As HBRUSH B
 			If B Then DeleteObject B
-			R.Left = ScaleX(R.Left) * imgScaleX + imgOffsetX
-			R.Top = ScaleY(R.Top) * imgScaleY + imgOffsetY
-			R.Right = ScaleX(R.Right) * imgScaleX + imgOffsetX
-			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
+			R.left = ScaleX(R.left) * imgScaleX + imgOffsetX
+			R.top = ScaleY(R.top) * imgScaleY + imgOffsetY
+			R.right = ScaleX(R.right) * imgScaleX + imgOffsetX
+			R.bottom = ScaleY(R.bottom) * imgScaleY + imgOffsetY
 			If FillColorBK <> -1 Then
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-					If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(R.Left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.Right - R.Left) - 0.5, ScaleY(R.Bottom - R.Top) - 0.5), pBackgroundBrush)
+					If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(R.left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5), pBackgroundBrush)
 				ElseIf Not UsingGdip Then
 					B = CreateSolidBrush(FillColorBK)
-					.FillRect Handle, Cast(..Rect Ptr, @R), B
+					.FillRect Handle, Cast(..RECT Ptr, @R), B
 				Else
-					GdipFillRectangle(GdipGraphics, GdipBrush, R.Left, R.Top, R.Right, R.Bottom)
+					GdipFillRectangle(GdipGraphics, GdipBrush, R.left, R.top, R.right, R.bottom)
 				End If
 			Else
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-					If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(R.Left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.Right - R.Left) - 0.5, ScaleY(R.Bottom - R.Top) - 0.5), pBackgroundBrush)
+					If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(R.left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5), pBackgroundBrush)
 				ElseIf Not UsingGdip Then
 					.FillRect Handle, Cast(..Rect Ptr, @R), Brush.Handle
 				Else
-					GdipFillRectangle(GdipGraphics, GdipBrush, R.Left, R.Top, R.Right, R.Bottom)
+					GdipFillRectangle(GdipGraphics, GdipBrush, R.left, R.top, R.right, R.bottom)
 				End If
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.DrawFocusRect(R As Rect)
+	Private Sub Canvas.DrawFocusRect(R As RECT)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			R.Left = ScaleX(R.Left) * imgScaleX + imgOffsetX
-			R.Top = ScaleY(R.Top) * imgScaleY + imgOffsetY
-			R.Right = ScaleX(R.Right) * imgScaleX + imgOffsetX
-			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
-			.DrawFocusRect Handle, Cast(..Rect Ptr, @R)
+			R.left = ScaleX(R.left) * imgScaleX + imgOffsetX
+			R.top = ScaleY(R.top) * imgScaleY + imgOffsetY
+			R.right = ScaleX(R.right) * imgScaleX + imgOffsetX
+			R.bottom = ScaleY(R.bottom) * imgScaleY + imgOffsetY
+			.DrawFocusRect Handle, Cast(..RECT Ptr, @R)
 		#else
 			Print "The function is not ready in this OS."  & " DrawFocusRect(R As Rect)"
 		#endif
@@ -2415,7 +2415,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			Dim Sz As ..Size
+			Dim Sz As ..SIZE
 			GetTextExtentPoint32(Handle, @sText, Len(sText), @Sz)
 			Function = UnScaleY(Sz.cy)
 		#elseif defined(__USE_CAIRO__)
@@ -2510,9 +2510,9 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Canvas
-		#ifdef __USE_CAIRO__  AndAlso Not defined(__USE_GTK__)
+		#ifdef __USE_CAIRO__ 
 			If Handle Then ReleaseDevice
-			If cairoSurface <> 0 Then cairo_surface_destroy(cairoSurface)
+			'If cairoSurface <> 0 Then cairo_surface_destroy(cairoSurface)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then ReleaseDevice
 			' // Shutdown Gdiplus

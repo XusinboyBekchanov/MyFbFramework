@@ -344,9 +344,9 @@ Namespace My.Sys.Forms
 					WLet(FText, *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
 				Else
 					#ifdef __USE_GTK4__
-						WLet(FText, *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
+						WLet(FText, WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))))
 					#else
-						WLet(FText, *gtk_entry_get_text(GTK_ENTRY(widget)))
+						WLet(FText, WStr(*gtk_entry_get_text(GTK_ENTRY(widget))))
 					#endif
 				End If
 			End If
@@ -420,12 +420,12 @@ Namespace My.Sys.Forms
 					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 					Dim As GtkTextIter _start, _end
 					gtk_text_buffer_get_bounds(buffer, @_start, @_end)
-					WLet(FText, *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
+					WLet(FText, WStr(*gtk_text_buffer_get_text(buffer, @_start, @_end, True)))
 				Else
 					#ifdef __USE_GTK4__
-						WLet(FText, *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
+						WLet(FText, WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))))
 					#else
-						WLet(FText, *gtk_entry_get_text(GTK_ENTRY(widget)))
+						WLet(FText, WStr(*gtk_entry_get_text(GTK_ENTRY(widget))))
 					#endif
 				End If
 			End If
