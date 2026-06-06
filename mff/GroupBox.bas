@@ -20,8 +20,8 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function GroupBox.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "caption": Return FText.vptr
-			Case "text": Return FText.vptr
+			Case "caption": Return FText
+			Case "text": Return FText
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select

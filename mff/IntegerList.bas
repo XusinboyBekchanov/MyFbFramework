@@ -55,66 +55,93 @@ Private Property IntegerList.Count(Value As Integer)
 End Property
 
 Private Operator IntegerList.[](Index As Integer) As Integer
-	If Index >= 0 And Index < FCount Then
-		Return QIntegerListItem(FItems.Items[Index]).Value
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
+	If FItemsItemsIndex <> 0 Then
+		Return QIntegerListItem(FItemsItemsIndex).Value
 	Else
 		Return 0
 	End If
 End Operator
 
 Private Property IntegerList.Item(Index As Integer) As Integer
-	If Index >= 0 And Index < FCount Then
-		Return QIntegerListItem(FItems.Items[Index]).Value
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
+	If FItemsItemsIndex <> 0 Then
+		Return QIntegerListItem(FItemsItemsIndex).Value
 	Else
 		Return 0
 	End If
 End Property
 
-Private Property IntegerList.Item(Index As Integer, FItem As Integer)
-	If Index >= 0 And Index < FCount Then
-		QIntegerListItem(FItems.Items[Index]).Value = FItem
-	Else
-		Print __FUNCTION__ & ", Out of Index boundary. Index = " & Index & " of " & FCount 
+Private Property IntegerList.Item(Index As Integer, iValue As Integer)
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
+	If FItemsItemsIndex <> 0 Then
+		QIntegerListItem(FItemsItemsIndex).Value = iValue
 	End If
 End Property
 
 Private Property IntegerList.Object(Index As Integer) As Any Ptr
-	If Index >= 0 And Index < FCount Then
-		Return QIntegerListItem(FItems.Items[Index]).Object
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
+	If FItemsItemsIndex <> 0 Then
+		Return QIntegerListItem(FItemsItemsIndex).Object
 	Else
-		Print __FUNCTION__ & ", Out of Index boundary. Index = " & Index & " of " & FCount 
 		Return 0
 	End If
 End Property
 
-Private Property IntegerList.Object(Index As Integer, FObj As Any Ptr)
-	If Index >= 0 And Index < FCount Then
-		QIntegerListItem(FItems.Items[Index]).Object = FObj
-	Else
-		Print __FUNCTION__ & ", Out of Index boundary. Index = " & Index & " of " & FCount 
+Private Property IntegerList.Object(Index As Integer, Obj As Any Ptr)
+	Dim As Any Ptr FItemsItemsIndex = FItems.Item(Index)
+	If FItemsItemsIndex <> 0 Then
+		QIntegerListItem(FItemsItemsIndex).Object = Obj
 	End If
 End Property
 
-Private Sub IntegerList.Add(iItem As Integer, Obj As Any Ptr = 0)
+Private Function IntegerList.Add(iValue As Integer, Obj As Any Ptr = 0) As Integer
+	If CBool(FCount > 0) AndAlso FSorted Then
+		Return This.Insert(-1, iValue, Obj)
+	Else
+		Dim As IntegerListItem Ptr nItem = _New(IntegerListItem)
+		If nItem = 0 Then Return FCount - 1
+		With *nItem
+			.Value  = iValue
+			.Object = Obj
+		End With
+		FItems.Add nItem
+		FCount = FItems.Count
+		Return FCount - 1
+	End If
+End Function
+
+Private Function IntegerList.Insert(Index As Integer, iValue As Integer, Obj As Any Ptr = 0) As Integer
+	Dim As Integer j
+	If (CBool(Index = -1) OrElse FSorted) AndAlso CBool(FCount > 0) Then ' Sorted Insert
+		Dim As Integer iStart = 0
+		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
+		j = FCount
+		While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+			MidIndex = (RightIndex + LeftIndex) \ 2
+			If Item(MidIndex) > iValue AndAlso (MidIndex = 0 OrElse Item(MidIndex - 1) <= iValue) Then
+				j = MidIndex: Exit While
+			ElseIf Item(MidIndex) <= iValue Then
+				LeftIndex = MidIndex + 1
+			Else
+				RightIndex = MidIndex - 1
+			End If
+		Wend
+		FSorted = True
+	Else
+		j = IIf(Index > -1, Index, FCount)
+		FSorted = False
+	End If
 	Dim As IntegerListItem Ptr nItem = _New( IntegerListItem)
-	If nItem = 0 Then Return
+	If nItem = 0 Then Return -1
 	With *nItem
-		.Value  = iItem
+		.Value  = iValue
 		.Object = Obj
 	End With
-	FItems.Add nItem
-	FCount += 1
-End Sub
-
-Private Sub IntegerList.Insert(Index As Integer, FItem As Integer, FObj As Any Ptr = 0)
-	Dim As IntegerListItem Ptr nItem = _New( IntegerListItem)
-	With *nItem
-		.Value  = FItem
-		.Object = FObj
-	End With
-	FItems.Insert Index, nItem
-	FCount += 1
-End Sub
+	FItems.Insert j, nItem
+	FCount = FItems.Count
+	Return j
+End Function
 
 Private Sub IntegerList.Exchange(Index1 As Integer, Index2 As Integer)
 	FItems.Exchange(Index1, Index2)
@@ -127,15 +154,105 @@ Private Sub IntegerList.Remove(Index As Integer)
 	FCount = FItems.Count
 End Sub
 
-Private Sub IntegerList.Sort
-	Dim As Integer i,j
-	For i = 1 To FCount - 1
-		For j = FCount - 1 To i Step -1
-			If (Item(j) < Item(j - 1)) Then
-				Exchange j - 1, j
+Private Property IntegerList.Sorted(iValue As Boolean)
+	FSorted = iValue
+End Property
+
+Private Property IntegerList.Sorted As Boolean
+	Return FSorted
+End Property
+
+' iDirection: SORT_ASCENDING (1) 为升序(默认), SORT_DESCENDING (-1) 为降序
+Sub IntegerList.Sort(ByVal iDirection As Long = 1)
+	If FCount <= 1 Then Return
+	Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
+	Dim As Long iLBound = 0
+	Dim As Long iUBound = FCount - 1
+	If iUBound <= iLBound Then Return
+	Type SortStackItem
+		iLow As Long
+		iHigh As Long
+	End Type
+	Dim arrStack(0 To 128) As SortStackItem
+	Dim As Long iStackTop = 0
+	arrStack(iStackTop).iLow = iLBound
+	arrStack(iStackTop).iHigh = iUBound
+	iStackTop += 1
+	Do While iStackTop > 0
+		iStackTop -= 1
+		Dim As Long iLow = arrStack(iStackTop).iLow
+		Dim As Long iHigh = arrStack(iStackTop).iHigh
+		Dim As Long iL = iLow
+		Dim As Long iR = iHigh
+		Dim As Integer sPivot = Item((iLow + iHigh) \ 2)
+		Do
+			If iDirection = 1 Then 'SORT_ASCENDING
+				While iL <= iHigh AndAlso Item(iL) < sPivot
+					iL += 1
+				Wend
+				While iR >= iLow AndAlso Item(iR) > sPivot
+					iR -= 1
+				Wend
+			Else  'SORT_DESCENDING
+				While iL <= iHigh AndAlso Item(iL) > sPivot
+					iL += 1
+				Wend
+				While iR >= iLow AndAlso Item(iR) < sPivot
+					iR -= 1
+				Wend
 			End If
-		Next
-	Next
+			If iL <= iR Then
+				Exchange iL, iR
+				iL += 1
+				iR -= 1
+			End If
+		Loop Until iL > iR
+		
+		Dim As Long iSize1 = iR - iLow + 1
+		Dim As Long iSize2 = iHigh - iL + 1
+		
+		If iSize1 > iSize2 Then
+			If iSize2 > INSERTION_SORT_THRESHOLD Then
+				arrStack(iStackTop).iLow = iL
+				arrStack(iStackTop).iHigh = iHigh
+				iStackTop += 1
+			End If
+			If iSize1 > INSERTION_SORT_THRESHOLD Then
+				arrStack(iStackTop).iLow = iLow
+				arrStack(iStackTop).iHigh = iR
+				iStackTop += 1
+			End If
+		Else
+			If iSize1 > INSERTION_SORT_THRESHOLD Then
+				arrStack(iStackTop).iLow = iLow
+				arrStack(iStackTop).iHigh = iR
+				iStackTop += 1
+			End If
+			If iSize2 > INSERTION_SORT_THRESHOLD Then
+				arrStack(iStackTop).iLow = iL
+				arrStack(iStackTop).iHigh = iHigh
+				iStackTop += 1
+			End If
+		End If
+	Loop
+	
+	Dim As Long i
+	Dim As Long j
+	For i = iLBound + 1 To iUBound
+		j = i
+		If iDirection = 1 Then
+			While j > iLBound AndAlso Item(j - 1) > Item(j)
+				Exchange j - 1, j
+				j -= 1
+			Wend
+		Else
+			While j > iLBound AndAlso Item(j - 1) < Item(j)
+				Exchange j - 1, j
+				j -= 1
+			Wend
+		End If
+	Next i
+	FSorted = True
 End Sub
 
 Private Sub IntegerList.Clear
@@ -148,38 +265,57 @@ Private Sub IntegerList.Clear
 End Sub
 
 #ifndef IntegerList_IndexOf_Off
-	Private Function IntegerList.IndexOf(FItem As Integer) As Integer
-		For i As Integer = 0 To FCount - 1
-			If QIntegerListItem(FItems.Items[i]).Value = FItem Then Return i
-		Next i
-		Return -1
+	Private Function IntegerList.IndexOf(iValue As Integer) As Integer
+		If FCount < 1 Then Return -1
+		Dim As Integer iStart = 0
+		Dim As Integer ItemValue
+		If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
+			Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
+			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+				MidIndex = (RightIndex + LeftIndex) \ 2
+				ItemValue = QIntegerListItem(FItems.Items[MidIndex]).Value
+				If ItemValue = iValue AndAlso (MidIndex = 0 OrElse Item(MidIndex - 1) <> iValue) Then
+					Return MidIndex
+				ElseIf ItemValue < iValue Then
+					LeftIndex = MidIndex + 1
+				Else
+					RightIndex = MidIndex - 1
+				End If
+			Wend
+			Return -1
+		Else
+			For i As Integer = 0 To FCount - 1
+				If QIntegerListItem(FItems.Items[i]).Value = iValue Then Return i
+			Next i
+			Return -1
+		End If
 	End Function
 #endif
 
-Private Function IntegerList.IndexOfObject(FObj As Any Ptr) As Integer
+Private Function IntegerList.IndexOfObject(Obj As Any Ptr) As Integer
+	If Obj = 0 OrElse FCount < 1 Then Return -1
 	For i As Integer = 0 To FCount - 1
-		If QIntegerListItem(FItems.Items[i]).Object = FObj Then Return i
+		If QIntegerListItem(FItems.Items[i]).Object = Obj Then Return i
 	Next i
-	Return -1
 End Function
 
-Private Function IntegerList.Contains(FItem As Integer) As Boolean
-	Return IndexOf(FItem) <> -1
+Private Function IntegerList.Contains(iValue As Integer) As Boolean
+	Return IndexOf(iValue) <> -1
 End Function
 
-Private Function IntegerList.Get(iItem As Integer, Obj As Any Ptr = 0) As Any Ptr
+Private Function IntegerList.Get(iValue As Integer, Obj As Any Ptr = 0) As Any Ptr
 	For i As Integer = 0 To FCount - 1
-        If QIntegerListItem(FItems.Items[i]).Value = iItem Then Return QIntegerListItem(FItems.Items[i]).Object
+		If QIntegerListItem(FItems.Items[i]).Value = iValue Then Return QIntegerListItem(FItems.Items[i]).Object
 	Next i
 	Return Obj
 End Function
 
-Private Sub IntegerList.Set(iItem As Integer, Obj As Any Ptr)
+Private Sub IntegerList.Set(iValue As Integer, Obj As Any Ptr)
 	For i As Integer = 0 To FCount - 1
-        If QIntegerListItem(FItems.Items[i]).Value = iItem Then 
-        	QIntegerListItem(FItems.Items[i]).Object = Obj
-        	Exit Sub
-        End If
+		If QIntegerListItem(FItems.Items[i]).Value = iValue Then
+			QIntegerListItem(FItems.Items[i]).Object = Obj
+			Exit Sub
+		End If
 	Next i
 End Sub
 

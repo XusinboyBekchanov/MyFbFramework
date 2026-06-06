@@ -21,12 +21,12 @@ Namespace My.Sys.Forms
 			Case "autosize": Return @FAutoSize
 			Case "border": Return @FBorder
 			Case "canvas": Return @Canvas
-			Case "caption": Return Cast(Any Ptr, This.FText.vptr)
+			Case "caption": Return Cast(Any Ptr, This.FText)
 			Case "centerimage": Return @FCenterImage
 			Case "realsizeimage": Return @FRealSizeImage
 			Case "style": Return @FStyle
 			Case "tabindex": Return @FTabIndex
-			Case "text": Return Cast(Any Ptr, This.FText.vptr)
+			Case "text": Return Cast(Any Ptr, This.FText)
 			Case "transparent": Return @FTransparent
 			Case "graphic": Return Cast(Any Ptr, @This.Graphic)
 			Case "wordwraps": Return @FWordWraps
@@ -158,10 +158,11 @@ Namespace My.Sys.Forms
 	Private Sub Label.CalculateSize(ByRef Size As My.Sys.Drawing.Size)
 		Size.Width = This.Width
 		Size.Height = This.Height
+		If FText = 0 Then Return
 		If CBool(Font.Orientation = 0) AndAlso FAutoSize Then
 			#ifdef __USE_GTK__
-				Size.Width = Canvas.TextWidth(FText)
-				Size.Height = Canvas.TextHeight(FText)
+				Size.Width = Canvas.TextWidth(*FText)
+				Size.Height = Canvas.TextHeight(*FText)
 			#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 				
 			#elseif defined(__USE_WINAPI__)
@@ -170,7 +171,7 @@ Namespace My.Sys.Forms
 					Dim As HDC Dc = GetDC(Handle)
 					If Dc > 0 Then
 						Dim As .HANDLE PrevFont = SelectObject(Dc, Cast(HFONT, SendMessage(FHandle, WM_GETFONT, 0, 0)))
-						GetTextExtentPoint32(Dc, FText.vptr, Len(FText), @Sz)
+						GetTextExtentPoint32(Dc, FText, Len(*FText), @Sz)
 						Size.Width = Sz.cx
 						Size.Height = Sz.cy
 						SelectObject(Dc, PrevFont)

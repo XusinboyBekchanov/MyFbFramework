@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 			Case "activecontrol": Return FActiveControl
 			Case "borderstyle": Return @FBorderStyle
 			Case "cancelbutton": Return FCancelButton
-			Case "caption": Return This.FText.vptr
+			Case "caption": Return This.FText
 			Case "defaultbutton": Return FDefaultButton
 			Case "icon": Return @Icon
 			Case "controlbox": Return @FControlBox

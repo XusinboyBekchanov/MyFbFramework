@@ -1707,6 +1707,58 @@ Private Function FormatFileName(ByRef originalName As WString) As String
 	Return Result
 End Function
 
+Private Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
+	If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
+	Err = 0
+	If base_ < 2 OrElse base_ > 16 Then
+		Err = 1000
+		Return False
+	End If
+	
+	Dim t As String = LCase(subject)
+	Dim As Integer LenT = Len(t)
+	If LenT = 0 Then Return False
+	
+	Dim As Integer startIdx = 0
+	If (t[0] = 43) OrElse (t[0] = 45) Then ' 43: '+', 45: '-'
+		startIdx = 1
+	End If
+	If (LenT - startIdx) >= 2 Then
+		If t[startIdx] = 38 Then ' 38: '&'
+			If t[startIdx + 1] = 104 Then ' 104: 'h'
+				If base_ <> 16 Then Return False
+				startIdx += 2
+			ElseIf t[startIdx + 1] = 111 Then ' 111: 'o'
+				If base_ <> 8 Then Return False
+				startIdx += 2
+			ElseIf t[startIdx + 1] = 98 Then ' 98: 'b'
+				If base_ <> 2 Then Return False
+				startIdx += 2
+			End If
+		End If
+	End If
+	If startIdx >= LenT Then Return False
+	Dim As Boolean hasDot = False
+	Dim As Boolean isValid = False
+	Dim As Integer ch
+	For i As Integer = startIdx To LenT - 1
+		ch = t[i]
+		' 优化：小数点判断移到外层，优先处理
+		If ch = 46 Then ' 46: '.' (dot)
+			If hasDot OrElse base_ <> 10 Then Return False ' 多个点或非10进制
+			hasDot = True
+			Continue For
+		End If
+		isValid = False
+		If ch >= 48 AndAlso ch <= 57 Then ' ASCII 48-57: '0'-'9'
+			If (ch - 48) < base_ Then isValid = True
+		ElseIf ch >= 97 AndAlso ch <= 102 Then ' ASCII 97-102: 'a'-'f'
+			If (ch - 87) < base_ Then isValid = True
+		End If
+		If Not isValid Then Return False
+	Next i
+	Return True
+End Function
 
 #ifndef Match_Off
 	Private Function Match(ByRef Subject As WString Ptr, ByRef Pattern As WString Ptr) As Boolean

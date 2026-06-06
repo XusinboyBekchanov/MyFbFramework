@@ -38,6 +38,7 @@ Namespace My.Sys.Drawing
 	
 	#ifndef WriteProperty_Off
 		Private Function Brush.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			If Value = 0 Then Return False
 			Select Case LCase(PropertyName)
 			Case "color": This.Color = QInteger(Value)
 			Case "style": This.Style = *Cast(BrushStyles Ptr, Value)
@@ -55,8 +56,10 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Property Brush.Color(Value As Integer)
+		If FColor <> Value Then
 		FColor = Value
 		Create
+		End If
 	End Property
 	
 	Private Property Brush.Style As BrushStyles

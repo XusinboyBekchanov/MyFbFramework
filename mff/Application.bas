@@ -827,21 +827,23 @@ Namespace Debug
 	#ifndef Debug_Print_Off
 		Private Sub Print Overload(ByVal Msg As Integer, ByVal Msg1 As Integer = -1, ByVal Msg2 As Integer = -1, ByVal Msg3 As Integer = -1, ByVal Msg4 As Integer = -1, bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 			Dim As WString Ptr tMsgPtr
+			Dim As Integer Capacity
 			WLet(tMsgPtr, Str(Msg))
-			If Msg1 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg1)
-			If Msg2 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg2)
-			If Msg3 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg3)
+			If Msg1 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg1, , Capacity)
+			If Msg2 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg2, , Capacity)
+			If Msg3 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg3, , Capacity)
 			If Msg4 <> -1 Then WAdd(tMsgPtr, Chr(9) & Msg4)
 			Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
 			_Deallocate(tMsgPtr)
 		End Sub
 		
-		Private Sub Print Overload(ByRef Msg As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
+		Private Sub Print Overload(ByRef MSG As WString, ByRef Msg1 As Const WString = "", ByRef Msg2 As Const WString = "", ByRef Msg3 As Const WString = "", ByRef Msg4 As Const WString = "", bWriteLog As Boolean = False, bPrintMsg As Boolean = False, bShowMsg As Boolean = False, bPrintToDebugWindow As Boolean = True)
 			Dim As WString Ptr tMsgPtr
-			WLet(tMsgPtr, Msg)
-			If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1)
-			If Msg2 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg2)
-			If Msg3 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg3)
+			Dim As Integer Capacity
+			WLet(tMsgPtr, MSG)
+			If Msg1 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg1, , Capacity)
+			If Msg2 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg2, , Capacity)
+			If Msg3 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg3, , Capacity)
 			If Msg4 <> "" Then WAdd(tMsgPtr, Chr(9) & Msg4)
 			Print(*tMsgPtr, bWriteLog, bPrintMsg, bShowMsg, bPrintToDebugWindow)
 			_Deallocate(tMsgPtr)
@@ -1337,6 +1339,29 @@ End Function
 		Next
 		Return IIf(current = 0, IIf(bHasUnicode, True, False), False)
 		
+	End Function
+		
+	Private Function LoadFromFileHex(ByRef FileName As WString) As String
+		Dim As Integer Fn = FreeFile
+		Dim As Integer FileLength
+		If Open(FileName For Binary Access Read As #Fn) <> 0 Then Return ""
+		FileLength = LOF(Fn)
+		If FileLength <= 0 Then
+			Close #Fn
+			Return ""
+		End If
+		Dim As String FileBuffer = Space(FileLength)
+		Get #Fn, , FileBuffer
+		Close #Fn
+		Dim As String HexResult = Space(FileLength * 2)
+		Dim As String HexChars = "0123456789abcdef"
+		Dim As UByte b
+		For i As Integer = 0 To FileLength - 1
+			b = FileBuffer[i]
+			HexResult[i * 2]     = HexChars[b Shr 4]
+			HexResult[i * 2 + 1] = HexChars[b And 15]
+		Next
+		Return HexResult
 	End Function
 	
 	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByVal nCodePage As Integer = -1) As WString Ptr

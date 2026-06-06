@@ -39,6 +39,7 @@ Private:
 	FItems             As List
 	FSortKeysMatchCase  As Boolean 
 	FSortMatchCase      As Boolean 
+	Declare Function CompareStrings(ByRef s1 As WString, ByRef s2 As WString, ByVal bMatchCase As Boolean = True, ByVal bNaturalSort As Boolean = False) As Integer
 Public:
 	Tag                As Any Ptr
 	Sorted            As Boolean 
@@ -56,8 +57,8 @@ Public:
 	Declare Sub Remove(Index As Integer)
 	Declare Sub Remove(ByRef iKey As WString)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
-	Declare Sub Sort(bMatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
-	Declare Sub SortKeys(bMatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
+	Declare Sub Sort(ByVal bMatchCase As Boolean = False, ByVal iDirection As Long = 1, ByVal bNaturalSort As Boolean = False)
+	Declare Sub SortKeys(ByVal bMatchCase As Boolean = False, ByVal iDirection As Long = 1, ByVal bNaturalSort As Boolean = False)
 	Declare Sub Clear
 	Declare Function IndexOf(ByRef wText As Const WString, ByVal MatchCase As Boolean = False, ByVal MatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
 	Declare Function IndexOfKey(ByRef iKey As Const WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Integer

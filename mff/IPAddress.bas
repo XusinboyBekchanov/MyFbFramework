@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
 		Private Function IPAddress.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
-			Case "text": Text: Return FText.vptr
+			Case "text": Text: Return FText
 			Case "onchange": Return OnChange
 			Case "onfieldchanged": Return OnFieldChanged
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -84,7 +84,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property IPAddress.Text(ByRef Value As WString)
-		FText = Value
+		WLetEx(FText, Value)
 		If Value = "" Then
 			This.Clear
 		Else
@@ -111,7 +111,7 @@ Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Private Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			With *Cast(IPAddress Ptr, @Sender)
-				.Text = .FText
+				If .FText <> 0 Then .Text = * (.FText) Else .Text = ""
 			End With
 		End Sub
 		

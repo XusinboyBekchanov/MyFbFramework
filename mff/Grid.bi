@@ -170,6 +170,7 @@ Namespace My.Sys.Forms
 	Private:
 		FItems As List
 		PItem As GridRow Ptr
+		Declare Function CompareStrings(ByRef s1 As WString, ByRef s2 As WString, ByVal bMatchCase As Boolean = True, ByVal bNaturalSort As Boolean = False, ByVal iDirection As Long = 1) As Integer
 	Public:
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As GridRow Ptr
@@ -187,7 +188,8 @@ Namespace My.Sys.Forms
 		'Ordinal position within parent grid columns
 		Declare Function IndexOf(ByRef FItem As GridRow Ptr) As Integer
 		Declare Sub Clear
-		Declare Sub Sort(ColumnIndex As Integer = 0, Direction As SortStyle = SortStyle.ssSortAscending, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
+		Declare Sub Sort Overload(ByVal ColIndex As Integer = 0, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
+		Declare Sub Sort Overload(iDataPtr() As WString Ptr, ByVal ColIndex As Integer = 0, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
 		Declare Operator [](Index As Integer) ByRef As GridRow
 		Declare Operator Cast As Any Ptr
 		Declare Constructor
@@ -221,32 +223,34 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`Grid` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Grid` - Defines a flexible grid area that consists of columns and rows (Windows, Linux, Web).
+	'`Grid` is a Control within the MyFbFramework, part of the freeBasic framework.
+	'`Grid` - Defines a flexible grid area that consists of columns and rows.
 	Private Type Grid Extends Control
 	Private:
-		FAllowColumnReorder As Boolean
-		FColumnHeaderHidden As Boolean
-		FGridLines          As Boolean
-		FHoverTime          As Integer
-		FFullRowSelect      As Boolean
-		FFixCols            As Integer
+		FAllowColumnReorder  As Boolean
+		FColumnHeaderHidden  As Boolean
+		FGridLines           As Boolean
+		FHoverTime           As Integer
+		FFullRowSelect       As Boolean
+		FFixCols             As Integer
 		FSingleClickActivate As Boolean
-		FSortIndex          As Integer
-		FSortOrder          As SortStyle
-		FHoverSelection     As Boolean
-		FLVExStyle          As Integer
-		FRow                As Integer
-		FCol                As Integer
-		FItemHeight         As Integer
-		GridEditText        As TextBox
-		FSorting            As Boolean
-		FAllowEdit          As Boolean = True
-		FOwnerData          As Boolean = True
+		FSortIndex           As Integer
+		FSortOrder           As SortStyle
+		FSortNatural         As Boolean
+		FHoverSelection      As Boolean
+		FLVExStyle           As Integer
+		FRow                 As Integer
+		FCol                 As Integer
+		FItemHeight          As Integer
+		GridEditText         As TextBox
+		FSorting             As Boolean
+		FAllowEdit           As Boolean = True
+		FOwnerData           As Boolean = True
 		#ifdef __USE_WINAPI__
-			FClientRect         As Rect
+			FClientRect      As Rect
 		#endif
 		'GRID PROPERTY
-		'FGridLineDrawMode       As Integer = 1
+		'FGridLineDrawMode   As Integer = 1
 		
 		#ifdef __USE_WINAPI__
 			FGridColorLine          As Integer = -1 'BGR(166, 166, 166) 'clSilver
@@ -321,6 +325,8 @@ Namespace My.Sys.Forms
 		StateImages            As ImageList Ptr
 		'Image list for group headers.
 		GroupHeaderImages      As ImageList Ptr
+		'Custom sorting comparison parameters.
+		SortComparePara        As CompareParaType
 		'Pointer to underlying data structure.
 		DataArrayPtr(Any, Any)  As WString Ptr
 		#ifndef ReadProperty_Off
@@ -378,6 +384,9 @@ Namespace My.Sys.Forms
 		Declare Property SortOrder As SortStyle
 		'Sort direction (Ascending/Descending).
 		Declare Property SortOrder(Value As SortStyle)
+		Declare Property SortNatural As Boolean
+		'Natural sorting, compare data type as text or Numeric.
+		Declare Property SortNatural(Value As Boolean)
 		Declare Property SelectedRow As GridRow Ptr
 		'Currently highlighted row object.
 		Declare Property SelectedRow(Value As GridRow Ptr)
@@ -407,7 +416,7 @@ Namespace My.Sys.Forms
 		'Saves grid data to file.
 		Declare Function SaveToFile(ByRef FileName As WString, ByRef DelimiterChr As String = Chr(9)) As Boolean
 		'Loads grid data from file.
-		Declare Function LoadFromFile(ByRef FileName As WString, ByRef DelimiterChr As String = "", ByVal HasTitle As Boolean = True, ByVal ReadToArrary As Boolean = True) As Integer
+		Declare Function LoadFromFile(ByRef FileName As WString, ByRef DelimiterChr As String = "", ByVal TitleColWidthStr As String = "", ByVal ReadToArrary As Boolean = True) As Integer
 		'Scrolls to make cell visible.
 		Declare Sub EnsureVisible(Index As Integer)
 		Declare Constructor

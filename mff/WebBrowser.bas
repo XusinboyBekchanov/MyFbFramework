@@ -789,7 +789,7 @@ Namespace My.Sys.Forms
 	Private Constructor WebBrowser
 		With This
 			WLet(FClassName, "WebBrowser")
-			FText = "about:blank"
+			WLet(FText, "about:blank")
 			FTabIndex          = -1
 			FTabStop           = True
 			#ifdef __USE_GTK__
