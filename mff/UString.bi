@@ -22,6 +22,8 @@ Private Type UStr As UString
 
 'Represents unicode text (Windows, Linux, Android, Web).
 Private Type UString Extends WString
+Private:
+	m_Capacity As Integer
 Public:
 	Declare Constructor()
 	Declare Constructor(ByRef Value As WString)
@@ -33,6 +35,7 @@ Public:
 	
 	Declare Sub Resize(NewLength As Integer)
 	Declare Function AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
+	Declare Function Add(ByRef txt As WString, AddBefore As Boolean = False) As Boolean
 	Declare Operator [](ByVal Index As Integer) ByRef As UShort
 	
 	Declare Operator Let(ByRef Value As WString)
@@ -56,15 +59,12 @@ Public:
 	Declare Function ToUpper As UString
 	Declare Function SubString(ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "") As UString
 	
+	m_Data As WString Ptr
 	m_Length As Integer
 	m_BufferLen As Integer
 	m_BytesCount As Integer
-	m_Capacity As Integer
-	m_Data As WString Ptr
 	m_Owner As Any Ptr
 	OnChange As Sub(ByRef Sender As UString)
-Protected:
-	
 End Type
 
 Declare Function WStrPtr(ByRef Value As UString) As WString Ptr
@@ -118,7 +118,7 @@ Declare Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStar
 'In-place replacement: When expression is provided, replaces the specified SubString range With the New larger text
 'Example: Dim As WString * 20 mainStr = "Hello World" : Dim As WString * 100 result = SubString(mainStr, 7, 5, "FreeBasic" )(Expected: 'Hello FreeBasic')
 Declare Function SubString(ByRef wszMainStr As WString, ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "" ) As UString
-Declare Function FormatFileName(ByRef originalName As WString) As String
+Declare Function FormatFileName(ByRef originalName As WString) As UString
 Declare Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
 #if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean

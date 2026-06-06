@@ -191,7 +191,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TabPage.Text ByRef As WString
-		Return *FCaption
+		If FCaption <> 0 Then Return *FCaption Else Return ""
 	End Property
 	
 	Private Property TabPage.Text(ByRef Value As WString)
