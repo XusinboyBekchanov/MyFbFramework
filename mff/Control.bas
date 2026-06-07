@@ -75,7 +75,7 @@ Namespace My.Sys.Forms
 				Case "hovertime": Return @FHoverTime
 				Case "subclass": Return @SubClass
 				Case "tabstop": Return @FTabStop
-				Case "text": Return FText.vptr
+				Case "text": Return FText
 				Case "visible": Return @FVisible
 				Case Else: Return Base.ReadProperty(PropertyName)
 				End Select
@@ -455,15 +455,15 @@ Namespace My.Sys.Forms
 					If FHandle Then
 						Dim As Integer L
 						L = Perform(WM_GETTEXTLENGTH, 0, 0)
-						FText.Resize(L + 1) '  = WString(L + 1 + 1, 0)
-						GetWindowText(FHandle, FText.vptr, L + 1)
+						FText = _Reallocate(FText, (L + 2) * SizeOf(WString))
+						GetWindowText(FHandle, FText, L + 1)
 					End If
 				#endif
-				If FText.vptr = 0 Then Return "" Else Return *FText.vptr
+				If FText = 0 Then Return "" Else Return *FText
 			End Property
 			
 			Private Property Control.Text(ByRef Value As WString)
-				FText = Value
+				WLet(FText, Value)
 				#ifdef __USE_GTK__
 					If widget Then
 						If GTK_IS_WINDOW(widget) Then
@@ -479,7 +479,7 @@ Namespace My.Sys.Forms
 						'If Value = "" Then
 						'    SetWindowTextA FHandle, TempString
 						'Else
-						SetWindowTextW FHandle, FText.vptr
+						SetWindowTextW FHandle, FText
 						'End If
 					End If
 				#endif
@@ -1153,7 +1153,7 @@ Namespace My.Sys.Forms
 					'					Else
 					FHandle = CreateWindowExW(dExStyle, _
 					IIf(InStr(*FClassAncestor, "AtlAxWin"), FClassAncestor, FClassName), _
-					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, IIf(InStr(*FClassAncestor, "AtlAxWin"), FProgID, FText.vptr)), _
+					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, IIf(InStr(*FClassAncestor, "AtlAxWin"), FProgID, FText)), _
 					dStyle, _
 					nLeft, _
 					nTop, _
@@ -2321,20 +2321,13 @@ Namespace My.Sys.Forms
 				Return Message.Result
 			End Function
 		#elseif defined(__USE_WINAPI__)
-			Private Function Control.DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+Private Function Control.DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Dim Message As Message
 				Dim As Control Ptr Ctrl
-				'Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
-				'If CtrlID = 0 Then
 				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
-				'Else
-				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
-				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
-				'End If
-				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), 0)
-				If Ctrl Then
-					'?Ctrl
-					If Ctrl->ClassName <> "" Then
+				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
+				If Ctrl <> 0 Then
+					If Ctrl->Handle = FWindow AndAlso Ctrl->ClassName <> "" Then
 						Ctrl->ProcessMessage(Message)
 						If Message.Handled Then
 							Return Message.Result
@@ -2356,9 +2349,6 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				Message.Result = DefWindowProc(FWindow, Msg, wParam, lParam)
-				'				If Ctrl Then
-				'					Ctrl->ProcessMessageAfter(Message)
-				'				End If
 				Return Message.Result
 			End Function
 			
@@ -2366,83 +2356,62 @@ Namespace My.Sys.Forms
 				Dim Message As Message
 				Dim As Control Ptr Ctrl
 				Dim As Any Ptr Proc = @DefWindowProc
-				Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
-				'If CtrlID = 0 Then
 				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
-				'Else
-				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
-				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
-				'End If
-				'Ctrl = Cast(Any Ptr,GetWindowLongPtr(FWindow,GWLP_USERDATA))
-				Message = Type(Ctrl, FWindow,Msg,wParam,lParam,0,LoWord(wParam),HiWord(wParam),LoWord(lParam),HiWord(lParam),Message.Captured)
-				If Ctrl Then
-					Proc = Ctrl->PrevProc
-					Ctrl->ProcessMessage(Message)
-					If Message.Handled Then
-						Return Message.Result
-					ElseIf Message.Result = -1 Then
-						Return Message.Result
-					ElseIf Message.Result = -2 Then
-						Msg = Message.Msg
-						wParam = Message.wParam
-						lParam = Message.lParam
-					ElseIf Message.Result <> 0 Then
-						Return Message.Result
+				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
+				If Ctrl <> 0 Then
+					' 建议在 Control 类中添加 IsDisposed 属性以进行更严谨的判断
+					If Ctrl->Handle = FWindow AndAlso Ctrl->ClassName <> "" Then
+						Proc = Ctrl->PrevProc
+						Ctrl->ProcessMessage(Message)
+						If Message.Handled Then
+							Return Message.Result
+						ElseIf Message.Result = -1 Then
+							Return Message.Result
+						ElseIf Message.Result = -2 Then
+							Msg = Message.Msg
+							wParam = Message.wParam
+							lParam = Message.lParam
+						ElseIf Message.Result <> 0 Then
+							Return Message.Result
+						End If
+						If Proc <> 0 Then
+							Message.Result = CallWindowProc(Proc, FWindow, Msg, wParam, lParam)
+						Else
+							Message.Result = DefWindowProc(FWindow, Msg, wParam, lParam)
+						End If
 					End If
-					Message.Result = CallWindowProc(Proc,FWindow,Msg,wParam,lParam)
-					'					If Ctrl Then
-					'						Ctrl->ProcessMessageAfter(Message)
-					'					End If
 				End If
 				Return Message.Result
 			End Function
 			
 			Private Function Control.SuperWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-				'On Error Goto ErrorHandler
 				Dim As Control Ptr Ctrl
 				Dim Message As Message
-				'Dim As Integer CtrlID = GetDlgCtrlID(FWindow)
-				'If CtrlID = 0 Then
 				Ctrl = Cast(Any Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
-				'Else
-				'	Ctrl = Handles.Item(GetDlgCtrlID(FWindow) - 1000)
-				'	If Ctrl->Handle = 0 Then Ctrl->Handle = FWindow
-				'End If
-				'Ctrl = GetProp(FWindow, "MFFControl")
 				Message = Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), Message.Captured)
-				If Ctrl Then
-					With *Ctrl
-						If Ctrl->ClassName <> "" Then
-							.ProcessMessage(Message)
-							If Message.Handled Then
-								Return Message.Result
-							ElseIf Message.Result = -1 Then
-								Return Message.Result
-							ElseIf Message.Result = -2 Then
-								Msg = Message.Msg
-								wParam = Message.wParam
-								lParam = Message.lParam
-							ElseIf Message.Result <> 0 Then
-								Return Message.Result
-							End If
+				If Ctrl <> 0 Then
+					If Ctrl->Handle = FWindow AndAlso Ctrl->ClassName <> "" Then
+						Ctrl->ProcessMessage(Message)
+						If Message.Handled Then
+							Return Message.Result
+						ElseIf Message.Result = -1 Then
+							Return Message.Result
+						ElseIf Message.Result = -2 Then
+							Msg = Message.Msg
+							wParam = Message.wParam
+							lParam = Message.lParam
+						ElseIf Message.Result <> 0 Then
+							Return Message.Result
 						End If
-					End With
+					End If
 				End If
 				Dim As Any Ptr cp = GetClassProc(FWindow)
 				If cp <> 0 Then
 					Message.Result = CallWindowProc(cp, FWindow, Msg, wParam, lParam)
+				Else
+					Message.Result = DefWindowProc(FWindow, Msg, wParam, lParam)
 				End If
-				'				If Ctrl AndAlso Ctrl->ClassName <> "" Then
-				'					Ctrl->ProcessMessageAfter(Message)
-				'				End If
 				Return Message.Result
-				'    Exit Function
-				'ErrorHandler:
-				'    ?GetMessageName(msg) & " " & ErrDescription(Err) & " (" & Err & ") " & _
-				'        "in line " & Erl() & " " & _
-				'        "in function " & ZGet(Erfn()) & " " & _
-				'        "in module " & ZGet(Ermn())
-				'        Sleep
 			End Function
 			
 			Private Function Control.Perform(Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
@@ -2628,17 +2597,21 @@ Namespace My.Sys.Forms
 				Dim As Control Ptr Ctrl = user_data
 				If info = 0 Then
 					If Ctrl->OnDropFile Then
-						Dim As UString res(Any)
-						Dim As UString datatext = *Cast(gchar Ptr, gtk_selection_data_get_data(selection_data)) '*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0)
+						Dim As WString Ptr res(Any), DataText
+						WLet(DataText, *Cast(gchar Ptr, gtk_selection_data_get_data(selection_data))) '*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0)
+		If DataText = 0 Then Return
 						'If StartsWith(datatext, "file://") Then
-						datatext = Mid(datatext, 8)
-						Split(datatext, Chr(13) & Chr(10), res())
+						*DataText = Mid(*DataText, 8)
+						Split(*DataText, Chr(13) & Chr(10), res())
 						For i As Integer = 0 To UBound(res)
-							If StartsWith(res(i), "file://") Then res(i) = Mid(res(i), 8)
-							If Trim(res(i)) <> "" Then
-								Ctrl->OnDropFile(*Ctrl->Designer, *Ctrl, res(i))
+							If StartsWith(*res(i), "file://") Then *res(i) = Mid(*res(i), 8)
+							If Trim(*res(i)) <> "" Then
+								Ctrl->OnDropFile(*Ctrl->Designer, *Ctrl, *res(i))
 							End If
+							_Deallocate(res(i))
 						Next
+						Erase res
+						_Deallocate(DataText)
 						'End If
 					End If
 					gtk_drag_finish(context, True, False, Time)
@@ -3531,7 +3504,7 @@ Namespace My.Sys.Forms
 				FDropTarget.AllowDrop False
 			#endif
 			FreeWnd
-			'If FText Then Deallocate FText
+			If FText Then _Deallocate(FText)
 			If FProgID Then _Deallocate(FProgID)
 			If FHint Then _Deallocate(FHint)
 			'			Dim As Integer i

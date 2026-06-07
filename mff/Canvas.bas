@@ -75,7 +75,12 @@ Namespace My.Sys.Drawing
 					If GdipBrush Then GdipDeleteBrush(GdipBrush)
 					GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
 				End If
+			#elseif defined(__USE_CAIRO__)
+				If Handle <> 0 Then
+					cairo_set_source_rgb(Handle, GetRedD(FFillColor), GetGreenD(FFillColor), GetBlueD(FFillColor))
+				End If
 			#endif
+			
 		End If
 	End Property
 	
@@ -88,6 +93,15 @@ Namespace My.Sys.Drawing
 			FFillMode = Value
 			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				SetBkMode Handle, FFillMode
+			#elseif defined(__USE_CAIRO__)
+				' 补齐 Cairo 的 FillMode 支持 (交替填充与环绕填充)
+				If Handle <> 0 Then
+					If FFillMode = BrushFillMode.bmOpaque Then
+						cairo_set_fill_rule(Handle, CAIRO_FILL_RULE_EVEN_ODD)
+					Else
+						cairo_set_fill_rule(Handle, CAIRO_FILL_RULE_WINDING)
+					End If
+				End If
 			#endif
 		End If
 	End Property
@@ -111,6 +125,9 @@ Namespace My.Sys.Drawing
 					If GdipBrush Then GdipDeleteBrush(GdipBrush)
 					GdipCreateHatchBrush(GdipHatchStyles, RGBtoARGB(FFillColor, FillOpacity), RGBtoARGB(FDrawColor, FillOpacity), Cast(GpHatch Ptr Ptr, @GdipBrush))
 				End If
+			#elseif defined(__USE_CAIRO__)
+				' 补齐 Cairo 的 HatchStyle 设置（记录状态，绘制时根据状态模拟图案）
+				''TODO: Cairo 无原生 Hatch，需基于 Surface Pattern 模拟实现
 			#endif
 		End If
 	End Property
@@ -126,7 +143,7 @@ Namespace My.Sys.Drawing
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			Brush.Style= Value
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
+				'TODO D2D
 			ElseIf UsingGdip Then
 				If GdipBrush Then GdipDeleteBrush(GdipBrush)
 				Select Case FFillStyles
@@ -142,6 +159,9 @@ Namespace My.Sys.Drawing
 					GdipCreateSolidFill(RGBtoARGB(FFillColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @GdipBrush))
 				End Select
 			End If
+		#elseif defined(__USE_CAIRO__)
+			' 补齐 Cairo 的 FillStyles 设置记录
+			''TODO: Cairo 需根据 FillStyles 在绘制时应用不同的 Source (Pattern)
 		#endif
 		'End If
 	End Property
@@ -163,6 +183,9 @@ Namespace My.Sys.Drawing
 					End If
 				End Scope
 				Return GetDeviceCaps(Handle, LOGPIXELSX)
+			#else
+				''TODO Cairo/GTK 等其他环境后备
+				Return 0
 			#endif
 		End If
 	End Property
@@ -184,6 +207,8 @@ Namespace My.Sys.Drawing
 					End If
 				End Scope
 				Return GetDeviceCaps(Handle, LOGPIXELSY)
+			#else
+				Return 0
 			#endif
 		End If
 	End Property
@@ -204,19 +229,21 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.DrawWidth(Value As Integer)
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			If FDrawWidth <> Value Then
-				FDrawWidth = Value
+		If FDrawWidth <> Value Then
+			FDrawWidth = Value
+			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				Pen.Size = Value
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-					'TODO
+					' D2D 绘时通过参数传递线宽，无需单独创建笔刷，但需保持 FDrawWidth 更新
 				ElseIf UsingGdip Then
 					If GdipPen Then GdipDeletePen(GdipPen)
 					GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
 					GdipSetPenEndCap GdipPen, 2
 				End If
-			End If
-		#endif
+			#elseif defined(__USE_CAIRO__)
+				If Handle <> 0 Then cairo_set_line_width(Handle, FDrawWidth)
+			#endif
+		End If
 	End Property
 	
 	Private Property Canvas.DrawColor As Integer
@@ -227,10 +254,10 @@ Namespace My.Sys.Drawing
 	End Property
 	
 	Private Property Canvas.DrawColor(Value As Integer)
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			If FDrawColor <> Value Then
-				FDrawColor = Value
-				Pen.Color = Value
+		If FDrawColor <> Value Then
+			FDrawColor = Value
+			Pen.Color = Value
+			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					If pForegroundBrush Then pForegroundBrush->lpVtbl->Release(pForegroundBrush): pForegroundBrush = 0
 					Dim As Double iRed, iGreen, iBlue
@@ -243,8 +270,10 @@ Namespace My.Sys.Drawing
 				Else
 					SelectObject(Handle, Pen.Handle)
 				End If
-			End If
-		#endif
+			#elseif defined(__USE_CAIRO__)
+				If Handle <> 0 Then cairo_set_source_rgb(Handle, GetRedD(FDrawColor), GetGreenD(FDrawColor), GetBlueD(FDrawColor))
+			#endif
+		End If
 	End Property
 	
 	Private Property Canvas.DrawStyle As PenStyle
@@ -255,11 +284,14 @@ Namespace My.Sys.Drawing
 	End Property
 	'https://learn.microsoft.com/zh-cn/windows/win32/api/gdipluspen/nf-gdipluspen-pen-setdashstyle
 	Private Property Canvas.DrawStyle(Value As PenStyle)
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			If FDrawStyle <> Value Then
-				FDrawStyle = Value
-				Pen.Style = Value
-				If UsingGdip Then
+		If FDrawStyle <> Value Then
+			FDrawStyle = Value
+			Pen.Style = Value
+			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+					''TODO D2D 虚线需通过 ID2D1StrokeStyle 实现，建议在绘制时动态创建或缓存
+					' 此处标记TODO，建议在 DrawLine/ 等方法中检查 FDrawStyle 并应用 StrokeStyle
+				ElseIf UsingGdip Then
 					If GdipPen Then GdipDeletePen(GdipPen)
 					GdipCreatePen1(RGBtoARGB(Pen.Color, BackColorOpacity), FDrawWidth, &H2, @GdipPen)
 					GdipSetPenEndCap GdipPen, 2
@@ -278,8 +310,27 @@ Namespace My.Sys.Drawing
 					End Select
 					GdipSetPenDashStyle(GdipPen, tGpDashStyle)
 				End If
-			End If
-		#endif
+			#elseif defined(__USE_CAIRO__)
+				If Handle <> 0 Then
+					Select Case Value
+					Case PenStyle.psDash
+						Dim As Double dashes(1) = {10.0, 5.0}
+						cairo_set_dash(Handle, @dashes(0), 2, 0)
+					Case PenStyle.psDot
+						Dim As Double dashes(1) = {2.0, 4.0}
+						cairo_set_dash(Handle, @dashes(0), 2, 0)
+					Case PenStyle.psDashDot
+						Dim As Double dashes(3) = {10.0, 5.0, 2.0, 5.0}
+						cairo_set_dash(Handle, @dashes(0), 4, 0)
+					Case PenStyle.psDashDotDot
+						Dim As Double dashes(5) = {10.0, 5.0, 2.0, 5.0, 2.0, 5.0}
+						cairo_set_dash(Handle, @dashes(0), 6, 0)
+					Case Else ' Solid
+						cairo_set_dash(Handle, 0, 0, 0)
+					End Select
+				End If
+			#endif
+		End If
 	End Property
 	
 	Private Sub Canvas.Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
@@ -295,7 +346,7 @@ Namespace My.Sys.Drawing
 					Color1.r = GetRed(FBackColor)
 					Color1.g = GetGreen(FBackColor)
 					Color1.b = GetBlue(FBackColor)
-					pRenderTarget->lpVtbl->Clear(pRenderTarget, @Color1) ' Белый фон
+					pRenderTarget->lpVtbl->Clear(pRenderTarget, @Color1)
 					Return
 				ElseIf Not UsingGdip Then
 					
@@ -304,12 +355,12 @@ Namespace My.Sys.Drawing
 					'Return
 				End If
 			#endif
-			Dim As Rect R
+			Dim As RECT R
 			If x = x1 AndAlso y = y1 AndAlso x = y Then
-				R.Left = 0
-				R.Top = 0
-				R.Right = ScaleX(ParentControl->Width)
-				R.Bottom = ScaleY(ParentControl->Height)
+				R.left = 0
+				R.top = 0
+				R.right = ScaleX(ParentControl->Width)
+				R.bottom = ScaleY(ParentControl->Height)
 				'Remove Scale
 				imgScaleX = 1
 				imgScaleY = 1
@@ -321,29 +372,29 @@ Namespace My.Sys.Drawing
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					Else
-						.FillRect Handle, Cast(..Rect Ptr, @R), B
+						.FillRect Handle, Cast(..RECT Ptr, @R), B
 					End If
 				#endif
 			Else
-				R.Left = ScaleX(x) * imgScaleX + imgOffsetX
-				R.Top = ScaleY(y) * imgScaleY + imgOffsetY
-				R.Right = ScaleX(x1) * imgScaleX + imgOffsetX
-				R.Bottom = ScaleY(y1) * imgScaleY + imgOffsetY
+				R.left = ScaleX(x) * imgScaleX + imgOffsetX
+				R.top = ScaleY(y) * imgScaleY + imgOffsetY
+				R.right = ScaleX(x1) * imgScaleX + imgOffsetX
+				R.bottom = ScaleY(y1) * imgScaleY + imgOffsetY
 				#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 					If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					Else
-						.FillRect Handle, Cast(..Rect Ptr, @R), B
+						.FillRect Handle, Cast(..RECT Ptr, @R), B
 					End If
 				#endif
 			End If
 			#ifdef __USE_CAIRO__
-				.cairo_rectangle(Handle, ScaleX(R.Left) - 0.5, ScaleY(R.Top) - 0.5, ScaleX(R.Right - R.Left) - 0.5, ScaleY(R.Bottom - R.Top) - 0.5)
+				.cairo_rectangle(Handle, ScaleX(R.left) - 0.5, ScaleY(R.top) - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5)
 				cairo_set_source_rgb(Handle, GetRedD(FBackColor), GetGreenD(FBackColor), GetBlueD(FBackColor))
 				cairo_fill_preserve(Handle)
 			#elseif defined(__USE_WINAPI__)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Else
-					.FillRect Handle, Cast(..Rect Ptr, @R), B
+					.FillRect Handle, Cast(..RECT Ptr, @R), B
 				End If
 				DeleteObject B
 			#endif
@@ -368,7 +419,13 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			Return .GetPixel(Handle, ScaleX(xy.X), ScaleY(xy.Y))
+			Return .GetPixel(Handle, ScaleX(xy.x), ScaleY(xy.y))
+		#elseif defined(__USE_CAIRO__)
+			' Cairo 无法直接从绘制上下文获取像素，但可以利用其背后的 Win32 DC
+			'If DeviceContextHandle Then
+			'	Return .GetPixel(DeviceContextHandle, ScaleX(xy.x), ScaleY(xy.y))
+			'End If
+			Return 0
 		#else
 			Return 0
 		#endif
@@ -380,13 +437,13 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_CAIRO__
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetBlue(Value) / 255.0, GetGreen(Value) / 255.0)
-			.cairo_rectangle(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX - 0.5, ScaleY(xy.Y) * imgScaleY + imgOffsetY - 0.5, 1, 1)
+			.cairo_rectangle(Handle, ScaleX(xy.x) * imgScaleX + imgOffsetX - 0.5, ScaleY(xy.y) * imgScaleY + imgOffsetY - 0.5, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				'If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY), pForegroundBrush, 1)
 			Else
-				.SetPixel(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX, ScaleY(xy.Y) * imgScaleY + imgOffsetY, Value)
+				.SetPixel(Handle, ScaleX(xy.x) * imgScaleX + imgOffsetX, ScaleY(xy.y) * imgScaleY + imgOffsetY, Value)
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
@@ -426,7 +483,7 @@ Namespace My.Sys.Drawing
 						Handle_ = cairo_create(cairoSurface)
 						cairo_set_antialias(cairoSurface, CAIRO_ANTIALIAS_BEST)
 						cairo_set_line_cap(cairoSurface, CAIRO_LINE_CAP_ROUND)
-						cairo_set_line_join(cairoSurface, CAIRO_LINE_JOIN_ROUND) 
+						cairo_set_line_join(cairoSurface, CAIRO_LINE_JOIN_ROUND)
 					End If
 				#elseif defined(__USE_WINAPI__)
 					If ParentControl->Handle Then
@@ -503,7 +560,7 @@ Namespace My.Sys.Drawing
 					pp.pDirtyRects = 0
 					pp.pScrollRect = 0
 					pp.pScrollOffset = 0
-					pSwapChain->lpVtbl->Present1(pSwapChain, 1, 0, @pp)
+					pSwapChain->lpVtbl->Present(pSwapChain, 1, 0)
 				Else
 					ReleaseDC ParentControl->Handle, Handle_
 				End If
@@ -781,19 +838,24 @@ Namespace My.Sys.Drawing
 				If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRoundedRectangle(pRenderTarget, @Type<D2D1_ROUNDED_RECT>(Type<D2D1_RECT_F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY), ScaleX(nWidth) * imgScaleX / 2, ScaleY(nHeight) * imgScaleY / 2), pBackgroundBrush)
 				If pForegroundBrush <> 0 Then pRenderTarget->lpVtbl->DrawRoundedRectangle(pRenderTarget, @Type<D2D1_ROUNDED_RECT>(Type<D2D1_RECT_F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY), ScaleX(nWidth) * imgScaleX / 2, ScaleY(nHeight) * imgScaleY / 2), pForegroundBrush, 1)
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				'Gdipmove_to Handle, x * imgScaleX + imgOffsetX - 0.5, (y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5
-				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, 180, 270)
-				GdipDrawLine(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY)
-				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, -90, 0)
-				GdipDrawLine(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY)
-				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x +  nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, 0, 90)
-				'GdipDrawLine(GdipGraphics, GdipPen, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight) * imgScaleY + imgOffsetY - 0.5)
-				'GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, ScaleY(nHeight / 2) * imgScaleY, 90, 180)
+				Dim As GpPath Ptr gPath
+				GdipCreatePath(FillMode, @gPath)
+				Dim As Single rx = nWidth / 2, ry = nHeight / 2
+				' 右上角
+				GdipAddPathArc(gPath, ScaleX(x1 - nWidth) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX, ScaleY(nHeight) * imgScaleY, 270, 90)
+				' 右角
+				GdipAddPathArc(gPath, ScaleX(x1 - nWidth) * imgScaleX + imgOffsetX, ScaleY(y1 - nHeight) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX, ScaleY(nHeight) * imgScaleY, 0, 90)
+				' 左下角
+				GdipAddPathArc(gPath, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y1 - nHeight) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX, ScaleY(nHeight) * imgScaleY, 90, 90)
+				' 左上角
+				GdipAddPathArc(gPath, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX, ScaleY(nHeight) * imgScaleY, 180, 90)
+				GdipClosePathFigure(gPath)
+				If GdipBrush Then GdipFillPath(GdipGraphics, GdipBrush, gPath)
+				GdipDrawPath(GdipGraphics, GdipPen, gPath)
+				GdipDeletePath(gPath)
 			Else
 				.RoundRect Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nWidth) * imgScaleX , ScaleY(nHeight) * imgScaleY
-				
 			End If
-			
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -801,22 +863,33 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Polygon(Points() As Point, Count As Long)
 		If Count < 3 Then Return
 		Dim As Any Ptr Handle_
-		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		If Not HandleSetted Then Handle = GetDevice
+		#ifdef __USE_CAIRO__
+			cairo_move_to(Handle, ScaleX(Points(0).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY - 0.5)
+			For i As Integer = 1 To Count - 1
+				cairo_line_to(Handle, ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5)
+			Next
+			cairo_close_path(Handle) ' 闭合
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
+		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
 				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
 					Dim pSink As ID2D1GeometrySink Ptr
 					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
 						Dim pD2DPoints As D2D1_POINT_2F Ptr
 						Dim BeginD2DPoint As D2D1_POINT_2F = Type<D2D1_POINT_2F>(ScaleX(Points(0).X) * imgScaleX + imgOffsetX, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY)
 						pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
 						pSink->lpVtbl->BeginFigure(pSink, BeginD2DPoint, D2D1_FIGURE_BEGIN_FILLED)
-						pD2DPoints = CAllocate((Count - 2) * SizeOf(D2D1_POINT_2F))
+						pD2DPoints = CAllocate((Count - 1) * SizeOf(D2D1_POINT_2F))
 						For i As Integer = 1 To Count - 1
 							pD2DPoints[i - 1] = Type<D2D1_POINT_2F>(ScaleX(Points(i).X) * imgScaleX + imgOffsetX, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY)
 						Next
-						pSink->lpVtbl->AddLines(pSink, pD2DPoints, Count)
+						pSink->lpVtbl->AddLines(pSink, pD2DPoints, Count - 1)
 						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
 						pSink->lpVtbl->Close(pSink)
 						pSink->lpVtbl->Release(pSink)
@@ -829,15 +902,15 @@ Namespace My.Sys.Drawing
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				If GdipBrush Then GdipFillPolygon GdipGraphics, GdipBrush, @tGpPoints(0), Count, FillMode
 				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.Polygon Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -847,27 +920,84 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.RoundRect(R As Rect, nWidth As Integer, nHeight As Integer)
+	Private Sub Canvas.RoundRect(R As RECT, nWidth As Integer, nHeight As Integer)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		This.RoundRect R.Left, R.Top, R.Right, R.Bottom, nWidth, nHeight
+		This.RoundRect R.left, R.top, R.right, R.bottom, nWidth, nHeight
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		
+		Dim As Single sx = ScaleX(x) * imgScaleX + imgOffsetX, sy = ScaleY(y) * imgScaleY + imgOffsetY
+		Dim As Single sw = ScaleX(x1 - x) * imgScaleX, sh = ScaleY(y1 - y) * imgScaleY
+		If sw <= 0 OrElse sh <= 0 Then Return
+		
+		Dim As Double cx = sx + sw / 2, cy = sy + sh / 2
+		Dim As Double sX_ = ScaleX(nXRadial1) * imgScaleX + imgOffsetX, sY_ = ScaleY(nYRadial1) * imgScaleY + imgOffsetY
+		Dim As Double eX_ = ScaleX(nXRadial2) * imgScaleX + imgOffsetX, eY_ = ScaleY(nYRadial2) * imgScaleY + imgOffsetY
+		
+		Dim As Double startAngle = Atan2(sY_ - cy, sX_ - cx)
+		Dim As Double endAngle = Atan2(eY_ - cy, eX_ - cx)
+		Dim As Double sweepAngle = endAngle - startAngle
+		If sweepAngle <= 0 Then sweepAngle += 2 * G_PI
+		
+		#ifdef __USE_CAIRO__
+			cairo_move_to(Handle, sX_, sY_)
+			Dim As Double r = Min(sw, sh) / 2
+			' 如果是椭圆需要 Save/Scale/Restore，此处简化采用半径较小的圆
+			cairo_arc(Handle, cx, cy, r, startAngle, endAngle)
+			cairo_close_path(Handle) ' 闭合弦
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
+		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
-				
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim As D2D1_ARC_SEGMENT arcSeg
+						arcSeg.point = Type<D2D1_POINT_2F>(eX_, eY_)
+						arcSeg.size = Type<D2D1_SIZE_F>(sw / 2, sh / 2)
+						arcSeg.rotationAngle = 0
+						arcSeg.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE
+						arcSeg.arcSize = IIf(sweepAngle > G_PI, D2D1_ARC_SIZE_LARGE, D2D1_ARC_SIZE_SMALL)
+						
+						pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
+						' 从弧的起点开始，画弧到终点，然后闭合图形（自动连回起点形成弦）
+						pSink->lpVtbl->BeginFigure(pSink, Type<D2D1_POINT_2F>(sX_, sY_), D2D1_FIGURE_BEGIN_FILLED)
+						pSink->lpVtbl->AddArc(pSink, @arcSeg)
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						If pBackgroundBrush Then pRenderTarget->lpVtbl->FillGeometry(pRenderTarget, pGeometry, pBackgroundBrush, NULL)
+						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+					End If
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				'.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
+				Dim As Double startAngleDeg = startAngle * 180.0 / G_PI
+				Dim As Double sweepAngleDeg = sweepAngle * 180.0 / G_PI
+				
+				' GDI+ 没有直接的 GdipDrawChord，需要用 Path 实现
+				Dim As GpPath Ptr path
+				GdipCreatePath(0, @path)
+				GdipAddPathArc(path, sx, sy, sw, sh, startAngleDeg, sweepAngleDeg)
+				GdipClosePathFigure(path) ' 闭合
+				
+				If GdipBrush Then GdipFillPath(GdipGraphics, GdipBrush, path)
+				GdipDrawPath(GdipGraphics, GdipPen, path)
+				GdipDeletePath(path)
 			Else
-				.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
+				.Chord(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1)*imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY)
 			End If
 		#else
-			Print "The function is not ready in this OS." & "  Canvas.Chord(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double))"
+			Print "The function is not ready in this OS." & "  Canvas.Chord..."
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -875,17 +1005,65 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		
+		Dim As Single sx = ScaleX(x) * imgScaleX + imgOffsetX, sy = ScaleY(y) * imgScaleY + imgOffsetY
+		Dim As Single sw = ScaleX(x1 - x) * imgScaleX, sh = ScaleY(y1 - y) * imgScaleY
+		If sw <= 0 OrElse sh <= 0 Then Return
+		
+		Dim As Double cx = sx + sw / 2, cy = sy + sh / 2
+		Dim As Double sX_ = ScaleX(nXRadial1) * imgScaleX + imgOffsetX, sY_ = ScaleY(nYRadial1) * imgScaleY + imgOffsetY
+		Dim As Double eX_ = ScaleX(nXRadial2) * imgScaleX + imgOffsetX, eY_ = ScaleY(nYRadial2) * imgScaleY + imgOffsetY
+		
+		Dim As Double startAngle = Atan2(sY_ - cy, eX_ - cx)
+		Dim As Double endAngle = Atan2(eY_ - cy, eX_ - cx)
+		Dim As Double sweepAngle = endAngle - startAngle
+		If sweepAngle <= 0 Then sweepAngle += 2 * G_PI
+		#ifdef __USE_CAIRO__
+			Dim As Double r = Min(sw, sh) / 2
+			cairo_move_to(Handle, cx, cy) ' 移动到圆心
+			cairo_line_to(Handle, sX_, sY_) ' 连线到弧起点
+			cairo_arc(Handle, cx, cy, r, startAngle, endAngle)
+			cairo_close_path(Handle) ' 闭合回圆心
+			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			cairo_fill_preserve(Handle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
+		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim As D2D1_ARC_SEGMENT arcSeg
+						arcSeg.point = Type<D2D1_POINT_2F>(eX_,eY_)
+						arcSeg.size = Type<D2D1_SIZE_F>(sw / 2, sh / 2)
+						arcSeg.rotationAngle = 0
+						arcSeg.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE
+						arcSeg.arcSize = IIf(sweepAngle > G_PI, D2D1_ARC_SIZE_LARGE, D2D1_ARC_SIZE_SMALL)
+						
+						pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
+						pSink->lpVtbl->BeginFigure(pSink, Type<D2D1_POINT_2F>(cx, cy), D2D1_FIGURE_BEGIN_FILLED)
+						pSink->lpVtbl->AddLine(pSink, Type<D2D1_POINT_2F>(sX_, sY_))
+						pSink->lpVtbl->AddArc(pSink, @arcSeg)
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED) ' 闭合回圆心
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						If pBackgroundBrush Then pRenderTarget->lpVtbl->FillGeometry(pRenderTarget, pGeometry, pBackgroundBrush, NULL)
+						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+					End If
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				If GdipBrush Then GdipFillPie(GdipGraphics, GdipBrush, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - x) * imgScaleY + imgOffsetY, nXRadial1, nYRadial1)
-				GdipDrawPie(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1 - x) * imgScaleX + imgOffsetX, ScaleY(y1 - x) * imgScaleY + imgOffsetY, nXRadial1, nYRadial1)
+				Dim As Double startAngleDeg = startAngle * 180.0 / G_PI
+				Dim As Double sweepAngleDeg = sweepAngle * 180.0 / G_PI
+				If GdipBrush Then GdipFillPie(GdipGraphics, GdipBrush, sx, sy, sw, sh, startAngleDeg, sweepAngleDeg)
+				GdipDrawPie(GdipGraphics, GdipPen, sx, sy, sw, sh, startAngleDeg, sweepAngleDeg)
 			Else
 				.Pie(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX, ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX , ScaleY(nYRadial2) * imgScaleY)
 			End If
 		#else
-			Print "The function is not ready in this OS." & "  Canvas.Pie(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)"
+			Print "The function is not ready in this OS." & "  Canvas.Pie..."
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
@@ -893,17 +1071,55 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Arc(x As Double, y As Double, x1 As Double, y1 As Double, xStart As Double, yStart As Double, xEnd As Double, yEnd As Double)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
+		
+		Dim As Single sx = ScaleX(x) * imgScaleX + imgOffsetX, sy = ScaleY(y) * imgScaleY + imgOffsetY
+		Dim As Single sw = ScaleX(x1 - x) * imgScaleX, sh = ScaleY(y1 - y) * imgScaleY
+		If sw <= 0 OrElse sh <= 0 Then Return ' 防止除零
+		
+		Dim As Double cx = sx + sw / 2, cy = sy + sh / 2
+		Dim As Double sX_ = ScaleX(xStart) * imgScaleX + imgOffsetX, sY_ = ScaleY(yStart) * imgScaleY + imgOffsetY
+		Dim As Double eX_ = ScaleX(xEnd) * imgScaleX + imgOffsetX, eY_ = ScaleY(yEnd) * imgScaleY + imgOffsetY
+		
+		' 计算起始角和扫掠角 (弧度)
+		Dim As Double startAngle = Atan2(sY_ - cy, sX_ - cx)
+		Dim As Double endAngle = Atan2(eY_ - cy, eX_ - cx)
+		Dim As Double sweepAngle = endAngle - startAngle
+		If sweepAngle <= 0 Then sweepAngle += 2 * G_PI ' 保证逆时针/顺时针一致性
+		
 		#ifdef __USE_CAIRO__
+			' Cairo 的逻辑已在之前提供，此处省略或保留原有
 			cairo_move_to Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5
-			cairo_arc(Handle, ScaleX(x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX((x1 - x) / 2) * imgScaleX, 0, G_PI * 1)
-			cairo_fill_preserve(Handle)
-			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_arc(Handle, cx, cy, Min(sw, sh) / 2, startAngle, endAngle)
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim As D2D1_ARC_SEGMENT arcSeg
+						arcSeg.point = Type<D2D1_POINT_2F>(eX_, eY_) ' 终点
+						arcSeg.size = Type<D2D1_SIZE_F>(sw / 2, sh / 2)
+						arcSeg.rotationAngle = 0
+						arcSeg.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE
+						arcSeg.arcSize = IIf(sweepAngle > G_PI, D2D1_ARC_SIZE_LARGE, D2D1_ARC_SIZE_SMALL)
+						
+						pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
+						pSink->lpVtbl->BeginFigure(pSink, Type<D2D1_POINT_2F>(sX_, sY_), D2D1_FIGURE_BEGIN_HOLLOW)
+						pSink->lpVtbl->AddArc(pSink, @arcSeg)
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_OPEN)
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+					End If
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				'.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
+				' GDI+ 需要角度制
+				Dim As Double startAngleDeg = startAngle * 180.0 / G_PI
+				Dim As Double sweepAngleDeg = sweepAngle * 180.0 / G_PI
+				GdipDrawArc(GdipGraphics, GdipPen, sx, sy, sw, sh, startAngleDeg, sweepAngleDeg)
 			Else
 				.Arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(xStart) * imgScaleX + imgOffsetX, ScaleY(yStart) * imgScaleY + imgOffsetY, ScaleX(xEnd) * imgScaleX + imgOffsetX, ScaleY(yEnd) * imgScaleY + imgOffsetY)
 			End If
@@ -911,29 +1127,122 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
+	
 	Private Sub Canvas.ArcTo(x As Double, y As Double, x1 As Double, y1 As Double, nXRadial1 As Double, nYRadial1 As Double, nXRadial2 As Double, nYRadial2 As Double)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		
+		Dim As Single sx = ScaleX(x) * imgScaleX + imgOffsetX, sy = ScaleY(y) * imgScaleY + imgOffsetY
+		Dim As Single sw = ScaleX(x1 - x) * imgScaleX, sh = ScaleY(y1 - y) * imgScaleY
+		If sw <= 0 OrElse sh <= 0 Then Return
+		
+		Dim As Double cx = sx + sw / 2, cy = sy + sh / 2
+		Dim As Double sX_ = ScaleX(nXRadial1) * imgScaleX + imgOffsetX, sY_ = ScaleY(nYRadial1) * imgScaleY + imgOffsetY
+		Dim As Double eX_ = ScaleX(nXRadial2) * imgScaleX + imgOffsetX, eY_ = ScaleY(nYRadial2) * imgScaleY + imgOffsetY
+		
+		Dim As Double startAngle = Atan2(sY_ - cy, sX_ - cx)
+		Dim As Double endAngle = Atan2(eY_ - cy, eX_ - cx)
+		Dim As Double sweepAngle = endAngle - startAngle
+		If sweepAngle <= 0 Then sweepAngle += 2 * G_PI
+		
+		#ifdef __USE_CAIRO__
+			Dim As Double r = Min(sw, sh) / 2
+			cairo_move_to(Handle, FMoveToX, FMoveToY)
+			cairo_line_to(Handle, sX_, sY_) ' 连线到弧起点
+			cairo_arc(Handle, cx, cy, r, startAngle, endAngle)
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
+			' 更新当前点
+			FMoveToX = eX_: FMoveToY = eY_
+		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim As D2D1_ARC_SEGMENT arcSeg
+						arcSeg.point = Type<D2D1_POINT_2F>(eX_, eY_)
+						arcSeg.size = Type<D2D1_SIZE_F>(sw / 2, sh / 2)
+						arcSeg.rotationAngle = 0
+						arcSeg.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE
+						arcSeg.arcSize = IIf(sweepAngle > G_PI, D2D1_ARC_SIZE_LARGE, D2D1_ARC_SIZE_SMALL)
+						
+						pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
+						' 从当前点 (FMoveToX, FMoveToY) 开始
+						pSink->lpVtbl->BeginFigure(pSink, Type<D2D1_POINT_2F>(FMoveToX, FMoveToY), D2D1_FIGURE_BEGIN_HOLLOW)
+						pSink->lpVtbl->AddLine(pSink, Type<D2D1_POINT_2F>(sX_, sY_)) ' 连线到弧起点
+						pSink->lpVtbl->AddArc(pSink, @arcSeg)
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_OPEN)
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+					End If
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
+				' 更新点到弧终点
+				FMoveToX = eX_: FMoveToY = eY_
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				'.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
+				Dim As Double startAngleDeg = startAngle * 180.0 / G_PI
+				Dim As Double sweepAngleDeg = sweepAngle * 180.0 / G_PI
+				GdipDrawLine(GdipGraphics, GdipPen, FMoveToX, FMoveToY, sX_, sY_)
+				GdipDrawArc(GdipGraphics, GdipPen, sx, sy, sw, sh, startAngleDeg, sweepAngleDeg)
+				FMoveToX = eX_: FMoveToY = eY_
 			Else
-				.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
+				.ArcTo Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y)*imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY, ScaleX(nXRadial1) * imgScaleX , ScaleY(nYRadial1) * imgScaleY, ScaleX(nXRadial2) * imgScaleX, ScaleY(nYRadial2) * imgScaleY
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
+	
 	Private Sub Canvas.AngleArc(x As Double, y As Double, Radius As Double, StartAngle As Double, SweepAngle As Double)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		Dim As Single cx = ScaleX(x) * imgScaleX + imgOffsetX
+		Dim As Single cy = ScaleY(y) * imgScaleY + imgOffsetY
+		Dim As Single r = ScaleX(Radius) * imgScaleX ' 假设各向同性缩放
+		
+		#ifdef __USE_CAIRO__
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			' Cairo的角度是弧度，且Y轴向下为正，因此负的sweepAngle对应GDI的正sweepAngle
+			cairo_arc(Handle, cx, cy, r, -StartAngle * G_PI / 180.0, -(StartAngle + SweepAngle) * G_PI / 180.0)
+			cairo_stroke(Handle)
+		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim As Single startRad = StartAngle * G_PI / 180.0
+						Dim As Single endRad = (StartAngle + SweepAngle) * G_PI / 180.0
+						
+						' 计算起点和终点
+						Dim As D2D1_POINT_2F startPoint = Type<D2D1_POINT_2F>(cx + r * Cos(startRad), cy - r * Sin(startRad))
+						Dim As D2D1_POINT_2F endPoint = Type<D2D1_POINT_2F>(cx + r * Cos(endRad), cy - r * Sin(endRad))
+						
+						Dim As D2D1_ARC_SEGMENT arcSeg
+						arcSeg.point = endPoint
+						arcSeg.size = Type<D2D1_SIZE_F>(r, r)
+						arcSeg.rotationAngle = 0
+						arcSeg.sweepDirection = IIf(SweepAngle >= 0, D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE, D2D1_SWEEP_DIRECTION_CLOCKWISE)
+						arcSeg.arcSize = IIf(Abs(SweepAngle) > 180, D2D1_ARC_SIZE_LARGE, D2D1_ARC_SIZE_SMALL)
+						
+						pSink->lpVtbl->BeginFigure(pSink, startPoint, D2D1_FIGURE_BEGIN_HOLLOW)
+						pSink->lpVtbl->AddArc(pSink, @arcSeg)
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_OPEN)
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+					End If
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				GdipDrawArc(GdipGraphics, GdipPen, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, ScaleY(Radius) * imgScaleY, StartAngle, SweepAngle)
+				' 修复GDI+边界框：需转换为外接矩形
+				Dim As Single sx = cx - r, sy = cy - r
+				Dim As Single sw = r * 2, sh = r * 2
+				GdipDrawArc(GdipGraphics, GdipPen, sx, sy, sw, sh, StartAngle, SweepAngle)
 			Else
 				.MoveToEx Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 0
 				.AngleArc Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radius) * imgScaleX, StartAngle, SweepAngle
@@ -943,70 +1252,132 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.Polyline(Points() As Point, Count As Long)
+		If Count < 2 Then Return
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		#ifdef __USE_CAIRO__
+			cairo_move_to(Handle, ScaleX(Points(0).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).y) * imgScaleY + imgOffsetY - 0.5)
+			For i As Integer = 1 To Count - 1
+				cairo_line_to(Handle, ScaleX(Points(i).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).y) * imgScaleY + imgOffsetY - 0.5)
+			Next
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle) ' 折线不闭合不填充
+		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+				'Dim pGeometry As ID2D1PathGeometry Ptr
+				'If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+				'	Dim pSink As ID2D1GeometrySink Ptr
+				'	If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+				'		Dim pD2DPoints As D2D1_POINT_2F Ptr
+				'		Dim BeginD2DPoint As D2D1_POINT_2F = Type<D2D1_POINT_2F>(ScaleX(Points(0).X) * imgScaleX + imgOffsetX, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY)
+				'		pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
+				'		pSink->lpVtbl->BeginFigure(pSink, BeginD2DPoint, D2D1_FIGURE_BEGIN_HOLLOW)
+				'		pD2DPoints = CAllocate((Count - 1) * SizeOf(D2D1_POINT_2F))
+				'		For i As Integer = 1 To Count - 1
+				'			pD2DPoints[i - 1] = Type<D2D1_POINT_2F>(ScaleX(Points(i).X) * imgScaleX + imgOffsetX, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY)
+				'		Next
+				'		pSink->lpVtbl->AddLines(pSink, pD2DPoints, Count - 1)
+				'		pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
+				'		pSink->lpVtbl->Close(pSink)
+				'		pSink->lpVtbl->Release(pSink)
+				'		pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+				'		Deallocate(pD2DPoints)
+				'	End If
+				'	pGeometry->lpVtbl->Release(pGeometry)
+				'End If
 				Dim pGeometry As ID2D1PathGeometry Ptr
 				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
 					Dim pSink As ID2D1GeometrySink Ptr
 					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
-						Dim pD2DPoints As D2D1_POINT_2F Ptr
-						Dim BeginD2DPoint As D2D1_POINT_2F = Type<D2D1_POINT_2F>(ScaleX(Points(0).X) * imgScaleX + imgOffsetX, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY)
+						Dim pD2DPoints(0 To Count - 1) As D2D1_POINT_2F
+						'pD2DPoints(0) = Type<D2D1_POINT_2F>(ScaleX(Points(0).X) * imgScaleX + imgOffsetX, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY)
 						pSink->lpVtbl->SetFillMode(pSink, D2D1_FILL_MODE_WINDING)
-						pSink->lpVtbl->BeginFigure(pSink, BeginD2DPoint, D2D1_FIGURE_BEGIN_FILLED)
-						pD2DPoints = CAllocate((Count - 2) * SizeOf(D2D1_POINT_2F))
-						For i As Integer = 1 To Count - 1
-							pD2DPoints[i - 1] = Type<D2D1_POINT_2F>(ScaleX(Points(i).X) * imgScaleX + imgOffsetX, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY)
+						'pSink->lpVtbl->SetSegmentFlags(pSink, D2D1_PATH_SEGMENT_FORCE_UNSTROKED)'该段线段在描边时不会被绘制，但在填充区域时仍会被考虑。这通常用于创建“不可见”的线段来定义填充区域的边界，但描边时不画线。
+						For i As Integer = 0 To Count - 1
+							pD2DPoints(i) = Type<D2D1_POINT_2F>(ScaleX(Points(i).x) * imgScaleX + imgOffsetX, ScaleY(Points(i).y) * imgScaleY + imgOffsetY)
+							'Dim seg As D2D1_LINE_SEGMENT
+							'seg.point = pD2DPoints(i)
+							'pSink->lpVtbl->AddLine(pSink, seg.point)
 						Next
-						pSink->lpVtbl->AddLines(pSink, pD2DPoints, Count)
-						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
+						pSink->lpVtbl->BeginFigure(pSink, pD2DPoints(0), D2D1_FIGURE_BEGIN_HOLLOW)
+						pSink->lpVtbl->AddLines(pSink, @pD2DPoints(1), Count - 1)
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_OPEN)
 						pSink->lpVtbl->Close(pSink)
 						pSink->lpVtbl->Release(pSink)
 						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
-						pRenderTarget->lpVtbl->FillGeometry(pRenderTarget, pGeometry, pBackgroundBrush, NULL)
-						Deallocate(pD2DPoints)
 					End If
 					pGeometry->lpVtbl->Release(pGeometry)
 				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
-				If GdipBrush Then GdipFillPolygon(GdipGraphics, GdipBrush, Cast(GpPointF Ptr, @tGpPoints(0)), Count, FillMode)
-				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
+				GdipDrawLines GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.Polyline Handle, Cast(..Point Ptr, @tPoints(0)), Count
-				.ExtFloodFill Handle, (tPoints(0).X + tPoints(Count \ 2).X) / 2, (tPoints(0).Y + tPoints(Count \ 2).Y) / 2, FFillColor, FillStyle.fsSurface
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
 	Private Sub Canvas.PolylineTo(Points() As Point, Count As Long)
+		If Count < 2 Then Return
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		#ifdef __USE_CAIRO__
+			cairo_move_to(Handle, FMoveToX, FMoveToY)
+			For i As Integer = 0 To Count - 1
+				Dim As Double px = ScaleX(Points(i).x) * imgScaleX + imgOffsetX - 0.5
+				Dim As Double py = ScaleY(Points(i).y) * imgScaleY + imgOffsetY - 0.5
+				cairo_line_to(Handle, px, py)
+			Next
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
+			FMoveToX = ScaleX(Points(Count-1).x) * imgScaleX + imgOffsetX - 0.5
+			FMoveToY = ScaleY(Points(Count - 1).y) * imgScaleY + imgOffsetY - 0.5
+		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim pD2DPoints As D2D1_POINT_2F Ptr
+						pD2DPoints = CAllocate(Count * SizeOf(D2D1_POINT_2F))
+						For i As Integer = 0 To Count - 1
+							pD2DPoints[i] = Type<D2D1_POINT_2F>(ScaleX(Points(i).x)*imgScaleX + imgOffsetX, ScaleY(Points(i).y)*imgScaleY + imgOffsetY)
+						Next
+						pSink->lpVtbl->BeginFigure(pSink, Type<D2D1_POINT_2F>(FMoveToX, FMoveToY), D2D1_FIGURE_BEGIN_HOLLOW)
+						pSink->lpVtbl->AddLines(pSink, pD2DPoints, Count)
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_OPEN)
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+						Deallocate(pD2DPoints)
+					End If
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
+				FMoveToX = ScaleX(Points(Count - 1).x) * imgScaleX + imgOffsetX
+				FMoveToY = ScaleY(Points(Count - 1).y) * imgScaleY + imgOffsetY
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				Dim tGpPoints(Count - 1) As GpPointF
+				' 修复：PolylineTo应闭合，需加入起点(FMoveToX, FMoveToY)
+				Dim tGpPoints(Count) As GpPointF ' 多一个起点
+				tGpPoints(0).X = FMoveToX: tGpPoints(0).Y = FMoveToY
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i+1).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i+1).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
-				If GdipBrush Then GdipFillPolygon GdipGraphics, GdipBrush, Cast(GpPointF Ptr, @tGpPoints(0)), Count, FillMode
-				GdipDrawPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
+				GdipDrawLines GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count + 1
+				FMoveToX = tGpPoints(Count).X: FMoveToY = tGpPoints(Count).Y
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x)*imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y)*imgScaleY + imgOffsetY
 				Next
 				.PolylineTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -1017,21 +1388,58 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.PolyBeizer(Points() As Point, Count As Long)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
-		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+		
+		#ifdef __USE_CAIRO__ 
+			If Count < 4 Then Return
+			cairo_move_to(Handle, ScaleX(Points(0).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).y) * imgScaleY + imgOffsetY - 0.5)
+			Dim i As Integer = 1
+			While i + 2 <= Count - 1
+				cairo_curve_to(Handle, _
+				ScaleX(Points(i).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).y) * imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 1).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 1).y) * imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 2).x) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 2).y) * imgScaleY + imgOffsetY - 0.5)
+				i += 3
+			Wend
+			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_stroke(Handle)
+		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				'TODO
+				Dim pGeometry As ID2D1PathGeometry Ptr
+				If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+					'If pGeometry = 0 Then Print __FUNCTION__ & " Line: " & __LINE__ & ": can not run createPathGeometry1! pD2D1Factory1=" & pD2D1Factory1 : Return
+					Dim pSink As ID2D1GeometrySink Ptr
+					If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+						Dim pBegin As D2D1_POINT_2F = Type<D2D1_POINT_2F>(ScaleX(Points(0).x)*imgScaleX + imgOffsetX, ScaleY(Points(0).y)*imgScaleY + imgOffsetY)
+						pSink->lpVtbl->BeginFigure(pSink, pBegin, D2D1_FIGURE_BEGIN_HOLLOW)
+						Dim i As Integer = 1
+						While i + 2 <= Count - 1
+							Dim bezSeg As D2D1_BEZIER_SEGMENT
+							bezSeg.point1 = Type<D2D1_POINT_2F>(ScaleX(Points(i).x)*imgScaleX + imgOffsetX, ScaleY(Points(i).y)*imgScaleY + imgOffsetY)
+							bezSeg.point2 = Type<D2D1_POINT_2F>(ScaleX(Points(i + 1).x)*imgScaleX + imgOffsetX, ScaleY(Points(i + 1).y)*imgScaleY + imgOffsetY)
+							bezSeg.point3 = Type<D2D1_POINT_2F>(ScaleX(Points(i + 2).x)*imgScaleX + imgOffsetX, ScaleY(Points(i + 2).y)*imgScaleY + imgOffsetY)
+							pSink->lpVtbl->AddBezier(pSink, @bezSeg)
+							i += 3
+						Wend
+						
+						pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_OPEN)
+						pSink->lpVtbl->Close(pSink)
+						pSink->lpVtbl->Release(pSink)
+						pRenderTarget->lpVtbl->DrawGeometry(pRenderTarget, pGeometry, pForegroundBrush, DrawWidth, NULL)
+					End If
+					pGeometry->lpVtbl->Release(pGeometry)
+				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				If GdipBrush Then GdipFillClosedCurve(GdipGraphics, GdipBrush, Cast(GpPointF Ptr, @tGpPoints(0)), Count)
 				GdipDrawBeziers(GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count)
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.PolyBezier Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -1046,17 +1454,17 @@ Namespace My.Sys.Drawing
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				'TODO
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-					Dim tGpPoints(Count - 1) As GpPointF
+				Dim tGpPoints(Count - 1) As GpPointF
 				For i As Integer = 0 To Count - 1
-					tGpPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX
-					tGpPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tGpPoints(i).X = ScaleX(Points(i).x) * imgScaleX + imgOffsetX
+					tGpPoints(i).Y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				'GdipFillPolygon GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 				GdipDrawBeziers GdipGraphics, GdipPen, Cast(GpPointF Ptr, @tGpPoints(0)), Count
 			Else
 				Dim tPoints(Count - 1) As Point
 				For i As Integer = 0 To Count - 1
-					tPoints(i).X = ScaleX(Points(i).X) * imgScaleX + imgOffsetX : tPoints(i).Y = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY
+					tPoints(i).x = ScaleX(Points(i).x) * imgScaleX + imgOffsetX : tPoints(i).y = ScaleY(Points(i).y) * imgScaleY + imgOffsetY
 				Next
 				.PolyBezierTo Handle, Cast(..Point Ptr, @tPoints(0)), Count
 			End If
@@ -1067,17 +1475,33 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.SetPixel(x As Double, y As Double, PixelColor As Integer)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
+		Dim As Single px = ScaleX(x) * imgScaleX + imgOffsetX
+		Dim As Single py = ScaleY(y) * imgScaleY + imgOffsetY
 		#ifdef __USE_CAIRO__
-			cairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0)
-			.cairo_rectangle(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, 1, 1)
+			' 修复：RGB顺序和数值(0-1)
+			cairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0)
+			cairo_rectangle(Handle, px, py, 1, 1)
 			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				
+				' D2D使用1x1矩形填充模拟
+				Dim As Double iRed = GetRed(PixelColor) / 255.0, iGreen = GetGreen(PixelColor) / 255.0, iBlue = GetBlue(PixelColor) / 255.0
+				Dim As ID2D1SolidColorBrush Ptr pPixelBrush = 0
+				pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pPixelBrush)
+				If pPixelBrush Then
+					pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(px, py, px + 1, py + 1), pPixelBrush)
+					pPixelBrush->lpVtbl->Release(pPixelBrush)
+				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				
+				' GDI+ 同样用1x1矩形模拟
+				Dim As GpBrush Ptr pPixelBrush = 0
+				GdipCreateSolidFill(RGBtoARGB(PixelColor, FillOpacity), Cast(GpSolidFill Ptr Ptr, @pPixelBrush))
+				If pPixelBrush Then
+					GdipFillRectangle(GdipGraphics, pPixelBrush, px, py, 1, 1)
+					GdipDeleteBrush(pPixelBrush)
+				End If
 			Else
-				.SetPixel Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, PixelColor
+				.SetPixel Handle, px, py, PixelColor
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
@@ -1113,7 +1537,6 @@ Namespace My.Sys.Drawing
 				If FUseDirect2D AndAlso g_Direct2DEnabled Then
 					If ParentControl <> 0 AndAlso ParentControl->Handle <> 0 AndAlso (ParentControl->Width <> PrevWidth OrElse ParentControl->Height <> PrevHeight) Then
 						ReleaseDirect2D
-						
 						Var hr = pD2D1Device->lpVtbl->CreateDeviceContext(pD2D1Device, D2D1_DEVICE_CONTEXT_OPTIONS_NONE, @pRenderTarget)
 						If hr = 0 Then
 							pRenderTarget->lpVtbl->SetUnitMode(pRenderTarget, D2D1_UNIT_MODE_PIXELS)
@@ -1247,7 +1670,7 @@ Namespace My.Sys.Drawing
 				pp.pDirtyRects = 0
 				pp.pScrollRect = 0
 				pp.pScrollOffset = 0
-				pSwapChain->lpVtbl->Present1(pSwapChain, 1, 0, @pp)
+				pSwapChain->lpVtbl->Present(pSwapChain, 1, 0)
 			ElseIf UsingGdip Then
 				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
 			End If
@@ -1310,7 +1733,7 @@ Namespace My.Sys.Drawing
 				CreateTextLayout(pDWriteFactory, @s, Len(s), pFormat, FLT_MAX, FLT_MAX, @pLayout)
 				If pLayout <> 0 Then
 					pLayout->lpVtbl->GetMetrics(pLayout, @Metrics)
-					Dim sz As ..Size
+					Dim sz As ..SIZE
 					sz.cx = Metrics.widthIncludingTrailingWhitespace
 					sz.cy = Metrics.height + 1
 					If BK <> -1 Then
@@ -1461,23 +1884,40 @@ Namespace My.Sys.Drawing
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim bmp As ID2D1Bitmap Ptr
 				If CreateD2DBitmapFromHBITMAP(pRenderTarget, Image, bmp) = 0 Then
-					
 					Dim As BITMAP Bitmap01
 					GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
-					
 					Dim destRect As D2D1_RECT_F
 					destRect.left   = x
 					destRect.top    = y
 					destRect.right  = x + IIf(nWidth = -1, Bitmap01.bmWidth, nWidth) 'nWidth
 					destRect.bottom = y + IIf(nHeight = -1, Bitmap01.bmHeight, nHeight) 'nHeight
-					
 					pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, CSng(iSourceAlpha) / 255.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
 					bmp->lpVtbl->Release(bmp)
 				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
+				Dim As BITMAP Bitmap01
+				GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
 				If nWidth = -1 Then nWidth = ScaleX(Width)
 				If nHeight = -1 Then nHeight = ScaleY(Height)
-				GdipDrawImageRect(GdipGraphics, Image, x, y, nWidth, nHeight)
+				' 使用 GDI+ ImageAttributes 实现全局 Alpha 控制
+				Dim As GpImageAttributes Ptr imgAttr = 0
+				GdipCreateImageAttributes(@imgAttr)
+				If imgAttr <> 0 Then
+					Dim cm As ColorMatrix
+					memset(@cm, 0, SizeOf(ColorMatrix))
+					With cm
+						.m(0,0) = 1.0   ' Red
+						.m(1, 1) = 1.0   ' Green
+						.m(2, 2) = 1.0   ' Blue
+						.m(3, 3) = CSng(iSourceAlpha) / 255.0 ' Alpha
+						.m(4, 4) = 1.0   ' W
+					End With
+					GdipSetImageAttributesColorMatrix(imgAttr, ColorAdjustTypeDefault, True, @cm, 0, ColorAdjustTypeDefault)
+					GdipDrawImageRectRect(GdipGraphics, Image, x, y, nWidth, nHeight, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, UnitPixel, imgAttr, 0, 0)
+					GdipDisposeImageAttributes(imgAttr)
+				Else
+					GdipDrawImageRect(GdipGraphics, Image, x, y, nWidth, nHeight)
+				End If
 			Else
 				Dim As HDC hMemDC = CreateCompatibleDC(Handle) ' Create Dc
 				SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
@@ -1494,7 +1934,6 @@ Namespace My.Sys.Drawing
 				SetStretchBltMode(Handle, HALFTONE)
 				AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
 				DeleteDC(hMemDC) ' Delete Dc
-			
 			End If
 		#elseif defined(__USE_GTK__)
 			Dim As cairo_surface_t Ptr image_surface
@@ -1533,12 +1972,28 @@ Namespace My.Sys.Drawing
 						cairo_row[x * 4 + 3] = a
 					Next
 				Next
-				
 				cairo_surface_mark_dirty(image_surface)
 			#endif
-			cairo_set_source_surface(Handle, image_surface, x, y)
-			cairo_paint(Handle)
+			' 修正 Cairo 缩放和 Alpha 透明度
+			Dim As Double draw_width = nWidth
+			Dim As Double draw_height = nHeight
+			If draw_width = -1 Then draw_width = cairo_image_surface_get_width(image_surface)
+			If draw_height = -1 Then draw_height = cairo_image_surface_get_height(image_surface)
+			
+			Dim As Double img_w = cairo_image_surface_get_width(image_surface)
+			Dim As Double img_h = cairo_image_surface_get_height(image_surface)
+			
+			cairo_save(Handle)
+			cairo_translate(Handle, x, y)
+			If draw_width <> img_w OrElse draw_height <> img_h Then
+				cairo_scale(Handle, draw_width / img_w, draw_height / img_h)
+			End If
+			cairo_set_source_surface(Handle, image_surface, 0, 0)
+			cairo_paint_with_alpha(Handle, CSng(iSourceAlpha) / 255.0)
+			cairo_restore(Handle)
+			
 			cairo_surface_destroy(image_surface)
+			
 		#else
 			Print "The function is not ready in this OS."  & " DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)"
 		#endif
@@ -1550,9 +2005,23 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				
+				Dim bmp As ID2D1Bitmap Ptr
+				If CreateD2DBitmapFromHBITMAP(pRenderTarget, Image, bmp) = 0 Then
+					Dim As BITMAP Bitmap01
+					GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
+					Dim destRect As D2D1_RECT_F
+					destRect.left   = x
+					destRect.top    = y
+					destRect.right  = x + Bitmap01.bmWidth
+					destRect.bottom = y + Bitmap01.bmHeight
+					' 透明度 1.0，无全局 Alpha
+					pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
+					bmp->lpVtbl->Release(bmp)
+				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				GdipDrawImageRect(GdipGraphics, Image, x, y, ScaleX(Width), ScaleY(Height))
+				'GdipDrawImageRect(GdipGraphics, Image, x, y, ScaleX(Width), ScaleY(Height))
+				' 修正 GDI+ 原本拉伸到画布大小的问题，现绘制原图大小
+				GdipDrawImage(GdipGraphics, Image, x, y)
 			Else
 				Dim As HDC MemDC
 				Dim As HBITMAP OldBitmap
@@ -1564,6 +2033,37 @@ Namespace My.Sys.Drawing
 				SelectObject(MemDC, OldBitmap)
 				DeleteDC(MemDC)
 			End If
+		#elseif defined(__USE_GTK__)
+			' 补充 Cairo 后端 Draw 实现
+			Dim As cairo_surface_t Ptr image_surface
+			#ifdef __USE_GTK3__
+				image_surface = gdk_cairo_surface_create_from_pixbuf(Image, 1, NULL)
+			#else
+				Dim As Integer image_width = gdk_pixbuf_get_width(Image)
+				Dim As Integer image_height = gdk_pixbuf_get_height(Image)
+				Dim As Integer stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, image_width)
+				image_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, image_width, image_height)
+				If cairo_surface_status(image_surface) = CAIRO_STATUS_SUCCESS Then
+					Dim As UByte Ptr cairo_data = cairo_image_surface_get_data(image_surface)
+					Dim As Const UByte Ptr pixbuf_data = gdk_pixbuf_get_pixels(Image)
+					Dim As Integer pixbuf_rowstride = gdk_pixbuf_get_rowstride(Image)
+					Dim As Integer n_channels = gdk_pixbuf_get_n_channels(Image)
+					For yy As Integer = 0 To image_height - 1
+						Dim As UByte Ptr cairo_row = cairo_data + yy * stride
+						Dim As Const UByte Ptr pixbuf_row = pixbuf_data + yy * pixbuf_rowstride
+						For xx As Integer = 0 To image_width - 1
+							cairo_row[xx * 4] = pixbuf_row[xx * n_channels + 2]
+							cairo_row[xx * 4 + 1] = pixbuf_row[xx * n_channels + 1]
+							cairo_row[xx * 4 2] = pixbuf_row[xx * n_channels]
+							cairo_row[xx * 4 + 3] = IIf(n_channels = 4, pixbuf_row[xx * n_channels + 3], 255)
+						Next
+					Next
+					cairo_surface_mark_dirty(image_surface)
+				End If
+			#endif
+			cairo_set_source_surface(Handle, image_surface, x, y)
+			cairo_paint(Handle)
+			cairo_surface_destroy(image_surface)
 		#else
 			Print "The function is not ready in this OS."  & " Canvas.Draw(x As Double, y As Double, Image As Any Ptr)"
 		#endif
@@ -1592,100 +2092,124 @@ Namespace My.Sys.Drawing
 			Dim As Any Ptr Handle_
 			If Not HandleSetted Then Handle_ = GetDevice
 			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-				Dim As BITMAP     bm
-				Dim As COLORREF   cColor
-				Dim As HBITMAP    bmAndBack, bmAndObject, bmAndMem, bmSave
-				Dim As HBITMAP    bmBackOld, bmObjectOld, bmMemOld, bmSaveOld
-				Dim As HDC        hdcMem, hdcBack, hdcObject, hdcTemp, hdcSave
-				Dim As ..Point      ptSize
-				
-				hdcTemp = CreateCompatibleDC(Handle)
-				SelectObject(hdcTemp, Cast(HBITMAP, Image))   ' Выбираем битмап
-				
-				GetObject(Cast(HBITMAP, Image), SizeOf(BITMAP), Cast(LPSTR, @bm))
-				ptSize.X = bm.bmWidth            ' Получаем ширину битмапа
-				ptSize.Y = bm.bmHeight           ' Получаем высоту битмапа
-				DPtoLP(hdcTemp, @ptSize, 1)      ' Конвертируем из координат
-				' устройства в логические
-				' точки
-				
-				' Создаём несколько DC для хранения временных данных.
-				hdcBack   = CreateCompatibleDC(Handle)
-				hdcObject = CreateCompatibleDC(Handle)
-				hdcMem    = CreateCompatibleDC(Handle)
-				hdcSave   = CreateCompatibleDC(Handle)
-				
-				' Создаём битмап для каждого DC.
-				
-				' Монохромный DC
-				bmAndBack   = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
-				
-				' Монохромный DC
-				bmAndObject = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
-				
-				bmAndMem    = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
-				bmSave      = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
-				
-				' В каждом DC должен быть выбран объект битмапа для хранения
-				' пикселей.
-				bmBackOld   = SelectObject(hdcBack, bmAndBack)
-				bmObjectOld = SelectObject(hdcObject, bmAndObject)
-				bmMemOld    = SelectObject(hdcMem, bmAndMem)
-				bmSaveOld   = SelectObject(hdcSave, bmSave)
-				
-				' Устанавливаем режим маппинга.
-				SetMapMode(hdcTemp, GetMapMode(Handle))
-				
-				' Сохраняем битмап, переданный в параметре функции, так как
-				' он будет изменён.
-				BitBlt(hdcSave, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
-				
-				' Устанавливаем фоновый цвет (в исходном DC) тех частей,
-				' которые будут прозрачными.
-				cColor = SetBkColor(hdcTemp, cTransparentColor)
-				
-				' Создаём маску для битмапа путём вызова BitBlt из исходного
-				' битмапа на монохромный битмап.
-				BitBlt(hdcObject, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
-				
-				' Устанавливаем фоновый цвет исходного DC обратно в
-				' оригинальный цвет.
-				SetBkColor(hdcTemp, cColor)
-				
-				' Создаём инверсию маски.
-				BitBlt(hdcBack, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, NOTSRCCOPY)
-				
-				' Копируем фон главного DC в конечный.
-				BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, Handle, x, y, SRCCOPY)
-				
-				' Накладываем маску на те места, где будет помещён битмап.
-				BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, SRCAND)
-				
-				' Накладываем маску на прозрачные пиксели битмапа.
-				BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcBack, 0, 0, SRCAND)
-				
-				' Xor-им битмап с фоном на конечном DC.
-				BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCPAINT)
-				
-				' Копируем на экран.
-				BitBlt(Handle, x, y, ptSize.X, ptSize.Y, hdcMem, 0, 0, SRCCOPY)
-				
-				' Помещаем оригинальный битмап обратно в битмап, переданный в
-				' параметре функции.
-				BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcSave, 0, 0, SRCCOPY)
-				
-				' Удаляем битмапы из памяти.
-				DeleteObject(SelectObject(hdcBack, bmBackOld))
-				DeleteObject(SelectObject(hdcObject, bmObjectOld))
-				DeleteObject(SelectObject(hdcMem, bmMemOld))
-				DeleteObject(SelectObject(hdcSave, bmSaveOld))
-				
-				' Удаляем DC из памяти.
-				DeleteDC(hdcMem)
-				DeleteDC(hdcBack)
-				DeleteDC(hdcObject)
-				DeleteDC(hdcSave)
-				DeleteDC(hdcTemp)
+				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
+					' Direct2D 通常基于 Alpha 通道进行透明绘制。颜色键透明需要提前转换像素。
+					' 此处降级为带 Alpha 通道的绘制，类似于 Draw 函数
+					Dim bmp As ID2D1Bitmap Ptr
+					If CreateD2DBitmapFromHBITMAP(pRenderTarget, Image, bmp) = 0 Then
+						Dim As BITMAP Bitmap01
+						GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
+						Dim destRect As D2D1_RECT_F
+						destRect.left   = x
+						destRect.top    = y
+						destRect.right  = x + Bitmap01.bmWidth
+						destRect.bottom = y + Bitmap01.bmHeight
+						pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
+						bmp->lpVtbl->Release(bmp)
+					End If
+				ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
+					' GDI+ 原生支持 Alpha 通道。若需严格颜色键透明，需借助 ImageAttributes ColorKeys，此处采用原生 Alpha 绘制降级
+					GdipDrawImage(GdipGraphics, Image, x, y)
+				Else
+					
+					Dim As BITMAP     bm
+					Dim As COLORREF   cColor
+					Dim As HBITMAP    bmAndBack, bmAndObject, bmAndMem, bmSave
+					Dim As HBITMAP    bmBackOld, bmObjectOld, bmMemOld, bmSaveOld
+					Dim As HDC        hdcMem, hdcBack, hdcObject, hdcTemp, hdcSave
+					Dim As ..Point      ptSize
+					
+					hdcTemp = CreateCompatibleDC(Handle)
+					SelectObject(hdcTemp, Cast(HBITMAP, Image))   ' Выбираем битмап
+					
+					GetObject(Cast(HBITMAP, Image), SizeOf(BITMAP), Cast(LPSTR, @bm))
+					ptSize.X = bm.bmWidth            ' Получаем ширину битмапа
+					ptSize.Y = bm.bmHeight           ' Получаем высоту битмапа
+					DPtoLP(hdcTemp, @ptSize, 1)      ' Конвертируем из координат
+					' устройства в логические
+					' точки
+					
+					' Создаём несколько DC для хранения временных данных.
+					hdcBack   = CreateCompatibleDC(Handle)
+					hdcObject = CreateCompatibleDC(Handle)
+					hdcMem    = CreateCompatibleDC(Handle)
+					hdcSave   = CreateCompatibleDC(Handle)
+					
+					' Создаём битмап для каждого DC.
+					
+					' Монохромный DC
+					bmAndBack   = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
+					
+					' Монохромный DC
+					bmAndObject = CreateBitmap(ptSize.X, ptSize.Y, 1, 1, NULL)
+					
+					bmAndMem    = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
+					bmSave      = CreateCompatibleBitmap(Handle, ptSize.X, ptSize.Y)
+					
+					' В каждом DC должен быть выбран объект битмапа для хранения
+					' пикселей.
+					bmBackOld   = SelectObject(hdcBack, bmAndBack)
+					bmObjectOld = SelectObject(hdcObject, bmAndObject)
+					bmMemOld    = SelectObject(hdcMem, bmAndMem)
+					bmSaveOld   = SelectObject(hdcSave, bmSave)
+					
+					' Устанавливаем режим маппинга.
+					SetMapMode(hdcTemp, GetMapMode(Handle))
+					
+					' Сохраняем битмап, переданный в параметре функции, так как
+					' он будет изменён.
+					BitBlt(hdcSave, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
+					
+					' Устанавливаем фоновый цвет (в исходном DC) тех частей,
+					' которые будут прозрачными.
+					cColor = SetBkColor(hdcTemp, cTransparentColor)
+					
+					' Создаём маску для битмапа путём вызова BitBlt из исходного
+					' битмапа на монохромный битмап.
+					BitBlt(hdcObject, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCCOPY)
+					
+					' Устанавливаем фоновый цвет исходного DC обратно в
+					' оригинальный цвет.
+					SetBkColor(hdcTemp, cColor)
+					
+					' Создаём инверсию маски.
+					BitBlt(hdcBack, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, NOTSRCCOPY)
+					
+					' Копируем фон главного DC в конечный.
+					BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, Handle, x, y, SRCCOPY)
+					
+					' Накладываем маску на те места, где будет помещён битмап.
+					BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcObject, 0, 0, SRCAND)
+					
+					' Накладываем маску на прозрачные пиксели битмапа.
+					BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcBack, 0, 0, SRCAND)
+					
+					' Xor-им битмап с фоном на конечном DC.
+					BitBlt(hdcMem, 0, 0, ptSize.X, ptSize.Y, hdcTemp, 0, 0, SRCPAINT)
+					
+					' Копируем на экран.
+					BitBlt(Handle, x, y, ptSize.X, ptSize.Y, hdcMem, 0, 0, SRCCOPY)
+					
+					' Помещаем оригинальный битмап обратно в битмап, переданный в
+					' параметре функции.
+					BitBlt(hdcTemp, 0, 0, ptSize.X, ptSize.Y, hdcSave, 0, 0, SRCCOPY)
+					
+					' Удаляем битмапы из памяти.
+					DeleteObject(SelectObject(hdcBack, bmBackOld))
+					DeleteObject(SelectObject(hdcObject, bmObjectOld))
+					DeleteObject(SelectObject(hdcMem, bmMemOld))
+					DeleteObject(SelectObject(hdcSave, bmSaveOld))
+					
+					' Удаляем DC из памяти.
+					DeleteDC(hdcMem)
+					DeleteDC(hdcBack)
+					DeleteDC(hdcObject)
+					DeleteDC(hdcSave)
+					DeleteDC(hdcTemp)
+				End If
+			#elseif defined(__USE_GTK__)
+				' Cairo 基于 Alpha 通道绘制，不支持动态高性能颜色键剔除，降级为 Draw
+				This.Draw(x, y, Image)
 			#else
 				Print "The function is not ready in this OS."  & " DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)"
 			#endif
@@ -1703,24 +2227,79 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			Dim As HDC MemDC
-			Dim As HBITMAP OldBitmap
-			Dim As BITMAP Bitmap01
-			MemDC = CreateCompatibleDC(Handle)
-			OldBitmap = SelectObject(MemDC, Cast(HBITMAP, Image))
-			GetObject(Cast(HBITMAP, Image), SizeOf(Bitmap01), @Bitmap01)
-			SetStretchBltMode(Handle, HALFTONE)
-			'SetStretchBltMode(Handle, COLORONCOLOR)
-			StretchBlt(Handle, ScaleX(x), ScaleY(y), ScaleX(nWidth), ScaleX(nHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
-			SelectObject(MemDC, OldBitmap)
-			DeleteDC(MemDC)
+			If FUseDirect2D AndAlso pRenderTarget <> 0  Then
+				Dim bmp As ID2D1Bitmap Ptr
+				If CreateD2DBitmapFromHBITMAP(pRenderTarget, Image, bmp) = 0 Then
+					Dim destRect As D2D1_RECT_F
+					destRect.left   = x
+					destRect.top    = y
+					destRect.right  = x + nWidth
+					destRect.bottom = y + nHeight
+					pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
+					bmp->lpVtbl->Release(bmp)
+				End If
+			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
+				Dim As BITMAP Bitmap01
+				GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
+				GdipDrawImageRect(GdipGraphics, Image, x, y, nWidth, nHeight)
+			Else
+				Dim As HDC MemDC
+				Dim As HBITMAP OldBitmap
+				Dim As BITMAP Bitmap01
+				MemDC = CreateCompatibleDC(Handle)
+				OldBitmap = SelectObject(MemDC, Cast(HBITMAP, Image))
+				GetObject(Cast(HBITMAP, Image), SizeOf(Bitmap01), @Bitmap01)
+				SetStretchBltMode(Handle, HALFTONE)
+				'SetStretchBltMode(Handle, COLORONCOLOR)
+				StretchBlt(Handle, ScaleX(x), ScaleY(y), ScaleX(nWidth), ScaleX(nHeight), MemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
+				SelectObject(MemDC, OldBitmap)
+				DeleteDC(MemDC)
+			End If
+		#elseif defined(__USE_GTK__)
+			' 补充 Cairo DrawStretch 实现
+			Dim As cairo_surface_t Ptr image_surface
+			#ifdef __USE_GTK3__
+				image_surface = gdk_cairo_surface_create_from_pixbuf(Image, 1, NULL)
+			#else
+				Dim As Integer image_width = gdk_pixbuf_get_width(Image)
+				Dim As Integer image_height = gdk_pixbuf_get_height(Image)
+				Dim As Integer stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, image_width)
+				image_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, image_width, image_height)
+				If cairo_surface_status(image_surface) = CAIRO_STATUS_SUCCESS Then
+					Dim As UByte Ptr cairo_data = cairo_image_surface_get_data(image_surface)
+					Dim As Const UByte Ptr pixbuf_data = gdk_pixbuf_get_pixels(Image)
+					Dim As Integer pixbuf_rowstride = gdk_pixbuf_get_rowstride(Image)
+					Dim As Integer n_channels = gdk_pixbuf_get_n_channels(Image)
+					For yy As Integer = 0 To image_height - 1                        Dim As UByte Ptr cairo_row = cairo_data + yy * stride
+						Dim As Const UByte Ptr pixbuf_row = pixbuf_data + yy * pixbuf_rowstride
+						For xx Integer = 0 To image_width - 1
+							cairo_row[xx * 4] = pixbuf_row[xx * n_channels + 2]
+							cairo_row[xx * 4 + 1] = pixbuf_row[xx * n_channels + 1]
+							cairo_row[xx * 4 + 2] = pixbuf_row[xx * n_channels]
+							cairo_row[xx * 4 + 3] = IIf(n_channels = 4, pixbuf_row[xx * n_channels + 3], 255)
+						Next
+					Next
+					cairo_surface_mark_dirty(image_surface)
+				End If
+			#endif
+			Dim As Double img_w = cairo_image_surface_get_width(image_surface)
+			Dim As Double img_h = cairo_image_surface_get_height(image_surface)
+			If img_w > 0 AndAlso img_h > 0 Then
+				cairo_save(Handle)
+				cairo_translate(Handle, x, y)
+				cairo_scale(Handle, nWidth / img_w, nHeight / img_h)
+				cairo_set_source_surface(Handle, image_surface, 0, 0)
+				cairo_paint(Handle)
+				cairo_restore(Handle)
+			End If
+			cairo_surface_destroy(image_surface)
 		#else
 			Print "The function is not ready in this OS."  & " Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
+	Private Sub Canvas.CopyRect(Dest As RECT, Canvas As Canvas, Source As RECT)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		If Not HandleSetted Then ReleaseDevice Handle_
@@ -1738,64 +2317,64 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.FillRect(R As Rect, FillColorBK As Integer = -1)
+	Private Sub Canvas.FillRect(R As RECT, FillColorBK As Integer = -1)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_CAIRO__
 			cairo_set_source_rgb(Handle, GetRed(FillColorBK), GetBlue(FillColorBK), GetGreen(FillColorBK))
-			.cairo_rectangle(Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.Right - R.Left) - 0.5, ScaleY(R.Bottom - R.Top) - 0.5)
+			cairo_rectangle(Handle, ScaleX(R.left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5)
 			cairo_fill_preserve(Handle)
 		#elseif defined(__USE_WINAPI__)
 			Static As HBRUSH B
 			If B Then DeleteObject B
-			R.Left = ScaleX(R.Left) * imgScaleX + imgOffsetX
-			R.Top = ScaleY(R.Top) * imgScaleY + imgOffsetY
-			R.Right = ScaleX(R.Right) * imgScaleX + imgOffsetX
-			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
+			R.left = ScaleX(R.left) * imgScaleX + imgOffsetX
+			R.top = ScaleY(R.top) * imgScaleY + imgOffsetY
+			R.right = ScaleX(R.right) * imgScaleX + imgOffsetX
+			R.bottom = ScaleY(R.bottom) * imgScaleY + imgOffsetY
 			If FillColorBK <> -1 Then
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-					'TODO
+					If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(R.left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5), pBackgroundBrush)
 				ElseIf Not UsingGdip Then
 					B = CreateSolidBrush(FillColorBK)
-					.FillRect Handle, Cast(..Rect Ptr, @R), B
+					.FillRect Handle, Cast(..RECT Ptr, @R), B
 				Else
-					GdipFillRectangle(GdipGraphics, GdipBrush, R.Left, R.Top, R.Right, R.Bottom)
+					GdipFillRectangle(GdipGraphics, GdipBrush, R.left, R.top, R.right, R.bottom)
 				End If
 			Else
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-					'TODO
+					If pBackgroundBrush <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(R.left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.right - R.left) - 0.5, ScaleY(R.bottom - R.top) - 0.5), pBackgroundBrush)
 				ElseIf Not UsingGdip Then
 					.FillRect Handle, Cast(..Rect Ptr, @R), Brush.Handle
 				Else
-					GdipFillRectangle(GdipGraphics, GdipBrush, R.Left, R.Top, R.Right, R.Bottom)
+					GdipFillRectangle(GdipGraphics, GdipBrush, R.left, R.top, R.right, R.bottom)
 				End If
 			End If
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.DrawFocusRect(R As Rect)
+	Private Sub Canvas.DrawFocusRect(R As RECT)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
-			R.Left = ScaleX(R.Left) * imgScaleX + imgOffsetX
-			R.Top = ScaleY(R.Top) * imgScaleY + imgOffsetY
-			R.Right = ScaleX(R.Right) * imgScaleX + imgOffsetX
-			R.Bottom = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
-			.DrawFocusRect Handle, Cast(..Rect Ptr, @R)
+			R.left = ScaleX(R.left) * imgScaleX + imgOffsetX
+			R.top = ScaleY(R.top) * imgScaleY + imgOffsetY
+			R.right = ScaleX(R.right) * imgScaleX + imgOffsetX
+			R.bottom = ScaleY(R.bottom) * imgScaleY + imgOffsetY
+			.DrawFocusRect Handle, Cast(..RECT Ptr, @R)
 		#else
 			Print "The function is not ready in this OS."  & " DrawFocusRect(R As Rect)"
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Function Canvas.TextWidth(ByRef FText As WString) As Integer
+	Private Function Canvas.TextWidth(ByRef sText As WString) As Integer
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
-			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
+			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -1804,22 +2383,27 @@ Namespace My.Sys.Drawing
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			Function = UnScaleX(extend.width)
-		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_CAIRO__)
+		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
-		#elseif defined(__USE_WINAPI__)
+		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			Dim Sz As ..Size
-			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
+			GetTextExtentPoint32(Handle, @sText, Len(sText), @Sz)
 			Function = UnScaleX(Sz.cx)
+		#elseif defined(__USE_CAIRO__)
+			Dim As cairo_text_extents_t extents
+			cairo_text_extents(Handle, StrPtr(sText), @extents)
+			Return extents.width
+			
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Function
 	
-	Private Function Canvas.TextHeight(ByRef FText As WString) As Integer
+	Private Function Canvas.TextHeight(ByRef sText As WString) As Integer
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
-			pango_layout_set_text(layout, ToUtf8(FText), Len(ToUtf8(FText)))
+			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -1828,12 +2412,16 @@ Namespace My.Sys.Drawing
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			Function = UnScaleY(extend.height)
-		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_CAIRO__)
+		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
 			Function = 0
-		#elseif defined(__USE_WINAPI__)
-			Dim Sz As ..Size
-			GetTextExtentPoint32(Handle, @FText, Len(FText), @Sz)
+		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
+			Dim Sz As ..SIZE
+			GetTextExtentPoint32(Handle, @sText, Len(sText), @Sz)
 			Function = UnScaleY(Sz.cy)
+		#elseif defined(__USE_CAIRO__)
+			Dim As cairo_text_extents_t extents
+			cairo_text_extents(Handle, StrPtr(sText), @extents)
+			Return extents.height
 		#endif
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Function
@@ -1922,8 +2510,9 @@ Namespace My.Sys.Drawing
 	End Constructor
 	
 	Private Destructor Canvas
-		#ifdef __USE_CAIRO__
+		#ifdef __USE_CAIRO__ 
 			If Handle Then ReleaseDevice
+			'If cairoSurface <> 0 Then cairo_surface_destroy(cairoSurface)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then ReleaseDevice
 			' // Shutdown Gdiplus
@@ -1935,4 +2524,3 @@ Namespace My.Sys.Drawing
 		#endif
 	End Destructor
 End Namespace
-

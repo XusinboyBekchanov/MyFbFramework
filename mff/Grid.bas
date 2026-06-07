@@ -341,7 +341,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor GridRow
 		For i As Integer = 0 To FCells.Count - 1
-			If FCells.Object(i) <> 0 Then _Delete(Cast(GridCell Ptr, FCells.Object(i)))
+			If FCells.Object(i) <> 0 Then Delete(Cast(GridCell Ptr, FCells.Object(i)))
 		Next
 		FCells.Clear
 		If FHint Then _Deallocate( FHint)
@@ -563,102 +563,328 @@ Namespace My.Sys.Forms
 			Return 0
 		End Function
 	#endif
+	Private Function GridRows.CompareStrings(ByRef s1 As WString, ByRef s2 As WString, ByVal bMatchCase As Boolean = True, ByVal bNaturalSort As Boolean = False, ByVal iDirection As Long = 1) As Integer
+		Dim As Integer iLen1 = Len(s1)
+		Dim As Integer iLen2 = Len(s2)
+		Dim As Integer i1 = 0, i2 = 0
+		Dim As Long c1, c2
+		
+		While i1 < iLen1 AndAlso i2 < iLen2
+			c1 = s1[i1]
+			c2 = s2[i2]
+			Dim isNum1 As Boolean = (c1 >= 48 AndAlso c1 <= 57) OrElse _
+			((c1 = 43 OrElse c1 = 45) AndAlso (i1 + 1 < iLen1) AndAlso (s1[i1 + 1] >= 48 AndAlso s1[i1 + 1] <= 57))
+			Dim isNum2 As Boolean = (c2 >= 48 AndAlso c2 <= 57) OrElse _
+			((c2 = 43 OrElse c2 = 45) AndAlso (i2 + 1 < iLen2) AndAlso (s2[i2 + 1] >= 48 AndAlso s2[i2 + 1] <= 57))
+			If bNaturalSort AndAlso isNum1 AndAlso isNum2 Then
+				Dim sign1 As Double = 1.0
+				If s1[i1] = 43 Then
+					i1 += 1 '+'
+				ElseIf s1[i1] = 45 Then   '-
+					sign1 = -1.0
+					i1 += 1
+				End If
+				Dim num1_int As LongInt = 0
+				While i1 < iLen1 AndAlso s1[i1] >= 48 AndAlso s1[i1] <= 57
+					num1_int = num1_int * 10 + (s1[i1] - 48)
+					i1 += 1
+				Wend
+				
+				Dim num1_frac As Double = 0.0
+				If i1 < iLen1 AndAlso s1[i1] = 46 Then ' "."  Decimal part
+					i1 += 1
+					Dim divisor As Double = 10.0
+					While i1 < iLen1 AndAlso s1[i1] >= 48 AndAlso s1[i1] <= 57
+						num1_frac = num1_frac + (s1[i1] - 48) / divisor
+						divisor *= 10.0
+						i1 += 1
+					Wend
+				End If
+				Dim val1 As Double = sign1 * (num1_int + num1_frac)
+				
+				Dim sign2 As Double = 1.0
+				If s2[i2] = 43 Then
+					i2 += 1
+				ElseIf s2[i2] = 45 Then
+					sign2 = -1.0
+					i2 += 1
+				End If
+				
+				Dim num2_int As LongInt = 0
+				While i2 < iLen2 AndAlso s2[i2] >= 48 AndAlso s2[i2] <= 57
+					num2_int = num2_int * 10 + (s2[i2] - 48)
+					i2 += 1
+				Wend
+				
+				Dim num2_frac As Double = 0.0
+				If i2 < iLen2 AndAlso s2[i2] = 46 Then ' "."  Decimal part
+					i2 += 1
+					Dim divisor As Double = 10.0
+					While i2 < iLen2 AndAlso s2[i2] >= 48 AndAlso s2[i2] <= 57
+						num2_frac = num2_frac + (s2[i2] - 48) / divisor
+						divisor *= 10.0
+						i2 += 1
+					Wend
+				End If
+				Dim val2 As Double = sign2 * (num2_int + num2_frac)
+				If val1 < val2 Then Return -1 * iDirection
+				If val1 > val2 Then Return 1 * iDirection
+				Continue While
+			End If
+			
+			If Not bMatchCase Then
+				If c1 >= 65 AndAlso c1 <= 90 Then c1 += 32 ' A-Z -> a-z
+				If c2 >= 65 AndAlso c2 <= 90 Then c2 += 32
+			End If
+			If c1 < c2 Then Return -1 * iDirection
+			If c1 > c2 Then Return 1 * iDirection
+			
+			i1 += 1
+			i2 += 1
+		Wend
+		If iLen1 < iLen2 Then Return -1 * iDirection
+		If iLen1 > iLen2 Then Return 1 * iDirection
+		Return 0
+		
+	End Function
 	
-	Sub GridRows.Sort(ColumnIndex As Integer = 0, Direction As SortStyle = SortStyle.ssSortAscending, MatchCase As Boolean = False, iLeft As Integer = 0, iRight As Integer = 0)
-		If Cast(Grid Ptr, Parent)->OwnerData Then Exit Sub
-		Dim bStarted As Boolean
-		Cast(Grid Ptr, Parent)->SortIndex = ColumnIndex
-		Cast(Grid Ptr, Parent)->SortOrder = Direction
-		If iLeft = 0 AndAlso iRight = 0 Then
-			#ifdef __USE_WINAPI__
-				bStarted = True
-				'BUG: ListView_GetHeader() has a "hwnd" macro parameter, but also wants to use the HWND type in the macro body.
-				'Dim As HWND Header = ListView_GetHeader(Parent->Handle)
-				Dim As HWND Header = Cast(HWND, SendMessageW(Parent->Handle, LVM_GETHEADER, 0, 0))
-				Dim As HDITEM hd
-				Var newflag = IIf(Direction = SortStyle.ssSortAscending, HDF_SORTUP, HDF_SORTDOWN)
-				hd.mask = HDI_FORMAT
-				For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
-					Header_GetItem(Header, ColumnIndex, @hd)
-					If i = ColumnIndex Then
-						If (hd.fmt And newflag) <> newflag Then
-							hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
-							hd.fmt = hd.fmt Or newflag
-							Header_SetItem(Header, ColumnIndex, @hd)
-						End If
-					Else
+	Sub GridRows.SortArray(iDataPtr() As WString Ptr, ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
+		Dim pGrid As Grid Ptr = Cast(Grid Ptr, Parent)
+		If pGrid = 0 Then Return
+		Dim As Long iDataCount = UBound(iDataPtr, 1) + 1
+		If iDataCount <= 1 Then
+			Print Date & " " & Time & " " & Chr(9) & " " & __FUNCTION__ & " Line：" & __LINE__ & Chr(9) & "No data in the control!"
+			Exit Sub
+		End If
+		#ifdef __USE_WINAPI__
+			Dim As HWND Header = Cast(HWND, SendMessageW(Parent->Handle, LVM_GETHEADER, 0, 0))
+			Dim As HDITEM hd
+			Var newflag = IIf(bSortOrder = SortStyle.ssSortAscending, HDF_SORTUP, HDF_SORTDOWN)
+			hd.mask = HDI_FORMAT
+			For i As Integer = 0 To pGrid->Columns.Count - 1
+				Header_GetItem(Header, ColIndex, @hd)
+				If i = ColIndex Then
+					If (hd.fmt And newflag) <> newflag Then
 						hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
+						hd.fmt = hd.fmt Or newflag
 						Header_SetItem(Header, i, @hd)
 					End If
-				Next
-			#endif
+				Else
+					hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
+					Header_SetItem(Header, i, @hd)
+				End If
+			Next
+		#endif
+		Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
+		Dim As Integer iDirection = IIf(bSortOrder = SortStyle.ssSortAscending, 1, -1)
+		Dim As Long iLBound = LBound(iDataPtr, 1)
+		Dim As Long iUBound = iDataCount - 1
+		Dim As Long ArrayLBound = LBound(iDataPtr, 2)
+		Dim As Long ArrayUBound = UBound(iDataPtr, 2)
+		Dim As Long  ArraryCol = ColIndex - IIf(pGrid->FixCols, 1, 0)
+		If iUBound <= iLBound Then Return
+		If ArraryCol > iUBound OrElse ArraryCol < iLBound Then
+			Print Date & " " & Time & " " & Chr(9) & __FUNCTION__ & " " & Chr(9) & ML("The sort index is out of array data dimensions range!"), True
+			Return
 		End If
-		If FItems.Count <= 1 Then Return
-		If iRight = 0 Then iRight = FItems.Count - 1
-		If iLeft < 0 Then iLeft = 0
-		If (iRight <> 0 AndAlso (iLeft >= iRight)) Then Return
-		Dim As Integer i = iLeft, j = iRight
-		'QuickSort
-		Dim As WString Ptr iKey = @(Item(i)->Text(ColumnIndex))
-		If Direction = SortStyle.ssSortAscending Then
-			If MatchCase Then
-				While (i < FItems.Count And j >= 0 And i <= j)
-					While (*iKey < Item(j)->Text(ColumnIndex) AndAlso i < j)
-						j -= 1
-					Wend
-					If i <= j Then FItems.Exchange i, j: i += 1
-					While (*iKey >= Item(i)->Text(ColumnIndex) AndAlso i < j)
-						i += 1
-					Wend
-					If i <= j Then FItems.Exchange i, j:  j -= 1
+		Dim As WString Ptr iExchange(ArrayLBound To ArrayUBound)
+		pGrid->SortComparePara.Parent = Parent
+		pGrid->SortComparePara.SortIndex = ArraryCol
+		pGrid->SortComparePara.SortOrder = bSortOrder
+		pGrid->SortComparePara.SortNatural = bNaturalSort
+		pGrid->SortComparePara.MatchCase = bMatchCase
+		Type SortStackItem
+			iLow As Long
+			iHigh As Long
+		End Type
+		Dim arrStack(0 To 127) As SortStackItem
+		Dim As Long iStackTop = 0
+		arrStack(iStackTop).iLow = iLBound
+		arrStack(iStackTop).iHigh = iUBound
+		iStackTop += 1
+		Do While iStackTop > 0
+			iStackTop -= 1
+			Dim As Long iLow = arrStack(iStackTop).iLow
+			Dim As Long iHigh = arrStack(iStackTop).iHigh
+			Dim As Long iL = iLow
+			Dim As Long iR = iHigh
+			Dim As Long sPivotMid = (iLow + iHigh) \ 2
+			Do
+				' iDirection 乘数直接控制比较逻辑，无需重写两套排序代码
+				While iL <= iHigh AndAlso CompareStrings(*iDataPtr(iL, ArraryCol), *iDataPtr(sPivotMid, ArraryCol), bMatchCase, bNaturalSort, iDirection) < 0
+					iL += 1
 				Wend
+				While iR >= iLow AndAlso CompareStrings(*iDataPtr(iR, ArraryCol), *iDataPtr(sPivotMid, ArraryCol), bMatchCase, bNaturalSort, iDirection) > 0
+					iR -= 1
+				Wend
+				If iL <= iR Then
+					For k As Long = ArrayLBound To ArrayUBound : iExchange(k) = iDataPtr(iL, k) : Next
+					For k As Long = ArrayLBound To ArrayUBound : iDataPtr(iL, k) = iDataPtr(iR, k) : Next
+					For k As Long = ArrayLBound To ArrayUBound : iDataPtr(iR, k) = iExchange(k) : Next
+					iL += 1
+					iR -= 1
+				End If
+			Loop Until iL > iR
+			
+			Dim As Long iSize1 = iR - iLow + 1
+			Dim As Long iSize2 = iHigh - iL + 1
+			
+			If iSize1 > iSize2 Then
+				If iSize2 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iL
+					arrStack(iStackTop).iHigh = iHigh
+					iStackTop += 1
+				End If
+				If iSize1 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iLow
+					arrStack(iStackTop).iHigh = iR
+					iStackTop += 1
+				End If
 			Else
-				While (i < FItems.Count And j >= 0 And i <= j)
-					While (LCase(*iKey) < LCase(Item(j)->Text(ColumnIndex)) AndAlso i < j)
-						j -= 1
-					Wend
-					If i <= j Then FItems.Exchange i, j: i += 1
-					While (LCase(*iKey) >= LCase(Item(i)->Text(ColumnIndex)) AndAlso i < j)
-						i += 1
-					Wend
-					If i <= j Then FItems.Exchange i, j: j -= 1
-				Wend
+				If iSize1 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iLow
+					arrStack(iStackTop).iHigh = iR
+					iStackTop += 1
+				End If
+				If iSize2 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iL
+					arrStack(iStackTop).iHigh = iHigh
+					iStackTop += 1
+				End If
 			End If
-		Else
-			If MatchCase Then
-				While (i < FItems.Count And j >= 0 And i <= j)
-					While (*iKey > Item(j)->Text(ColumnIndex) AndAlso i < j)
-						j -= 1
-					Wend
-					If i <= j Then FItems.Exchange i, j: i += 1
-					While (*iKey <= Item(i)->Text(ColumnIndex) AndAlso i < j)
-						i += 1
-					Wend
-					If i <= j Then FItems.Exchange i, j:  j -= 1
+		Loop
+		
+		Dim As Long i
+		Dim As Long j
+		For i = iLBound + 1 To iUBound
+			j = i
+			While j > iLBound AndAlso CompareStrings(*iDataPtr(j - 1, ArraryCol), *iDataPtr(j, ArraryCol), bMatchCase, bNaturalSort) * iDirection > 0
+				For k As Long = ArrayLBound To ArrayUBound : iExchange(k) = iDataPtr(j - 1, k) : Next
+				For k As Long = ArrayLBound To ArrayUBound : iDataPtr(j - 1, k) = iDataPtr(j, k) : Next
+				For k As Long = ArrayLBound To ArrayUBound : iDataPtr(j, k) = iExchange(k) : Next
+				j -= 1
+			Wend
+		Next i
+	End Sub
+	
+	Sub GridRows.Sort(ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
+		Dim pGrid As Grid Ptr = Cast(Grid Ptr, Parent)
+		Print "pGrid=" & pGrid
+		If pGrid = 0 Then Return
+		If UBound(pGrid->DataArrayPtr, 1) > 0 Then
+			SortArray(pGrid->DataArrayPtr(), ColIndex, bSortOrder, bNaturalSort, bMatchCase)
+			Return
+		End If
+		Dim As Long iDataCount = FItems.Count
+		If iDataCount <= 1 Then
+			Print Date & " " & Time & " " & Chr(9) & " " & __FUNCTION__ & " Line：" & __LINE__ & Chr(9) & "No data in the control!", True
+			Exit Sub
+		End If
+		#ifdef __USE_WINAPI__
+			Dim As HWND Header = Cast(HWND, SendMessageW(Parent->Handle, LVM_GETHEADER, 0, 0))
+			Dim As HDITEM hd
+			Var newflag = IIf(bSortOrder = SortStyle.ssSortAscending, HDF_SORTUP, HDF_SORTDOWN)
+			hd.mask = HDI_FORMAT
+			For i As Integer = 0 To pGrid->Columns.Count - 1
+				Header_GetItem(Header, ColIndex, @hd)
+				If i = ColIndex Then
+					If (hd.fmt And newflag) <> newflag Then
+						hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
+						hd.fmt = hd.fmt Or newflag
+						Header_SetItem(Header, i, @hd)
+					End If
+				Else
+					hd.fmt = hd.fmt And Not (HDF_SORTUP Or HDF_SORTDOWN)
+					Header_SetItem(Header, i, @hd)
+				End If
+			Next
+		#endif
+		Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
+		Dim As Integer iDirection = IIf(bSortOrder = SortStyle.ssSortAscending, 1, -1)
+		Dim As Long iLBound = 0
+		Dim As Long iUBound = iDataCount - 1
+		If iUBound <= iLBound Then Return
+		pGrid->SortComparePara.Parent = Parent
+		pGrid->SortComparePara.SortIndex = ColIndex
+		pGrid->SortComparePara.SortOrder = bSortOrder
+		pGrid->SortComparePara.SortNatural = bNaturalSort
+		pGrid->SortComparePara.MatchCase = bMatchCase
+		Type SortStackItem
+			iLow As Long
+			iHigh As Long
+		End Type
+		Dim arrStack(0 To 127) As SortStackItem
+		Dim As Long iStackTop = 0
+		arrStack(iStackTop).iLow = iLBound
+		arrStack(iStackTop).iHigh = iUBound
+		iStackTop += 1
+		Do While iStackTop > 0
+			iStackTop -= 1
+			Dim As Long iLow = arrStack(iStackTop).iLow
+			Dim As Long iHigh = arrStack(iStackTop).iHigh
+			Dim As Long iL = iLow
+			Dim As Long iR = iHigh
+			Dim As GridRow Ptr sPivotPtr = Cast(GridRow Ptr, FItems.Items[(iLow + iHigh) \ 2])
+			If sPivotPtr = 0 Then Return
+			Do
+				' iDirection 乘数直接控制比较逻辑，无需重写两套排序代码
+				While iL <= iHigh AndAlso CompareStrings(Item(iL)->Text(ColIndex), sPivotPtr->Text(ColIndex), bMatchCase, bNaturalSort, iDirection) < 0
+					iL += 1
 				Wend
+				While iR >= iLow AndAlso CompareStrings(Item(iR)->Text(ColIndex), sPivotPtr->Text(ColIndex), bMatchCase, bNaturalSort, iDirection) > 0
+					iR -= 1
+				Wend
+				
+				If iL <= iR Then
+					FItems.Exchange iL, iR
+					iL += 1
+					iR -= 1
+				End If
+			Loop Until iL > iR
+			
+			Dim As Long iSize1 = iR - iLow + 1
+			Dim As Long iSize2 = iHigh - iL + 1
+			
+			If iSize1 > iSize2 Then
+				If iSize2 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iL
+					arrStack(iStackTop).iHigh = iHigh
+					iStackTop += 1
+				End If
+				If iSize1 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iLow
+					arrStack(iStackTop).iHigh = iR
+					iStackTop += 1
+				End If
 			Else
-				While (i < FItems.Count And j >= 0 And i <= j)
-					While (LCase(*iKey) > LCase(Item(j)->Text(ColumnIndex)) AndAlso i < j)
-						j -= 1
-					Wend
-					If i <= j Then FItems.Exchange i, j: i += 1
-					While (LCase(*iKey) <= LCase(Item(i)->Text(ColumnIndex)) AndAlso i < j)
-						i += 1
-					Wend
-					If i <= j Then FItems.Exchange i, j: j -= 1
-				Wend
+				If iSize1 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iLow
+					arrStack(iStackTop).iHigh = iR
+					iStackTop += 1
+				End If
+				If iSize2 > INSERTION_SORT_THRESHOLD Then
+					arrStack(iStackTop).iLow = iL
+					arrStack(iStackTop).iHigh = iHigh
+					iStackTop += 1
+				End If
 			End If
-		End If
-		If j > iLeft Then This.Sort(ColumnIndex, Direction, MatchCase, iLeft, j)
-		If i < iRight Then This.Sort(ColumnIndex, Direction, MatchCase, i, iRight)
-		If bStarted Then
-			Parent->Repaint
-		End If
+		Loop
+		
+		Dim As Long i
+		Dim As Long j
+		For i = iLBound + 1 To iUBound
+			j = i
+			While j > iLBound AndAlso CompareStrings(Item(j - 1)->Text(ColIndex), Item(j)->Text(ColIndex), bMatchCase, bNaturalSort) * iDirection > 0
+				FItems.Exchange j - 1, j
+				j -= 1
+			Wend
+		Next i
+		pGrid->Repaint
 	End Sub
 	
 	#ifndef GridRows_Add_Integer_Off
 		Private Function GridRows.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0, Index As Integer = -1, RowEditable As Boolean = False, ColorBK As Integer = -1, ColorText As Integer = -1, ByRef DelimiterChr As String = "", ByVal IsLastItem As Boolean = True) As GridRow Ptr
-			If Parent <= 0 Then Return 0
+			If Parent = 0 Then Return 0
 			Dim As Integer i = Index, FixCols = 1
 			If Parent <> 0 Then FixCols = IIf(Cast(Grid Ptr, Parent)->FixCols, 1, 0)
 			PItem = _New(GridRow)
@@ -848,7 +1074,6 @@ Namespace My.Sys.Forms
 	
 	Private Constructor GridRows
 		This.Clear
-		
 	End Constructor
 	
 	Private Destructor GridRows
@@ -1287,12 +1512,18 @@ Namespace My.Sys.Forms
 		FAllowEdit = Value
 	End Property
 	
-	Private Property Grid.FixCols As Integer
-		Return FFixCols
+	Private Property Grid.FixCols As Boolean
+		Return IIf(FFixCols = 0, False, True)
 	End Property
 	
-	Private Property Grid.FixCols(Value As Integer)
-		FFixCols = IIf(Value > 0, 1, 0)
+	Private Property Grid.FixCols(Value As Boolean)
+		FFixCols = IIf(Value, 1, 0)
+		'If FFixCols = 1 Then
+		'	For i As Integer = 1 To Rows.Count - 1
+		'		Rows.Item(i)->Item(0)->BackColor = -1 'This.BackColor
+		'		Rows.Item(i)->Item(0)->ForeColor = -1 'This.ForeColor
+		'	Next
+		'End If
 	End Property
 	
 	Private Property Grid.AllowColumnReorder As Boolean
@@ -1321,7 +1552,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(widget), IIf(Value, GTK_TREE_VIEW_GRID_LINES_BOTH, GTK_TREE_VIEW_GRID_LINES_NONE))
 		#elseif defined(__USE_WINAPI__)
-			ChangeLVExStyle LVS_EX_GRIDLINES, Value
+			ChangeLVExStyle LVS_EX_GridLINES, Value
 		#endif
 	End Property
 	
@@ -1466,41 +1697,22 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Grid.SortIndex(Value As Integer)
-		FSortIndex = Value+ FFixCols
-		'#ifndef __USE_GTK__
-		'	Select Case FSortStyle
-		'	Case SortStyle.ssNone
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'	Case SortStyle.ssSortAscending
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'		ChangeStyle LVS_SORTASCENDING, True
-		'	Case SortStyle.ssSortDescending
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, True
-		'	End Select
-		'#endif
+		FSortIndex = Value
 	End Property
 	
+	Private Property Grid.SortNatural As Boolean
+		Return FSortNatural
+	End Property
+	
+	Private Property Grid.SortNatural(Value As Boolean)
+		FSortNatural = Value
+	End Property
 	Private Property Grid.SortOrder As SortStyle
 		Return FSortOrder
 	End Property
 	
 	Private Property Grid.SortOrder(Value As SortStyle)
 		FSortOrder = Value
-		'#ifndef __USE_GTK__
-		'	Select Case FSortStyle
-		'	Case SortStyle.ssNone
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'	Case SortStyle.ssSortAscending
-		'		ChangeStyle LVS_SORTDESCENDING, False
-		'		ChangeStyle LVS_SORTASCENDING, True
-		'	Case SortStyle.ssSortDescending
-		'		ChangeStyle LVS_SORTASCENDING, False
-		'		ChangeStyle LVS_SORTDESCENDING, True
-		'	End Select
-		'#endif
 	End Property
 	Private Property Grid.ShowHint As Boolean
 		Return FShowHint
@@ -1752,8 +1964,8 @@ Namespace My.Sys.Forms
 						For iRow As Long = pCacheHint->iFrom To pCacheHint->iTo
 							If Rows.Item(iRow)->State = 1 Then Continue For
 							If FFixCols > 0 Then Rows.Item(iRow)->Item(0)->Text = Str(iRow + 1)
-							For iCol As Integer = 0 To UboundDataCol
-								Rows.Item(iRow)->Item(iCol + FFixCols)->Text =  WGet(DataArrayPtr(iRow, iCol))
+							For iCol As Integer = FFixCols To UboundDataCol
+								Rows.Item(iRow)->Item(iCol)->Text =  WGet(DataArrayPtr(iRow, iCol - FFixCols))
 							Next
 							Rows.Item(iRow)->State = 1
 						Next
@@ -1778,7 +1990,7 @@ Namespace My.Sys.Forms
 					If lvp->iItem > 0 AndAlso OnSelectedRowChanging Then OnSelectedRowChanging(*Designer, This, lvp->iItem, bCancel)
 					If bCancel Then Message.Result = 0
 				Case LVN_ITEMCHANGED: If ((lvp->uNewState And LVIS_SELECTED) <> 0) AndAlso ( (lvp->uOldState And LVIS_SELECTED) = 0) AndAlso OnSelectedRowChanged Then OnSelectedRowChanged(*Designer, This, lvp->iItem)
-				'If ( (lvp->uNewState And LVIS_FOCUSED) = 0) And ( (lvp->uOldState And LVIS_FOCUSED) <> 0) Then ' 判断某项失去焦点
+					'If ( (lvp->uNewState And LVIS_FOCUSED) = 0) And ( (lvp->uOldState And LVIS_FOCUSED) <> 0) Then ' 判断某项失去焦点
 				Case HDN_BEGINTRACK
 					GridEditText.Visible = False ' Force refesh windows
 				Case HDN_ITEMCHANGED
@@ -1849,6 +2061,7 @@ Namespace My.Sys.Forms
 										ListView_GetSubItemRect(FHandle, SelectedItem, iCol, LVIR_BOUNDS, @R)
 										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth
 										If SelectedItem < iRowsCount Then
+											If FFixCols > 0 AndAlso iCol = 0 Then Rows.Item(SelectedItem)->Item(iCol)->BackColor = This.BackColor
 											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
 											If SelectedItem = FRow AndAlso iCol = FCol Then
 												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
@@ -1860,6 +2073,7 @@ Namespace My.Sys.Forms
 										Rc.Left = R.Left + 3 : Rc.Right = R.Right - 3 : Rc.Top = R.Top + 2 : Rc.Bottom = R.Bottom - 2
 										If iCol = 0 Then
 											If FFixCols > 0 Then
+												Rows.Item(SelectedItem)->Item(iCol)->ForeColor = This.ForeColor
 												Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
 											Else
 												If UsingDataArrayPtr Then Rows.Item(SelectedItem)->Text(iCol) =  WGet(DataArrayPtr(SelectedItem, 0))
@@ -1899,6 +2113,7 @@ Namespace My.Sys.Forms
 										If ScrollLeft + ScaleX(This.Width) < R.Left Then Exit For
 										Rc.Left = R.Left + FGridLineWidth : Rc.Right = R.Right:  Rc.Top = IIf(SelectedItem = RowsTopIndex, R.Top + 1, R.Top)  : Rc.Bottom = R.Bottom - FGridLineWidth
 										If SelectedItem < iRowsCount Then
+											If FFixCols > 0 AndAlso iCol = 0 Then Rows.Item(SelectedItem)->Item(iCol)->BackColor = This.BackColor
 											DrawRect(nmcd->hdc, Rc, Rows.Item(SelectedItem)->Item(iCol)->BackColor, SelectedItem, iCol)
 											If SelectedItem = FRow AndAlso iCol = FCol Then
 												TextColorSave = Rows.Item(SelectedItem)->Item(iCol)->ForeColor
@@ -1917,6 +2132,7 @@ Namespace My.Sys.Forms
 										If SelectedItem < iRowsCount Then
 											If iCol = 0 Then
 												If FFixCols > 0 Then
+													Rows.Item(SelectedItem)->Item(iCol)->ForeColor = This.ForeColor
 													Rows.Item(SelectedItem)->Text(iCol) = Str(SelectedItem + 1)
 												Else
 													If UsingDataArrayPtr Then Rows.Item(SelectedItem)->Text(iCol) =  WGet(DataArrayPtr(SelectedItem, 0))
@@ -2267,23 +2483,38 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Function Grid.SaveToFile(ByRef FileName As WString, ByRef DelimiterChr As String = Chr(9)) As Boolean
-		Dim As Integer Fn
+		Dim As Integer Fn, Capacity
 		Fn = FreeFile_
 		If Open(FileName For Output Encoding "utf-8" As #Fn) = 0 Then
 			Dim As WString Ptr tmpStr
 			WLet(tmpStr, Columns.Column(FFixCols)->Text)
+			Capacity = 0
 			For iCol As Integer = FFixCols + 1 To Columns.Count - 1
-				WAdd tmpStr, DelimiterChr & Columns.Column(iCol)->Text
+				WAdd(tmpStr, DelimiterChr & Columns.Column(iCol)->Text, , Capacity)
 			Next
 			Print #Fn, *tmpStr
-			For iRow As Integer = 0 To Rows.Count - 1
-				WLet(tmpStr, Rows.Item(iRow)->Text(FFixCols))
-				For iCol As Integer = FFixCols + 1 To Columns.Count - 1
-					WAdd tmpStr, DelimiterChr & Rows.Item(iRow)->Text(iCol)
+			If LBound(DataArrayPtr) <= UBound(DataArrayPtr) Then
+				Dim As Integer LboundData = LBound(DataArrayPtr, 2)
+				Dim As Integer UboundData = UBound(DataArrayPtr, 2)
+				For i As Integer = LBound(DataArrayPtr, 1) To UBound(DataArrayPtr, 1)
+					Capacity = 0
+					WLet(tmpStr, WGet(DataArrayPtr(i, 0)))
+					For j As Integer = LboundData + 1 To UboundData
+						WAdd(tmpStr, DelimiterChr & WGet(DataArrayPtr(i, j)), , Capacity)
+					Next
+					Print #Fn, *tmpStr
 				Next
-				Print #Fn, *tmpStr
-			Next
-			_Deallocate(tmpStr)
+			Else
+				For iRow As Integer = 0 To Rows.Count - 1
+					Capacity = 0
+					WLet(tmpStr, Rows.Item(iRow)->Text(FFixCols))
+					For iCol As Integer = FFixCols + 1 To Columns.Count - 1
+						WAdd(tmpStr, DelimiterChr & Rows.Item(iRow)->Text(iCol), , Capacity)
+					Next
+					Print #Fn, *tmpStr
+				Next
+			End If
+			_Deallocate(tmpStr) : tmpStr = 0
 		Else
 			Debug.Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & ML("Open file failure!") & " " & FileName, True
 			CloseFile_(Fn)
@@ -2293,7 +2524,7 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	'
-	Private Function Grid.LoadFromFile(ByRef FileName As WString, ByRef DelimiterChr As String = "", ByVal HasTitle As Boolean = True, ByVal ReadToArrary As Boolean = True) As Integer
+	Private Function Grid.LoadFromFile(ByRef FileName As WString, ByRef DelimiterChr As String = "", ByVal TitleColWidthStr As String = "", ByVal ReadToArrary As Boolean = True) As Integer
 		Dim As Integer Fn, iRowsCount, Result, ArrayUbound, items = 100
 		Fn = FreeFile_
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
@@ -2303,6 +2534,8 @@ Namespace My.Sys.Forms
 		If Result = 0 Then
 			Dim As WString * 2048 tmpStr
 			Dim As WString Ptr ColTitle(Any)
+			Dim As String ColWidthStr(Any)
+			Dim As Boolean HasTitle = TitleColWidthStr <> ""
 			Dim As Integer iPos
 			If ReadToArrary AndAlso LBound(DataArrayPtr) <= UBound(DataArrayPtr) Then
 				Dim As Integer LboundData = LBound(DataArrayPtr, 2)
@@ -2322,14 +2555,20 @@ Namespace My.Sys.Forms
 					DelimiterChr = IIf(InStr(tmpStr, "|"), "|", IIf(InStr(tmpStr, ","), ",", ";"))
 				End If
 			End If
+			Split(TitleColWidthStr, ",", ColWidthStr())
 			If HasTitle Then
 				Columns.Clear
 				Rows.Clear
 				Split(tmpStr, DelimiterChr, ColTitle())
-				ArrayUbound = UBound(ColTitle) + FFixCols
+				ArrayUbound = UBound(ColTitle)
 				If FFixCols > 0 Then Columns.Add "NO.", , 30 , cfRight
+				If UBound(ColTitle) > UBound(ColWidthStr) Then
+					ReDim Preserve ColWidthStr(UBound(ColTitle))
+				End If
 				For i As Integer = 0 To UBound(ColTitle)
-					Columns.Add *ColTitle(i)
+					iPos = Val(ColWidthStr(i))
+					If iPos <= 1 Then iPos = 100
+					Columns.Add *ColTitle(i), , iPos
 					Deallocate ColTitle(i) : ColTitle(i) = 0
 				Next
 				Erase ColTitle
@@ -2338,7 +2577,7 @@ Namespace My.Sys.Forms
 				iRowsCount += 1
 				If ReadToArrary Then
 					Split(tmpStr, DelimiterChr, ColTitle())
-					ArrayUbound = UBound(ColTitle) + FFixCols
+					ArrayUbound = UBound(ColTitle)
 					ReDim DataArrayPtr(0 To items, 0 To ArrayUbound)
 					For i As Integer = 0 To ArrayUbound
 						DataArrayPtr(iRowsCount - 1, i) = ColTitle(i)
@@ -2371,7 +2610,6 @@ Namespace My.Sys.Forms
 						ii = ii + 1
 					Loop
 					n = n + 1
-					'Debug.Print " iRowsCount=" & iRowsCount & " n=" & n
 					WLet(DataArrayPtr(iRowsCount - 1, n - 1), Mid(tmpStr, p, ii - p))
 				Else
 					Rows.Add tmpStr, , , , , , , , DelimiterChr, False
@@ -2438,7 +2676,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.ChildProc         = @WndProc
 				.ExStyle           = WS_EX_CLIENTEDGE
-				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
+				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GridLINES Or LVS_EX_DOUBLEBUFFER
 				'Dynamically switching to and from the LVS_OWNERDATA style is not supported.
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS Or LVS_OWNERDATA
 				.DoubleBuffered = True

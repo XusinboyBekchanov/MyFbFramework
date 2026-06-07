@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 			Case "activecontrol": Return FActiveControl
 			Case "borderstyle": Return @FBorderStyle
 			Case "cancelbutton": Return FCancelButton
-			Case "caption": Return This.FText.vptr
+			Case "caption": Return This.FText
 			Case "defaultbutton": Return FDefaultButton
 			Case "icon": Return @Icon
 			Case "controlbox": Return @FControlBox
@@ -149,10 +149,12 @@ Namespace My.Sys.Forms
 					gtk_widget_set_sensitive(HeaderBarWidget, False)
 					gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(HeaderBarWidget), False)
 					'gtk_widget_set_size_request(widget, FW, 1)
-					gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBarWidget), ToUtf8(FText))
+					If FText = 0 Then Return
+					gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBarWidget), ToUtf8(*FText))
 					'gtk_header_bar_set_show_close_button(gtk_header_bar(HeaderBarWidget), True)
 				#else
-					HeaderBarWidget = gtk_label_new(ToUtf8(FText))
+					If FText = 0 Then Return
+					HeaderBarWidget = gtk_label_new(ToUtf8(*FText))
 					'Dim As GdkColor color1, color2
 					'gdk_color_parse ("black", @color1)
 					'gtk_widget_modify_bg(HeaderBarWidget, GTK_STATE_NORMAL, @color1)
