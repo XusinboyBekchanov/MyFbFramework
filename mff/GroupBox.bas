@@ -20,8 +20,8 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function GroupBox.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "caption": Return FText
-			Case "text": Return FText
+			Case "caption": Return FText.vptr
+			Case "text": Return FText.vptr
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -67,8 +67,8 @@ Namespace My.Sys.Forms
 	
 	Private Property GroupBox.Text ByRef As WString
 		#ifdef __USE_GTK__
-			WLet(FText, WStr(gtk_frame_get_label(GTK_FRAME(widget))))
-			If FText = 0 Then Return "" Else Return *FText
+			FText = WStr(gtk_frame_get_label(GTK_FRAME(widget)))
+			Return *FText.vptr
 		#else
 			Return Base.Text
 		#endif

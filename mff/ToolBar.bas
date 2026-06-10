@@ -80,7 +80,7 @@ Namespace My.Sys.Forms
 		Private Function ToolBar.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "autosize": Return @FAutosize
-			Case "caption": Return FText
+			Case "caption": Return FText.vptr
 			Case "flat": Return @FFlat
 			Case "list": Return @FList
 			Case "wrapable": Return @FWrapable
@@ -272,7 +272,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ToolButton.ImageKey ByRef As WString
-		If FImageKey Then Return *FImageKey Else Return ""
+		Return WGet(FImageKey)
 	End Property
 	
 	Private Property ToolButton.ImageKey(ByRef Value As WString)
@@ -650,10 +650,10 @@ Namespace My.Sys.Forms
 		#else
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
 		#endif
-		If FHint Then _Deallocate(FHint)
-		If FCaption Then _Deallocate(FCaption)
-		If FImageKey Then _Deallocate(FImageKey)
-		If FName Then _Deallocate(FName)
+		WDeAllocate(FHint)
+		WDeAllocate(FCaption)
+		WDeAllocate(FImageKey)
+		WDeAllocate(FName)
 	End Destructor
 	
 	Private Property ToolButtons.Count As Integer

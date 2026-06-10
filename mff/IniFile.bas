@@ -89,8 +89,9 @@ End Function
 Private Sub IniFile.Load(ByRef FileName As WString = "")
 	Dim Result As Integer = -1 'David Change
 	If FileName <> "" Then WLet(FFile, FileName)
-	Dim As WString Ptr LineBuff(), wData = LoadFromFile(*FFile, FFileEncoding, FNewLineType)
-	If wData = 0 OrElse Trim(*wData) = "" Then
+	Dim As WString Ptr wData, LineBuff()
+	wData = LoadFromFile(*FFile, FFileEncoding, FNewLineType)
+	If Trim(*wData) = "" Then
 		Debug.Print ML("in function") + " " +  __FUNCTION__ + " " +  ML("in Line") + " " + Str( __LINE__) + Chr(9) + ML("Open file failure!") + Chr(9) + *FFile, True
 		Exit Sub
 	End If
@@ -126,13 +127,11 @@ Private Sub IniFile.Update
 	Else
 		NewLineStr = Chr(13, 10)
 	End If
-	WLet(wData, FLines.Item(0))
-	Dim As Integer Capacity
+	WLet(wData, FLines.Item(0)) 
 	For i As Integer = 1 To FLines.Count - 1
-		If i = FLines.Count - 1 Then Capacity = 0
-		WAdd(wData, NewLineStr & FLines.Item(i), , Capacity)
+		WAdd(wData, NewLineStr & FLines.Item(i))
 	Next i
-	If Not SaveToFile(*FFile, *wData, FFileEncoding, FNewLineType) Then
+	If Not SaveToFile(*FFile, *wData, FFileEncoding, FNewLineType) Then 
 		Debug.Print ML("in function") + " " +  __FUNCTION__ + " " +  ML("in Line") + " " + Str( __LINE__) + Chr(9) + ML("Save file failure!") + Chr(9) +  *FFile, True
 	End If
 	_Deallocate(wData)
@@ -155,12 +154,12 @@ Private Sub IniFile.WriteInteger(ByRef Section As WString, ByRef Key As WString,
 		Else
 			If SecIndex < FLines.Count -1 Then
 				Dim As Integer LastIndex
-				Dim As WString Ptr s
 				For i As Integer = SecIndex +1 To FLines.Count-1
+					Dim As WString Ptr s
 					s = @FLines.Item(i)
 					If *s <> "" Then
 						LastIndex = i
-						If s[0] = 91 Then Exit For  'Asc("[")
+						If s[0] = Asc("[") Then Exit For
 					End If
 				Next i
 				If LastIndex = FLines.Count -1 Then
@@ -193,12 +192,12 @@ Private Sub IniFile.WriteFloat(ByRef Section As WString, ByRef Key As WString, V
 		Else
 			If SecIndex < FLines.Count -1 Then
 				Dim As Integer LastIndex
-				Dim As WString Ptr s
 				For i As Integer = SecIndex +1 To FLines.Count-1
+					Dim As WString Ptr s
 					s = @FLines.Item(i)
 					If *s <> "" Then
 						LastIndex = i
-						If s[0] = 91 Then Exit For  'Asc("[")
+						If s[0] = Asc("[") Then Exit For
 					End If
 				Next i
 				If LastIndex = FLines.Count -1 Then
@@ -231,12 +230,12 @@ Private Sub IniFile.WriteBool(ByRef Section As WString, ByRef Key As WString, Va
 		Else
 			If SecIndex < FLines.Count -1 Then
 				Dim As Integer LastIndex
-				Dim As WString Ptr s
 				For i As Integer = SecIndex +1 To FLines.Count-1
+					Dim As WString Ptr s
 					s = @FLines.Item(i)
 					If *s <> "" Then
 						LastIndex = i
-						If s[0] = 91 Then Exit For  'Asc("[")
+						If s[0] = Asc("[") Then Exit For
 					End If
 				Next i
 				If LastIndex = FLines.Count -1 Then
@@ -267,14 +266,14 @@ Private Sub IniFile.WriteString(ByRef Section As WString, ByRef Key As WString, 
 			FLines.Item(KeyIndex) = Key + "=" + Value + WChr(0)
 			Update
 		Else
-			If SecIndex < FLines.Count - 1 Then
+			If SecIndex < FLines.Count -1 Then
 				Dim As Integer LastIndex
-				Dim As WString Ptr s
-				For i As Integer = SecIndex + 1 To FLines.Count - 1
+				For i As Integer = SecIndex +1 To FLines.Count-1
+					Dim As WString Ptr s
 					s = @FLines.Item(i)
 					If *s <> "" Then
 						LastIndex = i
-						If s[0] = 91 Then Exit For  'Asc("[")
+						If s[0] = Asc("[") Then Exit For
 					End If
 				Next i
 				If LastIndex = FLines.Count -1 Then
@@ -297,48 +296,63 @@ Private Sub IniFile.WriteString(ByRef Section As WString, ByRef Key As WString, 
 End Sub
 
 Private Function IniFile.ReadInteger(ByRef Section As WString, ByRef Key As WString, Inplace As Integer = 0) As Integer
-	If SectionExists(Section) = -1 Then Return Inplace
-	Dim As Integer Index = KeyExists(Section, Key)
-	If Index = -1 Then Return Inplace
-	Dim As Integer iPos = InStr(FLines.Item(Index), "=" )
-	If iPos > 0 Then
-		Return ValInt(Trim(Mid(FLines.Item(Index), iPos + 1)))
+	Dim As Integer Index
+	Dim As WString Ptr s
+	If SectionExists(Section) <> -1 Then
+		Index = KeyExists(Section, Key)
+		If Index <> -1 Then
+			Dim Value As Integer
+			s = @FLines.Item(Index)
+			Return ValInt(Mid(*s, InStr(*s, "=") + 1, Len(*s)))
+		Else
+			Return Inplace
+		End If
 	Else
 		Return Inplace
 	End If
 End Function
 
 Private Function IniFile.ReadFloat(ByRef Section As WString, ByRef Key As WString, Inplace As Double = 0.0) As Double
-	If SectionExists(Section) = -1 Then Return Inplace
-	Dim As Integer Index = KeyExists(Section, Key)
-	If Index = -1 Then Return Inplace
-	Dim As Integer iPos = InStr(FLines.Item(Index), "=" )
-	If iPos > 0 Then
-		Return Val(Trim(Mid(FLines.Item(Index), iPos + 1)))
+	Dim As Integer Index
+	Dim As WString Ptr s
+	If SectionExists(Section) <> -1 Then
+		Index = KeyExists(Section, Key)
+		If Index <> -1 Then
+			s = @FLines.Item(Index)
+			Return Val(Mid(*s, InStr(*s, "=") + 1, Len(*s)))
+		Else
+			Return Inplace
+		End If
 	Else
 		Return Inplace
 	End If
 End Function
 
 Private Function IniFile.ReadBool(ByRef Section As WString, ByRef Key As WString, Inplace As Boolean = False) As Boolean
-	If SectionExists(Section) = -1 Then Return Inplace
-	Dim As Integer Index = KeyExists(Section, Key)
-	If Index = -1 Then Return Inplace
-	Dim As Integer iPos = InStr(FLines.Item(Index), "=" )
-	If iPos > 0 Then
-		Return Cast(Boolean, Trim(Mid(FLines.Item(Index), iPos + 1)))
+	Dim As Integer Index
+	Dim As WString Ptr s
+	If SectionExists(Section) <> -1 Then
+		Index = KeyExists(Section, Key)
+		If Index <> -1 Then
+			s = @FLines.Item(Index)
+			Return Cast(Boolean, Trim(Mid(*s, InStr(*s, "=") + 1, Len(*s))))
+		Else
+			Return Inplace
+		End If
 	Else
 		Return Inplace
 	End If
 End Function
 
-Private Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "" ) As UString
-	If SectionExists(Section) = -1 Then Return Inplace
-	Dim As Integer Index = KeyExists(Section, Key)
-	If Index = -1 Then Return Inplace
-	Dim As Integer iPos = InStr(FLines.Item(Index), "=" )
-	If iPos > 0 Then
-		Return Trim(Mid(FLines.Item(Index), iPos + 1))
+Private Function IniFile.ReadString(ByRef Section As WString, ByRef Key As WString, ByRef Inplace As WString = "") As UString
+	Dim As Integer Index
+	If SectionExists(Section) <> -1 Then
+		Index = KeyExists(Section, Key)
+		If Index <> -1 Then
+			Return Mid(FLines.Item(Index), InStr(FLines.Item(Index), "=") + 1, Len(FLines.Item(Index)))
+		Else
+			Return Inplace
+		End If
 	Else
 		Return Inplace
 	End If
@@ -369,6 +383,6 @@ Private Constructor IniFile(ByRef FileName As WString = "")
 End Constructor
 
 Private Destructor IniFile
-	If FFile Then _Deallocate(FFile)
+	If FFile Then _Deallocate( FFile)
 	FLines.Clear
 End Destructor

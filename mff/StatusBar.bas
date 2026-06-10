@@ -51,16 +51,17 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property StatusPanel.Caption ByRef As WString
-		If FCaption = 0 Then Return "" Else Return *FCaption
+		If FCaption > 0 Then Return *FCaption Else Return ""
 	End Property
 	
 	Private Property StatusPanel.Caption(ByRef Value As WString)
-		WLet(FCaption, Value)
+		FCaption = _Reallocate(FCaption, (Len(Value) + 1) * SizeOf(WString))
+		*FCaption = Value
 		If This.StatusBarControl Then Cast(StatusBar Ptr, This.StatusBarControl)->UpdatePanels
 	End Property
 	
 	Private Property StatusPanel.Name ByRef As WString
-		If FName <> 0 Then Return *FName Else Return ""
+		If FName > 0 Then Return *FName Else Return ""
 	End Property
 	
 	Private Property StatusPanel.Name(ByRef Value As WString)
@@ -278,7 +279,6 @@ Namespace My.Sys.Forms
 	
 	Private Sub StatusBar.UpdatePanels
 		Dim As Long i, FWidth()
-		Dim As Integer Capacity
 		Dim As WString Ptr s
 		Dim As WString Ptr ss
 		If Count > 0 Then
@@ -292,7 +292,7 @@ Namespace My.Sys.Forms
 			Next i
 			FWidth(Count - 1) = -1
 			#ifndef __USE_GTK__
-				Perform(SB_SETPARTS, Count, Cast(LPARAM, @FWidth(0)))
+				Perform(SB_SETPARTS, Count, Cast(LPARAM, CInt(@FWidth(0))))
 			#endif
 			For i = 0 To Count - 1
 				If Panels[i]->Alignment = 0 Then
@@ -305,17 +305,14 @@ Namespace My.Sys.Forms
 					WLet(s, Panels[i]->Caption)
 				End If
 				#ifndef __USE_GTK__
-					If s <> 0 Then
-						Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LPARAM, s))
-						Perform(SB_SETICON, i, Cast(LPARAM, Panels[i]->Icon.Handle))
-					End If
+					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LPARAM, CInt(s)))
+					Perform(SB_SETICON, i, Cast(LPARAM, CInt(Panels[i]->Icon.Handle)))
 				#endif
-				If i = Count - 1 Then Capacity = 0 
-				WAdd(ss, IIf(i = 0, "", !"\t") & Panels[i]->Caption, , Capacity)
+				WAdd(ss, IIf(i = 0, "", !"\t") & Panels[i]->Caption)
 			Next i
 		End If
 		#ifdef __USE_GTK__
-			If ss = 0 OrElse *ss = "" Then
+			If *ss = "" Then
 				gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, !"\0")
 			Else
 				gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, ToUtf8(*ss))

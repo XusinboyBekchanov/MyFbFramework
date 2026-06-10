@@ -35,25 +35,23 @@ Private Type DoubleList Extends Object
 Private:
 	FCount   As Integer
 	FItems   As List
-	FSorted  As Boolean
+	FSorted As Boolean
 Public:
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Item(Index As Integer) As Double
-	Declare Property Item(Index As Integer, iValue As Double)
+	Declare Property Item(Index As Integer, FItem As Double)
 	Declare Property Object(Index As Integer) As Any Ptr
-	Declare Property Object(Index As Integer, Obj As Any Ptr)
-	Declare Property Sorted As Boolean 
-	Declare Property Sorted(iValue As Boolean)
-	Declare Function Add(iValue As Double, Obj As Any Ptr = 0) As Integer
-	Declare Function Insert(Index As Integer, iValue As Double, Obj As Any Ptr = 0) As Integer
+	Declare Property Object(Index As Integer, FObj As Any Ptr)
+	Declare Sub Add(Item As Double, FObj As Any Ptr = 0)
+	Declare Sub Insert(Index As Integer, FItem As Double, FObj As Any Ptr = 0)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
-	Declare Sub Sort(ByVal iDirection As Long = 1)
+	Declare Sub Sort
 	Declare Sub Clear
-	Declare Function IndexOf(iValue As Double) As Integer
-	Declare Function IndexOfObject(Obj As Any Ptr) As Integer
-	Declare Function Contains(iValue As Double) As Boolean
+	Declare Function IndexOf(FItem As Double) As Integer
+	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
+	Declare Function Contains(FItem As Double) As Boolean
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor

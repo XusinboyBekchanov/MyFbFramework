@@ -19,24 +19,20 @@ Private Type PointerList Extends Object
 	Private:
 	FCount   As Integer
 	FItems   As List
-	FSorted  As Boolean
 Public:
 	Declare Function Count As Integer
 	Declare Property Item(Index As Integer) As Any Ptr
 	Declare Property Item(Index As Integer, Value As Any Ptr)
 	Declare Property Object(Index As Integer) As Any Ptr
 	Declare Property Object(Index As Integer, Value As Any Ptr)
-	Declare Property Sorted As Boolean 
-	Declare Property Sorted(iValue As Boolean)
-	Declare Function Add(iValue As Any Ptr, Obj As Any Ptr = 0) As Integer
-	Declare Function Insert(Index As Integer, iValue As Any Ptr, Obj As Any Ptr = 0) As Integer
+	Declare Sub Add(_Item As Any Ptr, Obj As Any Ptr = 0)
+	Declare Sub Insert(Index As Integer, _Item As Any Ptr, Obj As Any Ptr = 0)
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
-	Declare Sub Sort(ByVal iDirection As Long = 1)
-	Declare Function Get(iValue As Any Ptr, Obj As Any Ptr = 0) As Any Ptr
-	Declare Sub Set(iValue As Any Ptr, Obj As Any Ptr)
+	Declare Function Get(_Item As Any Ptr, Obj As Any Ptr = 0) As Any Ptr
+	Declare Sub Set(_Item As Any Ptr, Obj As Any Ptr)
 	Declare Sub Clear
-	Declare Function IndexOf(iValue As Any Ptr) As Integer
+	Declare Function IndexOf(Item As Any Ptr) As Integer
 	Declare Function IndexOfObject(Obj As Any Ptr) As Integer
 	Declare Function Contains(Item As Any Ptr, ByRef Idx As Integer = -1) As Boolean
 	Declare Function ContainsObject(Obj As Any Ptr) As Boolean

@@ -410,47 +410,6 @@ Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumByte
 	Return True
 End Function
 
-Private Function UString.Add(ByRef txt As WString, AddBefore As Boolean = False) As Boolean
-	Dim As Integer oldLen, ls = Len(txt)
-	If m_Data = 0 OrElse ls = 0 Then Return False
-	oldLen = m_Length
-	m_Length = oldLen + ls
-	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
-	If ls <= m_Capacity AndAlso m_Data <> 0 Then
-		If AddBefore AndAlso oldLen > 0 Then
-			Fb_MemMove((*m_Data)[ls], (*m_Data)[0], oldLen * SizeOf(WString))
-			Fb_MemCopy((*m_Data)[0], txt[0], ls * SizeOf(WString))
-		Else
-			Fb_MemCopy((*m_Data)[oldLen], txt[0], ls * SizeOf(WString))
-		End If
-		(*m_Data)[m_Length] = 0
-		m_Capacity -= ls
-		Return True
-	End If
-	Dim As Integer newCapacity = m_Length * 2
-	If newCapacity < 512 Then newCapacity = 512
-	If m_Capacity < 1 Then newCapacity = m_Length + 1 ' 精确容量模式回退
-	m_Capacity = newCapacity - m_Length  'Minimal allocation mode, Capacity represents remaining space. Capacity 表示*剩余*空间！
-	Dim As WString Ptr ResultPtr
-	If m_Data <> 0 Then
-		ResultPtr = _Reallocate(m_Data, (newCapacity + 1) * SizeOf(WString))
-		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return False
-		If AddBefore AndAlso oldLen > 0 Then
-			Fb_MemMove((*ResultPtr)[ls], (*ResultPtr)[0], oldLen * SizeOf(WString))
-			Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
-		Else
-			Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls * SizeOf(WString))
-		End If
-	Else
-		ResultPtr = _Allocate((newCapacity + 1) * SizeOf(WString))
-		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return False
-		Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
-	End If
-	(*ResultPtr)[m_Length] = 0
-	m_Data = ResultPtr
-	Return True
-End Function
-
 Private Operator UString.[](ByVal Index As Integer) ByRef As UShort
 	Static Zero As UShort = 0
 	If Index < 0 Or Index > m_Length Then Return Zero
@@ -1731,86 +1690,23 @@ Private Function SubString(ByRef wszMainStr As WString, ByVal start As Integer, 
 	End If
 End Function
 
-Private Function FormatFileName(ByRef originalName As WString) As UString
-	Dim As WString Ptr ResultPtr
-	Dim As Integer ch
-	For i As Integer = 0 To Len(originalName) - 1
-		ch = originalName[i]
-		If ch = 0 Then Exit For
-		If ch < 32 Then Continue For
-		Select Case ch
-		Case Asc("\"), Asc("/"), Asc(":"), Asc("*"), Asc("?"), Asc(""""), Asc("<"), Asc(">"), Asc("|")
-			'"\/:*?""<>|" 忽略非法字符（不执行任何操作）
-		Case Else
-			WAdd(ResultPtr, WChr(ch))
-		End Select
-	Next
-	'忽略尾随空格和句点处理
-	'忽略Windows历史遗留的 DOS 设备名限制，"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-	'"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" , 即使带了扩展名也不行(例如 `CON.txt` 或 `AUX.jpg` 依然是非法的)
-	If ResultPtr = 0 OrElse Trim(*ResultPtr) = "" Then
-		WLet(ResultPtr, "Untitled")
-	Else
-		*ResultPtr = LTrim(*ResultPtr)
-		If Len(*ResultPtr) > 240 Then (*ResultPtr)[240] = 0 'not 255 for user adding extra string
-	End If
-	Function = *ResultPtr
-	_Deallocate(ResultPtr)
-End Function
-
-
-Private Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
-	If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
-	Err = 0
-	If base_ < 2 OrElse base_ > 16 Then
-		Err = 1000
-		Return False
-	End If
-	
-	Dim t As String = LCase(subject)
-	Dim As Integer LenT = Len(t)
-	If LenT = 0 Then Return False
-	
-	Dim As Integer startIdx = 0
-	If (t[0] = 43) OrElse (t[0] = 45) Then ' 43: '+', 45: '-'
-		startIdx = 1
-	End If
-	If (LenT - startIdx) >= 2 Then
-		If t[startIdx] = 38 Then ' 38: '&'
-			If t[startIdx + 1] = 104 Then ' 104: 'h'
-				If base_ <> 16 Then Return False
-				startIdx += 2
-			ElseIf t[startIdx + 1] = 111 Then ' 111: 'o'
-				If base_ <> 8 Then Return False
-				startIdx += 2
-			ElseIf t[startIdx + 1] = 98 Then ' 98: 'b'
-				If base_ <> 2 Then Return False
-				startIdx += 2
-			End If
-		End If
-	End If
-	If startIdx >= LenT Then Return False
-	Dim As Boolean hasDot = False
-	Dim As Boolean isValid = False
-	Dim As Integer ch
-	For i As Integer = startIdx To LenT - 1
-		ch = t[i]
-		' 优化：小数点判断移到外层，优先处理
-		If ch = 46 Then ' 46: '.' (dot)
-			If hasDot OrElse base_ <> 10 Then Return False ' 多个点或非10进制
-			hasDot = True
-			Continue For
-		End If
-		isValid = False
-		If ch >= 48 AndAlso ch <= 57 Then ' ASCII 48-57: '0'-'9'
-			If (ch - 48) < base_ Then isValid = True
-		ElseIf ch >= 97 AndAlso ch <= 102 Then ' ASCII 97-102: 'a'-'f'
-			If (ch - 87) < base_ Then isValid = True
-		End If
-		If Not isValid Then Return False
+Private Function FormatFileName(ByRef originalName As WString) As String
+	Const ILLEGAL_CHARS As String = "\/:*?""<>|"
+	Dim As WString * 1024 Result = originalName
+	Dim As Integer i, posi
+	For i = 1 To Len(ILLEGAL_CHARS)
+		Dim As String badChar = Mid(ILLEGAL_CHARS, i, 1)
+		posi = InStr(Result, badChar)
+		While posi > 0
+			Result = Left(Result, posi - 1) + Mid(Result, posi + 1)
+			posi = InStr(Result, badChar)
+		Wend
 	Next i
-	Return True
+	Result = Trim(Result)
+	If Result = "" Then Result = "unNamed"
+	Return Result
 End Function
+
 
 #ifndef Match_Off
 	Private Function Match(ByRef Subject As WString Ptr, ByRef Pattern As WString Ptr) As Boolean

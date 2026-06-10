@@ -198,12 +198,18 @@ Namespace My.Sys.Forms
 			ssSortDescending
 		End Enum
 		
+		Private Enum CompareType
+			stText
+			stNumeric
+			stDateTime
+		End Enum
+		
 		Private Type CompareParaType
 			Parent        As Any Ptr
 			SortIndex     As Integer
 			SortOrder     As SortStyle
 			SortOrderLast As SortStyle
-			SortNatural   As Boolean
+			SortType      As CompareType
 			MatchCase     As Boolean
 		End Type
 		
@@ -482,9 +488,9 @@ Namespace My.Sys.Forms
 			FControlParent     As Integer
 			FStartPosition     As Integer
 			FStyle             As Integer
-			FText              As WString Ptr
+			FText              As UString
 			FHint              As WString Ptr
-			FProgID            As WString Ptr
+			FProgID             As WString Ptr
 			FShowCaption       As Boolean
 			FShowHint          As Boolean
 			FAlign             As DockStyle

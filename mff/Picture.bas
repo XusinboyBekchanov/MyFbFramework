@@ -262,7 +262,9 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 				End With
-				If ShowCaption AndAlso FText <> 0 Then Canvas.TextOut(Current.X, Current.Y, *FText, Font.Color, FBackColor)
+				If ShowCaption Then
+					Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
+				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
 				Canvas.UnSetHandle
 				If DoubleBuffered Then

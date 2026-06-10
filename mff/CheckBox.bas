@@ -22,8 +22,8 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
 			Case "autosize": Return @FAutoSize
-			Case "caption": Return FText
-			Case "text": Return FText
+			Case "caption": Return FText.vptr
+			Case "text": Return FText.vptr
 			Case "checked": Return @FChecked
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)

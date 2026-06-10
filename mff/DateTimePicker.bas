@@ -202,16 +202,16 @@ Namespace My.Sys.Forms
 	Private Property DateTimePicker.Text ByRef As WString
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK4__
-				WLet(FText, WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))))
+				FText = WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
 			#else
-				WLet(FText, WStr(*gtk_entry_get_text(GTK_ENTRY(widget))))
+				FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
 			#endif
-			If FText = 0 Then Return "" Else Return *FText
+			Return *FText.vptr
 		#elseif defined(__USE_WASM__)
 			Dim ptr_ As ZString Ptr = GetStringValue(@This)
-			WLet(FText, *ptr_)
+			FText = *ptr_
 			FreePtr(ptr_)
-			If FText = 0 Then Return "" Else Return *FText
+			Return *FText.vptr
 		#else
 			Return Base.Text
 		#endif
@@ -219,7 +219,7 @@ Namespace My.Sys.Forms
 	
 	Private Property DateTimePicker.Text(ByRef Value As WString)
 		If IsDate(Value) Then
-			WLet(FText, Value)
+			FText = Value
 			Dim As Integer Pos1 = InStr(Value, ":")
 			If Pos1 > 0 Then
 				SelectedDate = DateValue(Trim(..Left(Value, Pos1 - 3)))
@@ -236,7 +236,7 @@ Namespace My.Sys.Forms
 				FSelectedTime = TimeSerial(Hour(FSelectedDateTime), Minute(FSelectedDateTime), Second(FSelectedDateTime))
 			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
-				DateTime_GetSystemtime(FHandle, @pst)
+				DateTime_GetSystemTime(FHandle, @pst)
 				FSelectedTime = TimeSerial(pst.wHour, pst.wMinute, pst.wSecond)
 			#endif
 		End If

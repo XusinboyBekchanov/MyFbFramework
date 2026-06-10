@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 		#endif
 		FFindText           As WString Ptr
 		FTextRange          As WString Ptr
-		FTextRTF            As WString Ptr
+		FTextRTF            As UString
 		FSelWStrVal         As WString Ptr
 		FSelIntVal          As Integer
 		FSelBoolVal         As Integer
@@ -134,9 +134,9 @@ Namespace My.Sys.Forms
 		Declare Property TabStop As Boolean
 		'Enables tab key navigation.
 		Declare Property TabStop(Value As Boolean)
-		Declare Property TextRTF ByRef As WString
+		Declare Property TextRTF As UString
 		'RTF-formatted text content.
-		Declare Property TextRTF(ByRef Value As WString)
+		Declare Property TextRTF(Value As UString)
 		Declare Property SelColor As Integer
 		'Text color of selection.
 		Declare Property SelColor(Value As Integer)

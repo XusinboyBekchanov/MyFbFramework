@@ -15,11 +15,11 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "balloontipicon": Return @BalloonTipIcon
 			Case "balloontipicontype": Return @FBalloonTipIconType
-			Case "balloontiptext": Return FBalloonTipText
-			Case "balloontiptitle": Return FBalloonTipTitle
+			Case "balloontiptext": Return FBalloonTipText.vptr
+			Case "balloontiptitle": Return FBalloonTipTitle.vptr
 			Case "contextmenu": Return ContextMenu
 			Case "icon": Return @Icon
-			Case "text": Return FText
+			Case "text": Return FText.vptr
 			Case "visible": Return @FVisible
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -79,33 +79,33 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property NotifyIcon.BalloonTipText ByRef As WString
-		If FBalloonTipText Then Return *FBalloonTipText Else Return ""
+		Return *FBalloonTipText.vptr
 	End Property
-
+	
 	Private Property NotifyIcon.BalloonTipText(ByRef Value As WString)
-		WLet(FBalloonTipText, Value)
+		FBalloonTipText = Value
 		#ifdef __USE_WINAPI__
 			FNotifyIconData.szInfo = Value
 		#endif
 	End Property
 	
 	Private Property NotifyIcon.BalloonTipTitle ByRef As WString
-		If FBalloonTipTitle Then Return *FBalloonTipTitle Else Return ""
+		Return *FBalloonTipTitle.vptr
 	End Property
 	
 	Private Property NotifyIcon.BalloonTipTitle(ByRef Value As WString)
-		WLet(FBalloonTipTitle, Value)
+		FBalloonTipTitle = Value
 		#ifdef __USE_WINAPI__
 			FNotifyIconData.szInfoTitle = Value
 		#endif
 	End Property
 	
 	Private Property NotifyIcon.Text ByRef As WString
-		If FText Then Return *FText Else Return ""
+		Return *FText.vptr
 	End Property
 	
 	Private Property NotifyIcon.Text(ByRef Value As WString)
-		WLet(FText, Value)
+		FText = Value
 		#ifdef __USE_WINAPI__
 			FNotifyIconData.szTip = Value
 		#endif
@@ -218,9 +218,6 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor NotifyIcon
-		If FBalloonTipText Then _Deallocate(FBalloonTipText)
-		If FBalloonTipTitle Then _Deallocate(FBalloonTipTitle)
-		If FText Then _Deallocate(FText)
 		#ifdef __USE_WINAPI__
 			If FVisible Then Shell_NotifyIcon(NIM_DELETE, Cast(PNOTIFYICONDATA, @FNotifyIconData))
 		#endif

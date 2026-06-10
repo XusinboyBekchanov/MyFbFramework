@@ -95,9 +95,9 @@ Namespace My.Sys.Forms
 			Declare Sub ChangeStyle(ByRef Style As DWORD, iStyle As Integer, Value As Boolean)
 		#endif
 		FBalloonTipIconType As ToolTipIconType
-		FBalloonTipText As WString Ptr
-		FBalloonTipTitle As WString Ptr
-		FText As WString Ptr
+		FBalloonTipText As UString
+		FBalloonTipTitle As UString
+		FText As UString
 		FVisible As Boolean
 		Declare Static Sub IconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)
 		Declare Static Sub BalloonTipIconChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Icon)

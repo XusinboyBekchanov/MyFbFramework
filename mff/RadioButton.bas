@@ -21,10 +21,10 @@ Namespace My.Sys.Forms
 		Private Function RadioButton.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "alignment": Return @FAlignment
-			Case "caption": Return Cast(Any Ptr, This.FText)
+			Case "caption": Return Cast(Any Ptr, This.FText.vptr)
 			Case "checked": Return @FChecked
 			Case "tabindex": Return @FTabIndex
-			Case "text": Return Cast(Any Ptr, This.FText)
+			Case "text": Return Cast(Any Ptr, This.FText.vptr)
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0

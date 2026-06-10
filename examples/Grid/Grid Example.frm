@@ -4,6 +4,9 @@
 		#ifdef __FB_WIN32__
 			#cmdline "Form1.rc"
 		#endif
+		#ifdef __FB_64BIT__
+			#cmdline "-gen gas64"
+		#endif
 		#define __USE_GTK3__
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -13,7 +16,7 @@
 	#include once "mff/Label.bi"
 	#include once "mff/CheckBox.bi"
 	Using My.Sys.Forms
-	
+	/'test comment '/
 	Type Form1Type Extends Form
 		Declare Sub cmdRowInsert_Click(ByRef Sender As Control)
 		Declare Sub cmdRowDele_Click(ByRef Sender As Control)
@@ -73,7 +76,7 @@
 			.Anchor.Top = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.OwnerData = True
-			.SetBounds 0, 52, 620, 210
+			.SetBounds 10, 52, 610, 210
 			.Columns.Add "NO.", , 30 , cfRight ', , clPurple, clBlue
 			.Columns.Add ML("Column") & " 1", , 100, cfRight ', , clRed, clBlue
 			.Columns.Add ML("Column") & " 2", , 100, cfRight, True, clYellow, clRed
@@ -88,33 +91,33 @@
 			Next
 			
 			'Control's Name
-			Grid1[0][1].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 1"
-			Grid1[1][1].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 1"
-			Grid1[2][1].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 1"
-			Grid1[3][1].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 1"
+			Grid1[0][1].Text = ML("Row") & " 1 " & ML("Column") & " 1"
+			Grid1[1][1].Text = ML("Row") & " 2 " & ML("Column") & " 1"
+			Grid1[2][1].Text = ML("Row") & " 3 " & ML("Column") & " 1"
+			Grid1[3][1].Text = ML("Row") & " 4 " & ML("Column") & " 1"
 			Grid1[0][1].Editable = True
 			
 			'Like Array
-			.Rows[0][2].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 2 " & ML("AllowEdit")
-			.Rows[1][2].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 2 " & ML("AllowEdit")
-			.Rows[2][2].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 2 " & ML("AllowEdit")
-			.Rows[3][2].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 2 " & ML("AllowEdit")
+			.Rows[0][2].Text = ML("Row") & " 1 " & ML("Column") & " 2 " & ML("AllowEdit")
+			.Rows[1][2].Text = ML("Row") & " 2 " & ML("Column") & " 2 " & ML("AllowEdit")
+			.Rows[2][2].Text = ML("Row") & " 3 " & ML("Column") & " 2 " & ML("AllowEdit")
+			.Rows[3][2].Text = ML("Row") & " 4 " & ML("Column") & " 2 " & ML("AllowEdit")
 			For i As Integer = 0 To 3
 				.Rows[i][2].Editable = True
 			Next
 			'Cell Like Excel
-			.Cells(0, 3)->Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 3"
-			.Cells(1, 3)->Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 3"
-			.Cells(2, 3)->Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 3"
-			.Cells(3, 3)->Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 3"
+			.Cells(0, 3)->Text = ML("Row") & " 1 " & ML("Column") & " 3"
+			.Cells(1, 3)->Text = ML("Row") & " 2 " & ML("Column") & " 3"
+			.Cells(2, 3)->Text = ML("Row") & " 3 " & ML("Column") & " 3"
+			.Cells(3, 3)->Text = ML("Row") & " 4 " & ML("Column") & " 3"
 			.Cells(2, 3)->Editable = True
 			.Cells(2, 3)->BackColor = clGreen
 			.Cells(2, 2)->BackColor = clGreen
 			.Cells(2, 1)->BackColor = clGreen
-			.Rows[0][5].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 5 " & ML("AllowEdit")
-			.Rows[1][5].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 5 " & ML("AllowEdit")
-			.Rows[2][5].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 5 " & ML("AllowEdit")
-			.Rows[3][5].Text = ML("Row") & Str(Fix(Rnd * 100)) & ML("Column") & " 5 " & ML("AllowEdit")
+			.Rows[0][5].Text = ML("Row") & " 1 " & ML("Column") & " 5 " & ML("AllowEdit")
+			.Rows[1][5].Text = ML("Row") & " 2 " & ML("Column") & " 5 " & ML("AllowEdit")
+			.Rows[2][5].Text = ML("Row") & " 3 " & ML("Column") & " 5 " & ML("AllowEdit")
+			.Rows[3][5].Text = ML("Row") & " 4 " & ML("Column") & " 5 " & ML("AllowEdit")
 			.Rows[3].Tag = @"3"
 			.SelectedRowIndex = 0
 			#ifdef __USE_WINAPI__
@@ -262,7 +265,7 @@
 		' chkFixCols
 		With chkFixCols
 			.Name = "chkFixCols"
-			.Text = ML("Col 1 is the fixed column")
+			.Text = ML("Col 1 is the row index")
 			.TabIndex = 14
 			.Checked = True
 			.ControlIndex = 12
@@ -354,17 +357,17 @@ Private Sub Form1Type.cmdLargeData_Click(ByRef Sender As Control)
 		End If
 		If chkDataArrayPtr.Checked Then
 			.Rows.Count = MAX_ROW
-			ReDim .DataArrayPtr(MAX_ROW, .Columns.Count - IIf(.FixCols, 1, 0) - 1)
+			ReDim .DataArrayPtr(MAX_ROW, .Columns.Count - .FixCols - 1)
 			For iRow As Long = 0 To UBound(.DataArrayPtr, 1)
-				For iCol As Integer = 0 To .Columns.Count - IIf(.FixCols, 1, 0) -  1
-					WLet(.DataArrayPtr(iRow, iCol), ML("Array") + ML("Row") + Str(Fix(Rnd * 10000000)) + ML("Col") + Str(iCol))
+				For iCol As Integer = 0 To .Columns.Count - .FixCols -  1
+					WLet(.DataArrayPtr(iRow, iCol), ML("Array") + ML("Row") + Str(iRow + 1) + ML("Col") + Str(iCol))
 				Next
 			Next
 		ElseIf Not .OwnerData Then
 			For iRow As Long = 0 To MAX_ROW
 				RowStr = ML("Grid") + ML("Row") + Str(iRow + 1) + ML("Col0")
 				Randomize
-				For iCol As Integer = 1 To .Columns.Count - IIf(.FixCols, 1, 0) - 1
+				For iCol As Integer = 1 To .Columns.Count - .FixCols - 1
 					RowStr += Chr(9) + ML("Grid") + ML("Row")  + Str(Fix(Rnd * 10000000)) + ML("Col") + Str(iCol)
 					'.Rows[iRow][iCol].Text = "行" + Str(iRow + 1) + "列" + Str(iCol)  ' Slowly in this ways
 				Next
@@ -456,16 +459,8 @@ Private Sub Form1Type.Grid1_ColumnClick(ByRef Sender As Grid, ByVal ColIndex As 
 		End If
 	Else
 		Grid1.SortOrder = SortStyle.ssSortAscending
-		Grid1.SortIndex = ColIndex
 	End If
-	Grid1.OwnerData = chkOwnerData.Checked
-	Grid1.FixCols = chkFixCols.Checked
-	If Not Grid1.OwnerData Then
-		Dim As Double StartShow = Timer
-		Grid1.Rows.Sort Grid1.SortIndex, Grid1.SortOrder
-		Debug.Print  ML("Elasped time:") & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000) & " s"
-	End If
-	
+	Grid1.Rows.Sort Grid1.SortIndex, Grid1.SortOrder
 End Sub
 
 Private Sub Form1Type.chkFixCols_Click(ByRef Sender As CheckBox)

@@ -39,6 +39,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				Dim As TOOLINFO    ti
 				ZeroMemory(@ti, SizeOf(ti))
+				
 				ti.cbSize = SizeOf(ti)
 				ti.hwnd   = Parent->Handle
 				'ti.uId    = Cast(UINT, FHandle)
@@ -49,7 +50,8 @@ Namespace My.Sys.Forms
 				End If
 				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
 				ti.hinst  = GetModuleHandle(NULL)
-				ti.lpszText  = FText
+				ti.lpszText  = FText.vptr
+				
 				SendMessage(FHandle, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
 			End If
 		End Sub
@@ -64,9 +66,9 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ToolTips.Show
-	If FText = 0 OrElse *FText = "" Then WLet(FText, " ")
+		If FText = "" Then FText = " "
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(*FText))
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(FText))
 			gtk_window_move(GTK_WINDOW(winTooltip), FLeft, FTop)
 			gtk_window_resize(GTK_WINDOW(winTooltip), 100, 25)
 			gtk_widget_show_all(winTooltip)
@@ -86,16 +88,22 @@ Namespace My.Sys.Forms
 				End If
 				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
 				ti.hinst  = GetModuleHandle(NULL)
-				ti.lpszText  = FText
+				ti.lpszText  = FText.vptr
+				
 				SendMessage(FHandle, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
 			Else
 				SendMessage(FHandle, TTM_GETTOOLINFO, 0, CInt(@ti))
-				ti.lpszText = FText
+				
+				ti.lpszText = FText.vptr
+				
 				SendMessage(FHandle, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 			End If
+			
 			SendMessage(FHandle, TTM_SETMAXTIPWIDTH, 0, 1000)
 			SendMessage(FHandle, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
+			
 			Var Result = SendMessage(FHandle, TTM_GETBUBBLESIZE, 0, Cast(LPARAM, @ti))
+			
 			Dim As ..Rect rc
 			.ClientToScreen(Parent->Handle, Cast(..Point Ptr, @rc))
 			SendMessage(FHandle, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + FLeft, rc.Top + FTop))

@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
 		Private Function IPAddress.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
-			Case "text": Text: Return FText
+			Case "text": Text: Return FText.vptr
 			Case "onchange": Return OnChange
 			Case "onfieldchanged": Return OnFieldChanged
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -66,25 +66,25 @@ Namespace My.Sys.Forms
 	Private Property IPAddress.Text ByRef As WString
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK4__
-				WLet(FText, Trim(WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(0)))))))
+				FText = Trim(WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(0))))))
 			#else
-				WLet(FText, Trim(WStr(*gtk_entry_get_text(GTK_ENTRY(Entries(0))))))
+				FText = Trim(WStr(*gtk_entry_get_text(GTK_ENTRY(Entries(0)))))
 			#endif
 			For i As Integer = 1 To 3
 				#ifdef __USE_GTK4__
-					WAdd(FText, "." & Trim(Str(Val(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(i))))))))
+					FText &= "." & Trim(Str(Val(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(Entries(i)))))))
 				#else
-					WAdd(FText, "." & Trim(Str(Val(*gtk_entry_get_text(GTK_ENTRY(Entries(i)))))))
+					FText &= "." & Trim(Str(Val(*gtk_entry_get_text(GTK_ENTRY(Entries(i))))))
 				#endif
 			Next
-			If FText = 0 Then Return "" Else Return *FText
+			Return *FText.vptr
 		#else
 			Return Base.Text
 		#endif
 	End Property
 	
 	Private Property IPAddress.Text(ByRef Value As WString)
-		WLetEx(FText, Value)
+		FText = Value
 		If Value = "" Then
 			This.Clear
 		Else
@@ -111,7 +111,7 @@ Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Private Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			With *Cast(IPAddress Ptr, @Sender)
-				If .FText <> 0 Then .Text = * (.FText) Else .Text = ""
+				.Text = .FText
 			End With
 		End Sub
 		

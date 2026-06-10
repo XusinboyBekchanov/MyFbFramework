@@ -279,7 +279,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub TextBox.AddLine(ByRef wsLine As WString)
-		InsertLine(LinesCount, wsLine)
+		InsertLine(LinesCount - 1, wsLine)
 	End Sub
 	
 	#ifndef TextBox_InsertLine_Off
@@ -306,7 +306,7 @@ Namespace My.Sys.Forms
 						*sLine = WChr(13) & WChr(10) + wsLine
 					End If
 					SendMessage(FHandle, EM_SETSEL, iStart, iStart)
-					SendMessage(FHandle, EM_REPLACESEL, 1, Cast(LPARAM, sLine))
+					SendMessage(FHandle, EM_REPLACESEL, 0, Cast(LPARAM, sLine))
 					_Deallocate(sLine)
 				End If
 			#endif
@@ -341,16 +341,16 @@ Namespace My.Sys.Forms
 					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 					Dim As GtkTextIter _start, _end
 					gtk_text_buffer_get_bounds(buffer, @_start, @_end)
-					WLet(FText, *gtk_text_buffer_get_text(buffer, @_start, @_end, True))
+					FText = WStr(*gtk_text_buffer_get_text(buffer, @_start, @_end, True))
 				Else
 					#ifdef __USE_GTK4__
-						WLet(FText, WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))))
+						FText = WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
 					#else
-						WLet(FText, WStr(*gtk_entry_get_text(GTK_ENTRY(widget))))
+						FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
 					#endif
 				End If
 			End If
-			If FText = 0 Then Return "" Else Return *FText
+			Return *FText.vptr
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				Dim As jobject CharSequence = CallObjectMethod(FHandle, "android/widget/EditText", "getText", "()Ljava/lang/CharSequence;")
@@ -358,20 +358,19 @@ Namespace My.Sys.Forms
 				Dim As jmethodID mLength = (*env)->GetMethodID(env, cCharSequence, "length", "()I")
 				Dim As jmethodID mCharAt = (*env)->GetMethodID(env, cCharSequence, "charAt", "(I)C")
 				Dim As Integer length = (*env)->CallIntMethod(env, CharSequence, mLength)
-				FText = _Reallocate(FText, (length + 1) * SizeOf(WString))
-				If FText = 0 Then Return ""
+				FText = ""
+				FText.Resize length
 				For i As Integer = 0 To length - 1
-					*FText[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
+					FText.vptr[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
 				Next
-				*FText[length] = 0
-			Next
-			Return *FText
+				FText.vptr[length] = 0
+			End If
+			Return *FText.vptr
 		#elseif defined(__USE_WASM__)
 			Dim ptr_ As ZString Ptr = GetStringValue(@This)
-			FText = _Reallocate(FText, (Len(*ptr_) + 1) * SizeOf(WString))
-			*FText = *ptr_
+			FText = *ptr_
 			FreePtr(ptr_)
-			Return *FText
+			Return *FText.vptr
 		#else
 			Return Base.Text
 		#endif
@@ -403,8 +402,8 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#elseif defined(__USE_JNI__)
-			If FHandle AndAlso FText <> 0 Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
+			If FHandle Then
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
 			End If
 		#elseif defined(__USE_WASM__)
 			If FHandle Then
@@ -420,17 +419,17 @@ Namespace My.Sys.Forms
 					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 					Dim As GtkTextIter _start, _end
 					gtk_text_buffer_get_bounds(buffer, @_start, @_end)
-					WLet(FText, WStr(*gtk_text_buffer_get_text(buffer, @_start, @_end, True)))
+					FText = WStr(*gtk_text_buffer_get_text(buffer, @_start, @_end, True))
 				Else
 					#ifdef __USE_GTK4__
-						WLet(FText, WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))))
+						FText = WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
 					#else
-						WLet(FText, WStr(*gtk_entry_get_text(GTK_ENTRY(widget))))
+						FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
 					#endif
 				End If
 			End If
-			FText_.Resize Len(*FText)
-			*FText_.m_Data = *FText
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
 			Return FText_
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
@@ -439,28 +438,27 @@ Namespace My.Sys.Forms
 				Dim As jmethodID mLength = (*env)->GetMethodID(env, cCharSequence, "length", "()I")
 				Dim As jmethodID mCharAt = (*env)->GetMethodID(env, cCharSequence, "charAt", "(I)C")
 				Dim As Integer length = (*env)->CallIntMethod(env, CharSequence, mLength)
-				FText = _Reallocate(FText, (length + 1) * SizeOf(WString))
+				FText = ""
+				FText.Resize length
 				For i As Integer = 0 To length - 1
-					(*FText)[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
+					FText.vptr[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
 				Next
-				(*FText)[length] = 0
+				FText.vptr[length] = 0
 			End If
-			FText_.Resize Len(*FText)
-			*FText_.m_Data = *FText
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
 			Return FText_
 		#elseif defined(__USE_WASM__)
 			Dim ptr_ As ZString Ptr = GetStringValue(@This)
-			FText = _Reallocate(FText, (Len(*ptr_) + 1) * SizeOf(WString))
-			If FText = 0 Then Return ""
-			*FText = *ptr_
+			FText = *ptr_
 			FreePtr(ptr_)
-			FText_.Resize Len(*FText)
-			*FText_.m_Data = *FText
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
 			Return FText_
 		#else
 			Base.Text
-			FText_.Resize Len(*FText)
-			*FText_.m_Data = *FText
+			FText_.Resize FText.m_Length
+			*FText_.m_Data = *FText.m_Data
 			Return FText_
 		#endif
 	End Property
@@ -714,24 +712,24 @@ Namespace My.Sys.Forms
 		If Result <> 0 Then Result = Open(File For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(File For Input As #Fn)
 		If Result = 0 Then
-			WLet(FText, WInput(LOF(Fn), #Fn))
+			FText = WInput(LOF(Fn), #Fn)
 			#ifdef __USE_GTK__
 				If GTK_IS_TEXT_VIEW(widget) Then
 					Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
-					If FText = 0 Then
+					If FText = "" Then
 						gtk_text_buffer_set_text(buffer, !"\0", -1)
 					Else
-						gtk_text_buffer_set_text(buffer, ToUtf8(*FText), -1)
+						gtk_text_buffer_set_text(buffer, ToUtf8(FText), -1)
 					End If
 				Else
-					If FText = 0 Then
+					If FText = "" Then
 						gtk_entry_set_text(GTK_ENTRY(widget), !"\0")
 					Else
-						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(*FText))
+						gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(FText))
 					End If
 				End If
 			#elseif defined(__USE_WINAPI__)
-				If FHandle Then SetWindowText(FHandle, FText)
+				If FHandle Then SetWindowText(FHandle, FText.vptr)
 			#endif
 		End If
 		CloseFile_(Fn)
@@ -1713,7 +1711,7 @@ Namespace My.Sys.Forms
 		FHideSelection    = 1
 		FCtl3D            = True
 		WLet(FMaskChar, "")
-		'FText_ = ""
+		FText_ = ""
 		FText_.m_Owner = @This
 		FText_.OnChange = @OnTextChanged
 		#ifdef __USE_WINAPI__
@@ -1754,9 +1752,9 @@ Namespace My.Sys.Forms
 	
 	Private Destructor TextBox
 		If FSelText <> 0 Then _Deallocate(FSelText)
-		If FText <> 0 Then _Deallocate(FText)
 		If FLine <> 0 Then _Deallocate(FLine)
 		If FMaskChar <> 0 Then _Deallocate(FMaskChar)
+		FText = ""
 	End Destructor
 End Namespace
 
@@ -1776,3 +1774,4 @@ End Namespace
 	'	End If
 	'End Sub
 #endif
+

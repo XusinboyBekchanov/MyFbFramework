@@ -156,267 +156,104 @@ Private Sub Dictionary.Remove(Index As Integer)
 End Sub
 
 #ifndef Dictionary_Sort_Off
-	Private Function Dictionary.CompareStrings(ByRef s1 As WString, ByRef s2 As WString, ByVal bMatchCase As Boolean = True, ByVal bNaturalSort As Boolean = False) As Integer
-		Dim As Integer iLen1 = Len(s1)
-		Dim As Integer iLen2 = Len(s2)
-		Dim As Integer i1 = 0, i2 = 0
-		Dim As Long c1, c2
-		
-		While i1 < iLen1 AndAlso i2 < iLen2
-			c1 = s1[i1]
-			c2 = s2[i2]
-			' 判断当前字符是否构成数值的起始（数字，或后跟数字的 +/- 符号）
-			Dim isNum1 As Boolean = (c1 >= 48 AndAlso c1 <= 57) OrElse _
-			((c1 = 43 OrElse c1 = 45) AndAlso (i1 + 1 < iLen1) AndAlso (s1[i1+1] >= 48 AndAlso s1[i1+1] <= 57))
-			Dim isNum2 As Boolean = (c2 >= 48 AndAlso c2 <= 57) OrElse _
-			((c2 = 43 OrElse c2 = 45) AndAlso (i2 + 1 < iLen2) AndAlso (s2[i2+1] >= 48 AndAlso s2[i2+1] <= 57))
-			
-			' 开启数值排序，且两端当前都是数值起点
-			If bNaturalSort AndAlso isNum1 AndAlso isNum2 Then
-				' --- 解析 s1 数值 ---
-				Dim sign1 As Double = 1.0
-				If s1[i1] = 43 Then i1 += 1 '+'
-				If s1[i1] = 45 Then sign1 = -1.0: i1 += 1 '-
-				
-				Dim num1_int As LongInt = 0
-				While i1 < iLen1 AndAlso s1[i1] >= 48 AndAlso s1[i1] <= 57
-					num1_int = num1_int * 10 + (s1[i1] - 48)
-					i1 += 1
-				Wend
-				
-				Dim num1_frac As Double = 0.0
-				If i1 < iLen1 AndAlso s1[i1] = 46 Then ' 处理小数部分
-					i1 += 1
-					Dim divisor As Double = 10.0
-					While i1 < iLen1 AndAlso s1[i1] >= 48 AndAlso s1[i1] <= 57
-						num1_frac = num1_frac + (s1[i1] - 48) / divisor
-						divisor *= 10.0
-						i1 += 1
-					Wend
-				End If
-				Dim val1 As Double = sign1 * (num1_int + num1_frac)
-				
-				' --- 解析 s2 数值 ---
-				Dim sign2 As Double = 1.0
-				If s2[i2] = 43 Then i2 += 1
-				If s2[i2] = 45 Then sign2 = -1.0: i2 += 1
-				
-				Dim num2_int As LongInt = 0
-				While i2 < iLen2 AndAlso s2[i2] >= 48 AndAlso s2[i2] <= 57
-					num2_int = num2_int * 10 + (s2[i2] - 48)
-					i2 += 1
-				Wend
-				
-				Dim num2_frac As Double = 0.0
-				If i2 < iLen2 AndAlso s2[i2] = 46 Then ' 处理小数部分
-					i2 += 1
-					Dim divisor As Double = 10.0
-					While i2 < iLen2 AndAlso s2[i2] >= 48 AndAlso s2[i2] <= 57
-						num2_frac = num2_frac + (s2[i2] - 48) / divisor
-						divisor *= 10.0
-						i2 += 1
-					Wend
-				End If
-				Dim val2 As Double = sign2 * (num2_int + num2_frac)
-				
-				' --- 比较解析出的数值 ---
-				If val1 < val2 Then Return -1
-				If val1 > val2 Then Return 1
-				' 数值相等则继续往后比较后续字符
-				Continue While
-			End If
-			
-			' 非数字字符按原逻辑处理大小写
-			If Not bMatchCase Then
-				If c1 >= 65 AndAlso c1 <= 90 Then c1 += 32 ' A-Z -> a-z
-				If c2 >= 65 AndAlso c2 <= 90 Then c2 += 32
-			End If
-			
-			If c1 < c2 Then Return -1
-			If c1 > c2 Then Return 1
-			
-			i1 += 1
-			i2 += 1
-		Wend
-		
-		' 前缀完全相同，较短的字符串更小
-		If iLen1 < iLen2 Then Return -1
-		If iLen1 > iLen2 Then Return 1
-		Return 0
-		
-	End Function
-	' iDirection: SORT_ASCENDING (1) 为升序(默认), SORT_DESCENDING (-1) 为降序
-	Sub Dictionary.Sort(ByVal bMatchCase As Boolean = False, ByVal iDirection As Long = 1, ByVal bNaturalSort As Boolean = False)
+	Private Sub Dictionary.Sort(bMatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
 		If FItems.Count <= 1 Then Return
 		'Dim As Boolean flag
 		Sorted = True
 		SortKeysed  = False
 		FSortMatchCase = bMatchCase
-		' 栈元素结构
-		Type SortStackItem
-			iLow As Long
-			iHigh As Long
-		End Type
-		' 插入排序的阈值，小于此值切换为插入排序
-		Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
-		Dim As Long iLBound = 0
-		Dim As Long iUBound = FCount - 1
-		If iUBound <= iLBound Then Return
-		'栈最大深度 (应对极度偏斜的划分，64足够处理2^64个元素)
-		Dim arrStack(0 To 64 - 1) As SortStackItem
-		Dim As Long iStackTop = 0
-		arrStack(iStackTop).iLow = iLBound
-		arrStack(iStackTop).iHigh = iUBound
-		iStackTop += 1
-		Do While iStackTop > 0
-			iStackTop -= 1
-			Dim As Long iLow = arrStack(iStackTop).iLow
-			Dim As Long iHigh = arrStack(iStackTop).iHigh
-			Dim As Long iL = iLow
-			Dim As Long iR = iHigh
-			Dim As DictionaryItem Ptr sPivotPtr = Item((iLow + iHigh) \ 2)
-			If sPivotPtr = 0 Then Return
-			Do
-				' iDirection 乘数直接控制比较逻辑，无需重写两套排序代码
-				While CompareStrings(Item(iL)->Text, sPivotPtr->Text, bMatchCase, bNaturalSort) * iDirection < 0
-					iL += 1
-				Wend
-				While CompareStrings(Item(iR)->Text, sPivotPtr->Text, bMatchCase, bNaturalSort) * iDirection > 0
-					iR -= 1
-				Wend
-				
-				If iL <= iR Then
-					Exchange iL, iR
-					iL += 1
-					iR -= 1
-				End If
-			Loop Until iL > iR
-			
-			Dim As Long iSize1 = iR - iLow + 1
-			Dim As Long iSize2 = iHigh - iL + 1
-			
-			If iSize1 > iSize2 Then
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-			Else
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-			End If
-		Loop
+		If iRight = 0 Then iRight = FItems.Count - 1
+		If ileft < 0 Then ileft = 0
+		If (iRight <> 0 AndAlso (ileft >= iRight)) Then Return
+		Dim As Integer i = ileft, j = iRight
 		
-		Dim As Long i
-		Dim As Long j
-		For i = iLBound + 1 To iUBound
-			j = i
-			While j > iLBound AndAlso CompareStrings(Item(j - 1)->Text, Item(j)->Text, bMatchCase, bNaturalSort) * iDirection > 0
-				Exchange j - 1, j
-				j -= 1
+		'QuickSort
+		Dim As DictionaryItem Ptr iKey = Item(i)
+		If iKey = 0 Then Return
+		If bMatchCase Then
+			While (i <= j) '/*控制在当组内寻找一遍
+				While (iKey->Text < Item(j)->Text AndAlso i < j)
+					j -= 1
+				Wend
+				If i <= j Then Exchange i, j: i += 1
+				While (iKey->Text >= Item(i)->Text AndAlso i < j)
+					i += 1
+				Wend
+				If i <= j Then Exchange i, j:  j -= 1
 			Wend
-		Next i
+		Else
+			While (i <= j) '/*控制在当组内寻找一遍
+				While (LCase(iKey->Text) < LCase(Item(j)->Text) AndAlso i < j)
+					j -= 1
+				Wend
+				If i <= j Then Exchange i, j: i += 1
+				While (LCase(iKey->Text) >= LCase(Item(i)->Text) AndAlso i < j)
+					i += 1
+				Wend
+				If i <= j Then Exchange i, j:  j -= 1
+			Wend
+		End If
+		If j  > ileft Then This.Sort(bMatchCase, ileft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
+		If i  < iRight Then This.Sort(bMatchCase, i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
 		If OnChange Then OnChange(This)
 	End Sub
 #endif
 
 #ifndef Dictionary_SortKeys_Off
-	Private Sub Dictionary.SortKeys(ByVal bMatchCase As Boolean = False, ByVal iDirection As Long = 1, ByVal bNaturalSort As Boolean = False)
+	Private Sub Dictionary.SortKeys(MatchCase As Boolean = False, ileft As Integer = 0, iRight As Integer = 0)
 		If FItems.Count <= 1 Then Return
 		'Dim As Boolean flag
-		FSortKeysMatchCase = bMatchCase
+		FSortKeysMatchCase = MatchCase
 		SortKeysed = True
 		Sorted = False
-		' 栈元素结构
-		Type SortStackItem
-			iLow As Long
-			iHigh As Long
-		End Type
-		' 插入排序的阈值，小于此值切换为插入排序
-		Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
-		Dim As Long iLBound = 0
-		Dim As Long iUBound = FCount - 1
-		If iUBound <= iLBound Then Return
-		'栈最大深度 (应对极度偏斜的划分，64足够处理2^64个元素)
-		Dim arrStack(0 To 64 - 1) As SortStackItem
-		Dim As Long iStackTop = 0
-		arrStack(iStackTop).iLow = iLBound
-		arrStack(iStackTop).iHigh = iUBound
-		iStackTop += 1
-		Do While iStackTop > 0
-			iStackTop -= 1
-			Dim As Long iLow = arrStack(iStackTop).iLow
-			Dim As Long iHigh = arrStack(iStackTop).iHigh
-			Dim As Long iL = iLow
-			Dim As Long iR = iHigh
-			Dim As DictionaryItem Ptr sPivotPtr = Item((iLow + iHigh) \ 2)
-			If sPivotPtr = 0 Then Return
-			Do
-				' iDirection 乘数直接控制比较逻辑，无需重写两套排序代码
-				While CompareStrings(Item(iL)->Key, sPivotPtr->Key, bMatchCase, bNaturalSort) * iDirection < 0
-					iL += 1
-				Wend
-				While CompareStrings(Item(iR)->Key, sPivotPtr->Key, bMatchCase, bNaturalSort) * iDirection > 0
-					iR -= 1
-				Wend
-				
-				If iL <= iR Then
-					Exchange iL, iR
-					iL += 1
-					iR -= 1
-				End If
-			Loop Until iL > iR
-			
-			Dim As Long iSize1 = iR - iLow + 1
-			Dim As Long iSize2 = iHigh - iL + 1
-			
-			If iSize1 > iSize2 Then
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-			Else
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-			End If
-		Loop
+		If iRight = 0 Then iRight = FItems.Count - 1
+		If ileft < 0 Then ileft = 0
+		If (iRight <> 0 AndAlso (ileft >= iRight)) Then Return
+		Dim As Integer i = ileft, j = iRight
 		
-		Dim As Long i
-		Dim As Long j
-		For i = iLBound + 1 To iUBound
-			j = i
-			While j > iLBound AndAlso CompareStrings(Item(j - 1)->Key, Item(j)->Key, bMatchCase, bNaturalSort) * iDirection > 0
-				Exchange j - 1, j
-				j -= 1
+		'QuickSort
+		Dim As DictionaryItem Ptr iKey = Item(i)
+		If iKey = 0 Then Return
+		If MatchCase Then
+			While (i <= j) '/*控制在当组内寻找一遍
+				While (iKey->Key < Item(j)->Key AndAlso i < j)
+					j -= 1
+				Wend
+				If i <= j Then Exchange i, j: i += 1
+				While (iKey->Key >= Item(i)->Key AndAlso i < j)
+					i += 1
+				Wend
+				If i <= j Then Exchange i, j:  j -= 1
 			Wend
-		Next i
+		Else
+			While (i <= j) '/*控制在当组内寻找一遍
+				While (LCase(iKey->Key) < LCase(Item(j)->Key) AndAlso i < j)
+					j -= 1
+				Wend
+				If i <= j Then Exchange i, j: i += 1
+				While (LCase(iKey->Key) >= LCase(Item(i)->Key) AndAlso i < j)
+					i += 1
+				Wend
+				If i <= j Then Exchange i, j:  j -= 1
+			Wend
+		End If
+		If j > ileft Then This.SortKeys(MatchCase, ileft, j) '*最后用同样的方式对分出来的左边的小组进行同上的做法*/
+		If i < iRight Then This.SortKeys(MatchCase, i, iRight) ';/*用同样的方式对分出来的右边的小组进行同上的做法, 当然最后可能会出现很多分左右，直到每一组的i = j
+		
+		'	'bubbleSort , Add flag for fast quit if it is sorted already
+		'	Dim As Boolean flag
+		'	For i = 0 To FCount - 1
+		'		flag = False
+		'		For j = 0 To FCount - i - 2
+		'			If MatchCase Then
+		'				If Item(j)->Key > Item(j+1)->Key Then Exchange j , j + 1 : flag = True
+		'			Else
+		'				If (LCase(Item(j)->Key) > LCase(Item(j+1)->Key)) Then Exchange j, j + 1 : flag = True
+		'			End If
+		'		Next
+		'		If flag = False Then Return
+		'	Next
+		
 		If OnChange Then OnChange(This)
 	End Sub
 #endif
@@ -643,13 +480,11 @@ End Function
 	Private Property Dictionary.Text ByRef As WString
 		If FItems.Count < 1 Then Return ""
 		WLet(FText, "")
-		Dim As Integer Capacity
 		For i As Integer = 0 To FItems.Count - 1
 			If i <> FItems.Count - 1 Then
-				WAdd(FText, Item(i)->Key & Chr(9) & " " & Item(i)->Text & Chr(13) & Chr(10), , Capacity)
+				WAdd(FText, Item(i)->Key & Chr(9) & " " & Item(i)->Text & Chr(13) & Chr(10))
 			Else
-				Capacity = 0
-				WAdd(FText, Item(i)->Key & Chr(9) & " " & Item(i)->Text, , Capacity)
+				WAdd(FText, Item(i)->Key & Chr(9) & " " & Item(i)->Text)
 			End If
 		Next i
 		If FText <> 0 Then Return *FText Else Return ""
@@ -660,7 +495,7 @@ End Function
 	Private Property Dictionary.Text(ByRef value As WString)
 		WLet(FText, "")
 		This.Clear
-		Dim As Integer Pos1, Capacity
+		Dim As Integer Pos1
 		For i As Integer = 0 To Len(value)
 			If value[i] = 10 Or value[i] = 0 Then
 				WLetEx(FText, Trim(Mid(*FText, 1, Len(*FText)), Any WChr(13) & WChr(10)))
@@ -677,9 +512,8 @@ End Function
 				End With
 				FItems.Add nItem
 				WLet(FText, "")
-				Capacity = 0
 			Else
-				WAdd(FText, WChr(value[i]), , Capacity)
+				WAdd(FText, WChr(value[i]))
 			End If
 		Next i
 		If OnChange Then OnChange(This)

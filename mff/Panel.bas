@@ -191,31 +191,35 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 				End With
-				If ShowCaption AndAlso FText <> 0 Then Canvas.TextOut(Current.X, Current.Y, *FText, Canvas.Font.Color, FBackColor)
+				If ShowCaption Then
+					Canvas.TextOut(Current.X, Current.Y, FText, Canvas.Font.Color, FBackColor)
+				End If
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
 				Canvas.UnSetHandle
-				If FBevelOuter <> bvNone Then
-					AdjustColors(FBevelOuter)
-					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
-				End If
-				Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
-				If FBevelInner <> bvNone Then
-					AdjustColors(FBevelInner)
-					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
-				End If
 				If DoubleBuffered Then
 					BitBlt(Dc, 0, 0, R.Right - R.left, R.Bottom - R.top, memDC, 0, 0, SRCCOPY)
 					SelectObject memDC, hOldBmp
 					DeleteObject(MemBmp)
 					DeleteDC(memDC)
 				End If
+				If FBevelInner <> bvNone Then
+					AdjustColors(FBevelInner)
+					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
+				End If
+				Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBorderWidth)
+				If FBevelOuter <> bvNone Then
+					AdjustColors(FBevelOuter)
+					Frame3D(*Cast(My.Sys.Drawing.Rect Ptr, @R), FBevelWidth)
+				End If
 				EndPaint Handle, @Ps
+				ReleaseDC Handle, Dc
 				Message.Result = 0
 				Return
 			Case CM_COMMAND
 				If Message.wParamHi = STN_CLICKED Then
 					If OnClick Then OnClick(*Designer, This)
-				ElseIf Message.wParamHi = STN_DBLCLK Then
+				End If
+				If Message.wParamHi = STN_DBLCLK Then
 					If OnDblClick Then OnDblClick(*Designer, This)
 				End If
 			Case WM_SIZE
@@ -230,21 +234,15 @@ Namespace My.Sys.Forms
 	#ifdef __USE_WINAPI__
 		Private Sub Panel.AdjustColors(FBevel As Integer)
 			If g_darkModeSupported AndAlso g_darkModeEnabled Then
-				If FBevel = bvLowered Then
-					FTopColor = 8421504
-					FBottomColor = 8421504
-				Else
-					FTopColor = 12632256
-					FBottomColor = 8421504
-				End If
+				FTopColor = 12632256 'Could be changed
+				If FBevel = bvLowered Then FTopColor = 8421504 'Could be changed
+				FBottomColor = 8421504 'Could be changed
+				If FBevel = bvLowered Then FBottomColor = 8421504 'Could be changed
 			Else
-				If FBevel = bvLowered Then
-					FTopColor = GetSysColor(COLOR_BTNSHADOW)
-					FBottomColor = GetSysColor(COLOR_BTNHIGHLIGHT)
-				Else
-					FTopColor = GetSysColor(COLOR_BTNHIGHLIGHT)
-					FBottomColor = GetSysColor(COLOR_BTNSHADOW)
-				End If
+				FTopColor = GetSysColor(COLOR_BTNHIGHLIGHT)
+				If FBevel = bvLowered Then FTopColor = GetSysColor(COLOR_BTNSHADOW)
+				FBottomColor = GetSysColor(COLOR_BTNSHADOW)
+				If FBevel = bvLowered Then FBottomColor = GetSysColor(COLOR_BTNHIGHLIGHT)
 			End If
 		End Sub
 		

@@ -14,15 +14,9 @@
 #if defined(__USE_CAIRO__) AndAlso Not defined(__USE_GTK__)
 	#include once "cairo/cairo-win32.bi"
 	#define G_PI 3.141593
-#elseif Not defined(__USE_GTK__)
-	#define G_PI 3.1415926
 #endif
 #ifdef __USE_WINAPI__
-	#include once "D2D1/D2D1_MFF.bi"
-	'#include once "D2D1/D2D1.bi"
-	'#include once "D2D1\dwrite_3.bi"
-	'#include once "D2D1\d2d1_3.bi"
-	'#include once "D2D1\wincodec.bi"
+	#include once "D2D1/D2D1.bi"
 	#include once "crt/limits.bi"
 #endif
 
@@ -40,7 +34,7 @@ Namespace My.Sys.Drawing
 		X As Long
 		Y As Long
 	End Type
-	
+
 	Private Type PointF
 		X As Single
 		Y As Single
@@ -119,7 +113,7 @@ Namespace My.Sys.Drawing
 	
 	'Canvas is a class that allows you to create and draw graphics (Windows, Linux).
 	Private Type Canvas Extends My.Sys.Object
-		Private:
+	Private:
 		ParentControl As My.Sys.ComponentModel.Component Ptr
 		Declare Static Sub Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Font)
 		Declare Static Sub Pen_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Pen)
@@ -300,3 +294,4 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Canvas.bas"
 #endif
+
