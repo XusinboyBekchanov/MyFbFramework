@@ -34,25 +34,28 @@ End Type
 Private Type IntegerList Extends Object
 Private:
 	FCount   As Integer
+	FSorted  As Boolean
 	FItems   As List
 Public:
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Item(Index As Integer) As Integer
-	Declare Property Item(Index As Integer, FItem As Integer)
+	Declare Property Item(Index As Integer, iValue As Integer)
 	Declare Property Object(Index As Integer) As Any Ptr
-	Declare Property Object(Index As Integer, FObj As Any Ptr)
-	Declare Sub Add(iItem As Integer, Obj As Any Ptr = 0)
-	Declare Sub Insert(Index As Integer, FItem As Integer, FObj As Any Ptr = 0)
+	Declare Property Object(Index As Integer, Obj As Any Ptr)
+	Declare Property Sorted As Boolean 
+	Declare Property Sorted(iValue As Boolean)
+	Declare Function Add(iValue As Integer, Obj As Any Ptr = 0) As Integer
+	Declare Function Insert(Index As Integer, iValue As Integer, Obj As Any Ptr = 0) As Integer
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
-	Declare Function Get(iItem As Integer, Obj As Any Ptr = 0) As Any Ptr
-	Declare Sub Set(iItem As Integer, Obj As Any Ptr)
-	Declare Sub Sort
+	Declare Function Get(iValue As Integer, Obj As Any Ptr = 0) As Any Ptr
+	Declare Sub Set(iValue As Integer, Obj As Any Ptr)
+	Declare Sub Sort(ByVal iDirection As Long = 1)
 	Declare Sub Clear
-	Declare Function IndexOf(FItem As Integer) As Integer
-	Declare Function IndexOfObject(FObj As Any Ptr) As Integer
-	Declare Function Contains(FItem As Integer) As Boolean
+	Declare Function IndexOf(iValue As Integer) As Integer
+	Declare Function IndexOfObject(Obj As Any Ptr) As Integer
+	Declare Function Contains(iValue As Integer) As Boolean
 	Declare Operator Cast As Any Ptr
 	Declare Operator [](Index As Integer) As Integer
 	Declare Constructor
