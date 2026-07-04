@@ -1350,7 +1350,7 @@ Namespace My.Sys.Forms
 			
 			Dim As IDataObject Ptr pDataObject
 			
-			CoInitialize(NULL)
+			'CoInitialize(NULL)
 			If (OpenClipboard(NULL)) Then
 				EmptyClipboard()
 				SetClipboardData(CF_BITMAP, Bitm.Handle)
@@ -1447,7 +1447,7 @@ Namespace My.Sys.Forms
 			hr = pRichEditOle->lpVtbl->InsertObject(pRichEditOle, @reobject)
 			pObject->lpVtbl->Release(pObject)
 			pRichEditOle->lpVtbl->Release(pRichEditOle)
-			CoUninitialize()
+			'CoUninitialize()
 			
 			If (FAILED(hr)) Then
 				Return False
@@ -1624,13 +1624,14 @@ Namespace My.Sys.Forms
 				If hRichTextBox = NULL Then
 					hRichTextBox = LoadLibrary("riched20.dll")
 					If hRichTextBox = NULL Then
+						Print "Can not load msftedit.dll and riched20.dll"
 					Else
 						hRichEditCls = "RichEdit20W"
 					End If
 				Else
 					hRichEditCls = "RICHEDIT50W"
 				End If
-				
+				If hRichEditCls <> "" Then
 				Pf.cbSize = SizeOf(Pf)
 				Pf2.cbSize = SizeOf(Pf2)
 				Cf.cbSize = SizeOf(Cf)
@@ -1639,6 +1640,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.ChildProc		= @WndProc
 				WLet(.FClassAncestor, hRichEditCls)
+				End If
 			#endif
 			.FHideSelection    = False
 			FTabIndex          = -1
@@ -1646,8 +1648,7 @@ Namespace My.Sys.Forms
 			WLet(.FClassName, "RichTextBox")
 			.Child       = @This
 			.DoubleBuffered = True
-			.Width       = 121
-			.Height      = 121
+			.SetBounds 0, 0, 121, 121
 		End With
 	End Constructor
 	

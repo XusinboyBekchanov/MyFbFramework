@@ -590,7 +590,7 @@ Namespace My.Sys.Forms
 						Else
 							#ifdef MoviePlayOn
 								If pGraph = 0 Then
-									Error_HR(CoInitialize(0), "CoInitialize")
+									'Error_HR(CoInitialize(0), "CoInitialize")
 									Error_HR(CoCreateInstance(@CLSID_FilterGraph, NULL, CLSCTX_ALL, @IID_IGraphBuilder, @pGraph), "CoCreateInstance")
 								End If
 								If pGraph > 0 Then
@@ -641,7 +641,7 @@ Namespace My.Sys.Forms
 							PResource = LockResource(Global)
 							Size = SizeofResource(GetModuleHandle("Shell32"), Resource)
 							P = _Allocate(Size)
-							P = PResource
+							memcpy(P, PResource, Size)
 							FreeResource(Resource)
 							memcpy Buff, P, 18 * SizeOf(Integer)
 							FFrameCount  = 100 'Buff[12]
@@ -656,6 +656,8 @@ Namespace My.Sys.Forms
 							FPlayTimeStart = Timer
 							FPlayTimePauseStart = Timer
 							FPlayTimePause= 0
+							_Deallocate(P) 
+							_Deallocate(Buff)
 							If FAutoPlay Then Play
 						End If
 					Else
@@ -755,7 +757,7 @@ Namespace My.Sys.Forms
 						MedPosition = 0
 						BasVideo = 0
 						BasAudio = 0
-						CoUninitialize()
+						'CoUninitialize()
 					#endif
 				Else
 					Perform(ACM_STOP, 0, 0)
