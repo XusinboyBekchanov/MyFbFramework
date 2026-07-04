@@ -1576,7 +1576,7 @@ Namespace My.Sys.Drawing
 							Dim As Integer idx = py * stride + px * 4
 							Function = RGB(dataPtr[idx + 2], dataPtr[idx + 1], dataPtr[idx])
 							If Not HandleSetted Then ReleaseDevice Handle_
-							Return
+							Return 0
 						End If
 					End If
 				End If
@@ -2388,8 +2388,8 @@ Namespace My.Sys.Drawing
 					Dim As Integer w = cairo_image_surface_get_width(surface)
 					Dim As Integer h = cairo_image_surface_get_height(surface)
 					Dim As Integer stride = cairo_image_surface_get_stride(surface)
-					Dim As UByte Ptr data = cairo_image_surface_get_data(surface)
-					If data <> 0 Then
+					Dim As UByte Ptr dataPtr = cairo_image_surface_get_data(surface)
+					If dataPtr <> 0 Then
 						Dim As Integer px = ScaleX(x) * imgScaleX + imgOffsetX
 						Dim As Integer py = ScaleY(y) * imgScaleY + imgOffsetY
 						If px >= 0 AndAlso py >= 0 AndAlso px < w AndAlso py < h Then
@@ -2397,7 +2397,7 @@ Namespace My.Sys.Drawing
 							Dim As UByte fR = GetRed(fillColor), fG = GetGreen(fillColor), fB = GetBlue(fillColor)
 							' 获取种子点颜色
 							Dim As Integer idx = py * stride + px * 4
-							Dim As UByte tB = data[idx], tG = data[idx + 1], tR = data[idx + 2]
+							Dim As UByte tB = dataPtr[idx], tG = dataPtr[idx + 1], tR = dataPtr[idx + 2]
 							If tR <> fR OrElse tG <> fG OrElse tB <> fB Then
 								' 简单栈式泛洪填充 (BFS)
 								Dim As Integer qHead = 0, qTail = 0
@@ -2408,8 +2408,8 @@ Namespace My.Sys.Drawing
 								While qHead < qTail
 									Dim cx = qX(qHead), CY = qY(qHead): qHead += 1
 									Dim cIdx = CY * stride + cx * 4
-									If data[cIdx] <> tB OrElse data[cIdx + 1] <> tG OrElse data[cIdx + 2] <> tR Then Continue While
-									data[cIdx] = fB: data[cIdx + 1] = fG: data[cIdx + 2] = fR
+									If dataPtr[cIdx] <> tB OrElse dataPtr[cIdx + 1] <> tG OrElse dataPtr[cIdx + 2] <> tR Then Continue While
+									dataPtr[cIdx] = fB: dataPtr[cIdx + 1] = fG: dataPtr[cIdx + 2] = fR
 									If cx > 0 Then qX(qTail) = cx - 1: qY(qTail) = CY: qTail += 1
 									If cx < w - 1 Then qX(qTail) = cx + 1: qY(qTail) = CY: qTail += 1
 									If CY > 0 Then qX(qTail) = cx: qY(qTail) = CY - 1: qTail += 1
