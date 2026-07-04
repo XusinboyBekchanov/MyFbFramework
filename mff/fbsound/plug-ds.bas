@@ -326,7 +326,7 @@ Function plug_isany(ByRef Plug As FBS_PLUG) As Boolean Export
   _Me.Plug.DeviceName=""
 
   ' get list of none emulated DirectSound devices
-  DirectSoundEnumerate(@DSDeviceEnumCB,@_Me.DeviceList)
+  DirectSoundEnumerate(Cast(LPVOID, @DSDeviceEnumCB), @_Me.DeviceList)
 
   If _Me.DeviceList.nDevices<1 Then 
     _Me.LastError="ds: plug_isany error: DirectSoundEnumerate() no devices !"
