@@ -1571,10 +1571,10 @@ Namespace My.Sys.Drawing
 					Dim As Integer h = cairo_image_surface_get_height(surface)
 					If px >= 0 AndAlso py >= 0 AndAlso px < w AndAlso py < h Then
 						Dim As Integer stride = cairo_image_surface_get_stride(surface)
-						Dim As UByte Ptr data = cairo_image_surface_get_data(surface)
-						If data <> 0 Then
+						Dim As UByte Ptr dataPtr = cairo_image_surface_get_data(surface)
+						If dataPtr <> 0 Then
 							Dim As Integer idx = py * stride + px * 4
-							Function = RGB(data[idx + 2], data[idx + 1], data[idx])
+							Function = RGB(dataPtr[idx + 2], dataPtr[idx + 1], dataPtr[idx])
 							If Not HandleSetted Then ReleaseDevice Handle_
 							Return
 						End If

@@ -13,12 +13,15 @@
 #include once "Component.bi"
 #if defined(__USE_CAIRO__) AndAlso Not defined(__USE_GTK__)
 	#include once "cairo/cairo-win32.bi"
+	#define G_PI 3.1415926
 #endif
-#define G_PI 3.1415926
 #ifdef __USE_WINAPI__
 	#include once "D2D1/D2D1_MFF.bi"
 	#include once "crt/limits.bi"
 	#include once "PointerList.bi"
+	#ifndef G_PI
+	#define G_PI 3.1415926
+	#endif
 	'Dim Shared pD2D1Factory As ID2D1Factory Ptr
 	'Dim Shared pDWriteFactory As IDWriteFactory Ptr
 #endif
@@ -143,10 +146,8 @@ Namespace My.Sys.Drawing
 		FMoveToX        As Double
 		FMoveToY        As Double
 		FUseDirect2D    As Boolean
-		tm              As TEXTMETRIC
 		dwCharX         As Single
 		dwCharY         As Single
-		pID2D1BitmapList As PointerList
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
@@ -165,6 +166,8 @@ Namespace My.Sys.Drawing
 			#endif
 			Dim PrevWidth As Integer = 0
 			Dim PrevHeight As Integer = 0
+			pID2D1BitmapList As PointerList
+			tm              As TEXTMETRIC
 			Declare Sub ReleaseDirect2D
 		#endif
 	Public:
