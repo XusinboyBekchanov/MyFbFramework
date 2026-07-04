@@ -219,7 +219,6 @@ Namespace My.Sys.Drawing
 				End Scope
 				Return GetDeviceCaps(Handle, LOGPIXELSY)
 			#else
-				Return 0
 			#endif
 		End If
 	End Property
@@ -1874,6 +1873,7 @@ Namespace My.Sys.Drawing
 			Dim As Integer Index = pID2D1BitmapList.IndexOf(hBmp)
 			If Index <> -1 Then  
 				pOut = Cast(ID2D1Bitmap Ptr, pID2D1BitmapList.Object(Index))
+				If Not pID2D1BitmapList.Sorted Then pID2D1BitmapList.Sort
 				Return 0
 			End If
 			Dim clsidFactory As CLSID = GuidFrom("{CACAF262-9370-4615-A13B-9F5539DA4C0A}") ' CLSID_WICImagingFactory
@@ -1928,6 +1928,7 @@ Namespace My.Sys.Drawing
 			Dim As Integer Index = pID2D1BitmapList.IndexOf(hBmp)
 			If Index <> -1 Then  
 				pOut = Cast(ID2D1Bitmap Ptr, pID2D1BitmapList.Object(Index))
+				If Not pID2D1BitmapList.Sorted Then pID2D1BitmapList.Sort
 				Return 0
 			End If
 			Dim clsidFactory As CLSID = GuidFrom("{CACAF262-9370-4615-A13B-9F5539DA4C0A}") ' CLSID_WICImagingFactory
@@ -2088,22 +2089,9 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-					Dim As ID2D1Bitmap Ptr bmp
-					Dim As Long hr = CreateD2DBitmapFromHBITMAP(pRenderTarget, Image, bmp)
-					If bmp <> 0 Then
-						Dim As BITMAP Bitmap01
-						GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
-						Dim destRect As D2D1_RECT_F
-						destRect.left   = x
-						destRect.top    = y
-						destRect.right  = x + Bitmap01.bmWidth
-						destRect.bottom = y + Bitmap01.bmHeight
-						pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
-						'bmp->lpVtbl->Release(bmp)
-					End If
+				
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				' 修正 GDI+ 原本拉伸到画布大小的问题，现绘制原图大小
-				GdipDrawImageRect(GdipGraphics, Image, x, y)
+				GdipDrawImageRect(GdipGraphics, Image, x, y, ScaleX(Width), ScaleY(Height))
 			Else
 				Dim As HDC MemDC
 				Dim As HBITMAP OldBitmap
@@ -2188,7 +2176,7 @@ Namespace My.Sys.Drawing
 						destRect.right  = x + Bitmap01.bmWidth
 						destRect.bottom = y + Bitmap01.bmHeight
 						pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
-
+						'bmp->lpVtbl->Release(bmp)
 					End If
 				ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 					' GDI+ 原生支持 Alpha 通道。若需严格颜色键透明，需借助 ImageAttributes ColorKeys，此处采用原生 Alpha 绘制降级
@@ -2319,7 +2307,7 @@ Namespace My.Sys.Drawing
 					destRect.right  = x + nWidth
 					destRect.bottom = y + nHeight
 					pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
-					'bmp->lpVtbl->Release(bmp) ’Not here. in Destructor
+					'bmp->lpVtbl->Release(bmp)
 				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim As BITMAP Bitmap01
@@ -2407,8 +2395,7 @@ Namespace My.Sys.Drawing
 						Dim As Integer px = ScaleX(x) * imgScaleX + imgOffsetX
 						Dim As Integer py = ScaleY(y) * imgScaleY + imgOffsetY
 						If px >= 0 AndAlso py >= 0 AndAlso px < w AndAlso py < h Then
-							Dim As Integer fillColor = FillColorBK
-							Dim As UByte fR = GetRed(fillColor), fG = GetGreen(fillColor), fB = GetBlue(fillColor)
+							Dim As UByte fR = GetRed(FillColorBK), fG = GetGreen(FillColorBK), fB = GetBlue(FillColorBK)
 							' 获取种子点颜色
 							Dim As Integer idx = py * stride + px * 4
 							Dim As UByte tB = dataPtr[idx], tG = dataPtr[idx + 1], tR = dataPtr[idx + 2]
@@ -2581,21 +2568,21 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Font)
 		With *Cast(Canvas Ptr, Sender.Parent)
 			#ifdef __USE_GTK__
-				cairo_select_font_face(Handle, Sender.Name, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-				cairo_set_font_size(Handle, Sender.Size)
+				cairo_select_font_face(.Handle, Sender.Name, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+				cairo_set_font_size(.Handle, Sender.Size)
 				
 				Dim As PangoFontDescription Ptr desc
 				desc = pango_font_description_from_string (Sender.Name & " " & Trim(Str(Sender.Size)))
-				pango_layout_set_font_description(layout, desc)
+				pango_layout_set_font_description(.layout, desc)
 				pango_font_description_free(desc)
 				
 				Dim As PangoRectangle extend
-				pango_layout_set_text(layout, ToUtf8("|"), 1)
-				pango_cairo_update_layout(Handle, layout)
+				pango_layout_set_text(.layout, ToUtf8("|"), 1)
+				pango_cairo_update_layout(.Handle, .layout)
 				#ifdef pango_version
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
+					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(.layout, 0)
 				#else
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
+					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(.layout, 0)
 				#endif
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 				.dwCharX = .UnScaleX(extend.width)
