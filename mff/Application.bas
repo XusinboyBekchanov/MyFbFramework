@@ -733,6 +733,7 @@ Namespace My
 					CloseGestureInfoHandle = DyLibSymbol(hLibUser32, "CloseGestureInfoHandle")
 				#endif
 			End If
+			If FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)) Then Print GetLastError()
 		#endif
 		WLet(FCurLanguagePath, ExePath & "/Languages/")
 		WLet(FLanguage, "English")
@@ -787,7 +788,7 @@ Namespace My
 			DeleteObject g_brItemBackground
 			DeleteObject g_brItemBackgroundHot
 			DeleteObject g_brItemBackgroundSelected
-			UnloadD2D1
+			CoUninitialize()
 			OleUninitialize()
 		#endif
 	End Destructor
@@ -1337,6 +1338,29 @@ End Function
 		Next
 		Return IIf(current = 0, IIf(bHasUnicode, True, False), False)
 		
+	End Function
+		
+	Private Function LoadFromFileHex(ByRef FileName As WString) As String
+		Dim As Integer Fn = FreeFile
+		Dim As Integer FileLength
+		If Open(FileName For Binary Access Read As #Fn) <> 0 Then Return ""
+		FileLength = LOF(Fn)
+		If FileLength <= 0 Then
+			Close #Fn
+			Return ""
+		End If
+		Dim As String FileBuffer = Space(FileLength)
+		Get #Fn, , FileBuffer
+		Close #Fn
+		Dim As String HexResult = Space(FileLength * 2)
+		Dim As String HexChars = "0123456789abcdef"
+		Dim As UByte b
+		For i As Integer = 0 To FileLength - 1
+			b = FileBuffer[i]
+			HexResult[i * 2]     = HexChars[b Shr 4]
+			HexResult[i * 2 + 1] = HexChars[b And 15]
+		Next
+		Return HexResult
 	End Function
 	
 	Private Function LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByVal nCodePage As Integer = -1) As WString Ptr

@@ -13,11 +13,17 @@
 #include once "Component.bi"
 #if defined(__USE_CAIRO__) AndAlso Not defined(__USE_GTK__)
 	#include once "cairo/cairo-win32.bi"
-	#define G_PI 3.141593
+	#define G_PI 3.1415926
 #endif
 #ifdef __USE_WINAPI__
-	#include once "D2D1/D2D1.bi"
+	#include once "D2D1/D2D1_MFF.bi"
 	#include once "crt/limits.bi"
+	#include once "PointerList.bi"
+	#ifndef G_PI
+	#define G_PI 3.1415926
+	#endif
+	'Dim Shared pD2D1Factory As ID2D1Factory Ptr
+	'Dim Shared pDWriteFactory As IDWriteFactory Ptr
 #endif
 
 Namespace My.Sys.Drawing
@@ -34,7 +40,7 @@ Namespace My.Sys.Drawing
 		X As Long
 		Y As Long
 	End Type
-
+	
 	Private Type PointF
 		X As Single
 		Y As Single
@@ -113,7 +119,7 @@ Namespace My.Sys.Drawing
 	
 	'Canvas is a class that allows you to create and draw graphics (Windows, Linux).
 	Private Type Canvas Extends My.Sys.Object
-	Private:
+		Private:
 		ParentControl As My.Sys.ComponentModel.Component Ptr
 		Declare Static Sub Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Font)
 		Declare Static Sub Pen_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Pen)
@@ -140,6 +146,8 @@ Namespace My.Sys.Drawing
 		FMoveToX        As Double
 		FMoveToY        As Double
 		FUseDirect2D    As Boolean
+		dwCharX         As Single
+		dwCharY         As Single
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
@@ -158,14 +166,8 @@ Namespace My.Sys.Drawing
 			#endif
 			Dim PrevWidth As Integer = 0
 			Dim PrevHeight As Integer = 0
-			Dim pRenderTarget As ID2D1DeviceContext Ptr = 0
-			Dim pTargetBitmap As ID2D1Bitmap1 Ptr = 0
-			Dim pSwapChain As IDXGISwapChain1 Ptr = 0
-			Dim pSurface As IDXGISurface Ptr = 0
-			Dim pTexture As ID3D11Texture2D Ptr = 0
-			Dim pFormat As IDWriteTextFormat Ptr = 0
-			Dim pForegroundBrush As ID2D1Brush Ptr = 0
-			Dim pBackgroundBrush As ID2D1Brush Ptr = 0
+			pID2D1BitmapList As PointerList
+			tm              As TEXTMETRIC
 			Declare Sub ReleaseDirect2D
 		#endif
 	Public:
@@ -179,7 +181,21 @@ Namespace My.Sys.Drawing
 				Dim As PangoLayout Ptr layout
 			#endif
 		#elseif defined(__USE_WINAPI__)
-			Declare Function CreateD2DBitmapFromHBITMAP(ByVal pRT As ID2D1DeviceContext Ptr, ByVal hBmp As HBITMAP, ByRef pOut As ID2D1Bitmap Ptr) As HRESULT
+			Declare Function CreateD2DBitmapFromHBITMAP Overload(ByVal pRT As ID2D1DCRenderTarget Ptr, ByVal hBmp As HBITMAP, ByRef pOut As ID2D1Bitmap Ptr) As HRESULT
+			Declare Function CreateD2DBitmapFromHBITMAP Overload(ByVal pRT As ID2D1DeviceContext Ptr, ByVal hBmp As HBITMAP, ByRef pOut As ID2D1Bitmap Ptr) As HRESULT
+			'Dim pRenderTarget As ID2D1DeviceContext Ptr = 0
+			Dim pTargetBitmap As ID2D1Bitmap Ptr = 0
+			'Dim pRenderTarget As ID2D1HwndRenderTarget Ptr
+			Dim pRenderTarget As ID2D1DCRenderTarget Ptr
+			Dim pStrokeStyle As ID2D1StrokeStyle Ptr
+			Dim pTextLayout As IDWriteTextLayout Ptr
+			'Dim pSwapChain As IDXGISwapChain1 Ptr = 0
+			'Dim pSurface As IDXGISurface Ptr = 0
+			'Dim pTexture As ID3D11Texture2D Ptr = 0
+			Dim pTextFormat As IDWriteTextFormat Ptr = 0
+			Dim pBrushBorder As ID2D1SolidColorBrush Ptr = 0
+			Dim pBrushFill As ID2D1SolidColorBrush Ptr = 0
+			Dim pBrushOpacity As ID2D1Brush Ptr
 			Handle  As HDC
 			GdipToken As ULONG_PTR
 			GdipGraphics As GpGraphics Ptr
@@ -294,4 +310,3 @@ End Namespace
 #ifndef __USE_MAKE__
 	#include once "Canvas.bas"
 #endif
-

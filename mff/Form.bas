@@ -625,7 +625,7 @@ Namespace My.Sys.Forms
 			FShowInTaskbar = Value
 			#ifdef __USE_WINAPI__
 				Dim As ITaskbarList Ptr pTaskbarList
-				If SUCCEEDED(CoInitialize(NULL)) Then
+				'If SUCCEEDED(CoInitialize(NULL)) Then
 					If SUCCEEDED(CoCreateInstance(@CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, @IID_ITaskbarList, Cast(LPVOID, @pTaskbarList))) Then
 						pTaskbarList->lpVtbl->HrInit(pTaskbarList)
 						If Value Then
@@ -635,8 +635,8 @@ Namespace My.Sys.Forms
 						End If
 						pTaskbarList->lpVtbl->Release(pTaskbarList)
 					End If
-					CoUninitialize()
-				End If
+					'CoUninitialize()
+				'End If
 			#endif
 		End If
 	End Property

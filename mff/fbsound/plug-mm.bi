@@ -15,43 +15,43 @@
 #include once "win/mmsystem.bi"
 
 #if __FB_OUT_DLL__ = 0
-namespace fbsound.plug_mm
+Namespace fbsound.plug_mm
 #endif
 
 ' API helper section
-type WAVE_FORMATS as long
+Type WAVE_FORMATS As Long
 
-private _
-function InitWaveFormatEx( _
-  byref Format     as WAVEFORMATEX, _
-  byval nRate      as integer, _
-  byval nBits      as integer, _
-  byval nChannels  as integer) as WAVE_FORMATS
+Private _
+Function InitWaveFormatEx( _
+  ByRef Format1     As WAVEFORMATEX, _
+  ByVal nRate      As Integer, _
+  ByVal nBits      As Integer, _
+  ByVal nChannels  As Integer) As WAVE_FORMATS
 
-  if nRate < 10026 then
+  If nRate < 10026 Then
     nRate=10025
-  elseif nRate < 22051 then
+  ElseIf nRate < 22051 Then
     nRate=22050
-  elseif nRate < 44101 then
+  ElseIf nRate < 44101 Then
     nRate=44100
-  elseif nRate > 44100 then  
+  ElseIf nRate > 44100 Then  
     nRate=44100
-  end if
+  End If
   nBits\=8
-  if nBits < 1 then
+  If nBits < 1 Then
     nBits=1
-  elseif nBits > 2 then  
+  ElseIf nBits > 2 Then  
     nBits=2
-  end if
-  nBits=nBits shl 3
+  End If
+  nBits=nBits Shl 3
 
-  if nChannels<2 then
+  If nChannels<2 Then
     nChannels=1
-  elseif nChannels>2 then
+  ElseIf nChannels>2 Then
     nChannels=2
-  end if
+  End If
 
-  with Format
+  With Format1
     .wFormatTag      = WAVE_FORMAT_PCM
     .nChannels       = nChannels
     .nSamplesPerSec  = nRate
@@ -59,53 +59,53 @@ function InitWaveFormatEx( _
     .nBlockAlign     = (nBits\8) * nChannels
     .nAvgBytesPerSec = (nBits\8) * nChannels * nRate
     .cbSize          = 0
-  end with
+  End With
 
-  select case nRate
-    case 10025
-      select case nBits
-        case 8
-          select case nChannels
-            case 1:return WAVE_FORMAT_1M08
-            case 2:return WAVE_FORMAT_1S08
-          end select
-        case 16
-          select case nChannels
-            case 1:return WAVE_FORMAT_1M16
-            case 2:return WAVE_FORMAT_1S16
-          end select
-      end select
-    case 22050
-      select case nBits
-        case 8
-          select case nChannels
-            case 1:return WAVE_FORMAT_2M08
-            case 2:return WAVE_FORMAT_2S08
-          end select
-        case 16
-          select case nChannels
-            case 1:return WAVE_FORMAT_2M16
-            case 2:return WAVE_FORMAT_2S16
-          end select
-      end select
-    case 44100
-      select case nBits
-        case 8
-          select case nChannels
-            case 1:return WAVE_FORMAT_4M08
-            case 2:return WAVE_FORMAT_4S08
-          end select
-        case 16
-          select case nChannels
-            case 1:return WAVE_FORMAT_4M16
-            case 2:return WAVE_FORMAT_4S16
-          end select
-      end select  
-  end select  
-end function
+  Select Case nRate
+    Case 10025
+      Select Case nBits
+        Case 8
+          Select Case nChannels
+            Case 1:Return WAVE_FORMAT_1M08
+            Case 2:Return WAVE_FORMAT_1S08
+          End Select
+        Case 16
+          Select Case nChannels
+            Case 1:Return WAVE_FORMAT_1M16
+            Case 2:Return WAVE_FORMAT_1S16
+          End Select
+      End Select
+    Case 22050
+      Select Case nBits
+        Case 8
+          Select Case nChannels
+            Case 1:Return WAVE_FORMAT_2M08
+            Case 2:Return WAVE_FORMAT_2S08
+          End Select
+        Case 16
+          Select Case nChannels
+            Case 1:Return WAVE_FORMAT_2M16
+            Case 2:Return WAVE_FORMAT_2S16
+          End Select
+      End Select
+    Case 44100
+      Select Case nBits
+        Case 8
+          Select Case nChannels
+            Case 1:Return WAVE_FORMAT_4M08
+            Case 2:Return WAVE_FORMAT_4S08
+          End Select
+        Case 16
+          Select Case nChannels
+            Case 1:Return WAVE_FORMAT_4M16
+            Case 2:Return WAVE_FORMAT_4S16
+          End Select
+      End Select  
+  End Select  
+End Function
 
 #if __FB_OUT_DLL__ = 0
-end namespace ' fbsound.plug_mm
+End Namespace ' fbsound.plug_mm
 #endif
 
 #endif ' NO_PLUG_MM
