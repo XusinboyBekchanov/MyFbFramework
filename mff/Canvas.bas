@@ -2407,8 +2407,8 @@ Namespace My.Sys.Drawing
 								ReDim qX(maxQ - 1), qY(maxQ - 1)
 								qX(qTail) = px: qY(qTail) = py: qTail += 1
 								While qHead < qTail
-									Dim cx = qX(qHead), CY = qY(qHead): qHead += 1
-									Dim cIdx = CY * stride + cx * 4
+									Dim As Integer cx = qX(qHead), CY = qY(qHead): qHead += 1
+									Dim As Integer cIdx = CY * stride + cx * 4
 									If dataPtr[cIdx] <> tB OrElse dataPtr[cIdx + 1] <> tG OrElse dataPtr[cIdx + 2] <> tR Then Continue While
 									dataPtr[cIdx] = fB: dataPtr[cIdx + 1] = fG: dataPtr[cIdx + 2] = fR
 									If cx > 0 Then qX(qTail) = cx - 1: qY(qTail) = CY: qTail += 1
@@ -2487,7 +2487,7 @@ Namespace My.Sys.Drawing
 			Dim As Double y2 = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
 			cairo_save(Handle)
 			cairo_set_line_width(Handle, 1)
-			cairo_set_dash(Handle, @Type<Double>(1, 1), 2, 0)
+			cairo_set_dash(Handle, @Type<Double>(1), 2, 0)
 			cairo_set_source_rgb(Handle, 0, 0, 0)
 			cairo_rectangle(Handle, x1, y1, x2 - x1, y2 - y1)
 			cairo_stroke(Handle)
