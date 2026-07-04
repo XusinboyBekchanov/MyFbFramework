@@ -219,6 +219,7 @@ Namespace My.Sys.Drawing
 				End Scope
 				Return GetDeviceCaps(Handle, LOGPIXELSY)
 			#else
+				Return 0
 			#endif
 		End If
 	End Property
@@ -2087,9 +2088,22 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
-				
+					Dim As ID2D1Bitmap Ptr bmp
+					Dim As Long hr = CreateD2DBitmapFromHBITMAP(pRenderTarget, Image, bmp)
+					If bmp <> 0 Then
+						Dim As BITMAP Bitmap01
+						GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
+						Dim destRect As D2D1_RECT_F
+						destRect.left   = x
+						destRect.top    = y
+						destRect.right  = x + Bitmap01.bmWidth
+						destRect.bottom = y + Bitmap01.bmHeight
+						pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
+						'bmp->lpVtbl->Release(bmp)
+					End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
-				GdipDrawImageRect(GdipGraphics, Image, x, y, ScaleX(Width), ScaleY(Height))
+				' 修正 GDI+ 原本拉伸到画布大小的问题，现绘制原图大小
+				GdipDrawImageRect(GdipGraphics, Image, x, y)
 			Else
 				Dim As HDC MemDC
 				Dim As HBITMAP OldBitmap
@@ -2174,7 +2188,7 @@ Namespace My.Sys.Drawing
 						destRect.right  = x + Bitmap01.bmWidth
 						destRect.bottom = y + Bitmap01.bmHeight
 						pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
-						'bmp->lpVtbl->Release(bmp)
+
 					End If
 				ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 					' GDI+ 原生支持 Alpha 通道。若需严格颜色键透明，需借助 ImageAttributes ColorKeys，此处采用原生 Alpha 绘制降级
@@ -2305,7 +2319,7 @@ Namespace My.Sys.Drawing
 					destRect.right  = x + nWidth
 					destRect.bottom = y + nHeight
 					pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1.0, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
-					'bmp->lpVtbl->Release(bmp)
+					'bmp->lpVtbl->Release(bmp) ’Not here. in Destructor
 				End If
 			ElseIf UsingGdip AndAlso GdipGraphics <> 0 Then
 				Dim As BITMAP Bitmap01
