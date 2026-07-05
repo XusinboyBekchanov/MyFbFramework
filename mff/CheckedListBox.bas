@@ -78,7 +78,7 @@ Namespace My.Sys.Forms
 			gtk_tree_model_get(GTK_TREE_MODEL(ListStore), @iter, 0, @bChecked, -1)
 			Return bChecked
 		#else
-			If Handle Then Return Perform(LB_GETITEMDATA, Index, 0)
+			If Handle Then Return Perform(LB_GETITEMDATA, Index, 0) Else Return False
 		#endif
 	End Property
 	
@@ -119,6 +119,7 @@ Namespace My.Sys.Forms
 						Dim As WString Ptr s = _CAllocate((Len(.Items.Item(i)) + 1) * SizeOf(WString))
 						*s = .Items.Item(i)
 						.Perform(LB_ADDSTRING, 0, CInt(s))
+						_Deallocate(s)
 					Next i
 					'.Perform(LB_SETITEMHEIGHT, 0, MAKELPARAM(ScaleY(.ItemHeight), 0))
 					.MultiColumn = .MultiColumn
@@ -314,14 +315,14 @@ Namespace My.Sys.Forms
 				Print #F, Items.Item(i)
 			#else
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
-				s = _CAllocate((Len(TextLen) + 1) * SizeOf(WString))
+				s = _CAllocate((TextLen + 1) * SizeOf(WString))
 				*s = Space(TextLen)
 				Perform(LB_GETTEXT, i, CInt(s))
 				Print #F, *s
+				_Deallocate(s)
 			#endif
 		Next i
 		CloseFile_(F)
-		_Deallocate(s)
 	End Sub
 	
 	Private Sub CheckedListBox.LoadFromFile(ByRef FileName As WString)
