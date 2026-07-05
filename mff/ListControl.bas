@@ -48,7 +48,7 @@ Namespace My.Sys.Forms
 			Case "integralheight": IntegralHeight = QBoolean(Value)
 			Case "itemheight": ItemHeight = QInteger(Value)
 			Case "horizontalscrollbar": HorizontalScrollBar = QBoolean(Value)
-			Case "verticalscrollbar": HorizontalScrollBar = QBoolean(Value)
+			Case "verticalscrollbar": VerticalScrollBar = QBoolean(Value)
 			Case "selectionmode": SelectionMode = *Cast(SelectionModes Ptr, Value)
 			Case "sort": Sort = QBoolean(Value)
 			Case "style": Style = *Cast(ListControlStyle Ptr, Value)
@@ -658,14 +658,14 @@ Namespace My.Sys.Forms
 				Print #F, Items.Item(i)
 			#elseif defined(__USE_WINAPI__)
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
-				s = _CAllocate((Len(TextLen) + 1) * SizeOf(WString))
+				s = _CAllocate((TextLen + 1) * SizeOf(WString))
 				*s = Space(TextLen)
 				Perform(LB_GETTEXT, i, CInt(s))
 				Print #F, *s
+				_Deallocate(s)
 			#endif
 		Next i
 		CloseFile_(F)
-		_Deallocate(s)
 	End Sub
 	
 	Private Sub ListControl.LoadFromFile(ByRef FileName As WString)

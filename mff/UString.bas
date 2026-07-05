@@ -410,6 +410,47 @@ Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumByte
 	Return True
 End Function
 
+Private Function UString.Add(ByRef txt As WString, AddBefore As Boolean = False) As Boolean
+	Dim As Integer oldLen, ls = Len(txt)
+	If m_Data = 0 OrElse ls = 0 Then Return False
+	oldLen = m_Length
+	m_Length = oldLen + ls
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	If ls <= m_Capacity AndAlso m_Data <> 0 Then
+		If AddBefore AndAlso oldLen > 0 Then
+			Fb_MemMove((*m_Data)[ls], (*m_Data)[0], oldLen * SizeOf(WString))
+			Fb_MemCopy((*m_Data)[0], txt[0], ls * SizeOf(WString))
+		Else
+			Fb_MemCopy((*m_Data)[oldLen], txt[0], ls * SizeOf(WString))
+		End If
+		(*m_Data)[m_Length] = 0
+		m_Capacity -= ls
+		Return True
+	End If
+	Dim As Integer newCapacity = m_Length * 2
+	If newCapacity < 512 Then newCapacity = 512
+	If m_Capacity < 1 Then newCapacity = m_Length + 1 ' 精确容量模式回退
+	m_Capacity = newCapacity - m_Length  'Minimal allocation mode, Capacity represents remaining space. Capacity 表示*剩余*空间！
+	Dim As WString Ptr ResultPtr
+	If m_Data <> 0 Then
+		ResultPtr = _Reallocate(m_Data, (newCapacity + 1) * SizeOf(WString))
+		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return False
+		If AddBefore AndAlso oldLen > 0 Then
+			Fb_MemMove((*ResultPtr)[ls], (*ResultPtr)[0], oldLen * SizeOf(WString))
+			Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
+		Else
+			Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls * SizeOf(WString))
+		End If
+	Else
+		ResultPtr = _Allocate((newCapacity + 1) * SizeOf(WString))
+		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return False
+		Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
+	End If
+	(*ResultPtr)[m_Length] = 0
+	m_Data = ResultPtr
+	Return True
+End Function
+
 Private Operator UString.[](ByVal Index As Integer) ByRef As UShort
 	Static Zero As UShort = 0
 	If Index < 0 Or Index > m_Length Then Return Zero
@@ -1690,21 +1731,31 @@ Private Function SubString(ByRef wszMainStr As WString, ByVal start As Integer, 
 	End If
 End Function
 
-Private Function FormatFileName(ByRef originalName As WString) As String
-	Const ILLEGAL_CHARS As String = "\/:*?""<>|"
-	Dim As WString * 1024 Result = originalName
-	Dim As Integer i, posi
-	For i = 1 To Len(ILLEGAL_CHARS)
-		Dim As String badChar = Mid(ILLEGAL_CHARS, i, 1)
-		posi = InStr(Result, badChar)
-		While posi > 0
-			Result = Left(Result, posi - 1) + Mid(Result, posi + 1)
-			posi = InStr(Result, badChar)
-		Wend
-	Next i
-	Result = Trim(Result)
-	If Result = "" Then Result = "unNamed"
-	Return Result
+Private Function FormatFileName(ByRef originalName As WString) As UString
+	Dim As WString Ptr ResultPtr
+	Dim As Integer ch
+	For i As Integer = 0 To Len(originalName) - 1
+		ch = originalName[i]
+		If ch = 0 Then Exit For
+		If ch < 32 Then Continue For
+		Select Case ch
+		Case Asc("\"), Asc("/"), Asc(":"), Asc("*"), Asc("?"), Asc(""""), Asc("<"), Asc(">"), Asc("|")
+			'"\/:*?""<>|" 忽略非法字符（不执行任何操作）
+		Case Else
+			WAdd(ResultPtr, WChr(ch))
+		End Select
+	Next
+	'忽略尾随空格和句点处理
+	'忽略Windows历史遗留的 DOS 设备名限制，"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+	'"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" , 即使带了扩展名也不行(例如 `CON.txt` 或 `AUX.jpg` 依然是非法的)
+	If ResultPtr = 0 OrElse Trim(*ResultPtr) = "" Then
+		WLet(ResultPtr, "Untitled")
+	Else
+		*ResultPtr = LTrim(*ResultPtr)
+		If Len(*ResultPtr) > 240 Then (*ResultPtr)[240] = 0 'not 255 for user adding extra string
+	End If
+	Function = *ResultPtr
+	_Deallocate(ResultPtr)
 End Function
 
 

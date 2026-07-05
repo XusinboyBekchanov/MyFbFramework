@@ -766,10 +766,10 @@ Namespace My.Sys.Forms
 				*s = WSpace(TextLen)
 				Perform(CB_GETLBTEXT, i, CInt(s))
 				Print #F, *s
+				_Deallocate(s)
 			#endif
 		Next i
 		CloseFile_(F)
-		_Deallocate(s)
 	End Sub
 	
 	Private Sub ComboBoxEdit.LoadFromFile(ByRef FileName As WString)
