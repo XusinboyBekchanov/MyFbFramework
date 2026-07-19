@@ -32,7 +32,7 @@ Namespace My.Sys.Forms
 			Case "selunderline": FSelBoolVal = SelUnderline: Return @FSelBoolVal
 			Case "selstrikeout": FSelBoolVal = SelStrikeout: Return @FSelBoolVal
 			Case "tabindex": Return @FTabIndex
-			Case "textrtf": TextRTF: Return FTextRTF.vptr
+			Case "textrtf": TextRTF: Return FTextRTF
 			Case "zoom": Return @FZoom
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -1052,7 +1052,7 @@ Namespace My.Sys.Forms
 						SetDark False
 					End If
 				End If
-				If ReadOnly Then TextRTF = FTextRTF
+				If ReadOnly Andalso FTextRTF <> 0 Then TextRTF = *FTextRTF
 				Return
 			Case WM_SETCURSOR
 				If m_bMenuOpen Then
@@ -1164,8 +1164,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property RichTextBox.SelText(ByRef Value As WString)
-		FSelText = _Reallocate(FSelText, (Len(Value) + 1) * SizeOf(WString))
-		*FSelText = Value
+		WLet(FSelText, Value)
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter _start, _end
 			gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), ToUtf8(Value), -1)
@@ -1199,28 +1198,28 @@ Namespace My.Sys.Forms
 		Private Function RichTextBox.GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
 			Dim ptxt As UString Ptr = Cast(UString Ptr, dwCookie)
 			If ptxt Then
-				*ptxt = *ptxt & *Cast(ZString Ptr, pbBuff)
+				ptxt->AppendBuffer(pbBuff, cb)
 				*pcb = cb
 			End If
 			Return 0
 		End Function
 	#endif
 	
-	Private Property RichTextBox.TextRTF As UString
+	Private Property RichTextBox.TextRTF ByRef As WString
 		#ifndef __USE_GTK__
 			If FHandle Then
-				FTextRTF = ""
+				WLet(FTextRTF, "")
 				Dim editstream As EDITSTREAM
 				editstream.dwCookie = Cast(DWORD_PTR, @FTextRTF)
 				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @GetTextCallback)
 				SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
 			End If
 		#endif
-		Return FTextRTF
+		If FTextRTF = 0 Then Return "" Else Return *FTextRTF
 	End Property
 	
-	Private Property RichTextBox.TextRTF(Value As UString)
-		FTextRTF = Value
+	Private Property RichTextBox.TextRTF(ByRef Value As WString)
+		WLet(FTextRTF, Value)
 		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Dim As String Buffer
@@ -1245,18 +1244,20 @@ Namespace My.Sys.Forms
 				gtk_text_buffer_set_text(buffer, !"\0", -1)
 				gtk_text_buffer_get_end_iter(buffer, @iter)
 				Dim in_tag As Boolean = False
-				Dim count As Integer = 0
+				Dim As Integer count = 0, LenValue = Len(Value), Capacity
 				Dim start_bold As Integer = -1
 				Dim start_italic As Integer = -1
 				Dim rtf_tag As String
-				Dim c As UString
-				Dim Buff As UString
-				For i As Integer = 1 To Len(Value)
-					c = Mid(Value, i, 1)
-					If CBool(c = "\") OrElse (CBool(c = " ") AndAlso in_tag) OrElse CBool(c = "}") Then
-						If Buff <> "" Then
-							gtk_text_buffer_insert(buffer, @iter, ToUtf8(Buff), -1)
-							Buff = ""
+				Dim c As Integer
+				Dim As WString Ptr BuffPtr
+				If LenValue < 1 Then Return
+				For i As Integer = 0 To LenValue - 1
+					c = Value[i]
+					If CBool(c = 92) OrElse (CBool(c = 32) AndAlso in_tag) OrElse CBool(c = 125) Then  '"\" " "  "}"
+						If BuffPtr <> 0 AndAlso *BuffPtr <> "" Then
+							gtk_text_buffer_insert(buffer, @iter, ToUtf8(*BuffPtr), -1)
+							WLet(BuffPtr, "")
+							Capacity = 0
 						End If
 						If in_tag Then
 							If rtf_tag = "b" Then
@@ -1268,25 +1269,25 @@ Namespace My.Sys.Forms
 								count += 1
 							End If
 						End If
-						If start_bold > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "b0")) OrElse CBool(c = "}")) Then
+						If start_bold > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "b0")) OrElse CBool(c = 125)) Then
 							SetBoolProperty "weight", True, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL, start_bold, count
 							start_bold = -1
 						End If
-						If start_italic > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "i0")) OrElse CBool(c = "}")) Then
+						If start_italic > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "i0")) OrElse CBool(c = 125)) Then
 							SetBoolProperty "style", True, PANGO_STYLE_ITALIC, PANGO_STYLE_NORMAL, start_italic, count
 							start_italic = -1
 						End If
 						rtf_tag = ""
-						in_tag = c = "\"
-					ElseIf c = "{" Or c = "}" Then
+						in_tag = c = 92 '"\"
+					ElseIf c = 123 Or c = 125 Then '"{"  "}"
 						Continue For
 					ElseIf in_tag Then
-						If c = !"\n" Then
+						If c = 10 Then
 							Continue For
 						End If
-						rtf_tag += c
+						rtf_tag += Chr(c)
 					Else
-						Buff += c
+						WAdd(BuffPtr, WChr(c), , Capacity)
 						count += 1
 					End If
 				Next
@@ -1656,6 +1657,7 @@ Namespace My.Sys.Forms
 		If FFindText Then _Deallocate(FFindText)
 		If FTextRange Then _Deallocate(FTextRange)
 		If FSelWStrVal Then _Deallocate(FSelWStrVal)
+		If FTextRTF Then _Deallocate(FTextRTF)
 		#ifndef __USE_GTK__
 			DestroyWindow FHandle
 			FreeLibrary(hRichTextBox)

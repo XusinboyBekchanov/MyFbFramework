@@ -262,9 +262,7 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 				End With
-				If ShowCaption Then
-					Canvas.TextOut(Current.X, Current.Y, FText, Font.Color, FBackColor)
-				End If
+				If ShowCaption AndAlso FText <> 0 Then Canvas.TextOut(Current.X, Current.Y, *FText, Font.Color, FBackColor)
 				If OnPaint Then OnPaint(*Designer, This, Canvas)
 				Canvas.UnSetHandle
 				If DoubleBuffered Then
@@ -385,4 +383,3 @@ Namespace My.Sys.Forms
 		#endif
 	End Destructor
 End Namespace
-

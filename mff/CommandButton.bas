@@ -18,11 +18,11 @@ Namespace My.Sys.Forms
 		Private Function CommandButton.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "cancel": Return Cast(Any Ptr, @FCancel)
-			Case "caption": Return Cast(Any Ptr, This.FText.vptr)
+			Case "caption": Return Cast(Any Ptr, This.FText)
 			Case "default": Return Cast(Any Ptr, @FDefault)
 			Case "style": Return @FStyle
 			Case "tabindex": Return @FTabIndex
-			Case "text": Return Cast(Any Ptr, This.FText.vptr)
+			Case "text": Return Cast(Any Ptr, This.FText)
 			Case "graphic": Return @Graphic
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -238,7 +238,11 @@ Namespace My.Sys.Forms
 							End If
 							SetBkMode nmcd->hdc, TRANSPARENT
 							SetTextColor nmcd->hdc, FForeColor
-							DrawText nmcd->hdc, FText.vptr, -1, @nmcd->rc, DT_CENTER Or DT_VCENTER Or DT_SINGLELINE
+							If FText = 0 Then
+								DrawText nmcd->hdc, "", -1, @nmcd->rc, DT_CENTER Or DT_VCENTER Or DT_SINGLELINE
+							Else
+								DrawText nmcd->hdc, *FText, -1, @nmcd->rc, DT_CENTER Or DT_VCENTER Or DT_SINGLELINE
+							End If
 							msg.Result = CDRF_SKIPDEFAULT
 						End Select
 					End Select

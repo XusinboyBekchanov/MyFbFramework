@@ -298,13 +298,13 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxEdit.Text ByRef As WString
 		If FStyle >= cbDropDownList Then
 			If This.ItemIndex > -1 Then
-				FText = This.Item(This.ItemIndex)
+				WLet(FText, This.Item(This.ItemIndex))
 			Else
-				FText = ""
+				WLet(FText, "")
 			End If
 		Else
 			#ifdef __USE_GTK__
-				FText = WStr(*gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))
+				WLet(FText, *gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))
 			#else
 				'If This.ItemIndex > -1 Then
 				'	FText = This.Item(This.ItemIndex)
@@ -313,7 +313,7 @@ Namespace My.Sys.Forms
 				'End If
 			#endif
 		End If
-		Return WGet(FText.vptr)
+		If FText = 0 Then Return "" Else Return *FText
 	End Property
 	
 	Private Property ComboBoxEdit.Text(ByRef Value As WString)
@@ -333,10 +333,10 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FStyle > 1 Then
-				If FHandle Then Perform(CB_SELECTSTRING, -1, Cast(LPARAM, FText.vptr))
+				If FHandle Then Perform(CB_SELECTSTRING, -1, Cast(LPARAM, FText))
 			Else
 				'If FHandle Then SetWindowText(FHandle, FText)
-				If FHandle Then Perform(WM_SETTEXT, 0, Cast(LPARAM, FText.vptr))
+				If FHandle Then Perform(WM_SETTEXT, 0, Cast(LPARAM, FText))
 			End If
 			If Items.Count > 0 Then
 				Dim As Integer Index = IndexOf(Value)
@@ -523,7 +523,7 @@ Namespace My.Sys.Forms
 							.Perform(CB_ADDSTRING, 0, CInt(@.Items.Item(i)))
 						Next i
 						If .FItemIndex <> -1 Then .ItemIndex = .FItemIndex
-						.Text = .FText
+						If .FText <> 0 Then .Text = * (.FText) Else .Text = ""
 						If .FEditHandle <> 0 Then
 							SetWindowLongPtr(.FEditHandle, GWLP_USERDATA, CInt(.Child))
 							.lpfnEditWndProc = Cast(Any Ptr, SetWindowLongPtr(.FEditHandle, GWLP_WNDPROC, CInt(@SubClassProc)))

@@ -209,7 +209,7 @@ Namespace My.Sys.Forms
 			SortIndex     As Integer
 			SortOrder     As SortStyle
 			SortOrderLast As SortStyle
-			SortType      As CompareType
+			SortNatural   As Boolean
 			MatchCase     As Boolean
 		End Type
 		
@@ -488,7 +488,7 @@ Namespace My.Sys.Forms
 			FControlParent     As Integer
 			FStartPosition     As Integer
 			FStyle             As Integer
-			FText              As UString
+			FText              As WString Ptr
 			FHint              As WString Ptr
 			FProgID             As WString Ptr
 			FShowCaption       As Boolean

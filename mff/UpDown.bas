@@ -27,7 +27,7 @@ Namespace My.Sys.Forms
 			Case "position": Return @FPosition
 			Case "style": Return @FStyle
 			Case "tabindex": Return @FTabIndex
-			Case "text": Text: Return FText.vptr
+			Case "text": Text: Return FText
 			Case "thousands": Return @FThousands
 			Case "wrap": Return @FWrap
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -167,8 +167,8 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property UpDown.Text ByRef As WString
-		FText = Str(Position)
-		Return *FText.vptr
+		WLet(FText, WStr(Position))
+		If FText = 0 Then Return "" Else Return *FText
 	End Property
 	
 	Private Property UpDown.Text(ByRef Value As WString)

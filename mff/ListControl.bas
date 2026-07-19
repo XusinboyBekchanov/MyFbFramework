@@ -390,15 +390,15 @@ Namespace My.Sys.Forms
 	
 	Private Property ListControl.Text ByRef As WString
 		If Handle Then
-			FText = Items.Item(ItemIndex)
+			WLet(FText, Items.Item(ItemIndex))
 		End If
-		Return *FText.vptr
+		If FText = 0 Then Return "" Else Return *FText
 	End Property
 	
 	Private Property ListControl.Text(ByRef Value As WString)
-		FText = Value
+		WLet(FText, Value)
 		#ifdef __USE_WINAPI__
-			If FHandle Then Perform(LB_SELECTSTRING, -1, CInt(FText))
+			If FHandle AndAlso FText <> 0 Then Perform(LB_SELECTSTRING, -1, Cast(LPARAM, FText))
 		#else
 			ItemIndex = Items.IndexOf(Value)
 		#endif
@@ -430,18 +430,25 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				Dim As Integer L
 				L = Perform(LB_GETTEXTLEN, FIndex, 0)
-				FText.Resize L
-				FText = Space(L)
-				Perform(LB_GETTEXT, FIndex, CInt(FText.vptr))
-				Return *FText.vptr
+				FText = _Reallocate(FText, (L + 2) * SizeOf(WString))
+				If FText = 0 Then
+					 Return "" 
+				Else
+					Perform(LB_GETTEXT, FIndex, Cast(LPARAM, FText)) 
+					Return *FText
+				End If
 			Else
-				FText.Resize Len(Items.Item(FIndex))
-				FText = Items.Item(FIndex)
-				Return *FText.vptr
+				FText = _Reallocate(FText, (Len(Items.Item(FIndex)) + 1) * SizeOf(WString))
+				If FText = 0 Then 
+					Return "" 
+				Else 
+					*FText = Items.Item(FIndex)
+					Return *FText
+				End If
 			End If
 		#else
-			FText = Items.Item(FIndex)
-			Return *FText.vptr
+			WLet(FText, Items.Item(FIndex))
+			If FText = 0 Then Return "" Else Return *FText
 		#endif
 	End Property
 	
