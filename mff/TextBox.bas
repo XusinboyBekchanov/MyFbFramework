@@ -430,7 +430,7 @@ Namespace My.Sys.Forms
 					#endif
 				End If
 			End If
-			If FText = 0 Then Return ""
+			'If FText = 0 Then Return ""
 			FText_.Resize Len(*FText)
 			*FText_.m_Data = *FText
 			Return FText_
@@ -448,14 +448,14 @@ Namespace My.Sys.Forms
 				Next
 				(*FText)[length] = 0
 			End If
-			If FText = 0 OrElse ptr_ = 0 Then Return ""
+			'If FText = 0 OrElse ptr_ = 0 Then Return ""
 			FText_.Resize Len(*FText)
 			*FText_.m_Data = *FText
 			Return FText_
 		#elseif defined(__USE_WASM__)
 			Dim ptr_ As ZString Ptr = GetStringValue(@This)
 			FText = _Reallocate(FText, (Len(*ptr_) + 1) * SizeOf(WString))
-			If FText = 0 Then Return ""
+			'If FText = 0 Then Return ""
 			*FText = *ptr_
 			FreePtr(ptr_)
 			FText_.Resize Len(*FText)
@@ -1781,4 +1781,3 @@ End Namespace
 	'	End If
 	'End Sub
 #endif
-
