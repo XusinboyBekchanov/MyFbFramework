@@ -26,6 +26,7 @@ Private:
 	m_Capacity As Integer
 Public:
 	Declare Constructor()
+	Declare Constructor(ByRef Value As Const WString)
 	Declare Constructor(ByRef Value As WString)
 	Declare Constructor(ByRef Value As ZString)
 	Declare Constructor(ByRef Value As String)
@@ -38,6 +39,7 @@ Public:
 	Declare Function Add(ByRef txt As WString, AddBefore As Boolean = False) As Boolean
 	Declare Operator [](ByVal Index As Integer) ByRef As UShort
 	
+	Declare Operator Let(ByRef Value As Const WString)
 	Declare Operator Let(ByRef Value As WString)
 	Declare Operator Let(ByRef Value As UString)
 	Declare Operator Let(ByRef Value As String)
