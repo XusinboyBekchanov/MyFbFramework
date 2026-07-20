@@ -2124,7 +2124,7 @@ Namespace My.Sys.Drawing
 						For xx As Integer = 0 To image_width - 1
 							cairo_row[xx * 4] = pixbuf_row[xx * n_channels + 2]
 							cairo_row[xx * 4 + 1] = pixbuf_row[xx * n_channels + 1]
-							cairo_row[xx * 4 2] = pixbuf_row[xx * n_channels]
+							cairo_row[xx * 4 + 2] = pixbuf_row[xx * n_channels]
 							cairo_row[xx * 4 + 3] = IIf(n_channels = 4, pixbuf_row[xx * n_channels + 3], 255)
 						Next
 					Next
@@ -2341,9 +2341,10 @@ Namespace My.Sys.Drawing
 					Dim As Const UByte Ptr pixbuf_data = gdk_pixbuf_get_pixels(Image)
 					Dim As Integer pixbuf_rowstride = gdk_pixbuf_get_rowstride(Image)
 					Dim As Integer n_channels = gdk_pixbuf_get_n_channels(Image)
-					For yy As Integer = 0 To image_height - 1                        Dim As UByte Ptr cairo_row = cairo_data + yy * stride
+					For yy As Integer = 0 To image_height - 1
+						Dim As UByte Ptr cairo_row = cairo_data + yy * stride
 						Dim As Const UByte Ptr pixbuf_row = pixbuf_data + yy * pixbuf_rowstride
-						For xx Integer = 0 To image_width - 1
+						For xx As Integer = 0 To image_width - 1
 							cairo_row[xx * 4] = pixbuf_row[xx * n_channels + 2]
 							cairo_row[xx * 4 + 1] = pixbuf_row[xx * n_channels + 1]
 							cairo_row[xx * 4 + 2] = pixbuf_row[xx * n_channels]
@@ -2568,25 +2569,25 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Font)
 		With *Cast(Canvas Ptr, Sender.Parent)
 			#ifdef __USE_GTK__
-				cairo_select_font_face(.Handle, Sender.Name, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-				cairo_set_font_size(.Handle, Sender.Size)
-				
-				Dim As PangoFontDescription Ptr desc
-				desc = pango_font_description_from_string (Sender.Name & " " & Trim(Str(Sender.Size)))
-				pango_layout_set_font_description(.layout, desc)
-				pango_font_description_free(desc)
-				
-				Dim As PangoRectangle extend
-				pango_layout_set_text(.layout, ToUtf8("|"), 1)
-				pango_cairo_update_layout(.Handle, .layout)
-				#ifdef pango_version
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(.layout, 0)
-				#else
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(.layout, 0)
-				#endif
-				pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-				.dwCharX = .UnScaleX(extend.width)
-				.dwCharY = .UnScaleY(extend.height)
+				'cairo_select_font_face(.Handle, Sender.Name, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+				'cairo_set_font_size(.Handle, Sender.Size)
+				'
+				'Dim As PangoFontDescription Ptr desc
+				'desc = pango_font_description_from_string (Sender.Name & " " & Trim(Str(Sender.Size)))
+				'pango_layout_set_font_description(.layout, desc)
+				'pango_font_description_free(desc)
+				'
+				'Dim As PangoRectangle extend
+				'pango_layout_set_text(.layout, ToUtf8("|"), 1)
+				'pango_cairo_update_layout(.Handle, .layout)
+				'#ifdef pango_version
+				'	Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(.layout, 0)
+				'#else
+				'	Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(.layout, 0)
+				'#endif
+				'pango_layout_line_get_pixel_extents(pl, NULL, @extend)
+				'.dwCharX = .UnScaleX(extend.width)
+				'.dwCharY = .UnScaleY(extend.height)
 			#else
 				Dim As HDC hd = GetDC(.ParentControl->Handle)
 				SelectObject(hd, .Font.Handle)

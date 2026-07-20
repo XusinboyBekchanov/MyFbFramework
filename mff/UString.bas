@@ -32,6 +32,19 @@ Private Constructor UString(ByRef Value As WString)
 	End If
 End Constructor
 
+Private Constructor UString(ByRef Value As Const WString)
+	m_Length = Len(Value)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	m_Data = _Allocate(m_BytesCount)
+	m_Capacity = 0
+	If m_Data <> 0 Then
+		Fb_MemCopy((*m_Data)[0], Value[0], m_Length * SizeOf(WString) * GrowLength)
+		(*m_Data)[m_Length] = 0
+	Else
+		Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated."
+	End If
+End Constructor
+
 'NO Any use?
 Private Constructor UString(ByRef Value As String)
 	m_Length = Len(Value)
@@ -474,6 +487,20 @@ Private Operator UString.Let(ByRef lhs As UString)
 End Operator
 
 Private Operator UString.Let(ByRef lhs As WString)
+	m_Length = Len(lhs)
+	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
+	m_BufferLen = m_Length * 2
+	m_Capacity = 0
+	Dim As WString Ptr ResultPtr = _Allocate(m_BytesCount)
+	If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." : Return
+	Fb_MemCopy((*ResultPtr)[0], lhs[0], m_Length * SizeOf(WString) * GrowLength)
+	(*ResultPtr)[m_Length] = 0
+	If m_Data <> 0 AndAlso m_Data <> ResultPtr Then Deallocate(m_Data)
+	m_Data = ResultPtr
+	If OnChange Then OnChange(This)
+End Operator
+
+Private Operator UString.Let(ByRef lhs As Const WString)
 	m_Length = Len(lhs)
 	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 	m_BufferLen = m_Length * 2

@@ -61,11 +61,16 @@ Namespace My.Sys.Forms
 				ElseIf GTK_IS_STACK(widget) = 1 Then
 				#endif
 				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
-					fixedwidget = gtk_fixed_new()
-					#ifdef __USE_GTK4__
-						gtk_container_add(GTK_CONTAINER(widget), fixedwidget)
+					#ifdef __USE_GTK2__
+						layoutwidget = gtk_layout_new(NULL, NULL)
+						gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
 					#else
-						gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), fixedwidget)
+						fixedwidget = gtk_fixed_new()
+						#ifdef __USE_GTK4__
+							gtk_container_add(GTK_CONTAINER(widget), fixedwidget)
+						#else
+							gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), fixedwidget)
+						#endif
 					#endif
 				Else
 					'box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
