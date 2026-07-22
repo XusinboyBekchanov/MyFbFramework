@@ -11,7 +11,7 @@ Namespace My.Sys.Forms
 		Private Function LinkLabel.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "tabindex": Return @FTabIndex
-			Case "text": Return FText.vptr
+			Case "text": Return FText
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0

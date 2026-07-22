@@ -202,16 +202,16 @@ Namespace My.Sys.Forms
 	Private Property DateTimePicker.Text ByRef As WString
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK4__
-				FText = WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))))
+				WLet(FText, WStr(*gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget)))))
 			#else
-				FText = WStr(*gtk_entry_get_text(GTK_ENTRY(widget)))
+				WLet(FText, WStr(*gtk_entry_get_text(GTK_ENTRY(widget))))
 			#endif
-			Return *FText.vptr
+			If FText = 0 Then Return "" Else Return *FText
 		#elseif defined(__USE_WASM__)
 			Dim ptr_ As ZString Ptr = GetStringValue(@This)
-			FText = *ptr_
+			WLet(FText, *ptr_)
 			FreePtr(ptr_)
-			Return *FText.vptr
+			If FText = 0 Then Return "" Else Return *FText
 		#else
 			Return Base.Text
 		#endif
@@ -219,7 +219,7 @@ Namespace My.Sys.Forms
 	
 	Private Property DateTimePicker.Text(ByRef Value As WString)
 		If IsDate(Value) Then
-			FText = Value
+			WLet(FText, Value)
 			Dim As Integer Pos1 = InStr(Value, ":")
 			If Pos1 > 0 Then
 				SelectedDate = DateValue(Trim(..Left(Value, Pos1 - 3)))

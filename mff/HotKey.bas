@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function HotKey.ReadProperty(PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "text": Text: Return FText.vptr
+			Case "text": Text: Return FText
 			Case "tabindex": Return @FTabIndex
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
@@ -184,16 +184,16 @@ Namespace My.Sys.Forms
 		#else
 			Dim wHotKey As WORD
 			wHotKey = SendMessage(Handle, HKM_GETHOTKEY, 0, 0)
-			FText = GetChrKeyCode(LoByte(LoWord(wHotKey)))
-			If (HiByte(LoWord(wHotKey)) And HOTKEYF_SHIFT) = HOTKEYF_SHIFT Then FText = "Shift+" & FText
-			If (HiByte(LoWord(wHotKey)) And HOTKEYF_ALT) = HOTKEYF_ALT Then FText = "Alt+" & FText
-			If (HiByte(LoWord(wHotKey)) And HOTKEYF_CONTROL) = HOTKEYF_CONTROL Then FText = "Ctrl+" & FText
+			WLet(FText, GetChrKeyCode(LoByte(LoWord(wHotKey))))
+			If (HiByte(LoWord(wHotKey)) And HOTKEYF_SHIFT) = HOTKEYF_SHIFT Then WLetEx(FText, "Shift+" & *FText)
+			If (HiByte(LoWord(wHotKey)) And HOTKEYF_ALT) = HOTKEYF_ALT Then WLetEx(FText, "Alt+" & *FText)
+			If (HiByte(LoWord(wHotKey)) And HOTKEYF_CONTROL) = HOTKEYF_CONTROL Then WLetEx(FText, "Ctrl+" & *FText)
 		#endif
-		Return *FText.vptr
+		If FText = 0 Then Return "" Else Return *FText
 	End Property
 	
 	Private Property HotKey.Text(ByRef Value As WString)
-		FText = Value
+		WLet(FText, Value)
 		#ifdef __USE_GTK__
 			Dim sKey As String = Value
 			Dim wHotKey As String

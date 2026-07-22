@@ -121,6 +121,7 @@ Declare Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStar
 'Example: Dim As WString * 20 mainStr = "Hello World" : Dim As WString * 100 result = SubString(mainStr, 7, 5, "FreeBasic" )(Expected: 'Hello FreeBasic')
 Declare Function SubString(ByRef wszMainStr As WString, ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "" ) As UString
 Declare Function FormatFileName(ByRef originalName As WString) As UString
+Declare Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
 #if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean
 	Declare Function FileExists Overload(ByRef FileName As WString) As Boolean

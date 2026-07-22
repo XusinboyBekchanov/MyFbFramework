@@ -416,9 +416,9 @@ Namespace My.Sys.Forms
 		If This.FStyle >= cbDropDownList Then
 			Var iItem = This.Items.Item(This.ItemIndex)
 			If iItem = 0 Then
-				FText = ""
+				WLet(FText, "")
 			Else
-				FText = iItem->Text
+				WLet(FText, iItem->Text)
 			End If
 		Else
 			#ifdef __USE_WINAPI__
@@ -431,17 +431,17 @@ Namespace My.Sys.Forms
 					h = SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)
 				End Select
 				L = SendMessageW(Cast(HWND, h), WM_GETTEXTLENGTH, 0, 0)
-				FText.Resize(L + 1)
-				GetWindowText(Cast(HWND, h), FText.vptr, L + 1)
+				FText = _Reallocate(FText, (L + 2) * SizeOf(WString))
+				GetWindowText(Cast(HWND, h), FText, L + 1)
 			#elseif defined(__USE_GTK__)
 				'#ifdef __USE_GTK__
-					FText = WStr(*gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))
+					WLet(FText, WStr(*gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget))))
 '				#else
 '					Base.Text
 '				#endif
 			#endif
 		End If
-		Return *FText.vptr
+		If FText = 0 Then Return "" Else Return *FText
 	End Property
 	
 	Private Property ComboBoxEx.Text(ByRef Value As WString)
@@ -449,11 +449,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Select Case This.FStyle
 			Case ComboBoxEditStyle.cbSimple
-				SendMessageW(Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)), WM_SETTEXT, -1, CInt(FText.vptr))
+				SendMessageW(Cast(HWND, SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)), WM_SETTEXT, 0, Cast(LPARAM, FText))
 			Case ComboBoxEditStyle.cbDropDown
-				SendMessageW(Cast(HWND,SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)), WM_SETTEXT, -1, CInt(FText.vptr))
+				SendMessageW(Cast(HWND, SendMessageW(FHandle, CBEM_GETEDITCONTROL, 0, 0)), WM_SETTEXT, 0, Cast(LPARAM, FText))
 			Case Else
-				Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
+				Perform(CB_SELECTSTRING, -1, Cast(LPARAM, FText))
 			End Select
 			'If FHandle Then Perform(CB_SELECTSTRING, -1, CInt(FText.vptr))
 			Dim As Integer Index = IndexOf(Value)
@@ -531,6 +531,7 @@ Namespace My.Sys.Forms
 						SetProp(h, "@@@@Proc", Cast(..WNDPROC, SetWindowLongPtr(h, GWLP_WNDPROC, CInt(@HookChildProc))))
 					End If
 					Dim As Integer i
+					If .Items.Count > 0 Then
 					For i = 0 To .Items.Count - 1
 						Dim As COMBOBOXEXITEM cbei
 						cbei.mask = CBEIF_TEXT Or CBEIF_IMAGE Or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE
@@ -543,8 +544,9 @@ Namespace My.Sys.Forms
 						cbei.iIndent   = .Items.Item(i)->Indent
 						.Perform(CBEM_INSERTITEM, 0, CInt(@cbei))
 					Next i
+					End If
 					.ItemIndex = .FItemIndex
-					.Text = .FText
+					If .FText <> 0 Then .Text = * (.FText) Else .Text = ""
 				End With
 			End If
 		End Sub
