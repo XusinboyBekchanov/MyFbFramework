@@ -613,35 +613,8 @@ Namespace My.Sys.Forms
 			If Sender Then
 				With QWebBrowser(Sender.Child)
 					#ifdef __USE_WEBVIEW2__
-						CoInitializeEx(0, COINIT_APARTMENTTHREADED)
+						'CoInitializeEx(0, COINIT_APARTMENTTHREADED)
 						Dim As HRESULT hr
-						
-						'If SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) = 0 Then
-						'    'error_printf(
-						'    '    "%s:%d: %s (0x%x).\n",
-						'    '    __FILE__,
-						'    '    __LINE__,
-						'    '    "SetProcessDpiAwarenessContext",
-						'    '    GetLastError()
-						'    ');
-						'    'ch = _getch();
-						'    Return GetLastError()
-						'End If
-						
-						hr = CoInitialize(NULL)
-						If FAILED(hr) Then
-							'error_printf(
-							'    "%s:%d: %s (0x%x).\n",
-							'    __FILE__,
-							'    __LINE__,
-							'    "CoInitialize",
-							'    hr
-							');
-							'ch = _getch();
-							Print hr
-							Return 'hr
-						End If
-						
 						.envHandler = malloc(SizeOf(ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler))
 						If .envHandler = 0 Then
 							'error_printf(
@@ -789,7 +762,7 @@ Namespace My.Sys.Forms
 	Private Constructor WebBrowser
 		With This
 			WLet(FClassName, "WebBrowser")
-			FText = "about:blank"
+			WLet(FText, "about:blank")
 			FTabIndex          = -1
 			FTabStop           = True
 			#ifdef __USE_GTK__
