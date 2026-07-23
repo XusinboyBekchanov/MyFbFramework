@@ -1758,7 +1758,6 @@ Namespace My.Sys.Forms
 	
 	Private Destructor TextBox
 		If FSelText <> 0 Then _Deallocate(FSelText)
-		If FText <> 0 Then _Deallocate(FText)
 		If FLine <> 0 Then _Deallocate(FLine)
 		If FMaskChar <> 0 Then _Deallocate(FMaskChar)
 		'FText_ = ""
