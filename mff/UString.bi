@@ -79,16 +79,17 @@ Declare Function WGet(ByRef subject As WString Ptr) ByRef As WString
 #if MEMCHECK = 0
 	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
 	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
-	Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ByVal tmpPara As Boolean = False)
 	'Minimal allocation mode, Capacity represents remaining space. Mustbe reset Capacity = 0 after using the WLet function.
-	Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
+	
 	Declare Sub WDeAllocate (ByRef subject As WString Ptr)
 	Declare Sub ZLet(ByRef subject As ZString Ptr, ByRef txt As ZString)
 	Declare Sub ZDeAllocate(ByRef subject As ZString Ptr)
 	Declare Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
-	Declare Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmpPara As Boolean = False)
 #endif
 Declare Sub WDeAllocateEx(subject() As WString Ptr)
+Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
+Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ByVal tmpPara As Boolean = False)
+Declare Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmpPara As Boolean = False)
 
 Declare Function ToUtf8(ByRef nWString As WString) As String
 Declare Function FromUtf8(pZString As ZString Ptr) As WString Ptr
