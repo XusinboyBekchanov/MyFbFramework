@@ -115,7 +115,7 @@ Namespace My.Sys.Forms
 					Case "hovertime": This.HoverTime = QInteger(Value)
 					Case "font": This.Font = *Cast(My.Sys.Drawing.Font Ptr, Value)
 					Case "id": This.ID = QInteger(Value)
-					Case "ischild": This.IsChild = QInteger(Value)
+					Case "ischild": This.IsChild = QBoolean(Value)
 					Case "forecolor": This.ForeColor = QInteger(Value)
 					Case "location.x": This.Left = QInteger(Value)
 					Case "location.y": This.Top = QInteger(Value)
