@@ -1401,10 +1401,12 @@ Namespace My.Sys.Forms
 					If OnDeActivateApp Then OnDeActivateApp(*Designer, This)
 				End Select
 			Case WM_MOUSEACTIVATE
-				If FFormStyle <> FormStyles.fsMDIChild Then
-					If GetActiveWindow() <> FHandle Then
-						msg.Result = MA_ACTIVATEANDEAT
-						Return
+				If Not FDesignMode Then
+					If FFormStyle <> FormStyles.fsMDIChild Then
+						If GetActiveWindow() <> FHandle Then
+							msg.Result = MA_ACTIVATEANDEAT
+							Return
+						End If
 					End If
 				End If
 			Case WM_DESTROY
