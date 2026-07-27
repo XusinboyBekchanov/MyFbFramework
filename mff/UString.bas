@@ -268,91 +268,91 @@ End Function
 		subject = 0
 	End Sub
 	
-		
-		'Minimal allocation mode, Capacity represents remaining space. Mustbe reset Capacity = 0 after using the WLet function.
-		Private Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
-			Dim As Integer ls = Len(txt)
-			If ls = 0 Then Return
-			Dim As Integer oldLen = 0
-			If subject <> 0 Then oldLen = Len(*subject)
-			Dim As Integer newLen = oldLen + ls
-			If ls <= Capacity AndAlso subject <> 0 Then
-				If AddBefore AndAlso oldLen > 0 Then
-					Fb_MemMove((*subject)[ls], (*subject)[0], oldLen * SizeOf(ZString))
-					Fb_MemCopy((*subject)[0], txt[0], ls * SizeOf(ZString))
-				Else
-					Fb_MemCopy((*subject)[oldLen], txt[0], ls * SizeOf(ZString))
-				End If
-				(*subject)[newLen] = 0
-				Capacity -= ls
-				Return
-			End If
-			Dim As Integer newCapacity = newLen * 2
-			If newCapacity < 512 Then newCapacity = 512
-			If Capacity < 1 Then newCapacity = newLen + 1 ' 精确容量模式回退
-			Capacity = newCapacity - newLen  '“最小化分配”模式，Capacity 表示*剩余*空间！
-			Dim As ZString Ptr ResultPtr
-			If subject <> 0 Then
-				ResultPtr = _Reallocate(subject, (newCapacity + 1) * SizeOf(ZString))
-				If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
-				If AddBefore AndAlso oldLen > 0 Then
-					Fb_MemMove((*ResultPtr)[ls], (*ResultPtr)[0], oldLen * SizeOf(ZString))
-					Fb_MemCopy((*ResultPtr)[0], txt[0], ls *SizeOf(ZString))
-				Else
-					Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls*SizeOf(ZString))
-				End If
-			Else
-				ResultPtr = _Allocate((newCapacity + 1) * SizeOf(ZString))
-				If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
-				Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(ZString))
-			End If
-			(*ResultPtr)[newLen] = 0
-			subject = ResultPtr
-		End Sub
-	#endif
 	
-	#ifndef WAdd_Off
-		'Minimal allocation mode, Capacity represents remaining space. Mustbe reset Capacity = 0 after using the WLet function.
-		Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
-			Dim As Integer ls = Len(txt)
-			If ls = 0 Then Return
-			Dim As Integer oldLen = 0
-			If subject <> 0 Then oldLen = Len(*subject)
-			Dim As Integer newLen = oldLen + ls
-			If ls <= Capacity AndAlso subject <> 0 Then
-				If AddBefore AndAlso oldLen > 0 Then
-					Fb_MemMove((*subject)[ls], (*subject)[0], oldLen * SizeOf(WString))
-					Fb_MemCopy((*subject)[0], txt[0], ls * SizeOf(WString))
-				Else
-					Fb_MemCopy((*subject)[oldLen], txt[0], ls * SizeOf(WString))
-				End If
-				(*subject)[newLen] = 0
-				Capacity -= ls
-				Return
-			End If
-			Dim As Integer newCapacity = newLen * 2
-			If newCapacity < 512 Then newCapacity = 512
-			If Capacity < 1 Then newCapacity = newLen + 1 ' 精确容量模式回退
-			Capacity = newCapacity - newLen  'Minimal allocation mode, Capacity represents remaining space. Capacity 表示*剩余*空间！
-			Dim As WString Ptr ResultPtr
-			If subject <> 0 Then
-				ResultPtr = _Reallocate(subject, (newCapacity + 1) * SizeOf(WString))
-				If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
-				If AddBefore AndAlso oldLen > 0 Then
-					Fb_MemMove((*ResultPtr)[ls], (*ResultPtr)[0], oldLen * SizeOf(WString))
-					Fb_MemCopy((*ResultPtr)[0], txt[0], ls *SizeOf(WString))
-				Else
-					Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls*SizeOf(WString))
-				End If
+	'Minimal allocation mode, Capacity represents remaining space. Mustbe reset Capacity = 0 after using the WLet function.
+	Private Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
+		Dim As Integer ls = Len(txt)
+		If ls = 0 Then Return
+		Dim As Integer oldLen = 0
+		If subject <> 0 Then oldLen = Len(*subject)
+		Dim As Integer newLen = oldLen + ls
+		If ls <= Capacity AndAlso subject <> 0 Then
+			If AddBefore AndAlso oldLen > 0 Then
+				Fb_MemMove((*subject)[ls], (*subject)[0], oldLen * SizeOf(ZString))
+				Fb_MemCopy((*subject)[0], txt[0], ls * SizeOf(ZString))
 			Else
-				ResultPtr = _Allocate((newCapacity + 1) * SizeOf(WString))
-				If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
-				Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
+				Fb_MemCopy((*subject)[oldLen], txt[0], ls * SizeOf(ZString))
 			End If
-			(*ResultPtr)[newLen] = 0
-			subject = ResultPtr
-		End Sub
-		
+			(*subject)[newLen] = 0
+			Capacity -= ls
+			Return
+		End If
+		Dim As Integer newCapacity = newLen * 2
+		If newCapacity < 512 Then newCapacity = 512
+		If Capacity < 1 Then newCapacity = newLen + 1 ' 精确容量模式回退
+		Capacity = newCapacity - newLen  '“最小化分配”模式，Capacity 表示*剩余*空间！
+		Dim As ZString Ptr ResultPtr
+		If subject <> 0 Then
+			ResultPtr = _Reallocate(subject, (newCapacity + 1) * SizeOf(ZString))
+			If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
+			If AddBefore AndAlso oldLen > 0 Then
+				Fb_MemMove((*ResultPtr)[ls], (*ResultPtr)[0], oldLen * SizeOf(ZString))
+				Fb_MemCopy((*ResultPtr)[0], txt[0], ls *SizeOf(ZString))
+			Else
+				Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls*SizeOf(ZString))
+			End If
+		Else
+			ResultPtr = _Allocate((newCapacity + 1) * SizeOf(ZString))
+			If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
+			Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(ZString))
+		End If
+		(*ResultPtr)[newLen] = 0
+		subject = ResultPtr
+	End Sub
+#endif
+
+#ifndef WAdd_Off
+	'Minimal allocation mode, Capacity represents remaining space. Mustbe reset Capacity = 0 after using the WLet function.
+	Private Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
+		Dim As Integer ls = Len(txt)
+		If ls = 0 Then Return
+		Dim As Integer oldLen = 0
+		If subject <> 0 Then oldLen = Len(*subject)
+		Dim As Integer newLen = oldLen + ls
+		If ls <= Capacity AndAlso subject <> 0 Then
+			If AddBefore AndAlso oldLen > 0 Then
+				Fb_MemMove((*subject)[ls], (*subject)[0], oldLen * SizeOf(WString))
+				Fb_MemCopy((*subject)[0], txt[0], ls * SizeOf(WString))
+			Else
+				Fb_MemCopy((*subject)[oldLen], txt[0], ls * SizeOf(WString))
+			End If
+			(*subject)[newLen] = 0
+			Capacity -= ls
+			Return
+		End If
+		Dim As Integer newCapacity = newLen * 2
+		If newCapacity < 512 Then newCapacity = 512
+		If Capacity < 1 Then newCapacity = newLen + 1 ' 精确容量模式回退
+		Capacity = newCapacity - newLen  'Minimal allocation mode, Capacity represents remaining space. Capacity 表示*剩余*空间！
+		Dim As WString Ptr ResultPtr
+		If subject <> 0 Then
+			ResultPtr = _Reallocate(subject, (newCapacity + 1) * SizeOf(WString))
+			If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
+			If AddBefore AndAlso oldLen > 0 Then
+				Fb_MemMove((*ResultPtr)[ls], (*ResultPtr)[0], oldLen * SizeOf(WString))
+				Fb_MemCopy((*ResultPtr)[0], txt[0], ls *SizeOf(WString))
+			Else
+				Fb_MemCopy((*ResultPtr)[oldLen], txt[0], ls*SizeOf(WString))
+			End If
+		Else
+			ResultPtr = _Allocate((newCapacity + 1) * SizeOf(WString))
+			If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return
+			Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
+		End If
+		(*ResultPtr)[newLen] = 0
+		subject = ResultPtr
+	End Sub
+	
 	'Allow subject to point to the same content as txt (default: True).
 	'Example： WLetEx（tmpPtr, Mid(*tmpPtr,1,3) & Right(*tmpPtr,1)
 	Private Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ByVal tmpPara As Boolean = False)
@@ -1135,6 +1135,76 @@ Private Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 	Return True
 End Function
 
+#macro ParseWStringNumber(s, idx, slen, outVal)
+	Scope
+		Dim sign_ As Double = 1.0
+		If s[idx] = 43 Then
+			idx += 1
+		ElseIf s[idx] = 45 Then
+			sign_ = -1.0
+			idx += 1
+		End If
+		Dim numInt As LongInt = 0
+		While idx < slen AndAlso s[idx] >= 48 AndAlso s[idx] <= 57
+			numInt = numInt * 10 + (s[idx] - 48)
+			idx += 1
+		Wend
+		Dim numFrac As Double = 0.0
+		If idx < slen AndAlso s[idx] = 46 Then
+			idx += 1
+			Dim divisor As Double = 10.0
+			While idx < slen AndAlso s[idx] >= 48 AndAlso s[idx] <= 57
+				numFrac = numFrac + (s[idx] - 48) / divisor
+				divisor *= 10.0
+				idx += 1
+			Wend
+		End If
+		outVal = sign_ * (numInt + numFrac)
+	End Scope
+#endmacro
+
+Private Function StringsCompare(ByRef s1 As Const WString, ByRef s2 As Const WString, ByVal bMatchCase As Boolean = True, ByVal iDirection As Integer = 1, ByVal bNaturalSort As Boolean = False) As Integer
+	Dim As Integer iLen1 = Len(s1)
+	Dim As Integer iLen2 = Len(s2)
+	Dim As Integer i1 = 0, i2 = 0
+	Dim As Long c1, c2
+	' Pre-compute direction multipliers
+	Dim As Long iLess = -1 * iDirection
+	Dim As Long iGreater = 1 * iDirection
+	Const As Double EPSILON = 1e-9
+	While i1 < iLen1 AndAlso i2 < iLen2
+		c1 = s1[i1]
+		c2 = s2[i2]
+		If bNaturalSort Then
+			Dim isNum1 As Boolean = (c1 >= 48 AndAlso c1 <= 57) OrElse _
+			((c1 = 43 OrElse c1 = 45) AndAlso (i1 + 1 < iLen1) AndAlso (s1[i1 + 1] >= 48 AndAlso s1[i1 + 1] <= 57))
+			Dim isNum2 As Boolean = (c2 >= 48 AndAlso c2 <= 57) OrElse _
+			((c2 = 43 OrElse c2 = 45) AndAlso (i2 + 1 < iLen2) AndAlso (s2[i2 + 1] >= 48 AndAlso s2[i2 + 1] <= 57))
+			If isNum1 AndAlso isNum2 Then
+				Dim val1 As Double, val2 As Double
+				ParseWStringNumber(s1, i1, iLen1, val1)
+				ParseWStringNumber(s2, i2, iLen2, val2)
+				If val1 < val2 - EPSILON  Then Return iLess
+				If val1 > val2 + EPSILON  Then Return iGreater
+				Continue While
+			End If
+		End If
+		
+		If Not bMatchCase Then
+			If c1 >= 65 AndAlso c1 <= 90 Then c1 += 32 ' A-Z -> a-z
+			If c2 >= 65 AndAlso c2 <= 90 Then c2 += 32
+		End If
+		If c1 < c2 Then Return iLess
+		If c1 > c2 Then Return iGreater
+		
+		i1 += 1
+		i2 += 1
+	Wend
+	If iLen1 < iLen2 Then Return iLess
+	If iLen1 > iLen2 Then Return iGreater
+	Return 0
+	
+End Function
 'https://www.freebasic.net/forum/viewtopic.php?p=305672&hilit=Split#p305672
 'Returns a zero-based, one-dimensional array containing a specified number of substrings.
 'Parameters
@@ -1452,7 +1522,7 @@ End Function
 '   Split
 Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
 	Dim As Integer Size
-	Dim As Integer Lj = Max(LBound(Subject), 0)
+	Dim As Integer Lj = max(LBound(Subject), 0)
 	Dim As Integer Uj = UBound(Subject)
 	Dim As Integer ls = Len(Delimiter)
 	
@@ -1493,7 +1563,7 @@ Function Join(Subject() As UString, ByRef Delimiter As Const WString, ByVal skip
 	'Next
 	'Return Result
 	Dim As Integer size
-	Dim As Integer lj = Max(LBound(Subject), 0)
+	Dim As Integer lj = max(LBound(Subject), 0)
 	Dim As Integer uj = UBound(Subject)
 	Dim As Integer ls = Len(Delimiter)
 	Dim As WString Ptr SubjectPtr(uj)
@@ -1525,7 +1595,7 @@ End Function
 
 Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
 	Dim As Integer size
-	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
+	Dim As Integer lj = max(LBound(SubjectPtr), 0)
 	Dim As Integer uj = UBound(SubjectPtr)
 	Dim As Integer ls = Len(Delimiter)
 	
@@ -1562,7 +1632,7 @@ End Function
 
 Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As ZString Ptr
 	Dim As Integer size
-	Dim As Integer lj = Max(LBound(SubjectPtr), 0)
+	Dim As Integer lj = max(LBound(SubjectPtr), 0)
 	Dim As Integer uj = UBound(SubjectPtr)
 	Dim As Integer ls = Len(Delimiter)
 	
