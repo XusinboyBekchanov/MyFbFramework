@@ -12,8 +12,8 @@
 
 #include once "List.bi"
 
-#define QDoubleListItem(__Ptr__) (*Cast(DoubleListItem Ptr,__Ptr__))
-#define QDoubleList(__Ptr__) (*Cast(DoubleList Ptr,__Ptr__))
+'#define QDoubleListItem(__Ptr__) (*Cast(DoubleListItem Ptr,__Ptr__))
+'#define QDoubleList(__Ptr__) (*Cast(DoubleList Ptr,__Ptr__))
 
 Private Type DoubleListItem Extends Object
 Private:
@@ -33,10 +33,13 @@ End Type
 'Represents a list of doubles that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web).
 Private Type DoubleList Extends Object
 Private:
-	FCount   As Integer
-	FItems   As List
-	FSorted  As Boolean
+	FCount     As Integer
+	FDirection As Integer
+	FSorted    As Boolean
+	FItems     As List
+	Const As Double EPSILON = 1e-9
 Public:
+	SortedDirection As Integer
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Item(Index As Integer) As Double
@@ -49,12 +52,15 @@ Public:
 	Declare Function Insert(Index As Integer, iValue As Double, Obj As Any Ptr = 0) As Integer
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
+	Declare Function Get(iValue As Double, DefaultObj As Any Ptr = 0) As Any Ptr
+	Declare Sub Set(iValue As Double, Obj As Any Ptr)
 	Declare Sub Sort(ByVal iDirection As Long = 1)
 	Declare Sub Clear
 	Declare Function IndexOf(iValue As Double) As Integer
 	Declare Function IndexOfObject(Obj As Any Ptr) As Integer
 	Declare Function Contains(iValue As Double) As Boolean
 	Declare Operator Cast As Any Ptr
+	Declare Operator [](Index As Integer) As Double
 	Declare Constructor
 	Declare Destructor
 End Type

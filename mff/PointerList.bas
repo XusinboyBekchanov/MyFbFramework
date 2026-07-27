@@ -15,28 +15,28 @@ Private Function PointerList.Count As Integer
 End Function
 
 Private Operator PointerList.[](Index As Integer) As Any Ptr
-	Dim As PointerListItem Ptr FItemsItemsIndex = Cast(PointerListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then Return QPointerListItem(FItemsItemsIndex).Object Else Return 0
+	Dim As PointerListItem Ptr ItemPtr = Cast(PointerListItem Ptr, FItems.Item(Index))
+	If ItemPtr <> 0 Then Return ItemPtr->Object Else Return 0
 End Operator
 
 Private Property PointerList.Item(Index As Integer) As Any Ptr
-	Dim As PointerListItem Ptr FItemsItemsIndex = Cast(PointerListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then Return QPointerListItem(FItemsItemsIndex).Value Else Return 0
+	Dim As PointerListItem Ptr ItemPtr = Cast(PointerListItem Ptr, FItems.Item(Index))
+	If ItemPtr <> 0 Then Return ItemPtr->Value Else Return 0
 End Property
 
 Private Property PointerList.Item(Index As Integer, Value As Any Ptr)
-	Dim As PointerListItem Ptr FItemsItemsIndex = Cast(PointerListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then QPointerListItem(FItemsItemsIndex).Value = Value
+	Dim As PointerListItem Ptr ItemPtr = Cast(PointerListItem Ptr, FItems.Item(Index))
+	If ItemPtr <> 0 Then ItemPtr->Value = Value
 End Property
 
 Private Property PointerList.Object(Index As Integer) As Any Ptr
-	Dim As PointerListItem Ptr FItemsItemsIndex = Cast(PointerListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then Return QPointerListItem(FItemsItemsIndex).Object Else Return 0
+	Dim As PointerListItem Ptr ItemPtr = Cast(PointerListItem Ptr, FItems.Item(Index))
+	If ItemPtr <> 0 Then Return ItemPtr->Object Else Return 0
 End Property
 
 Private Property PointerList.Object(Index As Integer, Value As Any Ptr)
-	Dim As PointerListItem Ptr FItemsItemsIndex = Cast(PointerListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then QPointerListItem(FItemsItemsIndex).Object = Value
+	Dim As PointerListItem Ptr ItemPtr = Cast(PointerListItem Ptr, FItems.Item(Index))
+	If ItemPtr <> 0 Then ItemPtr->Object = Value
 End Property
 
 Private Function PointerList.Add(iValue As Any Ptr, Obj As Any Ptr = 0) As Integer
@@ -58,19 +58,25 @@ End Function
 Private Function PointerList.Insert(Index As Integer, iValue As Any Ptr, Obj As Any Ptr = 0) As Integer
 	Dim As Integer j
 	If (CBool(Index = -1) OrElse FSorted) AndAlso CBool(FCount > 0) Then ' Sorted Insert
-		Dim As Integer iStart = 0
-		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
-		j = FCount
-		While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+		Dim As Integer LeftIndex = 0, RightIndex = FCount - 1, MidIndex, cmpResult
+		Dim As Any Ptr ItemValue
+		While LeftIndex <= RightIndex
 			MidIndex = (RightIndex + LeftIndex) \ 2
-			If Item(MidIndex) > iValue AndAlso (MidIndex = 0 OrElse Item(MidIndex - 1) <= iValue) Then
-				j = MidIndex: Exit While
-			ElseIf Item(MidIndex) <= iValue Then
-				LeftIndex = MidIndex + 1
+			ItemValue = Item(MidIndex)
+			If ItemValue < iValue Then
+				cmpResult = -1 * SortedDirection
+			ElseIf ItemValue > iValue Then
+				cmpResult = 1 * SortedDirection
 			Else
+				cmpResult = 0
+			End If
+			If cmpResult > 0 Then
 				RightIndex = MidIndex - 1
+			Else
+				LeftIndex = MidIndex + 1
 			End If
 		Wend
+		j = LeftIndex
 		FSorted = True
 	Else
 		j = IIf(Index > -1, Index, FCount)
@@ -92,14 +98,14 @@ Private Sub PointerList.Exchange(Index1 As Integer, Index2 As Integer)
 End Sub
 
 Private Sub PointerList.Remove(Index As Integer)
-	If Index >= 0 And Index < FCount Then
-		_Delete(Cast(PointerListItem Ptr, FItems.Items[Index]))
-		FItems.Remove Index  'Maybe not remove success
-		FCount = FItems.Count
-	End If
+	Dim As PointerListItem Ptr ItemPtr = FItems.Item(Index)
+	If ItemPtr <> 0 Then _Delete( ItemPtr)
+	FItems.Remove Index 'Maybe not remove success
+	FCount = FItems.Count
 End Sub
 
 Private Property PointerList.Sorted(iValue As Boolean)
+	If FSorted <> iValue AndAlso iValue = True Then This.Sort(SortedDirection)
 	FSorted = iValue
 End Property
 
@@ -197,39 +203,52 @@ Sub PointerList.Sort(ByVal iDirection As Long = 1)
 		End If
 	Next i
 	FSorted = True
+	FDirection = iDirection
+	SortedDirection = iDirection
 End Sub
 
 Private Sub PointerList.Clear
+	FSorted = False : FDirection = 1 : SortedDirection = 1
 	If FCount = 0 Then Return
+	Dim As PointerListItem Ptr ItemPtr
 	For i As Integer = FCount - 1 To 0 Step -1
-		Dim As PointerListItem Ptr pItem = Cast(PointerListItem Ptr, FItems.Items[i])
-		If pItem Then _Delete(pItem)
+		ItemPtr = FItems.Item(i)
+		If ItemPtr <> 0 Then _Delete(ItemPtr)
 	Next i
 	FItems.Clear
 	FCount = 0
 End Sub
 
 Private Function PointerList.IndexOf(iValue As Any Ptr) As Integer
-	If iValue = 0 OrElse FCount < 1 Then Return -1
-	Dim As Integer iStart = 0
+	If FCount < 1 Then Return -1
+	If SortedDirection <> FDirection Then This.Sort(SortedDirection)
 	Dim As Any Ptr ItemValue
 	If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
-		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
-		While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+		Dim As Integer LeftIndex = 0, RightIndex = FCount - 1, MidIndex, cmpResult
+		Dim As Integer FoundIndex = -1 '用于记录找到的第一个索引
+		While LeftIndex <= RightIndex
 			MidIndex = (RightIndex + LeftIndex) \ 2
-			ItemValue = QPointerListItem(FItems.Items[MidIndex]).Value
-			If ItemValue = iValue AndAlso (MidIndex = 0 OrElse Item(MidIndex - 1) <> iValue) Then
-				Return MidIndex
-			ElseIf ItemValue < iValue Then
+			ItemValue = Item(MidIndex)
+			If ItemValue < iValue Then
+				cmpResult = -1 * SortedDirection
+			ElseIf ItemValue > iValue Then
+				cmpResult = 1 * SortedDirection
+			Else
+				cmpResult = 0
+			End If
+			If cmpResult > 0 Then
+				RightIndex = MidIndex - 1
+			ElseIf cmpResult < 0 Then
 				LeftIndex = MidIndex + 1
 			Else
-				RightIndex = MidIndex - 1
+				FoundIndex = MidIndex     ' 记录当前找到的位置
+				RightIndex = MidIndex - 1 ' 继续向左收缩，寻找更早出现（首次）的索引
 			End If
 		Wend
-		Return -1
+		Return FoundIndex
 	Else
 		For i As Integer = 0 To FCount - 1
-			If QPointerListItem(FItems.Items[i]).Value = iValue Then Return i
+			If Item(i) = iValue Then Return i
 		Next i
 		Return -1
 	End If
@@ -238,7 +257,7 @@ End Function
 Private Function PointerList.IndexOfObject(Obj As Any Ptr) As Integer
 	If Obj = 0 OrElse FCount < 1 Then Return -1
 	For i As Integer = 0 To FCount - 1
-		If QPointerListItem(FItems.Items[i]).Object = Obj Then Return i
+		If Object(i) = Obj Then Return i
 	Next i
 	Return -1
 End Function
@@ -252,24 +271,26 @@ Private Function PointerList.ContainsObject(Obj As Any Ptr) As Boolean
 	Return IndexOfObject(Obj) <> -1
 End Function
 
-Private Function PointerList.Get(iValue As Any Ptr, Obj As Any Ptr = 0) As Any Ptr
+Private Function PointerList.Get(iValue As Any Ptr, DefaultObj As Any Ptr = 0) As Any Ptr
 	For i As Integer = 0 To FCount - 1
-		If QPointerListItem(FItems.Items[i]).Value = iValue Then Return QPointerListItem(FItems.Items[i]).Object
+		If Item(i) = iValue Then Return Object(i)
 	Next i
-	Return Obj
+	Return DefaultObj
 End Function
 
 Private Sub PointerList.Set(iValue As Any Ptr, Obj As Any Ptr)
 	For i As Integer = 0 To FCount - 1
-		If QPointerListItem(FItems.Items[i]).Value = iValue Then
-			QPointerListItem(FItems.Items[i]).Object = Obj
+		If Item(i) = iValue Then
+			Object(i) = Obj
 			Exit Sub
 		End If
 	Next i
 End Sub
 
 Private Constructor PointerList
-	
+	FDirection = 1
+	SortedDirection = 1
+	FCount = 0
 End Constructor
 
 Private Destructor PointerList

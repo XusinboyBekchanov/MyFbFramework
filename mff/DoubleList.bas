@@ -7,7 +7,7 @@
 '#   FreeBasic Windows GUI ToolKit                                             #
 '#   Copyright (c) 2007-2008 Nastase Eodor                                     #
 '#   Version 1.0.0                                                             #
-'#  Adapted to Integer by Xusinboy Bekchanov (2018-2019)                       #
+'#  Adapted to Double by Xusinboy Bekchanov (2018-2019)                       #
 '###############################################################################
 
 #include once "DoubleList.bi"
@@ -48,66 +48,75 @@ Private Operator DoubleList.Cast As Any Ptr
 End Operator
 
 Private Property DoubleList.Count As Integer
-	Return FItems.Count
+	Return FCount
 End Property
 
 Private Property DoubleList.Count(Value As Integer)
 End Property
 
+Private Operator DoubleList.[](Index As Integer) As Double
+	Dim As DoubleListItem Ptr ItemPtr = FItems.Item(Index)
+	If ItemPtr <> 0 Then Return ItemPtr->Value Else Return 0
+End Operator
+
 Private Property DoubleList.Item(Index As Integer) As Double
-	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then Return QDoubleListItem(FItemsItemsIndex).Value Else Return 0
+	Dim As DoubleListItem Ptr ItemPtr = FItems.Item(Index)
+	If ItemPtr <> 0 Then Return ItemPtr->Value Else Return 0
 End Property
 
 Private Property DoubleList.Item(Index As Integer, iValue As Double)
-	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then QDoubleListItem(FItemsItemsIndex).Value = iValue
+	Dim As DoubleListItem Ptr ItemPtr = FItems.Item(Index)
+	If ItemPtr <> 0 Then ItemPtr->Value = iValue
 End Property
 
 Private Property DoubleList.Object(Index As Integer) As Any Ptr
-	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then Return QDoubleListItem(FItemsItemsIndex).Object Else Return 0
+	Dim As DoubleListItem Ptr ItemPtr = FItems.Item(Index)
+	If ItemPtr <> 0 Then Return ItemPtr->Object Else Return 0
 End Property
 
-Private Property DoubleList.Object(Index As Integer, FObj As Any Ptr)
-	Dim As DoubleListItem Ptr FItemsItemsIndex = Cast(DoubleListItem Ptr, FItems.Item(Index))
-	If FItemsItemsIndex <> 0 Then QDoubleListItem(FItemsItemsIndex).Object = FObj
+Private Property DoubleList.Object(Index As Integer, Obj As Any Ptr)
+	Dim As DoubleListItem Ptr ItemPtr = FItems.Item(Index)
+	If ItemPtr <> 0 Then ItemPtr->Object = Obj
 End Property
 
-#ifndef DoubleList_Add_Off
-	Private Function DoubleList.Add(iValue As Double, Obj As Any Ptr = 0) As Integer
-		If CBool(FCount > 0) AndAlso FSorted Then
-			Return This.Insert(-1, iValue, Obj)
-		Else
-			Dim As DoubleListItem Ptr nItem = _New(DoubleListItem)
-			If nItem = 0 Then Return FCount - 1
-			With *nItem
-				.Value  = iValue
-				.Object = Obj
-			End With
-			FItems.Add nItem
-			FCount = FItems.Count
-			Return FCount - 1
-		End If
-	End Function
-#endif
+Private Function DoubleList.Add(iValue As Double, Obj As Any Ptr = 0) As Integer
+	If CBool(FCount > 0) AndAlso FSorted Then
+		Return This.Insert(-1, iValue, Obj)
+	Else
+		Dim As DoubleListItem Ptr nItem = _New(DoubleListItem)
+		If nItem = 0 Then Return FCount - 1
+		With *nItem
+			.Value  = iValue
+			.Object = Obj
+		End With
+		FItems.Add nItem
+		FCount = FItems.Count
+		Return FCount - 1
+	End If
+End Function
 
 Private Function DoubleList.Insert(Index As Integer, iValue As Double, Obj As Any Ptr = 0) As Integer
 	Dim As Integer j
+	Dim As Double ItemValue
 	If (CBool(Index = -1) OrElse FSorted) AndAlso CBool(FCount > 0) Then ' Sorted Insert
-		Dim As Integer iStart = 0
-		Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
-		j = FCount
-		While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+		Dim As Integer LeftIndex = 0, RightIndex = FCount - 1, MidIndex, cmpResult
+		While LeftIndex <= RightIndex
 			MidIndex = (RightIndex + LeftIndex) \ 2
-			If Item(MidIndex) > iValue AndAlso (MidIndex = 0 OrElse Item(MidIndex - 1) <= iValue) Then
-				j = MidIndex: Exit While
-			ElseIf Item(MidIndex) <= iValue Then
-				LeftIndex = MidIndex + 1
+			ItemValue = Item(MidIndex)
+			If ItemValue < iValue - EPSILON Then
+				cmpResult = -1 * SortedDirection
+			ElseIf ItemValue > iValue + EPSILON Then
+				cmpResult = 1 * SortedDirection
 			Else
+				cmpResult = 0
+			End If
+			If cmpResult > 0 Then
 				RightIndex = MidIndex - 1
+			Else
+				LeftIndex = MidIndex + 1
 			End If
 		Wend
+		j = LeftIndex
 		FSorted = True
 	Else
 		j = IIf(Index > -1, Index, FCount)
@@ -124,16 +133,14 @@ Private Function DoubleList.Insert(Index As Integer, iValue As Double, Obj As An
 	Return j
 End Function
 
-#ifndef DoubleList_Exchange_Off
-	Private Sub DoubleList.Exchange(Index1 As Integer, Index2 As Integer)
-		FItems.Exchange(Index1, Index2)
-	End Sub
-#endif
+Private Sub DoubleList.Exchange(Index1 As Integer, Index2 As Integer)
+	FItems.Exchange(Index1, Index2)
+End Sub
 
 Private Sub DoubleList.Remove(Index As Integer)
-	If Index < 0 OrElse Index >= FCount Then Exit Sub
-	_Delete( Cast(DoubleListItem Ptr, FItems.Item(Index)))
-	FItems.Remove Index  'Maybe not remove success
+	Dim As DoubleListItem Ptr ItemPtr = FItems.Item(Index)
+	If ItemPtr <> 0 Then _Delete( ItemPtr)
+	FItems.Remove Index 'Maybe not remove success
 	FCount = FItems.Count
 End Sub
 
@@ -170,17 +177,17 @@ Sub DoubleList.Sort(ByVal iDirection As Long = 1)
 		Dim As Double sPivot = Item((iLow + iHigh) \ 2)
 		Do
 			If iDirection = 1 Then 'SORT_ASCENDING
-				While iL <= iHigh AndAlso Item(iL) < sPivot
+				While iL <= iHigh AndAlso Item(iL) < sPivot - EPSILON
 					iL += 1
 				Wend
-				While iR >= iLow AndAlso Item(iR) > sPivot
+				While iR >= iLow AndAlso Item(iR) > sPivot + EPSILON
 					iR -= 1
 				Wend
 			Else  'SORT_DESCENDING
-				While iL <= iHigh AndAlso Item(iL) > sPivot
+				While iL <= iHigh AndAlso Item(iL) > sPivot + EPSILON
 					iL += 1
 				Wend
-				While iR >= iLow AndAlso Item(iR) < sPivot
+				While iR >= iLow AndAlso Item(iR) < sPivot - EPSILON
 					iR -= 1
 				Wend
 			End If
@@ -224,24 +231,29 @@ Sub DoubleList.Sort(ByVal iDirection As Long = 1)
 	For i = iLBound + 1 To iUBound
 		j = i
 		If iDirection = 1 Then
-			While j > iLBound AndAlso Item(j - 1) > Item(j)
+			While j > iLBound AndAlso Item(j - 1) > Item(j) + EPSILON
 				Exchange j - 1, j
 				j -= 1
 			Wend
 		Else
-			While j > iLBound AndAlso Item(j - 1) < Item(j)
+			While j > iLBound AndAlso Item(j - 1) < Item(j) - EPSILON
 				Exchange j - 1, j
 				j -= 1
 			Wend
 		End If
 	Next i
 	FSorted = True
+	FDirection = iDirection
+	SortedDirection = iDirection
 End Sub
 
 Private Sub DoubleList.Clear
+	FSorted = False : FDirection = 1 : SortedDirection = 1
 	If FCount = 0 Then Return
+	Dim As DoubleListItem Ptr ItemPtr
 	For i As Integer = FCount - 1 To 0 Step -1
-		_Delete( Cast(DoubleListItem Ptr, FItems.Items[i]))
+		ItemPtr = FItems.Item(i)
+		If ItemPtr <> 0 Then _Delete( ItemPtr)
 	Next i
 	FItems.Clear
 	FCount = 0
@@ -250,25 +262,34 @@ End Sub
 #ifndef DoubleList_IndexOf_Off
 	Private Function DoubleList.IndexOf(iValue As Double) As Integer
 		If FCount < 1 Then Return -1
-		Dim As Integer iStart = 0
-		Dim As Integer ItemValue
+		If SortedDirection <> FDirection Then This.Sort(SortedDirection)
+		Dim As Double ItemValue
 		If FSorted AndAlso FCount > 1 Then  'Fast Binary Search
-			Dim As Integer LeftIndex = iStart, RightIndex = FCount - 1,  MidIndex = (FCount - 1 + iStart) \ 2
-			While (LeftIndex <= RightIndex And LeftIndex < FCount And RightIndex >= 0 )
+			Dim As Integer LeftIndex = 0, RightIndex = FCount - 1, MidIndex, cmpResult
+			Dim As Integer FoundIndex = -1 '用于记录找到的第一个索引
+			While LeftIndex <= RightIndex
 				MidIndex = (RightIndex + LeftIndex) \ 2
-				ItemValue = QDoubleListItem(FItems.Items[MidIndex]).Value
-				If ItemValue = iValue AndAlso (MidIndex = 0 OrElse Item(MidIndex - 1) <> iValue) Then
-					Return MidIndex
-				ElseIf ItemValue < iValue Then
+				ItemValue = Item(MidIndex)
+				If ItemValue < iValue- EPSILON Then
+					cmpResult = -1 * SortedDirection
+				ElseIf ItemValue > iValue + EPSILON Then
+					cmpResult = 1 * SortedDirection
+				Else
+					cmpResult = 0
+				End If
+				If cmpResult > 0 Then
+					RightIndex = MidIndex - 1
+				ElseIf cmpResult < 0 Then
 					LeftIndex = MidIndex + 1
 				Else
-					RightIndex = MidIndex - 1
+					FoundIndex = MidIndex     ' 记录当前找到的位置
+					RightIndex = MidIndex - 1 ' 继续向左收缩，寻找更早出现（首次）的索引
 				End If
 			Wend
-			Return -1
+			Return FoundIndex
 		Else
 			For i As Integer = 0 To FCount - 1
-				If QDoubleListItem(FItems.Items[i]).Value = iValue Then Return i
+				If Abs(Item(i) - iValue) < EPSILON Then Return i
 			Next i
 			Return -1
 		End If
@@ -278,7 +299,7 @@ End Sub
 Private Function DoubleList.IndexOfObject(Obj As Any Ptr) As Integer
 	If Obj = 0 OrElse FCount < 1 Then Return -1
 	For i As Integer = 0 To FCount - 1
-		If QDoubleListItem(FItems.Items[i]).Object = Obj Then Return i
+		If Object(i) = Obj Then Return i
 	Next i
 	Return -1
 End Function
@@ -287,8 +308,27 @@ Private Function DoubleList.Contains(iValue As Double) As Boolean
 	Return IndexOf(iValue) <> -1
 End Function
 
+Private Function DoubleList.Get(iValue As Double, DefaultObj As Any Ptr = 0) As Any Ptr
+	For i As Integer = 0 To FCount - 1
+		If Abs(Item(i) - iValue) < EPSILON Then Return Object(i)
+	Next i
+	Return DefaultObj
+End Function
+
+Private Sub DoubleList.Set(iValue As Double, Obj As Any Ptr)
+	For i As Integer = 0 To FCount - 1
+		If Abs(Item(i) - iValue) < EPSILON Then
+			Object(i) = Obj
+			Exit Sub
+		End If
+	Next i
+End Sub
+
 Private Constructor DoubleList
-	
+	'FItems.Clear
+	SortedDirection = 1
+	FDirection = 1
+	FCount = 0
 End Constructor
 
 Private Destructor DoubleList

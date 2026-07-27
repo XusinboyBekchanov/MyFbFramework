@@ -117,6 +117,7 @@ Declare Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As
 Declare Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 Declare Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
 Declare Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
+Declare Function StringsCompare(ByRef s1 As Const WString, ByRef s2 As Const WString, ByVal bMatchCase As Boolean = True, ByVal iDirection As Integer = 1, ByVal bNaturalSort As Boolean = False) As Integer
 'When expression Is empty, uses FreeBASIC's native Mid function,extracts a portion of the string,
 'In-place replacement: When expression is provided, replaces the specified SubString range With the New larger text
 'Example: Dim As WString * 20 mainStr = "Hello World" : Dim As WString * 100 result = SubString(mainStr, 7, 5, "FreeBasic" )(Expected: 'Hello FreeBasic')
