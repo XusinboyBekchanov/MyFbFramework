@@ -12,8 +12,8 @@
 
 #include once "List.bi"
 
-#define QWStringListItem(__Ptr__) (*Cast(WStringListItem Ptr,__Ptr__))
-#define QWStringList(__Ptr__) (*Cast(WStringList Ptr,__Ptr__))
+'#define QWStringListItem(__Ptr__) (*Cast(WStringListItem Ptr,__Ptr__))
+'#define QWStringList(__Ptr__) (*Cast(WStringList Ptr,__Ptr__))
 
 Private Type WStringListItem
 Private:
@@ -35,13 +35,12 @@ Private Type WStringList
 Private:
 	FText               As WString Ptr
 	FMatchCase          As Boolean
+	FNaturalSort        As Boolean
+	FDirection          As Integer
 	FMatchFullWords     As Boolean
 	FSorted             As Boolean
 	FCount              As Integer
 	FItems              As List
-	'Items               As List
-	'Objects             As List
-	Declare Function CompareStrings(ByRef s1 As WString, ByRef s2 As WString, ByVal bMatchCase As Boolean = True, ByVal bNaturalSort As Boolean = False, ByVal iDirection As Long = 1) As Integer
 Public:
 	Tag As Any Ptr
 	Declare Property Count As Integer
@@ -62,7 +61,7 @@ Public:
 	Declare Function Insert(ByVal Index As Integer, ByRef iValue As WString, Obj As Any Ptr = 0) As Integer
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
-	Declare Sub Sort(ByVal bMatchCase As Boolean = False, ByVal iDirection As Long = 1, ByVal bNaturalSort As Boolean = False)
+	Declare Sub Sort(ByVal bMatchCase As Boolean = False, ByVal iDirection As Integer = 1, ByVal bNaturalSort As Boolean = False)
 	Declare Sub Clear
 	Declare Function IndexOf(ByRef iValue As Const WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0, ByRef ItemPtr As WStringListItem Ptr = 0) As Integer
 	Declare Function IndexOfObject(Obj As Any Ptr) As Integer

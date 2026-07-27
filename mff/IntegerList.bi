@@ -12,8 +12,8 @@
 
 #include once "List.bi"
 
-#define QIntegerListItem(__Ptr__) (*Cast(IntegerListItem Ptr,__Ptr__))
-#define QIntegerList(__Ptr__) (*Cast(IntegerList Ptr,__Ptr__))
+'#define QIntegerListItem(__Ptr__) (*Cast(IntegerListItem Ptr,__Ptr__))
+'#define QIntegerList(__Ptr__) (*Cast(IntegerList Ptr,__Ptr__))
 
 Private Type IntegerListItem Extends Object
 Private:
@@ -33,10 +33,12 @@ End Type
 'Represents a list of integers that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web).
 Private Type IntegerList Extends Object
 Private:
-	FCount   As Integer
-	FSorted  As Boolean
-	FItems   As List
+	FCount     As Integer
+	FDirection As Integer
+	FSorted    As Boolean
+	FItems     As List
 Public:
+	SortedDirection As Integer
 	Declare Property Count As Integer
 	Declare Property Count(Value As Integer)
 	Declare Property Item(Index As Integer) As Integer
@@ -49,7 +51,7 @@ Public:
 	Declare Function Insert(Index As Integer, iValue As Integer, Obj As Any Ptr = 0) As Integer
 	Declare Sub Exchange(Index1 As Integer, Index2 As Integer)
 	Declare Sub Remove(Index As Integer)
-	Declare Function Get(iValue As Integer, Obj As Any Ptr = 0) As Any Ptr
+	Declare Function Get(iValue As Integer, DefaultObj As Any Ptr = 0) As Any Ptr
 	Declare Sub Set(iValue As Integer, Obj As Any Ptr)
 	Declare Sub Sort(ByVal iDirection As Long = 1)
 	Declare Sub Clear

@@ -6,8 +6,8 @@
 
 #include once "List.bi"
 
-#define QPointerListItem(__Ptr__) (*Cast(PointerListItem Ptr,__Ptr__))
-#define QPointerList(__Ptr__) (*Cast(PointerList Ptr,__Ptr__))
+'#define QPointerListItem(__Ptr__) (*Cast(PointerListItem Ptr,__Ptr__))
+'#define QPointerList(__Ptr__) (*Cast(PointerList Ptr,__Ptr__))
 
 Private Type PointerListItem Extends Object
     Value As Any Ptr
@@ -16,11 +16,13 @@ End Type
 
 'Represents a list of pointers that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web).
 Private Type PointerList Extends Object
-	Private:
-	FCount   As Integer
-	FItems   As List
-	FSorted  As Boolean
+Private:
+	FCount     As Integer
+	FDirection As Integer
+	FSorted    As Boolean
+	FItems     As List
 Public:
+	SortedDirection As Integer
 	Declare Function Count As Integer
 	Declare Property Item(Index As Integer) As Any Ptr
 	Declare Property Item(Index As Integer, Value As Any Ptr)
@@ -34,7 +36,7 @@ Public:
 	Declare Sub Remove(Index As Integer)
 	'iDirection: SORT_ASCENDING (1) 为升序(默认), SORT_DESCENDING (-1) 为降序
 	Declare Sub Sort(ByVal iDirection As Long = 1)
-	Declare Function Get(iValue As Any Ptr, Obj As Any Ptr = 0) As Any Ptr
+	Declare Function Get(iValue As Any Ptr, DefaultObj As Any Ptr = 0) As Any Ptr
 	Declare Sub Set(iValue As Any Ptr, Obj As Any Ptr)
 	Declare Sub Clear
 	Declare Function IndexOf(iValue As Any Ptr) As Integer
