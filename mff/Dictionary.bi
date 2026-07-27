@@ -34,16 +34,20 @@ End Type
 'Represents a collection of keys and values (Windows, Linux, Android, Web).
 Private Type Dictionary
 Private:
-	FCount             As Integer
-	FText              As WString Ptr
-	FItems             As List
-	FSortKeysMatchCase  As Boolean 
-	FSortMatchCase      As Boolean 
-	Declare Function CompareStrings(ByRef s1 As WString, ByRef s2 As WString, ByVal bMatchCase As Boolean = True, ByVal bNaturalSort As Boolean = False) As Integer
+	FCount               As Integer
+	FText                As WString Ptr
+	FItems               As List
 Public:
-	Tag                As Any Ptr
-	Sorted            As Boolean 
-	SortKeysed      As Boolean
+	Tag                  As Any Ptr
+	Sorted               As Boolean 
+	SortedMatchCase      As Boolean
+	SortedMatchFullWords As Boolean 
+	SortedDirection      As Integer
+	SortedNaturalSort    As Boolean 
+	SortKeysed           As Boolean 
+	SortKeysMatchCase    As Boolean
+	SortKeysDirection    As Integer
+	SortKeysNaturalSort  As Boolean 
 	Declare Property Count As Integer
 	Declare Property Count(value As Integer)
 	Declare Property Item(Index As Integer) As DictionaryItem Ptr
@@ -60,19 +64,19 @@ Public:
 	Declare Sub Sort(ByVal bMatchCase As Boolean = False, ByVal iDirection As Long = 1, ByVal bNaturalSort As Boolean = False)
 	Declare Sub SortKeys(ByVal bMatchCase As Boolean = False, ByVal iDirection As Long = 1, ByVal bNaturalSort As Boolean = False)
 	Declare Sub Clear
-	Declare Function IndexOf(ByRef wText As WString, ByVal MatchCase As Boolean = False, ByVal MatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
+	Declare Function IndexOf(ByRef wText As WString, ByVal bMatchCase As Boolean = False, ByVal bMatchFullWords As Boolean = True, ByVal iStart As Integer = 0) As Integer
 	Declare Function IndexOfKey(ByRef iKey As WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Integer
 	Declare Function IndexOfObject(iObject As Any Ptr) As Integer
 	Declare Sub Set(ByRef iKey As WString, ByRef wText As WString = "", iObject As Any Ptr = 0)
 	Declare Function Get(ByRef iKey As WString, ByRef DefaultText As WString = "") ByRef As WString
 	Declare Function Get(Index As Integer, ByRef DefaultText As WString = "") ByRef As WString
-	Declare Function GetKey(ByRef wText As WString, ByVal MatchCase As Boolean = False) ByRef As WString
+	Declare Function GetKey(ByRef wText As WString, ByVal bMatchCase As Boolean = False) ByRef As WString
 	Declare Function GetKey(iObject As Any Ptr) ByRef As WString
-	Declare Function GetText(ByRef iKey As WString, ByVal MatchCase As Boolean = False) ByRef As WString
-	Declare Function GetObject(ByRef iKey As WString, ByVal MatchCase As Boolean = False) As Any Ptr
+	Declare Function GetText(ByRef iKey As WString, ByVal bMatchCase As Boolean = False) ByRef As WString
+	Declare Function GetObject(ByRef iKey As WString, ByVal bMatchCase As Boolean = False) As Any Ptr
 	Declare Function GetObject(Index As Integer) As Any Ptr
-	Declare Function Contains(ByRef wText As WString, ByVal MatchCase As Boolean = False) As Boolean
-	Declare Function ContainsKey(ByRef iKey As WString, iObject As Any Ptr = 0, ByVal MatchCase As Boolean = False) As Boolean
+	Declare Function Contains(ByRef wText As WString, ByVal bMatchCase As Boolean = False) As Boolean
+	Declare Function ContainsKey(ByRef iKey As WString, iObject As Any Ptr = 0, ByVal bMatchCase As Boolean = False) As Boolean
 	Declare Function ContainsObject(iObject As Any Ptr) As Boolean
 	Declare Sub SaveToFile(ByRef FileName As WString)
 	Declare Sub LoadFromFile(ByRef FileName As WString)
