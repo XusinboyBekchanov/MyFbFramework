@@ -25,7 +25,7 @@
 ''   #include once "mff/Regex.bi"
 ''   Using My.Sys.Text
 ''
-''   Dim re As Regex = Regex(!"\d+")
+''   Dim re As Regex = Regex("\d+")
 ''   If re.IsMatch("abc 123 def") Then
 ''       Print re.Match("abc 123 def").Value    ' -> "123"
 ''   End If
