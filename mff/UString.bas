@@ -428,9 +428,7 @@ Private Function UString.Add(ByRef txt As Const WString, AddBefore As Boolean = 
 	Dim As Integer oldLen, ls = Len(txt)
 	If m_Data = 0 OrElse ls = 0 Then Return False
 	oldLen = m_Length
-	' 先检查容量是否足够 — 走快速路径时不需分配
 	If ls <= m_Capacity Then
-		' 快速路径：现有缓冲区够用，直接追加
 		If AddBefore AndAlso oldLen > 0 Then
 			Fb_MemMove((*m_Data)[ls], (*m_Data)[0], oldLen * SizeOf(WString))
 			Fb_MemCopy((*m_Data)[0], txt[0], ls * SizeOf(WString))
@@ -443,7 +441,6 @@ Private Function UString.Add(ByRef txt As Const WString, AddBefore As Boolean = 
 		m_Capacity -= ls
 		Return True
 	End If
-	' 慢速路径：需要重新分配 — 先计算新值，分配成功后再更新状态
 	Dim As Integer newLen = oldLen + ls
 	Dim As Integer newCapacity = newLen * 2
 	If newCapacity < 512 Then newCapacity = 512
@@ -462,7 +459,6 @@ Private Function UString.Add(ByRef txt As Const WString, AddBefore As Boolean = 
 		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50) : Return False
 		Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
 	End If
-	' 分配成功 — 现在才更新对象状态
 	(*ResultPtr)[newLen] = 0
 	m_Data = ResultPtr
 	m_Length = newLen
@@ -614,22 +610,22 @@ End Operator
 ' &= operator (in-place append) — key performance operator
 ' ========================================================================================
 Private Operator UString.&= (ByRef rhs As UString)
-	If @This <> @rhs Then this.Add(*rhs.m_Data)
+	If @This <> @rhs Then This.Add(*rhs.m_Data)
 End Operator
 
 Private Operator UString.&= (ByRef rhs As Const WString)
-	this.Add(rhs)
+	This.Add(rhs)
 End Operator
 
 Private Operator UString.&= (ByRef rhs As WString)
-	this.Add(rhs)
+	This.Add(rhs)
 End Operator
 
 Private Operator UString.&= (ByRef rhs As String)
 	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
 	If pw Then
 		*pw = rhs
-		this.Add(*pw)
+		This.Add(*pw)
 		_Deallocate(pw)
 	End If
 End Operator
@@ -638,7 +634,7 @@ Private Operator UString.&= (ByRef rhs As Const ZString)
 	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
 	If pw Then
 		*pw = rhs
-		this.Add(*pw)
+		This.Add(*pw)
 		_Deallocate(pw)
 	End If
 End Operator
@@ -647,22 +643,22 @@ End Operator
 ' += operator (in-place append) — same as &=
 ' ========================================================================================
 Private Operator UString.+= (ByRef rhs As UString)
-	If @This <> @rhs Then this.Add(*rhs.m_Data)
+	If @This <> @rhs Then This.Add(*rhs.m_Data)
 End Operator
 
 Private Operator UString.+= (ByRef rhs As Const WString)
-	this.Add(rhs)
+	This.Add(rhs)
 End Operator
 
 Private Operator UString.+= (ByRef rhs As WString)
-	this.Add(rhs)
+	This.Add(rhs)
 End Operator
 
 Private Operator UString.+= (ByRef rhs As String)
 	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
 	If pw Then
 		*pw = rhs
-		this.Add(*pw)
+		This.Add(*pw)
 		_Deallocate(pw)
 	End If
 End Operator
@@ -671,7 +667,7 @@ Private Operator UString.+= (ByRef rhs As Const ZString)
 	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
 	If pw Then
 		*pw = rhs
-		this.Add(*pw)
+		This.Add(*pw)
 		_Deallocate(pw)
 	End If
 End Operator
