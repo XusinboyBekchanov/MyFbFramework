@@ -380,33 +380,31 @@ Namespace My.Sys.Text
 	'' -------------------------------------------------------------
 #else
 
-	Type GErrorStruct
-		domain As UInteger
-		code As Long
-		message As ZString Ptr
-	End Type
+	'Type GErrorStruct
+	'	domain As UInteger
+	'	code As Long
+	'	message As ZString Ptr
+	'End Type
 
-	Const G_REGEX_CASELESS  As Long = 1 Shl 0
-	Const G_REGEX_MULTILINE As Long = 1 Shl 1
-	Const G_REGEX_DOTALL    As Long = 1 Shl 2
-	Const G_REGEX_EXTENDED  As Long = 1 Shl 3
+	'Const G_REGEX_CASELESS  As Long = 1 Shl 0
+	'Const G_REGEX_MULTILINE As Long = 1 Shl 1
+	'Const G_REGEX_DOTALL    As Long = 1 Shl 2
+	'Const G_REGEX_EXTENDED  As Long = 1 Shl 3
 
-	Extern "C"
-		Declare Function g_regex_new Alias "g_regex_new" _
-			(ByVal pattern As Const ZString Ptr, ByVal compile_options As Long, ByVal match_options As Long, ByVal error As Any Ptr Ptr) As Any Ptr
-		Declare Sub g_regex_unref Alias "g_regex_unref" (ByVal regex As Any Ptr)
-
-		Declare Function g_regex_match_full Alias "g_regex_match_full" _
-			(ByVal regex As Any Ptr, ByVal str As Const ZString Ptr, ByVal str_len As Long, ByVal start_position As Long, _
-			 ByVal match_options As Long, ByVal match_info As Any Ptr Ptr, ByVal error As Any Ptr Ptr) As Long
-
-		Declare Function g_match_info_get_match_count Alias "g_match_info_get_match_count" (ByVal match_info As Any Ptr) As Long
-		Declare Function g_match_info_fetch_pos Alias "g_match_info_fetch_pos" _
-			(ByVal match_info As Any Ptr, ByVal match_num As Long, ByRef start_pos As Long, ByRef end_pos As Long) As Long
-		Declare Sub g_match_info_free Alias "g_match_info_free" (ByVal match_info As Any Ptr)
-
-		Declare Sub g_error_free Alias "g_error_free" (ByVal error As Any Ptr)
-	End Extern
+	'Extern "C"
+	'	Declare Function g_regex_new Alias "g_regex_new" _
+	'		(ByVal pattern As Const ZString Ptr, ByVal compile_options As Long, ByVal match_options As Long, ByVal error As Any Ptr Ptr) As Any Ptr
+	'	Declare Sub g_regex_unref Alias "g_regex_unref" (ByVal regex As Any Ptr)
+	'
+	'	Declare Function g_regex_match_full Alias "g_regex_match_full" _
+	'		(ByVal regex As Any Ptr, ByVal str As Const ZString Ptr, ByVal str_len As Long, ByVal start_position As Long, _
+	'		 ByVal match_options As Long, ByVal match_info As Any Ptr Ptr, ByVal error As Any Ptr Ptr) As Long
+	'
+	'	Declare Function g_match_info_get_match_count Alias "g_match_info_get_match_count" (ByVal match_info As Any Ptr) As Long
+	'	Declare Function g_match_info_fetch_pos Alias "g_match_info_fetch_pos" _
+	'		(ByVal match_info As Any Ptr, ByVal match_num As Long, ByRef start_pos As Long, ByRef end_pos As Long) As Long
+	'	Declare Sub g_match_info_free Alias "g_match_info_free" (ByVal match_info As Any Ptr)
+	'End Extern
 
 	Private Function OptionsToGRegex(ByVal Options As RegexOptions) As Long
 		Dim As Long flags = 0
@@ -429,15 +427,14 @@ Namespace My.Sys.Text
 
 		Dim As String pat8 = ToUtf8(_Pattern)
 		Dim As Long flags = OptionsToGRegex(_Options)
-		Dim As Any Ptr err_ = NULL
+		Dim As GError Ptr err_ = NULL
 
 		_Compiled = g_regex_new(StrPtr(pat8), flags, 0, @err_)
 
 		If _Compiled = NULL Then
 			_Valid = False
 			If err_ <> NULL Then
-				Dim As GErrorStruct Ptr ge = err_
-				_LastError = "Regex compile error: " & ZGet(ge->message)
+				_LastError = "Regex compile error: " & ZGet(err_->message)
 				g_error_free(err_)
 			Else
 				_LastError = "Regex compile error (unknown)"
@@ -455,7 +452,7 @@ Namespace My.Sys.Text
 		Dim As String subj8 = ToUtf8(*Cast(WString Ptr, @Text))
 		Dim As Long byteStart = CharIndexToUtf8ByteOffset(Text, StartAt)
 
-		Dim As Any Ptr matchInfo = NULL
+		Dim As GMatchInfo Ptr matchInfo = NULL
 		Dim As Long ok = g_regex_match_full(_Compiled, StrPtr(subj8), Len(subj8), byteStart, 0, @matchInfo, NULL)
 
 		If ok = 0 Then
@@ -467,9 +464,9 @@ Namespace My.Sys.Text
 		If groupCount < 1 Then groupCount = 1
 		ReDim OutMatch.Groups(0 To groupCount - 1)
 
-		For i As Long = 0 To groupCount - 1
-			Dim As Long sOff, eOff
-			Dim As Long got = g_match_info_fetch_pos(matchInfo, i, sOff, eOff)
+		For i As gint = 0 To groupCount - 1
+			Dim As gint sOff, eOff
+			Dim As gboolean got = g_match_info_fetch_pos(matchInfo, i, @sOff, @eOff)
 			If got = 0 OrElse sOff < 0 Then
 				OutMatch.Groups(i).Index  = -1
 				OutMatch.Groups(i).Length = -1
