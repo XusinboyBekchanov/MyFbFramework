@@ -424,31 +424,30 @@ Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumByte
 	Return True
 End Function
 
-Private Function UString.Add(ByRef txt As WString, AddBefore As Boolean = False) As Boolean
+Private Function UString.Add(ByRef txt As Const WString, AddBefore As Boolean = False) As Boolean
 	Dim As Integer oldLen, ls = Len(txt)
 	If m_Data = 0 OrElse ls = 0 Then Return False
 	oldLen = m_Length
-	m_Length = oldLen + ls
-	m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
-	If ls <= m_Capacity AndAlso m_Data <> 0 Then
+	If ls <= m_Capacity Then
 		If AddBefore AndAlso oldLen > 0 Then
 			Fb_MemMove((*m_Data)[ls], (*m_Data)[0], oldLen * SizeOf(WString))
 			Fb_MemCopy((*m_Data)[0], txt[0], ls * SizeOf(WString))
 		Else
 			Fb_MemCopy((*m_Data)[oldLen], txt[0], ls * SizeOf(WString))
 		End If
+		m_Length = oldLen + ls
+		m_BytesCount = (m_Length + 1) * SizeOf(WString) * GrowLength
 		(*m_Data)[m_Length] = 0
 		m_Capacity -= ls
 		Return True
 	End If
-	Dim As Integer newCapacity = m_Length * 2
+	Dim As Integer newLen = oldLen + ls
+	Dim As Integer newCapacity = newLen * 2
 	If newCapacity < 512 Then newCapacity = 512
-	If m_Capacity < 1 Then newCapacity = m_Length + 1 ' 精确容量模式回退
-	m_Capacity = newCapacity - m_Length  'Minimal allocation mode, Capacity represents remaining space. Capacity 表示*剩余*空间！
 	Dim As WString Ptr ResultPtr
 	If m_Data <> 0 Then
 		ResultPtr = _Reallocate(m_Data, (newCapacity + 1) * SizeOf(WString))
-		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return False
+		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50) : Return False
 		If AddBefore AndAlso oldLen > 0 Then
 			Fb_MemMove((*ResultPtr)[ls], (*ResultPtr)[0], oldLen * SizeOf(WString))
 			Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
@@ -457,18 +456,21 @@ Private Function UString.Add(ByRef txt As WString, AddBefore As Boolean = False)
 		End If
 	Else
 		ResultPtr = _Allocate((newCapacity + 1) * SizeOf(WString))
-		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50)  : Return False
+		If ResultPtr = 0 Then Print __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & Left(txt, 50) : Return False
 		Fb_MemCopy((*ResultPtr)[0], txt[0], ls * SizeOf(WString))
 	End If
-	(*ResultPtr)[m_Length] = 0
+	(*ResultPtr)[newLen] = 0
 	m_Data = ResultPtr
+	m_Length = newLen
+	m_BytesCount = (newLen + 1) * SizeOf(WString) * GrowLength
+	m_Capacity = newCapacity - newLen
 	Return True
 End Function
 
 Private Operator UString.[](ByVal Index As Integer) ByRef As UShort
 	Static Zero As UShort = 0
 	If Index < 0 Or Index > m_Length Then Return Zero
-	Operator = *Cast(UShort Ptr, m_Data + (Index * 2))
+	Operator = *Cast(UShort Ptr, m_Data + Index)
 End Operator
 
 Private Operator UString.Let(ByRef lhs As UString)
@@ -586,6 +588,108 @@ Private Operator & (ByRef lhs As UString, ByRef rhs As UString) As UString
 		(*Result.m_Data)[Result.m_Length] = 0
 		'Result.m_Data = * (lhs.m_Data) & * (rhs.m_Data)
 	End If
+	Return Result
+End Operator
+
+' ========================================================================================
+' & operator overloads for UString with WString types
+' ========================================================================================
+Private Operator & (ByRef lhs As UString, ByRef rhs As Const WString) As UString
+	Dim As UString Result = lhs
+	Result.Add(rhs)
+	Return Result
+End Operator
+
+Private Operator & (ByRef lhs As Const WString, ByRef rhs As UString) As UString
+	Dim As UString Result = lhs
+	Result.Add(*rhs.m_Data)
+	Return Result
+End Operator
+
+' ========================================================================================
+' &= operator (in-place append) — key performance operator
+' ========================================================================================
+Private Operator UString.&= (ByRef rhs As UString)
+	If @This <> @rhs Then This.Add(*rhs.m_Data)
+End Operator
+
+Private Operator UString.&= (ByRef rhs As Const WString)
+	This.Add(rhs)
+End Operator
+
+Private Operator UString.&= (ByRef rhs As WString)
+	This.Add(rhs)
+End Operator
+
+Private Operator UString.&= (ByRef rhs As String)
+	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
+	If pw Then
+		*pw = rhs
+		This.Add(*pw)
+		_Deallocate(pw)
+	End If
+End Operator
+
+Private Operator UString.&= (ByRef rhs As Const ZString)
+	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
+	If pw Then
+		*pw = rhs
+		This.Add(*pw)
+		_Deallocate(pw)
+	End If
+End Operator
+
+' ========================================================================================
+' += operator (in-place append) — same as &=
+' ========================================================================================
+Private Operator UString.+= (ByRef rhs As UString)
+	If @This <> @rhs Then This.Add(*rhs.m_Data)
+End Operator
+
+Private Operator UString.+= (ByRef rhs As Const WString)
+	This.Add(rhs)
+End Operator
+
+Private Operator UString.+= (ByRef rhs As WString)
+	This.Add(rhs)
+End Operator
+
+Private Operator UString.+= (ByRef rhs As String)
+	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
+	If pw Then
+		*pw = rhs
+		This.Add(*pw)
+		_Deallocate(pw)
+	End If
+End Operator
+
+Private Operator UString.+= (ByRef rhs As Const ZString)
+	Dim As WString Ptr pw = _CAllocate((Len(rhs) + 1) * SizeOf(WString))
+	If pw Then
+		*pw = rhs
+		This.Add(*pw)
+		_Deallocate(pw)
+	End If
+End Operator
+
+' ========================================================================================
+' + operator (concatenation returning new UString)
+' ========================================================================================
+Private Operator + (ByRef lhs As UString, ByRef rhs As UString) As UString
+	Dim As UString Result = lhs
+	Result.Add(*rhs.m_Data)
+	Return Result
+End Operator
+
+Private Operator + (ByRef lhs As UString, ByRef rhs As Const WString) As UString
+	Dim As UString Result = lhs
+	Result.Add(rhs)
+	Return Result
+End Operator
+
+Private Operator + (ByRef lhs As Const WString, ByRef rhs As UString) As UString
+	Dim As UString Result = lhs
+	Result.Add(*rhs.m_Data)
 	Return Result
 End Operator
 

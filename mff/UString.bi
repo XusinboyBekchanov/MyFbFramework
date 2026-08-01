@@ -36,7 +36,7 @@ Public:
 	
 	Declare Sub Resize(NewLength As Integer)
 	Declare Function AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
-	Declare Function Add(ByRef txt As WString, AddBefore As Boolean = False) As Boolean
+	Declare Function Add(ByRef txt As Const WString, AddBefore As Boolean = False) As Boolean
 	Declare Operator [](ByVal Index As Integer) ByRef As UShort
 	
 	Declare Operator Let(ByRef Value As Const WString)
@@ -61,6 +61,17 @@ Public:
 	Declare Function ToUpper As UString
 	Declare Function SubString(ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "") As UString
 	
+	Declare Operator &= (ByRef Value As UString)
+	Declare Operator &= (ByRef Value As Const WString)
+	Declare Operator &= (ByRef Value As WString)
+	Declare Operator &= (ByRef Value As String)
+	Declare Operator &= (ByRef Value As Const ZString)
+	Declare Operator += (ByRef Value As UString)
+	Declare Operator += (ByRef Value As Const WString)
+	Declare Operator += (ByRef Value As WString)
+	Declare Operator += (ByRef Value As String)
+	Declare Operator += (ByRef Value As Const ZString)
+	
 	m_Data As WString Ptr
 	m_Length As Integer
 	m_BufferLen As Integer
@@ -71,6 +82,11 @@ End Type
 
 Declare Function WStrPtr(ByRef Value As UString) As WString Ptr
 Declare Operator & (ByRef LeftText As UString, ByRef RightText As UString) As UString
+Declare Operator & (ByRef LeftText As UString, ByRef RightText As Const WString) As UString
+Declare Operator & (ByRef LeftText As Const WString, ByRef RightText As UString) As UString
+Declare Operator + (ByRef LeftText As UString, ByRef RightText As UString) As UString
+Declare Operator + (ByRef LeftText As UString, ByRef RightText As Const WString) As UString
+Declare Operator + (ByRef LeftText As Const WString, ByRef RightText As UString) As UString
 Declare Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
 Declare Function Right Overload(ByRef subject As UString, ByVal n As Integer) As UString
 Declare Function Val Overload(ByRef subject As UString) As Double
