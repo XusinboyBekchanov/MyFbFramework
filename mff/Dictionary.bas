@@ -438,7 +438,51 @@ End Sub
 	Private Function Dictionary.IndexOfKey(ByRef iKey As WString, iObject As Any Ptr = 0, ByVal bMatchCase As Boolean = False) As Integer
 		If Trim(iKey) = "" OrElse FCount < 1 Then Return -1
 		Dim As DictionaryItem Ptr ItemPtr
-		If SortKeysed AndAlso bMatchCase = SortKeysMatchCase Then  'Fast Binary Search
+		If iObject <> 0 Then
+			If SortKeysed Then  'Fast Binary Search
+				Dim As Integer LeftIndex = 0, RightIndex = FItems.Count - 1,  MidIndex = (FItems.Count - 1) Shr 1
+				If SortKeysMatchCase Then  ' Action with the same sorting mode only
+					While (LeftIndex <= RightIndex)
+						MidIndex = (RightIndex + LeftIndex) Shr 1
+						If QDictionaryItem(FItems.Items[MidIndex]).Key = iKey AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[MidIndex]).Object = iObject) Then
+							Return MidIndex
+						ElseIf QDictionaryItem(FItems.Items[MidIndex]).Key < iKey Then
+							LeftIndex = MidIndex + 1
+						Else
+							RightIndex = MidIndex - 1
+						End If
+					Wend
+					Return -1
+				Else
+					While (LeftIndex <= RightIndex)
+						MidIndex = (RightIndex + LeftIndex) Shr 1
+						If LCase(QDictionaryItem(FItems.Items[MidIndex]).Key) = LCase(iKey) AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[MidIndex]).Object = iObject) Then
+							Return MidIndex
+						ElseIf LCase(QDictionaryItem(FItems.Items[MidIndex]).Key) < LCase(iKey) Then
+							LeftIndex = MidIndex + 1
+						Else
+							RightIndex = MidIndex - 1
+						End If
+					Wend
+					Return -1
+				End If
+			Else
+				If bMatchCase Then
+					For i As Integer = 0 To FItems.Count - 1
+						If QDictionaryItem(FItems.Items[i]).Key = iKey AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[i]).Object = iObject) Then
+							Return i
+						End If
+					Next i
+				Else
+					For i As Integer = 0 To FItems.Count - 1
+						If LCase(QDictionaryItem(FItems.Items[i]).Key) = LCase(iKey) AndAlso (iObject = 0 OrElse QDictionaryItem(FItems.Items[i]).Object = iObject) Then
+							Return i
+						End If
+					Next i
+				End If
+				Return -1
+			End If
+		ElseIf SortKeysed AndAlso bMatchCase = SortKeysMatchCase Then  'Fast Binary Search
 			Dim As Integer LeftIndex = 0, RightIndex = FCount - 1, MidIndex, cmpResult
 			Dim As Integer FoundIndex = -1 '用于记录找到的第一个索引
 			While LeftIndex <= RightIndex
