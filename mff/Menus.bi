@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 			Declare Property Handle As HMENU
 			'Native OS menu handle (HMENU)
 			Declare Property Handle(value As HMENU)
-		#else
+		#elseif defined(__USE_GTK__)
 			Declare Property Handle As GtkWidget Ptr
 			'Native OS menu handle (HMENU)
 			Declare Property Handle(value As GtkWidget Ptr)

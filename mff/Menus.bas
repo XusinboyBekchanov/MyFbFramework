@@ -1332,13 +1332,13 @@ Namespace My.Sys.Forms
 		Private Property Menu.Handle(value As HMENU)
 			FHandle = value
 		End Property
-	#else
+	#elseif defined(__USE_GTK__)
 		Private Property Menu.Handle As GtkWidget Ptr
-			Return widget
+			Return Widget
 		End Property
 		
 		Private Property Menu.Handle(value As GtkWidget Ptr)
-			widget = value
+			Widget = value
 		End Property
 	#endif
 	Private Property Menu.ParentWindow As Component Ptr

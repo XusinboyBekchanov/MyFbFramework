@@ -2588,7 +2588,7 @@ Namespace My.Sys.Drawing
 				'pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 				'.dwCharX = .UnScaleX(extend.width)
 				'.dwCharY = .UnScaleY(extend.height)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As HDC hd
 				If .ParentControl <> 0 Then
 					hd = GetDC(.ParentControl->Handle)

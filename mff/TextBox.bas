@@ -369,10 +369,10 @@ Namespace My.Sys.Forms
 				FText = _Reallocate(FText, (length + 1) * SizeOf(WString))
 				If FText = 0 Then Return ""
 				For i As Integer = 0 To length - 1
-					*FText[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
+					FText[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
 				Next
-				*FText[length] = 0
-			Next
+				FText[length] = 0
+			End If
 			If FText = 0 Then Return "" Else Return *FText
 		#elseif defined(__USE_WASM__)
 			Dim ptr_ As ZString Ptr = GetStringValue(@This)
@@ -450,7 +450,11 @@ Namespace My.Sys.Forms
 				Dim As jmethodID mCharAt = (*env)->GetMethodID(env, cCharSequence, "charAt", "(I)C")
 				Dim As Integer length = (*env)->CallIntMethod(env, CharSequence, mLength)
 				FText = _Reallocate(FText, (length + 1) * SizeOf(WString))
-				If FText = 0 Then Return ""
+				If FText = 0 Then
+					FText_.Resize 0
+					*FText_.m_Data = ""
+					Return FText_
+				End If
 				For i As Integer = 0 To length - 1
 					(*FText)[i] = (*env)->CallCharMethod(env, CharSequence, mCharAt, i)
 				Next
@@ -504,11 +508,11 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#elseif defined(__USE_JNI__)
-			If FHandle Then
+			If Owner->FHandle Then
 				(*env)->CallVoidMethod(env, Owner->FHandle, GetMethodID("android/widget/EditText", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(Sender)))
 			End If
 		#elseif defined(__USE_WASM__)
-			If FHandle Then
+			If Owner->FHandle Then
 				SetStringValue(Owner, Sender)
 			End If
 		#endif

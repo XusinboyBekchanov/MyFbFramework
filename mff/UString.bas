@@ -756,7 +756,7 @@ End Function
 	
 	'Returns a string, which is a substring of a string expression beginning at the start position (defaults to 1), in which a specified substring has been replaced with another substring a specified number of times.
 	Private Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByVal Count As Integer = -1, MatchCase As Boolean = True, ByRef CountReplaced As Integer = 0) As UString
-		If Len(FindingText) = 0 Then CountReplaced = 0:Return Expression
+		If Len(FindingText) = 0 Then CountReplaced = 0: Return Expression
 		Dim As WString Ptr original, find
 		If MatchCase Then
 			original = @Expression
@@ -765,7 +765,7 @@ End Function
 			WLet(original, LCase(Expression))
 			WLet(find, LCase(FindingText))
 		End If
-		If original = 0 OrElse find = 0 Then CountReplaced = 0:Return Expression
+		If original = 0 OrElse find = 0 Then CountReplaced = 0: Return Expression
 		Dim As Integer i, j, ln, lnp, countof, num
 		ln = Len(*original) * GrowLength: 'If ln = 0 Then Return 0
 		lnp = Len(*find) * GrowLength: 'If lnp = 0 Then Return 0

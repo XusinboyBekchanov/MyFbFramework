@@ -8,6 +8,7 @@
 '#   Copyright (c) Aloberoger                                                   #
 '################################################################################
 
+#include once "WStringList.bi"
 #include once "Canvas.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/winspool.bi"

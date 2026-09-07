@@ -41,8 +41,11 @@
 #endif
 
 #define __EXPORT_PROCS__
-#define MEMCHECK 0
+#ifndef MEMCHECK
+	#define MEMCHECK 0
+#endif
 
+#include once "Object.bi"
 #include once "Form.bi"
 #include once "Animate.bi"
 #include once "Application.bi"
@@ -105,7 +108,10 @@
 #include once "ProgressBar.bi"
 #include once "RadioButton.bi"
 #include once "ReBar.bi"
+#include once "Report.bi"
+#include once "ReportDataBind.bi"
 #include once "RichTextBox.bi"
+#include once "Ruler.bi"
 #include once "ScrollBarControl.bi"
 #include once "ScrollControl.bi"
 #include once "SearchBox.bi"
@@ -184,7 +190,9 @@ Using My.Sys.Forms
 		Case "progressbar": Ctrl = _New( ProgressBar)
 		Case "radiobutton": Ctrl = _New( RadioButton)
 		Case "rebar": Ctrl = _New( ReBar)
+		Case "report": Ctrl = _New(Report)
 		Case "richtextbox": Ctrl = _New( RichTextBox)
+		Case "ruler": Ctrl = _New( Ruler)
 		Case "tabcontrol": Ctrl = _New( TabControl)
 		Case "tabpage": Ctrl = _New( TabPage)
 		Case "scrollbarcontrol": Ctrl = _New( ScrollBarControl)
@@ -221,6 +229,30 @@ Using My.Sys.Forms
 		Return Ctrl
 	End Function
 	
+	Dim Shared RptCtrl As ReportControl Ptr
+	Function CreateReportControl Alias "CreateReportControl" (ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As ReportBand Ptr) As ReportControl Ptr Export
+		RptCtrl = 0
+		Select Case LCase(ClassName)
+		Case "reportfield": RptCtrl = _New(ReportField)
+		Case "reportimage": RptCtrl = _New(ReportImage)
+		Case "reportlabel": RptCtrl = _New(ReportLabel)
+		Case "reportline": RptCtrl = _New(ReportLine)
+		Case "reportshape": RptCtrl = _New(ReportShape)
+		End Select
+		If RptCtrl Then
+			RptCtrl->Name = sName
+			#ifndef WriteProperty_Off
+				RptCtrl->WriteProperty("Text", @Text)
+			#endif
+			RptCtrl->SetBounds lLeft, lTop, lWidth, lHeight
+			#ifndef WriteProperty_Off
+				RptCtrl->WriteProperty("Parent", Parent)
+			#endif
+			If Not Objects.Contains(RptCtrl) Then Objects.Add RptCtrl
+		EndIf
+		Return RptCtrl
+	End Function
+	
 	Dim Shared Cpnt As Component Ptr
 	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Component Ptr Export
 		Cpnt = 0
@@ -243,7 +275,11 @@ Using My.Sys.Forms
 		Case "printdocument": Cpnt = _New(PrintDocument)
 		Case "printpreviewdialog": Cpnt = _New( PrintPreviewDialog)
 		Case "printer": Cpnt = _New( Printer)
-		Case Else: Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
+		Case Else
+			Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
+			If Cpnt = 0 Then
+				Cpnt = CreateReportControl(ClassName, sName, sName, lLeft, lTop, 10, 10, 0)
+			End If
 		End Select
 		If Cpnt Then
 			Cpnt->Name = sName
@@ -265,6 +301,7 @@ Using My.Sys.Forms
 		Case "menuitem": Obj = _New( MenuItem)
 		Case "statuspanel": Obj = _New( StatusPanel)
 		Case "toolbutton": Obj = _New( ToolButton)
+		Case "reportband": Obj = _New(ReportBand)
 		Case Else: Obj = CreateComponent(ClassName, "", 0, 0, 0)
 		End Select
 		If Obj Then
@@ -281,53 +318,70 @@ Using My.Sys.Forms
 		Case "chart": _Delete( Cast(Chart Ptr, Ctrl))
 		Case "checkbox" :_Delete( Cast(CheckBox Ptr, Ctrl))
 		Case "checkedlistbox": _Delete( Cast(CheckedListBox Ptr, Ctrl))
+		Case "colordialog": _Delete( Cast(ColorDialog Ptr, Ctrl))
 		Case "comboboxedit": _Delete( Cast(ComboBoxEdit Ptr, Ctrl))
 		Case "comboboxex": _Delete( Cast(ComboBoxEx Ptr, Ctrl))
 		Case "commandbutton": _Delete( Cast(CommandButton Ptr, Ctrl))
 		Case "datetimepicker": _Delete( Cast(DateTimePicker Ptr, Ctrl))
+		Case "folderbrowserdialog": _Delete( Cast(FolderBrowserDialog Ptr, Ctrl))
+		Case "fontdialog": _Delete( Cast(FontDialog Ptr, Ctrl))
 		Case "form": _Delete( Cast(Form Ptr, Ctrl))
 		Case "grid": _Delete( Cast(Grid Ptr, Ctrl))
 		Case "griddata": _Delete( Cast(GridData Ptr, Ctrl))
 		Case "groupbox": _Delete( Cast(GroupBox Ptr, Ctrl))
 		Case "header": _Delete( Cast(Header Ptr, Ctrl))
-		Case "hotkey": _Delete( Cast(HotKey Ptr, Ctrl))
 		Case "horizontalbox": _Delete(Cast(HorizontalBox Ptr, Ctrl))
+		Case "hotkey": _Delete( Cast(HotKey Ptr, Ctrl))
+		Case "hscrollbar": _Delete( Cast(HScrollBar Ptr, Ctrl))
 		Case "httpconnection": _Delete(Cast(HTTPConnection Ptr, Ctrl))
 		Case "httpserver": _Delete(Cast(HTTPServer Ptr, Ctrl))
-		Case "ipaddress": _Delete( Cast(IPAddress Ptr, Ctrl))
 		Case "imagebox": _Delete( Cast(ImageBox Ptr, Ctrl))
+		Case "imagelist": _Delete( Cast(ImageList Ptr, Ctrl))
+		Case "ipaddress": _Delete( Cast(IPAddress Ptr, Ctrl))
 		Case "label": _Delete( Cast(Label Ptr, Ctrl))
 		Case "linklabel": _Delete( Cast(LinkLabel Ptr, Ctrl))
 		Case "listcontrol": _Delete( Cast(ListControl Ptr, Ctrl))
 		Case "listview": _Delete( Cast(ListView Ptr, Ctrl))
+		Case "mainmenu": _Delete( Cast(MainMenu Ptr, Ctrl))
 		Case "monthcalendar": _Delete( Cast(MonthCalendar Ptr, Ctrl))
 		Case "notifyicon": _Delete( Cast(NotifyIcon Ptr, Ctrl))
 		Case "numericupdown": _Delete( Cast(NumericUpDown Ptr, Ctrl))
+		Case "openfilecontrol": _Delete( Cast(OpenFileControl Ptr, Ctrl))
+		Case "openfiledialog": _Delete( Cast(OpenFileDialog Ptr, Ctrl))
 		Case "pagepanel": _Delete( Cast(PagePanel Ptr, Ctrl))
 		Case "pagescroller": _Delete( Cast(PageScroller Ptr, Ctrl))
 		Case "pagesetupdialog": _Delete( Cast(PageSetupDialog Ptr, Ctrl))
-		Case "printdialog": _Delete( Cast(PrintDialog Ptr, Ctrl))
-		Case "printdocument": _Delete( Cast(PrintDocument Ptr, Ctrl))
-		Case "printpreviewcontrol": _Delete( Cast(PrintPreviewControl Ptr, Ctrl))
-		Case "printpreviewdialog": _Delete( Cast(PrintPreviewDialog Ptr, Ctrl))
-		Case "printer": _Delete( Cast(Printer Ptr, Ctrl))
-		Case "openfilecontrol": _Delete( Cast(OpenFileControl Ptr, Ctrl))
 		Case "panel": _Delete( Cast(Panel Ptr, Ctrl))
 		Case "picture": _Delete( Cast(Picture Ptr, Ctrl))
+		Case "popupmenu": _Delete( Cast(PopupMenu Ptr, Ctrl))
+		Case "printdialog": _Delete( Cast(PrintDialog Ptr, Ctrl))
+		Case "printdocument": _Delete( Cast(PrintDocument Ptr, Ctrl))
+		Case "printer": _Delete( Cast(Printer Ptr, Ctrl))
+		Case "printpreviewcontrol": _Delete( Cast(PrintPreviewControl Ptr, Ctrl))
+		Case "printpreviewdialog": _Delete( Cast(PrintPreviewDialog Ptr, Ctrl))
 		Case "progressbar": _Delete( Cast(ProgressBar Ptr, Ctrl))
 		Case "radiobutton": _Delete( Cast(RadioButton Ptr, Ctrl))
 		Case "rebar": _Delete( Cast(ReBar Ptr, Ctrl))
+		Case "report": _Delete( Cast(Report Ptr, Ctrl))
+		Case "reportband": _Delete( Cast(ReportBand Ptr, Ctrl))
+		Case "reportfield": _Delete( Cast(ReportField Ptr, Ctrl))
+		Case "reportimage": _Delete( Cast(ReportImage Ptr, Ctrl))
+		Case "reportlabel": _Delete( Cast(ReportLabel Ptr, Ctrl))
+		Case "reportline": _Delete( Cast(ReportLine Ptr, Ctrl))
+		Case "reportrecordset": _Delete( Cast(ReportRecordSet Ptr, Ctrl))
+		Case "reportshape": _Delete( Cast(ReportShape Ptr, Ctrl))
 		Case "richtextbox": _Delete( Cast(RichTextBox Ptr, Ctrl))
-		Case "tabcontrol": _Delete( Cast(TabControl Ptr, Ctrl))
-		Case "tabpage": _Delete( Cast(TabPage Ptr, Ctrl))
+		Case "ruler": _Delete( Cast(Ruler Ptr, Ctrl))
+		Case "savefiledialog": _Delete( Cast(SaveFileDialog Ptr, Ctrl))
 		Case "scrollbarcontrol": _Delete( Cast(ScrollBarControl Ptr, Ctrl))
 		Case "scrollcontrol": _Delete( Cast(ScrollControl Ptr, Ctrl))
 		Case "searchbox": _Delete( Cast(SearchBox Ptr, Ctrl))
-		Case "hscrollbar": _Delete( Cast(HScrollBar Ptr, Ctrl))
-		Case "vscrollbar": _Delete( Cast(VScrollBar Ptr, Ctrl))
 		Case "splitter": _Delete( Cast(Splitter Ptr, Ctrl))
 		Case "statusbar": _Delete( Cast(StatusBar Ptr, Ctrl))
+		Case "tabcontrol": _Delete( Cast(TabControl Ptr, Ctrl))
+		Case "tabpage": _Delete( Cast(TabPage Ptr, Ctrl))
 		Case "textbox": _Delete( Cast(TextBox Ptr, Ctrl))
+		Case "timercomponent": _Delete( Cast(TimerComponent Ptr, Ctrl))
 		Case "toolbar": _Delete( Cast(ToolBar Ptr, Ctrl))
 		Case "toolpalette": _Delete( Cast(ToolPalette Ptr, Ctrl))
 		Case "tooltips": _Delete( Cast(ToolTips Ptr, Ctrl))
@@ -336,16 +390,8 @@ Using My.Sys.Forms
 		Case "treeview": _Delete( Cast(TreeView Ptr, Ctrl))
 		Case "updown": _Delete( Cast(UpDown Ptr, Ctrl))
 		Case "usercontrol": _Delete( Cast(UserControl Ptr, Ctrl))
-		Case "imagelist": _Delete( Cast(ImageList Ptr, Ctrl))
-		Case "timercomponent": _Delete( Cast(TimerComponent Ptr, Ctrl))
-		Case "mainmenu": _Delete( Cast(MainMenu Ptr, Ctrl))
-		Case "popupmenu": _Delete( Cast(PopupMenu Ptr, Ctrl))
-		Case "folderbrowserdialog": _Delete( Cast(FolderBrowserDialog Ptr, Ctrl))
-		Case "colordialog": _Delete( Cast(ColorDialog Ptr, Ctrl))
-		Case "fontdialog": _Delete( Cast(FontDialog Ptr, Ctrl))
-		Case "openfiledialog": _Delete( Cast(OpenFileDialog Ptr, Ctrl))
-		Case "savefiledialog": _Delete( Cast(SaveFileDialog Ptr, Ctrl))
 		Case "verticalbox": _Delete( Cast(VerticalBox Ptr, Ctrl))
+		Case "vscrollbar": _Delete( Cast(VScrollBar Ptr, Ctrl))
 		#if defined(__USE_WEBKITGTK__) Or Not defined(__USE_GTK__)
 			Case "webbrowser": _Delete( Cast(WebBrowser Ptr, Ctrl))
 		#endif

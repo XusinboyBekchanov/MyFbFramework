@@ -1172,7 +1172,7 @@ Namespace My.Sys.Forms
 					Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_object, "<init>", "(Landroid/content/Context;)V")
 					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, Instance)
 				End If
-				Text = FText
+				Text = *FText
 			#elseif defined(__USE_WASM__)
 				Dim As String HClassName = *FClassAncestor
 				Dim As Any Ptr HParent
@@ -3504,7 +3504,7 @@ Namespace My.Sys.Forms
 				If scrolledwidget <> 0 AndAlso GTK_IS_WIDGET(scrolledwidget) Then
 					g_signal_handlers_disconnect_by_func(scrolledwidget, G_CALLBACK(@Control_Scroll), @This)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				FDropTarget.AllowDrop False
 			#endif
 			FreeWnd

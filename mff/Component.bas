@@ -560,7 +560,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Private Sub Component.FreeWidget()
-		#ifndef __FB_WIN32__
+		#ifdef __USE_GTK__
 			If widget <> 0 AndAlso GTK_IS_WIDGET(widget) Then
 				Dim As GtkWidget Ptr TempWidget = widget
 				widget = 0

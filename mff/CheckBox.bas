@@ -113,7 +113,7 @@ Namespace My.Sys.Forms
 			gtk_button_set_label(GTK_BUTTON(widget), ToUtf8(Value))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FAutoSize Then AutoSize = True

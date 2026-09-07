@@ -25,6 +25,9 @@
 	'Dim Shared pD2D1Factory As ID2D1Factory Ptr
 	'Dim Shared pDWriteFactory As IDWriteFactory Ptr
 #endif
+#ifdef __USE_JNI__
+	#define G_PI 3.1415926
+#endif
 
 Namespace My.Sys.Drawing
 	#define QCanvas(__Ptr__) (*Cast(Canvas Ptr, __Ptr__))

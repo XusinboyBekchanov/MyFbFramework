@@ -317,6 +317,37 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	#ifdef __USE_JNI__
+		Private Property Form.ExternalEventAction ByRef As WString
+			Return FExternalEventAction
+		End Property
+		
+		Private Property Form.ExternalEventAction(ByRef Value As WString)
+			FExternalEventAction = Value
+			UpdateExternalEventFilter
+		End Property
+		
+		Private Property Form.ExternalEventExtra ByRef As WString
+			Return FExternalEventExtra
+		End Property
+		
+		Private Property Form.ExternalEventExtra(ByRef Value As WString)
+			FExternalEventExtra = Value
+			UpdateExternalEventFilter
+		End Property
+		
+		'Forwards the current ExternalEventAction/ExternalEventExtra values to the Java
+		'Activity, which (re)registers its scanner BroadcastReceiver accordingly.
+		Private Sub Form.UpdateExternalEventFilter
+			If FHandle Then
+				Dim As jmethodID func = GetMethodID(*FClassAncestor, "updateExternalEventFilter", "(Ljava/lang/String;Ljava/lang/String;)V")
+				If func Then
+					(*env)->CallVoidMethod(env, FHandle, func, (*env)->NewStringUTF(env, ToUtf8(FExternalEventAction)), (*env)->NewStringUTF(env, ToUtf8(FExternalEventExtra)))
+				End If
+			End If
+		End Sub
+	#endif
+	
 	Private Property Form.Transparent As Boolean
 		Return FTransparent
 	End Property
@@ -751,7 +782,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
 			End If
 		#elseif defined(__USE_WASM__)
 			If FMainForm Then
@@ -2170,6 +2201,29 @@ End Namespace
 					End If
 				Next
 				env = 0
+			End If
+		End If
+	End Sub
+	
+	'Called from Java (Activity) side when an external event occurs, e.g. data received from a
+	'barcode/QR code scanner. Forward the data to the main form's OnExternalEvent event.
+	'On the Java side, declare a matching native method in the Activity, e.g.:
+	'    public native void mffActivity_onExternalEvent(String data);
+	'and call it whenever the scanner data arrives (BroadcastReceiver, onNewIntent, a Bluetooth/
+	'Serial HID listener, etc.), passing the scanned text as the "data" argument.
+	Sub mffActivity_onExternalEvent Alias AddToPackage(Package, mffActivity_onExternalEvent) (ByVal env1 As JNIEnv Ptr, This_ As jobject, Data_ As jstring) Export
+		If pApp Then
+			If env <> 0 AndAlso pApp->MainForm Then
+				If Data_ <> 0 Then
+					Dim As ZString Ptr pData = (*env)->GetStringUTFChars(env, Data_, 0)
+					If pData Then
+						Dim As WString Ptr Result = FromUtf8(Cast(ZString Ptr, pData))
+						Dim As WString * 2048 wData = *Result
+						(*env)->ReleaseStringUTFChars(env, Data_, pData)
+						If pApp->MainForm->OnExternalEvent Then pApp->MainForm->OnExternalEvent(* (pApp->MainForm->Designer), *pApp->MainForm, wData)
+						WDeAllocate(Result)
+					End If
+				End If
 			End If
 		End If
 	End Sub

@@ -88,6 +88,11 @@ Namespace My.Sys.Forms
 		FDPIChanging   As Boolean
 		FShowInTaskbar As Boolean
 		FOnCreate      As Sub(ByRef Sender As Form)
+		#ifdef __USE_JNI__
+			FExternalEventAction As WString * 256
+			FExternalEventExtra  As WString * 256
+			Declare Sub UpdateExternalEventFilter
+		#endif
 		Declare Static Sub ActiveControlChanged(ByRef Sender As Control)
 		#ifdef __USE_GTK__
 			ImageWidget As GtkWidget Ptr
@@ -168,6 +173,14 @@ Namespace My.Sys.Forms
 		'Returns/sets the opacity level of the form (Windows, Linux).
 		Declare Property Opacity As Integer
 		Declare Property Opacity(Value As Integer)
+		#ifdef __USE_JNI__
+			'Returns/sets the Intent action used to receive data from an external source, e.g. a barcode/QR scanner (Android). Set together with ExternalEventExtra.
+			Declare Property ExternalEventAction ByRef As WString
+			Declare Property ExternalEventAction(ByRef Value As WString)
+			'Returns/sets the name of the Intent extra that holds the external event data, e.g. the scanned barcode text (Android).
+			Declare Property ExternalEventExtra ByRef As WString
+			Declare Property ExternalEventExtra(ByRef Value As WString)
+		#endif
 		'Returns/sets the form that owns this form (Windows, Linux).
 		Declare Property Owner As Form Ptr
 		Declare Property Owner(Value As Form Ptr)
@@ -251,6 +264,8 @@ Namespace My.Sys.Forms
 		OnDeActivate            As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs after a Application instance becomes deactive (Windows, Linux).
 		OnDeActivateApp         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
+		'Occurs when the application receives data from an external source, e.g. a barcode/QR scanner (Android).
+		OnExternalEvent         As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Data As WString)
 		'Occurs when the Visible property value changes to false (Windows, Linux).
 		OnHide                  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		'Occurs when the Visible property value changes to true (Windows, Linux).

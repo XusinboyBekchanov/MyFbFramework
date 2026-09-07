@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 			gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
 			End If
 		#endif
 		SetAutoSize
