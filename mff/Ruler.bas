@@ -115,14 +115,16 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 
-	'Reacts to the framework's own dark-mode notifications (Control.SetDark, the same virtual
-	'every other control overrides) - Base.SetDark already swaps the native theme/background,
-	'we only need to repaint so DrawRuler picks the matching palette below.
-	Private Sub Ruler.SetDark(Value As Boolean)
-		Base.SetDark(Value)
-		BackColor = IIf(Value, BGR(45, 45, 48), BGR(246, 246, 248))
-		Invalidate
-	End Sub
+	#ifdef __USE_WINAPI__
+		'Reacts to the framework's own dark-mode notifications (Control.SetDark, the same virtual
+		'every other control overrides) - Base.SetDark already swaps the native theme/background,
+		'we only need to repaint so DrawRuler picks the matching palette below.
+		Private Sub Ruler.SetDark(Value As Boolean)
+			Base.SetDark(Value)
+			BackColor = IIf(Value, BGR(45, 45, 48), BGR(246, 246, 248))
+			Invalidate
+		End Sub
+	#endif
 
 	'All the actual tick/marker/tracker drawing - called from ProcessMessage below, never from
 	'the public OnPaint field (see Ruler.bi for why).

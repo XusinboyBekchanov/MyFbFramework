@@ -56,7 +56,9 @@ Namespace My.Sys.Forms
 			Declare Function GtkDrawAfter(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Declare Static Sub HandleAllocated(ByRef Sender As Control)
 		#endif
-		Declare Virtual Sub SetDark(Value As Boolean)
+		#ifdef __USE_WINAPI__
+			Declare Virtual Sub SetDark(Value As Boolean)
+		#endif
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
