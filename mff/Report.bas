@@ -108,10 +108,10 @@ Namespace My.Sys.Forms
 
 	Private Sub ReportControl.CreateHandle
 		#ifdef __USE_WINAPI__
-			If This.Handle <> 0 OrElse FParent = 0 OrElse FParent->Parent = 0 Then Return
+			If FHandle <> 0 OrElse FParent = 0 OrElse FParent->Parent = 0 Then Return
 			Dim As HWND ParentHandle = FParent->Parent->Handle
 			If ParentHandle = 0 Then Return
-			This.Handle = CreateWindowExW(0, "STATIC", "", WS_CHILD Or WS_VISIBLE, _
+			FHandle = CreateWindowExW(0, "STATIC", "", WS_CHILD Or WS_VISIBLE, _
 				FLeft, FTop, FWidth, FHeight, ParentHandle, 0, GetModuleHandle(NULL), 0)
 		#endif
 	End Sub
@@ -680,7 +680,28 @@ Namespace My.Sys.Forms
 		End Select
 		Return ""
 	End Function
+	
+	Private Sub Report.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		Dim As Integer NewHeight = cHeight
+		Dim As Integer LastIdx = FBands.Count - 1
+		If LastIdx >= 0 Then
+			Dim As ReportBand Ptr LastBand = QReportBandPtr(FBands.Item(LastIdx))
+			'Oxirgi banddan boshqa hamma bandlarning umumiy balandligi - bular
+			'Reportning Height'i qanday o'zgarishidan qat'iy nazar joyidan qimirlamaydi.
+			Dim As Integer OtherBandsTop = BandTop(LastIdx)
+			'Height oxirgi bandni hech bo'lmasa o'zining minimal balandligigacha (8px,
+			'xuddi BandHeight property'sidagidek) qisqartiradigan darajadan pastga
+			'tushmasin.
+			Dim As Integer MinHeight = OtherBandsTop + 8
+			If NewHeight < MinHeight Then NewHeight = MinHeight
 
+			'Farqni to'liq oxirgi bandga beramiz - shu bilan Report.Height o'zgarganda
+			'boshqa bandlar joyida qoladi, faqat oxirgisi cho'ziladi/qisqaradi.
+			LastBand->Height = NewHeight - OtherBandsTop
+		End If
+		Base.Move(cLeft, cTop, cWidth, NewHeight)
+	End Sub
+	
 	'Keeps a control fully inside Report's own Panel bounds. Works uniformly on either a
 	'plain native Control (e.g. a Label dropped straight onto the surface) or a
 	'ReportControl (ReportField/ReportImage/ReportLine/ReportShape) since both ultimately

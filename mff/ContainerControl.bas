@@ -29,6 +29,10 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	Private Sub ContainerControl.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		Base.Move(cLeft, cTop, cWidth, cHeight)
+	End Sub
+	
 	#ifdef __USE_GTK__
 		Private Function ContainerControl.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 			If CInt(widget) AndAlso CInt(GTK_IS_NOTEBOOK(widget) <> 1) Then

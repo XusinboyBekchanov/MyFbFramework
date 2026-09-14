@@ -14,6 +14,7 @@ Namespace My.Sys.Forms
 	Private:
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
 		#ifdef __USE_GTK__
 			'Function registers a window class for subsequent use in calls to the create window (Windows, Linux)
