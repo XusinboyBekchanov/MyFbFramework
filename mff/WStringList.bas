@@ -377,7 +377,7 @@ End Sub
 		'If iValue = "" OrElse FCount < 1 Then Return -1 'We should allow add a empty records. Will get trouble in TreeListview if not allowed.
 		If FCount < 1 Then Return -1
 		If iStart < 0 Then iStart = 0
-		If FMatchCase <> bMatchCase Then
+		If FMatchCase <> bMatchCase AndAlso FAutoSorted = True Then
 			FMatchCase = bMatchCase
 			This.Sort(bMatchCase, FDirection, FNaturalSort)
 		End If
